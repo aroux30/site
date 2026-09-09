@@ -1,0 +1,76 @@
+# ============================================
+# Backend Docker Ignore
+# ============================================
+
+# Git
+.git
+.gitignore
+
+# Documentation
+*.md
+LICENSE
+
+# Python
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+.venv
+venv
+env
+*.egg-info
+dist
+build
+.eggs
+.mypy_cache
+.ruff_cache
+.pytest_cache
+.coverage
+.coverage.*
+htmlcov
+.tox
+.nox
+pip-log.txt
+
+# Testing
+tests/
+pytest.ini
+setup.cfg
+tox.ini
+
+# IDE
+.idea
+.vscode
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+.env.*
+
+# Docker
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# CI/CD
+.github
+.gitlab-ci.yml
+
+# Logs
+*.log
+logs/
+
+# Local data
+data/
+tmp/
+media/
+
+# Coverage
+coverage/
+htmlcov/

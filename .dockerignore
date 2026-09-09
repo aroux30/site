@@ -1,0 +1,53 @@
+# ============================================
+# Root Docker Ignore
+# ============================================
+
+# Git
+.git
+.gitignore
+
+# Documentation
+*.md
+!README.md
+LICENSE
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# IDE
+.idea
+.vscode
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# CI/CD
+.github
+.gitlab-ci.yml
+.circleci
+
+# Monitoring configs (mounted as volumes)
+monitoring/
+
+# Nginx configs (mounted as volumes)
+nginx/
+
+# Docker files
+docker-compose*.yml
+Dockerfile*
+
+# Local data
+data/
+tmp/
+logs/
+*.log
+
+# Coverage
+coverage/
+htmlcov/
+.nyc_output/

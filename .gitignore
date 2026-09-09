@@ -1,0 +1,138 @@
+# ============================================
+# Git Ignore - E-Commerce Platform
+# ============================================
+
+# ──────────────────────────────────────────
+# Environment & Secrets
+# ──────────────────────────────────────────
+.env
+.env.local
+.env.production
+.env.staging
+!.env.example
+
+# ──────────────────────────────────────────
+# Python
+# ──────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+*.egg
+dist/
+build/
+.eggs/
+.venv/
+venv/
+env/
+ENV/
+*.whl
+pip-log.txt
+pip-delete-this-directory.txt
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+celerybeat-schedule
+celerybeat.pid
+
+# ──────────────────────────────────────────
+# Node.js / Next.js
+# ──────────────────────────────────────────
+node_modules/
+.next/
+out/
+.nuxt/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.pnpm-store/
+.turbo/
+.vercel/
+
+# ──────────────────────────────────────────
+# Docker
+# ──────────────────────────────────────────
+docker-compose.override.yml
+
+# ──────────────────────────────────────────
+# IDE / Editors
+# ──────────────────────────────────────────
+.idea/
+*.iml
+*.iws
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+*.swp
+*.swo
+*~
+.project
+.classpath
+.settings/
+*.sublime-workspace
+*.sublime-project
+
+# ──────────────────────────────────────────
+# OS Files
+# ──────────────────────────────────────────
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+
+# ──────────────────────────────────────────
+# Logs
+# ──────────────────────────────────────────
+*.log
+logs/
+
+# ──────────────────────────────────────────
+# Coverage Reports
+# ──────────────────────────────────────────
+coverage/
+*.lcov
+.nyc_output/
+
+# ──────────────────────────────────────────
+# Build Artifacts
+# ──────────────────────────────────────────
+*.tar.gz
+*.zip
+
+# ──────────────────────────────────────────
+# Local Data / Volumes
+# ──────────────────────────────────────────
+data/
+tmp/
+temp/
+
+# ──────────────────────────────────────────
+# Certificates (local dev)
+# ──────────────────────────────────────────
+*.pem
+*.key
+*.crt
+*.csr
+!nginx/ssl/.gitkeep
+
+# ──────────────────────────────────────────
+# Misc
+# ──────────────────────────────────────────
+*.bak
+*.backup
+*.orig
+*.patch
+.terraform/
+*.tfstate
+*.tfstate.*

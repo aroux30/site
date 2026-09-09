@@ -1,0 +1,228 @@
+# Production overrides for docker-compose.yml
+# Usage: docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+
+version: "3.9"
+
+services:
+  # ──────────────────────────────────────────────
+  # Nginx - Production with SSL
+  # ──────────────────────────────────────────────
+  nginx:
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.prod.conf:/etc/nginx/nginx.conf:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+      - /var/www/certbot:/var/www/certbot:ro
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 256m
+        reservations:
+          cpus: "0.1"
+          memory: 64m
+
+  # ──────────────────────────────────────────────
+  # Frontend - Production build
+  # ──────────────────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      target: production
+    environment:
+      - NODE_ENV=production
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 512m
+        reservations:
+          cpus: "0.25"
+          memory: 128m
+      replicas: 2
+
+  # ──────────────────────────────────────────────
+  # Backend - Production
+  # ──────────────────────────────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: production
+    environment:
+      - ENVIRONMENT=production
+      - DEBUG=false
+      - LOG_LEVEL=warning
+    deploy:
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: 1g
+        reservations:
+          cpus: "0.5"
+          memory: 256m
+      replicas: 2
+
+  # ──────────────────────────────────────────────
+  # Celery Worker - Production
+  # ──────────────────────────────────────────────
+  worker:
+    command: celery -A app.core.celery_app worker --loglevel=warning --concurrency=8 --max-tasks-per-child=1000
+    deploy:
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: 1g
+        reservations:
+          cpus: "0.5"
+          memory: 256m
+      replicas: 2
+
+  # ──────────────────────────────────────────────
+  # Celery Beat - Production
+  # ──────────────────────────────────────────────
+  beat:
+    command: celery -A app.core.celery_app beat --loglevel=warning --schedule=/tmp/celerybeat-schedule
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 256m
+        reservations:
+          cpus: "0.1"
+          memory: 64m
+
+  # ──────────────────────────────────────────────
+  # PostgreSQL - Production (no exposed port)
+  # ──────────────────────────────────────────────
+  postgres:
+    ports: []
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    command: >
+      postgres
+        -c shared_buffers=256MB
+        -c effective_cache_size=768MB
+        -c maintenance_work_mem=128MB
+        -c checkpoint_completion_target=0.9
+        -c wal_buffers=16MB
+        -c default_statistics_target=100
+        -c random_page_cost=1.1
+        -c effective_io_concurrency=200
+        -c work_mem=4MB
+        -c max_connections=200
+        -c log_min_duration_statement=1000
+    deploy:
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: 2g
+        reservations:
+          cpus: "1.0"
+          memory: 1g
+
+  # ──────────────────────────────────────────────
+  # Redis - Production (no exposed port)
+  # ──────────────────────────────────────────────
+  redis:
+    ports: []
+    command: >
+      redis-server
+        --appendonly yes
+        --requirepass ${REDIS_PASSWORD}
+        --maxmemory 512mb
+        --maxmemory-policy allkeys-lru
+        --tcp-backlog 511
+        --timeout 300
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 768m
+        reservations:
+          cpus: "0.25"
+          memory: 256m
+
+  # ──────────────────────────────────────────────
+  # Elasticsearch - Production (no exposed port)
+  # ──────────────────────────────────────────────
+  elasticsearch:
+    ports: []
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=true
+      - xpack.security.http.ssl.enabled=false
+      - ES_JAVA_OPTS=-Xms1g -Xmx1g
+      - cluster.name=ecommerce-cluster
+      - ELASTIC_PASSWORD=${ELASTICSEARCH_PASSWORD:-changeme}
+    deploy:
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: 2g
+        reservations:
+          cpus: "1.0"
+          memory: 1g
+
+  # ──────────────────────────────────────────────
+  # MinIO - Production (no exposed console port)
+  # ──────────────────────────────────────────────
+  minio:
+    ports:
+      - "9000:9000"
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 1g
+        reservations:
+          cpus: "0.25"
+          memory: 256m
+
+  # ──────────────────────────────────────────────
+  # Prometheus - Production (no exposed port)
+  # ──────────────────────────────────────────────
+  prometheus:
+    ports: []
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--storage.tsdb.retention.time=30d"
+      - "--storage.tsdb.retention.size=10GB"
+      - "--web.console.libraries=/etc/prometheus/console_libraries"
+      - "--web.console.templates=/etc/prometheus/consoles"
+      - "--web.enable-lifecycle"
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 1g
+        reservations:
+          cpus: "0.25"
+          memory: 256m
+
+  # ──────────────────────────────────────────────
+  # Grafana - Production (no exposed port, accessed via nginx)
+  # ──────────────────────────────────────────────
+  grafana:
+    ports: []
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_SERVER_ROOT_URL: https://${DOMAIN}/grafana/
+      GF_SERVER_SERVE_FROM_SUB_PATH: "true"
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 512m
+        reservations:
+          cpus: "0.1"
+          memory: 128m

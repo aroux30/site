@@ -1,0 +1,119 @@
+========================================
+🔍 Monitor Check: 2026-09-09 21:10:29
+========================================
+📁 Total files: 39511
+❌ Git: NOT initialized
+✅ npm: Dependencies installed
+📡 API route files (non-empty): 0
+⚙️  Service files (non-empty): 0
+📋 Schema files (non-empty): 0
+🏗️  Infrastructure files (non-empty): 0
+🔄 Alembic migrations: 0
+🧪 Test files: 156
+🎨 UI components: 21 | Layout: 2 | Pages: 8
+📦 Domain models (non-empty): 25
+🐍 Real Python files: 44
+🕐 Files modified in last 5 min: 39162
+   Recent files:
+/c/Users/Administrator/Desktop/site/.git/config
+/c/Users/Administrator/Desktop/site/.git/description
+/c/Users/Administrator/Desktop/site/.git/HEAD
+/c/Users/Administrator/Desktop/site/.git/hooks/applypatch-msg.sample
+/c/Users/Administrator/Desktop/site/.git/hooks/commit-msg.sample
+/c/Users/Administrator/Desktop/site/.git/hooks/fsmonitor-watchman.sample
+/c/Users/Administrator/Desktop/site/.git/hooks/post-update.sample
+/c/Users/Administrator/Desktop/site/.git/hooks/pre-applypatch.sample
+/c/Users/Administrator/Desktop/site/.git/hooks/pre-commit.sample
+/c/Users/Administrator/Desktop/site/.git/hooks/pre-merge-commit.sample
+/c/Users/Administrator/Desktop/site/.git/hooks/pre-push.sample
+/c/Users/Administrator/Desktop/site/.git/hooks/pre-rebase.sample
+/c/Users/Administrator/Desktop/site/.git/hooks/pre-receive.sample
+/c/Users/Administrator/Desktop/site/.git/hooks/prepare-commit-msg.sample
+/c/Users/Administrator/Desktop/site/.git/hooks/push-to-checkout.sample
+/c/Users/Administrator/Desktop/site/.git/hooks/sendemail-validate.sample
+/c/Users/Administrator/Desktop/site/.git/hooks/update.sample
+/c/Users/Administrator/Desktop/site/.git/info/exclude
+/c/Users/Administrator/Desktop/site/backend/app/modules/users/domain/models.py
+/c/Users/Administrator/Desktop/site/docs/architecture/erd.md
+
+📊 SUMMARY:
+   Phase 0 completion: Git=YES | Dockerfiles=YES
+   Phase 1 progress: APIs=0 | Services=0 | Schemas=0 | Migrations=0
+   Frontend progress: Components=21 | Pages=8 | npm=YES
+
+========================================
+🔍 Monitor Check: 2026-09-09 21:15:38
+========================================
+📁 Total files: 39753
+✅ Git: Initialized
+✅ npm: Dependencies installed
+📡 API route files (non-empty): 0
+⚙️  Service files (non-empty): 0
+📋 Schema files (non-empty): 0
+🏗️  Infrastructure files (non-empty): 0
+🔄 Alembic migrations: 0
+🧪 Test files: 156
+🎨 UI components: 21 | Layout: 2 | Pages: 10
+📦 Domain models (non-empty): 25
+🐍 Real Python files: 44
+🕐 Files modified in last 5 min: 853
+   Recent files:
+/c/Users/Administrator/Desktop/site/backend/.env.example
+/c/Users/Administrator/Desktop/site/backend/alembic/env.py
+/c/Users/Administrator/Desktop/site/backend/app/core/database/base.py
+/c/Users/Administrator/Desktop/site/backend/app/core/database/session.py
+/c/Users/Administrator/Desktop/site/backend/app/core/database/__init__.py
+/c/Users/Administrator/Desktop/site/backend/Dockerfile
+/c/Users/Administrator/Desktop/site/docker-compose.yml
+/c/Users/Administrator/Desktop/site/docs/MANAGER_STATUS.md
+/c/Users/Administrator/Desktop/site/docs/monitor_log.txt
+/c/Users/Administrator/Desktop/site/frontend/.eslintrc.json
+/c/Users/Administrator/Desktop/site/frontend/.next/app-build-manifest.json
+/c/Users/Administrator/Desktop/site/frontend/.next/app-path-routes-manifest.json
+/c/Users/Administrator/Desktop/site/frontend/.next/build-manifest.json
+/c/Users/Administrator/Desktop/site/frontend/.next/BUILD_ID
+/c/Users/Administrator/Desktop/site/frontend/.next/cache/.previewinfo
+/c/Users/Administrator/Desktop/site/frontend/.next/cache/.rscinfo
+/c/Users/Administrator/Desktop/site/frontend/.next/cache/.tsbuildinfo
+/c/Users/Administrator/Desktop/site/frontend/.next/cache/eslint/.cache_1sglrm7
+/c/Users/Administrator/Desktop/site/frontend/.next/cache/webpack/client-production/0.pack
+/c/Users/Administrator/Desktop/site/frontend/.next/cache/webpack/client-production/index.pack
+
+📊 SUMMARY:
+   Phase 0 completion: Git=YES | Dockerfiles=YES
+   Phase 1 progress: APIs=0 | Services=0 | Schemas=0 | Migrations=0
+   Frontend progress: Components=21 | Pages=10 | npm=YES
+
+========================================
+🔍 Monitor Check: 2026-09-09 21:20:59
+========================================
+📁 Total files: 39580
+✅ Git: Initialized
+✅ npm: Dependencies installed
+📡 API route files (non-empty): 0
+⚙️  Service files (non-empty): 0
+📋 Schema files (non-empty): 0
+🏗️  Infrastructure files (non-empty): 0
+🔄 Alembic migrations: 0
+🧪 Test files: 156
+🎨 UI components: 21 | Layout: 2 | Pages: 10
+📦 Domain models (non-empty): 25
+🐍 Real Python files: 44
+🕐 Files modified in last 5 min: 10
+   Recent files:
+/c/Users/Administrator/Desktop/site/docs/MANAGER_STATUS.md
+/c/Users/Administrator/Desktop/site/docs/monitor_log.txt
+/c/Users/Administrator/Desktop/site/frontend/app/(account)/account/layout.tsx
+/c/Users/Administrator/Desktop/site/frontend/app/(store)/page.tsx
+/c/Users/Administrator/Desktop/site/frontend/components/layout/footer.tsx
+/c/Users/Administrator/Desktop/site/frontend/components/ui/toast.tsx
+/c/Users/Administrator/Desktop/site/frontend/components/ui/use-toast.ts
+/c/Users/Administrator/Desktop/site/frontend/lib/api/client.ts
+/c/Users/Administrator/Desktop/site/frontend/next.config.ts
+/c/Users/Administrator/Desktop/site/frontend/public/fonts/Vazirmatn-Variable.woff2
+
+📊 SUMMARY:
+   Phase 0 completion: Git=YES | Dockerfiles=YES
+   Phase 1 progress: APIs=0 | Services=0 | Schemas=0 | Migrations=0
+   Frontend progress: Components=21 | Pages=10 | npm=YES
+

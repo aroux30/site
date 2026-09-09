@@ -1,0 +1,114 @@
+# Prometheus Configuration
+# Scrape interval and evaluation interval
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  scrape_timeout: 10s
+  external_labels:
+    cluster: "ecommerce"
+    environment: "development"
+
+# Alertmanager configuration (uncomment when alertmanager is set up)
+# alerting:
+#   alertmanagers:
+#     - static_configs:
+#         - targets:
+#           - alertmanager:9093
+
+# Rule files (uncomment when rule files are created)
+# rule_files:
+#   - "/etc/prometheus/rules/*.yml"
+
+scrape_configs:
+  # ──────────────────────────────────────────
+  # Prometheus self-monitoring
+  # ──────────────────────────────────────────
+  - job_name: "prometheus"
+    static_configs:
+      - targets: ["localhost:9090"]
+        labels:
+          service: "prometheus"
+
+  # ──────────────────────────────────────────
+  # Backend API metrics
+  # ──────────────────────────────────────────
+  - job_name: "backend"
+    metrics_path: "/metrics"
+    scrape_interval: 10s
+    static_configs:
+      - targets: ["backend:8000"]
+        labels:
+          service: "backend-api"
+
+  # ──────────────────────────────────────────
+  # Celery Worker metrics (if exposed)
+  # ──────────────────────────────────────────
+  - job_name: "celery-worker"
+    metrics_path: "/metrics"
+    scrape_interval: 15s
+    static_configs:
+      - targets: ["worker:8001"]
+        labels:
+          service: "celery-worker"
+
+  # ──────────────────────────────────────────
+  # PostgreSQL metrics (requires postgres_exporter)
+  # ──────────────────────────────────────────
+  # Uncomment when postgres_exporter service is added
+  # - job_name: "postgres"
+  #   static_configs:
+  #     - targets: ["postgres-exporter:9187"]
+  #       labels:
+  #         service: "postgres"
+
+  # ──────────────────────────────────────────
+  # Redis metrics (requires redis_exporter)
+  # ──────────────────────────────────────────
+  # Uncomment when redis_exporter service is added
+  # - job_name: "redis"
+  #   static_configs:
+  #     - targets: ["redis-exporter:9121"]
+  #       labels:
+  #         service: "redis"
+
+  # ──────────────────────────────────────────
+  # Elasticsearch metrics
+  # ──────────────────────────────────────────
+  # Uncomment when elasticsearch_exporter service is added
+  # - job_name: "elasticsearch"
+  #   static_configs:
+  #     - targets: ["elasticsearch-exporter:9114"]
+  #       labels:
+  #         service: "elasticsearch"
+
+  # ──────────────────────────────────────────
+  # Nginx metrics (requires nginx stub_status or exporter)
+  # ──────────────────────────────────────────
+  # Uncomment when nginx_exporter service is added
+  # - job_name: "nginx"
+  #   static_configs:
+  #     - targets: ["nginx-exporter:9113"]
+  #       labels:
+  #         service: "nginx"
+
+  # ──────────────────────────────────────────
+  # MinIO metrics
+  # ──────────────────────────────────────────
+  - job_name: "minio"
+    metrics_path: "/minio/v2/metrics/cluster"
+    scheme: http
+    scrape_interval: 30s
+    static_configs:
+      - targets: ["minio:9000"]
+        labels:
+          service: "minio"
+
+  # ──────────────────────────────────────────
+  # Node exporter (host metrics)
+  # ──────────────────────────────────────────
+  # Uncomment when node_exporter service is added
+  # - job_name: "node"
+  #   static_configs:
+  #     - targets: ["node-exporter:9100"]
+  #       labels:
+  #         service: "node"

@@ -265,7 +265,9 @@ export async function fetchBlogPosts(
       return data;
     }
   } catch (error) {
-    console.warn("Could not fetch blog posts from API, using fallback data", error);
+    if (process.env.NODE_ENV === "development") {
+      console.warn("Could not fetch blog posts from API, using fallback data", error);
+    }
   }
 
   // Fallback filtering
@@ -310,7 +312,9 @@ export async function fetchBlogPostBySlug(slug: string): Promise<BlogPost> {
       return data;
     }
   } catch (error) {
-    console.warn(`Could not fetch post ${slug} from API, using fallback data`, error);
+    if (process.env.NODE_ENV === "development") {
+      console.warn(`Could not fetch post ${slug} from API, using fallback data`, error);
+    }
   }
 
   const post = fallbackPosts.find((p) => p.slug === slug);
@@ -334,7 +338,9 @@ export async function fetchBlogCategories(): Promise<BlogPostCategory[]> {
       return data;
     }
   } catch (error) {
-    console.warn("Could not fetch blog categories from API, using fallback data", error);
+    if (process.env.NODE_ENV === "development") {
+      console.warn("Could not fetch blog categories from API, using fallback data", error);
+    }
   }
 
   return fallbackCategories;
@@ -349,7 +355,9 @@ export async function fetchRecentBlogPosts(limit = 4): Promise<BlogPost[]> {
       return data;
     }
   } catch (error) {
-    console.warn("Could not fetch recent posts from API, using fallback data", error);
+    if (process.env.NODE_ENV === "development") {
+      console.warn("Could not fetch recent posts from API, using fallback data", error);
+    }
   }
 
   return fallbackPosts.slice(0, limit);

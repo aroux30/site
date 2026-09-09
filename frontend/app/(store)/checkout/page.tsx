@@ -246,7 +246,9 @@ export default function CheckoutPage() {
         }
       }
     } catch (err) {
-      console.warn("Could not fetch addresses:", err);
+      if (process.env.NODE_ENV === "development") {
+        console.warn("Could not fetch addresses:", err);
+      }
     } finally {
       setLoadingAddresses(false);
     }
@@ -353,7 +355,9 @@ export default function CheckoutPage() {
           fallbackShipping(province);
         }
       } catch (err) {
-        console.warn("Shipping quote API failed, using fallback:", err);
+        if (process.env.NODE_ENV === "development") {
+          console.warn("Shipping quote API failed, using fallback:", err);
+        }
         fallbackShipping(province);
       } finally {
         setLoadingShipping(false);
@@ -384,7 +388,9 @@ export default function CheckoutPage() {
         fallbackPaymentMethods();
       }
     } catch (err) {
-      console.warn("Payment methods API failed, using fallback:", err);
+      if (process.env.NODE_ENV === "development") {
+        console.warn("Payment methods API failed, using fallback:", err);
+      }
       fallbackPaymentMethods();
     } finally {
       setLoadingPaymentMethods(false);
@@ -596,7 +602,9 @@ export default function CheckoutPage() {
             return;
           }
         } catch (payErr) {
-          console.warn("Could not initiate payment gateway session, showing confirmation:", payErr);
+          if (process.env.NODE_ENV === "development") {
+            console.warn("Could not initiate payment gateway session, showing confirmation:", payErr);
+          }
         }
       }
 

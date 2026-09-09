@@ -1,3 +1,10 @@
+/**
+ * Client-side Product type with full detail fields (variants, attributes, SEO, etc.).
+ * This is the rich type used by product detail pages and the compare store.
+ *
+ * For backend API response shapes, see `ApiProduct` in `@/lib/api/services.ts`
+ * which represents the lightweight list-level product returned by the API.
+ */
 export interface Product {
   id: string;
   title: string;

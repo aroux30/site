@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import {
@@ -29,7 +29,6 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { SpotlightCard } from "@/components/ui/spotlight-card";
 import { BentoGrid, BentoCard } from "@/components/ui/bento-grid";
 import { Marquee } from "@/components/ui/marquee";
 import { ShimmerButton } from "@/components/ui/shimmer-button";
@@ -252,7 +251,7 @@ function FeaturedProductSpotlight({ product }: { product: ApiProduct }) {
       ? Math.round(((originalPrice - price) / originalPrice) * 100)
       : null;
 
-  const handleAddToCart = (e: React.MouseEvent) => {
+  const handleAddToCart = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     playAddToCartChime();
@@ -266,7 +265,7 @@ function FeaturedProductSpotlight({ product }: { product: ApiProduct }) {
     });
     setAdded(true);
     setTimeout(() => setAdded(false), 1800);
-  };
+  }, [addToCart, product.id, product.name, product.slug, product.primary_image_url, price, originalPrice]);
 
   return (
     <TiltCard3D maxTilt={9} className="group flex flex-col justify-between p-5 transition-all duration-300 hover:border-primary/40">

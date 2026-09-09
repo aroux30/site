@@ -6,6 +6,11 @@ import { useCartStore, type CartItem } from "@/stores/cart-store";
 export function useCart() {
   const store = useCartStore();
 
+  // Rehydrate persisted state on mount (skipHydration: true in store config)
+  useEffect(() => {
+    useCartStore.persist.rehydrate();
+  }, []);
+
   // Initial sync on mount if on client
   useEffect(() => {
     store.fetchCart();

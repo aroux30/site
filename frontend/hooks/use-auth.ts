@@ -76,7 +76,9 @@ export function useAuth() {
 
       // Merge guest cart with authenticated user's cart
       useCartStore.getState().mergeCart().catch((err) => {
-        console.warn("Auto merge cart failed on login:", err);
+        if (process.env.NODE_ENV === "development") {
+          console.warn("Auto merge cart failed on login:", err);
+        }
       });
 
       return { user };

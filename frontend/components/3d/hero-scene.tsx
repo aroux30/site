@@ -4,6 +4,7 @@ import React, { useRef, useState, useEffect } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Float, Sparkles, MeshDistortMaterial } from "@react-three/drei";
 import * as THREE from "three";
+import { CanvasErrorBoundary } from "./canvas-error-boundary";
 
 /**
  * 3D Holographic Flagship Gadget
@@ -195,6 +196,7 @@ export function Hero3DScene() {
       onTouchEnd={handleMouseLeave}
       className="relative h-[420px] sm:h-[480px] lg:h-[540px] w-full cursor-grab active:cursor-grabbing select-none touch-none"
     >
+      <CanvasErrorBoundary>
       <Canvas
         camera={{ position: [0, 0, 7], fov: 45 }}
         gl={{ antialias: true, alpha: true }}
@@ -226,9 +228,10 @@ export function Hero3DScene() {
           color="#34d399"
         />
       </Canvas>
+      </CanvasErrorBoundary>
 
       {/* Floating 3D Badge Indicator */}
-      <div className="pointer-events-none absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full border border-white/15 bg-black/40 px-3.5 py-1 text-[11px] font-semibold text-emerald-300 backdrop-blur-md shadow-lg whitespace-nowrap">
+      <div className="pointer-events-none absolute bottom-4 start-1/2 -translate-x-1/2 rounded-full border border-white/15 bg-black/40 px-3.5 py-1 text-[11px] font-semibold text-emerald-300 backdrop-blur-md shadow-lg whitespace-nowrap">
         ✨ نمای سه‌بعدی تعاملی ۳۶۰ درجه (با حرکت ماوس یا لمس بچرخانید)
       </div>
     </div>

@@ -133,6 +133,18 @@ function computeTotals(items: CartItem[], couponDiscount: number = 0) {
   };
 }
 
+/**
+ * Zustand cart store (internal).
+ *
+ * For component-level cart access, prefer the `useCart()` hook from
+ * `@/hooks/use-cart` which wraps this store with stable callbacks,
+ * automatic hydration, and a cart-summary helper.
+ *
+ * Direct imports of `useCartStore` are acceptable in:
+ *   - `@/hooks/use-cart.ts`   (the wrapper hook itself)
+ *   - `@/hooks/use-auth.ts`   (cart merge on login)
+ *   - pages that only need a single action (e.g. account page `addItem`)
+ */
 export const useCartStore = create<CartStore>()(
   persist(
     (set, get) => ({
@@ -234,7 +246,9 @@ export const useCartStore = create<CartStore>()(
               return;
             }
           } catch (apiErr: unknown) {
-            console.warn("Cart backend sync failed for add item, keeping optimistic update:", apiErr);
+            if (process.env.NODE_ENV === "development") {
+              console.warn("Cart backend sync failed for add item, keeping optimistic update:", apiErr);
+            }
           }
         }
 
@@ -283,7 +297,9 @@ export const useCartStore = create<CartStore>()(
               return;
             }
           } catch (err) {
-            console.warn("Cart backend sync failed for remove item:", err);
+            if (process.env.NODE_ENV === "development") {
+              console.warn("Cart backend sync failed for remove item:", err);
+            }
           }
         }
 
@@ -339,7 +355,9 @@ export const useCartStore = create<CartStore>()(
               return;
             }
           } catch (err) {
-            console.warn("Cart backend sync failed for update quantity:", err);
+            if (process.env.NODE_ENV === "development") {
+              console.warn("Cart backend sync failed for update quantity:", err);
+            }
           }
         }
 
@@ -396,7 +414,9 @@ export const useCartStore = create<CartStore>()(
             set({ isSyncing: false });
           }
         } catch (err) {
-          console.warn("Merge cart failed:", err);
+          if (process.env.NODE_ENV === "development") {
+            console.warn("Merge cart failed:", err);
+          }
           set({ isSyncing: false });
         }
       },
@@ -472,6 +492,7 @@ export const useCartStore = create<CartStore>()(
     }),
     {
       name: "cart-storage",
+      skipHydration: true,
       storage: createJSONStorage(() =>
         typeof window !== "undefined"
           ? window.localStorage

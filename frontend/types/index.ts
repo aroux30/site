@@ -1,3 +1,20 @@
+/**
+ * Canonical type definitions are in:
+ *   - ./product.ts  (Product, ProductCategory, ProductVariant, ProductReview, etc.)
+ *   - ./user.ts     (User, UserAddress, TokenResponse, etc.)
+ *   - @/lib/api/services.ts  (ApiProduct, ApiCategory — backend API response shapes)
+ *
+ * The types below are simplified client-side display types used by generic
+ * UI components (e.g. order listing, paginated responses). They intentionally
+ * differ from the richer product.ts / user.ts / services.ts schemas.
+ */
+
+// Re-export canonical types for convenience
+export type { Product as DetailedProduct } from "./product";
+export type { User as AuthUser } from "./user";
+
+// ---- Simplified client display types (used by generic UI) ----
+
 // Product types
 export interface Product {
   id: string;

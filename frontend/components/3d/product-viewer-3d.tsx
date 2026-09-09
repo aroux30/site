@@ -7,6 +7,7 @@ import * as THREE from "three";
 import { RotateCw, ZoomIn, Palette, Eye, Maximize2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { CanvasErrorBoundary } from "./canvas-error-boundary";
 
 export type ColorFinish = "emerald" | "titanium" | "gold" | "silver";
 
@@ -216,6 +217,7 @@ export function Product3DViewer({
 
       {/* 3D Canvas */}
       <div className="relative h-full w-full cursor-grab active:cursor-grabbing touch-none select-none">
+        <CanvasErrorBoundary>
         <Canvas
           camera={{ position: [0, 0, 6.5], fov: 45 }}
           gl={{ antialias: true, alpha: true }}
@@ -249,6 +251,7 @@ export function Product3DViewer({
 
           <Sparkles count={25} scale={6} size={2} color="#10b981" opacity={0.4} />
         </Canvas>
+        </CanvasErrorBoundary>
       </div>
 
       {/* Bottom Hint */}

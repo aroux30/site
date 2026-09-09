@@ -474,21 +474,21 @@ export default function CustomerAccountPage() {
         const res = await apiClient.get("/orders");
         if (res.data?.items && Array.isArray(res.data.items)) {
           // Map backend orders schema to our display format
-          const mapped: OrderDisplay[] = res.data.items.map((o: any) => ({
+          const mapped: OrderDisplay[] = res.data.items.map((o: Record<string, unknown>) => ({
             id: String(o.id || o.order_number),
-            orderNumber: o.order_number || o.orderNumber || `ORD-${o.id?.slice?.(0, 6) || "100"}`,
-            date: o.created_at ? new Date(o.created_at).toLocaleDateString("fa-IR") : "۱۴۰۳/۰۶/۰۱",
-            total: o.total_price || o.total || o.final_price || 0,
-            status: (o.status?.toLowerCase() as OrderStatusType) || "pending",
-            shippingAddress: o.shipping_address?.full_address || o.shippingAddress?.address || "تهران",
-            trackingCode: o.tracking_code || o.tracking_number,
-            paymentMethod: o.payment_method || "پرداخت اینترنتی",
-            items: (o.items || []).map((it: any, idx: number) => ({
+            orderNumber: (o.order_number || o.orderNumber || `ORD-${(o.id as string)?.slice?.(0, 6) || "100"}`) as string,
+            date: o.created_at ? new Date(o.created_at as string).toLocaleDateString("fa-IR") : "۱۴۰۳/۰۶/۰۱",
+            total: (o.total_price || o.total || o.final_price || 0) as number,
+            status: ((o.status as string)?.toLowerCase() as OrderStatusType) || "pending",
+            shippingAddress: ((o.shipping_address as Record<string, unknown>)?.full_address || (o.shippingAddress as Record<string, unknown>)?.address || "تهران") as string,
+            trackingCode: (o.tracking_code || o.tracking_number) as string | undefined,
+            paymentMethod: (o.payment_method || "پرداخت اینترنتی") as string,
+            items: ((o.items || []) as Record<string, unknown>[]).map((it: Record<string, unknown>, idx: number) => ({
               id: String(it.id || idx),
-              title: it.product_title || it.title || it.product_name || "کالای سفارش",
-              price: it.unit_price || it.price || 0,
-              quantity: it.quantity || 1,
-              image: it.product_image || it.image,
+              title: (it.product_title || it.title || it.product_name || "کالای سفارش") as string,
+              price: (it.unit_price || it.price || 0) as number,
+              quantity: (it.quantity || 1) as number,
+              image: (it.product_image || it.image) as string | undefined,
             })),
           }));
           if (mapped.length > 0) setOrders(mapped);
@@ -506,15 +506,15 @@ export default function CustomerAccountPage() {
         setIsLoadingAddresses(true);
         const res = await apiClient.get("/users/me/addresses");
         if (Array.isArray(res.data) && res.data.length > 0) {
-          const mapped: AddressItem[] = res.data.map((a: any) => ({
+          const mapped: AddressItem[] = res.data.map((a: Record<string, unknown>) => ({
             id: String(a.id),
-            title: a.title || "آدرس",
-            receiverName: a.receiver_name || a.first_name ? `${a.first_name || ""} ${a.last_name || ""}`.trim() : "کاربر",
-            phone: a.phone || a.postal_code || "",
-            province: a.province || "تهران",
-            city: a.city || "تهران",
-            postalCode: a.postal_code || "",
-            fullAddress: a.full_address || a.address || "",
+            title: (a.title || "آدرس") as string,
+            receiverName: (a.receiver_name || a.first_name ? `${a.first_name || ""} ${a.last_name || ""}`.trim() : "کاربر") as string,
+            phone: (a.phone || a.postal_code || "") as string,
+            province: (a.province || "تهران") as string,
+            city: (a.city || "تهران") as string,
+            postalCode: (a.postal_code || "") as string,
+            fullAddress: (a.full_address || a.address || "") as string,
             isDefault: Boolean(a.is_default),
           }));
           setAddresses(mapped);
@@ -538,14 +538,14 @@ export default function CustomerAccountPage() {
           setWalletBalance(walletRes.value.data.balance ?? 5_800_000);
         }
         if (txRes.status === "fulfilled" && txRes.value.data?.items) {
-          const mappedTx: WalletTransaction[] = txRes.value.data.items.map((t: any) => ({
+          const mappedTx: WalletTransaction[] = txRes.value.data.items.map((t: Record<string, unknown>) => ({
             id: String(t.id),
-            type: t.type === "credit" ? "deposit" : t.type === "debit" ? "withdraw" : (t.type || "deposit"),
-            amount: t.amount || 0,
-            date: t.created_at ? new Date(t.created_at).toLocaleDateString("fa-IR") : "۱۴۰۳/۰۶/۰۱",
-            description: t.description || "تراکنش مالی",
-            trackingCode: t.reference_id || `TRX-${t.id?.slice?.(0, 7) || "00"}`,
-            status: t.status === "failed" ? "failed" : t.status === "pending" ? "pending" : "success",
+            type: t.type === "credit" ? "deposit" : t.type === "debit" ? "withdraw" : ((t.type || "deposit") as WalletTransaction["type"]),
+            amount: (t.amount || 0) as number,
+            date: t.created_at ? new Date(t.created_at as string).toLocaleDateString("fa-IR") : "۱۴۰۳/۰۶/۰۱",
+            description: (t.description || "تراکنش مالی") as string,
+            trackingCode: (t.reference_id || `TRX-${(t.id as string)?.slice?.(0, 7) || "00"}`) as string,
+            status: (t.status === "failed" ? "failed" : t.status === "pending" ? "pending" : "success") as WalletTransaction["status"],
           }));
           if (mappedTx.length > 0) setTransactions(mappedTx);
         }
@@ -562,15 +562,15 @@ export default function CustomerAccountPage() {
         setIsLoadingWishlist(true);
         const res = await apiClient.get("/wishlist");
         if (res.data?.items && Array.isArray(res.data.items) && res.data.items.length > 0) {
-          const mapped: WishlistItem[] = res.data.items.map((it: any) => ({
+          const mapped: WishlistItem[] = res.data.items.map((it: Record<string, unknown>) => ({
             id: String(it.id),
             productId: String(it.product_id),
-            title: it.product_name || it.title || "محصول ذخیره شده",
-            slug: it.product_slug || "product",
-            price: it.product_price || it.price || 0,
-            originalPrice: it.product_original_price || null,
-            image: it.product_image_url || it.image,
-            inStock: it.product_is_active ?? true,
+            title: (it.product_name || it.title || "محصول ذخیره شده") as string,
+            slug: (it.product_slug || "product") as string,
+            price: (it.product_price || it.price || 0) as number,
+            originalPrice: (it.product_original_price || null) as number | null,
+            image: (it.product_image_url || it.image) as string | undefined,
+            inStock: (it.product_is_active ?? true) as boolean,
             category: "کالای دیجیتال",
           }));
           setWishlist(mapped);
@@ -588,16 +588,16 @@ export default function CustomerAccountPage() {
         setIsLoadingTickets(true);
         const res = await apiClient.get("/support/tickets").catch(() => apiClient.get("/support"));
         if (res.data?.items && Array.isArray(res.data.items) && res.data.items.length > 0) {
-          const mapped: SupportTicket[] = res.data.items.map((t: any) => ({
+          const mapped: SupportTicket[] = res.data.items.map((t: Record<string, unknown>) => ({
             id: String(t.id),
-            ticketNumber: t.ticket_number || `TCK-${t.id?.slice?.(0, 5) || "100"}`,
-            subject: t.subject || "پشتیبانی",
-            department: t.department || "عمومی",
-            priority: (t.priority?.toLowerCase() as SupportTicket["priority"]) || "medium",
-            status: (t.status?.toLowerCase() as SupportTicket["status"]) || "open",
-            createdAt: t.created_at ? new Date(t.created_at).toLocaleDateString("fa-IR") : "۱۴۰۳/۰۶/۰۱",
-            updatedAt: t.updated_at ? new Date(t.updated_at).toLocaleDateString("fa-IR") : "۱۴۰۳/۰۶/۰۱",
-            lastMessage: t.body || t.last_message || "",
+            ticketNumber: (t.ticket_number || `TCK-${(t.id as string)?.slice?.(0, 5) || "100"}`) as string,
+            subject: (t.subject || "پشتیبانی") as string,
+            department: (t.department || "عمومی") as string,
+            priority: ((t.priority as string)?.toLowerCase() as SupportTicket["priority"]) || "medium",
+            status: ((t.status as string)?.toLowerCase() as SupportTicket["status"]) || "open",
+            createdAt: t.created_at ? new Date(t.created_at as string).toLocaleDateString("fa-IR") : "۱۴۰۳/۰۶/۰۱",
+            updatedAt: t.updated_at ? new Date(t.updated_at as string).toLocaleDateString("fa-IR") : "۱۴۰۳/۰۶/۰۱",
+            lastMessage: (t.body || t.last_message || "") as string,
           }));
           setTickets(mapped);
         }
@@ -653,10 +653,10 @@ export default function CustomerAccountPage() {
         description: "مشخصات کاربری شما با موفقیت ذخیره گردید.",
         variant: "success",
       });
-    } catch (err: any) {
+    } catch (err: unknown) {
       toast({
         title: "خطا در بروزرسانی",
-        description: err?.message || "امکان ذخیره اطلاعات وجود نداشت.",
+        description: (err as Error)?.message || "امکان ذخیره اطلاعات وجود نداشت.",
         variant: "destructive",
       });
     } finally {
@@ -707,10 +707,10 @@ export default function CustomerAccountPage() {
         description: "کلمه عبور حساب کاربری شما با موفقیت به روز شد.",
         variant: "success",
       });
-    } catch (err: any) {
+    } catch (err: unknown) {
       toast({
         title: "خطا در تغییر رمز عبور",
-        description: err?.message || "تغییر رمز عبور با خطا مواجه شد.",
+        description: (err as Error)?.message || "تغییر رمز عبور با خطا مواجه شد.",
         variant: "destructive",
       });
     } finally {
@@ -825,10 +825,10 @@ export default function CustomerAccountPage() {
         toast({ title: "آدرس جدید افزوده شد", variant: "success" });
       }
       setIsAddressModalOpen(false);
-    } catch (err: any) {
+    } catch (err: unknown) {
       toast({
         title: "خطا در ثبت آدرس",
-        description: err?.message || "عملیات با خطا مواجه شد",
+        description: (err as Error)?.message || "عملیات با خطا مواجه شد",
         variant: "destructive",
       });
     }
@@ -901,10 +901,10 @@ export default function CustomerAccountPage() {
         description: `مبلغ ${formatPrice(numericAmount)} به کیف پول شما افزوده شد.`,
         variant: "success",
       });
-    } catch (err: any) {
+    } catch (err: unknown) {
       toast({
         title: "خطا در افزایش موجودی",
-        description: err?.message || "ارتباط با درگاه برقرار نشد.",
+        description: (err as Error)?.message || "ارتباط با درگاه برقرار نشد.",
         variant: "destructive",
       });
     } finally {
@@ -998,10 +998,10 @@ export default function CustomerAccountPage() {
         description: "کارشناسان پشتیبانی به زودی پاسخگوی شما خواهند بود.",
         variant: "success",
       });
-    } catch (err: any) {
+    } catch (err: unknown) {
       toast({
         title: "خطا در ارسال تیکت",
-        description: err?.message || "ارسال تیکت انجام نشد.",
+        description: (err as Error)?.message || "ارسال تیکت انجام نشد.",
         variant: "destructive",
       });
     } finally {
@@ -2286,7 +2286,7 @@ export default function CustomerAccountPage() {
                 <Label>اولویت</Label>
                 <Select
                   value={ticketForm.priority}
-                  onValueChange={(val: any) => setTicketForm({ ...ticketForm, priority: val })}
+                  onValueChange={(val: string) => setTicketForm({ ...ticketForm, priority: val as SupportTicket["priority"] })}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="اولویت" />

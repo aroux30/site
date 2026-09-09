@@ -83,7 +83,7 @@ export default function BlogPage() {
 
           {/* Search bar inside hero */}
           <div className="relative max-w-md">
-            <Search className="absolute right-4 top-1/2 -translate-y-12 w-5 h-5 text-slate-400" />
+            <Search className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
             <Input
               type="text"
               placeholder="جستجو در میان صدها مقاله..."

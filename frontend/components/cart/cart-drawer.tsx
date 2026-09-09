@@ -63,7 +63,7 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
       />
 
       {/* Drawer Panel (RTL: Slides in from left / start-0) */}
-      <div className="relative me-auto flex h-full w-full max-w-md flex-col bg-background shadow-2xl z-10 border-e border-border animate-in slide-in-from-left duration-300">
+      <div className="relative me-auto flex h-full w-full max-w-md flex-col bg-background shadow-2xl z-10 border-e border-border animate-in ltr:slide-in-from-left rtl:slide-in-from-right duration-300">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-border px-5 py-4">
           <div className="flex items-center gap-2.5">

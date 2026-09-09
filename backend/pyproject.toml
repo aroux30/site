@@ -78,9 +78,12 @@ select = [
     "ASYNC", # flake8-async
 ]
 ignore = [
-    "S101",  # assert allowed in tests
-    "B008",  # function call in default arg (FastAPI Depends)
-    "S105",  # possible hardcoded password (false positives on var names)
+    "S101",   # assert allowed in tests
+    "B008",   # function call in default arg (FastAPI Depends)
+    "S105",   # possible hardcoded password (false positives on var names)
+    "RUF001", # ambiguous characters in strings (Persian/Arabic texts)
+    "RUF002", # ambiguous characters in docstrings
+    "RUF003", # ambiguous characters in comments
 ]
 
 [tool.ruff.lint.isort]

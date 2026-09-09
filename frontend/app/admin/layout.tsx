@@ -10,10 +10,12 @@ import {
   FileText,
   ChevronLeft,
   Kanban,
+  ClipboardCheck,
 } from "lucide-react";
 
 const adminLinks = [
   { href: "/admin/dashboard", label: "داشبورد", icon: LayoutDashboard },
+  { href: "/admin/approvals", label: "کارتابل تاییدها", icon: ClipboardCheck },
   { href: "/admin/products", label: "محصولات", icon: Package },
   { href: "/admin/orders", label: "سفارش‌ها", icon: ShoppingCart },
   { href: "/admin/kanban", label: "میز کانبان سفارشات", icon: Kanban },

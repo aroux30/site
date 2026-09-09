@@ -2,13 +2,16 @@
 
 import enum
 import uuid
-from typing import Any, Optional
+from typing import TYPE_CHECKING, Any, Optional
 
 from sqlalchemy import Enum, ForeignKey, Index, String, Text
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database.base import BaseModel
+
+if TYPE_CHECKING:
+    from app.modules.users.domain.models import User
 
 
 # ---- Enums ----
@@ -68,9 +71,31 @@ class ApprovalRequest(BaseModel):
     reason: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
 
     # Relationships
-    actions: Mapped[list["ApprovalAction"]] = relationship(
-        "ApprovalAction", back_populates="request", lazy="select"
+    requester: Mapped[Optional["User"]] = relationship(
+        "User", foreign_keys=[requester_id], lazy="selectin"
     )
+    actions: Mapped[list["ApprovalAction"]] = relationship(
+        "ApprovalAction", back_populates="request", lazy="selectin", cascade="all, delete-orphan", order_by="ApprovalAction.created_at"
+    )
+
+    @property
+    def requester_name(self) -> Optional[str]:
+        if self.requester:
+            if hasattr(self.requester, "profile") and self.requester.profile:
+                parts = [self.requester.profile.first_name, self.requester.profile.last_name]
+                name = " ".join(p for p in parts if p)
+                if name:
+                    return name
+            return self.requester.phone or self.requester.email
+        return None
+
+    @property
+    def requester_email(self) -> Optional[str]:
+        return self.requester.email if self.requester else None
+
+    @property
+    def requester_phone(self) -> Optional[str]:
+        return self.requester.phone if self.requester else None
 
     def __repr__(self) -> str:
         return f"<ApprovalRequest(id={self.id}, type={self.type}, status={self.status})>"
@@ -102,9 +127,27 @@ class ApprovalAction(BaseModel):
     comment: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
 
     # Relationships
+    actor: Mapped[Optional["User"]] = relationship(
+        "User", foreign_keys=[actor_id], lazy="selectin"
+    )
     request: Mapped["ApprovalRequest"] = relationship(
         "ApprovalRequest", back_populates="actions"
     )
+
+    @property
+    def actor_name(self) -> Optional[str]:
+        if self.actor:
+            if hasattr(self.actor, "profile") and self.actor.profile:
+                parts = [self.actor.profile.first_name, self.actor.profile.last_name]
+                name = " ".join(p for p in parts if p)
+                if name:
+                    return name
+            return self.actor.phone or self.actor.email
+        return None
+
+    @property
+    def actor_email(self) -> Optional[str]:
+        return self.actor.email if self.actor else None
 
     def __repr__(self) -> str:
         return f"<ApprovalAction(id={self.id}, action={self.action})>"

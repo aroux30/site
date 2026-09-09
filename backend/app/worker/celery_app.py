@@ -56,6 +56,7 @@ celery_app.conf.update(
     task_routes={
         "app.modules.payments.*": {"queue": "payments"},
         "app.modules.notifications.*": {"queue": "notifications"},
+        "app.modules.messaging.*": {"queue": "notifications"},
         "app.modules.analytics.*": {"queue": "analytics"},
     },
 )
@@ -69,6 +70,7 @@ celery_app.autodiscover_tasks(
         "app.modules.orders",
         "app.modules.payments",
         "app.modules.notifications",
+        "app.modules.messaging",
         "app.modules.shipping",
         "app.modules.analytics",
         "app.modules.recommendations",

@@ -33,6 +33,7 @@ import app.modules.gamification.domain.models  # noqa: F401
 import app.modules.inventory.domain.models  # noqa: F401
 import app.modules.loyalty.domain.models  # noqa: F401
 import app.modules.media.domain.models  # noqa: F401
+import app.modules.messaging.domain.models  # noqa: F401
 import app.modules.notifications.domain.models  # noqa: F401
 import app.modules.orders.domain.models  # noqa: F401
 import app.modules.payments.domain.models  # noqa: F401
@@ -44,6 +45,7 @@ import app.modules.settings.domain.models  # noqa: F401
 import app.modules.shipping.domain.models  # noqa: F401
 import app.modules.support.domain.models  # noqa: F401
 import app.modules.users.domain.models  # noqa: F401
+import app.modules.vendors.domain.models  # noqa: F401
 import app.modules.wallet.domain.models  # noqa: F401
 import app.modules.wishlist.domain.models  # noqa: F401
 

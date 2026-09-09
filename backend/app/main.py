@@ -154,6 +154,7 @@ def _include_routers(app: FastAPI, prefix: str) -> None:
         ("app.modules.audit.api", "/audit", ["audit"]),
         ("app.modules.integrations.api", "/integrations", ["integrations"]),
         ("app.modules.automation.api", "/automation", ["automation"]),
+        ("app.modules.vendors.api", "/vendors", ["vendors"]),
     ]
 
     import importlib
@@ -164,10 +165,16 @@ def _include_routers(app: FastAPI, prefix: str) -> None:
             router = getattr(mod, "router", None)
             if router is not None:
                 app.include_router(router, prefix=f"{prefix}{url_prefix}", tags=tags)
+                if url_prefix == "/seo":
+                    app.include_router(router, prefix="/seo", include_in_schema=False)
+                elif url_prefix == "/vendors":
+                    app.include_router(router, prefix="/vendors", include_in_schema=False)
             # Also pick up admin_router if exposed (e.g. search admin endpoints)
             admin_router = getattr(mod, "admin_router", None)
             if admin_router is not None:
                 app.include_router(admin_router, prefix=prefix, tags=[f"admin-{tags[0]}"])
+                if url_prefix == "/vendors":
+                    app.include_router(admin_router, prefix="", include_in_schema=False)
         except (ImportError, AttributeError):
             # Module not yet implemented – skip silently
             pass

@@ -419,8 +419,8 @@ export function WheelOfFortune({
         </button>
       </div>
 
-      {/* Main Wheel Container */}
-      <div className="relative flex items-center justify-center my-2 select-none">
+      {/* Main Wheel Container with 3D Perspective */}
+      <div className="relative flex items-center justify-center my-2 select-none perspective-1000">
         {/* Glowing Background Ring */}
         <div
           className={`absolute h-[340px] w-[340px] sm:h-[440px] sm:w-[440px] rounded-full bg-gradient-to-tr from-primary/20 via-amber-500/15 to-purple-500/20 blur-2xl transition-opacity duration-700 pointer-events-none ${
@@ -428,8 +428,11 @@ export function WheelOfFortune({
           }`}
         />
 
-        {/* Outer Golden/Metallic Decorative Rim */}
-        <div className="relative p-2.5 sm:p-3 rounded-full bg-gradient-to-br from-amber-400 via-yellow-500 to-amber-700 shadow-2xl border-4 border-amber-300/60">
+        {/* Outer Golden/Metallic Decorative Rim with 3D Stage Depth */}
+        <div
+          style={{ transform: "rotateX(6deg)", transformStyle: "preserve-3d" }}
+          className="relative p-2.5 sm:p-3 rounded-full bg-gradient-to-br from-amber-400 via-yellow-500 to-amber-700 shadow-2xl border-4 border-amber-300/60 transition-transform duration-300 hover:rotate-x-0"
+        >
           {/* LED Sparkling Bulbs around the border */}
           <div className="absolute inset-0 rounded-full pointer-events-none overflow-hidden">
             {Array.from({ length: 24 }).map((_, i) => {

@@ -35,6 +35,8 @@ import { Marquee } from "@/components/ui/marquee";
 import { ShimmerButton } from "@/components/ui/shimmer-button";
 import { NumberTicker } from "@/components/ui/number-ticker";
 import { TiltCard3D } from "@/components/3d/tilt-card-3d";
+import { ParticleConstellation } from "@/components/3d/particle-constellation";
+import { GsapReveal } from "@/components/3d/gsap-reveal";
 import { formatPrice, toPersianDigits } from "@/lib/utils";
 import { useCart } from "@/hooks/use-cart";
 import {
@@ -446,6 +448,14 @@ export default function StoreHomePage() {
       {/*  1 · Hero Banner with Interactive 3D Holographic Gadget      */}
       {/* ============================================================ */}
       <section className="relative overflow-hidden rounded-3xl bg-gradient-to-l from-emerald-950 via-primary-900 to-teal-950 px-6 py-12 text-white shadow-2xl sm:px-10 sm:py-16 lg:py-16">
+        {/* Interactive 3D Particle Constellation */}
+        <ParticleConstellation
+          particleCount={45}
+          connectionDistance={120}
+          particleColor="rgba(52, 211, 153, 0.5)"
+          lineColor="rgba(52, 211, 153, 0.15)"
+        />
+
         {/* Animated background highlights */}
         <div
           aria-hidden
@@ -459,42 +469,44 @@ export default function StoreHomePage() {
         <div className="relative z-10 grid grid-cols-1 items-center gap-8 lg:grid-cols-12">
           {/* Left / Right Column in RTL: Content */}
           <div className="lg:col-span-7">
-            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3.5 py-1 text-xs font-semibold text-emerald-200 backdrop-blur-md">
-              <Sparkles className="h-3.5 w-3.5 text-amber-300" />
-              <span>پلتفرم مدرن ایکامرس ایران • تجربه سه‌بعدی ۳۶۰°</span>
-            </div>
+            <GsapReveal delay={0.1} duration={0.7} yOffset={20}>
+              <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3.5 py-1 text-xs font-semibold text-emerald-200 backdrop-blur-md">
+                <Sparkles className="h-3.5 w-3.5 text-amber-300" />
+                <span>پلتفرم مدرن ایکامرس ایران • تجربه سه‌بعدی ۳۶۰°</span>
+              </div>
 
-            <h1 className="mb-5 text-3xl font-black leading-tight sm:text-4xl lg:text-5xl">
-              تجربه خریدی هوشمند، سریع و فراتر از انتظار
-            </h1>
+              <h1 className="mb-5 text-3xl font-black leading-tight sm:text-4xl lg:text-5xl">
+                تجربه خریدی هوشمند، سریع و فراتر از انتظار
+              </h1>
 
-            <p className="mb-8 max-w-xl text-sm leading-relaxed text-white/85 sm:text-base lg:text-lg">
-              دسترسی به بیش از ۱۰ هزار قلم کالای اصیل با ارسال اکسپرس، گارانتی معتبر و پرداخت امن شتاب. هر آنچه برای یک زندگی مدرن دیجیتال نیاز دارید.
-            </p>
+              <p className="mb-8 max-w-xl text-sm leading-relaxed text-white/85 sm:text-base lg:text-lg">
+                دسترسی به بیش از ۱۰ هزار قلم کالای اصیل با ارسال اکسپرس، گارانتی معتبر و پرداخت امن شتاب. هر آنچه برای یک زندگی مدرن دیجیتال نیاز دارید.
+              </p>
 
-            <div className="flex flex-wrap items-center gap-4">
-              <Link href="/products">
-                <ShimmerButton
-                  background="hsl(0 0% 100%)"
-                  shimmerColor="#10b981"
-                  className="font-black text-primary px-8 py-3.5 shadow-xl text-sm sm:text-base"
-                >
-                  <span>مشاهده فروشگاه و محصولات</span>
-                  <ChevronLeft className="h-4 w-4" />
-                </ShimmerButton>
-              </Link>
+              <div className="flex flex-wrap items-center gap-4">
+                <Link href="/products">
+                  <ShimmerButton
+                    background="hsl(0 0% 100%)"
+                    shimmerColor="#10b981"
+                    className="font-black text-primary px-8 py-3.5 shadow-xl text-sm sm:text-base"
+                  >
+                    <span>مشاهده فروشگاه و محصولات</span>
+                    <ChevronLeft className="h-4 w-4" />
+                  </ShimmerButton>
+                </Link>
 
-              <Link href="/products?sort_by=price&sort_order=desc">
-                <Button
-                  size="lg"
-                  variant="outline"
-                  className="h-12 rounded-full border-2 border-white/30 bg-white/10 px-6 font-bold text-white backdrop-blur-md hover:bg-white/20 hover:text-white text-sm sm:text-base"
-                >
-                  <Flame className="ml-2 h-4 w-4 text-amber-300" />
-                  تخفیف‌های داغ روز
-                </Button>
-              </Link>
-            </div>
+                <Link href="/products?sort_by=price&sort_order=desc">
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    className="h-12 rounded-full border-2 border-white/30 bg-white/10 px-6 font-bold text-white backdrop-blur-md hover:bg-white/20 hover:text-white text-sm sm:text-base"
+                  >
+                    <Flame className="ml-2 h-4 w-4 text-amber-300" />
+                    تخفیف‌های داغ روز
+                  </Button>
+                </Link>
+              </div>
+            </GsapReveal>
 
             {/* Animated Metrics Row (NumberTicker) */}
             <div className="mt-10 grid grid-cols-3 gap-4 border-t border-white/15 pt-8">

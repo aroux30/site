@@ -47,11 +47,11 @@ const FLAGSHIP_SUGGESTIONS: Product[] = [
     type: "گوشی هوشمند پرچمدار",
     weight: "۲۳۲ گرم",
     dimensions: "۱۶۲.۳ × ۷۹ × ۸.۶ میلی‌متر",
-    thumbnail: "/images/products/s24-ultra.png",
+    thumbnail: "https://images.unsplash.com/photo-1610945265064-0e34e5519bbf?w=800&auto=format&fit=crop&q=80",
     images: [
       {
         id: "img-s24",
-        url: "/images/products/s24-ultra.png",
+        url: "https://images.unsplash.com/photo-1610945265064-0e34e5519bbf?w=800&auto=format&fit=crop&q=80",
         alt: "Samsung Galaxy S24 Ultra",
         order: 1,
       },
@@ -98,11 +98,11 @@ const FLAGSHIP_SUGGESTIONS: Product[] = [
     type: "گوشی هوشمند پرچمدار",
     weight: "۲۲۷ گرم",
     dimensions: "۱۶۳ × ۷۷.۶ × ۸.۲۵ میلی‌متر",
-    thumbnail: "/images/products/iphone-16-pro.png",
+    thumbnail: "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=800&auto=format&fit=crop&q=80",
     images: [
       {
         id: "img-ip16",
-        url: "/images/products/iphone-16-pro.png",
+        url: "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=800&auto=format&fit=crop&q=80",
         alt: "Apple iPhone 16 Pro Max",
         order: 1,
       },
@@ -149,11 +149,11 @@ const FLAGSHIP_SUGGESTIONS: Product[] = [
     type: "اولترابوک / لپ‌تاپ پرچمدار",
     weight: "۱.۲ کیلوگرم",
     dimensions: "۳۱۲.۴ × ۲۲۰.۱ × ۱۴.۹ میلی‌متر",
-    thumbnail: "/images/products/zenbook-14.png",
+    thumbnail: "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=800&auto=format&fit=crop&q=80",
     images: [
       {
         id: "img-zenbook",
-        url: "/images/products/zenbook-14.png",
+        url: "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=800&auto=format&fit=crop&q=80",
         alt: "Asus Zenbook 14 OLED",
         order: 1,
       },

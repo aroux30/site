@@ -11,19 +11,19 @@ import pytest
 from httpx import ASGITransport, AsyncClient
 
 # Set test environment
-os.environ["ENVIRONMENT"] = "testing"
+os.environ["ENVIRONMENT"] = "development"
 os.environ["DEBUG"] = "true"
 
+from app.core.database.session import engine
 from app.core.security.jwt import create_access_token
 from app.main import create_app
 
 
-@pytest.fixture(scope="session")
-def event_loop():
-    """Create session-scoped event loop."""
-    loop = asyncio.get_event_loop_policy().new_event_loop()
-    yield loop
-    loop.close()
+@pytest.fixture(autouse=True)
+async def dispose_engine():
+    """Ensure asyncpg engine connection pool is disposed cleanly between tests."""
+    yield
+    await engine.dispose()
 
 
 @pytest.fixture
@@ -59,8 +59,10 @@ def user_token(test_user_id: uuid.UUID) -> str:
     """Valid customer JWT access token."""
     return create_access_token(
         subject=str(test_user_id),
-        roles=["customer"],
-        permissions=["orders:read", "cart:write", "wishlist:write"],
+        extra_claims={
+            "roles": ["customer"],
+            "permissions": ["orders:read", "cart:write", "wishlist:write"],
+        },
     )
 
 
@@ -69,8 +71,10 @@ def admin_token(test_admin_id: uuid.UUID) -> str:
     """Valid administrator JWT access token with wildcard permissions."""
     return create_access_token(
         subject=str(test_admin_id),
-        roles=["super_admin"],
-        permissions=["*"],
+        extra_claims={
+            "roles": ["super_admin"],
+            "permissions": ["*"],
+        },
     )
 
 

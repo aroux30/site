@@ -45,6 +45,7 @@ const navigationLinks = [
   { href: "/", label: "صفحه اصلی" },
   { href: "/products", label: "محصولات" },
   { href: "/products?sort_by=price&sort_order=desc", label: "پرفروش‌ترین‌ها" },
+  { href: "/blog", label: "مجله و بلاگ" },
   { href: "/about", label: "درباره ما" },
   { href: "/contact", label: "تماس با ما" },
 ];

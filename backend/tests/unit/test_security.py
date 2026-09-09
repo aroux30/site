@@ -34,8 +34,10 @@ def test_jwt_access_token_creation_and_decoding():
 
     token = create_access_token(
         subject=user_id,
-        roles=roles,
-        permissions=permissions,
+        extra_claims={
+            "roles": roles,
+            "permissions": permissions,
+        },
     )
 
     assert isinstance(token, str)

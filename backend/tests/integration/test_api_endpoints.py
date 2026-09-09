@@ -67,10 +67,11 @@ async def test_gamification_rewards(client: AsyncClient):
 
 @pytest.mark.asyncio
 async def test_recommendations_trending(client: AsyncClient):
-    """Verify trending recommendations returns a list."""
+    """Verify trending recommendations returns items."""
     response = await client.get("/api/v1/recommendations/trending")
     assert response.status_code == 200
-    assert isinstance(response.json(), list)
+    data = response.json()
+    assert "items" in data
 
 
 @pytest.mark.asyncio

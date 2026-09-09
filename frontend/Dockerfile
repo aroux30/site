@@ -8,7 +8,7 @@ FROM base AS deps
 COPY package.json package-lock.json* yarn.lock* pnpm-lock.yaml* ./
 RUN \
   if [ -f yarn.lock ]; then yarn install --frozen-lockfile; \
-  elif [ -f package-lock.json ]; then npm ci; \
+  elif [ -f package-lock.json ]; then npm ci || npm install; \
   elif [ -f pnpm-lock.yaml ]; then corepack enable pnpm && pnpm install --frozen-lockfile; \
   else echo "No lockfile found." && npm install; \
   fi

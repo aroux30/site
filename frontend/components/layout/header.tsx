@@ -38,6 +38,8 @@ import {
 import { useAuth } from "@/hooks/use-auth";
 import { useCart } from "@/hooks/use-cart";
 import { useCompareStore } from "@/stores/compare-store";
+import { CartDrawer } from "@/components/cart/cart-drawer";
+import { ThemeToggle } from "@/components/layout/theme-toggle";
 import {
   fetchCategories,
   fetchSearchSuggestions,
@@ -78,6 +80,7 @@ export function Header() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [categoriesOpen, setCategoriesOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [cartDrawerOpen, setCartDrawerOpen] = useState(false);
 
   // Live search state
   const [searchQuery, setSearchQuery] = useState("");
@@ -403,25 +406,27 @@ export function Header() {
                 </Button>
               </Link>
 
-              {/* Cart Button with Store Badge */}
-              <Link href="/cart">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="group relative"
-                  aria-label="سبد خرید"
-                >
-                  <ShoppingCart className="h-5 w-5 transition-colors group-hover:text-primary" />
-                  {mounted && totalItems > 0 && (
-                    <Badge className="absolute -left-1.5 -top-1.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1 text-[11px] font-bold text-primary-foreground shadow-sm">
-                      {totalItems > 99 ? "۹۹+" : toPersianDigits(totalItems)}
-                    </Badge>
-                  )}
-                  <span className="pointer-events-none absolute -bottom-8 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md bg-foreground px-2 py-1 text-[10px] text-background opacity-0 shadow-lg transition-opacity group-hover:opacity-100 z-50">
-                    سبد خرید
-                  </span>
-                </Button>
-              </Link>
+              {/* Cart Drawer Trigger Button */}
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setCartDrawerOpen(true)}
+                className="group relative"
+                aria-label="سبد خرید"
+              >
+                <ShoppingCart className="h-5 w-5 transition-colors group-hover:text-primary" />
+                {mounted && totalItems > 0 && (
+                  <Badge className="absolute -left-1.5 -top-1.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1 text-[11px] font-bold text-primary-foreground shadow-sm">
+                    {totalItems > 99 ? "۹۹+" : toPersianDigits(totalItems)}
+                  </Badge>
+                )}
+                <span className="pointer-events-none absolute -bottom-8 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md bg-foreground px-2 py-1 text-[10px] text-background opacity-0 shadow-lg transition-opacity group-hover:opacity-100 z-50">
+                  سبد خرید
+                </span>
+              </Button>
+
+              {/* Dark / Light Mode Switcher */}
+              <ThemeToggle />
 
               {/* User Account or Login Button */}
               {mounted && isAuthenticated && user ? (
@@ -807,6 +812,12 @@ export function Header() {
           </span>
         </div>
       </div>
+
+      {/* Slide-over Interactive Cart Drawer */}
+      <CartDrawer
+        isOpen={cartDrawerOpen}
+        onClose={() => setCartDrawerOpen(false)}
+      />
     </header>
   );
 }

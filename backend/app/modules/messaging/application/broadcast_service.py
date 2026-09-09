@@ -2,13 +2,11 @@
 
 from __future__ import annotations
 
-import uuid
-from datetime import datetime, timedelta, timezone
-from typing import Optional, Sequence
+from datetime import UTC, datetime, timedelta
+from typing import TYPE_CHECKING
 
 import structlog
 from sqlalchemy import distinct, func, select
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.modules.cart.domain.models import Cart, CartStatus
 from app.modules.messaging.domain.models import (
@@ -19,18 +17,25 @@ from app.modules.messaging.domain.models import (
     RecipientStatus,
     TargetSegment,
 )
-from app.modules.messaging.schemas.campaign import (
-    BroadcastCampaignCreate,
-    BroadcastCampaignUpdate,
-)
 from app.modules.notifications.application.notification_service import (
-    NotificationService,
     _PROVIDERS,
+    NotificationService,
 )
 from app.modules.notifications.domain.models import NotificationChannel
 from app.modules.orders.domain.models import Order
 from app.modules.users.domain.models import User
 from app.modules.wishlist.domain.models import Wishlist, WishlistItem
+
+if TYPE_CHECKING:
+    import uuid
+    from collections.abc import Sequence
+
+    from sqlalchemy.ext.asyncio import AsyncSession
+
+    from app.modules.messaging.schemas.campaign import (
+        BroadcastCampaignCreate,
+        BroadcastCampaignUpdate,
+    )
 
 logger: structlog.stdlib.BoundLogger = structlog.get_logger(__name__)
 
@@ -75,7 +80,7 @@ async def create_campaign(
 async def get_campaign(
     db: AsyncSession,
     campaign_id: uuid.UUID,
-) -> Optional[BroadcastCampaign]:
+) -> BroadcastCampaign | None:
     """Retrieve a single broadcast campaign by its UUID."""
     stmt = select(BroadcastCampaign).where(BroadcastCampaign.id == campaign_id)
     result = await db.execute(stmt)
@@ -86,7 +91,7 @@ async def list_campaigns(
     db: AsyncSession,
     page: int = 1,
     page_size: int = 20,
-    status: Optional[CampaignStatus] = None,
+    status: CampaignStatus | None = None,
 ) -> tuple[Sequence[BroadcastCampaign], int]:
     """List broadcast campaigns with pagination and optional status filter."""
     page = max(1, page)
@@ -149,7 +154,7 @@ def _build_segment_query(segment: TargetSegment):
     - abandoned_carts: users with active carts older than 2 hours
     - wishlist_users: users with >= 1 items in wishlist
     """
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
 
     if segment == TargetSegment.ALL_USERS:
         return select(User.id).where(User.is_active.is_(True))
@@ -216,7 +221,7 @@ async def estimate_segment_size(
         try:
             segment = TargetSegment(segment)
         except ValueError:
-            raise ValueError(f"Invalid segment name: '{segment}'")
+            raise ValueError(f"Invalid segment name: '{segment}'") from None
 
     subquery = _build_segment_query(segment)
     count_stmt = select(func.count()).select_from(subquery.subquery())
@@ -239,8 +244,8 @@ async def _dispatch_single_recipient(
     channel: CampaignChannel,
     title: str,
     body: str,
-    user: Optional[User],
-) -> tuple[bool, Optional[str]]:
+    user: User | None,
+) -> tuple[bool, str | None]:
     """Dispatch a message to a single user through the specified channel."""
     if not user:
         return False, "Target user not found"
@@ -346,7 +351,7 @@ async def send_campaign(
 
         if not target_user_ids:
             campaign.status = CampaignStatus.SENT
-            campaign.sent_at = datetime.now(timezone.utc)
+            campaign.sent_at = datetime.now(UTC)
             campaign.success_count = 0
             campaign.fail_count = 0
             await db.flush()
@@ -399,7 +404,7 @@ async def send_campaign(
 
             if delivered:
                 recipient.status = RecipientStatus.SENT
-                recipient.sent_at = datetime.now(timezone.utc)
+                recipient.sent_at = datetime.now(UTC)
                 success_count += 1
             else:
                 recipient.status = RecipientStatus.FAILED
@@ -408,7 +413,7 @@ async def send_campaign(
 
         campaign.success_count = success_count
         campaign.fail_count = fail_count
-        campaign.sent_at = datetime.now(timezone.utc)
+        campaign.sent_at = datetime.now(UTC)
         campaign.status = (
             CampaignStatus.SENT
             if success_count > 0 or len(target_user_ids) == 0

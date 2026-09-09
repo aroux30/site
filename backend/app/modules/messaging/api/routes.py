@@ -2,12 +2,11 @@
 
 from __future__ import annotations
 
-import uuid
-from typing import Optional
+import uuid  # noqa: TC003
+from typing import TYPE_CHECKING
 
 import structlog
-from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy.ext.asyncio import AsyncSession
+from fastapi import APIRouter, Depends, HTTPException, Path, Query, status
 
 from app.core.database.session import get_db
 from app.core.security.dependencies import RequirePermissions
@@ -20,6 +19,9 @@ from app.modules.messaging.schemas.campaign import (
     BroadcastCampaignUpdate,
     SegmentEstimateResponse,
 )
+
+if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncSession
 
 logger: structlog.stdlib.BoundLogger = structlog.get_logger(__name__)
 
@@ -42,10 +44,10 @@ _require_messaging_write = Depends(RequirePermissions("messaging:write"))
 async def list_campaigns(
     page: int = Query(1, ge=1, description="Page number"),
     page_size: int = Query(20, ge=1, le=100, description="Items per page"),
-    status_filter: Optional[CampaignStatus] = Query(
+    status_filter: CampaignStatus | None = Query(
         None,
         alias="status",
-        description="Filter campaigns by status (draft, scheduled, processing, sent, failed, cancelled)",
+        description="Filter by status (draft, scheduled, processing, sent, failed, cancelled)",
     ),
     db: AsyncSession = Depends(get_db),
 ) -> BroadcastCampaignListResponse:
@@ -93,15 +95,15 @@ async def create_campaign(
     dependencies=[_require_messaging_read],
 )
 async def get_campaign(
-    id: uuid.UUID,
+    campaign_id: uuid.UUID = Path(..., alias="id", description="Campaign UUID"),
     db: AsyncSession = Depends(get_db),
 ) -> BroadcastCampaignResponse:
     """Retrieve detailed information and metrics for a specific broadcast campaign."""
-    campaign = await broadcast_service.get_campaign(db=db, campaign_id=id)
+    campaign = await broadcast_service.get_campaign(db=db, campaign_id=campaign_id)
     if not campaign:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Campaign with ID '{id}' not found",
+            detail=f"Campaign with ID '{campaign_id}' not found",
         )
     return BroadcastCampaignResponse.model_validate(campaign)
 
@@ -113,23 +115,23 @@ async def get_campaign(
     dependencies=[_require_messaging_write],
 )
 async def update_campaign(
-    id: uuid.UUID,
-    body: BroadcastCampaignUpdate,
+    campaign_id: uuid.UUID = Path(..., alias="id", description="Campaign UUID"),
+    body: BroadcastCampaignUpdate = ...,
     db: AsyncSession = Depends(get_db),
 ) -> BroadcastCampaignResponse:
     """Update fields of an existing draft or scheduled campaign."""
     try:
         updated = await broadcast_service.update_campaign(
             db=db,
-            campaign_id=id,
+            campaign_id=campaign_id,
             data=body,
         )
         return BroadcastCampaignResponse.model_validate(updated)
     except ValueError as exc:
         err_msg = str(exc)
         if "not found" in err_msg:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=err_msg)
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=err_msg)
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=err_msg) from exc
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=err_msg) from exc
 
 
 @router.post(
@@ -139,36 +141,9 @@ async def update_campaign(
     dependencies=[_require_messaging_write],
 )
 async def trigger_send_campaign(
-    id: uuid.UUID,
+    campaign_id: uuid.UUID = Path(..., alias="id", description="Campaign UUID"),
     db: AsyncSession = Depends(get_db),
 ) -> BroadcastCampaignResponse:
-    """Trigger immediate execution of a campaign to its target segment."""
-    campaign = await broadcast_service.get_campaign(db=db, campaign_id=id)
-    if not campaign:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Campaign with ID '{id}' not found",
-        )
-
-    if campaign.status in (CampaignStatus.SENT, CampaignStatus.PROCESSING):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Campaign is already in '{campaign.status.value}' state and cannot be re-sent",
-        )
-
-    try:
-        updated = await broadcast_service.send_campaign(db=db, campaign_id=id)
-        return BroadcastCampaignResponse.model_validate(updated)
-    except Exception as exc:
-        await logger.aerror(
-            "send_campaign_route_error",
-            campaign_id=str(id),
-            error=str(exc),
-        )
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to execute campaign: {exc}",
-        )
     """Trigger immediate execution of a campaign to its target segment."""
     campaign = await broadcast_service.get_campaign(db=db, campaign_id=campaign_id)
     if not campaign:
@@ -195,7 +170,7 @@ async def trigger_send_campaign(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to execute campaign: {exc}",
-        )
+        ) from exc
 
 
 # ── Segmentation Estimate Endpoints ───────────────────────────────────────
@@ -208,7 +183,7 @@ async def trigger_send_campaign(
     dependencies=[_require_messaging_read],
 )
 async def estimate_segment_size(
-    segment: str,
+    segment: str = Path(..., description="Target segment name"),
     db: AsyncSession = Depends(get_db),
 ) -> SegmentEstimateResponse:
     """Estimate the audience size for a given segment criteria.
@@ -222,12 +197,12 @@ async def estimate_segment_size(
     """
     try:
         target_segment = TargetSegment(segment)
-    except ValueError:
+    except ValueError as exc:
         valid_options = ", ".join(s.value for s in TargetSegment)
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Invalid segment '{segment}'. Valid options are: {valid_options}",
-        )
+        ) from exc
 
     count = await broadcast_service.estimate_segment_size(db=db, segment=target_segment)
 
@@ -235,7 +210,9 @@ async def estimate_segment_size(
         TargetSegment.ALL_USERS: "Total active registered users",
         TargetSegment.ACTIVE_BUYERS: "Users with at least one order placed in the last 60 days",
         TargetSegment.INACTIVE_USERS: "Users who have not placed any orders in the last 90 days",
-        TargetSegment.ABANDONED_CARTS: "Users with active shopping carts untouched for over 2 hours",
+        TargetSegment.ABANDONED_CARTS: (
+            "Users with active shopping carts untouched for over 2 hours"
+        ),
         TargetSegment.WISHLIST_USERS: "Users with at least one product saved in their wishlist",
     }
 

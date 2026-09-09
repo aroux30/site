@@ -37,6 +37,8 @@ import { NumberTicker } from "@/components/ui/number-ticker";
 import { TiltCard3D } from "@/components/3d/tilt-card-3d";
 import { ParticleConstellation } from "@/components/3d/particle-constellation";
 import { GsapReveal } from "@/components/3d/gsap-reveal";
+import { Testimonials3D } from "@/components/3d/testimonials-3d";
+import { playAddToCartChime } from "@/lib/audio-effects";
 import { formatPrice, toPersianDigits } from "@/lib/utils";
 import { useCart } from "@/hooks/use-cart";
 import {
@@ -251,6 +253,7 @@ function FeaturedProductSpotlight({ product }: { product: ApiProduct }) {
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    playAddToCartChime();
     addToCart({
       productId: product.id,
       title: product.name,
@@ -726,6 +729,11 @@ export default function StoreHomePage() {
               ))}
         </div>
       </section>
+
+      {/* ============================================================ */}
+      {/*  7 · Social Proof & Verified Testimonials (3D Tilt Cards)    */}
+      {/* ============================================================ */}
+      <Testimonials3D />
     </div>
   );
 }

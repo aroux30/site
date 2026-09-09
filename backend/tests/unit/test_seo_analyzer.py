@@ -1,8 +1,9 @@
 """Unit tests for the automated 0-100 SEO Scoring Engine (Iranian market / Rank Math style)."""
 
 import uuid
-import pytest
 from unittest.mock import AsyncMock, MagicMock
+
+import pytest
 
 from app.modules.seo.application.seo_analyzer import (
     SeoAnalyzer,
@@ -11,7 +12,6 @@ from app.modules.seo.application.seo_analyzer import (
     strip_html_and_markdown,
 )
 from app.modules.seo.schemas.seo import SeoAnalysisRequest, SeoAnalysisResponse
-
 
 # -----------------------------------------------------------------------------
 # Normalization & Helpers Tests
@@ -52,14 +52,20 @@ def test_keyword_in_text():
 
 def test_strip_html_and_markdown():
     """Verify HTML tags and markdown formatting are stripped cleanly."""
-    html_content = "<h2>تیتر اصلی</h2><p>این یک <strong>پاراگراف</strong> تستی است.</p><script>alert(1)</script>"
+    html_content = (
+        "<h2>تیتر اصلی</h2><p>این یک <strong>پاراگراف</strong> تستی است.</p>"
+        "<script>alert(1)</script>"
+    )
     stripped = strip_html_and_markdown(html_content)
     assert "تیتر اصلی" in stripped
     assert "پاراگراف" in stripped
     assert "alert" not in stripped
     assert "<" not in stripped
 
-    md_content = "## تیتر مارک‌داون\n\nمتن [لینک دار](https://example.com) و تصویر ![توضیح](img.jpg)"
+    md_content = (
+        "## تیتر مارک‌داون\n\nمتن [لینک دار](https://example.com) "
+        "و تصویر ![توضیح](img.jpg)"
+    )
     stripped_md = strip_html_and_markdown(md_content)
     assert "تیتر مارک‌داون" in stripped_md
     assert "متن لینک دار" in stripped_md
@@ -171,8 +177,8 @@ def test_description_checks():
 
     # Optimal description
     good_desc = (
-        "خرید انواع دوربین مداربسته با دید در شب عالی و کیفیت تصویر فوق‌العاده با گارانتی دو ساله شرکتی "
-        "و امکان ارسال به سراسر کشور در فروشگاه تخصصی تجهیزات امنیتی."
+        "خرید انواع دوربین مداربسته با دید در شب عالی و کیفیت تصویر فوق‌العاده با گارانتی "
+        "دو ساله شرکتی و امکان ارسال به سراسر کشور در فروشگاه تخصصی تجهیزات امنیتی."
     )
     assert 120 <= len(good_desc) <= 160
 
@@ -297,7 +303,10 @@ def test_media_and_links_checks():
     assert sum(i.points for i in media_items) == 20
 
     # Via HTML content detection
-    html_content = '<img src="apple.jpg" alt="خرید تبلت اپل مدل پرو"><a href="/products">فروشگاه</a>'
+    html_content = (
+        '<img src="apple.jpg" alt="خرید تبلت اپل مدل پرو">'
+        '<a href="/products">فروشگاه</a>'
+    )
     res_html = analyzer.analyze(content=html_content, focus_keyword=kw)
     media_items_html = [i for i in res_html.checklist if i.category == "media_links"]
     assert all(i.passed for i in media_items_html)
@@ -375,15 +384,22 @@ def test_pydantic_schema_validation():
 async def test_api_seo_analyze_endpoint():
     """Verify POST /api/v1/seo/analyze and /seo/analyze with FastAPI TestClient."""
     from httpx import ASGITransport, AsyncClient
+
     from app.main import app
 
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         payload = {
             "title": "راهنمای جامع خرید هدفون بلوتوثی اصل",
-            "content": "<h2>بررسی</h2><h3>مدل‌ها</h3><p>خرید هدفون بلوتوثی بسیار جذاب است.</p>" + " متن تستی "*100,
+            "content": (
+                "<h2>بررسی</h2><h3>مدل‌ها</h3><p>خرید هدفون بلوتوثی بسیار جذاب است.</p>"
+                + " متن تستی " * 100
+            ),
             "focus_keyword": "هدفون بلوتوثی",
             "slug": "خرید-هدفون-بلوتوثی",
-            "meta_description": "بهترین قیمت خرید هدفون بلوتوثی با کیفیت صدای عالی و ارسال سریع به سراسر ایران در فروشگاه آنلاین لوازم جانبی دیجیتال.",
+            "meta_description": (
+                "بهترین قیمت خرید هدفون بلوتوثی با کیفیت صدای عالی و ارسال سریع به سراسر "
+                "ایران در فروشگاه آنلاین لوازم جانبی دیجیتال."
+            ),
             "has_image_alt": True,
             "internal_links_count": 2,
         }
@@ -406,6 +422,7 @@ async def test_api_seo_analyze_endpoint():
 async def test_api_seo_product_score_not_found():
     """Verify GET /api/v1/seo/products/{id}/score returns 404 when product is missing."""
     from httpx import ASGITransport, AsyncClient
+
     from app.main import app
 
     fake_id = str(uuid.uuid4())
@@ -429,6 +446,7 @@ async def test_api_seo_product_score_not_found():
 async def test_api_seo_blog_score_not_found():
     """Verify GET /api/v1/seo/blog/{slug}/score returns 404 when article is missing."""
     from httpx import ASGITransport, AsyncClient
+
     from app.main import app
 
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
@@ -450,6 +468,7 @@ async def test_api_seo_blog_score_not_found():
 async def test_api_seo_product_score_success():
     """Verify GET /api/v1/seo/products/{id}/score calculates and returns score for mock product."""
     from httpx import ASGITransport, AsyncClient
+
     from app.main import app
     from app.modules.catalog.domain.models import Product, ProductImage, ProductTag, Tag
 
@@ -459,8 +478,14 @@ async def test_api_seo_product_score_success():
     mock_product.name = "گوشی سامسونگ مدل A54"
     mock_product.slug = "samsung-galaxy-a54"
     mock_product.seo_title = "خرید گوشی سامسونگ مدل A54 با قیمت عالی روز"
-    mock_product.seo_description = "خرید گوشی سامسونگ با گارانتی معتبر شرکتی و قیمت روز مناسب در فروشگاه اینترنتی به همراه تحویل فوری در محل خریدار."
-    mock_product.description = "<h2>بررسی فنی</h2><p>خرید گوشی سامسونگ پیشنهاد مناسبی است.</p>" + " متن توضیحات محصول "*150
+    mock_product.seo_description = (
+        "خرید گوشی سامسونگ با گارانتی معتبر شرکتی و قیمت روز مناسب در فروشگاه اینترنتی "
+        "به همراه تحویل فوری در محل خریدار."
+    )
+    mock_product.description = (
+        "<h2>بررسی فنی</h2><p>خرید گوشی سامسونگ پیشنهاد مناسبی است.</p>"
+        + " متن توضیحات محصول " * 150
+    )
     mock_product.short_description = "گوشی سامسونگ اصل"
     mock_product.meta_keywords = "گوشی سامسونگ, سامسونگ"
 
@@ -500,6 +525,7 @@ async def test_api_seo_product_score_success():
 async def test_api_seo_blog_score_success():
     """Verify GET /api/v1/seo/blog/{slug}/score calculates and returns score for mock blog post."""
     from httpx import ASGITransport, AsyncClient
+
     from app.main import app
     from app.modules.blog.domain.models import BlogCategory, BlogPost
 
@@ -510,8 +536,14 @@ async def test_api_seo_blog_score_success():
     mock_post.id = uuid.uuid4()
     mock_post.title = "راهنمای خرید لپ تاپ مهندسی در سال جدید"
     mock_post.slug = "guide-buying-laptop"
-    mock_post.excerpt = "راهنمای خرید لپ تاپ مهندسی با بررسی کامل پردازنده، حافظه رم و کارت گرافیک در فروشگاه آنلاین."
-    mock_post.content = "<h2>مقدمه</h2><p>راهنمای خرید لپ تاپ یکی از مقالات مهم است.</p>" + " متن راهنما "*120
+    mock_post.excerpt = (
+        "راهنمای خرید لپ تاپ مهندسی با بررسی کامل پردازنده، حافظه رم و کارت گرافیک "
+        "در فروشگاه آنلاین."
+    )
+    mock_post.content = (
+        "<h2>مقدمه</h2><p>راهنمای خرید لپ تاپ یکی از مقالات مهم است.</p>"
+        + " متن راهنما " * 120
+    )
     mock_post.cover_image_url = "https://example.com/laptop.jpg"
     mock_post.category = mock_category
 

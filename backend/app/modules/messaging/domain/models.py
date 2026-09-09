@@ -3,9 +3,9 @@
 from __future__ import annotations
 
 import enum
-import uuid
-from datetime import datetime
-from typing import TYPE_CHECKING, Optional
+import uuid  # noqa: TC003
+from datetime import datetime  # noqa: TC003
+from typing import TYPE_CHECKING
 
 from sqlalchemy import (
     Boolean,
@@ -30,7 +30,7 @@ if TYPE_CHECKING:
 # ── Enums ─────────────────────────────────────────────────────────────────
 
 
-class CampaignChannel(str, enum.Enum):
+class CampaignChannel(enum.StrEnum):
     """Supported broadcast communication channels."""
 
     SMS = "sms"
@@ -39,7 +39,7 @@ class CampaignChannel(str, enum.Enum):
     IN_APP = "in_app"
 
 
-class TargetSegment(str, enum.Enum):
+class TargetSegment(enum.StrEnum):
     """User audience segmentation criteria."""
 
     ALL_USERS = "all_users"
@@ -49,7 +49,7 @@ class TargetSegment(str, enum.Enum):
     WISHLIST_USERS = "wishlist_users"
 
 
-class CampaignStatus(str, enum.Enum):
+class CampaignStatus(enum.StrEnum):
     """Lifecycle states of a broadcast campaign."""
 
     DRAFT = "draft"
@@ -60,7 +60,7 @@ class CampaignStatus(str, enum.Enum):
     CANCELLED = "cancelled"
 
 
-class RecipientStatus(str, enum.Enum):
+class RecipientStatus(enum.StrEnum):
     """Delivery status for an individual recipient."""
 
     PENDING = "pending"
@@ -93,11 +93,11 @@ class BroadcastCampaign(BaseModel):
         nullable=False,
     )
     message_template: Mapped[str] = mapped_column(Text, nullable=False)
-    scheduled_at: Mapped[Optional[datetime]] = mapped_column(
+    scheduled_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True),
         nullable=True,
     )
-    sent_at: Mapped[Optional[datetime]] = mapped_column(
+    sent_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True),
         nullable=True,
     )
@@ -106,21 +106,29 @@ class BroadcastCampaign(BaseModel):
         default=CampaignStatus.DRAFT,
         nullable=False,
     )
-    total_recipients: Mapped[int] = mapped_column(Integer, default=0, server_default="0", nullable=False)
-    success_count: Mapped[int] = mapped_column(Integer, default=0, server_default="0", nullable=False)
-    fail_count: Mapped[int] = mapped_column(Integer, default=0, server_default="0", nullable=False)
-    ab_test_enabled: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false", nullable=False)
-    variant_b_template: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    total_recipients: Mapped[int] = mapped_column(
+        Integer, default=0, server_default="0", nullable=False
+    )
+    success_count: Mapped[int] = mapped_column(
+        Integer, default=0, server_default="0", nullable=False
+    )
+    fail_count: Mapped[int] = mapped_column(
+        Integer, default=0, server_default="0", nullable=False
+    )
+    ab_test_enabled: Mapped[bool] = mapped_column(
+        Boolean, default=False, server_default="false", nullable=False
+    )
+    variant_b_template: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     # Relationships
-    recipients: Mapped[list["BroadcastRecipient"]] = relationship(
+    recipients: Mapped[list[BroadcastRecipient]] = relationship(
         "BroadcastRecipient",
         back_populates="campaign",
         cascade="all, delete-orphan",
         lazy="select",
     )
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs) -> None:
         kwargs.setdefault("total_recipients", 0)
         kwargs.setdefault("success_count", 0)
         kwargs.setdefault("fail_count", 0)
@@ -158,29 +166,29 @@ class BroadcastRecipient(BaseModel):
         default=RecipientStatus.PENDING,
         nullable=False,
     )
-    sent_at: Mapped[Optional[datetime]] = mapped_column(
+    sent_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True),
         nullable=True,
     )
-    error_message: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
-    variant_used: Mapped[Optional[str]] = mapped_column(
+    error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
+    variant_used: Mapped[str | None] = mapped_column(
         String(10),
         default="A",
         nullable=True,
     )
 
     # Relationships
-    campaign: Mapped["BroadcastCampaign"] = relationship(
+    campaign: Mapped[BroadcastCampaign] = relationship(
         "BroadcastCampaign",
         back_populates="recipients",
         lazy="select",
     )
-    user: Mapped["User"] = relationship(
+    user: Mapped[User] = relationship(
         "User",
         lazy="select",
     )
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs) -> None:
         kwargs.setdefault("status", RecipientStatus.PENDING)
         kwargs.setdefault("variant_used", "A")
         super().__init__(**kwargs)

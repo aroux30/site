@@ -2,9 +2,8 @@
 
 from __future__ import annotations
 
-import uuid
-from datetime import datetime
-from typing import Optional
+import uuid  # noqa: TC003
+from datetime import datetime  # noqa: TC003
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -14,7 +13,6 @@ from app.modules.messaging.domain.models import (
     RecipientStatus,
     TargetSegment,
 )
-
 
 # ── Campaign Schemas ──────────────────────────────────────────────────────
 
@@ -35,7 +33,10 @@ class BroadcastCampaignCreate(BaseModel):
     )
     target_segment: TargetSegment = Field(
         ...,
-        description="Target user segment: all_users, active_buyers, inactive_users, abandoned_carts, wishlist_users",
+        description=(
+            "Target segment: all_users, active_buyers, inactive_users, "
+            "abandoned_carts, wishlist_users"
+        ),
     )
     message_template: str = Field(
         ...,
@@ -43,11 +44,11 @@ class BroadcastCampaignCreate(BaseModel):
         description="Main message text or template",
         examples=["Special 20% discount code: WEEKEND20"],
     )
-    scheduled_at: Optional[datetime] = Field(
+    scheduled_at: datetime | None = Field(
         None,
         description="Optional scheduled dispatch time (UTC)",
     )
-    status: Optional[CampaignStatus] = Field(
+    status: CampaignStatus | None = Field(
         CampaignStatus.DRAFT,
         description="Initial campaign status (defaults to draft)",
     )
@@ -55,7 +56,7 @@ class BroadcastCampaignCreate(BaseModel):
         False,
         description="Whether A/B testing is enabled with an alternative variant",
     )
-    variant_b_template: Optional[str] = Field(
+    variant_b_template: str | None = Field(
         None,
         description="Alternative message template for variant B (required if ab_test_enabled)",
     )
@@ -64,14 +65,14 @@ class BroadcastCampaignCreate(BaseModel):
 class BroadcastCampaignUpdate(BaseModel):
     """Schema for updating an existing broadcast campaign."""
 
-    title: Optional[str] = Field(None, min_length=1, max_length=255)
-    channel: Optional[CampaignChannel] = None
-    target_segment: Optional[TargetSegment] = None
-    message_template: Optional[str] = Field(None, min_length=1)
-    scheduled_at: Optional[datetime] = None
-    status: Optional[CampaignStatus] = None
-    ab_test_enabled: Optional[bool] = None
-    variant_b_template: Optional[str] = None
+    title: str | None = Field(None, min_length=1, max_length=255)
+    channel: CampaignChannel | None = None
+    target_segment: TargetSegment | None = None
+    message_template: str | None = Field(None, min_length=1)
+    scheduled_at: datetime | None = None
+    status: CampaignStatus | None = None
+    ab_test_enabled: bool | None = None
+    variant_b_template: str | None = None
 
 
 class BroadcastCampaignResponse(BaseModel):
@@ -84,14 +85,14 @@ class BroadcastCampaignResponse(BaseModel):
     channel: CampaignChannel
     target_segment: TargetSegment
     message_template: str
-    scheduled_at: Optional[datetime] = None
-    sent_at: Optional[datetime] = None
+    scheduled_at: datetime | None = None
+    sent_at: datetime | None = None
     status: CampaignStatus
     total_recipients: int = 0
     success_count: int = 0
     fail_count: int = 0
     ab_test_enabled: bool = False
-    variant_b_template: Optional[str] = None
+    variant_b_template: str | None = None
     created_at: datetime
     updated_at: datetime
 
@@ -110,7 +111,7 @@ class SegmentEstimateResponse(BaseModel):
 
     target_segment: TargetSegment
     estimated_count: int
-    description: Optional[str] = None
+    description: str | None = None
 
 
 class BroadcastRecipientResponse(BaseModel):
@@ -122,7 +123,7 @@ class BroadcastRecipientResponse(BaseModel):
     campaign_id: uuid.UUID
     user_id: uuid.UUID
     status: RecipientStatus
-    sent_at: Optional[datetime] = None
-    error_message: Optional[str] = None
-    variant_used: Optional[str] = "A"
+    sent_at: datetime | None = None
+    error_message: str | None = None
+    variant_used: str | None = "A"
     created_at: datetime

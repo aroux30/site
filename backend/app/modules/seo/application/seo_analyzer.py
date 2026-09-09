@@ -812,16 +812,17 @@ class SeoAnalyzer:
             )
 
         # Check 5.2: Contains internal / outbound links? (+10 pts)
-        has_links = False
-        if internal_links_count is not None and internal_links_count > 0:
-            has_links = True
-        elif internal_links and len(internal_links) > 0:
-            has_links = True
-        elif content and (
-            re.search(r"""(?is)<a\s+[^>]*href\s*=\s*["'][^"']+["']""", content)
-            or re.search(r"""\[[^\]]+\]\([^)]+\)""", content)
-        ):
-            has_links = True
+        has_links = bool(
+            (internal_links_count is not None and internal_links_count > 0)
+            or (internal_links and len(internal_links) > 0)
+            or (
+                content
+                and (
+                    re.search(r"""(?is)<a\s+[^>]*href\s*=\s*["'][^"']+["']""", content)
+                    or re.search(r"""\[[^\]]+\]\([^)]+\)""", content)
+                )
+            )
+        )
 
         if has_links:
             items.append(

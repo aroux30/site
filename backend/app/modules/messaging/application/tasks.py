@@ -32,7 +32,11 @@ async def _async_send_campaign(campaign_id_str: str) -> dict[str, Any]:
             }
         except Exception as exc:
             await db.rollback()
-            await logger.aerror("celery_campaign_send_failed", campaign_id=campaign_id_str, error=str(exc))
+            await logger.aerror(
+                "celery_campaign_send_failed",
+                campaign_id=campaign_id_str,
+                error=str(exc),
+            )
             return {"status": "error", "message": str(exc)}
 
 

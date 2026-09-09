@@ -96,3 +96,17 @@ async def test_unauthorized_invoice_access(client: AsyncClient):
     response = await client.get("/api/v1/orders/11111111-1111-1111-1111-111111111111/invoice")
     assert response.status_code == 401
 
+
+@pytest.mark.asyncio
+async def test_unauthorized_vendor_endpoints(client: AsyncClient):
+    """Verify vendor endpoints require authentication."""
+    resp_reg = await client.post("/api/v1/vendors/register", json={"store_name": "تست"})
+    assert resp_reg.status_code == 401
+
+    resp_me = await client.get("/api/v1/vendors/me")
+    assert resp_me.status_code == 401
+
+    resp_admin = await client.get("/api/v1/admin/vendors")
+    assert resp_admin.status_code == 401
+
+

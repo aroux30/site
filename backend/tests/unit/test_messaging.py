@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -22,12 +22,10 @@ from app.modules.messaging.domain.models import (
 )
 from app.modules.messaging.schemas.campaign import (
     BroadcastCampaignCreate,
-    BroadcastCampaignResponse,
     BroadcastCampaignUpdate,
     SegmentEstimateResponse,
 )
 from app.modules.users.domain.models import User
-
 
 # ── Domain Model Tests ───────────────────────────────────────────────────
 
@@ -297,7 +295,11 @@ async def test_send_campaign_service_success():
 
     mock_db.execute.side_effect = [res_get, res_users_ids, res_users]
 
-    with patch("app.modules.notifications.application.notification_service.NotificationService.create_notification", new_callable=AsyncMock) as mock_create_notif:
+    notif_target = (
+        "app.modules.notifications.application.notification_service."
+        "NotificationService.create_notification"
+    )
+    with patch(notif_target, new_callable=AsyncMock) as mock_create_notif:
         mock_create_notif.return_value = MagicMock()
         result = await broadcast_service.send_campaign(mock_db, camp_id)
 
@@ -492,8 +494,8 @@ async def test_route_list_campaigns(test_admin_headers):
         fail_count=0,
         ab_test_enabled=False,
     )
-    fake_campaign.created_at = datetime.now(timezone.utc)
-    fake_campaign.updated_at = datetime.now(timezone.utc)
+    fake_campaign.created_at = datetime.now(UTC)
+    fake_campaign.updated_at = datetime.now(UTC)
 
     with patch(
         "app.modules.messaging.application.broadcast_service.list_campaigns",
@@ -527,8 +529,8 @@ async def test_route_create_campaign(test_admin_headers):
         fail_count=0,
         ab_test_enabled=False,
     )
-    fake_campaign.created_at = datetime.now(timezone.utc)
-    fake_campaign.updated_at = datetime.now(timezone.utc)
+    fake_campaign.created_at = datetime.now(UTC)
+    fake_campaign.updated_at = datetime.now(UTC)
 
     with patch(
         "app.modules.messaging.application.broadcast_service.create_campaign",
@@ -596,8 +598,8 @@ async def test_route_get_campaign_detail(test_admin_headers):
         fail_count=0,
         ab_test_enabled=False,
     )
-    fake_campaign.created_at = datetime.now(timezone.utc)
-    fake_campaign.updated_at = datetime.now(timezone.utc)
+    fake_campaign.created_at = datetime.now(UTC)
+    fake_campaign.updated_at = datetime.now(UTC)
 
     with patch(
         "app.modules.messaging.application.broadcast_service.get_campaign",
@@ -665,11 +667,11 @@ async def test_route_send_campaign(test_admin_headers):
         fail_count=0,
         ab_test_enabled=False,
     )
-    draft_campaign.created_at = datetime.now(timezone.utc)
-    draft_campaign.updated_at = datetime.now(timezone.utc)
-    sent_campaign.created_at = datetime.now(timezone.utc)
-    sent_campaign.updated_at = datetime.now(timezone.utc)
-    sent_campaign.sent_at = datetime.now(timezone.utc)
+    draft_campaign.created_at = datetime.now(UTC)
+    draft_campaign.updated_at = datetime.now(UTC)
+    sent_campaign.created_at = datetime.now(UTC)
+    sent_campaign.updated_at = datetime.now(UTC)
+    sent_campaign.sent_at = datetime.now(UTC)
 
     with patch(
         "app.modules.messaging.application.broadcast_service.get_campaign",
@@ -747,8 +749,8 @@ async def test_route_patch_campaign(test_admin_headers):
         fail_count=0,
         ab_test_enabled=False,
     )
-    updated_campaign.created_at = datetime.now(timezone.utc)
-    updated_campaign.updated_at = datetime.now(timezone.utc)
+    updated_campaign.created_at = datetime.now(UTC)
+    updated_campaign.updated_at = datetime.now(UTC)
 
     with patch(
         "app.modules.messaging.application.broadcast_service.update_campaign",
@@ -784,8 +786,15 @@ async def test_celery_task_async_send_campaign():
         fail_count=0,
     )
 
-    with patch("app.modules.messaging.application.tasks.async_session_factory") as mock_session_factory, \
-         patch("app.modules.messaging.application.tasks.send_campaign", new_callable=AsyncMock) as mock_send:
+    with (
+        patch(
+            "app.modules.messaging.application.tasks.async_session_factory"
+        ) as mock_session_factory,
+        patch(
+            "app.modules.messaging.application.tasks.send_campaign",
+            new_callable=AsyncMock,
+        ) as mock_send,
+    ):
         mock_session = AsyncMock()
         mock_session_factory.return_value.__aenter__.return_value = mock_session
         mock_send.return_value = mock_campaign

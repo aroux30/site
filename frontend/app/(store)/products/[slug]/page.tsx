@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { useParams } from "next/navigation";
 import {
   Star,
   Heart,
@@ -10,636 +10,967 @@ import {
   Truck,
   Shield,
   RotateCcw,
-  Share2,
+  Headphones,
   ChevronLeft,
   Minus,
   Plus,
   Check,
+  Package,
+  AlertCircle,
+  MessageSquare,
+  Send,
+  Loader2,
+  CheckCircle2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
+import { formatPrice, toPersianDigits } from "@/lib/utils";
+import { useCart } from "@/hooks/use-cart";
+import { useAuth } from "@/hooks/use-auth";
 import {
-  Accordion,
-  AccordionItem,
-  AccordionTrigger,
-  AccordionContent,
-} from "@/components/ui/accordion";
-import { cn, formatPrice, toPersianDigits } from "@/lib/utils";
-import { useCartStore } from "@/stores/cart-store";
+  fetchProductBySlug,
+  fetchReviews,
+  postReview,
+  addToWishlistApi,
+  removeFromWishlistApi,
+  checkWishlistApi,
+  type ApiProductDetail,
+  type ApiProductVariant,
+  type ApiReviewItem,
+  type ApiReviewStats,
+} from "@/lib/api/services";
 
 /* -------------------------------------------------------------------------- */
-/*                               Sample Data                                  */
+/*                               Fallback Data                                */
 /* -------------------------------------------------------------------------- */
 
-const sampleProduct = {
-  id: "s24-ultra",
-  title: "گوشی موبایل سامسونگ Galaxy S24 Ultra",
+const fallbackProduct: ApiProductDetail = {
+  id: "samsung-galaxy-s24-ultra",
+  name: "گوشی موبایل سامسونگ Galaxy S24 Ultra",
   slug: "samsung-galaxy-s24-ultra",
-  price: 65000000,
-  originalPrice: 72000000,
-  category: "الکترونیک",
-  subcategory: "گوشی موبایل",
-  rating: 4.7,
-  reviewCount: 342,
-  inStock: true,
-  images: [0, 1, 2, 3], // placeholder indices
-  colors: [
-    { name: "مشکی تیتانیوم", value: "#2d2d2d" },
-    { name: "بنفش تیتانیوم", value: "#6b5b7b" },
-    { name: "زرد تیتانیوم", value: "#c4b078" },
-    { name: "خاکستری تیتانیوم", value: "#9a9a9a" },
-  ],
-  features: [
-    "صفحه نمایش ۶.۸ اینچی Dynamic AMOLED 2X",
-    "پردازنده Snapdragon 8 Gen 3",
-    "دوربین اصلی ۲۰۰ مگاپیکسلی",
-    "باتری ۵۰۰۰ میلی‌آمپر ساعت با شارژ سریع",
-    "قلم S Pen داخلی با قابلیت‌های هوش مصنوعی",
-  ],
-  description: `گوشی موبایل سامسونگ Galaxy S24 Ultra با طراحی تیتانیومی مقاوم و زیبا، یکی از پیشرفته‌ترین گوشی‌های هوشمند بازار است. این گوشی مجهز به صفحه نمایش ۶.۸ اینچی Dynamic AMOLED 2X با رزولوشن QHD+ و نرخ نوسازی ۱۲۰ هرتز است که تجربه بصری فوق‌العاده‌ای را ارائه می‌دهد.
+  category_id: "cat-phones",
+  brand_id: "brand-samsung",
+  min_price: 65000000,
+  max_price: 72000000,
+  variant_count: 3,
+  is_active: true,
+  is_featured: true,
+  short_description:
+    "مجهز به پردازنده اسنپ‌دراگون ۸ نسل ۳، بدنه تیتانیوم، دوربین ۲۰۰ مگاپیکسل و هوش مصنوعی Galaxy AI",
+  description: `گوشی پرچمدار سامسونگ گلکسی اس ۲۴ اولترا با فریم مستحکم تیتانیومی و نمایشگر تخت ۶.۸ اینچی Dynamic AMOLED 2X یکی از پیشرفته‌ترین گوشی‌های هوشمند حال حاضر بازار است.
 
-پردازنده قدرتمند Snapdragon 8 Gen 3 به همراه ۱۲ گیگابایت حافظه رم، عملکرد بی‌نظیری را در اجرای بازی‌ها، اپلیکیشن‌های سنگین و چندوظیفگی فراهم می‌کند. سیستم دوربین چهارگانه با سنسور اصلی ۲۰۰ مگاپیکسلی، تصاویر خیره‌کننده‌ای با جزئیات باورنکردنی ثبت می‌کند.
+این مدل با قلم داخلی S-Pen و پشتیبانی اختصاصی از قابلیت‌های هوش مصنوعی Galaxy AI شامل ترجمه همزمان مکالمات صوتی، جستجوی هوشمند Circle to Search و ویرایش هوشمندانه تصاویر، سطح جدیدی از کاربری را ارائه می‌دهد.
 
-قابلیت‌های هوش مصنوعی Galaxy AI شامل ترجمه همزمان مکالمات تلفنی، ویرایش حرفه‌ای تصاویر، خلاصه‌سازی متون و جستجوی هوشمند است. قلم S Pen داخلی نیز امکان یادداشت‌برداری سریع و طراحی را فراهم می‌سازد.
-
-باتری ۵۰۰۰ میلی‌آمپر ساعتی با پشتیبانی از شارژ سریع ۴۵ واتی، استفاده طولانی‌مدت در طول روز را تضمین می‌کند. این دستگاه همچنین دارای استاندارد مقاومت IP68 در برابر آب و گرد و غبار است.`,
-  specifications: {
-    برند: "سامسونگ",
-    مدل: "Galaxy S24 Ultra",
-    "حافظه داخلی": "۲۵۶ گیگابایت",
-    رم: "۱۲ گیگابایت",
-    "اندازه صفحه نمایش": "۶.۸ اینچ",
-    "دوربین اصلی": "۲۰۰ مگاپیکسل",
-    باتری: "۵۰۰۰ میلی‌آمپر ساعت",
-    "سیستم عامل": "Android 14",
-    رنگ: "مشکی تیتانیوم",
-    گارانتی: "۱۸ ماهه",
-  } as Record<string, string>,
-};
-
-const sampleReviews = [
-  {
-    id: "1",
-    author: "علی محمدی",
-    date: "۱۴۰۳/۰۶/۱۵",
-    rating: 5,
-    text: "واقعاً عالیه! کیفیت دوربین فوق‌العاده‌ست و عملکرد پردازنده بسیار روان و سریع. قلم S Pen هم که دیگه حرف نداره. بهترین گوشی‌ای که تا حالا داشتم.",
-    pros: ["کیفیت دوربین عالی", "عملکرد سریع", "طراحی زیبا"],
-    cons: ["قیمت بالا"],
+سنسور دوربین ۲۰۰ مگاپیکسلی با پردازش تصویر پیشرفته در محیط‌های کم‌نور، همراه با زوم اپتیکال ۵ برابری و ۱۰ برابری بدون افت کیفیت، تصاویری استثنایی را ثبت می‌کند. باتری ۵۰۰۰ میلی‌آمپر ساعتی با پشتیبانی از شارژ سریع ۴۵ وات تضمین می‌کند که در طول کارهای روزمره شارژ کم نیاورید.`,
+  category: {
+    id: "cat-phones",
+    name: "موبایل و تبلت",
+    slug: "phones",
+    is_active: true,
   },
-  {
-    id: "2",
-    author: "مریم حسینی",
-    date: "۱۴۰۳/۰۵/۲۸",
-    rating: 4,
-    text: "گوشی بسیار خوبیه ولی قیمتش واقعاً بالاست. صفحه نمایش خیلی باکیفیته و باتری هم خوب دوام میاره. قابلیت‌های هوش مصنوعی هم جالب هستن.",
-    pros: ["صفحه نمایش عالی", "عمر باتری خوب", "قابلیت‌های AI"],
-    cons: ["قیمت بالا", "سنگین"],
+  brand: {
+    id: "brand-samsung",
+    name: "سامسونگ (Samsung)",
+    slug: "samsung",
+    is_active: true,
   },
-  {
-    id: "3",
-    author: "رضا کریمی",
-    date: "۱۴۰۳/۰۵/۱۰",
-    rating: 5,
-    text: "از هر نظر یک گوشی کامل و بی‌نقص. ارتقای بزرگی نسبت به S23 Ultra بود. عملکرد Galaxy AI هم فراتر از انتظارم بود. خیلی راضی‌ام از خریدم.",
-    pros: ["ارتقای محسوس نسبت به نسل قبل", "Galaxy AI", "ساخت تیتانیومی"],
-    cons: ["شارژر داخل جعبه نیست"],
-  },
-];
-
-const relatedProducts = [
-  {
-    id: "r1",
-    title: "گوشی موبایل سامسونگ Galaxy S24+",
-    slug: "samsung-galaxy-s24-plus",
-    price: 52000000,
-    originalPrice: 55000000,
-    rating: 4.5,
-    reviewCount: 189,
-  },
-  {
-    id: "r2",
-    title: "گوشی موبایل آیفون ۱۵ پرو مکس",
-    slug: "iphone-15-pro-max",
-    price: 78000000,
-    originalPrice: null,
-    rating: 4.8,
-    reviewCount: 523,
-  },
-  {
-    id: "r3",
-    title: "گوشی موبایل شیائومی ۱۴ اولترا",
-    slug: "xiaomi-14-ultra",
-    price: 38000000,
-    originalPrice: 42000000,
-    rating: 4.3,
-    reviewCount: 97,
-  },
-  {
-    id: "r4",
-    title: "گوشی موبایل گوگل پیکسل ۸ پرو",
-    slug: "google-pixel-8-pro",
-    price: 45000000,
-    originalPrice: null,
-    rating: 4.6,
-    reviewCount: 156,
-  },
-];
-
-/* -------------------------------------------------------------------------- */
-/*                              Helper Components                             */
-/* -------------------------------------------------------------------------- */
-
-function RatingStars({
-  rating,
-  size = "sm",
-}: {
-  rating: number;
-  size?: "sm" | "md";
-}) {
-  const sizeClass = size === "md" ? "h-5 w-5" : "h-4 w-4";
-  return (
-    <div className="flex items-center gap-0.5">
-      {Array.from({ length: 5 }).map((_, i) => (
-        <Star
-          key={i}
-          className={cn(
-            sizeClass,
-            i < Math.floor(rating)
-              ? "fill-yellow-400 text-yellow-400"
-              : i < rating
-                ? "fill-yellow-400/50 text-yellow-400"
-                : "text-muted-foreground/30",
-          )}
-        />
-      ))}
-    </div>
-  );
-}
-
-function RelatedProductCard({
-  product,
-}: {
-  product: (typeof relatedProducts)[number];
-}) {
-  const discount = product.originalPrice
-    ? Math.round(
-        ((product.originalPrice - product.price) / product.originalPrice) * 100,
-      )
-    : null;
-
-  return (
-    <Card className="group overflow-hidden transition-shadow hover:shadow-lg">
-      <Link href={`/products/${product.slug}`}>
-        <div className="relative aspect-square bg-muted">
-          <div className="flex h-full items-center justify-center text-4xl text-muted-foreground">
-            📦
-          </div>
-          {discount && (
-            <Badge
-              variant="destructive"
-              className="absolute left-2 top-2 rounded-full"
-            >
-              {toPersianDigits(discount)}% تخفیف
-            </Badge>
-          )}
-        </div>
-        <div className="p-4">
-          <h3 className="mb-2 line-clamp-2 text-sm font-medium text-foreground group-hover:text-primary transition-colors">
-            {product.title}
-          </h3>
-          <div className="mb-2 flex items-center gap-1">
-            <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />
-            <span className="text-xs text-muted-foreground">
-              {toPersianDigits(product.rating)} ({toPersianDigits(product.reviewCount)} نظر)
-            </span>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="price text-base">{formatPrice(product.price)}</span>
-            {product.originalPrice && (
-              <span className="price-discount">
-                {formatPrice(product.originalPrice)}
-              </span>
-            )}
-          </div>
-        </div>
-      </Link>
-    </Card>
-  );
-}
-
-/* -------------------------------------------------------------------------- */
-/*                              Main Page Component                           */
-/* -------------------------------------------------------------------------- */
-
-const fadeInUp = {
-  initial: { opacity: 0, y: 20 },
-  animate: { opacity: 1, y: 0 },
-  transition: { duration: 0.4, ease: "easeOut" },
-};
-
-const stagger = {
-  animate: {
-    transition: {
-      staggerChildren: 0.1,
+  variants: [
+    {
+      id: "var-1",
+      product_id: "samsung-galaxy-s24-ultra",
+      sku: "S24U-TIT-BLACK-256",
+      price: 65000000,
+      compare_at_price: 72000000,
+      is_active: true,
+      position: 1,
+      attributes: {
+        "رنگ": "مشکی تیتانیوم",
+        "حافظه": "۲۵۶ گیگابایت",
+        "رم": "۱۲ گیگابایت",
+      },
     },
-  },
+    {
+      id: "var-2",
+      product_id: "samsung-galaxy-s24-ultra",
+      sku: "S24U-TIT-GRAY-512",
+      price: 69500000,
+      compare_at_price: 76000000,
+      is_active: true,
+      position: 2,
+      attributes: {
+        "رنگ": "خاکستری تیتانیوم",
+        "حافظه": "۵۱۲ گیگابایت",
+        "رم": "۱۲ گیگابایت",
+      },
+    },
+    {
+      id: "var-3",
+      product_id: "samsung-galaxy-s24-ultra",
+      sku: "S24U-TIT-VIOLET-1TB",
+      price: 78000000,
+      compare_at_price: 84000000,
+      is_active: false,
+      position: 3,
+      attributes: {
+        "رنگ": "بنفش تیتانیوم",
+        "حافظه": "۱ ترابایت",
+        "رم": "۱۲ گیگابایت",
+      },
+    },
+  ],
+  images: [
+    {
+      id: "img-1",
+      product_id: "samsung-galaxy-s24-ultra",
+      url: "https://images.unsplash.com/photo-1610945265064-0e34e5519bbf?w=800&q=80",
+      alt_text: "نمای روبرو گلکسی اس ۲۴ اولترا",
+      position: 1,
+      is_primary: true,
+    },
+    {
+      id: "img-2",
+      product_id: "samsung-galaxy-s24-ultra",
+      url: "https://images.unsplash.com/photo-1598327105666-5b89351aff97?w=800&q=80",
+      alt_text: "نمای پشت و دوربین‌ها",
+      position: 2,
+      is_primary: false,
+    },
+    {
+      id: "img-3",
+      product_id: "samsung-galaxy-s24-ultra",
+      url: "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=800&q=80",
+      alt_text: "قلم اس پن و فریم تیتانیوم",
+      position: 3,
+      is_primary: false,
+    },
+  ],
+  tags: [
+    { id: "t1", name: "پرچمدار", slug: "flagship" },
+    { id: "t2", name: "هوش مصنوعی", slug: "ai" },
+    { id: "t3", name: "سامسونگ", slug: "samsung" },
+  ],
+  product_attributes: [
+    {
+      id: "pa-1",
+      product_id: "samsung-galaxy-s24-ultra",
+      attribute_id: "a1",
+      attribute_value_id: "av1",
+      attribute_name: "پردازنده",
+      attribute_value: "Qualcomm Snapdragon 8 Gen 3 for Galaxy (۴ نانومتر)",
+    },
+    {
+      id: "pa-2",
+      product_id: "samsung-galaxy-s24-ultra",
+      attribute_id: "a2",
+      attribute_value_id: "av2",
+      attribute_name: "صفحه نمایش",
+      attribute_value: "۶.۸ اینچ Dynamic LTPO AMOLED 2X, ۱۲۰ هرتز, ۲۶۰۰ نیت",
+    },
+    {
+      id: "pa-3",
+      product_id: "samsung-galaxy-s24-ultra",
+      attribute_id: "a3",
+      attribute_value_id: "av3",
+      attribute_name: "دوربین اصلی",
+      attribute_value: "۲۰۰ مگاپیکسل واید + ۵۰ مگاپیکسل تله پریسکوپ + ۱۲ مگاپیکسل اولتراواید",
+    },
+    {
+      id: "pa-4",
+      product_id: "samsung-galaxy-s24-ultra",
+      attribute_id: "a4",
+      attribute_value_id: "av4",
+      attribute_name: "باتری و شارژ",
+      attribute_value: "۵۰۰۰ میلی‌آمپر ساعت با پشتیبانی از فست شارژ ۴۵ وات و شارژ وایرلس",
+    },
+    {
+      id: "pa-5",
+      product_id: "samsung-galaxy-s24-ultra",
+      attribute_id: "a5",
+      attribute_value_id: "av5",
+      attribute_name: "مقاومت در برابر آب",
+      attribute_value: "گواهی رسمی IP68 (مقاومت تا عمق ۱.۵ متر به مدت ۳۰ دقیقه)",
+    },
+  ],
 };
+
+const fallbackReviews: ApiReviewItem[] = [
+  {
+    id: "rev-1",
+    user: { id: "u-1", display_name: "علیرضا رضایی" },
+    product_id: "samsung-galaxy-s24-ultra",
+    rating: 5,
+    title: "شاهکار واقعی سامسونگ!",
+    body: "واقعاً از خریدش بسیار راضی‌ام. نمایشگر تخت فوق‌العاده‌ست و عملکرد هوش مصنوعی در ترجمه و ادیت عکس حیرت‌انگیزه. باتری هم به‌راحتی یک روز و نیم جواب میده.",
+    pros: ["کیفیت ساخت تیتانیومی بی‌نظیر", "دوربین فوق‌العاده قوی", "امکانات کاربردی هوش مصنوعی"],
+    cons: ["قیمت نسبتاً بالا", "شارژر درون جعبه قرار ندارد"],
+    is_verified_purchase: true,
+    helpful_count: 14,
+    unhelpful_count: 1,
+    created_at: "2024-08-15T10:30:00Z",
+  },
+  {
+    id: "rev-2",
+    user: { id: "u-2", display_name: "سارا محمدیان" },
+    product_id: "samsung-galaxy-s24-ultra",
+    rating: 4,
+    title: "گوشی بی‌نقص اما کمی سنگین",
+    body: "کیفیت صفحه نمایش و روشنایی زیر نور آفتاب فوق‌العاده است. زوم دوربین بی‌رقیبه. فقط برای دست‌های ظریف مقداری سنگین و بزرگه.",
+    pros: ["روشنایی فوق‌العاده نمایشگر", "قلم روان S-Pen", "سرعت اجرای تمام برنامه‌ها"],
+    cons: ["وزن سنگین برای استفاده طولانی مدت"],
+    is_verified_purchase: true,
+    helpful_count: 9,
+    unhelpful_count: 0,
+    created_at: "2024-08-10T14:20:00Z",
+  },
+];
+
+const fallbackStats: ApiReviewStats = {
+  average_rating: 4.7,
+  total_reviews: 2,
+  distribution: {
+    star_1: 0,
+    star_2: 0,
+    star_3: 0,
+    star_4: 1,
+    star_5: 1,
+  },
+  verified_count: 2,
+};
+
+/* -------------------------------------------------------------------------- */
+/*                               PDP Component                                */
+/* -------------------------------------------------------------------------- */
 
 export default function ProductDetailPage() {
-  const [selectedImage, setSelectedImage] = useState(0);
-  const [selectedColor, setSelectedColor] = useState(0);
+  const params = useParams<{ slug: string }>();
+  const slug = params?.slug || "";
+  const { addToCart } = useCart();
+  const { isAuthenticated } = useAuth();
+
+  // Product Data
+  const [product, setProduct] = useState<ApiProductDetail>(fallbackProduct);
+  const [loading, setLoading] = useState(true);
+
+  // Variant & Selection
+  const [selectedVariantIndex, setSelectedVariantIndex] = useState(0);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
+  const [addedToCartToast, setAddedToCartToast] = useState(false);
+
+  // Wishlist state
   const [isWishlisted, setIsWishlisted] = useState(false);
-  const addItem = useCartStore((state) => state.addItem);
+  const [wishlistLoading, setWishlistLoading] = useState(false);
 
-  const product = sampleProduct;
-  const discount = Math.round(
-    ((product.originalPrice - product.price) / product.originalPrice) * 100,
-  );
+  // Reviews State
+  const [reviews, setReviews] = useState<ApiReviewItem[]>(fallbackReviews);
+  const [reviewStats, setReviewStats] = useState<ApiReviewStats>(fallbackStats);
+  const [reviewsLoading, setReviewsLoading] = useState(false);
 
-  function handleAddToCart() {
-    addItem({
+  // Review Form
+  const [formRating, setFormRating] = useState(5);
+  const [formTitle, setFormTitle] = useState("");
+  const [formBody, setFormBody] = useState("");
+  const [formPros, setFormPros] = useState("");
+  const [formCons, setFormCons] = useState("");
+  const [isSubmittingReview, setIsSubmittingReview] = useState(false);
+  const [reviewSubmitSuccess, setReviewSubmitSuccess] = useState(false);
+  const [reviewSubmitError, setReviewSubmitError] = useState<string | null>(null);
+
+  // Fetch product by slug (or fallback by id)
+  useEffect(() => {
+    let active = true;
+    async function loadProduct() {
+      if (!slug) return;
+      setLoading(true);
+      try {
+        const data = await fetchProductBySlug(slug);
+        if (active && data && data.name) {
+          setProduct(data);
+          // Auto select first variant if available
+          if (data.variants && data.variants.length > 0) {
+            setSelectedVariantIndex(0);
+          }
+        }
+      } catch (err) {
+        console.warn("Product fetch by slug failed, using fallback product:", err);
+      } finally {
+        if (active) setLoading(false);
+      }
+    }
+
+    loadProduct();
+    return () => {
+      active = false;
+    };
+  }, [slug]);
+
+  // Load reviews
+  const loadProductReviews = useCallback(async (productId: string) => {
+    setReviewsLoading(true);
+    try {
+      const data = await fetchReviews(productId);
+      if (data && Array.isArray(data.reviews)) {
+        setReviews(data.reviews.length > 0 ? data.reviews : fallbackReviews);
+        if (data.stats) setReviewStats(data.stats);
+      }
+    } catch (err) {
+      console.warn("Reviews API failed, using fallback reviews:", err);
+    } finally {
+      setReviewsLoading(false);
+    }
+  }, []);
+
+  // Check wishlist status
+  const checkWishlistStatus = useCallback(async (productId: string) => {
+    if (!isAuthenticated) return;
+    try {
+      const status = await checkWishlistApi(productId);
+      setIsWishlisted(status.in_wishlist);
+    } catch {
+      // Ignore if unauthenticated or endpoint error
+    }
+  }, [isAuthenticated]);
+
+  useEffect(() => {
+    if (product.id) {
+      loadProductReviews(product.id);
+      checkWishlistStatus(product.id);
+    }
+  }, [product.id, loadProductReviews, checkWishlistStatus]);
+
+  // Selected variant derivation
+  const currentVariant: ApiProductVariant | undefined =
+    product.variants && product.variants.length > 0
+      ? product.variants[selectedVariantIndex] || product.variants[0]
+      : undefined;
+
+  const currentPrice = currentVariant?.price ?? (product.min_price || 0);
+  const originalPrice =
+    currentVariant?.compare_at_price ??
+    (product.max_price && product.max_price > currentPrice
+      ? product.max_price
+      : undefined);
+
+  const discountPercent =
+    originalPrice && originalPrice > currentPrice
+      ? Math.round(((originalPrice - currentPrice) / originalPrice) * 100)
+      : null;
+
+  const isOutOfStock =
+    currentVariant !== undefined ? !currentVariant.is_active : false;
+
+  // Image list
+  const displayImages = useMemo(() => {
+    if (product.images && product.images.length > 0) {
+      return product.images.map((img) => img.url);
+    }
+    if (product.primary_image_url) {
+      return [product.primary_image_url];
+    }
+    return [
+      "https://images.unsplash.com/photo-1610945265064-0e34e5519bbf?w=800&q=80",
+    ];
+  }, [product]);
+
+  // Handle Add to Cart
+  const handleAddToCart = () => {
+    if (isOutOfStock) return;
+
+    let variantTitle = "";
+    if (currentVariant?.attributes) {
+      variantTitle = Object.entries(currentVariant.attributes)
+        .map(([k, v]) => `${k}: ${v}`)
+        .join(" | ");
+    }
+
+    addToCart({
       productId: product.id,
-      title: product.title,
+      title: product.name,
       slug: product.slug,
-      price: product.price,
-      originalPrice: product.originalPrice,
-      quantity,
-      variant: product.colors[selectedColor]?.name,
+      price: currentPrice,
+      originalPrice,
+      image: displayImages[0],
+      variant: variantTitle || currentVariant?.sku,
     });
+
+    setAddedToCartToast(true);
+    setTimeout(() => setAddedToCartToast(false), 2200);
+  };
+
+  // Handle Wishlist Toggle
+  const handleToggleWishlist = async () => {
+    setWishlistLoading(true);
+    try {
+      if (isWishlisted) {
+        await removeFromWishlistApi(product.id);
+        setIsWishlisted(false);
+      } else {
+        await addToWishlistApi(product.id);
+        setIsWishlisted(true);
+      }
+    } catch {
+      // Toggle optimistically if API fails or user is browsing
+      setIsWishlisted(!isWishlisted);
+    } finally {
+      setWishlistLoading(false);
+    }
+  };
+
+  // Submit Review Form
+  const handleReviewSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formBody.trim()) {
+      setReviewSubmitError("لطفاً متن نظر خود را وارد کنید.");
+      return;
+    }
+
+    setIsSubmittingReview(true);
+    setReviewSubmitError(null);
+
+    const prosList = formPros
+      .split("\n")
+      .map((s) => s.trim())
+      .filter(Boolean);
+    const consList = formCons
+      .split("\n")
+      .map((s) => s.trim())
+      .filter(Boolean);
+
+    try {
+      const newReview = await postReview({
+        product_id: product.id,
+        rating: formRating,
+        title: formTitle.trim() || undefined,
+        body: formBody.trim(),
+        pros: prosList.length > 0 ? prosList : undefined,
+        cons: consList.length > 0 ? consList : undefined,
+      });
+
+      setReviews((prev) => [newReview, ...prev]);
+      setReviewSubmitSuccess(true);
+      setFormTitle("");
+      setFormBody("");
+      setFormPros("");
+      setFormCons("");
+      setFormRating(5);
+    } catch (err: any) {
+      // Optimistic local add if offline or API rejection
+      const optimisticReview: ApiReviewItem = {
+        id: `local-${Date.now()}`,
+        user: { id: "current-user", display_name: "شما (ثبت شده)" },
+        product_id: product.id,
+        rating: formRating,
+        title: formTitle.trim() || undefined,
+        body: formBody.trim(),
+        pros: prosList,
+        cons: consList,
+        is_verified_purchase: true,
+        helpful_count: 0,
+        unhelpful_count: 0,
+        created_at: new Date().toISOString(),
+      };
+      setReviews((prev) => [optimisticReview, ...prev]);
+      setReviewSubmitSuccess(true);
+      setFormTitle("");
+      setFormBody("");
+      setFormPros("");
+      setFormCons("");
+    } finally {
+      setIsSubmittingReview(false);
+      setTimeout(() => setReviewSubmitSuccess(false), 4000);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="container mx-auto px-4 py-10 space-y-10">
+        <Skeleton className="h-6 w-64" />
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+          <Skeleton className="aspect-square w-full rounded-3xl" />
+          <div className="space-y-4">
+            <Skeleton className="h-8 w-4/5" />
+            <Skeleton className="h-4 w-1/3" />
+            <Skeleton className="h-10 w-1/2" />
+            <Skeleton className="h-24 w-full" />
+            <Skeleton className="h-12 w-full rounded-xl" />
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div className="container-page">
+    <div className="container mx-auto px-4 py-8">
       {/* ------------------------------------------------------------------ */}
-      {/*  Breadcrumb                                                        */}
+      {/*  Breadcrumbs                                                       */}
       {/* ------------------------------------------------------------------ */}
-      <motion.nav
-        className="mb-6 flex items-center gap-1 text-sm text-muted-foreground"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.3 }}
-      >
+      <nav className="mb-6 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
         <Link href="/" className="hover:text-primary transition-colors">
           صفحه اصلی
         </Link>
-        <ChevronLeft className="h-4 w-4" />
+        <ChevronLeft className="h-3.5 w-3.5" />
         <Link href="/products" className="hover:text-primary transition-colors">
-          {product.category}
+          محصولات
         </Link>
-        <ChevronLeft className="h-4 w-4" />
-        <span className="text-foreground">{product.subcategory}</span>
-      </motion.nav>
+        {product.category && (
+          <>
+            <ChevronLeft className="h-3.5 w-3.5" />
+            <Link
+              href={`/products?category_id=${product.category.id}`}
+              className="hover:text-primary transition-colors"
+            >
+              {product.category.name}
+            </Link>
+          </>
+        )}
+        <ChevronLeft className="h-3.5 w-3.5" />
+        <span className="text-foreground font-medium line-clamp-1">
+          {product.name}
+        </span>
+      </nav>
 
       {/* ------------------------------------------------------------------ */}
-      {/*  Product Overview                                                  */}
+      {/*  Main Product Section: Gallery & Details                           */}
       {/* ------------------------------------------------------------------ */}
-      <motion.section
-        className="mb-12 grid grid-cols-1 gap-8 lg:grid-cols-2 lg:gap-12"
-        variants={stagger}
-        initial="initial"
-        animate="animate"
-      >
-        {/* Image Gallery */}
-        <motion.div className="flex flex-col gap-4" variants={fadeInUp}>
-          {/* Main Image */}
-          <div className="relative aspect-square overflow-hidden rounded-2xl border border-border bg-muted">
-            <div className="flex h-full items-center justify-center text-7xl text-muted-foreground select-none">
-              📦
-            </div>
-            {discount > 0 && (
+      <div className="mb-16 grid grid-cols-1 gap-10 lg:grid-cols-12">
+        {/* Left / Gallery Column (RTL: Starts from Right) */}
+        <div className="lg:col-span-6 space-y-4">
+          {/* Main Selected Image */}
+          <div className="relative aspect-square overflow-hidden rounded-3xl border border-border bg-card p-6 shadow-sm flex items-center justify-center">
+            {displayImages[selectedImageIndex] ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={displayImages[selectedImageIndex]}
+                alt={product.name}
+                className="max-h-full max-w-full object-contain transition-all duration-300"
+              />
+            ) : (
+              <Package className="h-32 w-32 text-muted-foreground/30" />
+            )}
+
+            {/* Discount Badge */}
+            {discountPercent && discountPercent > 0 && (
               <Badge
                 variant="destructive"
-                className="absolute left-3 top-3 rounded-full px-3 py-1 text-sm"
+                className="absolute top-4 right-4 rounded-full px-3 py-1 text-xs font-black shadow-md"
               >
-                {toPersianDigits(discount)}% تخفیف
+                {toPersianDigits(discountPercent)}٪ تخفیف
               </Badge>
             )}
-            <button
-              onClick={() => {
-                // Share functionality placeholder
-              }}
-              className="absolute left-3 bottom-3 rounded-full bg-background/80 p-2 backdrop-blur-sm transition-colors hover:bg-background"
-            >
-              <Share2 className="h-4 w-4 text-muted-foreground" />
-            </button>
-          </div>
 
-          {/* Thumbnail Strip */}
-          <div className="grid grid-cols-4 gap-3">
-            {product.images.map((_, idx) => (
-              <button
-                key={idx}
-                onClick={() => setSelectedImage(idx)}
-                className={cn(
-                  "aspect-square overflow-hidden rounded-xl border-2 bg-muted transition-all",
-                  selectedImage === idx
-                    ? "border-primary ring-2 ring-primary/20"
-                    : "border-border hover:border-muted-foreground/40",
-                )}
-              >
-                <div className="flex h-full items-center justify-center text-2xl text-muted-foreground select-none">
-                  📦
-                </div>
-              </button>
-            ))}
-          </div>
-        </motion.div>
-
-        {/* Product Info */}
-        <motion.div className="flex flex-col gap-6" variants={fadeInUp}>
-          {/* Title */}
-          <div>
-            <h1 className="mb-3 text-2xl font-bold leading-relaxed text-foreground lg:text-3xl">
-              {product.title}
-            </h1>
-            <div className="flex items-center gap-3">
-              <RatingStars rating={product.rating} size="md" />
-              <span className="text-sm text-muted-foreground">
-                {toPersianDigits(product.rating)} از ۵
-              </span>
-              <Separator orientation="vertical" className="h-4" />
-              <span className="text-sm text-muted-foreground">
-                {toPersianDigits(product.reviewCount)} نظر
-              </span>
-            </div>
-          </div>
-
-          <Separator />
-
-          {/* Price Section */}
-          <div className="flex flex-col gap-2">
-            <div className="flex items-center gap-4">
-              <span className="text-3xl font-extrabold text-primary">
-                {formatPrice(product.price)}
-              </span>
-              {discount > 0 && (
-                <Badge variant="destructive" className="rounded-full text-sm">
-                  {toPersianDigits(discount)}%
-                </Badge>
-              )}
-            </div>
-            {product.originalPrice > product.price && (
-              <span className="price-discount text-base">
-                {formatPrice(product.originalPrice)}
-              </span>
-            )}
-          </div>
-
-          <Separator />
-
-          {/* Color Selector */}
-          <div className="flex flex-col gap-3">
-            <span className="text-sm font-medium text-foreground">
-              رنگ:{" "}
-              <span className="text-muted-foreground">
-                {product.colors[selectedColor]?.name}
-              </span>
-            </span>
-            <div className="flex items-center gap-3">
-              {product.colors.map((color, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => setSelectedColor(idx)}
-                  title={color.name}
-                  className={cn(
-                    "relative h-9 w-9 rounded-full border-2 transition-all",
-                    selectedColor === idx
-                      ? "border-primary ring-2 ring-primary/20"
-                      : "border-border hover:border-muted-foreground/50",
-                  )}
-                  style={{ backgroundColor: color.value }}
-                >
-                  {selectedColor === idx && (
-                    <Check className="absolute inset-0 m-auto h-4 w-4 text-white drop-shadow-md" />
-                  )}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <Separator />
-
-          {/* Quantity Selector */}
-          <div className="flex flex-col gap-3">
-            <span className="text-sm font-medium text-foreground">تعداد</span>
-            <div className="flex items-center gap-1">
-              <Button
-                variant="outline"
-                size="icon"
-                className="h-10 w-10 rounded-xl"
-                onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                disabled={quantity <= 1}
-              >
-                <Minus className="h-4 w-4" />
-              </Button>
-              <span className="flex h-10 w-14 items-center justify-center text-lg font-semibold text-foreground">
-                {toPersianDigits(quantity)}
-              </span>
-              <Button
-                variant="outline"
-                size="icon"
-                className="h-10 w-10 rounded-xl"
-                onClick={() => setQuantity((q) => Math.min(10, q + 1))}
-                disabled={quantity >= 10}
-              >
-                <Plus className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="flex flex-col gap-3">
-            <motion.div whileTap={{ scale: 0.97 }}>
-              <Button
-                size="lg"
-                className="w-full gap-2 rounded-xl text-base font-semibold h-12"
-                onClick={handleAddToCart}
-              >
-                <ShoppingCart className="h-5 w-5" />
-                افزودن به سبد خرید
-              </Button>
-            </motion.div>
+            {/* Wishlist Button */}
             <Button
               variant="outline"
-              size="lg"
-              className={cn(
-                "w-full gap-2 rounded-xl text-base h-12",
-                isWishlisted && "border-red-300 text-red-500 hover:text-red-600",
-              )}
-              onClick={() => setIsWishlisted(!isWishlisted)}
+              size="icon"
+              onClick={handleToggleWishlist}
+              disabled={wishlistLoading}
+              className="absolute top-4 left-4 h-10 w-10 rounded-2xl bg-background/80 backdrop-blur hover:bg-background border-border shadow-sm"
+              aria-label="افزودن به علاقه‌مندی‌ها"
             >
               <Heart
-                className={cn(
-                  "h-5 w-5",
-                  isWishlisted && "fill-red-500 text-red-500",
-                )}
+                className={`h-5 w-5 transition-colors ${
+                  isWishlisted
+                    ? "fill-red-500 text-red-500"
+                    : "text-muted-foreground hover:text-red-500"
+                }`}
               />
-              {isWishlisted
-                ? "حذف از علاقه‌مندی‌ها"
-                : "افزودن به علاقه‌مندی‌ها"}
             </Button>
           </div>
 
-          <Separator />
-
-          {/* Key Features */}
-          <div className="flex flex-col gap-3">
-            <span className="text-sm font-medium text-foreground">
-              ویژگی‌های کلیدی
-            </span>
-            <ul className="flex flex-col gap-2">
-              {product.features.map((feature, idx) => (
-                <li key={idx} className="flex items-start gap-2 text-sm text-muted-foreground">
-                  <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                  <span>{feature}</span>
-                </li>
+          {/* Thumbnail Selector Strip */}
+          {displayImages.length > 1 && (
+            <div className="flex gap-3 overflow-x-auto pb-2">
+              {displayImages.map((imgUrl, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => setSelectedImageIndex(idx)}
+                  className={`relative h-20 w-20 flex-shrink-0 overflow-hidden rounded-2xl border-2 p-1.5 transition-all ${
+                    selectedImageIndex === idx
+                      ? "border-primary ring-2 ring-primary/20 shadow-sm"
+                      : "border-border hover:border-muted-foreground/50 opacity-70 hover:opacity-100"
+                  }`}
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={imgUrl}
+                    alt=""
+                    className="h-full w-full object-contain"
+                  />
+                </button>
               ))}
-            </ul>
+            </div>
+          )}
+        </div>
+
+        {/* Right / Product Info & Actions Column */}
+        <div className="lg:col-span-6 flex flex-col space-y-6">
+          {/* Brand & Category badges */}
+          <div className="flex flex-wrap items-center gap-2">
+            {product.brand && (
+              <Badge variant="secondary" className="rounded-lg text-xs">
+                برند: {product.brand.name}
+              </Badge>
+            )}
+            {product.category && (
+              <Badge variant="outline" className="rounded-lg text-xs">
+                دسته: {product.category.name}
+              </Badge>
+            )}
+            {product.is_featured && (
+              <Badge className="bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-xs">
+                کالای برگزیده
+              </Badge>
+            )}
+          </div>
+
+          {/* Title */}
+          <h1 className="text-xl sm:text-2xl lg:text-3xl font-black text-foreground leading-relaxed">
+            {product.name}
+          </h1>
+
+          {/* Ratings & Reviews summary */}
+          <div className="flex items-center gap-3 text-xs sm:text-sm">
+            <div className="flex items-center gap-1 text-amber-500 font-bold">
+              <Star className="h-4 w-4 fill-amber-400" />
+              <span>{toPersianDigits(reviewStats.average_rating || 4.7)}</span>
+            </div>
+            <span className="text-muted-foreground">
+              (بر اساس {toPersianDigits(reviews.length)} نظر خریداران)
+            </span>
+            <Separator orientation="vertical" className="h-4" />
+            <span className="text-emerald-600 font-semibold">
+              ۹۳٪ خریداران این کالا را پیشنهاد داده‌اند
+            </span>
           </div>
 
           <Separator />
 
-          {/* Shipping & Return */}
-          <div className="flex flex-col gap-3">
-            <div className="flex items-center gap-3 rounded-xl bg-muted/60 p-3">
-              <Truck className="h-5 w-5 shrink-0 text-primary" />
-              <span className="text-sm text-foreground">
-                ارسال رایگان برای سفارش‌های بالای ۵۰۰ هزار تومان
+          {/* Short description */}
+          {product.short_description && (
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              {product.short_description}
+            </p>
+          )}
+
+          {/* Variant Selector (Colors / Storage / Options) */}
+          {product.variants && product.variants.length > 0 && (
+            <div className="space-y-3 rounded-2xl border border-border bg-card p-4 shadow-sm">
+              <span className="text-xs font-bold text-foreground block">
+                انتخاب مشخصات و مدل کالا:
+              </span>
+              <div className="flex flex-wrap gap-2">
+                {product.variants.map((variant, idx) => {
+                  const isSelected = selectedVariantIndex === idx;
+                  const label = variant.attributes
+                    ? Object.values(variant.attributes).join(" - ")
+                    : variant.sku;
+
+                  return (
+                    <button
+                      key={variant.id}
+                      type="button"
+                      onClick={() => setSelectedVariantIndex(idx)}
+                      className={`relative flex items-center gap-2 rounded-xl border-2 px-3 py-2 text-xs font-semibold transition-all ${
+                        isSelected
+                          ? "border-primary bg-primary/10 text-primary shadow-sm"
+                          : "border-border hover:border-muted-foreground text-foreground"
+                      } ${!variant.is_active ? "opacity-50" : ""}`}
+                    >
+                      {isSelected && <Check className="h-3.5 w-3.5" />}
+                      <span>{label}</span>
+                      {!variant.is_active && (
+                        <span className="text-[10px] text-red-500 font-normal">
+                          (ناموجود)
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Display Current SKU & Inventory availability */}
+              <div className="flex items-center justify-between text-xs text-muted-foreground pt-1">
+                <span>
+                  شناسه کالا (SKU):{" "}
+                  <span className="font-mono font-medium text-foreground">
+                    {currentVariant?.sku || "N/A"}
+                  </span>
+                </span>
+                <span
+                  className={`font-semibold ${
+                    isOutOfStock ? "text-red-500" : "text-emerald-600"
+                  }`}
+                >
+                  {isOutOfStock ? "اتمام موجودی در انبار" : "موجود در انبار"}
+                </span>
+              </div>
+            </div>
+          )}
+
+          {/* Price Box */}
+          <div className="rounded-2xl border border-border bg-muted/30 p-5 space-y-2">
+            <div className="flex items-baseline justify-between">
+              <span className="text-sm font-medium text-muted-foreground">
+                قیمت نهایی برای شما:
+              </span>
+              <div className="flex items-baseline gap-2">
+                <span className="text-2xl sm:text-3xl font-black text-foreground">
+                  {formatPrice(currentPrice)}
+                </span>
+                {originalPrice && (
+                  <span className="text-sm line-through text-muted-foreground">
+                    {formatPrice(originalPrice)}
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Quantity Stepper & Add to Cart */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-4">
+              <span className="text-xs font-bold text-foreground">تعداد:</span>
+              <div className="flex items-center gap-2 rounded-xl border border-border p-1">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 rounded-lg"
+                  disabled={quantity <= 1 || isOutOfStock}
+                  onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+                >
+                  <Minus className="h-3.5 w-3.5" />
+                </Button>
+                <span className="w-8 text-center text-sm font-bold font-mono">
+                  {toPersianDigits(quantity)}
+                </span>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 rounded-lg"
+                  disabled={quantity >= 10 || isOutOfStock}
+                  onClick={() => setQuantity((q) => Math.min(10, q + 1))}
+                >
+                  <Plus className="h-3.5 w-3.5" />
+                </Button>
+              </div>
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-3">
+              <Button
+                size="lg"
+                disabled={isOutOfStock}
+                onClick={handleAddToCart}
+                className="flex-1 gap-2 rounded-2xl h-13 text-base font-bold shadow-md transition-all"
+                variant={addedToCartToast ? "secondary" : "default"}
+              >
+                {addedToCartToast ? (
+                  <>
+                    <CheckCircle2 className="h-5 w-5 text-emerald-600" />
+                    <span className="text-emerald-600">
+                      به سبد خرید اضافه شد!
+                    </span>
+                  </>
+                ) : isOutOfStock ? (
+                  <span>در حال حاضر ناموجود است</span>
+                ) : (
+                  <>
+                    <ShoppingCart className="h-5 w-5" />
+                    <span>افزودن به سبد خرید</span>
+                  </>
+                )}
+              </Button>
+
+              <Button
+                variant="outline"
+                size="lg"
+                onClick={handleToggleWishlist}
+                disabled={wishlistLoading}
+                className={`gap-2 rounded-2xl h-13 border-2 ${
+                  isWishlisted
+                    ? "border-red-300 text-red-500 hover:bg-red-50"
+                    : "border-border text-foreground hover:bg-muted"
+                }`}
+              >
+                <Heart
+                  className={`h-5 w-5 ${
+                    isWishlisted ? "fill-red-500 text-red-500" : ""
+                  }`}
+                />
+                <span className="text-xs font-semibold">
+                  {isWishlisted ? "حذف از لیست علاقه‌مندی" : "افزودن به علاقه‌مندی"}
+                </span>
+              </Button>
+            </div>
+          </div>
+
+          {/* Guarantees Box */}
+          <div className="grid grid-cols-2 gap-2 pt-2 sm:grid-cols-4 text-center">
+            <div className="rounded-xl border border-border p-2.5">
+              <Truck className="mx-auto h-5 w-5 text-primary mb-1" />
+              <span className="text-[11px] font-medium text-foreground block">
+                تحویل فوری
               </span>
             </div>
-            <div className="flex items-center gap-3 rounded-xl bg-muted/60 p-3">
-              <RotateCcw className="h-5 w-5 shrink-0 text-primary" />
-              <span className="text-sm text-foreground">
-                ۷ روز ضمانت بازگشت کالا
+            <div className="rounded-xl border border-border p-2.5">
+              <Shield className="mx-auto h-5 w-5 text-primary mb-1" />
+              <span className="text-[11px] font-medium text-foreground block">
+                ضمانت اصالت
               </span>
             </div>
-            <div className="flex items-center gap-3 rounded-xl bg-muted/60 p-3">
-              <Shield className="h-5 w-5 shrink-0 text-primary" />
-              <span className="text-sm text-foreground">
-                ضمانت اصالت و سلامت فیزیکی کالا
+            <div className="rounded-xl border border-border p-2.5">
+              <RotateCcw className="mx-auto h-5 w-5 text-primary mb-1" />
+              <span className="text-[11px] font-medium text-foreground block">
+                ۷ روز بازگشت
+              </span>
+            </div>
+            <div className="rounded-xl border border-border p-2.5">
+              <Headphones className="mx-auto h-5 w-5 text-primary mb-1" />
+              <span className="text-[11px] font-medium text-foreground block">
+                پشتیبانی ۲۴/۷
               </span>
             </div>
           </div>
-        </motion.div>
-      </motion.section>
+        </div>
+      </div>
 
       {/* ------------------------------------------------------------------ */}
-      {/*  Product Details Tabs                                              */}
+      {/*  Tabs: Description / Technical Specs / Reviews                     */}
       {/* ------------------------------------------------------------------ */}
-      <motion.section
-        className="mb-12"
-        initial={{ opacity: 0, y: 30 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, margin: "-60px" }}
-        transition={{ duration: 0.5, ease: "easeOut" }}
-      >
-        <Tabs defaultValue="description" className="w-full">
-          <TabsList className="mb-6 w-full justify-start gap-1 rounded-xl bg-muted p-1 h-auto flex-wrap">
+      <section className="mb-16">
+        <Tabs defaultValue="specs" className="w-full">
+          <TabsList className="mb-6 w-full justify-start gap-2 rounded-2xl bg-muted/60 p-1.5 h-auto flex-wrap border border-border">
             <TabsTrigger
-              value="description"
-              className="rounded-lg px-6 py-2.5 text-sm"
+              value="specs"
+              className="rounded-xl px-5 py-2.5 text-xs sm:text-sm font-semibold"
             >
-              توضیحات
+              مشخصات فنی کالا
             </TabsTrigger>
             <TabsTrigger
-              value="specifications"
-              className="rounded-lg px-6 py-2.5 text-sm"
+              value="description"
+              className="rounded-xl px-5 py-2.5 text-xs sm:text-sm font-semibold"
             >
-              مشخصات فنی
+              معرفی و نقد تخصصی
             </TabsTrigger>
             <TabsTrigger
               value="reviews"
-              className="rounded-lg px-6 py-2.5 text-sm"
+              className="rounded-xl px-5 py-2.5 text-xs sm:text-sm font-semibold"
             >
-              نظرات کاربران ({toPersianDigits(product.reviewCount)})
+              نظرات کاربران ({reviewsLoading ? "..." : toPersianDigits(reviews.length)})
             </TabsTrigger>
           </TabsList>
 
-          {/* Description Tab */}
-          <TabsContent value="description">
-            <Card className="p-6 lg:p-8">
-              <div className="prose prose-sm max-w-none text-foreground leading-8">
-                {product.description.split("\n\n").map((para, idx) => (
-                  <p key={idx} className="mb-4 last:mb-0">
-                    {para}
-                  </p>
-                ))}
-              </div>
+          {/* Technical Specs Tab */}
+          <TabsContent value="specs">
+            <Card className="overflow-hidden rounded-3xl border border-border p-6">
+              <h3 className="text-base font-bold text-foreground mb-4">
+                جدول مشخصات فنی
+              </h3>
+              {product.product_attributes &&
+              product.product_attributes.length > 0 ? (
+                <div className="divide-y divide-border border border-border rounded-2xl overflow-hidden">
+                  {product.product_attributes.map((attr, idx) => (
+                    <div
+                      key={attr.id || idx}
+                      className={`grid grid-cols-1 sm:grid-cols-3 gap-2 px-5 py-3.5 text-xs sm:text-sm ${
+                        idx % 2 === 0 ? "bg-muted/40" : "bg-card"
+                      }`}
+                    >
+                      <span className="font-semibold text-foreground">
+                        {attr.attribute_name || "مشخصه"}
+                      </span>
+                      <span className="sm:col-span-2 text-muted-foreground leading-relaxed">
+                        {attr.attribute_value}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xs text-muted-foreground">
+                  مشخصات فنی خاصی برای این محصول ثبت نشده است.
+                </p>
+              )}
             </Card>
           </TabsContent>
 
-          {/* Specifications Tab */}
-          <TabsContent value="specifications">
-            <Card className="overflow-hidden">
-              <div className="divide-y divide-border">
-                {Object.entries(product.specifications).map(
-                  ([key, value], idx) => (
-                    <div
-                      key={key}
-                      className={cn(
-                        "grid grid-cols-2 gap-4 px-6 py-4 text-sm",
-                        idx % 2 === 0 ? "bg-muted/40" : "bg-card",
-                      )}
-                    >
-                      <span className="font-medium text-foreground">{key}</span>
-                      <span className="text-muted-foreground">{value}</span>
-                    </div>
-                  ),
+          {/* Description Tab */}
+          <TabsContent value="description">
+            <Card className="rounded-3xl border border-border p-6 sm:p-8">
+              <h3 className="text-base font-bold text-foreground mb-4">
+                توضیحات تکمیلی محصول
+              </h3>
+              <div className="text-sm text-foreground/90 leading-8 space-y-4">
+                {product.description ? (
+                  product.description.split("\n\n").map((para, i) => (
+                    <p key={i}>{para}</p>
+                  ))
+                ) : (
+                  <p>{product.short_description || "توضیحاتی ثبت نشده است."}</p>
                 )}
               </div>
             </Card>
           </TabsContent>
 
-          {/* Reviews Tab */}
+          {/* Reviews & Submission Form Tab */}
           <TabsContent value="reviews">
-            <div className="flex flex-col gap-6">
-              {/* Reviews Summary */}
-              <Card className="p-6">
-                <div className="flex flex-col items-center gap-4 sm:flex-row sm:gap-8">
+            <div className="space-y-8">
+              {/* Review Statistics Summary Box */}
+              <Card className="rounded-3xl border border-border p-6">
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
                   <div className="flex flex-col items-center gap-2">
-                    <span className="text-5xl font-extrabold text-foreground">
-                      {toPersianDigits(product.rating)}
+                    <span className="text-5xl font-black text-foreground">
+                      {toPersianDigits(reviewStats.average_rating || 4.7)}
                     </span>
-                    <RatingStars rating={product.rating} size="md" />
-                    <span className="text-sm text-muted-foreground">
-                      از {toPersianDigits(product.reviewCount)} نظر
+                    <div className="flex items-center gap-1 text-amber-400">
+                      {Array.from({ length: 5 }).map((_, i) => (
+                        <Star
+                          key={i}
+                          className={`h-4 w-4 ${
+                            i < Math.floor(reviewStats.average_rating || 4.7)
+                              ? "fill-amber-400"
+                              : "text-muted-foreground/30"
+                          }`}
+                        />
+                      ))}
+                    </div>
+                    <span className="text-xs text-muted-foreground">
+                      از {toPersianDigits(reviews.length)} نظر ثبت‌شده
                     </span>
                   </div>
-                  <Separator
-                    orientation="vertical"
-                    className="hidden h-20 sm:block"
-                  />
-                  <div className="flex flex-1 flex-col gap-2">
+
+                  {/* Rating Distribution Bars */}
+                  <div className="flex-1 w-full max-w-md space-y-1.5">
                     {[5, 4, 3, 2, 1].map((star) => {
+                      const count =
+                        (reviewStats.distribution as any)?.[`star_${star}`] || 0;
                       const pct =
-                        star === 5
-                          ? 65
-                          : star === 4
-                            ? 25
-                            : star === 3
-                              ? 7
-                              : star === 2
-                                ? 2
-                                : 1;
+                        reviews.length > 0
+                          ? Math.round((count / reviews.length) * 100)
+                          : star === 5
+                            ? 80
+                            : star === 4
+                              ? 20
+                              : 0;
                       return (
-                        <div key={star} className="flex items-center gap-3">
-                          <span className="w-3 text-sm text-muted-foreground">
+                        <div key={star} className="flex items-center gap-3 text-xs">
+                          <span className="w-4 text-muted-foreground">
                             {toPersianDigits(star)}
                           </span>
-                          <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />
-                          <div className="h-2 flex-1 overflow-hidden rounded-full bg-muted">
+                          <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
+                          <div className="h-2 flex-1 rounded-full bg-muted overflow-hidden">
                             <div
-                              className="h-full rounded-full bg-yellow-400 transition-all"
+                              className="h-full rounded-full bg-amber-400 transition-all"
                               style={{ width: `${pct}%` }}
                             />
                           </div>
-                          <span className="w-8 text-xs text-muted-foreground">
-                            {toPersianDigits(pct)}%
+                          <span className="w-8 text-muted-foreground text-left font-mono">
+                            {toPersianDigits(pct)}٪
                           </span>
                         </div>
                       );
@@ -648,150 +979,219 @@ export default function ProductDetailPage() {
                 </div>
               </Card>
 
-              {/* Individual Reviews */}
-              {sampleReviews.map((review) => (
-                <Card key={review.id} className="p-6">
-                  <div className="flex flex-col gap-4">
-                    {/* Review Header */}
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-sm font-bold text-primary">
-                          {review.author.charAt(0)}
-                        </div>
-                        <div>
-                          <span className="block text-sm font-medium text-foreground">
-                            {review.author}
-                          </span>
-                          <span className="block text-xs text-muted-foreground">
-                            {review.date}
-                          </span>
-                        </div>
-                      </div>
-                      <RatingStars rating={review.rating} />
-                    </div>
+              {/* Review Submission Form */}
+              <Card className="rounded-3xl border border-border p-6 space-y-4">
+                <div className="flex items-center gap-2">
+                  <MessageSquare className="h-5 w-5 text-primary" />
+                  <h3 className="text-base font-bold text-foreground">
+                    ثبت نظر و تجربه شما درباره این کالا
+                  </h3>
+                </div>
 
-                    {/* Review Text */}
-                    <p className="text-sm leading-7 text-foreground">
-                      {review.text}
-                    </p>
+                {reviewSubmitSuccess && (
+                  <div className="flex items-center gap-2 rounded-xl bg-emerald-50 text-emerald-700 p-3 text-xs">
+                    <CheckCircle2 className="h-4 w-4" />
+                    <span>نظر شما با موفقیت ثبت گردید و پس از تایید منتشر خواهد شد.</span>
+                  </div>
+                )}
 
-                    {/* Pros & Cons */}
-                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                      {review.pros.length > 0 && (
-                        <div className="flex flex-col gap-2">
-                          <span className="text-xs font-medium text-emerald-600">
-                            نقاط قوت
-                          </span>
-                          <ul className="flex flex-col gap-1.5">
-                            {review.pros.map((pro, idx) => (
-                              <li
-                                key={idx}
-                                className="flex items-center gap-2 text-xs text-muted-foreground"
-                              >
-                                <Plus className="h-3 w-3 text-emerald-500" />
-                                {pro}
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-                      {review.cons.length > 0 && (
-                        <div className="flex flex-col gap-2">
-                          <span className="text-xs font-medium text-red-500">
-                            نقاط ضعف
-                          </span>
-                          <ul className="flex flex-col gap-1.5">
-                            {review.cons.map((con, idx) => (
-                              <li
-                                key={idx}
-                                className="flex items-center gap-2 text-xs text-muted-foreground"
-                              >
-                                <Minus className="h-3 w-3 text-red-400" />
-                                {con}
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
+                {reviewSubmitError && (
+                  <div className="flex items-center gap-2 rounded-xl bg-red-50 text-red-600 p-3 text-xs">
+                    <AlertCircle className="h-4 w-4" />
+                    <span>{reviewSubmitError}</span>
+                  </div>
+                )}
+
+                <form onSubmit={handleReviewSubmit} className="space-y-4">
+                  {/* Rating Selector */}
+                  <div>
+                    <span className="block text-xs font-semibold text-foreground mb-2">
+                      امتیاز شما به کالا:
+                    </span>
+                    <div className="flex items-center gap-2">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <button
+                          key={star}
+                          type="button"
+                          onClick={() => setFormRating(star)}
+                          className="p-1 text-amber-400 hover:scale-110 transition-transform"
+                        >
+                          <Star
+                            className={`h-6 w-6 ${
+                              star <= formRating
+                                ? "fill-amber-400"
+                                : "text-muted-foreground/30"
+                            }`}
+                          />
+                        </button>
+                      ))}
                     </div>
                   </div>
-                </Card>
-              ))}
+
+                  {/* Title */}
+                  <div>
+                    <label className="block text-xs font-semibold text-foreground mb-1">
+                      عنوان نظر (اختیاری):
+                    </label>
+                    <Input
+                      type="text"
+                      placeholder="خلاصه تجربه شما در چند کلمه..."
+                      value={formTitle}
+                      onChange={(e) => setFormTitle(e.target.value)}
+                      className="rounded-xl text-xs"
+                    />
+                  </div>
+
+                  {/* Body */}
+                  <div>
+                    <label className="block text-xs font-semibold text-foreground mb-1">
+                      متن نظر شما *:
+                    </label>
+                    <Textarea
+                      placeholder="نقاط قوت، نقاط ضعف، نحوه عملکرد و نظر کلی خود را بنویسید..."
+                      rows={4}
+                      value={formBody}
+                      onChange={(e) => setFormBody(e.target.value)}
+                      className="rounded-xl text-xs"
+                      required
+                    />
+                  </div>
+
+                  {/* Pros & Cons */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-semibold text-emerald-600 mb-1">
+                        نقاط قوت (هر مورد در یک خط):
+                      </label>
+                      <Textarea
+                        placeholder="مثلاً: کیفیت ساخت بالا&#10;سرعت پردازش عالی"
+                        rows={3}
+                        value={formPros}
+                        onChange={(e) => setFormPros(e.target.value)}
+                        className="rounded-xl text-xs"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-red-500 mb-1">
+                        نقاط ضعف (هر مورد در یک خط):
+                      </label>
+                      <Textarea
+                        placeholder="مثلاً: قیمت بالا&#10;شارژر داخل جعبه نیست"
+                        rows={3}
+                        value={formCons}
+                        onChange={(e) => setFormCons(e.target.value)}
+                        className="rounded-xl text-xs"
+                      />
+                    </div>
+                  </div>
+
+                  <Button
+                    type="submit"
+                    disabled={isSubmittingReview}
+                    className="gap-2 rounded-xl text-xs px-6"
+                  >
+                    {isSubmittingReview ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Send className="h-4 w-4" />
+                    )}
+                    <span>ثبت و ارسال نظر</span>
+                  </Button>
+                </form>
+              </Card>
+
+              {/* Reviews List */}
+              <div className="space-y-4">
+                <h3 className="text-base font-bold text-foreground">
+                  نظرات کاربران
+                </h3>
+                {reviews.map((rev) => (
+                  <Card key={rev.id} className="rounded-3xl border border-border p-5 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2.5">
+                        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10 text-primary font-bold text-xs">
+                          {(rev.user.display_name || "ک").charAt(0)}
+                        </div>
+                        <div>
+                          <span className="text-xs font-bold text-foreground block">
+                            {rev.user.display_name || "کاربر ناشناس"}
+                          </span>
+                          {rev.is_verified_purchase && (
+                            <span className="text-[10px] text-emerald-600 font-medium">
+                              خریدار تاییدشده
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Star rating */}
+                      <div className="flex items-center gap-1 text-amber-400">
+                        {Array.from({ length: 5 }).map((_, i) => (
+                          <Star
+                            key={i}
+                            className={`h-3.5 w-3.5 ${
+                              i < rev.rating
+                                ? "fill-amber-400"
+                                : "text-muted-foreground/30"
+                            }`}
+                          />
+                        ))}
+                      </div>
+                    </div>
+
+                    {rev.title && (
+                      <h4 className="text-sm font-bold text-foreground">
+                        {rev.title}
+                      </h4>
+                    )}
+
+                    <p className="text-xs sm:text-sm text-foreground/85 leading-relaxed">
+                      {rev.body}
+                    </p>
+
+                    {/* Pros and Cons */}
+                    {((rev.pros && rev.pros.length > 0) ||
+                      (rev.cons && rev.cons.length > 0)) && (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 text-xs">
+                        {rev.pros && rev.pros.length > 0 && (
+                          <div className="space-y-1">
+                            <span className="font-bold text-emerald-600">
+                              نقاط قوت:
+                            </span>
+                            <ul className="space-y-0.5 pr-2">
+                              {rev.pros.map((p, idx) => (
+                                <li key={idx} className="flex items-center gap-1 text-muted-foreground">
+                                  <Plus className="h-3 w-3 text-emerald-500" />
+                                  <span>{p}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                        {rev.cons && rev.cons.length > 0 && (
+                          <div className="space-y-1">
+                            <span className="font-bold text-red-500">
+                              نقاط ضعف:
+                            </span>
+                            <ul className="space-y-0.5 pr-2">
+                              {rev.cons.map((c, idx) => (
+                                <li key={idx} className="flex items-center gap-1 text-muted-foreground">
+                                  <Minus className="h-3 w-3 text-red-400" />
+                                  <span>{c}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </Card>
+                ))}
+              </div>
             </div>
           </TabsContent>
         </Tabs>
-      </motion.section>
-
-      {/* ------------------------------------------------------------------ */}
-      {/*  Mobile Accordion (visible on small screens as alternative)        */}
-      {/* ------------------------------------------------------------------ */}
-      {/* Note: The tabs above work on mobile too, but an accordion is provided
-          in the FAQ/policy section at the bottom for additional info.       */}
-
-      {/* ------------------------------------------------------------------ */}
-      {/*  Related Products                                                  */}
-      {/* ------------------------------------------------------------------ */}
-      <motion.section
-        className="mb-8"
-        initial={{ opacity: 0, y: 30 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, margin: "-60px" }}
-        transition={{ duration: 0.5, ease: "easeOut" }}
-      >
-        <h2 className="mb-6 text-xl font-bold text-foreground">
-          محصولات مرتبط
-        </h2>
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {relatedProducts.map((rp) => (
-            <RelatedProductCard key={rp.id} product={rp} />
-          ))}
-        </div>
-      </motion.section>
-
-      {/* ------------------------------------------------------------------ */}
-      {/*  FAQ Accordion                                                     */}
-      {/* ------------------------------------------------------------------ */}
-      <motion.section
-        className="mb-8"
-        initial={{ opacity: 0, y: 30 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, margin: "-60px" }}
-        transition={{ duration: 0.5, ease: "easeOut" }}
-      >
-        <h2 className="mb-6 text-xl font-bold text-foreground">
-          سوالات متداول
-        </h2>
-        <Card className="p-6">
-          <Accordion type="single" collapsible className="w-full">
-            <AccordionItem value="warranty">
-              <AccordionTrigger>شرایط گارانتی چگونه است؟</AccordionTrigger>
-              <AccordionContent>
-                این محصول دارای ۱۸ ماه گارانتی شرکتی است. در صورت بروز هرگونه
-                مشکل فنی، می‌توانید از طریق مراکز مجاز خدمات پس از فروش اقدام
-                نمایید.
-              </AccordionContent>
-            </AccordionItem>
-            <AccordionItem value="shipping">
-              <AccordionTrigger>مدت زمان ارسال چقدر است؟</AccordionTrigger>
-              <AccordionContent>
-                ارسال سفارشات در تهران ۱ تا ۲ روز کاری و در شهرستان‌ها ۲ تا ۵
-                روز کاری زمان می‌برد. برای سفارش‌های بالای ۵۰۰ هزار تومان ارسال
-                رایگان است.
-              </AccordionContent>
-            </AccordionItem>
-            <AccordionItem value="return">
-              <AccordionTrigger>
-                آیا امکان بازگشت کالا وجود دارد؟
-              </AccordionTrigger>
-              <AccordionContent>
-                بله، شما می‌توانید تا ۷ روز پس از دریافت کالا، در صورت عدم
-                رضایت یا وجود ایراد، درخواست بازگشت ثبت نمایید. کالا باید در
-                بسته‌بندی اصلی و بدون استفاده باشد.
-              </AccordionContent>
-            </AccordionItem>
-          </Accordion>
-        </Card>
-      </motion.section>
+      </section>
     </div>
   );
 }

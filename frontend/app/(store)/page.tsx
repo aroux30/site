@@ -1,5 +1,7 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import type { Metadata } from "next";
 import {
   Truck,
   Shield,
@@ -8,515 +10,709 @@ import {
   ChevronLeft,
   Star,
   Zap,
-  Smartphone,
-  Shirt,
-  Home,
-  Sparkles,
-  Dumbbell,
-  BookOpen,
   ShoppingCart,
   Package,
-  Users,
-  Mail,
+  Sparkles,
+  Smartphone,
+  Laptop,
+  Shirt,
+  Home,
+  Dumbbell,
+  BookOpen,
+  Check,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { formatPrice } from "@/lib/utils";
+import { Skeleton } from "@/components/ui/skeleton";
+import { formatPrice, toPersianDigits } from "@/lib/utils";
+import { useCart } from "@/hooks/use-cart";
+import {
+  fetchCategories,
+  fetchProducts,
+  type ApiCategory,
+  type ApiProduct,
+} from "@/lib/api/services";
 
-export const metadata: Metadata = {
-  title: "صفحه اصلی فروشگاه",
-};
+/* -------------------------------------------------------------------------- */
+/*                               Fallback Data                                */
+/* -------------------------------------------------------------------------- */
 
-/* ------------------------------------------------------------------ */
-/*  Data                                                               */
-/* ------------------------------------------------------------------ */
+const fallbackCategories: ApiCategory[] = [
+  { id: "c1", name: "موبایل و دیجیتال", slug: "phones", is_active: true },
+  { id: "c2", name: "لپ‌تاپ و کامپیوتر", slug: "laptops", is_active: true },
+  { id: "c3", name: "لوازم صوتی و تصویر", slug: "audio-video", is_active: true },
+  { id: "c4", name: "ساعت و دستبند هوشمند", slug: "smartwatch", is_active: true },
+  { id: "c5", name: "مد و پوشاک", slug: "clothing", is_active: true },
+  { id: "c6", name: "خانه و آشپزخانه", slug: "home", is_active: true },
+  { id: "c7", name: "زیبایی و سلامت", slug: "beauty", is_active: true },
+  { id: "c8", name: "کتاب و لوازم‌التحریر", slug: "books", is_active: true },
+];
 
-const categories = [
-  { name: "الکترونیک", slug: "electronics", icon: Smartphone, count: 1240 },
-  { name: "پوشاک", slug: "clothing", icon: Shirt, count: 860 },
-  { name: "خانه و آشپزخانه", slug: "home-kitchen", icon: Home, count: 530 },
-  { name: "زیبایی و سلامت", slug: "beauty-health", icon: Sparkles, count: 720 },
-  { name: "ورزش و سفر", slug: "sports-travel", icon: Dumbbell, count: 410 },
+const fallbackFeaturedProducts: ApiProduct[] = [
   {
-    name: "کتاب و لوازم التحریر",
-    slug: "books-stationery",
-    icon: BookOpen,
-    count: 980,
+    id: "f1",
+    name: "گوشی موبایل سامسونگ Galaxy S24 Ultra",
+    slug: "samsung-galaxy-s24-ultra",
+    category_id: "c1",
+    min_price: 65000000,
+    max_price: 72000000,
+    variant_count: 4,
+    is_active: true,
+    is_featured: true,
+    short_description: "پرچمدار بی‌رقیب سامسونگ با دوربین ۲۰۰ مگاپیکسلی و قلم هوشمند S-Pen",
+  },
+  {
+    id: "f2",
+    name: "لپ‌تاپ ایسوس ROG Zephyrus G16",
+    slug: "asus-rog-zephyrus-g16",
+    category_id: "c2",
+    min_price: 89000000,
+    max_price: 98000000,
+    variant_count: 2,
+    is_active: true,
+    is_featured: true,
+    short_description: "لپ‌تاپ گیمینگ قدرتمند با نمایشگر OLED و پردازنده Core Ultra 9",
+  },
+  {
+    id: "f3",
+    name: "هدفون بی‌سیم سونی WH-1000XM5",
+    slug: "sony-wh-1000xm5",
+    category_id: "c3",
+    min_price: 18500000,
+    max_price: 21000000,
+    variant_count: 2,
+    is_active: true,
+    is_featured: true,
+    short_description: "بهترین نویزکنسلینگ بازار با صدای شفاف Hi-Res و ارگونومی فوق‌العاده",
+  },
+  {
+    id: "f4",
+    name: "ساعت هوشمند اپل واچ سری ۹",
+    slug: "apple-watch-series-9",
+    category_id: "c4",
+    min_price: 24000000,
+    max_price: 27500000,
+    variant_count: 3,
+    is_active: true,
+    is_featured: true,
+    short_description: "همراه سلامت هوشمند با نمایشگر همیشه روشن و پایش دقیق ضربان قلب",
+  },
+  {
+    id: "f5",
+    name: "گوشی شیائومی ۱۴ پرو",
+    slug: "xiaomi-14-pro",
+    category_id: "c1",
+    min_price: 48000000,
+    max_price: 52000000,
+    variant_count: 2,
+    is_active: true,
+    is_featured: true,
+    short_description: "طراحی شیک، لنزهای سفارشی لایکا و پردازنده اسنپ‌دراگون نسل ۳",
+  },
+  {
+    id: "f6",
+    name: "مک‌بوک ایر M3 اپل (۱۵ اینچ)",
+    slug: "apple-macbook-air-m3-15",
+    category_id: "c2",
+    min_price: 79000000,
+    max_price: 85000000,
+    variant_count: 3,
+    is_active: true,
+    is_featured: true,
+    short_description: "فوق‌باریک با شارژدهی ۱۸ ساعته و قدرت پردازشی فوق‌العاده تراشه M3",
+  },
+  {
+    id: "f7",
+    name: "اسپیکر قابل حمل جی‌بی‌ال Charge 5",
+    slug: "jbl-charge-5",
+    category_id: "c3",
+    min_price: 8200000,
+    max_price: 9500000,
+    variant_count: 5,
+    is_active: true,
+    is_featured: true,
+    short_description: "ضدآب، باتری ۲۰ ساعته و بیس کوبنده حرفه‌ای مخصوص مسافرت",
+  },
+  {
+    id: "f8",
+    name: "ایرپاد پرو نسل ۲ اپل (تایپ سی)",
+    slug: "apple-airpods-pro-2-usbc",
+    category_id: "c3",
+    min_price: 13500000,
+    max_price: 15000000,
+    variant_count: 1,
+    is_active: true,
+    is_featured: true,
+    short_description: "کیفیت صدای فراگیر، شارژ MagSafe با پورت تایپ سی جدید",
   },
 ];
 
-const featuredProducts = [
+const fallbackBestSellers: ApiProduct[] = [
   {
-    id: 1,
-    title: "گوشی موبایل سامسونگ Galaxy A54",
-    price: 12_500_000,
-    originalPrice: 14_000_000,
-    rating: 4.5,
-    reviews: 128,
+    id: "b1",
+    name: "کنسول بازی سونی پلی‌استیشن ۵ اسلیم",
+    slug: "sony-playstation-5-slim",
+    category_id: "c1",
+    min_price: 34500000,
+    max_price: 38000000,
+    variant_count: 2,
+    is_active: true,
+    is_featured: false,
+    short_description: "طراحی جدید باریک با حافظه ۱ ترابایت و پشتیبانی از رزولوشن 4K 120Hz",
   },
   {
-    id: 2,
-    title: "لپ‌تاپ ایسوس VivoBook 15",
-    price: 32_000_000,
-    originalPrice: null,
-    rating: 4.7,
-    reviews: 64,
+    id: "b2",
+    name: "تلویزیون هوشمند ۶۵ اینچ کیولد سامسونگ",
+    slug: "samsung-65-qled-4k",
+    category_id: "c3",
+    min_price: 62000000,
+    max_price: 68000000,
+    variant_count: 1,
+    is_active: true,
+    is_featured: false,
+    short_description: "پنل QLED با کیفیت تصویر خیره‌کننده و پردازنده کوانتومی فورکی",
   },
   {
-    id: 3,
-    title: "هدفون بی‌سیم سونی WH-1000XM5",
-    price: 9_800_000,
-    originalPrice: 11_000_000,
-    rating: 4.8,
-    reviews: 256,
+    id: "b3",
+    name: "تبلت اپل آیپد ایر ۱۱ اینچ M2",
+    slug: "apple-ipad-air-11-m2",
+    category_id: "c1",
+    min_price: 43000000,
+    max_price: 47000000,
+    variant_count: 4,
+    is_active: true,
+    is_featured: false,
+    short_description: "نمایشگر Liquid Retina و پشتیبانی از قلم هوشمند Apple Pencil Pro",
   },
   {
-    id: 4,
-    title: "ساعت هوشمند شیائومی Band 8",
-    price: 2_500_000,
-    originalPrice: 2_800_000,
-    rating: 4.3,
-    reviews: 312,
+    id: "b4",
+    name: "قهوه‌ساز و اسپرسوساز دلونگی Dedica",
+    slug: "delonghi-dedica-espresso",
+    category_id: "c6",
+    min_price: 11200000,
+    max_price: 13000000,
+    variant_count: 3,
+    is_active: true,
+    is_featured: false,
+    short_description: "فشار بخار ۱۵ بار با بدنه تمام استیل و فوم‌ساز حرفه‌ای شیر",
+  },
+  {
+    id: "b5",
+    name: "دوربین بدون آینه سونی Alpha A7 IV",
+    slug: "sony-alpha-a7-iv",
+    category_id: "c1",
+    min_price: 115000000,
+    max_price: 125000000,
+    variant_count: 2,
+    is_active: true,
+    is_featured: false,
+    short_description: "سنسور ۳۳ مگاپیکسل فول‌فریم با فوکوس هوش مصنوعی روی چشم",
+  },
+  {
+    id: "b6",
+    name: "جاروبرقی روباتیک شیائومی مدل X10+",
+    slug: "xiaomi-robot-vacuum-x10-plus",
+    category_id: "c6",
+    min_price: 39000000,
+    max_price: 43000000,
+    variant_count: 1,
+    is_active: true,
+    is_featured: false,
+    short_description: "تخلیه خودکار زباله، شستشوی خودکار پد تی و ناوبری پیشرفته لیزری",
+  },
+  {
+    id: "b7",
+    name: "ساعت هوشمند گارمین Fenix 7 Pro",
+    slug: "garmin-fenix-7-pro",
+    category_id: "c4",
+    min_price: 58000000,
+    max_price: 64000000,
+    variant_count: 2,
+    is_active: true,
+    is_featured: false,
+    short_description: "شارژ خورشیدی، نقشه‌های توپوگرافی و چراغ‌قوه LED داخلی ورزشی",
+  },
+  {
+    id: "b8",
+    name: "مانیتور ۳۴ اینچ خمیده اولتراواید بنکیو",
+    slug: "benq-34-ultrawide-curved",
+    category_id: "c2",
+    min_price: 36000000,
+    max_price: 40000000,
+    variant_count: 1,
+    is_active: true,
+    is_featured: false,
+    short_description: "رزولوشن WQHD با نرخ تازه‌سازی ۱۴۴ هرتز مناسب گیمینگ و برنامه‌نویسی",
   },
 ];
 
-const newestProducts = [
-  {
-    id: 5,
-    title: "کتاب اصول طراحی نرم‌افزار",
-    price: 185_000,
-    originalPrice: null,
-    rating: 4.6,
-    reviews: 42,
-  },
-  {
-    id: 6,
-    title: "تی‌شرت مردانه طرح کلاسیک",
-    price: 450_000,
-    originalPrice: 550_000,
-    rating: 4.2,
-    reviews: 89,
-  },
-  {
-    id: 7,
-    title: "کیف چرم زنانه",
-    price: 1_200_000,
-    originalPrice: null,
-    rating: 4.4,
-    reviews: 56,
-  },
-  {
-    id: 8,
-    title: "عطر مردانه بلو شنل",
-    price: 3_500_000,
-    originalPrice: 4_000_000,
-    rating: 4.9,
-    reviews: 178,
-  },
-];
-
-const features = [
+const valuePropositions = [
   {
     icon: Truck,
-    title: "ارسال رایگان",
-    desc: "برای سفارش‌های بالای ۵۰۰ هزار تومان",
+    title: "ارسال سریع و رایگان",
+    desc: "تحویل فوری در تهران و پست پیشتاز سراسر کشور",
   },
   {
     icon: Shield,
-    title: "ضمانت اصالت",
-    desc: "تضمین اصل بودن تمامی محصولات",
+    title: "ضمانت اصالت کالا",
+    desc: "۱۰۰٪ گارانتی اصالت تمامی کالاها و برندها",
   },
   {
     icon: RotateCcw,
     title: "۷ روز ضمانت بازگشت",
-    desc: "امکان بازگشت کالا تا ۷ روز",
+    desc: "امکان مرجوعی کالا در صورت عدم رضایت یا مغایرت",
   },
   {
     icon: Headphones,
     title: "پشتیبانی ۲۴/۷",
-    desc: "پاسخگویی در تمام ساعات شبانه‌روز",
+    desc: "مشاوره تخصصی قبل از خرید و پاسخگویی مداوم",
   },
 ];
 
-const heroStats = [
-  { icon: Package, label: "۱۰,۰۰۰+ محصول" },
-  { icon: Users, label: "۵۰,۰۰۰+ مشتری" },
-  { icon: Truck, label: "ارسال رایگان" },
-  { icon: Headphones, label: "پشتیبانی ۲۴/۷" },
-];
-
-/* ------------------------------------------------------------------ */
-/*  Helpers                                                            */
-/* ------------------------------------------------------------------ */
-
-function discountPercent(original: number, current: number) {
-  return Math.round(((original - current) / original) * 100);
+function getCategoryIcon(slug: string) {
+  switch (slug) {
+    case "phones":
+      return Smartphone;
+    case "laptops":
+      return Laptop;
+    case "clothing":
+      return Shirt;
+    case "home":
+      return Home;
+    case "beauty":
+      return Sparkles;
+    case "sports":
+      return Dumbbell;
+    case "books":
+      return BookOpen;
+    default:
+      return Package;
+  }
 }
 
-function renderStars(rating: number) {
-  const full = Math.floor(rating);
-  const hasHalf = rating - full >= 0.5;
-  const stars: React.ReactNode[] = [];
-
-  for (let i = 0; i < full; i++) {
-    stars.push(
-      <Star
-        key={`full-${i}`}
-        className="h-3.5 w-3.5 fill-amber-400 text-amber-400"
-      />,
-    );
-  }
-  if (hasHalf) {
-    stars.push(
-      <Star
-        key="half"
-        className="h-3.5 w-3.5 fill-amber-400/50 text-amber-400"
-      />,
-    );
-  }
-  const empty = 5 - full - (hasHalf ? 1 : 0);
-  for (let i = 0; i < empty; i++) {
-    stars.push(
-      <Star
-        key={`empty-${i}`}
-        className="h-3.5 w-3.5 text-muted-foreground/30"
-      />,
-    );
-  }
-  return stars;
-}
-
-/* ------------------------------------------------------------------ */
-/*  Sub-components (inlined, server-safe)                              */
-/* ------------------------------------------------------------------ */
+/* -------------------------------------------------------------------------- */
+/*                               Sub-Components                               */
+/* -------------------------------------------------------------------------- */
 
 function SectionHeader({
   title,
+  subtitle,
   href,
   linkText = "مشاهده همه",
 }: {
   title: string;
+  subtitle?: string;
   href: string;
   linkText?: string;
 }) {
   return (
-    <div className="mb-8 flex items-center justify-between">
-      <h2 className="text-2xl font-bold text-foreground">{title}</h2>
+    <div className="mb-6 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-2 border-b border-border pb-4">
+      <div>
+        <h2 className="text-xl sm:text-2xl font-bold text-foreground flex items-center gap-2">
+          <span className="h-6 w-1.5 rounded-full bg-primary inline-block" />
+          {title}
+        </h2>
+        {subtitle && (
+          <p className="text-xs sm:text-sm text-muted-foreground mt-1">
+            {subtitle}
+          </p>
+        )}
+      </div>
       <Link
         href={href}
-        className="group inline-flex items-center gap-1 text-sm font-medium text-primary transition-colors hover:text-primary/80"
+        className="group inline-flex items-center gap-1.5 text-sm font-semibold text-primary transition-colors hover:text-primary/80 self-start sm:self-auto"
       >
-        {linkText}
-        <ChevronLeft className="h-4 w-4 transition-transform group-hover:-translate-x-0.5" />
+        <span>{linkText}</span>
+        <ChevronLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
       </Link>
     </div>
   );
 }
 
-function ProductCard({
-  product,
-}: {
-  product: {
-    id: number;
-    title: string;
-    price: number;
-    originalPrice: number | null;
-    rating: number;
-    reviews: number;
+function ProductCard({ product }: { product: ApiProduct }) {
+  const { addToCart } = useCart();
+  const [added, setAdded] = useState(false);
+
+  const price = product.min_price || 0;
+  const originalPrice =
+    product.max_price && product.max_price > price ? product.max_price : undefined;
+  const discount =
+    originalPrice && originalPrice > price
+      ? Math.round(((originalPrice - price) / originalPrice) * 100)
+      : null;
+
+  const handleAddToCart = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    addToCart({
+      productId: product.id,
+      title: product.name,
+      slug: product.slug,
+      price,
+      originalPrice,
+      image: product.primary_image_url || undefined,
+    });
+    setAdded(true);
+    setTimeout(() => setAdded(false), 1800);
   };
-}) {
-  const hasDiscount =
-    product.originalPrice !== null && product.originalPrice > product.price;
-  const discount = hasDiscount
-    ? discountPercent(product.originalPrice!, product.price)
-    : 0;
 
   return (
-    <Card className="group relative overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
-      {/* Image placeholder */}
-      <div className="relative aspect-square overflow-hidden bg-muted">
-        <div className="flex h-full w-full items-center justify-center">
-          <Package className="h-16 w-16 text-muted-foreground/20" />
-        </div>
+    <Card className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-border bg-card transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+      <Link href={`/products/${product.slug}`} className="flex flex-col h-full">
+        {/* Image Area */}
+        <div className="relative aspect-square overflow-hidden bg-muted/60 p-4">
+          {product.primary_image_url ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={product.primary_image_url}
+              alt={product.name}
+              className="h-full w-full object-contain transition-transform duration-300 group-hover:scale-105"
+            />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center text-muted-foreground/30">
+              <Package className="h-20 w-20" />
+            </div>
+          )}
 
-        {hasDiscount && (
-          <Badge
-            variant="destructive"
-            className="absolute start-3 top-3 text-xs"
-          >
-            {discount}٪ تخفیف
-          </Badge>
-        )}
-      </div>
+          {discount && discount > 0 && (
+            <Badge
+              variant="destructive"
+              className="absolute top-3 right-3 rounded-full px-2.5 py-0.5 text-xs font-bold shadow-sm"
+            >
+              {toPersianDigits(discount)}٪ تخفیف
+            </Badge>
+          )}
 
-      {/* Content */}
-      <div className="p-4">
-        <h3 className="mb-2 line-clamp-2 min-h-[2.5rem] text-sm font-semibold leading-relaxed text-foreground">
-          {product.title}
-        </h3>
-
-        {/* Rating */}
-        <div className="mb-3 flex items-center gap-1.5">
-          <div className="flex items-center gap-0.5">
-            {renderStars(product.rating)}
-          </div>
-          <span className="text-xs text-muted-foreground">
-            ({product.reviews})
-          </span>
-        </div>
-
-        {/* Price */}
-        <div className="mb-3 flex items-center gap-2">
-          <span className="price text-base">{formatPrice(product.price)}</span>
-          {hasDiscount && (
-            <span className="price-discount text-xs">
-              {formatPrice(product.originalPrice!)}
-            </span>
+          {product.is_featured && (
+            <Badge className="absolute bottom-3 right-3 bg-amber-500 hover:bg-amber-600 text-white rounded-full text-[10px] px-2 py-0.5 gap-1">
+              <Sparkles className="h-2.5 w-2.5" />
+              ویژه
+            </Badge>
           )}
         </div>
 
-        {/* Add-to-cart */}
-        <Button size="sm" className="w-full gap-2">
-          <ShoppingCart className="h-4 w-4" />
-          افزودن به سبد
+        {/* Content */}
+        <div className="flex flex-1 flex-col p-4">
+          <h3 className="mb-2 line-clamp-2 min-h-[2.75rem] text-sm font-semibold leading-relaxed text-foreground group-hover:text-primary transition-colors">
+            {product.name}
+          </h3>
+
+          {product.short_description && (
+            <p className="mb-3 line-clamp-1 text-xs text-muted-foreground">
+              {product.short_description}
+            </p>
+          )}
+
+          {/* Rating */}
+          <div className="mb-4 flex items-center gap-1.5 text-xs text-muted-foreground">
+            <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+            <span className="font-medium text-foreground">۴.۷</span>
+            <span>(۳۵ نظر)</span>
+          </div>
+
+          {/* Price */}
+          <div className="mt-auto flex flex-col gap-1 pt-2 border-t border-border/50">
+            <div className="flex items-baseline justify-between gap-2">
+              <span className="text-base font-extrabold text-foreground">
+                {formatPrice(price)}
+              </span>
+              {originalPrice && (
+                <span className="text-xs line-through text-muted-foreground">
+                  {formatPrice(originalPrice)}
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+      </Link>
+
+      {/* Quick Add To Cart Button */}
+      <div className="px-4 pb-4">
+        <Button
+          size="sm"
+          onClick={handleAddToCart}
+          className="w-full gap-2 rounded-xl transition-all"
+          variant={added ? "secondary" : "default"}
+        >
+          {added ? (
+            <>
+              <Check className="h-4 w-4 text-emerald-600" />
+              <span className="text-xs font-bold text-emerald-600">
+                به سبد افزوده شد
+              </span>
+            </>
+          ) : (
+            <>
+              <ShoppingCart className="h-4 w-4" />
+              <span className="text-xs font-semibold">افزودن به سبد خرید</span>
+            </>
+          )}
         </Button>
       </div>
     </Card>
   );
 }
 
-/* ------------------------------------------------------------------ */
-/*  Page                                                               */
-/* ------------------------------------------------------------------ */
+function ProductSkeleton() {
+  return (
+    <Card className="overflow-hidden rounded-2xl">
+      <Skeleton className="aspect-square w-full" />
+      <div className="p-4 space-y-3">
+        <Skeleton className="h-4 w-3/4" />
+        <Skeleton className="h-3 w-1/2" />
+        <Skeleton className="h-5 w-2/5" />
+        <Skeleton className="h-9 w-full rounded-xl mt-4" />
+      </div>
+    </Card>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/*                               Main Home Page                               */
+/* -------------------------------------------------------------------------- */
 
 export default function StoreHomePage() {
+  const [categories, setCategories] = useState<ApiCategory[]>(fallbackCategories);
+  const [featuredProducts, setFeaturedProducts] = useState<ApiProduct[]>(
+    fallbackFeaturedProducts,
+  );
+  const [bestSellers, setBestSellers] = useState<ApiProduct[]>(fallbackBestSellers);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let active = true;
+
+    async function loadData() {
+      try {
+        const [catRes, featRes, bestRes] = await Promise.allSettled([
+          fetchCategories({ is_active: true, page_size: 12 }),
+          fetchProducts({
+            sort_by: "created_at",
+            sort_order: "desc",
+            page_size: 8,
+          }),
+          fetchProducts({
+            sort_by: "price",
+            sort_order: "desc",
+            page_size: 8,
+          }),
+        ]);
+
+        if (!active) return;
+
+        if (catRes.status === "fulfilled" && catRes.value.items?.length > 0) {
+          setCategories(catRes.value.items);
+        }
+        if (featRes.status === "fulfilled" && featRes.value.items?.length > 0) {
+          setFeaturedProducts(featRes.value.items);
+        }
+        if (bestRes.status === "fulfilled" && bestRes.value.items?.length > 0) {
+          setBestSellers(bestRes.value.items);
+        }
+      } catch (e) {
+        console.warn("Home page API fetch failed, fallback mock data in use:", e);
+      } finally {
+        if (active) setLoading(false);
+      }
+    }
+
+    loadData();
+    return () => {
+      active = false;
+    };
+  }, []);
+
   return (
-    <div className="container-page">
+    <div className="container mx-auto px-4 py-6 sm:py-10 space-y-16 sm:space-y-20">
       {/* ============================================================ */}
-      {/*  1 · Hero Banner                                             */}
+      {/*  1 · Hero Banner with Persian CTAs                           */}
       {/* ============================================================ */}
-      <section className="relative mb-16 overflow-hidden rounded-2xl bg-gradient-to-l from-primary-700 via-primary-600 to-secondary-600 px-6 py-14 text-white sm:px-12 sm:py-20">
-        {/* Decorative shapes */}
+      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-l from-primary-800 via-primary-700 to-indigo-900 px-6 py-14 text-white shadow-2xl sm:px-12 sm:py-20 lg:py-24">
+        {/* Atmospheric Glow */}
         <div
           aria-hidden
-          className="pointer-events-none absolute -end-20 -top-20 h-72 w-72 rounded-full bg-white/5"
+          className="pointer-events-none absolute -top-24 -left-24 h-96 w-96 rounded-full bg-primary-400/20 blur-3xl"
         />
         <div
           aria-hidden
-          className="pointer-events-none absolute -bottom-16 -start-16 h-56 w-56 rotate-45 rounded-3xl bg-white/5"
-        />
-        <div
-          aria-hidden
-          className="pointer-events-none absolute end-1/4 top-1/3 h-32 w-32 rounded-full bg-white/[0.03]"
+          className="pointer-events-none absolute -bottom-24 -right-24 h-96 w-96 rounded-full bg-indigo-400/20 blur-3xl"
         />
 
         <div className="relative z-10 max-w-2xl">
-          <h1 className="mb-4 text-3xl font-extrabold leading-tight sm:text-4xl lg:text-5xl">
-            بهترین‌ها رو آنلاین بخر
+          <Badge className="mb-4 bg-white/15 hover:bg-white/25 text-white border-none rounded-full px-3 py-1 text-xs gap-1.5 backdrop-blur-md">
+            <Sparkles className="h-3.5 w-3.5 text-amber-300" />
+            جشنواره شگفت‌انگیز فصل
+          </Badge>
+
+          <h1 className="mb-5 text-3xl font-black leading-tight sm:text-4xl lg:text-5xl">
+            بهترین‌ها رو آنلاین، سریع و مطمئن بخر
           </h1>
-          <p className="mb-8 max-w-lg text-base leading-relaxed text-white/85 sm:text-lg">
-            هزاران محصول باکیفیت از معتبرترین برندها، ارسال سریع و رایگان به
-            سراسر کشور، و ضمانت بازگشت تا ۷ روز.
+
+          <p className="mb-8 max-w-xl text-sm leading-relaxed text-white/85 sm:text-base lg:text-lg">
+            دسترسی به هزاران کالای دیجیتال، لوازم خانگی و گجت‌های هوشمند از برترین
+            برندهای روز دنیا با ضمانت اصالت کالا و ارسال سریع به تمام نقاط ایران.
           </p>
 
-          <div className="flex flex-wrap gap-3">
-            <Button
-              asChild
-              size="lg"
-              className="bg-white font-semibold text-primary-700 hover:bg-white/90"
-            >
-              <Link href="/products">مشاهده محصولات</Link>
-            </Button>
-            <Button
-              asChild
-              size="lg"
-              variant="outline"
-              className="border-white/40 bg-transparent font-semibold text-white hover:bg-white/10 hover:text-white"
-            >
-              <Link href="/products?sale=true">تخفیف‌های ویژه</Link>
-            </Button>
+          <div className="flex flex-wrap items-center gap-4">
+            <Link href="/products">
+              <Button
+                size="lg"
+                className="h-12 rounded-2xl bg-white px-7 font-bold text-primary hover:bg-white/90 shadow-lg text-sm sm:text-base"
+              >
+                مشاهده محصولات
+                <ChevronLeft className="mr-2 h-4 w-4" />
+              </Button>
+            </Link>
+
+            <Link href="/products?sort_by=price&sort_order=desc">
+              <Button
+                size="lg"
+                variant="outline"
+                className="h-12 rounded-2xl border-2 border-white/30 bg-white/10 px-6 font-semibold text-white backdrop-blur-md hover:bg-white/20 hover:text-white text-sm sm:text-base"
+              >
+                <Zap className="ml-2 h-4 w-4 text-amber-300" />
+                تخفیف‌های شگفت‌انگیز
+              </Button>
+            </Link>
           </div>
         </div>
-
-        {/* Stats row */}
-        <div className="relative z-10 mt-12 grid grid-cols-2 gap-4 border-t border-white/15 pt-8 sm:grid-cols-4">
-          {heroStats.map((stat) => (
-            <div key={stat.label} className="flex items-center gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white/10">
-                <stat.icon className="h-5 w-5" />
-              </div>
-              <span className="text-sm font-medium text-white/90">
-                {stat.label}
-              </span>
-            </div>
-          ))}
-        </div>
       </section>
 
       {/* ============================================================ */}
-      {/*  2 · Categories Grid                                         */}
+      {/*  2 · Value Propositions (4 Features)                         */}
       {/* ============================================================ */}
-      <section className="mb-16">
-        <SectionHeader title="دسته‌بندی محصولات" href="/products" />
-
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
-          {categories.map((cat) => (
-            <Link
-              key={cat.slug}
-              href={`/products?category=${cat.slug}`}
-              className="group flex flex-col items-center gap-3 rounded-xl border border-border bg-card p-6 text-card-foreground transition-all duration-300 hover:-translate-y-1 hover:shadow-md"
+      <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {valuePropositions.map((item, idx) => {
+          const Icon = item.icon;
+          return (
+            <div
+              key={idx}
+              className="flex items-center gap-4 rounded-2xl border border-border bg-card p-5 shadow-sm transition-all duration-300 hover:border-primary/40 hover:shadow-md"
             >
-              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-primary transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
-                <cat.icon className="h-7 w-7" />
-              </div>
-              <span className="text-sm font-semibold">{cat.name}</span>
-              <span className="text-xs text-muted-foreground">
-                {cat.count} محصول
-              </span>
-            </Link>
-          ))}
-        </div>
-      </section>
-
-      {/* ============================================================ */}
-      {/*  3 · Special Offers Banner                                   */}
-      {/* ============================================================ */}
-      <section className="mb-16">
-        <Link
-          href="/products?sale=true"
-          className="group block overflow-hidden rounded-2xl bg-gradient-to-l from-rose-600 to-orange-500 p-6 text-white transition-shadow hover:shadow-xl sm:p-8"
-        >
-          <div className="flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-center">
-            <div className="flex items-center gap-4">
-              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-white/15">
-                <Zap className="h-8 w-8" />
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                <Icon className="h-6 w-6" />
               </div>
               <div>
-                <h2 className="mb-1 text-xl font-bold sm:text-2xl">
-                  تخفیف‌های شگفت‌انگیز
-                </h2>
-                <p className="text-sm text-white/80">
-                  فرصت محدود — همین الان خرید کنید
+                <h4 className="text-sm font-bold text-foreground">
+                  {item.title}
+                </h4>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {item.desc}
                 </p>
               </div>
             </div>
+          );
+        })}
+      </section>
 
-            <div className="flex items-center gap-3">
-              <Badge className="border-white/30 bg-white/20 px-4 py-1.5 text-sm font-bold text-white hover:bg-white/30">
-                تا ۷۰٪ تخفیف
-              </Badge>
-              <div className="flex items-center gap-1 text-sm font-medium">
-                <span>مشاهده</span>
-                <ChevronLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
-              </div>
-            </div>
-          </div>
+      {/* ============================================================ */}
+      {/*  3 · Categories Grid                                         */}
+      {/* ============================================================ */}
+      <section>
+        <SectionHeader
+          title="دسته‌بندی‌های محبوب"
+          subtitle="محصولات منتخب از میان برترین دسته‌ها"
+          href="/products"
+          linkText="مشاهده تمام دسته‌ها"
+        />
 
-          {/* Countdown-style boxes */}
-          <div className="mt-6 flex gap-3">
-            {[
-              { value: "۰۳", label: "روز" },
-              { value: "۱۲", label: "ساعت" },
-              { value: "۴۵", label: "دقیقه" },
-              { value: "۲۰", label: "ثانیه" },
-            ].map((t) => (
-              <div
-                key={t.label}
-                className="flex flex-col items-center rounded-lg bg-white/10 px-3 py-2 backdrop-blur-sm sm:px-4"
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-8">
+          {categories.map((cat) => {
+            const Icon = getCategoryIcon(cat.slug);
+            return (
+              <Link
+                key={cat.id}
+                href={`/products?category_id=${cat.id}&category_slug=${cat.slug}`}
+                className="group flex flex-col items-center justify-center rounded-2xl border border-border bg-card p-4 text-center transition-all duration-200 hover:-translate-y-1 hover:border-primary hover:shadow-md"
               >
-                <span className="text-lg font-extrabold sm:text-2xl">
-                  {t.value}
+                <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/5 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+                  {cat.image_url ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={cat.image_url}
+                      alt={cat.name}
+                      className="h-8 w-8 object-contain"
+                    />
+                  ) : (
+                    <Icon className="h-7 w-7" />
+                  )}
+                </div>
+                <span className="line-clamp-1 text-xs sm:text-sm font-semibold text-foreground group-hover:text-primary transition-colors">
+                  {cat.name}
                 </span>
-                <span className="text-[10px] text-white/70 sm:text-xs">
-                  {t.label}
-                </span>
-              </div>
-            ))}
+              </Link>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* ============================================================ */}
+      {/*  4 · Featured Products Section                               */}
+      {/* ============================================================ */}
+      <section>
+        <SectionHeader
+          title="جدیدترین و منتخب‌ترین محصولات"
+          subtitle="بروزرسانی روزانه با جدیدترین تکنولوژی‌ها"
+          href="/products?sort_by=created_at&sort_order=desc"
+          linkText="مشاهده همه کالاها"
+        />
+
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          {loading
+            ? Array.from({ length: 4 }).map((_, i) => (
+                <ProductSkeleton key={i} />
+              ))
+            : featuredProducts.map((p) => (
+                <ProductCard key={p.id} product={p} />
+              ))}
+        </div>
+      </section>
+
+      {/* ============================================================ */}
+      {/*  5 · Special Promo Banner                                    */}
+      {/* ============================================================ */}
+      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-amber-500 via-orange-500 to-red-600 p-8 text-white shadow-xl">
+        <div className="relative z-10 flex flex-col items-center justify-between gap-6 md:flex-row text-center md:text-start">
+          <div>
+            <span className="rounded-full bg-white/20 px-3 py-1 text-xs font-bold uppercase tracking-wider backdrop-blur-sm">
+              پیشنهاد ویژه کاربران
+            </span>
+            <h3 className="mt-3 text-2xl sm:text-3xl font-black">
+              ارسال کاملاً رایگان برای سبدهای بالای ۵۰۰ هزار تومان
+            </h3>
+            <p className="mt-2 text-sm text-white/90">
+              بدون نیاز به کد تخفیف، فقط با اضافه کردن کالاها به سبد خرید خود
+            </p>
           </div>
-        </Link>
-      </section>
-
-      {/* ============================================================ */}
-      {/*  4 · Featured Products (محصولات پرفروش)                      */}
-      {/* ============================================================ */}
-      <section className="mb-16">
-        <SectionHeader title="محصولات پرفروش" href="/products?sort=popular" />
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {featuredProducts.map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
-        </div>
-      </section>
-
-      {/* ============================================================ */}
-      {/*  5 · Newest Products (جدیدترین محصولات)                      */}
-      {/* ============================================================ */}
-      <section className="mb-16">
-        <SectionHeader title="جدیدترین محصولات" href="/products?sort=newest" />
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {newestProducts.map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
-        </div>
-      </section>
-
-      {/* ============================================================ */}
-      {/*  6 · Why Choose Us (چرا ما؟)                                 */}
-      {/* ============================================================ */}
-      <section className="mb-16">
-        <h2 className="mb-8 text-center text-2xl font-bold text-foreground">
-          چرا ما را انتخاب کنید؟
-        </h2>
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {features.map((feature) => (
-            <Card
-              key={feature.title}
-              className="flex flex-col items-center p-8 text-center transition-shadow duration-300 hover:shadow-md"
+          <Link href="/products">
+            <Button
+              size="lg"
+              className="h-12 rounded-2xl bg-white font-bold text-orange-600 hover:bg-white/90 shadow-md whitespace-nowrap px-8"
             >
-              <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-primary">
-                <feature.icon className="h-7 w-7" />
-              </div>
-              <h3 className="mb-2 font-bold text-foreground">
-                {feature.title}
-              </h3>
-              <p className="text-sm leading-relaxed text-muted-foreground">
-                {feature.desc}
-              </p>
-            </Card>
-          ))}
+              شروع خرید هوشمند
+            </Button>
+          </Link>
         </div>
       </section>
 
       {/* ============================================================ */}
-      {/*  7 · Newsletter                                              */}
+      {/*  6 · Best Sellers Section                                    */}
       {/* ============================================================ */}
-      <section className="mb-12 overflow-hidden rounded-2xl bg-gradient-to-l from-primary-50 to-secondary-50 p-8 dark:from-primary-950/40 dark:to-secondary-950/40 sm:p-12">
-        <div className="mx-auto max-w-2xl text-center">
-          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
-            <Mail className="h-6 w-6" />
-          </div>
-          <h2 className="mb-3 text-2xl font-bold text-foreground">
-            عضویت در خبرنامه
-          </h2>
-          <p className="mb-8 text-sm leading-relaxed text-muted-foreground">
-            از جدیدترین تخفیف‌ها و محصولات باخبر شوید و قبل از همه از فروش‌های
-            ویژه مطلع شوید.
-          </p>
+      <section>
+        <SectionHeader
+          title="پرفروش‌ترین محصولات"
+          subtitle="محبوب‌ترین انتخاب‌های خریداران در هفته گذشته"
+          href="/products?sort_by=price&sort_order=desc"
+          linkText="مشاهده پرفروش‌ها"
+        />
 
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-center">
-            <Input
-              type="email"
-              placeholder="ایمیل خود را وارد کنید..."
-              className="h-12 sm:w-80"
-              dir="ltr"
-            />
-            <Button size="lg" className="h-12 shrink-0 gap-2 px-8">
-              <Mail className="h-4 w-4" />
-              عضویت
-            </Button>
-          </div>
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          {loading
+            ? Array.from({ length: 4 }).map((_, i) => (
+                <ProductSkeleton key={i} />
+              ))
+            : bestSellers.map((p) => <ProductCard key={p.id} product={p} />)}
         </div>
       </section>
     </div>

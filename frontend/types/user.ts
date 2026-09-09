@@ -1,31 +1,42 @@
 export interface User {
   id: string;
-  firstName: string;
-  lastName: string;
-  fullName: string;
-  email: string;
   phone: string;
-  avatar?: string;
-  role: UserRole;
-  isActive: boolean;
-  isEmailVerified: boolean;
-  isPhoneVerified: boolean;
+  email?: string | null;
+  first_name?: string | null;
+  last_name?: string | null;
+  national_code?: string | null;
+  birth_date?: string | null;
+  avatar_url?: string | null;
+  gender?: string | null;
+  is_active: boolean;
+  is_verified: boolean;
+  created_at: string;
 
-  // Profile
+  // Convenience & legacy compatibility fields
+  name?: string | null;
+  firstName?: string | null;
+  lastName?: string | null;
+  fullName?: string | null;
+  avatar?: string;
+  role?: UserRole;
+  isActive?: boolean;
+  isEmailVerified?: boolean;
+  isPhoneVerified?: boolean;
+
+  // Profile extensions
   nationalId?: string;
   birthDate?: string;
-  gender?: "male" | "female" | "other";
 
   // Addresses
-  addresses: UserAddress[];
+  addresses?: UserAddress[];
   defaultAddressId?: string;
 
   // Wallet
-  walletBalance: number;
+  walletBalance?: number;
 
   // Timestamps
-  createdAt: string;
-  updatedAt: string;
+  createdAt?: string;
+  updatedAt?: string;
   lastLoginAt?: string;
 }
 
@@ -46,22 +57,53 @@ export interface UserAddress {
   longitude?: number;
 }
 
+export interface TokenResponse {
+  access_token: string;
+  refresh_token: string;
+  token_type: string;
+}
+
+export interface UserProfileResponse {
+  id: string;
+  phone: string;
+  email?: string | null;
+  first_name?: string | null;
+  last_name?: string | null;
+  national_code?: string | null;
+  birth_date?: string | null;
+  avatar_url?: string | null;
+  gender?: string | null;
+  is_active: boolean;
+  is_verified: boolean;
+  created_at: string;
+}
+
 export interface LoginRequest {
   phone: string;
   password: string;
 }
 
 export interface RegisterRequest {
-  firstName: string;
-  lastName: string;
   phone: string;
-  email?: string;
   password: string;
-  passwordConfirmation: string;
+  first_name: string;
+  last_name: string;
+  // Optional aliases for compatibility
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  passwordConfirmation?: string;
 }
 
 export interface OtpRequest {
   phone: string;
+}
+
+export interface OtpResponse {
+  status?: string;
+  message?: string;
+  expires_in?: number;
+  [key: string]: unknown;
 }
 
 export interface OtpVerifyRequest {
@@ -70,16 +112,28 @@ export interface OtpVerifyRequest {
 }
 
 export interface UpdateProfileRequest {
+  first_name?: string | null;
+  last_name?: string | null;
+  email?: string | null;
+  national_code?: string | null;
+  birth_date?: string | null;
+  avatar_url?: string | null;
+  gender?: string | null;
+  // Legacy aliases
   firstName?: string;
   lastName?: string;
-  email?: string;
   nationalId?: string;
   birthDate?: string;
-  gender?: "male" | "female" | "other";
 }
 
 export interface ChangePasswordRequest {
-  currentPassword: string;
-  newPassword: string;
-  newPasswordConfirmation: string;
+  old_password: string;
+  new_password: string;
+  // Legacy aliases
+  currentPassword?: string;
+  newPasswordConfirmation?: string;
+}
+
+export interface MessageResponse {
+  message: string;
 }

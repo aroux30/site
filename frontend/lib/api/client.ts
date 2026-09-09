@@ -35,6 +35,35 @@ const tokenStore: TokenStore = {
   },
 };
 
+interface SessionStore {
+  getSessionId: () => string | null;
+  getOrCreateSessionId: () => string;
+  clearSessionId: () => void;
+}
+
+const sessionStore: SessionStore = {
+  getSessionId: () => {
+    if (typeof window === "undefined") return null;
+    return localStorage.getItem("cart_session_id");
+  },
+  getOrCreateSessionId: () => {
+    if (typeof window === "undefined") return "";
+    let sid = localStorage.getItem("cart_session_id");
+    if (!sid) {
+      sid =
+        typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+          ? crypto.randomUUID()
+          : "guest-" + Math.random().toString(36).substring(2, 11) + "-" + Date.now().toString(36);
+      localStorage.setItem("cart_session_id", sid);
+    }
+    return sid;
+  },
+  clearSessionId: () => {
+    if (typeof window === "undefined") return;
+    localStorage.removeItem("cart_session_id");
+  },
+};
+
 const apiClient: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,
   timeout: 15000,
@@ -44,12 +73,18 @@ const apiClient: AxiosInstance = axios.create({
   },
 });
 
-// Request interceptor: attach auth token
+// Request interceptor: attach auth token and session ID
 apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     const token = tokenStore.getAccessToken();
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;
+    }
+    if (typeof window !== "undefined") {
+      const sessionId = sessionStore.getOrCreateSessionId();
+      if (sessionId && config.headers && !config.headers["X-Session-ID"]) {
+        config.headers["X-Session-ID"] = sessionId;
+      }
     }
     return config;
   },
@@ -148,19 +183,31 @@ apiClient.interceptors.response.use(
 function getErrorMessage(error: AxiosError): string {
   if (error.response) {
     const data = error.response.data as Record<string, unknown>;
+    const errorObj = data?.error as Record<string, unknown> | undefined;
+
+    if (typeof errorObj?.message === "string") return errorObj.message;
     if (typeof data?.message === "string") return data.message;
+    if (typeof data?.detail === "string") return data.detail;
+
+    // In case detail is an array of validation errors (Pydantic / FastAPI default)
+    if (Array.isArray(data?.detail) && data.detail.length > 0) {
+      const first = data.detail[0] as { msg?: string };
+      if (typeof first?.msg === "string") return first.msg;
+    }
 
     switch (error.response.status) {
       case 400:
         return "درخواست نامعتبر است.";
       case 401:
-        return "لطفاً وارد حساب کاربری خود شوید.";
+        return "شماره موبایل یا رمز عبور اشتباه است.";
       case 403:
         return "شما مجوز دسترسی به این بخش را ندارید.";
       case 404:
         return "مورد درخواستی یافت نشد.";
+      case 409:
+        return "این شماره موبایل قبلاً در سامانه ثبت شده است.";
       case 422:
-        return "اطلاعات وارد شده صحیح نیست.";
+        return "اطلاعات وارد شده نامعتبر است.";
       case 429:
         return "تعداد درخواست‌ها بیش از حد مجاز است. لطفاً کمی صبر کنید.";
       case 500:
@@ -177,5 +224,5 @@ function getErrorMessage(error: AxiosError): string {
   return "خطای ناشناخته‌ای رخ داده است.";
 }
 
-export { apiClient, tokenStore };
+export { apiClient, tokenStore, sessionStore };
 export default apiClient;

@@ -34,6 +34,7 @@ class ReviewStatusFilter(str, enum.Enum):
 class ReviewCreate(BaseModel):
     """Payload for creating a new review."""
 
+    product_id: Optional[uuid.UUID] = Field(None, description="Product ID")
     rating: int = Field(..., ge=1, le=5, description="Rating from 1 to 5")
     title: Optional[str] = Field(None, max_length=300, description="Review title")
     body: Optional[str] = Field(None, max_length=5000, description="Review body text")

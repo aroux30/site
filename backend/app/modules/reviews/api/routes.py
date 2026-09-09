@@ -11,7 +11,7 @@ import uuid
 from typing import Any, Optional
 
 import structlog
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database.session import get_db
@@ -35,6 +35,49 @@ logger: structlog.stdlib.BoundLogger = structlog.get_logger()
 router = APIRouter()
 
 _review_service = ReviewService()
+
+
+# ── General review endpoints ─────────────────────────────────────────────
+
+
+@router.get("", response_model=ReviewListResponse)
+async def list_reviews(
+    product_id: uuid.UUID = Query(..., description="Product ID to fetch reviews for"),
+    sort: ReviewSortOption = Query(ReviewSortOption.NEWEST, description="Sort order"),
+    page: int = Query(1, ge=1, description="Page number"),
+    size: int = Query(20, ge=1, le=100, description="Results per page"),
+    db: AsyncSession = Depends(get_db),
+) -> ReviewListResponse:
+    """List approved reviews for a product by query param."""
+    return await _review_service.get_product_reviews(
+        db=db,
+        product_id=product_id,
+        sort=sort,
+        page=page,
+        size=size,
+    )
+
+
+@router.post("", response_model=ReviewResponse, status_code=status.HTTP_201_CREATED)
+async def submit_review(
+    data: ReviewCreate,
+    product_id: Optional[uuid.UUID] = Query(None, description="Product ID"),
+    user_id: uuid.UUID = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db),
+) -> ReviewResponse:
+    """Submit a review with product_id in body or query param."""
+    target_product_id = data.product_id or product_id
+    if not target_product_id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="product_id is required either in payload or query parameter",
+        )
+    return await _review_service.create_review(
+        db=db,
+        user_id=user_id,
+        product_id=target_product_id,
+        data=data,
+    )
 
 
 # ── Product-scoped review endpoints ──────────────────────────────────────

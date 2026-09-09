@@ -14,6 +14,25 @@ export function toPersianDigits(value: string | number): string {
 }
 
 /**
+ * Convert Persian and Arabic digits to English digits.
+ */
+export function toEnglishDigits(value: string): string {
+  const persianDigits = ["۰", "۱", "۲", "۳", "۴", "۵", "۶", "۷", "۸", "۹"];
+  const arabicDigits = ["٠", "١", "٢", "٣", "٤", "٥", "٦", "٧", "٨", "٩"];
+  return value
+    .replace(/[۰-۹]/g, (char) => String(persianDigits.indexOf(char)))
+    .replace(/[٠-٩]/g, (char) => String(arabicDigits.indexOf(char)));
+}
+
+/**
+ * Validate Iranian mobile number (09xxxxxxxxx).
+ */
+export function isValidIranPhone(phone: string): boolean {
+  const cleanPhone = toEnglishDigits(phone.trim());
+  return /^09\d{9}$/.test(cleanPhone);
+}
+
+/**
  * Format a number as Persian currency (Toman).
  */
 export function formatPrice(price: number): string {

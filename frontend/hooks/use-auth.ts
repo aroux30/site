@@ -2,120 +2,183 @@
 
 import { useCallback, useEffect } from "react";
 import { useAuthStore } from "@/stores/auth-store";
+import { useCartStore } from "@/stores/cart-store";
 import apiClient, { tokenStore } from "@/lib/api/client";
-import type { AuthResponse } from "@/lib/api/types";
 import type {
   User,
+  UserProfileResponse,
+  TokenResponse,
   LoginRequest,
   RegisterRequest,
   OtpRequest,
+  OtpResponse,
   OtpVerifyRequest,
   UpdateProfileRequest,
   ChangePasswordRequest,
+  MessageResponse,
 } from "@/types/user";
+
+function mapProfileToUser(data: UserProfileResponse): User {
+  const fullName =
+    [data.first_name, data.last_name].filter(Boolean).join(" ") || null;
+  return {
+    ...data,
+    name: fullName,
+    firstName: data.first_name,
+    lastName: data.last_name,
+    fullName: fullName || data.phone,
+    isActive: data.is_active,
+  };
+}
 
 export function useAuth() {
   const store = useAuthStore();
+
+  const fetchCurrentUser = useCallback(async (): Promise<User | null> => {
+    try {
+      store.setLoading(true);
+      const { data } = await apiClient.get<UserProfileResponse>("/auth/me");
+      const user = mapProfileToUser(data);
+      store.setUser(user);
+      return user;
+    } catch (error) {
+      tokenStore.clearTokens();
+      store.logout();
+      throw error;
+    } finally {
+      store.setLoading(false);
+    }
+  }, [store]);
 
   // Check auth status on mount
   useEffect(() => {
     const token = tokenStore.getAccessToken();
     if (token && !store.user) {
-      fetchCurrentUser();
+      fetchCurrentUser().catch(() => {
+        // Silently handle error on mount if token is invalid/expired
+      });
     } else {
       store.setLoading(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const fetchCurrentUser = useCallback(async () => {
-    try {
-      store.setLoading(true);
-      const { data } = await apiClient.get<{ data: User }>("/auth/me");
-      store.setUser(data.data);
-    } catch {
-      store.logout();
-    }
-  }, [store]);
+  const handleAuthSuccess = useCallback(
+    async (
+      tokens: TokenResponse,
+    ): Promise<{ tokens: TokenResponse; user: User | null }> => {
+      // 1. Store tokens via tokenStore and auth-store
+      tokenStore.setTokens(tokens.access_token, tokens.refresh_token);
+      store.setTokens(tokens.access_token, tokens.refresh_token);
+
+      // 2. Immediately fetch /auth/me to populate user state
+      const user = await fetchCurrentUser();
+
+      // 3. Merge guest cart with authenticated user's cart
+      useCartStore.getState().mergeCart().catch((err) => {
+        console.warn("Auto merge cart failed on login:", err);
+      });
+
+      return { tokens, user };
+    },
+    [fetchCurrentUser, store],
+  );
 
   const login = useCallback(
     async (credentials: LoginRequest) => {
-      const { data } = await apiClient.post<AuthResponse>(
-        "/auth/login",
-        credentials,
-      );
-      store.login(
-        data.user as unknown as User,
-        data.access_token,
-        data.refresh_token,
-      );
-      return data;
+      const { data } = await apiClient.post<TokenResponse>("/auth/login", {
+        phone: credentials.phone,
+        password: credentials.password,
+      });
+      return await handleAuthSuccess(data);
     },
-    [store],
+    [handleAuthSuccess],
   );
 
   const register = useCallback(
     async (userData: RegisterRequest) => {
-      const { data } = await apiClient.post<AuthResponse>(
-        "/auth/register",
-        userData,
-      );
-      store.login(
-        data.user as unknown as User,
-        data.access_token,
-        data.refresh_token,
+      const { data } = await apiClient.post<TokenResponse>("/auth/register", {
+        phone: userData.phone,
+        password: userData.password,
+        first_name: userData.first_name || userData.firstName || "",
+        last_name: userData.last_name || userData.lastName || "",
+      });
+      return await handleAuthSuccess(data);
+    },
+    [handleAuthSuccess],
+  );
+
+  const requestOtp = useCallback(
+    async (request: OtpRequest): Promise<OtpResponse> => {
+      const { data } = await apiClient.post<OtpResponse>(
+        "/auth/otp/request",
+        {
+          phone: request.phone,
+        },
       );
       return data;
     },
-    [store],
+    [],
   );
-
-  const requestOtp = useCallback(async (request: OtpRequest) => {
-    const { data } = await apiClient.post("/auth/otp/send", request);
-    return data;
-  }, []);
 
   const verifyOtp = useCallback(
     async (request: OtpVerifyRequest) => {
-      const { data } = await apiClient.post<AuthResponse>(
+      const { data } = await apiClient.post<TokenResponse>(
         "/auth/otp/verify",
-        request,
+        {
+          phone: request.phone,
+          code: request.code,
+        },
       );
-      store.login(
-        data.user as unknown as User,
-        data.access_token,
-        data.refresh_token,
-      );
-      return data;
+      return await handleAuthSuccess(data);
     },
-    [store],
+    [handleAuthSuccess],
   );
 
-  const logout = useCallback(async () => {
+  const logout = useCallback(async (): Promise<void> => {
     try {
-      await apiClient.post("/auth/logout");
+      await apiClient.post<MessageResponse>("/auth/logout");
     } catch {
       // Silently fail - we clear local state regardless
     } finally {
+      tokenStore.clearTokens();
       store.logout();
     }
   }, [store]);
 
   const updateProfile = useCallback(
-    async (updates: UpdateProfileRequest) => {
-      const { data } = await apiClient.put<{ data: User }>(
-        "/auth/profile",
-        updates,
+    async (updates: UpdateProfileRequest): Promise<User> => {
+      const payload = {
+        first_name: updates.first_name ?? updates.firstName,
+        last_name: updates.last_name ?? updates.lastName,
+        email: updates.email,
+        national_code: updates.national_code ?? updates.nationalId,
+        birth_date: updates.birth_date ?? updates.birthDate,
+        avatar_url: updates.avatar_url,
+        gender: updates.gender,
+      };
+
+      const { data } = await apiClient.patch<UserProfileResponse>(
+        "/auth/me",
+        payload,
       );
-      store.updateProfile(data.data);
-      return data.data;
+      const updatedUser = mapProfileToUser(data);
+      store.setUser(updatedUser);
+      return updatedUser;
     },
     [store],
   );
 
   const changePassword = useCallback(
-    async (request: ChangePasswordRequest) => {
-      const { data } = await apiClient.put("/auth/password", request);
+    async (request: ChangePasswordRequest): Promise<MessageResponse> => {
+      const payload = {
+        old_password: request.old_password || request.currentPassword,
+        new_password: request.new_password,
+      };
+      const { data } = await apiClient.post<MessageResponse>(
+        "/auth/change-password",
+        payload,
+      );
       return data;
     },
     [],

@@ -9,8 +9,9 @@ interface AuthState {
 }
 
 interface AuthActions {
-  setUser: (user: User) => void;
+  setUser: (user: User | null) => void;
   setLoading: (loading: boolean) => void;
+  setTokens: (accessToken: string, refreshToken: string) => void;
   login: (user: User, accessToken: string, refreshToken: string) => void;
   logout: () => void;
   updateProfile: (updates: Partial<User>) => void;
@@ -28,11 +29,21 @@ export const useAuthStore = create<AuthStore>()(
       setUser: (user) =>
         set({
           user,
-          isAuthenticated: true,
+          isAuthenticated: !!user,
           isLoading: false,
         }),
 
       setLoading: (isLoading) => set({ isLoading }),
+
+      setTokens: (accessToken, refreshToken) => {
+        if (typeof window !== "undefined") {
+          localStorage.setItem("access_token", accessToken);
+          localStorage.setItem("refresh_token", refreshToken);
+        }
+        set({
+          isAuthenticated: true,
+        });
+      },
 
       login: (user, accessToken, refreshToken) => {
         if (typeof window !== "undefined") {
@@ -65,7 +76,15 @@ export const useAuthStore = create<AuthStore>()(
     }),
     {
       name: "auth-storage",
-      storage: createJSONStorage(() => localStorage),
+      storage: createJSONStorage(() =>
+        typeof window !== "undefined"
+          ? window.localStorage
+          : {
+              getItem: () => null,
+              setItem: () => {},
+              removeItem: () => {},
+            },
+      ),
       partialize: (state) => ({
         user: state.user,
         isAuthenticated: state.isAuthenticated,

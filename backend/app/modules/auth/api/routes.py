@@ -5,10 +5,11 @@ from __future__ import annotations
 import uuid
 from typing import Any
 
-from fastapi import APIRouter, Depends, Request, status
+from fastapi import APIRouter, Cookie, Depends, Request, Response, status
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.config.settings import get_settings
 from app.core.database.session import get_db
 from app.core.security.dependencies import get_current_user_id
 from app.modules.auth.application import auth_service
@@ -26,6 +27,52 @@ from app.modules.auth.schemas.auth import (
 )
 
 router = APIRouter()
+
+_settings = get_settings()
+
+
+def _set_auth_cookies(response: Response, access_token: str, refresh_token: str) -> None:
+    """Set HttpOnly Secure cookies for both tokens."""
+    response.set_cookie(
+        key="access_token",
+        value=access_token,
+        httponly=True,
+        secure=True,
+        samesite="lax",
+        path="/api/",
+        max_age=_settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+    )
+    response.set_cookie(
+        key="refresh_token",
+        value=refresh_token,
+        httponly=True,
+        secure=True,
+        samesite="lax",
+        path="/api/v1/auth/refresh",
+        max_age=_settings.REFRESH_TOKEN_EXPIRE_DAYS * 86400,
+    )
+
+
+def _clear_auth_cookies(response: Response) -> None:
+    """Clear auth cookies by setting max_age=0."""
+    response.set_cookie(
+        key="access_token",
+        value="",
+        httponly=True,
+        secure=True,
+        samesite="lax",
+        path="/api/",
+        max_age=0,
+    )
+    response.set_cookie(
+        key="refresh_token",
+        value="",
+        httponly=True,
+        secure=True,
+        samesite="lax",
+        path="/api/v1/auth/refresh",
+        max_age=0,
+    )
 
 
 def _client_ip(request: Request) -> str | None:
@@ -52,6 +99,7 @@ def _client_ua(request: Request) -> str | None:
 async def register(
     body: RegisterRequest,
     request: Request,
+    response: Response,
     db: AsyncSession = Depends(get_db),
 ) -> TokenResponse:
     tokens = await auth_service.register(
@@ -63,6 +111,7 @@ async def register(
         ip_address=_client_ip(request),
         user_agent=_client_ua(request),
     )
+    _set_auth_cookies(response, tokens["access_token"], tokens["refresh_token"])
     return TokenResponse(**tokens)
 
 
@@ -74,6 +123,7 @@ async def register(
 async def login(
     body: LoginRequest,
     request: Request,
+    response: Response,
     db: AsyncSession = Depends(get_db),
 ) -> TokenResponse:
     tokens = await auth_service.login(
@@ -83,6 +133,7 @@ async def login(
         ip_address=_client_ip(request),
         user_agent=_client_ua(request),
     )
+    _set_auth_cookies(response, tokens["access_token"], tokens["refresh_token"])
     return TokenResponse(**tokens)
 
 
@@ -115,6 +166,7 @@ async def otp_request(
 async def otp_verify(
     body: OTPVerifySchema,
     request: Request,
+    response: Response,
     db: AsyncSession = Depends(get_db),
 ) -> TokenResponse:
     tokens = await auth_service.verify_otp(
@@ -124,6 +176,7 @@ async def otp_verify(
         ip_address=_client_ip(request),
         user_agent=_client_ua(request),
     )
+    _set_auth_cookies(response, tokens["access_token"], tokens["refresh_token"])
     return TokenResponse(**tokens)
 
 
@@ -136,16 +189,28 @@ async def otp_verify(
     summary="Refresh access token",
 )
 async def refresh(
-    body: RefreshTokenRequest,
     request: Request,
+    response: Response,
+    body: RefreshTokenRequest | None = None,
     db: AsyncSession = Depends(get_db),
+    refresh_token: str | None = Cookie(default=None),
 ) -> TokenResponse:
+    # Prefer token from request body (API clients), fall back to cookie (browsers)
+    token = (body.refresh_token if body and body.refresh_token else None) or refresh_token
+    if not token:
+        from fastapi import HTTPException
+
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Refresh token is required",
+        )
     tokens = await auth_service.refresh_token(
         db,
-        token=body.refresh_token,
+        token=token,
         ip_address=_client_ip(request),
         user_agent=_client_ua(request),
     )
+    _set_auth_cookies(response, tokens["access_token"], tokens["refresh_token"])
     return TokenResponse(**tokens)
 
 
@@ -155,10 +220,12 @@ async def refresh(
     summary="Logout (revoke current session)",
 )
 async def logout(
+    response: Response,
     user_id: uuid.UUID = Depends(get_current_user_id),
     db: AsyncSession = Depends(get_db),
 ) -> MessageResponse:
     await auth_service.logout(db, user_id=user_id)
+    _clear_auth_cookies(response)
     return MessageResponse(message="Logged out successfully")
 
 

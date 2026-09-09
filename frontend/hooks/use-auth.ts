@@ -3,7 +3,7 @@
 import { useCallback, useEffect } from "react";
 import { useAuthStore } from "@/stores/auth-store";
 import { useCartStore } from "@/stores/cart-store";
-import apiClient, { tokenStore } from "@/lib/api/client";
+import apiClient from "@/lib/api/client";
 import type {
   User,
   UserProfileResponse,
@@ -41,21 +41,26 @@ export function useAuth() {
       const user = mapProfileToUser(data);
       store.setUser(user);
       return user;
-    } catch (error) {
-      tokenStore.clearTokens();
+    } catch {
       store.logout();
-      throw error;
+      throw new Error("Failed to fetch current user");
     } finally {
       store.setLoading(false);
     }
   }, [store]);
 
-  // Check auth status on mount
+  // Check auth status on mount by calling /auth/me.
+  // If the access_token cookie is present the server will respond with user data;
+  // otherwise the request will 401 and we clear state.
   useEffect(() => {
-    const token = tokenStore.getAccessToken();
-    if (token && !store.user) {
+    if (store.isAuthenticated && !store.user) {
       fetchCurrentUser().catch(() => {
-        // Silently handle error on mount if token is invalid/expired
+        // Silently handle error on mount if session is invalid/expired
+      });
+    } else if (!store.isAuthenticated) {
+      // Even without persisted auth flag, try to fetch in case a valid cookie exists
+      fetchCurrentUser().catch(() => {
+        store.setLoading(false);
       });
     } else {
       store.setLoading(false);
@@ -64,46 +69,41 @@ export function useAuth() {
   }, []);
 
   const handleAuthSuccess = useCallback(
-    async (
-      tokens: TokenResponse,
-    ): Promise<{ tokens: TokenResponse; user: User | null }> => {
-      // 1. Store tokens via tokenStore and auth-store
-      tokenStore.setTokens(tokens.access_token, tokens.refresh_token);
-      store.setTokens(tokens.access_token, tokens.refresh_token);
-
-      // 2. Immediately fetch /auth/me to populate user state
+    async (): Promise<{ user: User | null }> => {
+      // Cookies are set by the server response automatically.
+      // Just fetch /auth/me to populate user state.
       const user = await fetchCurrentUser();
 
-      // 3. Merge guest cart with authenticated user's cart
+      // Merge guest cart with authenticated user's cart
       useCartStore.getState().mergeCart().catch((err) => {
         console.warn("Auto merge cart failed on login:", err);
       });
 
-      return { tokens, user };
+      return { user };
     },
-    [fetchCurrentUser, store],
+    [fetchCurrentUser],
   );
 
   const login = useCallback(
     async (credentials: LoginRequest) => {
-      const { data } = await apiClient.post<TokenResponse>("/auth/login", {
+      await apiClient.post<TokenResponse>("/auth/login", {
         phone: credentials.phone,
         password: credentials.password,
       });
-      return await handleAuthSuccess(data);
+      return await handleAuthSuccess();
     },
     [handleAuthSuccess],
   );
 
   const register = useCallback(
     async (userData: RegisterRequest) => {
-      const { data } = await apiClient.post<TokenResponse>("/auth/register", {
+      await apiClient.post<TokenResponse>("/auth/register", {
         phone: userData.phone,
         password: userData.password,
         first_name: userData.first_name || userData.firstName || "",
         last_name: userData.last_name || userData.lastName || "",
       });
-      return await handleAuthSuccess(data);
+      return await handleAuthSuccess();
     },
     [handleAuthSuccess],
   );
@@ -123,14 +123,14 @@ export function useAuth() {
 
   const verifyOtp = useCallback(
     async (request: OtpVerifyRequest) => {
-      const { data } = await apiClient.post<TokenResponse>(
+      await apiClient.post<TokenResponse>(
         "/auth/otp/verify",
         {
           phone: request.phone,
           code: request.code,
         },
       );
-      return await handleAuthSuccess(data);
+      return await handleAuthSuccess();
     },
     [handleAuthSuccess],
   );
@@ -141,7 +141,6 @@ export function useAuth() {
     } catch {
       // Silently fail - we clear local state regardless
     } finally {
-      tokenStore.clearTokens();
       store.logout();
     }
   }, [store]);

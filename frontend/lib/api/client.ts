@@ -7,34 +7,6 @@ import axios, {
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
 
-interface TokenStore {
-  getAccessToken: () => string | null;
-  getRefreshToken: () => string | null;
-  setTokens: (_access: string, _refresh: string) => void;
-  clearTokens: () => void;
-}
-
-const tokenStore: TokenStore = {
-  getAccessToken: () => {
-    if (typeof window === "undefined") return null;
-    return localStorage.getItem("access_token");
-  },
-  getRefreshToken: () => {
-    if (typeof window === "undefined") return null;
-    return localStorage.getItem("refresh_token");
-  },
-  setTokens: (access: string, refresh: string) => {
-    if (typeof window === "undefined") return;
-    localStorage.setItem("access_token", access);
-    localStorage.setItem("refresh_token", refresh);
-  },
-  clearTokens: () => {
-    if (typeof window === "undefined") return;
-    localStorage.removeItem("access_token");
-    localStorage.removeItem("refresh_token");
-  },
-};
-
 interface SessionStore {
   getSessionId: () => string | null;
   getOrCreateSessionId: () => string;
@@ -71,15 +43,12 @@ const apiClient: AxiosInstance = axios.create({
     "Content-Type": "application/json",
     Accept: "application/json",
   },
+  withCredentials: true,
 });
 
-// Request interceptor: attach auth token and session ID
+// Request interceptor: attach session ID header (auth is handled by cookies)
 apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
-    const token = tokenStore.getAccessToken();
-    if (token && config.headers) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
     if (typeof window !== "undefined") {
       const sessionId = sessionStore.getOrCreateSessionId();
       if (sessionId && config.headers && !config.headers["X-Session-ID"]) {
@@ -98,12 +67,12 @@ let failedQueue: Array<{
   reject: (_reason: unknown) => void;
 }> = [];
 
-const processQueue = (error: unknown, token: string | null = null) => {
+const processQueue = (error: unknown) => {
   failedQueue.forEach(({ resolve, reject }) => {
     if (error) {
       reject(error);
     } else {
-      resolve(token);
+      resolve(undefined);
     }
   });
   failedQueue = [];
@@ -122,10 +91,7 @@ apiClient.interceptors.response.use(
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
         })
-          .then((token) => {
-            if (originalRequest.headers) {
-              originalRequest.headers.Authorization = `Bearer ${token}`;
-            }
+          .then(() => {
             return apiClient(originalRequest);
           })
           .catch((err) => Promise.reject(err));
@@ -134,32 +100,20 @@ apiClient.interceptors.response.use(
       originalRequest._retry = true;
       isRefreshing = true;
 
-      const refreshToken = tokenStore.getRefreshToken();
-      if (!refreshToken) {
-        tokenStore.clearTokens();
-        if (typeof window !== "undefined") {
-          window.location.href = "/login";
-        }
-        return Promise.reject(error);
-      }
-
       try {
-        const { data } = await axios.post(`${API_BASE_URL}/auth/refresh`, {
-          refresh_token: refreshToken,
-        });
+        // Call refresh endpoint without a body; the refresh_token cookie
+        // is sent automatically via withCredentials.
+        await axios.post(
+          `${API_BASE_URL}/auth/refresh`,
+          {},
+          { withCredentials: true },
+        );
 
-        const { access_token, refresh_token: newRefresh } = data;
-        tokenStore.setTokens(access_token, newRefresh);
+        processQueue(null);
 
-        processQueue(null, access_token);
-
-        if (originalRequest.headers) {
-          originalRequest.headers.Authorization = `Bearer ${access_token}`;
-        }
         return apiClient(originalRequest);
       } catch (refreshError) {
-        processQueue(refreshError, null);
-        tokenStore.clearTokens();
+        processQueue(refreshError);
         if (typeof window !== "undefined") {
           window.location.href = "/login";
         }
@@ -224,5 +178,5 @@ function getErrorMessage(error: AxiosError): string {
   return "خطای ناشناخته‌ای رخ داده است.";
 }
 
-export { apiClient, tokenStore, sessionStore };
+export { apiClient, sessionStore };
 export default apiClient;

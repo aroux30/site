@@ -5,7 +5,7 @@ from __future__ import annotations
 import uuid
 from typing import TYPE_CHECKING, Any
 
-from fastapi import Depends, HTTPException, status
+from fastapi import Cookie, Depends, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from app.core.security.jwt import verify_token
@@ -15,14 +15,37 @@ if TYPE_CHECKING:
 
     from app.core.database.session import get_db
 
-_bearer_scheme = HTTPBearer(auto_error=True)
+# auto_error=False so that missing Authorization header does not immediately 401;
+# we fall back to the access_token cookie when the header is absent.
+_bearer_scheme = HTTPBearer(auto_error=False)
 
 
 async def _extract_token(
-    credentials: HTTPAuthorizationCredentials = Depends(_bearer_scheme),
+    request: Request,
+    credentials: HTTPAuthorizationCredentials | None = Depends(_bearer_scheme),
+    access_token: str | None = Cookie(default=None),
 ) -> dict[str, Any]:
-    """Extract and validate the JWT from the ``Authorization`` header."""
-    return verify_token(credentials.credentials, expected_type="access")
+    """Extract and validate the JWT.
+
+    Resolution order:
+    1. ``Authorization: Bearer <token>`` header  (API clients / mobile apps)
+    2. ``access_token`` HttpOnly cookie          (browser sessions)
+    """
+    token: str | None = None
+
+    if credentials is not None:
+        token = credentials.credentials
+    elif access_token:
+        token = access_token
+
+    if not token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Not authenticated",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    return verify_token(token, expected_type="access")
 
 
 async def get_current_user_id(

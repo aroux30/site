@@ -42,10 +42,12 @@ import { playAddToCartChime } from "@/lib/audio-effects";
 import { formatPrice, toPersianDigits } from "@/lib/utils";
 import { useCart } from "@/hooks/use-cart";
 import {
-  fetchCategories,
-  fetchProducts,
-  type ApiCategory,
-  type ApiProduct,
+  useProducts,
+  useCategories,
+} from "@/lib/api/queries";
+import type {
+  ApiCategory,
+  ApiProduct,
 } from "@/lib/api/services";
 
 // Dynamically load 3D scene on client side to avoid WebGL SSR issues
@@ -380,12 +382,36 @@ function ProductSkeleton() {
 /* -------------------------------------------------------------------------- */
 
 export default function StoreHomePage() {
-  const [categories, setCategories] = useState<ApiCategory[]>(fallbackCategories);
-  const [featuredProducts, setFeaturedProducts] = useState<ApiProduct[]>(
-    fallbackFeaturedProducts,
-  );
-  const [bestSellers, setBestSellers] = useState<ApiProduct[]>(fallbackBestSellers);
-  const [loading, setLoading] = useState(true);
+  // ---------- TanStack Query: Categories ----------
+  const { data: categoriesData } = useCategories({ is_active: true, page_size: 12 });
+  const categories: ApiCategory[] =
+    categoriesData?.items && categoriesData.items.length > 0
+      ? categoriesData.items
+      : fallbackCategories;
+
+  // ---------- TanStack Query: Featured Products (newest) ----------
+  const { data: featuredData, isLoading: featuredLoading } = useProducts({
+    sort_by: "created_at",
+    sort_order: "desc",
+    page_size: 8,
+  });
+  const featuredProducts: ApiProduct[] =
+    featuredData?.items && featuredData.items.length > 0
+      ? featuredData.items
+      : fallbackFeaturedProducts;
+
+  // ---------- TanStack Query: Best Sellers (by price desc) ----------
+  const { data: bestData, isLoading: bestLoading } = useProducts({
+    sort_by: "price",
+    sort_order: "desc",
+    page_size: 8,
+  });
+  const bestSellers: ApiProduct[] =
+    bestData?.items && bestData.items.length > 0
+      ? bestData.items
+      : fallbackBestSellers;
+
+  const loading = featuredLoading || bestLoading;
 
   // Countdown timer for special promo
   const [timeLeft, setTimeLeft] = useState({ hours: 14, minutes: 32, seconds: 45 });
@@ -400,49 +426,6 @@ export default function StoreHomePage() {
       });
     }, 1000);
     return () => clearInterval(timer);
-  }, []);
-
-  useEffect(() => {
-    let active = true;
-
-    async function loadData() {
-      try {
-        const [catRes, featRes, bestRes] = await Promise.allSettled([
-          fetchCategories({ is_active: true, page_size: 12 }),
-          fetchProducts({
-            sort_by: "created_at",
-            sort_order: "desc",
-            page_size: 8,
-          }),
-          fetchProducts({
-            sort_by: "price",
-            sort_order: "desc",
-            page_size: 8,
-          }),
-        ]);
-
-        if (!active) return;
-
-        if (catRes.status === "fulfilled" && catRes.value.items?.length > 0) {
-          setCategories(catRes.value.items);
-        }
-        if (featRes.status === "fulfilled" && featRes.value.items?.length > 0) {
-          setFeaturedProducts(featRes.value.items);
-        }
-        if (bestRes.status === "fulfilled" && bestRes.value.items?.length > 0) {
-          setBestSellers(bestRes.value.items);
-        }
-      } catch (e) {
-        console.warn("Home page API fetch failed, fallback mock data in use:", e);
-      } finally {
-        if (active) setLoading(false);
-      }
-    }
-
-    loadData();
-    return () => {
-      active = false;
-    };
   }, []);
 
   return (

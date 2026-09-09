@@ -93,9 +93,13 @@ class OTPVerifySchema(BaseModel):
 
 
 class RefreshTokenRequest(BaseModel):
-    """Refresh an access token using a refresh token."""
+    """Refresh an access token using a refresh token.
 
-    refresh_token: str = Field(..., min_length=1)
+    The ``refresh_token`` field is optional because browser clients send
+    the token via an HttpOnly cookie instead of the request body.
+    """
+
+    refresh_token: Optional[str] = Field(None, min_length=1)
 
 
 class ChangePasswordRequest(BaseModel):

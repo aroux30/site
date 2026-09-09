@@ -476,9 +476,8 @@ export default function AdminOrdersPage() {
   };
 
   const handlePrintInvoice = (orderId: string) => {
-    const token = typeof window !== "undefined" ? localStorage.getItem("access_token") : null;
     const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
-    const url = `${baseUrl}/orders/${orderId}/invoice${token ? `?token=${encodeURIComponent(token)}` : ""}`;
+    const url = `${baseUrl}/orders/${orderId}/invoice`;
     window.open(url, "_blank");
   };
 

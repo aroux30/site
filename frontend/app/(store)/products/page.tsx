@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo, Suspense } from "react";
+import { useState, useMemo, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
 import {
@@ -37,13 +37,15 @@ import { useCart } from "@/hooks/use-cart";
 import { useCompareStore } from "@/stores/compare-store";
 import type { Product } from "@/types/product";
 import {
-  fetchCategories,
-  fetchBrands,
-  fetchProducts,
-  type ApiCategory,
-  type ApiBrand,
-  type ApiProduct,
-  type ApiPaginationMeta,
+  useProducts,
+  useCategories,
+  useBrands,
+} from "@/lib/api/queries";
+import type {
+  ApiCategory,
+  ApiBrand,
+  ApiProduct,
+  ApiPaginationMeta,
 } from "@/lib/api/services";
 
 /* -------------------------------------------------------------------------- */
@@ -175,10 +177,10 @@ const fallbackProducts: ApiProduct[] = [
 ];
 
 const sortOptions = [
-  { value: "newest", label: "جدیدترین", sort_by: "created_at", sort_order: "desc" },
-  { value: "cheapest", label: "ارزان‌ترین", sort_by: "price", sort_order: "asc" },
-  { value: "expensive", label: "گران‌ترین", sort_by: "price", sort_order: "desc" },
-  { value: "popular", label: "محبوب‌ترین", sort_by: "position", sort_order: "asc" },
+  { value: "newest", label: "جدیدترین", sort_by: "created_at" as const, sort_order: "desc" as const },
+  { value: "cheapest", label: "ارزان‌ترین", sort_by: "price" as const, sort_order: "asc" as const },
+  { value: "expensive", label: "گران‌ترین", sort_by: "price" as const, sort_order: "desc" as const },
+  { value: "popular", label: "محبوب‌ترین", sort_by: "position" as const, sort_order: "asc" as const },
 ];
 
 const MAX_PRICE_LIMIT = 150000000;
@@ -501,61 +503,31 @@ function ProductsListContent() {
   const [currentPage, setCurrentPage] = useState<number>(initialPage);
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
 
-  // Data States
-  const [categories, setCategories] = useState<ApiCategory[]>(fallbackCategories);
-  const [brands, setBrands] = useState<ApiBrand[]>(fallbackBrands);
-  const [products, setProducts] = useState<ApiProduct[]>(fallbackProducts);
-  const [paginationMeta, setPaginationMeta] = useState<ApiPaginationMeta>({
-    total: fallbackProducts.length,
-    page: 1,
-    page_size: 12,
-    total_pages: 1,
-    has_next: false,
-    has_prev: false,
-  });
-  const [loading, setLoading] = useState(true);
+  // ---------- TanStack Query: Categories & Brands ----------
+  const {
+    data: categoriesData,
+  } = useCategories({ is_active: true, page_size: 50 });
 
-  // Load Categories & Brands
-  useEffect(() => {
-    async function loadMeta() {
-      try {
-        const [catData, brandData] = await Promise.allSettled([
-          fetchCategories({ is_active: true, page_size: 50 }),
-          fetchBrands({ is_active: true, page_size: 50 }),
-        ]);
+  const {
+    data: brandsData,
+  } = useBrands({ is_active: true, page_size: 50 });
 
-        if (catData.status === "fulfilled" && catData.value.items?.length > 0) {
-          setCategories(catData.value.items);
-        }
-        if (brandData.status === "fulfilled" && brandData.value.items?.length > 0) {
-          setBrands(brandData.value.items);
-        }
-      } catch (err) {
-        console.warn("Could not fetch categories/brands, using fallbacks:", err);
-      }
-    }
-    loadMeta();
-  }, []);
+  const categories: ApiCategory[] =
+    categoriesData?.items && categoriesData.items.length > 0
+      ? categoriesData.items
+      : fallbackCategories;
 
-  // Sync state when URL params change
-  useEffect(() => {
-    setSearchQuery(searchParams.get("q") || "");
-    setSelectedCategory(
-      searchParams.get("category_id") || searchParams.get("category") || "",
-    );
-    setSelectedBrand(searchParams.get("brand_id") || "");
-    setSelectedSort(searchParams.get("sort") || "newest");
-    setCurrentPage(parseInt(searchParams.get("page") || "1", 10));
-  }, [searchParams]);
+  const brands: ApiBrand[] =
+    brandsData?.items && brandsData.items.length > 0
+      ? brandsData.items
+      : fallbackBrands;
 
-  // Fetch Products based on current filters
-  const loadProducts = useCallback(async () => {
-    setLoading(true);
+  // ---------- TanStack Query: Products ----------
+  const sortConfig =
+    sortOptions.find((s) => s.value === selectedSort) || sortOptions[0]!;
 
-    const sortConfig =
-      sortOptions.find((s) => s.value === selectedSort) || sortOptions[0]!;
-
-    const params: Record<string, any> = {
+  const productParams = useMemo(() => {
+    const params: Record<string, unknown> = {
       page: currentPage,
       page_size: 12,
       sort_by: sortConfig.sort_by,
@@ -568,16 +540,35 @@ function ProductsListContent() {
     if (priceRange[0] > 0) params.min_price = priceRange[0];
     if (priceRange[1] < MAX_PRICE_LIMIT) params.max_price = priceRange[1];
 
-    try {
-      const response = await fetchProducts(params);
-      if (response.items) {
-        setProducts(response.items);
-        setPaginationMeta(response.meta);
-      }
-    } catch (err) {
-      console.warn("Products API call failed, applying client filter to fallback:", err);
+    return params;
+  }, [
+    searchQuery,
+    selectedCategory,
+    selectedBrand,
+    sortConfig.sort_by,
+    sortConfig.sort_order,
+    priceRange,
+    currentPage,
+  ]);
 
-      // Client-side filtering over fallback data
+  const {
+    data: productsData,
+    isLoading: loading,
+    error: productsError,
+  } = useProducts(productParams);
+
+  // Derive displayed products: use API data when available, otherwise
+  // apply client-side filtering on fallback data when the query fails.
+  const { products, paginationMeta } = useMemo(() => {
+    if (productsData?.items) {
+      return {
+        products: productsData.items,
+        paginationMeta: productsData.meta,
+      };
+    }
+
+    // Fallback client-side filtering (when API is unreachable)
+    if (productsError) {
       let filtered = [...fallbackProducts];
 
       if (searchQuery.trim()) {
@@ -613,19 +604,33 @@ function ProductsListContent() {
         filtered.sort((a, b) => (b.min_price || 0) - (a.min_price || 0));
       }
 
-      setProducts(filtered);
-      setPaginationMeta({
+      const meta: ApiPaginationMeta = {
         total: filtered.length,
         page: currentPage,
         page_size: 12,
         total_pages: Math.max(1, Math.ceil(filtered.length / 12)),
         has_next: false,
         has_prev: false,
-      });
-    } finally {
-      setLoading(false);
+      };
+
+      return { products: filtered, paginationMeta: meta };
     }
+
+    // Still loading or no data yet
+    return {
+      products: fallbackProducts,
+      paginationMeta: {
+        total: fallbackProducts.length,
+        page: 1,
+        page_size: 12,
+        total_pages: 1,
+        has_next: false,
+        has_prev: false,
+      } as ApiPaginationMeta,
+    };
   }, [
+    productsData,
+    productsError,
     searchQuery,
     selectedCategory,
     selectedBrand,
@@ -634,10 +639,6 @@ function ProductsListContent() {
     currentPage,
     categories,
   ]);
-
-  useEffect(() => {
-    loadProducts();
-  }, [loadProducts]);
 
   // Update URL on filter submit
   const updateUrl = (overrides: Record<string, string | number | undefined>) => {

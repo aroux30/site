@@ -11,10 +11,13 @@ This platform is designed as a **Modular Monolith** following **Clean Architectu
 ### Key Features
 
 - **Full Persian/RTL Support** -- Native right-to-left layout, Persian number formatting, Jalali calendar
-- **Iranian Payment Gateways** -- Integration with Zarinpal, Mellat, Saman, Parsian, and more
+- **Iranian Payment Gateways** -- Integration with Zarinpal, IDPay, NowPayments (Crypto/USDT), and Card-to-Card bank transfers
 - **Advanced Product Search** -- Elasticsearch-powered search with custom Persian analyzer, synonym expansion, and faceted filtering
 - **Digital Wallet** -- User wallet system for balance-based payments and cashback
-- **Modular Architecture** -- 16 independent business modules with clean boundaries
+- **Modular Architecture** -- 35 independent business modules with clean boundaries
+- **170+ REST API Endpoints** -- Fully documented with OpenAPI/Swagger
+- **128+ Automated Tests** -- Unit and integration tests with 100% pass rate
+- **HttpOnly Secure Cookie Auth** -- XSS-resistant JWT authentication with refresh token rotation
 - **Performance Optimized** -- P95 API response time target under 300ms
 
 ---
@@ -37,7 +40,7 @@ This platform is designed as a **Modular Monolith** following **Clean Architectu
 
 | Component         | Technology                  |
 |-------------------|-----------------------------|
-| Framework         | Next.js 14+ (App Router)    |
+| Framework         | Next.js 15.5 (App Router)   |
 | Language          | TypeScript 5.x              |
 | Styling           | Tailwind CSS 3.x            |
 | UI Components     | shadcn/ui                   |

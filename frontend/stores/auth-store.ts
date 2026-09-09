@@ -11,8 +11,7 @@ interface AuthState {
 interface AuthActions {
   setUser: (user: User | null) => void;
   setLoading: (loading: boolean) => void;
-  setTokens: (accessToken: string, refreshToken: string) => void;
-  login: (user: User, accessToken: string, refreshToken: string) => void;
+  login: (user: User) => void;
   logout: () => void;
   updateProfile: (updates: Partial<User>) => void;
 }
@@ -35,21 +34,7 @@ export const useAuthStore = create<AuthStore>()(
 
       setLoading: (isLoading) => set({ isLoading }),
 
-      setTokens: (accessToken, refreshToken) => {
-        if (typeof window !== "undefined") {
-          localStorage.setItem("access_token", accessToken);
-          localStorage.setItem("refresh_token", refreshToken);
-        }
-        set({
-          isAuthenticated: true,
-        });
-      },
-
-      login: (user, accessToken, refreshToken) => {
-        if (typeof window !== "undefined") {
-          localStorage.setItem("access_token", accessToken);
-          localStorage.setItem("refresh_token", refreshToken);
-        }
+      login: (user) => {
         set({
           user,
           isAuthenticated: true,
@@ -58,10 +43,6 @@ export const useAuthStore = create<AuthStore>()(
       },
 
       logout: () => {
-        if (typeof window !== "undefined") {
-          localStorage.removeItem("access_token");
-          localStorage.removeItem("refresh_token");
-        }
         set({
           user: null,
           isAuthenticated: false,

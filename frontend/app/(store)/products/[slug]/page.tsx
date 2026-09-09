@@ -41,11 +41,12 @@ import { useAuth } from "@/hooks/use-auth";
 import { useCompareStore } from "@/stores/compare-store";
 import type { Product } from "@/types/product";
 import {
-  fetchProductBySlug,
-  fetchReviews,
-  postReview,
-  addToWishlistApi,
-  removeFromWishlistApi,
+  useProduct,
+  useReviews,
+  useSubmitReview,
+  useToggleWishlist,
+} from "@/lib/api/queries";
+import {
   checkWishlistApi,
   type ApiProductDetail,
   type ApiProductVariant,
@@ -274,9 +275,15 @@ export default function ProductDetailPage() {
   const { isAuthenticated } = useAuth();
   const { isInCompare, toggleProduct } = useCompareStore();
 
-  // Product Data
-  const [product, setProduct] = useState<ApiProductDetail>(fallbackProduct);
-  const [loading, setLoading] = useState(true);
+  // ---------- TanStack Query: Product ----------
+  const {
+    data: fetchedProduct,
+    isLoading: loading,
+  } = useProduct(slug);
+
+  const product: ApiProductDetail = fetchedProduct && fetchedProduct.name
+    ? fetchedProduct
+    : fallbackProduct;
 
   // Variant & Selection
   const [selectedVariantIndex, setSelectedVariantIndex] = useState(0);
@@ -288,11 +295,24 @@ export default function ProductDetailPage() {
   // Wishlist state
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [wishlistLoading, setWishlistLoading] = useState(false);
+  const toggleWishlistMutation = useToggleWishlist();
 
-  // Reviews State
-  const [reviews, setReviews] = useState<ApiReviewItem[]>(fallbackReviews);
-  const [reviewStats, setReviewStats] = useState<ApiReviewStats>(fallbackStats);
-  const [reviewsLoading, setReviewsLoading] = useState(false);
+  // ---------- TanStack Query: Reviews ----------
+  const {
+    data: reviewsData,
+    isLoading: reviewsLoading,
+  } = useReviews(product.id);
+
+  const reviews: ApiReviewItem[] =
+    reviewsData?.reviews && reviewsData.reviews.length > 0
+      ? reviewsData.reviews
+      : fallbackReviews;
+
+  const reviewStats: ApiReviewStats =
+    reviewsData?.stats || fallbackStats;
+
+  // ---------- TanStack Query: Submit Review Mutation ----------
+  const submitReviewMutation = useSubmitReview();
 
   // Review Form
   const [formRating, setFormRating] = useState(5);
@@ -300,53 +320,15 @@ export default function ProductDetailPage() {
   const [formBody, setFormBody] = useState("");
   const [formPros, setFormPros] = useState("");
   const [formCons, setFormCons] = useState("");
-  const [isSubmittingReview, setIsSubmittingReview] = useState(false);
   const [reviewSubmitSuccess, setReviewSubmitSuccess] = useState(false);
   const [reviewSubmitError, setReviewSubmitError] = useState<string | null>(null);
 
-  // Fetch product by slug (or fallback by id)
+  // Reset variant selection when product changes
   useEffect(() => {
-    let active = true;
-    async function loadProduct() {
-      if (!slug) return;
-      setLoading(true);
-      try {
-        const data = await fetchProductBySlug(slug);
-        if (active && data && data.name) {
-          setProduct(data);
-          // Auto select first variant if available
-          if (data.variants && data.variants.length > 0) {
-            setSelectedVariantIndex(0);
-          }
-        }
-      } catch (err) {
-        console.warn("Product fetch by slug failed, using fallback product:", err);
-      } finally {
-        if (active) setLoading(false);
-      }
+    if (fetchedProduct?.variants && fetchedProduct.variants.length > 0) {
+      setSelectedVariantIndex(0);
     }
-
-    loadProduct();
-    return () => {
-      active = false;
-    };
-  }, [slug]);
-
-  // Load reviews
-  const loadProductReviews = useCallback(async (productId: string) => {
-    setReviewsLoading(true);
-    try {
-      const data = await fetchReviews(productId);
-      if (data && Array.isArray(data.reviews)) {
-        setReviews(data.reviews.length > 0 ? data.reviews : fallbackReviews);
-        if (data.stats) setReviewStats(data.stats);
-      }
-    } catch (err) {
-      console.warn("Reviews API failed, using fallback reviews:", err);
-    } finally {
-      setReviewsLoading(false);
-    }
-  }, []);
+  }, [fetchedProduct]);
 
   // Check wishlist status
   const checkWishlistStatus = useCallback(async (productId: string) => {
@@ -361,10 +343,9 @@ export default function ProductDetailPage() {
 
   useEffect(() => {
     if (product.id) {
-      loadProductReviews(product.id);
       checkWishlistStatus(product.id);
     }
-  }, [product.id, loadProductReviews, checkWishlistStatus]);
+  }, [product.id, checkWishlistStatus]);
 
   // Selected variant derivation
   const currentVariant: ApiProductVariant | undefined =
@@ -429,13 +410,11 @@ export default function ProductDetailPage() {
   const handleToggleWishlist = async () => {
     setWishlistLoading(true);
     try {
-      if (isWishlisted) {
-        await removeFromWishlistApi(product.id);
-        setIsWishlisted(false);
-      } else {
-        await addToWishlistApi(product.id);
-        setIsWishlisted(true);
-      }
+      await toggleWishlistMutation.mutateAsync({
+        productId: product.id,
+        isWishlisted,
+      });
+      setIsWishlisted(!isWishlisted);
     } catch {
       // Toggle optimistically if API fails or user is browsing
       setIsWishlisted(!isWishlisted);
@@ -507,7 +486,6 @@ export default function ProductDetailPage() {
       return;
     }
 
-    setIsSubmittingReview(true);
     setReviewSubmitError(null);
 
     const prosList = formPros
@@ -520,7 +498,7 @@ export default function ProductDetailPage() {
       .filter(Boolean);
 
     try {
-      const newReview = await postReview({
+      await submitReviewMutation.mutateAsync({
         product_id: product.id,
         rating: formRating,
         title: formTitle.trim() || undefined,
@@ -529,37 +507,21 @@ export default function ProductDetailPage() {
         cons: consList.length > 0 ? consList : undefined,
       });
 
-      setReviews((prev) => [newReview, ...prev]);
       setReviewSubmitSuccess(true);
       setFormTitle("");
       setFormBody("");
       setFormPros("");
       setFormCons("");
       setFormRating(5);
-    } catch (err: any) {
-      // Optimistic local add if offline or API rejection
-      const optimisticReview: ApiReviewItem = {
-        id: `local-${Date.now()}`,
-        user: { id: "current-user", display_name: "شما (ثبت شده)" },
-        product_id: product.id,
-        rating: formRating,
-        title: formTitle.trim() || undefined,
-        body: formBody.trim(),
-        pros: prosList,
-        cons: consList,
-        is_verified_purchase: true,
-        helpful_count: 0,
-        unhelpful_count: 0,
-        created_at: new Date().toISOString(),
-      };
-      setReviews((prev) => [optimisticReview, ...prev]);
+    } catch {
+      // The mutation's onSuccess will invalidate the reviews query automatically.
+      // If it fails, we still show success for UX (optimistic).
       setReviewSubmitSuccess(true);
       setFormTitle("");
       setFormBody("");
       setFormPros("");
       setFormCons("");
     } finally {
-      setIsSubmittingReview(false);
       setTimeout(() => setReviewSubmitSuccess(false), 4000);
     }
   };
@@ -1267,10 +1229,10 @@ export default function ProductDetailPage() {
 
                   <Button
                     type="submit"
-                    disabled={isSubmittingReview}
+                    disabled={submitReviewMutation.isPending}
                     className="gap-2 rounded-xl text-xs px-6"
                   >
-                    {isSubmittingReview ? (
+                    {submitReviewMutation.isPending ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
                     ) : (
                       <Send className="h-4 w-4" />

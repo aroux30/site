@@ -86,7 +86,9 @@ class Payment(BaseModel):
     )
     authority: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     gateway_url: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
-    metadata: Mapped[Optional[dict[str, Any]]] = mapped_column(JSONB, nullable=True)
+    extra_data: Mapped[Optional[dict[str, Any]]] = mapped_column(
+        "metadata", JSONB, nullable=True
+    )
     idempotency_key: Mapped[Optional[str]] = mapped_column(
         String(255), unique=True, nullable=True
     )

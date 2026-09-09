@@ -38,7 +38,9 @@ class AuditLog(BaseModel):
     ip_address: Mapped[Optional[str]] = mapped_column(String(45), nullable=True)
     user_agent: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
     request_id: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
-    metadata: Mapped[Optional[dict[str, Any]]] = mapped_column(JSONB, nullable=True)
+    extra_data: Mapped[Optional[dict[str, Any]]] = mapped_column(
+        "metadata", JSONB, nullable=True
+    )
 
     def __repr__(self) -> str:
         return f"<AuditLog(id={self.id}, action={self.action}, resource={self.resource})>"

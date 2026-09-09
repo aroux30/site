@@ -145,7 +145,9 @@ class OrderStatusHistory(BaseModel):
         nullable=True,
     )
     reason: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
-    metadata: Mapped[Optional[dict[str, Any]]] = mapped_column(JSONB, nullable=True)
+    extra_data: Mapped[Optional[dict[str, Any]]] = mapped_column(
+        "metadata", JSONB, nullable=True
+    )
 
     # Relationships
     order: Mapped["Order"] = relationship("Order", back_populates="status_history")

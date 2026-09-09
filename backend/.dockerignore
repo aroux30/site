@@ -8,6 +8,7 @@
 
 # Documentation
 *.md
+!README.md
 LICENSE
 
 # Python

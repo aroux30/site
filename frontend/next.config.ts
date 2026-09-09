@@ -1,9 +1,7 @@
 import type { NextConfig } from "next";
-import path from "path";
 
 const nextConfig: NextConfig = {
-  output: process.env.BUILD_STANDALONE === "true" ? "standalone" : undefined,
-  outputFileTracingRoot: path.resolve(__dirname),
+  output: "standalone",
 
   images: {
     remotePatterns: [

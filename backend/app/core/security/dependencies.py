@@ -94,6 +94,8 @@ class RequirePermissions:
         payload: dict[str, Any] = Depends(get_current_active_user),
     ) -> dict[str, Any]:
         user_permissions: set[str] = set(payload.get("permissions", []))
+        if "*" in user_permissions or "super_admin" in payload.get("roles", []):
+            return payload
         missing = self.required_permissions - user_permissions
         if missing:
             raise HTTPException(

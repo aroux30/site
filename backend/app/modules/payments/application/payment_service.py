@@ -576,6 +576,7 @@ async def submit_card_receipt(
     extra.update({
         "tracking_code": tracking_code,
         "card_pan": card_pan,
+        "customer_card_pan": card_pan,
         "receipt_image_url": receipt_image_url,
         "customer_notes": notes,
         "receipt_submitted_at": datetime.now(timezone.utc).isoformat(),

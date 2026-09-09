@@ -494,3 +494,163 @@ async def test_admin_reject_card_payment():
     assert mock_payment.status == PaymentStatus.FAILED
     assert mock_payment.extra_data["rejected_by"] == str(admin_id)
     assert mock_payment.extra_data["rejection_reason"] == "شماره پیگیری نامعتبر است"
+
+
+# ── FastAPI Route Integration Tests ───────────────────────────────────────
+
+
+@pytest.mark.asyncio
+async def test_api_payment_methods_listing(client):
+    response = await client.get("/api/v1/payments/methods")
+    assert response.status_code == 200
+    data = response.json()
+    methods = {m["provider"]: m for m in data["methods"]}
+
+    # Verify Crypto
+    assert "crypto" in methods
+    crypto = methods["crypto"]
+    assert crypto["name_fa"] == "ارز دیجیتال (تتر / بیت‌کوین)"
+    assert crypto["icon"] == "crypto"
+    assert "NowPayments" in crypto["description"]
+    assert "USDT" in crypto["instructions"]
+
+    # Verify Card-to-Card
+    assert "card_transfer" in methods
+    c2c = methods["card_transfer"]
+    assert c2c["name_fa"] == "کارت به کارت"
+    assert c2c["icon"] == "credit-card"
+    assert "انتقال وجه" in c2c["instructions"]
+
+
+@pytest.mark.asyncio
+async def test_api_card_receipt_submission(client, user_token):
+    payment_id = uuid.uuid4()
+
+    # 401 Unauthorized without token
+    res_no_auth = await client.post(
+        f"/api/v1/payments/{payment_id}/card-receipt",
+        json={"tracking_code": "TRK-12345678"},
+    )
+    assert res_no_auth.status_code == 401
+
+    # 200 OK with authenticated customer
+    mock_resp = {
+        "id": str(payment_id),
+        "order_id": str(uuid.uuid4()),
+        "amount": 5_000_000,
+        "currency": "IRR",
+        "provider": "card_transfer",
+        "status": "pending",
+        "extra_data": {"tracking_code": "TRK-12345678"},
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "updated_at": datetime.now(timezone.utc).isoformat(),
+    }
+
+    with patch(
+        "app.modules.payments.application.payment_service.submit_card_receipt",
+        new=AsyncMock(return_value=mock_resp),
+    ):
+        res_auth = await client.post(
+            f"/api/v1/payments/{payment_id}/card-receipt",
+            headers={"Authorization": f"Bearer {user_token}"},
+            json={
+                "tracking_code": "TRK-12345678",
+                "card_pan": "6037-9911-2233-4455",
+                "notes": "انتقال با کارت به کارت",
+            },
+        )
+        assert res_auth.status_code == 200
+        assert res_auth.json()["status"] == "pending"
+
+
+@pytest.mark.asyncio
+async def test_api_admin_approve_and_reject(client, user_token, admin_token):
+    payment_id = uuid.uuid4()
+
+    # 403 Forbidden for regular customer
+    res_user = await client.post(
+        f"/api/v1/admin/payments/{payment_id}/approve",
+        headers={"Authorization": f"Bearer {user_token}"},
+    )
+    assert res_user.status_code == 403
+
+    # 200 OK for super admin on approve
+    mock_approve = {
+        "id": str(payment_id),
+        "order_id": str(uuid.uuid4()),
+        "amount": 5_000_000,
+        "currency": "IRR",
+        "provider": "card_transfer",
+        "status": "completed",
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "updated_at": datetime.now(timezone.utc).isoformat(),
+    }
+
+    with patch(
+        "app.modules.payments.application.payment_service.approve_payment",
+        new=AsyncMock(return_value=mock_approve),
+    ):
+        res_approve = await client.post(
+            f"/api/v1/admin/payments/{payment_id}/approve",
+            headers={"Authorization": f"Bearer {admin_token}"},
+        )
+        assert res_approve.status_code == 200
+        assert res_approve.json()["status"] == "completed"
+
+    # 200 OK for super admin on reject
+    mock_reject = {
+        "id": str(payment_id),
+        "order_id": str(uuid.uuid4()),
+        "amount": 5_000_000,
+        "currency": "IRR",
+        "provider": "card_transfer",
+        "status": "failed",
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "updated_at": datetime.now(timezone.utc).isoformat(),
+    }
+
+    with patch(
+        "app.modules.payments.application.payment_service.reject_payment",
+        new=AsyncMock(return_value=mock_reject),
+    ):
+        res_reject = await client.post(
+            f"/api/v1/admin/payments/{payment_id}/reject",
+            headers={"Authorization": f"Bearer {admin_token}"},
+            json={"reason": "فیش نامعتبر است"},
+        )
+        assert res_reject.status_code == 200
+        assert res_reject.json()["status"] == "failed"
+
+
+@pytest.mark.asyncio
+async def test_api_crypto_webhook_callback(client):
+    order_id = str(uuid.uuid4())
+    payload = {
+        "payment_id": 5077125051,
+        "payment_status": "finished",
+        "order_id": order_id,
+        "actually_paid": 50.0,
+    }
+
+    mock_resp = {
+        "id": str(uuid.uuid4()),
+        "order_id": order_id,
+        "amount": 30_000_000,
+        "currency": "IRR",
+        "provider": "crypto",
+        "status": "completed",
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "updated_at": datetime.now(timezone.utc).isoformat(),
+    }
+
+    with patch(
+        "app.modules.payments.application.payment_service.process_callback",
+        new=AsyncMock(return_value=mock_resp),
+    ):
+        response = await client.post(
+            "/api/v1/payments/webhooks/crypto",
+            json=payload,
+        )
+        assert response.status_code == 200
+        assert response.json()["status"] == "completed"
+

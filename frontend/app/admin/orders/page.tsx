@@ -13,6 +13,7 @@ import {
   Phone,
   Mail,
   FileText,
+  Printer,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -474,6 +475,13 @@ export default function AdminOrdersPage() {
     setIsDetailsOpen(true);
   };
 
+  const handlePrintInvoice = (orderId: string) => {
+    const token = typeof window !== "undefined" ? localStorage.getItem("access_token") : null;
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+    const url = `${baseUrl}/orders/${orderId}/invoice${token ? `?token=${encodeURIComponent(token)}` : ""}`;
+    window.open(url, "_blank");
+  };
+
   return (
     <div className="space-y-6" dir="rtl">
       {/* Header */}
@@ -588,7 +596,7 @@ export default function AdminOrdersPage() {
                 <th className="py-3.5 px-4">مبلغ کل فاکتور</th>
                 <th className="py-3.5 px-4">وضعیت پرداخت</th>
                 <th className="py-3.5 px-4">وضعیت سفارش</th>
-                <th className="py-3.5 px-4 text-center">جزئیات</th>
+                <th className="py-3.5 px-4 text-center">عملیات</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
@@ -674,17 +682,29 @@ export default function AdminOrdersPage() {
                         </Select>
                       </td>
 
-                      {/* Details button */}
+                      {/* Action buttons: Invoice and View Details */}
                       <td className="py-3 px-4 text-center">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleViewOrder(order)}
-                          className="gap-1 text-xs"
-                        >
-                          <Eye className="h-3.5 w-3.5" />
-                          مشاهده
-                        </Button>
+                        <div className="flex items-center justify-center gap-1.5">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handlePrintInvoice(order.id)}
+                            className="gap-1 text-xs text-primary border-primary/30 hover:bg-primary/10"
+                            title="مشاهده و چاپ فاکتور رسمی"
+                          >
+                            <Printer className="h-3.5 w-3.5" />
+                            فاکتور رسمی
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleViewOrder(order)}
+                            className="gap-1 text-xs"
+                          >
+                            <Eye className="h-3.5 w-3.5" />
+                            مشاهده
+                          </Button>
+                        </div>
                       </td>
                     </tr>
                   );
@@ -905,10 +925,20 @@ export default function AdminOrdersPage() {
             </div>
           )}
 
-          <DialogFooter>
+          <DialogFooter className="flex flex-col-reverse sm:flex-row sm:justify-between items-center gap-2">
             <Button variant="outline" onClick={() => setIsDetailsOpen(false)}>
               بستن
             </Button>
+            {selectedOrder && (
+              <Button
+                variant="default"
+                onClick={() => handlePrintInvoice(selectedOrder.id)}
+                className="gap-2"
+              >
+                <Printer className="h-4 w-4" />
+                چاپ فاکتور رسمی
+              </Button>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>

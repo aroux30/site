@@ -88,3 +88,11 @@ async def test_unauthorized_profile_access(client: AsyncClient):
     """Verify protected /auth/me returns 401 Unauthorized without token."""
     response = await client.get("/api/v1/auth/me")
     assert response.status_code == 401
+
+
+@pytest.mark.asyncio
+async def test_unauthorized_invoice_access(client: AsyncClient):
+    """Verify protected /orders/{id}/invoice returns 401 Unauthorized without token."""
+    response = await client.get("/api/v1/orders/11111111-1111-1111-1111-111111111111/invoice")
+    assert response.status_code == 401
+

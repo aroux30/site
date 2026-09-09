@@ -28,6 +28,7 @@ import {
   Mail,
   Phone,
   MessageSquare,
+  Printer,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -613,6 +614,17 @@ export default function CustomerAccountPage() {
     fetchWishlist();
     fetchTickets();
   }, []);
+
+  /* ---------------------------------------------------------------- */
+  /*  Actions: Orders & Invoice                                        */
+  /* ---------------------------------------------------------------- */
+
+  const handlePrintInvoice = (orderId: string) => {
+    const token = typeof window !== "undefined" ? localStorage.getItem("access_token") : null;
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+    const url = `${baseUrl}/orders/${orderId}/invoice${token ? `?token=${encodeURIComponent(token)}` : ""}`;
+    window.open(url, "_blank");
+  };
 
   /* ---------------------------------------------------------------- */
   /*  Actions: Profile & Password                                      */
@@ -1337,22 +1349,34 @@ export default function CustomerAccountPage() {
                             </div>
                           </div>
 
-                          <div className="flex items-center gap-3">
+                          <div className="flex flex-wrap items-center gap-3">
                             <div className="text-left sm:text-right">
                               <span className="text-xs text-muted-foreground block">مبلغ کل:</span>
                               <span className="font-bold text-primary">
                                 {formatPrice(order.total)}
                               </span>
                             </div>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => setSelectedOrderForTracking(order)}
-                              className="gap-1.5"
-                            >
-                              <Truck className="h-4 w-4" />
-                              رهگیری سفارش
-                            </Button>
+                            <div className="flex items-center gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handlePrintInvoice(order.id)}
+                                className="gap-1.5 text-xs text-primary border-primary/20 hover:bg-primary/5"
+                                title="چاپ فاکتور رسمی الکترونیکی"
+                              >
+                                <Printer className="h-4 w-4" />
+                                چاپ فاکتور رسمی
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setSelectedOrderForTracking(order)}
+                                className="gap-1.5 text-xs"
+                              >
+                                <Truck className="h-4 w-4" />
+                                رهگیری سفارش
+                              </Button>
+                            </div>
                           </div>
                         </div>
 
@@ -1951,7 +1975,7 @@ export default function CustomerAccountPage() {
             </div>
           )}
 
-          <DialogFooter>
+          <DialogFooter className="flex flex-col-reverse sm:flex-row sm:justify-between items-center gap-2">
             <Button
               variant="outline"
               onClick={() => setSelectedOrderForTracking(null)}
@@ -1959,6 +1983,16 @@ export default function CustomerAccountPage() {
             >
               بستن
             </Button>
+            {selectedOrderForTracking && (
+              <Button
+                variant="default"
+                onClick={() => handlePrintInvoice(selectedOrderForTracking.id)}
+                className="w-full sm:w-auto gap-2"
+              >
+                <Printer className="h-4 w-4" />
+                چاپ فاکتور رسمی
+              </Button>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>

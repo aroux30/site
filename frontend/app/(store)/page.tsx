@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import {
   Truck,
   Shield,
@@ -33,6 +34,7 @@ import { BentoGrid, BentoCard } from "@/components/ui/bento-grid";
 import { Marquee } from "@/components/ui/marquee";
 import { ShimmerButton } from "@/components/ui/shimmer-button";
 import { NumberTicker } from "@/components/ui/number-ticker";
+import { TiltCard3D } from "@/components/3d/tilt-card-3d";
 import { formatPrice, toPersianDigits } from "@/lib/utils";
 import { useCart } from "@/hooks/use-cart";
 import {
@@ -41,6 +43,19 @@ import {
   type ApiCategory,
   type ApiProduct,
 } from "@/lib/api/services";
+
+// Dynamically load 3D scene on client side to avoid WebGL SSR issues
+const Hero3DScene = dynamic(
+  () => import("@/components/3d/hero-scene").then((mod) => mod.Hero3DScene),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="h-[420px] w-full flex items-center justify-center">
+        <div className="h-44 w-44 rounded-full bg-emerald-500/20 blur-2xl animate-pulse" />
+      </div>
+    ),
+  }
+);
 
 /* -------------------------------------------------------------------------- */
 /*                               Fallback Data                                */
@@ -247,7 +262,7 @@ function FeaturedProductSpotlight({ product }: { product: ApiProduct }) {
   };
 
   return (
-    <SpotlightCard className="group flex flex-col justify-between p-5 transition-all duration-300 hover:-translate-y-1">
+    <TiltCard3D maxTilt={9} className="group flex flex-col justify-between p-5 transition-all duration-300 hover:border-primary/40">
       <Link href={`/products/${product.slug}`} className="flex flex-col h-full">
         {/* Image Area */}
         <div className="relative aspect-square overflow-hidden rounded-xl bg-muted/40 p-4">
@@ -337,7 +352,7 @@ function FeaturedProductSpotlight({ product }: { product: ApiProduct }) {
           )}
         </Button>
       </div>
-    </SpotlightCard>
+    </TiltCard3D>
   );
 }
 
@@ -428,9 +443,9 @@ export default function StoreHomePage() {
   return (
     <div className="container mx-auto px-4 py-6 sm:py-10 space-y-16 sm:space-y-24">
       {/* ============================================================ */}
-      {/*  1 · Hero Banner (Magic UI & Modern Headless Style)          */}
+      {/*  1 · Hero Banner with Interactive 3D Holographic Gadget      */}
       {/* ============================================================ */}
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-l from-emerald-900 via-primary-800 to-teal-950 px-6 py-14 text-white shadow-2xl sm:px-12 sm:py-20 lg:py-24">
+      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-l from-emerald-950 via-primary-900 to-teal-950 px-6 py-12 text-white shadow-2xl sm:px-10 sm:py-16 lg:py-16">
         {/* Animated background highlights */}
         <div
           aria-hidden
@@ -441,64 +456,72 @@ export default function StoreHomePage() {
           className="pointer-events-none absolute -bottom-24 -right-24 h-96 w-96 rounded-full bg-teal-400/25 blur-3xl"
         />
 
-        <div className="relative z-10 max-w-2xl">
-          <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3.5 py-1 text-xs font-semibold text-emerald-200 backdrop-blur-md">
-            <Sparkles className="h-3.5 w-3.5 text-amber-300" />
-            <span>پلتفرم مدرن ایکامرس ایران • نسخه ۲.۰</span>
+        <div className="relative z-10 grid grid-cols-1 items-center gap-8 lg:grid-cols-12">
+          {/* Left / Right Column in RTL: Content */}
+          <div className="lg:col-span-7">
+            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3.5 py-1 text-xs font-semibold text-emerald-200 backdrop-blur-md">
+              <Sparkles className="h-3.5 w-3.5 text-amber-300" />
+              <span>پلتفرم مدرن ایکامرس ایران • تجربه سه‌بعدی ۳۶۰°</span>
+            </div>
+
+            <h1 className="mb-5 text-3xl font-black leading-tight sm:text-4xl lg:text-5xl">
+              تجربه خریدی هوشمند، سریع و فراتر از انتظار
+            </h1>
+
+            <p className="mb-8 max-w-xl text-sm leading-relaxed text-white/85 sm:text-base lg:text-lg">
+              دسترسی به بیش از ۱۰ هزار قلم کالای اصیل با ارسال اکسپرس، گارانتی معتبر و پرداخت امن شتاب. هر آنچه برای یک زندگی مدرن دیجیتال نیاز دارید.
+            </p>
+
+            <div className="flex flex-wrap items-center gap-4">
+              <Link href="/products">
+                <ShimmerButton
+                  background="hsl(0 0% 100%)"
+                  shimmerColor="#10b981"
+                  className="font-black text-primary px-8 py-3.5 shadow-xl text-sm sm:text-base"
+                >
+                  <span>مشاهده فروشگاه و محصولات</span>
+                  <ChevronLeft className="h-4 w-4" />
+                </ShimmerButton>
+              </Link>
+
+              <Link href="/products?sort_by=price&sort_order=desc">
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="h-12 rounded-full border-2 border-white/30 bg-white/10 px-6 font-bold text-white backdrop-blur-md hover:bg-white/20 hover:text-white text-sm sm:text-base"
+                >
+                  <Flame className="ml-2 h-4 w-4 text-amber-300" />
+                  تخفیف‌های داغ روز
+                </Button>
+              </Link>
+            </div>
+
+            {/* Animated Metrics Row (NumberTicker) */}
+            <div className="mt-10 grid grid-cols-3 gap-4 border-t border-white/15 pt-8">
+              <div>
+                <div className="text-2xl sm:text-3xl font-black text-white">
+                  <NumberTicker value={10000} />+
+                </div>
+                <p className="text-xs text-emerald-200/80 mt-0.5">کالای اصل و اورجینال</p>
+              </div>
+              <div>
+                <div className="text-2xl sm:text-3xl font-black text-white">
+                  <NumberTicker value={50000} />+
+                </div>
+                <p className="text-xs text-emerald-200/80 mt-0.5">مشتری وفادار و فعال</p>
+              </div>
+              <div>
+                <div className="text-2xl sm:text-3xl font-black text-white">
+                  <NumberTicker value={99} />٪
+                </div>
+                <p className="text-xs text-emerald-200/80 mt-0.5">رضایت مشتریان</p>
+              </div>
+            </div>
           </div>
 
-          <h1 className="mb-5 text-3xl font-black leading-tight sm:text-4xl lg:text-5xl">
-            تجربه خریدی هوشمند، سریع و فراتر از انتظار
-          </h1>
-
-          <p className="mb-8 max-w-xl text-sm leading-relaxed text-white/85 sm:text-base lg:text-lg">
-            دسترسی به بیش از ۱۰ هزار قلم کالای اصیل با ارسال اکسپرس، گارانتی معتبر و پرداخت امن شتاب. هر آنچه برای یک زندگی مدرن دیجیتال نیاز دارید.
-          </p>
-
-          <div className="flex flex-wrap items-center gap-4">
-            <Link href="/products">
-              <ShimmerButton
-                background="hsl(0 0% 100%)"
-                shimmerColor="#10b981"
-                className="font-black text-primary px-8 py-3.5 shadow-xl text-sm sm:text-base"
-              >
-                <span>مشاهده فروشگاه و محصولات</span>
-                <ChevronLeft className="h-4 w-4" />
-              </ShimmerButton>
-            </Link>
-
-            <Link href="/products?sort_by=price&sort_order=desc">
-              <Button
-                size="lg"
-                variant="outline"
-                className="h-12 rounded-full border-2 border-white/30 bg-white/10 px-6 font-bold text-white backdrop-blur-md hover:bg-white/20 hover:text-white text-sm sm:text-base"
-              >
-                <Flame className="ml-2 h-4 w-4 text-amber-300" />
-                تخفیف‌های داغ روز
-              </Button>
-            </Link>
-          </div>
-
-          {/* Animated Metrics Row (NumberTicker) */}
-          <div className="mt-12 grid grid-cols-3 gap-4 border-t border-white/15 pt-8">
-            <div>
-              <div className="text-2xl sm:text-3xl font-black text-white">
-                <NumberTicker value={10000} />+
-              </div>
-              <p className="text-xs text-emerald-200/80 mt-0.5">کالای اصل و اورجینال</p>
-            </div>
-            <div>
-              <div className="text-2xl sm:text-3xl font-black text-white">
-                <NumberTicker value={50000} />+
-              </div>
-              <p className="text-xs text-emerald-200/80 mt-0.5">مشتری وفادار و فعال</p>
-            </div>
-            <div>
-              <div className="text-2xl sm:text-3xl font-black text-white">
-                <NumberTicker value={99} />٪
-              </div>
-              <p className="text-xs text-emerald-200/80 mt-0.5">رضایت مشتریان</p>
-            </div>
+          {/* 3D Holographic Device Canvas */}
+          <div className="lg:col-span-5 flex items-center justify-center">
+            <Hero3DScene />
           </div>
         </div>
       </section>

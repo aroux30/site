@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import dynamic from "next/dynamic";
 import {
   Star,
   Heart,
@@ -22,6 +23,9 @@ import {
   Loader2,
   CheckCircle2,
   ArrowLeftRight,
+  Box,
+  Image as ImageIcon,
+  Sparkles,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -48,6 +52,19 @@ import {
   type ApiReviewItem,
   type ApiReviewStats,
 } from "@/lib/api/services";
+
+// Dynamically load 3D Product Inspector on client side
+const Product3DViewer = dynamic(
+  () => import("@/components/3d/product-viewer-3d").then((mod) => mod.Product3DViewer),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="h-[460px] w-full rounded-3xl border border-border bg-card/60 flex items-center justify-center">
+        <div className="h-12 w-12 rounded-full border-4 border-primary border-t-transparent animate-spin" />
+      </div>
+    ),
+  }
+);
 
 /* -------------------------------------------------------------------------- */
 /*                               Fallback Data                                */
@@ -266,6 +283,7 @@ export default function ProductDetailPage() {
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [addedToCartToast, setAddedToCartToast] = useState(false);
+  const [viewMode, setViewMode] = useState<"gallery" | "3d">("gallery");
 
   // Wishlist state
   const [isWishlisted, setIsWishlisted] = useState(false);
@@ -600,90 +618,126 @@ export default function ProductDetailPage() {
       <div className="mb-16 grid grid-cols-1 gap-10 lg:grid-cols-12">
         {/* Left / Gallery Column (RTL: Starts from Right) */}
         <div className="lg:col-span-6 space-y-4">
-          {/* Main Selected Image */}
-          <div className="relative aspect-square overflow-hidden rounded-3xl border border-border bg-card p-6 shadow-sm flex items-center justify-center">
-            {displayImages[selectedImageIndex] ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={displayImages[selectedImageIndex]}
-                alt={product.name}
-                className="max-h-full max-w-full object-contain transition-all duration-300"
-              />
-            ) : (
-              <Package className="h-32 w-32 text-muted-foreground/30" />
-            )}
-
-            {/* Discount Badge */}
-            {discountPercent && discountPercent > 0 && (
-              <Badge
-                variant="destructive"
-                className="absolute top-4 right-4 rounded-full px-3 py-1 text-xs font-black shadow-md"
-              >
-                {toPersianDigits(discountPercent)}٪ تخفیف
-              </Badge>
-            )}
-
-            {/* Action Buttons on Image */}
-            <div className="absolute top-4 left-4 flex items-center gap-2">
-              {/* Compare Button */}
+          {/* View Mode Toggle: 2D Gallery vs 3D Interactive Model */}
+          <div className="flex items-center justify-between rounded-2xl border border-border bg-muted/40 p-1.5 backdrop-blur-sm">
+            <div className="flex items-center gap-1.5">
               <Button
-                variant="outline"
-                size="icon"
-                onClick={handleToggleCompare}
-                className={`h-10 w-10 rounded-2xl bg-background/80 backdrop-blur hover:bg-background border-border shadow-sm transition-all ${
-                  inCompare
-                    ? "border-primary bg-primary/10 text-primary"
-                    : "text-muted-foreground hover:text-primary"
-                }`}
-                aria-label={inCompare ? "حذف از لیست مقایسه" : "افزودن به لیست مقایسه"}
-                title={inCompare ? "حذف از مقایسه" : "مقایسه محصول"}
+                type="button"
+                size="sm"
+                variant={viewMode === "gallery" ? "default" : "ghost"}
+                onClick={() => setViewMode("gallery")}
+                className="h-8 rounded-xl px-3 text-xs gap-1.5 font-bold"
               >
-                <ArrowLeftRight className="h-5 w-5" />
+                <ImageIcon className="h-3.5 w-3.5" />
+                <span>گالری تصاویر</span>
               </Button>
-
-              {/* Wishlist Button */}
               <Button
-                variant="outline"
-                size="icon"
-                onClick={handleToggleWishlist}
-                disabled={wishlistLoading}
-                className="h-10 w-10 rounded-2xl bg-background/80 backdrop-blur hover:bg-background border-border shadow-sm"
-                aria-label="افزودن به علاقه‌مندی‌ها"
+                type="button"
+                size="sm"
+                variant={viewMode === "3d" ? "default" : "ghost"}
+                onClick={() => setViewMode("3d")}
+                className="h-8 rounded-xl px-3 text-xs gap-1.5 font-bold"
               >
-                <Heart
-                  className={`h-5 w-5 transition-colors ${
-                    isWishlisted
-                      ? "fill-red-500 text-red-500"
-                      : "text-muted-foreground hover:text-red-500"
-                  }`}
-                />
+                <Box className="h-3.5 w-3.5 text-emerald-500" />
+                <span>مدل سه‌بعدی ۳۶۰° (3D)</span>
+                <Badge className="bg-emerald-500 text-white text-[9px] px-1.5 py-0 h-4">جدید</Badge>
               </Button>
             </div>
+            <span className="text-[11px] text-muted-foreground pe-2 hidden sm:inline">
+              قابلیت بازرسی کامل ۳۶۰ درجه
+            </span>
           </div>
 
-          {/* Thumbnail Selector Strip */}
-          {displayImages.length > 1 && (
-            <div className="flex gap-3 overflow-x-auto pb-2">
-              {displayImages.map((imgUrl, idx) => (
-                <button
-                  key={idx}
-                  type="button"
-                  onClick={() => setSelectedImageIndex(idx)}
-                  className={`relative h-20 w-20 flex-shrink-0 overflow-hidden rounded-2xl border-2 p-1.5 transition-all ${
-                    selectedImageIndex === idx
-                      ? "border-primary ring-2 ring-primary/20 shadow-sm"
-                      : "border-border hover:border-muted-foreground/50 opacity-70 hover:opacity-100"
-                  }`}
-                >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
+          {viewMode === "3d" ? (
+            <Product3DViewer title={product.name} />
+          ) : (
+            <>
+              {/* Main Selected Image */}
+              <div className="relative aspect-square overflow-hidden rounded-3xl border border-border bg-card p-6 shadow-sm flex items-center justify-center">
+                {displayImages[selectedImageIndex] ? (
+                  // eslint-disable-next-line @next/next/no-img-element
                   <img
-                    src={imgUrl}
-                    alt=""
-                    className="h-full w-full object-contain"
+                    src={displayImages[selectedImageIndex]}
+                    alt={product.name}
+                    className="max-h-full max-w-full object-contain transition-all duration-300"
                   />
-                </button>
-              ))}
-            </div>
+                ) : (
+                  <Package className="h-32 w-32 text-muted-foreground/30" />
+                )}
+
+                {/* Discount Badge */}
+                {discountPercent && discountPercent > 0 && (
+                  <Badge
+                    variant="destructive"
+                    className="absolute top-4 right-4 rounded-full px-3 py-1 text-xs font-black shadow-md"
+                  >
+                    {toPersianDigits(discountPercent)}٪ تخفیف
+                  </Badge>
+                )}
+
+                {/* Action Buttons on Image */}
+                <div className="absolute top-4 left-4 flex items-center gap-2">
+                  {/* Compare Button */}
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={handleToggleCompare}
+                    className={`h-10 w-10 rounded-2xl bg-background/80 backdrop-blur hover:bg-background border-border shadow-sm transition-all ${
+                      inCompare
+                        ? "border-primary bg-primary/10 text-primary"
+                        : "text-muted-foreground hover:text-primary"
+                    }`}
+                    aria-label={inCompare ? "حذف از لیست مقایسه" : "افزودن به لیست مقایسه"}
+                    title={inCompare ? "حذف از مقایسه" : "مقایسه محصول"}
+                  >
+                    <ArrowLeftRight className="h-5 w-5" />
+                  </Button>
+
+                  {/* Wishlist Button */}
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={handleToggleWishlist}
+                    disabled={wishlistLoading}
+                    className="h-10 w-10 rounded-2xl bg-background/80 backdrop-blur hover:bg-background border-border shadow-sm"
+                    aria-label="افزودن به علاقه‌مندی‌ها"
+                  >
+                    <Heart
+                      className={`h-5 w-5 transition-colors ${
+                        isWishlisted
+                          ? "fill-red-500 text-red-500"
+                          : "text-muted-foreground hover:text-red-500"
+                      }`}
+                    />
+                  </Button>
+                </div>
+              </div>
+
+              {/* Thumbnail Selector Strip */}
+              {displayImages.length > 1 && (
+                <div className="flex gap-3 overflow-x-auto pb-2">
+                  {displayImages.map((imgUrl, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => setSelectedImageIndex(idx)}
+                      className={`relative h-20 w-20 flex-shrink-0 overflow-hidden rounded-2xl border-2 p-1.5 transition-all ${
+                        selectedImageIndex === idx
+                          ? "border-primary ring-2 ring-primary/20 shadow-sm"
+                          : "border-border hover:border-muted-foreground/50 opacity-70 hover:opacity-100"
+                      }`}
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={imgUrl}
+                        alt=""
+                        className="h-full w-full object-contain"
+                      />
+                    </button>
+                  ))}
+                </div>
+              )}
+            </>
           )}
         </div>
 

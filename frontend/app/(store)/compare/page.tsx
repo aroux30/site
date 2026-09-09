@@ -11,12 +11,9 @@ import {
   Star,
   Plus,
   Package,
-  Layers,
   Sparkles,
   ChevronLeft,
-  ArrowRight,
   Info,
-  ShieldCheck,
   CheckCircle2,
 } from "lucide-react";
 import { useCompareStore, MAX_COMPARE_PRODUCTS } from "@/stores/compare-store";
@@ -25,7 +22,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
-import { Separator } from "@/components/ui/separator";
 import { formatPrice, toPersianDigits, cn } from "@/lib/utils";
 import type { Product } from "@/types/product";
 

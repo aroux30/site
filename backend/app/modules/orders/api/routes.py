@@ -4,9 +4,11 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime
-from typing import Optional
+from typing import Any
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi.responses import HTMLResponse
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database.session import get_db
@@ -14,7 +16,8 @@ from app.core.security.dependencies import (
     RequirePermissions,
     get_current_user_id,
 )
-from app.modules.orders.application import order_service
+from app.core.security.jwt import verify_token
+from app.modules.orders.application import invoice_service, order_service
 from app.modules.orders.schemas.order import (
     AdminOrderUpdateRequest,
     OrderCancelRequest,
@@ -26,6 +29,27 @@ from app.modules.orders.schemas.order import (
 )
 
 router = APIRouter()
+
+
+_optional_bearer = HTTPBearer(auto_error=False)
+
+
+async def _resolve_invoice_claims(
+    credentials: HTTPAuthorizationCredentials | None = Depends(_optional_bearer),
+    token: str | None = Query(None, description="Optional access token query parameter"),
+) -> dict[str, Any]:
+    raw_token: str | None = None
+    if credentials and credentials.credentials:
+        raw_token = credentials.credentials
+    elif token:
+        raw_token = token
+
+    if not raw_token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authentication required to view invoice",
+        )
+    return verify_token(raw_token, expected_type="access")
 
 
 # ══════════════════════════════════════════════════════════════════════════
@@ -41,12 +65,12 @@ router = APIRouter()
 async def list_orders(
     db: AsyncSession = Depends(get_db),
     user_id: uuid.UUID = Depends(get_current_user_id),
-    status: Optional[str] = Query(None, description="Filter by order status"),
-    from_date: Optional[datetime] = Query(None, description="Orders created after this datetime"),
-    to_date: Optional[datetime] = Query(None, description="Orders created before this datetime"),
-    min_total: Optional[int] = Query(None, description="Minimum order total (Rials)"),
-    max_total: Optional[int] = Query(None, description="Maximum order total (Rials)"),
-    search: Optional[str] = Query(None, description="Search in order number"),
+    status: str | None = Query(None, description="Filter by order status"),
+    from_date: datetime | None = Query(None, description="Orders created after this datetime"),
+    to_date: datetime | None = Query(None, description="Orders created before this datetime"),
+    min_total: int | None = Query(None, description="Minimum order total (Rials)"),
+    max_total: int | None = Query(None, description="Maximum order total (Rials)"),
+    search: str | None = Query(None, description="Search in order number"),
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
 ) -> OrderListResponse:
@@ -73,6 +97,41 @@ async def get_order(
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> OrderResponse:
     return await order_service.get_order(db, user_id, order_id)
+
+
+@router.get(
+    "/{order_id}/invoice",
+    response_class=HTMLResponse,
+    summary="Get official Iranian tax invoice (فاکتور رسمی الکترونیکی)",
+)
+async def get_order_invoice(
+    order_id: str,
+    db: AsyncSession = Depends(get_db),
+    claims: dict[str, Any] = Depends(_resolve_invoice_claims),
+) -> HTMLResponse:
+    """Generate and return official Iranian tax invoice in printable HTML format.
+
+    Requires order ownership or administrative permission (orders:read, orders:write, admin).
+    """
+    try:
+        user_id = uuid.UUID(claims["sub"])
+    except (KeyError, ValueError) as exc:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token payload missing or invalid 'sub' claim",
+        ) from exc
+
+    permissions = set(claims.get("permissions", []))
+    roles = set(claims.get("roles", []))
+
+    html = await invoice_service.generate_invoice_html_for_order(
+        db=db,
+        order_id_or_number=order_id,
+        requesting_user_id=user_id,
+        user_permissions=permissions,
+        user_roles=roles,
+    )
+    return HTMLResponse(content=html, media_type="text/html; charset=utf-8")
 
 
 @router.post(
@@ -115,12 +174,12 @@ async def get_order_timeline(
 )
 async def admin_list_orders(
     db: AsyncSession = Depends(get_db),
-    status: Optional[str] = Query(None),
-    from_date: Optional[datetime] = Query(None),
-    to_date: Optional[datetime] = Query(None),
-    min_total: Optional[int] = Query(None),
-    max_total: Optional[int] = Query(None),
-    search: Optional[str] = Query(None),
+    status: str | None = Query(None),
+    from_date: datetime | None = Query(None),
+    to_date: datetime | None = Query(None),
+    min_total: int | None = Query(None),
+    max_total: int | None = Query(None),
+    search: str | None = Query(None),
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
 ) -> OrderListResponse:

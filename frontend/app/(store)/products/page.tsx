@@ -17,6 +17,7 @@ import {
   RotateCcw,
   Sparkles,
   Eye,
+  ArrowLeftRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -31,8 +32,10 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { formatPrice, toPersianDigits } from "@/lib/utils";
+import { formatPrice, toPersianDigits, cn } from "@/lib/utils";
 import { useCart } from "@/hooks/use-cart";
+import { useCompareStore } from "@/stores/compare-store";
+import type { Product } from "@/types/product";
 import {
   fetchCategories,
   fetchBrands,
@@ -186,8 +189,55 @@ const MAX_PRICE_LIMIT = 150000000;
 
 function ProductCard({ product }: { product: ApiProduct }) {
   const { addToCart } = useCart();
+  const { isInCompare, toggleProduct } = useCompareStore();
   const [added, setAdded] = useState(false);
   const [quickViewOpen, setQuickViewOpen] = useState(false);
+
+  const inCompare = isInCompare(product.id);
+
+  const handleToggleCompare = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const compareItem: Product = {
+      id: product.id,
+      title: product.name,
+      slug: product.slug,
+      description: product.short_description || "",
+      shortDescription: product.short_description || undefined,
+      price: product.min_price || 0,
+      originalPrice:
+        product.max_price && product.max_price > (product.min_price || 0)
+          ? product.max_price
+          : undefined,
+      sku: product.id,
+      stock: 10,
+      isActive: product.is_active,
+      isFeatured: product.is_featured,
+      images: product.primary_image_url
+        ? [
+            {
+              id: "img-primary",
+              url: product.primary_image_url,
+              alt: product.name,
+              order: 1,
+            },
+          ]
+        : [],
+      thumbnail: product.primary_image_url || undefined,
+      categoryId: product.category_id || "cat-default",
+      tags: [],
+      variants: [],
+      attributes: [],
+      type: "کالای دیجیتال",
+      rating: 4.7,
+      reviewCount: 15,
+      createdAt: product.created_at || new Date().toISOString(),
+      updatedAt: product.updated_at || new Date().toISOString(),
+    };
+
+    toggleProduct(compareItem);
+  };
 
   const price = product.min_price || 0;
   const originalPrice =
@@ -243,6 +293,22 @@ function ProductCard({ product }: { product: ApiProduct }) {
               title="مشاهده سریع"
             >
               <Eye className="h-4 w-4 text-muted-foreground hover:text-primary" />
+            </button>
+
+            {/* Compare Quick Toggle */}
+            <button
+              type="button"
+              onClick={handleToggleCompare}
+              className={cn(
+                "absolute bottom-3 left-12 z-10 flex h-8 w-8 items-center justify-center rounded-xl bg-background/90 backdrop-blur-md shadow-sm transition-all duration-200 hover:bg-background",
+                inCompare
+                  ? "opacity-100 text-primary border border-primary/30"
+                  : "opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-primary",
+              )}
+              title={inCompare ? "حذف از مقایسه" : "افزودن به مقایسه"}
+              aria-label={inCompare ? "حذف از مقایسه" : "افزودن به مقایسه"}
+            >
+              <ArrowLeftRight className="h-4 w-4" />
             </button>
 
             {discount && discount > 0 && (

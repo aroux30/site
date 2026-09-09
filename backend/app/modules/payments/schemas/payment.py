@@ -63,6 +63,48 @@ class PaymentCallbackData(BaseModel):
     hashed_card_no: Optional[str] = None
     date: Optional[str] = None
     extra: Optional[dict[str, Any]] = None
+    payment_id: Optional[Any] = None
+    payment_status: Optional[str] = None
+
+
+class CardReceiptSubmitRequest(BaseModel):
+    """Customer submission of bank transfer receipt / reference code."""
+
+    model_config = ConfigDict(str_strip_whitespace=True)
+
+    tracking_code: str = Field(
+        ...,
+        min_length=3,
+        max_length=100,
+        description="Bank reference number / tracking code (کد پیگیری / شماره ارجاع)",
+    )
+    card_pan: Optional[str] = Field(
+        None,
+        max_length=30,
+        description="Sender card PAN or masked card number (شماره کارت واریز کننده)",
+    )
+    receipt_image_url: Optional[str] = Field(
+        None,
+        max_length=500,
+        description="URL or path to uploaded receipt image (تصویر فیش)",
+    )
+    notes: Optional[str] = Field(
+        None,
+        max_length=500,
+        description="Optional customer notes regarding the transfer",
+    )
+
+
+class PaymentRejectRequest(BaseModel):
+    """Admin rejection details for a card-to-card payment."""
+
+    model_config = ConfigDict(str_strip_whitespace=True)
+
+    reason: Optional[str] = Field(
+        None,
+        max_length=500,
+        description="Reason for rejecting the payment / receipt",
+    )
 
 
 class RefundRequest(BaseModel):
@@ -95,6 +137,7 @@ class PaymentResponse(BaseModel):
     authority: Optional[str] = None
     provider_transaction_id: Optional[str] = None
     idempotency_key: Optional[str] = None
+    extra_data: Optional[dict[str, Any]] = None
     created_at: datetime
     updated_at: datetime
 
@@ -125,6 +168,8 @@ class PaymentMethodInfo(BaseModel):
     is_enabled: bool
     icon: Optional[str] = None
     description: Optional[str] = None
+    instructions: Optional[str] = None
+    instructions_fa: Optional[str] = None
 
 
 class PaymentMethodsResponse(BaseModel):

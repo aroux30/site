@@ -31,8 +31,12 @@ export interface User {
   addresses?: UserAddress[];
   defaultAddressId?: string;
 
-  // Wallet
+  // Wallet & Gamification
   walletBalance?: number;
+  loyalty_points?: number;
+  loyaltyPoints?: number;
+  loyalty_tier?: "bronze" | "silver" | "gold" | "platinum" | string;
+  loyaltyTier?: "bronze" | "silver" | "gold" | "platinum" | string;
 
   // Timestamps
   createdAt?: string;

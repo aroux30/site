@@ -27,6 +27,12 @@ export interface Product {
   variants: ProductVariant[];
   attributes: ProductAttribute[];
 
+  // Specs & details
+  type?: string;
+  weight?: string | number;
+  dimensions?: string;
+  specifications?: Record<string, string>;
+
   // Reviews
   rating: number;
   reviewCount: number;

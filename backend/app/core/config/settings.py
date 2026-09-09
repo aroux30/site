@@ -88,10 +88,22 @@ class Settings(BaseSettings):
     SMS_SENDER_NUMBER: str = ""
 
     # ── Payment ───────────────────────────────────────────────────────────
-    PAYMENT_PROVIDER: Literal["zarinpal", "idpay", "mock"] = "mock"
+    PAYMENT_PROVIDER: Literal["zarinpal", "idpay", "mock", "crypto", "card_transfer"] = "mock"
     PAYMENT_MERCHANT_ID: str = ""
     PAYMENT_CALLBACK_BASE_URL: str = "http://localhost:3000/payment/callback"
     PAYMENT_SANDBOX: bool = True
+    NOWPAYMENTS_API_KEY: str = ""
+    NOWPAYMENTS_SANDBOX: bool = True
+    NOWPAYMENTS_IPN_SECRET: str = ""
+    NOWPAYMENTS_IRR_PER_USD: int = 600_000
+    CARD_TO_CARD_NUMBER: str = "6219-8610-1234-5678"
+    CARD_TO_CARD_HOLDER: str = "فروشگاه آنلاین"
+    CARD_TO_CARD_BANK: str = "بانک سامان"
+    CARD_TO_CARD_INSTRUCTIONS: str = (
+        "لطفاً مبلغ را به شماره کارت زیر واریز نموده و سپس شماره پیگیری / شماره ارجاع "
+        "را در بخش ثبت فیش ارسال فرمایید. پس از بررسی و تأیید مدیریت، سفارش شما "
+        "تکمیل خواهد شد."
+    )
 
     # ── OTP ───────────────────────────────────────────────────────────────
     OTP_LENGTH: int = 6

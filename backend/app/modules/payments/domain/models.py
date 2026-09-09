@@ -28,6 +28,8 @@ class PaymentProvider(str, enum.Enum):
     NEXTPAY = "nextpay"
     WALLET = "wallet"
     CARD_TRANSFER = "card_transfer"
+    CRYPTO = "crypto"
+    MOCK = "mock"
 
 
 class PaymentStatus(str, enum.Enum):

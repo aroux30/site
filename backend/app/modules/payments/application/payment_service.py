@@ -173,13 +173,18 @@ async def create_payment(
     if gateway_result.success:
         payment.authority = gateway_result.authority
         payment.gateway_url = gateway_result.gateway_url
-        payment.status = PaymentStatus.PROCESSING
+        payment.extra_data = gateway_result.raw_response
+        if provider_enum == PaymentProviderEnum.CARD_TRANSFER:
+            payment.status = PaymentStatus.PENDING
+        else:
+            payment.status = PaymentStatus.PROCESSING
         await db.flush()
 
         await logger.ainfo(
             "payment_create_success",
             payment_id=str(payment.id),
             authority=gateway_result.authority,
+            status=payment.status.value,
         )
     else:
         payment.status = PaymentStatus.FAILED
@@ -246,7 +251,17 @@ async def verify_payment(
         )
 
     # If the callback status indicates failure, mark it and return
-    if status.upper() not in ("OK", "100", "101", "TRUE", "SUCCESS"):
+    if status and status.upper() not in (
+        "OK",
+        "100",
+        "101",
+        "TRUE",
+        "SUCCESS",
+        "FINISHED",
+        "CONFIRMED",
+        "COMPLETED",
+        "SENDING",
+    ):
         payment.status = PaymentStatus.FAILED
         payment.extra_data = {
             **(payment.extra_data or {}),
@@ -337,28 +352,45 @@ async def process_callback(
     sent in the callback payload.
     """
 
-    authority = callback_data.authority or callback_data.id
+    authority = (
+        callback_data.authority
+        or callback_data.id
+        or (str(callback_data.payment_id) if callback_data.payment_id is not None else None)
+    )
     await logger.ainfo(
         "payment_callback_received",
         provider=provider,
         authority=authority,
+        order_id=callback_data.order_id,
     )
 
-    if not authority:
-        raise ValidationError(
-            detail="Callback data missing authority/id",
-            error_code="MISSING_AUTHORITY",
-        )
+    # Look up payment by authority or provider_transaction_id or order_id
+    payment: Optional[Payment] = None
+    if authority:
+        stmt = select(Payment).where(Payment.authority == authority)
+        result = await db.execute(stmt)
+        payment = result.scalar_one_or_none()
 
-    # Look up payment by authority
-    stmt = select(Payment).where(Payment.authority == authority)
-    result = await db.execute(stmt)
-    payment = result.scalar_one_or_none()
+        if payment is None:
+            stmt = select(Payment).where(Payment.provider_transaction_id == authority)
+            result = await db.execute(stmt)
+            payment = result.scalar_one_or_none()
+
+    if payment is None and callback_data.order_id:
+        try:
+            order_uuid = uuid.UUID(str(callback_data.order_id))
+            stmt = select(Payment).where(Payment.order_id == order_uuid).order_by(Payment.created_at.desc())
+            result = await db.execute(stmt)
+            payment = result.scalars().first()
+            if payment and not authority:
+                authority = payment.authority or str(payment.id)
+        except Exception:
+            pass
 
     if payment is None:
         raise NotFoundError(
             resource="Payment",
-            detail=f"No payment found for authority '{authority}'",
+            detail=f"No payment found for authority/id '{authority or callback_data.order_id}'",
         )
 
     if payment.status == PaymentStatus.COMPLETED:
@@ -444,9 +476,22 @@ async def refund_payment(
 
     # ── Attempt provider refund ───────────────────────────────────────
     gateway_provider = get_payment_provider(payment.provider.value)
+
+    # Resolve customer user ID from order if possible for wallet refund
+    customer_user_id: Optional[uuid.UUID] = None
+    try:
+        from app.modules.orders.domain.models import Order
+        stmt_order = select(Order.user_id).where(Order.id == payment.order_id)
+        res_order = await db.execute(stmt_order)
+        customer_user_id = res_order.scalar_one_or_none()
+    except Exception:
+        pass
+
     refund_result = await gateway_provider.refund(
         authority=payment.authority or "",
         amount=amount,
+        user_id=customer_user_id or actor_id,
+        db=db,
     )
 
     # ── Record transaction ────────────────────────────────────────────
@@ -498,6 +543,170 @@ async def get_payment(
     return PaymentResponse.model_validate(payment)
 
 
+async def submit_card_receipt(
+    db: AsyncSession,
+    *,
+    payment_id: uuid.UUID,
+    user_id: uuid.UUID,
+    tracking_code: str,
+    card_pan: str | None = None,
+    receipt_image_url: str | None = None,
+    notes: str | None = None,
+) -> PaymentResponse:
+    """Submit transaction reference / tracking code for a card-to-card payment.
+
+    Updates payment extra_data and keeps the status in PENDING waiting
+    for administrator approval.
+    """
+    payment = await _get_payment_or_raise(db, payment_id)
+
+    if payment.provider != PaymentProviderEnum.CARD_TRANSFER:
+        raise ValidationError(
+            detail="Receipt submission is only applicable for card-to-card transfers",
+            error_code="INVALID_PROVIDER_FOR_RECEIPT",
+        )
+
+    if payment.status not in (PaymentStatus.PENDING, PaymentStatus.PROCESSING):
+        raise ValidationError(
+            detail=f"Cannot submit receipt for payment in status: {payment.status.value}",
+            error_code="INVALID_PAYMENT_STATUS",
+        )
+
+    extra = dict(payment.extra_data or {})
+    extra.update({
+        "tracking_code": tracking_code,
+        "card_pan": card_pan,
+        "receipt_image_url": receipt_image_url,
+        "customer_notes": notes,
+        "receipt_submitted_at": datetime.now(timezone.utc).isoformat(),
+        "submitted_by": str(user_id),
+        "card_transfer_status": "pending_admin_approval",
+    })
+    payment.extra_data = extra
+    payment.status = PaymentStatus.PENDING
+    payment.provider_transaction_id = tracking_code
+    if card_pan and not payment.authority:
+        payment.authority = f"C2C-{tracking_code}"
+
+    await _record_transaction(
+        db,
+        payment_id=payment.id,
+        amount=payment.amount,
+        tx_type=PaymentTransactionType.CHARGE,
+        status="receipt_submitted",
+        provider_response={
+            "tracking_code": tracking_code,
+            "card_pan": card_pan,
+            "receipt_image_url": receipt_image_url,
+        },
+    )
+    await db.flush()
+
+    await logger.ainfo(
+        "card_receipt_submitted",
+        payment_id=str(payment_id),
+        tracking_code=tracking_code,
+        user_id=str(user_id),
+    )
+
+    return PaymentResponse.model_validate(payment)
+
+
+async def approve_payment(
+    db: AsyncSession,
+    *,
+    payment_id: uuid.UUID,
+    admin_user_id: uuid.UUID,
+) -> PaymentResponse:
+    """Admin approval of a pending payment (e.g. card-to-card)."""
+    payment = await _get_payment_or_raise(db, payment_id)
+
+    if payment.status == PaymentStatus.COMPLETED:
+        return PaymentResponse.model_validate(payment)
+
+    if payment.status != PaymentStatus.PENDING:
+        raise ValidationError(
+            detail=f"Only pending payments can be approved (current: {payment.status.value})",
+            error_code="PAYMENT_NOT_PENDING",
+        )
+
+    extra = dict(payment.extra_data or {})
+    extra["approved_by"] = str(admin_user_id)
+    extra["approved_at"] = datetime.now(timezone.utc).isoformat()
+    extra["card_transfer_status"] = "approved"
+
+    payment.status = PaymentStatus.COMPLETED
+    if not payment.provider_transaction_id:
+        payment.provider_transaction_id = extra.get("tracking_code") or payment.authority or f"C2C-{payment.id.hex[:8]}"
+    payment.extra_data = extra
+
+    await _record_transaction(
+        db,
+        payment_id=payment.id,
+        amount=payment.amount,
+        tx_type=PaymentTransactionType.VERIFY,
+        status="admin_approved",
+        provider_response={"approved_by": str(admin_user_id)},
+    )
+    await db.flush()
+
+    await logger.ainfo(
+        "payment_admin_approved",
+        payment_id=str(payment_id),
+        admin_user_id=str(admin_user_id),
+    )
+
+    return PaymentResponse.model_validate(payment)
+
+
+async def reject_payment(
+    db: AsyncSession,
+    *,
+    payment_id: uuid.UUID,
+    admin_user_id: uuid.UUID,
+    reason: str | None = None,
+) -> PaymentResponse:
+    """Admin rejection of a pending payment (e.g. card-to-card)."""
+    payment = await _get_payment_or_raise(db, payment_id)
+
+    if payment.status in (PaymentStatus.COMPLETED, PaymentStatus.REFUNDED):
+        raise ValidationError(
+            detail=f"Cannot reject payment in status: {payment.status.value}",
+            error_code="PAYMENT_CANNOT_BE_REJECTED",
+        )
+
+    extra = dict(payment.extra_data or {})
+    extra["rejected_by"] = str(admin_user_id)
+    extra["rejection_reason"] = reason or "Payment rejected by admin"
+    extra["rejected_at"] = datetime.now(timezone.utc).isoformat()
+    extra["card_transfer_status"] = "rejected"
+
+    payment.status = PaymentStatus.FAILED
+    payment.extra_data = extra
+
+    await _record_transaction(
+        db,
+        payment_id=payment.id,
+        amount=payment.amount,
+        tx_type=PaymentTransactionType.VERIFY,
+        status="admin_rejected",
+        provider_response={
+            "rejected_by": str(admin_user_id),
+            "reason": reason,
+        },
+    )
+    await db.flush()
+
+    await logger.ainfo(
+        "payment_admin_rejected",
+        payment_id=str(payment_id),
+        admin_user_id=str(admin_user_id),
+        reason=reason,
+    )
+
+    return PaymentResponse.model_validate(payment)
+
+
 def get_payment_methods() -> PaymentMethodsResponse:
     """Return the list of available payment methods."""
     settings = get_settings()
@@ -510,6 +719,8 @@ def get_payment_methods() -> PaymentMethodsResponse:
             is_enabled=(settings.PAYMENT_PROVIDER == "zarinpal" or settings.ENVIRONMENT == "development"),
             icon="zarinpal",
             description="Online payment via Zarinpal gateway",
+            instructions="پرداخت آنلاین از طریق کلیه کارت‌های عضو شتاب با درگاه زرین‌پال",
+            instructions_fa="پرداخت آنلاین از طریق کلیه کارت‌های عضو شتاب با درگاه زرین‌پال",
         ),
         PaymentMethodInfo(
             provider=PaymentProviderEnum.IDPAY,
@@ -518,6 +729,28 @@ def get_payment_methods() -> PaymentMethodsResponse:
             is_enabled=(settings.PAYMENT_PROVIDER == "idpay" or settings.ENVIRONMENT == "development"),
             icon="idpay",
             description="Online payment via IDPay gateway",
+            instructions="پرداخت آنلاین امن از طریق درگاه پرداخت آی‌دی‌پی",
+            instructions_fa="پرداخت آنلاین امن از طریق درگاه پرداخت آی‌دی‌پی",
+        ),
+        PaymentMethodInfo(
+            provider=PaymentProviderEnum.CRYPTO,
+            name="Cryptocurrency (NowPayments / USDT)",
+            name_fa="ارز دیجیتال (تتر / بیت‌کوین)",
+            is_enabled=True,
+            icon="crypto",
+            description="Pay using USDT (TRC20/ERC20), BTC, or ETH via NowPayments",
+            instructions="پرداخت امن با رمزارزهای تتر (USDT-TRC20/ERC20)، بیت‌کوین و اتریوم از طریق درگاه NowPayments همراه با تولید خودکار آدرس و QR Code",
+            instructions_fa="پرداخت امن با رمزارزهای تتر (USDT-TRC20/ERC20)، بیت‌کوین و اتریوم از طریق درگاه NowPayments همراه با تولید خودکار آدرس و QR Code",
+        ),
+        PaymentMethodInfo(
+            provider=PaymentProviderEnum.CARD_TRANSFER,
+            name="Card to Card",
+            name_fa="کارت به کارت",
+            is_enabled=True,
+            icon="credit-card",
+            description="Direct card to card bank transfer",
+            instructions=f"انتقال وجه به کارت شماره {settings.CARD_TO_CARD_NUMBER} ({settings.CARD_TO_CARD_BANK} - {settings.CARD_TO_CARD_HOLDER}) و ثبت کد پیگیری فیش",
+            instructions_fa=f"انتقال وجه به کارت شماره {settings.CARD_TO_CARD_NUMBER} ({settings.CARD_TO_CARD_BANK} - {settings.CARD_TO_CARD_HOLDER}) و ثبت کد پیگیری فیش",
         ),
         PaymentMethodInfo(
             provider=PaymentProviderEnum.WALLET,
@@ -526,6 +759,8 @@ def get_payment_methods() -> PaymentMethodsResponse:
             is_enabled=True,
             icon="wallet",
             description="Pay using your wallet balance",
+            instructions="پرداخت سریع از موجودی حساب کیف پول شما",
+            instructions_fa="پرداخت سریع از موجودی حساب کیف پول شما",
         ),
     ]
 
@@ -533,12 +768,14 @@ def get_payment_methods() -> PaymentMethodsResponse:
     if settings.ENVIRONMENT == "development" or settings.PAYMENT_SANDBOX:
         methods.append(
             PaymentMethodInfo(
-                provider=PaymentProviderEnum.CARD_TRANSFER,
+                provider=PaymentProviderEnum.MOCK,
                 name="Mock (Dev)",
                 name_fa="تست (توسعه)",
                 is_enabled=True,
                 icon="mock",
-                description="Mock payment provider for development",
+                description="Mock payment provider for development and testing",
+                instructions="درگاه آزمایشی توسعه‌دهندگان",
+                instructions_fa="درگاه آزمایشی توسعه‌دهندگان",
             )
         )
 

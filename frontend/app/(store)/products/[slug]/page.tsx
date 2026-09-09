@@ -21,6 +21,7 @@ import {
   Send,
   Loader2,
   CheckCircle2,
+  ArrowLeftRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -33,6 +34,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { formatPrice, toPersianDigits } from "@/lib/utils";
 import { useCart } from "@/hooks/use-cart";
 import { useAuth } from "@/hooks/use-auth";
+import { useCompareStore } from "@/stores/compare-store";
+import type { Product } from "@/types/product";
 import {
   fetchProductBySlug,
   fetchReviews,
@@ -252,6 +255,7 @@ export default function ProductDetailPage() {
   const slug = params?.slug || "";
   const { addToCart } = useCart();
   const { isAuthenticated } = useAuth();
+  const { isInCompare, toggleProduct } = useCompareStore();
 
   // Product Data
   const [product, setProduct] = useState<ApiProductDetail>(fallbackProduct);
@@ -422,6 +426,61 @@ export default function ProductDetailPage() {
     }
   };
 
+  const inCompare = isInCompare(product.id);
+
+  const handleToggleCompare = () => {
+    const productForCompare: Product = {
+      id: product.id,
+      title: product.name,
+      slug: product.slug,
+      description: product.description || "",
+      shortDescription: product.short_description || undefined,
+      price: currentPrice,
+      originalPrice: originalPrice || undefined,
+      sku: currentVariant?.sku || product.id,
+      stock: isOutOfStock ? 0 : 10,
+      isActive: product.is_active,
+      isFeatured: product.is_featured,
+      images: (product.images || []).map((img, idx) => ({
+        id: img.id || `img-${idx}`,
+        url: img.url,
+        alt: img.alt_text || product.name,
+        order: img.position || idx + 1,
+      })),
+      thumbnail: product.primary_image_url || product.images?.[0]?.url,
+      categoryId: product.category_id || product.category?.id || "cat-default",
+      category: product.category
+        ? {
+            id: product.category.id,
+            name: product.category.name,
+            slug: product.category.slug,
+          }
+        : undefined,
+      brandId: product.brand_id || product.brand?.id,
+      brand: product.brand
+        ? {
+            id: product.brand.id,
+            name: product.brand.name,
+            slug: product.brand.slug,
+          }
+        : undefined,
+      tags: (product.tags || []).map((t) => t.name),
+      variants: [],
+      attributes: (product.product_attributes || []).map((pa) => ({
+        name: pa.attribute_name || "ویژگی",
+        value: pa.attribute_value || "",
+      })),
+      type: product.product_type || product.category?.name || "کالای دیجیتال",
+      weight: currentVariant?.weight ? `${currentVariant.weight} گرم` : undefined,
+      rating: reviewStats.average_rating || 4.7,
+      reviewCount: reviews.length,
+      createdAt: product.created_at || new Date().toISOString(),
+      updatedAt: product.updated_at || new Date().toISOString(),
+    };
+
+    toggleProduct(productForCompare);
+  };
+
   // Submit Review Form
   const handleReviewSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -564,23 +623,42 @@ export default function ProductDetailPage() {
               </Badge>
             )}
 
-            {/* Wishlist Button */}
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={handleToggleWishlist}
-              disabled={wishlistLoading}
-              className="absolute top-4 left-4 h-10 w-10 rounded-2xl bg-background/80 backdrop-blur hover:bg-background border-border shadow-sm"
-              aria-label="افزودن به علاقه‌مندی‌ها"
-            >
-              <Heart
-                className={`h-5 w-5 transition-colors ${
-                  isWishlisted
-                    ? "fill-red-500 text-red-500"
-                    : "text-muted-foreground hover:text-red-500"
+            {/* Action Buttons on Image */}
+            <div className="absolute top-4 left-4 flex items-center gap-2">
+              {/* Compare Button */}
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={handleToggleCompare}
+                className={`h-10 w-10 rounded-2xl bg-background/80 backdrop-blur hover:bg-background border-border shadow-sm transition-all ${
+                  inCompare
+                    ? "border-primary bg-primary/10 text-primary"
+                    : "text-muted-foreground hover:text-primary"
                 }`}
-              />
-            </Button>
+                aria-label={inCompare ? "حذف از لیست مقایسه" : "افزودن به لیست مقایسه"}
+                title={inCompare ? "حذف از مقایسه" : "مقایسه محصول"}
+              >
+                <ArrowLeftRight className="h-5 w-5" />
+              </Button>
+
+              {/* Wishlist Button */}
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={handleToggleWishlist}
+                disabled={wishlistLoading}
+                className="h-10 w-10 rounded-2xl bg-background/80 backdrop-blur hover:bg-background border-border shadow-sm"
+                aria-label="افزودن به علاقه‌مندی‌ها"
+              >
+                <Heart
+                  className={`h-5 w-5 transition-colors ${
+                    isWishlisted
+                      ? "fill-red-500 text-red-500"
+                      : "text-muted-foreground hover:text-red-500"
+                  }`}
+                />
+              </Button>
+            </div>
           </div>
 
           {/* Thumbnail Selector Strip */}
@@ -807,7 +885,40 @@ export default function ProductDetailPage() {
                   {isWishlisted ? "حذف از لیست علاقه‌مندی" : "افزودن به علاقه‌مندی"}
                 </span>
               </Button>
+
+              <Button
+                variant="outline"
+                size="lg"
+                onClick={handleToggleCompare}
+                className={`gap-2 rounded-2xl h-13 border-2 transition-all ${
+                  inCompare
+                    ? "border-primary bg-primary/10 text-primary hover:bg-primary/20"
+                    : "border-border text-foreground hover:bg-muted"
+                }`}
+              >
+                <ArrowLeftRight className="h-5 w-5" />
+                <span className="text-xs font-semibold">
+                  {inCompare ? "حذف از مقایسه" : "مقایسه کالا"}
+                </span>
+              </Button>
             </div>
+
+            {/* In-compare notice banner */}
+            {inCompare && (
+              <div className="flex items-center justify-between rounded-2xl bg-primary/10 border border-primary/20 px-4 py-2.5 text-xs text-primary">
+                <span className="font-semibold flex items-center gap-1.5">
+                  <CheckCircle2 className="h-4 w-4 shrink-0 text-primary" />
+                  این کالا در لیست مقایسه شما قرار دارد
+                </span>
+                <Link
+                  href="/compare"
+                  className="font-bold underline flex items-center gap-1 hover:opacity-80 transition-opacity"
+                >
+                  <span>مشاهده صفحه مقایسه</span>
+                  <ChevronLeft className="h-3.5 w-3.5" />
+                </Link>
+              </div>
+            )}
           </div>
 
             {/* Guarantees Box */}

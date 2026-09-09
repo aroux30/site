@@ -18,6 +18,9 @@ import {
   Layers,
   ArrowLeft,
   Loader2,
+  Gift,
+  Sparkles,
+  ArrowLeftRight,
 } from "lucide-react";
 import { cn, toPersianDigits } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
@@ -34,6 +37,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/hooks/use-auth";
 import { useCart } from "@/hooks/use-cart";
+import { useCompareStore } from "@/stores/compare-store";
 import {
   fetchCategories,
   fetchSearchSuggestions,
@@ -44,6 +48,7 @@ import {
 const navigationLinks = [
   { href: "/", label: "صفحه اصلی" },
   { href: "/products", label: "محصولات" },
+  { href: "/compare", label: "مقایسه کالاها" },
   { href: "/products?sort_by=price&sort_order=desc", label: "پرفروش‌ترین‌ها" },
   { href: "/blog", label: "مجله و بلاگ" },
   { href: "/about", label: "درباره ما" },
@@ -65,6 +70,8 @@ export function Header() {
   const router = useRouter();
   const { user, isAuthenticated, logout } = useAuth();
   const { totalItems } = useCart();
+  const { products: compareProducts } = useCompareStore();
+  const compareCount = compareProducts.length;
 
   const [mounted, setMounted] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -237,9 +244,18 @@ export function Header() {
               <span>ارسال سریع و مطمئن به سراسر ایران</span>
             </div>
           </div>
-          <span className="font-medium">
-            ارسال رایگان برای سفارش‌های بالای ۵۰۰,۰۰۰ تومان
-          </span>
+          <div className="flex items-center gap-4">
+            <span className="hidden sm:inline font-medium">
+              ارسال رایگان برای سفارش‌های بالای ۵۰۰,۰۰۰ تومان
+            </span>
+            <Link
+              href="/rewards"
+              className="flex items-center gap-1 font-bold text-amber-200 hover:text-white transition-colors bg-white/10 hover:bg-white/20 px-2.5 py-0.5 rounded-full"
+            >
+              <Sparkles className="h-3 w-3 text-amber-300 animate-pulse" />
+              <span>گردونه شانس و جوایز</span>
+            </Link>
+          </div>
         </div>
       </div>
 
@@ -352,6 +368,26 @@ export function Header() {
                 <Search className="h-5 w-5" />
               </Button>
 
+              {/* Compare */}
+              <Link href="/compare" className="inline-flex">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="group relative"
+                  aria-label="مقایسه کالاها"
+                >
+                  <ArrowLeftRight className="h-5 w-5 transition-colors group-hover:text-primary" />
+                  {mounted && compareCount > 0 && (
+                    <Badge className="absolute -left-1.5 -top-1.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1 text-[11px] font-bold text-primary-foreground shadow-sm">
+                      {toPersianDigits(compareCount)}
+                    </Badge>
+                  )}
+                  <span className="pointer-events-none absolute -bottom-8 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md bg-foreground px-2 py-1 text-[10px] text-background opacity-0 shadow-lg transition-opacity group-hover:opacity-100 z-50">
+                    مقایسه کالاها
+                  </span>
+                </Button>
+              </Link>
+
               {/* Wishlist */}
               <Link href="/account/favorites" className="hidden sm:inline-flex">
                 <Button
@@ -436,6 +472,12 @@ export function Header() {
                       <Link href="/account/favorites" className="w-full flex items-center justify-between cursor-pointer">
                         <span>علاقه‌مندی‌ها</span>
                         <Heart className="h-4 w-4 text-muted-foreground" />
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="/rewards" className="w-full flex items-center justify-between cursor-pointer text-primary font-semibold">
+                        <span>گردونه شانس و جوایز</span>
+                        <Sparkles className="h-4 w-4 text-primary" />
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
@@ -526,73 +568,87 @@ export function Header() {
       {/* ===== Desktop Categories & Nav Links Bar ===== */}
       <nav className="hidden border-b border-border bg-background lg:block">
         <div className="container mx-auto px-4">
-          <div className="flex items-center gap-1">
-            {/* Real Categories Dropdown */}
-            <div
-              className="group relative"
-              onMouseEnter={() => setCategoriesOpen(true)}
-              onMouseLeave={() => setCategoriesOpen(false)}
-            >
-              <button
-                className={cn(
-                  "flex items-center gap-2 rounded-lg px-3.5 py-3 text-sm font-semibold transition-colors",
-                  "text-primary hover:bg-primary/5",
-                )}
-                onClick={() => setCategoriesOpen(!categoriesOpen)}
-                aria-expanded={categoriesOpen}
-                aria-haspopup="true"
-              >
-                <Layers className="h-4 w-4 text-primary" />
-                <span>دسته‌بندی کالاها</span>
-                <ChevronDown
-                  className={cn(
-                    "h-3.5 w-3.5 transition-transform duration-200",
-                    categoriesOpen && "rotate-180",
-                  )}
-                />
-              </button>
-
-              {/* Real Categories Dropdown Panel */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-1">
+              {/* Real Categories Dropdown */}
               <div
-                className={cn(
-                  "absolute right-0 top-full z-50 w-72 rounded-xl border border-border bg-card p-2 shadow-2xl transition-all duration-200",
-                  categoriesOpen
-                    ? "visible translate-y-0 opacity-100"
-                    : "invisible -translate-y-2 opacity-0",
-                )}
+                className="group relative"
+                onMouseEnter={() => setCategoriesOpen(true)}
+                onMouseLeave={() => setCategoriesOpen(false)}
               >
-                <div className="px-3 py-1.5 text-xs font-semibold text-muted-foreground">
-                  همه دسته‌بندی‌ها
-                </div>
-                <div className="max-h-[380px] overflow-y-auto space-y-0.5">
-                  {categories.map((category) => (
-                    <Link
-                      key={category.id}
-                      href={`/products?category_id=${category.id}&category_slug=${category.slug}`}
-                      className="flex items-center justify-between rounded-lg px-3 py-2.5 text-sm text-foreground hover:bg-primary/10 hover:text-primary transition-colors"
-                      onClick={() => setCategoriesOpen(false)}
-                    >
-                      <span>{category.name}</span>
-                      <ArrowLeft className="h-3.5 w-3.5 opacity-60" />
-                    </Link>
-                  ))}
+                <button
+                  className={cn(
+                    "flex items-center gap-2 rounded-lg px-3.5 py-3 text-sm font-semibold transition-colors",
+                    "text-primary hover:bg-primary/5",
+                  )}
+                  onClick={() => setCategoriesOpen(!categoriesOpen)}
+                  aria-expanded={categoriesOpen}
+                  aria-haspopup="true"
+                >
+                  <Layers className="h-4 w-4 text-primary" />
+                  <span>دسته‌بندی کالاها</span>
+                  <ChevronDown
+                    className={cn(
+                      "h-3.5 w-3.5 transition-transform duration-200",
+                      categoriesOpen && "rotate-180",
+                    )}
+                  />
+                </button>
+
+                {/* Real Categories Dropdown Panel */}
+                <div
+                  className={cn(
+                    "absolute right-0 top-full z-50 w-72 rounded-xl border border-border bg-card p-2 shadow-2xl transition-all duration-200",
+                    categoriesOpen
+                      ? "visible translate-y-0 opacity-100"
+                      : "invisible -translate-y-2 opacity-0",
+                  )}
+                >
+                  <div className="px-3 py-1.5 text-xs font-semibold text-muted-foreground">
+                    همه دسته‌بندی‌ها
+                  </div>
+                  <div className="max-h-[380px] overflow-y-auto space-y-0.5">
+                    {categories.map((category) => (
+                      <Link
+                        key={category.id}
+                        href={`/products?category_id=${category.id}&category_slug=${category.slug}`}
+                        className="flex items-center justify-between rounded-lg px-3 py-2.5 text-sm text-foreground hover:bg-primary/10 hover:text-primary transition-colors"
+                        onClick={() => setCategoriesOpen(false)}
+                      >
+                        <span>{category.name}</span>
+                        <ArrowLeft className="h-3.5 w-3.5 opacity-60" />
+                      </Link>
+                    ))}
+                  </div>
                 </div>
               </div>
+
+              {/* Separator */}
+              <div className="h-5 w-px bg-border mx-2" />
+
+              {/* Navigation Links */}
+              {navigationLinks.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className="rounded-lg px-3.5 py-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                >
+                  {link.label}
+                </Link>
+              ))}
             </div>
 
-            {/* Separator */}
-            <div className="h-5 w-px bg-border mx-2" />
-
-            {/* Navigation Links */}
-            {navigationLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className="rounded-lg px-3.5 py-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
-              >
-                {link.label}
-              </Link>
-            ))}
+            {/* Subtle Rewards / Spin Wheel Banner Link */}
+            <Link
+              href="/rewards"
+              className="flex items-center gap-2 rounded-xl bg-gradient-to-l from-amber-500/15 via-primary/10 to-amber-500/5 px-3 py-1.5 text-xs font-bold text-foreground border border-amber-500/30 hover:border-amber-500/60 hover:bg-amber-500/20 transition-all shadow-xs group"
+            >
+              <Sparkles className="h-3.5 w-3.5 text-amber-500 group-hover:scale-110 transition-transform animate-pulse" />
+              <span>گردونه شانس و باشگاه جوایز</span>
+              <span className="rounded-md bg-amber-500 px-1.5 py-0.5 text-[10px] font-black text-amber-950">
+                رایگان
+              </span>
+            </Link>
           </div>
         </div>
       </nav>
@@ -679,6 +735,21 @@ export function Header() {
             )}
           </div>
 
+          {/* Mobile Rewards Banner */}
+          <Link
+            href="/rewards"
+            className="mb-4 flex items-center justify-between rounded-xl bg-gradient-to-r from-amber-500/15 via-primary/10 to-amber-500/15 border border-amber-500/30 p-3 text-sm font-bold text-foreground hover:bg-amber-500/25 transition-all"
+            onClick={() => setMobileMenuOpen(false)}
+          >
+            <div className="flex items-center gap-2.5">
+              <Gift className="h-5 w-5 text-amber-500" />
+              <span>باشگاه جوایز و گردونه شانس</span>
+            </div>
+            <Badge className="bg-amber-500 text-amber-950 text-[10px] px-2 py-0.5 font-black">
+              چرخش رایگان
+            </Badge>
+          </Link>
+
           {/* Navigation Links */}
           <div className="mb-4">
             <h3 className="mb-2 px-3 text-xs font-bold text-muted-foreground uppercase tracking-wider">
@@ -690,10 +761,15 @@ export function Header() {
                   <li key={link.href}>
                     <Link
                       href={link.href}
-                      className="block rounded-lg px-3 py-2 text-sm font-medium text-foreground hover:bg-accent transition-colors"
+                      className="flex items-center justify-between rounded-lg px-3 py-2 text-sm font-medium text-foreground hover:bg-accent transition-colors"
                       onClick={() => setMobileMenuOpen(false)}
                     >
-                      {link.label}
+                      <span>{link.label}</span>
+                      {link.href === "/compare" && mounted && compareCount > 0 && (
+                        <Badge className="h-5 px-1.5 text-[11px] font-bold">
+                          {toPersianDigits(compareCount)}
+                        </Badge>
+                      )}
                     </Link>
                   </li>
                 ))}

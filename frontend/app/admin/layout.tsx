@@ -9,12 +9,14 @@ import {
   Tag,
   FileText,
   ChevronLeft,
+  Kanban,
 } from "lucide-react";
 
 const adminLinks = [
   { href: "/admin/dashboard", label: "داشبورد", icon: LayoutDashboard },
   { href: "/admin/products", label: "محصولات", icon: Package },
   { href: "/admin/orders", label: "سفارش‌ها", icon: ShoppingCart },
+  { href: "/admin/kanban", label: "میز کانبان سفارشات", icon: Kanban },
   { href: "/admin/users", label: "کاربران", icon: Users },
   { href: "/admin/categories", label: "دسته‌بندی‌ها", icon: Tag },
   { href: "/admin/reports", label: "گزارش‌ها", icon: BarChart3 },

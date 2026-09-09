@@ -619,12 +619,12 @@ export default function StoreHomePage() {
       </section>
 
       {/* ============================================================ */}
-      {/*  4 · Featured Products (Spotlight Cards - Aceternity Style)   */}
+      {/*  4 · Featured Products (3D Interactive Tilt & Spotlight)     */}
       {/* ============================================================ */}
       <section>
         <SectionHeader
-          title="محصولات منتخب و پرچمدار (Spotlight Edition)"
-          subtitle="تکنولوژی‌های روز دنیا همراه با افکت تعاملی نوری"
+          title="محصولات منتخب و پرچمدار (3D Interactive Edition)"
+          subtitle="تکنولوژی‌های برتر با بازخورد فیزیکی سه‌بعدی و انعکاس نوری"
           href="/products?sort_by=created_at&sort_order=desc"
           linkText="مشاهده تمام کالاها"
         />

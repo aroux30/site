@@ -215,7 +215,7 @@ export function Product3DViewer({
       </div>
 
       {/* 3D Canvas */}
-      <div className="relative h-full w-full cursor-grab active:cursor-grabbing">
+      <div className="relative h-full w-full cursor-grab active:cursor-grabbing touch-none select-none">
         <Canvas
           camera={{ position: [0, 0, 6.5], fov: 45 }}
           gl={{ antialias: true, alpha: true }}

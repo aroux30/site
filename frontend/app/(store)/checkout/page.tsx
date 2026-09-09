@@ -1124,6 +1124,27 @@ export default function CheckoutPage() {
                 </div>
               )}
 
+              {/* Supported Shetab Banks Trust Banner */}
+              <div className="mt-5 rounded-2xl border border-border/80 bg-muted/20 p-3.5">
+                <div className="flex items-center justify-between text-xs text-muted-foreground mb-2">
+                  <span className="font-semibold text-foreground flex items-center gap-1.5">
+                    <ShieldCheck className="h-4 w-4 text-emerald-600" />
+                    پشتیبانی از تمامی کارت‌های عضو شبکه بانکی شتاب
+                  </span>
+                  <span className="text-[11px]">رمز پویا (OTP)</span>
+                </div>
+                <div className="flex flex-wrap items-center gap-2 text-[11px]">
+                  {["بانک ملی", "بانک ملت", "بانک سامان", "بانک پاسارگاد", "بانک تجارت", "بانک صادرات", "بانک پارسیان", "اقتصاد نوین"].map((bankName, idx) => (
+                    <span
+                      key={idx}
+                      className="rounded-lg border border-border/60 bg-background/80 px-2 py-1 text-muted-foreground font-medium"
+                    >
+                      {bankName}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
               {/* Optional Order Notes */}
               <div className="mt-6 border-t border-border pt-4">
                 <label className="mb-2 block text-xs font-semibold text-foreground flex items-center gap-1.5">

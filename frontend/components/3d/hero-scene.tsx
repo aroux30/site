@@ -164,6 +164,16 @@ export function Hero3DScene() {
     setMousePosition({ x, y });
   };
 
+  const handleTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (!containerRef.current || e.touches.length === 0) return;
+    const touch = e.touches[0];
+    if (!touch) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    const x = ((touch.clientX - rect.left) / rect.width) * 2 - 1;
+    const y = -(((touch.clientY - rect.top) / rect.height) * 2 - 1);
+    setMousePosition({ x, y });
+  };
+
   const handleMouseLeave = () => {
     setMousePosition({ x: 0, y: 0 });
   };
@@ -181,7 +191,9 @@ export function Hero3DScene() {
       ref={containerRef}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
-      className="relative h-[420px] sm:h-[480px] lg:h-[540px] w-full cursor-grab active:cursor-grabbing select-none"
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleMouseLeave}
+      className="relative h-[420px] sm:h-[480px] lg:h-[540px] w-full cursor-grab active:cursor-grabbing select-none touch-none"
     >
       <Canvas
         camera={{ position: [0, 0, 7], fov: 45 }}
@@ -216,8 +228,8 @@ export function Hero3DScene() {
       </Canvas>
 
       {/* Floating 3D Badge Indicator */}
-      <div className="pointer-events-none absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full border border-white/15 bg-black/40 px-3.5 py-1 text-[11px] font-semibold text-emerald-300 backdrop-blur-md shadow-lg">
-        ✨ نمای سه‌بعدی تعاملی ۳۶۰ درجه (با حرکت ماوس بچرخانید)
+      <div className="pointer-events-none absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full border border-white/15 bg-black/40 px-3.5 py-1 text-[11px] font-semibold text-emerald-300 backdrop-blur-md shadow-lg whitespace-nowrap">
+        ✨ نمای سه‌بعدی تعاملی ۳۶۰ درجه (با حرکت ماوس یا لمس بچرخانید)
       </div>
     </div>
   );

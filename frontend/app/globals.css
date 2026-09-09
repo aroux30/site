@@ -164,6 +164,31 @@
     animation: fadeIn 0.2s ease-out;
   }
 
+  /* 3D and Creative Web Utilities */
+  .preserve-3d {
+    transform-style: preserve-3d;
+  }
+
+  .perspective-1000 {
+    perspective: 1000px;
+  }
+
+  .perspective-2000 {
+    perspective: 2000px;
+  }
+
+  .backface-hidden {
+    backface-visibility: hidden;
+  }
+
+  .glass-panel {
+    @apply border border-white/10 bg-background/80 backdrop-blur-xl shadow-lg;
+  }
+
+  .glass-panel-glow {
+    @apply border border-primary/20 bg-background/80 backdrop-blur-xl shadow-xl shadow-primary/5;
+  }
+
   @keyframes fadeIn {
     from {
       opacity: 0;

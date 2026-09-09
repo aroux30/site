@@ -104,6 +104,18 @@ const config: Config = {
         shimmer: {
           "100%": { transform: "translateX(-100%)" },
         },
+        marquee: {
+          from: { transform: "translateX(0%)" },
+          to: { transform: "translateX(-100%)" },
+        },
+        "marquee-vertical": {
+          from: { transform: "translateY(0%)" },
+          to: { transform: "translateY(-100%)" },
+        },
+        "spin-around": {
+          "0%": { transform: "translateZ(0) rotate(0)" },
+          "100%": { transform: "translateZ(0) rotate(360deg)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -111,6 +123,9 @@ const config: Config = {
         "slide-in-rtl": "slide-in-rtl 0.3s ease-out",
         "slide-out-rtl": "slide-out-rtl 0.3s ease-out",
         shimmer: "shimmer 2s infinite",
+        marquee: "marquee var(--duration) linear infinite",
+        "marquee-vertical": "marquee-vertical var(--duration) linear infinite",
+        "spin-around": "spin-around 8s linear infinite",
       },
     },
   },

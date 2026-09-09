@@ -406,12 +406,12 @@ export default function CustomerAccountPage() {
 
   // Orders State
   const [orders, setOrders] = useState<OrderDisplay[]>(INITIAL_ORDERS);
-  const [_isLoadingOrders, setIsLoadingOrders] = useState(false);
+  const [isLoadingOrders, setIsLoadingOrders] = useState(false);
   const [selectedOrderForTracking, setSelectedOrderForTracking] = useState<OrderDisplay | null>(null);
 
   // Addresses State
   const [addresses, setAddresses] = useState<AddressItem[]>(INITIAL_ADDRESSES);
-  const [_isLoadingAddresses, setIsLoadingAddresses] = useState(false);
+  const [isLoadingAddresses, setIsLoadingAddresses] = useState(false);
   const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
   const [editingAddress, setEditingAddress] = useState<AddressItem | null>(null);
   const [addressForm, setAddressForm] = useState({
@@ -428,7 +428,7 @@ export default function CustomerAccountPage() {
   // Wallet State
   const [walletBalance, setWalletBalance] = useState<number>(5_800_000);
   const [transactions, setTransactions] = useState<WalletTransaction[]>(INITIAL_TRANSACTIONS);
-  const [_isLoadingWallet, setIsLoadingWallet] = useState(false);
+  const [isLoadingWallet, setIsLoadingWallet] = useState(false);
   const [isDepositModalOpen, setIsDepositModalOpen] = useState(false);
   const [depositAmount, setDepositAmount] = useState<string>("500000");
   const [depositGateway, setDepositGateway] = useState<string>("zarinpal");
@@ -436,11 +436,11 @@ export default function CustomerAccountPage() {
 
   // Wishlist State
   const [wishlist, setWishlist] = useState<WishlistItem[]>(INITIAL_WISHLIST);
-  const [_isLoadingWishlist, setIsLoadingWishlist] = useState(false);
+  const [isLoadingWishlist, setIsLoadingWishlist] = useState(false);
 
   // Support Tickets State
   const [tickets, setTickets] = useState<SupportTicket[]>(INITIAL_TICKETS);
-  const [_isLoadingTickets, setIsLoadingTickets] = useState(false);
+  const [isLoadingTickets, setIsLoadingTickets] = useState(false);
   const [isTicketModalOpen, setIsTicketModalOpen] = useState(false);
   const [selectedTicketView, setSelectedTicketView] = useState<SupportTicket | null>(null);
   const [ticketForm, setTicketForm] = useState({
@@ -1289,7 +1289,7 @@ export default function CustomerAccountPage() {
                   </p>
                 </div>
                 <Badge variant="secondary" className="w-fit">
-                  {toPersianDigits(orders.length)} سفارش ثبت شده
+                  {isLoadingOrders ? "در حال دریافت..." : `${toPersianDigits(orders.length)} سفارش ثبت شده`}
                 </Badge>
               </div>
 
@@ -1399,7 +1399,9 @@ export default function CustomerAccountPage() {
                 <div>
                   <h2 className="text-lg font-semibold text-foreground">دفترچه آدرس‌ها</h2>
                   <p className="text-xs text-muted-foreground">
-                    آدرس‌های ارسال مرسولات پستی خود را در این بخش مدیریت کنید.
+                    {isLoadingAddresses
+                      ? "در حال دریافت اطلاعات آدرس‌ها..."
+                      : "آدرس‌های ارسال مرسولات پستی خود را در این بخش مدیریت کنید."}
                   </p>
                 </div>
                 <Button onClick={handleOpenAddAddress} size="sm" className="gap-1.5">
@@ -1547,7 +1549,9 @@ export default function CustomerAccountPage() {
                       ریز مبالغ واریز شده و برداشت‌های خرید
                     </p>
                   </div>
-                  <Badge variant="outline">{toPersianDigits(transactions.length)} تراکنش</Badge>
+                  <Badge variant="outline">
+                    {isLoadingWallet ? "در حال بروزرسانی..." : `${toPersianDigits(transactions.length)} تراکنش`}
+                  </Badge>
                 </div>
 
                 {transactions.length === 0 ? (
@@ -1636,7 +1640,9 @@ export default function CustomerAccountPage() {
                     محصولاتی که برای خرید در آینده نشان کرده‌اید
                   </p>
                 </div>
-                <Badge variant="secondary">{toPersianDigits(wishlist.length)} کالا</Badge>
+                <Badge variant="secondary">
+                  {isLoadingWishlist ? "در حال دریافت..." : `${toPersianDigits(wishlist.length)} کالا`}
+                </Badge>
               </div>
 
               {wishlist.length === 0 ? (
@@ -1726,7 +1732,9 @@ export default function CustomerAccountPage() {
                 <div>
                   <h2 className="text-lg font-semibold text-foreground">تیکت‌های پشتیبانی</h2>
                   <p className="text-xs text-muted-foreground">
-                    ارتباط مستقیم با کارشناسان و پیگیری پاسخ‌ها
+                    {isLoadingTickets
+                      ? "در حال بروزرسانی وضعیت تیکت‌ها..."
+                      : "ارتباط مستقیم با کارشناسان و پیگیری پاسخ‌ها"}
                   </p>
                 </div>
                 <Button onClick={() => setIsTicketModalOpen(true)} size="sm" className="gap-1.5">

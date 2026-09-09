@@ -179,18 +179,21 @@ class SearchService:
 
     # ── Index management ──────────────────────────────────────────────
 
-    async def index_product(self, product_dict: dict[str, Any]) -> None:
+    async def index_product(
+        self, product_dict: dict[str, Any], index_name: str | None = None
+    ) -> None:
         """Index a single product document."""
         doc_id = str(product_dict["id"])
-        await self._es.index_document(doc_id, product_dict)
+        await self._es.index_document(doc_id, product_dict, index_name=index_name)
 
     async def bulk_index_products(
-        self, products: list[dict[str, Any]]
+        self, products: list[dict[str, Any]], index_name: str | None = None
     ) -> dict[str, Any]:
         """Bulk-index a list of product documents."""
+        target = index_name or self._es.index_name
         actions = [
             {
-                "_index": self._es.index_name,
+                "_index": target,
                 "_id": str(p["id"]),
                 "_source": p,
             }
@@ -198,19 +201,23 @@ class SearchService:
         ]
         return await self._es.bulk_index(actions)
 
-    async def delete_product_index(self, product_id: str) -> None:
+    async def delete_product_index(
+        self, product_id: str, index_name: str | None = None
+    ) -> None:
         """Remove a product from the search index."""
-        await self._es.delete_document(product_id)
+        await self._es.delete_document(product_id, index_name=index_name)
 
-    async def reindex_all(self, db: AsyncSession) -> ReindexResponse:
+    async def reindex_all(
+        self, db: AsyncSession, index_name: str | None = None
+    ) -> ReindexResponse:
         """Re-create the index and re-index all active products from the DB.
 
         This is an admin operation.
         """
-        await logger.ainfo("reindex_started")
+        await logger.ainfo("reindex_started", index_name=index_name or self._es.index_name)
 
         # Re-create the index
-        await self._es.create_product_index(force=True)
+        await self._es.create_product_index(force=True, index_name=index_name)
 
         # Load all active products with relationships
         stmt = (
@@ -243,7 +250,7 @@ class SearchService:
             )
 
         # Bulk index
-        bulk_result = await self.bulk_index_products(docs)
+        bulk_result = await self.bulk_index_products(docs, index_name=index_name)
         success_count = bulk_result.get("success", 0)
         error_list = bulk_result.get("errors", [])
         error_count = len(error_list) if isinstance(error_list, list) else 0

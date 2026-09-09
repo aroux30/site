@@ -810,35 +810,50 @@ export default function ProductDetailPage() {
             </div>
           </div>
 
-          {/* Guarantees Box */}
-          <div className="grid grid-cols-2 gap-2 pt-2 sm:grid-cols-4 text-center">
-            <div className="rounded-xl border border-border p-2.5">
-              <Truck className="mx-auto h-5 w-5 text-primary mb-1" />
-              <span className="text-[11px] font-medium text-foreground block">
-                تحویل فوری
-              </span>
+            {/* Guarantees Box */}
+            <div className="grid grid-cols-2 gap-2 pt-2 sm:grid-cols-4 text-center">
+              <div className="rounded-xl border border-border p-2.5">
+                <Truck className="mx-auto h-5 w-5 text-primary mb-1" />
+                <span className="text-[11px] font-medium text-foreground block">
+                  تحویل فوری
+                </span>
+              </div>
+              <div className="rounded-xl border border-border p-2.5">
+                <Shield className="mx-auto h-5 w-5 text-primary mb-1" />
+                <span className="text-[11px] font-medium text-foreground block">
+                  ضمانت اصالت
+                </span>
+              </div>
+              <div className="rounded-xl border border-border p-2.5">
+                <RotateCcw className="mx-auto h-5 w-5 text-primary mb-1" />
+                <span className="text-[11px] font-medium text-foreground block">
+                  ۷ روز بازگشت
+                </span>
+              </div>
+              <div className="rounded-xl border border-border p-2.5">
+                <Headphones className="mx-auto h-5 w-5 text-primary mb-1" />
+                <span className="text-[11px] font-medium text-foreground block">
+                  پشتیبانی ۲۴/۷
+                </span>
+              </div>
             </div>
-            <div className="rounded-xl border border-border p-2.5">
-              <Shield className="mx-auto h-5 w-5 text-primary mb-1" />
-              <span className="text-[11px] font-medium text-foreground block">
-                ضمانت اصالت
-              </span>
-            </div>
-            <div className="rounded-xl border border-border p-2.5">
-              <RotateCcw className="mx-auto h-5 w-5 text-primary mb-1" />
-              <span className="text-[11px] font-medium text-foreground block">
-                ۷ روز بازگشت
-              </span>
-            </div>
-            <div className="rounded-xl border border-border p-2.5">
-              <Headphones className="mx-auto h-5 w-5 text-primary mb-1" />
-              <span className="text-[11px] font-medium text-foreground block">
-                پشتیبانی ۲۴/۷
-              </span>
+
+            {/* Iranian E-Commerce Delivery Slot Banner */}
+            <div className="rounded-2xl border border-primary/25 bg-primary/5 p-3.5 flex items-center gap-3">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/15 text-primary">
+                <Truck className="h-5 w-5" />
+              </div>
+              <div className="text-xs">
+                <span className="font-bold text-foreground block">
+                  امکان انتخاب بازه زمانی تحویل (صبح، عصر، شب)
+                </span>
+                <span className="text-muted-foreground mt-0.5 block">
+                  ارسال رایگان سفارش‌های بالای ۵۰۰,۰۰۰ تومان با پست پیشتاز
+                </span>
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
       {/* ------------------------------------------------------------------ */}
       {/*  Tabs: Description / Technical Specs / Reviews                     */}
@@ -1105,93 +1120,132 @@ export default function ProductDetailPage() {
                 <h3 className="text-base font-bold text-foreground">
                   نظرات کاربران
                 </h3>
-                {reviews.map((rev) => (
-                  <Card key={rev.id} className="rounded-3xl border border-border p-5 space-y-3">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2.5">
-                        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10 text-primary font-bold text-xs">
-                          {(rev.user.display_name || "ک").charAt(0)}
-                        </div>
-                        <div>
-                          <span className="text-xs font-bold text-foreground block">
-                            {rev.user.display_name || "کاربر ناشناس"}
-                          </span>
-                          {rev.is_verified_purchase && (
-                            <span className="text-[10px] text-emerald-600 font-medium">
-                              خریدار تاییدشده
+                {reviewsLoading ? (
+                  <div className="space-y-3">
+                    <Skeleton className="h-24 w-full rounded-3xl" />
+                    <Skeleton className="h-24 w-full rounded-3xl" />
+                  </div>
+                ) : (
+                  reviews.map((rev) => (
+                    <Card key={rev.id} className="rounded-3xl border border-border p-5 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2.5">
+                          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10 text-primary font-bold text-xs">
+                            {(rev.user.display_name || "ک").charAt(0)}
+                          </div>
+                          <div>
+                            <span className="text-xs font-bold text-foreground block">
+                              {rev.user.display_name || "کاربر ناشناس"}
                             </span>
+                            {rev.is_verified_purchase && (
+                              <span className="text-[10px] text-emerald-600 font-medium">
+                                خریدار تاییدشده
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Star rating */}
+                        <div className="flex items-center gap-1 text-amber-400">
+                          {Array.from({ length: 5 }).map((_, i) => (
+                            <Star
+                              key={i}
+                              className={`h-3.5 w-3.5 ${
+                                i < rev.rating
+                                  ? "fill-amber-400"
+                                  : "text-muted-foreground/30"
+                              }`}
+                            />
+                          ))}
+                        </div>
+                      </div>
+
+                      {rev.title && (
+                        <h4 className="text-sm font-bold text-foreground">
+                          {rev.title}
+                        </h4>
+                      )}
+
+                      <p className="text-xs sm:text-sm text-foreground/85 leading-relaxed">
+                        {rev.body}
+                      </p>
+
+                      {/* Pros and Cons */}
+                      {((rev.pros && rev.pros.length > 0) ||
+                        (rev.cons && rev.cons.length > 0)) && (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 text-xs">
+                          {rev.pros && rev.pros.length > 0 && (
+                            <div className="space-y-1">
+                              <span className="font-bold text-emerald-600">
+                                نقاط قوت:
+                              </span>
+                              <ul className="space-y-0.5 pr-2">
+                                {rev.pros.map((p, idx) => (
+                                  <li key={idx} className="flex items-center gap-1 text-muted-foreground">
+                                    <Plus className="h-3 w-3 text-emerald-500" />
+                                    <span>{p}</span>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                          {rev.cons && rev.cons.length > 0 && (
+                            <div className="space-y-1">
+                              <span className="font-bold text-red-500">
+                                نقاط ضعف:
+                              </span>
+                              <ul className="space-y-0.5 pr-2">
+                                {rev.cons.map((c, idx) => (
+                                  <li key={idx} className="flex items-center gap-1 text-muted-foreground">
+                                    <Minus className="h-3 w-3 text-red-400" />
+                                    <span>{c}</span>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
                           )}
                         </div>
-                      </div>
-
-                      {/* Star rating */}
-                      <div className="flex items-center gap-1 text-amber-400">
-                        {Array.from({ length: 5 }).map((_, i) => (
-                          <Star
-                            key={i}
-                            className={`h-3.5 w-3.5 ${
-                              i < rev.rating
-                                ? "fill-amber-400"
-                                : "text-muted-foreground/30"
-                            }`}
-                          />
-                        ))}
-                      </div>
-                    </div>
-
-                    {rev.title && (
-                      <h4 className="text-sm font-bold text-foreground">
-                        {rev.title}
-                      </h4>
-                    )}
-
-                    <p className="text-xs sm:text-sm text-foreground/85 leading-relaxed">
-                      {rev.body}
-                    </p>
-
-                    {/* Pros and Cons */}
-                    {((rev.pros && rev.pros.length > 0) ||
-                      (rev.cons && rev.cons.length > 0)) && (
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 text-xs">
-                        {rev.pros && rev.pros.length > 0 && (
-                          <div className="space-y-1">
-                            <span className="font-bold text-emerald-600">
-                              نقاط قوت:
-                            </span>
-                            <ul className="space-y-0.5 pr-2">
-                              {rev.pros.map((p, idx) => (
-                                <li key={idx} className="flex items-center gap-1 text-muted-foreground">
-                                  <Plus className="h-3 w-3 text-emerald-500" />
-                                  <span>{p}</span>
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-                        )}
-                        {rev.cons && rev.cons.length > 0 && (
-                          <div className="space-y-1">
-                            <span className="font-bold text-red-500">
-                              نقاط ضعف:
-                            </span>
-                            <ul className="space-y-0.5 pr-2">
-                              {rev.cons.map((c, idx) => (
-                                <li key={idx} className="flex items-center gap-1 text-muted-foreground">
-                                  <Minus className="h-3 w-3 text-red-400" />
-                                  <span>{c}</span>
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </Card>
-                ))}
+                      )}
+                    </Card>
+                  ))
+                )}
               </div>
             </div>
           </TabsContent>
         </Tabs>
       </section>
+
+      {/* Sticky Mobile Add-To-Cart Bar (Digikala & Tier S standard) */}
+      <div className="fixed bottom-0 inset-x-0 z-40 lg:hidden border-t border-border bg-background/95 backdrop-blur-md p-3 px-4 shadow-xl">
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex flex-col">
+            <span className="text-[11px] text-muted-foreground line-clamp-1 max-w-[150px]">
+              {product.name}
+            </span>
+            <span className="text-sm font-black text-primary">
+              {formatPrice(currentPrice)}
+            </span>
+          </div>
+          <Button
+            size="default"
+            onClick={handleAddToCart}
+            disabled={isOutOfStock}
+            className="flex-1 max-w-[200px] gap-2 rounded-xl font-bold shadow-md"
+          >
+            {addedToCartToast ? (
+              <>
+                <Check className="h-4 w-4 text-emerald-300" />
+                <span className="text-xs">در سبد خرید شما</span>
+              </>
+            ) : (
+              <>
+                <ShoppingCart className="h-4 w-4" />
+                <span className="text-xs">افزودن به سبد</span>
+              </>
+            )}
+          </Button>
+        </div>
+      </div>
     </div>
   );
 }

@@ -179,10 +179,10 @@ PRODUCT_INDEX_MAPPING: dict[str, Any] = {
 class ElasticsearchService:
     """Manages the async Elasticsearch connection and product index."""
 
-    def __init__(self) -> None:
+    def __init__(self, index_name: str | None = None) -> None:
         self._client: AsyncElasticsearch | None = None
         self._settings = get_settings()
-        self._index_name = f"{self._settings.ELASTICSEARCH_INDEX_PREFIX}products"
+        self._index_name = index_name or f"{self._settings.ELASTICSEARCH_INDEX_PREFIX}products"
 
     # ── Connection lifecycle ──────────────────────────────────────────
 
@@ -225,29 +225,32 @@ class ElasticsearchService:
 
     # ── Index management ──────────────────────────────────────────────
 
-    async def create_product_index(self, *, force: bool = False) -> None:
+    async def create_product_index(
+        self, *, force: bool = False, index_name: str | None = None
+    ) -> None:
         """Create the product search index with Persian analyser.
 
         Parameters
         ----------
         force:
             If ``True``, delete the existing index before recreating it.
+        index_name:
+            Optional override of the target index name.
         """
         client = await self.connect()
+        target = index_name or self._index_name
 
         if force:
             try:
-                await client.indices.delete(index=self._index_name)
-                await logger.ainfo(
-                    "elasticsearch_index_deleted", index=self._index_name
-                )
+                await client.indices.delete(index=target)
+                await logger.ainfo("elasticsearch_index_deleted", index=target)
             except ESNotFoundError:
                 pass
 
-        exists = await client.indices.exists(index=self._index_name)
+        exists = await client.indices.exists(index=target)
         if not exists:
             await client.indices.create(
-                index=self._index_name,
+                index=target,
                 body={
                     "settings": {
                         **PERSIAN_ANALYSIS_SETTINGS,
@@ -257,40 +260,34 @@ class ElasticsearchService:
                     "mappings": PRODUCT_INDEX_MAPPING,
                 },
             )
-            await logger.ainfo(
-                "elasticsearch_index_created", index=self._index_name
-            )
+            await logger.ainfo("elasticsearch_index_created", index=target)
         else:
-            await logger.ainfo(
-                "elasticsearch_index_exists", index=self._index_name
-            )
+            await logger.ainfo("elasticsearch_index_exists", index=target)
 
-    async def delete_index(self) -> None:
+    async def delete_index(self, index_name: str | None = None) -> None:
         """Delete the product search index."""
         client = await self.connect()
+        target = index_name or self._index_name
         try:
-            await client.indices.delete(index=self._index_name)
-            await logger.ainfo(
-                "elasticsearch_index_deleted", index=self._index_name
-            )
+            await client.indices.delete(index=target)
+            await logger.ainfo("elasticsearch_index_deleted", index=target)
         except ESNotFoundError:
-            await logger.awarning(
-                "elasticsearch_index_not_found", index=self._index_name
-            )
+            await logger.awarning("elasticsearch_index_not_found", index=target)
 
     # ── Document operations ───────────────────────────────────────────
 
     async def index_document(
-        self, doc_id: str, body: dict[str, Any]
+        self, doc_id: str, body: dict[str, Any], index_name: str | None = None
     ) -> dict[str, Any]:
         """Index a single document."""
         client = await self.connect()
+        target = index_name or self._index_name
         result = await client.index(
-            index=self._index_name,
+            index=target,
             id=doc_id,
             body=body,
         )
-        await logger.adebug("elasticsearch_doc_indexed", doc_id=doc_id)
+        await logger.adebug("elasticsearch_doc_indexed", doc_id=doc_id, index=target)
         return result
 
     async def bulk_index(self, actions: list[dict[str, Any]]) -> dict[str, Any]:
@@ -311,15 +308,18 @@ class ElasticsearchService:
         )
         return {"success": success, "errors": errors}
 
-    async def delete_document(self, doc_id: str) -> None:
+    async def delete_document(
+        self, doc_id: str, index_name: str | None = None
+    ) -> None:
         """Delete a single document by ID."""
         client = await self.connect()
+        target = index_name or self._index_name
         try:
-            await client.delete(index=self._index_name, id=doc_id)
-            await logger.adebug("elasticsearch_doc_deleted", doc_id=doc_id)
+            await client.delete(index=target, id=doc_id)
+            await logger.adebug("elasticsearch_doc_deleted", doc_id=doc_id, index=target)
         except ESNotFoundError:
             await logger.awarning(
-                "elasticsearch_doc_not_found_for_delete", doc_id=doc_id
+                "elasticsearch_doc_not_found_for_delete", doc_id=doc_id, index=target
             )
 
     async def search(self, body: dict[str, Any]) -> dict[str, Any]:

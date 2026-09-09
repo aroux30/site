@@ -16,6 +16,7 @@ import {
   ChevronLeft,
   RotateCcw,
   Sparkles,
+  Eye,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,6 +24,13 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Slider } from "@/components/ui/slider";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { formatPrice, toPersianDigits } from "@/lib/utils";
 import { useCart } from "@/hooks/use-cart";
 import {
@@ -179,6 +187,7 @@ const MAX_PRICE_LIMIT = 150000000;
 function ProductCard({ product }: { product: ApiProduct }) {
   const { addToCart } = useCart();
   const [added, setAdded] = useState(false);
+  const [quickViewOpen, setQuickViewOpen] = useState(false);
 
   const price = product.min_price || 0;
   const originalPrice =
@@ -204,39 +213,54 @@ function ProductCard({ product }: { product: ApiProduct }) {
   };
 
   return (
-    <Card className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-border bg-card transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
-      <Link href={`/products/${product.slug}`} className="flex flex-col h-full">
-        {/* Product Image */}
-        <div className="relative aspect-square overflow-hidden bg-muted/50 p-4">
-          {product.primary_image_url ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={product.primary_image_url}
-              alt={product.name}
-              className="h-full w-full object-contain transition-transform duration-300 group-hover:scale-105"
-            />
-          ) : (
-            <div className="flex h-full w-full items-center justify-center text-muted-foreground/30">
-              <Package className="h-20 w-20" />
-            </div>
-          )}
+    <>
+      <Card className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-border bg-card transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+        <Link href={`/products/${product.slug}`} className="flex flex-col h-full">
+          {/* Product Image */}
+          <div className="relative aspect-square overflow-hidden bg-muted/50 p-4">
+            {product.primary_image_url ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={product.primary_image_url}
+                alt={product.name}
+                className="h-full w-full object-contain transition-transform duration-300 group-hover:scale-105"
+              />
+            ) : (
+              <div className="flex h-full w-full items-center justify-center text-muted-foreground/30">
+                <Package className="h-20 w-20" />
+              </div>
+            )}
 
-          {discount && discount > 0 && (
-            <Badge
-              variant="destructive"
-              className="absolute top-3 right-3 rounded-full px-2.5 py-0.5 text-xs font-bold shadow-sm"
+            {/* Quick View Button */}
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setQuickViewOpen(true);
+              }}
+              className="absolute bottom-3 left-3 z-10 flex h-8 w-8 items-center justify-center rounded-xl bg-background/90 backdrop-blur-md text-foreground shadow-sm opacity-0 transition-opacity duration-200 group-hover:opacity-100 hover:bg-background"
+              title="مشاهده سریع"
             >
-              {toPersianDigits(discount)}٪ تخفیف
-            </Badge>
-          )}
+              <Eye className="h-4 w-4 text-muted-foreground hover:text-primary" />
+            </button>
 
-          {product.is_featured && (
-            <Badge className="absolute bottom-3 right-3 bg-amber-500 hover:bg-amber-600 text-white rounded-full text-[10px] px-2 py-0.5 gap-1">
-              <Sparkles className="h-2.5 w-2.5" />
-              ویژه
-            </Badge>
-          )}
-        </div>
+            {discount && discount > 0 && (
+              <Badge
+                variant="destructive"
+                className="absolute top-3 right-3 rounded-full px-2.5 py-0.5 text-xs font-bold shadow-sm"
+              >
+                {toPersianDigits(discount)}٪ تخفیف
+              </Badge>
+            )}
+
+            {product.is_featured && (
+              <Badge className="absolute bottom-3 right-3 bg-amber-500 hover:bg-amber-600 text-white rounded-full text-[10px] px-2 py-0.5 gap-1">
+                <Sparkles className="h-2.5 w-2.5" />
+                ویژه
+              </Badge>
+            )}
+          </div>
 
         {/* Content Details */}
         <div className="flex flex-1 flex-col p-4">
@@ -297,6 +321,65 @@ function ProductCard({ product }: { product: ApiProduct }) {
         </Button>
       </div>
     </Card>
+
+    {/* Quick View Modal */}
+    <Dialog open={quickViewOpen} onOpenChange={setQuickViewOpen}>
+      <DialogContent className="max-w-md rounded-3xl p-6">
+        <DialogHeader>
+          <DialogTitle className="text-base font-bold text-foreground">
+            {product.name}
+          </DialogTitle>
+          <DialogDescription className="text-xs text-muted-foreground">
+            {product.short_description || "مشاهده سریع مشخصات و افزودن آنی به سبد خرید"}
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="flex flex-col items-center gap-4 py-2">
+          <div className="relative aspect-square w-48 overflow-hidden rounded-2xl bg-muted/40 p-3">
+            {product.primary_image_url ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={product.primary_image_url}
+                alt={product.name}
+                className="h-full w-full object-contain"
+              />
+            ) : (
+              <div className="flex h-full w-full items-center justify-center text-muted-foreground/40">
+                <Package className="h-16 w-16" />
+              </div>
+            )}
+          </div>
+
+          <div className="flex items-baseline justify-between w-full border-t border-border pt-3">
+            <span className="text-xs text-muted-foreground font-medium">
+              قیمت مصرف‌کننده:
+            </span>
+            <span className="text-base font-black text-primary">
+              {formatPrice(price)}
+            </span>
+          </div>
+
+          <div className="flex gap-2 w-full pt-2">
+            <Button
+              onClick={(e) => {
+                handleAddToCart(e);
+                setQuickViewOpen(false);
+              }}
+              className="flex-1 rounded-xl font-bold gap-2 text-xs"
+            >
+              <ShoppingCart className="h-4 w-4" />
+              افزودن به سبد خرید
+            </Button>
+            <Link href={`/products/${product.slug}`} className="flex-1">
+              <Button variant="outline" className="w-full rounded-xl text-xs">
+                صفحه کامل کالا
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+    </>
   );
 }
 

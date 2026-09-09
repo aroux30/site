@@ -348,7 +348,7 @@ export default function AdminOrdersPage() {
   const { toast } = useToast();
 
   const [orders, setOrders] = useState<AdminOrder[]>(INITIAL_ADMIN_ORDERS);
-  const [_isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   // Filters & Search
   const [searchQuery, setSearchQuery] = useState("");
@@ -699,7 +699,9 @@ export default function AdminOrdersPage() {
           <span>
             نمایش {toPersianDigits(filteredOrders.length)} از {toPersianDigits(orders.length)} سفارش
           </span>
-          <span className="font-mono">سیستم یکپارچه فروشگاه</span>
+          <span className="font-mono">
+            {isLoading ? "در حال بروزرسانی لیست سفارش‌ها..." : "سیستم یکپارچه فروشگاه"}
+          </span>
         </div>
       </Card>
 

@@ -38,6 +38,8 @@ import { useCart } from "@/hooks/use-cart";
 import { useAuthStore } from "@/stores/auth-store";
 import apiClient from "@/lib/api/client";
 import { formatPrice, toPersianDigits } from "@/lib/utils";
+import { triggerCelebrationCannons } from "@/components/ui/confetti";
+import { getAvailableDeliverySlots, type DeliverySlot } from "@/lib/iranian-commerce";
 
 // --- Types ---
 
@@ -183,6 +185,17 @@ export default function CheckoutPage() {
 
   // Step 5: Confirmed Order Result
   const [completedOrder, setCompletedOrder] = useState<CreateOrderResponse | null>(null);
+
+  // Delivery Slots State (Iranian Commerce UX)
+  const deliverySlots = useMemo(() => getAvailableDeliverySlots(), []);
+  const [selectedSlotId, setSelectedSlotId] = useState<string>("slot-1");
+
+  // Trigger celebration confetti on order confirmation
+  useEffect(() => {
+    if (currentStep === "confirmation") {
+      triggerCelebrationCannons();
+    }
+  }, [currentStep]);
 
   // Coupon inline
   const [inputCoupon, setInputCoupon] = useState("");
@@ -971,6 +984,48 @@ export default function CheckoutPage() {
                   })}
                 </div>
               )}
+
+              {/* Delivery Time Slot Picker (Iranian Commerce UX) */}
+              <div className="mt-6 border-t border-border pt-4">
+                <label className="mb-2.5 block text-xs font-bold text-foreground flex items-center gap-1.5">
+                  <Clock className="h-4 w-4 text-primary" />
+                  <span>انتخاب بازه زمانی تحویل سفارش:</span>
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  {deliverySlots.map((slot) => {
+                    const isSlotSelected = selectedSlotId === slot.id;
+                    return (
+                      <label
+                        key={slot.id}
+                        className={`flex cursor-pointer items-center justify-between rounded-xl border p-3 text-xs transition-all ${
+                          isSlotSelected
+                            ? "border-primary bg-primary/10 ring-1 ring-primary font-bold shadow-xs"
+                            : "border-border hover:bg-muted/40"
+                        }`}
+                      >
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="radio"
+                            name="deliverySlot"
+                            checked={isSlotSelected}
+                            onChange={() => setSelectedSlotId(slot.id)}
+                            className="h-3.5 w-3.5 text-primary"
+                          />
+                          <div>
+                            <span className="text-foreground">{slot.dayName} ({slot.dateStr})</span>
+                            <span className="block text-muted-foreground font-normal mt-0.5">{slot.timeRange}</span>
+                          </div>
+                        </div>
+                        {slot.isExpress && (
+                          <Badge variant="outline" className="text-[10px] text-amber-600 border-amber-300">
+                            تحویل اکسپرس
+                          </Badge>
+                        )}
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
 
               <div className="mt-8 flex items-center justify-between border-t border-border pt-4">
                 <Button

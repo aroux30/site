@@ -184,7 +184,7 @@ export default function AdminProductsPage() {
   const { toast } = useToast();
 
   const [products, setProducts] = useState<AdminProduct[]>(INITIAL_PRODUCTS);
-  const [_isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   // Filters & Search
   const [searchQuery, setSearchQuery] = useState("");
@@ -772,7 +772,9 @@ export default function AdminProductsPage() {
           <span>
             نمایش {toPersianDigits(filteredProducts.length)} از {toPersianDigits(products.length)} کالا
           </span>
-          <span className="font-mono">بروزرسانی زنده کاتالوگ انبار</span>
+          <span className="font-mono">
+            {isLoading ? "در حال دریافت کاتالوگ انبار..." : "بروزرسانی زنده کاتالوگ انبار"}
+          </span>
         </div>
       </Card>
 

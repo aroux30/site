@@ -136,3 +136,4 @@ temp/
 .terraform/
 *.tfstate
 *.tfstate.*
+.github/workflows/

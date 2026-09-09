@@ -150,6 +150,7 @@ def _include_routers(app: FastAPI, prefix: str) -> None:
         ("app.modules.recommendations.api", "/recommendations", ["recommendations"]),
         ("app.modules.approvals.api", "/approvals", ["approvals"]),
         ("app.modules.media.api", "/media", ["media"]),
+        ("app.modules.settings.api", "/settings", ["settings"]),
         ("app.modules.audit.api", "/audit", ["audit"]),
         ("app.modules.integrations.api", "/integrations", ["integrations"]),
         ("app.modules.automation.api", "/automation", ["automation"]),
@@ -163,6 +164,10 @@ def _include_routers(app: FastAPI, prefix: str) -> None:
             router = getattr(mod, "router", None)
             if router is not None:
                 app.include_router(router, prefix=f"{prefix}{url_prefix}", tags=tags)
+            # Also pick up admin_router if exposed (e.g. search admin endpoints)
+            admin_router = getattr(mod, "admin_router", None)
+            if admin_router is not None:
+                app.include_router(admin_router, prefix=prefix, tags=[f"admin-{tags[0]}"])
         except (ImportError, AttributeError):
             # Module not yet implemented – skip silently
             pass

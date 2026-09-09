@@ -504,3 +504,415 @@
 🐍 Real Python files: 44
 🕐 Files modified in last 5 min: 1
    Recent files:
+/c/Users/Administrator/Desktop/site/docs/monitor_log.txt
+
+📊 SUMMARY:
+   Phase 0 completion: Git=YES | Dockerfiles=YES
+   Phase 1 progress: APIs=0 | Services=0 | Schemas=0 | Migrations=0
+   Frontend progress: Components=21 | Pages=10 | npm=YES
+
+========================================
+🔍 Monitor Check: 2026-09-09 22:33:25
+========================================
+📁 Total files: 40016
+✅ Git: Initialized
+✅ npm: Dependencies installed
+📡 API route files (non-empty): 0
+⚙️  Service files (non-empty): 0
+📋 Schema files (non-empty): 0
+🏗️  Infrastructure files (non-empty): 0
+🔄 Alembic migrations: 0
+🧪 Test files: 156
+🎨 UI components: 21 | Layout: 2 | Pages: 10
+📦 Domain models (non-empty): 25
+🐍 Real Python files: 44
+🕐 Files modified in last 5 min: 11
+   Recent files:
+/c/Users/Administrator/Desktop/site/.git/COMMIT_EDITMSG
+/c/Users/Administrator/Desktop/site/.git/index
+/c/Users/Administrator/Desktop/site/.git/logs/HEAD
+/c/Users/Administrator/Desktop/site/.git/logs/refs/heads/main
+/c/Users/Administrator/Desktop/site/.git/logs/refs/remotes/origin/main
+/c/Users/Administrator/Desktop/site/.git/objects/11/43c95506807034321414a7d47b36d4cbe49bc4
+/c/Users/Administrator/Desktop/site/.git/objects/9e/8bd8cf2574975cdec1a621ac38f16575aba27f
+/c/Users/Administrator/Desktop/site/.git/objects/fc/5c3d729187e2336fddc2b629f8179cf088d4f2
+/c/Users/Administrator/Desktop/site/.git/refs/heads/main
+/c/Users/Administrator/Desktop/site/.git/refs/remotes/origin/main
+/c/Users/Administrator/Desktop/site/docs/monitor_log.txt
+
+📊 SUMMARY:
+   Phase 0 completion: Git=YES | Dockerfiles=YES
+   Phase 1 progress: APIs=0 | Services=0 | Schemas=0 | Migrations=0
+   Frontend progress: Components=21 | Pages=10 | npm=YES
+
+========================================
+🔍 Monitor Check: 2026-09-09 22:38:35
+========================================
+📁 Total files: 40016
+✅ Git: Initialized
+✅ npm: Dependencies installed
+📡 API route files (non-empty): 0
+⚙️  Service files (non-empty): 0
+📋 Schema files (non-empty): 0
+🏗️  Infrastructure files (non-empty): 0
+🔄 Alembic migrations: 0
+🧪 Test files: 156
+🎨 UI components: 21 | Layout: 2 | Pages: 10
+📦 Domain models (non-empty): 25
+🐍 Real Python files: 44
+🕐 Files modified in last 5 min: 1
+   Recent files:
+/c/Users/Administrator/Desktop/site/docs/monitor_log.txt
+
+📊 SUMMARY:
+   Phase 0 completion: Git=YES | Dockerfiles=YES
+   Phase 1 progress: APIs=0 | Services=0 | Schemas=0 | Migrations=0
+   Frontend progress: Components=21 | Pages=10 | npm=YES
+
+========================================
+🔍 Monitor Check: 2026-09-09 22:43:45
+========================================
+📁 Total files: 40036
+✅ Git: Initialized
+✅ npm: Dependencies installed
+📡 API route files (non-empty): 2
+⚙️  Service files (non-empty): 4
+📋 Schema files (non-empty): 9
+🏗️  Infrastructure files (non-empty): 5
+🔄 Alembic migrations: 0
+🧪 Test files: 156
+🎨 UI components: 21 | Layout: 2 | Pages: 10
+📦 Domain models (non-empty): 25
+🐍 Real Python files: 65
+🕐 Files modified in last 5 min: 23
+   Recent files:
+/c/Users/Administrator/Desktop/site/backend/app/modules/audit/api/routes.py
+/c/Users/Administrator/Desktop/site/backend/app/modules/audit/application/audit_service.py
+/c/Users/Administrator/Desktop/site/backend/app/modules/audit/schemas/audit.py
+/c/Users/Administrator/Desktop/site/backend/app/modules/auth/schemas/auth.py
+/c/Users/Administrator/Desktop/site/backend/app/modules/cashback/schemas/cashback.py
+/c/Users/Administrator/Desktop/site/backend/app/modules/catalog/infrastructure/catalog_repository.py
+/c/Users/Administrator/Desktop/site/backend/app/modules/catalog/schemas/catalog.py
+/c/Users/Administrator/Desktop/site/backend/app/modules/inventory/application/inventory_service.py
+/c/Users/Administrator/Desktop/site/backend/app/modules/inventory/schemas/inventory.py
+/c/Users/Administrator/Desktop/site/backend/app/modules/orders/application/order_service.py
+/c/Users/Administrator/Desktop/site/backend/app/modules/orders/schemas/order.py
+/c/Users/Administrator/Desktop/site/backend/app/modules/payments/infrastructure/providers/base.py
+/c/Users/Administrator/Desktop/site/backend/app/modules/payments/infrastructure/providers/idpay.py
+/c/Users/Administrator/Desktop/site/backend/app/modules/payments/infrastructure/providers/mock.py
+/c/Users/Administrator/Desktop/site/backend/app/modules/payments/infrastructure/providers/zarinpal.py
+/c/Users/Administrator/Desktop/site/backend/app/modules/payments/schemas/payment.py
+/c/Users/Administrator/Desktop/site/backend/app/modules/referrals/api/routes.py
+/c/Users/Administrator/Desktop/site/backend/app/modules/referrals/api/__init__.py
+/c/Users/Administrator/Desktop/site/backend/app/modules/referrals/application/referral_service.py
+/c/Users/Administrator/Desktop/site/backend/app/modules/referrals/schemas/referral.py
+
+📊 SUMMARY:
+   Phase 0 completion: Git=YES | Dockerfiles=YES
+   Phase 1 progress: APIs=2 | Services=4 | Schemas=9 | Migrations=0
+   Frontend progress: Components=21 | Pages=10 | npm=YES
+
+========================================
+🔍 Monitor Check: 2026-09-09 22:48:54
+========================================
+📁 Total files: 40109
+✅ Git: Initialized
+✅ npm: Dependencies installed
+📡 API route files (non-empty): 20
+⚙️  Service files (non-empty): 20
+📋 Schema files (non-empty): 21
+🏗️  Infrastructure files (non-empty): 7
+🔄 Alembic migrations: 0
+🧪 Test files: 156
+🎨 UI components: 21 | Layout: 2 | Pages: 10
+📦 Domain models (non-empty): 25
+🐍 Real Python files: 112
+🕐 Files modified in last 5 min: 90
+   Recent files:
+/c/Users/Administrator/Desktop/site/backend/app/modules/audit/api/__init__.py
+/c/Users/Administrator/Desktop/site/backend/app/modules/audit/api/__pycache__/routes.cpython-314.pyc
+/c/Users/Administrator/Desktop/site/backend/app/modules/audit/application/__pycache__/audit_service.cpython-314.pyc
+/c/Users/Administrator/Desktop/site/backend/app/modules/audit/schemas/__pycache__/audit.cpython-314.pyc
+/c/Users/Administrator/Desktop/site/backend/app/modules/auth/api/routes.py
+/c/Users/Administrator/Desktop/site/backend/app/modules/auth/api/__init__.py
+/c/Users/Administrator/Desktop/site/backend/app/modules/auth/api/__pycache__/routes.cpython-314.pyc
+/c/Users/Administrator/Desktop/site/backend/app/modules/auth/application/auth_service.py
+/c/Users/Administrator/Desktop/site/backend/app/modules/auth/application/__pycache__/auth_service.cpython-314.pyc
+/c/Users/Administrator/Desktop/site/backend/app/modules/auth/schemas/__pycache__/auth.cpython-314.pyc
+/c/Users/Administrator/Desktop/site/backend/app/modules/cart/api/routes.py
+/c/Users/Administrator/Desktop/site/backend/app/modules/cart/api/__init__.py
+/c/Users/Administrator/Desktop/site/backend/app/modules/cart/application/cart_service.py
+/c/Users/Administrator/Desktop/site/backend/app/modules/cart/schemas/cart.py
+/c/Users/Administrator/Desktop/site/backend/app/modules/cashback/api/routes.py
+/c/Users/Administrator/Desktop/site/backend/app/modules/cashback/api/__init__.py
+/c/Users/Administrator/Desktop/site/backend/app/modules/cashback/application/cashback_service.py
+/c/Users/Administrator/Desktop/site/backend/app/modules/catalog/api/routes.py
+/c/Users/Administrator/Desktop/site/backend/app/modules/catalog/api/__init__.py
+/c/Users/Administrator/Desktop/site/backend/app/modules/catalog/application/catalog_service.py
+
+📊 SUMMARY:
+   Phase 0 completion: Git=YES | Dockerfiles=YES
+   Phase 1 progress: APIs=20 | Services=20 | Schemas=21 | Migrations=0
+   Frontend progress: Components=21 | Pages=10 | npm=YES
+
+========================================
+🔍 Monitor Check: 2026-09-09 22:54:04
+========================================
+📁 Total files: 40112
+✅ Git: Initialized
+✅ npm: Dependencies installed
+📡 API route files (non-empty): 21
+⚙️  Service files (non-empty): 21
+📋 Schema files (non-empty): 22
+🏗️  Infrastructure files (non-empty): 7
+🔄 Alembic migrations: 0
+🧪 Test files: 156
+🎨 UI components: 21 | Layout: 2 | Pages: 10
+📦 Domain models (non-empty): 25
+🐍 Real Python files: 115
+🕐 Files modified in last 5 min: 13
+   Recent files:
+/c/Users/Administrator/Desktop/site/backend/app/main.py
+/c/Users/Administrator/Desktop/site/backend/app/modules/analytics/schemas/analytics.py
+/c/Users/Administrator/Desktop/site/backend/app/modules/checkout/api/__init__.py
+/c/Users/Administrator/Desktop/site/backend/app/modules/inventory/api/routes.py
+/c/Users/Administrator/Desktop/site/backend/app/modules/reviews/schemas/__init__.py
+/c/Users/Administrator/Desktop/site/backend/app/modules/search/schemas/__init__.py
+/c/Users/Administrator/Desktop/site/backend/app/modules/support/api/routes.py
+/c/Users/Administrator/Desktop/site/backend/app/modules/support/api/__init__.py
+/c/Users/Administrator/Desktop/site/backend/app/modules/support/application/support_service.py
+/c/Users/Administrator/Desktop/site/backend/app/modules/wallet/api/routes.py
+/c/Users/Administrator/Desktop/site/backend/app/modules/wallet/api/__init__.py
+/c/Users/Administrator/Desktop/site/backend/app/modules/wishlist/api/__init__.py
+/c/Users/Administrator/Desktop/site/docs/monitor_log.txt
+
+📊 SUMMARY:
+   Phase 0 completion: Git=YES | Dockerfiles=YES
+   Phase 1 progress: APIs=21 | Services=21 | Schemas=22 | Migrations=0
+   Frontend progress: Components=21 | Pages=10 | npm=YES
+
+========================================
+🔍 Monitor Check: 2026-09-09 22:59:14
+========================================
+📁 Total files: 40113
+✅ Git: Initialized
+✅ npm: Dependencies installed
+📡 API route files (non-empty): 21
+⚙️  Service files (non-empty): 22
+📋 Schema files (non-empty): 22
+🏗️  Infrastructure files (non-empty): 7
+🔄 Alembic migrations: 0
+🧪 Test files: 156
+🎨 UI components: 21 | Layout: 2 | Pages: 10
+📦 Domain models (non-empty): 25
+🐍 Real Python files: 116
+🕐 Files modified in last 5 min: 2
+   Recent files:
+/c/Users/Administrator/Desktop/site/docs/monitor_log.txt
+
+📊 SUMMARY:
+   Phase 0 completion: Git=YES | Dockerfiles=YES
+   Phase 1 progress: APIs=21 | Services=22 | Schemas=22 | Migrations=0
+   Frontend progress: Components=21 | Pages=10 | npm=YES
+
+========================================
+🔍 Monitor Check: 2026-09-09 23:04:25
+========================================
+📁 Total files: 40416
+✅ Git: Initialized
+✅ npm: Dependencies installed
+📡 API route files (non-empty): 21
+⚙️  Service files (non-empty): 22
+📋 Schema files (non-empty): 22
+🏗️  Infrastructure files (non-empty): 7
+🔄 Alembic migrations: 0
+🧪 Test files: 156
+🎨 UI components: 21 | Layout: 2 | Pages: 10
+📦 Domain models (non-empty): 25
+🐍 Real Python files: 116
+🕐 Files modified in last 5 min: 328
+   Recent files:
+/c/Users/Administrator/Desktop/site/backend/app/core/cache/__pycache__/redis.cpython-314.pyc
+/c/Users/Administrator/Desktop/site/backend/app/core/cache/__pycache__/__init__.cpython-314.pyc
+/c/Users/Administrator/Desktop/site/backend/app/core/config/__pycache__/settings.cpython-314.pyc
+/c/Users/Administrator/Desktop/site/backend/app/core/config/__pycache__/__init__.cpython-314.pyc
+/c/Users/Administrator/Desktop/site/backend/app/core/database/__pycache__/base.cpython-314.pyc
+/c/Users/Administrator/Desktop/site/backend/app/core/database/__pycache__/session.cpython-314.pyc
+/c/Users/Administrator/Desktop/site/backend/app/core/database/__pycache__/__init__.cpython-314.pyc
+/c/Users/Administrator/Desktop/site/backend/app/core/exceptions/__pycache__/handlers.cpython-314.pyc
+/c/Users/Administrator/Desktop/site/backend/app/core/exceptions/__pycache__/__init__.cpython-314.pyc
+/c/Users/Administrator/Desktop/site/backend/app/core/logging/__pycache__/config.cpython-314.pyc
+/c/Users/Administrator/Desktop/site/backend/app/core/logging/__pycache__/__init__.cpython-314.pyc
+/c/Users/Administrator/Desktop/site/backend/app/core/observability/__pycache__/metrics.cpython-314.pyc
+/c/Users/Administrator/Desktop/site/backend/app/core/observability/__pycache__/middleware.cpython-314.pyc
+/c/Users/Administrator/Desktop/site/backend/app/core/observability/__pycache__/__init__.cpython-314.pyc
+/c/Users/Administrator/Desktop/site/backend/app/core/security/__pycache__/dependencies.cpython-314.pyc
+/c/Users/Administrator/Desktop/site/backend/app/core/security/__pycache__/jwt.cpython-314.pyc
+/c/Users/Administrator/Desktop/site/backend/app/core/security/__pycache__/password.cpython-314.pyc
+/c/Users/Administrator/Desktop/site/backend/app/core/security/__pycache__/__init__.cpython-314.pyc
+/c/Users/Administrator/Desktop/site/backend/app/core/__pycache__/__init__.cpython-314.pyc
+/c/Users/Administrator/Desktop/site/backend/app/modules/analytics/api/__pycache__/__init__.cpython-314.pyc
+
+📊 SUMMARY:
+   Phase 0 completion: Git=YES | Dockerfiles=YES
+   Phase 1 progress: APIs=21 | Services=22 | Schemas=22 | Migrations=0
+   Frontend progress: Components=21 | Pages=10 | npm=YES
+
+========================================
+🔍 Monitor Check: 2026-09-09 23:09:36
+========================================
+📁 Total files: 40416
+✅ Git: Initialized
+✅ npm: Dependencies installed
+📡 API route files (non-empty): 21
+⚙️  Service files (non-empty): 22
+📋 Schema files (non-empty): 22
+🏗️  Infrastructure files (non-empty): 7
+🔄 Alembic migrations: 0
+🧪 Test files: 156
+🎨 UI components: 21 | Layout: 2 | Pages: 10
+📦 Domain models (non-empty): 25
+🐍 Real Python files: 116
+🕐 Files modified in last 5 min: 1
+   Recent files:
+/c/Users/Administrator/Desktop/site/docs/monitor_log.txt
+
+📊 SUMMARY:
+   Phase 0 completion: Git=YES | Dockerfiles=YES
+   Phase 1 progress: APIs=21 | Services=22 | Schemas=22 | Migrations=0
+   Frontend progress: Components=21 | Pages=10 | npm=YES
+
+========================================
+🔍 Monitor Check: 2026-09-09 23:14:48
+========================================
+📁 Total files: 40416
+✅ Git: Initialized
+✅ npm: Dependencies installed
+📡 API route files (non-empty): 21
+⚙️  Service files (non-empty): 22
+📋 Schema files (non-empty): 22
+🏗️  Infrastructure files (non-empty): 7
+🔄 Alembic migrations: 0
+🧪 Test files: 156
+🎨 UI components: 21 | Layout: 2 | Pages: 10
+📦 Domain models (non-empty): 25
+🐍 Real Python files: 116
+🕐 Files modified in last 5 min: 1
+   Recent files:
+/c/Users/Administrator/Desktop/site/docs/monitor_log.txt
+
+📊 SUMMARY:
+   Phase 0 completion: Git=YES | Dockerfiles=YES
+   Phase 1 progress: APIs=21 | Services=22 | Schemas=22 | Migrations=0
+   Frontend progress: Components=21 | Pages=10 | npm=YES
+
+========================================
+🔍 Monitor Check: 2026-09-09 23:19:58
+========================================
+📁 Total files: 40416
+✅ Git: Initialized
+✅ npm: Dependencies installed
+📡 API route files (non-empty): 21
+⚙️  Service files (non-empty): 22
+📋 Schema files (non-empty): 22
+🏗️  Infrastructure files (non-empty): 7
+🔄 Alembic migrations: 0
+🧪 Test files: 156
+🎨 UI components: 21 | Layout: 2 | Pages: 10
+📦 Domain models (non-empty): 25
+🐍 Real Python files: 116
+🕐 Files modified in last 5 min: 1
+   Recent files:
+/c/Users/Administrator/Desktop/site/docs/monitor_log.txt
+
+📊 SUMMARY:
+   Phase 0 completion: Git=YES | Dockerfiles=YES
+   Phase 1 progress: APIs=21 | Services=22 | Schemas=22 | Migrations=0
+   Frontend progress: Components=21 | Pages=10 | npm=YES
+
+========================================
+🔍 Monitor Check: 2026-09-09 23:25:09
+========================================
+📁 Total files: 40416
+✅ Git: Initialized
+✅ npm: Dependencies installed
+📡 API route files (non-empty): 21
+⚙️  Service files (non-empty): 22
+📋 Schema files (non-empty): 22
+🏗️  Infrastructure files (non-empty): 7
+🔄 Alembic migrations: 0
+🧪 Test files: 156
+🎨 UI components: 21 | Layout: 2 | Pages: 10
+📦 Domain models (non-empty): 25
+🐍 Real Python files: 116
+🕐 Files modified in last 5 min: 328
+   Recent files:
+/c/Users/Administrator/Desktop/site/backend/app/core/cache/__pycache__/redis.cpython-314.pyc
+/c/Users/Administrator/Desktop/site/backend/app/core/cache/__pycache__/__init__.cpython-314.pyc
+/c/Users/Administrator/Desktop/site/backend/app/core/config/__pycache__/settings.cpython-314.pyc
+/c/Users/Administrator/Desktop/site/backend/app/core/config/__pycache__/__init__.cpython-314.pyc
+/c/Users/Administrator/Desktop/site/backend/app/core/database/__pycache__/base.cpython-314.pyc
+/c/Users/Administrator/Desktop/site/backend/app/core/database/__pycache__/session.cpython-314.pyc
+/c/Users/Administrator/Desktop/site/backend/app/core/database/__pycache__/__init__.cpython-314.pyc
+/c/Users/Administrator/Desktop/site/backend/app/core/exceptions/__pycache__/handlers.cpython-314.pyc
+/c/Users/Administrator/Desktop/site/backend/app/core/exceptions/__pycache__/__init__.cpython-314.pyc
+/c/Users/Administrator/Desktop/site/backend/app/core/logging/__pycache__/config.cpython-314.pyc
+/c/Users/Administrator/Desktop/site/backend/app/core/logging/__pycache__/__init__.cpython-314.pyc
+/c/Users/Administrator/Desktop/site/backend/app/core/observability/__pycache__/metrics.cpython-314.pyc
+/c/Users/Administrator/Desktop/site/backend/app/core/observability/__pycache__/middleware.cpython-314.pyc
+/c/Users/Administrator/Desktop/site/backend/app/core/observability/__pycache__/__init__.cpython-314.pyc
+/c/Users/Administrator/Desktop/site/backend/app/core/security/__pycache__/dependencies.cpython-314.pyc
+/c/Users/Administrator/Desktop/site/backend/app/core/security/__pycache__/jwt.cpython-314.pyc
+/c/Users/Administrator/Desktop/site/backend/app/core/security/__pycache__/password.cpython-314.pyc
+/c/Users/Administrator/Desktop/site/backend/app/core/security/__pycache__/__init__.cpython-314.pyc
+/c/Users/Administrator/Desktop/site/backend/app/core/__pycache__/__init__.cpython-314.pyc
+/c/Users/Administrator/Desktop/site/backend/app/modules/analytics/api/__pycache__/__init__.cpython-314.pyc
+
+📊 SUMMARY:
+   Phase 0 completion: Git=YES | Dockerfiles=YES
+   Phase 1 progress: APIs=21 | Services=22 | Schemas=22 | Migrations=0
+   Frontend progress: Components=21 | Pages=10 | npm=YES
+
+========================================
+🔍 Monitor Check: 2026-09-09 23:30:19
+========================================
+📁 Total files: 40426
+✅ Git: Initialized
+✅ npm: Dependencies installed
+📡 API route files (non-empty): 23
+⚙️  Service files (non-empty): 23
+📋 Schema files (non-empty): 23
+🏗️  Infrastructure files (non-empty): 7
+🔄 Alembic migrations: 0
+🧪 Test files: 156
+🎨 UI components: 21 | Layout: 2 | Pages: 10
+📦 Domain models (non-empty): 25
+🐍 Real Python files: 120
+🕐 Files modified in last 5 min: 340
+   Recent files:
+/c/Users/Administrator/Desktop/site/backend/app/core/cache/__pycache__/redis.cpython-314.pyc
+/c/Users/Administrator/Desktop/site/backend/app/core/cache/__pycache__/__init__.cpython-314.pyc
+/c/Users/Administrator/Desktop/site/backend/app/core/config/__pycache__/settings.cpython-314.pyc
+/c/Users/Administrator/Desktop/site/backend/app/core/config/__pycache__/__init__.cpython-314.pyc
+/c/Users/Administrator/Desktop/site/backend/app/core/database/__pycache__/base.cpython-314.pyc
+/c/Users/Administrator/Desktop/site/backend/app/core/database/__pycache__/session.cpython-314.pyc
+/c/Users/Administrator/Desktop/site/backend/app/core/database/__pycache__/__init__.cpython-314.pyc
+/c/Users/Administrator/Desktop/site/backend/app/core/exceptions/__pycache__/handlers.cpython-314.pyc
+/c/Users/Administrator/Desktop/site/backend/app/core/exceptions/__pycache__/__init__.cpython-314.pyc
+/c/Users/Administrator/Desktop/site/backend/app/core/logging/__pycache__/config.cpython-314.pyc
+/c/Users/Administrator/Desktop/site/backend/app/core/logging/__pycache__/__init__.cpython-314.pyc
+/c/Users/Administrator/Desktop/site/backend/app/core/observability/__pycache__/metrics.cpython-314.pyc
+/c/Users/Administrator/Desktop/site/backend/app/core/observability/__pycache__/middleware.cpython-314.pyc
+/c/Users/Administrator/Desktop/site/backend/app/core/observability/__pycache__/__init__.cpython-314.pyc
+/c/Users/Administrator/Desktop/site/backend/app/core/security/__pycache__/dependencies.cpython-314.pyc
+/c/Users/Administrator/Desktop/site/backend/app/core/security/__pycache__/jwt.cpython-314.pyc
+/c/Users/Administrator/Desktop/site/backend/app/core/security/__pycache__/password.cpython-314.pyc
+/c/Users/Administrator/Desktop/site/backend/app/core/security/__pycache__/__init__.cpython-314.pyc
+/c/Users/Administrator/Desktop/site/backend/app/core/__pycache__/__init__.cpython-314.pyc
+/c/Users/Administrator/Desktop/site/backend/app/main.py
+
+📊 SUMMARY:
+   Phase 0 completion: Git=YES | Dockerfiles=YES
+   Phase 1 progress: APIs=23 | Services=23 | Schemas=23 | Migrations=0
+   Frontend progress: Components=21 | Pages=10 | npm=YES
+

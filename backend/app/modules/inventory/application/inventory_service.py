@@ -1,0 +1,490 @@
+"""Inventory application service — stock management with row-level locking."""
+
+from __future__ import annotations
+
+import uuid
+from datetime import datetime, timedelta, timezone
+from typing import Optional
+
+import structlog
+from sqlalchemy import func, select, update
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.core.exceptions.handlers import ConflictError, NotFoundError, ValidationError
+from app.modules.inventory.domain.models import (
+    InventoryItem,
+    InventoryReservation,
+    InventoryTransaction,
+    ReservationStatus,
+    TransactionType,
+)
+
+logger: structlog.stdlib.BoundLogger = structlog.get_logger()
+
+
+# ── Helpers ────────────────────────────────────────────────────────────────
+
+
+async def _get_item_for_update(
+    db: AsyncSession,
+    variant_id: uuid.UUID,
+) -> InventoryItem:
+    """Fetch the inventory row with ``SELECT … FOR UPDATE``."""
+    stmt = (
+        select(InventoryItem)
+        .where(InventoryItem.variant_id == variant_id)
+        .with_for_update()
+    )
+    result = await db.execute(stmt)
+    item = result.scalar_one_or_none()
+    if item is None:
+        raise NotFoundError(
+            resource="InventoryItem",
+            detail=f"No inventory record for variant {variant_id}",
+        )
+    return item
+
+
+async def _record_transaction(
+    db: AsyncSession,
+    inventory_item_id: uuid.UUID,
+    quantity: int,
+    tx_type: TransactionType,
+    reference_type: str | None = None,
+    reference_id: uuid.UUID | None = None,
+    notes: str | None = None,
+) -> InventoryTransaction:
+    txn = InventoryTransaction(
+        inventory_item_id=inventory_item_id,
+        quantity=quantity,
+        type=tx_type,
+        reference_type=reference_type,
+        reference_id=reference_id,
+        notes=notes,
+    )
+    db.add(txn)
+    return txn
+
+
+# ── Public API ─────────────────────────────────────────────────────────────
+
+
+async def get_inventory(
+    db: AsyncSession,
+    variant_id: uuid.UUID,
+) -> InventoryItem:
+    """Return inventory record for a given product variant."""
+    stmt = select(InventoryItem).where(InventoryItem.variant_id == variant_id)
+    result = await db.execute(stmt)
+    item = result.scalar_one_or_none()
+    if item is None:
+        raise NotFoundError(
+            resource="InventoryItem",
+            detail=f"No inventory record for variant {variant_id}",
+        )
+    return item
+
+
+async def get_inventory_list(
+    db: AsyncSession,
+    *,
+    page: int = 1,
+    page_size: int = 50,
+    low_stock_only: bool = False,
+    track_inventory: bool | None = None,
+) -> tuple[list[InventoryItem], int]:
+    """Return a paginated list of inventory items with optional filters."""
+    base = select(InventoryItem)
+    count_base = select(func.count(InventoryItem.id))
+
+    if low_stock_only:
+        condition = InventoryItem.available <= InventoryItem.low_stock_threshold
+        base = base.where(condition)
+        count_base = count_base.where(condition)
+    if track_inventory is not None:
+        base = base.where(InventoryItem.track_inventory == track_inventory)
+        count_base = count_base.where(InventoryItem.track_inventory == track_inventory)
+
+    total = (await db.execute(count_base)).scalar_one()
+    items_result = await db.execute(
+        base.order_by(InventoryItem.created_at.desc())
+        .offset((page - 1) * page_size)
+        .limit(page_size)
+    )
+    return list(items_result.scalars().all()), total
+
+
+async def adjust_stock(
+    db: AsyncSession,
+    variant_id: uuid.UUID,
+    quantity: int,
+    tx_type: TransactionType,
+    reference_type: str | None = None,
+    reference_id: uuid.UUID | None = None,
+    notes: str | None = None,
+) -> InventoryItem:
+    """Adjust stock levels with full audit trail.
+
+    Uses ``SELECT … FOR UPDATE`` to prevent race conditions.  The caller
+    must ensure the session is inside a transaction (the default ``get_db``
+    dependency already commits on success / rolls back on error).
+    """
+    item = await _get_item_for_update(db, variant_id)
+
+    # Apply adjustment based on type
+    if tx_type == TransactionType.RECEIVED:
+        if quantity <= 0:
+            raise ValidationError("Received quantity must be positive")
+        item.available += quantity
+        item.incoming = max(0, item.incoming - quantity)
+
+    elif tx_type == TransactionType.DAMAGED:
+        if quantity <= 0:
+            raise ValidationError("Damaged quantity must be positive")
+        if item.available < quantity:
+            raise ConflictError(
+                detail=f"Cannot mark {quantity} as damaged; only {item.available} available"
+            )
+        item.available -= quantity
+        item.damaged += quantity
+
+    elif tx_type == TransactionType.ADJUSTED:
+        # Generic adjustment — positive adds, negative removes
+        new_available = item.available + quantity
+        if new_available < 0:
+            raise ConflictError(
+                detail=f"Adjustment would bring available stock to {new_available}"
+            )
+        item.available = new_available
+
+    elif tx_type == TransactionType.RETURNED:
+        if quantity <= 0:
+            raise ValidationError("Return quantity must be positive")
+        item.available += quantity
+        item.committed = max(0, item.committed - quantity)
+
+    elif tx_type == TransactionType.SOLD:
+        if quantity <= 0:
+            raise ValidationError("Sold quantity must be positive")
+        if item.committed < quantity:
+            raise ConflictError(
+                detail=f"Cannot sell {quantity}; only {item.committed} committed"
+            )
+        item.committed -= quantity
+
+    else:
+        raise ValidationError(f"Unsupported transaction type for manual adjustment: {tx_type}")
+
+    await _record_transaction(
+        db,
+        inventory_item_id=item.id,
+        quantity=quantity,
+        tx_type=tx_type,
+        reference_type=reference_type,
+        reference_id=reference_id,
+        notes=notes,
+    )
+
+    await db.flush()
+    await logger.ainfo(
+        "inventory_adjusted",
+        variant_id=str(variant_id),
+        type=tx_type.value,
+        quantity=quantity,
+        new_available=item.available,
+    )
+    return item
+
+
+async def reserve_stock(
+    db: AsyncSession,
+    variant_id: uuid.UUID,
+    quantity: int,
+    cart_id: uuid.UUID | None = None,
+    order_id: uuid.UUID | None = None,
+    ttl_minutes: int = 15,
+) -> InventoryReservation:
+    """Create a time-limited stock reservation.
+
+    Decrements ``available`` and increments ``reserved``.  If the reservation
+    is not confirmed within *ttl_minutes* it should be released by a
+    background job.
+    """
+    if quantity <= 0:
+        raise ValidationError("Reserve quantity must be positive")
+
+    item = await _get_item_for_update(db, variant_id)
+
+    if item.available < quantity and not item.backorder_allowed:
+        raise ConflictError(
+            detail=(
+                f"Insufficient stock for variant {variant_id}: "
+                f"requested {quantity}, available {item.available}"
+            ),
+        )
+
+    item.available -= quantity
+    item.reserved += quantity
+
+    reservation = InventoryReservation(
+        inventory_item_id=item.id,
+        order_id=order_id,
+        cart_id=cart_id,
+        quantity=quantity,
+        expires_at=datetime.now(timezone.utc) + timedelta(minutes=ttl_minutes),
+        status=ReservationStatus.PENDING,
+    )
+    db.add(reservation)
+
+    await _record_transaction(
+        db,
+        inventory_item_id=item.id,
+        quantity=quantity,
+        tx_type=TransactionType.RESERVED,
+        reference_type="cart" if cart_id else "order",
+        reference_id=cart_id or order_id,
+        notes=f"Reserved for {ttl_minutes} minutes",
+    )
+
+    await db.flush()
+    await logger.ainfo(
+        "stock_reserved",
+        variant_id=str(variant_id),
+        quantity=quantity,
+        reservation_id=str(reservation.id),
+        expires_at=reservation.expires_at.isoformat(),
+    )
+    return reservation
+
+
+async def release_reservation(
+    db: AsyncSession,
+    reservation_id: uuid.UUID,
+) -> InventoryReservation:
+    """Release a pending reservation — returns reserved stock to available."""
+    stmt = (
+        select(InventoryReservation)
+        .where(InventoryReservation.id == reservation_id)
+        .with_for_update()
+    )
+    result = await db.execute(stmt)
+    reservation = result.scalar_one_or_none()
+    if reservation is None:
+        raise NotFoundError(resource="InventoryReservation")
+
+    if reservation.status != ReservationStatus.PENDING:
+        raise ConflictError(
+            detail=f"Reservation {reservation_id} is already {reservation.status.value}"
+        )
+
+    # Restore stock
+    item_stmt = (
+        select(InventoryItem)
+        .where(InventoryItem.id == reservation.inventory_item_id)
+        .with_for_update()
+    )
+    item_result = await db.execute(item_stmt)
+    item = item_result.scalar_one()
+
+    item.available += reservation.quantity
+    item.reserved = max(0, item.reserved - reservation.quantity)
+
+    reservation.status = ReservationStatus.RELEASED
+
+    await _record_transaction(
+        db,
+        inventory_item_id=item.id,
+        quantity=reservation.quantity,
+        tx_type=TransactionType.RELEASED,
+        reference_type="reservation",
+        reference_id=reservation.id,
+    )
+
+    await db.flush()
+    await logger.ainfo(
+        "reservation_released",
+        reservation_id=str(reservation_id),
+        quantity=reservation.quantity,
+    )
+    return reservation
+
+
+async def confirm_reservation(
+    db: AsyncSession,
+    reservation_id: uuid.UUID,
+) -> InventoryReservation:
+    """Confirm a reservation — moves stock from reserved to committed."""
+    stmt = (
+        select(InventoryReservation)
+        .where(InventoryReservation.id == reservation_id)
+        .with_for_update()
+    )
+    result = await db.execute(stmt)
+    reservation = result.scalar_one_or_none()
+    if reservation is None:
+        raise NotFoundError(resource="InventoryReservation")
+
+    if reservation.status != ReservationStatus.PENDING:
+        raise ConflictError(
+            detail=f"Reservation {reservation_id} is already {reservation.status.value}"
+        )
+
+    item_stmt = (
+        select(InventoryItem)
+        .where(InventoryItem.id == reservation.inventory_item_id)
+        .with_for_update()
+    )
+    item_result = await db.execute(item_stmt)
+    item = item_result.scalar_one()
+
+    item.reserved = max(0, item.reserved - reservation.quantity)
+    item.committed += reservation.quantity
+
+    reservation.status = ReservationStatus.CONFIRMED
+
+    await db.flush()
+    await logger.ainfo(
+        "reservation_confirmed",
+        reservation_id=str(reservation_id),
+        quantity=reservation.quantity,
+    )
+    return reservation
+
+
+async def check_availability(
+    db: AsyncSession,
+    variant_id: uuid.UUID,
+    quantity: int,
+) -> bool:
+    """Return ``True`` if *quantity* units are available (or backorder is allowed)."""
+    stmt = select(InventoryItem).where(InventoryItem.variant_id == variant_id)
+    result = await db.execute(stmt)
+    item = result.scalar_one_or_none()
+    if item is None:
+        return False
+    if not item.track_inventory:
+        return True
+    if item.backorder_allowed:
+        return True
+    return item.available >= quantity
+
+
+async def get_low_stock_items(
+    db: AsyncSession,
+    threshold: int | None = None,
+    *,
+    page: int = 1,
+    page_size: int = 50,
+) -> tuple[list[InventoryItem], int]:
+    """Return items whose available stock is at or below their threshold.
+
+    If *threshold* is provided it overrides the per-item ``low_stock_threshold``.
+    """
+    if threshold is not None:
+        condition = InventoryItem.available <= threshold
+    else:
+        condition = InventoryItem.available <= InventoryItem.low_stock_threshold
+
+    count_stmt = select(func.count(InventoryItem.id)).where(condition)
+    total = (await db.execute(count_stmt)).scalar_one()
+
+    stmt = (
+        select(InventoryItem)
+        .where(condition)
+        .order_by(InventoryItem.available.asc())
+        .offset((page - 1) * page_size)
+        .limit(page_size)
+    )
+    rows = (await db.execute(stmt)).scalars().all()
+    return list(rows), total
+
+
+async def get_transactions(
+    db: AsyncSession,
+    variant_id: uuid.UUID,
+    *,
+    page: int = 1,
+    page_size: int = 50,
+    tx_type: TransactionType | None = None,
+) -> tuple[list[InventoryTransaction], int]:
+    """Return paginated transaction history for a variant."""
+    # First get the inventory item
+    item_stmt = select(InventoryItem.id).where(InventoryItem.variant_id == variant_id)
+    item_result = await db.execute(item_stmt)
+    inventory_item_id = item_result.scalar_one_or_none()
+    if inventory_item_id is None:
+        raise NotFoundError(
+            resource="InventoryItem",
+            detail=f"No inventory record for variant {variant_id}",
+        )
+
+    base = select(InventoryTransaction).where(
+        InventoryTransaction.inventory_item_id == inventory_item_id
+    )
+    count_base = select(func.count(InventoryTransaction.id)).where(
+        InventoryTransaction.inventory_item_id == inventory_item_id
+    )
+
+    if tx_type is not None:
+        base = base.where(InventoryTransaction.type == tx_type)
+        count_base = count_base.where(InventoryTransaction.type == tx_type)
+
+    total = (await db.execute(count_base)).scalar_one()
+    rows_result = await db.execute(
+        base.order_by(InventoryTransaction.created_at.desc())
+        .offset((page - 1) * page_size)
+        .limit(page_size)
+    )
+    return list(rows_result.scalars().all()), total
+
+
+async def expire_stale_reservations(db: AsyncSession) -> int:
+    """Release all reservations whose ``expires_at`` has passed.
+
+    Intended to be called by a periodic background task (e.g. Celery beat).
+    Returns the number of reservations released.
+    """
+    now = datetime.now(timezone.utc)
+
+    stmt = (
+        select(InventoryReservation)
+        .where(
+            InventoryReservation.status == ReservationStatus.PENDING,
+            InventoryReservation.expires_at <= now,
+        )
+        .with_for_update()
+    )
+    result = await db.execute(stmt)
+    expired = list(result.scalars().all())
+
+    released_count = 0
+    for reservation in expired:
+        item_stmt = (
+            select(InventoryItem)
+            .where(InventoryItem.id == reservation.inventory_item_id)
+            .with_for_update()
+        )
+        item_result = await db.execute(item_stmt)
+        item = item_result.scalar_one_or_none()
+        if item is None:
+            continue
+
+        item.available += reservation.quantity
+        item.reserved = max(0, item.reserved - reservation.quantity)
+        reservation.status = ReservationStatus.EXPIRED
+
+        await _record_transaction(
+            db,
+            inventory_item_id=item.id,
+            quantity=reservation.quantity,
+            tx_type=TransactionType.RELEASED,
+            reference_type="reservation_expired",
+            reference_id=reservation.id,
+        )
+        released_count += 1
+
+    if released_count:
+        await db.flush()
+        await logger.ainfo("stale_reservations_expired", count=released_count)
+
+    return released_count

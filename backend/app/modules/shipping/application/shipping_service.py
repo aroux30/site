@@ -218,6 +218,14 @@ async def create_shipment(
     if method is None:
         raise NotFoundError("ShippingMethod")
 
+    # Validate order exists and can be shipped
+    from app.modules.orders.domain.models import Order, OrderStatus
+    order = await db.get(Order, order_id)
+    if order is None:
+        raise NotFoundError("Order")
+    if order.status in (OrderStatus.CANCELED, OrderStatus.REFUNDED):
+        raise ValidationError(f"Cannot create shipment for order in status {order.status.value}")
+
     shipment = Shipment(
         order_id=order_id,
         method_id=method_id,

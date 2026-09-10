@@ -28,6 +28,7 @@ from app.modules.payments.domain.models import (
     PaymentStatus,
     PaymentTransaction,
     PaymentTransactionType,
+    PaymentWebhookEvent,
     Refund,
     RefundStatus,
 )
@@ -410,21 +411,67 @@ async def process_callback(
             detail=f"No payment found for authority/id '{authority or callback_data.order_id}'",
         )
 
+    event_id = authority or str(callback_data.order_id or payment.id)
+
+    # ── Replay & Idempotency check via PaymentWebhookEvent ───────────
+    webhook_stmt = (
+        select(PaymentWebhookEvent)
+        .where(
+            PaymentWebhookEvent.provider == provider,
+            PaymentWebhookEvent.event_id == event_id,
+        )
+        .with_for_update()
+    )
+    webhook_result = await db.execute(webhook_stmt)
+    webhook_event = webhook_result.scalar_one_or_none()
+
+    if webhook_event and webhook_event.processed:
+        await logger.ainfo(
+            "payment_webhook_already_processed",
+            provider=provider,
+            event_id=event_id,
+            payment_id=str(payment.id),
+        )
+        return PaymentResponse.model_validate(payment)
+
+    if webhook_event is None:
+        webhook_event = PaymentWebhookEvent(
+            provider=provider,
+            event_id=event_id,
+            payment_id=payment.id,
+            payload=callback_data.model_dump(mode="json"),
+            processed=False,
+        )
+        db.add(webhook_event)
+        await db.flush()
+
     if payment.status == PaymentStatus.COMPLETED:
         await logger.ainfo(
             "payment_callback_already_completed",
             payment_id=str(payment.id),
         )
+        webhook_event.processed = True
+        webhook_event.processed_at = datetime.now(timezone.utc)
+        await db.flush()
         return PaymentResponse.model_validate(payment)
 
     # Verify with the provider
     callback_status = callback_data.status or ""
-    return await verify_payment(
-        db,
-        payment_id=payment.id,
-        authority=authority,
-        status=callback_status,
-    )
+    try:
+        response = await verify_payment(
+            db,
+            payment_id=payment.id,
+            authority=authority,
+            status=callback_status,
+        )
+        webhook_event.processed = True
+        webhook_event.processed_at = datetime.now(timezone.utc)
+        await db.flush()
+        return response
+    except Exception as exc:
+        webhook_event.error = str(exc)
+        await db.flush()
+        raise
 
 
 async def refund_payment(
@@ -456,7 +503,10 @@ async def refund_payment(
         actor_id=str(actor_id),
     )
 
-    payment = await _get_payment_or_raise(db, payment_id)
+    stmt_lock = select(Payment).where(Payment.id == payment_id).with_for_update()
+    payment = (await db.execute(stmt_lock)).scalar_one_or_none()
+    if payment is None:
+        raise NotFoundError(resource="Payment")
 
     if payment.status != PaymentStatus.COMPLETED:
         raise ValidationError(
@@ -472,11 +522,12 @@ async def refund_payment(
             error_code="REFUND_EXCEEDS_PAYMENT",
         )
 
-    # Check total existing refunds
+    # Check total existing refunds with row locks
     stmt = (
         select(Refund)
         .where(Refund.payment_id == payment_id)
         .where(Refund.status.in_([RefundStatus.PENDING, RefundStatus.APPROVED, RefundStatus.PROCESSED]))
+        .with_for_update()
     )
     result = await db.execute(stmt)
     existing_refunds = result.scalars().all()
@@ -537,6 +588,20 @@ async def refund_payment(
     # Update payment status if fully refunded
     if total_refunded + amount >= payment.amount:
         payment.status = PaymentStatus.REFUNDED
+        if payment.order_id:
+            from app.modules.orders.domain.models import Order, OrderStatus, OrderStatusHistory
+            order_lock = select(Order).where(Order.id == payment.order_id).with_for_update()
+            order = (await db.execute(order_lock)).scalar_one_or_none()
+            if order and order.status not in (OrderStatus.CANCELED, OrderStatus.REFUNDED):
+                order.status = OrderStatus.REFUNDED
+                history = OrderStatusHistory(
+                    order_id=order.id,
+                    from_status=order.status.value,
+                    to_status=OrderStatus.REFUNDED.value,
+                    changed_by=actor_id,
+                    reason=f"Full refund processed for payment {payment.id}",
+                )
+                db.add(history)
     await db.flush()
 
     await logger.ainfo(

@@ -7,12 +7,14 @@ from typing import Any, Optional
 
 from sqlalchemy import (
     BigInteger,
+    Boolean,
     DateTime,
     Enum,
     ForeignKey,
     Index,
     String,
     Text,
+    UniqueConstraint,
 )
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -186,3 +188,35 @@ class Refund(BaseModel):
 
     def __repr__(self) -> str:
         return f"<Refund(id={self.id}, amount={self.amount}, status={self.status})>"
+
+
+class PaymentWebhookEvent(BaseModel):
+    """Raw incoming webhook payloads recorded for replay protection and idempotency."""
+
+    __tablename__ = "payment_webhook_events"
+    __table_args__ = (
+        UniqueConstraint("provider", "event_id", name="uq_webhook_provider_event_id"),
+        Index("ix_webhook_events_provider", "provider"),
+        Index("ix_webhook_events_event_id", "event_id"),
+        Index("ix_webhook_events_created_at", "created_at"),
+    )
+
+    provider: Mapped[str] = mapped_column(String(50), nullable=False)
+    event_id: Mapped[str] = mapped_column(String(255), nullable=False)
+    payment_id: Mapped[Optional[uuid.UUID]] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("payments.id", ondelete="SET NULL"),
+        nullable=True,
+    )
+    payload: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False)
+    processed: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    processed_at: Mapped[Optional[datetime]] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    error: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+
+    payment: Mapped[Optional["Payment"]] = relationship("Payment")
+
+    def __repr__(self) -> str:
+        return f"<PaymentWebhookEvent(provider={self.provider}, event_id={self.event_id}, processed={self.processed})>"
+

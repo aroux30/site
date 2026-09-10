@@ -683,4 +683,74 @@ async def test_card_to_card_simulated_approval_strictly_fails_closed_in_producti
         assert "strictly forbidden in production" in str(exc_info.value)
 
 
+@pytest.mark.asyncio
+async def test_refund_amount_exceeding_payment_rejected():
+    """Ensure refund amount cannot exceed the original payment amount."""
+    from app.core.exceptions.handlers import ValidationError
+    from app.modules.payments.domain.models import Payment, PaymentProvider, PaymentStatus
+
+    mock_payment = Payment(
+        id=uuid.uuid4(),
+        order_id=uuid.uuid4(),
+        amount=500_000,
+        currency="IRR",
+        provider=PaymentProvider.ZARINPAL,
+        status=PaymentStatus.COMPLETED,
+    )
+    mock_db = MagicMock()
+    mock_db.execute = AsyncMock(
+        return_value=MagicMock(scalar_one_or_none=MagicMock(return_value=mock_payment))
+    )
+
+    with pytest.raises(ValidationError) as exc_info:
+        await payment_service.refund_payment(
+            mock_db,
+            payment_id=mock_payment.id,
+            amount=600_000,
+            actor_id=uuid.uuid4(),
+        )
+    assert "exceeds payment amount" in str(exc_info.value)
+
+
+@pytest.mark.asyncio
+async def test_cumulative_refunds_exceeding_payment_rejected():
+    """Ensure cumulative refunds cannot exceed payment amount."""
+    from app.core.exceptions.handlers import ValidationError
+    from app.modules.payments.domain.models import Payment, PaymentProvider, PaymentStatus, Refund, RefundStatus
+
+    mock_payment = Payment(
+        id=uuid.uuid4(),
+        order_id=uuid.uuid4(),
+        amount=1_000_000,
+        currency="IRR",
+        provider=PaymentProvider.ZARINPAL,
+        status=PaymentStatus.COMPLETED,
+    )
+    existing_refund = Refund(
+        id=uuid.uuid4(),
+        payment_id=mock_payment.id,
+        order_id=mock_payment.order_id,
+        amount=700_000,
+        status=RefundStatus.PROCESSED,
+    )
+
+    mock_db = MagicMock()
+    mock_db.execute = AsyncMock(
+        side_effect=[
+            MagicMock(scalar_one_or_none=MagicMock(return_value=mock_payment)),
+            MagicMock(scalars=MagicMock(return_value=MagicMock(all=MagicMock(return_value=[existing_refund])))),
+        ]
+    )
+
+    with pytest.raises(ValidationError) as exc_info:
+        await payment_service.refund_payment(
+            mock_db,
+            payment_id=mock_payment.id,
+            amount=400_000,
+            actor_id=uuid.uuid4(),
+        )
+    assert "Total refund amount" in str(exc_info.value)
+
+
+
 

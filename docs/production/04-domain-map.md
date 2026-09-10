@@ -1,7 +1,7 @@
-# 04 — DOMAIN MAP & ARCHITECTURAL BOUNDARIES
+# 04 — DOMAIN MAP, ARCHITECTURAL BOUNDARIES & AUTHENTICATION MODEL
 ## Enterprise-Grade Iranian Headless E-Commerce Platform
-**Standard:** Production Certification, Verification & Hardening Master v4  
-**Date:** 2026-09-10  
+**Standard:** Production Certification, Verification & Hardening Master v7  
+**Date:** 2026-09-11  
 **Evaluator:** Principal Enterprise Software Architect  
 
 ---
@@ -31,7 +31,43 @@ An automated AST import sweep was conducted across all files under `backend/app/
 
 ---
 
-## 2. Comprehensive 35-Module Bounded Context Map
+## 2. Canonical Authentication & Token Transport Model (Section 8)
+
+The platform supports a dual-channel authentication architecture designed to balance browser security against native API flexibility:
+
+```
+                  ┌───────────────────────────────────────────────────────────┐
+                  │                Incoming Request Validation                 │
+                  └─────────────────────────────┬─────────────────────────────┘
+                                                │
+                     ┌──────────────────────────┴──────────────────────────┐
+                     ▼                                                     ▼
+      [Channel 1: Programmatic / Mobile]                    [Channel 2: Browser Frontends]
+         Authorization: Bearer <JWT>                            Cookie: access_token
+                     │                                                     │
+                     ▼                                                     ▼
+       HTTPBearer(auto_error=False)                           FastAPI Cookie(default=None)
+                     │                                                     │
+                     └──────────────────────────┬──────────────────────────┘
+                                                │
+                                                ▼
+                                    verify_token(token, "access")
+```
+
+1. **Browser Sessions (Web Storefront & Admin Dashboard):**
+   - **Access Token:** Stored in `access_token` cookie with flags: `HttpOnly=True`, `Secure=True`, `SameSite=Lax`, `Path=/api/`, `Max-Age=1800` (30 minutes).
+   - **Refresh Token:** Stored in `refresh_token` cookie scoped strictly to `Path=/api/v1/auth/refresh`, `HttpOnly=True`, `Secure=True`, `SameSite=Lax`, `Max-Age=604800` (7 days).
+   - **CSRF Defense:** Mitigated via `SameSite=Lax` cookie policy preventing cross-site state-changing POST requests, combined with custom frontend API client headers (`X-Requested-With` / JSON Content-Type).
+   - **Threat Model:** JavaScript execution (XSS) cannot read the session or refresh tokens from `document.cookie` due to the `HttpOnly` flag.
+
+2. **Programmatic API & Mobile App Clients:**
+   - Transported via standard RFC 6750 header: `Authorization: Bearer <access_token>`.
+   - Token refresh via `POST /api/v1/auth/refresh` sending JSON payload `{"refresh_token": "..."}`.
+   - Mobile apps manage token vaulting in secure hardware keystores (Android Keystore / iOS Keychain).
+
+---
+
+## 3. Comprehensive 35-Module Bounded Context Map
 
 | Module Package | Primary Domain Entities | Application Services | Invariants & Business Rules |
 |---|---|---|---|
@@ -43,7 +79,7 @@ An automated AST import sweep was conducted across all files under `backend/app/
 | `app.modules.cart` | `Cart`, `CartItem` | `CartService` | Server-authoritative totals, guest-cart merge via `X-Session-ID` |
 | `app.modules.checkout`| `TaxRule` | `CheckoutService`, `TaxService` | Idempotent order creation, server recalculation of VAT (basis points) |
 | `app.modules.orders` | `Order`, `OrderItem`, `OrderStatusHistory` | `OrderService`, `InvoiceService` | 12-state deterministic FSM, immutable item snapshots, printable tax invoice |
-| `app.modules.payments`| `Payment`, `PaymentTransaction`, `Refund` | `PaymentService`, `ProviderFactory` | Strategy Pattern (Zarinpal, IDPay, Crypto, C2C), duplicate webhook rejection |
+| `app.modules.payments`| `Payment`, `PaymentTransaction`, `PaymentWebhookEvent` | `PaymentService`, `ProviderFactory` | Strategy Pattern (Zarinpal, IDPay, Crypto, C2C), duplicate webhook rejection |
 | `app.modules.wallet` | `Wallet`, `WalletTransaction` | `WalletService` | Append-only ledger, row-level locks, zero negative balance, audit trail |
 | `app.modules.shipping`| `ShippingMethod`, `ShippingRate`, `Shipment` | `ShippingService` | Weight/province matrix, free-shipping threshold, shipment tracking |
 | `app.modules.discounts`| `Discount`, `Coupon`, `CouponRedemption` | `DiscountService` | Single-use concurrency locks, max discount caps, basis-points percentage |
@@ -59,7 +95,7 @@ An automated AST import sweep was conducted across all files under `backend/app/
 
 ---
 
-## 3. Mutual Dependency Analysis
+## 4. Mutual Dependency Analysis
 
 Three module pairs maintain mutual references for ORM model mapping and cross-domain lookups:
 1. **`blog` $\leftrightarrow$ `seo`**: `BlogPost` model references `SEOMetadata` for search engine snippets, while `seo` router provides analysis routes for blog posts.
@@ -67,3 +103,4 @@ Three module pairs maintain mutual references for ORM model mapping and cross-do
 3. **`rbac` $\leftrightarrow$ `users`**: `User` has `roles` relationship through `UserRole` association table.
 
 All three relationships are strictly resolved at the application/ORM level with foreign keys enforced by PostgreSQL (`ON DELETE RESTRICT`).
+

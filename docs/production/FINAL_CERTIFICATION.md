@@ -4,7 +4,7 @@
 **Date:** 2026-09-11  
 **Evaluator:** Principal Systems Architect & Lead Certification Authority  
 **Repository:** `https://github.com/aroux30/site`  
-**Host IP:** `http://91.107.144.136`  
+**Production URL:** `https://site.arouxpingg.com` (Host IP: `91.107.144.136`)  
 
 ---
 

@@ -8,11 +8,11 @@
 
 ## 1. Executive Summary of Open Certification Blockers
 
-While all core software engineering, financial arithmetic, and database concurrency gates have been verified with 100% passing tests (163 automated tests, 75 tables, zero oversell), the following **three external operational items** currently block final production go-live certification:
+While all core software engineering, financial arithmetic, edge HTTPS encryption, and database concurrency gates have been verified with 100% passing tests (163 automated tests, 75 tables, zero oversell), the following **two external operational items** currently remain:
 
 ```
 [ BLOCKER 1: GitHub Token Workflow Scope ] ──> Prevents remote CI pipeline execution on GitHub
-[ BLOCKER 2: Commercial FQDN & TLS Cert  ] ──> Required by Iranian payment gateways for HTTPS callbacks
+[ BLOCKER 2: Commercial FQDN & TLS Cert  ] ──> RESOLVED (site.arouxpingg.com active with Let's Encrypt SSL)
 [ BLOCKER 3: Production Merchant API Keys] ──> Required for live Rial billing and Iranian SMS delivery
 ```
 
@@ -34,15 +34,15 @@ While all core software engineering, financial arithmetic, and database concurre
 
 ---
 
-### Blocker BLK-002: Commercial FQDN & TLS/SSL Certificate
+### Blocker BLK-002: Commercial FQDN & TLS/SSL Certificate — RESOLVED ✅
 - **Category:** Infrastructure & Edge Security
-- **Severity:** High (Blocks Live Gateway Operation)
-- **Root Cause:** The platform currently serves traffic directly via IP address `http://91.107.144.136:80`.
-- **Impact:** Iranian bank payment switches (Shaparak, Zarinpal, IDPay) strictly require an HTTPS callback endpoint with a valid, non-self-signed commercial SSL certificate.
-- **Action Required:**
-  1. Configure DNS A record (e.g. `shop.example.ir`) pointing to `91.107.144.136`.
-  2. Update Nginx `server_name` in `/root/site/nginx/nginx.conf`.
-  3. Execute `certbot --nginx -d shop.example.ir` to provision free Let's Encrypt TLS certificate with automated renewal.
+- **Severity:** High (Previously Blocked Live Gateway Operation)
+- **Resolution:**
+  1. Configured DNS A record `site.arouxpingg.com` $\rightarrow$ `91.107.144.136`.
+  2. Provisioned Let's Encrypt RSA TLS certificate (`/etc/letsencrypt/live/site.arouxpingg.com/fullchain.pem`) via Certbot Nginx plugin.
+  3. Configured host Nginx with automatic HTTP (port 80) to HTTPS (port 443) 301 redirection.
+  4. Tested and verified: `https://site.arouxpingg.com/` returns **HTTP 200 OK** with valid SSL.
+  5. Tested and verified: `bot.pingmiss.online` (VPN on 443) continues operating with zero interference.
 
 ---
 
@@ -75,6 +75,6 @@ While all core software engineering, financial arithmetic, and database concurre
 | **Financial Authority (Money)** | 100% Ready | None (100% integer Rials, 0 floats) | ✅ **READY** |
 | **Automated Testing Suite** | 100% Ready | None (147 backend + 16 frontend = 163 tests passed) | ✅ **READY** |
 | **Co-Located Host Workloads** | 100% Ready | None (All 4 existing apps 100% healthy) | ✅ **READY** |
+| **HTTPS / Edge Encryption** | 100% Ready | **RESOLVED** (`https://site.arouxpingg.com`) | ✅ **READY** |
 | **GitHub Actions CI Pipeline** | 100% Ready | BLK-001 (Token `workflow` scope) | ⏳ **PENDING USER ACTION** |
-| **HTTPS / Edge Encryption** | 100% Ready | BLK-002 (Domain DNS assignment) | ⏳ **PENDING USER ACTION** |
 | **Live Payment Gateway** | 100% Ready | BLK-003 (Live Merchant Credentials) | ⏳ **PENDING USER ACTION** |

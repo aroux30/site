@@ -280,3 +280,70 @@ async def test_real_postgres_concurrent_wallet_debits_prevent_double_spending():
     async with async_session_factory() as verify_db:
         balance = await wallet_service.get_balance(verify_db, target_user_id)
         assert balance == 0, f"Wallet balance in DB must be exactly 0, got {balance}"
+
+
+@pytest.mark.asyncio
+async def test_real_postgres_100_concurrent_wallet_debits():
+    """TEST-CONCURRENCY-004: 100 concurrent debit transactions on a funded wallet."""
+    async with async_session_factory() as setup_db:
+        user = User(
+            phone=f"0919{uuid.uuid4().hex[:7]}",
+            password_hash="testhash",
+            is_active=True,
+        )
+        setup_db.add(user)
+        await setup_db.flush()
+
+        wallet = Wallet(
+            user_id=user.id,
+            balance=0,
+            is_active=True,
+        )
+        setup_db.add(wallet)
+        await setup_db.commit()
+
+        target_user_id = user.id
+
+    # Fund the wallet with 5,000,000 Rials
+    async with async_session_factory() as fund_db:
+        await wallet_service.credit(
+            fund_db,
+            user_id=target_user_id,
+            amount=5_000_000,
+            tx_type=WalletTransactionType.CREDIT,
+            description="100-concurrency test deposit",
+        )
+        await fund_db.commit()
+
+    # 100 concurrent debits, each requesting 100,000 Rials (total requested = 10,000,000, capacity = 50)
+    async def _debit(req_id: int):
+        async with async_session_factory() as session:
+            try:
+                tx = await wallet_service.debit(
+                    session,
+                    user_id=target_user_id,
+                    amount=100_000,
+                    tx_type=WalletTransactionType.DEBIT,
+                    description=f"Concurrent debit {req_id}",
+                )
+                await session.commit()
+                return ("SUCCESS", tx.id)
+            except ValidationError:
+                await session.rollback()
+                return ("INSUFFICIENT_FUNDS", None)
+            except Exception as e:
+                await session.rollback()
+                return ("ERROR", str(e))
+
+    results = await asyncio.gather(*[_debit(i) for i in range(100)])
+
+    successes = [r for r in results if r[0] == "SUCCESS"]
+    failures = [r for r in results if r[0] == "INSUFFICIENT_FUNDS"]
+
+    assert len(successes) == 50, f"Expected exactly 50 debits to succeed, got {len(successes)}"
+    assert len(failures) == 50, f"Expected exactly 50 debits to be rejected with insufficient funds, got {len(failures)}"
+
+    async with async_session_factory() as verify_db:
+        balance = await wallet_service.get_balance(verify_db, target_user_id)
+        assert balance == 0, f"Final wallet balance must be exactly 0, got {balance}"
+

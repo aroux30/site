@@ -116,9 +116,8 @@ def create_app() -> FastAPI:
 def _include_routers(app: FastAPI, prefix: str) -> None:
     """Import and include all module routers.
 
-    Each module exposes a ``router`` in its ``api`` package.  Routers that
-    don't exist yet are silently skipped so the application can boot even
-    while modules are still being developed.
+    Fails fast with a RuntimeError if any specified module router cannot
+    be imported or resolved. Never silently skips broken routers in production.
     """
     module_router_specs: list[tuple[str, str, list[str]]] = [
         ("app.modules.auth.api", "/auth", ["auth"]),
@@ -142,7 +141,6 @@ def _include_routers(app: FastAPI, prefix: str) -> None:
         ("app.modules.notifications.api", "/notifications", ["notifications"]),
         ("app.modules.messaging.api", "/messaging", ["messaging"]),
         ("app.modules.support.api", "/support", ["support"]),
-        ("app.modules.content.api", "/content", ["content"]),
         ("app.modules.blog.api", "/blog", ["blog"]),
         ("app.modules.seo.api", "/seo", ["seo"]),
         ("app.modules.search.api", "/search", ["search"]),
@@ -152,8 +150,6 @@ def _include_routers(app: FastAPI, prefix: str) -> None:
         ("app.modules.media.api", "/media", ["media"]),
         ("app.modules.settings.api", "/settings", ["settings"]),
         ("app.modules.audit.api", "/audit", ["audit"]),
-        ("app.modules.integrations.api", "/integrations", ["integrations"]),
-        ("app.modules.automation.api", "/automation", ["automation"]),
         ("app.modules.vendors.api", "/vendors", ["vendors"]),
     ]
 
@@ -163,40 +159,57 @@ def _include_routers(app: FastAPI, prefix: str) -> None:
         try:
             mod = importlib.import_module(module_path)
             router = getattr(mod, "router", None)
-            if router is not None:
-                app.include_router(router, prefix=f"{prefix}{url_prefix}", tags=tags)
-                if url_prefix == "/seo":
-                    app.include_router(router, prefix="/seo", include_in_schema=False)
-                elif url_prefix == "/vendors":
-                    app.include_router(router, prefix="/vendors", include_in_schema=False)
-            # Also pick up admin_router if exposed (e.g. search admin endpoints)
+            if router is None:
+                raise AttributeError(f"Module '{module_path}' has no 'router' attribute")
+            app.include_router(router, prefix=f"{prefix}{url_prefix}", tags=tags)
+            if url_prefix == "/seo":
+                app.include_router(router, prefix="/seo", include_in_schema=False)
+            elif url_prefix == "/vendors":
+                app.include_router(router, prefix="/vendors", include_in_schema=False)
+            # Also pick up admin_router if exposed
             admin_router = getattr(mod, "admin_router", None)
             if admin_router is not None:
                 app.include_router(admin_router, prefix=prefix, tags=[f"admin-{tags[0]}"])
                 if url_prefix == "/vendors":
                     app.include_router(admin_router, prefix="", include_in_schema=False)
-        except (ImportError, AttributeError):
-            # Module not yet implemented – skip silently
-            pass
+        except Exception as exc:
+            # FAIL FAST: Never silently hide broken routes in production
+            logger.exception("router_load_failed", module=module_path, error=str(exc))
+            raise RuntimeError(f"Critical router failed to load: {module_path} -> {exc}") from exc
 
 
 def _register_infra_routes(app: FastAPI) -> None:
     """Register infrastructure endpoints that sit outside the API prefix."""
+    import time
+    from datetime import datetime, timezone
+    import httpx
+    from sqlalchemy import text
+    from app.core.cache.redis import get_redis
+    from app.core.database.session import engine
+
+    settings = get_settings()
 
     @app.get("/healthz", include_in_schema=False)
     async def healthz() -> dict[str, str]:
         """Liveness probe – returns 200 if the process is alive."""
-        return {"status": "ok"}
+        return {"status": "ok", "app": settings.APP_NAME}
 
     @app.get("/readyz", include_in_schema=False)
     async def readyz() -> JSONResponse:
-        """Readiness probe – checks critical dependencies."""
-        from app.core.cache.redis import get_redis
-
+        """Readiness probe – comprehensive check of PostgreSQL, Redis, Elasticsearch, and Storage."""
         checks: dict[str, str] = {}
         overall_ok = True
 
-        # Redis
+        # 1. Database (PostgreSQL)
+        try:
+            async with engine.connect() as conn:
+                await conn.execute(text("SELECT 1"))
+            checks["database"] = "ok"
+        except Exception:
+            checks["database"] = "unavailable"
+            overall_ok = False
+
+        # 2. Redis
         try:
             client = await get_redis()
             await client.ping()
@@ -205,20 +218,111 @@ def _register_infra_routes(app: FastAPI) -> None:
             checks["redis"] = "unavailable"
             overall_ok = False
 
-        # Database
+        # 3. Elasticsearch
         try:
-            from app.core.database.session import engine
-
-            async with engine.connect() as conn:
-                await conn.execute(__import__("sqlalchemy").text("SELECT 1"))
-            checks["database"] = "ok"
+            es_url = f"{str(settings.ELASTICSEARCH_URL).rstrip('/')}/_cluster/health"
+            async with httpx.AsyncClient(timeout=2.0) as http_c:
+                res = await http_c.get(es_url)
+                if res.status_code in (200, 401):  # 401 also indicates cluster is alive
+                    checks["elasticsearch"] = "ok"
+                else:
+                    checks["elasticsearch"] = f"status_{res.status_code}"
+                    overall_ok = False
         except Exception:
-            checks["database"] = "unavailable"
+            checks["elasticsearch"] = "unavailable"
+            overall_ok = False
+
+        # 4. Storage (MinIO / S3)
+        try:
+            minio_url = f"http://{settings.MINIO_ENDPOINT}/minio/health/live"
+            async with httpx.AsyncClient(timeout=2.0) as http_c:
+                res = await http_c.get(minio_url)
+                if res.status_code == 200:
+                    checks["storage"] = "ok"
+                else:
+                    checks["storage"] = f"status_{res.status_code}"
+                    overall_ok = False
+        except Exception:
+            checks["storage"] = "unavailable"
             overall_ok = False
 
         return JSONResponse(
             status_code=status.HTTP_200_OK if overall_ok else status.HTTP_503_SERVICE_UNAVAILABLE,
             content={"status": "ok" if overall_ok else "degraded", "checks": checks},
+        )
+
+    @app.get("/deep-health", include_in_schema=False)
+    async def deep_health() -> JSONResponse:
+        """Deep health check providing latency breakdown and dependency diagnostics."""
+        diag: dict[str, Any] = {}
+        all_ok = True
+
+        # Database latency
+        t0 = time.perf_counter()
+        try:
+            async with engine.connect() as conn:
+                await conn.execute(text("SELECT 1"))
+            diag["database"] = {
+                "status": "healthy",
+                "latency_ms": round((time.perf_counter() - t0) * 1000, 2),
+            }
+        except Exception as e:
+            diag["database"] = {"status": "unhealthy", "error": str(e)}
+            all_ok = False
+
+        # Redis latency
+        t0 = time.perf_counter()
+        try:
+            client = await get_redis()
+            await client.ping()
+            diag["redis"] = {
+                "status": "healthy",
+                "latency_ms": round((time.perf_counter() - t0) * 1000, 2),
+            }
+        except Exception as e:
+            diag["redis"] = {"status": "unhealthy", "error": str(e)}
+            all_ok = False
+
+        # Elasticsearch latency & cluster health
+        t0 = time.perf_counter()
+        try:
+            es_url = f"{str(settings.ELASTICSEARCH_URL).rstrip('/')}/_cluster/health"
+            async with httpx.AsyncClient(timeout=3.0) as http_c:
+                res = await http_c.get(es_url)
+                cluster_info = res.json() if res.status_code == 200 else {}
+                diag["elasticsearch"] = {
+                    "status": "healthy" if res.status_code == 200 else "degraded",
+                    "cluster_status": cluster_info.get("status", "unknown"),
+                    "latency_ms": round((time.perf_counter() - t0) * 1000, 2),
+                }
+        except Exception as e:
+            diag["elasticsearch"] = {"status": "unhealthy", "error": str(e)}
+            all_ok = False
+
+        # MinIO latency
+        t0 = time.perf_counter()
+        try:
+            minio_url = f"http://{settings.MINIO_ENDPOINT}/minio/health/live"
+            async with httpx.AsyncClient(timeout=3.0) as http_c:
+                res = await http_c.get(minio_url)
+                diag["storage"] = {
+                    "status": "healthy" if res.status_code == 200 else "degraded",
+                    "endpoint": settings.MINIO_ENDPOINT,
+                    "latency_ms": round((time.perf_counter() - t0) * 1000, 2),
+                }
+        except Exception as e:
+            diag["storage"] = {"status": "unhealthy", "error": str(e)}
+            all_ok = False
+
+        return JSONResponse(
+            status_code=status.HTTP_200_OK if all_ok else status.HTTP_503_SERVICE_UNAVAILABLE,
+            content={
+                "status": "healthy" if all_ok else "degraded",
+                "app": settings.APP_NAME,
+                "environment": settings.ENVIRONMENT,
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "dependencies": diag,
+            },
         )
 
     @app.get("/metrics", include_in_schema=False)

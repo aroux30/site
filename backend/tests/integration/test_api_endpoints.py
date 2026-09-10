@@ -9,7 +9,34 @@ async def test_health_check(client: AsyncClient):
     """Verify liveness probe returns 200 OK."""
     response = await client.get("/healthz")
     assert response.status_code == 200
-    assert response.json() == {"status": "ok"}
+    assert response.json()["status"] == "ok"
+
+
+@pytest.mark.asyncio
+async def test_readiness_check(client: AsyncClient):
+    """Verify readiness probe returns JSON with checks dictionary."""
+    response = await client.get("/readyz")
+    assert response.status_code in (200, 503)
+    data = response.json()
+    assert "status" in data
+    assert "checks" in data
+    assert "database" in data["checks"]
+    assert "redis" in data["checks"]
+    assert "elasticsearch" in data["checks"]
+    assert "storage" in data["checks"]
+
+
+@pytest.mark.asyncio
+async def test_deep_health_check(client: AsyncClient):
+    """Verify deep-health probe returns dependency diagnostics."""
+    response = await client.get("/deep-health")
+    assert response.status_code in (200, 503)
+    data = response.json()
+    assert "dependencies" in data
+    assert "database" in data["dependencies"]
+    assert "redis" in data["dependencies"]
+    assert "elasticsearch" in data["dependencies"]
+    assert "storage" in data["dependencies"]
 
 
 @pytest.mark.asyncio

@@ -75,7 +75,7 @@ Internet → Cloudflare/CDN → Nginx → ┬→ Next.js (Frontend)
                                                             └→ MinIO
 ```
 
-The backend is organized into 16 business modules, each following Clean Architecture with four layers:
+The backend is organized into 35 business modules, each following Clean Architecture with four layers:
 
 - **API Layer** -- FastAPI routes, Pydantic schemas, dependency injection
 - **Application Layer** -- Use cases, services, commands, queries
@@ -83,73 +83,6 @@ The backend is organized into 16 business modules, each following Clean Architec
 - **Infrastructure Layer** -- SQLAlchemy models, repository implementations, external service clients
 
 For detailed architecture documentation, see the [docs/architecture/](docs/architecture/) directory.
-
----
-
-## Project Structure
-
-```
-site/
-├── backend/
-│   ├── app/
-│   │   ├── main.py                 # FastAPI application factory
-│   │   ├── config.py               # Pydantic Settings configuration
-│   │   ├── core/                   # Shared kernel (database, redis, security, events)
-│   │   ├── modules/                # Business modules
-│   │   │   ├── users/              # Authentication, profiles, RBAC
-│   │   │   ├── products/           # Catalog, categories, variants
-│   │   │   ├── orders/             # Order lifecycle, returns
-│   │   │   ├── payments/           # Payment gateway integration
-│   │   │   ├── wallet/             # Digital wallet
-│   │   │   ├── cart/               # Shopping cart
-│   │   │   ├── inventory/          # Stock management
-│   │   │   ├── shipping/           # Shipping providers, tracking
-│   │   │   ├── search/             # Elasticsearch integration
-│   │   │   ├── notifications/      # Email, SMS, push
-│   │   │   ├── media/              # File upload, image processing
-│   │   │   ├── reviews/            # Ratings and reviews
-│   │   │   ├── promotions/         # Coupons, discounts, campaigns
-│   │   │   ├── cms/                # Pages, banners, menus
-│   │   │   ├── analytics/          # Metrics and reporting
-│   │   │   └── admin/              # Admin panel API
-│   │   └── tasks/                  # Celery task definitions
-│   ├── tests/                      # Test suite (unit, integration, e2e)
-│   ├── alembic/                    # Database migrations
-│   ├── Dockerfile
-│   └── pyproject.toml
-├── frontend/
-│   ├── src/
-│   │   ├── app/                    # Next.js App Router pages
-│   │   │   ├── (storefront)/       # Public shopping pages
-│   │   │   ├── (auth)/             # Authentication pages
-│   │   │   ├── (dashboard)/        # User account pages
-│   │   │   └── (admin)/            # Admin panel
-│   │   ├── components/             # React components
-│   │   │   ├── ui/                 # shadcn/ui primitives
-│   │   │   ├── layout/             # Header, footer, sidebar
-│   │   │   ├── product/            # Product-specific components
-│   │   │   ├── cart/               # Cart components
-│   │   │   ├── search/             # Search components
-│   │   │   └── shared/             # Shared utilities
-│   │   ├── lib/                    # API client, utilities, hooks
-│   │   ├── stores/                 # Zustand state stores
-│   │   ├── queries/                # TanStack Query definitions
-│   │   ├── types/                  # TypeScript type definitions
-│   │   └── messages/               # i18n translations (fa, en)
-│   ├── Dockerfile
-│   └── package.json
-├── docker-compose.yml              # Full stack orchestration
-├── nginx/                          # Nginx configuration
-├── docs/                           # Project documentation
-│   ├── ARCHITECTURE_AUDIT.md       # Architecture audit report
-│   └── architecture/
-│       ├── system.md               # System architecture overview
-│       ├── backend.md              # Backend architecture details
-│       ├── frontend.md             # Frontend architecture details
-│       ├── search.md               # Search architecture details
-│       └── erd.md                  # Entity relationship diagrams
-└── README.md
-```
 
 ---
 
@@ -167,8 +100,8 @@ site/
 1. **Clone the repository:**
 
     ```bash
-    git clone https://github.com/your-org/ecommerce-platform.git
-    cd ecommerce-platform
+    git clone https://github.com/aroux30/site.git
+    cd site
     ```
 
 2. **Copy environment files:**
@@ -183,12 +116,12 @@ site/
     Edit `backend/.env` and set the required values:
 
     ```env
-    DATABASE_URL=postgresql+asyncpg://postgres:postgres@postgres:5432/ecommerce
-    REDIS_URL=redis://redis:6379/0
+    DATABASE_URL=postgresql+asyncpg://ecommerce:change_me_in_production@postgres:5432/ecommerce
+    REDIS_URL=redis://:change_me_in_production@redis:6379/0
     ELASTICSEARCH_URL=http://elasticsearch:9200
     MINIO_ENDPOINT=minio:9000
     MINIO_ACCESS_KEY=minioadmin
-    MINIO_SECRET_KEY=minioadmin
+    MINIO_SECRET_KEY=change_me_in_production
     JWT_SECRET_KEY=your-secret-key-change-in-production
     ```
 
@@ -207,7 +140,7 @@ site/
 6. **Seed initial data (optional):**
 
     ```bash
-    docker compose exec backend python scripts/seed_data.py
+    docker compose exec backend python scripts/seed.py
     ```
 
 7. **Access the application:**
@@ -215,9 +148,9 @@ site/
     | Service            | URL                          |
     |--------------------|------------------------------|
     | Storefront         | http://localhost              |
-    | API Documentation  | http://localhost/api/docs     |
+    | API Documentation  | http://localhost/docs         |
     | MinIO Console      | http://localhost:9001         |
-    | Grafana Dashboard  | http://localhost:3001         |
+    | Grafana Dashboard  | http://localhost:3005         |
 
 ### Local Development (Without Docker)
 
@@ -240,10 +173,10 @@ alembic upgrade head
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 
 # Start Celery worker (separate terminal)
-celery -A app.tasks.celery_app worker --loglevel=info
+celery -A app.worker.celery_app worker --loglevel=info
 
 # Start Celery beat (separate terminal)
-celery -A app.tasks.celery_app beat --loglevel=info
+celery -A app.worker.celery_app beat --loglevel=info
 ```
 
 #### Frontend
@@ -252,10 +185,10 @@ celery -A app.tasks.celery_app beat --loglevel=info
 cd frontend
 
 # Install dependencies
-pnpm install
+npm install
 
 # Start development server
-pnpm dev
+npm run dev
 ```
 
 ---

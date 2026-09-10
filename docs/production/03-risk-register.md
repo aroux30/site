@@ -1,6 +1,6 @@
 # 03 — PRODUCTION RISK REGISTER & EXCEPTION MATRIX
 ## Enterprise-Grade Iranian Headless E-Commerce Platform
-**Standard:** Production Certification, Verification & Hardening Master v6  
+**Standard:** Production Certification & Hardening Master v8  
 **Date:** 2026-09-11  
 **Status:** Monitored & Managed  
 

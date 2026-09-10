@@ -1,6 +1,6 @@
 # 02 — EVIDENCE HIERARCHY MATRIX
 ## Enterprise-Grade Iranian Headless E-Commerce Platform
-**Standard:** Production Certification, Verification & Hardening Master v6  
+**Standard:** Production Certification & Hardening Master v8  
 **Date:** 2026-09-11  
 **Evaluator:** Principal QA & Systems Reliability Engineer  
 

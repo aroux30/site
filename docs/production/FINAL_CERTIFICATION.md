@@ -1,6 +1,6 @@
 # FINAL PRODUCTION CERTIFICATION & SCORECARD
 ## Enterprise-Grade Iranian Headless E-Commerce Platform
-**Standard:** Production Certification, Hardening & Evidence Master v7  
+**Standard:** Production Certification & Hardening Master v8  
 **Date:** 2026-09-11  
 **Evaluator:** Principal Systems Architect & Lead Certification Authority  
 **Repository:** `https://github.com/aroux30/site`  
@@ -14,7 +14,7 @@
 |---|:---:|:---:|---|:---:|---|
 | **Architecture** | **VERIFIED** | **9.8 / 10** | Modular Monolith (35 bounded contexts), Clean Architecture, AST sweep confirmed 0 framework leaks in domain. | VERY_HIGH | None |
 | **Database** | **VERIFIED** | **9.9 / 10** | 75 tables, DB-001 clean migration verified from empty DB, foreign keys and indexes consistent, zero `create_all()`. | VERY_HIGH | Add automated rollback test in CI |
-| **Auth** | **VERIFIED** | **9.7 / 10** | Argon2id hashing, mobile phone regex, OTP cooldown (120s), HttpOnly Secure cookies, session revocation. | HIGH | External SMS gateway failover |
+| **Authentication** | **VERIFIED** | **9.7 / 10** | Argon2id hashing, mobile phone regex, OTP cooldown (120s), HttpOnly Secure cookies, session revocation. | HIGH | External SMS gateway failover |
 | **RBAC** | **VERIFIED** | **9.8 / 10** | Database-backed roles and permissions, wildcard permission support, system roles non-deletable. | HIGH | None |
 | **Money** | **VERIFIED** | **9.9 / 10** | 100% integer arithmetic (Rials), 0 floats across 54 financial columns, explicit Toman display conversion boundary. | VERY_HIGH | None |
 | **Pricing** | **VERIFIED** | **9.8 / 10** | Server-authoritative checkout quote rebuilds prices from live DB, client-provided prices completely rejected. | VERY_HIGH | None |

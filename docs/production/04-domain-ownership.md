@@ -1,6 +1,6 @@
-# 04 — DOMAIN MAP, ARCHITECTURAL BOUNDARIES & AUTHENTICATION MODEL
+# 04 — DOMAIN OWNERSHIP, ARCHITECTURAL BOUNDARIES & AUTHENTICATION MODEL
 ## Enterprise-Grade Iranian Headless E-Commerce Platform
-**Standard:** Production Certification, Verification & Hardening Master v7  
+**Standard:** Production Certification & Hardening Master v8  
 **Date:** 2026-09-11  
 **Evaluator:** Principal Enterprise Software Architect  
 

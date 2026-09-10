@@ -1,6 +1,6 @@
 # FINAL PRODUCTION CERTIFICATION & SCORECARD
 ## Enterprise-Grade Iranian Headless E-Commerce Platform
-**Standard:** Production Certification, Verification & Hardening Master v6  
+**Standard:** Production Certification, Hardening & Evidence Master v7  
 **Date:** 2026-09-11  
 **Evaluator:** Principal Systems Architect & Lead Certification Authority  
 **Repository:** `https://github.com/aroux30/site`  

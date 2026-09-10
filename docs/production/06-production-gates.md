@@ -1,6 +1,6 @@
 # 06 — PRODUCTION QUALITY GATES & CLAIM RECLASSIFICATION
 ## Enterprise-Grade Iranian Headless E-Commerce Platform
-**Standard:** Production Certification & Evidence-Driven Hardening Master v5  
+**Standard:** Production Certification, Hardening & Evidence Master v7  
 **Date:** 2026-09-11  
 **Evaluator:** Principal QA & Systems Safety Architect  
 

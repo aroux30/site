@@ -1,9 +1,9 @@
 # 00 — CURRENT STATE SNAPSHOT & SYSTEM INVENTORY
 ## Enterprise-Grade Iranian Headless E-Commerce Platform
-**Standard:** Production Certification & Evidence-Driven Hardening Master v5  
+**Standard:** Production Certification, Hardening & Evidence Master v7  
 **Date:** 2026-09-11  
 **Repository:** `https://github.com/aroux30/site`  
-**Latest Commit:** `dd0e622`  
+**Latest Commit:** `7e2295c`  
 **Host Environment:** Ubuntu 22.04 LTS (`91.107.144.136`)  
 **Deployment Directory:** `/root/site`  
 

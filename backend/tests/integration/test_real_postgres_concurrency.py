@@ -17,11 +17,13 @@ from sqlalchemy import select
 
 from app.core.database.session import async_session_factory
 from app.core.exceptions.handlers import ConflictError, ValidationError
-from app.modules.catalog.domain.models import Brand, Category, Product, ProductStatus, ProductType, ProductVariant
+from app.modules.catalog.domain.models import Category, Product, ProductStatus, ProductType, ProductVariant
 from app.modules.discounts.application import discount_service
 from app.modules.discounts.domain.models import Coupon, Discount, DiscountScope, DiscountType
 from app.modules.inventory.application import inventory_service
 from app.modules.inventory.domain.models import InventoryItem, InventoryReservation, ReservationStatus
+from app.modules.orders.domain.models import Order, OrderStatus
+from app.modules.rbac.domain.models import UserRole  # noqa: F401
 from app.modules.users.domain.models import User
 from app.modules.wallet.application import wallet_service
 from app.modules.wallet.domain.models import Wallet, WalletTransactionType
@@ -79,7 +81,7 @@ async def test_real_postgres_100_concurrent_inventory_reservations():
                     session,
                     variant_id=target_variant_id,
                     quantity=1,
-                    order_id=uuid.uuid4(),
+                    order_id=None,
                 )
                 await session.commit()
                 return ("SUCCESS", res.id)
@@ -121,6 +123,37 @@ async def test_real_postgres_50_concurrent_single_use_coupon_redemptions():
     """TEST-CONCURRENCY-002: Execute 50 concurrent transactions for a single-use coupon."""
     async with async_session_factory() as setup_db:
         now = datetime.now(timezone.utc)
+        user_ids = []
+        for _ in range(50):
+            u_id = uuid.uuid4()
+            u = User(
+                id=u_id,
+                phone=f"0913{uuid.uuid4().hex[:7]}",
+                password_hash="testhash",
+                is_active=True,
+            )
+            setup_db.add(u)
+            user_ids.append(u_id)
+        await setup_db.flush()
+
+        order_pairs = []
+        for u_id in user_ids:
+            o_id = uuid.uuid4()
+            o = Order(
+                id=o_id,
+                user_id=u_id,
+                order_number=f"ORD-C-{uuid.uuid4().hex[:6]}",
+                status=OrderStatus.PENDING,
+                subtotal=1_000_000,
+                shipping_cost=0,
+                tax=0,
+                discount_amount=0,
+                total=1_000_000,
+            )
+            setup_db.add(o)
+            order_pairs.append((u_id, o_id))
+        await setup_db.flush()
+
         disc = Discount(
             name="کوپن تست همزمانی",
             type=DiscountType.FIXED,
@@ -146,14 +179,12 @@ async def test_real_postgres_50_concurrent_single_use_coupon_redemptions():
         await setup_db.commit()
 
         target_coupon_id = coupon.id
-        target_discount_id = disc.id
 
     async def _redeem_transaction(buyer_num: int):
-        user_id = uuid.uuid4()
-        order_id = uuid.uuid4()
+        user_id, order_id = order_pairs[buyer_num]
         async with async_session_factory() as session:
             try:
-                # Apply discount in transaction with lock
+                # Apply discount in transaction with row lock
                 redemption = await discount_service.apply_discount(
                     session,
                     coupon_id=target_coupon_id,
@@ -163,14 +194,17 @@ async def test_real_postgres_50_concurrent_single_use_coupon_redemptions():
                 )
                 await session.commit()
                 return ("SUCCESS", redemption.id)
-            except Exception:
+            except (ValidationError, ConflictError):
                 await session.rollback()
                 return ("REJECTED", None)
+            except Exception as e:
+                await session.rollback()
+                return ("ERROR", str(e))
 
     results = await asyncio.gather(*[_redeem_transaction(i) for i in range(50)])
 
     successes = [r for r in results if r[0] == "SUCCESS"]
-    rejections = [r for r in results if r[0] == "REJECTED"]
+    rejections = [r for r in results if r[0] in ("REJECTED",)]
 
     assert len(successes) == 1, f"Expected exactly 1 redemption, got {len(successes)}"
     assert len(rejections) == 49, f"Expected 49 rejections, got {len(rejections)}"
@@ -195,13 +229,24 @@ async def test_real_postgres_concurrent_wallet_debits_prevent_double_spending():
 
         wallet = Wallet(
             user_id=user.id,
-            balance=1_000_000,  # 1,000,000 Rials
+            balance=0,
             is_active=True,
         )
         setup_db.add(wallet)
         await setup_db.commit()
 
         target_user_id = user.id
+
+    # Fund the wallet through the ledger
+    async with async_session_factory() as fund_db:
+        await wallet_service.credit(
+            fund_db,
+            user_id=target_user_id,
+            amount=1_000_000,
+            tx_type=WalletTransactionType.CREDIT,
+            description="Initial test deposit",
+        )
+        await fund_db.commit()
 
     async def _debit_transaction(req_id: int):
         async with async_session_factory() as session:
@@ -210,7 +255,7 @@ async def test_real_postgres_concurrent_wallet_debits_prevent_double_spending():
                     session,
                     user_id=target_user_id,
                     amount=1_000_000,
-                    tx_type=WalletTransactionType.PURCHASE,
+                    tx_type=WalletTransactionType.DEBIT,
                     description=f"Purchase attempt {req_id}",
                 )
                 await session.commit()
@@ -228,8 +273,8 @@ async def test_real_postgres_concurrent_wallet_debits_prevent_double_spending():
     successes = [r for r in results if r[0] == "SUCCESS"]
     failures = [r for r in results if r[0] == "INSUFFICIENT_FUNDS"]
 
-    assert len(successes) == 1, "Exactly one debit transaction must succeed"
-    assert len(failures) == 1, "Second concurrent debit must be rejected with insufficient funds"
+    assert len(successes) == 1, f"Exactly one debit transaction must succeed, got {len(successes)}"
+    assert len(failures) == 1, f"Second concurrent debit must be rejected with insufficient funds, got {len(failures)}"
 
     async with async_session_factory() as verify_db:
         balance = await wallet_service.get_balance(verify_db, target_user_id)

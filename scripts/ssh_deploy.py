@@ -22,9 +22,17 @@ def ssh_exec(client, command, timeout=300):
 
 
 def main():
-    host = "91.107.144.136"
-    username = "root"
-    password = "13831381Mj"
+    import os
+    host = os.environ.get("DEPLOY_HOST", "91.107.144.136")
+    username = os.environ.get("DEPLOY_USER", "root")
+    password = os.environ.get("DEPLOY_PASSWORD") or os.environ.get("SSH_PASSWORD")
+    if not password and os.path.exists(".env"):
+        with open(".env", "r") as f:
+            for line in f:
+                if line.startswith("DEPLOY_SSH_PASSWORD="):
+                    password = line.split("=", 1)[1].strip().strip('"').strip("'")
+    if not password:
+        raise ValueError("Deployment password not found. Please set SSH_PASSWORD or DEPLOY_SSH_PASSWORD.")
     project_dir = "/root/site"
 
     client = paramiko.SSHClient()

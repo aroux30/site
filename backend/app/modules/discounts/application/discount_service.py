@@ -201,6 +201,16 @@ async def apply_discount(
     Call this *after* order creation has been committed to ensure we have a
     valid ``order_id``.
     """
+    # 1. Fetch coupon with row-level lock (FOR UPDATE) to prevent concurrency race
+    stmt = select(Coupon).where(Coupon.id == coupon_id).with_for_update()
+    coupon = (await db.execute(stmt)).scalar_one_or_none()
+    if coupon is None:
+        raise NotFoundError("Coupon", detail="کد تخفیف یافت نشد")
+    if not coupon.is_active:
+        raise ValidationError("کد تخفیف غیرفعال است", error_code="COUPON_INACTIVE")
+    if coupon.usage_limit is not None and coupon.usage_count >= coupon.usage_limit:
+        raise ValidationError("ظرفیت استفاده از این کد تخفیف تکمیل شده است", error_code="COUPON_LIMIT_REACHED")
+
     # Double-check that no duplicate redemption exists
     dup_stmt = select(CouponRedemption).where(
         CouponRedemption.coupon_id == coupon_id,
@@ -220,20 +230,16 @@ async def apply_discount(
     db.add(redemption)
 
     # Increment coupon usage count
-    await db.execute(
-        update(Coupon)
-        .where(Coupon.id == coupon_id)
-        .values(usage_count=Coupon.usage_count + 1)
-    )
+    coupon.usage_count += 1
+    if coupon.usage_limit is not None and coupon.usage_count >= coupon.usage_limit:
+        coupon.is_active = False
 
     # Increment parent discount usage count
-    coupon = await db.get(Coupon, coupon_id)
-    if coupon is not None:
-        await db.execute(
-            update(Discount)
-            .where(Discount.id == coupon.discount_id)
-            .values(usage_count=Discount.usage_count + 1)
-        )
+    if coupon.discount_id:
+        disc_stmt = select(Discount).where(Discount.id == coupon.discount_id).with_for_update()
+        disc = (await db.execute(disc_stmt)).scalar_one_or_none()
+        if disc is not None:
+            disc.usage_count += 1
 
     await db.flush()
 

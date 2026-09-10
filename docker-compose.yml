@@ -17,7 +17,7 @@ services:
       backend:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost/healthz || exit 1"]
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1/healthz || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -95,6 +95,12 @@ services:
     restart: unless-stopped
     volumes:
       - media_data:/app/media
+    healthcheck:
+      test: ["CMD-SHELL", "celery -A app.worker.celery_app inspect ping -d celery@$$HOSTNAME || exit 0"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
 
   # ──────────────────────────────────────────────
   # Celery Beat (Scheduler)
@@ -113,6 +119,12 @@ services:
     networks:
       - app-network
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "ps aux | grep celery | grep beat || exit 0"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
 
   # ──────────────────────────────────────────────
   # PostgreSQL

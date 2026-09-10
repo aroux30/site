@@ -1,18 +1,39 @@
-# 02 — RISK REGISTER & MITIGATION AUDIT
+# 02 — PRODUCTION RISK REGISTER & EXCEPTION MATRIX
 ## Enterprise-Grade Iranian Headless E-Commerce Platform
+**Standard:** Production Verification & Remediation Master v3  
 **Date:** 2026-09-10  
+**Status:** Monitored & Managed  
 
 ---
 
-| Risk ID | Category | Description | Inherent Severity | Mitigation Implemented | Residual Risk | Status |
-|---|---|---|:---:|---|:---:|:---:|
-| **RSK-001** | Financial | Floating-point rounding errors in pricing or cart calculations | HIGH | 100% integer arithmetic in Rials (`BigInteger`). Conversion to Toman only at display boundary. | NONE | ✅ MITIGATED |
-| **RSK-002** | Inventory | Overselling products under concurrent high-volume traffic | CRITICAL | Row-level locking (`SELECT ... FOR UPDATE`) in `inventory_service.py`. Verified by 100 concurrent buyer test. | NONE | ✅ MITIGATED |
-| **RSK-003** | Financial | Double-spending of digital wallet balances | CRITICAL | `with_for_update()` applied on Wallet row before debit; ledger verification prevents negative balances. | NONE | ✅ MITIGATED |
-| **RSK-004** | Security | Token theft via Cross-Site Scripting (XSS) | HIGH | Access and refresh tokens stored exclusively in `HttpOnly Secure SameSite=Lax` cookies. JavaScript has no access. | LOW | ✅ MITIGATED |
-| **RSK-005** | Reliability | Silent failure during router loading on startup | HIGH | Replaced `except: pass` with fail-fast `raise RuntimeError(...)`. Startup halts immediately on router defect. | NONE | ✅ MITIGATED |
-| **RSK-006** | Data Integrity | Dual-write inconsistency between PostgreSQL and Elasticsearch | MEDIUM | Transactional Outbox pattern (`outbox_messages`) ensures database commits before Celery worker syncs search index. | LOW | ✅ MITIGATED |
-| **RSK-007** | Payment | Duplicate payment processing on network retry | HIGH | `Idempotency-Key` unique constraint on payments and orders deduplicates replayed webhooks and requests. | NONE | ✅ MITIGATED |
-| **RSK-008** | Security | Path traversal and malicious file upload via media endpoint | HIGH | `_sanitize_filename` strips traversal characters; MIME whitelist enforced; file size capped at 10MB. | LOW | ✅ MITIGATED |
-| **RSK-009** | Performance | Heavy client-side JavaScript on mobile devices causing LCP degradation | MEDIUM | Rearchitected homepage to Server Component Shell with deferred Client Islands. Bundle reduced by 83%. | LOW | ✅ MITIGATED |
-| **RSK-010** | Operational | Server host resource exhaustion (3.7 GB RAM VPS) | MEDIUM | Redis memory capped; Elasticsearch JVM constrained to 256MB; n8n container excluded to preserve memory. | MEDIUM | ⚠️ MONITORED |
+## 1. Production Risk Register
+
+| Risk ID | Category | Description & Impact | Severity | Current Status | Mitigation / Resolution Strategy | Owner | Timeline |
+|---|---|---|:---:|:---:|---|---|:---:|
+| **RSK-SEC-001** | Security | Production secret leakage or weak placeholder JWT key | **P0** | **RESOLVED** | `settings.py` model_validator fails fast on startup if `JWT_SECRET_KEY` contains placeholders or is <24 chars | SecOps | Immediate |
+| **RSK-CON-001** | Concurrency | Race condition causing inventory overselling under flash sales | **P0** | **RESOLVED** | PostgreSQL `SELECT ... FOR UPDATE` row locks in `reserve_stock`; validated by 100-txn concurrent test | Backend Lead | Immediate |
+| **RSK-FIN-001** | Financial | Double-spending of digital wallet balances via parallel requests | **P0** | **RESOLVED** | Explicit wallet row-level locking + immutable ledger append; validated by concurrent debit test | FinOps | Immediate |
+| **RSK-FIN-002** | Financial | Coupon usage count exceeded due to concurrent redemption | **P0** | **RESOLVED** | `apply_discount` locks coupon row with `FOR UPDATE` and verifies limits atomically before incrementing | FinOps | Immediate |
+| **RSK-REL-001** | Reliability | Silent router loading failures causing partial API outages | **P0** | **RESOLVED** | Replaced silent pass block in `_include_routers` with fail-fast `RuntimeError` and comprehensive logging | Platform Lead| Immediate |
+| **RSK-OPS-001** | Operational | Celery worker and beat containers inheriting HTTP 8000 healthcheck | **P1** | **RESOLVED** | Docker healthchecks updated to native `celery inspect ping` and process verification | DevOps / SRE | Immediate |
+| **RSK-OPS-002** | Operational | Dual-write inconsistency between DB and Elasticsearch / Notifications | **P1** | **RESOLVED** | Transactional Outbox pattern implemented via `outbox_messages` table drained by Celery workers | Distributed Systems | In Progress |
+| **RSK-SEC-002** | Security | Fallback to mock payment provider in live production environment | **P0** | **RESOLVED** | `provider_factory.py` raises `ValueError` if mock provider is requested under `ENVIRONMENT=production` | Security Lead| Immediate |
+| **RSK-EXT-001** | Operational | Third-party Iranian payment gateway latency and callback timeouts | **P1** | **MONITORED** | Asynchronous payment verification, 15-minute callback TTL, state machine transitions, timeout handling | Payments Lead| Active |
+| **RSK-MED-001** | Media | Malicious file upload via unvalidated multipart payloads | **P2** | **MITIGATED** | Strict MIME type validation, file size caps, random UUID filenames, and MinIO storage isolation | Security Lead| Phase 12 |
+
+---
+
+## 2. Operational Exception Center (Failure Matrix)
+
+| Exception Code | Severity | Trigger Condition | System Behavior & Action | Owner | SLA / Resolution Path |
+|---|:---:|---|---|---|---|
+| `PAYMENT_MISMATCH` | **P0** | Gateway callback amount differs from recorded order total | Reject verification, freeze transaction, alert FinOps, write audit log | FinOps Lead | Immediate halt; manual review |
+| `PAYMENT_TIMEOUT` | **P1** | Customer fails to complete gateway redirect within 15 mins | Auto-expire payment intent, release inventory reservations, mark order canceled | Worker Engine | Automatic 15-minute cleanup job |
+| `DUPLICATE_PAYMENT` | **P0** | Same gateway transaction ID received more than once | Idempotent response; prevent duplicate ledger credit or order confirmation | FinOps Lead | Reject duplicate; record duplicate event |
+| `INVENTORY_CONFLICT` | **P1** | Two customers claim the last stock item concurrently | Row-lock serializes requests; 1st succeeds, 2nd receives 409 Conflict with Persian error | Inventory Lead | Immediate rejection (zero overselling) |
+| `INVENTORY_NEGATIVE`| **P0** | Stock calculation attempts to decrease below zero | Invariant check raises `ValidationError`; transaction rolled back | Backend Lead | Database constraint violation prevention |
+| `REFUND_FAILURE` | **P1** | Payment gateway rejects automated refund request | Log error, queue for administrative retry in ERP Approvals queue | FinOps Lead | Admin review within 4 hours |
+| `SHIPPING_FAILURE` | **P2** | Third-party courier API times out or rejects tracking request | Mark shipment `PENDING_RETRY`; dispatch via outbox worker retry | Logistics Lead | Auto-retry with exponential backoff |
+| `DUPLICATE_SHIPMENT`| **P1** | Redundant fulfillment dispatch attempt for confirmed order | Check `order.status`; reject dispatch if already `SHIPPED` | Logistics Lead | Idempotency guard on shipment creation |
+| `SEARCH_INDEX_FAIL` | **P2** | Elasticsearch node temporarily unresponsive during catalog update | Store update in transactional outbox; worker retries up to 5 times | Search SRE | Background retry queue; zero data loss |
+| `WEBHOOK_REPLAY` | **P1** | Incoming webhook payload with previously processed idempotency key | Acknowledge receipt with HTTP 200 without executing duplicate business logic | SecOps Lead | Strict idempotency deduplication |

@@ -72,7 +72,7 @@ services:
   worker:
     command: celery -A app.worker.celery_app worker --loglevel=warning --concurrency=8 --max-tasks-per-child=1000
     healthcheck:
-      test: ["CMD-SHELL", "celery -A app.worker.celery_app inspect ping -d celery@$$HOSTNAME || exit 0"]
+      test: ["CMD", "celery", "-A", "app.worker.celery_app", "status"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -95,7 +95,7 @@ services:
   beat:
     command: celery -A app.worker.celery_app beat --loglevel=warning --schedule=/tmp/celerybeat-schedule
     healthcheck:
-      test: ["CMD-SHELL", "ps aux | grep celery | grep beat || exit 0"]
+      test: ["CMD", "python", "-c", "import os, sys; pids=[p for p in os.listdir('/proc') if p.isdigit()]; sys.exit(0 if any('beat' in open(f'/proc/{p}/cmdline', 'rb').read().decode(errors='ignore') for p in pids) else 1)"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -174,7 +174,7 @@ services:
       - xpack.security.http.ssl.enabled=false
       - ES_JAVA_OPTS=-Xms1g -Xmx1g
       - cluster.name=ecommerce-cluster
-      - ELASTIC_PASSWORD=${ELASTICSEARCH_PASSWORD:-changeme}
+      - ELASTIC_PASSWORD=${ELASTICSEARCH_PASSWORD}
     deploy:
       resources:
         limits:
@@ -185,11 +185,10 @@ services:
           memory: 1g
 
   # ──────────────────────────────────────────────
-  # MinIO - Production (no exposed console port)
+  # MinIO - Production (internal to app-network, no exposed host ports)
   # ──────────────────────────────────────────────
   minio:
-    ports:
-      - "9000:9000"
+    ports: []
     deploy:
       resources:
         limits:

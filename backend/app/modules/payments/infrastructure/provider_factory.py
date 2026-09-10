@@ -30,6 +30,14 @@ def get_payment_provider(provider_name: str) -> PaymentProvider:
     elif name in ("nowpayments", "usdt", "btc", "eth"):
         name = "crypto"
 
+    if name == "mock":
+        from app.core.config.settings import get_settings
+        settings = get_settings()
+        if settings.ENVIRONMENT == "production":
+            raise ValueError(
+                "Security violation: Mock payment provider is strictly disabled in production environment"
+            )
+
     registry = _provider_registry()
 
     if name not in registry:

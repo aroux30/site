@@ -654,3 +654,17 @@ async def test_api_crypto_webhook_callback(client):
         assert response.status_code == 200
         assert response.json()["status"] == "completed"
 
+
+def test_mock_payment_provider_strictly_fails_closed_in_production():
+    """Verify that in production mode, requesting mock payment provider fails closed."""
+    from unittest.mock import patch
+    from app.modules.payments.infrastructure.provider_factory import get_payment_provider
+
+    mock_settings = MagicMock(ENVIRONMENT="production")
+    with patch("app.core.config.settings.get_settings", return_value=mock_settings):
+        with pytest.raises(ValueError) as exc_info:
+            get_payment_provider("mock")
+        assert "Security violation" in str(exc_info.value)
+        assert "strictly disabled in production" in str(exc_info.value)
+
+

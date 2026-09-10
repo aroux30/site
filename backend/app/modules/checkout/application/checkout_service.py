@@ -15,6 +15,7 @@ from sqlalchemy.orm import selectinload
 from app.core.exceptions.handlers import ConflictError, NotFoundError, ValidationError
 from app.modules.cart.domain.models import Cart, CartItem, CartStatus
 from app.modules.catalog.domain.models import Product, ProductVariant
+from app.modules.checkout.application.tax_service import TaxService
 from app.modules.checkout.schemas.checkout import (
     CheckoutLineItem,
     CheckoutQuoteRequest,
@@ -251,9 +252,11 @@ async def calculate_quote(
             db, data.coupon_code, subtotal, user_id
         )
 
-    # Tax — Iran currently has 9% VAT but many e-commerce platforms include
-    # it in the item price.  We keep this at 0 and provide the hook.
-    tax = 0
+    # Tax calculation via authoritative server-side TaxService
+    tax_info = await TaxService.calculate_tax(
+        db, taxable_amount_rials=max(subtotal - discount_amount, 0)
+    )
+    tax = tax_info["tax_amount_rials"]
 
     total = subtotal + shipping_cost - discount_amount + tax
     total = max(total, 0)
@@ -433,8 +436,11 @@ async def create_order(
         db, shipping_method, address.province, subtotal
     )
 
-    # Tax
-    tax = 0
+    # Tax calculation via authoritative server-side TaxService
+    tax_info = await TaxService.calculate_tax(
+        db, taxable_amount_rials=max(subtotal - discount_amount, 0)
+    )
+    tax = tax_info["tax_amount_rials"]
     total = subtotal + shipping_cost - discount_amount + tax
     total = max(total, 0)
 

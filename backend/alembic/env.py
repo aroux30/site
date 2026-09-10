@@ -28,6 +28,7 @@ import app.modules.blog.domain.models  # noqa: F401
 import app.modules.cart.domain.models  # noqa: F401
 import app.modules.cashback.domain.models  # noqa: F401
 import app.modules.catalog.domain.models  # noqa: F401
+import app.modules.checkout.domain.models  # noqa: F401
 import app.modules.discounts.domain.models  # noqa: F401
 import app.modules.gamification.domain.models  # noqa: F401
 import app.modules.inventory.domain.models  # noqa: F401
@@ -48,6 +49,7 @@ import app.modules.users.domain.models  # noqa: F401
 import app.modules.vendors.domain.models  # noqa: F401
 import app.modules.wallet.domain.models  # noqa: F401
 import app.modules.wishlist.domain.models  # noqa: F401
+import app.shared.events.outbox_models  # noqa: F401
 
 # ── Alembic Config object ────────────────────────────────────────────────
 config = context.config

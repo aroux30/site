@@ -20,10 +20,10 @@ class MediaAsset(BaseModel):
         Index("ix_media_assets_created_at", "created_at"),
     )
 
-    uploader_id: Mapped[uuid.UUID] = mapped_column(
+    uploader_id: Mapped[Optional[uuid.UUID]] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("users.id", ondelete="SET NULL"),
-        nullable=False,
+        nullable=True,
     )
     file_name: Mapped[str] = mapped_column(String(255), nullable=False)
     file_path: Mapped[str] = mapped_column(String(500), nullable=False)

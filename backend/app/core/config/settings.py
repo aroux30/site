@@ -60,7 +60,13 @@ class Settings(BaseSettings):
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
 
     # ── CORS ──────────────────────────────────────────────────────────────
-    CORS_ORIGINS: list[str] = ["http://localhost:3000"]
+    CORS_ORIGINS: list[str] = [
+        "http://localhost:3000",
+        "http://localhost",
+        "https://site.arouxpingg.com",
+        "http://site.arouxpingg.com",
+        "http://91.107.144.136",
+    ]
 
     @field_validator("CORS_ORIGINS", mode="before")
     @classmethod

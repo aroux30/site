@@ -1,7 +1,7 @@
-# 02 — PRODUCTION RISK REGISTER & EXCEPTION MATRIX
+# 03 — PRODUCTION RISK REGISTER & EXCEPTION MATRIX
 ## Enterprise-Grade Iranian Headless E-Commerce Platform
-**Standard:** Production Verification & Remediation Master v3  
-**Date:** 2026-09-10  
+**Standard:** Production Certification, Verification & Hardening Master v6  
+**Date:** 2026-09-11  
 **Status:** Monitored & Managed  
 
 ---
@@ -15,11 +15,13 @@
 | **RSK-FIN-001** | Financial | Double-spending of digital wallet balances via parallel requests | **P0** | **RESOLVED** | Explicit wallet row-level locking + immutable ledger append; validated by concurrent debit test | FinOps | Immediate |
 | **RSK-FIN-002** | Financial | Coupon usage count exceeded due to concurrent redemption | **P0** | **RESOLVED** | `apply_discount` locks coupon row with `FOR UPDATE` and verifies limits atomically before incrementing | FinOps | Immediate |
 | **RSK-REL-001** | Reliability | Silent router loading failures causing partial API outages | **P0** | **RESOLVED** | Replaced silent pass block in `_include_routers` with fail-fast `RuntimeError` and comprehensive logging | Platform Lead| Immediate |
-| **RSK-OPS-001** | Operational | Celery worker and beat containers inheriting HTTP 8000 healthcheck | **P1** | **RESOLVED** | Docker healthchecks updated to native `celery inspect ping` and process verification | DevOps / SRE | Immediate |
+| **RSK-OPS-001** | Operational | Celery worker and beat containers inheriting HTTP 8000 healthcheck | **P1** | **RESOLVED** | Docker healthchecks updated to native `celery status` and process verification | DevOps / SRE | Immediate |
 | **RSK-OPS-002** | Operational | Dual-write inconsistency between DB and Elasticsearch / Notifications | **P1** | **RESOLVED** | Transactional Outbox pattern implemented via `outbox_messages` table drained by Celery workers | Distributed Systems | In Progress |
 | **RSK-SEC-002** | Security | Fallback to mock payment provider in live production environment | **P0** | **RESOLVED** | `provider_factory.py` raises `ValueError` if mock provider is requested under `ENVIRONMENT=production` | Security Lead| Immediate |
+| **RSK-PAY-001** | Payments | Webhook replay attacks or duplicate callbacks causing duplicate captures | **P0** | **RESOLVED** | `payment_webhook_events` table enforces unique constraint on `(provider, event_id)` with row-level locks | Payments Lead| Immediate |
+| **RSK-SEC-003** | Security | IDOR on payment inspection or card receipt submission | **P1** | **RESOLVED** | Injected order ownership validation on `get_payment` and `submit_card_receipt` | SecOps | Immediate |
 | **RSK-EXT-001** | Operational | Third-party Iranian payment gateway latency and callback timeouts | **P1** | **MONITORED** | Asynchronous payment verification, 15-minute callback TTL, state machine transitions, timeout handling | Payments Lead| Active |
-| **RSK-MED-001** | Media | Malicious file upload via unvalidated multipart payloads | **P2** | **MITIGATED** | Strict MIME type validation, file size caps, random UUID filenames, and MinIO storage isolation | Security Lead| Phase 12 |
+| **RSK-MED-001** | Media | Malicious file upload via unvalidated multipart payloads | **P2** | **MITIGATED** | Strict MIME type validation, file size caps, random UUID filenames, and MinIO storage isolation | Security Lead| Phase 13 |
 
 ---
 

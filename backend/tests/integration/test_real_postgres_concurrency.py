@@ -119,12 +119,12 @@ async def test_real_postgres_100_concurrent_inventory_reservations():
 
 
 @pytest.mark.asyncio
-async def test_real_postgres_50_concurrent_single_use_coupon_redemptions():
-    """TEST-CONCURRENCY-002: Execute 50 concurrent transactions for a single-use coupon."""
+async def test_real_postgres_100_concurrent_single_use_coupon_redemptions():
+    """TEST-CONCURRENCY-002: Execute 100 concurrent transactions for a single-use coupon."""
     async with async_session_factory() as setup_db:
         now = datetime.now(timezone.utc)
         user_ids = []
-        for _ in range(50):
+        for _ in range(100):
             u_id = uuid.uuid4()
             u = User(
                 id=u_id,
@@ -201,18 +201,19 @@ async def test_real_postgres_50_concurrent_single_use_coupon_redemptions():
                 await session.rollback()
                 return ("ERROR", str(e))
 
-    results = await asyncio.gather(*[_redeem_transaction(i) for i in range(50)])
+    results = await asyncio.gather(*[_redeem_transaction(i) for i in range(100)])
 
     successes = [r for r in results if r[0] == "SUCCESS"]
     rejections = [r for r in results if r[0] in ("REJECTED",)]
 
     assert len(successes) == 1, f"Expected exactly 1 redemption, got {len(successes)}"
-    assert len(rejections) == 49, f"Expected 49 rejections, got {len(rejections)}"
+    assert len(rejections) == 99, f"Expected 99 rejections, got {len(rejections)}"
 
     async with async_session_factory() as verify_db:
         stmt = select(Coupon).where(Coupon.id == target_coupon_id)
         c_row = (await verify_db.execute(stmt)).scalar_one()
         assert c_row.usage_count == 1, "Usage count in PostgreSQL must be exactly 1"
+
 
 
 @pytest.mark.asyncio

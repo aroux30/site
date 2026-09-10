@@ -24,9 +24,9 @@
 | **6. Cart (Guest & User)** | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | **VERIFIED** | Session carts, user merge, stock availability pre-validation |
 | **7. Checkout (Idempotency & Quote)**| Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | **VERIFIED** | Idempotency unique constraint, server price authority |
 | **8. Orders & State Machine** | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | **VERIFIED** | 12-state FSM, transition validations, immutable snapshots |
-| **9. Payments & Strategy Factory** | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | **VERIFIED** | Zarinpal, IDPay, Crypto, C2C, fail-closed mock provider |
+| **9. Payments & Strategy Factory** | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | **VERIFIED** | Zarinpal, IDPay, Crypto, C2C, fail-closed mock, webhook events table |
 | **10. Digital Wallet (Ledger & Lock)**| Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | **VERIFIED** | Concurrent debit anti-double-spend test, append-only ledger |
-| **11. Discounts & Coupons** | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | **VERIFIED** | 50-txn single-use coupon test: 1 success, 49 rejected |
+| **11. Discounts & Coupons** | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | **VERIFIED** | 100-txn single-use coupon test: 1 success, 99 rejected |
 | **12. Iranian Tax Engine** | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | **VERIFIED** | Server VAT calculation (basis points), official invoice |
 | **13. Shipping & Province Rates** | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes | **VERIFIED** | Province-based rate matrix, shipment status tracking |
 | **14. Transactional Outbox** | Yes | Yes | Yes | Yes | Yes | N/A | Yes | Yes | Yes | **VERIFIED** | Atomic outbox table insertion, Celery SKIP LOCKED worker |

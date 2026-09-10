@@ -59,3 +59,17 @@ def test_jwt_refresh_token_type():
     payload = decode_token(refresh_token)
     assert payload["type"] == "refresh"
     assert payload["sub"] == user_id
+
+
+def test_production_security_fails_on_placeholder_secret():
+    """Verify that in production mode, placeholder secret raises ValueError."""
+    import pytest
+    from app.core.config.settings import Settings
+
+    with pytest.raises(ValueError) as exc_info:
+        Settings(
+            ENVIRONMENT="production",
+            DEBUG=False,
+            JWT_SECRET_KEY="CHANGE-ME-IN-PRODUCTION-dummy",
+        )
+    assert "Security violation" in str(exc_info.value)

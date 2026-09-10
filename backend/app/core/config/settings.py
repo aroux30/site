@@ -11,8 +11,9 @@ from __future__ import annotations
 from functools import lru_cache
 from typing import Literal
 
-from pydantic import AnyHttpUrl, Field, PostgresDsn, RedisDsn, field_validator
+from pydantic import AnyHttpUrl, Field, PostgresDsn, RedisDsn, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from typing_extensions import Self
 
 
 class Settings(BaseSettings):
@@ -128,6 +129,18 @@ class Settings(BaseSettings):
     @property
     def redis_url_str(self) -> str:
         return str(self.REDIS_URL)
+
+    @model_validator(mode="after")
+    def validate_production_security(self) -> Self:
+        """Fail fast in production if dangerous placeholders or debug flags are active."""
+        if self.ENVIRONMENT == "production":
+            if self.DEBUG:
+                raise ValueError("Security violation: DEBUG must be False in production")
+            if "CHANGE-ME" in self.JWT_SECRET_KEY or "changeme" in self.JWT_SECRET_KEY.lower():
+                raise ValueError("Security violation: JWT_SECRET_KEY contains placeholder in production")
+            if len(self.JWT_SECRET_KEY) < 24:
+                raise ValueError("Security violation: JWT_SECRET_KEY must be at least 24 chars in production")
+        return self
 
 
 @lru_cache(maxsize=1)

@@ -70,7 +70,7 @@ services:
   # Celery Worker - Production
   # ──────────────────────────────────────────────
   worker:
-    command: celery -A app.core.celery_app worker --loglevel=warning --concurrency=8 --max-tasks-per-child=1000
+    command: celery -A app.worker.celery_app worker --loglevel=warning --concurrency=8 --max-tasks-per-child=1000
     deploy:
       resources:
         limits:
@@ -79,13 +79,15 @@ services:
         reservations:
           cpus: "0.5"
           memory: 256m
+      # Replicas note: Enforced in Docker Swarm mode (docker stack deploy)
+      # or scaled via 'docker compose --scale worker=2 up -d'
       replicas: 2
 
   # ──────────────────────────────────────────────
   # Celery Beat - Production
   # ──────────────────────────────────────────────
   beat:
-    command: celery -A app.core.celery_app beat --loglevel=warning --schedule=/tmp/celerybeat-schedule
+    command: celery -A app.worker.celery_app beat --loglevel=warning --schedule=/tmp/celerybeat-schedule
     deploy:
       resources:
         limits:

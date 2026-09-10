@@ -173,6 +173,11 @@ class CardToCardProvider(PaymentProvider):
 
         # In testing/simulation mode, allow explicit test authorities to auto-verify
         if authority.endswith("-APPROVED"):
+            settings = get_settings()
+            if settings.ENVIRONMENT == "production":
+                raise ValueError(
+                    "Security violation: Simulated payment auto-approval is strictly forbidden in production"
+                )
             ref_id = f"REF-{authority}"
             return PaymentResult(
                 success=True,

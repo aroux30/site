@@ -311,6 +311,23 @@ async def verify_payment(
             "ref_id": result.ref_id,
             "card_pan": result.card_pan,
         }
+
+        # Transition associated order from PENDING to CONFIRMED
+        if payment.order_id:
+            from app.modules.orders.domain.models import Order, OrderStatus, OrderStatusHistory
+            order_stmt = select(Order).where(Order.id == payment.order_id).with_for_update()
+            order = (await db.execute(order_stmt)).scalar_one_or_none()
+            if order and order.status == OrderStatus.PENDING:
+                order.status = OrderStatus.CONFIRMED
+                history = OrderStatusHistory(
+                    order_id=order.id,
+                    from_status=OrderStatus.PENDING.value,
+                    to_status=OrderStatus.CONFIRMED.value,
+                    changed_by=None,
+                    reason=f"Payment verified via {payment.provider.value} (ref: {result.ref_id})",
+                )
+                db.add(history)
+
         await db.flush()
 
         await logger.ainfo(
@@ -364,22 +381,22 @@ async def process_callback(
         order_id=callback_data.order_id,
     )
 
-    # Look up payment by authority or provider_transaction_id or order_id
+    # Look up payment by authority or provider_transaction_id or order_id with row lock
     payment: Optional[Payment] = None
     if authority:
-        stmt = select(Payment).where(Payment.authority == authority)
+        stmt = select(Payment).where(Payment.authority == authority).with_for_update()
         result = await db.execute(stmt)
         payment = result.scalar_one_or_none()
 
         if payment is None:
-            stmt = select(Payment).where(Payment.provider_transaction_id == authority)
+            stmt = select(Payment).where(Payment.provider_transaction_id == authority).with_for_update()
             result = await db.execute(stmt)
             payment = result.scalar_one_or_none()
 
     if payment is None and callback_data.order_id:
         try:
             order_uuid = uuid.UUID(str(callback_data.order_id))
-            stmt = select(Payment).where(Payment.order_id == order_uuid).order_by(Payment.created_at.desc())
+            stmt = select(Payment).where(Payment.order_id == order_uuid).order_by(Payment.created_at.desc()).with_for_update()
             result = await db.execute(stmt)
             payment = result.scalars().first()
             if payment and not authority:
@@ -640,6 +657,22 @@ async def approve_payment(
     if not payment.provider_transaction_id:
         payment.provider_transaction_id = extra.get("tracking_code") or payment.authority or f"C2C-{payment.id.hex[:8]}"
     payment.extra_data = extra
+
+    # Transition associated order from PENDING to CONFIRMED on admin approval
+    if payment.order_id:
+        from app.modules.orders.domain.models import Order, OrderStatus, OrderStatusHistory
+        order_stmt = select(Order).where(Order.id == payment.order_id).with_for_update()
+        order = (await db.execute(order_stmt)).scalar_one_or_none()
+        if order and order.status == OrderStatus.PENDING:
+            order.status = OrderStatus.CONFIRMED
+            history = OrderStatusHistory(
+                order_id=order.id,
+                from_status=OrderStatus.PENDING.value,
+                to_status=OrderStatus.CONFIRMED.value,
+                changed_by=admin_user_id,
+                reason=f"Admin approved payment (ref: {payment.provider_transaction_id})",
+            )
+            db.add(history)
 
     await _record_transaction(
         db,

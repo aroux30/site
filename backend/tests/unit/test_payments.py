@@ -668,3 +668,19 @@ def test_mock_payment_provider_strictly_fails_closed_in_production():
         assert "strictly disabled in production" in str(exc_info.value)
 
 
+@pytest.mark.asyncio
+async def test_card_to_card_simulated_approval_strictly_fails_closed_in_production():
+    """Verify that in production mode, card-to-card -APPROVED backdoor fails closed."""
+    from unittest.mock import patch
+    from app.modules.payments.infrastructure.providers.card_to_card import CardToCardProvider
+
+    c2c = CardToCardProvider()
+    mock_settings = MagicMock(ENVIRONMENT="production")
+    with patch("app.modules.payments.infrastructure.providers.card_to_card.get_settings", return_value=mock_settings):
+        with pytest.raises(ValueError) as exc_info:
+            await c2c.verify_payment(authority="C2C-TEST-APPROVED", amount=1_000_000)
+        assert "Security violation" in str(exc_info.value)
+        assert "strictly forbidden in production" in str(exc_info.value)
+
+
+

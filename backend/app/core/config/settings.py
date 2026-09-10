@@ -140,10 +140,9 @@ class Settings(BaseSettings):
                 raise ValueError("Security violation: JWT_SECRET_KEY contains placeholder in production")
             if len(self.JWT_SECRET_KEY) < 24:
                 raise ValueError("Security violation: JWT_SECRET_KEY must be at least 24 chars in production")
-            if self.POSTGRES_PASSWORD in ("change_me_in_production", "postgres", "password"):
-                raise ValueError("Security violation: POSTGRES_PASSWORD contains default placeholder in production")
-            if self.REDIS_PASSWORD in ("change_me_in_production", ""):
-                raise ValueError("Security violation: REDIS_PASSWORD must not be default in production")
+            db_url = str(self.DATABASE_URL)
+            if "postgres:postgres@" in db_url or "password@" in db_url:
+                raise ValueError("Security violation: DATABASE_URL contains default credentials in production")
             if self.MINIO_SECRET_KEY in ("minioadmin", "minioadmin123"):
                 raise ValueError("Security violation: MINIO_SECRET_KEY contains default credentials in production")
         return self

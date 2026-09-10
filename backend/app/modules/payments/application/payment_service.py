@@ -554,9 +554,17 @@ async def get_payment(
     db: AsyncSession,
     *,
     payment_id: uuid.UUID,
+    user_id: uuid.UUID | None = None,
 ) -> PaymentResponse:
-    """Fetch a single payment by ID."""
+    """Fetch a single payment by ID, validating ownership if user_id is provided."""
     payment = await _get_payment_or_raise(db, payment_id)
+    if user_id and payment.order_id:
+        from app.modules.orders.domain.models import Order
+        order_stmt = select(Order).where(Order.id == payment.order_id)
+        result = await db.execute(order_stmt)
+        order = result.scalar_one_or_none()
+        if isinstance(order, Order) and order.user_id != user_id:
+            raise NotFoundError(resource="Payment")
     return PaymentResponse.model_validate(payment)
 
 
@@ -576,6 +584,14 @@ async def submit_card_receipt(
     for administrator approval.
     """
     payment = await _get_payment_or_raise(db, payment_id)
+
+    if payment.order_id:
+        from app.modules.orders.domain.models import Order
+        order_stmt = select(Order).where(Order.id == payment.order_id)
+        result = await db.execute(order_stmt)
+        order = result.scalar_one_or_none()
+        if isinstance(order, Order) and order.user_id != user_id:
+            raise NotFoundError(resource="Payment")
 
     if payment.provider != PaymentProviderEnum.CARD_TRANSFER:
         raise ValidationError(

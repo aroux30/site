@@ -101,7 +101,7 @@ async def get_payment(
     db: AsyncSession = Depends(get_db),
 ) -> PaymentResponse:
     """Fetch a single payment record by ID."""
-    return await payment_service.get_payment(db, payment_id=payment_id)
+    return await payment_service.get_payment(db, payment_id=payment_id, user_id=user_id)
 
 
 # ── Card-to-Card Receipt Submission ───────────────────────────────────────

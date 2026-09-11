@@ -4,8 +4,25 @@ import axios, {
   type InternalAxiosRequestConfig,
 } from "axios";
 
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+const getApiBaseUrl = (): string => {
+  if (typeof window !== "undefined") {
+    // In browser: always use relative "/api/v1" unless explicitly pointed to a non-localhost absolute URL
+    const envUrl = process.env.NEXT_PUBLIC_API_URL;
+    if (envUrl && !envUrl.includes("localhost:8000")) {
+      return envUrl;
+    }
+    return "/api/v1";
+  }
+  // Server-side (Node.js runtime / SSR):
+  return (
+    process.env.INTERNAL_API_URL ||
+    (process.env.NEXT_PUBLIC_API_URL && !process.env.NEXT_PUBLIC_API_URL.startsWith("/")
+      ? process.env.NEXT_PUBLIC_API_URL
+      : "http://ecommerce-backend:8000/api/v1")
+  );
+};
+
+const API_BASE_URL = getApiBaseUrl();
 
 interface SessionStore {
   getSessionId: () => string | null;

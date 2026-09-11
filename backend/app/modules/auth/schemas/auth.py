@@ -15,10 +15,24 @@ _IRAN_PHONE_RE = re.compile(r"^09\d{9}$")
 
 def _validate_iran_phone(v: str) -> str:
     """Validate and normalise an Iranian mobile number (09xxxxxxxxx)."""
-    v = v.strip()
-    if not _IRAN_PHONE_RE.match(v):
+    if not isinstance(v, str):
+        raise ValueError("Phone must be a string")
+    # Strip hidden bidi marks, whitespace, hyphens, dots, parentheses
+    cleaned = re.sub(r"[\u200B-\u200D\uFEFF\u200E\u200F\u202A-\u202E\s\-\(\)\.]+", "", v).strip()
+    # Convert Persian/Arabic digits to English digits
+    persian_arabic = str.maketrans("۰۱۲۳۴۵۶۷۸۹٠١٢٣٤٥٦٧٨٩", "01234567890123456789")
+    cleaned = cleaned.translate(persian_arabic)
+    if cleaned.startswith("+"):
+        cleaned = cleaned[1:]
+    if cleaned.startswith("0098"):
+        cleaned = "0" + cleaned[4:]
+    elif cleaned.startswith("98") and len(cleaned) == 12:
+        cleaned = "0" + cleaned[2:]
+    elif cleaned.startswith("9") and len(cleaned) == 10:
+        cleaned = "0" + cleaned
+    if not _IRAN_PHONE_RE.match(cleaned):
         raise ValueError("Phone must be a valid Iranian mobile number (09xxxxxxxxx)")
-    return v
+    return cleaned
 
 
 # ── Request schemas ──────────────────────────────────────────────────────────
@@ -29,12 +43,12 @@ class RegisterRequest(BaseModel):
 
     model_config = ConfigDict(str_strip_whitespace=True)
 
-    phone: str = Field(..., min_length=11, max_length=11, examples=["09123456789"])
+    phone: str = Field(..., min_length=10, max_length=20, examples=["09123456789"])
     password: str = Field(..., min_length=8, max_length=128)
     first_name: str = Field(..., min_length=1, max_length=100)
     last_name: str = Field(..., min_length=1, max_length=100)
 
-    @field_validator("phone")
+    @field_validator("phone", mode="before")
     @classmethod
     def validate_phone(cls, v: str) -> str:
         return _validate_iran_phone(v)
@@ -56,10 +70,10 @@ class LoginRequest(BaseModel):
 
     model_config = ConfigDict(str_strip_whitespace=True)
 
-    phone: str = Field(..., min_length=11, max_length=11, examples=["09123456789"])
+    phone: str = Field(..., min_length=10, max_length=20, examples=["09123456789"])
     password: str = Field(..., min_length=1, max_length=128)
 
-    @field_validator("phone")
+    @field_validator("phone", mode="before")
     @classmethod
     def validate_phone(cls, v: str) -> str:
         return _validate_iran_phone(v)
@@ -70,9 +84,9 @@ class OTPRequestSchema(BaseModel):
 
     model_config = ConfigDict(str_strip_whitespace=True)
 
-    phone: str = Field(..., min_length=11, max_length=11, examples=["09123456789"])
+    phone: str = Field(..., min_length=10, max_length=20, examples=["09123456789"])
 
-    @field_validator("phone")
+    @field_validator("phone", mode="before")
     @classmethod
     def validate_phone(cls, v: str) -> str:
         return _validate_iran_phone(v)
@@ -83,10 +97,10 @@ class OTPVerifySchema(BaseModel):
 
     model_config = ConfigDict(str_strip_whitespace=True)
 
-    phone: str = Field(..., min_length=11, max_length=11, examples=["09123456789"])
+    phone: str = Field(..., min_length=10, max_length=20, examples=["09123456789"])
     code: str = Field(..., min_length=4, max_length=10, examples=["123456"])
 
-    @field_validator("phone")
+    @field_validator("phone", mode="before")
     @classmethod
     def validate_phone(cls, v: str) -> str:
         return _validate_iran_phone(v)

@@ -25,11 +25,48 @@ export function toEnglishDigits(value: string): string {
 }
 
 /**
+ * Normalizes any Iranian mobile number format into 09xxxxxxxxx.
+ * Handles:
+ * - Persian/Arabic digits: ۰۹۱۲۳۴۵۶۷۸۹ -> 09123456789
+ * - International prefix: +989123456789, 00989123456789, 989123456789 -> 09123456789
+ * - Missing leading zero: 9123456789 -> 09123456789
+ * - Hidden RTL/bidi marks (\u200B-\u200D, \uFEFF, \u200E, \u200F, \u202A-\u202E)
+ * - Separators: spaces, dashes, dots, parentheses
+ */
+export function normalizeIranPhone(phone: string): string {
+  if (!phone) return "";
+  // 1. Strip hidden bidi marks, whitespace, hyphens, dots, parentheses
+  let cleaned = String(phone)
+    .replace(/[\u200B-\u200D\uFEFF\u200E\u200F\u202A-\u202E]/g, "")
+    .replace(/[\s\-\(\)\.]+/g, "")
+    .trim();
+
+  // 2. Convert Persian & Arabic digits to English digits
+  cleaned = toEnglishDigits(cleaned);
+
+  // 3. Strip leading plus
+  if (cleaned.startsWith("+")) {
+    cleaned = cleaned.slice(1);
+  }
+
+  // 4. Normalize international and local prefixes
+  if (cleaned.startsWith("0098")) {
+    cleaned = "0" + cleaned.slice(4);
+  } else if (cleaned.startsWith("98") && cleaned.length === 12) {
+    cleaned = "0" + cleaned.slice(2);
+  } else if (cleaned.startsWith("9") && cleaned.length === 10) {
+    cleaned = "0" + cleaned;
+  }
+
+  return cleaned;
+}
+
+/**
  * Validate Iranian mobile number (09xxxxxxxxx).
  */
 export function isValidIranPhone(phone: string): boolean {
-  const cleanPhone = toEnglishDigits(phone.trim());
-  return /^09\d{9}$/.test(cleanPhone);
+  const normalized = normalizeIranPhone(phone);
+  return /^09\d{9}$/.test(normalized);
 }
 
 /**

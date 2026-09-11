@@ -107,6 +107,7 @@ export interface OtpResponse {
   status?: string;
   message?: string;
   expires_in?: number;
+  code?: string;
   [key: string]: unknown;
 }
 

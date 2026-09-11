@@ -20,7 +20,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/components/ui/use-toast";
-import { toEnglishDigits, isValidIranPhone } from "@/lib/utils";
+import { isValidIranPhone, normalizeIranPhone } from "@/lib/utils";
 
 interface FormErrors {
   firstName?: string;
@@ -81,7 +81,7 @@ function RegisterForm() {
       newErrors.lastName = "نام خانوادگی باید حداقل ۲ حرف باشد.";
     }
 
-    const cleanPhone = toEnglishDigits(phone.trim());
+    const cleanPhone = normalizeIranPhone(phone);
     if (!cleanPhone) {
       newErrors.phone = "شماره موبایل را وارد کنید.";
     } else if (!isValidIranPhone(cleanPhone)) {
@@ -121,7 +121,7 @@ function RegisterForm() {
     }
 
     setIsSubmitting(true);
-    const cleanPhone = toEnglishDigits(phone.trim());
+    const cleanPhone = normalizeIranPhone(phone);
 
     try {
       await register({
@@ -143,14 +143,10 @@ function RegisterForm() {
       });
     } catch (err: unknown) {
       const errorMsg =
+        (err as { response?: { data?: { error?: { message?: string } } }; message?: string })?.response?.data?.error?.message ||
         (err as { message?: string })?.message ||
-        "خطایی در هنگام ثبت‌نام رخ داده است. لطفاً دوباره تلاش کنید.";
-
-      setErrors((prev) => ({
-        ...prev,
-        general: errorMsg,
-      }));
-
+        "خطایی در ایجاد حساب کاربری رخ داد. لطفاً دوباره تلاش کنید.";
+      setErrors({ general: errorMsg });
       toast({
         title: "خطا در ثبت‌نام",
         description: errorMsg,

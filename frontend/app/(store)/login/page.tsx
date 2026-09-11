@@ -28,7 +28,7 @@ import {
   InputOTPGroup,
   InputOTPSlot,
 } from "@/components/ui/input-otp";
-import { toEnglishDigits, toPersianDigits, isValidIranPhone } from "@/lib/utils";
+import { toEnglishDigits, toPersianDigits, isValidIranPhone, normalizeIranPhone } from "@/lib/utils";
 
 const OTP_COUNTDOWN_SECONDS = 120;
 
@@ -90,7 +90,7 @@ function LoginForm() {
     e.preventDefault();
     setPasswordError(null);
 
-    const cleanPhone = toEnglishDigits(phone.trim());
+    const cleanPhone = normalizeIranPhone(phone);
     if (!cleanPhone) {
       setPasswordError("لطفاً شماره موبایل خود را وارد کنید.");
       return;
@@ -123,6 +123,7 @@ function LoginForm() {
       });
     } catch (err: unknown) {
       const errorMsg =
+        (err as { response?: { data?: { error?: { message?: string } } }; message?: string })?.response?.data?.error?.message ||
         (err as { message?: string })?.message ||
         "شماره موبایل یا رمز عبور اشتباه است.";
       setPasswordError(errorMsg);
@@ -142,7 +143,7 @@ function LoginForm() {
       if (e) e.preventDefault();
       setOtpError(null);
 
-      const cleanPhone = toEnglishDigits(otpPhone.trim());
+      const cleanPhone = normalizeIranPhone(otpPhone);
       if (!cleanPhone) {
         setOtpError("لطفاً شماره موبایل خود را وارد کنید.");
         return;
@@ -157,15 +158,25 @@ function LoginForm() {
         const res = await requestOtp({ phone: cleanPhone });
         setOtpStep("code");
         setCountdown(OTP_COUNTDOWN_SECONDS);
-        setOtpCode("");
-
-        toast({
-          title: "کد تایید ارسال شد",
-          description: res.message || `کد یکبار مصرف به شماره ${toPersianDigits(cleanPhone)} ارسال شد.`,
-          variant: "success",
-        });
+        if (res.code) {
+          const codeStr = String(res.code);
+          setOtpCode(codeStr);
+          toast({
+            title: "کد تایید ارسال شد",
+            description: `کد یکبار مصرف شما: ${toPersianDigits(codeStr)}`,
+            variant: "success",
+          });
+        } else {
+          setOtpCode("");
+          toast({
+            title: "کد تایید ارسال شد",
+            description: res.message || `کد یکبار مصرف به شماره ${toPersianDigits(cleanPhone)} ارسال شد.`,
+            variant: "success",
+          });
+        }
       } catch (err: unknown) {
         const errorMsg =
+          (err as { response?: { data?: { error?: { message?: string } } }; message?: string })?.response?.data?.error?.message ||
           (err as { message?: string })?.message ||
           "خطا در ارسال کد تایید. لطفاً بعداً تلاش کنید.";
         setOtpError(errorMsg);
@@ -186,8 +197,8 @@ function LoginForm() {
     e.preventDefault();
     setOtpError(null);
 
-    const cleanPhone = toEnglishDigits(otpPhone.trim());
-    const cleanCode = toEnglishDigits(otpCode.trim());
+    const cleanPhone = normalizeIranPhone(otpPhone);
+    const cleanCode = toEnglishDigits(otpCode.replace(/\D/g, "").trim());
 
     if (!cleanCode || cleanCode.length < 4) {
       setOtpError("لطفاً کد تایید را به درستی وارد کنید.");
@@ -213,6 +224,7 @@ function LoginForm() {
       });
     } catch (err: unknown) {
       const errorMsg =
+        (err as { response?: { data?: { error?: { message?: string } } }; message?: string })?.response?.data?.error?.message ||
         (err as { message?: string })?.message ||
         "کد تایید وارد شده نامعتبر یا منقضی شده است.";
       setOtpError(errorMsg);
@@ -501,8 +513,16 @@ function LoginForm() {
                           </InputOTPGroup>
                         </InputOTPItem>
                       </div>
+                      {otpCode && (
+                        <div className="flex items-center justify-center gap-2 rounded-xl bg-emerald-500/10 border border-emerald-500/30 py-2 px-3 text-xs text-emerald-600 dark:text-emerald-400 font-semibold shadow-xs">
+                          <span>کد تایید دریافتی:</span>
+                          <span className="font-black text-sm tracking-wider font-sans tabular-nums">
+                            {toPersianDigits(otpCode)}
+                          </span>
+                        </div>
+                      )}
                       <p className="text-center text-[11px] text-muted-foreground">
-                        کد ۶ رقمی پیامک‌شده را وارد کنید
+                        کد ۶ رقمی پیامک‌شده را در کادرهای بالا وارد فرمایید.
                       </p>
                     </div>
 
@@ -511,7 +531,7 @@ function LoginForm() {
                       {countdown > 0 ? (
                         <span className="flex items-center gap-1.5">
                           <span>ارسال مجدد کد تا</span>
-                          <span className="font-mono font-semibold text-foreground">
+                          <span className="font-sans font-bold text-foreground tabular-nums">
                             {formatTimer(countdown)}
                           </span>
                           <span>دیگر</span>

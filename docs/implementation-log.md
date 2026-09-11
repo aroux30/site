@@ -118,3 +118,51 @@ A second session committed `6921841` ("ship UI/UX waves 1-2 + security hardening
 | P1-09 | DONE | 178/178 unit tests incl. 2 new | covered by CI pytest |
 | P2-01 | DONE (populated-DB NOT VERIFIED) | migration file + models parse; suite green | fresh-DB migration gate runs in CI |
 | P2-02 | DONE | 178/178 tests; app boots | covered by CI pytest |
+
+---
+
+## 2026-09-11 — Continuation batch (roadmap P4/P6/P7/P8/P9/P11)
+
+### TASK P7-01 — Catalog → outbox → search sync — **DONE**
+- `catalog_service.py`: new `_publish_product_event()` helper; `ProductCreated` on product create, `ProductUpdated` on product/variant update + variant create/delete, `ProductDeleted` on product delete — same transaction as the write; failures logged, never raised.
+- The outbox worker already dispatched `sync_single_product` for these events — the pipeline is now end-to-end live.
+- **NOT VERIFIED** with a live Elasticsearch (none in this environment).
+
+### TASK P6-01 — Reverse-flow events — **DONE**
+- `OrderCanceled` published in `cancel_order` (customer), `admin_update_status` (admin), and `cancel_stale_pending_orders` (system) with `initiated_by`/`reason`.
+- `RefundProcessed` published in `refund_payment` (refund id/amount/status).
+- `ReturnApproved`/`ReturnRefunded` **NOT WIRED — blocker**: the RMA lifecycle (approve/receive/inspect/refund) has no admin API surface at all (only creation is exposed). Logged as backlog gap BE-20.
+
+### TASK P8-01 — Notifications wired to events — **DONE**
+- Outbox worker: `OrderConfirmed` / `PaymentCompleted` / `OrderCanceled` / `RefundProcessed` create a Persian in-app `Notification` (order number resolved from DB) and enqueue `send_notification_task`.
+- Dispatch enqueue is deliberately best-effort (a failed enqueue must not duplicate the in-app row on outbox retry); channel failures stay observable in the notifications queue/logs.
+
+### TASK P11-01 — Trusted-proxy IP + rate limits — **DONE**
+- `get_real_client_ip` honors `TRUSTED_PROXY_COUNT` (default 1): rightmost trusted XFF hop instead of spoofable leftmost.
+- Limits added: cart writes 60/min, cart merge 10/min, checkout create-order 10/min, payment create 10/min + verify 30/min, order cancel/return 10/min, wallet deposit/withdraw/topup 10/min.
+- A 429 integration test remains open (roadmap test plan).
+
+### TASK P6-02 — Wallet top-up via gateway — **DONE**
+- Migration `b3e7a9c2d154`: `payments.order_id` nullable.
+- `POST /wallet/topup` (10/min) creates a `wallet_topup` payment via an online gateway; `verify_payment` credits the owner's wallet inside the locked completion transaction; ownership via `extra_data.wallet_user_id`.
+- Deposit modal redirects to the gateway; options are zarinpal/idpay (fake "saman" removed).
+- Regression tests: topup credits owner once; non-owner verify → 404; below-minimum rejected.
+
+### Frontend honesty batch — **DONE**
+- **P9-01** PDP: fabricated product/reviews/stats deleted; unified guard → skeleton / error+retry / not-found; no unsplash placeholder injection.
+- **P9-04** home: featured products fetched server-side (ISR 5 min); section hidden when API unreachable — zero hardcoded products.
+- **P9-05** blog: fabricated posts/categories deleted; unknown slug → `notFound()`; unused `fetchRecentBlogPosts` removed.
+- **P9-02** account: `INITIAL_*` mock seeds and fake `5,800,000` balance default removed.
+- **P9-08**: dead `$RV/$RB` flush hack and `evaluateCoupon` mock engine removed.
+
+### TASK P4-01 — Guest checkout decision — **DONE**
+- `docs/adr/0001-guest-checkout-decision.md`: **Option A** — login required (phone-OTP friction is low; every order gets an authenticated owner); guest carts remain pre-login carts with existing merge behavior; Option B documented as revisit path.
+
+### Final verification
+| Command | Result |
+|---|---|
+| `ruff check app tests` / `ruff format --check` | ✅ clean |
+| `pytest tests/unit -q` | ✅ **181/181** |
+| `create_app()` boot | ✅ 272 routes (incl. `/wallet/topup`) |
+| `tsc` / `eslint .` / `vitest` / `next build` | ✅ clean / 0 errors / 30-30 / 39 pages |
+| GitHub Actions on `main` | ✅ CI Pipeline + Security Scan & Audit + CodeQL success |

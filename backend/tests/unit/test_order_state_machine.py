@@ -1,10 +1,10 @@
 """Unit tests for the order state machine transition rules."""
 
 import pytest
+
 from app.core.exceptions.handlers import ValidationError
 from app.modules.orders.application.order_service import (
     _CUSTOMER_CANCELABLE,
-    _VALID_TRANSITIONS,
     _generate_order_number,
     _validate_transition,
 )

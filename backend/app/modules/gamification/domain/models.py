@@ -1,7 +1,7 @@
 """Gamification domain models."""
 
 import uuid
-from typing import Any, Optional
+from typing import Any
 
 from sqlalchemy import Boolean, ForeignKey, Index, Integer, String, Text
 from sqlalchemy.dialects.postgresql import JSONB, UUID
@@ -22,7 +22,7 @@ class GamificationRule(BaseModel):
     name: Mapped[str] = mapped_column(String(200), nullable=False)
     event_type: Mapped[str] = mapped_column(String(100), nullable=False)
     points: Mapped[int] = mapped_column(Integer, nullable=False)
-    conditions: Mapped[Optional[dict[str, Any]]] = mapped_column(JSONB, nullable=True)
+    conditions: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
 
     # Relationships
@@ -55,15 +55,13 @@ class GamificationEvent(BaseModel):
         nullable=False,
     )
     points_earned: Mapped[int] = mapped_column(Integer, nullable=False)
-    event_data: Mapped[Optional[dict[str, Any]]] = mapped_column(JSONB, nullable=True)
+    event_data: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True)
 
     # Relationships
-    rule: Mapped["GamificationRule"] = relationship(
-        "GamificationRule", back_populates="events"
-    )
+    rule: Mapped["GamificationRule"] = relationship("GamificationRule", back_populates="events")
 
     def __repr__(self) -> str:
-        return f"<GamificationEvent(id={self.id}, user_id={self.user_id}, points={self.points_earned})>"
+        return f"<GamificationEvent(id={self.id}, user_id={self.user_id}, points={self.points_earned})>"  # noqa: E501
 
 
 class Reward(BaseModel):
@@ -77,11 +75,11 @@ class Reward(BaseModel):
     )
 
     name: Mapped[str] = mapped_column(String(200), nullable=False)
-    description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    description: Mapped[str | None] = mapped_column(Text, nullable=True)
     type: Mapped[str] = mapped_column(String(50), nullable=False)
     points_required: Mapped[int] = mapped_column(Integer, nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
-    quantity_available: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    quantity_available: Mapped[int | None] = mapped_column(Integer, nullable=True)
 
     def __repr__(self) -> str:
         return f"<Reward(id={self.id}, name={self.name}, points_required={self.points_required})>"

@@ -4,10 +4,8 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime
-from typing import Optional
 
 from fastapi import APIRouter, Depends, Query
-
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database.session import get_db
@@ -37,12 +35,12 @@ router = APIRouter()
     summary="List audit logs (admin)",
 )
 async def list_audit_logs(
-    actor_id: Optional[uuid.UUID] = Query(None, description="Filter by actor ID"),
-    action: Optional[str] = Query(None, description="Filter by action name"),
-    resource: Optional[str] = Query(None, description="Filter by resource type"),
-    resource_id: Optional[uuid.UUID] = Query(None, description="Filter by resource ID"),
-    from_date: Optional[datetime] = Query(None, description="From date (ISO 8601)"),
-    to_date: Optional[datetime] = Query(None, description="To date (ISO 8601)"),
+    actor_id: uuid.UUID | None = Query(None, description="Filter by actor ID"),
+    action: str | None = Query(None, description="Filter by action name"),
+    resource: str | None = Query(None, description="Filter by resource type"),
+    resource_id: uuid.UUID | None = Query(None, description="Filter by resource ID"),
+    from_date: datetime | None = Query(None, description="From date (ISO 8601)"),
+    to_date: datetime | None = Query(None, description="To date (ISO 8601)"),
     page: int = Query(1, ge=1, description="Page number"),
     page_size: int = Query(20, ge=1, le=100, description="Items per page"),
     db: AsyncSession = Depends(get_db),
@@ -84,8 +82,12 @@ async def list_audit_logs(
     summary="List active operational anomalies (admin Exception Center)",
 )
 async def list_operational_exceptions(
-    severity: Optional[str] = Query(None, description="Filter by severity: CRITICAL, HIGH, MEDIUM, LOW"),
-    status: Optional[str] = Query(None, description="Filter by status: OPEN, INVESTIGATING, RESOLVED, DISMISSED"),
+    severity: str | None = Query(
+        None, description="Filter by severity: CRITICAL, HIGH, MEDIUM, LOW"
+    ),
+    status: str | None = Query(
+        None, description="Filter by status: OPEN, INVESTIGATING, RESOLVED, DISMISSED"
+    ),
 ) -> list[OperationalExceptionResponse]:
     sev = ExceptionSeverity(severity) if severity in [s.value for s in ExceptionSeverity] else None
     stat = ExceptionStatus(status) if status in [s.value for s in ExceptionStatus] else None
@@ -162,4 +164,3 @@ async def resolve_operational_exception(
         resolved_at=item.resolved_at,
         resolution_notes=item.resolution_notes,
     )
-

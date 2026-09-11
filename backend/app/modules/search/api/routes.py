@@ -2,14 +2,12 @@
 
 from __future__ import annotations
 
-from typing import Any, Optional
-
 import structlog
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database.session import get_db
-from app.core.security.dependencies import RequirePermissions, get_current_user_id
+from app.core.security.dependencies import RequirePermissions
 from app.modules.search.application.search_service import SearchService, get_search_service
 from app.modules.search.schemas.search import (
     PopularSearchesResponse,
@@ -32,11 +30,11 @@ def _get_service() -> SearchService:
 @router.get("", response_model=SearchResponse)
 async def search_products(
     q: str = Query(..., min_length=1, max_length=500, description="Search query"),
-    category: Optional[str] = Query(None, description="Category slug or ID"),
-    brand: Optional[str] = Query(None, description="Brand slug or ID"),
-    min_price: Optional[int] = Query(None, ge=0, description="Minimum price (Rial)"),
-    max_price: Optional[int] = Query(None, ge=0, description="Maximum price (Rial)"),
-    min_rating: Optional[float] = Query(None, ge=1, le=5, description="Minimum average rating"),
+    category: str | None = Query(None, description="Category slug or ID"),
+    brand: str | None = Query(None, description="Brand slug or ID"),
+    min_price: int | None = Query(None, ge=0, description="Minimum price (Rial)"),
+    max_price: int | None = Query(None, ge=0, description="Maximum price (Rial)"),
+    min_rating: float | None = Query(None, ge=1, le=5, description="Minimum average rating"),
     sort: SearchSortOption = Query(SearchSortOption.RELEVANCE, description="Sort order"),
     page: int = Query(1, ge=1, description="Page number"),
     size: int = Query(20, ge=1, le=100, description="Results per page"),

@@ -4,10 +4,8 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime
-from typing import Optional
 
 from pydantic import BaseModel, ConfigDict, Field
-
 
 # ── Shipping Method ────────────────────────────────────────────────────────
 
@@ -20,8 +18,8 @@ class ShippingMethodResponse(BaseModel):
     id: uuid.UUID
     name: str
     slug: str
-    provider: Optional[str] = None
-    description: Optional[str] = None
+    provider: str | None = None
+    description: str | None = None
     is_active: bool
     estimated_days_min: int
     estimated_days_max: int
@@ -39,10 +37,10 @@ class ShippingRateResponse(BaseModel):
 
     id: uuid.UUID
     method_id: uuid.UUID
-    province: Optional[str] = None
-    min_weight: Optional[float] = None
-    max_weight: Optional[float] = None
-    min_order_amount: Optional[int] = None
+    province: str | None = None
+    min_weight: float | None = None
+    max_weight: float | None = None
+    min_order_amount: int | None = None
     price: int = Field(description="Price in Rials")
 
 
@@ -63,7 +61,7 @@ class ShippingQuoteMethodItem(BaseModel):
     method_id: uuid.UUID
     name: str
     slug: str
-    provider: Optional[str] = None
+    provider: str | None = None
     estimated_days_min: int
     estimated_days_max: int
     price: int = Field(description="Calculated shipping price in Rials")
@@ -110,10 +108,10 @@ class ShipmentResponse(BaseModel):
     id: uuid.UUID
     order_id: uuid.UUID
     method_id: uuid.UUID
-    tracking_code: Optional[str] = None
+    tracking_code: str | None = None
     status: str
-    shipped_at: Optional[datetime] = None
-    delivered_at: Optional[datetime] = None
+    shipped_at: datetime | None = None
+    delivered_at: datetime | None = None
     items: list[ShipmentItemResponse] = Field(default_factory=list)
     created_at: datetime
     updated_at: datetime
@@ -129,11 +127,11 @@ class ShipmentCreateRequest(BaseModel):
         min_length=1,
         description="Items to ship (supports partial shipments)",
     )
-    tracking_code: Optional[str] = Field(None, max_length=100)
+    tracking_code: str | None = Field(None, max_length=100)
 
 
 class ShipmentUpdateRequest(BaseModel):
     """Admin request to update a shipment's status or tracking code."""
 
-    status: Optional[str] = Field(None, description="New shipment status")
-    tracking_code: Optional[str] = Field(None, max_length=100, description="Carrier tracking code")
+    status: str | None = Field(None, description="New shipment status")
+    tracking_code: str | None = Field(None, max_length=100, description="Carrier tracking code")

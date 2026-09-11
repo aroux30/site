@@ -4,11 +4,10 @@ from __future__ import annotations
 
 import secrets
 import uuid
-from typing import Any, Optional
+from typing import TYPE_CHECKING, Any
 
 import structlog
-from sqlalchemy import func, select, update
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import func, select
 
 from app.modules.referrals.domain.models import (
     CommissionStatus,
@@ -17,6 +16,8 @@ from app.modules.referrals.domain.models import (
     ReferralStatus,
 )
 
+if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncSession
 logger: structlog.stdlib.BoundLogger = structlog.get_logger()
 
 # Commission rates per level (percentage of order total)
@@ -36,9 +37,7 @@ class ReferralService:
     # ── Referral Code ─────────────────────────────────────────────────
 
     @staticmethod
-    async def get_or_create_referral_code(
-        db: AsyncSession, user_id: uuid.UUID
-    ) -> str:
+    async def get_or_create_referral_code(db: AsyncSession, user_id: uuid.UUID) -> str:
         """Return existing referral code for the user or create a new one."""
         stmt = select(Referral.code).where(Referral.referrer_id == user_id).limit(1)
         result = await db.execute(stmt)
@@ -74,9 +73,7 @@ class ReferralService:
             select(Referral).where(Referral.referred_id == referred_id).limit(1)
         )
         if existing.scalar_one_or_none():
-            await logger.awarn(
-                "referral_already_exists", referred_id=str(referred_id)
-            )
+            await logger.awarn("referral_already_exists", referred_id=str(referred_id))
             raise ValueError("User already has a referral record.")
 
         # Level 1 referral
@@ -99,10 +96,14 @@ class ReferralService:
         )
 
         # Check for level 2: who referred the referrer?
-        stmt = select(Referral).where(
-            Referral.referred_id == referrer_id,
-            Referral.level == 1,
-        ).limit(1)
+        stmt = (
+            select(Referral)
+            .where(
+                Referral.referred_id == referrer_id,
+                Referral.level == 1,
+            )
+            .limit(1)
+        )
         result = await db.execute(stmt)
         parent_referral = result.scalar_one_or_none()
 
@@ -145,11 +146,7 @@ class ReferralService:
 
         commissions: list[ReferralCommission] = []
         for referral in referrals:
-            rate = (
-                LEVEL1_COMMISSION_RATE
-                if referral.level == 1
-                else LEVEL2_COMMISSION_RATE
-            )
+            rate = LEVEL1_COMMISSION_RATE if referral.level == 1 else LEVEL2_COMMISSION_RATE
             amount = int(order_total * rate / 100)
             if amount <= 0:
                 continue
@@ -190,9 +187,7 @@ class ReferralService:
     ) -> tuple[list[Referral], int]:
         """Return paginated referrals where the user is the referrer."""
         count_stmt = (
-            select(func.count())
-            .select_from(Referral)
-            .where(Referral.referrer_id == user_id)
+            select(func.count()).select_from(Referral).where(Referral.referrer_id == user_id)
         )
         total = (await db.execute(count_stmt)).scalar_one()
 
@@ -207,29 +202,16 @@ class ReferralService:
         return list(result.scalars().all()), total
 
     @staticmethod
-    async def get_referral_stats(
-        db: AsyncSession, user_id: uuid.UUID
-    ) -> dict[str, Any]:
+    async def get_referral_stats(db: AsyncSession, user_id: uuid.UUID) -> dict[str, Any]:
         """Aggregate referral statistics for a user."""
         # Total / status counts
-        stmt = (
-            select(
-                func.count().label("total"),
-                func.count()
-                .filter(Referral.status == ReferralStatus.COMPLETED)
-                .label("completed"),
-                func.count()
-                .filter(Referral.status == ReferralStatus.PENDING)
-                .label("pending"),
-                func.count()
-                .filter(Referral.level == 1)
-                .label("level1"),
-                func.count()
-                .filter(Referral.level == 2)
-                .label("level2"),
-            )
-            .where(Referral.referrer_id == user_id)
-        )
+        stmt = select(
+            func.count().label("total"),
+            func.count().filter(Referral.status == ReferralStatus.COMPLETED).label("completed"),
+            func.count().filter(Referral.status == ReferralStatus.PENDING).label("pending"),
+            func.count().filter(Referral.level == 1).label("level1"),
+            func.count().filter(Referral.level == 2).label("level2"),
+        ).where(Referral.referrer_id == user_id)
         row = (await db.execute(stmt)).one()
 
         # Commission totals

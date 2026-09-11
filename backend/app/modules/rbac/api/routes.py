@@ -3,10 +3,8 @@
 from __future__ import annotations
 
 import uuid
-from typing import Optional
 
 from fastapi import APIRouter, Depends, Query, status
-
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database.session import get_db
@@ -42,7 +40,7 @@ router = APIRouter()
     summary="List all permissions",
 )
 async def list_permissions(
-    resource: Optional[str] = Query(None, description="Filter by resource"),
+    resource: str | None = Query(None, description="Filter by resource"),
     db: AsyncSession = Depends(get_db),
 ) -> PermissionListResponse:
     items, total = await rbac_service.list_permissions(db, resource=resource)
@@ -88,7 +86,9 @@ async def delete_permission(
     db: AsyncSession = Depends(get_db),
 ) -> None:
     await rbac_service.delete_permission(
-        db, permission_id=permission_id, actor_id=actor_id,
+        db,
+        permission_id=permission_id,
+        actor_id=actor_id,
     )
 
 
@@ -138,7 +138,11 @@ async def create_role(
     db: AsyncSession = Depends(get_db),
 ) -> RoleResponse:
     role = await rbac_service.create_role(
-        db, name=body.name, slug=body.slug, description=body.description, actor_id=actor_id,
+        db,
+        name=body.name,
+        slug=body.slug,
+        description=body.description,
+        actor_id=actor_id,
     )
     return RoleResponse.model_validate(role)
 
@@ -194,7 +198,10 @@ async def assign_permissions(
     db: AsyncSession = Depends(get_db),
 ) -> MessageResponse:
     await rbac_service.assign_permissions_to_role(
-        db, role_id=role_id, permission_ids=body.permission_ids, actor_id=actor_id,
+        db,
+        role_id=role_id,
+        permission_ids=body.permission_ids,
+        actor_id=actor_id,
     )
     return MessageResponse(message="Permissions assigned successfully")
 
@@ -212,7 +219,10 @@ async def remove_permissions(
     db: AsyncSession = Depends(get_db),
 ) -> MessageResponse:
     await rbac_service.remove_permissions_from_role(
-        db, role_id=role_id, permission_ids=body.permission_ids, actor_id=actor_id,
+        db,
+        role_id=role_id,
+        permission_ids=body.permission_ids,
+        actor_id=actor_id,
     )
     return MessageResponse(message="Permissions removed successfully")
 
@@ -250,7 +260,10 @@ async def assign_user_roles(
     db: AsyncSession = Depends(get_db),
 ) -> UserRoleResponse:
     roles = await rbac_service.assign_roles_to_user(
-        db, user_id=user_id, role_ids=body.role_ids, actor_id=actor_id,
+        db,
+        user_id=user_id,
+        role_ids=body.role_ids,
+        actor_id=actor_id,
     )
     return UserRoleResponse(
         user_id=user_id,
@@ -271,7 +284,10 @@ async def remove_user_roles(
     db: AsyncSession = Depends(get_db),
 ) -> UserRoleResponse:
     roles = await rbac_service.remove_roles_from_user(
-        db, user_id=user_id, role_ids=body.role_ids, actor_id=actor_id,
+        db,
+        user_id=user_id,
+        role_ids=body.role_ids,
+        actor_id=actor_id,
     )
     return UserRoleResponse(
         user_id=user_id,

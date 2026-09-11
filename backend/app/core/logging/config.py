@@ -58,10 +58,12 @@ def setup_logging(*, log_level: str = "INFO", json_output: bool = True) -> None:
     root.setLevel(log_level.upper())
 
     handler = logging.StreamHandler(sys.stdout)
-    handler.setFormatter(structlog.stdlib.ProcessorFormatter(
-        processor=renderer,
-        foreign_pre_chain=shared_processors,
-    ))
+    handler.setFormatter(
+        structlog.stdlib.ProcessorFormatter(
+            processor=renderer,
+            foreign_pre_chain=shared_processors,
+        )
+    )
     root.handlers = [handler]
 
     # Quieten noisy loggers

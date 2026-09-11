@@ -1,7 +1,6 @@
 """Wishlist domain models."""
 
 import uuid
-from typing import Optional
 
 from sqlalchemy import ForeignKey, Index, String, UniqueConstraint
 from sqlalchemy.dialects.postgresql import UUID
@@ -14,9 +13,7 @@ class Wishlist(BaseModel):
     """Named wishlist belonging to a user."""
 
     __tablename__ = "wishlists"
-    __table_args__ = (
-        Index("ix_wishlists_user_id", "user_id"),
-    )
+    __table_args__ = (Index("ix_wishlists_user_id", "user_id"),)
 
     user_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
@@ -42,9 +39,7 @@ class WishlistItem(BaseModel):
 
     __tablename__ = "wishlist_items"
     __table_args__ = (
-        UniqueConstraint(
-            "wishlist_id", "product_id", name="uq_wishlist_items_wishlist_product"
-        ),
+        UniqueConstraint("wishlist_id", "product_id", name="uq_wishlist_items_wishlist_product"),
         Index("ix_wishlist_items_wishlist_id", "wishlist_id"),
         Index("ix_wishlist_items_product_id", "product_id"),
     )
@@ -61,9 +56,7 @@ class WishlistItem(BaseModel):
     )
 
     # Relationships
-    wishlist: Mapped["Wishlist"] = relationship(
-        "Wishlist", back_populates="items"
-    )
+    wishlist: Mapped["Wishlist"] = relationship("Wishlist", back_populates="items")
 
     def __repr__(self) -> str:
-        return f"<WishlistItem(id={self.id}, wishlist_id={self.wishlist_id}, product_id={self.product_id})>"
+        return f"<WishlistItem(id={self.id}, wishlist_id={self.wishlist_id}, product_id={self.product_id})>"  # noqa: E501

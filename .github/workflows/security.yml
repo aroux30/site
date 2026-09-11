@@ -49,3 +49,4 @@ jobs:
           ignore-unfixed: true
           format: "table"
           severity: "CRITICAL,HIGH"
+          exit-code: "1"

@@ -13,12 +13,11 @@ from __future__ import annotations
 
 import json
 import uuid
-from datetime import datetime, timedelta, timezone
-from typing import Any
+from datetime import UTC, datetime, timedelta
+from typing import TYPE_CHECKING, Any
 
 import structlog
 from sqlalchemy import desc, distinct, func, or_, select
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.core.cache.redis import cache_get, cache_set
@@ -26,7 +25,6 @@ from app.core.exceptions.handlers import NotFoundError
 from app.modules.catalog.domain.models import (
     Product,
     ProductStatus,
-    ProductTag,
     ProductVariant,
 )
 from app.modules.catalog.schemas.catalog import ProductResponse, rial_to_toman
@@ -41,17 +39,19 @@ from app.modules.recommendations.schemas.recommendations import (
 from app.modules.reviews.domain.models import Review, ReviewStatus
 from app.modules.wishlist.domain.models import Wishlist, WishlistItem
 
+if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncSession
 logger: structlog.stdlib.BoundLogger = structlog.get_logger()
 
 # ── Cache TTL configurations (in seconds) ──────────────────────────────────
-CACHE_TTL_SIMILAR = 7200         # 2 hours
-CACHE_TTL_FBT = 7200             # 2 hours
-CACHE_TTL_TRENDING = 3600        # 1 hour
-CACHE_TTL_PERSONALIZED = 900     # 15 minutes
+CACHE_TTL_SIMILAR = 7200  # 2 hours
+CACHE_TTL_FBT = 7200  # 2 hours
+CACHE_TTL_TRENDING = 3600  # 1 hour
+CACHE_TTL_PERSONALIZED = 900  # 15 minutes
 
 
 def _product_options() -> list[Any]:
-    """Lightweight eager-load options required for computing similarity and generating responses."""
+    """Lightweight eager-load options required for computing similarity and generating responses."""  # noqa: E501
     return [
         selectinload(Product.variants),
         selectinload(Product.images),
@@ -130,7 +130,8 @@ class RecommendationService:
         product_id: uuid.UUID,
         limit: int = 6,
     ) -> SimilarProductsResponse:
-        """Calculate similarity based on shared category, shared brand, tag overlap, and price range proximity.
+        """Calculate similarity based on shared category, shared brand,
+        tag overlap, and price range proximity.
 
         Scoring breakdown:
         - Shared category: 35% weight
@@ -148,19 +149,21 @@ class RecommendationService:
             await logger.awarning("cache_get_failed", key=cache_key, error=str(exc))
 
         # 1. Fetch target product
-        target_stmt = (
-            select(Product)
-            .options(*_product_options())
-            .where(Product.id == product_id)
-        )
+        target_stmt = select(Product).options(*_product_options()).where(Product.id == product_id)
         result = await db.execute(target_stmt)
         target_product = result.unique().scalar_one_or_none()
 
         if target_product is None:
             raise NotFoundError("Product", f"Product with ID '{product_id}' was not found")
 
-        target_tags = {pt.tag_id for pt in target_product.product_tags} if target_product.product_tags else set()
-        target_active_variants = [v for v in target_product.variants if v.is_active] if target_product.variants else []
+        target_tags = (
+            {pt.tag_id for pt in target_product.product_tags}
+            if target_product.product_tags
+            else set()
+        )
+        target_active_variants = (
+            [v for v in target_product.variants if v.is_active] if target_product.variants else []
+        )
         target_price = min((v.price for v in target_active_variants), default=0)
 
         # 2. Fetch candidate products (active, excluding self)
@@ -213,10 +216,7 @@ class RecommendationService:
                 price_score = 0.0
 
             total_score = (
-                0.35 * cat_score
-                + 0.20 * brand_score
-                + 0.25 * tag_score
-                + 0.20 * price_score
+                0.35 * cat_score + 0.20 * brand_score + 0.25 * tag_score + 0.20 * price_score
             )
 
             # Determine primary descriptive reason
@@ -283,10 +283,7 @@ class RecommendationService:
             await logger.awarning("cache_get_failed", key=cache_key, error=str(exc))
 
         # Ensure source product exists
-        product_exists_stmt = (
-            select(Product.id)
-            .where(Product.id == product_id)
-        )
+        product_exists_stmt = select(Product.id).where(Product.id == product_id)
         result = await db.execute(product_exists_stmt)
         if result.scalar_one_or_none() is None:
             raise NotFoundError("Product", f"Product with ID '{product_id}' was not found")
@@ -384,7 +381,7 @@ class RecommendationService:
         user_id: uuid.UUID,
         limit: int = 8,
     ) -> PersonalizedFeedResponse:
-        """Analyze user's wishlist, recent orders, and category preferences to construct a personalized feed."""
+        """Analyze user's wishlist, recent orders, and category preferences to construct a personalized feed."""  # noqa: E501
         cache_key = f"recommendations:user:{user_id}:{limit}"
         try:
             cached = await cache_get(cache_key)
@@ -546,13 +543,15 @@ class RecommendationService:
         except Exception as exc:
             await logger.awarning("cache_get_failed", key=cache_key, error=str(exc))
 
-        cutoff_date = datetime.now(timezone.utc) - timedelta(days=14)
+        cutoff_date = datetime.now(UTC) - timedelta(days=14)
 
         # 1. Order volume in the last 14 days
         order_vol_stmt = (
             select(
                 ProductVariant.product_id,
-                func.coalesce(func.sum(OrderItem.quantity), func.count(OrderItem.id)).label("volume"),
+                func.coalesce(func.sum(OrderItem.quantity), func.count(OrderItem.id)).label(
+                    "volume"
+                ),
             )
             .join(OrderItem, OrderItem.variant_id == ProductVariant.id)
             .join(Order, OrderItem.order_id == Order.id)

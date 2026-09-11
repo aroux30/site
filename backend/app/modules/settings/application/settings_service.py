@@ -2,15 +2,18 @@
 
 from __future__ import annotations
 
-from typing import Any, Optional
+from typing import TYPE_CHECKING
 
 import structlog
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions.handlers import ConflictError, NotFoundError
 from app.modules.settings.domain.models import SiteSetting
-from app.modules.settings.schemas.settings import SettingCreateRequest, SettingUpdateRequest
+
+if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncSession
+
+    from app.modules.settings.schemas.settings import SettingCreateRequest, SettingUpdateRequest
 
 logger: structlog.stdlib.BoundLogger = structlog.get_logger()
 
@@ -22,7 +25,7 @@ class SettingsService:
     async def get_all(
         db: AsyncSession,
         *,
-        group: Optional[str] = None,
+        group: str | None = None,
         public_only: bool = False,
     ) -> list[SiteSetting]:
         """Fetch all settings matching criteria."""
@@ -30,7 +33,7 @@ class SettingsService:
         if group:
             stmt = stmt.where(SiteSetting.group == group)
         if public_only:
-            stmt = stmt.where(SiteSetting.is_public == True)  # noqa: E712
+            stmt = stmt.where(SiteSetting.is_public.is_(True))
         stmt = stmt.order_by(SiteSetting.key)
         result = await db.execute(stmt)
         return list(result.scalars().all())

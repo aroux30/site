@@ -4,12 +4,10 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime
-from typing import Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
 from app.modules.inventory.domain.models import ReservationStatus, TransactionType
-
 
 # ── Inventory ──────────────────────────────────────────────────────────────
 
@@ -53,15 +51,13 @@ class InventoryAdjustRequest(BaseModel):
     type: TransactionType = Field(
         ..., description="Reason for adjustment (received, damaged, adjusted, etc.)"
     )
-    reference_type: Optional[str] = Field(
+    reference_type: str | None = Field(
         None,
         max_length=50,
         description="External reference category (e.g. 'purchase_order', 'return')",
     )
-    reference_id: Optional[uuid.UUID] = Field(
-        None, description="External reference identifier"
-    )
-    notes: Optional[str] = Field(None, max_length=2000, description="Free-text note")
+    reference_id: uuid.UUID | None = Field(None, description="External reference identifier")
+    notes: str | None = Field(None, max_length=2000, description="Free-text note")
 
 
 # ── Transactions ───────────────────────────────────────────────────────────
@@ -76,9 +72,9 @@ class InventoryTransactionResponse(BaseModel):
     inventory_item_id: uuid.UUID
     quantity: int
     type: TransactionType
-    reference_type: Optional[str] = None
-    reference_id: Optional[uuid.UUID] = None
-    notes: Optional[str] = None
+    reference_type: str | None = None
+    reference_id: uuid.UUID | None = None
+    notes: str | None = None
     created_at: datetime
 
 
@@ -92,8 +88,8 @@ class ReservationResponse(BaseModel):
 
     id: uuid.UUID
     inventory_item_id: uuid.UUID
-    order_id: Optional[uuid.UUID] = None
-    cart_id: Optional[uuid.UUID] = None
+    order_id: uuid.UUID | None = None
+    cart_id: uuid.UUID | None = None
     quantity: int
     expires_at: datetime
     status: ReservationStatus

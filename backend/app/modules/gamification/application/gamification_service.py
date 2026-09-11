@@ -159,23 +159,19 @@ class GamificationService:
         account = await LoyaltyService.get_or_create_account(db, user_id)
 
         # Gamification events points earned
-        event_stmt = select(
-            func.coalesce(func.sum(GamificationEvent.points_earned), 0)
-        ).where(GamificationEvent.user_id == user_id)
+        event_stmt = select(func.coalesce(func.sum(GamificationEvent.points_earned), 0)).where(
+            GamificationEvent.user_id == user_id
+        )
         gamification_earned: int = (await db.execute(event_stmt)).scalar_one()
 
         # Loyalty transaction metrics
-        earned_stmt = select(
-            func.coalesce(func.sum(LoyaltyTransaction.points), 0)
-        ).where(
+        earned_stmt = select(func.coalesce(func.sum(LoyaltyTransaction.points), 0)).where(
             LoyaltyTransaction.account_id == account.id,
             LoyaltyTransaction.type == LoyaltyTransactionType.EARN,
         )
         loyalty_earned: int = (await db.execute(earned_stmt)).scalar_one()
 
-        spent_stmt = select(
-            func.coalesce(func.sum(func.abs(LoyaltyTransaction.points)), 0)
-        ).where(
+        spent_stmt = select(func.coalesce(func.sum(func.abs(LoyaltyTransaction.points)), 0)).where(
             LoyaltyTransaction.account_id == account.id,
             LoyaltyTransaction.type == LoyaltyTransactionType.REDEEM,
         )
@@ -329,9 +325,7 @@ class GamificationService:
     ) -> Reward:
         """Create a new redeemable reward (admin)."""
         payload = (
-            data.model_dump(exclude_unset=True)
-            if isinstance(data, RewardCreate)
-            else dict(data)
+            data.model_dump(exclude_unset=True) if isinstance(data, RewardCreate) else dict(data)
         )
         reward = Reward(**payload)
         db.add(reward)
@@ -351,9 +345,7 @@ class GamificationService:
             raise ValueError(f"Reward not found: {reward_id}")
 
         updates = (
-            data.model_dump(exclude_unset=True)
-            if isinstance(data, RewardUpdate)
-            else dict(data)
+            data.model_dump(exclude_unset=True) if isinstance(data, RewardUpdate) else dict(data)
         )
         for key, value in updates.items():
             if hasattr(reward, key) and value is not None:

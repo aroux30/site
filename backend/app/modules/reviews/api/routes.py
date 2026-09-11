@@ -8,7 +8,7 @@ while direct review operations use ``/reviews/{review_id}``.
 from __future__ import annotations
 
 import uuid
-from typing import Any, Optional
+from typing import Any
 
 import structlog
 from fastapi import APIRouter, Depends, HTTPException, Query, status
@@ -61,7 +61,7 @@ async def list_reviews(
 @router.post("", response_model=ReviewResponse, status_code=status.HTTP_201_CREATED)
 async def submit_review(
     data: ReviewCreate,
-    product_id: Optional[uuid.UUID] = Query(None, description="Product ID"),
+    product_id: uuid.UUID | None = Query(None, description="Product ID"),
     user_id: uuid.UUID = Depends(get_current_user_id),
     db: AsyncSession = Depends(get_db),
 ) -> ReviewResponse:
@@ -188,7 +188,8 @@ async def list_pending_reviews(
 ) -> ReviewListResponse:
     """List all pending reviews for moderation."""
     # Reuse service with status_filter="pending" and no product filter
-    from sqlalchemy import select, func
+    from sqlalchemy import func, select
+
     from app.modules.reviews.domain.models import Review, ReviewStatus
 
     base = select(Review).where(Review.status == ReviewStatus.PENDING)

@@ -11,8 +11,8 @@ from passlib.context import CryptContext
 _pwd_context = CryptContext(
     schemes=["argon2"],
     deprecated="auto",
-    argon2__rounds=4,          # time cost
-    argon2__memory_cost=65536, # 64 MiB
+    argon2__rounds=4,  # time cost
+    argon2__memory_cost=65536,  # 64 MiB
     argon2__parallelism=2,
 )
 
@@ -33,9 +33,7 @@ def needs_rehash(hashed: str) -> bool:
 
 
 # Precomputed constant Argon2id hash used to prevent side-channel timing attacks (User Enumeration)
-DUMMY_ARGON2_HASH: str = (
-    "$argon2id$v=19$m=65536,t=4,p=2$DaG0FiIkZIyRcq61NkYIAQ$I0I+pUDPMvwKf0NN/02w2rmsabIO4N6UP6OhpCpM8U4"
-)
+DUMMY_ARGON2_HASH: str = "$argon2id$v=19$m=65536,t=4,p=2$DaG0FiIkZIyRcq61NkYIAQ$I0I+pUDPMvwKf0NN/02w2rmsabIO4N6UP6OhpCpM8U4"  # noqa: E501
 
 
 def verify_dummy_password(plain: str) -> bool:
@@ -45,30 +43,32 @@ def verify_dummy_password(plain: str) -> bool:
 
 # ── OWASP Breached & Common Password Protection ──────────────────────────────
 
-_COMMON_PASSWORDS: frozenset[str] = frozenset({
-    "12345678",
-    "123456789",
-    "1234567890",
-    "password",
-    "password123",
-    "pass1234",
-    "admin123",
-    "admin1234",
-    "qwertyuiop",
-    "asdfghjkl",
-    "iran1234",
-    "iran12345",
-    "tehran123",
-    "guest1234",
-    "welcome123",
-    "iloveyou123",
-    "superman123",
-    "dragon123",
-    "football123",
-    "monkey123",
-    "master123",
-    "trustnoone",
-})
+_COMMON_PASSWORDS: frozenset[str] = frozenset(
+    {
+        "12345678",
+        "123456789",
+        "1234567890",
+        "password",
+        "password123",
+        "pass1234",
+        "admin123",
+        "admin1234",
+        "qwertyuiop",
+        "asdfghjkl",
+        "iran1234",
+        "iran12345",
+        "tehran123",
+        "guest1234",
+        "welcome123",
+        "iloveyou123",
+        "superman123",
+        "dragon123",
+        "football123",
+        "monkey123",
+        "master123",
+        "trustnoone",
+    }
+)
 
 
 def is_weak_password(password: str) -> bool:
@@ -77,6 +77,4 @@ def is_weak_password(password: str) -> bool:
     if clean in _COMMON_PASSWORDS:
         return True
     # Detect repeated characters such as "aaaaaaaa" or "11111111"
-    if len(clean) >= 8 and len(set(clean)) <= 2:
-        return True
-    return False
+    return bool(len(clean) >= 8 and len(set(clean)) <= 2)

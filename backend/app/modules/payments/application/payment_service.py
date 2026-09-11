@@ -66,9 +66,7 @@ async def _resolve_gateway(db: AsyncSession, provider_name: str) -> Any:
     name = (provider_name or get_settings().PAYMENT_PROVIDER).lower().strip()
     if name in ("zarinpal", "card_transfer", "card_to_card", "c2c", "card"):
         try:
-            setting = await SettingsService.get_by_key(
-                db, "payment.zarinpal.merchant_id"
-            )
+            setting = await SettingsService.get_by_key(db, "payment.zarinpal.merchant_id")
         except NotFoundError:
             setting = None
         if setting and setting.value:
@@ -162,7 +160,7 @@ async def create_payment(
         raise ValidationError(
             detail=f"Unsupported payment provider: {provider}",
             error_code="INVALID_PROVIDER",
-        )
+        ) from None
 
     # ── Validate order: ownership, payable state, and amount ─────────
     # The order total is the single authoritative source for the payable
@@ -224,7 +222,7 @@ async def create_payment(
     try:
         gateway_provider = await _resolve_gateway(db, provider.lower())
     except ValueError as exc:
-        raise ValidationError(detail=str(exc), error_code="INVALID_PROVIDER")
+        raise ValidationError(detail=str(exc), error_code="INVALID_PROVIDER") from exc
 
     callback_url = _build_callback_url(provider.lower(), payment.id)
 
@@ -444,7 +442,7 @@ async def verify_payment(
                         "insufficient balance or inactive wallet"
                     ),
                     error_code="WALLET_DEBIT_FAILED",
-                )
+                ) from exc
 
         payment.status = PaymentStatus.COMPLETED
         payment.provider_transaction_id = result.ref_id
@@ -587,7 +585,7 @@ async def process_callback(
             payment = result.scalars().first()
             if payment and not authority:
                 authority = payment.authority or str(payment.id)
-        except Exception:
+        except Exception:  # noqa: S110  # best-effort fallback lookup by order id
             pass
 
     if payment is None:
@@ -740,7 +738,7 @@ async def refund_payment(
         stmt_order = select(Order.user_id).where(Order.id == payment.order_id)
         res_order = await db.execute(stmt_order)
         customer_user_id = res_order.scalar_one_or_none()
-    except Exception:
+    except Exception:  # noqa: S110  # best-effort owner resolution for wallet refunds
         pass
 
     try:
@@ -1062,8 +1060,8 @@ def get_payment_methods() -> PaymentMethodsResponse:
             is_enabled=True,
             icon="crypto",
             description="Pay using USDT (TRC20/ERC20), BTC, or ETH via NowPayments",
-            instructions="پرداخت امن با رمزارزهای تتر (USDT-TRC20/ERC20)، بیت‌کوین و اتریوم از طریق درگاه NowPayments همراه با تولید خودکار آدرس و QR Code",
-            instructions_fa="پرداخت امن با رمزارزهای تتر (USDT-TRC20/ERC20)، بیت‌کوین و اتریوم از طریق درگاه NowPayments همراه با تولید خودکار آدرس و QR Code",
+            instructions="پرداخت امن با رمزارزهای تتر (USDT-TRC20/ERC20)، بیت‌کوین و اتریوم از طریق درگاه NowPayments همراه با تولید خودکار آدرس و QR Code",  # noqa: E501
+            instructions_fa="پرداخت امن با رمزارزهای تتر (USDT-TRC20/ERC20)، بیت‌کوین و اتریوم از طریق درگاه NowPayments همراه با تولید خودکار آدرس و QR Code",  # noqa: E501
         ),
         PaymentMethodInfo(
             provider=PaymentProviderEnum.CARD_TRANSFER,
@@ -1072,8 +1070,8 @@ def get_payment_methods() -> PaymentMethodsResponse:
             is_enabled=True,
             icon="credit-card",
             description="Direct card to card bank transfer",
-            instructions=f"انتقال وجه به کارت شماره {settings.CARD_TO_CARD_NUMBER} ({settings.CARD_TO_CARD_BANK} - {settings.CARD_TO_CARD_HOLDER}) و ثبت کد پیگیری فیش",
-            instructions_fa=f"انتقال وجه به کارت شماره {settings.CARD_TO_CARD_NUMBER} ({settings.CARD_TO_CARD_BANK} - {settings.CARD_TO_CARD_HOLDER}) و ثبت کد پیگیری فیش",
+            instructions=f"انتقال وجه به کارت شماره {settings.CARD_TO_CARD_NUMBER} ({settings.CARD_TO_CARD_BANK} - {settings.CARD_TO_CARD_HOLDER}) و ثبت کد پیگیری فیش",  # noqa: E501
+            instructions_fa=f"انتقال وجه به کارت شماره {settings.CARD_TO_CARD_NUMBER} ({settings.CARD_TO_CARD_BANK} - {settings.CARD_TO_CARD_HOLDER}) و ثبت کد پیگیری فیش",  # noqa: E501
         ),
         PaymentMethodInfo(
             provider=PaymentProviderEnum.WALLET,

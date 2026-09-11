@@ -4,12 +4,10 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime
-from typing import Any, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
 from app.modules.cashback.domain.models import CashbackRuleType, CashbackTransactionStatus
-
 
 # ── Cashback Rules ────────────────────────────────────────────────────────
 
@@ -19,9 +17,9 @@ class CashbackRuleCreate(BaseModel):
 
     name: str = Field(..., max_length=200)
     type: CashbackRuleType
-    scope_id: Optional[str] = Field(None, max_length=255)
+    scope_id: str | None = Field(None, max_length=255)
     percentage: float = Field(..., gt=0, le=100)
-    max_amount: Optional[int] = Field(None, gt=0)
+    max_amount: int | None = Field(None, gt=0)
     is_active: bool = True
     starts_at: datetime
     ends_at: datetime
@@ -30,14 +28,14 @@ class CashbackRuleCreate(BaseModel):
 class CashbackRuleUpdate(BaseModel):
     """Payload to update an existing cashback rule."""
 
-    name: Optional[str] = Field(None, max_length=200)
-    type: Optional[CashbackRuleType] = None
-    scope_id: Optional[str] = Field(None, max_length=255)
-    percentage: Optional[float] = Field(None, gt=0, le=100)
-    max_amount: Optional[int] = Field(None, gt=0)
-    is_active: Optional[bool] = None
-    starts_at: Optional[datetime] = None
-    ends_at: Optional[datetime] = None
+    name: str | None = Field(None, max_length=200)
+    type: CashbackRuleType | None = None
+    scope_id: str | None = Field(None, max_length=255)
+    percentage: float | None = Field(None, gt=0, le=100)
+    max_amount: int | None = Field(None, gt=0)
+    is_active: bool | None = None
+    starts_at: datetime | None = None
+    ends_at: datetime | None = None
 
 
 class CashbackRuleResponse(BaseModel):
@@ -48,9 +46,9 @@ class CashbackRuleResponse(BaseModel):
     id: uuid.UUID
     name: str
     type: CashbackRuleType
-    scope_id: Optional[str] = None
+    scope_id: str | None = None
     percentage: float
-    max_amount: Optional[int] = None
+    max_amount: int | None = None
     is_active: bool
     starts_at: datetime
     ends_at: datetime

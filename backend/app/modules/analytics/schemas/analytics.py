@@ -4,10 +4,9 @@ from __future__ import annotations
 
 import uuid
 from datetime import date, datetime
-from typing import Any, Optional
+from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
-
 
 # ── Event Tracking ────────────────────────────────────────────────────────
 
@@ -16,8 +15,8 @@ class TrackEventRequest(BaseModel):
     """Payload to track an analytics event."""
 
     event_type: str = Field(..., max_length=100)
-    event_data: Optional[dict[str, Any]] = None
-    session_id: Optional[str] = Field(None, max_length=255)
+    event_data: dict[str, Any] | None = None
+    session_id: str | None = Field(None, max_length=255)
 
 
 class TrackEventResponse(BaseModel):
@@ -39,7 +38,7 @@ class SalesAnalyticsResponse(BaseModel):
     average_order_value: float = 0.0
     period_start: date
     period_end: date
-    daily_breakdown: list["DailySalesEntry"] = []
+    daily_breakdown: list[DailySalesEntry] = []
 
 
 class DailySalesEntry(BaseModel):
@@ -118,7 +117,7 @@ class DailyMetricResponse(BaseModel):
     date: date
     metric_name: str
     metric_value: float
-    dimensions: Optional[dict[str, Any]] = None
+    dimensions: dict[str, Any] | None = None
 
 
 # Rebuild forward refs

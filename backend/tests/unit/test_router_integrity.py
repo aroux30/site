@@ -1,14 +1,15 @@
 """Unit tests for fail-fast router discovery and registration integrity."""
 
 import importlib
+
 import pytest
 from fastapi import APIRouter, FastAPI
 
-from app.main import _include_routers, create_app
+from app.main import _include_routers
 
 
 def test_all_defined_routers_exist_and_are_valid():
-    """Verify that every single module in the router specification exists and exports a valid APIRouter."""
+    """Verify that every single module in the router specification exists and exports a valid APIRouter."""  # noqa: E501
     # List of all 31 core production modules that MUST have a working router
     expected_modules = [
         "app.modules.auth.api",
@@ -48,17 +49,20 @@ def test_all_defined_routers_exist_and_are_valid():
         mod = importlib.import_module(mod_path)
         router = getattr(mod, "router", None)
         assert router is not None, f"Module '{mod_path}' does not export 'router'"
-        assert isinstance(router, APIRouter), f"Export 'router' in '{mod_path}' is not an APIRouter instance"
+        assert isinstance(router, APIRouter), (
+            f"Export 'router' in '{mod_path}' is not an APIRouter instance"
+        )
 
 
 def test_fail_fast_on_broken_router(monkeypatch):
-    """Verify that if any router fails to load, application startup raises RuntimeError immediately (Fail-Fast)."""
+    """Verify that if any router fails to load, application startup raises RuntimeError immediately (Fail-Fast)."""  # noqa: E501
     test_app = FastAPI()
 
     # Artificially inject an invalid module path that will fail
     with pytest.raises(RuntimeError) as exc_info:
         # Patch importlib to simulate a broken module import
         import importlib
+
         orig_import = importlib.import_module
 
         def broken_import(name, *args, **kwargs):

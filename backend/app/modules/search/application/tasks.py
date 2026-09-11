@@ -30,7 +30,7 @@ async def _full_reindex_async() -> dict[str, Any]:
 
     async with async_session_factory() as db:
         try:
-            # Reindex into both the primary 'ecommerce_products' index and the configured prefix index
+            # Reindex into both the primary 'ecommerce_products' index and the configured prefix index  # noqa: E501
             result = await search_service.reindex_all(db, index_name=INDEX_NAME)
             if search_service._es.index_name != INDEX_NAME:
                 await search_service.reindex_all(db)

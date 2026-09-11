@@ -10,16 +10,18 @@ from __future__ import annotations
 
 import uuid
 from datetime import UTC, datetime
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.core.exceptions.handlers import ForbiddenError, NotFoundError
 from app.modules.orders.domain.models import Order
 from app.modules.settings.domain.models import SiteSetting
 from app.modules.users.domain.models import User
+
+if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncSession
 
 # ── Jalali Date & Persian Formatting Helpers ─────────────────────────────────
 
@@ -179,12 +181,9 @@ async def generate_invoice_html_for_order(
 ) -> str:
     """Fetch order, verify ownership or admin permission, and render invoice HTML."""
     # 1. Fetch order with items
-    stmt = (
-        select(Order)
-        .options(
-            selectinload(Order.items),
-            selectinload(Order.status_history),
-        )
+    stmt = select(Order).options(
+        selectinload(Order.items),
+        selectinload(Order.status_history),
     )
 
     try:
@@ -216,9 +215,7 @@ async def generate_invoice_html_for_order(
 
     # 3. Fetch buyer user profile
     buyer_user_stmt = (
-        select(User)
-        .options(selectinload(User.profile))
-        .where(User.id == order.user_id)
+        select(User).options(selectinload(User.profile)).where(User.id == order.user_id)
     )
     buyer_user = (await db.execute(buyer_user_stmt)).scalar_one_or_none()
 
@@ -290,7 +287,7 @@ def render_tax_invoice_html(
 
     # ── 4. Detailed Items Calculation ──────────────────────────────────────
     # VAT Rate is 10% (قانون دائمی مالیات بر ارزش افزوده)
-    VAT_RATE = 0.10
+    vat_rate = 0.10
     items_data = []
     calc_subtotal = 0
     calc_discount = order.discount_amount
@@ -302,7 +299,7 @@ def render_tax_invoice_html(
         order_items = []
 
     # Calculate item details
-    for idx, item in enumerate(order_items, start=1):
+    for _idx, item in enumerate(order_items, start=1):
         gross_item = item.unit_price * item.quantity
         calc_subtotal += gross_item
 
@@ -318,7 +315,7 @@ def render_tax_invoice_html(
         total_net += item_net
 
         # VAT 10% on net amount
-        item_vat = round(item_net * VAT_RATE)
+        item_vat = round(item_net * vat_rate)
         line_total = item_net + item_vat
 
         item_title = item.product_name
@@ -347,11 +344,11 @@ def render_tax_invoice_html(
     final_subtotal = calc_subtotal if calc_subtotal > 0 else order.subtotal
     final_discount = order.discount_amount
     final_net = max(0, final_subtotal - final_discount)
-    final_vat = (
-        order.tax if order.tax > 0 else round(final_net * VAT_RATE)
-    )
+    final_vat = order.tax if order.tax > 0 else round(final_net * vat_rate)
     final_shipping = order.shipping_cost
-    final_payable_rial = order.total if order.total > 0 else (final_net + final_vat + final_shipping)
+    final_payable_rial = (
+        order.total if order.total > 0 else (final_net + final_vat + final_shipping)
+    )
     final_payable_toman = final_payable_rial // 10
 
     # Amounts in words
@@ -363,16 +360,16 @@ def render_tax_invoice_html(
         items_rows_html = "".join(
             f"""
             <tr>
-                <td class="text-center font-mono">{it['row']}</td>
-                <td class="text-center font-mono text-xs">{it['sku']}</td>
-                <td class="text-right font-medium">{it['title']}</td>
-                <td class="text-center font-mono font-bold">{it['quantity']} عدد</td>
-                <td class="text-left font-mono">{it['unit_price_rial']} <span class="unit">ریال</span></td>
-                <td class="text-left font-mono text-muted">{it['discount_rial']}</td>
-                <td class="text-left font-mono font-medium">{it['net_rial']}</td>
-                <td class="text-center font-mono text-xs">{it['vat_rate']}</td>
-                <td class="text-left font-mono text-xs">{it['vat_rial']}</td>
-                <td class="text-left font-mono font-bold">{it['line_total_rial']} <span class="unit">ریال</span></td>
+                <td class="text-center font-mono">{it["row"]}</td>
+                <td class="text-center font-mono text-xs">{it["sku"]}</td>
+                <td class="text-right font-medium">{it["title"]}</td>
+                <td class="text-center font-mono font-bold">{it["quantity"]} عدد</td>
+                <td class="text-left font-mono">{it["unit_price_rial"]} <span class="unit">ریال</span></td>
+                <td class="text-left font-mono text-muted">{it["discount_rial"]}</td>
+                <td class="text-left font-mono font-medium">{it["net_rial"]}</td>
+                <td class="text-center font-mono text-xs">{it["vat_rate"]}</td>
+                <td class="text-left font-mono text-xs">{it["vat_rial"]}</td>
+                <td class="text-left font-mono font-bold">{it["line_total_rial"]} <span class="unit">ریال</span></td>
             </tr>
             """
             for it in items_data
@@ -845,35 +842,35 @@ def render_tax_invoice_html(
             <div class="info-grid">
                 <div class="info-cell span-2">
                     <span class="info-label">نام شخص حقیقی / حقوقی:</span>
-                    <span class="info-val">{seller['name']}</span>
+                    <span class="info-val">{seller["name"]}</span>
                 </div>
                 <div class="info-cell">
                     <span class="info-label">شناسه ملی:</span>
-                    <span class="info-val font-mono">{to_persian_digits(seller['national_id'])}</span>
+                    <span class="info-val font-mono">{to_persian_digits(seller["national_id"])}</span>
                 </div>
                 <div class="info-cell">
                     <span class="info-label">شماره اقتصادی:</span>
-                    <span class="info-val font-mono">{to_persian_digits(seller['economic_code'])}</span>
+                    <span class="info-val font-mono">{to_persian_digits(seller["economic_code"])}</span>
                 </div>
                 <div class="info-cell">
                     <span class="info-label">شماره ثبت:</span>
-                    <span class="info-val font-mono">{to_persian_digits(seller['reg_number'])}</span>
+                    <span class="info-val font-mono">{to_persian_digits(seller["reg_number"])}</span>
                 </div>
                 <div class="info-cell">
                     <span class="info-label">استان / شهر:</span>
-                    <span class="info-val">{seller['province']} - {seller['city']}</span>
+                    <span class="info-val">{seller["province"]} - {seller["city"]}</span>
                 </div>
                 <div class="info-cell">
                     <span class="info-label">کد پستی ۱۰ رقمی:</span>
-                    <span class="info-val font-mono">{to_persian_digits(seller['postal_code'])}</span>
+                    <span class="info-val font-mono">{to_persian_digits(seller["postal_code"])}</span>
                 </div>
                 <div class="info-cell">
                     <span class="info-label">تلفن تماس:</span>
-                    <span class="info-val font-mono">{to_persian_digits(seller['phone'])}</span>
+                    <span class="info-val font-mono">{to_persian_digits(seller["phone"])}</span>
                 </div>
                 <div class="info-cell span-4">
                     <span class="info-label">نشانی کامل پستی:</span>
-                    <span class="info-val">{seller['address']}</span>
+                    <span class="info-val">{seller["address"]}</span>
                 </div>
             </div>
         </section>

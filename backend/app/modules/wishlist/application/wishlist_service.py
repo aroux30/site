@@ -7,14 +7,14 @@ Each user has a single "default" wishlist, created lazily on first access.
 from __future__ import annotations
 
 import uuid
+from typing import TYPE_CHECKING
 
 import structlog
 from sqlalchemy import and_, select
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
 from app.core.exceptions.handlers import ConflictError, NotFoundError
-from app.modules.catalog.domain.models import Product, ProductImage, ProductVariant
+from app.modules.catalog.domain.models import Product
 from app.modules.wishlist.domain.models import Wishlist, WishlistItem
 from app.modules.wishlist.schemas.wishlist import (
     WishlistCheckResponse,
@@ -22,6 +22,8 @@ from app.modules.wishlist.schemas.wishlist import (
     WishlistResponse,
 )
 
+if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncSession
 logger: structlog.stdlib.BoundLogger = structlog.get_logger()
 
 
@@ -30,9 +32,7 @@ class WishlistService:
 
     # ── Get / create default wishlist ─────────────────────────────────
 
-    async def _get_or_create_wishlist(
-        self, db: AsyncSession, user_id: uuid.UUID
-    ) -> Wishlist:
+    async def _get_or_create_wishlist(self, db: AsyncSession, user_id: uuid.UUID) -> Wishlist:
         """Return the user's default wishlist, creating it if needed."""
         result = await db.execute(
             select(Wishlist)
@@ -63,9 +63,7 @@ class WishlistService:
 
     # ── Get wishlist ──────────────────────────────────────────────────
 
-    async def get_wishlist(
-        self, db: AsyncSession, user_id: uuid.UUID
-    ) -> WishlistResponse:
+    async def get_wishlist(self, db: AsyncSession, user_id: uuid.UUID) -> WishlistResponse:
         """Return the user's wishlist with product details."""
         wishlist = await self._get_or_create_wishlist(db, user_id)
 
@@ -126,9 +124,7 @@ class WishlistService:
             raise ConflictError("Product is already in your wishlist")
 
         # Verify product exists
-        product = await db.execute(
-            select(Product).where(Product.id == product_id)
-        )
+        product = await db.execute(select(Product).where(Product.id == product_id))
         if product.scalar_one_or_none() is None:
             raise NotFoundError("Product")
 
@@ -236,9 +232,7 @@ class WishlistService:
 
     # ── Private helpers ───────────────────────────────────────────────
 
-    async def _get_product_info(
-        self, db: AsyncSession, product_id: uuid.UUID
-    ) -> dict:
+    async def _get_product_info(self, db: AsyncSession, product_id: uuid.UUID) -> dict:
         """Fetch minimal product info for display in the wishlist."""
         result = await db.execute(
             select(Product)
@@ -256,9 +250,7 @@ class WishlistService:
         # Primary image
         image_url = None
         if product.images:
-            primary = next(
-                (img for img in product.images if img.is_primary), None
-            )
+            primary = next((img for img in product.images if img.is_primary), None)
             image_url = (primary or product.images[0]).url
 
         # Cheapest variant price

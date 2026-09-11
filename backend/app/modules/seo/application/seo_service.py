@@ -3,11 +3,10 @@
 from __future__ import annotations
 
 import uuid
-from typing import Any, Optional
+from typing import TYPE_CHECKING, Any
 
 import structlog
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions.handlers import NotFoundError
 from app.modules.blog.domain.models import BlogPost
@@ -16,8 +15,10 @@ from app.modules.seo.domain.models import SEOMetadata
 from app.modules.seo.schemas.seo import (
     SEOMetadataCreate,
     SEOMetadataResponse,
-    SEOMetadataUpdate,
 )
+
+if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncSession
 
 logger: structlog.stdlib.BoundLogger = structlog.get_logger()
 
@@ -89,7 +90,9 @@ class SEOService:
         )
         record = (await self.db.execute(stmt)).scalar_one_or_none()
         if not record:
-            raise NotFoundError("SEOMetadata", f"SEO metadata for {resource_type}:{resource_id} not found")
+            raise NotFoundError(
+                "SEOMetadata", f"SEO metadata for {resource_type}:{resource_id} not found"
+            )
 
         await self.db.delete(record)
         await self.db.commit()
@@ -104,7 +107,9 @@ class SEOService:
             post = await self.db.get(BlogPost, resource_id)
             if post:
                 title = f"{post.title} | وبلاگ"
-                desc = post.excerpt or (post.content[:150] + "..." if len(post.content) > 150 else post.content)
+                desc = post.excerpt or (
+                    post.content[:150] + "..." if len(post.content) > 150 else post.content
+                )
                 schema: dict[str, Any] = {
                     "@context": "https://schema.org",
                     "@type": "Article",

@@ -1,8 +1,12 @@
-"""Domain definitions and state machine for Return Merchandise Authorization (RMA).
+"""Domain definitions and state machine for Return Merchandise
+Authorization (RMA).
 
-Conforms to Evidence-Gated Production Hardening Master Task v3.0 Phase 13 / Phase 23:
-- Full multi-step return lifecycle (Request -> Eligibility -> Approval -> Inspection -> Refund -> Close)
-- Configurable statutory eligibility window (Iranian E-Commerce Law Art. 37: 7 days)
+Conforms to Evidence-Gated Production Hardening Master Task v3.0
+Phase 13 / Phase 23:
+- Full multi-step return lifecycle
+  (Request -> Eligibility -> Approval -> Inspection -> Refund -> Close)
+- Configurable statutory eligibility window
+  (Iranian E-Commerce Law Art. 37: 7 days)
 - Partial return support per order item
 """
 
@@ -10,9 +14,8 @@ from __future__ import annotations
 
 import enum
 import uuid
-from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from typing import Optional
+from dataclasses import dataclass
+from datetime import UTC, datetime
 
 
 class ReturnStatus(str, enum.Enum):
@@ -46,7 +49,9 @@ RETURN_TRANSITIONS: dict[ReturnStatus, frozenset[ReturnStatus]] = {
     ReturnStatus.APPROVED: frozenset({ReturnStatus.RECEIVED, ReturnStatus.CLOSED}),
     ReturnStatus.REJECTED: frozenset({ReturnStatus.CLOSED}),
     ReturnStatus.RECEIVED: frozenset({ReturnStatus.INSPECTED}),
-    ReturnStatus.INSPECTED: frozenset({ReturnStatus.REFUNDED, ReturnStatus.REPLACED, ReturnStatus.REJECTED}),
+    ReturnStatus.INSPECTED: frozenset(
+        {ReturnStatus.REFUNDED, ReturnStatus.REPLACED, ReturnStatus.REJECTED}
+    ),
     ReturnStatus.REFUNDED: frozenset({ReturnStatus.CLOSED}),
     ReturnStatus.REPLACED: frozenset({ReturnStatus.CLOSED}),
     ReturnStatus.CLOSED: frozenset(),  # Terminal state
@@ -59,8 +64,8 @@ class ReturnItemSpec:
     variant_id: uuid.UUID
     quantity: int
     reason: ReturnReason
-    customer_notes: Optional[str] = None
-    inspection_outcome: Optional[InspectionOutcome] = None
+    customer_notes: str | None = None
+    inspection_outcome: InspectionOutcome | None = None
 
 
 @dataclass(slots=True)
@@ -72,25 +77,25 @@ class OrderReturnDomain:
     items: list[ReturnItemSpec]
     created_at: datetime
     eligibility_window_days: int = 7
-    approved_at: Optional[datetime] = None
-    inspected_at: Optional[datetime] = None
-    refunded_at: Optional[datetime] = None
-    admin_notes: Optional[str] = None
+    approved_at: datetime | None = None
+    inspected_at: datetime | None = None
+    refunded_at: datetime | None = None
+    admin_notes: str | None = None
     refund_amount: int = 0  # In BigInteger Rials
 
     def can_transition_to(self, target: ReturnStatus) -> bool:
         return target in RETURN_TRANSITIONS.get(self.status, frozenset())
 
-    def transition_to(self, target: ReturnStatus, notes: Optional[str] = None) -> None:
+    def transition_to(self, target: ReturnStatus, notes: str | None = None) -> None:
         if not self.can_transition_to(target):
             raise ValueError(
                 f"Cannot transition return from '{self.status.value}' to '{target.value}'. "
-                f"Allowed: {', '.join(s.value for s in RETURN_TRANSITIONS.get(self.status, frozenset()))}"
+                f"Allowed: {', '.join(s.value for s in RETURN_TRANSITIONS.get(self.status, frozenset()))}"  # noqa: E501
             )
         self.status = target
         if notes:
             self.admin_notes = notes
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         if target == ReturnStatus.APPROVED:
             self.approved_at = now
         elif target == ReturnStatus.INSPECTED:

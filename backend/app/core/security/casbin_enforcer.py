@@ -26,12 +26,12 @@ _enforcer: casbin.Enforcer | None = None
 
 def get_casbin_enforcer() -> casbin.Enforcer:
     """Return the singleton Casbin Enforcer instance."""
-    global _enforcer  # noqa: PLW0603
+    global _enforcer
     if _enforcer is None:
         try:
             _enforcer = casbin.Enforcer(_MODEL_PATH, _POLICY_PATH)
             logger.info("Casbin enforcer initialized successfully")
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.error("Failed to initialize Casbin enforcer: %s", exc)
             raise
     return _enforcer
@@ -86,5 +86,5 @@ class RequireCasbinPolicy:
         )
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail=f"عدم دسترسی: شما مجوز انجام عملیات '{self.action}' روی بخش '{self.resource}' را ندارید.",
+            detail=f"عدم دسترسی: شما مجوز انجام عملیات '{self.action}' روی بخش '{self.resource}' را ندارید.",  # noqa: E501
         )

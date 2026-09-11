@@ -3,7 +3,7 @@
 import enum
 import uuid
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any
 
 from sqlalchemy import (
     BigInteger,
@@ -20,8 +20,8 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database.base import BaseModel
 
-
 # ---- Enums ----
+
 
 class DiscountType(str, enum.Enum):
     FIXED = "fixed"
@@ -38,6 +38,7 @@ class DiscountScope(str, enum.Enum):
 
 
 # ---- Models ----
+
 
 class Discount(BaseModel):
     """Discount rules defining promotional pricing logic."""
@@ -57,23 +58,19 @@ class Discount(BaseModel):
         nullable=False,
     )
     value: Mapped[int] = mapped_column(BigInteger, nullable=False)
-    min_cart_amount: Mapped[Optional[int]] = mapped_column(BigInteger, nullable=True)
-    max_discount: Mapped[Optional[int]] = mapped_column(BigInteger, nullable=True)
+    min_cart_amount: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
+    max_discount: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
     scope: Mapped[DiscountScope] = mapped_column(
         Enum(DiscountScope, name="discount_scope_enum", native_enum=False),
         default=DiscountScope.GLOBAL,
         nullable=False,
     )
-    scope_ids: Mapped[Optional[list[Any]]] = mapped_column(JSONB, nullable=True)
-    starts_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False
-    )
-    ends_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False
-    )
+    scope_ids: Mapped[list[Any] | None] = mapped_column(JSONB, nullable=True)
+    starts_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    ends_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     is_stackable: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
-    usage_limit: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    usage_limit: Mapped[int | None] = mapped_column(Integer, nullable=True)
     usage_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     priority: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
 
@@ -103,14 +100,10 @@ class Coupon(BaseModel):
     )
     code: Mapped[str] = mapped_column(String(50), unique=True, nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
-    usage_limit: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    usage_limit: Mapped[int | None] = mapped_column(Integer, nullable=True)
     usage_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
-    starts_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False
-    )
-    ends_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False
-    )
+    starts_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    ends_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
     # Relationships
     discount: Mapped["Discount"] = relationship("Discount", back_populates="coupons")
@@ -150,9 +143,9 @@ class CouponRedemption(BaseModel):
     amount: Mapped[int] = mapped_column(BigInteger, nullable=False)
 
     # Relationships
-    coupon: Mapped["Coupon"] = relationship(
-        "Coupon", back_populates="redemptions"
-    )
+    coupon: Mapped["Coupon"] = relationship("Coupon", back_populates="redemptions")
 
     def __repr__(self) -> str:
-        return f"<CouponRedemption(id={self.id}, coupon_id={self.coupon_id}, user_id={self.user_id})>"
+        return (
+            f"<CouponRedemption(id={self.id}, coupon_id={self.coupon_id}, user_id={self.user_id})>"
+        )

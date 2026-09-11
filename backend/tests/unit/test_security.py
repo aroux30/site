@@ -1,6 +1,7 @@
 """Unit tests for password hashing and JWT security primitives."""
 
 import uuid
+
 from app.core.security.jwt import (
     create_access_token,
     create_refresh_token,
@@ -64,6 +65,7 @@ def test_jwt_refresh_token_type():
 def test_production_security_fails_on_placeholder_secret():
     """Verify that in production mode, placeholder secret raises ValueError."""
     import pytest
+
     from app.core.config.settings import Settings
 
     with pytest.raises(ValueError) as exc_info:

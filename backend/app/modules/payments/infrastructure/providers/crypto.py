@@ -503,7 +503,7 @@ class NowPaymentsProvider(PaymentProvider):
                 success=False,
                 authority=authority,
                 error_code="PAYMENT_PENDING",
-                error_message=f"Payment status is {payment_status}. Waiting for blockchain confirmations.",
+                error_message=f"Payment status is {payment_status}. Waiting for blockchain confirmations.",  # noqa: E501
                 raw_response=data,
             )
 

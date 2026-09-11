@@ -7,13 +7,12 @@ the ``catalog:write`` permission via :class:`RequirePermissions`.
 from __future__ import annotations
 
 import uuid
-from typing import Optional
 
 from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database.session import get_db
-from app.core.security.dependencies import RequirePermissions, get_current_active_user
+from app.core.security.dependencies import RequirePermissions
 from app.modules.catalog.application.catalog_service import (
     AttributeService,
     BrandService,
@@ -72,8 +71,8 @@ _require_catalog_write = Depends(RequirePermissions("catalog:write"))
     summary="List categories",
 )
 async def list_categories(
-    is_active: Optional[bool] = Query(None),
-    parent_id: Optional[uuid.UUID] = Query(None, description="Filter by parent; omit for all"),
+    is_active: bool | None = Query(None),
+    parent_id: uuid.UUID | None = Query(None, description="Filter by parent; omit for all"),
     page: int = Query(1, ge=1),
     page_size: int = Query(50, ge=1, le=200),
     db: AsyncSession = Depends(get_db),
@@ -82,7 +81,9 @@ async def list_categories(
     svc = CategoryService(db)
     # Use sentinel to differentiate "not provided" from "explicitly None"
     _parent_id = parent_id if parent_id is not None else ...  # type: ignore[assignment]
-    return await svc.list(is_active=is_active, parent_id=_parent_id, page=page, page_size=page_size)
+    return await svc.list(
+        is_active=is_active, parent_id=_parent_id, page=page, page_size=page_size
+    )
 
 
 @router.get(
@@ -91,7 +92,7 @@ async def list_categories(
     summary="Get category tree",
 )
 async def get_category_tree(
-    is_active: Optional[bool] = Query(None),
+    is_active: bool | None = Query(None),
     db: AsyncSession = Depends(get_db),
 ):
     """Return the full category hierarchy as a nested tree."""
@@ -204,8 +205,8 @@ async def reorder_categories(
     summary="List brands",
 )
 async def list_brands(
-    is_active: Optional[bool] = Query(None),
-    q: Optional[str] = Query(None, min_length=1, description="Search by name"),
+    is_active: bool | None = Query(None),
+    q: str | None = Query(None, min_length=1, description="Search by name"),
     page: int = Query(1, ge=1),
     page_size: int = Query(50, ge=1, le=200),
     db: AsyncSession = Depends(get_db),
@@ -304,26 +305,26 @@ async def delete_brand(
     summary="List products",
 )
 async def list_products(
-    q: Optional[str] = Query(None, description="Full-text search"),
-    category_id: Optional[uuid.UUID] = Query(None),
-    category_slug: Optional[str] = Query(None),
-    brand_id: Optional[uuid.UUID] = Query(None),
-    brand_slug: Optional[str] = Query(None),
-    status_filter: Optional[ProductStatus] = Query(None, alias="status"),
-    product_type: Optional[ProductType] = Query(None),
-    is_active: Optional[bool] = Query(None),
-    is_featured: Optional[bool] = Query(None),
-    min_price: Optional[int] = Query(None, ge=0, description="Min price in Toman"),
-    max_price: Optional[int] = Query(None, ge=0, description="Max price in Toman"),
-    tag_ids: Optional[str] = Query(None, description="Comma-separated tag UUIDs"),
-    attribute_values: Optional[str] = Query(
+    q: str | None = Query(None, description="Full-text search"),
+    category_id: uuid.UUID | None = Query(None),
+    category_slug: str | None = Query(None),
+    brand_id: uuid.UUID | None = Query(None),
+    brand_slug: str | None = Query(None),
+    status_filter: ProductStatus | None = Query(None, alias="status"),
+    product_type: ProductType | None = Query(None),
+    is_active: bool | None = Query(None),
+    is_featured: bool | None = Query(None),
+    min_price: int | None = Query(None, ge=0, description="Min price in Toman"),
+    max_price: int | None = Query(None, ge=0, description="Max price in Toman"),
+    tag_ids: str | None = Query(None, description="Comma-separated tag UUIDs"),
+    attribute_values: str | None = Query(
         None, description="Comma-separated attribute value UUIDs"
     ),
     sort_by: str = Query("created_at", pattern=r"^(name|price|created_at|updated_at|position)$"),
     sort_order: str = Query("desc", pattern=r"^(asc|desc)$"),
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
-    cursor: Optional[str] = Query(None, description="Cursor for cursor-based pagination"),
+    cursor: str | None = Query(None, description="Cursor for cursor-based pagination"),
     db: AsyncSession = Depends(get_db),
 ):
     """List products with rich filtering, sorting, and pagination.
@@ -635,7 +636,7 @@ async def reorder_images(
     summary="List tags",
 )
 async def list_tags(
-    q: Optional[str] = Query(None, min_length=1),
+    q: str | None = Query(None, min_length=1),
     page: int = Query(1, ge=1),
     page_size: int = Query(50, ge=1, le=200),
     db: AsyncSession = Depends(get_db),

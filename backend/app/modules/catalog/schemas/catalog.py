@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any
 
 from pydantic import (
     BaseModel,
@@ -24,7 +24,6 @@ from app.modules.catalog.domain.models import (
     ProductStatus,
     ProductType,
 )
-
 
 # ============================================================================
 # Helpers
@@ -77,7 +76,9 @@ class CategoryCreate(BaseModel):
     model_config = ConfigDict(str_strip_whitespace=True)
 
     name: str = Field(..., min_length=1, max_length=200)
-    slug: str | None = Field(None, max_length=250, description="Auto-generated from name if not provided")
+    slug: str | None = Field(
+        None, max_length=250, description="Auto-generated from name if not provided"
+    )
     parent_id: uuid.UUID | None = None
     description: str | None = Field(None, max_length=5000)
     image_url: str | None = Field(None, max_length=500)
@@ -379,7 +380,9 @@ class VariantCreate(BaseModel):
     weight: float | None = Field(None, gt=0)
     is_active: bool = True
     position: int = Field(0, ge=0)
-    attributes: dict[str, Any] | None = Field(None, description="Variant-specific attributes as JSON")
+    attributes: dict[str, Any] | None = Field(
+        None, description="Variant-specific attributes as JSON"
+    )
 
     @model_validator(mode="after")
     def validate_compare_price(self) -> VariantCreate:
@@ -396,7 +399,9 @@ class VariantUpdate(BaseModel):
     sku: str | None = Field(None, min_length=1, max_length=100)
     barcode: str | None = Field(None, max_length=100)
     price: int | None = Field(None, gt=0, description="Price in Toman")
-    compare_at_price: int | None = Field(None, description="Original price in Toman; set 0 to clear")
+    compare_at_price: int | None = Field(
+        None, description="Original price in Toman; set 0 to clear"
+    )
     cost: int | None = Field(None, description="Cost in Toman; set 0 to clear")
     weight: float | None = None
     is_active: bool | None = None
@@ -639,17 +644,3 @@ class ProductFilterParams(BaseModel):
 # ============================================================================
 # Vendor Schemas (re-exported from vendors module)
 # ============================================================================
-
-from app.modules.vendors.schemas.vendor import (  # noqa: E402
-    VendorAdminUpdateRequest,
-    VendorEarningsResponse,
-    VendorListResponse,
-    VendorRegisterRequest,
-    VendorResponse,
-    VendorSettlementCreate,
-    VendorSettlementListResponse,
-    VendorSettlementResponse,
-    VendorUpdateRequest,
-    VendorVerifyRequest,
-)
-

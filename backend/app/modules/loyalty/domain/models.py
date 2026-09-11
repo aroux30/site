@@ -2,7 +2,6 @@
 
 import enum
 import uuid
-from typing import Optional
 
 from sqlalchemy import Enum, ForeignKey, Index, Integer, String, Text
 from sqlalchemy.dialects.postgresql import UUID
@@ -10,8 +9,8 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database.base import BaseModel
 
-
 # ---- Enums ----
+
 
 class LoyaltyTier(str, enum.Enum):
     BRONZE = "bronze"
@@ -28,6 +27,7 @@ class LoyaltyTransactionType(str, enum.Enum):
 
 
 # ---- Models ----
+
 
 class LoyaltyAccount(BaseModel):
     """User loyalty points account with tier tracking."""
@@ -89,11 +89,9 @@ class LoyaltyTransaction(BaseModel):
         ),
         nullable=False,
     )
-    reference_type: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
-    reference_id: Mapped[Optional[uuid.UUID]] = mapped_column(
-        UUID(as_uuid=True), nullable=True
-    )
-    description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    reference_type: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    reference_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
+    description: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     # Relationships
     account: Mapped["LoyaltyAccount"] = relationship(

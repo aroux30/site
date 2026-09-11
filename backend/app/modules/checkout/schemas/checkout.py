@@ -4,10 +4,8 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime
-from typing import Optional
 
-from pydantic import BaseModel, ConfigDict, Field
-
+from pydantic import BaseModel, Field
 
 # ── Quote ──────────────────────────────────────────────────────────────────
 
@@ -18,9 +16,7 @@ class CheckoutQuoteRequest(BaseModel):
     cart_id: uuid.UUID
     address_id: uuid.UUID
     shipping_method_id: uuid.UUID
-    coupon_code: Optional[str] = Field(
-        None, max_length=50, description="Optional coupon code"
-    )
+    coupon_code: str | None = Field(None, max_length=50, description="Optional coupon code")
 
 
 class CheckoutLineItem(BaseModel):
@@ -43,7 +39,7 @@ class CheckoutQuoteResponse(BaseModel):
     discount_amount: int = Field(0, description="Discount deducted (Rial)")
     tax: int = Field(0, description="Tax (Rial) — currently 0 for Iran domestic")
     total: int = Field(description="Grand total (Rial)")
-    coupon_applied: Optional[str] = None
+    coupon_applied: str | None = None
 
     @property
     def total_toman(self) -> int:
@@ -77,15 +73,17 @@ class CreateOrderRequest(BaseModel):
     cart_id: uuid.UUID
     address_id: uuid.UUID
     shipping_method_id: uuid.UUID
-    coupon_code: Optional[str] = Field(None, max_length=50)
+    coupon_code: str | None = Field(None, max_length=50)
     payment_method: str = Field(
         ..., description="Payment method slug (e.g. 'zarinpal', 'idpay', 'wallet')"
     )
     idempotency_key: str = Field(
-        ..., min_length=8, max_length=255,
+        ...,
+        min_length=8,
+        max_length=255,
         description="Client-generated unique key to prevent duplicate orders",
     )
-    notes: Optional[str] = Field(None, max_length=2000, description="Customer note")
+    notes: str | None = Field(None, max_length=2000, description="Customer note")
 
 
 class CreateOrderResponse(BaseModel):
@@ -99,7 +97,7 @@ class CreateOrderResponse(BaseModel):
     discount_amount: int
     tax: int
     total: int
-    payment_url: Optional[str] = Field(
+    payment_url: str | None = Field(
         None, description="Gateway redirect URL (null if wallet or COD)"
     )
     created_at: datetime

@@ -3,10 +3,8 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Optional
 
 from pydantic import BaseModel, Field
-
 
 # ── Request schemas ───────────────────────────────────────────────────────
 
@@ -25,11 +23,11 @@ class WishlistItemResponse(BaseModel):
 
     id: str
     product_id: str
-    product_name: Optional[str] = None
-    product_slug: Optional[str] = None
-    product_image_url: Optional[str] = None
-    product_price: Optional[int] = None
-    product_is_active: Optional[bool] = None
+    product_name: str | None = None
+    product_slug: str | None = None
+    product_image_url: str | None = None
+    product_price: int | None = None
+    product_is_active: bool | None = None
     added_at: datetime
 
     class Config:

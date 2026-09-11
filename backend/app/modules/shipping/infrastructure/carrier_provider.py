@@ -11,8 +11,8 @@ from __future__ import annotations
 import abc
 import uuid
 from dataclasses import dataclass
-from datetime import datetime, timezone
-from typing import Any, Optional
+from datetime import UTC, datetime
+from typing import Any, ClassVar
 
 import structlog
 
@@ -123,18 +123,20 @@ class InternalRateCarrierProvider(ShippingProvider):
         postal_code: str,
         weight_kg: float,
     ) -> ShipmentCreationResult:
-        tracking_code = f"IRN-{datetime.now(timezone.utc).strftime('%Y%m%d')}-{uuid.uuid4().hex[:6].upper()}"
+        tracking_code = (
+            f"IRN-{datetime.now(UTC).strftime('%Y%m%d')}-{uuid.uuid4().hex[:6].upper()}"
+        )
         rate = await self.calculate_rate("تهران", weight_kg, 0)
         return ShipmentCreationResult(
             tracking_code=tracking_code,
             carrier_reference=f"REF-{uuid.uuid4().hex[:8].upper()}",
             estimated_delivery_days=2,
             cost_rials=rate,
-            created_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
         )
 
     async def track_shipment(self, tracking_code: str) -> ShipmentTrackingResult:
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         return ShipmentTrackingResult(
             tracking_code=tracking_code,
             status="in_transit",
@@ -157,7 +159,7 @@ class InternalRateCarrierProvider(ShippingProvider):
 class TipaxCarrierProvider(ShippingProvider):
     """Adapter for Tipax courier logistics services (تیپاکس)."""
 
-    def __init__(self, api_key: Optional[str] = None, contract_id: Optional[str] = None) -> None:
+    def __init__(self, api_key: str | None = None, contract_id: str | None = None) -> None:
         self.api_key = api_key
         self.contract_id = contract_id
 
@@ -194,14 +196,14 @@ class TipaxCarrierProvider(ShippingProvider):
         if not self.api_key and get_settings().ENVIRONMENT == "production":
             raise RuntimeError("Tipax production credentials missing. Cannot dispatch.")
 
-        tracking = f"TPX{datetime.now(timezone.utc).strftime('%y%m%d')}{uuid.uuid4().hex[:8].upper()}"
+        tracking = f"TPX{datetime.now(UTC).strftime('%y%m%d')}{uuid.uuid4().hex[:8].upper()}"
         cost = await self.calculate_rate("تهران", weight_kg, 0)
         return ShipmentCreationResult(
             tracking_code=tracking,
             carrier_reference=f"TPX-ORD-{order_id}",
             estimated_delivery_days=1,
             cost_rials=cost,
-            created_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
         )
 
     async def track_shipment(self, tracking_code: str) -> ShipmentTrackingResult:
@@ -212,7 +214,7 @@ class TipaxCarrierProvider(ShippingProvider):
                 ShipmentTrackingEvent(
                     status="dispatched",
                     location="هاب توزیع تیپاکس",
-                    timestamp=datetime.now(timezone.utc),
+                    timestamp=datetime.now(UTC),
                     description="مرسوله جهت تحویل به فرستنده آماده گردید",
                 )
             ],
@@ -226,7 +228,7 @@ class TipaxCarrierProvider(ShippingProvider):
 class PostIranCarrierProvider(ShippingProvider):
     """Adapter for Iran National Post (شرکت ملی پست جمهوری اسلامی ایران - پیشتاز)."""
 
-    def __init__(self, service_id: Optional[str] = None) -> None:
+    def __init__(self, service_id: str | None = None) -> None:
         self.service_id = service_id
 
     @property
@@ -269,7 +271,7 @@ class PostIranCarrierProvider(ShippingProvider):
             carrier_reference=f"PST-{order_id}",
             estimated_delivery_days=3,
             cost_rials=cost,
-            created_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
         )
 
     async def track_shipment(self, tracking_code: str) -> ShipmentTrackingResult:
@@ -280,7 +282,7 @@ class PostIranCarrierProvider(ShippingProvider):
                 ShipmentTrackingEvent(
                     status="accepted",
                     location="دفتر پستی مبدا",
-                    timestamp=datetime.now(timezone.utc),
+                    timestamp=datetime.now(UTC),
                     description="مرسوله در باجه پستی پذیرفته شد",
                 )
             ],
@@ -294,7 +296,7 @@ class PostIranCarrierProvider(ShippingProvider):
 class ShippingProviderFactory:
     """Factory resolving shipping carrier adapters with fail-closed production safety."""
 
-    _PROVIDERS: dict[str, type[ShippingProvider]] = {
+    _PROVIDERS: ClassVar[dict[str, type[ShippingProvider]]] = {
         "internal": InternalRateCarrierProvider,
         "tipax": TipaxCarrierProvider,
         "post_iran": PostIranCarrierProvider,

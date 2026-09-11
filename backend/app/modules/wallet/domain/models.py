@@ -2,7 +2,6 @@
 
 import enum
 import uuid
-from typing import Optional
 
 from sqlalchemy import (
     BigInteger,
@@ -18,8 +17,8 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database.base import BaseModel
 
-
 # ---- Enums ----
+
 
 class WalletTransactionType(str, enum.Enum):
     CREDIT = "credit"
@@ -33,13 +32,12 @@ class WalletTransactionType(str, enum.Enum):
 
 # ---- Models ----
 
+
 class Wallet(BaseModel):
     """User digital wallet for in-platform balance."""
 
     __tablename__ = "wallets"
-    __table_args__ = (
-        Index("ix_wallets_user_id", "user_id"),
-    )
+    __table_args__ = (Index("ix_wallets_user_id", "user_id"),)
 
     user_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
@@ -88,17 +86,13 @@ class WalletTransaction(BaseModel):
         ),
         nullable=False,
     )
-    reference_type: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
-    reference_id: Mapped[Optional[uuid.UUID]] = mapped_column(
-        UUID(as_uuid=True), nullable=True
-    )
-    description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    reference_type: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    reference_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
+    description: Mapped[str | None] = mapped_column(Text, nullable=True)
     balance_after: Mapped[int] = mapped_column(BigInteger, nullable=False)
 
     # Relationships
-    wallet: Mapped["Wallet"] = relationship(
-        "Wallet", back_populates="transactions"
-    )
+    wallet: Mapped["Wallet"] = relationship("Wallet", back_populates="transactions")
 
     def __repr__(self) -> str:
         return f"<WalletTransaction(id={self.id}, type={self.type}, amount={self.amount})>"

@@ -4,12 +4,11 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
 
 from app.modules.notifications.domain.models import NotificationChannel
-
 
 # ── Notification ──────────────────────────────────────────────────────────
 
@@ -24,9 +23,9 @@ class NotificationResponse(BaseModel):
     type: str
     title: str
     body: str
-    data: Optional[dict[str, Any]] = None
+    data: dict[str, Any] | None = None
     is_read: bool
-    read_at: Optional[datetime] = None
+    read_at: datetime | None = None
     created_at: datetime
 
 
@@ -45,7 +44,7 @@ class NotificationCreate(BaseModel):
     type: str = Field(..., max_length=100)
     title: str = Field(..., max_length=300)
     body: str
-    data: Optional[dict[str, Any]] = None
+    data: dict[str, Any] | None = None
     channels: list[NotificationChannel] = [NotificationChannel.IN_APP]
 
 
@@ -66,9 +65,9 @@ class NotificationTemplateResponse(BaseModel):
     id: uuid.UUID
     name: str
     channel: NotificationChannel
-    subject: Optional[str] = None
+    subject: str | None = None
     body_template: str
-    variables: Optional[list[Any]] = None
+    variables: list[Any] | None = None
     created_at: datetime
 
 

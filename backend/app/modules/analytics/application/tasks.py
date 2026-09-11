@@ -7,7 +7,7 @@ new user registrations) and stores them in the ``daily_metrics`` table.
 from __future__ import annotations
 
 import asyncio
-from datetime import date, datetime, timedelta, timezone
+from datetime import UTC, date, datetime, timedelta
 from typing import Any
 
 import structlog
@@ -25,10 +25,10 @@ logger: structlog.stdlib.BoundLogger = structlog.get_logger(__name__)
 async def _generate_daily_report_async(target_date: date | None = None) -> dict[str, Any]:
     """Aggregate metrics for yesterday (or specified target_date) and store in daily_metrics."""
     if target_date is None:
-        target_date = (datetime.now(timezone.utc) - timedelta(days=1)).date()
+        target_date = (datetime.now(UTC) - timedelta(days=1)).date()
 
-    day_start = datetime.combine(target_date, datetime.min.time()).replace(tzinfo=timezone.utc)
-    day_end = datetime.combine(target_date, datetime.max.time()).replace(tzinfo=timezone.utc)
+    day_start = datetime.combine(target_date, datetime.min.time()).replace(tzinfo=UTC)
+    day_end = datetime.combine(target_date, datetime.max.time()).replace(tzinfo=UTC)
 
     valid_statuses = [
         OrderStatus.CONFIRMED,

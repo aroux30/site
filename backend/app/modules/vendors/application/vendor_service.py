@@ -6,16 +6,14 @@ financial calculations (commissions, gross/net sales, settlements), and admin op
 
 from __future__ import annotations
 
-import math
 import re
 import unicodedata
 import uuid
-from datetime import datetime, timezone
-from typing import Any, Optional
+from datetime import UTC, datetime
+from typing import TYPE_CHECKING, Any
 
 import structlog
 from sqlalchemy import func, or_, select
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions.handlers import ConflictError, NotFoundError, ValidationError
 from app.modules.catalog.domain.models import (
@@ -26,11 +24,15 @@ from app.modules.catalog.domain.models import (
     VendorSettlement,
 )
 from app.modules.orders.domain.models import Order, OrderItem, OrderStatus
-from app.modules.vendors.schemas.vendor import (
-    VendorAdminUpdateRequest,
-    VendorRegisterRequest,
-    VendorUpdateRequest,
-)
+
+if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncSession
+
+    from app.modules.vendors.schemas.vendor import (
+        VendorAdminUpdateRequest,
+        VendorRegisterRequest,
+        VendorUpdateRequest,
+    )
 
 logger: structlog.stdlib.BoundLogger = structlog.get_logger(__name__)
 
@@ -38,22 +40,69 @@ logger: structlog.stdlib.BoundLogger = structlog.get_logger(__name__)
 # ── Slug Helper ────────────────────────────────────────────────────────────
 
 _PERSIAN_TO_LATIN: dict[str, str] = {
-    "آ": "a", "ا": "a", "ب": "b", "پ": "p", "ت": "t", "ث": "s",
-    "ج": "j", "چ": "ch", "ح": "h", "خ": "kh", "د": "d", "ذ": "z",
-    "ر": "r", "ز": "z", "ژ": "zh", "س": "s", "ش": "sh", "ص": "s",
-    "ض": "z", "ط": "t", "ظ": "z", "ع": "a", "غ": "gh", "ف": "f",
-    "ق": "gh", "ک": "k", "گ": "g", "ل": "l", "م": "m", "ن": "n",
-    "و": "v", "ه": "h", "ی": "y", "ئ": "y", "ي": "y", "ك": "k",
-    "ة": "h", "إ": "e", "أ": "a", "ؤ": "v",
-    "۰": "0", "۱": "1", "۲": "2", "۳": "3", "۴": "4",
-    "۵": "5", "۶": "6", "۷": "7", "۸": "8", "۹": "9",
-    "٠": "0", "١": "1", "٢": "2", "٣": "3", "٤": "4",
-    "٥": "5", "٦": "6", "٧": "7", "٨": "8", "٩": "9",
+    "آ": "a",
+    "ا": "a",
+    "ب": "b",
+    "پ": "p",
+    "ت": "t",
+    "ث": "s",
+    "ج": "j",
+    "چ": "ch",
+    "ح": "h",
+    "خ": "kh",
+    "د": "d",
+    "ذ": "z",
+    "ر": "r",
+    "ز": "z",
+    "ژ": "zh",
+    "س": "s",
+    "ش": "sh",
+    "ص": "s",
+    "ض": "z",
+    "ط": "t",
+    "ظ": "z",
+    "ع": "a",
+    "غ": "gh",
+    "ف": "f",
+    "ق": "gh",
+    "ک": "k",
+    "گ": "g",
+    "ل": "l",
+    "م": "m",
+    "ن": "n",
+    "و": "v",
+    "ه": "h",
+    "ی": "y",
+    "ئ": "y",
+    "ي": "y",
+    "ك": "k",
+    "ة": "h",
+    "إ": "e",
+    "أ": "a",
+    "ؤ": "v",
+    "۰": "0",
+    "۱": "1",
+    "۲": "2",
+    "۳": "3",
+    "۴": "4",
+    "۵": "5",
+    "۶": "6",
+    "۷": "7",
+    "۸": "8",
+    "۹": "9",
+    "٠": "0",
+    "١": "1",
+    "٢": "2",
+    "٣": "3",
+    "٤": "4",
+    "٥": "5",
+    "٦": "6",
+    "٧": "7",
+    "٨": "8",
+    "٩": "9",
 }
 
-_DIACRITICS_RE = re.compile(
-    r"[\u064B-\u065F\u0670\u06D6-\u06ED\u200B-\u200F\u202A-\u202E\uFEFF]"
-)
+_DIACRITICS_RE = re.compile(r"[\u064B-\u065F\u0670\u06D6-\u06ED\u200B-\u200F\u202A-\u202E\uFEFF]")
 
 
 def generate_vendor_slug(text: str) -> str:
@@ -122,8 +171,8 @@ async def register_vendor(
         contact_phone=data.contact_phone,
         rating=5.0,
         total_sales_count=0,
-        created_at=datetime.now(timezone.utc),
-        updated_at=datetime.now(timezone.utc),
+        created_at=datetime.now(UTC),
+        updated_at=datetime.now(UTC),
     )
 
     db.add(vendor)
@@ -152,7 +201,7 @@ async def get_vendor_by_slug(db: AsyncSession, slug: str) -> Vendor:
     return vendor
 
 
-async def get_vendor_by_user_id(db: AsyncSession, user_id: uuid.UUID) -> Optional[Vendor]:
+async def get_vendor_by_user_id(db: AsyncSession, user_id: uuid.UUID) -> Vendor | None:
     """Retrieve vendor profile belonging to a user."""
     stmt = select(Vendor).where(Vendor.user_id == user_id)
     return (await db.execute(stmt)).scalar_one_or_none()
@@ -160,8 +209,8 @@ async def get_vendor_by_user_id(db: AsyncSession, user_id: uuid.UUID) -> Optiona
 
 async def list_vendors(
     db: AsyncSession,
-    is_active: Optional[bool] = True,
-    is_verified: Optional[bool] = None,
+    is_active: bool | None = True,
+    is_verified: bool | None = None,
     page: int = 1,
     page_size: int = 20,
 ) -> tuple[list[Vendor], int]:
@@ -231,8 +280,8 @@ async def update_vendor(
 async def calculate_vendor_earnings(
     db: AsyncSession,
     vendor_id: uuid.UUID,
-    period_start: Optional[datetime] = None,
-    period_end: Optional[datetime] = None,
+    period_start: datetime | None = None,
+    period_end: datetime | None = None,
 ) -> dict[str, Any]:
     """Calculate gross sales, platform commission, net earnings, and settlement status."""
     vendor = await get_vendor(db, vendor_id)
@@ -276,9 +325,7 @@ async def calculate_vendor_earnings(
     net_earnings = total_sales - commission_amount
 
     # Sum of settlements marked paid or approved
-    settlement_query = select(
-        func.coalesce(func.sum(VendorSettlement.amount), 0)
-    ).where(
+    settlement_query = select(func.coalesce(func.sum(VendorSettlement.amount), 0)).where(
         VendorSettlement.vendor_id == vendor_id,
         VendorSettlement.status.in_([SettlementStatus.PAID, SettlementStatus.APPROVED]),
     )
@@ -305,9 +352,9 @@ async def create_settlement(
     db: AsyncSession,
     vendor_id: uuid.UUID,
     amount: int,
-    period_start: Optional[datetime] = None,
-    period_end: Optional[datetime] = None,
-    payment_reference: Optional[str] = None,
+    period_start: datetime | None = None,
+    period_end: datetime | None = None,
+    payment_reference: str | None = None,
 ) -> VendorSettlement:
     """Generate a payout settlement record for a vendor."""
     vendor = await get_vendor(db, vendor_id)
@@ -322,8 +369,8 @@ async def create_settlement(
         period_end=period_end,
         status=SettlementStatus.PENDING,
         payment_reference=payment_reference,
-        created_at=datetime.now(timezone.utc),
-        updated_at=datetime.now(timezone.utc),
+        created_at=datetime.now(UTC),
+        updated_at=datetime.now(UTC),
     )
     db.add(settlement)
     await db.commit()
@@ -340,8 +387,8 @@ async def create_settlement(
 
 async def list_vendor_settlements(
     db: AsyncSession,
-    vendor_id: Optional[uuid.UUID] = None,
-    status: Optional[SettlementStatus] = None,
+    vendor_id: uuid.UUID | None = None,
+    status: SettlementStatus | None = None,
     page: int = 1,
     page_size: int = 20,
 ) -> tuple[list[VendorSettlement], int]:
@@ -378,19 +425,21 @@ async def update_settlement_status(
     db: AsyncSession,
     settlement_id: uuid.UUID,
     status: SettlementStatus,
-    payment_reference: Optional[str] = None,
+    payment_reference: str | None = None,
 ) -> VendorSettlement:
     """Update status of a settlement (e.g. approve or mark as paid)."""
     stmt = select(VendorSettlement).where(VendorSettlement.id == settlement_id)
     settlement = (await db.execute(stmt)).scalar_one_or_none()
     if settlement is None:
-        raise NotFoundError(resource="VendorSettlement", detail=f"Settlement '{settlement_id}' not found")
+        raise NotFoundError(
+            resource="VendorSettlement", detail=f"Settlement '{settlement_id}' not found"
+        )
 
     settlement.status = status
     if payment_reference is not None:
         settlement.payment_reference = payment_reference
     if status == SettlementStatus.PAID and settlement.paid_at is None:
-        settlement.paid_at = datetime.now(timezone.utc)
+        settlement.paid_at = datetime.now(UTC)
 
     await db.commit()
     await db.refresh(settlement)
@@ -415,13 +464,13 @@ class VendorService:
     async def get_vendor_by_slug(self, slug: str) -> Vendor:
         return await get_vendor_by_slug(self.db, slug)
 
-    async def get_vendor_by_user_id(self, user_id: uuid.UUID) -> Optional[Vendor]:
+    async def get_vendor_by_user_id(self, user_id: uuid.UUID) -> Vendor | None:
         return await get_vendor_by_user_id(self.db, user_id)
 
     async def list_vendors(
         self,
-        is_active: Optional[bool] = True,
-        is_verified: Optional[bool] = None,
+        is_active: bool | None = True,
+        is_verified: bool | None = None,
         page: int = 1,
         page_size: int = 20,
     ) -> tuple[list[Vendor], int]:
@@ -446,8 +495,8 @@ class VendorService:
     async def calculate_vendor_earnings(
         self,
         vendor_id: uuid.UUID,
-        period_start: Optional[datetime] = None,
-        period_end: Optional[datetime] = None,
+        period_start: datetime | None = None,
+        period_end: datetime | None = None,
     ) -> dict[str, Any]:
         return await calculate_vendor_earnings(
             self.db,
@@ -460,9 +509,9 @@ class VendorService:
         self,
         vendor_id: uuid.UUID,
         amount: int,
-        period_start: Optional[datetime] = None,
-        period_end: Optional[datetime] = None,
-        payment_reference: Optional[str] = None,
+        period_start: datetime | None = None,
+        period_end: datetime | None = None,
+        payment_reference: str | None = None,
     ) -> VendorSettlement:
         return await create_settlement(
             self.db,
@@ -475,8 +524,8 @@ class VendorService:
 
     async def list_vendor_settlements(
         self,
-        vendor_id: Optional[uuid.UUID] = None,
-        status: Optional[SettlementStatus] = None,
+        vendor_id: uuid.UUID | None = None,
+        status: SettlementStatus | None = None,
         page: int = 1,
         page_size: int = 20,
     ) -> tuple[list[VendorSettlement], int]:
@@ -492,7 +541,7 @@ class VendorService:
         self,
         settlement_id: uuid.UUID,
         status: SettlementStatus,
-        payment_reference: Optional[str] = None,
+        payment_reference: str | None = None,
     ) -> VendorSettlement:
         return await update_settlement_status(
             self.db,

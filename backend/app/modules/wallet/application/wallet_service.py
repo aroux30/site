@@ -12,11 +12,10 @@ from __future__ import annotations
 
 import math
 import uuid
-from typing import Optional
+from typing import TYPE_CHECKING
 
 import structlog
 from sqlalchemy import func, select
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions.handlers import (
     NotFoundError,
@@ -33,6 +32,8 @@ from app.modules.wallet.schemas.wallet import (
     WalletTransactionResponse,
 )
 
+if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncSession
 logger: structlog.stdlib.BoundLogger = structlog.get_logger(__name__)
 
 
@@ -78,9 +79,8 @@ async def get_balance(
     wallet = await _get_wallet_or_raise(db, user_id)
 
     # Compute balance from the transaction ledger
-    stmt = (
-        select(func.coalesce(func.sum(WalletTransaction.amount), 0))
-        .where(WalletTransaction.wallet_id == wallet.id)
+    stmt = select(func.coalesce(func.sum(WalletTransaction.amount), 0)).where(
+        WalletTransaction.wallet_id == wallet.id
     )
     result = await db.execute(stmt)
     ledger_balance: int = int(result.scalar_one())
@@ -225,8 +225,7 @@ async def debit(
         )
         raise ValidationError(
             detail=(
-                f"Insufficient wallet balance. "
-                f"Available: {wallet.balance}, Requested: {amount}"
+                f"Insufficient wallet balance. Available: {wallet.balance}, Requested: {amount}"
             ),
             error_code="INSUFFICIENT_BALANCE",
         )
@@ -319,11 +318,7 @@ async def _get_wallet_for_update(
     user_id: uuid.UUID,
 ) -> Wallet | None:
     """SELECT … FOR UPDATE on the wallet row to acquire a row-level lock."""
-    stmt = (
-        select(Wallet)
-        .where(Wallet.user_id == user_id)
-        .with_for_update()
-    )
+    stmt = select(Wallet).where(Wallet.user_id == user_id).with_for_update()
     result = await db.execute(stmt)
     return result.scalar_one_or_none()
 

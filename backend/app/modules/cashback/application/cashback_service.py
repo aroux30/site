@@ -3,12 +3,11 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
-from typing import Any, Optional
+from datetime import UTC, datetime
+from typing import TYPE_CHECKING, Any
 
 import structlog
-from sqlalchemy import func, select, update
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import func, select
 
 from app.modules.cashback.domain.models import (
     CashbackRule,
@@ -17,6 +16,8 @@ from app.modules.cashback.domain.models import (
     CashbackTransactionStatus,
 )
 
+if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncSession
 logger: structlog.stdlib.BoundLogger = structlog.get_logger()
 
 
@@ -30,10 +31,10 @@ class CashbackService:
         db: AsyncSession,
         *,
         name: str,
-        type: CashbackRuleType,
-        scope_id: Optional[str],
+        type: CashbackRuleType,  # noqa: A002  # API parameter name is the public contract
+        scope_id: str | None,
         percentage: float,
-        max_amount: Optional[int],
+        max_amount: int | None,
         is_active: bool,
         starts_at: datetime,
         ends_at: datetime,
@@ -88,7 +89,7 @@ class CashbackService:
         await logger.ainfo("cashback_rule_deactivated", rule_id=str(rule_id))
 
     @staticmethod
-    async def get_rule(db: AsyncSession, rule_id: uuid.UUID) -> Optional[CashbackRule]:
+    async def get_rule(db: AsyncSession, rule_id: uuid.UUID) -> CashbackRule | None:
         """Get a single cashback rule by ID."""
         stmt = select(CashbackRule).where(CashbackRule.id == rule_id)
         result = await db.execute(stmt)
@@ -98,7 +99,7 @@ class CashbackService:
     async def list_rules(
         db: AsyncSession,
         *,
-        is_active: Optional[bool] = None,
+        is_active: bool | None = None,
         skip: int = 0,
         limit: int = 20,
     ) -> tuple[list[CashbackRule], int]:
@@ -124,18 +125,18 @@ class CashbackService:
         user_id: uuid.UUID,
         order_id: uuid.UUID,
         order_total: int,
-        payment_method: Optional[str] = None,
-        category_ids: Optional[list[str]] = None,
-        product_ids: Optional[list[str]] = None,
+        payment_method: str | None = None,
+        category_ids: list[str] | None = None,
+        product_ids: list[str] | None = None,
     ) -> tuple[int, int]:
         """Calculate and credit cashback for an order.
 
         Returns (total_cashback_amount, number_of_transactions_created).
         """
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
 
         stmt = select(CashbackRule).where(
-            CashbackRule.is_active == True,  # noqa: E712
+            CashbackRule.is_active.is_(True),
             CashbackRule.starts_at <= now,
             CashbackRule.ends_at >= now,
         )
@@ -192,9 +193,7 @@ class CashbackService:
     # ── Credit to wallet ──────────────────────────────────────────────
 
     @staticmethod
-    async def credit_pending_cashback(
-        db: AsyncSession, user_id: uuid.UUID
-    ) -> int:
+    async def credit_pending_cashback(db: AsyncSession, user_id: uuid.UUID) -> int:
         """Credit all pending cashback transactions for a user to their wallet.
 
         Returns the total amount credited. Actual wallet crediting should

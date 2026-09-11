@@ -84,10 +84,8 @@ async def analyze_seo(
     ),
 )
 async def get_product_seo_score(
-    id: str,  # noqa: A002
-    focus_keyword: str | None = Query(
-        None, description="Optional custom focus keyword override"
-    ),
+    id: str,  # noqa: A002  # API parameter name is the public contract
+    focus_keyword: str | None = Query(None, description="Optional custom focus keyword override"),
     db: AsyncSession = Depends(get_db),
 ) -> SeoAnalysisResponse:
     """Fetch product by ID or slug, extract fields, and evaluate SEO score."""
@@ -157,17 +155,11 @@ async def get_product_seo_score(
 )
 async def get_blog_post_seo_score(
     slug: str,
-    focus_keyword: str | None = Query(
-        None, description="Optional custom focus keyword override"
-    ),
+    focus_keyword: str | None = Query(None, description="Optional custom focus keyword override"),
     db: AsyncSession = Depends(get_db),
 ) -> SeoAnalysisResponse:
     """Fetch blog post by slug, check SEO metadata, and calculate SEO score."""
-    stmt = (
-        select(BlogPost)
-        .options(selectinload(BlogPost.category))
-        .where(BlogPost.slug == slug)
-    )
+    stmt = select(BlogPost).options(selectinload(BlogPost.category)).where(BlogPost.slug == slug)
     post = (await db.execute(stmt)).scalar_one_or_none()
     if not post:
         raise NotFoundError("BlogPost", f"Blog post '{slug}' not found")
@@ -191,9 +183,7 @@ async def get_blog_post_seo_score(
     title = (seo_meta.title if seo_meta and seo_meta.title else None) or post.title
     content = post.content or ""
     meta_desc = (
-        (seo_meta.description if seo_meta and seo_meta.description else None)
-        or post.excerpt
-        or ""
+        (seo_meta.description if seo_meta and seo_meta.description else None) or post.excerpt or ""
     )
 
     images_data: list[dict[str, str | None]] = []

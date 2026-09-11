@@ -7,10 +7,9 @@ is created lazily on first interaction.
 from __future__ import annotations
 
 import uuid
-from typing import Any
 
 import structlog
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database.session import get_db

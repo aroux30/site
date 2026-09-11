@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import uuid
 from datetime import UTC, datetime, timedelta
 from typing import TYPE_CHECKING
 
@@ -27,7 +28,6 @@ from app.modules.users.domain.models import User
 from app.modules.wishlist.domain.models import Wishlist, WishlistItem
 
 if TYPE_CHECKING:
-    import uuid
     from collections.abc import Sequence
 
     from sqlalchemy.ext.asyncio import AsyncSession
@@ -36,7 +36,6 @@ if TYPE_CHECKING:
         BroadcastCampaignCreate,
         BroadcastCampaignUpdate,
     )
-
 logger: structlog.stdlib.BoundLogger = structlog.get_logger(__name__)
 
 
@@ -107,12 +106,16 @@ async def list_campaigns(
 
     total = (await db.execute(count_query)).scalar() or 0
     items = (
-        await db.execute(
-            base_query.order_by(BroadcastCampaign.created_at.desc())
-            .offset(offset)
-            .limit(page_size)
+        (
+            await db.execute(
+                base_query.order_by(BroadcastCampaign.created_at.desc())
+                .offset(offset)
+                .limit(page_size)
+            )
         )
-    ).scalars().all()
+        .scalars()
+        .all()
+    )
 
     return items, total
 
@@ -360,9 +363,7 @@ async def send_campaign(
             return campaign
 
         # Load users for contact details
-        users_result = await db.execute(
-            select(User).where(User.id.in_(target_user_ids))
-        )
+        users_result = await db.execute(select(User).where(User.id.in_(target_user_ids)))
         users_by_id = {u.id: u for u in users_result.scalars().all()}
 
         success_count = 0

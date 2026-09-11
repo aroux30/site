@@ -11,15 +11,16 @@ or tests::
 from __future__ import annotations
 
 from contextlib import asynccontextmanager
-from collections.abc import AsyncIterator
-from typing import Any
+from datetime import UTC, datetime
+from typing import TYPE_CHECKING, Any
 
 import sentry_sdk
 import structlog
-from fastapi import FastAPI, Request, status
+from fastapi import FastAPI, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
+from slowapi.middleware import SlowAPIMiddleware
 
 from app.core.cache.redis import close_redis, init_redis
 from app.core.config.settings import get_settings
@@ -30,7 +31,9 @@ from app.core.observability.middleware import RequestIDMiddleware, TimingMiddlew
 from app.core.security.ip_filter import IPFilterMiddleware
 from app.core.security.rate_limiter import limiter
 from app.core.security.security_headers import SecurityHeadersMiddleware
-from slowapi.middleware import SlowAPIMiddleware
+
+if TYPE_CHECKING:
+    from collections.abc import AsyncIterator
 
 logger: structlog.stdlib.BoundLogger = structlog.get_logger()
 
@@ -64,10 +67,12 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     await logger.ainfo("redis_connected")
 
     # Prometheus app info
-    APP_INFO.info({
-        "version": "1.0.0",
-        "environment": settings.ENVIRONMENT,
-    })
+    APP_INFO.info(
+        {
+            "version": "1.0.0",
+            "environment": settings.ENVIRONMENT,
+        }
+    )
 
     yield  # ── Application is running ──
 
@@ -167,7 +172,10 @@ def _include_routers(app: FastAPI, prefix: str) -> None:
 
     for module_path, url_prefix, tags in module_router_specs:
         try:
-            mod = importlib.import_module(module_path)
+            # module_path values are compile-time constants defined in
+            # module_router_specs above (never user input); the indirection is
+            # deliberate so a broken router import fails the boot loudly.
+            mod = importlib.import_module(module_path)  # nosemgrep (constant paths)
             router = getattr(mod, "router", None)
             if router is None:
                 raise AttributeError(f"Module '{module_path}' has no 'router' attribute")
@@ -191,9 +199,10 @@ def _include_routers(app: FastAPI, prefix: str) -> None:
 def _register_infra_routes(app: FastAPI) -> None:
     """Register infrastructure endpoints that sit outside the API prefix."""
     import time
-    from datetime import datetime, timezone
+
     import httpx
     from sqlalchemy import text
+
     from app.core.cache.redis import get_redis
     from app.core.database.session import engine
 
@@ -208,7 +217,7 @@ def _register_infra_routes(app: FastAPI) -> None:
     @app.get("/readyz", include_in_schema=False)
     @app.get("/api/health/ready", include_in_schema=False)
     async def readyz() -> JSONResponse:
-        """Readiness probe – comprehensive check of PostgreSQL, Redis, Elasticsearch, and Storage."""
+        """Readiness probe – comprehensive check of PostgreSQL, Redis, Elasticsearch, and Storage."""  # noqa: E501
         checks: dict[str, str] = {}
         overall_ok = True
 
@@ -332,7 +341,7 @@ def _register_infra_routes(app: FastAPI) -> None:
                 "status": "healthy" if all_ok else "degraded",
                 "app": settings.APP_NAME,
                 "environment": settings.ENVIRONMENT,
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
                 "dependencies": diag,
             },
         )

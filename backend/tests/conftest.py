@@ -2,10 +2,8 @@
 
 from __future__ import annotations
 
-import asyncio
 import os
 import uuid
-from typing import AsyncGenerator
 
 import pytest
 from httpx import ASGITransport, AsyncClient
@@ -15,23 +13,27 @@ os.environ["ENVIRONMENT"] = "development"
 os.environ["DEBUG"] = "true"
 
 # Ensure all SQLAlchemy models are registered in mapper registry
-import app.modules.users.domain.models  # noqa: F401
-import app.modules.rbac.domain.models  # noqa: F401
-import app.modules.catalog.domain.models  # noqa: F401
-import app.modules.inventory.domain.models  # noqa: F401
-import app.modules.orders.domain.models  # noqa: F401
-import app.modules.payments.domain.models  # noqa: F401
-import app.modules.wallet.domain.models  # noqa: F401
-import app.modules.discounts.domain.models  # noqa: F401
-import app.modules.shipping.domain.models  # noqa: F401
-import app.modules.reviews.domain.models  # noqa: F401
-import app.modules.wishlist.domain.models  # noqa: F401
-import app.modules.checkout.domain.models  # noqa: F401
-import app.modules.vendors.domain.models  # noqa: F401
+from typing import TYPE_CHECKING
 
+import app.modules.catalog.domain.models
+import app.modules.checkout.domain.models
+import app.modules.discounts.domain.models
+import app.modules.inventory.domain.models
+import app.modules.orders.domain.models
+import app.modules.payments.domain.models
+import app.modules.rbac.domain.models
+import app.modules.reviews.domain.models
+import app.modules.shipping.domain.models
+import app.modules.users.domain.models
+import app.modules.vendors.domain.models
+import app.modules.wallet.domain.models
+import app.modules.wishlist.domain.models
 from app.core.database.session import engine
 from app.core.security.jwt import create_access_token
 from app.main import create_app
+
+if TYPE_CHECKING:
+    from collections.abc import AsyncGenerator
 
 
 @pytest.fixture(autouse=True)

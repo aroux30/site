@@ -9,11 +9,10 @@ application can start in development without an ``.env`` file present, but
 from __future__ import annotations
 
 from functools import lru_cache
-from typing import Literal
+from typing import Literal, Self
 
 from pydantic import AnyHttpUrl, Field, PostgresDsn, RedisDsn, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from typing_extensions import Self
 
 
 class Settings(BaseSettings):
@@ -145,18 +144,30 @@ class Settings(BaseSettings):
             if self.DEBUG:
                 raise ValueError("Security violation: DEBUG must be False in production")
             if "CHANGE-ME" in self.JWT_SECRET_KEY or "changeme" in self.JWT_SECRET_KEY.lower():
-                raise ValueError("Security violation: JWT_SECRET_KEY contains placeholder in production")
+                raise ValueError(
+                    "Security violation: JWT_SECRET_KEY contains placeholder in production"
+                )
             if len(self.JWT_SECRET_KEY) < 24:
-                raise ValueError("Security violation: JWT_SECRET_KEY must be at least 24 chars in production")
+                raise ValueError(
+                    "Security violation: JWT_SECRET_KEY must be at least 24 chars in production"
+                )
             db_url = str(self.DATABASE_URL)
             if "postgres:postgres@" in db_url or "password@" in db_url:
-                raise ValueError("Security violation: DATABASE_URL contains default credentials in production")
+                raise ValueError(
+                    "Security violation: DATABASE_URL contains default credentials in production"
+                )
             if self.MINIO_SECRET_KEY in ("minioadmin", "minioadmin123"):
-                raise ValueError("Security violation: MINIO_SECRET_KEY contains default credentials in production")
+                raise ValueError(
+                    "Security violation: MINIO_SECRET_KEY contains default credentials in production"  # noqa: E501
+                )
             if self.PAYMENT_PROVIDER == "mock":
-                raise ValueError("Security violation: PAYMENT_PROVIDER cannot be 'mock' in production (PAY-001)")
+                raise ValueError(
+                    "Security violation: PAYMENT_PROVIDER cannot be 'mock' in production (PAY-001)"
+                )
             if self.PAYMENT_SANDBOX:
-                raise ValueError("Security violation: PAYMENT_SANDBOX must be False in production (PAY-001)")
+                raise ValueError(
+                    "Security violation: PAYMENT_SANDBOX must be False in production (PAY-001)"
+                )
         return self
 
 

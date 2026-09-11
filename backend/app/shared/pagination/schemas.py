@@ -6,12 +6,7 @@ offset pagination) or :class:`CursorPaginatedResponse` (for cursor pagination).
 
 from __future__ import annotations
 
-from typing import Generic, TypeVar
-
 from pydantic import BaseModel, Field
-
-T = TypeVar("T")
-
 
 # ── Offset-based pagination ──────────────────────────────────────────────
 
@@ -54,7 +49,7 @@ class PaginationMeta(BaseModel):
         )
 
 
-class PaginatedResponse(BaseModel, Generic[T]):
+class PaginatedResponse[T](BaseModel):
     """Standard envelope for offset-paginated API responses."""
 
     success: bool = True
@@ -82,7 +77,7 @@ class CursorMeta(BaseModel):
     count: int = Field(description="Number of items in this page")
 
 
-class CursorPaginatedResponse(BaseModel, Generic[T]):
+class CursorPaginatedResponse[T](BaseModel):
     """Standard envelope for cursor-paginated API responses."""
 
     success: bool = True

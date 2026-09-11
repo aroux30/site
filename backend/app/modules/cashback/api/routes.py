@@ -37,9 +37,7 @@ async def list_user_transactions(
     db: AsyncSession = Depends(get_db),
 ) -> CashbackTransactionListResponse:
     """Return paginated cashback transactions for the authenticated user."""
-    items, total = await CashbackService.get_user_transactions(
-        db, user_id, skip=skip, limit=limit
-    )
+    items, total = await CashbackService.get_user_transactions(db, user_id, skip=skip, limit=limit)
     return CashbackTransactionListResponse(
         items=[CashbackTransactionResponse.model_validate(t) for t in items],
         total=total,
@@ -124,9 +122,7 @@ async def update_rule(
             db, rule_id, **payload.model_dump(exclude_unset=True)
         )
     except ValueError as exc:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
     return CashbackRuleResponse.model_validate(rule)
 
 
@@ -144,6 +140,4 @@ async def delete_rule(
     try:
         await CashbackService.delete_rule(db, rule_id)
     except ValueError as exc:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc

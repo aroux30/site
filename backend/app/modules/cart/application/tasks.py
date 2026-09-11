@@ -6,15 +6,15 @@ Handles scheduled cart expiration and expired stock reservation release.
 from __future__ import annotations
 
 import asyncio
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 import structlog
-from sqlalchemy import func, select
+from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
 from app.core.database.session import async_session_factory
-from app.modules.cart.domain.models import Cart, CartItem, CartStatus
+from app.modules.cart.domain.models import Cart, CartStatus
 from app.modules.inventory.domain.models import (
     InventoryItem,
     InventoryReservation,
@@ -29,7 +29,7 @@ logger: structlog.stdlib.BoundLogger = structlog.get_logger(__name__)
 
 async def _expire_stale_carts_async() -> dict[str, Any]:
     """Async execution logic for expiring stale shopping carts."""
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     abandoned_count = 0
     deleted_count = 0
 
@@ -58,9 +58,11 @@ async def _expire_stale_carts_async() -> dict[str, Any]:
                 reservations = list(res_result.scalars().all())
 
                 for res in reservations:
-                    item_stmt = select(InventoryItem).where(
-                        InventoryItem.id == res.inventory_item_id
-                    ).with_for_update()
+                    item_stmt = (
+                        select(InventoryItem)
+                        .where(InventoryItem.id == res.inventory_item_id)
+                        .with_for_update()
+                    )
                     item_res = await db.execute(item_stmt)
                     item = item_res.scalar_one_or_none()
                     if item:
@@ -108,7 +110,7 @@ async def _expire_stale_carts_async() -> dict[str, Any]:
 
 async def _release_expired_reservations_async() -> dict[str, Any]:
     """Async execution logic for releasing expired stock reservations."""
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     released_count = 0
 
     async with async_session_factory() as db:

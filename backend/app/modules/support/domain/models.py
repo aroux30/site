@@ -2,10 +2,8 @@
 
 import enum
 import uuid
-from typing import Optional
 
 from sqlalchemy import (
-    BigInteger,
     Boolean,
     Enum,
     ForeignKey,
@@ -19,8 +17,8 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database.base import BaseModel
 
-
 # ---- Enums ----
+
 
 class TicketStatus(str, enum.Enum):
     OPEN = "open"
@@ -38,6 +36,7 @@ class TicketPriority(str, enum.Enum):
 
 
 # ---- Models ----
+
 
 class SupportTicket(BaseModel):
     """Customer support tickets."""
@@ -68,14 +67,12 @@ class SupportTicket(BaseModel):
         default=TicketPriority.MEDIUM,
         nullable=False,
     )
-    assigned_to: Mapped[Optional[uuid.UUID]] = mapped_column(
+    assigned_to: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("users.id", ondelete="SET NULL"),
         nullable=True,
     )
-    ticket_number: Mapped[str] = mapped_column(
-        String(50), unique=True, nullable=False
-    )
+    ticket_number: Mapped[str] = mapped_column(String(50), unique=True, nullable=False)
 
     # Relationships
     messages: Mapped[list["TicketMessage"]] = relationship(
@@ -83,7 +80,7 @@ class SupportTicket(BaseModel):
     )
 
     def __repr__(self) -> str:
-        return f"<SupportTicket(id={self.id}, ticket_number={self.ticket_number}, status={self.status})>"
+        return f"<SupportTicket(id={self.id}, ticket_number={self.ticket_number}, status={self.status})>"  # noqa: E501
 
 
 class TicketMessage(BaseModel):
@@ -110,9 +107,7 @@ class TicketMessage(BaseModel):
     is_staff: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 
     # Relationships
-    ticket: Mapped["SupportTicket"] = relationship(
-        "SupportTicket", back_populates="messages"
-    )
+    ticket: Mapped["SupportTicket"] = relationship("SupportTicket", back_populates="messages")
     attachments: Mapped[list["TicketAttachment"]] = relationship(
         "TicketAttachment", back_populates="message", lazy="select"
     )
@@ -125,9 +120,7 @@ class TicketAttachment(BaseModel):
     """File attachments on ticket messages."""
 
     __tablename__ = "ticket_attachments"
-    __table_args__ = (
-        Index("ix_ticket_attachments_message_id", "message_id"),
-    )
+    __table_args__ = (Index("ix_ticket_attachments_message_id", "message_id"),)
 
     message_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
@@ -139,9 +132,7 @@ class TicketAttachment(BaseModel):
     file_size: Mapped[int] = mapped_column(Integer, nullable=False)
 
     # Relationships
-    message: Mapped["TicketMessage"] = relationship(
-        "TicketMessage", back_populates="attachments"
-    )
+    message: Mapped["TicketMessage"] = relationship("TicketMessage", back_populates="attachments")
 
     def __repr__(self) -> str:
         return f"<TicketAttachment(id={self.id}, file_name={self.file_name})>"

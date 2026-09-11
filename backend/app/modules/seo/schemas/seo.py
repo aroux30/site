@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-import uuid  # noqa: TC003
-from datetime import datetime  # noqa: TC003
+import uuid
+from datetime import datetime
 from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -126,5 +126,3 @@ class SeoAnalysisResponse(BaseModel):
     recommendations: list[str] = Field(
         default_factory=list, description="Actionable recommendations in Persian"
     )
-
-

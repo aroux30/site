@@ -5,7 +5,7 @@ from __future__ import annotations
 import math
 import uuid
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -14,7 +14,6 @@ from app.modules.approvals.domain.models import (
     ApprovalLevel,
     ApprovalStatus,
 )
-
 
 # ── Action Schemas ────────────────────────────────────────────────────────────
 
@@ -26,7 +25,7 @@ class ApprovalActionCreate(BaseModel):
         ...,
         description="Action to take: approve or reject",
     )
-    comment: Optional[str] = Field(
+    comment: str | None = Field(
         None,
         max_length=2000,
         description="Optional comment or justification",
@@ -41,10 +40,10 @@ class ApprovalActionResponse(BaseModel):
     id: uuid.UUID
     request_id: uuid.UUID
     actor_id: uuid.UUID
-    actor_name: Optional[str] = None
-    actor_email: Optional[str] = None
+    actor_name: str | None = None
+    actor_email: str | None = None
     action: ApprovalActionType
-    comment: Optional[str] = None
+    comment: str | None = None
     created_at: datetime
 
 
@@ -66,7 +65,7 @@ class ApprovalRequestCreate(BaseModel):
         max_length=100,
         description="Resource being modified (e.g. product_price, refund, product_publish)",
     )
-    resource_id: Optional[uuid.UUID] = Field(
+    resource_id: uuid.UUID | None = Field(
         None,
         description="Identifier of the resource being modified",
     )
@@ -74,11 +73,11 @@ class ApprovalRequestCreate(BaseModel):
         default=ApprovalLevel.LOW,
         description="Risk level of the approval request (low, medium, high)",
     )
-    data: Optional[dict[str, Any]] = Field(
+    data: dict[str, Any] | None = Field(
         None,
         description="JSON payload containing changes or parameters",
     )
-    reason: Optional[str] = Field(
+    reason: str | None = Field(
         None,
         max_length=2000,
         description="Requester reason / justification",
@@ -92,16 +91,16 @@ class ApprovalRequestResponse(BaseModel):
 
     id: uuid.UUID
     requester_id: uuid.UUID
-    requester_name: Optional[str] = None
-    requester_email: Optional[str] = None
-    requester_phone: Optional[str] = None
+    requester_name: str | None = None
+    requester_email: str | None = None
+    requester_phone: str | None = None
     type: str
     resource: str
-    resource_id: Optional[uuid.UUID] = None
+    resource_id: uuid.UUID | None = None
     level: ApprovalLevel
     status: ApprovalStatus
-    data: Optional[dict[str, Any]] = None
-    reason: Optional[str] = None
+    data: dict[str, Any] | None = None
+    reason: str | None = None
     actions: list[ApprovalActionResponse] = Field(default_factory=list)
     created_at: datetime
     updated_at: datetime
@@ -139,8 +138,8 @@ class ApprovalRequestListResponse(BaseModel):
 class ApprovalFilterParams(BaseModel):
     """Filter parameters for listing approval requests."""
 
-    status: Optional[ApprovalStatus] = Field(None, description="Filter by status")
-    level: Optional[ApprovalLevel] = Field(None, description="Filter by risk level")
-    resource: Optional[str] = Field(None, description="Filter by resource type")
+    status: ApprovalStatus | None = Field(None, description="Filter by status")
+    level: ApprovalLevel | None = Field(None, description="Filter by risk level")
+    resource: str | None = Field(None, description="Filter by resource type")
     page: int = Field(1, ge=1, description="Page number")
     page_size: int = Field(20, ge=1, le=100, description="Items per page")

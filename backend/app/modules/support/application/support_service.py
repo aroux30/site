@@ -3,12 +3,10 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
-from typing import Any, Optional
+from typing import TYPE_CHECKING, Any
 
 import structlog
 from sqlalchemy import func, select
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.modules.support.domain.models import (
@@ -18,6 +16,8 @@ from app.modules.support.domain.models import (
     TicketStatus,
 )
 
+if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncSession
 logger: structlog.stdlib.BoundLogger = structlog.get_logger()
 
 # Auto-incrementing counter prefix for ticket numbers
@@ -195,9 +195,7 @@ class SupportService:
     # ── Queries ───────────────────────────────────────────────────────
 
     @staticmethod
-    async def get_ticket(
-        db: AsyncSession, ticket_id: uuid.UUID
-    ) -> Optional[SupportTicket]:
+    async def get_ticket(db: AsyncSession, ticket_id: uuid.UUID) -> SupportTicket | None:
         """Get a ticket with its messages."""
         stmt = (
             select(SupportTicket)
@@ -210,8 +208,8 @@ class SupportService:
     @staticmethod
     async def list_tickets(
         db: AsyncSession,
-        user_id: Optional[uuid.UUID] = None,
-        status: Optional[TicketStatus] = None,
+        user_id: uuid.UUID | None = None,
+        status: TicketStatus | None = None,
         skip: int = 0,
         limit: int = 20,
     ) -> tuple[list[SupportTicket], int]:

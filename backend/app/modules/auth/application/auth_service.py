@@ -6,15 +6,14 @@ profile retrieval / update, and password changes.
 
 from __future__ import annotations
 
-import random
+import secrets
 import string
 import uuid
 from datetime import UTC, datetime, timedelta
-from typing import Any, Optional
+from typing import TYPE_CHECKING, Any
 
 import structlog
-from sqlalchemy import select, update, delete, func
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select, update
 from sqlalchemy.orm import selectinload
 
 from app.core.config.settings import get_settings
@@ -36,14 +35,16 @@ from app.core.security.rate_limiter import (
     otp_brute_force_protector,
 )
 from app.modules.audit.application.audit_service import log_action
-from app.modules.rbac.domain.models import Role, RolePermission, Permission, UserRole
+from app.modules.rbac.domain.models import Permission, Role, RolePermission, UserRole
 from app.modules.users.domain.models import (
-    Address,
     OTPRequest,
     User,
     UserProfile,
     UserSession,
 )
+
+if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncSession
 
 logger: structlog.stdlib.BoundLogger = structlog.get_logger()
 settings = get_settings()
@@ -54,7 +55,7 @@ settings = get_settings()
 
 def _generate_otp(length: int = 6) -> str:
     """Generate a random numeric OTP code."""
-    return "".join(random.choices(string.digits, k=length))
+    return "".join(secrets.choice(string.digits) for _ in range(length))
 
 
 async def _get_user_permissions(db: AsyncSession, user_id: uuid.UUID) -> list[str]:
@@ -187,7 +188,10 @@ async def register(
 
     # 5. Tokens
     tokens = await _create_token_pair(
-        db, user, ip_address=ip_address, user_agent=user_agent,
+        db,
+        user,
+        ip_address=ip_address,
+        user_agent=user_agent,
     )
 
     # Audit
@@ -251,7 +255,10 @@ async def login(
     await db.flush()
 
     tokens = await _create_token_pair(
-        db, user, ip_address=ip_address, user_agent=user_agent,
+        db,
+        user,
+        ip_address=ip_address,
+        user_agent=user_agent,
     )
 
     await log_action(
@@ -282,9 +289,7 @@ async def request_otp(
     in ``mock`` mode the code is returned in the response for testing.
     """
     # Rate-limit: check for recent unexpired OTPs
-    cooldown_threshold = datetime.now(UTC) - timedelta(
-        seconds=settings.OTP_COOLDOWN_SECONDS
-    )
+    cooldown_threshold = datetime.now(UTC) - timedelta(seconds=settings.OTP_COOLDOWN_SECONDS)
     recent_stmt = select(OTPRequest).where(
         OTPRequest.phone == phone,
         OTPRequest.purpose == purpose,
@@ -294,7 +299,7 @@ async def request_otp(
     recent = await db.execute(recent_stmt)
     if recent.scalar_one_or_none() is not None:
         raise RateLimitError(
-            detail=f"Please wait {settings.OTP_COOLDOWN_SECONDS} seconds before requesting a new OTP"
+            detail=f"Please wait {settings.OTP_COOLDOWN_SECONDS} seconds before requesting a new OTP"  # noqa: E501
         )
 
     code = _generate_otp(settings.OTP_LENGTH)
@@ -418,7 +423,10 @@ async def verify_otp(
         await db.flush()
 
     tokens = await _create_token_pair(
-        db, user, ip_address=ip_address, user_agent=user_agent,
+        db,
+        user,
+        ip_address=ip_address,
+        user_agent=user_agent,
     )
 
     await log_action(
@@ -474,7 +482,10 @@ async def refresh_token(
 
     # Issue new pair
     tokens = await _create_token_pair(
-        db, user, ip_address=ip_address, user_agent=user_agent,
+        db,
+        user,
+        ip_address=ip_address,
+        user_agent=user_agent,
     )
 
     await logger.ainfo("token_refreshed", user_id=str(user_id))
@@ -528,11 +539,7 @@ async def logout(
         sid = result.scalar_one_or_none()
         if sid is None:
             return
-        stmt = (
-            update(UserSession)
-            .where(UserSession.id == sid)
-            .values(is_revoked=True)
-        )
+        stmt = update(UserSession).where(UserSession.id == sid).values(is_revoked=True)
 
     await db.execute(stmt)
     await db.flush()
@@ -577,11 +584,7 @@ async def logout_all(db: AsyncSession, *, user_id: uuid.UUID) -> int:
 
 async def get_me(db: AsyncSession, *, user_id: uuid.UUID) -> dict[str, Any]:
     """Return the current user's data merged with their profile."""
-    stmt = (
-        select(User)
-        .options(selectinload(User.profile))
-        .where(User.id == user_id)
-    )
+    stmt = select(User).options(selectinload(User.profile)).where(User.id == user_id)
     result = await db.execute(stmt)
     user = result.scalar_one_or_none()
 
@@ -631,7 +634,14 @@ async def update_profile(
             raise ConflictError(detail="Email already in use")
         user_fields["email"] = data["email"]
 
-    profile_keys = {"first_name", "last_name", "national_code", "birth_date", "avatar_url", "gender"}
+    profile_keys = {
+        "first_name",
+        "last_name",
+        "national_code",
+        "birth_date",
+        "avatar_url",
+        "gender",
+    }
     for key in profile_keys:
         if key in data and data[key] is not None:
             profile_fields[key] = data[key]
@@ -641,9 +651,7 @@ async def update_profile(
 
     # Update user table
     if user_fields:
-        await db.execute(
-            update(User).where(User.id == user_id).values(**user_fields)
-        )
+        await db.execute(update(User).where(User.id == user_id).values(**user_fields))
 
     # Update or create profile
     if profile_fields:

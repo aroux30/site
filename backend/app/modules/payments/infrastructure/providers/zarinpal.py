@@ -8,7 +8,8 @@ Documentation: https://docs.zarinpal.com/paymentGateway/
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+import uuid
+from typing import Any
 
 import httpx
 import structlog
@@ -18,9 +19,6 @@ from app.modules.payments.infrastructure.providers.base import (
     PaymentProvider,
     PaymentResult,
 )
-
-if TYPE_CHECKING:
-    import uuid
 
 logger: structlog.stdlib.BoundLogger = structlog.get_logger(__name__)
 

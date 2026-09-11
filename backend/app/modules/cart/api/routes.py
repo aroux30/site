@@ -3,9 +3,8 @@
 from __future__ import annotations
 
 import uuid
-from typing import Optional
 
-from fastapi import APIRouter, Cookie, Depends, Header, Request, Response
+from fastapi import APIRouter, Depends, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database.session import get_db
@@ -43,15 +42,12 @@ async def _resolve_cart_owner(
 async def _get_optional_user_id(request: Request) -> uuid.UUID | None:
     """Try to extract user_id from the token, return None if unauthenticated."""
     try:
-        return await get_current_user_id(
-            await _extract_payload(request)
-        )
+        return await get_current_user_id(await _extract_payload(request))
     except Exception:
         return None
 
 
 async def _extract_payload(request: Request) -> dict:
-    from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
     from app.core.security.jwt import verify_token
 
@@ -70,7 +66,7 @@ async def _resolve_owner_from_request(
     try:
         payload = await _extract_payload(request)
         user_id = uuid.UUID(payload["sub"])
-    except Exception:
+    except Exception:  # noqa: S110  # optional auth probe; absence falls back to session id
         pass
     session_id = request.headers.get("X-Session-ID")
     if user_id:

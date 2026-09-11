@@ -8,11 +8,10 @@ inventory, search, and shipping.
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
-from typing import Any, Optional, Sequence
+from datetime import UTC, datetime
+from typing import TYPE_CHECKING, Any
 
 import structlog
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.modules.audit.application import audit_service
 from app.modules.audit.domain.operational_exceptions import (
@@ -21,6 +20,11 @@ from app.modules.audit.domain.operational_exceptions import (
     ExceptionType,
     OperationalExceptionDomain,
 )
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+
+    from sqlalchemy.ext.asyncio import AsyncSession
 
 logger: structlog.stdlib.BoundLogger = structlog.get_logger(__name__)
 
@@ -41,7 +45,7 @@ class OperationalExceptionCenter:
         entity_type: str,
         entity_id: str,
         details: dict[str, Any],
-        actor_id: Optional[uuid.UUID] = None,
+        actor_id: uuid.UUID | None = None,
     ) -> OperationalExceptionDomain:
         """Record an operational anomaly, publish audit log, and structure error telemetry."""
         record = OperationalExceptionDomain(
@@ -52,7 +56,7 @@ class OperationalExceptionCenter:
             entity_type=entity_type,
             entity_id=entity_id,
             details=details,
-            created_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
         )
         self._registry[record.id] = record
 
@@ -88,27 +92,37 @@ class OperationalExceptionCenter:
 
         return record
 
-    def get_exception(self, exception_id: uuid.UUID) -> Optional[OperationalExceptionDomain]:
+    def get_exception(self, exception_id: uuid.UUID) -> OperationalExceptionDomain | None:
         return self._registry.get(exception_id)
 
-    def assign_owner(self, exception_id: uuid.UUID, owner_id: uuid.UUID) -> Optional[OperationalExceptionDomain]:
+    def assign_owner(
+        self, exception_id: uuid.UUID, owner_id: uuid.UUID
+    ) -> OperationalExceptionDomain | None:
         item = self._registry.get(exception_id)
         if item:
             item.assign(owner_id)
-            logger.info("operational_exception_assigned", exception_id=str(exception_id), owner_id=str(owner_id))
+            logger.info(
+                "operational_exception_assigned",
+                exception_id=str(exception_id),
+                owner_id=str(owner_id),
+            )
         return item
 
-    def resolve_exception(self, exception_id: uuid.UUID, notes: str) -> Optional[OperationalExceptionDomain]:
+    def resolve_exception(
+        self, exception_id: uuid.UUID, notes: str
+    ) -> OperationalExceptionDomain | None:
         item = self._registry.get(exception_id)
         if item:
             item.resolve(notes)
-            logger.info("operational_exception_resolved", exception_id=str(exception_id), notes=notes)
+            logger.info(
+                "operational_exception_resolved", exception_id=str(exception_id), notes=notes
+            )
         return item
 
     def list_exceptions(
         self,
-        severity: Optional[ExceptionSeverity] = None,
-        status: Optional[ExceptionStatus] = None,
+        severity: ExceptionSeverity | None = None,
+        status: ExceptionStatus | None = None,
     ) -> Sequence[OperationalExceptionDomain]:
         """List active operational exceptions filtered by status and severity."""
         results = list(self._registry.values())

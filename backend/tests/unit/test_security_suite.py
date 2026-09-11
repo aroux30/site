@@ -1,18 +1,18 @@
 import uuid
-
-import pytest
-import pyotp
 from unittest.mock import AsyncMock, patch
+
+import pyotp
+import pytest
 from fastapi import HTTPException
 
+from app.core.security.casbin_enforcer import get_casbin_enforcer
 from app.core.security.mfa import (
+    generate_backup_codes,
     generate_totp_secret,
     get_totp_uri,
-    verify_totp_code,
-    generate_backup_codes,
     get_webauthn_registration_challenge,
+    verify_totp_code,
 )
-from app.core.security.casbin_enforcer import get_casbin_enforcer
 from app.core.security.rate_limiter import BruteForceProtector
 
 
@@ -36,9 +36,7 @@ def test_totp_mfa_flow():
 
 
 def test_webauthn_registration_challenge():
-    challenge = get_webauthn_registration_challenge(
-        user_id="usr-99", username="testuser"
-    )
+    challenge = get_webauthn_registration_challenge(user_id="usr-99", username="testuser")
     assert "challenge" in challenge
     assert challenge["rp"]["name"] == "Iranian E-Commerce Platform"
     assert challenge["user"]["name"] == "testuser"
@@ -89,11 +87,11 @@ async def test_bruteforce_protector_lockout():
 def test_field_level_data_protection_and_pii_masking():
     """Verify Phase 10 Field-Level Data Protection and PII masking."""
     from app.core.security.data_protection import (
-        mask_phone,
-        mask_national_code,
+        mask_card_pan,
         mask_email,
         mask_iban,
-        mask_card_pan,
+        mask_national_code,
+        mask_phone,
         redact_sensitive_payload,
     )
 
@@ -136,4 +134,3 @@ def test_field_level_data_protection_and_pii_masking():
     assert redacted["payment"]["pan"] == "[REDACTED]"
     assert redacted["payment"]["cvv2"] == "[REDACTED]"
     assert redacted["payment"]["amount"] == 500000
-

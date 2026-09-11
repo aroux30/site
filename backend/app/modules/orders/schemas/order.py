@@ -4,10 +4,9 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
-
 
 # ── Order Item ─────────────────────────────────────────────────────────────
 
@@ -20,7 +19,7 @@ class OrderItemResponse(BaseModel):
     id: uuid.UUID
     variant_id: uuid.UUID
     product_name: str
-    variant_info: Optional[str] = None
+    variant_info: str | None = None
     sku: str
     quantity: int
     unit_price: int = Field(description="Unit price in Rials (BigInteger)")
@@ -36,11 +35,11 @@ class OrderStatusHistoryResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: uuid.UUID
-    from_status: Optional[str] = None
+    from_status: str | None = None
     to_status: str
-    changed_by: Optional[uuid.UUID] = None
-    reason: Optional[str] = None
-    extra_data: Optional[dict[str, Any]] = None
+    changed_by: uuid.UUID | None = None
+    reason: str | None = None
+    extra_data: dict[str, Any] | None = None
     created_at: datetime
 
 
@@ -72,9 +71,9 @@ class OrderResponse(BaseModel):
     discount_amount: int = Field(description="Total discount in Rials")
     total: int = Field(description="Grand total in Rials")
 
-    shipping_address_snapshot: Optional[dict[str, Any]] = None
-    notes: Optional[str] = None
-    ip_address: Optional[str] = None
+    shipping_address_snapshot: dict[str, Any] | None = None
+    notes: str | None = None
+    ip_address: str | None = None
 
     items: list[OrderItemResponse] = Field(default_factory=list)
     timeline: list[OrderStatusHistoryResponse] = Field(default_factory=list)
@@ -137,7 +136,7 @@ class AdminOrderUpdateRequest(BaseModel):
     """Admin request to update order status."""
 
     status: str = Field(..., description="New order status")
-    notes: Optional[str] = Field(
+    notes: str | None = Field(
         None,
         max_length=2000,
         description="Internal note / reason for the status change",
@@ -150,12 +149,12 @@ class AdminOrderUpdateRequest(BaseModel):
 class OrderFilterParams(BaseModel):
     """Query parameters for filtering orders."""
 
-    status: Optional[str] = None
-    from_date: Optional[datetime] = None
-    to_date: Optional[datetime] = None
-    min_total: Optional[int] = None
-    max_total: Optional[int] = None
-    search: Optional[str] = Field(None, description="Search in order_number")
+    status: str | None = None
+    from_date: datetime | None = None
+    to_date: datetime | None = None
+    min_total: int | None = None
+    max_total: int | None = None
+    search: str | None = Field(None, description="Search in order_number")
 
 
 class PaginationParams(BaseModel):
@@ -173,7 +172,7 @@ class ReturnItemRequest(BaseModel):
     variant_id: uuid.UUID
     quantity: int = Field(1, ge=1)
     reason: str = Field(..., description="Reason for returning the item")
-    customer_notes: Optional[str] = Field(None, max_length=1000)
+    customer_notes: str | None = Field(None, max_length=1000)
 
 
 class ReturnCreateRequest(BaseModel):
@@ -185,8 +184,8 @@ class ReturnItemResponse(BaseModel):
     variant_id: uuid.UUID
     quantity: int
     reason: str
-    customer_notes: Optional[str] = None
-    inspection_outcome: Optional[str] = None
+    customer_notes: str | None = None
+    inspection_outcome: str | None = None
 
 
 class OrderReturnResponse(BaseModel):
@@ -196,8 +195,8 @@ class OrderReturnResponse(BaseModel):
     status: str
     items: list[ReturnItemResponse]
     created_at: datetime
-    approved_at: Optional[datetime] = None
-    inspected_at: Optional[datetime] = None
-    refunded_at: Optional[datetime] = None
-    admin_notes: Optional[str] = None
+    approved_at: datetime | None = None
+    inspected_at: datetime | None = None
+    refunded_at: datetime | None = None
+    admin_notes: str | None = None
     refund_amount: int = 0

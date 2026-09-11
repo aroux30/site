@@ -17,12 +17,12 @@ class Entity:
     Two entities are considered equal if they share the same type and ``id``.
     """
 
-    __slots__ = ("id", "created_at", "updated_at")
+    __slots__ = ("created_at", "id", "updated_at")
 
     def __init__(
         self,
         *,
-        id: uuid.UUID | None = None,
+        id: uuid.UUID | None = None,  # noqa: A002  # API parameter name is the public contract
         created_at: datetime | None = None,
         updated_at: datetime | None = None,
     ) -> None:

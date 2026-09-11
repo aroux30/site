@@ -18,8 +18,8 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database.base import BaseModel
 
-
 # ---- Enums ----
+
 
 class BlogPostStatus(str, enum.Enum):
     DRAFT = "draft"
@@ -29,13 +29,12 @@ class BlogPostStatus(str, enum.Enum):
 
 # ---- Models ----
 
+
 class BlogCategory(BaseModel):
     """Blog post categories."""
 
     __tablename__ = "blog_categories"
-    __table_args__ = (
-        Index("ix_blog_categories_slug", "slug"),
-    )
+    __table_args__ = (Index("ix_blog_categories_slug", "slug"),)
 
     name: Mapped[str] = mapped_column(String(200), nullable=False)
     slug: Mapped[str] = mapped_column(String(220), unique=True, nullable=False)
@@ -69,17 +68,15 @@ class BlogPost(BaseModel):
     title: Mapped[str] = mapped_column(String(500), nullable=False)
     slug: Mapped[str] = mapped_column(String(550), unique=True, nullable=False)
     content: Mapped[str] = mapped_column(Text, nullable=False)
-    excerpt: Mapped[Optional[str]] = mapped_column(String(1000), nullable=True)
-    cover_image_url: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
+    excerpt: Mapped[str | None] = mapped_column(String(1000), nullable=True)
+    cover_image_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
     status: Mapped[BlogPostStatus] = mapped_column(
         Enum(BlogPostStatus, name="blog_post_status_enum", native_enum=False),
         default=BlogPostStatus.DRAFT,
         nullable=False,
     )
-    published_at: Mapped[Optional[datetime]] = mapped_column(
-        DateTime(timezone=True), nullable=True
-    )
-    category_id: Mapped[Optional[uuid.UUID]] = mapped_column(
+    published_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    category_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("blog_categories.id", ondelete="SET NULL"),
         nullable=True,

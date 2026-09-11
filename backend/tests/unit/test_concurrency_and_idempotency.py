@@ -12,24 +12,12 @@ from __future__ import annotations
 
 import asyncio
 import uuid
-from datetime import datetime, timedelta, timezone
-from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from app.core.exceptions.handlers import ConflictError, PaymentError, ValidationError
-from app.modules.discounts.domain.models import Coupon, CouponRedemption, Discount, DiscountScope, DiscountType
-from app.modules.inventory.domain.models import (
-    InventoryItem,
-    InventoryReservation,
-    ReservationStatus,
-)
+from app.core.exceptions.handlers import ValidationError
 from app.modules.payments.domain.models import (
-    Payment,
-    PaymentProvider,
     PaymentStatus,
-    PaymentTransaction,
-    PaymentTransactionType,
 )
 
 
@@ -102,7 +90,7 @@ async def test_100_concurrent_coupon_redemptions_single_use():
 
     users = [uuid.uuid4() for _ in range(100)]
     tasks = [_try_redeem_coupon(u) for u in users]
-    results = await asyncio.gather(*tasks, return_exceptions=True)
+    await asyncio.gather(*tasks, return_exceptions=True)
 
     assert len(redemptions) == 1, "Exactly one coupon redemption must succeed"
     assert len(rejections) == 99, "99 redemptions must be rejected"
@@ -144,7 +132,7 @@ async def test_3_duplicate_payment_webhooks_idempotency():
     ]
 
     tasks = [_process_webhook(wid, tx_id, amt) for wid, tx_id, amt in webhook_payloads]
-    results = await asyncio.gather(*tasks)
+    await asyncio.gather(*tasks)
 
     assert len(processed_events) == 1, "Only first webhook should capture payment"
     assert len(ignored_events) == 2, "2 duplicate webhooks must be deduplicated"
@@ -171,7 +159,7 @@ async def test_3_duplicate_refund_requests_amount_safety():
             if amount > max_allowed:
                 rejected_refunds.append(amount)
                 raise ValidationError(
-                    f"Requested refund ({amount}) exceeds remaining refundable amount ({max_allowed})"
+                    f"Requested refund ({amount}) exceeds remaining refundable amount ({max_allowed})"  # noqa: E501
                 )
 
             payment["refunded_total"] += amount
@@ -185,11 +173,13 @@ async def test_3_duplicate_refund_requests_amount_safety():
 
     # 3 duplicate attempts to refund the full 10,000,000 Rials simultaneously
     tasks = [_request_refund(payment_amount, f"Duplicate attempt {i}") for i in range(3)]
-    results = await asyncio.gather(*tasks, return_exceptions=True)
+    await asyncio.gather(*tasks, return_exceptions=True)
 
     assert len(approved_refunds) == 1, "Exactly one full refund should be approved"
     assert len(rejected_refunds) == 2, "2 duplicate requests must be rejected"
-    assert payment["refunded_total"] == payment_amount, "Refunded total must equal original payment"
+    assert payment["refunded_total"] == payment_amount, (
+        "Refunded total must equal original payment"
+    )
     assert payment["status"] == PaymentStatus.REFUNDED
 
 
@@ -215,7 +205,7 @@ async def test_concurrent_wallet_debits_prevent_double_spending():
 
     # Try to debit 1,000,000 twice concurrently
     tasks = [_debit_wallet(1_000_000), _debit_wallet(1_000_000)]
-    results = await asyncio.gather(*tasks, return_exceptions=True)
+    await asyncio.gather(*tasks, return_exceptions=True)
 
     assert len(successful_debits) == 1, "Only one debit should succeed"
     assert len(failed_debits) == 1, "Second debit must fail with insufficient balance"

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import uuid
-from typing import Any, Optional
+from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -15,9 +15,9 @@ class SettingResponse(BaseModel):
 
     id: uuid.UUID
     key: str
-    value: Optional[dict[str, Any]] = None
-    group: Optional[str] = None
-    description: Optional[str] = None
+    value: dict[str, Any] | None = None
+    group: str | None = None
+    description: str | None = None
     is_public: bool = False
 
 
@@ -25,23 +25,23 @@ class SettingCreateRequest(BaseModel):
     """Create setting payload."""
 
     key: str = Field(..., max_length=200)
-    value: Optional[dict[str, Any]] = None
-    group: Optional[str] = Field(None, max_length=100)
-    description: Optional[str] = None
+    value: dict[str, Any] | None = None
+    group: str | None = Field(None, max_length=100)
+    description: str | None = None
     is_public: bool = False
 
 
 class SettingUpdateRequest(BaseModel):
     """Update setting payload."""
 
-    value: Optional[dict[str, Any]] = None
-    group: Optional[str] = Field(None, max_length=100)
-    description: Optional[str] = None
-    is_public: Optional[bool] = None
+    value: dict[str, Any] | None = None
+    group: str | None = Field(None, max_length=100)
+    description: str | None = None
+    is_public: bool | None = None
 
 
 class PublicSettingResponse(BaseModel):
     """Publicly visible setting."""
 
     key: str
-    value: Optional[dict[str, Any]] = None
+    value: dict[str, Any] | None = None

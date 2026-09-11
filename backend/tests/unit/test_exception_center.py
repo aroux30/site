@@ -1,17 +1,17 @@
 """Unit tests for Phase 32 / Rule 32 / ADMIN-003 Operational Exception Center."""
 
 import uuid
-import pytest
 from unittest.mock import AsyncMock, patch
 
+import pytest
+
+from app.modules.audit.application.exception_center_service import (
+    OperationalExceptionCenter,
+)
 from app.modules.audit.domain.operational_exceptions import (
     ExceptionSeverity,
     ExceptionStatus,
     ExceptionType,
-    OperationalExceptionDomain,
-)
-from app.modules.audit.application.exception_center_service import (
-    OperationalExceptionCenter,
 )
 
 
@@ -50,7 +50,9 @@ async def test_record_with_db_audit_log(center):
     """Verify recording an anomaly with DB session creates an AuditLog row."""
     mock_db = AsyncMock()
 
-    with patch("app.modules.audit.application.audit_service.log_action", new_callable=AsyncMock) as mock_log:
+    with patch(
+        "app.modules.audit.application.audit_service.log_action", new_callable=AsyncMock
+    ) as mock_log:
         exc = await center.record_exception(
             db=mock_db,
             exception_type=ExceptionType.INVENTORY_CONFLICT,
@@ -124,8 +126,9 @@ async def test_list_and_filter_exceptions(center):
 async def test_api_admin_exception_center_endpoints():
     """Verify Admin Exception Center REST APIs."""
     from httpx import ASGITransport, AsyncClient
-    from app.main import create_app
+
     from app.core.security.jwt import create_access_token
+    from app.main import create_app
     from app.modules.audit.application.exception_center_service import exception_center
 
     app = create_app()
@@ -171,4 +174,3 @@ async def test_api_admin_exception_center_endpoints():
         )
         assert resp_resolve.status_code == 200
         assert resp_resolve.json()["status"] == "RESOLVED"
-

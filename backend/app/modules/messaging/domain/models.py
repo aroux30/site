@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 import enum
-import uuid  # noqa: TC003
-from datetime import datetime  # noqa: TC003
+import uuid
+from datetime import datetime
 from typing import TYPE_CHECKING
 
 from sqlalchemy import (
@@ -112,9 +112,7 @@ class BroadcastCampaign(BaseModel):
     success_count: Mapped[int] = mapped_column(
         Integer, default=0, server_default="0", nullable=False
     )
-    fail_count: Mapped[int] = mapped_column(
-        Integer, default=0, server_default="0", nullable=False
-    )
+    fail_count: Mapped[int] = mapped_column(Integer, default=0, server_default="0", nullable=False)
     ab_test_enabled: Mapped[bool] = mapped_column(
         Boolean, default=False, server_default="false", nullable=False
     )

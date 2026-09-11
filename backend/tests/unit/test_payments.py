@@ -3,16 +3,16 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
+from app.modules.payments.application import payment_service
 from app.modules.payments.domain.models import (
     Payment,
     PaymentProvider,
     PaymentStatus,
-    PaymentTransactionType,
 )
 from app.modules.payments.infrastructure.provider_factory import get_payment_provider
 from app.modules.payments.infrastructure.providers.card_to_card import (
@@ -21,15 +21,8 @@ from app.modules.payments.infrastructure.providers.card_to_card import (
 )
 from app.modules.payments.infrastructure.providers.crypto import (
     NowPaymentsProvider,
-    SUPPORTED_CURRENCIES,
     normalize_crypto_currency,
 )
-from app.modules.payments.application import payment_service
-from app.modules.payments.schemas.payment import (
-    CardReceiptSubmitRequest,
-    PaymentRejectRequest,
-)
-
 
 # ── Provider Factory Tests ────────────────────────────────────────────────
 
@@ -381,7 +374,7 @@ async def test_submit_card_receipt_logic():
     payment_id = uuid.uuid4()
     order_id = uuid.uuid4()
     user_id = uuid.uuid4()
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
 
     mock_payment = Payment(
         id=payment_id,
@@ -425,7 +418,7 @@ async def test_admin_approve_card_payment():
     payment_id = uuid.uuid4()
     order_id = uuid.uuid4()
     admin_id = uuid.uuid4()
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
 
     mock_payment = Payment(
         id=payment_id,
@@ -464,7 +457,7 @@ async def test_admin_reject_card_payment():
     payment_id = uuid.uuid4()
     order_id = uuid.uuid4()
     admin_id = uuid.uuid4()
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
 
     mock_payment = Payment(
         id=payment_id,
@@ -544,8 +537,8 @@ async def test_api_card_receipt_submission(client, user_token):
         "provider": "card_transfer",
         "status": "pending",
         "extra_data": {"tracking_code": "TRK-12345678"},
-        "created_at": datetime.now(timezone.utc).isoformat(),
-        "updated_at": datetime.now(timezone.utc).isoformat(),
+        "created_at": datetime.now(UTC).isoformat(),
+        "updated_at": datetime.now(UTC).isoformat(),
     }
 
     with patch(
@@ -584,8 +577,8 @@ async def test_api_admin_approve_and_reject(client, user_token, admin_token):
         "currency": "IRR",
         "provider": "card_transfer",
         "status": "completed",
-        "created_at": datetime.now(timezone.utc).isoformat(),
-        "updated_at": datetime.now(timezone.utc).isoformat(),
+        "created_at": datetime.now(UTC).isoformat(),
+        "updated_at": datetime.now(UTC).isoformat(),
     }
 
     with patch(
@@ -607,8 +600,8 @@ async def test_api_admin_approve_and_reject(client, user_token, admin_token):
         "currency": "IRR",
         "provider": "card_transfer",
         "status": "failed",
-        "created_at": datetime.now(timezone.utc).isoformat(),
-        "updated_at": datetime.now(timezone.utc).isoformat(),
+        "created_at": datetime.now(UTC).isoformat(),
+        "updated_at": datetime.now(UTC).isoformat(),
     }
 
     with patch(
@@ -641,8 +634,8 @@ async def test_api_crypto_webhook_callback(client):
         "currency": "IRR",
         "provider": "crypto",
         "status": "completed",
-        "created_at": datetime.now(timezone.utc).isoformat(),
-        "updated_at": datetime.now(timezone.utc).isoformat(),
+        "created_at": datetime.now(UTC).isoformat(),
+        "updated_at": datetime.now(UTC).isoformat(),
     }
 
     with patch(
@@ -660,6 +653,7 @@ async def test_api_crypto_webhook_callback(client):
 def test_mock_payment_provider_strictly_fails_closed_in_production():
     """Verify that in production mode, requesting mock payment provider fails closed."""
     from unittest.mock import patch
+
     from app.modules.payments.infrastructure.provider_factory import get_payment_provider
 
     mock_settings = MagicMock(ENVIRONMENT="production")
@@ -674,11 +668,15 @@ def test_mock_payment_provider_strictly_fails_closed_in_production():
 async def test_card_to_card_simulated_approval_strictly_fails_closed_in_production():
     """Verify that in production mode, card-to-card -APPROVED backdoor fails closed."""
     from unittest.mock import patch
+
     from app.modules.payments.infrastructure.providers.card_to_card import CardToCardProvider
 
     c2c = CardToCardProvider()
     mock_settings = MagicMock(ENVIRONMENT="production")
-    with patch("app.modules.payments.infrastructure.providers.card_to_card.get_settings", return_value=mock_settings):
+    with patch(
+        "app.modules.payments.infrastructure.providers.card_to_card.get_settings",
+        return_value=mock_settings,
+    ):
         with pytest.raises(ValueError) as exc_info:
             await c2c.verify_payment(authority="C2C-TEST-APPROVED", amount=1_000_000)
         assert "Security violation" in str(exc_info.value)
@@ -718,7 +716,13 @@ async def test_refund_amount_exceeding_payment_rejected():
 async def test_cumulative_refunds_exceeding_payment_rejected():
     """Ensure cumulative refunds cannot exceed payment amount."""
     from app.core.exceptions.handlers import ValidationError
-    from app.modules.payments.domain.models import Payment, PaymentProvider, PaymentStatus, Refund, RefundStatus
+    from app.modules.payments.domain.models import (
+        Payment,
+        PaymentProvider,
+        PaymentStatus,
+        Refund,
+        RefundStatus,
+    )
 
     mock_payment = Payment(
         id=uuid.uuid4(),
@@ -740,7 +744,11 @@ async def test_cumulative_refunds_exceeding_payment_rejected():
     mock_db.execute = AsyncMock(
         side_effect=[
             MagicMock(scalar_one_or_none=MagicMock(return_value=mock_payment)),
-            MagicMock(scalars=MagicMock(return_value=MagicMock(all=MagicMock(return_value=[existing_refund])))),
+            MagicMock(
+                scalars=MagicMock(
+                    return_value=MagicMock(all=MagicMock(return_value=[existing_refund]))
+                )
+            ),
         ]
     )
 
@@ -758,13 +766,19 @@ async def test_cumulative_refunds_exceeding_payment_rejected():
 async def test_webhook_replay_triple_delivery_produces_single_effect():
     """PAY-002: Verify that 3 duplicate webhook deliveries result in 1 authoritative effect."""
     from unittest.mock import patch
-    from app.modules.payments.domain.models import Payment, PaymentProvider, PaymentStatus, PaymentWebhookEvent
+
+    from app.modules.payments.domain.models import (
+        Payment,
+        PaymentProvider,
+        PaymentStatus,
+        PaymentWebhookEvent,
+    )
     from app.modules.payments.schemas.payment import PaymentCallbackData
 
     payment_id = uuid.uuid4()
     order_id = uuid.uuid4()
     authority = "ZARIN-REPLAY-123456"
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
 
     payment = Payment(
         id=payment_id,
@@ -794,7 +808,14 @@ async def test_webhook_replay_triple_delivery_produces_single_effect():
             return MagicMock(scalar_one_or_none=MagicMock(return_value=existing_event))
         elif "FROM payments" in stmt_str:
             return MagicMock(scalar_one_or_none=MagicMock(return_value=payment))
-        return MagicMock(scalar_one_or_none=MagicMock(return_value=None), scalars=MagicMock(return_value=MagicMock(all=MagicMock(return_value=[]), first=MagicMock(return_value=None))))
+        return MagicMock(
+            scalar_one_or_none=MagicMock(return_value=None),
+            scalars=MagicMock(
+                return_value=MagicMock(
+                    all=MagicMock(return_value=[]), first=MagicMock(return_value=None)
+                )
+            ),
+        )
 
     mock_db = MagicMock()
     mock_db.execute = AsyncMock(side_effect=fake_execute)
@@ -813,35 +834,44 @@ async def test_webhook_replay_triple_delivery_produces_single_effect():
         status="OK",
     )
 
-    with patch("app.modules.payments.application.payment_service.verify_payment", side_effect=mock_verify):
+    with patch(
+        "app.modules.payments.application.payment_service.verify_payment", side_effect=mock_verify
+    ):
         # 1. First webhook delivery
-        resp1 = await payment_service.process_callback(mock_db, provider="zarinpal", callback_data=callback_data)
+        resp1 = await payment_service.process_callback(
+            mock_db, provider="zarinpal", callback_data=callback_data
+        )
         assert resp1.status == PaymentStatus.COMPLETED
         assert verify_call_count == 1
         assert existing_event is not None
         assert existing_event.processed is True
 
         # 2. Second duplicate delivery (replay)
-        resp2 = await payment_service.process_callback(mock_db, provider="zarinpal", callback_data=callback_data)
+        resp2 = await payment_service.process_callback(
+            mock_db, provider="zarinpal", callback_data=callback_data
+        )
         assert resp2.status == PaymentStatus.COMPLETED
         assert verify_call_count == 1  # Did NOT call verify_payment again!
 
         # 3. Third duplicate delivery (replay)
-        resp3 = await payment_service.process_callback(mock_db, provider="zarinpal", callback_data=callback_data)
+        resp3 = await payment_service.process_callback(
+            mock_db, provider="zarinpal", callback_data=callback_data
+        )
         assert resp3.status == PaymentStatus.COMPLETED
         assert verify_call_count == 1  # Still exactly 1
 
 
 @pytest.mark.asyncio
 async def test_payment_creation_idempotency_race_handling():
-    """PAY-001: Verify that concurrent duplicate payment creation with same idempotency key is safely handled."""
+    """PAY-001: Verify that concurrent duplicate payment creation with same idempotency key is safely handled."""  # noqa: E501
     from sqlalchemy.exc import IntegrityError
+
     from app.modules.payments.domain.models import Payment, PaymentProvider, PaymentStatus
 
     user_id = uuid.uuid4()
     order_id = uuid.uuid4()
     idempotency_key = "IDEMP-RACE-KEY-12345"
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
 
     existing_payment = Payment(
         id=uuid.uuid4(),
@@ -872,11 +902,13 @@ async def test_payment_creation_idempotency_race_handling():
         total=500_000,
     )
     mock_db.get = AsyncMock(return_value=payable_order)
-    # First select returns None, flush raises IntegrityError (simulating race), second select returns existing
+    # First select returns None, flush raises IntegrityError (simulating race), second select returns existing  # noqa: E501
     mock_db.execute = AsyncMock(
         side_effect=[
             MagicMock(scalar_one_or_none=MagicMock(return_value=None)),  # initial check
-            MagicMock(scalar_one_or_none=MagicMock(return_value=existing_payment)),  # race recovery check
+            MagicMock(
+                scalar_one_or_none=MagicMock(return_value=existing_payment)
+            ),  # race recovery check
         ]
     )
     mock_db.add = MagicMock()
@@ -928,14 +960,19 @@ def test_production_payment_fail_closed_on_sandbox_or_mock():
 
 @pytest.mark.asyncio
 async def test_order_refund_history_from_status_preservation():
-    """ORDER-001: Verify refund captures exact from_status (e.g. delivered/confirmed) before mutating to refunded."""
+    """ORDER-001: Verify refund captures exact from_status (e.g. delivered/confirmed) before mutating to refunded."""  # noqa: E501
     from app.modules.orders.domain.models import Order, OrderStatus, OrderStatusHistory
-    from app.modules.payments.domain.models import Payment, PaymentProvider, PaymentStatus, Refund, RefundStatus
+    from app.modules.payments.domain.models import (
+        Payment,
+        PaymentProvider,
+        PaymentStatus,
+        Refund,
+    )
 
     order_id = uuid.uuid4()
     payment_id = uuid.uuid4()
     actor_id = uuid.uuid4()
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
 
     order = Order(
         id=order_id,
@@ -970,9 +1007,15 @@ async def test_order_refund_history_from_status_preservation():
     mock_db = MagicMock()
     mock_db.execute = AsyncMock(
         side_effect=[
-            MagicMock(scalar_one_or_none=MagicMock(return_value=payment)),  # 1. _get_payment_or_raise
-            MagicMock(scalars=MagicMock(return_value=MagicMock(all=MagicMock(return_value=[])))),  # 2. existing refunds
-            MagicMock(scalar_one_or_none=MagicMock(return_value=order.user_id)),  # 3. customer_user_id lookup
+            MagicMock(
+                scalar_one_or_none=MagicMock(return_value=payment)
+            ),  # 1. _get_payment_or_raise
+            MagicMock(
+                scalars=MagicMock(return_value=MagicMock(all=MagicMock(return_value=[])))
+            ),  # 2. existing refunds
+            MagicMock(
+                scalar_one_or_none=MagicMock(return_value=order.user_id)
+            ),  # 3. customer_user_id lookup
             MagicMock(scalar_one_or_none=MagicMock(return_value=order)),  # 4. order lock
         ]
     )
@@ -991,9 +1034,3 @@ async def test_order_refund_history_from_status_preservation():
     # Critical P0 Assertion: from_status MUST be the previous status ('delivered'), NOT 'refunded'!
     assert history_added[0].from_status == "delivered"
     assert history_added[0].to_status == "refunded"
-
-
-
-
-
-

@@ -9,19 +9,22 @@ from __future__ import annotations
 import io
 import os
 import re
+import tempfile
 import uuid
 from pathlib import Path
-from typing import Optional
+from typing import TYPE_CHECKING
 
 import structlog
-from fastapi import UploadFile
 from PIL import Image
 from sqlalchemy import func, select
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config.settings import get_settings
 from app.core.exceptions.handlers import NotFoundError, ValidationError
 from app.modules.media.domain.models import MediaAsset
+
+if TYPE_CHECKING:
+    from fastapi import UploadFile
+    from sqlalchemy.ext.asyncio import AsyncSession
 
 logger: structlog.stdlib.BoundLogger = structlog.get_logger(__name__)
 settings = get_settings()
@@ -52,14 +55,14 @@ class MediaService:
     async def upload_file(
         db: AsyncSession,
         file: UploadFile,
-        uploader_id: Optional[uuid.UUID] = None,
-        alt_text: Optional[str] = None,
+        uploader_id: uuid.UUID | None = None,
+        alt_text: str | None = None,
     ) -> MediaAsset:
         """Validate, process, and persist an uploaded file."""
         content_type = file.content_type or "application/octet-stream"
         if content_type not in ALLOWED_MIME_TYPES:
             raise ValidationError(
-                detail=f"Unsupported file type '{content_type}'. Allowed types: {', '.join(ALLOWED_MIME_TYPES.keys())}",
+                detail=f"Unsupported file type '{content_type}'. Allowed types: {', '.join(ALLOWED_MIME_TYPES.keys())}",  # noqa: E501
                 error_code="UNSUPPORTED_MEDIA_TYPE",
             )
 
@@ -68,7 +71,7 @@ class MediaService:
 
         if file_size > MAX_FILE_SIZE_BYTES:
             raise ValidationError(
-                detail=f"File size exceeds maximum allowed limit of {MAX_FILE_SIZE_BYTES // (1024*1024)}MB",
+                detail=f"File size exceeds maximum allowed limit of {MAX_FILE_SIZE_BYTES // (1024 * 1024)}MB",  # noqa: E501
                 error_code="FILE_TOO_LARGE",
             )
 
@@ -100,8 +103,8 @@ class MediaService:
         storage_key = f"media/{file_id.hex[:2]}/{disk_name}"
 
         # Extract image dimensions & verify image if applicable
-        width: Optional[int] = None
-        height: Optional[int] = None
+        width: int | None = None
+        height: int | None = None
         if content_type.startswith("image/") and content_type != "image/svg+xml":
             try:
                 verify_img = Image.open(io.BytesIO(content))
@@ -115,21 +118,21 @@ class MediaService:
                     raise ValidationError(
                         detail="Corrupt or invalid image file",
                         error_code="INVALID_IMAGE_FILE",
-                    )
+                    ) from e
 
         # Storage directory resolution with fallback
         base_dir = Path(getattr(settings, "UPLOAD_DIR", "media"))
         try:
-            base_dir.mkdir(parents=True, exist_ok=True)
+            base_dir.mkdir(parents=True, exist_ok=True)  # noqa: ASYNC240  # trivial local metadata operation
             probe = base_dir / f".probe_{uuid.uuid4().hex[:6]}"
             probe.write_text("ok", encoding="utf-8")
             probe.unlink(missing_ok=True)
         except (PermissionError, OSError):
-            base_dir = Path("/tmp") / "media"
+            base_dir = Path(tempfile.gettempdir()) / "media"
             base_dir.mkdir(parents=True, exist_ok=True)
 
         local_upload_dir = Path(base_dir) / "media"
-        local_upload_dir.mkdir(parents=True, exist_ok=True)
+        local_upload_dir.mkdir(parents=True, exist_ok=True)  # trivial local metadata operation
         # Same server-generated name as storage_key / file_url: no untrusted
         # text ever reaches a filesystem path, and the served URL matches the
         # written file exactly.
@@ -194,7 +197,7 @@ class MediaService:
         db: AsyncSession,
         page: int = 1,
         page_size: int = 20,
-        mime_prefix: Optional[str] = None,
+        mime_prefix: str | None = None,
     ) -> tuple[list[MediaAsset], int]:
         """Fetch paginated list of media assets."""
         count_stmt = select(func.count()).select_from(MediaAsset)

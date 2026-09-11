@@ -3,23 +3,22 @@
 from __future__ import annotations
 
 import uuid
-from typing import Any, Optional
+from typing import TYPE_CHECKING, Any
 
 import structlog
-from sqlalchemy import select, update, delete, func
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import func, select, update
 from sqlalchemy.orm import selectinload
 
 from app.core.exceptions.handlers import (
     ConflictError,
-    ForbiddenError,
     NotFoundError,
-    ValidationError,
 )
 from app.modules.audit.application.audit_service import log_action
-from app.modules.rbac.domain.models import Role, UserRole
+from app.modules.rbac.domain.models import UserRole
 from app.modules.users.domain.models import Address, User, UserProfile
 
+if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncSession
 logger: structlog.stdlib.BoundLogger = structlog.get_logger()
 
 
@@ -43,10 +42,7 @@ async def get_users(
 
     if search is not None:
         pattern = f"%{search}%"
-        search_filter = (
-            User.phone.ilike(pattern)
-            | User.email.ilike(pattern)
-        )
+        search_filter = User.phone.ilike(pattern) | User.email.ilike(pattern)
         stmt = stmt.where(search_filter)
         count_stmt = count_stmt.where(search_filter)
 
@@ -64,17 +60,19 @@ async def get_users(
     items = []
     for user in users:
         profile = user.profile
-        items.append({
-            "id": user.id,
-            "phone": user.phone,
-            "email": user.email,
-            "first_name": profile.first_name if profile else None,
-            "last_name": profile.last_name if profile else None,
-            "is_active": user.is_active,
-            "is_verified": user.is_verified,
-            "created_at": user.created_at,
-            "last_login": user.last_login,
-        })
+        items.append(
+            {
+                "id": user.id,
+                "phone": user.phone,
+                "email": user.email,
+                "first_name": profile.first_name if profile else None,
+                "last_name": profile.last_name if profile else None,
+                "is_active": user.is_active,
+                "is_verified": user.is_verified,
+                "created_at": user.created_at,
+                "last_login": user.last_login,
+            }
+        )
 
     return items, total
 
@@ -236,9 +234,7 @@ async def update_address(
     data: dict[str, Any],
 ) -> Address:
     """Update an existing address."""
-    stmt = select(Address).where(
-        Address.id == address_id, Address.user_id == user_id
-    )
+    stmt = select(Address).where(Address.id == address_id, Address.user_id == user_id)
     result = await db.execute(stmt)
     address = result.scalar_one_or_none()
 
@@ -278,9 +274,7 @@ async def delete_address(
     address_id: uuid.UUID,
 ) -> None:
     """Delete an address belonging to a user."""
-    stmt = select(Address).where(
-        Address.id == address_id, Address.user_id == user_id
-    )
+    stmt = select(Address).where(Address.id == address_id, Address.user_id == user_id)
     result = await db.execute(stmt)
     address = result.scalar_one_or_none()
 

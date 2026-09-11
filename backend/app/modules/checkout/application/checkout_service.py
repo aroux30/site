@@ -2,19 +2,19 @@
 
 from __future__ import annotations
 
+import contextlib
 import secrets
 import uuid
-from datetime import datetime, timezone
-from typing import Any, Optional
+from datetime import UTC, datetime
+from typing import TYPE_CHECKING
 
 import structlog
-from sqlalchemy import func, select
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
 from app.core.exceptions.handlers import ConflictError, NotFoundError, ValidationError
-from app.modules.cart.domain.models import Cart, CartItem, CartStatus
-from app.modules.catalog.domain.models import Product, ProductVariant
+from app.modules.cart.domain.models import Cart, CartStatus
+from app.modules.catalog.domain.models import ProductVariant
 from app.modules.checkout.application.tax_service import TaxService
 from app.modules.checkout.schemas.checkout import (
     CheckoutLineItem,
@@ -25,13 +25,14 @@ from app.modules.checkout.schemas.checkout import (
     CreateOrderRequest,
     CreateOrderResponse,
 )
-from app.modules.discounts.domain.models import Coupon, Discount, DiscountType
+from app.modules.discounts.domain.models import Coupon, DiscountType
 from app.modules.inventory.application import inventory_service
-from app.modules.inventory.domain.models import InventoryItem
 from app.modules.orders.domain.models import Order, OrderItem, OrderStatus, OrderStatusHistory
 from app.modules.shipping.domain.models import ShippingMethod, ShippingRate
 from app.modules.users.domain.models import Address
 
+if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncSession
 logger: structlog.stdlib.BoundLogger = structlog.get_logger()
 
 
@@ -43,7 +44,7 @@ def _generate_order_number() -> str:
 
     Format: ``EC-<timestamp_hex>-<random>``  (approx 18 chars).
     """
-    ts_part = hex(int(datetime.now(timezone.utc).timestamp()))[2:].upper()
+    ts_part = hex(int(datetime.now(UTC).timestamp()))[2:].upper()
     rand_part = secrets.token_hex(3).upper()
     return f"EC-{ts_part}-{rand_part}"
 
@@ -86,12 +87,14 @@ async def _load_shipping_method(
     stmt = (
         select(ShippingMethod)
         .options(selectinload(ShippingMethod.rates))
-        .where(ShippingMethod.id == method_id, ShippingMethod.is_active == True)
+        .where(ShippingMethod.id == method_id, ShippingMethod.is_active.is_(True))
     )
     result = await db.execute(stmt)
     method = result.scalar_one_or_none()
     if method is None:
-        raise NotFoundError(resource="ShippingMethod", detail="Shipping method not found or inactive")
+        raise NotFoundError(
+            resource="ShippingMethod", detail="Shipping method not found or inactive"
+        )
     return method
 
 
@@ -144,7 +147,7 @@ async def _apply_coupon(
     stmt = (
         select(Coupon)
         .options(selectinload(Coupon.discount))
-        .where(Coupon.code == coupon_code.upper(), Coupon.is_active == True)
+        .where(Coupon.code == coupon_code.upper(), Coupon.is_active.is_(True))
     )
     result = await db.execute(stmt)
     coupon = result.scalar_one_or_none()
@@ -152,7 +155,7 @@ async def _apply_coupon(
     if coupon is None:
         raise ValidationError(f"Coupon code '{coupon_code}' is not valid")
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     if now < coupon.starts_at or now > coupon.ends_at:
         raise ValidationError("Coupon has expired or is not yet active")
 
@@ -284,9 +287,11 @@ async def validate_checkout(
     try:
         cart = await _load_active_cart(db, data.cart_id)
         if cart.user_id != user_id:
-            issues.append(CheckoutValidationIssue(
-                field="cart_id", message="Cart does not belong to the authenticated user"
-            ))
+            issues.append(
+                CheckoutValidationIssue(
+                    field="cart_id", message="Cart does not belong to the authenticated user"
+                )
+            )
     except (NotFoundError, ValidationError) as e:
         issues.append(CheckoutValidationIssue(field="cart_id", message=str(e.detail)))
         return CheckoutValidationResponse(is_valid=False, issues=issues)
@@ -301,30 +306,32 @@ async def validate_checkout(
     try:
         await _load_shipping_method(db, data.shipping_method_id)
     except NotFoundError as e:
-        issues.append(CheckoutValidationIssue(
-            field="shipping_method_id", message=str(e.detail)
-        ))
+        issues.append(CheckoutValidationIssue(field="shipping_method_id", message=str(e.detail)))
 
     # 4. Stock availability per item
     for ci in cart.items:
         variant_stmt = select(ProductVariant).where(
-            ProductVariant.id == ci.variant_id, ProductVariant.is_active == True
+            ProductVariant.id == ci.variant_id, ProductVariant.is_active.is_(True)
         )
         variant_result = await db.execute(variant_stmt)
         variant = variant_result.scalar_one_or_none()
         if variant is None:
-            issues.append(CheckoutValidationIssue(
-                field=f"item_{ci.variant_id}",
-                message=f"Variant {ci.variant_id} is no longer available",
-            ))
+            issues.append(
+                CheckoutValidationIssue(
+                    field=f"item_{ci.variant_id}",
+                    message=f"Variant {ci.variant_id} is no longer available",
+                )
+            )
             continue
 
         available = await inventory_service.check_availability(db, ci.variant_id, ci.quantity)
         if not available:
-            issues.append(CheckoutValidationIssue(
-                field=f"item_{ci.variant_id}",
-                message=f"Insufficient stock for {variant.sku}",
-            ))
+            issues.append(
+                CheckoutValidationIssue(
+                    field=f"item_{ci.variant_id}",
+                    message=f"Insufficient stock for {variant.sku}",
+                )
+            )
 
     # 5. Coupon
     if data.coupon_code:
@@ -332,9 +339,7 @@ async def validate_checkout(
             subtotal = sum(ci.price_snapshot * ci.quantity for ci in cart.items)
             await _apply_coupon(db, data.coupon_code, subtotal, user_id)
         except ValidationError as e:
-            issues.append(CheckoutValidationIssue(
-                field="coupon_code", message=str(e.detail)
-            ))
+            issues.append(CheckoutValidationIssue(field="coupon_code", message=str(e.detail)))
 
     return CheckoutValidationResponse(
         is_valid=len(issues) == 0,
@@ -364,9 +369,7 @@ async def create_order(
     entire operation is rolled back (including inventory reservations).
     """
     # ── 1. Idempotency ─────────────────────────────────────────────────
-    existing_order_stmt = select(Order).where(
-        Order.idempotency_key == data.idempotency_key
-    )
+    existing_order_stmt = select(Order).where(Order.idempotency_key == data.idempotency_key)
     existing_result = await db.execute(existing_order_stmt)
     existing_order = existing_result.scalar_one_or_none()
     if existing_order is not None:
@@ -409,13 +412,10 @@ async def create_order(
         if not available:
             # Release any reservations we've already made
             for rid in reservation_ids:
-                try:
+                # Best-effort cleanup; the transaction will roll back anyway
+                with contextlib.suppress(Exception):
                     await inventory_service.release_reservation(db, rid)
-                except Exception:
-                    pass  # Best-effort cleanup; the transaction will roll back anyway
-            raise ConflictError(
-                detail=f"Insufficient stock for variant {ci.variant_id}"
-            )
+            raise ConflictError(detail=f"Insufficient stock for variant {ci.variant_id}")
 
         reservation = await inventory_service.reserve_stock(
             db,
@@ -432,9 +432,7 @@ async def create_order(
         discount_amount, _ = await _apply_coupon(db, data.coupon_code, subtotal, user_id)
 
     # ── 6. Calculate shipping ──────────────────────────────────────────
-    shipping_cost = await _calculate_shipping(
-        db, shipping_method, address.province, subtotal
-    )
+    shipping_cost = await _calculate_shipping(db, shipping_method, address.province, subtotal)
 
     # Tax calculation via authoritative server-side TaxService
     tax_info = await TaxService.calculate_tax(
@@ -506,9 +504,9 @@ async def create_order(
 
     # ── 11. Update coupon usage ────────────────────────────────────────
     if data.coupon_code:
-        coupon_stmt = select(Coupon).where(
-            Coupon.code == data.coupon_code.upper()
-        ).with_for_update()
+        coupon_stmt = (
+            select(Coupon).where(Coupon.code == data.coupon_code.upper()).with_for_update()
+        )
         coupon_result = await db.execute(coupon_stmt)
         coupon = coupon_result.scalar_one_or_none()
         if coupon is not None:

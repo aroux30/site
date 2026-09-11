@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import uuid
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database.session import get_db
@@ -65,9 +65,7 @@ async def list_commissions(
     db: AsyncSession = Depends(get_db),
 ) -> CommissionListResponse:
     """Return paginated commission records for the authenticated user."""
-    items, total = await ReferralService.get_commissions(
-        db, user_id, skip=skip, limit=limit
-    )
+    items, total = await ReferralService.get_commissions(db, user_id, skip=skip, limit=limit)
     return CommissionListResponse(
         items=[CommissionResponse.model_validate(c) for c in items],
         total=total,
@@ -86,9 +84,7 @@ async def list_referrals(
     db: AsyncSession = Depends(get_db),
 ) -> ReferralListResponse:
     """Return paginated referral records for the authenticated user."""
-    items, total = await ReferralService.get_referrals(
-        db, user_id, skip=skip, limit=limit
-    )
+    items, total = await ReferralService.get_referrals(db, user_id, skip=skip, limit=limit)
     return ReferralListResponse(
         items=[ReferralResponse.model_validate(r) for r in items],
         total=total,

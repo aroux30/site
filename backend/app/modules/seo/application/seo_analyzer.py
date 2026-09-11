@@ -20,20 +20,40 @@ from app.modules.seo.schemas.seo import (
 # Persian & General Text Normalization Utilities
 # -----------------------------------------------------------------------------
 
-_ARABIC_TO_PERSIAN_TRANS = str.maketrans({
-    "\u064a": "\u06cc",  # Arabic Yeh -> Persian Yeh
-    "\u0649": "\u06cc",  # Alef Maksura -> Persian Yeh
-    "\u0643": "\u06a9",  # Arabic Kaf -> Persian Kaf
-    "\u0629": "\u0647",  # Teh Marbuta -> Heh
-    "\u06c0": "\u0647",  # Heh with Yeh above -> Heh
-})
+_ARABIC_TO_PERSIAN_TRANS = str.maketrans(
+    {
+        "\u064a": "\u06cc",  # Arabic Yeh -> Persian Yeh
+        "\u0649": "\u06cc",  # Alef Maksura -> Persian Yeh
+        "\u0643": "\u06a9",  # Arabic Kaf -> Persian Kaf
+        "\u0629": "\u0647",  # Teh Marbuta -> Heh
+        "\u06c0": "\u0647",  # Heh with Yeh above -> Heh
+    }
+)
 
-_DIGITS_TRANS = str.maketrans({
-    "\u06f0": "0", "\u06f1": "1", "\u06f2": "2", "\u06f3": "3", "\u06f4": "4",
-    "\u06f5": "5", "\u06f6": "6", "\u06f7": "7", "\u06f8": "8", "\u06f9": "9",
-    "\u0660": "0", "\u0661": "1", "\u0662": "2", "\u0663": "3", "\u0664": "4",
-    "\u0665": "5", "\u0666": "6", "\u0667": "7", "\u0668": "8", "\u0669": "9",
-})
+_DIGITS_TRANS = str.maketrans(
+    {
+        "\u06f0": "0",
+        "\u06f1": "1",
+        "\u06f2": "2",
+        "\u06f3": "3",
+        "\u06f4": "4",
+        "\u06f5": "5",
+        "\u06f6": "6",
+        "\u06f7": "7",
+        "\u06f8": "8",
+        "\u06f9": "9",
+        "\u0660": "0",
+        "\u0661": "1",
+        "\u0662": "2",
+        "\u0663": "3",
+        "\u0664": "4",
+        "\u0665": "5",
+        "\u0666": "6",
+        "\u0667": "7",
+        "\u0668": "8",
+        "\u0669": "9",
+    }
+)
 
 # Arabic / Persian diacritics (Harakat, Tanween, Tashdeed)
 _DIACRITICS_RE = re.compile(r"[\u064b-\u0652\u0670\u0656\u0657\u0658]")
@@ -708,10 +728,7 @@ class SeoAnalyzer:
                     "از تیترهای H2 و H3 برای تقسیم‌بندی مطالب استفاده کنید."
                 )
             elif not has_h2:
-                msg = (
-                    "عنوان H3 یافت شد اما تگ اصلی H2 وجود ندارد. "
-                    "عناوین اصلی را با H2 مشخص کنید."
-                )
+                msg = "عنوان H3 یافت شد اما تگ اصلی H2 وجود ندارد. عناوین اصلی را با H2 مشخص کنید."
             else:
                 msg = (
                     "عنوان H2 یافت شد اما عنوان H3 وجود ندارد. "

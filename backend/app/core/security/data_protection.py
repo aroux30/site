@@ -11,7 +11,8 @@ Conforms to Evidence-Gated Production Hardening Master Task v3.0 Phase 10:
 from __future__ import annotations
 
 import re
-from typing import Any, Mapping
+from collections.abc import Mapping
+from typing import Any
 
 
 def mask_phone(phone: str | None) -> str:
@@ -94,23 +95,25 @@ def mask_card_pan(pan: str | None) -> str:
 
 
 # Default sensitive keys to scrub from logs or customer payloads
-DEFAULT_SENSITIVE_KEYS: frozenset[str] = frozenset({
-    "password",
-    "password_hash",
-    "token",
-    "access_token",
-    "refresh_token",
-    "secret",
-    "jwt_secret",
-    "cvv",
-    "cvv2",
-    "pin",
-    "private_key",
-    "api_key",
-    "national_code",
-    "card_number",
-    "pan",
-})
+DEFAULT_SENSITIVE_KEYS: frozenset[str] = frozenset(
+    {
+        "password",
+        "password_hash",
+        "token",
+        "access_token",
+        "refresh_token",
+        "secret",
+        "jwt_secret",
+        "cvv",
+        "cvv2",
+        "pin",
+        "private_key",
+        "api_key",
+        "national_code",
+        "card_number",
+        "pan",
+    }
+)
 
 
 def redact_sensitive_payload(

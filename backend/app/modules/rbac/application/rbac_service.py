@@ -3,17 +3,18 @@
 from __future__ import annotations
 
 import uuid
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import structlog
-from sqlalchemy import select, delete, func
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import delete, func, select
 from sqlalchemy.orm import selectinload
 
 from app.core.exceptions.handlers import ConflictError, NotFoundError, ValidationError
 from app.modules.audit.application.audit_service import log_action
 from app.modules.rbac.domain.models import Permission, Role, RolePermission, UserRole
 
+if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncSession
 logger: structlog.stdlib.BoundLogger = structlog.get_logger()
 
 
@@ -59,9 +60,7 @@ async def create_permission(
         raise ConflictError(detail=f"Permission with slug '{slug}' already exists")
 
     existing_ra = await db.execute(
-        select(Permission).where(
-            Permission.resource == resource, Permission.action == action
-        )
+        select(Permission).where(Permission.resource == resource, Permission.action == action)
     )
     if existing_ra.scalar_one_or_none() is not None:
         raise ConflictError(
@@ -103,9 +102,7 @@ async def delete_permission(
     if perm is None:
         raise NotFoundError(resource="Permission")
 
-    await db.execute(
-        delete(RolePermission).where(RolePermission.permission_id == permission_id)
-    )
+    await db.execute(delete(RolePermission).where(RolePermission.permission_id == permission_id))
     await db.delete(perm)
     await db.flush()
 
@@ -136,9 +133,7 @@ async def get_role(db: AsyncSession, *, role_id: uuid.UUID) -> dict[str, Any]:
     """Get a role with its permissions."""
     stmt = (
         select(Role)
-        .options(
-            selectinload(Role.role_permissions).selectinload(RolePermission.permission)
-        )
+        .options(selectinload(Role.role_permissions).selectinload(RolePermission.permission))
         .where(Role.id == role_id)
     )
     result = await db.execute(stmt)
@@ -289,13 +284,9 @@ async def assign_permissions_to_role(
 
     for perm_id in permission_ids:
         # Verify permission exists
-        perm_result = await db.execute(
-            select(Permission).where(Permission.id == perm_id)
-        )
+        perm_result = await db.execute(select(Permission).where(Permission.id == perm_id))
         if perm_result.scalar_one_or_none() is None:
-            raise NotFoundError(
-                resource="Permission", detail=f"Permission {perm_id} not found"
-            )
+            raise NotFoundError(resource="Permission", detail=f"Permission {perm_id} not found")
 
         # Check if already assigned
         existing = await db.execute(
@@ -379,9 +370,7 @@ async def assign_roles_to_user(
             raise NotFoundError(resource="Role", detail=f"Role {role_id} not found")
 
         existing = await db.execute(
-            select(UserRole).where(
-                UserRole.user_id == user_id, UserRole.role_id == role_id
-            )
+            select(UserRole).where(UserRole.user_id == user_id, UserRole.role_id == role_id)
         )
         if existing.scalar_one_or_none() is None:
             ur = UserRole(user_id=user_id, role_id=role_id)
@@ -391,9 +380,7 @@ async def assign_roles_to_user(
 
     # Return current roles
     stmt = (
-        select(Role)
-        .join(UserRole, UserRole.role_id == Role.id)
-        .where(UserRole.user_id == user_id)
+        select(Role).join(UserRole, UserRole.role_id == Role.id).where(UserRole.user_id == user_id)
     )
     result = await db.execute(stmt)
     roles = list(result.scalars().all())
@@ -425,17 +412,13 @@ async def remove_roles_from_user(
         raise NotFoundError(resource="User")
 
     await db.execute(
-        delete(UserRole).where(
-            UserRole.user_id == user_id, UserRole.role_id.in_(role_ids)
-        )
+        delete(UserRole).where(UserRole.user_id == user_id, UserRole.role_id.in_(role_ids))
     )
     await db.flush()
 
     # Return remaining roles
     stmt = (
-        select(Role)
-        .join(UserRole, UserRole.role_id == Role.id)
-        .where(UserRole.user_id == user_id)
+        select(Role).join(UserRole, UserRole.role_id == Role.id).where(UserRole.user_id == user_id)
     )
     result = await db.execute(stmt)
     roles = list(result.scalars().all())

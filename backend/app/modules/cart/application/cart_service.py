@@ -3,12 +3,11 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timedelta, timezone
-from typing import Any, Optional
+from datetime import UTC, datetime, timedelta
+from typing import TYPE_CHECKING
 
 import structlog
-from sqlalchemy import delete, func, select, update
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import delete, select
 from sqlalchemy.orm import selectinload
 
 from app.core.exceptions.handlers import ConflictError, NotFoundError, ValidationError
@@ -19,9 +18,11 @@ from app.modules.cart.schemas.cart import (
     CartValidationIssue,
     CartValidationResponse,
 )
-from app.modules.catalog.domain.models import Product, ProductImage, ProductVariant
+from app.modules.catalog.domain.models import ProductImage, ProductVariant
 from app.modules.inventory.domain.models import InventoryItem
 
+if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncSession
 logger: structlog.stdlib.BoundLogger = structlog.get_logger()
 
 # Default cart TTL for guest carts (30 days)
@@ -61,9 +62,7 @@ async def _enrich_cart_item(
     # Check stock availability
     is_available = True
     if variant is not None:
-        inv_stmt = select(InventoryItem).where(
-            InventoryItem.variant_id == variant.id
-        )
+        inv_stmt = select(InventoryItem).where(InventoryItem.variant_id == variant.id)
         inv_result = await db.execute(inv_stmt)
         inv_item = inv_result.scalar_one_or_none()
         if inv_item is not None and inv_item.track_inventory:
@@ -76,9 +75,7 @@ async def _enrich_cart_item(
         price_snapshot=cart_item.price_snapshot,
         subtotal=cart_item.quantity * cart_item.price_snapshot,
         product_name=variant.product.name if variant and variant.product else None,
-        variant_info=(
-            str(variant.attributes) if variant and variant.attributes else None
-        ),
+        variant_info=(str(variant.attributes) if variant and variant.attributes else None),
         sku=variant.sku if variant else None,
         current_price=variant.price if variant else None,
         image_url=image_url,
@@ -125,9 +122,7 @@ async def get_or_create_cart(
         raise ValidationError("Either user_id or session_id is required")
 
     # Try to find an existing active cart
-    stmt = select(Cart).options(selectinload(Cart.items)).where(
-        Cart.status == CartStatus.ACTIVE
-    )
+    stmt = select(Cart).options(selectinload(Cart.items)).where(Cart.status == CartStatus.ACTIVE)
     if user_id is not None:
         stmt = stmt.where(Cart.user_id == user_id)
     else:
@@ -136,12 +131,11 @@ async def get_or_create_cart(
     result = await db.execute(stmt)
     cart = result.scalar_one_or_none()
 
-    if cart is not None:
-        # Check TTL
-        if cart.expires_at and cart.expires_at < datetime.now(timezone.utc):
-            cart.status = CartStatus.ABANDONED
-            await db.flush()
-            cart = None  # Will create a new one below
+    # Check TTL
+    if cart is not None and cart.expires_at and cart.expires_at < datetime.now(UTC):
+        cart.status = CartStatus.ABANDONED
+        await db.flush()
+        cart = None  # Will create a new one below
 
     if cart is None:
         ttl_days = _USER_CART_TTL_DAYS if user_id else _GUEST_CART_TTL_DAYS
@@ -149,7 +143,7 @@ async def get_or_create_cart(
             user_id=user_id,
             session_id=session_id,
             status=CartStatus.ACTIVE,
-            expires_at=datetime.now(timezone.utc) + timedelta(days=ttl_days),
+            expires_at=datetime.now(UTC) + timedelta(days=ttl_days),
         )
         db.add(cart)
         await db.flush()
@@ -178,7 +172,7 @@ async def add_item(
     # Get the variant and its price
     variant_stmt = select(ProductVariant).where(
         ProductVariant.id == variant_id,
-        ProductVariant.is_active == True,
+        ProductVariant.is_active.is_(True),
     )
     variant_result = await db.execute(variant_stmt)
     variant = variant_result.scalar_one_or_none()
@@ -189,11 +183,15 @@ async def add_item(
     inv_stmt = select(InventoryItem).where(InventoryItem.variant_id == variant_id)
     inv_result = await db.execute(inv_stmt)
     inv_item = inv_result.scalar_one_or_none()
-    if inv_item is not None and inv_item.track_inventory and not inv_item.backorder_allowed:
-        if inv_item.available < quantity:
-            raise ConflictError(
-                detail=f"Insufficient stock: requested {quantity}, available {inv_item.available}"
-            )
+    if (
+        inv_item is not None
+        and inv_item.track_inventory
+        and not inv_item.backorder_allowed
+        and inv_item.available < quantity
+    ):
+        raise ConflictError(
+            detail=f"Insufficient stock: requested {quantity}, available {inv_item.available}"
+        )
 
     # Load cart with items
     cart_stmt = (
@@ -216,11 +214,18 @@ async def add_item(
     if existing_item is not None:
         new_qty = existing_item.quantity + quantity
         # Re-check stock for increased quantity
-        if inv_item is not None and inv_item.track_inventory and not inv_item.backorder_allowed:
-            if inv_item.available < new_qty:
-                raise ConflictError(
-                    detail=f"Insufficient stock for total quantity {new_qty}: available {inv_item.available}"
+        if (
+            inv_item is not None
+            and inv_item.track_inventory
+            and not inv_item.backorder_allowed
+            and inv_item.available < new_qty
+        ):
+            raise ConflictError(
+                detail=(
+                    f"Insufficient stock for total quantity {new_qty}: "
+                    f"available {inv_item.available}"
                 )
+            )
         existing_item.quantity = new_qty
         existing_item.price_snapshot = variant.price  # refresh price snapshot
     else:
@@ -275,21 +280,21 @@ async def update_item_quantity(
         await logger.ainfo("cart_item_removed", cart_id=str(cart_id), item_id=str(item_id))
     else:
         # Check stock availability for new quantity
-        inv_stmt = select(InventoryItem).where(
-            InventoryItem.variant_id == item.variant_id
-        )
+        inv_stmt = select(InventoryItem).where(InventoryItem.variant_id == item.variant_id)
         inv_result = await db.execute(inv_stmt)
         inv_item = inv_result.scalar_one_or_none()
-        if inv_item and inv_item.track_inventory and not inv_item.backorder_allowed:
-            if inv_item.available < quantity:
-                raise ConflictError(
-                    detail=f"Insufficient stock: requested {quantity}, available {inv_item.available}"
-                )
+        if (
+            inv_item
+            and inv_item.track_inventory
+            and not inv_item.backorder_allowed
+            and inv_item.available < quantity
+        ):
+            raise ConflictError(
+                detail=f"Insufficient stock: requested {quantity}, available {inv_item.available}"
+            )
 
         # Refresh price snapshot to current price
-        variant_stmt = select(ProductVariant.price).where(
-            ProductVariant.id == item.variant_id
-        )
+        variant_stmt = select(ProductVariant.price).where(ProductVariant.id == item.variant_id)
         variant_result = await db.execute(variant_stmt)
         current_price = variant_result.scalar_one_or_none()
         if current_price is not None:
@@ -374,18 +379,14 @@ async def merge_carts(
     user_cart = await get_or_create_cart(db, user_id=user_id)
 
     # Build a lookup of the user cart's items by variant_id
-    user_items_map: dict[uuid.UUID, CartItem] = {
-        ci.variant_id: ci for ci in user_cart.items
-    }
+    user_items_map: dict[uuid.UUID, CartItem] = {ci.variant_id: ci for ci in user_cart.items}
 
     for guest_item in guest_cart.items:
         if guest_item.variant_id in user_items_map:
             # Merge quantities — keep the higher price snapshot (more recent)
             existing = user_items_map[guest_item.variant_id]
             existing.quantity += guest_item.quantity
-            existing.price_snapshot = max(
-                existing.price_snapshot, guest_item.price_snapshot
-            )
+            existing.price_snapshot = max(existing.price_snapshot, guest_item.price_snapshot)
         else:
             # Move the item to the user's cart
             new_item = CartItem(
@@ -463,9 +464,7 @@ async def validate_cart(
             ci.price_snapshot = variant.price
 
         # Check stock
-        inv_stmt = select(InventoryItem).where(
-            InventoryItem.variant_id == ci.variant_id
-        )
+        inv_stmt = select(InventoryItem).where(InventoryItem.variant_id == ci.variant_id)
         inv_result = await db.execute(inv_stmt)
         inv_item = inv_result.scalar_one_or_none()
 
@@ -518,9 +517,7 @@ async def clear_cart(
         raise NotFoundError(resource="Cart", detail="Active cart not found")
 
     # Delete all items
-    await db.execute(
-        delete(CartItem).where(CartItem.cart_id == cart_id)
-    )
+    await db.execute(delete(CartItem).where(CartItem.cart_id == cart_id))
     cart.items.clear()
     await db.flush()
 

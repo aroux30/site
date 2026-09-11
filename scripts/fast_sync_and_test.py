@@ -6,26 +6,46 @@ import sys
 import paramiko
 
 def main():
-    host = os.environ.get("DEPLOY_HOST", "91.107.144.136")
-    username = os.environ.get("DEPLOY_USER", "root")
-    password = os.environ.get("DEPLOY_PASSWORD")
-    if not password and os.path.exists(".env"):
-        with open(".env", "r") as f:
-            for line in f:
-                if line.startswith("DEPLOY_SSH_PASSWORD="):
-                    password = line.split("=", 1)[1].strip().strip('"').strip("'")
-                elif line.startswith("POSTGRES_PASSWORD=") and not password:
-                    # fallback to server root password if configured
-                    pass
-    if not password:
-        password = os.environ.get("SSH_PASSWORD")
-    if not password:
-        raise ValueError("Deployment password not found. Please set SSH_PASSWORD or DEPLOY_SSH_PASSWORD.")
+    host = os.environ.get("DEPLOY_HOST")
+    username = os.environ.get("DEPLOY_USER")
+    if not host or not username:
+        raise ValueError(
+            "DEPLOY_HOST and DEPLOY_USER must be set "
+            "(no defaults are provided for security)."
+        )
+    password = os.environ.get("DEPLOY_PASSWORD") or os.environ.get("SSH_PASSWORD")
+    key_path = os.environ.get("DEPLOY_SSH_KEY")
+    if not password and not key_path:
+        raise ValueError(
+            "Set DEPLOY_SSH_KEY (recommended) or DEPLOY_PASSWORD for auth."
+        )
 
     client = paramiko.SSHClient()
-    client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    host_key_b64 = os.environ.get("DEPLOY_SSH_HOST_KEY")
+    if host_key_b64:
+        import base64
+
+        import paramiko
+
+        host_key = None
+        for key_cls in (paramiko.Ed25519Key, paramiko.ECDSAKey, paramiko.RSAKey):
+            try:
+                host_key = key_cls(data=base64.b64decode(host_key_b64))
+                break
+            except Exception:
+                continue
+        if host_key is None:
+            raise ValueError("DEPLOY_SSH_HOST_KEY could not be parsed.")
+        client.set_missing_host_key_policy(paramiko.RejectPolicy())
+    else:
+        raise ValueError(
+            "Host key verification is required: set DEPLOY_SSH_HOST_KEY to "
+            "the base64 public host key (from `ssh-keyscan -t ed25519 <host>`)."
+        )
     print(f"Connecting to {host}...", flush=True)
-    client.connect(host, username=username, password=password, timeout=30)
+    client.connect(
+        host, username=username, password=password, key_filename=key_path, pkey=host_key, timeout=30
+    )
     print("Connected.", flush=True)
 
     sftp = client.open_sftp()

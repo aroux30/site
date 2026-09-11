@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-import uuid  # noqa: TC003
+import uuid
 from typing import TYPE_CHECKING
 
 import structlog

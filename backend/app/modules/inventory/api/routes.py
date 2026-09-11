@@ -3,13 +3,12 @@
 from __future__ import annotations
 
 import uuid
-from typing import Optional
 
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database.session import get_db
-from app.core.security.dependencies import RequirePermissions, get_current_active_user
+from app.core.security.dependencies import RequirePermissions
 from app.modules.inventory.application import inventory_service
 from app.modules.inventory.domain.models import TransactionType
 from app.modules.inventory.schemas.inventory import (
@@ -37,7 +36,7 @@ async def list_inventory(
     page: int = Query(1, ge=1),
     page_size: int = Query(50, ge=1, le=200),
     low_stock_only: bool = Query(False),
-    track_inventory: Optional[bool] = Query(None),
+    track_inventory: bool | None = Query(None),
     db: AsyncSession = Depends(get_db),
 ) -> InventoryListResponse:
     items, total = await inventory_service.get_inventory_list(
@@ -65,7 +64,7 @@ async def list_inventory(
     dependencies=[Depends(RequirePermissions("inventory:read"))],
 )
 async def get_low_stock(
-    threshold: Optional[int] = Query(None, ge=0),
+    threshold: int | None = Query(None, ge=0),
     page: int = Query(1, ge=1),
     page_size: int = Query(50, ge=1, le=200),
     db: AsyncSession = Depends(get_db),
@@ -134,7 +133,7 @@ async def get_transactions(
     variant_id: uuid.UUID,
     page: int = Query(1, ge=1),
     page_size: int = Query(50, ge=1, le=200),
-    type: Optional[TransactionType] = Query(None),
+    type: TransactionType | None = Query(None),  # noqa: A002  # API parameter name is the public contract
     db: AsyncSession = Depends(get_db),
 ) -> TransactionListResponse:
     txns, total = await inventory_service.get_transactions(

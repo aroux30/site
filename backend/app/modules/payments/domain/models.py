@@ -205,4 +205,4 @@ class PaymentWebhookEvent(BaseModel):
     payment: Mapped[Optional["Payment"]] = relationship("Payment")
 
     def __repr__(self) -> str:
-        return f"<PaymentWebhookEvent(provider={self.provider}, event_id={self.event_id}, processed={self.processed})>"
+        return f"<PaymentWebhookEvent(provider={self.provider}, event_id={self.event_id}, processed={self.processed})>"  # noqa: E501

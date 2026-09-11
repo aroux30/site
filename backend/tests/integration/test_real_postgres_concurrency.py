@@ -1,29 +1,41 @@
 """Real PostgreSQL database concurrency and race-condition integration tests.
 
 Mandatory testing suite executing actual concurrent PostgreSQL transactions:
-- TEST-CONCURRENCY-001: 100 concurrent transactions for stock=1 -> exactly 1 success, oversold=0
-- TEST-CONCURRENCY-002: 50 concurrent transactions redeeming 1-use coupon -> exactly 1 success
-- TEST-CONCURRENCY-003: 2 concurrent wallet debits exceeding balance -> exactly 1 success, balance >= 0
+- TEST-CONCURRENCY-001: 100 concurrent transactions for stock=1 ->
+  exactly 1 success, oversold=0
+- TEST-CONCURRENCY-002: 50 concurrent transactions redeeming 1-use coupon ->
+  exactly 1 success
+- TEST-CONCURRENCY-003: 2 concurrent wallet debits exceeding balance ->
+  exactly 1 success, balance >= 0
 """
 
 from __future__ import annotations
 
 import asyncio
 import uuid
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import pytest
 from sqlalchemy import select
 
 from app.core.database.session import async_session_factory
 from app.core.exceptions.handlers import ConflictError, ValidationError
-from app.modules.catalog.domain.models import Category, Product, ProductStatus, ProductType, ProductVariant
+from app.modules.catalog.domain.models import (
+    Category,
+    Product,
+    ProductStatus,
+    ProductType,
+    ProductVariant,
+)
 from app.modules.discounts.application import discount_service
 from app.modules.discounts.domain.models import Coupon, Discount, DiscountScope, DiscountType
 from app.modules.inventory.application import inventory_service
-from app.modules.inventory.domain.models import InventoryItem, InventoryReservation, ReservationStatus
+from app.modules.inventory.domain.models import (
+    InventoryItem,
+    InventoryReservation,
+    ReservationStatus,
+)
 from app.modules.orders.domain.models import Order, OrderStatus
-from app.modules.rbac.domain.models import UserRole  # noqa: F401
 from app.modules.users.domain.models import User
 from app.modules.wallet.application import wallet_service
 from app.modules.wallet.domain.models import Wallet, WalletTransactionType
@@ -99,7 +111,9 @@ async def test_real_postgres_100_concurrent_inventory_reservations():
 
     # 3. Assert invariants in the real PostgreSQL database
     assert len(successes) == 1, f"Expected exactly 1 successful reservation, got {len(successes)}"
-    assert len(rejections) == 99, f"Expected 99 rejections due to stock depletion, got {len(rejections)}"
+    assert len(rejections) == 99, (
+        f"Expected 99 rejections due to stock depletion, got {len(rejections)}"
+    )
 
     async with async_session_factory() as verify_db:
         # Check actual database row
@@ -122,7 +136,7 @@ async def test_real_postgres_100_concurrent_inventory_reservations():
 async def test_real_postgres_100_concurrent_single_use_coupon_redemptions():
     """TEST-CONCURRENCY-002: Execute 100 concurrent transactions for a single-use coupon."""
     async with async_session_factory() as setup_db:
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         user_ids = []
         for _ in range(100):
             u_id = uuid.uuid4()
@@ -215,7 +229,6 @@ async def test_real_postgres_100_concurrent_single_use_coupon_redemptions():
         assert c_row.usage_count == 1, "Usage count in PostgreSQL must be exactly 1"
 
 
-
 @pytest.mark.asyncio
 async def test_real_postgres_concurrent_wallet_debits_prevent_double_spending():
     """TEST-CONCURRENCY-003: 2 concurrent transactions trying to debit full wallet balance."""
@@ -275,7 +288,9 @@ async def test_real_postgres_concurrent_wallet_debits_prevent_double_spending():
     failures = [r for r in results if r[0] == "INSUFFICIENT_FUNDS"]
 
     assert len(successes) == 1, f"Exactly one debit transaction must succeed, got {len(successes)}"
-    assert len(failures) == 1, f"Second concurrent debit must be rejected with insufficient funds, got {len(failures)}"
+    assert len(failures) == 1, (
+        f"Second concurrent debit must be rejected with insufficient funds, got {len(failures)}"
+    )
 
     async with async_session_factory() as verify_db:
         balance = await wallet_service.get_balance(verify_db, target_user_id)
@@ -315,7 +330,7 @@ async def test_real_postgres_100_concurrent_wallet_debits():
         )
         await fund_db.commit()
 
-    # 100 concurrent debits, each requesting 100,000 Rials (total requested = 10,000,000, capacity = 50)
+    # 100 concurrent debits, each requesting 100,000 Rials (total requested = 10,000,000, capacity = 50)  # noqa: E501
     async def _debit(req_id: int):
         async with async_session_factory() as session:
             try:
@@ -341,9 +356,10 @@ async def test_real_postgres_100_concurrent_wallet_debits():
     failures = [r for r in results if r[0] == "INSUFFICIENT_FUNDS"]
 
     assert len(successes) == 50, f"Expected exactly 50 debits to succeed, got {len(successes)}"
-    assert len(failures) == 50, f"Expected exactly 50 debits to be rejected with insufficient funds, got {len(failures)}"
+    assert len(failures) == 50, (
+        f"Expected exactly 50 debits to be rejected with insufficient funds, got {len(failures)}"
+    )
 
     async with async_session_factory() as verify_db:
         balance = await wallet_service.get_balance(verify_db, target_user_id)
         assert balance == 0, f"Final wallet balance must be exactly 0, got {balance}"
-

@@ -1,6 +1,7 @@
 """Unit tests for the Money value object."""
 
 import pytest
+
 from app.shared.money.money import Money
 
 

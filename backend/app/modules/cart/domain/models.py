@@ -3,7 +3,6 @@
 import enum
 import uuid
 from datetime import datetime
-from typing import Optional
 
 from sqlalchemy import (
     BigInteger,
@@ -20,8 +19,8 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database.base import BaseModel
 
-
 # ---- Enums ----
+
 
 class CartStatus(str, enum.Enum):
     ACTIVE = "active"
@@ -31,6 +30,7 @@ class CartStatus(str, enum.Enum):
 
 
 # ---- Models ----
+
 
 class Cart(BaseModel):
     """Shopping cart supporting both authenticated and guest users."""
@@ -43,20 +43,18 @@ class Cart(BaseModel):
         Index("ix_carts_expires_at", "expires_at"),
     )
 
-    user_id: Mapped[Optional[uuid.UUID]] = mapped_column(
+    user_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("users.id", ondelete="SET NULL"),
         nullable=True,
     )
-    session_id: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    session_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
     status: Mapped[CartStatus] = mapped_column(
         Enum(CartStatus, name="cart_status_enum", native_enum=False),
         default=CartStatus.ACTIVE,
         nullable=False,
     )
-    expires_at: Mapped[Optional[datetime]] = mapped_column(
-        DateTime(timezone=True), nullable=True
-    )
+    expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     # Relationships
     items: Mapped[list["CartItem"]] = relationship(

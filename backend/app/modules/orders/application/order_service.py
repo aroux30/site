@@ -9,16 +9,14 @@ import math
 import random
 import string
 import uuid
-from datetime import datetime, timezone
-from typing import Any, Optional
+from datetime import UTC, datetime
+from typing import TYPE_CHECKING, Any
 
 import structlog
 from sqlalchemy import func, select
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.core.exceptions.handlers import (
-    ForbiddenError,
     NotFoundError,
     ValidationError,
 )
@@ -39,6 +37,8 @@ from app.modules.orders.schemas.order import (
     PaginationParams,
 )
 
+if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncSession
 logger: structlog.stdlib.BoundLogger = structlog.get_logger(__name__)
 
 # ── Order State Machine ────────────────────────────────────────────────────
@@ -49,22 +49,14 @@ _VALID_TRANSITIONS: dict[OrderStatus, frozenset[OrderStatus]] = {
     OrderStatus.CONFIRMED: frozenset(
         {OrderStatus.PROCESSING, OrderStatus.CANCELED, OrderStatus.ON_HOLD}
     ),
-    OrderStatus.PROCESSING: frozenset(
-        {OrderStatus.PACKING, OrderStatus.ON_HOLD}
-    ),
-    OrderStatus.ON_HOLD: frozenset(
-        {OrderStatus.PROCESSING, OrderStatus.CANCELED}
-    ),
+    OrderStatus.PROCESSING: frozenset({OrderStatus.PACKING, OrderStatus.ON_HOLD}),
+    OrderStatus.ON_HOLD: frozenset({OrderStatus.PROCESSING, OrderStatus.CANCELED}),
     OrderStatus.PACKING: frozenset({OrderStatus.SHIPPED}),
     OrderStatus.SHIPPED: frozenset({OrderStatus.DELIVERED}),
-    OrderStatus.DELIVERED: frozenset(
-        {OrderStatus.COMPLETED, OrderStatus.RETURNED}
-    ),
+    OrderStatus.DELIVERED: frozenset({OrderStatus.COMPLETED, OrderStatus.RETURNED}),
     OrderStatus.COMPLETED: frozenset(),  # terminal
     OrderStatus.CANCELED: frozenset(),  # terminal
-    OrderStatus.RETURNED: frozenset(
-        {OrderStatus.REFUNDED, OrderStatus.PARTIALLY_REFUNDED}
-    ),
+    OrderStatus.RETURNED: frozenset({OrderStatus.REFUNDED, OrderStatus.PARTIALLY_REFUNDED}),
     OrderStatus.REFUNDED: frozenset(),  # terminal
     OrderStatus.PARTIALLY_REFUNDED: frozenset(),  # terminal
 }
@@ -84,7 +76,7 @@ def _validate_transition(
     if target not in allowed:
         raise ValidationError(
             f"Cannot transition from '{current.value}' to '{target.value}'. "
-            f"Allowed transitions: {', '.join(s.value for s in allowed) or '(none – terminal state)'}",
+            f"Allowed transitions: {', '.join(s.value for s in allowed) or '(none – terminal state)'}",  # noqa: E501
             error_code="INVALID_STATUS_TRANSITION",
         )
 
@@ -94,8 +86,8 @@ def _validate_transition(
 
 def _generate_order_number() -> str:
     """Generate a human-readable order number: ``ORD-YYYYMMDD-XXXX``."""
-    date_part = datetime.now(timezone.utc).strftime("%Y%m%d")
-    random_part = "".join(random.choices(string.ascii_uppercase + string.digits, k=4))
+    date_part = datetime.now(UTC).strftime("%Y%m%d")
+    random_part = "".join(random.choices(string.ascii_uppercase + string.digits, k=4))  # noqa: S311  # order numbers are not security-sensitive
     return f"ORD-{date_part}-{random_part}"
 
 
@@ -103,11 +95,11 @@ async def _record_status_change(
     db: AsyncSession,
     *,
     order_id: uuid.UUID,
-    from_status: Optional[str],
+    from_status: str | None,
     to_status: str,
-    changed_by: Optional[uuid.UUID] = None,
-    reason: Optional[str] = None,
-    extra_data: Optional[dict[str, Any]] = None,
+    changed_by: uuid.UUID | None = None,
+    reason: str | None = None,
+    extra_data: dict[str, Any] | None = None,
 ) -> OrderStatusHistory:
     """Insert an immutable audit record for a status transition."""
     entry = OrderStatusHistory(
@@ -151,12 +143,8 @@ def _build_order_response(order: Order) -> OrderResponse:
         shipping_address_snapshot=order.shipping_address_snapshot,
         notes=order.notes,
         ip_address=order.ip_address,
-        items=[
-            _build_item_response(item) for item in (order.items or [])
-        ],
-        timeline=[
-            _build_history_response(h) for h in timeline
-        ],
+        items=[_build_item_response(item) for item in (order.items or [])],
+        timeline=[_build_history_response(h) for h in timeline],
         created_at=order.created_at,
         updated_at=order.updated_at,
     )
@@ -246,9 +234,7 @@ async def get_orders(
     )
 
     return OrderListResponse(
-        items=[
-            OrderListItem.model_validate(o) for o in orders
-        ],
+        items=[OrderListItem.model_validate(o) for o in orders],
         meta=PaginationMeta(
             page=pagination.page,
             page_size=pagination.page_size,
@@ -385,7 +371,9 @@ async def request_order_return(
             order_item_id=item.order_item_id,
             variant_id=item.variant_id,
             quantity=item.quantity,
-            reason=ReturnReason(item.reason) if item.reason in [r.value for r in ReturnReason] else ReturnReason.CUSTOMER_REMORSE,
+            reason=ReturnReason(item.reason)
+            if item.reason in [r.value for r in ReturnReason]
+            else ReturnReason.CUSTOMER_REMORSE,
             customer_notes=item.customer_notes,
         )
         for item in body.items
@@ -426,15 +414,19 @@ async def request_order_return(
 async def get_order_timeline(
     db: AsyncSession,
     order_id: uuid.UUID,
-    user_id: Optional[uuid.UUID] = None,
+    user_id: uuid.UUID | None = None,
 ) -> OrderTimelineResponse:
     """Return the status timeline for an order.
 
     If *user_id* is supplied, ownership is checked (customer endpoint).
     """
-    stmt = select(Order).options(
-        selectinload(Order.status_history),
-    ).where(Order.id == order_id)
+    stmt = (
+        select(Order)
+        .options(
+            selectinload(Order.status_history),
+        )
+        .where(Order.id == order_id)
+    )
     if user_id is not None:
         stmt = stmt.where(Order.user_id == user_id)
 
@@ -503,7 +495,7 @@ async def admin_update_status(
     order_id: uuid.UUID,
     new_status: str,
     actor_id: uuid.UUID,
-    reason: Optional[str] = None,
+    reason: str | None = None,
 ) -> OrderResponse:
     """Admin: transition an order to a new status with full audit logging."""
     # Resolve the target enum
@@ -514,7 +506,7 @@ async def admin_update_status(
         raise ValidationError(
             f"Invalid status '{new_status}'. Valid statuses: {valid}",
             error_code="INVALID_STATUS",
-        )
+        ) from None
 
     stmt = (
         select(Order)
@@ -576,13 +568,11 @@ async def generate_unique_order_number(db: AsyncSession) -> str:
     """
     for _ in range(10):
         candidate = _generate_order_number()
-        exists_stmt = select(
-            select(Order.id).where(Order.order_number == candidate).exists()
-        )
+        exists_stmt = select(select(Order.id).where(Order.order_number == candidate).exists())
         exists = (await db.execute(exists_stmt)).scalar_one()
         if not exists:
             return candidate
     # Extremely unlikely – fallback with more randomness
-    suffix = "".join(random.choices(string.ascii_uppercase + string.digits, k=8))
-    date_part = datetime.now(timezone.utc).strftime("%Y%m%d")
+    suffix = "".join(random.choices(string.ascii_uppercase + string.digits, k=8))  # noqa: S311  # order numbers are not security-sensitive
+    date_part = datetime.now(UTC).strftime("%Y%m%d")
     return f"ORD-{date_part}-{suffix}"

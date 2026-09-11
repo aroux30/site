@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import uuid
-from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -17,11 +16,9 @@ from app.modules.gamification.schemas.gamification import (
     GamificationEventListResponse,
     GamificationEventResponse,
     GamificationRuleCreate,
-    GamificationRuleListResponse,
     GamificationRuleResponse,
     GamificationRuleUpdate,
     RewardCreate,
-    RewardListResponse,
     RewardResponse,
     RewardUpdate,
     UserPointsSummaryResponse,
@@ -69,7 +66,7 @@ async def list_rewards(
 )
 async def claim_reward(
     reward_id: uuid.UUID,
-    payload: Optional[ClaimRewardRequest] = None,
+    payload: ClaimRewardRequest | None = None,
     user_id: uuid.UUID = Depends(get_current_user_id),
     db: AsyncSession = Depends(get_db),
 ) -> ClaimRewardResponse:
@@ -122,7 +119,7 @@ async def get_history(
     dependencies=[Depends(RequirePermissions("gamification:read"))],
 )
 async def admin_list_rules(
-    is_active: Optional[bool] = Query(None),
+    is_active: bool | None = Query(None),
     skip: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=200),
     db: AsyncSession = Depends(get_db),

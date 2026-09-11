@@ -1,8 +1,9 @@
 """Unit tests for transactional outbox worker claiming, crash recovery, and dead-letter queue."""
 
 import uuid
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime
 from unittest.mock import AsyncMock, MagicMock
+
 import pytest
 
 from app.shared.events.outbox_models import OutboxMessage, OutboxStatus
@@ -36,7 +37,7 @@ async def test_outbox_publish_message():
 @pytest.mark.asyncio
 async def test_outbox_claim_batch_locks_messages():
     """Verify claim_batch sets PROCESSING status and worker ownership."""
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     pending_msg = OutboxMessage(
         id=uuid.uuid4(),
         event_type="PaymentCompleted",
@@ -53,7 +54,9 @@ async def test_outbox_claim_batch_locks_messages():
 
     mock_db = MagicMock()
     mock_db.execute = AsyncMock(
-        return_value=MagicMock(scalars=MagicMock(return_value=MagicMock(all=MagicMock(return_value=[pending_msg]))))
+        return_value=MagicMock(
+            scalars=MagicMock(return_value=MagicMock(all=MagicMock(return_value=[pending_msg])))
+        )
     )
     mock_db.flush = AsyncMock()
 
@@ -68,7 +71,7 @@ async def test_outbox_claim_batch_locks_messages():
 @pytest.mark.asyncio
 async def test_outbox_mark_failed_schedules_exponential_backoff():
     """Verify failure increments retry_count and calculates backoff."""
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     msg = OutboxMessage(
         id=uuid.uuid4(),
         event_type="SearchIndexSync",
@@ -84,10 +87,14 @@ async def test_outbox_mark_failed_schedules_exponential_backoff():
     )
 
     mock_db = MagicMock()
-    mock_db.execute = AsyncMock(return_value=MagicMock(scalar_one_or_none=MagicMock(return_value=msg)))
+    mock_db.execute = AsyncMock(
+        return_value=MagicMock(scalar_one_or_none=MagicMock(return_value=msg))
+    )
     mock_db.flush = AsyncMock()
 
-    await OutboxService.mark_failed(mock_db, msg.id, error="Elasticsearch connection timeout", backoff_seconds=30)
+    await OutboxService.mark_failed(
+        mock_db, msg.id, error="Elasticsearch connection timeout", backoff_seconds=30
+    )
 
     assert msg.retry_count == 2
     assert msg.status == OutboxStatus.FAILED
@@ -100,7 +107,7 @@ async def test_outbox_mark_failed_schedules_exponential_backoff():
 @pytest.mark.asyncio
 async def test_outbox_mark_failed_transitions_to_dead_letter_on_retry_exhaustion():
     """Verify dead-letter transition when retry count reaches max_retries."""
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     msg = OutboxMessage(
         id=uuid.uuid4(),
         event_type="EmailDispatch",
@@ -116,7 +123,9 @@ async def test_outbox_mark_failed_transitions_to_dead_letter_on_retry_exhaustion
     )
 
     mock_db = MagicMock()
-    mock_db.execute = AsyncMock(return_value=MagicMock(scalar_one_or_none=MagicMock(return_value=msg)))
+    mock_db.execute = AsyncMock(
+        return_value=MagicMock(scalar_one_or_none=MagicMock(return_value=msg))
+    )
     mock_db.flush = AsyncMock()
 
     await OutboxService.mark_failed(mock_db, msg.id, error="SMTP relay rejected permanently")

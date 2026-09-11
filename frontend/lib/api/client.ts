@@ -5,25 +5,13 @@ import axios, {
 } from "axios";
 import { useAuthStore } from "@/stores/auth-store";
 
-const getApiBaseUrl = (): string => {
-  if (typeof window !== "undefined") {
-    // In browser: always use relative "/api/v1" unless explicitly pointed to a non-localhost absolute URL
-    const envUrl = process.env.NEXT_PUBLIC_API_URL;
-    if (envUrl && !envUrl.includes("localhost:8000")) {
-      return envUrl;
-    }
-    return "/api/v1";
-  }
-  // Server-side (Node.js runtime / SSR):
-  return (
-    process.env.INTERNAL_API_URL ||
-    (process.env.NEXT_PUBLIC_API_URL && !process.env.NEXT_PUBLIC_API_URL.startsWith("/")
-      ? process.env.NEXT_PUBLIC_API_URL
-      : "http://ecommerce-backend:8000/api/v1")
-  );
-};
-
-const API_BASE_URL = getApiBaseUrl();
+// Browser must always call same-origin /api/v1 (the reverse proxy routes /api
+// to the backend container). SSR calls the backend container directly, since a
+// relative base URL is invalid outside the browser.
+const API_BASE_URL: string =
+  typeof window === "undefined"
+    ? process.env.INTERNAL_API_URL || "http://backend:8000/api/v1"
+    : "/api/v1";
 
 interface SessionStore {
   getSessionId: () => string | null;

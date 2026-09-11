@@ -23,6 +23,11 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/use-toast";
+import {
+  InputOTPItem,
+  InputOTPGroup,
+  InputOTPSlot,
+} from "@/components/ui/input-otp";
 import { toEnglishDigits, toPersianDigits, isValidIranPhone } from "@/lib/utils";
 
 const OTP_COUNTDOWN_SECONDS = 120;
@@ -463,28 +468,36 @@ function LoginForm() {
                       </p>
                     </div>
 
-                    <div className="space-y-2">
+                    <div className="space-y-3">
                       <Label htmlFor="otp-code-input" className="text-xs font-medium">
                         کد تایید ۶ رقمی
                       </Label>
-                      <Input
-                        id="otp-code-input"
-                        type="text"
-                        inputMode="numeric"
-                        dir="ltr"
-                        maxLength={6}
-                        placeholder="— — — — — —"
-                        value={otpCode}
-                        onChange={(e) => {
-                          const digitsOnly = toEnglishDigits(e.target.value).replace(/\D/g, "");
-                          setOtpCode(digitsOnly);
-                          if (otpError) setOtpError(null);
-                        }}
-                        autoFocus
-                        autoComplete="one-time-code"
-                        className="text-center font-mono text-xl tracking-[0.6em]"
-                        disabled={isOtpVerifying}
-                      />
+                      <div className="flex justify-center" dir="ltr">
+                        <InputOTPItem
+                          id="otp-code-input"
+                          maxLength={6}
+                          value={otpCode}
+                          autoFocus
+                          disabled={isOtpVerifying}
+                          onChange={(value: string) => {
+                            const digitsOnly = toEnglishDigits(value).replace(/\D/g, "").slice(0, 6);
+                            setOtpCode(digitsOnly);
+                            if (otpError) setOtpError(null);
+                          }}
+                        >
+                          <InputOTPGroup>
+                            <InputOTPSlot index={0} />
+                            <InputOTPSlot index={1} />
+                            <InputOTPSlot index={2} />
+                            <InputOTPSlot index={3} />
+                            <InputOTPSlot index={4} />
+                            <InputOTPSlot index={5} />
+                          </InputOTPGroup>
+                        </InputOTPItem>
+                      </div>
+                      <p className="text-center text-[11px] text-muted-foreground">
+                        کد ۶ رقمی پیامک‌شده را وارد کنید
+                      </p>
                     </div>
 
                     {/* Resend Countdown */}

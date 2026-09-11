@@ -39,7 +39,12 @@ import { useAuthStore } from "@/stores/auth-store";
 import apiClient from "@/lib/api/client";
 import { formatPrice, toPersianDigits } from "@/lib/utils";
 import { triggerCelebrationCannons } from "@/components/ui/confetti";
-import { getAvailableDeliverySlots, type DeliverySlot } from "@/lib/iranian-commerce";
+import {
+  getAvailableDeliverySlots,
+  validatePostalCode,
+  formatPostalCode,
+  type DeliverySlot,
+} from "@/lib/iranian-commerce";
 
 // --- Types ---
 
@@ -189,6 +194,10 @@ export default function CheckoutPage() {
   // Delivery Slots State (Iranian Commerce UX)
   const deliverySlots = useMemo(() => getAvailableDeliverySlots(), []);
   const [selectedSlotId, setSelectedSlotId] = useState<string>("slot-1");
+  const selectedSlot = useMemo(
+    () => deliverySlots.find((s) => s.id === selectedSlotId) || null,
+    [deliverySlots, selectedSlotId]
+  );
 
   // Trigger celebration confetti on order confirmation
   useEffect(() => {
@@ -450,8 +459,8 @@ export default function CheckoutPage() {
       return;
     }
 
-    if (!/^\d{10}$/.test(addressForm.postal_code.trim())) {
-      setAddressFormError("کد پستی باید دقیقاً ۱۰ رقم عددی باشد.");
+    if (!validatePostalCode(addressForm.postal_code.trim())) {
+      setAddressFormError("کد پستی معتبر نیست؛ باید ۱۰ رقم عددی و با الگوی رسمی پست ایران باشد.");
       return;
     }
 
@@ -556,6 +565,15 @@ export default function CheckoutPage() {
         effectiveCartId = cartRes.data?.id;
       }
 
+      const customerNoteWithSlot = [
+        customerNotes.trim() || null,
+        selectedSlot
+          ? `بازه تحویل: ${selectedSlot.dayName} (${selectedSlot.dateStr}) — ${selectedSlot.timeRange}`
+          : null,
+      ]
+        .filter(Boolean)
+        .join(" | ");
+
       const payload = {
         cart_id: effectiveCartId,
         address_id: selectedAddressId,
@@ -563,7 +581,7 @@ export default function CheckoutPage() {
         coupon_code: couponCode || null,
         payment_method: selectedPaymentMethod,
         idempotency_key: idempotencyKey,
-        notes: customerNotes.trim() || null,
+        notes: customerNoteWithSlot || null,
       };
 
       const response = await apiClient.post<CreateOrderResponse>(
@@ -1246,6 +1264,13 @@ export default function CheckoutPage() {
                         تحویل بین {toPersianDigits(selectedShipping?.estimated_days_min || 1)} الی{" "}
                         {toPersianDigits(selectedShipping?.estimated_days_max || 3)} روز کاری
                       </span>
+                      {selectedSlot && (
+                        <span className="mt-1 flex items-center gap-1 text-xs font-medium text-primary">
+                          <Clock className="h-3.5 w-3.5" />
+                          بازه انتخابی: {selectedSlot.dayName} ({selectedSlot.dateStr}) —{" "}
+                          {selectedSlot.timeRange}
+                        </span>
+                      )}
                     </div>
                     <Button
                       variant="ghost"

@@ -36,3 +36,30 @@ class AuditLogListResponse(BaseModel):
     page: int
     page_size: int
     pages: int
+
+
+# ── Operational Exception Schemas ─────────────────────────────────────────
+
+
+class OperationalExceptionResponse(BaseModel):
+    """Actionable operational anomaly for Admin Exception Center."""
+
+    id: uuid.UUID
+    exception_type: str
+    severity: str
+    status: str
+    entity_type: str
+    entity_id: str
+    details: dict[str, Any]
+    created_at: datetime
+    owner_id: Optional[uuid.UUID] = None
+    resolved_at: Optional[datetime] = None
+    resolution_notes: Optional[str] = None
+
+
+class ExceptionAssignRequest(BaseModel):
+    owner_id: uuid.UUID
+
+
+class ExceptionResolveRequest(BaseModel):
+    resolution_notes: str = Field(..., min_length=3, max_length=2000)

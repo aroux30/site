@@ -11,9 +11,21 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database.session import get_db
+from app.core.exceptions.handlers import NotFoundError
 from app.core.security.dependencies import RequirePermissions
 from app.modules.audit.application.audit_service import get_audit_logs
-from app.modules.audit.schemas.audit import AuditLogListResponse, AuditLogResponse
+from app.modules.audit.application.exception_center_service import exception_center
+from app.modules.audit.domain.operational_exceptions import (
+    ExceptionSeverity,
+    ExceptionStatus,
+)
+from app.modules.audit.schemas.audit import (
+    AuditLogListResponse,
+    AuditLogResponse,
+    ExceptionAssignRequest,
+    ExceptionResolveRequest,
+    OperationalExceptionResponse,
+)
 
 router = APIRouter()
 
@@ -58,3 +70,96 @@ async def list_audit_logs(
         page_size=page_size,
         pages=pages,
     )
+
+
+# ══════════════════════════════════════════════════════════════════════════
+# Operational Exception Center Admin Endpoints
+# ══════════════════════════════════════════════════════════════════════════
+
+
+@router.get(
+    "/admin/exceptions",
+    response_model=list[OperationalExceptionResponse],
+    dependencies=[Depends(RequirePermissions("audit:read"))],
+    summary="List active operational anomalies (admin Exception Center)",
+)
+async def list_operational_exceptions(
+    severity: Optional[str] = Query(None, description="Filter by severity: CRITICAL, HIGH, MEDIUM, LOW"),
+    status: Optional[str] = Query(None, description="Filter by status: OPEN, INVESTIGATING, RESOLVED, DISMISSED"),
+) -> list[OperationalExceptionResponse]:
+    sev = ExceptionSeverity(severity) if severity in [s.value for s in ExceptionSeverity] else None
+    stat = ExceptionStatus(status) if status in [s.value for s in ExceptionStatus] else None
+    items = exception_center.list_exceptions(severity=sev, status=stat)
+    return [
+        OperationalExceptionResponse(
+            id=i.id,
+            exception_type=i.exception_type.value,
+            severity=i.severity.value,
+            status=i.status.value,
+            entity_type=i.entity_type,
+            entity_id=i.entity_id,
+            details=i.details,
+            created_at=i.created_at,
+            owner_id=i.owner_id,
+            resolved_at=i.resolved_at,
+            resolution_notes=i.resolution_notes,
+        )
+        for i in items
+    ]
+
+
+@router.patch(
+    "/admin/exceptions/{exception_id}/assign",
+    response_model=OperationalExceptionResponse,
+    dependencies=[Depends(RequirePermissions("audit:write"))],
+    summary="Assign operational anomaly to an owner (admin)",
+)
+async def assign_operational_exception(
+    exception_id: uuid.UUID,
+    body: ExceptionAssignRequest,
+) -> OperationalExceptionResponse:
+    item = exception_center.assign_owner(exception_id, body.owner_id)
+    if not item:
+        raise NotFoundError("OperationalException")
+    return OperationalExceptionResponse(
+        id=item.id,
+        exception_type=item.exception_type.value,
+        severity=item.severity.value,
+        status=item.status.value,
+        entity_type=item.entity_type,
+        entity_id=item.entity_id,
+        details=item.details,
+        created_at=item.created_at,
+        owner_id=item.owner_id,
+        resolved_at=item.resolved_at,
+        resolution_notes=item.resolution_notes,
+    )
+
+
+@router.patch(
+    "/admin/exceptions/{exception_id}/resolve",
+    response_model=OperationalExceptionResponse,
+    dependencies=[Depends(RequirePermissions("audit:write"))],
+    summary="Resolve operational anomaly with resolution notes (admin)",
+)
+async def resolve_operational_exception(
+    exception_id: uuid.UUID,
+    body: ExceptionResolveRequest,
+) -> OperationalExceptionResponse:
+    item = exception_center.resolve_exception(exception_id, body.resolution_notes)
+    if not item:
+        raise NotFoundError("OperationalException")
+    return OperationalExceptionResponse(
+        id=item.id,
+        exception_type=item.exception_type.value,
+        severity=item.severity.value,
+        status=item.status.value,
+        entity_type=item.entity_type,
+        entity_id=item.entity_id,
+        details=item.details,
+        created_at=item.created_at,
+        owner_id=item.owner_id,
+        resolved_at=item.resolved_at,
+        resolution_notes=item.resolution_notes,
+    )
+

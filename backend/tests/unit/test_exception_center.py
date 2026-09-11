@@ -118,3 +118,57 @@ async def test_list_and_filter_exceptions(center):
     open_list = center.list_exceptions(status=ExceptionStatus.OPEN)
     assert len(open_list) == 1
     assert open_list[0].id == e2.id
+
+
+@pytest.mark.asyncio
+async def test_api_admin_exception_center_endpoints():
+    """Verify Admin Exception Center REST APIs."""
+    from httpx import ASGITransport, AsyncClient
+    from app.main import create_app
+    from app.core.security.jwt import create_access_token
+    from app.modules.audit.application.exception_center_service import exception_center
+
+    app = create_app()
+    admin_id = uuid.uuid4()
+    admin_token = create_access_token(
+        subject=str(admin_id),
+        extra_claims={"roles": ["super_admin"], "permissions": ["*"]},
+    )
+    headers = {"Authorization": f"Bearer {admin_token}"}
+
+    # Record anomaly in global registry
+    exc = await exception_center.record_exception(
+        db=None,
+        exception_type=ExceptionType.PRICE_MISMATCH,
+        severity=ExceptionSeverity.CRITICAL,
+        entity_type="order",
+        entity_id="ord-9988",
+        details={"diff": 100000},
+    )
+
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+        # 1. List
+        resp = await ac.get("/api/v1/audit/admin/exceptions", headers=headers)
+        assert resp.status_code == 200
+        items = resp.json()
+        assert any(i["id"] == str(exc.id) for i in items)
+
+        # 2. Assign
+        resp_assign = await ac.patch(
+            f"/api/v1/audit/admin/exceptions/{exc.id}/assign",
+            headers=headers,
+            json={"owner_id": str(admin_id)},
+        )
+        assert resp_assign.status_code == 200
+        assert resp_assign.json()["owner_id"] == str(admin_id)
+        assert resp_assign.json()["status"] == "INVESTIGATING"
+
+        # 3. Resolve
+        resp_resolve = await ac.patch(
+            f"/api/v1/audit/admin/exceptions/{exc.id}/resolve",
+            headers=headers,
+            json={"resolution_notes": "Recalculated order with server tax rule"},
+        )
+        assert resp_resolve.status_code == 200
+        assert resp_resolve.json()["status"] == "RESOLVED"
+

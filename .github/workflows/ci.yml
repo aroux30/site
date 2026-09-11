@@ -52,9 +52,9 @@ jobs:
 
       - name: Install Dependencies
         run: |
-          python -m pip install --upgrade pip
-          pip install -r backend/requirements.txt
-          pip install pytest pytest-asyncio httpx faker structlog
+          python -m pip install --upgrade pip setuptools wheel
+          cd backend
+          pip install ".[dev]" faker
 
       - name: Run Database Migrations
         env:
@@ -94,7 +94,7 @@ jobs:
       - name: Install Dependencies
         run: |
           cd frontend
-          npm ci
+          npm ci --legacy-peer-deps
 
       - name: Run TypeScript Typecheck
         run: |

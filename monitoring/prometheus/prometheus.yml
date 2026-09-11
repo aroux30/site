@@ -16,6 +16,9 @@ global:
 #           - alertmanager:9093
 
 # Rule files (uncomment when rule files are created)
+rule_files:
+  - /etc/prometheus/rules/ecommerce.yml
+
 # rule_files:
 #   - "/etc/prometheus/rules/*.yml"
 
@@ -43,13 +46,16 @@ scrape_configs:
   # ──────────────────────────────────────────
   # Celery Worker metrics (if exposed)
   # ──────────────────────────────────────────
-  - job_name: "celery-worker"
-    metrics_path: "/metrics"
-    scrape_interval: 15s
-    static_configs:
-      - targets: ["worker:8001"]
-        labels:
-          service: "celery-worker"
+  # NOTE (P11-02): the worker exposes no HTTP metrics endpoint yet, so this
+  # scrape target was permanently down. Re-enable after adding a
+  # celery-prometheus exporter to the worker container (TASK PERF-01).
+  # - job_name: "celery-worker"
+  #   metrics_path: "/metrics"
+  #   scrape_interval: 15s
+  #   static_configs:
+  #     - targets: ["worker:8001"]
+  #       labels:
+  #         service: "celery-worker"
 
   # ──────────────────────────────────────────
   # PostgreSQL metrics (requires postgres_exporter)

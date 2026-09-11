@@ -188,8 +188,32 @@ class ReturnItemResponse(BaseModel):
     inspection_outcome: str | None = None
 
 
+class AdminReturnActionRequest(BaseModel):
+    """Admin action on an RMA — the target must be a valid state-machine move."""
+
+    target: str = Field(..., description="Target RMA status (state machine validated)")
+    notes: str | None = None
+    inspection_outcomes: dict[str, str] | None = Field(
+        None,
+        description=(
+            "{order_item_id: passed|damaged_by_customer|defective_confirmed} (inspect action)"
+        ),
+    )
+    refund_amount: int | None = Field(
+        None, ge=0, description="Refund amount in IRR (refund action)"
+    )
+
+
+class AdminReturnListResponse(BaseModel):
+    items: list[OrderReturnResponse]
+    total: int
+    page: int
+    page_size: int
+
+
 class OrderReturnResponse(BaseModel):
     id: uuid.UUID
+    rma_number: str | None = None
     order_id: uuid.UUID
     user_id: uuid.UUID
     status: str

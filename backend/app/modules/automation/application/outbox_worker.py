@@ -27,6 +27,10 @@ _ORDER_NOTIFICATIONS: dict[str, dict[str, str]] = {
         "notification_type": "order_canceled",
         "title": "سفارش شما لغو شد",
     },
+    "ReturnApproved": {
+        "notification_type": "return_approved",
+        "title": "درخواست مرجوعی شما تأیید شد",
+    },
 }
 
 

@@ -56,9 +56,7 @@ def test_all_defined_routers_exist_and_are_valid():
 
 def test_fail_fast_on_broken_router(monkeypatch):
     """Verify that if any router fails to load, application startup raises RuntimeError immediately (Fail-Fast)."""  # noqa: E501
-    test_app = FastAPI()
-
-    # Artificially inject an invalid module path that will fail
+    test_app = FastAPI()  # Artificially inject an invalid module path that will fail
     with pytest.raises(RuntimeError) as exc_info:
         # Patch importlib to simulate a broken module import
         import importlib
@@ -74,3 +72,30 @@ def test_fail_fast_on_broken_router(monkeypatch):
         _include_routers(test_app, prefix="/api/v1")
 
     assert "Critical router failed to load" in str(exc_info.value)
+
+
+def test_no_duplicate_schema_routes():
+    """Every (path, method) pair exposed in the OpenAPI schema must be unique.
+
+    Legacy root-level aliases (seo / vendors) are registered with
+    include_in_schema=False and therefore do not appear in the schema —
+    only true duplicates fail here.
+    """
+    from app.main import create_app
+
+    app = create_app()
+    seen: set[tuple[str, str]] = set()
+    duplicates: list[tuple[str, str]] = []
+    for route in app.routes:
+        methods = getattr(route, "methods", None)
+        path = getattr(route, "path", None)
+        if not methods or not path:
+            continue
+        for method in sorted(methods):
+            if method in ("HEAD", "OPTIONS"):
+                continue
+            key = (path, method)
+            if key in seen:
+                duplicates.append(key)
+            seen.add(key)
+    assert not duplicates, f"duplicate schema routes registered: {duplicates}"

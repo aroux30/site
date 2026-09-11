@@ -83,7 +83,12 @@ async def _sync_single_product_async(product_id: str | uuid.UUID) -> dict[str, A
                 await logger.ainfo("search_sync_product_deleted", product_id=doc_id)
                 return {"status": "success", "action": "deleted", "product_id": doc_id}
 
-            doc = SearchService._product_to_doc(product)
+            rating_avg, rating_count = await SearchService._get_rating_aggregate(db, product.id)
+            doc = SearchService._product_to_doc(
+                product,
+                rating_average=rating_avg,
+                rating_count=rating_count,
+            )
             await search_service.index_product(doc, index_name=INDEX_NAME)
             if search_service._es.index_name != INDEX_NAME:
                 await search_service.index_product(doc)

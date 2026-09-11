@@ -427,8 +427,42 @@ async def request_order_return(
         items=specs,
     )
 
+    # Persist the RMA (BE-20): the lifecycle must be durable and
+    # admin-processable, not an in-memory object lost after the response.
+    from app.modules.orders.domain.return_models import (
+        OrderReturn as OrderReturnRow,
+    )
+    from app.modules.orders.domain.return_models import (
+        OrderReturnItem as OrderReturnItemRow,
+    )
+
+    rma_number = f"RMA-{rma.created_at.strftime('%Y%m%d')}-{uuid.uuid4().hex[:6].upper()}"
+    rma_row = OrderReturnRow(
+        id=rma.id,
+        rma_number=rma_number,
+        order_id=rma.order_id,
+        user_id=rma.user_id,
+        status=rma.status.value,
+        admin_notes=rma.admin_notes,
+        created_at=rma.created_at,
+    )
+    for i in rma.items:
+        rma_row.items.append(
+            OrderReturnItemRow(
+                return_id=rma.id,
+                order_item_id=i.order_item_id,
+                variant_id=i.variant_id,
+                quantity=i.quantity,
+                reason=i.reason.value,
+                customer_notes=i.customer_notes,
+            )
+        )
+    db.add(rma_row)
+    await db.flush()
+
     return OrderReturnResponse(
         id=rma.id,
+        rma_number=rma_number,
         order_id=rma.order_id,
         user_id=rma.user_id,
         status=rma.status.value,
@@ -624,7 +658,243 @@ async def generate_unique_order_number(db: AsyncSession) -> str:
         exists = (await db.execute(exists_stmt)).scalar_one()
         if not exists:
             return candidate
+            return candidate
     # Extremely unlikely – fallback with more randomness
     suffix = "".join(random.choices(string.ascii_uppercase + string.digits, k=8))  # noqa: S311  # order numbers are not security-sensitive
     date_part = datetime.now(UTC).strftime("%Y%m%d")
     return f"ORD-{date_part}-{suffix}"
+
+
+# ══════════════════════════════════════════════════════════════════════════
+# Admin RMA processing (TASK BE-20)
+# ══════════════════════════════════════════════════════════════════════════
+
+
+def _rma_row_to_response(row: Any) -> Any:
+    """Map an OrderReturn row (with items) to the API response."""
+    from app.modules.orders.schemas.order import OrderReturnResponse, ReturnItemResponse
+
+    return OrderReturnResponse(
+        id=row.id,
+        rma_number=row.rma_number,
+        order_id=row.order_id,
+        user_id=row.user_id,
+        status=row.status,
+        items=[
+            ReturnItemResponse(
+                order_item_id=i.order_item_id,
+                variant_id=i.variant_id,
+                quantity=i.quantity,
+                reason=i.reason,
+                customer_notes=i.customer_notes,
+                inspection_outcome=i.inspection_outcome,
+            )
+            for i in (row.items or [])
+        ],
+        created_at=row.created_at,
+        approved_at=row.approved_at,
+        inspected_at=row.inspected_at,
+        refunded_at=row.refunded_at,
+        admin_notes=row.admin_notes,
+        refund_amount=row.refund_amount,
+    )
+
+
+async def admin_list_returns(
+    db: AsyncSession,
+    status_filter: str | None,
+    page: int,
+    page_size: int,
+) -> dict[str, Any]:
+    """Admin: paginated list of RMAs, newest first."""
+    from app.modules.orders.domain.return_models import OrderReturn
+
+    stmt = select(OrderReturn).order_by(OrderReturn.created_at.desc())
+    count_stmt = select(func.count()).select_from(OrderReturn)
+    if status_filter:
+        stmt = stmt.filter_by(status=status_filter)
+        count_stmt = count_stmt.filter_by(status=status_filter)
+
+    total = (await db.scalar(count_stmt)) or 0
+    rows = (await db.scalars(stmt.limit(page_size).offset((page - 1) * page_size))).all()
+    return {
+        "items": [_rma_row_to_response(r) for r in rows],
+        "total": int(total),
+        "page": page,
+        "page_size": page_size,
+    }
+
+
+async def admin_transition_return(
+    db: AsyncSession,
+    return_id: uuid.UUID,
+    target: str,
+    actor_id: uuid.UUID,
+    notes: str | None = None,
+    inspection_outcomes: dict[str, str] | None = None,
+    refund_amount: int | None = None,
+) -> Any:
+    """Admin: apply one RMA state-machine transition with full audit.
+
+    On REFUNDED, passed inspection items are restocked (P3-01) and a
+    ReturnRefunded event is published.  On APPROVED a ReturnApproved event
+    is published.  All transition rules come from the domain state machine
+    (``orders/domain/returns.py``), never from the caller.
+    """
+    from app.modules.orders.application.returns_service import ReturnsService
+    from app.modules.orders.domain.return_models import OrderReturn as OrderReturnRow
+    from app.modules.orders.domain.returns import (
+        RETURN_TRANSITIONS,
+        InspectionOutcome,
+        OrderReturnDomain,
+        ReturnItemSpec,
+        ReturnReason,
+        ReturnStatus,
+    )
+
+    try:
+        target_status = ReturnStatus(target)
+    except ValueError:
+        valid = ", ".join(s.value for s in ReturnStatus)
+        raise ValidationError(
+            f"Invalid return status '{target}'. Valid statuses: {valid}",
+            error_code="INVALID_RETURN_STATUS",
+        ) from None
+
+    safe_return_id = uuid.UUID(str(return_id))
+    row = await db.get(OrderReturnRow, safe_return_id, with_for_update=True)
+    if row is None:
+        raise NotFoundError("Return")
+
+    rma = OrderReturnDomain(
+        id=row.id,
+        order_id=row.order_id,
+        user_id=row.user_id,
+        status=ReturnStatus(row.status),
+        items=[
+            ReturnItemSpec(
+                order_item_id=i.order_item_id,
+                variant_id=i.variant_id,
+                quantity=i.quantity,
+                reason=ReturnReason(i.reason),
+                customer_notes=i.customer_notes,
+                inspection_outcome=InspectionOutcome(i.inspection_outcome)
+                if i.inspection_outcome
+                else None,
+            )
+            for i in (row.items or [])
+        ],
+        created_at=row.created_at,
+        approved_at=row.approved_at,
+        inspected_at=row.inspected_at,
+        refunded_at=row.refunded_at,
+        admin_notes=row.admin_notes,
+        refund_amount=row.refund_amount,
+    )
+
+    # Pre-check with the domain machine so an illegal move is a clean 422
+    # (the domain transition would otherwise raise a bare ValueError).
+    if not rma.can_transition_to(target_status):
+        allowed = ", ".join(s.value for s in RETURN_TRANSITIONS.get(rma.status, frozenset()))
+        raise ValidationError(
+            f"Cannot transition return from '{rma.status.value}' to "
+            f"'{target_status.value}'. Allowed: {allowed}",
+            error_code="INVALID_RETURN_TRANSITION",
+        )
+
+    service = ReturnsService(return_window_days=7)
+    if target_status == ReturnStatus.APPROVED:
+        service.approve_return(rma, notes)
+    elif target_status == ReturnStatus.REJECTED:
+        service.reject_return(rma, notes or "")
+    elif target_status == ReturnStatus.RECEIVED:
+        service.mark_received(rma)
+    elif target_status == ReturnStatus.INSPECTED:
+        outcomes: dict[uuid.UUID, Any] = {}
+        if inspection_outcomes:
+            for item_id_str, outcome_str in inspection_outcomes.items():
+                outcomes[uuid.UUID(item_id_str)] = InspectionOutcome(outcome_str)
+        service.complete_inspection(rma, outcomes, notes)
+    elif target_status == ReturnStatus.REFUNDED:
+        service.process_refund(rma, refund_amount or 0)
+    else:
+        # CLOSED / REPLACED
+        rma.transition_to(target_status, notes)
+
+    # Persist transition results
+    row.status = rma.status.value
+    if notes:
+        row.admin_notes = notes
+    row.approved_at = rma.approved_at
+    row.inspected_at = rma.inspected_at
+    row.refunded_at = rma.refunded_at
+    row.refund_amount = rma.refund_amount
+    if target_status == ReturnStatus.INSPECTED:
+        outcome_by_item = {i.order_item_id: i.inspection_outcome for i in rma.items}
+        for item_row in row.items or []:
+            outcome = outcome_by_item.get(item_row.order_item_id)
+            item_row.inspection_outcome = outcome.value if outcome else None
+    await db.flush()
+
+    # Restock passed items when the return is financially settled (P3-01)
+    if target_status == ReturnStatus.REFUNDED:
+        from app.modules.inventory.application import inventory_service
+
+        entries = [
+            (i.variant_id, i.quantity)
+            for i in rma.items
+            if i.inspection_outcome == InspectionOutcome.PASSED
+        ]
+        if entries:
+            try:
+                await inventory_service.restock_returned_items(db, entries)
+            except Exception as exc:
+                await logger.aerror(
+                    "return_restock_failed",
+                    return_id=str(row.id),
+                    error=str(exc),
+                )
+
+    # Lifecycle events
+    try:
+        from app.shared.events.outbox_service import OutboxService
+
+        if target_status == ReturnStatus.APPROVED:
+            await OutboxService.publish(
+                db,
+                event_type="ReturnApproved",
+                aggregate_type="return",
+                aggregate_id=str(row.id),
+                payload={
+                    "return_id": str(row.id),
+                    "order_id": str(row.order_id),
+                    "rma_number": row.rma_number,
+                },
+            )
+        elif target_status == ReturnStatus.REFUNDED:
+            await OutboxService.publish(
+                db,
+                event_type="ReturnRefunded",
+                aggregate_type="return",
+                aggregate_id=str(row.id),
+                payload={
+                    "return_id": str(row.id),
+                    "order_id": str(row.order_id),
+                    "rma_number": row.rma_number,
+                    "refund_amount": row.refund_amount,
+                },
+            )
+    except Exception as exc:
+        await logger.awarning(
+            "return_event_publish_skipped",
+            return_id=str(row.id),
+            error=str(exc),
+        )
+
+    await logger.ainfo(
+        "return_transitioned",
+        return_id=str(row.id),
+        to_status=target_status.value,
+        actor_id=str(actor_id),
+    )
+    return _rma_row_to_response(row)

@@ -21,6 +21,8 @@ from app.core.security.rate_limiter import limiter
 from app.modules.orders.application import invoice_service, order_service
 from app.modules.orders.schemas.order import (
     AdminOrderUpdateRequest,
+    AdminReturnActionRequest,
+    AdminReturnListResponse,
     OrderCancelRequest,
     OrderFilterParams,
     OrderListResponse,
@@ -235,4 +237,55 @@ async def admin_update_order_status(
         new_status=body.status,
         actor_id=actor_id,
         reason=body.notes,
+    )
+
+
+# ── Admin RMA processing (TASK BE-20) ────────────────────────────────────
+
+
+@router.get(
+    "/admin/returns",
+    response_model=AdminReturnListResponse,
+    summary="Admin — list customer return requests (RMA)",
+    dependencies=[Depends(RequirePermissions("orders:read"))],
+)
+async def admin_list_returns(
+    db: AsyncSession = Depends(get_db),
+    status_filter: str | None = Query(None, alias="status"),
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=100),
+) -> AdminReturnListResponse:
+    result = await order_service.admin_list_returns(
+        db,
+        status_filter=status_filter,
+        page=page,
+        page_size=page_size,
+    )
+    return AdminReturnListResponse(**result)
+
+
+@router.post(
+    "/admin/returns/{return_id}/transition",
+    response_model=OrderReturnResponse,
+    summary="Admin — apply one RMA state-machine transition",
+    dependencies=[Depends(RequirePermissions("orders:write"))],
+)
+async def admin_transition_return(
+    return_id: uuid.UUID,
+    body: AdminReturnActionRequest,
+    db: AsyncSession = Depends(get_db),
+    actor_id: uuid.UUID = Depends(get_current_user_id),
+) -> OrderReturnResponse:
+    """Move an RMA through its lifecycle: approve → receive → inspect →
+    refund/replaced → close.  Transition rules are enforced by the domain
+    state machine; REFUNDED also restocks passed inspection items.
+    """
+    return await order_service.admin_transition_return(
+        db,
+        return_id=return_id,
+        target=body.target,
+        actor_id=actor_id,
+        notes=body.notes,
+        inspection_outcomes=body.inspection_outcomes,
+        refund_amount=body.refund_amount,
     )

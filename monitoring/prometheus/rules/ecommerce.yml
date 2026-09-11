@@ -1,0 +1,70 @@
+# Prometheus alert rules for the Iranian E-Commerce platform (TASK P11-02).
+# Metric names match backend/app/core/observability/metrics.py exactly.
+# Route these through Alertmanager (see docker-compose monitoring stack).
+
+groups:
+  - name: availability
+    rules:
+      - alert: BackendScrapeDown
+        expr: up{job="backend"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Backend is unreachable or /metrics is failing"
+          description: "Prometheus could not scrape the backend for 2 minutes. Check container health and /readyz."
+
+      - alert: FrontendScrapeDown
+        expr: up{job="frontend"} == 0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Frontend scrape target is down"
+
+  - name: http-errors
+    rules:
+      - alert: BackendHighErrorRate
+        expr: |
+          sum(rate(http_requests_total{status_code=~"5.."}[5m]))
+            / clamp_min(sum(rate(http_requests_total[5m])), 0.001) > 0.05
+        for: 10m
+        labels:
+          severity: critical
+        annotations:
+          summary: "5xx rate above 5% for 10 minutes"
+          description: "Investigate backend logs; check /deep-health for dependency status."
+
+      - alert: BackendSlowRequests
+        expr: |
+          histogram_quantile(
+            0.95,
+            sum(rate(http_request_duration_seconds_bucket[5m])) by (le)
+          ) > 2.5
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "P95 latency above 2.5s for 15 minutes"
+
+  - name: payments
+    rules:
+      - alert: PaymentVerifyFailuresSpiking
+        expr: |
+          sum(rate(http_requests_total{endpoint=~".*/payments/.*verify.*", status_code=~"5.."}[10m])) > 0
+        for: 10m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Payment verification returning 5xx"
+          description: "Customers may pay without receiving order confirmation. Check gateway connectivity and payment logs."
+
+  - name: database
+    rules:
+      - alert: DbPoolExhausted
+        expr: db_pool_checked_out{job="backend"} >= db_pool_size{job="backend"} * 0.9
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "DB connection pool above 90% utilization"

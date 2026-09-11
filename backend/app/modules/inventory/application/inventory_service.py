@@ -582,3 +582,50 @@ async def restock_order(db: AsyncSession, order_id: uuid.UUID) -> int:
             units_restocked=restocked,
         )
     return restocked
+
+
+async def restock_returned_items(
+    db: AsyncSession,
+    entries: list[tuple[uuid.UUID, int]],
+) -> int:
+    """Return inspected-and-passed return items to available inventory.
+
+    Each entry is ``(variant_id, quantity)``.  Committed stock is moved back
+    to available (the order's committed units are still held when an order is
+    delivered/completed, so returning them from ``committed`` is correct).
+    Returns the number of units restocked.
+    """
+    restocked = 0
+    for variant_id, quantity in entries:
+        safe_variant_id = uuid.UUID(str(variant_id))
+        safe_quantity = int(quantity)
+        if safe_quantity <= 0:
+            continue
+        item_stmt = select(InventoryItem).filter_by(variant_id=safe_variant_id).with_for_update()
+        item = await db.scalar(item_stmt)
+        if item is None or item.committed < safe_quantity:
+            await logger.awarning(
+                "return_restock_skipped",
+                variant_id=str(safe_variant_id),
+                quantity=safe_quantity,
+                committed=item.committed if item is not None else None,
+            )
+            continue
+        item.committed -= safe_quantity
+        item.available += safe_quantity
+        restocked += safe_quantity
+
+        await _record_transaction(
+            db,
+            inventory_item_id=item.id,
+            quantity=safe_quantity,
+            tx_type=TransactionType.RETURNED,
+            reference_type="return_restock",
+            reference_id=safe_variant_id,
+            notes="Stock returned to available after passed return inspection",
+        )
+
+    if restocked:
+        await db.flush()
+        await logger.ainfo("return_items_restocked", units_restocked=restocked)
+    return restocked

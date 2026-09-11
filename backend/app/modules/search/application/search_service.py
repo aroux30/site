@@ -10,7 +10,7 @@ import math
 from typing import TYPE_CHECKING, Any
 
 import structlog
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import joinedload
 
 from app.core.cache.redis import get_redis
@@ -243,7 +243,12 @@ class SearchService:
         # Build index documents
         docs: list[dict[str, Any]] = []
         for product in products:
-            doc = self._product_to_doc(product)
+            rating_avg, rating_count = await self._get_rating_aggregate(db, product.id)
+            doc = self._product_to_doc(
+                product,
+                rating_average=rating_avg,
+                rating_count=rating_count,
+            )
             docs.append(doc)
 
         if not docs:
@@ -507,7 +512,35 @@ class SearchService:
         )
 
     @staticmethod
-    def _product_to_doc(product: Product) -> dict[str, Any]:
+    async def _get_rating_aggregate(
+        session: AsyncSession, product_id: Any
+    ) -> tuple[float | None, int]:
+        """Average rating and review count over approved reviews.
+
+        TASK P7-02: the index previously hardcoded ``rating_average=None``,
+        so rating sort/filter facets never had real data.
+        """
+        from app.modules.reviews.domain.models import Review, ReviewStatus
+
+        stmt = (
+            select(
+                func.coalesce(func.avg(Review.rating), 0.0),
+                func.count(Review.id),
+            )
+            .where(Review.product_id == product_id)
+            .where(Review.status == ReviewStatus.APPROVED)
+        )
+        result = await session.execute(stmt)
+        avg_rating, review_count = result.one()
+        avg_val = round(float(avg_rating), 2) if avg_rating else None
+        return avg_val, int(review_count or 0)
+
+    @staticmethod
+    def _product_to_doc(
+        product: Product,
+        rating_average: float | None = None,
+        rating_count: int = 0,
+    ) -> dict[str, Any]:
         """Convert a SQLAlchemy Product model to an indexable document."""
         # Find primary/lowest-price variant
         price = 0
@@ -553,7 +586,7 @@ class SearchService:
             "brand_slug": product.brand.slug if product.brand else None,
             "price": price,
             "compare_at_price": compare_at_price,
-            "rating_average": None,  # Populated by review service
+            "rating_average": rating_average,
             "rating_count": 0,
             "tags": tags,
             "attributes": attributes,

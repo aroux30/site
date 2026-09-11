@@ -180,6 +180,9 @@ def _include_routers(app: FastAPI, prefix: str) -> None:
             if router is None:
                 raise AttributeError(f"Module '{module_path}' has no 'router' attribute")
             app.include_router(router, prefix=f"{prefix}{url_prefix}", tags=tags)
+            # Legacy root-level aliases (hidden from OpenAPI): kept for
+            # backward compatibility with pre-/api/v1 consumers. Not
+            # duplicates of the /api/v1/* mounts — different public paths.
             if url_prefix == "/seo":
                 app.include_router(router, prefix="/seo", include_in_schema=False)
             elif url_prefix == "/vendors":

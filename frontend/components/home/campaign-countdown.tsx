@@ -52,22 +52,28 @@ export function CampaignCountdown({
   return (
     <div className="flex items-center gap-3">
       {timeLeft.isEnded ? (
-        <span className="text-sm font-bold text-rose-500">مهلت جشنواره به پایان رسید</span>
+        <span className="text-sm font-bold text-rose-400">مهلت جشنواره به پایان رسید</span>
       ) : (
-        <div className="flex items-center gap-2 font-mono text-lg font-bold">
-          <div className="bg-background/80 dark:bg-slate-900/90 backdrop-blur-md px-3 py-1.5 rounded-xl border border-border/80 text-foreground shadow-sm">
-            <span>{toPersianDigits(String(timeLeft.hours).padStart(2, "0"))}</span>
-            <span className="text-xs font-normal text-muted-foreground mr-1">ساعت</span>
+        <div className="flex items-center gap-2.5 font-sans">
+          <div className="bg-slate-800/95 backdrop-blur-md px-3.5 py-2 rounded-2xl border border-emerald-500/40 text-white shadow-lg ring-1 ring-white/10 flex items-center">
+            <span className="font-black text-xl text-emerald-400 tabular-nums">
+              {toPersianDigits(String(timeLeft.hours).padStart(2, "0"))}
+            </span>
+            <span className="text-xs font-semibold text-slate-300 mr-1.5">ساعت</span>
           </div>
-          <span className="text-emerald-500 font-bold">:</span>
-          <div className="bg-background/80 dark:bg-slate-900/90 backdrop-blur-md px-3 py-1.5 rounded-xl border border-border/80 text-foreground shadow-sm">
-            <span>{toPersianDigits(String(timeLeft.minutes).padStart(2, "0"))}</span>
-            <span className="text-xs font-normal text-muted-foreground mr-1">دقیقه</span>
+          <span className="text-emerald-400 font-black text-lg animate-pulse">:</span>
+          <div className="bg-slate-800/95 backdrop-blur-md px-3.5 py-2 rounded-2xl border border-emerald-500/40 text-white shadow-lg ring-1 ring-white/10 flex items-center">
+            <span className="font-black text-xl text-emerald-400 tabular-nums">
+              {toPersianDigits(String(timeLeft.minutes).padStart(2, "0"))}
+            </span>
+            <span className="text-xs font-semibold text-slate-300 mr-1.5">دقیقه</span>
           </div>
-          <span className="text-emerald-500 font-bold">:</span>
-          <div className="bg-background/80 dark:bg-slate-900/90 backdrop-blur-md px-3 py-1.5 rounded-xl border border-border/80 text-emerald-600 dark:text-emerald-400 shadow-sm">
-            <span>{toPersianDigits(String(timeLeft.seconds).padStart(2, "0"))}</span>
-            <span className="text-xs font-normal text-muted-foreground mr-1">ثانیه</span>
+          <span className="text-emerald-400 font-black text-lg animate-pulse">:</span>
+          <div className="bg-slate-800/95 backdrop-blur-md px-3.5 py-2 rounded-2xl border border-emerald-500/40 text-white shadow-lg ring-1 ring-white/10 flex items-center">
+            <span className="font-black text-xl text-emerald-400 tabular-nums">
+              {toPersianDigits(String(timeLeft.seconds).padStart(2, "0"))}
+            </span>
+            <span className="text-xs font-semibold text-slate-300 mr-1.5">ثانیه</span>
           </div>
         </div>
       )}

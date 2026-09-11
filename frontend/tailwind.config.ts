@@ -78,6 +78,7 @@ const config: Config = {
       },
       fontFamily: {
         sans: ["var(--font-vazirmatn)", "Vazirmatn", "Tahoma", "sans-serif"],
+        mono: ["var(--font-vazirmatn)", "ui-monospace", "Consolas", "Courier New", "monospace"],
       },
       borderRadius: {
         lg: "var(--radius)",

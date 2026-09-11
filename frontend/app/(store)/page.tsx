@@ -273,12 +273,18 @@ export default function HomePage() {
                 <h3 className="text-2xl sm:text-4xl font-black leading-tight">
                   تا ۱۵٪ تخفیف + ارسال کاملاً رایگان سفارشات
                 </h3>
-                <p className="text-slate-300 text-sm sm:text-base max-w-xl leading-relaxed">
-                  با استفاده از کوپن تخفیف <span className="font-mono font-bold text-amber-300 bg-white/10 px-2 py-0.5 rounded">WELCOME</span> در مرحله چک‌اوت از تخفیف ویژه بهره‌مند شوید.
+                <p className="text-slate-200 text-sm sm:text-base max-w-xl leading-relaxed">
+                  با استفاده از کوپن تخفیف{" "}
+                  <span className="font-mono font-black text-amber-300 bg-amber-400/15 border border-amber-400/30 px-2.5 py-0.5 rounded-lg tracking-wider">
+                    WELCOME
+                  </span>{" "}
+                  در مرحله چک‌اوت از تخفیف ویژه بهره‌مند شوید.
                 </p>
                 {/* Client Countdown Island */}
                 <div className="pt-2">
-                  <span className="text-xs text-slate-400 block mb-2 font-medium">زمان باقی‌مانده تا پایان کمپین:</span>
+                  <span className="text-xs text-slate-300 block mb-2 font-semibold">
+                    زمان باقی‌مانده تا پایان کمپین:
+                  </span>
                   <CampaignCountdown />
                 </div>
               </div>

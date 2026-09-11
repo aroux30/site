@@ -238,7 +238,7 @@ export function Header() {
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-1.5">
               <Phone className="h-3 w-3" />
-              <span dir="ltr" className="font-mono tracking-wider">
+              <span dir="ltr" className="font-sans font-bold tabular-nums tracking-normal">
                 ۰۲۱-۸۸۸۸۹۹۹۹
               </span>
             </div>
@@ -253,9 +253,9 @@ export function Header() {
             </span>
             <Link
               href="/rewards"
-              className="flex items-center gap-1 font-bold text-amber-200 hover:text-white transition-colors bg-white/10 hover:bg-white/20 px-2.5 py-0.5 rounded-full"
+              className="flex items-center gap-1.5 font-bold text-xs text-amber-950 bg-amber-300 hover:bg-amber-200 px-3 py-0.5 rounded-full shadow-xs transition-colors"
             >
-              <Sparkles className="h-3 w-3 text-amber-300 animate-pulse" />
+              <Sparkles className="h-3.5 w-3.5 text-amber-900 animate-pulse" />
               <span>گردونه شانس و جوایز</span>
             </Link>
           </div>
@@ -807,7 +807,7 @@ export function Header() {
         {/* Drawer Footer */}
         <div className="border-t border-border px-4 py-4 text-xs text-muted-foreground flex items-center justify-between">
           <span>پشتیبانی تلفنی</span>
-          <span dir="ltr" className="font-mono font-medium">
+          <span dir="ltr" className="font-sans font-bold tabular-nums">
             ۰۲۱-۸۸۸۸۹۹۹۹
           </span>
         </div>

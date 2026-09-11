@@ -76,6 +76,14 @@
     font-feature-settings: "ss01", "cv01";
   }
 
+  ::selection {
+    @apply bg-primary/20 text-foreground;
+  }
+
+  :focus-visible {
+    @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
+  }
+
   /* RTL-specific adjustments */
   [dir="rtl"] input[type="search"]::-webkit-search-cancel-button {
     -webkit-appearance: none;

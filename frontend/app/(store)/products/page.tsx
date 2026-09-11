@@ -33,6 +33,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { formatPrice, toPersianDigits, cn } from "@/lib/utils";
+import { playAddToCartChime } from "@/lib/audio-effects";
 import { useCart } from "@/hooks/use-cart";
 import { useCompareStore } from "@/stores/compare-store";
 import type { Product } from "@/types/product";
@@ -252,6 +253,7 @@ function ProductCard({ product }: { product: ApiProduct }) {
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    playAddToCartChime();
     addToCart({
       productId: product.id,
       title: product.name,
@@ -1103,39 +1105,33 @@ function ProductsListContent() {
         </div>
       </div>
 
-      {/* Mobile Filters Drawer / Modal */}
-      {mobileFilterOpen && (
-        <div className="fixed inset-0 z-50 flex lg:hidden">
-          <div
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm"
-            onClick={() => setMobileFilterOpen(false)}
-          />
-          <div className="relative mr-auto flex h-full w-full max-w-xs flex-col bg-background p-5 shadow-2xl overflow-y-auto">
-            <div className="flex items-center justify-between pb-4 border-b border-border mb-4">
-              <div className="flex items-center gap-2">
-                <SlidersHorizontal className="h-5 w-5 text-primary" />
-                <h2 className="text-base font-bold text-foreground">فیلتر کالاها</h2>
-              </div>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setMobileFilterOpen(false)}
-              >
-                <X className="h-5 w-5" />
-              </Button>
-            </div>
-            {FilterSidebar}
-            <div className="mt-6 pt-4 border-t border-border">
-              <Button
-                className="w-full rounded-xl"
-                onClick={() => setMobileFilterOpen(false)}
-              >
-                مشاهده نتایج
-              </Button>
-            </div>
+      {/* Mobile Filters Sheet (RTL-aware, accessible) */}
+      <Sheet open={mobileFilterOpen} onOpenChange={setMobileFilterOpen}>
+        <SheetContent
+          side="right"
+          className="flex h-full w-full max-w-xs flex-col overflow-y-auto p-5 lg:hidden"
+          aria-label="فیلتر کالاها"
+        >
+          <SheetHeader className="mb-4 border-b border-border pb-4 text-start">
+            <SheetTitle className="flex items-center gap-2 text-base font-bold">
+              <SlidersHorizontal className="h-5 w-5 text-primary" />
+              فیلتر کالاها
+            </SheetTitle>
+            <SheetDescription className="text-xs">
+              دسته‌بندی، برند و محدوده قیمت را انتخاب کنید
+            </SheetDescription>
+          </SheetHeader>
+          {FilterSidebar}
+          <div className="mt-6 border-t border-border pt-4">
+            <Button
+              className="w-full rounded-xl"
+              onClick={() => setMobileFilterOpen(false)}
+            >
+              مشاهده نتایج
+            </Button>
           </div>
-        </div>
-      )}
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }

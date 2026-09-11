@@ -93,7 +93,19 @@ class SearchService:
             },
         }
 
-        raw = await self._es.search(body)
+        try:
+            raw = await self._es.search(body)
+        except Exception as exc:
+            await logger.awarning("elasticsearch_search_failed", error=str(exc), query=query)
+            return SearchResponse(
+                results=[],
+                total=0,
+                page=page,
+                size=size,
+                total_pages=0,
+                facets=SearchFacets(),
+                query=query,
+            )
 
         # Track query for popular searches (fire-and-forget)
         await self._track_search_query(query)
@@ -145,8 +157,12 @@ class SearchService:
             "_source": ["id", "name", "slug", "image_url"],
         }
 
-        raw = await self._es.search(body)
-        hits = raw.get("hits", {}).get("hits", [])
+        try:
+            raw = await self._es.search(body)
+            hits = raw.get("hits", {}).get("hits", [])
+        except Exception as exc:
+            await logger.awarning("elasticsearch_suggest_failed", error=str(exc), query=query)
+            hits = []
 
         suggestions = [
             SearchSuggestion(

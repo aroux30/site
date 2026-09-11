@@ -1566,12 +1566,26 @@ export default function CheckoutPage() {
               </label>
               <Input
                 value={addressForm.postal_code}
-                onChange={(e) => setAddressForm({ ...addressForm, postal_code: e.target.value })}
+                onChange={(e) => {
+                  const digits = e.target.value.replace(/\D/g, "").slice(0, 10);
+                  setAddressForm({ ...addressForm, postal_code: digits });
+                }}
+                onBlur={() =>
+                  setAddressForm((prev) => ({
+                    ...prev,
+                    postal_code: prev.postal_code.replace(/\D/g, "").slice(0, 10),
+                  }))
+                }
                 placeholder="1234567890"
                 dir="ltr"
+                inputMode="numeric"
                 maxLength={10}
                 required
+                aria-describedby="postal-format-hint"
               />
+              <p id="postal-format-hint" className="mt-1 text-[11px] text-muted-foreground">
+                الگوی رسمی پست ایران: ۱۰ رقم عددی (مثال: {formatPostalCode("1234567890")})
+              </p>
             </div>
 
             <div>

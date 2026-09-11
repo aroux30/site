@@ -36,6 +36,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatPrice, toPersianDigits } from "@/lib/utils";
+import { playAddToCartChime } from "@/lib/audio-effects";
 import { useCart } from "@/hooks/use-cart";
 import { useAuth } from "@/hooks/use-auth";
 import { useCompareStore } from "@/stores/compare-store";
@@ -384,6 +385,8 @@ export default function ProductDetailPage() {
   // Handle Add to Cart
   const handleAddToCart = () => {
     if (isOutOfStock) return;
+
+    playAddToCartChime();
 
     let variantTitle = "";
     if (currentVariant?.attributes) {
@@ -1340,6 +1343,31 @@ export default function ProductDetailPage() {
             </div>
           </TabsContent>
         </Tabs>
+      </section>
+
+      {/* Trust & Authenticity Strip */}
+      <section aria-label="تضمین‌های خرید" className="mb-16">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {[
+            { icon: Truck, title: "ارسال سریع سراسری", desc: "تحویل ۱ تا ۳ روز کاری" },
+            { icon: Shield, title: "ضمانت اصالت ۱۰۰٪", desc: "گارانتی رسمی شرکتی" },
+            { icon: RotateCcw, title: "۷ روز مهلت بازگشت", desc: "بدون قید و شرط" },
+            { icon: Headphones, title: "پشتیبانی ۲۴/۷", desc: "مشاوره تخصصی خرید" },
+          ].map((item) => (
+            <div
+              key={item.title}
+              className="flex items-center gap-3 rounded-2xl border border-border bg-card p-4 shadow-sm transition-shadow hover:shadow-md"
+            >
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                <item.icon className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="text-xs font-bold text-foreground sm:text-sm">{item.title}</p>
+                <p className="mt-0.5 text-[11px] text-muted-foreground sm:text-xs">{item.desc}</p>
+              </div>
+            </div>
+          ))}
+        </div>
       </section>
 
       {/* Sticky Mobile Add-To-Cart Bar (Digikala & Tier S standard) */}

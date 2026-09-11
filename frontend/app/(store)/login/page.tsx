@@ -332,10 +332,11 @@ function LoginForm() {
                         onClick={() => {
                           setActiveTab("otp");
                           if (!otpPhone && phone) setOtpPhone(phone);
+                          setPasswordError(null);
                         }}
                         className="text-[11px] text-primary hover:underline"
                       >
-                        ورود با کد یکبار مصرف
+                        رمز عبور را فراموش کرده‌ام؟ ورود با کد یکبار مصرف
                       </button>
                     </div>
                     <div className="relative">

@@ -126,8 +126,13 @@ export function useBrands(params?: {
   });
 }
 
-/** Fetch cart. staleTime: 30s, refetchOnWindowFocus: true */
-export function useCart() {
+/**
+ * Fetch the server-side cart snapshot.
+ * NOTE: named `useCartQuery` to avoid colliding with the richer
+ * Zustand-backed `useCart` hook in `@/hooks/use-cart`.
+ * staleTime: 30s, refetchOnWindowFocus: true
+ */
+export function useCartQuery() {
   return useQuery({
     queryKey: queryKeys.cart.current,
     queryFn: async () => {

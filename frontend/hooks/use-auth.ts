@@ -95,14 +95,12 @@ export function useAuth() {
         // Silently handle error on mount if session is invalid/expired
       });
     } else if (!store.isAuthenticated) {
-      // Even without persisted auth flag, try to fetch in case a valid cookie exists
-      if (token) {
-        fetchCurrentUser().catch(() => {
-          store.setLoading(false);
-        });
-      } else {
+      // No persisted auth flag: still ask the server. The httpOnly session
+      // cookie may be valid even when the mirror JS cookie is unavailable
+      // (e.g. blocked document.cookie), and a 401 just clears state safely.
+      fetchCurrentUser().catch(() => {
         store.setLoading(false);
-      }
+      });
     } else {
       store.setLoading(false);
     }

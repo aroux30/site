@@ -139,6 +139,7 @@ temp/
 .agents/
 .zap/
 .zcode/
+.mimosa/
 video_analysis/
 video_frames/
 video_raw/

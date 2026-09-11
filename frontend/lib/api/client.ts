@@ -63,13 +63,18 @@ const apiClient: AxiosInstance = axios.create({
   withCredentials: true,
 });
 
-// Request interceptor: attach session ID header (auth is handled by cookies)
+// Request interceptor: attach session ID header and Authorization header if cookie exists
 apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     if (typeof window !== "undefined") {
       const sessionId = sessionStore.getOrCreateSessionId();
       if (sessionId && config.headers && !config.headers["X-Session-ID"]) {
         config.headers["X-Session-ID"] = sessionId;
+      }
+      // Dual-channel auth: also attach Authorization header if access_token cookie is accessible
+      const cookieMatch = document.cookie.match(/(?:^|;\s*)access_token=([^;]+)/);
+      if (cookieMatch && cookieMatch[1] && config.headers && !config.headers["Authorization"]) {
+        config.headers["Authorization"] = `Bearer ${decodeURIComponent(cookieMatch[1])}`;
       }
     }
     return config;

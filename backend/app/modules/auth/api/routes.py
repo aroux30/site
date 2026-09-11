@@ -12,6 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.config.settings import get_settings
 from app.core.database.session import get_db
 from app.core.security.dependencies import get_current_user_id
+from app.core.security.rate_limiter import limiter
 from app.modules.auth.application import auth_service
 from app.modules.auth.schemas.auth import (
     ChangePasswordRequest,
@@ -39,7 +40,7 @@ def _set_auth_cookies(response: Response, access_token: str, refresh_token: str)
         httponly=True,
         secure=True,
         samesite="lax",
-        path="/api/",
+        path="/",
         max_age=_settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
     )
     response.set_cookie(
@@ -48,7 +49,7 @@ def _set_auth_cookies(response: Response, access_token: str, refresh_token: str)
         httponly=True,
         secure=True,
         samesite="lax",
-        path="/api/v1/auth/refresh",
+        path="/",
         max_age=_settings.REFRESH_TOKEN_EXPIRE_DAYS * 86400,
     )
 
@@ -61,7 +62,7 @@ def _clear_auth_cookies(response: Response) -> None:
         httponly=True,
         secure=True,
         samesite="lax",
-        path="/api/",
+        path="/",
         max_age=0,
     )
     response.set_cookie(
@@ -70,7 +71,7 @@ def _clear_auth_cookies(response: Response) -> None:
         httponly=True,
         secure=True,
         samesite="lax",
-        path="/api/v1/auth/refresh",
+        path="/",
         max_age=0,
     )
 
@@ -120,9 +121,10 @@ async def register(
     response_model=TokenResponse,
     summary="Login with phone and password",
 )
+@limiter.limit("5/minute")
 async def login(
-    body: LoginRequest,
     request: Request,
+    body: LoginRequest,
     response: Response,
     db: AsyncSession = Depends(get_db),
 ) -> TokenResponse:
@@ -145,9 +147,10 @@ async def login(
     status_code=status.HTTP_200_OK,
     summary="Request a one-time password",
 )
+@limiter.limit("3/minute")
 async def otp_request(
-    body: OTPRequestSchema,
     request: Request,
+    body: OTPRequestSchema,
     db: AsyncSession = Depends(get_db),
 ) -> dict[str, Any]:
     return await auth_service.request_otp(
@@ -195,7 +198,6 @@ async def refresh(
     db: AsyncSession = Depends(get_db),
     refresh_token: str | None = Cookie(default=None),
 ) -> TokenResponse:
-    # Prefer token from request body (API clients), fall back to cookie (browsers)
     token = (body.refresh_token if body and body.refresh_token else None) or refresh_token
     if not token:
         from fastapi import HTTPException

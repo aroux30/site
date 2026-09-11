@@ -21,6 +21,11 @@ import type {
 function mapProfileToUser(data: UserProfileResponse): User {
   const fullName =
     [data.first_name, data.last_name].filter(Boolean).join(" ") || null;
+  const isAdmin = Boolean(
+    data.is_superuser ||
+      data.roles?.includes("super_admin") ||
+      data.roles?.includes("admin"),
+  );
   return {
     ...data,
     name: fullName,
@@ -28,6 +33,9 @@ function mapProfileToUser(data: UserProfileResponse): User {
     lastName: data.last_name,
     fullName: fullName || data.phone,
     isActive: data.is_active,
+    is_superuser: data.is_superuser,
+    roles: data.roles || [],
+    role: isAdmin ? "admin" : "customer",
   };
 }
 
@@ -88,10 +96,13 @@ export function useAuth() {
 
   const login = useCallback(
     async (credentials: LoginRequest) => {
-      await apiClient.post<TokenResponse>("/auth/login", {
+      const { data } = await apiClient.post<TokenResponse>("/auth/login", {
         phone: credentials.phone,
         password: credentials.password,
       });
+      if (typeof document !== "undefined" && data?.access_token) {
+        document.cookie = `access_token=${data.access_token}; path=/; max-age=1800; SameSite=Lax; Secure`;
+      }
       return await handleAuthSuccess();
     },
     [handleAuthSuccess],
@@ -99,12 +110,15 @@ export function useAuth() {
 
   const register = useCallback(
     async (userData: RegisterRequest) => {
-      await apiClient.post<TokenResponse>("/auth/register", {
+      const { data } = await apiClient.post<TokenResponse>("/auth/register", {
         phone: userData.phone,
         password: userData.password,
         first_name: userData.first_name || userData.firstName || "",
         last_name: userData.last_name || userData.lastName || "",
       });
+      if (typeof document !== "undefined" && data?.access_token) {
+        document.cookie = `access_token=${data.access_token}; path=/; max-age=1800; SameSite=Lax; Secure`;
+      }
       return await handleAuthSuccess();
     },
     [handleAuthSuccess],
@@ -125,13 +139,16 @@ export function useAuth() {
 
   const verifyOtp = useCallback(
     async (request: OtpVerifyRequest) => {
-      await apiClient.post<TokenResponse>(
+      const { data } = await apiClient.post<TokenResponse>(
         "/auth/otp/verify",
         {
           phone: request.phone,
           code: request.code,
         },
       );
+      if (typeof document !== "undefined" && data?.access_token) {
+        document.cookie = `access_token=${data.access_token}; path=/; max-age=1800; SameSite=Lax; Secure`;
+      }
       return await handleAuthSuccess();
     },
     [handleAuthSuccess],
@@ -143,6 +160,9 @@ export function useAuth() {
     } catch {
       // Silently fail - we clear local state regardless
     } finally {
+      if (typeof document !== "undefined") {
+        document.cookie = "access_token=; path=/; max-age=0; SameSite=Lax; Secure";
+      }
       store.logout();
     }
   }, [store]);

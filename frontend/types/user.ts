@@ -19,6 +19,9 @@ export interface User {
   fullName?: string | null;
   avatar?: string;
   role?: UserRole;
+  roles?: string[];
+  permissions?: string[];
+  is_superuser?: boolean;
   isActive?: boolean;
   isEmailVerified?: boolean;
   isPhoneVerified?: boolean;
@@ -79,6 +82,9 @@ export interface UserProfileResponse {
   gender?: string | null;
   is_active: boolean;
   is_verified: boolean;
+  is_superuser?: boolean;
+  roles?: string[];
+  permissions?: string[];
   created_at: string;
 }
 

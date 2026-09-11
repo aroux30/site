@@ -14,6 +14,7 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
+import { useAuthStore } from "@/stores/auth-store";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -36,7 +37,7 @@ function RegisterForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { toast } = useToast();
-  const { register, isAuthenticated, isLoading: isAuthLoading } = useAuth();
+  const { register, isAuthenticated, isLoading: isAuthLoading, user } = useAuth();
 
   const redirectUrl = searchParams.get("redirect") || "/account";
 
@@ -56,12 +57,19 @@ function RegisterForm() {
 
   const [, startTransition] = useTransition();
 
-  // If already authenticated, redirect
+  // Break redirect loops: if user arrived via redirect but has no active cookie/user, reset stale state
   useEffect(() => {
-    if (isAuthenticated && !isAuthLoading) {
+    if (searchParams.get("redirect") && (!user || (typeof document !== "undefined" && !document.cookie.includes("access_token=")))) {
+      useAuthStore.getState().logout();
+    }
+  }, [searchParams, user]);
+
+  // If already authenticated with confirmed user profile, redirect
+  useEffect(() => {
+    if (isAuthenticated && !isAuthLoading && user) {
       router.replace(redirectUrl);
     }
-  }, [isAuthenticated, isAuthLoading, redirectUrl, router]);
+  }, [isAuthenticated, isAuthLoading, user, redirectUrl, router]);
 
   // Validation function
   const validate = (): boolean => {

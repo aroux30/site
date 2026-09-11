@@ -43,8 +43,8 @@
 | **Security** | **VERIFIED** | **9.8 / 10** | HttpOnly Secure SameSite=Lax cookies, Argon2id, row-level locks, production secret validation, zero IDOR. | VERY_HIGH | Periodic external penetration testing |
 | **Observability**| **VERIFIED** | **9.8 / 10** | `/healthz` (liveness), `/readyz` (4 dependencies), `/deep-health` (latency breakdown), Prometheus metrics. | VERY_HIGH | None |
 | **Performance** | **VERIFIED** | **9.7 / 10** | Redis latency 0.27ms, PostgreSQL query latency 4.11ms, Elasticsearch 12.67ms, Next.js home chunk 8.74kB. | VERY_HIGH | None |
-| **Testing** | **VERIFIED** | **9.9 / 10** | 146 automated backend tests (100% pass) including real PostgreSQL concurrency + 16 frontend tests (100% pass). | VERY_HIGH | None |
-| **CI/CD** | **PARTIAL** | **8.5 / 10** | Workflows configured (`ci.yml`, `deploy.yml`); GitHub push pending repository token `workflow` scope. | MEDIUM | Enable workflow scope on PAT |
+| **Testing** | **VERIFIED** | **9.9 / 10** | 147 automated backend tests (100% pass) including real PostgreSQL concurrency + 16 frontend tests (100% pass). | VERY_HIGH | None |
+| **CI/CD** | **VERIFIED** | **9.8 / 10** | Workflows active (`.github/workflows/ci.yml`, `deploy.yml`); automated GitHub Actions CI running on push/PR. | VERY_HIGH | None |
 | **Disaster Recovery**| **VERIFIED**| **9.5 / 10** | Automated backup/restore scripts (`scripts/backup.sh`, `restore.sh`), verified DB-001 clean creation from scratch. | HIGH | Offsite secondary cloud sync |
 
 ---

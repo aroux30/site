@@ -8,10 +8,10 @@
 
 ## 1. Executive Summary of Open Certification Blockers
 
-While all core software engineering, financial arithmetic, edge HTTPS encryption, and database concurrency gates have been verified with 100% passing tests (163 automated tests, 75 tables, zero oversell), the following **two external operational items** currently remain:
+While all core software engineering, financial arithmetic, edge HTTPS encryption, CI/CD automated pipeline execution, and database concurrency gates have been verified with 100% passing tests (163 automated tests, 75 tables, zero oversell), the following **single commercial operational item** currently remains:
 
 ```
-[ BLOCKER 1: GitHub Token Workflow Scope ] ──> Prevents remote CI pipeline execution on GitHub
+[ BLOCKER 1: GitHub Token Workflow Scope ] ──> RESOLVED (Token refreshed with workflow scope; CI pipeline active)
 [ BLOCKER 2: Commercial FQDN & TLS Cert  ] ──> RESOLVED (site.arouxpingg.com active with Let's Encrypt SSL)
 [ BLOCKER 3: Production Merchant API Keys] ──> Required for live Rial billing and Iranian SMS delivery
 ```
@@ -20,17 +20,14 @@ While all core software engineering, financial arithmetic, edge HTTPS encryption
 
 ## 2. Detailed Blocker Analysis & Remediation Steps
 
-### Blocker BLK-001: GitHub Personal Access Token `workflow` Scope
+### Blocker BLK-001: GitHub Personal Access Token `workflow` Scope — RESOLVED ✅
 - **Category:** CI/CD & Governance
-- **Severity:** High (Blocks CI Automation on GitHub)
-- **Root Cause:** The Git credentials used to push to `https://github.com/aroux30/site.git` use a Personal Access Token that has `repo` scope but lacks the `workflow` scope. GitHub API rejects commits updating `.github/workflows/` with:
-  `refusing to allow an OAuth App to create or update workflow .github/workflows/ci.yml without workflow scope`.
-- **Impact:** `.github/workflows/` is excluded from git tracking to prevent push rejections; automated GitHub Actions pipelines do not execute on remote push/PR.
-- **Action Required by Human Administrator:**
-  1. Open GitHub $\rightarrow$ **Settings** $\rightarrow$ **Developer settings** $\rightarrow$ **Personal access tokens**.
-  2. Generate a new token with both `repo` and `workflow` scopes.
-  3. Remove line 139 (`.github/workflows/`) from `.gitignore`.
-  4. Track and commit `.github/workflows/ci.yml`.
+- **Severity:** High (Previously Blocked CI Automation on GitHub)
+- **Resolution:**
+  1. Refreshed GitHub CLI authentication with `workflow` scope via OAuth device authorization flow.
+  2. Removed line 139 (`.github/workflows/`) from `.gitignore`.
+  3. Committed and pushed `.github/workflows/ci.yml` and `.github/workflows/deploy.yml` to GitHub repository.
+  4. Verified live execution of GitHub Actions `CI Pipeline` on GitHub.
 
 ---
 
@@ -76,5 +73,5 @@ While all core software engineering, financial arithmetic, edge HTTPS encryption
 | **Automated Testing Suite** | 100% Ready | None (147 backend + 16 frontend = 163 tests passed) | ✅ **READY** |
 | **Co-Located Host Workloads** | 100% Ready | None (All 4 existing apps 100% healthy) | ✅ **READY** |
 | **HTTPS / Edge Encryption** | 100% Ready | **RESOLVED** (`https://site.arouxpingg.com`) | ✅ **READY** |
-| **GitHub Actions CI Pipeline** | 100% Ready | BLK-001 (Token `workflow` scope) | ⏳ **PENDING USER ACTION** |
+| **GitHub Actions CI Pipeline** | 100% Ready | **RESOLVED** (`.github/workflows/ci.yml` live on GitHub) | ✅ **READY** |
 | **Live Payment Gateway** | 100% Ready | BLK-003 (Live Merchant Credentials) | ⏳ **PENDING USER ACTION** |

@@ -166,3 +166,64 @@ A second session committed `6921841` ("ship UI/UX waves 1-2 + security hardening
 | `create_app()` boot | ✅ 272 routes (incl. `/wallet/topup`) |
 | `tsc` / `eslint .` / `vitest` / `next build` | ✅ clean / 0 errors / 30-30 / 39 pages |
 | GitHub Actions on `main` | ✅ CI Pipeline + Security Scan & Audit + CodeQL success |
+
+
+---
+
+## 2026-09-12 — BE-20: durable RMA lifecycle + P7-02 + P2-04 + P11-02
+
+### TASK BE-20 — RMA persistence + admin processing — **DONE**
+
+Discovery: the RMA lifecycle was **stateless theater** — `OrderReturnDomain`
+is a pure dataclass; the customer's return request was validated, rendered to
+JSON, and then lost. No table, no admin surface. This task built the missing
+stack:
+
+- **Models** `backend/app/modules/orders/domain/return_models.py`: `order_returns`
+  (unique `rma_number`, FK order/user RESTRICT, status, notes, refund_amount,
+  lifecycle timestamps) + `order_return_items` (FKs CASCADE/RESTRICT, quantity
+  CHECK > 0, inspection outcome).
+- **Migration** `c4d9e1a5f7b2_add_rma_tables` (head now `c4d9e1a5f7b2`); models
+  registered in `alembic/env.py` target metadata (initial commit missed this —
+  `alembic check` in CI correctly failed wanting to drop the tables; fixed).
+- **Persistence**: `request_order_return` now writes the RMA + items in the
+  same transaction and returns the real id + `rma_number` (new response field).
+- **Admin endpoints** (orders router, `orders:read` / `orders:write` RBAC):
+  `GET /orders/admin/returns`, `POST /orders/admin/returns/{id}/transition`
+  with body `{target, notes, inspection_outcomes, refund_amount}`. Transition
+  rules come exclusively from the domain state machine; an illegal move is a
+  clean 422 (`INVALID_RETURN_TRANSITION`), enforced by a pre-check plus the
+  domain `transition_to`.
+- **P3-01 merged**: `REFUNDED` restocks PASSED inspection items via new
+  `inventory_service.restock_returned_items` (committed → available, per-item
+  transaction records, damaged items excluded).
+- **Events**: `ReturnApproved` / `ReturnRefunded` published; `ReturnApproved`
+  creates a customer notification.
+- **Tests**: `tests/unit/test_returns_admin.py` — approve persists + publishes;
+  illegal transition rejected and state unchanged; unknown target 422; refund
+  restocks only passed items; restock moves committed→available.
+- **CI verified on real Postgres**: `alembic upgrade head` + `alembic check`
+  green (catch confirmed fixed); full pipeline green on `main`.
+
+### TASK P7-02 — Rating data in search index — **DONE**
+- `SearchService._get_rating_aggregate(session, product_id)` (avg + count over
+  APPROVED reviews); `_product_to_doc` now accepts and indexes
+  `rating_average`/`rating_count`; both callers (reindex_all, per-product sync)
+  pass live aggregates. Rating sort/filter facets finally have data.
+
+### TASK P2-04 — Router double-mount — **RESOLVED AS DOCUMENTED**
+- The seo/vendors second mounts are intentional root-level legacy aliases
+  (hidden from OpenAPI), not accidental duplicates. Commented in `main.py`;
+  new `test_no_duplicate_schema_routes` asserts no true duplicates.
+
+### TASK P11-02 — Alerting — **DONE (config)**
+- `monitoring/prometheus/rules/ecommerce.yml`: alerts for backend scrape-down
+  (critical, 2m), 5xx rate >5% for 10m, P95 latency >2.5s, payment-verify 5xx
+  (critical), DB pool >90%. Metric names verified against
+  `observability/metrics.py`.
+- `prometheus.yml`: rules file enabled; dead `celery-worker` scrape target
+  disabled with re-enable note (TASK PERF-01); rules directory mounted into
+  the prometheus container (dev + prod inherits via base compose).
+- **NOT VERIFIED live**: no Prometheus/Alertmanager running locally — rules
+  validated as YAML + by metric-name cross-check; firing behaviour needs the
+  staging stack (P12-01).

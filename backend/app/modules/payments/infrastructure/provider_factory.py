@@ -3,13 +3,18 @@
 from __future__ import annotations
 
 from functools import lru_cache
+from typing import TYPE_CHECKING
 
-from app.modules.payments.infrastructure.providers.base import (
-    PaymentProvider,
-)
+if TYPE_CHECKING:
+    from app.modules.payments.infrastructure.providers.base import (
+        PaymentProvider,
+    )
 
 
-def get_payment_provider(provider_name: str) -> PaymentProvider:
+def get_payment_provider(
+    provider_name: str,
+    merchant_id: str | None = None,
+) -> PaymentProvider:
     """Return the :class:`PaymentProvider` implementation for *provider_name*.
 
     Parameters
@@ -17,6 +22,9 @@ def get_payment_provider(provider_name: str) -> PaymentProvider:
     provider_name:
         One of ``"zarinpal"``, ``"idpay"``, ``"mock"``, ``"wallet"``,
         ``"crypto"``, ``"card_transfer"`` (or alias ``"card_to_card"``).
+    merchant_id:
+        Optional gateway credential override (e.g. a Zarinpal merchant id
+        registered through the admin settings UI at runtime).
 
     Raises
     ------
@@ -32,6 +40,7 @@ def get_payment_provider(provider_name: str) -> PaymentProvider:
 
     if name == "mock":
         from app.core.config.settings import get_settings
+
         settings = get_settings()
         if settings.ENVIRONMENT == "production":
             raise ValueError(
@@ -43,9 +52,15 @@ def get_payment_provider(provider_name: str) -> PaymentProvider:
     if name not in registry:
         supported = ", ".join(sorted(registry.keys()))
         raise ValueError(
-            f"Unknown payment provider '{provider_name}'. "
-            f"Supported providers: {supported}"
+            f"Unknown payment provider '{provider_name}'. Supported providers: {supported}"
         )
+
+    if merchant_id and name == "zarinpal":
+        from app.modules.payments.infrastructure.providers.zarinpal import (
+            ZarinpalProvider,
+        )
+
+        return ZarinpalProvider(merchant_id=merchant_id)
 
     return registry[name]
 

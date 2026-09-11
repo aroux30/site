@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Settings,
   Store,
@@ -12,12 +12,17 @@ import {
   Bell,
   Lock,
   ShieldCheck,
+  Loader2,
+  AlertCircle,
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import apiClient from "@/lib/api/client";
+
+const ZARINPAL_MERCHANT_KEY = "payment.zarinpal.merchant_id";
 
 export default function AdminSettingsPage() {
   const [saved, setSaved] = useState(false);
@@ -33,6 +38,75 @@ export default function AdminSettingsPage() {
   const [c2cEnabled, setC2cEnabled] = useState(true);
   const [walletEnabled, setWalletEnabled] = useState(true);
   const [cryptoEnabled, setCryptoEnabled] = useState(true);
+
+  // Zarinpal merchant code (persisted via admin settings API)
+  const [merchantCode, setMerchantCode] = useState("");
+  const [merchantLoading, setMerchantLoading] = useState(true);
+  const [merchantSaving, setMerchantSaving] = useState(false);
+  const [merchantStatus, setMerchantStatus] = useState<
+    { ok: boolean; text: string } | null
+  >(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await apiClient.get(`/settings/${ZARINPAL_MERCHANT_KEY}`);
+        if (cancelled) return;
+        const raw = res.data?.value;
+        const code =
+          typeof raw === "object" && raw !== null
+            ? (raw.merchant_id as string) ?? ""
+            : (raw as string) ?? "";
+        setMerchantCode(code);
+      } catch {
+        // Setting not created yet — empty state
+      } finally {
+        if (!cancelled) setMerchantLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const handleSaveMerchant = async () => {
+    const code = merchantCode.trim();
+    setMerchantSaving(true);
+    setMerchantStatus(null);
+    try {
+      const value = { merchant_id: code };
+      try {
+        await apiClient.patch(`/settings/${ZARINPAL_MERCHANT_KEY}`, { value });
+      } catch (err) {
+        const status = (err as { response?: { status?: number } })?.response?.status;
+        if (status === 404) {
+          await apiClient.post("/settings", {
+            key: ZARINPAL_MERCHANT_KEY,
+            value,
+            group: "payment",
+            description: "Zarinpal merchant id (GUID) — activates the Zarinpal gateway when set",
+            is_public: false,
+          });
+        } else {
+          throw err;
+        }
+      }
+      setMerchantStatus({
+        ok: true,
+        text: code
+          ? "ذخیره شد — درگاه زرین‌پال برای پرداخت‌های جدید فعال است."
+          : "ذخیره شد — بدون مرچنت‌کد، پرداخت‌ها با کارت به کارت انجام می‌شود.",
+      });
+    } catch {
+      setMerchantStatus({
+        ok: false,
+        text: "ذخیره نشد. دسترسی ادمین (settings:write) را بررسی کنید.",
+      });
+    } finally {
+      setMerchantSaving(false);
+    }
+  };
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
@@ -145,17 +219,67 @@ export default function AdminSettingsPage() {
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
-            <div className="flex items-center justify-between rounded-lg border border-border p-3.5">
-              <div>
-                <div className="font-medium text-foreground">درگاه بانکی زرین‌پال (شاپرک)</div>
-                <div className="text-xs text-muted-foreground">پذیرش کارت‌های عضو شتاب</div>
+            <div className="rounded-lg border border-border p-3.5 sm:col-span-2">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <div className="font-medium text-foreground">
+                    درگاه بانکی زرین‌پال (شاپرک)
+                    {merchantCode ? (
+                      <Badge className="ms-2 bg-success/15 text-success border border-success/25">
+                        فعال
+                      </Badge>
+                    ) : (
+                      <Badge variant="secondary" className="ms-2">
+                        بدون مرچنت‌کد — کارت به کارت جایگزین است
+                      </Badge>
+                    )}
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    مرچنت‌کد (GUID ۳۶ کاراکتری) را از پنل زرین‌پال بگیرید؛ به‌محض
+                    ذخیره، پرداخت‌های جدید از طریق زرین‌پال انجام می‌شود.
+                  </div>
+                </div>
               </div>
-              <input
-                type="checkbox"
-                checked={zarinpalEnabled}
-                onChange={(e) => setZarinpalEnabled(e.target.checked)}
-                className="h-4 w-4 rounded accent-primary"
-              />
+
+              <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+                <Input
+                  dir="ltr"
+                  value={merchantCode}
+                  onChange={(e) => setMerchantCode(e.target.value)}
+                  placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+                  className="font-mono text-xs"
+                  aria-label="مرچنت کد زرین‌پال"
+                />
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={handleSaveMerchant}
+                  disabled={merchantSaving || merchantLoading}
+                  className="gap-1.5 rounded-xl font-bold"
+                >
+                  {merchantSaving ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Save className="h-4 w-4" />
+                  )}
+                  ذخیره مرچنت‌کد
+                </Button>
+              </div>
+
+              {merchantStatus && (
+                <p
+                  className={`mt-2 flex items-center gap-1.5 text-xs ${
+                    merchantStatus.ok ? "text-success" : "text-destructive"
+                  }`}
+                >
+                  {merchantStatus.ok ? (
+                    <CheckCircle2 className="h-3.5 w-3.5" />
+                  ) : (
+                    <AlertCircle className="h-3.5 w-3.5" />
+                  )}
+                  {merchantStatus.text}
+                </p>
+              )}
             </div>
 
             <div className="flex items-center justify-between rounded-lg border border-border p-3.5">

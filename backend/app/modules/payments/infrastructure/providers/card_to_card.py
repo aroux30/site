@@ -10,7 +10,7 @@ approves or rejects it.
 from __future__ import annotations
 
 import uuid
-from typing import Any, Optional
+from typing import Any
 
 import structlog
 
@@ -121,7 +121,9 @@ class CardToCardProvider(PaymentProvider):
         """
         short_uuid = uuid.uuid4().hex[:10].upper()
         authority = f"C2C-{short_uuid}"
-        receipt_submission_url = f"/checkout/card-transfer?authority={authority}&order_id={order_id}"
+        receipt_submission_url = (
+            f"/checkout/card-transfer?authority={authority}&order_id={order_id}"
+        )
 
         await logger.ainfo(
             "card_to_card_create_payment",

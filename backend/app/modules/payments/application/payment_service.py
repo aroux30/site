@@ -8,31 +8,32 @@ route handlers.
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
-from typing import Any, Optional
+from datetime import UTC, datetime
+from typing import TYPE_CHECKING, Any
 
 import structlog
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config.settings import get_settings
-from app.core.security.data_protection import mask_card_pan
 from app.core.exceptions.handlers import (
     ConflictError,
     NotFoundError,
     PaymentError,
     ValidationError,
 )
+from app.core.security.data_protection import mask_card_pan
 from app.modules.payments.domain.models import (
     Payment,
-    PaymentProvider as PaymentProviderEnum,
     PaymentStatus,
     PaymentTransaction,
     PaymentTransactionType,
     PaymentWebhookEvent,
     Refund,
     RefundStatus,
+)
+from app.modules.payments.domain.models import (
+    PaymentProvider as PaymentProviderEnum,
 )
 from app.modules.payments.infrastructure.provider_factory import (
     get_payment_provider,
@@ -44,11 +45,39 @@ from app.modules.payments.schemas.payment import (
     PaymentResponse,
     RefundResponse,
 )
+from app.modules.settings.application.settings_service import SettingsService
+
+if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncSession
 
 logger: structlog.stdlib.BoundLogger = structlog.get_logger(__name__)
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────
+
+
+async def _resolve_gateway(db: AsyncSession, provider_name: str) -> Any:
+    """Resolve the active gateway provider.
+
+    A Zarinpal merchant id registered through the admin settings UI takes
+    priority: as soon as one is saved, the gateway switches to Zarinpal
+    without a redeploy. Otherwise the configured env provider is used.
+    """
+    name = (provider_name or get_settings().PAYMENT_PROVIDER).lower().strip()
+    if name in ("zarinpal", "card_transfer", "card_to_card", "c2c", "card"):
+        try:
+            setting = await SettingsService.get_by_key(
+                db, "payment.zarinpal.merchant_id"
+            )
+        except NotFoundError:
+            setting = None
+        if setting and setting.value:
+            raw = setting.value
+            value = raw.get("merchant_id") if isinstance(raw, dict) else raw
+            merchant_id = str(value or "").strip()
+            if merchant_id:
+                return get_payment_provider("zarinpal", merchant_id=merchant_id)
+    return get_payment_provider(name)
 
 
 def _build_callback_url(provider: str, payment_id: uuid.UUID) -> str:
@@ -146,19 +175,13 @@ async def create_payment(
 
     if order.status != OrderStatus.PENDING:
         raise ConflictError(
-            detail=(
-                f"Order {order_id} is not payable in status "
-                f"'{order.status.value}'"
-            ),
+            detail=(f"Order {order_id} is not payable in status '{order.status.value}'"),
             error_code="ORDER_NOT_PAYABLE",
         )
 
     if amount != order.total:
         raise ValidationError(
-            detail=(
-                f"Payment amount ({amount}) does not match the order total "
-                f"({order.total})"
-            ),
+            detail=(f"Payment amount ({amount}) does not match the order total ({order.total})"),
             error_code="AMOUNT_MISMATCH",
         )
 
@@ -199,7 +222,7 @@ async def create_payment(
 
     # ── Call gateway provider ─────────────────────────────────────────
     try:
-        gateway_provider = get_payment_provider(provider.lower())
+        gateway_provider = await _resolve_gateway(db, provider.lower())
     except ValueError as exc:
         raise ValidationError(detail=str(exc), error_code="INVALID_PROVIDER")
 
@@ -435,6 +458,7 @@ async def verify_payment(
         order_confirmed = False
         if payment.order_id:
             from app.modules.orders.domain.models import Order, OrderStatus, OrderStatusHistory
+
             order_stmt = select(Order).where(Order.id == payment.order_id).with_for_update()
             order = (await db.execute(order_stmt)).scalar_one_or_none()
             if order and order.status == OrderStatus.PENDING:
@@ -535,21 +559,30 @@ async def process_callback(
     )
 
     # Look up payment by authority or provider_transaction_id or order_id with row lock
-    payment: Optional[Payment] = None
+    payment: Payment | None = None
     if authority:
         stmt = select(Payment).where(Payment.authority == authority).with_for_update()
         result = await db.execute(stmt)
         payment = result.scalar_one_or_none()
 
         if payment is None:
-            stmt = select(Payment).where(Payment.provider_transaction_id == authority).with_for_update()
+            stmt = (
+                select(Payment)
+                .where(Payment.provider_transaction_id == authority)
+                .with_for_update()
+            )
             result = await db.execute(stmt)
             payment = result.scalar_one_or_none()
 
     if payment is None and callback_data.order_id:
         try:
             order_uuid = uuid.UUID(str(callback_data.order_id))
-            stmt = select(Payment).where(Payment.order_id == order_uuid).order_by(Payment.created_at.desc()).with_for_update()
+            stmt = (
+                select(Payment)
+                .where(Payment.order_id == order_uuid)
+                .order_by(Payment.created_at.desc())
+                .with_for_update()
+            )
             result = await db.execute(stmt)
             payment = result.scalars().first()
             if payment and not authority:
@@ -603,7 +636,7 @@ async def process_callback(
             payment_id=str(payment.id),
         )
         webhook_event.processed = True
-        webhook_event.processed_at = datetime.now(timezone.utc)
+        webhook_event.processed_at = datetime.now(UTC)
         await db.flush()
         return PaymentResponse.model_validate(payment)
 
@@ -617,7 +650,7 @@ async def process_callback(
             status=callback_status,
         )
         webhook_event.processed = True
-        webhook_event.processed_at = datetime.now(timezone.utc)
+        webhook_event.processed_at = datetime.now(UTC)
         await db.flush()
         return response
     except Exception as exc:
@@ -668,9 +701,7 @@ async def refund_payment(
 
     if amount > payment.amount:
         raise ValidationError(
-            detail=(
-                f"Refund amount ({amount}) exceeds payment amount ({payment.amount})"
-            ),
+            detail=(f"Refund amount ({amount}) exceeds payment amount ({payment.amount})"),
             error_code="REFUND_EXCEEDS_PAYMENT",
         )
 
@@ -678,7 +709,11 @@ async def refund_payment(
     stmt = (
         select(Refund)
         .where(Refund.payment_id == payment_id)
-        .where(Refund.status.in_([RefundStatus.PENDING, RefundStatus.APPROVED, RefundStatus.PROCESSED]))
+        .where(
+            Refund.status.in_(
+                [RefundStatus.PENDING, RefundStatus.APPROVED, RefundStatus.PROCESSED]
+            )
+        )
         .with_for_update()
     )
     result = await db.execute(stmt)
@@ -698,9 +733,10 @@ async def refund_payment(
     gateway_provider = get_payment_provider(payment.provider.value)
 
     # Resolve customer user ID from order if possible for wallet refund
-    customer_user_id: Optional[uuid.UUID] = None
+    customer_user_id: uuid.UUID | None = None
     try:
         from app.modules.orders.domain.models import Order
+
         stmt_order = select(Order.user_id).where(Order.id == payment.order_id)
         res_order = await db.execute(stmt_order)
         customer_user_id = res_order.scalar_one_or_none()
@@ -739,7 +775,7 @@ async def refund_payment(
         reason=reason,
         status=refund_status,
         processed_by=actor_id,
-        processed_at=datetime.now(timezone.utc) if refund_result.success else None,
+        processed_at=datetime.now(UTC) if refund_result.success else None,
     )
     db.add(refund)
 
@@ -748,6 +784,7 @@ async def refund_payment(
         payment.status = PaymentStatus.REFUNDED
         if payment.order_id:
             from app.modules.orders.domain.models import Order, OrderStatus, OrderStatusHistory
+
             order_lock = select(Order).where(Order.id == payment.order_id).with_for_update()
             order = (await db.execute(order_lock)).scalar_one_or_none()
             if order and order.status not in (OrderStatus.CANCELED, OrderStatus.REFUNDED):
@@ -784,6 +821,7 @@ async def get_payment(
     payment = await _get_payment_or_raise(db, payment_id)
     if user_id and payment.order_id:
         from app.modules.orders.domain.models import Order
+
         order_stmt = select(Order).where(Order.id == payment.order_id)
         result = await db.execute(order_stmt)
         order = result.scalar_one_or_none()
@@ -811,6 +849,7 @@ async def submit_card_receipt(
 
     if payment.order_id:
         from app.modules.orders.domain.models import Order
+
         order_stmt = select(Order).where(Order.id == payment.order_id)
         result = await db.execute(order_stmt)
         order = result.scalar_one_or_none()
@@ -831,16 +870,18 @@ async def submit_card_receipt(
 
     extra = dict(payment.extra_data or {})
     masked_pan = mask_card_pan(card_pan) if card_pan else None
-    extra.update({
-        "tracking_code": tracking_code,
-        "card_pan": masked_pan,
-        "customer_card_pan": masked_pan,
-        "receipt_image_url": receipt_image_url,
-        "customer_notes": notes,
-        "receipt_submitted_at": datetime.now(timezone.utc).isoformat(),
-        "submitted_by": str(user_id),
-        "card_transfer_status": "pending_admin_approval",
-    })
+    extra.update(
+        {
+            "tracking_code": tracking_code,
+            "card_pan": masked_pan,
+            "customer_card_pan": masked_pan,
+            "receipt_image_url": receipt_image_url,
+            "customer_notes": notes,
+            "receipt_submitted_at": datetime.now(UTC).isoformat(),
+            "submitted_by": str(user_id),
+            "card_transfer_status": "pending_admin_approval",
+        }
+    )
     payment.extra_data = extra
     payment.status = PaymentStatus.PENDING
     payment.provider_transaction_id = tracking_code
@@ -891,17 +932,20 @@ async def approve_payment(
 
     extra = dict(payment.extra_data or {})
     extra["approved_by"] = str(admin_user_id)
-    extra["approved_at"] = datetime.now(timezone.utc).isoformat()
+    extra["approved_at"] = datetime.now(UTC).isoformat()
     extra["card_transfer_status"] = "approved"
 
     payment.status = PaymentStatus.COMPLETED
     if not payment.provider_transaction_id:
-        payment.provider_transaction_id = extra.get("tracking_code") or payment.authority or f"C2C-{payment.id.hex[:8]}"
+        payment.provider_transaction_id = (
+            extra.get("tracking_code") or payment.authority or f"C2C-{payment.id.hex[:8]}"
+        )
     payment.extra_data = extra
 
     # Transition associated order from PENDING to CONFIRMED on admin approval
     if payment.order_id:
         from app.modules.orders.domain.models import Order, OrderStatus, OrderStatusHistory
+
         order_stmt = select(Order).where(Order.id == payment.order_id).with_for_update()
         order = (await db.execute(order_stmt)).scalar_one_or_none()
         if order and order.status == OrderStatus.PENDING:
@@ -953,7 +997,7 @@ async def reject_payment(
     extra = dict(payment.extra_data or {})
     extra["rejected_by"] = str(admin_user_id)
     extra["rejection_reason"] = reason or "Payment rejected by admin"
-    extra["rejected_at"] = datetime.now(timezone.utc).isoformat()
+    extra["rejected_at"] = datetime.now(UTC).isoformat()
     extra["card_transfer_status"] = "rejected"
 
     payment.status = PaymentStatus.FAILED
@@ -991,7 +1035,9 @@ def get_payment_methods() -> PaymentMethodsResponse:
             provider=PaymentProviderEnum.ZARINPAL,
             name="Zarinpal",
             name_fa="زرین‌پال",
-            is_enabled=(settings.PAYMENT_PROVIDER == "zarinpal" or settings.ENVIRONMENT == "development"),
+            is_enabled=(
+                settings.PAYMENT_PROVIDER == "zarinpal" or settings.ENVIRONMENT == "development"
+            ),
             icon="zarinpal",
             description="Online payment via Zarinpal gateway",
             instructions="پرداخت آنلاین از طریق کلیه کارت‌های عضو شتاب با درگاه زرین‌پال",
@@ -1001,7 +1047,9 @@ def get_payment_methods() -> PaymentMethodsResponse:
             provider=PaymentProviderEnum.IDPAY,
             name="IDPay",
             name_fa="آی‌دی‌پی",
-            is_enabled=(settings.PAYMENT_PROVIDER == "idpay" or settings.ENVIRONMENT == "development"),
+            is_enabled=(
+                settings.PAYMENT_PROVIDER == "idpay" or settings.ENVIRONMENT == "development"
+            ),
             icon="idpay",
             description="Online payment via IDPay gateway",
             instructions="پرداخت آنلاین امن از طریق درگاه پرداخت آی‌دی‌پی",

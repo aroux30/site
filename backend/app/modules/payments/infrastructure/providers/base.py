@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 
-import uuid
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import Any, Optional
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    import uuid
 
 
 @dataclass(frozen=True, slots=True)
@@ -33,12 +35,12 @@ class PaymentResult:
     """
 
     success: bool
-    authority: Optional[str] = None
-    gateway_url: Optional[str] = None
-    ref_id: Optional[str] = None
-    card_pan: Optional[str] = None
-    error_code: Optional[str] = None
-    error_message: Optional[str] = None
+    authority: str | None = None
+    gateway_url: str | None = None
+    ref_id: str | None = None
+    card_pan: str | None = None
+    error_code: str | None = None
+    error_message: str | None = None
     raw_response: dict[str, Any] = field(default_factory=dict)
 
 

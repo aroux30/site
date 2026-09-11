@@ -8,7 +8,6 @@ Returns deterministic success/failure based on amount conventions:
 from __future__ import annotations
 
 import uuid
-from typing import Any
 
 import structlog
 

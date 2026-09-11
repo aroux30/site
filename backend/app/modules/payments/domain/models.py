@@ -21,8 +21,8 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database.base import BaseModel
 
-
 # ---- Enums ----
+
 
 class PaymentProvider(str, enum.Enum):
     ZARINPAL = "zarinpal"
@@ -57,6 +57,7 @@ class RefundStatus(str, enum.Enum):
 
 # ---- Models ----
 
+
 class Payment(BaseModel):
     """Payment records linked to orders."""
 
@@ -85,17 +86,11 @@ class Payment(BaseModel):
         default=PaymentStatus.PENDING,
         nullable=False,
     )
-    provider_transaction_id: Mapped[Optional[str]] = mapped_column(
-        String(255), nullable=True
-    )
-    authority: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
-    gateway_url: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
-    extra_data: Mapped[Optional[dict[str, Any]]] = mapped_column(
-        "metadata", JSONB, nullable=True
-    )
-    idempotency_key: Mapped[Optional[str]] = mapped_column(
-        String(255), unique=True, nullable=True
-    )
+    provider_transaction_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    authority: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    gateway_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    extra_data: Mapped[dict[str, Any] | None] = mapped_column("metadata", JSONB, nullable=True)
+    idempotency_key: Mapped[str | None] = mapped_column(String(255), unique=True, nullable=True)
 
     # Relationships
     transactions: Mapped[list["PaymentTransaction"]] = relationship(
@@ -134,14 +129,10 @@ class PaymentTransaction(BaseModel):
         nullable=False,
     )
     status: Mapped[str] = mapped_column(String(50), nullable=False)
-    provider_response: Mapped[Optional[dict[str, Any]]] = mapped_column(
-        JSONB, nullable=True
-    )
+    provider_response: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True)
 
     # Relationships
-    payment: Mapped["Payment"] = relationship(
-        "Payment", back_populates="transactions"
-    )
+    payment: Mapped["Payment"] = relationship("Payment", back_populates="transactions")
 
     def __repr__(self) -> str:
         return f"<PaymentTransaction(id={self.id}, type={self.type}, status={self.status})>"
@@ -168,20 +159,18 @@ class Refund(BaseModel):
         nullable=False,
     )
     amount: Mapped[int] = mapped_column(BigInteger, nullable=False)
-    reason: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    reason: Mapped[str | None] = mapped_column(Text, nullable=True)
     status: Mapped[RefundStatus] = mapped_column(
         Enum(RefundStatus, name="refund_status_enum", native_enum=False),
         default=RefundStatus.PENDING,
         nullable=False,
     )
-    processed_by: Mapped[Optional[uuid.UUID]] = mapped_column(
+    processed_by: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("users.id", ondelete="SET NULL"),
         nullable=True,
     )
-    processed_at: Mapped[Optional[datetime]] = mapped_column(
-        DateTime(timezone=True), nullable=True
-    )
+    processed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     # Relationships
     payment: Mapped["Payment"] = relationship("Payment", back_populates="refunds")
@@ -203,20 +192,17 @@ class PaymentWebhookEvent(BaseModel):
 
     provider: Mapped[str] = mapped_column(String(50), nullable=False)
     event_id: Mapped[str] = mapped_column(String(255), nullable=False)
-    payment_id: Mapped[Optional[uuid.UUID]] = mapped_column(
+    payment_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("payments.id", ondelete="SET NULL"),
         nullable=True,
     )
     payload: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False)
     processed: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
-    processed_at: Mapped[Optional[datetime]] = mapped_column(
-        DateTime(timezone=True), nullable=True
-    )
-    error: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    processed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    error: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     payment: Mapped[Optional["Payment"]] = relationship("Payment")
 
     def __repr__(self) -> str:
         return f"<PaymentWebhookEvent(provider={self.provider}, event_id={self.event_id}, processed={self.processed})>"
-

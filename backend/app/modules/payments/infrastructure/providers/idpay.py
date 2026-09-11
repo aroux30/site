@@ -5,8 +5,7 @@ Documentation: https://idpay.ir/web-service/v1.1/
 
 from __future__ import annotations
 
-import uuid
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import httpx
 import structlog
@@ -16,6 +15,9 @@ from app.modules.payments.infrastructure.providers.base import (
     PaymentProvider,
     PaymentResult,
 )
+
+if TYPE_CHECKING:
+    import uuid
 
 logger: structlog.stdlib.BoundLogger = structlog.get_logger(__name__)
 

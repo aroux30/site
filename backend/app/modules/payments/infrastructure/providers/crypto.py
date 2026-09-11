@@ -13,7 +13,7 @@ import hashlib
 import hmac
 import json
 import uuid
-from typing import Any, Optional
+from typing import Any
 
 import httpx
 import structlog
@@ -43,9 +43,7 @@ _DEFAULT_IRR_PER_USD = 600_000
 
 # ── Supported Currencies ──────────────────────────────────────────────────
 
-SUPPORTED_CURRENCIES: frozenset[str] = frozenset(
-    {"usdttrc20", "usdterc20", "btc", "eth"}
-)
+SUPPORTED_CURRENCIES: frozenset[str] = frozenset({"usdttrc20", "usdterc20", "btc", "eth"})
 
 _CURRENCY_ALIASES: dict[str, str] = {
     "usdt": "usdttrc20",
@@ -98,9 +96,7 @@ class NowPaymentsProvider(PaymentProvider):
     ) -> None:
         settings = get_settings()
         self._api_key = (
-            api_key
-            if api_key is not None
-            else getattr(settings, "NOWPAYMENTS_API_KEY", "")
+            api_key if api_key is not None else getattr(settings, "NOWPAYMENTS_API_KEY", "")
         )
         self._sandbox = (
             sandbox
@@ -120,9 +116,7 @@ class NowPaymentsProvider(PaymentProvider):
         )
 
         self._api_base = _SANDBOX_API if self._sandbox else _PRODUCTION_API
-        self._gateway_template = (
-            _SANDBOX_HOSTED_PAY if self._sandbox else _PRODUCTION_HOSTED_PAY
-        )
+        self._gateway_template = _SANDBOX_HOSTED_PAY if self._sandbox else _PRODUCTION_HOSTED_PAY
 
     # ── PaymentProvider interface ─────────────────────────────────────
 
@@ -204,8 +198,7 @@ class NowPaymentsProvider(PaymentProvider):
                     success=False,
                     error_code="CRYPTO_NOT_CONFIGURED",
                     error_message=(
-                        "Cryptocurrency gateway is not configured "
-                        "(missing NOWPAYMENTS_API_KEY)"
+                        "Cryptocurrency gateway is not configured (missing NOWPAYMENTS_API_KEY)"
                     ),
                     raw_response={"simulated": True, "blocked": "production"},
                 )
@@ -273,9 +266,7 @@ class NowPaymentsProvider(PaymentProvider):
                     pay_address = invoice_data.get("pay_address", "")
                     pay_amount = invoice_data.get("pay_amount", price_amount_usd)
 
-                qr_code_url = (
-                    _QR_CODE_API.format(address=pay_address) if pay_address else None
-                )
+                qr_code_url = _QR_CODE_API.format(address=pay_address) if pay_address else None
 
                 raw_response: dict[str, Any] = {
                     **pay_data,
@@ -421,8 +412,7 @@ class NowPaymentsProvider(PaymentProvider):
                     authority=authority,
                     error_code="CRYPTO_NOT_CONFIGURED",
                     error_message=(
-                        "Cryptocurrency gateway is not configured "
-                        "(missing NOWPAYMENTS_API_KEY)"
+                        "Cryptocurrency gateway is not configured (missing NOWPAYMENTS_API_KEY)"
                     ),
                     raw_response={"simulated": True, "blocked": "production"},
                 )

@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import uuid
-from typing import Optional
 
 import structlog
 from fastapi import APIRouter, Depends, HTTPException, Request, status
@@ -246,7 +245,7 @@ async def approve_payment(
 )
 async def reject_payment(
     payment_id: uuid.UUID,
-    body: Optional[PaymentRejectRequest] = None,
+    body: PaymentRejectRequest | None = None,
     user_id: uuid.UUID = Depends(get_current_user_id),
     db: AsyncSession = Depends(get_db),
 ) -> PaymentResponse:
@@ -300,9 +299,7 @@ async def webhook_callback(
 
         try:
             crypto_provider = get_payment_provider("crypto")
-            secret_configured = bool(
-                getattr(crypto_provider, "ipn_secret_configured", False)
-            )
+            secret_configured = bool(getattr(crypto_provider, "ipn_secret_configured", False))
         except ValueError:
             crypto_provider = None
             secret_configured = False

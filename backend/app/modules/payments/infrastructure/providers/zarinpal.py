@@ -8,8 +8,7 @@ Documentation: https://docs.zarinpal.com/paymentGateway/
 
 from __future__ import annotations
 
-import uuid
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import httpx
 import structlog
@@ -19,6 +18,9 @@ from app.modules.payments.infrastructure.providers.base import (
     PaymentProvider,
     PaymentResult,
 )
+
+if TYPE_CHECKING:
+    import uuid
 
 logger: structlog.stdlib.BoundLogger = structlog.get_logger(__name__)
 
@@ -47,9 +49,7 @@ class ZarinpalProvider(PaymentProvider):
         self._sandbox = sandbox if sandbox is not None else settings.PAYMENT_SANDBOX
         self._default_callback = callback_url or settings.PAYMENT_CALLBACK_BASE_URL
         self._api_base = _SANDBOX_API if self._sandbox else _PRODUCTION_API
-        self._gateway_template = (
-            _SANDBOX_GATEWAY if self._sandbox else _PRODUCTION_GATEWAY
-        )
+        self._gateway_template = _SANDBOX_GATEWAY if self._sandbox else _PRODUCTION_GATEWAY
 
     # ── PaymentProvider interface ─────────────────────────────────────
 
@@ -140,9 +140,7 @@ class ZarinpalProvider(PaymentProvider):
                 raw_response=data,
             )
 
-        error_code = str(
-            errors_section.get("code", data_section.get("code", "UNKNOWN"))
-        )
+        error_code = str(errors_section.get("code", data_section.get("code", "UNKNOWN")))
         error_message = (
             errors_section.get("message")
             or data_section.get("message")
@@ -230,9 +228,7 @@ class ZarinpalProvider(PaymentProvider):
                 raw_response=data,
             )
 
-        error_code = str(
-            errors_section.get("code", data_section.get("code", "UNKNOWN"))
-        )
+        error_code = str(errors_section.get("code", data_section.get("code", "UNKNOWN")))
         error_message = (
             errors_section.get("message")
             or data_section.get("message")

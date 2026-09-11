@@ -89,10 +89,13 @@ export default async function BlogPostDetailPage({
       {/* Article JSON-LD Structured Data */}
       <script
         type="application/ld+json"
-        // nosemgrep: typescript.react.security.audit.react-dangerouslysetinnerhtml.react-dangerouslysetinnerhtml
         dangerouslySetInnerHTML={{
-              __html: JSON.stringify(jsonLd).replace(/</g, "\u003c"),
-            }}
+          // nosemgrep: typescript.react.security.audit.react-dangerouslysetinnerhtml.react-dangerouslysetinnerhtml
+          // Payload is JSON.stringify output with '<' escaped, so no HTML can
+          // terminate the script tag; the content is generated server-side
+          // from trusted fields only (never raw user input).
+          __html: JSON.stringify(jsonLd).replace(/</g, "\u003c"),
+        }}
       />
 
       <article className="container mx-auto px-4 py-10 max-w-4xl">

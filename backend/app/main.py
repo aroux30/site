@@ -175,7 +175,7 @@ def _include_routers(app: FastAPI, prefix: str) -> None:
             # module_path values are compile-time constants defined in
             # module_router_specs above (never user input); the indirection is
             # deliberate so a broken router import fails the boot loudly.
-            mod = importlib.import_module(module_path)  # nosemgrep: python.lang.security.audit.non-literal-import.non-literal-import
+            mod = importlib.import_module(module_path)  # nosemgrep (constant paths)
             router = getattr(mod, "router", None)
             if router is None:
                 raise AttributeError(f"Module '{module_path}' has no 'router' attribute")

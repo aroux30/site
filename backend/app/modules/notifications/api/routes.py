@@ -3,9 +3,8 @@
 from __future__ import annotations
 
 import uuid
-from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database.session import get_db
@@ -28,7 +27,7 @@ router = APIRouter()
     summary="List notifications",
 )
 async def list_notifications(
-    is_read: Optional[bool] = None,
+    is_read: bool | None = None,
     skip: int = Query(0, ge=0),
     limit: int = Query(20, ge=1, le=100),
     user_id: uuid.UUID = Depends(get_current_user_id),

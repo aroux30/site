@@ -1,10 +1,10 @@
 """Unit tests for Iranian Tax Invoice generation and formatting."""
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
+
 from app.modules.orders.application.invoice_service import (
     format_money,
-    format_persian_datetime,
     gregorian_to_jalali,
     number_to_persian_words,
     render_tax_invoice_html,
@@ -77,7 +77,7 @@ def test_render_tax_invoice_html():
             "postal_code": "1458833119",
             "full_address": "خیابان آزادی، خیابان حبیب‌الله، پلاک ۱۰",
         },
-        created_at=datetime(2026, 9, 9, 14, 30, 0, tzinfo=timezone.utc),
+        created_at=datetime(2026, 9, 9, 14, 30, 0, tzinfo=UTC),
     )
 
     item1 = OrderItem(
@@ -143,8 +143,10 @@ def test_render_tax_invoice_html():
     assert "no-print" in html
 
 
-import pytest
 from unittest.mock import AsyncMock, MagicMock
+
+import pytest
+
 from app.core.exceptions.handlers import ForbiddenError, NotFoundError
 from app.modules.orders.application.invoice_service import generate_invoice_html_for_order
 
@@ -166,7 +168,7 @@ async def test_generate_invoice_permissions():
     mock_order.total = 1100000
     mock_order.items = []
     mock_order.shipping_address_snapshot = {}
-    mock_order.created_at = datetime.now(timezone.utc)
+    mock_order.created_at = datetime.now(UTC)
 
     # 1. User ownership -> Success
     db = AsyncMock()
@@ -260,4 +262,3 @@ async def test_generate_invoice_permissions():
             user_permissions=set(),
             user_roles=set(),
         )
-

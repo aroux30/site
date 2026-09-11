@@ -178,7 +178,7 @@ class CardToCardProvider(PaymentProvider):
             settings = get_settings()
             if settings.ENVIRONMENT == "production":
                 raise ValueError(
-                    "Security violation: Simulated payment auto-approval is strictly forbidden in production"
+                    "Security violation: Simulated payment auto-approval is strictly forbidden in production"  # noqa: E501
                 )
             ref_id = f"REF-{authority}"
             return PaymentResult(

@@ -67,9 +67,9 @@ def decode_token(token: str) -> dict[str, Any]:
         payload: dict[str, Any] = jwt.decode(token, _SECRET, algorithms=[_ALGORITHM])
         return payload
     except ExpiredSignatureError:
-        raise UnauthorizedError(detail="Token has expired")
+        raise UnauthorizedError(detail="Token has expired") from None
     except JWTError:
-        raise UnauthorizedError(detail="Invalid token")
+        raise UnauthorizedError(detail="Invalid token") from None
 
 
 def verify_token(token: str, *, expected_type: str = "access") -> dict[str, Any]:

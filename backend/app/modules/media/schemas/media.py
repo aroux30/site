@@ -4,9 +4,8 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime
-from typing import Optional
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict
 
 
 class MediaAssetResponse(BaseModel):
@@ -15,15 +14,15 @@ class MediaAssetResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: uuid.UUID
-    uploader_id: Optional[uuid.UUID] = None
+    uploader_id: uuid.UUID | None = None
     file_name: str
     file_path: str
     file_url: str
     file_size: int
     mime_type: str
-    width: Optional[int] = None
-    height: Optional[int] = None
-    alt_text: Optional[str] = None
+    width: int | None = None
+    height: int | None = None
+    alt_text: str | None = None
     created_at: datetime
     updated_at: datetime
 

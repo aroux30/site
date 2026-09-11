@@ -88,6 +88,14 @@ ignore = [
     "S101",   # assert allowed in tests
     "B008",   # function call in default arg (FastAPI Depends)
     "S105",   # possible hardcoded password (false positives on var names)
+    "UP042",  # str-mixin Enums intentionally keep legacy str() semantics
+              # (logged values, DB enum storage); StrEnum migration is a
+              # tracked, behavior-affecting change — do not auto-convert.
+    "TC001",  # every module uses `from __future__ import annotations`, and
+    "TC002",  # FastAPI/Pydantic/SQLAlchemy resolve those string annotations
+    "TC003",  # at runtime via get_type_hints — moving imports into
+              # TYPE_CHECKING blocks broke application startup twice; static
+              # typing-only import analysis is unreliable in this codebase.
     "RUF001", # ambiguous characters in strings (Persian/Arabic texts)
     "RUF002", # ambiguous characters in docstrings
     "RUF003", # ambiguous characters in comments
@@ -96,8 +104,26 @@ ignore = [
 [tool.ruff.lint.isort]
 known-first-party = ["app"]
 
+[tool.ruff.lint.flake8-type-checking]
+# Pydantic/FastAPI/SQLAlchemy resolve annotations at runtime (get_type_hints),
+# so imports used in those annotations must remain runtime imports.
+runtime-evaluated-base-classes = [
+    "pydantic.BaseModel",
+    "pydantic_settings.BaseSettings",
+]
+
 [tool.ruff.lint.per-file-ignores]
-"tests/**/*.py" = ["S101", "S106"]
+"tests/**/*.py" = ["S101", "S106", "E402"]  # E402: test modules import the app after env setup in conftest
+# The Persian tax-invoice HTML template contains long unbreakable literals
+# inside triple-quoted strings (a `noqa` would corrupt the rendered document).
+"app/modules/orders/application/invoice_service.py" = ["E501"]
+# FastAPI evaluates route handler annotations at runtime — typing-only import
+# moves would raise NameError on application startup.
+"**/api/routes.py" = ["TC001", "TC002", "TC003"]
+"**/api/admin*.py" = ["TC001", "TC002", "TC003"]
+# SQLAlchemy resolves Mapped[] / relationship annotations via get_type_hints.
+"**/domain/models.py" = ["TC001", "TC002", "TC003"]
+"**/domain/*.py" = ["TC001", "TC002", "TC003"]
 
 [tool.mypy]
 python_version = "3.12"

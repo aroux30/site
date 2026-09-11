@@ -9,16 +9,22 @@ Applies Defense-in-Depth HTTP security headers across all responses:
 
 from __future__ import annotations
 
-from typing import Callable
+from typing import TYPE_CHECKING
 
-from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
+    from fastapi import Request, Response
 
 
 class SecurityHeadersMiddleware(BaseHTTPMiddleware):
     """Enforces essential security headers on all outgoing HTTP responses."""
 
-    async def dispatch(self, request: Request, call_next: Callable[[Request], Response]) -> Response:
+    async def dispatch(
+        self, request: Request, call_next: Callable[[Request], Response]
+    ) -> Response:
         response = await call_next(request)
         response.headers.setdefault("X-Content-Type-Options", "nosniff")
         response.headers.setdefault("X-Frame-Options", "SAMEORIGIN")

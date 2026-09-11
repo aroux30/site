@@ -7,12 +7,11 @@ from __future__ import annotations
 
 import math
 import uuid
-from datetime import datetime, timezone
-from typing import Any, Optional
+from datetime import UTC, datetime
+from typing import TYPE_CHECKING, Any
 
 import structlog
-from sqlalchemy import func, select, update
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import func, select
 from sqlalchemy.orm import selectinload
 
 from app.core.exceptions.handlers import (
@@ -36,6 +35,8 @@ from app.modules.discounts.schemas.discount import (
     PaginationMeta,
 )
 
+if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncSession
 logger: structlog.stdlib.BoundLogger = structlog.get_logger(__name__)
 
 
@@ -49,7 +50,7 @@ async def validate_coupon(
     code: str,
     user_id: uuid.UUID,
     cart_total: int,
-    items: Optional[list[dict[str, Any]]] = None,
+    items: list[dict[str, Any]] | None = None,
 ) -> CouponApplyResponse:
     """Validate a coupon code against all business rules and return the
     computed discount amount without recording a redemption.
@@ -63,7 +64,7 @@ async def validate_coupon(
     * Minimum cart amount met
     * Per-user usage limit (one redemption per coupon per user by default)
     """
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
 
     # 1. Fetch coupon with its discount
     stmt = (
@@ -82,10 +83,14 @@ async def validate_coupon(
         raise ValidationError("این کد تخفیف غیرفعال شده است", error_code="COUPON_INACTIVE")
 
     if now < coupon.starts_at or now > coupon.ends_at:
-        raise ValidationError("کد تخفیف منقضی شده یا هنوز فعال نشده است", error_code="COUPON_EXPIRED")
+        raise ValidationError(
+            "کد تخفیف منقضی شده یا هنوز فعال نشده است", error_code="COUPON_EXPIRED"
+        )
 
     if coupon.usage_limit is not None and coupon.usage_count >= coupon.usage_limit:
-        raise ValidationError("ظرفیت استفاده از این کد تخفیف تکمیل شده است", error_code="COUPON_LIMIT_REACHED")
+        raise ValidationError(
+            "ظرفیت استفاده از این کد تخفیف تکمیل شده است", error_code="COUPON_LIMIT_REACHED"
+        )
 
     # 3. Discount validation
     discount = coupon.discount
@@ -99,7 +104,9 @@ async def validate_coupon(
         raise ValidationError("تخفیف مرتبط منقضی شده است", error_code="DISCOUNT_EXPIRED")
 
     if discount.usage_limit is not None and discount.usage_count >= discount.usage_limit:
-        raise ValidationError("ظرفیت استفاده از این تخفیف تکمیل شده است", error_code="DISCOUNT_LIMIT_REACHED")
+        raise ValidationError(
+            "ظرفیت استفاده از این تخفیف تکمیل شده است", error_code="DISCOUNT_LIMIT_REACHED"
+        )
 
     # 4. Minimum cart amount
     if discount.min_cart_amount is not None and cart_total < discount.min_cart_amount:
@@ -115,7 +122,9 @@ async def validate_coupon(
     )
     user_usage_count: int = (await db.execute(user_usage_stmt)).scalar_one()
     if user_usage_count > 0:
-        raise ValidationError("شما قبلاً از این کد تخفیف استفاده کرده‌اید", error_code="COUPON_ALREADY_USED")
+        raise ValidationError(
+            "شما قبلاً از این کد تخفیف استفاده کرده‌اید", error_code="COUPON_ALREADY_USED"
+        )
 
     # 6. Calculate discount
     discount_amount = calculate_discount(discount, cart_total, items)
@@ -141,7 +150,7 @@ async def validate_coupon(
 def calculate_discount(
     discount: Discount,
     cart_total: int,
-    items: Optional[list[dict[str, Any]]] = None,
+    items: list[dict[str, Any]] | None = None,
 ) -> int:
     """Compute the discount amount in Rials.
 
@@ -209,7 +218,9 @@ async def apply_discount(
     if not coupon.is_active:
         raise ValidationError("کد تخفیف غیرفعال است", error_code="COUPON_INACTIVE")
     if coupon.usage_limit is not None and coupon.usage_count >= coupon.usage_limit:
-        raise ValidationError("ظرفیت استفاده از این کد تخفیف تکمیل شده است", error_code="COUPON_LIMIT_REACHED")
+        raise ValidationError(
+            "ظرفیت استفاده از این کد تخفیف تکمیل شده است", error_code="COUPON_LIMIT_REACHED"
+        )
 
     # Double-check that no duplicate redemption exists
     dup_stmt = select(CouponRedemption).where(
@@ -310,7 +321,7 @@ async def create_discount(
         raise ValidationError(
             f"Invalid discount type '{data.type}'. Valid: {valid}",
             error_code="INVALID_DISCOUNT_TYPE",
-        )
+        ) from None
 
     try:
         scope = DiscountScope(data.scope)
@@ -319,7 +330,7 @@ async def create_discount(
         raise ValidationError(
             f"Invalid scope '{data.scope}'. Valid: {valid}",
             error_code="INVALID_DISCOUNT_SCOPE",
-        )
+        ) from None
 
     if data.ends_at <= data.starts_at:
         raise ValidationError(
@@ -377,7 +388,7 @@ async def update_discount(
             raise ValidationError(
                 f"Invalid scope. Valid: {valid}",
                 error_code="INVALID_DISCOUNT_SCOPE",
-            )
+            ) from None
 
     for field, value in update_data.items():
         setattr(discount, field, value)

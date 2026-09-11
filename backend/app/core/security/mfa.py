@@ -81,8 +81,8 @@ def get_webauthn_registration_challenge(
             "displayName": username,
         },
         "pubKeyCredParams": [
-            {"type": "public-key", "alg": -7},   # ES256
-            {"type": "public-key", "alg": -257}, # RS256
+            {"type": "public-key", "alg": -7},  # ES256
+            {"type": "public-key", "alg": -257},  # RS256
         ],
         "authenticatorSelection": {
             "authenticatorAttachment": "platform",

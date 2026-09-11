@@ -8,14 +8,16 @@ from __future__ import annotations
 
 import socket
 import uuid
-from datetime import datetime, timedelta, timezone
-from typing import Any, Optional
+from datetime import UTC, datetime, timedelta
+from typing import TYPE_CHECKING, Any
 
 import structlog
 from sqlalchemy import and_, or_, select, update
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.shared.events.outbox_models import OutboxMessage, OutboxStatus
+
+if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncSession
 
 logger: structlog.stdlib.BoundLogger = structlog.get_logger(__name__)
 
@@ -31,12 +33,12 @@ class OutboxService:
         aggregate_type: str,
         aggregate_id: str,
         payload: dict[str, Any],
-        correlation_id: Optional[str] = None,
-        causation_id: Optional[str] = None,
-        available_at: Optional[datetime] = None,
+        correlation_id: str | None = None,
+        causation_id: str | None = None,
+        available_at: datetime | None = None,
     ) -> OutboxMessage:
         """Atomically append an event to the outbox within caller's transaction."""
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         message = OutboxMessage(
             event_type=event_type,
             aggregate_type=aggregate_type,
@@ -61,7 +63,7 @@ class OutboxService:
     async def claim_batch(
         db: AsyncSession,
         batch_size: int = 50,
-        worker_id: Optional[str] = None,
+        worker_id: str | None = None,
         lease_timeout_seconds: int = 300,
     ) -> list[OutboxMessage]:
         """Claim a batch of pending/failed messages using SELECT FOR UPDATE SKIP LOCKED.
@@ -69,7 +71,7 @@ class OutboxService:
         Includes messages stuck in PROCESSING whose lease has expired (worker crash recovery).
         Guarantees zero contention between concurrent worker processes.
         """
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         lease_cutoff = now - timedelta(seconds=lease_timeout_seconds)
         resolved_worker_id = worker_id or f"{socket.gethostname()}-{uuid.uuid4().hex[:8]}"
 
@@ -111,7 +113,7 @@ class OutboxService:
         message_id: uuid.UUID,
     ) -> None:
         """Mark an outbox message as successfully processed."""
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         stmt = (
             update(OutboxMessage)
             .where(OutboxMessage.id == message_id)
@@ -132,7 +134,7 @@ class OutboxService:
         backoff_seconds: int = 60,
     ) -> None:
         """Record a failure on an outbox message, schedule retry or send to DEAD_LETTER."""
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         stmt = select(OutboxMessage).where(OutboxMessage.id == message_id).with_for_update()
         result = await db.execute(stmt)
         msg = result.scalar_one_or_none()

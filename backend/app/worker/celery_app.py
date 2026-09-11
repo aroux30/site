@@ -36,10 +36,10 @@ celery_app.conf.update(
     task_track_started=True,
     task_acks_late=True,
     task_reject_on_worker_lost=True,
-    task_time_limit=600,          # hard limit: 10 minutes
-    task_soft_time_limit=540,     # soft limit: 9 minutes
+    task_time_limit=600,  # hard limit: 10 minutes
+    task_soft_time_limit=540,  # soft limit: 9 minutes
     # ── Result backend ────────────────────────────────────────────────
-    result_expires=3600,          # 1 hour
+    result_expires=3600,  # 1 hour
     # ── Worker ────────────────────────────────────────────────────────
     worker_prefetch_multiplier=1,
     worker_max_tasks_per_child=1000,

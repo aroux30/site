@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import uuid
-from typing import Any, Optional
+from typing import Any
 
 import structlog
 from fastapi import APIRouter, Depends, HTTPException, Query, status
@@ -45,9 +45,9 @@ router = APIRouter()
     include_in_schema=False,
 )
 async def get_approvals(
-    status: Optional[ApprovalStatus] = Query(None, description="Filter by approval status"),
-    level: Optional[ApprovalLevel] = Query(None, description="Filter by risk level"),
-    resource: Optional[str] = Query(None, description="Filter by resource type"),
+    status: ApprovalStatus | None = Query(None, description="Filter by approval status"),
+    level: ApprovalLevel | None = Query(None, description="Filter by risk level"),
+    resource: str | None = Query(None, description="Filter by resource type"),
     page: int = Query(1, ge=1, description="Page number"),
     page_size: int = Query(20, ge=1, le=100, description="Page size"),
     db: AsyncSession = Depends(get_db),
@@ -74,10 +74,10 @@ async def get_approvals(
     "/{id}",
     response_model=ApprovalRequestResponse,
     summary="Get approval request details",
-    description="Retrieve details of a specific approval request with action history and requester info.",
+    description="Retrieve details of a specific approval request with action history and requester info.",  # noqa: E501
 )
 async def get_approval_detail(
-    id: uuid.UUID,
+    id: uuid.UUID,  # noqa: A002  # API parameter name is the public contract
     db: AsyncSession = Depends(get_db),
     _user: dict[str, Any] = Depends(get_current_active_user),
 ) -> ApprovalRequestResponse:
@@ -130,7 +130,7 @@ async def submit_approval(
     description="Approve or reject an approval request with an optional comment.",
 )
 async def process_approval_action(
-    id: uuid.UUID,
+    id: uuid.UUID,  # noqa: A002  # API parameter name is the public contract
     body: ApprovalActionCreate,
     db: AsyncSession = Depends(get_db),
     actor_id: uuid.UUID = Depends(get_current_user_id),

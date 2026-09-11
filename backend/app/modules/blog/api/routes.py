@@ -7,7 +7,7 @@ and admin endpoints for managing blog posts and categories.
 from __future__ import annotations
 
 import uuid
-from typing import Any, Optional
+from typing import Any
 
 from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -47,11 +47,11 @@ _require_blog_write = Depends(RequirePermissions("blog:write"))
     "/posts",
     response_model=BlogListResponse,
     summary="List published blog posts",
-    description="Retrieve paginated published blog posts with optional category and search filters.",
+    description="Retrieve paginated published blog posts with optional category and search filters.",  # noqa: E501
 )
 async def list_posts(
-    category: Optional[str] = Query(None, description="Filter by category slug"),
-    search: Optional[str] = Query(None, description="Search query matching title/excerpt/content"),
+    category: str | None = Query(None, description="Filter by category slug"),
+    search: str | None = Query(None, description="Search query matching title/excerpt/content"),
     page: int = Query(1, ge=1, description="Page number (1-indexed)"),
     page_size: int = Query(10, ge=1, le=100, description="Items per page"),
     db: AsyncSession = Depends(get_db),
@@ -180,6 +180,7 @@ async def admin_create_category(
 
 # ── Also mount admin endpoints on public router with /admin prefix as aliases ─
 # This ensures both /admin/blog/posts and /blog/admin/posts / router-direct work
+
 
 @router.post(
     "/admin/posts",

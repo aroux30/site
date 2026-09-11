@@ -9,12 +9,9 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from typing import Any
 
 from fastapi import HTTPException, Request, status
 from slowapi import Limiter
-from slowapi.errors import RateLimitExceeded
-from slowapi.util import get_remote_address
 
 from app.core.cache.redis import get_redis
 from app.core.config.settings import get_settings
@@ -99,7 +96,7 @@ class BruteForceProtector:
                 )
         except HTTPException:
             raise
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.warning("Failed to check lockout in Redis: %s", exc)
 
     async def record_failure(self, identifier: str, ip: str | None = None) -> int:
@@ -155,7 +152,7 @@ class BruteForceProtector:
             return attempts
         except HTTPException:
             raise
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.warning("Failed to record failure in Redis: %s", exc)
             return 1
 
@@ -165,7 +162,7 @@ class BruteForceProtector:
             client = await get_redis()
             att_key = self._attempts_key(identifier)
             await client.delete(att_key)
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.warning("Failed to reset failure counter in Redis: %s", exc)
 
 

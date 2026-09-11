@@ -7,14 +7,16 @@ Uses integer basis points (e.g. 1000 = 10.00%) to ensure zero floating-point dri
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
-from typing import Any, Optional
+from datetime import UTC, datetime
+from typing import TYPE_CHECKING, Any
 
 import structlog
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.modules.checkout.domain.models import TaxCategory, TaxRule
+
+if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncSession
 
 logger: structlog.stdlib.BoundLogger = structlog.get_logger(__name__)
 
@@ -30,15 +32,15 @@ class TaxService:
         db: AsyncSession,
         category: TaxCategory = TaxCategory.STANDARD,
         jurisdiction: str = "IR",
-        effective_at: Optional[datetime] = None,
-    ) -> Optional[TaxRule]:
+        effective_at: datetime | None = None,
+    ) -> TaxRule | None:
         """Fetch the highest-priority active tax rule matching criteria."""
-        now = effective_at or datetime.now(timezone.utc)
+        now = effective_at or datetime.now(UTC)
 
         stmt = (
             select(TaxRule)
             .where(
-                TaxRule.is_active == True,  # noqa: E712
+                TaxRule.is_active.is_(True),
                 TaxRule.category == category,
                 TaxRule.jurisdiction == jurisdiction,
             )
@@ -58,7 +60,7 @@ class TaxService:
         taxable_amount_rials: int,
         category: TaxCategory = TaxCategory.STANDARD,
         jurisdiction: str = "IR",
-        effective_at: Optional[datetime] = None,
+        effective_at: datetime | None = None,
     ) -> dict[str, Any]:
         """Calculate tax on a given taxable amount in Rials.
 

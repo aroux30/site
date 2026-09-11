@@ -1,6 +1,6 @@
 """Site settings domain models."""
 
-from typing import Any, Optional
+from typing import Any
 
 from sqlalchemy import Boolean, Index, String, Text
 from sqlalchemy.dialects.postgresql import JSONB
@@ -20,9 +20,9 @@ class SiteSetting(BaseModel):
     )
 
     key: Mapped[str] = mapped_column(String(200), unique=True, nullable=False)
-    value: Mapped[Optional[dict[str, Any]]] = mapped_column(JSONB, nullable=True)
-    group: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
-    description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    value: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True)
+    group: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    description: Mapped[str | None] = mapped_column(Text, nullable=True)
     is_public: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 
     def __repr__(self) -> str:

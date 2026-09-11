@@ -1,15 +1,16 @@
 """Unit tests for Phase 14 / SHIP-001 Shipping Carrier Provider Abstraction and Adapters."""
 
 import uuid
-import pytest
 from unittest.mock import patch
+
+import pytest
 
 from app.core.exceptions.handlers import ValidationError
 from app.modules.shipping.infrastructure.carrier_provider import (
     InternalRateCarrierProvider,
-    TipaxCarrierProvider,
     PostIranCarrierProvider,
     ShippingProviderFactory,
+    TipaxCarrierProvider,
 )
 
 
@@ -40,10 +41,14 @@ async def test_shipping_provider_factory_resolution():
 async def test_internal_carrier_pricing_and_dispatch():
     """Verify default internal rate calculation and tracking generation."""
     provider = InternalRateCarrierProvider()
-    tehran_rate = await provider.calculate_rate("تهران", weight_kg=1.0, order_amount_rials=1_000_000)
+    tehran_rate = await provider.calculate_rate(
+        "تهران", weight_kg=1.0, order_amount_rials=1_000_000
+    )
     assert tehran_rate == 450_000
 
-    province_rate = await provider.calculate_rate("اصفهان", weight_kg=2.0, order_amount_rials=1_000_000)
+    province_rate = await provider.calculate_rate(
+        "اصفهان", weight_kg=2.0, order_amount_rials=1_000_000
+    )
     # 450_000 + 50_000 (1kg extra) + 150_000 (provincial) = 650_000
     assert province_rate == 650_000
 
@@ -91,7 +96,10 @@ async def test_tipax_carrier_dispatch_and_fail_closed():
     # In production without api_key, must fail closed
     prod_provider = TipaxCarrierProvider(api_key=None)
     mock_settings = type("MockSettings", (), {"ENVIRONMENT": "production"})()
-    with patch("app.modules.shipping.infrastructure.carrier_provider.get_settings", return_value=mock_settings):
+    with patch(
+        "app.modules.shipping.infrastructure.carrier_provider.get_settings",
+        return_value=mock_settings,
+    ):
         with pytest.raises(ValidationError) as exc:
             await prod_provider.calculate_rate("تهران", weight_kg=1.0, order_amount_rials=0)
         assert exc.value.error_code == "CARRIER_UNCONFIGURED"
@@ -129,10 +137,12 @@ async def test_post_iran_carrier_dispatch():
 @pytest.mark.asyncio
 async def test_api_track_shipment_endpoint():
     """Verify GET /api/v1/shipping/track/{tracking_code} carrier tracking endpoint."""
-    from httpx import ASGITransport, AsyncClient
     from unittest.mock import AsyncMock, MagicMock
-    from app.main import create_app
+
+    from httpx import ASGITransport, AsyncClient
+
     from app.core.database.session import get_db
+    from app.main import create_app
     from app.modules.shipping.domain.models import Shipment, ShipmentStatus
 
     mock_db = AsyncMock()
@@ -164,4 +174,3 @@ async def test_api_track_shipment_endpoint():
         assert len(data["events"]) >= 1
 
     app.dependency_overrides.clear()
-

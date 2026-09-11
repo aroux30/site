@@ -3,11 +3,10 @@
 from __future__ import annotations
 
 import uuid
-from typing import Any, Optional
+from typing import TYPE_CHECKING, Any
 
 import structlog
 from sqlalchemy import func, select
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.modules.loyalty.domain.models import (
     LoyaltyAccount,
@@ -16,6 +15,8 @@ from app.modules.loyalty.domain.models import (
     LoyaltyTransactionType,
 )
 
+if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncSession
 logger: structlog.stdlib.BoundLogger = structlog.get_logger()
 
 # Tier thresholds (cumulative earned points)
@@ -54,9 +55,7 @@ class LoyaltyService:
     # ── Account Management ────────────────────────────────────────────
 
     @staticmethod
-    async def get_or_create_account(
-        db: AsyncSession, user_id: uuid.UUID
-    ) -> LoyaltyAccount:
+    async def get_or_create_account(db: AsyncSession, user_id: uuid.UUID) -> LoyaltyAccount:
         """Get or create a loyalty account for a user."""
         stmt = select(LoyaltyAccount).where(LoyaltyAccount.user_id == user_id)
         result = await db.execute(stmt)
@@ -82,9 +81,9 @@ class LoyaltyService:
         db: AsyncSession,
         user_id: uuid.UUID,
         points: int,
-        reference_type: Optional[str] = None,
-        reference_id: Optional[uuid.UUID] = None,
-        description: Optional[str] = None,
+        reference_type: str | None = None,
+        reference_id: uuid.UUID | None = None,
+        description: str | None = None,
     ) -> tuple[LoyaltyTransaction, LoyaltyAccount]:
         """Add points to a user's loyalty account and recalculate tier."""
         account = await LoyaltyService.get_or_create_account(db, user_id)
@@ -130,9 +129,9 @@ class LoyaltyService:
         db: AsyncSession,
         user_id: uuid.UUID,
         points: int,
-        reference_type: Optional[str] = None,
-        reference_id: Optional[uuid.UUID] = None,
-        description: Optional[str] = None,
+        reference_type: str | None = None,
+        reference_id: uuid.UUID | None = None,
+        description: str | None = None,
     ) -> tuple[LoyaltyTransaction, LoyaltyAccount]:
         """Deduct points from a user's loyalty account."""
         account = await LoyaltyService.get_or_create_account(db, user_id)
@@ -209,9 +208,7 @@ class LoyaltyService:
     @staticmethod
     async def _get_total_earned(db: AsyncSession, account_id: uuid.UUID) -> int:
         """Get total earned points for tier calculation."""
-        stmt = select(
-            func.coalesce(func.sum(LoyaltyTransaction.points), 0)
-        ).where(
+        stmt = select(func.coalesce(func.sum(LoyaltyTransaction.points), 0)).where(
             LoyaltyTransaction.account_id == account_id,
             LoyaltyTransaction.type == LoyaltyTransactionType.EARN,
         )

@@ -5,10 +5,8 @@ from __future__ import annotations
 import enum
 import uuid
 from datetime import datetime
-from typing import Any, Optional
 
 from pydantic import BaseModel, Field
-
 
 # ── Enums ─────────────────────────────────────────────────────────────────
 
@@ -34,22 +32,22 @@ class ReviewStatusFilter(str, enum.Enum):
 class ReviewCreate(BaseModel):
     """Payload for creating a new review."""
 
-    product_id: Optional[uuid.UUID] = Field(None, description="Product ID")
+    product_id: uuid.UUID | None = Field(None, description="Product ID")
     rating: int = Field(..., ge=1, le=5, description="Rating from 1 to 5")
-    title: Optional[str] = Field(None, max_length=300, description="Review title")
-    body: Optional[str] = Field(None, max_length=5000, description="Review body text")
-    pros: Optional[list[str]] = Field(None, max_length=10, description="List of positive points")
-    cons: Optional[list[str]] = Field(None, max_length=10, description="List of negative points")
+    title: str | None = Field(None, max_length=300, description="Review title")
+    body: str | None = Field(None, max_length=5000, description="Review body text")
+    pros: list[str] | None = Field(None, max_length=10, description="List of positive points")
+    cons: list[str] | None = Field(None, max_length=10, description="List of negative points")
 
 
 class ReviewUpdate(BaseModel):
     """Payload for updating an existing review."""
 
-    rating: Optional[int] = Field(None, ge=1, le=5, description="Updated rating")
-    title: Optional[str] = Field(None, max_length=300, description="Updated title")
-    body: Optional[str] = Field(None, max_length=5000, description="Updated body")
-    pros: Optional[list[str]] = Field(None, max_length=10, description="Updated pros")
-    cons: Optional[list[str]] = Field(None, max_length=10, description="Updated cons")
+    rating: int | None = Field(None, ge=1, le=5, description="Updated rating")
+    title: str | None = Field(None, max_length=300, description="Updated title")
+    body: str | None = Field(None, max_length=5000, description="Updated body")
+    pros: list[str] | None = Field(None, max_length=10, description="Updated pros")
+    cons: list[str] | None = Field(None, max_length=10, description="Updated cons")
 
 
 class ReviewVoteRequest(BaseModel):
@@ -62,7 +60,7 @@ class ReviewModerateRequest(BaseModel):
     """Admin request to approve or reject a review."""
 
     status: str = Field(..., pattern="^(approved|rejected)$", description="New status")
-    reason: Optional[str] = Field(None, max_length=500, description="Moderation reason")
+    reason: str | None = Field(None, max_length=500, description="Moderation reason")
 
 
 # ── Response schemas ──────────────────────────────────────────────────────
@@ -72,7 +70,7 @@ class ReviewUserInfo(BaseModel):
     """Minimal user info attached to a review response."""
 
     id: str
-    display_name: Optional[str] = None
+    display_name: str | None = None
 
 
 class ReviewResponse(BaseModel):
@@ -82,10 +80,10 @@ class ReviewResponse(BaseModel):
     user: ReviewUserInfo
     product_id: str
     rating: int
-    title: Optional[str] = None
-    body: Optional[str] = None
-    pros: Optional[list[str]] = None
-    cons: Optional[list[str]] = None
+    title: str | None = None
+    body: str | None = None
+    pros: list[str] | None = None
+    cons: list[str] | None = None
     is_verified_purchase: bool = False
     status: str = "pending"
     helpful_count: int = 0

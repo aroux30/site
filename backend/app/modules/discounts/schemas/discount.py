@@ -4,10 +4,9 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
-
 
 # ── Coupon Apply / Remove ──────────────────────────────────────────────────
 
@@ -58,15 +57,15 @@ class DiscountResponse(BaseModel):
     name: str
     type: str
     value: int = Field(description="Discount value (Rials for fixed, basis points for percentage)")
-    min_cart_amount: Optional[int] = None
-    max_discount: Optional[int] = None
+    min_cart_amount: int | None = None
+    max_discount: int | None = None
     scope: str
-    scope_ids: Optional[list[Any]] = None
+    scope_ids: list[Any] | None = None
     starts_at: datetime
     ends_at: datetime
     is_active: bool
     is_stackable: bool
-    usage_limit: Optional[int] = None
+    usage_limit: int | None = None
     usage_count: int
     priority: int
     created_at: datetime
@@ -79,33 +78,33 @@ class DiscountCreateRequest(BaseModel):
     name: str = Field(..., min_length=1, max_length=200)
     type: str = Field(..., description="fixed | percentage | first_order")
     value: int = Field(..., ge=0, description="Discount value in Rials or basis points")
-    min_cart_amount: Optional[int] = Field(None, ge=0)
-    max_discount: Optional[int] = Field(None, ge=0)
+    min_cart_amount: int | None = Field(None, ge=0)
+    max_discount: int | None = Field(None, ge=0)
     scope: str = Field(default="global", description="global | product | category | brand | user")
-    scope_ids: Optional[list[str]] = None
+    scope_ids: list[str] | None = None
     starts_at: datetime
     ends_at: datetime
     is_active: bool = True
     is_stackable: bool = False
-    usage_limit: Optional[int] = Field(None, ge=0)
+    usage_limit: int | None = Field(None, ge=0)
     priority: int = Field(default=0)
 
 
 class DiscountUpdateRequest(BaseModel):
     """Admin request to partially update a discount rule."""
 
-    name: Optional[str] = Field(None, min_length=1, max_length=200)
-    value: Optional[int] = Field(None, ge=0)
-    min_cart_amount: Optional[int] = None
-    max_discount: Optional[int] = None
-    scope: Optional[str] = None
-    scope_ids: Optional[list[str]] = None
-    starts_at: Optional[datetime] = None
-    ends_at: Optional[datetime] = None
-    is_active: Optional[bool] = None
-    is_stackable: Optional[bool] = None
-    usage_limit: Optional[int] = None
-    priority: Optional[int] = None
+    name: str | None = Field(None, min_length=1, max_length=200)
+    value: int | None = Field(None, ge=0)
+    min_cart_amount: int | None = None
+    max_discount: int | None = None
+    scope: str | None = None
+    scope_ids: list[str] | None = None
+    starts_at: datetime | None = None
+    ends_at: datetime | None = None
+    is_active: bool | None = None
+    is_stackable: bool | None = None
+    usage_limit: int | None = None
+    priority: int | None = None
 
 
 # ── Coupon (admin) ─────────────────────────────────────────────────────────
@@ -120,7 +119,7 @@ class CouponResponse(BaseModel):
     discount_id: uuid.UUID
     code: str
     is_active: bool
-    usage_limit: Optional[int] = None
+    usage_limit: int | None = None
     usage_count: int
     starts_at: datetime
     ends_at: datetime

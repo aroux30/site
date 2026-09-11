@@ -1,7 +1,7 @@
 """RBAC (Role-Based Access Control) domain models."""
 
 import uuid
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 from sqlalchemy import Boolean, ForeignKey, Index, String, Text, UniqueConstraint
 from sqlalchemy.dialects.postgresql import UUID
@@ -17,13 +17,11 @@ class Role(BaseModel):
     """User roles for access control."""
 
     __tablename__ = "roles"
-    __table_args__ = (
-        Index("ix_roles_slug", "slug"),
-    )
+    __table_args__ = (Index("ix_roles_slug", "slug"),)
 
     name: Mapped[str] = mapped_column(String(100), nullable=False)
     slug: Mapped[str] = mapped_column(String(100), unique=True, nullable=False)
-    description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    description: Mapped[str | None] = mapped_column(Text, nullable=True)
     is_system: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 
     # Relationships
@@ -50,7 +48,7 @@ class Permission(BaseModel):
 
     name: Mapped[str] = mapped_column(String(100), nullable=False)
     slug: Mapped[str] = mapped_column(String(100), unique=True, nullable=False)
-    description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    description: Mapped[str | None] = mapped_column(Text, nullable=True)
     resource: Mapped[str] = mapped_column(String(100), nullable=False)
     action: Mapped[str] = mapped_column(String(50), nullable=False)
 
@@ -68,9 +66,7 @@ class RolePermission(BaseModel):
 
     __tablename__ = "role_permissions"
     __table_args__ = (
-        UniqueConstraint(
-            "role_id", "permission_id", name="uq_role_permissions_role_permission"
-        ),
+        UniqueConstraint("role_id", "permission_id", name="uq_role_permissions_role_permission"),
     )
 
     role_id: Mapped[uuid.UUID] = mapped_column(
@@ -98,9 +94,7 @@ class UserRole(BaseModel):
     """Many-to-many association between users and roles."""
 
     __tablename__ = "user_roles"
-    __table_args__ = (
-        UniqueConstraint("user_id", "role_id", name="uq_user_roles_user_role"),
-    )
+    __table_args__ = (UniqueConstraint("user_id", "role_id", name="uq_user_roles_user_role"),)
 
     user_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),

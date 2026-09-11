@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import asyncio
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 import structlog
@@ -22,7 +22,7 @@ _BATCH_LIMIT = 100
 def _as_aware(dt: datetime) -> datetime:
     """Normalize a possibly-naive datetime to UTC-aware for comparisons."""
     if dt.tzinfo is None:
-        return dt.replace(tzinfo=timezone.utc)
+        return dt.replace(tzinfo=UTC)
     return dt
 
 
@@ -35,24 +35,19 @@ async def _cancel_stale_pending_orders_async() -> dict[str, Any]:
     """
     settings = get_settings()
     timeout_minutes = getattr(settings, "ORDER_PAYMENT_TIMEOUT_MINUTES", 60)
-    cutoff = datetime.now(timezone.utc) - timedelta(minutes=timeout_minutes)
+    cutoff = datetime.now(UTC) - timedelta(minutes=timeout_minutes)
     cancelled = 0
 
     async with async_session_factory() as db:
         try:
-            stmt = (
-                select(Order)
-                .filter_by(status=OrderStatus.PENDING)
-                .with_for_update()
-            )
+            stmt = select(Order).filter_by(status=OrderStatus.PENDING).with_for_update()
             pending_orders = (await db.scalars(stmt)).all()
             # Filter the payment timeout in Python — pending orders are a
             # small, bounded set and this keeps the scan index-friendly.
             stale_orders = [
                 o
                 for o in pending_orders
-                if o.created_at is not None
-                and _as_aware(o.created_at) < cutoff
+                if o.created_at is not None and _as_aware(o.created_at) < cutoff
             ][:_BATCH_LIMIT]
 
             for order in stale_orders:

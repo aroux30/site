@@ -9,7 +9,6 @@ from __future__ import annotations
 import math
 import uuid
 from datetime import datetime
-from typing import Optional
 
 from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -18,7 +17,6 @@ from app.core.database.session import get_db
 from app.core.exceptions.handlers import NotFoundError
 from app.core.security.dependencies import RequirePermissions, get_current_user_id
 from app.modules.vendors.application.vendor_service import (
-    VendorService,
     admin_verify_vendor,
     calculate_vendor_earnings,
     create_settlement,
@@ -66,7 +64,7 @@ _require_vendor_write = Depends(RequirePermissions("vendors:write", "admin:acces
     response_model=VendorResponse,
     status_code=status.HTTP_201_CREATED,
     summary="Register as a vendor / seller",
-    description="Submit vendor profile application. An authenticated user can have one vendor store.",
+    description="Submit vendor profile application. An authenticated user can have one vendor store.",  # noqa: E501
 )
 async def api_register_vendor(
     data: VendorRegisterRequest,
@@ -111,11 +109,11 @@ async def api_list_vendors(
     "/me",
     response_model=VendorEarningsResponse,
     summary="Vendor self-service: sales and earnings",
-    description="Retrieve financial metrics, gross sales, platform commissions, and pending settlements for the current vendor.",
+    description="Retrieve financial metrics, gross sales, platform commissions, and pending settlements for the current vendor.",  # noqa: E501
 )
 async def api_get_vendor_me(
-    period_start: Optional[datetime] = Query(None, description="Start date for earnings window"),
-    period_end: Optional[datetime] = Query(None, description="End date for earnings window"),
+    period_start: datetime | None = Query(None, description="Start date for earnings window"),
+    period_end: datetime | None = Query(None, description="End date for earnings window"),
     user_id: uuid.UUID = Depends(get_current_user_id),
     db: AsyncSession = Depends(get_db),
 ) -> VendorEarningsResponse:
@@ -186,8 +184,8 @@ async def api_update_vendor_me(
     description="List all vendors with optional filtering by active and verified flags.",
 )
 async def admin_list_vendors(
-    is_active: Optional[bool] = Query(None, description="Filter by active status"),
-    is_verified: Optional[bool] = Query(None, description="Filter by verification status"),
+    is_active: bool | None = Query(None, description="Filter by active status"),
+    is_verified: bool | None = Query(None, description="Filter by verification status"),
     page: int = Query(1, ge=1, description="Page number"),
     page_size: int = Query(20, ge=1, le=100, description="Items per page"),
     db: AsyncSession = Depends(get_db),
@@ -218,7 +216,7 @@ async def admin_list_vendors(
     description="Retrieve vendor by ID including verification and commission rates.",
 )
 async def admin_get_vendor(
-    id: uuid.UUID,
+    id: uuid.UUID,  # noqa: A002  # API parameter name is the public contract
     db: AsyncSession = Depends(get_db),
 ) -> VendorResponse:
     """Admin inspect specific vendor."""
@@ -234,9 +232,11 @@ async def admin_get_vendor(
     description="Approve or revoke vendor verification status.",
 )
 async def admin_patch_verify_vendor(
-    id: uuid.UUID,
-    payload: Optional[VendorVerifyRequest] = None,
-    verified: bool = Query(True, description="Verification status if payload body is not provided"),
+    id: uuid.UUID,  # noqa: A002  # API parameter name is the public contract
+    payload: VendorVerifyRequest | None = None,
+    verified: bool = Query(
+        True, description="Verification status if payload body is not provided"
+    ),
     db: AsyncSession = Depends(get_db),
 ) -> VendorResponse:
     """Approve or reject vendor verification."""
@@ -253,7 +253,7 @@ async def admin_patch_verify_vendor(
     description="Modify vendor commission rate, status, rating, or storefront metadata.",
 )
 async def admin_update_vendor_details(
-    id: uuid.UUID,
+    id: uuid.UUID,  # noqa: A002  # API parameter name is the public contract
     data: VendorAdminUpdateRequest,
     db: AsyncSession = Depends(get_db),
 ) -> VendorResponse:
@@ -270,9 +270,9 @@ async def admin_update_vendor_details(
     description="Financial breakdown for a specific vendor across an optional timeframe.",
 )
 async def admin_vendor_earnings(
-    id: uuid.UUID,
-    period_start: Optional[datetime] = Query(None, description="Start date"),
-    period_end: Optional[datetime] = Query(None, description="End date"),
+    id: uuid.UUID,  # noqa: A002  # API parameter name is the public contract
+    period_start: datetime | None = Query(None, description="Start date"),
+    period_end: datetime | None = Query(None, description="End date"),
     db: AsyncSession = Depends(get_db),
 ) -> VendorEarningsResponse:
     """Admin inspection of vendor sales and earnings."""
@@ -293,7 +293,7 @@ async def admin_vendor_earnings(
     description="List all payout / settlement records for a vendor.",
 )
 async def admin_get_vendor_settlements(
-    id: uuid.UUID,
+    id: uuid.UUID,  # noqa: A002  # API parameter name is the public contract
     page: int = Query(1, ge=1, description="Page number"),
     page_size: int = Query(20, ge=1, le=100, description="Items per page"),
     db: AsyncSession = Depends(get_db),
@@ -327,7 +327,7 @@ async def admin_get_vendor_settlements(
     description="Generate a payout settlement record for a vendor.",
 )
 async def admin_create_vendor_settlement(
-    id: uuid.UUID,
+    id: uuid.UUID,  # noqa: A002  # API parameter name is the public contract
     data: VendorSettlementCreate,
     db: AsyncSession = Depends(get_db),
 ) -> VendorSettlementResponse:

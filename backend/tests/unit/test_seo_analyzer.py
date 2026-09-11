@@ -63,8 +63,7 @@ def test_strip_html_and_markdown():
     assert "<" not in stripped
 
     md_content = (
-        "## تیتر مارک‌داون\n\nمتن [لینک دار](https://example.com) "
-        "و تصویر ![توضیح](img.jpg)"
+        "## تیتر مارک‌داون\n\nمتن [لینک دار](https://example.com) و تصویر ![توضیح](img.jpg)"
     )
     stripped_md = strip_html_and_markdown(md_content)
     assert "تیتر مارک‌داون" in stripped_md
@@ -103,7 +102,7 @@ def test_perfect_seo_score_100():
     content = (
         f"<p>خرید {kw} یکی از مهم‌ترین انتخاب‌های کاربران دنیای فناوری است.</p>"
         "<h2>بررسی مشخصات فنی</h2>"
-        + (" واژه نمونه برای طول متن محتوای سئو"*25 + f" {kw} ")*6
+        + (" واژه نمونه برای طول متن محتوای سئو" * 25 + f" {kw} ") * 6
         + "<h3>جمع‌بندی و نتیجه‌گیری</h3><p>پایان بررسی و معرفی مدل‌ها.</p>"
     )
 
@@ -220,21 +219,21 @@ def test_content_length_tiers():
     analyzer = SeoAnalyzer()
 
     # >= 600 words
-    content_600 = "کلمه "*650
+    content_600 = "کلمه " * 650
     res_600 = analyzer.analyze(content=content_600)
     len_item_600 = next(i for i in res_600.checklist if i.title == "طول و جامعیت محتوا")
     assert len_item_600.passed is True
     assert len_item_600.points == 12
 
     # 300..599 words
-    content_350 = "کلمه "*350
+    content_350 = "کلمه " * 350
     res_350 = analyzer.analyze(content=content_350)
     len_item_350 = next(i for i in res_350.checklist if i.title == "طول و جامعیت محتوا")
     assert len_item_350.passed is True
     assert len_item_350.points == 6
 
     # < 300 words
-    content_150 = "کلمه "*150
+    content_150 = "کلمه " * 150
     res_150 = analyzer.analyze(content=content_150)
     len_item_150 = next(i for i in res_150.checklist if i.title == "طول و جامعیت محتوا")
     assert len_item_150.passed is False
@@ -247,14 +246,14 @@ def test_keyword_density_optimal_vs_stuffing():
     kw = "کفش ورزشی"
 
     # Optimal density: 5 repetitions in 500 words = (5*2)/500 = 2.0%
-    optimal_content = (" کلمه تست "*48 + f" {kw} ")*5
+    optimal_content = (" کلمه تست " * 48 + f" {kw} ") * 5
     res_opt = analyzer.analyze(content=optimal_content, focus_keyword=kw)
     density_item_opt = next(i for i in res_opt.checklist if "تراکم کلمه کلیدی" in i.title)
     assert density_item_opt.passed is True
     assert density_item_opt.points == 8
 
     # Keyword stuffing: 30 repetitions in 300 words -> density ~ 20%
-    stuffed_content = (" تست "*3 + f" {kw} ")*30
+    stuffed_content = (" تست " * 3 + f" {kw} ") * 30
     res_stuffed = analyzer.analyze(content=stuffed_content, focus_keyword=kw)
     density_item_stuffed = next(i for i in res_stuffed.checklist if "تراکم کلمه کلیدی" in i.title)
     assert density_item_stuffed.passed is False
@@ -304,8 +303,7 @@ def test_media_and_links_checks():
 
     # Via HTML content detection
     html_content = (
-        '<img src="apple.jpg" alt="خرید تبلت اپل مدل پرو">'
-        '<a href="/products">فروشگاه</a>'
+        '<img src="apple.jpg" alt="خرید تبلت اپل مدل پرو"><a href="/products">فروشگاه</a>'
     )
     res_html = analyzer.analyze(content=html_content, focus_keyword=kw)
     media_items_html = [i for i in res_html.checklist if i.category == "media_links"]
@@ -337,6 +335,7 @@ def test_grade_boundaries():
 def test_url_encoded_persian_slug():
     """Verify URL-encoded Persian slug is decoded and checked properly."""
     import urllib.parse
+
     analyzer = SeoAnalyzer()
     kw = "کفش چرم"
     persian_slug = "خرید-کفش-چرم-طبیعی"
@@ -372,7 +371,6 @@ def test_pydantic_schema_validation():
     json_data = res.model_dump_json()
     assert "score" in json_data
     assert "grade" in json_data
-
 
 
 # -----------------------------------------------------------------------------
@@ -434,6 +432,7 @@ async def test_api_seo_product_score_not_found():
         mock_db.execute.return_value = mock_result
 
         from app.core.database.session import get_db
+
         app.dependency_overrides[get_db] = lambda: mock_db
         try:
             response = await client.get(f"/api/v1/seo/products/{fake_id}/score")
@@ -456,6 +455,7 @@ async def test_api_seo_blog_score_not_found():
         mock_db.execute.return_value = mock_result
 
         from app.core.database.session import get_db
+
         app.dependency_overrides[get_db] = lambda: mock_db
         try:
             response = await client.get("/api/v1/seo/blog/non-existent-article/score")
@@ -507,6 +507,7 @@ async def test_api_seo_product_score_success():
         mock_db.execute.return_value = mock_result
 
         from app.core.database.session import get_db
+
         app.dependency_overrides[get_db] = lambda: mock_db
         try:
             response = await client.get(f"/api/v1/seo/products/{test_id}/score")
@@ -541,8 +542,7 @@ async def test_api_seo_blog_score_success():
         "در فروشگاه آنلاین."
     )
     mock_post.content = (
-        "<h2>مقدمه</h2><p>راهنمای خرید لپ تاپ یکی از مقالات مهم است.</p>"
-        + " متن راهنما " * 120
+        "<h2>مقدمه</h2><p>راهنمای خرید لپ تاپ یکی از مقالات مهم است.</p>" + " متن راهنما " * 120
     )
     mock_post.cover_image_url = "https://example.com/laptop.jpg"
     mock_post.category = mock_category
@@ -560,6 +560,7 @@ async def test_api_seo_blog_score_success():
         mock_db.execute.side_effect = [mock_db_result_post, mock_db_result_seo]
 
         from app.core.database.session import get_db
+
         app.dependency_overrides[get_db] = lambda: mock_db
         try:
             response = await client.get("/api/v1/seo/blog/guide-buying-laptop/score")

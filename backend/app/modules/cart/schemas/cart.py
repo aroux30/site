@@ -4,10 +4,9 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
-
 
 # ── Cart item detail ───────────────────────────────────────────────────────
 
@@ -24,14 +23,14 @@ class CartItemResponse(BaseModel):
     subtotal: int = Field(description="quantity * price_snapshot (Rial)")
 
     # Enrichment fields (populated by service, not from the ORM model directly)
-    product_name: Optional[str] = None
-    variant_info: Optional[str] = None
-    sku: Optional[str] = None
-    current_price: Optional[int] = Field(
+    product_name: str | None = None
+    variant_info: str | None = None
+    sku: str | None = None
+    current_price: int | None = Field(
         None, description="Live price in Rial — may differ from snapshot"
     )
-    image_url: Optional[str] = None
-    is_available: Optional[bool] = None
+    image_url: str | None = None
+    is_available: bool | None = None
 
     @property
     def price_toman(self) -> int:
@@ -51,13 +50,13 @@ class CartResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: uuid.UUID
-    user_id: Optional[uuid.UUID] = None
-    session_id: Optional[str] = None
+    user_id: uuid.UUID | None = None
+    session_id: str | None = None
     status: str
     items: list[CartItemResponse] = []
     subtotal: int = Field(0, description="Sum of all line item subtotals (Rial)")
     item_count: int = Field(0, description="Total number of individual items")
-    expires_at: Optional[datetime] = None
+    expires_at: datetime | None = None
     created_at: datetime
     updated_at: datetime
 
@@ -99,8 +98,8 @@ class CartMergeRequest(BaseModel):
 class CartValidationIssue(BaseModel):
     variant_id: uuid.UUID
     issue: str
-    old_value: Optional[Any] = None
-    new_value: Optional[Any] = None
+    old_value: Any | None = None
+    new_value: Any | None = None
 
 
 class CartValidationResponse(BaseModel):

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import asyncio
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 import structlog
@@ -18,7 +18,7 @@ logger: structlog.stdlib.BoundLogger = structlog.get_logger(__name__)
 
 async def _expire_discount_codes_async() -> dict[str, Any]:
     """Deactivate discounts and coupons that have passed their ends_at date."""
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
 
     async with async_session_factory() as db:
         try:
@@ -26,7 +26,7 @@ async def _expire_discount_codes_async() -> dict[str, Any]:
             disc_stmt = (
                 update(Discount)
                 .where(
-                    Discount.is_active == True,  # noqa: E712
+                    Discount.is_active.is_(True),
                     Discount.ends_at <= now,
                 )
                 .values(is_active=False)
@@ -38,7 +38,7 @@ async def _expire_discount_codes_async() -> dict[str, Any]:
             coup_stmt = (
                 update(Coupon)
                 .where(
-                    Coupon.is_active == True,  # noqa: E712
+                    Coupon.is_active.is_(True),
                     Coupon.ends_at <= now,
                 )
                 .values(is_active=False)

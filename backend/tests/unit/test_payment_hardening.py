@@ -12,7 +12,7 @@ Covers the P0 integration defects found in the end-to-end audit:
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -38,7 +38,6 @@ from app.modules.payments.domain.models import (
     PaymentProvider,
     PaymentStatus,
 )
-from app.modules.payments.schemas.payment import PaymentVerifyRequest
 
 
 def _make_order(
@@ -132,18 +131,20 @@ async def test_create_payment_rejects_wallet_insufficient_balance():
     db = MagicMock()
     db.get = AsyncMock(return_value=order)
 
-    with patch(
-        "app.modules.wallet.application.wallet_service.get_balance",
-        new=AsyncMock(return_value=100),
+    with (
+        patch(
+            "app.modules.wallet.application.wallet_service.get_balance",
+            new=AsyncMock(return_value=100),
+        ),
+        pytest.raises(PaymentError) as exc,
     ):
-        with pytest.raises(PaymentError) as exc:
-            await payment_service.create_payment(
-                db,
-                user_id=user_id,
-                order_id=order.id,
-                provider="wallet",
-                amount=1_000_000,
-            )
+        await payment_service.create_payment(
+            db,
+            user_id=user_id,
+            order_id=order.id,
+            provider="wallet",
+            amount=1_000_000,
+        )
     assert exc.value.detail is not None
 
 
@@ -161,8 +162,8 @@ def _wallet_verify_fixtures(user_id: uuid.UUID, amount: int = 500_000):
         provider=PaymentProvider.WALLET,
         status=PaymentStatus.PROCESSING,
         authority="WALLET-TESTAUTH01",
-        created_at=datetime.now(timezone.utc),
-        updated_at=datetime.now(timezone.utc),
+        created_at=datetime.now(UTC),
+        updated_at=datetime.now(UTC),
     )
 
     db = MagicMock()
@@ -194,10 +195,9 @@ async def test_wallet_verify_debits_wallet_exactly_once():
     debit = AsyncMock(return_value=MagicMock(id=uuid.uuid4()))
     publish = AsyncMock(return_value=MagicMock(id=uuid.uuid4()))
 
-    with patch(
-        "app.modules.wallet.application.wallet_service.debit", new=debit
-    ), patch(
-        "app.shared.events.outbox_service.OutboxService.publish", new=publish
+    with (
+        patch("app.modules.wallet.application.wallet_service.debit", new=debit),
+        patch("app.shared.events.outbox_service.OutboxService.publish", new=publish),
     ):
         response = await payment_service.verify_payment(
             db,
@@ -227,18 +227,17 @@ async def test_wallet_verify_insufficient_balance_fails_payment():
 
     failing_debit = AsyncMock(side_effect=ValidationError("Insufficient balance"))
 
-    with patch(
-        "app.modules.wallet.application.wallet_service.debit", new=failing_debit
-    ), patch(
-        "app.shared.events.outbox_service.OutboxService.publish", new=AsyncMock()
+    with (
+        patch("app.modules.wallet.application.wallet_service.debit", new=failing_debit),
+        patch("app.shared.events.outbox_service.OutboxService.publish", new=AsyncMock()),
+        pytest.raises(PaymentError),
     ):
-        with pytest.raises(PaymentError):
-            await payment_service.verify_payment(
-                db,
-                payment_id=payment.id,
-                authority=payment.authority or "",
-                status="OK",
-            )
+        await payment_service.verify_payment(
+            db,
+            payment_id=payment.id,
+            authority=payment.authority or "",
+            status="OK",
+        )
 
     assert payment.status == PaymentStatus.FAILED
     assert order.status == OrderStatus.PENDING
@@ -272,16 +271,18 @@ async def test_wallet_deposit_disabled_in_production():
 
     production_settings = SimpleNamespace(ENVIRONMENT="production")
 
-    with patch(
-        "app.modules.wallet.api.routes.get_settings",
-        return_value=production_settings,
+    with (
+        patch(
+            "app.modules.wallet.api.routes.get_settings",
+            return_value=production_settings,
+        ),
+        pytest.raises(HTTPException) as exc,
     ):
-        with pytest.raises(HTTPException) as exc:
-            await deposit(
-                WalletDepositRequest(amount=100_000),
-                user_id=uuid.uuid4(),
-                db=MagicMock(),
-            )
+        await deposit(
+            WalletDepositRequest(amount=100_000),
+            user_id=uuid.uuid4(),
+            db=MagicMock(),
+        )
     assert exc.value.status_code == 403
 
 
@@ -357,9 +358,9 @@ async def test_stale_pending_orders_are_cancelled_and_restocked():
     from app.modules.orders.application import tasks as order_tasks
 
     stale_order = _make_order(user_id=uuid.uuid4())
-    stale_order.created_at = datetime.now(timezone.utc) - timedelta(minutes=120)
+    stale_order.created_at = datetime.now(UTC) - timedelta(minutes=120)
     fresh_order = _make_order(user_id=uuid.uuid4())
-    fresh_order.created_at = datetime.now(timezone.utc)
+    fresh_order.created_at = datetime.now(UTC)
 
     db = MagicMock()
     db.add = MagicMock()
@@ -373,12 +374,15 @@ async def test_stale_pending_orders_are_cancelled_and_restocked():
 
     restock = AsyncMock(return_value=2)
 
-    with patch(
-        "app.modules.orders.application.tasks.async_session_factory",
-        lambda: _FakeSessionCtx(db),
-    ), patch(
-        "app.modules.inventory.application.inventory_service.restock_order",
-        new=restock,
+    with (
+        patch(
+            "app.modules.orders.application.tasks.async_session_factory",
+            lambda: _FakeSessionCtx(db),
+        ),
+        patch(
+            "app.modules.inventory.application.inventory_service.restock_order",
+            new=restock,
+        ),
     ):
         result = await order_tasks._cancel_stale_pending_orders_async()
 

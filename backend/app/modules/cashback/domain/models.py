@@ -3,7 +3,6 @@
 import enum
 import uuid
 from datetime import datetime
-from typing import Optional
 
 from sqlalchemy import (
     BigInteger,
@@ -20,8 +19,8 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database.base import BaseModel
 
-
 # ---- Enums ----
+
 
 class CashbackRuleType(str, enum.Enum):
     PAYMENT_METHOD = "payment_method"
@@ -39,6 +38,7 @@ class CashbackTransactionStatus(str, enum.Enum):
 
 # ---- Models ----
 
+
 class CashbackRule(BaseModel):
     """Rules governing when and how cashback is awarded."""
 
@@ -54,16 +54,12 @@ class CashbackRule(BaseModel):
         Enum(CashbackRuleType, name="cashback_rule_type_enum", native_enum=False),
         nullable=False,
     )
-    scope_id: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    scope_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
     percentage: Mapped[float] = mapped_column(Float, nullable=False)
-    max_amount: Mapped[Optional[int]] = mapped_column(BigInteger, nullable=True)
+    max_amount: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
-    starts_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False
-    )
-    ends_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False
-    )
+    starts_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    ends_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
     # Relationships
     transactions: Mapped[list["CashbackTransaction"]] = relationship(
@@ -113,9 +109,7 @@ class CashbackTransaction(BaseModel):
     )
 
     # Relationships
-    rule: Mapped["CashbackRule"] = relationship(
-        "CashbackRule", back_populates="transactions"
-    )
+    rule: Mapped["CashbackRule"] = relationship("CashbackRule", back_populates="transactions")
 
     def __repr__(self) -> str:
         return f"<CashbackTransaction(id={self.id}, amount={self.amount}, status={self.status})>"

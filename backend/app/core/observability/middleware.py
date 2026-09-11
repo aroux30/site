@@ -10,18 +10,20 @@ from __future__ import annotations
 
 import time
 import uuid
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import structlog
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
-from starlette.requests import Request
-from starlette.responses import Response
 
 from app.core.observability.metrics import (
     REQUEST_COUNT,
     REQUEST_DURATION,
     REQUESTS_IN_PROGRESS,
 )
+
+if TYPE_CHECKING:
+    from starlette.requests import Request
+    from starlette.responses import Response
 
 logger: structlog.stdlib.BoundLogger = structlog.get_logger()
 

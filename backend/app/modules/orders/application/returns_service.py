@@ -10,20 +10,22 @@ Enforces:
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone, timedelta
-from typing import Sequence
+from datetime import UTC, datetime, timedelta
+from typing import TYPE_CHECKING
 
 import structlog
 
-from app.core.exceptions.handlers import ValidationError, NotFoundError
+from app.core.exceptions.handlers import ValidationError
 from app.modules.orders.domain.models import Order, OrderStatus
 from app.modules.orders.domain.returns import (
+    InspectionOutcome,
     OrderReturnDomain,
     ReturnItemSpec,
-    ReturnReason,
     ReturnStatus,
-    InspectionOutcome,
 )
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
 
 logger: structlog.stdlib.BoundLogger = structlog.get_logger(__name__)
 
@@ -50,11 +52,11 @@ class ReturnsService:
                 error_code="ORDER_NOT_DELIVERED",
             )
 
-        current_time = now or datetime.now(timezone.utc)
+        current_time = now or datetime.now(UTC)
         if delivered_at is None:
             delivered_at = current_time
         elif delivered_at.tzinfo is None:
-            delivered_at = delivered_at.replace(tzinfo=timezone.utc)
+            delivered_at = delivered_at.replace(tzinfo=UTC)
 
         elapsed = current_time - delivered_at
         if elapsed > timedelta(days=self.return_window_days):
@@ -99,7 +101,7 @@ class ReturnsService:
                 )
             if return_item.quantity <= 0 or return_item.quantity > order_line.quantity:
                 raise ValidationError(
-                    f"Return quantity {return_item.quantity} exceeds ordered quantity {order_line.quantity}.",
+                    f"Return quantity {return_item.quantity} exceeds ordered quantity {order_line.quantity}.",  # noqa: E501
                     error_code="INVALID_RETURN_QUANTITY",
                 )
 
@@ -109,7 +111,7 @@ class ReturnsService:
             user_id=user_id,
             status=ReturnStatus.REQUESTED,
             items=list(items),
-            created_at=now or datetime.now(timezone.utc),
+            created_at=now or datetime.now(UTC),
             eligibility_window_days=self.return_window_days,
         )
 

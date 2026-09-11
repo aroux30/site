@@ -10,7 +10,8 @@ from __future__ import annotations
 from typing import Any
 
 import structlog
-from elasticsearch import AsyncElasticsearch, NotFoundError as ESNotFoundError
+from elasticsearch import AsyncElasticsearch
+from elasticsearch import NotFoundError as ESNotFoundError
 
 from app.core.config.settings import get_settings
 
@@ -65,6 +66,11 @@ PERSIAN_ANALYSIS_SETTINGS: dict[str, Any] = {
             "arabic_normalization": {
                 "type": "arabic_normalization",
             },
+            "edge_ngram_filter": {
+                "type": "edge_ngram",
+                "min_gram": 2,
+                "max_gram": 15,
+            },
         },
         "analyzer": {
             "persian_analyzer": {
@@ -88,23 +94,6 @@ PERSIAN_ANALYSIS_SETTINGS: dict[str, Any] = {
                     "persian_normalization",
                     "edge_ngram_filter",
                 ],
-            },
-        },
-        "filter": {
-            "persian_stop": {
-                "type": "stop",
-                "stopwords": "_persian_",
-            },
-            "persian_normalization": {
-                "type": "persian_normalization",
-            },
-            "arabic_normalization": {
-                "type": "arabic_normalization",
-            },
-            "edge_ngram_filter": {
-                "type": "edge_ngram",
-                "min_gram": 2,
-                "max_gram": 15,
             },
         },
     },
@@ -214,9 +203,7 @@ class ElasticsearchService:
     def client(self) -> AsyncElasticsearch:
         """Return the active client or raise."""
         if self._client is None:
-            raise RuntimeError(
-                "Elasticsearch client not connected. Call connect() first."
-            )
+            raise RuntimeError("Elasticsearch client not connected. Call connect() first.")
         return self._client
 
     @property
@@ -308,9 +295,7 @@ class ElasticsearchService:
         )
         return {"success": success, "errors": errors}
 
-    async def delete_document(
-        self, doc_id: str, index_name: str | None = None
-    ) -> None:
+    async def delete_document(self, doc_id: str, index_name: str | None = None) -> None:
         """Delete a single document by ID."""
         client = await self.connect()
         target = index_name or self._index_name
@@ -344,7 +329,7 @@ _es_service: ElasticsearchService | None = None
 
 def get_elasticsearch_service() -> ElasticsearchService:
     """Return (and lazily create) the module-level ElasticsearchService."""
-    global _es_service  # noqa: PLW0603
+    global _es_service
     if _es_service is None:
         _es_service = ElasticsearchService()
     return _es_service

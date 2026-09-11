@@ -1,3 +1,3 @@
 """Catalog schemas package."""
 
-from app.modules.catalog.schemas.catalog import *  # noqa: F401, F403
+from app.modules.catalog.schemas.catalog import *  # noqa: F403  # deliberate schema re-export

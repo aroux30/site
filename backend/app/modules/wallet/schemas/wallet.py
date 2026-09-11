@@ -4,12 +4,10 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime
-from typing import Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
 from app.modules.wallet.domain.models import WalletTransactionType
-
 
 # ── Request Schemas ───────────────────────────────────────────────────────
 
@@ -19,9 +17,7 @@ class WalletDepositRequest(BaseModel):
 
     model_config = ConfigDict(str_strip_whitespace=True)
 
-    amount: int = Field(
-        ..., gt=0, description="Amount to deposit in IRR (Rials)"
-    )
+    amount: int = Field(..., gt=0, description="Amount to deposit in IRR (Rials)")
 
 
 class WalletWithdrawRequest(BaseModel):
@@ -29,9 +25,7 @@ class WalletWithdrawRequest(BaseModel):
 
     model_config = ConfigDict(str_strip_whitespace=True)
 
-    amount: int = Field(
-        ..., gt=0, description="Amount to withdraw in IRR (Rials)"
-    )
+    amount: int = Field(..., gt=0, description="Amount to withdraw in IRR (Rials)")
 
 
 # ── Response Schemas ──────────────────────────────────────────────────────
@@ -59,9 +53,9 @@ class WalletTransactionResponse(BaseModel):
     wallet_id: uuid.UUID
     amount: int
     type: WalletTransactionType
-    reference_type: Optional[str] = None
-    reference_id: Optional[uuid.UUID] = None
-    description: Optional[str] = None
+    reference_type: str | None = None
+    reference_id: uuid.UUID | None = None
+    description: str | None = None
     balance_after: int
     created_at: datetime
 

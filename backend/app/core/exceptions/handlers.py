@@ -13,11 +13,10 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from slowapi.errors import RateLimitExceeded
 
-
 # ── Base Exception ────────────────────────────────────────────────────────
 
 
-class AppException(Exception):
+class AppException(Exception):  # noqa: N818  # established public base-exception name across the codebase
     """Base exception for all domain / application errors."""
 
     status_code: int = status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -86,7 +85,9 @@ class RateLimitError(AppException):
     status_code = status.HTTP_429_TOO_MANY_REQUESTS
     error_code = "RATE_LIMIT_EXCEEDED"
 
-    def __init__(self, detail: str = "Too many requests, please try again later", **kw: Any) -> None:
+    def __init__(
+        self, detail: str = "Too many requests, please try again later", **kw: Any
+    ) -> None:
         super().__init__(detail, **kw)
 
 
@@ -136,11 +137,13 @@ async def validation_exception_handler(
 ) -> JSONResponse:
     errors = []
     for err in exc.errors():
-        errors.append({
-            "field": ".".join(str(loc) for loc in err.get("loc", [])),
-            "message": err.get("msg", ""),
-            "type": err.get("type", ""),
-        })
+        errors.append(
+            {
+                "field": ".".join(str(loc) for loc in err.get("loc", [])),
+                "message": err.get("msg", ""),
+                "type": err.get("type", ""),
+            }
+        )
     return _error_response(
         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
         error_code="VALIDATION_ERROR",

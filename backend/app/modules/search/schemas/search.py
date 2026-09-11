@@ -3,10 +3,8 @@
 from __future__ import annotations
 
 import enum
-from typing import Any, Optional
 
 from pydantic import BaseModel, Field
-
 
 # ── Enums ─────────────────────────────────────────────────────────────────
 
@@ -25,16 +23,16 @@ class SearchSortOption(str, enum.Enum):
 class SearchFilters(BaseModel):
     """Filters that can be applied alongside a search query."""
 
-    category: Optional[str] = Field(None, description="Category slug or ID")
-    brand: Optional[str] = Field(None, description="Brand slug or ID")
-    min_price: Optional[int] = Field(None, ge=0, description="Minimum price (Rial)")
-    max_price: Optional[int] = Field(None, ge=0, description="Maximum price (Rial)")
-    min_rating: Optional[float] = Field(None, ge=1, le=5, description="Minimum average rating")
-    attributes: Optional[dict[str, list[str]]] = Field(
+    category: str | None = Field(None, description="Category slug or ID")
+    brand: str | None = Field(None, description="Brand slug or ID")
+    min_price: int | None = Field(None, ge=0, description="Minimum price (Rial)")
+    max_price: int | None = Field(None, ge=0, description="Maximum price (Rial)")
+    min_rating: float | None = Field(None, ge=1, le=5, description="Minimum average rating")
+    attributes: dict[str, list[str]] | None = Field(
         None,
         description="Attribute filters, e.g. {'color': ['red', 'blue']}",
     )
-    is_active: Optional[bool] = Field(True, description="Filter by active status")
+    is_active: bool | None = Field(True, description="Filter by active status")
 
 
 class SearchRequest(BaseModel):
@@ -56,21 +54,21 @@ class SearchProductResult(BaseModel):
     id: str
     name: str
     slug: str
-    description: Optional[str] = None
-    short_description: Optional[str] = None
-    category_name: Optional[str] = None
-    category_slug: Optional[str] = None
-    brand_name: Optional[str] = None
-    brand_slug: Optional[str] = None
-    price: Optional[int] = None
-    compare_at_price: Optional[int] = None
-    rating_average: Optional[float] = None
-    rating_count: Optional[int] = None
-    image_url: Optional[str] = None
+    description: str | None = None
+    short_description: str | None = None
+    category_name: str | None = None
+    category_slug: str | None = None
+    brand_name: str | None = None
+    brand_slug: str | None = None
+    price: int | None = None
+    compare_at_price: int | None = None
+    rating_average: float | None = None
+    rating_count: int | None = None
+    image_url: str | None = None
     tags: list[str] = Field(default_factory=list)
     is_active: bool = True
     is_featured: bool = False
-    score: Optional[float] = Field(None, description="Relevance score")
+    score: float | None = Field(None, description="Relevance score")
 
 
 class FacetBucket(BaseModel):
@@ -78,7 +76,7 @@ class FacetBucket(BaseModel):
 
     key: str
     doc_count: int
-    label: Optional[str] = None
+    label: str | None = None
 
 
 class PriceRangeFacet(BaseModel):
@@ -102,9 +100,9 @@ class SearchSuggestion(BaseModel):
     """Autocomplete suggestion item."""
 
     text: str
-    score: Optional[float] = None
-    product_id: Optional[str] = None
-    image_url: Optional[str] = None
+    score: float | None = None
+    product_id: str | None = None
+    image_url: str | None = None
 
 
 class SearchResponse(BaseModel):

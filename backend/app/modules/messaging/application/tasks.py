@@ -48,6 +48,7 @@ def send_campaign_task(campaign_id: str) -> dict[str, Any]:
         if loop.is_running():
             # Nested loop or running inside event loop
             import nest_asyncio
+
             nest_asyncio.apply()
             return loop.run_until_complete(_async_send_campaign(campaign_id))
         else:

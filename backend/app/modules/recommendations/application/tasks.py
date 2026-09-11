@@ -79,7 +79,7 @@ async def _async_update_recommendations() -> dict[str, Any]:
 
 @celery_app.task(name="app.modules.recommendations.application.tasks.update_recommendations")
 def update_recommendations() -> dict[str, Any]:
-    """Celery task that computes and caches top trending and similar product associations in Redis."""
+    """Celery task that computes and caches top trending and similar product associations in Redis."""  # noqa: E501
     try:
         loop = asyncio.get_running_loop()
     except RuntimeError:

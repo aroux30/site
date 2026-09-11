@@ -1,6 +1,7 @@
 """Unit tests for discount and coupon calculation rules."""
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
+
 from app.modules.discounts.application.discount_service import calculate_discount
 from app.modules.discounts.domain.models import Discount, DiscountScope, DiscountType
 
@@ -11,8 +12,8 @@ def test_fixed_discount_calculation():
         name="تخفیف ۵۰ هزار تومانی",
         type=DiscountType.FIXED,
         value=500_000,  # 50,000 Toman in Rials
-        starts_at=datetime.now(timezone.utc),
-        ends_at=datetime.now(timezone.utc),
+        starts_at=datetime.now(UTC),
+        ends_at=datetime.now(UTC),
         scope=DiscountScope.GLOBAL,
     )
 
@@ -31,8 +32,8 @@ def test_percentage_discount_calculation():
         name="تخفیف ۱۵ درصدی",
         type=DiscountType.PERCENTAGE,
         value=1500,  # 15% (1500 basis points)
-        starts_at=datetime.now(timezone.utc),
-        ends_at=datetime.now(timezone.utc),
+        starts_at=datetime.now(UTC),
+        ends_at=datetime.now(UTC),
         scope=DiscountScope.GLOBAL,
     )
 
@@ -48,8 +49,8 @@ def test_percentage_discount_with_max_cap():
         type=DiscountType.PERCENTAGE,
         value=5000,  # 50%
         max_discount=2_000_000,  # Max 200,000 Toman (2,000,000 Rials)
-        starts_at=datetime.now(timezone.utc),
-        ends_at=datetime.now(timezone.utc),
+        starts_at=datetime.now(UTC),
+        ends_at=datetime.now(UTC),
         scope=DiscountScope.GLOBAL,
     )
 

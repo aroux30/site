@@ -26,13 +26,12 @@ class RecommendedProductItem(BaseModel):
     @model_validator(mode="before")
     @classmethod
     def populate_product_id(cls, data: Any) -> Any:
-        if isinstance(data, dict):
-            if "product_id" not in data and "product" in data:
-                prod = data["product"]
-                if isinstance(prod, dict):
-                    data["product_id"] = prod.get("id")
-                elif hasattr(prod, "id"):
-                    data["product_id"] = prod.id
+        if isinstance(data, dict) and "product_id" not in data and "product" in data:
+            prod = data["product"]
+            if isinstance(prod, dict):
+                data["product_id"] = prod.get("id")
+            elif hasattr(prod, "id"):
+                data["product_id"] = prod.id
         return data
 
 
@@ -50,9 +49,13 @@ class RecommendationResponse(BaseModel):
     @model_validator(mode="before")
     @classmethod
     def compute_total(cls, data: Any) -> Any:
-        if isinstance(data, dict):
-            if "total" not in data and "items" in data and isinstance(data["items"], list):
-                data["total"] = len(data["items"])
+        if (
+            isinstance(data, dict)
+            and "total" not in data
+            and "items" in data
+            and isinstance(data["items"], list)
+        ):
+            data["total"] = len(data["items"])
         return data
 
     def __iter__(self):  # type: ignore[no-untyped-def]
@@ -71,7 +74,9 @@ class SimilarProductsRequest(BaseModel):
     model_config = ConfigDict(str_strip_whitespace=True)
 
     product_id: uuid.UUID = Field(..., description="Source product ID to find similarities for")
-    limit: int = Field(default=6, ge=1, le=50, description="Maximum number of similar products to return")
+    limit: int = Field(
+        default=6, ge=1, le=50, description="Maximum number of similar products to return"
+    )
 
 
 class SimilarProductsResponse(RecommendationResponse):

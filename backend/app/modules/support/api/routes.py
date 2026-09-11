@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import uuid
-from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -30,7 +29,7 @@ router = APIRouter()
     summary="List support tickets",
 )
 async def list_tickets(
-    ticket_status: Optional[TicketStatus] = Query(None, alias="status"),
+    ticket_status: TicketStatus | None = Query(None, alias="status"),
     skip: int = Query(0, ge=0),
     limit: int = Query(20, ge=1, le=100),
     user_id: uuid.UUID = Depends(get_current_user_id),
@@ -131,9 +130,7 @@ async def add_message(
             is_staff=is_staff,
         )
     except ValueError as exc:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)
-        )
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
     return TicketMessageResponse.model_validate(message)
 
 
@@ -151,9 +148,7 @@ async def close_ticket(
     try:
         ticket = await SupportService.close_ticket(db, ticket_id, user_id)
     except ValueError as exc:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)
-        )
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
     return TicketResponse.model_validate(ticket)
 
 
@@ -171,7 +166,5 @@ async def reopen_ticket(
     try:
         ticket = await SupportService.reopen_ticket(db, ticket_id, user_id)
     except ValueError as exc:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)
-        )
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
     return TicketResponse.model_validate(ticket)

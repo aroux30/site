@@ -11,10 +11,9 @@ import math
 import re
 import unicodedata
 import uuid
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import structlog
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions.handlers import ConflictError, NotFoundError, ValidationError
 from app.modules.catalog.domain.models import (
@@ -71,10 +70,12 @@ from app.modules.catalog.schemas.catalog import (
     VariantCreate,
     VariantResponse,
     VariantUpdate,
-    toman_to_rial,
     rial_to_toman,
+    toman_to_rial,
 )
 
+if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncSession
 logger: structlog.stdlib.BoundLogger = structlog.get_logger(__name__)
 
 
@@ -84,25 +85,72 @@ logger: structlog.stdlib.BoundLogger = structlog.get_logger(__name__)
 
 # Mapping of Persian characters to Latin equivalents for slug generation
 _PERSIAN_TO_LATIN: dict[str, str] = {
-    "آ": "a", "ا": "a", "ب": "b", "پ": "p", "ت": "t", "ث": "s",
-    "ج": "j", "چ": "ch", "ح": "h", "خ": "kh", "د": "d", "ذ": "z",
-    "ر": "r", "ز": "z", "ژ": "zh", "س": "s", "ش": "sh", "ص": "s",
-    "ض": "z", "ط": "t", "ظ": "z", "ع": "a", "غ": "gh", "ف": "f",
-    "ق": "gh", "ک": "k", "گ": "g", "ل": "l", "م": "m", "ن": "n",
-    "و": "v", "ه": "h", "ی": "y", "ئ": "y", "ي": "y", "ك": "k",
-    "ة": "h", "إ": "e", "أ": "a", "ؤ": "v",
+    "آ": "a",
+    "ا": "a",
+    "ب": "b",
+    "پ": "p",
+    "ت": "t",
+    "ث": "s",
+    "ج": "j",
+    "چ": "ch",
+    "ح": "h",
+    "خ": "kh",
+    "د": "d",
+    "ذ": "z",
+    "ر": "r",
+    "ز": "z",
+    "ژ": "zh",
+    "س": "s",
+    "ش": "sh",
+    "ص": "s",
+    "ض": "z",
+    "ط": "t",
+    "ظ": "z",
+    "ع": "a",
+    "غ": "gh",
+    "ف": "f",
+    "ق": "gh",
+    "ک": "k",
+    "گ": "g",
+    "ل": "l",
+    "م": "m",
+    "ن": "n",
+    "و": "v",
+    "ه": "h",
+    "ی": "y",
+    "ئ": "y",
+    "ي": "y",
+    "ك": "k",
+    "ة": "h",
+    "إ": "e",
+    "أ": "a",
+    "ؤ": "v",
     # Persian digits
-    "۰": "0", "۱": "1", "۲": "2", "۳": "3", "۴": "4",
-    "۵": "5", "۶": "6", "۷": "7", "۸": "8", "۹": "9",
+    "۰": "0",
+    "۱": "1",
+    "۲": "2",
+    "۳": "3",
+    "۴": "4",
+    "۵": "5",
+    "۶": "6",
+    "۷": "7",
+    "۸": "8",
+    "۹": "9",
     # Arabic digits
-    "٠": "0", "١": "1", "٢": "2", "٣": "3", "٤": "4",
-    "٥": "5", "٦": "6", "٧": "7", "٨": "8", "٩": "9",
+    "٠": "0",
+    "١": "1",
+    "٢": "2",
+    "٣": "3",
+    "٤": "4",
+    "٥": "5",
+    "٦": "6",
+    "٧": "7",
+    "٨": "8",
+    "٩": "9",
 }
 
 # Diacritics / zero-width characters to strip
-_DIACRITICS_RE = re.compile(
-    r"[\u064B-\u065F\u0670\u06D6-\u06ED\u200B-\u200F\u202A-\u202E\uFEFF]"
-)
+_DIACRITICS_RE = re.compile(r"[\u064B-\u065F\u0670\u06D6-\u06ED\u200B-\u200F\u202A-\u202E\uFEFF]")
 
 
 def generate_slug(text: str) -> str:
@@ -232,9 +280,7 @@ class CategoryService:
         await logger.ainfo("category_created", category_id=str(category.id), slug=slug)
         return CategoryResponse.model_validate(category)
 
-    async def update(
-        self, category_id: uuid.UUID, data: CategoryUpdate
-    ) -> CategoryResponse:
+    async def update(self, category_id: uuid.UUID, data: CategoryUpdate) -> CategoryResponse:
         category = await self._repo.get_by_id(category_id)
         if category is None:
             raise NotFoundError("Category")
@@ -284,13 +330,11 @@ class CategoryService:
 
         if await self._repo.has_children(category_id):
             raise ConflictError(
-                "Cannot delete category with subcategories. "
-                "Move or delete children first."
+                "Cannot delete category with subcategories. Move or delete children first."
             )
         if await self._repo.has_products(category_id):
             raise ConflictError(
-                "Cannot delete category with associated products. "
-                "Reassign products first."
+                "Cannot delete category with associated products. Reassign products first."
             )
 
         await self._repo.delete(category_id)
@@ -419,8 +463,7 @@ class BrandService:
 
         if await self._repo.has_products(brand_id):
             raise ConflictError(
-                "Cannot delete brand with associated products. "
-                "Reassign products first."
+                "Cannot delete brand with associated products. Reassign products first."
             )
 
         await self._repo.delete(brand_id)
@@ -558,9 +601,7 @@ class ProductService:
         await logger.ainfo("product_created", product_id=str(product.id), slug=slug)
         return self._to_detail_response(product)  # type: ignore[arg-type]
 
-    async def update(
-        self, product_id: uuid.UUID, data: ProductUpdate
-    ) -> ProductDetailResponse:
+    async def update(self, product_id: uuid.UUID, data: ProductUpdate) -> ProductDetailResponse:
         product = await self._repo.get_by_id(product_id, eager=True)
         if product is None:
             raise NotFoundError("Product")
@@ -638,7 +679,9 @@ class ProductService:
         )
 
         items = [self._to_list_response(p) for p in products]
-        next_cursor = str(products[-1].id) if products and len(products) == filters.page_size else None
+        next_cursor = (
+            str(products[-1].id) if products and len(products) == filters.page_size else None
+        )
         meta = _build_meta(total, filters.page, filters.page_size, len(items), cursor=next_cursor)
 
         return ProductListResponse(items=items, meta=meta)
@@ -669,9 +712,7 @@ class ProductService:
 
     # ---- Variants ----
 
-    async def create_variant(
-        self, product_id: uuid.UUID, data: VariantCreate
-    ) -> VariantResponse:
+    async def create_variant(self, product_id: uuid.UUID, data: VariantCreate) -> VariantResponse:
         product = await self._repo.get_by_id(product_id, eager=False)
         if product is None:
             raise NotFoundError("Product")
@@ -700,9 +741,7 @@ class ProductService:
         )
         return VariantResponse.model_validate(variant)
 
-    async def update_variant(
-        self, variant_id: uuid.UUID, data: VariantUpdate
-    ) -> VariantResponse:
+    async def update_variant(self, variant_id: uuid.UUID, data: VariantUpdate) -> VariantResponse:
         variant = await self._variant_repo.get_by_id(variant_id)
         if variant is None:
             raise NotFoundError("Variant")
@@ -710,9 +749,10 @@ class ProductService:
         update_data = data.model_dump(exclude_unset=True)
 
         # SKU uniqueness
-        if "sku" in update_data:
-            if await self._variant_repo.sku_exists(update_data["sku"], exclude_id=variant_id):
-                raise ConflictError(f"SKU '{update_data['sku']}' already exists")
+        if "sku" in update_data and await self._variant_repo.sku_exists(
+            update_data["sku"], exclude_id=variant_id
+        ):
+            raise ConflictError(f"SKU '{update_data['sku']}' already exists")
 
         # Convert money fields Toman → Rial
         for money_field in ("price", "compare_at_price", "cost"):
@@ -774,18 +814,14 @@ class ProductService:
         )
         return ProductImageResponse.model_validate(image)
 
-    async def remove_image(
-        self, product_id: uuid.UUID, image_id: uuid.UUID
-    ) -> None:
+    async def remove_image(self, product_id: uuid.UUID, image_id: uuid.UUID) -> None:
         image = await self._image_repo.get_by_id(image_id)
         if image is None or image.product_id != product_id:
             raise NotFoundError("Image")
         await self._image_repo.delete(image_id)
         await logger.ainfo("image_removed", image_id=str(image_id))
 
-    async def reorder_images(
-        self, product_id: uuid.UUID, data: ImageReorderRequest
-    ) -> int:
+    async def reorder_images(self, product_id: uuid.UUID, data: ImageReorderRequest) -> int:
         # Verify product exists
         product = await self._repo.get_by_id(product_id, eager=False)
         if product is None:
@@ -819,13 +855,9 @@ class ProductService:
         )
         return [TagResponse.model_validate(t) for t in tags]
 
-    async def remove_tags(
-        self, product_id: uuid.UUID, tag_ids: list[uuid.UUID]
-    ) -> None:
+    async def remove_tags(self, product_id: uuid.UUID, tag_ids: list[uuid.UUID]) -> None:
         await self._tag_repo.remove_from_product(product_id, tag_ids)
-        await logger.ainfo(
-            "tags_removed", product_id=str(product_id), tag_count=len(tag_ids)
-        )
+        await logger.ainfo("tags_removed", product_id=str(product_id), tag_count=len(tag_ids))
 
     # ---- Response mappers ----
 
@@ -872,17 +904,11 @@ class ProductService:
     def _to_detail_response(self, product: Product) -> ProductDetailResponse:
         """Map a Product model (fully eager-loaded) to a detail response."""
         category_resp = (
-            CategoryResponse.model_validate(product.category)
-            if product.category
-            else None
+            CategoryResponse.model_validate(product.category) if product.category else None
         )
-        brand_resp = (
-            BrandResponse.model_validate(product.brand) if product.brand else None
-        )
+        brand_resp = BrandResponse.model_validate(product.brand) if product.brand else None
         variant_resps = [VariantResponse.model_validate(v) for v in product.variants]
-        image_resps = [
-            ProductImageResponse.model_validate(img) for img in product.images
-        ]
+        image_resps = [ProductImageResponse.model_validate(img) for img in product.images]
 
         # Tags
         tag_resps: list[TagResponse] = []

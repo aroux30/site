@@ -6,12 +6,11 @@ All monetary values are ``BigInteger`` (Rials).
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
-from typing import Optional
+from datetime import UTC, datetime
+from typing import TYPE_CHECKING, Any
 
 import structlog
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.core.exceptions.handlers import NotFoundError, ValidationError
@@ -29,6 +28,9 @@ from app.modules.shipping.schemas.shipping import (
     ShippingQuoteMethodItem,
     ShippingQuoteResponse,
 )
+
+if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncSession
 
 logger: structlog.stdlib.BoundLogger = structlog.get_logger(__name__)
 
@@ -135,8 +137,7 @@ async def calculate_shipping(
             continue  # no applicable rate for this method
 
         is_free = (
-            best_rate.min_order_amount is not None
-            and order_amount >= best_rate.min_order_amount
+            best_rate.min_order_amount is not None and order_amount >= best_rate.min_order_amount
         )
 
         quote_items.append(
@@ -173,7 +174,7 @@ def _find_best_rate(
     province: str,
     weight: float,
     order_amount: int,
-) -> Optional[ShippingRate]:
+) -> ShippingRate | None:
     """Pick the most specific matching rate from a method's rate list.
 
     Province-specific rates take priority over nationwide (province=NULL).
@@ -210,7 +211,7 @@ async def create_shipment(
     method_id: uuid.UUID,
     items: list[dict],
     actor_id: uuid.UUID,
-    tracking_code: Optional[str] = None,
+    tracking_code: str | None = None,
 ) -> ShipmentResponse:
     """Create a new shipment for an order (admin operation)."""
     # Validate method exists
@@ -220,6 +221,7 @@ async def create_shipment(
 
     # Validate order exists and can be shipped
     from app.modules.orders.domain.models import Order, OrderStatus
+
     order = await db.get(Order, order_id)
     if order is None:
         raise NotFoundError("Order")
@@ -229,6 +231,7 @@ async def create_shipment(
     resolved_tracking_code = tracking_code
     if not resolved_tracking_code:
         from app.modules.shipping.infrastructure.carrier_provider import ShippingProviderFactory
+
         provider = ShippingProviderFactory.get_provider(method.provider or "internal")
         dispatch_res = await provider.create_shipment(
             order_id=order_id,
@@ -277,16 +280,12 @@ async def create_shipment(
 async def update_shipment_status(
     db: AsyncSession,
     shipment_id: uuid.UUID,
-    status: Optional[str] = None,
-    tracking_code: Optional[str] = None,
-    actor_id: Optional[uuid.UUID] = None,
+    status: str | None = None,
+    tracking_code: str | None = None,
+    actor_id: uuid.UUID | None = None,
 ) -> ShipmentResponse:
     """Update a shipment's status and/or tracking code (admin operation)."""
-    stmt = (
-        select(Shipment)
-        .options(selectinload(Shipment.items))
-        .where(Shipment.id == shipment_id)
-    )
+    stmt = select(Shipment).options(selectinload(Shipment.items)).where(Shipment.id == shipment_id)
     result = await db.execute(stmt)
     shipment = result.scalar_one_or_none()
 
@@ -301,7 +300,7 @@ async def update_shipment_status(
             raise ValidationError(
                 f"Invalid shipment status '{status}'. Valid: {valid}",
                 error_code="INVALID_SHIPMENT_STATUS",
-            )
+            ) from None
 
         _validate_shipment_transition(shipment.status, target)
 
@@ -309,7 +308,7 @@ async def update_shipment_status(
         shipment.status = target
 
         # Auto-set timestamps
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         if target == ShipmentStatus.SHIPPED and shipment.shipped_at is None:
             shipment.shipped_at = now
         if target == ShipmentStatus.DELIVERED and shipment.delivered_at is None:
@@ -343,11 +342,7 @@ async def get_shipment(
     shipment_id: uuid.UUID,
 ) -> ShipmentResponse:
     """Return a single shipment by ID."""
-    stmt = (
-        select(Shipment)
-        .options(selectinload(Shipment.items))
-        .where(Shipment.id == shipment_id)
-    )
+    stmt = select(Shipment).options(selectinload(Shipment.items)).where(Shipment.id == shipment_id)
     result = await db.execute(stmt)
     shipment = result.scalar_one_or_none()
 
@@ -384,7 +379,9 @@ async def track_shipment_with_carrier(
     shipment = None
     try:
         s_id = uuid.UUID(shipment_id_or_code)
-        stmt_uuid = select(Shipment).options(selectinload(Shipment.method)).where(Shipment.id == s_id)
+        stmt_uuid = (
+            select(Shipment).options(selectinload(Shipment.method)).where(Shipment.id == s_id)
+        )
         res_uuid = await db.execute(stmt_uuid)
         shipment = res_uuid.scalar_one_or_none()
     except ValueError:

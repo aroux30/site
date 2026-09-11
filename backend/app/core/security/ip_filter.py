@@ -7,7 +7,7 @@ Compatible with automated responses from CrowdSec or internal anomaly detectors.
 from __future__ import annotations
 
 import logging
-from typing import Callable
+from typing import TYPE_CHECKING
 
 from fastapi import Request, Response, status
 from fastapi.responses import JSONResponse
@@ -15,6 +15,9 @@ from starlette.middleware.base import BaseHTTPMiddleware
 
 from app.core.cache.redis import get_redis
 from app.core.security.rate_limiter import get_real_client_ip
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 logger = logging.getLogger("security.ip_filter")
 
@@ -27,8 +30,10 @@ async def ban_ip(ip: str, duration_seconds: int = 86400, reason: str = "abusive_
         client = await get_redis()
         key = f"{_BLACKLIST_PREFIX}{ip.strip()}"
         await client.set(key, reason, ex=duration_seconds)
-        logger.warning("IP address banned: ip=%s duration=%ds reason=%s", ip, duration_seconds, reason)
-    except Exception as exc:  # noqa: BLE001
+        logger.warning(
+            "IP address banned: ip=%s duration=%ds reason=%s", ip, duration_seconds, reason
+        )
+    except Exception as exc:
         logger.error("Failed to ban IP %s: %s", ip, exc)
 
 
@@ -39,7 +44,7 @@ async def unban_ip(ip: str) -> None:
         key = f"{_BLACKLIST_PREFIX}{ip.strip()}"
         await client.delete(key)
         logger.info("IP address unbanned: ip=%s", ip)
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         logger.error("Failed to unban IP %s: %s", ip, exc)
 
 
@@ -50,14 +55,16 @@ async def is_ip_banned(ip: str) -> bool:
         key = f"{_BLACKLIST_PREFIX}{ip.strip()}"
         result = await client.get(key)
         return result is not None
-    except Exception:  # noqa: BLE001
+    except Exception:
         return False
 
 
 class IPFilterMiddleware(BaseHTTPMiddleware):
     """FastAPI/Starlette middleware that inspects client IP against the Redis blacklist."""
 
-    async def dispatch(self, request: Request, call_next: Callable[[Request], Response]) -> Response:
+    async def dispatch(
+        self, request: Request, call_next: Callable[[Request], Response]
+    ) -> Response:
         client_ip = get_real_client_ip(request)
 
         # Skip check for internal metrics & health checks
@@ -65,7 +72,9 @@ class IPFilterMiddleware(BaseHTTPMiddleware):
             return await call_next(request)
 
         if await is_ip_banned(client_ip):
-            logger.warning("Blocked request from banned IP: %s path=%s", client_ip, request.url.path)
+            logger.warning(
+                "Blocked request from banned IP: %s path=%s", client_ip, request.url.path
+            )
             return JSONResponse(
                 status_code=status.HTTP_403_FORBIDDEN,
                 content={

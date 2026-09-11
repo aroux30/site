@@ -4,12 +4,10 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime
-from typing import Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
 from app.modules.support.domain.models import TicketPriority, TicketStatus
-
 
 # ── Ticket ────────────────────────────────────────────────────────────────
 
@@ -32,7 +30,7 @@ class TicketResponse(BaseModel):
     subject: str
     status: TicketStatus
     priority: TicketPriority
-    assigned_to: Optional[uuid.UUID] = None
+    assigned_to: uuid.UUID | None = None
     ticket_number: str
     created_at: datetime
     updated_at: datetime
@@ -48,9 +46,9 @@ class TicketDetailResponse(BaseModel):
     subject: str
     status: TicketStatus
     priority: TicketPriority
-    assigned_to: Optional[uuid.UUID] = None
+    assigned_to: uuid.UUID | None = None
     ticket_number: str
-    messages: list["TicketMessageResponse"]
+    messages: list[TicketMessageResponse]
     created_at: datetime
     updated_at: datetime
 
@@ -65,9 +63,9 @@ class TicketListResponse(BaseModel):
 class TicketUpdateRequest(BaseModel):
     """Payload to update a ticket (admin)."""
 
-    status: Optional[TicketStatus] = None
-    priority: Optional[TicketPriority] = None
-    assigned_to: Optional[uuid.UUID] = None
+    status: TicketStatus | None = None
+    priority: TicketPriority | None = None
+    assigned_to: uuid.UUID | None = None
 
 
 # ── Messages ──────────────────────────────────────────────────────────────

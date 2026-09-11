@@ -146,5 +146,3 @@ async def test_unauthorized_vendor_endpoints(client: AsyncClient):
 
     resp_admin = await client.get("/api/v1/admin/vendors")
     assert resp_admin.status_code == 401
-
-

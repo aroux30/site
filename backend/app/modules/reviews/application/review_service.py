@@ -8,11 +8,10 @@ from __future__ import annotations
 
 import math
 import uuid
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import structlog
-from sqlalchemy import and_, case, func, select, update
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import and_, case, func, select
 
 from app.core.exceptions.handlers import ConflictError, ForbiddenError, NotFoundError
 from app.modules.reviews.domain.models import Review, ReviewStatus, ReviewVote
@@ -27,6 +26,8 @@ from app.modules.reviews.schemas.review import (
     ReviewUserInfo,
 )
 
+if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncSession
 logger: structlog.stdlib.BoundLogger = structlog.get_logger()
 
 
@@ -254,11 +255,9 @@ class ReviewService:
 
     # ── Stats ─────────────────────────────────────────────────────────
 
-    async def get_review_stats(
-        self, db: AsyncSession, product_id: uuid.UUID
-    ) -> ReviewStats:
+    async def get_review_stats(self, db: AsyncSession, product_id: uuid.UUID) -> ReviewStats:
         """Compute aggregate review statistics for a product."""
-        base = select(Review).where(
+        select(Review).where(
             and_(
                 Review.product_id == product_id,
                 Review.status == ReviewStatus.APPROVED,
@@ -269,9 +268,7 @@ class ReviewService:
         agg_q = select(
             func.coalesce(func.avg(Review.rating), 0).label("avg"),
             func.count(Review.id).label("total"),
-            func.count(
-                case((Review.is_verified_purchase.is_(True), 1))
-            ).label("verified"),
+            func.count(case((Review.is_verified_purchase.is_(True), 1))).label("verified"),
         ).where(
             and_(
                 Review.product_id == product_id,
@@ -285,15 +282,19 @@ class ReviewService:
         verified_count = int(agg_result.verified)
 
         # Distribution
-        dist_q = select(
-            Review.rating,
-            func.count(Review.id).label("cnt"),
-        ).where(
-            and_(
-                Review.product_id == product_id,
-                Review.status == ReviewStatus.APPROVED,
+        dist_q = (
+            select(
+                Review.rating,
+                func.count(Review.id).label("cnt"),
             )
-        ).group_by(Review.rating)
+            .where(
+                and_(
+                    Review.product_id == product_id,
+                    Review.status == ReviewStatus.APPROVED,
+                )
+            )
+            .group_by(Review.rating)
+        )
 
         dist_result = await db.execute(dist_q)
         dist_map = {row.rating: row.cnt for row in dist_result}
@@ -328,7 +329,7 @@ class ReviewService:
         try:
             status_enum = ReviewStatus(new_status)
         except ValueError:
-            raise ValueError(f"Invalid review status: {new_status}")  # noqa: B904
+            raise ValueError(f"Invalid review status: {new_status}") from None
 
         review.status = status_enum
         await db.flush()
@@ -345,21 +346,15 @@ class ReviewService:
 
     # ── Private helpers ───────────────────────────────────────────────
 
-    async def _get_review_or_404(
-        self, db: AsyncSession, review_id: uuid.UUID
-    ) -> Review:
+    async def _get_review_or_404(self, db: AsyncSession, review_id: uuid.UUID) -> Review:
         """Load a review by ID or raise NotFoundError."""
-        result = await db.execute(
-            select(Review).where(Review.id == review_id)
-        )
+        result = await db.execute(select(Review).where(Review.id == review_id))
         review = result.scalar_one_or_none()
         if review is None:
             raise NotFoundError("Review")
         return review
 
-    async def _get_vote_counts(
-        self, db: AsyncSession, review_id: uuid.UUID
-    ) -> dict[str, int]:
+    async def _get_vote_counts(self, db: AsyncSession, review_id: uuid.UUID) -> dict[str, int]:
         """Return helpful/unhelpful vote counts for a review."""
         q = select(
             func.count(case((ReviewVote.is_helpful.is_(True), 1))).label("helpful"),

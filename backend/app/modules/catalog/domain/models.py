@@ -23,8 +23,8 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database.base import BaseModel
 
-
 # ---- Enums ----
+
 
 class ProductType(str, enum.Enum):
     SIMPLE = "simple"
@@ -54,6 +54,7 @@ class SettlementStatus(str, enum.Enum):
 
 # ---- Models ----
 
+
 class Category(BaseModel):
     """Hierarchical product categories with materialized path."""
 
@@ -66,23 +67,23 @@ class Category(BaseModel):
         Index("ix_categories_position", "position"),
     )
 
-    parent_id: Mapped[Optional[uuid.UUID]] = mapped_column(
+    parent_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("categories.id", ondelete="SET NULL"),
         nullable=True,
     )
     name: Mapped[str] = mapped_column(String(200), nullable=False)
     slug: Mapped[str] = mapped_column(String(250), unique=True, nullable=False)
-    description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
-    image_url: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
-    path: Mapped[Optional[str]] = mapped_column(
+    description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    image_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    path: Mapped[str | None] = mapped_column(
         String(1000), nullable=True
     )  # materialized path e.g. "root/electronics/phones"
     depth: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     position: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
-    seo_title: Mapped[Optional[str]] = mapped_column(String(200), nullable=True)
-    seo_description: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
+    seo_title: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    seo_description: Mapped[str | None] = mapped_column(String(500), nullable=True)
 
     # Relationships
     parent: Mapped[Optional["Category"]] = relationship(
@@ -110,8 +111,8 @@ class Brand(BaseModel):
 
     name: Mapped[str] = mapped_column(String(200), nullable=False)
     slug: Mapped[str] = mapped_column(String(250), unique=True, nullable=False)
-    logo_url: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
-    description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    logo_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    description: Mapped[str | None] = mapped_column(Text, nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
 
     # Relationships
@@ -142,15 +143,15 @@ class Vendor(BaseModel):
     )
     store_name: Mapped[str] = mapped_column(String(200), nullable=False)
     slug: Mapped[str] = mapped_column(String(250), unique=True, nullable=False)
-    logo_url: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
-    banner_url: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
-    description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    logo_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    banner_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    description: Mapped[str | None] = mapped_column(Text, nullable=True)
     commission_rate: Mapped[int] = mapped_column(Integer, default=1000, nullable=False)
     is_verified: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
-    national_id: Mapped[Optional[str]] = mapped_column(String(20), nullable=True)
-    iban_number: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
-    contact_phone: Mapped[Optional[str]] = mapped_column(String(30), nullable=True)
+    national_id: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    iban_number: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    contact_phone: Mapped[str | None] = mapped_column(String(30), nullable=True)
     rating: Mapped[float] = mapped_column(Float, default=5.0, nullable=False)
     total_sales_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
 
@@ -190,23 +191,15 @@ class VendorSettlement(BaseModel):
         nullable=False,
     )
     amount: Mapped[int] = mapped_column(BigInteger, nullable=False)
-    period_start: Mapped[Optional[datetime]] = mapped_column(
-        DateTime(timezone=True), nullable=True
-    )
-    period_end: Mapped[Optional[datetime]] = mapped_column(
-        DateTime(timezone=True), nullable=True
-    )
+    period_start: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    period_end: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     status: Mapped[SettlementStatus] = mapped_column(
         Enum(SettlementStatus, name="settlement_status_enum", native_enum=False),
         default=SettlementStatus.PENDING,
         nullable=False,
     )
-    payment_reference: Mapped[Optional[str]] = mapped_column(
-        String(100), nullable=True
-    )
-    paid_at: Mapped[Optional[datetime]] = mapped_column(
-        DateTime(timezone=True), nullable=True
-    )
+    payment_reference: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    paid_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     # Relationships
     vendor: Mapped["Vendor"] = relationship("Vendor", back_populates="settlements")
@@ -216,7 +209,7 @@ class VendorSettlement(BaseModel):
         super().__init__(**kw)
 
     def __repr__(self) -> str:
-        return f"<VendorSettlement(id={self.id}, vendor_id={self.vendor_id}, amount={self.amount}, status={self.status})>"
+        return f"<VendorSettlement(id={self.id}, vendor_id={self.vendor_id}, amount={self.amount}, status={self.status})>"  # noqa: E501
 
 
 class Product(BaseModel):
@@ -239,20 +232,20 @@ class Product(BaseModel):
         ForeignKey("categories.id", ondelete="RESTRICT"),
         nullable=False,
     )
-    brand_id: Mapped[Optional[uuid.UUID]] = mapped_column(
+    brand_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("brands.id", ondelete="SET NULL"),
         nullable=True,
     )
-    vendor_id: Mapped[Optional[uuid.UUID]] = mapped_column(
+    vendor_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("vendors.id", ondelete="SET NULL"),
         nullable=True,
     )
     name: Mapped[str] = mapped_column(String(500), nullable=False)
     slug: Mapped[str] = mapped_column(String(550), unique=True, nullable=False)
-    description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
-    short_description: Mapped[Optional[str]] = mapped_column(String(1000), nullable=True)
+    description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    short_description: Mapped[str | None] = mapped_column(String(1000), nullable=True)
     product_type: Mapped[ProductType] = mapped_column(
         Enum(ProductType, name="product_type_enum", native_enum=False),
         default=ProductType.SIMPLE,
@@ -265,13 +258,11 @@ class Product(BaseModel):
     )
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     is_featured: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
-    weight: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
-    dimensions_json: Mapped[Optional[dict[str, Any]]] = mapped_column(
-        JSONB, nullable=True
-    )
-    seo_title: Mapped[Optional[str]] = mapped_column(String(200), nullable=True)
-    seo_description: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
-    meta_keywords: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
+    weight: Mapped[float | None] = mapped_column(Float, nullable=True)
+    dimensions_json: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True)
+    seo_title: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    seo_description: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    meta_keywords: Mapped[str | None] = mapped_column(String(500), nullable=True)
 
     # Relationships
     category: Mapped["Category"] = relationship(
@@ -316,25 +307,23 @@ class ProductVariant(BaseModel):
         ForeignKey("products.id", ondelete="CASCADE"),
         nullable=False,
     )
-    vendor_id: Mapped[Optional[uuid.UUID]] = mapped_column(
+    vendor_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("vendors.id", ondelete="SET NULL"),
         nullable=True,
     )
     sku: Mapped[str] = mapped_column(String(100), unique=True, nullable=False)
-    barcode: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
+    barcode: Mapped[str | None] = mapped_column(String(100), nullable=True)
     price: Mapped[int] = mapped_column(BigInteger, nullable=False)
-    compare_at_price: Mapped[Optional[int]] = mapped_column(BigInteger, nullable=True)
-    cost: Mapped[Optional[int]] = mapped_column(BigInteger, nullable=True)
-    weight: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    compare_at_price: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
+    cost: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
+    weight: Mapped[float | None] = mapped_column(Float, nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     position: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
-    attributes: Mapped[Optional[dict[str, Any]]] = mapped_column(JSONB, nullable=True)
+    attributes: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True)
 
     # Relationships
-    product: Mapped["Product"] = relationship(
-        "Product", back_populates="variants", lazy="joined"
-    )
+    product: Mapped["Product"] = relationship("Product", back_populates="variants", lazy="joined")
     images: Mapped[list["ProductImage"]] = relationship(
         "ProductImage", back_populates="variant", lazy="select"
     )
@@ -358,20 +347,18 @@ class ProductImage(BaseModel):
         ForeignKey("products.id", ondelete="CASCADE"),
         nullable=False,
     )
-    variant_id: Mapped[Optional[uuid.UUID]] = mapped_column(
+    variant_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("product_variants.id", ondelete="SET NULL"),
         nullable=True,
     )
     url: Mapped[str] = mapped_column(String(500), nullable=False)
-    alt_text: Mapped[Optional[str]] = mapped_column(String(300), nullable=True)
+    alt_text: Mapped[str | None] = mapped_column(String(300), nullable=True)
     position: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     is_primary: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 
     # Relationships
-    product: Mapped["Product"] = relationship(
-        "Product", back_populates="images"
-    )
+    product: Mapped["Product"] = relationship("Product", back_populates="images")
     variant: Mapped[Optional["ProductVariant"]] = relationship(
         "ProductVariant", back_populates="images"
     )
@@ -384,9 +371,7 @@ class Tag(BaseModel):
     """Content tags for products."""
 
     __tablename__ = "tags"
-    __table_args__ = (
-        Index("ix_tags_slug", "slug"),
-    )
+    __table_args__ = (Index("ix_tags_slug", "slug"),)
 
     name: Mapped[str] = mapped_column(String(100), nullable=False)
     slug: Mapped[str] = mapped_column(String(120), unique=True, nullable=False)
@@ -420,9 +405,7 @@ class ProductTag(BaseModel):
     )
 
     # Relationships
-    product: Mapped["Product"] = relationship(
-        "Product", back_populates="product_tags"
-    )
+    product: Mapped["Product"] = relationship("Product", back_populates="product_tags")
     tag: Mapped["Tag"] = relationship("Tag", back_populates="product_tags")
 
     def __repr__(self) -> str:
@@ -433,9 +416,7 @@ class Attribute(BaseModel):
     """Product attribute definitions (e.g., Color, Size)."""
 
     __tablename__ = "attributes"
-    __table_args__ = (
-        Index("ix_attributes_slug", "slug"),
-    )
+    __table_args__ = (Index("ix_attributes_slug", "slug"),)
 
     name: Mapped[str] = mapped_column(String(100), nullable=False)
     slug: Mapped[str] = mapped_column(String(120), unique=True, nullable=False)
@@ -461,9 +442,7 @@ class AttributeValue(BaseModel):
     __tablename__ = "attribute_values"
     __table_args__ = (
         Index("ix_attribute_values_attribute_id", "attribute_id"),
-        UniqueConstraint(
-            "attribute_id", "slug", name="uq_attribute_values_attribute_slug"
-        ),
+        UniqueConstraint("attribute_id", "slug", name="uq_attribute_values_attribute_slug"),
     )
 
     attribute_id: Mapped[uuid.UUID] = mapped_column(
@@ -476,9 +455,7 @@ class AttributeValue(BaseModel):
     position: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
 
     # Relationships
-    attribute: Mapped["Attribute"] = relationship(
-        "Attribute", back_populates="values"
-    )
+    attribute: Mapped["Attribute"] = relationship("Attribute", back_populates="values")
 
     def __repr__(self) -> str:
         return f"<AttributeValue(id={self.id}, value={self.value})>"
@@ -516,11 +493,11 @@ class ProductAttribute(BaseModel):
     )
 
     # Relationships
-    product: Mapped["Product"] = relationship(
-        "Product", back_populates="product_attributes"
-    )
+    product: Mapped["Product"] = relationship("Product", back_populates="product_attributes")
     attribute: Mapped["Attribute"] = relationship("Attribute")
     attribute_value: Mapped["AttributeValue"] = relationship("AttributeValue")
 
     def __repr__(self) -> str:
-        return f"<ProductAttribute(product_id={self.product_id}, attribute_id={self.attribute_id})>"
+        return (
+            f"<ProductAttribute(product_id={self.product_id}, attribute_id={self.attribute_id})>"
+        )

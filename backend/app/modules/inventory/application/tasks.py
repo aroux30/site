@@ -3,11 +3,11 @@
 from __future__ import annotations
 
 import asyncio
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 import structlog
-from sqlalchemy import select, update
+from sqlalchemy import select
 
 from app.core.database.session import async_session_factory
 from app.modules.inventory.domain.models import (
@@ -27,19 +27,21 @@ async def _check_low_stock_async() -> dict[str, Any]:
     async with async_session_factory() as db:
         try:
             stmt = select(InventoryItem).where(
-                InventoryItem.track_inventory == True,  # noqa: E712
+                InventoryItem.track_inventory.is_(True),
                 InventoryItem.available <= InventoryItem.low_stock_threshold,
             )
             items = list((await db.execute(stmt)).scalars().all())
 
             low_stock_variants = []
             for item in items:
-                low_stock_variants.append({
-                    "inventory_item_id": str(item.id),
-                    "variant_id": str(item.variant_id),
-                    "available": item.available,
-                    "threshold": item.low_stock_threshold,
-                })
+                low_stock_variants.append(
+                    {
+                        "inventory_item_id": str(item.id),
+                        "variant_id": str(item.variant_id),
+                        "available": item.available,
+                        "threshold": item.low_stock_threshold,
+                    }
+                )
                 await logger.awarning(
                     "low_stock_alert",
                     inventory_item_id=str(item.id),
@@ -60,7 +62,7 @@ async def _check_low_stock_async() -> dict[str, Any]:
 
 async def _release_expired_reservations_async() -> dict[str, Any]:
     """Release pending inventory reservations that have passed their TTL."""
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     released_count = 0
 
     async with async_session_factory() as db:

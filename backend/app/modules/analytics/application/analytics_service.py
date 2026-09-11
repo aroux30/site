@@ -3,16 +3,17 @@
 from __future__ import annotations
 
 import uuid
-from datetime import date, datetime, timedelta, timezone
-from typing import Any, Optional
+from datetime import date
+from typing import TYPE_CHECKING, Any
 
 import structlog
-from sqlalchemy import Date, func, select, text, cast
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import Date, cast, func, select
 
 from app.modules.analytics.domain.models import AnalyticsEvent, DailyMetric
 from app.modules.orders.domain.models import Order, OrderItem, OrderStatus
 
+if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncSession
 logger: structlog.stdlib.BoundLogger = structlog.get_logger()
 
 
@@ -26,11 +27,11 @@ class AnalyticsService:
         db: AsyncSession,
         *,
         event_type: str,
-        event_data: Optional[dict[str, Any]] = None,
-        user_id: Optional[uuid.UUID] = None,
-        session_id: Optional[str] = None,
-        ip_address: Optional[str] = None,
-        user_agent: Optional[str] = None,
+        event_data: dict[str, Any] | None = None,
+        user_id: uuid.UUID | None = None,
+        session_id: str | None = None,
+        ip_address: str | None = None,
+        user_agent: str | None = None,
     ) -> AnalyticsEvent:
         """Record a single analytics event."""
         event = AnalyticsEvent(
@@ -201,14 +202,16 @@ class AnalyticsService:
 
             conversion = (r.total_sold / view_count * 100) if view_count > 0 else 0.0
 
-            best_sellers.append({
-                "product_name": r.product_name,
-                "variant_id": r.variant_id,
-                "total_sold": r.total_sold,
-                "total_revenue": r.total_revenue,
-                "view_count": view_count,
-                "conversion_rate": round(conversion, 2),
-            })
+            best_sellers.append(
+                {
+                    "product_name": r.product_name,
+                    "variant_id": r.variant_id,
+                    "total_sold": r.total_sold,
+                    "total_revenue": r.total_revenue,
+                    "view_count": view_count,
+                    "conversion_rate": round(conversion, 2),
+                }
+            )
 
         return {
             "best_sellers": best_sellers,
@@ -227,29 +230,19 @@ class AnalyticsService:
     ) -> dict[str, Any]:
         """Get customer analytics – new vs returning, top customers."""
         # Total unique customers in period
-        total_stmt = (
-            select(func.count(func.distinct(Order.user_id)))
-            .where(
-                cast(Order.created_at, Date) >= period_start,
-                cast(Order.created_at, Date) <= period_end,
-            )
+        total_stmt = select(func.count(func.distinct(Order.user_id))).where(
+            cast(Order.created_at, Date) >= period_start,
+            cast(Order.created_at, Date) <= period_end,
         )
         total_customers = (await db.execute(total_stmt)).scalar_one()
 
         # New customers: first order is within the period
-        new_customers_stmt = (
-            select(func.count())
-            .select_from(
-                select(Order.user_id)
-                .group_by(Order.user_id)
-                .having(
-                    func.min(cast(Order.created_at, Date)) >= period_start
-                )
-                .having(
-                    func.min(cast(Order.created_at, Date)) <= period_end
-                )
-                .subquery()
-            )
+        new_customers_stmt = select(func.count()).select_from(
+            select(Order.user_id)
+            .group_by(Order.user_id)
+            .having(func.min(cast(Order.created_at, Date)) >= period_start)
+            .having(func.min(cast(Order.created_at, Date)) <= period_end)
+            .subquery()
         )
         new_customers = (await db.execute(new_customers_stmt)).scalar_one()
         returning_customers = total_customers - new_customers
@@ -290,17 +283,13 @@ class AnalyticsService:
     # ── Daily Metric Aggregation ──────────────────────────────────────
 
     @staticmethod
-    async def aggregate_daily_metrics(
-        db: AsyncSession, target_date: date
-    ) -> list[DailyMetric]:
+    async def aggregate_daily_metrics(db: AsyncSession, target_date: date) -> list[DailyMetric]:
         """Aggregate and store daily metrics for the given date."""
         metrics: list[DailyMetric] = []
 
         # Total sales for the day
         completed_statuses = [OrderStatus.COMPLETED, OrderStatus.DELIVERED]
-        sales_stmt = select(
-            func.coalesce(func.sum(Order.total), 0)
-        ).where(
+        sales_stmt = select(func.coalesce(func.sum(Order.total), 0)).where(
             cast(Order.created_at, Date) == target_date,
             Order.status.in_(completed_statuses),
         )

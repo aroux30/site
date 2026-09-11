@@ -673,13 +673,16 @@ async def test_route_send_campaign(test_admin_headers):
     sent_campaign.updated_at = datetime.now(UTC)
     sent_campaign.sent_at = datetime.now(UTC)
 
-    with patch(
-        "app.modules.messaging.application.broadcast_service.get_campaign",
-        new_callable=AsyncMock,
-    ) as mock_get, patch(
-        "app.modules.messaging.application.broadcast_service.send_campaign",
-        new_callable=AsyncMock,
-    ) as mock_send:
+    with (
+        patch(
+            "app.modules.messaging.application.broadcast_service.get_campaign",
+            new_callable=AsyncMock,
+        ) as mock_get,
+        patch(
+            "app.modules.messaging.application.broadcast_service.send_campaign",
+            new_callable=AsyncMock,
+        ) as mock_send,
+    ):
         mock_get.return_value = draft_campaign
         mock_send.return_value = sent_campaign
 
@@ -805,4 +808,3 @@ async def test_celery_task_async_send_campaign():
         assert result["campaign_status"] == "sent"
         assert result["total_recipients"] == 5
         assert result["success_count"] == 5
-

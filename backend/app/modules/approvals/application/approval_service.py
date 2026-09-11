@@ -7,12 +7,11 @@ of automated side-effects upon approval.
 from __future__ import annotations
 
 import uuid
-from typing import Any, Optional
+from typing import TYPE_CHECKING, Any
 
 import structlog
 from fastapi import HTTPException, status
 from sqlalchemy import func, select
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.modules.approvals.domain.models import (
@@ -22,6 +21,9 @@ from app.modules.approvals.domain.models import (
     ApprovalRequest,
     ApprovalStatus,
 )
+
+if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncSession
 
 logger: structlog.stdlib.BoundLogger = structlog.get_logger()
 
@@ -144,12 +146,12 @@ class ApprovalService:
     async def create_request(
         db: AsyncSession,
         requester_id: uuid.UUID,
-        type: str,
+        type: str,  # noqa: A002  # API parameter name is the public contract
         resource: str,
-        resource_id: Optional[uuid.UUID] = None,
+        resource_id: uuid.UUID | None = None,
         level: ApprovalLevel | str = ApprovalLevel.LOW,
-        data: Optional[dict[str, Any]] = None,
-        reason: Optional[str] = None,
+        data: dict[str, Any] | None = None,
+        reason: str | None = None,
     ) -> ApprovalRequest:
         """Submit a new approval request."""
         if isinstance(level, str):
@@ -179,19 +181,16 @@ class ApprovalService:
     @staticmethod
     async def list_requests(
         db: AsyncSession,
-        status: Optional[ApprovalStatus | str] = None,
-        level: Optional[ApprovalLevel | str] = None,
-        resource: Optional[str] = None,
+        status: ApprovalStatus | str | None = None,
+        level: ApprovalLevel | str | None = None,
+        resource: str | None = None,
         page: int = 1,
         page_size: int = 20,
     ) -> tuple[list[ApprovalRequest], int]:
         """List approval requests matching optional filters with pagination."""
-        stmt = (
-            select(ApprovalRequest)
-            .options(
-                selectinload(ApprovalRequest.requester),
-                selectinload(ApprovalRequest.actions).selectinload(ApprovalAction.actor),
-            )
+        stmt = select(ApprovalRequest).options(
+            selectinload(ApprovalRequest.requester),
+            selectinload(ApprovalRequest.actions).selectinload(ApprovalAction.actor),
         )
         count_stmt = select(func.count(ApprovalRequest.id))
 
@@ -239,7 +238,7 @@ class ApprovalService:
     async def get_request(
         db: AsyncSession,
         request_id: uuid.UUID,
-    ) -> Optional[ApprovalRequest]:
+    ) -> ApprovalRequest | None:
         """Fetch an approval request by its ID with requester and actions loaded."""
         stmt = (
             select(ApprovalRequest)
@@ -258,7 +257,7 @@ class ApprovalService:
         request_id: uuid.UUID,
         actor_id: uuid.UUID,
         action: ApprovalActionType | str,
-        comment: Optional[str] = None,
+        comment: str | None = None,
     ) -> ApprovalRequest:
         """Review (approve or reject) a pending approval request."""
         request = await ApprovalService.get_request(db, request_id)

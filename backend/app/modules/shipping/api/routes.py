@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import uuid
+from typing import Any
 
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -99,8 +100,7 @@ async def admin_create_shipment(
     actor_id: uuid.UUID = Depends(get_current_user_id),
 ) -> ShipmentResponse:
     items = [
-        {"order_item_id": item.order_item_id, "quantity": item.quantity}
-        for item in body.items
+        {"order_item_id": item.order_item_id, "quantity": item.quantity} for item in body.items
     ]
     return await shipping_service.create_shipment(
         db,

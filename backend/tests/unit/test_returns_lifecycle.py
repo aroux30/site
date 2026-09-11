@@ -1,18 +1,19 @@
-"""Unit tests for Phase 13 / Phase 23 Returns (RMA) Domain Lifecycle and 7-day statutory eligibility."""
+"""Unit tests for Phase 13 / Phase 23 Returns (RMA) Domain Lifecycle and 7-day statutory eligibility."""  # noqa: E501
 
 import uuid
-from datetime import datetime, timezone, timedelta
+from datetime import UTC, datetime, timedelta
+
 import pytest
 
 from app.core.exceptions.handlers import ValidationError
+from app.modules.orders.application.returns_service import ReturnsService
 from app.modules.orders.domain.models import Order, OrderItem, OrderStatus
 from app.modules.orders.domain.returns import (
+    InspectionOutcome,
+    ReturnItemSpec,
     ReturnReason,
     ReturnStatus,
-    ReturnItemSpec,
-    InspectionOutcome,
 )
-from app.modules.orders.application.returns_service import ReturnsService
 
 
 @pytest.fixture
@@ -48,7 +49,7 @@ def sample_delivered_order():
 def test_return_eligibility_within_7_days_succeeds(sample_delivered_order):
     order, item = sample_delivered_order
     service = ReturnsService(return_window_days=7)
-    delivered_at = datetime.now(timezone.utc) - timedelta(days=3)
+    delivered_at = datetime.now(UTC) - timedelta(days=3)
 
     return_item = ReturnItemSpec(
         order_item_id=item.id,
@@ -73,7 +74,7 @@ def test_return_eligibility_within_7_days_succeeds(sample_delivered_order):
 def test_return_eligibility_exceeding_7_days_rejected(sample_delivered_order):
     order, item = sample_delivered_order
     service = ReturnsService(return_window_days=7)
-    delivered_at = datetime.now(timezone.utc) - timedelta(days=8)  # 8 days ago
+    delivered_at = datetime.now(UTC) - timedelta(days=8)  # 8 days ago
 
     return_item = ReturnItemSpec(
         order_item_id=item.id,
@@ -98,7 +99,7 @@ def test_return_on_undelivered_order_rejected(sample_delivered_order):
     order, item = sample_delivered_order
     order.status = OrderStatus.SHIPPED  # In transit, not yet delivered
     service = ReturnsService(return_window_days=7)
-    delivered_at = datetime.now(timezone.utc)
+    delivered_at = datetime.now(UTC)
 
     return_item = ReturnItemSpec(
         order_item_id=item.id,
@@ -121,7 +122,7 @@ def test_return_on_undelivered_order_rejected(sample_delivered_order):
 def test_return_excessive_quantity_rejected(sample_delivered_order):
     order, item = sample_delivered_order
     service = ReturnsService(return_window_days=7)
-    delivered_at = datetime.now(timezone.utc) - timedelta(days=1)
+    delivered_at = datetime.now(UTC) - timedelta(days=1)
 
     return_item = ReturnItemSpec(
         order_item_id=item.id,
@@ -144,7 +145,7 @@ def test_return_excessive_quantity_rejected(sample_delivered_order):
 def test_full_rma_lifecycle_transitions(sample_delivered_order):
     order, item = sample_delivered_order
     service = ReturnsService(return_window_days=7)
-    delivered_at = datetime.now(timezone.utc) - timedelta(days=2)
+    delivered_at = datetime.now(UTC) - timedelta(days=2)
 
     return_item = ReturnItemSpec(
         order_item_id=item.id,
@@ -192,7 +193,7 @@ def test_full_rma_lifecycle_transitions(sample_delivered_order):
 def test_rma_illegal_transition_fails_closed(sample_delivered_order):
     order, item = sample_delivered_order
     service = ReturnsService(return_window_days=7)
-    delivered_at = datetime.now(timezone.utc) - timedelta(days=1)
+    delivered_at = datetime.now(UTC) - timedelta(days=1)
 
     return_item = ReturnItemSpec(
         order_item_id=item.id,
@@ -216,10 +217,12 @@ def test_rma_illegal_transition_fails_closed(sample_delivered_order):
 
 
 from unittest.mock import AsyncMock, MagicMock
+
 from httpx import ASGITransport, AsyncClient
-from app.main import create_app
+
 from app.core.database.session import get_db
 from app.core.security.jwt import create_access_token
+from app.main import create_app
 
 
 @pytest.fixture
@@ -288,6 +291,3 @@ async def test_api_request_order_return_success(test_app, mock_db, sample_delive
         assert data["status"] == "requested"
         assert len(data["items"]) == 1
         assert data["items"][0]["quantity"] == 1
-
-
-

@@ -8,11 +8,10 @@ responsible for mapping them to Pydantic schemas.
 from __future__ import annotations
 
 import uuid
-from typing import Any, Sequence
+from typing import TYPE_CHECKING, Any
 
 import structlog
 from sqlalchemy import and_, delete, func, or_, select, update
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload, selectinload
 
 from app.modules.catalog.domain.models import (
@@ -27,6 +26,11 @@ from app.modules.catalog.domain.models import (
     ProductVariant,
     Tag,
 )
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+
+    from sqlalchemy.ext.asyncio import AsyncSession
 
 logger: structlog.stdlib.BoundLogger = structlog.get_logger(__name__)
 
@@ -133,37 +137,23 @@ class CategoryRepository:
         result = await self._session.execute(stmt)
         return (result.rowcount or 0) > 0
 
-    async def bulk_update_positions(
-        self, items: list[tuple[uuid.UUID, int]]
-    ) -> int:
+    async def bulk_update_positions(self, items: list[tuple[uuid.UUID, int]]) -> int:
         """Update positions for multiple categories.  Returns affected count."""
         updated = 0
         for cat_id, position in items:
-            stmt = (
-                update(Category)
-                .where(Category.id == cat_id)
-                .values(position=position)
-            )
+            stmt = update(Category).where(Category.id == cat_id).values(position=position)
             result = await self._session.execute(stmt)
             updated += result.rowcount or 0
         await self._session.flush()
         return updated
 
     async def has_products(self, category_id: uuid.UUID) -> bool:
-        stmt = (
-            select(func.count())
-            .select_from(Product)
-            .where(Product.category_id == category_id)
-        )
+        stmt = select(func.count()).select_from(Product).where(Product.category_id == category_id)
         result = await self._session.execute(stmt)
         return (result.scalar() or 0) > 0
 
     async def has_children(self, category_id: uuid.UUID) -> bool:
-        stmt = (
-            select(func.count())
-            .select_from(Category)
-            .where(Category.parent_id == category_id)
-        )
+        stmt = select(func.count()).select_from(Category).where(Category.parent_id == category_id)
         result = await self._session.execute(stmt)
         return (result.scalar() or 0) > 0
 
@@ -244,11 +234,7 @@ class BrandRepository:
         return (result.rowcount or 0) > 0
 
     async def has_products(self, brand_id: uuid.UUID) -> bool:
-        stmt = (
-            select(func.count())
-            .select_from(Product)
-            .where(Product.brand_id == brand_id)
-        )
+        stmt = select(func.count()).select_from(Product).where(Product.brand_id == brand_id)
         result = await self._session.execute(stmt)
         return (result.scalar() or 0) > 0
 
@@ -291,9 +277,7 @@ class ProductRepository:
 
     # ---- Single lookups ----
 
-    async def get_by_id(
-        self, product_id: uuid.UUID, *, eager: bool = True
-    ) -> Product | None:
+    async def get_by_id(self, product_id: uuid.UUID, *, eager: bool = True) -> Product | None:
         stmt = select(Product).where(Product.id == product_id)
         if eager:
             for opt in self._detail_options():
@@ -381,9 +365,8 @@ class ProductRepository:
 
         # Price range filter (against variants)
         if min_price_rial is not None or max_price_rial is not None:
-            price_subq = (
-                select(ProductVariant.product_id)
-                .where(ProductVariant.is_active.is_(True))
+            price_subq = select(ProductVariant.product_id).where(
+                ProductVariant.is_active.is_(True)
             )
             if min_price_rial is not None:
                 price_subq = price_subq.where(ProductVariant.price >= min_price_rial)
@@ -500,11 +483,7 @@ class ProductRepository:
             product_id = item.pop("id")
             if not item:
                 continue
-            stmt = (
-                update(Product)
-                .where(Product.id == product_id)
-                .values(**item)
-            )
+            stmt = update(Product).where(Product.id == product_id).values(**item)
             result = await self._session.execute(stmt)
             updated += result.rowcount or 0
         await self._session.flush()
@@ -604,11 +583,7 @@ class ImageRepository:
     async def bulk_update_positions(self, items: list[tuple[uuid.UUID, int]]) -> int:
         updated = 0
         for img_id, position in items:
-            stmt = (
-                update(ProductImage)
-                .where(ProductImage.id == img_id)
-                .values(position=position)
-            )
+            stmt = update(ProductImage).where(ProductImage.id == img_id).values(position=position)
             result = await self._session.execute(stmt)
             updated += result.rowcount or 0
         await self._session.flush()
@@ -686,14 +661,9 @@ class TagRepository:
         await self._session.refresh(tag)
         return tag
 
-    async def assign_to_product(
-        self, product_id: uuid.UUID, tag_ids: list[uuid.UUID]
-    ) -> int:
+    async def assign_to_product(self, product_id: uuid.UUID, tag_ids: list[uuid.UUID]) -> int:
         """Assign tags to a product, skipping duplicates."""
-        existing_stmt = (
-            select(ProductTag.tag_id)
-            .where(ProductTag.product_id == product_id)
-        )
+        existing_stmt = select(ProductTag.tag_id).where(ProductTag.product_id == product_id)
         existing_result = await self._session.execute(existing_stmt)
         existing_tag_ids = {row[0] for row in existing_result}
 
@@ -709,9 +679,7 @@ class TagRepository:
             await self._session.flush()
         return added
 
-    async def remove_from_product(
-        self, product_id: uuid.UUID, tag_ids: list[uuid.UUID]
-    ) -> int:
+    async def remove_from_product(self, product_id: uuid.UUID, tag_ids: list[uuid.UUID]) -> int:
         stmt = delete(ProductTag).where(
             and_(
                 ProductTag.product_id == product_id,
@@ -816,9 +784,7 @@ class ProductAttributeRepository:
     ) -> list[ProductAttribute]:
         """Replace all attribute associations for a product."""
         # Delete existing
-        del_stmt = delete(ProductAttribute).where(
-            ProductAttribute.product_id == product_id
-        )
+        del_stmt = delete(ProductAttribute).where(ProductAttribute.product_id == product_id)
         await self._session.execute(del_stmt)
 
         created: list[ProductAttribute] = []
@@ -862,9 +828,7 @@ class ProductAttributeRepository:
             ProductAttribute.attribute_id == attribute_id,
         ]
         if attribute_value_id is not None:
-            conditions.append(
-                ProductAttribute.attribute_value_id == attribute_value_id
-            )
+            conditions.append(ProductAttribute.attribute_value_id == attribute_value_id)
         stmt = delete(ProductAttribute).where(and_(*conditions))
         result = await self._session.execute(stmt)
         return result.rowcount or 0

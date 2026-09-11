@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from datetime import date, timedelta
-from typing import Optional
+from datetime import date, datetime, timedelta
+from zoneinfo import ZoneInfo
 
 from fastapi import APIRouter, Depends, Query, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -21,6 +21,8 @@ from app.modules.analytics.schemas.analytics import (
 )
 from app.modules.users.domain.models import User
 
+TZ_TEHRAN = ZoneInfo("Asia/Tehran")
+
 router = APIRouter()
 
 
@@ -34,7 +36,7 @@ async def track_event(
     payload: TrackEventRequest,
     request: Request,
     db: AsyncSession = Depends(get_db),
-    current_user: Optional[User] = Depends(get_current_user),
+    current_user: User | None = Depends(get_current_user),
 ) -> TrackEventResponse:
     """Track a client-side analytics event."""
     ip_address = request.client.host if request.client else None
@@ -65,12 +67,12 @@ async def track_event(
     dependencies=[Depends(RequirePermissions("analytics:read"))],
 )
 async def get_sales_analytics(
-    start_date: Optional[date] = Query(None, description="Start date (defaults to 30 days ago)"),
-    end_date: Optional[date] = Query(None, description="End date (defaults to today)"),
+    start_date: date | None = Query(None, description="Start date (defaults to 30 days ago)"),
+    end_date: date | None = Query(None, description="End date (defaults to today)"),
     db: AsyncSession = Depends(get_db),
 ) -> SalesAnalyticsResponse:
     """Get aggregated sales metrics and daily breakdown."""
-    today = date.today()
+    today = datetime.now(TZ_TEHRAN).date()
     period_start = start_date or (today - timedelta(days=30))
     period_end = end_date or today
 
@@ -85,12 +87,12 @@ async def get_sales_analytics(
     dependencies=[Depends(RequirePermissions("analytics:read"))],
 )
 async def get_order_analytics(
-    start_date: Optional[date] = Query(None),
-    end_date: Optional[date] = Query(None),
+    start_date: date | None = Query(None),
+    end_date: date | None = Query(None),
     db: AsyncSession = Depends(get_db),
 ) -> OrderAnalyticsResponse:
     """Get order volume and status distribution."""
-    today = date.today()
+    today = datetime.now(TZ_TEHRAN).date()
     period_start = start_date or (today - timedelta(days=30))
     period_end = end_date or today
 
@@ -105,13 +107,13 @@ async def get_order_analytics(
     dependencies=[Depends(RequirePermissions("analytics:read"))],
 )
 async def get_product_analytics(
-    start_date: Optional[date] = Query(None),
-    end_date: Optional[date] = Query(None),
+    start_date: date | None = Query(None),
+    end_date: date | None = Query(None),
     limit: int = Query(10, ge=1, le=100),
     db: AsyncSession = Depends(get_db),
 ) -> ProductAnalyticsResponse:
     """Get best-selling products with revenue and conversion rates."""
-    today = date.today()
+    today = datetime.now(TZ_TEHRAN).date()
     period_start = start_date or (today - timedelta(days=30))
     period_end = end_date or today
 
@@ -126,13 +128,13 @@ async def get_product_analytics(
     dependencies=[Depends(RequirePermissions("analytics:read"))],
 )
 async def get_customer_analytics(
-    start_date: Optional[date] = Query(None),
-    end_date: Optional[date] = Query(None),
+    start_date: date | None = Query(None),
+    end_date: date | None = Query(None),
     limit: int = Query(10, ge=1, le=100),
     db: AsyncSession = Depends(get_db),
 ) -> CustomerAnalyticsResponse:
     """Get new vs returning customers and top spenders."""
-    today = date.today()
+    today = datetime.now(TZ_TEHRAN).date()
     period_start = start_date or (today - timedelta(days=30))
     period_end = end_date or today
 

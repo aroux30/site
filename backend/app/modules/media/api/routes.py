@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import math
 import uuid
-from typing import Optional
 
 from fastapi import (
     APIRouter,
@@ -37,7 +36,7 @@ router = APIRouter()
 )
 async def upload_media(
     file: UploadFile = File(..., description="File to upload (max 10MB, images/pdf)"),
-    alt_text: Optional[str] = Form(None, description="Accessible description"),
+    alt_text: str | None = Form(None, description="Accessible description"),
     user_id: uuid.UUID = Depends(get_current_user_id),
     db: AsyncSession = Depends(get_db),
 ) -> MediaUploadResponse:
@@ -63,7 +62,7 @@ async def upload_media(
 async def list_media(
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
-    mime_type: Optional[str] = Query(None, description="Filter by MIME type prefix e.g. 'image/'"),
+    mime_type: str | None = Query(None, description="Filter by MIME type prefix e.g. 'image/'"),
     db: AsyncSession = Depends(get_db),
 ) -> MediaAssetListResponse:
     """List uploaded media assets with pagination."""

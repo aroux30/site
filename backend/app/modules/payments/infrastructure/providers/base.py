@@ -2,12 +2,10 @@
 
 from __future__ import annotations
 
+import uuid
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Any
-
-if TYPE_CHECKING:
-    import uuid
+from typing import Any
 
 
 @dataclass(frozen=True, slots=True)

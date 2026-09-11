@@ -16,6 +16,7 @@ if TYPE_CHECKING:
 
 # ---- Enums ----
 
+
 class ApprovalLevel(str, enum.Enum):
     LOW = "low"
     MEDIUM = "medium"
@@ -34,6 +35,7 @@ class ApprovalActionType(str, enum.Enum):
 
 
 # ---- Models ----
+
 
 class ApprovalRequest(BaseModel):
     """Requests requiring human approval before execution."""
@@ -54,9 +56,7 @@ class ApprovalRequest(BaseModel):
     )
     type: Mapped[str] = mapped_column(String(100), nullable=False)
     resource: Mapped[str] = mapped_column(String(100), nullable=False)
-    resource_id: Mapped[Optional[uuid.UUID]] = mapped_column(
-        UUID(as_uuid=True), nullable=True
-    )
+    resource_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
     level: Mapped[ApprovalLevel] = mapped_column(
         Enum(ApprovalLevel, name="approval_level_enum", native_enum=False),
         default=ApprovalLevel.LOW,
@@ -67,19 +67,23 @@ class ApprovalRequest(BaseModel):
         default=ApprovalStatus.PENDING,
         nullable=False,
     )
-    data: Mapped[Optional[dict[str, Any]]] = mapped_column(JSONB, nullable=True)
-    reason: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    data: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True)
+    reason: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     # Relationships
     requester: Mapped[Optional["User"]] = relationship(
         "User", foreign_keys=[requester_id], lazy="selectin"
     )
     actions: Mapped[list["ApprovalAction"]] = relationship(
-        "ApprovalAction", back_populates="request", lazy="selectin", cascade="all, delete-orphan", order_by="ApprovalAction.created_at"
+        "ApprovalAction",
+        back_populates="request",
+        lazy="selectin",
+        cascade="all, delete-orphan",
+        order_by="ApprovalAction.created_at",
     )
 
     @property
-    def requester_name(self) -> Optional[str]:
+    def requester_name(self) -> str | None:
         if self.requester:
             if hasattr(self.requester, "profile") and self.requester.profile:
                 parts = [self.requester.profile.first_name, self.requester.profile.last_name]
@@ -90,11 +94,11 @@ class ApprovalRequest(BaseModel):
         return None
 
     @property
-    def requester_email(self) -> Optional[str]:
+    def requester_email(self) -> str | None:
         return self.requester.email if self.requester else None
 
     @property
-    def requester_phone(self) -> Optional[str]:
+    def requester_phone(self) -> str | None:
         return self.requester.phone if self.requester else None
 
     def __repr__(self) -> str:
@@ -124,18 +128,16 @@ class ApprovalAction(BaseModel):
         Enum(ApprovalActionType, name="approval_action_type_enum", native_enum=False),
         nullable=False,
     )
-    comment: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    comment: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     # Relationships
     actor: Mapped[Optional["User"]] = relationship(
         "User", foreign_keys=[actor_id], lazy="selectin"
     )
-    request: Mapped["ApprovalRequest"] = relationship(
-        "ApprovalRequest", back_populates="actions"
-    )
+    request: Mapped["ApprovalRequest"] = relationship("ApprovalRequest", back_populates="actions")
 
     @property
-    def actor_name(self) -> Optional[str]:
+    def actor_name(self) -> str | None:
         if self.actor:
             if hasattr(self.actor, "profile") and self.actor.profile:
                 parts = [self.actor.profile.first_name, self.actor.profile.last_name]
@@ -146,7 +148,7 @@ class ApprovalAction(BaseModel):
         return None
 
     @property
-    def actor_email(self) -> Optional[str]:
+    def actor_email(self) -> str | None:
         return self.actor.email if self.actor else None
 
     def __repr__(self) -> str:

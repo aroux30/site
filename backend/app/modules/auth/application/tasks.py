@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import asyncio
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 import structlog
@@ -18,7 +18,7 @@ logger: structlog.stdlib.BoundLogger = structlog.get_logger(__name__)
 
 async def _cleanup_expired_otps_async() -> dict[str, Any]:
     """Delete OTP requests that have expired or are older than 24 hours."""
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     threshold = now - timedelta(hours=24)
 
     async with async_session_factory() as db:
@@ -31,7 +31,7 @@ async def _cleanup_expired_otps_async() -> dict[str, Any]:
 
             # Also delete revoked or expired sessions
             session_stmt = delete(UserSession).where(
-                (UserSession.is_revoked == True) | (UserSession.expires_at <= now)  # noqa: E712
+                (UserSession.is_revoked.is_(True)) | (UserSession.expires_at <= now)
             )
             sess_result = await db.execute(session_stmt)
             deleted_sessions = sess_result.rowcount

@@ -2,7 +2,7 @@
 
 import enum
 import uuid
-from typing import Any, Optional
+from typing import Any
 
 from sqlalchemy import (
     BigInteger,
@@ -12,15 +12,14 @@ from sqlalchemy import (
     Integer,
     String,
     Text,
-    UniqueConstraint,
 )
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database.base import BaseModel
 
-
 # ---- Enums ----
+
 
 class OrderStatus(str, enum.Enum):
     PENDING = "pending"
@@ -39,6 +38,7 @@ class OrderStatus(str, enum.Enum):
 
 # ---- Models ----
 
+
 class Order(BaseModel):
     """Customer order with full financial snapshot."""
 
@@ -56,9 +56,7 @@ class Order(BaseModel):
         ForeignKey("users.id", ondelete="RESTRICT"),
         nullable=False,
     )
-    order_number: Mapped[str] = mapped_column(
-        String(50), unique=True, nullable=False
-    )
+    order_number: Mapped[str] = mapped_column(String(50), unique=True, nullable=False)
     status: Mapped[OrderStatus] = mapped_column(
         Enum(OrderStatus, name="order_status_enum", native_enum=False),
         default=OrderStatus.PENDING,
@@ -69,14 +67,10 @@ class Order(BaseModel):
     tax: Mapped[int] = mapped_column(BigInteger, default=0, nullable=False)
     discount_amount: Mapped[int] = mapped_column(BigInteger, default=0, nullable=False)
     total: Mapped[int] = mapped_column(BigInteger, nullable=False)
-    shipping_address_snapshot: Mapped[Optional[dict[str, Any]]] = mapped_column(
-        JSONB, nullable=True
-    )
-    notes: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
-    idempotency_key: Mapped[Optional[str]] = mapped_column(
-        String(255), unique=True, nullable=True
-    )
-    ip_address: Mapped[Optional[str]] = mapped_column(String(45), nullable=True)
+    shipping_address_snapshot: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True)
+    notes: Mapped[str | None] = mapped_column(Text, nullable=True)
+    idempotency_key: Mapped[str | None] = mapped_column(String(255), unique=True, nullable=True)
+    ip_address: Mapped[str | None] = mapped_column(String(45), nullable=True)
 
     # Relationships
     items: Mapped[list["OrderItem"]] = relationship(
@@ -110,7 +104,7 @@ class OrderItem(BaseModel):
         nullable=False,
     )
     product_name: Mapped[str] = mapped_column(String(500), nullable=False)
-    variant_info: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
+    variant_info: Mapped[str | None] = mapped_column(String(500), nullable=True)
     sku: Mapped[str] = mapped_column(String(100), nullable=False)
     quantity: Mapped[int] = mapped_column(Integer, nullable=False)
     unit_price: Mapped[int] = mapped_column(BigInteger, nullable=False)
@@ -137,20 +131,18 @@ class OrderStatusHistory(BaseModel):
         ForeignKey("orders.id", ondelete="CASCADE"),
         nullable=False,
     )
-    from_status: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
+    from_status: Mapped[str | None] = mapped_column(String(50), nullable=True)
     to_status: Mapped[str] = mapped_column(String(50), nullable=False)
-    changed_by: Mapped[Optional[uuid.UUID]] = mapped_column(
+    changed_by: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("users.id", ondelete="SET NULL"),
         nullable=True,
     )
-    reason: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
-    extra_data: Mapped[Optional[dict[str, Any]]] = mapped_column(
-        "metadata", JSONB, nullable=True
-    )
+    reason: Mapped[str | None] = mapped_column(Text, nullable=True)
+    extra_data: Mapped[dict[str, Any] | None] = mapped_column("metadata", JSONB, nullable=True)
 
     # Relationships
     order: Mapped["Order"] = relationship("Order", back_populates="status_history")
 
     def __repr__(self) -> str:
-        return f"<OrderStatusHistory(id={self.id}, order_id={self.order_id}, to_status={self.to_status})>"
+        return f"<OrderStatusHistory(id={self.id}, order_id={self.order_id}, to_status={self.to_status})>"  # noqa: E501

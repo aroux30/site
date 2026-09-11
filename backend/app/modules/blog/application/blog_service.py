@@ -6,16 +6,15 @@ import math
 import re
 import unicodedata
 import uuid
-from datetime import datetime, timezone
-from typing import Optional
+from datetime import UTC, datetime
+from typing import TYPE_CHECKING
 
 import structlog
 from sqlalchemy import func, or_, select
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.core.cache.redis import get_redis
-from app.core.exceptions.handlers import ConflictError, NotFoundError
+from app.core.exceptions.handlers import NotFoundError
 from app.modules.blog.domain.models import BlogCategory, BlogPost, BlogPostStatus
 from app.modules.blog.schemas.blog import (
     BlogCategoryCreate,
@@ -29,26 +28,75 @@ from app.modules.blog.schemas.blog import (
 from app.modules.seo.domain.models import SEOMetadata
 from app.modules.users.domain.models import User, UserProfile
 
+if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncSession
 logger: structlog.stdlib.BoundLogger = structlog.get_logger()
 
 # ── Persian Transliteration for URL Slugs ──────────────────────────────────
 _PERSIAN_TO_LATIN: dict[str, str] = {
-    "آ": "a", "ا": "a", "ب": "b", "پ": "p", "ت": "t", "ث": "s",
-    "ج": "j", "چ": "ch", "ح": "h", "خ": "kh", "د": "d", "ذ": "z",
-    "ر": "r", "ز": "z", "ژ": "zh", "س": "s", "ش": "sh", "ص": "s",
-    "ض": "z", "ط": "t", "ظ": "z", "ع": "a", "غ": "gh", "ف": "f",
-    "ق": "gh", "ک": "k", "گ": "g", "ل": "l", "م": "m", "ن": "n",
-    "و": "v", "ه": "h", "ی": "y", "ئ": "y", "ي": "y", "ك": "k",
-    "ة": "h", "إ": "e", "أ": "a", "ؤ": "v",
-    "۰": "0", "۱": "1", "۲": "2", "۳": "3", "۴": "4",
-    "۵": "5", "۶": "6", "۷": "7", "۸": "8", "۹": "9",
-    "٠": "0", "١": "1", "٢": "2", "٣": "3", "٤": "4",
-    "٥": "5", "٦": "6", "٧": "7", "٨": "8", "٩": "9",
+    "آ": "a",
+    "ا": "a",
+    "ب": "b",
+    "پ": "p",
+    "ت": "t",
+    "ث": "s",
+    "ج": "j",
+    "چ": "ch",
+    "ح": "h",
+    "خ": "kh",
+    "د": "d",
+    "ذ": "z",
+    "ر": "r",
+    "ز": "z",
+    "ژ": "zh",
+    "س": "s",
+    "ش": "sh",
+    "ص": "s",
+    "ض": "z",
+    "ط": "t",
+    "ظ": "z",
+    "ع": "a",
+    "غ": "gh",
+    "ف": "f",
+    "ق": "gh",
+    "ک": "k",
+    "گ": "g",
+    "ل": "l",
+    "م": "m",
+    "ن": "n",
+    "و": "v",
+    "ه": "h",
+    "ی": "y",
+    "ئ": "y",
+    "ي": "y",
+    "ك": "k",
+    "ة": "h",
+    "إ": "e",
+    "أ": "a",
+    "ؤ": "v",
+    "۰": "0",
+    "۱": "1",
+    "۲": "2",
+    "۳": "3",
+    "۴": "4",
+    "۵": "5",
+    "۶": "6",
+    "۷": "7",
+    "۸": "8",
+    "۹": "9",
+    "٠": "0",
+    "١": "1",
+    "٢": "2",
+    "٣": "3",
+    "٤": "4",
+    "٥": "5",
+    "٦": "6",
+    "٧": "7",
+    "٨": "8",
+    "٩": "9",
 }
 
-_DIACRITICS_RE = re.compile(
-    r"[\u064B-\u065F\u0670\u06D6-\u06ED\u200B-\u200F\u202A-\u202E\uFEFF]"
-)
+_DIACRITICS_RE = re.compile(r"[\u064B-\u065F\u0670\u06D6-\u06ED\u200B-\u200F\u202A-\u202E\uFEFF]")
 
 
 def generate_slug(text: str) -> str:
@@ -81,21 +129,23 @@ class BlogService:
 
     # ── Slug Uniqueness Helpers ───────────────────────────────────────────
 
-    async def _post_slug_exists(self, slug: str, exclude_id: Optional[uuid.UUID] = None) -> bool:
+    async def _post_slug_exists(self, slug: str, exclude_id: uuid.UUID | None = None) -> bool:
         stmt = select(func.count(BlogPost.id)).where(BlogPost.slug == slug)
         if exclude_id is not None:
             stmt = stmt.where(BlogPost.id != exclude_id)
         count = (await self.db.execute(stmt)).scalar_one()
         return count > 0
 
-    async def _category_slug_exists(self, slug: str, exclude_id: Optional[uuid.UUID] = None) -> bool:
+    async def _category_slug_exists(self, slug: str, exclude_id: uuid.UUID | None = None) -> bool:
         stmt = select(func.count(BlogCategory.id)).where(BlogCategory.slug == slug)
         if exclude_id is not None:
             stmt = stmt.where(BlogCategory.id != exclude_id)
         count = (await self.db.execute(stmt)).scalar_one()
         return count > 0
 
-    async def _ensure_unique_post_slug(self, slug: str, exclude_id: Optional[uuid.UUID] = None) -> str:
+    async def _ensure_unique_post_slug(
+        self, slug: str, exclude_id: uuid.UUID | None = None
+    ) -> str:
         candidate = slug
         counter = 1
         while await self._post_slug_exists(candidate, exclude_id=exclude_id):
@@ -103,7 +153,9 @@ class BlogService:
             counter += 1
         return candidate
 
-    async def _ensure_unique_category_slug(self, slug: str, exclude_id: Optional[uuid.UUID] = None) -> str:
+    async def _ensure_unique_category_slug(
+        self, slug: str, exclude_id: uuid.UUID | None = None
+    ) -> str:
         candidate = slug
         counter = 1
         while await self._category_slug_exists(candidate, exclude_id=exclude_id):
@@ -255,7 +307,7 @@ class BlogService:
 
         published_at = data.published_at
         if data.status == BlogPostStatus.PUBLISHED and published_at is None:
-            published_at = datetime.now(timezone.utc)
+            published_at = datetime.now(UTC)
 
         # Validate category if provided
         if data.category_id:
@@ -296,7 +348,7 @@ class BlogService:
             update_dict["slug"] = await self._ensure_unique_post_slug(
                 generate_slug(update_dict["title"]), exclude_id=post_id
             )
-        elif "slug" in update_dict and update_dict["slug"]:
+        elif update_dict.get("slug"):
             update_dict["slug"] = await self._ensure_unique_post_slug(
                 generate_slug(update_dict["slug"]), exclude_id=post_id
             )
@@ -304,12 +356,14 @@ class BlogService:
         if "status" in update_dict:
             new_status = update_dict["status"]
             if new_status == BlogPostStatus.PUBLISHED and post.published_at is None:
-                update_dict.setdefault("published_at", datetime.now(timezone.utc))
+                update_dict.setdefault("published_at", datetime.now(UTC))
 
-        if "category_id" in update_dict and update_dict["category_id"]:
+        if update_dict.get("category_id"):
             cat = await self.db.get(BlogCategory, update_dict["category_id"])
             if not cat:
-                raise NotFoundError("Category", f"Category {update_dict['category_id']} does not exist")
+                raise NotFoundError(
+                    "Category", f"Category {update_dict['category_id']} does not exist"
+                )
 
         for key, value in update_dict.items():
             setattr(post, key, value)
@@ -331,9 +385,7 @@ class BlogService:
     async def get_post_by_id(self, post_id: uuid.UUID) -> BlogPostDetailResponse:
         """Get post detail by ID."""
         stmt = (
-            select(BlogPost)
-            .options(selectinload(BlogPost.category))
-            .where(BlogPost.id == post_id)
+            select(BlogPost).options(selectinload(BlogPost.category)).where(BlogPost.id == post_id)
         )
         post = (await self.db.execute(stmt)).scalar_one_or_none()
         if not post:
@@ -397,9 +449,7 @@ class BlogService:
     ) -> BlogPostDetailResponse:
         """Retrieve a blog post by its slug."""
         stmt = (
-            select(BlogPost)
-            .options(selectinload(BlogPost.category))
-            .where(BlogPost.slug == slug)
+            select(BlogPost).options(selectinload(BlogPost.category)).where(BlogPost.slug == slug)
         )
         if only_published:
             stmt = stmt.where(BlogPost.status == BlogPostStatus.PUBLISHED)
@@ -465,7 +515,7 @@ class BlogService:
 
     async def _get_related_posts(
         self,
-        category_id: Optional[uuid.UUID],
+        category_id: uuid.UUID | None,
         exclude_id: uuid.UUID,
         limit: int = 3,
     ) -> list[BlogPostResponse]:
@@ -511,9 +561,9 @@ class BlogService:
 
     async def list_posts(
         self,
-        category_slug: Optional[str] = None,
-        status: Optional[BlogPostStatus] = BlogPostStatus.PUBLISHED,
-        search: Optional[str] = None,
+        category_slug: str | None = None,
+        status: BlogPostStatus | None = BlogPostStatus.PUBLISHED,
+        search: str | None = None,
         page: int = 1,
         page_size: int = 10,
     ) -> BlogListResponse:

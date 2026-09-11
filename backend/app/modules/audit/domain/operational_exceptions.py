@@ -14,9 +14,9 @@ from __future__ import annotations
 
 import enum
 import uuid
-from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from typing import Any, Optional
+from dataclasses import dataclass
+from datetime import UTC, datetime
+from typing import Any
 
 
 class ExceptionType(str, enum.Enum):
@@ -37,9 +37,9 @@ class ExceptionType(str, enum.Enum):
 
 class ExceptionSeverity(str, enum.Enum):
     CRITICAL = "CRITICAL"  # Potential financial corruption, stock oversell, or gateway mismatch
-    HIGH = "HIGH"          # Blocked user checkout, shipment duplicate
-    MEDIUM = "MEDIUM"      # Webhook replay attempt, non-critical retry exhaustion
-    LOW = "LOW"            # Informational discrepancy or telemetry warning
+    HIGH = "HIGH"  # Blocked user checkout, shipment duplicate
+    MEDIUM = "MEDIUM"  # Webhook replay attempt, non-critical retry exhaustion
+    LOW = "LOW"  # Informational discrepancy or telemetry warning
 
 
 class ExceptionStatus(str, enum.Enum):
@@ -59,9 +59,9 @@ class OperationalExceptionDomain:
     entity_id: str
     details: dict[str, Any]
     created_at: datetime
-    owner_id: Optional[uuid.UUID] = None
-    resolved_at: Optional[datetime] = None
-    resolution_notes: Optional[str] = None
+    owner_id: uuid.UUID | None = None
+    resolved_at: datetime | None = None
+    resolution_notes: str | None = None
 
     def assign(self, owner_id: uuid.UUID) -> None:
         self.owner_id = owner_id
@@ -71,9 +71,9 @@ class OperationalExceptionDomain:
     def resolve(self, notes: str) -> None:
         self.status = ExceptionStatus.RESOLVED
         self.resolution_notes = notes
-        self.resolved_at = datetime.now(timezone.utc)
+        self.resolved_at = datetime.now(UTC)
 
     def dismiss(self, reason: str) -> None:
         self.status = ExceptionStatus.DISMISSED
         self.resolution_notes = reason
-        self.resolved_at = datetime.now(timezone.utc)
+        self.resolved_at = datetime.now(UTC)

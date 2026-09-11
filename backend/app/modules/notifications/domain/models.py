@@ -3,7 +3,7 @@
 import enum
 import uuid
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any
 
 from sqlalchemy import (
     Boolean,
@@ -15,12 +15,12 @@ from sqlalchemy import (
     Text,
 )
 from sqlalchemy.dialects.postgresql import JSONB, UUID
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.database.base import BaseModel
 
-
 # ---- Enums ----
+
 
 class NotificationChannel(str, enum.Enum):
     EMAIL = "email"
@@ -31,6 +31,7 @@ class NotificationChannel(str, enum.Enum):
 
 
 # ---- Models ----
+
 
 class Notification(BaseModel):
     """User-facing notifications across channels."""
@@ -51,11 +52,9 @@ class Notification(BaseModel):
     type: Mapped[str] = mapped_column(String(100), nullable=False)
     title: Mapped[str] = mapped_column(String(300), nullable=False)
     body: Mapped[str] = mapped_column(Text, nullable=False)
-    data: Mapped[Optional[dict[str, Any]]] = mapped_column(JSONB, nullable=True)
+    data: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True)
     is_read: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
-    read_at: Mapped[Optional[datetime]] = mapped_column(
-        DateTime(timezone=True), nullable=True
-    )
+    read_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     def __repr__(self) -> str:
         return f"<Notification(id={self.id}, user_id={self.user_id}, type={self.type})>"
@@ -79,9 +78,9 @@ class NotificationTemplate(BaseModel):
         ),
         nullable=False,
     )
-    subject: Mapped[Optional[str]] = mapped_column(String(300), nullable=True)
+    subject: Mapped[str | None] = mapped_column(String(300), nullable=True)
     body_template: Mapped[str] = mapped_column(Text, nullable=False)
-    variables: Mapped[Optional[list[Any]]] = mapped_column(JSONB, nullable=True)
+    variables: Mapped[list[Any] | None] = mapped_column(JSONB, nullable=True)
 
     def __repr__(self) -> str:
         return f"<NotificationTemplate(id={self.id}, name={self.name}, channel={self.channel})>"

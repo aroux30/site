@@ -3,10 +3,10 @@
 import enum
 import uuid
 from datetime import datetime
-from typing import Optional
 
 from sqlalchemy import (
     BigInteger,
+    Boolean,
     DateTime,
     Enum,
     Float,
@@ -14,7 +14,6 @@ from sqlalchemy import (
     Index,
     Integer,
     String,
-    Boolean,
     Text,
 )
 from sqlalchemy.dialects.postgresql import UUID
@@ -22,8 +21,8 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database.base import BaseModel
 
-
 # ---- Enums ----
+
 
 class ShipmentStatus(str, enum.Enum):
     PENDING = "pending"
@@ -36,6 +35,7 @@ class ShipmentStatus(str, enum.Enum):
 
 # ---- Models ----
 
+
 class ShippingMethod(BaseModel):
     """Available shipping/delivery methods."""
 
@@ -47,8 +47,8 @@ class ShippingMethod(BaseModel):
 
     name: Mapped[str] = mapped_column(String(200), nullable=False)
     slug: Mapped[str] = mapped_column(String(220), unique=True, nullable=False)
-    provider: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
-    description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    provider: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    description: Mapped[str | None] = mapped_column(Text, nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     estimated_days_min: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
     estimated_days_max: Mapped[int] = mapped_column(Integer, default=3, nullable=False)
@@ -79,16 +79,14 @@ class ShippingRate(BaseModel):
         ForeignKey("shipping_methods.id", ondelete="CASCADE"),
         nullable=False,
     )
-    province: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
-    min_weight: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
-    max_weight: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
-    min_order_amount: Mapped[Optional[int]] = mapped_column(BigInteger, nullable=True)
+    province: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    min_weight: Mapped[float | None] = mapped_column(Float, nullable=True)
+    max_weight: Mapped[float | None] = mapped_column(Float, nullable=True)
+    min_order_amount: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
     price: Mapped[int] = mapped_column(BigInteger, nullable=False)
 
     # Relationships
-    method: Mapped["ShippingMethod"] = relationship(
-        "ShippingMethod", back_populates="rates"
-    )
+    method: Mapped["ShippingMethod"] = relationship("ShippingMethod", back_populates="rates")
 
     def __repr__(self) -> str:
         return f"<ShippingRate(id={self.id}, method_id={self.method_id}, price={self.price})>"
@@ -114,23 +112,17 @@ class Shipment(BaseModel):
         ForeignKey("shipping_methods.id", ondelete="RESTRICT"),
         nullable=False,
     )
-    tracking_code: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
+    tracking_code: Mapped[str | None] = mapped_column(String(100), nullable=True)
     status: Mapped[ShipmentStatus] = mapped_column(
         Enum(ShipmentStatus, name="shipment_status_enum", native_enum=False),
         default=ShipmentStatus.PENDING,
         nullable=False,
     )
-    shipped_at: Mapped[Optional[datetime]] = mapped_column(
-        DateTime(timezone=True), nullable=True
-    )
-    delivered_at: Mapped[Optional[datetime]] = mapped_column(
-        DateTime(timezone=True), nullable=True
-    )
+    shipped_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    delivered_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     # Relationships
-    method: Mapped["ShippingMethod"] = relationship(
-        "ShippingMethod", back_populates="shipments"
-    )
+    method: Mapped["ShippingMethod"] = relationship("ShippingMethod", back_populates="shipments")
     items: Mapped[list["ShipmentItem"]] = relationship(
         "ShipmentItem", back_populates="shipment", lazy="select"
     )
@@ -161,9 +153,7 @@ class ShipmentItem(BaseModel):
     quantity: Mapped[int] = mapped_column(Integer, nullable=False)
 
     # Relationships
-    shipment: Mapped["Shipment"] = relationship(
-        "Shipment", back_populates="items"
-    )
+    shipment: Mapped["Shipment"] = relationship("Shipment", back_populates="items")
 
     def __repr__(self) -> str:
         return f"<ShipmentItem(id={self.id}, shipment_id={self.shipment_id})>"

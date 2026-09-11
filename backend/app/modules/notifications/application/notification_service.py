@@ -3,12 +3,11 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
-from typing import Any, Optional
+from datetime import UTC, datetime
+from typing import TYPE_CHECKING, Any
 
 import structlog
 from sqlalchemy import func, select, update
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.modules.notifications.domain.models import (
     Notification,
@@ -16,6 +15,8 @@ from app.modules.notifications.domain.models import (
     NotificationTemplate,
 )
 
+if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncSession
 logger: structlog.stdlib.BoundLogger = structlog.get_logger()
 
 
@@ -27,7 +28,7 @@ class BaseNotificationProvider:
 
     channel: NotificationChannel
 
-    async def send(self, recipient: str, title: str, body: str, data: Optional[dict] = None) -> bool:
+    async def send(self, recipient: str, title: str, body: str, data: dict | None = None) -> bool:
         raise NotImplementedError
 
 
@@ -36,7 +37,7 @@ class MockEmailProvider(BaseNotificationProvider):
 
     channel = NotificationChannel.EMAIL
 
-    async def send(self, recipient: str, title: str, body: str, data: Optional[dict] = None) -> bool:
+    async def send(self, recipient: str, title: str, body: str, data: dict | None = None) -> bool:
         await logger.ainfo("mock_email_sent", recipient=recipient, title=title)
         return True
 
@@ -46,7 +47,7 @@ class MockSMSProvider(BaseNotificationProvider):
 
     channel = NotificationChannel.SMS
 
-    async def send(self, recipient: str, title: str, body: str, data: Optional[dict] = None) -> bool:
+    async def send(self, recipient: str, title: str, body: str, data: dict | None = None) -> bool:
         await logger.ainfo("mock_sms_sent", recipient=recipient, body=body[:100])
         return True
 
@@ -56,7 +57,7 @@ class MockTelegramProvider(BaseNotificationProvider):
 
     channel = NotificationChannel.TELEGRAM
 
-    async def send(self, recipient: str, title: str, body: str, data: Optional[dict] = None) -> bool:
+    async def send(self, recipient: str, title: str, body: str, data: dict | None = None) -> bool:
         await logger.ainfo("mock_telegram_sent", recipient=recipient, title=title)
         return True
 
@@ -66,7 +67,7 @@ class MockPushProvider(BaseNotificationProvider):
 
     channel = NotificationChannel.PUSH
 
-    async def send(self, recipient: str, title: str, body: str, data: Optional[dict] = None) -> bool:
+    async def send(self, recipient: str, title: str, body: str, data: dict | None = None) -> bool:
         await logger.ainfo("mock_push_sent", recipient=recipient, title=title)
         return True
 
@@ -76,7 +77,7 @@ class InAppProvider(BaseNotificationProvider):
 
     channel = NotificationChannel.IN_APP
 
-    async def send(self, recipient: str, title: str, body: str, data: Optional[dict] = None) -> bool:
+    async def send(self, recipient: str, title: str, body: str, data: dict | None = None) -> bool:
         # In-app notifications are persisted by the service itself.
         return True
 
@@ -103,10 +104,10 @@ class NotificationService:
     async def create_notification(
         db: AsyncSession,
         user_id: uuid.UUID,
-        type: str,
+        type: str,  # noqa: A002  # API parameter name is the public contract
         title: str,
         body: str,
-        data: Optional[dict[str, Any]] = None,
+        data: dict[str, Any] | None = None,
     ) -> Notification:
         """Create an in-app notification record."""
         notification = Notification(
@@ -181,13 +182,11 @@ class NotificationService:
         db: AsyncSession,
         user_id: uuid.UUID,
         template_name: str,
-        variables: Optional[dict[str, str]] = None,
-        channels: Optional[list[NotificationChannel]] = None,
+        variables: dict[str, str] | None = None,
+        channels: list[NotificationChannel] | None = None,
     ) -> Notification:
         """Create and send a notification based on a template."""
-        stmt = select(NotificationTemplate).where(
-            NotificationTemplate.name == template_name
-        )
+        stmt = select(NotificationTemplate).where(NotificationTemplate.name == template_name)
         result = await db.execute(stmt)
         template = result.scalar_one_or_none()
         if not template:
@@ -216,13 +215,13 @@ class NotificationService:
         db: AsyncSession, user_id: uuid.UUID, notification_id: uuid.UUID
     ) -> bool:
         """Mark a single notification as read."""
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         stmt = (
             update(Notification)
             .where(
                 Notification.id == notification_id,
                 Notification.user_id == user_id,
-                Notification.is_read == False,  # noqa: E712
+                Notification.is_read.is_(False),
             )
             .values(is_read=True, read_at=now)
         )
@@ -239,12 +238,12 @@ class NotificationService:
     @staticmethod
     async def mark_all_read(db: AsyncSession, user_id: uuid.UUID) -> int:
         """Mark all unread notifications as read for a user."""
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         stmt = (
             update(Notification)
             .where(
                 Notification.user_id == user_id,
-                Notification.is_read == False,  # noqa: E712
+                Notification.is_read.is_(False),
             )
             .values(is_read=True, read_at=now)
         )
@@ -264,7 +263,7 @@ class NotificationService:
         db: AsyncSession,
         user_id: uuid.UUID,
         *,
-        is_read: Optional[bool] = None,
+        is_read: bool | None = None,
         skip: int = 0,
         limit: int = 20,
     ) -> tuple[list[Notification], int, int]:
@@ -274,9 +273,7 @@ class NotificationService:
         """
         base = select(Notification).where(Notification.user_id == user_id)
         count_base = (
-            select(func.count())
-            .select_from(Notification)
-            .where(Notification.user_id == user_id)
+            select(func.count()).select_from(Notification).where(Notification.user_id == user_id)
         )
 
         if is_read is not None:
@@ -291,15 +288,11 @@ class NotificationService:
             .select_from(Notification)
             .where(
                 Notification.user_id == user_id,
-                Notification.is_read == False,  # noqa: E712
+                Notification.is_read.is_(False),
             )
         )
         unread_count = (await db.execute(unread_stmt)).scalar_one()
 
-        stmt = (
-            base.order_by(Notification.created_at.desc())
-            .offset(skip)
-            .limit(limit)
-        )
+        stmt = base.order_by(Notification.created_at.desc()).offset(skip).limit(limit)
         result = await db.execute(stmt)
         return list(result.scalars().all()), total, unread_count

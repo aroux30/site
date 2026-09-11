@@ -15,8 +15,8 @@ from app.modules.search.schemas.search import (
 )
 
 __all__ = [
-    "PopularSearchesResponse",
     "PopularSearchItem",
+    "PopularSearchesResponse",
     "ReindexResponse",
     "SearchFacets",
     "SearchFilters",

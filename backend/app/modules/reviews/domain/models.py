@@ -2,10 +2,11 @@
 
 import enum
 import uuid
-from typing import Any, Optional
+from typing import Any
 
 from sqlalchemy import (
     Boolean,
+    CheckConstraint,
     Enum,
     ForeignKey,
     Index,
@@ -13,15 +14,14 @@ from sqlalchemy import (
     String,
     Text,
     UniqueConstraint,
-    CheckConstraint,
 )
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database.base import BaseModel
 
-
 # ---- Enums ----
+
 
 class ReviewStatus(str, enum.Enum):
     PENDING = "pending"
@@ -30,6 +30,7 @@ class ReviewStatus(str, enum.Enum):
 
 
 # ---- Models ----
+
 
 class Review(BaseModel):
     """Product reviews submitted by customers."""
@@ -55,13 +56,11 @@ class Review(BaseModel):
         nullable=False,
     )
     rating: Mapped[int] = mapped_column(Integer, nullable=False)
-    title: Mapped[Optional[str]] = mapped_column(String(300), nullable=True)
-    body: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
-    pros: Mapped[Optional[list[Any]]] = mapped_column(JSONB, nullable=True)
-    cons: Mapped[Optional[list[Any]]] = mapped_column(JSONB, nullable=True)
-    is_verified_purchase: Mapped[bool] = mapped_column(
-        Boolean, default=False, nullable=False
-    )
+    title: Mapped[str | None] = mapped_column(String(300), nullable=True)
+    body: Mapped[str | None] = mapped_column(Text, nullable=True)
+    pros: Mapped[list[Any] | None] = mapped_column(JSONB, nullable=True)
+    cons: Mapped[list[Any] | None] = mapped_column(JSONB, nullable=True)
+    is_verified_purchase: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     status: Mapped[ReviewStatus] = mapped_column(
         Enum(ReviewStatus, name="review_status_enum", native_enum=False),
         default=ReviewStatus.PENDING,
@@ -82,9 +81,7 @@ class ReviewVote(BaseModel):
 
     __tablename__ = "review_votes"
     __table_args__ = (
-        UniqueConstraint(
-            "review_id", "user_id", name="uq_review_votes_review_user"
-        ),
+        UniqueConstraint("review_id", "user_id", name="uq_review_votes_review_user"),
         Index("ix_review_votes_review_id", "review_id"),
         Index("ix_review_votes_user_id", "user_id"),
     )
@@ -105,4 +102,6 @@ class ReviewVote(BaseModel):
     review: Mapped["Review"] = relationship("Review", back_populates="votes")
 
     def __repr__(self) -> str:
-        return f"<ReviewVote(id={self.id}, review_id={self.review_id}, is_helpful={self.is_helpful})>"
+        return (
+            f"<ReviewVote(id={self.id}, review_id={self.review_id}, is_helpful={self.is_helpful})>"
+        )

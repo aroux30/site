@@ -7,24 +7,17 @@ searches tracking, and index management via Elasticsearch.
 from __future__ import annotations
 
 import math
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import structlog
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
-from app.core.cache.redis import cache_delete, cache_get, cache_set, get_redis
+from app.core.cache.redis import get_redis
 from app.core.config.settings import get_settings
 from app.modules.catalog.domain.models import (
-    Brand,
-    Category,
     Product,
-    ProductAttribute,
-    ProductImage,
     ProductTag,
-    ProductVariant,
-    Tag,
 )
 from app.modules.search.infrastructure.elasticsearch_client import (
     ElasticsearchService,
@@ -32,8 +25,8 @@ from app.modules.search.infrastructure.elasticsearch_client import (
 )
 from app.modules.search.schemas.search import (
     FacetBucket,
-    PopularSearchItem,
     PopularSearchesResponse,
+    PopularSearchItem,
     PriceRangeFacet,
     ReindexResponse,
     SearchFacets,
@@ -44,6 +37,9 @@ from app.modules.search.schemas.search import (
     SearchSuggestion,
     SuggestResponse,
 )
+
+if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncSession
 
 logger: structlog.stdlib.BoundLogger = structlog.get_logger()
 
@@ -129,9 +125,7 @@ class SearchService:
 
     # ── Autocomplete suggestions ──────────────────────────────────────
 
-    async def get_suggestions(
-        self, query: str, size: int = 5
-    ) -> SuggestResponse:
+    async def get_suggestions(self, query: str, size: int = 5) -> SuggestResponse:
         """Return autocomplete suggestions for a partial query."""
         body: dict[str, Any] = {
             "size": size,
@@ -187,10 +181,7 @@ class SearchService:
             size - 1,
             withscores=True,
         )
-        searches = [
-            PopularSearchItem(query=term, count=int(score))
-            for term, score in top
-        ]
+        searches = [PopularSearchItem(query=term, count=int(score)) for term, score in top]
         return PopularSearchesResponse(searches=searches)
 
     # ── Index management ──────────────────────────────────────────────
@@ -217,9 +208,7 @@ class SearchService:
         ]
         return await self._es.bulk_index(actions)
 
-    async def delete_product_index(
-        self, product_id: str, index_name: str | None = None
-    ) -> None:
+    async def delete_product_index(self, product_id: str, index_name: str | None = None) -> None:
         """Remove a product from the search index."""
         await self._es.delete_document(product_id, index_name=index_name)
 
@@ -287,9 +276,7 @@ class SearchService:
 
     # ── Private helpers ───────────────────────────────────────────────
 
-    def _build_search_query(
-        self, query: str, filters: SearchFilters
-    ) -> dict[str, Any]:
+    def _build_search_query(self, query: str, filters: SearchFilters) -> dict[str, Any]:
         """Build the Elasticsearch bool query."""
         must: list[dict[str, Any]] = []
         filter_clauses: list[dict[str, Any]] = []
@@ -352,9 +339,7 @@ class SearchService:
 
         # Rating
         if filters.min_rating is not None:
-            filter_clauses.append(
-                {"range": {"rating_average": {"gte": filters.min_rating}}}
-            )
+            filter_clauses.append({"range": {"rating_average": {"gte": filters.min_rating}}})
 
         # Active status
         if filters.is_active is not None:
@@ -371,11 +356,7 @@ class SearchService:
                                 "bool": {
                                     "must": [
                                         {"term": {"attributes.name": attr_name}},
-                                        {
-                                            "terms": {
-                                                "attributes.value": attr_values
-                                            }
-                                        },
+                                        {"terms": {"attributes.value": attr_values}},
                                     ],
                                 },
                             },
@@ -541,15 +522,11 @@ class SearchService:
         # Primary image
         image_url = None
         if product.images:
-            primary = next(
-                (img for img in product.images if img.is_primary), None
-            )
+            primary = next((img for img in product.images if img.is_primary), None)
             image_url = (primary or product.images[0]).url if product.images else None
 
         # Tags
-        tags = [
-            pt.tag.name for pt in (product.product_tags or []) if pt.tag
-        ]
+        tags = [pt.tag.name for pt in (product.product_tags or []) if pt.tag]
 
         # Attributes
         attributes = []
@@ -610,7 +587,7 @@ _search_service: SearchService | None = None
 
 def get_search_service() -> SearchService:
     """Return (and lazily create) the module-level SearchService."""
-    global _search_service  # noqa: PLW0603
+    global _search_service
     if _search_service is None:
         _search_service = SearchService()
     return _search_service

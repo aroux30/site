@@ -7,14 +7,15 @@ and a :func:`cached` decorator for automatic function-result caching.
 from __future__ import annotations
 
 import json
-from collections.abc import Awaitable, Callable
 from functools import wraps
-from typing import Any, ParamSpec, TypeVar
+from typing import TYPE_CHECKING, Any, ParamSpec, TypeVar
 
-import redis.asyncio as aioredis
 from redis.asyncio import ConnectionPool, Redis
 
 from app.core.config.settings import get_settings
+
+if TYPE_CHECKING:
+    from collections.abc import Awaitable, Callable
 
 _P = ParamSpec("_P")
 _T = TypeVar("_T")
@@ -25,7 +26,7 @@ _client: Redis | None = None  # type: ignore[type-arg]
 
 async def init_redis() -> Redis:  # type: ignore[type-arg]
     """Create (or return) the module-level async Redis client."""
-    global _pool, _client  # noqa: PLW0603
+    global _pool, _client
     settings = get_settings()
     if _client is None:
         _pool = ConnectionPool.from_url(
@@ -39,7 +40,7 @@ async def init_redis() -> Redis:  # type: ignore[type-arg]
 
 async def close_redis() -> None:
     """Gracefully close the Redis connection pool."""
-    global _client, _pool  # noqa: PLW0603
+    global _client, _pool
     if _client is not None:
         await _client.aclose()
         _client = None

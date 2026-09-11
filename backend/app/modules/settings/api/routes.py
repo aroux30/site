@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from typing import Optional
-
 from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -26,7 +24,7 @@ router = APIRouter()
     summary="List public site settings",
 )
 async def get_public_settings(
-    group: Optional[str] = Query(None),
+    group: str | None = Query(None),
     db: AsyncSession = Depends(get_db),
 ) -> list[PublicSettingResponse]:
     """Return publicly exposed site configuration (logos, title, footer, etc.)."""
@@ -41,7 +39,7 @@ async def get_public_settings(
     dependencies=[Depends(RequirePermissions("settings:read"))],
 )
 async def get_all_settings(
-    group: Optional[str] = Query(None),
+    group: str | None = Query(None),
     db: AsyncSession = Depends(get_db),
 ) -> list[SettingResponse]:
     """List all site settings with full metadata."""

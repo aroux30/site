@@ -22,6 +22,7 @@ async def _handle_message(db: Any, event_type: str, payload: dict[str, Any]) -> 
         if product_id:
             try:
                 from app.modules.search.application.tasks import sync_single_product
+
                 sync_single_product.delay(str(product_id))
             except Exception as e:
                 logger.warning("outbox_search_dispatch_failed", error=str(e))

@@ -2,7 +2,6 @@
 
 import enum
 import uuid
-from typing import Optional
 
 from sqlalchemy import (
     BigInteger,
@@ -17,8 +16,8 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database.base import BaseModel
 
-
 # ---- Enums ----
+
 
 class ReferralStatus(str, enum.Enum):
     PENDING = "pending"
@@ -32,6 +31,7 @@ class CommissionStatus(str, enum.Enum):
 
 
 # ---- Models ----
+
 
 class Referral(BaseModel):
     """Tracks user referral relationships (supports 2-level deep)."""
@@ -69,7 +69,7 @@ class Referral(BaseModel):
     )
 
     def __repr__(self) -> str:
-        return f"<Referral(id={self.id}, referrer_id={self.referrer_id}, referred_id={self.referred_id})>"
+        return f"<Referral(id={self.id}, referrer_id={self.referrer_id}, referred_id={self.referred_id})>"  # noqa: E501
 
 
 class ReferralCommission(BaseModel):
@@ -101,9 +101,7 @@ class ReferralCommission(BaseModel):
     )
 
     # Relationships
-    referral: Mapped["Referral"] = relationship(
-        "Referral", back_populates="commissions"
-    )
+    referral: Mapped["Referral"] = relationship("Referral", back_populates="commissions")
 
     def __repr__(self) -> str:
         return f"<ReferralCommission(id={self.id}, amount={self.amount}, status={self.status})>"

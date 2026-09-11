@@ -3,17 +3,12 @@
 from __future__ import annotations
 
 import uuid
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 from fastapi import Cookie, Depends, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from app.core.security.jwt import verify_token
-
-if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import AsyncSession
-
-    from app.core.database.session import get_db
 
 # auto_error=False so that missing Authorization header does not immediately 401;
 # we fall back to the access_token cookie when the header is absent.

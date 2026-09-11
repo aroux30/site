@@ -4,12 +4,10 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime
-from typing import Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
 from app.modules.loyalty.domain.models import LoyaltyTier, LoyaltyTransactionType
-
 
 # ── Loyalty Account ───────────────────────────────────────────────────────
 
@@ -39,9 +37,9 @@ class LoyaltyTransactionResponse(BaseModel):
     account_id: uuid.UUID
     points: int
     type: LoyaltyTransactionType
-    reference_type: Optional[str] = None
-    reference_id: Optional[uuid.UUID] = None
-    description: Optional[str] = None
+    reference_type: str | None = None
+    reference_id: uuid.UUID | None = None
+    description: str | None = None
     created_at: datetime
 
 
@@ -59,18 +57,18 @@ class EarnPointsRequest(BaseModel):
     """Request to earn loyalty points."""
 
     points: int = Field(..., gt=0)
-    reference_type: Optional[str] = Field(None, max_length=50)
-    reference_id: Optional[uuid.UUID] = None
-    description: Optional[str] = None
+    reference_type: str | None = Field(None, max_length=50)
+    reference_id: uuid.UUID | None = None
+    description: str | None = None
 
 
 class RedeemPointsRequest(BaseModel):
     """Request to redeem loyalty points."""
 
     points: int = Field(..., gt=0)
-    reference_type: Optional[str] = Field(None, max_length=50)
-    reference_id: Optional[uuid.UUID] = None
-    description: Optional[str] = None
+    reference_type: str | None = Field(None, max_length=50)
+    reference_id: uuid.UUID | None = None
+    description: str | None = None
 
 
 class PointsOperationResponse(BaseModel):

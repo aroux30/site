@@ -6,19 +6,23 @@ import uuid
 from typing import Any
 
 from fastapi import APIRouter, Cookie, Depends, Request, Response, status
-
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config.settings import get_settings
 from app.core.database.session import get_db
 from app.core.security.dependencies import get_current_user_id
+from app.core.security.mfa import (
+    generate_backup_codes,
+    generate_totp_secret,
+    get_totp_uri,
+    get_webauthn_registration_challenge,
+)
 from app.core.security.rate_limiter import limiter
 from app.modules.auth.application import auth_service
 from app.modules.auth.schemas.auth import (
     ChangePasswordRequest,
     LoginRequest,
     MessageResponse,
-    MFADisableRequest,
     MFASetupResponse,
     MFAVerifyRequest,
     OTPRequestSchema,
@@ -28,13 +32,6 @@ from app.modules.auth.schemas.auth import (
     TokenResponse,
     UserProfileResponse,
     UserProfileUpdate,
-)
-from app.core.security.mfa import (
-    generate_backup_codes,
-    generate_totp_secret,
-    get_totp_uri,
-    get_webauthn_registration_challenge,
-    verify_totp_code,
 )
 
 router = APIRouter()

@@ -32,7 +32,7 @@ router = APIRouter()
     "/similar/{product_id}",
     response_model=SimilarProductsResponse,
     summary="Get similar products",
-    description="Calculate and return products similar to the given product based on category, brand, tag overlap, and price proximity.",
+    description="Calculate and return products similar to the given product based on category, brand, tag overlap, and price proximity.",  # noqa: E501
 )
 @router.get(
     "/recommendations/similar/{product_id}",
@@ -41,7 +41,9 @@ router = APIRouter()
 )
 async def get_similar_products(
     product_id: uuid.UUID,
-    limit: int = Query(default=6, ge=1, le=50, description="Maximum number of similar products to return"),
+    limit: int = Query(
+        default=6, ge=1, le=50, description="Maximum number of similar products to return"
+    ),
     db: AsyncSession = Depends(get_db),
 ) -> SimilarProductsResponse:
     """Retrieve products similar to the requested product ID."""
@@ -59,7 +61,7 @@ async def get_similar_products(
     "/frequently-bought-together/{product_id}",
     response_model=FrequentlyBoughtTogetherResponse,
     summary="Get frequently bought together products",
-    description="Analyze order items to find products that frequently co-occur in the same orders as the given product.",
+    description="Analyze order items to find products that frequently co-occur in the same orders as the given product.",  # noqa: E501
 )
 @router.get(
     "/recommendations/frequently-bought-together/{product_id}",
@@ -68,7 +70,9 @@ async def get_similar_products(
 )
 async def get_frequently_bought_together(
     product_id: uuid.UUID,
-    limit: int = Query(default=4, ge=1, le=20, description="Maximum number of co-occurring products to return"),
+    limit: int = Query(
+        default=4, ge=1, le=20, description="Maximum number of co-occurring products to return"
+    ),
     db: AsyncSession = Depends(get_db),
 ) -> FrequentlyBoughtTogetherResponse:
     """Retrieve products frequently bought together with the requested product ID."""
@@ -86,7 +90,7 @@ async def get_frequently_bought_together(
     "/trending",
     response_model=TrendingProductsResponse,
     summary="Get trending products",
-    description="Find platform-wide trending products based on order volume and review activity over the last 14 days.",
+    description="Find platform-wide trending products based on order volume and review activity over the last 14 days.",  # noqa: E501
 )
 @router.get(
     "/recommendations/trending",
@@ -94,7 +98,9 @@ async def get_frequently_bought_together(
     include_in_schema=False,
 )
 async def get_trending_products(
-    limit: int = Query(default=8, ge=1, le=50, description="Maximum number of trending products to return"),
+    limit: int = Query(
+        default=8, ge=1, le=50, description="Maximum number of trending products to return"
+    ),
     db: AsyncSession = Depends(get_db),
 ) -> TrendingProductsResponse:
     """Retrieve top trending products across the platform."""
@@ -111,7 +117,7 @@ async def get_trending_products(
     "/for-you",
     response_model=PersonalizedFeedResponse,
     summary="Get personalized recommendations",
-    description="Construct a personalized product feed based on the authenticated user's wishlist, recent orders, and category preferences.",
+    description="Construct a personalized product feed based on the authenticated user's wishlist, recent orders, and category preferences.",  # noqa: E501
 )
 @router.get(
     "/recommendations/for-you",
@@ -120,7 +126,9 @@ async def get_trending_products(
 )
 async def get_personalized_recommendations(
     user_id: uuid.UUID = Depends(get_current_user_id),
-    limit: int = Query(default=8, ge=1, le=50, description="Maximum number of recommended products to return"),
+    limit: int = Query(
+        default=8, ge=1, le=50, description="Maximum number of recommended products to return"
+    ),
     db: AsyncSession = Depends(get_db),
 ) -> PersonalizedFeedResponse:
     """Retrieve a personalized product feed for the authenticated user."""

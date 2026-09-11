@@ -1,19 +1,16 @@
 """Analytics and metrics domain models."""
 
 import uuid
-from datetime import date, datetime
-from typing import Any, Optional
+from datetime import date
+from typing import Any
 
 from sqlalchemy import (
-    BigInteger,
     Date,
-    DateTime,
     Float,
     ForeignKey,
     Index,
     String,
     UniqueConstraint,
-    func,
 )
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column
@@ -32,16 +29,16 @@ class AnalyticsEvent(BaseModel):
         Index("ix_analytics_events_created_at", "created_at"),
     )
 
-    user_id: Mapped[Optional[uuid.UUID]] = mapped_column(
+    user_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("users.id", ondelete="SET NULL"),
         nullable=True,
     )
-    session_id: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    session_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
     event_type: Mapped[str] = mapped_column(String(100), nullable=False)
-    event_data: Mapped[Optional[dict[str, Any]]] = mapped_column(JSONB, nullable=True)
-    ip_address: Mapped[Optional[str]] = mapped_column(String(45), nullable=True)
-    user_agent: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
+    event_data: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True)
+    ip_address: Mapped[str | None] = mapped_column(String(45), nullable=True)
+    user_agent: Mapped[str | None] = mapped_column(String(500), nullable=True)
 
     def __repr__(self) -> str:
         return f"<AnalyticsEvent(id={self.id}, event_type={self.event_type})>"
@@ -66,9 +63,7 @@ class DailyMetric(BaseModel):
     date: Mapped[date] = mapped_column(Date, nullable=False)
     metric_name: Mapped[str] = mapped_column(String(100), nullable=False)
     metric_value: Mapped[float] = mapped_column(Float, nullable=False)
-    dimensions: Mapped[Optional[dict[str, Any]]] = mapped_column(
-        JSONB, nullable=True
-    )
+    dimensions: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True)
 
     def __repr__(self) -> str:
         return f"<DailyMetric(id={self.id}, date={self.date}, metric={self.metric_name})>"

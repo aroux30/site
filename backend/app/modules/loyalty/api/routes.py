@@ -49,9 +49,7 @@ async def list_transactions(
     db: AsyncSession = Depends(get_db),
 ) -> LoyaltyTransactionListResponse:
     """Return paginated loyalty transactions for the authenticated user."""
-    items, total = await LoyaltyService.get_transactions(
-        db, user_id, skip=skip, limit=limit
-    )
+    items, total = await LoyaltyService.get_transactions(db, user_id, skip=skip, limit=limit)
     return LoyaltyTransactionListResponse(
         items=[LoyaltyTransactionResponse.model_validate(t) for t in items],
         total=total,
@@ -107,9 +105,7 @@ async def redeem_points(
             description=payload.description,
         )
     except ValueError as exc:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)
-        )
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
     return PointsOperationResponse(
         transaction_id=transaction.id,
         points_changed=-payload.points,

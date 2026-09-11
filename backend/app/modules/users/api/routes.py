@@ -3,10 +3,8 @@
 from __future__ import annotations
 
 import uuid
-from typing import Optional
 
 from fastapi import APIRouter, Depends, Query, Request, status
-
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database.session import get_db
@@ -53,7 +51,9 @@ async def create_address(
     db: AsyncSession = Depends(get_db),
 ) -> AddressResponse:
     address = await user_service.create_address(
-        db, user_id=user_id, data=body.model_dump(),
+        db,
+        user_id=user_id,
+        data=body.model_dump(),
     )
     return AddressResponse.model_validate(address)
 
@@ -101,14 +101,18 @@ async def delete_address(
     summary="List all users (admin)",
 )
 async def list_users(
-    search: Optional[str] = Query(None, description="Search by phone or email"),
-    is_active: Optional[bool] = Query(None, description="Filter by active status"),
+    search: str | None = Query(None, description="Search by phone or email"),
+    is_active: bool | None = Query(None, description="Filter by active status"),
     page: int = Query(1, ge=1, description="Page number"),
     page_size: int = Query(20, ge=1, le=100, description="Items per page"),
     db: AsyncSession = Depends(get_db),
 ) -> UserListResponse:
     items, total = await user_service.get_users(
-        db, search=search, is_active=is_active, page=page, page_size=page_size,
+        db,
+        search=search,
+        is_active=is_active,
+        page=page,
+        page_size=page_size,
     )
     pages = (total + page_size - 1) // page_size if page_size else 0
     return UserListResponse(
@@ -148,7 +152,11 @@ async def update_user(
     db: AsyncSession = Depends(get_db),
 ) -> UserDetailResponse:
     forwarded = request.headers.get("x-forwarded-for")
-    ip = forwarded.split(",")[0].strip() if forwarded else (request.client.host if request.client else None)
+    ip = (
+        forwarded.split(",")[0].strip()
+        if forwarded
+        else (request.client.host if request.client else None)
+    )
     data = await user_service.update_user(
         db,
         user_id=user_id,

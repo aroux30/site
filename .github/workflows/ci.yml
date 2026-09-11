@@ -56,6 +56,16 @@ jobs:
           cd backend
           pip install ".[dev]" faker
 
+      - name: Lint (ruff check)
+        run: |
+          cd backend
+          ruff check app tests
+
+      - name: Format check (ruff format)
+        run: |
+          cd backend
+          ruff format --check app tests
+
       - name: Run Database Migrations
         env:
           DATABASE_URL: postgresql+asyncpg://testuser:testpassword@localhost:5432/testdb
@@ -95,6 +105,11 @@ jobs:
         run: |
           cd frontend
           npm ci --legacy-peer-deps
+
+      - name: Lint (eslint)
+        run: |
+          cd frontend
+          npx eslint .
 
       - name: Run TypeScript Typecheck
         run: |

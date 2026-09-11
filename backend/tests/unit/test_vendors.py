@@ -7,8 +7,8 @@ and REST API endpoints with async mock DB sessions.
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
-from unittest.mock import AsyncMock, MagicMock, patch
+from datetime import UTC, datetime
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 from httpx import ASGITransport, AsyncClient
@@ -33,26 +33,14 @@ from app.modules.vendors.application.vendor_service import (
     generate_vendor_slug,
     get_vendor,
     get_vendor_by_slug,
-    get_vendor_by_user_id,
-    list_vendor_settlements,
-    list_vendors,
     register_vendor,
-    update_settlement_status,
-    update_vendor,
 )
 from app.modules.vendors.schemas.vendor import (
-    VendorAdminUpdateRequest,
     VendorEarningsResponse,
-    VendorListResponse,
     VendorRegisterRequest,
     VendorResponse,
     VendorSettlementCreate,
-    VendorSettlementListResponse,
-    VendorSettlementResponse,
-    VendorUpdateRequest,
-    VendorVerifyRequest,
 )
-
 
 # ============================================================================
 # 1. Domain Models Tests
@@ -86,7 +74,7 @@ def test_vendor_model_attributes():
 def test_vendor_settlement_model_attributes():
     """Verify VendorSettlement model columns and defaults."""
     vid = uuid.uuid4()
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     settlement = VendorSettlement(
         id=uuid.uuid4(),
         vendor_id=vid,
@@ -184,7 +172,7 @@ def test_vendor_settlement_create_schema():
 
 def test_vendor_response_serialization():
     """Verify VendorResponse model serialization."""
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     vendor_id = uuid.uuid4()
     user_id = uuid.uuid4()
 
@@ -424,7 +412,9 @@ async def test_create_settlement_success_and_validation():
     db.execute.return_value = mock_res
 
     # Valid amount
-    settlement = await create_settlement(db, vendor_id, amount=25_000_000, payment_reference="REF-888")
+    settlement = await create_settlement(
+        db, vendor_id, amount=25_000_000, payment_reference="REF-888"
+    )
     assert settlement.amount == 25_000_000
     assert settlement.status == SettlementStatus.PENDING
     assert settlement.payment_reference == "REF-888"

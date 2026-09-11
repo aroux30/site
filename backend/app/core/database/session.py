@@ -7,8 +7,7 @@ builds the async engine and session factory on top of it and exposes the
 
 from __future__ import annotations
 
-from collections.abc import AsyncGenerator
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from sqlalchemy.ext.asyncio import (
     AsyncSession,
@@ -17,8 +16,9 @@ from sqlalchemy.ext.asyncio import (
 )
 
 from app.core.config.settings import get_settings
-from app.core.database.base import Base  # noqa: F401 – re-export so legacy imports work
 
+if TYPE_CHECKING:
+    from collections.abc import AsyncGenerator
 
 # ── Engine & session factory ──────────────────────────────────────────────
 

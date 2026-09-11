@@ -58,7 +58,9 @@ async def _process_pending_cashback_async() -> dict[str, Any]:
                     user_id=order.user_id,
                     order_id=order.id,
                     order_total=order.total,
-                    payment_method=order.payment_method if hasattr(order, "payment_method") else None,
+                    payment_method=order.payment_method
+                    if hasattr(order, "payment_method")
+                    else None,
                 )
 
             # 2. Process all pending cashback transactions where the order is completed

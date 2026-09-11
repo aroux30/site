@@ -3,12 +3,11 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timedelta, timezone
-from typing import Optional
+from datetime import UTC, datetime, timedelta
+from typing import TYPE_CHECKING
 
 import structlog
-from sqlalchemy import func, select, update
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import func, select
 
 from app.core.exceptions.handlers import ConflictError, NotFoundError, ValidationError
 from app.modules.inventory.domain.models import (
@@ -18,6 +17,9 @@ from app.modules.inventory.domain.models import (
     ReservationStatus,
     TransactionType,
 )
+
+if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncSession
 
 logger: structlog.stdlib.BoundLogger = structlog.get_logger()
 
@@ -30,11 +32,7 @@ async def _get_item_for_update(
     variant_id: uuid.UUID,
 ) -> InventoryItem:
     """Fetch the inventory row with ``SELECT … FOR UPDATE``."""
-    stmt = (
-        select(InventoryItem)
-        .where(InventoryItem.variant_id == variant_id)
-        .with_for_update()
-    )
+    stmt = select(InventoryItem).where(InventoryItem.variant_id == variant_id).with_for_update()
     result = await db.execute(stmt)
     item = result.scalar_one_or_none()
     if item is None:
@@ -167,9 +165,7 @@ async def adjust_stock(
         if quantity <= 0:
             raise ValidationError("Sold quantity must be positive")
         if item.committed < quantity:
-            raise ConflictError(
-                detail=f"Cannot sell {quantity}; only {item.committed} committed"
-            )
+            raise ConflictError(detail=f"Cannot sell {quantity}; only {item.committed} committed")
         item.committed -= quantity
 
     else:
@@ -231,7 +227,7 @@ async def reserve_stock(
         order_id=order_id,
         cart_id=cart_id,
         quantity=quantity,
-        expires_at=datetime.now(timezone.utc) + timedelta(minutes=ttl_minutes),
+        expires_at=datetime.now(UTC) + timedelta(minutes=ttl_minutes),
         status=ReservationStatus.PENDING,
     )
     db.add(reservation)
@@ -444,7 +440,7 @@ async def expire_stale_reservations(db: AsyncSession) -> int:
     Intended to be called by a periodic background task (e.g. Celery beat).
     Returns the number of reservations released.
     """
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
 
     stmt = (
         select(InventoryReservation)
@@ -505,9 +501,7 @@ async def restock_order(db: AsyncSession, order_id: uuid.UUID) -> int:
     safe_order_id = uuid.UUID(str(order_id))
 
     reservation_stmt = (
-        select(InventoryReservation)
-        .filter_by(order_id=safe_order_id)
-        .with_for_update()
+        select(InventoryReservation).filter_by(order_id=safe_order_id).with_for_update()
     )
     reservations = list((await db.scalars(reservation_stmt)).all())
 
@@ -516,9 +510,7 @@ async def restock_order(db: AsyncSession, order_id: uuid.UUID) -> int:
 
     for reservation in reservations:
         item_stmt = (
-            select(InventoryItem)
-            .filter_by(id=reservation.inventory_item_id)
-            .with_for_update()
+            select(InventoryItem).filter_by(id=reservation.inventory_item_id).with_for_update()
         )
         item = await db.scalar(item_stmt)
 
@@ -564,9 +556,7 @@ async def restock_order(db: AsyncSession, order_id: uuid.UUID) -> int:
             continue
         handled_variant_ids.add(order_item.variant_id)
         item_stmt = (
-            select(InventoryItem)
-            .filter_by(variant_id=order_item.variant_id)
-            .with_for_update()
+            select(InventoryItem).filter_by(variant_id=order_item.variant_id).with_for_update()
         )
         item = await db.scalar(item_stmt)
         if item is not None and item.committed >= order_item.quantity:

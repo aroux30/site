@@ -44,7 +44,7 @@ def get_payment_provider(
         settings = get_settings()
         if settings.ENVIRONMENT == "production":
             raise ValueError(
-                "Security violation: Mock payment provider is strictly disabled in production environment"
+                "Security violation: Mock payment provider is strictly disabled in production environment"  # noqa: E501
             )
 
     registry = _provider_registry()

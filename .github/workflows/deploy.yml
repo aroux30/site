@@ -80,7 +80,7 @@ jobs:
         run: |
           ssh -i ~/.ssh/deploy_key \
             ${{ steps.vars.outputs.server_user }}@${{ steps.vars.outputs.server_host }} \
-            "cd ${{ steps.vars.outputs.deploy_path }} && docker compose exec -T backend python manage.py migrate"
+            "cd ${{ steps.vars.outputs.deploy_path }} && docker compose exec -T backend alembic upgrade head"
 
       - name: Health check
         run: |

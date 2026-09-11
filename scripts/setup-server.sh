@@ -259,8 +259,8 @@ if [ -f "${PROJECT_DIR}/docker-compose.yml" ]; then
     log "Waiting for database to be ready..."
     sleep 10
 
-    log "Running initial database migrations..."
-    su - "$APP_USER" -c "cd ${PROJECT_DIR} && docker compose exec -T backend python manage.py migrate --noinput" || \
+    log "Running initial database migrations with Alembic..."
+    su - "$APP_USER" -c "cd ${PROJECT_DIR} && docker compose exec -T backend alembic upgrade head" || \
         warn "Migration failed. You may need to run migrations manually after services are fully up."
 fi
 
@@ -276,7 +276,7 @@ log "  1. Edit ${ENV_FILE} with your actual values"
 log "  2. Set up SSL certificates (use certbot or similar)"
 log "  3. Clone/copy your application code if not done"
 log "  4. Run: cd ${PROJECT_DIR} && docker compose up -d"
-log "  5. Run migrations: docker compose exec backend python manage.py migrate"
+log "  5. Run migrations: docker compose exec backend alembic upgrade head"
 log ""
 log "Useful commands:"
 log "  docker compose logs -f          # View logs"

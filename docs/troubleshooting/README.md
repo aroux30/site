@@ -239,20 +239,20 @@ tracemalloc.start()
 
 **Diagnosis:**
 ```bash
-# Check if static files are collected
-docker compose exec backend ls -la /app/static/
+# Check if Next.js standalone static assets exist
+docker compose exec frontend ls -la /app/.next/static/
 
-# Check Nginx static file configuration
-docker compose exec nginx cat /etc/nginx/conf.d/default.conf | grep -A 5 "location /static"
+# Check Nginx configuration
+docker compose exec nginx cat /etc/nginx/nginx.conf | grep -A 5 "location"
 ```
 
 **Fixes:**
-1. Collect static files:
+1. Rebuild frontend standalone bundle:
    ```bash
-   docker compose exec backend python manage.py collectstatic --noinput
+   docker compose build --no-cache frontend && docker compose up -d frontend
    ```
 
-2. Verify the static files volume is correctly mounted in both the backend and Nginx containers.
+2. Verify the Nginx reverse proxy routes traffic properly to frontend:3000 and backend:8000.
 
 ---
 
@@ -265,7 +265,8 @@ docker compose exec nginx cat /etc/nginx/conf.d/default.conf | grep -A 5 "locati
 **Diagnosis:**
 ```bash
 # Check if the health endpoint is responding
-curl -v http://localhost:8000/api/health/
+curl -v http://localhost:8088/readyz
+docker compose exec backend curl -v http://localhost:8000/readyz
 
 # Check backend logs during startup
 docker compose logs --tail=100 backend

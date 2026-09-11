@@ -752,5 +752,131 @@ async def test_cumulative_refunds_exceeding_payment_rejected():
     assert "Total refund amount" in str(exc_info.value)
 
 
+@pytest.mark.asyncio
+async def test_webhook_replay_triple_delivery_produces_single_effect():
+    """PAY-002: Verify that 3 duplicate webhook deliveries result in 1 authoritative effect."""
+    from unittest.mock import patch
+    from app.modules.payments.domain.models import Payment, PaymentProvider, PaymentStatus, PaymentWebhookEvent
+    from app.modules.payments.schemas.payment import PaymentCallbackData
+
+    payment_id = uuid.uuid4()
+    order_id = uuid.uuid4()
+    authority = "ZARIN-REPLAY-123456"
+    now = datetime.now(timezone.utc)
+
+    payment = Payment(
+        id=payment_id,
+        order_id=order_id,
+        amount=1_000_000,
+        currency="IRR",
+        provider=PaymentProvider.ZARINPAL,
+        status=PaymentStatus.PENDING,
+        authority=authority,
+        created_at=now,
+        updated_at=now,
+    )
+
+    existing_event: PaymentWebhookEvent | None = None
+    verify_call_count = 0
+
+    async def mock_verify(db, payment_id, authority, status):
+        nonlocal verify_call_count
+        verify_call_count += 1
+        payment.status = PaymentStatus.COMPLETED
+        payment.provider_transaction_id = "REF-998877"
+        return payment_service.PaymentResponse.model_validate(payment)
+
+    async def fake_execute(stmt):
+        stmt_str = str(stmt)
+        if "FROM payment_webhook_events" in stmt_str:
+            return MagicMock(scalar_one_or_none=MagicMock(return_value=existing_event))
+        elif "FROM payments" in stmt_str:
+            return MagicMock(scalar_one_or_none=MagicMock(return_value=payment))
+        return MagicMock(scalar_one_or_none=MagicMock(return_value=None), scalars=MagicMock(return_value=MagicMock(all=MagicMock(return_value=[]), first=MagicMock(return_value=None))))
+
+    mock_db = MagicMock()
+    mock_db.execute = AsyncMock(side_effect=fake_execute)
+    mock_db.flush = AsyncMock()
+
+    def fake_add(obj):
+        nonlocal existing_event
+        if isinstance(obj, PaymentWebhookEvent):
+            existing_event = obj
+            obj.processed = False
+
+    mock_db.add = MagicMock(side_effect=fake_add)
+
+    callback_data = PaymentCallbackData(
+        authority=authority,
+        status="OK",
+    )
+
+    with patch("app.modules.payments.application.payment_service.verify_payment", side_effect=mock_verify):
+        # 1. First webhook delivery
+        resp1 = await payment_service.process_callback(mock_db, provider="zarinpal", callback_data=callback_data)
+        assert resp1.status == PaymentStatus.COMPLETED
+        assert verify_call_count == 1
+        assert existing_event is not None
+        assert existing_event.processed is True
+
+        # 2. Second duplicate delivery (replay)
+        resp2 = await payment_service.process_callback(mock_db, provider="zarinpal", callback_data=callback_data)
+        assert resp2.status == PaymentStatus.COMPLETED
+        assert verify_call_count == 1  # Did NOT call verify_payment again!
+
+        # 3. Third duplicate delivery (replay)
+        resp3 = await payment_service.process_callback(mock_db, provider="zarinpal", callback_data=callback_data)
+        assert resp3.status == PaymentStatus.COMPLETED
+        assert verify_call_count == 1  # Still exactly 1
+
+
+@pytest.mark.asyncio
+async def test_payment_creation_idempotency_race_handling():
+    """PAY-001: Verify that concurrent duplicate payment creation with same idempotency key is safely handled."""
+    from sqlalchemy.exc import IntegrityError
+    from app.modules.payments.domain.models import Payment, PaymentProvider, PaymentStatus
+
+    user_id = uuid.uuid4()
+    order_id = uuid.uuid4()
+    idempotency_key = "IDEMP-RACE-KEY-12345"
+    now = datetime.now(timezone.utc)
+
+    existing_payment = Payment(
+        id=uuid.uuid4(),
+        order_id=order_id,
+        amount=500_000,
+        currency="IRR",
+        provider=PaymentProvider.ZARINPAL,
+        status=PaymentStatus.PENDING,
+        idempotency_key=idempotency_key,
+        created_at=now,
+        updated_at=now,
+    )
+
+    mock_db = MagicMock()
+    # First select returns None, flush raises IntegrityError (simulating race), second select returns existing
+    mock_db.execute = AsyncMock(
+        side_effect=[
+            MagicMock(scalar_one_or_none=MagicMock(return_value=None)),  # initial check
+            MagicMock(scalar_one_or_none=MagicMock(return_value=existing_payment)),  # race recovery check
+        ]
+    )
+    mock_db.add = MagicMock()
+    mock_db.flush = AsyncMock(side_effect=IntegrityError("duplicate key", params=None, orig=None))
+
+    resp = await payment_service.create_payment(
+        mock_db,
+        user_id=user_id,
+        order_id=order_id,
+        provider="zarinpal",
+        amount=500_000,
+        idempotency_key=idempotency_key,
+    )
+
+    assert resp.id == existing_payment.id
+    assert resp.status == PaymentStatus.PENDING
+
+
+
 
 

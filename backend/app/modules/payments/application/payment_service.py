@@ -13,6 +13,7 @@ from typing import Any, Optional
 
 import structlog
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config.settings import get_settings
@@ -142,7 +143,21 @@ async def create_payment(
         idempotency_key=idempotency_key,
     )
     db.add(payment)
-    await db.flush()
+    try:
+        await db.flush()
+    except IntegrityError:
+        if idempotency_key:
+            stmt = select(Payment).where(Payment.idempotency_key == idempotency_key)
+            result = await db.execute(stmt)
+            existing = result.scalar_one_or_none()
+            if existing is not None:
+                await logger.ainfo(
+                    "payment_create_idempotent_race_recovered",
+                    payment_id=str(existing.id),
+                    idempotency_key=idempotency_key,
+                )
+                return PaymentResponse.model_validate(existing)
+        raise
 
     # ── Call gateway provider ─────────────────────────────────────────
     try:

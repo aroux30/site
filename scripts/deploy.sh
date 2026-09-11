@@ -93,8 +93,8 @@ docker compose -f $COMPOSE_FILE build --no-cache
 #----------------------------------------------------------------------
 # Step 3: Run database migrations
 #----------------------------------------------------------------------
-log "Running database migrations..."
-docker compose -f $COMPOSE_FILE run --rm backend python manage.py migrate --noinput
+log "Running database migrations with Alembic..."
+docker compose -f $COMPOSE_FILE run --rm backend alembic upgrade head
 
 #----------------------------------------------------------------------
 # Step 4: Restart services
@@ -112,18 +112,17 @@ docker image prune -f || true
 # Step 6: Health check
 #----------------------------------------------------------------------
 log "Running health checks..."
-HEALTH_URL="http://localhost:8000/api/health/"
 MAX_RETRIES=15
 RETRY_INTERVAL=4
 
 for i in $(seq 1 $MAX_RETRIES); do
-    HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "$HEALTH_URL" 2>/dev/null || echo "000")
-    if [ "$HTTP_CODE" = "200" ]; then
-        log "Health check passed on attempt $i"
+    # Check backend container directly via internal health probe
+    if docker compose -f $COMPOSE_FILE exec -T backend curl -sf http://localhost:8000/readyz > /dev/null 2>&1; then
+        log "Health check passed on attempt $i (/readyz responded OK)"
         break
     fi
     if [ "$i" = "$MAX_RETRIES" ]; then
-        error "Health check failed after $MAX_RETRIES attempts (last HTTP code: $HTTP_CODE)"
+        error "Health check failed after $MAX_RETRIES attempts"
         error "Initiating rollback..."
 
         # Rollback
@@ -135,7 +134,7 @@ for i in $(seq 1 $MAX_RETRIES); do
         error "Rollback completed. Services restored to previous version."
         exit 1
     fi
-    warn "Health check attempt $i/$MAX_RETRIES: HTTP $HTTP_CODE - retrying in ${RETRY_INTERVAL}s..."
+    warn "Health check attempt $i/$MAX_RETRIES failed - retrying in ${RETRY_INTERVAL}s..."
     sleep $RETRY_INTERVAL
 done
 

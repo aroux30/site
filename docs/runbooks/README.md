@@ -69,12 +69,12 @@ This document contains step-by-step procedures for common operational tasks. Eac
 4. Verify services are running:
    ```bash
    docker compose ps
-   curl -s http://localhost:8000/api/health/
+   curl -s https://site.arouxpingg.com/readyz
    ```
 
 5. If database migrations need reversal:
    ```bash
-   docker compose exec backend python manage.py migrate <app_name> <previous_migration_number>
+   docker compose exec backend alembic downgrade <previous_revision_id>
    ```
 
 6. Notify the team about the rollback and the reason.

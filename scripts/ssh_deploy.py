@@ -21,25 +21,76 @@ def ssh_exec(client, command, timeout=300):
     return exit_code, out, err
 
 
+def _load_host_key(host_key_b64: str):
+    """Build a PKey from a base64 public-host-key string (any algorithm)."""
+    import base64
+
+    import paramiko
+
+    for key_cls in (
+        paramiko.Ed25519Key,
+        paramiko.ECDSAKey,
+        paramiko.RSAKey,
+    ):
+        try:
+            return key_cls(data=base64.b64decode(host_key_b64))
+        except Exception:
+            continue
+    raise ValueError("DEPLOY_SSH_HOST_KEY is set but could not be parsed.")
+
+
 def main():
     import os
-    host = os.environ.get("DEPLOY_HOST", "91.107.144.136")
-    username = os.environ.get("DEPLOY_USER", "root")
-    password = os.environ.get("DEPLOY_PASSWORD") or os.environ.get("SSH_PASSWORD")
-    if not password and os.path.exists(".env"):
-        with open(".env", "r") as f:
-            for line in f:
-                if line.startswith("DEPLOY_SSH_PASSWORD="):
-                    password = line.split("=", 1)[1].strip().strip('"').strip("'")
-    if not password:
-        raise ValueError("Deployment password not found. Please set SSH_PASSWORD or DEPLOY_SSH_PASSWORD.")
-    project_dir = "/root/site"
+
+    # ── Configuration: environment-only, no defaults, fail fast ──────────
+    host = os.environ.get("DEPLOY_HOST")
+    username = os.environ.get("DEPLOY_USER")
+    if not host or not username:
+        raise ValueError(
+            "DEPLOY_HOST and DEPLOY_USER must be set "
+            "(no defaults are provided for security)."
+        )
+    project_dir = os.environ.get("DEPLOY_PROJECT_DIR", "/root/site")
+
+    key_path = os.environ.get("DEPLOY_SSH_KEY")
+    password = (
+        os.environ.get("DEPLOY_PASSWORD")
+        or os.environ.get("DEPLOY_SSH_PASSWORD")
+        or os.environ.get("SSH_PASSWORD")
+    )
+    if not key_path and not password:
+        raise ValueError(
+            "Set DEPLOY_SSH_KEY (recommended, key-based auth) or "
+            "DEPLOY_PASSWORD for password auth."
+        )
 
     client = paramiko.SSHClient()
-    client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    host_key_b64 = os.environ.get("DEPLOY_SSH_HOST_KEY")
+    if host_key_b64:
+        # Preferred: pinned host key (export with `ssh-keyscan -t ed25519 <host>`).
+        client.set_missing_host_key_policy(paramiko.RejectPolicy())
+        host_key = _load_host_key(host_key_b64)
+    elif os.environ.get("DEPLOY_ALLOW_UNKNOWN_HOST", "").lower() == "true":
+        # Documented TOFU escape hatch for first-time provisioning only.
+        print("WARNING: DEPLOY_ALLOW_UNKNOWN_HOST=true — host key not verified!")
+        client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        host_key = None
+    else:
+        raise ValueError(
+            "Host key verification is required: set DEPLOY_SSH_HOST_KEY "
+            "(base64 public key from `ssh-keyscan`), or explicitly set "
+            "DEPLOY_ALLOW_UNKNOWN_HOST=true for first-time provisioning."
+        )
 
     print(f"Connecting to {host}...")
-    client.connect(host, username=username, password=password, timeout=30)
+    client.connect(
+        host,
+        username=username,
+        password=password,
+        key_filename=key_path,
+        pkey=host_key,
+        timeout=30,
+    )
     print("Connected!")
 
     # Step 1: Check server
@@ -83,32 +134,51 @@ def main():
 
     # Step 5: Create .env file
     print("\n=== Step 5: Create .env ===")
-    env_content = """# ============================================
+    # ── Secrets are injected at deploy time from the operator's
+    # environment (or a CI secret) — NEVER committed to the repository.
+    required_secrets = (
+        "POSTGRES_PASSWORD",  # PostgreSQL password
+        "REDIS_PASSWORD",  # Redis password
+        "JWT_SECRET_KEY",  # JWT signing secret
+        "MINIO_SECRET_KEY",  # MinIO secret key
+        "GRAFANA_ADMIN_PASSWORD",  # Grafana admin password
+        "DOMAIN",  # Public domain name (e.g. shop.example.com)
+    )
+    missing = [name for name in required_secrets if not os.environ.get(name)]
+    if missing:
+        raise ValueError(
+            "Missing required deploy secrets (set as environment "
+            f"variables): {', '.join(missing)}"
+        )
+    env = os.environ
+    env_content = f"""# ============================================
 # E-Commerce Platform - Production Environment
+# Generated at deploy time; contains secrets — do not commit.
 # ============================================
 
 # App
 APP_NAME=iranian-ecommerce
 ENVIRONMENT=production
 DEBUG=false
+DOMAIN={env['DOMAIN']}
 
 # PostgreSQL
 POSTGRES_DB=ecommerce
 POSTGRES_USER=ecommerce
-POSTGRES_PASSWORD=Xk9m2Pq7vR4nL8wB
-DATABASE_URL=postgresql+asyncpg://ecommerce:Xk9m2Pq7vR4nL8wB@postgres:5432/ecommerce
+POSTGRES_PASSWORD={env['POSTGRES_PASSWORD']}
+DATABASE_URL=postgresql+asyncpg://ecommerce:{env['POSTGRES_PASSWORD']}@postgres:5432/ecommerce
 
 # Redis
-REDIS_PASSWORD=Yt5hN3jK8mW2vQ9p
-REDIS_URL=redis://:Yt5hN3jK8mW2vQ9p@redis:6379/0
-CELERY_BROKER_URL=redis://:Yt5hN3jK8mW2vQ9p@redis:6379/1
-CELERY_RESULT_BACKEND=redis://:Yt5hN3jK8mW2vQ9p@redis:6379/2
+REDIS_PASSWORD={env['REDIS_PASSWORD']}
+REDIS_URL=redis://:{env['REDIS_PASSWORD']}@redis:6379/0
+CELERY_BROKER_URL=redis://:{env['REDIS_PASSWORD']}@redis:6379/1
+CELERY_RESULT_BACKEND=redis://:{env['REDIS_PASSWORD']}@redis:6379/2
 
 # Elasticsearch
 ELASTICSEARCH_URL=http://elasticsearch:9200
 
 # JWT
-JWT_SECRET_KEY=Zm4kR8pN2wX7vQ3hL9tB5jY6mC1dF8gA
+JWT_SECRET_KEY={env['JWT_SECRET_KEY']}
 JWT_ALGORITHM=HS256
 ACCESS_TOKEN_EXPIRE_MINUTES=30
 REFRESH_TOKEN_EXPIRE_DAYS=7
@@ -116,31 +186,31 @@ REFRESH_TOKEN_EXPIRE_DAYS=7
 # MinIO
 MINIO_ENDPOINT=minio:9000
 MINIO_ACCESS_KEY=minioadmin
-MINIO_SECRET_KEY=Hp7mK2nR9wL4vX8q
+MINIO_SECRET_KEY={env['MINIO_SECRET_KEY']}
 MINIO_BUCKET=ecommerce
 MINIO_USE_SSL=false
 
 # CORS
-CORS_ORIGINS=["http://localhost","http://91.107.144.136"]
+CORS_ORIGINS=["https://{env['DOMAIN']}"]
 
 # Sentry (optional)
 SENTRY_DSN=
 
 # Frontend
-NEXT_PUBLIC_API_URL=http://91.107.144.136/api/v1
-NEXT_PUBLIC_SITE_URL=http://91.107.144.136
+NEXT_PUBLIC_API_URL=https://{env['DOMAIN']}/api/v1
+NEXT_PUBLIC_SITE_URL=https://{env['DOMAIN']}
 
 # Grafana
 GRAFANA_ADMIN_USER=admin
-GRAFANA_ADMIN_PASSWORD=Wn3kP8mR5vL7xQ2h
+GRAFANA_ADMIN_PASSWORD={env['GRAFANA_ADMIN_PASSWORD']}
 
 # SMS Provider
 SMS_PROVIDER=mock
 KAVENEGAR_API_KEY=
 
 # Payment
-PAYMENT_PROVIDER=mock
-ZARINPAL_MERCHANT_ID=
+PAYMENT_PROVIDER=zarinpal
+ZARINPAL_MERCHANT_ID={env.get('ZARINPAL_MERCHANT_ID', '')}
 """
     # Write env file
     ssh_exec(client, f"cat > {project_dir}/.env << 'ENVEOF'\n{env_content}\nENVEOF", timeout=30)

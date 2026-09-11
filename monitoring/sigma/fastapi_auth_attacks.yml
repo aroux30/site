@@ -1,0 +1,23 @@
+title: FastAPI Brute Force Account Lockout
+id: 8f4d1e2a-7c9b-4b12-98e3-0d5b6e2f1a94
+status: production
+description: Detects repeated authentication failures leading to account lockout in FastAPI
+author: Site Security Team
+date: 2026-09-11
+references:
+    - https://attack.mitre.org/techniques/T1110/001/
+tags:
+    - attack.credential_access
+    - attack.t1110.001
+logsource:
+    category: application
+    product: fastapi
+detection:
+    selection:
+        message|contains:
+            - "[SECURITY_ALERT]"
+            - "event=brute_force_lockout"
+    condition: selection
+falsepositives:
+    - Legitimate user forgetting password after 5 attempts
+level: high

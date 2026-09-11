@@ -18,6 +18,20 @@ import type {
   MessageResponse,
 } from "@/types/user";
 
+function setClientAccessTokenCookie(token: string, maxAge = 1800) {
+  if (typeof document === "undefined") return;
+  const isSecure = typeof window !== "undefined" && window.location.protocol === "https:";
+  const secureAttr = isSecure ? "; Secure" : "";
+  document.cookie = `access_token=${token}; path=/; max-age=${maxAge}; SameSite=Lax${secureAttr}`;
+}
+
+function clearClientAccessTokenCookie() {
+  if (typeof document === "undefined") return;
+  const isSecure = typeof window !== "undefined" && window.location.protocol === "https:";
+  const secureAttr = isSecure ? "; Secure" : "";
+  document.cookie = `access_token=; path=/; max-age=0; SameSite=Lax${secureAttr}`;
+}
+
 function mapProfileToUser(data: UserProfileResponse): User {
   const fullName =
     [data.first_name, data.last_name].filter(Boolean).join(" ") || null;
@@ -100,8 +114,8 @@ export function useAuth() {
         phone: credentials.phone,
         password: credentials.password,
       });
-      if (typeof document !== "undefined" && data?.access_token) {
-        document.cookie = `access_token=${data.access_token}; path=/; max-age=1800; SameSite=Lax; Secure`;
+      if (data?.access_token) {
+        setClientAccessTokenCookie(data.access_token);
       }
       return await handleAuthSuccess();
     },
@@ -116,8 +130,8 @@ export function useAuth() {
         first_name: userData.first_name || userData.firstName || "",
         last_name: userData.last_name || userData.lastName || "",
       });
-      if (typeof document !== "undefined" && data?.access_token) {
-        document.cookie = `access_token=${data.access_token}; path=/; max-age=1800; SameSite=Lax; Secure`;
+      if (data?.access_token) {
+        setClientAccessTokenCookie(data.access_token);
       }
       return await handleAuthSuccess();
     },
@@ -146,8 +160,8 @@ export function useAuth() {
           code: request.code,
         },
       );
-      if (typeof document !== "undefined" && data?.access_token) {
-        document.cookie = `access_token=${data.access_token}; path=/; max-age=1800; SameSite=Lax; Secure`;
+      if (data?.access_token) {
+        setClientAccessTokenCookie(data.access_token);
       }
       return await handleAuthSuccess();
     },
@@ -160,9 +174,7 @@ export function useAuth() {
     } catch {
       // Silently fail - we clear local state regardless
     } finally {
-      if (typeof document !== "undefined") {
-        document.cookie = "access_token=; path=/; max-age=0; SameSite=Lax; Secure";
-      }
+      clearClientAccessTokenCookie();
       store.logout();
     }
   }, [store]);

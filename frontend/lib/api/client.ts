@@ -107,8 +107,15 @@ apiClient.interceptors.response.use(
       _retry?: boolean;
     };
 
+    // Do not attempt token refresh for auth entry/challenge endpoints
+    const isAuthEndpoint =
+      originalRequest?.url?.includes("/auth/login") ||
+      originalRequest?.url?.includes("/auth/register") ||
+      originalRequest?.url?.includes("/auth/refresh") ||
+      originalRequest?.url?.includes("/auth/otp");
+
     // If 401 and not already retrying, attempt token refresh
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    if (error.response?.status === 401 && !originalRequest?._retry && !isAuthEndpoint) {
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
@@ -136,8 +143,17 @@ apiClient.interceptors.response.use(
         return apiClient(originalRequest);
       } catch (refreshError) {
         processQueue(refreshError);
-        if (typeof window !== "undefined") {
-          window.location.href = "/login";
+        // Never hard-redirect to /login if already on auth pages, and never redirect on background session probe (/auth/me)
+        const isSessionCheck = originalRequest?.url?.includes("/auth/me");
+        if (
+          typeof window !== "undefined" &&
+          !isSessionCheck &&
+          !window.location.pathname.startsWith("/login") &&
+          !window.location.pathname.startsWith("/register")
+        ) {
+          const currentPath = window.location.pathname + window.location.search;
+          const redirectParam = encodeURIComponent(currentPath);
+          window.location.href = `/login?redirect=${redirectParam}`;
         }
         return Promise.reject(refreshError);
       } finally {

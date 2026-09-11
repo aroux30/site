@@ -9,6 +9,8 @@ from typing import Optional
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
+from app.core.security.password import is_weak_password
+
 # ── Iranian phone regex ─────────────────────────────────────────────────────
 _IRAN_PHONE_RE = re.compile(r"^09\d{9}$")
 
@@ -47,6 +49,14 @@ class RegisterRequest(BaseModel):
     password: str = Field(..., min_length=8, max_length=128)
     first_name: str = Field(..., min_length=1, max_length=100)
     last_name: str = Field(..., min_length=1, max_length=100)
+    honeypot: Optional[str] = Field(None, description="Anti-bot honeypot field. Must be empty.")
+
+    @field_validator("honeypot")
+    @classmethod
+    def validate_honeypot(cls, v: Optional[str]) -> Optional[str]:
+        if v:
+            raise ValueError("Automated bot traffic detected")
+        return v
 
     @field_validator("phone", mode="before")
     @classmethod
@@ -62,6 +72,8 @@ class RegisterRequest(BaseModel):
             raise ValueError("Password must contain at least one letter")
         if not re.search(r"\d", v):
             raise ValueError("Password must contain at least one digit")
+        if is_weak_password(v):
+            raise ValueError("این رمز عبور بسیار رایج و ناامن است. لطفاً از رمز عبور قوی‌تری استفاده کنید.")
         return v
 
 
@@ -72,6 +84,14 @@ class LoginRequest(BaseModel):
 
     phone: str = Field(..., min_length=10, max_length=20, examples=["09123456789"])
     password: str = Field(..., min_length=1, max_length=128)
+    honeypot: Optional[str] = Field(None, description="Anti-bot honeypot field. Must be empty.")
+
+    @field_validator("honeypot")
+    @classmethod
+    def validate_honeypot(cls, v: Optional[str]) -> Optional[str]:
+        if v:
+            raise ValueError("Automated bot traffic detected")
+        return v
 
     @field_validator("phone", mode="before")
     @classmethod
@@ -129,6 +149,8 @@ class ChangePasswordRequest(BaseModel):
             raise ValueError("Password must contain at least one letter")
         if not re.search(r"\d", v):
             raise ValueError("Password must contain at least one digit")
+        if is_weak_password(v):
+            raise ValueError("این رمز عبور بسیار رایج و ناامن است. لطفاً از رمز عبور قوی‌تری استفاده کنید.")
         return v
 
 
@@ -174,6 +196,8 @@ class UserProfileResponse(BaseModel):
     gender: Optional[str] = None
     is_active: bool
     is_verified: bool
+    is_superuser: bool = False
+    roles: list[str] = []
     created_at: datetime
 
 
@@ -205,6 +229,27 @@ class UserProfileUpdate(BaseModel):
             if not re.match(r"^\d{10}$", v):
                 raise ValueError("National code must be exactly 10 digits")
         return v
+
+
+class MFASetupResponse(BaseModel):
+    """Response returned when initiating TOTP MFA enrollment."""
+
+    secret: str
+    otpauth_uri: str
+    backup_codes: list[str]
+
+
+class MFAVerifyRequest(BaseModel):
+    """Payload to verify TOTP code."""
+
+    code: str = Field(..., min_length=6, max_length=8)
+
+
+class MFADisableRequest(BaseModel):
+    """Payload to disable MFA requires both password and current TOTP code."""
+
+    code: str = Field(..., min_length=6, max_length=8)
+    password: str = Field(..., min_length=1)
 
 
 class MessageResponse(BaseModel):

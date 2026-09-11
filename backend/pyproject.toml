@@ -35,6 +35,11 @@ dependencies = [
     "structlog>=24.1.0",
     "Pillow>=10.3.0",
     "jinja2>=3.1.0",
+    "casbin>=1.35.0",
+    "slowapi>=0.1.10",
+    "py-webauthn>=0.0.6",
+    "pyotp>=2.9.0",
+    "opentelemetry-api>=1.24.0",
 ]
 
 [project.optional-dependencies]
@@ -46,6 +51,8 @@ dev = [
     "factory-boy>=3.3.0",
     "ruff>=0.4.0",
     "mypy>=1.10.0",
+    "bandit>=1.7.8",
+    "safety>=3.2.0",
     "types-redis>=4.6.0",
     "types-passlib>=1.7.7",
     "types-python-jose>=3.3.4",

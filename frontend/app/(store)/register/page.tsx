@@ -14,7 +14,6 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
-import { useAuthStore } from "@/stores/auth-store";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -57,16 +56,23 @@ function RegisterForm() {
 
   const [, startTransition] = useTransition();
 
-  // Break redirect loops: if user arrived via redirect but has no active cookie/user, reset stale state
-  useEffect(() => {
-    if (searchParams.get("redirect") && (!user || (typeof document !== "undefined" && !document.cookie.includes("access_token=")))) {
-      useAuthStore.getState().logout();
-    }
-  }, [searchParams, user]);
-
-  // If already authenticated with confirmed user profile, redirect
+  // If already authenticated with confirmed user profile, redirect only if authorized for target
   useEffect(() => {
     if (isAuthenticated && !isAuthLoading && user) {
+      const isTargetAdmin = redirectUrl.startsWith("/admin");
+      const isAdmin = Boolean(
+        user.is_superuser ||
+          user.role === "admin" ||
+          user.roles?.includes("super_admin") ||
+          user.roles?.includes("admin") ||
+          user.permissions?.includes("*")
+      );
+
+      // Do not auto-redirect to admin if current user is not an admin
+      if (isTargetAdmin && !isAdmin) {
+        return;
+      }
+
       router.replace(redirectUrl);
     }
   }, [isAuthenticated, isAuthLoading, user, redirectUrl, router]);

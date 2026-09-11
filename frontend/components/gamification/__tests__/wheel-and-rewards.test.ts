@@ -1,6 +1,7 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { getTierForPoints, TIERS } from "../user-tier-banner";
 import { FALLBACK_REWARDS, claimGamificationReward } from "@/lib/api/gamification";
+import apiClient from "@/lib/api/client";
 
 describe("Gamification & Loyalty Tiers", () => {
   it("should have 4 distinct loyalty tiers: bronze, silver, gold, platinum", () => {
@@ -45,6 +46,7 @@ describe("Rewards Catalog & Fallbacks", () => {
   });
 
   it("should claim a reward and generate a fallback coupon code", async () => {
+    vi.spyOn(apiClient, "post").mockRejectedValueOnce(new Error("Network error"));
     const res = await claimGamificationReward("rew-discount-10");
     expect(res).toBeDefined();
     expect(res.reward_id).toBe("rew-discount-10");

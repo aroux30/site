@@ -1,0 +1,41 @@
+# Optional Security Infrastructure Extension
+# Run alongside primary stack:
+# docker compose -f docker-compose.yml -f docker-compose.security.yml up -d
+
+services:
+  # ──────────────────────────────────────────────
+  # CrowdSec: Community-Powered Intrusion Detection & Prevention
+  # ──────────────────────────────────────────────
+  crowdsec:
+    image: crowdsecurity/crowdsec:v1.6.3
+    container_name: ecommerce-crowdsec
+    environment:
+      - COLLECTIONS=crowdsecurity/nginx crowdsecurity/http-cve crowdsecurity/whitelist-good-actors
+    volumes:
+      - ./monitoring/crowdsec/acquis.yaml:/etc/crowdsec/acquis.yaml:ro
+      - ./nginx/logs:/var/log/nginx:ro
+      - crowdsec-db:/var/lib/crowdsec/data
+      - crowdsec-config:/etc/crowdsec
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  # ──────────────────────────────────────────────
+  # Coraza WAF / OWASP Core Rule Set Reverse Proxy
+  # ──────────────────────────────────────────────
+  waf:
+    image: owasp/modsecurity-crs:nginx-alpine
+    container_name: ecommerce-waf
+    ports:
+      - "8443:443"
+    environment:
+      - PARANOIA=1
+      - ANOMALY_INBOUND=5
+      - BACKEND=http://nginx:80
+    networks:
+      - app-network
+    restart: unless-stopped
+
+volumes:
+  crowdsec-db:
+  crowdsec-config:

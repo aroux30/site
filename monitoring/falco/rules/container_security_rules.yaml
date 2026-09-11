@@ -1,0 +1,22 @@
+# Falco Runtime Threat Detection Rules for Platform Containers
+- rule: Spawn Shell in E-Commerce Container
+  desc: Detect interactive shell spawned inside production FastAPI or Next.js container
+  condition: >
+    container and container.name in (ecommerce-backend, ecommerce-frontend, ecommerce-worker)
+    and evt.type = execve and proc.name in (bash, sh, zsh, dash)
+  output: >
+    Shell spawned in container (user=%user.name container_name=%container.name
+    command=%proc.cmdline pid=%proc.pid image=%container.image.repository)
+  priority: WARNING
+  tags: [container, shell, mitre_execution]
+
+- rule: Sensitive File Read in Container
+  desc: Detect unauthorized access to private keys or env configurations
+  condition: >
+    container and open_read and fd.name startswith "/app/.env"
+    and not proc.name in (python, uvicorn, celery)
+  output: >
+    Sensitive env file accessed by unexpected process (user=%user.name
+    proc=%proc.name file=%fd.name container=%container.name)
+  priority: ERROR
+  tags: [container, secrets, mitre_credential_access]

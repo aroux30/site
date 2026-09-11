@@ -30,7 +30,11 @@ from app.core.security.jwt import (
     create_refresh_token,
     verify_token,
 )
-from app.core.security.password import hash_password, verify_password
+from app.core.security.password import hash_password, verify_dummy_password, verify_password
+from app.core.security.rate_limiter import (
+    brute_force_protector,
+    otp_brute_force_protector,
+)
 from app.modules.audit.application.audit_service import log_action
 from app.modules.rbac.domain.models import Role, RolePermission, Permission, UserRole
 from app.modules.users.domain.models import (
@@ -88,9 +92,21 @@ async def _create_token_pair(
     permissions = await _get_user_permissions(db, user.id)
     roles = await _get_user_role_slugs(db, user.id)
 
+    if user.is_superuser:
+        if "super_admin" not in roles:
+            roles.append("super_admin")
+        if "admin" not in roles:
+            roles.append("admin")
+        if "*" not in permissions:
+            permissions.append("*")
+
     access_token = create_access_token(
         subject=user.id,
-        extra_claims={"permissions": permissions, "roles": roles},
+        extra_claims={
+            "permissions": permissions,
+            "roles": roles,
+            "is_superuser": bool(user.is_superuser),
+        },
     )
     refresh = create_refresh_token(subject=user.id)
 
@@ -199,13 +215,20 @@ async def login(
     user_agent: str | None = None,
 ) -> dict[str, str]:
     """Authenticate with phone + password and return tokens."""
+    # Check brute-force lockout first
+    await brute_force_protector.check_lockout(phone)
+
     result = await db.execute(select(User).where(User.phone == phone))
     user = result.scalar_one_or_none()
 
     if user is None or user.password_hash is None:
+        # Constant-time dummy computation to prevent user enumeration via timing
+        verify_dummy_password(password)
+        await brute_force_protector.record_failure(phone, ip=ip_address)
         raise UnauthorizedError(detail="Invalid phone or password")
 
     if not verify_password(password, user.password_hash):
+        await brute_force_protector.record_failure(phone, ip=ip_address)
         await log_action(
             db,
             actor_id=None,
@@ -219,6 +242,9 @@ async def login(
 
     if not user.is_active:
         raise UnauthorizedError(detail="Account is deactivated")
+
+    # Clear brute-force failure counter on successful authentication
+    await brute_force_protector.record_success(phone)
 
     # Update last login
     user.last_login = datetime.now(UTC)
@@ -308,6 +334,9 @@ async def verify_otp(
     If the phone does not belong to an existing user, a new user is created
     (OTP-based registration).
     """
+    # Check OTP brute-force lockout
+    await otp_brute_force_protector.check_lockout(phone)
+
     now = datetime.now(UTC)
     stmt = (
         select(OTPRequest)
@@ -331,11 +360,16 @@ async def verify_otp(
     if otp.attempts > settings.OTP_MAX_ATTEMPTS:
         otp.is_used = True  # burn the OTP
         await db.flush()
+        await otp_brute_force_protector.record_failure(phone, ip=ip_address)
         raise RateLimitError(detail="Maximum OTP verification attempts exceeded")
 
     if otp.code != code:
         await db.flush()
+        await otp_brute_force_protector.record_failure(phone, ip=ip_address)
         raise UnauthorizedError(detail="Invalid OTP code")
+
+    # OTP is valid - clear failure counter
+    await otp_brute_force_protector.record_success(phone)
 
     # Mark as used
     otp.is_used = True
@@ -555,6 +589,7 @@ async def get_me(db: AsyncSession, *, user_id: uuid.UUID) -> dict[str, Any]:
         raise NotFoundError(resource="User")
 
     profile = user.profile
+    roles = await _get_user_role_slugs(db, user.id)
 
     return {
         "id": user.id,
@@ -568,6 +603,8 @@ async def get_me(db: AsyncSession, *, user_id: uuid.UUID) -> dict[str, Any]:
         "gender": profile.gender if profile else None,
         "is_active": user.is_active,
         "is_verified": user.is_verified,
+        "is_superuser": user.is_superuser,
+        "roles": roles,
         "created_at": user.created_at,
     }
 

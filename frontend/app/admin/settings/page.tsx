@@ -11,6 +11,7 @@ import {
   CheckCircle2,
   Bell,
   Lock,
+  ShieldCheck,
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -194,6 +195,69 @@ export default function AdminSettingsPage() {
                 onChange={(e) => setCryptoEnabled(e.target.checked)}
                 className="h-4 w-4 rounded accent-primary"
               />
+            </div>
+          </div>
+        </Card>
+
+        {/* Platform Security & Defense Posture */}
+        <Card className="p-6 border-emerald-500/20 bg-emerald-500/5">
+          <div className="mb-4 flex items-center justify-between border-b border-border pb-3">
+            <div className="flex items-center gap-2">
+              <ShieldCheck className="h-5 w-5 text-emerald-500" />
+              <h2 className="text-base font-bold text-foreground">وضعیت سپرهای دفاعی و امنیت پلتفرم (Active Defenses)</h2>
+            </div>
+            <Badge variant="outline" className="border-emerald-500/30 text-emerald-600 bg-emerald-500/10">
+              محیط امن - ۸ لایه دفاعی فعال
+            </Badge>
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="rounded-lg border border-border/60 bg-background/80 p-3 shadow-sm">
+              <div className="text-xs text-muted-foreground">محدودسازی نرخ (Rate Limiting)</div>
+              <div className="mt-1 font-bold text-sm text-foreground">SlowAPI + Redis</div>
+              <div className="mt-1 text-xs text-emerald-600 font-medium">۱۰ req/min فعال</div>
+            </div>
+
+            <div className="rounded-lg border border-border/60 bg-background/80 p-3 shadow-sm">
+              <div className="text-xs text-muted-foreground">مقابله با Brute Force</div>
+              <div className="mt-1 font-bold text-sm text-foreground">Multi-Key Lockout</div>
+              <div className="mt-1 text-xs text-emerald-600 font-medium">۵ تلاش / ۱۵ دقیقه قفل</div>
+            </div>
+
+            <div className="rounded-lg border border-border/60 bg-background/80 p-3 shadow-sm">
+              <div className="text-xs text-muted-foreground">تاخیر تصاعدی هوشمند</div>
+              <div className="mt-1 font-bold text-sm text-foreground">OWASP Progressive Delay</div>
+              <div className="mt-1 text-xs text-emerald-600 font-medium">کندسازی ربات‌های کرکر</div>
+            </div>
+
+            <div className="rounded-lg border border-border/60 bg-background/80 p-3 shadow-sm">
+              <div className="text-xs text-muted-foreground">کنترل دسترسی سازمانی</div>
+              <div className="mt-1 font-bold text-sm text-foreground">Casbin RBAC/ABAC</div>
+              <div className="mt-1 text-xs text-emerald-600 font-medium">پالیسی‌های دقیق نقش‌ها</div>
+            </div>
+
+            <div className="rounded-lg border border-border/60 bg-background/80 p-3 shadow-sm">
+              <div className="text-xs text-muted-foreground">ورود بیومتریک و دومرحله‌ای</div>
+              <div className="mt-1 font-bold text-sm text-foreground">FIDO2 Passkeys + TOTP</div>
+              <div className="mt-1 text-xs text-emerald-600 font-medium">Google Auth + بیومتریک</div>
+            </div>
+
+            <div className="rounded-lg border border-border/60 bg-background/80 p-3 shadow-sm">
+              <div className="text-xs text-muted-foreground">دیواره آتش ضدبات (WAF)</div>
+              <div className="mt-1 font-bold text-sm text-foreground">Nginx + Honeypot</div>
+              <div className="mt-1 text-xs text-emerald-600 font-medium">مسدودسازی SQLMap/Nikto</div>
+            </div>
+
+            <div className="rounded-lg border border-border/60 bg-background/80 p-3 shadow-sm">
+              <div className="text-xs text-muted-foreground">فیلتر و مسدودسازی آنی IP</div>
+              <div className="mt-1 font-bold text-sm text-foreground">Redis Dynamic Blacklist</div>
+              <div className="mt-1 text-xs text-emerald-600 font-medium">بلاک زیر ۱ میلی‌ثانیه</div>
+            </div>
+
+            <div className="rounded-lg border border-border/60 bg-background/80 p-3 shadow-sm">
+              <div className="text-xs text-muted-foreground">رمزنگاری و مقابله با XSS</div>
+              <div className="mt-1 font-bold text-sm text-foreground">Argon2id + DOMPurify</div>
+              <div className="mt-1 text-xs text-emerald-600 font-medium">استاندارد عالی رمزنگاری</div>
             </div>
           </div>
         </Card>

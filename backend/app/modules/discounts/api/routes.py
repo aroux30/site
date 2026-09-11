@@ -5,7 +5,7 @@ from __future__ import annotations
 import uuid
 from typing import Optional
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database.session import get_db
@@ -13,6 +13,7 @@ from app.core.security.dependencies import (
     RequirePermissions,
     get_current_user_id,
 )
+from app.core.security.rate_limiter import limiter
 from app.modules.discounts.application import discount_service
 from app.modules.discounts.schemas.discount import (
     CouponApplyRequest,
@@ -38,7 +39,9 @@ router = APIRouter()
     response_model=CouponApplyResponse,
     summary="Validate and preview a coupon code",
 )
+@limiter.limit("15/minute")
 async def apply_coupon(
+    request: Request,
     body: CouponApplyRequest,
     db: AsyncSession = Depends(get_db),
     user_id: uuid.UUID = Depends(get_current_user_id),

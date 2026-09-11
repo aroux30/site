@@ -1,0 +1,7 @@
+# Suricata Network IDS Rules for FastAPI E-Commerce Platform
+# Detects Brute-Force HTTP Floods, Scanner Signatures, and Sensitive Endpoint Probing
+
+alert http any any -> any any (msg:"FASTAPI-SECURITY Potential Login Brute Force Flood"; flow:to_server,established; content:"POST"; http_method; content:"/api/v1/auth/login"; http_uri; threshold:type both, track by_src, count 20, seconds 60; classtype:attempted-admin; sid:2000001; rev:1;)
+alert http any any -> any any (msg:"FASTAPI-SECURITY High Frequency OTP Request Abuse"; flow:to_server,established; content:"POST"; http_method; content:"/api/v1/auth/otp/request"; http_uri; threshold:type both, track by_src, count 10, seconds 60; classtype:attempted-dos; sid:2000002; rev:1;)
+alert http any any -> any any (msg:"FASTAPI-SECURITY SQLMap Scanner Tool Detected"; flow:to_server,established; content:"sqlmap"; http_user_agent; nocase; classtype:web-application-attack; sid:2000003; rev:1;)
+alert http any any -> any any (msg:"FASTAPI-SECURITY Sensitive File Probe (.env / .git)"; flow:to_server,established; content:"/.(env|git)"; pcre:"/\.(env|git)/i"; http_uri; classtype:attempted-recon; sid:2000004; rev:1;)

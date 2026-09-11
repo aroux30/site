@@ -1,0 +1,22 @@
+name: "OWASP ZAP DAST Web Vulnerability Scan"
+
+on:
+  schedule:
+    - cron: "0 3 * * 0" # Weekly Sunday at 03:00 UTC
+  workflow_dispatch:
+
+jobs:
+  zap_scan:
+    name: OWASP ZAP Baseline Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: OWASP ZAP Baseline Scan
+        uses: zaproxy/action-baseline@v0.14.0
+        with:
+          target: "https://site.arouxpingg.com"
+          rules_file_name: ".zap/rules.tsv"
+          allow_issue_writing: false
+          fail_action: false

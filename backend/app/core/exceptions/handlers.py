@@ -11,6 +11,7 @@ from typing import Any
 from fastapi import FastAPI, Request, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
+from slowapi.errors import RateLimitExceeded
 
 
 # ── Base Exception ────────────────────────────────────────────────────────
@@ -163,5 +164,15 @@ async def generic_exception_handler(_request: Request, exc: Exception) -> JSONRe
 def register_exception_handlers(app: FastAPI) -> None:
     """Attach all exception handlers to the FastAPI application."""
     app.add_exception_handler(AppException, app_exception_handler)  # type: ignore[arg-type]
+    app.add_exception_handler(RateLimitExceeded, rate_limit_exceeded_handler)  # type: ignore[arg-type]
     app.add_exception_handler(RequestValidationError, validation_exception_handler)  # type: ignore[arg-type]
     app.add_exception_handler(Exception, generic_exception_handler)  # type: ignore[arg-type]
+
+
+async def rate_limit_exceeded_handler(_request: Request, exc: RateLimitExceeded) -> JSONResponse:
+    return _error_response(
+        status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+        error_code="RATE_LIMIT_EXCEEDED",
+        detail=f"تعداد درخواست‌ها بیش از حد مجاز است: {exc.detail}",
+        headers={"Retry-After": "60"},
+    )

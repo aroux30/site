@@ -27,6 +27,10 @@ from app.core.exceptions.handlers import register_exception_handlers
 from app.core.logging.config import setup_logging
 from app.core.observability.metrics import APP_INFO
 from app.core.observability.middleware import RequestIDMiddleware, TimingMiddleware
+from app.core.security.ip_filter import IPFilterMiddleware
+from app.core.security.rate_limiter import limiter
+from app.core.security.security_headers import SecurityHeadersMiddleware
+from slowapi.middleware import SlowAPIMiddleware
 
 logger: structlog.stdlib.BoundLogger = structlog.get_logger()
 
@@ -100,6 +104,12 @@ def create_app() -> FastAPI:
     )
     app.add_middleware(RequestIDMiddleware)
     app.add_middleware(TimingMiddleware)
+    app.add_middleware(IPFilterMiddleware)
+    app.add_middleware(SecurityHeadersMiddleware)
+    app.add_middleware(SlowAPIMiddleware)
+
+    # ── Rate Limiter State ────────────────────────────────────────────
+    app.state.limiter = limiter
 
     # ── Exception handlers ────────────────────────────────────────────
     register_exception_handlers(app)

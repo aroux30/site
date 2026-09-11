@@ -2,6 +2,8 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/hooks/use-auth";
 import {
   User,
   Package,
@@ -385,7 +387,12 @@ export function AccountDashboard({
   initialTab?: "profile" | "orders" | "addresses" | "wallet" | "wishlist" | "support";
 }) {
   const { toast } = useToast();
-  const { user, updateProfile, logout } = useAuthStore();
+  const { user, updateProfile } = useAuthStore();
+  // The hook's logout calls POST /auth/logout and clears the httpOnly auth
+  // cookies server-side; the store's logout only wipes local state, which left
+  // the user signed in after a page refresh.
+  const { logout } = useAuth();
+  const router = useRouter();
   const { addItem: addToCart } = useCartStore();
 
   const [activeTab, setActiveTab] = useState<
@@ -1112,9 +1119,10 @@ export function AccountDashboard({
 
               <button
                 type="button"
-                onClick={() => {
-                  logout();
+                onClick={async () => {
+                  await logout();
                   toast({ title: "از حساب خارج شدید", variant: "default" });
+                  router.push("/");
                 }}
                 className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-destructive transition-colors hover:bg-destructive/10"
               >

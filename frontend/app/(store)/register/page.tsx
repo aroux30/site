@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useTransition, Suspense } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
@@ -53,8 +53,6 @@ function RegisterForm() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
-
-  const [, startTransition] = useTransition();
 
   // If already authenticated with confirmed user profile, redirect only if authorized for target
   useEffect(() => {
@@ -151,10 +149,11 @@ function RegisterForm() {
         variant: "success",
       });
 
-      startTransition(() => {
-        router.push(redirectUrl);
-        router.refresh();
-      });
+      // Hard navigation: the auth cookies are already set by the register
+      // response, so a full page load reliably lands the user on the
+      // authenticated page with the header, middleware and /auth/me all in
+      // sync. SPA push/refresh here raced and left users stuck on /register.
+      window.location.assign(redirectUrl);
     } catch (err: unknown) {
       const errorMsg =
         (err as { response?: { data?: { error?: { message?: string } } }; message?: string })?.response?.data?.error?.message ||

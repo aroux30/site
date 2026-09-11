@@ -70,10 +70,12 @@ class Payment(BaseModel):
         Index("ix_payments_created_at", "created_at"),
     )
 
-    order_id: Mapped[uuid.UUID] = mapped_column(
+    # Nullable for wallet top-up payments (extra_data.purpose == "wallet_topup");
+    # regular order payments always carry the order id.
+    order_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("orders.id", ondelete="RESTRICT"),
-        nullable=False,
+        nullable=True,
     )
     amount: Mapped[int] = mapped_column(BigInteger, nullable=False)
     currency: Mapped[str] = mapped_column(String(3), default="IRR", nullable=False)

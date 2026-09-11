@@ -79,6 +79,37 @@ if TYPE_CHECKING:
 logger: structlog.stdlib.BoundLogger = structlog.get_logger(__name__)
 
 
+async def _publish_product_event(
+    session: AsyncSession,
+    event_type: str,
+    product_id: uuid.UUID,
+) -> None:
+    """Publish a product lifecycle event to the transactional outbox.
+
+    The outbox worker dispatches ``sync_single_product`` so the Elasticsearch
+    projection tracks catalog writes without waiting for the nightly
+    reindex.  Publishing failures are logged, never raised: search sync is
+    best-effort and must not fail catalog mutations.
+    """
+    try:
+        from app.shared.events.outbox_service import OutboxService
+
+        await OutboxService.publish(
+            session,
+            event_type=event_type,
+            aggregate_type="product",
+            aggregate_id=str(product_id),
+            payload={"product_id": str(product_id)},
+        )
+    except Exception as exc:  # search sync must never block writes
+        await logger.awarning(
+            "product_event_publish_skipped",
+            event_type=event_type,
+            product_id=str(product_id),
+            error=str(exc),
+        )
+
+
 # ============================================================================
 # Slug Generation (Persian / Latin)
 # ============================================================================
@@ -599,6 +630,7 @@ class ProductService:
         # Re-fetch with all relations
         product = await self._repo.get_by_id(product.id, eager=True)
         await logger.ainfo("product_created", product_id=str(product.id), slug=slug)
+        await _publish_product_event(self._session, "ProductCreated", product.id)
         return self._to_detail_response(product)  # type: ignore[arg-type]
 
     async def update(self, product_id: uuid.UUID, data: ProductUpdate) -> ProductDetailResponse:
@@ -631,6 +663,7 @@ class ProductService:
 
         product = await self._repo.update(product)
         await logger.ainfo("product_updated", product_id=str(product_id))
+        await _publish_product_event(self._session, "ProductUpdated", product_id)
         return self._to_detail_response(product)  # type: ignore[arg-type]
 
     async def delete(self, product_id: uuid.UUID) -> None:
@@ -639,6 +672,7 @@ class ProductService:
             raise NotFoundError("Product")
         await self._repo.delete(product_id)
         await logger.ainfo("product_deleted", product_id=str(product_id))
+        await _publish_product_event(self._session, "ProductDeleted", product_id)
 
     async def get_by_id(self, product_id: uuid.UUID) -> ProductDetailResponse:
         product = await self._repo.get_by_id(product_id, eager=True)
@@ -739,6 +773,7 @@ class ProductService:
             product_id=str(product_id),
             sku=data.sku,
         )
+        await _publish_product_event(self._session, "ProductUpdated", product_id)
         return VariantResponse.model_validate(variant)
 
     async def update_variant(self, variant_id: uuid.UUID, data: VariantUpdate) -> VariantResponse:
@@ -769,14 +804,17 @@ class ProductService:
 
         variant = await self._variant_repo.update(variant)
         await logger.ainfo("variant_updated", variant_id=str(variant_id))
+        await _publish_product_event(self._session, "ProductUpdated", variant.product_id)
         return VariantResponse.model_validate(variant)
 
     async def delete_variant(self, variant_id: uuid.UUID) -> None:
         variant = await self._variant_repo.get_by_id(variant_id)
         if variant is None:
             raise NotFoundError("Variant")
+        product_id = variant.product_id
         await self._variant_repo.delete(variant_id)
         await logger.ainfo("variant_deleted", variant_id=str(variant_id))
+        await _publish_product_event(self._session, "ProductUpdated", product_id)
 
     async def list_variants(self, product_id: uuid.UUID) -> list[VariantResponse]:
         product = await self._repo.get_by_id(product_id, eager=False)

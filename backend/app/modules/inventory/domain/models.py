@@ -6,6 +6,7 @@ from datetime import datetime
 
 from sqlalchemy import (
     Boolean,
+    CheckConstraint,
     DateTime,
     Enum,
     ForeignKey,
@@ -46,7 +47,12 @@ class InventoryItem(BaseModel):
     """Tracks stock levels for each product variant."""
 
     __tablename__ = "inventory_items"
-    __table_args__ = (Index("ix_inventory_items_variant_id", "variant_id"),)
+    __table_args__ = (
+        Index("ix_inventory_items_variant_id", "variant_id"),
+        CheckConstraint("available >= 0", name="ck_inventory_available_non_negative"),
+        CheckConstraint("reserved >= 0", name="ck_inventory_reserved_non_negative"),
+        CheckConstraint("committed >= 0", name="ck_inventory_committed_non_negative"),
+    )
 
     variant_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),

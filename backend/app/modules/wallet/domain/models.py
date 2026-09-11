@@ -6,6 +6,7 @@ import uuid
 from sqlalchemy import (
     BigInteger,
     Boolean,
+    CheckConstraint,
     Enum,
     ForeignKey,
     Index,
@@ -37,7 +38,10 @@ class Wallet(BaseModel):
     """User digital wallet for in-platform balance."""
 
     __tablename__ = "wallets"
-    __table_args__ = (Index("ix_wallets_user_id", "user_id"),)
+    __table_args__ = (
+        Index("ix_wallets_user_id", "user_id"),
+        CheckConstraint("balance >= 0", name="ck_wallets_balance_non_negative"),
+    )
 
     user_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),

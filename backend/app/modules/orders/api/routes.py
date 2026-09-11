@@ -6,7 +6,7 @@ import uuid
 from datetime import datetime
 from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from fastapi.responses import HTMLResponse
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -17,6 +17,7 @@ from app.core.security.dependencies import (
     get_current_user_id,
 )
 from app.core.security.jwt import verify_token
+from app.core.security.rate_limiter import limiter
 from app.modules.orders.application import invoice_service, order_service
 from app.modules.orders.schemas.order import (
     AdminOrderUpdateRequest,
@@ -141,7 +142,9 @@ async def get_order_invoice(
     response_model=OrderResponse,
     summary="Cancel an order",
 )
+@limiter.limit("10/minute")
 async def cancel_order(
+    request: Request,
     order_id: uuid.UUID,
     body: OrderCancelRequest,
     db: AsyncSession = Depends(get_db),
@@ -169,7 +172,9 @@ async def get_order_timeline(
     status_code=status.HTTP_201_CREATED,
     summary="Request order return (RMA) within statutory 7-day window",
 )
+@limiter.limit("10/minute")
 async def request_order_return(
+    request: Request,
     order_id: uuid.UUID,
     body: ReturnCreateRequest,
     db: AsyncSession = Depends(get_db),

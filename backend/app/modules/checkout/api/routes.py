@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database.session import get_db
 from app.core.security.dependencies import get_current_user_id
+from app.core.security.rate_limiter import limiter
 from app.modules.checkout.application import checkout_service
 from app.modules.checkout.schemas.checkout import (
     CheckoutQuoteRequest,
@@ -52,6 +53,7 @@ async def validate_checkout(
     response_model=CreateOrderResponse,
     summary="Create order — full checkout flow",
 )
+@limiter.limit("10/minute")
 async def create_order(
     body: CreateOrderRequest,
     request: Request,

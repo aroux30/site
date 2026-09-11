@@ -99,6 +99,11 @@ class Settings(BaseSettings):
     PAYMENT_CALLBACK_BASE_URL: str = "http://localhost:3000/payment/callback"
     PAYMENT_SANDBOX: bool = True
     ORDER_PAYMENT_TIMEOUT_MINUTES: int = 60
+    # Number of trusted reverse proxies in front of the app (nginx = 1).
+    # Controls how many rightmost X-Forwarded-For hops are trusted.
+    TRUSTED_PROXY_COUNT: int = 1
+    # Minimum wallet top-up amount in IRR (TASK P6-02)
+    WALLET_TOPUP_MIN_IRIALS: int = 100_000
     NOWPAYMENTS_API_KEY: str = ""
     NOWPAYMENTS_SANDBOX: bool = True
     NOWPAYMENTS_IPN_SECRET: str = ""

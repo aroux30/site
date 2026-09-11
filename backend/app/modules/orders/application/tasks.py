@@ -78,6 +78,28 @@ async def _cancel_stale_pending_orders_async() -> dict[str, Any]:
                         ),
                     )
                 )
+                try:
+                    from app.shared.events.outbox_service import OutboxService
+
+                    await OutboxService.publish(
+                        db,
+                        event_type="OrderCanceled",
+                        aggregate_type="order",
+                        aggregate_id=str(order.id),
+                        payload={
+                            "order_id": str(order.id),
+                            "order_number": order.order_number,
+                            "initiated_by": "system",
+                            "reason": "payment_timeout",
+                        },
+                    )
+                except Exception as exc:
+                    await logger.awarning(
+                        "order_event_publish_skipped",
+                        event_type="OrderCanceled",
+                        order_id=str(order.id),
+                        error=str(exc),
+                    )
                 cancelled += 1
 
             await db.commit()

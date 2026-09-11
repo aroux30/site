@@ -15,7 +15,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { fetchBlogPostBySlug, fallbackPosts } from "@/lib/api/blog";
+import { fetchBlogPostBySlug } from "@/lib/api/blog";
 
 interface BlogPostPageProps {
   params: Promise<{

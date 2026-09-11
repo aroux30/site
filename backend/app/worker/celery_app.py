@@ -157,4 +157,10 @@ celery_app.conf.beat_schedule = {
         "schedule": crontab(hour=8, minute=0),
         "options": {"queue": "default"},
     },
+    # Reconcile wallet cached balances with the ledger nightly (TASK P2-02)
+    "reconcile-wallet-balances": {
+        "task": "app.modules.wallet.application.tasks.reconcile_wallet_balances",
+        "schedule": crontab(hour=2, minute=30),
+        "options": {"queue": "default"},
+    },
 }

@@ -283,6 +283,108 @@ async def create_payment(
     return PaymentResponse.model_validate(payment)
 
 
+async def create_wallet_topup(
+    db: AsyncSession,
+    *,
+    user_id: uuid.UUID,
+    provider: str,
+    amount: int,
+    idempotency_key: str | None = None,
+) -> PaymentResponse:
+    """Create a wallet top-up payment (no order).
+
+    The payment carries ``extra_data.purpose = "wallet_topup"`` and
+    ``extra_data.wallet_user_id``; on gateway verification the owner's
+    wallet is credited inside the payment-completion transaction.
+    """
+    settings = get_settings()
+    if amount < settings.WALLET_TOPUP_MIN_IRIALS:
+        raise ValidationError(
+            detail=(f"Minimum top-up amount is {settings.WALLET_TOPUP_MIN_IRIALS} IRR"),
+            error_code="TOPUP_AMOUNT_TOO_LOW",
+        )
+    if provider.lower() == PaymentProviderEnum.WALLET.value:
+        raise ValidationError(
+            detail="Wallet top-up cannot be paid from the wallet itself",
+            error_code="INVALID_TOPUP_PROVIDER",
+        )
+
+    await logger.ainfo(
+        "wallet_topup_create_start",
+        user_id=str(user_id),
+        provider=provider,
+        amount=amount,
+    )
+
+    provider_enum = PaymentProviderEnum(provider.lower())
+    payment = Payment(
+        order_id=None,
+        amount=amount,
+        provider=provider_enum,
+        status=PaymentStatus.PENDING,
+        idempotency_key=idempotency_key,
+        extra_data={
+            "purpose": "wallet_topup",
+            "wallet_user_id": str(user_id),
+        },
+    )
+    db.add(payment)
+    try:
+        await db.flush()
+    except IntegrityError:
+        if idempotency_key:
+            stmt = select(Payment).where(Payment.idempotency_key == idempotency_key)
+            result = await db.execute(stmt)
+            existing = result.scalar_one_or_none()
+            if existing is not None:
+                return PaymentResponse.model_validate(existing)
+        raise
+
+    gateway_provider = get_payment_provider(provider.lower())
+    callback_url = _build_callback_url(provider.lower(), payment.id)
+    gateway_result = await gateway_provider.create_payment(
+        amount=amount,
+        order_id=payment.id,  # top-up payments use their own id as reference
+        callback_url=callback_url,
+        description="شارژ کیف پول",
+    )
+    await _record_transaction(
+        db,
+        payment_id=payment.id,
+        amount=amount,
+        tx_type=PaymentTransactionType.CHARGE,
+        status="success" if gateway_result.success else "failed",
+        provider_response=gateway_result.raw_response,
+    )
+    if not gateway_result.success:
+        payment.status = PaymentStatus.FAILED
+        payment.extra_data = {
+            **(payment.extra_data or {}),
+            "error_code": gateway_result.error_code,
+            "error_message": gateway_result.error_message,
+        }
+        await db.flush()
+        raise PaymentError(
+            detail=gateway_result.error_message or "Payment gateway error",
+            error_code="GATEWAY_ERROR",
+        )
+
+    payment.authority = gateway_result.authority
+    payment.gateway_url = gateway_result.gateway_url
+    payment.extra_data = {
+        **(payment.extra_data or {}),
+        **(gateway_result.raw_response or {}),
+    }
+    payment.status = PaymentStatus.PROCESSING
+    await db.flush()
+    await logger.ainfo(
+        "wallet_topup_created",
+        payment_id=str(payment.id),
+        user_id=str(user_id),
+    )
+    return PaymentResponse.model_validate(payment)
+
+
 async def verify_payment(
     db: AsyncSession,
     *,
@@ -319,12 +421,17 @@ async def verify_payment(
     if payment is None:
         raise NotFoundError(resource="Payment")
 
-    # Customer-facing verification is restricted to the order owner.
+    # Customer-facing verification is restricted to the payment owner:
+    # order payments via the order, wallet top-ups via extra_data.
+    extra = payment.extra_data or {}
     if user_id is not None and payment.order_id:
         from app.modules.orders.domain.models import Order
 
         order = await db.get(Order, payment.order_id)
         if order is None or order.user_id != user_id:
+            raise NotFoundError(resource="Payment")
+    elif user_id is not None and extra.get("purpose") == "wallet_topup":
+        if extra.get("wallet_user_id") != str(user_id):
             raise NotFoundError(resource="Payment")
 
     # Ensure the payment is in a verifiable state
@@ -395,6 +502,26 @@ async def verify_payment(
     )
 
     if result.success:
+        # Wallet top-ups (no order) credit the owner's wallet inside the same
+        # locked transaction that completes the payment. Idempotency comes
+        # from the payment status guard above (row is locked).
+        if (payment.extra_data or {}).get("purpose") == "wallet_topup":
+            import uuid as uuid_mod
+
+            from app.modules.wallet.application import wallet_service
+            from app.modules.wallet.domain.models import WalletTransactionType
+
+            topup_user = uuid_mod.UUID(str((payment.extra_data or {}).get("wallet_user_id")))
+            await wallet_service.credit(
+                db,
+                user_id=topup_user,
+                amount=payment.amount,
+                tx_type=WalletTransactionType.CREDIT,
+                reference_type="wallet_topup",
+                reference_id=payment.id,
+                description="شارژ کیف پول از طریق درگاه پرداخت",
+            )
+
         # Internal wallet payments are charged here: the wallet debit must
         # happen inside the same locked transaction that completes the
         # payment, otherwise the order would be confirmed for free.
@@ -453,8 +580,9 @@ async def verify_payment(
         }
 
         # Transition associated order from PENDING to CONFIRMED
+        # (skipped for orderless wallet top-ups).
         order_confirmed = False
-        if payment.order_id:
+        if payment.order_id and (payment.extra_data or {}).get("purpose") != "wallet_topup":
             from app.modules.orders.domain.models import Order, OrderStatus, OrderStatusHistory
 
             order_stmt = select(Order).where(Order.id == payment.order_id).with_for_update()
@@ -797,6 +925,29 @@ async def refund_payment(
                 )
                 db.add(history)
     await db.flush()
+
+    try:
+        from app.shared.events.outbox_service import OutboxService
+
+        await OutboxService.publish(
+            db,
+            event_type="RefundProcessed",
+            aggregate_type="payment",
+            aggregate_id=str(payment.id),
+            payload={
+                "payment_id": str(payment.id),
+                "order_id": str(payment.order_id) if payment.order_id else None,
+                "refund_id": str(refund.id),
+                "amount": amount,
+                "status": refund_status.value,
+            },
+        )
+    except Exception as exc:
+        await logger.awarning(
+            "refund_event_publish_skipped",
+            payment_id=str(payment_id),
+            error=str(exc),
+        )
 
     await logger.ainfo(
         "payment_refund_recorded",

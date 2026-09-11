@@ -72,199 +72,6 @@ const Product3DViewer = dynamic(
 /*                               Fallback Data                                */
 /* -------------------------------------------------------------------------- */
 
-const fallbackProduct: ApiProductDetail = {
-  id: "samsung-galaxy-s24-ultra",
-  name: "گوشی موبایل سامسونگ Galaxy S24 Ultra",
-  slug: "samsung-galaxy-s24-ultra",
-  category_id: "cat-phones",
-  brand_id: "brand-samsung",
-  min_price: 65000000,
-  max_price: 72000000,
-  variant_count: 3,
-  is_active: true,
-  is_featured: true,
-  short_description:
-    "مجهز به پردازنده اسنپ‌دراگون ۸ نسل ۳، بدنه تیتانیوم، دوربین ۲۰۰ مگاپیکسل و هوش مصنوعی Galaxy AI",
-  description: `گوشی پرچمدار سامسونگ گلکسی اس ۲۴ اولترا با فریم مستحکم تیتانیومی و نمایشگر تخت ۶.۸ اینچی Dynamic AMOLED 2X یکی از پیشرفته‌ترین گوشی‌های هوشمند حال حاضر بازار است.
-
-این مدل با قلم داخلی S-Pen و پشتیبانی اختصاصی از قابلیت‌های هوش مصنوعی Galaxy AI شامل ترجمه همزمان مکالمات صوتی، جستجوی هوشمند Circle to Search و ویرایش هوشمندانه تصاویر، سطح جدیدی از کاربری را ارائه می‌دهد.
-
-سنسور دوربین ۲۰۰ مگاپیکسلی با پردازش تصویر پیشرفته در محیط‌های کم‌نور، همراه با زوم اپتیکال ۵ برابری و ۱۰ برابری بدون افت کیفیت، تصاویری استثنایی را ثبت می‌کند. باتری ۵۰۰۰ میلی‌آمپر ساعتی با پشتیبانی از شارژ سریع ۴۵ وات تضمین می‌کند که در طول کارهای روزمره شارژ کم نیاورید.`,
-  category: {
-    id: "cat-phones",
-    name: "موبایل و تبلت",
-    slug: "phones",
-    is_active: true,
-  },
-  brand: {
-    id: "brand-samsung",
-    name: "سامسونگ (Samsung)",
-    slug: "samsung",
-    is_active: true,
-  },
-  variants: [
-    {
-      id: "var-1",
-      product_id: "samsung-galaxy-s24-ultra",
-      sku: "S24U-TIT-BLACK-256",
-      price: 65000000,
-      compare_at_price: 72000000,
-      is_active: true,
-      position: 1,
-      attributes: {
-        "رنگ": "مشکی تیتانیوم",
-        "حافظه": "۲۵۶ گیگابایت",
-        "رم": "۱۲ گیگابایت",
-      },
-    },
-    {
-      id: "var-2",
-      product_id: "samsung-galaxy-s24-ultra",
-      sku: "S24U-TIT-GRAY-512",
-      price: 69500000,
-      compare_at_price: 76000000,
-      is_active: true,
-      position: 2,
-      attributes: {
-        "رنگ": "خاکستری تیتانیوم",
-        "حافظه": "۵۱۲ گیگابایت",
-        "رم": "۱۲ گیگابایت",
-      },
-    },
-    {
-      id: "var-3",
-      product_id: "samsung-galaxy-s24-ultra",
-      sku: "S24U-TIT-VIOLET-1TB",
-      price: 78000000,
-      compare_at_price: 84000000,
-      is_active: false,
-      position: 3,
-      attributes: {
-        "رنگ": "بنفش تیتانیوم",
-        "حافظه": "۱ ترابایت",
-        "رم": "۱۲ گیگابایت",
-      },
-    },
-  ],
-  images: [
-    {
-      id: "img-1",
-      product_id: "samsung-galaxy-s24-ultra",
-      url: "https://images.unsplash.com/photo-1610945265064-0e34e5519bbf?w=800&q=80",
-      alt_text: "نمای روبرو گلکسی اس ۲۴ اولترا",
-      position: 1,
-      is_primary: true,
-    },
-    {
-      id: "img-2",
-      product_id: "samsung-galaxy-s24-ultra",
-      url: "https://images.unsplash.com/photo-1598327105666-5b89351aff97?w=800&q=80",
-      alt_text: "نمای پشت و دوربین‌ها",
-      position: 2,
-      is_primary: false,
-    },
-    {
-      id: "img-3",
-      product_id: "samsung-galaxy-s24-ultra",
-      url: "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=800&q=80",
-      alt_text: "قلم اس پن و فریم تیتانیوم",
-      position: 3,
-      is_primary: false,
-    },
-  ],
-  tags: [
-    { id: "t1", name: "پرچمدار", slug: "flagship" },
-    { id: "t2", name: "هوش مصنوعی", slug: "ai" },
-    { id: "t3", name: "سامسونگ", slug: "samsung" },
-  ],
-  product_attributes: [
-    {
-      id: "pa-1",
-      product_id: "samsung-galaxy-s24-ultra",
-      attribute_id: "a1",
-      attribute_value_id: "av1",
-      attribute_name: "پردازنده",
-      attribute_value: "Qualcomm Snapdragon 8 Gen 3 for Galaxy (۴ نانومتر)",
-    },
-    {
-      id: "pa-2",
-      product_id: "samsung-galaxy-s24-ultra",
-      attribute_id: "a2",
-      attribute_value_id: "av2",
-      attribute_name: "صفحه نمایش",
-      attribute_value: "۶.۸ اینچ Dynamic LTPO AMOLED 2X, ۱۲۰ هرتز, ۲۶۰۰ نیت",
-    },
-    {
-      id: "pa-3",
-      product_id: "samsung-galaxy-s24-ultra",
-      attribute_id: "a3",
-      attribute_value_id: "av3",
-      attribute_name: "دوربین اصلی",
-      attribute_value: "۲۰۰ مگاپیکسل واید + ۵۰ مگاپیکسل تله پریسکوپ + ۱۲ مگاپیکسل اولتراواید",
-    },
-    {
-      id: "pa-4",
-      product_id: "samsung-galaxy-s24-ultra",
-      attribute_id: "a4",
-      attribute_value_id: "av4",
-      attribute_name: "باتری و شارژ",
-      attribute_value: "۵۰۰۰ میلی‌آمپر ساعت با پشتیبانی از فست شارژ ۴۵ وات و شارژ وایرلس",
-    },
-    {
-      id: "pa-5",
-      product_id: "samsung-galaxy-s24-ultra",
-      attribute_id: "a5",
-      attribute_value_id: "av5",
-      attribute_name: "مقاومت در برابر آب",
-      attribute_value: "گواهی رسمی IP68 (مقاومت تا عمق ۱.۵ متر به مدت ۳۰ دقیقه)",
-    },
-  ],
-};
-
-const fallbackReviews: ApiReviewItem[] = [
-  {
-    id: "rev-1",
-    user: { id: "u-1", display_name: "علیرضا رضایی" },
-    product_id: "samsung-galaxy-s24-ultra",
-    rating: 5,
-    title: "شاهکار واقعی سامسونگ!",
-    body: "واقعاً از خریدش بسیار راضی‌ام. نمایشگر تخت فوق‌العاده‌ست و عملکرد هوش مصنوعی در ترجمه و ادیت عکس حیرت‌انگیزه. باتری هم به‌راحتی یک روز و نیم جواب میده.",
-    pros: ["کیفیت ساخت تیتانیومی بی‌نظیر", "دوربین فوق‌العاده قوی", "امکانات کاربردی هوش مصنوعی"],
-    cons: ["قیمت نسبتاً بالا", "شارژر درون جعبه قرار ندارد"],
-    is_verified_purchase: true,
-    helpful_count: 14,
-    unhelpful_count: 1,
-    created_at: "2024-08-15T10:30:00Z",
-  },
-  {
-    id: "rev-2",
-    user: { id: "u-2", display_name: "سارا محمدیان" },
-    product_id: "samsung-galaxy-s24-ultra",
-    rating: 4,
-    title: "گوشی بی‌نقص اما کمی سنگین",
-    body: "کیفیت صفحه نمایش و روشنایی زیر نور آفتاب فوق‌العاده است. زوم دوربین بی‌رقیبه. فقط برای دست‌های ظریف مقداری سنگین و بزرگه.",
-    pros: ["روشنایی فوق‌العاده نمایشگر", "قلم روان S-Pen", "سرعت اجرای تمام برنامه‌ها"],
-    cons: ["وزن سنگین برای استفاده طولانی مدت"],
-    is_verified_purchase: true,
-    helpful_count: 9,
-    unhelpful_count: 0,
-    created_at: "2024-08-10T14:20:00Z",
-  },
-];
-
-const fallbackStats: ApiReviewStats = {
-  average_rating: 4.7,
-  total_reviews: 2,
-  distribution: {
-    star_1: 0,
-    star_2: 0,
-    star_3: 0,
-    star_4: 1,
-    star_5: 1,
-  },
-  verified_count: 2,
-};
-
 /* -------------------------------------------------------------------------- */
 /*                               PDP Component                                */
 /* -------------------------------------------------------------------------- */
@@ -280,11 +87,14 @@ export default function ProductDetailPage() {
   const {
     data: fetchedProduct,
     isLoading: loading,
+    isError: productError,
+    refetch: refetchProduct,
   } = useProduct(slug);
 
-  const product: ApiProductDetail = fetchedProduct && fetchedProduct.name
-    ? fetchedProduct
-    : fallbackProduct;
+  // No fabricated demo product: while loading we show skeletons, on failure
+  // an error state, and a missing product never silently appears.
+  const product: ApiProductDetail | undefined =
+    fetchedProduct && fetchedProduct.name ? fetchedProduct : undefined;
 
   // Variant & Selection
   const [selectedVariantIndex, setSelectedVariantIndex] = useState(0);
@@ -302,15 +112,13 @@ export default function ProductDetailPage() {
   const {
     data: reviewsData,
     isLoading: reviewsLoading,
-  } = useReviews(product.id);
+  } = useReviews(product?.id ?? ""); // disabled until a product loads
 
-  const reviews: ApiReviewItem[] =
-    reviewsData?.reviews && reviewsData.reviews.length > 0
-      ? reviewsData.reviews
-      : fallbackReviews;
+  const reviews: ApiReviewItem[] = reviewsData?.reviews ?? [];
 
   const reviewStats: ApiReviewStats =
-    reviewsData?.stats || fallbackStats;
+    reviewsData?.stats ??
+    ({ average_rating: 0, total_reviews: 0 } as unknown as ApiReviewStats);
 
   // ---------- TanStack Query: Submit Review Mutation ----------
   const submitReviewMutation = useSubmitReview();
@@ -343,21 +151,21 @@ export default function ProductDetailPage() {
   }, [isAuthenticated]);
 
   useEffect(() => {
-    if (product.id) {
+    if (product?.id) {
       checkWishlistStatus(product.id);
     }
-  }, [product.id, checkWishlistStatus]);
+  }, [product?.id, checkWishlistStatus]);
 
-  // Selected variant derivation
+  // Selected variant derivation (below the not-found/error early returns)
   const currentVariant: ApiProductVariant | undefined =
-    product.variants && product.variants.length > 0
+    product && product.variants && product.variants.length > 0
       ? product.variants[selectedVariantIndex] || product.variants[0]
       : undefined;
 
-  const currentPrice = currentVariant?.price ?? (product.min_price || 0);
+  const currentPrice = currentVariant?.price ?? (product?.min_price || 0);
   const originalPrice =
     currentVariant?.compare_at_price ??
-    (product.max_price && product.max_price > currentPrice
+    (product?.max_price && product.max_price > currentPrice
       ? product.max_price
       : undefined);
 
@@ -371,19 +179,18 @@ export default function ProductDetailPage() {
 
   // Image list
   const displayImages = useMemo(() => {
-    if (product.images && product.images.length > 0) {
+    if (product?.images && product.images.length > 0) {
       return product.images.map((img) => img.url);
     }
-    if (product.primary_image_url) {
+    if (product?.primary_image_url) {
       return [product.primary_image_url];
     }
-    return [
-      "https://images.unsplash.com/photo-1610945265064-0e34e5519bbf?w=800&q=80",
-    ];
+    return [];
   }, [product]);
 
   // Handle Add to Cart
   const handleAddToCart = () => {
+    if (!product) return;
     if (isOutOfStock) return;
 
     playAddToCartChime();
@@ -411,6 +218,7 @@ export default function ProductDetailPage() {
 
   // Handle Wishlist Toggle
   const handleToggleWishlist = async () => {
+    if (!product) return;
     setWishlistLoading(true);
     try {
       await toggleWishlistMutation.mutateAsync({
@@ -426,9 +234,10 @@ export default function ProductDetailPage() {
     }
   };
 
-  const inCompare = isInCompare(product.id);
+  const inCompare = isInCompare(product?.id ?? "");
 
   const handleToggleCompare = () => {
+    if (!product) return;
     const productForCompare: Product = {
       id: product.id,
       title: product.name,
@@ -484,6 +293,7 @@ export default function ProductDetailPage() {
   // Submit Review Form
   const handleReviewSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!product) return;
     if (!formBody.trim()) {
       setReviewSubmitError("لطفاً متن نظر خود را وارد کنید.");
       return;
@@ -529,7 +339,46 @@ export default function ProductDetailPage() {
     }
   };
 
-  if (loading && !product?.name) {
+  // Unified guard: while loading → skeleton; API failure → error + retry;
+  // unknown slug → not-found. After this block `product` is defined.
+  if (!product) {
+    if (productError && !loading) {
+      return (
+        <div className="container mx-auto flex min-h-[50vh] max-w-lg flex-col items-center justify-center py-16 text-center">
+          <Package className="mb-3 h-16 w-16 text-destructive/40" />
+          <h1 className="mb-1 text-lg font-bold text-foreground">
+            خطا در دریافت محصول
+          </h1>
+          <p className="mb-6 text-sm text-muted-foreground">
+            ارتباط با سرور برقرار نشد. لطفاً دوباره تلاش کنید.
+          </p>
+          <div className="flex gap-3">
+            <Button onClick={() => refetchProduct()}>تلاش مجدد</Button>
+            <Button asChild variant="outline">
+              <Link href="/products">بازگشت به محصولات</Link>
+            </Button>
+          </div>
+        </div>
+      );
+    }
+
+    if (!loading) {
+      return (
+        <div className="container mx-auto flex min-h-[50vh] max-w-lg flex-col items-center justify-center py-16 text-center">
+          <Package className="mb-3 h-16 w-16 text-muted-foreground/40" />
+          <h1 className="mb-1 text-lg font-bold text-foreground">
+            محصول مورد نظر یافت نشد
+          </h1>
+          <p className="mb-6 text-sm text-muted-foreground">
+            ممکن است این محصول حذف شده یا آدرس آن اشتباه باشد.
+          </p>
+          <Button asChild>
+            <Link href="/products">مشاهده محصولات</Link>
+          </Button>
+        </div>
+      );
+    }
+
     return (
       <div className="container mx-auto px-4 py-10 space-y-10">
         <Skeleton className="h-6 w-64" />

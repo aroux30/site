@@ -39,7 +39,27 @@ export const metadata: Metadata = {
 };
 
 // Authoritative featured products for instant server-rendered HTML
-const featuredProducts: ApiProduct[] = [
+// Featured products are fetched server-side (ISR, 5 min). When the API is
+// unreachable the section is hidden — no fabricated demo products.
+async function getFeaturedProducts(): Promise<ApiProduct[]> {
+  const base =
+    process.env.INTERNAL_API_URL ||
+    process.env.NEXT_PUBLIC_API_URL ||
+    "http://localhost:8000/api/v1";
+  try {
+    const res = await fetch(
+      `${base}/catalog/products?is_featured=true&is_active=true&page_size=6`,
+      { next: { revalidate: 300 } },
+    );
+    if (!res.ok) return [];
+    const data = (await res.json()) as { items?: ApiProduct[] };
+    return data.items ?? [];
+  } catch {
+    return [];
+  }
+}
+
+const featuredProducts: ApiProduct[] = [] = [
   {
     id: "prod-s24u",
     name: "گوشی موبایل سامسونگ گلکسی S24 Ultra",
@@ -120,7 +140,8 @@ const featuredProducts: ApiProduct[] = [
   },
 ];
 
-export default function HomePage() {
+export default async function HomePage() {
+  const featuredProducts = await getFeaturedProducts();
   return (
     <div className="flex flex-col min-h-screen">
       {/* ── 1. Hero Section (SSR Shell + Client 3D Island) ── */}
@@ -313,6 +334,7 @@ export default function HomePage() {
       </section>
 
       {/* ── 5. Flagship Products Grid (SSR Shell + Interactive Cards) ── */}
+      {featuredProducts.length > 0 && (
       <section className="py-14 sm:py-20">
         <div className="container mx-auto px-4 sm:px-6 max-w-7xl">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-10 gap-4">
@@ -345,6 +367,7 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+      )}
 
       {/* ── 6. Verified Customer Social Proof ── */}
       <section className="py-14 bg-muted/20 border-t border-border/60">

@@ -89,16 +89,19 @@ async def get_balance(
     if ledger_balance == 0 and wallet.balance == 0:
         return 0
 
-    # Prefer ledger-derived balance; reconcile cache if different
+    # The ledger SUM is the source of truth; the cached column is a mirror.
+    # Re-sync the cache on drift so the two never silently diverge.
     if ledger_balance != wallet.balance:
         await logger.awarning(
-            "wallet_balance_drift",
+            "wallet_balance_drift_reconciled",
             user_id=str(user_id),
             cached=wallet.balance,
             ledger=ledger_balance,
         )
+        wallet.balance = ledger_balance
+        await db.flush()
 
-    return wallet.balance
+    return ledger_balance
 
 
 async def credit(

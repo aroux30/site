@@ -14,6 +14,7 @@ from sqlalchemy import (
     Index,
     Integer,
     String,
+    UniqueConstraint,
 )
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -123,6 +124,11 @@ class CouponRedemption(BaseModel):
         Index("ix_coupon_redemptions_coupon_id", "coupon_id"),
         Index("ix_coupon_redemptions_user_id", "user_id"),
         Index("ix_coupon_redemptions_order_id", "order_id"),
+        UniqueConstraint(
+            "coupon_id",
+            "order_id",
+            name="uq_coupon_redemptions_coupon_order",
+        ),
     )
 
     coupon_id: Mapped[uuid.UUID] = mapped_column(

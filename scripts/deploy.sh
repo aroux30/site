@@ -54,10 +54,25 @@ if [[ "$ENVIRONMENT" != "staging" && "$ENVIRONMENT" != "production" ]]; then
     exit 1
 fi
 
-# Use environment-specific compose override if it exists
-if [ -f "${PROJECT_DIR}/docker-compose.${ENVIRONMENT}.yml" ]; then
-    COMPOSE_FILE="docker-compose.yml -f docker-compose.${ENVIRONMENT}.yml"
-fi
+# Resolve environment-specific compose override.
+# NOTE: the production hardening lives in docker-compose.prod.yml (there is
+# no docker-compose.production.yml); staging uses the base compose file.
+case "$ENVIRONMENT" in
+    production)
+        if [ ! -f "${PROJECT_DIR}/docker-compose.prod.yml" ]; then
+            error "docker-compose.prod.yml not found — production overrides (ports, limits, ES security) cannot be applied."
+            exit 1
+        fi
+        COMPOSE_FILE="docker-compose.yml -f docker-compose.prod.yml"
+        ;;
+    staging)
+        COMPOSE_FILE="docker-compose.yml"
+        ;;
+    *)
+        error "Unhandled environment: $ENVIRONMENT"
+        exit 1
+        ;;
+esac
 
 # Ensure log directory exists
 mkdir -p "${PROJECT_DIR}/logs"

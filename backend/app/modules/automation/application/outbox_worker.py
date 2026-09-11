@@ -1,4 +1,4 @@
-"""Celery background worker task for processing transactional outbox messages."""
+"""Celery background worker for processing transactional outbox messages."""
 
 from __future__ import annotations
 
@@ -14,6 +14,22 @@ from app.worker.celery_app import celery_app
 logger: structlog.stdlib.BoundLogger = structlog.get_logger(__name__)
 
 
+_ORDER_NOTIFICATIONS: dict[str, dict[str, str]] = {
+    "OrderConfirmed": {
+        "notification_type": "order_confirmed",
+        "title": "سفارش شما تأیید شد",
+    },
+    "PaymentCompleted": {
+        "notification_type": "payment_completed",
+        "title": "پرداخت شما با موفقیت انجام شد",
+    },
+    "OrderCanceled": {
+        "notification_type": "order_canceled",
+        "title": "سفارش شما لغو شد",
+    },
+}
+
+
 async def _handle_message(db: Any, event_type: str, payload: dict[str, Any]) -> None:
     """Route outbox message to the appropriate module handler."""
     if event_type in ("ProductCreated", "ProductUpdated", "ProductDeleted"):
@@ -27,15 +43,127 @@ async def _handle_message(db: Any, event_type: str, payload: dict[str, Any]) -> 
             except Exception as e:
                 logger.warning("outbox_search_dispatch_failed", error=str(e))
 
-    elif event_type == "OrderConfirmed":
-        # Order confirmation notification
-        order_id = payload.get("order_id")
-        logger.info("outbox_order_confirmed_handled", order_id=order_id)
+    elif event_type in _ORDER_NOTIFICATIONS:
+        spec = _ORDER_NOTIFICATIONS[event_type]
+        await _notify_order_event(
+            db,
+            event_type=event_type,
+            notification_type=spec["notification_type"],
+            title=spec["title"],
+            order_id=payload.get("order_id"),
+            data=payload,
+        )
 
-    elif event_type == "PaymentCompleted":
-        # Payment receipt notification
-        payment_id = payload.get("payment_id")
-        logger.info("outbox_payment_completed_handled", payment_id=payment_id)
+    elif event_type == "RefundProcessed":
+        await _notify_refund_event(db, payload)
+
+
+async def _notify_order_event(
+    db: Any,
+    *,
+    event_type: str,
+    notification_type: str,
+    title: str,
+    order_id: Any,
+    data: dict[str, Any],
+) -> None:
+    """Create the customer-facing in-app notification for an order event."""
+    if not order_id:
+        return
+    try:
+        import uuid as uuid_mod
+
+        from app.modules.notifications.application.notification_service import (
+            NotificationService,
+        )
+        from app.modules.orders.domain.models import Order
+
+        order = await db.get(Order, uuid_mod.UUID(str(order_id)))
+        if order is None:
+            logger.warning(
+                "outbox_order_not_found",
+                event_type=event_type,
+                order_id=str(order_id),
+            )
+            return
+
+        order_number = getattr(order, "order_number", "")
+        body = f"سفارش {order_number} به‌روزرسانی شد. برای جزئیات به بخش سفارش‌های خود مراجعه کنید."
+        notification = await NotificationService.create_notification(
+            db,
+            user_id=order.user_id,
+            type=notification_type,
+            title=title,
+            body=body,
+            data=data,
+        )
+        _dispatch(str(notification.id))
+        logger.info(
+            "outbox_notification_created",
+            event_type=event_type,
+            notification_id=str(notification.id),
+        )
+    except Exception as exc:
+        # Let the outbox retry mechanism handle transient failures.
+        raise RuntimeError(f"notification handling failed for {event_type}: {exc}") from exc
+
+
+async def _notify_refund_event(db: Any, payload: dict[str, Any]) -> None:
+    """Create the customer-facing notification for a processed refund."""
+    order_id = payload.get("order_id")
+    if not order_id:
+        return
+    try:
+        import uuid as uuid_mod
+
+        from app.modules.notifications.application.notification_service import (
+            NotificationService,
+        )
+        from app.modules.orders.domain.models import Order
+
+        order = await db.get(Order, uuid_mod.UUID(str(order_id)))
+        if order is None:
+            logger.warning(
+                "outbox_order_not_found",
+                event_type="RefundProcessed",
+                order_id=str(order_id),
+            )
+            return
+
+        notification = await NotificationService.create_notification(
+            db,
+            user_id=order.user_id,
+            type="refund_processed",
+            title="بازگشت وجه انجام شد",
+            body=(
+                f"مبلغ بازگشتی برای سفارش {order.order_number} ثبت شد. "
+                "وجه حداکثر تا ۷۲ ساعت آینده به حساب یا کیف پول شما بازمی‌گردد."
+            ),
+            data=payload,
+        )
+        _dispatch(str(notification.id))
+        logger.info(
+            "outbox_notification_created",
+            event_type="RefundProcessed",
+            notification_id=str(notification.id),
+        )
+    except Exception as exc:
+        raise RuntimeError(f"notification handling failed for RefundProcessed: {exc}") from exc
+
+
+def _dispatch(notification_id: str) -> None:
+    """Queue channel dispatch for a created notification (best-effort).
+
+    The in-app notification row already exists at this point; a failure to
+    enqueue channel delivery must never fail the outbox message (it would
+    duplicate the in-app notification on retry).
+    """
+    try:
+        from app.modules.notifications.application.tasks import send_notification_task
+
+        send_notification_task.delay(notification_id)
+    except Exception as exc:
+        logger.warning("notification_dispatch_enqueue_failed", error=str(exc))
 
 
 async def _drain_outbox_async(batch_size: int = 50) -> dict[str, Any]:

@@ -479,6 +479,34 @@ class NowPaymentsProvider(PaymentProvider):
 
         # Finished or confirmed means the blockchain transaction has settled
         if payment_status in ("finished", "confirmed", "sending"):
+            # Underpayment guard: `finished` alone does not mean fully paid.
+            # Compare what actually arrived against the invoice amount and
+            # refuse to settle shortfalls (they require manual review/refund).
+            expected_usd = self._convert_irr_to_usd(amount)
+            actually_paid = data.get("actually_paid")
+            outcome_amount = data.get("outcome_amount")
+            settled = actually_paid if actually_paid is not None else outcome_amount
+            if settled is not None:
+                tolerance = expected_usd * 0.01  # 1% network-fee tolerance
+                if float(settled) < float(expected_usd) - tolerance:
+                    await logger.aerror(
+                        "nowpayments_verify_underpaid",
+                        authority=authority,
+                        expected_usd=expected_usd,
+                        actually_paid=settled,
+                        payment_status=payment_status,
+                    )
+                    return PaymentResult(
+                        success=False,
+                        authority=authority,
+                        error_code="CRYPTO_UNDERPAID",
+                        error_message=(
+                            "Cryptocurrency payment is underpaid "
+                            f"({settled} received of {expected_usd} expected). "
+                            "Payment remains unsettled for manual review."
+                        ),
+                        raw_response=data,
+                    )
             ref_id = str(data.get("payment_id") or authority)
             await logger.ainfo(
                 "nowpayments_verify_success",

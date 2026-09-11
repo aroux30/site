@@ -22,13 +22,21 @@ settings = get_settings()
 
 
 def get_real_client_ip(request: Request) -> str:
-    """Safely extract client IP, prioritizing trusted reverse proxy headers."""
-    # 1. X-Forwarded-For (client, proxy1, proxy2, ...)
+    """Safely extract client IP, prioritizing trusted reverse proxy headers.
+
+    ``TRUSTED_PROXY_COUNT`` is the number of reverse proxies in front of the
+    app (default 1 behind nginx).  Only that many rightmost X-Forwarded-For
+    hops are trusted — everything to their left is client-supplied and
+    spoofable, so the *rightmost* trusted hop is used as the client address.
+    """
     forwarded = request.headers.get("x-forwarded-for")
     if forwarded:
-        client_ip = forwarded.split(",")[0].strip()
-        if client_ip:
-            return client_ip
+        hops = [h.strip() for h in forwarded.split(",") if h.strip()]
+        trusted = max(1, settings.trusted_proxy_count)
+        if len(hops) >= trusted:
+            client_ip = hops[-trusted]
+            if client_ip:
+                return client_ip
 
     # 2. X-Real-IP
     real_ip = request.headers.get("x-real-ip")

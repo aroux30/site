@@ -117,7 +117,8 @@ class PaymentResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: uuid.UUID
-    order_id: uuid.UUID
+    # None for wallet top-up payments (no order involved)
+    order_id: uuid.UUID | None
     amount: int
     currency: str
     provider: PaymentProvider

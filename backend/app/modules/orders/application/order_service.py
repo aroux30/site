@@ -269,6 +269,36 @@ async def get_order(
     return _build_order_response(order)
 
 
+async def _publish_order_event(
+    db: AsyncSession,
+    event_type: str,
+    order_id: uuid.UUID,
+    payload: dict[str, Any],
+) -> None:
+    """Publish an order lifecycle event to the transactional outbox.
+
+    Failures are logged, never raised: notifications/analytics must not
+    break the order flow.
+    """
+    try:
+        from app.shared.events.outbox_service import OutboxService
+
+        await OutboxService.publish(
+            db,
+            event_type=event_type,
+            aggregate_type="order",
+            aggregate_id=str(order_id),
+            payload=payload,
+        )
+    except Exception as exc:
+        await logger.awarning(
+            "order_event_publish_skipped",
+            event_type=event_type,
+            order_id=str(order_id),
+            error=str(exc),
+        )
+
+
 async def cancel_order(
     db: AsyncSession,
     user_id: uuid.UUID,
@@ -328,6 +358,17 @@ async def cancel_order(
         changed_by=user_id,
         reason=reason,
         extra_data={"initiated_by": "customer"},
+    )
+    await _publish_order_event(
+        db,
+        "OrderCanceled",
+        order.id,
+        {
+            "order_id": str(order.id),
+            "order_number": order.order_number,
+            "initiated_by": "customer",
+            "reason": reason,
+        },
     )
 
     await db.refresh(order, attribute_names=["status_history"])
@@ -541,6 +582,17 @@ async def admin_update_status(
                 order_id=str(order.id),
                 error=str(exc),
             )
+        await _publish_order_event(
+            db,
+            "OrderCanceled",
+            order.id,
+            {
+                "order_id": str(order.id),
+                "order_number": order.order_number,
+                "initiated_by": "admin",
+                "reason": reason,
+            },
+        )
 
     await _record_status_change(
         db,

@@ -215,7 +215,7 @@ export function useBlogPosts(params?: BlogQueryParams) {
 
 /** Fetch a single blog post by slug */
 export function useBlogPost(slug: string) {
-  return useQuery<BlogPost>({
+  return useQuery<BlogPost | null>({
     queryKey: queryKeys.blog.post(slug),
     queryFn: () => fetchBlogPostBySlug(slug),
     enabled: !!slug,

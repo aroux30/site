@@ -6,6 +6,7 @@ from typing import Any
 
 from sqlalchemy import (
     BigInteger,
+    CheckConstraint,
     Enum,
     ForeignKey,
     Index,
@@ -91,6 +92,7 @@ class OrderItem(BaseModel):
     __table_args__ = (
         Index("ix_order_items_order_id", "order_id"),
         Index("ix_order_items_variant_id", "variant_id"),
+        CheckConstraint("quantity > 0", name="ck_order_items_quantity_positive"),
     )
 
     order_id: Mapped[uuid.UUID] = mapped_column(

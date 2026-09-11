@@ -18,6 +18,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from fastapi import HTTPException
+from starlette.requests import Request
 
 from app.core.exceptions.handlers import (
     ConflictError,
@@ -279,6 +280,9 @@ async def test_wallet_deposit_disabled_in_production():
         pytest.raises(HTTPException) as exc,
     ):
         await deposit(
+            Request(
+                {"type": "http", "method": "POST", "path": "/", "headers": []}
+            ),  # slowapi requires a real Request
             WalletDepositRequest(amount=100_000),
             user_id=uuid.uuid4(),
             db=MagicMock(),
@@ -399,3 +403,228 @@ async def test_stale_pending_orders_are_cancelled_and_restocked():
     ]
     assert len(history_added) == 1
     assert history_added[0].to_status == OrderStatus.CANCELED.value
+
+
+# ── P1-09: crypto underpayment guard ────────────────────────────────────
+
+
+def _crypto_real_verify_mock(actually_paid: float):
+    """Mock a NowPayments real-API poll response with the given paid amount."""
+    mock_resp = MagicMock()
+    mock_resp.status_code = 200
+    mock_resp.json.return_value = {
+        "payment_id": 5077125051,
+        "payment_status": "finished",
+        "actually_paid": actually_paid,
+        "pay_currency": "usdttrc20",
+    }
+    mock_resp.raise_for_status = MagicMock()
+    return mock_resp
+
+
+@pytest.mark.asyncio
+async def test_crypto_verify_rejects_underpayment():
+    """A `finished` payment that received only half the invoice must not settle."""
+    from app.modules.payments.infrastructure.providers.crypto import NowPaymentsProvider
+
+    provider = NowPaymentsProvider(api_key=f"test-key-{uuid.uuid4().hex[:12]}", sandbox=False)
+    with patch("httpx.AsyncClient.get", return_value=_crypto_real_verify_mock(25.0)):
+        result = await provider.verify_payment(authority="5077125051", amount=30_000_000)
+    assert result.success is False
+    assert result.error_code == "CRYPTO_UNDERPAID"
+
+
+@pytest.mark.asyncio
+async def test_crypto_verify_allows_full_payment_and_fee_tolerance():
+    """Full payment settles; a shortfall within the 1% fee tolerance settles."""
+    from app.modules.payments.infrastructure.providers.crypto import NowPaymentsProvider
+
+    provider = NowPaymentsProvider(api_key=f"test-key-{uuid.uuid4().hex[:12]}", sandbox=False)
+    with patch("httpx.AsyncClient.get", return_value=_crypto_real_verify_mock(50.0)):
+        result = await provider.verify_payment(authority="5077125051", amount=30_000_000)
+    assert result.success is True
+
+    with patch("httpx.AsyncClient.get", return_value=_crypto_real_verify_mock(49.7)):
+        result = await provider.verify_payment(authority="5077125051", amount=30_000_000)
+    assert result.success is True
+
+    with patch("httpx.AsyncClient.get", return_value=_crypto_real_verify_mock(49.0)):
+        result = await provider.verify_payment(authority="5077125051", amount=30_000_000)
+    assert result.success is False
+    assert result.error_code == "CRYPTO_UNDERPAID"
+
+
+# ── P6-02: wallet top-up via gateway ────────────────────────────────────
+
+
+def _mock_gateway_create():
+    """A gateway provider whose create_payment succeeds."""
+    gw = MagicMock()
+    gw.create_payment = AsyncMock(
+        return_value=SimpleNamespace(
+            success=True,
+            authority=f"TZP-{uuid.uuid4().hex[:12]}",
+            gateway_url="https://gateway.example/pay",
+            ref_id=None,
+            card_pan=None,
+            error_code=None,
+            error_message=None,
+            raw_response={"ref": "ok"},
+        )
+    )
+    gw.verify_payment = AsyncMock(
+        return_value=SimpleNamespace(
+            success=True,
+            authority="TZP-X",
+            ref_id="REF-1",
+            card_pan=None,
+            error_code=None,
+            error_message=None,
+            raw_response={},
+        )
+    )
+    return gw
+
+
+@pytest.mark.asyncio
+async def test_wallet_topup_credits_owner_on_verify():
+    """P6-02: a verified top-up credits the owner's wallet exactly once."""
+    from app.modules.payments.application import payment_service
+
+    user_id = uuid.uuid4()
+    db = MagicMock()
+
+    added = []
+
+    def _add(obj):
+        # emulate DB defaults applied on flush
+        if getattr(obj, "id", None) is None:
+            obj.id = uuid.uuid4()
+        if getattr(obj, "currency", None) is None:
+            obj.currency = "IRR"
+        if getattr(obj, "created_at", None) is None:
+            obj.created_at = datetime.now(UTC)
+            obj.updated_at = obj.created_at
+        added.append(obj)
+
+    db.add = MagicMock(side_effect=_add)
+    db.flush = AsyncMock()
+
+    gw = _mock_gateway_create()
+    payment = Payment(
+        id=uuid.uuid4(),
+        order_id=None,
+        amount=500_000,
+        currency="IRR",
+        provider=PaymentProvider.ZARINPAL,
+        status=PaymentStatus.PROCESSING,
+        authority="TZP-AUTH-1",
+        extra_data={"purpose": "wallet_topup", "wallet_user_id": str(user_id)},
+        created_at=datetime.now(UTC),
+        updated_at=datetime.now(UTC),
+    )
+
+    async def _get(model, pk, **kwargs):
+        return payment if model is Payment else None
+
+    db.get = AsyncMock(side_effect=_get)
+    db.execute = AsyncMock(return_value=MagicMock(scalar_one_or_none=MagicMock(return_value=None)))
+
+    credit = AsyncMock(return_value=MagicMock(id=uuid.uuid4()))
+    publish = AsyncMock()
+
+    with (
+        patch(
+            "app.modules.payments.application.payment_service.get_payment_provider",
+            return_value=gw,
+        ),
+        patch("app.modules.wallet.application.wallet_service.credit", new=credit),
+        patch("app.shared.events.outbox_service.OutboxService.publish", new=publish),
+    ):
+        # creation
+        created = await payment_service.create_wallet_topup(
+            db,
+            user_id=user_id,
+            provider="zarinpal",
+            amount=500_000,
+            idempotency_key="topup-key-1",
+        )
+        assert created.gateway_url is not None
+        assert created.status == PaymentStatus.PROCESSING
+
+        # verification credits the wallet
+        resp = await payment_service.verify_payment(
+            db,
+            payment_id=payment.id,
+            authority="TZP-AUTH-1",
+            status="OK",
+            user_id=user_id,
+        )
+
+    assert resp.status == PaymentStatus.COMPLETED
+    credit.assert_awaited_once()
+    assert credit.await_args.kwargs["user_id"] == user_id
+    assert credit.await_args.kwargs["amount"] == 500_000
+    published = [c.kwargs["event_type"] for c in publish.await_args_list]
+    assert "PaymentCompleted" in published
+    assert "OrderConfirmed" not in published  # no order involved
+
+
+@pytest.mark.asyncio
+async def test_wallet_topup_rejects_other_user_verify():
+    """Only the top-up owner may verify it."""
+    from app.modules.payments.application import payment_service
+
+    owner_id = uuid.uuid4()
+    attacker_id = uuid.uuid4()
+    db = MagicMock()
+    db.add = MagicMock()
+    db.flush = AsyncMock()
+
+    payment = Payment(
+        id=uuid.uuid4(),
+        order_id=None,
+        amount=500_000,
+        currency="IRR",
+        provider=PaymentProvider.ZARINPAL,
+        status=PaymentStatus.PROCESSING,
+        authority="TZP-AUTH-2",
+        extra_data={"purpose": "wallet_topup", "wallet_user_id": str(owner_id)},
+        created_at=datetime.now(UTC),
+        updated_at=datetime.now(UTC),
+    )
+
+    async def _get(model, pk, **kwargs):
+        return payment if model is Payment else None
+
+    db.get = AsyncMock(side_effect=_get)
+
+    with (
+        patch(
+            "app.modules.payments.application.payment_service.get_payment_provider",
+            return_value=_mock_gateway_create(),
+        ),
+        pytest.raises(NotFoundError),
+    ):
+        await payment_service.verify_payment(
+            db,
+            payment_id=payment.id,
+            authority="TZP-AUTH-2",
+            status="OK",
+            user_id=attacker_id,
+        )
+
+
+@pytest.mark.asyncio
+async def test_wallet_topup_rejects_below_minimum():
+    from app.modules.payments.application import payment_service
+
+    db = MagicMock()
+    with pytest.raises(ValidationError) as exc:
+        await payment_service.create_wallet_topup(
+            db,
+            user_id=uuid.uuid4(),
+            provider="zarinpal",
+            amount=1_000,
+        )
+    assert "Minimum top-up" in exc.value.detail

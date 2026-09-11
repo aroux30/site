@@ -5,17 +5,20 @@ from __future__ import annotations
 import uuid
 
 import structlog
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config.settings import get_settings
 from app.core.database.session import get_db
 from app.core.security.dependencies import get_current_user_id
+from app.core.security.rate_limiter import limiter
+from app.modules.payments.schemas.payment import PaymentResponse
 from app.modules.wallet.application import wallet_service
 from app.modules.wallet.domain.models import WalletTransactionType
 from app.modules.wallet.schemas.wallet import (
     WalletDepositRequest,
     WalletResponse,
+    WalletTopupRequest,
     WalletTransactionListResponse,
     WalletTransactionResponse,
     WalletWithdrawRequest,
@@ -77,7 +80,9 @@ async def list_transactions(
     status_code=201,
     summary="Deposit funds into wallet",
 )
+@limiter.limit("10/minute")
 async def deposit(
+    request: Request,
     body: WalletDepositRequest,
     user_id: uuid.UUID = Depends(get_current_user_id),
     db: AsyncSession = Depends(get_db),
@@ -111,6 +116,38 @@ async def deposit(
     )
 
 
+# ── Top-up via payment gateway (production path) ─────────────────────────
+
+
+@router.post(
+    "/topup",
+    response_model=PaymentResponse,
+    status_code=201,
+    summary="Start a wallet top-up payment through an online gateway",
+)
+@limiter.limit("10/minute")
+async def start_topup(
+    request: Request,
+    body: WalletTopupRequest,
+    user_id: uuid.UUID = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db),
+) -> PaymentResponse:
+    """Create a gateway-backed wallet top-up payment.
+
+    The returned ``gateway_url`` must be opened by the user; the wallet is
+    credited only after the gateway verifies the payment.
+    """
+    from app.modules.payments.application import payment_service
+
+    return await payment_service.create_wallet_topup(
+        db,
+        user_id=user_id,
+        provider=body.provider,
+        amount=body.amount,
+        idempotency_key=body.idempotency_key,
+    )
+
+
 # ── Withdraw ──────────────────────────────────────────────────────────────
 
 
@@ -120,7 +157,9 @@ async def deposit(
     status_code=201,
     summary="Withdraw funds from wallet",
 )
+@limiter.limit("10/minute")
 async def withdraw(
+    request: Request,
     body: WalletWithdrawRequest,
     user_id: uuid.UUID = Depends(get_current_user_id),
     db: AsyncSession = Depends(get_db),

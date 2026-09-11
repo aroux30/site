@@ -13,6 +13,7 @@ from app.core.security.dependencies import (
     RequirePermissions,
     get_current_user_id,
 )
+from app.core.security.rate_limiter import limiter
 from app.modules.payments.application import payment_service
 from app.modules.payments.infrastructure.provider_factory import get_payment_provider
 from app.modules.payments.schemas.payment import (
@@ -66,7 +67,9 @@ async def list_payment_methods() -> PaymentMethodsResponse:
     status_code=201,
     summary="Create a new payment",
 )
+@limiter.limit("10/minute")
 async def create_payment(
+    request: Request,
     body: PaymentCreateRequest,
     user_id: uuid.UUID = Depends(get_current_user_id),
     db: AsyncSession = Depends(get_db),
@@ -140,7 +143,9 @@ async def submit_card_receipt(
     response_model=PaymentResponse,
     summary="Verify a payment after gateway redirect",
 )
+@limiter.limit("30/minute")
 async def verify_payment(
+    request: Request,
     payment_id: uuid.UUID,
     body: PaymentVerifyRequest,
     user_id: uuid.UUID = Depends(get_current_user_id),

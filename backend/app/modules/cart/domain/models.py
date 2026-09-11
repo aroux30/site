@@ -6,6 +6,7 @@ from datetime import datetime
 
 from sqlalchemy import (
     BigInteger,
+    CheckConstraint,
     DateTime,
     Enum,
     ForeignKey,
@@ -71,6 +72,7 @@ class CartItem(BaseModel):
     __tablename__ = "cart_items"
     __table_args__ = (
         UniqueConstraint("cart_id", "variant_id", name="uq_cart_items_cart_variant"),
+        CheckConstraint("quantity > 0", name="ck_cart_items_quantity_positive"),
         Index("ix_cart_items_cart_id", "cart_id"),
         Index("ix_cart_items_variant_id", "variant_id"),
     )

@@ -68,3 +68,17 @@ class WalletTransactionListResponse(BaseModel):
     page: int
     page_size: int
     pages: int
+
+
+class WalletTopupRequest(BaseModel):
+    """Start a gateway-backed wallet top-up payment."""
+
+    model_config = ConfigDict(str_strip_whitespace=True)
+
+    provider: str = Field(
+        ..., description="Online gateway to pay with (zarinpal / idpay / crypto)"
+    )
+    amount: int = Field(..., gt=0, description="Top-up amount in IRR (Rials)")
+    idempotency_key: str | None = Field(
+        None, max_length=255, description="Client-generated idempotency key"
+    )

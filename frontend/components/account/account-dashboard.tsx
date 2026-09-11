@@ -173,208 +173,6 @@ const TICKET_PRIORITY_LABELS: Record<SupportTicket["priority"], string> = {
 /*  Initial Fallback Data                                              */
 /* ------------------------------------------------------------------ */
 
-const INITIAL_ORDERS: OrderDisplay[] = [
-  {
-    id: "ord-1",
-    orderNumber: "ORD-98214",
-    date: "۱۴۰۳/۰۶/۱۸",
-    total: 14_850_000,
-    status: "processing",
-    shippingAddress: "تهران، میدان ونک، خیابان ملاصدرا، پلاک ۴۲، واحد ۱۰",
-    trackingCode: "TRK-983104",
-    paymentMethod: "درگاه اینترنتی پاسارگاد",
-    items: [
-      {
-        id: "item-1",
-        title: "گوشی موبایل سامسونگ Galaxy A54 5G ظرفیت 256 رم 8",
-        quantity: 1,
-        price: 13_500_000,
-      },
-      {
-        id: "item-2",
-        title: "گلس محافظ صفحه نمایش و قاب سیلیکونی نیلکین",
-        quantity: 1,
-        price: 1_350_000,
-      },
-    ],
-  },
-  {
-    id: "ord-2",
-    orderNumber: "ORD-97550",
-    date: "۱۴۰۳/۰۵/۲۲",
-    total: 9_200_000,
-    status: "delivered",
-    shippingAddress: "تهران، خیابان ولیعصر، بعد از پارک ملت، کوچه بهار، پلاک ۱۵",
-    trackingCode: "TRK-741258",
-    paymentMethod: "کیف پول الکترونیکی",
-    items: [
-      {
-        id: "item-3",
-        title: "هدفون بی‌سیم سونی WH-1000XM5 نوک‌مدادی",
-        quantity: 1,
-        price: 9_200_000,
-      },
-    ],
-  },
-  {
-    id: "ord-3",
-    orderNumber: "ORD-96102",
-    date: "۱۴۰۳/۰۴/۱۴",
-    total: 3_450_000,
-    status: "shipped",
-    shippingAddress: "تهران، میدان ونک، خیابان ملاصدرا، پلاک ۴۲، واحد ۱۰",
-    trackingCode: "TRK-632190",
-    paymentMethod: "درگاه آنلاین سامان",
-    items: [
-      {
-        id: "item-4",
-        title: "ساعت هوشمند شیائومی Band 8 پرو مشکی",
-        quantity: 1,
-        price: 3_450_000,
-      },
-    ],
-  },
-  {
-    id: "ord-4",
-    orderNumber: "ORD-94110",
-    date: "۱۴۰۳/۰۳/۰۵",
-    total: 1_200_000,
-    status: "cancelled",
-    shippingAddress: "تهران، خیابان شریعتی، بن‌بست مینا",
-    paymentMethod: "درگاه آنلاین زرین‌پال",
-    items: [
-      {
-        id: "item-5",
-        title: "پاوربانک ۲۰ هزار میلی‌آمپر فست شارژ انکر",
-        quantity: 1,
-        price: 1_200_000,
-      },
-    ],
-  },
-];
-
-const INITIAL_ADDRESSES: AddressItem[] = [
-  {
-    id: "addr-1",
-    title: "منزل شخصی",
-    receiverName: "علی محمدی",
-    phone: "۰۹۱۲۳۴۵۶۷۸۹",
-    province: "تهران",
-    city: "تهران",
-    postalCode: "۱۹۳۹۵۴۷۸۹۱",
-    fullAddress: "خیابان ولیعصر، بالاتر از میدان ونک، کوچه شریفی، پلاک ۲۴، طبقه ۳، واحد ۶",
-    isDefault: true,
-  },
-  {
-    id: "addr-2",
-    title: "محل کار (شرکت نوآوران)",
-    receiverName: "علی محمدی",
-    phone: "۰۹۱۲۳۴۵۶۷۸۹",
-    province: "تهران",
-    city: "تهران",
-    postalCode: "۱۹۸۷۶۵۴۳۲۱",
-    fullAddress: "بزرگراه شهید همت، تقاطع شیراز جنوبی، برج فناوری طبقه ۱۰، واحد ۱۰۰۲",
-    isDefault: false,
-  },
-];
-
-const INITIAL_TRANSACTIONS: WalletTransaction[] = [
-  {
-    id: "tx-1",
-    type: "deposit",
-    amount: 5_000_000,
-    date: "۱۴۰۳/۰۶/۱۷",
-    description: "شارژ آنلاین حساب از درگاه زرین‌پال",
-    trackingCode: "TRX-7821045",
-    status: "success",
-  },
-  {
-    id: "tx-2",
-    type: "purchase",
-    amount: 9_200_000,
-    date: "۱۴۰۳/۰۵/۲۲",
-    description: "پرداخت فاکتور سفارش ORD-97550",
-    trackingCode: "TRX-6430129",
-    status: "success",
-  },
-  {
-    id: "tx-3",
-    type: "deposit",
-    amount: 10_000_000,
-    date: "۱۴۰۳/۰۵/۲۱",
-    description: "واریز اینترنتی به کیف پول",
-    trackingCode: "TRX-6399102",
-    status: "success",
-  },
-  {
-    id: "tx-4",
-    type: "refund",
-    amount: 1_200_000,
-    date: "۱۴۰۳/۰۳/۰۶",
-    description: "بازگشت وجه لغو سفارش ORD-94110",
-    trackingCode: "TRX-5120489",
-    status: "success",
-  },
-];
-
-const INITIAL_WISHLIST: WishlistItem[] = [
-  {
-    id: "wish-1",
-    productId: "p-101",
-    title: "لپ‌تاپ ۱۶ اینچی اپل مدل MacBook Pro M3 Pro",
-    slug: "macbook-pro-m3-pro",
-    price: 112_000_000,
-    originalPrice: 119_000_000,
-    inStock: true,
-    category: "لپ‌تاپ و اولترابوک",
-  },
-  {
-    id: "wish-2",
-    productId: "p-102",
-    title: "اسپیکر قابل حمل بلوتوثی هارمن کاردن مدل Onyx Studio 8",
-    slug: "harman-kardon-onyx-8",
-    price: 14_500_000,
-    originalPrice: null,
-    inStock: true,
-    category: "صوتی و هدفون",
-  },
-  {
-    id: "wish-3",
-    productId: "p-103",
-    title: "کنسول بازی سونی مدل PlayStation 5 Slim ریجن ژاپن",
-    slug: "ps5-slim-japan",
-    price: 33_900_000,
-    originalPrice: 35_500_000,
-    inStock: false,
-    category: "کنسول و بازی",
-  },
-];
-
-const INITIAL_TICKETS: SupportTicket[] = [
-  {
-    id: "tck-1",
-    ticketNumber: "TCK-4102",
-    subject: "پیگیری مرسوله پستی سفارش ORD-98214",
-    department: "پیگیری سفارش و ارسال",
-    priority: "high",
-    status: "answered",
-    createdAt: "۱۴۰۳/۰۶/۱۹",
-    updatedAt: "۱۴۰۳/۰۶/۱۹",
-    lastMessage: "مرسوله شما تحویل شرکت پست داده شده است و کد رهگیری TRK-983104 فعال می‌باشد.",
-  },
-  {
-    id: "tck-2",
-    ticketNumber: "TCK-3850",
-    subject: "درخواست فاکتور رسمی با گواهی ارزش افزوده",
-    department: "امور مالی و حسابداری",
-    priority: "medium",
-    status: "closed",
-    createdAt: "۱۴۰۳/۰۵/۱۴",
-    updatedAt: "۱۴۰۳/۰۵/۱۶",
-    lastMessage: "فاکتور رسمی به ایمیل شما ارسال شد.",
-  },
-];
-
 /* ------------------------------------------------------------------ */
 /*  Main Account Page Component                                        */
 /* ------------------------------------------------------------------ */
@@ -410,12 +208,12 @@ export function AccountDashboard({
   const [isChangingPassword, setIsChangingPassword] = useState(false);
 
   // Orders State
-  const [orders, setOrders] = useState<OrderDisplay[]>(INITIAL_ORDERS);
+  const [orders, setOrders] = useState<OrderDisplay[]>([]);
   const [isLoadingOrders, setIsLoadingOrders] = useState(false);
   const [selectedOrderForTracking, setSelectedOrderForTracking] = useState<OrderDisplay | null>(null);
 
   // Addresses State
-  const [addresses, setAddresses] = useState<AddressItem[]>(INITIAL_ADDRESSES);
+  const [addresses, setAddresses] = useState<AddressItem[]>([]);
   const [isLoadingAddresses, setIsLoadingAddresses] = useState(false);
   const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
   const [editingAddress, setEditingAddress] = useState<AddressItem | null>(null);
@@ -432,7 +230,7 @@ export function AccountDashboard({
 
   // Wallet State
   const [walletBalance, setWalletBalance] = useState<number>(5_800_000);
-  const [transactions, setTransactions] = useState<WalletTransaction[]>(INITIAL_TRANSACTIONS);
+  const [transactions, setTransactions] = useState<WalletTransaction[]>([]);
   const [isLoadingWallet, setIsLoadingWallet] = useState(false);
   const [isDepositModalOpen, setIsDepositModalOpen] = useState(false);
   const [depositAmount, setDepositAmount] = useState<string>("500000");
@@ -440,11 +238,11 @@ export function AccountDashboard({
   const [isDepositing, setIsDepositing] = useState(false);
 
   // Wishlist State
-  const [wishlist, setWishlist] = useState<WishlistItem[]>(INITIAL_WISHLIST);
+  const [wishlist, setWishlist] = useState<WishlistItem[]>([]);
   const [isLoadingWishlist, setIsLoadingWishlist] = useState(false);
 
   // Support Tickets State
-  const [tickets, setTickets] = useState<SupportTicket[]>(INITIAL_TICKETS);
+  const [tickets, setTickets] = useState<SupportTicket[]>([]);
   const [isLoadingTickets, setIsLoadingTickets] = useState(false);
   const [isTicketModalOpen, setIsTicketModalOpen] = useState(false);
   const [selectedTicketView, setSelectedTicketView] = useState<SupportTicket | null>(null);
@@ -539,7 +337,7 @@ export function AccountDashboard({
           apiClient.get("/wallet/transactions"),
         ]);
         if (walletRes.status === "fulfilled" && walletRes.value.data) {
-          setWalletBalance(walletRes.value.data.balance ?? 5_800_000);
+          setWalletBalance(walletRes.value.data.balance ?? 0);
         }
         if (txRes.status === "fulfilled" && txRes.value.data?.items) {
           const mappedTx: WalletTransaction[] = txRes.value.data.items.map((t: Record<string, unknown>) => ({
@@ -890,14 +688,20 @@ export function AccountDashboard({
 
     setIsDepositing(true);
     try {
-      // The server response is authoritative — a failed deposit must surface
-      // as an error, never as a fabricated success.
-      await apiClient.post("/wallet/deposit", {
-        amount: numericAmount,
-        gateway: depositGateway,
-      });
+      // Gateway-backed top-up: the wallet is credited server-side only
+      // after the gateway verifies the payment; here we just redirect.
+      const topupRes = await apiClient.post<{ gateway_url?: string | null }>(
+        "/wallet/topup",
+        {
+          provider: depositGateway,
+          amount: numericAmount,
+        },
+      );
 
-      setWalletBalance((prev) => prev + numericAmount);
+      if (topupRes.data?.gateway_url) {
+        window.location.href = topupRes.data.gateway_url;
+        return;
+      }
       setIsDepositModalOpen(false);
 
       toast({
@@ -2210,15 +2014,15 @@ export function AccountDashboard({
                 </button>
                 <button
                   type="button"
-                  onClick={() => setDepositGateway("saman")}
+                  onClick={() => setDepositGateway("idpay")}
                   className={`flex items-center gap-2.5 rounded-lg border p-3 text-xs font-semibold transition-all ${
-                    depositGateway === "saman"
+                    depositGateway === "idpay"
                       ? "border-primary bg-primary/5 text-primary"
                       : "border-border hover:border-border/80 text-foreground"
                   }`}
                 >
                   <Building2 className="h-4 w-4" />
-                  درگاه پرداخت سامان کیش
+                  درگاه پرداخت آی‌دی‌پی
                 </button>
               </div>
             </div>

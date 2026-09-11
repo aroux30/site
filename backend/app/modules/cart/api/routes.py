@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database.session import get_db
 from app.core.security.dependencies import get_current_user_id
+from app.core.security.rate_limiter import limiter
 from app.modules.cart.application import cart_service
 from app.modules.cart.schemas.cart import (
     CartItemCreate,
@@ -99,6 +100,7 @@ async def get_cart(
     response_model=CartResponse,
     summary="Add an item to the cart",
 )
+@limiter.limit("60/minute")
 async def add_cart_item(
     body: CartItemCreate,
     request: Request,
@@ -124,6 +126,7 @@ async def add_cart_item(
     response_model=CartResponse,
     summary="Update cart item quantity",
 )
+@limiter.limit("60/minute")
 async def update_cart_item(
     item_id: uuid.UUID,
     body: CartItemUpdate,
@@ -150,6 +153,7 @@ async def update_cart_item(
     response_model=CartResponse,
     summary="Remove an item from the cart",
 )
+@limiter.limit("60/minute")
 async def delete_cart_item(
     item_id: uuid.UUID,
     request: Request,
@@ -170,7 +174,9 @@ async def delete_cart_item(
     response_model=CartResponse,
     summary="Merge guest cart into authenticated user's cart",
 )
+@limiter.limit("10/minute")
 async def merge_carts(
+    request: Request,
     body: CartMergeRequest,
     user_id: uuid.UUID = Depends(get_current_user_id),
     db: AsyncSession = Depends(get_db),

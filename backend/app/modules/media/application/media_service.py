@@ -86,23 +86,55 @@ class MediaService:
         file_id = uuid.uuid4()
         storage_key = f"media/{file_id.hex[:2]}/{file_id.hex}_{safe_name}"
 
-        # Extract image dimensions if applicable
+        # Extract image dimensions & verify image if applicable
         width: Optional[int] = None
         height: Optional[int] = None
         if content_type.startswith("image/") and content_type != "image/svg+xml":
             try:
+                verify_img = Image.open(io.BytesIO(content))
+                verify_img.verify()
+
                 img = Image.open(io.BytesIO(content))
                 width, height = img.size
             except Exception as e:
-                logger.warning("image_dimension_extract_failed", error=str(e))
+                logger.warning("image_verification_failed", error=str(e))
+                if content_type in ("image/jpeg", "image/png", "image/webp"):
+                    raise ValidationError(
+                        detail="Corrupt or invalid image file",
+                        error_code="INVALID_IMAGE_FILE",
+                    )
 
-        # Local storage / MinIO URL resolution
-        local_upload_dir = os.path.join(settings.UPLOAD_DIR, "media")
+        # Storage directory resolution with fallback
+        base_dir = getattr(settings, "UPLOAD_DIR", "media")
+        try:
+            os.makedirs(base_dir, exist_ok=True)
+            probe = os.path.join(base_dir, f".probe_{uuid.uuid4().hex[:6]}")
+            with open(probe, "w") as f:
+                f.write("ok")
+            os.remove(probe)
+        except (PermissionError, OSError):
+            base_dir = os.path.join("/tmp", "media")
+            os.makedirs(base_dir, exist_ok=True)
+
+        local_upload_dir = os.path.join(base_dir, "media")
         os.makedirs(local_upload_dir, exist_ok=True)
         local_file_path = os.path.join(local_upload_dir, f"{file_id.hex}_{safe_name}")
 
         with open(local_file_path, "wb") as f:
             f.write(content)
+
+        # Generate WebP thumbnail for images
+        if width and height:
+            try:
+                img = Image.open(io.BytesIO(content))
+                thumb_img = img.copy()
+                thumb_img.thumbnail((200, 200))
+                thumb_dir = os.path.join(base_dir, "thumbnails")
+                os.makedirs(thumb_dir, exist_ok=True)
+                thumb_path = os.path.join(thumb_dir, f"thumb_{file_id.hex}.webp")
+                thumb_img.save(thumb_path, "WEBP", quality=85)
+            except Exception as e:
+                logger.warning("thumbnail_generation_failed", error=str(e))
 
         file_url = f"/uploads/media/{file_id.hex}_{safe_name}"
 

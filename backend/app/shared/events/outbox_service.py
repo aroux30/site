@@ -12,7 +12,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Any, Optional
 
 import structlog
-from sqlalchemy import select, update
+from sqlalchemy import and_, or_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.shared.events.outbox_models import OutboxMessage, OutboxStatus
@@ -62,20 +62,32 @@ class OutboxService:
         db: AsyncSession,
         batch_size: int = 50,
         worker_id: Optional[str] = None,
+        lease_timeout_seconds: int = 300,
     ) -> list[OutboxMessage]:
         """Claim a batch of pending/failed messages using SELECT FOR UPDATE SKIP LOCKED.
 
+        Includes messages stuck in PROCESSING whose lease has expired (worker crash recovery).
         Guarantees zero contention between concurrent worker processes.
         """
         now = datetime.now(timezone.utc)
+        lease_cutoff = now - timedelta(seconds=lease_timeout_seconds)
         resolved_worker_id = worker_id or f"{socket.gethostname()}-{uuid.uuid4().hex[:8]}"
 
-        # Claim messages that are either PENDING or FAILED with retries remaining
+        # Claim messages that are either PENDING, FAILED with retries remaining,
+        # OR PROCESSING with expired lease (worker crashed/timed out)
         stmt = (
             select(OutboxMessage)
             .where(
-                OutboxMessage.status.in_([OutboxStatus.PENDING, OutboxStatus.FAILED]),
-                OutboxMessage.available_at <= now,
+                or_(
+                    and_(
+                        OutboxMessage.status.in_([OutboxStatus.PENDING, OutboxStatus.FAILED]),
+                        OutboxMessage.available_at <= now,
+                    ),
+                    and_(
+                        OutboxMessage.status == OutboxStatus.PROCESSING,
+                        OutboxMessage.locked_at <= lease_cutoff,
+                    ),
+                ),
                 OutboxMessage.retry_count < OutboxMessage.max_retries,
             )
             .order_by(OutboxMessage.available_at.asc(), OutboxMessage.created_at.asc())

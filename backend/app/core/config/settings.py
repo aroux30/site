@@ -123,6 +123,7 @@ class Settings(BaseSettings):
     CELERY_RESULT_BACKEND: str = "redis://localhost:6379/2"
 
     # ── Misc ──────────────────────────────────────────────────────────────
+    UPLOAD_DIR: str = "media"
     ALLOWED_UPLOAD_EXTENSIONS: list[str] = Field(
         default=[".jpg", ".jpeg", ".png", ".webp", ".gif", ".pdf"]
     )

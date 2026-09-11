@@ -32,6 +32,13 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import { formatPrice, toPersianDigits, cn } from "@/lib/utils";
 import { playAddToCartChime } from "@/lib/audio-effects";
 import { useCart } from "@/hooks/use-cart";

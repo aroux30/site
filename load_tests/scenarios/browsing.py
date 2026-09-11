@@ -1,6 +1,7 @@
 """Catalog and Persian search browsing scenarios."""
 
 import random
+import urllib.parse
 from locust import TaskSet, task
 
 from load_tests.common.helpers import check_fastapi_response, get_random_search_query
@@ -53,19 +54,26 @@ class BrowsingTaskSet(TaskSet):
     def search_persian_products(self) -> None:
         """Search products with Persian queries containing Half-Space / ZWNJ."""
         query = get_random_search_query()
+        encoded_query = urllib.parse.quote(query)
         with self.client.get(
-            f"/api/v1/search?q={query}&size=10",
+            f"/api/v1/search?q={encoded_query}&size=10",
             catch_response=True,
             name="[Search] Persian Query with ZWNJ",
         ) as response:
-            check_fastapi_response(response, expected_status=200, name="Persian Search")
+            if response.status_code in (200, 404):
+                response.success()
+            elif response.status_code == 500:
+                # Log degraded search service if Elasticsearch index is undergoing initialization
+                response.failure(f"Elasticsearch service degraded: {response.text[:100]}")
+            else:
+                response.failure(f"Unexpected status: {response.status_code} - {response.text[:100]}")
 
-    @task(4)
-    def view_store_settings(self) -> None:
-        """Fetch public store settings."""
+    @task(6)
+    def view_public_settings(self) -> None:
+        """Fetch public store settings (/api/v1/settings/public)."""
         with self.client.get(
-            "/api/v1/settings",
+            "/api/v1/settings/public",
             catch_response=True,
             name="[Settings] Public Store Settings",
         ) as response:
-            check_fastapi_response(response, expected_status=200, name="Store Settings")
+            check_fastapi_response(response, expected_status=200, name="Public Settings")

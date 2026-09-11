@@ -1,0 +1,13 @@
+{
+  "timestamp": 1789116228.068816,
+  "target_host": "https://site.arouxpingg.com",
+  "simulated_users": 20,
+  "duration": "15s",
+  "total_requests": 74,
+  "total_failures": 20,
+  "failure_rate_pct": 27.027,
+  "latency_p50_ms": 150.0,
+  "latency_p95_ms": 2500.0,
+  "latency_p99_ms": 3100.0,
+  "throughput_rps": 5.262721437690631
+}

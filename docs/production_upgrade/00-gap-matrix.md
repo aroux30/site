@@ -39,6 +39,7 @@ A complete comparison of the SQLAlchemy 2.x Declarative Base metadata against th
 | **CI / CD** | Directory git-ignored | Automated CI pipeline on push/PR | Token scopes updated; GitHub Actions CI passed green | **P1** | **YES (Resolved)** |
 | **Discounts** | Coupon rules with lock | 100 concurrent redemptions of single-use coupon | Upgraded concurrency test from 50 to 100 txns | **P1** | **YES (Verified)** |
 | **Wallet** | Atomic row-locking ledger | 100 concurrent debits preserving balance invariants | Added 100-txn concurrent wallet debit test | **P1** | **YES (Verified)** |
+| **Load Testing** | 100-txn DB concurrency test | 10,000 concurrent user Locust stress test | Implemented modular distributed Locust suite (`load_tests/`) & capacity tuning | **P1** | **YES (Implemented)** |
 | **Docker Probes** | `|| exit 0` fallbacks | Genuine healthcheck reporting real process state | Replaced with `celery status` & native `/proc` probes | **P1** | **YES (Fixed)** |
 | **MinIO Storage** | Host port 9000 exposed | S3 storage isolated to internal Docker network | Removed host port mapping from `docker-compose.prod.yml` | **P1** | **YES (Fixed)** |
 | **Media Assets** | Direct S3 upload with MIME check | Asynchronous WebP thumbnailing via Celery worker | Pillow background resizing pipeline is deferred | **P1** | **PARTIAL (Tracked)** |

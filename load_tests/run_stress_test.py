@@ -134,19 +134,31 @@ def parse_and_display_summary(
     total_failures = 0
     endpoints = []
 
+    def safe_float(val: Any) -> float:
+        try:
+            return float(val) if val and str(val).strip() != "N/A" else 0.0
+        except (ValueError, TypeError):
+            return 0.0
+
+    def safe_int(val: Any) -> int:
+        try:
+            return int(val) if val and str(val).strip() != "N/A" else 0
+        except (ValueError, TypeError):
+            return 0
+
     try:
         with open(stats_file, mode="r", encoding="utf-8") as f:
             reader = csv.DictReader(f)
             for row in reader:
                 name = row.get("Name", "")
                 method = row.get("Type", "")
-                req_count = int(row.get("Request Count", 0) or 0)
-                fail_count = int(row.get("Failure Count", 0) or 0)
-                med_ms = float(row.get("Median Response Time", 0) or 0)
-                p95_ms = float(row.get("95%", 0) or row.get("95% Line", 0) or 0)
-                p99_ms = float(row.get("99%", 0) or row.get("99% Line", 0) or 0)
-                avg_ms = float(row.get("Average Response Time", 0) or 0)
-                rps = float(row.get("Requests/s", 0) or 0)
+                req_count = safe_int(row.get("Request Count", 0))
+                fail_count = safe_int(row.get("Failure Count", 0))
+                med_ms = safe_float(row.get("Median Response Time", 0))
+                p95_ms = safe_float(row.get("95%", 0) or row.get("95% Line", 0))
+                p99_ms = safe_float(row.get("99%", 0) or row.get("99% Line", 0))
+                avg_ms = safe_float(row.get("Average Response Time", 0))
+                rps = safe_float(row.get("Requests/s", 0))
 
                 if name == "Aggregated":
                     total_requests = req_count

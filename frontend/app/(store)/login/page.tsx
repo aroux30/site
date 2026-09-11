@@ -232,7 +232,7 @@ function LoginForm() {
     handleSendOtp();
   }, [countdown, isOtpSending, handleSendOtp]);
 
-  // Sync phone when switching tabs if empty
+  // Sync phone when switching tabs if empty, and reset stale OTP state
   const handleTabChange = (val: string) => {
     const tab = val as "password" | "otp";
     setActiveTab(tab);
@@ -240,6 +240,11 @@ function LoginForm() {
       setOtpPhone(phone);
     } else if (tab === "password" && !phone && otpPhone) {
       setPhone(otpPhone);
+    }
+    if (tab === "password" && otpStep === "code") {
+      setOtpStep("phone");
+      setOtpCode("");
+      setOtpError(null);
     }
   };
 

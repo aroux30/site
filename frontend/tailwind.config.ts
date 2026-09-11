@@ -116,6 +116,10 @@ const config: Config = {
           "0%": { transform: "translateZ(0) rotate(0)" },
           "100%": { transform: "translateZ(0) rotate(360deg)" },
         },
+        "caret-blink": {
+          "0%,70%,100%": { opacity: "1" },
+          "20%,50%": { opacity: "0" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -126,6 +130,7 @@ const config: Config = {
         marquee: "marquee var(--duration) linear infinite",
         "marquee-vertical": "marquee-vertical var(--duration) linear infinite",
         "spin-around": "spin-around 8s linear infinite",
+        "caret-blink": "caret-blink 1.2s ease-out infinite",
       },
     },
   },

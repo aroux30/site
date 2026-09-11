@@ -1,0 +1,77 @@
+Count,Message,Traceback,Nodes
+2,'NoneType' object is not subscriptable,"  File ""C:\Program Files\Python314\Lib\site-packages\locust\user\task.py"", line 363, in run
+    self.execute_next_task()
+    ~~~~~~~~~~~~~~~~~~~~~~^^
+  File ""C:\Program Files\Python314\Lib\site-packages\locust\user\task.py"", line 396, in execute_next_task
+    self.execute_task(self._task_queue.popleft())
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File ""C:\Program Files\Python314\Lib\site-packages\locust\user\task.py"", line 408, in execute_task
+    task(self)
+    ~~~~^^^^^^
+  File ""C:\Users\Administrator\Desktop\site\load_tests\scenarios\browsing.py"", line 32, in browse_products_paginated
+    data = check_fastapi_response(response, expected_status=200, name=""List Products"")
+  File ""C:\Users\Administrator\Desktop\site\load_tests\common\helpers.py"", line 33, in check_fastapi_response
+    response.failure(f""[{name}] Expected HTTP {expected_status}, got {response.status_code}: {response.text[:200]}"")
+                                                                                              ~~~~~~~~~~~~~^^^^^^
+",local
+3,'NoneType' object is not subscriptable,"  File ""C:\Program Files\Python314\Lib\site-packages\locust\user\task.py"", line 363, in run
+    self.execute_next_task()
+    ~~~~~~~~~~~~~~~~~~~~~~^^
+  File ""C:\Program Files\Python314\Lib\site-packages\locust\user\task.py"", line 396, in execute_next_task
+    self.execute_task(self._task_queue.popleft())
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File ""C:\Program Files\Python314\Lib\site-packages\locust\user\task.py"", line 408, in execute_task
+    task(self)
+    ~~~~^^^^^^
+  File ""C:\Users\Administrator\Desktop\site\load_tests\scenarios\browsing.py"", line 20, in browse_categories
+    check_fastapi_response(response, expected_status=200, name=""List Categories"")
+    ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File ""C:\Users\Administrator\Desktop\site\load_tests\common\helpers.py"", line 33, in check_fastapi_response
+    response.failure(f""[{name}] Expected HTTP {expected_status}, got {response.status_code}: {response.text[:200]}"")
+                                                                                              ~~~~~~~~~~~~~^^^^^^
+",local
+1,'NoneType' object is not subscriptable,"  File ""C:\Program Files\Python314\Lib\site-packages\locust\user\task.py"", line 363, in run
+    self.execute_next_task()
+    ~~~~~~~~~~~~~~~~~~~~~~^^
+  File ""C:\Program Files\Python314\Lib\site-packages\locust\user\task.py"", line 396, in execute_next_task
+    self.execute_task(self._task_queue.popleft())
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File ""C:\Program Files\Python314\Lib\site-packages\locust\user\task.py"", line 408, in execute_task
+    task(self)
+    ~~~~^^^^^^
+  File ""C:\Users\Administrator\Desktop\site\load_tests\scenarios\cart.py"", line 28, in view_cart
+    check_fastapi_response(response, expected_status=200, name=""View Cart"")
+    ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File ""C:\Users\Administrator\Desktop\site\load_tests\common\helpers.py"", line 33, in check_fastapi_response
+    response.failure(f""[{name}] Expected HTTP {expected_status}, got {response.status_code}: {response.text[:200]}"")
+                                                                                              ~~~~~~~~~~~~~^^^^^^
+",local
+1,'NoneType' object is not subscriptable,"  File ""C:\Program Files\Python314\Lib\site-packages\locust\user\task.py"", line 363, in run
+    self.execute_next_task()
+    ~~~~~~~~~~~~~~~~~~~~~~^^
+  File ""C:\Program Files\Python314\Lib\site-packages\locust\user\task.py"", line 396, in execute_next_task
+    self.execute_task(self._task_queue.popleft())
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File ""C:\Program Files\Python314\Lib\site-packages\locust\user\task.py"", line 408, in execute_task
+    task(self)
+    ~~~~^^^^^^
+  File ""C:\Users\Administrator\Desktop\site\load_tests\scenarios\cart.py"", line 51, in add_item_to_cart
+    response.failure(f""Unexpected status: {response.status_code} - {response.text[:200]}"")
+                                                                    ~~~~~~~~~~~~~^^^^^^
+",local
+1,'NoneType' object is not subscriptable,"  File ""C:\Program Files\Python314\Lib\site-packages\locust\user\task.py"", line 363, in run
+    self.execute_next_task()
+    ~~~~~~~~~~~~~~~~~~~~~~^^
+  File ""C:\Program Files\Python314\Lib\site-packages\locust\user\task.py"", line 396, in execute_next_task
+    self.execute_task(self._task_queue.popleft())
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File ""C:\Program Files\Python314\Lib\site-packages\locust\user\task.py"", line 408, in execute_task
+    task(self)
+    ~~~~^^^^^^
+  File ""C:\Users\Administrator\Desktop\site\load_tests\scenarios\browsing.py"", line 61, in search_persian_products
+    check_fastapi_response(response, expected_status=200, name=""Persian Search"")
+    ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File ""C:\Users\Administrator\Desktop\site\load_tests\common\helpers.py"", line 33, in check_fastapi_response
+    response.failure(f""[{name}] Expected HTTP {expected_status}, got {response.status_code}: {response.text[:200]}"")
+                                                                                              ~~~~~~~~~~~~~^^^^^^
+",local

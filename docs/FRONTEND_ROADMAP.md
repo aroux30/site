@@ -68,3 +68,28 @@
 ### فاز ۸: تست بیلد، ارزیابی کیفیت و تایید نهایی
 - تست کامل کامپایل TypeScript و Next.js Production Build
 - اطمینان از خروجی بدون هیچ‌گونه خطا یا باگ
+
+---
+
+## ۳. برنامه ارتقای Tier S — نسل دوم (این دوره)
+
+این بخش بر اساس بنچمارک ۵۰ منبع (shadcn/ui، Radix، Magic UI، Aceternity، Framer Motion، GSAP، Lenis، R3F/Drei، Awesome Frontend System Design) و ممیزی کد فعلی اضافه شد:
+
+### انتخاب‌های کتابخانه (با دلیل)
+| کتابخانه | نسخه | دلیل انتخاب |
+| :--- | :--- | :--- |
+| `embla-carousel-react` | 8.6.0 | کاروسل سبک، RTL-آگاه و دسترس‌پذیر برای بنرها/گالری‌ها (جایگزین اسلایدر دستی) |
+| `vaul` | 1.1.2 | شیت/دراور موبایل native-like برای فیلتر کاتالوگ (در حال استانداردسازی در اکوسیستم shadcn) |
+| `cmdk` | 1.1.1 | کامندپالت/جستجوی سریع صفحه‌کلیدمحور، مکمل سرچ هدر |
+| `input-otp` | 1.5.0 | ورودی استاندارد ۶ خانه‌ای کد تایید پیامکی با پشتیبانی `autoComplete="one-time-code"` |
+
+موارد عمداً نصب **نشد**: `daisyUI/MUI/Chakra/AntD` (تعارض توکنی با سیستم shadcn فعلی)، `Theatre.js/Lottie` (بار اضافه برای نیاز فعلی)، `react-spring/motion-one/auto-animate` (پوشش با Framer Motion + GSAP موجود).
+
+### کارهای اجرایی این دوره (۰ تا ۱۰۰ واقعی، بدون بازنویسی ظاهری)
+1. **OTP استاندارد لاگین** — جایگزینی input تکی با `InputOTP` شش‌خانه‌ای (`components/ui/input-otp.tsx`) + انیمیشن caret + ریست state منقضی هنگام تعویض تب + لینک بازیابی «رمز را فراموش کرده‌ام؟».
+2. **Sheet دسترس‌پذیر** — کامپوننت `Sheet` مبتنی بر Radix Dialog با سایدهای منطقی RTL (`components/ui/sheet.tsx`) و مهاجرت دراور فیلتر موبایل محصولات به آن.
+3. **Carousel RTL-آگاه** — کامپوننت `Carousel` مبتنی بر Embla با `direction: "rtl"` و دکمه‌های قبلی/بعدی منطقی (`components/ui/carousel.tsx`).
+4. **Command Palette فارسی** — کامپوننت `Command` با `dir="rtl"` (`components/ui/command.tsx`) آماده اتصال به جستجوی سراسری.
+5. **یکپارچه‌سازی الگوریتم‌های ایرانی** — اعتبارسنجی `validatePostalCode` + ورودی فقط-عددی کدپستی در چک‌اوت؛ هم‌ترازی قانون رمزعبور (حداقل ۸ کاراکتر + حرف و عدد) بین فرانت و بک‌اند؛ اتصال `selectedSlot` به یادداشت سفارش و خلاصه بازبینی.
+6. **رفع برخورد هوک‌ها** — تغییر نام `useCart` کوئری React Query به `useCartQuery` برای جلوگیری از اشتباه با هوک Zustand سبد.
+7. **کیفیت پایه** — `::selection` و `:focus-visible` سراسری، `caret-blink` در Tailwind، تست‌ها سبز (۱۶/۱۶).

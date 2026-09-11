@@ -135,6 +135,43 @@ async def create_payment(
             error_code="INVALID_PROVIDER",
         )
 
+    # ── Validate order: ownership, payable state, and amount ─────────
+    # The order total is the single authoritative source for the payable
+    # amount; a client-supplied amount is never trusted on its own.
+    from app.modules.orders.domain.models import Order, OrderStatus
+
+    order = await db.get(Order, order_id)
+    if order is None or order.user_id != user_id:
+        raise NotFoundError(resource="Order")
+
+    if order.status != OrderStatus.PENDING:
+        raise ConflictError(
+            detail=(
+                f"Order {order_id} is not payable in status "
+                f"'{order.status.value}'"
+            ),
+            error_code="ORDER_NOT_PAYABLE",
+        )
+
+    if amount != order.total:
+        raise ValidationError(
+            detail=(
+                f"Payment amount ({amount}) does not match the order total "
+                f"({order.total})"
+            ),
+            error_code="AMOUNT_MISMATCH",
+        )
+
+    if provider_enum == PaymentProviderEnum.WALLET:
+        from app.modules.wallet.application import wallet_service
+
+        balance = await wallet_service.get_balance(db, user_id)
+        if balance < amount:
+            raise PaymentError(
+                detail="Insufficient wallet balance for this payment",
+                error_code="INSUFFICIENT_WALLET_BALANCE",
+            )
+
     # ── Create payment record ─────────────────────────────────────────
     payment = Payment(
         order_id=order_id,
@@ -231,6 +268,7 @@ async def verify_payment(
     payment_id: uuid.UUID,
     authority: str,
     status: str,
+    user_id: uuid.UUID | None = None,
 ) -> PaymentResponse:
     """Verify a payment with the gateway after the user returns.
 
@@ -242,6 +280,9 @@ async def verify_payment(
         The authority / token returned by the gateway.
     status:
         The status string from the gateway callback query parameters.
+    user_id:
+        When supplied (customer-facing verify endpoint) the payment's order
+        must belong to this user, otherwise the payment is not found.
     """
 
     await logger.ainfo(
@@ -251,7 +292,19 @@ async def verify_payment(
         callback_status=status,
     )
 
-    payment = await _get_payment_or_raise(db, payment_id)
+    # Lock the payment row so a racing webhook / verify request cannot
+    # process the same payment twice.
+    payment = await db.get(Payment, payment_id, with_for_update=True)
+    if payment is None:
+        raise NotFoundError(resource="Payment")
+
+    # Customer-facing verification is restricted to the order owner.
+    if user_id is not None and payment.order_id:
+        from app.modules.orders.domain.models import Order
+
+        order = await db.get(Order, payment.order_id)
+        if order is None or order.user_id != user_id:
+            raise NotFoundError(resource="Payment")
 
     # Ensure the payment is in a verifiable state
     if payment.status == PaymentStatus.COMPLETED:
@@ -321,6 +374,55 @@ async def verify_payment(
     )
 
     if result.success:
+        # Internal wallet payments are charged here: the wallet debit must
+        # happen inside the same locked transaction that completes the
+        # payment, otherwise the order would be confirmed for free.
+        if payment.provider == PaymentProviderEnum.WALLET:
+            from app.modules.orders.domain.models import Order as _Order
+
+            payer_order = await db.get(_Order, payment.order_id) if payment.order_id else None
+            payer_id = payer_order.user_id if payer_order is not None else None
+            if payer_id is None:
+                payment.status = PaymentStatus.FAILED
+                await db.flush()
+                raise PaymentError(
+                    detail="Wallet payment is not linked to a valid order",
+                    error_code="WALLET_PAYMENT_INVALID",
+                )
+            try:
+                from app.modules.wallet.application import wallet_service
+                from app.modules.wallet.domain.models import WalletTransactionType
+
+                await wallet_service.debit(
+                    db,
+                    user_id=payer_id,
+                    amount=payment.amount,
+                    tx_type=WalletTransactionType.DEBIT,
+                    reference_type="payment",
+                    reference_id=payment.id,
+                    description="پرداخت سفارش از کیف پول",
+                )
+            except Exception as exc:
+                payment.status = PaymentStatus.FAILED
+                payment.extra_data = {
+                    **(payment.extra_data or {}),
+                    "verify_error_code": "WALLET_DEBIT_FAILED",
+                    "verify_error_message": str(exc),
+                }
+                await db.flush()
+                await logger.awarning(
+                    "wallet_payment_debit_failed",
+                    payment_id=str(payment_id),
+                    error=str(exc),
+                )
+                raise PaymentError(
+                    detail=(
+                        "Wallet payment could not be completed: "
+                        "insufficient balance or inactive wallet"
+                    ),
+                    error_code="WALLET_DEBIT_FAILED",
+                )
+
         payment.status = PaymentStatus.COMPLETED
         payment.provider_transaction_id = result.ref_id
         payment.extra_data = {
@@ -330,12 +432,14 @@ async def verify_payment(
         }
 
         # Transition associated order from PENDING to CONFIRMED
+        order_confirmed = False
         if payment.order_id:
             from app.modules.orders.domain.models import Order, OrderStatus, OrderStatusHistory
             order_stmt = select(Order).where(Order.id == payment.order_id).with_for_update()
             order = (await db.execute(order_stmt)).scalar_one_or_none()
             if order and order.status == OrderStatus.PENDING:
                 order.status = OrderStatus.CONFIRMED
+                order_confirmed = True
                 history = OrderStatusHistory(
                     order_id=order.id,
                     from_status=OrderStatus.PENDING.value,
@@ -344,6 +448,38 @@ async def verify_payment(
                     reason=f"Payment verified via {payment.provider.value} (ref: {result.ref_id})",
                 )
                 db.add(history)
+
+        # Publish domain events through the transactional outbox so async
+        # consumers (notifications / analytics) observe the same state.
+        try:
+            from app.shared.events.outbox_service import OutboxService
+
+            await OutboxService.publish(
+                db,
+                event_type="PaymentCompleted",
+                aggregate_type="payment",
+                aggregate_id=str(payment.id),
+                payload={
+                    "payment_id": str(payment.id),
+                    "order_id": str(payment.order_id) if payment.order_id else None,
+                    "amount": payment.amount,
+                    "provider": payment.provider.value,
+                },
+            )
+            if order_confirmed:
+                await OutboxService.publish(
+                    db,
+                    event_type="OrderConfirmed",
+                    aggregate_type="order",
+                    aggregate_id=str(payment.order_id),
+                    payload={
+                        "order_id": str(payment.order_id),
+                        "payment_id": str(payment.id),
+                        "total": payment.amount,
+                    },
+                )
+        except Exception as exc:
+            await logger.awarning("outbox_publish_skipped", error=str(exc))
 
         await db.flush()
 
@@ -575,7 +711,7 @@ async def refund_payment(
         refund_result = await gateway_provider.refund(
             authority=payment.authority or "",
             amount=amount,
-            user_id=customer_user_id or actor_id,
+            user_id=customer_user_id,
             db=db,
         )
     except TypeError:

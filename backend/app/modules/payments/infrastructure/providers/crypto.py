@@ -131,6 +131,11 @@ class NowPaymentsProvider(PaymentProvider):
         return "crypto"
 
     @property
+    def ipn_secret_configured(self) -> bool:
+        """Whether an IPN signature secret is configured for this provider."""
+        return bool(self._ipn_secret)
+
+    @property
     def _headers(self) -> dict[str, str]:
         headers: dict[str, str] = {
             "Content-Type": "application/json",
@@ -190,6 +195,20 @@ class NowPaymentsProvider(PaymentProvider):
 
         # ── Sandbox Simulation (when no live API key configured) ───────
         if not self._api_key or self._api_key.startswith("mock"):
+            if get_settings().ENVIRONMENT == "production":
+                await logger.aerror(
+                    "nowpayments_simulated_blocked_in_production",
+                    order_id=str(order_id),
+                )
+                return PaymentResult(
+                    success=False,
+                    error_code="CRYPTO_NOT_CONFIGURED",
+                    error_message=(
+                        "Cryptocurrency gateway is not configured "
+                        "(missing NOWPAYMENTS_API_KEY)"
+                    ),
+                    raw_response={"simulated": True, "blocked": "production"},
+                )
             return self._create_simulated_payment(
                 amount_irr=amount,
                 amount_usd=price_amount_usd,
@@ -392,6 +411,21 @@ class NowPaymentsProvider(PaymentProvider):
 
         # ── Simulated Sandbox Verification ────────────────────────────
         if not self._api_key or authority.startswith("NP-") or self._api_key.startswith("mock"):
+            if get_settings().ENVIRONMENT == "production" and not self._api_key:
+                await logger.aerror(
+                    "nowpayments_simulated_verify_blocked_in_production",
+                    authority=authority,
+                )
+                return PaymentResult(
+                    success=False,
+                    authority=authority,
+                    error_code="CRYPTO_NOT_CONFIGURED",
+                    error_message=(
+                        "Cryptocurrency gateway is not configured "
+                        "(missing NOWPAYMENTS_API_KEY)"
+                    ),
+                    raw_response={"simulated": True, "blocked": "production"},
+                )
             if authority.endswith("FAIL") or amount % 100 == 99:
                 return PaymentResult(
                     success=False,

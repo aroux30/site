@@ -1,3 +1,5 @@
+import uuid
+
 import pytest
 import pyotp
 from unittest.mock import AsyncMock, patch
@@ -116,7 +118,7 @@ def test_field_level_data_protection_and_pii_masking():
     payload = {
         "user_id": "usr-123",
         "username": "customer",
-        "password": "SuperSecretPassword123!",
+        "password": f"SuperSecret!{uuid.uuid4().hex}",
         "profile": {
             "national_code": "0012345678",
             "phone": "09123456789",

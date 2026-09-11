@@ -10,6 +10,7 @@ import io
 import os
 import re
 import uuid
+from pathlib import Path
 from typing import Optional
 
 import structlog
@@ -80,11 +81,23 @@ class MediaService:
         # Sanitize filename and construct storage key
         safe_name = _sanitize_filename(file.filename or "file")
         ext = ALLOWED_MIME_TYPES.get(content_type, ".bin")
+        # Defense-in-depth: the extension reaching a filesystem path must be a
+        # short lowercase token (allowlist values are constants, this guards
+        # against configuration drift and validates the chain explicitly).
+        if not re.fullmatch(r"\.[a-z0-9]{2,5}", ext):
+            raise ValidationError(
+                detail="Configured file extension is invalid",
+                error_code="INVALID_EXTENSION_CONFIG",
+            )
         if not safe_name.lower().endswith(ext):
             safe_name = f"{safe_name}{ext}"
 
         file_id = uuid.uuid4()
-        storage_key = f"media/{file_id.hex[:2]}/{file_id.hex}_{safe_name}"
+        # On-disk/URL name is fully server-generated (uuid + allowlisted
+        # extension); the user-supplied name is kept only as DB metadata so no
+        # untrusted text ever reaches a filesystem path.
+        disk_name = file_id.hex + ext
+        storage_key = f"media/{file_id.hex[:2]}/{disk_name}"
 
         # Extract image dimensions & verify image if applicable
         width: Optional[int] = None
@@ -105,23 +118,24 @@ class MediaService:
                     )
 
         # Storage directory resolution with fallback
-        base_dir = getattr(settings, "UPLOAD_DIR", "media")
+        base_dir = Path(getattr(settings, "UPLOAD_DIR", "media"))
         try:
-            os.makedirs(base_dir, exist_ok=True)
-            probe = os.path.join(base_dir, f".probe_{uuid.uuid4().hex[:6]}")
-            with open(probe, "w") as f:
-                f.write("ok")
-            os.remove(probe)
+            base_dir.mkdir(parents=True, exist_ok=True)
+            probe = base_dir / f".probe_{uuid.uuid4().hex[:6]}"
+            probe.write_text("ok", encoding="utf-8")
+            probe.unlink(missing_ok=True)
         except (PermissionError, OSError):
-            base_dir = os.path.join("/tmp", "media")
-            os.makedirs(base_dir, exist_ok=True)
+            base_dir = Path("/tmp") / "media"
+            base_dir.mkdir(parents=True, exist_ok=True)
 
-        local_upload_dir = os.path.join(base_dir, "media")
-        os.makedirs(local_upload_dir, exist_ok=True)
-        local_file_path = os.path.join(local_upload_dir, f"{file_id.hex}_{safe_name}")
+        local_upload_dir = Path(base_dir) / "media"
+        local_upload_dir.mkdir(parents=True, exist_ok=True)
+        # Same server-generated name as storage_key / file_url: no untrusted
+        # text ever reaches a filesystem path, and the served URL matches the
+        # written file exactly.
+        local_file_path = local_upload_dir / disk_name
 
-        with open(local_file_path, "wb") as f:
-            f.write(content)
+        local_file_path.write_bytes(content)
 
         # Generate WebP thumbnail for images
         if width and height:
@@ -129,14 +143,14 @@ class MediaService:
                 img = Image.open(io.BytesIO(content))
                 thumb_img = img.copy()
                 thumb_img.thumbnail((200, 200))
-                thumb_dir = os.path.join(base_dir, "thumbnails")
-                os.makedirs(thumb_dir, exist_ok=True)
-                thumb_path = os.path.join(thumb_dir, f"thumb_{file_id.hex}.webp")
+                thumb_dir = Path(base_dir) / "thumbnails"
+                thumb_dir.mkdir(parents=True, exist_ok=True)
+                thumb_path = thumb_dir / f"thumb_{file_id.hex}.webp"
                 thumb_img.save(thumb_path, "WEBP", quality=85)
             except Exception as e:
                 logger.warning("thumbnail_generation_failed", error=str(e))
 
-        file_url = f"/uploads/media/{file_id.hex}_{safe_name}"
+        file_url = f"/uploads/media/{disk_name}"
 
         asset = MediaAsset(
             id=file_id,

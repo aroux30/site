@@ -3,6 +3,7 @@ import axios, {
   type AxiosInstance,
   type InternalAxiosRequestConfig,
 } from "axios";
+import { useAuthStore } from "@/stores/auth-store";
 
 const getApiBaseUrl = (): string => {
   if (typeof window !== "undefined") {
@@ -143,18 +144,41 @@ apiClient.interceptors.response.use(
         return apiClient(originalRequest);
       } catch (refreshError) {
         processQueue(refreshError);
-        // Never hard-redirect to /login if already on auth pages, and never redirect on background session probe (/auth/me)
-        const isSessionCheck = originalRequest?.url?.includes("/auth/me");
-        if (
-          typeof window !== "undefined" &&
-          !isSessionCheck &&
-          !window.location.pathname.startsWith("/login") &&
-          !window.location.pathname.startsWith("/register")
-        ) {
-          const currentPath = window.location.pathname + window.location.search;
-          const redirectParam = encodeURIComponent(currentPath);
-          window.location.href = `/login?redirect=${redirectParam}`;
+
+        if (typeof window !== "undefined") {
+          // Clean up invalid session state and expired client cookie
+          sessionStore.clearSessionId();
+          const isSecure = window.location.protocol === "https:";
+          const secureAttr = isSecure ? "; Secure" : "";
+          document.cookie = `access_token=; path=/; max-age=0; SameSite=Lax${secureAttr}`;
+
+          // Clear zustand auth store state so client doesn't hold stale session
+          try {
+            useAuthStore.getState().logout();
+          } catch {
+            // In case store is inaccessible
+          }
+
+          // Only redirect to /login if the current route is a protected user route
+          const currentPathname = window.location.pathname;
+          const isProtectedRoute =
+            currentPathname.startsWith("/account") ||
+            currentPathname.startsWith("/checkout") ||
+            currentPathname.startsWith("/admin");
+
+          const isAuthPage =
+            currentPathname.startsWith("/login") ||
+            currentPathname.startsWith("/register");
+
+          const isSessionCheck = originalRequest?.url?.includes("/auth/me");
+
+          if (isProtectedRoute && !isAuthPage && !isSessionCheck) {
+            const currentPath = currentPathname + window.location.search;
+            const redirectParam = encodeURIComponent(currentPath);
+            window.location.href = `/login?redirect=${redirectParam}`;
+          }
         }
+
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;

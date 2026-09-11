@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useParams } from "next/navigation";
 import dynamic from "next/dynamic";
 import {
@@ -25,7 +26,6 @@ import {
   ArrowLeftRight,
   Box,
   Image as ImageIcon,
-  Sparkles,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -529,7 +529,7 @@ export default function ProductDetailPage() {
     }
   };
 
-  if (loading) {
+  if (loading && !product?.name) {
     return (
       <div className="container mx-auto px-4 py-10 space-y-10">
         <Skeleton className="h-6 w-64" />
@@ -618,16 +618,20 @@ export default function ProductDetailPage() {
           ) : (
             <>
               {/* Main Selected Image */}
-              <div className="relative aspect-square overflow-hidden rounded-3xl border border-border bg-card p-6 shadow-sm flex items-center justify-center">
+              <div className="relative aspect-square overflow-hidden rounded-3xl border border-border bg-card p-6 shadow-sm">
                 {displayImages[selectedImageIndex] ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
+                  <Image
                     src={displayImages[selectedImageIndex]}
                     alt={product.name}
-                    className="max-h-full max-w-full object-contain transition-all duration-300"
+                    fill
+                    priority
+                    sizes="(max-width: 1024px) 100vw, 50vw"
+                    className="object-contain"
                   />
                 ) : (
-                  <Package className="h-32 w-32 text-muted-foreground/30" />
+                  <div className="flex h-full w-full items-center justify-center">
+                    <Package className="h-32 w-32 text-muted-foreground/30" />
+                  </div>
                 )}
 
                 {/* Discount Badge */}
@@ -692,10 +696,11 @@ export default function ProductDetailPage() {
                           : "border-border hover:border-muted-foreground/50 opacity-70 hover:opacity-100"
                       }`}
                     >
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
+                      <Image
                         src={imgUrl}
                         alt=""
+                        width={72}
+                        height={72}
                         className="h-full w-full object-contain"
                       />
                     </button>
@@ -739,11 +744,7 @@ export default function ProductDetailPage() {
               <span>{toPersianDigits(reviewStats.average_rating || 4.7)}</span>
             </div>
             <span className="text-muted-foreground">
-              (بر اساس {toPersianDigits(reviews.length)} نظر خریداران)
-            </span>
-            <Separator orientation="vertical" className="h-4" />
-            <span className="text-emerald-600 font-semibold">
-              ۹۳٪ خریداران این کالا را پیشنهاد داده‌اند
+              (بر اساس {toPersianDigits(reviews.length)} نظر ثبت‌شده)
             </span>
           </div>
 
@@ -811,19 +812,31 @@ export default function ProductDetailPage() {
             </div>
           )}
 
-          {/* Price Box */}
-          <div className="rounded-2xl border border-border bg-muted/30 p-5 space-y-2">
-            <div className="flex items-baseline justify-between">
-              <span className="text-sm font-medium text-muted-foreground">
-                قیمت نهایی برای شما:
-              </span>
-              <div className="flex items-baseline gap-2">
-                <span className="text-2xl sm:text-3xl font-black text-foreground">
-                  {formatPrice(currentPrice)}
+          {/* Price Box — the visual anchor of the buy decision */}
+          <div className="rounded-2xl border border-primary/25 bg-card p-5 shadow-sm space-y-2">
+            <div className="flex items-baseline justify-between gap-3">
+              <div className="space-y-1">
+                <span className="block text-xs font-medium text-muted-foreground">
+                  قیمت نهایی برای شما:
                 </span>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-2xl sm:text-3xl font-black text-foreground">
+                    {formatPrice(currentPrice)}
+                  </span>
+                  <span className="text-xs sm:text-sm font-semibold text-muted-foreground">
+                    تومان
+                  </span>
+                </div>
+              </div>
+              <div className="flex flex-col items-end gap-1.5">
                 {originalPrice && (
                   <span className="text-sm line-through text-muted-foreground">
                     {formatPrice(originalPrice)}
+                  </span>
+                )}
+                {discountPercent && discountPercent > 0 && (
+                  <span className="rounded-lg bg-success/10 px-2 py-0.5 text-[11px] font-bold text-success border border-success/20">
+                    سود شما: {toPersianDigits(discountPercent)}٪
                   </span>
                 )}
               </div>
@@ -864,7 +877,7 @@ export default function ProductDetailPage() {
                 size="lg"
                 disabled={isOutOfStock}
                 onClick={handleAddToCart}
-                className="flex-1 gap-2 rounded-2xl h-13 text-base font-bold shadow-md transition-all"
+                className="flex-1 gap-2 rounded-2xl h-12 text-base font-bold shadow-md transition-all"
                 variant={addedToCartToast ? "secondary" : "default"}
               >
                 {addedToCartToast ? (
@@ -889,9 +902,9 @@ export default function ProductDetailPage() {
                 size="lg"
                 onClick={handleToggleWishlist}
                 disabled={wishlistLoading}
-                className={`gap-2 rounded-2xl h-13 border-2 ${
+                className={`gap-2 rounded-2xl h-12 border-2 ${
                   isWishlisted
-                    ? "border-red-300 text-red-500 hover:bg-red-50"
+                    ? "border-destructive/40 text-destructive hover:bg-destructive/10"
                     : "border-border text-foreground hover:bg-muted"
                 }`}
               >
@@ -909,7 +922,7 @@ export default function ProductDetailPage() {
                 variant="outline"
                 size="lg"
                 onClick={handleToggleCompare}
-                className={`gap-2 rounded-2xl h-13 border-2 transition-all ${
+                className={`gap-2 rounded-2xl h-12 border-2 transition-all ${
                   inCompare
                     ? "border-primary bg-primary/10 text-primary hover:bg-primary/20"
                     : "border-border text-foreground hover:bg-muted"
@@ -1134,14 +1147,14 @@ export default function ProductDetailPage() {
                 </div>
 
                 {reviewSubmitSuccess && (
-                  <div className="flex items-center gap-2 rounded-xl bg-emerald-50 text-emerald-700 p-3 text-xs">
+                  <div className="flex items-center gap-2 rounded-xl bg-success/10 text-success border border-success/20 p-3 text-xs">
                     <CheckCircle2 className="h-4 w-4" />
                     <span>نظر شما با موفقیت ثبت گردید و پس از تایید منتشر خواهد شد.</span>
                   </div>
                 )}
 
                 {reviewSubmitError && (
-                  <div className="flex items-center gap-2 rounded-xl bg-red-50 text-red-600 p-3 text-xs">
+                  <div className="flex items-center gap-2 rounded-xl bg-destructive/10 text-destructive border border-destructive/20 p-3 text-xs">
                     <AlertCircle className="h-4 w-4" />
                     <span>{reviewSubmitError}</span>
                   </div>
@@ -1306,7 +1319,7 @@ export default function ProductDetailPage() {
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 text-xs">
                           {rev.pros && rev.pros.length > 0 && (
                             <div className="space-y-1">
-                              <span className="font-bold text-emerald-600">
+                              <span className="font-bold text-success">
                                 نقاط قوت:
                               </span>
                               <ul className="space-y-0.5 pr-2">
@@ -1321,7 +1334,7 @@ export default function ProductDetailPage() {
                           )}
                           {rev.cons && rev.cons.length > 0 && (
                             <div className="space-y-1">
-                              <span className="font-bold text-red-500">
+                              <span className="font-bold text-destructive">
                                 نقاط ضعف:
                               </span>
                               <ul className="space-y-0.5 pr-2">
@@ -1389,7 +1402,7 @@ export default function ProductDetailPage() {
           >
             {addedToCartToast ? (
               <>
-                <Check className="h-4 w-4 text-emerald-300" />
+                <Check className="h-4 w-4 text-success" />
                 <span className="text-xs">در سبد خرید شما</span>
               </>
             ) : (

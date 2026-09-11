@@ -70,7 +70,12 @@ def parse_arguments() -> argparse.Namespace:
 
 
 def run_locust(args: argparse.Namespace) -> int:
+    # Anchor relative output dirs to the repository's reports directory so a
+    # stray argument can never scatter artifacts outside the project.
     output_dir = Path(args.output_dir)
+    if not output_dir.is_absolute():
+        output_dir = Path(__file__).resolve().parent / "reports" / output_dir
+    output_dir = output_dir.resolve()
     output_dir.mkdir(parents=True, exist_ok=True)
 
     csv_prefix = output_dir / f"stress_{args.users}u_{int(time.time())}"
@@ -115,7 +120,8 @@ def run_locust(args: argparse.Namespace) -> int:
     print("=" * 70)
 
     # Process and display summary from generated CSV
-    stats_file = Path(f"{csv_prefix}_stats.csv")
+    _safe_prefix = os.path.normpath(str(csv_prefix)).replace(os.sep, "_").replace("..", "_")
+    stats_file = Path(_safe_prefix + "_stats.csv")
     if stats_file.exists():
         parse_and_display_summary(stats_file, html_report, args)
     else:
@@ -218,8 +224,7 @@ def parse_and_display_summary(
             "throughput_rps": agg_rps,
         }
         json_path = stats_file.with_suffix(".json")
-        with open(json_path, "w", encoding="utf-8") as jf:
-            json.dump(json_summary, jf, indent=2)
+        json_path.write_text(json.dumps(json_summary, indent=2), encoding="utf-8")
         print(f"   • JSON Summary Stored:     {json_path}")
 
         if args.assert_sla:

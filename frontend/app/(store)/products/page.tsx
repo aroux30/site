@@ -2,14 +2,13 @@
 
 import { useState, useMemo, Suspense } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useSearchParams, useRouter } from "next/navigation";
 import {
   Search,
   SlidersHorizontal,
-  ChevronDown,
   X,
   Package,
-  Star,
   Check,
   ShoppingCart,
   ChevronRight,
@@ -32,6 +31,13 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Sheet,
   SheetContent,
@@ -57,132 +63,9 @@ import type {
 } from "@/lib/api/services";
 
 /* -------------------------------------------------------------------------- */
-/*                               Fallback Data                                */
+/*         No fallback product data — fabricated demo products with           */
+/*         fake prices must never be shown to real customers.                 */
 /* -------------------------------------------------------------------------- */
-
-const fallbackCategories: ApiCategory[] = [
-  { id: "c-phones", name: "موبایل و تبلت", slug: "phones", is_active: true },
-  { id: "c-laptops", name: "لپ‌تاپ و کامپیوتر", slug: "laptops", is_active: true },
-  { id: "c-audio", name: "صوتی و هدفون", slug: "audio", is_active: true },
-  { id: "c-wearables", name: "ساعت هوشمند", slug: "smartwatch", is_active: true },
-  { id: "c-gaming", name: "کنسول و گیمینگ", slug: "gaming", is_active: true },
-  { id: "c-home", name: "خانه و آشپزخانه", slug: "home", is_active: true },
-];
-
-const fallbackBrands: ApiBrand[] = [
-  { id: "b-apple", name: "اپل (Apple)", slug: "apple", is_active: true },
-  { id: "b-samsung", name: "سامسونگ (Samsung)", slug: "samsung", is_active: true },
-  { id: "b-sony", name: "سونی (Sony)", slug: "sony", is_active: true },
-  { id: "b-xiaomi", name: "شیائومی (Xiaomi)", slug: "xiaomi", is_active: true },
-  { id: "b-asus", name: "ایسوس (Asus)", slug: "asus", is_active: true },
-];
-
-const fallbackProducts: ApiProduct[] = [
-  {
-    id: "p1",
-    name: "گوشی موبایل سامسونگ Galaxy S24 Ultra",
-    slug: "samsung-galaxy-s24-ultra",
-    category_id: "c-phones",
-    brand_id: "b-samsung",
-    min_price: 65000000,
-    max_price: 72000000,
-    variant_count: 4,
-    is_active: true,
-    is_featured: true,
-    short_description: "حافظه ۲۵۶ گیگابایت، رم ۱۲، دوربین ۲۰۰ مگاپیکسل، تیتانیوم",
-  },
-  {
-    id: "p2",
-    name: "لپ‌تاپ ایسوس ROG Zephyrus G16",
-    slug: "asus-rog-zephyrus-g16",
-    category_id: "c-laptops",
-    brand_id: "b-asus",
-    min_price: 89000000,
-    max_price: 98000000,
-    variant_count: 2,
-    is_active: true,
-    is_featured: true,
-    short_description: "پردازنده Core Ultra 9، رم ۳۲ گیگ، کارت گرافیک RTX 4070",
-  },
-  {
-    id: "p3",
-    name: "هدفون بی‌سیم سونی WH-1000XM5",
-    slug: "sony-wh-1000xm5",
-    category_id: "c-audio",
-    brand_id: "b-sony",
-    min_price: 18500000,
-    max_price: 21000000,
-    variant_count: 2,
-    is_active: true,
-    is_featured: false,
-    short_description: "قابلیت نویزکنسلینگ فعال پیشرفته با ۳۰ ساعت نگهداری شارژ",
-  },
-  {
-    id: "p4",
-    name: "ساعت هوشمند اپل واچ اولترا ۲",
-    slug: "apple-watch-ultra-2",
-    category_id: "c-wearables",
-    brand_id: "b-apple",
-    min_price: 44000000,
-    max_price: 48000000,
-    variant_count: 3,
-    is_active: true,
-    is_featured: true,
-    short_description: "بدنه تیتانیومی ۴۹ میلی‌متری و روشنایی صفحه ۳۰۰۰ نیت",
-  },
-  {
-    id: "p5",
-    name: "گوشی شیائومی ۱۴ اولترا",
-    slug: "xiaomi-14-ultra",
-    category_id: "c-phones",
-    brand_id: "b-xiaomi",
-    min_price: 59000000,
-    max_price: 64000000,
-    variant_count: 2,
-    is_active: true,
-    is_featured: false,
-    short_description: "مجهز به لنزهای عکاسی حرفه‌ای Leica و شارژ فوق‌سریع ۹۰ وات",
-  },
-  {
-    id: "p6",
-    name: "کنسول بازی پلی‌استیشن ۵ اسلیم",
-    slug: "sony-playstation-5-slim",
-    category_id: "c-gaming",
-    brand_id: "b-sony",
-    min_price: 34500000,
-    max_price: 38000000,
-    variant_count: 1,
-    is_active: true,
-    is_featured: false,
-    short_description: "حافظه ۱ ترابایت، کیفیت خروجی 4K HDR، دسته DualSense",
-  },
-  {
-    id: "p7",
-    name: "مک‌بوک پرو ۱۶ اینچ اپل M3 Max",
-    slug: "apple-macbook-pro-16-m3-max",
-    category_id: "c-laptops",
-    brand_id: "b-apple",
-    min_price: 145000000,
-    max_price: 155000000,
-    variant_count: 2,
-    is_active: true,
-    is_featured: true,
-    short_description: "قوی‌ترین تراشه اپل، نمایشگر Liquid Retina XDR، رم ۳۶ گیگ",
-  },
-  {
-    id: "p8",
-    name: "اسپیکر قابل حمل سونی SRS-XG300",
-    slug: "sony-srs-xg300",
-    category_id: "c-audio",
-    brand_id: "b-sony",
-    min_price: 14200000,
-    max_price: 16000000,
-    variant_count: 2,
-    is_active: true,
-    is_featured: false,
-    short_description: "مقاومت در برابر آب IP67، نورپردازی محیطی و بیس عمیق Mega Bass",
-  },
-];
 
 const sortOptions = [
   { value: "newest", label: "جدیدترین", sort_by: "created_at" as const, sort_order: "desc" as const },
@@ -280,11 +163,12 @@ function ProductCard({ product }: { product: ApiProduct }) {
           {/* Product Image */}
           <div className="relative aspect-square overflow-hidden bg-muted/50 p-4">
             {product.primary_image_url ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
+              <Image
                 src={product.primary_image_url}
                 alt={product.name}
-                className="h-full w-full object-contain transition-transform duration-300 group-hover:scale-105"
+                fill
+                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                className="object-contain transition-transform duration-300 group-hover:scale-105"
               />
             ) : (
               <div className="flex h-full w-full items-center justify-center text-muted-foreground/30">
@@ -302,6 +186,7 @@ function ProductCard({ product }: { product: ApiProduct }) {
               }}
               className="absolute bottom-3 left-3 z-10 flex h-8 w-8 items-center justify-center rounded-xl bg-background/90 backdrop-blur-md text-foreground shadow-sm opacity-0 transition-opacity duration-200 group-hover:opacity-100 hover:bg-background"
               title="مشاهده سریع"
+              aria-label="مشاهده سریع"
             >
               <Eye className="h-4 w-4 text-muted-foreground hover:text-primary" />
             </button>
@@ -350,13 +235,6 @@ function ProductCard({ product }: { product: ApiProduct }) {
               {product.short_description}
             </p>
           )}
-
-          {/* Rating */}
-          <div className="mb-3 flex items-center gap-1.5 text-xs text-muted-foreground">
-            <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
-            <span className="font-semibold text-foreground">۴.۶</span>
-            <span>(۲۸ نظر)</span>
-          </div>
 
           {/* Price Container */}
           <div className="mt-auto flex flex-col gap-1 pt-2 border-t border-border/50">
@@ -414,11 +292,12 @@ function ProductCard({ product }: { product: ApiProduct }) {
         <div className="flex flex-col items-center gap-4 py-2">
           <div className="relative aspect-square w-48 overflow-hidden rounded-2xl bg-muted/40 p-3">
             {product.primary_image_url ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
+              <Image
                 src={product.primary_image_url}
                 alt={product.name}
-                className="h-full w-full object-contain"
+                fill
+                sizes="192px"
+                className="object-contain"
               />
             ) : (
               <div className="flex h-full w-full items-center justify-center text-muted-foreground/40">
@@ -478,6 +357,28 @@ function ProductSkeletonGrid() {
   );
 }
 
+/**
+ * Windowed pagination: always shows first/last page plus a sliding window
+ * around the current page, with ellipsis markers in between.
+ */
+function getPageWindow(
+  current: number,
+  total: number,
+): Array<number | "ellipsis-left" | "ellipsis-right"> {
+  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+
+  const pages: Array<number | "ellipsis-left" | "ellipsis-right"> = [1];
+  const windowStart = Math.max(2, current - 1);
+  const windowEnd = Math.min(total - 1, current + 1);
+
+  if (windowStart > 2) pages.push("ellipsis-left");
+  for (let p = windowStart; p <= windowEnd; p++) pages.push(p);
+  if (windowEnd < total - 1) pages.push("ellipsis-right");
+
+  pages.push(total);
+  return pages;
+}
+
 /* -------------------------------------------------------------------------- */
 /*                               Main Content                                 */
 /* -------------------------------------------------------------------------- */
@@ -521,15 +422,9 @@ function ProductsListContent() {
     data: brandsData,
   } = useBrands({ is_active: true, page_size: 50 });
 
-  const categories: ApiCategory[] =
-    categoriesData?.items && categoriesData.items.length > 0
-      ? categoriesData.items
-      : fallbackCategories;
+  const categories: ApiCategory[] = categoriesData?.items ?? [];
 
-  const brands: ApiBrand[] =
-    brandsData?.items && brandsData.items.length > 0
-      ? brandsData.items
-      : fallbackBrands;
+  const brands: ApiBrand[] = brandsData?.items ?? [];
 
   // ---------- TanStack Query: Products ----------
   const sortConfig =
@@ -563,11 +458,13 @@ function ProductsListContent() {
   const {
     data: productsData,
     isLoading: loading,
-    error: productsError,
+    isError: productsError,
+    refetch: refetchProducts,
   } = useProducts(productParams);
 
-  // Derive displayed products: use API data when available, otherwise
-  // apply client-side filtering on fallback data when the query fails.
+  // Derive displayed products from API data only. While loading or on API
+  // failure we render skeletons / an error state — fabricated demo products
+  // with fake prices must never be shown to real customers.
   const { products, paginationMeta } = useMemo(() => {
     if (productsData?.items) {
       return {
@@ -576,70 +473,17 @@ function ProductsListContent() {
       };
     }
 
-    // Fallback client-side filtering (when API is unreachable)
-    if (productsError) {
-      let filtered = [...fallbackProducts];
-
-      if (searchQuery.trim()) {
-        const query = searchQuery.trim().toLowerCase();
-        filtered = filtered.filter(
-          (p) =>
-            p.name.toLowerCase().includes(query) ||
-            p.short_description?.toLowerCase().includes(query),
-        );
-      }
-
-      if (selectedCategory) {
-        filtered = filtered.filter(
-          (p) =>
-            p.category_id === selectedCategory ||
-            categories.find((c) => c.slug === selectedCategory)?.id === p.category_id,
-        );
-      }
-
-      if (selectedBrand) {
-        filtered = filtered.filter((p) => p.brand_id === selectedBrand);
-      }
-
-      filtered = filtered.filter((p) => {
-        const pPrice = p.min_price || 0;
-        return pPrice >= priceRange[0] && pPrice <= priceRange[1];
-      });
-
-      // Sorting
-      if (selectedSort === "cheapest") {
-        filtered.sort((a, b) => (a.min_price || 0) - (b.min_price || 0));
-      } else if (selectedSort === "expensive") {
-        filtered.sort((a, b) => (b.min_price || 0) - (a.min_price || 0));
-      }
-
-      const meta: ApiPaginationMeta = {
-        total: filtered.length,
-        page: currentPage,
-        page_size: 12,
-        total_pages: Math.max(1, Math.ceil(filtered.length / 12)),
-        has_next: false,
-        has_prev: false,
-      };
-
-      return { products: filtered, paginationMeta: meta };
-    }
-
-    // Still loading or no data yet
-    return {
-      products: fallbackProducts,
-      paginationMeta: {
-        total: fallbackProducts.length,
-        page: 1,
-        page_size: 12,
-        total_pages: 1,
-        has_next: false,
-        has_prev: false,
-      } as ApiPaginationMeta,
+    const emptyMeta: ApiPaginationMeta = {
+      total: 0,
+      page: currentPage,
+      page_size: 12,
+      total_pages: 1,
+      has_next: false,
+      has_prev: false,
     };
+    return { products: [], paginationMeta: emptyMeta };
   }, [
     productsData,
-    productsError,
     searchQuery,
     selectedCategory,
     selectedBrand,
@@ -880,7 +724,7 @@ function ProductsListContent() {
           variant="outline"
           size="sm"
           onClick={handleClearFilters}
-          className="w-full gap-2 rounded-xl text-xs text-red-500 border-red-200 hover:bg-red-50"
+          className="w-full gap-2 rounded-xl text-xs text-destructive border-destructive/30 hover:bg-destructive/10 hover:text-destructive"
         >
           <RotateCcw className="h-3.5 w-3.5" />
           پاک کردن تمام فیلترها
@@ -989,24 +833,25 @@ function ProductsListContent() {
           <span className="text-xs text-muted-foreground whitespace-nowrap">
             مرتب‌سازی:
           </span>
-          <div className="relative">
-            <select
-              value={selectedSort}
-              onChange={(e) => {
-                setSelectedSort(e.target.value);
-                setCurrentPage(1);
-                updateUrl({ sort: e.target.value, page: 1 });
-              }}
-              className="h-9 appearance-none rounded-xl border border-border bg-background pr-3 pl-8 text-xs font-semibold text-foreground focus:border-primary focus:outline-none"
-            >
+          <Select
+            value={selectedSort}
+            onValueChange={(value) => {
+              setSelectedSort(value);
+              setCurrentPage(1);
+              updateUrl({ sort: value, page: 1 });
+            }}
+          >
+            <SelectTrigger className="h-9 w-[140px] rounded-xl border-border text-xs font-semibold">
+              <SelectValue placeholder="مرتب‌سازی" />
+            </SelectTrigger>
+            <SelectContent>
               {sortOptions.map((opt) => (
-                <option key={opt.value} value={opt.value}>
+                <SelectItem key={opt.value} value={opt.value} className="text-xs">
                   {opt.label}
-                </option>
+                </SelectItem>
               ))}
-            </select>
-            <ChevronDown className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
-          </div>
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
@@ -1017,7 +862,22 @@ function ProductsListContent() {
 
         {/* Products Grid & Pagination */}
         <div className="lg:col-span-3">
-          {loading ? (
+          {productsError && !loading ? (
+            /* Error State — never fake products on API failure */
+            <div className="flex flex-col items-center justify-center rounded-3xl border border-destructive/30 bg-destructive/5 py-16 text-center">
+              <Package className="mb-3 h-16 w-16 text-destructive/40" />
+              <h3 className="mb-1 text-lg font-bold text-foreground">
+                خطا در دریافت محصولات
+              </h3>
+              <p className="mb-6 max-w-sm text-sm text-muted-foreground">
+                ارتباط با سرور برقرار نشد. لطفاً دوباره تلاش کنید.
+              </p>
+              <Button size="sm" onClick={() => refetchProducts()} className="gap-2 rounded-xl">
+                <RotateCcw className="h-4 w-4" />
+                تلاش مجدد
+              </Button>
+            </div>
+          ) : loading && products.length === 0 ? (
             <ProductSkeletonGrid />
           ) : products.length > 0 ? (
             <div className="space-y-8">
@@ -1047,24 +907,32 @@ function ProductsListContent() {
                   </Button>
 
                   <div className="flex items-center gap-1">
-                    {Array.from(
-                      { length: paginationMeta.total_pages },
-                      (_, idx) => idx + 1,
-                    ).map((pageNumber) => (
-                      <Button
-                        key={pageNumber}
-                        variant={pageNumber === currentPage ? "default" : "ghost"}
-                        size="sm"
-                        onClick={() => {
-                          setCurrentPage(pageNumber);
-                          updateUrl({ page: pageNumber });
-                          window.scrollTo({ top: 0, behavior: "smooth" });
-                        }}
-                        className="h-8 w-8 rounded-xl p-0 text-xs font-semibold"
-                      >
-                        {toPersianDigits(pageNumber)}
-                      </Button>
-                    ))}
+                    {getPageWindow(currentPage, paginationMeta.total_pages).map(
+                      (entry) =>
+                        typeof entry === "number" ? (
+                          <Button
+                            key={entry}
+                            variant={entry === currentPage ? "default" : "ghost"}
+                            size="sm"
+                            onClick={() => {
+                              setCurrentPage(entry);
+                              updateUrl({ page: entry });
+                              window.scrollTo({ top: 0, behavior: "smooth" });
+                            }}
+                            className="h-8 w-8 rounded-xl p-0 text-xs font-semibold"
+                          >
+                            {toPersianDigits(entry)}
+                          </Button>
+                        ) : (
+                          <span
+                            key={entry}
+                            className="flex h-8 w-6 items-end justify-center pb-1.5 text-xs text-muted-foreground"
+                            aria-hidden
+                          >
+                            …
+                          </span>
+                        ),
+                    )}
                   </div>
 
                   <Button

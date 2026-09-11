@@ -321,6 +321,19 @@ async def cancel_order(
     db.add(order)
     await db.flush()
 
+    # Return reserved/committed stock to available inventory so an abandoned
+    # order cannot permanently lock stock.
+    from app.modules.inventory.application import inventory_service
+
+    try:
+        await inventory_service.restock_order(db, order.id)
+    except Exception as exc:
+        await logger.aerror(
+            "order_cancel_restock_failed",
+            order_id=str(order.id),
+            error=str(exc),
+        )
+
     await _record_status_change(
         db,
         order_id=order.id,
@@ -523,6 +536,19 @@ async def admin_update_status(
     order.status = target
     db.add(order)
     await db.flush()
+
+    # Cancelling an order must return its stock to available inventory.
+    if target == OrderStatus.CANCELED:
+        from app.modules.inventory.application import inventory_service
+
+        try:
+            await inventory_service.restock_order(db, order.id)
+        except Exception as exc:
+            await logger.aerror(
+                "admin_cancel_restock_failed",
+                order_id=str(order.id),
+                error=str(exc),
+            )
 
     await _record_status_change(
         db,

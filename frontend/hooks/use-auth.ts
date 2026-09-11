@@ -3,7 +3,7 @@
 import { useCallback, useEffect } from "react";
 import { useAuthStore } from "@/stores/auth-store";
 import { useCartStore } from "@/stores/cart-store";
-import apiClient from "@/lib/api/client";
+import apiClient, { sessionStore } from "@/lib/api/client";
 import type {
   User,
   UserProfileResponse,
@@ -30,6 +30,12 @@ function clearClientAccessTokenCookie() {
   const isSecure = typeof window !== "undefined" && window.location.protocol === "https:";
   const secureAttr = isSecure ? "; Secure" : "";
   document.cookie = `access_token=; path=/; max-age=0; SameSite=Lax${secureAttr}`;
+}
+
+function getClientAccessToken(): string | null {
+  if (typeof document === "undefined") return null;
+  const match = document.cookie.match(/(?:^|;\s*)access_token=([^;]+)/);
+  return match && match[1] ? decodeURIComponent(match[1]) : null;
 }
 
 function mapProfileToUser(data: UserProfileResponse): User {
@@ -75,15 +81,28 @@ export function useAuth() {
   // If the access_token cookie is present the server will respond with user data;
   // otherwise the request will 401 and we clear state.
   useEffect(() => {
+    const token = getClientAccessToken();
+    if (!token && store.isAuthenticated) {
+      // Cookie is missing or expired, clean up stale local storage
+      clearClientAccessTokenCookie();
+      store.logout();
+      store.setLoading(false);
+      return;
+    }
+
     if (store.isAuthenticated && !store.user) {
       fetchCurrentUser().catch(() => {
         // Silently handle error on mount if session is invalid/expired
       });
     } else if (!store.isAuthenticated) {
       // Even without persisted auth flag, try to fetch in case a valid cookie exists
-      fetchCurrentUser().catch(() => {
+      if (token) {
+        fetchCurrentUser().catch(() => {
+          store.setLoading(false);
+        });
+      } else {
         store.setLoading(false);
-      });
+      }
     } else {
       store.setLoading(false);
     }
@@ -175,6 +194,7 @@ export function useAuth() {
       // Silently fail - we clear local state regardless
     } finally {
       clearClientAccessTokenCookie();
+      sessionStore.clearSessionId();
       store.logout();
     }
   }, [store]);

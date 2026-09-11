@@ -890,23 +890,14 @@ export function AccountDashboard({
 
     setIsDepositing(true);
     try {
+      // The server response is authoritative — a failed deposit must surface
+      // as an error, never as a fabricated success.
       await apiClient.post("/wallet/deposit", {
         amount: numericAmount,
         gateway: depositGateway,
-      }).catch(() => null);
-
-      const newTx: WalletTransaction = {
-        id: `tx-${Date.now()}`,
-        type: "deposit",
-        amount: numericAmount,
-        date: new Date().toLocaleDateString("fa-IR"),
-        description: `افزایش آنلاین موجودی (${depositGateway === "zarinpal" ? "زرین‌پال" : "سامان"})`,
-        trackingCode: `TRX-${Math.floor(1000000 + Math.random() * 9000000)}`,
-        status: "success",
-      };
+      });
 
       setWalletBalance((prev) => prev + numericAmount);
-      setTransactions((prev) => [newTx, ...prev]);
       setIsDepositModalOpen(false);
 
       toast({
@@ -917,7 +908,7 @@ export function AccountDashboard({
     } catch (err: unknown) {
       toast({
         title: "خطا در افزایش موجودی",
-        description: (err as Error)?.message || "ارتباط با درگاه برقرار نشد.",
+        description: (err as { message?: string })?.message || "ارتباط با درگاه برقرار نشد. لطفاً دوباره تلاش کنید.",
         variant: "destructive",
       });
     } finally {

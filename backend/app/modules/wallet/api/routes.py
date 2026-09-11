@@ -5,9 +5,10 @@ from __future__ import annotations
 import uuid
 
 import structlog
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.config.settings import get_settings
 from app.core.database.session import get_db
 from app.core.security.dependencies import get_current_user_id
 from app.modules.wallet.application import wallet_service
@@ -83,11 +84,23 @@ async def deposit(
 ) -> WalletTransactionResponse:
     """Credit the user's wallet with the specified amount.
 
-    In a production flow, this endpoint would first create a payment through
-    the payment module and credit the wallet only after verification.  For
-    direct wallet top-ups (e.g., admin adjustments) this records the credit
-    immediately.
+    Fail-closed in production: wallet top-ups must go through a completed
+    payment (gateway → verification → credit), never a direct credit call.
+    The unauthenticated-credit path is kept for development and testing only.
     """
+    if get_settings().ENVIRONMENT == "production":
+        logger.error(
+            "wallet_deposit_blocked_in_production",
+            user_id=str(user_id),
+            amount=body.amount,
+        )
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=(
+                "Direct wallet deposits are disabled. Please top up your "
+                "wallet through the online payment gateway."
+            ),
+        )
     return await wallet_service.credit(
         db,
         user_id=user_id,

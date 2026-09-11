@@ -87,7 +87,7 @@ export function MobileBottomNav() {
                     active && "stroke-[2.5]"
                   )}
                 />
-                {item.badge !== null && (
+                {item.badge != null && (
                   <span className="absolute -top-1.5 -right-2.5 min-w-[18px] h-[18px] flex items-center justify-center rounded-full bg-emerald-600 text-white text-[10px] font-black px-1 shadow-sm animate-in zoom-in-50">
                     {toPersianDigits(String(item.badge))}
                   </span>

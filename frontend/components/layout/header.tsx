@@ -226,6 +226,7 @@ export function Header() {
   const userInitial = userName.charAt(0).toUpperCase() || "ک";
 
   return (
+    <>
     <header
       className={cn(
         "sticky top-0 z-50 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 transition-shadow",
@@ -658,6 +659,12 @@ export function Header() {
         </div>
       </nav>
 
+    </header>
+
+      {/* ===== Fixed overlays live OUTSIDE <header>: backdrop-blur on the sticky
+          header becomes the containing block for fixed children and collapses
+          them to the header's height instead of the viewport ===== */}
+
       {/* ===== Mobile Navigation Overlay ===== */}
       {mobileMenuOpen && (
         <div
@@ -818,6 +825,6 @@ export function Header() {
         isOpen={cartDrawerOpen}
         onClose={() => setCartDrawerOpen(false)}
       />
-    </header>
+    </>
   );
 }

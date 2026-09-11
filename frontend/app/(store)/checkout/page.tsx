@@ -601,32 +601,44 @@ export default function CheckoutPage() {
         return;
       }
 
-      // If online provider without instant redirect URL, initiate payment via /payments
-      if (
-        selectedPaymentMethod === "zarinpal" ||
-        selectedPaymentMethod === "idpay" ||
-        selectedPaymentMethod === "nextpay"
-      ) {
+      // Initiate a gateway session for online providers; wallet completes
+      // in-page through the server-authoritative verify call (the server
+      // debits the wallet and confirms the order in one transaction).
+      const onlineProviders = ["zarinpal", "idpay", "nextpay", "crypto", "mock", "wallet"];
+      if (onlineProviders.includes(selectedPaymentMethod)) {
         try {
-          const payRes = await apiClient.post<{ gateway_url?: string }>("/payments", {
+          const payRes = await apiClient.post<{
+            id: string;
+            authority?: string | null;
+            gateway_url?: string | null;
+          }>("/payments", {
             order_id: orderData.order_id,
             provider: selectedPaymentMethod,
-            amount: orderData.total, // Rials
+            amount: orderData.total, // Rials — the server revalidates against the order total
             idempotency_key: idempotencyKey,
           });
 
-          if (payRes.data?.gateway_url) {
+          if (selectedPaymentMethod === "wallet") {
+            await apiClient.post(`/payments/${payRes.data?.id}/verify`, {
+              authority: payRes.data?.authority ?? "",
+              status: "OK",
+            });
+          } else if (payRes.data?.gateway_url) {
             window.location.href = payRes.data.gateway_url;
             return;
           }
         } catch (payErr) {
-          if (process.env.NODE_ENV === "development") {
-            console.warn("Could not initiate payment gateway session, showing confirmation:", payErr);
-          }
+          const payMsg = (payErr as { message?: string })?.message;
+          setSubmitError(
+            payMsg ||
+              "پرداخت با خطا مواجه شد. سفارش شما ثبت شده است؛ از بخش سفارش‌ها می‌توانید پرداخت را تکمیل کنید."
+          );
+          refreshIdempotencyKey();
+          return;
         }
       }
 
-      // Wallet / Mock / COD / Confirmed without gateway
+      // Wallet confirmed in-page / COD / confirmed without gateway
       setCurrentStep("confirmation");
     } catch (err: unknown) {
       console.error("Order creation failed:", err);

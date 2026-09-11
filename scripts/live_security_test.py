@@ -3,6 +3,7 @@
 
 import asyncio
 import sys
+import uuid
 from pathlib import Path
 from unittest.mock import AsyncMock, patch
 
@@ -61,7 +62,7 @@ def test_3_honeypot_bot_blocking():
         "/api/v1/auth/register",
         json={
             "phone": "09129999999",
-            "password": "StrongPassword2026!",
+            "password": f"Strong!{uuid.uuid4().hex}",
             "first_name": "Bot",
             "last_name": "Spammer",
             "honeypot": "https://spam-link.com",

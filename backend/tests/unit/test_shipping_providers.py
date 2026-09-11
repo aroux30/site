@@ -71,7 +71,7 @@ async def test_internal_carrier_pricing_and_dispatch():
 @pytest.mark.asyncio
 async def test_tipax_carrier_dispatch_and_fail_closed():
     """Verify Tipax adapter dispatch and fail-closed behavior in production."""
-    provider = TipaxCarrierProvider(api_key="test_key_123")
+    provider = TipaxCarrierProvider(api_key=f"test-key-{uuid.uuid4().hex[:12]}")
     assert provider.provider_name == "tipax"
 
     rate = await provider.calculate_rate("تهران", weight_kg=2.5, order_amount_rials=0)

@@ -32,9 +32,13 @@ class WalletPaymentProvider(PaymentProvider):
         mobile: str | None = None,
         email: str | None = None,
     ) -> PaymentResult:
-        """Initiate payment from internal wallet balance."""
+        """Initiate payment from internal wallet balance.
+
+        No external redirect is involved: the client completes the payment by
+        calling the verify endpoint, and the service layer debits the wallet
+        inside the same locked transaction that completes the payment.
+        """
         authority = f"WALLET-{uuid.uuid4().hex[:12].upper()}"
-        gateway_url = f"/wallet/pay?authority={authority}&order_id={order_id}"
 
         await logger.ainfo(
             "wallet_payment_create",
@@ -46,7 +50,7 @@ class WalletPaymentProvider(PaymentProvider):
         return PaymentResult(
             success=True,
             authority=authority,
-            gateway_url=gateway_url,
+            gateway_url=None,
             raw_response={
                 "order_id": str(order_id),
                 "amount": amount,
@@ -60,7 +64,12 @@ class WalletPaymentProvider(PaymentProvider):
         authority: str,
         amount: int,
     ) -> PaymentResult:
-        """Verify internal wallet payment debit."""
+        """Confirm an internal wallet payment.
+
+        The authoritative wallet debit is performed by the payment service in
+        the same transaction that marks the payment completed; this method
+        only reports success for the gateway-adapter contract.
+        """
         ref_id = f"WTX-{uuid.uuid4().hex[:10].upper()}"
         await logger.ainfo(
             "wallet_payment_verify",

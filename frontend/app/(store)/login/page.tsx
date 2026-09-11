@@ -11,6 +11,9 @@ import {
   ArrowRight,
   KeyRound,
   ShieldCheck,
+  Shield,
+  Truck,
+  Phone,
   RotateCcw,
   Loader2,
   AlertCircle,
@@ -63,7 +66,25 @@ function LoginForm() {
 
   // If already authenticated with confirmed user profile, redirect only if authorized for target
   useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    // Verify that access_token cookie actually exists before auto-redirecting
+    const hasAccessTokenCookie =
+      typeof document !== "undefined" &&
+      /(?:^|;\s*)access_token=([^;]+)/.test(document.cookie);
+
     if (isAuthenticated && !isAuthLoading && user) {
+      if (!hasAccessTokenCookie) {
+        // Stale client state: cookie is missing or expired, do not auto-redirect
+        return;
+      }
+
+      // Avoid redirect loops: do not redirect to login or register
+      if (redirectUrl.startsWith("/login") || redirectUrl.startsWith("/register")) {
+        router.replace("/");
+        return;
+      }
+
       const isTargetAdmin = redirectUrl.startsWith("/admin");
       const isAdmin = Boolean(
         user.is_superuser ||
@@ -275,8 +296,10 @@ function LoginForm() {
   };
 
   return (
-    <div className="container mx-auto flex min-h-[calc(100vh-140px)] items-center justify-center px-4 py-12" dir="rtl">
-      <div className="w-full max-w-md">
+    <div className="container mx-auto px-4 py-12" dir="rtl">
+      <div className="mx-auto grid w-full max-w-5xl items-center gap-8 lg:grid-cols-5">
+        {/* Form side — first in RTL reading order */}
+        <div className="mx-auto w-full max-w-md lg:col-span-3 lg:mx-0 lg:max-w-none">
         {/* Brand Logo & Back to Home */}
         <div className="mb-6 flex items-center justify-between">
           <Link
@@ -598,6 +621,67 @@ function LoginForm() {
             </p>
           </CardFooter>
         </Card>
+        </div>
+
+        {/* Brand trust panel — desktop only */}
+        <aside className="relative hidden overflow-hidden rounded-3xl bg-gradient-to-bl from-emerald-950 via-slate-900 to-slate-950 p-8 text-white shadow-xl lg:col-span-2 lg:flex lg:flex-col">
+          {/* Soft brand glow */}
+          <div className="pointer-events-none absolute -top-24 -left-24 h-64 w-64 rounded-full bg-emerald-500/20 blur-3xl" aria-hidden />
+          <div className="pointer-events-none absolute -bottom-24 -right-16 h-56 w-56 rounded-full bg-teal-500/10 blur-3xl" aria-hidden />
+
+          <div className="flex items-center gap-3">
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/10 text-lg font-black text-white ring-1 ring-white/20">
+              ف
+            </div>
+            <div>
+              <p className="text-lg font-bold leading-tight">فروشگاه آنلاین</p>
+              <p className="text-xs text-white/60">ضمانت اصالت و بهترین قیمت</p>
+            </div>
+          </div>
+
+          <h2 className="mt-10 text-2xl font-black leading-[1.5]">
+            خرید مطمئن، از انتخاب تا تحویل
+          </h2>
+          <p className="mt-3 text-sm leading-7 text-white/70">
+            با خیال راحت گجت و لوازم دیجیتال بخر؛ ما اصالت، قیمت و ارسال را تضمین می‌کنیم.
+          </p>
+
+          <ul className="mt-8 space-y-5">
+            {[
+              { icon: Shield, title: "ضمانت اصالت کالا", desc: "همه کالاها اورجینال با گارانتی رسمی شرکتی" },
+              { icon: Truck, title: "ارسال سریع سراسری", desc: "تحویل ۱ تا ۳ روز کاری در سراسر ایران" },
+              { icon: RotateCcw, title: "۷ روز مهلت بازگشت", desc: "اگر راضی نبودی، بدون دردسر برگردان" },
+            ].map((item) => (
+              <li key={item.title} className="flex items-start gap-3">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-500/15 text-emerald-300 ring-1 ring-emerald-400/30">
+                  <item.icon className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="text-sm font-bold">{item.title}</p>
+                  <p className="mt-0.5 text-xs leading-6 text-white/60">{item.desc}</p>
+                </div>
+              </li>
+            ))}
+          </ul>
+
+          <div className="mt-auto space-y-4 pt-10">
+            <div className="grid grid-cols-2 gap-3 border-t border-white/10 pt-6 text-center">
+              <div>
+                <p className="text-xl font-black">+۵۰,۰۰۰</p>
+                <p className="mt-0.5 text-[11px] text-white/60">مشتری وفادار</p>
+              </div>
+              <div>
+                <p className="text-xl font-black text-emerald-300">۹۹.۸٪</p>
+                <p className="mt-0.5 text-[11px] text-white/60">رضایت خریداران</p>
+              </div>
+            </div>
+            <p className="flex items-center justify-center gap-1.5 text-xs text-white/60">
+              <Phone className="h-3.5 w-3.5" />
+              پشتیبانی ۲۴/۷
+              <span dir="ltr" className="font-bold text-white/85">۰۲۱-۸۸۸۸۹۹۹۹</span>
+            </p>
+          </div>
+        </aside>
       </div>
     </div>
   );

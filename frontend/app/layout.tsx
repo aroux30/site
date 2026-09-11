@@ -53,6 +53,34 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
+function buildSiteJsonLd() {
+  const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+  return [
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      name: "فروشگاه آنلاین",
+      url: SITE_URL,
+      logo: `${SITE_URL}/logo.svg`,
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      name: "فروشگاه آنلاین",
+      url: SITE_URL,
+      inLanguage: "fa-IR",
+      potentialAction: {
+        "@type": "SearchAction",
+        target: {
+          "@type": "EntryPoint",
+          urlTemplate: `${SITE_URL}/products?q={search_term_string}`,
+        },
+        "query-input": "required name=search_term_string",
+      },
+    },
+  ];
+}
+
 export default function RootLayout({
   children,
 }: {
@@ -61,6 +89,10 @@ export default function RootLayout({
   return (
     <html lang="fa" dir="rtl" className={vazirmatn.variable}>
       <body className="min-h-screen bg-background font-sans antialiased">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(buildSiteJsonLd()) }}
+        />
         <Providers>{children}</Providers>
       </body>
     </html>

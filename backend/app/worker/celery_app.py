@@ -133,4 +133,28 @@ celery_app.conf.beat_schedule = {
         "schedule": crontab(day_of_week=0, hour=4, minute=0),
         "options": {"queue": "analytics"},
     },
+    # Release expired stock reservations every 5 minutes
+    "release-expired-reservations": {
+        "task": "app.modules.inventory.application.tasks.release_expired_reservations",
+        "schedule": crontab(minute="*/5"),
+        "options": {"queue": "default"},
+    },
+    # Auto-cancel unpaid PENDING orders every 5 minutes (frees committed stock)
+    "cancel-stale-pending-orders": {
+        "task": "app.modules.orders.application.tasks.cancel_stale_pending_orders",
+        "schedule": crontab(minute="*/5"),
+        "options": {"queue": "default"},
+    },
+    # Drain the transactional outbox every minute
+    "process-outbox-queue": {
+        "task": "app.modules.automation.application.outbox_worker.process_outbox_queue",
+        "schedule": crontab(minute="*/1"),
+        "options": {"queue": "default"},
+    },
+    # Check low stock daily
+    "check-low-stock": {
+        "task": "app.modules.inventory.application.tasks.check_low_stock_task",
+        "schedule": crontab(hour=8, minute=0),
+        "options": {"queue": "default"},
+    },
 }

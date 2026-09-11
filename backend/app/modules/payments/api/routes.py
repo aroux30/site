@@ -150,13 +150,15 @@ async def verify_payment(
     """Verify a payment after the user returns from the gateway.
 
     The client should call this endpoint with the ``authority`` and ``status``
-    values received from the gateway redirect.
+    values received from the gateway redirect.  Only the order owner may
+    verify a payment.
     """
     return await payment_service.verify_payment(
         db,
         payment_id=payment_id,
         authority=body.authority,
         status=body.status,
+        user_id=user_id,
     )
 
 
@@ -289,28 +291,56 @@ async def webhook_callback(
         form = await request.form()
         raw = dict(form)
 
-    # Optional IPN signature verification for NowPayments
+    # IPN signature verification for NowPayments — fail-closed: a configured
+    # secret makes the signature mandatory, and production rejects unsigned
+    # webhooks outright when the secret is missing.
     prov_lower = provider.lower()
     if prov_lower in ("crypto", "nowpayments"):
+        from app.core.config.settings import get_settings
+
+        try:
+            crypto_provider = get_payment_provider("crypto")
+            secret_configured = bool(
+                getattr(crypto_provider, "ipn_secret_configured", False)
+            )
+        except ValueError:
+            crypto_provider = None
+            secret_configured = False
+
         sig_header = request.headers.get("x-nowpayments-sig")
-        if sig_header:
-            try:
-                crypto_provider = get_payment_provider("crypto")
-                if hasattr(crypto_provider, "verify_ipn_signature"):
-                    is_valid = crypto_provider.verify_ipn_signature(raw_body, sig_header)
-                    if not is_valid:
-                        await logger.awarning(
-                            "nowpayments_ipn_signature_mismatch",
-                            provider=provider,
-                        )
-                        raise HTTPException(
-                            status_code=status.HTTP_400_BAD_REQUEST,
-                            detail="Invalid IPN signature",
-                        )
-            except HTTPException:
-                raise
-            except Exception as exc:
-                await logger.awarning("nowpayments_sig_check_error", error=str(exc))
+        if secret_configured and crypto_provider is not None:
+            if not sig_header:
+                await logger.awarning(
+                    "nowpayments_ipn_signature_missing",
+                    provider=provider,
+                )
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="Missing IPN signature",
+                )
+            if not crypto_provider.verify_ipn_signature(raw_body, sig_header):
+                await logger.awarning(
+                    "nowpayments_ipn_signature_mismatch",
+                    provider=provider,
+                )
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Invalid IPN signature",
+                )
+        elif get_settings().ENVIRONMENT == "production":
+            await logger.aerror(
+                "nowpayments_ipn_secret_not_configured",
+                provider=provider,
+            )
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="Crypto payment webhook is not configured (missing IPN secret)",
+            )
+        else:
+            await logger.awarning(
+                "nowpayments_ipn_unsigned_accepted_dev_only",
+                provider=provider,
+            )
 
     await logger.ainfo(
         "payment_webhook_received",

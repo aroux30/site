@@ -488,3 +488,107 @@ async def expire_stale_reservations(db: AsyncSession) -> int:
         await logger.ainfo("stale_reservations_expired", count=released_count)
 
     return released_count
+
+
+async def restock_order(db: AsyncSession, order_id: uuid.UUID) -> int:
+    """Return committed stock for a cancelled / unpaid order to available.
+
+    Releases every CONFIRMED reservation attached to the order (committed →
+    available) and, as a fallback for reservations that were never created,
+    restores committed counts from the order line items.  Returns the number
+    of units restocked.  Safe to call once per order — the order state
+    machine prevents a second CANCELED transition.
+    """
+    from app.modules.orders.domain.models import OrderItem
+
+    # Validate and normalize the identifier before it reaches the query layer.
+    safe_order_id = uuid.UUID(str(order_id))
+
+    reservation_stmt = (
+        select(InventoryReservation)
+        .filter_by(order_id=safe_order_id)
+        .with_for_update()
+    )
+    reservations = list((await db.scalars(reservation_stmt)).all())
+
+    restocked = 0
+    handled_variant_ids: set[uuid.UUID] = set()
+
+    for reservation in reservations:
+        item_stmt = (
+            select(InventoryItem)
+            .filter_by(id=reservation.inventory_item_id)
+            .with_for_update()
+        )
+        item = await db.scalar(item_stmt)
+
+        if reservation.status == ReservationStatus.CONFIRMED:
+            if item is not None:
+                item.committed = max(0, item.committed - reservation.quantity)
+                item.available += reservation.quantity
+                restocked += reservation.quantity
+
+                await _record_transaction(
+                    db,
+                    inventory_item_id=item.id,
+                    quantity=reservation.quantity,
+                    tx_type=TransactionType.RELEASED,
+                    reference_type="order_cancellation",
+                    reference_id=reservation.id,
+                    notes="Stock returned to available on order cancellation",
+                )
+            reservation.status = ReservationStatus.RELEASED
+        elif reservation.status == ReservationStatus.PENDING:
+            if item is not None:
+                item.reserved = max(0, item.reserved - reservation.quantity)
+                item.available += reservation.quantity
+                restocked += reservation.quantity
+
+                await _record_transaction(
+                    db,
+                    inventory_item_id=item.id,
+                    quantity=reservation.quantity,
+                    tx_type=TransactionType.RELEASED,
+                    reference_type="order_cancellation",
+                    reference_id=reservation.id,
+                    notes="Pending reservation released on order cancellation",
+                )
+            reservation.status = ReservationStatus.RELEASED
+
+    # Fallback: order items with no reservation row (data drift) — only
+    # restock when committed stock still covers the quantity.
+    items_stmt = select(OrderItem).filter_by(order_id=safe_order_id)
+    order_items = (await db.scalars(items_stmt)).all()
+    for order_item in order_items:
+        if order_item.variant_id in handled_variant_ids:
+            continue
+        handled_variant_ids.add(order_item.variant_id)
+        item_stmt = (
+            select(InventoryItem)
+            .filter_by(variant_id=order_item.variant_id)
+            .with_for_update()
+        )
+        item = await db.scalar(item_stmt)
+        if item is not None and item.committed >= order_item.quantity:
+            item.committed -= order_item.quantity
+            item.available += order_item.quantity
+            restocked += order_item.quantity
+
+            await _record_transaction(
+                db,
+                inventory_item_id=item.id,
+                quantity=order_item.quantity,
+                tx_type=TransactionType.RELEASED,
+                reference_type="order_cancellation",
+                reference_id=order_id,
+                notes="Fallback restock for order item without reservation",
+            )
+
+    if restocked:
+        await db.flush()
+        await logger.ainfo(
+            "order_restocked",
+            order_id=str(order_id),
+            units_restocked=restocked,
+        )
+    return restocked

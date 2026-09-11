@@ -127,7 +127,7 @@ async def test_crypto_create_payment_all_currencies():
 
 @pytest.mark.asyncio
 async def test_crypto_create_payment_real_api_call():
-    provider = NowPaymentsProvider(api_key="live-key-123", sandbox=False)
+    provider = NowPaymentsProvider(api_key=f"test-key-{uuid.uuid4().hex[:12]}", sandbox=False)
     order_id = uuid.uuid4()
 
     mock_invoice_response = MagicMock()
@@ -191,7 +191,7 @@ async def test_crypto_verify_payment_sandbox():
 
 @pytest.mark.asyncio
 async def test_crypto_verify_payment_real_api():
-    provider = NowPaymentsProvider(api_key="live-key-123", sandbox=False)
+    provider = NowPaymentsProvider(api_key=f"test-key-{uuid.uuid4().hex[:12]}", sandbox=False)
 
     mock_resp = MagicMock()
     mock_resp.status_code = 200
@@ -856,6 +856,22 @@ async def test_payment_creation_idempotency_race_handling():
     )
 
     mock_db = MagicMock()
+    # The order-validation lookup must resolve to a payable PENDING order
+    # owned by the caller before payment creation proceeds.
+    from app.modules.orders.domain.models import Order, OrderStatus
+
+    payable_order = Order(
+        id=order_id,
+        user_id=user_id,
+        order_number="ORD-TEST-PAYABLE",
+        status=OrderStatus.PENDING,
+        subtotal=500_000,
+        shipping_cost=0,
+        tax=0,
+        discount_amount=0,
+        total=500_000,
+    )
+    mock_db.get = AsyncMock(return_value=payable_order)
     # First select returns None, flush raises IntegrityError (simulating race), second select returns existing
     mock_db.execute = AsyncMock(
         side_effect=[
@@ -888,9 +904,9 @@ def test_production_payment_fail_closed_on_sandbox_or_mock():
         Settings(
             ENVIRONMENT="production",
             DEBUG=False,
-            JWT_SECRET_KEY="A_VERY_SECURE_JWT_SECRET_KEY_123456",
-            DATABASE_URL="postgresql+asyncpg://prod_user:prod_pass@10.0.0.1:5432/prod_db",
-            MINIO_SECRET_KEY="a_strong_minio_secret_key_prod",
+            JWT_SECRET_KEY=f"jwt-{uuid.uuid4().hex}",
+            DATABASE_URL=f"postgresql+asyncpg://u{uuid.uuid4().hex[:6]}:{uuid.uuid4().hex}@db.invalid:5432/db",
+            MINIO_SECRET_KEY=f"minio-{uuid.uuid4().hex}",
             PAYMENT_PROVIDER="mock",
             PAYMENT_SANDBOX=False,
         )
@@ -901,9 +917,9 @@ def test_production_payment_fail_closed_on_sandbox_or_mock():
         Settings(
             ENVIRONMENT="production",
             DEBUG=False,
-            JWT_SECRET_KEY="A_VERY_SECURE_JWT_SECRET_KEY_123456",
-            DATABASE_URL="postgresql+asyncpg://prod_user:prod_pass@10.0.0.1:5432/prod_db",
-            MINIO_SECRET_KEY="a_strong_minio_secret_key_prod",
+            JWT_SECRET_KEY=f"jwt-{uuid.uuid4().hex}",
+            DATABASE_URL=f"postgresql+asyncpg://u{uuid.uuid4().hex[:6]}:{uuid.uuid4().hex}@db.invalid:5432/db",
+            MINIO_SECRET_KEY=f"minio-{uuid.uuid4().hex}",
             PAYMENT_PROVIDER="zarinpal",
             PAYMENT_SANDBOX=True,
         )

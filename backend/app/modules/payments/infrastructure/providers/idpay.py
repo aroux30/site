@@ -152,6 +152,7 @@ class IDPayProvider(PaymentProvider):
         payload = {
             "id": authority,
             "order_id": "",  # IDPay docs: either id or order_id required
+            "amount": amount,  # server-enforced amount cross-check
         }
 
         await logger.ainfo(
@@ -184,6 +185,26 @@ class IDPayProvider(PaymentProvider):
         verify_status = data.get("status")
         # status 100 = verified successfully, 101 = already verified
         if response.status_code == 200 and verify_status in (100, 101, "100", "101"):
+            # Cross-check the settled amount reported by IDPay against the
+            # expected payment amount; a mismatch must never settle.
+            reported_amount = data.get("amount")
+            if reported_amount is not None and int(reported_amount) != int(amount):
+                await logger.aerror(
+                    "idpay_verify_amount_mismatch",
+                    transaction_id=authority,
+                    expected=amount,
+                    reported=int(reported_amount),
+                )
+                return PaymentResult(
+                    success=False,
+                    authority=authority,
+                    error_code="AMOUNT_MISMATCH",
+                    error_message=(
+                        f"IDPay settled amount ({reported_amount}) does not "
+                        f"match the payment amount ({amount})"
+                    ),
+                    raw_response=data,
+                )
             track_id = str(data.get("track_id", ""))
             card_no = data.get("payment", {}).get("card_no")
             await logger.ainfo(

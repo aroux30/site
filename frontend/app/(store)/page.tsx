@@ -21,6 +21,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { BentoGrid, BentoCard } from "@/components/ui/bento-grid";
 import { Marquee } from "@/components/ui/marquee";
+import { NumberTicker } from "@/components/ui/number-ticker";
 import { HeroInteractive, HeroActions } from "@/components/home/hero-interactive";
 import { CampaignCountdown } from "@/components/home/campaign-countdown";
 import { ProductQuickCard } from "@/components/home/product-quick-card";
@@ -147,15 +148,24 @@ export default function HomePage() {
               {/* Trust Counters */}
               <div className="grid grid-cols-3 gap-4 pt-6 border-t border-border/60 max-w-lg mx-auto lg:mx-0">
                 <div>
-                  <div className="text-2xl lg:text-3xl font-black text-foreground">۱۰,۰۰۰+</div>
+                  <div className="text-2xl lg:text-3xl font-black text-foreground">
+                    <NumberTicker value={10000} className="text-foreground" />
+                    <span>+</span>
+                  </div>
                   <div className="text-xs text-muted-foreground mt-0.5">کالای اصل و معتبر</div>
                 </div>
                 <div>
-                  <div className="text-2xl lg:text-3xl font-black text-emerald-600 dark:text-emerald-400">۵۰,۰۰۰+</div>
+                  <div className="text-2xl lg:text-3xl font-black text-emerald-600 dark:text-emerald-400">
+                    <NumberTicker value={50000} className="text-emerald-600 dark:text-emerald-400" />
+                    <span>+</span>
+                  </div>
                   <div className="text-xs text-muted-foreground mt-0.5">مشتری وفادار</div>
                 </div>
                 <div>
-                  <div className="text-2xl lg:text-3xl font-black text-foreground">۹۹.۸٪</div>
+                  <div className="text-2xl lg:text-3xl font-black text-foreground">
+                    <NumberTicker value={99.8} decimalPlaces={1} className="text-foreground" />
+                    <span>٪</span>
+                  </div>
                   <div className="text-xs text-muted-foreground mt-0.5">رضایت مشتریان</div>
                 </div>
               </div>
@@ -206,7 +216,7 @@ export default function HomePage() {
                 <Sparkles className="w-3.5 h-3.5" />
                 دسته‌بندی‌های محبوب
               </div>
-              <h2 className="text-2xl sm:text-3xl font-black text-foreground">
+              <h2 className="heading-display">
                 کاوش بر اساس دسته‌بندی
               </h2>
             </div>
@@ -311,7 +321,7 @@ export default function HomePage() {
                 <Zap className="w-3.5 h-3.5" />
                 کالاهای منتخب پرچمدار
               </div>
-              <h2 className="text-2xl sm:text-3xl font-black text-foreground">
+              <h2 className="heading-display">
                 پرفروش‌ترین‌های این هفته
               </h2>
             </div>
@@ -340,7 +350,7 @@ export default function HomePage() {
       <section className="py-14 bg-muted/20 border-t border-border/60">
         <div className="container mx-auto px-4 sm:px-6 max-w-7xl">
           <div className="text-center max-w-2xl mx-auto mb-12">
-            <h2 className="text-2xl sm:text-3xl font-black text-foreground mb-3">
+            <h2 className="heading-display mb-3 text-center">
               نظرات و تجربیات خریداران واقعی
             </h2>
             <p className="text-sm text-muted-foreground">

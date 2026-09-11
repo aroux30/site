@@ -99,6 +99,7 @@ class Settings(BaseSettings):
     PAYMENT_MERCHANT_ID: str = ""
     PAYMENT_CALLBACK_BASE_URL: str = "http://localhost:3000/payment/callback"
     PAYMENT_SANDBOX: bool = True
+    ORDER_PAYMENT_TIMEOUT_MINUTES: int = 60
     NOWPAYMENTS_API_KEY: str = ""
     NOWPAYMENTS_SANDBOX: bool = True
     NOWPAYMENTS_IPN_SECRET: str = ""

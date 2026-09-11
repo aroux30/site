@@ -12,7 +12,7 @@ from app.core.security.password import hash_password, verify_password
 
 def test_argon2id_password_hashing():
     """Verify password hashing with Argon2id and verification."""
-    password = "MySecurePassword123!"
+    password = f"Pw!{uuid.uuid4().hex}"
     hashed = hash_password(password)
 
     # Hash should not be plaintext
@@ -70,6 +70,6 @@ def test_production_security_fails_on_placeholder_secret():
         Settings(
             ENVIRONMENT="production",
             DEBUG=False,
-            JWT_SECRET_KEY="CHANGE-ME-IN-PRODUCTION-dummy",
+            JWT_SECRET_KEY=f"CHANGE-ME-IN-PRODUCTION-{uuid.uuid4().hex[:8]}",
         )
     assert "Security violation" in str(exc_info.value)

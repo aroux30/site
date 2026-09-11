@@ -24,8 +24,10 @@ from app.modules.orders.schemas.order import (
     OrderFilterParams,
     OrderListResponse,
     OrderResponse,
+    OrderReturnResponse,
     OrderTimelineResponse,
     PaginationParams,
+    ReturnCreateRequest,
 )
 
 router = APIRouter()
@@ -159,6 +161,21 @@ async def get_order_timeline(
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> OrderTimelineResponse:
     return await order_service.get_order_timeline(db, order_id, user_id=user_id)
+
+
+@router.post(
+    "/{order_id}/returns",
+    response_model=OrderReturnResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Request order return (RMA) within statutory 7-day window",
+)
+async def request_order_return(
+    order_id: uuid.UUID,
+    body: ReturnCreateRequest,
+    db: AsyncSession = Depends(get_db),
+    user_id: uuid.UUID = Depends(get_current_user_id),
+) -> OrderReturnResponse:
+    return await order_service.request_order_return(db, user_id, order_id, body)
 
 
 # ══════════════════════════════════════════════════════════════════════════

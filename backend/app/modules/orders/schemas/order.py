@@ -163,3 +163,41 @@ class PaginationParams(BaseModel):
 
     page: int = Field(1, ge=1)
     page_size: int = Field(20, ge=1, le=100)
+
+
+# ── Returns (RMA) Schemas ─────────────────────────────────────────────────
+
+
+class ReturnItemRequest(BaseModel):
+    order_item_id: uuid.UUID
+    variant_id: uuid.UUID
+    quantity: int = Field(1, ge=1)
+    reason: str = Field(..., description="Reason for returning the item")
+    customer_notes: Optional[str] = Field(None, max_length=1000)
+
+
+class ReturnCreateRequest(BaseModel):
+    items: list[ReturnItemRequest] = Field(..., min_length=1)
+
+
+class ReturnItemResponse(BaseModel):
+    order_item_id: uuid.UUID
+    variant_id: uuid.UUID
+    quantity: int
+    reason: str
+    customer_notes: Optional[str] = None
+    inspection_outcome: Optional[str] = None
+
+
+class OrderReturnResponse(BaseModel):
+    id: uuid.UUID
+    order_id: uuid.UUID
+    user_id: uuid.UUID
+    status: str
+    items: list[ReturnItemResponse]
+    created_at: datetime
+    approved_at: Optional[datetime] = None
+    inspected_at: Optional[datetime] = None
+    refunded_at: Optional[datetime] = None
+    admin_notes: Optional[str] = None
+    refund_amount: int = 0

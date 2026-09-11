@@ -335,6 +335,81 @@ async def cancel_order(
     return _build_order_response(order)
 
 
+async def request_order_return(
+    db: AsyncSession,
+    user_id: uuid.UUID,
+    order_id: uuid.UUID,
+    body: Any,
+) -> Any:
+    """Customer request for order return (RMA) within statutory 7-day window."""
+    from app.modules.orders.application.returns_service import ReturnsService
+    from app.modules.orders.domain.returns import ReturnItemSpec, ReturnReason
+    from app.modules.orders.schemas.order import OrderReturnResponse, ReturnItemResponse
+
+    stmt = (
+        select(Order)
+        .options(
+            selectinload(Order.items),
+            selectinload(Order.status_history),
+        )
+        .where(Order.id == order_id, Order.user_id == user_id)
+    )
+    result = await db.execute(stmt)
+    order = result.scalar_one_or_none()
+
+    if order is None:
+        raise NotFoundError("Order")
+
+    returns_service = ReturnsService(return_window_days=7)
+    delivered_event = next(
+        (h for h in (order.status_history or []) if h.to_status == OrderStatus.DELIVERED.value),
+        None,
+    )
+    delivered_at = delivered_event.created_at if delivered_event else order.updated_at
+
+    specs = [
+        ReturnItemSpec(
+            order_item_id=item.order_item_id,
+            variant_id=item.variant_id,
+            quantity=item.quantity,
+            reason=ReturnReason(item.reason) if item.reason in [r.value for r in ReturnReason] else ReturnReason.CUSTOMER_REMORSE,
+            customer_notes=item.customer_notes,
+        )
+        for item in body.items
+    ]
+
+    rma = returns_service.create_return_request(
+        order=order,
+        user_id=user_id,
+        delivered_at=delivered_at,
+        items=specs,
+    )
+
+    return OrderReturnResponse(
+        id=rma.id,
+        order_id=rma.order_id,
+        user_id=rma.user_id,
+        status=rma.status.value,
+        items=[
+            ReturnItemResponse(
+                order_item_id=i.order_item_id,
+                variant_id=i.variant_id,
+                quantity=i.quantity,
+                reason=i.reason.value,
+                customer_notes=i.customer_notes,
+                inspection_outcome=i.inspection_outcome.value if i.inspection_outcome else None,
+            )
+            for i in rma.items
+        ],
+        created_at=rma.created_at,
+        approved_at=rma.approved_at,
+        inspected_at=rma.inspected_at,
+        refunded_at=rma.refunded_at,
+        admin_notes=rma.admin_notes,
+        refund_amount=rma.refund_amount,
+    )
+
+
 async def get_order_timeline(
     db: AsyncSession,
     order_id: uuid.UUID,

@@ -82,3 +82,56 @@ async def test_bruteforce_protector_lockout():
             await protector.check_lockout("09121234567")
         assert exc_info.value.status_code == 429
         assert "450 ثانیه" in exc_info.value.detail
+
+
+def test_field_level_data_protection_and_pii_masking():
+    """Verify Phase 10 Field-Level Data Protection and PII masking."""
+    from app.core.security.data_protection import (
+        mask_phone,
+        mask_national_code,
+        mask_email,
+        mask_iban,
+        mask_card_pan,
+        redact_sensitive_payload,
+    )
+
+    # Phone masking
+    assert mask_phone("09123456789") == "0912***6789"
+    assert mask_phone("+989123456789") == "+98912***6789"
+    assert mask_phone("") == ""
+
+    # National code masking
+    assert mask_national_code("0012345678") == "******5678"
+    assert mask_national_code("") == ""
+
+    # Email masking
+    assert mask_email("customer@example.com") == "c***r@example.com"
+    assert mask_email("a@b.com") == "a*@b.com"
+
+    # IBAN and PAN masking
+    assert mask_iban("IR120120000000001234567890") == "IR12******************7890"
+    assert mask_card_pan("6037991812345678") == "6037-****-****-5678"
+
+    # Recursive payload redaction
+    payload = {
+        "user_id": "usr-123",
+        "username": "customer",
+        "password": "SuperSecretPassword123!",
+        "profile": {
+            "national_code": "0012345678",
+            "phone": "09123456789",
+        },
+        "payment": {
+            "pan": "6037991812345678",
+            "cvv2": "123",
+            "amount": 500000,
+        },
+    }
+    redacted = redact_sensitive_payload(payload)
+    assert redacted["user_id"] == "usr-123"
+    assert redacted["password"] == "[REDACTED]"
+    assert redacted["profile"]["national_code"] == "[REDACTED]"
+    assert redacted["payment"]["pan"] == "[REDACTED]"
+    assert redacted["payment"]["cvv2"] == "[REDACTED]"
+    assert redacted["payment"]["amount"] == 500000
+

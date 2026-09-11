@@ -64,23 +64,27 @@ jobs:
             ${{ steps.vars.outputs.server_user }}@${{ steps.vars.outputs.server_host }} \
             "cd ${{ steps.vars.outputs.deploy_path }} && bash scripts/backup.sh"
 
-      - name: Pull latest code
+      - name: Record current release and pull latest code
         run: |
           ssh -i ~/.ssh/deploy_key \
             ${{ steps.vars.outputs.server_user }}@${{ steps.vars.outputs.server_host }} \
-            "cd ${{ steps.vars.outputs.deploy_path }} && git fetch origin && git checkout ${{ github.sha }}"
+            "cd ${{ steps.vars.outputs.deploy_path }} && \
+             git rev-parse HEAD > .prev_deploy_sha && \
+             echo 'Recorded previous release SHA:' \$(cat .prev_deploy_sha) && \
+             git fetch origin && \
+             git checkout ${{ github.sha }}"
 
-      - name: Build and restart containers
+      - name: Deploy services via canonical deploy script
         run: |
           ssh -i ~/.ssh/deploy_key \
             ${{ steps.vars.outputs.server_user }}@${{ steps.vars.outputs.server_host }} \
             "cd ${{ steps.vars.outputs.deploy_path }} && bash scripts/deploy.sh ${{ github.event.inputs.environment }}"
 
-      - name: Run database migrations
+      - name: Verify canonical Alembic schema migration
         run: |
           ssh -i ~/.ssh/deploy_key \
             ${{ steps.vars.outputs.server_user }}@${{ steps.vars.outputs.server_host }} \
-            "cd ${{ steps.vars.outputs.deploy_path }} && docker compose exec -T backend alembic upgrade head"
+            "cd ${{ steps.vars.outputs.deploy_path }} && docker compose exec -T backend alembic check"
 
       - name: Health check
         run: |
@@ -105,13 +109,31 @@ jobs:
           echo "Health check failed after $MAX_RETRIES attempts"
           exit 1
 
-      - name: Rollback on failure
+      - name: Rollback on failure (Release-aware)
         if: failure()
         run: |
-          echo "Deployment failed - initiating rollback"
+          echo "Deployment failed - initiating release-aware rollback"
           ssh -i ~/.ssh/deploy_key \
             ${{ steps.vars.outputs.server_user }}@${{ steps.vars.outputs.server_host }} \
-            "cd ${{ steps.vars.outputs.deploy_path }} && git checkout HEAD~1 && docker compose up -d --build"
+            "cd ${{ steps.vars.outputs.deploy_path }} && \
+             if [ -f .prev_deploy_sha ]; then \
+               PREV_SHA=\$(cat .prev_deploy_sha); \
+               echo 'Restoring exact previous release commit:' \$PREV_SHA; \
+               git checkout \$PREV_SHA; \
+               bash scripts/deploy.sh ${{ github.event.inputs.environment }}; \
+               rm -f .prev_deploy_sha; \
+             else \
+               echo 'No .prev_deploy_sha file found; checking out HEAD@{1}'; \
+               git checkout HEAD@{1}; \
+               bash scripts/deploy.sh ${{ github.event.inputs.environment }}; \
+             fi"
+
+      - name: Cleanup deploy state on success
+        if: success()
+        run: |
+          ssh -i ~/.ssh/deploy_key \
+            ${{ steps.vars.outputs.server_user }}@${{ steps.vars.outputs.server_host }} \
+            "cd ${{ steps.vars.outputs.deploy_path }} && rm -f .prev_deploy_sha"
 
       - name: Cleanup SSH key
         if: always()

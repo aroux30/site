@@ -46,9 +46,23 @@ async function getFeaturedProducts(): Promise<ApiProduct[]> {
     process.env.INTERNAL_API_URL ||
     process.env.NEXT_PUBLIC_API_URL ||
     "http://localhost:8000/api/v1";
+  // SSRF guard: this target comes exclusively from operator configuration
+  // (build/runtime env), never from user input. Only absolute http(s) URLs
+  // are honored and the fetch is pinned to the configured origin, so any
+  // path, query, or credential fragments in the config cannot redirect the
+  // request elsewhere.
+  if (!/^https?:\/\//i.test(base)) {
+    return [];
+  }
+  let origin: string;
+  try {
+    origin = new URL(base).origin;
+  } catch {
+    return [];
+  }
   try {
     const res = await fetch(
-      `${base}/catalog/products?is_featured=true&is_active=true&page_size=6`,
+      `${origin}/catalog/products?is_featured=true&is_active=true&page_size=6`,
       { next: { revalidate: 300 } },
     );
     if (!res.ok) return [];
@@ -58,87 +72,6 @@ async function getFeaturedProducts(): Promise<ApiProduct[]> {
     return [];
   }
 }
-
-const featuredProducts: ApiProduct[] = [] = [
-  {
-    id: "prod-s24u",
-    name: "گوشی موبایل سامسونگ گلکسی S24 Ultra",
-    slug: "samsung-galaxy-s24-ultra",
-    category_id: "cat-mobile",
-    min_price: 68500000,
-    max_price: 77900000,
-    variant_count: 2,
-    is_active: true,
-    is_featured: true,
-    short_description: "پرچمدار سامسونگ با هوش مصنوعی Galaxy AI و دوربین ۲۰۰ مگاپیکسلی تیتانیوم",
-    primary_image_url: "https://images.unsplash.com/photo-1610945265064-0e34e5519bbf?w=800",
-  },
-  {
-    id: "prod-ip16pm",
-    name: "گوشی موبایل اپل آیفون 16 پرو مکس",
-    slug: "apple-iphone-16-pro-max",
-    category_id: "cat-mobile",
-    min_price: 95000000,
-    max_price: 108000000,
-    variant_count: 2,
-    is_active: true,
-    is_featured: true,
-    short_description: "چیپست A18 Pro، نمایشگر ۶.۹ اینچی Super Retina XDR و بدنه تیتانیوم صحرایی",
-    primary_image_url: "https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=800",
-  },
-  {
-    id: "prod-zb14",
-    name: "لپ‌تاپ اولترابوک ایسوس ذن‌بوک 14 OLED",
-    slug: "asus-zenbook-14-oled",
-    category_id: "cat-laptops",
-    min_price: 62000000,
-    max_price: 62000000,
-    variant_count: 1,
-    is_active: true,
-    is_featured: true,
-    short_description: "پردازنده Core Ultra 7 اینتل با ۱۶ گیگابایت رم، ۱ ترابایت SSD و نمایشگر ۱۲۰ هرتز OLED",
-    primary_image_url: "https://images.unsplash.com/photo-1541807084-5c52b6b3adef?w=800",
-  },
-  {
-    id: "prod-xm5",
-    name: "هدفون بی‌سیم نویز کنسلینگ سونی WH-1000XM5",
-    slug: "sony-wh-1000xm5-wireless-headphones",
-    category_id: "cat-audio",
-    min_price: 16800000,
-    max_price: 16800000,
-    variant_count: 2,
-    is_active: true,
-    is_featured: true,
-    short_description: "قوی‌ترین سیستم حذف نویز جهان با دو پردازنده اختصاصی و صدای استودیویی Hi-Res",
-    primary_image_url: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800",
-  },
-  {
-    id: "prod-wuo2",
-    name: "ساعت هوشمند اپل واچ اولترا ۲",
-    slug: "apple-watch-ultra-2",
-    category_id: "cat-smartwatch",
-    min_price: 48500000,
-    max_price: 48500000,
-    variant_count: 1,
-    is_active: true,
-    is_featured: true,
-    short_description: "بدنه تیتانیوم ۴۹ میلی‌متری مقاوم در برابر آب تا ۱۰۰ متر با روشنایی ۳۰۰۰ نیت",
-    primary_image_url: "https://images.unsplash.com/photo-1508685096489-7aacd43bd3b1?w=800",
-  },
-  {
-    id: "prod-pb20",
-    name: "پاوربانک ۲۰۰۰۰ میلی‌آمپر ۵۰ وات شیائومی",
-    slug: "xiaomi-50w-powerbank-20000",
-    category_id: "cat-audio",
-    min_price: 2450000,
-    max_price: 2450000,
-    variant_count: 1,
-    is_active: true,
-    is_featured: true,
-    short_description: "فست شارژ ۵۰ واتی با قابلیت شارژ لپ‌تاپ و ۳ خروجی همزمان Type-C",
-    primary_image_url: "https://images.unsplash.com/photo-1609091839311-d5365f9ff1c5?w=800",
-  },
-];
 
 export default async function HomePage() {
   const featuredProducts = await getFeaturedProducts();

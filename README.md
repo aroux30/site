@@ -225,13 +225,13 @@ mypy app/
 
 ```bash
 # Format code
-pnpm format
+npm run format
 
 # Lint code
-pnpm lint
+npm run lint
 
 # Type check
-pnpm type-check
+npm run type-check
 ```
 
 ### Running Tests
@@ -246,26 +246,26 @@ pytest
 pytest --cov=app --cov-report=html
 
 # Run specific module tests
-pytest tests/unit/modules/products/
+pytest tests/unit/
 
 # Run integration tests
-pytest tests/integration/ -m integration
+pytest tests/integration/
 ```
 
 #### Frontend
 
 ```bash
 # Run unit tests
-pnpm test
+npm test
 
 # Run with coverage
-pnpm test:coverage
+npm run test:coverage
 
 # Run E2E tests
-pnpm test:e2e
+npm run test:e2e
 
 # Run E2E tests with UI
-pnpm test:e2e:ui
+npm run test:e2e:ui
 ```
 
 ### Database Migrations
@@ -391,8 +391,8 @@ curl http://localhost/api/v1/users/me \
 1. Create a feature branch from `develop`: `git checkout -b feature/your-feature`
 2. Follow the coding standards and conventions documented above
 3. Write tests for all new functionality
-4. Ensure all tests pass: `pytest` and `pnpm test`
-5. Ensure linting passes: `ruff check .` and `pnpm lint`
+4. Ensure all tests pass: `pytest` and `npm test`
+5. Ensure linting passes: `ruff check .` and `npm run lint`
 6. Submit a pull request with a clear description of changes
 7. Code review is required from at least one team member
 

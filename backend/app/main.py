@@ -190,11 +190,13 @@ def _register_infra_routes(app: FastAPI) -> None:
     settings = get_settings()
 
     @app.get("/healthz", include_in_schema=False)
+    @app.get("/api/health/live", include_in_schema=False)
     async def healthz() -> dict[str, str]:
         """Liveness probe – returns 200 if the process is alive."""
         return {"status": "ok", "app": settings.APP_NAME}
 
     @app.get("/readyz", include_in_schema=False)
+    @app.get("/api/health/ready", include_in_schema=False)
     async def readyz() -> JSONResponse:
         """Readiness probe – comprehensive check of PostgreSQL, Redis, Elasticsearch, and Storage."""
         checks: dict[str, str] = {}

@@ -11,6 +11,11 @@ async def test_health_check(client: AsyncClient):
     assert response.status_code == 200
     assert response.json()["status"] == "ok"
 
+    # Also verify alias /api/health/live
+    alias_resp = await client.get("/api/health/live")
+    assert alias_resp.status_code == 200
+    assert alias_resp.json()["status"] == "ok"
+
 
 @pytest.mark.asyncio
 async def test_readiness_check(client: AsyncClient):
@@ -24,6 +29,12 @@ async def test_readiness_check(client: AsyncClient):
     assert "redis" in data["checks"]
     assert "elasticsearch" in data["checks"]
     assert "storage" in data["checks"]
+
+    # Also verify alias /api/health/ready
+    alias_resp = await client.get("/api/health/ready")
+    assert alias_resp.status_code in (200, 503)
+    alias_data = alias_resp.json()
+    assert "checks" in alias_data
 
 
 @pytest.mark.asyncio

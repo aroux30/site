@@ -313,7 +313,7 @@ export async function fetchBlogPostBySlug(slug: string): Promise<BlogPost> {
     }
   } catch (error) {
     if (process.env.NODE_ENV === "development") {
-      console.warn(`Could not fetch post ${slug} from API, using fallback data`, error);
+      console.warn("Could not fetch post from API, using fallback data", { slug, error });
     }
   }
 

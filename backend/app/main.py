@@ -172,6 +172,10 @@ def _include_routers(app: FastAPI, prefix: str) -> None:
 
     for module_path, url_prefix, tags in module_router_specs:
         try:
+            # nosemgrep: python.lang.security.audit.non-literal-import.non-literal-import
+            # module_path values are compile-time constants defined in
+            # module_router_specs above (never user input); the indirection is
+            # deliberate so a broken router import fails the boot loudly.
             mod = importlib.import_module(module_path)
             router = getattr(mod, "router", None)
             if router is None:

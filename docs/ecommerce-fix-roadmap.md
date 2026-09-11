@@ -49,7 +49,7 @@
 | INF-03 | P2 | INFRASTRUCTURE BLOCKER | Nginx | Prod conf: `${DOMAIN}` never substituted; proxies nonexistent `/health`; no `/healthz`//readyz` locations | No envsubst entrypoint; stale route names | `nginx/nginx.prod.conf`, `docker-compose.prod.yml` | none | **P12-01** | Container boot test | Medium | OPEN |
 | INF-04 | P2 | SECURITY + NOT CONFIGURED | Docker/Secrets | Dev compose binds data services to 0.0.0.0 with weak defaults; local `.env` still weak (MinIO/Grafana/ES) | Compose fallbacks never rotated | `docker-compose.yml`, `.env` (local, untracked) | none | **P12-02** | Compose config review | Low | OPEN |
 | INF-05 | P1 | SECURITY + INFRASTRUCTURE BLOCKER | Secrets | Real-looking credentials embedded in `scripts/ssh_deploy.py`; password root SSH with `AutoAddPolicy`; hardcoded public IP in scripts/nginx/robots/sitemap; gitleaks blanket-exempts `tests/` | Provisioning script doubles as credential store | `scripts/ssh_deploy.py`, `scripts/fast_sync_and_test.py`, `nginx/nginx.conf` (95), `frontend/app/robots.ts`+`sitemap.ts`, `.gitleaks.toml` | none (rotation is external) | **P1-07**: rotate everything, env-only secrets, key SSH + pinned host keys, purge IPs, scope gitleaks allowlist | gitleaks full-history + deploy dry run | Medium | OPEN |
-| INF-06 | P2 | OBSERVABILITY GAP | Security tooling | Trivy never fails build (no `exit-code: 1`); ZAP advisory-only with missing rules file | Scan config incomplete | `.github/workflows/security.yml` (45-51), `zap.yml`, `.zap/rules.tsv` (missing) | none | **P0-02** | CI run on seeded vuln | Low | OPEN |
+| INF-06 | P2 | OBSERVABILITY GAP | Security tooling | Trivy never fails build (no `exit-code: 1`); ZAP advisory-only with missing rules file | Scan config incomplete | `.github/workflows/security.yml` (45-51), `zap.yml`, `.zap/rules.tsv` (missing) | none | **P0-02** | CI run on seeded vuln | Low | **DONE** (2026-09-11: trivy exit-code 1, .zap/rules.tsv created, gitleaks allowlists narrowed; seeded-vuln CI run failed as required — PR #1) |
 | INF-07 | P2 | OBSERVABILITY GAP | Monitoring | No alert rules/Alertmanager/dashboards; worker scrape target dead (`:8001` has no server) | Monitoring scaffolding incomplete | `monitoring/prometheus/prometheus.yml`, `docker-compose*.yml`, `backend/app/worker/*` | none | **P11-02** | Alert fired in staging drill | Low–Med | OPEN |
 | INF-08 | P2 | NOT CONFIGURED | Backup | No MinIO backup, no scheduler, backups same-host by default, no restore drill evidence | Backup scripts Postgres-only | `scripts/backup.sh`, `scripts/restore.sh`, `docker-compose*.yml`, `docs/deployment/README.md` | INF-02 (scheduler host) | **P12-03** | Restore drill | Medium | OPEN |
 | DB-01 | P2 | DATA CONSISTENCY | Database | No DB-level guard against duplicate coupon redemption, negative wallet/inventory, zero-qty items | Constraints never added (one unrelated CHECK exists) | new Alembic revision on head `41444c67e586`, `wallet/domain/models.py`, `inventory/domain/models.py`, `orders/domain/models.py` | BE-07 (task semantics) | **P2-01**: unique `(coupon_id, order_id)`; CHECKs `balance>=0`, `available>=0`, `reserved>=0`, `committed>=0`, `quantity>0` | Migration up/down + concurrency | Medium | OPEN |
@@ -66,7 +66,7 @@
 | ARCH-02 | P3 | TECHNICAL DEBT | AI | No AI commerce module exists (external claims aspirational) | Never implemented | — | — | **P10-01**: explicit decision record; do not build speculatively | — | — | OPEN (decision) |
 | ARCH-03 | P2 | DATA CONSISTENCY | Wallet | Cached `wallet.balance` can drift from ledger sum; `get_balance` docstring claims ledger is truth but returns cache | Reconciliation missing | `wallet/application/wallet_service.py` (68-101) | DB-01 | **P2-02**: return ledger sum + daily reconcile task with drift alert | Unit + reconciliation test | Low–Med | OPEN |
 | TEST-01 | P2 | TESTING GAP | E2E | No end-to-end checkout→payment→order test at any layer | Suite grew feature-by-feature | `backend/tests/integration/` | DB-01 | **P5-01/P5-02** | E2E (backend integration) | Low | OPEN |
-| TEST-02 | P2 | TESTING GAP | CI | No lint/format gate; no coverage floor | ci.yml minimal | `.github/workflows/ci.yml`, `pyproject.toml`, `frontend/eslint*` | INF-01 | **P0-01** | CI green/red check | Low | OPEN |
+| TEST-02 | P2 | TESTING GAP | CI | No lint/format gate; no coverage floor | ci.yml minimal | `.github/workflows/ci.yml`, `pyproject.toml`, `frontend/eslint*` | INF-01 | **P0-01** | CI green/red check | Low | **DONE** (2026-09-11: ruff+format+eslint gates in ci.yml; seeded-violation CI run failed as required — PR #1) |
 | TEST-03 | P3 | TESTING GAP | Performance | Load tests restored but stale vs current flows | Reports deleted previously | `load_tests/**` | Staging env (P12-01) | **P11-03** | Load | Low | OPEN |
 | UX-01 | P2 | UX ISSUE | Reviews | Review submit shows success even on API failure (comment admits it) | catch sets success | `frontend/app/(store)/products/[slug]/page.tsx` (515-524) | none | Fold into **P9-02** | tsc | Low | OPEN |
 | PERF-01 | P3 | PERFORMANCE ISSUE | Observability | Worker metrics scrape points at closed port; celery prometheus metrics not exposed | No metrics HTTP server in worker | `backend/app/worker/celery_app.py`, `monitoring/prometheus/prometheus.yml` (46-52) | INF-07 | Fold into **P11-02** | Scrape check | Low | OPEN |
@@ -113,7 +113,7 @@ P11-* observability: after P12-01 (staging reachable) for alert drill; rate limi
 **Dependencies:** none (INF-01 done).
 **Rollback:** revert workflow file; no runtime impact.
 
-- **TASK P0-01 — Lint/format gates in CI** `PARALLEL SAFE` — OPEN
+- **TASK P0-01 — Lint/format gates in CI** `PARALLEL SAFE` — **DONE (2026-09-11)**
   - WHY: the gutted-CI incident shows suites alone don't catch drift; style-consistent diffs review faster.
   - WHAT: add ruff (+format check) to `backend-checks`, eslint to `frontend-checks`; fix current violations once, in a dedicated commit.
   - WHERE: `ci.yml` jobs after install steps.
@@ -121,7 +121,7 @@ P11-* observability: after P12-01 (staging reachable) for alert drill; rate limi
   - TEST: CI run on a deliberately broken branch fails; main passes.
   - DONE WHEN: both gates required on PRs and passing on main.
 
-- **TASK P0-02 — Security scans actually gate** `PARALLEL SAFE` — OPEN (INF-06)
+- **TASK P0-02 — Security scans actually gate** `PARALLEL SAFE` — **DONE (2026-09-11)** (INF-06 closed; ZAP *execution* itself remains schedule-gated — see implementation-log NOT VERIFIED note)
   - WHY: Trivy currently reports CRITICAL/HIGH and exits 0; ZAP references a missing rules file.
   - WHAT: add `exit-code: 1` (+ `severity: CRITICAL,HIGH`) to Trivy; commit a minimal `.zap/rules.tsv` (or drop `rules_file_name`); keep gitleaks as-is until P1-07 tightens the allowlist.
   - WHERE: `security.yml` Trivy step, `zap.yml`, new `.zap/rules.tsv`.

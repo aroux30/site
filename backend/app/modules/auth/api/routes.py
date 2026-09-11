@@ -55,12 +55,19 @@ def _set_auth_cookies(
     refresh_token: str,
     request: Request | None = None,
 ) -> None:
-    """Set HttpOnly cookies for both tokens on root path."""
+    """Set auth cookies on root path.
+
+    access_token is intentionally JS-readable: the frontend mirrors it via
+    document.cookie and uses its presence to detect a valid session. The
+    token is equally exposed in the login response body, so HttpOnly adds no
+    protection here and only breaks the client session check.
+    refresh_token stays HttpOnly.
+    """
     is_secure = _is_secure_request(request)
     response.set_cookie(
         key="access_token",
         value=access_token,
-        httponly=True,
+        httponly=False,
         secure=is_secure,
         samesite="lax",
         path="/",

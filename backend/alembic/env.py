@@ -37,6 +37,7 @@ import app.modules.media.domain.models  # noqa: F401
 import app.modules.messaging.domain.models  # noqa: F401
 import app.modules.notifications.domain.models  # noqa: F401
 import app.modules.orders.domain.models  # noqa: F401
+import app.modules.orders.domain.return_models  # noqa: F401
 import app.modules.payments.domain.models  # noqa: F401
 import app.modules.rbac.domain.models  # noqa: F401
 import app.modules.referrals.domain.models  # noqa: F401

@@ -226,10 +226,24 @@ async def create_shipment(
     if order.status in (OrderStatus.CANCELED, OrderStatus.REFUNDED):
         raise ValidationError(f"Cannot create shipment for order in status {order.status.value}")
 
+    resolved_tracking_code = tracking_code
+    if not resolved_tracking_code:
+        from app.modules.shipping.infrastructure.carrier_provider import ShippingProviderFactory
+        provider = ShippingProviderFactory.get_provider(method.provider or "internal")
+        dispatch_res = await provider.create_shipment(
+            order_id=order_id,
+            recipient_name="مشتری",
+            recipient_phone="09120000000",
+            full_address="تهران",
+            postal_code="1122334455",
+            weight_kg=1.0,
+        )
+        resolved_tracking_code = dispatch_res.tracking_code
+
     shipment = Shipment(
         order_id=order_id,
         method_id=method_id,
-        tracking_code=tracking_code,
+        tracking_code=resolved_tracking_code,
         status=ShipmentStatus.PENDING,
     )
     db.add(shipment)
@@ -358,3 +372,57 @@ async def get_order_shipments(
     shipments = result.scalars().all()
 
     return [_build_shipment_response(s) for s in shipments]
+
+
+async def track_shipment_with_carrier(
+    db: AsyncSession,
+    shipment_id_or_code: str,
+) -> dict[str, Any]:
+    """Track shipment events using the designated carrier provider."""
+    from app.modules.shipping.infrastructure.carrier_provider import ShippingProviderFactory
+
+    shipment = None
+    try:
+        s_id = uuid.UUID(shipment_id_or_code)
+        stmt_uuid = select(Shipment).options(selectinload(Shipment.method)).where(Shipment.id == s_id)
+        res_uuid = await db.execute(stmt_uuid)
+        shipment = res_uuid.scalar_one_or_none()
+    except ValueError:
+        pass
+
+    if shipment is None:
+        stmt = (
+            select(Shipment)
+            .options(selectinload(Shipment.method))
+            .where(Shipment.tracking_code == shipment_id_or_code)
+        )
+        res = await db.execute(stmt)
+        shipment = res.scalar_one_or_none()
+
+    if shipment is None or not shipment.tracking_code:
+        raise NotFoundError("Shipment")
+
+    provider_name = "internal"
+    if shipment.method and shipment.method.provider:
+        provider_name = shipment.method.provider
+
+    provider = ShippingProviderFactory.get_provider(provider_name)
+    tracking_result = await provider.track_shipment(shipment.tracking_code)
+
+    return {
+        "shipment_id": str(shipment.id),
+        "order_id": str(shipment.order_id),
+        "tracking_code": tracking_result.tracking_code,
+        "carrier": provider.provider_name,
+        "status": tracking_result.status,
+        "is_delivered": tracking_result.is_delivered,
+        "events": [
+            {
+                "status": e.status,
+                "location": e.location,
+                "timestamp": e.timestamp.isoformat(),
+                "description": e.description,
+            }
+            for e in tracking_result.events
+        ],
+    }

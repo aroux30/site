@@ -124,3 +124,44 @@ async def test_post_iran_carrier_dispatch():
     assert dispatch.tracking_code.startswith("1987654321")
     assert len(dispatch.tracking_code) == 20
     assert dispatch.estimated_delivery_days == 3
+
+
+@pytest.mark.asyncio
+async def test_api_track_shipment_endpoint():
+    """Verify GET /api/v1/shipping/track/{tracking_code} carrier tracking endpoint."""
+    from httpx import ASGITransport, AsyncClient
+    from unittest.mock import AsyncMock, MagicMock
+    from app.main import create_app
+    from app.core.database.session import get_db
+    from app.modules.shipping.domain.models import Shipment, ShipmentStatus
+
+    mock_db = AsyncMock()
+    mock_db.add = MagicMock()
+
+    shipment = Shipment(
+        id=uuid.uuid4(),
+        order_id=uuid.uuid4(),
+        method_id=uuid.uuid4(),
+        tracking_code="IRN-20260911-ABCD",
+        status=ShipmentStatus.IN_TRANSIT,
+    )
+    shipment.method = None
+
+    mock_res = MagicMock()
+    mock_res.scalar_one_or_none.return_value = shipment
+    mock_db.execute.return_value = mock_res
+
+    app = create_app()
+    app.dependency_overrides[get_db] = lambda: mock_db
+
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+        resp = await ac.get("/api/v1/shipping/track/IRN-20260911-ABCD")
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["tracking_code"] == "IRN-20260911-ABCD"
+        assert data["carrier"] == "internal"
+        assert data["status"] == "in_transit"
+        assert len(data["events"]) >= 1
+
+    app.dependency_overrides.clear()
+

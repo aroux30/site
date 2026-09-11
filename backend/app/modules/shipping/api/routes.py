@@ -71,6 +71,17 @@ async def get_order_shipments(
     return await shipping_service.get_order_shipments(db, order_id)
 
 
+@router.get(
+    "/track/{tracking_code}",
+    summary="Track a shipment using carrier integration",
+)
+async def track_shipment(
+    tracking_code: str,
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, Any]:
+    return await shipping_service.track_shipment_with_carrier(db, tracking_code)
+
+
 # ══════════════════════════════════════════════════════════════════════════
 # Admin endpoints
 # ══════════════════════════════════════════════════════════════════════════

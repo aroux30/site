@@ -37,14 +37,10 @@ def main():
         if host_key is None:
             raise ValueError("DEPLOY_SSH_HOST_KEY could not be parsed.")
         client.set_missing_host_key_policy(paramiko.RejectPolicy())
-    elif os.environ.get("DEPLOY_ALLOW_UNKNOWN_HOST", "").lower() == "true":
-        print("WARNING: DEPLOY_ALLOW_UNKNOWN_HOST=true — host key not verified!")
-        client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        host_key = None
     else:
         raise ValueError(
-            "Host key verification is required: set DEPLOY_SSH_HOST_KEY or "
-            "DEPLOY_ALLOW_UNKNOWN_HOST=true for first-time provisioning."
+            "Host key verification is required: set DEPLOY_SSH_HOST_KEY to "
+            "the base64 public host key (from `ssh-keyscan -t ed25519 <host>`)."
         )
     print(f"Connecting to {host}...", flush=True)
     client.connect(

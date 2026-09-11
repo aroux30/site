@@ -70,16 +70,12 @@ def main():
         # Preferred: pinned host key (export with `ssh-keyscan -t ed25519 <host>`).
         client.set_missing_host_key_policy(paramiko.RejectPolicy())
         host_key = _load_host_key(host_key_b64)
-    elif os.environ.get("DEPLOY_ALLOW_UNKNOWN_HOST", "").lower() == "true":
-        # Documented TOFU escape hatch for first-time provisioning only.
-        print("WARNING: DEPLOY_ALLOW_UNKNOWN_HOST=true — host key not verified!")
-        client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        host_key = None
     else:
         raise ValueError(
-            "Host key verification is required: set DEPLOY_SSH_HOST_KEY "
-            "(base64 public key from `ssh-keyscan`), or explicitly set "
-            "DEPLOY_ALLOW_UNKNOWN_HOST=true for first-time provisioning."
+            "Host key verification is required: set DEPLOY_SSH_HOST_KEY to "
+            "the base64 public host key (from `ssh-keyscan -t ed25519 <host>` "
+            "— take the second field of the key line). Provisioning an "
+            "unknown host must be done manually by an operator."
         )
 
     print(f"Connecting to {host}...")
@@ -90,6 +86,8 @@ def main():
         key_filename=key_path,
         pkey=host_key,
         timeout=30,
+        allow_agent=False,
+        look_for_keys=False,
     )
     print("Connected!")
 

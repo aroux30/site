@@ -414,7 +414,9 @@ async def test_submit_card_receipt_logic():
 
     assert response.status == PaymentStatus.PENDING
     assert mock_payment.extra_data["tracking_code"] == "TRK-987654321"
-    assert mock_payment.extra_data["customer_card_pan"] == "6037-9911-2233-4455"
+    # P0 SEC-001: Raw card PAN must never be persisted; must be masked
+    assert mock_payment.extra_data["customer_card_pan"] == "6037-****-****-4455"
+    assert mock_payment.extra_data["card_pan"] == "6037-****-****-4455"
     assert mock_payment.extra_data["receipt_image_url"] == "https://minio/bucket/receipt.jpg"
 
 
@@ -875,6 +877,105 @@ async def test_payment_creation_idempotency_race_handling():
 
     assert resp.id == existing_payment.id
     assert resp.status == PaymentStatus.PENDING
+
+
+def test_production_payment_fail_closed_on_sandbox_or_mock():
+    """PAY-001: In production mode, mock payment or sandbox must fail closed at boot."""
+    from app.core.config.settings import Settings
+
+    # 1. Mock payment provider rejected in production
+    with pytest.raises(ValueError) as exc1:
+        Settings(
+            ENVIRONMENT="production",
+            DEBUG=False,
+            JWT_SECRET_KEY="A_VERY_SECURE_JWT_SECRET_KEY_123456",
+            DATABASE_URL="postgresql+asyncpg://prod_user:prod_pass@10.0.0.1:5432/prod_db",
+            MINIO_SECRET_KEY="a_strong_minio_secret_key_prod",
+            PAYMENT_PROVIDER="mock",
+            PAYMENT_SANDBOX=False,
+        )
+    assert "PAYMENT_PROVIDER cannot be 'mock' in production" in str(exc1.value)
+
+    # 2. Payment sandbox enabled rejected in production
+    with pytest.raises(ValueError) as exc2:
+        Settings(
+            ENVIRONMENT="production",
+            DEBUG=False,
+            JWT_SECRET_KEY="A_VERY_SECURE_JWT_SECRET_KEY_123456",
+            DATABASE_URL="postgresql+asyncpg://prod_user:prod_pass@10.0.0.1:5432/prod_db",
+            MINIO_SECRET_KEY="a_strong_minio_secret_key_prod",
+            PAYMENT_PROVIDER="zarinpal",
+            PAYMENT_SANDBOX=True,
+        )
+    assert "PAYMENT_SANDBOX must be False in production" in str(exc2.value)
+
+
+@pytest.mark.asyncio
+async def test_order_refund_history_from_status_preservation():
+    """ORDER-001: Verify refund captures exact from_status (e.g. delivered/confirmed) before mutating to refunded."""
+    from app.modules.orders.domain.models import Order, OrderStatus, OrderStatusHistory
+    from app.modules.payments.domain.models import Payment, PaymentProvider, PaymentStatus, Refund, RefundStatus
+
+    order_id = uuid.uuid4()
+    payment_id = uuid.uuid4()
+    actor_id = uuid.uuid4()
+    now = datetime.now(timezone.utc)
+
+    order = Order(
+        id=order_id,
+        user_id=uuid.uuid4(),
+        order_number="ORD-REFUND-001",
+        status=OrderStatus.DELIVERED,
+        subtotal=1_000_000,
+        total=1_000_000,
+    )
+
+    payment = Payment(
+        id=payment_id,
+        order_id=order_id,
+        amount=1_000_000,
+        currency="IRR",
+        provider=PaymentProvider.ZARINPAL,
+        status=PaymentStatus.COMPLETED,
+        created_at=now,
+        updated_at=now,
+    )
+
+    history_added: list[OrderStatusHistory] = []
+
+    def mock_add(obj):
+        if isinstance(obj, OrderStatusHistory):
+            history_added.append(obj)
+        elif isinstance(obj, Refund):
+            obj.id = uuid.uuid4()
+            obj.created_at = now
+            obj.updated_at = now
+
+    mock_db = MagicMock()
+    mock_db.execute = AsyncMock(
+        side_effect=[
+            MagicMock(scalar_one_or_none=MagicMock(return_value=payment)),  # 1. _get_payment_or_raise
+            MagicMock(scalars=MagicMock(return_value=MagicMock(all=MagicMock(return_value=[])))),  # 2. existing refunds
+            MagicMock(scalar_one_or_none=MagicMock(return_value=order.user_id)),  # 3. customer_user_id lookup
+            MagicMock(scalar_one_or_none=MagicMock(return_value=order)),  # 4. order lock
+        ]
+    )
+    mock_db.add = MagicMock(side_effect=mock_add)
+    mock_db.flush = AsyncMock()
+
+    await payment_service.refund_payment(
+        mock_db,
+        payment_id=payment_id,
+        amount=1_000_000,
+        actor_id=actor_id,
+    )
+
+    assert order.status == OrderStatus.REFUNDED
+    assert len(history_added) == 1
+    # Critical P0 Assertion: from_status MUST be the previous status ('delivered'), NOT 'refunded'!
+    assert history_added[0].from_status == "delivered"
+    assert history_added[0].to_status == "refunded"
+
 
 
 

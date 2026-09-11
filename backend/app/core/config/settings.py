@@ -152,6 +152,10 @@ class Settings(BaseSettings):
                 raise ValueError("Security violation: DATABASE_URL contains default credentials in production")
             if self.MINIO_SECRET_KEY in ("minioadmin", "minioadmin123"):
                 raise ValueError("Security violation: MINIO_SECRET_KEY contains default credentials in production")
+            if self.PAYMENT_PROVIDER == "mock":
+                raise ValueError("Security violation: PAYMENT_PROVIDER cannot be 'mock' in production (PAY-001)")
+            if self.PAYMENT_SANDBOX:
+                raise ValueError("Security violation: PAYMENT_SANDBOX must be False in production (PAY-001)")
         return self
 
 

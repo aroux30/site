@@ -17,6 +17,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config.settings import get_settings
+from app.core.security.data_protection import mask_card_pan
 from app.core.exceptions.handlers import (
     ConflictError,
     NotFoundError,
@@ -325,7 +326,7 @@ async def verify_payment(
         payment.extra_data = {
             **(payment.extra_data or {}),
             "ref_id": result.ref_id,
-            "card_pan": result.card_pan,
+            "card_pan": mask_card_pan(result.card_pan) if result.card_pan else None,
         }
 
         # Transition associated order from PENDING to CONFIRMED
@@ -570,12 +571,18 @@ async def refund_payment(
     except Exception:
         pass
 
-    refund_result = await gateway_provider.refund(
-        authority=payment.authority or "",
-        amount=amount,
-        user_id=customer_user_id or actor_id,
-        db=db,
-    )
+    try:
+        refund_result = await gateway_provider.refund(
+            authority=payment.authority or "",
+            amount=amount,
+            user_id=customer_user_id or actor_id,
+            db=db,
+        )
+    except TypeError:
+        refund_result = await gateway_provider.refund(
+            authority=payment.authority or "",
+            amount=amount,
+        )
 
     # ── Record transaction ────────────────────────────────────────────
     await _record_transaction(
@@ -608,10 +615,11 @@ async def refund_payment(
             order_lock = select(Order).where(Order.id == payment.order_id).with_for_update()
             order = (await db.execute(order_lock)).scalar_one_or_none()
             if order and order.status not in (OrderStatus.CANCELED, OrderStatus.REFUNDED):
+                prev_order_status = order.status.value
                 order.status = OrderStatus.REFUNDED
                 history = OrderStatusHistory(
                     order_id=order.id,
-                    from_status=order.status.value,
+                    from_status=prev_order_status,
                     to_status=OrderStatus.REFUNDED.value,
                     changed_by=actor_id,
                     reason=f"Full refund processed for payment {payment.id}",
@@ -686,10 +694,11 @@ async def submit_card_receipt(
         )
 
     extra = dict(payment.extra_data or {})
+    masked_pan = mask_card_pan(card_pan) if card_pan else None
     extra.update({
         "tracking_code": tracking_code,
-        "card_pan": card_pan,
-        "customer_card_pan": card_pan,
+        "card_pan": masked_pan,
+        "customer_card_pan": masked_pan,
         "receipt_image_url": receipt_image_url,
         "customer_notes": notes,
         "receipt_submitted_at": datetime.now(timezone.utc).isoformat(),
@@ -710,7 +719,7 @@ async def submit_card_receipt(
         status="receipt_submitted",
         provider_response={
             "tracking_code": tracking_code,
-            "card_pan": card_pan,
+            "card_pan": masked_pan,
             "receipt_image_url": receipt_image_url,
         },
     )

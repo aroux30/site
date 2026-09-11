@@ -1,0 +1,4 @@
+# Temporary RED-TEST fixture for the Trivy CI gate (deleted after test).
+# Deliberately pins well-known vulnerable versions.
+django==2.1
+requests==2.19.0

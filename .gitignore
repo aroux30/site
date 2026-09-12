@@ -144,3 +144,8 @@ video_analysis/
 video_frames/
 video_raw/
 backend/media/
+scripts/deploy_key
+
+# Build artifacts and throwaway debug scripts
+*.tsbuildinfo
+.tmp-*

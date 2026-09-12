@@ -137,6 +137,8 @@ class Settings(BaseSettings):
         default="CHANGE-ME-use-base64-32bytes-key",
         description="Base64 encoded 32-byte key for AES-256-GCM encryption of digital card PINs",
     )
+    ADMIN_PHONE: str = "09120000000"
+    ADMIN_PASSWORD: str = "Admin@123456"
 
     @property
     def database_url_str(self) -> str:

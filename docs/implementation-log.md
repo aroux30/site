@@ -227,3 +227,78 @@ stack:
 - **NOT VERIFIED live**: no Prometheus/Alertmanager running locally — rules
   validated as YAML + by metric-name cross-check; firing behaviour needs the
   staging stack (P12-01).
+
+---
+
+## 2026-09-12 — Batch 3 (P11-04, P3-03, P9-03, P12-01/02/05)
+
+### TASK P11-04 — Refresh-token reuse detection — **DONE**
+- `auth_service.refresh_token` now queries the session WITHOUT the
+  `is_revoked` filter; a revoked token being replayed revokes **every active
+  session of the user** (containment without schema change) and raises
+  `auth.refresh_token_reuse_detected` via `log_security_event` (Fail2Ban/
+  CrowdSec-parseable). Unknown tokens remain plain-invalid (no alarm noise).
+- Tests: `tests/unit/test_auth_reuse.py` (reuse → all sessions revoked +
+  security event; unknown token → plain 401, no alarm). Opaque fixture
+  tokens generated per-run (`uuid4`) — the Mimosa hook correctly rejects
+  literal token strings in test files.
+
+### TASK P3-03 — Inventory authorization verification — **DONE (verified)**
+- All 5 `/inventory` routes reviewed: every GET carries `inventory:read`,
+  the only mutation (`POST /{variant_id}/adjust`) carries `inventory:write`.
+  No gaps found; no changes required. (An explicit 403 test can be added to
+  the security suite later — noted, not blocking.)
+
+### TASK P9-03 — Admin pages honesty — **DONE (core pages)**
+- `admin/users`: `mockUsers` seed deleted; honest error row on API failure
+  (endpoint `/users/admin/users` was already correct).
+- `admin/products`: wrong-endpoint fallbacks (`/products`) removed from
+  fetch/create/update/delete; server-assigned product id used on create;
+  swallowed write failures now surface destructive toasts.
+- `admin/kanban`: 345-line fabricated order board deleted; endpoint chain
+  collapsed to the real `/orders/admin/orders`.
+- `admin/dashboard`: fabricated KPI values zeroed (real values flow from
+  `/analytics/sales` when available); fabricated recent orders emptied;
+  malformed endpoint probes (`/admin/orders` at the wrong prefix,
+  `/analytics/overview` non-existent) removed.
+- `admin/approvals`: "Fallback simulation" fake-success removed — a failed
+  approval action now surfaces as an error (backend
+  `POST /approvals/{id}/action` exists and is the source of truth).
+- Still OPEN in P9-03 scope: `admin/reports`, `admin/pages`, `admin/settings`
+  remain static/hardcoded (no matching backend for several of their fields);
+  explicitly out of this batch, tracked in roadmap FE-07.
+
+### TASK P12-01 — Nginx production correctness — **DONE (config)**
+- `nginx.prod.conf`: static `upstream` blocks (startup-pinned container IPs
+  → 502 after recreation) replaced with Docker-DNS dynamic resolution
+  (`resolver 127.0.0.11 valid=10s` + `$backend_up`/`$frontend_up` variables),
+  mirroring the dev conf pattern; `${DOMAIN}` placeholders now render via
+  envsubst at container start; dead `/health` location replaced by real
+  `/healthz` + `/readyz` proxied to the backend.
+- `docker-compose.prod.yml`: nginx config mounted as a template at
+  `/etc/nginx/templates/nginx.conf.template` with `DOMAIN` env (fail-fast if
+  unset) and a `command` that renders + starts nginx with `-c`. **Rendering
+  verified locally** with envsubst (DOMAIN substitution confirmed; quoting
+  bug — `envsubst "$DOMAIN"` — caught and fixed during that test).
+- **NOT VERIFIED live**: a full TLS container boot needs the staging host.
+
+### TASK P12-02 — Exposure hardening — **DONE (dev compose)**
+- postgres/redis/elasticsearch/minio(+console)/prometheus/grafana port
+  bindings changed from `0.0.0.0` to `127.0.0.1` in `docker-compose.yml` —
+  no data service reachable off-host in development.
+
+### TASK P12-05 — Image hygiene — **DONE**
+- `frontend/Dockerfile`: `node:22-alpine` (matches CI), lockfile-only
+  `npm ci --legacy-peer-deps` (no `|| npm install` fallback, no yarn/pnpm
+  probing for a repo that only has npm).
+- `backend/Dockerfile`: runtime venv built with `pip install "."` — dev/test
+  tooling no longer ships in the production image.
+
+### Verification
+| Check | Result |
+|---|---|
+| `ruff check/format app tests` | ✅ clean (CI caught one missed format on auth_service — fixed) |
+| `pytest tests/unit -q` | ✅ **189/189** (+2 reuse tests) |
+| `tsc` / `eslint` (changed files) / `vitest` / `build` | ✅ / 0 errors / **31/31** (stale gamification fallback test rewritten to expect honest rejection) / 39 pages |
+| `alembic upgrade head` + `alembic check` (CI Postgres) | ✅ green |
+| GitHub Actions `main` | ✅ CI Pipeline · Security Scan & Audit · CodeQL all success |

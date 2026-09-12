@@ -32,7 +32,9 @@ def get_real_client_ip(request: Request) -> str:
     forwarded = request.headers.get("x-forwarded-for")
     if forwarded:
         hops = [h.strip() for h in forwarded.split(",") if h.strip()]
-        trusted = max(1, settings.trusted_proxy_count)
+        # The Settings field is declared upper-case (TRUSTED_PROXY_COUNT);
+        # pydantic v2 attribute access is case-sensitive.
+        trusted = max(1, settings.TRUSTED_PROXY_COUNT)
         if len(hops) >= trusted:
             client_ip = hops[-trusted]
             if client_ip:

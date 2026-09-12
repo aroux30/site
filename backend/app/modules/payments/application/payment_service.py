@@ -280,6 +280,7 @@ async def create_payment(
             error_code="GATEWAY_ERROR",
         )
 
+    await db.refresh(payment)
     return PaymentResponse.model_validate(payment)
 
 
@@ -382,6 +383,7 @@ async def create_wallet_topup(
         payment_id=str(payment.id),
         user_id=str(user_id),
     )
+    await db.refresh(payment)
     return PaymentResponse.model_validate(payment)
 
 
@@ -657,6 +659,7 @@ async def verify_payment(
             error_code="VERIFICATION_FAILED",
         )
 
+    await db.refresh(payment)
     return PaymentResponse.model_validate(payment)
 
 
@@ -1058,6 +1061,7 @@ async def submit_card_receipt(
         user_id=str(user_id),
     )
 
+    await db.refresh(payment)
     return PaymentResponse.model_validate(payment)
 
 
@@ -1124,6 +1128,7 @@ async def approve_payment(
         admin_user_id=str(admin_user_id),
     )
 
+    await db.refresh(payment)
     return PaymentResponse.model_validate(payment)
 
 
@@ -1172,6 +1177,7 @@ async def reject_payment(
         reason=reason,
     )
 
+    await db.refresh(payment)
     return PaymentResponse.model_validate(payment)
 
 

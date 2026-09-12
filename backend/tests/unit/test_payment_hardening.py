@@ -170,6 +170,7 @@ def _wallet_verify_fixtures(user_id: uuid.UUID, amount: int = 500_000):
     db = MagicMock()
     db.add = MagicMock()
     db.flush = AsyncMock()
+    db.refresh = AsyncMock()
 
     async def _get(model, pk, **kwargs):
         if model is Payment:
@@ -509,6 +510,7 @@ async def test_wallet_topup_credits_owner_on_verify():
 
     db.add = MagicMock(side_effect=_add)
     db.flush = AsyncMock()
+    db.refresh = AsyncMock()
 
     gw = _mock_gateway_create()
     payment = Payment(

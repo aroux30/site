@@ -393,6 +393,7 @@ async def test_submit_card_receipt_logic():
         return_value=MagicMock(scalar_one_or_none=MagicMock(return_value=mock_payment))
     )
     mock_db.flush = AsyncMock()
+    mock_db.refresh = AsyncMock()
     mock_db.add = MagicMock()
 
     response = await payment_service.submit_card_receipt(
@@ -438,6 +439,7 @@ async def test_admin_approve_card_payment():
         return_value=MagicMock(scalar_one_or_none=MagicMock(return_value=mock_payment))
     )
     mock_db.flush = AsyncMock()
+    mock_db.refresh = AsyncMock()  # service refreshes the row before validating
     mock_db.add = MagicMock()
 
     response = await payment_service.approve_payment(
@@ -476,6 +478,7 @@ async def test_admin_reject_card_payment():
         return_value=MagicMock(scalar_one_or_none=MagicMock(return_value=mock_payment))
     )
     mock_db.flush = AsyncMock()
+    mock_db.refresh = AsyncMock()  # service refreshes the row before validating
     mock_db.add = MagicMock()
 
     response = await payment_service.reject_payment(

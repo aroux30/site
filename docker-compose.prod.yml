@@ -8,31 +8,31 @@ services:
   # Nginx - Production with SSL
   # ──────────────────────────────────────────────
   nginx:
-    # NOTE: on this deployment the HOST system nginx owns 80/443 (TLS +
-    # proxy to 127.0.0.1:8088), so publishing 80/443 here collides with it
-    # and crash-loops the container. The base compose maps 127.0.0.1:8088.
-    # P12-01: the prod config is a TEMPLATE — ${DOMAIN} placeholders are
-    # rendered at container start with envsubst (present in the official
-    # nginx image). The rendered file is written to a NEW path and nginx is
-    # started with -c, so the read-only base nginx.conf mount stays intact.
-    # Requires DOMAIN in the environment (fail-fast if missing).
-    volumes:
-      - ./nginx/nginx.prod.conf:/etc/nginx/templates/nginx.conf.template:ro
-      - /etc/letsencrypt:/etc/letsencrypt:ro
-      - /var/www/certbot:/var/www/certbot:ro
-    environment:
-      - DOMAIN=${DOMAIN:?set DOMAIN in .env (e.g. shop.example.com)}
-    command:
-      - /bin/sh
-      - -c
-      - |
-        if [ -z "$$DOMAIN" ]; then
-          echo "FATAL: DOMAIN is not set (add DOMAIN=shop.example.com to .env)" >&2
-          exit 1
-        fi
-        envsubst '$$DOMAIN' < /etc/nginx/templates/nginx.conf.template > /etc/nginx/nginx.conf.rendered
-        echo "Rendered nginx config for $$DOMAIN"
-        exec nginx -g "daemon off;" -c /etc/nginx/nginx.conf.rendered
+    # NOTE: this deployment runs behind the HOST system nginx, which owns
+    # 80/443 (TLS) and proxies to 127.0.0.1:8088. The container therefore
+    # keeps the BASE compose definition (nginx.conf mount + 127.0.0.1:8088
+    # port + default command). The SSL-template variant below — envsubst of
+    # nginx.prod.conf with letsencrypt mounts and published 80/443 — is for
+    # a dedicated edge server; enabled here it collided on ports and
+    # redirected in a loop behind the host proxy.
+    #
+    # To use the SSL edge variant instead:
+    #   volumes:
+    #     - ./nginx/nginx.prod.conf:/etc/nginx/templates/nginx.conf.template:ro
+    #     - /etc/letsencrypt:/etc/letsencrypt:ro
+    #     - /var/www/certbot:/var/www/certbot:ro
+    #   environment:
+    #     - DOMAIN=${DOMAIN:?set DOMAIN in .env (e.g. shop.example.com)}
+    #   command:
+    #     - /bin/sh
+    #     - -c
+    #     - |
+    #       if [ -z "$$DOMAIN" ]; then
+    #         echo "FATAL: DOMAIN is not set (add DOMAIN=shop.example.com to .env)" >&2
+    #         exit 1
+    #       fi
+    #       envsubst '$$DOMAIN' < /etc/nginx/templates/nginx.conf.template > /etc/nginx/nginx.conf.rendered
+    #       exec nginx -g "daemon off;" -c /etc/nginx/nginx.conf.rendered
     deploy:
       resources:
         limits:

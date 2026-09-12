@@ -1,3 +1,0 @@
-Method,Name,Error,Occurrences,First Seen,Last Seen
-POST,[Checkout] Validate Checkout,CatchResponseError('Unexpected status: 0'),1,2026-09-11T08:44:58Z,2026-09-11T08:44:58Z
-GET,[Search] Persian Query with ZWNJ,"CatchResponseError('Elasticsearch service degraded: {""success"":false,""error"":{""code"":""INTERNAL_ERROR"",""message"":""An unexpected internal error occurred""}')",15,2026-09-11T08:44:59Z,2026-09-11T08:45:05Z

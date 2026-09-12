@@ -1,5 +1,0 @@
-locust>=2.31.0
-geventhttpclient>=2.3.0
-psutil>=5.9.0
-requests>=2.31.0
-rich>=13.7.0

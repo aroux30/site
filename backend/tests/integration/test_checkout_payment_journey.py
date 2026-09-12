@@ -209,7 +209,6 @@ async def test_journey_checkout_payment_confirm_cancel_restock():
         )
         # Read attributes BEFORE commit: expire_on_commit would lazy-refresh
         # the ORM object outside the greenlet.
-        payment_id = payment.id
         payment_authority = payment.authority or ""
         payment_status = payment.status
         await db.commit()

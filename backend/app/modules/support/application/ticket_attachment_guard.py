@@ -22,11 +22,33 @@ ALLOWED_MAGIC_SIGNATURES: dict[str, list[bytes]] = {
 # Dangerous executable or active-content extensions
 DANGEROUS_EXTENSIONS: frozenset[str] = frozenset(
     {
-        ".php", ".php3", ".php4", ".php5", ".phtml", ".phar",
-        ".exe", ".bat", ".cmd", ".sh", ".bash", ".bin",
-        ".py", ".pl", ".cgi", ".rb", ".jar",
-        ".js", ".ts", ".html", ".htm", ".xhtml", ".svg",
-        ".vbs", ".msi", ".dll", ".so",
+        ".php",
+        ".php3",
+        ".php4",
+        ".php5",
+        ".phtml",
+        ".phar",
+        ".exe",
+        ".bat",
+        ".cmd",
+        ".sh",
+        ".bash",
+        ".bin",
+        ".py",
+        ".pl",
+        ".cgi",
+        ".rb",
+        ".jar",
+        ".js",
+        ".ts",
+        ".html",
+        ".htm",
+        ".xhtml",
+        ".svg",
+        ".vbs",
+        ".msi",
+        ".dll",
+        ".so",
     }
 )
 
@@ -74,9 +96,8 @@ def validate_ticket_attachment(
             break
 
     # Special check for WebP (RIFF....WEBP)
-    if detected_mime == "image/webp" and len(file_bytes) >= 12:
-        if file_bytes[8:12] != b"WEBP":
-            detected_mime = None
+    if detected_mime == "image/webp" and len(file_bytes) >= 12 and file_bytes[8:12] != b"WEBP":
+        detected_mime = None
 
     if not detected_mime:
         raise ValidationError("محتوای فایل ارسالی با پسوند آن مطابقت ندارد یا فایل نامعتبر است")

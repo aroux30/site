@@ -1,4 +1,5 @@
-"""Content API routes: Homepage Blocks, Tree Menus, and FAQs with Google Schema (Karta Phase 7/9)."""
+"""Content API routes: Homepage Blocks, Tree Menus, and FAQs with Google Schema (Karta Phase
+7/9)."""
 
 from __future__ import annotations
 
@@ -142,6 +143,7 @@ async def create_faq(
     db: AsyncSession = Depends(get_db),
 ) -> FAQItemResponse:
     from app.modules.content.domain.models import FAQItem
+
     faq = FAQItem(
         question=body.question.strip(),
         answer_html=body.answer_html,

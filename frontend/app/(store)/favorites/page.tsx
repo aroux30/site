@@ -7,7 +7,8 @@ import { Heart, ShoppingCart, Trash2, ArrowLeft, Package, Sparkles } from "lucid
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { useWishlist, useToggleWishlist, useAddToCart } from "@/lib/api/queries";
+import { useWishlist, useToggleWishlist } from "@/lib/api/queries";
+import { useCart } from "@/hooks/use-cart";
 import { formatPrice } from "@/lib/utils";
 import { useAuth } from "@/hooks/use-auth";
 
@@ -20,7 +21,7 @@ export default function FavoritesPage() {
     refetch: refetchWishlist,
   } = useWishlist();
   const toggleWishlist = useToggleWishlist();
-  const addToCart = useAddToCart();
+  const { addToCart } = useCart();
 
   const items = wishlistData?.items || [];
 
@@ -147,10 +148,15 @@ export default function FavoritesPage() {
                     size="sm"
                     className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-xs gap-2"
                     onClick={() => {
-                      addToCart.mutate({
-                        product_id: product.id,
-                        variant_id: product.variants?.[0]?.id,
-                        quantity: 1,
+                      // Route through the shared Zustand cart store so the
+                      // header badge / cart drawer / cart page all update.
+                      addToCart({
+                        productId: product.id,
+                        variantId: product.variants?.[0]?.id,
+                        title: product.name,
+                        slug: product.slug || product.id,
+                        price: product.price || product.min_price || 0,
+                        image: product.primary_image_url || undefined,
                       });
                     }}
                   >

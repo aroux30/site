@@ -28,10 +28,15 @@ router = APIRouter(prefix="/notices", tags=["notifications-notices"])
 @router.get(
     "/active",
     response_model=list[NoticeResponse],
-    summary="Get active in-window notices, omitting popups already seen by user (Karta seen_notices)",
+    summary=(
+        "Get active in-window notices, omitting popups already seen by user (Karta seen_notices)"
+    ),
 )
 async def get_active_notices(
-    target_page: str = Query("all", description="Current page context: all, home, checkout, dashboard"),
+    target_page: str = Query(
+        "all",
+        description="Current page context: all, home, checkout, dashboard",
+    ),
     user_id: uuid.UUID | None = Depends(get_current_user_id),
     db: AsyncSession = Depends(get_db),
 ) -> list[NoticeResponse]:
@@ -51,9 +56,7 @@ async def mark_seen(
     user_id: uuid.UUID = Depends(get_current_user_id),
     db: AsyncSession = Depends(get_db),
 ) -> MarkNoticeSeenResponse:
-    seen = await notice_service.mark_notice_as_seen(
-        db, user_id=user_id, notice_id=notice_id
-    )
+    seen = await notice_service.mark_notice_as_seen(db, user_id=user_id, notice_id=notice_id)
     return MarkNoticeSeenResponse(
         user_id=seen.user_id,
         notice_id=seen.notice_id,

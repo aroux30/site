@@ -41,7 +41,10 @@ class ResellerApiKeyResponse(BaseModel):
 class ResellerApiKeyCreateResponse(ResellerApiKeyResponse):
     """Includes the plaintext API key (revealed only upon creation)."""
 
-    plaintext_api_key: str = Field(..., description="Copy this secret now; it will not be shown again.")
+    plaintext_api_key: str = Field(
+        ...,
+        description="Copy this secret now; it will not be shown again.",
+    )
 
 
 # ── Wholesale Catalog Stock Schemas ───────────────────────────────────────

@@ -137,8 +137,8 @@ class Settings(BaseSettings):
         default="CHANGE-ME-use-base64-32bytes-key",
         description="Base64 encoded 32-byte key for AES-256-GCM encryption of digital card PINs",
     )
-    ADMIN_PHONE: str = "09120000000"
-    ADMIN_PASSWORD: str = "Admin@123456"
+    ADMIN_PHONE: str = ""
+    ADMIN_PASSWORD: str = ""
 
     @property
     def database_url_str(self) -> str:
@@ -178,6 +178,18 @@ class Settings(BaseSettings):
             if self.PAYMENT_SANDBOX:
                 raise ValueError(
                     "Security violation: PAYMENT_SANDBOX must be False in production (PAY-001)"
+                )
+            cards_key = self.DIGITAL_CARDS_ENCRYPTION_KEY
+            if not cards_key or cards_key.startswith("CHANGE-ME"):
+                raise ValueError(
+                    "Security violation: DIGITAL_CARDS_ENCRYPTION_KEY must be a real "
+                    "base64 32-byte key in production (card PINs would be unreadable "
+                    "or encrypted with a publicly known key)"
+                )
+            if not self.ADMIN_PASSWORD or self.ADMIN_PASSWORD in ("Admin@123456", "admin"):
+                raise ValueError(
+                    "Security violation: ADMIN_PASSWORD must be set to a strong unique "
+                    "value in production"
                 )
         return self
 

@@ -294,4 +294,3 @@ async def admin_transition_return(
 
 # ── B2B Reseller API sub-router (Karta Phase 4) ────────────────────────────
 router.include_router(reseller_router)
-

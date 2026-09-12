@@ -3,6 +3,7 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import apiClient, { sessionStore } from "@/lib/api/client";
+import { fetchProductById } from "@/lib/api/services";
 
 export interface CartItem {
   id?: string; // Cart item UUID in backend
@@ -227,7 +228,24 @@ export const useCartStore = create<CartStore>()(
         });
 
         // 2. Sync with backend API: POST /cart/items
-        const effectiveVariantId = targetVariantId || (isUuid(item.productId) ? item.productId : null);
+        // The backend only accepts real variant ids. When a caller passes
+        // just a product id (e.g. grid cards), resolve the first active
+        // variant from the product detail API instead of sending the
+        // product id (which the cart API would reject, silently losing
+        // the line on the next server sync).
+        let effectiveVariantId = targetVariantId || null;
+
+        if (!effectiveVariantId && isUuid(item.productId)) {
+          try {
+            const detail = await fetchProductById(item.productId);
+            effectiveVariantId =
+              detail.variants?.find((v) => v.is_active)?.id ?? detail.variants?.[0]?.id ?? null;
+          } catch (resolveErr: unknown) {
+            if (process.env.NODE_ENV === "development") {
+              console.warn("Could not resolve variant for product", item.productId, resolveErr);
+            }
+          }
+        }
 
         if (effectiveVariantId && isUuid(effectiveVariantId)) {
           try {

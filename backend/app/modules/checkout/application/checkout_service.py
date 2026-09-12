@@ -25,7 +25,6 @@ from app.modules.checkout.schemas.checkout import (
     CreateOrderRequest,
     CreateOrderResponse,
 )
-from app.modules.discounts.domain.models import Coupon, DiscountType
 from app.modules.inventory.application import inventory_service
 from app.modules.orders.domain.models import Order, OrderItem, OrderStatus, OrderStatusHistory
 from app.modules.shipping.domain.models import ShippingMethod, ShippingRate
@@ -142,54 +141,24 @@ async def _apply_coupon(
     coupon_code: str,
     subtotal: int,
     user_id: uuid.UUID,
-) -> tuple[int, str]:
-    """Validate and apply a coupon code. Returns (discount_amount, coupon_code)."""
-    stmt = (
-        select(Coupon)
-        .options(selectinload(Coupon.discount))
-        .where(Coupon.code == coupon_code.upper(), Coupon.is_active.is_(True))
-    )
-    result = await db.execute(stmt)
-    coupon = result.scalar_one_or_none()
+) -> tuple[int, str, uuid.UUID]:
+    """Validate a coupon via the canonical discounts service.
 
-    if coupon is None:
-        raise ValidationError(f"Coupon code '{coupon_code}' is not valid")
+    Returns ``(discount_amount, code, coupon_id)``. All coupon business
+    rules — usage limits, per-user redemption caps, and basis-point
+    percentage math — live in ``discounts``; checkout must not duplicate
+    them (an inline percent-vs-basis-point mismatch here used to discount
+    100× too much).
+    """
+    from app.modules.discounts.application import discount_service
 
-    now = datetime.now(UTC)
-    if now < coupon.starts_at or now > coupon.ends_at:
-        raise ValidationError("Coupon has expired or is not yet active")
-
-    if coupon.usage_limit is not None and coupon.usage_count >= coupon.usage_limit:
-        raise ValidationError("Coupon usage limit reached")
-
-    discount = coupon.discount
-    if discount is None or not discount.is_active:
-        raise ValidationError("Discount rule is inactive")
-
-    if now < discount.starts_at or now > discount.ends_at:
-        raise ValidationError("Discount has expired")
-
-    if discount.min_cart_amount is not None and subtotal < discount.min_cart_amount:
-        raise ValidationError(
-            f"Minimum cart amount for this coupon is {discount.min_cart_amount // 10:,} Toman"
+    try:
+        result = await discount_service.validate_coupon(
+            db, code=coupon_code, user_id=user_id, cart_total=subtotal
         )
-
-    # Calculate discount
-    if discount.type == DiscountType.FIXED:
-        discount_amount = discount.value
-    elif discount.type in (DiscountType.PERCENTAGE, DiscountType.FIRST_ORDER):
-        discount_amount = subtotal * discount.value // 100
-    else:
-        discount_amount = 0
-
-    # Cap at max_discount if set
-    if discount.max_discount is not None:
-        discount_amount = min(discount_amount, discount.max_discount)
-
-    # Never discount more than the subtotal
-    discount_amount = min(discount_amount, subtotal)
-
-    return discount_amount, coupon.code
+    except NotFoundError:
+        raise ValidationError(f"Coupon code '{coupon_code}' is not valid") from None
+    return result.discount_amount, result.code, result.coupon_id
 
 
 async def _build_line_items(
@@ -251,7 +220,7 @@ async def calculate_quote(
     discount_amount = 0
     coupon_applied: str | None = None
     if data.coupon_code:
-        discount_amount, coupon_applied = await _apply_coupon(
+        discount_amount, coupon_applied, _coupon_id = await _apply_coupon(
             db, data.coupon_code, subtotal, user_id
         )
 
@@ -428,8 +397,11 @@ async def create_order(
 
     # ── 5. Apply discount / coupon ─────────────────────────────────────
     discount_amount = 0
+    coupon_id_for_redemption: uuid.UUID | None = None
     if data.coupon_code:
-        discount_amount, _ = await _apply_coupon(db, data.coupon_code, subtotal, user_id)
+        discount_amount, _code, coupon_id_for_redemption = await _apply_coupon(
+            db, data.coupon_code, subtotal, user_id
+        )
 
     # ── 6. Calculate shipping ──────────────────────────────────────────
     shipping_cost = await _calculate_shipping(db, shipping_method, address.province, subtotal)
@@ -502,17 +474,22 @@ async def create_order(
     for rid in reservation_ids:
         await inventory_service.confirm_reservation(db, rid)
 
-    # ── 11. Update coupon usage ────────────────────────────────────────
-    if data.coupon_code:
-        coupon_stmt = (
-            select(Coupon).where(Coupon.code == data.coupon_code.upper()).with_for_update()
+    # ── 11. Record coupon redemption (canonical discounts service) ─────
+    # apply_discount re-locks the coupon row, re-checks the usage ceiling,
+    # writes the per-user redemption ledger row (unique per coupon+order),
+    # increments counters, and deactivates the coupon at its limit. A
+    # concurrent checkout that raced past the earlier eligibility check
+    # fails here and rolls the whole order back instead of overshooting.
+    if coupon_id_for_redemption is not None:
+        from app.modules.discounts.application import discount_service
+
+        await discount_service.apply_discount(
+            db,
+            coupon_id=coupon_id_for_redemption,
+            user_id=user_id,
+            order_id=order.id,
+            amount=discount_amount,
         )
-        coupon_result = await db.execute(coupon_stmt)
-        coupon = coupon_result.scalar_one_or_none()
-        if coupon is not None:
-            coupon.usage_count += 1
-            if coupon.discount:
-                coupon.discount.usage_count += 1
 
     # ── 12. Mark cart as converted ─────────────────────────────────────
     cart.status = CartStatus.CONVERTED

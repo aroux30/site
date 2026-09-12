@@ -66,7 +66,12 @@ async def create_homepage_block(
     db.add(block)
     await db.flush()
 
-    await logger.ainfo("homepage_block_created", block_id=str(block.id), title=clean_title, type=block_type.value)
+    await logger.ainfo(
+        "homepage_block_created",
+        block_id=str(block.id),
+        title=clean_title,
+        type=block_type.value,
+    )
     return block
 
 
@@ -90,7 +95,10 @@ async def reorder_homepage_blocks(
 # ── Hierarchical Tree Menus (Karta menus & menu_types) ────────────────────
 
 
-def _nest_menu_items(items: list[SiteMenu], parent_id: uuid.UUID | None = None) -> list[dict[str, Any]]:
+def _nest_menu_items(
+    items: list[SiteMenu],
+    parent_id: uuid.UUID | None = None,
+) -> list[dict[str, Any]]:
     """Recursively nest flat menu items into a parent-child tree."""
     tree = []
     children = [item for item in items if item.parent_id == parent_id]
@@ -191,11 +199,7 @@ async def get_active_faqs_with_schema(
     category: str | None = None,
 ) -> dict[str, Any]:
     """Retrieve active FAQs and attach valid Google FAQPage Schema.org JSON-LD."""
-    stmt = (
-        select(FAQItem)
-        .where(FAQItem.is_active.is_(True))
-        .order_by(FAQItem.position.asc())
-    )
+    stmt = select(FAQItem).where(FAQItem.is_active.is_(True)).order_by(FAQItem.position.asc())
     all_faqs = list((await db.execute(stmt)).scalars().all())
 
     if category:

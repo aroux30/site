@@ -81,7 +81,9 @@ async def run_system_preflight_check() -> dict[str, Any]:
     }
 
     # 4. Storage & Media Directory Permissions Check
-    media_dir = os.path.abspath(settings.UPLOAD_DIR)
+    # Blocking os.path calls are intentional here: this is a one-shot boot
+    # diagnostic that runs before the server accepts traffic.
+    media_dir = os.path.abspath(settings.UPLOAD_DIR)  # noqa: ASYNC240
     os.makedirs(media_dir, exist_ok=True)
     is_writable = os.access(media_dir, os.W_OK)
     results["checks"]["media_storage"] = {

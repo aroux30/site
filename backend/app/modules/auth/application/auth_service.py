@@ -742,6 +742,11 @@ async def change_password(
     user.password_hash = hash_password(new_password)
     await db.flush()
 
+    # Security: a password rotation must invalidate every existing session —
+    # otherwise a stolen refresh token survives the rotation. The user signs
+    # in again on all devices, including the current one.
+    revoked_sessions = await logout_all(db, user_id=user_id)
+
     await log_action(
         db,
         actor_id=user_id,
@@ -750,9 +755,12 @@ async def change_password(
         resource_id=user_id,
         ip_address=ip_address,
         user_agent=user_agent,
+        after={"revoked_sessions": revoked_sessions},
     )
 
-    await logger.ainfo("password_changed", user_id=str(user_id))
+    await logger.ainfo(
+        "password_changed", user_id=str(user_id), revoked_sessions=revoked_sessions
+    )
 
 
 async def get_sessions(

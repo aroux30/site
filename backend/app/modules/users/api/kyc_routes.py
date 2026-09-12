@@ -54,6 +54,7 @@ async def get_trust_profile(
     db: AsyncSession = Depends(get_db),
 ) -> UserTrustProfileResponse:
     from app.modules.users.domain.kyc_models import UserTrustProfile
+
     trust = await db.get(UserTrustProfile, user_id)
     if trust is None:
         trust = UserTrustProfile(
@@ -115,7 +116,11 @@ async def verify_card_match(
     matched = await bank_card_service.verify_payment_card_match(
         db, user_id=user_id, payment_card_pan=body.payment_card_pan
     )
-    msg = "کارت پرداخت متعلق به کاربر است و تایید شد" if matched else "کارت پرداخت با کارت‌های ثبت‌شده کاربر تطابق ندارد"
+    msg = (
+        "کارت پرداخت متعلق به کاربر است و تایید شد"
+        if matched
+        else "کارت پرداخت با کارت‌های ثبت‌شده کاربر تطابق ندارد"
+    )
     return CardMatchVerifyResponse(is_matched=matched, user_id=user_id, message=msg)
 
 
@@ -132,7 +137,9 @@ async def evaluate_delivery(
     user_id: uuid.UUID = Depends(get_current_user_id),
     db: AsyncSession = Depends(get_db),
 ) -> DeliveryPolicyEvaluationResponse:
-    policy = await kyc_service.evaluate_delivery_policy(db, user_id=user_id, order_amount=order_amount)
+    policy = await kyc_service.evaluate_delivery_policy(
+        db, user_id=user_id, order_amount=order_amount
+    )
     return DeliveryPolicyEvaluationResponse(
         user_id=user_id,
         order_amount=order_amount,

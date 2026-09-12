@@ -401,8 +401,12 @@ class NowPaymentsProvider(PaymentProvider):
         )
 
         # ── Simulated Sandbox Verification ────────────────────────────
-        if not self._api_key or authority.startswith("NP-") or self._api_key.startswith("mock"):
-            if get_settings().ENVIRONMENT == "production" and not self._api_key:
+        # Simulation is decided by configuration ONLY (missing / mock API
+        # key) — never by the caller-supplied authority string. Otherwise
+        # anyone could POST verify with a fabricated "NP-*" authority and
+        # settle an order without a real blockchain payment.
+        if not self._api_key or self._api_key.startswith("mock"):
+            if get_settings().ENVIRONMENT == "production":
                 await logger.aerror(
                     "nowpayments_simulated_verify_blocked_in_production",
                     authority=authority,

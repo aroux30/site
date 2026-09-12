@@ -73,6 +73,11 @@ services:
       - ENVIRONMENT=production
       - DEBUG=false
       - LOG_LEVEL=warning
+    # Replace the base dev bind-mounts (./backend/app etc.) with only the
+    # media volume so the container runs the BAKED production image code,
+    # not whatever happens to be on the host working tree.
+    volumes:
+      - media_data:/app/media
     deploy:
       resources:
         limits:
@@ -87,6 +92,8 @@ services:
   # ──────────────────────────────────────────────
   worker:
     command: celery -A app.worker.celery_app worker --loglevel=warning --concurrency=8 --max-tasks-per-child=1000
+    volumes:
+      - media_data:/app/media
     healthcheck:
       test: ["CMD", "celery", "-A", "app.worker.celery_app", "status"]
       interval: 30s
@@ -109,6 +116,8 @@ services:
   # ──────────────────────────────────────────────
   beat:
     command: celery -A app.worker.celery_app beat --loglevel=warning --schedule=/tmp/celerybeat-schedule
+    volumes:
+      - media_data:/app/media
     healthcheck:
       test: ["CMD", "python", "-c", "import os, sys; pids=[p for p in os.listdir('/proc') if p.isdigit()]; sys.exit(0 if any('beat' in open(f'/proc/{p}/cmdline', 'rb').read().decode(errors='ignore') for p in pids) else 1)"]
       interval: 30s

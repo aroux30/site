@@ -333,6 +333,47 @@ async def cancel_order(
 
     _validate_transition(order.status, OrderStatus.CANCELED)
 
+    # A paid order must return the money. Load the payments + their refunds
+    # and compute what is still refundable before touching any state.
+    from app.core.exceptions.handlers import ConflictError
+    from app.modules.payments.domain.models import (
+        Payment,
+        PaymentStatus,
+        Refund,
+        RefundStatus,
+    )
+
+    order = await db.get(
+        Order,
+        order.id,
+        options=(
+            selectinload(Order.items),
+            selectinload(Order.status_history),
+            selectinload(Order.payments).selectinload(Payment.refunds),
+        ),
+        populate_existing=True,
+    )
+
+    completed_payments = [p for p in order.payments if p.status == PaymentStatus.COMPLETED]
+    paid_total = sum(p.amount for p in completed_payments)
+    refunded_so_far = sum(
+        r.amount for p in order.payments for r in p.refunds if r.status != RefundStatus.REJECTED
+    )
+    refundable = paid_total - refunded_so_far
+
+    if refundable > 0:
+        from app.modules.inventory.application import card_service
+
+        delivered_cards = await card_service.get_delivered_cards_for_order(db, order_id=order.id)
+        if delivered_cards:
+            raise ConflictError(
+                detail=(
+                    "این سفارش کالای دیجیتال تحویل‌شده دارد و قابل لغو خودکار نیست؛ "
+                    "برای بازگشت وجه از طریق درخواست مرجوعی اقدام کنید"
+                ),
+                error_code="ORDER_HAS_DELIVERED_DIGITAL_GOODS",
+            )
+
     from_status = order.status.value
     order.status = OrderStatus.CANCELED
     db.add(order)
@@ -349,6 +390,43 @@ async def cancel_order(
             "order_cancel_restock_failed",
             order_id=str(order.id),
             error=str(exc),
+        )
+
+    # Refund the remaining paid amount to the customer's wallet inside the
+    # same transaction — cancelling a paid order must never silently keep
+    # the money; restocking alone is not enough.
+    if refundable > 0 and completed_payments:
+        payment = completed_payments[0]
+        db.add(
+            Refund(
+                payment_id=payment.id,
+                order_id=order.id,
+                amount=refundable,
+                reason=f"لغو سفارش توسط مشتری: {reason}",
+                status=RefundStatus.PROCESSED,
+                processed_by=user_id,
+                processed_at=datetime.now(UTC),
+            )
+        )
+        if refundable == paid_total:
+            payment.status = PaymentStatus.REFUNDED
+
+        from app.modules.wallet.application import wallet_service
+        from app.modules.wallet.domain.models import WalletTransactionType
+
+        await wallet_service.credit(
+            db,
+            user_id=order.user_id,
+            amount=refundable,
+            tx_type=WalletTransactionType.REFUND,
+            reference_type="order_cancel",
+            reference_id=order.id,
+            description=f"بازگشت وجه لغو سفارش {order.order_number}",
+        )
+        await logger.ainfo(
+            "order_cancel_auto_refunded",
+            order_id=str(order.id),
+            amount=refundable,
         )
 
     await _record_status_change(
@@ -371,6 +449,18 @@ async def cancel_order(
             "reason": reason,
         },
     )
+    if refundable > 0:
+        await _publish_order_event(
+            db,
+            "RefundProcessed",
+            order.id,
+            {
+                "order_id": str(order.id),
+                "order_number": order.order_number,
+                "amount": refundable,
+                "initiated_by": "customer_cancel",
+            },
+        )
 
     await db.refresh(order, attribute_names=["status_history"])
     return _build_order_response(order)
@@ -817,7 +907,81 @@ async def admin_transition_return(
                 outcomes[uuid.UUID(item_id_str)] = InspectionOutcome(outcome_str)
         service.complete_inspection(rma, outcomes, notes)
     elif target_status == ReturnStatus.REFUNDED:
-        service.process_refund(rma, refund_amount or 0)
+        # The refund must be a real, bounded money movement: validate the
+        # amount against what the customer actually paid minus refunds that
+        # were already recorded, then settle it into the customer's wallet.
+        if not refund_amount or refund_amount <= 0:
+            raise ValidationError(
+                "مبلغ بازگشت وجه باید بزرگتر از صفر باشد",
+                error_code="INVALID_REFUND_AMOUNT",
+            )
+
+        from app.modules.payments.domain.models import (
+            Payment,
+            PaymentStatus,
+            Refund,
+            RefundStatus,
+        )
+
+        refund_order = await db.get(
+            Order,
+            row.order_id,
+            options=(selectinload(Order.payments).selectinload(Payment.refunds),),
+        )
+        if refund_order is None:
+            raise NotFoundError("Order")
+
+        completed_payments = [
+            p for p in refund_order.payments if p.status == PaymentStatus.COMPLETED
+        ]
+        paid_total = sum(p.amount for p in completed_payments)
+        refunded_so_far = sum(
+            r.amount
+            for p in refund_order.payments
+            for r in p.refunds
+            if r.status != RefundStatus.REJECTED
+        )
+        refundable = paid_total - refunded_so_far
+        if refund_amount > refundable:
+            raise ValidationError(
+                f"مبلغ بازگشت وجه ({refund_amount:,}) "
+                f"از سقف قابل بازگشت ({refundable:,}) بیشتر است",
+                error_code="REFUND_EXCEEDS_REFUNDABLE",
+            )
+        if not completed_payments:
+            raise ValidationError(
+                "برای این سفارش پرداخت تکمیلی‌ای برای بازگشت وجه یافت نشد",
+                error_code="NO_COMPLETED_PAYMENT",
+            )
+
+        service.process_refund(rma, refund_amount)
+
+        db.add(
+            Refund(
+                payment_id=completed_payments[0].id,
+                order_id=refund_order.id,
+                amount=refund_amount,
+                reason=f"بازگشت کالا (RMA {row.id})",
+                status=RefundStatus.PROCESSED,
+                processed_by=actor_id,
+                processed_at=datetime.now(UTC),
+            )
+        )
+        if refunded_so_far + refund_amount == paid_total:
+            completed_payments[0].status = PaymentStatus.REFUNDED
+
+        from app.modules.wallet.application import wallet_service
+        from app.modules.wallet.domain.models import WalletTransactionType
+
+        await wallet_service.credit(
+            db,
+            user_id=row.user_id,
+            amount=refund_amount,
+            tx_type=WalletTransactionType.REFUND,
+            reference_type="order_return",
+            reference_id=row.id,
+            description=f"بازگشت وجه مرجوعی سفارش {refund_order.order_number}",
+        )
     else:
         # CLOSED / REPLACED
         rma.transition_to(target_status, notes)

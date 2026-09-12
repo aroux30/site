@@ -41,6 +41,14 @@ async def submit_card_transfer_receipt(
     safe_order_id = uuid.UUID(str(order_id))
     safe_user_id = uuid.UUID(str(user_id))
 
+    # Ownership guard: receipts may only be attached to the caller's own
+    # orders, and the order must actually exist.
+    from app.modules.orders.domain.models import Order
+
+    order = await db.get(Order, safe_order_id)
+    if order is None or order.user_id != safe_user_id:
+        raise NotFoundError(resource="Order")
+
     clean_track = tracking_code.strip()
     if not clean_track:
         raise ValidationError("شماره پیگیری واریز الزامی است")
@@ -87,7 +95,10 @@ async def review_card_transfer_receipt(
 
     receipt = await db.get(CardTransferReceipt, safe_receipt_id)
     if receipt is None:
-        raise NotFoundError(resource="CardTransferReceipt", detail=f"Receipt {safe_receipt_id} not found")
+        raise NotFoundError(
+            resource="CardTransferReceipt",
+            detail=f"Receipt {safe_receipt_id} not found",
+        )
 
     if receipt.status != ReceiptReviewStatus.PENDING_REVIEW:
         raise ConflictError(detail=f"این رسید قبلاً تعیین وضعیت شده است: {receipt.status.value}")
@@ -111,9 +122,21 @@ async def review_card_transfer_receipt(
 async def list_receipts_by_order(
     db: AsyncSession,
     order_id: uuid.UUID,
+    user_id: uuid.UUID | None = None,
 ) -> list[CardTransferReceipt]:
-    """List transfer receipts submitted for an order."""
+    """List transfer receipts submitted for an order.
+
+    When ``user_id`` is supplied (customer endpoint) the order must belong
+    to that user; admin callers pass ``user_id=None`` behind a permission
+    dependency.
+    """
     safe_order_id = uuid.UUID(str(order_id))
+    if user_id is not None:
+        from app.modules.orders.domain.models import Order
+
+        order = await db.get(Order, safe_order_id)
+        if order is None or order.user_id != user_id:
+            raise NotFoundError(resource="Order")
     stmt = (
         select(CardTransferReceipt)
         .where(CardTransferReceipt.order_id == safe_order_id)

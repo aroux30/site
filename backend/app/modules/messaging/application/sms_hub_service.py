@@ -91,7 +91,11 @@ async def send_sms_with_failover(
                 return {"success": True, "provider": prov, "to": clean_mobile}
         except Exception as exc:
             last_error = str(exc)
-            await logger.awarning("sms_provider_failed_switching", failed_provider=prov, error=last_error)
+            await logger.awarning(
+                "sms_provider_failed_switching",
+                failed_provider=prov,
+                error=last_error,
+            )
             continue  # Failover to next provider
 
     # Fallback to internal simulation in development/test
@@ -121,11 +125,7 @@ async def dispatch_order_delivered_pins_sms(
     if len(cards) > 5:
         items_block += f"\nو {len(cards) - 5} کد دیگر در پنل کاربری"
 
-    text = (
-        f"سفارش {order_number} تحویل شد:\n"
-        f"{items_block}\n"
-        f"مشاهده و دانلود فاکتور در پنل کاربری."
-    )
+    text = f"سفارش {order_number} تحویل شد:\n{items_block}\nمشاهده و دانلود فاکتور در پنل کاربری."
     return await send_sms_with_failover(mobile, text)
 
 

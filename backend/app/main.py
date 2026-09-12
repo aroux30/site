@@ -201,8 +201,8 @@ def _include_routers(app: FastAPI, prefix: str) -> None:
 
     # ── Mount Native Captcha & System Preflight Router ─────────────────
     from app.core.security.captcha_routes import router as captcha_router
-    app.include_router(captcha_router, prefix=prefix)
 
+    app.include_router(captcha_router, prefix=prefix)
 
 
 def _register_infra_routes(app: FastAPI) -> None:

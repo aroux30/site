@@ -17,6 +17,7 @@ from typing import TYPE_CHECKING, Any
 
 import structlog
 from sqlalchemy import func, select
+from sqlalchemy.orm import selectinload
 
 from app.core.exceptions.handlers import (
     ConflictError,
@@ -167,13 +168,56 @@ async def b2b_purchase_cards(
     reseller_key: ResellerApiKey,
     product_id: uuid.UUID,
     quantity: int,
-    unit_price: int,
+    unit_price: int | None = None,
 ) -> dict[str, Any]:
-    """Execute automated B2B order, deduct credit, and immediately return PINs."""
+    """Execute automated B2B order, deduct credit, and immediately return PINs.
+
+    The payable unit price is always resolved server-side from the active
+    volume tiers (falling back to the cheapest active variant price); the
+    caller-supplied ``unit_price`` is only accepted when it matches.
+    """
     if quantity <= 0:
         raise ValidationError("تعداد خرید باید حداقل ۱ باشد")
 
-    total_cost = unit_price * quantity
+    # Lock the reseller key row so concurrent purchases cannot overdraw the
+    # pre-paid credit balance (read-modify-write race).
+    locked_key = await db.get(ResellerApiKey, reseller_key.id, with_for_update=True)
+    if locked_key is None or not locked_key.is_active:
+        raise UnauthorizedError(detail="کلید API همکار نامعتبر یا غیرفعال است")
+    reseller_key = locked_key
+
+    # Resolve the price server-side: load the product with its variants via
+    # the primary key, then apply volume tiers on top of the base price.
+    from app.modules.inventory.application import pricing_service
+
+    product = await db.get(
+        Product,
+        uuid.UUID(str(product_id)),
+        options=(selectinload(Product.variants),),
+    )
+    if product is None or not product.is_active or product.status != ProductStatus.ACTIVE:
+        raise NotFoundError(resource="Product", detail="محصول همکار یافت نشد یا غیرفعال است")
+
+    variant_prices = [v.price for v in product.variants if v.is_active and v.price > 0]
+    if not variant_prices:
+        raise ConflictError(detail="این محصول هیچ گونه قیمت فعالی برای فروش ندارد")
+
+    pricing = await pricing_service.calculate_dynamic_price(
+        db,
+        product_id=product.id,
+        quantity=quantity,
+        base_unit_price=min(variant_prices),
+    )
+    resolved_unit_price = int(pricing["unit_price"])
+    if unit_price is not None and int(unit_price) != resolved_unit_price:
+        raise ConflictError(
+            detail=(
+                "قیمت ارسالی با قیمت سیستم هم‌خوانی ندارد. "
+                f"قیمت صحیح برای {quantity} عدد: {resolved_unit_price:,} ریال"
+            )
+        )
+
+    total_cost = resolved_unit_price * quantity
     if reseller_key.credit_balance < total_cost:
         raise ConflictError(
             detail=(

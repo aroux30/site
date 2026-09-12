@@ -1,8 +1,10 @@
-"""Gamification, Internal Gift Cards, Lucky Wheel, and Charge Packages domain models (Karta Phase 5/7).
+"""Gamification, Internal Gift Cards, Lucky Wheel, and Charge Packages domain models (Karta Phase
+5/7).
 
 Implements:
 - InternalGiftCard: Digital gift vouchers with templates and wallet redemption (Karta Gift Cards)
-- LuckyWheelPrize & GiftTryLog: Post-order gamified lucky box / spin wheel with weighted odds (Karta gifts & try_gifts)
+- LuckyWheelPrize & GiftTryLog: Post-order gamified lucky box / spin wheel with weighted odds
+(Karta gifts & try_gifts)
 - ChargePackage: Pre-set wallet top-up packages with incentive bonus credit (Karta charge_packages)
 """
 
@@ -71,16 +73,16 @@ class InternalGiftCard(BaseModel):
     expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     def __repr__(self) -> str:
-        return f"<InternalGiftCard(code={self.code}, amount={self.amount}, active={self.is_active})>"
+        return (
+            f"<InternalGiftCard(code={self.code}, amount={self.amount}, active={self.is_active})>"
+        )
 
 
 class LuckyWheelPrize(BaseModel):
     """Configurable prize on the post-order gamified spin wheel (Karta gifts)."""
 
     __tablename__ = "lucky_wheel_prizes"
-    __table_args__ = (
-        Index("ix_lucky_wheel_prizes_is_active", "is_active"),
-    )
+    __table_args__ = (Index("ix_lucky_wheel_prizes_is_active", "is_active"),)
 
     title: Mapped[str] = mapped_column(String(150), nullable=False)
     prize_type: Mapped[PrizeType] = mapped_column(
@@ -150,4 +152,7 @@ class ChargePackage(BaseModel):
     ordering: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
 
     def __repr__(self) -> str:
-        return f"<ChargePackage(title={self.title}, pay={self.pay_amount}, credit={self.credit_amount})>"
+        return (
+            f"<ChargePackage(title={self.title}, pay={self.pay_amount}, "
+            f"credit={self.credit_amount})>"
+        )

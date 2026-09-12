@@ -2,7 +2,7 @@
 
 import enum
 import uuid
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from sqlalchemy import (
     BigInteger,
@@ -18,6 +18,9 @@ from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database.base import BaseModel
+
+if TYPE_CHECKING:
+    from app.modules.payments.domain.models import Payment
 
 # ---- Enums ----
 
@@ -79,6 +82,11 @@ class Order(BaseModel):
     )
     status_history: Mapped[list["OrderStatusHistory"]] = relationship(
         "OrderStatusHistory", back_populates="order", lazy="select"
+    )
+    # One-to-many via payments.order_id FK; the Payment side has no
+    # back_populates (orderless top-up payments keep order_id NULL).
+    payments: Mapped[list["Payment"]] = relationship(
+        "Payment", foreign_keys="Payment.order_id", lazy="select"
     )
 
     def __repr__(self) -> str:

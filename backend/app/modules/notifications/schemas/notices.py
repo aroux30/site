@@ -50,7 +50,12 @@ class MarkNoticeSeenResponse(BaseModel):
 class SmsDispatchRequest(BaseModel):
     """Payload to dispatch an SMS message with automatic provider failover."""
 
-    mobile: str = Field(..., min_length=10, max_length=15, description="Customer 11-digit mobile number")
+    mobile: str = Field(
+        ...,
+        min_length=10,
+        max_length=15,
+        description="Customer 11-digit mobile number",
+    )
     text: str = Field(..., min_length=1, max_length=1000, description="SMS text content")
     pattern: str | None = None
 

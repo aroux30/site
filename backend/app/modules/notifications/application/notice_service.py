@@ -54,7 +54,8 @@ async def get_active_notices_for_user(
 
     # Filter target page in memory
     filtered = [
-        n for n in candidates
+        n
+        for n in candidates
         if n.target_page == TargetPage.ALL or n.target_page.value == clean_page
     ]
 
@@ -92,7 +93,11 @@ async def mark_notice_as_seen(
     except IntegrityError:
         pass  # Already marked as seen (idempotent)
 
-    await logger.ainfo("notice_marked_seen", user_id=str(safe_user_id), notice_id=str(safe_notice_id))
+    await logger.ainfo(
+        "notice_marked_seen",
+        user_id=str(safe_user_id),
+        notice_id=str(safe_notice_id),
+    )
     return seen
 
 

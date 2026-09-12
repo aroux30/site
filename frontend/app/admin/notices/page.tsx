@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/dialog";
 import { useToast } from "@/components/ui/use-toast";
 import apiClient from "@/lib/api/client";
+import { sanitizeHtml } from "@/lib/sanitize";
 
 interface Notice {
   id: string;
@@ -148,7 +149,7 @@ export default function AdminNoticesPage() {
               </div>
               <div
                 className="mt-3 text-xs text-muted-foreground line-clamp-2 prose prose-sm max-w-none"
-                dangerouslySetInnerHTML={{ __html: n.content_html }}
+                dangerouslySetInnerHTML={{ __html: sanitizeHtml(n.content_html) }}
               />
             </Card>
           ))}

@@ -15,8 +15,16 @@ from app.modules.users.domain.kyc_models import DeliveryRiskLevel
 class ShahkarVerificationRequest(BaseModel):
     """Payload to verify National Code against mobile."""
 
-    national_code: str = Field(..., min_length=10, max_length=10, description="10-digit Iranian National Code")
-    birth_date: date | None = Field(None, description="Birth date for Civil Registry verification (Zohal)")
+    national_code: str = Field(
+        ...,
+        min_length=10,
+        max_length=10,
+        description="10-digit Iranian National Code",
+    )
+    birth_date: date | None = Field(
+        None,
+        description="Birth date for Civil Registry verification (Zohal)",
+    )
 
 
 class ShahkarVerificationResponse(BaseModel):
@@ -33,7 +41,12 @@ class ShahkarVerificationResponse(BaseModel):
 class BankCardRegisterRequest(BaseModel):
     """Payload to register and verify customer bank card."""
 
-    card_number: str = Field(..., min_length=16, max_length=19, description="16-digit debit card number")
+    card_number: str = Field(
+        ...,
+        min_length=16,
+        max_length=19,
+        description="16-digit debit card number",
+    )
     iban: str | None = Field(None, max_length=30, description="Optional Sheba/IBAN number")
     is_default: bool = False
 

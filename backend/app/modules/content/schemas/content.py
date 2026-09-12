@@ -37,7 +37,10 @@ class HomepageBlockResponse(BaseModel):
 class BlockReorderRequest(BaseModel):
     """Admin payload to update display ordering of multiple blocks."""
 
-    positions: dict[uuid.UUID, int] = Field(..., description="Mapping of block_id to new integer position")
+    positions: dict[uuid.UUID, int] = Field(
+        ...,
+        description="Mapping of block_id to new integer position",
+    )
 
 
 # ── Tree Menu Schemas ─────────────────────────────────────────────────────
@@ -101,4 +104,7 @@ class FAQItemResponse(BaseModel):
 class FAQListWithGoogleSchemaResponse(BaseModel):
     items: list[FAQItemResponse]
     total: int
-    schema_json_ld: dict[str, Any] = Field(..., description="Valid Schema.org FAQPage JSON-LD for Google Rich Snippets")
+    schema_json_ld: dict[str, Any] = Field(
+        ...,
+        description="Valid Schema.org FAQPage JSON-LD for Google Rich Snippets",
+    )

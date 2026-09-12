@@ -49,7 +49,8 @@ class HomepageBlock(BaseModel):
         Enum(BlockType, name="block_type_enum", native_enum=False),
         nullable=False,
     )
-    config: Mapped[dict | None] = mapped_column(JSONB, nullable=True)  # Category IDs, banners, product tags
+    # Category IDs, banners, product tags
+    config: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
     position: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
 

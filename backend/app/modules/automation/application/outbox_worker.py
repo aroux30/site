@@ -49,6 +49,8 @@ async def _handle_message(db: Any, event_type: str, payload: dict[str, Any]) -> 
 
     elif event_type in _ORDER_NOTIFICATIONS:
         spec = _ORDER_NOTIFICATIONS[event_type]
+        if event_type == "PaymentCompleted":
+            await _allocate_digital_cards(db, order_id=payload.get("order_id"))
         await _notify_order_event(
             db,
             event_type=event_type,
@@ -60,6 +62,76 @@ async def _handle_message(db: Any, event_type: str, payload: dict[str, Any]) -> 
 
     elif event_type == "RefundProcessed":
         await _notify_refund_event(db, payload)
+
+
+async def _allocate_digital_cards(db: Any, *, order_id: Any) -> None:
+    """Allocate digital-card stock for a paid order (Karta digital delivery).
+
+    Runs on PaymentCompleted so the retail checkout flow receives PINs the
+    same way the B2B reseller flow does; customers read them via
+    ``GET /inventory/digital/orders/{id}/cards``.
+
+    Idempotent by transaction: allocation effects and the outbox
+    ``processed`` flag commit atomically, so a retry only happens after a
+    full rollback. A stock-out is logged for manual action (the payment is
+    already settled) and must never swallow the customer notification.
+    """
+    if not order_id:
+        return
+    try:
+        import uuid as uuid_mod
+
+        from sqlalchemy.orm import selectinload
+
+        from app.core.exceptions.handlers import ConflictError
+        from app.modules.catalog.domain.models import Product, ProductType, ProductVariant
+        from app.modules.inventory.application import card_service
+        from app.modules.orders.domain.models import Order
+
+        order = await db.get(
+            Order,
+            uuid_mod.UUID(str(order_id)),
+            options=(selectinload(Order.items),),
+        )
+        if order is None:
+            logger.warning(
+                "outbox_order_not_found",
+                event_type="PaymentCompleted",
+                order_id=str(order_id),
+            )
+            return
+
+        for item in order.items:
+            variant = await db.get(ProductVariant, item.variant_id)
+            if variant is None:
+                continue
+            product = await db.get(Product, variant.product_id)
+            if product is None or product.product_type != ProductType.DIGITAL:
+                continue
+
+            try:
+                await card_service.allocate_cards_for_order(
+                    db,
+                    product_id=product.id,
+                    order_id=order.id,
+                    quantity=item.quantity,
+                )
+            except ConflictError as exc:
+                # Payment is already settled — surface loudly for manual
+                # restocking; never block the customer notification.
+                await logger.aerror(
+                    "digital_stock_out_after_payment",
+                    order_id=str(order.id),
+                    product_id=str(product.id),
+                    quantity=item.quantity,
+                    error=str(exc),
+                )
+                continue
+
+        await logger.ainfo("digital_allocation_processed", order_id=str(order.id))
+    except Exception as exc:
+        # Let the outbox retry mechanism handle transient failures.
+        raise RuntimeError(f"digital allocation failed for order {order_id}: {exc}") from exc
 
 
 async def _notify_order_event(

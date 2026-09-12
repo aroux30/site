@@ -1,8 +1,10 @@
 """Time-bounded notices and seen notices domain models (Karta Phase 6/8).
 
 Implements:
-- Notice: Scheduled banners, popups, and notification bars with date intervals and target page routing (Karta notices)
-- SeenNotice: User viewing history to prevent repetitive, annoying popup impressions (Karta seen_notices)
+- Notice: Scheduled banners, popups, and notification bars with date intervals and target page
+routing (Karta notices)
+- SeenNotice: User viewing history to prevent repetitive, annoying popup impressions (Karta
+seen_notices)
 """
 
 from __future__ import annotations

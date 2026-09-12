@@ -171,4 +171,3 @@ async def update_user(
 
 # ── KYC and anti-fraud sub-router (Karta Phase 1) ──────────────────────────
 router.include_router(kyc_router)
-

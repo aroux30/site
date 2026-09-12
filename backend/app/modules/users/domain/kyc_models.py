@@ -27,8 +27,8 @@ class AttemptType(str, enum.Enum):
 
 
 class DeliveryRiskLevel(str, enum.Enum):
-    INSTANT = "instant"      # Trusted users: immediate PIN revelation
-    DELAYED = "delayed"      # Untrusted / first-time: held 2-12 hours for review
+    INSTANT = "instant"  # Trusted users: immediate PIN revelation
+    DELAYED = "delayed"  # Untrusted / first-time: held 2-12 hours for review
 
 
 class UserBankCard(BaseModel):
@@ -59,11 +59,15 @@ class UserBankCard(BaseModel):
     verified_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     def __repr__(self) -> str:
-        return f"<UserBankCard(user_id={self.user_id}, masked={self.card_pan_masked}, verified={self.is_verified})>"
+        return (
+            f"<UserBankCard(user_id={self.user_id}, masked={self.card_pan_masked}, "
+            f"verified={self.is_verified})>"
+        )
 
 
 class FailedAttempt(BaseModel):
-    """Tracks failed security operations to detect and block brute-force attacks (Karta failed_attempts)."""
+    """Tracks failed security operations to detect and block brute-force
+    attacks (Karta failed_attempts)."""
 
     __tablename__ = "failed_attempts"
     __table_args__ = (
@@ -72,7 +76,8 @@ class FailedAttempt(BaseModel):
         Index("ix_failed_attempts_created_at", "created_at"),
     )
 
-    identifier: Mapped[str] = mapped_column(String(100), nullable=False)  # Phone number, email, or IP
+    # Phone number, email, or IP
+    identifier: Mapped[str] = mapped_column(String(100), nullable=False)
     attempt_type: Mapped[AttemptType] = mapped_column(
         Enum(AttemptType, name="attempt_type_enum", native_enum=False),
         nullable=False,
@@ -98,10 +103,15 @@ class UserTrustProfile(BaseModel):
     )
     is_trusted: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     shahkar_verified: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
-    risk_score: Mapped[int] = mapped_column(Integer, default=50, nullable=False)  # 0 (safe) to 100 (high risk)
+    # 0 (safe) to 100 (high risk)
+    risk_score: Mapped[int] = mapped_column(Integer, default=50, nullable=False)
     delayed_delivery_enabled: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
-    daily_spend_limit: Mapped[int] = mapped_column(BigInteger, default=50_000_000, nullable=False)  # 50M Rials default
+    # 50M Rials default
+    daily_spend_limit: Mapped[int] = mapped_column(BigInteger, default=50_000_000, nullable=False)
     verified_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     def __repr__(self) -> str:
-        return f"<UserTrustProfile(user_id={self.user_id}, trusted={self.is_trusted}, risk={self.risk_score})>"
+        return (
+            f"<UserTrustProfile(user_id={self.user_id}, trusted={self.is_trusted}, "
+            f"risk={self.risk_score})>"
+        )

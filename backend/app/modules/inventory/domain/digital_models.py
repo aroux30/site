@@ -106,9 +106,7 @@ class PriceTier(BaseModel):
     """
 
     __tablename__ = "price_tiers"
-    __table_args__ = (
-        Index("ix_price_tiers_product_id", "product_id"),
-    )
+    __table_args__ = (Index("ix_price_tiers_product_id", "product_id"),)
 
     product_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
@@ -135,9 +133,7 @@ class CategoryCustomField(BaseModel):
     """
 
     __tablename__ = "category_custom_fields"
-    __table_args__ = (
-        Index("ix_category_custom_fields_category_id", "category_id"),
-    )
+    __table_args__ = (Index("ix_category_custom_fields_category_id", "category_id"),)
 
     category_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),

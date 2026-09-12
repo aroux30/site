@@ -308,8 +308,14 @@ async def release_reservation(
 async def confirm_reservation(
     db: AsyncSession,
     reservation_id: uuid.UUID,
+    order_id: uuid.UUID | None = None,
 ) -> InventoryReservation:
-    """Confirm a reservation — moves stock from reserved to committed."""
+    """Confirm a reservation — moves stock from reserved to committed.
+
+    When ``order_id`` is supplied the reservation is linked to the order so
+    ``restock_order`` can find and release exactly these units later (and
+    the fallback restock path can skip the variants already covered).
+    """
     stmt = (
         select(InventoryReservation)
         .where(InventoryReservation.id == reservation_id)

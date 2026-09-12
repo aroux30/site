@@ -23,7 +23,9 @@ logger: structlog.stdlib.BoundLogger = structlog.get_logger(__name__)
 async def log_sensitive_access(
     db: AsyncSession,
     actor_id: uuid.UUID,
-    action: str,  # "view_decrypted_pin", "view_unmasked_card", "bulk_export_cards", "approve_receipt"
+    # One of: "view_decrypted_pin", "view_unmasked_card",
+    # "bulk_export_cards", "approve_receipt"
+    action: str,
     resource: str,  # "digital_card", "user_bank_card", "card_transfer_receipt"
     resource_id: uuid.UUID | None = None,
     ip_address: str | None = None,

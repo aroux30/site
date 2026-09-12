@@ -35,8 +35,10 @@ class ResellerApiKey(BaseModel):
     name: Mapped[str] = mapped_column(String(100), nullable=False)  # Partner or company name
     key_prefix: Mapped[str] = mapped_column(String(16), nullable=False)  # e.g. "b2b_live_abc1"
     key_hash: Mapped[str] = mapped_column(String(64), unique=True, nullable=False)  # SHA-256
-    ip_whitelist: Mapped[list[str] | None] = mapped_column(JSONB, nullable=True)  # List of allowed IPs
-    credit_balance: Mapped[int] = mapped_column(BigInteger, default=0, nullable=False)  # Pre-paid balance in IRR
+    # List of allowed IPs
+    ip_whitelist: Mapped[list[str] | None] = mapped_column(JSONB, nullable=True)
+    # Pre-paid balance in IRR
+    credit_balance: Mapped[int] = mapped_column(BigInteger, default=0, nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     rate_limit_per_minute: Mapped[int] = mapped_column(Integer, default=60, nullable=False)
     expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)

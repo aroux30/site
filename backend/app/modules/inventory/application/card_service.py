@@ -148,15 +148,35 @@ async def get_delivered_cards_for_order(
 async def mark_card_viewed(
     db: AsyncSession,
     card_id: uuid.UUID,
+    user_id: uuid.UUID | None = None,
 ) -> DigitalCard:
-    """Record timestamp when customer first views the decrypted PIN (legal evidence)."""
+    """Record timestamp when customer first views the decrypted PIN (legal evidence).
+
+    When ``user_id`` is supplied the card must belong to an order owned by
+    that user, otherwise the card is reported as not found.
+    """
     card = await db.get(DigitalCard, card_id, with_for_update=True)
     if card is None:
         raise NotFoundError(resource="DigitalCard", detail=f"Card {card_id} not found")
 
+    if user_id is not None:
+        from app.modules.orders.domain.models import Order
+
+        order = (
+            await db.get(Order, card.assigned_order_id)
+            if card.assigned_order_id is not None
+            else None
+        )
+        if order is None or order.user_id != user_id:
+            raise NotFoundError(resource="DigitalCard", detail=f"Card {card_id} not found")
+
     if card.reading_at is None:
         card.reading_at = datetime.now(UTC)
         await db.flush()
-        await logger.ainfo("digital_card_read", card_id=str(card_id), at=card.reading_at.isoformat())
+        await logger.ainfo(
+            "digital_card_read",
+            card_id=str(card_id),
+            at=card.reading_at.isoformat(),
+        )
 
     return card

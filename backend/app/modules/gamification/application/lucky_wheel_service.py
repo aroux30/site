@@ -108,14 +108,21 @@ async def spin_lucky_wheel_for_order(
     except IntegrityError as exc:
         raise ConflictError(detail="شما قبلاً شانس خود را برای این سفارش امتحان کرده‌اید") from exc
 
-    await logger.ainfo("lucky_wheel_spun", order_id=str(safe_order_id), prize=prize_title, value=awarded_value)
+    await logger.ainfo(
+        "lucky_wheel_spun",
+        order_id=str(safe_order_id),
+        prize=prize_title,
+        value=awarded_value,
+    )
 
     return {
         "order_id": safe_order_id,
         "prize_title": prize_title,
         "prize_type": prize_type,
         "awarded_value": awarded_value,
-        "message": f"تبریک! شما برنده {prize_title} شدید" if prize_type != "nothing" else prize_title,
+        "message": (
+            f"تبریک! شما برنده {prize_title} شدید" if prize_type != "nothing" else prize_title
+        ),
     }
 
 

@@ -45,7 +45,7 @@ class SettingsService:
         result = await db.execute(stmt)
         setting = result.scalar_one_or_none()
         if not setting:
-            raise NotFoundError(message=f"Setting with key '{key}' not found.")
+            raise NotFoundError(resource="Setting", detail=f"Setting with key '{key}' not found.")
         return setting
 
     @staticmethod
@@ -54,7 +54,7 @@ class SettingsService:
         stmt = select(SiteSetting).where(SiteSetting.key == data.key)
         existing = (await db.execute(stmt)).scalar_one_or_none()
         if existing:
-            raise ConflictError(message=f"Setting with key '{data.key}' already exists.")
+            raise ConflictError(detail=f"Setting with key '{data.key}' already exists.")
 
         setting = SiteSetting(
             key=data.key,

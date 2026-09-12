@@ -52,7 +52,11 @@ async def verify_user_shahkar(
         if birth_date:
             user.profile.birth_date = birth_date
     else:
-        profile = UserProfile(user_id=safe_user_id, national_code=clean_code, birth_date=birth_date)
+        profile = UserProfile(
+            user_id=safe_user_id,
+            national_code=clean_code,
+            birth_date=birth_date,
+        )
         db.add(profile)
 
     trust = await db.get(UserTrustProfile, safe_user_id)
@@ -99,9 +103,13 @@ async def evaluate_delivery_policy(
     if trust is None:
         return DeliveryRiskLevel.DELAYED
 
-    if trust.is_trusted and trust.risk_score < 30 and not trust.delayed_delivery_enabled:
-        if order_amount <= trust.daily_spend_limit:
-            return DeliveryRiskLevel.INSTANT
+    if (
+        trust.is_trusted
+        and trust.risk_score < 30
+        and not trust.delayed_delivery_enabled
+        and order_amount <= trust.daily_spend_limit
+    ):
+        return DeliveryRiskLevel.INSTANT
 
     return DeliveryRiskLevel.DELAYED
 

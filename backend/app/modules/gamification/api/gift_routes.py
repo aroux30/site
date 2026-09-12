@@ -1,4 +1,4 @@
-"""API routes for Gamification: Gift Cards, Lucky Wheel, Signup Gift, and Charge Packages (Karta Phase 5/7)."""
+"""API routes for Gamification: gift cards, lucky wheel, signup gift, charge packages."""
 
 from __future__ import annotations
 
@@ -31,7 +31,8 @@ router = APIRouter(prefix="/gifts", tags=["gamification-gifts"])
 @router.post(
     "/cards/issue",
     response_model=InternalGiftCardResponse,
-    summary="Issue a digital gift card voucher with a custom template",
+    summary="Issue a digital gift card voucher with a custom template (admin)",
+    dependencies=[Depends(RequirePermissions("gamification:write"))],
 )
 async def issue_gift_card(
     body: InternalGiftCardIssueRequest,
@@ -62,9 +63,7 @@ async def redeem_gift_card(
     user_id: uuid.UUID = Depends(get_current_user_id),
     db: AsyncSession = Depends(get_db),
 ) -> InternalGiftCardRedeemResponse:
-    result = await gift_card_service.redeem_internal_gift_card(
-        db, user_id=user_id, code=body.code
-    )
+    result = await gift_card_service.redeem_internal_gift_card(db, user_id=user_id, code=body.code)
     return InternalGiftCardRedeemResponse.model_validate(result)
 
 

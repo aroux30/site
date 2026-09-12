@@ -42,7 +42,10 @@ async def issue_internal_gift_card(
     if amount <= 0:
         raise ValidationError("مبلغ کارت هدیه باید بزرگتر از صفر باشد")
 
-    code = f"GIFT-{datetime.now(UTC).year}-{secrets.token_hex(2).upper()}-{secrets.token_hex(2).upper()}"
+    code = (
+        f"GIFT-{datetime.now(UTC).year}-"
+        f"{secrets.token_hex(2).upper()}-{secrets.token_hex(2).upper()}"
+    )
     safe_creator = uuid.UUID(str(created_by_user_id)) if created_by_user_id else None
 
     card = InternalGiftCard(
@@ -74,12 +77,19 @@ async def redeem_internal_gift_card(
     safe_user_id = uuid.UUID(str(user_id))
     clean_code = code.strip().upper()
 
-    stmt = select(InternalGiftCard).where(InternalGiftCard.is_active.is_(True))
+    # Lock every active card row for the duration of the redeem so two
+    # concurrent redeems of one code cannot both pass the claimed/balance
+    # checks and double-credit the wallet. The second transaction blocks on
+    # this SELECT ... FOR UPDATE and then sees is_active=False.
+    stmt = select(InternalGiftCard).where(InternalGiftCard.is_active.is_(True)).with_for_update()
     active_cards = list((await db.execute(stmt)).scalars().all())
     card = next((c for c in active_cards if c.code == clean_code), None)
 
     if card is None:
-        raise NotFoundError(resource="InternalGiftCard", detail="کد کارت هدیه نامعتبر است یا قبلاً استفاده شده است")
+        raise NotFoundError(
+            resource="InternalGiftCard",
+            detail="کد کارت هدیه نامعتبر است یا قبلاً استفاده شده است",
+        )
 
     now = datetime.now(UTC)
     if card.expires_at and card.expires_at < now:
@@ -108,7 +118,12 @@ async def redeem_internal_gift_card(
     card.claimed_at = now
 
     await db.flush()
-    await logger.ainfo("gift_card_redeemed", code=card.code, user_id=str(safe_user_id), amount=amount_to_credit)
+    await logger.ainfo(
+        "gift_card_redeemed",
+        code=card.code,
+        user_id=str(safe_user_id),
+        amount=amount_to_credit,
+    )
 
     return {
         "code": card.code,

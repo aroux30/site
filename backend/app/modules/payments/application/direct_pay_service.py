@@ -64,7 +64,12 @@ async def create_direct_invoice(
     db.add(invoice)
     await db.flush()
 
-    await logger.ainfo("direct_invoice_created", invoice_id=str(invoice.id), invoice_number=inv_num, amount=amount)
+    await logger.ainfo(
+        "direct_invoice_created",
+        invoice_id=str(invoice.id),
+        invoice_number=inv_num,
+        amount=amount,
+    )
     return invoice
 
 

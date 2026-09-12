@@ -37,7 +37,12 @@ def normalise_digits(text: str) -> str:
         return ""
     persian = "۰۱۲۳۴۵۶۷۸۹"
     arabic = "٠١٢٣٤٥٦٧٨٩"
-    trans = str.maketrans({**{p: str(i) for i, p in enumerate(persian)}, **{a: str(i) for i, a in enumerate(arabic)}})
+    trans = str.maketrans(
+        {
+            **{p: str(i) for i, p in enumerate(persian)},
+            **{a: str(i) for i, a in enumerate(arabic)},
+        }
+    )
     return text.translate(trans)
 
 
@@ -93,14 +98,28 @@ async def bulk_import_cards(
 
         if not pin:
             errors += 1
-            details.append({"row_number": idx, "serial_number": serial, "status": "error", "detail": "Empty PIN"})
+            details.append(
+                {
+                    "row_number": idx,
+                    "serial_number": serial,
+                    "status": "error",
+                    "detail": "Empty PIN",
+                }
+            )
             continue
 
         c_hash = compute_card_hash(pin, serial)
 
         if c_hash in seen_in_batch:
             duplicates += 1
-            details.append({"row_number": idx, "serial_number": serial, "status": "duplicate_skipped", "detail": "Duplicate in batch"})
+            details.append(
+                {
+                    "row_number": idx,
+                    "serial_number": serial,
+                    "status": "duplicate_skipped",
+                    "detail": "Duplicate in batch",
+                }
+            )
             continue
 
         seen_in_batch.add(c_hash)
@@ -123,13 +142,34 @@ async def bulk_import_cards(
                 await db.flush()
 
             imported += 1
-            details.append({"row_number": idx, "serial_number": serial, "status": "success", "detail": None})
+            details.append(
+                {
+                    "row_number": idx,
+                    "serial_number": serial,
+                    "status": "success",
+                    "detail": None,
+                }
+            )
         except IntegrityError:
             duplicates += 1
-            details.append({"row_number": idx, "serial_number": serial, "status": "duplicate_skipped", "detail": "Duplicate card in database"})
+            details.append(
+                {
+                    "row_number": idx,
+                    "serial_number": serial,
+                    "status": "duplicate_skipped",
+                    "detail": "Duplicate card in database",
+                }
+            )
         except Exception as exc:
             errors += 1
-            details.append({"row_number": idx, "serial_number": serial, "status": "error", "detail": str(exc)})
+            details.append(
+                {
+                    "row_number": idx,
+                    "serial_number": serial,
+                    "status": "error",
+                    "detail": str(exc),
+                }
+            )
 
     await logger.ainfo(
         "bulk_cards_imported",

@@ -59,7 +59,9 @@ export default function MyDigitalCodesPage() {
     setCardsByOrder((prev) => {
       const next = { ...prev };
       for (const orderId in next) {
-        next[orderId] = next[orderId].map((c) =>
+        const cards = next[orderId];
+        if (!cards) continue;
+        next[orderId] = cards.map((c) =>
           c.id === cardId && !c.reading_at
             ? { ...c, reading_at: new Date().toISOString() }
             : c

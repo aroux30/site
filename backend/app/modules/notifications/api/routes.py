@@ -76,4 +76,3 @@ async def mark_all_read(
 
 # ── Time-bounded Notices & SMS sub-router (Karta Phase 6/8) ────────────────
 router.include_router(notice_router)
-

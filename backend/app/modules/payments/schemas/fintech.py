@@ -1,4 +1,5 @@
-"""Pydantic v2 schemas for Fintech: Card2Card, Direct Pay, Gateways, and Error resolution (Karta Phase 3/5)."""
+"""Pydantic v2 schemas for Fintech: Card2Card, Direct Pay, Gateways, and Error resolution (Karta
+Phase 3/5)."""
 
 from __future__ import annotations
 
@@ -18,10 +19,24 @@ class CardTransferReceiptCreate(BaseModel):
 
     order_id: uuid.UUID
     amount: int = Field(..., ge=10_000, description="Amount transferred in IRR")
-    tracking_code: str = Field(..., min_length=1, max_length=100, description="Bank transfer reference number")
-    source_card_last4: str = Field(..., min_length=4, max_length=4, description="Last 4 digits of source debit card")
+    tracking_code: str = Field(
+        ...,
+        min_length=1,
+        max_length=100,
+        description="Bank transfer reference number",
+    )
+    source_card_last4: str = Field(
+        ...,
+        min_length=4,
+        max_length=4,
+        description="Last 4 digits of source debit card",
+    )
     destination_card_number: str | None = Field(None, max_length=20)
-    receipt_image_url: str | None = Field(None, max_length=500, description="Uploaded bank receipt image URL")
+    receipt_image_url: str | None = Field(
+        None,
+        max_length=500,
+        description="Uploaded bank receipt image URL",
+    )
 
 
 class CardTransferReceiptResponse(BaseModel):
@@ -55,7 +70,12 @@ class DirectInvoiceCreateRequest(BaseModel):
     """Payload to create a quick invoice without shopping cart."""
 
     amount: int = Field(..., ge=10_000, description="Invoice amount in IRR")
-    title: str = Field(..., min_length=1, max_length=250, description="Purpose or title of payment")
+    title: str = Field(
+        ...,
+        min_length=1,
+        max_length=250,
+        description="Purpose or title of payment",
+    )
     description: str | None = Field(None, max_length=2000)
     payer_name: str | None = Field(None, max_length=150)
     payer_mobile: str | None = Field(None, max_length=20)

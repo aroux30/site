@@ -1,4 +1,5 @@
-"""Pydantic v2 schemas for Gamification: Gift Cards, Lucky Wheel, and Charge Packages (Karta Phase 5/7)."""
+"""Pydantic v2 schemas for Gamification: Gift Cards, Lucky Wheel, and Charge Packages (Karta Phase
+5/7)."""
 
 from __future__ import annotations
 
@@ -16,7 +17,11 @@ class InternalGiftCardIssueRequest(BaseModel):
     """Admin or user payload to purchase/issue a digital gift voucher."""
 
     amount: int = Field(..., ge=10_000, description="Gift card amount in IRR")
-    card_template: str = Field("gold", max_length=32, description="Visual theme: gold, birthday, festive, vip")
+    card_template: str = Field(
+        "gold",
+        max_length=32,
+        description="Visual theme: gold, birthday, festive, vip",
+    )
     sender_name: str | None = Field(None, max_length=100)
     recipient_email: str | None = Field(None, max_length=255)
     recipient_phone: str | None = Field(None, max_length=20)

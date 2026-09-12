@@ -8,6 +8,7 @@ from fastapi import APIRouter, Depends, File, Form, Query, UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database.session import get_db
+from app.core.exceptions.handlers import NotFoundError
 from app.core.security.dependencies import RequirePermissions, get_current_user_id
 from app.modules.inventory.application import (
     card_service,
@@ -42,6 +43,12 @@ async def get_order_cards(
     user_id: uuid.UUID = Depends(get_current_user_id),
     db: AsyncSession = Depends(get_db),
 ) -> list[DeliveredCardResponse]:
+    # Ownership guard: decrypted PINs may only be read by the buyer.
+    from app.modules.orders.domain.models import Order
+
+    order = await db.get(Order, order_id)
+    if order is None or order.user_id != user_id:
+        raise NotFoundError(resource="Order")
     cards = await card_service.get_delivered_cards_for_order(db, order_id=order_id)
     return [DeliveredCardResponse.model_validate(c) for c in cards]
 
@@ -56,7 +63,7 @@ async def mark_card_read(
     user_id: uuid.UUID = Depends(get_current_user_id),
     db: AsyncSession = Depends(get_db),
 ) -> MarkCardReadResponse:
-    card = await card_service.mark_card_viewed(db, card_id=card_id)
+    card = await card_service.mark_card_viewed(db, card_id=card_id, user_id=user_id)
     return MarkCardReadResponse(id=card.id, reading_at=card.reading_at)
 
 

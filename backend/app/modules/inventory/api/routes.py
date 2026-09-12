@@ -154,4 +154,3 @@ async def get_transactions(
 
 # ── Digital inventory sub-router (Karta Phase 1/2) ─────────────────────────
 router.include_router(digital_router)
-

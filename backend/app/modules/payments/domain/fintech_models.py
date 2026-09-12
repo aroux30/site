@@ -1,4 +1,5 @@
-"""Fintech domain models: Card-to-Card receipts, Direct Pay invoices, and Gateway config (Karta Phase 3/5).
+"""Fintech domain models: Card-to-Card receipts, Direct Pay invoices, and Gateway config (Karta
+Phase 3/5).
 
 Implements:
 - CardTransferReceipt: Manual card-to-card slip upload and review workflow (Karta card2card)
@@ -82,7 +83,10 @@ class CardTransferReceipt(BaseModel):
     reviewed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     def __repr__(self) -> str:
-        return f"<CardTransferReceipt(id={self.id}, tracking={self.tracking_code}, status={self.status})>"
+        return (
+            f"<CardTransferReceipt(id={self.id}, tracking={self.tracking_code}, "
+            f"status={self.status})>"
+        )
 
 
 class DirectInvoice(BaseModel):
@@ -120,7 +124,10 @@ class DirectInvoice(BaseModel):
     paid_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     def __repr__(self) -> str:
-        return f"<DirectInvoice(number={self.invoice_number}, amount={self.amount}, status={self.status})>"
+        return (
+            f"<DirectInvoice(number={self.invoice_number}, amount={self.amount}, "
+            f"status={self.status})>"
+        )
 
 
 class GatewaySetting(BaseModel):

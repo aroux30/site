@@ -56,12 +56,18 @@ logger: structlog.stdlib.BoundLogger = structlog.get_logger(__name__)
 # ── Helpers ───────────────────────────────────────────────────────────────
 
 
-async def _resolve_gateway(db: AsyncSession, provider_name: str) -> Any:
+async def _resolve_gateway(
+    db: AsyncSession, provider_name: str
+) -> tuple[Any, str | None]:
     """Resolve the active gateway provider.
 
     A Zarinpal merchant id registered through the admin settings UI takes
     priority: as soon as one is saved, the gateway switches to Zarinpal
     without a redeploy. Otherwise the configured env provider is used.
+
+    Returns ``(provider, override_merchant_id)`` so the caller can pin the
+    credential snapshot on the payment row (verification must use the same
+    credentials the payment was created with).
     """
     name = (provider_name or get_settings().PAYMENT_PROVIDER).lower().strip()
     if name in ("zarinpal", "card_transfer", "card_to_card", "c2c", "card"):
@@ -74,8 +80,22 @@ async def _resolve_gateway(db: AsyncSession, provider_name: str) -> Any:
             value = raw.get("merchant_id") if isinstance(raw, dict) else raw
             merchant_id = str(value or "").strip()
             if merchant_id:
-                return get_payment_provider("zarinpal", merchant_id=merchant_id)
-    return get_payment_provider(name)
+                return get_payment_provider("zarinpal", merchant_id=merchant_id), merchant_id
+    return get_payment_provider(name), None
+
+
+async def _resolve_gateway_for_payment(db: AsyncSession, payment: Payment) -> Any:
+    """Resolve the gateway using the credential snapshot taken at creation.
+
+    Payments created under an admin-configured Zarinpal merchant override
+    must be verified/refunded with that same merchant id, not whichever
+    merchant id happens to be configured at verification time. Payments
+    without a snapshot (legacy rows) keep the plain env configuration.
+    """
+    snapshot = (payment.extra_data or {}).get("zarinpal_merchant_id")
+    if snapshot:
+        return get_payment_provider("zarinpal", merchant_id=str(snapshot))
+    return get_payment_provider(payment.provider.value)
 
 
 def _build_callback_url(provider: str, payment_id: uuid.UUID) -> str:
@@ -220,7 +240,7 @@ async def create_payment(
 
     # ── Call gateway provider ─────────────────────────────────────────
     try:
-        gateway_provider = await _resolve_gateway(db, provider.lower())
+        gateway_provider, override_merchant_id = await _resolve_gateway(db, provider.lower())
     except ValueError as exc:
         raise ValidationError(detail=str(exc), error_code="INVALID_PROVIDER") from exc
 
@@ -248,7 +268,12 @@ async def create_payment(
     if gateway_result.success:
         payment.authority = gateway_result.authority
         payment.gateway_url = gateway_result.gateway_url
-        payment.extra_data = gateway_result.raw_response
+        # Pin the gateway credentials used at creation so verification
+        # cannot drift to a different merchant id after an admin switch.
+        payment.extra_data = {
+            **(gateway_result.raw_response or {}),
+            "zarinpal_merchant_id": override_merchant_id,
+        }
         if provider_enum == PaymentProviderEnum.CARD_TRANSFER:
             payment.status = PaymentStatus.PENDING
         else:
@@ -341,7 +366,7 @@ async def create_wallet_topup(
                 return PaymentResponse.model_validate(existing)
         raise
 
-    gateway_provider = get_payment_provider(provider.lower())
+    gateway_provider, override_merchant_id = await _resolve_gateway(db, provider.lower())
     callback_url = _build_callback_url(provider.lower(), payment.id)
     gateway_result = await gateway_provider.create_payment(
         amount=amount,
@@ -375,6 +400,7 @@ async def create_wallet_topup(
     payment.extra_data = {
         **(payment.extra_data or {}),
         **(gateway_result.raw_response or {}),
+        "zarinpal_merchant_id": override_merchant_id,
     }
     payment.status = PaymentStatus.PROCESSING
     await db.flush()
@@ -436,6 +462,24 @@ async def verify_payment(
         if extra.get("wallet_user_id") != str(user_id):
             raise NotFoundError(resource="Payment")
 
+    # The gateway token presented for verification must be the one recorded
+    # at payment creation (or the settled provider transaction id). A
+    # caller-supplied look-alike must never reach the gateway verify step.
+    if (
+        authority
+        and payment.authority
+        and authority != payment.authority
+        and authority != (payment.provider_transaction_id or "")
+    ):
+        await logger.awarning(
+            "payment_verify_authority_mismatch",
+            payment_id=str(payment_id),
+        )
+        raise ValidationError(
+            detail="Payment authority does not match the recorded gateway token",
+            error_code="PAYMENT_AUTHORITY_MISMATCH",
+        )
+
     # Ensure the payment is in a verifiable state
     if payment.status == PaymentStatus.COMPLETED:
         await logger.ainfo(
@@ -488,7 +532,7 @@ async def verify_payment(
         )
 
     # ── Verify with the provider ──────────────────────────────────────
-    gateway_provider = get_payment_provider(payment.provider.value)
+    gateway_provider = await _resolve_gateway_for_payment(db, payment)
     result = await gateway_provider.verify_payment(
         authority=authority or payment.authority or "",
         amount=payment.amount,
@@ -859,7 +903,7 @@ async def refund_payment(
         )
 
     # ── Attempt provider refund ───────────────────────────────────────
-    gateway_provider = get_payment_provider(payment.provider.value)
+    gateway_provider = await _resolve_gateway_for_payment(db, payment)
 
     # Resolve customer user ID from order if possible for wallet refund
     customer_user_id: uuid.UUID | None = None

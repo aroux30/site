@@ -211,6 +211,26 @@ class ZarinpalProvider(PaymentProvider):
 
         # code 100 = first successful verification, 101 = already verified
         if data_section and data_section.get("code") in (100, 101):
+            # Cross-check the settled amount reported by Zarinpal against the
+            # expected payment amount; a mismatch must never settle.
+            reported_amount = data_section.get("amount")
+            if reported_amount is not None and int(reported_amount) != int(amount):
+                await logger.aerror(
+                    "zarinpal_verify_amount_mismatch",
+                    authority=authority,
+                    expected=amount,
+                    reported=int(reported_amount),
+                )
+                return PaymentResult(
+                    success=False,
+                    authority=authority,
+                    error_code="AMOUNT_MISMATCH",
+                    error_message=(
+                        f"Zarinpal settled amount ({reported_amount}) does not "
+                        f"match the payment amount ({amount})"
+                    ),
+                    raw_response=data,
+                )
             ref_id = str(data_section.get("ref_id", ""))
             card_pan = data_section.get("card_pan")
             await logger.ainfo(

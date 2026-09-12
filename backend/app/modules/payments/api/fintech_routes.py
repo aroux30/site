@@ -1,4 +1,5 @@
-"""API routes for Fintech: Card2Card receipts, Direct Pay invoices, and Gateway config (Karta Phase 3/5)."""
+"""API routes for Fintech: Card2Card receipts, Direct Pay invoices, and Gateway config (Karta Phase
+3/5)."""
 
 from __future__ import annotations
 
@@ -65,7 +66,9 @@ async def get_order_receipts(
     user_id: uuid.UUID = Depends(get_current_user_id),
     db: AsyncSession = Depends(get_db),
 ) -> list[CardTransferReceiptResponse]:
-    receipts = await card_transfer_service.list_receipts_by_order(db, order_id=order_id)
+    receipts = await card_transfer_service.list_receipts_by_order(
+        db, order_id=order_id, user_id=user_id
+    )
     return [CardTransferReceiptResponse.model_validate(r) for r in receipts]
 
 

@@ -143,7 +143,7 @@ function LoginForm() {
     try {
       await login({
         phone: cleanPhone,
-        password,
+        password: toEnglishDigits(password),
       });
 
       toast({
@@ -193,22 +193,15 @@ function LoginForm() {
         const res = await requestOtp({ phone: cleanPhone });
         setOtpStep("code");
         setCountdown(OTP_COUNTDOWN_SECONDS);
-        if (res.code) {
-          const codeStr = String(res.code);
-          setOtpCode(codeStr);
-          toast({
-            title: "کد تایید ارسال شد",
-            description: `کد یکبار مصرف شما: ${toPersianDigits(codeStr)}`,
-            variant: "success",
-          });
-        } else {
-          setOtpCode("");
-          toast({
-            title: "کد تایید ارسال شد",
-            description: res.message || `کد یکبار مصرف به شماره ${toPersianDigits(cleanPhone)} ارسال شد.`,
-            variant: "success",
-          });
-        }
+        // The OTP must never be rendered client-side, even if a dev-mode
+        // backend echoes it — displaying it would let anyone log in as any
+        // phone number. Auto-filling dev codes is also disabled here.
+        setOtpCode("");
+        toast({
+          title: "کد تایید ارسال شد",
+          description: res.message || `کد یکبار مصرف به شماره ${toPersianDigits(cleanPhone)} ارسال شد.`,
+          variant: "success",
+        });
       } catch (err: unknown) {
         const errorMsg =
           (err as { response?: { data?: { error?: { message?: string } } }; message?: string })?.response?.data?.error?.message ||

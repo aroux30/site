@@ -204,6 +204,7 @@ export default function ProductDetailPage() {
 
     addToCart({
       productId: product.id,
+      variantId: currentVariant?.id,
       title: product.name,
       slug: product.slug,
       price: currentPrice,

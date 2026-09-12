@@ -437,18 +437,22 @@ async def test_journey_verify_and_webhook_race_confirm_once():
 
     async def _do_verify():
         async with async_session_factory() as db:
-            return await payment_service.verify_payment(
+            result = await payment_service.verify_payment(
                 db,
                 payment_id=pay_id,
                 authority=pay_authority,
                 status="OK",
             )
+            await db.commit()  # production get_db commits after the handler
+            return result
 
     async def _do_webhook():
         async with async_session_factory() as db:
-            return await payment_service.process_callback(
+            result = await payment_service.process_callback(
                 db, provider="mock", callback_data=_CallbackShim(pay_authority)
             )
+            await db.commit()
+            return result
 
     results = await asyncio.gather(_do_verify(), _do_webhook())
     assert all(r.status == PaymentStatus.COMPLETED for r in results)

@@ -468,12 +468,9 @@ async def refresh_token(
     # whose rotation already happened, or a replay. Defensive response:
     # revoke every active session of the user and raise a security event.
     if session.is_revoked:
-        revoke_stmt = (
-            select(UserSession)
-            .where(
-                UserSession.user_id == session.user_id,
-                UserSession.is_revoked.is_(False),
-            )
+        revoke_stmt = select(UserSession).where(
+            UserSession.user_id == session.user_id,
+            UserSession.is_revoked.is_(False),
         )
         active_sessions = (await db.execute(revoke_stmt)).scalars().all()
         for active in active_sessions:

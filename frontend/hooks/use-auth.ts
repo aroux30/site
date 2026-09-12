@@ -39,6 +39,10 @@ function getClientAccessToken(): string | null {
   return match && match[1] ? decodeURIComponent(match[1]) : null;
 }
 
+// Guards against rapid double clicks firing several /auth/logout requests
+// while the first one is still in flight.
+let isLoggingOut = false;
+
 function mapProfileToUser(data: UserProfileResponse): User {
   const fullName =
     [data.first_name, data.last_name].filter(Boolean).join(" ") || null;
@@ -196,29 +200,42 @@ export function useAuth() {
     [handleAuthSuccess],
   );
 
-  const logout = useCallback(async (): Promise<void> => {
-    try {
-      await apiClient.post<MessageResponse>("/auth/logout");
-    } catch {
-      // Silently fail - we clear local state regardless
-    } finally {
-      clearClientAccessTokenCookie();
-      sessionStore.clearSessionId();
-      store.logout();
-      // Clear user-scoped client state so the next session starts fresh
+  const logout = useCallback(
+    async (options?: { redirectTo?: string | null }): Promise<void> => {
+      if (isLoggingOut) return;
+      isLoggingOut = true;
       try {
-        const cart = useCartStore.getState();
-        if (cart.items.length) cart.clearCart();
+        await apiClient.post<MessageResponse>("/auth/logout");
       } catch {
-        /* cart store unavailable */
+        // Silently fail - we clear local state regardless
+      } finally {
+        clearClientAccessTokenCookie();
+        sessionStore.clearSessionId();
+        store.logout();
+        // Clear user-scoped client state so the next session starts fresh
+        try {
+          const cart = useCartStore.getState();
+          if (cart.items.length) cart.clearCart();
+        } catch {
+          /* cart store unavailable */
+        }
+        try {
+          useCompareStore.getState().clearCompare();
+        } catch {
+          /* compare store unavailable */
+        }
+        isLoggingOut = false;
+        // Redirect away so the user never stays on an authenticated page as a
+        // logged-out shell. Callers pass redirectTo: null to navigate
+        // themselves (admin nav and idle timeout need /login?reason=...).
+        const redirectTo = options?.redirectTo;
+        if (redirectTo !== null && typeof window !== "undefined") {
+          window.location.replace(redirectTo ?? "/");
+        }
       }
-      try {
-        useCompareStore.getState().clearCompare();
-      } catch {
-        /* compare store unavailable */
-      }
-    }
-  }, [store]);
+    },
+    [store],
+  );
 
   const updateProfile = useCallback(
     async (updates: UpdateProfileRequest): Promise<User> => {

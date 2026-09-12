@@ -488,7 +488,7 @@ export function Header() {
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem
-                      onClick={() => logout()}
+                      onClick={() => void logout()}
                       className="text-red-500 hover:text-red-600 cursor-pointer flex items-center justify-between"
                     >
                       <span>خروج از حساب کاربری</span>
@@ -726,7 +726,7 @@ export function Header() {
                   variant="ghost"
                   size="icon"
                   onClick={() => {
-                    logout();
+                    void logout();
                     setMobileMenuOpen(false);
                   }}
                   title="خروج"

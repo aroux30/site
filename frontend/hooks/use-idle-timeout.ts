@@ -18,7 +18,9 @@ export function useIdleTimeout(timeoutMs: number = 30 * 60 * 1000) {
   const handleLogout = useCallback(async () => {
     if (!isAuthenticated) return;
     try {
-      await logout();
+      // redirectTo: null keeps navigation here so the login page can explain
+      // the idle timeout via query params.
+      await logout({ redirectTo: null });
       router.replace("/login?reason=idle_timeout&redirect=/admin/dashboard");
     } catch {
       router.replace("/login?reason=idle_timeout&redirect=/admin/dashboard");

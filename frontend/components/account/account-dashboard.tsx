@@ -932,8 +932,9 @@ export function AccountDashboard({
               <button
                 type="button"
                 onClick={() => {
+                  // logout() clears the session and hard-navigates home; a
+                  // toast would never be seen on a page that unloads.
                   void logout();
-                  toast({ title: "از حساب خارج شدید", variant: "default" });
                 }}
                 className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-destructive transition-colors hover:bg-destructive/10"
               >

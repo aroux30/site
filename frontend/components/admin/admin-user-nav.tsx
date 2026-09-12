@@ -13,7 +13,9 @@ export function AdminUserNav() {
 
   const handleLogout = async () => {
     try {
-      await logout();
+      // redirectTo: null keeps navigation here — the admin logout must land on
+      // /login, not the default post-logout home redirect.
+      await logout({ redirectTo: null });
       router.replace("/login");
     } catch {
       router.replace("/login");

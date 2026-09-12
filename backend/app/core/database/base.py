@@ -7,7 +7,7 @@ All ORM models inherit from ``BaseModel`` which provides ``id``,
 from __future__ import annotations
 
 import uuid
-from datetime import datetime
+from datetime import UTC, datetime
 
 from sqlalchemy import DateTime, MetaData, func
 from sqlalchemy.dialects.postgresql import UUID
@@ -41,7 +41,11 @@ class TimestampMixin:
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),
-        onupdate=func.now(),
+        # Python-side onupdate: a server-side func.now() onupdate expires the
+        # attribute after every flush, and any subsequent synchronous read
+        # (pydantic validation, response building) raises MissingGreenlet on
+        # the asyncpg driver. A client-side value keeps the attribute loaded.
+        onupdate=lambda: datetime.now(UTC),
         nullable=False,
         sort_order=901,
     )

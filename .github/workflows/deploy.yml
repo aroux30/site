@@ -80,18 +80,28 @@ jobs:
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
           ssh-keyscan -H ${{ steps.vars.outputs.server_host }} >> ~/.ssh/known_hosts
+          # Keep the control connection alive during long docker builds/up:
+          # a NAT/firewall idle timeout was killing the SSH session mid-deploy
+          # (client_loop: send disconnect: Broken pipe).
+          cat >> ~/.ssh/config <<SSHCFG
+          Host deploy-target
+              HostName ${{ steps.vars.outputs.server_host }}
+              User ${{ steps.vars.outputs.server_user }}
+              IdentityFile ~/.ssh/deploy_key
+              ServerAliveInterval 30
+              ServerAliveCountMax 20
+              StrictHostKeyChecking accept-new
+          SSHCFG
 
       - name: Pre-deploy backup
         if: ${{ github.event.inputs.skip_backup != 'true' }}
         run: |
-          ssh -i ~/.ssh/deploy_key \
-            ${{ steps.vars.outputs.server_user }}@${{ steps.vars.outputs.server_host }} \
+          ssh deploy-target \
             "cd ${{ steps.vars.outputs.deploy_path }} && bash scripts/backup.sh"
 
       - name: Record current release and pull latest code
         run: |
-          ssh -i ~/.ssh/deploy_key \
-            ${{ steps.vars.outputs.server_user }}@${{ steps.vars.outputs.server_host }} \
+          ssh deploy-target \
             "cd ${{ steps.vars.outputs.deploy_path }} && \
              git rev-parse HEAD > .prev_deploy_sha && \
              echo 'Recorded previous release SHA:' \$(cat .prev_deploy_sha) && \
@@ -107,22 +117,19 @@ jobs:
           fi
           # Derive the public domain from the health URL secret (no hardcode)
           DOMAIN_NAME="$(echo "$HEALTH_URL" | sed -E 's#https?://([^/]+).*#\1#')"
-          ssh -i ~/.ssh/deploy_key \
-            ${{ steps.vars.outputs.server_user }}@${{ steps.vars.outputs.server_host }} \
+          ssh deploy-target \
             "cd ${{ steps.vars.outputs.deploy_path }} && \
              DOMAIN_NAME='$DOMAIN_NAME' bash scripts/preflight_server.sh"
           echo "Pre-flight passed: DOMAIN present, money-integrity data clean."
 
       - name: Deploy services via canonical deploy script
         run: |
-          ssh -i ~/.ssh/deploy_key \
-            ${{ steps.vars.outputs.server_user }}@${{ steps.vars.outputs.server_host }} \
+          ssh deploy-target \
             "cd ${{ steps.vars.outputs.deploy_path }} && bash scripts/deploy.sh ${{ github.event.inputs.environment }}"
 
       - name: Verify canonical Alembic schema migration
         run: |
-          ssh -i ~/.ssh/deploy_key \
-            ${{ steps.vars.outputs.server_user }}@${{ steps.vars.outputs.server_host }} \
+          ssh deploy-target \
             "cd ${{ steps.vars.outputs.deploy_path }} && docker compose exec -T backend alembic check"
 
       - name: Health check
@@ -152,8 +159,7 @@ jobs:
         if: failure()
         run: |
           echo "Deployment failed - initiating release-aware rollback"
-          ssh -i ~/.ssh/deploy_key \
-            ${{ steps.vars.outputs.server_user }}@${{ steps.vars.outputs.server_host }} \
+          ssh deploy-target \
             "cd ${{ steps.vars.outputs.deploy_path }} && \
              if [ -f .prev_deploy_sha ]; then \
                PREV_SHA=\$(cat .prev_deploy_sha); \
@@ -170,8 +176,7 @@ jobs:
       - name: Cleanup deploy state on success
         if: success()
         run: |
-          ssh -i ~/.ssh/deploy_key \
-            ${{ steps.vars.outputs.server_user }}@${{ steps.vars.outputs.server_host }} \
+          ssh deploy-target \
             "cd ${{ steps.vars.outputs.deploy_path }} && rm -f .prev_deploy_sha"
 
       - name: Cleanup SSH key

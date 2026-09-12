@@ -30,7 +30,7 @@ ENV NEXT_TELEMETRY_DISABLED=1
 RUN npm run build
 
 # ---- Production ----
-FROM base AS runner
+FROM base AS production
 WORKDIR /app
 
 ENV NODE_ENV=production

@@ -36,7 +36,7 @@ RUN pip install --upgrade pip setuptools wheel && \
     pip install ".[dev]"
 
 # ── Stage 2: Runtime ─────────────────────────────────────────────────────
-FROM python:3.12-slim AS runtime
+FROM python:3.12-slim AS production
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \

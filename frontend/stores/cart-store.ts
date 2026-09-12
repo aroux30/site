@@ -98,7 +98,9 @@ function mapBackendItemToCartItem(bItem: BackendCartItem): CartItem {
     variantId: bItem.variant_id,
     productId: bItem.variant_id,
     title: bItem.product_name || "محصول انتخابی",
-    slug: bItem.sku || bItem.variant_id,
+    // No reliable product slug comes from the backend cart payload — putting
+    // the SKU here produced /products/<sku> 404 links from the cart.
+    slug: undefined,
     price: priceToman,
     originalPrice: originalPriceToman,
     quantity: bItem.quantity,
@@ -432,14 +434,15 @@ export const useCartStore = create<CartStore>()(
         const subtotalRials = subtotal * 10;
 
         try {
-          // Backend endpoint: POST /coupons/apply?cart_total=...
+          // Backend endpoint: POST /discounts/coupons/apply?cart_total=...
+          // (the coupons routes live on the discounts router)
           const response = await apiClient.post<{
             coupon_id: string;
             code: string;
             discount_amount: number; // in Rials
             discount_type: string;
             description: string;
-          }>(`/coupons/apply?cart_total=${subtotalRials}`, {
+          }>(`/discounts/coupons/apply?cart_total=${subtotalRials}`, {
             code: trimmed,
           });
 
@@ -477,7 +480,7 @@ export const useCartStore = create<CartStore>()(
         const { couponCode, items } = get();
         if (couponCode) {
           try {
-            await apiClient.post("/coupons/remove", { code: couponCode });
+            await apiClient.post("/discounts/coupons/remove", { code: couponCode });
           } catch {
             // ignore
           }

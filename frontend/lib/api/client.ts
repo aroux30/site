@@ -5,25 +5,13 @@ import axios, {
 } from "axios";
 import { useAuthStore } from "@/stores/auth-store";
 
-const getApiBaseUrl = (): string => {
-  if (typeof window !== "undefined") {
-    // In browser: always use relative "/api/v1" unless explicitly pointed to a non-localhost absolute URL
-    const envUrl = process.env.NEXT_PUBLIC_API_URL;
-    if (envUrl && !envUrl.includes("localhost:8000")) {
-      return envUrl;
-    }
-    return "/api/v1";
-  }
-  // Server-side (Node.js runtime / SSR):
-  return (
-    process.env.INTERNAL_API_URL ||
-    (process.env.NEXT_PUBLIC_API_URL && !process.env.NEXT_PUBLIC_API_URL.startsWith("/")
-      ? process.env.NEXT_PUBLIC_API_URL
-      : "http://ecommerce-backend:8000/api/v1")
-  );
-};
-
-const API_BASE_URL = getApiBaseUrl();
+// Browser must always call same-origin /api/v1 (the reverse proxy routes /api
+// to the backend container). SSR calls the backend container directly, since a
+// relative base URL is invalid outside the browser.
+const API_BASE_URL: string =
+  typeof window === "undefined"
+    ? process.env.INTERNAL_API_URL || "http://backend:8000/api/v1"
+    : "/api/v1";
 
 interface SessionStore {
   getSessionId: () => string | null;
@@ -115,8 +103,19 @@ apiClient.interceptors.response.use(
       originalRequest?.url?.includes("/auth/refresh") ||
       originalRequest?.url?.includes("/auth/otp");
 
+    // Only the session check (/auth/me) drives the refresh+logout cascade.
+    // Endpoint 401s (e.g. cart/admin APIs racing right after login) must
+    // reject to their callers — a global logout here used to kill fresh
+    // admin sessions mid-navigation (admin panel bounce bug).
+    const isSessionCheck = originalRequest?.url?.includes("/auth/me");
+
     // If 401 and not already retrying, attempt token refresh
-    if (error.response?.status === 401 && !originalRequest?._retry && !isAuthEndpoint) {
+    if (
+      error.response?.status === 401 &&
+      !originalRequest?._retry &&
+      !isAuthEndpoint &&
+      isSessionCheck
+    ) {
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
@@ -159,18 +158,17 @@ apiClient.interceptors.response.use(
             // In case store is inaccessible
           }
 
-          // Only redirect to /login if the current route is a protected user route
+          // Only hard-redirect for account/checkout pages (they have no
+          // reactive auth guard). /admin is handled reactively by
+          // AdminAuthGuard, and /auth/me failures by the login page effect.
           const currentPathname = window.location.pathname;
           const isProtectedRoute =
             currentPathname.startsWith("/account") ||
-            currentPathname.startsWith("/checkout") ||
-            currentPathname.startsWith("/admin");
+            currentPathname.startsWith("/checkout");
 
           const isAuthPage =
             currentPathname.startsWith("/login") ||
             currentPathname.startsWith("/register");
-
-          const isSessionCheck = originalRequest?.url?.includes("/auth/me");
 
           if (isProtectedRoute && !isAuthPage && !isSessionCheck) {
             const currentPath = currentPathname + window.location.search;

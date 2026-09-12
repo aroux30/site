@@ -11,6 +11,7 @@ import {
   Lock,
   Loader2,
   Package,
+  AlertCircle,
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -47,6 +48,7 @@ export function RewardsCatalog({
   const [rewards, setRewards] = useState<ApiReward[]>([]);
   const [loading, setLoading] = useState(true);
   const [claimingId, setClaimingId] = useState<string | null>(null);
+  const [claimError, setClaimError] = useState<string | null>(null);
   const [activeCategory, setActiveCategory] = useState<string>("all");
 
   // Claim modal state
@@ -124,7 +126,9 @@ export function RewardsCatalog({
       setClaimedReward({ reward, code });
       triggerCelebrationCannons();
     } catch {
-      // Error handled
+      // Backend claim failed — do NOT deduct points or fake a coupon.
+      setClaimError("دریافت جایزه ممکن نشد. لطفاً دوباره تلاش کنید.");
+      setTimeout(() => setClaimError(null), 5000);
     } finally {
       setClaimingId(null);
     }
@@ -146,6 +150,15 @@ export function RewardsCatalog({
 
   return (
     <div className="space-y-6">
+      {claimError && (
+        <div
+          role="alert"
+          className="flex items-center gap-2 rounded-xl border border-destructive/25 bg-destructive/10 p-3 text-sm text-destructive"
+        >
+          <AlertCircle className="h-4 w-4 shrink-0" />
+          {claimError}
+        </div>
+      )}
       {/* Section Header & Filter Tabs */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-border pb-4">
         <div>

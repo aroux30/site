@@ -3,6 +3,7 @@
 import { useCallback, useEffect } from "react";
 import { useAuthStore } from "@/stores/auth-store";
 import { useCartStore } from "@/stores/cart-store";
+import { useCompareStore } from "@/stores/compare-store";
 import apiClient, { sessionStore } from "@/lib/api/client";
 import type {
   User,
@@ -69,8 +70,13 @@ export function useAuth() {
       const user = mapProfileToUser(data);
       store.setUser(user);
       return user;
-    } catch {
-      store.logout();
+    } catch (err) {
+      // Only a 401 means the session is really gone; other failures
+      // (network, 5xx, rate limit) must not destroy the session.
+      const status =
+        (err as { status?: number; response?: { status?: number } })?.status ??
+        (err as { response?: { status?: number } })?.response?.status;
+      if (!status || status === 401) store.logout();
       throw new Error("Failed to fetch current user");
     } finally {
       store.setLoading(false);
@@ -83,10 +89,13 @@ export function useAuth() {
   useEffect(() => {
     const token = getClientAccessToken();
     if (!token && store.isAuthenticated) {
-      // Cookie is missing or expired, clean up stale local storage
+      // JS cookie expired (server cookie may outlive it): probe the server
+      // instead of destroying the session blindly. A 401 logs out; a 200
+      // restores the session.
       clearClientAccessTokenCookie();
-      store.logout();
-      store.setLoading(false);
+      fetchCurrentUser().catch(() => {
+        store.setLoading(false);
+      });
       return;
     }
 
@@ -196,6 +205,18 @@ export function useAuth() {
       clearClientAccessTokenCookie();
       sessionStore.clearSessionId();
       store.logout();
+      // Clear user-scoped client state so the next session starts fresh
+      try {
+        const cart = useCartStore.getState();
+        if (cart.items.length) cart.clearCart();
+      } catch {
+        /* cart store unavailable */
+      }
+      try {
+        useCompareStore.getState().clearCompare();
+      } catch {
+        /* compare store unavailable */
+      }
     }
   }, [store]);
 

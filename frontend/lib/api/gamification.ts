@@ -129,12 +129,13 @@ export async function fetchGamificationSummary(): Promise<ApiUserPointsSummary> 
     const { data } = await apiClient.get<ApiUserPointsSummary>("/gamification/summary");
     return data;
   } catch (error) {
-    // If backend endpoint is unavailable or returns 401, return clean fallback
+    // Backend unavailable/401 → honest zero balance (never invent points).
+    // The catalog still comes from FALLBACK_REWARDS so the page renders.
     return {
-      total_points_earned: 85,
+      total_points_earned: 0,
       points_spent: 0,
-      points_available: 85,
-      rank: "silver",
+      points_available: 0,
+      rank: "bronze",
       available_rewards: FALLBACK_REWARDS,
     };
   }
@@ -168,22 +169,10 @@ export async function claimGamificationReward(
       payload || {},
     );
     return data;
-  } catch (error: any) {
-    // Fallback response for local state simulation if backend endpoint returns 404 or fails
-    const matched = FALLBACK_REWARDS.find((r) => r.id === rewardId);
-    const rewardName = matched?.name || "جایزه انتخابی";
-    const spent = matched?.points_required || 50;
-    const randomCode = `GIFT-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
-
-    return {
-      reward_id: rewardId,
-      reward_name: rewardName,
-      points_spent: spent,
-      remaining_points: 0, // will be reconciled by caller
-      claimed_at: new Date().toISOString(),
-      message: "جایزه با موفقیت دریافت شد",
-      coupon_code: randomCode,
-    };
+  } catch (error) {
+    // Never fabricate a success here: the caller deducts points and shows a
+    // coupon code to the user. A backend failure must surface as a real error.
+    throw error;
   }
 }
 

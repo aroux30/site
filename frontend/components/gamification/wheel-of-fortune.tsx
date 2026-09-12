@@ -306,6 +306,10 @@ export function WheelOfFortune({
 
     const finalRotation = rotation + fullTurnsDeg + additionalDeg + jitter;
 
+    // The CSS transition is permanently attached to the element (see style
+    // below) and rotation only ever accumulates, so a plain state update
+    // animates the sweep. Toggling transition in the same commit as the
+    // transform made browsers skip the animation entirely.
     setRotation(finalRotation);
 
     // Ticker sound timer
@@ -349,7 +353,9 @@ export function WheelOfFortune({
       // Handle win rewards
       if (chosen.type === "points") {
         const added = chosen.value;
-        const newBalance = userPoints + added;
+        // Account for the spin cost deducted at click time for paid spins
+        // (userPoints here is the stale render-closure value, pre-deduction).
+        const newBalance = userPoints - (isFree ? 0 : SPIN_COST) + added;
         onPointsUpdate(newBalance, added, `برنده ${added} امتیاز در گردونه شانس`);
 
         // Update auth store user if authenticated
@@ -466,14 +472,9 @@ export function WheelOfFortune({
 
           {/* SVG Rotating Wheel */}
           <div
-            className="relative h-[290px] w-[290px] sm:h-[380px] sm:w-[380px] rounded-full overflow-hidden shadow-inner cursor-pointer"
+            className="wheel-rotor relative h-[290px] w-[290px] sm:h-[380px] sm:w-[380px] rounded-full overflow-hidden shadow-inner cursor-pointer"
             onClick={handleSpin}
-            style={{
-              transform: `rotate(${rotation}deg)`,
-              transition: isSpinning
-                ? "transform 5.2s cubic-bezier(0.12, 0.9, 0.15, 1)"
-                : "none",
-            }}
+            style={{ transform: `rotate(${rotation}deg)` }}
           >
             <svg
               viewBox="0 0 400 400"

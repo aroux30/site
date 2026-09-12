@@ -53,9 +53,10 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { useToast } from "@/components/ui/use-toast";
-import { formatPrice, toPersianDigits } from "@/lib/utils";
+import { formatPrice, toPersianDigits, toEnglishDigits } from "@/lib/utils";
 import { useAuthStore } from "@/stores/auth-store";
 import { useCartStore } from "@/stores/cart-store";
+import { useAuth } from "@/hooks/use-auth";
 import apiClient from "@/lib/api/client";
 
 /* ------------------------------------------------------------------ */
@@ -183,19 +184,23 @@ export function AccountDashboard({
   initialTab?: "profile" | "orders" | "addresses" | "wallet" | "wishlist" | "support";
 }) {
   const { toast } = useToast();
-  const { user, updateProfile, logout } = useAuthStore();
+  const { user, updateProfile } = useAuthStore();
+  // useAuth().logout performs the full server logout + cookie/session cleanup
+  // (the raw zustand logout leaves a zombie session behind).
+  const { logout } = useAuth();
   const { addItem: addToCart } = useCartStore();
 
   const [activeTab, setActiveTab] = useState<
     "profile" | "orders" | "addresses" | "wallet" | "wishlist" | "support"
   >(initialTab);
 
-  // Profile Form State
+  // Profile Form State — start from the real session user; never seed demo
+  // values, they would stick for users whose profile fields are still empty.
   const [profileForm, setProfileForm] = useState({
-    firstName: user?.firstName || "علی",
-    lastName: user?.lastName || "محمدی",
-    email: user?.email || "ali.mohammadi@example.com",
-    phone: user?.phone || "09123456789",
+    firstName: user?.firstName ?? "",
+    lastName: user?.lastName ?? "",
+    email: user?.email ?? "",
+    phone: user?.phone ?? "",
   });
   const [isSavingProfile, setIsSavingProfile] = useState(false);
 
@@ -228,8 +233,8 @@ export function AccountDashboard({
     isDefault: false,
   });
 
-  // Wallet State
-  const [walletBalance, setWalletBalance] = useState<number>(5_800_000);
+  // Wallet State — 0 until the API responds; a fabricated balance misleads
+  const [walletBalance, setWalletBalance] = useState<number>(0);
   const [transactions, setTransactions] = useState<WalletTransaction[]>([]);
   const [isLoadingWallet, setIsLoadingWallet] = useState(false);
   const [isDepositModalOpen, setIsDepositModalOpen] = useState(false);
@@ -259,10 +264,10 @@ export function AccountDashboard({
     if (user) {
       setProfileForm((prev) => ({
         ...prev,
-        firstName: user.firstName || prev.firstName,
-        lastName: user.lastName || prev.lastName,
-        email: user.email || prev.email,
-        phone: user.phone || prev.phone,
+        firstName: user.firstName ?? "",
+        lastName: user.lastName ?? "",
+        email: user.email ?? "",
+        phone: user.phone ?? "",
       }));
     }
   }, [user]);
@@ -293,7 +298,8 @@ export function AccountDashboard({
               image: (it.product_image || it.image) as string | undefined,
             })),
           }));
-          if (mapped.length > 0) setOrders(mapped);
+          // Set unconditionally: an empty real list must clear any stale rows
+          setOrders(mapped);
         }
       } catch (err) {
         // Keep fallback data silently
@@ -311,8 +317,8 @@ export function AccountDashboard({
           const mapped: AddressItem[] = res.data.map((a: Record<string, unknown>) => ({
             id: String(a.id),
             title: (a.title || "آدرس") as string,
-            receiverName: (a.receiver_name || a.first_name ? `${a.first_name || ""} ${a.last_name || ""}`.trim() : "کاربر") as string,
-            phone: (a.phone || a.postal_code || "") as string,
+            receiverName: (a.receiver_name || `${a.first_name || ""} ${a.last_name || ""}`.trim() || "کاربر") as string,
+            phone: (a.phone || "") as string,
             province: (a.province || "تهران") as string,
             city: (a.city || "تهران") as string,
             postalCode: (a.postal_code || "") as string,
@@ -349,7 +355,7 @@ export function AccountDashboard({
             trackingCode: (t.reference_id || `TRX-${(t.id as string)?.slice?.(0, 7) || "00"}`) as string,
             status: (t.status === "failed" ? "failed" : t.status === "pending" ? "pending" : "success") as WalletTransaction["status"],
           }));
-          if (mappedTx.length > 0) setTransactions(mappedTx);
+          setTransactions(mappedTx);
         }
       } catch (err) {
         // Keep fallback
@@ -422,8 +428,9 @@ export function AccountDashboard({
   /* ---------------------------------------------------------------- */
 
   const handlePrintInvoice = (orderId: string) => {
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
-    const url = `${baseUrl}/orders/${orderId}/invoice`;
+    // Same-origin path: nginx/next proxy forwards /api/v1 with the session
+    // cookies. An absolute localhost URL breaks for every remote user.
+    const url = `/api/v1/orders/${orderId}/invoice`;
     window.open(url, "_blank");
   };
 
@@ -435,12 +442,13 @@ export function AccountDashboard({
     e.preventDefault();
     setIsSavingProfile(true);
     try {
-      await apiClient.patch("/users/me", {
+      // The profile endpoint is PATCH /auth/me (the /users/me prefix 404s).
+      await apiClient.patch("/auth/me", {
         first_name: profileForm.firstName,
         last_name: profileForm.lastName,
         email: profileForm.email,
         phone: profileForm.phone,
-      }).catch(() => null);
+      });
 
       updateProfile({
         firstName: profileForm.firstName,
@@ -576,15 +584,18 @@ export function AccountDashboard({
 
     try {
       if (editingAddress) {
-        // Update
+        // Update — receiver_name/phone must be sent, otherwise edits silently
+        // revert on reload.
         await apiClient.patch(`/users/me/addresses/${editingAddress.id}`, {
           title: addressForm.title,
+          receiver_name: addressForm.receiverName,
+          phone: addressForm.phone,
           province: addressForm.province,
           city: addressForm.city,
           postal_code: addressForm.postalCode,
           full_address: addressForm.fullAddress,
           is_default: addressForm.isDefault,
-        }).catch(() => null);
+        });
 
         setAddresses((prev) =>
           prev.map((a) => {
@@ -606,16 +617,20 @@ export function AccountDashboard({
         );
         toast({ title: "آدرس ویرایش شد", variant: "success" });
       } else {
-        // Create
-        const newId = `addr-${Date.now()}`;
-        await apiClient.post("/users/me/addresses", {
+        // Create — use the server-returned ID so subsequent edit/delete
+        // operations target a real record.
+        const created = await apiClient.post<{ id?: string }>("/users/me/addresses", {
           title: addressForm.title,
+          receiver_name: addressForm.receiverName,
+          phone: addressForm.phone,
           province: addressForm.province,
           city: addressForm.city,
           postal_code: addressForm.postalCode,
           full_address: addressForm.fullAddress,
           is_default: addressForm.isDefault,
-        }).catch(() => null);
+        });
+
+        const newId = created.data?.id || `addr-${Date.now()}`;
 
         const newAddrItem: AddressItem = {
           id: newId,
@@ -917,7 +932,7 @@ export function AccountDashboard({
               <button
                 type="button"
                 onClick={() => {
-                  logout();
+                  void logout();
                   toast({ title: "از حساب خارج شدید", variant: "default" });
                 }}
                 className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-destructive transition-colors hover:bg-destructive/10"
@@ -1962,7 +1977,9 @@ export function AccountDashboard({
                 id="depositAmount"
                 value={depositAmount ? Number(depositAmount).toLocaleString("fa-IR") : ""}
                 onChange={(e) => {
-                  const raw = e.target.value.replace(/\D/g, "");
+                  // Normalize Persian/Arabic digits before stripping, otherwise
+                  // the formatted value wipes itself on every keystroke.
+                  const raw = toEnglishDigits(e.target.value).replace(/\D/g, "");
                   setDepositAmount(raw);
                 }}
                 placeholder="مثلاً: ۵۰۰,۰۰۰"

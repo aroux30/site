@@ -148,6 +148,7 @@ export default function CheckoutPage() {
     applyCoupon,
     removeCoupon,
     fetchCart,
+    isLoading: cartIsLoading,
   } = useCart();
 
   const { isAuthenticated, user, isLoading: authLoading } = useAuthStore();
@@ -432,14 +433,8 @@ export default function CheckoutPage() {
         icon: "wallet",
         description: "پرداخت از موجودی کیف پول حساب کاربری",
       },
-      {
-        provider: "mock",
-        name: "Mock Gateway",
-        name_fa: "درگاه آزمایشی (شبیه‌ساز پرداخت)",
-        is_enabled: true,
-        icon: "mock",
-        description: "تست فرایند پرداخت بدون اتصال به حساب بانکی",
-      },
+      // NOTE: no mock gateway in the fallback list — a simulator must never
+      // be selectable on real checkout when the methods API fails.
     ];
     setPaymentMethods(methods);
     setSelectedPaymentMethod("zarinpal");
@@ -592,7 +587,10 @@ export default function CheckoutPage() {
       const orderData = response.data;
       setCompletedOrder(orderData);
 
-      // Clear the cart on successful checkout
+      // Show the confirmation step BEFORE emptying the cart, otherwise the
+      // empty-cart guard flashes "سبد خرید شما خالی است" over the success UI
+      // and a payment failure would strand the user with no way to retry.
+      setCurrentStep("confirmation");
       await clearCart();
 
       // Check if redirect payment URL was returned directly
@@ -653,8 +651,16 @@ export default function CheckoutPage() {
     }
   };
 
-  // Empty Cart State
-  if (!authLoading && items.length === 0 && currentStep !== "confirmation") {
+  // Empty Cart State — also waits for the cart to hydrate and stays hidden
+  // once an order exists (post-payment confirmation must never be replaced
+  // by the empty-cart screen).
+  if (
+    !authLoading &&
+    !cartIsLoading &&
+    !completedOrder &&
+    items.length === 0 &&
+    currentStep !== "confirmation"
+  ) {
     return (
       <div className="container-page py-16">
         <Card className="mx-auto max-w-lg p-8 text-center border-border shadow-sm">

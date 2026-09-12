@@ -55,12 +55,13 @@ export default function RewardsPage() {
     } else {
       // Fetch from API or clean default
       fetchGamificationSummary().then((summary) => {
-        const p = summary.points_available ?? summary.total_points_earned ?? 120;
+        const p = summary.points_available ?? summary.total_points_earned ?? 0;
         setPoints(p);
       });
     }
 
-    // Load saved claim records
+    // Load saved claim records — no fabricated defaults; an empty history is
+    // rendered as an honest empty state.
     const savedClaims = localStorage.getItem("gamification_user_claims");
     if (savedClaims) {
       try {
@@ -68,19 +69,6 @@ export default function RewardsPage() {
       } catch {
         // Ignored
       }
-    } else {
-      // Default initial welcome coupon
-      const defaultClaim: ApiClaimRecord = {
-        id: "claim-welcome-10",
-        reward_id: "rew-discount-10",
-        reward_name: "کد تخفیف ۱۰٪ (هدیه عضویت باشگاه)",
-        reward_type: "discount",
-        points_spent: 0,
-        claimed_at: new Date(Date.now() - 86400000 * 2).toISOString(),
-        code: "WELCOME-CLUB",
-        status: "active",
-      };
-      setClaimedRecords([defaultClaim]);
     }
 
     // Load activity
@@ -91,23 +79,6 @@ export default function RewardsPage() {
       } catch {
         // Ignored
       }
-    } else {
-      setActivityList([
-        {
-          id: "act-1",
-          title: "پاداش عضویت در باشگاه مشتریان",
-          date: new Date(Date.now() - 86400000 * 3).toISOString(),
-          pointsChange: 50,
-          type: "bonus",
-        },
-        {
-          id: "act-2",
-          title: "پاداش اولین خرید از فروشگاه",
-          date: new Date(Date.now() - 86400000 * 2).toISOString(),
-          pointsChange: 70,
-          type: "bonus",
-        },
-      ]);
     }
   }, [user]);
 

@@ -515,7 +515,10 @@ export default function ComparePage() {
                       <ArrowLeftRight className="h-4 w-4" />
                       <span>افزودن به مقایسه</span>
                     </Button>
-                    <Link href={`/products/${product.slug}`} className="w-full">
+                    <Link
+                      href={`/products?search=${encodeURIComponent(product.title)}`}
+                      className="w-full"
+                    >
                       <Button
                         variant="ghost"
                         size="sm"
@@ -973,7 +976,10 @@ export default function ComparePage() {
                           </>
                         )}
                       </Button>
-                      <Link href={`/products/${product.slug}`} className="w-full">
+                      <Link
+                      href={`/products?search=${encodeURIComponent(product.title)}`}
+                      className="w-full"
+                    >
                         <Button
                           variant="ghost"
                           size="sm"

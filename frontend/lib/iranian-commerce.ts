@@ -133,46 +133,66 @@ export interface DeliverySlot {
 }
 
 /**
- * Generate real-world delivery slots for the upcoming 3 days
+ * Generate real-world delivery slots for the upcoming 3 days.
+ * Day names and dates are computed from the current date (Jalali calendar)
+ * so the slots are accurate on every day of the year.
  */
 export function getAvailableDeliverySlots(): DeliverySlot[] {
+  const dayFormatter = new Intl.DateTimeFormat("fa-IR", { weekday: "long" });
+  const dateFormatter = new Intl.DateTimeFormat("fa-IR", {
+    day: "numeric",
+    month: "long",
+  });
+
+  const dayLabel = (offsetDays: number): { dayName: string; dateStr: string } => {
+    const d = new Date();
+    d.setDate(d.getDate() + offsetDays);
+    const weekday = dayFormatter.format(d);
+    const prefix = offsetDays === 1 ? `فردا (${weekday})` : offsetDays === 2 ? `پس‌فردا (${weekday})` : weekday;
+    return { dayName: prefix, dateStr: dateFormatter.format(d) };
+  };
+
+  const tomorrow = dayLabel(1);
+  const dayAfter = dayLabel(2);
+  const inThree = dayLabel(3);
+
   return [
     {
       id: "slot-1",
-      dayName: "فردا (پنج‌شنبه)",
-      dateStr: "۲۲ شهریور",
+      dayName: tomorrow.dayName,
+      dateStr: tomorrow.dateStr,
       timeRange: "۰۹:۰۰ الی ۱۳:۰۰",
       cost: 0,
       isExpress: false,
     },
     {
       id: "slot-2",
-      dayName: "فردا (پنج‌شنبه)",
-      dateStr: "۲۲ شهریور",
+      dayName: tomorrow.dayName,
+      dateStr: tomorrow.dateStr,
       timeRange: "۱۴:۰۰ الی ۱۸:۰۰",
       cost: 0,
       isExpress: false,
     },
     {
       id: "slot-3",
-      dayName: "فردا (پنج‌شنبه)",
-      dateStr: "۲۲ شهریور",
+      dayName: tomorrow.dayName,
+      dateStr: tomorrow.dateStr,
       timeRange: "۱۹:۰۰ الی ۲۲:۰۰ (تحویل شبانه)",
       cost: 25000,
       isExpress: true,
     },
     {
       id: "slot-4",
-      dayName: "پس‌فردا (جمعه)",
-      dateStr: "۲۳ شهریور",
+      dayName: dayAfter.dayName,
+      dateStr: dayAfter.dateStr,
       timeRange: "۱۰:۰۰ الی ۱۵:۰۰",
       cost: 0,
       isExpress: false,
     },
     {
       id: "slot-5",
-      dayName: "شنبه",
-      dateStr: "۲۴ شهریور",
+      dayName: inThree.dayName,
+      dateStr: inThree.dateStr,
       timeRange: "۰۹:۰۰ الی ۱۳:۰۰",
       cost: 0,
       isExpress: false,

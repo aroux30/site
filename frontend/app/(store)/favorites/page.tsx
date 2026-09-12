@@ -13,7 +13,12 @@ import { useAuth } from "@/hooks/use-auth";
 
 export default function FavoritesPage() {
   const { isAuthenticated, isLoading: isAuthLoading } = useAuth();
-  const { data: wishlistData, isLoading: isWishlistLoading } = useWishlist();
+  const {
+    data: wishlistData,
+    isLoading: isWishlistLoading,
+    isError: isWishlistError,
+    refetch: refetchWishlist,
+  } = useWishlist();
   const toggleWishlist = useToggleWishlist();
   const addToCart = useAddToCart();
 
@@ -55,6 +60,23 @@ export default function FavoritesPage() {
               ورود به حساب کاربری
             </Button>
           </Link>
+        </div>
+      ) : isWishlistError ? (
+        <div className="text-center py-16 bg-destructive/5 rounded-3xl border border-destructive/20 p-8 max-w-lg mx-auto">
+          <h3 className="text-lg font-bold mb-2 text-destructive">
+            دریافت لیست علاقه‌مندی‌ها ممکن نشد
+          </h3>
+          <p className="text-sm text-muted-foreground mb-6">
+            اتصال با سرور برقرار نشد. لطفاً دوباره تلاش کنید.
+          </p>
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-2"
+            onClick={() => refetchWishlist()}
+          >
+            تلاش مجدد
+          </Button>
         </div>
       ) : isWishlistLoading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">

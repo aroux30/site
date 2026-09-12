@@ -59,6 +59,21 @@ function RegisterForm() {
   // If already authenticated with confirmed user profile, redirect only if authorized for target
   useEffect(() => {
     if (isAuthenticated && !isAuthLoading && user) {
+      // Server session cookie must exist; a stale store without it would
+      // bounce right back here after the next useAuth mount effect.
+      const hasAccessTokenCookie =
+        /(?:^|;\s*)access_token=([^;]+)/.test(document.cookie);
+      if (!hasAccessTokenCookie) return;
+
+      // Avoid redirect loops when the target is an auth page itself
+      if (
+        redirectUrl.startsWith("/login") ||
+        redirectUrl.startsWith("/register")
+      ) {
+        router.replace("/");
+        return;
+      }
+
       const isTargetAdmin = redirectUrl.startsWith("/admin");
       const isAdmin = Boolean(
         user.is_superuser ||

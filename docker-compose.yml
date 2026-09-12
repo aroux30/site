@@ -262,9 +262,13 @@ services:
   # ──────────────────────────────────────────────
   # Grafana (Metrics Visualization)
   # ──────────────────────────────────────────────
+  # Opt-in via profile: `docker compose --profile monitoring up -d`.
+  # Kept out of the default `up -d` because its fixed host port (3001)
+  # collides with other services on the production host and aborts deploys.
   grafana:
     image: grafana/grafana:latest
     container_name: ecommerce-grafana
+    profiles: ["monitoring"]
     volumes:
       - grafana_data:/var/lib/grafana
     ports:

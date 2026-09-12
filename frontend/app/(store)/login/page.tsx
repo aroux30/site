@@ -152,10 +152,10 @@ function LoginForm() {
         variant: "success",
       });
 
-      startTransition(() => {
-        router.push(redirectUrl);
-        router.refresh();
-      });
+      // Navigation is owned by the auto-redirect effect below (single-path):
+      // firing router.push here raced with the effect's router.replace and
+      // both cancelled out, leaving the user stuck on /login after a
+      // successful login.
     } catch (err: unknown) {
       const errorMsg =
         (err as { response?: { data?: { error?: { message?: string } } }; message?: string })?.response?.data?.error?.message ||
@@ -253,10 +253,10 @@ function LoginForm() {
         variant: "success",
       });
 
-      startTransition(() => {
-        router.push(redirectUrl);
-        router.refresh();
-      });
+      // Navigation is owned by the auto-redirect effect below (single-path):
+      // firing router.push here raced with the effect's router.replace and
+      // both cancelled out, leaving the user stuck on /login after a
+      // successful login.
     } catch (err: unknown) {
       const errorMsg =
         (err as { response?: { data?: { error?: { message?: string } } }; message?: string })?.response?.data?.error?.message ||

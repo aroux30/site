@@ -207,8 +207,13 @@ async def test_journey_checkout_payment_confirm_cancel_restock():
             amount=result.total,
             idempotency_key=f"pay-{uuid.uuid4().hex[:12]}",
         )
+        # Read attributes BEFORE commit: expire_on_commit would lazy-refresh
+        # the ORM object outside the greenlet.
+        payment_id = payment.id
+        payment_authority = payment.authority or ""
+        payment_status = payment.status
         await db.commit()
-    assert payment.status == PaymentStatus.PROCESSING
+    assert payment_status == PaymentStatus.PROCESSING
 
     # ── 3. Webhook verify → order CONFIRMED exactly once ────────────
     async with async_session_factory() as db:
@@ -219,7 +224,7 @@ async def test_journey_checkout_payment_confirm_cancel_restock():
                 "CB",
                 (),
                 {
-                    "authority": payment.authority,
+                    "authority": payment_authority,
                     "status": "OK",
                     "track_id": None,
                     "id": None,
@@ -232,7 +237,7 @@ async def test_journey_checkout_payment_confirm_cancel_restock():
                     "payment_id": None,
                     "payment_status": None,
                     "model_dump": lambda self, mode="json": {
-                        "authority": payment.authority,
+                        "authority": payment_authority,
                         "status": "OK",
                     },
                 },
@@ -372,9 +377,10 @@ async def test_journey_duplicate_webhooks_are_idempotent():
                 amount=result.total,
                 idempotency_key=f"pay-{uuid.uuid4().hex[:12]}",
             )
+            pay_authority = payment.authority or ""
             await pay_db.commit()
 
-    cb = _CallbackShim(payment.authority or "")
+    cb = _CallbackShim(pay_authority)
     for _ in range(3):
         async with async_session_factory() as db:
             await payment_service.process_callback(db, provider="mock", callback_data=cb)
@@ -388,7 +394,7 @@ async def test_journey_duplicate_webhooks_are_idempotent():
             await db.scalars(
                 select(PaymentWebhookEvent).where(
                     PaymentWebhookEvent.provider == "mock",
-                    PaymentWebhookEvent.event_id == (payment.authority or ""),
+                    PaymentWebhookEvent.event_id == pay_authority,
                 )
             )
         ).all()
@@ -426,21 +432,23 @@ async def test_journey_verify_and_webhook_race_confirm_once():
                 amount=result.total,
                 idempotency_key=f"pay-{uuid.uuid4().hex[:12]}",
             )
+            pay_id = payment.id
+            pay_authority = payment.authority or ""
             await pay_db.commit()
 
     async def _do_verify():
         async with async_session_factory() as db:
             return await payment_service.verify_payment(
                 db,
-                payment_id=payment.id,
-                authority=payment.authority or "",
+                payment_id=pay_id,
+                authority=pay_authority,
                 status="OK",
             )
 
     async def _do_webhook():
         async with async_session_factory() as db:
             return await payment_service.process_callback(
-                db, provider="mock", callback_data=_CallbackShim(payment.authority or "")
+                db, provider="mock", callback_data=_CallbackShim(pay_authority)
             )
 
     results = await asyncio.gather(_do_verify(), _do_webhook())

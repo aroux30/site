@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database.session import get_db
 from app.core.security.dependencies import RequirePermissions, get_current_user_id
+from app.modules.users.api.kyc_routes import router as kyc_router
 from app.modules.users.application import user_service
 from app.modules.users.schemas.user import (
     AddressCreate,
@@ -166,3 +167,8 @@ async def update_user(
         user_agent=request.headers.get("user-agent"),
     )
     return UserDetailResponse(**data)
+
+
+# ── KYC and anti-fraud sub-router (Karta Phase 1) ──────────────────────────
+router.include_router(kyc_router)
+

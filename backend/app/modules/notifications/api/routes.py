@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database.session import get_db
 from app.core.security.dependencies import get_current_user_id
+from app.modules.notifications.api.notice_routes import router as notice_router
 from app.modules.notifications.application.notification_service import (
     NotificationService,
 )
@@ -71,3 +72,8 @@ async def mark_all_read(
     """Mark all unread notifications as read for the authenticated user."""
     count = await NotificationService.mark_all_read(db, user_id)
     return MarkReadResponse(marked_count=count)
+
+
+# ── Time-bounded Notices & SMS sub-router (Karta Phase 6/8) ────────────────
+router.include_router(notice_router)
+

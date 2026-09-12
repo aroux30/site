@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database.session import get_db
 from app.core.security.dependencies import RequirePermissions, get_current_user_id
+from app.modules.gamification.api.gift_routes import router as gift_router
 from app.modules.gamification.application.gamification_service import GamificationService
 from app.modules.gamification.schemas.gamification import (
     ClaimRewardRequest,
@@ -206,3 +207,8 @@ async def admin_update_reward(
         return RewardResponse.model_validate(reward)
     except ValueError as exc:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
+
+
+# ── Internal Gift Cards, Lucky Wheel & Packages sub-router (Karta Phase 5/7)
+router.include_router(gift_router)
+

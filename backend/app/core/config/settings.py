@@ -133,6 +133,10 @@ class Settings(BaseSettings):
         default=[".jpg", ".jpeg", ".png", ".webp", ".gif", ".pdf"]
     )
     MAX_UPLOAD_SIZE_MB: int = 10
+    DIGITAL_CARDS_ENCRYPTION_KEY: str = Field(
+        default="CHANGE-ME-use-base64-32bytes-key",
+        description="Base64 encoded 32-byte key for AES-256-GCM encryption of digital card PINs",
+    )
 
     @property
     def database_url_str(self) -> str:

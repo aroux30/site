@@ -164,6 +164,7 @@ def _include_routers(app: FastAPI, prefix: str) -> None:
         ("app.modules.approvals.api", "/approvals", ["approvals"]),
         ("app.modules.media.api", "/media", ["media"]),
         ("app.modules.settings.api", "/settings", ["settings"]),
+        ("app.modules.content.api", "/content", ["content"]),
         ("app.modules.audit.api", "/audit", ["audit"]),
         ("app.modules.vendors.api", "/vendors", ["vendors"]),
     ]
@@ -197,6 +198,11 @@ def _include_routers(app: FastAPI, prefix: str) -> None:
             # FAIL FAST: Never silently hide broken routes in production
             logger.exception("router_load_failed", module=module_path, error=str(exc))
             raise RuntimeError(f"Critical router failed to load: {module_path} -> {exc}") from exc
+
+    # ── Mount Native Captcha & System Preflight Router ─────────────────
+    from app.core.security.captcha_routes import router as captcha_router
+    app.include_router(captcha_router, prefix=prefix)
+
 
 
 def _register_infra_routes(app: FastAPI) -> None:

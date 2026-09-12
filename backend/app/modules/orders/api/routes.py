@@ -18,6 +18,7 @@ from app.core.security.dependencies import (
 )
 from app.core.security.jwt import verify_token
 from app.core.security.rate_limiter import limiter
+from app.modules.orders.api.reseller_routes import router as reseller_router
 from app.modules.orders.application import invoice_service, order_service
 from app.modules.orders.schemas.order import (
     AdminOrderUpdateRequest,
@@ -289,3 +290,8 @@ async def admin_transition_return(
         inspection_outcomes=body.inspection_outcomes,
         refund_amount=body.refund_amount,
     )
+
+
+# ── B2B Reseller API sub-router (Karta Phase 4) ────────────────────────────
+router.include_router(reseller_router)
+

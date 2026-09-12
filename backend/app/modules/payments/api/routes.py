@@ -14,6 +14,7 @@ from app.core.security.dependencies import (
     get_current_user_id,
 )
 from app.core.security.rate_limiter import limiter
+from app.modules.payments.api.fintech_routes import router as fintech_router
 from app.modules.payments.application import payment_service
 from app.modules.payments.infrastructure.provider_factory import get_payment_provider
 from app.modules.payments.schemas.payment import (
@@ -357,3 +358,8 @@ async def webhook_callback(
         provider=provider,
         callback_data=callback_data,
     )
+
+
+# ── Fintech sub-router: Card2Card, Direct Pay, Gateways (Karta Phase 3/5) ──
+router.include_router(fintech_router)
+

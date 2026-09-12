@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database.session import get_db
 from app.core.security.dependencies import RequirePermissions
+from app.modules.inventory.api.digital_routes import router as digital_router
 from app.modules.inventory.application import inventory_service
 from app.modules.inventory.domain.models import TransactionType
 from app.modules.inventory.schemas.inventory import (
@@ -149,3 +150,8 @@ async def get_transactions(
         page=page,
         page_size=page_size,
     )
+
+
+# ── Digital inventory sub-router (Karta Phase 1/2) ─────────────────────────
+router.include_router(digital_router)
+

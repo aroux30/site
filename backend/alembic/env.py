@@ -7,7 +7,12 @@ This module is executed by Alembic during ``alembic revision``,
 from __future__ import annotations
 
 import asyncio
+import os
+import sys
 from logging.config import fileConfig
+
+# Ensure backend root is always on sys.path for CLI execution
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from alembic import context
 from sqlalchemy import pool
@@ -29,16 +34,22 @@ import app.modules.cart.domain.models  # noqa: F401
 import app.modules.cashback.domain.models  # noqa: F401
 import app.modules.catalog.domain.models  # noqa: F401
 import app.modules.checkout.domain.models  # noqa: F401
+import app.modules.content.domain.models  # noqa: F401
 import app.modules.discounts.domain.models  # noqa: F401
 import app.modules.gamification.domain.models  # noqa: F401
+import app.modules.gamification.domain.gift_models  # noqa: F401
 import app.modules.inventory.domain.models  # noqa: F401
+import app.modules.inventory.domain.digital_models  # noqa: F401
 import app.modules.loyalty.domain.models  # noqa: F401
 import app.modules.media.domain.models  # noqa: F401
 import app.modules.messaging.domain.models  # noqa: F401
 import app.modules.notifications.domain.models  # noqa: F401
+import app.modules.notifications.domain.notice_models  # noqa: F401
 import app.modules.orders.domain.models  # noqa: F401
 import app.modules.orders.domain.return_models  # noqa: F401
+import app.modules.orders.domain.reseller_models  # noqa: F401
 import app.modules.payments.domain.models  # noqa: F401
+import app.modules.payments.domain.fintech_models  # noqa: F401
 import app.modules.rbac.domain.models  # noqa: F401
 import app.modules.referrals.domain.models  # noqa: F401
 import app.modules.reviews.domain.models  # noqa: F401
@@ -47,6 +58,7 @@ import app.modules.settings.domain.models  # noqa: F401
 import app.modules.shipping.domain.models  # noqa: F401
 import app.modules.support.domain.models  # noqa: F401
 import app.modules.users.domain.models  # noqa: F401
+import app.modules.users.domain.kyc_models  # noqa: F401
 import app.modules.vendors.domain.models  # noqa: F401
 import app.modules.wallet.domain.models  # noqa: F401
 import app.modules.wishlist.domain.models  # noqa: F401

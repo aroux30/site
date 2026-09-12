@@ -42,7 +42,6 @@ services:
         reservations:
           cpus: "0.25"
           memory: 128m
-      replicas: 2
 
   # ──────────────────────────────────────────────
   # Backend - Production
@@ -64,7 +63,6 @@ services:
         reservations:
           cpus: "0.5"
           memory: 256m
-      replicas: 2
 
   # ──────────────────────────────────────────────
   # Celery Worker - Production
@@ -87,7 +85,6 @@ services:
           memory: 256m
       # Replicas note: Enforced in Docker Swarm mode (docker stack deploy)
       # or scaled via 'docker compose --scale worker=2 up -d'
-      replicas: 2
 
   # ──────────────────────────────────────────────
   # Celery Beat - Production

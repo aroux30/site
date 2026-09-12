@@ -81,6 +81,21 @@ jobs:
           chmod 600 ~/.ssh/deploy_key
           ssh-keyscan -H ${{ steps.vars.outputs.server_host }} >> ~/.ssh/known_hosts
 
+      - name: Pre-flight server checks (DOMAIN + constraint audit)
+        run: |
+          if [ "${{ github.event.inputs.environment }}" = "production" ]; then
+            HEALTH_URL="${{ secrets.PROD_HEALTH_URL }}"
+          else
+            HEALTH_URL="${{ secrets.STAGING_HEALTH_URL }}"
+          fi
+          # Derive the public domain from the health URL secret (no hardcode)
+          DOMAIN_NAME="$(echo "$HEALTH_URL" | sed -E 's#https?://([^/]+).*#\1#')"
+          ssh -i ~/.ssh/deploy_key \
+            ${{ steps.vars.outputs.server_user }}@${{ steps.vars.outputs.server_host }} \
+            "cd ${{ steps.vars.outputs.deploy_path }} && \
+             DOMAIN_NAME='$DOMAIN_NAME' bash scripts/preflight_server.sh"
+          echo "Pre-flight passed: DOMAIN present, money-integrity data clean."
+
       - name: Pre-deploy backup
         if: ${{ github.event.inputs.skip_backup != 'true' }}
         run: |

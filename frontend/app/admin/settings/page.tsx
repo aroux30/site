@@ -41,6 +41,8 @@ export default function AdminSettingsPage() {
 
   // Zarinpal merchant code (persisted via admin settings API)
   const [merchantCode, setMerchantCode] = useState("");
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
   const [merchantLoading, setMerchantLoading] = useState(true);
   const [merchantSaving, setMerchantSaving] = useState(false);
   const [merchantStatus, setMerchantStatus] = useState<
@@ -108,10 +110,62 @@ export default function AdminSettingsPage() {
     }
   };
 
-  const handleSave = (e: React.FormEvent) => {
+  const SETTINGS_KEYS = {
+    store: "store.identity",
+    support: "store.support",
+    shippingTax: "store.shipping_tax",
+    paymentFlags: "store.payment_flags",
+  } as const;
+
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSaved(true);
-    setTimeout(() => setSaved(false), 3000);
+    setSaving(true);
+    setSaveError(null);
+    try {
+      const groups: Array<[string, Record<string, unknown>]> = [
+        [SETTINGS_KEYS.store, { store_name: storeName }],
+        [SETTINGS_KEYS.support, { support_phone: supportPhone, support_email: supportEmail }],
+        [
+          SETTINGS_KEYS.shippingTax,
+          {
+            tax_rate_percent: taxRate,
+            free_shipping_threshold_rials: freeShippingThreshold,
+            default_shipping_fee_rials: defaultShippingFee,
+          },
+        ],
+        [
+          SETTINGS_KEYS.paymentFlags,
+          {
+            zarinpal_enabled: zarinpalEnabled,
+            card_to_card_enabled: c2cEnabled,
+            wallet_enabled: walletEnabled,
+            crypto_enabled: cryptoEnabled,
+          },
+        ],
+      ];
+      for (const [key, value] of groups) {
+        try {
+          await apiClient.patch(`/settings/${key}`, { value });
+        } catch (err: unknown) {
+          const status = (err as { status?: number })?.status;
+          if (status === 404) {
+            // key does not exist yet — create it
+            await apiClient.post("/settings", { key, value, is_public: false });
+          } else {
+            throw err;
+          }
+        }
+      }
+      setSaved(true);
+      setTimeout(() => setSaved(false), 3000);
+    } catch (err: unknown) {
+      setSaveError(
+        (err as { message?: string })?.message ||
+          "ذخیره تنظیمات با خطا مواجه شد. لطفاً دوباره تلاش کنید."
+      );
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -125,6 +179,12 @@ export default function AdminSettingsPage() {
           </p>
         </div>
       </div>
+
+      {saveError && (
+        <div className="flex items-center gap-2 rounded-lg border border-destructive/20 bg-destructive/10 p-3 text-sm text-destructive">
+          <AlertCircle className="h-4 w-4" /> {saveError}
+        </div>
+      )}
 
       {saved && (
         <div className="flex items-center gap-2 rounded-lg border border-emerald-500/20 bg-emerald-500/10 p-3 text-sm text-emerald-600">
@@ -388,7 +448,7 @@ export default function AdminSettingsPage() {
 
         {/* Submit */}
         <div className="flex justify-end">
-          <Button type="submit" className="gap-2 px-8">
+          <Button type="submit" disabled={saving} className="gap-2 px-8">
             <Save className="h-4 w-4" /> ذخیره تنظیمات
           </Button>
         </div>

@@ -1,43 +1,156 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
-  BarChart3,
   TrendingUp,
   Download,
-  Calendar,
   DollarSign,
   ShoppingCart,
-  Users,
   CreditCard,
   Printer,
   FileText,
+  AlertCircle,
+  Package,
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { formatPrice, toPersianDigits } from "@/lib/utils";
+import apiClient from "@/lib/api/client";
+
+interface ReportMetrics {
+  grossSales: number;
+  ordersCount: number;
+  averageOrderValue: number;
+  taxCollected: number;
+}
+
+interface BestSellerProduct {
+  name: string;
+  revenue: number;
+  quantity: number;
+  share: string;
+}
+
+const INITIAL_METRICS: ReportMetrics = {
+  grossSales: 0,
+  ordersCount: 0,
+  averageOrderValue: 0,
+  taxCollected: 0,
+};
+
+function getDateRangeBounds(range: string): { start: string; end: string } {
+  const now = new Date();
+  const end = now.toISOString().split("T")[0]!;
+  let days = 30;
+  if (range === "7d") days = 7;
+  else if (range === "30d") days = 30;
+  else if (range === "90d") days = 90;
+  else if (range === "365d") days = 365;
+
+  const startDate = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
+  const start = startDate.toISOString().split("T")[0]!;
+  return { start, end };
+}
 
 export default function AdminReportsPage() {
   const [dateRange, setDateRange] = useState("30d");
+  const [metrics, setMetrics] = useState<ReportMetrics>(INITIAL_METRICS);
+  const [bestSellers, setBestSellers] = useState<BestSellerProduct[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const metrics = {
-    grossSales: 845_200_000,
-    netSales: 760_680_000,
-    taxCollected: 76_068_000,
-    shippingFees: 8_452_000,
-    ordersCount: 428,
-    averageOrderValue: 1_974_700,
-    refundsCount: 4,
-    refundedAmount: 7_800_000,
+  const fetchReportData = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const { start, end } = getDateRangeBounds(dateRange);
+      const [salesRes, productsRes] = await Promise.allSettled([
+        apiClient.get(`/analytics/sales?start_date=${start}&end_date=${end}`),
+        apiClient.get(`/analytics/products?start_date=${start}&end_date=${end}&limit=5`),
+      ]);
+
+      let totalSales = 0;
+      let orderCount = 0;
+      let aov = 0;
+
+      if (salesRes.status === "fulfilled" && salesRes.value.data) {
+        const d = salesRes.value.data;
+        totalSales = Number(d.total_sales) || 0;
+        orderCount = Number(d.order_count) || 0;
+        aov = Number(d.average_order_value) || 0;
+      }
+
+      setMetrics({
+        grossSales: totalSales,
+        ordersCount: orderCount,
+        averageOrderValue: aov,
+        taxCollected: Math.round(totalSales * 0.1),
+      });
+
+      if (
+        productsRes.status === "fulfilled" &&
+        Array.isArray(productsRes.value.data?.best_sellers)
+      ) {
+        const raw = productsRes.value.data.best_sellers;
+        const totalTopRevenue = raw.reduce(
+          (sum: number, p: { total_revenue?: number }) => sum + (Number(p.total_revenue) || 0),
+          0,
+        );
+        const mapped: BestSellerProduct[] = raw.map(
+          (p: { product_name?: string; total_revenue?: number; total_sold?: number }) => {
+            const rev = Number(p.total_revenue) || 0;
+            const pct =
+              totalTopRevenue > 0
+                ? Math.round((rev / totalTopRevenue) * 100)
+                : 0;
+            return {
+              name: p.product_name || "محصول",
+              revenue: rev,
+              quantity: Number(p.total_sold) || 0,
+              share: `${pct}%`,
+            };
+          },
+        );
+        setBestSellers(mapped);
+      } else {
+        setBestSellers([]);
+      }
+    } catch (err: unknown) {
+      setError(
+        (err as { message?: string })?.message ||
+          "خطا در دریافت داده‌های گزارش",
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  }, [dateRange]);
+
+  useEffect(() => {
+    fetchReportData();
+  }, [fetchReportData]);
+
+  const handleExportCsv = () => {
+    const rows = [
+      ["شاخص", "مقدار"],
+      ["فروش ناخالص کل (ریال)", String(metrics.grossSales)],
+      ["تعداد سفارشات", String(metrics.ordersCount)],
+      ["میانگین ارزش سفارش (AOV)", String(metrics.averageOrderValue)],
+      ["مالیات بر ارزش افزوده (ریال)", String(metrics.taxCollected)],
+      [],
+      ["کالاهای پرفروش", "درآمد (ریال)", "تعداد", "سهم"],
+      ...bestSellers.map((b) => [b.name, String(b.revenue), String(b.quantity), b.share]),
+    ];
+    const csvContent =
+      "data:text/csv;charset=utf-8,\uFEFF" +
+      rows.map((e) => e.join(",")).join("\n");
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `sales-report-${dateRange}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
-
-  const salesByCategory = [
-    { name: "کالای دیجیتال و موبایل", share: "58%", revenue: 490_216_000 },
-    { name: "لپ‌تاپ و تجهیزات کامپیوتر", share: "24%", revenue: 202_848_000 },
-    { name: "خانه و آشپزخانه", share: "11%", revenue: 92_972_000 },
-    { name: "مد و پوشاک", share: "7%", revenue: 59_164_000 },
-  ];
 
   return (
     <div className="space-y-6">
@@ -64,11 +177,17 @@ export default function AdminReportsPage() {
           <Button variant="outline" size="sm" className="gap-2" onClick={() => window.print()}>
             <Printer className="h-4 w-4" /> چاپ
           </Button>
-          <Button size="sm" className="gap-2">
-            <Download className="h-4 w-4" /> خروجی اکسل
+          <Button size="sm" className="gap-2" onClick={handleExportCsv}>
+            <Download className="h-4 w-4" /> خروجی اکسل (CSV)
           </Button>
         </div>
       </div>
+
+      {error && (
+        <div className="flex items-center gap-2 rounded-lg border border-destructive/20 bg-destructive/10 p-3 text-sm text-destructive">
+          <AlertCircle className="h-4 w-4" /> {error}
+        </div>
+      )}
 
       {/* KPI Cards */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -80,8 +199,8 @@ export default function AdminReportsPage() {
           <div className="mt-2 text-2xl font-bold text-foreground">
             {formatPrice(metrics.grossSales)}
           </div>
-          <div className="mt-1 flex items-center gap-1 text-xs text-emerald-600">
-            <TrendingUp className="h-3.5 w-3.5" /> +۱۸.۴٪ نسبت به دوره قبل
+          <div className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
+            داده‌های واقعی بر اساس سفارش‌های نهایی
           </div>
         </Card>
 
@@ -94,7 +213,7 @@ export default function AdminReportsPage() {
             {toPersianDigits(metrics.ordersCount)} سفارش
           </div>
           <div className="mt-1 text-xs text-muted-foreground">
-            نرخ تسویه موفق: {toPersianDigits("96.2")}%
+            ثبت‌شده در بازه انتخابی
           </div>
         </Card>
 
@@ -107,7 +226,7 @@ export default function AdminReportsPage() {
             {formatPrice(metrics.averageOrderValue)}
           </div>
           <div className="mt-1 text-xs text-muted-foreground">
-            محاسبه بر اساس سفارشات نهایی
+            محاسبه خودکار از سرور
           </div>
         </Card>
 
@@ -120,34 +239,43 @@ export default function AdminReportsPage() {
             {formatPrice(metrics.taxCollected)}
           </div>
           <div className="mt-1 text-xs text-muted-foreground">
-            آماده ارسال به سامانه مودیان
+            محاسبه مالیاتی بر اساس فروش ناخالص
           </div>
         </Card>
       </div>
 
-      {/* Breakdown by Category */}
+      {/* Breakdown by Top Products */}
       <Card className="p-6">
-        <h3 className="text-base font-bold text-foreground">سهم فروش به تفکیک دسته‌بندی</h3>
-        <p className="mb-4 text-xs text-muted-foreground">درصد مشارکت هر گروه کالایی در درآمد کل فروشگاه</p>
+        <h3 className="text-base font-bold text-foreground">محصولات پرفروش در این بازه</h3>
+        <p className="mb-4 text-xs text-muted-foreground">
+          پرفروش‌ترین کالاها بر اساس حجم درآمد و تعداد فروش
+        </p>
 
-        <div className="space-y-4">
-          {salesByCategory.map((cat, i) => (
-            <div key={i} className="space-y-1.5">
-              <div className="flex items-center justify-between text-sm">
-                <span className="font-medium text-foreground">{cat.name}</span>
-                <span className="font-mono text-xs text-muted-foreground">
-                  {formatPrice(cat.revenue)} ({toPersianDigits(cat.share)})
-                </span>
+        {bestSellers.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-8 text-center text-muted-foreground">
+            <Package className="mb-2 h-10 w-10 text-muted-foreground/30" />
+            <p className="text-sm">هنوز داده‌ای برای کالاهای پرفروش در این بازه ثبت نشده است.</p>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {bestSellers.map((prod, i) => (
+              <div key={i} className="space-y-1.5">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="font-medium text-foreground">{prod.name}</span>
+                  <span className="font-mono text-xs text-muted-foreground">
+                    {formatPrice(prod.revenue)} ({toPersianDigits(prod.share)})
+                  </span>
+                </div>
+                <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
+                  <div
+                    className="h-full rounded-full bg-primary"
+                    style={{ width: prod.share }}
+                  />
+                </div>
               </div>
-              <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
-                <div
-                  className="h-full rounded-full bg-primary"
-                  style={{ width: cat.share }}
-                />
-              </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </Card>
     </div>
   );

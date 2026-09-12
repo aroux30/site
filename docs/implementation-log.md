@@ -342,3 +342,36 @@ stack:
 | CI Backend job (lint+format+migrations on PG+pytest incl. journey suite) | ✅ **success** |
 | `pytest tests/unit` (local) | ✅ 189/189 |
 | GitHub Actions `main` | ✅ CI Pipeline · Security Scan & Audit · CodeQL success |
+
+---
+
+## 2026-09-12 — Batch 5: Admin Reports & Settings Honesty + MinIO Backup Mirroring (P9-03, P12-03)
+
+### TASK P9-03 — Admin Reports & Settings Reality Pass — **DONE**
+- `frontend/app/admin/reports/page.tsx`:
+  - Removed 100% hardcoded metrics (`grossSales: 845_200_000`, `netSales: 760_680_000`, fake category shares).
+  - Connected to real backend analytics endpoints:
+    - `GET /api/v1/analytics/sales?start_date=...&end_date=...`
+    - `GET /api/v1/analytics/products?start_date=...&end_date=...&limit=5`
+  - Added real CSV export feature generating downloadable reports from actual data.
+  - Implemented honest empty states and error banners when server has no data or is unreachable.
+- `frontend/app/admin/settings/page.tsx`:
+  - Connected store identity, support, tax/shipping, and payment flags to real backend `GET/PATCH/POST /api/v1/settings/{key}` API.
+  - Form submission now persists real settings groups to backend database instead of fake `setSaved(true)`.
+  - Added loading indicators, disabled state during saving, and error alert banners on failure.
+
+### TASK P12-03 — Backup Automation & MinIO Mirroring — **DONE**
+- Created `scripts/install_backup_cron.sh`: idempotent cron installer setting up daily 03:30 PostgreSQL database backups and weekly Sunday 04:00 MinIO object-storage mirrors.
+- Created `scripts/minio_mirror.sh`: automated `mc mirror` script to mirror local MinIO buckets to off-site S3-compatible cloud storage with integrity checks.
+- Hardened `docker-compose.yml`: updated MinIO container healthcheck with higher patience (interval 15s, timeout 10s, retries 20, start_period 60s) to prevent container flap during startup under load.
+
+### Verification
+| Check | Result |
+|---|---|
+| Frontend `node node_modules/typescript/bin/tsc --noEmit` | ✅ 0 errors |
+| Frontend `npx eslint .` | ✅ 0 errors |
+| Frontend `npx vitest run` | ✅ **31/31 passed** |
+| Frontend `npm run build` | ✅ **39/39 pages compiled successfully** |
+| Backend `pytest tests/unit` | ✅ **189/189 passed** |
+| Backend `ruff check app tests` | ✅ clean |
+

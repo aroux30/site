@@ -35,66 +35,11 @@ interface UserItem {
   created_at: string;
 }
 
-const mockUsers: UserItem[] = [
-  {
-    id: "u-1",
-    phone: "09123456789",
-    email: "admin@site.com",
-    first_name: "مدیر",
-    last_name: "سیستم",
-    role: "super_admin",
-    is_active: true,
-    is_superuser: true,
-    created_at: "۱۴۰۳/۰۶/۰۱",
-  },
-  {
-    id: "u-2",
-    phone: "09139876543",
-    email: "reza.ahmadi@gmail.com",
-    first_name: "رضا",
-    last_name: "احمدی",
-    role: "customer",
-    is_active: true,
-    is_superuser: false,
-    created_at: "۱۴۰۳/۰۶/۰۵",
-  },
-  {
-    id: "u-3",
-    phone: "09351112233",
-    email: "sara.karimi@yahoo.com",
-    first_name: "سارا",
-    last_name: "کریمی",
-    role: "customer",
-    is_active: true,
-    is_superuser: false,
-    created_at: "۱۴۰۳/۰۶/۱۰",
-  },
-  {
-    id: "u-4",
-    phone: "09194445566",
-    email: "vendor.store@site.com",
-    first_name: "فروشگاه",
-    last_name: "دیجیتال پارس",
-    role: "vendor",
-    is_active: true,
-    is_superuser: false,
-    created_at: "۱۴۰۳/۰۶/۱۲",
-  },
-  {
-    id: "u-5",
-    phone: "09217778899",
-    email: "m.moradi@gmail.com",
-    first_name: "مهدی",
-    last_name: "مرادی",
-    role: "customer",
-    is_active: false,
-    is_superuser: false,
-    created_at: "۱۴۰۳/۰۶/۱۵",
-  },
-];
+
 
 export default function AdminUsersPage() {
-  const [users, setUsers] = useState<UserItem[]>(mockUsers);
+  const [users, setUsers] = useState<UserItem[]>([]);
+  const [loadError, setLoadError] = useState(false);
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
   const [loading, setLoading] = useState(false);
@@ -103,12 +48,14 @@ export default function AdminUsersPage() {
     async function loadUsers() {
       try {
         setLoading(true);
-        const res = await apiClient.get("/admin/users?page=1&page_size=50");
+        // The admin list lives on the users router: /api/v1/users/admin/users
+        const res = await apiClient.get("/users/admin/users?page=1&page_size=50");
         if (res.data && Array.isArray(res.data.items)) {
           setUsers(res.data.items);
         }
       } catch (err) {
-        // Fallback to initial mock list on unauthenticated / local view
+        // Honest failure: show an error state, never fabricated users
+        setLoadError(true);
       } finally {
         setLoading(false);
       }
@@ -194,7 +141,13 @@ export default function AdminUsersPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {filteredUsers.length === 0 ? (
+              {loadError ? (
+                <tr>
+                  <td colSpan={6} className="py-8 text-center text-destructive">
+                    خطا در دریافت کاربران. لطفاً صفحه را دوباره بارگذاری کنید.
+                  </td>
+                </tr>
+              ) : filteredUsers.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="py-8 text-center text-muted-foreground">
                     کاربری با این مشخصات یافت نشد.

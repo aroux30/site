@@ -1,6 +1,6 @@
 """Helper utilities for realistic user simulation and assertions."""
 
-import random
+import secrets
 import uuid
 from typing import Any
 from locust.clients import ResponseContextManager
@@ -15,12 +15,12 @@ def generate_session_id() -> str:
 
 def get_random_search_query() -> str:
     """Return a randomly chosen Persian search query with ZWNJ."""
-    return random.choice(PERSIAN_SEARCH_QUERIES)
+    return secrets.choice(PERSIAN_SEARCH_QUERIES)
 
 
 def get_random_province() -> str:
     """Return a random Iranian province."""
-    return random.choice(SAMPLE_PROVINCES)
+    return secrets.choice(SAMPLE_PROVINCES)
 
 
 def check_fastapi_response(

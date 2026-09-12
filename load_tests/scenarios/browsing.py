@@ -1,6 +1,6 @@
 """Catalog and Persian search browsing scenarios."""
 
-import random
+import secrets
 import urllib.parse
 from locust import TaskSet, task
 
@@ -23,8 +23,8 @@ class BrowsingTaskSet(TaskSet):
     @task(15)
     def browse_products_paginated(self) -> None:
         """Browse paginated product listings."""
-        page = random.randint(1, 3)
-        size = random.choice([10, 20, 50])
+        page = secrets.randbelow(3) + 1
+        size = secrets.choice([10, 20, 50])
         with self.client.get(
             f"/api/v1/catalog/products?page={page}&size={size}",
             catch_response=True,
@@ -32,7 +32,7 @@ class BrowsingTaskSet(TaskSet):
         ) as response:
             data = check_fastapi_response(response, expected_status=200, name="List Products")
             if data and "items" in data and len(data["items"]) > 0:
-                product = random.choice(data["items"])
+                product = secrets.choice(data["items"])
                 if isinstance(product, dict) and "id" in product:
                     self.user.discovered_product_id = product["id"]
 

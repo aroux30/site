@@ -6,7 +6,7 @@ All monetary values are stored as ``BigInteger`` (Rials).
 from __future__ import annotations
 
 import math
-import random
+import secrets
 import string
 import uuid
 from datetime import UTC, datetime
@@ -86,8 +86,9 @@ def _validate_transition(
 
 def _generate_order_number() -> str:
     """Generate a human-readable order number: ``ORD-YYYYMMDD-XXXX``."""
+    alphabet = string.ascii_uppercase + string.digits
     date_part = datetime.now(UTC).strftime("%Y%m%d")
-    random_part = "".join(random.choices(string.ascii_uppercase + string.digits, k=4))  # noqa: S311  # order numbers are not security-sensitive
+    random_part = "".join(secrets.choice(alphabet) for _ in range(4))
     return f"ORD-{date_part}-{random_part}"
 
 
@@ -658,9 +659,9 @@ async def generate_unique_order_number(db: AsyncSession) -> str:
         exists = (await db.execute(exists_stmt)).scalar_one()
         if not exists:
             return candidate
-            return candidate
     # Extremely unlikely – fallback with more randomness
-    suffix = "".join(random.choices(string.ascii_uppercase + string.digits, k=8))  # noqa: S311  # order numbers are not security-sensitive
+    alphabet = string.ascii_uppercase + string.digits
+    suffix = "".join(secrets.choice(alphabet) for _ in range(8))
     date_part = datetime.now(UTC).strftime("%Y%m%d")
     return f"ORD-{date_part}-{suffix}"
 

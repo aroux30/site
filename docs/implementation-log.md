@@ -302,3 +302,43 @@ stack:
 | `tsc` / `eslint` (changed files) / `vitest` / `build` | ✅ / 0 errors / **31/31** (stale gamification fallback test rewritten to expect honest rejection) / 39 pages |
 | `alembic upgrade head` + `alembic check` (CI Postgres) | ✅ green |
 | GitHub Actions `main` | ✅ CI Pipeline · Security Scan & Audit · CodeQL all success |
+
+
+---
+
+## 2026-09-12 — Batch 4: P5-01/P5-02 E2E journey suite (CI/real Postgres)
+
+### TASKS P5-01/P5-02 — Checkout→payment→order E2E — **DONE (CI-verified)**
+- `tests/integration/test_checkout_payment_journey.py`, running on CI's real
+  PostgreSQL service container:
+  - TEST-JOURNEY-001: happy path — server-priced checkout (subtotal+shipping+tax
+    asserted), inventory committed, cart CONVERTED, mock-gateway payment,
+    webhook verify → order CONFIRMED **exactly once** (status-history count),
+    then customer cancel → CANCELED with stock restocked to available.
+  - Rejection matrix e2e: amount mismatch (422), foreign order (404),
+    non-PENDING order (409) — the audit's P0 payment validations hold at the
+    integration layer.
+  - TEST-JOURNEY-002: 3 identical webhook deliveries → exactly one payment
+    completion, one processed webhook row, one order confirmation.
+  - TEST-JOURNEY-003: racing verify + webhook on separate sessions → the
+    payment row lock serializes; exactly one confirmation.
+
+### REAL PRODUCTION BUGS the suite caught (and fixes)
+1. **MissingGreenlet crash class (systemic)**: `server-side
+   onupdate=func.now()` on `TimestampMixin.updated_at` expired the attribute
+   after EVERY flush; any synchronous read (pydantic response building) then
+   raised MissingGreenlet on asyncpg. This broke order cancel, payment
+   create/verify/approve/reject, card receipt and wallet top-up on real
+   PostgreSQL — invisible to in-memory unit tests.
+   Fix: `onupdate=lambda: datetime.now(UTC)` (client-side value keeps the
+   attribute loaded; server_default untouched) + `db.refresh` before
+   `model_validate` at the 6 mutating payment-service return points.
+2. Journey-test harness bugs fixed during bring-up (expire_on_commit reads,
+   missing commits in racing coroutines, one ruff F841).
+
+### Verification
+| Check | Result |
+|---|---|
+| CI Backend job (lint+format+migrations on PG+pytest incl. journey suite) | ✅ **success** |
+| `pytest tests/unit` (local) | ✅ 189/189 |
+| GitHub Actions `main` | ✅ CI Pipeline · Security Scan & Audit · CodeQL success |

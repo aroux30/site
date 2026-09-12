@@ -8,9 +8,9 @@ services:
   # Nginx - Production with SSL
   # ──────────────────────────────────────────────
   nginx:
-    ports:
-      - "80:80"
-      - "443:443"
+    # NOTE: on this deployment the HOST system nginx owns 80/443 (TLS +
+    # proxy to 127.0.0.1:8088), so publishing 80/443 here collides with it
+    # and crash-loops the container. The base compose maps 127.0.0.1:8088.
     # P12-01: the prod config is a TEMPLATE — ${DOMAIN} placeholders are
     # rendered at container start with envsubst (present in the official
     # nginx image). The rendered file is written to a NEW path and nginx is

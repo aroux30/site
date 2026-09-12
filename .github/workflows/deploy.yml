@@ -83,15 +83,15 @@ jobs:
           # Keep the control connection alive during long docker builds/up:
           # a NAT/firewall idle timeout was killing the SSH session mid-deploy
           # (client_loop: send disconnect: Broken pipe).
-          cat >> ~/.ssh/config <<SSHCFG
-          Host deploy-target
-              HostName ${{ steps.vars.outputs.server_host }}
-              User ${{ steps.vars.outputs.server_user }}
-              IdentityFile ~/.ssh/deploy_key
-              ServerAliveInterval 30
-              ServerAliveCountMax 20
-              StrictHostKeyChecking accept-new
-          SSHCFG
+          {
+            echo "Host deploy-target"
+            echo "  HostName ${{ steps.vars.outputs.server_host }}"
+            echo "  User ${{ steps.vars.outputs.server_user }}"
+            echo "  IdentityFile ~/.ssh/deploy_key"
+            echo "  ServerAliveInterval 30"
+            echo "  ServerAliveCountMax 20"
+            echo "  StrictHostKeyChecking accept-new"
+          } >> ~/.ssh/config
 
       - name: Pre-deploy backup
         if: ${{ github.event.inputs.skip_backup != 'true' }}

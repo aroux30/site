@@ -11,6 +11,13 @@ import {
   ChevronLeft,
   Kanban,
   ClipboardCheck,
+  CreditCard,
+  Shield,
+  Wallet,
+  Briefcase,
+  Gift,
+  Layout,
+  Bell,
 } from "lucide-react";
 import { AdminAuthGuard } from "@/components/admin/admin-auth-guard";
 import { AdminUserNav } from "@/components/admin/admin-user-nav";
@@ -26,6 +33,14 @@ const adminLinks = [
   { href: "/admin/reports", label: "گزارش‌ها", icon: BarChart3 },
   { href: "/admin/pages", label: "صفحات", icon: FileText },
   { href: "/admin/settings", label: "تنظیمات", icon: Settings },
+  // ── Karta Platform Upgrade (New Modules) ──
+  { href: "/admin/digital-inventory", label: "انبار کدهای دیجیتال", icon: CreditCard },
+  { href: "/admin/anti-fraud", label: "ضدتقلب و هویت", icon: Shield },
+  { href: "/admin/fintech", label: "پرداخت و کارت‌به‌کارت", icon: Wallet },
+  { href: "/admin/b2b-reseller", label: "فروش سازمانی B2B", icon: Briefcase },
+  { href: "/admin/gamification", label: "کارت هدیه و گردونه شانس", icon: Gift },
+  { href: "/admin/cms", label: "محتوا و منوساز", icon: Layout },
+  { href: "/admin/notices", label: "اعلانات زمان‌دار", icon: Bell },
 ];
 
 export default function AdminLayout({

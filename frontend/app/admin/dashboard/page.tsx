@@ -87,73 +87,24 @@ const ORDER_STATUS_CONFIG: Record<
 /* ------------------------------------------------------------------ */
 
 const INITIAL_KPIS: KPIData = {
-  totalSales: 145_200_000,
-  salesChange: "+۱۸%",
+  totalSales: 0,
+  salesChange: "",
   salesIsPositive: true,
 
-  ordersCount: 342,
-  ordersChange: "+۱۲%",
+  ordersCount: 0,
+  ordersChange: "",
   ordersIsPositive: true,
 
-  activeCustomers: 1820,
-  customersChange: "+۸%",
+  activeCustomers: 0,
+  customersChange: "",
   customersIsPositive: true,
 
-  averageOrderValue: 1_250_000,
-  aovChange: "+۵%",
+  averageOrderValue: 0,
+  aovChange: "",
   aovIsPositive: true,
 };
 
-const INITIAL_RECENT_ORDERS: RecentOrderPreview[] = [
-  {
-    id: "ord-100256",
-    orderNumber: "ORD-100256",
-    customer: "علی محمدی",
-    date: "۵ دقیقه پیش",
-    amount: 2_350_000,
-    status: "processing",
-  },
-  {
-    id: "ord-100255",
-    orderNumber: "ORD-100255",
-    customer: "فاطمه احمدی",
-    date: "۲۰ دقیقه پیش",
-    amount: 8_900_000,
-    status: "confirmed",
-  },
-  {
-    id: "ord-100254",
-    orderNumber: "ORD-100254",
-    customer: "محمد حسینی",
-    date: "۱ ساعت پیش",
-    amount: 1_200_000,
-    status: "shipped",
-  },
-  {
-    id: "ord-100253",
-    orderNumber: "ORD-100253",
-    customer: "زهرا کریمی",
-    date: "۳ ساعت پیش",
-    amount: 4_500_000,
-    status: "delivered",
-  },
-  {
-    id: "ord-100252",
-    orderNumber: "ORD-100252",
-    customer: "رضا نوری",
-    date: "۵ ساعت پیش",
-    amount: 650_000,
-    status: "cancelled",
-  },
-  {
-    id: "ord-100251",
-    orderNumber: "ORD-100251",
-    customer: "مهدی اکبری",
-    date: "۸ ساعت پیش",
-    amount: 68_500_000,
-    status: "pending",
-  },
-];
+const INITIAL_RECENT_ORDERS: RecentOrderPreview[] = [];
 
 const TOP_PRODUCTS: TopProductPreview[] = [
   {
@@ -209,7 +160,6 @@ export default function AdminDashboardPage() {
       // 1. Try fetching analytics / sales data
       const analyticsRes = await apiClient
         .get("/analytics/sales")
-        .catch(() => apiClient.get("/analytics/overview"))
         .catch(() => null);
 
       if (analyticsRes?.data) {
@@ -225,8 +175,6 @@ export default function AdminDashboardPage() {
       // 2. Fetch Recent Orders
       const ordersRes = await apiClient
         .get("/orders/admin/orders?page_size=6")
-        .catch(() => apiClient.get("/admin/orders?page_size=6"))
-        .catch(() => apiClient.get("/orders?page_size=6"))
         .catch(() => null);
 
       if (ordersRes?.data?.items && Array.isArray(ordersRes.data.items) && ordersRes.data.items.length > 0) {
@@ -241,7 +189,7 @@ export default function AdminDashboardPage() {
         setRecentOrders(mappedOrders);
       }
     } catch (err) {
-      // Fallback is maintained
+      // KPIs/recent orders stay at their honest zero/empty state on failure
     } finally {
       setIsLoading(false);
     }

@@ -45,13 +45,27 @@ describe("Rewards Catalog & Fallbacks", () => {
     });
   });
 
-  it("should claim a reward and generate a fallback coupon code", async () => {
+  it("should surface a backend failure instead of fabricating a coupon", async () => {
+    // The claim endpoint is the source of truth: a network/backend error
+    // must reject (honest failure) rather than inventing a coupon code.
     vi.spyOn(apiClient, "post").mockRejectedValueOnce(new Error("Network error"));
+    await expect(claimGamificationReward("rew-discount-10")).rejects.toThrow(
+      "Network error",
+    );
+  });
+
+  it("should return the backend claim payload on success", async () => {
+    vi.spyOn(apiClient, "post").mockResolvedValueOnce({
+      data: {
+        reward_id: "rew-discount-10",
+        points_spent: 50,
+        coupon_code: "GIFT-ABC123",
+      },
+    });
     const res = await claimGamificationReward("rew-discount-10");
-    expect(res).toBeDefined();
     expect(res.reward_id).toBe("rew-discount-10");
     expect(res.points_spent).toBe(50);
-    expect(res.coupon_code).toMatch(/^GIFT-[A-Z0-9]+$/);
+    expect(res.coupon_code).toBe("GIFT-ABC123");
   });
 });
 

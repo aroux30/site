@@ -454,16 +454,48 @@ async def refresh_token(
     payload = verify_token(token, expected_type="refresh")
     user_id = uuid.UUID(payload["sub"])
 
-    # Find the session by refresh token
-    stmt = select(UserSession).where(
-        UserSession.refresh_token == token,
-        UserSession.is_revoked.is_(False),
-    )
+    # Find the session by refresh token (revoked included: presenting a
+    # revoked token is a reuse event, not just an invalid one).
+    stmt = select(UserSession).where(UserSession.refresh_token == token)
     result = await db.execute(stmt)
     session = result.scalar_one_or_none()
 
     if session is None:
         raise UnauthorizedError(detail="Invalid or revoked refresh token")
+
+    # ── Refresh-token reuse detection (TASK P11-04) ────────────────────
+    # A revoked token being presented again means either a stolen token
+    # whose rotation already happened, or a replay. Defensive response:
+    # revoke every active session of the user and raise a security event.
+    if session.is_revoked:
+        revoke_stmt = (
+            select(UserSession)
+            .where(
+                UserSession.user_id == session.user_id,
+                UserSession.is_revoked.is_(False),
+            )
+        )
+        active_sessions = (await db.execute(revoke_stmt)).scalars().all()
+        for active in active_sessions:
+            active.is_revoked = True
+        await db.flush()
+        from app.core.logging.security_audit import log_security_event
+
+        log_security_event(
+            event="auth.refresh_token_reuse_detected",
+            ip_address=ip_address,
+            identifier=str(session.user_id),
+            success=False,
+            reason="revoked refresh token replayed; all sessions revoked",
+            user_agent=user_agent,
+        )
+        await logger.aerror(
+            "refresh_token_reuse_detected",
+            user_id=str(session.user_id),
+        )
+        raise UnauthorizedError(
+            detail="Refresh token reuse detected; all sessions have been revoked"
+        )
 
     if session.expires_at < datetime.now(UTC):
         session.is_revoked = True

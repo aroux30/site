@@ -217,9 +217,7 @@ export default function AdminProductsPage() {
     const fetchProducts = async () => {
       try {
         setIsLoading(true);
-        const res = await apiClient
-          .get("/catalog/products")
-          .catch(() => apiClient.get("/products"));
+        const res = await apiClient.get("/catalog/products");
 
         if (res.data?.items && Array.isArray(res.data.items) && res.data.items.length > 0) {
           const mapped: AdminProduct[] = res.data.items.map((p: any) => ({
@@ -340,27 +338,19 @@ export default function AdminProductsPage() {
     try {
       if (editingProduct) {
         // Edit flow
-        await apiClient
-          .patch(`/catalog/products/${editingProduct.id}`, {
-            name: formData.name,
-            title: formData.name,
-            description: formData.description,
-            category: formData.category,
-            brand: formData.brand,
-            price: numericPrice,
-            compare_at_price: numericCompareAt,
-            sku: formData.sku,
-            weight: numericWeight,
-            image_url: formData.imageUrl,
-            stock: numericStock,
-          })
-          .catch(() =>
-            apiClient.patch(`/products/${editingProduct.id}`, {
-              title: formData.name,
-              price: numericPrice,
-            })
-          )
-          .catch(() => null);
+        await apiClient.patch(`/catalog/products/${editingProduct.id}`, {
+          name: formData.name,
+          title: formData.name,
+          description: formData.description,
+          category: formData.category,
+          brand: formData.brand,
+          price: numericPrice,
+          compare_at_price: numericCompareAt,
+          sku: formData.sku,
+          weight: numericWeight,
+          image_url: formData.imageUrl,
+          stock: numericStock,
+        });
 
         setProducts((prev) =>
           prev.map((p) =>
@@ -390,31 +380,22 @@ export default function AdminProductsPage() {
         });
       } else {
         // Add flow
-        const newId = `prod-${Date.now()}`;
-        await apiClient
-          .post("/catalog/products", {
-            name: formData.name,
-            title: formData.name,
-            description: formData.description,
-            category: formData.category,
-            brand: formData.brand,
-            price: numericPrice,
-            compare_at_price: numericCompareAt,
-            sku: formData.sku,
-            weight: numericWeight,
-            image_url: formData.imageUrl,
-            stock: numericStock,
-          })
-          .catch(() =>
-            apiClient.post("/products", {
-              title: formData.name,
-              price: numericPrice,
-            })
-          )
-          .catch(() => null);
+        const created = await apiClient.post<{ id: string }>("/catalog/products", {
+          name: formData.name,
+          title: formData.name,
+          description: formData.description,
+          category: formData.category,
+          brand: formData.brand,
+          price: numericPrice,
+          compare_at_price: numericCompareAt,
+          sku: formData.sku,
+          weight: numericWeight,
+          image_url: formData.imageUrl,
+          stock: numericStock,
+        });
 
         const newProduct: AdminProduct = {
-          id: newId,
+          id: String(created.data?.id ?? crypto.randomUUID()),
           name: formData.name,
           description: formData.description,
           category: formData.category,
@@ -452,10 +433,7 @@ export default function AdminProductsPage() {
 
   const handleDeleteProduct = async (id: string) => {
     try {
-      await apiClient
-        .delete(`/catalog/products/${id}`)
-        .catch(() => apiClient.delete(`/products/${id}`))
-        .catch(() => null);
+      await apiClient.delete(`/catalog/products/${id}`);
 
       setProducts((prev) => prev.filter((p) => p.id !== id));
       setIsDeletingId(null);

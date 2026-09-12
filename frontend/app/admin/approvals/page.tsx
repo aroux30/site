@@ -387,15 +387,12 @@ export default function AdminApprovalsPage() {
 
     setIsSubmittingAction(true);
     try {
-      // Try sending to backend API
-      try {
-        await apiClient.post(`/approvals/${actionTarget.id}/action`, {
-          action: actionType,
-          comment: actionComment.trim() || undefined,
-        });
-      } catch {
-        // Fallback simulation if backend endpoint is in offline/mock environment
-      }
+      // Backend is the source of truth: a failed action must surface as an
+      // error, never be simulated locally.
+      await apiClient.post(`/approvals/${actionTarget.id}/action`, {
+        action: actionType,
+        comment: actionComment.trim() || undefined,
+      });
 
       // Update state locally
       const updatedAction: ApprovalAction = {

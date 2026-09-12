@@ -1,17 +1,13 @@
 # ---- Base ----
-FROM node:20-alpine AS base
+FROM node:22-alpine AS base
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
 # ---- Dependencies ----
 FROM base AS deps
-COPY package.json package-lock.json* yarn.lock* pnpm-lock.yaml* ./
-RUN \
-  if [ -f yarn.lock ]; then yarn install --frozen-lockfile; \
-  elif [ -f package-lock.json ]; then npm ci || npm install; \
-  elif [ -f pnpm-lock.yaml ]; then corepack enable pnpm && pnpm install --frozen-lockfile; \
-  else echo "No lockfile found." && npm install; \
-  fi
+COPY package.json package-lock.json ./
+# Lockfile-only install: reproducible builds, no silent npm install fallback
+RUN npm ci --legacy-peer-deps
 
 # ---- Build ----
 FROM base AS builder

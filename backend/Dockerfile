@@ -32,8 +32,10 @@ COPY app/__init__.py app/__init__.py
 RUN python -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
+# Production dependencies only — dev/test tooling (pytest, ruff, ...)
+# must never ship in the runtime image.
 RUN pip install --upgrade pip setuptools wheel && \
-    pip install ".[dev]"
+    pip install "."
 
 # ── Stage 2: Runtime ─────────────────────────────────────────────────────
 FROM python:3.12-slim AS production

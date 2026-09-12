@@ -100,8 +100,26 @@ if [ "$PREVIOUS_COMMIT" = "$CURRENT_COMMIT" ]; then
 fi
 
 #----------------------------------------------------------------------
-# Step 2: Build Docker images
+# Step 2: Free disk space, then build Docker images
 #----------------------------------------------------------------------
+# The production server has run out of disk during image builds
+# ("E: You don't have enough free space in /var/cache/apt/archives/").
+# Prune unused Docker data BEFORE building; abort if space is still tight.
+DOCKER_ROOT="$(docker info --format '{{.DockerRootDir}}' 2>/dev/null || echo /var/lib/docker)"
+AVAILABLE_MB="$(df -Pm "$DOCKER_ROOT" 2>/dev/null | tail -1 | awk '{print $4}')"
+log "Disk space available for Docker (${DOCKER_ROOT}): ${AVAILABLE_MB:-?} MB"
+
+log "Pruning unused Docker data (containers/images/build cache; volumes kept)..."
+docker system prune -af || warn "docker system prune failed (non-fatal)"
+docker builder prune -af || true
+
+AVAILABLE_MB="$(df -Pm "$DOCKER_ROOT" 2>/dev/null | tail -1 | awk '{print $4}')"
+log "Disk space after prune: ${AVAILABLE_MB:-?} MB"
+if [ -n "$AVAILABLE_MB" ] && [ "$AVAILABLE_MB" -lt 3072 ]; then
+    error "Only ${AVAILABLE_MB} MB free for Docker — refusing to build (needs ~3 GB). Free disk space manually and re-run."
+    exit 1
+fi
+
 log "Building Docker images..."
 docker compose -f $COMPOSE_FILE build --no-cache
 

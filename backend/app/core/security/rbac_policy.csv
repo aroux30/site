@@ -1,0 +1,13 @@
+p, super_admin, *, *, *
+p, admin, default, users, read
+p, admin, default, users, write
+p, admin, default, orders, *
+p, admin, default, catalog, *
+p, admin, default, analytics, read
+p, vendor, default, catalog, write
+p, vendor, default, inventory, write
+p, vendor, default, orders, read
+p, support, default, support, *
+p, customer, default, orders, read
+p, customer, default, reviews, write
+g, admin, customer, default

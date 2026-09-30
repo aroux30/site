@@ -1,0 +1,322 @@
+"""Pydantic v2 schemas for the Orders module."""
+
+from __future__ import annotations
+
+import contextlib
+import uuid
+from datetime import datetime
+from typing import Any
+
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+
+from app.modules.orders.domain.models import OrderStatus
+
+# ── Order Item ─────────────────────────────────────────────────────────────
+
+
+class OrderItemResponse(BaseModel):
+    """Single line-item inside an order."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: uuid.UUID
+    variant_id: uuid.UUID
+    product_name: str
+    variant_info: str | None = None
+    sku: str
+    quantity: int
+    unit_price: int = Field(description="Unit price in Rials (BigInteger)")
+    total_price: int = Field(description="Line total in Rials (BigInteger)")
+    custom_fields: dict[str, Any] | None = Field(
+        None, description="Dynamic category-field answers captured at checkout"
+    )
+
+
+# ── Status History / Timeline ──────────────────────────────────────────────
+
+
+class OrderStatusHistoryResponse(BaseModel):
+    """Single status-transition record."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: uuid.UUID
+    from_status: str | None = None
+    to_status: str
+    changed_by: uuid.UUID | None = None
+    actor_id: uuid.UUID | None = None
+    correlation_id: str | None = None
+    reason: str | None = None
+    extra_data: dict[str, Any] | None = None
+    created_at: datetime
+
+    @model_validator(mode="before")
+    @classmethod
+    def populate_audit_fields(cls, data: Any) -> Any:
+        if hasattr(data, "changed_by"):
+            cb = getattr(data, "changed_by", None)
+            if not getattr(data, "actor_id", None):
+                with contextlib.suppress(Exception):
+                    data.actor_id = cb
+            extra = getattr(data, "extra_data", None)
+            if isinstance(extra, dict) and "correlation_id" in extra:
+                with contextlib.suppress(Exception):
+                    data.correlation_id = extra["correlation_id"]
+        elif isinstance(data, dict):
+            if "changed_by" in data and "actor_id" not in data:
+                data["actor_id"] = data["changed_by"]
+            extra = data.get("extra_data")
+            if (
+                isinstance(extra, dict)
+                and "correlation_id" in extra
+                and "correlation_id" not in data
+            ):
+                data["correlation_id"] = extra["correlation_id"]
+        return data
+
+
+class OrderTimelineResponse(BaseModel):
+    """Complete timeline for an order."""
+
+    order_id: uuid.UUID
+    order_number: str
+    current_status: str
+    events: list[OrderStatusHistoryResponse]
+
+
+# ── Order ──────────────────────────────────────────────────────────────────
+
+
+class OrderResponse(BaseModel):
+    """Full order representation including items and timeline."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: uuid.UUID
+    order_number: str
+    status: str
+    user_id: uuid.UUID
+
+    subtotal: int = Field(description="Subtotal in Rials")
+    shipping_cost: int = Field(description="Shipping cost in Rials")
+    tax: int = Field(description="Tax in Rials")
+    discount_amount: int = Field(description="Total discount in Rials")
+    total: int = Field(description="Grand total in Rials")
+
+    shipping_address_snapshot: dict[str, Any] | None = None
+    notes: str | None = None
+    ip_address: str | None = None
+
+    items: list[OrderItemResponse] = Field(default_factory=list)
+    timeline: list[OrderStatusHistoryResponse] = Field(default_factory=list)
+
+    created_at: datetime
+    updated_at: datetime
+
+    @field_validator("shipping_address_snapshot")
+    @classmethod
+    def mask_shipping_address(cls, v: dict[str, Any] | None) -> dict[str, Any] | None:
+        if isinstance(v, dict):
+            from app.core.security.data_protection import mask_address
+
+            masked = dict(v)
+            for addr_key in ("address", "full_address", "street_address", "postal_address"):
+                if masked.get(addr_key):
+                    masked[addr_key] = mask_address(str(masked[addr_key]))
+            return masked
+        return v
+
+
+class OrderListItem(BaseModel):
+    """Lightweight order summary used in list endpoints (no timeline)."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: uuid.UUID
+    order_number: str
+    status: str
+    user_id: uuid.UUID
+    subtotal: int
+    shipping_cost: int
+    tax: int
+    discount_amount: int
+    total: int
+    created_at: datetime
+    updated_at: datetime
+    # Admin-list extras; None in customer-facing list responses
+    items_count: int | None = None
+    # Real line-item briefs (admin lists only) so kanban/detail surfaces can
+    # show actual lines instead of fabricating placeholders (QA B20).
+    items: list[OrderItemResponse] | None = None
+    customer_name: str | None = None
+    customer_phone: str | None = None
+
+
+class PaginationMeta(BaseModel):
+    """Pagination metadata."""
+
+    page: int
+    page_size: int
+    total_items: int
+    total_pages: int
+    has_next: bool
+    has_prev: bool
+
+
+class OrderListResponse(BaseModel):
+    """Paginated list of orders."""
+
+    items: list[OrderListItem]
+    meta: PaginationMeta
+
+
+# ── Requests ───────────────────────────────────────────────────────────────
+
+
+class OrderCancelRequest(BaseModel):
+    """User request to cancel an order."""
+
+    reason: str = Field(
+        ...,
+        min_length=3,
+        max_length=1000,
+        description="Reason for cancellation",
+    )
+
+
+class AdminOrderUpdateRequest(BaseModel):
+    """Admin request to update order status."""
+
+    status: str = Field(..., description="New order status")
+    notes: str | None = Field(
+        None,
+        max_length=2000,
+        description="Internal note / reason for the status change",
+    )
+
+
+class OrderBulkStatusRequest(BaseModel):
+    """Admin request to move several orders to one status.
+
+    One target for the whole batch: a bulk action that allowed a per-order
+    target would let the operator smuggle a refund onto one order inside an
+    otherwise routine "mark as shipped" run.
+    """
+
+    ids: list[uuid.UUID] = Field(..., min_length=1, max_length=100)
+    status: str = Field(..., description="Target order status applied to every id")
+    notes: str | None = Field(
+        None,
+        max_length=2000,
+        description="Internal note / reason recorded on every status change",
+    )
+
+
+class OrderBulkStatusResultItem(BaseModel):
+    """Outcome for one order in a bulk status run."""
+
+    order_id: uuid.UUID
+    order_number: str | None = None
+    status: OrderStatus
+    from_status: OrderStatus | None = None
+    success: bool
+    error_code: str | None = None
+    detail: str | None = None
+
+
+class OrderBulkStatusResult(BaseModel):
+    """Per-order outcome of a bulk status run.
+
+    ``succeeded``/``failed`` are the whole truth of the batch: a partial run is
+    reported as partial, never as a blanket success. ``failed`` carries the
+    human-readable reason per order (an illegal transition, a delivered
+    digital good that blocks cancellation, a missing row).
+    """
+
+    requested: int
+    succeeded: int
+    failed: int
+    items: list[OrderBulkStatusResultItem]
+
+
+# ── Filters ────────────────────────────────────────────────────────────────
+
+
+class OrderFilterParams(BaseModel):
+    """Query parameters for filtering orders."""
+
+    status: str | None = None
+    from_date: datetime | None = None
+    to_date: datetime | None = None
+    min_total: int | None = None
+    max_total: int | None = None
+    search: str | None = Field(None, description="Search in order_number")
+
+
+class PaginationParams(BaseModel):
+    """Query parameters for pagination."""
+
+    page: int = Field(1, ge=1)
+    page_size: int = Field(20, ge=1, le=100)
+
+
+# ── Returns (RMA) Schemas ─────────────────────────────────────────────────
+
+
+class ReturnItemRequest(BaseModel):
+    order_item_id: uuid.UUID
+    variant_id: uuid.UUID
+    quantity: int = Field(1, ge=1)
+    reason: str = Field(..., description="Reason for returning the item")
+    customer_notes: str | None = Field(None, max_length=1000)
+
+
+class ReturnCreateRequest(BaseModel):
+    items: list[ReturnItemRequest] = Field(..., min_length=1)
+
+
+class ReturnItemResponse(BaseModel):
+    order_item_id: uuid.UUID
+    variant_id: uuid.UUID
+    quantity: int
+    reason: str
+    customer_notes: str | None = None
+    inspection_outcome: str | None = None
+
+
+class AdminReturnActionRequest(BaseModel):
+    """Admin action on an RMA — the target must be a valid state-machine move."""
+
+    target: str = Field(..., description="Target RMA status (state machine validated)")
+    notes: str | None = None
+    inspection_outcomes: dict[str, str] | None = Field(
+        None,
+        description=(
+            "{order_item_id: passed|damaged_by_customer|defective_confirmed} (inspect action)"
+        ),
+    )
+    refund_amount: int | None = Field(
+        None, ge=0, description="Refund amount in IRR (refund action)"
+    )
+
+
+class AdminReturnListResponse(BaseModel):
+    items: list[OrderReturnResponse]
+    total: int
+    page: int
+    page_size: int
+
+
+class OrderReturnResponse(BaseModel):
+    id: uuid.UUID
+    rma_number: str | None = None
+    order_id: uuid.UUID
+    user_id: uuid.UUID
+    status: str
+    items: list[ReturnItemResponse]
+    created_at: datetime
+    approved_at: datetime | None = None
+    inspected_at: datetime | None = None
+    refunded_at: datetime | None = None
+    admin_notes: str | None = None
+    refund_amount: int = 0

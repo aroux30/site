@@ -1,0 +1,160 @@
+"""Pydantic v2 schemas for the inventory module."""
+
+from __future__ import annotations
+
+import uuid
+from datetime import datetime
+
+from pydantic import BaseModel, ConfigDict, Field
+
+from app.modules.inventory.domain.models import ReservationStatus, TransactionType
+
+# ── Inventory ──────────────────────────────────────────────────────────────
+
+
+class InventoryResponse(BaseModel):
+    """Public representation of inventory levels for a variant."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: uuid.UUID
+    variant_id: uuid.UUID
+    available: int = Field(description="Quantity available for sale")
+    reserved: int = Field(description="Quantity held by active reservations")
+    committed: int = Field(description="Quantity committed to confirmed orders")
+    damaged: int = Field(description="Quantity marked as damaged / unsellable")
+    incoming: int = Field(description="Quantity expected from suppliers")
+    low_stock_threshold: int
+    backorder_allowed: bool
+    track_inventory: bool
+    created_at: datetime
+    updated_at: datetime
+
+    @property
+    def total_on_hand(self) -> int:
+        return self.available + self.reserved + self.committed
+
+    @property
+    def is_low_stock(self) -> bool:
+        return self.available <= self.low_stock_threshold
+
+    @property
+    def available_toman(self) -> str:
+        """Human-readable display — not stored; computed on read."""
+        return f"{self.available:,}"
+
+
+class InventoryAdjustRequest(BaseModel):
+    """Admin request to manually adjust stock levels."""
+
+    quantity: int = Field(..., description="Positive to add, negative to remove")
+    type: TransactionType = Field(
+        ..., description="Reason for adjustment (received, damaged, adjusted, etc.)"
+    )
+    reference_type: str | None = Field(
+        None,
+        max_length=50,
+        description="External reference category (e.g. 'purchase_order', 'return')",
+    )
+    reference_id: uuid.UUID | None = Field(None, description="External reference identifier")
+    notes: str | None = Field(None, max_length=2000, description="Free-text note")
+
+
+# ── Transactions ───────────────────────────────────────────────────────────
+
+
+class InventoryTransactionResponse(BaseModel):
+    """A single inventory movement record."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: uuid.UUID
+    inventory_item_id: uuid.UUID
+    quantity: int
+    type: TransactionType
+    reference_type: str | None = None
+    reference_id: uuid.UUID | None = None
+    notes: str | None = None
+    created_at: datetime
+
+
+# ── Reservations ───────────────────────────────────────────────────────────
+
+
+class ReservationResponse(BaseModel):
+    """Representation of an inventory reservation."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: uuid.UUID
+    inventory_item_id: uuid.UUID
+    order_id: uuid.UUID | None = None
+    cart_id: uuid.UUID | None = None
+    quantity: int
+    expires_at: datetime
+    status: ReservationStatus
+    created_at: datetime
+
+
+# ── Low-stock alert ────────────────────────────────────────────────────────
+
+
+class LowStockAlert(BaseModel):
+    """Alert payload for variants whose available stock is at or below threshold."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: uuid.UUID
+    variant_id: uuid.UUID
+    available: int
+    low_stock_threshold: int
+    reserved: int
+    committed: int
+
+
+# ── List / pagination helpers ──────────────────────────────────────────────
+
+
+class InventoryListResponse(BaseModel):
+    items: list[InventoryResponse]
+    total: int
+    page: int
+    page_size: int
+
+
+class TransactionListResponse(BaseModel):
+    items: list[InventoryTransactionResponse]
+    total: int
+    page: int
+    page_size: int
+
+
+# ── Reorder rules (Odoo stock.warehouse.orderpoint concept, clean-room) ────
+
+
+class ReorderRuleUpsertRequest(BaseModel):
+    """Create or update the reorder rule for one variant in one warehouse."""
+
+    variant_id: uuid.UUID
+    warehouse_id: uuid.UUID | None = None
+    min_quantity: int = Field(0, ge=0)
+    reorder_to: int = Field(0, ge=0)
+    is_active: bool = True
+
+
+class ReorderRuleResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: uuid.UUID
+    variant_id: uuid.UUID
+    warehouse_id: uuid.UUID
+    min_quantity: int
+    reorder_to: int
+    is_active: bool
+    created_at: datetime
+    updated_at: datetime
+
+
+class ReorderRuleListResponse(BaseModel):
+    items: list[ReorderRuleResponse]
+    total: int

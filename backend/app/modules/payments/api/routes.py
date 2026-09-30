@@ -1,0 +1,410 @@
+"""Payment module API routes."""
+
+from __future__ import annotations
+
+import uuid
+
+import structlog
+from fastapi import APIRouter, Depends, Header, HTTPException, Request, status
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.core.database.session import get_db
+from app.core.security.dependencies import (
+    RequirePermissions,
+    get_current_user_id,
+)
+from app.core.security.rate_limiter import limiter
+from app.modules.payments.api.fintech_routes import router as fintech_router
+from app.modules.payments.api.saved_method_routes import router as saved_method_router
+from app.modules.payments.application import payment_service
+from app.modules.payments.infrastructure.provider_factory import get_payment_provider
+from app.modules.payments.schemas.payment import (
+    CardReceiptSubmitRequest,
+    PaymentCallbackData,
+    PaymentCreateRequest,
+    PaymentMethodsResponse,
+    PaymentRejectRequest,
+    PaymentResponse,
+    PaymentVerifyRequest,
+    RefundRequest,
+    RefundResponse,
+)
+
+logger: structlog.stdlib.BoundLogger = structlog.get_logger(__name__)
+
+router = APIRouter()
+
+# Admin router mounted at /api/v1/admin/payments via main.py _include_routers
+admin_router = APIRouter(
+    prefix="/admin/payments",
+    tags=["admin-payments"],
+)
+
+_require_payment_manage = Depends(RequirePermissions("payments:manage"))
+
+# ── Payments upgrade v1: saved cards, installments, split tender ──────────
+# Included HERE, before the single-segment catch-alls below (``/{payment_id}``
+# and friends): FastAPI matches routes in registration order, so registering
+# this sub-router last would make ``GET /payments/saved-methods`` resolve to
+# ``GET /{payment_id}`` and fail UUID parsing instead of listing saved cards.
+router.include_router(saved_method_router)
+
+
+# ── Payment Methods ───────────────────────────────────────────────────────
+
+
+@router.get(
+    "/methods",
+    response_model=PaymentMethodsResponse,
+    summary="List available payment methods",
+)
+async def list_payment_methods() -> PaymentMethodsResponse:
+    """Return the list of payment providers available to the buyer.
+
+    Includes online gateways (Zarinpal, IDPay), Cryptocurrency (NowPayments / USDT),
+    direct Card-to-Card transfer, and internal wallet.
+    """
+    return payment_service.get_payment_methods()
+
+
+# ── Create Payment ────────────────────────────────────────────────────────
+
+
+@router.post(
+    "",
+    response_model=PaymentResponse,
+    status_code=201,
+    summary="Create a new payment",
+)
+@limiter.limit("10/minute")
+async def create_payment(
+    request: Request,
+    body: PaymentCreateRequest,
+    idempotency_key: str | None = Header(
+        None,
+        alias="Idempotency-Key",
+        max_length=255,
+        description="Client-generated idempotency key to prevent duplicate payments",
+    ),
+    user_id: uuid.UUID = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db),
+) -> PaymentResponse:
+    """Initiate a payment for an order.
+
+    On success the response includes a ``gateway_url`` the client should
+    redirect the user to.
+    """
+    # The shared apiClient auto-injects an Idempotency-Key header on financial
+    # mutations, while direct callers set the body field. Accept either —
+    # reading only the body silently ignored the header and every double-click
+    # or network retry could create a second payment.
+    return await payment_service.create_payment(
+        db,
+        user_id=user_id,
+        order_id=body.order_id,
+        provider=body.provider.value,
+        amount=body.amount,
+        idempotency_key=idempotency_key or body.idempotency_key,
+    )
+
+
+# ── Get Payment ───────────────────────────────────────────────────────────
+
+
+@router.get(
+    "/by-order/{order_id}",
+    response_model=PaymentResponse | None,
+    summary="Get the active card-to-card payment for an order",
+)
+async def get_order_card_transfer(
+    order_id: uuid.UUID,
+    user_id: uuid.UUID = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db),
+) -> PaymentResponse | None:
+    """Return the order's pending card-to-card payment, or null if there is none.
+
+    This backs the receipt-submission screen a customer returns to after
+    abandoning checkout: the page needs the merchant card details and the
+    payment id to accept a slip, and neither can be reconstructed client-side.
+    """
+    return await payment_service.get_pending_card_transfer(db, order_id=order_id, user_id=user_id)
+
+
+@router.get(
+    "/{payment_id}",
+    response_model=PaymentResponse,
+    summary="Get payment details",
+)
+async def get_payment(
+    payment_id: uuid.UUID,
+    user_id: uuid.UUID = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db),
+) -> PaymentResponse:
+    """Fetch a single payment record by ID."""
+    return await payment_service.get_payment(db, payment_id=payment_id, user_id=user_id)
+
+
+# ── Card-to-Card Receipt Submission ───────────────────────────────────────
+
+
+@router.post(
+    "/{payment_id}/card-receipt",
+    response_model=PaymentResponse,
+    summary="Submit card-to-card transfer receipt / reference",
+)
+async def submit_card_receipt(
+    payment_id: uuid.UUID,
+    body: CardReceiptSubmitRequest,
+    user_id: uuid.UUID = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db),
+) -> PaymentResponse:
+    """Submit bank tracking code / receipt for a card-to-card payment.
+
+    Keeps the payment status in ``PENDING`` awaiting administrator approval.
+    """
+    return await payment_service.submit_card_receipt(
+        db,
+        payment_id=payment_id,
+        user_id=user_id,
+        tracking_code=body.tracking_code,
+        card_pan=body.card_pan,
+        receipt_image_url=body.receipt_image_url,
+        notes=body.notes,
+    )
+
+
+# ── Verify Payment ────────────────────────────────────────────────────────
+
+
+@router.post(
+    "/{payment_id}/verify",
+    response_model=PaymentResponse,
+    summary="Verify a payment after gateway redirect",
+)
+@limiter.limit("30/minute")
+async def verify_payment(
+    request: Request,
+    payment_id: uuid.UUID,
+    body: PaymentVerifyRequest,
+    user_id: uuid.UUID = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db),
+) -> PaymentResponse:
+    """Verify a payment after the user returns from the gateway.
+
+    The client should call this endpoint with the ``authority`` and ``status``
+    values received from the gateway redirect.  Only the order owner may
+    verify a payment.
+    """
+    return await payment_service.verify_payment(
+        db,
+        payment_id=payment_id,
+        authority=body.authority,
+        status=body.status,
+        user_id=user_id,
+    )
+
+
+# ── Refund Payment (Admin) ───────────────────────────────────────────────
+
+
+@router.post(
+    "/{payment_id}/refund",
+    response_model=RefundResponse,
+    summary="Refund a payment (admin)",
+    dependencies=[Depends(RequirePermissions("payments:refund"))],
+)
+async def refund_payment(
+    payment_id: uuid.UUID,
+    body: RefundRequest,
+    user_id: uuid.UUID = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db),
+) -> RefundResponse:
+    """Request a refund for a completed payment.
+
+    Requires the ``payments:refund`` permission.
+    """
+    return await payment_service.refund_payment(
+        db,
+        payment_id=payment_id,
+        amount=body.amount,
+        reason=body.reason,
+        actor_id=user_id,
+    )
+
+
+# ── Admin Approve / Reject (on router and admin_router) ───────────────────
+
+
+@router.post(
+    "/{payment_id}/approve",
+    response_model=PaymentResponse,
+    summary="Approve payment (admin)",
+    dependencies=[_require_payment_manage],
+)
+@router.post(
+    "/admin/{payment_id}/approve",
+    response_model=PaymentResponse,
+    summary="Approve payment alias (admin)",
+    dependencies=[_require_payment_manage],
+    include_in_schema=False,
+)
+@admin_router.post(
+    "/{payment_id}/approve",
+    response_model=PaymentResponse,
+    summary="Approve payment via admin router",
+    dependencies=[_require_payment_manage],
+)
+async def approve_payment(
+    payment_id: uuid.UUID,
+    user_id: uuid.UUID = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db),
+) -> PaymentResponse:
+    """Admin approves a pending payment (e.g. card-to-card receipt verified)."""
+    return await payment_service.approve_payment(
+        db,
+        payment_id=payment_id,
+        admin_user_id=user_id,
+    )
+
+
+@router.post(
+    "/{payment_id}/reject",
+    response_model=PaymentResponse,
+    summary="Reject payment (admin)",
+    dependencies=[_require_payment_manage],
+)
+@router.post(
+    "/admin/{payment_id}/reject",
+    response_model=PaymentResponse,
+    summary="Reject payment alias (admin)",
+    dependencies=[_require_payment_manage],
+    include_in_schema=False,
+)
+@admin_router.post(
+    "/{payment_id}/reject",
+    response_model=PaymentResponse,
+    summary="Reject payment via admin router",
+    dependencies=[_require_payment_manage],
+)
+async def reject_payment(
+    payment_id: uuid.UUID,
+    body: PaymentRejectRequest | None = None,
+    user_id: uuid.UUID = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db),
+) -> PaymentResponse:
+    """Admin rejects a pending payment (e.g. invalid receipt)."""
+    reason = body.reason if body else None
+    return await payment_service.reject_payment(
+        db,
+        payment_id=payment_id,
+        admin_user_id=user_id,
+        reason=reason,
+    )
+
+
+# ── Webhook Callback (Public) ────────────────────────────────────────────
+
+
+@router.post(
+    "/webhooks/{provider}",
+    response_model=PaymentResponse,
+    summary="Payment gateway webhook / callback",
+    include_in_schema=False,
+)
+async def webhook_callback(
+    provider: str,
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+) -> PaymentResponse:
+    """Receive and process an asynchronous callback from a payment gateway.
+
+    This endpoint is public (no auth required) because payment gateways
+    call it directly. Signature verification is handled internally per provider.
+    """
+    raw_body = await request.body()
+
+    # Parse body – gateways may send form-encoded or JSON
+    content_type = request.headers.get("content-type", "")
+    if "application/json" in content_type:
+        import json
+
+        raw = json.loads(raw_body.decode("utf-8")) if raw_body else {}
+    else:
+        form = await request.form()
+        raw = dict(form)
+
+    # IPN signature verification for NowPayments — fail-closed: a configured
+    # secret makes the signature mandatory, and production rejects unsigned
+    # webhooks outright when the secret is missing.
+    prov_lower = provider.lower()
+    if prov_lower == "wallet":
+        # Wallet payments have no gateway: verification happens through the
+        # authenticated /{payment_id}/verify endpoint, which enforces
+        # ownership. The unauthenticated webhook must never complete one —
+        # the wallet provider's verify always reports success.
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Unknown webhook provider",
+        )
+    if prov_lower in ("crypto", "nowpayments"):
+        from app.core.config.settings import get_settings
+
+        try:
+            crypto_provider = get_payment_provider("crypto")
+            secret_configured = bool(getattr(crypto_provider, "ipn_secret_configured", False))
+        except ValueError:
+            crypto_provider = None
+            secret_configured = False
+
+        sig_header = request.headers.get("x-nowpayments-sig")
+        if secret_configured and crypto_provider is not None:
+            if not sig_header:
+                await logger.awarning(
+                    "nowpayments_ipn_signature_missing",
+                    provider=provider,
+                )
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="Missing IPN signature",
+                )
+            if not crypto_provider.verify_ipn_signature(raw_body, sig_header):
+                await logger.awarning(
+                    "nowpayments_ipn_signature_mismatch",
+                    provider=provider,
+                )
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Invalid IPN signature",
+                )
+        elif get_settings().ENVIRONMENT == "production":
+            await logger.aerror(
+                "nowpayments_ipn_secret_not_configured",
+                provider=provider,
+            )
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="Crypto payment webhook is not configured (missing IPN secret)",
+            )
+        else:
+            await logger.awarning(
+                "nowpayments_ipn_unsigned_accepted_dev_only",
+                provider=provider,
+            )
+
+    await logger.ainfo(
+        "payment_webhook_received",
+        provider=provider,
+        payload_keys=list(raw.keys()) if isinstance(raw, dict) else None,
+    )
+
+    callback_data = PaymentCallbackData.model_validate(raw)
+
+    return await payment_service.process_callback(
+        db,
+        provider=provider,
+        callback_data=callback_data,
+    )
+
+
+# ── Fintech sub-router: Card2Card, Direct Pay, Gateways (Karta Phase 3/5) ──
+router.include_router(fintech_router)

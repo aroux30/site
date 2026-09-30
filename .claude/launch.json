@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "frontend",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "frontend", "run", "dev"],
+      "port": 3000
+    },
+    {
+      "name": "arch-graph",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["-m", "http.server", "8777", "--directory", "graphify-out"],
+      "port": 8777
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "name": "فروشگاه آنلاین",
+  "short_name": "فروشگاه",
+  "description": "پلتفرم فروشگاه آنلاین ایرانی",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#ffffff",
+  "theme_color": "#10b981",
+  "dir": "rtl",
+  "lang": "fa",
+  "icons": [
+    {
+      "src": "/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ],
+  "categories": ["shopping"]
+}

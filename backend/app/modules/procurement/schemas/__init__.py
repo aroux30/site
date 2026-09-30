@@ -1,0 +1,1 @@
+"""Procurement pydantic contracts."""

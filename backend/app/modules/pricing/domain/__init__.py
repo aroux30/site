@@ -1,0 +1,1 @@
+"""pricing domain package."""

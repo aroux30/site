@@ -1,0 +1,134 @@
+# Production hardening overlay.
+#
+# Usage (both files together — the overlay assumes the base):
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+#
+# What this overlay changes, and why each one matters:
+#   1. Data stores publish NO host ports — only nginx is reachable from the
+#      network. In the base file Postgres/Redis/ES/MinIO bind to 127.0.0.1 for
+#      developer convenience; on a server that loopback is still one SSRF or
+#      one misconfigured container away from the whole database.
+#   2. Elasticsearch turns security ON. The base stack runs with it off so a
+#      fresh clone works; a production search node with no auth is a data
+#      exfiltration path.
+#   3. Resource limits, so one runaway worker cannot take the host down.
+#   4. Restart policy and log rotation, so a long-running host does not fill
+#      its disk with container logs.
+#
+# Required in .env for this file:
+#   ELASTICSEARCH_PASSWORD, POSTGRES_PASSWORD, REDIS_PASSWORD,
+#   MINIO_ROOT_PASSWORD, and all the values scripts/preflight_production.py checks.
+
+services:
+  postgres:
+    ports: !reset []          # no host port at all
+    deploy:
+      resources:
+        limits: { cpus: "2.0", memory: 2g }
+    logging:
+      driver: json-file
+      options: { max-size: "20m", max-file: "5" }
+
+  redis:
+    ports: !reset []
+    deploy:
+      resources:
+        limits: { cpus: "1.0", memory: 768m }
+    logging:
+      driver: json-file
+      options: { max-size: "10m", max-file: "3" }
+
+  elasticsearch:
+    ports: !reset []
+    environment:
+      xpack.security.enabled: "true"
+      # The application authenticates as the elastic superuser with the
+      # password from .env. A dedicated role would be tighter; it requires a
+      # bootstrap step this repo does not automate, and an unauthenticated
+      # node is strictly worse than a superuser-authenticated one.
+      ELASTIC_PASSWORD: ${ELASTICSEARCH_PASSWORD:?ELASTICSEARCH_PASSWORD must be set in .env}
+      ES_JAVA_OPTS: "-Xms1g -Xmx1g"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS -u elastic:${ELASTICSEARCH_PASSWORD} http://localhost:9200/_cluster/health || exit 1"]
+    deploy:
+      resources:
+        limits: { cpus: "2.0", memory: 2g }
+    logging:
+      driver: json-file
+      options: { max-size: "20m", max-file: "5" }
+
+  minio:
+    ports: !reset []
+    deploy:
+      resources:
+        limits: { cpus: "1.0", memory: 1g }
+    logging:
+      driver: json-file
+      options: { max-size: "10m", max-file: "3" }
+
+  backend:
+    ports: !reset []
+    environment:
+      ENVIRONMENT: production
+      DEBUG: "false"
+      # Two trusted proxies: host nginx (TLS) then container nginx. Raising
+      # this lets a client spoof its own X-Forwarded-For and bypass per-IP
+      # rate limits.
+      TRUSTED_PROXY_COUNT: "2"
+      ELASTICSEARCH_URL: http://elasticsearch:9200
+    deploy:
+      resources:
+        limits: { cpus: "4.0", memory: 2g }
+    logging:
+      driver: json-file
+      options: { max-size: "30m", max-file: "5" }
+
+  worker:
+    environment:
+      ENVIRONMENT: production
+      # Outbox drain and scheduled work are throughput-bound, not latency-bound;
+      # concurrency above the CPU limit just adds context switching.
+      CELERY_CONCURRENCY: "8"
+    deploy:
+      resources:
+        limits: { cpus: "2.0", memory: 1.5g }
+    logging:
+      driver: json-file
+      options: { max-size: "30m", max-file: "5" }
+
+  beat:
+    environment:
+      ENVIRONMENT: production
+    deploy:
+      resources:
+        limits: { cpus: "0.5", memory: 384m }
+    logging:
+      driver: json-file
+      options: { max-size: "10m", max-file: "3" }
+
+  frontend:
+    ports: !reset []
+    environment:
+      NODE_ENV: production
+      # Keep the Node heap below the container limit so the process is killed
+      # by its own OOM handling rather than the kernel OOM killer.
+      NODE_OPTIONS: "--max-old-space-size=1024"
+    deploy:
+      resources:
+        limits: { cpus: "2.0", memory: 1.5g }
+    logging:
+      driver: json-file
+      options: { max-size: "20m", max-file: "5" }
+
+  nginx:
+    # Published on 80 only. TLS terminates at the host nginx (nginx/nginx.prod.conf)
+    # so certificates live outside the compose project and certbot can renew
+    # them without touching containers.
+    ports:
+      - "80:80"
+    deploy:
+      resources:
+        limits: { cpus: "1.0", memory: 256m }
+    logging:
+      driver: json-file
+      options: { max-size: "20m", max-file: "5" }

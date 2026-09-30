@@ -1,0 +1,542 @@
+"use client";
+
+import React from "react";
+import Link from "next/link";
+import {
+  TrendingUp,
+  ShoppingCart,
+  Users,
+  DollarSign,
+  Package,
+  Plus,
+  ArrowUpLeft,
+  ArrowDownLeft,
+  ExternalLink,
+  Settings,
+  Eye,
+  RefreshCw,
+  Clock,
+} from "lucide-react";
+import { Card } from "@/components/ui/card";
+import { DataTable, type DataTableColumn } from "@/components/admin/data-table";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { formatPrice, toPersianDigits } from "@/lib/utils";
+import apiClient from "@/lib/api/client";
+import { useAdminQuery } from "@/lib/api/admin-query";
+
+const DASHBOARD_QUERY_KEY = "admin-dashboard" as const;
+
+/* ------------------------------------------------------------------ */
+/*  Type Definitions                                                   */
+/* ------------------------------------------------------------------ */
+
+interface KPIData {
+  totalSales: number;
+  salesChange: string;
+  salesIsPositive: boolean;
+
+  ordersCount: number;
+  ordersChange: string;
+  ordersIsPositive: boolean;
+
+  activeCustomers: number;
+  customersChange: string;
+  customersIsPositive: boolean;
+
+  averageOrderValue: number;
+  aovChange: string;
+  aovIsPositive: boolean;
+}
+
+interface RecentOrderPreview {
+  id: string;
+  orderNumber: string;
+  customer: string;
+  date: string;
+  amount: number;
+  status: "pending" | "confirmed" | "processing" | "shipped" | "delivered" | "cancelled";
+}
+
+interface TopProductPreview {
+  id: string;
+  name: string;
+  category: string;
+  salesCount: number;
+  revenue: number;
+}
+
+/* ------------------------------------------------------------------ */
+/*  Persian Status Mappings                                            */
+/* ------------------------------------------------------------------ */
+
+const ORDER_STATUS_CONFIG: Record<
+  RecentOrderPreview["status"],
+  {
+    label: string;
+    variant: "default" | "secondary" | "destructive" | "outline" | "success" | "warning" | "info";
+  }
+> = {
+  pending: { label: "در انتظار", variant: "warning" },
+  confirmed: { label: "تایید شده", variant: "info" },
+  processing: { label: "در حال پردازش", variant: "default" },
+  shipped: { label: "ارسال شده", variant: "info" },
+  delivered: { label: "تحویل داده شده", variant: "success" },
+  cancelled: { label: "لغو شده", variant: "destructive" },
+};
+
+/* ------------------------------------------------------------------ */
+/*  Initial Fallback Data                                              */
+/* ------------------------------------------------------------------ */
+
+const INITIAL_KPIS: KPIData = {
+  totalSales: 0,
+  salesChange: "",
+  salesIsPositive: true,
+
+  ordersCount: 0,
+  ordersChange: "",
+  ordersIsPositive: true,
+
+  activeCustomers: 0,
+  customersChange: "",
+  customersIsPositive: true,
+
+  averageOrderValue: 0,
+  aovChange: "",
+  aovIsPositive: true,
+};
+
+const INITIAL_RECENT_ORDERS: RecentOrderPreview[] = [];
+
+
+
+/* ------------------------------------------------------------------ */
+/*  Main Component                                                     */
+/* ------------------------------------------------------------------ */
+
+export default function AdminDashboardPage() {
+  // One query for the whole dashboard. Every sub-request already degraded to
+  // null on its own (`catch(() => null)`), so a partial outage still rendered
+  // the rest with honest zeros. The queryFn keeps that per-call tolerance but
+  // returns one object, so the widgets can never disagree about which load
+  // they belong to.
+  //
+  // Two fabrications in the old mapping are gone: a missing `created_at` used
+  // to print the literal date "۱۴۰۳/۰۶/۱۹", and a missing customer name used
+  // to print "کاربر سایت". Both invented facts on an ops screen.
+  const {
+    data,
+    loading: isLoading,
+    reload: fetchDashboardData,
+  } = useAdminQuery({
+    queryKey: [DASHBOARD_QUERY_KEY],
+    queryFn: async () => {
+      const [analyticsRes, customersRes, topRes, ordersRes] = await Promise.all([
+        apiClient.get("/analytics/sales").catch(() => null),
+        apiClient.get("/analytics/customers").catch(() => null),
+        apiClient.get("/analytics/products", { params: { limit: 5 } }).catch(() => null),
+        apiClient.get("/orders/admin/orders?page_size=6").catch(() => null),
+      ]);
+
+      const kpis: KPIData = { ...INITIAL_KPIS };
+      const d = analyticsRes?.data;
+      if (d) {
+        kpis.totalSales = Math.trunc((d.total_sales || d.totalRevenue || 0) / 10);
+        kpis.ordersCount = d.total_orders || d.order_count || d.orderCount || 0;
+        kpis.averageOrderValue = Math.trunc((d.average_order_value || d.aov || 0) / 10);
+      }
+      const c = customersRes?.data;
+      if (c) {
+        kpis.activeCustomers = c.total_customers ?? c.active_customers ?? 0;
+      }
+
+      const sellers = Array.isArray(topRes?.data?.best_sellers) ? topRes.data.best_sellers : [];
+      const topProducts: TopProductPreview[] = sellers.slice(0, 5).map((p: any, i: number) => ({
+        id: String(p.variant_id || p.product_name || i),
+        name: p.product_name || "—",
+        category: "—",
+        salesCount: p.total_sold || 0,
+        revenue: Math.trunc((p.total_revenue || 0) / 10),
+      }));
+
+      const items = ordersRes?.data?.items;
+      const recentOrders: RecentOrderPreview[] =
+        Array.isArray(items) && items.length > 0
+          ? items.slice(0, 6).map((o: any) => ({
+              id: String(o.id),
+              orderNumber: o.order_number || o.orderNumber || `ORD-${o.id?.slice?.(0, 6)}`,
+              customer: o.customer_name || o.user?.name || o.customerName || "—",
+              date: o.created_at ? new Date(o.created_at).toLocaleDateString("fa-IR") : "—",
+              amount: Math.trunc((o.total_price || o.total || 0) / 10),
+              status: (o.status?.toLowerCase() as RecentOrderPreview["status"]) || "pending",
+            }))
+          : [];
+
+      // "کل سفارش‌ها" counts every order, not only completed sales
+      const totalOrders = ordersRes?.data?.meta?.total_items;
+      if (typeof totalOrders === "number") kpis.ordersCount = totalOrders;
+
+      return { kpis, recentOrders, topProducts };
+    },
+    fallbackError: "بارگذاری داشبورد ناموفق بود",
+  });
+
+  const kpis: KPIData = data?.kpis ?? INITIAL_KPIS;
+  const recentOrders: RecentOrderPreview[] = data?.recentOrders ?? INITIAL_RECENT_ORDERS;
+  const topProducts: TopProductPreview[] = data?.topProducts ?? [];
+
+  const recentOrderColumns: DataTableColumn<RecentOrderPreview>[] = [
+    {
+      key: "number",
+      header: "شماره سفارش",
+      className: "font-mono font-bold text-foreground",
+      render: (order) => order.orderNumber,
+    },
+    {
+      key: "customer",
+      header: "مشتری",
+      className: "font-medium text-foreground",
+      render: (order) => order.customer,
+    },
+    {
+      key: "date",
+      header: "زمان ثبت",
+      className: "text-xs text-muted-foreground",
+      hideOnMobile: true,
+      render: (order) => order.date,
+    },
+    {
+      key: "amount",
+      header: "مبلغ کل",
+      className: "font-mono font-semibold text-foreground",
+      render: (order) => formatPrice(order.amount),
+    },
+    {
+      key: "status",
+      header: "وضعیت",
+      render: (order) => {
+        const statusConf = ORDER_STATUS_CONFIG[order.status as keyof typeof ORDER_STATUS_CONFIG] || {
+          label: order.status,
+          variant: "secondary" as const,
+        };
+        return (
+          <Badge variant={statusConf.variant} className="text-[11px]">
+            {statusConf.label}
+          </Badge>
+        );
+      },
+    },
+    {
+      key: "action",
+      header: <span className="sr-only">اقدام</span>,
+      className: "text-center",
+      render: (order) => {
+        const statusConf = ORDER_STATUS_CONFIG[order.status as keyof typeof ORDER_STATUS_CONFIG] || {
+          label: order.status,
+          variant: "secondary" as const,
+        };
+        return (
+          <Link href="/admin/orders" aria-label="مشاهده سفارش‌ها">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7 text-muted-foreground hover:text-primary"
+              aria-label={`مشاهده سفارش‌های ${statusConf.label}`}
+            >
+              <Eye className="h-4 w-4" />
+            </Button>
+          </Link>
+        );
+      },
+    },
+  ];
+
+  return (
+    <div className="space-y-8" dir="rtl">
+      {/* Top Welcome & Quick Actions Bar */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">داشبورد مدیریت فروشگاه</h1>
+          <p className="text-sm text-muted-foreground">
+            خلاصه شاخص‌های کلیدی عملکرد (KPIs) و وضعیت سفارشات و فروشگاه
+          </p>
+        </div>
+
+        {/* Quick Action Buttons */}
+        <div className="flex flex-wrap items-center gap-2.5">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => void fetchDashboardData()}
+            disabled={isLoading}
+            className="gap-1.5"
+            title="بروزرسانی آمار"
+          >
+            <RefreshCw className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`} />
+            بروزرسانی
+          </Button>
+
+          <Link href="/admin/products">
+            <Button size="sm" className="gap-1.5 shadow-sm">
+              <Plus className="h-4 w-4" />
+              ثبت محصول جدید
+            </Button>
+          </Link>
+
+          <Link href="/admin/orders">
+            <Button variant="secondary" size="sm" className="gap-1.5 shadow-sm">
+              <ShoppingCart className="h-4 w-4" />
+              مشاهده سفارش‌ها
+            </Button>
+          </Link>
+
+          <Link href="/admin/settings">
+            <Button variant="outline" size="sm" className="gap-1.5">
+              <Settings className="h-4 w-4" />
+              تنظیمات
+            </Button>
+          </Link>
+        </div>
+      </div>
+
+      {/* ============================================================== */}
+      {/* 4 Core KPI Cards                                               */}
+      {/* ============================================================== */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        {/* KPI 1: Total Sales */}
+        <Card className="p-6 transition-all hover:shadow-md">
+          <div className="flex items-center justify-between">
+            <div className="space-y-1">
+              <p className="text-xs font-medium text-muted-foreground">فروش کل (Total Sales)</p>
+              <p className="text-2xl font-bold text-foreground font-mono">
+                {formatPrice(kpis.totalSales)}
+              </p>
+              <div className="flex items-center gap-1 text-xs">
+                {kpis.salesIsPositive ? (
+                  <ArrowUpLeft className="h-3.5 w-3.5 text-emerald-600" />
+                ) : (
+                  <ArrowDownLeft className="h-3.5 w-3.5 text-destructive" />
+                )}
+                <span
+                  className={`font-semibold ${
+                    kpis.salesIsPositive ? "text-emerald-600" : "text-destructive"
+                  }`}
+                >
+                  {kpis.salesChange}
+                </span>
+                <span className="text-muted-foreground">نسبت به ماه گذشته</span>
+              </div>
+            </div>
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-600 dark:bg-emerald-950 dark:text-emerald-400 shadow-sm">
+              <TrendingUp className="h-6 w-6" />
+            </div>
+          </div>
+        </Card>
+
+        {/* KPI 2: Orders Count */}
+        <Card className="p-6 transition-all hover:shadow-md">
+          <div className="flex items-center justify-between">
+            <div className="space-y-1">
+              <p className="text-xs font-medium text-muted-foreground">تعداد کل سفارش‌ها</p>
+              <p className="text-2xl font-bold text-foreground font-mono">
+                {toPersianDigits(kpis.ordersCount)} سفارش
+              </p>
+              <div className="flex items-center gap-1 text-xs">
+                {kpis.ordersIsPositive ? (
+                  <ArrowUpLeft className="h-3.5 w-3.5 text-emerald-600" />
+                ) : (
+                  <ArrowDownLeft className="h-3.5 w-3.5 text-destructive" />
+                )}
+                <span
+                  className={`font-semibold ${
+                    kpis.ordersIsPositive ? "text-emerald-600" : "text-destructive"
+                  }`}
+                >
+                  {kpis.ordersChange}
+                </span>
+                <span className="text-muted-foreground">نسبت به ماه گذشته</span>
+              </div>
+            </div>
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-100 text-blue-600 dark:bg-blue-950 dark:text-blue-400 shadow-sm">
+              <ShoppingCart className="h-6 w-6" />
+            </div>
+          </div>
+        </Card>
+
+        {/* KPI 3: Active Customers */}
+        <Card className="p-6 transition-all hover:shadow-md">
+          <div className="flex items-center justify-between">
+            <div className="space-y-1">
+              <p className="text-xs font-medium text-muted-foreground">مشتریان فعال (Active Users)</p>
+              <p className="text-2xl font-bold text-foreground font-mono">
+                {toPersianDigits(kpis.activeCustomers)} کاربر
+              </p>
+              <div className="flex items-center gap-1 text-xs">
+                {kpis.customersIsPositive ? (
+                  <ArrowUpLeft className="h-3.5 w-3.5 text-emerald-600" />
+                ) : (
+                  <ArrowDownLeft className="h-3.5 w-3.5 text-destructive" />
+                )}
+                <span
+                  className={`font-semibold ${
+                    kpis.customersIsPositive ? "text-emerald-600" : "text-destructive"
+                  }`}
+                >
+                  {kpis.customersChange}
+                </span>
+                <span className="text-muted-foreground">نسبت به ماه گذشته</span>
+              </div>
+            </div>
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-purple-100 text-purple-600 dark:bg-purple-950 dark:text-purple-400 shadow-sm">
+              <Users className="h-6 w-6" />
+            </div>
+          </div>
+        </Card>
+
+        {/* KPI 4: Average Order Value */}
+        <Card className="p-6 transition-all hover:shadow-md">
+          <div className="flex items-center justify-between">
+            <div className="space-y-1">
+              <p className="text-xs font-medium text-muted-foreground">میانگین ارزش سفارش (AOV)</p>
+              <p className="text-2xl font-bold text-foreground font-mono">
+                {formatPrice(kpis.averageOrderValue)}
+              </p>
+              <div className="flex items-center gap-1 text-xs">
+                {kpis.aovIsPositive ? (
+                  <ArrowUpLeft className="h-3.5 w-3.5 text-emerald-600" />
+                ) : (
+                  <ArrowDownLeft className="h-3.5 w-3.5 text-destructive" />
+                )}
+                <span
+                  className={`font-semibold ${
+                    kpis.aovIsPositive ? "text-emerald-600" : "text-destructive"
+                  }`}
+                >
+                  {kpis.aovChange}
+                </span>
+                <span className="text-muted-foreground">نسبت به ماه گذشته</span>
+              </div>
+            </div>
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-100 text-amber-600 dark:bg-amber-950 dark:text-amber-400 shadow-sm">
+              <DollarSign className="h-6 w-6" />
+            </div>
+          </div>
+        </Card>
+      </div>
+
+      {/* ============================================================== */}
+      {/* Middle Grid: Recent Orders Preview & Top Products              */}
+      {/* ============================================================== */}
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
+        {/* Recent Orders Preview Table (2 Cols) */}
+        <Card className="p-6 xl:col-span-2">
+          <div className="mb-4 flex items-center justify-between border-b pb-4">
+            <div>
+              <h2 className="text-lg font-semibold text-foreground">سفارش‌های اخیر</h2>
+              <p className="text-xs text-muted-foreground">
+                آخرین سفارش‌های ثبت شده در سیستم و وضعیت لحظه‌ای آن‌ها
+              </p>
+            </div>
+            <Link href="/admin/orders">
+              <Button variant="ghost" size="sm" className="gap-1 text-xs text-primary">
+                مشاهده همه سفارش‌ها
+                <ExternalLink className="h-3.5 w-3.5" />
+              </Button>
+            </Link>
+          </div>
+
+          <DataTable<RecentOrderPreview>
+            columns={recentOrderColumns}
+            rows={recentOrders}
+            rowKey={(o) => o.id}
+          />
+        </Card>
+
+        {/* Top Selling Products Preview (1 Col) */}
+        <Card className="p-6">
+          <div className="mb-4 flex items-center justify-between border-b pb-4">
+            <div>
+              <h2 className="text-lg font-semibold text-foreground">پرفروش‌ترین کالاها</h2>
+              <p className="text-xs text-muted-foreground">
+                محصولات با بالاترین نرخ فروش در ماه جاری
+              </p>
+            </div>
+            <Link href="/admin/products">
+              <Button variant="ghost" size="sm" className="gap-1 text-xs text-primary">
+                محصولات
+                <ExternalLink className="h-3.5 w-3.5" />
+              </Button>
+            </Link>
+          </div>
+
+          <div className="space-y-4">
+            {topProducts.length === 0 ? (
+              <div className="py-6 text-center text-xs text-muted-foreground">
+                هنوز فروش ثبت‌شده‌ای برای نمایش وجود ندارد.
+              </div>
+            ) : (
+              topProducts.map((prod, index) => (
+              <div
+                key={prod.id}
+                className="flex items-center justify-between rounded-lg p-2.5 transition-colors hover:bg-muted/40"
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-primary/10 text-xs font-bold text-primary">
+                    {toPersianDigits(index + 1)}
+                  </span>
+                  <div className="min-w-0">
+                    <p className="truncate text-xs font-semibold text-foreground" title={prod.name}>
+                      {prod.name}
+                    </p>
+                    <span className="text-[11px] text-muted-foreground">
+                      {prod.category} &middot; {toPersianDigits(prod.salesCount)} فروش
+                    </span>
+                  </div>
+                </div>
+              </div>
+              ))
+            )}
+          </div>
+        </Card>
+      </div>
+
+      {/* ============================================================== */}
+      {/* Bottom Row: Quick Status Banner                                */}
+      {/* ============================================================== */}
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <Card className="p-4 flex items-center gap-4 bg-muted/20">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-100 text-blue-600 dark:bg-blue-950 dark:text-blue-400">
+            <Clock className="h-5 w-5" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-xs text-muted-foreground">سفارشات در انتظار اقدام انبار</p>
+            <p className="text-sm font-bold text-foreground">
+              {toPersianDigits(recentOrders.filter((o) => o.status === "pending" || o.status === "confirmed").length)} سفارش نیاز به تایید دارند
+            </p>
+          </div>
+          <Link href="/admin/orders">
+            <Button variant="outline" size="sm" className="text-xs">
+              بررسی
+            </Button>
+          </Link>
+        </Card>
+
+        <Card className="p-4 flex items-center gap-4 bg-muted/20">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-purple-100 text-purple-600 dark:bg-purple-950 dark:text-purple-400">
+            <Package className="h-5 w-5" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-xs text-muted-foreground">مدیریت موجودی انبار</p>
+            <p className="text-sm font-bold text-foreground">بررسی کالاهای رو به اتمام</p>
+          </div>
+          <Link href="/admin/digital-inventory">
+            <Button variant="outline" size="sm" className="text-xs">
+              انبارداری
+            </Button>
+          </Link>
+        </Card>
+      </div>
+    </div>
+  );
+}

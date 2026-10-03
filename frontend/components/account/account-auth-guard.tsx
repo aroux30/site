@@ -27,9 +27,15 @@ export function AccountAuthGuard({ children }: { children: React.ReactNode }) {
   // carries only the pathname, so the token would be dropped on the way back.
   // Relaxing the edge middleware alone is not enough: this guard runs on the
   // client and would undo it.
+  //
+  // The privacy-request confirmation link has the same shape and the same
+  // reason: a subject whose session has expired since they raised the request
+  // must still be able to confirm it from the mailbox the link went to.
   const isEmailConfirmation = searchParams.has("email_token");
+  const isPrivacyConfirmation = searchParams.has("privacy_confirm_token");
+  const isTokenConfirmation = isEmailConfirmation || isPrivacyConfirmation;
 
-  const isGuest = !isLoading && !isAuthenticated && !isEmailConfirmation;
+  const isGuest = !isLoading && !isAuthenticated && !isTokenConfirmation;
 
   useEffect(() => {
     if (isGuest) {
@@ -37,7 +43,7 @@ export function AccountAuthGuard({ children }: { children: React.ReactNode }) {
     }
   }, [isGuest, pathname, router]);
 
-  if (isAuthenticated || isEmailConfirmation) {
+  if (isAuthenticated || isTokenConfirmation) {
     return <>{children}</>;
   }
 

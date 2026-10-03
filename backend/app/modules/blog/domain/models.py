@@ -67,7 +67,20 @@ class CommentStatus(str, enum.Enum):
 # strings to mirror SlugHistory.resource_type in wp_parity_models.py.
 COMMENT_RESOURCE_BLOG_POST = "blog_post"
 COMMENT_RESOURCE_CMS_PAGE = "cms_page"
-COMMENT_RESOURCE_TYPES = (COMMENT_RESOURCE_BLOG_POST, COMMENT_RESOURCE_CMS_PAGE)
+#: A custom post type entry. The third target a comment can sit on, which is
+#: what a type's ``supports_comments`` checkbox is asking for — without it the
+#: checkbox has nothing to switch on.
+COMMENT_RESOURCE_CONTENT_ENTRY = "content_entry"
+
+# Comment types, mirroring wp_comments.comment_type. "comment" is the default and
+# the only one a public reader may see; "note" is a private team note.
+COMMENT_TYPE_COMMENT = "comment"
+COMMENT_TYPE_NOTE = "note"
+COMMENT_RESOURCE_TYPES = (
+    COMMENT_RESOURCE_BLOG_POST,
+    COMMENT_RESOURCE_CMS_PAGE,
+    COMMENT_RESOURCE_CONTENT_ENTRY,
+)
 
 
 # ---- Models ----
@@ -259,6 +272,11 @@ class BlogTag(BaseModel):
 
     name: Mapped[str] = mapped_column(String(100), nullable=False)
     slug: Mapped[str] = mapped_column(String(120), unique=True, nullable=False)
+    # Free text about the tag. Categories had this from the start; a tag could
+    # not be described at all, so the editor had no field to show. Nullable
+    # rather than defaulted, because "no description yet" and "an empty
+    # description" are the same thing here and only one needs storing.
+    description: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     # Relationships
     post_tags: Mapped[list["BlogPostTag"]] = relationship(
@@ -326,6 +344,11 @@ class BlogPostRevision(BaseModel):
     # columns existed — the diff treats NULL vs NULL as "unchanged").
     seo_title: Mapped[str | None] = mapped_column(String(200), nullable=True)
     seo_description: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    # The post's custom fields (blog_post_meta) as of this revision, as JSON.
+    # Same reasoning as the SEO columns above: a restore that silently dropped
+    # the custom fields would leave a post that no longer matches the revision
+    # the editor is looking at. NULL for revisions predating the column.
+    meta_snapshot: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_by: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("users.id", ondelete="SET NULL"),
@@ -385,6 +408,9 @@ class BlogComment(BaseModel):
         Index("ix_blog_comments_status", "status"),
         Index("ix_blog_comments_created_at", "created_at"),
         Index("ix_blog_comments_resource", "resource_type", "resource_id"),
+        # Every public read filters comment_type='comment' next to a post or a
+        # status, so the index leads with the column that is always constant.
+        Index("ix_blog_comments_type_post", "comment_type", "post_id", "status"),
         CheckConstraint(
             "("
             "(resource_type = 'blog_post' AND post_id IS NOT NULL AND resource_id = post_id)"
@@ -421,6 +447,16 @@ class BlogComment(BaseModel):
     author_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
     author_ip: Mapped[str | None] = mapped_column(String(45), nullable=True)
     author_user_agent: Mapped[str | None] = mapped_column(String(500), nullable=True)
+
+    # WordPress's ``wp_comments.comment_type``: "comment" for a real comment,
+    # "note" for a private team note, "pingback"/"trackback" for linkbacks.
+    # Only the first two are used here. A note is a row like any other, so the
+    # moderation table can show it, but it must never reach a public read, so
+    # the default "comment" keeps every existing query and every existing
+    # public route correct without them having to learn about notes at all.
+    comment_type: Mapped[str] = mapped_column(
+        String(20), nullable=False, server_default=text("'comment'"),
+    )
 
     content: Mapped[str] = mapped_column(Text, nullable=False)
     status: Mapped[CommentStatus] = mapped_column(

@@ -44,3 +44,11 @@ out/
 Thumbs.db
 .idea/
 .vscode/
+
+# Local evaluation & backup artifacts
+/.arena*/
+/.p1-backup/
+/frontend/test-results/
+prefreeze.*
+media_service_placeholder
+

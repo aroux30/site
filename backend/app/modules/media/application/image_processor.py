@@ -11,6 +11,7 @@ Usage:
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
@@ -47,6 +48,71 @@ def derived_size_name(stem: str, size_name: str, ext: str) -> str:
     return f"{stem}-{size_name}{ext}"
 
 
+#: Site option holding operator-registered custom sizes — WordPress's
+#: ``add_image_size()``. A JSON array of ``{name, width, height, crop}``; the
+#: name must be a short slug because it becomes part of a filename
+#: (``<uuid>-<name>.<ext>``) and, later, of the deletion sweep's derivation.
+CUSTOM_IMAGE_SIZES_OPTION = "custom_image_sizes"
+
+#: A custom size name reaches a filesystem path, so it is constrained to the
+#: same alphabet the folder sanitiser allows and capped at WordPress's own
+#: practical length. Anything else is dropped, not escaped: a size named
+#: ``../etc`` must not exist, and there is no legitimate size it could be.
+_CUSTOM_SIZE_NAME_RE = re.compile(r"^[a-z0-9][a-z0-9_-]{0,63}$")
+
+
+def parse_custom_image_sizes(raw: str | None) -> dict[str, dict[str, Any]]:
+    """Parse the ``custom_image_sizes`` option into the resolver's shape.
+
+    Malformed entries are skipped one by one rather than failing the whole
+    list: an operator adding a size through a future UI should not lose the
+    three that already worked because the fourth has a typo. The function is
+    pure so the parser is testable without a database.
+    """
+    import json
+
+    if not raw:
+        return {}
+    try:
+        entries = json.loads(raw)
+    except (TypeError, ValueError):
+        return {}
+    if not isinstance(entries, list):
+        return {}
+    out: dict[str, dict[str, Any]] = {}
+    for entry in entries:
+        if not isinstance(entry, dict):
+            continue
+        name = str(entry.get("name", "")).strip().lower()
+        if not _CUSTOM_SIZE_NAME_RE.match(name):
+            continue
+        # The built-ins are not overridable by a custom entry of the same
+        # name: the operator edits those on the settings card, and two
+        # sources for one size is how one of them silently stops applying.
+        if name in IMAGE_SIZES or name in out:
+            continue
+        try:
+            width = int(entry.get("width", 0))
+        except (TypeError, ValueError):
+            continue
+        if not (_MIN_SIZE_PX <= width <= _MAX_SIZE_PX):
+            continue
+        height_raw = entry.get("height")
+        height: int | None
+        try:
+            height = int(height_raw) if height_raw not in (None, "") else None
+        except (TypeError, ValueError):
+            continue
+        if height is not None and not (_MIN_SIZE_PX <= height <= _MAX_SIZE_PX):
+            continue
+        out[name] = {
+            "width": width,
+            "height": height,
+            "crop": bool(entry.get("crop", False)),
+        }
+    return out
+
+
 async def resolve_image_sizes(db: "AsyncSession | None") -> dict[str, dict[str, Any]]:
     """The registered sizes, with the admin-configured dimensions applied.
 
@@ -59,6 +125,12 @@ async def resolve_image_sizes(db: "AsyncSession | None") -> dict[str, dict[str, 
 
     ``medium_large`` has no options of its own (WordPress does not expose it
     either) and keeps its default width.
+
+    Sizes registered through ``custom_image_sizes`` (WordPress's
+    ``add_image_size``) are appended after the four built-ins, so a storefront
+    can add a 2:1 hero or a 4:5 portrait tile without a code change. The
+    filename derivation and the deletion sweep both read this same resolver,
+    so a custom size's files are cleaned up with the rest.
     """
     if db is None:
         return dict(IMAGE_SIZES)
@@ -75,7 +147,7 @@ async def resolve_image_sizes(db: "AsyncSession | None") -> dict[str, dict[str, 
         )
         return value if default is not None else None
 
-    return {
+    sizes: dict[str, dict[str, Any]] = {
         "thumbnail": {
             "width": await _dim("thumbnail", "w", 150),
             "height": await _dim("thumbnail", "h", 150),
@@ -93,6 +165,12 @@ async def resolve_image_sizes(db: "AsyncSession | None") -> dict[str, dict[str, 
             "crop": False,
         },
     }
+    sizes.update(
+        parse_custom_image_sizes(
+            await SiteOptionsService.get(db, CUSTOM_IMAGE_SIZES_OPTION)
+        )
+    )
+    return sizes
 
 
 class ImageProcessor:

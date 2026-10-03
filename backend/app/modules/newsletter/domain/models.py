@@ -119,7 +119,8 @@ class NewsletterCampaign(BaseModel, TimestampMixin):
         ),
         default=CampaignStatus.DRAFT,
         nullable=False,
-        server_default=text("'draft'"),
+        # The column stores member NAMES ("DRAFT"), not values ("draft").
+        server_default=text("'DRAFT'::character varying"),
     )
     scheduled_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
@@ -198,7 +199,8 @@ class NewsletterCampaignRecipient(BaseModel, TimestampMixin):
         ),
         default=RecipientStatus.PENDING,
         nullable=False,
-        server_default=text("'pending'"),
+        # Same contract as the campaign status above.
+        server_default=text("'PENDING'::character varying"),
     )
     # SMTP refusal / transport error for failed rows, truncated to what fits
     # a delivery audit (the full response lives in email_delivery_logs).

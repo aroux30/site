@@ -465,6 +465,12 @@ export default async function BlogPostDetailPage({
                   excerpt={post.excerpt}
                 />
               )}
+              {/* The server runs wpautop, so a plain-text body arrives already
+                  wrapped in paragraphs (app/shared/content/text_filters.py). The
+                  split("\n\n") fallback below only ran because that filter did
+                  not exist, and it disagreed with the CMS page and the feed,
+                  which render the same body. Anything still un-wrapped means the
+                  body bypassed the filter, so the fallback is kept for that. */}
               {/<[a-z][\s\S]*>/i.test(post.content) ? (
               <div
                 dangerouslySetInnerHTML={{ __html: cleanHtml(post.content) }}

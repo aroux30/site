@@ -8,6 +8,7 @@ import createDOMPurify from "dompurify";
 
 import {
   ALLOWED_ATTR,
+  ALLOWED_CSS_PROPERTIES,
   ALLOWED_TAGS,
   ALLOWED_URI_REGEXP,
   EMBED_HOST_RE,
@@ -39,6 +40,12 @@ const SANITIZE_OPTS = {
   ALLOWED_TAGS,
   ALLOWED_ATTR,
   ALLOWED_URI_REGEXP,
+  // Allowing the `style` attribute is not enough on its own: DOMPurify then
+  // keeps every declaration in it, and `style` reaches far past presentation
+  // (`position:fixed` over the page, a `url()` that phones home). Naming the
+  // properties keeps this list aligned with ALLOWED_CSS_PROPERTIES in the
+  // backend, which already filtered to the same set.
+  ALLOWED_CSS_PROPERTIES: new Set(ALLOWED_CSS_PROPERTIES),
 };
 
 export { EMBED_HOST_RE };

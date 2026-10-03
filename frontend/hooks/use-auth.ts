@@ -99,6 +99,7 @@ export function useAuth() {
         phone: credentials.phone,
         password: credentials.password,
         totp_code: credentials.totp_code || undefined,
+        remember_me: credentials.remember_me ?? false,
       });
       return await handleAuthSuccess();
     },
@@ -112,6 +113,9 @@ export function useAuth() {
         password: userData.password,
         first_name: userData.first_name || userData.firstName || "",
         last_name: userData.last_name || userData.lastName || "",
+        // Only sent when present: an empty string would be stored as an email
+        // the account has no way to verify.
+        ...(userData.email ? { email: userData.email } : {}),
         // Only send the code when present: an empty string would be stored as
         // a referral code that can never resolve to a referrer.
         ...(userData.referral_code ? { referral_code: userData.referral_code } : {}),

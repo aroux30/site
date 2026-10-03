@@ -51,6 +51,7 @@ import {
   type SearchSuggestionItem,
 } from "@/lib/api/services";
 import { contentApi, singleTypesApi, type MenuItem } from "@/lib/api/content";
+import { useSiteBranding } from "@/components/layout/site-branding-provider";
 
 // Fallback nav only until the CMS menu tree (header_main location) loads from
 // the API — editors can then change links from the admin panel without a deploy.
@@ -66,6 +67,7 @@ const fallbackNavigationLinks = [
 
 export function Header() {
   const router = useRouter();
+  const { siteName } = useSiteBranding();
   const { user, isAuthenticated, logout } = useAuth();
   const { totalItems } = useCart();
   const { products: compareProducts } = useCompareStore();
@@ -367,7 +369,7 @@ export function Header() {
               </div>
               <div className="hidden flex-col sm:flex">
                 <span className="text-lg font-bold leading-tight text-foreground">
-                  فروشگاه آنلاین
+                  {siteName}
                 </span>
                 <span className="text-[11px] text-muted-foreground">
                   ضمانت اصالت و بهترین قیمت
@@ -756,7 +758,7 @@ export function Header() {
               ف
             </div>
             <span className="text-lg font-bold text-foreground">
-              فروشگاه آنلاین
+              {siteName}
             </span>
           </Link>
           <Button

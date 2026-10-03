@@ -305,3 +305,131 @@ async def mark_as_read(
 
 # ── Time-bounded Notices & SMS sub-router (Karta Phase 6/8) ────────────────
 router.include_router(notice_router)
+
+
+# ── WordPress parity: Editable email templates ──────────────────────────────
+#
+# The four transactional emails were HTML literals in the service, so changing
+# the wording of an order confirmation needed a code change. The
+# `notification_templates` table already existed and was read on send; this is
+# the writing half, plus a preview that renders through the same guards as a
+# real save so the preview cannot show something the save would refuse.
+#
+# /preview is declared before /{name} deliberately: a route declared after a
+# path parameter is shadowed by it, and the request would be read as
+# name="preview" and 404 on a template lookup.
+
+@router.get(
+    "/admin/email-templates",
+    summary="List email templates, built-in and custom (admin)",
+    dependencies=[Depends(RequirePermissions("settings:read"))],
+)
+async def list_email_templates(
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, Any]:
+    """The built-in templates plus any override rows.
+
+    Seeded from the code's defaults rather than from the table, so a store with
+    no rows still sees the four emails it is already sending.
+    """
+    from app.modules.notifications.application.email_template_service import (
+        EmailTemplateAdminService,
+    )
+
+    items = await EmailTemplateAdminService.list_templates(db)
+    return {"items": items}
+
+
+@router.post(
+    "/admin/email-templates/preview",
+    summary="Render an email template with sample values (admin)",
+    dependencies=[Depends(RequirePermissions("settings:read"))],
+)
+async def preview_email_template(
+    body: dict[str, Any],
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, Any]:
+    """Render without saving, through the same guards a save would apply.
+
+    Takes a session for the header's store name, so the preview the operator
+    edits against is headed the same way a customer's copy will be.
+    """
+    from app.modules.notifications.application.email_template_service import (
+        EmailTemplateAdminService,
+    )
+
+    return await EmailTemplateAdminService.preview(
+        db,
+        str(body.get("name") or "preview"),
+        subject=body.get("subject"),
+        body_template=str(body.get("body_template") or ""),
+        variables=body.get("variables"),
+    )
+
+
+@router.get(
+    "/admin/email-templates/{name}",
+    summary="One email template with its body (admin)",
+    dependencies=[Depends(RequirePermissions("settings:read"))],
+)
+async def get_email_template(
+    name: str,
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, Any]:
+    from app.modules.notifications.application.email_template_service import (
+        EmailTemplateAdminService,
+    )
+
+    return await EmailTemplateAdminService.get_template(db, name)
+
+
+@router.put(
+    "/admin/email-templates/{name}",
+    summary="Save an email template override (admin)",
+    dependencies=[Depends(RequirePermissions("settings:write"))],
+)
+async def upsert_email_template(
+    name: str,
+    body: dict[str, Any],
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, Any]:
+    """Write the override row. The built-in stays the fallback.
+
+    Refuses template HTML that can execute and any variable the body uses but
+    does not declare, with the reason in the message so the author can fix it
+    rather than guess.
+    """
+    from app.modules.notifications.application.email_template_service import (
+        EmailTemplateAdminService,
+    )
+
+    return await EmailTemplateAdminService.upsert_template(
+        db,
+        name,
+        subject=body.get("subject"),
+        body_template=str(body.get("body_template") or ""),
+        variables=body.get("variables"),
+    )
+
+
+@router.delete(
+    "/admin/email-templates/{name}",
+    summary="Reset an email template to its built-in wording (admin)",
+    dependencies=[Depends(RequirePermissions("settings:write"))],
+)
+async def delete_email_template(
+    name: str,
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, Any]:
+    """Drops the override, so the flow keeps working with the original text.
+
+    Not "stop sending this email": the built-in in the code is the fallback, so
+    deleting the row restores the built-in rather than leaving the flow with no
+    template at all.
+    """
+    from app.modules.notifications.application.email_template_service import (
+        EmailTemplateAdminService,
+    )
+
+    removed = await EmailTemplateAdminService.delete_template(db, name)
+    return {"reset": removed, "name": name}

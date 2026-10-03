@@ -18,9 +18,17 @@ export interface CustomTaxonomy {
   description?: string | null;
   hierarchical: boolean;
   is_active: boolean;
+  /** Which content types this taxonomy applies to. The server enforces it on
+   *  attach, so a picker that hid the option would only hide the error, not
+   *  prevent it. Absent on older responses; treat undefined as both. */
+  object_types?: ObjectType[];
   /** How many terms this taxonomy holds; returned by the list endpoint. */
   term_count?: number;
 }
+
+/** Content types a custom taxonomy can apply to. */
+export const OBJECT_TYPES = ["blog_post", "cms_page", "custom_post_entry"] as const;
+export type ObjectType = (typeof OBJECT_TYPES)[number];
 
 export interface CustomTaxonomyTerm {
   id: string;
@@ -44,6 +52,7 @@ export const taxonomiesApi = {
     slug?: string;
     description?: string;
     hierarchical?: boolean;
+    object_types?: ObjectType[];
   }): Promise<CustomTaxonomy> => {
     const { data } = await apiClient.post<CustomTaxonomy>("/admin/blog/taxonomies", body);
     return data;
@@ -57,6 +66,7 @@ export const taxonomiesApi = {
       description: string | null;
       hierarchical: boolean;
       is_active: boolean;
+      object_types: ObjectType[];
     }>,
   ): Promise<CustomTaxonomy> => {
     const { data } = await apiClient.patch<CustomTaxonomy>(
@@ -78,9 +88,13 @@ export const taxonomiesApi = {
     return data;
   },
 
-  listTerms: async (taxonomyId: string): Promise<CustomTaxonomyTerm[]> => {
+  listTerms: async (
+    taxonomyId: string,
+    search?: string,
+  ): Promise<CustomTaxonomyTerm[]> => {
     const { data } = await apiClient.get<CustomTaxonomyTerm[]>(
       `/admin/blog/taxonomies/${taxonomyId}/terms`,
+      { params: search ? { search } : undefined },
     );
     return data;
   },
@@ -125,6 +139,24 @@ export const taxonomiesApi = {
     return data;
   },
 
+  /** Replace a page's whole custom-term set. The server refuses a term whose
+   *  taxonomy does not include "cms_page" in its object_types. */
+  attachToPage: async (pageId: string, termIds: string[]): Promise<{ attached: number }> => {
+    const { data } = await apiClient.post<{ attached: number }>(
+      `/admin/blog/pages/${pageId}/terms`,
+      { term_ids: termIds },
+    );
+    return data;
+  },
+
+  /** Term ids currently on a page, for pre-filling the picker. */
+  listPageTerms: async (pageId: string): Promise<string[]> => {
+    const { data } = await apiClient.get<{ term_id: string }[]>(
+      `/admin/blog/pages/${pageId}/terms`,
+    );
+    return Array.isArray(data) ? data.map((t) => t.term_id) : [];
+  },
+
   attachToPost: async (postId: string, termIds: string[]): Promise<{ attached: number }> => {
     const { data } = await apiClient.post<{ attached: number }>(
       `/admin/blog/posts/${postId}/terms`,
@@ -166,6 +198,22 @@ export interface CustomPostEntry {
   excerpt?: string | null;
   cover_image_url?: string | null;
   position?: number;
+  /** Set when the entry is dated forward; the beat task publishes it when the
+   *  time passes and clears the field. */
+  scheduled_publish_at?: string | null;
+  /** How many states have been snapshotted. Drives the History button label. */
+  revision_count?: number;
+}
+
+export interface CustomPostEntryRevision {
+  /** Per-entry monotonic. What the panel shows as "نسخهٔ ۳", so restoring
+   *  means a number an operator read, not an id they had to look up. */
+  revision_number: number;
+  title?: string | null;
+  excerpt?: string | null;
+  fields?: Record<string, unknown> | null;
+  created_at?: string | null;
+  created_by_id?: string | null;
 }
 
 export const contentTypesApi = {
@@ -251,11 +299,34 @@ export const contentTypesApi = {
       cover_image_url: string | null;
       status: "draft" | "published" | "archived";
       position: number;
+      /** Date the entry should go live by itself, ISO. Null clears it. */
+      scheduled_publish_at?: string | null;  // null unschedules
     }>,
   ): Promise<CustomPostEntry> => {
     const { data } = await apiClient.patch<CustomPostEntry>(
       `/admin/blog/content-types/${typeId}/entries/${entryId}`,
       body,
+    );
+    return data;
+  },
+
+  /** Revisions of a custom post entry, newest first. */
+  entryRevisions: async (
+    entryId: string,
+  ): Promise<CustomPostEntryRevision[]> => {
+    const { data } = await apiClient.get<CustomPostEntryRevision[]>(
+      `/admin/blog/entries/${entryId}/revisions`,
+    );
+    return Array.isArray(data) ? data : [];
+  },
+
+  /** Write a stored revision back over the entry. */
+  restoreEntryRevision: async (
+    entryId: string,
+    revisionNumber: number,
+  ): Promise<CustomPostEntry> => {
+    const { data } = await apiClient.post<CustomPostEntry>(
+      `/admin/blog/entries/${entryId}/revisions/${revisionNumber}/restore`,
     );
     return data;
   },
@@ -365,9 +436,40 @@ export const blogTransferApi = {
     }>("/admin/blog/import", payload);
     return data;
   },
-};
 
-// ── Post relationships ─────────────────────────────────────────────────────
+  /** Import a WordPress WXR file.
+   *
+   *  Multipart, not a JSON body: the route takes an uploaded file because XML
+   *  cannot arrive as a parsed dict, which is the whole reason this route
+   *  exists beside the JSON one.
+   *
+   *  The counts the file held travel with the result. A WXR with fifty posts
+   *  that imports three should say so — otherwise the operator reads a
+   *  successful result as a complete migration.
+   */
+  importWxr: async (
+    file: File,
+  ): Promise<{
+    categories: number;
+    tags: number;
+    posts: number;
+    skipped: number;
+    parsed?: { posts: number; comments: number; categories: number };
+  }> => {
+    const form = new FormData();
+    form.append("file", file);
+    const { data } = await apiClient.post<{
+      categories: number;
+      tags: number;
+      posts: number;
+      skipped: number;
+      parsed?: { posts: number; comments: number; categories: number };
+    }>("/admin/blog/import/wxr", form, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    return data;
+  },
+};
 
 export interface PostRelationship {
   id: string;
@@ -420,10 +522,26 @@ export const breadcrumbsApi = {
 // ── Gravatar ───────────────────────────────────────────────────────────────
 
 export const gravatarApi = {
-  url: async (email: string, size = 80): Promise<{ url: string }> => {
-    const { data } = await apiClient.get<{ url: string }>("/settings/public/gravatar", {
+  url: async (email: string, size = 80): Promise<{ url: string | null }> => {
+    const { data } = await apiClient.get<{ url: string | null }>("/settings/public/gravatar", {
       params: { email, size },
     });
+    return data;
+  },
+};
+
+export interface AvatarOptions {
+  show_avatars: boolean;
+  avatar_default: string;
+  avatar_rating: string;
+  defaults: string[];
+  ratings: string[];
+}
+
+/** The site-wide avatar settings (public read). */
+export const avatarOptionsApi = {
+  get: async (): Promise<AvatarOptions> => {
+    const { data } = await apiClient.get<AvatarOptions>("/settings/public/avatar-options");
     return data;
   },
 };
@@ -487,9 +605,51 @@ export interface SiteHealthInfo {
   generated_at: string;
 }
 
+/** One recorded run. `checks` here is names and statuses only; the full
+ *  report is on the detail route. `duration_ms` and `failing_checks` are what
+ *  turn "critical" into an answer: which check, and how long the run took. */
+export interface SiteHealthRun {
+  id: string;
+  started_at: string | null;
+  finished_at: string | null;
+  duration_ms: number | null;
+  trigger: string;
+  worst_status: string | null;
+  error: string | null;
+  checks: Array<{ name: string; status: string }>;
+  /** Names of the checks that came back warning or critical. Empty when the
+   *  run was clean; a superset of nothing when the whole run raised. */
+  failing_checks: string[];
+}
+
 export const siteHealthApi = {
   run: async (): Promise<SiteHealthReport> => {
     const { data } = await apiClient.get<SiteHealthReport>("/settings/admin/site-health");
+    return data;
+  },
+
+  /** Run the checks and keep the result.
+   *
+   *  Distinct from `run` on purpose. The GET answers "is it broken right now"
+   *  and leaves no trace, which is why a disk that filled at 3am was invisible
+   *  the next morning; this writes a row so the history below it is real. */
+  runAndRecord: async (): Promise<SiteHealthReport> => {
+    const { data } = await apiClient.post<SiteHealthReport>("/settings/admin/site-health/run");
+    return data;
+  },
+
+  /** Recent runs, newest first. */
+  history: async (limit = 20): Promise<SiteHealthRun[]> => {
+    const { data } = await apiClient.get<{ items: SiteHealthRun[] }>(
+      "/settings/admin/site-health/runs",
+      { params: { limit } },
+    );
+    return data.items || [];
+  },
+
+  /** One run with its full report. */
+  runDetail: async (runId: string): Promise<{ report: SiteHealthReport } & SiteHealthRun> => {
+    const { data } = await apiClient.get(`/settings/admin/site-health/runs/${runId}`);
     return data;
   },
 
@@ -521,6 +681,33 @@ export const siteHealthApi = {
   resumeRecoveryMode: async (): Promise<RecoveryModeState> => {
     const { data } = await apiClient.post<RecoveryModeState>(
       "/settings/admin/recovery-mode/resume",
+    );
+    return data;
+  },
+
+  /** Email a one-time recovery key to the site admin. The key is hashed at
+   *  rest and never returned in this response — it goes to the mailbox. */
+  sendRecoveryInvitation: async (): Promise<{
+    sent: boolean;
+    recipient?: string;
+    reason?: string | null;
+  }> => {
+    const { data } = await apiClient.post<{
+      sent: boolean;
+      recipient?: string;
+      reason?: string | null;
+    }>("/settings/admin/recovery-mode/send-invitation");
+    return data;
+  },
+
+  /** Present a recovery key to resume a paused site. */
+  verifyRecoveryInvitation: async (key: string): Promise<{
+    resumed: boolean;
+    reason?: string;
+  }> => {
+    const { data } = await apiClient.post<{ resumed: boolean; reason?: string }>(
+      "/settings/admin/recovery-mode/verify-invitation",
+      { key },
     );
     return data;
   },
@@ -564,27 +751,31 @@ export interface WidgetArea {
   widgets: Widget[];
 }
 
+/** One config control for a widget type, rendered by the admin form. */
+export interface WidgetConfigField {
+  key: string;
+  label: string;
+  kind: "text" | "number" | "bool" | "select" | "textarea" | "links";
+  min?: number;
+  max?: number;
+  options?: Array<{ value: string; label: string }>;
+}
+
+export interface WidgetAreasPayload {
+  areas: Record<string, WidgetArea>;
+  widget_types: Record<string, { name: string; description: string }>;
+  config_schema?: Record<string, WidgetConfigField[]>;
+}
+
 export const widgetsApi = {
-  list: async (): Promise<{
-    areas: Record<string, WidgetArea>;
-    widget_types: Record<string, { name: string; description: string }>;
-  }> => {
-    const { data } = await apiClient.get<{
-      areas: Record<string, WidgetArea>;
-      widget_types: Record<string, { name: string; description: string }>;
-    }>("/settings/admin/widgets");
+  list: async (): Promise<WidgetAreasPayload> => {
+    const { data } = await apiClient.get<WidgetAreasPayload>("/settings/admin/widgets");
     return data;
   },
 
   /** Public read for the storefront — only areas that contain widgets. */
-  publicAreas: async (): Promise<{
-    areas: Record<string, WidgetArea>;
-    widget_types: Record<string, { name: string; description: string }>;
-  }> => {
-    const { data } = await apiClient.get<{
-      areas: Record<string, WidgetArea>;
-      widget_types: Record<string, { name: string; description: string }>;
-    }>("/settings/public/widgets");
+  publicAreas: async (): Promise<WidgetAreasPayload> => {
+    const { data } = await apiClient.get<WidgetAreasPayload>("/settings/public/widgets");
     return data;
   },
 
@@ -593,6 +784,22 @@ export const widgetsApi = {
       widgets,
     });
     return data;
+  },
+
+  createArea: async (body: {
+    id: string;
+    name: string;
+    description?: string;
+  }): Promise<{ id: string } & WidgetArea> => {
+    const { data } = await apiClient.post<{ id: string } & WidgetArea>(
+      "/settings/admin/widgets",
+      body,
+    );
+    return data;
+  },
+
+  deleteArea: async (areaId: string): Promise<void> => {
+    await apiClient.delete(`/settings/admin/widgets/${areaId}`);
   },
 };
 
@@ -609,7 +816,56 @@ export const capabilitiesApi = {
 
 // ── Media editing ──────────────────────────────────────────────────────────
 
+/** One step in an image's edit chain, oldest first. */
+export interface MediaEditStep {
+  id: string;
+  source_id: string | null;
+  operation: string | null;
+  file_name: string;
+  file_url: string;
+  width: number | null;
+  height: number | null;
+  /** The un-edited upload this chain descends from. */
+  is_root: boolean;
+  is_current: boolean;
+  created_at: string | null;
+}
+
 export const mediaEditingApi = {
+  /** Every crop/resize/rotate that produced this file or an ancestor of it. */
+  history: async (assetId: string): Promise<MediaEditStep[]> => {
+    // The route returns a bare array. This used to read `data.items`, which
+    // is undefined on an array — so the history panel was handed `undefined`
+    // and never rendered a single step, while the route itself was fine.
+    const { data } = await apiClient.get<MediaEditStep[]>(
+      `/media/${assetId}/edit/history`,
+    );
+    return Array.isArray(data) ? data : [];
+  },
+
+  /**
+   * The un-edited original this file descends from. Nothing is deleted: the
+   * edited files stay in the library, because a product or post may point at
+   * one and removing it would 404 them.
+   */
+  restoreOriginal: async (
+    assetId: string,
+  ): Promise<{ id: string; file_url: string; file_name: string }> => {
+    const { data } = await apiClient.post<{ id: string; file_url: string; file_name: string }>(
+      `/media/${assetId}/edit/restore-original`,
+    );
+    return data;
+  },
+
+  /** Copy the bytes and metadata into a new standalone asset, with no chain
+   *  link: "save as a copy" rather than "another step in this edit". */
+  duplicate: async (assetId: string): Promise<{ id: string; file_url: string }> => {
+    const { data } = await apiClient.post<{ id: string; file_url: string }>(
+      `/media/${assetId}/edit/duplicate`,
+    );
+    return data;
+  },
+
   crop: async (
     assetId: string,
     rect: { x: number; y: number; width: number; height: number },

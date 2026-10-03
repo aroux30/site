@@ -21,7 +21,7 @@ from datetime import UTC, datetime, timedelta
 from typing import TYPE_CHECKING, Any
 
 import structlog
-from sqlalchemy import func, select
+from sqlalchemy import func, null, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions.handlers import ConflictError, NotFoundError, ValidationError
@@ -40,9 +40,34 @@ logger: structlog.stdlib.BoundLogger = structlog.get_logger(__name__)
 
 #: How long a produced export stays readable. Article 12(3) gives the subject
 #: one month to collect a copy; the payload is a full PII dump sitting in a
-#: table operators can query, so it is not kept beyond a working day. The
-#: subject can always request a new one — the queue exists for that.
+#: table operators can query, so it is not kept beyond a working day by
+#: default. The subject can always request a new one — the queue exists for it.
 EXPORT_RESULT_TTL = timedelta(hours=24)
+
+#: Site option holding the export-result retention window, in hours. An
+#: operator with a longer internal SLA (or a legal review that wants the
+#: copy gone sooner) sets this without a deploy. 0 or unset keeps the default.
+EXPORT_RETENTION_HOURS_OPTION = "privacy.export_retention_hours"
+
+
+async def export_result_ttl(db: "AsyncSession") -> timedelta:
+    """The operator's export-result window, or the 24-hour default.
+
+    Clamped low-to-high: a negative or absurd value is a typo, and the two
+    failure directions are both bad — too short and the subject's copy expires
+    before they open it, too long and a PII dump outlives its justification.
+    The floor is 1 hour, the ceiling is Article 12(3)'s 30 days.
+    """
+    from app.modules.settings.application.site_options_service import SiteOptionsService
+
+    hours = await SiteOptionsService.get_int(
+        db,
+        EXPORT_RETENTION_HOURS_OPTION,
+        int(EXPORT_RESULT_TTL.total_seconds() // 3600),
+        minimum=1,
+        maximum=30 * 24,
+    )
+    return timedelta(hours=hours)
 
 #: An erase request must be re-confirmed by password. It is irreversible, and
 #: a hijacked session cookie is a much easier theft than a password.
@@ -59,6 +84,31 @@ def _codes_match(stored: str, supplied: str) -> bool:
     import hmac
 
     return hmac.compare_digest(str(stored or "").strip(), str(supplied or "").strip())
+
+
+def _hash_confirm_token(token: str) -> str:
+    """SHA-256 of an email confirmation token.
+
+    Only the hash is stored, like the reset and email-change tokens: the
+    plaintext exists solely in the email, so a database leak cannot be
+    replayed to confirm somebody else's request.
+    """
+    import hashlib
+
+    return hashlib.sha256(token.encode("utf-8")).hexdigest()
+
+
+def _confirm_link(token: str) -> str:
+    """The public URL the confirmation email points at.
+
+    Lands on the account privacy page rather than a dedicated route: the
+    token redeems via an unauthenticated POST from that page, and a signed-in
+    subject also sees their request list right there afterwards.
+    """
+    from app.core.config.settings import get_settings
+
+    base = get_settings().STOREFRONT_BASE_URL.rstrip("/")
+    return f"{base}/account/privacy?privacy_confirm_token={token}"
 
 
 class PrivacyRequestService:
@@ -226,6 +276,156 @@ class PrivacyRequestService:
         await db.refresh(request)
         await logger.ainfo(
             "privacy_request_confirmed", request_id=str(request_id), user_id=str(user_id)
+        )
+        return request
+
+    # ── Email confirmation (second path beside the OTP) ─────────────────────
+
+    #: How long an emailed confirmation link stays usable. WordPress's
+    #: user-request confirmation uses a day; a shorter window here matches the
+    #: reset/change flows and limits the value of a leaked inbox.
+    CONFIRM_EMAIL_TTL_HOURS = 24
+
+    @staticmethod
+    async def issue_email_confirmation(
+        db: AsyncSession,
+        *,
+        user_id: uuid.UUID,
+        request_id: uuid.UUID,
+    ) -> dict[str, Any]:
+        """Mail a confirmation link for the subject's own pending request.
+
+        The OTP path proves the phone; this proves the mailbox. A subject whose
+        number changed, or who is travelling without their SIM, otherwise has
+        no way to confirm their own request — WordPress offers the same second
+        path via ``wp_send_user_request``.
+
+        Returns what happened rather than raising on a mail failure: the token
+        is stored and can be re-sent, and the request itself is untouched.
+        """
+        import secrets
+
+        from app.modules.users.domain.models import User
+
+        request = await PrivacyRequestService.get_for_user(
+            db, user_id=user_id, request_id=request_id
+        )
+        if request.status is not PrivacyRequestStatus.PENDING:
+            raise ValidationError("این درخواست قبلاً بررسی شده است.")
+        if request.confirmed_at is not None:
+            raise ValidationError("این درخواست قبلاً تأیید شده است.")
+
+        user = await db.get(User, user_id)
+        target = (user.email or "").strip().lower() if user else ""
+        if not target or "@" not in target:
+            return {
+                "sent": False,
+                "reason": "no_email",
+                "message": "این حساب ایمیل ثبت‌شده‌ای ندارد؛ از کد پیامکی استفاده کنید.",
+            }
+
+        token = secrets.token_urlsafe(48)
+        request.confirm_token_hash = _hash_confirm_token(token)
+        request.confirm_token_expires_at = datetime.now(UTC) + timedelta(
+            hours=PrivacyRequestService.CONFIRM_EMAIL_TTL_HOURS
+        )
+        await db.commit()
+
+        sent = False
+        try:
+            from app.modules.notifications.application.email_service import send_email
+
+            link = _confirm_link(token)
+            sent, _log = await send_email(
+                db,
+                recipient=target,
+                subject="تأیید درخواست حریم خصوصی",
+                html_body=(
+                    '<div dir="rtl" style="font-family:Tahoma,sans-serif">'
+                    "<p>برای تأیید درخواست حریم خصوصی خود روی پیوند زیر کلیک کنید:</p>"
+                    f'<p><a href="{link}">{link}</a></p>'
+                    f"<p>این پیوند تا {PrivacyRequestService.CONFIRM_EMAIL_TTL_HOURS} ساعت معتبر است "
+                    "و فقط یک‌بار قابل استفاده است. "
+                    "اگر شما این درخواست را نداده‌اید، این ایمیل را نادیده بگیرید و رمز عبور خود را تغییر دهید.</p>"
+                    "</div>"
+                ),
+                text_body=(
+                    "برای تأیید درخواست حریم خصوصی خود روی پیوند زیر کلیک کنید:\n\n"
+                    f"{link}\n\n"
+                    f"این پیوند تا {PrivacyRequestService.CONFIRM_EMAIL_TTL_HOURS} ساعت معتبر است."
+                ),
+            )
+            sent = bool(sent)
+        except Exception:  # noqa: BLE001 — a mail outage must not lose the token
+            logger.exception(
+                "privacy_confirm_email_send_failed",
+                request_id=str(request_id),
+                user_id=str(user_id),
+            )
+
+        return {
+            "sent": sent,
+            "reason": None if sent else "send_failed",
+            "expires_in_hours": PrivacyRequestService.CONFIRM_EMAIL_TTL_HOURS,
+            "message": (
+                "پیوند تأیید به ایمیل شما فرستاده شد."
+                if sent
+                else "ارسال ایمیل ناموفق بود. لطفاً کمی بعد دوباره تلاش کنید."
+            ),
+        }
+
+    @staticmethod
+    async def confirm_by_email_token(
+        db: AsyncSession,
+        *,
+        token: str,
+    ) -> PrivacyRequest:
+        """Redeem an emailed confirmation link.
+
+        Unauthenticated by design, exactly like the email-change confirmation:
+        the token was mailed to the account's own address, so possession is
+        the proof being asked for, and requiring a session would break the
+        flow for anyone whose login has since expired. High-entropy, stored
+        hashed, single-use and short-lived.
+        """
+        supplied = (token or "").strip()
+        if not supplied:
+            raise ValidationError("توکن تأیید ارسال نشده است.")
+
+        digest = _hash_confirm_token(supplied)
+        request = (
+            await db.execute(
+                select(PrivacyRequest).where(
+                    PrivacyRequest.confirm_token_hash == digest
+                )
+            )
+        ).scalar_one_or_none()
+        if request is None:
+            raise ValidationError("لینک تأیید معتبر نیست.")
+
+        if request.status is not PrivacyRequestStatus.PENDING:
+            raise ValidationError("این درخواست قبلاً بررسی شده است.")
+        if request.confirmed_at is not None:
+            raise ValidationError("این درخواست قبلاً تأیید شده است.")
+
+        now = datetime.now(UTC)
+        if (
+            request.confirm_token_expires_at is None
+            or request.confirm_token_expires_at <= now
+        ):
+            raise ValidationError("مهلت این لینک به پایان رسیده است. لطفاً لینک تازه‌ای درخواست کنید.")
+
+        request.confirmed_at = now
+        # Consumed: a second click must not confirm twice, and the token should
+        # not sit in the row after it has done its one job.
+        request.confirm_token_hash = None
+        request.confirm_token_expires_at = None
+        await db.commit()
+        await db.refresh(request)
+        logger.info(
+            "privacy_request_confirmed_by_email",
+            request_id=str(request.id),
+            user_id=str(request.user_id),
         )
         return request
 
@@ -422,7 +622,9 @@ class PrivacyRequestService:
         request.resolved_at = datetime.now(UTC)
         if request.type is PrivacyRequestType.EXPORT:
             request.result_payload = payload
-            request.result_expires_at = datetime.now(UTC) + EXPORT_RESULT_TTL
+            request.result_expires_at = datetime.now(UTC) + (
+                await export_result_ttl(db)
+            )
         else:
             # An erase produces actions, not a copy of the subject's data -- but
             # the per-source report is kept when something failed, because that
@@ -632,19 +834,35 @@ class PrivacyRequestService:
 
         Expiry-on-read already clears a payload when the subject collects it;
         this is the path for a subject who never comes back for theirs.
+
+        The type is compared by member name, not by the enum's value: this
+        project's SQLAlchemy enums persist the NAME ("EXPORT"), and this method
+        compared against the value ("export"), so it matched nothing. The purge
+        had never run once — the route worked, the schedule called it, and it
+        cleared zero rows every time, silently.
+
+        The clearing itself is a bulk UPDATE to SQL NULL rather than an
+        assignment of ``None`` to the ORM attribute, and the difference is the
+        whole bug. ``result_payload`` is JSONB, and JSONB has its own null: an
+        ORM assignment of ``None`` serializes to the JSON value ``null``, which
+        is *not* SQL NULL — ``'null'::jsonb IS NULL`` is false. So the rows the
+        purge "cleared" kept a non-null payload column, failed their own
+        ``result_payload IS NOT NULL`` filter on the next run, and were
+        re-selected and re-cleared every day forever. A subject's full data dump
+        sat in the table permanently, under a task whose logs said it worked.
         """
-        rows = (
-            await db.execute(
-                select(PrivacyRequest).where(
-                    PrivacyRequest.type == PrivacyRequestType.EXPORT,
-                    PrivacyRequest.result_payload.is_not(None),
-                    PrivacyRequest.result_expires_at.is_not(None),
-                    PrivacyRequest.result_expires_at <= datetime.now(UTC),
-                )
+        result = await db.execute(
+            update(PrivacyRequest)
+            .where(
+                PrivacyRequest.type == PrivacyRequestType.EXPORT.name,
+                PrivacyRequest.result_payload.is_not(None),
+                PrivacyRequest.result_expires_at.is_not(None),
+                PrivacyRequest.result_expires_at <= datetime.now(UTC),
             )
-        ).scalars().all()
-        for row in rows:
-            row.result_payload = None
+            .values(result_payload=null())
+            .execution_options(synchronize_session=False)
+        )
         await db.commit()
-        logger.info("privacy_request_results_purged", count=len(rows))
-        return len(rows)
+        purged = int(result.rowcount or 0)
+        logger.info("privacy_request_results_purged", count=purged)
+        return purged

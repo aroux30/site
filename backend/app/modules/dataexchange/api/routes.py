@@ -89,6 +89,106 @@ async def create_import_job(
     return ImportJobResponse.from_job(job)
 
 
+# ---------------------------------------------------------------------------
+# Feed import (RSS / Atom)
+# ---------------------------------------------------------------------------
+#
+# Separate from the CSV/XLSX job pipeline on purpose, and not because the CSV
+# one is the wrong shape. A job holds a stored file and a row-level validation
+# report; a feed has neither — it arrives as a document, and its entries are
+# posts rather than columns to map. Forcing a feed through it would mean
+# flattening the feed to a table and inventing the mapping the operator never
+# asked for.
+#
+# Two endpoints rather than one, because importing an archive is not reversible
+# in one click and "how many posts are in this feed?" is the question worth
+# asking first.
+
+
+@admin_router.post(
+    "/import/feed/preview",
+    summary="Parse an RSS/Atom feed and report what it holds (admin)",
+    dependencies=[_require_read],
+)
+async def preview_feed_import(
+    file: UploadFile = File(...),
+) -> dict:
+    """Count and sample the feed without writing anything.
+
+    A preview that created posts would be a worse preview: the operator's first
+    action would be the irreversible one, and the second preview would report
+    everything as a duplicate.
+    """
+    from app.modules.dataexchange.application.feed_parser import parse_feed
+
+    content = await file.read()
+    try:
+        parsed = parse_feed(content)
+    except ValueError as exc:
+        raise ValidationError(str(exc)) from exc
+
+    posts = parsed["posts"]
+    return {
+        "format": "atom" if "entry" in _root_tags(content) else "rss",
+        "counts": {
+            "posts": len(posts),
+            "categories": len(parsed["categories"]),
+            "tags": len(parsed["tags"]),
+        },
+        "sample": posts[:5],
+        "categories": parsed["categories"],
+        "tags": parsed["tags"],
+    }
+
+
+def _root_tags(content: bytes) -> set[str]:
+    """The local names of the root element's children, for the format label."""
+    import xml.etree.ElementTree as ET
+
+    try:
+        root = ET.fromstring(content)
+    except ET.ParseError:
+        return set()
+    return {
+        child.tag.rsplit("}", 1)[-1].lower() for child in root
+    }
+
+
+@admin_router.post(
+    "/import/feed",
+    summary="Import an RSS/Atom feed into blog posts (admin)",
+    dependencies=[_require_write],
+)
+async def import_feed(
+    file: UploadFile = File(...),
+    skip_existing: bool = Query(True),
+    user_id: uuid.UUID = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    """Parse a feed and create the posts as drafts.
+
+    Drafts, always: a feed publishes by definition, and importing somebody
+    else's whole archive as live posts puts unreviewed content on the
+    storefront. Publishing stays an explicit, per-post act afterwards.
+    """
+    from app.modules.blog.application.transfer_service import BlogTransferService
+    from app.modules.dataexchange.application.feed_parser import parse_feed
+
+    content = await file.read()
+    try:
+        parsed = parse_feed(content)
+    except ValueError as exc:
+        raise ValidationError(str(exc)) from exc
+
+    if not parsed["posts"]:
+        raise ValidationError("این فید هیچ نوشتهٔ قابل ایمپورتی ندارد")
+
+    stats = await BlogTransferService.import_json(
+        db, parsed, author_id=user_id, skip_existing=skip_existing
+    )
+    return stats
+
+
 @admin_router.get(
     "/import-jobs",
     response_model=ImportJobListResponse,

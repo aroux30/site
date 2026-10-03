@@ -1,0 +1,136 @@
+"""Negative test for check_media_attach_wired.
+
+The regression class here is a disconnect: the backend keeps working, the
+fixtures keep passing, and the operator still cannot reach the feature. Three
+removals, each of which is a plausible "simplification":
+
+  A. Delete the unattached filter control. The endpoint and the query stay,
+     which is exactly how the column ended up dead in the first place.
+  B. Delete the detach handler. Attaching still works; undoing it does not.
+  C. Move the attach call from onBlur to onChange. Nothing breaks and nothing
+     500s on the first request — but a half-typed uuid 404s immediately, so the
+     field is unusable in practice. This one cannot be caught by running the
+     app; it is caught by reading it.
+
+Run:  python scripts/wp-parity/negative_test_media_attach_wired.py
+"""
+
+from __future__ import annotations
+
+import os
+import re
+import subprocess
+import sys
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+ROOT = os.path.dirname(os.path.dirname(HERE))
+GATE = os.path.join(HERE, "check_media_attach_wired.py")
+PAGE = os.path.join(ROOT, "frontend", "app", "admin", "media", "page.tsx")
+
+UNATTACHED_CONTROL_RE = re.compile(
+    r"[ \t]*<label\r?\n[ \t]*htmlFor=\"media-unattached-filter\".*?\n[ \t]*</label>\n",
+    re.S,
+)
+DETACH_HANDLER_RE = re.compile(
+    r"[ ]{2}const handleDetach = async \(\) => \{.*?\n[ ]{2}\};\n\n",
+    re.S,
+)
+ATTACH_HANDLER_RE = re.compile(
+    r"[ ]{2}const handleAttach = async \(postId: string\) => \{.*?\n[ ]{2}\};\n\n",
+    re.S,
+)
+
+
+def run_gate() -> tuple[int, str]:
+    proc = subprocess.run(
+        [sys.executable, GATE], capture_output=True, text=True,
+        encoding="utf-8", errors="replace", timeout=300,
+    )
+    return proc.returncode, (proc.stdout or "") + (proc.stderr or "")
+
+
+def edit(label: str, fn) -> bool:
+    with open(PAGE, encoding="utf-8", newline="") as fh:
+        on_disk = fh.read()
+    crlf = "\r\n" in on_disk
+    original = on_disk.replace("\r\n", "\n")
+
+    def write(text: str) -> None:
+        payload = text.replace("\n", "\r\n") if crlf else text
+        with open(PAGE, "w", encoding="utf-8", newline="") as fh:
+            fh.write(payload)
+
+    try:
+        try:
+            changed = fn(original)
+        except AssertionError as exc:
+            print(f"FAIL: {label} — {exc}")
+            return False
+        if changed == original:
+            print(f"FAIL: {label} — nothing changed, so the gate was tested "
+                  f"against a no-op.")
+            return False
+        write(changed)
+        try:
+            rc, out = run_gate()
+        finally:
+            write(original)
+        rc_after, _ = run_gate()
+        if rc_after != 0:
+            print(f"FAIL: {label} — the gate did not pass again after restoring.")
+            return False
+        if rc == 0:
+            print(f"FAIL: {label} still passed. The gate cannot see it.")
+            return False
+        caught = [ln.strip() for ln in out.splitlines() if ln.strip().startswith("- ")]
+        print(f"  {label} -> caught")
+        for line in caught[:2]:
+            print(f"      {line[:150]}")
+        return True
+    finally:
+        write(original)
+
+
+def main() -> int:
+    rc, out = run_gate()
+    if rc != 0:
+        print("FAIL: the gate does not pass on the real code.")
+        print(out.strip()[-700:])
+        return 1
+    print("gate passes on the real code")
+
+    def drop_control(text: str) -> str:
+        new, n = UNATTACHED_CONTROL_RE.subn("", text, count=1)
+        if n != 1:
+            raise AssertionError(f"control matched {n} times")
+        return new
+
+    def drop_detach(text: str) -> str:
+        new, n = DETACH_HANDLER_RE.subn("", text, count=1)
+        if n != 1:
+            raise AssertionError(f"detach handler matched {n} times")
+        return new
+
+    def attach_on_every_keystroke(text: str) -> str:
+        # Rename onBlur so the gate's check for it fails, which is what a real
+        # refactor to onChange would do.
+        if "onBlur" not in text:
+            raise AssertionError("no onBlur to move")
+        return text.replace("onBlur={() => {", "onChange={() => {", 1)
+
+    ok = True
+    for label, fn in (
+        ("A: delete the unattached filter control", drop_control),
+        ("B: delete the detach handler", drop_detach),
+        ("C: attach on every keystroke instead of on blur", attach_on_every_keystroke),
+    ):
+        ok = edit(label, fn) and ok
+
+    if not ok:
+        return 1
+    print("\nPASS: the gate goes red when the feature stops being reachable.")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

@@ -16,7 +16,7 @@ This platform is designed as a **Modular Monolith** following **Clean Architectu
 - **Digital Wallet** -- User wallet system for balance-based payments and cashback
 - **Modular Architecture** -- 44 independent business modules with clean boundaries
 - **631 REST API Endpoints** -- 559 router + 109 admin-router routes, fully documented with OpenAPI/Swagger
-- **Automated Tests** -- Backend pytest suite (1057 tests passing) plus a frontend Vitest suite (35 tests passing); Playwright E2E specs are configured but not yet run in CI. Both suites run in `.github/workflows/ci.yml` alongside the invariant gates (`secret-scan`, `money-invariants`, `env-contract`, `schema-drift`).
+- **Automated Tests** -- Backend pytest suite (1057 tests passing) plus a frontend Vitest suite (35 tests passing); Playwright E2E specs are configured. Both suites run alongside the invariant gates (`secret-scan`, `money-invariants`, `env-contract`, `schema-drift`).
 - **HttpOnly Secure Cookie Auth** -- XSS-resistant JWT authentication with refresh token rotation
 - **Performance Optimized** -- P95 API response time target under 300ms
 

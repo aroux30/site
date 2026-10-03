@@ -46,8 +46,8 @@ _HANDLERS: dict[str, ShortcodeHandler | AsyncShortcodeHandler] = {}
 _SHORTCODE_RE = re.compile(
     r"\[(\w+)"              # opening tag name
     r"((?:\s+\w+="          # attributes start
-    r'(?:"[^"]*"|'          # double-quoted value
-    r"'[^']*'|"             # single-quoted value
+    r'(?:"[^"]*"|'          # double-quoted value: no double quote inside
+    r"'[^']*'|"             # single-quoted value: no single quote inside
     r"[^\s\]]+))*)"         # unquoted value
     r"\s*\]"                # closing bracket
     r"(?:(.*?)\[/\1\])?"    # optional inner content + closing tag
@@ -296,3 +296,121 @@ def _render_embed(attrs: dict[str, str], content: str) -> str:
         f'<iframe src="{url}" style="width:100%;aspect-ratio:16/9;border:0" '
         f'allowfullscreen loading="lazy"></iframe>'
     )
+
+
+# ── The four WordPress media shortcodes ────────────────────────────────────
+#
+# `caption`, `audio`, `video` and `playlist` are the ones a store actually
+# reaches for: a product demo, a how-to clip, a track on a release note.
+# WordPress ships them and this set had six of its ten, so an author who
+# pasted `[video]` got the literal text on the page.
+#
+# Every attribute that reaches an HTML attribute or a URL goes through
+# `escape` first. These run on content a marketing author typed, and the
+# existing `[embed]` does not — which is a live hole rather than a style
+# question, since a `javascript:` URL in an iframe is a script running on
+# the storefront.
+
+
+@shortcode("caption")
+def _render_caption(attrs: dict[str, str], content: str) -> str:
+    """Render a caption under an image: [caption id="attachment_12" ...]"""
+    from html import escape
+
+    # `content` is HTML, not text — it holds the image. Escaping it would show
+    # the markup, and the caption's own text is the attribute, not the body.
+    width = escape(attrs.get("width", "").strip(), quote=True)
+    align = escape(attrs.get("align", "alignnone").strip() or "alignnone", quote=True)
+    if width:
+        width = f' style="width:{width}px"'
+    caption_text = content.strip()
+    return (
+        f'<figure class="wp-caption shortcode-caption {align}"{width}>'
+        f"{caption_text}</figure>"
+    )
+
+
+@shortcode("audio")
+def _render_audio(attrs: dict[str, str], content: str) -> str:
+    """Render an audio player: [audio src="/media/a.mp3"]"""
+    from html import escape
+
+    src = _safe_media_url(attrs.get("src") or content.strip())
+    if not src:
+        return ""
+    return (
+        f'<audio controls preload="metadata" src="{escape(src, quote=True)}" '
+        f'style="width:100%"></audio>'
+    )
+
+
+@shortcode("video")
+def _render_video(attrs: dict[str, str], content: str) -> str:
+    """Render a video: [video src="/media/v.mp4" width="640" poster="..."]"""
+    from html import escape
+
+    src = _safe_media_url(attrs.get("src") or content.strip())
+    if not src:
+        return ""
+    width = attrs.get("width", "").strip()
+    width_attr = (
+        f' width="{escape(width, quote=True)}"' if width.isdigit() else ""
+    )
+    poster = _safe_media_url(attrs.get("poster", ""))
+    poster_attr = f' poster="{escape(poster, quote=True)}"' if poster else ""
+    return (
+        f'<video controls preload="metadata"{width_attr}{poster_attr} '
+        f'src="{escape(src, quote=True)}" style="max-width:100%">'
+        f"</video>"
+    )
+
+
+@shortcode("playlist")
+def _render_playlist(attrs: dict[str, str], content: str) -> str:
+    """Render a playlist: [playlist ids="1,2,3" style="light" titles="yes"]"""
+    from html import escape
+
+    ids = [i.strip() for i in attrs.get("ids", "").split(",") if i.strip()]
+    if not ids:
+        return ""
+    style = escape(attrs.get("style", "light").strip() or "light", quote=True)
+    show_titles = attrs.get("titles", "show").strip().lower() != "hide"
+    tracks = []
+    for track_id in ids:
+        track = (
+            f'<li class="shortcode-playlist-track">'
+            f'<a href="{escape(f"/media/{track_id}", quote=True)}">#{escape(track_id)}</a>'
+            f"</li>"
+        )
+        tracks.append(track)
+    return (
+        f'<div class="shortcode-playlist shortcode-playlist--{style}"'
+        f' data-titles="{str(show_titles).lower()}">'
+        f'<ol>{"".join(tracks)}</ol>'
+        f"</div>"
+    )
+
+
+def _safe_media_url(candidate: str) -> str:
+    """A media URL, or nothing.
+
+    `javascript:` and `data:` in an `src` run in the page's origin, so an
+    author who pastes one turns a shortcode into a script on the storefront.
+    Only `http`, `https` and site-relative paths are allowed; anything else
+    renders as nothing, which is visible to the author, rather than as a
+    blocked request they will spend an afternoon chasing.
+
+    Site-relative is the normal case here — uploads live under `/media/…` — and
+    a `data:` audio file is a real thing an author might try, so it is worth
+    knowing it is refused: it is not named below, it simply is not on the list,
+    which is the point of an allow-list rather than a pair of `not` checks.
+    """
+    url = (candidate or "").strip()
+    if not url:
+        return ""
+    lowered = url.lower()
+    if lowered.startswith(("/media/", "/uploads/")) or lowered.startswith("./"):
+        return url
+    if lowered.startswith(("http://", "https://")):
+        return url
+    return ""

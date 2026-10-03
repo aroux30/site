@@ -70,6 +70,25 @@ export const authApi = {
     return res.data;
   },
 
+  /** تأیید ایمیل با توکن پیوند ارسالی (بدون نیاز به ورود). */
+  confirmEmailVerification: async (
+    token: string,
+  ): Promise<{ verified: boolean; email: string }> => {
+    const res = await apiClient.post<{ verified: boolean; email: string }>(
+      "/auth/me/email/verify",
+      { token },
+    );
+    return res.data;
+  },
+
+  /** ارسال دوبارهٔ پیوند تأیید ایمیل برای حساب واردشده. */
+  resendEmailVerification: async (): Promise<{ message: string }> => {
+    const res = await apiClient.post<{ message: string }>(
+      "/auth/me/email/resend-verification",
+    );
+    return res.data;
+  },
+
   /** لیست نشست‌های فعال */
   listSessions: async (): Promise<AuthSession[]> => {
     const res = await apiClient.get<AuthSession[] | { items: AuthSession[] }>("/auth/sessions");

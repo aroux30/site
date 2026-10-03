@@ -121,7 +121,10 @@ def _nest_menu_items(
                 "id": child.id,
                 "title": child.title,
                 "url": child.url,
-                "location": child.location.value,
+                # `child.location` is a plain slug string now (the model is no
+                # longer an Enum), so `.value` raised AttributeError on every
+                # tree read.
+                "location": child.location,
                 "position": child.position,
                 "icon": child.icon,
                 "children": sub_items,
@@ -132,7 +135,7 @@ def _nest_menu_items(
 
 async def build_tree_menu(
     db: AsyncSession,
-    location: MenuLocation = MenuLocation.HEADER_MAIN,
+    location: str = MenuLocation.HEADER_MAIN.value,
 ) -> list[dict[str, Any]]:
     """Build nested hierarchical navigation tree for a specific location."""
     stmt = (
@@ -149,7 +152,7 @@ async def build_tree_menu(
 
 async def create_menu_item(
     db: AsyncSession,
-    location: MenuLocation,
+    location: str,
     title: str,
     url: str,
     parent_id: uuid.UUID | None = None,

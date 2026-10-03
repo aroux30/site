@@ -8,10 +8,11 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
+import { PrivacyPolicyNotice } from "@/components/privacy/privacy-policy-notice";
 import { useToast } from "@/components/ui/use-toast";
 import {
-  fetchPostComments,
-  submitPostComment,
+  fetchResourceComments,
+  submitResourceComment,
   type BlogComment,
 } from "@/lib/api/blog";
 import { toPersianDigits } from "@/lib/utils";
@@ -19,7 +20,14 @@ import { RemoteImage } from "@/components/shared/remote-image";
 import { useAuth } from "@/hooks/use-auth";
 
 interface BlogCommentsProps {
+  /** The commentable object's UUID — a post id, or a CMS page id. */
   postId: string;
+  /**
+   * Which kind of object is being commented on. The API addresses comments by
+   * (resource_type, resource_id), so a CMS page has to say it is one; posting
+   * to the blog resource with a page id would attach the thread to nothing.
+   */
+  resourceType?: "blog_post" | "cms_page";
   allowComments?: boolean;
   /** True when the operator requires accounts to comment
    *  (comment_registration). The form is replaced by a sign-in prompt —
@@ -29,6 +37,7 @@ interface BlogCommentsProps {
 
 export function BlogComments({
   postId,
+  resourceType = "blog_post",
   allowComments = true,
   requiresLogin = false,
 }: BlogCommentsProps) {
@@ -37,10 +46,14 @@ export function BlogComments({
   const [comments, setComments] = useState<BlogComment[]>([]);
   const [loading, setLoading] = useState(true);
   const [total, setTotal] = useState(0);
+  // Page currently on screen and whether the server says more exist.
+  const [page, setPage] = useState(1);
+  const [hasNext, setHasNext] = useState(false);
 
   // Form state
   const [authorName, setAuthorName] = useState("");
   const [authorEmail, setAuthorEmail] = useState("");
+  const [authorUrl, setAuthorUrl] = useState("");
   const [content, setContent] = useState("");
   const [replyTo, setReplyTo] = useState<{ id: string; name: string } | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -51,20 +64,37 @@ export function BlogComments({
   const gateActive = requiresLogin && !authLoading && !isAuthenticated;
 
   useEffect(() => {
-    loadComments();
-  }, [postId]);
+    loadComments(1);
+  }, [postId, resourceType]);
 
-  const loadComments = async () => {
+  // The API paginates and the response says so, but the UI only ever read the
+  // first page: a thread with 60 approved comments showed the first 20 and no
+  // way to reach the rest. Keep the page number and append, so "load more"
+  // grows the thread instead of replacing it.
+  const loadComments = async (page: number = 1) => {
     setLoading(true);
     try {
-      const data = await fetchPostComments(postId);
-      setComments(data.items || []);
+      const data = await fetchResourceComments(resourceType, postId, page);
+      setComments((prev) => (page === 1 ? data.items || [] : [...prev, ...(data.items || [])]));
       setTotal(data.total || 0);
+      setHasNext(Boolean(data.has_next));
+      setPage(page);
     } catch {
-      setComments([]);
+      if (page === 1) {
+        setComments([]);
+        setTotal(0);
+      }
+      // Keep the rows already on screen: a failed "load more" must not blank a
+      // thread the reader was reading.
+      setHasNext(false);
     } finally {
       setLoading(false);
     }
+  };
+
+  const loadMore = () => {
+    if (loading || !hasNext) return;
+    void loadComments(page + 1);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -73,21 +103,25 @@ export function BlogComments({
 
     setSubmitting(true);
     try {
-      await submitPostComment(postId, {
+      await submitResourceComment(resourceType, postId, {
         content: content.trim(),
         author_name: authorName.trim() || undefined,
         author_email: authorEmail.trim() || undefined,
+        author_url: authorUrl.trim() || undefined,
         parent_id: replyTo?.id,
       });
 
       setContent("");
+      setAuthorUrl("");
       setReplyTo(null);
       setSubmittedNotice(true);
       toast({
         title: "دیدگاه شما ارسال شد",
         description: "پس از بررسی و تأیید ناظر، در سایت نمایش داده خواهد شد.",
       });
-      await loadComments();
+      // Reset to page 1: a newly submitted comment belongs at the head of the
+      // thread, and reloading the current page would append a duplicate tail.
+      await loadComments(1);
     } catch {
       toast({
         title: "خطا در ارسال دیدگاه",
@@ -197,6 +231,24 @@ export function BlogComments({
               </div>
             </div>
 
+            {/* WordPress shows this beside the name; the column, the schema and
+                the API all had it, so only the input was missing. Typed as a
+                url, and the renderer refuses anything that is not http(s). */}
+            <div className="grid gap-2">
+              <Label htmlFor="c-url">وب‌سایت (اختیاری)</Label>
+              <Input
+                id="c-url"
+                type="url"
+                inputMode="url"
+                value={authorUrl}
+                onChange={(e) => setAuthorUrl(e.target.value)}
+                placeholder="https://example.com"
+                dir="ltr"
+                className="text-left"
+                maxLength={500}
+              />
+            </div>
+
             <div className="grid gap-2">
               <Label htmlFor="c-content">متن دیدگاه</Label>
               <Textarea
@@ -208,6 +260,14 @@ export function BlogComments({
                 required
               />
             </div>
+
+            {/* The comment form collects an email address, and the backend also
+                records the submitting IP and user agent against it for flood
+                detection. WordPress states the same thing beside every comment
+                form, via `the_privacy_policy_link()`; saying nothing here while
+                collecting all three is the disclosure gap. Renders nothing when
+                no policy is published, rather than promising one that is not. */}
+            <PrivacyPolicyNotice className="text-xs leading-relaxed text-muted-foreground" />
 
             <div className="flex justify-end">
               <Button type="submit" disabled={submitting || !content.trim()} className="gap-2">
@@ -238,6 +298,21 @@ export function BlogComments({
               onReply={(c) => setReplyTo({ id: c.id, name: c.author_name || "کاربر" })}
             />
           ))}
+
+          {/* The API returns one page at a time. Without this the thread simply
+              ended at page 1 and the reader could not reach the rest. */}
+          {hasNext && (
+            <div className="flex justify-center pt-2">
+              <button
+                type="button"
+                onClick={loadMore}
+                disabled={loading}
+                className="rounded-full border border-border px-6 py-2.5 text-sm font-medium transition hover:bg-muted disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {loading ? "در حال بارگذاری..." : "نمایش دیدگاه‌های بیشتر"}
+              </button>
+            </div>
+          )}
         </div>
       )}
     </section>
@@ -254,6 +329,11 @@ function CommentItem({
   depth?: number;
 }) {
   const authorInitial = (comment.author_name || "ک")[0];
+  // Only a real web address is linkified. A value like "javascript:alert(1)" or
+  // "data:..." in a public comment would otherwise render as a live link.
+  const rawSite = (comment.author_url || "").trim();
+  const authorSite =
+    /^https?:\/\/[^\s/$.?#][^\s]*$/i.test(rawSite) ? rawSite : "";
   const dateFormatted = toPersianDigits(
     new Date(comment.created_at).toLocaleDateString("fa-IR", {
       year: "numeric",
@@ -289,6 +369,21 @@ function CommentItem({
                 <Clock className="h-3 w-3" />
                 {dateFormatted}
               </span>
+              {/* The commenter gave a site. The column and the API have carried it
+                  since the start; nothing rendered it, so the field was filled in
+                  and then never seen. Only an http(s) URL becomes a link — a
+                  "javascript:" value in a public comment list would be a stored
+                  XSS served to every reader. */}
+              {authorSite && (
+                <a
+                  href={authorSite}
+                  target="_blank"
+                  rel="nofollow noopener noreferrer"
+                  className="mt-0.5 block truncate text-xs text-emerald-600 hover:underline dark:text-emerald-400"
+                >
+                  {authorSite.replace(/^https?:\/\//, "").replace(/\/$/, "")}
+                </a>
+              )}
             </div>
           </div>
           <Button

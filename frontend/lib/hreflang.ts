@@ -74,3 +74,19 @@ export function alternatesFor(
   const { canonical, languages } = buildHreflang(selfPath, selfLocale, translations);
   return { canonical, languages };
 }
+
+/** The oEmbed discovery URL that describes *this* page.
+ *
+ *  The site root advertises a bare `/oembed`, which tells a reader the site can
+ *  be embedded without saying which part of it. WordPress puts a per-post
+ *  `<link rel="alternate" type="application/json+oembed">` in the head, and a
+ *  consumer that shares one post reads that one.
+ *
+ *  Absolute, because a consumer fetches the link exactly as given — with no
+ *  referer and no base to resolve a relative URL against. A relative discovery
+ *  link is the same as no link at all.
+ */
+export function oembedDiscoveryUrl(path: string): string {
+  const url = absolute(path);
+  return `${SITE_URL}/api/v1/content/oembed?url=${encodeURIComponent(url)}&format=json`;
+}

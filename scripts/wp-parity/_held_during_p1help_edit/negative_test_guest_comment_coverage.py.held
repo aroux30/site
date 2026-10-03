@@ -1,0 +1,148 @@
+"""Negative test: the guest-comment coverage guard can actually fail.
+
+A source-reading guard is the shape most likely to be decorative: a name
+appears, the check is green, and the file could still be broken. So each
+assertion is broken one at a time and the guard has to go red for the reason it
+claims.
+
+Two of the assertions are about *ordering* rather than presence, and those are
+the ones that matter. The address capture has to sit before the account email is
+cleared, and the guest-comment pass has to sit inside the hard-delete branch —
+both of which read fine as substrings and fail completely as behaviour.
+
+    python scripts/wp-parity/negative_test_guest_comment_coverage.py
+"""
+
+from __future__ import annotations
+
+import io
+import os
+import subprocess
+import sys
+from pathlib import Path
+
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
+
+ROOT = Path(__file__).resolve().parents[2]
+GUARD = ROOT / "scripts" / "wp-parity" / "check_guest_comment_coverage.py"
+SERVICE = (
+    ROOT / "backend" / "app" / "modules" / "settings" / "application" / "privacy_service.py"
+)
+
+# (name, original, broken, expected substring in the guard's output)
+CASES: list[tuple[str, str, str, str]] = [
+    (
+        "the matcher no longer compares the guest email",
+        "conditions = (\n"
+        "        [BlogComment.author_id == author_id, BlogComment.author_email.ilike(email)]\n"
+        "        if email\n"
+        "        else [BlogComment.author_id == author_id]\n"
+        "    )",
+        "conditions = [BlogComment.author_id == author_id]",
+        "does not compare the guest email",
+    ),
+    (
+        "a raw author_id query is left behind",
+        "                stmt = _comments_by_subject(user_id, subject_email)\n"
+        "                comments = (await db.execute(stmt)).scalars().all()",
+        "                stmt = select(BlogComment).where(\n"
+        "                    BlogComment.author_id == user_id\n"
+        "                )\n"
+        "                comments = (await db.execute(stmt)).scalars().all()",
+        "still selects on author_id alone",
+    ),
+    (
+        "the address is captured after it is cleared",
+        "            subject_email = user.email",
+        "            subject_email = None",
+        "is not captured before the account email is cleared",
+    ),
+    (
+        "the hard delete relies on the cascade again",
+        "                stmt = _comments_by_subject(user_id, user.email)\n"
+        "                comments = (await db.execute(stmt)).scalars().all()",
+        "                comments = []",
+        "relies on the cascade",
+    ),
+]
+
+
+def run_guard() -> tuple[int, str]:
+    # A subprocess, not an import: this script and the guard both rebind
+    # sys.stdout to a fresh TextIOWrapper at import time, and the two wrappers
+    # share a buffer, so importing the guard closes the stream this script is
+    # still printing to.
+    proc = subprocess.run(
+        [sys.executable, str(GUARD)],
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        cwd=ROOT,
+        env={**os.environ, "PYTHONIOENCODING": "utf-8"},
+    )
+    return proc.returncode, proc.stdout + proc.stderr
+
+
+def main() -> int:
+    source = SERVICE.read_text(encoding="utf-8")
+
+    print("baseline (unbroken tree):")
+    code, out = run_guard()
+    if code != 0:
+        print(out)
+        print(
+            "FAIL: the guard is not green on the unbroken tree, so a red run below "
+            "would mean nothing"
+        )
+        return 1
+    print("  PASS as expected")
+    print("")
+
+    failures: list[str] = []
+    for name, original, broken, expected in CASES:
+        if original not in source:
+            failures.append(
+                "%s: the marker to break is not in privacy_service.py, so this case "
+                "would prove nothing -- update it for the current source" % name
+            )
+            continue
+        SERVICE.write_text(source.replace(original, broken, 1), encoding="utf-8")
+        try:
+            code, out = run_guard()
+        finally:
+            SERVICE.write_text(source, encoding="utf-8")
+
+        if code == 0:
+            failures.append("%s: the guard still passed" % name)
+            print("  FAIL %s -- the guard still passed" % name)
+        elif expected not in out:
+            failures.append(
+                "%s: the guard went red, but not for this reason -- expected %r in "
+                "the output" % (name, expected)
+            )
+            print("  FAIL %s -- red for the wrong reason" % name)
+            print("    " + out.strip().replace("\n", "\n    "))
+        else:
+            print("  PASS %s -> guard went red for the right reason" % name)
+
+    code, out = run_guard()
+    if code != 0:
+        print(out)
+        failures.append("the guard is red again after restoring the file")
+    else:
+        print("")
+        print("PASS: the tree is green again after every injection was reverted.")
+
+    if failures:
+        print("")
+        for f in failures:
+            print("FAIL: %s" % f)
+        return 1
+    print("")
+    print("PASS: every assertion in this guard can fail, for its own reason.")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

@@ -262,3 +262,37 @@ export const outboxApi = {
     await apiClient.delete(`/automation/admin/outbox/dead-letters/${messageId}`);
   },
 };
+
+export interface ScheduledJob {
+  name: string;
+  task: string | null;
+  schedule: string;
+  queue: string | null;
+  registered: boolean;
+}
+
+export interface ScheduledJobList {
+  count: number;
+  jobs: ScheduledJob[];
+}
+
+export interface RunJobResult {
+  dispatched: boolean;
+  task?: string;
+  reason?: string;
+}
+
+/** Scheduled jobs (Celery beat), WordPress's Tools → Cron Events. */
+export const scheduledJobsApi = {
+  list: async (): Promise<ScheduledJobList> => {
+    const res = await apiClient.get<ScheduledJobList>("/automation/admin/scheduled-jobs");
+    return res.data;
+  },
+
+  run: async (name: string): Promise<RunJobResult> => {
+    const res = await apiClient.post<RunJobResult>(
+      `/automation/admin/scheduled-jobs/${encodeURIComponent(name)}/run`,
+    );
+    return res.data;
+  },
+};

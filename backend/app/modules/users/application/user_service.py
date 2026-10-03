@@ -3,18 +3,19 @@
 from __future__ import annotations
 
 import uuid
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 import structlog
-from sqlalchemy import func, select, update
+from sqlalchemy import CursorResult, func, select, update
 from sqlalchemy.orm import selectinload
 
 from app.core.exceptions.handlers import (
     ConflictError,
     NotFoundError,
+    ValidationError,
 )
 from app.modules.audit.application.audit_service import log_action
-from app.modules.rbac.domain.models import UserRole
+from app.modules.rbac.domain.models import Role, UserRole
 from app.modules.users.domain.models import Address, User, UserProfile
 
 if TYPE_CHECKING:
@@ -30,12 +31,29 @@ async def get_users(
     *,
     search: str | None = None,
     is_active: bool | None = None,
+    role: str | None = None,
+    include_deleted: bool = False,
+    pending_approval: bool | None = None,
     page: int = 1,
     page_size: int = 20,
 ) -> tuple[list[dict[str, Any]], int]:
     """List users with optional filters and pagination (admin).
 
     Returns ``(items, total_count)``.
+
+    ``role`` filters server-side, on the role slug. It used to be a client-side
+    filter over the current page, so "show me the vendors" answered with the
+    vendors *on this page* — and an operator had to page through the whole
+    store to find the one they wanted. The join is on the slug because that is
+    what the admin table badges on.
+
+    ``include_deleted`` is what makes a soft-deleted account reachable again:
+    without it the list (and therefore the restore action) could not see the
+    rows that a restore is for.
+
+    ``pending_approval`` is what makes the approval queue reachable: without a
+    filter for it, an operator has no way to find the accounts waiting on them
+    among every other row.
     """
     # The role links are eager-loaded on purpose: the admin users table has a
     # role column and a role filter, and without this the API returned no role
@@ -44,6 +62,12 @@ async def get_users(
     # was never on the wire.
     stmt = select(User).options(selectinload(User.profile), selectinload(User.roles).selectinload(UserRole.role))
     count_stmt = select(func.count(User.id))
+
+    if not include_deleted:
+        # Soft-deleted accounts are hidden by default, exactly like the library
+        # hides trashed media. A restore view asks for them explicitly.
+        stmt = stmt.where(User.deleted_at.is_(None))
+        count_stmt = count_stmt.where(User.deleted_at.is_(None))
 
     if search is not None:
         pattern = f"%{search}%"
@@ -54,6 +78,21 @@ async def get_users(
     if is_active is not None:
         stmt = stmt.where(User.is_active == is_active)
         count_stmt = count_stmt.where(User.is_active == is_active)
+
+    if pending_approval is not None:
+        stmt = stmt.where(User.pending_approval == pending_approval)
+        count_stmt = count_stmt.where(User.pending_approval == pending_approval)
+
+    if role:
+        # A subquery rather than a join: a user with two roles would otherwise
+        # appear twice in the page and inflate the count.
+        role_users = (
+            select(UserRole.user_id)
+            .join(Role, Role.id == UserRole.role_id)
+            .where(Role.slug == role)
+        )
+        stmt = stmt.where(User.id.in_(role_users))
+        count_stmt = count_stmt.where(User.id.in_(role_users))
 
     total = (await db.execute(count_stmt)).scalar() or 0
 
@@ -72,8 +111,12 @@ async def get_users(
                 "email": user.email,
                 "first_name": profile.first_name if profile else None,
                 "last_name": profile.last_name if profile else None,
+                "display_name": profile.display_name if profile else None,
                 "is_active": user.is_active,
                 "is_verified": user.is_verified,
+                # So the approval queue can badge the row and offer
+                # approve/reject instead of the ordinary block action.
+                "pending_approval": bool(user.pending_approval),
                 "created_at": user.created_at,
                 "last_login": user.last_login,
                 # Slugs, not the Persian display name: the admin table filters
@@ -81,10 +124,33 @@ async def get_users(
                 # made the role filter match nothing.
                 "roles": [ur.role.slug for ur in user.roles if ur.role is not None],
                 "is_superuser": bool(user.is_superuser),
+                # So the restore view can tell a deleted row from a live one
+                # with the same fields, and offer the right action.
+                "deleted_at": user.deleted_at,
             }
         )
 
     return items, total
+
+
+async def get_user_entity(
+    db: AsyncSession,
+    *,
+    user_id: uuid.UUID,
+) -> User | None:
+    """The ORM row itself, or None.
+
+    For the paths that need a column the detail dict flattens away — the admin
+    password reset reads ``email`` and ``password_hash``, and neither is part of
+    ``get_user``'s payload because neither belongs in a response. Rebuilding a
+    query per field at each call site is how one of them ends up checking
+    ``is_active`` where it meant ``password_hash``.
+
+    Returns None rather than raising, because the caller here wants to answer
+    404 itself; ``get_user`` raises, because its callers all want that.
+    """
+    result = await db.execute(select(User).where(User.id == user_id))
+    return result.scalar_one_or_none()
 
 
 async def get_user(
@@ -113,6 +179,8 @@ async def get_user(
         "email": user.email,
         "first_name": profile.first_name if profile else None,
         "last_name": profile.last_name if profile else None,
+        "display_name": profile.display_name if profile else None,
+        "pending_approval": bool(user.pending_approval),
         "national_code": profile.national_code if profile else None,
         "birth_date": str(profile.birth_date) if profile and profile.birth_date else None,
         "avatar_url": profile.avatar_url if profile else None,
@@ -160,12 +228,23 @@ async def create_user_admin(
 
     pwd_hash = hash_password(password) if password else None
 
+    from app.modules.users.application.author_slug import unique_author_slug
+
     user = User(
         phone=phone,
         email=email,
         password_hash=pwd_hash,
         is_active=data.get("is_active", True),
         is_verified=data.get("is_verified", True),
+        # Same reason as the registration path: the author archive reads this
+        # column, and an admin-created author is exactly the person who writes
+        # a byline. Falling back to the phone keeps it unique when the name is
+        # empty.
+        author_slug=await unique_author_slug(
+            db,
+            f"{data.get('first_name') or ''} {data.get('last_name') or ''}".strip(),
+            fallback=phone,
+        ),
     )
     db.add(user)
     await db.flush()
@@ -182,7 +261,12 @@ async def create_user_admin(
     if role_slugs:
         roles_res = await db.execute(select(Role).where(Role.slug.in_(role_slugs)))
         for r in roles_res.scalars().all():
-            db.add(UserRole(user_id=user.id, role_id=r.id, assigned_by=actor_id))
+            # No `assigned_by`: `user_roles` has no such column — it is a bare
+            # association. Passing one raised TypeError, so creating an account
+            # *with* a role never worked; the role editor's separate path (which
+            # omits it) is why nobody noticed. The audit row below carries the
+            # actor instead.
+            db.add(UserRole(user_id=user.id, role_id=r.id))
 
     await db.flush()
     created = await get_user(db, user_id=user.id)
@@ -238,9 +322,15 @@ def _check_admin_target_guard(user: User, actor_id: uuid.UUID) -> None:
 
     Self-block would instantly revoke the acting admin's own sessions and
     denylist their token; blocking a superuser would let a mere ``users:write``
-    holder disable the most privileged account (and, if it is the last active
-    admin, permanently lock out administration). Mirrors the self-escalation
+    holder disable the most privileged account. Mirrors the self-escalation
     guard in rbac_service.
+
+    Note what this does *not* do: it says nothing about how many admins would be
+    left. That question is asked by ``assert_not_last_admin``, which is async and
+    therefore cannot live here, and it is asked at the three call sites that
+    actually remove access. Between them the store is closed to a lone operator
+    doing what two operators cannot: each of them removes one of the last two
+    accounts, in two steps, and nothing in a per-account rule can see it.
     """
     from app.core.exceptions.handlers import ForbiddenError
 
@@ -268,6 +358,13 @@ async def block_user(
         raise NotFoundError(resource="User")
 
     _check_admin_target_guard(user, actor_id)
+
+    # P0 "کاربران: محافظت آخرین ادمین". Asked before the write, so a refused
+    # block leaves nothing to undo. The target may be a superuser, in which case
+    # the guard above has already refused, and the count is simply never reached.
+    from app.modules.users.application.last_admin_guard import assert_not_last_admin
+
+    await assert_not_last_admin(db, user_id=user_id, operation="block")
 
     before = await get_user(db, user_id=user_id)
     user.is_active = False
@@ -337,13 +434,32 @@ async def soft_delete_user(
     *,
     user_id: uuid.UUID,
     actor_id: uuid.UUID,
+    reassign_to: uuid.UUID | None = None,
     ip_address: str | None = None,
     user_agent: str | None = None,
-) -> None:
-    """Soft-delete user by setting deleted_at timestamp and revoking access."""
+) -> dict[str, Any]:
+    """Soft-delete a user, optionally handing their content to a successor.
+
+    P0 "کاربران: حذف کاربر با واگذاری محتوا". Thirty-four columns point at
+    ``users`` with ``ON DELETE SET NULL``, so a user who leaves takes seven of
+    them down to NULL: their posts, pages, comments, reviews of content,
+    reusable blocks and uploads all become ownerless. An article attributed to
+    nobody is not a deleted employee's article any more.
+
+    ``reassign_to`` is optional and defaults to None. That default is the honest
+    one — a caller who has not thought about attribution gets exactly what it
+    asked for, rather than having content silently moved to whoever happens to be
+    first in a dropdown. The route exposes it, and the admin page asks.
+
+    The heir is checked before anything is written: reassigning to the departing
+    user themselves moves every row and reports nothing, and reassigning to a
+    non-existent account leaves the content pointing at nothing at all — the same
+    outcome as not reassigning, reached by a longer route.
+    """
     from datetime import UTC, datetime
 
     from app.core.security.revocation import denylist_user
+    from app.modules.users.application import reassign_service
     from app.modules.users.domain.models import UserSession
 
     user = await db.get(User, user_id)
@@ -352,7 +468,35 @@ async def soft_delete_user(
 
     _check_admin_target_guard(user, actor_id)
 
+    from app.modules.users.application.last_admin_guard import assert_not_last_admin
+
+    await assert_not_last_admin(db, user_id=user_id, operation="delete")
+
+    if reassign_to is not None:
+        if reassign_to == user_id:
+            raise ValidationError(
+                "کاربر جایگزین نمی‌تواند همان کاربر حذف‌شونده باشد."
+            )
+        heir = await db.get(User, reassign_to)
+        if heir is None:
+            raise NotFoundError(resource="User", detail=str(reassign_to))
+        if heir.deleted_at is not None:
+            raise ValidationError(
+                "کاربر جایگزین حذف شده است و نمی‌تواند مالک محتوا شود."
+            )
+
     before = await get_user(db, user_id=user_id)
+    # Counted *before* the move, so the audit trail records what the account
+    # actually held rather than a re-read of an already-emptied set.
+    owned = await reassign_service.count_authored_content(db, user_id=user_id)
+
+    moved: dict[str, int] = {}
+    if reassign_to is not None:
+        moved = await reassign_service.reassign_authored_content(
+            db, from_user_id=user_id, to_user_id=reassign_to
+        )
+        await db.flush()
+
     user.deleted_at = datetime.now(UTC)
     user.is_active = False
 
@@ -376,6 +520,13 @@ async def soft_delete_user(
         ip_address=ip_address,
         user_agent=user_agent,
     )
+    return {
+        "owned_before": owned,
+        "reassigned": moved,
+        "summary": reassign_service.summarise_reassignment(
+            moved if reassign_to is not None else owned
+        ),
+    }
 
 
 async def restore_user(
@@ -451,7 +602,7 @@ async def update_user(
         if existing.scalar_one_or_none() is not None:
             raise ConflictError(detail="Email already in use")
 
-    for key in ("first_name", "last_name"):
+    for key in ("first_name", "last_name", "display_name"):
         if key in data and data[key] is not None:
             profile_fields[key] = data[key]
 
@@ -512,6 +663,305 @@ async def update_user(
     )
 
     return after
+
+
+#: The bulk actions the admin users list offers, and the per-account guards each
+#: one must still pass. An unknown action is refused rather than silently
+#: no-op'ing, because a bulk call that returns "20 done" for an action nobody
+#: implemented is the worst of both worlds.
+BULK_USER_ACTIONS = {"block", "unblock", "delete", "restore", "set_role"}
+
+
+async def bulk_users(
+    db: AsyncSession,
+    *,
+    ids: list[uuid.UUID],
+    action: str,
+    actor_id: uuid.UUID,
+    role_slug: str | None = None,
+    ip_address: str | None = None,
+    user_agent: str | None = None,
+) -> dict[str, Any]:
+    """Apply one action to many accounts, reporting a per-account outcome.
+
+    Partial success is the contract, exactly as in ``BlogService.bulk_posts``:
+    an operator selecting twenty accounts may not be allowed to touch all of
+    them — the self/superuser guard and the last-admin guard each refuse some —
+    and a bare boolean would make "20 selected, 18 done, 2 refused" read as
+    "20 done". Every id gets an entry in ``results`` (``ok`` or ``error``) and
+    the counts say what really happened.
+
+    Each account is acted on through the *same* single-account function the
+    individual buttons call, so a bulk call is exactly as strict as the
+    equivalent N separate clicks: the guards, the session revocation and the
+    audit row all still run per user. Re-implementing the writes here would be
+    a second code path to keep in step, and the first one to drift.
+
+    ``set_role`` delegates to the RBAC service for the same reason — role
+    assignment carries its own self-escalation guard, and that guard must see
+    the real caller's payload.
+    """
+    from app.core.exceptions.handlers import ValidationError
+
+    if action not in BULK_USER_ACTIONS:
+        raise ValidationError(f"عملیات گروهی ناشناخته: {action}")
+    if action == "set_role" and not role_slug:
+        raise ValidationError("برای تغییر گروهی نقش، یک نقش انتخاب کنید.")
+
+    # Resolved once, not per user: a typo'd or deleted role must fail the whole
+    # request rather than half of it, and the operator is looking at one form.
+    role_id: uuid.UUID | None = None
+    if action == "set_role":
+        role_row = (
+            await db.execute(select(Role).where(Role.slug == role_slug))
+        ).scalar_one_or_none()
+        if role_row is None:
+            raise NotFoundError(resource="Role", detail=str(role_slug))
+        role_id = role_row.id
+
+    results: list[dict[str, Any]] = []
+    ok = 0
+    failed = 0
+
+    for user_id in ids:
+        try:
+            if action == "block":
+                await block_user(
+                    db, user_id=user_id, actor_id=actor_id,
+                    ip_address=ip_address, user_agent=user_agent,
+                )
+            elif action == "unblock":
+                await unblock_user(
+                    db, user_id=user_id, actor_id=actor_id,
+                    ip_address=ip_address, user_agent=user_agent,
+                )
+            elif action == "delete":
+                # No ``reassign_to`` in bulk: handing every selected account's
+                # content to one heir is almost never what "delete these" means,
+                # and doing it silently would move a whole team's articles in
+                # one click. The single-account dialog is where attribution is
+                # decided.
+                await soft_delete_user(
+                    db, user_id=user_id, actor_id=actor_id,
+                    ip_address=ip_address, user_agent=user_agent,
+                )
+            elif action == "restore":
+                await restore_user(
+                    db, user_id=user_id, actor_id=actor_id,
+                    ip_address=ip_address, user_agent=user_agent,
+                )
+            elif action == "set_role":
+                from app.modules.rbac.application import rbac_service
+
+                await rbac_service.assign_roles_to_user(
+                    db,
+                    user_id=user_id,
+                    role_ids=[role_id] if role_id is not None else [],
+                    actor_id=actor_id,
+                )
+        except Exception as exc:  # noqa: BLE001 - one refusal must not stop the rest
+            failed += 1
+            results.append({
+                "id": str(user_id),
+                "ok": False,
+                "error": str(exc),
+            })
+        else:
+            ok += 1
+            results.append({"id": str(user_id), "ok": True, "error": None})
+
+    await db.commit()
+    return {
+        "action": action,
+        "ok": ok,
+        "failed": failed,
+        "total": len(ids),
+        "results": results,
+    }
+
+
+# ── Admin registration approval ──────────────────────────────────────────────
+
+
+async def approve_user(
+    db: AsyncSession,
+    *,
+    user_id: uuid.UUID,
+    actor_id: uuid.UUID,
+    ip_address: str | None = None,
+    user_agent: str | None = None,
+) -> dict[str, Any]:
+    """Admit a pending account.
+
+    P1 "کاربران: تأیید حساب توسط مدیر". Approving is a write of its own, not
+    "unblock": the account was never blocked, it was never admitted, and an
+    audit trail that says "unblocked" for a first admission is wrong.
+
+    Approving a non-pending account is refused rather than treated as a no-op,
+    so an operator double-clicking does not produce two admissions in the log.
+    """
+    user = await db.get(User, user_id)
+    if not user:
+        raise NotFoundError(resource="User")
+
+    if not user.pending_approval:
+        raise ConflictError(detail="This account is not awaiting approval")
+
+    before = await get_user(db, user_id=user_id)
+    user.pending_approval = False
+    user.is_active = True
+    await db.flush()
+
+    after = await get_user(db, user_id=user_id)
+    await log_action(
+        db,
+        actor_id=actor_id,
+        action="admin.user_approved",
+        resource="user",
+        resource_id=user_id,
+        before=before,
+        after=after,
+        ip_address=ip_address,
+        user_agent=user_agent,
+    )
+    return after
+
+
+async def reject_user(
+    db: AsyncSession,
+    *,
+    user_id: uuid.UUID,
+    actor_id: uuid.UUID,
+    ip_address: str | None = None,
+    user_agent: str | None = None,
+) -> dict[str, Any]:
+    """Refuse a pending account.
+
+    Kept as a soft state — the row stays, ``pending_approval`` clears and
+    ``is_active`` goes false, which is exactly the blocked state — so a
+    rejection is reversible with the existing unblock action and the account's
+    data is not destroyed by a click.
+    """
+    user = await db.get(User, user_id)
+    if not user:
+        raise NotFoundError(resource="User")
+
+    if not user.pending_approval:
+        raise ConflictError(detail="This account is not awaiting approval")
+
+    before = await get_user(db, user_id=user_id)
+    user.pending_approval = False
+    user.is_active = False
+    await db.flush()
+
+    after = await get_user(db, user_id=user_id)
+    await log_action(
+        db,
+        actor_id=actor_id,
+        action="admin.user_rejected",
+        resource="user",
+        resource_id=user_id,
+        before=before,
+        after=after,
+        ip_address=ip_address,
+        user_agent=user_agent,
+    )
+    return after
+
+
+# ── Admin session management ─────────────────────────────────────────────────
+
+
+async def list_user_sessions(
+    db: AsyncSession,
+    *,
+    user_id: uuid.UUID,
+) -> list[dict[str, Any]]:
+    """Every active session an account holds, for an operator to review.
+
+    P1 "کاربران: مدیریت نشست‌های دیگر کاربران از پنل". "Sign out everywhere" was
+    self-service only: a user who suspected a stolen session could do something,
+    but the operator handling the support ticket could see nothing and do
+    nothing. This is the read half; ``revoke_user_session`` is the write half.
+
+    Revoked sessions are filtered out — the same predicate the self-service list
+    uses — because a list that mixes live and dead rows makes "how many devices
+    is this account on" unanswerable.
+    """
+    from app.modules.users.domain.models import UserSession
+
+    rows = (
+        await db.execute(
+            select(UserSession)
+            .where(
+                UserSession.user_id == user_id,
+                UserSession.is_revoked.is_(False),
+            )
+            .order_by(UserSession.created_at.desc())
+        )
+    ).scalars().all()
+    return [
+        {
+            "id": s.id,
+            "ip_address": s.ip_address,
+            "user_agent": s.user_agent,
+            "device_info": s.device_info,
+            "created_at": s.created_at,
+            "expires_at": s.expires_at,
+            "is_revoked": s.is_revoked,
+        }
+        for s in rows
+    ]
+
+
+async def revoke_user_session(
+    db: AsyncSession,
+    *,
+    user_id: uuid.UUID,
+    session_id: uuid.UUID,
+    actor_id: uuid.UUID,
+) -> None:
+    """Kill one session of another account, at an operator's request.
+
+    Scoped by ``user_id`` as well as ``session_id`` so an operator cannot revoke
+    a session that belongs to a different account by guessing its id — the same
+    owner predicate the self-service revoke uses, just with the owner supplied
+    by the route rather than the token.
+
+    The acting admin is the ``actor_id`` in the audit row, so a forced logout is
+    attributable: "your session was ended" with no record of who ended it is not
+    a support action, it is a mystery.
+    """
+    from app.modules.users.domain.models import UserSession
+
+    result = await db.execute(
+        update(UserSession)
+        .where(
+            UserSession.id == session_id,
+            UserSession.user_id == user_id,
+            UserSession.is_revoked.is_(False),
+        )
+        .values(is_revoked=True)
+    )
+    cursor = cast("CursorResult[Any]", result)
+    if (cursor.rowcount or 0) == 0:
+        raise NotFoundError(resource="Session")
+
+    await db.flush()
+    await log_action(
+        db,
+        actor_id=actor_id,
+        action="admin.user_session_revoked",
+        resource="user_session",
+        resource_id=session_id,
+        after={"user_id": str(user_id)},
+    )
+    await logger.ainfo(
+        "admin_session_revoked",
+        user_id=str(user_id),
+        session_id=str(session_id),
+        actor_id=str(actor_id),
+    )
 
 
 # ── Address CRUD ─────────────────────────────────────────────────────────────

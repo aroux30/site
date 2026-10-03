@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 
 import { usersAdminApi, type AdminUser } from "@/lib/api/users";
+import { UserRolesEditor } from "./user-roles-editor";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -30,6 +31,10 @@ interface FormState {
   first_name: string;
   last_name: string;
   password: string;
+  /** Create-mode only. The server assigns this role with the account, so an
+   *  operator onboarding a staff member does not have to create them as a
+   *  customer and then find the separate roles editor to fix it. */
+  role_slug: string;
 }
 
 const EMPTY: FormState = {
@@ -38,7 +43,19 @@ const EMPTY: FormState = {
   first_name: "",
   last_name: "",
   password: "",
+  role_slug: "customer",
 };
+
+/** The roles an operator can hand out at creation. Deliberately short: the
+ *  full RBAC catalogue is large, and the common onboarding choices are these.
+ *  Any other role is still assignable after creation through the roles editor. */
+const CREATABLE_ROLES = [
+  { value: "customer", label: "مشتری" },
+  { value: "vendor", label: "فروشنده" },
+  { value: "author", label: "نویسنده" },
+  { value: "editor", label: "ویرایشگر" },
+  { value: "admin", label: "مدیر" },
+] as const;
 
 /**
  * Create or edit one account.
@@ -69,6 +86,7 @@ export function UserDialog({ user, open, onOpenChange, onSaved }: Props) {
             first_name: user.first_name ?? "",
             last_name: user.last_name ?? "",
             password: "",
+            role_slug: "",
           }
         : EMPTY,
     );
@@ -110,6 +128,12 @@ export function UserDialog({ user, open, onOpenChange, onSaved }: Props) {
           first_name: form.first_name.trim() || undefined,
           last_name: form.last_name.trim() || undefined,
           password: form.password,
+          // Only sent when it is not the default: "customer" is the server's
+          // own default, and sending it would need rbac:write for no change.
+          role_slugs:
+            form.role_slug && form.role_slug !== "customer"
+              ? [form.role_slug]
+              : undefined,
         });
       }
       await onSaved();
@@ -206,6 +230,45 @@ export function UserDialog({ user, open, onOpenChange, onSaved }: Props) {
               <p className="text-[11px] text-muted-foreground">
                 حداقل ۸ نویسه، شامل یک حرف و یک رقم.
               </p>
+            </div>
+          )}
+
+          {/* Role at creation. Before this, every admin-created account was a
+              customer and the operator had to find the separate roles editor
+              afterward to make a staff member staff — so onboarding was two
+              steps with a wrong state in between. Changing the role needs
+              rbac:write, which the server checks; a customer-only create does
+              not and never sends this. */}
+          {!editing && (
+            <div className="space-y-1.5">
+              <Label htmlFor="ud-role">نقش</Label>
+              <select
+                id="ud-role"
+                value={form.role_slug}
+                disabled={busy}
+                onChange={(e) => set("role_slug", e.target.value)}
+                className="h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              >
+                {CREATABLE_ROLES.map((r) => (
+                  <option key={r.value} value={r.value}>
+                    {r.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          {/* Roles are assigned here, on their own, not as a field on the
+              account form. The endpoint and the typed client both existed with no
+              caller, so an operator could override one permission on a user but
+              could not give them a role at all — and a role is what an operator
+              reaches for when hiring. It is a separate column of the user, not a
+              property of the account row, and folding it into this form would
+              make saving the account and saving its roles one operation that
+              fails in both directions at once. */}
+          {editing && user && (
+            <div className="border-t border-border/60 pt-3">
+              <UserRolesEditor userId={user.id} />
             </div>
           )}
 

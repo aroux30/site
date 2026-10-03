@@ -22,10 +22,98 @@ from app.core.config.settings import get_settings
 
 settings = get_settings()
 
+#: Every module that defines tasks, imported at worker boot.
+#:
+#: ``autodiscover_tasks(packages=[...], related_name="application.tasks")`` was
+#: doing this job and did not: the packages list is a list of *modules*, and
+#: autodiscover only imports ``<package>.tasks`` — a top-level module has no
+#: ``tasks`` attribute to find, so nothing was imported and the worker
+#: registered zero business tasks. Every beat job then fired into
+#: "Received unregistered task" and died, silently: no cart expired, no media
+#: purged, no daily report ran, and the site-health run never happened either.
+#:
+#: ``include`` is a list of module *paths*, and Celery imports each one during
+#: ``finalize``, which runs on worker start and on every ``.delay()``. That is
+#: what makes ``expire_stale_carts`` reachable — both from the beat and from a
+#: request that enqueues it.
+#:
+#: Kept in step with the ``beat_schedule`` task paths below; a job whose task is
+#: not on this list fails at fire time with nothing but a log line to show it.
+#:
+#: Validated against the filesystem below, and a bad entry raises here rather
+#: than inside Celery's loader. The failure it replaces was silent and total: a
+#: single path that does not resolve raises ModuleNotFoundError during
+#: ``import_default_modules``, which aborts the loop *before* the modules after
+#: it are imported — so one stale entry left the worker with a handful of tasks
+#: and twenty-odd beat jobs firing into "unregistered task". Every entry is
+#: therefore checked at import time, where the stack trace names the file.
+TASK_MODULES: tuple[str, ...] = (
+    "app.worker.celery_app",              # record_heartbeat, defined here
+    "app.modules.auth.application.tasks",
+    "app.modules.orders.application.tasks",
+    "app.modules.cart.application.tasks",
+    "app.modules.inventory.application.tasks",
+    "app.modules.cashback.application.tasks",
+    "app.modules.blog.application.tasks",
+    "app.modules.content.application.tasks",
+    "app.modules.search.application.tasks",
+    "app.modules.media.application.tasks",
+    "app.modules.analytics.application.tasks",
+    "app.modules.integrations.application.tasks",
+    "app.modules.dataexchange.application.tasks",
+    "app.modules.reporting.application.tasks",
+    "app.modules.subscriptions.application.tasks",
+    "app.modules.settings.application.tasks",
+    "app.modules.automation.application.tasks",
+    "app.modules.audit.application.tasks",
+    "app.modules.discounts.application.tasks",
+    "app.modules.newsletter.application.tasks",
+    "app.modules.recommendations.application.tasks",
+    "app.modules.wallet.application.tasks",
+    "app.modules.accounting.application.tasks",
+    "app.modules.invoicing.application.tasks",
+    "app.modules.messaging.application.tasks",
+    "app.modules.notifications.application.tasks",
+)
+
+def _assert_task_modules_exist(modules: tuple[str, ...]) -> None:
+    """Fail at import on a task module that is not on disk.
+
+    Celery imports ``include`` lazily inside ``finalize()`` and lets the first
+    ImportError propagate, so a bad entry looks like a dead worker rather than a
+    typo in a list. Checking here costs one stat per module and turns that into
+    an error that names the missing path.
+    """
+    import os
+
+    # Resolved against this file, not the working directory: a worker started
+    # from / would otherwise fail the check on every module and report the
+    # whole list as missing.
+    here = os.path.dirname(os.path.abspath(__file__))
+    missing = [
+        m
+        for m in modules
+        if not os.path.isfile(
+            os.path.normpath(os.path.join(here, "..", "..", m.replace(".", os.sep) + ".py"))
+        )
+    ]
+    if missing:
+        raise ModuleNotFoundError(
+            "celery include lists modules that do not exist: "
+            + ", ".join(missing)
+            + " — a task module was renamed or removed; the whole include list "
+            "stops importing at the first bad entry, leaving the worker with "
+            "almost no tasks registered."
+        )
+
+
+_assert_task_modules_exist(TASK_MODULES)
+
 celery_app = Celery(
     "iranian_ecommerce",
     broker=settings.CELERY_BROKER_URL,
     backend=settings.CELERY_RESULT_BACKEND,
+    include=TASK_MODULES,
 )
 
 celery_app.conf.update(
@@ -111,6 +199,7 @@ celery_app.autodiscover_tasks(
         "app.modules.dataexchange",
         "app.modules.reporting",
         "app.modules.subscriptions",
+        "app.modules.settings",
     ],
     # Task modules live at <pkg>.application.tasks, not <pkg>.tasks. Without
     # related_name autodiscover imports app.modules.<x>.tasks, finds nothing,
@@ -174,6 +263,16 @@ celery_app.conf.beat_schedule = {
         "schedule": crontab(minute="*/1"),
         "options": {"queue": "default"},
     },
+    # Site health, once a day at 06:12. WordPress runs it twice a day; the
+    # checks that matter for a store (disk, database reachability, the
+    # scheduler) do not change inside a day, and a slower cadence is what lets
+    # the history page stay readable. The minute is off :00 so this does not
+    # join the top-of-hour burst.
+    "site-health-daily": {
+        "task": "app.modules.settings.application.tasks.run_site_health",
+        "schedule": crontab(minute=12, hour=6),
+        "options": {"queue": "default"},
+    },
     # Expire stale shopping carts every hour
     "expire-stale-carts": {
         "task": "app.modules.cart.application.tasks.expire_stale_carts",
@@ -204,6 +303,37 @@ celery_app.conf.beat_schedule = {
         "task": "app.modules.search.application.tasks.full_reindex",
         "schedule": crontab(hour="*/6", minute=15),
         "options": {"queue": "analytics"},
+    },
+    # GDPR retention. An export the subject never collected kept its whole
+    # payload forever: the admin route existed and worked, but nothing called
+    # it, so the one case the window exists to cover never fired. Daily, off the
+    # hour — the windows are measured in days, so an hourly job would repeat the
+    # same scan 24 times for the same result.
+    "purge-expired-privacy-results": {
+        "task": "app.modules.settings.application.tasks.purge_expired_privacy_results",
+        "schedule": crontab(hour=4, minute=40),
+        "options": {"queue": "default"},
+    },
+    # Comment IP retention. Once a day, twenty minutes after the export purge so
+    # the two privacy sweeps do not compete for the same connections at the same
+    # minute. It rewrites rows, so it gets its own slot rather than riding along
+    # with the export purge: a slow mask job must not delay the export purge, and
+    # a failing one must not roll back the other.
+    "mask-expired-comment-ips": {
+        "task": "app.modules.settings.application.tasks.mask_expired_comment_ips",
+        "schedule": crontab(hour=5, minute=0),
+        "options": {"queue": "default"},
+    },
+    # Media trash retention. Once a day, off the hour, deleting only what has
+    # been in the trash longer than the retention window — so an operator who
+    # trashes an image by mistake has 30 days to notice and restore it. The
+    # window is the task's default rather than a beat argument on purpose: a
+    # value editable from the scheduler config is a value that will eventually
+    # be edited to 0.
+    "purge-media-trash": {
+        "task": "app.modules.media.application.tasks.purge_expired_media_trash",
+        "schedule": crontab(hour=3, minute=20),
+        "options": {"queue": "default"},
     },
     # Generate daily analytics report
     "daily-analytics-report": {
@@ -259,6 +389,14 @@ celery_app.conf.beat_schedule = {
     # minute, same go-live guarantee as blog posts.
     "process-scheduled-cms-pages": {
         "task": "app.modules.content.application.tasks.process_scheduled_cms_pages",
+        "schedule": crontab(minute="*/1"),
+        "options": {"queue": "default"},
+    },
+    # Custom post type entries, same minute-by-minute guarantee. Without it an
+    # entry dated forward through the content-types tab stayed a draft forever,
+    # with a filled schedule column and nothing acting on it.
+    "publish-scheduled-cpt-entries": {
+        "task": "app.modules.blog.application.tasks.publish_scheduled_cpt_entries",
         "schedule": crontab(minute="*/1"),
         "options": {"queue": "default"},
     },

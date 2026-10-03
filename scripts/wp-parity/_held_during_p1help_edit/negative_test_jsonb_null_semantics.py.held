@@ -1,0 +1,181 @@
+"""Negative test: the JSONB null-semantics guard can actually fail.
+
+This guard greps source for structural facts, which is the shape of guard most
+likely to be decorative: a name appears in the file, the check is green, and
+the file could still be broken. So each assertion is broken one at a time and
+the guard has to go red for the right reason.
+
+Two of the earlier injections passed, and both are kept here as cases because
+they are the interesting ones:
+
+  - the first `SqlNullOnNone` put its check in `process_bind_param`, which is
+    never consulted when the type underneath is JSONB (itself a TypeDecorator).
+    The guard now requires `bind_processor`, and reverting to the old method is
+    a case.
+  - a regex bounded by a following `@staticmethod` matched nothing at all when
+    `purge_expired` was the last method in the file, so the guard reported the
+    UPDATE missing on a file that had it. The terminator is the file end now;
+    breaking that means removing the `null()` call, which is the real defect
+    anyway.
+
+    python scripts/wp-parity/negative_test_jsonb_null_semantics.py
+"""
+
+from __future__ import annotations
+
+import importlib.util as _ilu
+import io
+import os
+import subprocess
+import sys
+from pathlib import Path
+
+# `reconfigure` rather than a fresh TextIOWrapper: the Persian output and the
+# tracebacks of the guard under test both go through this stream, and wrapping
+# it again closes the buffer the previous wrapper owned. An earlier version did
+# exactly that and every print after the guard import raised "I/O operation on
+# closed file".
+try:
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+except (AttributeError, io.UnsupportedOperation):  # pragma: no cover
+    pass
+
+ROOT = Path(__file__).resolve().parents[2]
+GUARD = ROOT / "scripts" / "wp-parity" / "check_jsonb_null_semantics.py"
+MODELS = ROOT / "backend" / "app" / "modules" / "settings" / "domain" / "models.py"
+SERVICE = (
+    ROOT
+    / "backend"
+    / "app"
+    / "modules"
+    / "settings"
+    / "application"
+    / "privacy_request_service.py"
+)
+
+# Run the guard as a subprocess, not by importing it. Both this script and the
+# guard rebind sys.stdout to a fresh TextIOWrapper at import time, and because
+# both wrappers sit on the same underlying buffer, importing the guard from
+# here closes the buffer this script is still printing to — every later print
+# raises "I/O operation on closed file". A subprocess has its own interpreter
+# and its own stream, so the two never meet.
+def _call_guard() -> tuple[int, str]:
+    proc = subprocess.run(
+        [sys.executable, str(GUARD)],
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        cwd=ROOT,
+        env={**os.environ, "PYTHONIOENCODING": "utf-8"},
+    )
+    return proc.returncode, proc.stdout + proc.stderr
+
+# (name, file, original, broken, expected substring in the guard's output)
+CASES: list[tuple[str, Path, str, str, str]] = [
+    (
+        "the column is a plain JSONB again",
+        MODELS,
+        "    result_payload: Mapped[dict[str, Any] | None] = mapped_column(\n"
+        "        SqlNullOnNone, nullable=True\n"
+        "    )",
+        "    result_payload: Mapped[dict[str, Any] | None] = mapped_column(\n"
+        "        JSONB, nullable=True\n"
+        "    )",
+        "writes the JSON value null",
+    ),
+    (
+        "the wrapper checks in the method JSONB bypasses",
+        MODELS,
+        "    def bind_processor(self, dialect):",
+        "    def process_bind_param(self, value, dialect):",
+        "does not override bind_processor",
+    ),
+    (
+        "the wrapper no longer short-circuits None",
+        MODELS,
+        "            return None if value is None else inner(value)",
+        "            return inner(value)",
+        "does not short-circuit None",
+    ),
+    (
+        "the wrapper delegates to a type that raises",
+        MODELS,
+        "            return None if value is None else inner(value)",
+        "            if value is None:\n"
+        "                return None\n"
+        "            return SqlNullOnNone.process_bind_param(self, value, dialect)",
+        "does not short-circuit None",
+    ),
+    (
+        "the purge assigns the ORM attribute again",
+        SERVICE,
+        "            .values(result_payload=null())",
+        "            .values(result_payload=PrivacyRequest.__table__.c.result_payload)",
+        "no longer clears the payload with SQL NULL",
+    ),
+]
+
+
+def main() -> int:
+    saved = {path: path.read_text(encoding="utf-8") for path in {c[1] for c in CASES}}
+    failures: list[str] = []
+
+    code, out = _call_guard()
+    if code != 0:
+        print(out)
+        print(
+            "FAIL: the guard is not green on the unbroken tree, so a red run below "
+            "would mean nothing"
+        )
+        return 1
+    print("baseline (unbroken tree): PASS")
+    print("")
+
+    for name, path, original, broken, expected in CASES:
+        source = saved[path]
+        if original not in source:
+            failures.append(
+                "%s: the marker to break is not in %s, so this case would prove "
+                "nothing -- update it for the current source" % (name, path.name)
+            )
+            continue
+        path.write_text(source.replace(original, broken, 1), encoding="utf-8")
+        try:
+            code, out = _call_guard()
+        finally:
+            path.write_text(source, encoding="utf-8")
+
+        if code == 0:
+            failures.append("%s: the guard still passed" % name)
+            print("  FAIL %s -- the guard still passed" % name)
+        elif expected not in out:
+            failures.append(
+                "%s: the guard went red, but not for this reason -- expected %r"
+                % (name, expected)
+            )
+            print("  FAIL %s -- red for the wrong reason" % name)
+            print("    " + out.strip().replace("\n", "\n    "))
+        else:
+            print("  PASS %s -> guard went red for the right reason" % name)
+
+    code, out = _call_guard()
+    if code != 0:
+        print(out)
+        failures.append("the guard is red again after restoring every file")
+    else:
+        print("")
+        print("PASS: the tree is green again after every injection was reverted.")
+
+    if failures:
+        print("")
+        for f in failures:
+            print("FAIL: %s" % f)
+        return 1
+    print("")
+    print("PASS: every assertion in this guard can fail, for its own reason.")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

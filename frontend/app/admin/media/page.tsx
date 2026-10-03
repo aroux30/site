@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { Suspense, useCallback, useEffect, useRef, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   FolderOpen,
   Folder,
@@ -12,10 +13,14 @@ import {
   Crosshair,
   Info,
   Copy,
+  CopyPlus,
+  Undo2,
+  Redo2,
   Check,
   FileText,
   RotateCw,
   RotateCcw,
+  History,
   Images,
   Zap,
   Scaling,
@@ -24,6 +29,10 @@ import {
   AlertTriangle,
   FlipHorizontal2,
   FlipVertical2,
+  FolderPlus,
+  LayoutGrid,
+  Link2,
+  List,
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -36,12 +45,15 @@ import {
   DialogContent,
   DialogFooter,
   DialogHeader,
+  DialogDescription,
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useToast } from "@/components/ui/use-toast";
 import { mediaApi, type MediaAsset } from "@/lib/api/media";
-import { mediaEditingApi } from "@/lib/api/wp-parity";
+import { mediaEditingApi, type MediaEditStep } from "@/lib/api/wp-parity";
 import { useAdminMutation, useAdminQuery } from "@/lib/api/admin-query";
+import MediaTrashPanel from "@/components/admin/media-trash-panel";
+import { MediaDropzone } from "@/components/admin/media-dropzone";
 import { FilterSelect } from "@/components/admin/filter-select";
 import {
   MEDIA_ACCEPT_ATTRIBUTE,
@@ -50,6 +62,7 @@ import {
 } from "@/lib/media-types";
 import { toPersianDigits } from "@/lib/utils";
 import { ImageSizeSettingsCard } from "@/components/admin/image-size-settings-card";
+import { WatermarkSettingsCard } from "@/components/admin/watermark-settings-card";
 
 const MEDIA_QUERY_KEY = "admin-media" as const;
 
@@ -61,14 +74,39 @@ function fmtSize(bytes: number): string {
   return Math.max(1, Math.round(bytes / 1024)) + " KB";
 }
 
+/**
+ * Whether an image is missing its alt text.
+ *
+ * Prefers the server's `needs_alt_text`, which is the single source of the
+ * rule — and falls back to recomputing it only when the field is absent, so a
+ * route that predates it still shows the warning. The previous version always
+ * recomputed and never read the field, so the server's answer was dead code
+ * and the two copies of the rule could drift with nothing to catch it.
+ */
+function needsAlt(asset: MediaAsset): boolean {
+  if (typeof asset.needs_alt_text === "boolean") return asset.needs_alt_text;
+  return asset.mime_type.startsWith("image/") && !(asset.alt_text || "").trim();
+}
+
 /** اگر فایل فیزیکی روی دیسک نیست (آپلود قدیمی/محیط دیگر)، نمایش بصری ندهیم. */
 function ImageWithFallback({ asset, className }: { asset: MediaAsset; className: string }) {
   const [broken, setBroken] = useState(false);
   if (broken || !asset.mime_type.startsWith("image/")) {
+    // A PDF is a document, not a broken image: it gets its own icon so a
+    // catalogue of brochures does not read as a wall of failures. Anything
+    // else non-image (audio, video, zip) keeps the generic glyph.
+    const isPdf = asset.mime_type === "application/pdf";
     return (
       <div className="flex h-32 items-center justify-center bg-muted">
         <div className="text-center">
-          <ImageIcon className="mx-auto h-8 w-8 text-muted-foreground" />
+          {isPdf ? (
+            <FileText className="mx-auto h-8 w-8 text-rose-500" />
+          ) : (
+            <ImageIcon className="mx-auto h-8 w-8 text-muted-foreground" />
+          )}
+          {isPdf && (
+            <p className="mt-1 text-[10px] font-medium text-muted-foreground">PDF</p>
+          )}
           {broken && <p className="mt-1 text-[10px] text-muted-foreground">فایل در دسترس نیست</p>}
         </div>
       </div>
@@ -87,34 +125,106 @@ function ImageWithFallback({ asset, className }: { asset: MediaAsset; className:
 }
 
 export default function AdminMediaPage() {
+  // useSearchParams (below) opts the whole subtree out of static prerendering, so
+  // the page is exported as a Suspense boundary around itself. Without it the
+  // build fails with "useSearchParams() should be wrapped in a suspense boundary".
+  return (
+    <Suspense fallback={<MediaPageSkeleton />}>
+      <AdminMediaPageInner />
+    </Suspense>
+  );
+}
+
+function AdminMediaPageInner() {
   const { toast } = useToast();
+  // ?asset=<id> opens one image straight away. The editor links here when the
+  // author clicks "edit this image" on a picture inside a post, so the crop and
+  // rotate tools are reachable from the body without hunting through the
+  // library — which is the whole gap: those tools existed, but only on this page,
+  // and nothing connected the two.
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const deepLinkId = searchParams?.get("asset") ?? null;
+  // Next 15's useSearchParams is read-only. Dropping the param is a router
+  // navigation, and `replace` so the dismissed image does not come back when
+  // the author presses Back.
+  const clearDeepLink = useCallback(() => {
+    router.replace("/admin/media", { scroll: false });
+  }, [router]);
   const [currentFolder, setCurrentFolder] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  // Busy flag for a bulk action, so the buttons cannot be double-fired while a
+  // batch of up to 200 files is in flight.
+  const [bulkBusy, setBulkBusy] = useState(false);
 
   // The list was pinned to page 1 with no pager, so a store with more than 60
   // assets could not reach the rest of its own library.
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [mimeFilter, setMimeFilter] = useState("");
+  // WordPress's "Unattached" filter. Worth having because it is the only way
+  // to find an upload nobody has used yet, which is exactly the file an
+  // operator wants to delete when the disk fills up.
+  const [unattachedOnly, setUnattachedOnly] = useState(false);
+  // Grid or list. The grid answers "what do these look like", which is most of
+  // the time; the list answers "what is in here and when did it arrive", which
+  // is the question when the library is a thousand files and the operator is
+  // looking for one of them rather than browsing.
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  // WordPress's "uploaded between". Reaching for it is almost always "what
+  // arrived this week", because that is when the disk or a mistake is.
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
 
   // focal point dialog
   const [focalAsset, setFocalAsset] = useState<MediaAsset | null>(null);
   const [savingFocal, setSavingFocal] = useState(false);
 
-  // detail & metadata dialog (WordPress parity: caption, description, alt_text)
+  // create-folder. A folder used to exist only once something was uploaded into
+  // it, so laying out products/shoes before the first product photo was not
+  // possible; this is the affordance that makes an empty folder a real thing.
+  const [newFolderOpen, setNewFolderOpen] = useState(false);
+  const [newFolderPath, setNewFolderPath] = useState("");
+  const [creatingFolder, setCreatingFolder] = useState(false);
+
+  // Side-load from a URL. WordPress's "Add media from URL": the operator has a
+  // link (a supplier's photo, a press image) and no reason to download it to
+  // their machine and upload it back. The server fetches it behind the SSRF
+  // guard; this dialog is only the way the link gets there.
+  const [sideloadOpen, setSideloadOpen] = useState(false);
+  const [sideloadUrl, setSideloadUrl] = useState("");
+  const [sideloading, setSideloading] = useState(false);
+
+  // detail & metadata dialog (WordPress parity: title, caption, description, alt_text)
   const [detailAsset, setDetailAsset] = useState<MediaAsset | null>(null);
   const [detailAlt, setDetailAlt] = useState("");
+  const [detailTitle, setDetailTitle] = useState("");
   const [detailCaption, setDetailCaption] = useState("");
   const [detailDescription, setDetailDescription] = useState("");
   const [detailFolder, setDetailFolder] = useState("");
+  const [detailPostId, setDetailPostId] = useState("");
+  const [savingAttach, setSavingAttach] = useState(false);
   const [savingDetail, setSavingDetail] = useState(false);
   const [copiedUrl, setCopiedUrl] = useState(false);
 
-  // image editing (crop/resize/rotate/EXIF/thumbnails/optimize)
+  // image editing (crop/resize/rotate/EXIF/thumbnails/optimize/replace/duplicate)
   const [imageBusy, setImageBusy] = useState<
-    "rotate" | "resize" | "thumbs" | "optimize" | "exif" | "crop" | "flip" | null
+    | "rotate"
+    | "resize"
+    | "thumbs"
+    | "optimize"
+    | "exif"
+    | "crop"
+    | "flip"
+    | "restore"
+    | "replace"
+    | "duplicate"
+    | null
   >(null);
+  // The edit chain, fetched on demand rather than with the asset: most assets
+  // were never edited and have no chain to show.
+  const [editHistory, setEditHistory] = useState<MediaEditStep[]>([]);
   const [resizeWidth, setResizeWidth] = useState("");
   const [resizeHeight, setResizeHeight] = useState("");
   const [exifData, setExifData] = useState<Record<string, unknown> | null>(null);
@@ -122,6 +232,10 @@ export default function AdminMediaPage() {
   const [crop, setCrop] = useState({ x: 0, y: 0, width: 0, height: 0 });
 
   const fileRef = useRef<HTMLInputElement>(null);
+  // The replace picker. A dedicated input because the file dialog has to open
+  // from the detail dialog, and reusing the upload input would also trigger
+  // the page-level upload handler.
+  const replaceRef = useRef<HTMLInputElement>(null);
 
   // The old load used Promise.allSettled and never surfaced an error, so a
   // failing list must not turn into a toast. `fallbackError` is only ever
@@ -142,7 +256,8 @@ export default function AdminMediaPage() {
   }>({
     // Every filter that scopes the result set is part of the key, so paging or
     // typing in the search box cannot serve a page from the previous query.
-    queryKey: [MEDIA_QUERY_KEY, currentFolder ?? "", page, search, mimeFilter],
+    queryKey: [MEDIA_QUERY_KEY, currentFolder ?? "", page, search, mimeFilter,
+      unattachedOnly, dateFrom, dateTo],
     queryFn: async () => {
       const [list, flds] = await Promise.allSettled([
         mediaApi.list({
@@ -151,6 +266,16 @@ export default function AdminMediaPage() {
           folder: currentFolder === null ? undefined : currentFolder,
           search: search.trim() || undefined,
           mime_type: mimeFilter || undefined,
+          unattached: unattachedOnly || undefined,
+          // Sent as instants, not date strings. A bare "2026-10-01" would be
+          // parsed by the server in its own zone and could land a day early,
+          // which quietly drops the first morning of the range.
+          created_from: dateFrom
+            ? new Date(`${dateFrom}T00:00:00`).toISOString()
+            : undefined,
+          created_to: dateTo
+            ? new Date(`${dateTo}T23:59:59`).toISOString()
+            : undefined,
         }),
         mediaApi.listFolders(),
       ]);
@@ -177,7 +302,7 @@ export default function AdminMediaPage() {
   // now-one-page result set would render an empty grid with no way back.
   useEffect(() => {
     setPage(1);
-  }, [currentFolder, search, mimeFilter]);
+  }, [currentFolder, search, mimeFilter, unattachedOnly, dateFrom, dateTo]);
 
   // Reset the selection on every load — a fresh fetch replaces the grid, so
   // the old code cleared stale picks right after the payload landed.
@@ -231,7 +356,57 @@ export default function AdminMediaPage() {
     if (fileRef.current) fileRef.current.value = "";
   };
 
+  const sideload = async () => {
+    const url = sideloadUrl.trim();
+    if (!url) return;
+    setSideloading(true);
+    const result = await runMutation(
+      () => mediaApi.sideload({ url, folder: currentFolder ?? undefined }),
+      {
+        fallbackError: "دریافت تصویر از URL ناموفق بود",
+        invalidateKeys: [[MEDIA_QUERY_KEY]],
+        onSuccess: () => {
+          toast({ title: "تصویر از URL اضافه شد" });
+          setSideloadOpen(false);
+          setSideloadUrl("");
+        },
+      },
+    );
+    if (!result.ok) toast({ title: result.error, variant: "destructive" });
+    setSideloading(false);
+  };
+
   const remove = async (id: string) => {
+    // Ask what uses this file first. Deleting an image that is a published
+    // post's cover takes the cover with it, and the only warning used to be
+    // "are you sure" — so the loss was discovered on the storefront.
+    let used = 0;
+    let where = "";
+    try {
+      const usage = await mediaApi.usage(id);
+      used = usage.total;
+      where = usage.summary;
+    } catch {
+      // A usage lookup that fails must not block the delete: the server
+      // refuses a referenced delete anyway, so the worst case is that the
+      // admin is not warned before the server declines.
+    }
+
+    if (used > 0) {
+      const ok = confirm(
+        `این فایل هنوز استفاده می‌شود (${where}).\n` +
+          `با حذف آن، ${used} مورد ارجاع از کار می‌افتد.\n\n` +
+          "اگر مطمئنید، حذف را ادامه دهید؛ در غیر این صورت انصراف دهید.",
+      );
+      if (!ok) return;
+      const result = await runMutation(
+        () => mediaApi.delete(id, { force: true }),
+        { fallbackError: "حذف ناموفق بود", invalidateKeys: [[MEDIA_QUERY_KEY]] },
+      );
+      if (!result.ok) toast({ title: result.error, variant: "destructive" });
+      return;
+    }
+
     if (!confirm("این فایل حذف شود؟")) return;
     const result = await runMutation(
       () => mediaApi.delete(id),
@@ -257,6 +432,56 @@ export default function AdminMediaPage() {
       },
     );
     if (!result.ok) toast({ title: result.error, variant: "destructive" });
+  };
+
+  // Bulk delete. The library offered only "move selected", so clearing 40
+  // images meant 40 confirmations. The confirmation names the count and says
+  // the files go to the trash rather than vanishing, because "delete" on a
+  // product library reads as permanent to an operator.
+  const deleteSelected = async () => {
+    if (selected.size === 0) return;
+    const count = selected.size;
+    if (
+      !confirm(
+        `${count} فایل به سطل زباله منتقل شود؟
+
+` +
+          "این فایل‌ها از کتابخانه پاک می‌شوند ولی روی سرور می‌مانند و از بخش سطل زباله قابل بازگردانی هستند.",
+      )
+    ) {
+      return;
+    }
+    setBulkBusy(true);
+    try {
+      const res = await mediaApi.bulkTrash([...selected]);
+      // Report the refusals by name. A silent partial delete is the failure
+      // mode here: the admin sees the grid refresh and assumes all of it worked.
+      if (res.failed > 0) {
+        const reasons = res.results
+          .filter((r) => r.ok === false)
+          .map((r) => String(r.error ?? "نامشخص"))
+          .filter((e, i, arr) => arr.indexOf(e) === i)
+          .slice(0, 3);
+        toast({
+          title: `${res.ok} فایل منتقل شد، ${res.failed} فایل منتقل نشد`,
+          description: reasons.join(" — "),
+          variant: "destructive",
+        });
+      } else {
+        toast({ title: `${toPersianDigits(String(res.ok))} فایل به سطل زباله منتقل شد` });
+      }
+      // Only the files that actually moved are dropped from the selection; the
+      // refused ones stay selected so the operator can deal with them.
+      const moved = new Set(
+        res.results.filter((r) => r.ok === true).map((r) => String(r.id)),
+      );
+      setSelected(new Set([...selected].filter((id) => !moved.has(id))));
+      await load();
+    } catch {
+      toast({ title: "حذف گروهی ناموفق بود", variant: "destructive" });
+    } finally {
+      setBulkBusy(false);
+    }
   };
 
   const toggleSelect = (id: string) => {
@@ -289,10 +514,122 @@ export default function AdminMediaPage() {
   const openDetail = (asset: MediaAsset) => {
     setDetailAsset(asset);
     setDetailAlt(asset.alt_text || "");
+    setDetailTitle(asset.title || "");
     setDetailCaption(asset.caption || "");
     setDetailDescription(asset.description || "");
     setDetailFolder(asset.folder || "");
+    setDetailPostId(asset.post_id || "");
     setCopiedUrl(false);
+    // The chain belongs to the asset being opened. Carrying the previous one's
+    // steps over would put one image's history under another image.
+    setEditHistory([]);
+  };
+
+  /**
+   * Open the image named by ?asset=<id>, once.
+   *
+   * A deep link to a deleted or moved asset has to say so rather than sitting
+   * on a spinner: the author clicked "edit this image" inside a post and
+   * nothing happening looks like a broken button. Clearing the param stops the
+   * effect from re-running on every render, which would re-fetch forever.
+   */
+  const [deepLinkAttempted, setDeepLinkAttempted] = useState(false);
+  useEffect(() => {
+    if (!deepLinkId || deepLinkAttempted) return;
+    setDeepLinkAttempted(true);
+    let cancelled = false;
+    (async () => {
+      try {
+        const asset = await mediaApi.get(deepLinkId);
+        if (!cancelled) openDetail(asset);
+      } catch {
+        if (!cancelled) {
+          toast({
+            title: "تصویر مورد نظر پیدا نشد",
+            description: "ممکن است حذف یا جابه‌جا شده باشد.",
+            variant: "destructive",
+          });
+          clearDeepLink();
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // openDetail and setSearchParams are stable enough for this one-shot fetch;
+    // the guard flag, not the dependency list, is what prevents the loop.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [deepLinkId, deepLinkAttempted]);
+
+  const closeDetail = () => {
+    setDetailAsset(null);
+    setEditHistory([]);
+    // Drop the deep link on close so reopening the page does not resurrect the
+    // same dialog the author just dismissed.
+    if (deepLinkId) clearDeepLink();
+  };
+
+  /** Attach or detach the open asset. Two buttons rather than one input plus a
+   *  save, because "attached to nothing" is a deliberate state an operator
+   *  sets — it is not the absence of a value, and letting a blank field mean it
+   *  would detach files nobody asked about. */
+  const handleAttach = async (postId: string) => {
+    if (!detailAsset) return;
+    const trimmed = postId.trim();
+    if (!trimmed) return;
+    setSavingAttach(true);
+    const res = await runMutation(
+      () => mediaApi.attachToPost(detailAsset.id, trimmed),
+      {
+        fallbackError: "اتصال تصویر به نوشته انجام نشد",
+        onSuccess: (updated) => {
+          setDetailPostId(updated.post_id || "");
+          setDetailAsset(updated);
+        },
+        invalidateKeys: [[MEDIA_QUERY_KEY]],
+      },
+    );
+    setSavingAttach(false);
+    if (res.ok) toast({ title: "تصویر به نوشته متصل شد" });
+  };
+
+  const handleCreateFolder = async () => {
+    const path = newFolderPath.trim();
+    if (!path) return;
+    setCreatingFolder(true);
+    const res = await runMutation(() => mediaApi.createFolder(path), {
+      fallbackError: "ساخت پوشه انجام نشد",
+      invalidateKeys: [[MEDIA_QUERY_KEY]],
+    });
+    setCreatingFolder(false);
+    if (!res.ok) return;
+    if (res.data.created) {
+      toast({ title: "پوشه ساخته شد" });
+    } else {
+      // Creating something that already exists is a double-click, not a
+      // fault. Saying so keeps the operator from retrying a button that works.
+      toast({ title: "این پوشه از قبل وجود دارد" });
+    }
+    setNewFolderPath("");
+    setNewFolderOpen(false);
+  };
+
+  const handleDetach = async () => {
+    if (!detailAsset) return;
+    setSavingAttach(true);
+    const res = await runMutation(
+      () => mediaApi.attachToPost(detailAsset.id, null),
+      {
+        fallbackError: "برداشتن اتصال تصویر انجام نشد",
+        onSuccess: (updated) => {
+          setDetailPostId("");
+          setDetailAsset(updated);
+        },
+        invalidateKeys: [[MEDIA_QUERY_KEY]],
+      },
+    );
+    setSavingAttach(false);
+    if (res.ok) toast({ title: "اتصال تصویر به نوشته برداشته شد" });
   };
 
   const saveDetail = async () => {
@@ -302,6 +639,7 @@ export default function AdminMediaPage() {
       () =>
         mediaApi.update(detailAsset.id, {
           alt_text: detailAlt,
+          title: detailTitle || null,
           caption: detailCaption,
           description: detailDescription,
           folder: detailFolder || null,
@@ -319,7 +657,117 @@ export default function AdminMediaPage() {
     setSavingDetail(false);
   };
 
+  // Replace the bytes behind the asset while its URL stays the same. The
+  // confirmation says that explicitly, because "replace" and "re-upload" sound
+  // like the same operation and only one of them keeps the existing links.
+  const replaceFile = async (file: File) => {
+    if (!detailAsset) return;
+    setImageBusy("replace");
+    const result = await runMutation(() => mediaApi.replaceFile(detailAsset.id, file), {
+      fallbackError: "جایگزینی فایل ناموفق بود",
+      invalidateKeys: [[MEDIA_QUERY_KEY]],
+      onSuccess: () => {
+        toast({
+          title: "فایل جایگزین شد",
+          description: "نشانی فایل تغییر نکرده؛ لینک‌های موجود هنوز کار می‌کنند.",
+        });
+        setDetailAsset(null);
+      },
+    });
+    if (!result.ok) toast({ title: result.error, variant: "destructive" });
+    setImageBusy(null);
+    if (replaceRef.current) replaceRef.current.value = "";
+  };
+
   // ── Image editing handlers (WordPress parity) ──────────────────────────
+
+  const loadEditHistory = async () => {
+    if (!detailAsset) return;
+    try {
+      setEditHistory(await mediaEditingApi.history(detailAsset.id));
+    } catch {
+      setEditHistory([]);
+      toast({ title: "خواندن تاریخچه‌ی ویرایش ناموفق بود", variant: "destructive" });
+    }
+  };
+
+  const restoreOriginal = async () => {
+    if (!detailAsset) return;
+    setImageBusy("restore");
+    const result = await runMutation(
+      () => mediaEditingApi.restoreOriginal(detailAsset.id),
+      {
+        fallbackError: "بازگردانی نسخه‌ی اصلی ناموفق بود",
+        invalidateKeys: [[MEDIA_QUERY_KEY]],
+        onSuccess: () => {
+          toast({
+            title: "نسخه‌ی اصلی بازگردانده شد",
+            description:
+              "فایل‌های ویرایش‌شده در کتابخانه می‌مانند؛ آن‌ها حذف نمی‌شوند چون ممکن است محصول یا مطلبی به آن‌ها لینک داده باشد.",
+          });
+          setDetailAsset(null);
+          setEditHistory([]);
+        },
+      },
+    );
+    if (!result.ok) toast({ title: result.error, variant: "destructive" });
+    setImageBusy(null);
+  };
+
+  /** Undo/redo walk the edit chain. Every edit is its own asset linked by
+   *  `source_asset_id`, so "undo" is opening the parent and "redo" the child —
+   *  nothing is rewritten and no step is lost, which is what makes repeated
+   *  undo/redo safe. */
+  const navigateChain = (direction: "undo" | "redo") => {
+    if (!detailAsset || editHistory.length === 0) return;
+    const currentIndex = editHistory.findIndex((s) => s.is_current);
+    if (currentIndex === -1) return;
+    const targetIndex = direction === "undo" ? currentIndex - 1 : currentIndex + 1;
+    if (targetIndex < 0 || targetIndex >= editHistory.length) return;
+    const target = editHistory[targetIndex];
+    if (!target) return;
+    // Open the target step in the same dialog: its own history list will
+    // reflect its position, so the operator can keep stepping.
+    const asAsset = assets.find((a) => a.id === target.id);
+    if (asAsset) {
+      setDetailAsset(asAsset);
+      setEditHistory([]);
+      void loadHistoryFor(target.id);
+    } else {
+      toast({
+        title: "این نسخه در صفحه‌ی فعلی کتابخانه نیست",
+        description: "برای دیدنش به صفحه‌ی مربوطه بروید یا فهرست را بازخوانی کنید.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const loadHistoryFor = async (assetId: string) => {
+    try {
+      setEditHistory(await mediaEditingApi.history(assetId));
+    } catch {
+      setEditHistory([]);
+    }
+  };
+
+  const duplicateImage = async () => {
+    if (!detailAsset) return;
+    setImageBusy("duplicate");
+    const result = await runMutation(() => mediaEditingApi.duplicate(detailAsset.id), {
+      fallbackError: "ساخت کپی ناموفق بود",
+      invalidateKeys: [[MEDIA_QUERY_KEY]],
+      onSuccess: () => {
+        toast({
+          title: "کپی ساخته شد",
+          description: "فایل جدید مستقل است و در زنجیره‌ی ویرایش این تصویر قرار نمی‌گیرد.",
+        });
+        setDetailAsset(null);
+        setEditHistory([]);
+      },
+    });
+    if (!result.ok) toast({ title: result.error, variant: "destructive" });
+    setImageBusy(null);
+  };
 
   const rotateImage = async (degrees: number) => {
     if (!detailAsset) return;
@@ -487,8 +935,28 @@ export default function AdminMediaPage() {
     toast({ title: "آدرس فایل کپی شد" });
   };
 
+  // A drop is capped exactly like the file dialog, and silently discarding the
+  // overflow would look like the upload worked: the admin dropped 40 photos
+  // and 20 appeared with no explanation.
+  const acceptDropped = useCallback((dropped: File[]) => {
+    if (dropped.length > MEDIA_MAX_BATCH_FILES) {
+      toast({
+        title: `حداکثر ${MEDIA_MAX_BATCH_FILES} فایل در هر بار`,
+        description: `${MEDIA_MAX_BATCH_FILES} فایل اول آپلود می‌شود؛ ${dropped.length - MEDIA_MAX_BATCH_FILES} فایل نادیده گرفته شد.`,
+        variant: "destructive",
+      });
+    }
+    void upload(dropped.slice(0, MEDIA_MAX_BATCH_FILES));
+  }, [upload, toast]);
+
   return (
+    <MediaDropzone
+      onFiles={acceptDropped}
+      disabled={uploading}
+      hint={`حداکثر ${MEDIA_MAX_BATCH_FILES} فایل در هر بار — ${MEDIA_ACCEPT_ATTRIBUTE}`}
+    >
     <div className="space-y-6" dir="rtl">
+      <MediaTrashPanel onChanged={load} />
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-xl font-bold flex items-center gap-2">
@@ -532,11 +1000,16 @@ export default function AdminMediaPage() {
             <RefreshCw className="h-4 w-4 ms-1" />
             {imageBusy === "thumbs" ? "در حال بازسازی..." : "بازتولید همهٔ تصاویر"}
           </Button>
+          <Button size="sm" variant="outline" onClick={() => setSideloadOpen(true)}>
+            <Link2 className="h-4 w-4 ms-1" />
+            افزودن از URL
+          </Button>
         </div>
       </div>
 
-      <div className="mb-4">
+      <div className="mb-4 grid gap-4 lg:grid-cols-2">
         <ImageSizeSettingsCard />
+        <WatermarkSettingsCard />
       </div>
 
       <div className="flex gap-4">
@@ -594,6 +1067,100 @@ export default function AdminMediaPage() {
               options={MEDIA_MIME_PREFIXES.map((p) => ({ value: p.value, label: p.label }))}
               className="sm:w-40"
             />
+            <label
+              htmlFor="media-unattached-filter"
+              className="flex cursor-pointer items-center gap-2 pb-2 text-sm"
+            >
+              <input
+                id="media-unattached-filter"
+                type="checkbox"
+                checked={unattachedOnly}
+                onChange={(e) => {
+                  setUnattachedOnly(e.target.checked);
+                  setPage(1);
+                }}
+                className="h-4 w-4 rounded border-input"
+              />
+              فقط پیوست‌نشده
+            </label>
+
+            {/* WordPress's "uploaded between". Two date inputs rather than a
+                range picker: the picker is a bigger dependency for a filter an
+                operator uses once a week, and two <input type="date"> are
+                keyboard- and mobile-friendly for free. */}
+            <div className="flex items-center gap-1.5 pb-1 text-xs">
+              <Label htmlFor="media-date-from" className="text-[11px] text-muted-foreground">
+                از تاریخ
+              </Label>
+              <Input
+                id="media-date-from"
+                type="date"
+                value={dateFrom}
+                onChange={(e) => {
+                  setDateFrom(e.target.value);
+                  setPage(1);
+                }}
+                className="h-9 w-36 text-xs"
+              />
+              <Label htmlFor="media-date-to" className="text-[11px] text-muted-foreground">
+                تا تاریخ
+              </Label>
+              <Input
+                id="media-date-to"
+                type="date"
+                value={dateTo}
+                onChange={(e) => {
+                  setDateTo(e.target.value);
+                  setPage(1);
+                }}
+                className="h-9 w-36 text-xs"
+              />
+              {(dateFrom || dateTo) && (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => {
+                    setDateFrom("");
+                    setDateTo("");
+                    setPage(1);
+                  }}
+                >
+                  پاک کردن
+                </Button>
+              )}
+            </div>
+
+            {/* Grid shows what the images look like, list shows what is in
+                here and when it arrived. Both are answers to different
+                questions, so this is a toggle rather than a setting. */}
+            <div className="flex items-center gap-1 pb-1">
+              <Button
+                size="sm"
+                variant={viewMode === "grid" ? "default" : "outline"}
+                onClick={() => setViewMode("grid")}
+                aria-pressed={viewMode === "grid"}
+              >
+                <LayoutGrid className="h-4 w-4" />
+                <span className="sr-only">نمای شبکه‌ای</span>
+              </Button>
+              <Button
+                size="sm"
+                variant={viewMode === "list" ? "default" : "outline"}
+                onClick={() => setViewMode("list")}
+                aria-pressed={viewMode === "list"}
+              >
+                <List className="h-4 w-4" />
+                <span className="sr-only">نمای فهرستی</span>
+              </Button>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setNewFolderOpen(true)}
+            >
+              <FolderPlus className="h-4 w-4" />
+              پوشه‌ی جدید
+            </Button>
             <span className="pb-2 text-xs text-muted-foreground sm:ms-auto">
               {toPersianDigits(String(totalAssets))} فایل
             </span>
@@ -604,9 +1171,18 @@ export default function AdminMediaPage() {
               <span className="text-sm text-muted-foreground">
                 {toPersianDigits(String(selected.size))} فایل انتخاب شده
               </span>
-              <Button size="sm" variant="outline" onClick={moveSelected}>
+              <Button size="sm" variant="outline" onClick={moveSelected} disabled={bulkBusy}>
                 <FolderInput className="h-4 w-4 ms-1" />
                 انتقال به پوشه
+              </Button>
+              <Button
+                size="sm"
+                variant="destructive"
+                onClick={deleteSelected}
+                disabled={bulkBusy}
+              >
+                <Trash2 className="h-4 w-4 ms-1" />
+                انتقال به سطل زباله
               </Button>
               <Button size="sm" variant="ghost" onClick={() => setSelected(new Set())}>
                 لغو انتخاب
@@ -621,6 +1197,87 @@ export default function AdminMediaPage() {
             <Card className="p-8 text-center text-sm text-muted-foreground">
               {currentFolder ? "این پوشه خالی است" : "هنوز فایلی آپلود نشده است"}
             </Card>
+          ) : viewMode === "list" ? (
+            /* List view. Answers "what is in here and when did it arrive",
+               which the grid cannot: at forty files a page a grid shows a
+               wall of thumbnails and no dates at all. Selection is kept —
+               an operator who selects three rows here then switches back must
+               not lose the selection, because the bulk bar is above both. */
+            <Card className="overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="border-b bg-muted/40 text-xs text-muted-foreground">
+                    <tr>
+                      <th className="w-10 p-2" />
+                      <th className="p-2 text-start font-medium">پیش‌نمایش</th>
+                      <th className="p-2 text-start font-medium">نام فایل</th>
+                      <th className="p-2 text-start font-medium">نوع</th>
+                      <th className="p-2 text-start font-medium">اندازه</th>
+                      <th className="p-2 text-start font-medium">پوشه</th>
+                      <th className="p-2 text-start font-medium">تاریخ</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {assets.map((a) => (
+                      <tr
+                        key={a.id}
+                        className={`border-b last:border-0 ${
+                          selected.has(a.id) ? "bg-primary/5" : ""
+                        }`}
+                      >
+                        <td className="p-2">
+                          <input
+                            type="checkbox"
+                            checked={selected.has(a.id)}
+                            onChange={() => toggleSelect(a.id)}
+                            aria-label={`انتخاب ${a.file_name}`}
+                          />
+                        </td>
+                        <td className="p-2">
+                          <button
+                            onClick={() => openDetail(a)}
+                            className="block h-10 w-14 overflow-hidden rounded"
+                          >
+                            <ImageWithFallback asset={a} className="h-10 w-14 object-cover" />
+                          </button>
+                        </td>
+                        <td className="p-2">
+                          <button
+                            onClick={() => openDetail(a)}
+                            className="text-start font-medium hover:underline"
+                            dir="ltr"
+                          >
+                            {a.file_name}
+                          </button>
+                          {needsAlt(a) && (
+                            <span
+                              className="ms-2 text-[10px] text-amber-600"
+                              title="این تصویر متن جایگزین ندارد"
+                            >
+                              بدون متن جایگزین
+                            </span>
+                          )}
+                        </td>
+                        <td className="p-2 text-xs text-muted-foreground" dir="ltr">
+                          {a.mime_type}
+                        </td>
+                        <td className="p-2 text-xs text-muted-foreground">
+                          {fmtSize(a.file_size)}
+                        </td>
+                        <td className="p-2 text-xs text-muted-foreground" dir="ltr">
+                          {a.folder || "—"}
+                        </td>
+                        <td className="p-2 text-xs text-muted-foreground">
+                          {toPersianDigits(
+                            new Date(a.created_at).toLocaleDateString("fa-IR"),
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </Card>
           ) : (
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
               {assets.map((a) => (
@@ -628,6 +1285,20 @@ export default function AdminMediaPage() {
                   <button onClick={() => toggleSelect(a.id)} className="block w-full">
                     <ImageWithFallback asset={a} className="h-32 w-full object-cover" />
                   </button>
+                  {/* The API has computed needs_alt_text for this since the
+                      schema shipped, and nothing read it: the operator had to
+                      open every image to find out. Non-blocking, like WordPress —
+                      the image still renders, it is just invisible to screen
+                      readers and to image search. */}
+                  {needsAlt(a) && (
+                    <div
+                      className="flex items-center gap-1 border-t border-amber-500/30 bg-amber-500/10 px-2 py-1 text-[10px] text-amber-700 dark:text-amber-400"
+                      title="این تصویر متن جایگزین ندارد"
+                    >
+                      <AlertTriangle className="h-3 w-3 shrink-0" />
+                      بدون متن جایگزین
+                    </div>
+                  )}
                   <div className="p-2 space-y-1">
                     <p className="truncate text-xs font-medium" title={a.file_name}>
                       {a.file_name}
@@ -702,6 +1373,70 @@ export default function AdminMediaPage() {
         </div>
       </div>
 
+      {/* Create-folder dialog */}
+      <Dialog open={newFolderOpen} onOpenChange={setNewFolderOpen}>
+        <DialogContent className="max-w-md" dir="rtl">
+          <DialogHeader>
+            <DialogTitle>ساخت پوشه‌ی جدید</DialogTitle>
+            <DialogDescription>
+              مسیر را با «/» جدا کنید. پوشه می‌تواند خالی بماند — لازم نیست اول
+              فایلی داخلش آپلود کنید.
+            </DialogDescription>
+          </DialogHeader>
+          <Input
+            id="media-new-folder"
+            value={newFolderPath}
+            onChange={(e) => setNewFolderPath(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") void handleCreateFolder();
+            }}
+            placeholder="products/shoes"
+            dir="ltr"
+            className="text-left text-sm"
+          />
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={() => setNewFolderOpen(false)}>
+              انصراف
+            </Button>
+            <Button onClick={handleCreateFolder} disabled={creatingFolder || !newFolderPath.trim()}>
+              {creatingFolder ? "در حال ساخت..." : "ساخت"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Side-load from a URL */}
+      <Dialog open={sideloadOpen} onOpenChange={setSideloadOpen}>
+        <DialogContent className="max-w-md" dir="rtl">
+          <DialogHeader>
+            <DialogTitle>افزودن تصویر از URL</DialogTitle>
+            <DialogDescription>
+              نشانی مستقیم تصویر را بچسبانید. سرور آن را دریافت و در کتابخانه
+              ذخیره می‌کند — آدرس‌های داخلی و خصوصی برای جلوگیری از SSRF رد می‌شوند.
+            </DialogDescription>
+          </DialogHeader>
+          <Input
+            id="media-sideload-url"
+            value={sideloadUrl}
+            onChange={(e) => setSideloadUrl(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") void sideload();
+            }}
+            placeholder="https://example.com/photo.jpg"
+            dir="ltr"
+            className="text-left text-sm"
+          />
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={() => setSideloadOpen(false)}>
+              انصراف
+            </Button>
+            <Button onClick={() => void sideload()} disabled={sideloading || !sideloadUrl.trim()}>
+              {sideloading ? "در حال دریافت..." : "دریافت و ذخیره"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* Focal point dialog */}
       <Dialog open={!!focalAsset} onOpenChange={() => setFocalAsset(null)}>
         <DialogContent className="max-w-md" dir="rtl">
@@ -758,14 +1493,33 @@ export default function AdminMediaPage() {
           {detailAsset && (
             <div className="space-y-4 py-2">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Preview */}
+                {/* Preview. Three shapes: a PDF gets the browser's own viewer
+                    in an iframe (no PDF library is in the project by design,
+                    and the browser already has one); an image gets the img;
+                    anything else gets the icon. The PDF branch is what was
+                    missing — a PDF showed the same broken-image glyph as an
+                    audio file, so an operator could not tell a good upload
+                    from a bad one without downloading it. */}
                 <div className="rounded-xl border border-border overflow-hidden bg-muted flex items-center justify-center p-2 min-h-[180px]">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={detailAsset.file_url}
-                    alt={detailAsset.file_name}
-                    className="max-h-56 max-w-full object-contain rounded"
-                  />
+                  {detailAsset.mime_type === "application/pdf" ? (
+                    <iframe
+                      src={detailAsset.file_url}
+                      title={detailAsset.file_name}
+                      className="h-56 w-full rounded bg-white"
+                    />
+                  ) : detailAsset.mime_type.startsWith("image/") ? (
+                    /* eslint-disable-next-line @next/next/no-img-element */
+                    <img
+                      src={detailAsset.file_url}
+                      alt={detailAsset.file_name}
+                      className="max-h-56 max-w-full object-contain rounded"
+                    />
+                  ) : (
+                    <div className="text-center text-muted-foreground">
+                      <FileText className="mx-auto h-10 w-10" />
+                      <p className="mt-1 text-xs">{detailAsset.mime_type}</p>
+                    </div>
+                  )}
                 </div>
 
                 {/* Metadata details */}
@@ -825,6 +1579,19 @@ export default function AdminMediaPage() {
 
               {/* Editable Fields (WordPress Parity) */}
               <div className="space-y-3 pt-2 border-t border-border">
+                {/* WordPress's first attachment field, in its order: Title,
+                    Alt, Caption, Description. Optional — an empty title means
+                    the library keeps showing the file name. */}
+                <div className="grid gap-1.5">
+                  <Label htmlFor="med-title">عنوان رسانه (Title)</Label>
+                  <Input
+                    id="med-title"
+                    value={detailTitle}
+                    onChange={(e) => setDetailTitle(e.target.value)}
+                    placeholder="مثلاً: کفش دویدن قرمز — نمای از پهلو"
+                  />
+                </div>
+
                 <div className="grid gap-1.5">
                   <Label htmlFor="med-alt">متن جایگزین (Alt Text — برای سئو و دسترس‌پذیری)</Label>
                   <Input
@@ -881,12 +1648,191 @@ export default function AdminMediaPage() {
                     className="text-left text-xs font-mono"
                   />
                 </div>
+
+                {/* WordPress's "Attached to". A post id rather than a picker:
+                    the store's post list is large and a select over it would be
+                    slower than typing the id, which the operator usually has
+                    from the post they are looking at. The "detach" button is
+                    what makes this column useful — without it a file could be
+                    attached but never unattached. */}
+                <div className="grid gap-1.5 max-w-xs">
+                  <Label htmlFor="med-post">نوشته‌ی متصل (شناسه)</Label>
+                  <div className="flex items-center gap-1.5">
+                    <Input
+                      id="med-post"
+                      value={detailPostId}
+                      onChange={(e) => setDetailPostId(e.target.value)}
+                      // onBlur, not onChange: an attach fires on every
+                      // keystroke otherwise, and a half-typed uuid would 404
+                      // the moment the first character landed.
+                      onBlur={() => {
+                        if (
+                          detailPostId.trim() &&
+                          detailPostId.trim() !== (detailAsset.post_id || "")
+                        ) {
+                          void handleAttach(detailPostId);
+                        }
+                      }}
+                      placeholder={detailAsset.post_id ?? "پیوست‌نشده"}
+                      dir="ltr"
+                      className="text-left text-xs font-mono"
+                    />
+                    {detailAsset.post_id && (
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        onClick={handleDetach}
+                        disabled={savingAttach}
+                      >
+                        جدا کردن
+                      </Button>
+                    )}
+                  </div>
+                </div>
               </div>
 
               {/* Image editing & processing (WordPress parity) */}
               {detailAsset.mime_type?.startsWith("image/") && (
                 <div className="space-y-3 border-t border-border pt-3">
                   <div className="text-xs font-semibold">ویرایش و پردازش تصویر</div>
+
+                  {/* Edit chain: every edit created a new file with no link to
+                      its parent, so there was no way back to the original. The
+                      steps are now recorded, and the root is one click away. */}
+                  {detailAsset.source_asset_id && (
+                    <div className="flex flex-wrap items-center gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 p-2.5">
+                      <History className="h-4 w-4 shrink-0 text-amber-600" />
+                      <span className="text-xs text-amber-800 dark:text-amber-300">
+                        این فایل حاصل ویرایش است
+                        {detailAsset.edit_operation
+                          ? ` (${detailAsset.edit_operation})`
+                          : ""}
+                        .
+                      </span>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-7 gap-1 text-xs"
+                        disabled={imageBusy !== null}
+                        onClick={() => void restoreOriginal()}
+                      >
+                        {imageBusy === "restore" ? (
+                          "…"
+                        ) : (
+                          <>
+                            <RotateCcw className="h-3.5 w-3.5" /> بازگردانی به اصل
+                          </>
+                        )}
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 gap-1 text-xs"
+                        disabled={imageBusy !== null}
+                        onClick={() => void loadEditHistory()}
+                      >
+                        <History className="h-3.5 w-3.5" /> تاریخچه
+                      </Button>
+                      {/* Undo/redo step along the chain. Enabled from the
+                          loaded history, so they cannot fire before there is
+                          anywhere to go. */}
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-7 gap-1 text-xs"
+                        disabled={
+                          imageBusy !== null ||
+                          editHistory.findIndex((s) => s.is_current) <= 0
+                        }
+                        onClick={() => navigateChain("undo")}
+                        title="واگرد — یک قدم به عقب در زنجیره‌ی ویرایش"
+                      >
+                        <Undo2 className="h-3.5 w-3.5" /> واگرد
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-7 gap-1 text-xs"
+                        disabled={
+                          imageBusy !== null ||
+                          editHistory.length === 0 ||
+                          editHistory.findIndex((s) => s.is_current) === -1 ||
+                          editHistory.findIndex((s) => s.is_current) >=
+                            editHistory.length - 1
+                        }
+                        onClick={() => navigateChain("redo")}
+                        title="ازنو — یک قدم به جلو در زنجیره‌ی ویرایش"
+                      >
+                        <Redo2 className="h-3.5 w-3.5" /> ازنو
+                      </Button>
+                      {/* Save-as-copy: a standalone asset, not another link
+                          in this chain. */}
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-7 gap-1 text-xs"
+                        disabled={imageBusy !== null}
+                        onClick={() => void duplicateImage()}
+                        title="ذخیره به‌عنوان کپی مستقل"
+                      >
+                        {imageBusy === "duplicate" ? (
+                          "…"
+                        ) : (
+                          <>
+                            <CopyPlus className="h-3.5 w-3.5" /> ذخیره به‌عنوان کپی
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  )}
+
+                  {/* Only meaningful once a chain exists: an un-edited upload
+                      has no steps to show. */}
+                  {editHistory.length > 0 && (
+                    <ol className="space-y-1.5 rounded-lg border border-border bg-muted/40 p-3 text-xs">
+                      {editHistory.map((step) => (
+                        <li
+                          key={step.id}
+                          className="flex items-center gap-2 rounded px-1 hover:bg-background/60"
+                        >
+                          <span
+                            className={
+                              step.is_current
+                                ? "font-bold text-emerald-600"
+                                : "text-muted-foreground"
+                            }
+                          >
+                            {step.is_root
+                              ? "نسخه‌ی اصلی"
+                              : step.operation === "crop"
+                                ? "برش"
+                                : step.operation === "resize"
+                                  ? "تغییر اندازه"
+                                  : step.operation === "rotate"
+                                    ? "چرخش"
+                                    : step.operation === "flip"
+                                      ? "قرینه"
+                                      : step.operation ?? "ویرایش"}
+                          </span>
+                          <span className="truncate font-mono text-[11px] text-muted-foreground" dir="ltr">
+                            {step.file_name}
+                          </span>
+                          {step.width && step.height && (
+                            <span className="text-[11px] text-muted-foreground">
+                              ({toPersianDigits(String(step.width))}×
+                              {toPersianDigits(String(step.height))})
+                            </span>
+                          )}
+                          {step.is_current && (
+                            <Badge variant="outline" className="text-[10px]">
+                              فعلی
+                            </Badge>
+                          )}
+                        </li>
+                      ))}
+                    </ol>
+                  )}
 
                   <div className="flex flex-wrap gap-2">
                     <Button
@@ -960,6 +1906,29 @@ export default function AdminMediaPage() {
                       <Zap className="h-4 w-4" />
                       {imageBusy === "optimize" ? "…" : "بهینه‌سازی حجم"}
                     </Button>
+                    {/* Replace keeps the URL. It is the operation for "the
+                        product photo changed", where delete + re-upload
+                        would break every page that already points here. */}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={imageBusy !== null}
+                      onClick={() => replaceRef.current?.click()}
+                      title="فایل جدیدی با همان نشانی اینترنتی جایگزین شود"
+                    >
+                      <UploadCloud className="h-4 w-4" />
+                      {imageBusy === "replace" ? "…" : "جایگزینی فایل"}
+                    </Button>
+                    <input
+                      ref={replaceRef}
+                      type="file"
+                      className="hidden"
+                      accept={MEDIA_ACCEPT_ATTRIBUTE}
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) void replaceFile(file);
+                      }}
+                    />
                   </div>
 
                   <div className="grid gap-2 sm:grid-cols-[1fr_1fr_auto]">
@@ -1097,6 +2066,48 @@ export default function AdminMediaPage() {
                 ))}
               </div>
 
+              {/* Ready-made ratios. WordPress's crop tool offers the registered
+                  image sizes (thumbnail/medium/large) plus a free crop; the
+                  ratios here are the storefront's real ones — a square product
+                  tile, 4:3 and 16:9 banners. The largest centered box with the
+                  chosen ratio that fits inside the image is selected, so the
+                  preset never asks for pixels that do not exist. */}
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-[11px] text-muted-foreground">نسبت آماده:</span>
+                {(
+                  [
+                    ["۱:۱", 1, 1],
+                    ["۴:۳", 4, 3],
+                    ["۳:۴", 3, 4],
+                    ["۱۶:۹", 16, 9],
+                    ["۹:۱۶", 9, 16],
+                  ] as const
+                ).map(([label, rw, rh]) => (
+                  <Button
+                    key={label}
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      const W = detailAsset.width ?? 0;
+                      const H = detailAsset.height ?? 0;
+                      if (!W || !H) return;
+                      // Largest box with this ratio inside the image.
+                      const byWidth = Math.min(W, Math.floor((H * rw) / rh));
+                      const w = Math.max(1, byWidth);
+                      const h = Math.max(1, Math.round((w * rh) / rw));
+                      setCrop({
+                        x: Math.round((W - w) / 2),
+                        y: Math.round((H - h) / 2),
+                        width: w,
+                        height: h,
+                      });
+                    }}
+                  >
+                    {label}
+                  </Button>
+                ))}
+              </div>
+
               <div className="flex flex-wrap gap-2">
                 <Button
                   size="sm"
@@ -1146,6 +2157,17 @@ export default function AdminMediaPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+    </div>
+    </MediaDropzone>
+  );
+}
+
+/** Placeholder while the deep-link parameter resolves. */
+function MediaPageSkeleton() {
+  return (
+    <div className="flex items-center justify-center gap-2 py-24 text-sm text-muted-foreground">
+      <RefreshCw className="h-5 w-5 animate-spin" />
+      در حال بارگذاری کتابخانه‌ی رسانه...
     </div>
   );
 }

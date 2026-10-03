@@ -43,7 +43,7 @@
  },
  {
   "file": "backend/app/main.py",
-  "line": 380,
+  "line": 386,
   "method": "GET",
   "path": "/healthz",
   "func": "healthz",
@@ -52,11 +52,11 @@
   ],
   "dep_src": "False ",
   "guarded": false,
-  "doc": "Liveness probe – returns 200 if the process is alive."
+  "doc": "Liveness probe – is the process itself alive?\n\nDeliberately cheap: it touches no dependency. A liveness probe that\nqueries Postgres reports the process dead whenever the *database* is\ndown, and the or"
  },
  {
   "file": "backend/app/main.py",
-  "line": 380,
+  "line": 386,
   "method": "GET",
   "path": "/api/health/live",
   "func": "healthz",
@@ -65,11 +65,11 @@
   ],
   "dep_src": "False ",
   "guarded": false,
-  "doc": "Liveness probe – returns 200 if the process is alive."
+  "doc": "Liveness probe – is the process itself alive?\n\nDeliberately cheap: it touches no dependency. A liveness probe that\nqueries Postgres reports the process dead whenever the *database* is\ndown, and the or"
  },
  {
   "file": "backend/app/main.py",
-  "line": 395,
+  "line": 445,
   "method": "GET",
   "path": "/uploads/{file_path:path}",
   "func": "serve_upload",
@@ -82,7 +82,7 @@
  },
  {
   "file": "backend/app/main.py",
-  "line": 415,
+  "line": 465,
   "method": "POST",
   "path": "/api/v1/observability/client-logs",
   "func": "ingest_client_logs",
@@ -95,7 +95,7 @@
  },
  {
   "file": "backend/app/main.py",
-  "line": 452,
+  "line": 502,
   "method": "GET",
   "path": "/readyz",
   "func": "readyz",
@@ -108,7 +108,7 @@
  },
  {
   "file": "backend/app/main.py",
-  "line": 452,
+  "line": 502,
   "method": "GET",
   "path": "/api/health/ready",
   "func": "readyz",
@@ -121,7 +121,7 @@
  },
  {
   "file": "backend/app/main.py",
-  "line": 520,
+  "line": 570,
   "method": "GET",
   "path": "/deep-health",
   "func": "deep_health",
@@ -134,7 +134,7 @@
  },
  {
   "file": "backend/app/main.py",
-  "line": 612,
+  "line": 662,
   "method": "GET",
   "path": "/metrics",
   "func": "metrics",
@@ -147,7 +147,7 @@
  },
  {
   "file": "backend/app/main.py",
-  "line": 612,
+  "line": 662,
   "method": "GET",
   "path": "/api/v1/metrics",
   "func": "metrics",
@@ -160,7 +160,7 @@
  },
  {
   "file": "backend/app/main.py",
-  "line": 649,
+  "line": 699,
   "method": "API_ROUTE",
   "path": "/api/v1/observability/synthetic-delay",
   "func": "synthetic_delay",
@@ -854,7 +854,7 @@
  },
  {
   "file": "backend/app/modules/auth/api/routes.py",
-  "line": 147,
+  "line": 148,
   "method": "POST",
   "path": "/register",
   "func": "register",
@@ -870,7 +870,7 @@
  },
  {
   "file": "backend/app/modules/auth/api/routes.py",
-  "line": 175,
+  "line": 176,
   "method": "POST",
   "path": "/login",
   "func": "login",
@@ -885,7 +885,7 @@
  },
  {
   "file": "backend/app/modules/auth/api/routes.py",
-  "line": 202,
+  "line": 203,
   "method": "GET",
   "path": "/sso/google",
   "func": "sso_google_start",
@@ -898,7 +898,7 @@
  },
  {
   "file": "backend/app/modules/auth/api/routes.py",
-  "line": 219,
+  "line": 220,
   "method": "GET",
   "path": "/sso/google/callback",
   "func": "sso_google_callback",
@@ -911,7 +911,7 @@
  },
  {
   "file": "backend/app/modules/auth/api/routes.py",
-  "line": 255,
+  "line": 256,
   "method": "POST",
   "path": "/otp/request",
   "func": "otp_request",
@@ -925,7 +925,7 @@
  },
  {
   "file": "backend/app/modules/auth/api/routes.py",
-  "line": 274,
+  "line": 275,
   "method": "POST",
   "path": "/otp/verify",
   "func": "otp_verify",
@@ -939,7 +939,7 @@
  },
  {
   "file": "backend/app/modules/auth/api/routes.py",
-  "line": 300,
+  "line": 301,
   "method": "POST",
   "path": "/refresh",
   "func": "refresh",
@@ -953,7 +953,7 @@
  },
  {
   "file": "backend/app/modules/auth/api/routes.py",
-  "line": 330,
+  "line": 331,
   "method": "POST",
   "path": "/logout",
   "func": "logout",
@@ -967,7 +967,7 @@
  },
  {
   "file": "backend/app/modules/auth/api/routes.py",
-  "line": 353,
+  "line": 369,
   "method": "POST",
   "path": "/logout-all",
   "func": "logout_all",
@@ -981,7 +981,7 @@
  },
  {
   "file": "backend/app/modules/auth/api/routes.py",
-  "line": 373,
+  "line": 389,
   "method": "GET",
   "path": "/me",
   "func": "get_me",
@@ -995,7 +995,7 @@
  },
  {
   "file": "backend/app/modules/auth/api/routes.py",
-  "line": 386,
+  "line": 402,
   "method": "PATCH",
   "path": "/me",
   "func": "update_me",
@@ -1009,7 +1009,7 @@
  },
  {
   "file": "backend/app/modules/auth/api/routes.py",
-  "line": 407,
+  "line": 423,
   "method": "POST",
   "path": "/me/email/confirm",
   "func": "confirm_email_change",
@@ -1022,7 +1022,7 @@
  },
  {
   "file": "backend/app/modules/auth/api/routes.py",
-  "line": 444,
+  "line": 460,
   "method": "GET",
   "path": "/me/email/pending",
   "func": "pending_email_change",
@@ -1035,7 +1035,7 @@
  },
  {
   "file": "backend/app/modules/auth/api/routes.py",
-  "line": 461,
+  "line": 477,
   "method": "POST",
   "path": "/change-password",
   "func": "change_password",
@@ -1049,7 +1049,7 @@
  },
  {
   "file": "backend/app/modules/auth/api/routes.py",
-  "line": 488,
+  "line": 504,
   "method": "POST",
   "path": "/forgot-password",
   "func": "forgot_password",
@@ -1064,7 +1064,7 @@
  },
  {
   "file": "backend/app/modules/auth/api/routes.py",
-  "line": 515,
+  "line": 531,
   "method": "POST",
   "path": "/reset-password",
   "func": "reset_password",
@@ -1078,20 +1078,20 @@
  },
  {
   "file": "backend/app/modules/auth/api/routes.py",
-  "line": 539,
+  "line": 555,
   "method": "GET",
   "path": "/sessions",
   "func": "list_sessions",
   "deps": [
    "'List active sessions'"
   ],
-  "dep_src": "'List active sessions' Depends(get_current_user_id) Depends(get_db) uuid.UUID AsyncSession",
+  "dep_src": "'List active sessions' Depends(get_current_user) Depends(get_current_user_id) Depends(get_db) dict[str, Any] uuid.UUID AsyncSession",
   "guarded": false,
   "doc": ""
  },
  {
   "file": "backend/app/modules/auth/api/routes.py",
-  "line": 562,
+  "line": 590,
   "method": "DELETE",
   "path": "/sessions/{session_id}",
   "func": "delete_session",
@@ -1105,7 +1105,7 @@
  },
  {
   "file": "backend/app/modules/auth/api/routes.py",
-  "line": 579,
+  "line": 607,
   "method": "POST",
   "path": "/mfa/totp/setup",
   "func": "setup_totp",
@@ -1119,7 +1119,7 @@
  },
  {
   "file": "backend/app/modules/auth/api/routes.py",
-  "line": 596,
+  "line": 624,
   "method": "POST",
   "path": "/mfa/totp/verify",
   "func": "verify_totp",
@@ -1133,7 +1133,7 @@
  },
  {
   "file": "backend/app/modules/auth/api/routes.py",
-  "line": 610,
+  "line": 638,
   "method": "POST",
   "path": "/mfa/totp/disable",
   "func": "disable_totp",
@@ -1147,7 +1147,7 @@
  },
  {
   "file": "backend/app/modules/auth/api/routes.py",
-  "line": 623,
+  "line": 651,
   "method": "POST",
   "path": "/mfa/passkey/register/options",
   "func": "passkey_register_options",
@@ -1160,7 +1160,7 @@
  },
  {
   "file": "backend/app/modules/auth/api/routes.py",
-  "line": 642,
+  "line": 670,
   "method": "GET",
   "path": "/security-status",
   "func": "get_security_status",
@@ -1174,7 +1174,7 @@
  },
  {
   "file": "backend/app/modules/auth/api/routes.py",
-  "line": 705,
+  "line": 733,
   "method": "GET",
   "path": "/application-passwords",
   "func": "list_application_passwords",
@@ -1188,7 +1188,7 @@
  },
  {
   "file": "backend/app/modules/auth/api/routes.py",
-  "line": 723,
+  "line": 751,
   "method": "POST",
   "path": "/application-passwords",
   "func": "create_application_password",
@@ -1203,7 +1203,7 @@
  },
  {
   "file": "backend/app/modules/auth/api/routes.py",
-  "line": 755,
+  "line": 783,
   "method": "POST",
   "path": "/application-passwords/revoke-all",
   "func": "revoke_all_application_passwords",
@@ -1216,7 +1216,7 @@
  },
  {
   "file": "backend/app/modules/auth/api/routes.py",
-  "line": 779,
+  "line": 807,
   "method": "DELETE",
   "path": "/application-passwords/{app_password_id}",
   "func": "revoke_application_password",
@@ -1230,7 +1230,7 @@
  },
  {
   "file": "backend/app/modules/automation/api/routes.py",
-  "line": 33,
+  "line": 36,
   "method": "GET",
   "path": "/admin/rules",
   "func": "list_rules",
@@ -1245,7 +1245,7 @@
  },
  {
   "file": "backend/app/modules/automation/api/routes.py",
-  "line": 59,
+  "line": 62,
   "method": "GET",
   "path": "/admin/rules/{rule_id}",
   "func": "get_rule",
@@ -1260,7 +1260,7 @@
  },
  {
   "file": "backend/app/modules/automation/api/routes.py",
-  "line": 74,
+  "line": 77,
   "method": "POST",
   "path": "/admin/rules",
   "func": "create_rule",
@@ -1276,7 +1276,7 @@
  },
  {
   "file": "backend/app/modules/automation/api/routes.py",
-  "line": 101,
+  "line": 104,
   "method": "PATCH",
   "path": "/admin/rules/{rule_id}",
   "func": "update_rule",
@@ -1291,7 +1291,7 @@
  },
  {
   "file": "backend/app/modules/automation/api/routes.py",
-  "line": 124,
+  "line": 127,
   "method": "DELETE",
   "path": "/admin/rules/{rule_id}",
   "func": "delete_rule",
@@ -1306,7 +1306,7 @@
  },
  {
   "file": "backend/app/modules/automation/api/routes.py",
-  "line": 137,
+  "line": 140,
   "method": "POST",
   "path": "/admin/rules/{rule_id}/trigger",
   "func": "trigger_rule",
@@ -1318,6 +1318,51 @@
   "dep_src": "AutomationRuleTestResponse [Depends(RequirePermissions('automation:write'))] 'Test-fire an automation rule against a synthetic context' Depends(get_db) uuid.UUID AutomationRuleTestRequest AsyncSession",
   "guarded": true,
   "doc": "Evaluate one rule immediately with the given context (admin dry-run)."
+ },
+ {
+  "file": "backend/app/modules/automation/api/routes.py",
+  "line": 204,
+  "method": "GET",
+  "path": "/admin/outbox/dead-letters",
+  "func": "list_outbox_messages",
+  "deps": [
+   "DeadLetterListResponse",
+   "[Depends(RequirePermissions('automation:read'))]",
+   "'List outbox messages by status, for the dead-letter screen'"
+  ],
+  "dep_src": "DeadLetterListResponse [Depends(RequirePermissions('automation:read'))] 'List outbox messages by status, for the dead-letter screen' Query('dead_letter', alias='status', description='Which queue state to list') Query(1, ge=1) Query(50, ge=1, le=200) Depends(get_db) str int int AsyncSession",
+  "guarded": true,
+  "doc": "Messages that failed permanently, so an operator can see what broke.\n\nDefaults to the dead-letter queue rather than all traffic: an operator\nopening this screen is asking \"what is broken\", not \"show m"
+ },
+ {
+  "file": "backend/app/modules/automation/api/routes.py",
+  "line": 262,
+  "method": "POST",
+  "path": "/admin/outbox/dead-letters/{message_id}/requeue",
+  "func": "requeue_outbox_message",
+  "deps": [
+   "RequeueResult",
+   "[Depends(RequirePermissions('automation:write'))]",
+   "'Replay a dead-lettered outbox message'"
+  ],
+  "dep_src": "RequeueResult [Depends(RequirePermissions('automation:write'))] 'Replay a dead-lettered outbox message' Depends(get_db) uuid.UUID AsyncSession",
+  "guarded": true,
+  "doc": "Put a failed message back on the queue.\n\nRetry count resets by default: replaying is normally done after fixing the\ncause, and a carried-forward exhausted counter would dead-letter the message\nagain o"
+ },
+ {
+  "file": "backend/app/modules/automation/api/routes.py",
+  "line": 294,
+  "method": "DELETE",
+  "path": "/admin/outbox/dead-letters/{message_id}",
+  "func": "purge_outbox_message",
+  "deps": [
+   "status.HTTP_204_NO_CONTENT",
+   "[Depends(RequirePermissions('automation:write'))]",
+   "'Discard a dead-lettered outbox message'"
+  ],
+  "dep_src": "status.HTTP_204_NO_CONTENT [Depends(RequirePermissions('automation:write'))] 'Discard a dead-lettered outbox message' Depends(get_db) uuid.UUID AsyncSession",
+  "guarded": true,
+  "doc": "Delete a dead letter for good, for an event that should never run."
  },
  {
   "file": "backend/app/modules/bi/api/routes.py",
@@ -1349,7 +1394,7 @@
  },
  {
   "file": "backend/app/modules/blog/api/routes.py",
-  "line": 148,
+  "line": 189,
   "method": "GET",
   "path": "/posts",
   "func": "list_posts",
@@ -1364,7 +1409,7 @@
  },
  {
   "file": "backend/app/modules/blog/api/routes.py",
-  "line": 191,
+  "line": 232,
   "method": "GET",
   "path": "/authors",
   "func": "list_authors",
@@ -1378,7 +1423,7 @@
  },
  {
   "file": "backend/app/modules/blog/api/routes.py",
-  "line": 210,
+  "line": 251,
   "method": "GET",
   "path": "/authors/{slug}",
   "func": "get_author_archive",
@@ -1393,7 +1438,7 @@
  },
  {
   "file": "backend/app/modules/blog/api/routes.py",
-  "line": 240,
+  "line": 281,
   "method": "GET",
   "path": "/posts/{slug}",
   "func": "get_post_by_slug",
@@ -1408,7 +1453,7 @@
  },
  {
   "file": "backend/app/modules/blog/api/routes.py",
-  "line": 264,
+  "line": 305,
   "method": "GET",
   "path": "/categories",
   "func": "list_categories",
@@ -1423,7 +1468,7 @@
  },
  {
   "file": "backend/app/modules/blog/api/routes.py",
-  "line": 276,
+  "line": 317,
   "method": "GET",
   "path": "/categories/tree",
   "func": "category_tree",
@@ -1437,7 +1482,7 @@
  },
  {
   "file": "backend/app/modules/blog/api/routes.py",
-  "line": 295,
+  "line": 336,
   "method": "PATCH",
   "path": "/categories/{category_id}",
   "func": "update_category",
@@ -1452,7 +1497,7 @@
  },
  {
   "file": "backend/app/modules/blog/api/routes.py",
-  "line": 310,
+  "line": 351,
   "method": "DELETE",
   "path": "/categories/{category_id}",
   "func": "delete_category",
@@ -1467,7 +1512,7 @@
  },
  {
   "file": "backend/app/modules/blog/api/routes.py",
-  "line": 324,
+  "line": 365,
   "method": "GET",
   "path": "/tags",
   "func": "list_tags",
@@ -1482,7 +1527,7 @@
  },
  {
   "file": "backend/app/modules/blog/api/routes.py",
-  "line": 337,
+  "line": 378,
   "method": "PATCH",
   "path": "/tags/{tag_id}",
   "func": "update_tag",
@@ -1497,7 +1542,7 @@
  },
  {
   "file": "backend/app/modules/blog/api/routes.py",
-  "line": 352,
+  "line": 393,
   "method": "DELETE",
   "path": "/tags/{tag_id}",
   "func": "delete_tag",
@@ -1512,7 +1557,7 @@
  },
  {
   "file": "backend/app/modules/blog/api/routes.py",
-  "line": 366,
+  "line": 407,
   "method": "GET",
   "path": "/recent",
   "func": "get_recent_posts",
@@ -1527,7 +1572,7 @@
  },
  {
   "file": "backend/app/modules/blog/api/routes.py",
-  "line": 400,
+  "line": 451,
   "method": "GET",
   "path": "/feed/rss",
   "func": "rss_feed",
@@ -1541,7 +1586,35 @@
  },
  {
   "file": "backend/app/modules/blog/api/routes.py",
-  "line": 412,
+  "line": 463,
+  "method": "GET",
+  "path": "/feed/rss/category/{slug}",
+  "func": "category_rss_feed",
+  "deps": [
+   "'RSS feed scoped to one category'",
+   "Response"
+  ],
+  "dep_src": "'RSS feed scoped to one category' Response Depends(get_db) str AsyncSession",
+  "guarded": false,
+  "doc": ""
+ },
+ {
+  "file": "backend/app/modules/blog/api/routes.py",
+  "line": 476,
+  "method": "GET",
+  "path": "/feed/rss/tag/{slug}",
+  "func": "tag_rss_feed",
+  "deps": [
+   "'RSS feed scoped to one tag'",
+   "Response"
+  ],
+  "dep_src": "'RSS feed scoped to one tag' Response Depends(get_db) str AsyncSession",
+  "guarded": false,
+  "doc": ""
+ },
+ {
+  "file": "backend/app/modules/blog/api/routes.py",
+  "line": 489,
   "method": "GET",
   "path": "/feed/atom",
   "func": "atom_feed",
@@ -1555,7 +1628,7 @@
  },
  {
   "file": "backend/app/modules/blog/api/routes.py",
-  "line": 424,
+  "line": 501,
   "method": "GET",
   "path": "/opml",
   "func": "export_opml",
@@ -1569,7 +1642,7 @@
  },
  {
   "file": "backend/app/modules/blog/api/routes.py",
-  "line": 442,
+  "line": 519,
   "method": "POST",
   "path": "/admin/opml/import",
   "func": "import_opml",
@@ -1583,7 +1656,7 @@
  },
  {
   "file": "backend/app/modules/blog/api/routes.py",
-  "line": 466,
+  "line": 543,
   "method": "GET",
   "path": "/feed/rdf",
   "func": "rdf_feed",
@@ -1597,7 +1670,7 @@
  },
  {
   "file": "backend/app/modules/blog/api/routes.py",
-  "line": 490,
+  "line": 567,
   "method": "GET",
   "path": "/feed/comments/rss",
   "func": "comments_feed",
@@ -1611,7 +1684,7 @@
  },
  {
   "file": "backend/app/modules/blog/api/routes.py",
-  "line": 517,
+  "line": 594,
   "method": "GET",
   "path": "/feed/comments/rss/{post_id}",
   "func": "post_comments_feed",
@@ -1625,7 +1698,7 @@
  },
  {
   "file": "backend/app/modules/blog/api/routes.py",
-  "line": 546,
+  "line": 623,
   "method": "GET",
   "path": "/feed/rss/{slug}",
   "func": "rss_term_feed",
@@ -1639,7 +1712,7 @@
  },
  {
   "file": "backend/app/modules/blog/api/routes.py",
-  "line": 564,
+  "line": 641,
   "method": "GET",
   "path": "/feed/atom/{slug}",
   "func": "atom_term_feed",
@@ -1653,7 +1726,7 @@
  },
  {
   "file": "backend/app/modules/blog/api/routes.py",
-  "line": 606,
+  "line": 683,
   "method": "GET",
   "path": "/posts/{post_id}/comments",
   "func": "list_post_comments",
@@ -1667,7 +1740,7 @@
  },
  {
   "file": "backend/app/modules/blog/api/routes.py",
-  "line": 631,
+  "line": 708,
   "method": "GET",
   "path": "/comments",
   "func": "list_resource_comments",
@@ -1681,7 +1754,7 @@
  },
  {
   "file": "backend/app/modules/blog/api/routes.py",
-  "line": 663,
+  "line": 740,
   "method": "POST",
   "path": "/comments",
   "func": "create_resource_comment",
@@ -1696,7 +1769,7 @@
  },
  {
   "file": "backend/app/modules/blog/api/routes.py",
-  "line": 688,
+  "line": 765,
   "method": "GET",
   "path": "/posts/by-id/{post_id}/slug",
   "func": "get_post_slug_by_id",
@@ -1709,7 +1782,7 @@
  },
  {
   "file": "backend/app/modules/blog/api/routes.py",
-  "line": 714,
+  "line": 791,
   "method": "POST",
   "path": "/posts/{post_id}/comments",
   "func": "create_comment",
@@ -1724,7 +1797,7 @@
  },
  {
   "file": "backend/app/modules/blog/api/routes.py",
-  "line": 749,
+  "line": 826,
   "method": "GET",
   "path": "/posts",
   "func": "admin_list_posts",
@@ -1739,7 +1812,7 @@
  },
  {
   "file": "backend/app/modules/blog/api/routes.py",
-  "line": 782,
+  "line": 859,
   "method": "GET",
   "path": "/posts/{post_id}",
   "func": "admin_get_post",
@@ -1754,7 +1827,7 @@
  },
  {
   "file": "backend/app/modules/blog/api/routes.py",
-  "line": 797,
+  "line": 874,
   "method": "POST",
   "path": "/posts",
   "func": "admin_create_post",
@@ -1770,7 +1843,7 @@
  },
  {
   "file": "backend/app/modules/blog/api/routes.py",
-  "line": 818,
+  "line": 901,
   "method": "PATCH",
   "path": "/posts/{post_id}",
   "func": "admin_update_post",
@@ -1785,7 +1858,7 @@
  },
  {
   "file": "backend/app/modules/blog/api/routes.py",
-  "line": 839,
+  "line": 929,
   "method": "DELETE",
   "path": "/posts/{post_id}",
   "func": "admin_delete_post",
@@ -1800,7 +1873,7 @@
  },
  {
   "file": "backend/app/modules/blog/api/routes.py",
-  "line": 855,
+  "line": 945,
   "method": "POST",
   "path": "/posts/{post_id}/restore",
   "func": "admin_restore_post",
@@ -1815,7 +1888,7 @@
  },
  {
   "file": "backend/app/modules/blog/api/routes.py",
-  "line": 871,
+  "line": 961,
   "method": "DELETE",
   "path": "/posts/{post_id}/permanent",
   "func": "admin_hard_delete_post",
@@ -1830,7 +1903,7 @@
  },
  {
   "file": "backend/app/modules/blog/api/routes.py",
-  "line": 894,
+  "line": 984,
   "method": "GET",
   "path": "/comments",
   "func": "admin_list_comments",
@@ -1845,7 +1918,7 @@
  },
  {
   "file": "backend/app/modules/blog/api/routes.py",
-  "line": 936,
+  "line": 1026,
   "method": "PATCH",
   "path": "/comments/{comment_id}",
   "func": "admin_update_comment",
@@ -1860,7 +1933,7 @@
  },
  {
   "file": "backend/app/modules/blog/api/routes.py",
-  "line": 957,
+  "line": 1047,
   "method": "POST",
   "path": "/comments/{comment_id}/approve",
   "func": "admin_approve_comment",
@@ -1875,7 +1948,7 @@
  },
  {
   "file": "backend/app/modules/blog/api/routes.py",
-  "line": 973,
+  "line": 1063,
   "method": "POST",
   "path": "/comments/{comment_id}/spam",
   "func": "admin_spam_comment",
@@ -1890,7 +1963,7 @@
  },
  {
   "file": "backend/app/modules/blog/api/routes.py",
-  "line": 989,
+  "line": 1079,
   "method": "DELETE",
   "path": "/comments/{comment_id}",
   "func": "admin_delete_comment",
@@ -1905,7 +1978,7 @@
  },
  {
   "file": "backend/app/modules/blog/api/routes.py",
-  "line": 1009,
+  "line": 1099,
   "method": "POST",
   "path": "/posts/{post_id}/duplicate",
   "func": "admin_duplicate_post",
@@ -1921,7 +1994,7 @@
  },
  {
   "file": "backend/app/modules/blog/api/routes.py",
-  "line": 1031,
+  "line": 1121,
   "method": "GET",
   "path": "/posts/{post_id}/meta",
   "func": "admin_list_post_meta",
@@ -1936,7 +2009,7 @@
  },
  {
   "file": "backend/app/modules/blog/api/routes.py",
-  "line": 1050,
+  "line": 1140,
   "method": "POST",
   "path": "/posts/{post_id}/meta",
   "func": "admin_upsert_post_meta",
@@ -1952,7 +2025,7 @@
  },
  {
   "file": "backend/app/modules/blog/api/routes.py",
-  "line": 1084,
+  "line": 1174,
   "method": "DELETE",
   "path": "/posts/{post_id}/meta/{meta_key}",
   "func": "admin_delete_post_meta",
@@ -1967,7 +2040,7 @@
  },
  {
   "file": "backend/app/modules/blog/api/routes.py",
-  "line": 1112,
+  "line": 1202,
   "method": "POST",
   "path": "/posts/{post_id}/lock",
   "func": "admin_acquire_lock",
@@ -1981,7 +2054,7 @@
  },
  {
   "file": "backend/app/modules/blog/api/routes.py",
-  "line": 1135,
+  "line": 1225,
   "method": "DELETE",
   "path": "/posts/{post_id}/lock",
   "func": "admin_release_lock",
@@ -1995,7 +2068,7 @@
  },
  {
   "file": "backend/app/modules/blog/api/routes.py",
-  "line": 1151,
+  "line": 1241,
   "method": "POST",
   "path": "/posts/{post_id}/lock/heartbeat",
   "func": "admin_lock_heartbeat",
@@ -2009,7 +2082,7 @@
  },
  {
   "file": "backend/app/modules/blog/api/routes.py",
-  "line": 1167,
+  "line": 1257,
   "method": "GET",
   "path": "/posts/{post_id}/lock",
   "func": "admin_check_lock",
@@ -2023,7 +2096,7 @@
  },
  {
   "file": "backend/app/modules/blog/api/routes.py",
-  "line": 1182,
+  "line": 1272,
   "method": "POST",
   "path": "/posts/{post_id}/autosave",
   "func": "admin_autosave",
@@ -2037,7 +2110,7 @@
  },
  {
   "file": "backend/app/modules/blog/api/routes.py",
-  "line": 1199,
+  "line": 1289,
   "method": "GET",
   "path": "/posts/{post_id}/autosave",
   "func": "admin_get_autosave",
@@ -2051,7 +2124,7 @@
  },
  {
   "file": "backend/app/modules/blog/api/routes.py",
-  "line": 1218,
+  "line": 1308,
   "method": "DELETE",
   "path": "/posts/{post_id}/autosave",
   "func": "admin_clear_autosave",
@@ -2066,7 +2139,7 @@
  },
  {
   "file": "backend/app/modules/blog/api/routes.py",
-  "line": 1234,
+  "line": 1324,
   "method": "GET",
   "path": "/posts/{post_id}/preview",
   "func": "admin_preview_post",
@@ -2081,7 +2154,7 @@
  },
  {
   "file": "backend/app/modules/blog/api/routes.py",
-  "line": 1255,
+  "line": 1345,
   "method": "POST",
   "path": "/categories",
   "func": "admin_create_category",
@@ -2097,7 +2170,7 @@
  },
  {
   "file": "backend/app/modules/blog/api/routes.py",
-  "line": 1270,
+  "line": 1360,
   "method": "POST",
   "path": "/tags",
   "func": "admin_create_tag",
@@ -2113,7 +2186,7 @@
  },
  {
   "file": "backend/app/modules/blog/api/routes.py",
-  "line": 1284,
+  "line": 1374,
   "method": "GET",
   "path": "/posts/{post_id}/revisions",
   "func": "admin_list_post_revisions",
@@ -2128,7 +2201,7 @@
  },
  {
   "file": "backend/app/modules/blog/api/routes.py",
-  "line": 1298,
+  "line": 1388,
   "method": "GET",
   "path": "/posts/{post_id}/revisions/{revision_number}",
   "func": "admin_get_post_revision",
@@ -2143,7 +2216,7 @@
  },
  {
   "file": "backend/app/modules/blog/api/routes.py",
-  "line": 1313,
+  "line": 1403,
   "method": "POST",
   "path": "/posts/{post_id}/revisions/{revision_number}/restore",
   "func": "admin_restore_post_revision",
@@ -2158,7 +2231,7 @@
  },
  {
   "file": "backend/app/modules/blog/api/routes.py",
-  "line": 1339,
+  "line": 1429,
   "method": "GET",
   "path": "/posts/{post_id}/revisions/{rev_a_id}/diff/{rev_b_id}",
   "func": "admin_diff_post_revisions",
@@ -2174,7 +2247,7 @@
  },
  {
   "file": "backend/app/modules/blog/api/routes.py",
-  "line": 1361,
+  "line": 1451,
   "method": "POST",
   "path": "/admin/posts",
   "func": "router_alias_create_post",
@@ -2190,7 +2263,7 @@
  },
  {
   "file": "backend/app/modules/blog/api/routes.py",
-  "line": 1375,
+  "line": 1465,
   "method": "PATCH",
   "path": "/admin/posts/{post_id}",
   "func": "router_alias_update_post",
@@ -2205,7 +2278,7 @@
  },
  {
   "file": "backend/app/modules/blog/api/routes.py",
-  "line": 1390,
+  "line": 1480,
   "method": "DELETE",
   "path": "/admin/posts/{post_id}",
   "func": "router_alias_delete_post",
@@ -2220,7 +2293,7 @@
  },
  {
   "file": "backend/app/modules/blog/api/routes.py",
-  "line": 1409,
+  "line": 1499,
   "method": "POST",
   "path": "/admin/categories",
   "func": "router_alias_create_category",
@@ -2236,7 +2309,7 @@
  },
  {
   "file": "backend/app/modules/blog/api/routes.py",
-  "line": 1423,
+  "line": 1513,
   "method": "POST",
   "path": "/admin/tags",
   "func": "router_alias_create_tag",
@@ -2252,7 +2325,7 @@
  },
  {
   "file": "backend/app/modules/blog/api/routes.py",
-  "line": 1438,
+  "line": 1528,
   "method": "PATCH",
   "path": "/admin/categories/{category_id}",
   "func": "router_alias_update_category",
@@ -2267,7 +2340,7 @@
  },
  {
   "file": "backend/app/modules/blog/api/routes.py",
-  "line": 1454,
+  "line": 1544,
   "method": "DELETE",
   "path": "/admin/categories/{category_id}",
   "func": "router_alias_delete_category",
@@ -2282,7 +2355,7 @@
  },
  {
   "file": "backend/app/modules/blog/api/routes.py",
-  "line": 1469,
+  "line": 1559,
   "method": "PATCH",
   "path": "/admin/tags/{tag_id}",
   "func": "router_alias_update_tag",
@@ -2297,7 +2370,7 @@
  },
  {
   "file": "backend/app/modules/blog/api/routes.py",
-  "line": 1485,
+  "line": 1575,
   "method": "DELETE",
   "path": "/admin/tags/{tag_id}",
   "func": "router_alias_delete_tag",
@@ -2312,7 +2385,7 @@
  },
  {
   "file": "backend/app/modules/blog/api/routes.py",
-  "line": 1504,
+  "line": 1594,
   "method": "GET",
   "path": "/comments/{comment_id}/meta",
   "func": "admin_list_comment_meta",
@@ -2326,7 +2399,7 @@
  },
  {
   "file": "backend/app/modules/blog/api/routes.py",
-  "line": 1518,
+  "line": 1608,
   "method": "POST",
   "path": "/comments/{comment_id}/meta",
   "func": "admin_upsert_comment_meta",
@@ -2340,7 +2413,7 @@
  },
  {
   "file": "backend/app/modules/blog/api/routes.py",
-  "line": 1536,
+  "line": 1626,
   "method": "DELETE",
   "path": "/comments/{comment_id}/meta/{meta_key}",
   "func": "admin_delete_comment_meta",
@@ -2355,7 +2428,7 @@
  },
  {
   "file": "backend/app/modules/blog/api/routes.py",
-  "line": 1558,
+  "line": 1648,
   "method": "GET",
   "path": "/terms/{term_type}/{term_id}/meta",
   "func": "admin_list_term_meta",
@@ -2369,7 +2442,7 @@
  },
  {
   "file": "backend/app/modules/blog/api/routes.py",
-  "line": 1573,
+  "line": 1663,
   "method": "POST",
   "path": "/terms/{term_type}/{term_id}/meta",
   "func": "admin_upsert_term_meta",
@@ -2383,7 +2456,7 @@
  },
  {
   "file": "backend/app/modules/blog/api/routes.py",
-  "line": 1590,
+  "line": 1680,
   "method": "DELETE",
   "path": "/terms/{term_type}/{term_id}/meta/{meta_key}",
   "func": "admin_delete_term_meta",
@@ -2398,7 +2471,7 @@
  },
  {
   "file": "backend/app/modules/blog/api/routes.py",
-  "line": 1605,
+  "line": 1695,
   "method": "GET",
   "path": "/posts/{slug}/alternates",
   "func": "post_alternates",
@@ -2411,7 +2484,7 @@
  },
  {
   "file": "backend/app/modules/blog/api/routes.py",
-  "line": 1665,
+  "line": 1792,
   "method": "GET",
   "path": "/posts/{slug}/neighbors",
   "func": "post_neighbors",
@@ -2424,7 +2497,7 @@
  },
  {
   "file": "backend/app/modules/blog/api/routes.py",
-  "line": 1724,
+  "line": 1851,
   "method": "GET",
   "path": "/archive/{year}",
   "func": "post_date_archive",
@@ -2437,7 +2510,7 @@
  },
  {
   "file": "backend/app/modules/blog/api/routes.py",
-  "line": 1724,
+  "line": 1851,
   "method": "GET",
   "path": "/archive/{year}/{month}",
   "func": "post_date_archive",
@@ -2447,6 +2520,21 @@
   "dep_src": "'Posts published in a month (public)' None Query(1, ge=1) Query(20, ge=1, le=100) Depends(get_db) int int | None int int AsyncSession",
   "guarded": false,
   "doc": "Date archive, the /2026/09 form the permalink structure advertises.\n\nThe permalink tokens %year%/%monthnum%/%day% already produced these paths\nin links, but nothing served them, so every date-based pe"
+ },
+ {
+  "file": "backend/app/modules/blog/api/routes.py",
+  "line": 1935,
+  "method": "POST",
+  "path": "/posts/bulk/{action}",
+  "func": "admin_bulk_posts",
+  "deps": [
+   "BlogBulkActionResponse",
+   "'Bulk publish/draft/archive/trash/restore blog posts (admin)'",
+   "[_require_blog_write]"
+  ],
+  "dep_src": "BlogBulkActionResponse 'Bulk publish/draft/archive/trash/restore blog posts (admin)' [_require_blog_write] Depends(get_db) Depends(get_current_user) str BlogBulkActionRequest AsyncSession dict[str, Any]",
+  "guarded": true,
+  "doc": "One action over many posts.\n\nPer-post ownership is re-checked inside the service, so this is exactly as\nstrict as the equivalent individual calls — and the response reports a\nper-post outcome rather t"
  },
  {
   "file": "backend/app/modules/blog/api/wp_parity_routes.py",
@@ -4134,7 +4222,21 @@
  },
  {
   "file": "backend/app/modules/content/api/routes.py",
-  "line": 381,
+  "line": 370,
+  "method": "GET",
+  "path": "/pages/by-path/{path:path}",
+  "func": "get_page_by_path",
+  "deps": [
+   "CmsPageResponse",
+   "'Get a published CMS page by its parent/child path (storefront)'"
+  ],
+  "dep_src": "CmsPageResponse 'Get a published CMS page by its parent/child path (storefront)' Depends(get_db) str AsyncSession",
+  "guarded": false,
+  "doc": "Resolve a nested page path, e.g. ``about/team/history``.\n\nDeclared after ``/pages/{slug}`` deliberately: the single-segment route\nwould otherwise match the first segment of a nested path. The path for"
+ },
+ {
+  "file": "backend/app/modules/content/api/routes.py",
+  "line": 415,
   "method": "GET",
   "path": "/admin/pages/by-slug/{slug}",
   "func": "admin_preview_page",
@@ -4149,7 +4251,7 @@
  },
  {
   "file": "backend/app/modules/content/api/routes.py",
-  "line": 401,
+  "line": 435,
   "method": "GET",
   "path": "/admin/pages",
   "func": "admin_list_pages",
@@ -4164,7 +4266,7 @@
  },
  {
   "file": "backend/app/modules/content/api/routes.py",
-  "line": 431,
+  "line": 465,
   "method": "POST",
   "path": "/admin/pages",
   "func": "admin_create_page",
@@ -4180,7 +4282,7 @@
  },
  {
   "file": "backend/app/modules/content/api/routes.py",
-  "line": 450,
+  "line": 484,
   "method": "GET",
   "path": "/admin/pages/{page_id}",
   "func": "admin_get_page",
@@ -4195,7 +4297,7 @@
  },
  {
   "file": "backend/app/modules/content/api/routes.py",
-  "line": 463,
+  "line": 497,
   "method": "PATCH",
   "path": "/admin/pages/{page_id}",
   "func": "admin_update_page",
@@ -4210,7 +4312,7 @@
  },
  {
   "file": "backend/app/modules/content/api/routes.py",
-  "line": 480,
+  "line": 514,
   "method": "DELETE",
   "path": "/admin/pages/{page_id}",
   "func": "admin_delete_page",
@@ -4225,7 +4327,7 @@
  },
  {
   "file": "backend/app/modules/content/api/routes.py",
-  "line": 496,
+  "line": 530,
   "method": "POST",
   "path": "/admin/pages/{page_id}/duplicate",
   "func": "admin_duplicate_page",
@@ -4241,7 +4343,7 @@
  },
  {
   "file": "backend/app/modules/content/api/routes.py",
-  "line": 517,
+  "line": 551,
   "method": "POST",
   "path": "/admin/pages/{page_id}/restore",
   "func": "admin_restore_page",
@@ -4256,7 +4358,7 @@
  },
  {
   "file": "backend/app/modules/content/api/routes.py",
-  "line": 532,
+  "line": 566,
   "method": "DELETE",
   "path": "/admin/pages/{page_id}/permanent",
   "func": "admin_hard_delete_page",
@@ -4271,7 +4373,7 @@
  },
  {
   "file": "backend/app/modules/content/api/routes.py",
-  "line": 549,
+  "line": 583,
   "method": "POST",
   "path": "/admin/pages/bulk/{action}",
   "func": "admin_bulk_pages",
@@ -4286,7 +4388,7 @@
  },
  {
   "file": "backend/app/modules/content/api/routes.py",
-  "line": 574,
+  "line": 608,
   "method": "GET",
   "path": "/admin/pages/{page_id}/revisions",
   "func": "admin_list_page_revisions",
@@ -4301,7 +4403,7 @@
  },
  {
   "file": "backend/app/modules/content/api/routes.py",
-  "line": 587,
+  "line": 621,
   "method": "POST",
   "path": "/admin/pages/{page_id}/revisions/{revision_number}/restore",
   "func": "admin_restore_page_revision",
@@ -4316,7 +4418,7 @@
  },
  {
   "file": "backend/app/modules/content/api/routes.py",
-  "line": 611,
+  "line": 645,
   "method": "GET",
   "path": "/admin/pages/{page_id}/revisions/{rev_a}/diff/{rev_b}",
   "func": "admin_diff_page_revisions",
@@ -4331,7 +4433,7 @@
  },
  {
   "file": "backend/app/modules/content/api/routes.py",
-  "line": 642,
+  "line": 676,
   "method": "GET",
   "path": "/block-patterns",
   "func": "list_block_patterns",
@@ -4345,7 +4447,7 @@
  },
  {
   "file": "backend/app/modules/content/api/routes.py",
-  "line": 662,
+  "line": 696,
   "method": "POST",
   "path": "/block-patterns/{slug}/render",
   "func": "render_block_pattern",
@@ -4360,7 +4462,7 @@
  },
  {
   "file": "backend/app/modules/content/api/routes.py",
-  "line": 688,
+  "line": 722,
   "method": "GET",
   "path": "/admin/embed",
   "func": "admin_resolve_embed",
@@ -4374,7 +4476,7 @@
  },
  {
   "file": "backend/app/modules/content/api/routes.py",
-  "line": 704,
+  "line": 738,
   "method": "GET",
   "path": "/admin/content/export",
   "func": "admin_export_content",
@@ -4388,7 +4490,7 @@
  },
  {
   "file": "backend/app/modules/content/api/routes.py",
-  "line": 717,
+  "line": 751,
   "method": "POST",
   "path": "/admin/content/import",
   "func": "admin_import_content",
@@ -4402,7 +4504,7 @@
  },
  {
   "file": "backend/app/modules/content/api/routes.py",
-  "line": 761,
+  "line": 795,
   "method": "GET",
   "path": "/admin/content-types",
   "func": "admin_list_content_types",
@@ -4416,7 +4518,7 @@
  },
  {
   "file": "backend/app/modules/content/api/routes.py",
-  "line": 786,
+  "line": 820,
   "method": "POST",
   "path": "/admin/content-types",
   "func": "admin_create_content_type",
@@ -4431,7 +4533,7 @@
  },
  {
   "file": "backend/app/modules/content/api/routes.py",
-  "line": 808,
+  "line": 842,
   "method": "GET",
   "path": "/content-types/{type_slug}/entries",
   "func": "list_public_entries",
@@ -4444,7 +4546,7 @@
  },
  {
   "file": "backend/app/modules/content/api/routes.py",
-  "line": 829,
+  "line": 863,
   "method": "GET",
   "path": "/admin/content-types/{type_slug}/entries",
   "func": "admin_list_entries",
@@ -4458,7 +4560,7 @@
  },
  {
   "file": "backend/app/modules/content/api/routes.py",
-  "line": 858,
+  "line": 892,
   "method": "POST",
   "path": "/admin/content-types/{type_slug}/entries",
   "func": "admin_create_entry",
@@ -4473,7 +4575,7 @@
  },
  {
   "file": "backend/app/modules/content/api/routes.py",
-  "line": 892,
+  "line": 926,
   "method": "PATCH",
   "path": "/admin/entries/{entry_id}",
   "func": "admin_update_entry",
@@ -4487,7 +4589,7 @@
  },
  {
   "file": "backend/app/modules/content/api/routes.py",
-  "line": 924,
+  "line": 958,
   "method": "GET",
   "path": "/admin/entries/{entry_id}/revisions",
   "func": "admin_list_entry_revisions",
@@ -4501,7 +4603,7 @@
  },
  {
   "file": "backend/app/modules/content/api/routes.py",
-  "line": 947,
+  "line": 981,
   "method": "POST",
   "path": "/admin/entries/{entry_id}/revisions/{revision_number}/restore",
   "func": "admin_restore_entry_revision",
@@ -4515,7 +4617,7 @@
  },
  {
   "file": "backend/app/modules/content/api/routes.py",
-  "line": 972,
+  "line": 1006,
   "method": "DELETE",
   "path": "/admin/entries/{entry_id}",
   "func": "admin_delete_entry",
@@ -4530,7 +4632,7 @@
  },
  {
   "file": "backend/app/modules/content/api/routes.py",
-  "line": 988,
+  "line": 1022,
   "method": "POST",
   "path": "/admin/entries/{entry_id}/restore",
   "func": "admin_restore_entry",
@@ -4544,7 +4646,7 @@
  },
  {
   "file": "backend/app/modules/content/api/routes.py",
-  "line": 1006,
+  "line": 1040,
   "method": "DELETE",
   "path": "/admin/entries/{entry_id}/permanent",
   "func": "admin_hard_delete_entry",
@@ -4559,7 +4661,7 @@
  },
  {
   "file": "backend/app/modules/content/api/routes.py",
-  "line": 1025,
+  "line": 1059,
   "method": "GET",
   "path": "/admin/plugins",
   "func": "admin_list_plugins",
@@ -4573,7 +4675,7 @@
  },
  {
   "file": "backend/app/modules/content/api/routes.py",
-  "line": 1036,
+  "line": 1070,
   "method": "POST",
   "path": "/admin/plugins/{plugin_name}/toggle",
   "func": "admin_toggle_plugin",
@@ -4587,7 +4689,7 @@
  },
  {
   "file": "backend/app/modules/content/api/routes.py",
-  "line": 1075,
+  "line": 1109,
   "method": "GET",
   "path": "/single-types",
   "func": "list_single_types",
@@ -4601,7 +4703,7 @@
  },
  {
   "file": "backend/app/modules/content/api/routes.py",
-  "line": 1084,
+  "line": 1118,
   "method": "GET",
   "path": "/single-types/{key}",
   "func": "get_single_type",
@@ -4615,7 +4717,7 @@
  },
  {
   "file": "backend/app/modules/content/api/routes.py",
-  "line": 1098,
+  "line": 1132,
   "method": "PUT",
   "path": "/admin/single-types/{key}",
   "func": "upsert_single_type",
@@ -4630,7 +4732,7 @@
  },
  {
   "file": "backend/app/modules/content/api/routes.py",
-  "line": 1116,
+  "line": 1150,
   "method": "PATCH",
   "path": "/admin/blocks/{block_id}",
   "func": "admin_update_block",
@@ -4645,7 +4747,7 @@
  },
  {
   "file": "backend/app/modules/content/api/routes.py",
-  "line": 1138,
+  "line": 1172,
   "method": "DELETE",
   "path": "/admin/blocks/{block_id}",
   "func": "admin_delete_block",
@@ -4660,7 +4762,7 @@
  },
  {
   "file": "backend/app/modules/content/api/routes.py",
-  "line": 1151,
+  "line": 1185,
   "method": "PATCH",
   "path": "/admin/menus/{item_id}",
   "func": "admin_update_menu_item",
@@ -4675,7 +4777,7 @@
  },
  {
   "file": "backend/app/modules/content/api/routes.py",
-  "line": 1174,
+  "line": 1208,
   "method": "DELETE",
   "path": "/admin/menus/{item_id}",
   "func": "admin_delete_menu_item",
@@ -4690,7 +4792,7 @@
  },
  {
   "file": "backend/app/modules/content/api/routes.py",
-  "line": 1187,
+  "line": 1221,
   "method": "PATCH",
   "path": "/admin/faqs/{faq_id}",
   "func": "admin_update_faq",
@@ -4705,7 +4807,7 @@
  },
  {
   "file": "backend/app/modules/content/api/routes.py",
-  "line": 1211,
+  "line": 1245,
   "method": "DELETE",
   "path": "/admin/faqs/{faq_id}",
   "func": "admin_delete_faq",
@@ -4720,7 +4822,7 @@
  },
  {
   "file": "backend/app/modules/content/api/routes.py",
-  "line": 1232,
+  "line": 1266,
   "method": "GET",
   "path": "/admin/reusable-blocks",
   "func": "admin_list_reusable_blocks",
@@ -4735,7 +4837,7 @@
  },
  {
   "file": "backend/app/modules/content/api/routes.py",
-  "line": 1248,
+  "line": 1282,
   "method": "POST",
   "path": "/admin/reusable-blocks",
   "func": "admin_create_reusable_block",
@@ -4751,7 +4853,7 @@
  },
  {
   "file": "backend/app/modules/content/api/routes.py",
-  "line": 1272,
+  "line": 1306,
   "method": "PATCH",
   "path": "/admin/reusable-blocks/{block_id}",
   "func": "admin_update_reusable_block",
@@ -4766,7 +4868,7 @@
  },
  {
   "file": "backend/app/modules/content/api/routes.py",
-  "line": 1291,
+  "line": 1325,
   "method": "DELETE",
   "path": "/admin/reusable-blocks/{block_id}",
   "func": "admin_delete_reusable_block",
@@ -4781,7 +4883,7 @@
  },
  {
   "file": "backend/app/modules/content/api/routes.py",
-  "line": 1306,
+  "line": 1340,
   "method": "POST",
   "path": "/admin/reusable-blocks/{block_id}/restore",
   "func": "admin_restore_reusable_block",
@@ -4796,7 +4898,7 @@
  },
  {
   "file": "backend/app/modules/content/api/routes.py",
-  "line": 1322,
+  "line": 1356,
   "method": "DELETE",
   "path": "/admin/reusable-blocks/{block_id}/permanent",
   "func": "admin_hard_delete_reusable_block",
@@ -4811,7 +4913,7 @@
  },
  {
   "file": "backend/app/modules/content/api/routes.py",
-  "line": 1346,
+  "line": 1380,
   "method": "POST",
   "path": "/admin/pages/{page_id}/translations",
   "func": "admin_link_page_translation",
@@ -4825,7 +4927,7 @@
  },
  {
   "file": "backend/app/modules/content/api/routes.py",
-  "line": 1381,
+  "line": 1415,
   "method": "DELETE",
   "path": "/admin/pages/{page_id}/translations/{target_page_id}",
   "func": "admin_unlink_page_translation",
@@ -4840,7 +4942,7 @@
  },
  {
   "file": "backend/app/modules/content/api/routes.py",
-  "line": 1423,
+  "line": 1457,
   "method": "GET",
   "path": "/admin/pages/{page_id}/meta",
   "func": "admin_list_page_meta",
@@ -4854,7 +4956,7 @@
  },
  {
   "file": "backend/app/modules/content/api/routes.py",
-  "line": 1437,
+  "line": 1471,
   "method": "POST",
   "path": "/admin/pages/{page_id}/meta",
   "func": "admin_upsert_page_meta",
@@ -4868,7 +4970,7 @@
  },
  {
   "file": "backend/app/modules/content/api/routes.py",
-  "line": 1455,
+  "line": 1489,
   "method": "DELETE",
   "path": "/admin/pages/{page_id}/meta/{meta_key}",
   "func": "admin_delete_page_meta",
@@ -4883,7 +4985,7 @@
  },
  {
   "file": "backend/app/modules/content/api/routes.py",
-  "line": 1471,
+  "line": 1505,
   "method": "GET",
   "path": "/pages/{slug}/alternates",
   "func": "page_alternates",
@@ -4896,7 +4998,7 @@
  },
  {
   "file": "backend/app/modules/content/api/routes.py",
-  "line": 1522,
+  "line": 1556,
   "method": "PUT",
   "path": "/admin/menus/{location}/reorder",
   "func": "reorder_menu",
@@ -4910,7 +5012,7 @@
  },
  {
   "file": "backend/app/modules/content/api/routes.py",
-  "line": 1555,
+  "line": 1589,
   "method": "GET",
   "path": "/sitemap.xml",
   "func": "sitemap_index",
@@ -4923,7 +5025,7 @@
  },
  {
   "file": "backend/app/modules/content/api/routes.py",
-  "line": 1564,
+  "line": 1598,
   "method": "GET",
   "path": "/sitemap-{provider}.xml",
   "func": "sitemap_provider",
@@ -4936,7 +5038,7 @@
  },
  {
   "file": "backend/app/modules/content/api/routes.py",
-  "line": 1586,
+  "line": 1620,
   "method": "GET",
   "path": "/oembed",
   "func": "oembed_discovery",
@@ -4949,7 +5051,7 @@
  },
  {
   "file": "backend/app/modules/content/api/routes.py",
-  "line": 1600,
+  "line": 1634,
   "method": "GET",
   "path": "/oembed/1.0/embed",
   "func": "oembed_embed",
@@ -5207,16 +5309,16 @@
   "func": "execute_import_job",
   "deps": [
    "ImportJobResponse",
-   "'Execute a validated import job (admin, idempotent)'",
+   "'Queue a validated import job for background execution (admin, idempotent)'",
    "[_require_write]"
   ],
-  "dep_src": "ImportJobResponse 'Execute a validated import job (admin, idempotent)' [_require_write] None Depends(get_db) uuid.UUID ExecuteImportRequest | None AsyncSession",
+  "dep_src": "ImportJobResponse 'Queue a validated import job for background execution (admin, idempotent)' [_require_write] None Depends(get_db) uuid.UUID ExecuteImportRequest | None AsyncSession",
   "guarded": true,
-  "doc": ""
+  "doc": "Hand the job to the worker instead of running it inside the request.\n\n``execute_import_job`` parses a whole CSV/XLSX and writes every row, which\ntakes seconds to minutes on a real file. Awaiting it he"
  },
  {
   "file": "backend/app/modules/dataexchange/api/routes.py",
-  "line": 192,
+  "line": 220,
   "method": "GET",
   "path": "/import-jobs/{job_id}/errors",
   "func": "download_error_report",
@@ -5231,7 +5333,7 @@
  },
  {
   "file": "backend/app/modules/dataexchange/api/routes.py",
-  "line": 217,
+  "line": 245,
   "method": "POST",
   "path": "/export-jobs",
   "func": "create_export_job",
@@ -5243,11 +5345,11 @@
   ],
   "dep_src": "ExportJobResponse 201 'Create an export job for an entity with filters (admin)' [_require_write] Depends(get_current_user_id) Depends(get_db) ExportJobCreateRequest uuid.UUID AsyncSession",
   "guarded": true,
-  "doc": ""
+  "doc": "Create the job row, then generate the file on the worker.\n\nThe service used to run ``pipeline.run_export`` inline, which streams every\nmatching row to a CSV — on a large catalog that is minutes inside"
  },
  {
   "file": "backend/app/modules/dataexchange/api/routes.py",
-  "line": 234,
+  "line": 283,
   "method": "GET",
   "path": "/export-jobs",
   "func": "list_export_jobs",
@@ -5262,7 +5364,7 @@
  },
  {
   "file": "backend/app/modules/dataexchange/api/routes.py",
-  "line": 257,
+  "line": 306,
   "method": "GET",
   "path": "/export-jobs/{job_id}",
   "func": "get_export_job",
@@ -5277,7 +5379,7 @@
  },
  {
   "file": "backend/app/modules/dataexchange/api/routes.py",
-  "line": 270,
+  "line": 319,
   "method": "GET",
   "path": "/export-jobs/{job_id}/download",
   "func": "download_export",
@@ -6912,6 +7014,22 @@
   "file": "backend/app/modules/media/api/routes.py",
   "line": 63,
   "method": "POST",
+  "path": "/sideload",
+  "func": "sideload_media",
+  "deps": [
+   "MediaUploadResponse",
+   "status.HTTP_201_CREATED",
+   "'Fetch a remote image by URL into the library (WordPress media_sideload_image)'",
+   "[Depends(RequirePermissions('media:write'))]"
+  ],
+  "dep_src": "MediaUploadResponse status.HTTP_201_CREATED 'Fetch a remote image by URL into the library (WordPress media_sideload_image)' [Depends(RequirePermissions('media:write'))] Form(..., description='Public http(s) image URL') Form(None, description='Accessible description') Form(None, description='Target folder path') Depends(get_current_user_id) Depends(get_db) Request str str | None str | None uuid.UUI",
+  "guarded": true,
+  "doc": "Download an image from a URL and store it as a library asset.\n\nThe admin media modal has offered this since WordPress 2.x, and pasting a\nsupplier's image URL is a normal thing to do.\n\nEvery byte fetch"
+ },
+ {
+  "file": "backend/app/modules/media/api/routes.py",
+  "line": 110,
+  "method": "POST",
   "path": "/upload",
   "func": "upload_media",
   "deps": [
@@ -6926,7 +7044,7 @@
  },
  {
   "file": "backend/app/modules/media/api/routes.py",
-  "line": 104,
+  "line": 151,
   "method": "POST",
   "path": "/upload/return-proof",
   "func": "upload_return_proof",
@@ -6941,7 +7059,7 @@
  },
  {
   "file": "backend/app/modules/media/api/routes.py",
-  "line": 147,
+  "line": 194,
   "method": "POST",
   "path": "/upload/batch",
   "func": "upload_media_batch",
@@ -6957,7 +7075,7 @@
  },
  {
   "file": "backend/app/modules/media/api/routes.py",
-  "line": 175,
+  "line": 222,
   "method": "GET",
   "path": "",
   "func": "list_media",
@@ -6972,7 +7090,7 @@
  },
  {
   "file": "backend/app/modules/media/api/routes.py",
-  "line": 205,
+  "line": 252,
   "method": "GET",
   "path": "/folders",
   "func": "list_media_folders",
@@ -6987,7 +7105,7 @@
  },
  {
   "file": "backend/app/modules/media/api/routes.py",
-  "line": 227,
+  "line": 274,
   "method": "PATCH",
   "path": "/{asset_id}/focal-point",
   "func": "set_focal_point",
@@ -7002,7 +7120,7 @@
  },
  {
   "file": "backend/app/modules/media/api/routes.py",
-  "line": 243,
+  "line": 290,
   "method": "POST",
   "path": "/move",
   "func": "move_media",
@@ -7017,7 +7135,7 @@
  },
  {
   "file": "backend/app/modules/media/api/routes.py",
-  "line": 258,
+  "line": 305,
   "method": "GET",
   "path": "/{asset_id}",
   "func": "get_media_asset",
@@ -7032,7 +7150,7 @@
  },
  {
   "file": "backend/app/modules/media/api/routes.py",
-  "line": 274,
+  "line": 321,
   "method": "GET",
   "path": "/{asset_id}/variant",
   "func": "get_media_variant",
@@ -7047,7 +7165,7 @@
  },
  {
   "file": "backend/app/modules/media/api/routes.py",
-  "line": 300,
+  "line": 347,
   "method": "DELETE",
   "path": "/{asset_id}",
   "func": "delete_media_asset",
@@ -7062,7 +7180,7 @@
  },
  {
   "file": "backend/app/modules/media/api/routes.py",
-  "line": 315,
+  "line": 362,
   "method": "PATCH",
   "path": "/{asset_id}",
   "func": "update_media_asset",
@@ -7077,7 +7195,7 @@
  },
  {
   "file": "backend/app/modules/media/api/routes.py",
-  "line": 351,
+  "line": 398,
   "method": "POST",
   "path": "/{asset_id}/edit/crop",
   "func": "crop_media_asset",
@@ -7092,7 +7210,7 @@
  },
  {
   "file": "backend/app/modules/media/api/routes.py",
-  "line": 375,
+  "line": 422,
   "method": "POST",
   "path": "/{asset_id}/edit/resize",
   "func": "resize_media_asset",
@@ -7107,7 +7225,7 @@
  },
  {
   "file": "backend/app/modules/media/api/routes.py",
-  "line": 399,
+  "line": 446,
   "method": "POST",
   "path": "/{asset_id}/edit/rotate",
   "func": "rotate_media_asset",
@@ -7122,7 +7240,22 @@
  },
  {
   "file": "backend/app/modules/media/api/routes.py",
-  "line": 421,
+  "line": 469,
+  "method": "POST",
+  "path": "/{asset_id}/edit/flip",
+  "func": "flip_media_asset",
+  "deps": [
+   "MediaAssetResponse",
+   "'Flip an image horizontally or vertically (creates a new asset)'",
+   "[Depends(RequirePermissions('media:write'))]"
+  ],
+  "dep_src": "MediaAssetResponse 'Flip an image horizontally or vertically (creates a new asset)' [Depends(RequirePermissions('media:write'))] Depends(get_db) uuid.UUID dict AsyncSession",
+  "guarded": true,
+  "doc": "Mirror an image on one axis, creating a new media asset.\n\n``horizontal`` mirrors left-right (the fix for a photo shot through glass\nor a scanned document); the default false mirrors top-bottom. Same s"
+ },
+ {
+  "file": "backend/app/modules/media/api/routes.py",
+  "line": 499,
   "method": "GET",
   "path": "/{asset_id}/exif",
   "func": "get_media_exif",
@@ -7136,7 +7269,7 @@
  },
  {
   "file": "backend/app/modules/media/api/routes.py",
-  "line": 436,
+  "line": 514,
   "method": "POST",
   "path": "/{asset_id}/regenerate-thumbnails",
   "func": "regenerate_asset_thumbnails",
@@ -7150,7 +7283,7 @@
  },
  {
   "file": "backend/app/modules/media/api/routes.py",
-  "line": 452,
+  "line": 530,
   "method": "POST",
   "path": "/regenerate-all-thumbnails",
   "func": "regenerate_all_thumbnails",
@@ -7164,7 +7297,7 @@
  },
  {
   "file": "backend/app/modules/media/api/routes.py",
-  "line": 466,
+  "line": 544,
   "method": "POST",
   "path": "/{asset_id}/optimize",
   "func": "optimize_media_asset",
@@ -9849,7 +9982,7 @@
  },
  {
   "file": "backend/app/modules/settings/api/routes.py",
-  "line": 64,
+  "line": 65,
   "method": "GET",
   "path": "/public",
   "func": "get_public_settings",
@@ -9863,7 +9996,7 @@
  },
  {
   "file": "backend/app/modules/settings/api/routes.py",
-  "line": 79,
+  "line": 80,
   "method": "GET",
   "path": "",
   "func": "get_all_settings",
@@ -9878,7 +10011,7 @@
  },
  {
   "file": "backend/app/modules/settings/api/routes.py",
-  "line": 94,
+  "line": 95,
   "method": "GET",
   "path": "/{key}",
   "func": "get_setting",
@@ -9893,7 +10026,7 @@
  },
  {
   "file": "backend/app/modules/settings/api/routes.py",
-  "line": 110,
+  "line": 111,
   "method": "POST",
   "path": "",
   "func": "create_setting",
@@ -9909,7 +10042,7 @@
  },
  {
   "file": "backend/app/modules/settings/api/routes.py",
-  "line": 126,
+  "line": 163,
   "method": "PATCH",
   "path": "/{key}",
   "func": "update_setting",
@@ -9924,7 +10057,7 @@
  },
  {
   "file": "backend/app/modules/settings/api/routes.py",
-  "line": 143,
+  "line": 188,
   "method": "DELETE",
   "path": "/{key}",
   "func": "delete_setting",
@@ -9939,7 +10072,7 @@
  },
  {
   "file": "backend/app/modules/settings/api/routes.py",
-  "line": 168,
+  "line": 213,
   "method": "GET",
   "path": "/admin/sms-providers",
   "func": "get_sms_providers",
@@ -9954,7 +10087,7 @@
  },
  {
   "file": "backend/app/modules/settings/api/routes.py",
-  "line": 168,
+  "line": 213,
   "method": "GET",
   "path": "/admin/sms-providers/test",
   "func": "get_sms_providers",
@@ -9970,7 +10103,7 @@
  },
  {
   "file": "backend/app/modules/settings/api/routes.py",
-  "line": 213,
+  "line": 258,
   "method": "POST",
   "path": "/admin/sms-providers/test",
   "func": "test_sms_provider",
@@ -9985,7 +10118,7 @@
  },
  {
   "file": "backend/app/modules/settings/api/routes.py",
-  "line": 258,
+  "line": 303,
   "method": "GET",
   "path": "/admin/email-providers",
   "func": "get_email_provider_config",
@@ -10000,7 +10133,7 @@
  },
  {
   "file": "backend/app/modules/settings/api/routes.py",
-  "line": 295,
+  "line": 340,
   "method": "POST",
   "path": "/admin/email-providers/test",
   "func": "test_email_provider",
@@ -10015,7 +10148,7 @@
  },
  {
   "file": "backend/app/modules/settings/api/routes.py",
-  "line": 340,
+  "line": 385,
   "method": "GET",
   "path": "/admin/email-delivery-log",
   "func": "list_email_delivery_log",
@@ -10030,7 +10163,7 @@
  },
  {
   "file": "backend/app/modules/settings/api/routes.py",
-  "line": 380,
+  "line": 425,
   "method": "GET",
   "path": "/admin/telegram-provider",
   "func": "get_telegram_provider_config",
@@ -10045,7 +10178,7 @@
  },
  {
   "file": "backend/app/modules/settings/api/routes.py",
-  "line": 415,
+  "line": 460,
   "method": "POST",
   "path": "/admin/telegram-provider/test",
   "func": "test_telegram_provider",
@@ -10060,7 +10193,7 @@
  },
  {
   "file": "backend/app/modules/settings/api/routes.py",
-  "line": 460,
+  "line": 505,
   "method": "GET",
   "path": "/admin/telegram-delivery-log",
   "func": "list_telegram_delivery_log",
@@ -10075,7 +10208,7 @@
  },
  {
   "file": "backend/app/modules/settings/api/routes.py",
-  "line": 491,
+  "line": 536,
   "method": "GET",
   "path": "/admin/site-options",
   "func": "list_site_options",
@@ -10089,7 +10222,7 @@
  },
  {
   "file": "backend/app/modules/settings/api/routes.py",
-  "line": 505,
+  "line": 550,
   "method": "PUT",
   "path": "/admin/site-options/{key}",
   "func": "set_site_option",
@@ -10103,7 +10236,7 @@
  },
  {
   "file": "backend/app/modules/settings/api/routes.py",
-  "line": 523,
+  "line": 568,
   "method": "DELETE",
   "path": "/admin/site-options/{key}",
   "func": "delete_site_option",
@@ -10118,7 +10251,7 @@
  },
  {
   "file": "backend/app/modules/settings/api/routes.py",
-  "line": 538,
+  "line": 583,
   "method": "POST",
   "path": "/admin/site-options/seed-defaults",
   "func": "seed_site_options",
@@ -10132,7 +10265,7 @@
  },
  {
   "file": "backend/app/modules/settings/api/routes.py",
-  "line": 555,
+  "line": 600,
   "method": "GET",
   "path": "/admin/site-health",
   "func": "get_site_health",
@@ -10146,7 +10279,21 @@
  },
  {
   "file": "backend/app/modules/settings/api/routes.py",
-  "line": 569,
+  "line": 614,
+  "method": "GET",
+  "path": "/admin/site-health/info",
+  "func": "get_site_health_info",
+  "deps": [
+   "'Site health info tab: versions, database, storage (admin)'",
+   "[Depends(RequirePermissions('settings:read'))]"
+  ],
+  "dep_src": "'Site health info tab: versions, database, storage (admin)' [Depends(RequirePermissions('settings:read'))] Depends(get_db) AsyncSession",
+  "guarded": true,
+  "doc": "The facts a support ticket needs, as WordPress's \"Site Health → Info\".\n\nAllow-listed inside the service: a name that is not explicitly listed is\nnever included, so adding a new secret setting cannot l"
+ },
+ {
+  "file": "backend/app/modules/settings/api/routes.py",
+  "line": 633,
   "method": "POST",
   "path": "/admin/site-health/optimize-database",
   "func": "optimize_database",
@@ -10160,7 +10307,7 @@
  },
  {
   "file": "backend/app/modules/settings/api/routes.py",
-  "line": 586,
+  "line": 650,
   "method": "GET",
   "path": "/admin/privacy/export/{user_id}",
   "func": "export_user_data",
@@ -10174,7 +10321,7 @@
  },
  {
   "file": "backend/app/modules/settings/api/routes.py",
-  "line": 623,
+  "line": 687,
   "method": "POST",
   "path": "/admin/privacy/erase/{user_id}",
   "func": "erase_user_data",
@@ -10188,7 +10335,7 @@
  },
  {
   "file": "backend/app/modules/settings/api/routes.py",
-  "line": 650,
+  "line": 714,
   "method": "POST",
   "path": "/privacy/requests",
   "func": "create_privacy_request",
@@ -10203,7 +10350,7 @@
  },
  {
   "file": "backend/app/modules/settings/api/routes.py",
-  "line": 681,
+  "line": 745,
   "method": "GET",
   "path": "/privacy/requests",
   "func": "list_privacy_requests",
@@ -10217,7 +10364,7 @@
  },
  {
   "file": "backend/app/modules/settings/api/routes.py",
-  "line": 699,
+  "line": 763,
   "method": "GET",
   "path": "/privacy/requests/{request_id}",
   "func": "get_privacy_request",
@@ -10231,7 +10378,20 @@
  },
  {
   "file": "backend/app/modules/settings/api/routes.py",
-  "line": 722,
+  "line": 786,
+  "method": "POST",
+  "path": "/privacy/requests/{request_id}/confirm",
+  "func": "confirm_privacy_request",
+  "deps": [
+   "'Confirm a GDPR erase request with the emailed code'"
+  ],
+  "dep_src": "'Confirm a GDPR erase request with the emailed code' Depends(get_current_user_id) Depends(get_db) uuid.UUID PrivacyRequestConfirmRequest uuid.UUID AsyncSession",
+  "guarded": false,
+  "doc": "Second-factor confirmation for an irreversible erase request.\n\n``PrivacyRequestService.confirm`` existed and worked, but no route ever\ncalled it, so the OTP the submit handler issued could not be rede"
+ },
+ {
+  "file": "backend/app/modules/settings/api/routes.py",
+  "line": 818,
   "method": "GET",
   "path": "/privacy/requests/{request_id}/result",
   "func": "get_privacy_request_result",
@@ -10244,7 +10404,7 @@
  },
  {
   "file": "backend/app/modules/settings/api/routes.py",
-  "line": 752,
+  "line": 848,
   "method": "GET",
   "path": "/admin/privacy/requests",
   "func": "list_privacy_requests_admin",
@@ -10259,7 +10419,7 @@
  },
  {
   "file": "backend/app/modules/settings/api/routes.py",
-  "line": 793,
+  "line": 889,
   "method": "POST",
   "path": "/admin/privacy/requests/{request_id}/export",
   "func": "run_privacy_request_export",
@@ -10274,7 +10434,7 @@
  },
  {
   "file": "backend/app/modules/settings/api/routes.py",
-  "line": 823,
+  "line": 919,
   "method": "POST",
   "path": "/admin/privacy/requests/{request_id}/erase",
   "func": "run_privacy_request_erase",
@@ -10289,7 +10449,7 @@
  },
  {
   "file": "backend/app/modules/settings/api/routes.py",
-  "line": 855,
+  "line": 951,
   "method": "POST",
   "path": "/admin/privacy/requests/{request_id}/reject",
   "func": "reject_privacy_request",
@@ -10304,7 +10464,7 @@
  },
  {
   "file": "backend/app/modules/settings/api/routes.py",
-  "line": 884,
+  "line": 980,
   "method": "POST",
   "path": "/admin/privacy/requests/purge-expired",
   "func": "purge_expired_privacy_results",
@@ -10318,7 +10478,7 @@
  },
  {
   "file": "backend/app/modules/settings/api/routes.py",
-  "line": 951,
+  "line": 1047,
   "method": "GET",
   "path": "/admin/widgets",
   "func": "list_widget_areas",
@@ -10332,7 +10492,7 @@
  },
  {
   "file": "backend/app/modules/settings/api/routes.py",
-  "line": 968,
+  "line": 1064,
   "method": "PUT",
   "path": "/admin/widgets/{area_id}",
   "func": "update_widget_area",
@@ -10346,7 +10506,7 @@
  },
  {
   "file": "backend/app/modules/settings/api/routes.py",
-  "line": 990,
+  "line": 1086,
   "method": "GET",
   "path": "/public/gravatar",
   "func": "get_gravatar_url",
@@ -10359,7 +10519,7 @@
  },
  {
   "file": "backend/app/modules/settings/api/routes.py",
-  "line": 1010,
+  "line": 1106,
   "method": "GET",
   "path": "/public/widgets",
   "func": "get_public_widgets",
@@ -10372,7 +10532,7 @@
  },
  {
   "file": "backend/app/modules/settings/api/routes.py",
-  "line": 1039,
+  "line": 1135,
   "method": "GET",
   "path": "/public/routing",
   "func": "get_public_routing",
@@ -10385,7 +10545,7 @@
  },
  {
   "file": "backend/app/modules/settings/api/routes.py",
-  "line": 1078,
+  "line": 1185,
   "method": "GET",
   "path": "/public/branding",
   "func": "get_public_branding",
@@ -10398,7 +10558,7 @@
  },
  {
   "file": "backend/app/modules/settings/api/routes.py",
-  "line": 1099,
+  "line": 1217,
   "method": "GET",
   "path": "/public/discussion",
   "func": "get_public_discussion",
@@ -10411,7 +10571,7 @@
  },
  {
   "file": "backend/app/modules/settings/api/routes.py",
-  "line": 1133,
+  "line": 1251,
   "method": "GET",
   "path": "/public/front-page",
   "func": "get_public_front_page",
@@ -10424,7 +10584,7 @@
  },
  {
   "file": "backend/app/modules/settings/api/routes.py",
-  "line": 1174,
+  "line": 1292,
   "method": "GET",
   "path": "/admin/themes",
   "func": "list_themes",
@@ -10438,7 +10598,7 @@
  },
  {
   "file": "backend/app/modules/settings/api/routes.py",
-  "line": 1201,
+  "line": 1319,
   "method": "POST",
   "path": "/admin/themes",
   "func": "create_theme",
@@ -10453,7 +10613,7 @@
  },
  {
   "file": "backend/app/modules/settings/api/routes.py",
-  "line": 1229,
+  "line": 1347,
   "method": "POST",
   "path": "/admin/themes/{theme_id}/activate",
   "func": "activate_theme",
@@ -10467,7 +10627,7 @@
  },
  {
   "file": "backend/app/modules/settings/api/routes.py",
-  "line": 1252,
+  "line": 1370,
   "method": "DELETE",
   "path": "/admin/themes/{theme_id}",
   "func": "delete_theme",
@@ -10482,7 +10642,7 @@
  },
  {
   "file": "backend/app/modules/settings/api/routes.py",
-  "line": 1270,
+  "line": 1388,
   "method": "GET",
   "path": "/public/i18n",
   "func": "get_public_i18n_catalog",
@@ -10496,7 +10656,7 @@
  },
  {
   "file": "backend/app/modules/settings/api/routes.py",
-  "line": 1294,
+  "line": 1412,
   "method": "GET",
   "path": "/admin/i18n/strings",
   "func": "list_i18n_strings",
@@ -10511,7 +10671,7 @@
  },
  {
   "file": "backend/app/modules/settings/api/routes.py",
-  "line": 1320,
+  "line": 1438,
   "method": "POST",
   "path": "/admin/i18n/strings",
   "func": "upsert_i18n_string",
@@ -10527,7 +10687,7 @@
  },
  {
   "file": "backend/app/modules/settings/api/routes.py",
-  "line": 1343,
+  "line": 1461,
   "method": "PUT",
   "path": "/admin/i18n/strings/bulk",
   "func": "bulk_upsert_i18n_strings",
@@ -10542,7 +10702,7 @@
  },
  {
   "file": "backend/app/modules/settings/api/routes.py",
-  "line": 1359,
+  "line": 1477,
   "method": "POST",
   "path": "/admin/i18n/seed-defaults",
   "func": "seed_i18n_defaults",
@@ -10557,7 +10717,7 @@
  },
  {
   "file": "backend/app/modules/settings/api/routes.py",
-  "line": 1375,
+  "line": 1493,
   "method": "DELETE",
   "path": "/admin/i18n/strings/{string_id}",
   "func": "delete_i18n_string",
@@ -10572,7 +10732,7 @@
  },
  {
   "file": "backend/app/modules/settings/api/routes.py",
-  "line": 1392,
+  "line": 1510,
   "method": "GET",
   "path": "/admin/help",
   "func": "list_help_sections",
@@ -10586,7 +10746,7 @@
  },
  {
   "file": "backend/app/modules/settings/api/routes.py",
-  "line": 1404,
+  "line": 1522,
   "method": "GET",
   "path": "/admin/help/{section}",
   "func": "get_help_section",
@@ -10600,7 +10760,7 @@
  },
  {
   "file": "backend/app/modules/settings/api/routes.py",
-  "line": 1421,
+  "line": 1539,
   "method": "GET",
   "path": "/admin/recovery-mode",
   "func": "get_recovery_mode",
@@ -10614,7 +10774,7 @@
  },
  {
   "file": "backend/app/modules/settings/api/routes.py",
-  "line": 1432,
+  "line": 1550,
   "method": "POST",
   "path": "/admin/recovery-mode/resume",
   "func": "resume_recovery_mode",
@@ -11371,7 +11531,7 @@
  },
  {
   "file": "backend/app/modules/vendors/api/routes.py",
-  "line": 70,
+  "line": 79,
   "method": "POST",
   "path": "/register",
   "func": "api_register_vendor",
@@ -11387,7 +11547,7 @@
  },
  {
   "file": "backend/app/modules/vendors/api/routes.py",
-  "line": 86,
+  "line": 95,
   "method": "GET",
   "path": "",
   "func": "api_list_vendors",
@@ -11402,7 +11562,7 @@
  },
  {
   "file": "backend/app/modules/vendors/api/routes.py",
-  "line": 115,
+  "line": 124,
   "method": "GET",
   "path": "/me",
   "func": "api_get_vendor_me",
@@ -11417,7 +11577,7 @@
  },
  {
   "file": "backend/app/modules/vendors/api/routes.py",
-  "line": 144,
+  "line": 153,
   "method": "GET",
   "path": "/{slug}",
   "func": "api_get_vendor_by_slug",
@@ -11432,7 +11592,7 @@
  },
  {
   "file": "backend/app/modules/vendors/api/routes.py",
-  "line": 163,
+  "line": 172,
   "method": "PATCH",
   "path": "/me/profile",
   "func": "api_update_vendor_me",
@@ -11447,7 +11607,7 @@
  },
  {
   "file": "backend/app/modules/vendors/api/routes.py",
-  "line": 191,
+  "line": 200,
   "method": "GET",
   "path": "",
   "func": "admin_list_vendors",
@@ -11457,13 +11617,13 @@
    "'Admin list vendors'",
    "'List all vendors with optional filtering by active and verified flags.'"
   ],
-  "dep_src": "VendorListResponse [_require_vendor_read] 'Admin list vendors' 'List all vendors with optional filtering by active and verified flags.' Query(None, description='Filter by active status') Query(None, description='Filter by verification status') Query(1, ge=1, description='Page number') Query(20, ge=1, le=100, description='Items per page') Depends(get_db) bool | None bool | None int int AsyncSession",
+  "dep_src": "VendorListResponse [_require_vendor_read] 'Admin list vendors' 'List all vendors with optional filtering by active and verified flags.' Depends(get_current_active_user) Query(None, description='Filter by active status') Query(None, description='Filter by verification status') Query(1, ge=1, description='Page number') Query(20, ge=1, le=100, description='Items per page') Depends(get_db) dict[str, A",
   "guarded": true,
-  "doc": "Admin vendor listing with full status filters."
+  "doc": "Admin vendor listing with full status filters.\n\nScoped per tenant: a vendor role sees exactly their own row. Without\nthis the listing leaked every seller's store name, slug and rating to\nany account h"
  },
  {
   "file": "backend/app/modules/vendors/api/routes.py",
-  "line": 225,
+  "line": 257,
   "method": "GET",
   "path": "/{id}",
   "func": "admin_get_vendor",
@@ -11473,13 +11633,13 @@
    "'Admin get vendor details'",
    "'Retrieve vendor by ID including verification and commission rates.'"
   ],
-  "dep_src": "VendorResponse [_require_vendor_read] 'Admin get vendor details' 'Retrieve vendor by ID including verification and commission rates.' Depends(get_db) uuid.UUID AsyncSession",
+  "dep_src": "VendorResponse [_require_vendor_read] 'Admin get vendor details' 'Retrieve vendor by ID including verification and commission rates.' Depends(get_current_active_user) Depends(get_db) uuid.UUID dict[str, Any] AsyncSession",
   "guarded": true,
   "doc": "Admin inspect specific vendor."
  },
  {
   "file": "backend/app/modules/vendors/api/routes.py",
-  "line": 241,
+  "line": 275,
   "method": "PATCH",
   "path": "/{id}/verify",
   "func": "admin_patch_verify_vendor",
@@ -11489,13 +11649,13 @@
    "'Admin verify / approve vendor'",
    "'Approve or revoke vendor verification status.'"
   ],
-  "dep_src": "VendorResponse [_require_vendor_write] 'Admin verify / approve vendor' 'Approve or revoke vendor verification status.' None Query(True, description='Verification status if payload body is not provided') Depends(get_db) uuid.UUID VendorVerifyRequest | None bool AsyncSession",
+  "dep_src": "VendorResponse [_require_vendor_write] 'Admin verify / approve vendor' 'Approve or revoke vendor verification status.' None Query(True, description='Verification status if payload body is not provided') Depends(get_current_active_user) Depends(get_db) uuid.UUID VendorVerifyRequest | None bool dict[str, Any] AsyncSession",
   "guarded": true,
   "doc": "Approve or reject vendor verification."
  },
  {
   "file": "backend/app/modules/vendors/api/routes.py",
-  "line": 262,
+  "line": 298,
   "method": "PATCH",
   "path": "/{id}",
   "func": "admin_update_vendor_details",
@@ -11505,13 +11665,13 @@
    "'Admin update vendor attributes'",
    "'Modify vendor commission rate, status, rating, or storefront metadata.'"
   ],
-  "dep_src": "VendorResponse [_require_vendor_write] 'Admin update vendor attributes' 'Modify vendor commission rate, status, rating, or storefront metadata.' Depends(get_db) uuid.UUID VendorAdminUpdateRequest AsyncSession",
+  "dep_src": "VendorResponse [_require_vendor_write] 'Admin update vendor attributes' 'Modify vendor commission rate, status, rating, or storefront metadata.' Depends(get_current_active_user) Depends(get_db) uuid.UUID VendorAdminUpdateRequest dict[str, Any] AsyncSession",
   "guarded": true,
   "doc": "Update vendor configuration."
  },
  {
   "file": "backend/app/modules/vendors/api/routes.py",
-  "line": 279,
+  "line": 317,
   "method": "GET",
   "path": "/{id}/earnings",
   "func": "admin_vendor_earnings",
@@ -11521,13 +11681,13 @@
    "'Admin view vendor earnings'",
    "'Financial breakdown for a specific vendor across an optional timeframe.'"
   ],
-  "dep_src": "VendorEarningsResponse [_require_vendor_read] 'Admin view vendor earnings' 'Financial breakdown for a specific vendor across an optional timeframe.' Query(None, description='Start date') Query(None, description='End date') Depends(get_db) uuid.UUID datetime | None datetime | None AsyncSession",
+  "dep_src": "VendorEarningsResponse [_require_vendor_read] 'Admin view vendor earnings' 'Financial breakdown for a specific vendor across an optional timeframe.' Query(None, description='Start date') Query(None, description='End date') Depends(get_current_active_user) Depends(get_db) uuid.UUID datetime | None datetime | None dict[str, Any] AsyncSession",
   "guarded": true,
   "doc": "Admin inspection of vendor sales and earnings."
  },
  {
   "file": "backend/app/modules/vendors/api/routes.py",
-  "line": 302,
+  "line": 342,
   "method": "GET",
   "path": "/{id}/settlements",
   "func": "admin_get_vendor_settlements",
@@ -11537,13 +11697,13 @@
    "'Admin list vendor settlements'",
    "'List all payout / settlement records for a vendor.'"
   ],
-  "dep_src": "VendorSettlementListResponse [_require_vendor_read] 'Admin list vendor settlements' 'List all payout / settlement records for a vendor.' Query(1, ge=1, description='Page number') Query(20, ge=1, le=100, description='Items per page') Depends(get_db) uuid.UUID int int AsyncSession",
+  "dep_src": "VendorSettlementListResponse [_require_vendor_read] 'Admin list vendor settlements' 'List all payout / settlement records for a vendor.' Query(1, ge=1, description='Page number') Query(20, ge=1, le=100, description='Items per page') Depends(get_current_active_user) Depends(get_db) uuid.UUID int int dict[str, Any] AsyncSession",
   "guarded": true,
   "doc": "List settlements for a specific vendor."
  },
  {
   "file": "backend/app/modules/vendors/api/routes.py",
-  "line": 336,
+  "line": 378,
   "method": "POST",
   "path": "/{id}/settlements",
   "func": "admin_create_vendor_settlement",
@@ -11554,7 +11714,7 @@
    "'Admin create vendor settlement'",
    "'Generate a payout settlement record for a vendor.'"
   ],
-  "dep_src": "VendorSettlementResponse status.HTTP_201_CREATED [_require_vendor_write] 'Admin create vendor settlement' 'Generate a payout settlement record for a vendor.' Depends(get_db) uuid.UUID VendorSettlementCreate AsyncSession",
+  "dep_src": "VendorSettlementResponse status.HTTP_201_CREATED [_require_vendor_write] 'Admin create vendor settlement' 'Generate a payout settlement record for a vendor.' Depends(get_current_active_user) Depends(get_db) uuid.UUID VendorSettlementCreate dict[str, Any] AsyncSession",
   "guarded": true,
   "doc": "Create settlement payout record for a vendor."
  },

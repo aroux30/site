@@ -73,9 +73,13 @@ class SMTPEmailProvider(BaseNotificationProvider):
             return False
 
         # The in-app body is plain text; wrap it in the RTL HTML shell so
-        # generic notifications still arrive as readable emails.
-        html = email_service._wrap_html(
-            email_service.get_smtp_config().from_name or "فروشگاه اینترنتی",
+        # generic notifications still arrive as readable emails. The header
+        # carries the operator's store name, resolved the same way every other
+        # email resolves it — this used to read SMTP_FROM_NAME, so a store that
+        # renamed itself in Settings got the new name on order confirmations
+        # and the old one on notifications.
+        html = await email_service.wrap_html_for_store(
+            self._db,
             f"<p>{body}</p>".replace("\n", "<br>"),
         )
         success, _ = await email_service.send_email(

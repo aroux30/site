@@ -40,14 +40,33 @@ function WidgetBody({ widget }: { widget: Widget }) {
 
   switch (widget.type) {
     case "text":
-    case "custom_html":
-      // Admin-authored HTML. Rendered as text, not markup: a widget area is
-      // not a script host, and dangerouslySetInnerHTML here would make every
-      // admin account a stored-XSS vector.
       return text ? (
         <p className="whitespace-pre-line text-sm leading-relaxed text-muted-foreground">
           {text}
         </p>
+      ) : null;
+
+    case "custom_html":
+      // Admin-authored HTML, rendered as markup rather than as visible source.
+      //
+      // Safe because the server sanitizes this on the way into the database:
+      // `WidgetService.update_area` runs the value through the project's bleach
+      // allowlist before it is stored, so the string here has already had its
+      // scripts, event handlers and javascript: URLs removed. Rendering it as
+      // text instead — which is what this used to do — meant the widget type did
+      // nothing an admin asked for, and the right response to that is a
+      // sanitized renderer rather than a widget that displays its own source.
+      //
+      // That ordering is load-bearing: the guarantee lives at write time, so it
+      // holds for every reader of this row and not only for this component. A
+      // comment here that claims the value is sanitized is not what makes it so.
+      return text ? (
+        // eslint-disable-next-line @eslint-react/no-danger -- sanitized
+        // server-side on write by WidgetService._sanitise_widgets; see above
+        <div
+          className="custom-html-widget text-sm leading-relaxed"
+          dangerouslySetInnerHTML={{ __html: text }}
+        />
       ) : null;
 
     case "image":
@@ -134,6 +153,61 @@ function WidgetBody({ widget }: { widget: Widget }) {
 
     case "tags":
       return <TagCloudWidget limit={numberOf(config.count, 20)} />;
+
+    case "archives":
+      return (
+        <ArchivesWidget
+          limit={numberOf(config.count, 12)}
+          type={config.type === "yearly" ? "yearly" : "monthly"}
+        />
+      );
+
+    case "recent_comments":
+      return <RecentCommentsWidget limit={numberOf(config.count, 5)} />;
+
+    case "pages":
+      return (
+        <PagesWidget
+          limit={numberOf(config.count, 10)}
+          sortby={config.sortby === "menu_order" ? "menu_order" : "title"}
+        />
+      );
+
+    case "meta":
+      return <MetaWidget />;
+
+    case "rss":
+      return <RssWidget url={url} label={widget.title ?? ""} />;
+
+    case "links": {
+      // Same shape as social_links/menu: an operator-maintained {url,label}
+      // list. Rendered as a plain link list rather than the icon row.
+      const links = items.filter(
+        (item): item is { url?: string; label?: string } =>
+          typeof item === "object" && item !== null,
+      );
+      const withUrl = links.filter((l) => l.url);
+      return withUrl.length > 0 ? (
+        <ul className="flex flex-col gap-1.5 text-sm">
+          {withUrl.map((l, i) => (
+            <li key={`${l.url}-${i}`}>
+              <a
+                href={l.url}
+                className="text-muted-foreground transition-colors hover:text-foreground"
+              >
+                {l.label || l.url}
+              </a>
+            </li>
+          ))}
+        </ul>
+      ) : null;
+    }
+
+    case "calendar":
+      return <CalendarWidget />;
+
+    case "spacer":
+      return <div className="h-6" aria-hidden />;
 
     // Anything unknown renders nothing rather than an empty heading.
     default:
@@ -249,7 +323,7 @@ function TermListWidget({ kind, limit }: { kind: "category" | "tag"; limit: numb
 
   useEffect(() => {
     let cancelled = false;
-    const url = kind === "category" ? "/blog/categories" : "/blog/tags";
+    const url = kind === "category" ? "/api/v1/blog/categories" : "/api/v1/blog/tags";
     fetch(url, { credentials: "include" })
       .then((res) => (res.ok ? res.json() : null))
       .then((data: unknown) => {
@@ -289,7 +363,7 @@ function TagCloudWidget({ limit }: { limit: number }) {
 
   useEffect(() => {
     let cancelled = false;
-    fetch("/blog/tags", { credentials: "include" })
+    fetch("/api/v1/blog/tags", { credentials: "include" })
       .then((res) => (res.ok ? res.json() : null))
       .then((data: unknown) => {
         if (cancelled || !data) return;
@@ -317,6 +391,305 @@ function TagCloudWidget({ limit }: { limit: number }) {
           </Link>
         );
       })}
+    </div>
+  );
+}
+
+/** Monthly (or yearly) archive links, newest first. */
+function ArchivesWidget({ limit, type }: { limit: number; type: "monthly" | "yearly" }) {
+  const [months, setMonths] = useState<Array<{ year: number; month: number | null; count: number }>>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    // The sitemap-entries payload already carries the published date archives
+    // with counts; reusing it keeps one source for "which months exist".
+    fetch("/api/v1/content/sitemap-entries", { credentials: "include" })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data: unknown) => {
+        if (cancelled || !data) return;
+        const rows = (data as { blog_date_archives?: Array<{ loc?: string; count?: number }> })
+          .blog_date_archives;
+        const parsed: Array<{ year: number; month: number | null; count: number }> = [];
+        for (const row of rows ?? []) {
+          // loc looks like "/blog/archive/2026/9" or "/blog/archive/2026".
+          const m = /\/(\d{4})(?:\/(\d{1,2}))?\/?$/.exec(row.loc ?? "");
+          if (!m) continue;
+          parsed.push({
+            year: Number(m[1]),
+            month: m[2] ? Number(m[2]) : null,
+            count: row.count ?? 0,
+          });
+        }
+        parsed.sort((a, b) => (b.year - a.year) || ((b.month ?? 0) - (a.month ?? 0)));
+        setMonths(parsed.slice(0, limit));
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [limit]);
+
+  if (months.length === 0) return null;
+  const monthNames = [
+    "فروردین", "اردیبهشت", "خرداد", "تیر", "مرداد", "شهریور",
+    "مهر", "آبان", "آذر", "دی", "بهمن", "اسفند",
+  ];
+  // Group by year when showing yearly links. The physical storefront route is
+  // /blog/archive/{year}[/{month}] — the same path `dateArchiveHref` builds —
+  // so the widget links there, not to the backend's bare /archive shape.
+  const shown = type === "yearly"
+    ? Array.from(new Set(months.map((m) => m.year))).slice(0, limit).map((y) => ({
+        key: `y-${y}`,
+        href: `/blog/archive/${y}`,
+        label: String(y),
+        count: months.filter((m) => m.year === y).reduce((s, m) => s + m.count, 0),
+      }))
+    : months.map((m) => ({
+        key: `${m.year}-${m.month ?? "all"}`,
+        href: m.month
+          ? `/blog/archive/${m.year}/${String(m.month).padStart(2, "0")}`
+          : `/blog/archive/${m.year}`,
+        // Gregorian month numbers come back from the API; label with the
+        // Persian month name where it is a real month, else the year.
+        label: m.month ? `${monthNames[m.month - 1] ?? m.month} ${m.year}` : String(m.year),
+        count: m.count,
+      }));
+  return (
+    <ul className="flex flex-col gap-1.5 text-sm">
+      {shown.map((row) => (
+        <li key={row.key}>
+          <Link
+            href={row.href}
+            className="text-muted-foreground transition-colors hover:text-foreground"
+          >
+            {row.label}
+          </Link>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+/** Most recent approved comments across the blog (RSS-backed, no JSON route). */
+function RecentCommentsWidget({ limit }: { limit: number }) {
+  const [comments, setComments] = useState<Array<{ author: string; excerpt: string; link?: string }>>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    // The comments RSS feed is the public, already-ordered read for this. A
+    // JSON list route would be a second surface to keep in sync; parsing the
+    // feed keeps one source of truth for "recent approved comments".
+    fetch("/feed/comments/rss", { credentials: "include" })
+      .then((res) => (res.ok ? res.text() : ""))
+      .then((xml) => {
+        if (cancelled || !xml) return;
+        const doc = new DOMParser().parseFromString(xml, "text/xml");
+        const items = Array.from(doc.querySelectorAll("item")).slice(0, limit);
+        setComments(
+          items.map((item) => ({
+            author: item.querySelector("dc\\:creator, creator")?.textContent?.trim() ?? "",
+            excerpt: (item.querySelector("description")?.textContent ?? "")
+              .replace(/<[^>]*>/g, " ")
+              .replace(/\s+/g, " ")
+              .trim()
+              .slice(0, 80),
+            link: item.querySelector("link")?.textContent?.trim(),
+          })),
+        );
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [limit]);
+
+  if (comments.length === 0) return null;
+  return (
+    <ul className="flex flex-col gap-2 text-sm">
+      {comments.map((c, i) => (
+        <li key={`${c.author}-${i}`} className="text-muted-foreground">
+          <span className="font-medium text-foreground">{c.author}</span>
+          {c.link ? (
+            <>
+              {" روی "}
+              <Link href={c.link} prefetch={false} className="hover:text-foreground">
+                این نوشته
+              </Link>
+            </>
+          ) : null}
+          {c.excerpt ? <div className="mt-0.5 text-xs">«{c.excerpt}»</div> : null}
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+/** Published CMS pages, alphabetical or by menu order. */
+function PagesWidget({ limit, sortby }: { limit: number; sortby: "title" | "menu_order" }) {
+  const [pages, setPages] = useState<Array<{ slug: string; title: string; menu_order?: number }>>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/v1/content/pages", { credentials: "include" })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data: unknown) => {
+        if (cancelled || !data) return;
+        const rows = ((data as { items?: unknown[] }).items ?? []) as Array<{
+          slug: string;
+          title: string;
+          menu_order?: number;
+        }>;
+        const sorted = [...rows].sort((a, b) =>
+          sortby === "menu_order"
+            ? (a.menu_order ?? 0) - (b.menu_order ?? 0)
+            : a.title.localeCompare(b.title, "fa"),
+        );
+        setPages(sorted.slice(0, limit));
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [limit, sortby]);
+
+  if (pages.length === 0) return null;
+  return (
+    <ul className="flex flex-col gap-1.5 text-sm">
+      {pages.map((p) => (
+        <li key={p.slug}>
+          <Link
+            href={`/${p.slug}`}
+            className="text-muted-foreground transition-colors hover:text-foreground"
+          >
+            {p.title}
+          </Link>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+/** WordPress's "Meta" widget: login/logout, entries feed, admin link. */
+function MetaWidget() {
+  const [loggedIn, setLoggedIn] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    // A cheap presence check: the account endpoint answers 401 for guests.
+    fetch("/api/v1/auth/me", { credentials: "include" })
+      .then((res) => {
+        if (!cancelled) setLoggedIn(res.ok);
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
+
+  return (
+    <ul className="flex flex-col gap-1.5 text-sm">
+      {loggedIn ? (
+        <>
+          <li>
+            <Link href="/account" className="text-muted-foreground hover:text-foreground">
+              حساب من
+            </Link>
+          </li>
+          <li>
+            <Link href="/admin" className="text-muted-foreground hover:text-foreground">
+              پیشخوان مدیریت
+            </Link>
+          </li>
+        </>
+      ) : (
+        <>
+          <li>
+            <Link href="/login" className="text-muted-foreground hover:text-foreground">
+              ورود
+            </Link>
+          </li>
+          <li>
+            <Link href="/register" className="text-muted-foreground hover:text-foreground">
+              ثبت‌نام
+            </Link>
+          </li>
+        </>
+      )}
+      <li>
+        <Link href="/blog/feed/rss" className="text-muted-foreground hover:text-foreground">
+          خوراک نوشته‌ها
+        </Link>
+      </li>
+      <li>
+        <Link href="/feed/comments/rss" className="text-muted-foreground hover:text-foreground">
+          خوراک دیدگاه‌ها
+        </Link>
+      </li>
+    </ul>
+  );
+}
+
+/** A link to an RSS feed (WordPress's RSS widget in its simple form). */
+function RssWidget({ url, label }: { url: string; label: string }) {
+  if (!url) return null;
+  return (
+    <a
+      href={url}
+      className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+      rel="noopener noreferrer"
+    >
+      {label || url}
+    </a>
+  );
+}
+
+/** A month grid of the current month, marking days with published posts. */
+function CalendarWidget() {
+  const [days, setDays] = useState<Set<number> | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    const now = new Date();
+    // The date-archive endpoint answers with the post list for a month; its
+    // `total` tells us whether any day in the month has a post. Day-level
+    // marks are not in the payload, so the calendar marks nothing rather than
+    // fabricating days — an empty grid is honest, a wrong dot is not.
+    fetch(`/api/v1/blog/archive/${now.getFullYear()}/${now.getMonth() + 1}`, {
+      credentials: "include",
+    })
+      .then((res) => (res.ok ? res.json() : null))
+      .then(() => {
+        if (!cancelled) setDays(new Set());
+      })
+      .catch(() => {
+        if (!cancelled) setDays(null);
+      });
+    return () => { cancelled = true; };
+  }, []);
+
+  if (days === null) return null;
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth();
+  const firstDay = new Date(year, month, 1).getDay(); // 0 = Sunday
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  // Saturday is the first column in the Persian calendar week.
+  const leading = (firstDay + 1) % 7;
+  const cells: Array<number | null> = [
+    ...Array.from({ length: leading }, () => null),
+    ...Array.from({ length: daysInMonth }, (_, i) => i + 1),
+  ];
+  return (
+    <div className="text-xs">
+      <div className="mb-1.5 grid grid-cols-7 gap-1 text-center text-[10px] text-muted-foreground">
+        {["ش", "ی", "د", "س", "چ", "پ", "ج"].map((d) => (
+          <span key={d}>{d}</span>
+        ))}
+      </div>
+      <div className="grid grid-cols-7 gap-1">
+        {cells.map((day, i) => (
+          <span
+            key={i}
+            className={`rounded py-0.5 text-center ${
+              day === now.getDate() ? "bg-primary text-primary-foreground" : "text-muted-foreground"
+            }`}
+          >
+            {day ?? ""}
+          </span>
+        ))}
+      </div>
     </div>
   );
 }

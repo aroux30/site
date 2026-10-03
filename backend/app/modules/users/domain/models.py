@@ -49,7 +49,23 @@ class User(BaseModel):
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     is_verified: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     is_superuser: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    #: True while a new account waits for an operator's approval (the
+    #: ``registration_approval_required`` setting). Distinct from "blocked":
+    #: a blocked account was active and lost access, a pending one never had
+    #: it. The login path reports the two differently because "you are blocked"
+    #: and "you are waiting to be approved" call for different responses from
+    #: the person reading the message.
+    pending_approval: Mapped[bool] = mapped_column(
+        Boolean, default=False, nullable=False, server_default=text("false")
+    )
     last_login: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    # When the password last rotated. Not derivable from `updated_at`, which any
+    # profile edit moves, and not from the audit log alone — the notice a person
+    # gets when their password changes has to name the time, and a person who
+    # does not remember changing it needs that time to decide whether to worry.
+    password_changed_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True, default=None
+    )
     # TOTP MFA: secret is stored while enrollment is pending; enforcement
     # happens only once totp_enabled is True (set after a successful code
     # confirmation, so a half-finished setup can never lock the user out).
@@ -91,6 +107,13 @@ class UserProfile(BaseModel):
     )
     first_name: Mapped[str | None] = mapped_column(String(100), nullable=True)
     last_name: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    # Public-facing name, WordPress's "Display name" / nickname. Nullable and
+    # never derived: it exists precisely because the legal name and the name a
+    # person wants published differ — an author writing under a pen name must
+    # not have their first/last name leaked by an archive page, and a customer
+    # whose account is in a legal name may still want "آرش" on their reviews.
+    # Consumers fall back to first+last when it is empty.
+    display_name: Mapped[str | None] = mapped_column(String(100), nullable=True)
     national_code: Mapped[str | None] = mapped_column(String(10), unique=True, nullable=True)
     birth_date: Mapped[date | None] = mapped_column(Date, nullable=True)
     avatar_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
@@ -247,6 +270,107 @@ class EmailChangeRequest(BaseModel):
         return (
             f"<EmailChangeRequest(user_id={self.user_id}, "
             f"used={self.used_at is not None})>"
+        )
+
+
+class EmailVerificationToken(BaseModel):
+    """Single-use, hashed tokens confirming ownership of a registration email.
+
+    P1 "کاربران: تأیید ایمیل هنگام ثبت‌نام". The ``users.is_verified`` column
+    existed and the OTP flow set it — proving the *phone*, not the email — so an
+    address typed at sign-up was never checked. An unverified address is worse
+    than none: password resets and order notices are delivered to it, and a typo
+    or an address someone else owns silently absorbs them.
+
+    Only the SHA-256 of the token is stored, exactly like the reset and
+    email-change tokens: the plaintext exists solely in the email, so a database
+    leak cannot be replayed to mark somebody else's address verified.
+    """
+
+    __tablename__ = "email_verification_tokens"
+    __table_args__ = (
+        Index("ix_email_verification_tokens_token_hash", "token_hash", unique=True),
+        Index("ix_email_verification_tokens_user_id", "user_id"),
+        Index("ix_email_verification_tokens_expires_at", "expires_at"),
+    )
+
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    #: The address being verified, captured at issue time. The account's email
+    #: may change before the link is clicked; verifying a *different* address
+    #: than the one the link was emailed to is not what the link asserts.
+    email: Mapped[str] = mapped_column(String(255), nullable=False)
+    token_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    used_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+
+    def __repr__(self) -> str:
+        return (
+            f"<EmailVerificationToken(user_id={self.user_id}, "
+            f"used={self.used_at is not None})>"
+        )
+
+
+class PasskeyCredential(BaseModel):
+    """A registered WebAuthn credential (a passkey) for one account.
+
+    P1 "کاربران: پاسکی". The backend had a challenge generator and nothing
+    else: no verification, no credential storage, no assertion path, and a
+    frontend hook whose every call 404'd. A passkey that cannot be verified is
+    not a passkey, so this table is what the flow was missing.
+
+    The public key is stored, never a secret — WebAuthn is a signature scheme,
+    and the private half never leaves the authenticator. ``sign_count`` is kept
+    and checked per assertion: a count that goes backwards is the one signal
+    the protocol gives that a credential was cloned.
+    """
+
+    __tablename__ = "passkey_credentials"
+    __table_args__ = (
+        Index("ix_passkey_credentials_user_id", "user_id"),
+        # The credential id is the lookup key during an assertion, and it must
+        # be unique across the whole table — not per user — because the login
+        # ceremony starts from the credential, before the account is known.
+        Index("ix_passkey_credentials_credential_id", "credential_id", unique=True),
+    )
+
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("users.id", name="fk_passkey_credentials_user_id_users", ondelete="CASCADE"),
+        nullable=False,
+    )
+    #: Base64url credential id, as the authenticator reports it.
+    credential_id: Mapped[str] = mapped_column(String(500), nullable=False)
+    #: The credential public key, serialised (COSE key bytes, base64).
+    public_key: Mapped[str] = mapped_column(Text, nullable=False)
+    #: COSE algorithm identifier (-7 ES256, -257 RS256).
+    public_key_alg: Mapped[int] = mapped_column(nullable=False)
+    #: The authenticator's signature counter at last assertion.
+    sign_count: Mapped[int] = mapped_column(default=0, nullable=False)
+    #: A human label ("لپ‌تاپ من"), so a revocation screen is usable.
+    name: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    #: Transports the authenticator advertises (usb, internal, …), as JSON.
+    transports: Mapped[list[str] | None] = mapped_column(
+        JSONB, nullable=True
+    )
+    last_used_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    #: Set when the user revokes the credential. Kept rather than deleted so
+    #: an audit trail of which keys existed survives revocation.
+    revoked_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+
+    def __repr__(self) -> str:
+        return (
+            f"<PasskeyCredential(user_id={self.user_id}, "
+            f"name={self.name!r}, revoked={self.revoked_at is not None})>"
         )
 
 

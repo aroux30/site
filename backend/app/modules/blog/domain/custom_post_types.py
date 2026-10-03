@@ -118,6 +118,18 @@ class CustomPostEntry(BaseModel):
         server_default=text("'DRAFT'::character varying"),
     )
     published_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    # When set and in `draft`, the beat task moves this row to `published` once
+    # the time passes. Without it an entry could be dated forward but never
+    # went live by itself.
+    scheduled_publish_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    #: How many revisions exist. Kept as a column rather than counted on
+    #: every write, so deciding whether to snapshot is one cheap read instead of
+    #: an aggregate, and so the UI can show "12 versions" without asking.
+    revision_count: Mapped[int] = mapped_column(
+        Integer, default=0, nullable=False, server_default=text("0")
+    )
     author_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("users.id", ondelete="SET NULL"),
@@ -134,3 +146,50 @@ class CustomPostEntry(BaseModel):
 
     def __repr__(self) -> str:
         return f"<CustomPostEntry(slug={self.slug}, type_id={self.post_type_id})>"
+
+
+class CustomPostEntryRevision(BaseModel):
+    """One saved state of a custom post type entry.
+
+    The same role `ContentEntryRevision` plays for the other content-entry
+    system: an editor who overwrites a whole entry with the wrong field values
+    needs a way back, and the fields are free-form JSON, so there is nothing to
+    diff against — only the previous state to keep.
+
+    Named `custom_post_entry_revisions` rather than anything longer: the
+    `fk_` naming convention interpolates the table name, and at 63 characters
+    the constraint name stops being something Postgres accepts.
+    """
+
+    __tablename__ = "custom_post_entry_revisions"
+    __table_args__ = (
+        Index("ix_custom_post_entry_revisions_entry", "entry_id"),
+    )
+
+    entry_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("custom_post_entries.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    #: Whole-field snapshot. Deliberately not a diff: the fields are operator-
+    #: defined JSON with no stable schema, so a delta cannot be applied back
+    #: without one.
+    fields: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True)
+    title: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    excerpt: Mapped[str | None] = mapped_column(String(1000), nullable=True)
+    #: Monotonic per entry. Restoring by number rather than by id is what the
+    #: UI offers the operator, and it is what "revision 3" means to them.
+    revision_number: Mapped[int] = mapped_column(
+        Integer, default=1, nullable=False, server_default=text("1")
+    )
+    created_by_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), nullable=True
+    )
+
+    entry: Mapped["CustomPostEntry"] = relationship("CustomPostEntry")
+
+    def __repr__(self) -> str:
+        return (
+            f"<CustomPostEntryRevision(entry_id={self.entry_id}, "
+            f"n={self.revision_number})>"
+        )

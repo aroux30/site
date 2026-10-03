@@ -443,6 +443,51 @@ async def assign_roles_to_user(
     return roles
 
 
+async def _assert_not_last_admin_after_demotion(
+    db: AsyncSession,
+    *,
+    user_id: uuid.UUID,
+    role_ids: list[uuid.UUID],
+) -> None:
+    """Refuse a demotion that would leave nobody able to administer.
+
+    Counts *after* the removal rather than before it, by excluding both the
+    target user and the roles being taken away. Asking "would this leave zero?"
+    is the only form of the question that is right: a store with two admins,
+    where one is being demoted, is not locked out, and a guard that cannot tell
+    that difference teaches operators the guard is broken.
+
+    Returns immediately when the roles being removed are not admin roles, so a
+    customer losing a marketing role costs one query and blocks nothing.
+    """
+    from app.core.exceptions.handlers import ConflictError
+    from app.modules.users.application.last_admin_guard import (
+        ADMIN_ROLE_SLUGS,
+        count_remaining_admins,
+    )
+
+    if not role_ids:
+        return
+
+    removing = (
+        await db.execute(select(Role.slug).where(Role.id.in_(role_ids)))
+    ).scalars().all()
+    if not any(slug in ADMIN_ROLE_SLUGS for slug in removing):
+        return
+
+    remaining = await count_remaining_admins(db, excluding_user_id=user_id)
+    if remaining["total"] > 0:
+        return
+
+    raise ConflictError(
+        detail=(
+            "با حذف این نقش‌ها، هیچ حسابی نمی‌ماند که بتواند به پنل مدیریت "
+            "دسترسی داشته باشد. پیش از تنزل، یک مدیر دیگر بسازید."
+        ),
+        error_code="LAST_ADMIN",
+    )
+
+
 async def remove_roles_from_user(
     db: AsyncSession,
     *,
@@ -456,6 +501,14 @@ async def remove_roles_from_user(
     user_result = await db.execute(select(User).where(User.id == user_id))
     if user_result.scalar_one_or_none() is None:
         raise NotFoundError(resource="User")
+
+    # P0 "کاربران: محافظت آخرین ادمین". Removing the admin role is the quietest
+    # way to lock a store out — no account is deleted, nothing looks wrong, and
+    # the panel simply has no one left who can open it. Checked before the
+    # delete, and against the roles actually being removed rather than against
+    # "does this user have any admin role": the second question refuses a demotion
+    # of a customer, which has nothing to do with administration.
+    await _assert_not_last_admin_after_demotion(db, user_id=user_id, role_ids=role_ids)
 
     await db.execute(
         delete(UserRole).where(UserRole.user_id == user_id, UserRole.role_id.in_(role_ids))

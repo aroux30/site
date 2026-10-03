@@ -122,7 +122,17 @@ async def _action_send_email(db: Any, params: dict[str, Any], context: dict[str,
     rendered_html: str | None = None
     rendered_text: str | None = None
     if template_name:
-        content = email_service.default_email_templates().get(str(template_name))
+        # DB first, built-in as the fallback, so an admin's saved override is
+        # what an automation rule actually sends. See resolve_template.
+        from app.modules.notifications.application.email_template_service import (
+            resolve_template,
+        )
+
+        try:
+            content = await resolve_template(db, str(template_name))
+        except Exception as exc:  # noqa: BLE001 — a named template that does not exist
+            logger.warning("email_template_unresolved", name=str(template_name), error=str(exc))
+            content = None  # falls back to the message below
         if content is not None:
             rendered = email_service.render_template(content, _stringify(params.get("variables")))
             subject = rendered.subject if not message else subject
@@ -130,8 +140,11 @@ async def _action_send_email(db: Any, params: dict[str, Any], context: dict[str,
 
     if rendered_html is None:
         rendered_text = message or "اعلان خودکار سیستم"
-        rendered_html = email_service._wrap_html(
-            email_service.get_smtp_config().from_name or "فروشگاه اینترنتی",
+        # Same resolver as the transactional templates: an automation rule
+        # firing "your order shipped" and the order-confirmation email it
+        # complements were printed with two different store names.
+        rendered_html = await email_service.wrap_html_for_store(
+            db,
             f"<p>{rendered_text}</p>".replace("\n", "<br>"),
         )
 

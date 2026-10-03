@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { Layout, RefreshCw, Plus, Menu, HelpCircle, Trash2, ChevronUp, ChevronDown, ArrowUp, ArrowDown } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -34,7 +34,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { contentApi, contentAdminApi, type MenuItem } from "@/lib/api/content";
+import {
+  contentApi,
+  contentAdminApi,
+  cmsPagesAdminApi,
+  type MenuItem,
+} from "@/lib/api/content";
+import { blogAdminApi } from "@/lib/api/blog";
 import { useAdminMutation, useAdminQuery } from "@/lib/api/admin-query";
 
 const CMS_CONTENT_QUERY_KEY = "admin-cms-content" as const;
@@ -707,6 +713,35 @@ function MenuBuilderCard() {
   const { toast } = useToast();
   const [location, setLocation] = useState<string>("header_main");
 
+  // The location list: built-ins plus whatever is in use. Fetched rather than
+  // a module constant, because an operator can add a location and a constant
+  // would not show it.
+  const [newLocation, setNewLocation] = useState("");
+  // Explicitly typed: MENU_LOCATIONS is `as const`-ish through its literal
+  // values, and a custom location is an arbitrary string — the union from the
+  // constant would reject it.
+  const [menuLocations, setMenuLocations] = useState<
+    Array<{ value: string; label: string }>
+  >(MENU_LOCATIONS.map((l) => ({ value: l.value, label: l.label })));
+
+  const loadLocations = useCallback(async () => {
+    try {
+      const res = await contentApi.listMenuLocations();
+      const labelFor = (v: string) =>
+        MENU_LOCATIONS.find((l) => l.value === v)?.label ?? v;
+      setMenuLocations(
+        res.all.map((v) => ({ value: v, label: labelFor(v) })),
+      );
+    } catch {
+      // Keep the built-in list on failure — it is what the picker showed
+      // before the endpoint existed.
+    }
+  }, []);
+
+  useEffect(() => {
+    void loadLocations();
+  }, [loadLocations]);
+
   const [menuOpen, setMenuOpen] = useState(false);
   const [menuTitle, setMenuTitle] = useState("");
   const [menuUrl, setMenuUrl] = useState("");
@@ -714,6 +749,50 @@ function MenuBuilderCard() {
   const [menuParentId, setMenuParentId] = useState<string>("");
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
   const [creatingMenu, setCreatingMenu] = useState(false);
+
+  // The page/post picker. WordPress's menu editor lets an operator pick a
+  // page or post and fills in its title and URL; before this the only option
+  // was typing the path by hand, which meant guessing the slug and getting a
+  // 404 for a typo the panel could have prevented. "Custom link" stays
+  // available — the picker is a shortcut, not a replacement.
+  const [linkSource, setLinkSource] = useState<"custom" | "page" | "post">("custom");
+  const [pageOptions, setPageOptions] = useState<Array<{ id: string; title: string; slug: string }>>([]);
+  const [postOptions, setPostOptions] = useState<Array<{ id: string; title: string; slug: string }>>([]);
+  const [optionsLoading, setOptionsLoading] = useState(false);
+
+  const loadPickerOptions = async (source: "page" | "post") => {
+    setOptionsLoading(true);
+    try {
+      if (source === "page") {
+        if (pageOptions.length === 0) {
+          const res = await cmsPagesAdminApi.listPages({ status: "published" });
+          setPageOptions(
+            (res.items ?? []).map((p) => ({ id: p.id, title: p.title, slug: p.slug })),
+          );
+        }
+      } else if (postOptions.length === 0) {
+        const res = await blogAdminApi.listPosts({ status: "published", page_size: 100 });
+        setPostOptions(
+          (res.items ?? []).map((p) => ({ id: p.id, title: p.title, slug: p.slug })),
+        );
+      }
+    } catch {
+      toast({
+        title: "خواندن فهرست ناموفق بود",
+        description: "می‌توانید آدرس را دستی وارد کنید.",
+        variant: "destructive",
+      });
+    } finally {
+      setOptionsLoading(false);
+    }
+  };
+
+  const pickOption = (kind: "page" | "post", slug: string, title: string) => {
+    setMenuUrl(kind === "post" ? `/blog/${slug}` : `/${slug}`);
+    // Only fill the title when it is empty or was itself just auto-filled, so
+    // an operator who typed a custom label does not lose it to a pick.
+    if (!menuTitle.trim()) setMenuTitle(title);
+  };
 
   const flatItems = (list: MenuItem[], depth = 0): (MenuItem & { depth: number })[] =>
     list.flatMap((i) => [{ ...i, depth }, ...(i.children ? flatItems(i.children, depth + 1) : [])]);
@@ -849,19 +928,56 @@ function MenuBuilderCard() {
           افزودن
         </Button>
       </div>
-      <div className="mb-3">
+      <div className="mb-3 space-y-2">
         <Select value={location} onValueChange={setLocation}>
           <SelectTrigger className="w-full">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            {MENU_LOCATIONS.map((loc) => (
+            {/* The built-ins plus any location already in use. A location an
+                operator added would otherwise vanish from the picker that
+                created it. */}
+            {menuLocations.map((loc) => (
               <SelectItem key={loc.value} value={loc.value}>
                 {loc.label}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
+        {/* Create a new location — WordPress registers locations from the
+            theme; this store lets an operator add one (a campaign bar, a
+            landing-page nav) without a deploy. */}
+        <div className="flex items-center gap-1.5">
+          <Input
+            dir="ltr"
+            placeholder="مکان جدید، مثلاً campaign_bar"
+            value={newLocation}
+            onChange={(e) => setNewLocation(e.target.value)}
+            className="h-8 text-xs font-mono"
+          />
+          <Button
+            size="sm"
+            variant="outline"
+            disabled={!newLocation.trim()}
+            onClick={() => {
+              const slug = newLocation.trim().toLowerCase();
+              if (!/^[a-z0-9][a-z0-9_-]{0,31}$/.test(slug)) {
+                toast({
+                  title: "نام مکان نامعتبر است",
+                  description: "فقط a-z، 0-9، _ و - — با حرف یا عدد شروع شود.",
+                  variant: "destructive",
+                });
+                return;
+              }
+              // A location exists once something is in it, so "create" selects
+              // it and the operator adds the first item.
+              setLocation(slug);
+              setNewLocation("");
+            }}
+          >
+            افزودن مکان
+          </Button>
+        </div>
       </div>
       {loadingMenu ? (
         <div className="flex items-center justify-center py-6">
@@ -931,6 +1047,82 @@ function MenuBuilderCard() {
             <DialogTitle>{editingItem ? "ویرایش آیتم منو" : "افزودن آیتم منو"}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
+            {/* Pick what the link points at. A page or post fills the title
+                and URL from the real record, so a typo cannot produce a 404
+                link; "custom" keeps the old free-text path for anything else. */}
+            <div className="space-y-2">
+              <Label>نوع پیوند</Label>
+              <Select
+                value={linkSource}
+                onValueChange={(v) => {
+                  const source = v as "custom" | "page" | "post";
+                  setLinkSource(source);
+                  if (source !== "custom") void loadPickerOptions(source);
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="custom">لینک سفارشی (دستی)</SelectItem>
+                  <SelectItem value="page">برگه</SelectItem>
+                  <SelectItem value="post">نوشته</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {linkSource === "page" && (
+              <div className="space-y-2">
+                <Label>انتخاب برگه</Label>
+                <Select
+                  value=""
+                  onValueChange={(v) => {
+                    const p = pageOptions.find((o) => o.id === v);
+                    if (p) pickOption("page", p.slug, p.title);
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue
+                      placeholder={optionsLoading ? "در حال خواندن..." : "یک برگه انتخاب کنید"}
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {pageOptions.map((p) => (
+                      <SelectItem key={p.id} value={p.id}>
+                        {p.title}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            {linkSource === "post" && (
+              <div className="space-y-2">
+                <Label>انتخاب نوشته</Label>
+                <Select
+                  value=""
+                  onValueChange={(v) => {
+                    const p = postOptions.find((o) => o.id === v);
+                    if (p) pickOption("post", p.slug, p.title);
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue
+                      placeholder={optionsLoading ? "در حال خواندن..." : "یک نوشته انتخاب کنید"}
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {postOptions.map((p) => (
+                      <SelectItem key={p.id} value={p.id}>
+                        {p.title}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
             <div className="space-y-2">
               <Label>عنوان</Label>
               <Input value={menuTitle} onChange={(e) => setMenuTitle(e.target.value)} />

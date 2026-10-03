@@ -39,7 +39,7 @@ export interface Faq {
   is_active: boolean;
 }
 
-export type CmsPageStatus = "draft" | "published" | "archived";
+export type CmsPageStatus = "draft" | "pending_review" | "published" | "archived";
 
 export interface CmsPage {
   id: string; // backend is UUIDv4
@@ -57,6 +57,19 @@ export interface CmsPage {
   scheduled_publish_at: string | null;
   scheduled_unpublish_at: string | null;
   deleted_at: string | null;
+  /** Whether readers may comment on this page; server-owned opt-in, false by
+   *  default. Absent on older API responses, so treat undefined as false. */
+  allow_comments?: boolean;
+  /** Parent page id, null for a top-level page. */
+  parent_id?: string | null;
+  /** Manual ordering among siblings; lower sorts first. */
+  menu_order?: number;
+  cover_image_url?: string | null;
+  visibility?: CmsPageVisibility;
+  /** Whether a password is set. The hash itself never leaves the server, so
+   *  without this the password field looks unset on a protected page and
+   *  saving the form would submit an empty string. */
+  visibility_password_set?: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -87,7 +100,25 @@ export interface CmsPageInput {
   locale?: string;
   scheduled_publish_at?: string | null;
   scheduled_unpublish_at?: string | null;
+  allow_comments?: boolean;
+  /**
+   * Parent page, for the page tree. The column, the schema and the server's
+   * cycle check all existed; only the client type and the admin form were
+   * missing, so a page could never be nested.
+   */
+  parent_id?: string | null;
+  /** Manual ordering among siblings. Lower comes first. */
+  menu_order?: number | null;
+  /** Hero image for the storefront page. */
+  cover_image_url?: string | null;
+  visibility?: CmsPageVisibility;
+  /** Plaintext; the server hashes it and never returns it. */
+  visibility_password?: string | null;
 }
+
+/** Who may read a published page. Separate from the status: a page can be
+ *  published and still private. */
+export type CmsPageVisibility = "public" | "private" | "password";
 
 export interface BulkActionResult {
   succeeded: number;
@@ -116,6 +147,20 @@ export const contentApi = {
   getMenu: async (location: string): Promise<MenuItem[]> => {
     const res = await apiClient.get<MenuItem[]>(`/content/menus/${location}`);
     return Array.isArray(res.data) ? res.data : [];
+  },
+
+  /** The built-in menu locations plus any operator-created ones in use. */
+  listMenuLocations: async (): Promise<{
+    builtin: string[];
+    custom: string[];
+    all: string[];
+  }> => {
+    const res = await apiClient.get<{
+      builtin: string[];
+      custom: string[];
+      all: string[];
+    }>("/content/menus/locations");
+    return res.data;
   },
 
   /** سوالات متداول */
@@ -147,6 +192,34 @@ export const cmsPagesAdminApi = {
   }): Promise<CmsPageList> => {
     const res = await apiClient.get<CmsPageList>("/content/admin/pages", { params });
     return res.data;
+  },
+
+  /** Live slug availability, for the editor's inline check.
+   *  Gated server-side on the same permission as writing pages. */
+  /** Purge the page trash. Omitting the window empties all of it, which is why
+   *  the dialog always sends a number. */
+  emptyPageTrash: async (
+    olderThanDays?: number,
+  ): Promise<{ removed: number; page_ids: string[] }> => {
+    const { data } = await apiClient.post<{ removed: number; page_ids: string[] }>(
+      "/content/admin/pages/empty-trash",
+      { older_than_days: olderThanDays },
+    );
+    return data;
+  },
+
+  checkSlug: async (
+    slug: string,
+    pageId?: string,
+  ): Promise<{ slug: string; available: boolean; reason: "empty" | "reserved" | "taken" | null }> => {
+    const { data } = await apiClient.get<{
+      slug: string;
+      available: boolean;
+      reason: "empty" | "reserved" | "taken" | null;
+    }>("/content/admin/pages/slug-check", {
+      params: { slug, page_id: pageId || undefined },
+    });
+    return data;
   },
 
   getPage: async (id: string): Promise<CmsPage> => {

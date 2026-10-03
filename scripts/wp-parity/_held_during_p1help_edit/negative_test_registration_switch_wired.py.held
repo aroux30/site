@@ -1,0 +1,151 @@
+"""Negative test for check_registration_switch_wired.
+
+The gate guards the exact failure `MediaAsset.post_id` had: an option seeded
+and shown in a card, read by nothing. So the sabotage is a *disconnect*, and
+each one leaves the code looking complete.
+
+  A. Remove the key from the card. The option is still seeded and still read,
+     so the server honours a setting no operator can reach — and the gate has
+     to notice that one half went missing.
+  B. Remove the read from `register()`. The card saves, the option is seeded,
+     and registration stays open on a store that closed it.
+  C. Move the privileged-role check below the role assignment. The check is
+     still in the file — so a presence-only check passes — and the account has
+     already been given the role.
+
+C is the one that matters: it is what "the code contains the guard" fails to
+distinguish from "the guard runs".
+
+Run:  python scripts/wp-parity/negative_test_registration_switch_wired.py
+"""
+
+from __future__ import annotations
+
+import os
+import re
+import subprocess
+import sys
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+ROOT = os.path.dirname(os.path.dirname(HERE))
+GATE = os.path.join(HERE, "check_registration_switch_wired.py")
+CARD = os.path.join(ROOT, "frontend", "components", "admin", "user-settings-card.tsx")
+SERVICE = os.path.join(ROOT, "backend", "app", "modules", "auth",
+                       "application", "auth_service.py")
+
+CARD_ENTRY_RE = re.compile(
+    r"  \{\r?\n    key: \"registration_default_role\",.*?\r?\n  \},\r?\n",
+    re.S,
+)
+
+SABOTAGES = [
+    ("A: remove the default-role field from the card", CARD, "card"),
+    ("B: stop reading registration_enabled", SERVICE, "read"),
+    ("C: move the privileged-role check after the assignment", SERVICE, "order"),
+]
+
+
+def run_gate() -> tuple[int, str]:
+    proc = subprocess.run(
+        [sys.executable, GATE], capture_output=True, text=True,
+        encoding="utf-8", errors="replace", timeout=300,
+    )
+    return proc.returncode, (proc.stdout or "") + (proc.stderr or "")
+
+
+def build(kind: str, original: str) -> str:
+    nl = chr(10)
+    if kind == "card":
+        new, n = CARD_ENTRY_RE.subn("", original)
+        if n != 1:
+            raise AssertionError(f"card entry matched {n} times")
+        return new
+    if kind == "read":
+        needle = 'enabled = await SiteOptionsService.get(db, "registration_enabled", "1")'
+        if needle not in original:
+            raise AssertionError("the switch read is not in the expected shape")
+        return original.replace(needle, 'enabled = "1"  # sabotage: never read', 1)
+    if kind == "order":
+        # Keep the check but move it after the role is written — the shape a
+        # refactor produces and a presence-only gate cannot see. Anchored on the
+        # two lines that bracket the block, not on a wildcard: an over-greedy
+        # pattern silently matched nothing, which is how a negative test ends up
+        # reporting a pass it never earned.
+        start = original.find("    if requested in _PRIVILEGED_ROLES:")
+        end = original.find('        requested = "customer"', start)
+        if start == -1 or end == -1:
+            raise AssertionError("the ceiling block is not in the expected shape")
+        end += len('        requested = "customer"') + 1  # include the newline
+        block = original[start:end]
+        stripped = original[:start] + original[end:]
+        # Anchored on `db.add(user_role)` — `user_role = UserRole(...)` appears
+        # twice in the file (once in a different function), and a bare find()
+        # picked that one, so the block landed *before* it and the ordering was
+        # unchanged: a sabotage that reported a pass it never earned.
+        anchor = "    db.add(user_role)"
+        at = stripped.find(anchor, stripped.find("    # 4. Assign the configured default role."))
+        if at == -1:
+            raise AssertionError("the assignment anchor was not found in register()")
+        at = stripped.rfind("    user_role = UserRole(", 0, at)
+        insert_at = stripped.find(anchor, at)
+        return stripped[:insert_at] + block + chr(10) + stripped[insert_at:]
+    raise AssertionError(f"unknown sabotage {kind}")
+
+
+def main() -> int:
+    rc, out = run_gate()
+    if rc != 0:
+        print("FAIL: the gate does not pass on the real code.")
+        print(out.strip()[-700:])
+        return 1
+    print("gate passes on the real code")
+
+    ok = True
+    for label, path, kind in SABOTAGES:
+        with open(path, encoding="utf-8") as fh:
+            original = fh.read()
+        try:
+            changed = build(kind, original)
+        except AssertionError as exc:
+            print(f"FAIL: {label} — {exc}")
+            ok = False
+            continue
+        if changed == original:
+            print(f"FAIL: {label} — nothing changed, so the gate was tested "
+                  f"against a no-op.")
+            ok = False
+            continue
+
+        with open(path, "w", encoding="utf-8", newline="") as fh:
+            fh.write(changed)
+        try:
+            rc_broken, out_broken = run_gate()
+        finally:
+            with open(path, "w", encoding="utf-8", newline="") as fh:
+                fh.write(original)
+
+        rc_after, _ = run_gate()
+        if rc_after != 0:
+            print(f"FAIL: {label} — the gate did not pass again after restoring.")
+            ok = False
+            continue
+        if rc_broken == 0:
+            print(f"FAIL: {label} still passed. The gate cannot see it.")
+            ok = False
+            continue
+
+        caught = [ln.strip() for ln in out_broken.splitlines()
+                  if ln.strip().startswith("- ")]
+        print(f"  {label} -> caught")
+        for line in caught[:2]:
+            print(f"      {line[:150]}")
+
+    if not ok:
+        return 1
+    print("\nPASS: the gate goes red on a missing field, a missing read, and a "
+          "guard that is present but runs too late.")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

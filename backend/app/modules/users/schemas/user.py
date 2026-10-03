@@ -5,6 +5,7 @@ from __future__ import annotations
 import re
 import uuid
 from datetime import datetime
+from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
@@ -89,8 +90,12 @@ class UserListItem(BaseModel):
     email: str | None = None
     first_name: str | None = None
     last_name: str | None = None
+    display_name: str | None = None
     is_active: bool
     is_verified: bool
+    #: True while the account waits for an operator's approval, so the admin
+    #: table can badge it and offer approve/reject.
+    pending_approval: bool = False
     created_at: datetime
     last_login: datetime | None = None
     deleted_at: datetime | None = None
@@ -133,6 +138,8 @@ class UserDetailResponse(BaseModel):
     email: str | None = None
     first_name: str | None = None
     last_name: str | None = None
+    display_name: str | None = None
+    pending_approval: bool = False
     national_code: str | None = None
     birth_date: str | None = None
     avatar_url: str | None = None
@@ -174,11 +181,121 @@ class AdminUserUpdate(BaseModel):
     email: str | None = Field(None, max_length=255)
     first_name: str | None = Field(None, min_length=1, max_length=100)
     last_name: str | None = Field(None, min_length=1, max_length=100)
+    display_name: str | None = Field(None, max_length=100)
     is_active: bool | None = None
     is_verified: bool | None = None
     is_b2b: bool | None = None
     company_name: str | None = Field(None, max_length=200)
     tax_exemption_certificate_no: str | None = Field(None, max_length=200)
+
+
+class AdminBulkUserAction(BaseModel):
+    """One action over many accounts. Ids are capped so a single request cannot
+    fan out unbounded — the same limit the blog bulk route uses."""
+
+    model_config = ConfigDict(str_strip_whitespace=True)
+
+    #: Which action to run. A body field rather than a path segment: a
+    #: ``/bulk/{action}`` path would be shadowed by the single-account
+    #: ``/{user_id}/block`` routes, which match the same shape.
+    action: str = Field(
+        ...,
+        min_length=1,
+        max_length=20,
+        description="block | unblock | delete | restore | set_role",
+    )
+    ids: list[uuid.UUID] = Field(
+        ...,
+        min_length=1,
+        max_length=200,
+        description="User ids to act on (max 200 per request)",
+    )
+    #: Required only for action="set_role"; ignored otherwise. A slug, not an id,
+    #: so the caller names the role the same way the list filter and the row
+    #: badge do.
+    role_slug: str | None = Field(
+        None,
+        max_length=100,
+        description="Role slug to assign, for action='set_role'.",
+    )
+
+
+class AdminBulkUserActionResponse(BaseModel):
+    """Per-account outcomes, so a partial success is not reported as a success.
+
+    ``failed`` counts the accounts a guard refused (self, superuser, last admin)
+    as well as any that genuinely errored; the operator sees which, from
+    ``results``.
+    """
+
+    action: str
+    ok: int = Field(ge=0)
+    failed: int = Field(ge=0)
+    total: int = Field(ge=0)
+    results: list[dict[str, Any]]
+
+
+class ApplicationPasswordAdminResponse(BaseModel):
+    """An account's API credential, as an operator sees it.
+
+    Deliberately a distinct model from the self-service response rather than a
+    reuse: this one is rendered on a page an operator looks at while helping
+    someone, and the security boundary is that **no secret material crosses
+    it**. There is no field for the hash and none for the one-time plaintext —
+    a response model that simply happens to omit them would be one careless
+    field away from leaking; one that cannot hold them cannot leak them.
+    """
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: uuid.UUID
+    name: str
+    #: First characters of the secret, so an operator and the user can agree
+    #: on *which* credential a ticket is about without either side holding it.
+    token_prefix: str
+    scopes: list[str] = []
+    is_active: bool
+    last_used_at: datetime | None = None
+    last_used_ip: str | None = None
+    expires_at: datetime | None = None
+    revoked_at: datetime | None = None
+    created_at: datetime | None = None
+
+
+class PasswordResetIssuedResponse(BaseModel):
+    """Whether an admin-initiated password reset actually issued a link.
+
+    ``sent`` is a real answer rather than a courtesy. An OTP-only account has no
+    password to reset and no address to send to, and a response that said "done"
+    either way would leave the operator watching an inbox for a message that was
+    never going to be written.
+    """
+
+    sent: bool
+    detail: str
+
+
+class UserDeleteResultResponse(BaseModel):
+    """What a soft-delete actually did, including to the content.
+
+    Returned rather than a bare 204, because the outcome the operator cannot see
+    is the one that matters: seven columns point at ``users`` with ``ON DELETE
+    SET NULL``, so a delete with no heir leaves every post, page and comment those
+    people wrote attributed to nobody. An operator who is told only "deleted"
+    cannot tell that from the case where nothing was owned.
+    """
+
+    owned_before: dict[str, int]
+    reassigned: dict[str, int]
+    summary: str
+
+
+class ReassignPreviewResponse(BaseModel):
+    """What a user owns, before anyone decides who inherits it."""
+
+    owned: dict[str, int]
+    total: int
+    summary: str
 
 
 class UserSessionResponse(BaseModel):

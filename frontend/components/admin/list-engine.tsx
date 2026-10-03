@@ -235,10 +235,19 @@ export function BulkActionBar<T>({
   rows,
   actions,
   className,
+  controls,
 }: {
   rows: T[];
   actions: BulkAction<T>[];
   className?: string;
+  /**
+   * Extra inputs an action needs before it can run — a destination role for
+   * "change role", say. Rendered as a sibling of the action buttons, never
+   * inside one: an input nested in a button is invalid HTML and a click on it
+   * would also fire the button's action. A screen that passes none gets the
+   * bar exactly as it was.
+   */
+  controls?: ReactNode;
 }) {
   const { selected, selectedRows, clearSelection, toggleAll, setPage } = useListSelection<T>();
   const [busy, setBusy] = useState<string | null>(null);
@@ -280,6 +289,7 @@ export function BulkActionBar<T>({
       )}
     >
       <span className="text-xs font-medium">{selected.size} مورد انتخاب شده</span>
+      {controls && <div className="flex flex-wrap items-center gap-2">{controls}</div>}
       <div className="flex flex-wrap gap-2">
         {actions.map((action) => (
           <Button

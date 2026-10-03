@@ -3,10 +3,11 @@
 from __future__ import annotations
 
 import hmac
+import json
 import math
 import re
 import uuid
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from typing import TYPE_CHECKING, Any, ClassVar
 
 import structlog
@@ -55,6 +56,12 @@ from app.shared.domain.slug import generate_slug as _generate_slug
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
 logger: structlog.stdlib.BoundLogger = structlog.get_logger()
+
+#: Site options that name where a new post starts. WordPress calls these
+#: ``default_category`` and ``default_post_format``; both were seeded and never
+#: read, so every post had to have its category picked by hand.
+OPTION_DEFAULT_CATEGORY = "default_category"
+OPTION_DEFAULT_POST_FORMAT = "default_post_format"
 
 
 def generate_slug(text: str) -> str:
@@ -404,6 +411,50 @@ class BlogService:
 
     # ── Revision Operations ───────────────────────────────────────────────
 
+    async def _default_category_id(self) -> uuid.UUID | None:
+        """The site option naming the category a new post starts in.
+
+        WordPress's ``default_category`` names a category by slug, not by id,
+        because an id is meaningless across installs. The same is true here: the
+        option is written in the settings card by a human, who has the slug in
+        front of them. Resolving the slug to an id here keeps the storage out of
+        the editor's hands.
+        """
+        from app.modules.settings.application.site_options_service import (
+            SiteOptionsService,
+        )
+
+        slug = (await SiteOptionsService.get(self.db, OPTION_DEFAULT_CATEGORY, "")) or ""
+        slug = slug.strip()
+        if not slug:
+            return None
+        row = (
+            await self.db.execute(
+                select(BlogCategory.id).where(BlogCategory.slug == slug)
+            )
+        ).scalar_one_or_none()
+        # A slug that no longer resolves returns None rather than raising: the
+        # caller treats a missing default as "no default", which is exactly the
+        # behaviour before the option was read.
+        return row
+
+    async def _default_post_format(self, chosen: str | None) -> str:
+        """The post format a new one starts in, when the caller named none."""
+        from app.modules.settings.application.site_options_service import (
+            SiteOptionsService,
+        )
+
+        if chosen:
+            return chosen
+        configured = (
+            await SiteOptionsService.get(self.db, OPTION_DEFAULT_POST_FORMAT, "")
+        ) or ""
+        configured = configured.strip()
+        valid = {f.value for f in PostFormat}
+        # An unknown value in the options table must not produce a post that
+        # fails to load later; "standard" is what every renderer assumes.
+        return configured if configured in valid else PostFormat.STANDARD.value
+
     async def _snapshot_revision(
         self, post: BlogPost, created_by: uuid.UUID | None = None
     ) -> None:
@@ -426,9 +477,121 @@ class BlogService:
                 status=post.status.value,
                 seo_title=seo_title,
                 seo_description=seo_description,
+                meta_snapshot=await self._current_post_meta_json(post.id),
                 created_by=created_by,
             )
         )
+        await self.db.flush()
+        await self._prune_revisions(post.id)
+
+    async def _revisions_to_keep_setting(self) -> int:
+        """How many snapshots to keep per post.
+
+        WordPress calls this `WP_POST_REVISIONS`; -1 there means "keep
+        everything", which is the previous behaviour here and is why the table
+        grew without bound on a post edited often.
+        """
+        from app.modules.settings.application.site_options_service import (
+            SiteOptionsService,
+        )
+
+        raw = await SiteOptionsService.get_int(self.db, "post_revisions_to_keep", 20)
+        # The value is operator-entered, so a typo must not be able to delete
+        # every revision or silently disable pruning: -1 is honoured only when
+        # it is exactly -1.
+        if raw == -1:
+            return -1
+        return max(1, min(raw, 500))
+
+    async def _prune_revisions(self, post_id: uuid.UUID) -> None:
+        """Delete the oldest snapshots beyond the configured cap.
+
+        Called after each new snapshot, so the newest N always survive and a
+        post edited in a loop cannot grow its revision table without bound.
+        """
+        keep = await self._revisions_to_keep_setting()
+        if keep == -1:
+            return
+
+        stmt = (
+            select(BlogPostRevision.id)
+            .where(BlogPostRevision.post_id == post_id)
+            .order_by(BlogPostRevision.revision_number.desc())
+            .offset(keep)
+        )
+        stale = list((await self.db.execute(stmt)).scalars())
+        if not stale:
+            return
+        await self.db.execute(
+            delete(BlogPostRevision).where(BlogPostRevision.id.in_(stale))
+        )
+        logger.info(
+            "post_revisions.pruned",
+            post_id=str(post_id),
+            removed=len(stale),
+            kept=keep,
+        )
+
+    async def _current_post_meta_json(self, post_id: uuid.UUID) -> str | None:
+        """Snapshot the post's custom fields as a JSON object.
+
+        Restoring a revision has to restore the custom fields too: without this
+        the editor sees a revision whose text matches but whose SEO overrides
+        and structured data are the *newer* values, and silently keeping them
+        would make the restore a lie. ``None`` when the post has no meta, which
+        the diff reads as "no custom fields" — the same reading a post with an
+        empty meta table gives.
+        """
+        from sqlalchemy import select as sa_select
+
+        from app.modules.blog.domain.models import BlogPostMeta
+
+        rows = (
+            await self.db.execute(
+                sa_select(BlogPostMeta).where(BlogPostMeta.post_id == post_id)
+            )
+        ).scalars().all()
+        if not rows:
+            return None
+        return json.dumps(
+            {r.meta_key: r.meta_value for r in rows}, ensure_ascii=False, sort_keys=True
+        )
+
+    async def _restore_post_meta(
+        self, post_id: uuid.UUID, snapshot: str | None
+    ) -> None:
+        """Replace the post's custom fields with a stored snapshot.
+
+        Replace, not merge: a key present now but absent from the snapshot was
+        added after that revision was taken, so restoring the revision has to
+        remove it. A corrupt or empty snapshot is treated as "this revision has
+        no meta" rather than an error — refusing the whole restore over an
+        unreadable column would be worse than losing custom fields.
+        """
+        from sqlalchemy import delete as sa_delete, select as sa_select
+
+        from app.modules.blog.domain.models import BlogPostMeta
+
+        try:
+            wanted = json.loads(snapshot) if snapshot else {}
+            if not isinstance(wanted, dict):
+                wanted = {}
+        except (TypeError, ValueError):
+            logger.warning("revision_meta_snapshot_unreadable", post_id=str(post_id))
+            wanted = {}
+
+        await self.db.execute(
+            sa_delete(BlogPostMeta).where(BlogPostMeta.post_id == post_id)
+        )
+        for key, value in wanted.items():
+            if not isinstance(key, str) or not key.strip():
+                continue
+            self.db.add(
+                BlogPostMeta(
+                    post_id=post_id, meta_key=key[:255],
+                    meta_value=None if value is None else str(value),
+                )
+            )
         await self.db.flush()
 
     async def _current_post_seo(
@@ -478,7 +641,18 @@ class BlogService:
                 "BlogPostRevision",
                 f"Revision {revision_number} for post {post_id} not found",
             )
-        return BlogPostRevisionDetailResponse.model_validate(revision)
+        detail = BlogPostRevisionDetailResponse.model_validate(revision)
+        # ``meta`` is a derived field, not a column: the stored snapshot is a
+        # JSON string so a bad value cannot break this route, and the parse
+        # happens here. An unparseable snapshot reads as "no custom fields",
+        # which is also what restore would do with it.
+        try:
+            parsed = json.loads(revision.meta_snapshot) if revision.meta_snapshot else {}
+        except (TypeError, ValueError):
+            parsed = {}
+        if not isinstance(parsed, dict):
+            parsed = {}
+        return detail.model_copy(update={"meta": parsed})
 
     async def restore_revision(
         self,
@@ -486,13 +660,20 @@ class BlogService:
         revision_number: int,
         actor_id: uuid.UUID | None = None,
     ) -> BlogPostDetailResponse:
-        """Restore a post's content fields from a stored revision snapshot."""
+        """Restore a post's content fields from a stored revision snapshot.
+
+        The custom fields (``blog_post_meta``) go back too. Restoring the text
+        while keeping the newer meta would leave a post that no longer matches
+        the revision on screen, and the next diff would report changes the editor
+        never made.
+        """
         revision = await self.get_revision(post_id, revision_number)
         post = await self._get_post_or_404(post_id)
         post.title = revision.title
         post.content = revision.content
         post.excerpt = revision.excerpt
         post.cover_image_url = revision.cover_image_url
+        await self._restore_post_meta(post_id, revision.meta_snapshot)
         await self._snapshot_revision(post, created_by=actor_id)
         await self.db.commit()
         await self.db.refresh(post)
@@ -517,7 +698,11 @@ class BlogService:
         due = (await self.db.execute(stmt)).scalars().all()
         for post in due:
             post.status = BlogPostStatus.PUBLISHED
-            post.published_at = post.scheduled_for
+            # published_at is when it went live, not when it was due. A post
+            # that ran three days late should not appear three days old in the
+            # archive and in every "newest first" ordering — so this is `now`,
+            # unconditionally, not the scheduled time.
+            post.published_at = now
             post.scheduled_for = None
             await self._snapshot_revision(post)
         if due:
@@ -670,6 +855,12 @@ class BlogService:
                 if clash is not None:
                     raise ConflictError(detail=f"برچسب دیگری با اسلاگ '{wanted}' وجود دارد")
                 tag.slug = wanted
+        if "description" in data.model_fields_set:
+            # Distinguish "not sent" from "sent empty": a form that always posts
+            # every field would otherwise clear the description of a tag whose
+            # editor only meant to rename it.
+            raw = data.description
+            tag.description = raw.strip() if raw and raw.strip() else None
 
         await self.db.commit()
         await self.db.refresh(tag)
@@ -732,6 +923,10 @@ class BlogService:
             id=tag.id,
             name=tag.name,
             slug=tag.slug,
+            # Must be returned, not just accepted: an edit form that cannot read
+            # the current description pre-fills an empty one, and saving then
+            # clears it. That is the write-only-field trap.
+            description=tag.description,
             created_at=tag.created_at,
             updated_at=tag.updated_at,
             post_count=post_count,
@@ -830,24 +1025,68 @@ class BlogService:
         if status == BlogPostStatus.PUBLISHED and published_at is None:
             published_at = datetime.now(UTC)
 
-        # Validate category if provided
-        if data.category_id:
-            cat = await self.db.get(BlogCategory, data.category_id)
+        post_format = await self._default_post_format(data.post_format)
+
+        # Validate category if provided, and fall back to the site's default when
+        # the author picked none. The option existed and was never read, so
+        # every new post had to have its category chosen by hand. Applied here
+        # rather than in the admin form so the default holds for an API client
+        # too, which is the caller the setting is really about.
+        default_category = await self._default_category_id()
+        category_id = data.category_id or default_category
+        if category_id:
+            cat = await self.db.get(BlogCategory, category_id)
             if not cat:
-                raise NotFoundError("Category", f"Category {data.category_id} does not exist")
+                # A default pointing at a deleted category must not block
+                # writing: the post falls back to no category, which is what
+                # happened before this option was read at all. An explicitly
+                # chosen one is a caller error and is reported.
+                if category_id == default_category:
+                    category_id = None
+                else:
+                    raise NotFoundError(
+                        "Category", f"Category {category_id} does not exist"
+                    )
+
+        # A plugin can rewrite the payload before it is stored. Mirrors
+        # cms_page_service: the dict is copied, so a plugin mutating it cannot
+        # reach back into the validated request object.
+        from app.shared.plugins.registry import (
+            HOOK_POST_AFTER_PUBLISH,
+            HOOK_POST_AFTER_SAVE,
+            HOOK_POST_BEFORE_SAVE,
+            registry,
+        )
+
+        create_fields = {
+            "title": data.title.strip(),
+            "slug": slug,
+            "content": sanitize_html(data.content),
+            "excerpt": data.excerpt.strip() if data.excerpt else None,
+            "status": status,
+        }
+        create_fields = await registry.apply_filters(
+            HOOK_POST_BEFORE_SAVE, create_fields, post_id=None, author_id=str(author_id)
+        )
+        # The filter may have narrowed the dict; only known keys are read back,
+        # and a hook that deleted one leaves the model's own default in place
+        # rather than an AttributeError.
+        title = str(create_fields.get("title") or data.title.strip())
+        content = str(create_fields.get("content") or sanitize_html(data.content))
+        excerpt = create_fields.get("excerpt", data.excerpt)
 
         post = BlogPost(
             author_id=author_id,
-            title=data.title.strip(),
+            title=title,
             slug=slug,
-            content=sanitize_html(data.content),
-            excerpt=data.excerpt.strip() if data.excerpt else None,
+            category_id=category_id,
+            content=content,
+            excerpt=excerpt.strip() if isinstance(excerpt, str) and excerpt else None,
             cover_image_url=data.cover_image_url.strip() if data.cover_image_url else None,
             status=status,
             locale=data.locale,
             published_at=published_at,
             scheduled_for=data.scheduled_for,
-            category_id=data.category_id,
             is_featured=data.is_featured,
             visibility=data.visibility,
             visibility_password=(
@@ -856,7 +1095,7 @@ class BlogService:
                 else None
             ),
             allow_comments=await self._resolve_allow_comments(data.allow_comments),
-            post_format=data.post_format,
+            post_format=post_format,
             gallery_image_ids=data.gallery_image_ids,
         )
         self.db.add(post)
@@ -868,7 +1107,15 @@ class BlogService:
         await self.db.commit()
         await self.db.refresh(post)
 
-        return await self.get_post_by_id(post.id)
+        created = await self.get_post_by_id(post.id)
+        await registry.do_action(
+            HOOK_POST_AFTER_SAVE, post_id=str(post.id), status=post.status.value
+        )
+        if post.status == BlogPostStatus.PUBLISHED:
+            await registry.do_action(
+                HOOK_POST_AFTER_PUBLISH, post=created, post_id=str(post.id)
+            )
+        return created
 
     async def update_post(
         self,
@@ -895,8 +1142,31 @@ class BlogService:
         # Sanitise before the write and before the revision snapshot, so neither
         # the live row nor the revision history can hold a payload. The editor's
         # DOMPurify pass is not this boundary — the API takes the same field.
+        # Only the fields the caller actually sent are touched: `exclude_unset`
+        # means a patch that omits `content` must leave it alone, and
+        # sanitising a value that is not there would raise.
         if update_dict.get("content"):
             update_dict["content"] = sanitize_html(update_dict["content"])
+
+        # A plugin can rewrite the patch before it is applied. Same contract as
+        # the create path and the CMS page: a copied dict, so a plugin cannot
+        # reach back into the validated request.
+        from app.shared.plugins.registry import HOOK_POST_BEFORE_SAVE, registry
+
+        old_status = post.status
+        update_dict = await registry.apply_filters(
+            HOOK_POST_BEFORE_SAVE,
+            update_dict,
+            post_id=str(post_id),
+            actor_id=str(actor_id) if actor_id else None,
+        )
+        if not isinstance(update_dict, dict):
+            # A filter that returned a non-dict would otherwise reach
+            # setattr with a string key and raise deep in the ORM. Refusing the
+            # save is louder and safer.
+            raise ValidationError(
+                "فیلتر ذخیره‌سازی ساختار نامعتبر برگرداند", error_code="PLUGIN_HOOK_INVALID"
+            )
 
         # Captured before the reassignment below: a post slug is a public URL, so
         # a rename 404s every link to the old one until the history row resolves
@@ -925,6 +1195,15 @@ class BlogService:
             if not cat:
                 raise NotFoundError(
                     "Category", f"Category {update_dict['category_id']} does not exist"
+                )
+
+        # Same for the author: a bad id would otherwise write a dangling
+        # author_id and leave the post with a /author/<slug> link that 404s.
+        if update_dict.get("author_id"):
+            author = await self.db.get(User, update_dict["author_id"])
+            if not author:
+                raise NotFoundError(
+                    "User", f"User {update_dict['author_id']} does not exist"
                 )
 
         # A submitted access password is stored hashed. An empty string means
@@ -966,7 +1245,63 @@ class BlogService:
         await self.db.commit()
         await self.db.refresh(post)
 
-        return await self.get_post_by_id(post.id)
+        # Emitted after the commit, so a plugin reacting to a publish can read
+        # the row it was told about. A status change is its own hook because
+        # "draft -> published" and "published -> draft" are the transitions a
+        # plugin acts on; a plain save hook would fire for every keystroke-batch
+        # and a plugin would have to diff the status itself to find them.
+        from app.shared.plugins.registry import (
+            HOOK_POST_AFTER_PUBLISH,
+            HOOK_POST_AFTER_SAVE,
+            HOOK_POST_STATUS_CHANGE,
+            registry,
+        )
+
+        updated = await self.get_post_by_id(post.id)
+        if post.status != old_status:
+            await registry.do_action(
+                HOOK_POST_STATUS_CHANGE,
+                post_id=str(post.id),
+                old_status=old_status.value,
+                new_status=post.status.value,
+            )
+        await registry.do_action(
+            HOOK_POST_AFTER_SAVE, post_id=str(post.id), status=post.status.value
+        )
+        if post.status == BlogPostStatus.PUBLISHED and old_status != BlogPostStatus.PUBLISHED:
+            await registry.do_action(HOOK_POST_AFTER_PUBLISH, post=updated, post_id=str(post.id))
+        return updated
+
+
+    async def empty_post_trash(
+        self,
+        *,
+        older_than_days: int | None = None,
+    ) -> dict[str, Any]:
+        """Permanently delete trashed posts, optionally only those past N days.
+
+        The counterpart to the trash/restore pair. ``delete_post`` is a soft
+        delete and ``restore`` undoes it, so without a way to empty the trash
+        the soft delete only ever accumulates — and an operator who trashes a
+        hundred posts by accident has no way back.
+
+        ``older_than_days`` is what makes this safe to schedule. A nightly job
+        that purged everything would make "empty trash" a lie the moment an
+        admin restored something they had not meant to remove yet.
+
+        The removed ids come back with the count: "42 posts purged" tells an
+        operator nothing when they come back asking what went.
+        """
+        stmt = select(BlogPost).where(BlogPost.deleted_at.is_not(None))
+        if older_than_days is not None:
+            cutoff = datetime.now(UTC) - timedelta(days=older_than_days)
+            stmt = stmt.where(BlogPost.deleted_at <= cutoff)
+        posts = (await self.db.execute(stmt)).scalars().all()
+        removed_ids = [str(p.id) for p in posts]
+        for post in posts:
+            await self.hard_delete_post(post.id)
+        logger.info("blog_post_trash_emptied", removed=len(removed_ids))
+        return {"removed": len(removed_ids), "post_ids": removed_ids}
 
     async def delete_post(self, post_id: uuid.UUID) -> None:
         """Soft delete: move to trash (restorable). Use hard_delete_post to purge."""
@@ -1072,12 +1407,19 @@ class BlogService:
 
         Storage keeps the authored tokens (see ``_snapshot_revision``, which
         must snapshot what the author wrote); display resolves them.
+
+        The CMS page has had a ``body_render`` filter since the parity pass and
+        the blog did not, so a plugin could restyle a page body and had no way
+        to do the same to a post. Fired after the block and shortcode expansion,
+        for the same reason: a plugin should see the final HTML, not a token.
         """
         from app.shared.content.render import render_body
+        from app.shared.plugins.registry import HOOK_POST_BODY_RENDER, registry
 
-        return await render_body(
+        rendered = await render_body(
             self.db, content, include_unpublished=include_unpublished
         )
+        return await registry.apply_filters(HOOK_POST_BODY_RENDER, rendered)
 
     async def get_post_by_slug(
         self,
@@ -1096,6 +1438,14 @@ class BlogService:
 
         ``access_password`` is verified against the stored Argon2 hash; the
         hash itself is never serialized into any response.
+
+        A ``PRIVATE`` post is never served from the public path: only
+        ``status`` was filtered, so anyone holding the URL could read the body
+        of a post whose author marked it private. Filtering ``visibility``
+        alongside ``status`` matches what every public listing here already
+        does (see ``list_posts`` and ``get_related_posts``). Admins read the
+        same slug with ``only_published=False``, which is the documented
+        preview path and keeps the preview button working.
         """
         stmt = (
             select(BlogPost)
@@ -1106,10 +1456,44 @@ class BlogService:
             .where(BlogPost.slug == slug)
         )
         if only_published:
-            stmt = stmt.where(BlogPost.status == BlogPostStatus.PUBLISHED)
+            stmt = stmt.where(
+                BlogPost.status == BlogPostStatus.PUBLISHED,
+                BlogPost.visibility != PostVisibility.PRIVATE,
+            )
 
         post = (await self.db.execute(stmt)).scalar_one_or_none()
         if not post:
+            # WordPress's `wp_old_slug_redirect`. The slug history was being
+            # written on every rename and read by nothing, so changing a post's
+            # slug broke every link anyone had ever shared — the exact loss a
+            # rename is supposed to avoid, and the one thing the history table
+            # exists to prevent.
+            #
+            # Resolved here rather than in the route because a page has the same
+            # problem and a route-level fix would be added twice, once per
+            # object type. The retry is the current slug looked up through the
+            # same path, so a redirect cannot bypass the status, visibility or
+            # password checks the direct lookup applies.
+            #
+            # `only_published` is passed through deliberately: following a slug
+            # must not be a way to read a draft.
+            from app.modules.blog.application.slug_history_service import (
+                resolve_slug_redirect,
+            )
+
+            redirect = await resolve_slug_redirect(self.db, slug)
+            if redirect is not None:
+                logger.info(
+                    "blog_slug_redirect_followed",
+                    old_slug=slug[:140],
+                    new_slug=(redirect.new_slug or "")[:140],
+                )
+                return await self.get_post_by_slug(
+                    slug=redirect.new_slug,
+                    access_password=access_password,
+                    only_published=only_published,
+                    increment_views=False,
+                )
             raise NotFoundError("BlogPost", f"Article '{slug}' not found")
 
         locked = await self._is_password_locked(post, access_password)
@@ -1221,6 +1605,10 @@ class BlogService:
         status: BlogPostStatus | None = BlogPostStatus.PUBLISHED,
         search: str | None = None,
         tag_slug: str | None = None,
+        author_id: uuid.UUID | None = None,
+        published_from: datetime | None = None,
+        published_to: datetime | None = None,
+        is_featured: bool | None = None,
         page: int = 1,
         page_size: int = 10,
         sort: str | None = None,
@@ -1232,6 +1620,12 @@ class BlogService:
         ``sort`` follows the Strapi convention: ``<field>[:asc|desc]`` —
         e.g. ``title:asc`` or ``published_at:desc``. Unknown fields fall back
         to the default newest-first order.
+
+        The author, date-range and featured filters exist for the admin list,
+        which had none of them: an editor answering "what did we publish in
+        March" or "who writes the news posts" had to read the whole table. They
+        are all optional and all no-ops when unset, so the public route is
+        unaffected.
 
         Trashed (soft-deleted) posts are hidden unless ``include_trashed``.
         Featured posts are ordered first within public listings.
@@ -1262,6 +1656,18 @@ class BlogService:
         if status is not None:
             stmt = stmt.where(BlogPost.status == status)
 
+        if author_id is not None:
+            stmt = stmt.where(BlogPost.author_id == author_id)
+
+        if published_from is not None:
+            stmt = stmt.where(BlogPost.published_at >= published_from)
+
+        if published_to is not None:
+            stmt = stmt.where(BlogPost.published_at <= published_to)
+
+        if is_featured is not None:
+            stmt = stmt.where(BlogPost.is_featured == is_featured)
+
         if category_slug:
             stmt = stmt.join(BlogPost.category).where(BlogCategory.slug == category_slug)
 
@@ -1279,6 +1685,12 @@ class BlogService:
                     BlogPost.title.ilike(like_q),
                     BlogPost.excerpt.ilike(like_q),
                     BlogPost.content.ilike(like_q),
+                    # The slug, because that is what the admin bar's
+                    # contextual "edit this" link sends: it knows the URL it
+                    # was on and passes the last segment. Without this the
+                    # link lands on a filtered-looking list containing no
+                    # match, which reads as "the post does not exist".
+                    BlogPost.slug.ilike(like_q),
                 )
             )
 
@@ -1527,12 +1939,113 @@ class BlogService:
             )
         return out
 
+
+    async def convert_categories_to_tags(
+        self,
+        *,
+        post_ids: list[uuid.UUID] | None = None,
+        clear_categories: bool = False,
+    ) -> dict[str, Any]:
+        """Turn each post's category into a tag (WordPress's converter).
+
+        The reason this exists: a store migrating from WordPress arrives with
+        everything filed under categories, because that is what WordPress's
+        importer produces when someone has been using "categories" as a
+        keyword field. Once the categories are noise, the useful move is to
+        make them tags and start over with a small, real category tree.
+
+        Per post, and only for posts that actually have a category: a tag is
+        created per category name (reused when one already exists, so running
+        the converter twice does not double-tag), and the post is attached to
+        it.
+
+        ``clear_categories`` detaches the category afterwards. It is opt-in
+        because it is the destructive half: with it off, running the converter
+        is reversible by clearing the tag. The response reports both numbers,
+        because "20 posts converted" hides how many had no category to convert.
+
+        Destructive-ish paths go through here rather than the UI so the counts
+        come from the server.
+        """
+        stmt = select(BlogPost).where(BlogPost.deleted_at.is_(None))
+        if post_ids:
+            stmt = stmt.where(BlogPost.id.in_(post_ids))
+        posts = (await self.db.execute(stmt)).scalars().all()
+
+        converted = 0
+        skipped_no_category = 0
+        tags_created = 0
+        tags_reused = 0
+
+        for post in posts:
+            if post.category_id is None:
+                skipped_no_category += 1
+                continue
+            category = await self.db.get(BlogCategory, post.category_id)
+            if category is None:
+                # A dangling category id is not convertible; counting it as
+                # "no category" keeps the number honest.
+                skipped_no_category += 1
+                continue
+
+            existing = (
+                await self.db.execute(
+                    select(BlogTag).where(BlogTag.slug == category.slug)
+                )
+            ).scalar_one_or_none()
+            if existing is None:
+                tag = BlogTag(
+                    name=category.name,
+                    slug=category.slug,
+                    description=category.description,
+                )
+                self.db.add(tag)
+                await self.db.flush()
+                tags_created += 1
+            else:
+                tag = existing
+                tags_reused += 1
+
+            already = (
+                await self.db.execute(
+                    select(BlogPostTag).where(
+                        BlogPostTag.post_id == post.id,
+                        BlogPostTag.tag_id == tag.id,
+                    )
+                )
+            ).scalar_one_or_none()
+            if already is None:
+                self.db.add(BlogPostTag(post_id=post.id, tag_id=tag.id))
+            converted += 1
+
+            if clear_categories:
+                post.category_id = None
+
+        await self.db.commit()
+        logger.info(
+            "blog_categories_converted_to_tags",
+            converted=converted,
+            skipped=skipped_no_category,
+            tags_created=tags_created,
+            tags_reused=tags_reused,
+            cleared=clear_categories,
+        )
+        return {
+            "converted": converted,
+            "skipped_no_category": skipped_no_category,
+            "tags_created": tags_created,
+            "tags_reused": tags_reused,
+            "categories_cleared": clear_categories,
+            "posts_considered": len(posts),
+        }
+
     async def bulk_posts(
         self,
         post_ids: list[uuid.UUID],
         action: str,
         *,
         actor_payload: dict[str, Any] | None = None,
+        edits: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         """Apply one action to many posts, reporting per-post outcomes.
 
@@ -1545,16 +2058,62 @@ class BlogService:
         Ownership is re-checked per post through the same capability helper the
         single-post routes use, so a bulk call is exactly as strict as the
         equivalent N individual calls.
+
+        ``action="edit"`` with ``edits`` is WordPress's bulk *edit* rather than
+        its bulk *action*: it changes fields (category, tags, author, format,
+        comments, featured) instead of status, and only the keys actually
+        present in ``edits`` are touched — so "leave the author alone" is
+        expressible, which is not true of a form that always submits every
+        field.
         """
         from app.core.security.object_capabilities import (
             OBJECT_RULES,
             require_object_capability,
         )
 
-        if action not in {"publish", "draft", "archive", "trash", "restore"}:
+        if action not in {"publish", "draft", "archive", "trash", "restore", "edit"}:
             from app.core.exceptions.handlers import ValidationError
 
             raise ValidationError(f"عملیات ناشناخته: {action}")
+
+        if action == "edit" and not edits:
+            from app.core.exceptions.handlers import ValidationError
+
+            raise ValidationError("برای ویرایش گروهی هیچ فیلدی ارسال نشد")
+
+        # A bad category or a missing author must fail the whole request, not
+        # half of it: the editor is looking at one form, and discovering the
+        # error only in the per-post results means the list now shows a mix of
+        # what they asked for and what the server decided was valid.
+        resolved: dict[str, Any] = {}
+        if action == "edit":
+            allowed = {
+                "category_id", "author_id", "post_format", "allow_comments",
+                "is_featured", "visibility", "status", "published_at",
+                "tag_ids",
+            }
+            resolved = {k: v for k, v in (edits or {}).items() if k in allowed}
+            unknown = set(edits or {}) - allowed
+            if unknown:
+                from app.core.exceptions.handlers import ValidationError
+
+                raise ValidationError(f"فیلدهای غیرقابل ویرایش گروهی: {sorted(unknown)}")
+            if "published_at" in resolved and resolved["published_at"]:
+                dt = resolved["published_at"]
+                if dt.tzinfo is None:
+                    dt = dt.replace(tzinfo=UTC)
+            if resolved.get("category_id"):
+                cat = await self.db.get(BlogCategory, resolved["category_id"])
+                if not cat:
+                    raise NotFoundError(
+                        "Category", f"Category {resolved['category_id']} does not exist"
+                    )
+            if resolved.get("author_id"):
+                author = await self.db.get(User, resolved["author_id"])
+                if not author:
+                    raise NotFoundError(
+                        "User", f"User {resolved['author_id']} does not exist"
+                    )
 
         results: list[dict[str, Any]] = []
         ok = 0
@@ -1586,6 +2145,29 @@ class BlogService:
                     post.status = BlogPostStatus.DRAFT
                 elif action == "archive":
                     post.status = BlogPostStatus.ARCHIVED
+                elif action == "edit":
+                    # Only the submitted keys. An absent key means "leave it",
+                    # which is what makes a partial bulk edit possible at all.
+                    for key, value in resolved.items():
+                        if key == "tag_ids":
+                            await self._replace_post_tags(post, value)
+                        elif key == "status" and value is not None:
+                            post.status = BlogPostStatus(value)
+                        else:
+                            setattr(post, key, value)
+                    if resolved.get("status") == BlogPostStatus.PUBLISHED:
+                        post.published_at = post.published_at or datetime.now(UTC)
+                    # A bulk edit is a content change like any other, so it is
+                    # snapshotted: without this, "I moved 20 posts to a new
+                    # category" would be the one edit an admin cannot undo.
+                    await self.db.flush()
+                    actor_uuid = None
+                    if actor_payload and actor_payload.get("sub"):
+                        try:
+                            actor_uuid = uuid.UUID(actor_payload["sub"])
+                        except (ValueError, TypeError):
+                            actor_uuid = None
+                    await self._snapshot_revision(post, created_by=actor_uuid)
 
                 results.append({"id": str(post_id), "ok": True})
                 ok += 1

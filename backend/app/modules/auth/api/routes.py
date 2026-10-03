@@ -6,11 +6,16 @@ import uuid
 from typing import Any
 
 import structlog
-from fastapi import APIRouter, Cookie, Depends, Request, Response, status
+from fastapi import APIRouter, Cookie, Depends, File, Request, Response, UploadFile, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config.settings import get_settings
 from app.core.database.session import get_db
+from app.core.exceptions.handlers import (
+    NotFoundError,
+    UnauthorizedError,
+    ValidationError,
+)
 from app.core.security.dependencies import (
     RequirePermissions,
     get_current_active_user,
@@ -69,6 +74,8 @@ def _set_auth_cookies(
     access_token: str,
     refresh_token: str,
     request: Request | None = None,
+    *,
+    remember_me: bool = False,
 ) -> None:
     """Set auth cookies on root path.
 
@@ -77,6 +84,11 @@ def _set_auth_cookies(
     detection on the client is driven by /auth/me responses — not by cookie
     presence. An XSS that can read cookies is strictly worse than one that
     cannot, so JS-readability was not granted.
+
+    ``remember_me`` extends the refresh cookie's browser lifetime to match the
+    longer session the service minted. Without it the cookie would expire in
+    the default window and the browser would drop a session the server still
+    considers live — "remember me" that forgets after a week.
     """
     is_secure = _is_secure_request(request)
     response.set_cookie(
@@ -88,6 +100,11 @@ def _set_auth_cookies(
         path="/",
         max_age=_settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
     )
+    refresh_days = (
+        _settings.REMEMBER_ME_REFRESH_TOKEN_EXPIRE_DAYS
+        if remember_me
+        else _settings.REFRESH_TOKEN_EXPIRE_DAYS
+    )
     response.set_cookie(
         key="refresh_token",
         value=refresh_token,
@@ -95,7 +112,7 @@ def _set_auth_cookies(
         secure=is_secure,
         samesite="lax",
         path="/",
-        max_age=_settings.REFRESH_TOKEN_EXPIRE_DAYS * 86400,
+        max_age=refresh_days * 86400,
     )
 
 
@@ -157,11 +174,17 @@ async def register(
         password=body.password,
         first_name=body.first_name,
         last_name=body.last_name,
+        email=body.email,
         referral_code=body.referral_code,
         ip_address=_client_ip(request),
         user_agent=_client_ua(request),
     )
-    _set_auth_cookies(response, tokens["access_token"], tokens["refresh_token"], request)
+    # A pending-approval signup carries no tokens. Setting cookies from empty
+    # strings would leave the browser holding two broken cookies that every
+    # later request presents — the client would look "logged in" to itself and
+    # fail on the first real call.
+    if tokens.get("access_token"):
+        _set_auth_cookies(response, tokens["access_token"], tokens["refresh_token"], request)
     tokens.pop("access_token", None)
     return TokenResponse(**tokens)
 
@@ -186,8 +209,15 @@ async def login(
         totp_code=body.totp_code,
         ip_address=_client_ip(request),
         user_agent=_client_ua(request),
+        remember_me=body.remember_me,
     )
-    _set_auth_cookies(response, tokens["access_token"], tokens["refresh_token"], request)
+    _set_auth_cookies(
+        response,
+        tokens["access_token"],
+        tokens["refresh_token"],
+        request,
+        remember_me=body.remember_me,
+    )
     tokens.pop("access_token", None)
     return TokenResponse(**tokens)
 
@@ -394,6 +424,51 @@ async def get_me(
     return UserProfileResponse(**data)
 
 
+@router.post(
+    "/me/avatar",
+    response_model=UserProfileResponse,
+    summary="Upload an avatar image for the current account",
+)
+async def upload_my_avatar(
+    file: UploadFile = File(...),
+    user_id: uuid.UUID = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db),
+) -> UserProfileResponse:
+    """Store a new avatar and point the profile at it.
+
+    P1 "کاربران: آواتار سفارشی". ``avatar_url`` existed on the profile and was
+    writable through PATCH /me, but nothing in the account area could put a
+    file anywhere: the media library is admin-gated (``media:write``), so a
+    customer had no upload path at all and the field could only be filled by
+    pasting a URL — which is not an avatar picker.
+
+    Not behind ``media:write`` for the same reason the return-proof route is
+    not: this is a customer-facing upload, and gating it on the staff
+    permission would make the feature unreachable. Capped at the customer
+    ceiling, and the bytes are validated by the media service (magic-number
+    sniffing, image pipeline), not trusted from the declared content type.
+    """
+    from app.modules.media.api.routes import CUSTOMER_UPLOAD_MAX_BYTES
+    from app.modules.media.application.media_service import MediaService
+
+    asset = await MediaService.upload_file(
+        db,
+        file,
+        uploader_id=user_id,
+        folder="avatars",
+        max_bytes=CUSTOMER_UPLOAD_MAX_BYTES,
+    )
+    # The stored URL, not the asset id: avatar_url is rendered by the
+    # storefront as an image src, and a bare id would need a resolver at every
+    # call site.
+    data = await auth_service.update_profile(
+        db,
+        user_id=user_id,
+        data={"avatar_url": asset.file_url},
+    )
+    return UserProfileResponse(**data)
+
+
 @router.patch(
     "/me",
     response_model=UserProfileResponse,
@@ -467,6 +542,90 @@ async def pending_email_change(
     )
 
     return await get_pending_email_change(db, user_id=user_id)
+
+
+@router.post(
+    "/me/email/verify",
+    summary="Confirm an account email with the link's token",
+)
+async def confirm_email_verification(
+    body: dict[str, str],
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, Any]:
+    """Redeem a registration-verification link.
+
+    Unauthenticated for the same reason the change-confirm endpoint is: the
+    token *is* the proof — it was mailed to the address being verified — and
+    requiring a session would break the flow for anyone whose tab has closed.
+    Single-use, hashed at rest and short-lived, so possession is the authority.
+    """
+    from fastapi import HTTPException as _HTTPException
+
+    from app.modules.users.application.email_verification_service import (
+        EmailVerificationError,
+        confirm_verification,
+    )
+
+    token = (body.get("token") or "").strip()
+    if not token:
+        raise _HTTPException(status_code=400, detail="توکن تأیید ارسال نشده است.")
+
+    try:
+        return await confirm_verification(db, token=token)
+    except EmailVerificationError as exc:
+        raise _HTTPException(status_code=400, detail=exc.message) from exc
+
+
+@router.post(
+    "/me/email/resend-verification",
+    summary="Re-send the account email verification link",
+    response_model=MessageResponse,
+)
+async def resend_email_verification(
+    user_id: uuid.UUID = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db),
+) -> MessageResponse:
+    """Issue a fresh verification link for the signed-in account.
+
+    Reports honestly: an account with no address has nothing to verify, and one
+    already verified has nothing to do — "sent" either way would keep a user
+    watching an inbox for a message that was never written.
+    """
+    from app.modules.auth.application import auth_service as _svc
+    from app.modules.users.application.email_verification_service import (
+        issue_verification,
+    )
+
+    data = await _svc.get_me(db, user_id=user_id)
+    if data.get("is_verified"):
+        return MessageResponse(message="ایمیل حساب شما قبلاً تأیید شده است.")
+    email = data.get("email")
+    if not email:
+        return MessageResponse(message="این حساب ایمیل ثبت‌شده‌ای ندارد.")
+
+    result = await issue_verification(db, user_id=user_id, email=email)
+    return MessageResponse(
+        message=(
+            "پیوند تأیید به ایمیل شما فرستاده شد."
+            if result.get("sent")
+            else "ارسال ایمیل تأیید ناموفق بود. لطفاً کمی بعد دوباره تلاش کنید."
+        )
+    )
+
+
+@router.get(
+    "/me/email/verification-pending",
+    summary="Whether an unexpired email-verification link exists",
+)
+async def pending_email_verification(
+    user_id: uuid.UUID = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, Any]:
+    from app.modules.users.application.email_verification_service import (
+        get_pending_verification,
+    )
+
+    return await get_pending_verification(db, user_id=user_id)
 
 
 @router.post(
@@ -650,11 +809,186 @@ async def disable_totp(
 )
 async def passkey_register_options(
     user_id: uuid.UUID = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db),
 ) -> dict[str, Any]:
-    return get_webauthn_registration_challenge(
-        user_id=str(user_id),
-        username=str(user_id),
+    """Start passkey enrollment.
+
+    P1 "کاربران: پاسکی". Replaces a stub that returned a random challenge
+    nothing verified; the challenge is now stored so the verification that
+    follows has something to check against.
+    """
+    from app.modules.auth.application import passkey_service
+
+    return await passkey_service.begin_registration(db, user_id=user_id)
+
+
+@router.post(
+    "/mfa/passkey/register/verify",
+    summary="Verify a WebAuthn attestation and store the credential",
+)
+async def passkey_register_verify(
+    body: dict[str, Any],
+    user_id: uuid.UUID = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, Any]:
+    """Verify the browser's attestation and persist the public key.
+
+    The body is the credential the browser produced, taken whole — the fields
+    the verifier needs (id, response.clientDataJSON, response.attestationObject)
+    are defined by the WebAuthn spec, not by this API, so a hand-written
+    schema would only be a place to lose one.
+    """
+    from app.modules.auth.application import passkey_service
+
+    row = await passkey_service.finish_registration(
+        db,
+        user_id=user_id,
+        credential=body,
+        name=body.get("name") if isinstance(body.get("name"), str) else None,
     )
+    return {
+        "id": str(row.id),
+        "credential_id": row.credential_id,
+        "name": row.name,
+        "created_at": row.created_at.isoformat() if row.created_at else None,
+    }
+
+
+@router.get(
+    "/mfa/passkey/credentials",
+    summary="List the account's registered passkeys",
+)
+async def passkey_list_credentials(
+    user_id: uuid.UUID = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db),
+) -> list[dict[str, Any]]:
+    from app.modules.auth.application import passkey_service
+
+    rows = await passkey_service.list_credentials(db, user_id=user_id)
+    return [
+        {
+            "id": str(r.id),
+            "credential_id": r.credential_id,
+            "name": r.name,
+            "created_at": r.created_at.isoformat() if r.created_at else None,
+            "last_used_at": r.last_used_at.isoformat() if r.last_used_at else None,
+        }
+        for r in rows
+    ]
+
+
+@router.delete(
+    "/mfa/passkey/credentials/{credential_pk}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Revoke one of the account's passkeys",
+)
+async def passkey_revoke_credential(
+    credential_pk: uuid.UUID,
+    user_id: uuid.UUID = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db),
+) -> None:
+    from app.modules.auth.application import passkey_service
+
+    await passkey_service.revoke_credential(
+        db, user_id=user_id, credential_pk=credential_pk
+    )
+
+
+@router.post(
+    "/mfa/passkey/login/options",
+    summary="Generate WebAuthn assertion options for a passkey login",
+)
+async def passkey_login_options(
+    body: dict[str, Any],
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, Any]:
+    """Start a passkey login for a named account.
+
+    The account is named by phone because the ceremony needs the credential
+    ids to offer, and without one the browser would show every passkey the
+    device holds. It is not an enumeration risk: the response is identical
+    (404) whether the phone is unknown or the account has no passkeys, so
+    "this account exists" is not learnable here.
+    """
+    from app.modules.auth.application import passkey_service
+
+    phone = str(body.get("phone") or "").strip()
+    if not phone:
+        raise ValidationError("شماره موبایل لازم است.")
+
+    from sqlalchemy import select as _select
+
+    from app.modules.users.domain.models import User as _User
+
+    user = (
+        await db.execute(_select(_User).where(_User.phone == phone))
+    ).scalar_one_or_none()
+    if user is None:
+        raise NotFoundError(resource="Passkey")
+
+    try:
+        return await passkey_service.begin_authentication(db, user_id=user.id)
+    except NotFoundError as exc:
+        # Same 404 as an unknown phone — see the docstring.
+        raise NotFoundError(resource="Passkey") from exc
+
+
+@router.post(
+    "/mfa/passkey/login/verify",
+    summary="Verify a WebAuthn assertion and issue a session",
+)
+async def passkey_login_verify(
+    body: dict[str, Any],
+    request: Request,
+    response: Response,
+    db: AsyncSession = Depends(get_db),
+) -> TokenResponse:
+    """Verify the assertion, then mint a session exactly as password login does.
+
+    Rate-limited on the same key as password login: an assertion is a
+    credential presentation, and an unthrottled one is a brute-force surface.
+    """
+    from app.modules.auth.application import passkey_service
+
+    phone = str(body.get("phone") or "").strip()
+    credential = body.get("credential")
+    if not phone or not isinstance(credential, dict):
+        raise ValidationError("درخواست ورود با کلید عبور ناقص است.")
+
+    from sqlalchemy import select as _select
+
+    from app.modules.users.domain.models import User as _User
+
+    user = (
+        await db.execute(_select(_User).where(_User.phone == phone))
+    ).scalar_one_or_none()
+    if user is None:
+        raise UnauthorizedError(detail="Invalid credentials")
+
+    await passkey_service.finish_authentication(
+        db, user_id=user.id, credential=credential
+    )
+
+    # Same session issuance as every other login path, so a passkey login is
+    # not a second-class session (the sid claim, the audit row, last_login).
+    tokens = await auth_service._create_token_pair(
+        db,
+        user,
+        ip_address=_client_ip(request),
+        user_agent=_client_ua(request),
+    )
+    await auth_service.log_action(
+        db,
+        actor_id=user.id,
+        action="user.login_passkey",
+        resource="user",
+        resource_id=user.id,
+        ip_address=_client_ip(request),
+        user_agent=_client_ua(request),
+    )
+    _set_auth_cookies(response, tokens["access_token"], tokens["refresh_token"], request)
+    tokens.pop("access_token", None)
+    return TokenResponse(**tokens)
 
 
 # ── Security Posture & Defense Status ────────────────────────────────────────
@@ -698,11 +1032,12 @@ async def get_security_status() -> dict[str, Any]:
             },
             "mfa_passkeys": {
                 "totp_2fa": "available (PyOTP) — per-user enrollment via /auth/mfa/totp/setup",
-                # Only /mfa/passkey/register/options is implemented, and it
-                # returns a random challenge that nothing ever verifies. There
-                # is no credential storage and no assertion path, so passkeys
-                # are a non-functional stub — do not advertise them as active.
-                "fido2_webauthn": "not implemented (registration options challenge only; no verification or credential storage)",
+                # Registration and assertion are now verified against stored
+                # public keys (passkey_service), with challenges held in Redis
+                # and sign counters checked. The previous note here said this
+                # was a stub — it no longer is, and the note was updated rather
+                # than left to describe a state that ended.
+                "fido2_webauthn": "active (registration + assertion verified via py-webauthn; credentials stored in passkey_credentials)",
             },
             "anti_bot": {
                 "honeypot_field": "active on Register & Login",

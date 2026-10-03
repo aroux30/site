@@ -55,8 +55,8 @@ async def _send_notification_async(
                 elif ch == "email" and user and user.email:
                     from app.modules.notifications.application import email_service
 
-                    html = email_service._wrap_html(
-                        email_service.get_smtp_config().from_name or "فروشگاه اینترنتی",
+                    html = await email_service.wrap_html_for_store(
+                        db,
                         f"<p>{notif.body}</p>".replace("\n", "<br>"),
                     )
                     success, _log = await email_service.send_email(

@@ -167,6 +167,84 @@ class HookRegistry:
                 )
         return value
 
+    def describe(self) -> dict[str, Any]:
+        """Every hook, what kind it is, and which plugin handles it.
+
+        Exposed because the alternative is invisible: a hook nobody binds to
+        and a hook that is wired and dead look identical from the outside, and
+        an author adding a plugin needs to see which points actually exist
+        before writing one. The plugins page renders this.
+        """
+        return {
+            # The shape the admin page already consumed. Kept, because
+            # replacing it would silently empty a screen: the registry was
+            # only ever describing *bound* hooks, which is why a hook with no
+            # plugin attached to it was invisible.
+            "plugins": sorted(self._plugins),
+            "disabled_plugins": sorted(self._disabled_plugins()),
+            "plugin_states": {
+                name: self.is_enabled(name) for name in sorted(self._plugins)
+            },
+            "actions": {
+                name: [
+                    {
+                        "plugin": e.plugin,
+                        "priority": e.priority,
+                        "handler": getattr(e.handler, "__qualname__", repr(e.handler)),
+                    }
+                    for e in handlers
+                ]
+                for name, handlers in sorted(self._actions.items())
+            },
+            "filters": {
+                name: [
+                    {
+                        "plugin": e.plugin,
+                        "priority": e.priority,
+                        "handler": getattr(e.handler, "__qualname__", repr(e.handler)),
+                    }
+                    for e in handlers
+                ]
+                for name, handlers in sorted(self._filters.items())
+            },
+            # The declared surface, including the points nothing has bound to
+            # yet — the ones a new plugin needs to know exist.
+            "hooks": [
+                {
+                    "name": name,
+                    "kind": kind,
+                    "handlers": [
+                        {
+                            "plugin": e.plugin,
+                            "priority": e.priority,
+                            "enabled": self.is_enabled(e.plugin),
+                        }
+                        for e in (
+                            (self._actions if kind == "action" else self._filters).get(name)
+                            or []
+                        )
+                    ],
+                    "bound": bool(
+                        (self._actions.get(name) or self._filters.get(name))
+                    ),
+                }
+                # Sorted for a stable list between requests: the registry is
+                # populated at import time and dict order follows it, which is
+                # not a contract the page should depend on.
+                for name, kind in sorted(DECLARED_HOOKS.items())
+            ],
+            "registered_plugins": sorted(self._plugins),
+        }
+
+    def _disabled_plugins(self) -> list[str]:
+        """Plugins currently switched off. Read from the in-process disabled set.
+
+        The settings row is the persistent half and is applied at startup by
+        ``load_disabled_plugins``; this reports what the process is actually
+        running with, which is the answer the toggle screen needs.
+        """
+        return sorted(p for p in self._plugins if not self.is_enabled(p))
+
 
 # Process-wide registry; modules import this and wire their plugin points.
 registry = HookRegistry()
@@ -177,6 +255,43 @@ HOOK_PAGE_BEFORE_SAVE = "cms.page.before_save"      # filter: payload dict
 HOOK_PAGE_AFTER_PUBLISH = "cms.page.after_publish"  # action: page response
 HOOK_PAGE_BODY_RENDER = "cms.page.body_render"      # filter: sanitized HTML out
 HOOK_SEO_METADATA = "seo.metadata"                  # filter: SEO dict before persist
+
+# Blog hooks. The CMS page had four and the blog had none, which is why a
+# plugin could not react to a post being published or change a post's body —
+# the two content types with the same shape and a different amount of
+# extensibility. Named after the page hooks so a plugin reads the same way.
+HOOK_POST_BEFORE_SAVE = "blog.post.before_save"      # filter: update dict
+HOOK_POST_AFTER_SAVE = "blog.post.after_save"        # action: post id + status
+HOOK_POST_AFTER_PUBLISH = "blog.post.after_publish"  # action: post response
+HOOK_POST_BODY_RENDER = "blog.post.body_render"      # filter: rendered HTML out
+HOOK_POST_STATUS_CHANGE = "blog.post.status_change"  # action: old + new status
+HOOK_COMMENT_BEFORE_CREATE = "blog.comment.before_create"  # filter: comment dict
+HOOK_COMMENT_AFTER_CREATE = "blog.comment.after_create"    # action: comment id
+HOOK_COMMENT_BEFORE_MODERATE = "blog.comment.before_moderate"  # filter: status
+HOOK_MEDIA_BEFORE_DELETE = "media.before_delete"     # filter: asset id
+HOOK_MEDIA_AFTER_DELETE = "media.after_delete"       # action: asset id
+
+#: Every hook the platform fires, with its kind. Listed explicitly rather than
+#: derived from the registry, because a hook with no handler bound yet is
+#: exactly the one an author needs to see: derived, it would be invisible until
+#: the first plugin used it, and nobody writes a plugin for a point they cannot
+#: see. The list is the API surface; the registry is what runs it.
+DECLARED_HOOKS: dict[str, str] = {
+    HOOK_PAGE_BEFORE_SAVE: "filter",
+    HOOK_PAGE_AFTER_PUBLISH: "action",
+    HOOK_PAGE_BODY_RENDER: "filter",
+    HOOK_SEO_METADATA: "filter",
+    HOOK_POST_BEFORE_SAVE: "filter",
+    HOOK_POST_AFTER_SAVE: "action",
+    HOOK_POST_AFTER_PUBLISH: "action",
+    HOOK_POST_BODY_RENDER: "filter",
+    HOOK_POST_STATUS_CHANGE: "action",
+    HOOK_COMMENT_BEFORE_CREATE: "filter",
+    HOOK_COMMENT_AFTER_CREATE: "action",
+    HOOK_COMMENT_BEFORE_MODERATE: "filter",
+    HOOK_MEDIA_BEFORE_DELETE: "filter",
+    HOOK_MEDIA_AFTER_DELETE: "action",
+}
 
 # -- Persistence: plugin toggles survive a restart ---------------------------
 

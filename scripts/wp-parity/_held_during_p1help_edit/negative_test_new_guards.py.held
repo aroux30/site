@@ -1,0 +1,140 @@
+"""Negative tests for the guards that were only exercised by hand.
+
+`check_comment_avatar_path.py` and `check_media_usage_coverage.py` both shipped
+after ad-hoc injections proved the first version of them was not able to fail:
+the avatar guard passed while the real bug was present, and the coverage guard
+could not even see `product_images.url` because it matched column *names*.
+Those injections are preserved here so a future edit that softens either check
+is caught immediately.
+
+    python scripts/wp-parity/negative_test_new_guards.py
+"""
+
+from __future__ import annotations
+
+import subprocess
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[2]
+AVATAR_GUARD = ROOT / "scripts" / "wp-parity" / "check_comment_avatar_path.py"
+COVERAGE_GUARD = ROOT / "scripts" / "wp-parity" / "check_media_usage_coverage.py"
+SERVICE = ROOT / "backend" / "app" / "modules" / "blog" / "application" / "comment_service.py"
+USAGE = ROOT / "backend" / "app" / "modules" / "media" / "application" / "usage_service.py"
+
+# (name, guard, file, snippet that must be present, replacement)
+MODES = [
+    (
+        "the guest-avatar 500, direct",
+        AVATAR_GUARD,
+        SERVICE,
+        "                email = self._email_by_comment.get(str(comment.id))",
+        "                email = comment.author_email",
+    ),
+    (
+        # The subtle one: the map stays referenced, so a check that only looked
+        # for the map reference passed while the AttributeError came back.
+        "the guest-avatar 500, behind an `or` fallback",
+        AVATAR_GUARD,
+        SERVICE,
+        "                email = self._email_by_comment.get(str(comment.id))",
+        "                email = self._email_by_comment.get(str(comment.id)) or comment.author_email",
+    ),
+    (
+        "a response built outside _build_response",
+        AVATAR_GUARD,
+        SERVICE,
+        "        return self._build_response(comment, moderation_fields=True)",
+        "        return BlogCommentAdminResponse.model_validate(comment)",
+    ),
+    (
+        "the store's main image column dropped from the counter",
+        COVERAGE_GUARD,
+        USAGE,
+        '    ("product_images", "url"),\n',
+        "",
+    ),
+    (
+        "a usage bucket with no label, so total and summary disagree",
+        COVERAGE_GUARD,
+        USAGE,
+        "    products: int = 0\n",
+        "    products: int = 0\n    storefront_banner: int = 0\n",
+    ),
+]
+
+
+def run(guard: Path) -> tuple[int, str]:
+    if guard == COVERAGE_GUARD:
+        proc = subprocess.run(
+            [sys.executable, str(guard)],
+            capture_output=True,
+            text=True,
+            timeout=300,
+            env={**_env(), "PYTHONPATH": str(ROOT / "backend")},
+        )
+    else:
+        proc = subprocess.run(
+            [sys.executable, str(guard)], capture_output=True, text=True, timeout=180
+        )
+    return proc.returncode, (proc.stdout + proc.stderr).strip()
+
+
+def _env() -> dict:
+    import os
+
+    return dict(os.environ)
+
+
+def main() -> int:
+    originals = {p: p.read_text(encoding="utf-8") for p in (SERVICE, USAGE)}
+
+    def restore() -> None:
+        for p, s in originals.items():
+            p.write_text(s, encoding="utf-8")
+
+    try:
+        for guard in (AVATAR_GUARD, COVERAGE_GUARD):
+            code, out = run(guard)
+            if code != 0:
+                print(
+                    "FAIL: %s is already red on the current tree, so a red result "
+                    "below would prove nothing.\n%s" % (guard.name, out)
+                )
+                restore()
+                return 2
+        print("[0/%d] both guards pass on the current tree" % (len(MODES) + 1))
+
+        for i, (name, guard, path, old, new) in enumerate(MODES, start=1):
+            src = path.read_text(encoding="utf-8")
+            if old not in src:
+                print("FAIL: cannot inject %r — the snippet moved. Update this test." % name)
+                restore()
+                return 2
+            path.write_text(src.replace(old, new, 1), encoding="utf-8")
+            try:
+                code, out = run(guard)
+            finally:
+                path.write_text(src, encoding="utf-8")
+            if code == 0:
+                print("FAIL: %s passed while %s." % (guard.name, name))
+                print(out)
+                return 1
+            print("[%d/%d] correctly fails on: %s" % (i, len(MODES) + 1, name))
+
+        for guard in (AVATAR_GUARD, COVERAGE_GUARD):
+            code, out = run(guard)
+            if code != 0:
+                print("FAIL: %s still red after restore.\n%s" % (guard.name, out))
+                return 1
+        print("[%d/%d] both guards are green again after restore" % (len(MODES) + 1, len(MODES) + 1))
+    finally:
+        restore()
+
+    print("")
+    print("PASS: both guards fail on every regression they exist to catch.")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

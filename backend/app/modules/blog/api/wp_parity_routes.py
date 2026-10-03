@@ -11,7 +11,7 @@ from __future__ import annotations
 import uuid
 from typing import Any
 
-from fastapi import Depends, Query, status
+from fastapi import Depends, File, HTTPException, Query, UploadFile, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database.session import get_db
@@ -84,6 +84,11 @@ async def admin_list_taxonomies(
             "description": t.description,
             "hierarchical": t.hierarchical,
             "is_active": t.is_active,
+            # Which content types this taxonomy applies to. The picker filters on
+            # it, so it has to be on the list: a taxonomy list that omits it
+            # makes the picker either offer a taxonomy that cannot be attached,
+            # or hide one that can.
+            "object_types": list(t.object_types or []),
             "term_count": counts.get(t.id, 0),
         }
         for t in rows
@@ -118,18 +123,36 @@ async def admin_create_taxonomy(
 @admin_router.get("/taxonomies/{taxonomy_id}/terms", summary="List taxonomy terms (Admin)")
 async def admin_list_taxonomy_terms(
     taxonomy_id: uuid.UUID,
+    search: str | None = None,
     db: AsyncSession = Depends(get_db),
     _: Any = _require_blog_write,
 ) -> list[dict[str, Any]]:
-    from sqlalchemy import func, select
+    from sqlalchemy import func, or_, select
 
     from app.modules.blog.domain.taxonomy_models import BlogPostTerm, CustomTaxonomyTerm
 
-    stmt = (
-        select(CustomTaxonomyTerm)
-        .where(CustomTaxonomyTerm.taxonomy_id == taxonomy_id)
-        .order_by(CustomTaxonomyTerm.position)
+    stmt = select(CustomTaxonomyTerm).where(
+        CustomTaxonomyTerm.taxonomy_id == taxonomy_id
     )
+    # Search is a server-side filter, not a client-side narrowing of the page
+    # already fetched: with more terms than fit on one screen, filtering the
+    # received slice reports "no match" for a term that exists. Matching both
+    # name and description because an operator searching for a colour knows the
+    # name but often only half-remembers the description.
+    needle = (search or "").strip()
+    if needle:
+        like = f"%{needle}%"
+        stmt = stmt.where(
+            or_(
+                CustomTaxonomyTerm.name.ilike(like),
+                CustomTaxonomyTerm.slug.ilike(like),
+                CustomTaxonomyTerm.description.ilike(like),
+            )
+        )
+    # Sort in Python by position after the fact would be simpler, but the
+    # position column is the operator's ordering and the tree walk depends on a
+    # stable order within each level.
+    stmt = stmt.order_by(CustomTaxonomyTerm.position, CustomTaxonomyTerm.name)
     rows = (await db.execute(stmt)).scalars().all()
     # How many posts use each term, so the admin can see before detaching.
     usage = dict(
@@ -202,6 +225,99 @@ async def admin_attach_post_terms(
     term_ids = body.get("term_ids", [])
     for term_id in dict.fromkeys(term_ids):
         db.add(BlogPostTerm(post_id=post_id, term_id=uuid.UUID(term_id)))
+    await db.commit()
+    return {"attached": len(term_ids)}
+
+
+@admin_router.get("/pages/{page_id}/terms", summary="List a page's custom terms (Admin)")
+async def admin_list_page_terms(
+    page_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    _: Any = _require_blog_write,
+) -> list[dict[str, Any]]:
+    from app.modules.blog.domain.taxonomy_models import CmsPageTerm
+
+    rows = (
+        await db.execute(
+            select(CmsPageTerm).where(CmsPageTerm.page_id == page_id)
+        )
+    ).scalars().all()
+    return [{"term_id": str(r.term_id)} for r in rows]
+
+
+@admin_router.post("/pages/{page_id}/terms", summary="Attach custom terms to a page (Admin)")
+async def admin_attach_page_terms(
+    page_id: uuid.UUID,
+    body: dict[str, Any],
+    db: AsyncSession = Depends(get_db),
+    current_user: dict[str, Any] = Depends(get_current_user),
+    _: Any = _require_blog_write,
+) -> dict[str, Any]:
+    """Replace a page's whole custom-term set, the same contract as posts.
+
+    Two checks the post-side route does not need, because pages are the case
+    this table was added for:
+
+    * the page has to exist — the post route's guard covers ownership, and
+      there is no ownership question for a page, but a missing page would
+      otherwise accept terms and store links to nothing;
+    * every term's taxonomy must actually include ``cms_page`` in its
+      ``object_types``. Without that, a "posts only" taxonomy could be attached
+      to a page by id alone, and the term would then be invisible to every page
+      that reads it — stored, and unreadable.
+    """
+    from sqlalchemy import delete, select
+
+    from app.core.exceptions.handlers import NotFoundError, ValidationError
+    from app.modules.content.domain.models import CmsPage
+    from app.modules.blog.domain.taxonomy_models import (
+        BlogPostTerm, CmsPageTerm, CustomTaxonomy, CustomTaxonomyTerm,
+    )
+
+    page = await db.get(CmsPage, page_id)
+    if page is None:
+        raise NotFoundError("CmsPage", f"صفحه {page_id} یافت نشد")
+
+    raw_ids = body.get("term_ids") or []
+    if not isinstance(raw_ids, list):
+        raise ValidationError(detail="term_ids باید فهرست باشد")
+    term_ids = list(dict.fromkeys(str(t) for t in raw_ids if str(t).strip()))
+
+    if term_ids:
+        uuids = []
+        for t in term_ids:
+            try:
+                uuids.append(uuid.UUID(t))
+            except ValueError as exc:
+                raise ValidationError(detail=f"شناسه ترم نامعتبر: {t}") from exc
+        found = (
+            await db.execute(
+                select(CustomTaxonomyTerm.id).where(CustomTaxonomyTerm.id.in_(uuids))
+            )
+        ).scalars().all()
+        missing = sorted(set(uuids) - set(found))
+        if missing:
+            raise ValidationError(detail=f"ترم یافت نشد: {[str(m) for m in missing]}")
+
+        # Every term's taxonomy must apply to pages.
+        rows = (
+            await db.execute(
+                select(CustomTaxonomyTerm.id, CustomTaxonomy.object_types)
+                .join(CustomTaxonomy, CustomTaxonomy.id == CustomTaxonomyTerm.taxonomy_id)
+                .where(CustomTaxonomyTerm.id.in_(uuids))
+            )
+        ).all()
+        wrong = sorted(
+            str(tid) for tid, types in rows if "cms_page" not in (types or [])
+        )
+        if wrong:
+            raise ValidationError(
+                detail=f"تاکسونومی این ترم‌ها برای برگه فعال نیست: {wrong}"
+            )
+
+    await db.execute(delete(CmsPageTerm).where(CmsPageTerm.page_id == page_id))
+    for term_id in uuids if term_ids else []:
+        db.add(CmsPageTerm(page_id=page_id, term_id=term_id))
     await db.commit()
     return {"attached": len(term_ids)}
 
@@ -349,6 +465,16 @@ async def admin_list_content_entries(
             "status": e.status.value,
             "fields": e.fields,
             "excerpt": e.excerpt,
+            # Read by the list view to show *what is already scheduled*. It was
+            # absent here, so the tab rendered a blank schedule column for every
+            # entry: the field was settable through the form but no response
+            # ever carried it back, which looks exactly like scheduling not
+            # working.
+            "scheduled_publish_at": (
+                e.scheduled_publish_at.isoformat()
+                if e.scheduled_publish_at else None
+            ),
+            "revision_count": e.revision_count or 0,
         }
         for e in rows
     ]
@@ -438,6 +564,64 @@ async def admin_update_content_entry(
 
     await _require_entry_access(entry_id, current_user, db)
     return await ContentTypeService.update_entry(db, entry_id, body)
+
+
+@admin_router.get(
+    "/entries/{entry_id}/revisions",
+    summary="List revisions of a custom post entry (Admin)",
+)
+async def admin_list_entry_revisions(
+    entry_id: uuid.UUID,
+    limit: int = Query(50, ge=1, le=200),
+    db: AsyncSession = Depends(get_db),
+    current_user: dict[str, Any] = Depends(get_current_user),
+    _: Any = _require_blog_write,
+) -> list[dict[str, Any]]:
+    from app.modules.blog.application import custom_post_revision_service as rev
+
+    await _require_entry_access(entry_id, current_user, db)
+    rows = await rev.list_revisions(db, entry_id, limit=limit)
+    return [
+        {
+            "revision_number": r.revision_number,
+            "title": r.title,
+            "excerpt": r.excerpt,
+            "fields": r.fields,
+            "created_at": r.created_at.isoformat() if r.created_at else None,
+            "created_by_id": str(r.created_by_id) if r.created_by_id else None,
+        }
+        for r in rows
+    ]
+
+
+@admin_router.post(
+    "/entries/{entry_id}/revisions/{revision_number}/restore",
+    summary="Restore a custom post entry revision (Admin)",
+)
+async def admin_restore_entry_revision(
+    entry_id: uuid.UUID,
+    revision_number: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: dict[str, Any] = Depends(get_current_user),
+    _: Any = _require_blog_write,
+) -> dict[str, Any]:
+    from app.modules.blog.application import custom_post_revision_service as rev
+
+    await _require_entry_access(entry_id, current_user, db)
+    actor_id = None
+    try:
+        actor_id = uuid.UUID(current_user["sub"])
+    except (KeyError, ValueError):
+        pass
+
+    entry = await rev.restore_revision(
+        db, entry_id, revision_number, actor_id=actor_id
+    )
+    await db.commit()
+    return {
+        "id": str(entry.id), "title": entry.title, "slug": entry.slug,
+        "status": entry.status.value, "fields": entry.fields,
+    }
 
 
 @admin_router.delete(
@@ -534,6 +718,92 @@ async def public_list_taxonomy_terms(
         }
         for t in rows
     ]
+
+
+@router.get(
+    "/taxonomies/{taxonomy_slug}/terms/{term_slug}/posts",
+    summary="Published posts in one term of a public custom taxonomy",
+)
+async def public_list_taxonomy_term_posts(
+    taxonomy_slug: str,
+    term_slug: str,
+    page: int = Query(1, ge=1),
+    page_size: int = Query(12, ge=1, le=50),
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, Any]:
+    """The posts carrying one custom term.
+
+    Without this the archive can list terms but not what is in them, and the
+    only way to fill a term page is to render the blog's most recent posts under
+    a heading that has nothing to do with them — a page that looks right and
+    is not. Filtering server-side also keeps a term's archive from breaking as
+    the blog grows: paging the whole blog and filtering in the page is correct
+    only until there are more posts than fit in the first few hundred.
+
+    Published only, and only inside an active taxonomy — the same two gates the
+    term list applies, because a term of a retired taxonomy should not be
+    reachable by guessing its slug.
+    """
+    import math
+
+    from sqlalchemy import func, select
+
+    from app.modules.blog.domain.models import BlogPost, BlogPostStatus
+    from app.modules.blog.domain.taxonomy_models import (
+        BlogPostTerm,
+        CustomTaxonomy,
+        CustomTaxonomyTerm,
+    )
+
+    term_stmt = (
+        select(CustomTaxonomyTerm)
+        .join(CustomTaxonomy, CustomTaxonomyTerm.taxonomy_id == CustomTaxonomy.id)
+        .where(
+            CustomTaxonomy.slug == taxonomy_slug,
+            CustomTaxonomy.is_active.is_(True),
+            CustomTaxonomyTerm.slug == term_slug,
+        )
+    )
+    term = (await db.execute(term_stmt)).scalars().first()
+    if term is None:
+        raise HTTPException(status_code=404, detail="Term not found")
+
+    base = (
+        select(BlogPost)
+        .join(BlogPostTerm, BlogPostTerm.post_id == BlogPost.id)
+        .where(
+            BlogPostTerm.term_id == term.id,
+            BlogPost.status == BlogPostStatus.PUBLISHED,
+            BlogPost.deleted_at.is_(None),
+        )
+    )
+    total = (await db.execute(
+        select(func.count()).select_from(base.subquery())
+    )).scalar_one()
+
+    rows = (await db.execute(
+        base.order_by(BlogPost.published_at.desc())
+        .offset((page - 1) * page_size)
+        .limit(page_size)
+    )).scalars().all()
+
+    return {
+        "term": {"id": str(term.id), "name": term.name, "slug": term.slug,
+                 "description": term.description},
+        "items": [
+            {
+                "id": str(p.id), "slug": p.slug, "title": p.title,
+                "excerpt": p.excerpt, "content": p.content,
+                "cover_image_url": p.cover_image_url,
+                "published_at": p.published_at.isoformat() if p.published_at else None,
+            }
+            for p in rows
+        ],
+        "total": total,
+        "page": page,
+        "page_size": page_size,
+        "total_pages": max(1, math.ceil(total / page_size)) if total else 0,
+    }
 
 
 # ============================================================================
@@ -654,6 +924,53 @@ async def admin_import_blog(
     return await BlogTransferService.import_json(
         db, body, author_id=author_id, skip_existing=bool(body.get("skip_existing", True))
     )
+
+
+@admin_router.post(
+    "/import/wxr",
+    summary="Import a WordPress WXR (XML) export (Admin)",
+)
+async def admin_import_wxr(
+    file: UploadFile = File(...),
+    db: AsyncSession = Depends(get_db),
+    current_user: dict[str, Any] = Depends(get_current_user),
+    _: Any = _require_blog_write,
+) -> dict[str, int]:
+    """Import the only format a WordPress site can hand you.
+
+    The JSON route above could not serve this: it takes a parsed dict, and XML
+    cannot be one. The service documented that as an open gap, which meant
+    migrating from WordPress meant converting the file by hand first.
+
+    Parsed and handed to the *same* `import_json` the JSON route uses, so there
+    is one import implementation rather than two that drift. The parser is not
+    injected: an XML body is the whole point of this route, and an operator
+    choosing this one over `/import` has said what they are uploading.
+    """
+    from app.modules.blog.application.transfer_service import BlogTransferService
+    from app.modules.blog.application.wxr_parser import parse_wxr
+
+    raw = await file.read()
+    try:
+        parsed = parse_wxr(raw)
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=400, detail=f"فایل WXR خوانده نشد: {exc}"
+        ) from exc
+
+    try:
+        author_id = uuid.UUID(current_user["sub"])
+    except Exception:
+        author_id = uuid.UUID("00000000-0000-0000-0000-000000000000")
+
+    result = await BlogTransferService.import_json(
+        db, parsed, author_id=author_id, skip_existing=True
+    )
+    # The parsed counts travel with the result so an operator can see what the
+    # file held versus what landed — a WXR with fifty posts that imports three
+    # should say so rather than look like a clean run.
+    result["parsed"] = parsed["counts"]  # type: ignore[assignment]
+    return result
 
 
 # ============================================================================

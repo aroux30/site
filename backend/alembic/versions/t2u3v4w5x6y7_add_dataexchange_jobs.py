@@ -15,7 +15,10 @@ from alembic import op
 from sqlalchemy.dialects import postgresql
 
 revision = "t2u3v4w5x6y7"
-down_revision = ("s1t2u3v4w5x6", "d4e5f6a7b8c9")
+# `d4e5f6a7b8c9` is an ancestor of `s1t2u3v4w5x6`, so it was not a head when
+# this merge ran. Keeping it made alembic delete an `alembic_version` row twice
+# and abort a from-empty `upgrade head` with `KeyError: 'd4e5f6a7b8c9'`.
+down_revision = "s1t2u3v4w5x6"
 branch_labels = None
 depends_on = None
 

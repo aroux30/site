@@ -92,9 +92,23 @@ class Settings(BaseSettings):
     GOOGLE_OAUTH_CLIENT_ID: str = ""
     GOOGLE_OAUTH_CLIENT_SECRET: str = ""
     GOOGLE_OAUTH_REDIRECT_URI: str = ""
+    # ── WebAuthn / passkeys ──────────────────────────────────────────────
+    # The Relying Party ID is the registrable domain the credential is bound
+    # to; the origin is what the browser reports and what verification checks
+    # against. Both default to localhost so development works out of the box,
+    # and both must be set to the real domain in production or every ceremony
+    # fails origin verification.
+    WEBAUTHN_RP_ID: str = "localhost"
+    WEBAUTHN_RP_NAME: str = "فروشگاه"
+    WEBAUTHN_ORIGIN: str = "http://localhost:3000"
     JWT_ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
+    # "Remember me": a login that opts in keeps its refresh session for this
+    # many days instead of the default above. A session's own ``expires_at`` is
+    # what actually bounds it, so the opt-in is per-session and does not change
+    # the lifetime of any other device.
+    REMEMBER_ME_REFRESH_TOKEN_EXPIRE_DAYS: int = 30
 
     # ── Security Audit & Compliance Logging (FATA / Shaparak) ─────────────
     AUDIT_LOG_FILE: str = "logs/security_audit.log"

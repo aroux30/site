@@ -70,6 +70,34 @@ export interface ExportJobList {
   page_size: number;
 }
 
+/** One post as an RSS/Atom feed describes it. */
+export interface FeedPostPreview {
+  title: string;
+  content: string;
+  excerpt: string | null;
+  status: string;
+  category_slug: string | null;
+  tag_slugs: string[];
+  published_at?: string;
+}
+
+/** What `previewFeed` reports: enough to decide before importing anything. */
+export interface FeedPreview {
+  format: "rss" | "atom";
+  counts: { posts: number; categories: number; tags: number };
+  sample: FeedPostPreview[];
+  categories: Array<{ name: string }>;
+  tags: Array<{ name: string }>;
+}
+
+/** What `importFeed` creates. Same shape `import_json` returns. */
+export interface FeedImportStats {
+  categories: number;
+  tags: number;
+  posts: number;
+  skipped: number;
+}
+
 export const dataExchangeApi = {
   entities: () =>
     apiClient.get<DataExchangeEntity[]>("/admin/data-exchange/entities").then((r) => r.data),
@@ -82,6 +110,31 @@ export const dataExchangeApi = {
     return apiClient
       .post<ImportJob>("/admin/import-jobs", form, {
         headers: { "Content-Type": "multipart/form-data" },
+      })
+      .then((r) => r.data);
+  },
+  /** Parse an RSS/Atom feed and report what it holds. Writes nothing. */
+  previewFeed: (file: File) => {
+    const form = new FormData();
+    form.append("file", file);
+    return apiClient
+      .post<FeedPreview>("/admin/import-feed/preview", form, {
+        headers: { "Content-Type": "multipart/form-data" },
+      })
+      .then((r) => r.data);
+  },
+  /**
+   * Import a feed. Every entry becomes a draft — a feed publishes by
+   * definition, and an archive imported as live posts is unreviewed content on
+   * the storefront.
+   */
+  importFeed: (file: File, skipExisting = true) => {
+    const form = new FormData();
+    form.append("file", file);
+    return apiClient
+      .post<FeedImportStats>("/admin/import-feed", form, {
+        headers: { "Content-Type": "multipart/form-data" },
+        params: { skip_existing: skipExisting },
       })
       .then((r) => r.data);
   },

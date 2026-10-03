@@ -24,7 +24,10 @@ import sqlalchemy as sa
 from alembic import op
 
 revision = "q1w2e3r4t5y6"
-down_revision = ("d6g8b0c2e4f7", "p9r1v2w3x4y5")
+# `d6g8b0c2e4f7` is an ancestor of `p9r1v2w3x4y5`, so it was not a head when
+# this merge ran. Keeping it made alembic delete an `alembic_version` row twice
+# and abort a from-empty `upgrade head` with `KeyError: 'd6g8b0c2e4f7'`.
+down_revision = "p9r1v2w3x4y5"
 branch_labels = None
 depends_on = None
 

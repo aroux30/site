@@ -6,12 +6,14 @@ import uuid
 from typing import Any
 
 from fastapi import APIRouter, Body, Depends, Query, Request, status
+from fastapi.responses import Response
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database.session import get_db
-from app.core.exceptions.handlers import ValidationError
+from app.core.exceptions.handlers import NotFoundError, ValidationError
 from app.core.security.dependencies import RequirePermissions, get_current_user_id
 from app.core.security.rate_limiter import limiter
+from app.modules.settings.application.privacy_policy_service import PrivacyPolicyService
 from app.modules.settings.application.settings_service import SettingsService
 from app.modules.settings.schemas.i18n import (
     I18nCatalogResponse,
@@ -27,7 +29,10 @@ from app.modules.settings.schemas.settings import (
     EmailDeliveryLogResponse,
     EmailTestRequest,
     EmailTestResponse,
+    MaintenanceSetRequest,
+    MaintenanceStateResponse,
     PublicSettingResponse,
+    PrivacyPolicyResponse,
     SettingCreateRequest,
     SettingResponse,
     SettingUpdateRequest,
@@ -69,6 +74,79 @@ async def get_public_settings(
     """Return publicly exposed site configuration (logos, title, footer, etc.)."""
     settings = await SettingsService.get_all(db, group=group, public_only=True)
     return [PublicSettingResponse(key=s.key, value=s.value) for s in settings]
+
+
+@router.get(
+    "/public/maintenance",
+    response_model=MaintenanceStateResponse,
+    summary="Whether the store is in maintenance mode",
+)
+async def get_maintenance_state(
+    db: AsyncSession = Depends(get_db),
+) -> MaintenanceStateResponse:
+    """Public and unauthenticated, so the storefront can ask before it renders.
+
+    Declared above ``/{key}`` for the same reason the privacy-policy route is:
+    below it, FastAPI matches the catch-all first and this answers 404 for a
+    setting named "maintenance", which reads to a client as "the store is fine".
+    """
+    from app.modules.settings.application.maintenance_service import get_state
+
+    return MaintenanceStateResponse(**(await get_state(db)).as_dict())
+
+
+@router.post(
+    "/admin/maintenance",
+    response_model=MaintenanceStateResponse,
+    dependencies=[Depends(RequirePermissions("settings:write"))],
+    summary="Turn maintenance mode on or off",
+)
+async def set_maintenance_state(
+    body: MaintenanceSetRequest,
+    db: AsyncSession = Depends(get_db),
+) -> MaintenanceStateResponse:
+    """Put the store into maintenance, or bring it back.
+
+    Always answers with the state that was actually written, including the
+    clamped duration. An operator who asked for two minutes and got a 422 does
+    not know whether the flag is on; an operator who asked for two minutes and
+    is told it is on for ten knows exactly where they stand.
+    """
+    from app.modules.settings.application.maintenance_service import set_maintenance
+
+    state = await set_maintenance(
+        db,
+        active=body.active,
+        minutes=body.minutes,
+        reason=body.reason,
+    )
+    await db.commit()
+    return MaintenanceStateResponse(**state.as_dict())
+
+
+@router.get(
+    "/public/privacy-policy",
+    response_model=PrivacyPolicyResponse,
+    summary="The published privacy policy page",
+)
+async def get_privacy_policy(
+    db: AsyncSession = Depends(get_db),
+) -> PrivacyPolicyResponse:
+    """Return the privacy policy page, or empty fields when none is published.
+
+    Public and unauthenticated on purpose: this is called from the registration,
+    comment and checkout forms, before anyone has an account. It carries no
+    personal data — a title and a URL — so there is nothing to protect here.
+
+    Declared above ``/{key}`` deliberately. FastAPI matches in declaration order,
+    so a route registered after it would be captured as a setting named
+    "privacy-policy" and return 404 for every caller, which reads as "this store
+    has no privacy policy" on a store that has one.
+    """
+    policy = await PrivacyPolicyService.get_policy(db)
+    if policy is None:
+        return PrivacyPolicyResponse()
+    return PrivacyPolicyResponse(**policy)
 
 
 @router.get(
@@ -355,7 +433,11 @@ async def test_email_provider(
     overrides = await _load_smtp_overrides(db)
     config = email_service.get_smtp_config(overrides)
     text = payload.message or "این یک ایمیل آزمایشی از پنل مدیریت است."
-    html = email_service._wrap_html(config.from_name or "فروشگاه اینترنتی", f"<p>{text}</p>")
+    # The shell's header is the store's name, the same one every real email
+    # uses. The From header keeps `config.from_name` — that one is about the
+    # envelope, and an operator who set it to something else there is testing
+    # exactly that. The two are different fields that used to share one value.
+    html = await email_service.wrap_html_for_store(db, f"<p>{text}</p>")
 
     success, log_row = await email_service.send_email(
         db,
@@ -626,6 +708,60 @@ async def get_site_health_info(
 
 
 @router.post(
+    "/admin/site-health/run",
+    summary="Run the health checks now and record the result (admin)",
+    dependencies=[Depends(RequirePermissions("settings:write"))],
+)
+async def run_site_health_now(
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, Any]:
+    """Press the button, and keep the result.
+
+    WordPress's Site Health screen does both: it runs on demand and it keeps a
+    page of what ran. Before this, the button equivalent was a live check that
+    vanished on reload, so a problem that had already been fixed left no trace
+    and the next visit could not tell "healthy" from "was broken an hour ago".
+    """
+    from app.modules.settings.application.site_health_service import SiteHealthService
+
+    return await SiteHealthService.record_run(db, trigger="manual")
+
+
+@router.get(
+    "/admin/site-health/runs",
+    summary="Recent site health runs, newest first (admin)",
+    dependencies=[Depends(RequirePermissions("settings:read"))],
+)
+async def list_site_health_runs(
+    limit: int = Query(20, ge=1, le=100),
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, Any]:
+    """The history behind the current reading."""
+    from app.modules.settings.application.site_health_service import SiteHealthService
+
+    items = await SiteHealthService.list_runs(db, limit=limit)
+    return {"items": items}
+
+
+@router.get(
+    "/admin/site-health/runs/{run_id}",
+    summary="One site health run with its full report (admin)",
+    dependencies=[Depends(RequirePermissions("settings:read"))],
+)
+async def get_site_health_run(
+    run_id: str,
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, Any]:
+    from app.core.exceptions.handlers import NotFoundError
+    from app.modules.settings.application.site_health_service import SiteHealthService
+
+    found = await SiteHealthService.get_run(db, run_id)
+    if found is None:
+        raise NotFoundError("SiteHealthRun", f"Run {run_id} not found")
+    return found
+
+
+@router.post(
     "/admin/site-health/optimize-database",
     summary="Run database ANALYZE (admin)",
     dependencies=[Depends(RequirePermissions("settings:write"))],
@@ -840,6 +976,56 @@ async def get_privacy_request_result(
 
 
 @router.get(
+    "/privacy/requests/{request_id}/result.zip",
+    summary="Collect the export as a structured ZIP (index.html + per-source JSON)",
+)
+async def get_privacy_request_result_zip(
+    request_id: uuid.UUID,
+    user_id: uuid.UUID = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db),
+) -> Response:
+    """The same export as the JSON route, packaged as a ZIP.
+
+    The raw JSON was a wall of nested objects: a subject who asked for their
+    data got one file with no way to tell which table was which. This lays it
+    out like every other data-export tool — an ``index.html`` that lists what
+    is inside and links each source, one JSON file per source, and a
+    ``_report.json`` naming what failed.
+
+    Same one-shot rule as the JSON route: reading the payload clears it, so
+    the subject collects their copy once and the database does not keep a
+    second one.
+    """
+    import io
+    import zipfile
+
+    from app.modules.settings.application.privacy_request_service import (
+        PrivacyRequestService,
+    )
+    from app.modules.settings.application.privacy_sources import build_export_zip
+
+    payload = await PrivacyRequestService.get_result(
+        db, user_id=user_id, request_id=request_id
+    )
+    # `get_result` returns the stored archive: the per-source data and the
+    # report. Older rows may hold the bare payload shape; wrap it so the
+    # builder always sees the same two keys.
+    if "data" in payload and "report" in payload:
+        archive = payload
+    else:
+        archive = {"data": payload, "report": {"complete": True, "failed_sources": []}}
+
+    blob = build_export_zip(archive, subject_label="شما")
+    return Response(
+        content=blob,
+        media_type="application/zip",
+        headers={
+            "Content-Disposition": f'attachment; filename="data-export-{request_id}.zip"',
+        },
+    )
+
+
+@router.get(
     "/admin/privacy/requests",
     response_model=PrivacyRequestAdminListResponse,
     summary="List GDPR data-subject requests (admin)",
@@ -1048,11 +1234,18 @@ async def list_widget_areas(
     db: AsyncSession = Depends(get_db),
 ) -> dict[str, Any]:
     """Return all widget areas with their configured widgets."""
-    from app.shared.content.widgets import WIDGET_TYPES, WidgetService
+    from app.shared.content.widgets import (
+        WIDGET_CONFIG_SCHEMA,
+        WIDGET_TYPES,
+        WidgetService,
+    )
 
     return {
         "areas": await WidgetService.get_all_areas(db),
         "widget_types": WIDGET_TYPES,
+        # Per-type config fields, so the admin form renders a control for each
+        # instead of only title/content.
+        "config_schema": WIDGET_CONFIG_SCHEMA,
     }
 
 
@@ -1072,6 +1265,56 @@ async def update_widget_area(
     return await WidgetService.update_area(db, area_id, body.get("widgets", []))
 
 
+@router.post(
+    "/admin/widgets",
+    summary="Create a widget area (admin)",
+    status_code=status.HTTP_201_CREATED,
+    dependencies=[Depends(RequirePermissions("settings:write"))],
+)
+async def create_widget_area(
+    body: dict[str, Any],
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, Any]:
+    """Register a new widget area. The layout must render ``area=<id>`` for it
+    to appear in the storefront, but the id and its widgets are operator-owned."""
+    from app.shared.content.widgets import WidgetService
+
+    area_id = str(body.get("id", "")).strip()
+    if not area_id:
+        raise ValidationError("شناسهٔ ناحیه لازم است")
+    try:
+        area = await WidgetService.create_area(
+            db,
+            area_id,
+            name=str(body.get("name", "")),
+            description=str(body.get("description", "")),
+        )
+    except ValueError as exc:
+        raise ValidationError(str(exc)) from exc
+    return {"id": area_id, **area}
+
+
+@router.delete(
+    "/admin/widgets/{area_id}",
+    summary="Delete a widget area (admin)",
+    dependencies=[Depends(RequirePermissions("settings:write"))],
+)
+async def delete_widget_area(
+    area_id: str,
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, Any]:
+    """Remove an operator-created widget area. Built-in areas are refused."""
+    from app.shared.content.widgets import WidgetService
+
+    try:
+        removed = await WidgetService.delete_area(db, area_id)
+    except ValueError as exc:
+        raise ValidationError(str(exc)) from exc
+    if not removed:
+        raise NotFoundError("WidgetArea", f"ناحیهٔ ویجت یافت نشد: {area_id}")
+    return {"deleted": True, "id": area_id}
+
+
 # ── WordPress parity: Gravatar (public) ──────────────────────────────────────
 # NOTE: this must NOT be mounted on ``router`` directly — the sibling GET
 # ``/{key}`` route (setting-by-key) matches any single segment and is declared
@@ -1086,11 +1329,54 @@ async def update_widget_area(
 async def get_gravatar_url(
     email: str = Query(..., description="Email address to hash"),
     size: int = Query(80, ge=1, le=2048),
-) -> dict[str, str]:
-    """Return the Gravatar image URL for the given email."""
-    from app.shared.content.gravatar import gravatar_url
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, str | None]:
+    """Return the Gravatar image URL for the given email.
 
-    return {"url": gravatar_url(email, size=size)}
+    Honours the site-wide avatar options: ``show_avatars`` off returns a null
+    url (the caller renders initials), and ``avatar_default``/``avatar_rating``
+    drive the gravatar ``d=``/``r=`` params instead of the old hardcoded
+    ``mp``/``g``. The route used to ignore all three, so an operator who turned
+    avatars off or picked an identicon default saw no effect on this path.
+    """
+    from app.shared.content.gravatar import avatar_options, gravatar_url
+
+    options = await avatar_options(db)
+    if not options.show:
+        return {"url": None}
+    return {
+        "url": gravatar_url(
+            email, size=size, default=options.default, rating=options.rating
+        )
+    }
+
+
+@router.get(
+    "/public/avatar-options",
+    summary="Public avatar options (show toggle, default, rating)",
+)
+async def get_public_avatar_options(
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, Any]:
+    """The site-wide avatar settings, for storefront-side avatar rendering.
+
+    Two segments, like the sibling /public/* routes, so the earlier GET
+    ``/{key}`` (setting-by-key) cannot capture it and demand auth.
+    """
+    from app.shared.content.gravatar import (
+        VALID_AVATAR_DEFAULTS,
+        VALID_AVATAR_RATINGS,
+        avatar_options,
+    )
+
+    options = await avatar_options(db)
+    return {
+        "show_avatars": options.show,
+        "avatar_default": options.default,
+        "avatar_rating": options.rating,
+        "defaults": sorted(VALID_AVATAR_DEFAULTS),
+        "ratings": sorted(VALID_AVATAR_RATINGS),
+    }
 
 
 # ── WordPress parity: Widget areas (public read) ─────────────────────────────
@@ -1200,7 +1486,40 @@ async def get_public_branding(
     return {
         "site_icon": (icon or "").strip(),
         "contact_email": contact_email,
+        "store_name": await _public_store_name(db),
     }
+
+
+async def _public_store_name(db: AsyncSession) -> str:
+    """The store's name for public surfaces.
+
+    ``store.identity`` is written by the settings screen as a JSON blob
+    (``{"store_name": ...}``) and was read by nothing at all, so the header,
+    the footer, the SEO metadata and every transactional email carried a
+    hardcoded string that no operator could change. The store name is public —
+    it is printed on the shop's own pages — so it belongs on the public
+    branding endpoint beside the site icon.
+
+    Resolution order: the settings screen's value, then ``blogname`` (which the
+    feed and sitemap already use, and which P0-10 gave the admin a field for),
+    then empty. A caller that gets "" shows its own fallback rather than
+    publishing a placeholder that looks real.
+    """
+    import json
+
+    from app.modules.settings.application.site_options_service import SiteOptionsService
+
+    raw = (await SiteOptionsService.get(db, "store.identity")) or ""
+    if raw:
+        try:
+            parsed = json.loads(raw)
+        except (TypeError, ValueError):
+            parsed = None
+        if isinstance(parsed, dict):
+            name = str(parsed.get("store_name") or "").strip()
+            if name:
+                return name
+    return (await SiteOptionsService.get(db, "blogname") or "").strip()
 
 
 # ── WordPress parity: Public discussion options ─────────────────────────────
@@ -1237,6 +1556,26 @@ async def get_public_discussion(
         await SiteOptionsService.get(db, "blog_public", "1") or "1"
     ).strip().lower() in {"1", "true", "yes", "on"}
     return {"comment_registration": enabled, "search_visible": blog_public}
+
+
+@router.get(
+    "/public/robots-extra",
+    summary="Operator-added robots.txt lines (public)",
+)
+async def get_public_robots_extra(
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, str]:
+    """Return the operator's extra robots.txt rules (verbatim).
+
+    The storefront's /robots.txt route appends these after the generated rules.
+    Public by nature: robots.txt is served to every crawler, so the value
+    contains no secret. Two segments, like the sibling /public/* routes, so the
+    earlier GET ``/{key}`` cannot capture it.
+    """
+    from app.modules.settings.application.site_options_service import SiteOptionsService
+
+    extra = await SiteOptionsService.get(db, "robots_extra_rules", "") or ""
+    return {"extra": extra}
 
 
 # ── WordPress parity: Static front page resolution ───────────────────────────
@@ -1556,3 +1895,85 @@ async def resume_recovery_mode() -> dict[str, Any]:
         "paused": RecoveryMode.is_paused(),
         "detail": "سایت دوباره فعال شد" if resumed else "سایت در حالت بازیابی نبود",
     }
+
+
+@router.post(
+    "/admin/recovery-mode/send-invitation",
+    dependencies=[Depends(RequirePermissions("settings:write"))],
+    summary="Email a one-time recovery key to the admin (admin)",
+)
+async def send_recovery_invitation(
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, Any]:
+    """Mint a recovery key and email it to the site admin.
+
+    WordPress's "recovery mode" email: when a fatal error pauses the site, the
+    admin is locked out of the very panel they would use to fix it. This sends
+    them a one-time key — hashed at rest, short-lived — they can present to
+    resume without a shell.
+
+    The key is *not* returned here: it goes to the admin's mailbox, and putting
+    it in an HTTP response would let anyone who can reach this route read it
+    out of the body. The response says only whether the mail left.
+    """
+    from app.core.exceptions.recovery_mode import RecoveryMode
+    from app.modules.notifications.application.email_service import send_email
+    from app.modules.settings.application.site_options_service import SiteOptionsService
+
+    issued = RecoveryMode.issue_invitation()
+    if not issued.get("issued"):
+        return {"sent": False, "reason": issued.get("reason", "not in recovery mode")}
+
+    recipient = (await SiteOptionsService.get(db, "admin_email") or "").strip()
+    if not recipient:
+        return {"sent": False, "reason": "no admin_email is configured"}
+
+    reference = issued.get("reference", "")
+    html = (
+        '<div dir="rtl" style="font-family:Tahoma,sans-serif">'
+        "<p>سایت شما در حالت بازیابی است و برای بازگرداندن آن به یک کلید "
+        "موقت نیاز است.</p>"
+        f"<p>کد بازیابی: <code>{issued['key']}</code></p>"
+        f"<p>شناسهٔ رخداد: <code>{reference}</code></p>"
+        "<p>این کلید کوتاه‌عمر است. پس از رفع مشکل، سایت را از پنل مدیریت "
+        "دوباره فعال کنید.</p>"
+        "</div>"
+    )
+    text = (
+        "سایت شما در حالت بازیابی است.\n"
+        f"کد بازیابی: {issued['key']}\n"
+        f"شناسهٔ رخداد: {reference}\n"
+        "این کلید کوتاه‌عمر است.\n"
+    )
+    success, _log = await send_email(
+        db,
+        recipient=recipient,
+        subject="کلید بازیابی سایت",
+        html_body=html,
+        text_body=text,
+        template="recovery_mode",
+    )
+    await db.commit()
+    return {
+        "sent": success,
+        "recipient": recipient,
+        "reason": None if success else "ارسال ایمیل ناموفق بود (تنظیمات SMTP را بررسی کنید).",
+    }
+
+
+@router.post(
+    "/admin/recovery-mode/verify-invitation",
+    dependencies=[Depends(RequirePermissions("settings:write"))],
+    summary="Verify a recovery key and resume the site (admin)",
+)
+async def verify_recovery_invitation(
+    body: dict[str, Any] = Body(...),
+) -> dict[str, Any]:
+    """Resume the site if the supplied recovery key is the current, unexpired one."""
+    from app.core.exceptions.recovery_mode import RecoveryMode
+
+    key = str((body or {}).get("key", ""))
+    if not RecoveryMode.verify_invitation(key):
+        return {"resumed": False, "reason": "کلید نامعتبر یا منقضی است"}
+    resumed = RecoveryMode.resume()
+    return {"resumed": resumed}

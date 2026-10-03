@@ -11,6 +11,10 @@ and refuses to run if the file changed underneath it. Run:
 
 from __future__ import annotations
 
+import sys as _sys
+_sys.path.insert(0, __import__("os").path.dirname(__file__))
+import console_safe  # noqa: F401  — makes stdout safe for non-ASCII
+
 import re
 import subprocess
 import sys

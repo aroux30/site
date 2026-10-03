@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
+import { useSearchParams } from "next/navigation";
 import {
   Package,
   Plus,
@@ -58,6 +59,9 @@ import { adminBulkApi } from "@/lib/api/bulk-operations";
 interface AdminProduct {
   id: string;
   name: string;
+  /** The storefront URL's slug. Carried so the admin bar's contextual
+   *  "edit product" link (which arrives with the slug) can find the row. */
+  slug?: string;
   description: string;
   category: string;
   brand: string;
@@ -145,6 +149,7 @@ export default function AdminProductsPage() {
       return items.map((p: any): AdminProduct => ({
         id: String(p.id),
         name: p.title || p.name,
+        slug: p.slug || "",
         description: p.description || "",
         category: p.category?.name || p.category_name || "—",
         brand: p.brand?.name || p.brand || "—",
@@ -188,7 +193,11 @@ export default function AdminProductsPage() {
         !query ||
         item.name.toLowerCase().includes(query) ||
         item.sku.toLowerCase().includes(query) ||
-        item.brand.toLowerCase().includes(query);
+        item.brand.toLowerCase().includes(query) ||
+        // Slug too: the admin bar's contextual "edit product" link arrives
+        // with the storefront URL's slug, and a filter that only matched
+        // names would show an empty list for a product that plainly exists.
+        (item.slug ?? "").toLowerCase().includes(query);
 
       // 2. Category Filter
       const matchesCategory =
@@ -335,6 +344,34 @@ export default function AdminProductsPage() {
   /* ---------------------------------------------------------------- */
   /*  Modal Open / Form Handlers                                       */
   /* ---------------------------------------------------------------- */
+
+  /**
+   * ?new=1 opens the add dialog.
+   *
+   * The admin bar links here rather than to a route that does not exist, so the
+   * parameter has to actually do something — a link that lands on the plain
+   * page is a button that silently does nothing.
+   *
+   * The guard flag is what stops the loop: without it, opening the dialog (or
+   * any re-render) would re-run the effect and reset a half-filled form.
+   */
+  const newParam = useSearchParams()?.get("new");
+  // `?search=` seeds the filter box. The admin bar's contextual "ویرایش محصول"
+  // link lands here with the slug, so the operator sees the product they were
+  // looking at instead of the full catalogue. Read once on mount: re-seeding
+  // on every render would fight the operator's typing.
+  const searchParam = useSearchParams()?.get("search");
+  useEffect(() => {
+    if (searchParam) setSearchQuery(searchParam);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const [deepLinkConsumed, setDeepLinkConsumed] = useState(false);
+  useEffect(() => {
+    if (newParam !== "1" || deepLinkConsumed) return;
+    setDeepLinkConsumed(true);
+    handleOpenAddModal();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [newParam, deepLinkConsumed]);
 
   const handleOpenAddModal = () => {
     setEditingProduct(null);

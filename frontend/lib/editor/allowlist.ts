@@ -50,12 +50,55 @@ export const ALLOWED_TAGS: string[] = [
   "iframe",
 ];
 
-/** Attributes allowed on any tag. */
+/** Attributes allowed on any tag.
+ *
+ *  This is the union of the server's per-tag map (ALLOWED_ATTRIBUTES) plus the
+ *  iframe-only names. It used to be narrower, so an attribute the store
+ *  accepts — `srcset` on an inserted image, `role` on a layout section — was
+ *  visible in the editor and gone from the stored row.
+ *  `check_editor_allowlists.py` compares the union in both directions. */
 export const ALLOWED_ATTR: string[] = [
-  "href", "src", "alt", "title", "class", "id", "target", "rel", "dir", "lang",
-  "width", "height", "frameborder", "allowfullscreen", "allow", "loading",
-  "colspan", "rowspan", "scope", "open", "datetime", "cite", "controls",
-  "poster", "preload", "kind", "srclang", "default",
+  // the server's "*" entry
+  "class", "id", "title", "dir", "lang", "role",
+  // `style` is allowed server-side and narrowed by ALLOWED_CSS_PROPERTIES
+  // below. Without it the alignment buttons wrote a style that the very next
+  // sanitise pass deleted, so they did nothing at all.
+  "style",
+  // a
+  "href", "target", "rel", "name",
+  // img / source
+  "src", "alt", "width", "height", "loading", "decoding", "srcset", "sizes",
+  // `media` pairs with `srcset` on <source>; without it a responsive picture
+  // is reduced to one candidate by the editor but kept whole by the server.
+  "media", "type",
+  // video / audio / track
+  "controls", "poster", "preload", "kind", "srclang", "label", "default",
+  // tables
+  "colspan", "rowspan", "headers", "scope", "abbr", "span",
+  // lists
+  "start", "reversed", "type", "value",
+  // details, time
+  "open", "datetime",
+  // oEmbed iframes, narrowed to known hosts by EMBED_HOST_RE
+  "frameborder", "allow", "allowfullscreen",
+];
+
+/** CSS properties the editor may keep in a `style` attribute.
+ *  Mirrors ALLOWED_CSS_PROPERTIES in the backend sanitizer — the same list, so
+ *  a style the editor renders survives the server instead of being dropped on
+ *  save. Presentation only: nothing here can load or execute anything. */
+export const ALLOWED_CSS_PROPERTIES: string[] = [
+  "color", "background-color", "background", "font-size", "font-weight",
+  "font-style", "font-family", "text-align", "text-decoration",
+  "line-height", "letter-spacing", "margin", "margin-top",
+  "margin-bottom", "margin-left", "margin-right", "padding",
+  "padding-top", "padding-bottom", "padding-left", "padding-right",
+  "border", "border-top", "border-bottom", "border-left", "border-right",
+  "border-radius", "border-color", "border-width", "border-style",
+  "width", "height", "max-width", "max-height", "min-width",
+  "min-height", "display", "gap", "grid-template-columns",
+  "flex-direction", "justify-content", "align-items", "opacity",
+  "box-shadow", "overflow", "vertical-align", "white-space",
 ];
 
 /**

@@ -81,6 +81,10 @@ class BlogTagResponse(BaseModel):
     id: uuid.UUID
     name: str
     slug: str
+    # Carried on the response so the edit form can pre-fill it: without this
+    # the field is write-only, and saving an unchanged tag would send an empty
+    # string and silently clear whatever was there.
+    description: str | None = None
     created_at: datetime | None = None
     updated_at: datetime | None = None
     post_count: int | None = Field(0, description="Number of published posts with this tag")
@@ -181,6 +185,13 @@ class BlogPostUpdate(BaseModel):
         description="Tags to attach to the post (replaces existing set when provided)",
     )
     scheduled_for: datetime | None = None
+    # Reassigning the author is a legitimate editorial action (an editor taking
+    # over a draft, a post written under someone else's name), so the update
+    # schema carries it. It was create-only, which left no way to change it.
+    author_id: uuid.UUID | None = Field(
+        None,
+        description="Move the post to another author (defaults to keeping the current one)",
+    )
     is_featured: bool | None = None
     visibility: PostVisibility | None = None
     visibility_password: str | None = Field(None, max_length=255)
@@ -297,6 +308,11 @@ class BlogPostRevisionDetailResponse(BlogPostRevisionResponse):
     cover_image_url: str | None = None
     seo_title: str | None = None
     seo_description: str | None = None
+    # The custom fields as of this revision, as a JSON object. The raw column is
+    # a string so an unreadable snapshot can never break the response; it is
+    # parsed here, and an unparseable value becomes an empty object rather than
+    # a 500 on a route an editor is trying to open.
+    meta: dict[str, str | None] = Field(default_factory=dict)
 
 
 class RevisionDiffToken(BaseModel):
@@ -364,9 +380,11 @@ class BlogCommentCreate(BaseModel):
         None,
         description="Post UUID to comment on (legacy addressing; implies blog_post)",
     )
-    resource_type: Literal["blog_post", "cms_page"] = Field(
+    resource_type: Literal["blog_post", "cms_page", "content_entry"] = Field(
         default="blog_post",
-        description="Which CMS object type the comment attaches to",
+        description="Which CMS object type the comment attaches to. "
+                    "'content_entry' is a custom post type entry, and is only "
+                    "accepted when that type has supports_comments on.",
     )
     resource_id: uuid.UUID | None = Field(
         None,
@@ -381,12 +399,35 @@ class BlogCommentCreate(BaseModel):
 
 
 class BlogCommentUpdate(BaseModel):
-    """Schema for updating a comment."""
+    """Schema for updating a comment.
+
+    Beyond content and status this carries the author's own fields, which a
+    moderator correcting a mistyped name or a spam address needs. They are all
+    optional and only the ones actually sent are applied, so an edit that only
+    fixes a typo in the body does not blank the email that was there.
+    """
 
     model_config = ConfigDict(str_strip_whitespace=True)
 
     content: str | None = Field(None, min_length=1, max_length=5000)
     status: CommentStatus | None = None
+    author_name: str | None = Field(None, max_length=200)
+    author_email: str | None = Field(None, max_length=320)
+    # Free text a moderator may type; validated as a URL shape by the client
+    # and escaped on render, so this is not a way to inject markup.
+    author_url: str | None = Field(None, max_length=500)
+    author_date: datetime | None = None
+
+
+class BlogNoteCreate(BaseModel):
+    """A private team note on a post or page (wp_comments.comment_type='note')."""
+
+    model_config = ConfigDict(str_strip_whitespace=True)
+
+    resource_type: Literal["blog_post", "cms_page"] = "blog_post"
+    resource_id: uuid.UUID
+    content: str = Field(..., min_length=1, max_length=5000)
+    parent_id: uuid.UUID | None = None
 
 
 class BlogCommentResponse(BaseModel):
@@ -429,13 +470,27 @@ class BlogCommentResponse(BaseModel):
 class BlogCommentAdminResponse(BlogCommentResponse):
     """Comment schema for the moderation surface.
 
-    Adds back the two fields the public schema withholds, plus ``status`` so a
-    moderator can filter on it. Used only by routes behind ``blog:write`` or
+    Adds back the fields the public schema withholds, plus ``status`` so a
+    moderator can filter on it, plus ``comment_type`` so the table can style a
+    private note apart and filter to one kind. That last one is withheld from the
+    public schema for the same reason as the email: a note's existence is itself
+    private. Used only by routes behind ``blog:write`` or
     ``blog:moderate_comments``.
     """
 
     author_email: str | None = None
+    # The address the comment came from. It is stored (see the privacy policy
+    # and its retention setting) but was never returned, so a moderator
+    # moderating spam had no way to see two comments from the same address —
+    # the single most useful signal when deciding what is spam. Admin-gated for
+    # the same reason `author_email` is.
+    author_ip: str | None = None
+    # The commenter's website. Already on the public schema (it is rendered as
+    # a link), restated here so the moderation table can read it off the admin
+    # type without narrowing to the public one.
+    author_url: str | None = None
     status: CommentStatus
+    comment_type: Literal["comment", "note"] = "comment"
 
 
 class BlogCommentListResponse(BaseModel):
@@ -538,12 +593,19 @@ class BlogCategoryUpdate(BaseModel):
 
 
 class BlogTagUpdate(BaseModel):
-    """Rename a tag or change its slug."""
+    """Rename a tag, change its slug, or describe it.
+
+    ``description`` was added with the column: a tag could be renamed and
+    re-slugged and nothing else about it could be said, because the column did
+    not exist.
+    """
 
     model_config = ConfigDict(str_strip_whitespace=True)
 
     name: str | None = Field(None, min_length=1, max_length=200)
     slug: str | None = Field(None, max_length=220, min_length=1)
+    # None clears the description, which is the same as never having set one.
+    description: str | None = Field(None, max_length=2000)
 
 
 class BlogCategoryDeleteResult(BaseModel):

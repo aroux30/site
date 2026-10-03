@@ -23,11 +23,23 @@ class MediaAssetResponse(BaseModel):
     width: int | None = None
     height: int | None = None
     alt_text: str | None = None
+    # WordPress's Title field, alongside alt/caption/description.
+    title: str | None = None
     caption: str | None = None
     description: str | None = None
     folder: str | None = None
     focal_x: float | None = None
     focal_y: float | None = None
+    # Non-destructive editing chain: set on a file that was produced by editing
+    # another one. The admin media list uses it to group a family of files under
+    # the original, and the edit-history panel to walk the steps.
+    source_asset_id: uuid.UUID | None = None
+    edit_operation: str | None = None
+    # Which post this asset is attached to, WordPress's "Attached to" column.
+    # Returned so the library can show and change it; without it the filter and
+    # the attach endpoint both worked while the UI had nothing to display, which
+    # is the state the column sat in for as long as nothing wrote it.
+    post_id: uuid.UUID | None = None
     created_at: datetime
     updated_at: datetime
 
@@ -51,6 +63,7 @@ class MediaAssetUpdateRequest(BaseModel):
     """Schema for updating media asset metadata."""
 
     alt_text: str | None = None
+    title: str | None = None
     caption: str | None = None
     description: str | None = None
     folder: str | None = None

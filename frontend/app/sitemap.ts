@@ -25,6 +25,14 @@ interface SitemapSectionRow {
   updated_at?: string;
   changefreq?: string;
   priority?: number;
+  /**
+   * A rooted path, for sections that are not a bare slug: an author archive is
+   * "/blog/authors/<slug>" and a date archive is "/archive/<year>/<month>", so
+   * there is no slug to append — the backend sends the path itself.
+   */
+  loc?: string;
+  /** Relative or absolute; resolved against the site URL before it is emitted. */
+  image_url?: string;
 }
 
 interface SitemapEntriesPayload {
@@ -35,6 +43,10 @@ interface SitemapEntriesPayload {
   blog_categories?: SitemapSectionRow[];
   blog_tags?: SitemapSectionRow[];
   products?: SitemapSectionRow[];
+  // Author and date archives, added for the same reason: the pages existed and
+  // were crawlable, but nothing pointed a crawler at them.
+  blog_authors?: SitemapSectionRow[];
+  blog_date_archives?: SitemapSectionRow[];
 }
 
 async function fetchSitemapEntries(): Promise<SitemapEntriesPayload> {
@@ -64,17 +76,37 @@ async function fetchSitemapEntries(): Promise<SitemapEntriesPayload> {
 
 type ChangeFrequency = NonNullable<MetadataRoute.Sitemap[number]["changeFrequency"]>;
 
+/**
+ * A stored media path as an absolute URL.
+ *
+ * Cover images are stored as a path ("/uploads/media/x.png") but a sitemap
+ * entry needs a full URL, and a relative one is silently ignored by crawlers.
+ * An already-absolute URL is passed through rather than prefixed twice, which
+ * is what would happen if a CDN-hosted image were stored absolute.
+ */
+function absoluteMedia(src: string): string {
+  if (/^https?:\/\//i.test(src)) return src;
+  return src.startsWith("/") ? src : `/${src}`;
+}
+
 function sectionRoutes(
+  baseUrl: string,
   rows: SitemapSectionRow[] | undefined,
   buildUrl: (slug: string) => string,
   fallback: { changeFrequency: ChangeFrequency; priority: number },
 ): MetadataRoute.Sitemap {
   return (rows ?? []).map((row) => ({
     url: buildUrl(row.slug),
-    lastModified: row.updated_at ? new Date(row.updated_at) : new Date(),
+    // No date means no date. Falling back to `new Date()` told a crawler the
+    // page changed on every single crawl, which erodes trust in lastmod across
+    // the whole sitemap rather than helping any one row.
+    ...(row.updated_at ? { lastModified: new Date(row.updated_at) } : {}),
     // The backend sends lowercase sitemap values ("daily"/"weekly"/"monthly").
     changeFrequency: (row.changefreq ?? fallback.changeFrequency) as ChangeFrequency,
     priority: row.priority ?? fallback.priority,
+    ...(row.image_url
+      ? { images: [`${baseUrl}${absoluteMedia(row.image_url)}`] }
+      : {}),
   }));
 }
 
@@ -132,9 +164,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         category_slug: post.category?.slug ?? null,
         author_slug: post.author_slug ?? null,
       })}`,
-      lastModified: post.updated_at ? new Date(post.updated_at) : new Date(),
+      // No date means no date, as in sectionRoutes: a fabricated lastmod says
+      // "changed today" on every crawl, which crawlers discount for the whole
+      // sitemap rather than for one row.
+      ...(post.updated_at ? { lastModified: new Date(post.updated_at) } : {}),
       changeFrequency: "weekly" as const,
       priority: 0.7,
+      // A post's cover image is the result a search engine shows next to the
+      // link, and image search is a real source of traffic for a shop with
+      // illustrated articles. Without it the page ranks on text alone.
+      ...(post.cover_image_url
+        ? { images: [`${baseUrl}${absoluteMedia(post.cover_image_url)}`] }
+        : {}),
     }));
   } catch (error) {
     // A blog outage must not break the whole sitemap, but it must not be
@@ -151,11 +192,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const archiveRoutes: MetadataRoute.Sitemap = [
     ...sectionRoutes(
+      baseUrl,
       payload.blog_categories,
       (slug) => `${baseUrl}${archiveHref(routing, "category", slug)}`,
       { changeFrequency: "weekly", priority: 0.6 },
     ),
     ...sectionRoutes(
+      baseUrl,
       payload.blog_tags,
       (slug) => `${baseUrl}${archiveHref(routing, "tag", slug)}`,
       { changeFrequency: "weekly", priority: 0.5 },
@@ -163,9 +206,39 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ];
 
   const productRoutes: MetadataRoute.Sitemap = sectionRoutes(
+    baseUrl,
     payload.products,
     (slug) => `${baseUrl}/products/${slug}`,
     { changeFrequency: "daily", priority: 0.7 },
+  );
+
+  // Author and date archives arrive with a rooted `loc` rather than a slug —
+  // an archive is a path with its own shape ("/archive/2026/3"), not a slug —
+  // so they are read by their own field instead of going through buildUrl.
+  const locRoutes = (
+    rows: SitemapSectionRow[] | undefined,
+    fallback: { changeFrequency: ChangeFrequency; priority: number },
+  ): MetadataRoute.Sitemap =>
+    // A row without a loc is skipped rather than rendered as baseUrl +
+    // "undefined": the backend always sends one for these sections, and a
+    // malformed row should disappear from a sitemap, not become a URL a
+    // crawler will fetch.
+    (rows ?? [])
+      .filter((row): row is SitemapSectionRow & { loc: string } => Boolean(row.loc))
+      .map((row) => ({
+        url: `${baseUrl}${row.loc}`,
+        ...(row.updated_at ? { lastModified: new Date(row.updated_at) } : {}),
+        changeFrequency: fallback.changeFrequency,
+        priority: fallback.priority,
+      }));
+
+  const authorRoutes: MetadataRoute.Sitemap = locRoutes(payload.blog_authors, {
+    changeFrequency: "weekly",
+    priority: 0.5,
+  });
+  const dateArchiveRoutes: MetadataRoute.Sitemap = locRoutes(
+    payload.blog_date_archives,
+    { changeFrequency: "monthly", priority: 0.4 },
   );
 
   // Published CMS pages (editor-managed storefront pages).
@@ -179,5 +252,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.5,
     }));
 
-  return [...routes, ...blogRoutes, ...archiveRoutes, ...productRoutes, ...cmsRoutes];
+  return [
+    ...routes,
+    ...blogRoutes,
+    ...archiveRoutes,
+    ...productRoutes,
+    ...authorRoutes,
+    ...dateArchiveRoutes,
+    ...cmsRoutes,
+  ];
 }

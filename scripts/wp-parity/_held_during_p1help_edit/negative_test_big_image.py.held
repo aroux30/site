@@ -1,0 +1,135 @@
+"""Negative test for big-image downscaling.
+
+A downscale that is commented out, or guarded wrong, still uploads fine — the
+file lands, the columns are filled, the library looks normal, and the only
+symptom is a product page that takes four seconds on a phone. Nothing about
+that failure announces itself, so each part is proven separately:
+
+  A. Cap each side independently instead of scaling both. A 4000x3000 becomes
+     2560x3000 — a 20% vertical stretch of every product photo, which is the
+     kind of bug that ships and is blamed on the photographer.
+  B. Let small images be upscaled to the threshold. A 400px logo comes back as
+     2560px: bigger, slower, and no better.
+  C. Ignore the setting and always scale. Then an operator who sets 0 to keep
+     their originals still loses them, silently.
+  D. Skip the scale entirely — the whole feature off. This is the one the gate
+     exists to notice, and it looks exactly like the feature never having been
+     asked for.
+
+Run:  python scripts/wp-parity/negative_test_big_image.py
+"""
+
+from __future__ import annotations
+
+import os
+import subprocess
+import sys
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+ROOT = os.path.dirname(os.path.dirname(HERE))
+FIXTURE = os.path.join(ROOT, ".p1-tests", "big_image_test.py")
+SERVICE = os.path.join(ROOT, "backend", "app", "modules", "media",
+                       "application", "media_service.py")
+
+NL = chr(10)
+
+SABOTAGES = [
+    (
+        "A: cap each side independently (distorts the aspect ratio)",
+        [("    scale = limit / longest" + NL +
+          "    return max(1, round(width * scale)), max(1, round(height * scale))",
+          "    return min(width, limit), min(height, limit)  # sabotage: distorts")],
+    ),
+    (
+        "B: upscale small images to the threshold",
+        [("    if longest <= limit:" + NL +
+          "        return width, height",
+          "    if longest <= limit:" + NL +
+          "        return limit, limit  # sabotage: enlarge")],
+    ),
+    (
+        "C: ignore a stored 0 and fall back to the default",
+        [("    return await SiteOptionsService.get_int(" + NL +
+          "        db, \"big_image_size_threshold\", DEFAULT_BIG_IMAGE_THRESHOLD,",
+          "    return 2560  # sabotage: the setting is never read")],
+    ),
+    (
+        "D: skip the downscale entirely",
+        [("                    _threshold = await _big_image_threshold(db)",
+          "                    _threshold = 0  # sabotage: no downscaling")],
+    ),
+]
+
+
+def run_fixture() -> tuple[int, str]:
+    proc = subprocess.run(
+        [sys.executable, FIXTURE], capture_output=True, text=True,
+        encoding="utf-8", errors="replace", timeout=900,
+    )
+    return proc.returncode, (proc.stdout or "") + (proc.stderr or "")
+
+
+def main() -> int:
+    if not os.path.isfile(FIXTURE):
+        print(f"FAIL: fixture missing at {FIXTURE}")
+        return 1
+
+    with open(SERVICE, encoding="utf-8") as fh:
+        original = fh.read()
+
+    rc, out = run_fixture()
+    if rc != 0:
+        print("FAIL: the fixture does not pass on the real code, so a failure "
+              "below would prove nothing.")
+        print(out.strip()[-900:])
+        return 1
+    print("fixture passes on the real code")
+
+    ok = True
+    for label, pairs in SABOTAGES:
+        text = original
+        applied = True
+        for needle, replacement in pairs:
+            if text.count(needle) != 1:
+                print(f"FAIL: {label} — anchor found {text.count(needle)} times, "
+                      f"sabotage not applied.")
+                ok = False
+                applied = False
+                break
+            text = text.replace(needle, replacement, 1)
+        if not applied:
+            continue
+
+        with open(SERVICE, "w", encoding="utf-8", newline="") as fh:
+            fh.write(text)
+        try:
+            rc_broken, out_broken = run_fixture()
+        finally:
+            with open(SERVICE, "w", encoding="utf-8", newline="") as fh:
+                fh.write(original)
+
+        rc_after, out_after = run_fixture()
+        if rc_after != 0:
+            print(f"FAIL: {label} — the fixture did not pass again after restoring.")
+            print(out_after.strip()[-800:])
+            ok = False
+            continue
+        if rc_broken == 0:
+            print(f"FAIL: {label} still passed. The fixture cannot see it.")
+            ok = False
+            continue
+
+        caught = [ln.strip() for ln in out_broken.splitlines() if "GAPS" in ln]
+        print(f"  {label} -> caught")
+        for line in caught:
+            print(f"      {line[:170]}")
+
+    if not ok:
+        return 1
+    print("\nPASS: the downscale is load-bearing for the aspect ratio, for the "
+          "no-upscale rule, and for the setting's ability to turn it off.")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

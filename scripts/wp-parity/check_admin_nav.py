@@ -27,7 +27,18 @@ ADMIN_APP = ROOT / "frontend" / "app" / "admin"
 # Routes that are legitimately not sidebar entries.
 #   /admin            — a redirect stub to /admin/dashboard
 #   /admin/<x>/[id]   — detail pages reached by clicking a row on their list
-ALWAYS_IGNORE = {"/admin"}
+ALWAYS_IGNORE = {
+    "/admin",
+    # A test fixture, not a feature: the page that mounts the content editor on
+    # its own so frontend/scripts/verify-editor-toolbar.mjs can drive its
+    # toolbar in a real browser. It belongs under /admin (the staff guard in
+    # middleware.ts covers only /admin and /account, so at its original
+    # /editor-probe path it was reachable by anyone who typed the URL), which
+    # is exactly why it must never appear in the sidebar. If it is ever linked
+    # in adminLinks, this exception is no longer needed and the entry should go
+    # — a navigation entry to a test page is itself a bug.
+    "/admin/editor-probe",
+}
 
 
 def parse_links() -> set[str]:

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import uuid
+from datetime import datetime
 from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field, field_serializer
@@ -129,6 +130,20 @@ class PublicSettingResponse(BaseModel):
 
     key: str
     value: dict[str, Any] | None = None
+
+
+class PrivacyPolicyResponse(BaseModel):
+    """The privacy policy a consent form links to.
+
+    ``None`` for every field when no published policy exists. That is an answer,
+    not an error: a store that has not written a policy must show no link rather
+    than one that 404s, so the shape is nullable throughout instead of the route
+    returning a 404 and every form treating that as a network error.
+    """
+
+    title: str | None = Field(None, max_length=300)
+    slug: str | None = Field(None, max_length=220)
+    url: str | None = Field(None, max_length=500)
 
 
 # ── SMS Provider Schemas ─────────────────────────────────────────────────────
@@ -308,3 +323,30 @@ class TelegramDeliveryLogResponse(BaseModel):
 
     items: list[TelegramDeliveryLogItem]
     total: int
+
+
+class MaintenanceStateResponse(BaseModel):
+    """Whether the store is down for maintenance, and why.
+
+    Read by the storefront *before* it renders anything, which is what lets a
+    client-rendered shell show the maintenance page instead of a blank frame with
+    a network error in the console. ``minutes`` is the time *left* rather than
+    the duration asked for, because an operator reading it wants to know when the
+    store comes back, not what they typed.
+    """
+
+    active: bool
+    reason: str = ""
+    minutes: int = 0
+    expires_at: datetime | None = None
+
+
+class MaintenanceSetRequest(BaseModel):
+    """Turn maintenance on or off."""
+
+    active: bool
+    #: How long, in minutes. The floor of ten and the ceiling of 72 hours are
+    #: enforced in the service as well as here, because the service is reachable
+    #: from a script and a script does not go through validation.
+    minutes: int = Field(10, ge=1, le=4320)
+    reason: str = Field("", max_length=500)

@@ -20,6 +20,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
 import {
   contentTypesApi,
+  type CustomPostEntryRevision,
   type CustomPostType,
   type CustomPostEntry,
   type ContentTypeField,
@@ -31,6 +32,14 @@ export function ContentTypesTab() {
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<CustomPostType | null>(null);
   const [entries, setEntries] = useState<CustomPostEntry[]>([]);
+  // Which entry the edit form is bound to. Without it the tab could create
+  // an entry but never change one, so a typo in a field could only be fixed
+  // by deleting the entry and making another — and there was no revision
+  // history to go back to, because nothing could be edited.
+  const [editingEntry, setEditingEntry] = useState<CustomPostEntry | null>(null);
+  const [entrySched, setEntrySched] = useState("");
+  const [revisionsFor, setRevisionsFor] = useState<CustomPostEntry | null>(null);
+  const [revisions, setRevisions] = useState<CustomPostEntryRevision[]>([]);
   const [entriesLoading, setEntriesLoading] = useState(false);
 
   const [typeName, setTypeName] = useState("");
@@ -99,6 +108,99 @@ export function ContentTypesTab() {
       toast({ title: "ساخت تایپ محتوا ناموفق بود", variant: "destructive" });
     } finally {
       setCreating(false);
+    }
+  };
+
+  /** ISO instant -> the "YYYY-MM-DDTHH:mm" a datetime-local input expects.
+ *
+ *  `toISOString()` is UTC and would shift the operator's chosen wall-clock time
+ *  by their offset, so picking 09:00 stores 05:30 and the entry goes live at
+ *  the wrong hour. The value is read back in the browser's own zone, so the
+ *  round trip lands on what was typed.
+ */
+const toLocalInput = (iso?: string | null): string => {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}` +
+    `T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+};
+
+/** Put an entry into the edit form. Clears whatever the create form held, so
+   *  switching between create and edit does not show the previous row's values
+   *  under a heading that says "new entry". */
+  const startEditing = (entry: CustomPostEntry) => {
+    setEditingEntry(entry);
+    setEntryTitle(entry.title);
+    setEntryFields(
+      Object.fromEntries(
+        Object.entries(entry.fields ?? {}).map(([k, v]) => [k, String(v)]),
+      ),
+    );
+    // The row's own schedule, not a blank. The save only sends the field when
+    // it is non-empty, so starting from "" would drop a schedule the operator
+    // opened the form to change the title of.
+    setEntrySched(toLocalInput(entry.scheduled_publish_at));
+  };
+
+  const cancelEditing = () => {
+    setEditingEntry(null);
+    setEntryTitle("");
+    setEntryFields({});
+    setEntrySched("");
+  };
+
+  const handleUpdateEntry = async () => {
+    if (!selected || !editingEntry || !entryTitle.trim()) return;
+    setCreatingEntry(true);
+    try {
+      await contentTypesApi.updateEntry(selected.id, editingEntry.id, {
+        title: entryTitle.trim(),
+        fields: entryFields,
+        // Sent even when empty: an emptied field means "unschedule", and
+        // omitting the key would leave the old time in place with no way to
+        // clear it from the form.
+        scheduled_publish_at: entrySched
+          ? new Date(entrySched).toISOString()
+          : null,
+      });
+      toast({ title: "ورودی به‌روزرسانی شد" });
+      cancelEditing();
+      await loadEntries(selected);
+    } catch {
+      toast({ title: "به‌روزرسانی ناموفق بود", variant: "destructive" });
+    } finally {
+      setCreatingEntry(false);
+    }
+  };
+
+  /** Load an entry's revisions into the panel under the list. */
+  const toggleRevisions = async (entry: CustomPostEntry) => {
+    if (revisionsFor?.id === entry.id) {
+      setRevisionsFor(null);
+      setRevisions([]);
+      return;
+    }
+    setRevisionsFor(entry);
+    setRevisions([]);
+    try {
+      setRevisions(await contentTypesApi.entryRevisions(entry.id));
+    } catch {
+      toast({ title: "تاریخچه بارگذاری نشد", variant: "destructive" });
+    }
+  };
+
+  const handleRestoreRevision = async (revisionNumber: number) => {
+    if (!selected || !revisionsFor) return;
+    try {
+      await contentTypesApi.restoreEntryRevision(revisionsFor.id, revisionNumber);
+      toast({ title: `نسخهٔ ${revisionNumber} بازگردانده شد` });
+      setRevisionsFor(null);
+      setRevisions([]);
+      await loadEntries(selected);
+    } catch {
+      toast({ title: "بازگردانی ناموفق بود", variant: "destructive" });
     }
   };
 
@@ -293,14 +395,53 @@ export function ContentTypesTab() {
                   )}
                 </div>
               ))}
-              <Button
-                size="sm"
-                className="w-full"
-                onClick={() => void handleCreateEntry()}
-                disabled={creatingEntry || !entryTitle.trim()}
-              >
-                <Plus className="h-4 w-4" /> افزودن ورودی
-              </Button>
+              {/* Schedule only when editing. A schedule on an entry that does
+                  not exist yet has nothing to publish, and offering the field
+                  during create invites a date that is silently dropped. */}
+              {editingEntry && (
+                <div className="space-y-1.5">
+                  <Label htmlFor="ct-sched" className="text-xs">
+                    انتشار زمان‌بندی‌شده (اختیاری)
+                  </Label>
+                  <Input
+                    id="ct-sched"
+                    type="datetime-local"
+                    value={entrySched}
+                    onChange={(e) => setEntrySched(e.target.value)}
+                    className="text-xs"
+                    dir="ltr"
+                  />
+                </div>
+              )}
+              {editingEntry ? (
+                <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    className="flex-1"
+                    onClick={() => void handleUpdateEntry()}
+                    disabled={creatingEntry || !entryTitle.trim()}
+                  >
+                    ذخیرهٔ تغییرات
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={cancelEditing}
+                    disabled={creatingEntry}
+                  >
+                    انصراف
+                  </Button>
+                </div>
+              ) : (
+                <Button
+                  size="sm"
+                  className="w-full"
+                  onClick={() => void handleCreateEntry()}
+                  disabled={creatingEntry || !entryTitle.trim()}
+                >
+                  <Plus className="h-4 w-4" /> افزودن ورودی
+                </Button>
+              )}
             </div>
 
             {entriesLoading ? (
@@ -313,12 +454,74 @@ export function ContentTypesTab() {
               <div className="space-y-2">
                 {entries.map((e) => (
                   <div key={e.id} className="rounded-lg border border-border p-3">
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between gap-2">
                       <span className="text-xs font-medium">{e.title}</span>
-                      <Badge variant="outline" className="text-[10px]">
-                        {e.status}
-                      </Badge>
+                      <div className="flex items-center gap-1.5">
+                        <Badge variant="outline" className="text-[10px]">
+                          {e.status}
+                        </Badge>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-6 px-2 text-[10px]"
+                          onClick={() =>
+                            editingEntry?.id === e.id
+                              ? cancelEditing()
+                              : startEditing(e)
+                          }
+                        >
+                          {editingEntry?.id === e.id ? "انصراف" : "ویرایش"}
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-6 px-2 text-[10px]"
+                          onClick={() => void toggleRevisions(e)}
+                        >
+                          {revisionsFor?.id === e.id ? "بستن تاریخچه" : "تاریخچه"}
+                        </Button>
+                      </div>
                     </div>
+                    {e.scheduled_publish_at && (
+                      <p className="mt-1 text-[10px] text-amber-600">
+                        زمان‌بندی انتشار:{" "}
+                        {new Date(e.scheduled_publish_at).toLocaleString("fa-IR")}
+                      </p>
+                    )}
+                    {revisionsFor?.id === e.id && (
+                      <div className="mt-2 space-y-1 rounded border border-border p-2">
+                        {revisions.length === 0 ? (
+                          <p className="text-[10px] text-muted-foreground">
+                            هنوز نسخه‌ای ثبت نشده — اولین ویرایش، مبنای بعدی را
+                            می‌سازد.
+                          </p>
+                        ) : (
+                          revisions.map((r) => (
+                            <div
+                              key={r.revision_number}
+                              className="flex items-center justify-between text-[10px]"
+                            >
+                              <span>
+                                نسخهٔ {r.revision_number}
+                                {r.created_at
+                                  ? ` — ${new Date(r.created_at).toLocaleString("fa-IR")}`
+                                  : ""}
+                              </span>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="h-5 px-2 text-[10px]"
+                                onClick={() =>
+                                  void handleRestoreRevision(r.revision_number)
+                                }
+                              >
+                                بازگردانی
+                              </Button>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    )}
                     {e.fields && Object.keys(e.fields).length > 0 && (
                       <div className="mt-1.5 flex flex-wrap gap-1.5 text-[10px] text-muted-foreground">
                         {Object.entries(e.fields).map(([k, v]) => (

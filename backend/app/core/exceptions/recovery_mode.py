@@ -105,6 +105,75 @@ class RecoveryMode:
         return {**state, "persisted": True}
 
     @staticmethod
+    def issue_invitation(
+        *, ttl_minutes: int = 30
+    ) -> dict[str, Any]:
+        """Mint a one-time recovery key and store its hash in the pause state.
+
+        WordPress emails the site admin a recovery link carrying a temporary
+        login key, so a locked-out operator gets back in without a shell. The
+        plaintext key is returned here and never stored: the state keeps only a
+        SHA-256 of it, so reading the pause file does not hand over a login.
+
+        The key is bound to the current pause and expires with its own short
+        window — a recovery key that outlives the incident is just a second
+        password.
+        """
+        import hashlib
+        import secrets
+
+        state = RecoveryMode._read()
+        if state is None:
+            return {"issued": False, "reason": "the site is not in recovery mode"}
+
+        key = secrets.token_urlsafe(32)
+        digest = hashlib.sha256(key.encode()).hexdigest()
+        state["recovery_key_hash"] = digest
+        state["recovery_key_until"] = (
+            datetime.now(timezone.utc) + timedelta(minutes=ttl_minutes)
+        ).isoformat()
+        try:
+            PAUSE_FILE.write_text(json.dumps(state), encoding="utf-8")
+        except OSError:
+            logger.exception("recovery_mode_key_write_failed")
+            return {"issued": False, "reason": "could not persist the recovery key"}
+        logger.warning(
+            "recovery_mode_key_issued reference=%s", state.get("reference")
+        )
+        return {
+            "issued": True,
+            "key": key,
+            "expires_at": state["recovery_key_until"],
+            "reference": state.get("reference"),
+        }
+
+    @staticmethod
+    def verify_invitation(key: str) -> bool:
+        """Whether ``key`` is the current, unexpired recovery key.
+
+        Constant-time comparison, and expiry is checked here rather than trusted
+        to the caller: a key that a request forgets to time-check is a key that
+        never expires.
+        """
+        import hashlib
+        import hmac
+
+        state = RecoveryMode._read()
+        if state is None:
+            return False
+        stored = state.get("recovery_key_hash")
+        until = state.get("recovery_key_until")
+        if not stored or not until:
+            return False
+        try:
+            if datetime.now(timezone.utc) >= datetime.fromisoformat(until):
+                return False
+        except ValueError:
+            return False
+        supplied = hashlib.sha256((key or "").encode()).hexdigest()
+        return hmac.compare_digest(supplied, stored)
+
+    @staticmethod
     def resume(reference: str | None = None) -> bool:
         """Leave recovery mode. False when the site was not paused."""
         if PAUSE_FILE.exists():

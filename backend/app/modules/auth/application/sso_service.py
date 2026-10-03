@@ -214,12 +214,20 @@ async def complete_google_login(
         # length is now derived from the column so it cannot drift again, and
         # shortened to fit rather than truncating a fixed literal.
         phone = _sso_phone_placeholder()
+        # The author slug, from the email's local part: without it an SSO
+        # account's author archive 404s, which is the same gap the OTP path
+        # had — every creation path must write the column the archive reads.
+        from app.modules.users.application.author_slug import unique_author_slug
+
         user = User(
             phone=phone,
             email=email,
             password_hash=None,
             is_active=True,
             is_verified=True,
+            author_slug=await unique_author_slug(
+                db, email.split("@")[0] or email, fallback=email
+            ),
         )
         db.add(user)
         await db.flush()

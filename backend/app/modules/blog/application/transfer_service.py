@@ -25,11 +25,14 @@ from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
 from app.modules.blog.domain.models import (
+    COMMENT_TYPE_COMMENT,
     BlogCategory,
+    BlogComment,
     BlogPost,
     BlogPostStatus,
     BlogPostTag,
     BlogTag,
+    CommentStatus,
 )
 
 if TYPE_CHECKING:
@@ -83,19 +86,108 @@ class BlogTransferService:
                 "published_at": p.published_at.isoformat() if p.published_at else None,
                 "category_slug": p.category.slug if p.category else None,
                 "tag_slugs": tag_slugs,
+                # WordPress's meta carried the interesting per-post fields, and
+                # dropping them is what made an export lossy in a way nobody
+                # noticed until an import came back with them empty.
+                "meta": {
+                    "allow_comments": bool(p.allow_comments),
+                    "is_featured": bool(p.is_featured),
+                    "post_format": p.post_format,
+                    "visibility": (p.visibility.value
+                                   if hasattr(p.visibility, "value")
+                                   else p.visibility),
+                    # `menu_order` is a page field, not a post one. Writing it
+                    # here would have been a key the importer reads and never
+                    # finds, which is how a "complete" export loses a field
+                    # quietly.
+                    "author_id": str(p.author_id) if p.author_id else None,
+                },
             })
+
+        # Comments. A blog export without them is not a blog: the discussion is
+        # half the content, and an import that silently dropped every comment
+        # would lose it without saying so.
+        comments = (await db.execute(
+            select(BlogComment)
+            .where(BlogComment.comment_type == COMMENT_TYPE_COMMENT)
+            .order_by(BlogComment.created_at.asc())
+        )).scalars().all()
+        comments_data = [
+            {
+                # The WXR author field: WordPress writes an author email here
+                # and a display name alongside it. Exporting the email is what
+                # lets an import attribute the comment to the same person
+                # instead of dropping it in a bucket.
+                "author": c.author_email or "",
+                "author_name": c.author_name or c.author_email or "",
+                "author_url": c.author_url,
+                "author_ip": c.author_ip,
+                "date_gmt": c.created_at.isoformat() if c.created_at else None,
+                "content": c.content,
+                "status": c.status.value if isinstance(c.status, CommentStatus) else str(c.status),
+                "parent": 0,  # filled below, once every comment has an index
+                "comment_post_id": str(c.post_id) if c.post_id else None,
+            }
+            for c in comments
+        ]
+        # Threading, by post. The flat list above carries `parent: 0` because a
+        # comment's own id is not known until it is assigned; WordPress readers
+        # reject a reply that points at nothing, so an export that loses the
+        # tree is a downgrade even though every comment is present.
+        by_id = {c.id: c for c in comments}
+        for entry, comment in zip(comments_data, comments):
+            parent = getattr(comment, "parent_id", None)
+            if parent is not None and parent in by_id:
+                entry["parent"] = str(parent)
+
+        # Menu items, so a migration brings the navigation with it.
+        # Grouped by location because that is how the site renders them — one
+        # table with a `location` column, not a menu row with children — and
+        # an export that flattened the grouping would produce a nav the importer
+        # cannot place back.
+        menus_data: list[dict[str, Any]] = []
+        try:
+            from app.modules.content.domain.models import SiteMenu
+
+            rows = (await db.execute(
+                select(SiteMenu).order_by(SiteMenu.location, SiteMenu.position)
+            )).scalars().all()
+            by_location: dict[str, list[dict[str, Any]]] = {}
+            for item in rows:
+                by_location.setdefault(item.location or "", []).append({
+                    "title": item.title,
+                    "url": item.url,
+                    "parent_id": str(item.parent_id) if item.parent_id else None,
+                    "position": item.position,
+                })
+            menus_data = [
+                {"location": loc, "items": items}
+                for loc, items in sorted(by_location.items())
+            ]
+        except Exception as exc:  # noqa: BLE001
+            # A missing menu module must not lose the blog export. WordPress's
+            # own exporter treats navigation as separate from content for the
+            # same reason.
+            logger.info("blog_export_menus_skipped", error=str(exc))
 
         export = {
             "format": "itrip-blog-export",
-            "version": "1.0",
+            # 1.1: comments, navigation and per-post meta joined the payload.
+            # A consumer that reads `version` should refuse 1.0 rather than
+            # import a partial site and believe it imported everything.
+            "version": "1.1",
             "exported_at": datetime.now(UTC).isoformat(),
             "categories": categories_data,
             "tags": tags_data,
             "posts": posts_data,
+            "comments": comments_data,
+            "menus": menus_data,
             "counts": {
                 "categories": len(categories_data),
                 "tags": len(tags_data),
                 "posts": len(posts_data),
+                "comments": len(comments_data),
+                "menus": len(menus_data),
             },
         }
         logger.info(
@@ -103,6 +195,7 @@ class BlogTransferService:
             categories=len(categories_data),
             tags=len(tags_data),
             posts=len(posts_data),
+            comments=len(comments_data),
         )
         return export
 

@@ -1,0 +1,15 @@
+# The knowledge graph is for OUR project. Anything copied in from elsewhere
+# is not ours to graph — it buries our own nodes under a foreign codebase.
+
+# A full copy of WordPress, pulled in as an audit reference. 211 MB, and it
+# was 56% of every node in the graph: our own 20% was the minority in a graph
+# named after this repository. The real reference lives at
+# C:\Users\Administrator\wp-core, outside this tree.
+.arena-ref/
+
+# Build output and dependencies. Anchored with a trailing slash so a future
+# source package named `next/` or `node_modules/` at the repo root is not
+# swallowed by the rule — the unanchored-directory bug from 2026-09-30.
+frontend/.next/
+frontend/node_modules/
+node_modules/

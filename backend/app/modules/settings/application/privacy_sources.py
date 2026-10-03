@@ -256,3 +256,81 @@ def summarise(results: list[SourceResult]) -> dict[str, Any]:
         "complete": not failed,
         "failed_sources": [r.exporter for r in failed],
     }
+
+
+def build_export_zip(
+    archive: dict[str, Any],
+    *,
+    subject_label: str,
+) -> bytes:
+    """Package a collected export as a ZIP a person can actually open.
+
+    The raw JSON was the whole archive in one file: a subject who asked for
+    their data got a wall of nested objects with no way to tell which table
+    was which. This lays it out the way every other data-export tool does —
+    a human-readable ``index.html`` that lists what is inside and links each
+    source, one JSON file per source, and a ``_report.json`` that records what
+    was exported and what failed.
+
+    ``index.html`` is generated here rather than shipped as a template so the
+    counts in it match the archive it is zipped beside; a static page would
+    say "your data" while the files next to it changed shape.
+
+    Returns the raw ZIP bytes. The caller names the download.
+    """
+    import html
+    import io
+    import json
+    import zipfile
+
+    data = archive.get("data", {})
+    report = archive.get("report", {})
+
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
+        for source, payload in data.items():
+            # A source name is server-controlled (a registry key), so it is a
+            # safe path segment; the JSON is written indented so a person
+            # opening one file can read it.
+            zf.writestr(
+                f"data/{source}.json",
+                json.dumps(payload, ensure_ascii=False, indent=2, default=str),
+            )
+        zf.writestr(
+            "_report.json",
+            json.dumps(report, ensure_ascii=False, indent=2, default=str),
+        )
+
+        rows = "".join(
+            f'<li><a href="data/{html.escape(str(name))}.json">'
+            f"{html.escape(str(name))}</a></li>"
+            for name in sorted(data)
+        )
+        failed = report.get("failed_sources") or []
+        failed_html = (
+            "<p class='warn'>این منابع کامل استخراج نشدند: "
+            + ", ".join(html.escape(str(f)) for f in failed)
+            + "</p>"
+            if failed
+            else "<p class='ok'>همهٔ منابع کامل استخراج شدند.</p>"
+        )
+        index = f"""<!doctype html>
+<html lang="fa" dir="rtl"><head><meta charset="utf-8">
+<title>خروجی داده‌های {html.escape(subject_label)}</title>
+<style>
+ body{{font-family:system-ui,Tahoma,sans-serif;max-width:44rem;margin:2rem auto;padding:0 1rem;line-height:1.9}}
+ ul{{columns:2}} a{{color:#0b6}}
+ .ok{{color:#0a0}} .warn{{color:#c00;font-weight:bold}}
+</style></head><body>
+<h1>خروجی داده‌های شخصی</h1>
+<p>این بستهٔ داده‌های حساب <strong>{html.escape(subject_label)}</strong> است،
+همان‌طور که در قوانین حریم خصوصی توضیح داده شده.</p>
+<p>تعداد رکوردهای استخراج‌شده: {html.escape(str(report.get("total_exported", 0)))}</p>
+{failed_html}
+<h2>فایل‌ها</h2>
+<ul>{rows}</ul>
+<p>فایل <code>_report.json</code> گزارش کامل هر منبع را دارد.</p>
+</body></html>"""
+        zf.writestr("index.html", index)
+
+    return buf.getvalue()

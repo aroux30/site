@@ -85,11 +85,17 @@ class SiteMenu(BaseModel):
         Index("ix_site_menus_position", "position"),
     )
 
-    location: Mapped[MenuLocation] = mapped_column(
-        Enum(MenuLocation, name="menu_location_enum", native_enum=False),
-        default=MenuLocation.HEADER_MAIN,
+    # A plain slug, not the enum. The five built-ins are seeded, but an
+    # operator can add a location from the panel (a campaign bar, a
+    # landing-page nav), and an Enum column raises LookupError the moment a
+    # row holds a value outside the five — so a custom location could be
+    # written and then never read back. The DB column is varchar(32) with no
+    # CHECK constraint, so nothing in the schema forced the enum either.
+    location: Mapped[str] = mapped_column(
+        String(32),
+        default=MenuLocation.HEADER_MAIN.value,
         nullable=False,
-        server_default=text("'HEADER_MAIN'::character varying"),
+        server_default=text("'header_main'::character varying"),
     )
     title: Mapped[str] = mapped_column(String(100), nullable=False)
     url: Mapped[str] = mapped_column(String(500), nullable=False)
@@ -141,8 +147,27 @@ class FAQItem(BaseModel):
 
 class PageStatus(str, enum.Enum):
     DRAFT = "draft"
+    # Ready but not live. The blog has had this for posts; a page went straight
+    # from draft to published, so there was nothing between writing and being
+    # public.
+    PENDING_REVIEW = "pending_review"
     PUBLISHED = "published"
     ARCHIVED = "archived"
+
+
+class PageVisibility(str, enum.Enum):
+    """Who may read a published page.
+
+    Separate from ``PageStatus`` on purpose, and matching the posts: a page can
+    be *published* and still *private*, which a status enum cannot express
+    without a second "status" meaning two different things at once.
+    """
+
+    PUBLIC = "public"
+    #: Published, but not listed and not served on the storefront.
+    PRIVATE = "private"
+    #: Published, but the body is withheld until the right password is given.
+    PASSWORD = "password"
 
 
 class CmsPage(BaseModel):
@@ -183,6 +208,31 @@ class CmsPage(BaseModel):
         server_default=text("'DRAFT'::character varying"),
     )
     published_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    # Whether readers may comment on this page. Default false, not true: a page
+    # is a static document until its editor opts comments in, and turning them
+    # on page-by-page is the only sane policy for a storefront (a legal page
+    # should not accumulate threads).
+    # Hero image for a storefront page. Posts had one; a page did not, so an
+    # "about us" page had nowhere to put it.
+    cover_image_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    visibility: Mapped[PageVisibility] = mapped_column(
+        Enum(PageVisibility, name="page_visibility_enum", native_enum=False),
+        default=PageVisibility.PUBLIC,
+        # The column stores member NAMES ("PUBLIC"), not values ("public"), so a
+        # row written outside the ORM — raw SQL, a bulk insert, a restore — can
+        # still be read back. A lowercase default here would pass every ORM test
+        # and then raise LookupError on the first query that met such a row.
+        server_default=text("'PUBLIC'::character varying"),
+        nullable=False,
+    )
+    # Hashed, never plaintext: this column sits in the same row as the title,
+    # and a ``SELECT *`` would otherwise hand out every page's secret.
+    visibility_password_hash: Mapped[str | None] = mapped_column(
+        String(255), nullable=True
+    )
+    allow_comments: Mapped[bool] = mapped_column(
+        Boolean, default=False, nullable=False, server_default=text("false")
+    )
     seo_title: Mapped[str | None] = mapped_column(String(200), nullable=True)
     seo_description: Mapped[str | None] = mapped_column(String(500), nullable=True)
     author_id: Mapped[uuid.UUID | None] = mapped_column(

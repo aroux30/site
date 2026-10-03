@@ -301,3 +301,39 @@ async def purge_outbox_message(
             status_code=status.HTTP_404_NOT_FOUND, detail="Outbox message not found"
         )
     return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+# ── Scheduled jobs (WordPress's Tools → Cron Events) ─────────────────────────
+# Read-only listing plus a manual "run now". Kept on the automation router
+# because scheduled work is automation; the Site Health info tab still shows a
+# summary, this is the screen an operator actually works from.
+
+
+@router.get(
+    "/admin/scheduled-jobs",
+    dependencies=[Depends(RequirePermissions("automation:read"))],
+    summary="List Celery beat scheduled jobs (admin)",
+)
+async def list_scheduled_jobs() -> dict[str, Any]:
+    """Every beat entry with its schedule and whether its task is registered."""
+    from app.modules.automation.application.scheduler_service import SchedulerService
+
+    jobs = SchedulerService.list_jobs()
+    return {"count": len(jobs), "jobs": jobs}
+
+
+@router.post(
+    "/admin/scheduled-jobs/{name}/run",
+    dependencies=[Depends(RequirePermissions("automation:write"))],
+    summary="Run a scheduled job now (admin)",
+)
+async def run_scheduled_job(name: str) -> dict[str, Any]:
+    """Dispatch one beat entry immediately.
+
+    Reports honestly: an unknown name or a stale (unregistered) task returns
+    ``dispatched: false`` with the reason, rather than a "sent" the operator
+    would trust and act on.
+    """
+    from app.modules.automation.application.scheduler_service import SchedulerService
+
+    return SchedulerService.run_job(name)

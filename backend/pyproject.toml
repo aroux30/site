@@ -170,7 +170,13 @@ warn_required_dynamic_aliases = true
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
 pythonpath = ["."]
-testpaths = ["tests"]
+# The suites live beside the code they cover, under app/tests/. The previous
+# value pointed at a "tests" directory that does not exist, so pytest fell
+# back to its rootdir collection and happened to find them — which meant the
+# moment anyone created backend/tests/ the whole suite would have silently
+# stopped running. passWithNoTests is false below for the same reason: a run
+# that executes nothing must not look like a passing run.
+testpaths = ["app/tests"]
 filterwarnings = [
     "ignore::DeprecationWarning",
 ]

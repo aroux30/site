@@ -6,7 +6,12 @@ import uuid
 from typing import Any
 
 from fastapi import Cookie, Depends, HTTPException, Request, status
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from fastapi.security import (
+    HTTPBasic,
+    HTTPBasicCredentials,
+    HTTPAuthorizationCredentials,
+    HTTPBearer,
+)
 
 from app.core.security.actor_context import SOURCE_ADMIN, SOURCE_API, bind_actor
 from app.core.security.jwt import verify_token
@@ -14,6 +19,12 @@ from app.core.security.jwt import verify_token
 # auto_error=False so that missing Authorization header does not immediately 401;
 # we fall back to the access_token cookie when the header is absent.
 _bearer_scheme = HTTPBearer(auto_error=False)
+# WordPress accepts an application password over HTTP Basic
+# (``Authorization: Basic base64(user:app_password)``), and so should this: a
+# script written against a WordPress REST client should not have to be
+# rewritten just to change the scheme. auto_error=False for the same reason as
+# the bearer scheme — a request with no Basic header must fall through, not 401.
+_basic_scheme = HTTPBasic(auto_error=False)
 
 
 def _looks_like_application_password(token: str) -> bool:
@@ -29,13 +40,22 @@ def _looks_like_application_password(token: str) -> bool:
 async def _extract_token(
     request: Request,
     credentials: HTTPAuthorizationCredentials | None = Depends(_bearer_scheme),
+    basic: HTTPBasicCredentials | None = Depends(_basic_scheme),
     access_token: str | None = Cookie(default=None),
 ) -> dict[str, Any]:
     """Extract and validate the JWT.
 
     Resolution order:
     1. ``Authorization: Bearer <token>`` header  (API clients / mobile apps)
-    2. ``access_token`` HttpOnly cookie          (browser sessions)
+    2. ``Authorization: Basic base64(user:app_password)`` (WordPress clients)
+    3. ``access_token`` HttpOnly cookie          (browser sessions)
+
+    Basic carries the login in the username field and the application password
+    in the password field, as WordPress does. The username is *not* trusted: the
+    credential is looked up by the password's own record, and the record's
+    subject is who the request is. A caller who sends a different username gets
+    the identity the password actually belongs to, which is what makes a leaked
+    script config (with the login baked in) useless without the password itself.
 
     Also enforces the server-side revocation denylist: a user deactivated
     (or security-suspended) is rejected immediately even while their access
@@ -46,6 +66,8 @@ async def _extract_token(
 
     if credentials is not None:
         token = credentials.credentials
+    elif basic is not None and basic.password:
+        token = basic.password
     elif access_token:
         token = access_token
 
@@ -53,7 +75,9 @@ async def _extract_token(
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Not authenticated",
-            headers={"WWW-Authenticate": "Bearer"},
+            # Both schemes are advertised: WordPress clients look for Basic,
+            # everything else has been using Bearer.
+            headers={"WWW-Authenticate": 'Bearer, Basic realm="api"'},
         )
 
     # An application password is not a JWT, so it must be recognised before
@@ -118,6 +142,7 @@ async def _extract_token(
 async def _extract_optional_token(
     request: Request,
     credentials: HTTPAuthorizationCredentials | None = Depends(_bearer_scheme),
+    basic: HTTPBasicCredentials | None = Depends(_basic_scheme),
     access_token: str | None = Cookie(default=None),
 ) -> dict[str, Any] | None:
     """Like ``_extract_token`` but anonymous callers get ``None``.
@@ -130,7 +155,12 @@ async def _extract_optional_token(
     """
     if credentials is None and not access_token:
         return None
-    return await _extract_token(request, credentials, access_token)
+    return await _extract_token(
+        request,
+        credentials=credentials,
+        basic=basic,
+        access_token=access_token,
+    )
 
 
 async def get_current_user_optional(

@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import CmsPageShell, { fetchCmsPage, cmsMetadata } from "@/components/cms/cms-page-shell";
+import { apiInternalUrl } from "@/lib/api/server-base";
 import { Shield, Lock, Eye, Server, Database, KeyRound } from "lucide-react";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const page = await fetchCmsPage("privacy");
+  const slug = await fetchPolicySlug();
+  const page = await fetchCmsPage(slug);
   if (!page) return { title: "سیاست حفظ حریم خصوصی", description: "خط‌مشی رازداری، حفظ حریم شخصی و نگهداری امن داده‌های کاربران در فروشگاه." };
   return cmsMetadata(page, "سیاست حفظ حریم خصوصی", "خط‌مشی رازداری، حفظ حریم شخصی و نگهداری امن داده‌های کاربران در فروشگاه.");
 }
@@ -116,9 +118,35 @@ function PrivacyPageFallback() {
   );
 }
 
+/** The slug of the page the operator designated as the privacy policy.
+ *
+ * WordPress stores this as `wp_page_for_privacy_policy`; here it is the
+ * `privacy.policy_page` site option, read through the same public endpoint
+ * the registration/comment/checkout forms use. It used to be hardcoded to
+ * "privacy" here, so an operator who picked a different page — "privacy-
+ * policy", "gizasht" — still got the old page on this route, and their choice
+ * only affected the form links. One source, one page.
+ *
+ * Falls back to "privacy" when nothing is configured: the store that never
+ * touched the setting must keep rendering the page it always rendered.
+ */
+async function fetchPolicySlug(): Promise<string> {
+  try {
+    const res = await fetch(`${apiInternalUrl()}/settings/public/privacy-policy`, {
+      next: { revalidate: 300 },
+    });
+    if (!res.ok) return "privacy";
+    const data = (await res.json()) as { slug?: string | null };
+    return data.slug?.trim() || "privacy";
+  } catch {
+    return "privacy";
+  }
+}
+
 export default async function PrivacyPage() {
+  const slug = await fetchPolicySlug();
   const privacypagepage = <PrivacyPageFallback />;
   return (
-    <CmsPageShell slug="privacy" fallback={privacypagepage} />
+    <CmsPageShell slug={slug} fallback={privacypagepage} />
   );
 }

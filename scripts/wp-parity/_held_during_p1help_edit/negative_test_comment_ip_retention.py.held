@@ -1,0 +1,208 @@
+"""Negative test: the comment-IP retention guard can actually fail.
+
+A source-reading guard is the shape most likely to be decorative: a name
+appears, the check is green, and the file could still be broken. So each
+assertion is broken one at a time and the guard has to go red for the reason it
+claims.
+
+The v6 case is the one worth the trouble. A v4-only implementation looks correct
+on every v4 row and quietly leaves every IPv6 comment's exact address in the
+table — and a v6 comment identifies one device, while its /64 is the block an
+ISP hands to one customer, so anonymizing v4 alone anonymizes only the easier
+half of the commenters.
+
+    python scripts/wp-parity/negative_test_comment_ip_retention.py
+"""
+
+from __future__ import annotations
+
+import io
+import os
+import subprocess
+import sys
+from pathlib import Path
+
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
+
+ROOT = Path(__file__).resolve().parents[2]
+GUARD = ROOT / "scripts" / "wp-parity" / "check_comment_ip_retention.py"
+ANON = ROOT / "backend" / "app" / "core" / "security" / "ip_anonymize.py"
+SERVICE = (
+    ROOT
+    / "backend"
+    / "app"
+    / "modules"
+    / "settings"
+    / "application"
+    / "privacy_service.py"
+)
+RETENTION = (
+    ROOT
+    / "backend"
+    / "app"
+    / "modules"
+    / "settings"
+    / "application"
+    / "comment_ip_retention_service.py"
+)
+
+# (name, file, original, broken, expected substring in the guard's output)
+CASES: list[tuple[str, Path, str, str, str]] = [
+    (
+        "the anonymizer is gone",
+        ANON,
+        "def anonymize_ip(ip_addr: str | None) -> str:",
+        "def _unused_anonymize(ip_addr: str | None) -> str:",
+        "no IP anonymizer",
+    ),
+    (
+        "the IPv6 prefix length is removed",
+        ANON,
+        "V6_PREFIX_LEN = 64",
+        "V6_PREFIX_LEN = 128",
+        "V6_PREFIX_LEN is 128, not 64",
+    ),
+    (
+        "a v4-mapped address is not collapsed",
+        ANON,
+        # Both halves of the branch, not just the guard: the `if` can be
+        # neutered while the assignment below it still reads `ipv4_mapped`, and
+        # a name-based guard sees that leftover and calls the collapse present.
+        "    if isinstance(parsed, ipaddress.IPv6Address) and parsed.ipv4_mapped is not None:\n"
+        "        return _network_address(parsed.ipv4_mapped)",
+        "    if isinstance(parsed, ipaddress.IPv6Address) and parsed.version == 6:\n"
+        "        return _network_address(parsed)",
+        "is not collapsed to v4",
+    ),
+    (
+        "the idempotency check is gone",
+        ANON,
+        "def ip_is_masked(ip_addr: str | None) -> bool:",
+        "def _unused_masked(ip_addr: str | None) -> bool:",
+        "no idempotency check",
+    ),
+    (
+        "the erasure blanks the address again",
+        SERVICE,
+        "comment.author_ip = anonymize_ip(comment.author_ip)",
+        "comment.author_ip = None",
+        "blanked instead of masked",
+    ),
+    (
+        "one of the two erasure branches stops masking",
+        SERVICE,
+        "                    comment.author_ip = anonymize_ip(comment.author_ip)\n"
+        "                    comment.author_user_agent = None\n"
+        "                await db.commit()",
+        "                    comment.author_ip = None\n"
+        "                    comment.author_user_agent = None\n"
+        "                await db.commit()",
+        "only 1 of the 2 erasure branches",
+    ),
+    (
+        "the sweep loses its age filter",
+        RETENTION,
+        "                    BlogComment.created_at < cutoff,",
+        "                    BlogComment.created_at < cutoff - timedelta(days=3650),",
+        "so the window is not the one the retention policy",
+    ),
+    (
+        "the sweep stops skipping already-masked rows",
+        RETENTION,
+        "            if not raw or ip_is_masked(raw):",
+        "            if not raw:",
+        "does not skip already-masked",
+    ),
+    (
+        "the sweep pages without an ordering",
+        RETENTION,
+        "                .order_by(BlogComment.id)\n",
+        "",
+        "pages without an ordering",
+    ),
+]
+
+
+def run_guard() -> tuple[int, str]:
+    # A subprocess, not an import: this script and the guard both rebind
+    # sys.stdout to a fresh TextIOWrapper at import time, and the two wrappers
+    # share a buffer, so importing the guard closes the stream this script is
+    # still printing to.
+    proc = subprocess.run(
+        [sys.executable, str(GUARD)],
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        cwd=ROOT,
+        env={**os.environ, "PYTHONIOENCODING": "utf-8"},
+    )
+    return proc.returncode, proc.stdout + proc.stderr
+
+
+def main() -> int:
+    saved: dict[Path, str] = {}
+    for _, path, _, _, _ in CASES:
+        if path not in saved:
+            saved[path] = path.read_text(encoding="utf-8")
+
+    print("baseline (unbroken tree):")
+    code, out = run_guard()
+    if code != 0:
+        print(out)
+        print(
+            "FAIL: the guard is not green on the unbroken tree, so a red run below "
+            "would mean nothing"
+        )
+        return 1
+    print("  PASS as expected")
+    print("")
+
+    failures: list[str] = []
+    for name, path, original, broken, expected in CASES:
+        source = saved[path]
+        if original not in source:
+            failures.append(
+                "%s: the marker to break is not in %s, so this case would prove "
+                "nothing -- update it for the current source" % (name, path.name)
+            )
+            continue
+        path.write_text(source.replace(original, broken, 1), encoding="utf-8")
+        try:
+            code, out = run_guard()
+        finally:
+            path.write_text(source, encoding="utf-8")
+
+        if code == 0:
+            failures.append("%s: the guard still passed" % name)
+            print("  FAIL %s -- the guard still passed" % name)
+        elif expected not in out:
+            failures.append(
+                "%s: the guard went red, but not for this reason -- expected %r in "
+                "the output" % (name, expected)
+            )
+            print("  FAIL %s -- red for the wrong reason" % name)
+            print("    " + out.strip().replace("\n", "\n    "))
+        else:
+            print("  PASS %s -> guard went red for the right reason" % name)
+
+    code, out = run_guard()
+    if code != 0:
+        print(out)
+        failures.append("the guard is red again after restoring every file")
+    else:
+        print("")
+        print("PASS: the tree is green again after every injection was reverted.")
+
+    if failures:
+        print("")
+        for f in failures:
+            print("FAIL: %s" % f)
+        return 1
+    print("")
+    print("PASS: every assertion in this guard can fail, for its own reason.")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

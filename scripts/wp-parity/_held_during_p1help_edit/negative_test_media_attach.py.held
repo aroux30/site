@@ -1,0 +1,178 @@
+"""Negative test for the media attach feature.
+
+The column this whole feature is about existed, was nullable, and had no
+writer — so every one of these sabotages produces a system that imports, runs,
+and returns an empty list. That is the point: nothing about the failure is
+visible except that the list is empty, which is what an operator sees when
+there happens to be nothing in the library.
+
+  B. Accept both filters at once and resolve to the post filter. The operator
+     who asked for "media attached to nothing" gets one post's images instead.
+  C. Attach without checking the post exists. Stores a dangling reference,
+     which is invisible until somebody follows it.
+  D. Drop `post_id` from the response schema. The write works, the filter
+     works, and the library still shows a blank column.
+
+And one sabotage that cannot be caught, verified rather than assumed — see
+`EQUALITY_IS_HARMLESS` below. An earlier version of this script listed
+`column == None` as a sabotage and reported FAIL; the fixture was right and the
+sabotage was a no-op.
+
+Run:  python scripts/wp-parity/negative_test_media_attach.py
+"""
+
+from __future__ import annotations
+
+import os
+import subprocess
+import sys
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+ROOT = os.path.dirname(os.path.dirname(HERE))
+FIXTURE = os.path.join(ROOT, ".p1-tests", "media_attach_test.py")
+SERVICE = os.path.join(ROOT, "backend", "app", "modules", "media",
+                       "application", "media_service.py")
+SCHEMA = os.path.join(ROOT, "backend", "app", "modules", "media",
+                      "schemas", "media.py")
+
+NL = chr(10)
+
+SABOTAGES = [
+    (
+        "B: silently prefer post_id when both filters are given",
+        SERVICE,
+        [("        if post_id is not None and unattached:" + NL +
+          '            raise ValueError("post_id and unattached cannot both be set")',
+          "        if post_id is not None and unattached:" + NL +
+          "            unattached = False  # sabotage: resolve it silently")],
+    ),
+    (
+        "C: attach without checking the post exists",
+        SERVICE,
+        [("            post = await db.get(BlogPost, post_id)" + NL +
+          "            if post is None:" + NL +
+          '                raise NotFoundError("BlogPost", f"Post {post_id} not found")',
+          "            pass  # sabotage: store the dangling reference")],
+    ),
+    (
+        "D: drop post_id from the response schema",
+        SCHEMA,
+        [("    post_id: uuid.UUID | None = None" + NL +
+          "    created_at: datetime",
+          "    created_at: datetime")],
+    ),
+]
+
+# The comparison that looks like the bug this fixture was written to catch, and
+# is not one. SQLAlchemy 2 rewrites `column == None` to `IS NULL` when the
+# value is a bare None, so both spellings emit the same query. Verified below
+# against the real compiler, so the claim is a fact in this file rather than a
+# comment somebody can contradict later.
+EQUALITY_IS_HARMLESS = [
+    (
+        "the unattached filter written as == None",
+        SERVICE,
+        [("            stmt = stmt.where(MediaAsset.post_id.is_(None))",
+          "            stmt = stmt.where(MediaAsset.post_id == None)")],
+    ),
+]
+
+
+def run_fixture() -> tuple[int, str]:
+    proc = subprocess.run(
+        [sys.executable, FIXTURE], capture_output=True, text=True,
+        encoding="utf-8", errors="replace", timeout=600,
+    )
+    return proc.returncode, (proc.stdout or "") + (proc.stderr or "")
+
+
+def _patch(path: str, pairs):
+    """Apply pairs, return the original. Raises if an anchor is not unique."""
+    with open(path, encoding="utf-8") as fh:
+        original = fh.read()
+    text = original
+    for needle, replacement in pairs:
+        if text.count(needle) != 1:
+            raise AssertionError(
+                f"anchor found {text.count(needle)} times, sabotage not applied")
+        text = text.replace(needle, replacement, 1)
+    with open(path, "w", encoding="utf-8", newline="") as fh:
+        fh.write(text)
+    return original
+
+
+def sabotage(label: str, path: str, pairs) -> bool:
+    try:
+        original = _patch(path, pairs)
+    except AssertionError as exc:
+        print(f"FAIL: {label} — {exc}")
+        return False
+    try:
+        rc, out = run_fixture()
+    finally:
+        with open(path, "w", encoding="utf-8", newline="") as fh:
+            fh.write(original)
+
+    rc_after, out_after = run_fixture()
+    if rc_after != 0:
+        print(f"FAIL: {label} — the fixture did not pass again after restoring.")
+        print(out_after.strip()[-700:])
+        return False
+    if rc == 0:
+        print(f"FAIL: {label} still passed. The fixture cannot see it.")
+        return False
+    caught = [ln.strip() for ln in out.splitlines() if "GAPS" in ln]
+    print(f"  {label} -> caught")
+    for line in caught:
+        print(f"      {line[:180]}")
+    return True
+
+
+def emitted_sql() -> str:
+    """Compile the unattached comparison the way the app would."""
+    code = (
+        "import sys" + NL +
+        "sys.path.insert(0, %r)" % os.path.join(ROOT, "backend") + NL +
+        "import app.main" + NL +
+        "from sqlalchemy import select" + NL +
+        "from app.modules.media.domain.models import MediaAsset" + NL +
+        "s = select(MediaAsset).where(MediaAsset.post_id == None)" + NL +
+        "print(str(s.compile(compile_kwargs={'literal_binds': True})))" + NL
+    )
+    proc = subprocess.run([sys.executable, "-c", code], capture_output=True,
+                          text=True, timeout=180)
+    return proc.stdout or ""
+
+
+def main() -> int:
+    rc, out = run_fixture()
+    if rc != 0:
+        print("FAIL: the fixture does not pass on the real code, so a failure "
+              "below would prove nothing.")
+        print(out.strip()[-800:])
+        return 1
+    print("fixture passes on the real code")
+
+    ok = True
+    for label, path, pairs in SABOTAGES:
+        ok = sabotage(label, path, pairs) and ok
+
+    if not ok:
+        return 1
+
+    clause = emitted_sql()
+    if "IS NULL" not in clause:
+        print("FAIL: `== None` does NOT compile to IS NULL — the fixture "
+              "cannot catch that spelling and the code may be relying on it.")
+        print(clause[:200])
+        return 1
+    print("  (verified harmless: `== None` still emits IS NULL)")
+
+    print("\nPASS: every part of the attach feature is proven load-bearing, "
+          "and the one comparison that looks like a bug is verified to be "
+          "rewritten by SQLAlchemy.")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

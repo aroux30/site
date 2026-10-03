@@ -1,6 +1,6 @@
 {
- "source": "C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\wp-core",
- "version": "7.2-alpha-63984",
+ "source": "C:/Users/Administrator/wp-core",
+ "version": "7.2-alpha-64026",
  "post_types": [
   "attachment",
   "custom_css",
@@ -150,13 +150,7 @@
   "editor",
   "subscriber"
  ],
- "role_cap_counts": {
-  "administrator": 35,
-  "author": 7,
-  "contributor": 3,
-  "editor": 11,
-  "subscriber": 1
- },
+ "role_cap_counts": {},
  "meta_boxes": [
   "attachment-id3",
   "authordiv",

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import {
   BookOpen,
   ExternalLink,
@@ -30,7 +31,7 @@ import {
   AlertCircle,
   FileCode,
   FolderTree,
-  LayoutTemplate,
+  LayoutTemplate, GitCompare,
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -71,6 +72,12 @@ import { editorialWorkflowApi } from "@/lib/api/wp-parity";
 import { ReviewQueueTab } from "@/components/admin/blog/review-queue-tab";
 import { EditorialCalendarTab } from "@/components/admin/blog/editorial-calendar-tab";
 import { QuickEditDialog } from "@/components/admin/blog/quick-edit-dialog";
+import { usePageEditingLock } from "@/hooks/use-page-editing-lock";
+import { PostPreviewDialog } from "@/components/admin/blog/post-preview-dialog";
+import { RevisionCompareDialog } from "@/components/admin/blog/revision-compare-dialog";
+import { BulkEditDialog } from "@/components/admin/blog/bulk-edit-dialog";
+import { PostTermsPicker } from "@/components/admin/blog/post-terms-picker";
+import { useAdminAuthors } from "@/hooks/use-admin-authors";
 import { TaxonomiesTab } from "@/components/admin/blog/taxonomies-tab";
 import { TaxonomyManagerTab } from "@/components/admin/blog/taxonomy-manager-tab";
 import { ContentTypesTab } from "@/components/admin/blog/content-types-tab";
@@ -95,10 +102,34 @@ export default function AdminBlogPage() {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState<string>("posts");
   const [search, setSearch] = useState("");
+  // `?search=` seeds the filter box. The admin bar's contextual "ویرایش نوشته"
+  // link lands here with the slug, so the operator sees the post they came from
+  // instead of the whole list. Read once on mount: re-seeding on every render
+  // would fight the operator's typing.
+  const searchParam = useSearchParams()?.get("search");
+  useEffect(() => {
+    if (searchParam) setSearch(searchParam);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const [statusFilter, setStatusFilter] = useState<BlogPostStatus | "all">("all");
+  // Author / date-range / featured filters. The admin list had search and
+  // status only, so "what did we publish in March" or "who writes the news
+  // posts" meant reading the whole table. All three are server-side: filtering
+  // the current page would silently hide matches on later pages.
+  const [authorFilter, setAuthorFilter] = useState<string>("");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
+  const [featuredOnly, setFeaturedOnly] = useState(false);
 
   // editor dialog
   const [editorOpen, setEditorOpen] = useState(false);
+  // Non-published posts preview through the admin route; published ones keep
+  // the plain site link, so this stays null in the common case.
+  const [previewPostId, setPreviewPostId] = useState<string | null>(null);
+  const [comparePostId, setComparePostId] = useState<string | null>(null);
+  const [compareOpen, setCompareOpen] = useState(false);
+  const [bulkEditOpen, setBulkEditOpen] = useState(false);
+  const [bulkEditRows, setBulkEditRows] = useState<BlogPost[]>([]);
   const [editing, setEditing] = useState<BlogPost | null>(null);
   // Which post is mid-submit, so the button disables only for that one.
   const [submittingForReviewId, setSubmittingForReviewId] = useState<string | null>(
@@ -115,6 +146,10 @@ export default function AdminBlogPage() {
   const [formCategory, setFormCategory] = useState<string>("");
   const [formTagIds, setFormTagIds] = useState<string[]>([]);
   const [formScheduled, setFormScheduled] = useState<string>("");
+  // The publish date of a post that is already live, and of one being backdated.
+  // Distinct from formScheduled: a *future* date is a schedule the beat task
+  // promotes, while this is a real publication date the server accepts today.
+  const [formPublished, setFormPublished] = useState<string>("");
   const [formFeatured, setFormFeatured] = useState(false);
   const [formVisibility, setFormVisibility] = useState<PostVisibility>("public");
   const [formVisibilityPassword, setFormVisibilityPassword] = useState("");
@@ -141,6 +176,13 @@ export default function AdminBlogPage() {
 
   // quick edit dialog
   const [quickEditPost, setQuickEditPost] = useState<BlogPost | null>(null);
+  // WordPress offers a take-over when a lock is left behind by an
+  // editor who closed their tab; the lock service had the override
+  // and no route, so it was unreachable.
+  const { lockedByOther, takeOver } = usePageEditingLock(
+    editorOpen && editing ? editing.id : null,
+    "posts",
+  );
   const [quickEditOpen, setQuickEditOpen] = useState(false);
 
   // revision history dialog
@@ -165,19 +207,42 @@ export default function AdminBlogPage() {
   const categories: BlogPostCategory[] = taxonomies?.categories ?? [];
   const tags: BlogTag[] = taxonomies?.tags ?? [];
 
+  // Authors for the list filter. Walks every page of users rather than asking
+  // for one oversized slice: the endpoint caps page_size at 100, so a single
+  // call would quietly omit everyone past the hundred.
+  const { authors, truncated: authorsTruncated } = useAdminAuthors();
+
   // Posts query
   const isTrashTab = activeTab === "trash";
+  // Server-side paging: the list used to fetch a fixed 50 rows and page
+  // client-side over those 50, so post 51 onward was unreachable. The pager now
+  // asks the server for each page and pages over the real total.
+  const [page, setPage] = useState(1);
+  const PAGE_SIZE = 25;
   const {
     data: postsData,
     loading,
     reload: loadPosts,
   } = useAdminQuery({
-    queryKey: [BLOG_POSTS_QUERY_KEY, search, statusFilter, isTrashTab],
+    queryKey: [
+      BLOG_POSTS_QUERY_KEY, search, statusFilter, isTrashTab, page,
+      authorFilter, dateFrom, dateTo, featuredOnly,
+    ],
     queryFn: () =>
       blogAdminApi.listPosts({
         search: search || undefined,
         status: statusFilter === "all" ? undefined : statusFilter,
-        page_size: 50,
+        // The API takes instants; a date input yields a local midnight, and
+        // the end date must include its whole day or "1 March" loses
+        // everything published that evening.
+        published_from: dateFrom ? new Date(dateFrom).toISOString() : undefined,
+        published_to: dateTo
+          ? new Date(`${dateTo}T23:59:59`).toISOString()
+          : undefined,
+        author_id: authorFilter || undefined,
+        is_featured: featuredOnly ? true : undefined,
+        page,
+        page_size: PAGE_SIZE,
         include_trashed: isTrashTab,
       }),
     fallbackError: "خطا در دریافت مقالات",
@@ -187,6 +252,9 @@ export default function AdminBlogPage() {
   const posts: BlogPost[] = (postsData?.items ?? []).filter((p) =>
     isTrashTab ? p.deleted_at !== null : p.deleted_at === null,
   );
+  // The trash tab filters client-side, so the page in hand may hold fewer rows
+  // than the server's total; paging still works, the count just reads high.
+  const postsTotal = postsData?.total ?? 0;
 
   const resetForm = () => {
     setFormTitle("");
@@ -199,6 +267,7 @@ export default function AdminBlogPage() {
     setFormCategory("");
     setFormTagIds([]);
     setFormScheduled("");
+    setFormPublished("");
     setFormFeatured(false);
     setFormVisibility("public");
     setFormVisibilityPassword("");
@@ -229,6 +298,9 @@ export default function AdminBlogPage() {
     setFormTagIds((post.tags || []).map((t) => t.id));
     setFormScheduled(
       post.scheduled_for ? new Date(post.scheduled_for).toISOString().slice(0, 16) : "",
+    );
+    setFormPublished(
+      post.published_at ? new Date(post.published_at).toISOString().slice(0, 16) : "",
     );
     setFormFeatured(post.is_featured || false);
     setFormVisibility(post.visibility || "public");
@@ -281,6 +353,17 @@ export default function AdminBlogPage() {
       setMetaLoading(false);
     }
   };
+
+  // A new filter or tab means a new result set: page 5 of the old one has no
+  // meaning in the new one, and staying there shows an empty table.
+  useEffect(() => {
+    setPage(1);
+  }, [search, statusFilter, activeTab]);
+  // A narrowed filter usually shrinks the result set past the current page;
+  // staying on page 4 would show an empty table and read as "no posts".
+  useEffect(() => {
+    setPage(1);
+  }, [authorFilter, dateFrom, dateTo, featuredOnly]);
 
   // Heartbeat & Autosave interval hooks
   useEffect(() => {
@@ -408,6 +491,7 @@ export default function AdminBlogPage() {
       category_id: formCategory || undefined,
       tag_ids: formTagIds,
       scheduled_for: formScheduled ? new Date(formScheduled).toISOString() : undefined,
+      published_at: formPublished ? new Date(formPublished).toISOString() : undefined,
       is_featured: formFeatured,
       visibility: formVisibility,
       visibility_password: formVisibility === "password" ? formVisibilityPassword : undefined,
@@ -530,6 +614,18 @@ export default function AdminBlogPage() {
           confirm: (rows: BlogPost[]) =>
             `${rows.length} نوشته به سطل زباله منتقل شود؟ این عمل برگشت‌پذیر است.`,
           onRun: (rows: BlogPost[]) => handleBulk("trash", rows),
+        },
+        {
+          // A field change, not a state change: it needs a form, so it opens
+          // its own dialog. Returns false so the table does not clear the
+          // selection before the server has answered.
+          id: "edit",
+          label: "ویرایش گروهی",
+          onRun: (rows: BlogPost[]) => {
+            setBulkEditRows(rows);
+            setBulkEditOpen(true);
+            return false;
+          },
         },
       ];
 
@@ -769,9 +865,20 @@ export default function AdminBlogPage() {
           <div className="flex items-center justify-center gap-1 flex-wrap">
             {post.status === "published" && (
               <Button variant="outline" size="sm" asChild className="h-7 px-2 text-xs">
-                <Link href={`/blog/${post.slug}`} target="_blank">
+                <Link href={`/blog/${post.slug}`} target="_blank" title="مشاهده در سایت">
                   <ExternalLink className="h-3.5 w-3.5" />
                 </Link>
+              </Button>
+            )}
+            {post.status !== "published" && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-7 px-2 text-xs"
+                onClick={() => setPreviewPostId(post.id)}
+                title="پیش‌نمایش (بدون انتشار)"
+              >
+                <Eye className="h-3.5 w-3.5" />
               </Button>
             )}
             <Button
@@ -926,6 +1033,64 @@ export default function AdminBlogPage() {
                 <option value="published">منتشر شده</option>
                 <option value="archived">بایگانی</option>
               </select>
+              <select
+                value={authorFilter}
+                onChange={(e) => setAuthorFilter(e.target.value)}
+                disabled={authors.length === 0}
+                className="h-9 rounded-md border border-input bg-background px-3 text-xs disabled:opacity-60"
+                aria-label={authorsTruncated ? "فیلتر نویسنده (فقط ۲۰۰۰ کاربر اول)" : "فیلتر نویسنده"}
+              >
+                <option value="">همه نویسندگان</option>
+                {authors.map((u) => (
+                  <option key={u.id} value={String(u.id)}>
+                    {[u.first_name, u.last_name].filter(Boolean).join(" ").trim() || u.phone}
+                  </option>
+                ))}
+              </select>
+              <label className="flex items-center gap-1.5 whitespace-nowrap text-xs text-muted-foreground">
+                <input
+                  type="checkbox"
+                  checked={featuredOnly}
+                  onChange={(e) => setFeaturedOnly(e.target.checked)}
+                  className="h-3.5 w-3.5"
+                />
+                فقط ویژه‌ها
+              </label>
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <span>از</span>
+                <input
+                  type="date"
+                  value={dateFrom}
+                  max={dateTo || undefined}
+                  onChange={(e) => setDateFrom(e.target.value)}
+                  className="h-9 rounded-md border border-input bg-background px-2 text-xs"
+                  aria-label="انتشار از تاریخ"
+                />
+                <span>تا</span>
+                <input
+                  type="date"
+                  value={dateTo}
+                  min={dateFrom || undefined}
+                  onChange={(e) => setDateTo(e.target.value)}
+                  className="h-9 rounded-md border border-input bg-background px-2 text-xs"
+                  aria-label="انتشار تا تاریخ"
+                />
+              </div>
+              {(authorFilter || dateFrom || dateTo || featuredOnly) && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-9 text-xs"
+                  onClick={() => {
+                    setAuthorFilter("");
+                    setDateFrom("");
+                    setDateTo("");
+                    setFeaturedOnly(false);
+                  }}
+                >
+                  حذف فیلترها
+                </Button>
+              )}
             </div>
           </Card>
 
@@ -936,7 +1101,9 @@ export default function AdminBlogPage() {
             emptyMessage={loading ? "در حال بارگذاری..." : "مقاله‌ای یافت نشد."}
             selectable
             bulkActions={activeBulkActions}
-            pageSize={25}
+            pageSize={PAGE_SIZE}
+            serverTotal={postsTotal}
+            onServerPageChange={(p) => setPage(p)}
             defaultSort={{ key: "updated", dir: "desc" }}
             columnVisibilityKey="admin.blog.columns"
           />
@@ -990,7 +1157,9 @@ export default function AdminBlogPage() {
             emptyMessage={loading ? "در حال بارگذاری..." : "سطل زباله خالی است."}
             selectable
             bulkActions={activeBulkActions}
-            pageSize={25}
+            pageSize={PAGE_SIZE}
+            serverTotal={postsTotal}
+            onServerPageChange={(p) => setPage(p)}
             columnVisibilityKey="admin.blog.columns"
           />
         </TabsContent>
@@ -1006,6 +1175,15 @@ export default function AdminBlogPage() {
         onSaved={loadPosts}
       />
 
+      <PostPreviewDialog
+        postId={previewPostId}
+        fallbackTitle={editing?.title}
+        open={previewPostId !== null}
+        onOpenChange={(open) => {
+          if (!open) setPreviewPostId(null);
+        }}
+      />
+
       {/* Editor dialog */}
       <Dialog open={editorOpen} onOpenChange={setEditorOpen}>
         <DialogContent className="max-h-[92vh] max-w-4xl overflow-y-auto">
@@ -1013,11 +1191,27 @@ export default function AdminBlogPage() {
             <div className="flex items-center justify-between">
               <DialogTitle>{editing ? "ویرایش مقاله" : "مقاله جدید"}</DialogTitle>
               {editing && (
-                <Button variant="outline" size="sm" asChild className="gap-1 text-xs">
-                  <Link href={`/blog/${editing.slug}`} target="_blank">
-                    <Eye className="h-3.5 w-3.5" /> پیش‌نمایش در سایت
-                  </Link>
-                </Button>
+                /* A published post's public URL really works, so keep the link
+                   for those. For anything else it 404s, because the article
+                   page reads the *public* endpoint — which by design does not
+                   serve a draft. Those go to the admin preview, which is
+                   access-checked and returns any status. */
+                editing.status === "published" ? (
+                  <Button variant="outline" size="sm" asChild className="gap-1 text-xs">
+                    <Link href={`/blog/${editing.slug}`} target="_blank">
+                      <Eye className="h-3.5 w-3.5" /> پیش‌نمایش در سایت
+                    </Link>
+                  </Button>
+                ) : (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="gap-1 text-xs"
+                    onClick={() => setPreviewPostId(editing.id)}
+                  >
+                    <Eye className="h-3.5 w-3.5" /> پیش‌نمایش
+                  </Button>
+                )
               )}
             </div>
             <DialogDescription>
@@ -1027,9 +1221,23 @@ export default function AdminBlogPage() {
 
           {/* Lock Alert Banner */}
           {lockWarning && (
-            <div className="flex items-center gap-2 rounded-xl border border-rose-500/30 bg-rose-500/10 p-3 text-xs text-rose-700 dark:text-rose-300">
-              <AlertCircle className="h-4 w-4 shrink-0" />
-              <span>{lockWarning}</span>
+            <div className="flex items-center justify-between gap-2 rounded-xl border border-rose-500/30 bg-rose-500/10 p-3 text-xs text-rose-700 dark:text-rose-300">
+              <span className="flex items-center gap-2">
+                <AlertCircle className="h-4 w-4 shrink-0" />
+                {lockWarning}
+              </span>
+              {/* WordPress's take-over. The lock service had the override and
+                  no route, so the only escape from a lock left behind by a
+                  closed tab was the full editor. */}
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => {
+                  void takeOver().then(() => setLockWarning(null));
+                }}
+              >
+                تصاحب ویرایش
+              </Button>
             </div>
           )}
 
@@ -1224,6 +1432,30 @@ export default function AdminBlogPage() {
                 </label>
               </div>
 
+              {/* Publication date and scheduled date are different fields on
+                  purpose. `published_at` is when the post went (or should read
+                  as having gone) live — it accepts a past date, which is how a
+                  backdated import or a corrected date is entered. `scheduled_for`
+                  is a future moment the beat task promotes; the server keeps
+                  the post a draft until then. Overloading one field for both
+                  meant the only way to record a real date was to publish now and
+                  fix it afterwards. */}
+              <div className="grid gap-1.5 max-w-sm pt-2">
+                <Label htmlFor="bp-published">تاریخ انتشار</Label>
+                <Input
+                  id="bp-published"
+                  type="datetime-local"
+                  value={formPublished}
+                  onChange={(e) => setFormPublished(e.target.value)}
+                  dir="ltr"
+                  className="text-left text-xs"
+                />
+                <p className="text-[11px] text-muted-foreground">
+                  تاریخ واقعی انتشار. می‌توانید تاریخی در گذشته وارد کنید (مثلاً برای
+                  مطالب بازimport‌شده یا اصلاح تاریخ).
+                </p>
+              </div>
+
               {/* Scheduled date */}
               <div className="grid gap-1.5 max-w-sm pt-2">
                 <Label htmlFor="bp-scheduled">انتشار زمان‌بندی‌شده</Label>
@@ -1329,6 +1561,19 @@ export default function AdminBlogPage() {
                 </div>
               </div>
             )}
+
+            {/* Custom taxonomies. The attach route and the typed client both
+                existed with no caller, so a custom taxonomy could be filled
+                with terms and never used. Mounted on its own save button
+                because the endpoint replaces the post's whole term set. */}
+            {editing && (
+              <div className="grid gap-2">
+                <Label className="inline-flex items-center gap-1 text-xs">
+                  <FolderTree className="h-3.5 w-3.5" /> تاکسونومی‌های سفارشی
+                </Label>
+                <PostTermsPicker postId={editing.id} objectType="blog_post" />
+              </div>
+            )}
           </div>
 
           <DialogFooter className="flex items-center justify-between sm:justify-between">
@@ -1404,21 +1649,51 @@ export default function AdminBlogPage() {
                       {toPersianDigits(new Date(rev.created_at).toLocaleString("fa-IR"))} · وضعیت: {rev.status}
                     </p>
                   </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-8 text-xs"
-                    disabled={restoring !== null}
-                    onClick={() => handleRestore(rev.revision_number)}
-                  >
-                    {restoring === rev.revision_number ? "در حال بازگردانی..." : "بازگردانی"}
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-8 text-xs"
+                      disabled={restoring !== null}
+                      onClick={() => handleRestore(rev.revision_number)}
+                    >
+                      {restoring === rev.revision_number ? "در حال بازگردانی..." : "بازگردانی"}
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 px-2 text-xs text-muted-foreground hover:text-foreground"
+                      onClick={() => {
+                        setComparePostId(revPost?.id ?? null);
+                        setCompareOpen(true);
+                      }}
+                      title="مقایسه با نسخه‌های دیگر"
+                    >
+                      <GitCompare className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
                 </div>
               ))
             )}
           </div>
         </DialogContent>
       </Dialog>
+
+      <BulkEditDialog
+        open={bulkEditOpen}
+        onOpenChange={setBulkEditOpen}
+        posts={bulkEditRows}
+        categories={categories}
+        tags={tags}
+        onDone={loadPosts}
+      />
+
+      <RevisionCompareDialog
+        postId={comparePostId}
+        revisions={revisions}
+        open={compareOpen}
+        onOpenChange={setCompareOpen}
+      />
     </div>
   );
 }

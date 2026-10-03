@@ -13,12 +13,50 @@ from sqlalchemy import (
     Index,
     String,
     Text,
+    TypeDecorator,
     UniqueConstraint,
+    text,
 )
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database.base import BaseModel
+
+
+class SqlNullOnNone(TypeDecorator):
+    """Make ``None`` mean SQL NULL on a JSON column, not JSON ``null``.
+
+    Postgres JSONB has two different empties and they are not interchangeable.
+    The JSON value ``null`` is a real value that ``IS NOT NULL`` matches, so a
+    column "cleared" by writing it is still holding a payload as far as every
+    query in the codebase is concerned. Assigning Python ``None`` to a plain
+    ``JSONB`` column serializes to exactly that value, silently: the write
+    succeeds, the ORM reports ``None`` in memory, and the next read through a
+    different session gets a row that never left the table.
+
+    Wrapping the type makes Python ``None`` produce real SQL NULL, which is what
+    every ``IS NULL`` / ``IS NOT NULL`` filter in the codebase already assumes.
+    Assigning the JSON value ``None`` deliberately is no longer expressible,
+    which is the correct trade: nothing in this project stores a meaningful JSON
+    ``null``, and the alternative was a column that can never be emptied.
+    """
+
+    impl = JSONB
+    cache_ok = True
+
+    def bind_processor(self, dialect):
+        inner = self.impl_instance.bind_processor(dialect)
+
+        def process(value):
+            # Not a short-circuit in process_bind_param: JSONB is itself a
+            # TypeDecorator, so wrapping it means the outer decorator's
+            # process_bind_param is never consulted -- JSONB's own bind_processor
+            # runs first and turns None into the JSON text 'null'. Deciding here
+            # is the only layer that actually sees the original Python value.
+            return None if value is None else inner(value)
+
+        return process
+
 
 
 class SiteSetting(BaseModel):
@@ -202,6 +240,18 @@ class PrivacyRequest(BaseModel):
         nullable=True,
     )
 
+    #: Email confirmation (WordPress's wp_send_user_request): a link mailed to
+    #: the account's address that confirms the request when clicked. Only the
+    #: SHA-256 is stored, like every other token in this codebase — the
+    #: plaintext exists solely in the email. This is the *second* confirmation
+    #: path: the OTP proves the phone, the email link proves the mailbox, and
+    #: a subject who cannot receive SMS still has a way through.
+    confirm_token_hash: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    confirm_token_expires_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
+
     #: Operator-only free text. Never rendered to the subject verbatim — a
     #: rejection reason is often internal ("identity not confirmed by phone").
     admin_note: Mapped[str | None] = mapped_column(Text, nullable=True)
@@ -215,7 +265,9 @@ class PrivacyRequest(BaseModel):
     #: The completed work product. For an export this is the JSON document the
     #: subject downloads; for an erase it is the action list the service
     #: returns. Never populated for a rejected request.
-    result_payload: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True)
+    result_payload: Mapped[dict[str, Any] | None] = mapped_column(
+        SqlNullOnNone, nullable=True
+    )
     #: Retention deadline for ``result_payload``. An export is a full copy of
     #: the subject's PII sitting in a table an operator can read — it is
     #: deleted on read-after-expiry and by the purge endpoint, so the copy the
@@ -237,3 +289,52 @@ class PrivacyRequest(BaseModel):
 # Imported for the type annotation on ``PrivacyRequest.user``; the settings
 # module otherwise never touches the users domain.
 from app.modules.users.domain.models import User  # noqa: E402
+
+
+class SiteHealthRun(BaseModel):
+    """One recorded run of the site health checks.
+
+    WordPress runs Site Health twice a day and keeps a page of "background
+    updates" history; the equivalent here was a live check that only answered
+    the question "is it broken right now". A store whose disk filled up at 3am
+    had no way to find out afterwards, because the check had run in a request
+    nobody made.
+
+    This table is what makes a scheduled run visible: the beat task writes here
+    once a day, the admin screen lists what it found, and a failure that was
+    fixed between two visits is still on the record.
+    """
+
+    __tablename__ = "site_health_runs"
+    __table_args__ = (
+        Index("ix_site_health_runs_started_at", "started_at"),
+    )
+
+    started_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False
+    )
+    finished_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    #: "scheduled" for the beat task, "manual" for a button press. A reader
+    #: comparing two rows needs to know which is which: a manual run is a
+    #: sample of one moment, a scheduled one is the state nobody was watching.
+    trigger: Mapped[str] = mapped_column(
+        String(20), nullable=False, server_default=text("'scheduled'"),
+    )
+    #: The full report as ``run_checks`` produced it, so a later review reads
+    #: the checks as they were rather than as they are now.
+    report: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True)
+    #: Worst status across the checks, precomputed so the list screen does not
+    #: have to open every JSON blob to decide what to colour.
+    worst_status: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    #: Why a run failed to produce a report at all (the worker died, the
+    #: database was unreachable). Distinguishes "ran and found problems" from
+    #: "did not run", which look identical otherwise.
+    error: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+    def __repr__(self) -> str:
+        return (
+            f"<SiteHealthRun(started_at={self.started_at}, "
+            f"trigger={self.trigger}, worst={self.worst_status})>"
+        )

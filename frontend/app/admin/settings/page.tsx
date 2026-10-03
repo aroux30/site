@@ -27,11 +27,23 @@ import { Badge } from "@/components/ui/badge";
 import apiClient from "@/lib/api/client";
 import { useAdminQuery } from "@/lib/api/admin-query";
 import { ContentSettingsCard } from "@/components/admin/content-settings-card";
+import { UserSettingsCard } from "@/components/admin/user-settings-card";
+import { ContentToolsCard } from "@/components/admin/content-tools-card";
+import { SiteIdentityCard } from "@/components/admin/site-identity-card";
+import { AdminEmailCard } from "@/components/admin/admin-email-card";
+import { AvatarSettingsCard } from "@/components/admin/avatar-settings-card";
+import { RobotsSettingsCard } from "@/components/admin/robots-settings-card";
+import { PrivacyPolicyCard } from "@/components/admin/privacy-policy-card";
 
 const ZARINPAL_MERCHANT_KEY = "payment.zarinpal.merchant_id";
 
 export default function AdminSettingsPage() {
   const [saved, setSaved] = useState(false);
+  // Which settings group is visible. "general" on load: the store's identity
+  // is the first thing an operator comes here for.
+  const [activeTab, setActiveTab] = useState<
+    "general" | "content" | "financial" | "communication" | "security"
+  >("general");
 
   // Form State
   const [storeName, setStoreName] = useState("فروشگاه اینترنتی آنلاین");
@@ -516,6 +528,8 @@ export default function AdminSettingsPage() {
           },
         ],
       ];
+
+
       for (const [key, value] of groups) {
         try {
           await apiClient.patch(`/settings/${key}`, { value });
@@ -565,7 +579,55 @@ export default function AdminSettingsPage() {
         </div>
       )}
 
+      {/* Tab bar. The page was one long scroll of every settings card, so
+          "where do I change the SMTP host" meant scrolling past the tax form.
+          The groups follow WordPress's Settings screen (General / Writing /
+          Reading / Discussion / Media) collapsed into the five areas this
+          store actually has, and every card keeps its own save button or the
+          form submit below — the tabs only decide what is visible. */}
+      <div
+        role="tablist"
+        aria-label="بخش‌های تنظیمات"
+        className="flex flex-wrap gap-1.5 border-b border-border pb-2"
+      >
+        {(
+          [
+            ["general", "عمومی", Store],
+            ["content", "محتوا و رسانه", FileText],
+            ["financial", "مالی و پرداخت", CreditCard],
+            ["communication", "ارتباطات (پیامک/ایمیل/تلگرام)", Mail],
+            ["security", "امنیت", ShieldCheck],
+          ] as const
+        ).map(([id, label, Icon]) => (
+          <button
+            key={id}
+            type="button"
+            role="tab"
+            aria-selected={activeTab === id}
+            onClick={() => setActiveTab(id)}
+            className={`flex items-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+              activeTab === id
+                ? "bg-primary text-primary-foreground"
+                : "text-muted-foreground hover:bg-muted"
+            }`}
+          >
+            <Icon className="h-4 w-4" />
+            {label}
+          </button>
+        ))}
+      </div>
+
       <form onSubmit={handleSave} className="space-y-6">
+        {activeTab === "general" && (
+          <>
+        {/* Site identity: the keys the feed, sitemap and robots route read. */}
+        <SiteIdentityCard />
+
+        {/* Admin email: propose → confirm → periodic review. Separate from the
+            identity card because this address is a recovery channel, not
+            branding — it changes through a confirmation link, not a save. */}
+        <AdminEmailCard />
+
         {/* General Store Identity */}
         <Card className="p-6">
           <div className="mb-4 flex items-center gap-2 border-b border-border pb-3">
@@ -604,10 +666,30 @@ export default function AdminSettingsPage() {
             </div>
           </div>
         </Card>
+          </>
+        )}
 
+        {activeTab === "content" && (
+          <>
         {/* Content & permalink settings (WordPress reading/permalink parity) */}
         <ContentSettingsCard />
+        <UserSettingsCard />
+        <AvatarSettingsCard />
+        <RobotsSettingsCard />
+        {/* Which CMS page is the privacy policy. Lives with the other
+            content-shaped settings, not on the privacy admin screen, because
+            what it picks is a page. */}
+        <PrivacyPolicyCard />
 
+        {/* Category→tag conversion and the trash purge. Kept off the settings
+            form on purpose: both are destructive-capable, and a mistyped value
+            in a settings form would fire them silently. */}
+        <ContentToolsCard />
+          </>
+        )}
+
+        {activeTab === "financial" && (
+          <>
         {/* Financial & Tax Settings */}
         <Card className="p-6">
           <div className="mb-4 flex items-center gap-2 border-b border-border pb-3">
@@ -758,7 +840,11 @@ export default function AdminSettingsPage() {
             </div>
           </div>
         </Card>
+          </>
+        )}
 
+        {activeTab === "communication" && (
+          <>
         {/* SMS Gateway & Notification Service */}
         <Card className="p-6">
           <div className="mb-4 flex items-center justify-between border-b border-border pb-3">
@@ -1369,7 +1455,11 @@ export default function AdminSettingsPage() {
             </div>
           </div>
         </Card>
+          </>
+        )}
 
+        {activeTab === "security" && (
+          <>
         {/* Platform Security & Defense Posture */}
         <Card className="p-6 border-emerald-500/20 bg-emerald-500/5">
           <div className="mb-4 flex items-center justify-between border-b border-border pb-3">
@@ -1432,6 +1522,8 @@ export default function AdminSettingsPage() {
             </div>
           </div>
         </Card>
+          </>
+        )}
 
         {/* Submit */}
         <div className="flex justify-end">

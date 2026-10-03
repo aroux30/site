@@ -2,17 +2,19 @@
 
 import React, { useRef, useState } from "react";
 import Link from "next/link";
-import { Download, FileUp, RefreshCw, Upload } from "lucide-react";
+import { Download, FileUp, RefreshCw, Rss, Upload } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/use-toast";
 import { DataTable, type DataTableColumn } from "@/components/admin/data-table";
 import { useAdminMutation, useAdminQuery } from "@/lib/api/admin-query";
+import { toPersianDigits } from "@/lib/utils";
 import {
   dataExchangeApi,
   saveBlob,
   type DataExchangeEntity,
+  type FeedPreview,
   type ImportJob,
 } from "@/lib/api/data-exchange";
 
@@ -33,6 +35,52 @@ export default function DataExchangeImportPage() {
   const [entityType, setEntityType] = useState("product");
   const [uploading, setUploading] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+
+  // Feed import, kept apart from the job pipeline above: a feed is a document
+  // rather than a table, so it has no job, no column mapping and no row-level
+  // error report — and its entries are posts, which the CSV path cannot express.
+  const [feedBusy, setFeedBusy] = useState(false);
+  const [feedPreview, setFeedPreview] = useState<FeedPreview | null>(null);
+  const feedFileRef = useRef<HTMLInputElement>(null);
+  const feedFileRefState = useRef<File | null>(null);
+
+  async function previewFeed(file: File) {
+    setFeedBusy(true);
+    setFeedPreview(null);
+    try {
+      const preview = await dataExchangeApi.previewFeed(file);
+      feedFileRefState.current = file;
+      setFeedPreview(preview);
+    } catch {
+      toast({
+        title: "خواندن فید ناموفق بود",
+        description: "فایل باید یک فید RSS 2.0 یا Atom معتبر باشد.",
+        variant: "destructive",
+      });
+    } finally {
+      setFeedBusy(false);
+    }
+  }
+
+  async function runFeedImport() {
+    const file = feedFileRefState.current;
+    if (!file) return;
+    setFeedBusy(true);
+    try {
+      const stats = await dataExchangeApi.importFeed(file);
+      toast({
+        title: "ایمپورت فید انجام شد",
+        description: `${toPersianDigits(String(stats.posts))} نوشته پیش‌نویس ساخته شد، ${toPersianDigits(String(stats.skipped))} تکراری رد شد.`,
+      });
+      setFeedPreview(null);
+      feedFileRefState.current = null;
+      void load();
+    } catch {
+      toast({ title: "ایمپورت فید ناموفق بود", variant: "destructive" });
+    } finally {
+      setFeedBusy(false);
+    }
+  }
 
   // The entity list and the recent import jobs always come from the same
   // fetch, so the entity labels in the jobs table can never disagree with the
@@ -184,6 +232,75 @@ export default function DataExchangeImportPage() {
             <RefreshCw className="h-4 w-4" />
           </Button>
         </div>
+      </Card>
+
+      <Card className="p-6 space-y-4">
+        <h3 className="text-lg font-semibold flex items-center gap-2">
+          <Rss className="h-5 w-5 text-primary" />
+          ایمپورت از فید RSS یا Atom
+        </h3>
+        <p className="text-sm text-muted-foreground">
+          نشانی فید را نریزید — فایل XML فید را بارگذاری کنید. ابتدا پیش‌نمایش
+          می‌گیرید تا ببینید چند نوشته و چه دسته‌هایی در آن هست، و بعد از دکمهٔ
+          ایمپورت استفاده کنید.
+        </p>
+        <p className="text-xs text-muted-foreground">
+          هر نوشته به‌صورت <strong>پیش‌نویس</strong> وارد می‌شود. انتشار یک
+          تصمیم جداگانه برای هر نوشته است.
+        </p>
+        <div className="flex flex-wrap items-center gap-3">
+          <input
+            ref={feedFileRef}
+            type="file"
+            accept=".xml,.rss,.atom"
+            className="hidden"
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              if (f) void previewFeed(f);
+            }}
+          />
+          <Button
+            variant="outline"
+            onClick={() => feedFileRef.current?.click()}
+            disabled={feedBusy}
+          >
+            <Upload className="h-4 w-4 ms-1" />
+            {feedBusy ? "در حال خواندن..." : "انتخاب فایل فید"}
+          </Button>
+        </div>
+
+        {feedPreview && (
+          <div className="space-y-3 rounded-lg border border-border bg-muted/30 p-4">
+            <div className="flex flex-wrap items-center gap-3 text-sm">
+              <Badge variant="outline">
+                {feedPreview.format === "atom" ? "Atom" : "RSS"}
+              </Badge>
+              <span>
+                {toPersianDigits(String(feedPreview.counts.posts))} نوشته
+              </span>
+              <span className="text-muted-foreground">
+                {toPersianDigits(String(feedPreview.counts.categories))} دسته
+              </span>
+              <span className="text-muted-foreground">
+                {toPersianDigits(String(feedPreview.counts.tags))} برچسب
+              </span>
+            </div>
+            {feedPreview.sample.length > 0 && (
+              <ul className="space-y-1 text-xs text-muted-foreground">
+                {feedPreview.sample.map((p, i) => (
+                  <li key={`${p.title}-${i}`} className="truncate">
+                    • {p.title}
+                    {p.category_slug ? ` — ${p.category_slug}` : ""}
+                  </li>
+                ))}
+              </ul>
+            )}
+            <Button onClick={() => void runFeedImport()} disabled={feedBusy}>
+              <FileUp className="h-4 w-4 ms-1" />
+              {feedBusy ? "در حال ایمپورت..." : "ایمپورت همهٔ نوشته‌ها"}
+            </Button>
+          </div>
+        )}
       </Card>
 
       <DataTable

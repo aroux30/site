@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import cleanHtml from "@/lib/sanitize-html";
+import { BlogComments } from "@/components/blog/blog-comments";
 
 /**
  * CMS-backed storefront page body (server component).
@@ -23,6 +24,12 @@ export interface CmsPageContent {
   excerpt: string | null;
   seo_title: string | null;
   seo_description: string | null;
+  /** Needed to address the comment thread: comments are keyed by page id,
+   *  and the slug alone cannot identify one. */
+  id?: string;
+  /** Server-owned opt-in. A page renders no thread unless its editor enabled
+   *  comments, which is what keeps a legal or policy page quiet. */
+  allow_comments?: boolean;
 }
 
 export async function fetchCmsPage(slug: string): Promise<CmsPageContent | null> {
@@ -62,6 +69,15 @@ export default async function CmsPageShell({ slug, fallback }: CmsPageShellProps
         // license — sanitize before dangerouslySetInnerHTML.
         dangerouslySetInnerHTML={{ __html: cleanHtml(page.body_html) }}
       />
+
+      {/* Comments on a CMS page. The backend already accepted them on this
+          resource type, but no storefront page rendered a thread, so an editor
+          who turned them on saw nothing happen. Keyed by page id and typed as
+          cms_page: the API addresses comments by (resource_type, resource_id),
+          and a blog_post id would attach the thread to the wrong object. */}
+      {page.allow_comments && page.id ? (
+        <BlogComments postId={page.id} resourceType="cms_page" />
+      ) : null}
     </article>
   );
 }

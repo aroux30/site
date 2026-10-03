@@ -139,6 +139,9 @@ class AuthorService:
             phone=user.phone,
             first_name=getattr(profile, "first_name", None),
             last_name=getattr(profile, "last_name", None),
+            # Without this the field exists on the row and is never filled, and
+            # a chosen display name silently loses to first+last everywhere.
+            display_name=getattr(profile, "display_name", None),
             bio=getattr(profile, "bio", None),
             avatar_url=getattr(profile, "avatar_url", None),
         )
@@ -178,21 +181,36 @@ class AuthorService:
 
     async def _names_for(self, slugs: list[str]) -> dict[str, str]:
         stmt = (
-            select(User.author_slug, UserProfile.first_name, UserProfile.last_name)
+            select(
+                User.author_slug,
+                UserProfile.first_name,
+                UserProfile.last_name,
+                UserProfile.display_name,
+            )
             .outerjoin(UserProfile, UserProfile.user_id == User.id)
             .where(User.author_slug.in_(slugs))
         )
         out: dict[str, str] = {}
-        for slug, first, last in (await self.db.execute(stmt)).all():
+        for slug, first, last, display in (await self.db.execute(stmt)).all():
             if slug:
-                out[slug] = f"{first or ''} {last or ''}".strip() or slug
+                # `display_name` first: it is the name the person chose to
+                # publish, and falling straight to first+last would make it
+                # a field nobody can set and see take effect.
+                out[slug] = (
+                    (display or "").strip()
+                    or f"{first or ''} {last or ''}".strip()
+                    or slug
+                )
         return out
 
 
 class _AuthorRow:
     """The subset of user+profile an archive needs."""
 
-    __slots__ = ("id", "phone", "first_name", "last_name", "bio", "avatar_url")
+    __slots__ = (
+        "id", "phone", "first_name", "last_name", "display_name",
+        "bio", "avatar_url",
+    )
 
     def __init__(
         self,
@@ -201,6 +219,7 @@ class _AuthorRow:
         phone: str,
         first_name: str | None,
         last_name: str | None,
+        display_name: str | None = None,
         bio: str | None,
         avatar_url: str | None,
     ) -> None:
@@ -208,12 +227,17 @@ class _AuthorRow:
         self.phone = phone
         self.first_name = first_name
         self.last_name = last_name
+        self.display_name = display_name
         self.bio = bio
         self.avatar_url = avatar_url
 
 
 def _display_name(author: _AuthorRow) -> str:
-    name = f"{author.first_name or ''} {author.last_name or ''}".strip()
+    # The published name wins. WordPress calls this the "Display name" and
+    # separates it from the account name for exactly this reason: a person
+    # writes under a name that is not their legal first and last.
+    chosen = (getattr(author, "display_name", None) or "").strip()
+    name = chosen or f"{author.first_name or ''} {author.last_name or ''}".strip()
     # Same fallback as the post listing: a profile with no name is shown by
     # the tail of its phone, never as an empty byline.
     return name or f"کاربر {author.phone[-4:]}"

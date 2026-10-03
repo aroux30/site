@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Zap, Sparkles, MessageSquare, Lock, Tag } from "lucide-react";
+import { Zap, Sparkles, MessageSquare, Lock, Tag, User as UserIcon, Braces, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -19,9 +19,13 @@ import {
   type BlogPost,
   type BlogPostCategory,
   type BlogPostStatus,
+  type PostFormat,
   type PostVisibility,
   type BlogTag,
 } from "@/lib/api/blog";
+import { quickEditApi } from "@/lib/api/wp-parity";
+import { useAdminAuthors } from "@/hooks/use-admin-authors";
+import type { AdminUser } from "@/lib/api/users";
 
 interface QuickEditDialogProps {
   post: BlogPost | null;
@@ -49,9 +53,51 @@ export function QuickEditDialog({
   const [isFeatured, setIsFeatured] = useState(false);
   const [allowComments, setAllowComments] = useState(true);
   const [visibility, setVisibility] = useState<PostVisibility>("public");
+  const [format, setFormat] = useState<PostFormat>("standard");
   const [visibilityPassword, setVisibilityPassword] = useState("");
   const [scheduledFor, setScheduledFor] = useState("");
+  const [authorId, setAuthorId] = useState("");
+  const [meta, setMeta] = useState<Record<string, string>>({});
+  const [newMetaKey, setNewMetaKey] = useState("");
+  const [metaLoadError, setMetaLoadError] = useState(false);
   const [saving, setSaving] = useState(false);
+
+  // Author reassignment needs a name to pick from. The list is fetched only
+  // while the dialog is open, and it walks every page rather than asking for
+  // one oversized slice: `listUsers` caps page_size at 100, so a single call
+  // silently omitted everyone past the hundred.
+  const { authors } = useAdminAuthors(open);
+
+  // Custom fields live in their own table, so the post payload does not carry
+  // them. A failed read must be visible rather than silent: an empty form would
+  // otherwise save as "delete every custom field" on the next submit.
+  useEffect(() => {
+    if (!open || !post) return;
+    let cancelled = false;
+    setMetaLoadError(false);
+    (async () => {
+      try {
+        const rows = await blogAdminApi.listPostMeta(post.id);
+        if (cancelled) return;
+        const next: Record<string, string> = {};
+        for (const row of rows) next[row.meta_key] = row.meta_value ?? "";
+        setMeta(next);
+      } catch {
+        if (!cancelled) {
+          setMeta({});
+          setMetaLoadError(true);
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [open, post]);
+
+  const authorLabel = (u: AdminUser) => {
+    const name = [u.first_name, u.last_name].filter(Boolean).join(" ").trim();
+    return name ? `${name} — ${u.phone}` : u.phone;
+  };
 
   useEffect(() => {
     if (post) {
@@ -63,10 +109,12 @@ export function QuickEditDialog({
       setIsFeatured(post.is_featured || false);
       setAllowComments(post.allow_comments !== false);
       setVisibility(post.visibility || "public");
+      setFormat(post.post_format || "standard");
       setVisibilityPassword(post.visibility_password || "");
       setScheduledFor(
         post.scheduled_for ? new Date(post.scheduled_for).toISOString().slice(0, 16) : "",
       );
+      setAuthorId(post.author_id || "");
     }
   }, [post]);
 
@@ -76,19 +124,40 @@ export function QuickEditDialog({
 
   const handleSave = async () => {
     if (!post || !title.trim()) return;
+    // Refuse to save custom fields we failed to read: the endpoint replaces the
+    // whole set, so submitting an empty form after a failed read would delete
+    // every field the editor cannot see.
+    if (metaLoadError) {
+      toast({
+        title: "فیلدهای سفارشی خوانده نشد",
+        description: "برای جلوگیری از حذف ناخواسته، ذخیره انجام نشد. دوباره تلاش کنید.",
+        variant: "destructive",
+      });
+      return;
+    }
     setSaving(true);
     try {
-      await blogAdminApi.updatePost(post.id, {
+      // The quick-edit route, not the full update: it writes exactly the
+      // fields this form shows. The full PATCH also rewrites content and tags,
+      // which this dialog never loaded, so it silently reset them on every save.
+      await quickEditApi.patch(post.id, {
         title: title.trim(),
         slug: slug.trim() || undefined,
         status,
         category_id: categoryId || undefined,
-        tag_ids: tagIds,
         is_featured: isFeatured,
         allow_comments: allowComments,
+        post_format: format,
         visibility,
         visibility_password: visibility === "password" ? visibilityPassword : undefined,
-        scheduled_for: scheduledFor ? new Date(scheduledFor).toISOString() : undefined,
+        published_at: scheduledFor ? new Date(scheduledFor).toISOString() : undefined,
+        author_id: authorId || undefined,
+        tag_ids: tagIds,
+        // A blank value means "not set", which the service turns into a delete —
+        // the same as clearing the field in the full editor.
+        meta: Object.fromEntries(
+          Object.entries(meta).map(([k, v]) => [k, v.trim() === "" ? null : v]),
+        ),
       });
 
       toast({ title: "ویرایش سریع با موفقیت ذخیره شد" });
@@ -144,8 +213,8 @@ export function QuickEditDialog({
             </div>
           </div>
 
-          {/* Category & Status */}
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          {/* Category, Author & Status */}
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <div className="grid gap-2">
               <Label htmlFor="qe-category">دسته‌بندی</Label>
               <select
@@ -160,6 +229,34 @@ export function QuickEditDialog({
                     {c.name}
                   </option>
                 ))}
+              </select>
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="qe-author" className="flex items-center gap-1">
+                <UserIcon className="h-3.5 w-3.5" />
+                نویسنده
+              </Label>
+              <select
+                id="qe-author"
+                value={authorId}
+                onChange={(e) => setAuthorId(e.target.value)}
+                className="h-9 rounded-md border border-input bg-background px-3 text-xs"
+                disabled={authors.length === 0}
+              >
+                {authors.length === 0 ? (
+                  <option value={authorId}>
+                    {post.author_name?.trim() || "نویسنده‌ی فعلی"}
+                  </option>
+                ) : (
+                  <>
+                    <option value="">بدون تغییر</option>
+                    {authors.map((u) => (
+                      <option key={u.id} value={String(u.id)}>
+                        {authorLabel(u)}
+                      </option>
+                    ))}
+                  </>
+                )}
               </select>
             </div>
             <div className="grid gap-2">
@@ -186,6 +283,22 @@ export function QuickEditDialog({
                 <option value="public">عمومی</option>
                 <option value="private">خصوصی (مدیران)</option>
                 <option value="password">رمزدار</option>
+              </select>
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="qe-format">فرت پست</Label>
+              <select
+                id="qe-format"
+                value={format}
+                onChange={(e) => setFormat(e.target.value as PostFormat)}
+                className="h-9 rounded-md border border-input bg-background px-3 text-xs"
+              >
+                <option value="standard">استاندارد</option>
+                <option value="gallery">گالری تصویر</option>
+                <option value="video">ویدیو</option>
+                <option value="audio">صوت</option>
+                <option value="quote">نقل‌قول</option>
+                <option value="link">پیوند</option>
               </select>
             </div>
           </div>
@@ -271,6 +384,76 @@ export function QuickEditDialog({
               </div>
             </div>
           )}
+        {/* Custom fields — a third of what makes quick edit worth using, and
+              until now reachable only by opening the full editor. */}
+          <div className="grid gap-2">
+            <Label className="flex items-center gap-1">
+              <Braces className="h-3.5 w-3.5" /> فیلدهای سفارشی
+            </Label>
+            {metaLoadError && (
+              <p className="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-xs text-destructive">
+                خواندن فی��دهای سفارشی ناموفق بود. ذخیره غیرفعال است تا فیلدهای نمایش‌داده‌نشده حذف نشوند.
+              </p>
+            )}
+            {Object.keys(meta).length === 0 && !metaLoadError && (
+              <p className="text-xs text-muted-foreground">فیلد سفارشی برای این نوشته ثبت نشده است.</p>
+            )}
+            {Object.entries(meta).map(([key, value]) => (
+              <div key={key} className="grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,1fr)_2fr_auto]">
+                <Input
+                  value={key}
+                  readOnly
+                  dir="ltr"
+                  aria-label="کلید فیلد"
+                  className="text-left font-mono text-xs text-muted-foreground"
+                />
+                <Input
+                  value={value}
+                  onChange={(e) => setMeta((prev) => ({ ...prev, [key]: e.target.value }))}
+                  placeholder="مقدار (خالی = حذف فیلد)"
+                  className="text-xs"
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() =>
+                    setMeta((prev) => {
+                      const next = { ...prev };
+                      delete next[key];
+                      return next;
+                    })
+                  }
+                  aria-label={`حذف فیلد ${key}`}
+                >
+                  <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                </Button>
+              </div>
+            ))}
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,1fr)_2fr_auto]">
+              <Input
+                value={newMetaKey}
+                onChange={(e) => setNewMetaKey(e.target.value)}
+                placeholder="کلید فیلد جدید"
+                dir="ltr"
+                className="text-left font-mono text-xs"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={!newMetaKey.trim()}
+                onClick={() => {
+                  const key = newMetaKey.trim();
+                  if (!key) return;
+                  setMeta((prev) => (key in prev ? prev : { ...prev, [key]: "" }));
+                  setNewMetaKey("");
+                }}
+              >
+                افزودن فیلد
+              </Button>
+            </div>
+          </div>
         </div>
 
         <DialogFooter>

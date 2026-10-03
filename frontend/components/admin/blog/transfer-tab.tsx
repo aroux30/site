@@ -9,7 +9,7 @@
  */
 
 import { useRef, useState } from "react";
-import { Download, Upload, FileJson, AlertTriangle } from "lucide-react";
+import { Download, Upload, FileJson, FileCode, AlertTriangle } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -19,8 +19,10 @@ import { blogTransferApi } from "@/lib/api/wp-parity";
 export function TransferTab() {
   const { toast } = useToast();
   const fileRef = useRef<HTMLInputElement>(null);
+  const wxrRef = useRef<HTMLInputElement>(null);
   const [exporting, setExporting] = useState(false);
   const [importing, setImporting] = useState(false);
+  const [importingWxr, setImportingWxr] = useState(false);
   const [lastImport, setLastImport] = useState<{
     categories: number;
     tags: number;
@@ -71,6 +73,47 @@ export function TransferTab() {
     } finally {
       setImporting(false);
       if (fileRef.current) fileRef.current.value = "";
+    }
+  };
+
+  /** Import a WordPress WXR file.
+   *
+   *  A separate path from the JSON one on purpose, and not a fallback: WXR is
+   *  the only format a WordPress site can hand you, and a file that is XML
+   *  cannot be `JSON.parse`d — so a shared handler would have to sniff the
+   *  content and guess. Guessing wrong here means an operator watches a
+   *  migration silently import nothing.
+   *
+   *  The parsed counts are reported next to the imported ones, because "12
+   *  posts imported" out of a file holding 300 is a different outcome from
+   *  300 imported out of 300 and the operator is the one who has to tell
+   *  them apart.
+   */
+  const handleImportWxr = async (file: File) => {
+    setImportingWxr(true);
+    try {
+      const stats = await blogTransferApi.importWxr(file);
+      setLastImport(stats);
+      const parsed = stats.parsed;
+      const missing =
+        parsed && parsed.posts > stats.posts + stats.skipped
+          ? ` — فایل ${stats.posts + stats.skipped} نوشته داشت`
+          : "";
+      toast({
+        title: "وارد کردن WXR انجام شد",
+        description:
+          `${stats.posts} نوشته، ${stats.categories} دسته، ${stats.tags} برچسب` +
+          missing,
+      });
+    } catch {
+      toast({
+        title: "وارد کردن WXR ناموفق بود",
+        description: "فایل باید خروجی XML وردپرس (WXR) باشد.",
+        variant: "destructive",
+      });
+    } finally {
+      setImportingWxr(false);
+      if (wxrRef.current) wxrRef.current.value = "";
     }
   };
 
@@ -125,6 +168,39 @@ export function TransferTab() {
             {lastImport.tags} برچسب، {lastImport.skipped} مورد نادیده‌گرفته‌شده
           </div>
         )}
+
+        {/* WordPress migration, beside the JSON import and not folded into it.
+            WXR is the only format a WordPress install can produce, and it is
+            XML: `JSON.parse` on it throws, so the JSON path cannot serve it and
+            the alternative is a paragraph telling the operator to convert the
+            file by hand first. */}
+        <div className="space-y-2 rounded-lg border border-dashed border-border p-4">
+          <p className="text-xs leading-relaxed text-muted-foreground">
+            <span className="font-medium text-foreground">انتقال از وردپرس:</span>{" "}
+            در وردپرس به «ابزار ← درون‌ریزی ← همهٔ محتوا» بروید، فایل XML را
+            بگیرید و همین‌جا انتخاب کنید. دسته‌ها، برچسب‌ها، نوشته‌ها، دیدگاه‌ها و
+            وضعیت پیش‌نویس‌ها همراه فایل منتقل می‌شوند.
+          </p>
+          <input
+            ref={wxrRef}
+            type="file"
+            accept="text/xml,application/xml,.xml"
+            className="hidden"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) void handleImportWxr(file);
+            }}
+          />
+          <Button
+            variant="outline"
+            className="w-full"
+            onClick={() => wxrRef.current?.click()}
+            disabled={importingWxr || importing}
+          >
+            <FileCode className="h-4 w-4" />
+            {importingWxr ? "در حال وارد کردن…" : "انتخاب فایل WXR (XML)"}
+          </Button>
+        </div>
 
         <div className="flex items-start gap-2 rounded-lg border border-amber-500/20 bg-amber-500/10 p-3 text-[11px] text-amber-700 dark:text-amber-300">
           <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />

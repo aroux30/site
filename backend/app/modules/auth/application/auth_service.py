@@ -54,6 +54,22 @@ from app.modules.users.domain.kyc_models import AttemptType
 logger: structlog.stdlib.BoundLogger = structlog.get_logger()
 settings = get_settings()
 
+#: Roles a public sign-up must never land in, whatever the
+#: ``registration_default_role`` option says. The option is read from the
+#: database, and a role that carries admin capability reached through a
+#: sign-up form is a privilege escalation by configuration. Listed here rather
+#: than derived from the roles table so the refusal cannot itself be
+#: configured away.
+_PRIVILEGED_ROLES = frozenset({
+    "admin",
+    "super_admin",
+    "superadmin",
+    "root",
+    "owner",
+    "staff",
+    "manager",
+})
+
 
 async def _persist_failed_attempt(
     db: AsyncSession,
@@ -138,8 +154,15 @@ async def _create_token_pair(
     *,
     ip_address: str | None = None,
     user_agent: str | None = None,
+    remember_me: bool = False,
 ) -> dict[str, str]:
-    """Build access + refresh tokens, persist a session row, and return them."""
+    """Build access + refresh tokens, persist a session row, and return them.
+
+    ``remember_me`` lengthens *this session's* refresh lifetime only. The
+    access token is unaffected — it is refreshed from the session, so a longer
+    access token would widen the window a leaked one is usable without the
+    session ever being consulted.
+    """
     permissions = await _get_user_permissions(db, user.id)
     roles = await _get_user_role_slugs(db, user.id)
 
@@ -151,9 +174,20 @@ async def _create_token_pair(
         if "*" not in permissions:
             permissions.append("*")
 
-    refresh = create_refresh_token(subject=user.id)
+    refresh_days = (
+        settings.REMEMBER_ME_REFRESH_TOKEN_EXPIRE_DAYS
+        if remember_me
+        else settings.REFRESH_TOKEN_EXPIRE_DAYS
+    )
+    # The token's own ``exp`` and the session row's ``expires_at`` must agree:
+    # the session is what refresh consults, and a token that outlives its row
+    # would be rejected by the lookup, while a row that outlives its token
+    # would be an orphan no client can ever present.
+    refresh = create_refresh_token(
+        subject=user.id, expires_delta=timedelta(days=refresh_days)
+    )
 
-    expires_at = datetime.now(UTC) + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
+    expires_at = datetime.now(UTC) + timedelta(days=refresh_days)
     session = UserSession(
         user_id=user.id,
         refresh_token=_hash_refresh_token(refresh),
@@ -196,6 +230,7 @@ async def register(
     password: str,
     first_name: str,
     last_name: str,
+    email: str | None = None,
     referral_code: str | None = None,
     ip_address: str | None = None,
     user_agent: str | None = None,
@@ -209,17 +244,68 @@ async def register(
     4. Assign the *customer* role (create it if missing)
     5. Return a fresh token pair
     """
-    # 1. Uniqueness check
+    from app.modules.settings.application.site_options_service import (
+        SiteOptionsService,
+    )
+
+    # 1. Registration may be closed. A store in pre-launch, or one that only
+    #    takes orders from existing accounts, turns this off — and it is a
+    #    switch rather than a route removal so the form can say why.
+    enabled = await SiteOptionsService.get(db, "registration_enabled", "1")
+    if str(enabled or "1").strip() not in {"1", "true", "yes", "on"}:
+        raise ValidationError(
+            "ثبت‌نام در حال حاضر غیرفعال است. اگر حساب می‌خواهید با ما تماس بگیرید."
+        )
+
+    # When on, the account is created but held for an operator's approval.
+    # The signup still succeeds — the customer's data is theirs either way —
+    # but no session is issued until the account is approved.
+    approval_raw = await SiteOptionsService.get(db, "registration_approval_required", "0")
+    approval_required = str(approval_raw or "0").strip() in {"1", "true", "yes", "on"}
+
+    # 2. Uniqueness check
     existing = await db.execute(select(User).where(User.phone == phone))
     if existing.scalar_one_or_none() is not None:
         raise ConflictError(detail="Phone number already registered")
 
+    # Email, when given, is normalised and must be free. The column is unique,
+    # so a duplicate would otherwise surface as a raw IntegrityError on commit
+    # rather than a message the form can show.
+    from app.modules.users.application.email_change_service import normalize_email
+
+    normalized_email = normalize_email(email)
+    if normalized_email is not None:
+        email_taken = await db.execute(
+            select(User.id).where(User.email == normalized_email)
+        )
+        if email_taken.first() is not None:
+            raise ConflictError(detail="Email already registered")
+
     # 2. Create user
+    from app.modules.users.application.author_slug import unique_author_slug
+
     user = User(
         phone=phone,
         password_hash=hash_password(password),
+        email=normalized_email,
         is_active=True,
+        # False for both paths now: a phone-only signup has no email to verify,
+        # and one with an email stays unverified until the link is clicked.
+        # Previously the OTP flow alone set this true, which conflated "phone
+        # proven" with "email proven".
         is_verified=False,
+        # A store that vets signups (wholesale, closed beta) turns on
+        # ``registration_approval_required``; the account is created but held.
+        # Read here rather than at login so the state is recorded on the row —
+        # a pending account that later logs in is refused by its own flag, not
+        # by re-reading a setting that may have changed since.
+        pending_approval=approval_required,
+        # The author archive reads this column, and it was carried by a
+        # migration that filled it once with no writer since — so every account
+        # made through this path had an empty slug and a 404 archive.
+        author_slug=await unique_author_slug(
+            db, f"{first_name} {last_name}", fallback=phone
+        ),
     )
     db.add(user)
     await db.flush()  # materialise user.id
@@ -232,9 +318,40 @@ async def register(
     )
     db.add(profile)
 
-    # 4. Assign customer role
-    role_result = await db.execute(select(Role).where(Role.slug == "customer"))
+    # 4. Assign the configured default role.
+    #
+    #    Read from a setting, but never trusted to grant power. The option
+    #    decides which *non-privileged* role a new account lands in, and a
+    #    role that carries admin capabilities is refused — otherwise an operator
+    #    who typo'd a slug, or anyone who could write the option, hands every
+    #    future sign-up admin rights. Refusing loudly is better than silently
+    #    giving everyone a lesser role than the one they asked for, because
+    #    then nobody can tell a typo from a working setting.
+    requested = str(
+        await SiteOptionsService.get(db, "registration_default_role", "customer")
+        or "customer"
+    ).strip()
+    if requested in _PRIVILEGED_ROLES:
+        logger.warning(
+            "registration_default_role_rejected",
+            requested=requested[:40],
+            fell_back_to="customer",
+        )
+        requested = "customer"
+
+    role_result = await db.execute(select(Role).where(Role.slug == requested))
     role = role_result.scalar_one_or_none()
+    if role is None:
+        # An unknown slug falls back rather than raising: a stale setting
+        # should not stop a customer registering.
+        logger.warning(
+            "registration_default_role_missing",
+            requested=requested[:40],
+            fell_back_to="customer",
+        )
+        requested = "customer"
+        role_result = await db.execute(select(Role).where(Role.slug == requested))
+        role = role_result.scalar_one_or_none()
     if role is None:
         role = Role(name="Customer", slug="customer", is_system=True)
         db.add(role)
@@ -268,13 +385,20 @@ async def register(
                 user_id=str(user.id),
             )
 
-    # 5. Tokens
-    tokens = await _create_token_pair(
-        db,
-        user,
-        ip_address=ip_address,
-        user_agent=user_agent,
-    )
+    # 5. Tokens — unless the account is held for approval. A pending account
+    #    gets no session: issuing one and relying on a later check would leave
+    #    a valid token in the customer's hands for an account the store has
+    #    not admitted.
+    if approval_required:
+        tokens = {"access_token": "", "refresh_token": "", "token_type": "bearer"}
+        await logger.ainfo("registration_pending_approval", user_id=str(user.id))
+    else:
+        tokens = await _create_token_pair(
+            db,
+            user,
+            ip_address=ip_address,
+            user_agent=user_agent,
+        )
 
     # Audit
     await log_action(
@@ -305,6 +429,51 @@ async def register(
     except Exception as exc:
         await logger.awarning("automation_trigger_dispatch_skipped", error=str(exc))
 
+    # P0 "کاربران: ایمیل خوش‌آمد ثبت‌نام و اطلاع به مدیر". Neither existed: the
+    # customer got a token pair and a flash of success, and the store got an
+    # audit row nobody reads during business hours.
+    #
+    # After the audit entry, not before, because the admin notice reads the IP
+    # back out of it. And fire-and-forget for the same reason the automation
+    # trigger above is: a signup that fails because the SMTP host is unreachable
+    # produces an account the customer believes in and an operator never hears
+    # about, which is worse than a signup that succeeds and a logged failure.
+    try:
+        from app.modules.auth.application.registration_email_service import (
+            send_registration_emails,
+        )
+
+        sent = await send_registration_emails(db, user_id=user.id)
+        await logger.ainfo(
+            "registration_emails",
+            user_id=str(user.id),
+            welcome=sent.get("welcome"),
+            admin_notice=sent.get("admin_notice"),
+        )
+    except Exception as exc:  # noqa: BLE001 — a signup never fails on its mail
+        await logger.awarning("registration_emails_failed", error=str(exc))
+
+    # Email verification, when an address was supplied. Fire-and-forget for the
+    # same reason as the mails above: the account is already created, and a
+    # verification link that fails to send must not fail the signup — the user
+    # can request a resend from their account screen.
+    if normalized_email is not None:
+        try:
+            from app.modules.users.application.email_verification_service import (
+                issue_verification,
+            )
+
+            result = await issue_verification(
+                db, user_id=user.id, email=normalized_email
+            )
+            await logger.ainfo(
+                "registration_verification_issued",
+                user_id=str(user.id),
+                sent=result.get("sent"),
+            )
+        except Exception as exc:  # noqa: BLE001 — never fail a signup on this
+            await logger.awarning("registration_verification_failed", error=str(exc))
+
     await logger.ainfo("user_registered", user_id=str(user.id), phone=phone)
     return tokens
 
@@ -317,8 +486,14 @@ async def login(
     totp_code: str | None = None,
     ip_address: str | None = None,
     user_agent: str | None = None,
+    remember_me: bool = False,
 ) -> dict[str, str]:
-    """Authenticate with phone + password and return tokens."""
+    """Authenticate with phone + password and return tokens.
+
+    ``remember_me`` opts this one session into a longer refresh lifetime; it is
+    a per-session property, not an account one, so a shared computer's "don't
+    remember me" is not overridden by another device's choice.
+    """
     # Check brute-force lockout first
     await brute_force_protector.check_lockout(phone)
 
@@ -366,6 +541,17 @@ async def login(
             error_code="MFA_CODE_REQUIRED",
         )
 
+    # Pending approval is checked before "deactivated": the password was
+    # correct, and "waiting for approval" is a different answer from "this
+    # account is blocked". A distinct error code lets the login form say
+    # "your account is awaiting approval" rather than sending the customer to
+    # support about a block that does not exist.
+    if user.pending_approval:
+        raise UnauthorizedError(
+            detail="حساب شما در انتظار تأیید مدیر است.",
+            error_code="ACCOUNT_PENDING_APPROVAL",
+        )
+
     if not user.is_active:
         raise UnauthorizedError(detail="Account is deactivated")
 
@@ -381,6 +567,7 @@ async def login(
         user,
         ip_address=ip_address,
         user_agent=user_agent,
+        remember_me=remember_me,
     )
 
     await log_action(
@@ -393,7 +580,7 @@ async def login(
         user_agent=user_agent,
     )
 
-    await logger.ainfo("user_logged_in", user_id=str(user.id))
+    await logger.ainfo("user_logged_in", user_id=str(user.id), remember_me=remember_me)
     return tokens
 
 
@@ -513,8 +700,18 @@ async def verify_otp(
     user = user_result.scalar_one_or_none()
 
     if user is None:
-        # OTP-based registration
-        user = User(phone=phone, is_active=True, is_verified=True)
+        # OTP-based registration. The slug is generated here too: the password
+        # path has it, and an account made by OTP instead got an empty one, so
+        # its author archive 404'd — the same column, two creation paths, one
+        # of them forgetting.
+        from app.modules.users.application.author_slug import unique_author_slug
+
+        user = User(
+            phone=phone,
+            is_active=True,
+            is_verified=True,
+            author_slug=await unique_author_slug(db, phone, fallback=phone),
+        )
         db.add(user)
         await db.flush()
 
@@ -548,6 +745,13 @@ async def verify_otp(
         # to mint a fresh token via OTP — the password login path enforces
         # the same gate (see login), and the admin block feature depends on
         # it: revocation is only as strong as the DB state, not just Redis.
+        # Pending approval is the same shape: the OTP proves the phone, not
+        # that the store admitted the account.
+        if user.pending_approval:
+            raise UnauthorizedError(
+                detail="حساب شما در انتظار تأیید مدیر است.",
+                error_code="ACCOUNT_PENDING_APPROVAL",
+            )
         if not user.is_active:
             raise UnauthorizedError(detail="Account is deactivated")
 
@@ -767,6 +971,7 @@ async def get_me(db: AsyncSession, *, user_id: uuid.UUID) -> dict[str, Any]:
         "email": user.email,
         "first_name": profile.first_name if profile else None,
         "last_name": profile.last_name if profile else None,
+        "display_name": profile.display_name if profile else None,
         "national_code": profile.national_code if profile else None,
         "birth_date": str(profile.birth_date) if profile and profile.birth_date else None,
         "avatar_url": profile.avatar_url if profile else None,
@@ -796,6 +1001,7 @@ async def update_profile(
     profile_keys = {
         "first_name",
         "last_name",
+        "display_name",
         "national_code",
         "birth_date",
         "avatar_url",
@@ -804,6 +1010,12 @@ async def update_profile(
     for key in profile_keys:
         if key in data and data[key] is not None:
             profile_fields[key] = data[key]
+
+    # An empty nickname is "no nickname", stored as NULL so every consumer's
+    # ``display_name or first+last`` fallback fires. Storing "" would work at
+    # read time but leaves two spellings of the same state in the column.
+    if profile_fields.get("display_name") == "":
+        profile_fields["display_name"] = None
 
     # Fetch before snapshot
     before = await get_me(db, user_id=user_id)
@@ -904,6 +1116,12 @@ async def change_password(
         raise UnauthorizedError(detail="Current password is incorrect")
 
     user.password_hash = hash_password(new_password)
+    # Stamped here rather than read back from the audit log, so the notice this
+    # rotation sends can name the time it happened. `updated_at` cannot: it moves
+    # on any profile edit, so it answers "when was anything last touched" rather
+    # than "when did the password change" — which is the question the recipient
+    # of a security notice is actually asking.
+    user.password_changed_at = datetime.now(UTC)
     await db.flush()
 
     # Security: a password rotation must invalidate every existing session —
@@ -921,6 +1139,25 @@ async def change_password(
         user_agent=user_agent,
         after={"revoked_sessions": revoked_sessions},
     )
+
+    # P0 "کاربران: ایمیل اطلاع تغییر رمز". Fire-and-forget, for the same reason
+    # the registration mails are: the rotation has already happened by the time
+    # this runs, so a mail outage must not undo it or fail the request. The case
+    # this exists for is somebody whose password was changed by someone else —
+    # they get told, with the time, and a number to call.
+    try:
+        from app.modules.auth.application.registration_email_service import (
+            RegistrationEmailService,
+        )
+
+        noticed = await RegistrationEmailService.send_password_changed_notice(
+            db, user_id=user_id
+        )
+        await logger.ainfo(
+            "password_change_notice", user_id=str(user_id), notice_sent=noticed
+        )
+    except Exception as exc:  # noqa: BLE001 — a rotation never fails on its mail
+        await logger.awarning("password_change_notice_failed", error=str(exc))
 
     await logger.ainfo("password_changed", user_id=str(user_id), revoked_sessions=revoked_sessions)
 
@@ -1174,6 +1411,69 @@ async def request_password_reset(
         user_agent=user_agent,
     )
     await logger.ainfo("password_reset_requested", user_id=str(user.id))
+
+
+async def admin_request_password_reset(
+    db: AsyncSession,
+    *,
+    user: User,
+    actor_id: uuid.UUID,
+    ip_address: str | None = None,
+) -> bool:
+    """Email a reset link to a named account, at an operator's request.
+
+    P0 "کاربران: ارسال لینک بازنشانی رمز توسط ادمین". The whole machinery was
+    here — token, hash, TTL, email — but only reachable when a *user* asked. An
+    operator who has locked someone out, or who is onboarding someone whose
+    password never reached them, had no route at all.
+
+    Delegates to ``request_password_reset`` rather than reimplementing it, for the
+    reasons that mattered last time this was written twice:
+
+      - a second implementation is a second set of rules about whether an
+        OTP-only account gets a mail, and about voiding the previous token.
+      - the audit trail is the same one, so an operator-initiated reset is
+        indistinguishable in the log from a user-initiated one except by the
+        actor, which is exactly what the actor field is for.
+
+    Returns whether a link was actually issued. The admin route *does* report
+    that, unlike the public one: an operator already knows which account they are
+    looking at, so there is no enumeration to protect and a false "done" on an
+    account with no password would send them looking for a mail that was never
+    going to arrive.
+    """
+    if not user.email or not user.password_hash:
+        logger.info(
+            "admin_password_reset_noop",
+            user_id=str(user.id),
+            reason="no_password_account",
+        )
+        await log_action(
+            db,
+            actor_id=actor_id,
+            action="user.password_reset_requested_by_admin",
+            resource="user",
+            resource_id=user.id,
+            ip_address=ip_address,
+        )
+        return False
+
+    await request_password_reset(
+        db, email=user.email, ip_address=ip_address, user_agent="admin-panel"
+    )
+    # The delegated call logs the action as if the user asked. Adding the admin
+    # one alongside means the audit shows both the actor and the operator, and a
+    # later reader can tell a customer request from an operator action without
+    # inferring it from the user agent string.
+    await log_action(
+        db,
+        actor_id=actor_id,
+        action="user.password_reset_requested_by_admin",
+        resource="user",
+        resource_id=user.id,
+        ip_address=ip_address,
+    )
+    return True
 
 
 async def reset_password(

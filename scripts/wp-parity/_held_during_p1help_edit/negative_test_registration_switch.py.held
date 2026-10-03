@@ -1,0 +1,125 @@
+"""Negative test for the registration switch and the default-role ceiling.
+
+The security assertion here is the one worth proving: a public sign-up form
+that can be pointed at a privileged role hands out that role to every future
+account, and the option that decides it lives in the database where anyone who
+can write settings can reach it. So the ceiling is a code-level refusal, and
+this proves the refusal is load-bearing rather than decorative.
+
+  A. Drop the privileged-role check. The sign-up form now grants admin, and
+     the fixture — which registers a real account and reads back its roles —
+     must notice.
+  B. Ignore the switch. Registration stays open on a store that closed it.
+  C. Keep the switch but raise a different error, so a customer sees "this
+     field is invalid" instead of the reason. The assertion checks the error
+     type, so this one is about the switch being consulted at all.
+
+Run:  python scripts/wp-parity/negative_test_registration_switch.py
+"""
+
+from __future__ import annotations
+
+import os
+import subprocess
+import sys
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+ROOT = os.path.dirname(os.path.dirname(HERE))
+FIXTURE = os.path.join(ROOT, ".p1-tests", "registration_switch_test.py")
+SERVICE = os.path.join(ROOT, "backend", "app", "modules", "auth",
+                       "application", "auth_service.py")
+
+NL = chr(10)
+
+SABOTAGES = [
+    (
+        "A: drop the privileged-role ceiling",
+        [("    if requested in _PRIVILEGED_ROLES:",
+          "    if False:  # sabotage: the ceiling is gone")],
+    ),
+    (
+        "B: ignore the registration switch",
+        [('    enabled = await SiteOptionsService.get(db, "registration_enabled", "1")',
+          '    enabled = "1"  # sabotage: the switch is never read')],
+    ),
+    (
+        "C: raise the wrong error so the switch is not what refuses",
+        [("    if str(enabled or \"1\").strip() not in {\"1\", \"true\", \"yes\", \"on\"}:" + NL +
+          "        raise ValidationError(",
+          "    if str(enabled or \"1\").strip() not in {\"1\", \"true\", \"yes\", \"on\"}:" + NL +
+          "        raise ConflictError(")],
+    ),
+]
+
+
+def run_fixture() -> tuple[int, str]:
+    proc = subprocess.run(
+        [sys.executable, FIXTURE], capture_output=True, text=True,
+        encoding="utf-8", errors="replace", timeout=600,
+    )
+    return proc.returncode, (proc.stdout or "") + (proc.stderr or "")
+
+
+def main() -> int:
+    if not os.path.isfile(FIXTURE):
+        print(f"FAIL: fixture missing at {FIXTURE}")
+        return 1
+
+    with open(SERVICE, encoding="utf-8") as fh:
+        original = fh.read()
+
+    rc, out = run_fixture()
+    if rc != 0:
+        print("FAIL: the fixture does not pass on the real code, so a failure "
+              "below would prove nothing.")
+        print(out.strip()[-900:])
+        return 1
+    print("fixture passes on the real code")
+
+    ok = True
+    for label, pairs in SABOTAGES:
+        text = original
+        applied = True
+        for needle, replacement in pairs:
+            if text.count(needle) != 1:
+                print(f"FAIL: {label} — anchor found {text.count(needle)} times, "
+                      f"sabotage not applied.")
+                ok = False
+                applied = False
+                break
+            text = text.replace(needle, replacement, 1)
+        if not applied:
+            continue
+
+        with open(SERVICE, "w", encoding="utf-8", newline="") as fh:
+            fh.write(text)
+        try:
+            rc_broken, out_broken = run_fixture()
+        finally:
+            with open(SERVICE, "w", encoding="utf-8", newline="") as fh:
+                fh.write(original)
+
+        rc_after, _ = run_fixture()
+        if rc_after != 0:
+            print(f"FAIL: {label} — the fixture did not pass again after restoring.")
+            ok = False
+            continue
+        if rc_broken == 0:
+            print(f"FAIL: {label} still passed. The fixture cannot see it.")
+            ok = False
+            continue
+
+        caught = [ln.strip() for ln in out_broken.splitlines() if "GAPS" in ln]
+        print(f"  {label} -> caught")
+        for line in caught:
+            print(f"      {line[:170]}")
+
+    if not ok:
+        return 1
+    print("\nPASS: the privileged-role ceiling and the registration switch are "
+          "both load-bearing.")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

@@ -21,7 +21,15 @@
 
 import React, { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { Download, FileJson, RefreshCw, ShieldAlert, Trash2 } from "lucide-react";
+import {
+  Download,
+  FileArchive,
+  FileJson,
+  MailCheck,
+  RefreshCw,
+  ShieldAlert,
+  Trash2,
+} from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -33,11 +41,14 @@ import { useToast } from "@/components/ui/use-toast";
 import { apiErrorMessage } from "@/lib/api/error-message";
 import { formatJalaliDateTime } from "@/lib/date";
 import {
+  confirmPrivacyRequestByEmail,
   fetchMyPrivacyRequests,
   fetchPrivacyExportResult,
+  fetchPrivacyExportZip,
   privacyStatusLabel,
   privacyStatusVariant,
   privacyTypeLabel,
+  sendPrivacyEmailConfirmation,
   submitPrivacyRequest,
   type PrivacyRequest,
 } from "@/lib/api/privacy";
@@ -53,6 +64,10 @@ export default function AccountPrivacyPage() {
   const [password, setPassword] = useState("");
   const [busyType, setBusyType] = useState<"export" | "erase" | null>(null);
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
+  // Its own busy id: the ZIP and the JSON are independent downloads, and
+  // greying out both because one is in flight reads as a broken button.
+  const [zipBusyId, setZipBusyId] = useState<string | null>(null);
+  const [emailBusyId, setEmailBusyId] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -75,6 +90,42 @@ export default function AccountPrivacyPage() {
   useEffect(() => {
     void load();
   }, [load]);
+
+  // Redeem an emailed confirmation link. The token arrives in the query string
+  // because that is where the email points; it is stripped from the URL
+  // afterwards so it does not linger in history or a screenshot. The server
+  // route is unauthenticated — the token is the credential — which is why the
+  // account guard lets this one parameter through.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get("privacy_confirm_token");
+    if (!token) return;
+    void (async () => {
+      try {
+        await confirmPrivacyRequestByEmail(token);
+        toast({
+          title: "درخواست شما تأیید شد",
+          description: "کارشناسان درخواست تأییدشده شما را بررسی می‌کنند.",
+          variant: "success",
+        });
+      } catch (err) {
+        toast({
+          title: "تأیید درخواست ناموفق بود",
+          description: apiErrorMessage(
+            err,
+            "این لینک معتبر نیست، منقضی شده یا قبلاً استفاده شده است.",
+          ),
+          variant: "destructive",
+        });
+      } finally {
+        params.delete("privacy_confirm_token");
+        const qs = params.toString();
+        window.history.replaceState(null, "", window.location.pathname + (qs ? `?${qs}` : ""));
+        void load();
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const hasOpen = (type: string) =>
     items.some((i) => i.type === type && (i.status === "pending" || i.status === "processing"));
@@ -144,6 +195,66 @@ export default function AccountPrivacyPage() {
       await load();
     } finally {
       setDownloadingId(null);
+    }
+  };
+
+  /** Download the same archive as a structured ZIP (index.html + per-source JSON). */
+  const downloadZip = async (id: string) => {
+    setZipBusyId(id);
+    try {
+      const blob = await fetchPrivacyExportZip(id);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `my-data-export.zip`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      toast({
+        title: "بسته ZIP داده‌های شما دانلود شد",
+        description:
+          "این بسته یک index.html و یک فایل JSON برای هر منبع دارد. نسخه ذخیره‌شده در سیستم حذف شد.",
+      });
+      await load();
+    } catch (err) {
+      toast({
+        title: apiErrorMessage(
+          err,
+          "دریافت بسته ZIP ناموفق بود. ممکن است قبلاً دریافت شده یا منقضی شده باشد.",
+        ),
+        variant: "destructive",
+      });
+      await load();
+    } finally {
+      setZipBusyId(null);
+    }
+  };
+
+  /**
+   * Mail a confirmation link for a pending request.
+   *
+   * The OTP path proves the phone; this proves the mailbox, so a subject whose
+   * number changed still has a way to confirm. The server's answer is surfaced
+   * rather than assumed — an account with no address gets a truthful "nothing
+   * was sent".
+   */
+  const sendEmailConfirm = async (id: string) => {
+    setEmailBusyId(id);
+    try {
+      const res = await sendPrivacyEmailConfirmation(id);
+      toast({
+        title: res.sent ? "پیوند تأیید ارسال شد" : "ارسال پیوند تأیید ناموفق بود",
+        description: res.message,
+        variant: res.sent ? "success" : "destructive",
+      });
+    } catch (err) {
+      toast({
+        title: apiErrorMessage(err, "ارسال پیوند تأیید ناموفق بود."),
+        variant: "destructive",
+      });
+    } finally {
+      setEmailBusyId(null);
     }
   };
 
@@ -300,15 +411,31 @@ export default function AccountPrivacyPage() {
                       {item.type === "export" &&
                         (item.status === "completed" || item.status === "partial") && (
                         item.hasResult ? (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => void download(item.id)}
-                            disabled={downloadingId === item.id}
-                          >
-                            <Download className="h-3.5 w-3.5" />
-                            {downloadingId === item.id ? "…" : "دریافت فایل"}
-                          </Button>
+                          <div className="flex flex-wrap gap-1.5">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => void download(item.id)}
+                              disabled={downloadingId === item.id || zipBusyId === item.id}
+                            >
+                              <Download className="h-3.5 w-3.5" />
+                              {downloadingId === item.id ? "…" : "JSON"}
+                            </Button>
+                            {/* The ZIP lays the same archive out the way other
+                                export tools do: an index.html plus one JSON
+                                per source. Both read the same stored copy, so
+                                collecting either clears it. */}
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => void downloadZip(item.id)}
+                              disabled={zipBusyId === item.id || downloadingId === item.id}
+                              title="بسته ZIP با index.html و یک فایل برای هر منبع"
+                            >
+                              <FileArchive className="h-3.5 w-3.5" />
+                              {zipBusyId === item.id ? "…" : "ZIP"}
+                            </Button>
+                          </div>
                         ) : (
                           <span className="text-[11px] text-muted-foreground">
                             خروجی منقضی یا دریافت شده — درخواست تازه ثبت کنید
@@ -326,7 +453,29 @@ export default function AccountPrivacyPage() {
                           هستند
                         </span>
                       )}
-                      {(item.status === "pending" || item.status === "processing") && (
+                      {item.status === "pending" && !item.confirmedAt && (
+                        <div className="space-y-1">
+                          {/* The OTP proves the phone; this proves the mailbox.
+                              A subject whose number changed can still confirm
+                              from the address on their account. */}
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => void sendEmailConfirm(item.id)}
+                            disabled={emailBusyId === item.id}
+                            title="ارسال پیوند تأیید به ایمیل حساب"
+                          >
+                            <MailCheck className="h-3.5 w-3.5" />
+                            {emailBusyId === item.id ? "…" : "تأیید با ایمیل"}
+                          </Button>
+                        </div>
+                      )}
+                      {item.status === "pending" && item.confirmedAt && (
+                        <span className="text-[11px] text-muted-foreground">
+                          تأیید شد — در نوبت بررسی کارشناسان
+                        </span>
+                      )}
+                      {item.status === "processing" && (
                         <span className="text-[11px] text-muted-foreground">
                           در حال بررسی توسط کارشناسان
                         </span>

@@ -130,3 +130,67 @@ export const notificationsAdminApi = {
     return res.data;
   },
 };
+
+
+// --- Email templates (admin) ---
+
+export interface EmailTemplate {
+  name: string;
+  channel: string;
+  subject: string | null;
+  body_template: string;
+  text_template: string | null;
+  variables: string[];
+  /** False when the wording is still the one in the code. */
+  is_custom: boolean;
+}
+
+export const emailTemplatesAdminApi = {
+  /** The four transactional emails plus any override rows. */
+  list: async (): Promise<EmailTemplate[]> => {
+    const res = await apiClient.get<{ items: EmailTemplate[] }>(
+      "/notifications/admin/email-templates",
+    );
+    return res.data.items || [];
+  },
+
+  get: async (name: string): Promise<EmailTemplate> => {
+    const res = await apiClient.get<EmailTemplate>(
+      `/notifications/admin/email-templates/${encodeURIComponent(name)}`,
+    );
+    return res.data;
+  },
+
+  /** Write the override. The built-in stays the fallback on delete. */
+  save: async (
+    name: string,
+    data: { subject: string | null; body_template: string; variables: string[] },
+  ): Promise<EmailTemplate> => {
+    const res = await apiClient.put<EmailTemplate>(
+      `/notifications/admin/email-templates/${encodeURIComponent(name)}`,
+      data,
+    );
+    return res.data;
+  },
+
+  /** Drop the override, restoring the built-in wording. */
+  reset: async (name: string): Promise<void> => {
+    await apiClient.delete(
+      `/notifications/admin/email-templates/${encodeURIComponent(name)}`,
+    );
+  },
+
+  /** Render with sample values, through the same guards a save applies. */
+  preview: async (data: {
+    name?: string;
+    subject: string | null;
+    body_template: string;
+    variables: string[];
+  }): Promise<{ subject: string; html: string; variables: string }> => {
+    const res = await apiClient.post<{ subject: string; html: string; variables: string }>(
+      "/notifications/admin/email-templates/preview",
+      data,
+    );
+    return res.data;
+  },
+};

@@ -2,13 +2,20 @@
 
 from __future__ import annotations
 
+import re
 import uuid
 from datetime import datetime
 from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from app.modules.content.domain.models import BlockType, MenuLocation, PageStatus
+from app.modules.content.domain.models import (
+    BlockType,
+    MenuLocation,
+    PageStatus,
+    PageVisibility,
+)
+
 from app.modules.content.domain.reusable_blocks import ReusableBlockStatus
 
 # ── Homepage Block Schemas ────────────────────────────────────────────────
@@ -47,10 +54,32 @@ class BlockReorderRequest(BaseModel):
 # ── Tree Menu Schemas ─────────────────────────────────────────────────────
 
 
+#: A menu location identifier. The five built-ins are seeded; an operator can
+#: add more (a campaign bar, a landing-page nav) without a deploy, so this is a
+#: slug rather than the enum. The column is varchar(32) and carries no CHECK
+#: constraint, so the only requirement is that the value fits and is a slug —
+#: it becomes a CSS selector and a layout slot name.
+MENU_LOCATION_RE = re.compile(r"^[a-z0-9][a-z0-9_-]{0,31}$")
+
+
+def validate_menu_location(value: str) -> str:
+    """Normalise and check a menu location id, raising a 422 on a bad one."""
+    clean = (value or "").strip().lower()
+    if not MENU_LOCATION_RE.match(clean):
+        raise ValueError(
+            "مکان منو باید با حرف/عدد شروع شود و فقط a-z، 0-9، _ و - داشته "
+            "باشد (حداکثر ۳۲ نویسه)."
+        )
+    return clean
+
+
 class MenuItemCreateRequest(BaseModel):
     """Admin payload to add a navigation link."""
 
-    location: MenuLocation = MenuLocation.HEADER_MAIN
+    # `str`, not the enum: an operator can add a location from the panel, and
+    # pinning this to the five seeded values is what made "add a menu location"
+    # impossible. Validated by the route, which knows the seeded set too.
+    location: str = Field("header_main", min_length=1, max_length=32)
     title: str = Field(..., min_length=1, max_length=100)
     url: str = Field(..., min_length=1, max_length=500)
     parent_id: uuid.UUID | None = None
@@ -62,7 +91,7 @@ class MenuItemResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: uuid.UUID
-    location: MenuLocation
+    location: str
     title: str
     url: str
     parent_id: uuid.UUID | None = None
@@ -120,6 +149,12 @@ class CmsPageCreateRequest(BaseModel):
     body_html: str = ""
     excerpt: str | None = Field(None, max_length=1000)
     status: PageStatus = PageStatus.DRAFT
+    cover_image_url: str | None = Field(None, max_length=500)
+    visibility: PageVisibility = PageVisibility.PUBLIC
+    # Plaintext in, hash stored. The service hashes it and never echoes it back,
+    # so a form that re-opens cannot show the existing value — which is why the
+    # API returns "" rather than the stored hash.
+    visibility_password: str | None = Field(None, max_length=255)
     seo_title: str | None = Field(None, max_length=200)
     seo_description: str | None = Field(None, max_length=500)
     scheduled_publish_at: datetime | None = None
@@ -130,6 +165,14 @@ class CmsPageCreateRequest(BaseModel):
     # not be built at all — and the breadcrumb's ancestor walk was provably
     # dead code because `parent_id` was always NULL.
     parent_id: uuid.UUID | None = None
+    # Manual ordering among siblings. The column existed with no schema field,
+    # so `model_dump(exclude_unset=True)` never carried it and sibling order
+    # was whatever insertion order produced. Lower sorts first; ties fall back
+    # to the title.
+    menu_order: int = Field(0, ge=-100_000, le=100_000)
+    # Whether readers may comment on this page. Off by default: a page is a
+    # static document until its editor opts in.
+    allow_comments: bool = False
 
 
 class CmsPageUpdateRequest(BaseModel):
@@ -146,6 +189,19 @@ class CmsPageUpdateRequest(BaseModel):
     # it on PATCH; without this field Pydantic silently dropped the change.
     locale: str | None = Field(None, min_length=2, max_length=10)
     parent_id: uuid.UUID | None = None
+    # Sibling ordering, editable after creation like the parent.
+    menu_order: int | None = Field(None, ge=-100_000, le=100_000)
+    cover_image_url: str | None = Field(None, max_length=500)
+    visibility: PageVisibility | None = None
+    # Empty string means "unchanged", not "clear": the stored hash never comes
+    # back to the client, so a pre-filled field would be blank, and treating
+    # blank as clear would silently unlock the page on any unrelated save.
+    # Clearing protection is switching visibility away from "password".
+    visibility_password: str | None = Field(None, max_length=255)
+    # Opt a page into (or out of) comments. Carried here because the column is
+    # server-owned truth: without it in the update schema, the admin toggle
+    # would send the field and Pydantic would drop it silently.
+    allow_comments: bool | None = None
 
 
 class CmsPageRevisionResponse(BaseModel):
@@ -186,8 +242,16 @@ class CmsPageResponse(BaseModel):
     # Hierarchical pages: the parent link the admin editor sets and the
     # storefront breadcrumb walks. Null for a top-level page.
     parent_id: uuid.UUID | None = None
+    # Whether readers may comment. The storefront reads this to decide whether
+    # to render a thread at all, so it has to be on the public response.
+    allow_comments: bool = False
     # Manual ordering among siblings.
     menu_order: int = 0
+    cover_image_url: str | None = None
+    visibility: PageVisibility = PageVisibility.PUBLIC
+    # Never the hash. Present so the editor can tell "this page is password
+    # protected" without a second request.
+    visibility_password_set: bool = False
     created_at: datetime
     updated_at: datetime
 
@@ -400,12 +464,25 @@ class RevisionDiffResponse(BaseModel):
 
 
 class SitemapSectionRow(BaseModel):
-    """One crawlable address of a section beyond CMS pages."""
+    """One crawlable address of a section beyond CMS pages.
 
-    slug: str
+    Exactly one of ``slug`` and ``loc`` identifies the address. Slug-shaped
+    sections (a product, a category) carry ``slug`` and the consumer builds the
+    path; archives carry a rooted ``loc`` because their path is not a slug — an
+    author archive is "/blog/authors/<slug>" and a date archive is
+    "/archive/<year>/<month>". Making ``slug`` required for the second shape
+    means the row cannot be constructed at all, which is why both sections came
+    back empty rather than malformed.
+    """
+
+    slug: str | None = None
+    loc: str | None = None
     updated_at: datetime | None = None
     changefreq: str = "weekly"
     priority: float = 0.5
+    # The image a crawler should associate with this URL. Relative or absolute;
+    # the consumer resolves it. Optional because most sections have no image.
+    image_url: str | None = None
 
 
 class SitemapEntriesResponse(BaseModel):
@@ -421,4 +498,9 @@ class SitemapEntriesResponse(BaseModel):
     blog_categories: list[SitemapSectionRow] = []
     blog_tags: list[SitemapSectionRow] = []
     products: list[SitemapSectionRow] = []
+    # Author and date archives were crawlable pages that nothing advertised, so
+    # their content was reachable but unlinked as far as a search engine was
+    # concerned. Additive keys, defaulted, so existing consumers keep working.
+    blog_authors: list[SitemapSectionRow] = []
+    blog_date_archives: list[SitemapSectionRow] = []
     xml_fragment: str = ""

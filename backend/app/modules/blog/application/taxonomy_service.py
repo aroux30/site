@@ -33,15 +33,52 @@ from app.shared.domain.slug import generate_slug
 
 # Fields a client may set on each resource. Anything else in the body is
 # rejected rather than silently ignored, so a typo surfaces as an error.
-_TAXONOMY_FIELDS = {"name", "slug", "description", "hierarchical", "is_active"}
+_TAXONOMY_FIELDS = {
+    "name", "slug", "description", "hierarchical", "is_active", "object_types",
+}
+# The closed set of content types a taxonomy can apply to. Kept as a constant
+# because it is the same list the picker offers, the attach route validates
+# against, and the column defaults to — three places that must not drift.
+OBJECT_TYPES = ("blog_post", "cms_page", "custom_post_entry")
 _TERM_FIELDS = {"name", "slug", "description", "parent_id", "position"}
 _CPT_FIELDS = {
     "name", "slug", "description", "icon", "field_schema",
     "supports_categories", "supports_comments", "is_active",
 }
 _ENTRY_FIELDS = {
-    "title", "slug", "fields", "excerpt", "cover_image_url", "status", "position",
+    "title", "slug", "fields", "excerpt", "cover_image_url", "status",
+    "position", "scheduled_publish_at",
 }
+
+
+def _validated_object_types(value: Any) -> list[str]:
+    """Normalise and check a submitted ``object_types`` list.
+
+    Unknown names are rejected rather than stored: a typo like ``page`` would
+    otherwise store a value nothing compares against, and the taxonomy would
+    silently apply to nothing while still looking configured.
+
+    An empty list is rejected too, for a different reason. "Applies to nothing"
+    is not a state any picker can reach, and a taxonomy in it is invisible in
+    every editor — an operator would have to read the API to find out why their
+    terms stopped appearing. Refusing it at the boundary is the honest answer.
+    """
+    from app.core.exceptions.handlers import ValidationError
+
+    if not isinstance(value, (list, tuple, set)):
+        raise ValidationError(detail="object_types باید فهرستی از انواع محتوا باشد")
+    cleaned = [str(v).strip() for v in value if str(v).strip()]
+    unknown = sorted(set(cleaned) - set(OBJECT_TYPES))
+    if unknown:
+        raise ValidationError(
+            detail=f"نوع محتوای ناشناخته: {unknown}. مقادیر مجاز: {list(OBJECT_TYPES)}"
+        )
+    deduped = list(dict.fromkeys(cleaned))
+    if not deduped:
+        raise ValidationError(
+            detail="object_types نمی‌تواند خالی باشد؛ یک تاکسونومی باید به حداقل یک نوع محتوا وصل باشد"
+        )
+    return deduped
 
 
 def _reject_unknown(body: dict[str, Any], allowed: set[str], what: str) -> None:
@@ -98,6 +135,8 @@ class TaxonomyService:
         for key in ("description", "hierarchical", "is_active"):
             if key in body:
                 setattr(tax, key, body[key])
+        if "object_types" in body:
+            tax.object_types = _validated_object_types(body["object_types"])
 
         await db.commit()
         await db.refresh(tax)
@@ -105,6 +144,7 @@ class TaxonomyService:
             "id": str(tax.id), "name": tax.name, "slug": tax.slug,
             "description": tax.description, "hierarchical": tax.hierarchical,
             "is_active": tax.is_active,
+            "object_types": list(tax.object_types or []),
         }
 
     @staticmethod
@@ -256,6 +296,22 @@ class ContentTypeService:
         if entry is None:
             raise NotFoundError("CustomPostEntry", f"ورودی {entry_id} یافت نشد")
 
+        # Snapshot the state this write is about to replace, before any of it is
+        # changed. After the fact the newest revision *is* the current row, and
+        # restoring it changes nothing — which reads as "restore is broken"
+        # rather than as "restore never had anything to restore".
+        from app.modules.blog.application import custom_post_revision_service
+
+        await custom_post_revision_service.update_entry(
+            db, entry, changes={}, snapshot=True
+        )
+
+        if "scheduled_publish_at" in body:
+            raw = body["scheduled_publish_at"]
+            entry.scheduled_publish_at = (
+                datetime.fromisoformat(str(raw)) if raw else None
+            )
+
         if "title" in body and body["title"]:
             entry.title = str(body["title"]).strip()
         slug = generate_slug(str(body["slug"])) if body.get("slug") else (
@@ -287,6 +343,13 @@ class ContentTypeService:
             "status": entry.status.value, "fields": entry.fields,
             "excerpt": entry.excerpt, "cover_image_url": entry.cover_image_url,
             "position": entry.position,
+            # Read back after a save, so the row shows what was just stored
+            # instead of flashing the previous value until a refetch.
+            "scheduled_publish_at": (
+                entry.scheduled_publish_at.isoformat()
+                if entry.scheduled_publish_at else None
+            ),
+            "revision_count": entry.revision_count or 0,
         }
 
     @staticmethod

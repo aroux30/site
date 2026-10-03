@@ -81,7 +81,69 @@ export type MessageCatalogue = Record<string, string>;
  */
 export const fa: MessageCatalogue = {};
 
+/**
+ * Filled from the backend catalogue at runtime, once per locale.
+ *
+ * The catalogue was a database table with an endpoint and nothing read it:
+ * ``CATALOGUES`` was ``{ fa }`` with an empty Persian map and no code path
+ * that could ever add an entry, so every string an operator wrote through the
+ * admin API was stored and never rendered. The `t` fallback kept the UI
+ * working, which is exactly why it was not noticed.
+ *
+ * Populated lazily and never awaited at a call site: `translate` is called
+ * during render, and a lookup must never block one. A component that renders
+ * before the catalogue arrives gets the key, and the next render has the text.
+ */
 const CATALOGUES: Record<Locale, MessageCatalogue> = { fa };
+
+let loaded: Promise<void> | null = null;
+
+/** Which locales already have a catalogue loaded, for the switcher. */
+const loadedLocales = new Set<string>(["fa"]);
+
+/**
+ * Fetch a locale's catalogue. Deduplicated: repeated calls before the first
+ * resolves share one request, and a locale already loaded costs nothing.
+ */
+export function loadCatalogue(locale: Locale = DEFAULT_LOCALE): Promise<void> {
+  if (loadedLocales.has(locale)) return Promise.resolve();
+  if (loaded === null || !isKnownLocale(locale)) {
+    loaded = (async () => {
+      try {
+        const { settingsI18nApi } = await import("@/lib/api/settings");
+        const catalogue = await settingsI18nApi.catalog(locale);
+        if (catalogue?.strings && Object.keys(catalogue.strings).length > 0) {
+          CATALOGUES[locale] = { ...(CATALOGUES[locale] ?? {}), ...catalogue.strings };
+        }
+        loadedLocales.add(locale);
+      } catch {
+        // A missing catalogue is a missing translation, not a broken page:
+        // `translate` falls back to the key, which is visible and harmless.
+        // Marked loaded so a failing endpoint is not retried on every render.
+        loadedLocales.add(locale);
+      } finally {
+        loaded = null;
+      }
+    })();
+  }
+  return loaded;
+}
+
+/** Forget the cached catalogue, so an admin edit shows without a reload. */
+export function invalidateCatalogue(locale?: Locale): void {
+  if (locale) {
+    delete CATALOGUES[locale];
+    loadedLocales.delete(locale);
+    loaded = null;
+    return;
+  }
+  for (const l of Array.from(loadedLocales)) {
+    if (l !== DEFAULT_LOCALE) delete CATALOGUES[l];
+  }
+  loadedLocales.clear();
+  loadedLocales.add(DEFAULT_LOCALE);
+  loaded = null;
+}
 
 /**
  * Look a key up, with interpolation.

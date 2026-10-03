@@ -1,0 +1,132 @@
+"""Negative test for the media folder feature.
+
+The representation of an empty folder is a marker row rather than a table, and
+that choice has exactly one thing that can go wrong: the marker being written
+to the wrong column. That is what happened while this was being built —
+`file_path` instead of `folder` — and the result is a folder that the create
+call reports as existing and the folder list has never heard of. Everything
+returns 200.
+
+  A. Write the marker to `file_path`. The folder is created, is not in the
+     list, and cannot be deleted either — every one of those is a silent
+     failure, which is why the fixture reads the list and not the response.
+  B. Stop excluding markers from the grid. A zero-byte row appears in the
+     operator's library with nothing to indicate what it is.
+  C. Stop excluding markers from the count. An empty folder reports one file.
+  D. Delete a non-empty folder without the guard. Forty product photos go with
+     the folder, unrecoverably.
+
+Run:  python scripts/wp-parity/negative_test_media_folder.py
+"""
+
+from __future__ import annotations
+
+import os
+import subprocess
+import sys
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+ROOT = os.path.dirname(os.path.dirname(HERE))
+FIXTURE = os.path.join(ROOT, ".p1-tests", "media_folder_test.py")
+SERVICE = os.path.join(ROOT, "backend", "app", "modules", "media",
+                       "application", "media_service.py")
+
+NL = chr(10)
+
+SABOTAGES = [
+    (
+        "A: write the marker to file_path instead of folder",
+        [("            folder=clean,",
+          "            # sabotage: folder= removed")],
+    ),
+    (
+        "B: let markers into the grid",
+        [("        count_stmt = count_stmt.where(MediaAsset.mime_type != _FOLDER_MARKER_MIME)" + NL +
+          "        stmt = stmt.where(MediaAsset.mime_type != _FOLDER_MARKER_MIME)",
+          "        pass  # sabotage: the marker shows up as a file")],
+    ),
+    (
+        "C: count the marker as a file in its folder",
+        [("                MediaAsset.folder.is_not(None)," + NL +
+          "                MediaAsset.mime_type != _FOLDER_MARKER_MIME,",
+          "                MediaAsset.folder.is_not(None),")],
+    ),
+    (
+        "D: delete a non-empty folder without the guard",
+        [("        if real and not delete_assets:",
+          "        if False:  # sabotage: no guard")],
+    ),
+]
+
+
+def run_fixture() -> tuple[int, str]:
+    proc = subprocess.run(
+        [sys.executable, FIXTURE], capture_output=True, text=True,
+        encoding="utf-8", errors="replace", timeout=600,
+    )
+    return proc.returncode, (proc.stdout or "") + (proc.stderr or "")
+
+
+def main() -> int:
+    if not os.path.isfile(FIXTURE):
+        print(f"FAIL: fixture missing at {FIXTURE}")
+        return 1
+
+    with open(SERVICE, encoding="utf-8") as fh:
+        original = fh.read()
+
+    rc, out = run_fixture()
+    if rc != 0:
+        print("FAIL: the fixture does not pass on the real code.")
+        print(out.strip()[-800:])
+        return 1
+    print("fixture passes on the real code")
+
+    ok = True
+    for label, pairs in SABOTAGES:
+        text = original
+        applied = True
+        for needle, replacement in pairs:
+            if text.count(needle) != 1:
+                print(f"FAIL: {label} — anchor found {text.count(needle)} times, "
+                      f"sabotage not applied.")
+                ok = False
+                applied = False
+                break
+            text = text.replace(needle, replacement, 1)
+        if not applied:
+            continue
+
+        with open(SERVICE, "w", encoding="utf-8", newline="") as fh:
+            fh.write(text)
+        try:
+            rc_broken, out_broken = run_fixture()
+        finally:
+            with open(SERVICE, "w", encoding="utf-8", newline="") as fh:
+                fh.write(original)
+
+        rc_after, out_after = run_fixture()
+        if rc_after != 0:
+            print(f"FAIL: {label} — the fixture did not pass again after restoring.")
+            print(out_after.strip()[-700:])
+            ok = False
+            continue
+        if rc_broken == 0:
+            print(f"FAIL: {label} still passed. The fixture cannot see it.")
+            ok = False
+            continue
+
+        caught = [ln.strip() for ln in out_broken.splitlines() if "GAPS" in ln]
+        print(f"  {label} -> caught")
+        for line in caught:
+            print(f"      {line[:170]}")
+
+    if not ok:
+        return 1
+    print("\nPASS: the marker is load-bearing in both directions — it makes an "
+          "empty folder exist and it stays out of the grid.")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

@@ -33,8 +33,15 @@ async def render_body(
         ReusableBlockService,
     )
     from app.shared.content.shortcodes import process_shortcodes_async
+    from app.shared.content.text_filters import wpautop_texturize_emoji
 
     expanded = await ReusableBlockService(db).expand(
         html, include_unpublished=include_unpublished
     )
-    return await process_shortcodes_async(db, expanded)
+    expanded = await process_shortcodes_async(db, expanded)
+    # Text filters run last, exactly as ``the_content`` does in
+    # wp-includes/default-filters.php: after the block and shortcode expansion, so
+    # the prose that comes out of a reusable block is typeset too. Before it
+    # would type-set the ``[block slug="…"]`` tokens themselves, and after it
+    # would retype a shortcode's own markup.
+    return wpautop_texturize_emoji(expanded)

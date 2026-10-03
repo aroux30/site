@@ -25,7 +25,7 @@ from sqlalchemy import (
     UniqueConstraint,
     text,
 )
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import ARRAY, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database.base import BaseModel
@@ -42,6 +42,16 @@ class CustomTaxonomy(BaseModel):
     name: Mapped[str] = mapped_column(String(200), nullable=False)
     slug: Mapped[str] = mapped_column(String(220), unique=True, nullable=False)
     description: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    # Which content types this taxonomy applies to: blog_post, cms_page,
+    # custom_post_entry. Enforced by what the term query below can join to, not
+    # by the picker hiding options — a taxonomy marked "pages only" still shows
+    # its terms in the post editor's list, but attaching one there would store
+    # nothing, so the picker filters on this instead.
+    object_types: Mapped[list[str]] = mapped_column(
+        ARRAY(String(32)),
+        nullable=False,
+        server_default=text("ARRAY['blog_post','cms_page']::varchar[]"),
+    )
     # Hierarchical = categories-like (parent/child). Flat = tags-like.
     hierarchical: Mapped[bool] = mapped_column(
         Boolean, default=False, nullable=False, server_default=text("false")
@@ -123,3 +133,38 @@ class BlogPostTerm(BaseModel):
 
     def __repr__(self) -> str:
         return f"<BlogPostTerm(post_id={self.post_id}, term_id={self.term_id})>"
+
+
+class CmsPageTerm(BaseModel):
+    """Many-to-many between CMS pages and custom taxonomy terms.
+
+    The post-side link (`BlogPostTerm`) has a non-nullable post id, so a page
+    could not carry a term at all — which left an "about us" or a size guide
+    unlabelable on a store, where those labels are what a reader and a search
+    engine navigate by.
+
+    ``page_id`` is nullable on purpose: a term can apply to posts only, and
+    forcing one would mean inventing a page for it. What decides whether a term
+    may be attached to a page is the owning taxonomy's ``object_types``.
+    """
+
+    __tablename__ = "cms_page_terms"
+    __table_args__ = (
+        UniqueConstraint("page_id", "term_id", name="uq_cms_page_terms_pair"),
+        Index("ix_cms_page_terms_page", "page_id"),
+        Index("ix_cms_page_terms_term", "term_id"),
+    )
+
+    page_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("cms_pages.id", ondelete="CASCADE"),
+        nullable=True,
+    )
+    term_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("custom_taxonomy_terms.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+
+    def __repr__(self) -> str:
+        return f"<CmsPageTerm(page_id={self.page_id}, term_id={self.term_id})>"

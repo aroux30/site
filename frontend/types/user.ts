@@ -4,6 +4,8 @@ export interface User {
   email?: string | null;
   first_name?: string | null;
   last_name?: string | null;
+  /** The public nickname, when the user set one. Empty means first+last. */
+  display_name?: string | null;
   national_code?: string | null;
   birth_date?: string | null;
   avatar_url?: string | null;
@@ -96,6 +98,7 @@ export interface UserProfileResponse {
   email?: string | null;
   first_name?: string | null;
   last_name?: string | null;
+  display_name?: string | null;
   national_code?: string | null;
   birth_date?: string | null;
   avatar_url?: string | null;
@@ -114,6 +117,8 @@ export interface LoginRequest {
   password: string;
   /** TOTP second factor; required when the account has MFA enabled. */
   totp_code?: string;
+  /** "مرا به خاطر بسپار": keep this session signed in for the longer window. */
+  remember_me?: boolean;
 }
 
 export interface RegisterRequest {

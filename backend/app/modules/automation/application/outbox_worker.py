@@ -435,6 +435,66 @@ _ORDER_EMAIL_TEMPLATES: dict[str, str] = {
 }
 
 
+async def _invoice_attachment(
+    db: Any, order: Any, template_name: str
+) -> list[dict[str, Any]] | None:
+    """The order's invoice PDF, as an email attachment.
+
+    Returns None (not []) when there is nothing to attach, so the caller can
+    pass it straight through. Every failure is soft: an order confirmation
+    without its PDF is a worse email but a sent one, and raising here would
+    fail the whole outbox message and re-queue a notification the customer has
+    already seen in-app.
+
+    The bytes are read here rather than passed to a queue by path: the send
+    happens inside the same worker tick, so there is no window where the file
+    could move between being found and being read.
+    """
+    if template_name != "order_confirmation":
+        return None
+    try:
+        from pathlib import Path
+
+        from sqlalchemy import select
+
+        from app.modules.invoicing.domain.models import Invoice
+        from app.modules.notifications.application import email_service as es
+
+        invoice = (
+            await db.execute(
+                select(Invoice)
+                .where(Invoice.order_id == order.id)
+                .order_by(Invoice.created_at.desc())
+                .limit(1)
+            )
+        ).scalars().first()
+        if invoice is None or not invoice.archive_path:
+            return None
+        path = Path(str(invoice.archive_path))
+        if not path.is_file():
+            await logger.awarning(
+                "invoice_attachment_missing_on_disk",
+                order_id=str(order.id),
+                path=str(path)[:200],
+            )
+            return None
+        content = path.read_bytes()
+        return [
+            {
+                "filename": f"invoice-{invoice.number or order.order_number}.pdf",
+                "content": content,
+                "content_type": invoice.archive_content_type or "application/pdf",
+            }
+        ]
+    except Exception as exc:  # noqa: BLE001 — the email still has to go
+        await logger.awarning(
+            "invoice_attachment_unavailable",
+            order_id=str(getattr(order, "id", "")),
+            error=str(exc)[:200],
+        )
+        return None
+
+
 async def _maybe_dispatch_order_email(
     db: Any,
     *,
@@ -490,9 +550,18 @@ async def _maybe_dispatch_order_email(
                 )
                 return
 
-        templates = email_service.default_email_templates()
-        content = templates.get(template_name)
-        if content is None:
+        # DB first, built-in as the fallback. Reading the literals directly
+        # meant an admin's saved override never reached a real email, which is
+        # the same "the feature exists and does nothing" shape this keeps
+        # finding.
+        from app.modules.notifications.application.email_template_service import (
+            resolve_template,
+        )
+
+        try:
+            content = await resolve_template(db, template_name)
+        except Exception as exc:  # noqa: BLE001 — a missing template is not fatal
+            logger.warning("email_template_unresolved", name=str(template_name), error=str(exc))
             return
 
         total_toman = int(getattr(order, "total", 0) or 0) // 10
@@ -513,6 +582,12 @@ async def _maybe_dispatch_order_email(
             text_body=rendered.text,
             template=template_name,
             notification_id=notification_id,
+            # The order confirmation carries the invoice. The PDF is already
+            # rendered and archived at posting time (invoice.archive_path), so
+            # this only reads bytes that already exist — and only for the
+            # confirmation, not for "shipped": a customer needs the document
+            # once, and a second copy in a shipping notice is noise.
+            attachments=await _invoice_attachment(db, order, template_name),
         )
         if message_id and log_row is not None:
             log_row.provider_response = (
@@ -595,8 +670,14 @@ async def _maybe_dispatch_refund_email(
         if user is None or not user.email:
             return
 
-        content = email_service.default_email_templates().get("refund_processed")
-        if content is None:
+        from app.modules.notifications.application.email_template_service import (
+            resolve_template,
+        )
+
+        try:
+            content = await resolve_template(db, "refund_processed")
+        except Exception as exc:  # noqa: BLE001
+            logger.warning("email_template_unresolved", name="refund_processed", error=str(exc))
             return
         amount_rial = int(payload.get("amount") or payload.get("amount_rial") or 0)
         rendered = email_service.render_template(

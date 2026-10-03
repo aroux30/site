@@ -1,7 +1,13 @@
 "use client";
 
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  usePageAutosave,
+  usePageEditingLock,
+} from "@/hooks/use-page-editing-lock";
+import { QuickEditPageDialog } from "@/components/admin/pages/quick-edit-page-dialog";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import {
   FileText,
   ExternalLink,
@@ -17,6 +23,8 @@ import {
   Square,
   History,
   LayoutTemplate,
+  Tag,
+  Image as ImageIcon,
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -40,24 +48,46 @@ import {
   type CmsPage,
   type CmsPageRevision,
   type CmsPageStatus,
+  type CmsPageVisibility,
 } from "@/lib/api/content";
 import { useAdminQuery } from "@/lib/api/admin-query";
+import { CmsPreviewDialog } from "@/components/admin/cms-preview-dialog";
+import { PostTermsPicker } from "@/components/admin/blog/post-terms-picker";
+import { MediaPicker } from "@/components/admin/media-picker";
 
 const PAGES_QUERY_KEY = "admin-cms-pages" as const;
 
 const statusLabels: Record<CmsPageStatus, { label: string; className: string }> = {
   published: { label: "منتشر شده", className: "text-emerald-600" },
   draft: { label: "پیش‌نویس", className: "text-amber-600" },
+  // Ready but not live. Added with the status; the Record is exhaustive, so
+  // adding the value to the type surfaced every place that has to learn it.
+  pending_review: { label: "در انتظار بازبینی", className: "text-sky-600" },
   archived: { label: "بایگانی", className: "text-muted-foreground" },
+};
+
+const visibilityLabels: Record<CmsPageVisibility, string> = {
+  public: "عمومی",
+  private: "خصوصی (فقط مدیران)",
+  password: "رمزدار",
 };
 
 export default function AdminCMSPagesPage() {
   const { toast } = useToast();
   const [search, setSearch] = useState("");
+  // `?search=` seeds the filter box. The admin bar's contextual "ویرایش برگه"
+  // link lands here with the slug, so the operator sees the page they came from
+  // instead of the whole library. Read once on mount: re-seeding on every render
+  // would fight the operator's typing.
+  const searchParam = useSearchParams()?.get("search");
+  useEffect(() => {
+    if (searchParam) setSearch(searchParam);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const [localeFilter, setLocaleFilter] = useState<string>("all");
   const [showTrashed, setShowTrashed] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
-  const [bulkBusy, setBulkBusy] = useState(false);
+  const [previewPageId, setPreviewPageId] = useState<string | null>(null);  const [bulkBusy, setBulkBusy] = useState(false);
 
   // create/edit dialog
   const [editorOpen, setEditorOpen] = useState(false);
@@ -68,12 +98,36 @@ export default function AdminCMSPagesPage() {
   const [patternPickerOpen, setPatternPickerOpen] = useState(false);
   const [formStatus, setFormStatus] = useState<CmsPageStatus>("draft");
   const [formLocale, setFormLocale] = useState("fa");
+  // Page tree: which page is the parent, and where this one sits among its
+  // siblings. The column, the schema and the server's cycle check all existed —
+  // only the form was missing, so a page could never be nested.
+  const [formPageId, setFormPageId] = useState("");
+  const [formParentId, setFormParentId] = useState("");
+  const [formMenuOrder, setFormMenuOrder] = useState("0");
   const [formExcerpt, setFormExcerpt] = useState("");
+  // Hero image and who may read the page. Separate from the status: a
+  // page can be published and still private.
+  const [formCover, setFormCover] = useState("");
+  const [formVisibility, setFormVisibility] = useState<CmsPageVisibility>("public");
+  const [formVisibilityPassword, setFormVisibilityPassword] = useState("");
+  const [formHasPassword, setFormHasPassword] = useState(false);
+  // Live slug check. Debounced: one request per keystroke is both slow
+  // and prone to the earlier response landing after a later one.
+  const [slugCheck, setSlugCheck] = useState<{
+    slug: string;
+    available: boolean;
+    reason: string | null;
+  } | null>(null);
   const [formSeoTitle, setFormSeoTitle] = useState("");
   const [formSeoDescription, setFormSeoDescription] = useState("");
   const [formSchedPub, setFormSchedPub] = useState("");
   const [formSchedUnpub, setFormSchedUnpub] = useState("");
+  // Opt a page into comments. Off by default server-side too, so an untouched
+  // page never grows a thread.
+  const [formAllowComments, setFormAllowComments] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [quickEditPage, setQuickEditPage] = useState<CmsPage | null>(null);
+  const [quickEditOpen, setQuickEditOpen] = useState(false);
 
   // revision history dialog
   const [revOpen, setRevOpen] = useState(false);
@@ -108,6 +162,32 @@ export default function AdminCMSPagesPage() {
     setSelected(new Set());
   }, [pagesData]);
 
+  /** Live slug check while the editor is open.
+   *
+   * Debounced for two reasons, not one: a request per keystroke is slow, and
+   * an earlier response can land after a later one and report "taken" for a
+   * slug the field has already moved off. The response is ignored unless it is
+   * still about the slug currently in the box.
+   */
+  useEffect(() => {
+    const candidate = formSlug.trim();
+    if (!candidate) {
+      setSlugCheck(null);
+      return;
+    }
+    const timer = setTimeout(async () => {
+      try {
+        const res = await cmsPagesAdminApi.checkSlug(candidate, formPageId || undefined);
+        if (candidate === formSlug.trim()) setSlugCheck(res);
+      } catch {
+        // A failed check must not block editing; the server still enforces it
+        // on save, so the worst case is the error surfacing at submit.
+        if (candidate === formSlug.trim()) setSlugCheck(null);
+      }
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [formSlug, formPageId]);
+
   const openCreate = () => {
     setEditing(null);
     setFormTitle("");
@@ -115,7 +195,14 @@ export default function AdminCMSPagesPage() {
     setFormBody("");
     setFormStatus("draft");
     setFormLocale("fa");
+    setFormPageId("");
+    setFormParentId("");
+    setFormMenuOrder("0");
     setFormExcerpt("");
+    setFormCover("");
+    setFormVisibility("public");
+    setFormVisibilityPassword("");
+    setFormHasPassword(false);
     setFormSeoTitle("");
     setFormSeoDescription("");
     setFormSchedPub("");
@@ -130,13 +217,66 @@ export default function AdminCMSPagesPage() {
     setFormBody(page.body_html);
     setFormStatus(page.status);
     setFormLocale(page.locale ?? "fa");
+    setFormPageId(page.id);
+    setFormParentId(page.parent_id ?? "");
+    setFormMenuOrder(String(page.menu_order ?? 0));
     setFormExcerpt(page.excerpt ?? "");
+    setFormCover(page.cover_image_url ?? "");
+    setFormVisibility(page.visibility ?? "public");
+    // The hash never comes back, so the field starts empty and a flag says
+    // whether one is set. Without the flag the field looks unset on a
+    // protected page and saving would submit "" and clear it.
+    setFormVisibilityPassword("");
+    setFormHasPassword(Boolean(page.visibility_password_set));
     setFormSeoTitle(page.seo_title ?? "");
     setFormSeoDescription(page.seo_description ?? "");
     setFormSchedPub(page.scheduled_publish_at ? page.scheduled_publish_at.slice(0, 16) : "");
     setFormSchedUnpub(page.scheduled_unpublish_at ? page.scheduled_unpublish_at.slice(0, 16) : "");
+    setFormAllowComments(page.allow_comments ?? false);
     setEditorOpen(true);
   };
+
+  // Editing lock and autosave for the open page. Both are no-ops while the
+  // editor is closed or on a page that has never been saved, so this sits
+  // after `openEdit` rather than being wired into it.
+  const lockPageId = editorOpen && editing ? editing.id : null;
+  const { lockedByOther, takeOver } = usePageEditingLock(lockPageId);
+
+  const autosavePayload = useMemo(
+    () => ({
+      title: formTitle,
+      body_html: formBody,
+      excerpt: formExcerpt,
+      slug: formSlug || undefined,
+      status: formStatus,
+    }),
+    [formTitle, formBody, formExcerpt, formSlug, formStatus],
+  );
+
+  /* Derived, not tracked by hand.
+   *
+   * Marking a form dirty from thirteen `onChange` handlers means the thirteenth
+   * one is the one somebody forgets, and the failure is "close the editor, lose
+   * the text" — with no error anywhere. Comparing against what was loaded
+   * cannot drift: the definition of dirty is the question being asked.
+   */
+  const savedFingerprint = editing
+    ? JSON.stringify({
+        title: editing.title,
+        body_html: editing.body_html,
+        excerpt: editing.excerpt ?? "",
+        slug: editing.slug,
+        status: editing.status,
+      })
+    : null;
+  const formDirty =
+    savedFingerprint !== null &&
+    savedFingerprint !== JSON.stringify(autosavePayload);
+
+  const { dirty: autosaveDirty, markClean } = usePageAutosave(
+    lockPageId,
+    autosavePayload,
+  );
 
   const handleSave = async () => {
     if (!formTitle.trim()) return;
@@ -148,10 +288,21 @@ export default function AdminCMSPagesPage() {
         body_html: formBody,
         status: formStatus,
         locale: formLocale,
+        // Empty string means "no parent"; the API takes null, not "".
+        parent_id: formParentId || null,
+        menu_order: Number.parseInt(formMenuOrder, 10) || 0,
         excerpt: formExcerpt.trim() || null,
         seo_title: formSeoTitle.trim() || null,
         seo_description: formSeoDescription.trim() || null,
         scheduled_publish_at: formSchedPub ? new Date(formSchedPub).toISOString() : null,
+        allow_comments: formAllowComments,
+        cover_image_url: formCover.trim() || null,
+        visibility: formVisibility,
+        // Only sent when typed: an untouched field must not clear a
+        // password that is already set.
+        ...(formVisibilityPassword.trim()
+          ? { visibility_password: formVisibilityPassword }
+          : {}),
         scheduled_unpublish_at: formSchedUnpub ? new Date(formSchedUnpub).toISOString() : null,
       };
       if (editing) {
@@ -161,6 +312,10 @@ export default function AdminCMSPagesPage() {
         await cmsPagesAdminApi.createPage(payload);
         toast({ title: "صفحه جدید ایجاد شد" });
       }
+      // The autosave snapshot holds the same text and would be offered back on
+      // the next open, which reads as "you have unsaved changes" after a
+      // deliberate save.
+      markClean();
       setEditorOpen(false);
       await fetchPages();
     } catch {
@@ -376,14 +531,14 @@ export default function AdminCMSPagesPage() {
               </Link>
             </Button>
           ) : (
-            <Button variant="outline" size="sm" asChild className="h-8 gap-1.5 text-xs">
-              {/* Drafts 404 on the storefront; preview goes through the admin API. */}
-              <Link
-                href={`/api/v1/content/admin/pages/by-slug/${page.slug}`}
-                target="_blank"
-              >
-                <ExternalLink className="h-3.5 w-3.5" /> پیش‌نمایش
-              </Link>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 gap-1.5 text-xs"
+              onClick={() => setPreviewPageId(page.id)}
+              title="پیش‌نمایش (بدون انتشار)"
+            >
+              <ExternalLink className="h-3.5 w-3.5" /> پیش‌نمایش
             </Button>
           )}
           <Button
@@ -393,6 +548,19 @@ export default function AdminCMSPagesPage() {
             onClick={() => openEdit(page)}
           >
             ویرایش
+          </Button>
+          {/* WordPress's quick edit: fix a title or flip a page to draft
+              without loading the whole editor for a two-second change. */}
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-8 gap-1.5 text-xs"
+            onClick={() => {
+              setQuickEditPage(page);
+              setQuickEditOpen(true);
+            }}
+          >
+            ویرایش سریع
           </Button>
           <Button
             variant="outline"
@@ -545,7 +713,22 @@ export default function AdminCMSPagesPage() {
       />
 
       {/* Create / Edit dialog */}
-      <Dialog open={editorOpen} onOpenChange={setEditorOpen}>
+      <Dialog
+        open={editorOpen}
+        onOpenChange={(open) => {
+          // Closing with unsaved work is the moment an autosave earns its keep —
+          // and the moment a naive `setEditorOpen` throws away what the
+          // operator just typed. Autosave has already persisted the text, so
+          // the confirmation is about intent rather than about losing it.
+          if (!open && formDirty) {
+            const keep = window.confirm(
+              "تغییرات ذخیره نشده‌اند. می‌خواهید ببندید؟ متن به‌صورت خودکار ذخیره شده و بعداً قابل بازیابی است.",
+            );
+            if (!keep) return;
+          }
+          setEditorOpen(open);
+        }}
+      >
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>{editing ? "ویرایش صفحه" : "صفحه جدید"}</DialogTitle>
@@ -556,6 +739,33 @@ export default function AdminCMSPagesPage() {
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
+            {/* Somebody else is editing. It does not stop typing — refusing a
+                keystroke turns a collision into data loss for whoever got
+                there second. It warns, and offers the take-over that the
+                post editor has had all along. */}
+            {lockedByOther && (
+              <div className="flex items-center justify-between gap-3 rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs">
+                <span className="text-amber-800 dark:text-amber-300">
+                  کاربر دیگری ({toPersianDigits(lockedByOther)}) در حال ویرایش این
+                  صفحه است.
+                </span>
+                <Button size="sm" variant="outline" onClick={takeOver}>
+                  تصاحب ویرایش
+                </Button>
+              </div>
+            )}
+            {/* Autosave state, always visible. A feature that runs silently is
+                one nobody trusts — the question "did my last change go
+                anywhere?" has to have an answer on screen. */}
+            {editing && (
+              <p className="text-[11px] text-muted-foreground">
+                {autosaveDirty
+                  ? "در حال ذخیره‌ی خودکار…"
+                  : formDirty
+                    ? "تغییرات ذخیره شده‌اند؛ برای انتشار «ذخیره» را بزنید."
+                    : "ذخیره‌ی خودکار فعال است."}
+              </p>
+            )}
             <div className="grid gap-2">
               <Label htmlFor="page-title">عنوان</Label>
               <Input
@@ -573,7 +783,43 @@ export default function AdminCMSPagesPage() {
                 onChange={(e) => setFormSlug(e.target.value)}
                 placeholder="about-us"
                 dir="ltr"
+                aria-describedby="page-slug-status"
                 className="text-left"
+              />
+              {/* Live feedback. The server still rejects on save — this only
+                  means the operator finds out while typing instead of after a
+                  round trip. */}
+              {slugCheck && !slugCheck.available && (
+                <p
+                  id="page-slug-status"
+                  className="text-[11px] text-destructive"
+                  role="status"
+                >
+                  {slugCheck.reason === "reserved"
+                    ? `«${slugCheck.slug}» نشانی رزروشده‌ی فروشگاه است و برگه نمی‌تواند آن را بگیرد.`
+                    : `نامک «${slugCheck.slug}» قبلاً به برگه‌ی دیگری اختصاص دارد.`}
+                </p>
+              )}
+              {slugCheck?.available && (
+                <p
+                  id="page-slug-status"
+                  className="text-[11px] text-emerald-600"
+                  role="status"
+                >
+                  این نامک آزاد است.
+                </p>
+              )}
+            </div>
+            {/* Hero image. A post had one and a page did not, so an "about us"
+                or size guide had nowhere to put it. */}
+            <div className="grid gap-2 sm:col-span-2">
+              <Label className="inline-flex items-center gap-1 text-xs">
+                <ImageIcon className="h-3.5 w-3.5" /> تصویر شاخص
+              </Label>
+              <MediaPicker
+                value={formCover}
+                onChange={setFormCover}
+                label="تصویر شاخص برگه"
               />
             </div>
             <div className="grid gap-2">
@@ -629,11 +875,53 @@ export default function AdminCMSPagesPage() {
                 className="h-9 rounded-md border border-input bg-background px-3 text-sm"
               >
                 <option value="draft">پیش‌نویس</option>
+                <option value="pending_review">در انتظار بازبینی</option>
                 <option value="published">منتشر شده</option>
                 <option value="archived">بایگانی</option>
               </select>
             </div>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {/* Who may read the page. Separate from the status because a page
+                  can be published *and* private, and one dropdown cannot say
+                  both. */}
+              <div className="grid gap-2">
+                <Label htmlFor="page-visibility">قابلیت مشاهده</Label>
+                <select
+                  id="page-visibility"
+                  value={formVisibility}
+                  onChange={(e) =>
+                    setFormVisibility(e.target.value as CmsPageVisibility)
+                  }
+                  className="h-9 rounded-md border border-input bg-background px-3 text-sm"
+                >
+                  <option value="public">عمومی</option>
+                  <option value="private">خصوصی (فقط مدیران)</option>
+                  <option value="password">رمزدار</option>
+                </select>
+              </div>
+              {formVisibility === "password" && (
+                <div className="grid gap-2 sm:col-span-2">
+                  <Label htmlFor="page-visibility-password">رمز عبور برگه</Label>
+                  <Input
+                    id="page-visibility-password"
+                    type="text"
+                    dir="ltr"
+                    value={formVisibilityPassword}
+                    onChange={(e) => setFormVisibilityPassword(e.target.value)}
+                    placeholder={
+                      formHasPassword
+                        ? "رمز تنظیم شده — برای تغییر، رمز جدید وارد کنید"
+                        : "رمز را وارد کنید"
+                    }
+                    className="text-left font-mono text-xs"
+                  />
+                  <p className="text-[11px] text-muted-foreground">
+                    {formHasPassword
+                      ? "رمز فعلی به‌صورت هش‌شده ذخیره شده و قابل مشاهده نیست؛ خالی گذاشتن آن رمز را تغییر نمی‌دهد."
+                      : "بدون رمز، برگه منتشر می‌شود ولی متنش نمایش داده نمی‌شود."}
+                  </p>
+                </div>
+              )}
               <div className="grid gap-2">
                 <Label htmlFor="page-locale">زبان</Label>
                 <select
@@ -646,6 +934,51 @@ export default function AdminCMSPagesPage() {
                   <option value="en">English</option>
                   <option value="ar">العربية</option>
                 </select>
+              </div>
+              {/* A page could not carry a custom term at all before: the link
+                  table's foreign key pointed at blog_posts. Only mounted for a
+                  saved page, because there is no id to attach terms to yet. */}
+              {formPageId && (
+                <div className="grid gap-2 sm:col-span-2">
+                  <Label className="inline-flex items-center gap-1 text-xs">
+                    <Tag className="h-3.5 w-3.5" /> تاکسونومی‌های سفارشی
+                  </Label>
+                  <PostTermsPicker postId={formPageId} objectType="cms_page" />
+                </div>
+              )}
+              <div className="grid gap-2">
+                <Label htmlFor="page-parent">برگه‌ی والد</Label>
+                <select
+                  id="page-parent"
+                  value={formParentId}
+                  onChange={(e) => setFormParentId(e.target.value)}
+                  className="h-9 rounded-md border border-input bg-background px-3 text-sm"
+                >
+                  <option value="">بدون والد (صفحه‌ی سطح اول)</option>
+                  {pages
+                    // A page cannot be its own parent; the server rejects the
+                    // cycle, but offering it here would just be a way to make a
+                    // mistake and then read a validation error.
+                    .filter((p) => p.id !== formPageId && p.status !== "archived")
+                    .map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.title}
+                      </option>
+                    ))}
+                </select>
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="page-order">ترتیب میان هم‌والدین</Label>
+                <Input
+                  id="page-order"
+                  type="number"
+                  dir="ltr"
+                  value={formMenuOrder}
+                  onChange={(e) => setFormMenuOrder(e.target.value)}
+                />
+                <p className="text-[11px] text-muted-foreground">
+                  عدد کوچک‌تر زودتر نمایش داده می‌شود.
+                </p>
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="page-sched-pub">انتشار زمان‌بندی‌شده</Label>
@@ -668,6 +1001,21 @@ export default function AdminCMSPagesPage() {
                 />
               </div>
             </div>
+            <label className="flex cursor-pointer items-center gap-3 text-sm">
+              <input
+                type="checkbox"
+                checked={formAllowComments}
+                onChange={(e) => setFormAllowComments(e.target.checked)}
+                className="h-4 w-4 rounded border-input"
+              />
+              <span>امکان ارسال دیدگاه روی این صفحه</span>
+            </label>
+            {formAllowComments ? (
+              <p className="-mt-2 text-xs text-muted-foreground">
+                پس از انتشار، بخش دیدگاه‌ها در انتهای صفحه‌ی فروشگاه نمایش داده می‌شود. برای صفحات
+                قانونی و سیاست‌ها این گزینه را خاموش نگه دارید.
+              </p>
+            ) : null}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditorOpen(false)}>
@@ -690,6 +1038,13 @@ export default function AdminCMSPagesPage() {
       />
 
       {/* Revision history dialog */}
+      <QuickEditPageDialog
+        page={quickEditPage}
+        open={quickEditOpen}
+        onOpenChange={setQuickEditOpen}
+        onSaved={fetchPages}
+      />
+
       <Dialog open={revOpen} onOpenChange={setRevOpen}>
         <DialogContent className="max-w-xl">
           <DialogHeader>
@@ -746,6 +1101,14 @@ export default function AdminCMSPagesPage() {
           </div>
         </DialogContent>
       </Dialog>
+
+      <CmsPreviewDialog
+        pageId={previewPageId}
+        open={previewPageId !== null}
+        onOpenChange={(open) => {
+          if (!open) setPreviewPageId(null);
+        }}
+      />
     </div>
   );
 }

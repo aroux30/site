@@ -52,6 +52,15 @@ class RegisterRequest(BaseModel):
     password: str = Field(..., min_length=8, max_length=128)
     first_name: str = Field(..., min_length=1, max_length=100)
     last_name: str = Field(..., min_length=1, max_length=100)
+    # Optional. When supplied, a verification link is emailed and
+    # ``users.is_verified`` stays false until it is clicked — the OTP flow
+    # proves the phone, never the email, so an address typed here was
+    # previously trusted without ever being checked.
+    email: str | None = Field(
+        None,
+        max_length=255,
+        description="Optional email; a verification link is sent when provided.",
+    )
     referral_code: str | None = Field(
         None, max_length=50, description="Optional referral code from an invite link"
     )
@@ -68,6 +77,21 @@ class RegisterRequest(BaseModel):
     @classmethod
     def validate_phone(cls, v: str) -> str:
         return _validate_iran_phone(v)
+
+    @field_validator("email")
+    @classmethod
+    def validate_email(cls, v: str | None) -> str | None:
+        # Same shape check the profile update uses: a value with no "@" or no
+        # dot after it is not an address, and accepting it would send a
+        # verification link into the void.
+        if v is None:
+            return None
+        candidate = v.strip()
+        if not candidate:
+            return None
+        if "@" not in candidate or "." not in candidate.split("@")[-1]:
+            raise ValueError("Invalid email format")
+        return candidate
 
     @field_validator("password")
     @classmethod
@@ -97,6 +121,13 @@ class LoginRequest(BaseModel):
         min_length=6,
         max_length=8,
         description="TOTP second factor; required when the user has MFA enabled",
+    )
+    # "مرا به خاطر بسپار": opts *this* session into the longer refresh lifetime.
+    # Per-session, not per-account, so a shared machine's "no" is not undone by
+    # another device's "yes".
+    remember_me: bool = Field(
+        False,
+        description="Keep this session signed in for the longer remember-me window.",
     )
     honeypot: str | None = Field(None, description="Anti-bot honeypot field. Must be empty.")
 
@@ -229,6 +260,8 @@ class UserProfileResponse(BaseModel):
     email: str | None = None
     first_name: str | None = None
     last_name: str | None = None
+    #: The public-facing name, when set. Consumers fall back to first+last.
+    display_name: str | None = None
     national_code: str | None = None
     birth_date: str | None = None
     avatar_url: str | None = None
@@ -255,6 +288,9 @@ class UserProfileUpdate(BaseModel):
 
     first_name: str | None = Field(None, min_length=1, max_length=100)
     last_name: str | None = Field(None, min_length=1, max_length=100)
+    # The name shown publicly. Distinct from first/last on purpose: an author
+    # under a pen name must not have their legal name published by a byline.
+    display_name: str | None = Field(None, max_length=100)
     email: str | None = Field(None, max_length=255)
     national_code: str | None = Field(None, min_length=10, max_length=10)
     birth_date: str | None = Field(None, examples=["1370-01-15"])

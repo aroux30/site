@@ -30,6 +30,9 @@ const SECTION_LABELS: Record<string, string> = {
   storage: "فضای ذخیره‌سازی",
   settings: "تنظیمات برنامه",
   modules: "ماژول‌ها",
+  migrations: "مهاجرت‌های پایگاه داده",
+  options: "تنظیمات سایت",
+  scheduled_jobs: "کارهای زمان‌بندی‌شده",
 };
 
 const FIELD_LABELS: Record<string, string> = {
@@ -52,6 +55,14 @@ const FIELD_LABELS: Record<string, string> = {
   api_docs_enabled: "مستندات API فعال",
   enabled_count: "تعداد ماژول‌های فعال",
   registered: "روش ثبت ماژول‌ها",
+  // The three rows below are what a support thread asks for first: which
+  // revision is stamped, how many options load on every request, and what the
+  // beat is configured to fire.
+  current_revision: "مرحلهٔ فعلی (revision)",
+  in_consistent_state: "در وضعیت ناسازگار (مهاجرت نیمه‌کاره)",
+  autoloaded_count: "تنظیمات autoload",
+  total_count: "کل تنظیمات",
+  count: "تعداد",
   error: "خطا",
 };
 
@@ -63,6 +74,20 @@ function formatValue(value: SiteHealthInfoSection[string]): string {
   if (value === null || value === undefined) return "—";
   if (typeof value === "boolean") return value ? "بله" : "خیر";
   if (typeof value === "number") return toPersianDigits(String(value));
+  if (Array.isArray(value)) {
+    // String(value) on a list of objects renders "[object Object]". The
+    // scheduled-jobs row is the only list in this payload, and it is the one
+    // a reader most wants to read.
+    return value
+      .map((entry) =>
+        entry && typeof entry === "object"
+          ? Object.entries(entry as Record<string, unknown>)
+              .map(([k, v]) => `${FIELD_LABELS[k] ?? k}: ${String(v)}`)
+              .join(" · ")
+          : String(entry),
+      )
+      .join(String.fromCharCode(10));
+  }
   return String(value);
 }
 
@@ -173,7 +198,10 @@ export function SiteHealthInfoTab() {
                     className="grid grid-cols-1 gap-1 px-4 py-2 text-sm sm:grid-cols-[minmax(0,14rem)_1fr]"
                   >
                     <dt className="text-muted-foreground">{labelFor(name, field)}</dt>
-                    <dd className="break-all font-mono text-xs sm:text-sm">
+                    {/* whitespace-pre-line: a list value (the scheduled jobs)
+                        is joined with newlines, and without it all 25 jobs
+                        render on one unreadable line. */}
+                    <dd className="break-all whitespace-pre-line font-mono text-xs sm:text-sm">
                       {formatValue(value)}
                     </dd>
                   </div>

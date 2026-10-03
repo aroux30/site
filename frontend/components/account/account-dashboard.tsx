@@ -6,6 +6,7 @@ import { useSearchParams } from "next/navigation";
 import {
   User,
   Package,
+  Loader2,
   MapPin,
   Heart,
   Wallet as WalletIcon,
@@ -70,8 +71,10 @@ import { ShipmentStepper } from "@/components/orders/shipment-stepper";
 import { ReferralPanel } from "@/components/account/referral-panel";
 import { OrderHistorySkeleton } from "@/components/shared/skeleton-loaders";
 import { apiErrorMessage } from "@/lib/api/error-message";
+import { authApi } from "@/lib/api/auth";
 import { useAuthStore } from "@/stores/auth-store";
 import { MfaSettingsCard } from "@/components/account/mfa-settings-card";
+import { PasskeyCard } from "@/components/account/passkey-card";
 import { ApplicationPasswordsCard } from "@/components/account/application-passwords-card";
 import { SessionsCard } from "@/components/account/sessions-card";
 import { useCartStore } from "@/stores/cart-store";
@@ -299,6 +302,9 @@ export function AccountDashboard({
   const [profileForm, setProfileForm] = useState({
     firstName: user?.firstName ?? "",
     lastName: user?.lastName ?? "",
+    // The public nickname. Empty means "show my first + last name", which is
+    // what every consumer did before this field existed.
+    displayName: user?.display_name ?? "",
     email: user?.email ?? "",
     phone: user?.phone ?? "",
     nationalId: ((user as unknown as Record<string, unknown>)?.national_id as string) || ((user as unknown as Record<string, unknown>)?.nationalId as string) || "",
@@ -312,6 +318,16 @@ export function AccountDashboard({
     new_email: string;
     expires_at: string;
   } | null>(null);
+
+  // Email verification. `user.is_verified` used to be set by the OTP flow
+  // (phone ownership), so it never actually told anyone whether their email
+  // was confirmed; a resend is offered whenever the address is unconfirmed.
+  const [resendingVerification, setResendingVerification] = useState(false);
+
+  // Custom avatar upload. The profile carried `avatar_url` and the PATCH
+  // accepted it, but the account area had no way to get a file in: the media
+  // library is admin-gated, so the field was only fillable by pasting a URL.
+  const [avatarBusy, setAvatarBusy] = useState(false);
 
   // True when the form holds an address the account does not have yet. Drives
   // the "this will send a confirmation link" hint, so the change is never a
@@ -391,6 +407,7 @@ export function AccountDashboard({
         ...prev,
         firstName: user.firstName ?? "",
         lastName: user.lastName ?? "",
+        displayName: user.display_name ?? "",
         email: user.email ?? "",
         phone: user.phone ?? "",
       }));
@@ -460,6 +477,64 @@ export function AccountDashboard({
         window.history.replaceState(null, "", window.location.pathname);
       });
   }, [emailToken, confirmingEmail]);
+
+  /**
+   * Ask the server to mail a fresh verification link.
+   *
+   * The server reports honestly — "already verified", "no address", or a real
+   * send failure — so the toast carries its message rather than a fixed
+   * success line that would leave a user watching an empty inbox.
+   */
+  /**
+   * Upload a new avatar image.
+   *
+   * Multipart to /auth/me/avatar; the server stores the file, points the
+   * profile at it and returns the updated profile. The auth store is refreshed
+   * so every surface showing the avatar (header, sidebar) updates at once
+   * rather than waiting for the next /auth/me.
+   */
+  const uploadAvatar = async (file: File) => {
+    setAvatarBusy(true);
+    try {
+      const form = new FormData();
+      form.append("file", file);
+      await apiClient.post("/auth/me/avatar", form, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      await fetchCurrentUser();
+      toast({
+        title: "تصویر پروفایل به‌روزرسانی شد",
+        variant: "success",
+      });
+    } catch (err) {
+      toast({
+        title: apiErrorMessage(err, "بارگذاری تصویر پروفایل ناموفق بود."),
+        variant: "destructive",
+      });
+    } finally {
+      setAvatarBusy(false);
+    }
+  };
+
+  const resendVerification = async () => {
+    setResendingVerification(true);
+    try {
+      const res = await authApi.resendEmailVerification();
+      toast({
+        title: "ارسال پیوند تأیید",
+        description: res.message,
+        variant: res.message.includes("فرستاده شد") ? "success" : "destructive",
+      });
+    } catch {
+      toast({
+        title: "ارسال پیوند تأیید ناموفق بود",
+        description: "لطفاً کمی بعد دوباره تلاش کنید.",
+        variant: "destructive",
+      });
+    } finally {
+      setResendingVerification(false);
+    }
+  };
 
   // Fetch initial data from APIs with fallback
   useEffect(() => {
@@ -666,6 +741,10 @@ export function AccountDashboard({
       }>("/auth/me", {
         first_name: profileForm.firstName,
         last_name: profileForm.lastName,
+        // Sent as an explicit value, including empty: clearing the nickname is
+        // a real intent ("show my real name again"), and an omitted field
+        // would silently keep the old one.
+        display_name: profileForm.displayName.trim(),
         email: profileForm.email,
         phone: profileForm.phone,
       });
@@ -1193,9 +1272,42 @@ export function AccountDashboard({
           <Card className="p-4">
             {/* User Profile Card Header */}
             <div className="mb-4 flex items-center gap-3 border-b border-border pb-4">
-              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary font-bold text-lg">
-                {profileForm.firstName?.charAt(0) || "ک"}
-              </div>
+              {/* The avatar is a label wrapping a file input: clicking the
+                  image opens the picker, which is what a person expects, and
+                  the input stays keyboard-reachable because it is the label's
+                  control rather than a hidden div. */}
+              <label
+                className="relative flex h-14 w-14 shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-full bg-primary/10 font-bold text-lg text-primary"
+                title="تغییر تصویر پروفایل"
+              >
+                {user?.avatar_url ? (
+                  // eslint-disable-next-line @next/next/no-img-element -- user-uploaded media, not a build-time asset
+                  <img
+                    src={user.avatar_url}
+                    alt="تصویر پروفایل"
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  profileForm.firstName?.charAt(0) || "ک"
+                )}
+                {avatarBusy && (
+                  <span className="absolute inset-0 flex items-center justify-center bg-background/70">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  </span>
+                )}
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="sr-only"
+                  disabled={avatarBusy}
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    // Reset first so picking the same file twice fires again.
+                    e.target.value = "";
+                    if (file) void uploadAvatar(file);
+                  }}
+                />
+              </label>
               <div className="min-w-0 flex-1">
                 <p className="truncate font-semibold text-foreground">
                   {profileForm.firstName} {profileForm.lastName}
@@ -1373,6 +1485,30 @@ export function AccountDashboard({
                     </div>
                   </div>
 
+                  {/* The public nickname. Kept separate from the legal name
+                      because they differ: an author under a pen name must not
+                      have their real name published, and a customer may want
+                      "آرش" on reviews while the account holds a full legal
+                      name. Empty falls back to first + last. */}
+                  <div className="space-y-1.5">
+                    <Label htmlFor="displayName">
+                      نام نمایشی{" "}
+                      <span className="text-muted-foreground">(اختیاری)</span>
+                    </Label>
+                    <Input
+                      id="displayName"
+                      value={profileForm.displayName}
+                      onChange={(e) =>
+                        setProfileForm({ ...profileForm, displayName: e.target.value })
+                      }
+                      placeholder="نامی که به‌جای نام واقعی نمایش داده می‌شود"
+                      maxLength={100}
+                    />
+                    <p className="text-[11px] text-muted-foreground">
+                      اگر خالی بماند، نام و نام خانوادگی شما نمایش داده می‌شود.
+                    </p>
+                  </div>
+
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <div className="space-y-1.5">
                       <div className="flex items-center justify-between">
@@ -1450,6 +1586,35 @@ export function AccountDashboard({
                           با ذخیره، لینک تأیید به این آدرس فرستاده می‌شود. ایمیل حساب شما تا پس از
                           کلیک روی لینک تغییر نمی‌کند.
                         </p>
+                      ) : null}
+                      {/* Verification status. A saved but unconfirmed address
+                          is where password resets go, so the user should see
+                          that state and be able to fix it without support. */}
+                      {!pendingEmailChange && !emailDiffersFromSaved && user?.email ? (
+                        user.is_verified ? (
+                          <p className="flex items-center gap-1 text-xs text-emerald-600 dark:text-emerald-400">
+                            <CheckCircle2 className="h-3.5 w-3.5" />
+                            ایمیل تأیید شده است.
+                          </p>
+                        ) : (
+                          <div className="flex flex-wrap items-center gap-2">
+                            <p className="text-xs text-amber-600 dark:text-amber-400">
+                              این ایمیل هنوز تأیید نشده است.
+                            </p>
+                            <Button
+                              type="button"
+                              variant="link"
+                              size="sm"
+                              className="h-auto p-0 text-xs"
+                              disabled={resendingVerification}
+                              onClick={() => void resendVerification()}
+                            >
+                              {resendingVerification
+                                ? "در حال ارسال…"
+                                : "ارسال پیوند تأیید"}
+                            </Button>
+                          </div>
+                        )
                       ) : null}
                     </div>
                   </div>
@@ -1535,6 +1700,12 @@ export function AccountDashboard({
                   enabled={!!user?.totp_enabled}
                   onChanged={() => window.location.reload()}
                 />
+              </div>
+
+              {/* Passkeys: passwordless sign-in with a device credential. The
+                  hook and endpoints were both stubs before this. */}
+              <div className="mt-6">
+                <PasskeyCard />
               </div>
 
               {/* Application passwords: API credentials for a phone app or

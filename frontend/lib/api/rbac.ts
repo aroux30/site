@@ -125,7 +125,7 @@ export const rbacApi = {
   },
 
   /** نقش‌های یک کاربر */
-  getUserRoles: async (userId: string): Promise<UserRoles> => {
+  getUserRoles: async (userId: string | number): Promise<UserRoles> => {
     const res = await apiClient.get<UserRoles>(`/rbac/admin/users/${userId}/roles`);
     return res.data;
   },
@@ -173,7 +173,7 @@ export const rbacApi = {
   },
 
   /** تخصیص نقش به کاربر */
-  assignUserRoles: async (userId: string, roleIds: string[]): Promise<UserRoles> => {
+  assignUserRoles: async (userId: string | number, roleIds: string[]): Promise<UserRoles> => {
     const res = await apiClient.post<UserRoles>(`/rbac/admin/users/${userId}/roles`, {
       role_ids: roleIds,
     });
@@ -181,7 +181,7 @@ export const rbacApi = {
   },
 
   /** حذف نقش از کاربر */
-  removeUserRoles: async (userId: string, roleIds: string[]): Promise<UserRoles> => {
+  removeUserRoles: async (userId: string | number, roleIds: string[]): Promise<UserRoles> => {
     const res = await apiClient.delete<UserRoles>(`/rbac/admin/users/${userId}/roles`, {
       data: { role_ids: roleIds },
     });

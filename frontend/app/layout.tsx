@@ -26,36 +26,56 @@ const vazirmatn = localFont({
  * revalidate), not at build, so changing it in admin goes live without a
  * deploy.
  */
-async function fetchSiteIcon(): Promise<string> {
+/**
+ * The operator's branding, read once and used for the icon and the name.
+ *
+ * Both come from the same endpoint, so one request covers both; the previous
+ * shape fetched only the icon and left the title hardcoded,
+ * which is why the store's name could be set in the admin and still never
+ * appear in a tab title or a search result.
+ *
+ * An unset name yields "" rather than a placeholder: the caller substitutes
+ * the historical default, so a shop with nothing configured looks exactly as
+ * it did before this existed.
+ */
+async function fetchBranding(): Promise<{ site_icon: string; store_name: string }> {
+  const fallback = { site_icon: "/icons/icon.svg", store_name: "" };
   try {
     const res = await fetch(`${apiInternalUrl()}/settings/public/branding`, {
       next: { revalidate: 300 },
     });
-    if (!res.ok) return "/icons/icon.svg";
-    const data = (await res.json()) as { site_icon?: string };
-    return data.site_icon?.trim() || "/icons/icon.svg";
+    if (!res.ok) return fallback;
+    const data = (await res.json()) as { site_icon?: string; store_name?: string };
+    return {
+      site_icon: data.site_icon?.trim() || fallback.site_icon,
+      store_name: data.store_name?.trim() || "",
+    };
   } catch {
-    return "/icons/icon.svg";
+    return fallback;
   }
 }
 
 export async function generateMetadata(): Promise<Metadata> {
-  const siteIcon = await fetchSiteIcon();
+  const branding = await fetchBranding();
+  const siteIcon = branding.site_icon;
+  // An unset store name keeps the historical wording, so nothing that relied
+  // on it changes until the operator actually sets a name.
+  const name = branding.store_name || "فروشگاه آنلاین";
   return {
     title: {
-      default: "فروشگاه آنلاین | خرید آسان و مطمئن",
-      template: "%s | فروشگاه آنلاین",
+      default: `${name} | خرید آسان و مطمئن`,
+      template: `%s | ${name}`,
     },
     description:
-      "فروشگاه اینترنتی با تنوع بالای محصولات، ارسال سریع و پرداخت امن. بهترین قیمت‌ها را در فروشگاه ما پیدا کنید.",
+      `${name} — تنوع بالای محصولات، ارسال سریع و پرداخت امن. بهترین قیمت‌ها را در فروشگاه ما پیدا کنید.`,
     keywords: [
       "فروشگاه اینترنتی",
       "خرید آنلاین",
       "فروشگاه آنلاین",
       "خرید اینترنتی",
     ],
-    authors: [{ name: "فروشگاه آنلاین" }],
-    creator: "فروشگاه آنلاین",
+    authors: [{ name }],
+    creator: name,
     manifest: "/manifest.json",
     metadataBase: new URL(
       process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000",
@@ -91,7 +111,7 @@ export async function generateMetadata(): Promise<Metadata> {
     openGraph: {
       type: "website",
       locale: "fa_IR",
-      siteName: "فروشگاه آنلاین",
+      siteName: name,
     },
     robots: {
       index: true,
@@ -104,7 +124,7 @@ export async function generateMetadata(): Promise<Metadata> {
     appleWebApp: {
       capable: true,
       statusBarStyle: "default",
-      title: "فروشگاه آنلاین",
+      title: name,
     },
   };
 }
@@ -118,20 +138,20 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
-function buildSiteJsonLd() {
+function buildSiteJsonLd(siteName: string) {
   const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
   return [
     {
       "@context": "https://schema.org",
       "@type": "Organization",
-      name: "فروشگاه آنلاین",
+      name: siteName,
       url: SITE_URL,
       logo: `${SITE_URL}/logo.svg`,
     },
     {
       "@context": "https://schema.org",
       "@type": "WebSite",
-      name: "فروشگاه آنلاین",
+      name: siteName,
       url: SITE_URL,
       inLanguage: "fa-IR",
       potentialAction: {
@@ -155,13 +175,17 @@ export default async function RootLayout({
   // is what makes the ThemeEditor's colors actually reach the storefront.
   const themeTokens = await fetchThemeTokens();
   const styleVars = themeStyleVars(themeTokens) as React.CSSProperties;
+  // The JSON-LD block lives in the body, outside generateMetadata, so it needs
+  // the name for itself. fetchBranding is revalidate-cached, so this is a cache
+  // read rather than a second request.
+  const storeNameInPage = (await fetchBranding()).store_name || "فروشگاه آنلاین";
 
   return (
     <html lang="fa" dir="rtl" className={vazirmatn.variable} style={styleVars}>
       <body className="min-h-screen bg-background font-sans antialiased">
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(buildSiteJsonLd()) }}
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(buildSiteJsonLd(storeNameInPage)) }}
         />
         <Providers>{children}</Providers>
         {/* Listens for the admin theme editor's postMessage streams and

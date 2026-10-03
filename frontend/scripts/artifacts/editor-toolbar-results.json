@@ -1,0 +1,77 @@
+{
+  "results": [
+    {
+      "name": "editor surface mounts",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "toolbar: پررنگ (bold)",
+      "pass": true,
+      "detail": "added <b>"
+    },
+    {
+      "name": "toolbar: کج (italic)",
+      "pass": true,
+      "detail": "added <i>"
+    },
+    {
+      "name": "toolbar: زیرخط (underline)",
+      "pass": true,
+      "detail": "added <u>"
+    },
+    {
+      "name": "toolbar: خط‌خورده (strike)",
+      "pass": true,
+      "detail": "added <s|strike>"
+    },
+    {
+      "name": "toolbar: نقل‌قول (blockquote)",
+      "pass": true,
+      "detail": "added <blockquote>"
+    },
+    {
+      "name": "toolbar: کد (pre)",
+      "pass": true,
+      "detail": "added <pre>"
+    },
+    {
+      "name": "toolbar: جدول (table)",
+      "pass": true,
+      "detail": "added <table>"
+    },
+    {
+      "name": "toolbar: خط جداکننده (hr)",
+      "pass": true,
+      "detail": "added <hr>"
+    },
+    {
+      "name": "toolbar: تراز (center)",
+      "pass": true,
+      "detail": "text-align:center"
+    },
+    {
+      "name": "word counter shows a number",
+      "pass": true,
+      "detail": "۲ واژه · ۹ نویسه"
+    },
+    {
+      "name": "fullscreen applies a fixed overlay",
+      "pass": true,
+      "detail": "fixed inset-0 z-50 flex flex-col rounded-none border-0 bg-background"
+    }
+  ],
+  "consoleErrors": [
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+  ]
+}

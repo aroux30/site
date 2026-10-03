@@ -8,6 +8,7 @@ from typing import Any
 
 from fastapi import APIRouter, Depends, Query, Response, status
 from pydantic import BaseModel, Field
+from sqlalchemy import distinct, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database.session import get_db
@@ -212,6 +213,38 @@ async def reorder_blocks(
 
 
 # ── Hierarchical Tree Menus Endpoints ─────────────────────────────────────
+#
+# Declaration order matters: `/menus/locations` is literal and must come
+# before `/menus/{location}`, or the parameterized route swallows it and the
+# literal is parsed as a location named "locations".
+
+
+@router.get(
+    "/menus/locations",
+    summary="List every menu location: the built-ins plus any in use (admin)",
+    dependencies=[Depends(RequirePermissions("settings:read"))],
+)
+async def list_menu_locations(db: AsyncSession = Depends(get_db)) -> dict[str, Any]:
+    """The built-in locations and any operator-created ones already in use.
+
+    WordPress registers menu locations from the theme, so the admin picks from
+    a fixed list. This store lets an operator add a location from the panel —
+    a campaign bar, a landing-page nav — so the list has to include what is
+    actually in the table, not only the seed values, or a location an operator
+    created would vanish from the picker that created it.
+    """
+    from app.modules.content.domain.models import SiteMenu
+
+    builtin = [loc.value for loc in MenuLocation]
+    rows = (
+        await db.execute(select(distinct(SiteMenu.location)))
+    ).scalars().all()
+    in_use = sorted({r for r in rows if r})
+    return {
+        "builtin": builtin,
+        "custom": [loc for loc in in_use if loc not in builtin],
+        "all": sorted(set(builtin) | set(in_use)),
+    }
 
 
 @router.get(
@@ -220,9 +253,12 @@ async def reorder_blocks(
     summary="Get hierarchical navigation tree for a location (header, footer, mobile)",
 )
 async def get_tree_menu(
-    location: MenuLocation,
+    location: str,
     db: AsyncSession = Depends(get_db),
 ) -> list[TreeMenuItemNode]:
+    """The tree for one location. `str`, not the enum, so an operator-defined
+    location is readable — the enum covered only the five seeded values, which
+    made a custom location a 422 on read even after it was written."""
     tree = await content_service.build_tree_menu(db, location=location)
     return [TreeMenuItemNode.model_validate(node) for node in tree]
 
@@ -237,9 +273,18 @@ async def create_menu_item(
     body: MenuItemCreateRequest,
     db: AsyncSession = Depends(get_db),
 ) -> MenuItemResponse:
+    # The location becomes a CSS selector and a layout slot name, so it is
+    # validated as a slug — a location with a space or a slash would be a
+    # value no layout could ever render.
+    from app.modules.content.schemas.content import validate_menu_location
+
+    try:
+        location = validate_menu_location(body.location)
+    except ValueError as exc:
+        raise ValidationError(str(exc)) from exc
     item = await content_service.create_menu_item(
         db,
-        location=body.location,
+        location=location,
         title=body.title,
         url=body.url,
         parent_id=body.parent_id,
@@ -427,6 +472,29 @@ async def admin_preview_page(
 
 
 @router.get(
+    "/admin/pages/slug-check",
+    summary="Is this page slug free? (admin)",
+    dependencies=[_require_content_write],
+)
+async def admin_check_page_slug(
+    slug: str = Query(..., min_length=1, max_length=220, description="Candidate slug"),
+    page_id: uuid.UUID | None = Query(
+        None, description="Page being edited; its own slug does not count as taken"
+    ),
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, Any]:
+    """Live slug availability for the editor.
+
+    Gated on the same permission as writing pages: it reports which slugs exist,
+    which is the shape of a small existence oracle, and an unauthenticated
+    caller could use it to enumerate the store's URL structure.
+    """
+    from app.modules.content.application.cms_page_service import check_slug_available
+
+    return await check_slug_available(db, slug, exclude_id=page_id)
+
+
+@router.get(
     "/admin/pages",
     response_model=CmsPageListResponse,
     summary="List CMS pages (admin)",
@@ -572,6 +640,43 @@ async def admin_hard_delete_page(
     # where an over-broad guard does the most damage if it is missing.
     await _require_page_access(page_id, current_user, db)
     await cms_page_service.hard_delete_page(db, page_id)
+
+
+class EmptyPageTrashRequest(BaseModel):
+    """How far back the trash reaches.
+
+    Omitted means "everything currently in the trash". A scheduled job should
+    always send a number: purging everything nightly would make "empty
+    trash" a lie the moment an editor restored something they had not meant
+    to remove yet.
+    """
+
+    older_than_days: int | None = Field(
+        None,
+        ge=1,
+        le=3650,
+        description="Only purge pages trashed more than this many days ago",
+    )
+
+
+@router.post(
+    "/admin/pages/empty-trash",
+    summary="Permanently delete trashed CMS pages (admin)",
+    dependencies=[_require_content_write],
+)
+async def admin_empty_page_trash(
+    body: EmptyPageTrashRequest,
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, Any]:
+    """Purge the page trash.
+
+    Separate from the bulk route on purpose: "empty trash" is about a *state*
+    rather than a selection, so it takes no ids and reports what it removed
+    by id.
+    """
+    return await cms_page_service.empty_page_trash(
+        db, older_than_days=body.older_than_days
+    )
 
 
 @router.post(
@@ -721,10 +826,14 @@ async def render_block_pattern(
 )
 async def admin_resolve_embed(
     url: str = Query(..., min_length=8, max_length=2000),
+    db: AsyncSession = Depends(get_db),
 ) -> dict[str, Any]:
     from app.modules.content.application import embed_service
 
-    return await embed_service.resolve_embed(url)
+    # `db` so the operator's cache window and host allowlist are honoured;
+    # without it the module defaults apply, which is what the options were
+    # added to override.
+    return await embed_service.resolve_embed(url, db=db)
 
 
 # ── Content import/export (WordPress/Strapi parity) ─────────────────────────
@@ -833,6 +942,50 @@ async def admin_create_content_type(
         description=body.description,
     )
     return {"id": str(ct.id), "slug": ct.slug}
+
+
+@router.get(
+    "/content-types",
+    summary="List active content types (storefront)",
+)
+async def list_public_content_types(
+    db: AsyncSession = Depends(get_db),
+) -> list[dict[str, Any]]:
+    """Every active content type, for an archive index or a nav entry.
+
+    Exposes the field schema as well as the labels, because a storefront page
+    that lists entries has to render *their* fields and a generic key/value dump
+    is not a page. Only active types: an operator switches one off to take its
+    entries out of the storefront, and a list that ignored `is_active` would
+    keep advertising a section they retired.
+
+    No guard. A content type's existence is not private — it is the public
+    structure of the site — and this returns no entries, which is where the
+    moderation boundary is.
+    """
+    from sqlalchemy import select
+
+    from app.modules.content.domain.builder import ContentType
+
+    rows = (await db.execute(
+        select(ContentType).where(ContentType.is_active.is_(True))
+        .order_by(ContentType.name)
+    )).scalars().all()
+    return [
+        {
+            "id": str(ct.id),
+            "slug": ct.slug,
+            "name": ct.name,
+            "description": getattr(ct, "description", None),
+            "field_schema": [
+                {"key": f.get("key"), "label": f.get("label"),
+                 "type": f.get("type")}
+                for f in (ct.field_schema or [])
+                if isinstance(f, dict)
+            ],
+        }
+        for ct in rows
+    ]
 
 
 @router.get(
@@ -1564,50 +1717,52 @@ async def reorder_menu(
     and a partial failure left the menu in a mixed order. The parent_id in
     each item also re-nests, which is what a tree drag actually changes.
     """
+    from app.modules.content.schemas.content import validate_menu_location
     from app.shared.content.nav_builder import NavBuilderService
 
+    # A slug check, not the enum: an operator-defined location is valid, and
+    # the enum only covers the five seeded ones — which would make a custom
+    # location impossible to reorder.
     try:
-        MenuLocation(location)
+        location = validate_menu_location(location)
     except ValueError as exc:
-        raise ValidationError(
-            f"مکان منوی نامعتبر: {location}",
-            extra={"allowed": [loc.value for loc in MenuLocation]},
-        ) from exc
+        raise ValidationError(str(exc)) from exc
 
     updated = await NavBuilderService.reorder(db, location, body.items)
     tree = await NavBuilderService.get_menu_tree(db, location)
     return {"updated": updated, "tree": tree}
 
 
-# ── Sitemap index + per-provider files ──────────────────────────────────────
-# The flat /sitemap.xml grows without bound: every request re-serialises every
-# URL. An index plus one file per provider caps each response and lets a
-# crawler fetch only the section it needs.
+# ── Sitemap: one canonical surface ──────────────────────────────────────────
+# P1 "فید: دو مسیر موازی سایت‌مپ". Two sitemaps shipped: this backend index (and
+# its per-provider files) and the Next.js app/sitemap.ts. Crawlers were told
+# about exactly one of them — robots.txt advertises /sitemap.xml, which the
+# storefront serves — so the backend index was a second, unreachable copy that
+# could still drift from the canonical one.
+#
+# The storefront sitemap won because it is what robots.txt names and what
+# /content/sitemap-entries feeds. This route is kept only as a redirect so a
+# stale link to the API sitemap follows through instead of 404ing; the
+# per-provider files it used to list are gone with it.
 
 
-@router.get("/sitemap.xml", summary="Sitemap index (public)")
+@router.get("/sitemap.xml", summary="Redirect to the canonical sitemap (public)")
 async def sitemap_index(db: AsyncSession = Depends(get_db)) -> Response:
-    from app.modules.content.application.sitemap_index_service import build_index
-    from app.modules.content.application.sitemap_service import _resolve_base_url
+    from fastapi.responses import RedirectResponse
 
-    body = await build_index(db, await _resolve_base_url(db))
-    return Response(content=body, media_type="application/xml")
+    from app.modules.settings.application.site_options_service import public_base_url
 
-
-@router.get("/sitemap-{provider}.xml", summary="One provider's sitemap (public)")
-async def sitemap_provider(
-    provider: str,
-    db: AsyncSession = Depends(get_db),
-) -> Response:
-    from app.modules.content.application.sitemap_index_service import build_provider
-    from app.modules.content.application.sitemap_service import _resolve_base_url
-
-    body = await build_provider(db, provider, await _resolve_base_url(db))
-    if body is None:
-        raise NotFoundError(
-            "SitemapProvider", f"بخش ناشناختهٔ sitemap: {provider}"
-        )
-    return Response(content=body, media_type="application/xml")
+    # public_base_url (not sitemap_service._resolve_base_url) because that one
+    # falls back to the placeholder https://example.com — redirecting a crawler
+    # to example.com is worse than the 404 this replaces. public_base_url falls
+    # back to the deployment's own STOREFRONT_BASE_URL.
+    base = (await public_base_url(db)).rstrip("/")
+    if not base:
+        # No origin resolvable at all: 404 rather than a placeholder redirect.
+        raise NotFoundError("Sitemap", "سایت‌مپ در این مسیر سرو نمی‌شود")
+    # 301: the canonical location is permanent, so a crawler moves on rather
+    # than re-checking this path forever.
+    return RedirectResponse(url=f"{base}/sitemap.xml", status_code=301)
 
 
 # ── oEmbed provider ─────────────────────────────────────────────────────────
@@ -1617,7 +1772,25 @@ async def sitemap_provider(
 
 
 @router.get("/oembed", summary="oEmbed discovery (public)")
-async def oembed_discovery(db: AsyncSession = Depends(get_db)) -> dict[str, Any]:
+async def oembed_discovery(
+    url: str | None = Query(
+        None,
+        description="Absolute URL of the page being embedded. Supplied by the "
+                    "per-page discovery link.",
+    ),
+    format: str | None = Query(
+        None, description="`json` is the only format oEmbed discovery defines"
+    ),
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, Any]:
+    """The discovery document a consumer reads to embed a page.
+
+    ``url`` and ``format`` are the parameters the oEmbed spec sends and every
+    consumer includes. They are accepted and reflected rather than ignored, so
+    a client following the per-page `<link>` gets a document naming the page it
+    asked about — the root layout's bare `/oembed` link had no way to say
+    which page, and a post shared into a chat client had nothing to attach.
+    """
     from app.modules.content.application.sitemap_service import _resolve_base_url
 
     base = (await _resolve_base_url(db)).rstrip("/")
@@ -1627,6 +1800,11 @@ async def oembed_discovery(db: AsyncSession = Depends(get_db)) -> dict[str, Any]
         "provider_name": "فروشگاه",
         "provider_url": base,
         "endpoints": [f"{base}/api/v1/content/oembed/1.0/embed"],
+        # Echoed so a consumer can tell which page it fetched the document
+        # for, and so an unsupported format has somewhere to be reported rather
+        # than being silently accepted.
+        "url": url,
+        "format": format or "json",
     }
 
 

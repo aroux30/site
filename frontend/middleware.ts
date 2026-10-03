@@ -330,8 +330,13 @@ export async function middleware(request: NextRequest) {
   // expired, or who is confirming on a different device. The redirect below
   // also drops the query string, so a login round-trip would lose the token and
   // the user would land back here with nothing to redeem.
+  //
+  // The privacy-request confirmation link has the same shape: the subject may
+  // be confirming from a phone that is not signed in, and the token is the
+  // credential.
   const isEmailConfirmation = request.nextUrl.searchParams.has("email_token");
-  if (isAccountRoute && isEmailConfirmation) {
+  const isPrivacyConfirmation = request.nextUrl.searchParams.has("privacy_confirm_token");
+  if (isAccountRoute && (isEmailConfirmation || isPrivacyConfirmation)) {
     return NextResponse.next();
   }
 

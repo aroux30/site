@@ -18,12 +18,27 @@ interface HookBinding {
   handler: string;
 }
 
+interface DeclaredHook {
+  name: string;
+  kind: "action" | "filter";
+  /** False when nothing has bound to it yet. */
+  bound: boolean;
+  handlers: Array<{ plugin: string; priority: number; enabled: boolean }>;
+}
+
 interface RegistryDescription {
   plugins: string[];
   disabled_plugins: string[];
   plugin_states: Record<string, boolean>;
   actions: Record<string, HookBinding[]>;
   filters: Record<string, HookBinding[]>;
+  /**
+   * Every hook the platform fires, including the points no plugin has bound
+   * to. The two maps above only ever describe what is currently registered,
+   * so before this the surface a plugin could bind to was four points and the
+   * rest were invisible until something used them.
+   */
+  hooks: DeclaredHook[];
 }
 
 /**
@@ -82,6 +97,11 @@ export default function AdminPluginsPage() {
 
   const actionCount = Object.values(desc?.actions ?? {}).reduce((n, h) => n + h.length, 0);
   const filterCount = Object.values(desc?.filters ?? {}).reduce((n, h) => n + h.length, 0);
+  // The declared surface, not the bound one: this is the list a plugin author
+  // needs, and before it existed the page showed a count of zero for a
+  // platform that fires fourteen hooks.
+  const declaredHooks = desc?.hooks ?? [];
+  const unboundHooks = declaredHooks.filter((h) => !h.bound);
 
   const hookSection = (
     title: string,
@@ -171,6 +191,61 @@ export default function AdminPluginsPage() {
               <p className="mt-1 text-2xl font-bold">{toPersianDigits(String(filterCount))}</p>
             </Card>
           </div>
+
+          <Card className="p-6">
+            <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
+              <h3 className="text-lg font-semibold">نقاط اتصال پلاگین</h3>
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <Badge variant="outline">
+                  {toPersianDigits(String(declaredHooks.length))} نقطه
+                </Badge>
+                <Badge variant="outline">
+                  {toPersianDigits(String(unboundHooks.length))} بدون پلاگین
+                </Badge>
+              </div>
+            </div>
+            <p className="mb-4 text-xs text-muted-foreground">
+              هر نقطه‌ای که یک پلاگین می‌تواند به آن گره بخورد. «بدون پلاگین» یعنی
+              هنوز پلاگینی به آن وصل نشده، نه اینکه بی‌اثر است.
+            </p>
+            {declaredHooks.length === 0 ? (
+              <p className="py-4 text-center text-sm text-muted-foreground">
+                نقطه‌ی اتصالی اعلام نشده است.
+              </p>
+            ) : (
+              <ul className="space-y-1.5">
+                {declaredHooks.map((h) => (
+                  <li
+                    key={h.name}
+                    className="flex flex-wrap items-center gap-2 rounded-md border border-border bg-muted/30 px-3 py-1.5 text-xs"
+                  >
+                    <Badge
+                      variant="outline"
+                      className={
+                        h.kind === "action"
+                          ? "border-violet-500/40 text-violet-700 dark:text-violet-300"
+                          : "border-sky-500/40 text-sky-700 dark:text-sky-300"
+                      }
+                    >
+                      {h.kind === "action" ? "action" : "filter"}
+                    </Badge>
+                    <span className="font-mono text-[11px]" dir="ltr">
+                      {h.name}
+                    </span>
+                    {h.handlers.length > 0 ? (
+                      <span className="text-muted-foreground">
+                        {h.handlers
+                          .map((x) => `${x.plugin} (${toPersianDigits(String(x.priority))})`)
+                          .join("، ")}
+                      </span>
+                    ) : (
+                      <span className="text-muted-foreground/70">بدون پلاگین</span>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </Card>
 
           <Card className="p-6">
             <h3 className="mb-4 text-lg font-semibold">پلاگین‌های فعال</h3>

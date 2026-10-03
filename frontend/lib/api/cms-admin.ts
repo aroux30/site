@@ -190,3 +190,52 @@ export const reusableBlocksApi = {
     apiClient.post<ReusableBlock>(`/content/admin/reusable-blocks/${id}/restore`).then((r) => r.data),
   hardRemove: (id: string) => apiClient.delete(`/content/admin/reusable-blocks/${id}/permanent`),
 };
+
+/** Storefront-side access to content types.
+ *
+ *  Separate from `contentTypesApi` above on purpose: that one is behind the
+ *  admin guard and can list entries in any status, which is not what a
+ *  customer is allowed to see. The public route only ever returns published
+ *  entries, and reaching for the admin client from a storefront page would
+ *  silently change what the page shows if the two were ever merged.
+ */
+export interface ContentTypeField {
+  key: string;
+  label: string;
+  type: string;
+}
+
+export interface ContentTypePublic {
+  id: string;
+  slug: string;
+  name: string;
+  description?: string | null;
+  field_schema: ContentTypeField[];
+}
+
+export interface PublicContentEntry {
+  id: string;
+  data: Record<string, unknown>;
+  locale?: string | null;
+  position?: number | null;
+}
+
+export const contentTypesPublicApi = {
+  /** Every active type, for a nav entry or a landing page. */
+  list: async (): Promise<ContentTypePublic[]> => {
+    const { data } = await apiClient.get<ContentTypePublic[]>("/content/content-types");
+    return Array.isArray(data) ? data : [];
+  },
+
+  /** Published entries of one type. Never any other status. */
+  entries: async (
+    typeSlug: string,
+    params?: { locale?: string },
+  ): Promise<PublicContentEntry[]> => {
+    const { data } = await apiClient.get<PublicContentEntry[]>(
+      `/content/content-types/${typeSlug}/entries`,
+      { params },
+    );
+    return Array.isArray(data) ? data : [];
+  },
+};

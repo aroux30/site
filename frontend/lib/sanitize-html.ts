@@ -1,4 +1,8 @@
 import sanitizeHtmlLib from "sanitize-html";
+// A relative path, not the "@/" alias: the sibling import below already
+// does it, and an alias breaks this module outside Next's bundler —
+// which is how the srcset check had to be written to import it directly.
+import { withResponsiveImages } from "./content-responsive-images";
 
 import {
   ALLOWED_ATTR,
@@ -68,10 +72,18 @@ export function cleanHtml(dirty: string, options?: sanitizeHtmlLib.IOptions): st
   // a caller supplying explicit options owns its own iframe decision.
   if (options) return clean;
 
-  return clean.replace(
+  const withoutStrangers = clean.replace(
     /<iframe\b[^>]*\bsrc="([^"]*)"[^>]*>(?:<\/iframe>)?/gi,
     (match, src: string) => (isAllowedEmbedSrc(src) ? match : ""),
   );
+
+  // After sanitizing, not before: sanitize-html rebuilds each tag from its
+  // whitelist, and an attribute it does not know about is dropped. Emitting
+  // srcset first would mean the attribute never survives. Doing it here also
+  // means every consumer of cleanHtml — the blog post, the CMS page, the
+  // password-protected body — gets responsive images without each page
+  // remembering to ask.
+  return withResponsiveImages(withoutStrangers);
 }
 
 export default cleanHtml;

@@ -16,9 +16,11 @@ import {
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordStrengthMeter } from "@/components/auth/password-strength-meter";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
+import { PrivacyClause } from "@/components/privacy/privacy-policy-notice";
 import { useToast } from "@/components/ui/use-toast";
 import { isValidIranPhone, normalizeIranPhone, toEnglishDigits } from "@/lib/utils";
 
@@ -26,6 +28,7 @@ interface FormErrors {
   firstName?: string;
   lastName?: string;
   phone?: string;
+  email?: string;
   password?: string;
   confirmPassword?: string;
   terms?: string;
@@ -51,6 +54,7 @@ function RegisterForm() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [termsAccepted, setTermsAccepted] = useState(false);
@@ -124,6 +128,17 @@ function RegisterForm() {
       newErrors.phone = "شماره موبایل باید ۱۱ رقم و با ۰۹ شروع شود (مثال: ۰۹۱۲۳۴۵۶۷۸۹).";
     }
 
+    // Optional, but if anything is typed it must look like an address — an
+    // unchecked value would be mailed a verification link that can never
+    // arrive, and the account would silently hold a bad address.
+    const cleanEmail = email.trim();
+    if (cleanEmail) {
+      const at = cleanEmail.indexOf("@");
+      if (at < 1 || !cleanEmail.slice(at + 1).includes(".")) {
+        newErrors.email = "ایمیل معتبر نیست.";
+      }
+    }
+
     if (!password) {
       newErrors.password = "رمز عبور را وارد کنید.";
     } else if (password.length < 8) {
@@ -167,6 +182,9 @@ function RegisterForm() {
         password: cleanPassword,
         first_name: firstName.trim(),
         last_name: lastName.trim(),
+        // Only sent when non-empty: an empty string would be stored as an
+        // address the account can never verify.
+        ...(email.trim() ? { email: email.trim() } : {}),
         referral_code: referralCode,
       });
 
@@ -332,6 +350,35 @@ function RegisterForm() {
                 )}
               </div>
 
+              {/* Email — optional. When given, a verification link is sent and
+                  the address is marked verified only after it is clicked. An
+                  unchecked address is where password resets would otherwise go
+                  unchecked. */}
+              <div className="space-y-1.5">
+                <Label htmlFor="register-email-input" className="text-xs font-medium">
+                  ایمیل{" "}
+                  <span className="text-muted-foreground">(اختیاری)</span>
+                </Label>
+                <Input
+                  id="register-email-input"
+                  type="email"
+                  dir="ltr"
+                  placeholder="you@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  autoComplete="email"
+                  className={errors.email ? "border-destructive focus-visible:ring-destructive" : ""}
+                  disabled={isSubmitting}
+                />
+                {errors.email ? (
+                  <p className="text-[11px] text-destructive">{errors.email}</p>
+                ) : (
+                  <p className="text-[11px] text-muted-foreground">
+                    با ثبت ایمیل، پیوند تأیید برایتان فرستاده می‌شود.
+                  </p>
+                )}
+              </div>
+
               {/* Password */}
               <div className="space-y-1.5">
                 <Label htmlFor="register-password-input" className="text-xs font-medium">
@@ -369,6 +416,8 @@ function RegisterForm() {
                     حداقل ۸ کاراکتر، شامل حداقل یک حرف انگلیسی و یک عدد
                   </p>
                 )}
+                {/* WordPress's password strength meter */}
+                <PasswordStrengthMeter password={password} className="pt-1" />
               </div>
 
               {/* Confirm Password */}
@@ -426,11 +475,9 @@ function RegisterForm() {
                     با ثبت‌نام در سایت،{" "}
                     <span className="text-primary hover:underline">
                       قوانین و مقررات استفاده از خدمات
-                    </span>{" "}
-                    و{" "}
-                    <span className="text-primary hover:underline">
-                      حریم خصوصی
-                    </span>{" "}
+                    </span>
+                    <PrivacyClause />
+                    {" "}
                     فروشگاه آنلاین را مطالعه کرده و می‌پذیرم.
                   </Label>
                 </div>

@@ -28,14 +28,46 @@ from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any
 
 import structlog
-from sqlalchemy import select
+from sqlalchemy import or_, select
 
+from app.core.security.ip_anonymize import anonymize_ip
 from app.modules.users.domain.models import User
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
 
 logger: structlog.stdlib.BoundLogger = structlog.get_logger(__name__)
+
+
+def _comments_by_subject(author_id: uuid.UUID, email: str | None):
+    """Every comment a subject wrote, signed-in or as a guest.
+
+    A guest comment has no ``author_id`` — it carries an email and nothing else.
+    Selecting on the id alone therefore misses all of them, which meant a subject
+    who had commented before registering got an export with no comments in it and
+    an erasure that left their email and IP sitting in a public comment table
+    forever. Both are the same defect seen from two sides, so both call this.
+
+    The email is matched case-insensitively because a comment form lowercases
+    what it is given while an account address is stored as typed, and a guest who
+    wrote ``Ali@Example.com`` and later registered ``ali@example.com`` is the
+    same person.
+
+    A NULL email matches nothing: the comparison is written so that an account
+    with no address cannot pick up every anonymous comment in the table.
+    """
+    from app.modules.blog.domain.models import BlogComment
+
+    # No address on the account means guest comments cannot be attributed to it,
+    # and an ilike against NULL matches nothing, so the fallback is simply the id.
+    conditions = (
+        [BlogComment.author_id == author_id, BlogComment.author_email.ilike(email)]
+        if email
+        else [BlogComment.author_id == author_id]
+    )
+
+    return select(BlogComment).where(or_(*conditions))
+
 
 
 class PrivacyService:
@@ -106,15 +138,18 @@ class PrivacyService:
                 for addr in user.addresses
             ]
 
-        # Blog comments
+        # Blog comments, signed-in and guest alike — see _comments_by_subject.
         try:
-            from app.modules.blog.domain.models import BlogComment
-            stmt = select(BlogComment).where(BlogComment.author_id == user_id)
+            stmt = _comments_by_subject(user_id, user.email)
             comments = (await db.execute(stmt)).scalars().all()
             export["blog_comments"] = [
                 {
                     "id": str(c.id),
                     "post_id": str(c.post_id),
+                    # Which of the two it was, because a subject reading their own
+                    # export otherwise cannot tell a comment they signed in to post
+                    # from one they left under a different name before registering.
+                    "guest": c.author_id is None,
                     "content": c.content[:200],
                     "created_at": str(c.created_at),
                 }
@@ -172,6 +207,13 @@ class PrivacyService:
         erased: list[str] = []
 
         if anonymize:
+            # Captured before it is cleared below. The guest-comment pass needs
+            # the address to find the comments this subject left before they had
+            # an account, and running that pass after `user.email = None` finds
+            # nothing — which is how the original code came to leave every one of
+            # them, with their email and IP, in a public comment table.
+            subject_email = user.email
+
             # Anonymize account.
             # The placeholder is 7 + 7 chars, not "deleted-" + 8: users.phone
             # is String(15), and the longer form raised StringDataRightTruncation
@@ -199,19 +241,33 @@ class PrivacyService:
                 user.profile.tax_exemption_certificate_no = None
                 erased.append("profile_anonymized")
 
-            # Anonymize blog comments
+            # Anonymize blog comments, guest ones included. The bare
+            # `pass` here used to hide a failure that left the subject's email
+            # and IP in a comment everyone can read, so the count is reported
+            # only when the pass actually completed.
             try:
-                from app.modules.blog.domain.models import BlogComment
-                stmt = select(BlogComment).where(BlogComment.author_id == user_id)
+                stmt = _comments_by_subject(user_id, subject_email)
                 comments = (await db.execute(stmt)).scalars().all()
                 for comment in comments:
                     comment.author_name = "Anonymous"
                     comment.author_email = None
-                    comment.author_ip = None
+                    comment.author_url = None
+                    # Masked to the network, not blanked. WordPress's
+                    # wp_comments_personal_data_eraser does the same: a flood
+                    # check still groups comments by network, so spam from one
+                    # subnet keeps being caught, while an operator can no longer
+                    # read which household a particular comment came from. NULL
+                    # throws the column away for everyone and loses the
+                    # anti-abuse signal with it.
+                    comment.author_ip = anonymize_ip(comment.author_ip)
                     comment.author_user_agent = None
                 erased.append(f"comments_anonymized:{len(comments)}")
-            except Exception:
-                pass
+            except Exception as exc:
+                # A failure must be visible in the per-source report, not just
+                # in a worker log: the subject is told which sources did not
+                # finish, and "everything was erased" is not one of them.
+                logger.exception("privacy_erase_blog_comments_failed", user_id=str(user_id))
+                erased.append(f"comments_anonymize_failed: {exc}")
 
             # Delete user meta
             try:
@@ -237,9 +293,42 @@ class PrivacyService:
             await revocation.denylist_user(user_id)
             erased.append("sessions_revoked")
         else:
-            # Hard delete (cascade will handle related records)
+            # Hard delete. The cascade takes signed-in comments with it, because
+            # they hang off the user by foreign key. Guest comments do not hang
+            # off anything — they carry an email and an IP and no owner — so the
+            # cascade cannot reach them and the account can be deleted while the
+            # subject's identifying data is still sitting in a public table. They
+            # are anonymized first, using the address captured before the delete.
+            guest_pass_ok = True
+            try:
+                stmt = _comments_by_subject(user_id, user.email)
+                comments = (await db.execute(stmt)).scalars().all()
+                for comment in comments:
+                    comment.author_name = "Anonymous"
+                    comment.author_email = None
+                    comment.author_url = None
+                    comment.author_ip = anonymize_ip(comment.author_ip)
+                    comment.author_user_agent = None
+                await db.commit()
+                erased.append(f"comments_anonymized:{len(comments)}")
+            except Exception as exc:
+                await db.rollback()
+                guest_pass_ok = False
+                logger.exception(
+                    "privacy_erase_guest_comments_failed", user_id=str(user_id)
+                )
+                erased.append(f"comments_anonymize_failed: {exc}")
+
             await db.delete(user)
             await db.commit()
+            if not guest_pass_ok:
+                # Said plainly rather than reported as a clean delete: the account
+                # is gone either way, so the caller cannot retry, and whoever
+                # reads this has to know the guest comments outlived it.
+                logger.error(
+                    "privacy_erase_account_deleted_with_comments_intact",
+                    user_id=str(user_id),
+                )
             erased.append("account_deleted")
 
         logger.info("privacy_data_erased", user_id=str(user_id), actions=erased)

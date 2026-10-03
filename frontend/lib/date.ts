@@ -9,6 +9,7 @@
 
 import { format, parseISO } from "date-fns-jalali";
 import { toPersianDigits } from "@/lib/utils";
+import { getDateSettings, loadDateSettings, toZoned } from "@/lib/date-settings";
 
 /** Gregorian Date → ISO date string (yyyy-MM-dd) for API query params. */
 export function toApiDate(d: Date): string {
@@ -28,30 +29,38 @@ export function daysAgoApiDate(days: number): string {
   return toApiDate(new Date(Date.now() - days * 24 * 60 * 60 * 1000));
 }
 
-/** Gregorian ISO date/datetime → Jalali label (Persian digits). */
+/**
+ * Gregorian ISO date/datetime → Jalali label (Persian digits).
+ *
+ * The pattern and the timezone come from the site options; before this, both
+ * were the literals "yyyy/MM/dd" and "Asia/Tehran", which is why the
+ * date_format and timezone_string settings changed nothing. The loader is fired
+ * and not awaited: a date must render now, and the setting arriving a moment
+ * later is only visible on the next render of that date.
+ */
 export function formatJalali(iso: string | null | undefined): string {
   if (!iso) return "—";
   try {
-    const d = parseISO(iso);
+    void loadDateSettings();
+    const { dateFormat, timezone } = getDateSettings();
+    const d = toZoned(parseISO(iso), timezone);
     if (Number.isNaN(d.getTime())) return "—";
-    return toPersianDigits(format(d, "yyyy/MM/dd"));
+    return toPersianDigits(format(d, dateFormat));
   } catch {
     return "—";
   }
 }
 
-/** Gregorian ISO datetime → Jalali date + Tehran time label. */
+/** Gregorian ISO datetime → Jalali date + time, both from the site options. */
 export function formatJalaliDateTime(iso: string | null | undefined): string {
   if (!iso) return "—";
   try {
-    const d = parseISO(iso);
+    void loadDateSettings();
+    const { dateFormat, timeFormat, timezone } = getDateSettings();
+    const d = toZoned(parseISO(iso), timezone);
     if (Number.isNaN(d.getTime())) return "—";
-    const datePart = toPersianDigits(format(d, "yyyy/MM/dd"));
-    const timePart = d.toLocaleTimeString("fa-IR", {
-      hour: "2-digit",
-      minute: "2-digit",
-      timeZone: "Asia/Tehran",
-    });
+    const datePart = toPersianDigits(format(d, dateFormat));
+    const timePart = toPersianDigits(format(d, timeFormat));
     return `${datePart} ساعت ${timePart}`;
   } catch {
     return "—";

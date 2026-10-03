@@ -208,6 +208,74 @@ async def revoke_application_password(
     return row
 
 
+# ── Admin side (another user's credentials) ─────────────────────────────────
+
+
+async def list_application_passwords_admin(
+    db: "AsyncSession", *, target_user_id: uuid.UUID
+) -> list[ApplicationPassword]:
+    """A target account's credentials, for an operator's review.
+
+    P2 "REST: مدیریت Application Password کاربر دیگر". A support case about a
+    leaked token used to end with "ask the user to revoke it themselves" —
+    an operator could neither see which credentials existed nor cut one off.
+
+    The target is named explicitly, never taken from the session: every
+    owner-scoped function above derives the user from the token, and this one
+    must not, or the "admin" path would be indistinguishable from self-service
+    and an operator could not actually help anybody.
+    """
+    stmt = (
+        select(ApplicationPassword)
+        .where(ApplicationPassword.user_id == target_user_id)
+        .order_by(ApplicationPassword.created_at.desc())
+    )
+    return list((await db.execute(stmt)).scalars().all())
+
+
+async def revoke_application_password_admin(
+    db: "AsyncSession",
+    *,
+    target_user_id: uuid.UUID,
+    app_password_id: uuid.UUID,
+    actor_id: uuid.UUID,
+) -> ApplicationPassword:
+    """Revoke one of a target account's credentials, at an operator's request.
+
+    The row is scoped by ``target_user_id`` as well as the credential id, so
+    an operator cannot revoke a credential belonging to a different account by
+    guessing its id — the same owner predicate the self-service revoke uses,
+    with the owner supplied by the route instead of the session.
+
+    ``actor_id`` is recorded so a forced revocation is attributable: a token
+    that stops working with no record of who ended it is not a support action,
+    it is a mystery. The admin never receives the secret — only a hash is
+    stored, and this returns the row, whose response model has no token field.
+    """
+    row = (
+        await db.execute(
+            select(ApplicationPassword).where(
+                ApplicationPassword.id == app_password_id,
+                ApplicationPassword.user_id == target_user_id,
+            )
+        )
+    ).scalar_one_or_none()
+    if row is None:
+        raise NotFoundError(
+            "ApplicationPassword", f"Application password '{app_password_id}' not found"
+        )
+    row.is_active = False
+    row.revoked_at = datetime.now(UTC)
+    await db.flush()
+    await logger.ainfo(
+        "application_password_revoked_by_admin",
+        target_user_id=str(target_user_id),
+        app_password_id=str(app_password_id),
+        actor_id=str(actor_id),
+    )
+    return row
+
+
 async def revoke_all_application_passwords(
     db: "AsyncSession", *, user_id: uuid.UUID
 ) -> int:

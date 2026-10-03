@@ -25,6 +25,7 @@ import {
   Activity,
   PlugZap,
   AlertTriangle,
+  CalendarClock,
   Database,
   ArrowLeftRight,
   Webhook,
@@ -58,6 +59,7 @@ import { AdminUserNav } from "@/components/admin/admin-user-nav";
 import { AdminGlobalSearch } from "@/components/admin/global-search";
 import { AdminTelemetryBadge } from "@/components/admin/admin-telemetry-badge";
 import { AdminHelpDrawer } from "@/components/admin/help-drawer";
+import { AdminNotices } from "@/components/admin/admin-notices";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { cn } from "@/lib/utils";
 
@@ -150,6 +152,12 @@ export const adminLinks = [
   { href: "/admin/webhooks", label: "وب‌هوک‌ها", icon: Webhook },
   { href: "/admin/content-transfer", label: "انتقال محتوا", icon: ArrowLeftRight },
   { href: "/admin/system-health", label: "سلامت سامانه", icon: Activity },
+  // The transactional email wording. It was a code literal with no screen, so
+  // changing an order confirmation meant a deploy.
+  { href: "/admin/email-templates", label: "قالب‌های ایمیل", icon: Mail },
+  // The UI-string catalogue. Its endpoints shipped with the WP parity pass
+  // and nothing called them, so the strings had nowhere to be edited.
+  { href: "/admin/i18n", label: "کاتالوگ رشته‌ها", icon: Languages },
   { href: "/admin/privacy", label: "حریم خصوصی و GDPR", icon: Shield },
   { href: "/admin/rbac", label: "نقش‌ها و دسترسی‌ها", icon: Shield },
   // Automation rules (trigger → conditions → actions). The engine and its six
@@ -157,6 +165,9 @@ export const adminLinks = [
   // reachable only by typing the URL.
   { href: "/admin/automation", label: "قواعد خودکارسازی", icon: Zap },
   { href: "/admin/automation/dead-letters", label: "پیام‌های مردهٔ Outbox", icon: AlertTriangle },
+  // The scheduled jobs (Celery beat). Reachable before only by typing the
+  // URL; the schedule lived in code and Site Health's read-only summary.
+  { href: "/admin/scheduled-jobs", label: "رویدادهای زمان‌بندی‌شده", icon: CalendarClock },
   { href: "/admin/audit", label: "گزارش رویدادها", icon: ScrollText },
   { href: "/admin/plugins", label: "پلاگین‌ها و هوک‌ها", icon: Boxes },
   { href: "/admin/data-exchange", label: "ورود و خروج داده", icon: ArrowLeftRight },
@@ -281,6 +292,10 @@ export default function AdminLayout({
 
         {/* Page Content Guarded */}
         <main id="admin-content" tabIndex={-1} className="p-4 sm:p-6">
+          {/* Persistent notices, above the page rather than over it: an
+              operator has to be able to read one without losing the screen they
+              were on, and the toast that already existed could not do that. */}
+          <AdminNotices className="mb-4" />
           <AdminAuthGuard>{children}</AdminAuthGuard>
         </main>
       </div>

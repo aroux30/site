@@ -568,14 +568,22 @@ async def generate_comments_feed(
     from sqlalchemy import select
     from sqlalchemy.orm import selectinload
 
-    from app.modules.blog.domain.models import BlogComment, CommentStatus
+    from app.modules.blog.domain.models import (
+        COMMENT_TYPE_COMMENT,
+        BlogComment,
+        CommentStatus,
+    )
 
     # selectinload, not lazy: the builder reads comment.post, and a lazy load
     # inside an async context raises MissingGreenlet rather than returning.
     stmt = (
         select(BlogComment)
         .options(selectinload(BlogComment.post))
-        .where(BlogComment.status == CommentStatus.APPROVED)
+        .where(
+            BlogComment.status == CommentStatus.APPROVED,
+            # A private note is not a public comment; the feed is a public read.
+            BlogComment.comment_type == COMMENT_TYPE_COMMENT,
+        )
         .order_by(BlogComment.created_at.desc())
         .limit(limit)
     )
@@ -586,6 +594,7 @@ async def generate_comments_feed(
             .where(
                 BlogComment.post_id == post_id,
                 BlogComment.status == CommentStatus.APPROVED,
+                BlogComment.comment_type == COMMENT_TYPE_COMMENT,
             )
             .order_by(BlogComment.created_at.desc())
             .limit(limit)

@@ -27,6 +27,7 @@ from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 from slowapi.middleware import SlowAPIMiddleware
 
 from app.core.exceptions.recovery_middleware import RecoveryModeMiddleware
+from app.core.middleware.maintenance_middleware import MaintenanceMiddleware
 
 from app.core.cache.redis import close_redis, init_redis
 from app.core.config.settings import get_settings
@@ -245,6 +246,15 @@ def create_app() -> FastAPI:
     # be what is broken. Health checks and the resume endpoint are exempt
     # inside the middleware, so there is always a way back.
     app.add_middleware(RecoveryModeMiddleware)
+
+    # Maintenance mode, registered *inside* recovery mode and therefore outside
+    # everything else. Outside is what matters: it has to short-circuit before
+    # routing, because a route whose own code is mid-migration is exactly the
+    # route that would fail while the store is supposed to be down. Recovery mode
+    # stays outermost because a paused site must beat a maintenance flag — a store
+    # being recovered from is not in maintenance, and the flag would otherwise
+    # serve a 503 forever with nobody able to turn it off.
+    app.add_middleware(MaintenanceMiddleware)
 
     # ── Rate Limiter State ────────────────────────────────────────────
     app.state.limiter = limiter

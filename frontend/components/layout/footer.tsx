@@ -17,6 +17,7 @@ import {
   Send,
 } from "lucide-react";
 import { contentApi, type MenuItem } from "@/lib/api/content";
+import { useSiteBranding } from "@/components/layout/site-branding-provider";
 import { NewsletterForm } from "@/components/shared/newsletter-form";
 
 // Fallback columns until the CMS menu tree loads; editors manage both columns
@@ -86,6 +87,7 @@ function FooterWidgetStrip() {
 }
 
 export function Footer() {
+  const { siteName } = useSiteBranding();
   const currentYear = new Date().getFullYear();
   // Convert to Persian digits
   const persianYear = String(currentYear).replace(/\d/g, (d) =>
@@ -161,7 +163,7 @@ export function Footer() {
                 ف
               </div>
               <span className="text-xl font-bold text-foreground">
-                فروشگاه آنلاین
+                {siteName}
               </span>
             </Link>
             <p className="mb-5 text-sm leading-7 text-muted-foreground">
@@ -303,7 +305,7 @@ export function Footer() {
         <div className="container mx-auto px-4 py-4">
           <div className="flex flex-col items-center justify-between gap-3 sm:flex-row">
             <p className="text-xs text-muted-foreground">
-              © {persianYear} فروشگاه آنلاین. تمامی حقوق مادی و معنوی محفوظ
+              © {persianYear} {siteName}. تمامی حقوق مادی و معنوی محفوظ
               است.
             </p>
             <div className="flex items-center gap-4">

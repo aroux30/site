@@ -63,8 +63,24 @@ interface DataTableProps<T> {
   /** Show a select-all checkbox column and enable `bulkActions`. */
   selectable?: boolean;
   bulkActions?: BulkAction<T>[];
+  /** Extra inputs a bulk action needs (e.g. a destination role), rendered
+   *  beside the action buttons rather than nested inside one. */
+  bulkControls?: ReactNode;
   /** Slice `rows` client-side and show a pager. Omit for server-paginated data. */
   pageSize?: number;
+  /**
+   * Server-side pagination. Pass `rows` = the page the server returned plus
+   * `serverTotal` = how many rows exist across every page; the table then
+   * pages over that total instead of over the rows in hand.
+   *
+   * `rows` already being one page means sorting is the server's job: sorting
+   * a single page in the browser would reorder rows the server picked, and
+   * would say "sorted" while the rest of the set is untouched. So in this mode
+   * the sortable headers render as plain labels rather than sort buttons.
+   */
+  serverTotal?: number;
+  /** Fires on pager navigation; the caller refetches with the new page. */
+  onServerPageChange?: (page: number, pageSize: number) => void;
   /** Persist column visibility under this key (WordPress "Screen Options"). */
   columnVisibilityKey?: string;
   /** Initial sort, applied to the whole (unsliced) set. */
@@ -87,15 +103,19 @@ export function DataTable<T>({
   className,
   selectable = false,
   bulkActions,
+  bulkControls,
   pageSize,
+  serverTotal,
+  onServerPageChange,
   columnVisibilityKey,
   defaultSort,
 }: DataTableProps<T>) {
   const engine = useListEngine<T>({ initialPageSize: pageSize, initialSort: defaultSort });
+  const isServerPaged = serverTotal !== undefined;
 
   const sortableColumns = useMemo(
-    () => columns.filter((c) => c.sortValue),
-    [columns]
+    () => (isServerPaged ? [] : columns.filter((c) => c.sortValue)),
+    [columns, isServerPaged]
   );
 
   // Sort the whole set, then slice. Sorting after slicing would only order
@@ -119,7 +139,11 @@ export function DataTable<T>({
     });
   }, [rows, engine.sortKey, engine.sortDir, sortableColumns]);
 
-  const totalPages = pageSize ? Math.max(1, Math.ceil(sorted.length / pageSize)) : 1;
+  const totalPages = isServerPaged
+    ? Math.max(1, Math.ceil(serverTotal / (pageSize || 25)))
+    : pageSize
+      ? Math.max(1, Math.ceil(sorted.length / pageSize))
+      : 1;
   // A filter that shrinks the result set can leave the current page past the
   // end, which renders an empty table with no explanation.
   useEffect(() => {
@@ -127,10 +151,12 @@ export function DataTable<T>({
   }, [engine.page, totalPages, engine]);
 
   const visible = useMemo(() => {
-    if (!pageSize) return sorted;
+    // Server mode: `rows` is already one page, so slicing again would hide
+    // rows the server sent.
+    if (isServerPaged || !pageSize) return sorted;
     const start = (engine.page - 1) * pageSize;
     return sorted.slice(start, start + pageSize);
-  }, [sorted, engine.page, pageSize]);
+  }, [sorted, engine.page, pageSize, isServerPaged]);
 
   const selectedRows = useMemo(
     () => rows.filter((r) => engine.selected.has(rowKey(r))),
@@ -175,7 +201,9 @@ export function DataTable<T>({
           </div>
         )}
 
-        {selectable && <BulkActionBar rows={visible} actions={bulkActions ?? []} />}
+        {selectable && (
+          <BulkActionBar rows={visible} actions={bulkActions ?? []} controls={bulkControls} />
+        )}
 
         <Card className="overflow-hidden">
           <div className="overflow-x-auto">
@@ -289,13 +317,23 @@ export function DataTable<T>({
           </div>
         </Card>
 
-        {pageSize && sorted.length > pageSize && (
+        {(isServerPaged
+          ? (pageSize || 25) < serverTotal
+          : !!pageSize && sorted.length > pageSize) && (
           <PaginationBar
-            totalRows={sorted.length}
+            totalRows={isServerPaged ? serverTotal : sorted.length}
             page={engine.page}
-            pageSize={pageSize}
-            onPageChange={engine.setPage}
-            onPageSizeChange={engine.setPageSize}
+            pageSize={isServerPaged ? pageSize || 25 : pageSize!}
+            onPageChange={
+              isServerPaged
+                ? (p) => onServerPageChange?.(p, pageSize || 25)
+                : engine.setPage
+            }
+            onPageSizeChange={
+              isServerPaged
+                ? (p) => onServerPageChange?.(1, p)
+                : engine.setPageSize
+            }
           />
         )}
       </div>

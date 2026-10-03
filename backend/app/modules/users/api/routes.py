@@ -20,11 +20,18 @@ from app.modules.users.schemas.user import (
     AddressCreate,
     AddressResponse,
     AddressUpdate,
+    AdminBulkUserAction,
+    AdminBulkUserActionResponse,
     AdminUserCreate,
     AdminUserUpdate,
+    ApplicationPasswordAdminResponse,
+    PasswordResetIssuedResponse,
+    ReassignPreviewResponse,
+    UserDeleteResultResponse,
     UserDetailResponse,
     UserListItem,
     UserListResponse,
+    UserSessionResponse,
 )
 
 router = APIRouter()
@@ -159,6 +166,15 @@ async def list_trust_profiles(
 async def list_users(
     search: str | None = Query(None, description="Search by phone or email"),
     is_active: bool | None = Query(None, description="Filter by active status"),
+    role: str | None = Query(
+        None, description="Filter by role slug (server-side, e.g. 'vendor')"
+    ),
+    include_deleted: bool = Query(
+        False, description="Include soft-deleted accounts (the restore view)"
+    ),
+    pending_approval: bool | None = Query(
+        None, description="Filter to accounts awaiting approval (the approval queue)"
+    ),
     page: int = Query(1, ge=1, description="Page number"),
     page_size: int = Query(20, ge=1, le=100, description="Items per page"),
     db: AsyncSession = Depends(get_db),
@@ -167,6 +183,9 @@ async def list_users(
         db,
         search=search,
         is_active=is_active,
+        role=role,
+        include_deleted=include_deleted,
+        pending_approval=pending_approval,
         page=page,
         page_size=page_size,
     )
@@ -222,6 +241,57 @@ async def update_user(
         user_agent=request.headers.get("user-agent"),
     )
     return UserDetailResponse(**data)
+
+
+@router.post(
+    "/admin/users/{user_id}/password-reset",
+    response_model=PasswordResetIssuedResponse,
+    dependencies=[Depends(RequirePermissions("users:write"))],
+    summary="Email a password-reset link to a user (admin)",
+)
+async def send_password_reset(
+    user_id: uuid.UUID,
+    request: Request,
+    actor_id: uuid.UUID = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db),
+) -> PasswordResetIssuedResponse:
+    """Issue a reset link for an account, at an operator's request.
+
+    P0 "کاربران: ارسال لینک بازنشانی رمز توسط ادمین". Every piece of the
+    machinery already existed for the self-service flow — the token, its hash,
+    the TTL, the voiding of the previous token, the email — but only reachable
+    when the account holder asked. An operator who locked someone out, or who is
+    onboarding someone whose password never reached them, had nothing.
+
+    Reports honestly. The public reset endpoint answers the same way whether or
+    not it sent anything, because the caller must not learn which addresses have
+    accounts; here the operator is already looking at a known account, so a
+    false "done" would only send them hunting for a mail that was never coming.
+    ``sent`` is false when the account has no address or no password to reset.
+    """
+    from app.modules.auth.application.auth_service import admin_request_password_reset
+
+    user = await user_service.get_user_entity(db, user_id=user_id)
+    if user is None:
+        raise NotFoundError("User", str(user_id))
+
+    forwarded = request.headers.get("x-forwarded-for")
+    ip = (
+        forwarded.split(",")[0].strip()
+        if forwarded
+        else (request.client.host if request.client else None)
+    )
+    sent = await admin_request_password_reset(
+        db, user=user, actor_id=actor_id, ip_address=ip
+    )
+    return PasswordResetIssuedResponse(
+        sent=sent,
+        detail=(
+            "پیوند بازنشانی رمز به کاربر ارسال شد."
+            if sent
+            else "این حساب ایمیل یا رمز عبور ندارد؛ پیوندی ارسال نشد."
+        ),
+    )
 
 
 @router.post(
@@ -318,30 +388,65 @@ async def unblock_user(
 
 @router.delete(
     "/admin/users/{user_id}",
-    status_code=status.HTTP_204_NO_CONTENT,
+    response_model=UserDeleteResultResponse,
     dependencies=[Depends(RequirePermissions("users:write"))],
-    summary="Soft-delete a user (admin)",
+    summary="Soft-delete a user (admin), optionally reassigning their content",
 )
 async def delete_user(
     user_id: uuid.UUID,
     request: Request,
+    reassign_to: uuid.UUID | None = Query(
+        None,
+        description="The user who inherits this account's authored content. "
+        "Omit it to delete without reassigning — the content becomes ownerless, "
+        "which is a real outcome and not a silent one.",
+    ),
     actor_id: uuid.UUID = Depends(get_current_user_id),
     db: AsyncSession = Depends(get_db),
-) -> None:
+) -> UserDeleteResultResponse:
     forwarded = request.headers.get("x-forwarded-for")
     ip = (
         forwarded.split(",")[0].strip()
         if forwarded
         else (request.client.host if request.client else None)
     )
-    await user_service.soft_delete_user(
+    result = await user_service.soft_delete_user(
         db,
         user_id=user_id,
         actor_id=actor_id,
+        reassign_to=reassign_to,
         ip_address=ip,
         user_agent=request.headers.get("user-agent"),
     )
     await db.commit()
+    return UserDeleteResultResponse(**result)
+
+
+@router.post(
+    "/admin/users/{user_id}/reassign-content",
+    response_model=ReassignPreviewResponse,
+    dependencies=[Depends(RequirePermissions("users:read"))],
+    summary="What a user owns, before deciding who inherits it",
+)
+async def preview_reassignment(
+    user_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+) -> ReassignPreviewResponse:
+    """Count the authored rows a user has, without changing anything.
+
+    The delete route takes a ``reassign_to`` and the page has to offer a choice,
+    which means the page needs to know what it is choosing to move. This is a
+    read on purpose: an operator asking "what would this cost" must not change
+    anything by asking.
+    """
+    from app.modules.users.application import reassign_service
+
+    owned = await reassign_service.count_authored_content(db, user_id=user_id)
+    return ReassignPreviewResponse(
+        owned=owned,
+        total=sum(owned.values()),
+        summary=reassign_service.summarise_reassignment(owned),
+    )
 
 
 @router.post(
@@ -371,6 +476,224 @@ async def restore_user(
     )
     await db.commit()
     return UserDetailResponse(**user)
+
+
+@router.post(
+    "/admin/users/{user_id}/approve",
+    response_model=UserDetailResponse,
+    dependencies=[Depends(RequirePermissions("users:write"))],
+    summary="Approve a pending registration (admin)",
+)
+async def approve_user(
+    user_id: uuid.UUID,
+    request: Request,
+    actor_id: uuid.UUID = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db),
+) -> UserDetailResponse:
+    """Admit an account held by ``registration_approval_required``.
+
+    Its own action rather than a use of unblock: the account was never blocked,
+    it was never admitted, and the audit trail should say which happened.
+    """
+    forwarded = request.headers.get("x-forwarded-for")
+    ip = (
+        forwarded.split(",")[0].strip()
+        if forwarded
+        else (request.client.host if request.client else None)
+    )
+    user = await user_service.approve_user(
+        db,
+        user_id=user_id,
+        actor_id=actor_id,
+        ip_address=ip,
+        user_agent=request.headers.get("user-agent"),
+    )
+    await db.commit()
+    return UserDetailResponse(**user)
+
+
+@router.post(
+    "/admin/users/{user_id}/reject",
+    response_model=UserDetailResponse,
+    dependencies=[Depends(RequirePermissions("users:write"))],
+    summary="Reject a pending registration (admin)",
+)
+async def reject_user(
+    user_id: uuid.UUID,
+    request: Request,
+    actor_id: uuid.UUID = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db),
+) -> UserDetailResponse:
+    """Refuse an account held for approval. Reversible via unblock."""
+    forwarded = request.headers.get("x-forwarded-for")
+    ip = (
+        forwarded.split(",")[0].strip()
+        if forwarded
+        else (request.client.host if request.client else None)
+    )
+    user = await user_service.reject_user(
+        db,
+        user_id=user_id,
+        actor_id=actor_id,
+        ip_address=ip,
+        user_agent=request.headers.get("user-agent"),
+    )
+    await db.commit()
+    return UserDetailResponse(**user)
+
+
+@router.get(
+    "/admin/users/{user_id}/sessions",
+    response_model=list[UserSessionResponse],
+    dependencies=[Depends(RequirePermissions("users:read"))],
+    summary="List a user's active sessions (admin)",
+)
+async def list_user_sessions(
+    user_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+) -> list[UserSessionResponse]:
+    """Every device an account is signed in on.
+
+    P1 "کاربران: مدیریت نشست‌های دیگر کاربران از پنل". The user-facing
+    ``/auth/sessions`` list and its revoke already existed; an operator had no
+    equivalent, so a support ticket about a stolen session ended with "ask the
+    user to sign out everywhere".
+    """
+    sessions = await user_service.list_user_sessions(db, user_id=user_id)
+    return [UserSessionResponse.model_validate(s) for s in sessions]
+
+
+@router.delete(
+    "/admin/users/{user_id}/sessions/{session_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    dependencies=[Depends(RequirePermissions("users:write"))],
+    summary="Revoke one of a user's sessions (admin)",
+)
+async def revoke_user_session(
+    user_id: uuid.UUID,
+    session_id: uuid.UUID,
+    actor_id: uuid.UUID = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db),
+) -> None:
+    await user_service.revoke_user_session(
+        db,
+        user_id=user_id,
+        session_id=session_id,
+        actor_id=actor_id,
+    )
+    await db.commit()
+
+
+@router.get(
+    "/admin/users/{user_id}/application-passwords",
+    response_model=list[ApplicationPasswordAdminResponse],
+    dependencies=[Depends(RequirePermissions("users:read"))],
+    summary="List a user's application passwords (admin)",
+)
+async def list_user_application_passwords(
+    user_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+) -> list[ApplicationPasswordAdminResponse]:
+    """An account's API credentials, for an operator's review.
+
+    P2 "REST: مدیریت Application Password کاربر دیگر". The self-service list
+    and revoke existed; a support case about a leaked token used to end with
+    "ask the user to revoke it themselves".
+
+    The response is metadata only — name, prefix, dates, scopes. The stored
+    value is a hash and is never serialised, and the one-time plaintext exists
+    only in the creation response the user already saw. An operator needs to
+    identify a credential, not to hold it.
+    """
+    from app.modules.auth.application.application_password_service import (
+        list_application_passwords_admin,
+    )
+
+    rows = await list_application_passwords_admin(db, target_user_id=user_id)
+    return [ApplicationPasswordAdminResponse.model_validate(r) for r in rows]
+
+
+@router.delete(
+    "/admin/users/{user_id}/application-passwords/{app_password_id}",
+    response_model=ApplicationPasswordAdminResponse,
+    dependencies=[Depends(RequirePermissions("users:write"))],
+    summary="Revoke one of a user's application passwords (admin)",
+)
+async def revoke_user_application_password(
+    user_id: uuid.UUID,
+    app_password_id: uuid.UUID,
+    actor_id: uuid.UUID = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db),
+) -> ApplicationPasswordAdminResponse:
+    """Revoke a credential on the target account.
+
+    Scoped by ``user_id`` as well as the credential id, so an operator cannot
+    revoke a credential belonging to a different account by guessing its id.
+    The acting admin is recorded, so a forced revocation is attributable.
+    """
+    from app.modules.auth.application.application_password_service import (
+        revoke_application_password_admin,
+    )
+
+    row = await revoke_application_password_admin(
+        db,
+        target_user_id=user_id,
+        app_password_id=app_password_id,
+        actor_id=actor_id,
+    )
+    await db.commit()
+    return ApplicationPasswordAdminResponse.model_validate(row)
+
+
+@router.post(
+    "/admin/users/bulk",
+    response_model=AdminBulkUserActionResponse,
+    dependencies=[Depends(RequirePermissions("users:write"))],
+    summary="Bulk block/unblock/delete/restore/set-role users (admin)",
+)
+async def bulk_users(
+    body: AdminBulkUserAction,
+    request: Request,
+    actor_id: uuid.UUID = Depends(get_current_user_id),
+    actor: dict[str, Any] = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> AdminBulkUserActionResponse:
+    """One action over many accounts.
+
+    P1 "کاربران: عملیات گروهی". Every write route here existed one account at a
+    time, which is fine until an operator has to close fifty spam accounts; the
+    per-account guards still run per account, so a bulk call is exactly as strict
+    as fifty clicks.
+
+    The action is a body field, not a path segment: ``/admin/users/bulk/{action}``
+    would be shadowed by the earlier ``/admin/users/{user_id}/block`` (and
+    ``unblock``/``restore``) routes, which match a path of the same shape with
+    ``user_id="bulk"`` and reject it as a non-UUID. A fixed path cannot collide.
+
+    ``set_role`` needs ``rbac:write`` on top of ``users:write`` — assigning a role
+    is a capability grant, and the single-account route is behind ``rbac:write``
+    for the same reason. Checked before any work so a caller without it is
+    refused up front rather than after half the list has been role-changed.
+    """
+    if body.action == "set_role":
+        await RequirePermissions("rbac:write")(actor)
+
+    forwarded = request.headers.get("x-forwarded-for")
+    ip = (
+        forwarded.split(",")[0].strip()
+        if forwarded
+        else (request.client.host if request.client else None)
+    )
+    result = await user_service.bulk_users(
+        db,
+        ids=body.ids,
+        action=body.action,
+        actor_id=actor_id,
+        role_slug=body.role_slug,
+        ip_address=ip,
+        user_agent=request.headers.get("user-agent"),
+    )
+    return AdminBulkUserActionResponse(**result)
 
 
 # ── KYC and anti-fraud sub-router (Karta Phase 1) ──────────────────────────

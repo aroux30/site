@@ -1,9 +1,14 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { RemoteImage } from "@/components/shared/remote-image";
 
 import cleanHtml from "@/lib/sanitize-html";
 import { apiInternalUrl } from "@/lib/api/server-base";
-import { alternatesFor, type AlternateLocale } from "@/lib/hreflang";
+import {
+  alternatesFor,
+  oembedDiscoveryUrl,
+  type AlternateLocale,
+} from "@/lib/hreflang";
 
 // CMS pages are the editable storefront copy (about, terms, returns, …). The
 // backend is the source of truth; this route renders whatever slug an editor
@@ -11,11 +16,21 @@ import { alternatesFor, type AlternateLocale } from "@/lib/hreflang";
 
 const API_BASE = apiInternalUrl();
 
+/**
+ * The storefront's view of a page.
+ *
+ * Declared locally rather than imported because this page is a server
+ * component and the shared type in lib/api/content.ts pulls in the axios
+ * client, which has no business being in a server bundle. Only the fields
+ * this page actually reads are listed — and `cover_image_url` is one of them,
+ * so it is here rather than in a second, drifted copy.
+ */
 interface CmsPage {
   title: string;
   slug: string;
   body_html: string;
   excerpt: string | null;
+  cover_image_url?: string | null;
   seo_title: string | null;
   seo_description: string | null;
   updated_at: string;
@@ -82,11 +97,27 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title: page.seo_title || page.title,
     description: page.seo_description || page.excerpt || undefined,
-    alternates: alternatesFor(`/${slug}`, locale, translations),
+    // oEmbed discovery for this page, not just the site root.
+    //
+    // The root layout advertises `/oembed` with no `url`, which tells a reader
+    // the site can be embedded but not *this page* — so a post shared into
+    // Slack, Telegram or a chat client has nothing to attach. The discovery URL
+    // is per-page by specification, and this is where it belongs.
+    //
+    // The absolute URL needs the canonical host: oEmbed consumers fetch the
+    // link as given, with no referer to infer a base from, so a relative one
+    // resolves against nothing.
+    alternates: {
+      ...alternatesFor(`/${slug}`, locale, translations),
+      types: {
+        "text/json+oembed": [{ url: oembedDiscoveryUrl(`/${slug}`) }],
+      },
+    },
     openGraph: {
       title: page.seo_title || page.title,
       description: page.seo_description || page.excerpt || undefined,
       type: "article",
+      url: oembedDiscoveryUrl(`/${slug}`),
     },
   };
 }
@@ -98,6 +129,20 @@ export default async function CmsPageRoute({ params }: Props) {
 
   return (
     <article className="mx-auto max-w-3xl px-4 py-10">
+      {/* Hero image. RemoteImage because a cover can point at a host that is
+          not in next.config's remotePatterns; a bare next/image throws there
+          and takes the page down with it. */}
+      {page.cover_image_url && (
+        <div className="relative mb-8 h-56 w-full overflow-hidden rounded-2xl border border-border md:h-80">
+          <RemoteImage
+            src={page.cover_image_url}
+            alt={page.title}
+            className="h-full w-full object-cover"
+            sizes="(max-width: 768px) 100vw, 768px"
+            priority
+          />
+        </div>
+      )}
       <header className="mb-8">
         <h1 className="text-3xl font-bold text-foreground">{page.title}</h1>
         {page.excerpt ? (

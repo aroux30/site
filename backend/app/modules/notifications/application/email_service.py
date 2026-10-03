@@ -36,6 +36,10 @@ import structlog
 import asyncio
 
 from app.core.config.settings import get_settings
+from app.modules.notifications.application.store_name import (
+    DEFAULT_STORE_NAME,
+    resolve_store_name,
+)
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
@@ -122,6 +126,13 @@ def get_smtp_config(runtime_overrides: dict[str, Any] | None = None) -> SmtpConf
     return SmtpConfig(**base)
 
 
+#: Largest attachment accepted, in bytes. 20 MB is the ceiling most SMTP
+#: relays enforce; a larger file would be rejected by the server after being
+#: read into memory here, so refusing it early is the honest answer.
+MAX_ATTACHMENT_BYTES = 20 * 1024 * 1024
+MAX_ATTACHMENTS = 5
+
+
 def build_mime_message(
     *,
     config: SmtpConfig,
@@ -129,8 +140,17 @@ def build_mime_message(
     subject: str,
     html_body: str,
     text_body: str,
+    attachments: list[dict[str, Any]] | None = None,
+    reply_to: str | None = None,
 ) -> EmailMessage:
-    """Assemble a multipart/alternative MIME message (plain + RTL HTML)."""
+    """Assemble a multipart/mixed message (plain + RTL HTML, plus files).
+
+    ``attachments`` is a list of ``{"filename": str, "content": bytes,
+    "content_type": str | None}``. It is applied *after* the alternative part,
+    which is what makes the message multipart/mixed — the alternative pair has
+    to stay intact as the body, and adding files before it would break the
+    structure some clients rely on to pick a rendering.
+    """
     if not config.from_address.strip():
         raise EmailConfigurationError("SMTP from_address is empty")
 
@@ -138,9 +158,50 @@ def build_mime_message(
     msg["Subject"] = subject
     msg["From"] = formataddr((config.from_name or "", config.from_address))
     msg["To"] = recipient
+    if reply_to:
+        # Validated before it reaches a header. An unvalidated value here is a
+        # header-injection primitive: a newline would let a commenter-supplied
+        # address append headers of their own to an email the store sends.
+        candidate = reply_to.strip()
+        if any(ch in candidate for ch in (chr(10), chr(13))):
+            raise EmailConfigurationError(
+                f"reply_to contains a line break: {candidate[:64]!r}"
+            )
+        try:
+            msg["Reply-To"] = formataddr(("", candidate))
+        except (ValueError, UnicodeEncodeError) as exc:
+            raise EmailConfigurationError(
+                f"reply_to is not a usable address: {candidate[:64]!r}"
+            ) from exc
     # Plain text first; HTML second so capable clients render the RTL body.
     msg.set_content(text_body or subject, charset="utf-8")
     msg.add_alternative(html_body or f"<p>{text_body}</p>", subtype="html", charset="utf-8")
+
+    for item in attachments or []:
+        filename = str(item.get("filename") or "").strip()
+        content = item.get("content")
+        if not filename or not isinstance(content, (bytes, bytearray)):
+            logger.warning("email_attachment_skipped", reason="missing name or content")
+            continue
+        if len(content) > MAX_ATTACHMENT_BYTES:
+            raise EmailDeliveryError(
+                f"Attachment {filename} is "
+                f"{len(content) // (1024 * 1024)}MB, over the "
+                f"{MAX_ATTACHMENT_BYTES // (1024 * 1024)}MB limit"
+            )
+        # maintype is taken from the declared type so the client picks an icon;
+        # a wrong or absent one falls back to application/octet-stream, which
+        # is how every client treats an unknown file anyway.
+        ctype = str(item.get("content_type") or "application/octet-stream")
+        maintype, _, subtype = ctype.partition("/")
+        maintype = maintype or "application"
+        subtype = subtype or "octet-stream"
+        msg.add_attachment(
+            bytes(content),
+            maintype=maintype,
+            subtype=subtype,
+            filename=filename,
+        )
     return msg
 
 
@@ -211,6 +272,8 @@ async def send_smtp(
     subject: str,
     html_body: str,
     text_body: str,
+    attachments: list[dict[str, Any]] | None = None,
+    reply_to: str | None = None,
 ) -> SmtpSendResult:
     """Send one email via SMTP, retrying once on transient (4xx) failures.
 
@@ -226,6 +289,8 @@ async def send_smtp(
         subject=subject,
         html_body=html_body,
         text_body=text_body,
+        attachments=attachments,
+        reply_to=reply_to,
     )
 
     attempts = 0
@@ -298,8 +363,15 @@ async def send_email(
     template: str | None = None,
     notification_id: Any | None = None,
     config: SmtpConfig | None = None,
+    attachments: list[dict[str, Any]] | None = None,
+    reply_to: str | None = None,
 ) -> tuple[bool, "EmailDeliveryLog | None"]:
     """Dispatch one email and persist its delivery log row.
+
+    ``attachments`` is a list of ``{"filename", "content", "content_type"}``
+    dicts, the shape :func:`build_mime_message` takes. Bytes only: an
+    attachment is read once, here, rather than being read again by a task queue
+    that may run minutes later against a file that has since moved.
 
     Returns ``(success, log_row)``. The log row is best-effort: when no
     session is available (or persistence itself fails) the email is still
@@ -370,6 +442,8 @@ async def send_email(
         subject=subject,
         html_body=html_body,
         text_body=text_body,
+        attachments=attachments,
+        reply_to=reply_to,
     )
 
     if log_row is not None:
@@ -434,18 +508,39 @@ def _wrap_html(store_name: str, body_html: str) -> str:
     )
 
 
-def default_email_templates() -> dict[str, EmailTemplateContent]:
+async def wrap_html_for_store(db: AsyncSession, body_html: str) -> str:
+    """Render a body into the store's own email shell.
+
+    The async counterpart to ``_wrap_html``, for callers that have a session and
+    therefore can be told the operator's actual name. Three generic send paths
+    used to read ``SMTP_FROM_NAME`` here instead, so the same store printed its
+    operator name on an order confirmation and "فروشگاه اینترنتی" on the
+    shipping notification — two names, same customer, same inbox.
+    """
+    return _wrap_html(await resolve_store_name(db), body_html)
+
+
+def default_email_templates(store_name: str | None = None) -> dict[str, EmailTemplateContent]:
     """Built-in Persian RTL templates for the core transactional flows.
 
     Used when no matching row exists in ``notification_templates`` (the DB
     store stays authoritative once an admin creates one). Variable syntax
     matches ``NotificationService.send_from_template``: ``{{name}}``.
+
+    ``store_name`` is the operator's store name, resolved by the caller from the
+    settings — ``resolve_store_name(db)`` is the one place that decides, so the
+    transactional templates and the generic send paths cannot disagree. It was
+    hardcoded to "فروشگاه اینترنتی" in all four templates, so every order
+    confirmation and password reset said the wrong thing for a store with any
+    other name. Defaulting keeps this function callable from anywhere that has
+    no settings session, which is the common case.
     """
+    name = (store_name or "").strip() or DEFAULT_STORE_NAME
     return {
         "order_confirmation": EmailTemplateContent(
             subject="سفارش شما با موفقیت ثبت شد — {{order_number}}",
             html=_wrap_html(
-                "فروشگاه اینترنتی",
+                name,
                 """
       <h2 style="margin:0 0 12px;font-size:16px;">سفارش شما ثبت شد</h2>
       <p>مشتری گرامی {{customer_name}}،</p>
@@ -465,7 +560,7 @@ def default_email_templates() -> dict[str, EmailTemplateContent]:
         "order_shipped": EmailTemplateContent(
             subject="سفارش شما ارسال شد — {{order_number}}",
             html=_wrap_html(
-                "فروشگاه اینترنتی",
+                name,
                 """
       <h2 style="margin:0 0 12px;font-size:16px;">سفارش شما ارسال شد</h2>
       <p>مشتری گرامی {{customer_name}}،</p>
@@ -483,7 +578,7 @@ def default_email_templates() -> dict[str, EmailTemplateContent]:
         "refund_processed": EmailTemplateContent(
             subject="بازگشت وجه سفارش {{order_number}} انجام شد",
             html=_wrap_html(
-                "فروشگاه اینترنتی",
+                name,
                 """
       <h2 style="margin:0 0 12px;font-size:16px;">بازگشت وجه انجام شد</h2>
       <p>مشتری گرامی {{customer_name}}،</p>
@@ -501,7 +596,7 @@ def default_email_templates() -> dict[str, EmailTemplateContent]:
         "password_reset": EmailTemplateContent(
             subject="بازیابی رمز عبور حساب کاربری",
             html=_wrap_html(
-                "فروشگاه اینترنتی",
+                name,
                 """
       <h2 style="margin:0 0 12px;font-size:16px;">بازیابی رمز عبور</h2>
       <p>{{customer_name}} عزیز،</p>
@@ -518,6 +613,82 @@ def default_email_templates() -> dict[str, EmailTemplateContent]:
                 "اعتبار پیوند {{expiry_minutes}} دقیقه است."
             ),
             variables=["customer_name", "reset_url", "expiry_minutes"],
+        ),
+        # WordPress's wp_notify_postauthor and wp_notify_comment: a new comment
+        # reaches the post author by email with Reply-To set to the commenter,
+        # so "reply" in the mail client answers them directly. The in-app
+        # notification that already existed reaches the same people, but only
+        # while they are logged in — a store that answers comments by email
+        # lost that path entirely.
+        "comment_new": EmailTemplateContent(
+            subject="دیدگاه تازه روی «{{post_title}}»",
+            html=_wrap_html(
+                name,
+                """
+      <h2 style="margin:0 0 12px;font-size:16px;">دیدگاه تازه</h2>
+      <p><strong>{{commenter_name}}</strong> روی «{{post_title}}» نوشته:</p>
+      <blockquote style="margin:16px 0;padding:12px;border-right:3px solid #d1d5db;background:#f9fafb;">{{comment_content}}</blockquote>
+      <p style="text-align:center;margin:20px 0;">
+        <a href="{{manage_url}}" style="background:#1f2937;color:#ffffff;text-decoration:none;padding:10px 28px;border-radius:8px;display:inline-block;">دیدن و پاسخ در پنل</a>
+      </p>
+      <p style="text-align:center;margin:16px 0;font-size:13px;">
+        <a href="{{approve_url}}" style="background:#0f766e;color:#ffffff;text-decoration:none;padding:8px 18px;border-radius:6px;display:inline-block;margin:0 4px;">تأیید</a>
+        <a href="{{spam_url}}" style="background:#b45309;color:#ffffff;text-decoration:none;padding:8px 18px;border-radius:6px;display:inline-block;margin:0 4px;">اسپم</a>
+        <a href="{{trash_url}}" style="background:#6b7280;color:#ffffff;text-decoration:none;padding:8px 18px;border-radius:6px;display:inline-block;margin:0 4px;">زباله‌دان</a>
+      </p>
+      <p style="color:#9ca3af;font-size:11px;">
+        این پیوندها یک‌بارمصرف‌اند و پس از استفاده از کار می‌افتند.
+      </p>
+      <p style="color:#6b7280;font-size:12px;">
+        وضعیت این دیدگاه: {{comment_status}}. می‌توانید مستقیم به فرستنده پاسخ دهید —
+        پاسخ شما از نشانی همین ایمیل ارسال می‌شود.
+      </p>""",
+            ),
+            text=(
+                "دیدگاه تازه روی «{{post_title}}»"
+                + "\n\n"
+                + "{{commenter_name}}:"
+                + "\n"
+                + "{{comment_content}}"
+                + "\n\n"
+                + "{{manage_url}}"
+                + "\n\n"
+                + "تأیید: {{approve_url}}"
+                + "\n"
+                + "اسپم:  {{spam_url}}"
+                + "\n"
+                + "زباله‌دان: {{trash_url}}"
+            ),
+            variables=[
+                "post_title", "commenter_name", "comment_content",
+                "comment_status", "manage_url",
+                "approve_url", "spam_url", "trash_url",
+            ],
+        ),
+        # The other half of wp_notify_comment: the commenter is told their
+        # comment went live. Only ever sent to an address the commenter gave —
+        # never guessed from a username or an account id.
+        "comment_approved": EmailTemplateContent(
+            subject="دیدگاه شما منتشر شد",
+            html=_wrap_html(
+                name,
+                """
+      <h2 style="margin:0 0 12px;font-size:16px;">دیدگاه شما منتشر شد</h2>
+      <p>{{commenter_name}} عزیز،</p>
+      <p>دیدگاه شما روی «{{post_title}}» بررسی و منتشر شد.</p>
+      <blockquote style="margin:16px 0;padding:12px;border-right:3px solid #d1d5db;background:#f9fafb;">{{comment_content}}</blockquote>
+      <p style="text-align:center;margin:20px 0;">
+        <a href="{{post_url}}" style="background:#1f2937;color:#ffffff;text-decoration:none;padding:10px 28px;border-radius:8px;display:inline-block;">دیدن دیدگاه</a>
+      </p>""",
+            ),
+            text=(
+                "دیدگاه شما منتشر شد"
+                + "\n\n"
+                + "دیدگاه شما روی «{{post_title}}» منتشر شد."
+                + "\n"
+                + "{{post_url}}"
+            ),
+            variables=["commenter_name", "post_title", "comment_content", "post_url"],
         ),
     }
 

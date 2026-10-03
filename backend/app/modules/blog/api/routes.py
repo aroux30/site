@@ -7,11 +7,12 @@ and admin endpoints for managing blog posts and categories.
 from __future__ import annotations
 
 import uuid
+from datetime import datetime
 from typing import Any
 
 from fastapi import APIRouter, Depends, File, Query, Request, UploadFile, status
 from pydantic import BaseModel, Field
-from fastapi.responses import Response
+from fastapi.responses import HTMLResponse, Response
 
 from app.core.security.rate_limiter import get_real_client_ip
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -33,6 +34,7 @@ from app.modules.blog.application.feed_service import (
 from app.modules.blog.application.post_lock_service import PostLockService
 from app.modules.blog.domain.models import BlogPostStatus, CommentStatus
 from app.modules.blog.schemas.blog import (
+    BlogNoteCreate,
     BlogCategoryCreate,
     BlogCategoryResponse,
     BlogCommentCreate,
@@ -813,6 +815,105 @@ async def create_comment(
 
 
 # ============================================================================
+# One-click moderation — WordPress's `comment.php?action=approve&c=…`
+# ============================================================================
+# The moderator mail ends with three links so a moderator can triage from their
+# inbox without opening the panel. Unlike the admin routes above these take no
+# session, which is the point and also the hazard: the URL *is* the
+# authorisation. What makes that safe is the token — HMAC-signed over the
+# comment id, the action and an expiry, bound to that one comment, and refused
+# once the comment is already in the status the link asked for.
+#
+# A GET that changes state is unusual and is deliberate: mail clients and chat
+# programs prefetch links. Two things make that survivable here — the handler is
+# idempotent, so a prefetch that got through the token check finds the comment
+# already in the target status on the second hit and does nothing; and this
+# returns a page, not a redirect chain that could be followed a third time.
+
+
+def _moderation_result_page(title: str, message: str, ok: bool) -> HTMLResponse:
+    """The page a moderation link resolves to.
+
+    HTML rather than JSON because the caller is a person who clicked a link in
+    their mail, not a program. Every branch returns a page, so a blocked link
+    never surfaces as a bare error status the mail client would render as a
+    failure notice.
+    """
+    colour = "#0f766e" if ok else "#b91c1c"
+    return HTMLResponse(
+        content=f"""<!doctype html>
+<html lang="fa" dir="rtl">
+<meta charset="utf-8">
+<title>{title}</title>
+<body style="font-family:system-ui,sans-serif;max-width:32rem;margin:4rem auto;
+             text-align:center;line-height:1.9;padding:0 1rem">
+  <h1 style="color:{colour};font-size:1.25rem">{title}</h1>
+  <p>{message}</p>
+</body>
+</html>""",
+        status_code=200,
+    )
+
+
+@router.get(
+    "/comment-action/{action}/{comment_id}",
+    summary="One-click comment moderation from the moderator mail",
+    response_class=HTMLResponse,
+    include_in_schema=False,
+)
+async def comment_action_link(
+    action: str,
+    comment_id: uuid.UUID,
+    token: str = Query(..., description="Signed single-use moderation token"),
+    db: AsyncSession = Depends(get_db),
+) -> HTMLResponse:
+    """Approve, spam or trash a comment from a link in the moderator mail.
+
+    Every rejection — unknown action, bad signature, wrong comment, expired,
+    already acted on — renders the same page saying the link is no longer
+    usable. They are deliberately not distinguished in the response: the one
+    thing a bearer capability must not offer is a way to probe which part of it
+    was wrong.
+    """
+    from app.modules.blog.application import comment_moderation_token as cmt
+    from app.modules.blog.domain.models import BlogComment
+
+    unusable = _moderation_result_page(
+        "این پیوند دیگر معتبر نیست",
+        "این پیوند منقضی شده، قبلاً استفاده شده یا دست‌کاری شده است. "
+        "برای دیدن وضعیت، به بخش دیدگاه‌های پنل مدیریت بروید.",
+        ok=False,
+    )
+
+    target_status = cmt.status_for(action)
+    if target_status is None:
+        return unusable
+
+    comment = await db.get(BlogComment, comment_id)
+    if comment is None:
+        return unusable
+
+    # `already_done` is the single-use half: the same link clicked twice must
+    # not act twice, and must not write a second moderation log entry.
+    already_done = comment.status.value == target_status
+    if not cmt.verify_token(token, comment_id, action, already_done=already_done):
+        return unusable
+
+    await CommentService(db).moderate_comment(comment_id, CommentStatus(target_status))
+
+    labels = {
+        "approve": "تأیید شد",
+        "spam": "اسپم علامت‌گذاری شد",
+        "trash": "به زباله‌دان منتقل شد",
+    }
+    return _moderation_result_page(
+        labels[action],
+        "این دیدگاه از فهرست در انتظار بررسی خارج شد.",
+        ok=True,
+    )
+
+
+# ============================================================================
 # Admin Endpoints (on admin_router: /api/v1/admin/blog/...)
 # ============================================================================
 
@@ -829,6 +930,18 @@ async def admin_list_posts(
         None, alias="status", description="draft / pending_review / published / archived; omit for all"
     ),
     search: str | None = Query(None, description="Search title/excerpt/content"),
+    author_id: uuid.UUID | None = Query(
+        None, description="Filter by author user id (admin list)"
+    ),
+    published_from: datetime | None = Query(
+        None, description="Only posts published at or after this instant"
+    ),
+    published_to: datetime | None = Query(
+        None, description="Only posts published at or before this instant"
+    ),
+    is_featured: bool | None = Query(
+        None, description="Only featured (sticky) posts when true, only unfeatured when false"
+    ),
     sort: str | None = Query(
         None,
         description="Strapi-style ordering: <field>[:asc|desc] — title, published_at, created_at, updated_at",  # noqa: E501
@@ -843,6 +956,10 @@ async def admin_list_posts(
         category_slug=category,
         status=status_filter,
         search=search,
+        author_id=author_id,
+        published_from=published_from,
+        published_to=published_to,
+        is_featured=is_featured,
         page=page,
         page_size=page_size,
         sort=sort,
@@ -994,9 +1111,21 @@ async def admin_list_comments(
     comment_status: CommentStatus | None = Query(
         None, alias="status", description="Filter by status"
     ),
+    comment_type: str | None = Query(
+        None,
+        pattern="^(comment|note)$",
+        description=(
+            "Filter by type. Omitted, the admin table shows both comments and "
+            "private notes; 'comment' or 'note' narrows to one."
+        ),
+    ),
     threaded: bool = Query(
         False,
         description="Nest replies under their parents (default: flat list)",
+    ),
+    search: str | None = Query(
+        None,
+        description="Search the body, author name, email or website",
     ),
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
@@ -1011,10 +1140,98 @@ async def admin_list_comments(
         include_replies=threaded,
         resource_type=resource_type,
         resource_id=resource_id,
+        search=search,
         # Behind ``_require_blog_write``: the moderation table shows the
         # commenter's address, so it must be the admin schema.
         include_moderation_fields=True,
+        comment_type=comment_type,
     )
+
+
+@admin_router.get(
+    "/comments/pending-count",
+    summary="Pending and spam comment counts (admin)",
+)
+async def admin_pending_comment_count(
+    db: AsyncSession = Depends(get_db),
+    _: Any = _require_moderate_comments,
+) -> dict[str, int]:
+    """The awaiting-mod bubble for the admin bar.
+
+    Behind ``blog:moderate_comments`` rather than the broader
+    ``blog:write``: the number tells a moderator that unread comments are
+    waiting, which is moderation information, not a thing every author of a
+    draft should learn about.
+
+    Separate from the list endpoint on purpose. The moderation table paginates,
+    so `total` is only correct on page one — a nav badge built from it would
+    read 20 whenever twenty comments were waiting and one when forty were.
+    """
+    return await CommentService(db).count_pending_comments()
+
+
+class BlogCommentBulkRequest(BaseModel):
+    """Comment ids to moderate together. Capped so one request cannot fan out."""
+
+    ids: list[uuid.UUID] = Field(
+        ...,
+        min_length=1,
+        max_length=200,
+        description="Comment ids (max 200 per request)",
+    )
+
+
+@admin_router.post("/comments/bulk/{action}", summary="Bulk-moderate comments (admin)")
+async def admin_bulk_moderate_comments(
+    action: str,
+    body: BlogCommentBulkRequest,
+    db: AsyncSession = Depends(get_db),
+    _: Any = _require_blog_write,
+) -> dict[str, Any]:
+    """One moderation action over many comments.
+
+    Reports per-comment outcomes. The alternative — a single count — lets the
+    UI say "50 approved" when one id had already been removed in another tab,
+    and a moderator has no way to notice.
+
+    "delete" here is a permanent delete. It is reachable in bulk because a
+    moderator clearing an obvious spam wave needs it; every other action is
+    reversible, and the trash state exists for that.
+    """
+    svc = CommentService(db)
+    return await svc.bulk_moderate(body.ids, action)
+
+
+@admin_router.post(
+    "/comments/notes",
+    response_model=BlogCommentAdminResponse,
+    status_code=201,
+    summary="Add a private team note to a post or page (Admin)",
+    dependencies=[_require_moderate_comments],
+)
+async def admin_create_comment_note(
+    data: BlogNoteCreate,
+    db: AsyncSession = Depends(get_db),
+    current_user: dict[str, Any] = Depends(get_current_user),
+) -> BlogCommentAdminResponse:
+    """Attach a note that only the moderation surface shows.
+
+    A note is a comment row with ``comment_type='note'``, so it reads like one
+    in the admin table and in the reply thread, and no public query returns it
+    (the type filter lives in the service, not in this handler).
+    """
+    svc = CommentService(db)
+    note = await svc.create_note(
+        resource_type=data.resource_type,
+        resource_id=data.resource_id,
+        content=data.content,
+        author_id=current_user.get("user_id"),
+        author_name=current_user.get("full_name") or current_user.get("name"),
+        parent_id=data.parent_id,
+    )
+    # create_note builds the moderation schema already; the response model only
+    # needs the extra fields the public one withholds.
+    return BlogCommentAdminResponse.model_validate(note.model_dump())
 
 
 @admin_router.patch(
@@ -1191,6 +1408,224 @@ async def admin_delete_post_meta(
         await db.commit()
 
 
+async def _require_page_access(
+    page_id: uuid.UUID,
+    current_user: dict[str, Any],
+    db: AsyncSession,
+) -> None:
+    """Gate a CMS page mutation on ownership, the way ``_require_post_access``
+    gates a post.
+
+    WordPress applies one capability check to everything an author can edit,
+    not a second scheme for pages. Posts got that here first; without this the
+    lock and autosave routes would be post-only, so two editors working on the
+    same page would silently overwrite each other.
+
+    A missing page raises the same NotFoundError a missing post does, so the
+    403 does not double as an existence oracle.
+    """
+    from app.core.exceptions.handlers import NotFoundError
+    from app.core.security.object_capabilities import (
+        OBJECT_RULES,
+        require_object_capability,
+    )
+    from app.modules.content.domain.models import CmsPage
+
+    page = await db.get(CmsPage, page_id)
+    if page is None:
+        raise NotFoundError("CmsPage", f"CMS page {page_id} not found")
+
+    rules = OBJECT_RULES.get("pages")
+    if rules:
+        await require_object_capability(current_user, page, rules)
+
+
+# ── Admin Page Locking and Autosave ────────────────────────────────────────
+#
+# Same Redis lock and same autosave service as posts; what differed was the
+# route, and only posts had one. The services take a bare UUID and never look
+# at the model, so this is the route half of parity rather than new machinery.
+
+
+@admin_router.post(
+    "/pages/{page_id}/lock",
+    summary="Acquire editing lock on a CMS page (Admin)",
+    dependencies=[_require_blog_write],
+)
+async def admin_acquire_page_lock(
+    page_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    current_user: dict[str, Any] = Depends(get_current_user),
+) -> dict[str, Any]:
+    """Take the editing lock on a page.
+
+    Naming it out of scope is the point: "someone else is editing this" is the
+    only thing that stops two people writing the same page at once, and
+    without a page equivalent the warning simply never appeared for pages.
+    """
+    from app.modules.blog.application.post_lock_service import PostLockService
+
+    await _require_page_access(page_id, current_user, db)
+    user_id = uuid.UUID(current_user["sub"])
+    acquired = await PostLockService.acquire(page_id, user_id)
+    return {"acquired": acquired}
+
+
+@admin_router.delete(
+    "/pages/{page_id}/lock",
+    summary="Release the editing lock on a CMS page (Admin)",
+    dependencies=[_require_blog_write],
+)
+async def admin_release_page_lock(
+    page_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    current_user: dict[str, Any] = Depends(get_current_user),
+) -> dict[str, Any]:
+    from app.modules.blog.application.post_lock_service import PostLockService
+
+    await _require_page_access(page_id, current_user, db)
+    user_id = uuid.UUID(current_user["sub"])
+    released = await PostLockService.release(page_id, user_id)
+    return {"released": released}
+
+
+@admin_router.post(
+    "/pages/{page_id}/lock/take-over",
+    summary="Take over the editing lock on a CMS page (Admin)",
+    dependencies=[_require_blog_write],
+)
+async def admin_take_over_page_lock(
+    page_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    current_user: dict[str, Any] = Depends(get_current_user),
+) -> dict[str, Any]:
+    """Break somebody else's lock and take it.
+
+    `PostLockService.force_release` existed with no route, so the override
+    WordPress offers on a stale lock was unreachable: an editor who walked away
+    from an open tab left the page locked until the heartbeat timed out, and the
+    only escape was the full editor.
+
+    Releasing then acquiring, rather than acquiring directly, is deliberate —
+    `acquire` returns "already held" for a lock somebody else owns, so taking
+    over has to drop it first or the caller gets `true` and no lock.
+    """
+    from app.modules.blog.application.post_lock_service import PostLockService
+
+    await _require_page_access(page_id, current_user, db)
+    await PostLockService.force_release(page_id)
+    acquired = await PostLockService.acquire(
+        page_id, uuid.UUID(current_user["sub"])
+    )
+    return {"acquired": acquired}
+
+
+@admin_router.post(
+    "/pages/{page_id}/lock/heartbeat",
+    summary="Keep the page editing lock alive (Admin)",
+    dependencies=[_require_blog_write],
+)
+async def admin_page_lock_heartbeat(
+    page_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    current_user: dict[str, Any] = Depends(get_current_user),
+) -> dict[str, Any]:
+    """A lock nobody refreshes expires mid-edit, and the next save is refused —
+    so the heartbeat is what makes the lock usable at all, not an optimisation.
+    """
+    from app.modules.blog.application.post_lock_service import PostLockService
+
+    await _require_page_access(page_id, current_user, db)
+    user_id = uuid.UUID(current_user["sub"])
+    ok = await PostLockService.heartbeat(page_id, user_id)
+    return {"ok": ok}
+
+
+@admin_router.get(
+    "/pages/{page_id}/lock",
+    summary="Who holds the editing lock on a CMS page (Admin)",
+    dependencies=[_require_blog_write],
+)
+async def admin_check_page_lock(
+    page_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    current_user: dict[str, Any] = Depends(get_current_user),
+) -> dict[str, Any]:
+    await _require_page_access(page_id, current_user, db)
+    from app.modules.blog.application.post_lock_service import PostLockService
+
+    holder = await PostLockService.get_lock_holder(page_id)
+    return {
+        "locked": holder is not None,
+        "holder": str(holder) if holder else None,
+        "is_self": holder == uuid.UUID(current_user["sub"]) if holder else False,
+    }
+
+
+@admin_router.post(
+    "/pages/{page_id}/autosave",
+    summary="Autosave a CMS page (Admin)",
+    dependencies=[_require_blog_write],
+)
+async def admin_page_autosave(
+    page_id: uuid.UUID,
+    data: dict[str, Any],
+    db: AsyncSession = Depends(get_db),
+    current_user: dict[str, Any] = Depends(get_current_user),
+) -> dict[str, Any]:
+    await _require_page_access(page_id, current_user, db)
+    from app.modules.blog.application.autosave_service import AutosaveService
+
+    user_id = uuid.UUID(current_user["sub"])
+    result = await AutosaveService.save(page_id, user_id, data)
+    return {"saved": bool(result), "saved_at": result.get("saved_at")}
+
+
+@admin_router.get(
+    "/pages/{page_id}/autosave",
+    summary="Retrieve the page autosave snapshot (Admin)",
+    dependencies=[_require_blog_write],
+)
+async def admin_get_page_autosave(
+    page_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    current_user: dict[str, Any] = Depends(get_current_user),
+) -> dict[str, Any]:
+    """The snapshot a reload offers to restore.
+
+    Kept in a separate store from the live row on purpose: a browser tab that
+    reloads must be able to come back to unsaved work, and writing over the
+    page itself would mean "recover my draft" is indistinguishable from
+    "publish whatever was last typed".
+    """
+    await _require_page_access(page_id, current_user, db)
+    from app.modules.blog.application.autosave_service import AutosaveService
+
+    user_id = uuid.UUID(current_user["sub"])
+    result = await AutosaveService.get(page_id, user_id)
+    if result:
+        return {"has_autosave": True, **result}
+    return {"has_autosave": False}
+
+
+@admin_router.delete(
+    "/pages/{page_id}/autosave",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Clear the page autosave after an explicit save (Admin)",
+    dependencies=[_require_blog_write],
+)
+async def admin_clear_page_autosave(
+    page_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    current_user: dict[str, Any] = Depends(get_current_user),
+) -> None:
+    await _require_page_access(page_id, current_user, db)
+    from app.modules.blog.application.autosave_service import AutosaveService
+
+    user_id = uuid.UUID(current_user["sub"])
+    await AutosaveService.clear(page_id, user_id)
+
+
 # ── Admin Post Locking ───────────────────────────────────────────────────
 
 
@@ -1231,6 +1666,36 @@ async def admin_release_lock(
     user_id = uuid.UUID(current_user["sub"])
     released = await PostLockService.release(post_id, user_id)
     return {"released": released}
+
+
+@admin_router.post(
+    "/posts/{post_id}/lock/take-over",
+    summary="Take over the editing lock on a post (Admin)",
+    dependencies=[_require_blog_write],
+)
+async def admin_take_over_post_lock(
+    post_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    current_user: dict[str, Any] = Depends(get_current_user),
+) -> dict[str, Any]:
+    """Break somebody else's lock and take it.
+
+    The override existed on the service with no route, so an editor who closed
+    a tab without leaving the page left it locked until the heartbeat timed
+    out, and the only escape was the full editor.
+
+    Release then acquire: `acquire` reports "already held" for a lock somebody
+    else owns, so taking over without dropping it first returns true and hands
+    back no lock at all.
+    """
+    from app.modules.blog.application.post_lock_service import PostLockService
+
+    await _require_post_access(post_id, current_user, db)
+    await PostLockService.force_release(post_id)
+    acquired = await PostLockService.acquire(
+        post_id, uuid.UUID(current_user["sub"])
+    )
+    return {"acquired": acquired}
 
 
 @admin_router.post(
@@ -1916,6 +2381,15 @@ class BlogBulkActionRequest(BaseModel):
         max_length=200,
         description="Post ids to act on (max 200 per request)",
     )
+    edits: dict[str, Any] | None = Field(
+        None,
+        description=(
+            "Fields to change, for action='edit'. Only the keys present are "
+            "touched, so 'leave the author alone' is expressible. The service "
+            "validates the key names and rejects the request if any is unknown."
+        ),
+        examples=[{"category_id": "…", "allow_comments": False}],
+    )
 
 
 class BlogBulkActionResponse(BaseModel):
@@ -1924,6 +2398,77 @@ class BlogBulkActionResponse(BaseModel):
     failed: int = Field(ge=0)
     total: int = Field(ge=0)
     results: list[dict[str, Any]]
+
+
+class CategoryToTagRequest(BaseModel):
+    """Which posts to convert, and whether to detach the category afterwards."""
+
+    post_ids: list[uuid.UUID] | None = Field(
+        None,
+        max_length=5000,
+        description="Only these posts; omitted means every non-deleted post",
+    )
+    clear_categories: bool = Field(
+        False,
+        description=(
+            "Detach the category after tagging. Opt-in: with it off, running the "
+            "converter again is reversible by clearing the tag."
+        ),
+    )
+
+
+class EmptyTrashRequest(BaseModel):
+    """How far back the trash reaches.
+
+    Omitted means "everything currently in the trash". A scheduled job should
+    always send a number: purging everything nightly would make "empty
+    trash" a lie the moment an admin restored something they had not meant
+    to remove yet.
+    """
+
+    older_than_days: int | None = Field(
+        None,
+        ge=1,
+        le=3650,
+        description="Only purge posts trashed more than this many days ago",
+    )
+
+
+@admin_router.post("/posts/empty-trash", summary="Permanently delete trashed posts (admin)")
+async def admin_empty_post_trash(
+    body: EmptyTrashRequest,
+    db: AsyncSession = Depends(get_db),
+    _: Any = _require_blog_write,
+) -> dict[str, Any]:
+    """Purge the post trash.
+
+    Separate from the bulk route on purpose: "empty trash" is about a *state*
+    rather than a selection, so it takes no ids and reports what it removed
+    by id. That is what makes it safe to schedule — the response of a
+    scheduled run is the record of what went.
+    """
+    svc = BlogService(db)
+    return await svc.empty_post_trash(older_than_days=body.older_than_days)
+
+
+@admin_router.post("/categories-to-tags", summary="Convert post categories into tags (admin)")
+async def admin_categories_to_tags(
+    body: CategoryToTagRequest,
+    db: AsyncSession = Depends(get_db),
+    _: Any = _require_blog_write,
+) -> dict[str, Any]:
+    """WordPress's "convert categories to tags" for a store that arrived from one.
+
+    Writes, so it sits behind ``blog:write`` like every other content edit. The
+    response reports the posts it skipped as well as the ones it converted:
+    "20 posts converted" on its own hides the posts that had no category to
+    convert, which is usually why someone runs it a second time.
+    """
+    svc = BlogService(db)
+    return await svc.convert_categories_to_tags(
+        post_ids=body.post_ids,
+        clear_categories=body.clear_categories,
+    )
 
 
 @admin_router.post(
@@ -1946,5 +2491,7 @@ async def admin_bulk_posts(
     done, 3 not yours" and "20 done" are different facts.
     """
     svc = BlogService(db)
-    result = await svc.bulk_posts(body.ids, action, actor_payload=current_user)
+    result = await svc.bulk_posts(
+        body.ids, action, actor_payload=current_user, edits=body.edits
+    )
     return BlogBulkActionResponse(**result)

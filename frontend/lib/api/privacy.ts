@@ -5,7 +5,10 @@
  *   POST /settings/privacy/requests          → 201 PrivacyRequestItem
  *   GET  /settings/privacy/requests          → { items: [...] }
  *   GET  /settings/privacy/requests/{id}     → PrivacyRequestItem
- *   GET  /settings/privacy/requests/{id}/result → the export document (once)
+ *   GET  /settings/privacy/requests/{id}/result     → the export document (once)
+ *   GET  /settings/privacy/requests/{id}/result.zip → the same archive as a ZIP (once)
+ *   POST /settings/privacy/requests/{id}/send-email-confirmation → mail a confirm link
+ *   POST /settings/privacy/requests/confirm-by-email → redeem that link (no session)
  *
  * Note what is NOT in this file: a user id. None of these endpoints accept
  * one — the backend takes the subject from the access token. A client that
@@ -74,6 +77,7 @@ export interface PrivacyRequest {
   status: string;
   reason: string | null;
   verifiedAt: string | null;
+  /** Set once the request was confirmed by OTP or by the emailed link. */
   confirmedAt: string | null;
   /** The operator's note, shown on rejection so the customer knows why. */
   adminNote: string | null;
@@ -167,4 +171,55 @@ export async function fetchPrivacyExportResult(
     throw new Error("محتوای خروجی قابل خواندن نبود");
   }
   return record;
+}
+
+/**
+ * Collect the export as a structured ZIP (index.html + one JSON per source).
+ *
+ * Same one-shot rule as the JSON result: reading it clears the stored copy.
+ * Returned as a Blob rather than parsed, because the whole point is a file a
+ * person can open — the server names it `data-export-<id>.zip`.
+ */
+export async function fetchPrivacyExportZip(
+  requestId: string,
+  client: AxiosInstance = apiClient,
+): Promise<Blob> {
+  const res = await client.get(
+    `${PRIVACY_REQUESTS_PATH}/${requestId}/result.zip`,
+    { responseType: "blob" },
+  );
+  return res.data as Blob;
+}
+
+/**
+ * Ask the server to email a confirmation link for one of your own requests.
+ *
+ * The second path beside the SMS OTP: a subject whose number changed, or who
+ * is travelling without their SIM, otherwise cannot confirm their own request.
+ * The server reports honestly when the account has no address to mail.
+ */
+export async function sendPrivacyEmailConfirmation(
+  requestId: string,
+  client: AxiosInstance = apiClient,
+): Promise<{ sent: boolean; message: string }> {
+  const res = await client.post<{ sent: boolean; message: string }>(
+    `${PRIVACY_REQUESTS_PATH}/${requestId}/send-email-confirmation`,
+  );
+  return res.data;
+}
+
+/**
+ * Redeem an emailed confirmation token. Unauthenticated on the server: the
+ * token was mailed to the account's own address, so possession is the proof,
+ * and the click may happen on a device that is not signed in.
+ */
+export async function confirmPrivacyRequestByEmail(
+  token: string,
+  client: AxiosInstance = apiClient,
+): Promise<{ id: string; status: string; confirmed_at: string | null }> {
+  const res = await client.post<{ id: string; status: string; confirmed_at: string | null }>(
+    `${PRIVACY_REQUESTS_PATH}/confirm-by-email`,
+    { token },
+  );
+  return res.data;
 }

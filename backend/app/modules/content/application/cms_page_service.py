@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import math
 import uuid
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from typing import TYPE_CHECKING, Any
 
 import structlog
@@ -18,6 +18,7 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import selectinload
 
 from app.core.exceptions.handlers import NotFoundError, ValidationError
+from app.core.security.password import hash_password
 from app.modules.blog.application.slug_history_service import (
     SLUG_RESOURCE_CMS_PAGE,
     record_slug_change,
@@ -26,6 +27,7 @@ from app.modules.content.domain.models import (
     CmsPage,
     CmsPageRevision,
     PageStatus,
+    PageVisibility,
 )
 from app.modules.content.schemas.content import (
     BulkActionResult,
@@ -91,8 +93,28 @@ def _snapshot(page: CmsPage, *, created_by: uuid.UUID | None) -> CmsPageRevision
     )
 
 
+def _hash_page_password(raw: str | None) -> str | None:
+    """Hash a submitted page password; ``None``/blank stores nothing.
+
+    Blank means "no password supplied", which is not the same as "clear it":
+    the stored hash never comes back to the client, so a pre-filled field is
+    empty, and treating empty as clear would unlock the page on every
+    unrelated save. Clearing protection is switching visibility away from
+    ``password``.
+    """
+    if not raw or not raw.strip():
+        return None
+    return hash_password(raw)
+
+
 def _to_response(page: CmsPage) -> CmsPageResponse:
-    return CmsPageResponse.model_validate(page)
+    # `visibility_password_set` is derived, not a column, so `from_attributes`
+    # cannot fill it. The editor needs to know a page is protected — otherwise
+    # the password field looks unset on a page that has one, and saving the
+    # form would send an empty string.
+    resp = CmsPageResponse.model_validate(page)
+    resp.visibility_password_set = bool(page.visibility_password_hash)
+    return resp
 
 
 async def _audit(
@@ -183,6 +205,67 @@ async def _ensure_unique_slug(
     return candidate
 
 
+
+async def empty_page_trash(
+    db: AsyncSession,
+    *,
+    older_than_days: int | None = None,
+) -> dict[str, Any]:
+    """Permanently delete trashed CMS pages, optionally only those past N days.
+
+    The counterpart to the trash/restore pair, and the reason that pair is
+    safe: without a way to empty it, the trash only ever grows, and a soft
+    delete that is never purged stops being reversible in any meaningful
+    sense.
+
+    ``older_than_days`` is what makes this safe to schedule. A nightly job that
+    purged everything would make "empty trash" a lie the moment an admin
+    restored something they had not meant to remove yet.
+
+    Returns the ids removed rather than a bare count, so a caller can tell
+    *what* went if an operator later asks.
+    """
+    stmt = select(CmsPage).where(CmsPage.deleted_at.is_not(None))
+    if older_than_days is not None:
+        cutoff = datetime.now(UTC) - timedelta(days=older_than_days)
+        stmt = stmt.where(CmsPage.deleted_at <= cutoff)
+    pages = (await db.execute(stmt)).scalars().all()
+    removed_ids = [str(p.id) for p in pages]
+    for page in pages:
+        await db.delete(page)
+    await db.commit()
+    logger.info("cms_page_trash_emptied", removed=len(removed_ids))
+    return {"removed": len(removed_ids), "page_ids": removed_ids}
+
+async def check_slug_available(
+    db: AsyncSession,
+    slug: str,
+    *,
+    exclude_id: uuid.UUID | None = None,
+) -> dict[str, Any]:
+    """Is ``slug`` free for a new page, and is it a usable one?
+
+    Two questions in one answer because the editor needs both before saving,
+    and a save that fails on either is a save the editor has to undo:
+
+    * *reserved* — it collides with a store route (``/cart``, ``/about``…), so
+      the page could never be reached at its own URL;
+    * *taken* — another page already owns it.
+
+    Reserved is checked before taken, because a reserved slug can never be
+    made unique and the operator needs to hear that now rather than after a
+    suffix.
+    """
+    candidate = (slug or "").strip()
+    if not candidate:
+        return {"slug": "", "available": False, "reason": "empty"}
+    if candidate in RESERVED_SLUGS:
+        return {"slug": candidate, "available": False, "reason": "reserved"}
+    if await _slug_exists(db, candidate, exclude_id=exclude_id):
+        return {"slug": candidate, "available": False, "reason": "taken"}
+    return {"slug": candidate, "available": True, "reason": None}
+
+
 def _resolve_slug(raw: str | None, fallback_text: str) -> str:
     base = (raw or "").strip() or generate_slug(fallback_text)
     if base in RESERVED_SLUGS:
@@ -257,9 +340,31 @@ async def get_page_by_slug(
     """Fetch a page for the storefront, or any state for the admin preview."""
     stmt = select(CmsPage).where(CmsPage.slug == slug, CmsPage.deleted_at.is_(None))
     if only_published:
-        stmt = stmt.where(CmsPage.status == PageStatus.PUBLISHED)
+        stmt = stmt.where(
+            CmsPage.status == PageStatus.PUBLISHED,
+            CmsPage.visibility == PageVisibility.PUBLIC,
+        )
     page = (await db.execute(stmt)).scalar_one_or_none()
     if not page:
+        # WordPress's `wp_old_slug_redirect`, for the same reason the post
+        # lookup does it: the slug history was written on every rename and read
+        # by nothing, so renaming a page broke every link to it.
+        #
+        # `only_published` is passed through deliberately. Following a slug must
+        # not be a way to read an unpublished page — the retry goes through the
+        # same query, but passing the flag is what makes that explicit rather
+        # than incidental.
+        from app.modules.blog.application.slug_history_service import (
+            resolve_slug_redirect,
+        )
+
+        redirect = await resolve_slug_redirect(
+            db, slug, resource_type="cms_page"
+        )
+        if redirect is not None:
+            return await get_page_by_slug(
+                db, redirect.new_slug, only_published=only_published
+            )
         raise NotFoundError("CmsPage", f"Page '{slug}' not found")
     return _to_response(page)
 
@@ -295,7 +400,10 @@ async def get_page_by_slug_path(
             CmsPage.parent_id.is_(None) if parent is None else CmsPage.parent_id == parent
         )
         if only_published:
-            stmt = stmt.where(CmsPage.status == PageStatus.PUBLISHED)
+            stmt = stmt.where(
+                CmsPage.status == PageStatus.PUBLISHED,
+                CmsPage.visibility == PageVisibility.PUBLIC,
+            )
         page = (await db.execute(stmt)).scalar_one_or_none()
         if page is None:
             raise NotFoundError("CmsPage", f"Page '{path}' not found")
@@ -335,6 +443,11 @@ async def create_page(
         scheduled_unpublish_at=data.scheduled_unpublish_at,
         locale=data.locale,
         parent_id=data.parent_id,
+        menu_order=data.menu_order,
+        allow_comments=data.allow_comments,
+        cover_image_url=data.cover_image_url,
+        visibility=data.visibility,
+        visibility_password_hash=_hash_page_password(data.visibility_password),
     )
     db.add(page)
     await db.flush()
@@ -367,6 +480,23 @@ async def update_page(
     # against the page's own descendants rather than trusted.
     if "parent_id" in data.model_fields_set:
         await _validate_parent(db, data.parent_id, page_id=page_id)
+
+    # The password is hashed, never set straight onto the column. Guarded by
+    # model_fields_set so an unrelated save cannot clear it: the API never
+    # returns the stored hash, so an untouched form sends "" and "not supplied"
+    # has to mean "unchanged".
+    if "visibility_password" in data.model_fields_set:
+        raw = data.visibility_password
+        if raw and raw.strip():
+            page.visibility_password_hash = _hash_page_password(raw)
+        elif page.visibility != PageVisibility.PASSWORD:
+            # Only now, with the field explicitly sent empty *and* the page not
+            # depending on a password, is dropping the hash the right reading.
+            page.visibility_password_hash = None
+    if "visibility" in data.model_fields_set and data.visibility is not None:
+        page.visibility = data.visibility
+        if data.visibility != PageVisibility.PASSWORD:
+            page.visibility_password_hash = None
 
     old_status = page.status
 
@@ -729,20 +859,37 @@ def _escape_xml(text: str) -> str:
     )
 
 
-def _lastmod(row: Any) -> str:
-    """``updated_at`` (falling back to ``created_at``/today) as YYYY-MM-DD."""
+def _lastmod(row: Any) -> str | None:
+    """``updated_at`` (falling back to ``created_at``) as YYYY-MM-DD.
+
+    ``None`` when the row has neither. The old version returned today, which
+    told a crawler every row changed on every crawl — a signal crawlers learn to
+    discount, so it weakened lastmod for the entries that had a real date too.
+    """
     stamp = getattr(row, "updated_at", None) or getattr(row, "created_at", None)
-    return (stamp or datetime.now(UTC)).strftime("%Y-%m-%d")
+    return stamp.strftime("%Y-%m-%d") if stamp else None
 
 
 def _sitemap_url(loc: str, row: Any, *, changefreq: str, priority: str) -> str:
     lastmod = _lastmod(row)
+    image = getattr(row, "image_url", None) or None
+    # An image entry is what puts the URL into image results, which is a real
+    # traffic source for a shop with illustrated products and articles. The
+    # locator must be absolute or the crawler discards it.
+    image_xml = (
+        "<image:image>"
+        f"<image:loc>{_escape_xml(image)}</image:loc>"
+        "</image:image>"
+        if image
+        else ""
+    )
     return (
         "  <url>"
         f"<loc>{_escape_xml(loc)}</loc>"
-        f"<lastmod>{lastmod}</lastmod>"
-        f"<changefreq>{changefreq}</changefreq>"
+        + (f"<lastmod>{lastmod}</lastmod>" if lastmod else "")
+        + f"<changefreq>{changefreq}</changefreq>"
         f"<priority>{priority}</priority>"
+        f"{image_xml}"
         "</url>"
     )
 
@@ -754,6 +901,8 @@ def render_sitemap_entries(
     blog_categories: list[Any] | None = None,
     blog_tags: list[Any] | None = None,
     products: list[Any] | None = None,
+    blog_authors: list[Any] | None = None,
+    blog_date_archives: list[Any] | None = None,
 ) -> str:
     """Render ``<url>`` entries for published CMS pages.
 
@@ -797,6 +946,21 @@ def render_sitemap_entries(
                 product,
                 changefreq="daily",
                 priority="0.7",
+            )
+        )
+    # Author and date archives carry an already-rooted loc on the row, so they
+    # are rendered without the prefix — prefixing again would hand a crawler
+    # "http://host/http://..." to fetch.
+    for author in blog_authors or []:
+        lines.append(
+            _sitemap_url(
+                f"{root}{author.loc}", author, changefreq="weekly", priority="0.5"
+            )
+        )
+    for archive in blog_date_archives or []:
+        lines.append(
+            _sitemap_url(
+                f"{root}{archive.loc}", archive, changefreq="monthly", priority="0.4"
             )
         )
     return "\n".join(lines)

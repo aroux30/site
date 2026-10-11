@@ -17,8 +17,8 @@ judgement an operator has to make.
 ``information_schema`` at call time means the reassignment covers every column
 that will actually be affected, including the one added next week.
 
-Not every ``SET NULL`` column is content. ``order_status_history.changed_by`` and
-``warehouse_transfers.created_by`` record *who performed an action*, and pointing
+Not every ``SET NULL`` column is content. ``order_status_history.changed_by``
+and ``refunds.processed_by`` record *who performed an action*, and pointing
 those at a successor would be a lie about the audit trail. So a column is
 reassigned when its name says it denotes authorship — ``author``, ``owner``,
 ``uploader``, ``sender``, ``reviewer`` — and left alone when it records an action.
@@ -52,9 +52,8 @@ logger: structlog.stdlib.BoundLogger = structlog.get_logger(__name__)
 #: `processed_by`, `created_by` and `approved_by` record *that a person did
 #: something*, and moving them would rewrite the audit trail — a refund would
 #: appear to have been issued by somebody who never saw it. `assigned_to` is a
-#: current assignment rather than authorship, and `converted_user_id` is a
-#: conversion outcome. Reassigning any of those to a successor is a different
-#: operation and needs its own decision.
+#: current assignment rather than authorship. Reassigning any of those to a
+#: successor is a different operation and needs its own decision.
 AUTHORSHIP_COLUMN_FRAGMENTS: tuple[str, ...] = (
     "author_id",
     "owner_id",
@@ -69,11 +68,6 @@ AUTHORSHIP_COLUMN_FRAGMENTS: tuple[str, ...] = (
 #: would otherwise be swept up by the fragments without anybody deciding so.
 NOT_AUTHORSHIP_COLUMNS: frozenset[tuple[str, str]] = frozenset(
     {
-        ("lead_inquiries", "converted_user_id"),
-        # Matches the `owner_id` fragment, so without this entry a departing
-        # user's sales leads are handed to a successor. That is a business
-        # decision, not a cleanup: the lead may have been assigned by hand.
-        ("lead_inquiries", "owner_id"),
         ("support_tickets", "assigned_to"),
     }
 )

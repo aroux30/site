@@ -22,16 +22,19 @@ import { BlockRenderer } from "@/components/home/block-renderer";
 import { TrustBadgesSection } from "@/components/shared/trust-badges";
 import { contentApi, type ContentBlock } from "@/lib/api/content";
 import { apiInternalUrl } from "@/lib/api/server-base";
+import { siteOrigin } from "@/lib/site-url";
+import { openGraphBase } from "@/lib/seo-meta";
+import { getRoutingConfig } from "@/lib/routing";
 import cleanHtml from "@/lib/sanitize-html";
 import type { ApiProduct, ApiCategory } from "@/lib/api/services";
 
 const DEFAULT_HOME_METADATA: Metadata = {
   title: "فروشگاه آنلاین ایرانیان | خرید آسان، مطمئن و با ضمانت اصالت",
   description:
-    "مرجع تخصصی خرید انواع گوشی‌های هوشمند، لپ‌تاپ، لوازم جانبی و تجهیزات دیجیتال با گارانتی رسمی، ارسال رایگان و پرداخت امن شتاب.",
+    "مرجع تخصصی خرید انواع گوشی‌های هوشمند، لپ‌تاپ، لوازم جانبی و تجهیزات دیجیتال با گارانتی رسمی و پرداخت امن شتاب.",
   openGraph: {
     title: "فروشگاه آنلاین ایرانیان",
-    description: "مرجع تخصصی خرید تجهیزات دیجیتال با گارانتی رسمی و ارسال رایگان سراسری.",
+    description: "مرجع تخصصی خرید تجهیزات دیجیتال با گارانتی رسمی.",
     type: "website",
   },
 };
@@ -141,15 +144,37 @@ async function fetchStaticFrontPage(): Promise<StaticFrontPage | null> {
 }
 
 export async function generateMetadata(): Promise<Metadata> {
+  // Self-canonical on the homepage. Without it the site's most important
+  // indexable page had none — a crawler landing on `/?utm_source=…` or a
+  // `www`/apex variant had no signal about which URL is the real one.
+  // Resolved through the same helper as `metadataBase`, so the value follows
+  // the operator's configured site origin.
+  const canonical = siteOrigin();
+  // og:site_name / og:url / og:locale (SEO audit F-07, live-verified: the
+  // homepage had og:title only). A page-level openGraph object REPLACES the
+  // root layout's object — no deep merge — so the extras must be repeated
+  // here, not inherited. `openGraphBase` carries the default share image so
+  // the homepage's object no longer shadows it.
+  const routing = await getRoutingConfig();
+  const siteName = routing.blogname || "فروشگاه";
+  const ogBase = openGraphBase({ url: canonical, siteName });
   const frontPage = await fetchStaticFrontPage();
-  if (!frontPage) return DEFAULT_HOME_METADATA;
+  if (!frontPage) {
+    return {
+      ...DEFAULT_HOME_METADATA,
+      alternates: { canonical },
+      openGraph: { ...DEFAULT_HOME_METADATA.openGraph, ...ogBase },
+    };
+  }
   return {
     title: frontPage.seo_title || frontPage.title,
     description: frontPage.seo_description || frontPage.excerpt || undefined,
+    alternates: { canonical },
     openGraph: {
       title: frontPage.seo_title || frontPage.title,
       description: frontPage.seo_description || frontPage.excerpt || undefined,
       type: "article",
+      ...ogBase,
     },
   };
 }

@@ -162,7 +162,6 @@ async def create_payment(
     idempotency_key: str | None = None,
     description: str = "",
     mobile: str | None = None,
-    email: str | None = None,
 ) -> PaymentResponse:
     """Create a payment record and obtain the gateway URL.
 
@@ -219,7 +218,7 @@ async def create_payment(
     if order is None or order.user_id != user_id:
         raise NotFoundError(resource="Order")
 
-    if order.status != OrderStatus.PENDING:
+    if order.status not in (OrderStatus.WAITING_PAYMENT_GATEWAY, OrderStatus.WAITING_PAYMENT_CARD):
         raise ConflictError(
             detail=(f"Order {order_id} is not payable in status '{order.status.value}'"),
             error_code="ORDER_NOT_PAYABLE",
@@ -297,7 +296,6 @@ async def create_payment(
         callback_url=callback_url,
         description=description,
         mobile=mobile,
-        email=email,
     )
 
     # ── Record transaction ────────────────────────────────────────────
@@ -422,7 +420,13 @@ async def create_wallet_topup(
         amount=amount,
     )
 
-    provider_enum = PaymentProviderEnum(provider.lower())
+    try:
+        provider_enum = PaymentProviderEnum(provider.lower())
+    except ValueError:
+        raise ValidationError(
+            detail=f"Unsupported payment provider: {provider}",
+            error_code="INVALID_PROVIDER",
+        ) from None
     payment = Payment(
         order_id=None,
         amount=amount,
@@ -790,8 +794,12 @@ async def verify_payment(
 
             order_stmt = select(Order).where(Order.id == payment.order_id).with_for_update()
             order = (await db.execute(order_stmt)).scalar_one_or_none()
-            if order and order.status not in (OrderStatus.PENDING, OrderStatus.CONFIRMED):
-                # A canceled/returned/refunded order must never accept a
+            if order and order.status not in (
+                OrderStatus.WAITING_PAYMENT_GATEWAY,
+                OrderStatus.WAITING_PAYMENT_CARD,
+                OrderStatus.PENDING,
+            ):
+                # A canceled/refunded/completed order must never accept a
                 # payment completion — the transaction (including the
                 # COMPLETED status set above) rolls back.
                 raise ConflictError(
@@ -801,19 +809,23 @@ async def verify_payment(
                     ),
                     error_code="ORDER_NOT_PAYABLE",
                 )
-            # A split slice never confirms the order here: the allocation
+            # A split slice never accepts the order here: the allocation
             # settlement above already did it, or is waiting for its siblings.
             if (
                 order
-                and order.status == OrderStatus.PENDING
+                and order.status in (OrderStatus.WAITING_PAYMENT_GATEWAY, OrderStatus.WAITING_PAYMENT_CARD)
                 and (split_allocation is None or split_allocation.is_completing is False)
             ):
-                order.status = OrderStatus.CONFIRMED
+                # Capture the opening status BEFORE mutating: reading it after the
+                # assignment would record from_status == to_status and the
+                # audit trail would claim the order never moved.
+                from_status = order.status
+                order.status = OrderStatus.PENDING
                 order_confirmed = True
                 history = OrderStatusHistory(
                     order_id=order.id,
-                    from_status=OrderStatus.PENDING.value,
-                    to_status=OrderStatus.CONFIRMED.value,
+                    from_status=from_status.value,
+                    to_status=OrderStatus.PENDING.value,
                     changed_by=None,
                     reason=f"Payment verified via {payment.provider.value} (ref: {result.ref_id})",
                 )
@@ -839,7 +851,7 @@ async def verify_payment(
             if order_confirmed:
                 await OutboxService.publish(
                     db,
-                    event_type="OrderConfirmed",
+                    event_type="OrderAccepted",
                     aggregate_type="order",
                     aggregate_id=str(payment.order_id),
                     payload={
@@ -1373,7 +1385,7 @@ async def get_payment(
     return PaymentResponse.model_validate(payment)
 
 
-async def get_pending_card_transfer(
+async def get_waiting_payment_card_transfer(
     db: AsyncSession,
     *,
     order_id: uuid.UUID,
@@ -1547,20 +1559,27 @@ async def approve_payment(
             description="شارژ کیف پول (تأیید کارت به کارت توسط مدیریت)",
         )
 
-    # Transition associated order from PENDING to CONFIRMED on admin approval
+    # An approved card-to-card receipt moves the order from the admin-review
+    # state into the operator's lane (PENDING). WAITING_PAYMENT_CARD is the one that
+    # must reach here; WAITING_PAYMENT_GATEWAY is also accepted because an admin can
+    # approve a gateway order the callback never confirmed.
     order_confirmed = False
     if payment.order_id:
         from app.modules.orders.domain.models import Order, OrderStatus, OrderStatusHistory
 
         order_stmt = select(Order).where(Order.id == payment.order_id).with_for_update()
         order = (await db.execute(order_stmt)).scalar_one_or_none()
-        if order and order.status == OrderStatus.PENDING:
-            order.status = OrderStatus.CONFIRMED
+        if order and order.status in (
+            OrderStatus.WAITING_PAYMENT_CARD,
+            OrderStatus.WAITING_PAYMENT_GATEWAY,
+        ):
+            from_status = order.status
+            order.status = OrderStatus.PENDING
             order_confirmed = True
             history = OrderStatusHistory(
                 order_id=order.id,
-                from_status=OrderStatus.PENDING.value,
-                to_status=OrderStatus.CONFIRMED.value,
+                from_status=from_status.value,
+                to_status=OrderStatus.PENDING.value,
                 changed_by=admin_user_id,
                 reason=f"Admin approved payment (ref: {payment.provider_transaction_id})",
             )
@@ -1596,7 +1615,7 @@ async def approve_payment(
         if order_confirmed:
             await OutboxService.publish(
                 db,
-                event_type="OrderConfirmed",
+                event_type="OrderAccepted",
                 aggregate_type="order",
                 aggregate_id=str(payment.order_id),
                 payload={
@@ -1707,28 +1726,6 @@ def get_payment_methods() -> PaymentMethodsResponse:
             instructions_fa="پرداخت آنلاین از طریق کلیه کارت‌های عضو شتاب با درگاه زرین‌پال",
         ),
         PaymentMethodInfo(
-            provider=PaymentProviderEnum.IDPAY,
-            name="IDPay",
-            name_fa="آی‌دی‌پی",
-            is_enabled=(
-                settings.PAYMENT_PROVIDER == "idpay" or settings.ENVIRONMENT == "development"
-            ),
-            icon="idpay",
-            description="Online payment via IDPay gateway",
-            instructions="پرداخت آنلاین امن از طریق درگاه پرداخت آی‌دی‌پی",
-            instructions_fa="پرداخت آنلاین امن از طریق درگاه پرداخت آی‌دی‌پی",
-        ),
-        PaymentMethodInfo(
-            provider=PaymentProviderEnum.CRYPTO,
-            name="Cryptocurrency (NowPayments / USDT)",
-            name_fa="ارز دیجیتال (تتر / بیت‌کوین)",
-            is_enabled=True,
-            icon="crypto",
-            description="Pay using USDT (TRC20/ERC20), BTC, or ETH via NowPayments",
-            instructions="پرداخت امن با رمزارزهای تتر (USDT-TRC20/ERC20)، بیت‌کوین و اتریوم از طریق درگاه NowPayments همراه با تولید خودکار آدرس و QR Code",  # noqa: E501
-            instructions_fa="پرداخت امن با رمزارزهای تتر (USDT-TRC20/ERC20)، بیت‌کوین و اتریوم از طریق درگاه NowPayments همراه با تولید خودکار آدرس و QR Code",  # noqa: E501
-        ),
-        PaymentMethodInfo(
             provider=PaymentProviderEnum.CARD_TRANSFER,
             name="Card to Card",
             name_fa="کارت به کارت",
@@ -1749,21 +1746,6 @@ def get_payment_methods() -> PaymentMethodsResponse:
             instructions_fa="پرداخت سریع از موجودی حساب کیف پول شما",
         ),
     ]
-
-    # In development / sandbox mode, include the mock provider
-    if settings.ENVIRONMENT == "development" or settings.PAYMENT_SANDBOX:
-        methods.append(
-            PaymentMethodInfo(
-                provider=PaymentProviderEnum.MOCK,
-                name="Mock (Dev)",
-                name_fa="تست (توسعه)",
-                is_enabled=True,
-                icon="mock",
-                description="Mock payment provider for development and testing",
-                instructions="درگاه آزمایشی توسعه‌دهندگان",
-                instructions_fa="درگاه آزمایشی توسعه‌دهندگان",
-            )
-        )
 
     return PaymentMethodsResponse(methods=methods)
 

@@ -2,7 +2,7 @@ import apiClient from "./client";
 
 // ── Types ───────────────────────────────────────────────────────────────────
 
-export type SearchEntity = "order" | "customer" | "ticket" | "product" | "vendor";
+export type SearchEntity = "order" | "customer" | "ticket" | "product";
 
 export interface SearchHit {
   entity_type: SearchEntity;
@@ -27,7 +27,7 @@ export interface AdminSearchResult {
 // ── API (admin) ─────────────────────────────────────────────────────────────
 
 export const adminSearchApi = {
-  /** جست‌وجوی سراسری روی سفارش، مشتری، تیکت، محصول و فروشنده */
+  /** جست‌وجوی سراسری روی سفارش، مشتری، تیکت و محصول */
   search: async (params: {
     q: string;
     entities?: SearchEntity[];

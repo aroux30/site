@@ -1,12 +1,22 @@
 import type { Metadata } from "next";
 import CmsPageShell, { fetchCmsPage, cmsMetadata } from "@/components/cms/cms-page-shell";
-import Link from "next/link";
 import { ShieldCheck, FileText, CheckCircle2, AlertCircle, Scale } from "lucide-react";
 
 export async function generateMetadata(): Promise<Metadata> {
   const page = await fetchCmsPage("terms");
-  if (!page) return { title: "شرایط و قوانین استفاده", description: "شرایط، ضوابط و قوانین استفاده از خدمات و خریدهای آنلاین در فروشگاه." };
-  return cmsMetadata(page, "شرایط و قوانین استفاده", "شرایط، ضوابط و قوانین استفاده از خدمات و خریدهای آنلاین در فروشگاه.");
+  const fallbackDescription =
+    "شرایط، ضوابط و قوانین استفاده از خدمات و خریدهای آنلاین در فروشگاه.";
+  if (!page)
+    return {
+      title: "شرایط و قوانین استفاده",
+      description: fallbackDescription,
+      alternates: { canonical: "/terms" },
+    };
+  return {
+    ...cmsMetadata(page, "شرایط و قوانین استفاده", fallbackDescription),
+    // Fixed path wins over the CMS slug (which may be `rules-and-regulations`).
+    alternates: { canonical: "/terms" },
+  };
 }
 
 
@@ -54,11 +64,8 @@ function TermsPageFallback() {
             <a href="#shipping" className="block text-muted-foreground hover:text-emerald-600 transition-colors py-1">
               ۵. حمل و نقل و تحویل
             </a>
-            <a href="#returns" className="block text-muted-foreground hover:text-emerald-600 transition-colors py-1">
-              ۶. انصراف و مرجوعی کالا
-            </a>
             <a href="#copyright" className="block text-muted-foreground hover:text-emerald-600 transition-colors py-1">
-              ۷. مالکیت فکری
+              ۶. مالکیت فکری
             </a>
           </div>
         </aside>
@@ -113,7 +120,7 @@ function TermsPageFallback() {
               ۴. شیوه و قوانین پرداخت
             </h2>
             <p className="text-muted-foreground text-sm leading-relaxed">
-              پرداخت در فروشگاه از طریق درگاه‌های پرداخت رسمی شبکه شتاب (زرین‌پال، سداد، به‌پرداخت، سامان و غیره)، واریز از کیف‌پول اعتباری، درگاه رمزارز معتبر و انتقال کارت به کارت با تایید فیش واریز امکان‌پذیر است.
+              پرداخت در فروشگاه از طریق درگاه‌های پرداخت رسمی شبکه شتاب (زرین‌پال، سداد، به‌پرداخت، سامان و غیره)، واریز از کیف‌پول اعتباری و انتقال کارت به کارت با تایید فیش واریز امکان‌پذیر است.
             </p>
           </section>
 
@@ -123,28 +130,14 @@ function TermsPageFallback() {
               ۵. حمل و نقل و تحویل
             </h2>
             <p className="text-muted-foreground text-sm leading-relaxed">
-              سفارشات شهر تهران با پیک اختصاصی و سایر نقاط کشور از طریق شرکت ملی پست (پیشتاز) و تیپاکس با بسته‌بندی ایمن ضدضربه ارسال می‌گردند. خریدار موظف است هنگام دریافت کالا، سلامت فیزیکی بسته را بررسی نماید.
-            </p>
-          </section>
-
-          <section id="returns" className="p-8 rounded-2xl bg-card border border-border shadow-sm space-y-4">
-            <h2 className="text-xl font-bold text-foreground flex items-center gap-2 border-b border-border pb-3">
-              <CheckCircle2 className="w-5 h-5 text-emerald-600" />
-              ۶. انصراف و مرجوعی کالا (ضمانت ۷ روزه)
-            </h2>
-            <p className="text-muted-foreground text-sm leading-relaxed">
-              کلیه کالاها دارای ۷ روز مهلت تست سلامت و بازگشت وجه طبق شیوه‌نامه رسمی بازگشت کالا می‌باشند. جهت مشاهده شرایط اختصاصی عودت قطعات دیجیتال، لطفاً به بخش 
-              <Link href="/returns" className="text-emerald-600 font-semibold px-1 underline">
-                رویه بازگشت کالا
-              </Link> 
-              مراجعه نمایید.
+              سفارشات شهر تهران با پیک اختصاصی و سایر نقاط کشور از طریق پست با بسته‌بندی ایمن ضدضربه ارسال می‌گردند. خریدار موظف است هنگام دریافت کالا، سلامت فیزیکی بسته را بررسی نماید.
             </p>
           </section>
 
           <section id="copyright" className="p-8 rounded-2xl bg-card border border-border shadow-sm space-y-4">
             <h2 className="text-xl font-bold text-foreground flex items-center gap-2 border-b border-border pb-3">
               <ShieldCheck className="w-5 h-5 text-emerald-600" />
-              ۷. مالکیت فکری
+              ۶. مالکیت فکری
             </h2>
             <p className="text-muted-foreground text-sm leading-relaxed">
               تمامی محتویات، طرح گرافیکی، تصاویر محصولات، کدهای فنی و نام تجاری متعلق به این فروشگاه بوده و هرگونه کپی‌برداری تجاری بدون کسب مجوز کتبی پیگرد قانونی دارد.

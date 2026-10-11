@@ -8,7 +8,6 @@ which is the failure mode every second reporting stack eventually has.
 
 from __future__ import annotations
 
-import asyncio
 import uuid
 from datetime import date
 from typing import Any
@@ -26,7 +25,7 @@ _ADMIN = "/admin"
 #: Report types whose output supports a totals comparison. A report whose
 #: totals are not numeric would produce an empty delta list, which is more
 #: confusing than a clear refusal.
-COMPARABLE_REPORTS = ("sales", "stock", "vendor_settlement", "tax_vat")
+COMPARABLE_REPORTS = ("sales", "stock")
 
 
 @router.get(
@@ -36,7 +35,7 @@ COMPARABLE_REPORTS = ("sales", "stock", "vendor_settlement", "tax_vat")
 )
 async def compare_report(
     db: AsyncSession = Depends(get_db),
-    report_type: str = Query(..., description="sales | stock | vendor_settlement | tax_vat"),
+    report_type: str = Query(..., description="sales | stock"),
     date_from: date = Query(..., alias="from"),
     date_to: date = Query(..., alias="to"),
     mode: cmp.ComparisonMode = Query(
@@ -44,12 +43,10 @@ async def compare_report(
         description="previous_period | same_period_last_year",
     ),
     group_by: str | None = Query(None),
-    warehouse_id: uuid.UUID | None = Query(None),
-    vendor_id: uuid.UUID | None = Query(None),
     category_id: uuid.UUID | None = Query(None),
     row_key: str | None = Query(
         None,
-        description="Column to match rows on (e.g. category, vendor). Omit for totals only.",
+        description="Column to match rows on (e.g. category). Omit for totals only.",
     ),
 ) -> dict[str, Any]:
     """Run a report for the window and for its comparison window, then diff.
@@ -75,21 +72,20 @@ async def compare_report(
             date_from=from_date,
             date_to=to_date,
             group_by=group_by,
-            warehouse_id=warehouse_id,
-            vendor_id=vendor_id,
             category_id=category_id,
             low_stock_only=False,
         )
 
-    # The two runs are independent reads of the same session, so they overlap
-    # rather than queue: the endpoint takes as long as the slower report, not
-    # as long as both. ``asyncio.gather`` on one AsyncSession is safe here
-    # because both branches only read — a write would interleave on the same
-    # connection and must stay sequential.
-    current, previous = await asyncio.gather(
-        _run(date_from, date_to),
-        _run(prev_from, prev_to),
-    )
+    # Sequential, deliberately. These were once gathered concurrently on the
+    # reasoning that both branches only read; the live endpoint answered 500
+    # with IllegalStateChangeError ("'_connection_for_bind()' is already in
+    # progress") because an AsyncSession is a single stateful transaction, not
+    # a connection pool — two coroutines entering it at once race on binding
+    # the connection regardless of read vs write. Concurrent use needs a
+    # session each; the price of doing it here is one extra query round trip,
+    # which is cheaper than a report endpoint that never answers.
+    current = await _run(date_from, date_to)
+    previous = await _run(prev_from, prev_to)
 
     payload: dict[str, Any] = {
         "report_type": report_type,

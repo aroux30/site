@@ -96,60 +96,6 @@ _HEADER_MENU_DEFAULT: dict[str, Any] = {
     "highlight_menu_item": None,
 }
 
-# ── Theme tokens (WordPress theme.json parity) ──────────────────────────────
-# The storefront reads design tokens from this single type instead of
-# hardcoded CSS variables, so brand changes ship without a deploy.
-
-_COLOR_RE = r"^#[0-9a-fA-F]{6}$"
-
-_THEME_SCHEMA: dict[str, Any] = {
-    "type": "object",
-    "properties": {
-        "name": {"type": "string", "maxLength": 60},
-        "colors": {
-            "type": "object",
-            "properties": {
-                "primary": {"type": "string", "pattern": _COLOR_RE},
-                "secondary": {"type": "string", "pattern": _COLOR_RE},
-                "accent": {"type": "string", "pattern": _COLOR_RE},
-                "background": {"type": "string", "pattern": _COLOR_RE},
-                "surface": {"type": "string", "pattern": _COLOR_RE},
-                "text": {"type": "string", "pattern": _COLOR_RE},
-                "muted": {"type": "string", "pattern": _COLOR_RE},
-            },
-            "additionalProperties": False,
-        },
-        "typography": {
-            "type": "object",
-            "properties": {
-                "font_family": {"type": "string", "maxLength": 120},
-                "base_size_px": {"type": "number"},
-                "heading_weight": {"type": "number"},
-            },
-            "additionalProperties": False,
-        },
-        "radius": {"type": "string", "maxLength": 20},
-        "dark_mode_default": {"type": "boolean"},
-    },
-    "additionalProperties": False,
-}
-
-_THEME_DEFAULT: dict[str, Any] = {
-    "name": "default",
-    "colors": {
-        "primary": "#0f766e",
-        "secondary": "#334155",
-        "accent": "#f59e0b",
-        "background": "#ffffff",
-        "surface": "#f8fafc",
-        "text": "#0f172a",
-        "muted": "#64748b",
-    },
-    "typography": {"font_family": "Vazirmatn, system-ui", "base_size_px": 16, "heading_weight": 700},
-    "radius": "0.75rem",
-    "dark_mode_default": False,
-}
-
 SINGLE_TYPES: dict[str, dict[str, Any]] = {
     "homepage_config": {
         "schema": _HOMEPAGE_CONFIG_SCHEMA,
@@ -160,11 +106,6 @@ SINGLE_TYPES: dict[str, dict[str, Any]] = {
         "schema": _HEADER_MENU_SCHEMA,
         "default": _HEADER_MENU_DEFAULT,
         "description": "تنظیمات تکی هدر (دکمه CTA، پیام نوار بالا، آیتم برجسته)",
-    },
-    "theme": {
-        "schema": _THEME_SCHEMA,
-        "default": _THEME_DEFAULT,
-        "description": "توکن‌های تم فروشگاه (رنگ‌ها، تایپوگرافی، گردی گوشه‌ها) — بدون دیپلوی قابل تغییر",
     },
 }
 

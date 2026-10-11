@@ -10,6 +10,30 @@
 # Build output and dependencies. Anchored with a trailing slash so a future
 # source package named `next/` or `node_modules/` at the repo root is not
 # swallowed by the rule — the unanchored-directory bug from 2026-09-30.
-frontend/.next/
+#
+# ONE wildcard rule instead of one line per variant: `.next-preview/` alone
+# was not enough (2026-10-04 pulled 36k build-output nodes), and listing
+# variants by hand lost again on 2026-10-06 when `.next-prod/` appeared and
+# put 12.8k nodes (22% of the AST) of compiled output into the graph. The
+# `.next*` glob covers every present and future dist-dir variant — prod,
+# preview-3200/3300/3400, verify-*, whatever a future session invents.
+frontend/.next*/
 frontend/node_modules/
 node_modules/
+
+# Screenshots produced by the UI sweep and editor probes. They are tool
+# output, not project content: they change on every run, say nothing about
+# the code, and each one would cost an image extraction pass.
+frontend/scripts/artifacts/
+
+# Uploaded media and runtime logs are data, not source.
+media/
+backend/media/
+logs/
+
+# Retired modules and dead code, kept for the decision record and a possible
+# downgrade. They are not part of the live project — graphing them would put
+# deleted modules back in the graph under a current-looking name. Removals so
+# far: approvals (2026-10-04), invoicing (2026-10-04). Anchored with a
+# trailing slash so a future source file named `_archived` is not swallowed.
+_archived/

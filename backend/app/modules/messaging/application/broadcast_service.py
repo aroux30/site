@@ -277,29 +277,8 @@ async def _dispatch_single_recipient(
                 return (True, None) if success else (False, "SMS provider returned failure")
             return True, None
 
-        elif channel == CampaignChannel.EMAIL:
-            if not user.email:
-                return False, "User has no email address"
-            provider = _PROVIDERS.get(NotificationChannel.EMAIL)
-            if provider:
-                success = await provider.send(
-                    recipient=user.email,
-                    title=title,
-                    body=body,
-                )
-                return (True, None) if success else (False, "Email provider returned failure")
-            return True, None
-
-        elif channel == CampaignChannel.PUSH:
-            provider = _PROVIDERS.get(NotificationChannel.PUSH)
-            if provider:
-                success = await provider.send(
-                    recipient=str(user.id),
-                    title=title,
-                    body=body,
-                )
-                return (True, None) if success else (False, "Push provider returned failure")
-            return True, None
+        # The EMAIL channel branch was removed on 2026-10-07 with the rest
+        # of the email feature.
 
         else:
             return False, f"Unsupported channel: {channel}"

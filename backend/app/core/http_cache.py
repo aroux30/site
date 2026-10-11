@@ -221,17 +221,13 @@ class PageCacheMiddleware(BaseHTTPMiddleware):
     @staticmethod
     def _cache_key(request: Request) -> str:
         # Sorted query pairs give one key per logical resource regardless of
-        # parameter order; Accept-Language participates because public content
-        # endpoints localize. Only anonymous requests reach this code, so no
+        # parameter order. Only anonymous requests reach this code, so no
         # credential enters the key.
         from urllib.parse import parse_qsl, urlencode
 
         pairs = sorted(parse_qsl(request.url.query, keep_blank_values=True))
         digest_input = request.url.path + "?" + urlencode(pairs)
-        accept_language = request.headers.get("accept-language", "")
-        digest = hashlib.sha256(
-            (digest_input + "|" + accept_language).encode("utf-8")
-        ).hexdigest()
+        digest = hashlib.sha256(digest_input.encode("utf-8")).hexdigest()
         return f"{PageCacheMiddleware._KEY_PREFIX}{digest}"
 
     async def dispatch(

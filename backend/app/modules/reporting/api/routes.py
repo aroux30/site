@@ -67,7 +67,7 @@ def _parse_report_type(report_type: str) -> ReportType:
         return ReportType(report_type)
     except ValueError:
         raise ValidationError(
-            detail="نوع گزارش نامعتبر است؛ مقادیر مجاز: sales، stock، vendor_settlement، tax_vat",
+            detail="نوع گزارش نامعتبر است؛ مقادیر مجاز: sales، stock",
             error_code="INVALID_REPORT_TYPE",
         ) from None
 
@@ -79,8 +79,6 @@ async def _generate(
     date_from: date,
     date_to: date,
     group_by: str | None,
-    warehouse_id: uuid.UUID | None,
-    vendor_id: uuid.UUID | None,
     category_id: uuid.UUID | None,
     low_stock_only: bool,
 ) -> ReportResult:
@@ -91,8 +89,6 @@ async def _generate(
         date_from=date_from,
         date_to=date_to,
         group_by=group_by,
-        warehouse_id=warehouse_id,
-        vendor_id=vendor_id,
         category_id=category_id,
         low_stock_only=low_stock_only,
     )
@@ -119,7 +115,7 @@ def _to_run_response(run: ReportRun) -> ReportRunResponse:
 @router.get(
     "/reports/{report_type}",
     response_model=ReportResponse,
-    summary="Parameterized admin report (sales/stock/vendor_settlement/tax_vat)",
+    summary="Parameterized admin report (sales/stock)",
     dependencies=[_require_read],
 )
 async def get_report(
@@ -127,8 +123,6 @@ async def get_report(
     date_from: date = Query(..., alias="from", description="ISO start date (required)"),
     date_to: date = Query(..., alias="to", description="ISO end date (required)"),
     group_by: str | None = Query(None),
-    warehouse_id: uuid.UUID | None = Query(None),
-    vendor_id: uuid.UUID | None = Query(None),
     category_id: uuid.UUID | None = Query(None),
     low_stock_only: bool = Query(False),
     db: AsyncSession = Depends(get_db),
@@ -139,8 +133,6 @@ async def get_report(
         date_from=date_from,
         date_to=date_to,
         group_by=group_by,
-        warehouse_id=warehouse_id,
-        vendor_id=vendor_id,
         category_id=category_id,
         low_stock_only=low_stock_only,
     )
@@ -167,8 +159,6 @@ async def export_report_csv(
     date_from: date = Query(..., alias="from"),
     date_to: date = Query(..., alias="to"),
     group_by: str | None = Query(None),
-    warehouse_id: uuid.UUID | None = Query(None),
-    vendor_id: uuid.UUID | None = Query(None),
     category_id: uuid.UUID | None = Query(None),
     low_stock_only: bool = Query(False),
     db: AsyncSession = Depends(get_db),
@@ -179,8 +169,6 @@ async def export_report_csv(
         date_from=date_from,
         date_to=date_to,
         group_by=group_by,
-        warehouse_id=warehouse_id,
-        vendor_id=vendor_id,
         category_id=category_id,
         low_stock_only=low_stock_only,
     )
@@ -244,8 +232,6 @@ async def create_saved_report(
         report_type=report_type,
         filters=payload.filters,
         schedule_cron=payload.schedule_cron,
-        delivery_channels=payload.delivery_channels,
-        recipients=payload.recipients,
         is_active=payload.is_active,
     )
     await db.commit()
@@ -288,8 +274,6 @@ async def update_saved_report(
             if "schedule_cron" in payload.model_fields_set
             else ...
         ),
-        delivery_channels=payload.delivery_channels,
-        recipients=payload.recipients,
         is_active=payload.is_active,
     )
     await db.commit()

@@ -58,11 +58,9 @@ RESERVED_SLUGS: frozenset[str] = frozenset(
         "login",
         "products",
         "register",
-        "returns",
         "rewards",
         "search",
         "payment",
-        "mock-gateway",
     }
 )
 
@@ -89,6 +87,7 @@ def _snapshot(page: CmsPage, *, created_by: uuid.UUID | None) -> CmsPageRevision
         status=_status_value(page.status),
         seo_title=page.seo_title,
         seo_description=page.seo_description,
+        focus_keyword=page.focus_keyword,
         created_by=created_by,
     )
 
@@ -125,8 +124,15 @@ async def _audit(
     actor_id: uuid.UUID | None,
     before: dict[str, Any] | None = None,
     after: dict[str, Any] | None = None,
+    ip_address: str | None = None,
+    user_agent: str | None = None,
 ) -> None:
-    """Write CMS edits into the platform audit log; never breaks the write."""
+    """Write CMS edits into the platform audit log; never breaks the write.
+
+    ``ip_address``/``user_agent`` describe the originating request. They were
+    absent until 2026-10-06, so every cms_page.* row read "no IP" — an audit
+    of content edits could not tell one operator's machine from another's.
+    """
     try:
         from app.modules.audit.application.audit_service import log_action
 
@@ -139,6 +145,8 @@ async def _audit(
             before=before,
             after=after or {"title": page.title, "slug": page.slug,
                             "status": _status_value(page.status)},
+            ip_address=ip_address,
+            user_agent=user_agent,
         )
     except Exception:  # noqa: BLE001
         logger.warning("cms_audit_log_failed", action=action, page_id=str(page.id))
@@ -210,6 +218,9 @@ async def empty_page_trash(
     db: AsyncSession,
     *,
     older_than_days: int | None = None,
+    actor_id: uuid.UUID | None = None,
+    ip_address: str | None = None,
+    user_agent: str | None = None,
 ) -> dict[str, Any]:
     """Permanently delete trashed CMS pages, optionally only those past N days.
 
@@ -232,6 +243,13 @@ async def empty_page_trash(
     pages = (await db.execute(stmt)).scalars().all()
     removed_ids = [str(p.id) for p in pages]
     for page in pages:
+        # One audit row per purged page before the delete: emptying the trash
+        # is the most destructive page operation there is, and until
+        # 2026-10-06 it wrote nothing at all — the pages simply vanished.
+        await _audit(
+            db, "cms_page.hard_deleted", page,
+            actor_id=actor_id, ip_address=ip_address, user_agent=user_agent,
+        )
         await db.delete(page)
     await db.commit()
     logger.info("cms_page_trash_emptied", removed=len(removed_ids))
@@ -291,22 +309,18 @@ async def list_pages(
     search: str | None = None,
     sort: str | None = None,
     include_trashed: bool = False,
-    locale: str | None = None,
 ) -> CmsPageListResponse:
     """List CMS pages for the admin table, newest edit first by default.
 
     ``sort`` follows the Strapi convention: ``<field>[:asc|desc]`` —
     e.g. ``title:asc``. Unknown fields fall back to newest-edit-first.
     Trashed (soft-deleted) pages are hidden unless ``include_trashed``.
-    ``locale`` filters to one content language (Strapi i18n parity).
     """
     stmt = select(CmsPage)
     if not include_trashed:
         stmt = stmt.where(CmsPage.deleted_at.is_(None))
     if status is not None:
         stmt = stmt.where(CmsPage.status == status)
-    if locale:
-        stmt = stmt.where(CmsPage.locale == locale.strip())
     if search:
         like_q = f"%{search.strip()}%"
         stmt = stmt.where(CmsPage.title.ilike(like_q) | CmsPage.slug.ilike(like_q))
@@ -419,6 +433,8 @@ async def create_page(
     data: CmsPageCreateRequest,
     *,
     author_id: uuid.UUID | None = None,
+    ip_address: str | None = None,
+    user_agent: str | None = None,
 ) -> CmsPageResponse:
     """Create a page and record its first revision."""
     slug = await _ensure_unique_slug(db, _resolve_slug(data.slug, data.title))
@@ -436,12 +452,12 @@ async def create_page(
         status=data.status,
         seo_title=data.seo_title,
         seo_description=data.seo_description,
+        focus_keyword=getattr(data, "focus_keyword", None),
         author_id=author_id,
         published_at=published_at,
         revision_number=1,
         scheduled_publish_at=data.scheduled_publish_at,
         scheduled_unpublish_at=data.scheduled_unpublish_at,
-        locale=data.locale,
         parent_id=data.parent_id,
         menu_order=data.menu_order,
         allow_comments=data.allow_comments,
@@ -455,8 +471,10 @@ async def create_page(
     await db.flush()
 
     logger.info("cms_page_created", page_id=str(page.id), slug=slug)
-    await _audit(db, "cms_page.created", page, actor_id=author_id)
-    await _emit(db, "page.created", page)
+    await _audit(
+        db, "cms_page.created", page,
+        actor_id=author_id, ip_address=ip_address, user_agent=user_agent,
+    )
     return _to_response(page)
 
 
@@ -466,6 +484,8 @@ async def update_page(
     data: CmsPageUpdateRequest,
     *,
     editor_id: uuid.UUID | None = None,
+    ip_address: str | None = None,
+    user_agent: str | None = None,
 ) -> CmsPageResponse:
     """Apply an edit and snapshot a new revision.
 
@@ -502,15 +522,6 @@ async def update_page(
 
     update_dict = data.model_dump(exclude_unset=True)
 
-    # Plugin filter: plugins may transform the incoming payload before it lands.
-    from app.shared.plugins.registry import HOOK_PAGE_BEFORE_SAVE, registry
-
-    update_dict = await registry.apply_filters(
-        HOOK_PAGE_BEFORE_SAVE, update_dict, page_id=str(page_id)
-    )
-    if not isinstance(update_dict, dict):
-        update_dict = data.model_dump(exclude_unset=True)
-
     if update_dict.get("slug"):
         update_dict["slug"] = await _ensure_unique_slug(
             db, _resolve_slug(update_dict["slug"], page.title), exclude_id=page_id
@@ -534,7 +545,10 @@ async def update_page(
         elif new_status == PageStatus.DRAFT:
             update_dict.setdefault("scheduled_unpublish_at", None)
 
-    content_fields = {"title", "body_html", "excerpt", "seo_title", "seo_description", "slug"}
+    content_fields = {
+        "title", "body_html", "excerpt", "seo_title", "seo_description",
+        "focus_keyword", "slug",
+    }
     is_content_edit = any(
         field in update_dict and update_dict[field] != getattr(page, field)
         for field in content_fields
@@ -570,51 +584,87 @@ async def update_page(
     await _audit(db, "cms_page.updated", page, actor_id=editor_id,
                  before={"status": _status_value(old_status)},
                  after={"title": page.title, "status": _status_value(page.status),
-                        "revision_number": page.revision_number})
-    await _emit(db, "page.updated", page)
-    if page.status != old_status:
-        if page.status == PageStatus.PUBLISHED:
-            await _emit(db, "page.published", page)
-            from app.shared.plugins.registry import HOOK_PAGE_AFTER_PUBLISH, registry
-
-            await registry.do_action(HOOK_PAGE_AFTER_PUBLISH, page)
-        elif old_status == PageStatus.PUBLISHED:
-            await _emit(db, "page.unpublished", page)
+                        "revision_number": page.revision_number},
+                 ip_address=ip_address, user_agent=user_agent)
     return _to_response(page)
 
 
-async def delete_page(db: AsyncSession, page_id: uuid.UUID) -> None:
-    """Soft delete: move to trash (restorable). Use ``hard_delete_page`` to purge."""
+async def delete_page(
+    db: AsyncSession,
+    page_id: uuid.UUID,
+    *,
+    actor_id: uuid.UUID | None = None,
+    ip_address: str | None = None,
+    user_agent: str | None = None,
+) -> None:
+    """Soft delete: move to trash (restorable). Use ``hard_delete_page`` to purge.
+
+    ``actor_id`` is the operator who trashed the page. It used to be hardcoded
+    ``None``, so all 466 trash rows read "no actor" — the audit trail could
+    not answer "who moved this page to the trash?" at all.
+    """
     page = await db.get(CmsPage, page_id)
     if not page:
         raise NotFoundError("CmsPage", f"CMS page {page_id} not found")
     if page.deleted_at is None:
         page.deleted_at = datetime.now(UTC)
         await db.flush()
-        await _emit(db, "page.deleted", page)
-        await _audit(db, "cms_page.trashed", page, actor_id=None)
+        await _audit(
+            db, "cms_page.trashed", page,
+            actor_id=actor_id, ip_address=ip_address, user_agent=user_agent,
+        )
     logger.info("cms_page_trashed", page_id=str(page_id))
 
 
-async def restore_page(db: AsyncSession, page_id: uuid.UUID) -> CmsPageResponse:
-    """Restore a trashed page to its previous status (as a draft-safe restore)."""
+async def restore_page(
+    db: AsyncSession,
+    page_id: uuid.UUID,
+    *,
+    actor_id: uuid.UUID | None = None,
+    ip_address: str | None = None,
+    user_agent: str | None = None,
+) -> CmsPageResponse:
+    """Restore a trashed page to its previous status (as a draft-safe restore).
+
+    Writes an audit row: the restore pair (trash → restore) must be readable
+    as a two-actor story, and until 2026-10-06 the restore side was silent —
+    a page could come back from the trash with no record of who did it.
+    """
     page = await db.get(CmsPage, page_id)
     if not page or page.deleted_at is None:
         raise NotFoundError("CmsPage", f"Trashed page {page_id} not found")
     page.deleted_at = None
     await db.flush()
+    await _audit(
+        db, "cms_page.restored", page,
+        actor_id=actor_id, ip_address=ip_address, user_agent=user_agent,
+    )
     logger.info("cms_page_restored_from_trash", page_id=str(page_id))
     return _to_response(page)
 
 
-async def hard_delete_page(db: AsyncSession, page_id: uuid.UUID) -> None:
-    """Permanently delete a page and its revisions (only allowed from trash)."""
+async def hard_delete_page(
+    db: AsyncSession,
+    page_id: uuid.UUID,
+    *,
+    actor_id: uuid.UUID | None = None,
+    ip_address: str | None = None,
+    user_agent: str | None = None,
+) -> None:
+    """Permanently delete a page and its revisions (only allowed from trash).
+
+    Irreversible — the audit row is the only surviving record of the page, so
+    it must name the operator. It used to hardcode ``None``.
+    """
     page = await db.get(CmsPage, page_id)
     if not page:
         raise NotFoundError("CmsPage", f"CMS page {page_id} not found")
     if page.deleted_at is None:
         raise ValidationError("صفحه ابتدا باید به سطل زباله منتقل شود")
-    await _audit(db, "cms_page.hard_deleted", page, actor_id=None)
+    await _audit(
+        db, "cms_page.hard_deleted", page,
+        actor_id=actor_id, ip_address=ip_address, user_agent=user_agent,
+    )
     await db.delete(page)
     await db.flush()
     logger.info("cms_page_hard_deleted", page_id=str(page_id))
@@ -640,14 +690,12 @@ async def duplicate_page(
         author_id=author_id,
         published_at=None,
         revision_number=1,
-        locale=page.locale or "fa",
     )
     db.add(copy)
     await db.flush()
     db.add(_snapshot(copy, created_by=author_id))
     await db.flush()
     logger.info("cms_page_duplicated", source_id=str(page_id), copy_id=str(copy.id))
-    await _emit(db, "page.created", copy)
     return _to_response(copy)
 
 
@@ -658,6 +706,8 @@ async def bulk_pages(
     *,
     actor_id: uuid.UUID | None = None,
     actor_payload: dict[str, Any] | None = None,
+    ip_address: str | None = None,
+    user_agent: str | None = None,
 ) -> BulkActionResult:
     """Run publish/unpublish/trash/restore over a set of page ids.
 
@@ -697,13 +747,13 @@ async def bulk_pages(
                 await require_object_capability(actor_payload, page, OBJECT_RULES["pages"])
 
             if action == "publish":
-                await update_page(db, page_id, CmsPageUpdateRequest(status=PageStatus.PUBLISHED), editor_id=actor_id)
+                await update_page(db, page_id, CmsPageUpdateRequest(status=PageStatus.PUBLISHED), editor_id=actor_id, ip_address=ip_address, user_agent=user_agent)
             elif action == "unpublish":
-                await update_page(db, page_id, CmsPageUpdateRequest(status=PageStatus.DRAFT), editor_id=actor_id)
+                await update_page(db, page_id, CmsPageUpdateRequest(status=PageStatus.DRAFT), editor_id=actor_id, ip_address=ip_address, user_agent=user_agent)
             elif action == "trash":
-                await delete_page(db, page_id)
+                await delete_page(db, page_id, actor_id=actor_id, ip_address=ip_address, user_agent=user_agent)
             else:
-                await restore_page(db, page_id)
+                await restore_page(db, page_id, actor_id=actor_id, ip_address=ip_address, user_agent=user_agent)
             result.succeeded += 1
         except (NotFoundError, ValidationError, HTTPException) as exc:
             # HTTPException is caught deliberately. The guard raises 403, and an
@@ -743,7 +793,6 @@ async def process_scheduled_pages(db: AsyncSession) -> dict[str, int]:
         page.published_at = page.scheduled_publish_at
         page.scheduled_publish_at = None
         await db.flush()
-        await _emit(db, "page.published", page)
 
     due_unpublish = (
         (await db.execute(
@@ -761,33 +810,11 @@ async def process_scheduled_pages(db: AsyncSession) -> dict[str, int]:
         page.status = PageStatus.DRAFT
         page.scheduled_unpublish_at = None
         await db.flush()
-        await _emit(db, "page.unpublished", page)
 
     counts = {"published": len(due_publish), "unpublished": len(due_unpublish)}
     if counts["published"] or counts["unpublished"]:
         logger.info("cms_scheduled_pages_processed", **counts)
     return counts
-
-
-async def _emit(db: AsyncSession, event: str, page: CmsPage) -> None:
-    """Publish the content event to the transactional outbox (webhook fan-out).
-
-    The outbox row commits atomically with the content change; the beat-drained
-    outbox worker later turns it into webhook deliveries. Failures never break
-    the content write.
-    """
-    try:
-        from app.shared.events.outbox_service import OutboxService
-
-        await OutboxService.publish(
-            db,
-            event_type=f"webhook.{event}",
-            aggregate_type="cms_page",
-            aggregate_id=str(page.id),
-            payload={"id": str(page.id), "slug": page.slug, "title": page.title},
-        )
-    except Exception:  # noqa: BLE001 — webhooks must not block content writes
-        logger.warning("cms_webhook_emit_failed", event_name=event, page_id=str(page.id))
 
 
 async def list_revisions(
@@ -839,6 +866,7 @@ async def restore_revision(
     page.excerpt = revision.excerpt
     page.seo_title = revision.seo_title
     page.seo_description = revision.seo_description
+    page.focus_keyword = revision.focus_keyword
     page.revision_number = (page.revision_number or 1) + 1
     await db.flush()
     db.add(_snapshot(page, created_by=editor_id))
@@ -976,8 +1004,6 @@ def paginate(pages: list[CmsPage], *, page: int, page_size: int) -> tuple[list[C
 
 async def list_published_page_summaries(
     db: AsyncSession,
-    *,
-    locale: str | None = None,
 ) -> list[CmsPage]:
     """Published, non-trashed pages for a public discovery surface.
 
@@ -989,7 +1015,5 @@ async def list_published_page_summaries(
         CmsPage.status == PageStatus.PUBLISHED,
         CmsPage.deleted_at.is_(None),
     )
-    if locale:
-        stmt = stmt.where(CmsPage.locale == locale.strip())
     stmt = stmt.order_by(CmsPage.slug)
     return list((await db.execute(stmt)).scalars().all())

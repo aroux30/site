@@ -2,7 +2,7 @@
 
 import React, { useRef, useState } from "react";
 import Link from "next/link";
-import { Download, FileUp, RefreshCw, Rss, Upload } from "lucide-react";
+import { Download, FileUp, Globe, RefreshCw, Rss, Upload } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -16,6 +16,7 @@ import {
   type DataExchangeEntity,
   type FeedPreview,
   type ImportJob,
+  type WxrPreview,
 } from "@/lib/api/data-exchange";
 
 const DATA_EXCHANGE_QUERY_KEY = "admin-data-exchange" as const;
@@ -35,6 +36,11 @@ export default function DataExchangeImportPage() {
   const [entityType, setEntityType] = useState("product");
   const [uploading, setUploading] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+  // Cards the "start import" card can route a document to. When it does, the
+  // page scrolls there so the preview is visible instead of appearing below
+  // the fold with only a toast to hint at it.
+  const wxrCardRef = useRef<HTMLDivElement>(null);
+  const feedCardRef = useRef<HTMLDivElement>(null);
 
   // Feed import, kept apart from the job pipeline above: a feed is a document
   // rather than a table, so it has no job, no column mapping and no row-level
@@ -82,6 +88,67 @@ export default function DataExchangeImportPage() {
     }
   }
 
+  // WordPress WXR (XML) import — the export WordPress itself writes under
+  // Tools → Export. Its own card rather than an RSS variant: a WXR file holds
+  // posts, pages (with hierarchy), categories, tags AND comments, and the
+  // preview shows each of those counts separately so "this file is empty"
+  // is visible before the irreversible step.
+  const [wxrBusy, setWxrBusy] = useState(false);
+  const [wxrPreview, setWxrPreview] = useState<WxrPreview | null>(null);
+  const wxrFileRef = useRef<HTMLInputElement>(null);
+  const wxrFileRefState = useRef<File | null>(null);
+
+  async function previewWxr(file: File) {
+    setWxrBusy(true);
+    setWxrPreview(null);
+    try {
+      const preview = await dataExchangeApi.previewWxr(file);
+      wxrFileRefState.current = file;
+      setWxrPreview(preview);
+    } catch {
+      toast({
+        title: "خواندن فایل WXR ناموفق بود",
+        description: "فایل باید خروجی XML وردپرس (ابزارها ← خروجی) باشد.",
+        variant: "destructive",
+      });
+    } finally {
+      setWxrBusy(false);
+    }
+  }
+
+  async function runWxrImport() {
+    const file = wxrFileRefState.current;
+    if (!file) return;
+    setWxrBusy(true);
+    try {
+      const stats = await dataExchangeApi.importWxr(file);
+      toast({
+        title: "ایمپورت WXR انجام شد",
+        description:
+          `${toPersianDigits(String(stats.posts))} نوشته، ` +
+          `${toPersianDigits(String(stats.pages_created))} برگه و ` +
+          `${toPersianDigits(String(stats.comments))} دیدگاه وارد شد؛ ` +
+          `${toPersianDigits(String(stats.skipped))} تکراری رد شد.` +
+          (stats.images_imported > 0
+            ? ` ${toPersianDigits(String(stats.images_imported))} تصویر دانلود و به کتابخانهٔ رسانه منتقل شد.`
+            : "") +
+          (stats.images_failed > 0
+            ? ` (${toPersianDigits(String(stats.images_failed))} تصویر دانلود نشد و نشانی اصلی حفظ شد.)`
+            : "") +
+          (stats.pages_skipped > 0
+            ? ` (${toPersianDigits(String(stats.pages_skipped))} برگه رد شد — نامک رزروشدهٔ فروشگاه، مثل cart)`
+            : ""),
+      });
+      setWxrPreview(null);
+      wxrFileRefState.current = null;
+      void load();
+    } catch {
+      toast({ title: "ایمپورت WXR ناموفق بود", variant: "destructive" });
+    } finally {
+      setWxrBusy(false);
+    }
+  }
+
   // The entity list and the recent import jobs always come from the same
   // fetch, so the entity labels in the jobs table can never disagree with the
   // picker above it.
@@ -107,6 +174,35 @@ export default function DataExchangeImportPage() {
   const runMutation = useAdminMutation();
 
   const doUpload = async (file: File) => {
+    // XML is a document, not a table: an operator who selects the WordPress
+    // export in this card must not be told "only CSV or XLSX". Route it by
+    // content — WXR carries the `wp:` export namespace, anything else XML
+    // gets the feed path (which validates its own root element).
+    const lowerName = file.name.toLowerCase();
+    if (
+      lowerName.endsWith(".xml") ||
+      lowerName.endsWith(".rss") ||
+      lowerName.endsWith(".atom")
+    ) {
+      const head = await file.slice(0, 4096).text().catch(() => "");
+      if (
+        head.includes("wp:wxr_version") ||
+        head.includes("wordpress.org/export")
+      ) {
+        await previewWxr(file);
+        toast({
+          title: "فایل خروجی وردپرس شناسایی شد",
+          description: "پیش‌نمایش در کارت «ایمپورت از خروجی وردپرس» پایین صفحه آماده است.",
+        });
+        wxrCardRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+      } else {
+        await previewFeed(file);
+        feedCardRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+      if (fileRef.current) fileRef.current.value = "";
+      return;
+    }
+
     setUploading(true);
     const result = await runMutation(
       () => dataExchangeApi.createImportJob(entityType, file),
@@ -217,7 +313,10 @@ export default function DataExchangeImportPage() {
           <input
             ref={fileRef}
             type="file"
-            accept=".csv,.txt,.tsv,.xlsx,.xlsm"
+            // XML/RSS/Atom included on purpose: an operator picking their
+            // WordPress export in this card is routed to the WXR card by
+            // doUpload instead of being told "only CSV or XLSX".
+            accept=".csv,.txt,.tsv,.xlsx,.xlsm,.xml,.rss,.atom"
             className="hidden"
             onChange={(e) => {
               const f = e.target.files?.[0];
@@ -234,7 +333,7 @@ export default function DataExchangeImportPage() {
         </div>
       </Card>
 
-      <Card className="p-6 space-y-4">
+      <Card ref={feedCardRef} className="p-6 space-y-4">
         <h3 className="text-lg font-semibold flex items-center gap-2">
           <Rss className="h-5 w-5 text-primary" />
           ایمپورت از فید RSS یا Atom
@@ -298,6 +397,102 @@ export default function DataExchangeImportPage() {
             <Button onClick={() => void runFeedImport()} disabled={feedBusy}>
               <FileUp className="h-4 w-4 ms-1" />
               {feedBusy ? "در حال ایمپورت..." : "ایمپورت همهٔ نوشته‌ها"}
+            </Button>
+          </div>
+        )}
+      </Card>
+
+      <Card ref={wxrCardRef} className="p-6 space-y-4">
+        <h3 className="text-lg font-semibold flex items-center gap-2">
+          <Globe className="h-5 w-5 text-primary" />
+          ایمپورت از خروجی وردپرس (XML / WXR)
+        </h3>
+        <p className="text-sm text-muted-foreground">
+          فایل خروجی وردپرس (ابزارها ← خروجی ← همهٔ محتوا) را بارگذاری کنید.
+          نوشته‌ها، برگه‌ها با ساختار والد/فرزند، دسته‌ها، برچسب‌ها و دیدگاه‌ها
+          با هم وارد می‌شوند. ابتدا پیش‌نمایش می‌گیرید تا ببینید فایل چه دارد،
+          و بعد از دکمهٔ ایمپورت استفاده کنید.
+        </p>
+        <p className="text-xs text-muted-foreground">
+          وضعیت هر آیتم از خود فایل خوانده می‌شود: پیش‌نویس پیش‌نویس می‌ماند و
+          منتشرشده منتشر می‌شود. نوشته‌های تکراری (بر اساس نامک) رد می‌شوند.
+        </p>
+        <div className="flex flex-wrap items-center gap-3">
+          <input
+            ref={wxrFileRef}
+            type="file"
+            accept=".xml,text/xml,application/xml"
+            className="hidden"
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              if (f) void previewWxr(f);
+            }}
+          />
+          <Button
+            variant="outline"
+            onClick={() => wxrFileRef.current?.click()}
+            disabled={wxrBusy}
+          >
+            <Upload className="h-4 w-4 ms-1" />
+            {wxrBusy ? "در حال خواندن..." : "انتخاب فایل XML وردپرس"}
+          </Button>
+        </div>
+
+        {wxrPreview && (
+          <div className="space-y-3 rounded-lg border border-border bg-muted/30 p-4">
+            <div className="flex flex-wrap items-center gap-3 text-sm">
+              <Badge variant="outline">WXR</Badge>
+              <span>{toPersianDigits(String(wxrPreview.counts.posts))} نوشته</span>
+              <span className="text-muted-foreground">
+                {toPersianDigits(String(wxrPreview.counts.pages))} برگه
+              </span>
+              <span className="text-muted-foreground">
+                {toPersianDigits(String(wxrPreview.counts.categories))} دسته
+              </span>
+              <span className="text-muted-foreground">
+                {toPersianDigits(String(wxrPreview.counts.tags))} برچسب
+              </span>
+              <span className="text-muted-foreground">
+                {toPersianDigits(String(wxrPreview.counts.comments))} دیدگاه
+              </span>
+            </div>
+            {wxrPreview.counts.posts === 0 && wxrPreview.counts.pages === 0 && (
+              <p className="text-xs text-amber-600 dark:text-amber-500">
+                این فایل هیچ نوشته یا برگه‌ای ندارد. در وردپرس هنگام خروجی
+                گرفتن، محتوا را انتخاب کنید و دوباره export بگیرید.
+              </p>
+            )}
+            {wxrPreview.sample.length > 0 && (
+              <ul className="space-y-1 text-xs text-muted-foreground">
+                {wxrPreview.sample.map((p, i) => (
+                  <li key={`${p.slug}-${i}`} className="truncate">
+                    • {p.title}
+                    {p.category_slugs && p.category_slugs.length > 0
+                      ? ` — ${p.category_slugs.join("، ")}`
+                      : ""}
+                  </li>
+                ))}
+              </ul>
+            )}
+            {wxrPreview.sample_pages.length > 0 && (
+              <ul className="space-y-1 text-xs text-muted-foreground">
+                {wxrPreview.sample_pages.map((p, i) => (
+                  <li key={`${p.slug}-${i}`} className="truncate">
+                    • [برگه] {p.title}
+                    {p.parent_slug ? ` (زیرِ ${p.parent_slug})` : ""}
+                  </li>
+                ))}
+              </ul>
+            )}
+            <Button
+              onClick={() => void runWxrImport()}
+              disabled={
+                wxrBusy ||
+                (wxrPreview.counts.posts === 0 && wxrPreview.counts.pages === 0)
+              }
+            >
+              <FileUp className="h-4 w-4 ms-1" />
+              {wxrBusy ? "در حال ایمپورت..." : "ایمپورت نوشته‌ها، برگه‌ها و دیدگاه‌ها"}
             </Button>
           </div>
         )}

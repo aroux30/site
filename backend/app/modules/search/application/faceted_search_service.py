@@ -4,6 +4,16 @@ Builds an Elasticsearch query with aggregations for category, brand, price,
 rating, availability, and dynamic attribute facets.  Filters are applied via
 ``post_filter`` so that facet bucket counts always reflect the *unfiltered*
 query — the standard UX for e-commerce faceted navigation.
+
+**Postgres fallback**: when Elasticsearch is unreachable, the storefront
+product grid must not render "۰ کالا" while 5,146 products sit in Postgres —
+that is what happened (memory: storefront-lists-zero-products) and it blocks
+every downstream flow (cart, checkout) that starts from the grid. The
+fallback answers the same request from Postgres with the same response shape
+(``degraded=True`` still flags the loss of relevance ranking); it covers the
+storefront's actual usage — query, category/brand/price/availability
+filters, sort, pagination — and returns an empty facet list rather than
+fabricating counts it cannot compute cheaply.
 """
 
 from __future__ import annotations
@@ -50,8 +60,14 @@ class FacetedSearchService:
     async def faceted_product_search(
         self,
         request: FacetedSearchRequest,
+        db: Any = None,
     ) -> FacetedSearchResult:
-        """Execute a faceted product search and return hits + facet counts."""
+        """Execute a faceted product search and return hits + facet counts.
+
+        ``db`` enables the Postgres fallback when Elasticsearch is down; a
+        caller that cannot supply a session gets the old degraded-empty
+        answer rather than an error.
+        """
         from_offset = (request.page - 1) * request.size
 
         # 1. Core query (drives relevance scoring + facet counts)
@@ -93,6 +109,8 @@ class FacetedSearchService:
                 error=str(exc),
                 query=request.query,
             )
+            if db is not None:
+                return await self._postgres_fallback(request, db)
             return FacetedSearchResult(
                 hits=[],
                 facets=[],
@@ -306,6 +324,197 @@ class FacetedSearchService:
         return ["_score", {"created_at": {"order": "desc"}}]
 
     # ── Response parsing ───────────────────────────────────────────────
+
+    @staticmethod
+    async def _postgres_fallback(
+        request: FacetedSearchRequest,
+        db: Any,
+    ) -> FacetedSearchResult:
+        """Answer the same request from Postgres when Elasticsearch is down.
+
+        Covers the storefront's actual usage: free-text query (name/
+        description ILIKE), category/brand filters, price range, availability,
+        sort, and pagination. Facets come back empty rather than fabricated —
+        computing full facet buckets in SQL would duplicate the ES aggregation
+        semantics, and an empty facet list is honest ("search is degraded")
+        while wrong counts would silently mislead.
+
+        Prices: the DB stores Rial; the API contract is Toman (memory:
+        money-unit-two-conventions), so the same conversion the ES path uses
+        applies here.
+        """
+        from sqlalchemy import func as sa_func
+        from sqlalchemy import or_, select
+        from sqlalchemy.orm import joinedload
+
+        from app.modules.catalog.domain.models import (
+            Category,
+            Product,
+            ProductImage,
+            ProductStatus,
+            ProductVariant,
+        )
+
+        base = (
+            select(Product)
+            .options(
+                joinedload(Product.category),
+                joinedload(Product.brand),
+                joinedload(Product.variants),
+            )
+            .where(
+                Product.status == ProductStatus.ACTIVE,
+                Product.is_active.is_(True),
+            )
+        )
+
+        query = (request.query or "").strip()
+        if query:
+            like = f"%{query}%"
+            base = base.where(
+                or_(Product.name.ilike(like), Product.description.ilike(like))
+            )
+
+        # Filters arrive as {field: [values]}. Only the ones the SQL path can
+        # honour are applied; anything else (dynamic attr:*) is ignored rather
+        # than failing the request — the response is flagged degraded anyway.
+        filters = request.filters or {}
+        for field, values in filters.items():
+            if not values:
+                continue
+            if field == "category_id":
+                import uuid as _uuid
+
+                ids = []
+                for v in values:
+                    try:
+                        ids.append(_uuid.UUID(v))
+                    except (ValueError, TypeError):
+                        continue
+                if ids:
+                    base = base.where(Product.category_id.in_(ids))
+            elif field == "brand":
+                # brand facet values are slugs in the ES mapping.
+                from app.modules.catalog.domain.models import Brand
+
+                base = base.where(
+                    Product.brand_id.in_(
+                        select(Brand.id).where(Brand.slug.in_(values))
+                    )
+                )
+
+        # Join variants BEFORE any ProductVariant column is referenced: a
+        # where() on a not-yet-joined table makes SQLAlchemy add it to the
+        # FROM list as a cartesian product, and the price filter silently
+        # stops narrowing (observed live: a 50k-200k Toman range still
+        # returned all 5,146 products).
+        needs_variants = request.price_range is not None or request.sort_by in (
+            FacetedSortOption.PRICE_ASC,
+            FacetedSortOption.PRICE_DESC,
+        )
+        if needs_variants:
+            base = base.join(ProductVariant, ProductVariant.product_id == Product.id)
+
+        if request.price_range is not None:
+            # Price filter is Toman at the boundary; the DB column is Rial.
+            if request.price_range.min is not None:
+                base = base.where(
+                    ProductVariant.price >= toman_to_rial(request.price_range.min)
+                )
+            if request.price_range.max is not None:
+                base = base.where(
+                    ProductVariant.price <= toman_to_rial(request.price_range.max)
+                )
+
+        # Count the SUBQUERY's id column, not Product.id: selecting
+        # Product.id in the outer query re-adds the whole products table to
+        # the outer FROM (a cartesian join that ignores the inner WHERE), so
+        # the count silently ignored every filter (observed live: a price
+        # cap still returned all 5,146).
+        sub = base.subquery()
+        total = (
+            await db.execute(
+                select(sa_func.count(sa_func.distinct(sub.c.id))).select_from(sub)
+            )
+        ).scalar_one()
+
+        if request.sort_by == FacetedSortOption.PRICE_ASC:
+            base = base.order_by(ProductVariant.price.asc())
+        elif request.sort_by == FacetedSortOption.PRICE_DESC:
+            base = base.order_by(ProductVariant.price.desc())
+        elif request.sort_by == FacetedSortOption.NEWEST:
+            base = base.order_by(Product.created_at.desc())
+        else:
+            # Relevance: no text rank in SQL — featured first, then newest is
+            # the closest honest ordering.
+            base = base.order_by(
+                Product.is_featured.desc(), Product.created_at.desc()
+            )
+
+        from_offset = (request.page - 1) * request.size
+        base = base.distinct().offset(from_offset).limit(request.size)
+        products = (await db.execute(base)).unique().scalars().all()
+
+        # Primary images in one query (not per product).
+        images: dict[Any, str] = {}
+        if products:
+            img_rows = (
+                await db.execute(
+                    select(ProductImage.product_id, ProductImage.url)
+                    .where(
+                        ProductImage.product_id.in_([p.id for p in products]),
+                        ProductImage.is_primary.is_(True),
+                    )
+                    .order_by(ProductImage.position)
+                )
+            ).all()
+            for pid, url in img_rows:
+                images.setdefault(pid, url)
+
+        hits: list[SearchProductResult] = []
+        for p in products:
+            variant = next(
+                (v for v in p.variants if v.is_active), None
+            ) or (p.variants[0] if p.variants else None)
+            hits.append(
+                SearchProductResult(
+                    id=str(p.id),
+                    name=p.name,
+                    slug=p.slug,
+                    description=p.description,
+                    short_description=p.short_description,
+                    category_name=p.category.name if p.category else None,
+                    category_slug=p.category.slug if p.category else None,
+                    brand_name=p.brand.name if p.brand else None,
+                    brand_slug=p.brand.slug if p.brand else None,
+                    price=rial_to_toman(variant.price) if variant else None,
+                    compare_at_price=(
+                        rial_to_toman(variant.compare_at_price)
+                        if variant and variant.compare_at_price
+                        else None
+                    ),
+                    image_url=images.get(p.id),
+                    is_active=p.is_active,
+                    is_featured=p.is_featured,
+                    score=None,
+                )
+            )
+
+        await logger.ainfo(
+            "faceted_search_postgres_fallback",
+            query=query,
+            total=total,
+            returned=len(hits),
+        )
+        return FacetedSearchResult(
+            hits=hits,
+            facets=[],
+            total=total,
+            page=request.page,
+            size=request.size,
+            total_pages=math.ceil(total / request.size) if request.size > 0 else 0,
+            degraded=True,
+        )
 
     @staticmethod
     def _parse_hit(hit: dict[str, Any]) -> SearchProductResult:

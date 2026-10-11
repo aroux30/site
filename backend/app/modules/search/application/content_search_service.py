@@ -87,7 +87,6 @@ CONTENT_INDEX_MAPPING: dict[str, Any] = {
         "slug": {"type": "keyword"},
         "excerpt": {"type": "text", "analyzer": "persian_analyzer"},
         "body": {"type": "text", "analyzer": "persian_analyzer"},
-        "locale": {"type": "keyword"},
         "category": {
             "type": "text",
             "analyzer": "persian_analyzer",
@@ -204,7 +203,6 @@ class ContentSearchService:
             "slug": post.slug,
             "excerpt": "" if protected else (post.excerpt or ""),
             "body": "" if protected else strip_html(post.content),
-            "locale": post.locale or "fa",
             "category": post.category.name if post.category else None,
             "category_slug": post.category.slug if post.category else None,
             "tags": [pt.tag.name for pt in (post.post_tags or []) if pt.tag],
@@ -225,7 +223,6 @@ class ContentSearchService:
             "slug": page.slug,
             "excerpt": page.excerpt or "",
             "body": strip_html(page.body_html),
-            "locale": page.locale or "fa",
             "category": None,
             "category_slug": None,
             "tags": [],
@@ -417,7 +414,6 @@ class ContentSearchService:
         query: str,
         *,
         content_type: str | None = None,
-        locale: str | None = None,
         page: int = 1,
         size: int = 20,
     ) -> ContentSearchResponse:
@@ -437,7 +433,7 @@ class ContentSearchService:
             await logger.awarning("content_search_ensure_indices_failed", error=str(exc))
 
         body: dict[str, Any] = {
-            "query": self._build_query(cleaned, locale),
+            "query": self._build_query(cleaned),
             "from": (page - 1) * size,
             "size": size,
             "sort": [
@@ -452,7 +448,7 @@ class ContentSearchService:
         except Exception as exc:
             await logger.awarning("content_search_es_failed", error=str(exc), query=cleaned)
             return await self._fallback_search(
-                db, cleaned, content_type=content_type, locale=locale, page=page, size=size
+                db, cleaned, content_type=content_type, page=page, size=size
             )
 
         hits = raw.get("hits", {})
@@ -577,16 +573,13 @@ class ContentSearchService:
     # ── Query building / parsing ──────────────────────────────────────
 
     @staticmethod
-    def _build_query(query: str, locale: str | None) -> dict[str, Any]:
-        """Elasticsearch bool query: fuzzy multi-match + locale filter.
+    def _build_query(query: str) -> dict[str, Any]:
+        """Elasticsearch bool query: fuzzy multi-match.
 
         Private posts are excluded outright (defence in depth: the reindex
         purges them and masks password-protected bodies, but a stale
         document from before either ran must still never surface).
         """
-        filter_clauses: list[dict[str, Any]] = []
-        if locale:
-            filter_clauses.append({"term": {"locale": locale}})
         return {
             "bool": {
                 "must": [
@@ -601,7 +594,6 @@ class ContentSearchService:
                     },
                 ],
                 "must_not": [{"term": {"visibility": "private"}}],
-                "filter": filter_clauses,
             },
         }
 
@@ -622,7 +614,6 @@ class ContentSearchService:
             title=source.get("title", ""),
             slug=source.get("slug", ""),
             excerpt=source.get("excerpt") or None,
-            locale=source.get("locale"),
             category=source.get("category"),
             category_slug=source.get("category_slug"),
             tags=source.get("tags", []) or [],
@@ -639,7 +630,6 @@ class ContentSearchService:
         term: str,
         *,
         content_type: str | None,
-        locale: str | None,
         page: int,
         size: int,
     ) -> ContentSearchResponse:
@@ -662,7 +652,7 @@ class ContentSearchService:
 
         if include_posts:
             try:
-                post_total, posts = await self._fallback_posts(db, pattern, locale, limit)
+                post_total, posts = await self._fallback_posts(db, pattern, limit)
                 total += post_total
                 results.extend(self._post_hit(p) for p in posts)
             except Exception as exc:
@@ -670,7 +660,7 @@ class ContentSearchService:
 
         if include_pages:
             try:
-                page_total, pages = await self._fallback_pages(db, pattern, locale, limit)
+                page_total, pages = await self._fallback_pages(db, pattern, limit)
                 total += page_total
                 results.extend(self._page_hit(p) for p in pages)
             except Exception as exc:
@@ -693,7 +683,7 @@ class ContentSearchService:
 
     @staticmethod
     async def _fallback_posts(
-        db: AsyncSession, pattern: str, locale: str | None, limit: int
+        db: AsyncSession, pattern: str, limit: int
     ) -> tuple[int, list[Any]]:
         """Published public posts matching the ILIKE pattern, newest first.
 
@@ -722,8 +712,6 @@ class ContentSearchService:
                 ),
             ),
         ]
-        if locale:
-            conditions.append(BlogPost.locale == locale)
 
         count_stmt = select(func.count()).select_from(BlogPost).where(*conditions)
         post_total = int((await db.execute(count_stmt)).scalar_one())
@@ -740,7 +728,7 @@ class ContentSearchService:
 
     @staticmethod
     async def _fallback_pages(
-        db: AsyncSession, pattern: str, locale: str | None, limit: int
+        db: AsyncSession, pattern: str, limit: int
     ) -> tuple[int, list[Any]]:
         """Published, non-trashed pages matching the ILIKE pattern."""
         from app.modules.content.domain.models import CmsPage, PageStatus
@@ -754,8 +742,6 @@ class ContentSearchService:
                 CmsPage.body_html.ilike(pattern, escape="\\"),
             ),
         ]
-        if locale:
-            conditions.append(CmsPage.locale == locale)
 
         count_stmt = select(func.count()).select_from(CmsPage).where(*conditions)
         page_total = int((await db.execute(count_stmt)).scalar_one())

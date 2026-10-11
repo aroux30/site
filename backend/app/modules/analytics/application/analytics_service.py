@@ -63,7 +63,6 @@ class AnalyticsService:
         """Calculate sales analytics over a date range."""
         completed_statuses = [
             OrderStatus.COMPLETED,
-            OrderStatus.DELIVERED,
         ]
 
         # Overall aggregation
@@ -164,7 +163,6 @@ class AnalyticsService:
         """Get product analytics – best sellers, views, conversion rates."""
         completed_statuses = [
             OrderStatus.COMPLETED,
-            OrderStatus.DELIVERED,
         ]
 
         # Best sellers
@@ -289,7 +287,7 @@ class AnalyticsService:
         metrics: list[DailyMetric] = []
 
         # Total sales for the day
-        completed_statuses = [OrderStatus.COMPLETED, OrderStatus.DELIVERED]
+        completed_statuses = [OrderStatus.COMPLETED]
         sales_stmt = select(func.coalesce(func.sum(Order.total), 0)).where(
             cast(Order.created_at, Date) == target_date,
             Order.status.in_(completed_statuses),

@@ -19,6 +19,19 @@ export interface TicketItem {
   ticket_number: string;
   created_at: string;
   updated_at: string;
+  /** Admin-list extras: identity + thread summary (null on customer routes). */
+  customer_name?: string | null;
+  customer_phone?: string | null;
+  messages_count?: number | null;
+  last_message_preview?: string | null;
+  last_message_at?: string | null;
+}
+
+export interface TicketStats {
+  byStatus: Map<TicketItem["status"], number>;
+  totalTickets: number;
+  urgentOpen: number;
+  unassigned: number;
 }
 
 export interface TicketDetail extends TicketItem {
@@ -38,6 +51,8 @@ export interface CreateTicketInput {
 
 export interface TicketListParams {
   status?: TicketItem["status"];
+  priority?: TicketItem["priority"];
+  search?: string;
   skip?: number;
   limit?: number;
 }
@@ -67,6 +82,26 @@ export async function fetchAdminTickets(params?: TicketListParams): Promise<Tick
   return data;
 }
 
+/** Whole-table per-status counts for the admin board headers. */
+export async function fetchAdminTicketStats(): Promise<TicketStats> {
+  const { data } = await apiClient.get<{
+    by_status: { status: string; count: number }[];
+    total_tickets: number;
+    urgent_open: number;
+    unassigned: number;
+  }>("/support/admin/tickets/stats");
+  const byStatus = new Map<TicketItem["status"], number>();
+  for (const row of data.by_status ?? []) {
+    byStatus.set(row.status as TicketItem["status"], Number(row.count ?? 0));
+  }
+  return {
+    byStatus,
+    totalTickets: Number(data.total_tickets ?? 0),
+    urgentOpen: Number(data.urgent_open ?? 0),
+    unassigned: Number(data.unassigned ?? 0),
+  };
+}
+
 export async function fetchAdminTicketById(id: string): Promise<TicketDetail> {
   const { data } = await apiClient.get<TicketDetail>(`/support/admin/tickets/${id}`);
   return data;
@@ -87,10 +122,10 @@ export async function updateAdminTicketStatus(
 
 // --- Missing support endpoints ---
 
-/** ارسال پیام تماس با ما (بدون نیاز به لاگین) */
+/** ارسال پیام تماس با ما (بدون نیاز به لاگین). The `email` field was removed
+ *  on 2026-10-07 with the rest of the email feature. */
 export async function submitContactMessage(payload: {
   name: string;
-  email?: string;
   phone?: string;
   subject: string;
   body?: string;
@@ -98,7 +133,6 @@ export async function submitContactMessage(payload: {
 }): Promise<{ success: boolean }> {
   const bodyPayload = {
     name: payload.name,
-    email: payload.email || "guest@example.com",
     subject: payload.subject,
     message: payload.message || payload.body || "",
   };

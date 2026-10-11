@@ -1,4 +1,11 @@
-"""Notification application service – create, send, and manage notifications."""
+"""Notification application service – create, send, and manage notifications.
+
+The email channel and the template machinery were removed on 2026-10-07
+(the owner's store is phone-first: login is by phone number and SMS, so
+SMTP and the editable email templates have no use). What remains are the
+in-app records and the SMS channel stub; the real SMS transport lives in
+the messaging hub (``app.modules.messaging``).
+"""
 
 from __future__ import annotations
 
@@ -12,7 +19,6 @@ from sqlalchemy import CursorResult, func, select, update
 from app.modules.notifications.domain.models import (
     Notification,
     NotificationChannel,
-    NotificationTemplate,
 )
 
 if TYPE_CHECKING:
@@ -34,65 +40,6 @@ class BaseNotificationProvider:
         raise NotImplementedError
 
 
-class MockEmailProvider(BaseNotificationProvider):
-    """Mock email provider for development."""
-
-    channel = NotificationChannel.EMAIL
-
-    async def send(
-        self, recipient: str, title: str, body: str, data: dict[str, Any] | None = None
-    ) -> bool:
-        await logger.ainfo("mock_email_sent", recipient=recipient, title=title)
-        return True
-
-
-class SMTPEmailProvider(BaseNotificationProvider):
-    """Real SMTP email provider backed by the email delivery service.
-
-    ``recipient`` is the user's email address; when it is blank the send
-    is skipped (returns False) so callers can pass ``user.email or ""``
-    without branching. When SMTP is unconfigured the service itself falls
-    back to mock behavior with a warning, so this provider never raises
-    for configuration gaps.
-    """
-
-    channel = NotificationChannel.EMAIL
-
-    def __init__(self, db: Any | None = None) -> None:
-        self._db = db
-
-    async def send(
-        self, recipient: str, title: str, body: str, data: dict[str, Any] | None = None
-    ) -> bool:
-        from app.modules.notifications.application import email_service
-
-        if "@" not in (recipient or ""):
-            await logger.ainfo(
-                "email_skipped_no_recipient", title=title, recipient=recipient
-            )
-            return False
-
-        # The in-app body is plain text; wrap it in the RTL HTML shell so
-        # generic notifications still arrive as readable emails. The header
-        # carries the operator's store name, resolved the same way every other
-        # email resolves it — this used to read SMTP_FROM_NAME, so a store that
-        # renamed itself in Settings got the new name on order confirmations
-        # and the old one on notifications.
-        html = await email_service.wrap_html_for_store(
-            self._db,
-            f"<p>{body}</p>".replace("\n", "<br>"),
-        )
-        success, _ = await email_service.send_email(
-            self._db,
-            recipient=recipient,
-            subject=title,
-            html_body=html,
-            text_body=body,
-            notification_id=(data or {}).get("notification_id"),
-        )
-        return success
-
-
 class MockSMSProvider(BaseNotificationProvider):
     """Mock SMS provider for development."""
 
@@ -103,106 +50,6 @@ class MockSMSProvider(BaseNotificationProvider):
     ) -> bool:
         await logger.ainfo("mock_sms_sent", recipient=recipient, body=body[:100])
         return True
-
-
-class MockTelegramProvider(BaseNotificationProvider):
-    """Mock Telegram provider for development (kept for tests and reference).
-
-    The live channel uses :class:`TelegramBotProvider` below; this mock is
-    retained because the telegram service itself falls back to simulated
-    sends when unconfigured, and tests target the real provider.
-    """
-
-    channel = NotificationChannel.TELEGRAM
-
-    async def send(
-        self, recipient: str, title: str, body: str, data: dict[str, Any] | None = None
-    ) -> bool:
-        await logger.ainfo("mock_telegram_sent", recipient=recipient, title=title)
-        return True
-
-
-class TelegramBotProvider(BaseNotificationProvider):
-    """Real Telegram provider backed by the Bot API delivery service.
-
-    ``recipient`` is the user's Telegram ``chat_id`` (looked up from their
-    notification preferences by the dispatch layer, which passes it via
-    ``data["telegram_chat_id"]``); when it is blank the send is skipped
-    (returns False) so unlinked users never hit the Bot API. When the bot
-    token is unconfigured the service itself falls back to mock behavior
-    with a warning, so this provider never raises for configuration gaps.
-    """
-
-    channel = NotificationChannel.TELEGRAM
-
-    def __init__(self, db: Any | None = None) -> None:
-        self._db = db
-
-    async def send(
-        self, recipient: str, title: str, body: str, data: dict[str, Any] | None = None
-    ) -> bool:
-        from app.modules.notifications.application import telegram_service
-
-        chat_id = (data or {}).get("telegram_chat_id") or ""
-        if not str(chat_id).strip():
-            await logger.ainfo("telegram_skipped_no_chat_id", title=title)
-            return False
-
-        success, _ = await telegram_service.send_telegram_message(
-            self._db,
-            chat_id=str(chat_id),
-            title=title,
-            body=body,
-            notification_id=(data or {}).get("notification_id"),
-        )
-        return success
-
-
-class MockPushProvider(BaseNotificationProvider):
-    """Mock push notification provider for development (kept for tests).
-
-    The live channel uses :class:`WebPushProvider` below; this mock is
-    retained for reference and targeted tests.
-    """
-
-    channel = NotificationChannel.PUSH
-
-    async def send(
-        self, recipient: str, title: str, body: str, data: dict[str, Any] | None = None
-    ) -> bool:
-        await logger.ainfo("mock_push_sent", recipient=recipient, title=title)
-        return True
-
-
-class WebPushProvider(BaseNotificationProvider):
-    """VAPID web-push provider backed by the push delivery service shell.
-
-    ``recipient`` is the user id (string); subscriptions are looked up from
-    ``push_subscriptions`` by the service. Until ``pywebpush`` is installed
-    (documented dependency gap in push_service.py) the service reports the
-    simulated fallback instead of raising.
-    """
-
-    channel = NotificationChannel.PUSH
-
-    def __init__(self, db: Any | None = None) -> None:
-        self._db = db
-
-    async def send(
-        self, recipient: str, title: str, body: str, data: dict[str, Any] | None = None
-    ) -> bool:
-        from app.modules.notifications.application import push_service
-
-        try:
-            user_id = uuid.UUID(recipient)
-        except (ValueError, AttributeError, TypeError):
-            await logger.ainfo("webpush_skipped_bad_recipient", title=title)
-            return False
-
-        success, _delivered = await push_service.send_push_notification(
-            self._db, user_id=user_id, title=title, body=body, data=data
-        )
-        return success
 
 
 class InAppProvider(BaseNotificationProvider):
@@ -217,15 +64,10 @@ class InAppProvider(BaseNotificationProvider):
         return True
 
 
-# Channel → Provider mapping. The EMAIL/TELEGRAM/PUSH entries are stateless
-# placeholders — fresh providers are built per dispatch so the DB session
-# (delivery-log persistence) never outlives a request. SMS stays mock at
-# this layer (the real Kavenegar/Ghasedak path lives in the messaging hub).
+# Channel → Provider mapping. SMS stays mock at this layer (the real
+# Kavenegar/Ghasedak path lives in the messaging hub).
 _PROVIDERS: dict[NotificationChannel, BaseNotificationProvider] = {
-    NotificationChannel.EMAIL: SMTPEmailProvider(),
     NotificationChannel.SMS: MockSMSProvider(),
-    NotificationChannel.TELEGRAM: TelegramBotProvider(),
-    NotificationChannel.PUSH: WebPushProvider(),
     NotificationChannel.IN_APP: InAppProvider(),
 }
 
@@ -349,76 +191,12 @@ class NotificationService:
                 continue
 
             try:
-                if channel is NotificationChannel.EMAIL:
-                    # Email needs the user's address and the session for the
-                    # delivery log; a fresh provider per dispatch keeps the
-                    # session bound to this request only.
-                    recipient = ""
-                    try:
-                        from app.modules.users.domain.models import User
-
-                        user = await db.get(User, notification.user_id)
-                        recipient = (user.email or "") if user else ""
-                    except Exception:
-                        await logger.awarning(
-                            "email_recipient_lookup_failed",
-                            notification_id=str(notification_id),
-                        )
-                    provider = SMTPEmailProvider(db)
-                    data = {**(notification.data or {}), "notification_id": str(notification.id)}
-                    success = await provider.send(
-                        recipient=recipient,
-                        title=notification.title,
-                        body=notification.body,
-                        data=data,
-                    )
-                elif channel is NotificationChannel.TELEGRAM:
-                    # Telegram needs the user's linked chat_id; a fresh
-                    # provider per dispatch keeps the session bound to this
-                    # request only (delivery-log persistence).
-                    chat_id = ""
-                    try:
-                        from app.modules.notifications.domain.models import (
-                            NotificationPreference,
-                        )
-
-                        pref_stmt = select(NotificationPreference).where(
-                            NotificationPreference.user_id == notification.user_id
-                        )
-                        pref = (await db.execute(pref_stmt)).scalar_one_or_none()
-                        chat_id = (pref.telegram_chat_id or "") if pref else ""
-                    except Exception:
-                        await logger.awarning(
-                            "telegram_chat_id_lookup_failed",
-                            notification_id=str(notification_id),
-                        )
-                    provider = TelegramBotProvider(db)
-                    data = {
-                        **(notification.data or {}),
-                        "notification_id": str(notification.id),
-                        "telegram_chat_id": chat_id,
-                    }
-                    success = await provider.send(
-                        recipient=str(notification.user_id),
-                        title=notification.title,
-                        body=notification.body,
-                        data=data,
-                    )
-                elif channel is NotificationChannel.PUSH:
-                    provider = WebPushProvider(db)
-                    success = await provider.send(
-                        recipient=str(notification.user_id),
-                        title=notification.title,
-                        body=notification.body,
-                        data=notification.data,
-                    )
-                else:
-                    success = await provider.send(
-                        recipient=str(notification.user_id),
-                        title=notification.title,
-                        body=notification.body,
-                        data=notification.data,
-                    )
+                success = await provider.send(
+                    recipient=str(notification.user_id),
+                    title=notification.title,
+                    body=notification.body,
+                    data=notification.data,
+                )
                 results[channel.value] = success
             except Exception:
                 await logger.aexception(
@@ -434,39 +212,6 @@ class NotificationService:
             results=results,
         )
         return results
-
-    # ── Template-based ────────────────────────────────────────────────
-
-    @staticmethod
-    async def send_from_template(
-        db: AsyncSession,
-        user_id: uuid.UUID,
-        template_name: str,
-        variables: dict[str, str] | None = None,
-        channels: list[NotificationChannel] | None = None,
-    ) -> Notification:
-        """Create and send a notification based on a template."""
-        stmt = select(NotificationTemplate).where(NotificationTemplate.name == template_name)
-        result = await db.execute(stmt)
-        template = result.scalar_one_or_none()
-        if not template:
-            raise ValueError(f"Template '{template_name}' not found.")
-
-        body = template.body_template
-        title = template.subject or template_name
-        if variables:
-            for key, value in variables.items():
-                body = body.replace(f"{{{{{key}}}}}", value)
-                title = title.replace(f"{{{{{key}}}}}", value)
-
-        notification = await NotificationService.create_notification(
-            db, user_id, type=template_name, title=title, body=body
-        )
-
-        send_channels = channels or [template.channel]
-        await NotificationService.send_notification(db, notification.id, send_channels)
-
-        return notification
 
     # ── Read Management ───────────────────────────────────────────────
 

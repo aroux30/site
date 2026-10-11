@@ -23,6 +23,28 @@ class SEOMetadataCreate(BaseModel):
     schema_markup: dict[str, Any] | None = Field(
         None, description="Custom JSON-LD schema markup dictionary"
     )
+    # Rank Math's "focus keyword". Free text, may hold several comma-separated
+    # keyphrases; the analyzer scores content against the first one.
+    focus_keyword: str | None = Field(
+        None, description="Focus keyphrase the content is written for"
+    )
+    # Advanced tab: NULL = no explicit choice (site default applies).
+    robots_noindex: bool | None = Field(
+        None, description="Force noindex for this resource (null = default)"
+    )
+    robots_nofollow: bool | None = Field(
+        None, description="Force nofollow for this resource (null = default)"
+    )
+    og_type: str | None = Field(
+        None, max_length=50, description="Open Graph object type (null = derived)"
+    )
+    twitter_title: str | None = Field(None, max_length=200)
+    twitter_description: str | None = Field(None, max_length=500)
+    twitter_image: str | None = Field(None, max_length=500)
+    secondary_focus_keywords: str | None = Field(
+        None, description="Additional keyphrases, comma-separated"
+    )
+    seo_score: int | None = Field(None, ge=0, le=100, description="Last computed score")
 
 
 class SEOMetadataUpdate(BaseModel):
@@ -37,6 +59,15 @@ class SEOMetadataUpdate(BaseModel):
     og_description: str | None = Field(None, max_length=500)
     og_image: str | None = Field(None, max_length=500)
     schema_markup: dict[str, Any] | None = None
+    focus_keyword: str | None = None
+    robots_noindex: bool | None = None
+    robots_nofollow: bool | None = None
+    og_type: str | None = Field(None, max_length=50)
+    twitter_title: str | None = Field(None, max_length=200)
+    twitter_description: str | None = Field(None, max_length=500)
+    twitter_image: str | None = Field(None, max_length=500)
+    secondary_focus_keywords: str | None = None
+    seo_score: int | None = Field(None, ge=0, le=100)
 
 
 class SEOMetadataResponse(BaseModel):
@@ -54,6 +85,15 @@ class SEOMetadataResponse(BaseModel):
     og_description: str | None = None
     og_image: str | None = None
     schema_markup: dict[str, Any] | None = None
+    focus_keyword: str | None = None
+    robots_noindex: bool | None = None
+    robots_nofollow: bool | None = None
+    og_type: str | None = None
+    twitter_title: str | None = None
+    twitter_description: str | None = None
+    twitter_image: str | None = None
+    secondary_focus_keywords: str | None = None
+    seo_score: int | None = None
     created_at: datetime | None = None
     updated_at: datetime | None = None
 

@@ -139,8 +139,11 @@ async def review_card_transfer_receipt(
         from app.modules.orders.domain.models import Order, OrderStatus
 
         order = await db.get(Order, receipt.order_id)
-        if order is not None and order.status == OrderStatus.PENDING:
-            order.status = OrderStatus.CONFIRMED
+        if order is not None and order.status in (
+                OrderStatus.WAITING_PAYMENT_CARD,
+                OrderStatus.WAITING_PAYMENT_GATEWAY,
+            ):
+            order.status = OrderStatus.PENDING
             await logger.ainfo(
                 "card2card_order_confirmed_without_payment_row",
                 order_id=str(order.id),

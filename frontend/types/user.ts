@@ -1,7 +1,6 @@
 export interface User {
   id: string;
   phone: string;
-  email?: string | null;
   first_name?: string | null;
   last_name?: string | null;
   /** The public nickname, when the user set one. Empty means first+last. */
@@ -50,7 +49,7 @@ export interface User {
   lastLoginAt?: string;
 }
 
-export type UserRole = "customer" | "admin" | "vendor" | "support";
+export type UserRole = "customer" | "admin" | "support";
 
 export interface UserAddress {
   id: string;
@@ -95,7 +94,6 @@ export interface TokenResponse {
 export interface UserProfileResponse {
   id: string;
   phone: string;
-  email?: string | null;
   first_name?: string | null;
   last_name?: string | null;
   display_name?: string | null;
@@ -131,7 +129,6 @@ export interface RegisterRequest {
   // Optional aliases for compatibility
   firstName?: string;
   lastName?: string;
-  email?: string;
   passwordConfirmation?: string;
 }
 
@@ -155,7 +152,6 @@ export interface OtpVerifyRequest {
 export interface UpdateProfileRequest {
   first_name?: string | null;
   last_name?: string | null;
-  email?: string | null;
   national_code?: string | null;
   birth_date?: string | null;
   avatar_url?: string | null;

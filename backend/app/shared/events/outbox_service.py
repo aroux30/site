@@ -12,7 +12,7 @@ from datetime import UTC, datetime, timedelta
 from typing import TYPE_CHECKING, Any
 
 import structlog
-from sqlalchemy import and_, func, or_, select, update
+from sqlalchemy import and_, or_, select, update
 
 from app.shared.events.outbox_models import OutboxMessage, OutboxStatus
 
@@ -167,92 +167,3 @@ class OutboxService:
             )
 
         await db.flush()
-
-    async def list_by_status(
-        db: AsyncSession,
-        status: OutboxStatus,
-        *,
-        limit: int = 100,
-        offset: int = 0,
-    ) -> tuple[list[OutboxMessage], int]:
-        """Newest-first page of messages in *status*, plus the total count.
-
-        The admin dead-letter screen needs the count as well as the page: an
-        operator asking "how much is broken?" wants the number, and a page of
-        50 rows cannot answer it.
-        """
-        count_stmt = select(func.count()).select_from(OutboxMessage).where(
-            OutboxMessage.status == status
-        )
-        total = (await db.execute(count_stmt)).scalar_one()
-
-        stmt = (
-            select(OutboxMessage)
-            .where(OutboxMessage.status == status)
-            .order_by(OutboxMessage.created_at.desc())
-            .limit(limit)
-            .offset(offset)
-        )
-        rows = list((await db.execute(stmt)).scalars().all())
-        return rows, int(total)
-
-    async def requeue(
-        db: AsyncSession,
-        message_id: uuid.UUID,
-        *,
-        reset_retries: bool = True,
-    ) -> OutboxMessage | None:
-        """Put a DEAD_LETTER (or FAILED) message back on the queue.
-
-        Without this a dead letter is a write-only state: the message is in a
-        terminal condition no operator can see or act on, so the event is lost.
-        ``reset_retries`` is the default because the usual reason to replay is
-        that the *cause* was fixed — a handler registered late, a downstream
-        service restored — and carrying the exhausted counter forward would
-        dead-letter it again on the first new failure.
-
-        Returns None when the message does not exist, or is still in flight
-        (PENDING/CLAIMED/PROCESSED), which must not be replayed.
-        """
-        stmt = select(OutboxMessage).where(OutboxMessage.id == message_id).with_for_update()
-        msg = (await db.execute(stmt)).scalar_one_or_none()
-        if msg is None:
-            return None
-
-        replayable = {OutboxStatus.DEAD_LETTER, OutboxStatus.FAILED}
-        if msg.status not in replayable:
-            raise ValueError(
-                f"message is {msg.status.value}, which is not replayable"
-            )
-
-        msg.status = OutboxStatus.PENDING
-        msg.available_at = datetime.now(UTC)
-        msg.locked_at = None
-        msg.worker_id = None
-        msg.processed_at = None
-        if reset_retries:
-            msg.retry_count = 0
-
-        await db.commit()
-        await db.refresh(msg)
-        await logger.awarning(
-            "outbox_message_requeued",
-            message_id=str(message_id),
-            event_type=msg.event_type,
-            previous_status=OutboxStatus.DEAD_LETTER.value,
-        )
-        return msg
-
-    async def purge(
-        db: AsyncSession,
-        message_id: uuid.UUID,
-    ) -> bool:
-        """Delete a dead letter for good. Returns False when absent."""
-        stmt = select(OutboxMessage).where(OutboxMessage.id == message_id)
-        msg = (await db.execute(stmt)).scalar_one_or_none()
-        if msg is None:
-            return False
-        await db.delete(msg)
-        await db.commit()
-        await logger.awarning("outbox_message_purged", message_id=str(message_id))
-        return True

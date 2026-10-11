@@ -4,7 +4,7 @@ Provides cryptographically chained, immutable audit logging for sensitive operat
 1. Admin authentication (logins, MFA challenges, session management).
 2. RBAC and permissions changes (Casbin policy edits, role grants).
 3. Sensitive financial transactions (payments, refunds, wallet top-ups, card transfers).
-4. Identity inquiries (Shahkar KYC, bank card PAN lookup).
+4. Identity inquiries (bank card PAN lookup).
 5. Threat detections (rate limiting, brute force, token reuse).
 
 Complies with Iranian Cyber Police (FATA) and Shaparak audit requirements:
@@ -436,7 +436,7 @@ class SecurityAuditLogger:
     def log_identity_inquiry(
         self,
         actor_id: str,
-        inquiry_type: Literal["SHAHKAR", "CARD_TO_CARD", "CIVIL_REGISTRY"],
+        inquiry_type: Literal["CARD_TO_CARD"],
         national_code: str | None = None,
         mobile: str | None = None,
         card_pan: str | None = None,
@@ -447,7 +447,7 @@ class SecurityAuditLogger:
         reason: str | None = None,
         extra: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
-        """Record official identity verifications (Shahkar, Card-to-Card inquiry)."""
+        """Record official identity verifications (Card-to-Card inquiry)."""
         is_success = result.upper() in ("VERIFIED", "MATCH", "SUCCESS")
         status_val: Literal["SUCCESS", "FAILURE"] = "SUCCESS" if is_success else "FAILURE"
         meta = extra.copy() if extra else {}
@@ -594,7 +594,7 @@ def log_financial_transaction(
 
 def log_identity_inquiry(
     actor_id: str,
-    inquiry_type: Literal["SHAHKAR", "CARD_TO_CARD", "CIVIL_REGISTRY"],
+    inquiry_type: Literal["CARD_TO_CARD"],
     national_code: str | None = None,
     mobile: str | None = None,
     card_pan: str | None = None,

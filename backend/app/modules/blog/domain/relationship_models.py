@@ -2,7 +2,6 @@
 
 Allows defining typed relationships between any two blog posts:
 - related (manual related posts override)
-- translation (multi-language link)
 - series (part 1, part 2, etc.)
 - revision_of (for editorial forks)
 

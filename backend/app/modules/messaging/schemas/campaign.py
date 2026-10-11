@@ -29,7 +29,7 @@ class BroadcastCampaignCreate(BaseModel):
     )
     channel: CampaignChannel = Field(
         ...,
-        description="Delivery channel: sms, email, push, in_app",
+        description="Delivery channel: sms, in_app",
     )
     target_segment: TargetSegment = Field(
         ...,

@@ -16,16 +16,11 @@ export type PaymentFlow =
   /** No redirect — the server settles it in-page (wallet debit) or it is a dev mock. */
   | "in_page";
 
-/**
- * Online providers whose payment is finalised at the gateway.
- *
- * `mock` is development-only but harmless to list: it is only ever returned by
- * `/payments/methods` when the environment explicitly enables it.
- */
-const GATEWAY_PROVIDERS = new Set(["zarinpal", "idpay", "nextpay", "crypto"]);
+/** Online providers whose payment is finalised at the gateway. */
+const GATEWAY_PROVIDERS = new Set(["zarinpal", "nextpay"]);
 
 /** Providers that settle without leaving the page. */
-const IN_PAGE_PROVIDERS = new Set(["wallet", "mock"]);
+const IN_PAGE_PROVIDERS = new Set(["wallet"]);
 
 /** Offline transfer providers that require an admin-reviewed receipt. */
 const CARD_TRANSFER_PROVIDERS = new Set(["card_transfer"]);

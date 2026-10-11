@@ -42,8 +42,8 @@ class CustomTaxonomy(BaseModel):
     name: Mapped[str] = mapped_column(String(200), nullable=False)
     slug: Mapped[str] = mapped_column(String(220), unique=True, nullable=False)
     description: Mapped[str | None] = mapped_column(String(500), nullable=True)
-    # Which content types this taxonomy applies to: blog_post, cms_page,
-    # custom_post_entry. Enforced by what the term query below can join to, not
+    # Which content types this taxonomy applies to: blog_post, cms_page.
+    # Enforced by what the term query below can join to, not
     # by the picker hiding options — a taxonomy marked "pages only" still shows
     # its terms in the post editor's list, but attaching one there would store
     # nothing, so the picker filters on this instead.

@@ -49,6 +49,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useToast } from "@/components/ui/use-toast";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 import { mediaApi, type MediaAsset } from "@/lib/api/media";
 import { mediaEditingApi, type MediaEditStep } from "@/lib/api/wp-parity";
 import { useAdminMutation, useAdminQuery } from "@/lib/api/admin-query";
@@ -137,6 +138,7 @@ export default function AdminMediaPage() {
 
 function AdminMediaPageInner() {
   const { toast } = useToast();
+  const confirm = useConfirm();
   // ?asset=<id> opens one image straight away. The editor links here when the
   // author clicks "edit this image" on a picture inside a post, so the crop and
   // rotate tools are reachable from the body without hunting through the
@@ -393,11 +395,15 @@ function AdminMediaPageInner() {
     }
 
     if (used > 0) {
-      const ok = confirm(
-        `این فایل هنوز استفاده می‌شود (${where}).\n` +
-          `با حذف آن، ${used} مورد ارجاع از کار می‌افتد.\n\n` +
+      const ok = await confirm({
+        title: "حذف فایل در حال استفاده",
+        description:
+          `این فایل هنوز استفاده می‌شود (${where}). ` +
+          `با حذف آن، ${used} مورد ارجاع از کار می‌افتد. ` +
           "اگر مطمئنید، حذف را ادامه دهید؛ در غیر این صورت انصراف دهید.",
-      );
+        confirmLabel: "حذف",
+        destructive: true,
+      });
       if (!ok) return;
       const result = await runMutation(
         () => mediaApi.delete(id, { force: true }),
@@ -407,7 +413,13 @@ function AdminMediaPageInner() {
       return;
     }
 
-    if (!confirm("این فایل حذف شود؟")) return;
+    const ok = await confirm({
+      title: "حذف فایل",
+      description: "این فایل حذف شود؟",
+      confirmLabel: "حذف",
+      destructive: true,
+    });
+    if (!ok) return;
     const result = await runMutation(
       () => mediaApi.delete(id),
       {
@@ -442,12 +454,14 @@ function AdminMediaPageInner() {
     if (selected.size === 0) return;
     const count = selected.size;
     if (
-      !confirm(
-        `${count} فایل به سطل زباله منتقل شود؟
-
-` +
+      !(await confirm({
+        title: "انتقال به سطل زباله",
+        description:
+          `${count} فایل به سطل زباله منتقل شود؟ ` +
           "این فایل‌ها از کتابخانه پاک می‌شوند ولی روی سرور می‌مانند و از بخش سطل زباله قابل بازگردانی هستند.",
-      )
+        confirmLabel: "انتقال",
+        destructive: true,
+      }))
     ) {
       return;
     }

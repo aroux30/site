@@ -14,9 +14,8 @@ Guarantees:
   matches, so a typo in a condition cannot fire on arbitrary payloads.
 
 Action execution goes through the *read-only imports* of the sibling
-services: notifications (email + in-app) and integrations (outbound
-webhooks). The engine is called from the Celery task in
-``app.modules.automation.application.tasks`` with its own session.
+notifications service. The engine is called from the Celery
+task in ``app.modules.automation.application.tasks`` with its own session.
 """
 
 from __future__ import annotations
@@ -34,7 +33,8 @@ if TYPE_CHECKING:
 logger: structlog.stdlib.BoundLogger = structlog.get_logger(__name__)
 
 CONDITION_OPERATORS: frozenset[str] = frozenset({"eq", "ne", "gt", "lt", "gte", "lte", "contains"})
-ACTION_TYPES: frozenset[str] = frozenset({"send_email", "send_notification", "fire_webhook"})
+# "send_email" was removed on 2026-10-07 with the rest of the email feature.
+ACTION_TYPES: frozenset[str] = frozenset({"send_notification"})
 
 
 # ── Condition matching ───────────────────────────────────────────────────────
@@ -108,57 +108,9 @@ def match_conditions(conditions: Any, context: dict[str, Any]) -> bool:
 # ── Action execution ─────────────────────────────────────────────────────────
 
 
-async def _action_send_email(db: Any, params: dict[str, Any], context: dict[str, Any]) -> bool:
-    """Send an email via the notifications email service (or a named template)."""
-    from app.modules.notifications.application import email_service
-
-    recipient = str(params.get("recipient") or "").strip()
-    if "@" not in recipient:
-        raise ValueError("send_email requires a valid 'recipient' email address")
-    subject = str(params.get("subject") or "اعلان خودکار")
-    message = str(params.get("message") or "").strip()
-    template_name = params.get("template")
-
-    rendered_html: str | None = None
-    rendered_text: str | None = None
-    if template_name:
-        # DB first, built-in as the fallback, so an admin's saved override is
-        # what an automation rule actually sends. See resolve_template.
-        from app.modules.notifications.application.email_template_service import (
-            resolve_template,
-        )
-
-        try:
-            content = await resolve_template(db, str(template_name))
-        except Exception as exc:  # noqa: BLE001 — a named template that does not exist
-            logger.warning("email_template_unresolved", name=str(template_name), error=str(exc))
-            content = None  # falls back to the message below
-        if content is not None:
-            rendered = email_service.render_template(content, _stringify(params.get("variables")))
-            subject = rendered.subject if not message else subject
-            rendered_html, rendered_text = rendered.html, rendered.text
-
-    if rendered_html is None:
-        rendered_text = message or "اعلان خودکار سیستم"
-        # Same resolver as the transactional templates: an automation rule
-        # firing "your order shipped" and the order-confirmation email it
-        # complements were printed with two different store names.
-        rendered_html = await email_service.wrap_html_for_store(
-            db,
-            f"<p>{rendered_text}</p>".replace("\n", "<br>"),
-        )
-
-    success, _log = await email_service.send_email(
-        db,
-        recipient=recipient,
-        subject=subject,
-        html_body=rendered_html,
-        text_body=rendered_text or message,
-        template=str(template_name) if template_name else "automation",
-    )
-    if not success:
-        raise RuntimeError("email delivery reported failure")
-    return True
+# `_action_send_email` was removed on 2026-10-07 with the rest of the email
+# feature. Rules that still reference "send_email" fail validation against
+# ACTION_TYPES above.
 
 
 async def _action_send_notification(
@@ -198,29 +150,10 @@ async def _action_send_notification(
     return True
 
 
-async def _action_fire_webhook(db: Any, params: dict[str, Any], context: dict[str, Any]) -> bool:
-    """Queue an outbound webhook via the integrations webhook service."""
-    from app.modules.integrations.application import webhook_service
-
-    event = str(params.get("event") or "").strip()
-    if not event:
-        raise ValueError("fire_webhook requires an 'event' name")
-    if event not in webhook_service.EVENTS:
-        supported = ", ".join(sorted(webhook_service.EVENTS))
-        raise ValueError(f"unknown webhook event '{event}'; supported: {supported}")
-    payload = params.get("payload")
-    if not isinstance(payload, dict):
-        payload = _jsonable(context)
-    await webhook_service.enqueue_event(db, event, payload)
-    return True
-
-
 # Registry indirection keeps the engine unit-testable: tests monkeypatch
 # entries here instead of faking SMTP/HTTP.
 ACTION_HANDLERS: dict[str, Any] = {
-    "send_email": _action_send_email,
     "send_notification": _action_send_notification,
-    "fire_webhook": _action_fire_webhook,
 }
 
 

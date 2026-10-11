@@ -1,7 +1,7 @@
 """Dynamic per-category order fields (Karta categoryFields / Sprint 1.7).
 
 Category-scoped field definitions (Player ID, server, region, account
-email, ...) rendered on the order form and persisted with order items.
+text, ...) rendered on the order form and persisted with order items.
 
 Lookups keep the whole (small) definition table in memory and filter in
 Python: definitions change rarely and read paths are hot — and the

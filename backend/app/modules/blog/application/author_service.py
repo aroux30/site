@@ -15,9 +15,10 @@ from typing import TYPE_CHECKING
 
 import structlog
 from sqlalchemy import func, select
+from sqlalchemy.orm import selectinload
 
 from app.core.exceptions.handlers import NotFoundError
-from app.modules.blog.domain.models import BlogPost, BlogPostStatus
+from app.modules.blog.domain.models import BlogPost, BlogPostStatus, BlogPostTag
 from app.modules.blog.schemas.blog import (
     BlogAuthorArchiveResponse,
     BlogAuthorResponse,
@@ -67,6 +68,16 @@ class AuthorService:
 
         stmt = (
             select(BlogPost)
+            # `_post_to_response` reads `post.category` and `pt.tag` for every
+            # row; without these eager loads each access is a lazy load inside
+            # the async loop and raises MissingGreenlet — the author archive
+            # answered 500 for every author with a tagged post (found live
+            # 2026-10-09, with a full traceback, by the monitoring session).
+            # Same shape as `list_posts` (blog_service.py).
+            .options(
+                selectinload(BlogPost.category),
+                selectinload(BlogPost.post_tags).selectinload(BlogPostTag.tag),
+            )
             .where(
                 BlogPost.author_id == author.id,
                 BlogPost.status == BlogPostStatus.PUBLISHED,
@@ -96,14 +107,29 @@ class AuthorService:
             )
 
         total_pages = (total + page_size - 1) // page_size if page_size else 0
+        # The operator's author title/description templates must reach the
+        # live page. The frontend hardcoded the title and the panel template
+        # for the "author" type could never fire (SEO audit F-02-author).
+        # Local import: keeps the blog→seo dependency out of module import
+        # time (same pattern as BlogService._seo_dict_with_templates).
+        from app.modules.seo.application.titles_meta_service import (
+            TitlesMetaService,
+        )
+
+        author_name = _display_name(author)
+        seo_title, seo_description = await TitlesMetaService(self.db).resolve(
+            "author", title=author_name, resource_id=str(author.id)
+        )
         archive = BlogAuthorArchiveResponse.model_validate(
             {
                 "author": {
                     "slug": slug,
-                    "name": _display_name(author),
+                    "name": author_name,
                     "bio": getattr(author, "bio", None),
                     "avatar_url": getattr(author, "avatar_url", None),
                     "post_count": total,
+                    "seo_title": seo_title,
+                    "seo_description": seo_description,
                 },
                 "posts": {
                     "items": items,

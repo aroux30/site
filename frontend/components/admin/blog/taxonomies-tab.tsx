@@ -25,6 +25,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/use-toast";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 import {
   taxonomiesApi,
   OBJECT_TYPES,
@@ -72,11 +73,11 @@ function buildTree(terms: CustomTaxonomyTerm[]): TermNode[] {
 const OBJECT_LABELS: Record<ObjectType, string> = {
   blog_post: "نوشته‌ها",
   cms_page: "برگه‌ها",
-  custom_post_entry: "ورودی‌های سفارشی",
 };
 
 export function TaxonomiesTab() {
   const { toast } = useToast();
+  const confirm = useConfirm();
   const [taxonomies, setTaxonomies] = useState<CustomTaxonomy[]>([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<CustomTaxonomy | null>(null);
@@ -259,12 +260,13 @@ export function TaxonomiesTab() {
   };
 
   const removeTaxonomy = async (tax: CustomTaxonomy) => {
-    if (
-      !window.confirm(
-        `«${tax.name}» و همه‌ی ترم‌های آن حذف می‌شود و ترم‌هایش از نوشته‌ها جدا می‌شوند. این عمل برگشت‌پذیر نیست.`,
-      )
-    )
-      return;
+    const ok = await confirm({
+      title: "حذف تاکسونومی",
+      description: `«${tax.name}» و همه‌ی ترم‌های آن حذف می‌شود و ترم‌هایش از نوشته‌ها جدا می‌شوند. این عمل برگشت‌پذیر نیست.`,
+      confirmLabel: "حذف",
+      destructive: true,
+    });
+    if (!ok) return;
     try {
       const res = await taxonomiesApi.remove(tax.id);
       toast({
@@ -285,7 +287,13 @@ export function TaxonomiesTab() {
     const useMsg = inUse
       ? ` این ترم روی ${toPersianDigits(String(term.post_count))} نوشته استفاده شده؛ با حذف، از آن نوشته‌ها جدا می‌شود و خود نوشته‌ها دست‌نخورده می‌مانند.`
       : "";
-    if (!window.confirm(`«${term.name}» حذف شود؟${extra}${useMsg}`)) return;
+    const ok = await confirm({
+      title: "حذف ترم",
+      description: `«${term.name}» حذف شود؟${extra}${useMsg}`,
+      confirmLabel: "حذف",
+      destructive: true,
+    });
+    if (!ok) return;
     if (!selected) return;
     try {
       const res = await taxonomiesApi.removeTerm(selected.id, term.id);

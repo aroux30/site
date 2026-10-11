@@ -99,10 +99,14 @@ export function TransferTab() {
         parsed && parsed.posts > stats.posts + stats.skipped
           ? ` — فایل ${stats.posts + stats.skipped} نوشته داشت`
           : "";
+      const pages =
+        stats.pages_created + stats.pages_updated > 0
+          ? `، ${stats.pages_created} برگه`
+          : "";
       toast({
         title: "وارد کردن WXR انجام شد",
         description:
-          `${stats.posts} نوشته، ${stats.categories} دسته، ${stats.tags} برچسب` +
+          `${stats.posts} نوشته${pages}، ${stats.categories} دسته، ${stats.tags} برچسب` +
           missing,
       });
     } catch {

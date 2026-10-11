@@ -10,12 +10,13 @@
  * operator's extra rules (site option `robots_extra_rules`) after the generated
  * ones. The generated half is unchanged from the metadata version — the same
  * allow/disallow set and the same AI-crawler block — so nothing a crawler saw
- * before this change was a surprise, and the store's privacy toggle
+ * before this change was a surprise, and the store's visibility toggle
  * (blog_public) still drives it through the shared public discussion endpoint.
  */
 
 import { fetchPublicDiscussionOptions } from "@/lib/public-options";
 import { apiInternalUrl } from "@/lib/api/server-base";
+import { siteOrigin } from "@/lib/site-url";
 
 /** The operator's extra robots.txt lines, verbatim. Absent on failure — the
  *  generated rules are still a valid robots.txt, so an outage must not turn
@@ -34,7 +35,10 @@ async function fetchExtraRules(): Promise<string> {
 }
 
 export async function GET(): Promise<Response> {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+  // siteOrigin() reads NEXT_PUBLIC_SITE_URL → SITE_URL → localhost — the same
+  // resolver the sitemaps and JSON-LD use, so the Sitemap: lines cannot point
+  // at a different origin than the sitemap files themselves.
+  const baseUrl = siteOrigin();
 
   // The blog can be switched off in Settings → Reading. That already emits a
   // `noindex` meta tag on the blog subtree, but a crawler that honours
@@ -73,8 +77,14 @@ export async function GET(): Promise<Response> {
   }
 
   // No point advertising a sitemap when the whole site is disallowed.
+  // News/video sitemaps are always valid files (possibly empty) and a crawler
+  // only fetches them when declared here — Google does not discover them.
   if (searchVisible) {
-    lines.push(`Sitemap: ${baseUrl}/sitemap.xml`);
+    lines.push(
+      `Sitemap: ${baseUrl}/sitemap.xml`,
+      `Sitemap: ${baseUrl}/news-sitemap.xml`,
+      `Sitemap: ${baseUrl}/video-sitemap.xml`,
+    );
   }
 
   const trimmedExtra = extra.trim();

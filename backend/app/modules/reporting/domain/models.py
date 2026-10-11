@@ -25,8 +25,6 @@ class ReportType(str, enum.Enum):
 
     SALES = "sales"
     STOCK = "stock"
-    VENDOR_SETTLEMENT = "vendor_settlement"
-    TAX_VAT = "tax_vat"
 
 
 class ReportRunStatus(str, enum.Enum):
@@ -54,15 +52,14 @@ class SavedReport(BaseModel):
         nullable=False,
     )
     # Report parameters: date_from/date_to (ISO date strings), group_by and
-    # optional warehouse_id/vendor_id/category_id filters.
+    # optional category_id filter.
     filters: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False, default=dict)
     # Standard five-field cron (minute hour day-of-month month day-of-week),
     # evaluated in Asia/Tehran. NULL = manual runs only.
     schedule_cron: Mapped[str | None] = mapped_column(String(100), nullable=True)
-    # e.g. ["email"]; in-app notification is always available.
-    delivery_channels: Mapped[list[Any]] = mapped_column(JSONB, nullable=False, default=list)
-    # e.g. ["ops@example.com"] for the email channel.
-    recipients: Mapped[list[Any]] = mapped_column(JSONB, nullable=False, default=list)
+    # `delivery_channels` / `recipients` were dropped on 2026-10-07 with the
+    # rest of the email feature (migration `rmemail1`); the run record itself
+    # is the delivery surface.
     owner_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("users.id", ondelete="CASCADE"),
@@ -78,8 +75,6 @@ class SavedReport(BaseModel):
 
     def __init__(self, **kw: Any) -> None:
         kw.setdefault("filters", {})
-        kw.setdefault("delivery_channels", [])
-        kw.setdefault("recipients", [])
         kw.setdefault("is_active", True)
         super().__init__(**kw)
 

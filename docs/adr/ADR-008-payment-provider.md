@@ -8,7 +8,7 @@
 
 The platform must integrate with Iranian payment gateways to process online transactions. The Iranian payment ecosystem differs significantly from international providers: gateways use redirect-based flows (not direct API charges), have varying API designs, and their availability can be unpredictable. No single gateway is universally reliable.
 
-Key payment providers in the Iranian market include Zarinpal, IDPay, and NextPay, among others. The platform must:
+Key payment providers in the Iranian market include Zarinpal and NextPay, among others. The platform must:
 
 - Support multiple payment gateways simultaneously.
 - Allow switching between gateways without modifying business logic.
@@ -30,7 +30,6 @@ PaymentProvider (Protocol / Abstract Base Class)
 
 Concrete Implementations:
 ├── ZarinpalProvider
-├── IDPayProvider
 └── NextPayProvider
 ```
 

@@ -150,9 +150,9 @@ def compare_totals(
     """Compare two reports' totals dicts, metric by metric. Pure.
 
     Only *numeric* entries are compared: a totals dict also carries labels
-    and identifiers, and "the vendor name changed by 300%" is noise. Metrics
-    are taken from the union of both sides so a metric that appeared or
-    disappeared between periods is still surfaced — usually the most
+    and identifiers, and "the bucket label changed by 300%" is noise.
+    Metrics are taken from the union of both sides so a metric that appeared
+    or disappeared between periods is still surfaced — usually the most
     interesting row on the page.
     """
     keys = metrics if metrics is not None else sorted(set(current) | set(previous))

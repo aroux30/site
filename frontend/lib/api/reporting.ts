@@ -5,12 +5,10 @@ import apiClient from "./client";
 // Money: every *_rial field is an integer number of Rials; format in Toman
 // at the call site with formatPrice(Math.trunc(rial / 10)).
 
-export type ReportTypeValue = "sales" | "stock" | "vendor_settlement" | "tax_vat";
+export type ReportTypeValue = "sales" | "stock";
 
-export type SalesGroupBy = "day" | "week" | "month" | "category" | "vendor" | "channel";
-export type StockGroupBy = "warehouse" | "category" | "variant";
-export type SettlementGroupBy = "vendor" | "status";
-export type TaxGroupBy = "period" | "rule" | "category";
+export type SalesGroupBy = "day" | "week" | "month" | "category" | "channel";
+export type StockGroupBy = "category" | "variant";
 
 export interface ReportColumn {
   key: string;
@@ -33,8 +31,6 @@ export interface ReportQuery {
   from: string; // ISO date (Gregorian) — display Jalali, API Gregorian
   to: string;
   group_by?: string;
-  warehouse_id?: string;
-  vendor_id?: string;
   category_id?: string;
   low_stock_only?: boolean;
 }
@@ -52,8 +48,6 @@ export interface SavedReport {
   report_type: ReportTypeValue;
   filters: Record<string, unknown>;
   schedule_cron: string | null;
-  delivery_channels: string[];
-  recipients: string[];
   owner_id: string;
   is_active: boolean;
   last_run_at: string | null;
@@ -74,8 +68,6 @@ export interface SavedReportCreatePayload {
   report_type: ReportTypeValue;
   filters: Record<string, unknown>;
   schedule_cron?: string | null;
-  delivery_channels?: string[];
-  recipients?: string[];
   is_active?: boolean;
 }
 
@@ -83,8 +75,6 @@ export interface SavedReportUpdatePayload {
   name?: string;
   filters?: Record<string, unknown>;
   schedule_cron?: string | null;
-  delivery_channels?: string[];
-  recipients?: string[];
   is_active?: boolean;
 }
 
@@ -111,8 +101,6 @@ export interface ReportRunList {
 function cleanParams(query: ReportQuery): Record<string, string> {
   const params: Record<string, string> = { from: query.from, to: query.to };
   if (query.group_by) params.group_by = query.group_by;
-  if (query.warehouse_id) params.warehouse_id = query.warehouse_id;
-  if (query.vendor_id) params.vendor_id = query.vendor_id;
   if (query.category_id) params.category_id = query.category_id;
   if (query.low_stock_only) params.low_stock_only = "true";
   return params;

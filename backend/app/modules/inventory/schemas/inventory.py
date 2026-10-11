@@ -129,14 +129,13 @@ class TransactionListResponse(BaseModel):
     page_size: int
 
 
-# ── Reorder rules (Odoo stock.warehouse.orderpoint concept, clean-room) ────
+# ── Reorder rules (Odoo orderpoint concept, clean-room) ────────────────────
 
 
 class ReorderRuleUpsertRequest(BaseModel):
-    """Create or update the reorder rule for one variant in one warehouse."""
+    """Create or update the reorder rule for one variant."""
 
     variant_id: uuid.UUID
-    warehouse_id: uuid.UUID | None = None
     min_quantity: int = Field(0, ge=0)
     reorder_to: int = Field(0, ge=0)
     is_active: bool = True
@@ -147,7 +146,6 @@ class ReorderRuleResponse(BaseModel):
 
     id: uuid.UUID
     variant_id: uuid.UUID
-    warehouse_id: uuid.UUID
     min_quantity: int
     reorder_to: int
     is_active: bool

@@ -9,9 +9,29 @@ import { useAuth } from "@/hooks/use-auth";
 
 export function AdminAuthGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
-  const { user, isAuthenticated, isLoading, logout } = useAuth();
+  const { user, isAuthenticated, isLoading, logout, fetchCurrentUser } = useAuth();
   const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
   const idleTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Cookie-only session discovery (see AccountAuthGuard for the full reason):
+  // the storefront mount probe is skipped for visitors with no client-side
+  // session signal, but /admin is a protected route the edge middleware let
+  // through — an HttpOnly cookie session must still be discovered here.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      const raw = window.localStorage.getItem("auth-storage");
+      const parsed = raw ? JSON.parse(raw) : null;
+      if (parsed?.state?.isAuthenticated) return;
+    } catch {
+      /* unreadable storage — probe anyway */
+    }
+    fetchCurrentUser().catch(() => {
+      /* 401 -> the authorization effect below bounces to /login */
+    });
+    // Mount-only: fetchCurrentUser is recreated on every store update.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // 1. Inactivity idle timeout (30 minutes)
   useEffect(() => {

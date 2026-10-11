@@ -16,7 +16,6 @@ from sqlalchemy.orm import selectinload
 from app.core.exceptions.handlers import NotFoundError, ValidationError
 from app.modules.shipping.domain.models import (
     DeliveryType,
-    PickupPoint,
     Shipment,
     ShipmentItem,
     ShipmentStatus,
@@ -100,7 +99,6 @@ def _build_shipment_response(shipment: Shipment) -> ShipmentResponse:
         else DeliveryType.HOME.value,
         cod_amount_rial=shipment.cod_amount_rial,
         cod_collected_at=shipment.cod_collected_at,
-        pickup_point_id=shipment.pickup_point_id,
         cancelled_at=shipment.cancelled_at,
         cancelled_reason=shipment.cancelled_reason,
         label_url=shipment.label_url,
@@ -115,7 +113,15 @@ def _build_shipment_response(shipment: Shipment) -> ShipmentResponse:
 
 
 async def get_shipping_methods(db: AsyncSession) -> list[ShippingMethodResponse]:
-    """Return all **active** shipping methods."""
+    """Return all **active** shipping methods.
+
+    The three remaining methods (پست پیشتاز / تیپاکس اکسپرس / پیک موتوری) are
+    the store's own shipping-price configuration: rates are served from
+    ``shipping_rates`` and never depended on carrier API adapters. Those
+    adapters were removed on 2026-10-04 — they only fabricated tracking codes
+    — so a new shipment's tracking code is whatever the admin enters from the
+    carrier, and tracking is served from the local lifecycle timeline.
+    """
     stmt = (
         select(ShippingMethod)
         .where(ShippingMethod.is_active.is_(True))
@@ -133,16 +139,13 @@ async def calculate_shipping(
     db: AsyncSession,
     province: str,
     weight: float,
-    order_amount: int,
 ) -> ShippingQuoteResponse:
     """Calculate shipping cost for each active method.
 
     Rate selection logic:
-    1. Look for a rate that matches the exact *province*, and whose weight /
-       price thresholds cover the given values.
+    1. Look for a rate that matches the exact *province* and whose weight
+       thresholds cover the given values.
     2. Fall back to a rate with ``province IS NULL`` (default / nationwide rate).
-    3. If the rate's ``min_order_amount`` is set and the order meets it the
-       shipping is free.
     """
     stmt = (
         select(ShippingMethod)
@@ -155,13 +158,9 @@ async def calculate_shipping(
     quote_items: list[ShippingQuoteMethodItem] = []
 
     for method in methods:
-        best_rate = _find_best_rate(method.rates, province, weight, order_amount)
+        best_rate = _find_best_rate(method.rates, province, weight)
         if best_rate is None:
             continue  # no applicable rate for this method
-
-        is_free = (
-            best_rate.min_order_amount is not None and order_amount >= best_rate.min_order_amount
-        )
 
         quote_items.append(
             ShippingQuoteMethodItem(
@@ -171,8 +170,7 @@ async def calculate_shipping(
                 provider=method.provider,
                 estimated_days_min=method.estimated_days_min,
                 estimated_days_max=method.estimated_days_max,
-                price=0 if is_free else best_rate.price,
-                is_free=is_free,
+                price=best_rate.price,
             )
         )
 
@@ -180,14 +178,12 @@ async def calculate_shipping(
         "shipping_quote_calculated",
         province=province,
         weight=weight,
-        order_amount=order_amount,
         options=len(quote_items),
     )
 
     return ShippingQuoteResponse(
         province=province,
         weight=weight,
-        order_amount=order_amount,
         methods=quote_items,
     )
 
@@ -196,7 +192,6 @@ def _find_best_rate(
     rates: list[ShippingRate],
     province: str,
     weight: float,
-    order_amount: int,
 ) -> ShippingRate | None:
     """Pick the most specific matching rate from a method's rate list.
 
@@ -236,7 +231,6 @@ async def create_shipment(
     actor_id: uuid.UUID,
     tracking_code: str | None = None,
     delivery_type: DeliveryType | str = DeliveryType.HOME,
-    pickup_point_id: uuid.UUID | None = None,
 ) -> ShipmentResponse:
     """Create a new shipment for an order (admin operation)."""
     # Validate method exists
@@ -278,29 +272,17 @@ async def create_shipment(
         )
         cod_amount = cod_amount_for_order(order.total, int(already_paid or 0))
 
-    resolved_tracking_code = tracking_code
-    if not resolved_tracking_code:
-        from app.modules.shipping.infrastructure.carrier_provider import ShippingProviderFactory
-
-        provider = ShippingProviderFactory.get_provider(method.provider or "internal")
-        dispatch_res = await provider.create_shipment(
-            order_id=order_id,
-            recipient_name="مشتری",
-            recipient_phone="09120000000",
-            full_address="تهران",
-            postal_code="1122334455",
-            weight_kg=1.0,
-        )
-        resolved_tracking_code = dispatch_res.tracking_code
-
+    # The tracking code is whatever the admin entered when dispatching; no
+    # code is fabricated here. Carrier API integrations were removed
+    # (2026-10-04) — the shipment lifecycle is recorded locally and the
+    # tracking timeline below is the single source of truth.
     shipment = Shipment(
         order_id=order_id,
         method_id=method_id,
-        tracking_code=resolved_tracking_code,
+        tracking_code=tracking_code,
         status=ShipmentStatus.PENDING,
         delivery_type=delivery_type,
         cod_amount_rial=cod_amount,
-        pickup_point_id=pickup_point_id,
     )
     db.add(shipment)
     await db.flush()
@@ -376,18 +358,20 @@ async def update_shipment_status(
         if target == ShipmentStatus.DELIVERED and shipment.delivered_at is None:
             shipment.delivered_at = now
 
-            # Synchronize order status to DELIVERED to activate statutory 7-day RMA window
+            # A delivered shipment completes the order. `delivered` is no
+            # longer an order status (2026-10-11) — physical delivery IS the
+            # completion event now that there is no packing/delivery chain.
             from app.modules.orders.domain.models import Order, OrderStatus, OrderStatusHistory
 
             order = await db.get(Order, shipment.order_id)
-            if order and order.status != OrderStatus.DELIVERED:
+            if order and order.status != OrderStatus.COMPLETED:
                 old_order_status = order.status.value
-                order.status = OrderStatus.DELIVERED
+                order.status = OrderStatus.COMPLETED
                 db.add(
                     OrderStatusHistory(
                         order_id=order.id,
                         from_status=old_order_status,
-                        to_status=OrderStatus.DELIVERED.value,
+                        to_status=OrderStatus.COMPLETED.value,
                         changed_by=actor_id,
                         reason=(
                             f"تحویل مرسوله پستی به مشتری "
@@ -491,9 +475,12 @@ async def track_shipment_with_carrier(
     db: AsyncSession,
     shipment_id_or_code: str,
 ) -> dict[str, Any]:
-    """Track shipment events using the designated carrier provider."""
-    from app.modules.shipping.infrastructure.carrier_provider import ShippingProviderFactory
+    """Track a shipment from the local lifecycle timeline.
 
+    Carrier API adapters were removed (2026-10-04); the shipment's own
+    ``shipment_tracking_events`` timeline — written by the admin lifecycle
+    transitions — is the source of truth served to the customer.
+    """
     shipment = None
     try:
         s_id = uuid.UUID(shipment_id_or_code)
@@ -517,36 +504,37 @@ async def track_shipment_with_carrier(
     if shipment is None or not shipment.tracking_code:
         raise NotFoundError("Shipment")
 
-    provider_name = "internal"
-    if shipment.method and shipment.method.provider:
-        provider_name = shipment.method.provider
-
-    provider = ShippingProviderFactory.get_provider(provider_name)
-    tracking_result = await provider.track_shipment(shipment.tracking_code)
+    events_stmt = (
+        select(ShipmentTrackingEvent)
+        .where(ShipmentTrackingEvent.shipment_id == shipment.id)
+        .order_by(ShipmentTrackingEvent.created_at)
+    )
+    events = (await db.execute(events_stmt)).scalars().all()
 
     # This result is served by the public /track/{code} route, so internal
     # identifiers (shipment/order UUIDs) are deliberately omitted — the
-    # caller already holds the one handle they are entitled to: the carrier
+    # caller already holds the one handle they are entitled to: the
     # tracking code. Exposing the UUIDs let anyone holding a code enumerate
     # internal order/shipment ids.
+    method_provider = shipment.method.provider if shipment.method else None
     return {
-        "tracking_code": tracking_result.tracking_code,
-        "carrier": provider.provider_name,
-        "status": tracking_result.status,
-        "is_delivered": tracking_result.is_delivered,
+        "tracking_code": shipment.tracking_code,
+        "carrier": method_provider or "internal",
+        "status": shipment.status.value,
+        "is_delivered": shipment.status == ShipmentStatus.DELIVERED,
         "events": [
             {
-                "status": e.status,
-                "location": e.location,
-                "timestamp": e.timestamp.isoformat(),
-                "description": e.description,
+                "status": e.status.value,
+                "location": e.location or "",
+                "timestamp": e.created_at.isoformat(),
+                "description": e.description or "",
             }
-            for e in tracking_result.events
+            for e in events
         ],
     }
 
 
-# -- Cancellation, cash-on-delivery, pickup points (ERP feature #32) --------
+# -- Cancellation, cash-on-delivery (ERP feature #32) ----------------------
 
 
 async def cancel_shipment(
@@ -556,13 +544,12 @@ async def cancel_shipment(
     reason: str,
     actor_id: uuid.UUID | None = None,
 ) -> ShipmentResponse:
-    """Cancel a shipment that the carrier has not collected yet.
+    """Cancel a shipment that has not been collected yet.
 
     Refused once the parcel is out (SHIPPED/IN_TRANSIT): at that point the
-    only honest operation is a return, not a cancellation that would leave
-    the carrier holding a parcel we claim does not exist. The carrier's own
-    ``cancel_shipment`` is called too -- a tracking code that stays live at
-    the carrier after we cancel locally is a support ticket waiting to happen.
+    only honest operation is a return. Cancellation is local-record only —
+    carrier API integrations were removed (2026-10-04), so the parcel must
+    be handled with the carrier out of band.
     """
     shipment = await db.get(Shipment, shipment_id)
     if shipment is None:
@@ -579,35 +566,6 @@ async def cancel_shipment(
             "دلیل لغو مرسوله الزامی است",
             error_code="CANCELLATION_REASON_REQUIRED",
         )
-
-    # Best-effort carrier-side cancellation: our record flips regardless, and
-    # the failure is logged loudly because it means the carrier still expects
-    # the parcel.
-    if shipment.tracking_code:
-        provider_name = "internal"
-        if shipment.method and shipment.method.provider:
-            provider_name = shipment.method.provider
-        try:
-            from app.modules.shipping.infrastructure.carrier_provider import (
-                ShippingProviderFactory,
-            )
-
-            provider = ShippingProviderFactory.get_provider(provider_name)
-            cancelled_at_carrier = await provider.cancel_shipment(shipment.tracking_code)
-            if not cancelled_at_carrier:
-                await logger.awarning(
-                    "carrier_cancel_returned_false",
-                    shipment_id=str(shipment_id),
-                    tracking_code=shipment.tracking_code,
-                    provider=provider_name,
-                )
-        except Exception:
-            await logger.aexception(
-                "carrier_cancel_failed",
-                shipment_id=str(shipment_id),
-                tracking_code=shipment.tracking_code,
-                provider=provider_name,
-            )
 
     shipment.status = ShipmentStatus.CANCELLED
     shipment.cancelled_at = datetime.now(UTC)
@@ -671,82 +629,6 @@ async def mark_cod_collected(
         actor_id=str(actor_id) if actor_id else None,
     )
     return _build_shipment_response(shipment)
-
-
-async def list_pickup_points(
-    db: AsyncSession,
-    *,
-    city: str | None = None,
-    provider: str | None = None,
-    active_only: bool = True,
-) -> list[PickupPoint]:
-    """List pickup points, optionally filtered by city and carrier."""
-    stmt = select(PickupPoint).order_by(PickupPoint.city, PickupPoint.name)
-    if city:
-        stmt = stmt.where(PickupPoint.city == city)
-    if provider:
-        stmt = stmt.where(PickupPoint.provider == provider)
-    if active_only:
-        stmt = stmt.where(PickupPoint.is_active.is_(True))
-    return list((await db.execute(stmt)).scalars().all())
-
-
-async def upsert_pickup_point(
-    db: AsyncSession,
-    *,
-    provider: str,
-    external_id: str,
-    name: str,
-    city: str,
-    address: str,
-    province: str | None = None,
-    postal_code: str | None = None,
-    phone: str | None = None,
-    latitude: float | None = None,
-    longitude: float | None = None,
-) -> PickupPoint:
-    """Create or refresh a pickup point by (provider, external_id).
-
-    Upsert rather than insert: carrier networks are re-imported periodically
-    (addresses and phone numbers change), and a duplicate row would show the
-    customer two entries for one physical shop.
-    """
-    existing = (
-        await db.execute(
-            select(PickupPoint).where(
-                PickupPoint.provider == provider,
-                PickupPoint.external_id == external_id,
-            )
-        )
-    ).scalar_one_or_none()
-
-    if existing is None:
-        point = PickupPoint(
-            provider=provider,
-            external_id=external_id,
-            name=name,
-            city=city,
-            address=address,
-            province=province,
-            postal_code=postal_code,
-            phone=phone,
-            latitude=latitude,
-            longitude=longitude,
-        )
-        db.add(point)
-        await db.flush()
-        return point
-
-    existing.name = name
-    existing.city = city
-    existing.address = address
-    existing.province = province
-    existing.postal_code = postal_code
-    existing.phone = phone
-    existing.latitude = latitude
-    existing.longitude = longitude
-    await db.flush()
-    return existing
 
 
 def cod_amount_for_order(order_total_rial: int, amount_already_paid_rial: int) -> int:

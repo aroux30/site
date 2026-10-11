@@ -5,7 +5,6 @@ import {
   BarChart3,
   CalendarClock,
   Download,
-  FileText,
   Package,
   Play,
   Plus,
@@ -34,6 +33,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 import { DataTable, type DataTableColumn } from "@/components/admin/data-table";
 import { SystemHealthSection } from "@/components/admin/system-health-section";
 import {
@@ -82,7 +82,6 @@ const REPORT_DEFS: ReportDef[] = [
       { value: "week", label: "هفتگی" },
       { value: "month", label: "ماهانه" },
       { value: "category", label: "دسته‌بندی" },
-      { value: "vendor", label: "فروشنده" },
       { value: "channel", label: "کانال فروش" },
     ],
     defaultGroupBy: "day",
@@ -94,42 +93,16 @@ const REPORT_DEFS: ReportDef[] = [
     icon: Package,
     groupBys: [
       { value: "variant", label: "تک‌تک اقلام" },
-      { value: "warehouse", label: "انبار" },
       { value: "category", label: "دسته‌بندی" },
     ],
     defaultGroupBy: "variant",
     supportsLowStockOnly: true,
-  },
-  {
-    value: "vendor_settlement",
-    label: "گزارش تسویه فروشندگان",
-    description: "کمیسیون پلتفرم و مبالغ در انتظار، قابل پرداخت و پرداخت‌شده",
-    icon: Scale,
-    groupBys: [
-      { value: "vendor", label: "فروشنده" },
-      { value: "status", label: "وضعیت سند تسویه" },
-    ],
-    defaultGroupBy: "vendor",
-  },
-  {
-    value: "tax_vat",
-    label: "گزارش مالیات بر ارزش افزوده",
-    description: "تجمیع مشاهدات مالیاتی ثبت‌شده سفارش‌ها (موتور مالیاتی checkout)",
-    icon: FileText,
-    groupBys: [
-      { value: "period", label: "دوره ماهانه" },
-      { value: "rule", label: "قاعده مالیاتی" },
-      { value: "category", label: "دسته‌بندی" },
-    ],
-    defaultGroupBy: "period",
   },
 ];
 
 const REPORT_TYPE_LABELS: Record<ReportTypeValue, string> = {
   sales: "فروش",
   stock: "موجودی",
-  vendor_settlement: "تسویه فروشندگان",
-  tax_vat: "مالیات ارزش افزوده",
 };
 
 const RUN_STATUS_LABELS: Record<ReportRunStatusValue, string> = {
@@ -137,7 +110,7 @@ const RUN_STATUS_LABELS: Record<ReportRunStatusValue, string> = {
   running: "در حال اجرا",
   succeeded: "موفق",
   failed: "ناموفق",
-  completed_no_delivery: "اجرا شد (بدون ارسال ایمیل)",
+  completed_no_delivery: "اجرا شد (تحویل انجام نشد)",
 };
 
 const RUN_STATUS_VARIANTS: Record<
@@ -167,6 +140,7 @@ function formatCell(value: string | number | null | undefined, kind: string): st
 
 export default function AdminReportsPage() {
   const { toast } = useToast();
+  const confirm = useConfirm();
 
   // ── Report query state ────────────────────────────────────────────
   const [reportType, setReportType] = useState<ReportTypeValue>("sales");
@@ -178,7 +152,6 @@ export default function AdminReportsPage() {
   const [saveDialogOpen, setSaveDialogOpen] = useState(false);
   const [saveName, setSaveName] = useState("");
   const [saveCron, setSaveCron] = useState("");
-  const [saveRecipients, setSaveRecipients] = useState("");
   const [saving, setSaving] = useState(false);
   const [runsFor, setRunsFor] = useState<SavedReport | null>(null);
   const [runs, setRuns] = useState<ReportRun[]>([]);
@@ -277,23 +250,16 @@ export default function AdminReportsPage() {
     setSaving(true);
     try {
       const cron = saveCron.trim();
-      const recipients = saveRecipients
-        .split(/[,;\n]/)
-        .map((r) => r.trim())
-        .filter(Boolean);
       await reportingApi.createSavedReport({
         name: saveName.trim(),
         report_type: reportType,
         filters: currentFilters(),
         schedule_cron: cron || null,
-        delivery_channels: recipients.length > 0 ? ["email"] : [],
-        recipients,
       });
       toast({ title: "گزارش ذخیره شد" });
       setSaveDialogOpen(false);
       setSaveName("");
       setSaveCron("");
-      setSaveRecipients("");
       void fetchSavedReports();
     } catch (err) {
       toast({
@@ -329,7 +295,13 @@ export default function AdminReportsPage() {
   };
 
   const handleDeleteSaved = async (saved: SavedReport) => {
-    if (!window.confirm(`گزارش «${saved.name}» برای همیشه حذف شود؟`)) return;
+    const ok = await confirm({
+      title: "حذف گزارش",
+      description: `گزارش «${saved.name}» برای همیشه حذف شود؟`,
+      confirmLabel: "حذف",
+      destructive: true,
+    });
+    if (!ok) return;
     try {
       await reportingApi.deleteSavedReport(saved.id);
       toast({ title: "گزارش حذف شد" });
@@ -585,7 +557,7 @@ export default function AdminReportsPage() {
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Button
             variant="outline"
             size="sm"
@@ -734,8 +706,8 @@ export default function AdminReportsPage() {
               گزارش‌های ذخیره‌شده و زمان‌بندی ارسال
             </h3>
             <p className="text-xs text-muted-foreground">
-              گزارش‌های زمان‌بندی‌شده با کرون ۵ فیلدی (به وقت تهران) اجرا و در
-              صورت پیکربندی SMTP ایمیل می‌شوند
+              گزارش‌های زمان‌بندی‌شده با کرون ۵ فیلدی (به وقت تهران) اجرا
+              می‌شوند و خروجی CSV در بایگانی ذخیره می‌شود
             </p>
           </div>
         </div>
@@ -785,15 +757,6 @@ export default function AdminReportsPage() {
               <span className="block text-[10px] text-muted-foreground">
                 مثال: «۰ ۸ * * *» یعنی هر روز ساعت ۸ صبح به وقت تهران
               </span>
-            </div>
-            <div className="space-y-1.5">
-              <Label>گیرندگان ایمیل (اختیاری، با ویرگول جدا کنید)</Label>
-              <Input
-                dir="ltr"
-                value={saveRecipients}
-                onChange={(e) => setSaveRecipients(e.target.value)}
-                placeholder="ops@example.com, finance@example.com"
-              />
             </div>
           </div>
           <DialogFooter>

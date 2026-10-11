@@ -44,7 +44,6 @@ from app.modules.catalog.domain.models import Product
 from app.modules.orders.domain.models import Order
 from app.modules.support.domain.models import SupportTicket
 from app.modules.users.domain.models import User, UserProfile
-from app.modules.vendors.domain.models import Vendor
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
@@ -67,7 +66,6 @@ SEARCHABLE_ENTITIES = {
     "customer": "مشتری",
     "ticket": "تیکت",
     "product": "محصول",
-    "vendor": "فروشنده",
     "blog_post": "نوشته",
     "cms_page": "صفحه",
 }
@@ -151,7 +149,6 @@ async def _search_orders(
             or_(
                 Order.order_number.ilike(pattern, escape="\\"),
                 User.phone.ilike(pattern, escape="\\"),
-                User.email.ilike(pattern, escape="\\"),
                 UserProfile.first_name.ilike(pattern, escape="\\"),
                 UserProfile.last_name.ilike(pattern, escape="\\"),
             )
@@ -178,7 +175,7 @@ async def _search_orders(
 async def _search_customers(
     db: AsyncSession, term: str, limit: int
 ) -> list[SearchHit]:
-    """Customers by phone, email, or name."""
+    """Customers by phone or name."""
     pattern = _like(term)
     stmt = (
         select(User, UserProfile)
@@ -186,7 +183,6 @@ async def _search_customers(
         .where(
             or_(
                 User.phone.ilike(pattern, escape="\\"),
-                User.email.ilike(pattern, escape="\\"),
                 UserProfile.first_name.ilike(pattern, escape="\\"),
                 UserProfile.last_name.ilike(pattern, escape="\\"),
             )
@@ -214,7 +210,7 @@ async def _search_customers(
                 subtitle=user.phone,
                 status="active" if user.is_active else "inactive",
                 url=f"/admin/users?search={user.phone}",
-                extra={"email": user.email},
+                extra={},
             )
         )
     return hits
@@ -291,37 +287,6 @@ async def _search_products(
     ]
 
 
-async def _search_vendors(
-    db: AsyncSession, term: str, limit: int
-) -> list[SearchHit]:
-    """Vendors by store name or slug."""
-    pattern = _like(term)
-    stmt = (
-        select(Vendor)
-        .where(
-            or_(
-                Vendor.store_name.ilike(pattern, escape="\\"),
-                Vendor.slug.ilike(pattern, escape="\\"),
-            )
-        )
-        .order_by(Vendor.created_at.desc())
-        .limit(limit)
-    )
-    rows = (await db.execute(stmt)).scalars().all()
-
-    return [
-        SearchHit(
-            entity_type="vendor",
-            entity_id=str(vendor.id),
-            title=vendor.store_name,
-            subtitle=vendor.slug,
-            status="active" if getattr(vendor, "is_active", True) else "inactive",
-            url=f"/admin/procurement/suppliers?search={vendor.slug}",
-        )
-        for vendor in rows
-    ]
-
-
 async def _search_blog_posts(
     db: AsyncSession, term: str, limit: int
 ) -> list[SearchHit]:
@@ -355,7 +320,6 @@ async def _search_blog_posts(
             subtitle=post.slug,
             status=getattr(post.status, "value", str(post.status)),
             url=f"/admin/blog?post={post.id}",
-            extra={"locale": post.locale},
         )
         for post in rows
     ]
@@ -400,7 +364,6 @@ _COLLECTORS = {
     "customer": _search_customers,
     "ticket": _search_tickets,
     "product": _search_products,
-    "vendor": _search_vendors,
     "blog_post": _search_blog_posts,
     "cms_page": _search_cms_pages,
 }

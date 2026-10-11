@@ -4,6 +4,11 @@ Generates hierarchical breadcrumb trails for blog posts, CMS pages,
 categories, and tags. Returns structured data suitable for both
 HTML rendering and Schema.org BreadcrumbList JSON-LD.
 
+The home label and the blog-crumb toggle come from site options (Rank Math's
+Breadcrumbs panel: `seo_breadcrumb_home_label`, `seo_breadcrumb_show_blog`),
+read via `settings()` — callers that pass explicit values keep working, and
+the visible trail and the JSON-LD share one source so they cannot disagree.
+
 Usage:
     from app.shared.content.breadcrumbs import BreadcrumbService
     crumbs = await BreadcrumbService.for_blog_post(db, post)
@@ -31,6 +36,32 @@ class Breadcrumb:
     is_current: bool = False
 
 
+async def settings(db: "AsyncSession") -> dict[str, Any]:
+    """The breadcrumb options, resolved once per request.
+
+    Fail-open with the built-in defaults: an options outage must not blank
+    every trail on the site, and the defaults are what shipped before the
+    options existed.
+    """
+    out: dict[str, Any] = {"home_label": "خانه", "show_blog": True, "separator": "/"}
+    try:
+        from app.modules.settings.application.site_options_service import (
+            SiteOptionsService,
+        )
+
+        home = await SiteOptionsService.get(db, "seo_breadcrumb_home_label")
+        if home:
+            out["home_label"] = home
+        show_blog = await SiteOptionsService.get(db, "seo_breadcrumb_show_blog", "1")
+        out["show_blog"] = show_blog not in ("0", "false", "False", "no")
+        sep = await SiteOptionsService.get(db, "seo_breadcrumb_separator")
+        if sep:
+            out["separator"] = sep
+    except Exception:
+        pass
+    return out
+
+
 class BreadcrumbService:
     """Generate breadcrumb trails for various content types."""
 
@@ -43,11 +74,15 @@ class BreadcrumbService:
         category_name: str | None = None,
         category_slug: str | None = None,
     ) -> list[Breadcrumb]:
-        """Breadcrumbs for a blog post: Home > Blog > [Category] > Post Title."""
-        crumbs = [
-            Breadcrumb(label="خانه", url="/"),
-            Breadcrumb(label="وبلاگ", url="/blog"),
-        ]
+        """Breadcrumbs for a blog post: Home > [Blog] > [Category] > Post.
+
+        The Blog crumb is optional (operator option) — some shops prefer the
+        flatter Home > Category > Post trail.
+        """
+        opts = await settings(db)
+        crumbs = [Breadcrumb(label=opts["home_label"], url="/")]
+        if opts["show_blog"]:
+            crumbs.append(Breadcrumb(label="وبلاگ", url="/blog"))
         if category_name and category_slug:
             crumbs.append(Breadcrumb(label=category_name, url=f"/blog/category/{category_slug}"))
         crumbs.append(Breadcrumb(label=title, url=f"/blog/{slug}", is_current=True))
@@ -64,7 +99,8 @@ class BreadcrumbService:
         """Breadcrumbs for a CMS page, resolving parent hierarchy."""
         from app.modules.content.domain.models import CmsPage
 
-        crumbs = [Breadcrumb(label="خانه", url="/")]
+        opts = await settings(db)
+        crumbs = [Breadcrumb(label=opts["home_label"], url="/")]
 
         # Walk up the parent chain
         ancestors: list[Breadcrumb] = []
@@ -96,19 +132,22 @@ class BreadcrumbService:
         *,
         category_name: str,
         category_slug: str,
+        home_label: str = "خانه",
     ) -> list[Breadcrumb]:
         """Breadcrumbs for a blog category archive."""
         return [
-            Breadcrumb(label="خانه", url="/"),
+            Breadcrumb(label=home_label, url="/"),
             Breadcrumb(label="وبلاگ", url="/blog"),
             Breadcrumb(label=category_name, url=f"/blog/category/{category_slug}", is_current=True),
         ]
 
     @staticmethod
-    async def for_tag(*, tag_name: str, tag_slug: str) -> list[Breadcrumb]:
+    async def for_tag(
+        *, tag_name: str, tag_slug: str, home_label: str = "خانه"
+    ) -> list[Breadcrumb]:
         """Breadcrumbs for a blog tag archive."""
         return [
-            Breadcrumb(label="خانه", url="/"),
+            Breadcrumb(label=home_label, url="/"),
             Breadcrumb(label="وبلاگ", url="/blog"),
             Breadcrumb(label=tag_name, url=f"/blog/tag/{tag_slug}", is_current=True),
         ]

@@ -143,7 +143,6 @@ async def search_content(
         pattern="^(post|page)$",
         description="Restrict to blog posts (post) or CMS pages (page)",
     ),
-    locale: str | None = Query(None, max_length=10, description="Content locale (fa, en, ...)"),
     page: int = Query(1, ge=1, description="Page number"),
     size: int = Query(20, ge=1, le=100, description="Results per page"),
     db: AsyncSession = Depends(get_db),
@@ -161,7 +160,6 @@ async def search_content(
         db,
         q,
         content_type=content_type,
-        locale=locale,
         page=page,
         size=size,
     )
@@ -191,6 +189,7 @@ async def faceted_search(
     request: Request,
     body: FacetedSearchRequest,
     service: FacetedSearchService = Depends(_get_faceted_service),
+    db: AsyncSession = Depends(get_db),
 ) -> FacetedSearchResult:
     """Faceted product search with aggregation-driven filter counts.
 
@@ -198,9 +197,11 @@ async def faceted_search(
     sort options.  Returns hits together with facet buckets (category, brand,
     price histogram, rating, availability, and dynamic attributes).
 
-    Public endpoint — no authentication required.
+    Public endpoint — no authentication required. When Elasticsearch is down
+    the service falls back to Postgres (``degraded=true``): the storefront
+    grid keeps listing the catalog instead of rendering "۰ کالا".
     """
-    return await service.faceted_product_search(body)
+    return await service.faceted_product_search(body, db=db)
 
 
 # ── Admin endpoints ───────────────────────────────────────────────────────
@@ -232,13 +233,13 @@ async def reindex_products(
 
 @admin_router.get(
     "/global",
-    summary="Global admin search across orders, customers, tickets, products, vendors",
+    summary="Global admin search across orders, customers, tickets, products",
 )
 async def admin_global_search(
     q: str = Query(..., min_length=2, description="جست‌وجو: شماره سفارش، تلفن، ایمیل، نام، SKU"),
     entities: list[str] | None = Query(
         None,
-        description="محدود کردن به انواع مشخص (order, customer, ticket, product, vendor)",
+        description="محدود کردن به انواع مشخص (order, customer, ticket, product)",
     ),
     per_type_limit: int = Query(5, ge=1, le=25),
     db: AsyncSession = Depends(get_db),

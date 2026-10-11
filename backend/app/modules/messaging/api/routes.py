@@ -3,12 +3,18 @@
 from __future__ import annotations
 
 import uuid
-from typing import TYPE_CHECKING
 
 import structlog
 from fastapi import APIRouter, Body, Depends, HTTPException, Path, Query, status
 
 from app.core.database.session import get_db
+
+# Runtime import, not TYPE_CHECKING: FastAPI evaluates the `db: AsyncSession`
+# annotations with get_type_hints at boot. A name it cannot resolve makes it
+# classify the parameter by fallback rules rather than as the dependency —
+# the same failure that left the email-template preview reading its body from
+# the query string. See scripts/check_endpoint_annotations.py.
+from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.security.dependencies import RequirePermissions
 from app.modules.messaging.application import broadcast_service
 from app.modules.messaging.domain.models import CampaignStatus, TargetSegment
@@ -19,9 +25,6 @@ from app.modules.messaging.schemas.campaign import (
     BroadcastCampaignUpdate,
     SegmentEstimateResponse,
 )
-
-if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import AsyncSession
 
 logger: structlog.stdlib.BoundLogger = structlog.get_logger(__name__)
 

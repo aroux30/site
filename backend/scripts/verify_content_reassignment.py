@@ -47,10 +47,7 @@ from app.modules.users.application import reassign_service  # noqa: E402
 #: action or an assignment, not authorship; moving them rewrites history.
 MUST_NOT_MOVE = (
     ("order_status_history", "changed_by"),
-    ("warehouse_transfers", "created_by"),
     ("refunds", "processed_by"),
-    ("journal_entries", "created_by"),
-    ("lead_inquiries", "owner_id"),
     ("support_tickets", "assigned_to"),
 )
 
@@ -72,15 +69,15 @@ def _database_url() -> str:
     raise SystemExit("DATABASE_URL not found in .env")
 
 
-async def _user(db, email: str | None = None) -> str:
+async def _user(db) -> str:
     uid = str(uuid.uuid4())
     await db.execute(
         text(
-            "INSERT INTO users (id, phone, email, password_hash, is_active, "
+            "INSERT INTO users (id, phone, password_hash, is_active, "
             "is_verified, is_superuser, totp_enabled, created_at, updated_at) "
-            "VALUES (:u, :p, :e, 'x', true, true, false, false, now(), now())"
+            "VALUES (:u, :p, 'x', true, true, false, false, now(), now())"
         ),
-        {"u": uid, "p": "9" + uuid.uuid4().hex[:9], "e": email},
+        {"u": uid, "p": "9" + uuid.uuid4().hex[:9]},
     )
     return uid
 
@@ -147,8 +144,8 @@ async def main() -> int:
                 print("PASS: action records are never reassigned")
 
             # 3. The real thing: two accounts, some content, one delete.
-            departing = await _user(db, "departing.%s@example.invalid" % uuid.uuid4().hex[:8])
-            heir = await _user(db, "heir.%s@example.invalid" % uuid.uuid4().hex[:8])
+            departing = await _user(db)
+            heir = await _user(db)
             created += [f"users:{departing}", f"users:{heir}"]
             p1 = await _post(db, departing)
             p2 = await _post(db, departing)

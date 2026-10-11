@@ -33,7 +33,7 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
 from app.core.database.session import AsyncSession, get_db
-from app.core.exceptions.handlers import ConflictError
+from app.core.exceptions.handlers import ConflictError, NotFoundError
 from app.core.security.dependencies import (
     RequirePermissions,
     get_current_user_optional,
@@ -49,9 +49,9 @@ from app.modules.media.schemas.media import (
     MediaUploadResponse,
 )
 
-#: A customer's return photo, against the 100 MB staff ceiling. A shopper on a
-#: phone is not uploading a product catalogue, and the route is unauthenticated
-#: in the sense that matters: any signed-in customer reaches it.
+#: The customer-facing upload ceiling (e.g. avatars), against the 100 MB staff
+#: ceiling. A shopper on a phone is not uploading a product catalogue, so the
+#: cap keeps a customer upload from allocating a staff video upload's buffer.
 CUSTOMER_UPLOAD_MAX_BYTES = 10 * 1024 * 1024
 
 # No prefix here: `main.py` mounts this module's routers under `/media`
@@ -480,9 +480,27 @@ async def get_media_variant(
     quality: int | None = Query(None, ge=1, le=100),
     fmt: str | None = Query(None, description="webp | jpeg | png"),
     db: AsyncSession = Depends(get_db),
-) -> dict[str, Any]:
-    return await MediaService.get_image_variant(
+) -> Response:
+    """Return the rendered image bytes themselves.
+
+    The service answers ``(content_bytes, mime_type)``; this response used to
+    be declared ``dict[str, Any]`` and return the tuple as-is, so FastAPI
+    validated a raw image against a JSON model and answered 500 — with a note
+    in the error that the "input" was a PNG header. Every image on the admin
+    media page rendered as a broken thumbnail. It is one of those endpoints
+    where each layer was individually plausible: a route existed, a service
+    existed, and the one in the middle converted a picture into an error.
+    """
+    content, mime = await MediaService.get_image_variant(
         db, asset_id, width=width, height=height, quality=quality, fmt=fmt
+    )
+    return Response(
+        content=content,
+        media_type=mime,
+        # Immutable: the variant cache invalidates itself by mtime against the
+        # source file, so a long browser TTL is safe and keeps the grid from
+        # re-requesting every thumbnail on each visit.
+        headers={"Cache-Control": "public, max-age=86400"},
     )
 
 
@@ -921,42 +939,6 @@ async def regenerate_all_thumbnails(
     from app.modules.media.application.thumbnail_regenerator import regenerate_all
 
     return await regenerate_all(db)
-
-
-# ============================================================================
-# Upload: customer return proof
-# ============================================================================
-
-
-@router.post(
-    "/upload/return-proof",
-    response_model=MediaAssetResponse,
-    status_code=201,
-    summary="Upload a photo proving a return (customer)",
-)
-async def upload_return_proof(
-    file: UploadFile = File(...),
-    db: AsyncSession = Depends(get_db),
-    current_user: dict[str, Any] | None = Depends(get_current_user_optional),
-) -> MediaAssetResponse:
-    """A customer's own photo of a returned item.
-
-    Not behind `media:write`: this is the one media route a customer reaches,
-    and gating it on the staff permission would make the returns flow
-    unusable. Capped well below the staff ceiling so a customer upload cannot
-    allocate a staff video upload's buffer.
-    """
-    if not current_user:
-        raise HTTPException(status_code=401, detail="ورود لازم است")
-    uploader_id = None
-    try:
-        uploader_id = uuid.UUID(current_user["sub"])
-    except Exception:  # noqa: BLE001 — a malformed sub is "no uploader"
-        pass
-    asset = await MediaService.upload_file(
-        db, file, uploader_id=uploader_id, max_bytes=CUSTOMER_UPLOAD_MAX_BYTES
-    )
-    return await _asset_response(db, asset)
 
 
 @router.post(

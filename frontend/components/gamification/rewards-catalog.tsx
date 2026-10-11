@@ -167,7 +167,7 @@ export function RewardsCatalog({
             <span>کاتالوگ جوایز قابل دریافت</span>
           </h2>
           <p className="text-xs sm:text-sm text-muted-foreground mt-1">
-            امتیازات خود را به کدهای تخفیف، ارسال رایگان یا هدایای ویژه تبدیل کنید.
+            امتیازات خود را به کدهای تخفیف یا هدایای ویژه تبدیل کنید.
           </p>
         </div>
 

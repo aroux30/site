@@ -71,7 +71,7 @@ limiter = Limiter(
 
 
 class BruteForceProtector:
-    """Tracks failed authentication attempts per identifier (phone/email/IP)
+    """Tracks failed authentication attempts per identifier (phone/IP)
 
     and applies progressive lockouts to defeat credential stuffing and brute force.
     """

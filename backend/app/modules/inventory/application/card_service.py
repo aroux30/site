@@ -134,11 +134,13 @@ async def allocate_cards_for_order(
     shared_capacity = sum(card.max_uses - card.used_count for card in shared_cards)
     available_total = len(unique_cards) + len(file_cards) + shared_capacity
     if available_total < remaining_needed:
+        # Persian like every other domain message — this string reaches a
+        # partner's integration log and the admin UI, and an English sentence
+        # among Persian ones was an outlier (found live 2026-10-10).
         raise ConflictError(
             detail=(
-                "Insufficient digital stock for the requested product: "
-                f"requested {remaining_needed}, but only "
-                f"{available_total} available"
+                "موجودی دیجیتال این محصول کافی نیست: "
+                f"درخواست {remaining_needed} عدد، موجودی {available_total} عدد"
             )
         )
 
@@ -371,7 +373,7 @@ async def get_card_file_for_owner(
     if order is None or order.user_id != user_id:
         raise NotFoundError(resource="DigitalCard", detail=f"Card {card_id} not found")
 
-    if order.status not in (OrderStatus.CONFIRMED, OrderStatus.COMPLETED):
+    if order.status not in (OrderStatus.PENDING, OrderStatus.PROCESSING, OrderStatus.COMPLETED):
         raise ConflictError(detail="سفارش هنوز در وضعیت قابل تحویل نیست")
 
     if card.delivery_type != DigitalDeliveryType.FILE or not card.file_path:

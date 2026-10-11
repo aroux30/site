@@ -1,1 +1,0 @@
-"""Invoicing API schemas."""

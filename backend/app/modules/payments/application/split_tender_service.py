@@ -304,7 +304,7 @@ async def create_split_payments(
 
     from app.modules.orders.domain.models import OrderStatus
 
-    if order.status != OrderStatus.PENDING:
+    if order.status not in (OrderStatus.WAITING_PAYMENT_GATEWAY, OrderStatus.WAITING_PAYMENT_CARD):
         raise ConflictError(
             detail=f"Order {order_id} is not payable in status '{order.status.value}'",
             error_code="ORDER_NOT_PAYABLE",
@@ -774,12 +774,13 @@ async def _maybe_complete_order(
                 error_code="ALLOCATION_ALREADY_COMPLETED",
             ) from exc
 
-    order.status = OrderStatus.CONFIRMED
+    from_status = order.status
+    order.status = OrderStatus.PENDING
     db.add(
         OrderStatusHistory(
             order_id=order.id,
-            from_status=OrderStatus.PENDING.value,
-            to_status=OrderStatus.CONFIRMED.value,
+            from_status=from_status.value,
+            to_status=OrderStatus.PENDING.value,
             changed_by=None,
             reason="Split tender completed (all allocations settled)",
         )

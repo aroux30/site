@@ -7,6 +7,7 @@ for every security-relevant or admin action.
 from __future__ import annotations
 
 import uuid
+from collections.abc import Iterable
 from datetime import date, datetime
 from decimal import Decimal
 from typing import TYPE_CHECKING, Any
@@ -19,6 +20,44 @@ from app.modules.audit.domain.models import AuditLog
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
 logger: structlog.stdlib.BoundLogger = structlog.get_logger()
+
+
+def _ambient_request_id() -> str | None:
+    """The current request's correlation id, from the logging context.
+
+    ``RequestIDMiddleware`` binds ``request_id``/``correlation_id`` to
+    structlog's contextvars for the whole request; the worker's task-prerun
+    hook restores them from the message headers. Reading it here means every
+    audit row joins its originating request without touching 40+ call sites —
+    until 2026-10-06 the column existed but no caller ever passed it, so
+    "which request produced this log?" was unanswerable for all 10k rows.
+    """
+    try:
+        context = structlog.contextvars.get_contextvars()
+    except Exception:  # pragma: no cover - defensive
+        return None
+    request_id = context.get("request_id") or context.get("correlation_id")
+    return str(request_id) if request_id else None
+
+
+def _ambient_ip() -> str | None:
+    """The bound request's client IP, if any (see actor_context)."""
+    from app.core.security.actor_context import current_ip_address
+
+    try:
+        return current_ip_address()
+    except Exception:  # pragma: no cover - defensive
+        return None
+
+
+def _ambient_user_agent() -> str | None:
+    """The bound request's User-Agent, if any (see actor_context)."""
+    from app.core.security.actor_context import current_user_agent
+
+    try:
+        return current_user_agent()
+    except Exception:  # pragma: no cover - defensive
+        return None
 
 
 def _jsonify(value: Any) -> Any:
@@ -78,9 +117,14 @@ async def log_action(
         resource_id=resource_id,
         before=_jsonify(before),
         after=_jsonify(after),
-        ip_address=ip_address,
-        user_agent=user_agent,
-        request_id=request_id,
+        # An explicit value still wins; otherwise inherit the ambient one so
+        # the row carries its request details without any caller work. Until
+        # 2026-10-06 only the auth routes forwarded IP/UA — every other
+        # writer (CMS, RBAC, settings) recorded nothing, and request_id was
+        # empty on all 10k rows because no caller passed it at all.
+        ip_address=ip_address or _ambient_ip(),
+        user_agent=user_agent or _ambient_user_agent(),
+        request_id=request_id or _ambient_request_id(),
         extra_data=_jsonify(extra_data),
     )
     db.add(entry)
@@ -95,6 +139,43 @@ async def log_action(
         resource_id=str(resource_id) if resource_id else None,
     )
     return entry
+
+
+async def resolve_actor_identities(
+    db: AsyncSession,
+    actor_ids: Iterable[uuid.UUID | None],
+) -> dict[uuid.UUID, dict[str, str | None]]:
+    """Batch-resolve actor ids to human identity for display.
+
+    One query for a whole page of rows, never one per row. The display name
+    falls back to the profile's first+last name, then the phone — the admin
+    reviewer needs *a* recognizable handle, and the phone is the login
+    identity every operator already knows.
+
+    Returns ``{actor_id: {"name": ..., "phone": ...}}``; an id with no
+    surviving user row (deleted account, ``ondelete=SET NULL``) is simply
+    absent, and the caller renders the raw id as before.
+    """
+    from sqlalchemy import select as _select
+
+    from app.modules.users.domain.models import User, UserProfile
+
+    wanted = {aid for aid in actor_ids if aid is not None}
+    if not wanted:
+        return {}
+
+    stmt = (
+        _select(User.id, User.phone, UserProfile.first_name, UserProfile.last_name, UserProfile.display_name)
+        .outerjoin(UserProfile, UserProfile.user_id == User.id)
+        .where(User.id.in_(wanted))
+    )
+    result: dict[uuid.UUID, dict[str, str | None]] = {}
+    for user_id, phone, first_name, last_name, display_name in await db.execute(stmt):
+        name = display_name or " ".join(
+            part for part in (first_name, last_name) if part
+        ) or None
+        result[user_id] = {"name": name, "phone": phone}
+    return result
 
 
 async def get_audit_logs(

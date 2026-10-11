@@ -98,7 +98,7 @@
    - ایزولاسیون کوکی‌های HttpOnly با `path="/"`.
 
 7. **`rbac-authorization`**:
-   - سلسله‌مراتب نقش‌ها (`super_admin`، `admin`، `vendor`، `support`، `customer`).
+   - سلسله‌مراتب نقش‌ها (`super_admin`، `admin`، `support`، `customer`).
    - دکوراتورهای مجوزهای ریزدانه `resource:action`.
    - کامپوننت `PermissionGate` در فرانت‌اند.
 

@@ -11,7 +11,7 @@ from pydantic import BaseModel, ConfigDict, Field, field_serializer
 #: Key names whose values are credentials and must never be serialized.
 #: Matched as whole words against ``_``-separated parts, not as substrings:
 #: ``tokens`` (the design-token bag) and ``tokenize`` are not credentials, and a
-#: substring match masked an entire theme's colour palette.
+#: substring match once masked an entire colour palette.
 _SECRET_KEY_PARTS: frozenset[str] = frozenset(
     {
         "password",
@@ -88,19 +88,29 @@ class SettingResponse(BaseModel):
     holds that permission — so any editor could read the SMTP password and the
     payment gateway's merchant id. WordPress makes the same call: the API keys
     endpoint masks them and only a capability-checked reveal returns the value.
+
+    ``value`` is ``Any``, not ``dict``: the column is JSONB and the writers
+    are not all object-shaped. The WordPress-parity content card stores plain
+    scalars through ``/settings/admin/site-options`` (``posts_per_page`` →
+    ``"10"``, ``media_watermark_opacity`` → ``"0.35"``), and the routes that
+    accept a scalar have always had a ``str`` branch for them. A ``dict``-only
+    schema made every row in that table unreadable at once: one scalar value
+    anywhere in ``site_settings`` turned ``GET /settings`` into a 500, so the
+    whole admin settings page — including the SMTP form — died on a
+    configuration a current writer legitimately produced.
     """
 
     model_config = ConfigDict(from_attributes=True)
 
     id: uuid.UUID
     key: str
-    value: dict[str, Any] | None = None
+    value: Any = None
     group: str | None = None
     description: str | None = None
     is_public: bool = False
 
     @field_serializer("value")
-    def _mask_value(self, value: dict[str, Any] | None) -> dict[str, Any] | None:
+    def _mask_value(self, value: Any) -> Any:
         if _is_secret_key(self.key):
             return None
         return mask_secrets(value)
@@ -126,24 +136,46 @@ class SettingUpdateRequest(BaseModel):
 
 
 class PublicSettingResponse(BaseModel):
-    """Publicly visible setting."""
+    """Publicly visible setting.
 
-    key: str
-    value: dict[str, Any] | None = None
-
-
-class PrivacyPolicyResponse(BaseModel):
-    """The privacy policy a consent form links to.
-
-    ``None`` for every field when no published policy exists. That is an answer,
-    not an error: a store that has not written a policy must show no link rather
-    than one that 404s, so the shape is nullable throughout instead of the route
-    returning a 404 and every form treating that as a network error.
+    ``value`` is ``Any`` for the same reason ``SettingResponse.value`` is:
+    the JSONB column holds scalars as well as objects, and a public scalar
+    option would otherwise raise during construction — a 500 on the public
+    route over data a current writer produces.
     """
 
-    title: str | None = Field(None, max_length=300)
-    slug: str | None = Field(None, max_length=220)
-    url: str | None = Field(None, max_length=500)
+    key: str
+    value: Any = None
+
+
+# ── Maintenance Mode Schemas ─────────────────────────────────────────────────
+
+
+class MaintenanceStateResponse(BaseModel):
+    """Whether the store is down for maintenance, and why.
+
+    Read by the storefront *before* it renders anything, which is what lets a
+    client-rendered shell show the maintenance page instead of a blank frame with
+    a network error in the console. ``minutes`` is the time *left* rather than
+    the duration asked for, because an operator reading it wants to know when the
+    store comes back, not what they typed.
+    """
+
+    active: bool
+    reason: str = ""
+    minutes: int = 0
+    expires_at: datetime | None = None
+
+
+class MaintenanceSetRequest(BaseModel):
+    """Turn maintenance on or off."""
+
+    active: bool
+    #: How long, in minutes. The floor of ten and the ceiling of 72 hours are
+    #: enforced in the service as well as here, because the service is reachable
+    #: from a script and a script does not go through validation.
+    minutes: int = Field(10, ge=1, le=4320)
+    reason: str = Field("", max_length=500)
 
 
 # ── SMS Provider Schemas ─────────────────────────────────────────────────────
@@ -192,161 +224,7 @@ class SMSTestResponse(BaseModel):
     error: str | None = None
 
 
-# ── Email (SMTP) Provider Schemas ─────────────────────────────────────────────
+# ── Email (SMTP) Provider Schemas — removed 2026-10-07 ────────────────────────
+# SMTPEffectiveConfig, EmailTestRequest, EmailTestResponse, EmailDeliveryLogItem
+# and EmailDeliveryLogResponse were removed with the rest of the email feature.
 
-
-class SMTPEffectiveConfig(BaseModel):
-    """Non-secret view of the effective SMTP configuration.
-
-    Passwords are never returned — ``has_password`` is the only signal.
-    """
-
-    host: str
-    port: int
-    username: str
-    use_tls: bool
-    from_address: str
-    from_name: str
-    timeout_seconds: int
-    has_password: bool
-    is_configured: bool
-    source: str  # "environment" | "site_settings" | "mixed"
-
-
-class EmailTestRequest(BaseModel):
-    """Payload to test SMTP dispatch."""
-
-    model_config = ConfigDict(str_strip_whitespace=True)
-
-    recipient: str = Field(..., min_length=5, max_length=320, examples=["admin@example.com"])
-    message: str | None = Field(
-        None, min_length=1, max_length=1000, examples=["این یک ایمیل آزمایشی از پنل مدیریت است."]
-    )
-
-
-class EmailTestResponse(BaseModel):
-    """Response model for test email dispatch."""
-
-    success: bool
-    to: str
-    provider: str
-    attempts: int = 0
-    error: str | None = None
-
-
-class EmailDeliveryLogItem(BaseModel):
-    """One row of the email delivery audit log (admin)."""
-
-    model_config = ConfigDict(from_attributes=True)
-
-    id: uuid.UUID
-    notification_id: uuid.UUID | None = None
-    recipient: str
-    subject: str
-    template: str | None = None
-    status: str
-    provider: str
-    provider_response: str | None = None
-    error: str | None = None
-    attempts: int
-    sent_at: Any | None = None
-    created_at: Any
-
-
-class EmailDeliveryLogResponse(BaseModel):
-    """Paginated delivery log for the admin settings page."""
-
-    items: list[EmailDeliveryLogItem]
-    total: int
-
-
-# ── Telegram Bot Provider Schemas ──────────────────────────────────────────────
-
-
-class TelegramEffectiveConfig(BaseModel):
-    """Non-secret view of the effective Telegram bot configuration.
-
-    The bot token is never returned — ``has_token`` and ``token_masked``
-    are the only signals.
-    """
-
-    bot_username: str
-    api_base_url: str
-    timeout_seconds: int
-    has_token: bool
-    token_masked: str | None = None  # last 4 chars only
-    is_configured: bool
-    source: str  # "environment" | "site_settings" | "mixed"
-
-
-class TelegramTestRequest(BaseModel):
-    """Payload to test Telegram dispatch (admin)."""
-
-    model_config = ConfigDict(str_strip_whitespace=True)
-
-    chat_id: str = Field(..., min_length=1, max_length=64, examples=["123456789"])
-    message: str | None = Field(
-        None, min_length=1, max_length=1000, examples=["این یک پیام آزمایشی از پنل مدیریت است."]
-    )
-
-
-class TelegramTestResponse(BaseModel):
-    """Response model for test Telegram dispatch."""
-
-    success: bool
-    to: str
-    provider: str
-    attempts: int = 0
-    error: str | None = None
-
-
-class TelegramDeliveryLogItem(BaseModel):
-    """One row of the telegram delivery audit log (admin)."""
-
-    model_config = ConfigDict(from_attributes=True)
-
-    id: uuid.UUID
-    notification_id: uuid.UUID | None = None
-    recipient: str
-    title: str
-    status: str
-    provider: str
-    provider_response: str | None = None
-    error: str | None = None
-    attempts: int
-    sent_at: Any | None = None
-    created_at: Any
-
-
-class TelegramDeliveryLogResponse(BaseModel):
-    """Paginated telegram delivery log for the admin settings page."""
-
-    items: list[TelegramDeliveryLogItem]
-    total: int
-
-
-class MaintenanceStateResponse(BaseModel):
-    """Whether the store is down for maintenance, and why.
-
-    Read by the storefront *before* it renders anything, which is what lets a
-    client-rendered shell show the maintenance page instead of a blank frame with
-    a network error in the console. ``minutes`` is the time *left* rather than
-    the duration asked for, because an operator reading it wants to know when the
-    store comes back, not what they typed.
-    """
-
-    active: bool
-    reason: str = ""
-    minutes: int = 0
-    expires_at: datetime | None = None
-
-
-class MaintenanceSetRequest(BaseModel):
-    """Turn maintenance on or off."""
-
-    active: bool
-    #: How long, in minutes. The floor of ten and the ceiling of 72 hours are
-    #: enforced in the service as well as here, because the service is reachable
-    #: from a script and a script does not go through validation.
-    minutes: int = Field(10, ge=1, le=4320)
-    reason: str = Field("", max_length=500)

@@ -100,8 +100,7 @@ class PaymentProvider(ABC):
         callback_url: str,
         description: str = "",
         mobile: str | None = None,
-        email: str | None = None,
-    ) -> PaymentResult:
+        ) -> PaymentResult:
         """Initiate a payment at the gateway.
 
         Parameters
@@ -116,8 +115,6 @@ class PaymentProvider(ABC):
             Human-readable purchase description shown at gateway page.
         mobile:
             Buyer mobile (optional, some gateways pre-fill it).
-        email:
-            Buyer email (optional).
 
         Returns
         -------
@@ -171,10 +168,9 @@ class PaymentProvider(ABC):
     def verify_ipn_signature(self, raw_body: bytes, received_signature: str) -> bool:
         """Verify the signature of an asynchronous IPN/webhook callback.
 
-        Only providers that support signed callbacks (e.g. NowPayments)
-        implement real verification.  The default refuses to trust any
-        callback so a provider without verification support can never be
-        silently treated as verified.
+        No wired provider supports signed callbacks today. The default
+        refuses to trust any callback so a provider without verification
+        support can never be silently treated as verified.
         """
         raise NotImplementedError(
             f"{type(self).__name__} does not support IPN signature verification"
@@ -194,9 +190,9 @@ class PaymentProvider(ABC):
     def supports_tokenization(self) -> bool:
         """Whether this gateway can store a card and charge it later.
 
-        Public Zarinpal v4 and IDPay v1.1 APIs have no card-on-file endpoint;
-        their installment/credit products are merchant-contract features
-        issued out of band. Both therefore return False and raise from
+        The public Zarinpal v4 API has no card-on-file endpoint; its
+        installment/credit products are merchant-contract features issued
+        out of band. It therefore returns False and raises from
         :meth:`tokenize` / :meth:`charge_token`.
         """
         return False
@@ -250,8 +246,8 @@ class PaymentProvider(ABC):
     ) -> PaymentResult:
         """Charge a previously tokenized card without customer interaction.
 
-        This is the entry point a future recurring/subscription service calls;
-        it must remain side-effect-idempotent at the gateway level (pass a
+        This is the entry point a recurring-charge feature calls; it must
+        remain side-effect-idempotent at the gateway level (pass a
         gateway-visible reference such as ``order_id`` or a generated
         authority so a retried charge is not billed twice).
 

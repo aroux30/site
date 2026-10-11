@@ -187,23 +187,56 @@ PRODUCT_INDEX_MAPPING: dict[str, Any] = {
 class ElasticsearchService:
     """Manages the async Elasticsearch connection and product index."""
 
+    #: How long a failed connect suppresses further attempts. Without this,
+    #: every search against a down cluster paid the full retry budget
+    #: (3 × request_timeout ≈ 8s) and the storefront's product page — which
+    #: runs one faceted query per visit — sat on that wait on every request.
+    #: The failure is sticky for this window instead: callers get
+    #: ``ConnectionError`` immediately and their own degraded path runs.
+    _CONNECT_COOLDOWN_SECONDS = 30
+
     def __init__(self, index_name: str | None = None) -> None:
         self._client: AsyncElasticsearch | None = None
         self._settings = get_settings()
         self._index_name = index_name or f"{self._settings.ELASTICSEARCH_INDEX_PREFIX}products"
+        #: monotonic timestamp until which connect() fails fast.
+        self._connect_blocked_until: float = 0.0
 
     # ── Connection lifecycle ──────────────────────────────────────────
 
     async def connect(self) -> AsyncElasticsearch:
-        """Create or return the async Elasticsearch client."""
+        """Create or return the async Elasticsearch client.
+
+        A connect failure is remembered for ``_CONNECT_COOLDOWN_SECONDS`` so
+        the next callers fail in microseconds instead of re-paying the retry
+        budget against a cluster that is still down. A success clears the
+        block, so recovery needs no manual step.
+        """
+        import time as _time
+
+        if self._client is None and _time.monotonic() < self._connect_blocked_until:
+            raise ConnectionError("Elasticsearch is unavailable (connect cooldown)")
         if self._client is None:
-            self._client = AsyncElasticsearch(
+            client = AsyncElasticsearch(
                 hosts=[str(self._settings.ELASTICSEARCH_URL)],
                 request_timeout=30,
                 max_retries=3,
                 retry_on_timeout=True,
             )
-            info = await self._client.info()
+            try:
+                info = await client.info()
+            except Exception:
+                # Close the half-built transport and arm the cooldown. The
+                # client is deliberately NOT stored: the next attempt after
+                # the window builds a fresh one, which is what lets a
+                # restarted cluster be picked up without a process restart.
+                await client.close()
+                self._connect_blocked_until = (
+                    _time.monotonic() + self._CONNECT_COOLDOWN_SECONDS
+                )
+                raise
+            self._client = client
+            self._connect_blocked_until = 0.0
             await logger.ainfo(
                 "elasticsearch_connected",
                 cluster_name=info.get("cluster_name"),

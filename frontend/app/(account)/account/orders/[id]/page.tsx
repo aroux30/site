@@ -30,12 +30,10 @@ import { formatPrice, toPersianDigits } from "@/lib/utils";
 import {
   cancelOrder,
   fetchOrderDetail,
-  fetchOrderReturns,
   fetchPriceSnapshot,
   isCancellable,
   orderStatusLabel,
   type OrderDetail,
-  type OrderRma,
   type PriceSnapshot,
 } from "@/lib/api/order-detail";
 
@@ -66,9 +64,6 @@ export default function AccountOrderDetailPage() {
 
   const [snapshot, setSnapshot] = useState<PriceSnapshot | null>(null);
   const [snapshotError, setSnapshotError] = useState<string | null>(null);
-
-  const [rmas, setRmas] = useState<OrderRma[]>([]);
-  const [rmaError, setRmaError] = useState<string | null>(null);
 
   const [cancelOpen, setCancelOpen] = useState(false);
   const [cancelReason, setCancelReason] = useState("");
@@ -107,17 +102,6 @@ export default function AccountOrderDetailPage() {
       } catch (err) {
         if (alive) {
           setSnapshotError(apiErrorMessage(err, "دریافت ریز قیمت سفارش ناموفق بود."));
-        }
-      }
-    })();
-
-    (async () => {
-      try {
-        const res = await fetchOrderReturns(orderId);
-        if (alive) setRmas(res.items);
-      } catch (err) {
-        if (alive) {
-          setRmaError(apiErrorMessage(err, "دریافت اطلاعات مرجوعی سفارش ناموفق بود."));
         }
       }
     })();
@@ -416,50 +400,6 @@ export default function AccountOrderDetailPage() {
           </>
         )}
       </Card>
-
-      {/* ── Returns on this order (RMA) ── */}
-      {(rmas.length > 0 || rmaError) && (
-        <Card className="space-y-3 p-4">
-          <h2 className="flex items-center gap-2 text-sm font-bold text-foreground">
-            <RefreshCw className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
-            درخواست‌های مرجوعی این سفارش
-          </h2>
-          {rmaError ? (
-            <p className="text-xs text-destructive">{rmaError}</p>
-          ) : (
-            <div className="space-y-2">
-              {rmas.map((rma) => (
-                <div
-                  key={rma.id}
-                  className="flex items-center justify-between rounded-lg border border-border/60 bg-muted/20 p-3 text-xs"
-                >
-                  <div className="space-y-1">
-                    <span className="font-mono font-bold text-foreground">
-                      {rma.rmaNumber || rma.id}
-                    </span>
-                    {rma.createdAt && (
-                      <span className="block text-[11px] text-muted-foreground">
-                        ثبت‌شده در {formatJalaliDateTime(rma.createdAt)}
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {rma.refundAmount && rma.refundAmount > 0 ? (
-                      <span className="font-mono text-xs text-foreground">
-                        {formatPrice(Math.trunc(rma.refundAmount / 10))}
-                      </span>
-                    ) : null}
-                    <Badge variant="secondary" className="text-[11px]">
-                      {rma.status}
-                    </Badge>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </Card>
-      )}
-
 
       {/* ── Masked shipping address ── */}
       {order.shippingAddressMasked && (

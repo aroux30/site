@@ -34,12 +34,6 @@ from app.modules.integrations.schemas.capability import CapabilityResponse
 
 router = APIRouter()
 
-# Outbound webhook management lives in a sibling router mounted on the same
-# /integrations prefix (see app.main router includes).
-from app.modules.integrations.api.webhook_routes import router as webhook_router
-
-router.include_router(webhook_router)
-
 
 @router.get(
     "/capabilities",

@@ -2,9 +2,9 @@
 
 ERP benchmark gap analysis (feature #27 Calendar, P2 — "minimal, no CalDAV").
 The platform is full of *scheduled things* — blog/CMS publish windows,
-discount windows, scheduled campaigns, timed notices, subscription billing
-dates — and each lives in its own admin page. Nobody can answer "what is
-happening next week?" without opening five screens.
+discount windows, scheduled campaigns, timed notices — and each lives in its
+own admin page. Nobody can answer "what is happening next week?" without
+opening five screens.
 
 This module owns no schedule of its own. It is a **read-only aggregator**:
 it queries the tables that already hold dates and normalises them into one
@@ -19,7 +19,7 @@ Design notes
 * **Every event carries its source.** ``(source_module, event_type, entity_id)``
   lets the UI deep-link back, and lets a reader verify nothing was invented.
 * **Window semantics differ per source and are preserved.** A discount is an
-  interval (starts→ends); a subscription billing is a point in time. Both are
+  interval (starts→ends); a scheduled notice is a point in time. Both are
   represented as a start plus an optional end, so "happening now" is answerable
   for the first and "falls on Tuesday" for the second.
 * **Fail-soft per source.** One table being unreachable must not blank the
@@ -266,55 +266,12 @@ async def _collect_campaigns(
     ]
 
 
-async def _collect_subscription_billings(
-    db: AsyncSession, start: datetime, end: datetime
-) -> list[CalendarEvent]:
-    """Upcoming recurring-billing dates. Points in time.
-
-    Only active/past-due subscriptions: a cancelled plan's stale
-    ``next_billing_at`` is not an upcoming event, and showing it would put a
-    charge on the calendar that will never happen.
-    """
-    from app.modules.subscriptions.domain.models import (
-        Subscription,
-        SubscriptionStatus,
-    )
-
-    rows = (
-        await db.execute(
-            select(Subscription).where(
-                Subscription.status.in_(
-                    (SubscriptionStatus.ACTIVE, SubscriptionStatus.PAST_DUE)
-                ),
-                Subscription.next_billing_at.is_not(None),
-                Subscription.next_billing_at >= start,
-                Subscription.next_billing_at < end,
-            )
-        )
-    ).scalars().all()
-
-    return [
-        CalendarEvent(
-            source_module="subscriptions",
-            event_type="subscription_billing",
-            entity_id=s.id,
-            title=f"صورتحساب اشتراک: {s.name}",
-            start_at=s.next_billing_at,  # type: ignore[arg-type]
-            status=getattr(s.status, "value", str(s.status)),
-            detail={"amount_rial": s.total_per_cycle},
-        )
-        for s in rows
-        if s.next_billing_at is not None
-    ]
-
-
 #: Every collector, with its source label for the error report.
 _COLLECTORS: list[tuple[str, Any]] = [
     ("content", _collect_cms_pages),
     ("discounts", _collect_discounts),
     ("notifications", _collect_notices),
     ("messaging", _collect_campaigns),
-    ("subscriptions", _collect_subscription_billings),
 ]
 
 

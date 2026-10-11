@@ -156,6 +156,44 @@ _CSS_VALUE_FORBIDDEN = re.compile(
 )
 
 
+def _link_rel(attrs: dict, new: bool = False) -> dict:
+    """Preserve the author's ``rel``; add ``noopener`` to new-tab links.
+
+    This used to be ``bleach.callbacks.nofollow``, which adds
+    ``rel="nofollow"`` to every link that lacks one — internal links included.
+    That told search engines not to follow the store's own category and
+    product pages, and it contradicted the comment sitting above the call,
+    which promised ``noopener`` for new-tab links. It also made an imported
+    article's link profile differ from the source: WordPress adds no rel of
+    its own to content links, so whatever the author (or their SEO plugin)
+    wrote — dofollow or nofollow — is what the source site serves, and it is
+    what this store must serve too.
+
+    The rule now: never invent ``nofollow``; keep whatever was authored; add
+    ``noopener`` only where the link opens a new tab and lacks it (without
+    it the opened page can reach back through ``window.opener``).
+    """
+    href_key = (None, "href")
+    if href_key not in attrs:
+        return attrs
+    href = str(attrs[href_key])
+    if href.startswith(("mailto:", "tel:")):
+        return attrs
+    rel_key = (None, "rel")
+    raw = attrs.get(rel_key, "")
+    if isinstance(raw, (list, tuple)):
+        rel_values = [str(v) for v in raw if v]
+    else:
+        rel_values = str(raw or "").split()
+    lower = {v.lower() for v in rel_values}
+    target = str(attrs.get((None, "target"), "") or "")
+    if target.lower() == "_blank" and "noopener" not in lower:
+        rel_values.append("noopener")
+    if rel_values:
+        attrs[rel_key] = " ".join(rel_values)
+    return attrs
+
+
 def _clean_style_attribute(value: str | None) -> str | None:
     """Drop any declaration in a ``style`` value that reaches outside the page.
 
@@ -242,9 +280,11 @@ def sanitize_html(html: str | None) -> str:
         cleaned,
     )
     # A new-tab link that does not say noopener lets the opened page reach back
-    # through window.opener. Editors do not think about this, so add it.
+    # through window.opener. Editors do not think about this, so add it — and
+    # only it: the author's own rel (nofollow on external links, none on the
+    # store's own) is kept exactly as written. See ``_link_rel``.
     return bleach.linkifier.Linker(
-        callbacks=[bleach.callbacks.nofollow],
+        callbacks=[_link_rel],
         skip_tags=["pre", "code"],
         parse_email=False,
     ).linkify(cleaned)

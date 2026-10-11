@@ -30,7 +30,6 @@ class User(BaseModel):
     __tablename__ = "users"
     __table_args__ = (
         Index("ix_users_phone", "phone"),
-        Index("ix_users_email", "email"),
         Index("ix_users_is_active", "is_active"),
         # Soft-delete lookup index; created by migration c2d3e4f5a6b7.
         Index("ix_users_deleted_at", "deleted_at"),
@@ -39,7 +38,9 @@ class User(BaseModel):
     )
 
     phone: Mapped[str] = mapped_column(String(15), unique=True, nullable=False)
-    email: Mapped[str | None] = mapped_column(String(255), unique=True, nullable=True)
+    # `email` was dropped on 2026-10-07 with the rest of the email feature
+    # (migration `rmemail1`): the store is phone-first, login is by phone and
+    # recovery is by OTP.
     password_hash: Mapped[str | None] = mapped_column(String(255), nullable=True)
     # Public identity for author archives (/author/<slug>). Nullable: a user
     # created before this column has none, and a null slug simply means "no
@@ -118,14 +119,6 @@ class UserProfile(BaseModel):
     birth_date: Mapped[date | None] = mapped_column(Date, nullable=True)
     avatar_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
     gender: Mapped[str | None] = mapped_column(String(10), nullable=True)
-    # ── B2B / مالیات تکلیفی (tax engine v1, additive) ────────────────────
-    # Business buyers with a registered tax-exemption certificate are subject
-    # to withholding rules instead of VAT at checkout.
-    is_b2b: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
-    company_name: Mapped[str | None] = mapped_column(String(200), nullable=True)
-    tax_exemption_certificate_no: Mapped[str | None] = mapped_column(
-        String(200), nullable=True
-    )
 
     # Relationships
     user: Mapped["User"] = relationship("User", back_populates="profile")
@@ -183,137 +176,11 @@ class OTPRequest(BaseModel):
         return f"<OTPRequest(id={self.id}, phone={self.phone}, purpose={self.purpose})>"
 
 
-class PasswordResetToken(BaseModel):
-    """Single-use, hashed password-reset tokens (WordPress parity).
-
-    Only the SHA-256 of the token is stored: the plaintext exists solely in the
-    reset email, so a database leak cannot be replayed against /reset-password.
-    """
-
-    __tablename__ = "password_reset_tokens"
-    __table_args__ = (
-        Index("ix_password_reset_tokens_token_hash", "token_hash", unique=True),
-        Index("ix_password_reset_tokens_user_id", "user_id"),
-        Index("ix_password_reset_tokens_expires_at", "expires_at"),
-    )
-
-    user_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True),
-        ForeignKey("users.id", ondelete="CASCADE"),
-        nullable=False,
-    )
-    token_hash: Mapped[str] = mapped_column(String(64), nullable=False)
-    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
-    used_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True
-    )
-    # Set when a reset is issued so the UI can say "you already have a pending
-    # request" without re-sending, and so a later request can void the earlier.
-    request_ip: Mapped[str | None] = mapped_column(String(64), nullable=True)
-
-    def __repr__(self) -> str:
-        return f"<PasswordResetToken(user_id={self.user_id}, used={self.used_at is not None})>"
-
-
-class EmailChangeRequest(BaseModel):
-    """Single-use, hashed tokens confirming an email change.
-
-    Same shape and same reasoning as :class:`PasswordResetToken`: only the
-    SHA-256 of the token is stored, and it exists solely in the confirmation
-    email. A database leak therefore cannot be replayed to take over an
-    account by confirming someone else's address.
-
-    The new address lives here rather than on ``User.pending_email`` because a
-    request is a first-class thing that can be listed, expired and refused; a
-    column on the user could not record *which* of several simultaneous
-    requests a confirmation refers to.
-    """
-
-    __tablename__ = "email_change_requests"
-    __table_args__ = (
-        # Hash rather than token: the plaintext is single-use and only ever
-        # travels by email, so an index on it would be an attack surface.
-        Index("ix_email_change_requests_token_hash", "token_hash", unique=True),
-        Index("ix_email_change_requests_user_id", "user_id"),
-        Index("ix_email_change_requests_expires_at", "expires_at"),
-    )
-
-    user_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True),
-        # Named explicitly to match the migration. Under Postgres's 63-byte
-        # identifier cap an auto-generated name would be truncated silently,
-        # and the two would then drift apart in the constraint catalogue.
-        ForeignKey("users.id", name="fk_email_change_requests_user_id_users", ondelete="CASCADE"),
-        nullable=False,
-    )
-    #: The address being moved *to*. The user's current `email` is untouched
-    #: until the token is redeemed, so a password reset issued before the
-    #: confirmation still goes to the address the account really owns.
-    new_email: Mapped[str] = mapped_column(String(255), nullable=False)
-    #: Kept so the confirmation can be matched against the account it was sent
-    #: for even if the user logs in through a different session.
-    current_email: Mapped[str | None] = mapped_column(String(255), nullable=True)
-    token_hash: Mapped[str] = mapped_column(String(64), nullable=False)
-    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
-    used_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True
-    )
-    #: When the account's own address changed after this request was issued, the
-    #: request is stale: the user has since moved the account elsewhere and this
-    #: confirmation should not silently take it back.
-    invalidated_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True
-    )
-    request_ip: Mapped[str | None] = mapped_column(String(64), nullable=True)
-
-    def __repr__(self) -> str:
-        return (
-            f"<EmailChangeRequest(user_id={self.user_id}, "
-            f"used={self.used_at is not None})>"
-        )
-
-
-class EmailVerificationToken(BaseModel):
-    """Single-use, hashed tokens confirming ownership of a registration email.
-
-    P1 "کاربران: تأیید ایمیل هنگام ثبت‌نام". The ``users.is_verified`` column
-    existed and the OTP flow set it — proving the *phone*, not the email — so an
-    address typed at sign-up was never checked. An unverified address is worse
-    than none: password resets and order notices are delivered to it, and a typo
-    or an address someone else owns silently absorbs them.
-
-    Only the SHA-256 of the token is stored, exactly like the reset and
-    email-change tokens: the plaintext exists solely in the email, so a database
-    leak cannot be replayed to mark somebody else's address verified.
-    """
-
-    __tablename__ = "email_verification_tokens"
-    __table_args__ = (
-        Index("ix_email_verification_tokens_token_hash", "token_hash", unique=True),
-        Index("ix_email_verification_tokens_user_id", "user_id"),
-        Index("ix_email_verification_tokens_expires_at", "expires_at"),
-    )
-
-    user_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True),
-        ForeignKey("users.id", ondelete="CASCADE"),
-        nullable=False,
-    )
-    #: The address being verified, captured at issue time. The account's email
-    #: may change before the link is clicked; verifying a *different* address
-    #: than the one the link was emailed to is not what the link asserts.
-    email: Mapped[str] = mapped_column(String(255), nullable=False)
-    token_hash: Mapped[str] = mapped_column(String(64), nullable=False)
-    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
-    used_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True
-    )
-
-    def __repr__(self) -> str:
-        return (
-            f"<EmailVerificationToken(user_id={self.user_id}, "
-            f"used={self.used_at is not None})>"
-        )
+# PasswordResetToken, EmailChangeRequest and EmailVerificationToken were
+# removed on 2026-10-07 with the rest of the email feature. Their tables are
+# dropped by migration `rmemail1`; recovery runs through the OTP flow, and the
+# email-change / email-verification flows no longer exist. See
+# `_archived/email-removal-2026-10-07/`.
 
 
 class PasskeyCredential(BaseModel):
@@ -413,8 +280,8 @@ class ApplicationPassword(BaseModel):
     the real password never leaves the password field and each client can be
     revoked on its own.
 
-    Only a SHA-256 of the secret is stored, exactly like the reseller API key
-    and the password-reset token. The plaintext is returned once at creation
+    Only a SHA-256 of the secret is stored, exactly like the password-reset
+    token. The plaintext is returned once at creation
     and is unrecoverable afterwards — that is the point.
     """
 

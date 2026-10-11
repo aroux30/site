@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { ImageIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { isAllowedImageUrl } from "@/lib/image-hosts";
 
 /**
  * A `next/image` wrapper that cannot take a page down.
@@ -28,6 +29,8 @@ export function RemoteImage({
   sizes,
   priority,
   fill = true,
+  width,
+  height,
 }: {
   /** Image URL, or null/undefined/"" to render the placeholder. */
   src?: string | null;
@@ -37,8 +40,18 @@ export function RemoteImage({
   sizes?: string;
   priority?: boolean;
   fill?: boolean;
+  /** Required when `fill` is false — `next/image` needs one or the other. */
+  width?: number;
+  height?: number;
 }) {
-  const url = typeof src === "string" && src.trim() ? src.trim() : null;
+  const raw = typeof src === "string" ? src.trim() : "";
+  // An empty URL and a URL on a host the optimiser does not accept are the
+  // same failure to the reader: no picture. Treating them alike is what this
+  // component promises, and skipping the second case is how a Gravatar
+  // attached to one blog comment threw during render and took every article
+  // page down with it — the reader got "خطایی در بارگذاری صفحه رخ داده است"
+  // instead of an article.
+  const url = raw && isAllowedImageUrl(raw) ? raw : null;
 
   if (!url) {
     return (
@@ -68,6 +81,10 @@ export function RemoteImage({
       src={url}
       alt={alt}
       fill={fill}
+      // `fill` and `width`/`height` are mutually exclusive in next/image:
+      // passing width/height alongside fill=true is an error. Only forward
+      // them when the caller renders in the intrinsic-size mode.
+      {...(fill ? {} : { width: width ?? 1280, height: height ?? 720 })}
       sizes={sizes}
       priority={priority}
       className={className}

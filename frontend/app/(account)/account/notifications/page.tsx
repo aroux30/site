@@ -4,23 +4,14 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import {
   Bell,
-  Mail,
   Smartphone,
-  MessageSquare,
-  Globe,
   Inbox,
   CheckCircle2,
   AlertCircle,
   Loader2,
-  Link2,
-  Unlink,
-  RefreshCw,
   ArrowRight,
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
-import { BrowserPushCard } from "@/components/account/browser-push-card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import apiClient from "@/lib/api/client";
 
@@ -31,14 +22,6 @@ import apiClient from "@/lib/api/client";
 type PreferencesResponse = {
   channels: Record<string, boolean>;
   categories: Record<string, boolean>;
-  telegram_linked: boolean;
-  telegram_chat_id_masked: string | null;
-};
-
-type LinkCodeResponse = {
-  code: string;
-  expires_at: string;
-  bot_deep_link: string | null;
 };
 
 const CHANNEL_META: Array<{
@@ -48,10 +31,7 @@ const CHANNEL_META: Array<{
   icon: React.ComponentType<{ className?: string }>;
 }> = [
   { key: "in_app", label: "اعلان درون‌برنامه‌ای", hint: "نمایش در پنل کاربری", icon: Inbox },
-  { key: "email", label: "ایمیل", hint: "ارسال به نشانی ایمیل حساب", icon: Mail },
   { key: "sms", label: "پیامک", hint: "ارسال به شماره موبایل حساب", icon: Smartphone },
-  { key: "telegram", label: "تلگرام", hint: "نیازمند اتصال حساب تلگرام", icon: MessageSquare },
-  { key: "push", label: "اعلان مرورگر (Push)", hint: "نمایش در مرورگر یا گوشی", icon: Globe },
 ];
 
 const CATEGORY_META: Array<{ key: string; label: string }> = [
@@ -67,15 +47,8 @@ export default function AccountNotificationsPage() {
   const [error, setError] = useState<string | null>(null);
   const [channels, setChannels] = useState<Record<string, boolean>>({});
   const [categories, setCategories] = useState<Record<string, boolean>>({});
-  const [telegramLinked, setTelegramLinked] = useState(false);
-  const [telegramMasked, setTelegramMasked] = useState<string | null>(null);
   const [savingKey, setSavingKey] = useState<string | null>(null);
   const [saveMessage, setSaveMessage] = useState<{ ok: boolean; text: string } | null>(null);
-
-  // Telegram link flow state
-  const [linkCode, setLinkCode] = useState<LinkCodeResponse | null>(null);
-  const [linkLoading, setLinkLoading] = useState(false);
-  const [linkError, setLinkError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -85,8 +58,6 @@ export default function AccountNotificationsPage() {
         if (cancelled) return;
         setChannels(data.channels);
         setCategories(data.categories);
-        setTelegramLinked(data.telegram_linked);
-        setTelegramMasked(data.telegram_chat_id_masked);
       } catch {
         if (!cancelled)
           setError("بارگذاری تنظیمات اعلان‌ها ناموفق بود. صفحه را دوباره بارگذاری کنید.");
@@ -140,54 +111,6 @@ export default function AccountNotificationsPage() {
       setSaveMessage({ ok: false, text: "ذخیره تنظیمات ناموفق بود. دوباره تلاش کنید." });
     } finally {
       setSavingKey(null);
-    }
-  };
-
-  const handleGenerateLinkCode = async () => {
-    setLinkLoading(true);
-    setLinkError(null);
-    try {
-      const { data } = await apiClient.post<LinkCodeResponse>(
-        "/notifications/telegram/link-code"
-      );
-      setLinkCode(data);
-    } catch {
-      setLinkError("صدور کد اتصال ناموفق بود. دوباره تلاش کنید.");
-    } finally {
-      setLinkLoading(false);
-    }
-  };
-
-  const handleRefreshLinkStatus = async () => {
-    setLinkLoading(true);
-    setLinkError(null);
-    try {
-      const { data } = await apiClient.get<{
-        linked: boolean;
-        telegram_chat_id_masked: string | null;
-      }>("/notifications/telegram/link-status");
-      setTelegramLinked(data.linked);
-      setTelegramMasked(data.telegram_chat_id_masked);
-      if (data.linked) setLinkCode(null);
-    } catch {
-      setLinkError("بررسی وضعیت اتصال ناموفق بود.");
-    } finally {
-      setLinkLoading(false);
-    }
-  };
-
-  const handleUnlink = async () => {
-    setLinkLoading(true);
-    setLinkError(null);
-    try {
-      await apiClient.delete("/notifications/telegram/link");
-      setTelegramLinked(false);
-      setTelegramMasked(null);
-      setLinkCode(null);
-    } catch {
-      setLinkError("قطع اتصال تلگرام ناموفق بود.");
-    } finally {
-      setLinkLoading(false);
     }
   };
 
@@ -314,110 +237,6 @@ export default function AccountNotificationsPage() {
             </div>
           ))}
         </div>
-      </Card>
-
-      {/* Browser push (device-level, distinct from the preference toggle) */}
-      <BrowserPushCard />
-
-      {/* Telegram linking */}
-      <Card className="p-6">
-        <div className="mb-4 flex items-center justify-between border-b border-border pb-3">
-          <div className="flex items-center gap-2">
-            <MessageSquare className="h-5 w-5 text-primary" />
-            <h2 className="text-base font-bold text-foreground">اتصال حساب تلگرام</h2>
-          </div>
-          <Badge variant="outline" className="text-xs">
-            {telegramLinked ? `متصل (${telegramMasked || "•••"})` : "متصل نیست"}
-          </Badge>
-        </div>
-
-        {telegramLinked ? (
-          <div className="space-y-3">
-            <p className="text-sm text-muted-foreground">
-              حساب تلگرام شما متصل است و اعلان‌ها از طریق ربات برایتان ارسال می‌شود.
-            </p>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => void handleUnlink()}
-              disabled={linkLoading}
-              className="gap-1.5 text-destructive"
-            >
-              {linkLoading ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Unlink className="h-4 w-4" />
-              )}
-              قطع اتصال تلگرام
-            </Button>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            <p className="text-sm text-muted-foreground">
-              برای دریافت اعلان‌ها در تلگرام، کد اتصال بگیرید و آن را برای ربات فروشگاه بفرستید.
-              پس از ارسال کد، اتصال توسط پشتیبانی تأیید می‌شود.
-            </p>
-            {linkCode ? (
-              <div className="rounded-lg border border-primary/30 bg-primary/5 p-4 text-center">
-                <p className="mb-1 text-xs text-muted-foreground">کد اتصال شما (۱۰ دقیقه اعتبار):</p>
-                <p className="font-mono text-2xl font-bold tracking-[0.3em] text-primary" dir="ltr">
-                  {linkCode.code}
-                </p>
-                {linkCode.bot_deep_link && (
-                  <a
-                    href={linkCode.bot_deep_link}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="mt-2 inline-block text-sm text-primary hover:underline"
-                    dir="ltr"
-                  >
-                    {linkCode.bot_deep_link}
-                  </a>
-                )}
-                <p className="mt-2 text-xs text-muted-foreground">
-                  این کد را در گفتگو با ربات ارسال کنید و سپس دکمه «بررسی اتصال» را بزنید.
-                </p>
-              </div>
-            ) : null}
-            <div className="flex flex-wrap gap-2">
-              <Button
-                type="button"
-                size="sm"
-                onClick={() => void handleGenerateLinkCode()}
-                disabled={linkLoading}
-                className="gap-1.5"
-              >
-                {linkLoading ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Link2 className="h-4 w-4" />
-                )}
-                {linkCode ? "صدور کد جدید" : "دریافت کد اتصال"}
-              </Button>
-              {linkCode && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => void handleRefreshLinkStatus()}
-                  disabled={linkLoading}
-                  className="gap-1.5"
-                >
-                  <RefreshCw className="h-4 w-4" />
-                  بررسی اتصال
-                </Button>
-              )}
-            </div>
-          </div>
-        )}
-
-        {linkError && (
-          <p className="mt-3 flex items-center gap-1.5 text-xs text-destructive">
-            <AlertCircle className="h-3.5 w-3.5" />
-            {linkError}
-          </p>
-        )}
       </Card>
 
       <Separator />

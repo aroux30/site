@@ -79,7 +79,7 @@ class CreateOrderRequest(BaseModel):
     shipping_method_id: uuid.UUID
     coupon_code: str | None = Field(None, max_length=50)
     payment_method: str = Field(
-        ..., description="Payment method slug (e.g. 'zarinpal', 'idpay', 'wallet')"
+        ..., description="Payment method slug (e.g. 'zarinpal', 'wallet')"
     )
     idempotency_key: str = Field(
         ...,

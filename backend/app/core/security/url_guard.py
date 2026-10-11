@@ -34,6 +34,20 @@ from urllib.parse import urlparse
 
 from app.core.exceptions.handlers import ValidationError
 
+
+class BlockedURLError(ValidationError):
+    """Raised when a URL is refused *by policy* — an internal address.
+
+    A subclass of :class:`ValidationError` so every existing caller (the
+    sideload, the oEmbed preview) that catches the base still catches this and
+    keeps its behavior unchanged. It exists so a caller that needs to tell a
+    security refusal from an ordinary failure (a host that simply does not
+    resolve) can: the broken-link crawler buckets the former as ``blocked`` and
+    the latter as ``error``, and bucketing a DNS failure as a block would hide
+    real dead domains behind a security label.
+    """
+
+
 #: Hostnames that never reach the network as written.
 _BLOCKED_HOSTS = frozenset({"localhost", "localhost.localdomain", "ip6-localhost"})
 
@@ -105,7 +119,7 @@ async def validate_public_url(url: str, *, what: str = "نشانی") -> str:
     host = parsed.hostname.lower().rstrip(".")
 
     if host in _BLOCKED_HOSTS or host.endswith(_BLOCKED_SUFFIXES):
-        raise ValidationError(f"{what}‌های داخلی مجاز نیستند")
+        raise BlockedURLError(f"{what}‌های داخلی مجاز نیستند")
 
     try:
         literal = ipaddress.ip_address(host)
@@ -115,7 +129,7 @@ async def validate_public_url(url: str, *, what: str = "نشانی") -> str:
     if literal is not None:
         # A literal bypasses DNS entirely, so it is vetted on its own.
         if _is_internal(literal):
-            raise ValidationError(f"{what}‌های داخلی مجاز نیستند")
+            raise BlockedURLError(f"{what}‌های داخلی مجاز نیستند")
         return url
 
     try:
@@ -128,7 +142,7 @@ async def validate_public_url(url: str, *, what: str = "نشانی") -> str:
 
     internal = [str(a) for a in addresses if _is_internal(a)]
     if internal:
-        raise ValidationError(
+        raise BlockedURLError(
             f"{what} به نشانی داخلی ({internal[0]}) اشاره می‌کند و مجاز نیست"
         )
     return url

@@ -1,7 +1,7 @@
 """Saved payment methods: tokenize, list, set-default, delete, charge.
 
 User-scoped CRUD over :class:`SavedPaymentMethod`, plus the tokenized-charge
-entry point a future recurring/subscription service will call.
+entry point for charging a stored card without customer interaction.
 
 Security invariants (enforced here, not only in the schema):
 
@@ -507,7 +507,7 @@ async def charge_saved_method(
     order = await db.get(Order, order_id, with_for_update=True)
     if order is None or order.user_id != user_id:
         raise NotFoundError(resource="Order")
-    if order.status != OrderStatus.PENDING:
+    if order.status not in (OrderStatus.WAITING_PAYMENT_GATEWAY, OrderStatus.WAITING_PAYMENT_CARD):
         raise ConflictError(
             detail=f"Order {order_id} is not payable in status '{order.status.value}'",
             error_code="ORDER_NOT_PAYABLE",

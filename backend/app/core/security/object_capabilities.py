@@ -85,9 +85,6 @@ class ObjectRule:
 OBJECT_RULES: dict[str, ObjectRule] = {
     "posts": ObjectRule(own="edit_posts", others="edit_others_posts", label="post"),
     "pages": ObjectRule(own="edit_pages", others="edit_others_pages", label="page"),
-    "custom_posts": ObjectRule(
-        own="edit_custom_posts", others="edit_others_posts", label="custom post entry"
-    ),
 }
 
 #: Owner attribute names to try, in order. ``author_id`` is the direct column

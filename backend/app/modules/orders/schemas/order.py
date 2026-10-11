@@ -239,6 +239,92 @@ class OrderBulkStatusResult(BaseModel):
     items: list[OrderBulkStatusResultItem]
 
 
+# ── Admin board (kanban) ───────────────────────────────────────────────────
+
+
+class AdminOrderStatusCount(BaseModel):
+    """One column's header numbers for the admin orders board."""
+
+    status: str
+    count: int
+    total: int = Field(description="Sum of order totals for this status, in Rials")
+
+
+class AdminOrderStatsResponse(BaseModel):
+    """Per-status counts and sums across ALL orders, for the board headers.
+
+    The board fetches each column separately (a status with 24k rows cannot
+    ship to the browser), so the column headers cannot be counted from the
+    loaded rows — this endpoint is the one place that counts the whole table
+    server-side. ``by_status`` carries every status of the OrderStatus enum,
+    zero-filled, so the UI never has to guess whether a missing key means
+    "zero orders" or "the endpoint forgot it".
+    """
+
+    by_status: list[AdminOrderStatusCount]
+    total_orders: int
+    total_revenue_rials: int = Field(
+        description="Sum of totals for revenue-bearing statuses only (excludes canceled/refunded)"
+    )
+
+
+class AdminOrderPaymentSummary(BaseModel):
+    """A payment row as the admin order drawer shows it."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: uuid.UUID
+    amount: int = Field(description="Amount in Rials")
+    status: str
+    provider: str
+    provider_transaction_id: str | None = None
+    created_at: datetime
+
+
+class AdminOrderDetailResponse(BaseModel):
+    """Full admin view of one order.
+
+    Two deliberate differences from the customer-facing ``OrderResponse``:
+
+    1. The shipping address snapshot is NOT masked. The customer schema
+       masks street-level detail for non-admin DTOs; an operator packing a
+       parcel needs the full address, and this route is gated behind
+       ``orders:read``. This class is standalone (it does not inherit
+       ``OrderResponse``) precisely so the masking validator cannot apply —
+       the test suite asserts the returned address is unmasked.
+    2. Payments are attached (status, provider, amount) so the operator can
+       see whether money actually arrived before advancing the order — the
+       list endpoint carries no payment info and the old board invented it.
+    """
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: uuid.UUID
+    order_number: str
+    status: str
+    user_id: uuid.UUID
+
+    subtotal: int
+    shipping_cost: int
+    tax: int
+    discount_amount: int
+    total: int
+
+    shipping_address_snapshot: dict[str, Any] | None = None
+    notes: str | None = None
+    ip_address: str | None = None
+
+    items: list[OrderItemResponse] = Field(default_factory=list)
+    timeline: list[OrderStatusHistoryResponse] = Field(default_factory=list)
+    payments: list[AdminOrderPaymentSummary] = Field(default_factory=list)
+
+    customer_name: str | None = None
+    customer_phone: str | None = None
+
+    created_at: datetime
+    updated_at: datetime
+
+
 # ── Filters ────────────────────────────────────────────────────────────────
 
 
@@ -246,6 +332,16 @@ class OrderFilterParams(BaseModel):
     """Query parameters for filtering orders."""
 
     status: str | None = None
+    statuses: list[str] | None = Field(
+        None,
+        description=(
+            "Several statuses at once, as a comma-separated list. The admin "
+            "board groups pending/confirmed/processing/shipped/delivered into «در حال "
+            "پردازش» lane, which needs a single query — fanning out to one "
+            "request per status on the client would page each status "
+            "separately and the concatenated lane would skip and repeat rows."
+        ),
+    )
     from_date: datetime | None = None
     to_date: datetime | None = None
     min_total: int | None = None
@@ -258,65 +354,3 @@ class PaginationParams(BaseModel):
 
     page: int = Field(1, ge=1)
     page_size: int = Field(20, ge=1, le=100)
-
-
-# ── Returns (RMA) Schemas ─────────────────────────────────────────────────
-
-
-class ReturnItemRequest(BaseModel):
-    order_item_id: uuid.UUID
-    variant_id: uuid.UUID
-    quantity: int = Field(1, ge=1)
-    reason: str = Field(..., description="Reason for returning the item")
-    customer_notes: str | None = Field(None, max_length=1000)
-
-
-class ReturnCreateRequest(BaseModel):
-    items: list[ReturnItemRequest] = Field(..., min_length=1)
-
-
-class ReturnItemResponse(BaseModel):
-    order_item_id: uuid.UUID
-    variant_id: uuid.UUID
-    quantity: int
-    reason: str
-    customer_notes: str | None = None
-    inspection_outcome: str | None = None
-
-
-class AdminReturnActionRequest(BaseModel):
-    """Admin action on an RMA — the target must be a valid state-machine move."""
-
-    target: str = Field(..., description="Target RMA status (state machine validated)")
-    notes: str | None = None
-    inspection_outcomes: dict[str, str] | None = Field(
-        None,
-        description=(
-            "{order_item_id: passed|damaged_by_customer|defective_confirmed} (inspect action)"
-        ),
-    )
-    refund_amount: int | None = Field(
-        None, ge=0, description="Refund amount in IRR (refund action)"
-    )
-
-
-class AdminReturnListResponse(BaseModel):
-    items: list[OrderReturnResponse]
-    total: int
-    page: int
-    page_size: int
-
-
-class OrderReturnResponse(BaseModel):
-    id: uuid.UUID
-    rma_number: str | None = None
-    order_id: uuid.UUID
-    user_id: uuid.UUID
-    status: str
-    items: list[ReturnItemResponse]
-    created_at: datetime
-    approved_at: datetime | None = None
-    inspected_at: datetime | None = None
-    refunded_at: datetime | None = None
-    admin_notes: str | None = None
-    refund_amount: int = 0

@@ -131,20 +131,6 @@ const CONTENT_OPTIONS: Array<{
     hint: "دیدگاهی که شامل یکی از این‌ها باشد اصلاً ثبت نمی‌شود.",
   },
   {
-    key: "comments_notify",
-    label: "ایمیل به نویسنده هنگام دیدگاه تازه",
-    placeholder: "1",
-    dir: "ltr",
-    hint: "۱ = نویسنده هر دیدگاه را ایمیل می‌گیرد (با Reply-To روی آدرس خود دیدگاه‌دهنده).",
-  },
-  {
-    key: "moderation_notify",
-    label: "ایمیل به مدیران هنگام دیدگاه در انتظار بررسی",
-    placeholder: "1",
-    dir: "ltr",
-    hint: "۱ = وقتی دیدگاهی منتظر بررسی است، مدیران مطلع می‌شوند.",
-  },
-  {
     key: "close_comments_days_old",
     label: "بستن دیدگاه روی محتوای قدیمی (روز)",
     placeholder: "0",
@@ -163,14 +149,7 @@ const CONTENT_OPTIONS: Array<{
     label: "تأیید خودکار دیدگاه‌دهنده‌ی قبلاً تأییدشده",
     placeholder: "0",
     dir: "ltr",
-    hint: "۰ = همه‌ی دیدگاه‌های مهمان در صف بررسی می‌مانند. ۱ = کسی که پیش‌تر دیدگاه تأییدشده داشته، بدون بررسی منتشر می‌شود. تطبیق با ایمیل انجام می‌شود (و برای مهمان، نام هم باید یکی باشد) — نشانی‌ای که شامل کلید تعدیل باشد همچنان صف می‌ماند.",
-  },
-  {
-    key: "require_name_email",
-    label: "الزام نام و ایمیل برای دیدگاه مهمان",
-    placeholder: "0",
-    dir: "ltr",
-    hint: "۰ = مهمان بدون نام هم می‌تواند دیدگاه بگذارد. ۱ = بدون نام و ایمیل ثبت نمی‌شود (سمت سرور اعمال می‌شود، نه فقط فرم).",
+    hint: "۰ = همه‌ی دیدگاه‌های مهمان در صف بررسی می‌مانند. ۱ = کسی که پیش‌تر دیدگاه تأییدشده داشته، بدون بررسی منتشر می‌شود. تطبیق با نام انجام می‌شود (ایمیل حذف شده است) — نامی که شامل کلید تعدیل باشد همچنان صف می‌ماند.",
   },
   {
     key: "comments_per_hour",
@@ -253,32 +232,6 @@ const CONTENT_OPTIONS: Array<{
   // hardcoded the pattern and the zone, so changing them here did nothing. The
   // values are PHP date() formats, translated to the formatter's vocabulary in
   // lib/date-settings.ts.
-  // The content language registry. Read by GET /settings/public/routing, which
-  // every storefront page already calls; there was no UI, so the two options
-  // had no way to be anything but the seeded values.
-  {
-    key: "enabled_locales",
-    label: "زبان‌های فعال محتوا",
-    placeholder: "fa",
-    dir: "ltr",
-    hint: "با کاما جدا کنید. نمونه: fa,en — فقط این زبان‌ها در فیلترها و مسیرها پیشنهاد می‌شوند.",
-    validate: (v) =>
-      v.trim() === "" ||
-      v
-        .split(",")
-        .map((x) => x.trim())
-        .every((x) => /^[a-z]{2}(-[A-Za-z]{2,8})?$/.test(x) && x.length > 1),
-    invalidHint: "هر زبان باید کد دوتایی باشد، مثل fa یا en (خالی مجاز است).",
-  },
-  {
-    key: "default_locale",
-    label: "زبان پیش‌فرض",
-    placeholder: "fa",
-    dir: "ltr",
-    hint: "زبانی که وقتی مسیر مشخصی نداریم استفاده می‌شود.",
-    validate: (v) => v.trim() === "" || /^[a-z]{2}(-[A-Za-z]{2,8})?$/.test(v.trim()),
-    invalidHint: "کد زبان باید دوتایی باشد، مثل fa.",
-  },
   // Where a new post starts. Read by BlogService.create_post, so it applies to
   // an API client too and not only to the admin form.
   {
@@ -478,8 +431,8 @@ export function ContentSettingsCard() {
                   <p className="text-[11px] text-muted-foreground">{opt.hint}</p>
                 )}
                 {/* Inline validation, because the hint above is advice and this
-                    is the check: saving "fa,,en" or "farsi" makes the locale
-                    filter on the storefront offer something no page can serve. */}
+                    is the check: a malformed value here would silently drive
+                    storefront behaviour off a setting no page can satisfy. */}
                 {opt.validate && !opt.validate(values[opt.key] ?? "") && (
                   <p className="text-[11px] text-destructive">{opt.invalidHint}</p>
                 )}

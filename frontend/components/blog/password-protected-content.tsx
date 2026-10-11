@@ -81,7 +81,8 @@ export function PasswordProtectedContent({
     setSubmitting(true);
     setError(null);
     try {
-      const post = await fetchBlogPostBySlug(slug, { password });
+      // trackView:false — unlocking is the same visit, not a second one.
+      const post = await fetchBlogPostBySlug(slug, { password, trackView: false });
       if (post && post.content_locked === false) {
         setBody(post.content ?? "");
         setLocked(false);

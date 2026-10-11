@@ -14,6 +14,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database.session import get_db
 from app.core.security.dependencies import get_current_user_id
+from app.modules.shopfeatures.application import shop_features_service
 from app.modules.wishlist.application.wishlist_service import WishlistService
 from app.modules.wishlist.schemas.wishlist import (
     WishlistAddRequest,
@@ -22,9 +23,17 @@ from app.modules.wishlist.schemas.wishlist import (
     WishlistResponse,
 )
 
+# Guard every wishlist route on the master switch. Applied at the router level
+# so a route added later cannot forget it. Required at the TOP of each handler,
+# before any lookup or write, so a disabled wishlist costs nothing and leaks
+# nothing about whether a product exists. The client hides the entry points too
+# (pinned by check_shop_feature_hiding.py) — but a route guard is what actually
+# enforces it.
 logger: structlog.stdlib.BoundLogger = structlog.get_logger()
 
-router = APIRouter()
+router = APIRouter(
+    dependencies=[Depends(shop_features_service.require_feature("wishlist_enabled"))]
+)
 
 _wishlist_service = WishlistService()
 

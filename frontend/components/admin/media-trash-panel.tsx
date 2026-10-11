@@ -14,6 +14,7 @@ import { RotateCcw, Trash2, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 import { mediaApi, type MediaAsset } from "@/lib/api/media";
 import { toPersianDigits } from "@/lib/utils";
 import { useAdminMutation } from "@/lib/api/admin-query";
@@ -25,6 +26,7 @@ export default function MediaTrashPanel({
   onChanged: () => void;
 }) {
   const { toast } = useToast();
+  const confirm = useConfirm();
   const runMutation = useAdminMutation();
   const [items, setItems] = useState<MediaAsset[] | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
@@ -66,10 +68,14 @@ export default function MediaTrashPanel({
 
   const purge = async (id: string, name: string) => {
     if (
-      !confirm(
-        `«${name}» برای همیشه حذف شود؟\n\n` +
+      !(await confirm({
+        title: "حذف همیشگی",
+        description:
+          `«${name}» برای همیشه حذف شود؟ ` +
           "این کار فایل را از روی سرور پاک می‌کند و قابل بازگشت نیست.",
-      )
+        confirmLabel: "حذف همیشگی",
+        destructive: true,
+      }))
     ) {
       return;
     }
@@ -88,7 +94,13 @@ export default function MediaTrashPanel({
   };
 
   const emptyAll = async () => {
-    if (!confirm("کل سطل زباله خالی شود؟\n\nهمه فایل‌ها برای همیشه حذف می‌شوند.")) return;
+    const ok = await confirm({
+      title: "خالی‌کردن سطل زباله",
+      description: "کل سطل زباله خالی شود؟ همه فایل‌ها برای همیشه حذف می‌شوند.",
+      confirmLabel: "خالی‌کردن",
+      destructive: true,
+    });
+    if (!ok) return;
     const result = await runMutation(() => mediaApi.emptyTrash(), {
       fallbackError: "خالی‌کردن سطل زباله ناموفق بود",
     });

@@ -6,7 +6,7 @@ import uuid
 from datetime import datetime
 from typing import Any
 
-from fastapi import APIRouter, Depends, Query, Response, status
+from fastapi import APIRouter, Depends, Query, Request, Response, status
 from pydantic import BaseModel, Field
 from sqlalchemy import distinct, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -68,6 +68,23 @@ def _actor_id(current_user: dict[str, Any] | None) -> uuid.UUID | None:
         return None
 
 
+def _client_ip(request: Request) -> str | None:
+    """Client IP for the audit row, respecting the trusted-proxy convention.
+
+    Same extraction as the auth routes: rightmost trusted hop of
+    X-Forwarded-For, then the socket peer. Kept local rather than imported
+    from rate_limiter to avoid a circular import at module load.
+    """
+    forwarded = request.headers.get("x-forwarded-for")
+    if forwarded:
+        return forwarded.split(",")[0].strip()
+    return request.client.host if request.client else None
+
+
+def _client_ua(request: Request) -> str | None:
+    return request.headers.get("user-agent")
+
+
 async def _require_page_access(
     page_id: uuid.UUID,
     current_user: dict[str, Any],
@@ -95,49 +112,6 @@ async def _require_page_access(
         raise NotFoundError("CmsPage", f"Page {page_id} not found")
 
     await require_object_capability(current_user, page, OBJECT_RULES["pages"])
-
-
-async def _require_entry_access(
-    entry_id: uuid.UUID,
-    current_user: dict[str, Any],
-    db: AsyncSession,
-) -> None:
-    """Gate a content-entry mutation on its creating revision's author.
-
-    A ``ContentEntry`` has no author column — the schema is shared across
-    every content type, so ownership is carried by the revision that created
-    the row. Revisions are immutable and ``revision_number`` 1 is the
-    creator, which makes it the only stable answer to "who owns this entry".
-
-    The row is loaded with a single join to that revision rather than by
-    primary key, because the object the guard needs is the revision (for its
-    ``created_by``) and the entry (only to prove it exists).
-    """
-    from sqlalchemy import select
-
-    from app.core.security.object_capabilities import (
-        OBJECT_RULES,
-        require_object_capability,
-    )
-    from app.modules.content.domain.builder import ContentEntry
-    from app.modules.content.domain.entry_extras import ContentEntryRevision
-
-    revision = (
-        await db.execute(
-            select(ContentEntryRevision)
-            .join(ContentEntry, ContentEntry.id == ContentEntryRevision.entry_id)
-            .where(
-                ContentEntry.id == entry_id,
-                ContentEntryRevision.revision_number == 1,
-            )
-        )
-    ).scalar_one_or_none()
-    if revision is None:
-        raise NotFoundError("ContentEntry", f"Entry {entry_id} not found")
-
-    await require_object_capability(
-        current_user, revision, OBJECT_RULES["custom_posts"]
-    )
 
 
 async def _invalidate_faq_cache() -> None:
@@ -358,7 +332,6 @@ async def create_faq(
     summary="List published CMS page addresses (storefront / sitemap)",
 )
 async def list_public_pages(
-    locale: str | None = Query(None, description="Filter to one content language"),
     db: AsyncSession = Depends(get_db),
 ) -> PublicPageSummaryList:
     """Every published page's slug, for sitemap and navigation discovery.
@@ -368,7 +341,7 @@ async def list_public_pages(
     SEO overrides, no author, and trashed or draft pages are excluded. Keep it
     that way; widening the projection here would publish unpublished content.
     """
-    pages = await cms_page_service.list_published_page_summaries(db, locale=locale)
+    pages = await cms_page_service.list_published_page_summaries(db)
     items = [PublicPageSummary.model_validate(p) for p in pages]
     return PublicPageSummaryList(items=items, total=len(items))
 
@@ -392,6 +365,24 @@ async def get_sitemap_entries(
     from app.modules.content.application import sitemap_service
 
     return await sitemap_service.build_sitemap_payload(db)
+
+
+@router.get(
+    "/sitemap-noindex",
+    summary="Slugs the operator marked noindex (storefront sitemap exclusion)",
+)
+async def get_sitemap_noindex(db: AsyncSession = Depends(get_db)) -> dict[str, list[str]]:
+    """Slugs excluded from the sitemap by an explicit robots_noindex choice.
+
+    The main sitemap builds blog URLs from the paginated blog API, which does
+    not carry SEO metadata — so the storefront fetches this small list and
+    filters. Unauthenticated like the other sitemap sources: a crawler-facing
+    exclusion list is not sensitive, and it must be readable by the same
+    session-less generator.
+    """
+    from app.modules.content.application import sitemap_service
+
+    return await sitemap_service.collect_noindex_slugs(db)
 
 
 @router.get(
@@ -428,23 +419,10 @@ async def get_page_by_path(
 
 
 async def _rendered(db: AsyncSession, page: CmsPageResponse) -> CmsPageResponse:
-    """Expand reusable blocks and shortcodes in a page body for display.
-
-    Runs after sanitization, so a filter that injects raw markup here would
-    reintroduce exactly what the sanitizer just removed. That is deliberate:
-    plugins are trusted code in this codebase, not user input.
-    """
+    """Expand reusable blocks and shortcodes in a page body for display."""
     from app.shared.content.render import render_body
 
     body = await render_body(db, page.body_html)
-
-    # ``HOOK_PAGE_BODY_RENDER`` was declared and never dispatched, so a plugin
-    # binding it looked wired and silently never ran.
-    from app.shared.plugins.registry import HOOK_PAGE_BODY_RENDER, registry
-
-    body = await registry.apply_filters(
-        HOOK_PAGE_BODY_RENDER, body, page_slug=page.slug
-    )
 
     if body == page.body_html:
         return page
@@ -507,7 +485,6 @@ async def admin_list_pages(
         None,
         description="Strapi-style ordering: <field>[:asc|desc] — title, slug, status, published_at, created_at, updated_at",  # noqa: E501
     ),
-    locale: str | None = Query(None, min_length=2, max_length=10),
     include_trashed: bool = Query(
         False, description="Include soft-deleted pages (trash) in the listing"
     ),
@@ -518,7 +495,6 @@ async def admin_list_pages(
         status=status_filter,
         search=search,
         sort=sort,
-        locale=locale,
         include_trashed=include_trashed,
     )
 
@@ -532,6 +508,7 @@ async def admin_list_pages(
 )
 async def admin_create_page(
     body: CmsPageCreateRequest,
+    request: Request,
     db: AsyncSession = Depends(get_db),
     current_user: dict[str, Any] = Depends(get_current_user),
 ) -> CmsPageResponse:
@@ -540,7 +517,10 @@ async def admin_create_page(
         author_id = uuid.UUID(current_user["sub"])
     except Exception:
         author_id = None
-    return await cms_page_service.create_page(db, body, author_id=author_id)
+    return await cms_page_service.create_page(
+        db, body, author_id=author_id,
+        ip_address=_client_ip(request), user_agent=_client_ua(request),
+    )
 
 
 @router.get(
@@ -565,12 +545,16 @@ async def admin_get_page(
 async def admin_update_page(
     page_id: uuid.UUID,
     body: CmsPageUpdateRequest,
+    request: Request,
     db: AsyncSession = Depends(get_db),
     current_user: dict[str, Any] = Depends(get_current_user),
 ) -> CmsPageResponse:
     await _require_page_access(page_id, current_user, db)
     editor_id: uuid.UUID | None = _actor_id(current_user)
-    return await cms_page_service.update_page(db, page_id, body, editor_id=editor_id)
+    return await cms_page_service.update_page(
+        db, page_id, body, editor_id=editor_id,
+        ip_address=_client_ip(request), user_agent=_client_ua(request),
+    )
 
 
 @router.delete(
@@ -581,11 +565,15 @@ async def admin_update_page(
 )
 async def admin_delete_page(
     page_id: uuid.UUID,
+    request: Request,
     db: AsyncSession = Depends(get_db),
     current_user: dict[str, Any] = Depends(get_current_user),
 ) -> None:
     await _require_page_access(page_id, current_user, db)
-    await cms_page_service.delete_page(db, page_id)
+    await cms_page_service.delete_page(
+        db, page_id, actor_id=_actor_id(current_user),
+        ip_address=_client_ip(request), user_agent=_client_ua(request),
+    )
 
 
 @router.post(
@@ -618,11 +606,15 @@ async def admin_duplicate_page(
 )
 async def admin_restore_page(
     page_id: uuid.UUID,
+    request: Request,
     db: AsyncSession = Depends(get_db),
     current_user: dict[str, Any] = Depends(get_current_user),
 ) -> CmsPageResponse:
     await _require_page_access(page_id, current_user, db)
-    return await cms_page_service.restore_page(db, page_id)
+    return await cms_page_service.restore_page(
+        db, page_id, actor_id=_actor_id(current_user),
+        ip_address=_client_ip(request), user_agent=_client_ua(request),
+    )
 
 
 @router.delete(
@@ -633,13 +625,17 @@ async def admin_restore_page(
 )
 async def admin_hard_delete_page(
     page_id: uuid.UUID,
+    request: Request,
     db: AsyncSession = Depends(get_db),
     current_user: dict[str, Any] = Depends(get_current_user),
 ) -> None:
     # Irreversible: there is no trash to restore from, so this is the route
     # where an over-broad guard does the most damage if it is missing.
     await _require_page_access(page_id, current_user, db)
-    await cms_page_service.hard_delete_page(db, page_id)
+    await cms_page_service.hard_delete_page(
+        db, page_id, actor_id=_actor_id(current_user),
+        ip_address=_client_ip(request), user_agent=_client_ua(request),
+    )
 
 
 class EmptyPageTrashRequest(BaseModel):
@@ -666,7 +662,9 @@ class EmptyPageTrashRequest(BaseModel):
 )
 async def admin_empty_page_trash(
     body: EmptyPageTrashRequest,
+    request: Request,
     db: AsyncSession = Depends(get_db),
+    current_user: dict[str, Any] = Depends(get_current_user),
 ) -> dict[str, Any]:
     """Purge the page trash.
 
@@ -675,7 +673,11 @@ async def admin_empty_page_trash(
     by id.
     """
     return await cms_page_service.empty_page_trash(
-        db, older_than_days=body.older_than_days
+        db,
+        older_than_days=body.older_than_days,
+        actor_id=_actor_id(current_user),
+        ip_address=_client_ip(request),
+        user_agent=_client_ua(request),
     )
 
 
@@ -688,6 +690,7 @@ async def admin_empty_page_trash(
 async def admin_bulk_pages(
     action: str,
     body: BulkActionRequest,
+    request: Request,
     db: AsyncSession = Depends(get_db),
     current_user: dict[str, Any] = Depends(get_current_user),
 ) -> BulkActionResult:
@@ -700,7 +703,8 @@ async def admin_bulk_pages(
     except Exception:
         actor_id = None
     return await cms_page_service.bulk_pages(
-        db, body.ids, action, actor_id=actor_id, actor_payload=current_user
+        db, body.ids, action, actor_id=actor_id, actor_payload=current_user,
+        ip_address=_client_ip(request), user_agent=_client_ua(request),
     )
 
 
@@ -836,419 +840,22 @@ async def admin_resolve_embed(
     return await embed_service.resolve_embed(url, db=db)
 
 
-# ── Content import/export (WordPress/Strapi parity) ─────────────────────────
+# ── Content import/export routes removed 2026-10-07 ─────────────────────────
+#
+# `GET/POST /admin/content/export|import` served the «انتقال محتوا» admin page
+# (JSON dump of CMS pages + FAQs). The owner removed that page: the
+# «ورود و خروج داده» screen (dataexchange module) covers the same two entities
+# plus five more, with CSV/XLSX and the WordPress WXR import, and the JSON
+# file format was explicitly not wanted. `transfer_service.import_content`
+# stays — the WXR import path (`blog.application.wxr_import`) still calls it
+# for pages. Archive: `_archived/content-transfer-removal-2026-10-07/`.
 
 
-@router.get(
-    "/admin/content/export",
-    summary="Export all CMS content as one JSON document (admin)",
-    dependencies=[_require_content_write],
-)
-async def admin_export_content(
-    db: AsyncSession = Depends(get_db),
-) -> dict[str, Any]:
-    from app.modules.content.application import transfer_service
-
-    return await transfer_service.export_content(db)
-
-
-@router.post(
-    "/admin/content/import",
-    summary="Import a CMS content JSON document (admin, upsert by slug)",
-    dependencies=[_require_content_write],
-)
-async def admin_import_content(
-    body: dict[str, Any],
-    db: AsyncSession = Depends(get_db),
-    current_user: dict[str, Any] = Depends(get_current_user),
-) -> dict[str, int]:
-    from app.modules.content.application import transfer_service
-
-    try:
-        author_id: uuid.UUID | None = uuid.UUID(current_user["sub"])
-    except Exception:
-        author_id = None
-    return await transfer_service.import_content(db, body, author_id=author_id)
-
-
-# ── Dynamic Content-Type Builder (Strapi parity) ────────────────────────────
-
-
-class ContentTypeCreateRequest(BaseModel):
-    slug: str = Field(..., min_length=2, max_length=120)
-    name: str = Field(..., min_length=1, max_length=150)
-    description: str | None = Field(None, max_length=500)
-    kind: str = Field("collection", pattern="^(collection|single)$")
-    fields: list[dict[str, Any]] = Field(..., min_length=1)
-
-
-class ContentEntryWriteRequest(BaseModel):
-    data: dict[str, Any]
-    status: PageStatus = PageStatus.DRAFT
-    locale: str = Field("fa", min_length=2, max_length=10)
-    scheduled_publish_at: datetime | None = None
-
-
-class ContentEntryPatchRequest(BaseModel):
-    data: dict[str, Any] | None = None
-    status: PageStatus | None = None
-    scheduled_publish_at: datetime | None = None
-    scheduled_unpublish_at: datetime | None = None
-
-
-@router.get(
-    "/admin/content-types",
-    summary="List dynamic content types (admin)",
-    dependencies=[_require_content_write],
-)
-async def admin_list_content_types(
-    db: AsyncSession = Depends(get_db),
-) -> list[dict[str, Any]]:
-    from app.modules.content.application import builder_service
-
-    types = await builder_service.list_content_types(db)
-    return [
-        {
-            "id": str(t.id),
-            "slug": t.slug,
-            "name": t.name,
-            "kind": t.kind.value,
-            "fields": t.fields,
-            "description": t.description,
-        }
-        for t in types
-    ]
-
-
-@router.post(
-    "/admin/content-types",
-    status_code=status.HTTP_201_CREATED,
-    summary="Create a dynamic content type (admin)",
-    dependencies=[_require_content_write],
-)
-async def admin_create_content_type(
-    body: ContentTypeCreateRequest,
-    db: AsyncSession = Depends(get_db),
-) -> dict[str, Any]:
-    from app.modules.content.application import builder_service
-    from app.modules.content.domain.builder import ContentTypeKind
-
-    ct = await builder_service.create_content_type(
-        db,
-        slug=body.slug,
-        name=body.name,
-        fields=body.fields,
-        kind=ContentTypeKind(body.kind),
-        description=body.description,
-    )
-    return {"id": str(ct.id), "slug": ct.slug}
-
-
-@router.get(
-    "/content-types",
-    summary="List active content types (storefront)",
-)
-async def list_public_content_types(
-    db: AsyncSession = Depends(get_db),
-) -> list[dict[str, Any]]:
-    """Every active content type, for an archive index or a nav entry.
-
-    Exposes the field schema as well as the labels, because a storefront page
-    that lists entries has to render *their* fields and a generic key/value dump
-    is not a page. Only active types: an operator switches one off to take its
-    entries out of the storefront, and a list that ignored `is_active` would
-    keep advertising a section they retired.
-
-    No guard. A content type's existence is not private — it is the public
-    structure of the site — and this returns no entries, which is where the
-    moderation boundary is.
-    """
-    from sqlalchemy import select
-
-    from app.modules.content.domain.builder import ContentType
-
-    rows = (await db.execute(
-        select(ContentType).where(ContentType.is_active.is_(True))
-        .order_by(ContentType.name)
-    )).scalars().all()
-    return [
-        {
-            "id": str(ct.id),
-            "slug": ct.slug,
-            "name": ct.name,
-            "description": getattr(ct, "description", None),
-            "field_schema": [
-                {"key": f.get("key"), "label": f.get("label"),
-                 "type": f.get("type")}
-                for f in (ct.field_schema or [])
-                if isinstance(f, dict)
-            ],
-        }
-        for ct in rows
-    ]
-
-
-@router.get(
-    "/content-types/{type_slug}/entries",
-    summary="List published entries of a content type (storefront)",
-)
-async def list_public_entries(
-    type_slug: str,
-    locale: str | None = Query(None, min_length=2, max_length=10),
-    db: AsyncSession = Depends(get_db),
-) -> list[dict[str, Any]]:
-    from app.modules.content.application import builder_service
-
-    entries = await builder_service.list_entries(
-        db, type_slug, status=PageStatus.PUBLISHED, locale=locale
-    )
-    return [
-        {"id": str(e.id), "data": e.data, "locale": e.locale, "position": e.position}
-        for e in entries
-    ]
-
-
-@router.get(
-    "/admin/content-types/{type_slug}/entries",
-    summary="List entries of a content type in any status (admin)",
-    dependencies=[_require_content_write],
-)
-async def admin_list_entries(
-    type_slug: str,
-    status_filter: PageStatus | None = Query(None, alias="status"),
-    locale: str | None = Query(None, min_length=2, max_length=10),
-    db: AsyncSession = Depends(get_db),
-) -> list[dict[str, Any]]:
-    from app.modules.content.application import builder_service
-
-    entries = await builder_service.list_entries(
-        db, type_slug, status=status_filter, locale=locale
-    )
-    return [
-        {
-            "id": str(e.id),
-            "data": e.data,
-            "status": e.status.value,
-            "locale": e.locale,
-            "position": e.position,
-        }
-        for e in entries
-    ]
-
-
-@router.post(
-    "/admin/content-types/{type_slug}/entries",
-    status_code=status.HTTP_201_CREATED,
-    summary="Create a validated entry with first revision (admin)",
-    dependencies=[_require_content_write],
-)
-async def admin_create_entry(
-    type_slug: str,
-    body: ContentEntryWriteRequest,
-    db: AsyncSession = Depends(get_db),
-    current_user: dict[str, Any] = Depends(get_current_user),
-) -> dict[str, Any]:
-    from app.modules.content.application import entry_revision_service
-
-    try:
-        author_id: uuid.UUID | None = uuid.UUID(current_user["sub"])
-    except Exception:
-        author_id = None
-    entry = await entry_revision_service.create_entry_v2(
-        db,
-        type_slug,
-        body.data,
-        status=body.status,
-        locale=body.locale,
-        scheduled_publish_at=body.scheduled_publish_at,
-        author_id=author_id,
-    )
-    return {
-        "id": str(entry.id),
-        "data": entry.data,
-        "status": entry.status.value,
-        "revision_number": entry.revision_number,
-    }
-
-
-@router.patch(
-    "/admin/entries/{entry_id}",
-    summary="Update an entry (validated + revisioned, admin)",
-    dependencies=[_require_content_write],
-)
-async def admin_update_entry(
-    entry_id: uuid.UUID,
-    body: ContentEntryPatchRequest,
-    db: AsyncSession = Depends(get_db),
-    current_user: dict[str, Any] = Depends(get_current_user),
-) -> dict[str, Any]:
-    from app.modules.content.application import entry_revision_service
-
-    await _require_entry_access(entry_id, current_user, db)
-    editor_id: uuid.UUID | None = _actor_id(current_user)
-    entry = await entry_revision_service.update_entry_v2(
-        db,
-        entry_id,
-        body.data or {},
-        status=body.status,
-        scheduled_publish_at=body.scheduled_publish_at,
-        scheduled_unpublish_at=body.scheduled_unpublish_at,
-        editor_id=editor_id,
-    )
-    return {
-        "id": str(entry.id),
-        "data": entry.data,
-        "status": entry.status.value,
-        "revision_number": entry.revision_number,
-    }
-
-
-@router.get(
-    "/admin/entries/{entry_id}/revisions",
-    summary="Entry revision history (admin)",
-    dependencies=[_require_content_write],
-)
-async def admin_list_entry_revisions(
-    entry_id: uuid.UUID,
-    db: AsyncSession = Depends(get_db),
-) -> list[dict[str, Any]]:
-    from app.modules.content.application import entry_revision_service
-
-    revisions = await entry_revision_service.list_revisions(db, entry_id)
-    return [
-        {
-            "id": str(r.id),
-            "revision_number": r.revision_number,
-            "status": r.status,
-            "created_at": r.created_at.isoformat() if r.created_at else None,
-        }
-        for r in revisions
-    ]
-
-
-@router.post(
-    "/admin/entries/{entry_id}/revisions/{revision_number}/restore",
-    summary="Restore an entry to an earlier revision (admin)",
-    dependencies=[_require_content_write],
-)
-async def admin_restore_entry_revision(
-    entry_id: uuid.UUID,
-    revision_number: int,
-    db: AsyncSession = Depends(get_db),
-    current_user: dict[str, Any] = Depends(get_current_user),
-) -> dict[str, Any]:
-    from app.modules.content.application import entry_revision_service
-
-    await _require_entry_access(entry_id, current_user, db)
-    try:
-        editor_id: uuid.UUID | None = uuid.UUID(current_user["sub"])
-    except Exception:
-        editor_id = None
-    entry = await entry_revision_service.restore_revision(
-        db, entry_id, revision_number, editor_id=editor_id
-    )
-    return {"id": str(entry.id), "revision_number": entry.revision_number}
-
-
-@router.delete(
-    "/admin/entries/{entry_id}",
-    status_code=status.HTTP_204_NO_CONTENT,
-    summary="Trash an entry (soft delete, admin)",
-    dependencies=[_require_content_write],
-)
-async def admin_delete_entry(
-    entry_id: uuid.UUID,
-    db: AsyncSession = Depends(get_db),
-    current_user: dict[str, Any] = Depends(get_current_user),
-) -> None:
-    from app.modules.content.application import entry_revision_service
-
-    await _require_entry_access(entry_id, current_user, db)
-    await entry_revision_service.trash_entry(db, entry_id)
-
-
-@router.post(
-    "/admin/entries/{entry_id}/restore",
-    summary="Restore a trashed entry (admin)",
-    dependencies=[_require_content_write],
-)
-async def admin_restore_entry(
-    entry_id: uuid.UUID,
-    db: AsyncSession = Depends(get_db),
-    current_user: dict[str, Any] = Depends(get_current_user),
-) -> dict[str, Any]:
-    from app.modules.content.application import entry_revision_service
-
-    await _require_entry_access(entry_id, current_user, db)
-    entry = await entry_revision_service.restore_entry(db, entry_id)
-    return {"id": str(entry.id), "status": entry.status.value}
-
-
-@router.delete(
-    "/admin/entries/{entry_id}/permanent",
-    status_code=status.HTTP_204_NO_CONTENT,
-    summary="Permanently delete a trashed entry (admin)",
-    dependencies=[_require_content_write],
-)
-async def admin_hard_delete_entry(
-    entry_id: uuid.UUID,
-    db: AsyncSession = Depends(get_db),
-    current_user: dict[str, Any] = Depends(get_current_user),
-) -> None:
-    from app.modules.content.application import entry_revision_service
-
-    await _require_entry_access(entry_id, current_user, db)
-    await entry_revision_service.hard_delete_entry(db, entry_id)
-
-
-# ── Plugin/hook registry introspection (Strapi admin parity) ────────────────
-
-
-@router.get(
-    "/admin/plugins",
-    summary="List registered plugins and their hook bindings (admin)",
-    dependencies=[_require_content_write],
-)
-async def admin_list_plugins() -> dict[str, Any]:
-    from app.shared.plugins.registry import registry
-
-    return registry.describe()
-
-
-@router.post(
-    "/admin/plugins/{plugin_name}/toggle",
-    summary="Enable or disable a plugin for this deployment (admin)",
-    dependencies=[_require_content_write],
-)
-async def admin_toggle_plugin(
-    plugin_name: str,
-    body: dict[str, Any],
-    db: AsyncSession = Depends(get_db),
-) -> dict[str, Any]:
-    """Switch a plugin on or off and persist the choice.
-
-    A disabled plugin's hooks are skipped at dispatch time — it stays
-    registered and visible, so re-enabling is one call, but it no longer runs.
-    The core plugin point cannot be disabled.
-    """
-    from app.shared.plugins import registry as registry_module
-    from app.shared.plugins.registry import registry
-
-    enabled = bool(body.get("enabled", True))
-    try:
-        state = registry.set_enabled(plugin_name, enabled)
-    except ValueError as exc:
-        raise ValidationError(
-            detail=str(exc), error_code="CORE_PLUGIN_NOT_TOGGLEABLE"
-        ) from exc
-
-    await registry_module.persist_disabled_plugins(db)
-    await db.commit()
-    return {
-        "plugin": plugin_name,
-        "enabled": state,
-        "disabled_plugins": registry.disabled_plugins(),
-    }
+# Dynamic content-type builder (Strapi parity: `/admin/content-types`,
+# `/content-types`, `/admin/entries`) was removed on 2026-10-09 per owner
+# decision: the store is an e-commerce platform, not a news portal; standard
+# blog posts, categories, tags, and fixed CMS pages suffice.
+# Archive: `_archived/content-types-removal-2026-10-09/`.
 
 
 # ── Single Types (Strapi-style singleton configs) ───────────────────────────
@@ -1515,81 +1122,6 @@ async def admin_hard_delete_reusable_block(
     await db.commit()
 
 
-# ── i18n: CMS page translations (Strapi i18n parity) ─────────────────────
-# Pages that are translations of one another share a translation_group UUID.
-# A translation is a separate page row with its own slug and locale; these
-# endpoints only manage the linkage. All row access is primary-key based.
-
-
-class TranslationLinkRequest(BaseModel):
-    target_page_id: uuid.UUID = Field(..., description="Page to link as a translation")
-
-
-@router.post(
-    "/admin/pages/{page_id}/translations",
-    summary="Link two CMS pages as translations of one another (admin)",
-    dependencies=[_require_content_write],
-)
-async def admin_link_page_translation(
-    page_id: uuid.UUID,
-    body: TranslationLinkRequest,
-    db: AsyncSession = Depends(get_db),
-    current_user: dict[str, Any] = Depends(get_current_user),
-) -> dict[str, str]:
-    from app.modules.content.domain.models import CmsPage
-
-    # A translation link is bidirectional: it merges the two pages into one
-    # group, so it changes how *both* are served. Authorising only the page
-    # named in the path would let a writer graft their page onto someone
-    # else's and thereby take over the other's URL variants.
-    await _require_page_access(page_id, current_user, db)
-    await _require_page_access(body.target_page_id, current_user, db)
-
-    source = await db.get(CmsPage, page_id)
-    target = await db.get(CmsPage, body.target_page_id)
-    if source is None or target is None:
-        raise ValidationError("صفحه‌ی مبدأ یا مقصد یافت نشد.")
-    if source.id == target.id:
-        raise ValidationError("یک صفحه نمی‌تواند ترجمه‌ی خودش باشد.")
-
-    group = source.translation_group or target.translation_group or uuid.uuid4()
-    source.translation_group = group
-    target.translation_group = group
-    await db.commit()
-    return {"translation_group": str(group)}
-
-
-@router.delete(
-    "/admin/pages/{page_id}/translations/{target_page_id}",
-    status_code=status.HTTP_204_NO_CONTENT,
-    summary="Unlink a CMS page translation (admin)",
-    dependencies=[_require_content_write],
-)
-async def admin_unlink_page_translation(
-    page_id: uuid.UUID,
-    target_page_id: uuid.UUID,
-    db: AsyncSession = Depends(get_db),
-    current_user: dict[str, Any] = Depends(get_current_user),
-) -> None:
-    from app.modules.content.domain.models import CmsPage
-
-    # Both sides again: unlinking strips the group, which changes routing for
-    # the other page as much as for this one.
-    await _require_page_access(page_id, current_user, db)
-    await _require_page_access(target_page_id, current_user, db)
-
-    source = await db.get(CmsPage, page_id)
-    target = await db.get(CmsPage, target_page_id)
-    if source is None or target is None:
-        raise ValidationError("صفحه‌ی مبدأ یا مقصد یافت نشد.")
-    if (
-        source.translation_group is not None
-        and source.translation_group == target.translation_group
-    ):
-        target.translation_group = None
-        await db.commit()
-
-
 # ── Custom fields (page meta) ───────────────────────────────────────────────
 # Pages had no meta store, so a field could not be attached to a page without a
 # schema change. Same access pattern as the blog post meta routes.
@@ -1649,48 +1181,6 @@ async def admin_delete_page_meta(
 
     await _require_page_access(page_id, current_user, db)
     await PageMetaService.delete(db, page_id, meta_key)
-
-
-@router.get(
-    "/pages/{slug}/alternates",
-    summary="Locale alternates for a page (hreflang source)",
-)
-async def page_alternates(
-    slug: str,
-    db: AsyncSession = Depends(get_db),
-) -> dict[str, Any]:
-    """The page's own locale plus every translation in its group.
-
-    hreflang must be self-referential or a search engine discards the whole
-    set, so the current page is always included even if it has no
-    translations.
-    """
-    from sqlalchemy import select
-
-    from app.modules.content.domain.models import CmsPage, PageStatus
-
-    page = (await db.execute(
-        select(CmsPage).where(CmsPage.slug == slug)
-    )).scalar_one_or_none()
-    if page is None:
-        raise NotFoundError("CmsPage", f"صفحه با اسلاگ {slug} یافت نشد.")
-
-    alternates: list[dict[str, str]] = [
-        {"locale": page.locale, "slug": page.slug, "path": f"/{page.slug}"}
-    ]
-    if page.translation_group is not None:
-        siblings = (await db.execute(
-            select(CmsPage).where(
-                CmsPage.translation_group == page.translation_group,
-                CmsPage.id != page.id,
-                CmsPage.status == PageStatus.PUBLISHED,
-                CmsPage.deleted_at.is_(None),
-            )
-        )).scalars().all()
-        alternates += [
-            {"locale": s.locale, "slug": s.slug, "path": f"/{s.slug}"} for s in siblings
-        ]
-    return {"self": {"locale": page.locale, "slug": page.slug}, "alternates": alternates}
 
 
 class MenuReorderRequest(BaseModel):

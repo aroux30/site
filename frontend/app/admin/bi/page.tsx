@@ -40,8 +40,6 @@ import { toPersianDigits, formatPrice } from "@/lib/utils";
 const REPORT_LABELS: Record<string, string> = {
   sales: "فروش",
   stock: "موجودی انبار",
-  vendor_settlement: "تسویه فروشندگان",
-  tax_vat: "مالیات بر ارزش افزوده",
 };
 
 const MODE_LABELS: Record<ComparisonMode, string> = {
@@ -259,7 +257,6 @@ export default function AdminBiPage() {
               <option value="week">هفتگی</option>
               <option value="month">ماهانه</option>
               <option value="category">دسته‌بندی</option>
-              <option value="vendor">فروشنده</option>
             </select>
           </div>
           <div>
@@ -290,7 +287,7 @@ export default function AdminBiPage() {
               id="bi-rowkey"
               value={rowKey}
               onChange={(e) => setRowKey(e.target.value)}
-              placeholder="category یا vendor"
+              placeholder="category"
               dir="ltr"
               className="mt-1"
             />

@@ -11,6 +11,11 @@ import path from "node:path";
  * error here on purpose.
  */
 export default defineConfig({
+  // The automatic JSX runtime, matching what Next.js compiles the app with.
+  // Without it a .tsx test importing a component fails with "React is not
+  // defined": the app's own components do not import React by hand, they rely
+  // on the transform, so a test that renders one needs the same transform.
+  esbuild: { jsx: "automatic" },
   test: {
     environment: "jsdom",
     include: ["tests/**/*.test.ts", "tests/**/*.test.tsx"],

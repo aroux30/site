@@ -18,6 +18,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/use-toast";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 import { applicationPasswordsApi } from "@/lib/api/auth";
 import type { ApplicationPassword } from "@/lib/api/auth";
 import { toPersianDigits } from "@/lib/utils";
@@ -29,6 +30,7 @@ const SCOPE_PRESETS: { value: string; label: string }[] = [
 
 export function ApplicationPasswordsCard() {
   const { toast } = useToast();
+  const confirm = useConfirm();
   const [items, setItems] = useState<ApplicationPassword[]>([]);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState<string | null>(null);
@@ -73,7 +75,13 @@ export function ApplicationPasswordsCard() {
   };
 
   const revoke = async (id: string, label: string) => {
-    if (!window.confirm(`رمز برنامه «${label}» باطل شود؟ هر کلاینتی که از آن استفاده می‌کند بلافاصله قطع می‌شود.`)) {
+    const ok = await confirm({
+      title: "باطل‌کردن رمز برنامه",
+      description: `رمز برنامه «${label}» باطل شود؟ هر کلاینتی که از آن استفاده می‌کند بلافاصله قطع می‌شود.`,
+      confirmLabel: "باطل‌کردن",
+      destructive: true,
+    });
+    if (!ok) {
       return;
     }
     setBusy(id);

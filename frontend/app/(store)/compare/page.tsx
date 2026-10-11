@@ -17,6 +17,7 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import { useCompareStore, MAX_COMPARE_PRODUCTS } from "@/stores/compare-store";
+import { FeatureGuard } from "@/components/store/feature-guard";
 import { useToast } from "@/components/ui/use-toast";
 import { useCart } from "@/hooks/use-cart";
 import { Button } from "@/components/ui/button";
@@ -25,166 +26,6 @@ import { Card } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { formatPrice, toPersianDigits, cn } from "@/lib/utils";
 import type { Product } from "@/types/product";
-
-/* -------------------------------------------------------------------------- */
-/*                        Suggested Flagship Products                         */
-/* -------------------------------------------------------------------------- */
-
-const FLAGSHIP_SUGGESTIONS: Product[] = [
-  {
-    id: "samsung-galaxy-s24-ultra",
-    title: "گوشی موبایل سامسونگ Galaxy S24 Ultra",
-    slug: "samsung-galaxy-s24-ultra",
-    description:
-      "گوشی پرچمدار سامسونگ گلکسی اس ۲۴ اولترا با فریم تیتانیومی و نمایشگر ۶.۸ اینچی Dynamic AMOLED 2X، قلم S-Pen و قابلیت‌های هوش مصنوعی پیشرفته Galaxy AI.",
-    shortDescription:
-      "حافظه ۲۵۶ گیگابایت، رم ۱۲، دوربین ۲۰۰ مگاپیکسل، بدنه تیتانیوم گرید ۵",
-    price: 65000000,
-    originalPrice: 72000000,
-    sku: "SAM-S24U-TIT-256",
-    stock: 15,
-    isActive: true,
-    isFeatured: true,
-    type: "گوشی هوشمند پرچمدار",
-    weight: "۲۳۲ گرم",
-    dimensions: "۱۶۲.۳ × ۷۹ × ۸.۶ میلی‌متر",
-    thumbnail: "https://images.unsplash.com/photo-1610945265064-0e34e5519bbf?w=800&auto=format&fit=crop&q=80",
-    images: [
-      {
-        id: "img-s24",
-        url: "https://images.unsplash.com/photo-1610945265064-0e34e5519bbf?w=800&auto=format&fit=crop&q=80",
-        alt: "Samsung Galaxy S24 Ultra",
-        order: 1,
-      },
-    ],
-    categoryId: "cat-phones",
-    category: {
-      id: "cat-phones",
-      name: "موبایل و تبلت",
-      slug: "phones",
-    },
-    brandId: "brand-samsung",
-    brand: {
-      id: "brand-samsung",
-      name: "سامسونگ (Samsung)",
-      slug: "samsung",
-    },
-    tags: ["موبایل", "سامسونگ", "پرچمدار", "S24 Ultra"],
-    variants: [],
-    attributes: [
-      { name: "پردازنده", value: "Snapdragon 8 Gen 3 for Galaxy" },
-      { name: "باتری", value: "۵۰۰۰ میلی‌آمپر ساعت با شارژ ۴۵ وات" },
-      { name: "نمایشگر", value: "۶.۸ اینچ Dynamic AMOLED 2X ۱۲۰ هرتز" },
-      { name: "دوربین اصلی", value: "۲۰۰ مگاپیکسل مجهز به زوم ۵ و ۱۰ برابر" },
-    ],
-    rating: 4.8,
-    reviewCount: 142,
-    createdAt: "2024-01-20T00:00:00Z",
-    updatedAt: "2024-02-01T00:00:00Z",
-  },
-  {
-    id: "apple-iphone-16-pro-max",
-    title: "گوشی موبایل اپل iPhone 16 Pro Max",
-    slug: "apple-iphone-16-pro-max",
-    description:
-      "جدیدترین پرچمدار کمپانی اپل با پردازنده A18 Pro، نمایشگر ۶.۹ اینچی Super Retina XDR، دکمه Camera Control و دوربین سه‌گانه ۴۸ مگاپیکسلی با فیلمبرداری 4K 120fps.",
-    shortDescription:
-      "حافظه ۲۵۶ گیگابایت، پردازنده A18 Pro، صفحه ۶.۹ اینچ، بدنه تیتانیوم طبیعی",
-    price: 88000000,
-    originalPrice: 95000000,
-    sku: "APL-IP16PM-TIT-256",
-    stock: 8,
-    isActive: true,
-    isFeatured: true,
-    type: "گوشی هوشمند پرچمدار",
-    weight: "۲۲۷ گرم",
-    dimensions: "۱۶۳ × ۷۷.۶ × ۸.۲۵ میلی‌متر",
-    thumbnail: "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=800&auto=format&fit=crop&q=80",
-    images: [
-      {
-        id: "img-ip16",
-        url: "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=800&auto=format&fit=crop&q=80",
-        alt: "Apple iPhone 16 Pro Max",
-        order: 1,
-      },
-    ],
-    categoryId: "cat-phones",
-    category: {
-      id: "cat-phones",
-      name: "موبایل و تبلت",
-      slug: "phones",
-    },
-    brandId: "brand-apple",
-    brand: {
-      id: "brand-apple",
-      name: "اپل (Apple)",
-      slug: "apple",
-    },
-    tags: ["موبایل", "اپل", "آیفون", "iPhone 16 Pro"],
-    variants: [],
-    attributes: [
-      { name: "پردازنده", value: "Apple A18 Pro شش هسته‌ای" },
-      { name: "باتری", value: "۴۶۸۵ میلی‌آمپر ساعت با شارژ MagSafe" },
-      { name: "نمایشگر", value: "۶.۹ اینچ Super Retina XDR OLED ۱۲۰ هرتز" },
-      { name: "دوربین اصلی", value: "۴۸ مگاپیکسل Fusion با زوم اپتیکال ۵ برابر" },
-    ],
-    rating: 4.9,
-    reviewCount: 98,
-    createdAt: "2024-09-10T00:00:00Z",
-    updatedAt: "2024-09-12T00:00:00Z",
-  },
-  {
-    id: "asus-zenbook-14-oled",
-    title: "لپ‌تاپ ایسوس Zenbook 14 OLED",
-    slug: "asus-zenbook-14-oled",
-    description:
-      "اولترابوک فوق‌باریک و سبک مهندسی ایسوس با پردازنده Intel Core Ultra 7 155H مجهز به NPU هوش مصنوعی، صفحه‌نمایش خیره‌کننده OLED 2.8K و ماندگاری شارژ تا ۱۵ ساعت.",
-    shortDescription:
-      "پردازنده Core Ultra 7، رم ۱۶ گیگابایت، حافظه ۱ ترابایت SSD، وزن ۱.۲ کیلوگرم",
-    price: 62000000,
-    originalPrice: 66000000,
-    sku: "ASU-UX3405-OLED-16G",
-    stock: 12,
-    isActive: true,
-    isFeatured: true,
-    type: "اولترابوک / لپ‌تاپ پرچمدار",
-    weight: "۱.۲ کیلوگرم",
-    dimensions: "۳۱۲.۴ × ۲۲۰.۱ × ۱۴.۹ میلی‌متر",
-    thumbnail: "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=800&auto=format&fit=crop&q=80",
-    images: [
-      {
-        id: "img-zenbook",
-        url: "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=800&auto=format&fit=crop&q=80",
-        alt: "Asus Zenbook 14 OLED",
-        order: 1,
-      },
-    ],
-    categoryId: "cat-laptops",
-    category: {
-      id: "cat-laptops",
-      name: "لپ‌تاپ و کامپیوتر",
-      slug: "laptops",
-    },
-    brandId: "brand-asus",
-    brand: {
-      id: "brand-asus",
-      name: "ایسوس (Asus)",
-      slug: "asus",
-    },
-    tags: ["لپ‌تاپ", "ایسوس", "Zenbook", "اولترابوک", "OLED"],
-    variants: [],
-    attributes: [
-      { name: "پردازنده", value: "Intel Core Ultra 7 155H با ۱۶ هسته" },
-      { name: "باتری", value: "۷۵ وات‌ساعت با پشتیبانی شارژ Type-C" },
-      { name: "نمایشگر", value: "۱۴ اینچ OLED 2.8K با نرخ نوسازی ۱۲۰Hz" },
-      { name: "رم و حافظه", value: "۱۶GB LPDDR5X + 1TB M.2 NVMe SSD" },
-    ],
-    rating: 4.7,
-    reviewCount: 65,
-    createdAt: "2024-03-01T00:00:00Z",
-    updatedAt: "2024-03-05T00:00:00Z",
-  },
-];
 
 /* -------------------------------------------------------------------------- */
 /*                               Helper Methods                               */
@@ -253,8 +94,8 @@ function checkRowDifference(products: Product[], key: string): boolean {
 /*                            Main Page Component                             */
 /* -------------------------------------------------------------------------- */
 
-export default function ComparePage() {
-  const { products, removeProduct, clearCompare, addProduct } =
+function ComparePageInner() {
+  const { products, removeProduct, clearCompare } =
     useCompareStore();
   const { addToCart } = useCart();
 
@@ -295,13 +136,6 @@ export default function ComparePage() {
     setTimeout(() => {
       setAddedIds((prev) => ({ ...prev, [product.id]: false }));
     }, 1500);
-  };
-
-  const handleAddAllFlagships = () => {
-    clearCompare();
-    FLAGSHIP_SUGGESTIONS.forEach((flagship) => {
-      addProduct(flagship);
-    });
   };
 
   // Extract all unique attribute names across all compared products
@@ -382,171 +216,9 @@ export default function ComparePage() {
               </Button>
             </Link>
 
-            <Button
-              variant="outline"
-              size="lg"
-              onClick={handleAddAllFlagships}
-              className="rounded-2xl gap-2 font-semibold border-primary/40 text-primary hover:bg-primary/10"
-            >
-              <Sparkles className="h-4 w-4" />
-              <span>مقایسه پرچمداران برتر (۳ محصول پیشنهادی)</span>
-            </Button>
           </div>
         </div>
 
-        {/* Suggested Flagship Comparison Section */}
-        <div className="space-y-6">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-border pb-4">
-            <div>
-              <div className="flex items-center gap-2">
-                <Sparkles className="h-5 w-5 text-amber-500" />
-                <h2 className="text-xl sm:text-2xl font-bold text-foreground">
-                  پیشنهاد مقایسه پرچمداران بازار
-                </h2>
-              </div>
-              <p className="text-xs sm:text-sm text-muted-foreground mt-1">
-                سامسونگ اس ۲۴ اولترا در برابر آیفون ۱۶ پرو مکس در برابر زنبوک ایسوس
-              </p>
-            </div>
-
-            <Button
-              onClick={handleAddAllFlagships}
-              className="rounded-xl gap-2 font-bold shadow-sm"
-              variant="secondary"
-            >
-              <ArrowLeftRight className="h-4 w-4" />
-              <span>مقایسه هر ۳ مدل با یک کلیک</span>
-            </Button>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {FLAGSHIP_SUGGESTIONS.map((product) => {
-              const discountPercent =
-                product.originalPrice && product.originalPrice > product.price
-                  ? Math.round(
-                      ((product.originalPrice - product.price) /
-                        product.originalPrice) *
-                        100,
-                    )
-                  : 0;
-
-              return (
-                <Card
-                  key={product.id}
-                  className="overflow-hidden rounded-3xl border border-border bg-card flex flex-col justify-between hover:shadow-lg transition-all duration-300"
-                >
-                  <div className="p-6 space-y-4">
-                    {/* Image / Thumbnail placeholder */}
-                    <div className="relative aspect-square w-full rounded-2xl bg-muted/40 border border-border/50 flex items-center justify-center p-4">
-                      {product.thumbnail ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={product.thumbnail}
-                          alt={product.title}
-                          className="max-h-full max-w-full object-contain"
-                          onError={(e) => {
-                            // Gracefully replace with placeholder icon if image doesn't exist
-                            e.currentTarget.style.display = "none";
-                            e.currentTarget.nextElementSibling?.classList.remove("hidden");
-                          }}
-                        />
-                      ) : null}
-                      <div className="hidden flex-col items-center justify-center text-muted-foreground">
-                        <Package className="h-16 w-16 mb-2 opacity-50" />
-                        <span className="text-xs">{product.brand?.name}</span>
-                      </div>
-
-                      {discountPercent > 0 && (
-                        <Badge
-                          variant="destructive"
-                          className="absolute top-3 right-3 rounded-full text-xs font-bold"
-                        >
-                          {toPersianDigits(discountPercent)}٪ تخفیف
-                        </Badge>
-                      )}
-
-                      <Badge
-                        variant="outline"
-                        className="absolute top-3 left-3 bg-background/80 backdrop-blur text-[11px]"
-                      >
-                        {product.category?.name}
-                      </Badge>
-                    </div>
-
-                    {/* Brand & Title */}
-                    <div>
-                      <span className="text-xs font-medium text-primary block mb-1">
-                        {product.brand?.name}
-                      </span>
-                      <h3 className="font-bold text-foreground text-base leading-snug line-clamp-2">
-                        {product.title}
-                      </h3>
-                    </div>
-
-                    {/* Rating */}
-                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                      <div className="flex items-center text-amber-500 font-bold">
-                        <Star className="h-3.5 w-3.5 fill-amber-400 me-1" />
-                        <span>{toPersianDigits(product.rating)}</span>
-                      </div>
-                      <span>({toPersianDigits(product.reviewCount)} دیدگاه)</span>
-                    </div>
-
-                    {/* Specs highlight tags */}
-                    <div className="space-y-1.5 pt-2 border-t border-border">
-                      {product.attributes?.slice(0, 3).map((attr, idx) => (
-                        <div
-                          key={idx}
-                          className="flex items-center justify-between text-xs"
-                        >
-                          <span className="text-muted-foreground">{attr.name}:</span>
-                          <span className="font-medium text-foreground max-w-[65%] truncate text-left" dir="ltr">
-                            {attr.value}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-
-                    {/* Price */}
-                    <div className="pt-2">
-                      {product.originalPrice && (
-                        <span className="text-xs line-through text-muted-foreground block">
-                          {formatPrice(product.originalPrice)}
-                        </span>
-                      )}
-                      <span className="text-lg font-black text-foreground block">
-                        {formatPrice(product.price)}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Actions */}
-                  <div className="p-6 pt-0 mt-auto flex flex-col gap-2">
-                    <Button
-                      onClick={() => addProduct(product)}
-                      className="w-full rounded-xl gap-2 font-bold shadow-sm"
-                    >
-                      <ArrowLeftRight className="h-4 w-4" />
-                      <span>افزودن به مقایسه</span>
-                    </Button>
-                    <Link
-                      href={`/products?search=${encodeURIComponent(product.title)}`}
-                      className="w-full"
-                    >
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="w-full rounded-xl text-xs text-muted-foreground hover:text-foreground"
-                      >
-                        مشاهده جزئیات کالا
-                      </Button>
-                    </Link>
-                  </div>
-                </Card>
-              );
-            })}
-          </div>
-        </div>
       </div>
     );
   }
@@ -1033,5 +705,14 @@ export default function ComparePage() {
         </div>
       </div>
     </div>
+  );
+}
+
+/** Redirects away when the compare module switch is off. */
+export default function ComparePage() {
+  return (
+    <FeatureGuard feature="compare">
+      <ComparePageInner />
+    </FeatureGuard>
   );
 }

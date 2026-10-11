@@ -7,7 +7,7 @@ the same ``toman_to_rial`` helper the catalog service uses, so the import
 path can never introduce float money.
 
 Stock quantity (when the column is mapped) sets ``inventory_items.available``
-at the default warehouse via an ADJUSTED inventory transaction — the same
+via an ADJUSTED inventory transaction — the same
 audited path the admin inventory UI uses.
 """
 
@@ -29,7 +29,6 @@ from app.modules.catalog.domain.models import (
 )
 from app.modules.catalog.schemas.catalog import toman_to_rial
 from app.modules.inventory.domain.models import (
-    DEFAULT_WAREHOUSE_ID,
     InventoryItem,
     TransactionType,
 )
@@ -302,19 +301,17 @@ async def upsert_product_row(db: Any, row: dict[str, Any]) -> str:
 
 
 async def _set_stock(db: Any, variant_id: uuid.UUID, target: int) -> None:
-    """Set available stock at the default warehouse via an audited adjustment."""
+    """Set available stock via an audited adjustment."""
     item = (
         await db.execute(
             select(InventoryItem).where(
                 InventoryItem.variant_id == variant_id,
-                InventoryItem.warehouse_id == DEFAULT_WAREHOUSE_ID,
             )
         )
     ).scalar_one_or_none()
     if item is None:
         item = InventoryItem(
             variant_id=variant_id,
-            warehouse_id=DEFAULT_WAREHOUSE_ID,
             available=0,
         )
         db.add(item)
@@ -364,7 +361,6 @@ async def export_product_rows(
             await db.execute(
                 select(func.coalesce(InventoryItem.available, 0)).where(
                     InventoryItem.variant_id == variant.id,
-                    InventoryItem.warehouse_id == DEFAULT_WAREHOUSE_ID,
                 )
             )
         ).scalar() or 0

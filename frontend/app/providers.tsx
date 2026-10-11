@@ -10,7 +10,7 @@ import { initWebVitals } from "@/lib/observability/vitals";
 import { initOfflineSync } from "@/lib/observability/offline-buffer";
 import { SiteBrandingProvider } from "@/components/layout/site-branding-provider";
 import { PWAProvider } from "@/components/shared/pwa-provider";
-import { loadCatalogue, DEFAULT_LOCALE } from "@/lib/i18n";
+import { ConfirmDialogProvider } from "@/components/ui/confirm-dialog";
 
 export function Providers({ children }: { children: ReactNode }) {
   const [queryClient] = useState(
@@ -27,12 +27,6 @@ export function Providers({ children }: { children: ReactNode }) {
   );
 
   useEffect(() => {
-    // The UI-string catalogue, once for the whole app. It lived in a database
-    // table with a public endpoint and no reader, so every string an operator
-    // wrote was stored and never rendered. Not awaited: `t` falls back to the
-    // key, and a page must not wait for a translation to render.
-    void loadCatalogue(DEFAULT_LOCALE);
-
     // Initialize global unhandled exception and rejection handlers
     const cleanupErrorHandlers = initGlobalErrorHandlers();
 
@@ -52,6 +46,11 @@ export function Providers({ children }: { children: ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
       <SiteBrandingProvider>
+      {/* In-app confirmation, available to every screen. `window.confirm` is
+          silently a no-op inside a sandboxed iframe (no `allow-modals`), so a
+          destructive handler that gates on it never runs in an embedded
+          preview — the button just looks dead. */}
+      <ConfirmDialogProvider>
       <Suspense fallback={null}>
         <TopProgressBar />
       </Suspense>
@@ -60,6 +59,7 @@ export function Providers({ children }: { children: ReactNode }) {
         <Toaster />
         <PWAProvider />
       </SmoothScroll>
+      </ConfirmDialogProvider>
       </SiteBrandingProvider>
     </QueryClientProvider>
   );

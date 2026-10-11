@@ -70,8 +70,24 @@ def generate_slug(text: str) -> str:
 
 
 def calculate_reading_time(content: str) -> int:
-    """Calculate approximate reading time in minutes (assuming 200 wpm)."""
-    words = len(re.findall(r"\w+", content))
+    """Calculate approximate reading time in minutes (assuming 200 wpm).
+
+    Two fixes over the first version, both visible in the live article:
+
+    * **Strip the HTML first.** The regex ran over the raw stored body, so
+      tag names, attribute values and URLs were counted as words — a 26 KB
+      body with ~3 000 real words reported 5 108 and 26 minutes instead of
+      ~16. A reader budgets their time on this number.
+    * **Count Persian text, not `\\w+`.** Python's `\\w` matches ASCII word
+      characters plus underscore; Persian letters are not in it, so a
+      Persian body counted near zero words per paragraph. Splitting on
+      whitespace after tag removal counts every script the same way.
+
+    200 wpm is WordPress's own estimate and stays.
+    """
+    text = re.sub(r"<[^>]+>", " ", content or "")
+    text = re.sub(r"&[a-z]+;", " ", text)  # entities are not words
+    words = len([w for w in text.split() if any(c.isalnum() for c in w)])
     return max(1, math.ceil(words / 200))
 
 
@@ -200,16 +216,32 @@ class BlogService:
             return None
 
     async def get_author_name(self, author_id: uuid.UUID) -> str:
-        """Retrieve author name or fallback to default."""
+        """Retrieve author name or fallback to default.
+
+        Order: ``display_name`` first — the public pen name the user chose,
+        which is the field WordPress calls the display name and the one a
+        migrated author expects to see on their articles. It was never read
+        here, so an author who had ONLY set a display name showed up as
+        "کاربر 0000" (the phone-tail fallback). Then first+last; the phone
+        tail is the last resort and now reads as the whole number's last four
+        only when it is a real phone.
+        """
         try:
             stmt = (
-                select(UserProfile.first_name, UserProfile.last_name, User.phone)
+                select(
+                    UserProfile.display_name,
+                    UserProfile.first_name,
+                    UserProfile.last_name,
+                    User.phone,
+                )
                 .outerjoin(UserProfile, UserProfile.user_id == User.id)
                 .where(User.id == author_id)
             )
             result = (await self.db.execute(stmt)).first()
             if result:
-                first, last, phone = result
+                display, first, last, phone = result
+                if display:
+                    return display.strip()
                 if first or last:
                     return f"{first or ''} {last or ''}".strip()
                 if phone:
@@ -267,7 +299,24 @@ class BlogService:
             scheduled_for=post.scheduled_for,
             category_id=post.category_id,
             category=(
-                BlogCategoryResponse.model_validate(post.category) if post.category else None
+                # Field-by-field, not ``model_validate(post.category)``: the
+                # response schema carries a nested ``children`` field that has
+                # no counterpart in this listing, and from_attributes would make
+                # pydantic fetch ``BlogCategory.children`` — a lazy relationship
+                # whose IO raises MissingGreenlet under asyncio. A post filed
+                # under a category then 500'd the whole list page.
+                BlogCategoryResponse(
+                    id=post.category.id,
+                    name=post.category.name,
+                    slug=post.category.slug,
+                    description=post.category.description,
+                    parent_id=post.category.parent_id,
+                    position=post.category.position,
+                    created_at=post.category.created_at,
+                    updated_at=post.category.updated_at,
+                )
+                if post.category
+                else None
             ),
             tags=tags,
             reading_time=calculate_reading_time(post.content),
@@ -282,8 +331,6 @@ class BlogService:
             created_at=post.created_at,
             updated_at=post.updated_at,
             deleted_at=post.deleted_at,
-            locale=post.locale,
-            translation_group=post.translation_group,
         )
 
     async def _get_seo_dict(self, post_id: uuid.UUID) -> dict[str, Any] | None:
@@ -303,7 +350,61 @@ class BlogService:
             "og_description": seo.og_description,
             "og_image": seo.og_image,
             "schema_markup": seo.schema_markup,
+            # The focus keyword travels with the metadata so the editor can
+            # reopen the article with the same keyword the writer chose; it
+            # was stored but never returned, so a reopen lost it.
+            "focus_keyword": seo.focus_keyword,
+            # Advanced tab: explicit robots directives (None = no choice made,
+            # the storefront applies its defaults). The storefront must read
+            # these or the editor's Advanced tab would be write-only.
+            "robots_noindex": seo.robots_noindex,
+            "robots_nofollow": seo.robots_nofollow,
+            "og_type": seo.og_type,
+            "twitter_title": seo.twitter_title,
+            "twitter_description": seo.twitter_description,
+            "twitter_image": seo.twitter_image,
+            "secondary_focus_keywords": seo.secondary_focus_keywords,
+            "seo_score": seo.seo_score,
         }
+
+    async def _seo_dict_with_templates(
+        self, post: BlogPost, seo_dict: dict[str, Any] | None
+    ) -> dict[str, Any] | None:
+        """Storefront read path: fill empty title/description from templates.
+
+        The operator's "titles & meta" templates must reach the live page
+        (SEO audit F-02): a stored row with NULL title — or no row at all,
+        the default state of every new post — used to fall through to a
+        hardcoded frontend suffix. This helper runs ONLY for the storefront
+        (get_post_by_slug); the admin/preview path (get_post_by_id) keeps
+        returning the stored row untouched, so the editor still shows exactly
+        what is stored ("empty means the template applies").
+
+        ``post.category`` is eager-loaded by get_post_by_slug (selectinload),
+        so touching it here is safe on an async session (a lazy read would
+        raise MissingGreenlet — the documented blog-list-500 bug).
+        """
+        if seo_dict and seo_dict.get("title") and seo_dict.get("description"):
+            return seo_dict
+        from app.modules.seo.application.titles_meta_service import (
+            TitlesMetaService,
+        )
+
+        rendered_title, rendered_desc = await TitlesMetaService(self.db).resolve(
+            "post",
+            title=post.title,
+            excerpt=post.excerpt,
+            focus_keyword=(seo_dict or {}).get("focus_keyword"),
+            category=post.category.name if post.category else None,
+            modified=post.updated_at.isoformat() if post.updated_at else None,
+            resource_id=str(post.id),
+        )
+        data: dict[str, Any] = dict(seo_dict or {})
+        if not data.get("title"):
+            data["title"] = rendered_title
+        if not data.get("description"):
+            data["description"] = rendered_desc
+        return data or None
 
     # ── Tag Operations ────────────────────────────────────────────────────
 
@@ -344,17 +445,35 @@ class BlogService:
             .order_by(BlogTag.name.asc())
         )
         rows = (await self.db.execute(stmt)).all()
-        return [
-            BlogTagResponse(
-                id=tag.id,
-                name=tag.name,
-                slug=tag.slug,
-                created_at=tag.created_at,
-                updated_at=tag.updated_at,
-                post_count=count,
+        # The operator's tag title/description templates must reach the live
+        # page. Without this the frontend hardcoded the title and the panel
+        # template for tags could never fire (SEO audit F-02). One service
+        # instance for the whole request: TitlesMetaService caches the option
+        # reads per instance, so building it inside the loop would issue ~19
+        # SELECTs per tag.
+        from app.modules.seo.application.titles_meta_service import (
+            TitlesMetaService,
+        )
+
+        tm = TitlesMetaService(self.db)
+        out: list[BlogTagResponse] = []
+        for tag, count in rows:
+            rendered_title, rendered_desc = await tm.resolve(
+                "tag", title=tag.name, resource_id=str(tag.id)
             )
-            for tag, count in rows
-        ]
+            out.append(
+                BlogTagResponse(
+                    id=tag.id,
+                    name=tag.name,
+                    slug=tag.slug,
+                    created_at=tag.created_at,
+                    updated_at=tag.updated_at,
+                    post_count=count,
+                    seo_title=rendered_title,
+                    seo_description=rendered_desc,
+                )
+            )
+        return out
 
     async def _ensure_unique_tag_slug(
         self, slug: str, exclude_id: uuid.UUID | None = None
@@ -730,6 +849,106 @@ class BlogService:
             except Exception as exc:  # noqa: BLE001
                 logger.warning("post_publish_notify_failed", post_id=str(post.id), error=str(exc))
 
+        # Instant Indexing (Rank Math parity): tell IndexNow the post is live.
+        # Fire-and-forget like the notifier — an indexing outage must not fail
+        # a publish, and the service never raises by contract.
+        try:
+            from app.modules.seo.application.indexing_service import (
+                submit_post_published,
+            )
+
+            for post in posts:
+                await submit_post_published(self.db, slug=post.slug)
+        except Exception as exc:  # noqa: BLE001
+            logger.warning("post_publish_indexing_failed", error=str(exc)[:200])
+
+        # Link Genius (Rank Math parity): run the keyword maps that opt into
+        # auto-linking. This is the publish transition only — the operator's
+        # "auto_link_on_publish" flag is exactly this moment, and running the
+        # maps on every save would re-link a draft the writer is still editing.
+        for post in posts:
+            await self._run_auto_link_maps(post)
+
+    async def _run_auto_link_maps(self, post: BlogPost) -> None:
+        """Apply every active keyword map with auto-link-on-publish enabled.
+
+        Best-effort: a failure here must never fail the publish, and the body
+        edit is committed per-post so a later map's failure does not roll back
+        an earlier map's links.
+        """
+        try:
+            from sqlalchemy import select as _select
+
+            from app.modules.seo.application import (
+                link_extraction_service,
+                link_map_service,
+            )
+            from app.modules.seo.domain.link_models import SeoLinkMap
+            from app.modules.settings.application.site_options_service import (
+                public_base_url,
+            )
+
+            maps = (
+                await self.db.execute(
+                    _select(SeoLinkMap).where(
+                        SeoLinkMap.is_active.is_(True),
+                        SeoLinkMap.auto_link_on_publish.is_(True),
+                    )
+                )
+            ).scalars().all()
+            if not maps:
+                return
+
+            changed = False
+            for link_map in maps:
+                keywords = [v.keyword for v in link_map.variations]
+                if not keywords:
+                    continue
+                new_content, inserted = link_map_service.apply_keyword_map(
+                    post.content or "",
+                    keywords=keywords,
+                    target_url=link_map.target_url,
+                    max_links_per_post=link_map.max_links_per_post,
+                    case_sensitive=link_map.case_sensitive,
+                )
+                if inserted > 0:
+                    post.content = new_content
+                    changed = True
+            if changed:
+                await self.db.commit()
+                await self.db.refresh(post)
+        except Exception as exc:  # noqa: BLE001
+            logger.warning(
+                "auto_link_maps_failed", post_id=str(post.id), error=str(exc)[:200]
+            )
+
+    async def _reindex_post_links(self, post: BlogPost) -> None:
+        """Refresh the Link Genius link index for one post (best-effort).
+
+        Called after every create/update so the suggestion panel and the
+        incoming-link view reflect the body that was just saved. A failure is
+        logged, never raised — link indexing must not break a content save.
+        """
+        try:
+            from app.modules.seo.application import link_extraction_service
+            from app.modules.seo.application.link_counter_service import site_hosts_from
+            from app.modules.settings.application.site_options_service import (
+                public_base_url,
+            )
+
+            base = await public_base_url(self.db)
+            await link_extraction_service.index_post_links(
+                self.db,
+                post_id=post.id,
+                content=post.content or "",
+                site_hosts=site_hosts_from(base),
+                base_url=base,
+            )
+        except Exception as exc:  # noqa: BLE001
+            logger.warning(
+                "post_link_reindex_failed", post_id=str(post.id), error=str(exc)[:200]
+            )
+
     # ── Category Operations ───────────────────────────────────────────────
 
     async def create_category(self, data: BlogCategoryCreate) -> BlogCategoryResponse:
@@ -952,17 +1171,32 @@ class BlogService:
         )
 
         rows = (await self.db.execute(stmt)).all()
-        return [
-            BlogCategoryResponse(
-                id=cat.id,
-                name=cat.name,
-                slug=cat.slug,
-                created_at=cat.created_at,
-                updated_at=cat.updated_at,
-                post_count=count,
+        # Same rule as list_tags: the operator's category templates must reach
+        # the live page, and one service instance serves the whole request so
+        # the option cache is read once (SEO audit F-02).
+        from app.modules.seo.application.titles_meta_service import (
+            TitlesMetaService,
+        )
+
+        tm = TitlesMetaService(self.db)
+        out: list[BlogCategoryResponse] = []
+        for cat, count in rows:
+            rendered_title, rendered_desc = await tm.resolve(
+                "category", title=cat.name, resource_id=str(cat.id)
             )
-            for cat, count in rows
-        ]
+            out.append(
+                BlogCategoryResponse(
+                    id=cat.id,
+                    name=cat.name,
+                    slug=cat.slug,
+                    created_at=cat.created_at,
+                    updated_at=cat.updated_at,
+                    post_count=count,
+                    seo_title=rendered_title,
+                    seo_description=rendered_desc,
+                )
+            )
+        return out
 
     async def get_category_by_id(self, category_id: uuid.UUID) -> BlogCategoryResponse:
         """Get category by UUID."""
@@ -1048,16 +1282,6 @@ class BlogService:
                         "Category", f"Category {category_id} does not exist"
                     )
 
-        # A plugin can rewrite the payload before it is stored. Mirrors
-        # cms_page_service: the dict is copied, so a plugin mutating it cannot
-        # reach back into the validated request object.
-        from app.shared.plugins.registry import (
-            HOOK_POST_AFTER_PUBLISH,
-            HOOK_POST_AFTER_SAVE,
-            HOOK_POST_BEFORE_SAVE,
-            registry,
-        )
-
         create_fields = {
             "title": data.title.strip(),
             "slug": slug,
@@ -1065,12 +1289,6 @@ class BlogService:
             "excerpt": data.excerpt.strip() if data.excerpt else None,
             "status": status,
         }
-        create_fields = await registry.apply_filters(
-            HOOK_POST_BEFORE_SAVE, create_fields, post_id=None, author_id=str(author_id)
-        )
-        # The filter may have narrowed the dict; only known keys are read back,
-        # and a hook that deleted one leaves the model's own default in place
-        # rather than an AttributeError.
         title = str(create_fields.get("title") or data.title.strip())
         content = str(create_fields.get("content") or sanitize_html(data.content))
         excerpt = create_fields.get("excerpt", data.excerpt)
@@ -1084,7 +1302,6 @@ class BlogService:
             excerpt=excerpt.strip() if isinstance(excerpt, str) and excerpt else None,
             cover_image_url=data.cover_image_url.strip() if data.cover_image_url else None,
             status=status,
-            locale=data.locale,
             published_at=published_at,
             scheduled_for=data.scheduled_for,
             is_featured=data.is_featured,
@@ -1107,15 +1324,10 @@ class BlogService:
         await self.db.commit()
         await self.db.refresh(post)
 
-        created = await self.get_post_by_id(post.id)
-        await registry.do_action(
-            HOOK_POST_AFTER_SAVE, post_id=str(post.id), status=post.status.value
-        )
-        if post.status == BlogPostStatus.PUBLISHED:
-            await registry.do_action(
-                HOOK_POST_AFTER_PUBLISH, post=created, post_id=str(post.id)
-            )
-        return created
+        # Link Genius: index the new body's links (best-effort, after commit).
+        await self._reindex_post_links(post)
+
+        return await self.get_post_by_id(post.id)
 
     async def update_post(
         self,
@@ -1148,30 +1360,14 @@ class BlogService:
         if update_dict.get("content"):
             update_dict["content"] = sanitize_html(update_dict["content"])
 
-        # A plugin can rewrite the patch before it is applied. Same contract as
-        # the create path and the CMS page: a copied dict, so a plugin cannot
-        # reach back into the validated request.
-        from app.shared.plugins.registry import HOOK_POST_BEFORE_SAVE, registry
-
-        old_status = post.status
-        update_dict = await registry.apply_filters(
-            HOOK_POST_BEFORE_SAVE,
-            update_dict,
-            post_id=str(post_id),
-            actor_id=str(actor_id) if actor_id else None,
-        )
-        if not isinstance(update_dict, dict):
-            # A filter that returned a non-dict would otherwise reach
-            # setattr with a string key and raise deep in the ORM. Refusing the
-            # save is louder and safer.
-            raise ValidationError(
-                "فیلتر ذخیره‌سازی ساختار نامعتبر برگرداند", error_code="PLUGIN_HOOK_INVALID"
-            )
-
         # Captured before the reassignment below: a post slug is a public URL, so
         # a rename 404s every link to the old one until the history row resolves
         # it back.
         previous_slug = post.slug
+        # Captured BEFORE the field loop applies update_dict — the publish
+        # announcement fires only on the transition, not on every save of an
+        # already-live post.
+        previous_status = post.status
 
         if "title" in update_dict and "slug" not in update_dict and not post.slug:
             update_dict["slug"] = await self._ensure_unique_post_slug(
@@ -1242,35 +1438,27 @@ class BlogService:
 
         await self._replace_post_tags(post, tag_ids)
 
+        # The manual publish transition is what a writer uses almost every
+        # time — and it never announced the post, so notification watchers and
+        # (later) instant-indexing hooks saw only the scheduled path publish
+        # anything. The transition (not the status) is the trigger: editing an
+        # already-published post must not re-announce it.
+        became_published = (
+            "status" in update_dict
+            and update_dict["status"] == BlogPostStatus.PUBLISHED
+            and previous_status != BlogPostStatus.PUBLISHED
+        )
+
         await self.db.commit()
         await self.db.refresh(post)
 
-        # Emitted after the commit, so a plugin reacting to a publish can read
-        # the row it was told about. A status change is its own hook because
-        # "draft -> published" and "published -> draft" are the transitions a
-        # plugin acts on; a plain save hook would fire for every keystroke-batch
-        # and a plugin would have to diff the status itself to find them.
-        from app.shared.plugins.registry import (
-            HOOK_POST_AFTER_PUBLISH,
-            HOOK_POST_AFTER_SAVE,
-            HOOK_POST_STATUS_CHANGE,
-            registry,
-        )
+        if became_published:
+            await self._notify_published([post])
 
-        updated = await self.get_post_by_id(post.id)
-        if post.status != old_status:
-            await registry.do_action(
-                HOOK_POST_STATUS_CHANGE,
-                post_id=str(post.id),
-                old_status=old_status.value,
-                new_status=post.status.value,
-            )
-        await registry.do_action(
-            HOOK_POST_AFTER_SAVE, post_id=str(post.id), status=post.status.value
-        )
-        if post.status == BlogPostStatus.PUBLISHED and old_status != BlogPostStatus.PUBLISHED:
-            await registry.do_action(HOOK_POST_AFTER_PUBLISH, post=updated, post_id=str(post.id))
-        return updated
+        # Link Genius: refresh this post's link index after the save.
+        await self._reindex_post_links(post)
+
+        return await self.get_post_by_id(post.id)
 
 
     async def empty_post_trash(
@@ -1326,12 +1514,28 @@ class BlogService:
         return await self.get_post_by_id(post.id)
 
     async def hard_delete_post(self, post_id: uuid.UUID) -> None:
-        """Permanently delete a post (only allowed from trash)."""
+        """Permanently delete a post (only allowed from trash).
+
+        The post's SEO metadata row goes with it. `seo_metadata` keys on
+        `(resource_type, resource_id)` with no foreign key — so a deleted
+        post left its row behind, and the table accumulated rows pointing at
+        nothing (two orphaned `blog_post` rows were found live on 2026-10-09,
+        one per re-import cycle). The row is deleted here in the same
+        transaction, so a hard delete leaves no residue.
+        """
+        from app.modules.seo.domain.models import SEOMetadata
+
         post = await self.db.get(BlogPost, post_id)
         if not post:
             raise NotFoundError("BlogPost", f"Blog post {post_id} not found")
         if post.deleted_at is None:
             raise NotFoundError("BlogPost", "پست ابتدا باید به سطل زباله منتقل شود")
+        await self.db.execute(
+            delete(SEOMetadata).where(
+                SEOMetadata.resource_type == "blog_post",
+                SEOMetadata.resource_id == post_id,
+            )
+        )
         await self.db.delete(post)
         await self.db.commit()
         logger.info("blog_post_hard_deleted", post_id=str(post_id))
@@ -1352,7 +1556,6 @@ class BlogService:
             excerpt=post.excerpt,
             cover_image_url=post.cover_image_url,
             status=BlogPostStatus.DRAFT,
-            locale=post.locale or "fa",
             category_id=post.category_id,
             is_featured=False,
             visibility=post.visibility,
@@ -1407,19 +1610,12 @@ class BlogService:
 
         Storage keeps the authored tokens (see ``_snapshot_revision``, which
         must snapshot what the author wrote); display resolves them.
-
-        The CMS page has had a ``body_render`` filter since the parity pass and
-        the blog did not, so a plugin could restyle a page body and had no way
-        to do the same to a post. Fired after the block and shortcode expansion,
-        for the same reason: a plugin should see the final HTML, not a token.
         """
         from app.shared.content.render import render_body
-        from app.shared.plugins.registry import HOOK_POST_BODY_RENDER, registry
 
-        rendered = await render_body(
+        return await render_body(
             self.db, content, include_unpublished=include_unpublished
         )
-        return await registry.apply_filters(HOOK_POST_BODY_RENDER, rendered)
 
     async def get_post_by_slug(
         self,
@@ -1508,7 +1704,12 @@ class BlogService:
 
         base = self._post_to_response(post, views, author_name, author_slug=author_slug)
         related = await self._get_related_posts(post.category_id, exclude_id=post.id)
-        seo_dict = await self._get_seo_dict(post.id)
+        # Storefront read path: fill empty title/description from the
+        # operator's titles-meta templates (F-02). The admin path above
+        # (get_post_by_id) deliberately keeps the stored row untouched.
+        seo_dict = await self._seo_dict_with_templates(
+            post, await self._get_seo_dict(post.id)
+        )
 
         if locked:
             return BlogPostDetailResponse(
@@ -1734,6 +1935,29 @@ class BlogService:
         # which keeps auto_excerpt's own "..." default.
         excerpt_more = await SiteOptionsService.get(self.db, "excerpt_more")
 
+        # SEO columns (score + focus keyword) for the whole page in ONE query.
+        # Per-post lookups would add N queries to every admin list load; the
+        # IN-list here is bounded by the page size.
+        seo_by_post: dict[uuid.UUID, tuple[int | None, str | None]] = {}
+        if posts:
+            from app.modules.seo.domain.models import SEOMetadata
+
+            seo_rows = (
+                await self.db.execute(
+                    select(
+                        SEOMetadata.resource_id,
+                        SEOMetadata.seo_score,
+                        SEOMetadata.focus_keyword,
+                    ).where(
+                        SEOMetadata.resource_type == "blog_post",
+                        SEOMetadata.resource_id.in_([p.id for p in posts]),
+                    )
+                )
+            ).all()
+            seo_by_post = {
+                row.resource_id: (row.seo_score, row.focus_keyword) for row in seo_rows
+            }
+
         items: list[BlogPostResponse] = []
         for p in posts:
             views = await self.get_view_count(p.id)
@@ -1752,6 +1976,9 @@ class BlogService:
             )
             if locked:
                 item.excerpt = "خلاصه‌ای برای این نوشته‌ی محافظت‌شده نمایش داده نمی‌شود."
+            score, keyword = seo_by_post.get(p.id, (None, None))
+            item.seo_score = score
+            item.seo_focus_keyword = keyword
             items.append(item)
 
         total_pages = max(1, math.ceil(total / page_size)) if total > 0 else 0
@@ -2086,14 +2313,24 @@ class BlogService:
         # error only in the per-post results means the list now shows a mix of
         # what they asked for and what the server decided was valid.
         resolved: dict[str, Any] = {}
+        # SEO fields (Rank Math's bulk edit) live in seo_metadata, not on the
+        # post row, so they are split out here and written through the SEO
+        # service per post — the same upsert the editor's SEO panel uses.
+        seo_edits: dict[str, Any] = {}
         if action == "edit":
             allowed = {
                 "category_id", "author_id", "post_format", "allow_comments",
                 "is_featured", "visibility", "status", "published_at",
                 "tag_ids",
             }
-            resolved = {k: v for k, v in (edits or {}).items() if k in allowed}
-            unknown = set(edits or {}) - allowed
+            allowed_seo = {
+                "seo_title", "seo_description", "seo_focus_keyword",
+                "seo_robots_noindex",
+            }
+            raw = edits or {}
+            resolved = {k: v for k, v in raw.items() if k in allowed}
+            seo_edits = {k: v for k, v in raw.items() if k in allowed_seo}
+            unknown = set(raw) - allowed - allowed_seo
             if unknown:
                 from app.core.exceptions.handlers import ValidationError
 
@@ -2157,6 +2394,39 @@ class BlogService:
                             setattr(post, key, value)
                     if resolved.get("status") == BlogPostStatus.PUBLISHED:
                         post.published_at = post.published_at or datetime.now(UTC)
+                    # SEO fields land in seo_metadata, written directly rather
+                    # than through SEOService.upsert_for_resource: that method
+                    # commits internally, which inside this loop would end the
+                    # batch's transaction mid-way and break the partial-success
+                    # contract (an early failure could not roll back its own
+                    # post without also committing the SEO write of another).
+                    # Only keys the operator actually sent are touched — a
+                    # partial bulk edit must not blank the fields it did not
+                    # mention, which is the whole point of "leave it".
+                    if seo_edits:
+                        from app.modules.seo.domain.models import SEOMetadata
+
+                        seo_row = (
+                            await self.db.execute(
+                                select(SEOMetadata).where(
+                                    SEOMetadata.resource_type == "blog_post",
+                                    SEOMetadata.resource_id == post.id,
+                                )
+                            )
+                        ).scalar_one_or_none()
+                        if seo_row is None:
+                            seo_row = SEOMetadata(
+                                resource_type="blog_post", resource_id=post.id
+                            )
+                            self.db.add(seo_row)
+                        if "seo_title" in seo_edits:
+                            seo_row.title = seo_edits["seo_title"] or None
+                        if "seo_description" in seo_edits:
+                            seo_row.description = seo_edits["seo_description"] or None
+                        if "seo_focus_keyword" in seo_edits:
+                            seo_row.focus_keyword = seo_edits["seo_focus_keyword"] or None
+                        if "seo_robots_noindex" in seo_edits:
+                            seo_row.robots_noindex = seo_edits["seo_robots_noindex"]
                     # A bulk edit is a content change like any other, so it is
                     # snapshotted: without this, "I moved 20 posts to a new
                     # category" would be the one edit an admin cannot undo.

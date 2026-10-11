@@ -44,7 +44,7 @@ async def _process_pending_cashback_async() -> dict[str, Any]:
             orders_stmt = (
                 select(Order)
                 .where(
-                    Order.status.in_([OrderStatus.COMPLETED, OrderStatus.DELIVERED]),
+                    Order.status.in_([OrderStatus.COMPLETED]),
                     Order.id.not_in(existing_tx_subquery),
                 )
                 .order_by(Order.created_at.asc())
@@ -81,7 +81,7 @@ async def _process_pending_cashback_async() -> dict[str, Any]:
             pending_pairs = list(pending_res.all())
 
             for txn, order in pending_pairs:
-                if order.status in (OrderStatus.COMPLETED, OrderStatus.DELIVERED):
+                if order.status in (OrderStatus.COMPLETED):
                     # Credit wallet
                     await wallet_service.credit(
                         db,

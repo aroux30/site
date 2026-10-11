@@ -52,15 +52,9 @@ class RegisterRequest(BaseModel):
     password: str = Field(..., min_length=8, max_length=128)
     first_name: str = Field(..., min_length=1, max_length=100)
     last_name: str = Field(..., min_length=1, max_length=100)
-    # Optional. When supplied, a verification link is emailed and
-    # ``users.is_verified`` stays false until it is clicked — the OTP flow
-    # proves the phone, never the email, so an address typed here was
-    # previously trusted without ever being checked.
-    email: str | None = Field(
-        None,
-        max_length=255,
-        description="Optional email; a verification link is sent when provided.",
-    )
+    # The optional `email` field was removed on 2026-10-07 with the rest of
+    # the email feature (its verification link was the only use). The phone
+    # is the proven identifier; OTP proves it.
     referral_code: str | None = Field(
         None, max_length=50, description="Optional referral code from an invite link"
     )
@@ -77,21 +71,6 @@ class RegisterRequest(BaseModel):
     @classmethod
     def validate_phone(cls, v: str) -> str:
         return _validate_iran_phone(v)
-
-    @field_validator("email")
-    @classmethod
-    def validate_email(cls, v: str | None) -> str | None:
-        # Same shape check the profile update uses: a value with no "@" or no
-        # dot after it is not an address, and accepting it would send a
-        # verification link into the void.
-        if v is None:
-            return None
-        candidate = v.strip()
-        if not candidate:
-            return None
-        if "@" not in candidate or "." not in candidate.split("@")[-1]:
-            raise ValueError("Invalid email format")
-        return candidate
 
     @field_validator("password")
     @classmethod
@@ -206,22 +185,8 @@ class ChangePasswordRequest(BaseModel):
         return _validate_strong_password(v)
 
 
-class PasswordResetRequest(BaseModel):
-    """Ask for a reset link. The email must be an existing password account."""
-
-    email: str = Field(..., min_length=3, max_length=255)
-
-
-class PasswordResetConfirm(BaseModel):
-    """Redeem a reset token and set a new password."""
-
-    token: str = Field(..., min_length=10, max_length=512)
-    new_password: str = Field(..., min_length=8, max_length=128)
-
-    @field_validator("new_password")
-    @classmethod
-    def validate_new_password(cls, v: str) -> str:
-        return _validate_strong_password(v)
+# PasswordResetRequest / PasswordResetConfirm were removed on 2026-10-07 with
+# the email-based reset flow. Recovery runs through the OTP endpoints.
 
 
 # ── Response schemas ─────────────────────────────────────────────────────────
@@ -242,7 +207,6 @@ class UserResponse(BaseModel):
 
     id: uuid.UUID
     phone: str
-    email: str | None = None
     first_name: str | None = None
     last_name: str | None = None
     is_active: bool
@@ -257,7 +221,6 @@ class UserProfileResponse(BaseModel):
 
     id: uuid.UUID
     phone: str
-    email: str | None = None
     first_name: str | None = None
     last_name: str | None = None
     #: The public-facing name, when set. Consumers fall back to first+last.
@@ -291,18 +254,10 @@ class UserProfileUpdate(BaseModel):
     # The name shown publicly. Distinct from first/last on purpose: an author
     # under a pen name must not have their legal name published by a byline.
     display_name: str | None = Field(None, max_length=100)
-    email: str | None = Field(None, max_length=255)
     national_code: str | None = Field(None, min_length=10, max_length=10)
     birth_date: str | None = Field(None, examples=["1370-01-15"])
     avatar_url: str | None = Field(None, max_length=500)
     gender: str | None = Field(None, max_length=10)
-
-    @field_validator("email")
-    @classmethod
-    def validate_email(cls, v: str | None) -> str | None:
-        if v is not None and ("@" not in v or "." not in v.split("@")[-1]):
-            raise ValueError("Invalid email format")
-        return v
 
     @field_validator("national_code")
     @classmethod

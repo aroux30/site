@@ -15,6 +15,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useToast } from "@/components/ui/use-toast";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 import {
   rbacApi,
   type OverrideEffect,
@@ -37,6 +38,7 @@ const USER_SEARCH_KEY = "admin-rbac-user-search" as const;
  */
 export default function AdminRbacPage() {
   const { toast } = useToast();
+  const confirm = useConfirm();
 
   // create-role dialog
   const [roleOpen, setRoleOpen] = useState(false);
@@ -151,7 +153,13 @@ export default function AdminRbacPage() {
       toast({ title: "غیرمجاز", description: "نقش‌های سیستمی حذف نمی‌شوند", variant: "destructive" });
       return;
     }
-    if (!confirm(`نقش «${role.name}» حذف شود؟`)) return;
+    const ok = await confirm({
+      title: "حذف نقش",
+      description: `نقش «${role.name}» حذف شود؟`,
+      confirmLabel: "حذف",
+      destructive: true,
+    });
+    if (!ok) return;
     try {
       await rbacApi.deleteRole(role.id);
       void load();
@@ -277,7 +285,13 @@ export default function AdminRbacPage() {
       });
       return;
     }
-    if (!confirm(`مجوز «${permission.slug}» حذف شود؟`)) return;
+    const ok = await confirm({
+      title: "حذف مجوز",
+      description: `مجوز «${permission.slug}» حذف شود؟`,
+      confirmLabel: "حذف",
+      destructive: true,
+    });
+    if (!ok) return;
     try {
       await rbacApi.deletePermission(permission.id);
       toast({ title: "مجوز حذف شد" });
@@ -306,7 +320,7 @@ export default function AdminRbacPage() {
             مدیریت نقش‌ها و مجوزهای دقیق به سبک WordPress capabilities
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Button variant="outline" size="sm" onClick={() => void load()}>
             <RefreshCw className="h-4 w-4 ms-2" />
             بروزرسانی
@@ -513,7 +527,7 @@ export default function AdminRbacPage() {
                   id="override-search"
                   value={overrideQuery}
                   onChange={(e) => setOverrideQuery(e.target.value)}
-                  placeholder="شماره، ایمیل یا نام"
+                  placeholder="شماره یا نام"
                   dir="ltr"
                 />
               </div>

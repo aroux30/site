@@ -12,7 +12,9 @@ TriggerType = Literal[
     "order_paid", "order_created", "user_registered", "review_created", "stock_low"
 ]
 ConditionOperator = Literal["eq", "ne", "gt", "lt", "gte", "lte", "contains"]
-ActionType = Literal["send_email", "send_notification", "fire_webhook"]
+# "send_email" was removed on 2026-10-07 with the email feature; existing
+# rules carrying it now fail validation on save.
+ActionType = Literal["send_notification"]
 
 
 class RuleCondition(BaseModel):

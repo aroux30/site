@@ -10,8 +10,6 @@ import {
   Minus,
   Trash2,
   ArrowLeft,
-  Truck,
-  CheckCircle2,
   ExternalLink,
   TicketPercent,
   Loader2,
@@ -257,46 +255,6 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
           </Button>
         </div>
 
-        {/* Free Shipping Progress Indicator */}
-        {items.length > 0 && (
-          <div className="border-b border-border bg-primary/5 p-4">
-            {summary.freeShippingEligible ? (
-              <div className="flex items-center gap-2 text-xs font-bold text-success">
-                <CheckCircle2 className="h-4 w-4 shrink-0" />
-                <span>تبریک! سفارش شما مشمول ارسال کاملاً رایگان شد.</span>
-              </div>
-            ) : (
-              <div className="space-y-2">
-                <div className="flex items-center justify-between text-xs text-foreground font-medium">
-                  <span className="flex items-center gap-1.5">
-                    <Truck className="h-4 w-4 text-primary" />
-                    <span>
-                      فقط{" "}
-                      <strong className="text-primary font-bold">
-                        {formatPrice(summary.freeShippingRemaining)}
-                      </strong>{" "}
-                      دیگر تا ارسال رایگان
-                    </span>
-                  </span>
-                  <span className="text-muted-foreground text-[11px]">
-                    {toPersianDigits(
-                      Math.round((summary.subtotal / 500000) * 100),
-                    )}
-                    ٪
-                  </span>
-                </div>
-                <div className="h-2 w-full overflow-hidden rounded-full bg-border">
-                  <div
-                    className="h-full bg-primary rounded-full transition-all duration-500"
-                    style={{
-                      width: `${Math.min(100, Math.round((summary.subtotal / 500000) * 100))}%`,
-                    }}
-                  />
-                </div>
-              </div>
-            )}
-          </div>
-        )}
 
         {/* Error state — sync/refetch failed */}
         {error && !isLoading && (
@@ -458,19 +416,9 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                   <span>− {formatPrice(summary.discount)}</span>
                 </div>
               )}
-              <div className="flex items-center justify-between text-muted-foreground">
-                <span>هزینه ارسال</span>
-                {summary.shipping === 0 ? (
-                  <span className="font-bold text-success">رایگان</span>
-                ) : (
-                  <span className="font-semibold text-foreground">
-                    {formatPrice(summary.shipping)}
-                  </span>
-                )}
-              </div>
               {summary.tax > 0 && (
                 <div className="flex items-center justify-between text-muted-foreground">
-                  <span>مالیات بر ارزش افزوده (۱۰٪)</span>
+                  <span>مالیات بر ارزش افزوده ({toPersianDigits(summary.taxRatePercent)}٪)</span>
                   <span className="font-semibold text-foreground">
                     {formatPrice(summary.tax)}
                   </span>

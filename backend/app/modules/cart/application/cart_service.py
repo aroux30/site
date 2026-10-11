@@ -170,30 +170,19 @@ async def _resolve_line_price(
     db: AsyncSession,
     variant: ProductVariant,
     quantity: int,
-    user_id: uuid.UUID | None = None,
 ) -> int:
     """Unit price for a cart line: tier price when brackets apply, else list price.
 
     Karta findPrice (Sprint 1.6): one server-side resolver for every channel,
-    so a client can never dictate a unit price. When ``user_id`` is known the
-    shopper's price-list segment (Odoo product.pricelist concept) is layered
-    on top of the volume-tier price.
+    so a client can never dictate a unit price.
     """
     from app.modules.inventory.application import pricing_service
-
-    user_segment = None
-    if user_id is not None:
-        from app.modules.pricing.application.segment_resolver import resolve_user_segment
-
-        user_segment = await resolve_user_segment(db, user_id)
 
     return await pricing_service.resolve_unit_price(
         db,
         product_id=variant.product_id,
         base_unit_price=variant.price,
         quantity=quantity,
-        user_segment=user_segment,
-        variant_id=variant.id,
     )
 
 
@@ -291,14 +280,14 @@ async def add_item(
         await _validate_order_quantity(db, variant, new_qty)
         existing_item.quantity = new_qty
         # Tier-aware price snapshot (Sprint 1.6)
-        existing_item.price_snapshot = await _resolve_line_price(db, variant, new_qty, user_id=cart.user_id)
+        existing_item.price_snapshot = await _resolve_line_price(db, variant, new_qty)
     else:
         await _validate_order_quantity(db, variant, quantity)
         new_item = CartItem(
             cart_id=cart_id,
             variant_id=variant_id,
             quantity=quantity,
-            price_snapshot=await _resolve_line_price(db, variant, quantity, user_id=cart.user_id),
+            price_snapshot=await _resolve_line_price(db, variant, quantity),
         )
         db.add(new_item)
         cart.items.append(new_item)
@@ -391,7 +380,7 @@ async def update_item_quantity(
         variant = variant_result.scalar_one_or_none()
         if variant is not None:
             await _validate_order_quantity(db, variant, quantity)
-            item.price_snapshot = await _resolve_line_price(db, variant, quantity, user_id=cart.user_id)
+            item.price_snapshot = await _resolve_line_price(db, variant, quantity)
 
         item.quantity = quantity
         await logger.ainfo(
@@ -556,7 +545,7 @@ async def validate_cart(
             continue
 
         # Check price change (tier-aware: a bracket price is legitimate)
-        expected_unit_price = await _resolve_line_price(db, variant, ci.quantity, user_id=cart.user_id)
+        expected_unit_price = await _resolve_line_price(db, variant, ci.quantity)
         if expected_unit_price != ci.price_snapshot:
             issues.append(
                 CartValidationIssue(

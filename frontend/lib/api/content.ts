@@ -53,7 +53,6 @@ export interface CmsPage {
   seo_description: string | null;
   author_id: string | null;
   revision_number: number;
-  locale: string;
   scheduled_publish_at: string | null;
   scheduled_unpublish_at: string | null;
   deleted_at: string | null;
@@ -97,7 +96,6 @@ export interface CmsPageInput {
   status?: CmsPageStatus;
   seo_title?: string | null;
   seo_description?: string | null;
-  locale?: string;
   scheduled_publish_at?: string | null;
   scheduled_unpublish_at?: string | null;
   allow_comments?: boolean;
@@ -124,14 +122,6 @@ export interface BulkActionResult {
   succeeded: number;
   failed: number;
   errors: Record<string, string>;
-}
-
-export interface ThemeConfig {
-  name?: string;
-  colors: Record<string, string>;
-  typography?: { font_family?: string; base_size_px?: number; heading_weight?: number };
-  radius?: string;
-  dark_mode_default?: boolean;
 }
 
 // --- API (user) ---
@@ -186,7 +176,6 @@ export const cmsPagesAdminApi = {
   listPages: async (params?: {
     status?: CmsPageStatus;
     search?: string;
-    locale?: string;
     sort?: string;
     include_trashed?: boolean;
   }): Promise<CmsPageList> => {
@@ -418,14 +407,6 @@ export const singleTypesApi = {
   getHeaderMenu: async (): Promise<SingleType<HeaderMenuConfig>> => {
     const res = await apiClient.get<SingleType<HeaderMenuConfig>>(
       "/content/single-types/header_menu",
-    );
-    return res.data;
-  },
-
-  /** دریافت توکن‌های تم (public — رنگ‌ها و تایپوگرافی فروشگاه) */
-  getTheme: async (): Promise<SingleType<ThemeConfig>> => {
-    const res = await apiClient.get<SingleType<ThemeConfig>>(
-      "/content/single-types/theme",
     );
     return res.data;
   },

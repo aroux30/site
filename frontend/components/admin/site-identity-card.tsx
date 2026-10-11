@@ -29,7 +29,6 @@ import { useAdminMutation } from "@/lib/api/admin-query";
 const KEYS = {
   blogname: "blogname",
   blogdescription: "blogdescription",
-  adminEmail: "admin_email",
   blogPublic: "blog_public",
   showOnFront: "show_on_front",
   pageOnFront: "page_on_front",
@@ -43,7 +42,6 @@ export function SiteIdentityCard() {
 
   const [siteName, setSiteName] = useState("");
   const [tagline, setTagline] = useState("");
-  const [adminEmail, setAdminEmail] = useState("");
   // Static front page: the storefront already asks /public/front-page whether a
   // page is pinned to "/", but no screen could set one — the backend handled a
   // stale slug correctly and nothing could ever create a fresh one.
@@ -56,7 +54,6 @@ export function SiteIdentityCard() {
       const opts = await siteOptionsApi.list();
       setSiteName(opts[KEYS.blogname] ?? "");
       setTagline(opts[KEYS.blogdescription] ?? "");
-      setAdminEmail(opts[KEYS.adminEmail] ?? "");
       // Stored as "1"/"0", the WordPress convention. Anything else is treated
       // as visible rather than silently hiding the store from search engines.
       setSearchVisible((opts[KEYS.blogPublic] ?? "1") !== "0");
@@ -95,10 +92,6 @@ export function SiteIdentityCard() {
       toast({ title: "نام سایت نمی‌تواند خالی باشد", variant: "destructive" });
       return;
     }
-    if (adminEmail.trim() && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(adminEmail.trim())) {
-      toast({ title: "قالب ایمیل ادمین درست نیست", variant: "destructive" });
-      return;
-    }
     setSaving(true);
     // Saved one key per request because that is the shape the API takes. The
     // alternative — a bulk endpoint — would need one for every option screen,
@@ -106,7 +99,6 @@ export function SiteIdentityCard() {
     const writes: Array<[string, string]> = [
       [KEYS.blogname, siteName.trim()],
       [KEYS.blogdescription, tagline.trim()],
-      [KEYS.adminEmail, adminEmail.trim()],
       [KEYS.blogPublic, searchVisible ? "1" : "0"],
       [KEYS.showOnFront, showOnFront],
       // An empty string is the honest value for "no page chosen"; the resolver
@@ -163,21 +155,6 @@ export function SiteIdentityCard() {
             placeholder="یک جمله درباره فروشگاه"
             dir="auto"
           />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="site-admin-email">ایمیل ادمین</Label>
-          <Input
-            id="site-admin-email"
-            type="email"
-            dir="ltr"
-            value={adminEmail}
-            onChange={(e) => setAdminEmail(e.target.value)}
-            placeholder="admin@example.com"
-          />
-          <p className="text-xs text-muted-foreground">
-            فرستنده‌ی ایمیل‌های سیستمی و گیرنده‌ی اعلان‌های مدیریتی.
-          </p>
         </div>
 
         <div className="space-y-2">

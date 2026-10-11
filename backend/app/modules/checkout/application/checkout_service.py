@@ -14,7 +14,7 @@ from app.core.exceptions.handlers import ConflictError, NotFoundError, Validatio
 from app.core.observability.tracer import get_tracer
 from app.modules.cart.domain.models import Cart, CartStatus
 from app.modules.catalog.domain.models import ProductVariant
-from app.modules.checkout.application.tax_service import TaxService
+from app.modules.checkout.application import tax_rate_service
 from app.modules.checkout.schemas.checkout import (
     CheckoutLineItem,
     CheckoutQuoteRequest,
@@ -91,9 +91,8 @@ async def _calculate_shipping(
     db: AsyncSession,
     method: ShippingMethod,
     province: str,
-    subtotal: int,
 ) -> int:
-    """Find the best matching shipping rate for the given province and subtotal."""
+    """Find the best matching shipping rate for the given province."""
     # Try province-specific rate first, then fallback to generic
     stmt = (
         select(ShippingRate)
@@ -101,7 +100,6 @@ async def _calculate_shipping(
         .order_by(
             # Prefer province-specific rates
             (ShippingRate.province == province).desc(),
-            ShippingRate.min_order_amount.desc().nulls_last(),
         )
     )
     result = await db.execute(stmt)
@@ -110,9 +108,6 @@ async def _calculate_shipping(
     for rate in rates:
         # Check province match
         if rate.province is not None and rate.province != province:
-            continue
-        # Check minimum order amount
-        if rate.min_order_amount is not None and subtotal < rate.min_order_amount:
             continue
         return rate.price
 
@@ -124,47 +119,9 @@ async def _calculate_shipping(
     )
 
 
-async def _resolve_buyer_segment(db: AsyncSession, user_id: uuid.UUID) -> Any:
-    """The shopper's price-list segment for this checkout (loyalty-tier derived)."""
-    from app.modules.pricing.application.segment_resolver import resolve_user_segment
-
-    return await resolve_user_segment(db, user_id)
-
-
-async def _resolve_line_tax_identities(
-    db: AsyncSession,
-    cart: Cart,
-) -> dict[uuid.UUID, dict[str, Any]]:
-    """Map cart-item id → {product_id, category_id} for tax override resolution.
-
-    The v1 tax engine resolves product > category > default per line, so the
-    checkout flow needs each line's catalog identity (not exposed on the
-    public CheckoutLineItem schema).
-    """
-    from app.modules.catalog.domain.models import Product
-
-    variant_ids = [ci.variant_id for ci in cart.items]
-    if not variant_ids:
-        return {}
-    stmt = (
-        select(ProductVariant.id, ProductVariant.product_id, Product.category_id)
-        .join(Product, Product.id == ProductVariant.product_id)
-        .where(ProductVariant.id.in_(variant_ids))
-    )
-    rows = (await db.execute(stmt)).all()
-    by_variant = {row[0]: {"product_id": row[1], "category_id": row[2]} for row in rows}
-    return {
-        ci.id: by_variant.get(
-            ci.variant_id, {"product_id": None, "category_id": None}
-        )
-        for ci in cart.items
-    }
-
-
 async def _coupon_scope_items(
     db: AsyncSession,
     cart: Cart,
-    segment: Any | None = None,
 ) -> list[dict[str, Any]]:
     """Build the per-item identity/subtotal list used for scoped coupons.
 
@@ -205,8 +162,6 @@ async def _coupon_scope_items(
                 product_id=row[1],
                 base_unit_price=row[4],
                 quantity=ci.quantity,
-                user_segment=segment,
-                variant_id=ci.variant_id,
             )
         else:
             live_price = ci.price_snapshot
@@ -251,7 +206,6 @@ async def _apply_coupon(
 async def _build_line_items(
     db: AsyncSession,
     cart: Cart,
-    segment: Any | None = None,
 ) -> list[CheckoutLineItem]:
     """Resolve product info for each cart item with tier-aware pricing."""
     from app.modules.inventory.application import pricing_service
@@ -273,8 +227,6 @@ async def _build_line_items(
             product_id=variant.product_id,
             base_unit_price=variant.price,
             quantity=ci.quantity,
-            user_segment=segment,
-            variant_id=variant.id,
         )
         items.append(
             CheckoutLineItem(
@@ -371,24 +323,23 @@ async def calculate_quote(
     shipping_method = await _load_shipping_method(db, data.shipping_method_id)
 
     # Build line items with live prices
-    segment = await _resolve_buyer_segment(db, user_id)
-    line_items = await _build_line_items(db, cart, segment=segment)
+    line_items = await _build_line_items(db, cart)
     subtotal = sum(item.subtotal for item in line_items)
 
     # Shipping
-    shipping_cost = await _calculate_shipping(db, shipping_method, address.province, subtotal)
+    shipping_cost = await _calculate_shipping(db, shipping_method, address.province)
 
     # Discount
     discount_amount = 0
     coupon_applied: str | None = None
     if data.coupon_code:
-        coupon_items = await _coupon_scope_items(db, cart, segment=segment)
+        coupon_items = await _coupon_scope_items(db, cart)
         discount_amount, coupon_applied, _coupon_id = await _apply_coupon(
             db, data.coupon_code, subtotal, user_id, items=coupon_items
         )
 
-    # Tax calculation via authoritative server-side TaxService
-    tax_info = await TaxService.calculate_tax(
+    # Tax calculation from the single configured rate (admin settings field)
+    tax_info = await tax_rate_service.calculate_tax_rials(
         db, taxable_amount_rials=max(subtotal - discount_amount, 0)
     )
     tax = tax_info["tax_amount_rials"]
@@ -468,9 +419,8 @@ async def validate_checkout(
     # 5. Coupon
     if data.coupon_code:
         try:
-            segment = await _resolve_buyer_segment(db, user_id)
             subtotal = sum(ci.price_snapshot * ci.quantity for ci in cart.items)
-            coupon_items = await _coupon_scope_items(db, cart, segment=segment)
+            coupon_items = await _coupon_scope_items(db, cart)
             await _apply_coupon(db, data.coupon_code, subtotal, user_id, items=coupon_items)
         except ValidationError as e:
             issues.append(CheckoutValidationIssue(field="coupon_code", message=str(e.detail)))
@@ -479,6 +429,28 @@ async def validate_checkout(
         is_valid=len(issues) == 0,
         issues=issues,
     )
+
+
+#: Payment-method slugs that mean "a human has to look at this". Kept as a
+#: set because the checkout UI, the admin payment list and this status
+#: decision must all agree on what counts as card-to-card.
+CARD_TO_CARD_METHODS: frozenset[str] = frozenset(
+    {"card_to_card", "card-transfer", "card_transfer", "c2c", "cart_to_card"}
+)
+
+
+def _is_card_to_card(payment_method: str | None) -> bool:
+    """True when this order needs a human to confirm the money arrived.
+
+    Matching is on a normalized slug (lowercased, spaces/dashes collapsed)
+    because the value arrives from the storefront, and a silent miss here is
+    expensive in both directions: an admin-gated order misfiled as a gateway
+    order can be auto-canceled with the money already in the account.
+    """
+    if not payment_method:
+        return False
+    normalized = payment_method.strip().lower().replace(" ", "_").replace("-", "_")
+    return normalized in CARD_TO_CARD_METHODS
 
 
 async def create_order(
@@ -570,8 +542,7 @@ async def create_order(
     shipping_method = await _load_shipping_method(db, data.shipping_method_id)
 
     # Build line items (with live, tier-aware prices)
-    segment = await _resolve_buyer_segment(db, user_id)
-    line_items = await _build_line_items(db, cart, segment=segment)
+    line_items = await _build_line_items(db, cart)
     subtotal = sum(item.subtotal for item in line_items)
 
     # Re-enforce per-product quantity limits at order time (Sprint 1.5)
@@ -606,64 +577,24 @@ async def create_order(
     discount_amount = 0
     coupon_id_for_redemption: uuid.UUID | None = None
     if data.coupon_code:
-        coupon_items = await _coupon_scope_items(db, cart, segment=segment)
+        coupon_items = await _coupon_scope_items(db, cart)
         discount_amount, _code, coupon_id_for_redemption = await _apply_coupon(
             db, data.coupon_code, subtotal, user_id, items=coupon_items
         )
 
     # ── 6. Calculate shipping ──────────────────────────────────────────
-    shipping_cost = await _calculate_shipping(db, shipping_method, address.province, subtotal)
+    shipping_cost = await _calculate_shipping(db, shipping_method, address.province)
 
-    # Tax — tax engine v1 (effective-dated rules, per-line breakdown, B2B
-    # withholding). New orders route through the v2 engine; the legacy
-    # TaxService.calculate_tax stays for calculate_quote and any legacy
-    # callers. Falls back to the legacy single-rule path if the v2 path
-    # fails so checkout never hard-breaks on tax misconfiguration.
-    from app.modules.checkout.application import tax_service_v2
-    from app.modules.checkout.application.tax_engine import OrderLineInput
-
-    line_identities = await _resolve_line_tax_identities(db, cart)
-    buyer_ctx = await tax_service_v2.resolve_buyer_tax_context(db, user_id)
-    tax_engine_result = None
-    try:
-        tax_inputs: list[OrderLineInput] = []
-        for li in line_items:
-            identity = line_identities.get(li.cart_item_id, {})
-            line_discount = (
-                round(discount_amount * li.subtotal / subtotal) if subtotal > 0 else 0
-            )
-            tax_inputs.append(
-                OrderLineInput(
-                    variant_id=li.variant_id,
-                    product_id=identity.get("product_id"),
-                    category_id=identity.get("category_id"),
-                    line_total_rial=max(li.subtotal - line_discount, 0),
-                )
-            )
-        tax_engine_result = await tax_service_v2.calculate_order_tax_v2(
-            db,
-            lines=tax_inputs,
-            customer_is_b2b=buyer_ctx["customer_is_b2b"],
-            exemption_certificate=buyer_ctx["exemption_certificate"],
-            shipping_rial=shipping_cost,
-            subtotal_rial=subtotal,
-            discount_rial=discount_amount,
-        )
-        tax = tax_engine_result.tax_total_rial
-        tax_info = {
-            "tax_amount_rials": tax,
-            "rate_basis_points": 0,
-            "rule_code": "TAX_ENGINE_V1",
-        }
-    except Exception:
-        await logger.aexception(
-            "tax_engine_v1_failed_falling_back_to_legacy",
-            user_id=str(user_id),
-        )
-        tax_info = await TaxService.calculate_tax(
-            db, taxable_amount_rials=max(subtotal - discount_amount, 0)
-        )
-        tax = tax_info["tax_amount_rials"]
+    # Tax — the single configured rate (admin settings field) applied to the
+    # discounted subtotal. The rule engine (effective-dated rules, withholding
+    # profiles, per-order observations) was removed on 2026-10-09 with the
+    # owner's single-source decision; the quote path above and this path use
+    # the same service, so the review step can no longer disagree with the
+    # charged amount.
+    tax_info = await tax_rate_service.calculate_tax_rials(
+        db, taxable_amount_rials=max(subtotal - discount_amount, 0)
+    )
+    tax = tax_info["tax_amount_rials"]
 
     total = subtotal + shipping_cost - discount_amount + tax
     total = max(total, 0)
@@ -688,10 +619,22 @@ async def create_order(
         "lng": address.lng,
     }
 
+    # The order's opening status depends on HOW it will be paid, because the
+    # two cases have opposite expiry rules:
+    #   - card-to-card → WAITING_PAYMENT_CARD: an admin must eyeball the receipt, and
+    #     the abandoned-payment sweep must never cancel it however late they get.
+    #   - everything else (gateway/wallet) → WAITING_PAYMENT_GATEWAY: the gateway
+    #     callback decides, and an order nobody paid for expires to CANCELED.
+    opening_status = (
+        OrderStatus.WAITING_PAYMENT_CARD
+        if _is_card_to_card(data.payment_method)
+        else OrderStatus.WAITING_PAYMENT_GATEWAY
+    )
+
     order = Order(
         user_id=user_id,
         order_number=order_number,
-        status=OrderStatus.PENDING,
+        status=opening_status,
         subtotal=subtotal,
         shipping_cost=shipping_cost,
         tax=tax,
@@ -727,14 +670,6 @@ async def create_order(
     # ── 8b. Price snapshot (immutable, hash-sealed) ─────────────────────
     from app.modules.checkout.application import snapshot_service
 
-    # When the v1 engine produced per-line tax, use its exact breakdown;
-    # otherwise keep the legacy proportional allocation.
-    engine_lines_by_variant: dict[str, Any] = {}
-    if tax_engine_result is not None:
-        engine_lines_by_variant = {
-            str(b.variant_id): b for b in tax_engine_result.lines if b.variant_id
-        }
-
     snapshot_lines: list[dict[str, Any]] = []
     tax_rate_bps = tax_info.get("rate_basis_points", 0)
     for li in line_items:
@@ -742,14 +677,10 @@ async def create_order(
         line_discount = (
             round(discount_amount * li.subtotal / subtotal) if subtotal > 0 else 0
         )
-        engine_line = engine_lines_by_variant.get(str(li.variant_id))
-        if engine_line is not None:
-            line_tax = engine_line.tax_amount_rial
-            line_rate_percent = engine_line.rate_basis_points // 100
-        else:
-            # Legacy proportional tax: each line's share of total tax
-            line_tax = round(tax * li.subtotal / subtotal) if subtotal > 0 else 0
-            line_rate_percent = tax_rate_bps // 100
+        # Proportional tax: each line's share of the total tax, at the one
+        # configured rate.
+        line_tax = round(tax * li.subtotal / subtotal) if subtotal > 0 else 0
+        line_rate_percent = tax_rate_bps // 100
         snapshot_lines.append({
             "variant_id": str(li.variant_id),
             "product_name": li.product_name,
@@ -773,21 +704,11 @@ async def create_order(
         grand_total_rial=total,
     )
 
-    # ── 8c. Tax observation (immutable per-order fiscal record, v1) ─────
-    if tax_engine_result is not None:
-        await tax_service_v2.persist_tax_observation(
-            db,
-            order_id=order.id,
-            result=tax_engine_result,
-            customer_is_b2b=buyer_ctx["customer_is_b2b"],
-            exemption_certificate_ref=buyer_ctx["exemption_certificate"],
-        )
-
     # ── 9. Status history ──────────────────────────────────────────────
     status_entry = OrderStatusHistory(
         order_id=order.id,
         from_status=None,
-        to_status=OrderStatus.PENDING.value,
+        to_status=opening_status.value,
         changed_by=user_id,
         reason="Order created via checkout",
     )

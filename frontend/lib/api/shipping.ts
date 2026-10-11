@@ -9,8 +9,6 @@ export interface ShippingMethod {
   price: number;
   estimated_days_min: number;
   estimated_days_max: number;
-  is_free_eligible: boolean;
-  free_threshold?: number;
   is_active: boolean;
 }
 
@@ -20,7 +18,6 @@ export interface ShippingQuoteRequest {
   city?: string;
   weight_grams?: number;
   weight?: number;
-  order_amount?: number;
   items?: Array<{ variant_id: number | string; quantity: number }>;
 }
 
@@ -30,10 +27,9 @@ export interface ShippingQuote {
   price: number;
   estimated_days_min: number;
   estimated_days_max: number;
-  is_free: boolean;
 }
 
-export type DeliveryType = "home" | "pickup_point" | "cash_on_delivery";
+export type DeliveryType = "home" | "cash_on_delivery";
 
 export interface Shipment {
   id: number | string;
@@ -58,27 +54,9 @@ export interface Shipment {
   delivery_type?: DeliveryType;
   cod_amount_rial?: number | null;
   cod_collected_at?: string | null;
-  pickup_point_id?: string | null;
   cancelled_at?: string | null;
   cancelled_reason?: string | null;
   label_url?: string | null;
-}
-
-export interface PickupPoint {
-  id: string;
-  provider: string;
-  external_id: string;
-  name: string;
-  city: string;
-  province: string | null;
-  address: string;
-  postal_code: string | null;
-  phone: string | null;
-  latitude: number | null;
-  longitude: number | null;
-  is_active: boolean;
-  created_at: string;
-  updated_at: string;
 }
 
 export interface TrackingInfo {
@@ -108,7 +86,6 @@ export const shippingApi = {
     const payload = {
       province: data.province || "تهران",
       weight: data.weight ?? ((data.weight_grams ?? 1000) / 1000),
-      order_amount: data.order_amount ?? 0,
     };
     const res = await apiClient.post<{ quotes?: ShippingQuote[] } | ShippingQuote[]>("/shipping/quote", payload);
     const raw = res.data;
@@ -172,33 +149,6 @@ export const shippingAdminApi = {
       `/shipping/admin/shipments/${shipmentId}/cod-collected`,
       {},
     );
-    return res.data;
-  },
-
-  /** ایجاد/بروزرسانی نقطه تحویل (upsert بر اساس provider + external_id) */
-  upsertPickupPoint: async (data: {
-    provider: string;
-    external_id: string;
-    name: string;
-    city: string;
-    address: string;
-    province?: string | null;
-    postal_code?: string | null;
-    phone?: string | null;
-    latitude?: number | null;
-    longitude?: number | null;
-  }): Promise<PickupPoint> => {
-    const res = await apiClient.post<PickupPoint>("/shipping/admin/pickup-points", data);
-    return res.data;
-  },
-};
-
-// --- Pickup points (public, for checkout) ---
-
-export const shippingApiExtra = {
-  /** فهرست نقاط تحویل (عمومی) */
-  listPickupPoints: async (params?: { city?: string; provider?: string }): Promise<PickupPoint[]> => {
-    const res = await apiClient.get<PickupPoint[]>("/shipping/pickup-points", { params });
     return res.data;
   },
 };

@@ -13,8 +13,21 @@ import { Separator } from "@/components/ui/separator";
 
 export async function generateMetadata(): Promise<Metadata> {
   const page = await fetchCmsPage("about");
-  if (!page) return { title: "درباره ما" };
-  return cmsMetadata(page, "درباره ما");
+  // Unique meta description: without it the root layout's site-wide
+  // description was served for this page (SEO audit F-19, live-verified).
+  const fallbackDescription =
+    "درباره فروشگاه آروکس‌شاپ؛ داستان ما، تیم و ارزش‌هایی که با آن کار می‌کنیم.";
+  if (!page)
+    return {
+      title: "درباره ما",
+      description: fallbackDescription,
+      alternates: { canonical: "/about" },
+    };
+  return {
+    ...cmsMetadata(page, "درباره ما", fallbackDescription),
+    // The fixed path wins over the CMS slug (which may be `about-us`).
+    alternates: { canonical: "/about" },
+  };
 }
 
 
@@ -64,7 +77,7 @@ function AboutPageFallback() {
             <p>
               در طول سال‌های فعالیت، تیم ما با تلاش مستمر و گوش دادن به
               نیازهای مشتریان، توانسته است خدماتی متمایز ارائه دهد. از ارسال
-              سریع و رایگان گرفته تا پشتیبانی ۲۴ ساعته، تمامی تلاش ما بر
+              سریع گرفته تا پشتیبانی ۲۴ ساعته، تمامی تلاش ما بر
               ارائه بهترین تجربه خرید متمرکز است.
             </p>
             <p>

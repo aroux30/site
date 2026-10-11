@@ -85,8 +85,11 @@ function isEdgeRateLimited(ip: string): boolean {
 
 interface RedirectRule {
   from_path: string;
-  to_path: string;
+  to_path: string | null;
   status_code: number;
+  /** Regex mode (Rank Math): from_path is a pattern, $1 in to_path is a
+   *  back-reference. Absent on slug-history-derived rules (exact, 301). */
+  is_regex?: boolean;
 }
 
 let redirectCache: { rules: RedirectRule[]; fetchedAt: number } | null = null;
@@ -96,7 +99,24 @@ let redirectCache: { rules: RedirectRule[]; fetchedAt: number } | null = null;
 // minute per edge instance at most.
 const REDIRECT_CACHE_TTL_MS = 60 * 1000;
 
-async function matchRedirectRule(pathname: string): Promise<RedirectRule | null> {
+/** Substitute $1-style back-references in a regex rule's target. */
+function expandRegexTarget(pattern: string, target: string, path: string): string | null {
+  try {
+    const match = path.match(new RegExp(pattern));
+    if (!match) return null;
+    // Rank Math uses $1; JS replace uses $1 too — but String.replace with a
+    // string pattern replaces only the first match and has no groups, so the
+    // expansion is done by hand to keep both syntaxes honest.
+    return target.replace(/\$(\d)/g, (_, idx) => match[Number(idx)] ?? "");
+  } catch {
+    // A stored pattern that no longer compiles is skipped, not fatal.
+    return null;
+  }
+}
+
+async function matchRedirectRule(
+  pathname: string,
+): Promise<{ rule: RedirectRule; target: string | null } | null> {
   try {
     if (!redirectCache || Date.now() - redirectCache.fetchedAt > REDIRECT_CACHE_TTL_MS) {
       // Same resolver the server components use, so edge and SSR can never
@@ -115,18 +135,37 @@ async function matchRedirectRule(pathname: string): Promise<RedirectRule | null>
     return null;
   }
   const norm = pathname.toLowerCase().replace(/\/+$/, "") || "/";
+  const regexRules: RedirectRule[] = [];
   let best: RedirectRule | null = null;
   for (const rule of redirectCache.rules) {
+    if (rule.is_regex) {
+      regexRules.push(rule);
+      continue;
+    }
     if (rule.from_path.endsWith("/*")) {
       const prefix = rule.from_path.slice(0, -2);
       if (norm === prefix || norm.startsWith(prefix + "/")) {
         if (!best || prefix.length > best.from_path.length) best = rule;
       }
     } else if (norm === rule.from_path) {
-      return rule;
+      return { rule, target: rule.to_path };
     }
   }
-  return best;
+  if (best) return { rule: best, target: best.to_path };
+  for (const rule of regexRules) {
+    if (!rule.to_path) {
+      // A regex rule with no target can only be 410/451 — match and stop.
+      try {
+        if (new RegExp(rule.from_path).test(norm)) return { rule, target: null };
+      } catch {
+        continue;
+      }
+      continue;
+    }
+    const expanded = expandRegexTarget(rule.from_path, rule.to_path, norm);
+    if (expanded !== null) return { rule, target: expanded };
+  }
+  return null;
 }
 
 // ── Admin-configured permalink structure (backend: /settings/public/routing) ─
@@ -240,8 +279,9 @@ export async function middleware(request: NextRequest) {
     !pathname.startsWith("/admin") &&
     !pathname.startsWith("/_next")
   ) {
-    const rule = await matchRedirectRule(pathname);
-    if (rule) {
+    const matched = await matchRedirectRule(pathname);
+    if (matched) {
+      const { rule, target } = matched;
       // Fire-and-forget hit beacon so the admin's visit counters are real.
       // Goes through this origin's own /api/v1 rewrite (the same path the
       // browser uses), NOT the internal container hostname — that name only
@@ -253,7 +293,20 @@ export async function middleware(request: NextRequest) {
         body: JSON.stringify({ from_paths: [rule.from_path] }),
       }).catch(() => undefined);
       await Promise.race([beacon, new Promise((r) => setTimeout(r, 300))]);
-      return NextResponse.redirect(new URL(rule.to_path, request.url), rule.status_code);
+
+      // 410 Gone / 451 Unavailable For Legal Reasons are terminal: they must
+      // NOT carry a Location header (a redirect there contradicts the status).
+      // 307/308 keep the method, which is why they exist; 301/302 downgrade
+      // to GET, matching their semantics.
+      if (rule.status_code === 410 || rule.status_code === 451) {
+        return new NextResponse(null, { status: rule.status_code });
+      }
+      if (!target) {
+        // A targetless rule on a redirect code is contradictory data; treat
+        // it as gone rather than 500ing or looping.
+        return new NextResponse(null, { status: 410 });
+      }
+      return NextResponse.redirect(new URL(target, request.url), rule.status_code);
     }
 
     // 0.6 Admin permalink structure: rewrite structured post URLs onto the
@@ -330,13 +383,8 @@ export async function middleware(request: NextRequest) {
   // expired, or who is confirming on a different device. The redirect below
   // also drops the query string, so a login round-trip would lose the token and
   // the user would land back here with nothing to redeem.
-  //
-  // The privacy-request confirmation link has the same shape: the subject may
-  // be confirming from a phone that is not signed in, and the token is the
-  // credential.
   const isEmailConfirmation = request.nextUrl.searchParams.has("email_token");
-  const isPrivacyConfirmation = request.nextUrl.searchParams.has("privacy_confirm_token");
-  if (isAccountRoute && (isEmailConfirmation || isPrivacyConfirmation)) {
+  if (isAccountRoute && isEmailConfirmation) {
     return NextResponse.next();
   }
 
@@ -437,6 +485,9 @@ export const config = {
     // redirects (fetched from /api/v1/seo/redirects) actually fire — the
     // previous matcher only covered admin/account/api, so redirect rules
     // never applied to the pages they were written for.
-    "/((?!_next|favicon.ico|icon|robots.txt|sitemap.xml|api/v1).*)",
+    // The sitemap files (main, news, video) are crawler endpoints like
+    // robots.txt: running redirect/permalink logic over them risks turning a
+    // valid XML file into a redirect a crawler reads as "sitemap gone".
+    "/((?!_next|favicon.ico|icon|robots.txt|sitemap.xml|news-sitemap.xml|video-sitemap.xml|api/v1).*)",
   ],
 };

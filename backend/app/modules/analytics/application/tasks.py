@@ -31,11 +31,8 @@ async def _generate_daily_report_async(target_date: date | None = None) -> dict[
     day_end = datetime.combine(target_date, datetime.max.time()).replace(tzinfo=UTC)
 
     valid_statuses = [
-        OrderStatus.CONFIRMED,
+        OrderStatus.PENDING,
         OrderStatus.PROCESSING,
-        OrderStatus.PACKING,
-        OrderStatus.SHIPPED,
-        OrderStatus.DELIVERED,
         OrderStatus.COMPLETED,
     ]
 

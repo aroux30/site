@@ -110,7 +110,7 @@ class HelpSystem:
 
     @staticmethod
     def register_help(section: str, title: str, content: str) -> None:
-        """Register a new help tab for a section (plugin extensibility)."""
+        """Register a new help tab for a section."""
         if section not in _HELP_REGISTRY:
             _HELP_REGISTRY[section] = []
         _HELP_REGISTRY[section].append({"title": title, "content": content})

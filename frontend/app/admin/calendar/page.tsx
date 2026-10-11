@@ -28,7 +28,6 @@ const SOURCE_LABELS: Record<string, string> = {
   discounts: "تخفیف",
   notifications: "اعلان",
   messaging: "کمپین",
-  subscriptions: "اشتراک",
 };
 
 const EVENT_TYPE_LABELS: Record<string, string> = {
@@ -37,7 +36,6 @@ const EVENT_TYPE_LABELS: Record<string, string> = {
   discount_window: "بازه تخفیف",
   notice_window: "اعلان زمان‌دار",
   campaign_send: "ارسال کمپین",
-  subscription_billing: "صورتحساب اشتراک",
 };
 
 const SOURCE_COLORS: Record<string, string> = {
@@ -45,7 +43,6 @@ const SOURCE_COLORS: Record<string, string> = {
   discounts: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400",
   notifications: "bg-amber-500/15 text-amber-700 dark:text-amber-400",
   messaging: "bg-violet-500/15 text-violet-700 dark:text-violet-400",
-  subscriptions: "bg-rose-500/15 text-rose-700 dark:text-rose-400",
 };
 
 function toISODate(d: Date): string {

@@ -8,7 +8,6 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
-import { PrivacyPolicyNotice } from "@/components/privacy/privacy-policy-notice";
 import { useToast } from "@/components/ui/use-toast";
 import {
   fetchResourceComments,
@@ -52,7 +51,6 @@ export function BlogComments({
 
   // Form state
   const [authorName, setAuthorName] = useState("");
-  const [authorEmail, setAuthorEmail] = useState("");
   const [authorUrl, setAuthorUrl] = useState("");
   const [content, setContent] = useState("");
   const [replyTo, setReplyTo] = useState<{ id: string; name: string } | null>(null);
@@ -106,7 +104,6 @@ export function BlogComments({
       await submitResourceComment(resourceType, postId, {
         content: content.trim(),
         author_name: authorName.trim() || undefined,
-        author_email: authorEmail.trim() || undefined,
         author_url: authorUrl.trim() || undefined,
         parent_id: replyTo?.id,
       });
@@ -217,18 +214,6 @@ export function BlogComments({
                   placeholder="علی احمدی"
                 />
               </div>
-              <div className="grid gap-2">
-                <Label htmlFor="c-email">ایمیل (نمایش داده نمی‌شود)</Label>
-                <Input
-                  id="c-email"
-                  type="email"
-                  value={authorEmail}
-                  onChange={(e) => setAuthorEmail(e.target.value)}
-                  placeholder="ali@example.com"
-                  dir="ltr"
-                  className="text-left"
-                />
-              </div>
             </div>
 
             {/* WordPress shows this beside the name; the column, the schema and
@@ -260,14 +245,6 @@ export function BlogComments({
                 required
               />
             </div>
-
-            {/* The comment form collects an email address, and the backend also
-                records the submitting IP and user agent against it for flood
-                detection. WordPress states the same thing beside every comment
-                form, via `the_privacy_policy_link()`; saying nothing here while
-                collecting all three is the disclosure gap. Renders nothing when
-                no policy is published, rather than promising one that is not. */}
-            <PrivacyPolicyNotice className="text-xs leading-relaxed text-muted-foreground" />
 
             <div className="flex justify-end">
               <Button type="submit" disabled={submitting || !content.trim()} className="gap-2">
@@ -347,8 +324,9 @@ function CommentItem({
       <div className="rounded-2xl border border-border bg-card p-5 shadow-xs transition-colors hover:border-emerald-500/30">
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-center gap-3">
-            {/* Uploaded avatar wins, else the author's Gravatar; the initial
-                is the final fallback for guests who left no email. */}
+            {/* Uploaded avatar wins; the initial is the fallback for guests
+                (the Gravatar-by-email fallback was removed on 2026-10-07 with
+                the rest of the email feature). */}
             {comment.author_avatar_url ? (
               <RemoteImage
                 src={comment.author_avatar_url}

@@ -54,40 +54,8 @@ export const authApi = {
     return res.data;
   },
 
-  /** درخواست پیوند بازیابی رمز عبور.
-   *  پاسخ سرور برای ایمیل ثبت‌شده و ثبت‌نشده یکسان است. */
-  forgotPassword: async (email: string): Promise<{ message: string }> => {
-    const res = await apiClient.post<{ message: string }>("/auth/forgot-password", { email });
-    return res.data;
-  },
-
-  /** بازیابی با توکن و تعیین رمز جدید (همه نشست‌ها باطل می‌شوند). */
-  resetPassword: async (data: {
-    token: string;
-    new_password: string;
-  }): Promise<{ message: string }> => {
-    const res = await apiClient.post<{ message: string }>("/auth/reset-password", data);
-    return res.data;
-  },
-
-  /** تأیید ایمیل با توکن پیوند ارسالی (بدون نیاز به ورود). */
-  confirmEmailVerification: async (
-    token: string,
-  ): Promise<{ verified: boolean; email: string }> => {
-    const res = await apiClient.post<{ verified: boolean; email: string }>(
-      "/auth/me/email/verify",
-      { token },
-    );
-    return res.data;
-  },
-
-  /** ارسال دوبارهٔ پیوند تأیید ایمیل برای حساب واردشده. */
-  resendEmailVerification: async (): Promise<{ message: string }> => {
-    const res = await apiClient.post<{ message: string }>(
-      "/auth/me/email/resend-verification",
-    );
-    return res.data;
-  },
+  // Email-based recovery methods were removed on 2026-10-07 with the rest of
+  // the email feature; recovery runs through OTP (/auth/otp/request).
 
   /** لیست نشست‌های فعال */
   listSessions: async (): Promise<AuthSession[]> => {

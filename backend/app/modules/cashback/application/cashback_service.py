@@ -244,37 +244,6 @@ class CashbackService:
             txn.status = CashbackTransactionStatus.CREDITED
             total += txn.amount
 
-            # Wallet credit alone is invisible to the general ledger: the
-            # wallet ledger records the movement, accounting does not. Post
-            # one event per transaction, inside this same transaction, so the
-            # journal entry either exists with the credit or not at all.
-            # `txn.id` is the idempotency key the accounting listener uses.
-            try:
-                from app.shared.events.outbox_service import OutboxService
-
-                await OutboxService.publish(
-                    db,
-                    event_type="CashbackCredited",
-                    aggregate_type="cashback",
-                    aggregate_id=str(txn.id),
-                    payload={
-                        "cashback_transaction_id": str(txn.id),
-                        "user_id": str(user_id),
-                        "amount": txn.amount,
-                    },
-                )
-            except Exception as exc:
-                # A publish failure must not roll back money that was already
-                # credited — the wallet movement is the fact; the journal entry
-                # is a projection of it. Log so the gap is visible and let the
-                # backfill find it.
-                await logger.awarning(
-                    "cashback_event_publish_skipped",
-                    cashback_transaction_id=str(txn.id),
-                    user_id=str(user_id),
-                    error=str(exc),
-                )
-
         await db.flush()
         await logger.ainfo(
             "cashback_credited",

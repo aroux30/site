@@ -324,8 +324,8 @@ async def bulk_import(
     response_model=PriceTierResponse,
     summary="Create a volume pricing tier for a product (admin)",
     description=(
-        "B2B/wholesale only: tiers are applied by the reseller order pipeline, "
-        "never at retail checkout."
+        "Volume tiers apply at cart and checkout: the unit price drops as "
+        "the ordered quantity crosses each tier."
     ),
     dependencies=[Depends(RequirePermissions("inventory:write"))],
 )

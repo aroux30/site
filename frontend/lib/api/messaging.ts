@@ -6,7 +6,8 @@ export interface Campaign {
   id: number | string;
   name?: string;
   title?: string;
-  channel: "sms" | "email" | "push" | "in_app";
+  // "email" was removed on 2026-10-07 with the rest of the email feature.
+  channel: "sms" | "in_app";
   segment?: string;
   target_segment?: string;
   subject?: string;

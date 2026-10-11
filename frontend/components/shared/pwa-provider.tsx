@@ -11,9 +11,8 @@ import { OfflineIndicator } from "@/components/shared/offline-indicator";
  * via <Providers>.
  *
  * Registration lives in ``lib/sw-register.ts`` and is the *only* place the
- * worker is registered; ``lib/pwa.ts`` (browser push) reads the resulting
- * registration rather than making its own. Two registrations of the same
- * worker with different options is undefined behaviour in some browsers.
+ * worker is registered. Two registrations of the same worker with different
+ * options is undefined behaviour in some browsers.
  */
 export function PWAProvider() {
   useEffect(() => {

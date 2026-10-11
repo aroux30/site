@@ -25,7 +25,6 @@ The reference repository that inspired this pattern has no reuse license; no sou
 | Money invariants | `scripts/gates/money_invariants.py` | `integrity-gates.yml` | Float/`Decimal` arithmetic, `round()`/`int()` coercion, or non-integer storage on monetary paths |
 | Order lifecycle audit | `backend/app/modules/audit/application/lifecycle_auditor.py` | `integrity-gates.yml` | An order whose derived payment/fulfilment/return axes are mutually impossible |
 | Concurrency and recovery | named pytest selections | `integrity-gates.yml` | Lost-update races, oversell, duplicate capture, worker-crash reclaim |
-| i18n debt | `scripts/gates/i18n_completeness.mjs` | `frontend-gates.yml` | New hardcoded Persian literals, catalog key drift |
 | Accessibility | `scripts/gates/a11y_gate.mjs` | `frontend-gates.yml` | WCAG regressions on customer funnels |
 | Responsive journeys | `scripts/gates/responsive_gate.mjs` | `frontend-gates.yml` | Mobile overflow, clipped docked surfaces, zoom reflow |
 

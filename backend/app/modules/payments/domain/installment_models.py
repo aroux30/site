@@ -26,13 +26,14 @@ indexed range queries.
 
 Gateway support
 ---------------
-Iranian gateways sell installment/credit purchases (Zarinpal Plus, IDPay
-credit products) as **merchant-contract** features whose API surface differs
-per contract; the public v4/v1.1 endpoints used by this codebase have no
-installment call. The plan is therefore modelled as a provider capability
+Iranian gateways sell installment/credit purchases (Zarinpal Plus) as
+**merchant-contract** features whose API surface differs per contract; the
+public v4 endpoint used by this codebase has no installment call. The plan is
+therefore modelled as a provider capability
 (:attr:`PaymentProvider.supports_installments` /
-:attr:`PaymentProvider.installment_options_months`) with a working mock
-implementation for development and tests — see
+:attr:`PaymentProvider.installment_options_months`); no wired provider
+currently reports support, so the flow stays dormant until a gateway with a
+real credit contract is integrated — see
 :mod:`app.modules.payments.infrastructure.providers.base`.
 """
 

@@ -29,10 +29,10 @@ logger: structlog.stdlib.BoundLogger = structlog.get_logger(__name__)
 async def public_base_url(db: AsyncSession) -> str:
     """The site's public origin, with no trailing slash.
 
-    Feeds, OPML, sitemaps, newsletter links and the routing feed all need it,
+    Feeds, OPML, sitemaps and the routing feed all need it,
     and each used to default to ``https://example.com`` on its own — so a store
-    that never set the option published placeholder URLs to every subscriber
-    and every crawler. The stored ``home`` wins when an operator has set it;
+    that never set the option published placeholder URLs to every crawler. The
+    stored ``home`` wins when an operator has set it;
     otherwise the deployment's own ``STOREFRONT_BASE_URL`` is the answer, and
     that is the same value the storefront itself is served from.
     """

@@ -102,25 +102,6 @@ STAFF_ROLE_SEEDS: tuple[dict[str, Any], ...] = (
         "description": "نقش پیش‌فرض کاربران ثبت‌نام‌شده (بدون دسترسی مدیریتی)",
         "permissions": (),
     },
-    {
-        # A seller. Deliberately gets NO ``vendors:read``/``vendors:write``:
-        # those codenames are global, so granting them here is exactly what
-        # would let a seller read another seller's earnings or write a
-        # settlement in their name. The surfaces a seller needs — profile,
-        # storefront, orders, payouts — are reached through the self-service
-        # routes that already scope by ``Vendor.user_id``, and the admin routes
-        # are gated per tenant by ``vendors.application.tenant_scope``.
-        "slug": "vendor",
-        "name": "فروشنده",
-        "description": (
-            "فروشندهٔ ثبت‌نام‌شده. دسترسی فقط به فروشگاه و تسویهٔ خودش؛ "
-            "بدون دسترسی به ویندورهای دیگر."
-        ),
-        "permissions": (
-            "catalog:read",
-            "media:read",
-        ),
-    },
 )
 
 

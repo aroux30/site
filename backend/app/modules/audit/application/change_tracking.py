@@ -128,56 +128,13 @@ TRACKED_ENTITIES: dict[str, dict[str, Any]] = {
         ],
         "operations": ["create", "update", "delete"],
     },
-    "tax_rule": {
-        "fields": [
-            "name",
-            "rule_type",
-            "scope",
-            "rate_basis_points",
-            "is_active",
-            "priority",
-            "effective_from",
-            "effective_to",
-            "exempt_reason",
-        ],
-        "operations": ["create", "update", "delete"],
-    },
     "reorder_rule": {
         "fields": ["min_quantity", "reorder_to", "is_active"],
-        "operations": ["create", "update", "delete"],
-    },
-    "vendor": {
-        # PII columns (national_id, iban_number, contact_phone) are tracked on
-        # purpose: they are exactly the values an auditor must see *changed*,
-        # and they are the reason masking runs on every value.
-        "fields": [
-            "store_name",
-            "slug",
-            "commission_rate",
-            "is_verified",
-            "is_active",
-            "contact_phone",
-            "national_id",
-            "iban_number",
-        ],
         "operations": ["create", "update", "delete"],
     },
     "wallet": {
         "fields": ["balance", "is_active"],
         "operations": ["create", "update", "delete"],
-    },
-    "price_list_rule": {
-        "fields": [
-            "product_id",
-            "variant_id",
-            "min_quantity",
-            "fixed_price_rial",
-            "discount_bp",
-        ],
-        # Deletes are not snapshotted: a deleted pricing rule's erased values
-        # are less forensic than a product price change, and v1 keeps the diff
-        # surface focused.
-        "operations": ["create", "update"],
     },
 }
 
@@ -277,22 +234,16 @@ def register_tracked_entity(
 def _register_default_entities() -> None:
     """Register the default entity set; a broken row is logged, never fatal."""
     from app.modules.catalog.domain.models import Product, ProductVariant
-    from app.modules.vendors.domain.models import Vendor
-    from app.modules.checkout.domain.tax_models import TaxRuleV2
     from app.modules.discounts.domain.models import Discount
     from app.modules.inventory.domain.models import ReorderRule
-    from app.modules.pricing.domain.models import PriceListRule
     from app.modules.wallet.domain.models import Wallet
 
     defaults: list[tuple[str, type[Any]]] = [
         ("product", Product),
         ("variant", ProductVariant),
         ("discount", Discount),
-        ("tax_rule", TaxRuleV2),
         ("reorder_rule", ReorderRule),
-        ("vendor", Vendor),
         ("wallet", Wallet),
-        ("price_list_rule", PriceListRule),
     ]
     for entity_type, model_cls in defaults:
         try:
@@ -312,7 +263,7 @@ def _mask_and_cap(field: str, value: Any) -> tuple[Any, bool]:
     """Normalise one value for JSONB storage.
 
     Returns ``(value, was_truncated)``. Whole-value secrets are replaced by a
-    redaction marker; shape-preserving PII (phone, email, IBAN, national code)
+    redaction marker; shape-preserving PII (phone, IBAN, national code)
     is masked by the existing helpers; other text is capped at
     :data:`MAX_FIELD_LENGTH`. Numbers — including all Rial integers — pass
     through untouched.
@@ -362,7 +313,6 @@ def _normalise(value: Any) -> Any:
 
 def _maskers() -> dict[str, Any]:
     from app.core.security.data_protection import (
-        mask_email,
         mask_iban,
         mask_national_code,
         mask_phone,
@@ -372,7 +322,6 @@ def _maskers() -> dict[str, Any]:
         "phone": mask_phone,
         "contact_phone": mask_phone,
         "mobile": mask_phone,
-        "email": mask_email,
         "iban": mask_iban,
         "iban_number": mask_iban,
         "national_code": mask_national_code,

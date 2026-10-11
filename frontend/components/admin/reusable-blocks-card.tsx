@@ -27,6 +27,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useToast } from "@/components/ui/use-toast";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 import {
   reusableBlocksApi,
   reusableBlockToken,
@@ -43,6 +44,7 @@ const STATUS_LABELS: Record<ReusableBlockStatus, string> = {
 
 export default function ReusableBlocksCard() {
   const { toast } = useToast();
+  const confirm = useConfirm();
   const [blocks, setBlocks] = useState<ReusableBlock[]>([]);
   const [loading, setLoading] = useState(true);
   const [showTrash, setShowTrash] = useState(false);
@@ -121,7 +123,13 @@ export default function ReusableBlocksCard() {
   };
 
   const remove = async (block: ReusableBlock) => {
-    if (!confirm(`بلوک «${block.name}» به سطل زباله منتقل شود؟`)) return;
+    const ok = await confirm({
+      title: "انتقال به سطل زباله",
+      description: `بلوک «${block.name}» به سطل زباله منتقل شود؟`,
+      confirmLabel: "انتقال",
+      destructive: true,
+    });
+    if (!ok) return;
     try {
       await reusableBlocksApi.remove(block.id);
       await load();

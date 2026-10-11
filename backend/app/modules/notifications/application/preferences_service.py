@@ -16,6 +16,10 @@ access. Semantics:
   ``wallet_*``/``refund_*`` → payment, ``shipment_*``/``shipping_*`` →
   shipping, ``promotion_*``/``discount_*``/``campaign_*`` → promotion,
   everything else → system).
+
+The ``email`` channel was removed on 2026-10-07 with the rest of the email
+feature; ``channels`` blobs stored before then may still carry an ``email``
+key, which the effective-matrix builder simply never reads.
 """
 
 from __future__ import annotations

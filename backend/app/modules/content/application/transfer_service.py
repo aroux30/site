@@ -1,14 +1,21 @@
-"""Content import/export (WordPress WXR / Strapi export parity, JSON flavour).
+"""CMS page/FAQ import (the WXR migration path's landing point).
 
-Exports CMS pages (+ their revision counts) and FAQs into one versioned JSON
-document; imports upsert pages by slug so re-importing is idempotent — the
-same file applied twice changes nothing the second time.
+`import_content` upserts pages by slug (idempotent — the same document applied
+twice changes nothing the second time) and appends missing FAQs by
+``(question, category)``. The WordPress WXR import
+(``blog.application.wxr_import``) is the caller: WXR pages are CMS pages here,
+not posts, so they land through this function.
+
+The JSON *export* half (``export_content``, the ``/admin/content/export``
+route and the `manage.py cms export` command) was removed on 2026-10-07 with
+the «انتقال محتوا» admin page. «ورود و خروج داده» (data-exchange) is the one
+import/export surface, and it covers CMS pages and FAQs as first-class
+entities. Archive: `_archived/content-transfer-removal-2026-10-07/`.
 """
 
 from __future__ import annotations
 
 import uuid
-from datetime import UTC, datetime
 from typing import Any
 
 import structlog
@@ -21,65 +28,14 @@ from app.modules.content.schemas.content import CmsPageCreateRequest, CmsPageUpd
 
 logger: structlog.stdlib.BoundLogger = structlog.get_logger(__name__)
 
+#: The document shape the WXR orchestrator builds. Kept in sync with
+#: `blog.application.wxr_import._CONTENT_FORMAT` / ``_CONTENT_VERSION``.
 EXPORT_FORMAT = "site-cms-export"
 EXPORT_VERSION = 1
 
 # Import safety rails: a hostile/accidental giant payload must not OOM the API.
 MAX_IMPORT_PAGES = 500
 MAX_BODY_CHARS = 500_000
-
-
-async def export_content(db: Any) -> dict[str, Any]:
-    """Full CMS content dump (pages + FAQs) as a JSON-serializable document."""
-    pages = (
-        (await db.execute(select(CmsPage).where(CmsPage.deleted_at.is_(None))))
-        .scalars()
-        .all()
-    )
-    faqs = (await db.execute(select(FAQItem))).scalars().all()
-    # Resolve parent ids to slugs in one pass rather than per row.
-    parent_slugs: dict[uuid.UUID, str] = {}
-    parent_ids = {p.parent_id for p in pages if p.parent_id is not None}
-    if parent_ids:
-        parent_slugs = {
-            row.id: row.slug
-            for row in (
-                await db.execute(select(CmsPage).where(CmsPage.id.in_(parent_ids)))
-            ).scalars()
-        }
-    return {
-        "format": EXPORT_FORMAT,
-        "version": EXPORT_VERSION,
-        "exported_at": datetime.now(UTC).isoformat(),
-        "pages": [
-            {
-                "slug": p.slug,
-                "title": p.title,
-                "body_html": p.body_html,
-                "excerpt": p.excerpt,
-                "status": p.status.value if isinstance(p.status, PageStatus) else str(p.status),
-                "seo_title": p.seo_title,
-                "seo_description": p.seo_description,
-                "published_at": p.published_at.isoformat() if p.published_at else None,
-                "revision_number": p.revision_number,
-                # The parent's slug, not its id: a UUID has no meaning in the
-                # install being imported into, so the hierarchy only survives a
-                # transfer if it travels as a name.
-                "parent_slug": parent_slugs.get(p.parent_id),
-            }
-            for p in pages
-        ],
-        "faqs": [
-            {
-                "question": f.question,
-                "answer_html": f.answer_html,
-                "category": f.category,
-                "position": f.position,
-                "is_active": f.is_active,
-            }
-            for f in faqs
-        ],
-    }
 
 
 def _validate_document(doc: Any) -> dict[str, Any]:
@@ -106,9 +62,21 @@ async def import_content(
     Idempotent: matching pages are updated with identical content (no revision
     bump happens on identical edits, per cms_page_service), matching FAQs are
     skipped.
+
+    Per-page savepoints: one rejected page (a slug reserved by the storefront,
+    e.g. WooCommerce's `cart`; a cycle; a duplicate) is counted as
+    ``pages_skipped`` with a log line — it must not take the other 17 pages of
+    a WordPress export down with it. A migration that imports nothing because
+    one page collided is the failure this guards against.
     """
     doc = _validate_document(doc)
-    counts = {"pages_created": 0, "pages_updated": 0, "faqs_created": 0, "faqs_skipped": 0}
+    counts = {
+        "pages_created": 0,
+        "pages_updated": 0,
+        "pages_skipped": 0,
+        "faqs_created": 0,
+        "faqs_skipped": 0,
+    }
     # (child slug, parent slug) resolved after every page exists.
     pending_parents: list[tuple[str, str]] = []
 
@@ -133,36 +101,62 @@ async def import_content(
         except ValueError:
             page_status = PageStatus.DRAFT
 
-        if existing is None:
-            await cms_page_service.create_page(
-                db,
-                CmsPageCreateRequest(
-                    title=item["title"],
-                    slug=item.get("slug"),
-                    body_html=item.get("body_html") or "",
-                    excerpt=item.get("excerpt"),
-                    status=page_status,
-                    seo_title=item.get("seo_title"),
-                    seo_description=item.get("seo_description"),
-                ),
-                author_id=author_id,
+        try:
+            async with db.begin_nested():
+                if existing is None:
+                    await cms_page_service.create_page(
+                        db,
+                        CmsPageCreateRequest(
+                            title=item["title"],
+                            slug=item.get("slug"),
+                            body_html=item.get("body_html") or "",
+                            excerpt=item.get("excerpt"),
+                            status=page_status,
+                            # A page's featured image travels in the same
+                            # document: the field existed on the create
+                            # request and was never passed, so a migrated
+                            # page lost its cover.
+                            cover_image_url=item.get("cover_image_url"),
+                            seo_title=item.get("seo_title"),
+                            seo_description=item.get("seo_description"),
+                        ),
+                        author_id=author_id,
+                    )
+                    counts["pages_created"] += 1
+                else:
+                    # Only fields the file actually carried are sent: the
+                    # update request treats an explicitly-passed `None` as
+                    # "clear this column", so a file without a cover must
+                    # leave the existing one alone rather than wipe it.
+                    update_fields: dict[str, Any] = {
+                        "title": item["title"],
+                        "body_html": item.get("body_html"),
+                        "excerpt": item.get("excerpt"),
+                        "status": page_status,
+                        "seo_title": item.get("seo_title"),
+                        "seo_description": item.get("seo_description"),
+                    }
+                    if item.get("cover_image_url"):
+                        update_fields["cover_image_url"] = item["cover_image_url"]
+                    await cms_page_service.update_page(
+                        db,
+                        existing.id,
+                        CmsPageUpdateRequest(**update_fields),
+                        editor_id=author_id,
+                    )
+                    counts["pages_updated"] += 1
+        except Exception as exc:
+            # The savepoint rolled the page back; the rest of the document
+            # continues. A reserved slug is the expected case (a WordPress
+            # install carries its own cart/checkout pages, which this store
+            # already owns), so it is a skip with a reason, not a failure.
+            counts["pages_skipped"] += 1
+            logger.warning(
+                "cms_content_import_page_skipped",
+                slug=item.get("slug"),
+                error=str(exc),
             )
-            counts["pages_created"] += 1
-        else:
-            await cms_page_service.update_page(
-                db,
-                existing.id,
-                CmsPageUpdateRequest(
-                    title=item["title"],
-                    body_html=item.get("body_html"),
-                    excerpt=item.get("excerpt"),
-                    status=page_status,
-                    seo_title=item.get("seo_title"),
-                    seo_description=item.get("seo_description"),
-                ),
-                editor_id=author_id,
-            )
-            counts["pages_updated"] += 1
+            continue
 
     # Second pass: wire up the hierarchy now that every page exists. Parents are
     # resolved by slug because a UUID from one install means nothing in another,

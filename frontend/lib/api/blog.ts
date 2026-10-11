@@ -10,6 +10,10 @@ export interface BlogPostCategory {
   created_at?: string;
   updated_at?: string;
   post_count?: number;
+  /** Filled by the storefront read path from the operator's titles-meta
+   *  templates; absent on other endpoints. */
+  seo_title?: string | null;
+  seo_description?: string | null;
   /** Populated by GET /blog/categories/tree only. */
   children?: BlogPostCategory[];
   /** Root-first chain, for a breadcrumb on the category archive. */
@@ -25,6 +29,10 @@ export interface BlogTag {
   description?: string | null;
   created_at?: string;
   updated_at?: string;
+  /** Filled by the storefront read path from the operator's titles-meta
+   *  templates; absent on other endpoints. */
+  seo_title?: string | null;
+  seo_description?: string | null;
   post_count?: number;
 }
 
@@ -47,10 +55,6 @@ export interface BlogPost {
   author_name?: string;
   title: string;
   slug: string;
-  locale?: string;
-  // i18n: posts sharing a group are translations of one another (null = not
-  // translated). The storefront language switcher groups on this.
-  translation_group?: string | null;
   excerpt?: string;
   content?: string;
   cover_image_url?: string;
@@ -72,6 +76,9 @@ export interface BlogPost {
   post_format?: PostFormat;
   gallery_image_ids?: string[];
   comment_count?: number;
+  /** SEO columns for the admin list: stored analyzer score + focus keyword. */
+  seo_score?: number | null;
+  seo_focus_keyword?: string | null;
   deleted_at?: string | null;
   related_posts?: BlogPost[];
   seo?: {
@@ -82,6 +89,18 @@ export interface BlogPost {
     og_description?: string;
     og_image?: string;
     schema_markup?: Record<string, unknown>;
+    /** Rank Math's "focus keyword" — the keyphrase the article targets. */
+    focus_keyword?: string;
+    /** Advanced tab: explicit robots directives. null = no operator choice
+     *  (the storefront's own rules apply); false = explicitly indexable. */
+    robots_noindex?: boolean | null;
+    robots_nofollow?: boolean | null;
+    og_type?: string | null;
+    twitter_title?: string | null;
+    twitter_description?: string | null;
+    twitter_image?: string | null;
+    secondary_focus_keywords?: string | null;
+    seo_score?: number | null;
   };
   created_at: string;
   updated_at: string;
@@ -103,7 +122,6 @@ export interface BlogComment {
   resource_id: string | null;
   author_id?: string | null;
   author_name?: string | null;
-  author_email?: string | null;
   author_url?: string | null;
   /** The address the comment came from. Admin responses only — the public
    *  endpoint withholds it, and a type that carries it on both is a type that
@@ -180,14 +198,22 @@ export async function fetchBlogPosts(
 
 export async function fetchBlogPostBySlug(
   slug: string,
-  options?: { password?: string },
+  options?: { password?: string; trackView?: boolean },
 ): Promise<BlogPost | null> {
   try {
     const { data } = await apiClient.get<BlogPost>(`/blog/posts/${slug}`, {
       // Only sent when the reader submitted the unlock form; the backend
       // verifies it against the stored Argon2 hash and answers with
       // content_locked=false + body on success.
-      params: options?.password ? { password: options.password } : undefined,
+      params: {
+        ...(options?.password ? { password: options.password } : {}),
+        // The detail page fetches the same post up to three times per render
+        // (generateMetadata, buildPostMetadata, the page body). Each fetch
+        // used to increment the view counter, so every real visit counted 3×.
+        // Metadata/prerender callers pass trackView:false; only the page
+        // body's own fetch counts.
+        ...(options?.trackView === false ? { track_view: false } : {}),
+      },
     });
     if (data && data.id) {
       return data;
@@ -300,7 +326,6 @@ export async function submitResourceComment(
     content: string;
     parent_id?: string;
     author_name?: string;
-    author_email?: string;
     author_url?: string;
   },
 ): Promise<BlogComment> {
@@ -349,7 +374,6 @@ export async function submitPostComment(
     content: string;
     parent_id?: string;
     author_name?: string;
-    author_email?: string;
     author_url?: string;
   },
 ): Promise<BlogComment> {
@@ -517,7 +541,13 @@ export const blogAdminApi = {
   bulkPosts: async (
     ids: string[],
     action: "publish" | "draft" | "archive" | "trash" | "restore" | "edit",
-    edits?: Partial<AdminBlogPostInput>,
+    edits?: Partial<AdminBlogPostInput> & {
+      // SEO fields (Rank Math's bulk edit) — written to seo_metadata.
+      seo_title?: string;
+      seo_description?: string;
+      seo_focus_keyword?: string;
+      seo_robots_noindex?: boolean;
+    },
   ): Promise<{
     action: string;
     ok: number;
@@ -588,7 +618,7 @@ export const blogAdminApi = {
     resource_type?: string;
     resource_id?: string;
     threaded?: boolean;
-    /** Body, author name, email or website. Server-side: filtering the page
+    /** Body, author name or website. Server-side: filtering the page
      *  already in hand would miss a match on a later page. */
     search?: string;
     page?: number;
@@ -666,7 +696,6 @@ export const blogAdminApi = {
       content?: string;
       status?: CommentStatus;
       author_name?: string | null;
-      author_email?: string | null;
       author_url?: string | null;
     },
   ): Promise<BlogComment> => {
@@ -794,6 +823,10 @@ export interface BlogAuthor {
   bio?: string | null;
   avatar_url?: string | null;
   post_count: number;
+  /** Filled by the storefront read path from the operator's titles-meta
+   *  templates; absent on other endpoints. */
+  seo_title?: string | null;
+  seo_description?: string | null;
 }
 
 export interface BlogAuthorArchive {

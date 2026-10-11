@@ -107,6 +107,61 @@
     -webkit-appearance: none;
   }
 
+  /* Anchor targets must clear the sticky header.
+     Clicking a ToC entry scrolled the heading to viewport top:0, which is
+     exactly where the sticky header sits — the title the reader clicked for
+     was hidden behind it, so the page appeared to land "in the middle" of
+     the section. The header is responsive, so the offset must be too
+     (measured live: 98px mobile, 114px tablet, 179px at 1024, 159px at
+     1280+). Values add ~16px breathing room below the header edge. */
+  h2[id],
+  h3[id],
+  h4[id],
+  h5[id],
+  h6[id] {
+    scroll-margin-top: 7.2rem; /* 115px: mobile header 98px */
+  }
+
+  @media (min-width: 640px) {
+    h2[id],
+    h3[id],
+    h4[id],
+    h5[id],
+    h6[id] {
+      scroll-margin-top: 8rem; /* 128px: header 110px */
+    }
+  }
+
+  @media (min-width: 768px) {
+    h2[id],
+    h3[id],
+    h4[id],
+    h5[id],
+    h6[id] {
+      scroll-margin-top: 8.2rem; /* 131px: header 114px */
+    }
+  }
+
+  @media (min-width: 1024px) {
+    h2[id],
+    h3[id],
+    h4[id],
+    h5[id],
+    h6[id] {
+      scroll-margin-top: 12.2rem; /* 195px: header 179px (lg shows the nav row) */
+    }
+  }
+
+  @media (min-width: 1280px) {
+    h2[id],
+    h3[id],
+    h4[id],
+    h5[id],
+    h6[id] {
+      scroll-margin-top: 11rem; /* 176px: header 159px */
+    }
+  }
+
   /* Ensure proper RTL text alignment */
   [dir="rtl"] .text-left {
     text-align: right;

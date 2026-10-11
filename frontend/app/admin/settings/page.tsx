@@ -18,6 +18,9 @@ import {
   Send,
   Smartphone,
   Mail,
+  SlidersHorizontal,
+  Heart,
+  ArrowLeftRight,
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -26,36 +29,93 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import apiClient from "@/lib/api/client";
 import { useAdminQuery } from "@/lib/api/admin-query";
+import { invalidateShopFeatures } from "@/hooks/use-shop-features";
+import { useToast } from "@/components/ui/use-toast";
 import { ContentSettingsCard } from "@/components/admin/content-settings-card";
 import { UserSettingsCard } from "@/components/admin/user-settings-card";
 import { ContentToolsCard } from "@/components/admin/content-tools-card";
 import { SiteIdentityCard } from "@/components/admin/site-identity-card";
-import { AdminEmailCard } from "@/components/admin/admin-email-card";
-import { AvatarSettingsCard } from "@/components/admin/avatar-settings-card";
 import { RobotsSettingsCard } from "@/components/admin/robots-settings-card";
-import { PrivacyPolicyCard } from "@/components/admin/privacy-policy-card";
+import { ImageSeoSettingsCard } from "@/components/admin/image-seo-settings-card";
+import { BreadcrumbSettingsCard } from "@/components/admin/breadcrumb-settings-card";
+import { IndexingSettingsCard } from "@/components/admin/indexing-settings-card";
+import { LocalSeoSettingsCard } from "@/components/admin/local-seo-settings-card";
+import { ContentAiSettingsCard } from "@/components/admin/content-ai-settings-card";
 
 const ZARINPAL_MERCHANT_KEY = "payment.zarinpal.merchant_id";
 
 export default function AdminSettingsPage() {
   const [saved, setSaved] = useState(false);
+  const { toast } = useToast();
   // Which settings group is visible. "general" on load: the store's identity
   // is the first thing an operator comes here for.
   const [activeTab, setActiveTab] = useState<
-    "general" | "content" | "financial" | "communication" | "security"
+    "general" | "content" | "financial" | "features" | "communication" | "security"
   >("general");
 
   // Form State
   const [storeName, setStoreName] = useState("فروشگاه اینترنتی آنلاین");
   const [supportPhone, setSupportPhone] = useState("021-88889999");
-  const [supportEmail, setSupportEmail] = useState("support@site.com");
-  const [taxRate, setTaxRate] = useState("10");
-  const [freeShippingThreshold, setFreeShippingThreshold] = useState("10000000"); // 1M Toman (10M Rial)
-  const [defaultShippingFee, setDefaultShippingFee] = useState("500000"); // 50K Toman
+  const [taxRate, setTaxRate] = useState("9");
   const [zarinpalEnabled, setZarinpalEnabled] = useState(true);
   const [c2cEnabled, setC2cEnabled] = useState(true);
   const [walletEnabled, setWalletEnabled] = useState(true);
-  const [cryptoEnabled, setCryptoEnabled] = useState(true);
+
+  // Storefront feature switches (wishlist / compare). These are NOT the wallet
+  // switches above — those live under /admin/wallet and are stored separately;
+  // this row only reads the old payment_flags.wallet_enabled for the payment
+  // card. The feature switches live in site_options behind their own endpoints.
+  const [shopFeatures, setShopFeatures] = useState({ wishlist_enabled: true, compare_enabled: true });
+  const [savingFeature, setSavingFeature] = useState<string | null>(null);
+
+  // Feature switches have their own endpoints (not the /settings map above),
+  // so they load and save independently of the main settings form.
+  //
+  // The destructured names are deliberately DIFFERENT from the state variable:
+  // an earlier version destructured this as `shopFeatures` too, so the syncing
+  // effect below read the STATE (not the fetched data), re-ran on every
+  // setShopFeatures and reset the checkbox to its pre-click value right after a
+  // successful save. The click looked like it did nothing.
+  const {
+    loading: shopFeaturesLoading,
+    data: shopFeaturesData,
+    reload: reloadShopFeatures,
+  } = useAdminQuery({
+    queryKey: ["admin", "shop-features"],
+    queryFn: async () => {
+      const { data } = await apiClient.get("/admin/shop-features");
+      return (data ?? {}) as Record<string, boolean>;
+    },
+    fallbackError: "دریافت تنظیمات قابلیت‌ها ناموفق بود",
+  });
+
+  useEffect(() => {
+    if (shopFeaturesLoading || !shopFeaturesData) return;
+    setShopFeatures({
+      wishlist_enabled: shopFeaturesData.wishlist_enabled ?? true,
+      compare_enabled: shopFeaturesData.compare_enabled ?? true,
+    });
+  }, [shopFeaturesLoading, shopFeaturesData]);
+
+  async function toggleShopFeature(key: "wishlist_enabled" | "compare_enabled", value: boolean) {
+    setSavingFeature(key);
+    // Optimistic: the toggle should feel instant, and the reload below is the
+    // authority. Reverted on failure so the switch never lies about its state.
+    setShopFeatures((prev) => ({ ...prev, [key]: value }));
+    try {
+      await apiClient.put(`/admin/shop-features/${key}`, null, { params: { enabled: value } });
+      toast({ title: "ذخیره شد", description: "تنظیمات قابلیت فروشگاه به‌روزرسانی شد." });
+      // The storefront reads these on every page load, so make the next
+      // navigation see the new value rather than a cached one.
+      invalidateShopFeatures();
+      reloadShopFeatures();
+    } catch {
+      setShopFeatures((prev) => ({ ...prev, [key]: !value }));
+      toast({ title: "ذخیره ناموفق بود", description: "تغییر اعمال نشد.", variant: "destructive" });
+    } finally {
+      setSavingFeature(null);
+    }
+  }
 
   // SMS Configuration State
   const [smsProvider, setSmsProvider] = useState<"kavenegar" | "farazsms" | "sms_ir">("kavenegar");
@@ -71,45 +131,8 @@ export default function AdminSettingsPage() {
   const [testSending, setTestSending] = useState(false);
   const [testResult, setTestResult] = useState<{ ok: boolean; text: string } | null>(null);
 
-  // SMTP / Email Configuration State
-  const [smtpHost, setSmtpHost] = useState("");
-  const [smtpPort, setSmtpPort] = useState("587");
-  const [smtpUsername, setSmtpUsername] = useState("");
-  const [smtpPassword, setSmtpPassword] = useState("");
-  const [smtpUseTls, setSmtpUseTls] = useState(true);
-  const [smtpFromAddress, setSmtpFromAddress] = useState("");
-  const [smtpFromName, setSmtpFromName] = useState("فروشگاه اینترنتی");
-  const [smtpConfigured, setSmtpConfigured] = useState(false);
-  const [smtpHasPassword, setSmtpHasPassword] = useState(false);
-  const [smtpSaving, setSmtpSaving] = useState(false);
-  const [smtpStatus, setSmtpStatus] = useState<{ ok: boolean; text: string } | null>(null);
-  const [testEmail, setTestEmail] = useState("");
-  const [testEmailSending, setTestEmailSending] = useState(false);
-  const [testEmailResult, setTestEmailResult] = useState<{ ok: boolean; text: string } | null>(null);
-  const [emailLog, setEmailLog] = useState<
-    Array<{ id: string; recipient: string; subject: string; template: string | null; status: string; provider: string; attempts: number; error: string | null; created_at: string | null }>
-  >([]);
-  const [emailLogTotal, setEmailLogTotal] = useState(0);
-  const [emailLogError, setEmailLogError] = useState(false);
-
-  // Telegram Bot Configuration State
-  const [telegramBotToken, setTelegramBotToken] = useState("");
-  const [telegramBotUsername, setTelegramBotUsername] = useState("");
-  const [telegramConfigured, setTelegramConfigured] = useState(false);
-  const [telegramHasToken, setTelegramHasToken] = useState(false);
-  const [telegramTokenMasked, setTelegramTokenMasked] = useState<string | null>(null);
-  const [telegramSaving, setTelegramSaving] = useState(false);
-  const [telegramStatus, setTelegramStatus] = useState<{ ok: boolean; text: string } | null>(null);
-  const [testChatId, setTestChatId] = useState("");
-  const [testTelegramSending, setTestTelegramSending] = useState(false);
-  const [testTelegramResult, setTestTelegramResult] = useState<{ ok: boolean; text: string } | null>(null);
-  const [telegramLog, setTelegramLog] = useState<
-    Array<{ id: string; recipient: string; title: string; status: string; provider: string; attempts: number; error: string | null; created_at: string | null }>
-  >([]);
-  const [telegramLogTotal, setTelegramLogTotal] = useState(0);
-  // True when the delivery-log read failed. Distinguishes "nothing sent yet"
-  // from "we could not read the log".
-  const [telegramLogError, setTelegramLogError] = useState(false);
+  // The SMTP / email configuration state was removed on 2026-10-07 with the
+  // rest of the email feature.
 
   // Zarinpal merchant code (persisted via admin settings API)
   const [merchantCode, setMerchantCode] = useState("");
@@ -140,14 +163,9 @@ export default function AdminSettingsPage() {
       const paymentFlags = group("store.payment_flags");
       if (identity?.store_name) setStoreName(String(identity.store_name));
       if (support?.support_phone) setSupportPhone(String(support.support_phone));
-      if (support?.support_email) setSupportEmail(String(support.support_email));
       if (shippingTax) {
         if (shippingTax.tax_rate_percent !== undefined)
           setTaxRate(String(shippingTax.tax_rate_percent));
-        if (shippingTax.free_shipping_threshold_rials !== undefined)
-          setFreeShippingThreshold(String(shippingTax.free_shipping_threshold_rials));
-        if (shippingTax.default_shipping_fee_rials !== undefined)
-          setDefaultShippingFee(String(shippingTax.default_shipping_fee_rials));
       }
       if (paymentFlags) {
         if (typeof paymentFlags.zarinpal_enabled === "boolean")
@@ -156,8 +174,6 @@ export default function AdminSettingsPage() {
           setC2cEnabled(paymentFlags.card_to_card_enabled);
         if (typeof paymentFlags.wallet_enabled === "boolean")
           setWalletEnabled(paymentFlags.wallet_enabled);
-        if (typeof paymentFlags.crypto_enabled === "boolean")
-          setCryptoEnabled(paymentFlags.crypto_enabled);
       }
       const raw = values.get(ZARINPAL_MERCHANT_KEY);
       const merchantId = typeof raw === "string" ? raw : group(ZARINPAL_MERCHANT_KEY)?.merchant_id;
@@ -172,73 +188,6 @@ export default function AdminSettingsPage() {
         if (typeof sms.order_pattern === "string") setSmsOrderPattern(sms.order_pattern);
         if (typeof sms.is_enabled === "boolean") setSmsEnabled(sms.is_enabled);
       }
-      const smtp = group("smtp");
-      if (smtp) {
-        if (typeof smtp.host === "string") setSmtpHost(smtp.host);
-        if (smtp.port !== undefined) setSmtpPort(String(smtp.port));
-        if (typeof smtp.username === "string") setSmtpUsername(smtp.username);
-        if (typeof smtp.from_address === "string") setSmtpFromAddress(smtp.from_address);
-        if (typeof smtp.from_name === "string") setSmtpFromName(smtp.from_name);
-        if (typeof smtp.use_tls === "boolean") setSmtpUseTls(smtp.use_tls);
-      }
-      try {
-        const { data: eff } = await apiClient.get<{
-          host: string; port: number; username: string; use_tls: boolean;
-          from_address: string; from_name: string; has_password: boolean; is_configured: boolean;
-        }>("/settings/admin/email-providers");
-        setSmtpConfigured(eff.is_configured);
-        setSmtpHasPassword(eff.has_password);
-        if (!smtp && eff.host) {
-          setSmtpHost(eff.host);
-          setSmtpPort(String(eff.port));
-          setSmtpUsername(eff.username);
-          setSmtpFromAddress(eff.from_address);
-          setSmtpFromName(eff.from_name);
-          setSmtpUseTls(eff.use_tls);
-        }
-      } catch { /* status banner stays unconfigured */ }
-
-      try {
-        const { data: logRes } = await apiClient.get<{ items: typeof emailLog; total: number }>(
-          "/settings/admin/email-delivery-log?limit=10"
-        );
-        setEmailLog(logRes.items);
-        setEmailLogTotal(logRes.total);
-      } catch {
-        // Same reasoning as the Telegram log below: an empty table and a failed
-        // read are different facts and must not render the same.
-        setEmailLogError(true);
-      }
-
-      const telegram = group("telegram");
-      if (telegram) {
-        if (typeof telegram.bot_username === "string") setTelegramBotUsername(telegram.bot_username);
-      }
-      try {
-        const { data: tg } = await apiClient.get<{
-          bot_username: string; has_token: boolean; token_masked: string | null;
-          is_configured: boolean;
-        }>("/settings/admin/telegram-provider");
-        setTelegramConfigured(tg.is_configured);
-        setTelegramHasToken(tg.has_token);
-        setTelegramTokenMasked(tg.token_masked);
-        if (!telegram && tg.bot_username) setTelegramBotUsername(tg.bot_username);
-      } catch { /* status banner stays unconfigured */ }
-
-      try {
-        const { data: tgLogRes } = await apiClient.get<{ items: typeof telegramLog; total: number }>(
-          "/settings/admin/telegram-delivery-log?limit=10"
-        );
-        setTelegramLog(tgLogRes.items);
-        setTelegramLogTotal(tgLogRes.total);
-      } catch {
-        // Record the failure: an empty log and a failed read both leave
-        // `telegramLog` at [], but "no messages have been sent" is a claim
-        // about the admin's own delivery history that a failed read cannot
-        // support.
-        setTelegramLogError(true);
-      }
-
       return settings;
     },
     fallbackError: "بارگذاری تنظیمات ناموفق بود. پیش از ذخیره، صفحه را دوباره بارگذاری کنید.",
@@ -301,161 +250,8 @@ export default function AdminSettingsPage() {
     }
   };
 
-  const handleSaveSmtp = async () => {
-    setSmtpSaving(true);
-    setSmtpStatus(null);
-    try {
-      const payload: Record<string, unknown> = {
-        host: smtpHost.trim(),
-        port: Number(smtpPort) || 587,
-        username: smtpUsername.trim(),
-        use_tls: smtpUseTls,
-        from_address: smtpFromAddress.trim(),
-        from_name: smtpFromName.trim(),
-      };
-      // Only send a new password when the admin typed one — an empty field
-      // means "keep the existing secret".
-      if (smtpPassword.trim()) payload.password = smtpPassword.trim();
-      try {
-        await apiClient.patch("/settings/smtp", { value: payload });
-      } catch (err) {
-        const status = (err as { status?: number })?.status;
-        if (status === 404) {
-          await apiClient.post("/settings", {
-            key: "smtp",
-            value: payload,
-            group: "messaging",
-            description: "تنظیمات سرور SMTP ارسال ایمیل",
-            is_public: false,
-          });
-        } else {
-          throw err;
-        }
-      }
-      setSmtpPassword("");
-      setSmtpConfigured(Boolean(smtpHost.trim() && smtpFromAddress.trim()));
-      setSmtpHasPassword(Boolean(smtpPassword.trim()) || smtpHasPassword);
-      setSmtpStatus({ ok: true, text: "تنظیمات SMTP با موفقیت ذخیره شد." });
-    } catch {
-      setSmtpStatus({ ok: false, text: "خطا در ذخیره تنظیمات ایمیل. دسترسی خود را بررسی کنید." });
-    } finally {
-      setSmtpSaving(false);
-    }
-  };
-
-  const handleTestEmail = async () => {
-    if (!testEmail.trim() || !testEmail.includes("@")) {
-      setTestEmailResult({ ok: false, text: "لطفاً نشانی ایمیل معتبر گیرنده را وارد کنید." });
-      return;
-    }
-    setTestEmailSending(true);
-    setTestEmailResult(null);
-    try {
-      const { data } = await apiClient.post<{ success: boolean; provider: string; error?: string | null }>(
-        "/settings/admin/email-providers/test",
-        { recipient: testEmail.trim() }
-      );
-      if (data.success && data.provider === "mock_fallback") {
-        setTestEmailResult({
-          ok: true,
-          text: "اتصال برقرار شد، اما SMTP پیکربندی نشده — ایمیل به‌صورت شبیه‌سازی ثبت شد (mock).",
-        });
-      } else if (data.success) {
-        setTestEmailResult({ ok: true, text: "ایمیل آزمایشی با موفقیت ارسال شد." });
-      } else {
-        setTestEmailResult({ ok: false, text: data.error || "ارسال ایمیل آزمایشی ناموفق بود." });
-      }
-      // Refresh the delivery log after a test send
-      try {
-        const { data: logRes } = await apiClient.get<{ items: typeof emailLog; total: number }>(
-          "/settings/admin/email-delivery-log?limit=10"
-        );
-        setEmailLog(logRes.items);
-        setEmailLogTotal(logRes.total);
-      } catch { /* ignore */ }
-    } catch (err: unknown) {
-      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
-      setTestEmailResult({ ok: false, text: msg || "ارسال ایمیل آزمایشی با خطا مواجه شد." });
-    } finally {
-      setTestEmailSending(false);
-    }
-  };
-
-  const handleSaveTelegram = async () => {
-    setTelegramSaving(true);
-    setTelegramStatus(null);
-    try {
-      const payload: Record<string, unknown> = {
-        bot_username: telegramBotUsername.trim(),
-      };
-      // Only send a new token when the admin typed one — an empty field
-      // means "keep the existing secret".
-      if (telegramBotToken.trim()) payload.bot_token = telegramBotToken.trim();
-      try {
-        await apiClient.patch("/settings/telegram", { value: payload });
-      } catch (err) {
-        const status = (err as { status?: number })?.status;
-        if (status === 404) {
-          await apiClient.post("/settings", {
-            key: "telegram",
-            value: payload,
-            group: "messaging",
-            description: "تنظیمات ربات تلگرام اطلاع‌رسانی",
-            is_public: false,
-          });
-        } else {
-          throw err;
-        }
-      }
-      const willHaveToken = Boolean(telegramBotToken.trim()) || telegramHasToken;
-      setTelegramBotToken("");
-      setTelegramHasToken(willHaveToken);
-      setTelegramConfigured(willHaveToken);
-      setTelegramStatus({ ok: true, text: "تنظیمات ربات تلگرام با موفقیت ذخیره شد." });
-    } catch {
-      setTelegramStatus({ ok: false, text: "خطا در ذخیره تنظیمات تلگرام. دسترسی خود را بررسی کنید." });
-    } finally {
-      setTelegramSaving(false);
-    }
-  };
-
-  const handleTestTelegram = async () => {
-    if (!testChatId.trim()) {
-      setTestTelegramResult({ ok: false, text: "لطفاً شناسه چت (Chat ID) گیرنده را وارد کنید." });
-      return;
-    }
-    setTestTelegramSending(true);
-    setTestTelegramResult(null);
-    try {
-      const { data } = await apiClient.post<{ success: boolean; provider: string; error?: string | null }>(
-        "/settings/admin/telegram-provider/test",
-        { chat_id: testChatId.trim() }
-      );
-      if (data.success && data.provider === "mock_fallback") {
-        setTestTelegramResult({
-          ok: true,
-          text: "اتصال برقرار شد، اما توکن ربات پیکربندی نشده — پیام به‌صورت شبیه‌سازی ثبت شد (mock).",
-        });
-      } else if (data.success) {
-        setTestTelegramResult({ ok: true, text: "پیام آزمایشی تلگرام با موفقیت ارسال شد." });
-      } else {
-        setTestTelegramResult({ ok: false, text: data.error || "ارسال پیام آزمایشی ناموفق بود." });
-      }
-      // Refresh the delivery log after a test send
-      try {
-        const { data: tgLogRes } = await apiClient.get<{ items: typeof telegramLog; total: number }>(
-          "/settings/admin/telegram-delivery-log?limit=10"
-        );
-        setTelegramLog(tgLogRes.items);
-        setTelegramLogTotal(tgLogRes.total);
-      } catch { /* ignore */ }
-    } catch (err: unknown) {
-      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
-      setTestTelegramResult({ ok: false, text: msg || "ارسال پیام آزمایشی با خطا مواجه شد." });
-    } finally {
-      setTestTelegramSending(false);
-    }
-  };
+  // handleSaveSmtp / handleTestEmail were removed on 2026-10-07 with the
+  // rest of the email feature.
 
   const handleSaveMerchant = async () => {
     const code = merchantCode.trim();
@@ -509,13 +305,11 @@ export default function AdminSettingsPage() {
     try {
       const groups: Array<[string, Record<string, unknown>]> = [
         [SETTINGS_KEYS.store, { store_name: storeName }],
-        [SETTINGS_KEYS.support, { support_phone: supportPhone, support_email: supportEmail }],
+        [SETTINGS_KEYS.support, { support_phone: supportPhone }],
         [
           SETTINGS_KEYS.shippingTax,
           {
             tax_rate_percent: taxRate,
-            free_shipping_threshold_rials: freeShippingThreshold,
-            default_shipping_fee_rials: defaultShippingFee,
           },
         ],
         [
@@ -524,7 +318,6 @@ export default function AdminSettingsPage() {
             zarinpal_enabled: zarinpalEnabled,
             card_to_card_enabled: c2cEnabled,
             wallet_enabled: walletEnabled,
-            crypto_enabled: cryptoEnabled,
           },
         ],
       ];
@@ -562,7 +355,7 @@ export default function AdminSettingsPage() {
         <div>
           <h1 className="text-2xl font-bold text-foreground">تنظیمات کلی فروشگاه</h1>
           <p className="text-sm text-muted-foreground">
-            پیکربندی هویت تجاری، درگاه‌های پرداخت، مالیات و هزینه‌های ارسال
+            پیکربندی هویت تجاری، درگاه‌های پرداخت و مالیات
           </p>
         </div>
       </div>
@@ -595,7 +388,8 @@ export default function AdminSettingsPage() {
             ["general", "عمومی", Store],
             ["content", "محتوا و رسانه", FileText],
             ["financial", "مالی و پرداخت", CreditCard],
-            ["communication", "ارتباطات (پیامک/ایمیل/تلگرام)", Mail],
+            ["features", "قابلیت‌های فروشگاه", SlidersHorizontal],
+            ["communication", "ارتباطات (پیامک)", Mail],
             ["security", "امنیت", ShieldCheck],
           ] as const
         ).map(([id, label, Icon]) => (
@@ -623,10 +417,8 @@ export default function AdminSettingsPage() {
         {/* Site identity: the keys the feed, sitemap and robots route read. */}
         <SiteIdentityCard />
 
-        {/* Admin email: propose → confirm → periodic review. Separate from the
-            identity card because this address is a recovery channel, not
-            branding — it changes through a confirmation link, not a save. */}
-        <AdminEmailCard />
+        {/* The admin-email card was removed on 2026-10-07 with the rest of
+            the email feature. */}
 
         {/* General Store Identity */}
         <Card className="p-6">
@@ -653,14 +445,6 @@ export default function AdminSettingsPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label>ایمیل ارتباط با ما</Label>
-              <Input
-                value={supportEmail}
-                onChange={(e) => setSupportEmail(e.target.value)}
-                placeholder="info@site.com"
-              />
-            </div>
-            <div className="space-y-2">
               <Label>واحد پول رسمی سیستم</Label>
               <Input value="ریال ایران (نمایش در فرانت: تومان)" disabled className="bg-muted" />
             </div>
@@ -674,12 +458,22 @@ export default function AdminSettingsPage() {
         {/* Content & permalink settings (WordPress reading/permalink parity) */}
         <ContentSettingsCard />
         <UserSettingsCard />
-        <AvatarSettingsCard />
         <RobotsSettingsCard />
-        {/* Which CMS page is the privacy policy. Lives with the other
-            content-shaped settings, not on the privacy admin screen, because
-            what it picks is a page. */}
-        <PrivacyPolicyCard />
+        {/* Image SEO (Rank Math Pro parity): fill empty alt/title/caption
+            from the file name at upload time. */}
+        <ImageSeoSettingsCard />
+        {/* Breadcrumbs (Rank Math Pro parity): the trail shown above posts
+            and products, and the BreadcrumbList structured data. */}
+        <BreadcrumbSettingsCard />
+        {/* Instant Indexing (Rank Math Pro parity): IndexNow auto-submit on
+            publish + honest Google connection status. */}
+        <IndexingSettingsCard />
+        {/* Local SEO (Rank Math Pro parity): business profile → LocalBusiness
+            JSON-LD with a live preview of the emitted node. */}
+        <LocalSeoSettingsCard />
+        {/* Content AI (Rank Math Pro parity): meta suggestions via a
+            configured LLM — honest "not connected" without a key. */}
+        <ContentAiSettingsCard />
 
         {/* Category→tag conversion and the trash purge. Kept off the settings
             form on purpose: both are destructive-capable, and a mistyped value
@@ -694,7 +488,7 @@ export default function AdminSettingsPage() {
         <Card className="p-6">
           <div className="mb-4 flex items-center gap-2 border-b border-border pb-3">
             <FileText className="h-5 w-5 text-primary" />
-            <h2 className="text-base font-bold text-foreground">مالیات و حمل و نقل</h2>
+            <h2 className="text-base font-bold text-foreground">مالیات</h2>
           </div>
 
           <div className="grid gap-4 sm:grid-cols-3">
@@ -704,27 +498,9 @@ export default function AdminSettingsPage() {
                 type="number"
                 value={taxRate}
                 onChange={(e) => setTaxRate(e.target.value)}
-                placeholder="10"
+                placeholder="9"
               />
-              <p className="text-xs text-muted-foreground">طبق قانون مالیات بر ارزش افزوده ایران (۱۰٪)</p>
-            </div>
-            <div className="space-y-2">
-              <Label>حداقل سفارش برای ارسال رایگان (ریال)</Label>
-              <Input
-                value={freeShippingThreshold}
-                onChange={(e) => setFreeShippingThreshold(e.target.value)}
-                placeholder="10000000"
-              />
-              <p className="text-xs text-muted-foreground">معادل ۱٬۰۰۰٬۰۰۰ تومان</p>
-            </div>
-            <div className="space-y-2">
-              <Label>هزینه پیش‌فرض ارسال عادی (ریال)</Label>
-              <Input
-                value={defaultShippingFee}
-                onChange={(e) => setDefaultShippingFee(e.target.value)}
-                placeholder="500000"
-              />
-              <p className="text-xs text-muted-foreground">معادل ۵۰٬۰۰۰ تومان</p>
+              <p className="text-xs text-muted-foreground">نرخ واحد مالیات — در سبد خرید، چک‌اوت و سفارش‌های جدید همین نرخ اعمال می‌شود</p>
             </div>
           </div>
         </Card>
@@ -825,22 +601,63 @@ export default function AdminSettingsPage() {
                 className="h-4 w-4 rounded accent-primary"
               />
             </div>
-
-            <div className="flex items-center justify-between rounded-lg border border-border p-3.5">
-              <div>
-                <div className="font-medium text-foreground">درگاه ارزی و رمزارز (NowPayments)</div>
-                <div className="text-xs text-muted-foreground">پذیرش تتر (USDT)، بیت‌کوین و اتریوم</div>
-              </div>
-              <input
-                type="checkbox"
-                checked={cryptoEnabled}
-                onChange={(e) => setCryptoEnabled(e.target.checked)}
-                className="h-4 w-4 rounded accent-primary"
-              />
-            </div>
           </div>
         </Card>
           </>
+        )}
+
+        {activeTab === "features" && (
+          <Card className="p-6">
+            <div className="mb-4 flex items-center justify-between border-b border-border pb-3">
+              <div>
+                <h2 className="text-base font-bold text-foreground">قابلیت‌های فروشگاه</h2>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  خاموش کردن یک قابلیت، آن را کاملاً از فروشگاه حذف می‌کند: لینک منو، دکمه‌های
+                  صفحه محصول و خود صفحه دیگر نمایش داده نمی‌شوند و درخواست‌های آن هم رد می‌شوند.
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <div className="flex items-center justify-between rounded-lg border border-border p-3.5">
+                <div className="flex items-start gap-3">
+                  <Heart className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                  <div>
+                    <div className="font-medium text-foreground">علاقه‌مندی‌ها</div>
+                    <div className="text-xs text-muted-foreground">
+                      ذخیره محصولات برای مرور بعدی
+                    </div>
+                  </div>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={shopFeatures.wishlist_enabled}
+                  disabled={shopFeaturesLoading || savingFeature === "wishlist_enabled"}
+                  onChange={(e) => toggleShopFeature("wishlist_enabled", e.target.checked)}
+                  className="h-4 w-4 rounded accent-primary disabled:opacity-50"
+                />
+              </div>
+
+              <div className="flex items-center justify-between rounded-lg border border-border p-3.5">
+                <div className="flex items-start gap-3">
+                  <ArrowLeftRight className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                  <div>
+                    <div className="font-medium text-foreground">مقایسه کالاها</div>
+                    <div className="text-xs text-muted-foreground">
+                      مقایسه مشخصات چند محصول در کنار هم
+                    </div>
+                  </div>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={shopFeatures.compare_enabled}
+                  disabled={shopFeaturesLoading || savingFeature === "compare_enabled"}
+                  onChange={(e) => toggleShopFeature("compare_enabled", e.target.checked)}
+                  className="h-4 w-4 rounded accent-primary disabled:opacity-50"
+                />
+              </div>
+            </div>
+          </Card>
         )}
 
         {activeTab === "communication" && (
@@ -1021,440 +838,9 @@ export default function AdminSettingsPage() {
           </div>
         </Card>
 
-        {/* SMTP Email Server & Transactional Mail */}
-        <Card className="p-6">
-          <div className="mb-4 flex items-center justify-between border-b border-border pb-3">
-            <div className="flex items-center gap-2">
-              <Mail className="h-5 w-5 text-primary" />
-              <h2 className="text-base font-bold text-foreground">
-                تنظیمات سرور ایمیل (SMTP) و ارسال تراکنشی
-              </h2>
-            </div>
-            <Badge variant="outline" className="text-xs">
-              {smtpConfigured ? "سامانه ایمیل فعال" : "SMTP پیکربندی نشده — حالت شبیه‌سازی"}
-            </Badge>
-          </div>
+        {/* The SMTP / transactional-email card was removed on 2026-10-07 with
+            the rest of the email feature. */}
 
-          <div className="space-y-4">
-            <div className="grid gap-4 sm:grid-cols-3">
-              <div className="space-y-2">
-                <Label>میزبان SMTP (Host)</Label>
-                <Input
-                  dir="ltr"
-                  value={smtpHost}
-                  onChange={(e) => setSmtpHost(e.target.value)}
-                  placeholder="smtp.example.com"
-                  className="font-mono text-xs"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>پورت</Label>
-                <Input
-                  dir="ltr"
-                  type="number"
-                  value={smtpPort}
-                  onChange={(e) => setSmtpPort(e.target.value)}
-                  placeholder="587 / 465 / 25"
-                  className="font-mono text-xs"
-                />
-                <p className="text-xs text-muted-foreground">۴۶۵ = SSL مستقیم، ۵۸۷ = STARTTLS</p>
-              </div>
-              <div className="space-y-2">
-                <Label>فعال‌سازی TLS</Label>
-                <div className="flex h-10 items-center gap-2 rounded-md border border-input px-3">
-                  <input
-                    type="checkbox"
-                    checked={smtpUseTls}
-                    onChange={(e) => setSmtpUseTls(e.target.checked)}
-                    className="h-4 w-4 rounded accent-primary"
-                  />
-                  <span className="text-xs text-muted-foreground">رمزنگاری اتصال (توصیه‌شده)</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2">
-                <Label>نام کاربری (Username)</Label>
-                <Input
-                  dir="ltr"
-                  value={smtpUsername}
-                  onChange={(e) => setSmtpUsername(e.target.value)}
-                  placeholder="noreply@site.com"
-                  className="font-mono text-xs"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>گذرواژه (Password)</Label>
-                <Input
-                  dir="ltr"
-                  type="password"
-                  value={smtpPassword}
-                  onChange={(e) => setSmtpPassword(e.target.value)}
-                  placeholder={smtpHasPassword ? "•••••••• (ذخیره‌شده — برای تغییر وارد کنید)" : "گذرواژه SMTP"}
-                  className="font-mono text-xs"
-                />
-              </div>
-            </div>
-
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2">
-                <Label>نشانی فرستنده (From Address)</Label>
-                <Input
-                  dir="ltr"
-                  value={smtpFromAddress}
-                  onChange={(e) => setSmtpFromAddress(e.target.value)}
-                  placeholder="noreply@site.com"
-                  className="font-mono text-xs"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>نام نمایشی فرستنده (From Name)</Label>
-                <Input
-                  value={smtpFromName}
-                  onChange={(e) => setSmtpFromName(e.target.value)}
-                  placeholder="فروشگاه اینترنتی"
-                />
-              </div>
-            </div>
-
-            <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
-              <Button
-                type="button"
-                size="sm"
-                onClick={handleSaveSmtp}
-                disabled={smtpSaving}
-                className="gap-1.5"
-              >
-                {smtpSaving ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Save className="h-4 w-4" />
-                )}
-                ذخیره تنظیمات ایمیل
-              </Button>
-
-              {smtpStatus && (
-                <p
-                  className={`flex items-center gap-1.5 text-xs ${
-                    smtpStatus.ok ? "text-emerald-600" : "text-destructive"
-                  }`}
-                >
-                  {smtpStatus.ok ? (
-                    <CheckCircle2 className="h-3.5 w-3.5" />
-                  ) : (
-                    <AlertCircle className="h-3.5 w-3.5" />
-                  )}
-                  {smtpStatus.text}
-                </p>
-              )}
-            </div>
-
-            {/* Test Email Box */}
-            <div className="mt-4 rounded-lg border border-border/80 bg-muted/40 p-4">
-              <div className="mb-2 flex items-center gap-2">
-                <Send className="h-4 w-4 text-primary" />
-                <span className="text-xs font-bold text-foreground">تست اتصال و ارسال ایمیل آزمایشی</span>
-              </div>
-              <div className="flex flex-col gap-2 sm:flex-row">
-                <Input
-                  dir="ltr"
-                  value={testEmail}
-                  onChange={(e) => setTestEmail(e.target.value)}
-                  placeholder="نشانی ایمیل گیرنده تست (admin@example.com)"
-                  className="font-mono text-xs sm:w-72"
-                />
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={handleTestEmail}
-                  disabled={testEmailSending}
-                  className="gap-1.5 shrink-0"
-                >
-                  {testEmailSending ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Mail className="h-4 w-4" />
-                  )}
-                  ارسال ایمیل آزمایشی
-                </Button>
-              </div>
-              {testEmailResult && (
-                <p
-                  className={`mt-2 flex items-center gap-1.5 text-xs ${
-                    testEmailResult.ok ? "text-emerald-600" : "text-destructive"
-                  }`}
-                >
-                  {testEmailResult.ok ? (
-                    <CheckCircle2 className="h-3.5 w-3.5" />
-                  ) : (
-                    <AlertCircle className="h-3.5 w-3.5" />
-                  )}
-                  {testEmailResult.text}
-                </p>
-              )}
-            </div>
-
-            {/* Recent Delivery Log */}
-            <div className="mt-4 rounded-lg border border-border/80">
-              <div className="flex items-center justify-between border-b border-border/60 px-4 py-2.5">
-                <span className="text-xs font-bold text-foreground">گزارش ارسال‌های اخیر ایمیل</span>
-                <span className="text-[11px] text-muted-foreground">
-                  {emailLogTotal > 0 ? `${emailLogTotal} رکورد` : "بدون رکورد"}
-                </span>
-              </div>
-              {emailLogError ? (
-                <p
-                  role="alert"
-                  className="px-4 py-6 text-center text-xs text-destructive"
-                >
-                  دریافت گزارش تحویل ایمیل ناموفق بود. این پیام به‌معنای نبود ارسال
-                  نیست؛ وضعیت تحویل در این لحظه خوانده نشد.
-                </p>
-              ) : emailLog.length === 0 ? (
-                <p className="px-4 py-6 text-center text-xs text-muted-foreground">
-                  هنوز ایمیلی از سامانه ارسال نشده است. پس از اولین ارسال، وضعیت تحویل اینجا نمایش داده می‌شود.
-                </p>
-              ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full text-xs">
-                    <thead>
-                      <tr className="border-b border-border/60 text-muted-foreground">
-                        <th className="px-4 py-2 text-right font-medium">گیرنده</th>
-                        <th className="px-4 py-2 text-right font-medium">موضوع</th>
-                        <th className="px-4 py-2 text-right font-medium">قالب</th>
-                        <th className="px-4 py-2 text-right font-medium">وضعیت</th>
-                        <th className="px-4 py-2 text-right font-medium">تلاش</th>
-                        <th className="px-4 py-2 text-right font-medium">خطا</th>
-                        <th className="px-4 py-2 text-right font-medium">زمان</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {emailLog.map((row) => (
-                        <tr key={row.id} className="border-b border-border/40 last:border-0">
-                          <td className="px-4 py-2 font-mono text-[11px]" dir="ltr">{row.recipient}</td>
-                          <td className="max-w-44 truncate px-4 py-2">{row.subject}</td>
-                          <td className="px-4 py-2 font-mono text-[11px]">{row.template || "—"}</td>
-                          <td className="px-4 py-2">
-                            {row.status === "sent" ? (
-                              <Badge className="bg-emerald-500/15 text-emerald-600 border border-emerald-500/25 text-[10px]">ارسال‌شده</Badge>
-                            ) : row.status === "failed" ? (
-                              <Badge variant="destructive" className="text-[10px]">ناموفق</Badge>
-                            ) : (
-                              <Badge variant="secondary" className="text-[10px]">در صف</Badge>
-                            )}
-                          </td>
-                          <td className="px-4 py-2">{row.attempts}</td>
-                          <td className="max-w-40 truncate px-4 py-2 text-destructive/80" title={row.error || ""}>
-                            {row.error || "—"}
-                          </td>
-                          <td className="px-4 py-2 font-mono text-[11px]" dir="ltr">
-                            {row.created_at ? new Date(row.created_at).toLocaleString("fa-IR") : "—"}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </div>
-          </div>
-        </Card>
-
-        {/* Telegram Bot & Transactional Messages */}
-        <Card className="p-6">
-          <div className="mb-4 flex items-center justify-between border-b border-border pb-3">
-            <div className="flex items-center gap-2">
-              <MessageSquare className="h-5 w-5 text-primary" />
-              <h2 className="text-base font-bold text-foreground">
-                تنظیمات ربات تلگرام و ارسال اعلان
-              </h2>
-            </div>
-            <Badge variant="outline" className="text-xs">
-              {telegramConfigured ? "ربات تلگرام فعال" : "توکن ربات پیکربندی نشده — حالت شبیه‌سازی"}
-            </Badge>
-          </div>
-
-          <div className="space-y-4">
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2">
-                <Label>توکن ربات (Bot Token)</Label>
-                <Input
-                  dir="ltr"
-                  type="password"
-                  value={telegramBotToken}
-                  onChange={(e) => setTelegramBotToken(e.target.value)}
-                  placeholder={
-                    telegramHasToken
-                      ? `${telegramTokenMasked || "••••••••"} (ذخیره‌شده — برای تغییر وارد کنید)`
-                      : "123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11"
-                  }
-                  className="font-mono text-xs"
-                />
-                <p className="text-xs text-muted-foreground">
-                  توکن را از BotFather دریافت کنید. بدون توکن، پیام‌ها فقط ثبت (شبیه‌سازی) می‌شوند.
-                </p>
-              </div>
-              <div className="space-y-2">
-                <Label>نام کاربری ربات (Username)</Label>
-                <Input
-                  dir="ltr"
-                  value={telegramBotUsername}
-                  onChange={(e) => setTelegramBotUsername(e.target.value)}
-                  placeholder="myshop_bot"
-                  className="font-mono text-xs"
-                />
-                <p className="text-xs text-muted-foreground">
-                  برای ساخت پیوند اتصال حساب در پنل کاربری استفاده می‌شود (t.me/username).
-                </p>
-              </div>
-            </div>
-
-            <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
-              <Button
-                type="button"
-                size="sm"
-                onClick={handleSaveTelegram}
-                disabled={telegramSaving}
-                className="gap-1.5"
-              >
-                {telegramSaving ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Save className="h-4 w-4" />
-                )}
-                ذخیره تنظیمات تلگرام
-              </Button>
-
-              {telegramStatus && (
-                <p
-                  className={`flex items-center gap-1.5 text-xs ${
-                    telegramStatus.ok ? "text-emerald-600" : "text-destructive"
-                  }`}
-                >
-                  {telegramStatus.ok ? (
-                    <CheckCircle2 className="h-3.5 w-3.5" />
-                  ) : (
-                    <AlertCircle className="h-3.5 w-3.5" />
-                  )}
-                  {telegramStatus.text}
-                </p>
-              )}
-            </div>
-
-            {/* Test Telegram Box */}
-            <div className="mt-4 rounded-lg border border-border/80 bg-muted/40 p-4">
-              <div className="mb-2 flex items-center gap-2">
-                <Send className="h-4 w-4 text-primary" />
-                <span className="text-xs font-bold text-foreground">تست اتصال و ارسال پیام آزمایشی</span>
-              </div>
-              <div className="flex flex-col gap-2 sm:flex-row">
-                <Input
-                  dir="ltr"
-                  value={testChatId}
-                  onChange={(e) => setTestChatId(e.target.value)}
-                  placeholder="شناسه چت گیرنده (Chat ID)"
-                  className="font-mono text-xs sm:w-72"
-                />
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={handleTestTelegram}
-                  disabled={testTelegramSending}
-                  className="gap-1.5 shrink-0"
-                >
-                  {testTelegramSending ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <MessageSquare className="h-4 w-4" />
-                  )}
-                  ارسال پیام آزمایشی
-                </Button>
-              </div>
-              {testTelegramResult && (
-                <p
-                  className={`mt-2 flex items-center gap-1.5 text-xs ${
-                    testTelegramResult.ok ? "text-emerald-600" : "text-destructive"
-                  }`}
-                >
-                  {testTelegramResult.ok ? (
-                    <CheckCircle2 className="h-3.5 w-3.5" />
-                  ) : (
-                    <AlertCircle className="h-3.5 w-3.5" />
-                  )}
-                  {testTelegramResult.text}
-                </p>
-              )}
-              <p className="mt-2 text-[11px] text-muted-foreground">
-                نکته: کاربران از بخش «اعلان‌ها» در پنل کاربری خود کد اتصال دریافت و به ربات ارسال می‌کنند تا Chat ID آن‌ها متصل شود.
-              </p>
-            </div>
-
-            {/* Recent Telegram Delivery Log */}
-            <div className="mt-4 rounded-lg border border-border/80">
-              <div className="flex items-center justify-between border-b border-border/60 px-4 py-2.5">
-                <span className="text-xs font-bold text-foreground">گزارش ارسال‌های اخیر تلگرام</span>
-                <span className="text-[11px] text-muted-foreground">
-                  {telegramLogTotal > 0 ? `${telegramLogTotal} رکورد` : "بدون رکورد"}
-                </span>
-              </div>
-              {telegramLogError ? (
-                <p
-                  role="alert"
-                  className="px-4 py-6 text-center text-xs text-destructive"
-                >
-                  دریافت گزارش تحویل تلگرام ناموفق بود. این پیام به‌معنای نبود
-                  ارسال نیست؛ وضعیت تحویل در این لحظه خوانده نشد.
-                </p>
-              ) : telegramLog.length === 0 ? (
-                <p className="px-4 py-6 text-center text-xs text-muted-foreground">
-                  هنوز پیامی از سامانه ارسال نشده است. پس از اولین ارسال، وضعیت تحویل اینجا نمایش داده می‌شود.
-                </p>
-              ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full text-xs">
-                    <thead>
-                      <tr className="border-b border-border/60 text-muted-foreground">
-                        <th className="px-4 py-2 text-right font-medium">گیرنده (Chat ID)</th>
-                        <th className="px-4 py-2 text-right font-medium">عنوان</th>
-                        <th className="px-4 py-2 text-right font-medium">وضعیت</th>
-                        <th className="px-4 py-2 text-right font-medium">تلاش</th>
-                        <th className="px-4 py-2 text-right font-medium">خطا</th>
-                        <th className="px-4 py-2 text-right font-medium">زمان</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {telegramLog.map((row) => (
-                        <tr key={row.id} className="border-b border-border/40 last:border-0">
-                          <td className="px-4 py-2 font-mono text-[11px]" dir="ltr">{row.recipient}</td>
-                          <td className="max-w-44 truncate px-4 py-2">{row.title}</td>
-                          <td className="px-4 py-2">
-                            {row.status === "sent" ? (
-                              <Badge className="bg-emerald-500/15 text-emerald-600 border border-emerald-500/25 text-[10px]">ارسال‌شده</Badge>
-                            ) : row.status === "failed" ? (
-                              <Badge variant="destructive" className="text-[10px]">ناموفق</Badge>
-                            ) : (
-                              <Badge variant="secondary" className="text-[10px]">در صف</Badge>
-                            )}
-                          </td>
-                          <td className="px-4 py-2">{row.attempts}</td>
-                          <td className="max-w-40 truncate px-4 py-2 text-destructive/80" title={row.error || ""}>
-                            {row.error || "—"}
-                          </td>
-                          <td className="px-4 py-2 font-mono text-[11px]" dir="ltr">
-                            {row.created_at ? new Date(row.created_at).toLocaleString("fa-IR") : "—"}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </div>
-          </div>
-        </Card>
           </>
         )}
 

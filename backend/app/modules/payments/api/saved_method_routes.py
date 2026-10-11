@@ -220,7 +220,7 @@ async def admin_list_saved_methods(
 )
 async def installment_options(
     order_id: uuid.UUID = Query(...),
-    provider: str = Query("mock"),
+    provider: str = Query("zarinpal"),
     user_id: uuid.UUID = Depends(get_current_user_id),
     db: AsyncSession = Depends(get_db),
 ) -> InstallmentOptionsResponse:

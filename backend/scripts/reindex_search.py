@@ -19,6 +19,8 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import importlib
+import pkgutil
 import sys
 from pathlib import Path
 
@@ -29,7 +31,28 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 TARGETS = ("products", "blog", "cms")
 
 
+def _import_every_model_module() -> None:
+    """Import every ``<pkg>.domain.models`` so the SQLAlchemy registry is whole.
+
+    Without this the first ORM query dies with "expression 'Payment.order_id'
+    failed to locate a name": mapper configuration resolves relationship
+    targets by class name across the *entire* registry, and a script that only
+    imports the search services has not loaded the modules those names live
+    in. The test suite already does exactly this (app/tests/conftest.py); the
+    reindex CLI was the one entry point that did not, so it only ever worked
+    by accident — when something else happened to import the missing module
+    first.
+    """
+    import app.modules
+
+    for module in pkgutil.walk_packages(app.modules.__path__, "app.modules."):
+        name = module.name
+        if name.endswith(".domain.models") or name.endswith(".domain.wp_parity_models"):
+            importlib.import_module(name)
+
+
 async def _run(targets: list[str]) -> int:
+    _import_every_model_module()
     from app.core.database.session import async_session_factory
     from app.modules.search.application.content_search_service import (
         get_content_search_service,

@@ -16,6 +16,9 @@
     "test:e2e:ui": "playwright test --ui"
   },
   "dependencies": {
+    "@dnd-kit/core": "^6.3.1",
+    "@dnd-kit/sortable": "^10.0.0",
+    "@dnd-kit/utilities": "^3.2.2",
     "@gsap/react": "^2.1.2",
     "@hookform/resolvers": "^3.9.0",
     "@radix-ui/react-accordion": "^1.2.2",
@@ -34,7 +37,7 @@
     "@simplewebauthn/browser": "^14.0.0",
     "@tanstack/react-query": "^5.50.0",
     "@types/canvas-confetti": "^1.9.0",
-    "@types/three": "^0.185.4",
+    "@types/three": "0.182.0",
     "axios": "^1.7.0",
     "canvas-confetti": "^1.9.4",
     "class-variance-authority": "^0.7.1",
@@ -58,7 +61,7 @@
     "sanitize-html": "^2.17.7",
     "tailwind-merge": "^2.6.0",
     "tailwindcss-animate": "^1.0.7",
-    "three": "^0.186.0",
+    "three": "0.182.0",
     "validator": "^13.15.35",
     "vaul": "^1.1.2",
     "zod": "^3.23.0",
@@ -67,6 +70,7 @@
   "devDependencies": {
     "@axe-core/playwright": "^4.13.0",
     "@playwright/test": "^1.49.0",
+    "@tailwindcss/typography": "^0.5.20",
     "@testing-library/dom": "^10.4.0",
     "@testing-library/jest-dom": "^6.6.0",
     "@testing-library/react": "^16.1.0",

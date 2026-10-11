@@ -4,8 +4,7 @@ Usage: ``python manage.py <group> <command> [args]`` — dependency-free
 (argparse), async services driven through ``asyncio.run``.
 
 Groups:
-  cms       — pages: list / publish / export / import
-  webhooks  — list endpoints, show recent deliveries
+  cms       — pages: list / publish / process-schedules
   rbac      — seed permissions from the catalog into the admin role
   db        — alembic current / heads passthrough helpers
 """
@@ -53,33 +52,6 @@ async def _cms_publish(args: argparse.Namespace) -> None:
         print(f"published: {updated.slug} (rev {updated.revision_number})")
 
 
-async def _cms_export(args: argparse.Namespace) -> None:
-    from app.core.database.session import async_session_factory
-    from app.modules.content.application import transfer_service
-
-    async with async_session_factory() as db:
-        doc = await transfer_service.export_content(db)
-    payload = json.dumps(doc, ensure_ascii=False, indent=2, default=str)
-    if args.output:
-        with open(args.output, "w", encoding="utf-8") as fh:
-            fh.write(payload)
-        print(f"exported {len(doc.get('pages', []))} page(s) → {args.output}")
-    else:
-        print(payload)
-
-
-async def _cms_import(args: argparse.Namespace) -> None:
-    from app.core.database.session import async_session_factory
-    from app.modules.content.application import transfer_service
-
-    with open(args.file, encoding="utf-8") as fh:
-        doc = json.load(fh)
-    async with async_session_factory() as db:
-        counts = await transfer_service.import_content(db, doc)
-        await db.commit()
-    _print_json(counts)
-
-
 async def _cms_process_schedules(args: argparse.Namespace) -> None:
     from app.core.database.session import async_session_factory
     from app.modules.content.application import cms_page_service
@@ -88,18 +60,6 @@ async def _cms_process_schedules(args: argparse.Namespace) -> None:
         counts = await cms_page_service.process_scheduled_pages(db)
         await db.commit()
     _print_json(counts)
-
-
-async def _webhooks_list(args: argparse.Namespace) -> None:
-    from app.core.database.session import async_session_factory
-    from app.modules.integrations.application import webhook_service
-
-    async with async_session_factory() as db:
-        endpoints = await webhook_service.list_endpoints(db)
-        for ep in endpoints:
-            state = "on " if ep.is_active else "off"
-            print(f"[{state}] {ep.name:<20} {ep.url}  events={','.join(ep.events)}")
-        print(f"— {len(endpoints)} endpoint(s)")
 
 
 async def _rbac_seed_permissions(args: argparse.Namespace) -> None:
@@ -120,16 +80,6 @@ async def _rbac_seed_permissions(args: argparse.Namespace) -> None:
     )
 
 
-async def _webhooks_deliveries(args: argparse.Namespace) -> None:
-    from app.core.database.session import async_session_factory
-    from app.modules.integrations.application import webhook_service
-
-    async with async_session_factory() as db:
-        deliveries = await webhook_service.list_deliveries(db, limit=args.limit)
-        for d in deliveries:
-            print(f"{d.event:<18} {d.status.value:<8} attempts={d.attempts} http={d.response_status}")
-
-
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="manage.py", description=__doc__)
     sub = parser.add_subparsers(dest="group", required=True)
@@ -146,13 +96,10 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("slug")
     p.set_defaults(func=_cms_publish)
 
-    p = cms_sub.add_parser("export", help="Export all CMS content to JSON")
-    p.add_argument("-o", "--output")
-    p.set_defaults(func=_cms_export)
-
-    p = cms_sub.add_parser("import", help="Import a CMS content JSON file")
-    p.add_argument("file")
-    p.set_defaults(func=_cms_import)
+    # `cms export` / `cms import` were removed on 2026-10-07 with the
+    # «انتقال محتوا» admin page and its JSON document format. Content
+    # import/export lives in the «ورود و خروج داده» admin screen
+    # (dataexchange module), which covers CMS pages and FAQs as entities.
 
     p = cms_sub.add_parser("process-schedules", help="Fire due page publish/unpublish")
     p.set_defaults(func=_cms_process_schedules)
@@ -164,14 +111,6 @@ def build_parser() -> argparse.ArgumentParser:
         help="Upsert the permission catalog and grant it to the admin role (idempotent)",
     )
     p.set_defaults(func=_rbac_seed_permissions)
-
-    wh = sub.add_parser("webhooks", help="Webhook inspection")
-    wh_sub = wh.add_subparsers(dest="command", required=True)
-    p = wh_sub.add_parser("list", help="List endpoints")
-    p.set_defaults(func=_webhooks_list)
-    p = wh_sub.add_parser("deliveries", help="Recent deliveries")
-    p.add_argument("--limit", type=int, default=20)
-    p.set_defaults(func=_webhooks_deliveries)
 
     return parser
 

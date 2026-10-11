@@ -49,7 +49,19 @@ class BlogCategoryResponse(BaseModel):
     created_at: datetime | None = None
     updated_at: datetime | None = None
     post_count: int | None = Field(0, description="Number of published posts in this category")
-    # Populated only by the tree endpoints; None on a flat row.
+    # Storefront read path fills these from the operator's titles-meta
+    # templates (BlogService.list_categories). None on every other endpoint
+    # that reuses this schema.
+    seo_title: str | None = None
+    seo_description: str | None = None
+    # Nested children; None on a flat row. Set by hand by the tree endpoints.
+    #
+    # Never read from the ORM. This schema carries from_attributes=True, so a
+    # bare ``model_validate(category)`` makes pydantic fetch
+    # ``BlogCategory.children`` — a ``lazy="select"`` relationship whose IO
+    # raises MissingGreenlet under asyncio. That turned every post row that
+    # carried a category into a 500 on both the admin and the storefront list.
+    # The tree builder passes this field explicitly, so nothing is lost.
     children: list["BlogCategoryResponse"] | None = None
     # Full ancestor path ("لپ‌تاپ / گیمینگ"), for breadcrumbs on the archive.
     ancestors: list[dict[str, Any]] | None = None
@@ -88,6 +100,10 @@ class BlogTagResponse(BaseModel):
     created_at: datetime | None = None
     updated_at: datetime | None = None
     post_count: int | None = Field(0, description="Number of published posts with this tag")
+    # Storefront read path fills these from the operator's titles-meta
+    # templates (BlogService.list_tags). None on every other endpoint.
+    seo_title: str | None = None
+    seo_description: str | None = None
 
 
 # ============================================================================
@@ -112,12 +128,6 @@ class BlogPostCreate(BaseModel):
     status: BlogPostStatus = Field(
         default=BlogPostStatus.DRAFT,
         description="Publication status: draft, pending_review, published, or archived",
-    )
-    locale: str = Field(
-        default="fa",
-        min_length=2,
-        max_length=10,
-        description="Content language code (fa, en, ar, …)",
     )
     published_at: datetime | None = Field(
         None,
@@ -177,7 +187,6 @@ class BlogPostUpdate(BaseModel):
     excerpt: str | None = Field(None, max_length=1000)
     cover_image_url: str | None = Field(None, max_length=500)
     status: BlogPostStatus | None = None
-    locale: str | None = Field(None, min_length=2, max_length=10)
     published_at: datetime | None = None
     category_id: uuid.UUID | None = None
     tag_ids: list[uuid.UUID] | None = Field(
@@ -216,10 +225,6 @@ class BlogPostResponse(BaseModel):
     excerpt: str | None = None
     cover_image_url: str | None = None
     status: BlogPostStatus
-    locale: str = "fa"
-    # i18n: posts sharing a group are translations of one another (None = not
-    # translated). The storefront language switcher groups on this.
-    translation_group: uuid.UUID | None = None
     published_at: datetime | None = None
     scheduled_for: datetime | None = None
     category_id: uuid.UUID | None = None
@@ -240,6 +245,16 @@ class BlogPostResponse(BaseModel):
     post_format: PostFormat = PostFormat.STANDARD
     gallery_image_ids: list[str] | None = None
     comment_count: int = Field(default=0, description="Total approved comments")
+    # SEO columns (Rank Math's list columns): the stored analyzer score and
+    # the focus keyword, so the admin list can show which posts need work
+    # without opening each one. Both come from seo_metadata; None = the post
+    # was never analyzed / has no keyword.
+    seo_score: int | None = Field(
+        default=None, description="Last stored SEO analyzer score (0-100)"
+    )
+    seo_focus_keyword: str | None = Field(
+        default=None, description="Rank Math focus keyword"
+    )
     created_at: datetime
     updated_at: datetime
     deleted_at: datetime | None = None
@@ -392,9 +407,10 @@ class BlogCommentCreate(BaseModel):
     )
     content: str = Field(..., min_length=1, max_length=5000, description="Comment text")
     parent_id: uuid.UUID | None = Field(None, description="Parent comment for threaded replies")
-    # Guest fields (when not authenticated)
+    # Guest fields (when not authenticated). `author_email` was removed on
+    # 2026-10-07 with the rest of the email feature; the comment form no
+    # longer collects one.
     author_name: str | None = Field(None, max_length=200)
-    author_email: str | None = Field(None, max_length=255)
     author_url: str | None = Field(None, max_length=500)
 
 
@@ -402,9 +418,9 @@ class BlogCommentUpdate(BaseModel):
     """Schema for updating a comment.
 
     Beyond content and status this carries the author's own fields, which a
-    moderator correcting a mistyped name or a spam address needs. They are all
-    optional and only the ones actually sent are applied, so an edit that only
-    fixes a typo in the body does not blank the email that was there.
+    moderator correcting a mistyped name needs. They are all optional and only
+    the ones actually sent are applied, so an edit that only fixes a typo in
+    the body does not blank the name that was there.
     """
 
     model_config = ConfigDict(str_strip_whitespace=True)
@@ -412,7 +428,6 @@ class BlogCommentUpdate(BaseModel):
     content: str | None = Field(None, min_length=1, max_length=5000)
     status: CommentStatus | None = None
     author_name: str | None = Field(None, max_length=200)
-    author_email: str | None = Field(None, max_length=320)
     # Free text a moderator may type; validated as a URL shape by the client
     # and escaped on render, so this is not a way to inject markup.
     author_url: str | None = Field(None, max_length=500)
@@ -433,12 +448,11 @@ class BlogNoteCreate(BaseModel):
 class BlogCommentResponse(BaseModel):
     """Public response schema for a comment.
 
-    Deliberately omits ``author_email``: this schema is returned by the
-    unauthenticated ``GET /blog/comments`` and ``GET /blog/posts/{id}/comments``
-    routes, so exposing the field handed every anonymous visitor the address of
-    every commenter who left one. ``status`` is likewise withheld — a public
-    reader has no business knowing a comment is pending. Both live on
+    Deliberately omits moderation-only fields such as ``status`` — a public
+    reader has no business knowing a comment is pending. Those live on
     ``BlogCommentAdminResponse``, which only the guarded admin routes return.
+    (``author_email`` was removed from the database entirely on 2026-10-07
+    with the rest of the email feature.)
     """
 
     model_config = ConfigDict(from_attributes=True)
@@ -453,8 +467,9 @@ class BlogCommentResponse(BaseModel):
     author_name: str | None = None
     # Publicly rendered as a mailto link, so it is not PII the way an email is.
     author_url: str | None = None
-    # Uploaded avatar if the author has one, else their Gravatar. Unset for
-    # guests who gave no email — the UI falls back to initials.
+    # Uploaded avatar if the author has one. Unset for guests and authors
+    # without one — the UI falls back to initials. (The Gravatar-by-email
+    # fallback was removed on 2026-10-07 with the rest of the email feature.)
     author_avatar_url: str | None = None
     content: str
     parent_id: uuid.UUID | None = None
@@ -472,18 +487,14 @@ class BlogCommentAdminResponse(BlogCommentResponse):
 
     Adds back the fields the public schema withholds, plus ``status`` so a
     moderator can filter on it, plus ``comment_type`` so the table can style a
-    private note apart and filter to one kind. That last one is withheld from the
-    public schema for the same reason as the email: a note's existence is itself
-    private. Used only by routes behind ``blog:write`` or
-    ``blog:moderate_comments``.
+    private note apart and filter to one kind. That last one is withheld from
+    the public schema because a note's existence is itself private. Used only
+    by routes behind ``blog:write`` or ``blog:moderate_comments``.
     """
 
-    author_email: str | None = None
-    # The address the comment came from. It is stored (see the privacy policy
-    # and its retention setting) but was never returned, so a moderator
-    # moderating spam had no way to see two comments from the same address —
-    # the single most useful signal when deciding what is spam. Admin-gated for
-    # the same reason `author_email` is.
+    # The address the comment came from. It is stored but was never returned,
+    # so a moderator moderating spam had no way to see two comments from the
+    # same address — the single most useful signal when deciding what is spam.
     author_ip: str | None = None
     # The commenter's website. Already on the public schema (it is rendered as
     # a link), restated here so the moderation table can read it off the admin
@@ -511,7 +522,7 @@ class BlogCommentAdminListResponse(BlogCommentListResponse):
     Narrowing ``items`` is what actually changes the wire format: FastAPI
     validates the handler's return value against ``response_model``, so
     declaring the admin item schema on the route while leaving the envelope on
-    the public one silently dropped ``author_email`` and ``status`` again —
+    the public one silently dropped ``status`` again —
     which is exactly what the moderation table renders.
     """
 
@@ -560,6 +571,11 @@ class BlogAuthorResponse(BaseModel):
     bio: str | None = Field(None, description="Author biography, when the profile has one")
     avatar_url: str | None = None
     post_count: int = Field(default=0, ge=0)
+    # Storefront read path fills these from the operator's titles-meta
+    # templates (AuthorService.get_archive) — the panel template for the
+    # "author" type used to be unreachable. None on every other endpoint.
+    seo_title: str | None = None
+    seo_description: str | None = None
 
 
 class BlogAuthorArchiveResponse(BaseModel):

@@ -10,8 +10,10 @@ import { toPersianDigits } from "@/lib/utils";
 import { paymentsV1Api, type InstallmentPlan, type SavedPaymentMethod } from "@/lib/api/payments";
 
 /** Providers whose gateway can actually store a card (see the backend
- *  capability contract: the public Zarinpal v4 / IDPay v1.1 APIs cannot). */
-const TOKENIZABLE_PROVIDERS = [{ value: "mock", label: "درگاه آزمایشی (توسعه)" }];
+ *  capability contract: the public Zarinpal v4 API cannot, and no other
+ *  wired provider offers card-on-file). Empty until a gateway with a real
+ *  tokenization product is integrated — the add-card action is hidden. */
+const TOKENIZABLE_PROVIDERS: { value: string; label: string }[] = [];
 
 const PLAN_STATUS_LABELS: Record<InstallmentPlan["status"], string> = {
   pending: "در انتظار پیش‌پرداخت",
@@ -24,12 +26,9 @@ const PLAN_STATUS_LABELS: Record<InstallmentPlan["status"], string> = {
 /** Persian label for a saved-card provider slug. */
 function providerLabel(provider: string): string {
   const labels: Record<string, string> = {
-    mock: "درگاه آزمایشی",
     zarinpal: "زرین‌پال",
-    idpay: "آی‌دی‌پی",
     wallet: "کیف پول",
     card_transfer: "کارت به کارت",
-    crypto: "ارز دیجیتال",
   };
   return labels[provider] ?? provider;
 }
@@ -75,7 +74,14 @@ export function SavedCardsPanel() {
 
   const handleAddCard = async () => {
     const provider = TOKENIZABLE_PROVIDERS[0]?.value;
-    if (!provider) return;
+    if (!provider) {
+      toast({
+        variant: "destructive",
+        title: "افزودن کارت در حال حاضر ممکن نیست",
+        description: "درگاه فعال فعلی از ذخیره کارت پشتیبانی نمی‌کند.",
+      });
+      return;
+    }
     setIsAdding(true);
     try {
       const result = await paymentsV1Api.tokenizeCard(provider);

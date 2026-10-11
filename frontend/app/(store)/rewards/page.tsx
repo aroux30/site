@@ -114,7 +114,7 @@ export default function RewardsPage() {
           </h1>
           <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
             با ثبت سفارش موفق، ثبت دیدگاه و عضویت در فروشگاه امتیاز دریافت کنید و آنها را به
-            کدهای تخفیف، ارسال رایگان و هدایای نقدی تبدیل نمایید.
+            کدهای تخفیف و هدایای نقدی تبدیل نمایید.
           </p>
         </div>
 

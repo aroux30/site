@@ -5,8 +5,8 @@ import { BlogComments } from "@/components/blog/blog-comments";
 /**
  * CMS-backed storefront page body (server component).
  *
- * The storefront previously shipped static JSX for /about, /terms, /privacy,
- * and /returns. Next.js route precedence made those files win over the generic
+ * The storefront previously shipped static JSX for /about and /terms.
+ * Next.js route precedence made those files win over the generic
  * CMS `[slug]` route, so editor changes in the admin panel never reached
  * customers. Each of those routes now renders this component: published CMS
  * content wins, and the original static layout stays as the fallback for
@@ -90,6 +90,10 @@ export function cmsMetadata(
   return {
     title: page.seo_title || page.title || fallbackTitle,
     description: page.seo_description || page.excerpt || fallbackDescription,
+    // Self-canonical. Without it these pages served no canonical at all
+    // (verified live 2026-10-10: 6 fixed pages + the author archive). The
+    // root layout's metadataBase makes the relative path absolute.
+    alternates: { canonical: `/${page.slug}` },
   };
 }
 

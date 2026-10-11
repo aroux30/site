@@ -24,6 +24,7 @@ import { Badge } from "@/components/ui/badge";
 import { formatPrice, toPersianDigits } from "@/lib/utils";
 import apiClient from "@/lib/api/client";
 import { useAdminQuery } from "@/lib/api/admin-query";
+import { STATUS_VISUALS, type OrderStatus } from "@/lib/admin/order-domain";
 
 const DASHBOARD_QUERY_KEY = "admin-dashboard" as const;
 
@@ -55,7 +56,7 @@ interface RecentOrderPreview {
   customer: string;
   date: string;
   amount: number;
-  status: "pending" | "confirmed" | "processing" | "shipped" | "delivered" | "cancelled";
+  status: OrderStatus;
 }
 
 interface TopProductPreview {
@@ -70,19 +71,25 @@ interface TopProductPreview {
 /*  Persian Status Mappings                                            */
 /* ------------------------------------------------------------------ */
 
-const ORDER_STATUS_CONFIG: Record<
-  RecentOrderPreview["status"],
-  {
-    label: string;
-    variant: "default" | "secondary" | "destructive" | "outline" | "success" | "warning" | "info";
-  }
+/**
+ * Status labels come from the shared domain, not a local copy.
+ *
+ * This table used to hard-code its own six statuses AND spell `cancelled`
+ * with two l's — a spelling the backend never sends (it is `canceled`), so
+ * the badge fell through to a raw untranslated value. Deriving from
+ * `STATUS_VISUALS` makes that class of drift impossible.
+ */
+const ORDER_STATUS_VARIANT: Record<
+  OrderStatus,
+  "default" | "secondary" | "destructive" | "outline" | "success" | "warning" | "info"
 > = {
-  pending: { label: "در انتظار", variant: "warning" },
-  confirmed: { label: "تایید شده", variant: "info" },
-  processing: { label: "در حال پردازش", variant: "default" },
-  shipped: { label: "ارسال شده", variant: "info" },
-  delivered: { label: "تحویل داده شده", variant: "success" },
-  cancelled: { label: "لغو شده", variant: "destructive" },
+  waiting_payment_gateway: "warning",
+  waiting_payment_card: "warning",
+  pending: "info",
+  processing: "default",
+  completed: "success",
+  canceled: "destructive",
+  refunded: "secondary",
 };
 
 /* ------------------------------------------------------------------ */
@@ -216,9 +223,9 @@ export default function AdminDashboardPage() {
       key: "status",
       header: "وضعیت",
       render: (order) => {
-        const statusConf = ORDER_STATUS_CONFIG[order.status as keyof typeof ORDER_STATUS_CONFIG] || {
-          label: order.status,
-          variant: "secondary" as const,
+        const statusConf = {
+          label: STATUS_VISUALS[order.status]?.label ?? order.status,
+          variant: ORDER_STATUS_VARIANT[order.status] ?? ("secondary" as const),
         };
         return (
           <Badge variant={statusConf.variant} className="text-[11px]">
@@ -232,9 +239,9 @@ export default function AdminDashboardPage() {
       header: <span className="sr-only">اقدام</span>,
       className: "text-center",
       render: (order) => {
-        const statusConf = ORDER_STATUS_CONFIG[order.status as keyof typeof ORDER_STATUS_CONFIG] || {
-          label: order.status,
-          variant: "secondary" as const,
+        const statusConf = {
+          label: STATUS_VISUALS[order.status]?.label ?? order.status,
+          variant: ORDER_STATUS_VARIANT[order.status] ?? ("secondary" as const),
         };
         return (
           <Link href="/admin/orders" aria-label="مشاهده سفارش‌ها">
@@ -512,7 +519,7 @@ export default function AdminDashboardPage() {
           <div className="min-w-0 flex-1">
             <p className="text-xs text-muted-foreground">سفارشات در انتظار اقدام انبار</p>
             <p className="text-sm font-bold text-foreground">
-              {toPersianDigits(recentOrders.filter((o) => o.status === "pending" || o.status === "confirmed").length)} سفارش نیاز به تایید دارند
+              {toPersianDigits(recentOrders.filter((o) => o.status === "waiting_payment_gateway" || o.status === "waiting_payment_card").length)} سفارش نیاز به تایید دارند
             </p>
           </div>
           <Link href="/admin/orders">

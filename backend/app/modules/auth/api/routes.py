@@ -37,8 +37,6 @@ from app.modules.auth.schemas.auth import (
     ApplicationPasswordCreate,
     ApplicationPasswordCreatedResponse,
     ApplicationPasswordResponse,
-    PasswordResetConfirm,
-    PasswordResetRequest,
     OTPRequestSchema,
     OTPVerifySchema,
     RefreshTokenRequest,
@@ -174,7 +172,6 @@ async def register(
         password=body.password,
         first_name=body.first_name,
         last_name=body.last_name,
-        email=body.email,
         referral_code=body.referral_code,
         ip_address=_client_ip(request),
         user_agent=_client_ua(request),
@@ -222,56 +219,11 @@ async def login(
     return TokenResponse(**tokens)
 
 
-# ── SSO (OIDC) ───────────────────────────────────────────────────────────────
-
-
-@router.get(
-    "/sso/google",
-    summary="Start Google SSO login (redirects to Google consent)",
-)
-@limiter.limit("10/minute")
-async def sso_google_start(
-    request: Request,
-    return_url: str | None = None,
-) -> Response:
-    from fastapi.responses import RedirectResponse
-
-    from app.modules.auth.application import sso_service
-
-    url = await sso_service.start_google_login(return_url)
-    return RedirectResponse(url, status_code=status.HTTP_302_FOUND)
-
-
-@router.get(
-    "/sso/google/callback",
-    summary="Google SSO callback (code + state)",
-)
-@limiter.limit("20/minute")
-async def sso_google_callback(
-    request: Request,
-    response: Response,
-    code: str,
-    state: str,
-    db: AsyncSession = Depends(get_db),
-) -> Response:
-    from app.modules.auth.application import sso_service
-
-    tokens, return_url = await sso_service.complete_google_login(
-        db,
-        code=code,
-        state=state,
-        ip_address=_client_ip(request),
-        user_agent=_client_ua(request),
-    )
-    _set_auth_cookies(response, tokens["access_token"], tokens["refresh_token"], request)
-
-    # Google always delivers the user back in a browser — land on a
-    # storefront route carrying the auth cookies, never on bare JSON.
-    from fastapi.responses import RedirectResponse
-
-    redirect = RedirectResponse(return_url, status_code=status.HTTP_302_FOUND)
-    _set_auth_cookies(redirect, tokens["access_token"], tokens["refresh_token"], request)
-    return redirect
+# Google SSO (OIDC) was removed on 2026-10-07 with the email feature: the
+# flow matched users by verified *email* (``sso_service`` provisioned accounts
+# keyed on the Google address), and the owner's store is phone-first. The
+# ``/sso/google`` and ``/sso/google/callback`` routes are gone with it. See
+# `_archived/email-removal-2026-10-07/` and `docs/email-removal-2026-10-07.md`.
 
 
 # ── OTP ──────────────────────────────────────────────────────────────────────
@@ -386,7 +338,13 @@ async def logout(
             # before this claim existed.
             session_uuid = None
 
-    await auth_service.logout(db, user_id=user_id, session_id=session_uuid)
+    await auth_service.logout(
+        db,
+        user_id=user_id,
+        session_id=session_uuid,
+        ip_address=_client_ip(request),
+        user_agent=_client_ua(request),
+    )
     _clear_auth_cookies(response, request)
     return MessageResponse(message="Logged out successfully")
 
@@ -397,6 +355,7 @@ async def logout(
     summary="Logout from all sessions",
 )
 async def logout_all(
+    request: Request,
     payload: dict[str, Any] = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_db),
 ) -> MessageResponse:
@@ -404,7 +363,12 @@ async def logout_all(
 
     user_id = uuid.UUID(payload["sub"])
     await denylist_user(user_id)
-    count = await auth_service.logout_all(db, user_id=user_id)
+    count = await auth_service.logout_all(
+        db,
+        user_id=user_id,
+        ip_address=_client_ip(request),
+        user_agent=_client_ua(request),
+    )
     return MessageResponse(message=f"Revoked {count} session(s)")
 
 
@@ -442,11 +406,11 @@ async def upload_my_avatar(
     customer had no upload path at all and the field could only be filled by
     pasting a URL — which is not an avatar picker.
 
-    Not behind ``media:write`` for the same reason the return-proof route is
-    not: this is a customer-facing upload, and gating it on the staff
-    permission would make the feature unreachable. Capped at the customer
-    ceiling, and the bytes are validated by the media service (magic-number
-    sniffing, image pipeline), not trusted from the declared content type.
+    Not behind ``media:write``: this is a customer-facing upload, and gating it
+    on the staff permission would make the feature unreachable. Capped at the
+    customer ceiling, and the bytes are validated by the media service
+    (magic-number sniffing, image pipeline), not trusted from the declared
+    content type.
     """
     from app.modules.media.api.routes import CUSTOMER_UPLOAD_MAX_BYTES
     from app.modules.media.application.media_service import MediaService
@@ -492,143 +456,6 @@ async def update_me(
 
 
 @router.post(
-    "/me/email/confirm",
-    summary="Confirm an email change with the token from the confirmation link",
-)
-async def confirm_email_change(
-    body: dict[str, str],
-    db: AsyncSession = Depends(get_db),
-) -> dict[str, Any]:
-    """Redeem a confirmation link and move the account's address.
-
-    Not authenticated on purpose. The token is the credential: it arrives by
-    email to the *new* address, which is exactly the proof being asked for, and
-    requiring a login first would break the flow for a user whose session has
-    expired since they requested the change. The token is single-use, hashed at
-    rest and short-lived, so possession of it is the authorisation.
-
-    Every failure answers 400 with a specific reason, because "invalid link" for
-    an expired one and an already-used one leaves the user re-clicking something
-    that can never work.
-    """
-    from fastapi import HTTPException as _HTTPException
-
-    from app.modules.users.application.email_change_service import (
-        EmailChangeError,
-        confirm_email_change as _confirm,
-    )
-
-    token = (body.get("token") or "").strip()
-    if not token:
-        raise _HTTPException(status_code=400, detail="توکن تأیید ارسال نشده است.")
-
-    try:
-        return await _confirm(db, token=token)
-    except EmailChangeError as exc:
-        raise _HTTPException(status_code=400, detail=exc.message) from exc
-
-
-@router.get(
-    "/me/email/pending",
-    summary="The outstanding email-change proposal, if any",
-)
-async def pending_email_change(
-    user_id: uuid.UUID = Depends(get_current_user_id),
-    db: AsyncSession = Depends(get_db),
-) -> dict[str, Any]:
-    """Lets the account screen say "we sent a link to x@y.com" after a refresh."""
-    from app.modules.users.application.email_change_service import (
-        get_pending_email_change,
-    )
-
-    return await get_pending_email_change(db, user_id=user_id)
-
-
-@router.post(
-    "/me/email/verify",
-    summary="Confirm an account email with the link's token",
-)
-async def confirm_email_verification(
-    body: dict[str, str],
-    db: AsyncSession = Depends(get_db),
-) -> dict[str, Any]:
-    """Redeem a registration-verification link.
-
-    Unauthenticated for the same reason the change-confirm endpoint is: the
-    token *is* the proof — it was mailed to the address being verified — and
-    requiring a session would break the flow for anyone whose tab has closed.
-    Single-use, hashed at rest and short-lived, so possession is the authority.
-    """
-    from fastapi import HTTPException as _HTTPException
-
-    from app.modules.users.application.email_verification_service import (
-        EmailVerificationError,
-        confirm_verification,
-    )
-
-    token = (body.get("token") or "").strip()
-    if not token:
-        raise _HTTPException(status_code=400, detail="توکن تأیید ارسال نشده است.")
-
-    try:
-        return await confirm_verification(db, token=token)
-    except EmailVerificationError as exc:
-        raise _HTTPException(status_code=400, detail=exc.message) from exc
-
-
-@router.post(
-    "/me/email/resend-verification",
-    summary="Re-send the account email verification link",
-    response_model=MessageResponse,
-)
-async def resend_email_verification(
-    user_id: uuid.UUID = Depends(get_current_user_id),
-    db: AsyncSession = Depends(get_db),
-) -> MessageResponse:
-    """Issue a fresh verification link for the signed-in account.
-
-    Reports honestly: an account with no address has nothing to verify, and one
-    already verified has nothing to do — "sent" either way would keep a user
-    watching an inbox for a message that was never written.
-    """
-    from app.modules.auth.application import auth_service as _svc
-    from app.modules.users.application.email_verification_service import (
-        issue_verification,
-    )
-
-    data = await _svc.get_me(db, user_id=user_id)
-    if data.get("is_verified"):
-        return MessageResponse(message="ایمیل حساب شما قبلاً تأیید شده است.")
-    email = data.get("email")
-    if not email:
-        return MessageResponse(message="این حساب ایمیل ثبت‌شده‌ای ندارد.")
-
-    result = await issue_verification(db, user_id=user_id, email=email)
-    return MessageResponse(
-        message=(
-            "پیوند تأیید به ایمیل شما فرستاده شد."
-            if result.get("sent")
-            else "ارسال ایمیل تأیید ناموفق بود. لطفاً کمی بعد دوباره تلاش کنید."
-        )
-    )
-
-
-@router.get(
-    "/me/email/verification-pending",
-    summary="Whether an unexpired email-verification link exists",
-)
-async def pending_email_verification(
-    user_id: uuid.UUID = Depends(get_current_user_id),
-    db: AsyncSession = Depends(get_db),
-) -> dict[str, Any]:
-    from app.modules.users.application.email_verification_service import (
-        get_pending_verification,
-    )
-
-    return await get_pending_verification(db, user_id=user_id)
-
-
-@router.post(
     "/change-password",
     response_model=MessageResponse,
     summary="Change current user password",
@@ -650,58 +477,13 @@ async def change_password(
     return MessageResponse(message="Password changed successfully")
 
 
-# ── Password reset (lost password) ──────────────────────────────────────────
-
-
-@router.post(
-    "/forgot-password",
-    status_code=status.HTTP_200_OK,
-    response_model=MessageResponse,
-    summary="Request a password reset link",
-)
-@limiter.limit(_settings.RATE_LIMIT_PASSWORD_RESET_REQUEST)
-async def forgot_password(
-    request: Request,
-    body: PasswordResetRequest,
-    db: AsyncSession = Depends(get_db),
-) -> MessageResponse:
-    """Always answers the same way, whether or not the address exists.
-
-    A different answer (or a different status) would turn this endpoint into a
-    membership oracle for registered email addresses.
-    """
-    await auth_service.request_password_reset(
-        db,
-        email=body.email,
-        ip_address=_client_ip(request),
-        user_agent=_client_ua(request),
-    )
-    return MessageResponse(
-        message="اگر این ایمیل در سامانه ثبت شده باشد، پیوند بازیابی ارسال شد."
-    )
-
-
-@router.post(
-    "/reset-password",
-    response_model=MessageResponse,
-    summary="Redeem a reset token and set a new password",
-)
-@limiter.limit(_settings.RATE_LIMIT_PASSWORD_RESET_CONFIRM)
-async def reset_password(
-    request: Request,
-    body: PasswordResetConfirm,
-    db: AsyncSession = Depends(get_db),
-) -> MessageResponse:
-    await auth_service.reset_password(
-        db,
-        token=body.token,
-        new_password=body.new_password,
-        ip_address=_client_ip(request),
-        user_agent=_client_ua(request),
-    )
-    return MessageResponse(
-        message="رمز عبور تغییر کرد. لطفاً دوباره وارد شوید."
-    )
+# The email routes were removed on 2026-10-07 with the rest of the email
+# feature: /me/email/confirm, /me/email/pending, /me/email/verify,
+# /me/email/resend-verification, /me/email/verification-pending,
+# /forgot-password and /reset-password. The store logs in with a phone
+# number; password recovery is the OTP flow (`/otp/request` + `/otp/verify`),
+# which proves the phone and needs no mail delivery. See
+# `_archived/email-removal-2026-10-07/` and `docs/email-removal-2026-10-07.md`.
 
 
 # ── Session Management ───────────────────────────────────────────────────────
@@ -748,10 +530,17 @@ async def list_sessions(
 )
 async def delete_session(
     session_id: uuid.UUID,
+    request: Request,
     user_id: uuid.UUID = Depends(get_current_user_id),
     db: AsyncSession = Depends(get_db),
 ) -> MessageResponse:
-    await auth_service.revoke_session(db, user_id=user_id, session_id=session_id)
+    await auth_service.revoke_session(
+        db,
+        user_id=user_id,
+        session_id=session_id,
+        ip_address=_client_ip(request),
+        user_agent=_client_ua(request),
+    )
     return MessageResponse(message="Session revoked successfully")
 
 
@@ -782,10 +571,17 @@ async def setup_totp(
 )
 async def verify_totp(
     body: MFAVerifyRequest,
+    request: Request,
     user_id: uuid.UUID = Depends(get_current_user_id),
     db: AsyncSession = Depends(get_db),
 ) -> MessageResponse:
-    await auth_service.confirm_totp(db, user_id=user_id, code=body.code)
+    await auth_service.confirm_totp(
+        db,
+        user_id=user_id,
+        code=body.code,
+        ip_address=_client_ip(request),
+        user_agent=_client_ua(request),
+    )
     return MessageResponse(message="TOTP verification successful")
 
 
@@ -796,10 +592,18 @@ async def verify_totp(
 )
 async def disable_totp(
     body: MFADisableRequest,
+    request: Request,
     user_id: uuid.UUID = Depends(get_current_user_id),
     db: AsyncSession = Depends(get_db),
 ) -> MessageResponse:
-    await auth_service.disable_totp(db, user_id=user_id, code=body.code, password=body.password)
+    await auth_service.disable_totp(
+        db,
+        user_id=user_id,
+        code=body.code,
+        password=body.password,
+        ip_address=_client_ip(request),
+        user_agent=_client_ua(request),
+    )
     return MessageResponse(message="TOTP MFA disabled")
 
 

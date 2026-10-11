@@ -87,7 +87,6 @@ class UserListItem(BaseModel):
 
     id: uuid.UUID
     phone: str
-    email: str | None = None
     first_name: str | None = None
     last_name: str | None = None
     display_name: str | None = None
@@ -135,7 +134,6 @@ class UserDetailResponse(BaseModel):
 
     id: uuid.UUID
     phone: str
-    email: str | None = None
     first_name: str | None = None
     last_name: str | None = None
     display_name: str | None = None
@@ -144,9 +142,6 @@ class UserDetailResponse(BaseModel):
     birth_date: str | None = None
     avatar_url: str | None = None
     gender: str | None = None
-    is_b2b: bool = False
-    company_name: str | None = None
-    tax_exemption_certificate_no: str | None = None
     is_active: bool
     is_verified: bool
     is_superuser: bool
@@ -163,7 +158,6 @@ class AdminUserCreate(BaseModel):
     model_config = ConfigDict(str_strip_whitespace=True)
 
     phone: str = Field(..., min_length=10, max_length=15, examples=["09123456789"])
-    email: str | None = Field(None, max_length=255)
     password: str | None = Field(None, min_length=8, max_length=128)
     first_name: str | None = Field(None, min_length=1, max_length=100)
     last_name: str | None = Field(None, min_length=1, max_length=100)
@@ -178,15 +172,11 @@ class AdminUserUpdate(BaseModel):
 
     model_config = ConfigDict(str_strip_whitespace=True)
 
-    email: str | None = Field(None, max_length=255)
     first_name: str | None = Field(None, min_length=1, max_length=100)
     last_name: str | None = Field(None, min_length=1, max_length=100)
     display_name: str | None = Field(None, max_length=100)
     is_active: bool | None = None
     is_verified: bool | None = None
-    is_b2b: bool | None = None
-    company_name: str | None = Field(None, max_length=200)
-    tax_exemption_certificate_no: str | None = Field(None, max_length=200)
 
 
 class AdminBulkUserAction(BaseModel):
@@ -262,17 +252,8 @@ class ApplicationPasswordAdminResponse(BaseModel):
     created_at: datetime | None = None
 
 
-class PasswordResetIssuedResponse(BaseModel):
-    """Whether an admin-initiated password reset actually issued a link.
-
-    ``sent`` is a real answer rather than a courtesy. An OTP-only account has no
-    password to reset and no address to send to, and a response that said "done"
-    either way would leave the operator watching an inbox for a message that was
-    never going to be written.
-    """
-
-    sent: bool
-    detail: str
+# PasswordResetIssuedResponse was removed on 2026-10-07 with the email-based
+# admin password-reset route.
 
 
 class UserDeleteResultResponse(BaseModel):

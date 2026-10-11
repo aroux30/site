@@ -24,7 +24,15 @@ const PAGE_SIZE = 12;
 async function findTag(slug: string): Promise<BlogTag | null> {
   try {
     const tags = await fetchBlogTags();
-    return tags.find((t) => t.slug === slug) ?? null;
+    // Same encoding-independence rule as the category archive: the segment
+    // may arrive percent-encoded or decoded, so both forms are compared.
+    let decoded = slug;
+    try {
+      decoded = decodeURIComponent(slug);
+    } catch {
+      // Malformed %-sequence: keep the raw value.
+    }
+    return tags.find((t) => t.slug === slug || t.slug === decoded) ?? null;
   } catch {
     // Same reasoning as the category archive: a tag-service outage must
     // surface as an error the user can retry, not as "tag not found".
@@ -44,8 +52,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!tag) return { title: "برچسب یافت نشد" };
 
   return {
-    title: `#${tag.name} | وبلاگ`,
-    description: `مقالات با برچسب ${tag.name}`,
+    // Operator template wins (rendered by the backend); hardcoded last.
+    title: tag.seo_title || `#${tag.name} | وبلاگ`,
+    description: tag.seo_description || `مقالات با برچسب ${tag.name}`,
     alternates: {
       canonical: `/blog/tag/${tag.slug}`,
       types: {

@@ -213,15 +213,10 @@ class SiteHealthService:
         # 5. Table statistics
         checks.append(await SiteHealthService._check_table_stats(db))
 
-        # 6. Email delivery configuration. The most common total-but-silent
-        #    failure a store has: SMTP unset means no notification, no reset
-        #    link and no order confirmation, with nothing red anywhere.
-        checks.append(await SiteHealthService._check_email(db))
-
-        # 7. Disk space on the uploads volume. A store that fills its disk
-        #    stops accepting uploads and, worse, stops writing invoices — and
-        #    the first symptom is a 500 on checkout. WordPress's Site Health
-        #    reports this for the same reason.
+        # 6. Disk space on the uploads volume. A store that fills its disk
+        #    stops accepting uploads — and the first symptom is a 500 on
+        #    checkout. WordPress's Site Health reports this for the same
+        #    reason.
         checks.append(SiteHealthService._check_disk_space())
 
         # 8. Loopback reachability. WordPress's Site Health tests this because
@@ -464,7 +459,18 @@ class SiteHealthService:
                 or "http://localhost:8000"
             ).rstrip("/")
             url = f"{base}/healthz"
-            async with httpx.AsyncClient(timeout=5.0) as client:
+            # trust_env=False: this is the server checking its own door, and a
+            # machine with a proxy configured — HTTP_PROXY/HTTPS_PROXY in the
+            # environment, or on Windows the registry's ProxyEnable/ProxyServer
+            # (which httpx's trust_env path reads via urllib.getproxies();
+            # Python's getproxies_registry ignores the ProxyOverride bypass
+            # list) — otherwise routes the request through that proxy, which
+            # forwards external traffic, not localhost. The measured result was
+            # a ReadTimeout after 5.7 seconds and the report reading "the
+            # server cannot reach its own origin" when it was the proxy, not
+            # the server, that could not. An origin check must not inherit
+            # ambient proxy settings.
+            async with httpx.AsyncClient(timeout=5.0, trust_env=False) as client:
                 resp = await client.get(url)
             if resp.status_code < 400:
                 return {
@@ -531,58 +537,8 @@ class SiteHealthService:
                 "description": "Could not read the uploads volume usage",
             }
 
-    @staticmethod
-    async def _check_email(db: AsyncSession) -> dict[str, Any]:
-        """Can the site send email at all?
-
-        WordPress's Site Health asks this because the failure is silent and
-        total: every notification, reset link and order confirmation depends on
-        SMTP, and without it they all simply stop — no error anywhere the
-        operator looks. The check is configuration-only (is SMTP set, and does
-        it name a host?), not a send: a health check that emails someone every
-        run is its own problem, and the settings page's test button already
-        covers delivery.
-
-        Runtime overrides stored in the database win over the environment, the
-        same resolution the sender uses, so a store configured through the
-        panel is not told it is unconfigured.
-        """
-        try:
-            from app.modules.notifications.application import email_service
-
-            overrides = None
-            try:
-                from app.modules.settings.api.routes import _load_smtp_overrides
-
-                overrides = await _load_smtp_overrides(db)
-            except Exception:  # noqa: BLE001 — env-only config is still a config
-                overrides = None
-
-            config = email_service.get_smtp_config(overrides)
-            if not config.is_configured:
-                return {
-                    "name": "Email Delivery",
-                    "status": "warning",
-                    "value": "SMTP not configured",
-                    "description": (
-                        "ایمیلها ارسال نمیشوند: تنظیمات SMTP در صفحهٔ تنظیمات "
-                        "تکمیل نشده است. تا آن زمان همهٔ اعلانها بیصدا از "
-                        "دست میروند."
-                    ),
-                }
-            return {
-                "name": "Email Delivery",
-                "status": "good",
-                "value": f"SMTP configured ({config.host})",
-                "description": "Email sending is configured",
-            }
-        except Exception as exc:
-            return {
-                "name": "Email Delivery",
-                "status": "warning",
-                "value": str(exc)[:200],
-                "description": "Could not resolve the email configuration",
-            }
+    # `_check_email` was removed on 2026-10-07 with the rest of the email
+    # feature; there is no SMTP configuration to health-check.
 
     @staticmethod
     async def _check_redis() -> dict[str, Any]:
@@ -951,34 +907,6 @@ class SiteHealthService:
             }
         except Exception as exc:  # noqa: BLE001 — a diagnostic must not raise
             sections["migrations"] = {"error": str(exc)[:200]}
-
-        # ── Scheduled jobs ──────────────────────────────────────────────────
-        # What the beat is configured to fire, not whether it fired. A support
-        # ticket asking "is the reminder job on?" is answered by the schedule;
-        # whether it is *running* is the beat-heartbeat check's job, and the two
-        # answer different questions.
-        try:
-            from app.worker.celery_app import celery_app
-
-            jobs = []
-            for name, entry in (celery_app.conf.beat_schedule or {}).items():
-                sched = entry.get("schedule")
-                jobs.append(
-                    {
-                        "name": name,
-                        "task": entry.get("task"),
-                        # A Schedule object renders as its repr; that is enough
-                        # for "every 30 minutes" and does not require reaching
-                        # into Celery's internals for the human-readable form.
-                        "schedule": str(sched) if sched is not None else None,
-                    }
-                )
-            sections["scheduled_jobs"] = {
-                "count": len(jobs),
-                "jobs": sorted(jobs, key=lambda j: j["name"]),
-            }
-        except Exception as exc:  # noqa: BLE001
-            sections["scheduled_jobs"] = {"error": str(exc)[:200]}
 
         # ── Modules ─────────────────────────────────────────────────────────
         # Registered module count only — the module list itself is internal

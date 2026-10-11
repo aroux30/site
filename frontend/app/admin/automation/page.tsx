@@ -26,6 +26,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useToast } from "@/components/ui/use-toast";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 import {
   ACTION_LABELS,
   ACTION_PARAM_HINTS,
@@ -120,6 +121,7 @@ function ActionParamsEditor({
  */
 export default function AdminAutomationPage() {
   const { toast } = useToast();
+  const confirm = useConfirm();
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -281,7 +283,13 @@ export default function AdminAutomationPage() {
   };
 
   const removeRule = async (rule: AutomationRule) => {
-    if (!confirm(`قاعده «${rule.name}» حذف شود؟`)) return;
+    const ok = await confirm({
+      title: "حذف قاعده",
+      description: `قاعده «${rule.name}» حذف شود؟`,
+      confirmLabel: "حذف",
+      destructive: true,
+    });
+    if (!ok) return;
     setBusyId(rule.id);
     const result = await runMutation(() => automationApi.deleteRule(rule.id), {
       fallbackError: "حذف قاعده ناموفق بود",
@@ -381,9 +389,9 @@ export default function AdminAutomationPage() {
         <div className="flex items-start gap-2 text-xs text-muted-foreground">
           <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
           <p>
-            «اجرای آزمایشی» اکشن‌ها را واقعاً اجرا می‌کند (ایمیل می‌فرستد، اعلان
-            می‌سازد، وب‌هوک را صف می‌کند) — فقط شرط فعال بودن و فاصلهٔ زمانی را
-            نادیده می‌گیرد. روی قاعده‌ای با اکشن واقعی تست نگیرید.
+            «اجرای آزمایشی» اکشن‌ها را واقعاً اجرا می‌کند (اعلان می‌سازد) —
+            فقط شرط فعال بودن و فاصلهٔ زمانی را نادیده
+            می‌گیرد. روی قاعده‌ای با اکشن واقعی تست نگیرید.
           </p>
         </div>
       </Card>

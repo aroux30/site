@@ -1,34 +1,31 @@
 """Reduce an IP address to its network, the way WordPress does.
 
-P0 "حریم خصوصی: نگه‌داشت IP دیدگاه". An IP address on a comment is personal
-data under Article 4(1) and it is stored in full, forever, on a table the whole
-storefront can read. WordPress handles this in ``wp_privacy_anonymize_ip()``:
-during an erasure it keeps the *network* and drops the host — ``/24`` for IPv4,
-``/64`` for IPv6 — rather than blanking the column.
+An IP address in an outbound notice (formerly the admin signup email) is personal data
+under Article 4(1), and the notice reaches an operator's inbox — a wider
+audience than the signup form. The address is masked before it is embedded:
+the *network* is kept and the host is dropped — ``/24`` for IPv4, ``/64`` for
+IPv6 — rather than blanking the value.
 
-Keeping the network is the point, and so is dropping only the host. A flood
-check still groups comments by network, so spam that comes from one subnet keeps
-being caught; but an operator can no longer read which household a particular
-comment came from. Blanket NULL, which is what the erasure did before, throws
-away the column for everyone and loses the anti-abuse signal with it.
+Keeping the network is the point, and so is dropping only the host. An
+operator can still tell whether several signups came from one place, but can
+no longer read which household a particular signup came from.
 
 The IPv6 half is not optional. ``2001:db8:85a3::8a2e:370:7334`` identifies one
 device; its ``/64`` is the address block an ISP hands to one customer, and under
 the same argument that protects a household it protects that customer too. A
 store that anonymizes ``203.0.113.47`` to ``203.0.113.0`` and leaves a v6 address
-intact has anonymized only the easier half of its commenters.
+intact has anonymized only the easier half of its users.
 
 Portability note: ``inet_pton``/``inet_ntop`` exist on every platform this
 project runs, so the ``/64`` mask is a real subnet computation and not a string
 truncation. The fallback returns the unspecified address rather than the original,
-which is the conservative direction: a comment whose address cannot be masked
-loses the address, it never keeps it.
+which is the conservative direction: an address that cannot be masked is lost,
+it is never kept.
 """
 
 from __future__ import annotations
 
 import ipaddress
-import socket
 
 #: Returned for an address that cannot be parsed, rather than the input. WordPress
 #: does the same for its two malformed cases and returns ``0.0.0.0``/``::``.
@@ -128,33 +125,3 @@ def _strip_port(candidate: str) -> str:
         candidate = candidate[:percent]
 
     return candidate
-
-
-def ip_is_masked(ip_addr: str | None) -> bool:
-    """Whether ``ip_addr`` has already been reduced to a network.
-
-    Used by the retention sweep so it can tell an address it still has to mask
-    from one it has already handled, instead of rewriting the same value every
-    day — which is what made the original purge re-select its own work.
-    """
-    if not ip_addr:
-        return True
-    try:
-        parsed = ipaddress.ip_address(_strip_port(ip_addr.strip()))
-    except ValueError:
-        # Unparseable is already terminal: anonymize_ip turns it into the
-        # unspecified address, so there is nothing left to mask.
-        return True
-    if isinstance(parsed, ipaddress.IPv6Address) and parsed.ipv4_mapped is not None:
-        parsed = parsed.ipv4_mapped
-    prefix = V4_PREFIX_LEN if parsed.version == 4 else V6_PREFIX_LEN
-    return parsed == ipaddress.ip_network(f"{parsed}/{prefix}", strict=False).network_address
-
-
-def has_ipv6_socket_support() -> bool:  # pragma: no cover - a smoke check, not a gate
-    """Whether the stdlib can parse an IPv6 address at all."""
-    try:
-        socket.inet_pton(socket.AF_INET6, "::1")
-    except (AttributeError, OSError):  # pragma: no cover
-        return False
-    return True

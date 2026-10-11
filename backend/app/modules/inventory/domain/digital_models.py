@@ -139,7 +139,7 @@ class CategoryCustomField(BaseModel):
     """Dynamic per-category order fields (Karta ``categoryFields``).
 
     Lets a category require extra buyer input at checkout, e.g.
-    Player ID, server name, account region, activation email.
+    Player ID, server name, account region, activation note.
     Rendered dynamically in the order form and stored with the order.
     """
 

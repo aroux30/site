@@ -25,10 +25,10 @@ customer-facing schedule needs no client-side date library.
 Provider capability
 -------------------
 A plan can only be created for a provider that advertises
-``supports_installments``. No public Zarinpal v4 / IDPay v1.1 endpoint creates
-an installment plan (see the capability notes in the provider adapters), so in
-production only gateways whose merchant contract provides the API will report
-True; the mock provider implements it so the flow is testable end to end.
+``supports_installments``. No public Zarinpal v4 endpoint creates an
+installment plan (see the capability notes in the provider adapters), so only
+gateways whose merchant contract provides the API will report True; no wired
+provider does today, and the flow stays dormant until one is integrated.
 """
 
 from __future__ import annotations
@@ -48,7 +48,7 @@ from app.core.exceptions.handlers import (
     PaymentError,
     ValidationError,
 )
-from app.modules.orders.application.invoice_service import gregorian_to_jalali
+from app.core.jalali import gregorian_to_jalali
 from app.modules.payments.domain.installment_models import (
     InstallmentPlan,
     InstallmentPlanStatus,
@@ -293,7 +293,7 @@ async def create_plan(
     order = await db.get(Order, order_id, with_for_update=True)
     if order is None or order.user_id != user_id:
         raise NotFoundError(resource="Order")
-    if order.status != OrderStatus.PENDING:
+    if order.status not in (OrderStatus.WAITING_PAYMENT_GATEWAY, OrderStatus.WAITING_PAYMENT_CARD):
         raise ConflictError(
             detail=f"Order {order_id} is not payable in status '{order.status.value}'",
             error_code="ORDER_NOT_PAYABLE",
@@ -609,7 +609,7 @@ async def create_installment_payment(
     order = await db.get(Order, plan.order_id, with_for_update=True)
     if order is None or order.user_id != user_id:
         raise NotFoundError(resource="Order")
-    if order.status != OrderStatus.PENDING:
+    if order.status not in (OrderStatus.WAITING_PAYMENT_GATEWAY, OrderStatus.WAITING_PAYMENT_CARD):
         raise ConflictError(
             detail=f"Order {order.id} is not payable in status '{order.status.value}'",
             error_code="ORDER_NOT_PAYABLE",

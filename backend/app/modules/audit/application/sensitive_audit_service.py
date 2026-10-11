@@ -12,7 +12,7 @@ from typing import TYPE_CHECKING, Any
 
 import structlog
 
-from app.modules.audit.application.audit_service import _jsonify
+from app.modules.audit.application.audit_service import _ambient_request_id, _jsonify
 from app.modules.audit.domain.models import AuditLog
 
 if TYPE_CHECKING:
@@ -45,7 +45,7 @@ async def log_sensitive_access(
         resource_id=safe_resource_id,
         ip_address=ip_address,
         user_agent=user_agent,
-        request_id=request_id,
+        request_id=request_id or _ambient_request_id(),
         extra_data=_jsonify(extra_metadata),
     )
     db.add(entry)

@@ -277,7 +277,10 @@ async def get_author_archive(
     description=(
         "Retrieve full details for a published blog post and increment its view count. "
         "Password-protected posts return metadata with ``content_locked=true`` and an "
-        "empty body until the correct ``password`` is supplied."
+        "empty body until the correct ``password`` is supplied. Pass "
+        "``track_view=false`` for metadata-only reads: the detail page renders "
+        "`generateMetadata` and the page body as separate fetches, and counting both "
+        "tripled every view."
     ),
 )
 async def get_post_by_slug(
@@ -287,12 +290,19 @@ async def get_post_by_slug(
         max_length=255,
         description="Access password for a password-protected post",
     ),
+    track_view: bool = Query(
+        True,
+        description=(
+            "Count this read as a view. Metadata/prerender fetches pass false so "
+            "one page render counts once, not once per fetch."
+        ),
+    ),
     db: AsyncSession = Depends(get_db),
 ) -> BlogPostDetailResponse:
     svc = BlogService(db)
     return await svc.get_post_by_slug(
         slug=slug,
-        increment_views=True,
+        increment_views=track_view,
         only_published=True,
         access_password=password,
     )
@@ -440,6 +450,15 @@ async def _feed_settings(db: AsyncSession) -> dict[str, Any]:
         # excerpts always published full bodies.
         "use_excerpt": (
             await SiteOptionsService.get(db, "rss_use_excerpt", "0") or "0"
+        )
+        in {"1", "true", "yes", "on"},
+        # RSS extras (Rank Math parity): the operator's before/after text and
+        # the featured-image toggle. Unknown options are None/absent → the
+        # generator's defaults (no text, image on) apply.
+        "before_content": await SiteOptionsService.get(db, "rss_before_content") or "",
+        "after_content": await SiteOptionsService.get(db, "rss_after_content") or "",
+        "featured_image": (
+            await SiteOptionsService.get(db, "rss_featured_image", "1") or "1"
         )
         in {"1", "true", "yes", "on"},
     }
@@ -1125,7 +1144,7 @@ async def admin_list_comments(
     ),
     search: str | None = Query(
         None,
-        description="Search the body, author name, email or website",
+        description="Search the body, author name or website",
     ),
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
@@ -2151,106 +2170,6 @@ async def admin_delete_term_meta(
     from app.modules.blog.application.meta_service import TermMetaService
 
     await TermMetaService.delete(db, term_type, term_id, meta_key)
-
-
-@router.get(
-    "/posts/{slug}/alternates",
-    summary="Locale alternates for a post (hreflang source)",
-)
-async def post_alternates(
-    slug: str,
-    db: AsyncSession = Depends(get_db),
-) -> dict[str, Any]:
-    """The post's own locale plus every translation in its group.
-
-    Hrefs are built from the operator's permalink structure, so an alternate
-    points at the path that actually serves that translation rather than at a
-    guessed /blog/<slug>.
-    """
-    from datetime import UTC, datetime
-
-    from sqlalchemy import select
-    from sqlalchemy.orm import selectinload
-
-    from app.core.exceptions.handlers import NotFoundError
-    from app.modules.blog.domain.models import BlogPost
-    from app.modules.settings.application.site_options_service import SiteOptionsService
-    from app.shared.permalinks import PermalinkParts, build_post_path, is_default_structure
-
-    # ``category`` is eager-loaded: ``_path`` touches ``row.category.slug`` and
-    # the relationship is lazy="select", so without this a custom permalink
-    # structure raised MissingGreenlet on every post whose category was not
-    # already in the identity map.
-    post = (await db.execute(
-        select(BlogPost)
-        .options(selectinload(BlogPost.category))
-        .where(BlogPost.slug == slug, BlogPost.deleted_at.is_(None))
-    )).scalar_one_or_none()
-    if post is None:
-        raise NotFoundError("BlogPost", f"نوشته با اسلاگ {slug} یافت نشد.")
-
-    structure = await SiteOptionsService.get(db, "permalink_structure")
-
-    # ``BlogPost`` has no ``author`` relationship — only ``author_id`` — so the
-    # old ``row.author.author_slug`` raised AttributeError. That is not an
-    # AppException, so it reached the generic handler, which calls
-    # RecoveryMode.pause(): every article page 500'd and the whole store
-    # served 503 for 60 minutes whenever an operator picked one of the four
-    # non-default permalink presets the settings screen offers. Resolve the
-    # slug from the users row the same way BlogService.get_author_slug does.
-    author_slugs: dict[uuid.UUID, str] = {}
-    author_ids = {p.author_id for p in [post] if p.author_id}
-    if post.translation_group is not None:
-        author_ids |= {
-            s.author_id
-            for s in (await db.execute(
-                select(BlogPost.author_id).where(
-                    BlogPost.translation_group == post.translation_group,
-                    BlogPost.id != post.id,
-                    BlogPost.status == "published",
-                    BlogPost.deleted_at.is_(None),
-                )
-            )).scalars().all()
-            if s is not None
-        }
-    if author_ids:
-        from app.modules.users.domain.models import User
-
-        rows = await db.execute(select(User.id, User.author_slug).where(User.id.in_(author_ids)))
-        author_slugs = {uid: slug for uid, slug in rows.all() if slug}
-
-    def _path(row: Any) -> str:
-        if not structure or is_default_structure(structure):
-            return f"/blog/{row.slug}"
-        published = row.published_at or datetime.now(UTC)
-        return build_post_path(structure, PermalinkParts(
-            postname=row.slug,
-            post_id=str(row.id),
-            year=f"{published.year:04d}",
-            monthnum=f"{published.month:02d}",
-            day=f"{published.day:02d}",
-            category=row.category.slug if row.category else "",
-            author=author_slugs.get(row.author_id, "") if row.author_id else "",
-        ))
-
-    alternates: list[dict[str, str]] = [
-        {"locale": post.locale, "slug": post.slug, "path": _path(post)}
-    ]
-    if post.translation_group is not None:
-        siblings = (await db.execute(
-            select(BlogPost)
-            .options(selectinload(BlogPost.category))
-            .where(
-                BlogPost.translation_group == post.translation_group,
-                BlogPost.id != post.id,
-                BlogPost.status == "published",
-                BlogPost.deleted_at.is_(None),
-            )
-        )).scalars().all()
-        alternates += [
-            {"locale": s.locale, "slug": s.slug, "path": _path(s)} for s in siblings
-        ]
-    return {"self": {"locale": post.locale, "slug": post.slug}, "alternates": alternates}
 
 
 @router.get("/posts/{slug}/neighbors", summary="Adjacent published posts (public)")

@@ -6,42 +6,31 @@ import uuid
 from datetime import datetime
 from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
-from fastapi.responses import HTMLResponse
+from fastapi import APIRouter, Depends, Query, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database.session import get_db
 from app.core.security.dependencies import (
     RequirePermissions,
-    _extract_token,
     get_current_user_id,
 )
 from app.core.security.rate_limiter import limiter
-from app.modules.orders.api.reseller_routes import router as reseller_router
-from app.modules.orders.application import order_receipt_renderer, order_service
+from app.modules.orders.application import order_service
 from app.modules.orders.schemas.order import (
+    AdminOrderDetailResponse,
+    AdminOrderStatsResponse,
     AdminOrderUpdateRequest,
-    AdminReturnActionRequest,
-    AdminReturnListResponse,
     OrderBulkStatusRequest,
     OrderBulkStatusResult,
     OrderCancelRequest,
     OrderFilterParams,
     OrderListResponse,
     OrderResponse,
-    OrderReturnResponse,
     OrderTimelineResponse,
     PaginationParams,
-    ReturnCreateRequest,
 )
 
 router = APIRouter()
-
-
-async def _resolve_invoice_claims(
-    payload: dict[str, Any] = Depends(_extract_token),
-) -> dict[str, Any]:
-    return payload
 
 
 # ══════════════════════════════════════════════════════════════════════════
@@ -91,41 +80,6 @@ async def get_order(
     return await order_service.get_order(db, user_id, order_id)
 
 
-@router.get(
-    "/{order_id}/invoice",
-    response_class=HTMLResponse,
-    summary="Get official Iranian tax invoice (فاکتور رسمی الکترونیکی)",
-)
-async def get_order_invoice(
-    order_id: str,
-    db: AsyncSession = Depends(get_db),
-    claims: dict[str, Any] = Depends(_resolve_invoice_claims),
-) -> HTMLResponse:
-    """Generate and return official Iranian tax invoice in printable HTML format.
-
-    Requires order ownership or administrative permission (orders:read, orders:write, admin).
-    """
-    try:
-        user_id = uuid.UUID(claims["sub"])
-    except (KeyError, ValueError) as exc:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token payload missing or invalid 'sub' claim",
-        ) from exc
-
-    permissions = set(claims.get("permissions", []))
-    roles = set(claims.get("roles", []))
-
-    html = await order_receipt_renderer.generate_invoice_html_for_order(
-        db=db,
-        order_id_or_number=order_id,
-        requesting_user_id=user_id,
-        user_permissions=permissions,
-        user_roles=roles,
-    )
-    return HTMLResponse(content=html, media_type="text/html; charset=utf-8")
-
-
 @router.post(
     "/{order_id}/cancel",
     response_model=OrderResponse,
@@ -153,36 +107,6 @@ async def get_order_timeline(
     user_id: uuid.UUID = Depends(get_current_user_id),
 ) -> OrderTimelineResponse:
     return await order_service.get_order_timeline(db, order_id, user_id=user_id)
-
-
-@router.get(
-    "/{order_id}/returns",
-    response_model=list[OrderReturnResponse],
-    summary="List customer return requests (RMA) for an order",
-)
-async def list_order_returns(
-    order_id: uuid.UUID,
-    db: AsyncSession = Depends(get_db),
-    user_id: uuid.UUID = Depends(get_current_user_id),
-) -> list[OrderReturnResponse]:
-    return await order_service.get_order_returns(db, user_id, order_id)
-
-
-@router.post(
-    "/{order_id}/returns",
-    response_model=OrderReturnResponse,
-    status_code=status.HTTP_201_CREATED,
-    summary="Request order return (RMA) within statutory 7-day window",
-)
-@limiter.limit("10/minute")
-async def request_order_return(
-    request: Request,
-    order_id: uuid.UUID,
-    body: ReturnCreateRequest,
-    db: AsyncSession = Depends(get_db),
-    user_id: uuid.UUID = Depends(get_current_user_id),
-) -> OrderReturnResponse:
-    return await order_service.request_order_return(db, user_id, order_id, body)
 
 
 # ── Price snapshot (customer) ─────────────────────────────────────────────
@@ -242,6 +166,10 @@ async def get_order_price_snapshot(
 async def admin_list_orders(
     db: AsyncSession = Depends(get_db),
     status: str | None = Query(None),
+    statuses: str | None = Query(
+        None,
+        description="Comma-separated status filter (one of the board's grouped lanes)",
+    ),
     from_date: datetime | None = Query(None),
     to_date: datetime | None = Query(None),
     min_total: int | None = Query(None),
@@ -252,6 +180,7 @@ async def admin_list_orders(
 ) -> OrderListResponse:
     filters = OrderFilterParams(
         status=status,
+        statuses=[s for s in statuses.split(",") if s] if statuses else None,
         from_date=from_date,
         to_date=to_date,
         min_total=min_total,
@@ -260,6 +189,37 @@ async def admin_list_orders(
     )
     pagination = PaginationParams(page=page, page_size=page_size)
     return await order_service.admin_get_orders(db, filters, pagination)
+
+
+@router.get(
+    "/admin/orders/stats",
+    response_model=AdminOrderStatsResponse,
+    summary="Admin — per-status order counts and sums",
+    dependencies=[Depends(RequirePermissions("orders:read"))],
+)
+async def admin_order_stats(
+    db: AsyncSession = Depends(get_db),
+) -> AdminOrderStatsResponse:
+    """Whole-table per-status aggregates for the admin board headers.
+
+    Registered BEFORE ``/admin/orders/{order_id}`` on purpose: with the
+    detail route first, ``stats`` would be captured as an order id and the
+    request would 422 instead of reaching this handler.
+    """
+    return await order_service.admin_get_order_stats(db)
+
+
+@router.get(
+    "/admin/orders/{order_id}",
+    response_model=AdminOrderDetailResponse,
+    summary="Admin — full order detail (unmasked address, payments)",
+    dependencies=[Depends(RequirePermissions("orders:read"))],
+)
+async def admin_get_order(
+    order_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+) -> AdminOrderDetailResponse:
+    return await order_service.admin_get_order_detail(db, order_id)
 
 
 @router.post(
@@ -316,58 +276,3 @@ async def admin_update_order_status(
         actor_id=actor_id,
         reason=body.notes,
     )
-
-
-# ── Admin RMA processing (TASK BE-20) ────────────────────────────────────
-
-
-@router.get(
-    "/admin/returns",
-    response_model=AdminReturnListResponse,
-    summary="Admin — list customer return requests (RMA)",
-    dependencies=[Depends(RequirePermissions("orders:read"))],
-)
-async def admin_list_returns(
-    db: AsyncSession = Depends(get_db),
-    status_filter: str | None = Query(None, alias="status"),
-    page: int = Query(1, ge=1),
-    page_size: int = Query(20, ge=1, le=100),
-) -> AdminReturnListResponse:
-    result = await order_service.admin_list_returns(
-        db,
-        status_filter=status_filter,
-        page=page,
-        page_size=page_size,
-    )
-    return AdminReturnListResponse(**result)
-
-
-@router.post(
-    "/admin/returns/{return_id}/transition",
-    response_model=OrderReturnResponse,
-    summary="Admin — apply one RMA state-machine transition",
-    dependencies=[Depends(RequirePermissions("orders:write"))],
-)
-async def admin_transition_return(
-    return_id: uuid.UUID,
-    body: AdminReturnActionRequest,
-    db: AsyncSession = Depends(get_db),
-    actor_id: uuid.UUID = Depends(get_current_user_id),
-) -> OrderReturnResponse:
-    """Move an RMA through its lifecycle: approve → receive → inspect →
-    refund/replaced → close.  Transition rules are enforced by the domain
-    state machine; REFUNDED also restocks passed inspection items.
-    """
-    return await order_service.admin_transition_return(
-        db,
-        return_id=return_id,
-        target=body.target,
-        actor_id=actor_id,
-        notes=body.notes,
-        inspection_outcomes=body.inspection_outcomes,
-        refund_amount=body.refund_amount,
-    )
-
-
-# ── B2B Reseller API sub-router (Karta Phase 4) ────────────────────────────
-router.include_router(reseller_router)

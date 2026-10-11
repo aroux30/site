@@ -1,13 +1,12 @@
-"""Scheduled publishing for custom post type entries.
-
-The other content-entry system has this; this one did not, so an entry dated
-forward through the blog admin's content-types tab stayed a draft forever with
-no signal that anything was pending — `scheduled_publish_at` was a column an
-operator could fill and a site that would never act on.
+"""Scheduled publishing for blog posts.
 
 Fires every minute like the other schedulers, and the work is idempotent:
-`publish_scheduled` clears the schedule column as it goes, so a run that
+`publish_due_scheduled` clears the schedule column as it goes, so a run that
 crashes halfway does not republish on the next tick.
+
+(The custom-post-type scheduler that used to live here was removed on
+2026-10-09 with the rest of the content-type builders — archive:
+`_archived/content-types-removal-2026-10-09/`.)
 """
 
 from __future__ import annotations
@@ -18,28 +17,9 @@ from typing import Any
 import structlog
 
 from app.core.database.session import async_session_factory
-from app.modules.blog.application import custom_post_revision_service
 from app.worker.celery_app import celery_app
 
 logger: structlog.stdlib.BoundLogger = structlog.get_logger(__name__)
-
-
-async def _publish_scheduled_cpt_entries_async() -> dict[str, Any]:
-    async with async_session_factory() as db:
-        return await custom_post_revision_service.publish_scheduled(db)
-
-
-@celery_app.task(
-    name="app.modules.blog.application.tasks.publish_scheduled_cpt_entries",
-    acks_late=True,
-    retry_backoff=True,
-    retry_backoff_max=600,
-    retry_jitter=True,
-    max_retries=5,
-)
-def publish_scheduled_cpt_entries() -> dict[str, Any]:
-    """Move custom post entries whose scheduled time has arrived to published."""
-    return asyncio.run(_publish_scheduled_cpt_entries_async())
 
 
 async def _publish_due_scheduled_posts_async() -> int:

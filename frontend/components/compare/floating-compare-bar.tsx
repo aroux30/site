@@ -12,6 +12,7 @@ import {
   Package,
 } from "lucide-react";
 import { useCompareStore, MAX_COMPARE_PRODUCTS } from "@/stores/compare-store";
+import { useShopFeatures } from "@/hooks/use-shop-features";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toPersianDigits } from "@/lib/utils";
@@ -21,13 +22,22 @@ export function FloatingCompareBar() {
   const { products, removeProduct, clearCompare } = useCompareStore();
   const [mounted, setMounted] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
+  const shopFeatures = useShopFeatures();
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  // Do not render before mount, or if no products, or on the compare page itself
-  if (!mounted || products.length === 0 || pathname === "/compare") {
+  // Do not render before mount, if the compare module is switched off, if no
+  // products are queued, or on the compare page itself. Compare is client-only
+  // (localStorage), so nothing else would stop a bar pointing at a page that is
+  // no longer meant to exist.
+  if (
+    !mounted ||
+    !shopFeatures.compare ||
+    products.length === 0 ||
+    pathname === "/compare"
+  ) {
     return null;
   }
 

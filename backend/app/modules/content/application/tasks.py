@@ -20,12 +20,9 @@ logger: structlog.stdlib.BoundLogger = structlog.get_logger(__name__)
 
 
 async def _process_scheduled_pages_async() -> dict[str, Any]:
-    from app.modules.content.application import entry_revision_service
-
     async with async_session_factory() as db:
         try:
             counts = await cms_page_service.process_scheduled_pages(db)
-            entry_counts = await entry_revision_service.process_scheduled_entries(db)
             await db.commit()
         except Exception:
             await db.rollback()
@@ -34,8 +31,6 @@ async def _process_scheduled_pages_async() -> dict[str, Any]:
     return {
         "status": "success",
         **counts,
-        "entries_published": entry_counts["published"],
-        "entries_unpublished": entry_counts["unpublished"],
     }
 
 

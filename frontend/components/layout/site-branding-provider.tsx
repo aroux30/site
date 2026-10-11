@@ -18,10 +18,9 @@ import { apiClient } from "@/lib/api/client";
 
 export interface SiteBranding {
   siteName: string;
-  contactEmail: string;
 }
 
-const FALLBACK: SiteBranding = { siteName: "", contactEmail: "" };
+const FALLBACK: SiteBranding = { siteName: "" };
 
 const SiteBrandingContext = createContext<SiteBranding>(FALLBACK);
 
@@ -31,12 +30,11 @@ export function SiteBrandingProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let cancelled = false;
     apiClient
-      .get<{ store_name?: string; contact_email?: string }>("/settings/public/branding")
+      .get<{ store_name?: string }>("/settings/public/branding")
       .then((res) => {
         if (cancelled) return;
         setBranding({
           siteName: (res.data?.store_name ?? "").trim(),
-          contactEmail: (res.data?.contact_email ?? "").trim(),
         });
       })
       .catch(() => undefined);
@@ -56,7 +54,6 @@ export function useSiteBranding(): SiteBranding {
   const branding = useContext(SiteBrandingContext);
   return {
     siteName: branding.siteName || "فروشگاه آنلاین",
-    contactEmail: branding.contactEmail,
   };
 }
 

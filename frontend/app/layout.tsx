@@ -3,8 +3,7 @@ import localFont from "next/font/local";
 import { Providers } from "./providers";
 import "./globals.css";
 import { apiInternalUrl } from "@/lib/api/server-base";
-import { ThemePreviewBridge } from "@/components/shared/theme-preview-bridge";
-import { fetchThemeTokens, themeStyleVars } from "@/lib/theme";
+import { siteOrigin } from "@/lib/site-url";
 
 const vazirmatn = localFont({
   src: [
@@ -77,9 +76,10 @@ export async function generateMetadata(): Promise<Metadata> {
     authors: [{ name }],
     creator: name,
     manifest: "/manifest.json",
-    metadataBase: new URL(
-      process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000",
-    ),
+    // siteOrigin() reads NEXT_PUBLIC_SITE_URL → SITE_URL → localhost — the
+    // one resolver the sitemaps, JSON-LD and this base URL must share, or a
+    // deployment that sets only SITE_URL emits localhost canonicals.
+    metadataBase: new URL(siteOrigin()),
     // Feed autodiscovery: readers look for <link rel="alternate"> before a
     // visitor ever finds the RSS link by hand. Without these the feeds exist
     // and nobody can subscribe to them.
@@ -112,6 +112,19 @@ export async function generateMetadata(): Promise<Metadata> {
       type: "website",
       locale: "fa_IR",
       siteName: name,
+      // The default share image for any page that does not set its own
+      // (the product/blog lists had none — a share of /products rendered
+      // with no card image). A page-level openGraph.images replaces this
+      // (the article's cover wins, per Next.js's replace-not-merge rule).
+      images: [
+        {
+          url: "/logo.svg",
+          width: 1200,
+          height: 630,
+          alt: name,
+          type: "image/svg+xml",
+        },
+      ],
     },
     robots: {
       index: true,
@@ -139,7 +152,8 @@ export const viewport: Viewport = {
 };
 
 function buildSiteJsonLd(siteName: string) {
-  const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+  // Same resolver as metadataBase and the sitemaps (lib/site-url.ts).
+  const SITE_URL = siteOrigin();
   return [
     {
       "@context": "https://schema.org",
@@ -171,28 +185,19 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  // Admin-editable theme tokens (CMS single type) applied as CSS vars — this
-  // is what makes the ThemeEditor's colors actually reach the storefront.
-  const themeTokens = await fetchThemeTokens();
-  const styleVars = themeStyleVars(themeTokens) as React.CSSProperties;
   // The JSON-LD block lives in the body, outside generateMetadata, so it needs
   // the name for itself. fetchBranding is revalidate-cached, so this is a cache
   // read rather than a second request.
   const storeNameInPage = (await fetchBranding()).store_name || "فروشگاه آنلاین";
 
   return (
-    <html lang="fa" dir="rtl" className={vazirmatn.variable} style={styleVars}>
+    <html lang="fa" dir="rtl" className={vazirmatn.variable}>
       <body className="min-h-screen bg-background font-sans antialiased">
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(buildSiteJsonLd(storeNameInPage)) }}
         />
         <Providers>{children}</Providers>
-        {/* Listens for the admin theme editor's postMessage streams and
-            applies them as CSS variables — what makes the preview iframe
-            update per keystroke instead of per reload. A no-op in normal
-            browsing (no parent-window messages arrive). */}
-        <ThemePreviewBridge />
       </body>
     </html>
   );

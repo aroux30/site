@@ -153,7 +153,8 @@ class ContactMessage(BaseModel):
     )
 
     name: Mapped[str] = mapped_column(String(200), nullable=False)
-    email: Mapped[str] = mapped_column(String(255), nullable=False)
+    # `email` was dropped on 2026-10-07 with the rest of the email feature
+    # (migration `rmemail1`); the contact form collects a name and a message.
     subject: Mapped[str] = mapped_column(String(500), nullable=False)
     message: Mapped[str] = mapped_column(Text, nullable=False)
     is_read: Mapped[bool] = mapped_column(
@@ -161,4 +162,4 @@ class ContactMessage(BaseModel):
     )
 
     def __repr__(self) -> str:
-        return f"<ContactMessage(id={self.id}, email={self.email})>"
+        return f"<ContactMessage(id={self.id}, name={self.name})>"

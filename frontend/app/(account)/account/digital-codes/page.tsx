@@ -26,13 +26,15 @@ export default function MyDigitalCodesPage() {
     setLoading(true);
     try {
       // P1.1: the backend exposes the customer's own orders at GET /orders
-      // (there is no /orders/my route). Digital codes exist on CONFIRMED
-      // (just paid) and COMPLETED orders alike, so both are fetched.
+      // (there is no /orders/my route). Digital codes exist on orders that
+      // have been PAID and accepted — pending (just paid), processing
+      // (being fulfilled) and completed alike — so those are fetched. The
+      // two payment-waiting buckets are excluded: nothing has been issued yet.
       const res = await apiClient.get("/orders", {
         params: { page_size: 50 },
       });
       const orderList: OrderSummary[] = (res.data.items || res.data || []).filter(
-        (o: OrderSummary) => ["confirmed", "completed", "delivered"].includes(o.status)
+        (o: OrderSummary) => ["pending", "processing", "completed"].includes(o.status)
       );
       setOrders(orderList.slice(0, 20));
 

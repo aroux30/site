@@ -5,7 +5,6 @@ import { WidgetArea, useHasWidgets } from "@/components/layout/widget-area";
 import Link from "next/link";
 import {
   Phone,
-  Mail,
   MapPin,
   Clock,
   Shield,
@@ -18,7 +17,6 @@ import {
 } from "lucide-react";
 import { contentApi, type MenuItem } from "@/lib/api/content";
 import { useSiteBranding } from "@/components/layout/site-branding-provider";
-import { NewsletterForm } from "@/components/shared/newsletter-form";
 
 // Fallback columns until the CMS menu tree loads; editors manage both columns
 // from /admin/cms without a deploy.
@@ -27,16 +25,11 @@ const fallbackQuickLinks = [
   { href: "/products", label: "محصولات" },
   { href: "/products?sale=true", label: "تخفیف‌ها" },
   { href: "/blog", label: "بلاگ" },
-  // The wholesale form is the storefront's business-customer entry point;
-  // without it the CRM pipeline had an intake nobody could reach.
-  { href: "/wholesale", label: "خرید عمده" },
 ];
 
 const fallbackCustomerServiceLinks = [
   { href: "/faq", label: "سوالات متداول" },
   { href: "/terms", label: "شرایط استفاده" },
-  { href: "/privacy", label: "حریم خصوصی" },
-  { href: "/returns", label: "رویه بازگشت کالا" },
 ];
 
 const trustBadges = [
@@ -140,9 +133,13 @@ export function Footer() {
                   <badge.icon className="h-6 w-6" />
                 </div>
                 <div>
-                  <h4 className="text-sm font-semibold text-foreground">
+                  {/* A badge label, not a section heading: as an <h4> it was
+                      the page's first heading after <h1>, which broke the
+                      sequential order (axe "heading-order", live Lighthouse
+                      audit 2026-10-10). A div keeps the exact same look. */}
+                  <div className="text-sm font-semibold text-foreground">
                     {badge.title}
-                  </h4>
+                  </div>
                   <p className="mt-0.5 text-xs text-muted-foreground">
                     {badge.description}
                   </p>
@@ -167,7 +164,7 @@ export function Footer() {
               </span>
             </Link>
             <p className="mb-5 text-sm leading-7 text-muted-foreground">
-              فروشگاه اینترنتی با تنوع بالای محصولات، ارسال سریع و رایگان،
+              فروشگاه اینترنتی با تنوع بالای محصولات، ارسال سریع،
               ضمانت اصالت کالا و پشتیبانی ۲۴ ساعته. خریدی آسان، مطمئن و لذت‌بخش
               را با ما تجربه کنید.
             </p>
@@ -191,9 +188,9 @@ export function Footer() {
 
           {/* Column 2: Quick Links */}
           <div>
-            <h3 className="mb-4 text-sm font-bold text-foreground">
+            <h2 className="mb-4 text-sm font-bold text-foreground">
               دسترسی سریع
-            </h3>
+            </h2>
             <ul className="space-y-3">
               {quickLinks.map((link) => (
                 <li key={link.href}>
@@ -210,9 +207,9 @@ export function Footer() {
 
           {/* Column 3: Customer Service */}
           <div>
-            <h3 className="mb-4 text-sm font-bold text-foreground">
+            <h2 className="mb-4 text-sm font-bold text-foreground">
               خدمات مشتریان
-            </h3>
+            </h2>
             <ul className="space-y-3">
               {customerServiceLinks.map((link) => (
                 <li key={link.href}>
@@ -229,9 +226,9 @@ export function Footer() {
 
           {/* Column 4: Contact */}
           <div>
-            <h3 className="mb-4 text-sm font-bold text-foreground">
+            <h2 className="mb-4 text-sm font-bold text-foreground">
               تماس با ما
-            </h3>
+            </h2>
             <ul className="space-y-4">
               <li>
                 <div className="flex items-start gap-2.5">
@@ -243,20 +240,6 @@ export function Footer() {
                       className="text-sm font-medium text-foreground"
                     >
                       ۰۲۱-۱۲۳۴۵۶۷۸
-                    </span>
-                  </div>
-                </div>
-              </li>
-              <li>
-                <div className="flex items-start gap-2.5">
-                  <Mail className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                  <div>
-                    <p className="text-xs text-muted-foreground">ایمیل</p>
-                    <span
-                      dir="ltr"
-                      className="text-sm font-medium text-foreground"
-                    >
-                      support@example.com
                     </span>
                   </div>
                 </div>
@@ -288,13 +271,6 @@ export function Footer() {
         </div>
       </div>
 
-      {/* ===== Newsletter signup (double opt-in) ===== */}
-      <div className="border-t border-border">
-        <div className="container mx-auto max-w-md px-4 py-8">
-          <NewsletterForm />
-        </div>
-      </div>
-
       {/* ===== Widget strip (admin-managed) =====
           Renders nothing unless an editor has added widgets in /admin/widgets,
           so an unconfigured footer is byte-identical to before widgets existed. */}
@@ -309,13 +285,6 @@ export function Footer() {
               است.
             </p>
             <div className="flex items-center gap-4">
-              <Link
-                href="/privacy"
-                className="text-xs text-muted-foreground transition-colors hover:text-foreground"
-              >
-                حریم خصوصی
-              </Link>
-              <span className="text-xs text-border">|</span>
               <Link
                 href="/terms"
                 className="text-xs text-muted-foreground transition-colors hover:text-foreground"

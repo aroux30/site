@@ -10,10 +10,9 @@ from typing import Any, cast
 
 import structlog
 
-# All 34 business domain modules + core infrastructure module (35 total)
+# All 33 business domain modules + core infrastructure module (34 total)
 MODULE_NAMES: tuple[str, ...] = (
     "analytics",
-    "approvals",
     "audit",
     "auth",
     "automation",
@@ -44,7 +43,6 @@ MODULE_NAMES: tuple[str, ...] = (
     "shipping",
     "support",
     "users",
-    "vendors",
     "wallet",
     "wishlist",
 )
@@ -72,7 +70,6 @@ def get_module_logger(module_name: str, **initial_values: Any) -> structlog.stdl
 
 # Pre-bound static logger singletons for rapid zero-cost import across the codebase
 analytics_logger: structlog.stdlib.BoundLogger = get_module_logger("analytics")
-approvals_logger: structlog.stdlib.BoundLogger = get_module_logger("approvals")
 audit_logger: structlog.stdlib.BoundLogger = get_module_logger("audit")
 auth_logger: structlog.stdlib.BoundLogger = get_module_logger("auth")
 automation_logger: structlog.stdlib.BoundLogger = get_module_logger("automation")
@@ -103,7 +100,6 @@ settings_logger: structlog.stdlib.BoundLogger = get_module_logger("settings")
 shipping_logger: structlog.stdlib.BoundLogger = get_module_logger("shipping")
 support_logger: structlog.stdlib.BoundLogger = get_module_logger("support")
 users_logger: structlog.stdlib.BoundLogger = get_module_logger("users")
-vendors_logger: structlog.stdlib.BoundLogger = get_module_logger("vendors")
 wallet_logger: structlog.stdlib.BoundLogger = get_module_logger("wallet")
 wishlist_logger: structlog.stdlib.BoundLogger = get_module_logger("wishlist")
 shared_logger: structlog.stdlib.BoundLogger = get_module_logger("shared")

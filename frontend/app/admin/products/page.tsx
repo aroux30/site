@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { Suspense, useState, useEffect, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
 import {
   Package,
@@ -38,6 +38,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { useToast } from "@/components/ui/use-toast";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 import { formatPrice, toPersianDigits } from "@/lib/utils";
 import apiClient from "@/lib/api/client";
 import { useAdminQuery } from "@/lib/api/admin-query";
@@ -92,7 +93,26 @@ const CATEGORIES = [
 /* ------------------------------------------------------------------ */
 
 export default function AdminProductsPage() {
+  // useSearchParams (inside) opts the subtree out of static prerendering; the
+  // Suspense boundary is what keeps the build from failing on it. Same pattern
+  // as admin/media.
+  return (
+    <Suspense
+      fallback={
+        <div className="animate-pulse space-y-4 px-6 py-8">
+          <div className="h-8 w-56 rounded-lg bg-muted/70" />
+          <div className="h-64 rounded-2xl border border-border bg-card" />
+        </div>
+      }
+    >
+      <AdminProductsPageInner />
+    </Suspense>
+  );
+}
+
+function AdminProductsPageInner() {
   const { toast } = useToast();
+  const confirm = useConfirm();
 
   // Starts empty, never seeded from a demo list: a fabricated row is
   // indistinguishable from a real one once it is on screen.
@@ -281,7 +301,13 @@ export default function AdminProductsPage() {
       feature: "انتخاب به‌عنوان ویژه",
       unfeature: "حذف از ویژه‌ها",
     };
-    if (!confirm(`${toPersianDigits(String(selected.size))} محصول — ${labels[action]}؟`)) return;
+    const ok = await confirm({
+      title: "عملیات گروهی محصولات",
+      description: `${toPersianDigits(String(selected.size))} محصول — ${labels[action]}؟`,
+      confirmLabel: "ادامه",
+      destructive: true,
+    });
+    if (!ok) return;
 
     setBulkBusy(true);
     try {

@@ -37,7 +37,7 @@ is lost, no order is wrongly canceled.
 
 **Recovery (in order of preference):**
 
-1. **Wait for retry sources:** the gateway callback URL stays valid; NowPayments
+1. **Wait for retry sources:** the gateway callback URL stays valid; gateway
    webhooks are retried by the provider and deduplicated by the replay table.
 2. **Admin verify:** re-run the server verify for the payment
    (`POST /api/v1/payments/{payment_id}/verify` with the gateway authority, admin
@@ -51,8 +51,7 @@ is lost, no order is wrongly canceled.
 **Detection:** verify response mismatch (`zarinpal_refund_manual_required` /
 underpayment-guard log events). The payment stays PENDING; the order stays PENDING.
 
-**Recovery:** manual review — compare gateway dashboard amount vs. `payments.amount`
-(crypto has a 1% underpayment tolerance; below tolerance the payment fails closed).
+**Recovery:** manual review — compare gateway dashboard amount vs. `payments.amount`.
 Refund at the gateway, then mark the payment FAILED (admin), which frees the customer
 to retry (new payment on the same still-PENDING order).
 

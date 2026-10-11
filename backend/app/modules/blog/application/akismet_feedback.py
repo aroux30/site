@@ -7,7 +7,7 @@ approve/trash is the only ground truth that exists.
 
 The decision arrives through `moderate_comment`, and every path that records one
 funnels here — the admin table, the moderation tab, and the one-click links an
-email carries. That last one matters: WordPress's `pluggable.php` moderation
+comment carries. That last one matters: WordPress's `pluggable.php` moderation
 URLs are exactly where a spammer's comment gets confirmed as spam by a real
 person clicking "Spam", and it is the highest-value single training signal the
 service gets.

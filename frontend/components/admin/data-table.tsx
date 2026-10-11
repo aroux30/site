@@ -206,7 +206,15 @@ export function DataTable<T>({
         )}
 
         <Card className="overflow-hidden">
-          <div className="overflow-x-auto">
+          {/* `relative` is load-bearing, not decoration: the sr-only spans in
+              action columns are position:absolute, and with no positioned
+              ancestor their containing block is the viewport — the scroller's
+              clip does not apply to them, so in RTL they extend the document's
+              scrollable overflow to the left (measured: 574px page scrollWidth
+              at a 390px viewport on the dashboard). As their containing block,
+              the scroller clips them again. The table itself was always
+              contained — it keeps scrolling inside the card unchanged. */}
+          <div className="relative overflow-x-auto">
             <table className="w-full text-right text-sm">
               <thead className="border-b border-border bg-muted/50 text-xs text-muted-foreground">
                 <tr>

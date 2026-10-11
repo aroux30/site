@@ -86,12 +86,10 @@ class Settings(BaseSettings):
     # ── JWT / Auth ────────────────────────────────────────────────────────
     JWT_SECRET_KEY: str = "CHANGE-ME-IN-PRODUCTION-use-openssl-rand-hex-64"
 
-    # ── SSO / OIDC (Google) ───────────────────────────────────────────────
-    # Empty client id/redirect URI means SSO login is disabled; the endpoints
-    # answer SSO_NOT_CONFIGURED instead of failing mid-flow.
-    GOOGLE_OAUTH_CLIENT_ID: str = ""
-    GOOGLE_OAUTH_CLIENT_SECRET: str = ""
-    GOOGLE_OAUTH_REDIRECT_URI: str = ""
+    # ── SSO / OIDC (Google) — removed 2026-10-07 ─────────────────────────
+    # GOOGLE_OAUTH_CLIENT_ID / GOOGLE_OAUTH_CLIENT_SECRET /
+    # GOOGLE_OAUTH_REDIRECT_URI were removed with the rest of the email
+    # feature: the SSO flow matched users by verified email address.
     # ── WebAuthn / passkeys ──────────────────────────────────────────────
     # The Relying Party ID is the registrable domain the credential is bound
     # to; the origin is what the browser reports and what verification checks
@@ -181,52 +179,10 @@ class Settings(BaseSettings):
     SMS_API_KEY: str = ""
     SMS_SENDER_NUMBER: str = ""
 
-    # ── Email (SMTP) Provider ─────────────────────────────────────────────
-    # Email delivery is DISABLED while SMTP_HOST is blank: the notification
-    # service then keeps the previous mock behavior (log-only) and the
-    # capability registry reports the channel as not configured. Port 465
-    # implies implicit SSL, 587 STARTTLS, 25 plain (relays only).
-    SMTP_HOST: str = ""
-    SMTP_PORT: int = 587
-    SMTP_USERNAME: str = ""
-    SMTP_PASSWORD: str = ""
-    # True = STARTTLS after connect; False + port 465 = implicit SSL.
-    SMTP_USE_TLS: bool = True
-    SMTP_FROM_ADDRESS: str = ""
-    SMTP_FROM_NAME: str = "فروشگاه اینترنتی"
-    SMTP_TIMEOUT_SECONDS: int = 15
-
-    # ── Telegram Bot Provider ─────────────────────────────────────────────
-    # Telegram delivery is DISABLED while TELEGRAM_BOT_TOKEN is blank: the
-    # notification service then keeps the previous mock behavior (log-only)
-    # and the capability registry reports the channel as not configured.
-    # Per-user delivery targets live in notification_preferences.telegram_chat_id
-    # (users link their account via the verification-code flow — see
-    # telegram_service.py). The optional username only feeds the admin UI's
-    # deep-link hint (https://t.me/<username>).
-    TELEGRAM_BOT_TOKEN: str = ""
-    TELEGRAM_BOT_USERNAME: str = ""
-    TELEGRAM_API_BASE_URL: str = "https://api.telegram.org"
-    TELEGRAM_TIMEOUT_SECONDS: int = 15
-
-    # ── Web Push (VAPID) Provider ─────────────────────────────────────────
-    # Web push needs the `pywebpush` package, which is NOT installed (see
-    # push_service.py for the documented dependency gap). VAPID keys are
-    # configured here so the subscription endpoints work today and the
-    # provider flips from "not configured" to live the moment the package
-    # and keys are both present. Generate keys with:
-    #   pywebpush gen-vapid (or `npx web-push generate-vapid-keys`)
-    VAPID_PUBLIC_KEY: str = ""
-    VAPID_PRIVATE_KEY: str = ""
-    VAPID_SUBJECT: str = "mailto:support@site.com"
-    PUSH_TIMEOUT_SECONDS: int = 15
-
-    # ── Identity Verification (Karta Zohal: Shahkar / civil registry) ────
-    # Without a real token the KYC endpoints report UNAVAILABLE — trust is
-    # never granted from unverified input (P0.1).
-    IDENTITY_PROVIDER_BASE_URL: str = "https://service.zohal.io/api/v0"
-    IDENTITY_PROVIDER_TOKEN: str = ""
-    IDENTITY_PROVIDER_TIMEOUT_SECONDS: int = 10
+    # The Email (SMTP) settings block was removed on 2026-10-07 with the
+    # rest of the email feature (SMTP_HOST, SMTP_PORT, SMTP_USERNAME,
+    # SMTP_PASSWORD, SMTP_USE_TLS, SMTP_FROM_ADDRESS, SMTP_FROM_NAME,
+    # SMTP_TIMEOUT_SECONDS).
 
     # ── Storefront ────────────────────────────────────────────────────────
     # Canonical customer-facing origin. Used wherever the backend must hand a
@@ -249,7 +205,7 @@ class Settings(BaseSettings):
     CART_RECOVERY_TOKEN_TTL_DAYS: int = 7
 
     # ── Payment ───────────────────────────────────────────────────────────
-    PAYMENT_PROVIDER: Literal["zarinpal", "idpay", "mock", "crypto", "card_transfer"] = "mock"
+    PAYMENT_PROVIDER: Literal["zarinpal", "card_transfer"] = "card_transfer"
     PAYMENT_MERCHANT_ID: str = ""
     PAYMENT_CALLBACK_BASE_URL: str = "http://localhost:3000/payment/callback"
     PAYMENT_SANDBOX: bool = True
@@ -270,10 +226,6 @@ class Settings(BaseSettings):
     TLS_TERMINATION: Literal["proxy", "app", "auto"] = "auto"
     # Minimum wallet top-up amount in IRR (TASK P6-02)
     WALLET_TOPUP_MIN_IRIALS: int = 100_000
-    NOWPAYMENTS_API_KEY: str = ""
-    NOWPAYMENTS_SANDBOX: bool = True
-    NOWPAYMENTS_IPN_SECRET: str = ""
-    NOWPAYMENTS_IRR_PER_USD: int = 600_000
     CARD_TO_CARD_NUMBER: str = "6219-8610-1234-5678"
     CARD_TO_CARD_HOLDER: str = "فروشگاه آنلاین"
     CARD_TO_CARD_BANK: str = "بانک سامان"
@@ -299,11 +251,8 @@ class Settings(BaseSettings):
     RATE_LIMIT_REGISTER: str = "5/minute"
     RATE_LIMIT_OTP_REQUEST: str = "3/minute"
     RATE_LIMIT_OTP_VERIFY: str = "10/minute"
-    # Password reset mails are the enumeration-safe endpoint, so the limit is
-    # per-IP rather than per-address: one attacker must not be able to walk a
-    # list of addresses, and a shared office NAT must not lock out real users.
-    RATE_LIMIT_PASSWORD_RESET_REQUEST: str = "3/minute"
-    RATE_LIMIT_PASSWORD_RESET_CONFIRM: str = "10/minute"
+    # RATE_LIMIT_PASSWORD_RESET_REQUEST / RATE_LIMIT_PASSWORD_RESET_CONFIRM
+    # were removed on 2026-10-07 with the email-based password reset flow.
     RATE_LIMIT_REFRESH: str = "30/minute"
     RATE_LIMIT_SEARCH: str = "30/minute"
     RATE_LIMIT_SEARCH_SUGGEST: str = "60/minute"
@@ -337,6 +286,48 @@ class Settings(BaseSettings):
 
     # ── Misc ──────────────────────────────────────────────────────────────
     UPLOAD_DIR: str = "media"
+
+    @field_validator("UPLOAD_DIR", mode="after")
+    @classmethod
+    def _anchor_upload_dir(cls, value: str) -> str:
+        """Resolve a relative UPLOAD_DIR against the repository root, not cwd.
+
+        A bare ``"media"`` was joined to whatever directory the process happened
+        to start in, and the three documented ways to launch this app disagree:
+        the project launcher (``start_project.bat``) runs uvicorn from
+        ``backend/``, the container runs it from ``/app``, and a developer
+        typing ``uvicorn app.main:app`` from the repo root runs it from
+        ``.../site``. The store's own media lived in ``<repo>/media`` while the
+        launcher's process looked in ``<repo>/backend/media``, so every image an
+        operator had uploaded returned 404 for anyone using the documented
+        launcher — and it stayed invisible because the app happily writes NEW
+        uploads to a directory that already exists, and serves those back
+        perfectly. Only the pre-existing files were wrong.
+
+        Anchoring is the same remedy the ``.env`` loader already uses (see
+        ``_ENV_FILE``): a relative path addresses *the project*, so it is
+        resolved from this module's own location — the one thing that does not
+        move — instead of from the working directory. An absolute value (a
+        deployment that mounts uploads at ``/var/lib/store/media``) is returned
+        untouched, so Docker's ``/app/media`` volume keeps working exactly as
+        the compose file declares it.
+        """
+        # An explicit empty value (``UPLOAD_DIR=`` in a .env copied from the
+        # example) means "use the default", not "the root itself": Path("")
+        # is ".", which would anchor the media root at the repo/container root
+        # and scatter thumbnails across the source tree.
+        if not (value or "").strip():
+            value = "media"
+        path = Path(value).expanduser()
+        if path.is_absolute():
+            return str(path)
+        # ``settings.py`` sits at ``<root>/app/core/config/settings.py``, where
+        # ``<root>`` is the repo root locally (``.../site``) and ``/app`` in the
+        # container. In a local checkout there is one extra level: backend/.
+        root = Path(__file__).resolve().parents[3]
+        if root.name == "backend":
+            root = root.parent
+        return str((root / path).resolve())
     ALLOWED_UPLOAD_EXTENSIONS: list[str] = Field(
         default=[".jpg", ".jpeg", ".png", ".webp", ".gif", ".pdf"]
     )
@@ -398,10 +389,6 @@ class Settings(BaseSettings):
             if self.MINIO_ACCESS_KEY == "minioadmin":
                 raise ValueError(
                     "Security violation: MINIO_ACCESS_KEY contains default credentials in production"  # noqa: E501
-                )
-            if self.PAYMENT_PROVIDER == "mock":
-                raise ValueError(
-                    "Security violation: PAYMENT_PROVIDER cannot be 'mock' in production (PAY-001)"
                 )
             if self.SMS_PROVIDER == "mock":
                 raise ValueError(

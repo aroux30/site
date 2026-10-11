@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import {
   usePageAutosave,
   usePageEditingLock,
@@ -41,6 +41,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useToast } from "@/components/ui/use-toast";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 import { DataTable, type DataTableColumn } from "@/components/admin/data-table";
 import { toPersianDigits } from "@/lib/utils";
 import {
@@ -73,7 +74,26 @@ const visibilityLabels: Record<CmsPageVisibility, string> = {
 };
 
 export default function AdminCMSPagesPage() {
+  // useSearchParams (inside) opts the subtree out of static prerendering; the
+  // Suspense boundary is what keeps the build from failing on it. Same pattern
+  // as admin/media.
+  return (
+    <Suspense
+      fallback={
+        <div className="animate-pulse space-y-4 px-6 py-8">
+          <div className="h-8 w-56 rounded-lg bg-muted/70" />
+          <div className="h-64 rounded-2xl border border-border bg-card" />
+        </div>
+      }
+    >
+      <AdminCMSPagesPageInner />
+    </Suspense>
+  );
+}
+
+function AdminCMSPagesPageInner() {
   const { toast } = useToast();
+  const confirm = useConfirm();
   const [search, setSearch] = useState("");
   // `?search=` seeds the filter box. The admin bar's contextual "ویرایش برگه"
   // link lands here with the slug, so the operator sees the page they came from
@@ -84,7 +104,6 @@ export default function AdminCMSPagesPage() {
     if (searchParam) setSearch(searchParam);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-  const [localeFilter, setLocaleFilter] = useState<string>("all");
   const [showTrashed, setShowTrashed] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [previewPageId, setPreviewPageId] = useState<string | null>(null);  const [bulkBusy, setBulkBusy] = useState(false);
@@ -97,7 +116,6 @@ export default function AdminCMSPagesPage() {
   const [formBody, setFormBody] = useState("");
   const [patternPickerOpen, setPatternPickerOpen] = useState(false);
   const [formStatus, setFormStatus] = useState<CmsPageStatus>("draft");
-  const [formLocale, setFormLocale] = useState("fa");
   // Page tree: which page is the parent, and where this one sits among its
   // siblings. The column, the schema and the server's cycle check all existed —
   // only the form was missing, so a page could never be nested.
@@ -141,11 +159,10 @@ export default function AdminCMSPagesPage() {
     loading,
     reload: fetchPages,
   } = useAdminQuery({
-    queryKey: [PAGES_QUERY_KEY, search, localeFilter, showTrashed],
+    queryKey: [PAGES_QUERY_KEY, search, showTrashed],
     queryFn: () => {
       const params: Parameters<typeof cmsPagesAdminApi.listPages>[0] = {};
       if (search) params.search = search;
-      if (localeFilter !== "all") params.locale = localeFilter;
       if (showTrashed) params.include_trashed = true;
       return cmsPagesAdminApi.listPages(params);
     },
@@ -194,7 +211,6 @@ export default function AdminCMSPagesPage() {
     setFormSlug("");
     setFormBody("");
     setFormStatus("draft");
-    setFormLocale("fa");
     setFormPageId("");
     setFormParentId("");
     setFormMenuOrder("0");
@@ -216,7 +232,6 @@ export default function AdminCMSPagesPage() {
     setFormSlug(page.slug);
     setFormBody(page.body_html);
     setFormStatus(page.status);
-    setFormLocale(page.locale ?? "fa");
     setFormPageId(page.id);
     setFormParentId(page.parent_id ?? "");
     setFormMenuOrder(String(page.menu_order ?? 0));
@@ -273,6 +288,16 @@ export default function AdminCMSPagesPage() {
     savedFingerprint !== null &&
     savedFingerprint !== JSON.stringify(autosavePayload);
 
+  /** Confirm closing the editor with unsaved work. Returns true to close. */
+  const confirmDiscard = () =>
+    confirm({
+      title: "بستن بدون ذخیره",
+      description:
+        "تغییرات ذخیره نشده‌اند. می‌خواهید ببندید؟ متن به‌صورت خودکار ذخیره شده و بعداً قابل بازیابی است.",
+      confirmLabel: "بستن",
+      destructive: true,
+    });
+
   const { dirty: autosaveDirty, markClean } = usePageAutosave(
     lockPageId,
     autosavePayload,
@@ -287,7 +312,6 @@ export default function AdminCMSPagesPage() {
         slug: formSlug || undefined,
         body_html: formBody,
         status: formStatus,
-        locale: formLocale,
         // Empty string means "no parent"; the API takes null, not "".
         parent_id: formParentId || null,
         menu_order: Number.parseInt(formMenuOrder, 10) || 0,
@@ -350,7 +374,13 @@ export default function AdminCMSPagesPage() {
   };
 
   const handlePermanentDelete = async (page: CmsPage) => {
-    if (!confirm(`صفحه «${page.title}» برای همیشه حذف شود؟ دیگر قابل بازگشت نیست.`)) return;
+    const ok = await confirm({
+      title: "حذف همیشگی صفحه",
+      description: `صفحه «${page.title}» برای همیشه حذف شود؟ دیگر قابل بازگشت نیست.`,
+      confirmLabel: "حذف همیشگی",
+      destructive: true,
+    });
+    if (!ok) return;
     try {
       await cmsPagesAdminApi.permanentDeletePage(page.id);
       toast({ title: "صفحه برای همیشه حذف شد" });
@@ -374,7 +404,13 @@ export default function AdminCMSPagesPage() {
     const labels: Record<string, string> = {
       publish: "انتشار", unpublish: "برگشت به پیش‌نویس", trash: "انتقال به سطل زباله", restore: "بازگردانی",
     };
-    if (!confirm(`${toPersianDigits(String(selected.size))} صفحه — ${labels[action]}؟`)) return;
+    const ok = await confirm({
+      title: "عملیات گروهی صفحات",
+      description: `${toPersianDigits(String(selected.size))} صفحه — ${labels[action]}؟`,
+      confirmLabel: "ادامه",
+      destructive: true,
+    });
+    if (!ok) return;
     setBulkBusy(true);
     try {
       const result = await cmsPagesAdminApi.bulkAction(action, [...selected]);
@@ -396,7 +432,13 @@ export default function AdminCMSPagesPage() {
   };
 
   const handleDelete = async (page: CmsPage) => {
-    if (!confirm(`صفحه «${page.title}» حذف شود؟ این کار قابل بازگشت نیست.`)) return;
+    const ok = await confirm({
+      title: "انتقال به سطل زباله",
+      description: `صفحه «${page.title}» حذف شود؟ این کار قابل بازگشت نیست.`,
+      confirmLabel: "انتقال",
+      destructive: true,
+    });
+    if (!ok) return;
     try {
       await cmsPagesAdminApi.deletePage(page.id);
       toast({ title: "صفحه حذف شد" });
@@ -422,8 +464,13 @@ export default function AdminCMSPagesPage() {
 
   const handleRestore = async (revisionNumber: number) => {
     if (!revPage) return;
-    if (!confirm(`صفحه به نسخه ${toPersianDigits(String(revisionNumber))} بازگردانده شود؟`))
-      return;
+    const ok = await confirm({
+      title: "بازگردانی نسخه",
+      description: `صفحه به نسخه ${toPersianDigits(String(revisionNumber))} بازگردانده شود؟`,
+      confirmLabel: "بازگردانی",
+      destructive: false,
+    });
+    if (!ok) return;
     setRestoring(revisionNumber);
     try {
       await cmsPagesAdminApi.restoreRevision(revPage.id, revisionNumber);
@@ -471,12 +518,6 @@ export default function AdminCMSPagesPage() {
           )}
         </div>
       ),
-    },
-    {
-      key: "locale",
-      header: "زبان",
-      className: "text-xs text-muted-foreground",
-      render: (page) => page.locale ?? "fa",
     },
     {
       key: "slug",
@@ -654,17 +695,6 @@ export default function AdminCMSPagesPage() {
               className="ps-9"
             />
           </div>
-          <select
-            value={localeFilter}
-            onChange={(e) => setLocaleFilter(e.target.value)}
-            className="h-9 rounded-md border border-input bg-background px-3 text-sm"
-            aria-label="فیلتر زبان"
-          >
-            <option value="all">همه زبان‌ها</option>
-            <option value="fa">فارسی</option>
-            <option value="en">English</option>
-            <option value="ar">العربية</option>
-          </select>
           <Button
             variant={showTrashed ? "default" : "outline"}
             size="sm"
@@ -720,11 +750,17 @@ export default function AdminCMSPagesPage() {
           // and the moment a naive `setEditorOpen` throws away what the
           // operator just typed. Autosave has already persisted the text, so
           // the confirmation is about intent rather than about losing it.
+          //
+          // The dialog's own onOpenChange is synchronous, so the confirmation
+          // cannot be awaited here: the decision is taken in an async helper
+          // and the state is set from its continuation. `window.confirm` would
+          // return false with no dialog inside a sandboxed iframe, silently
+          // refusing every close.
           if (!open && formDirty) {
-            const keep = window.confirm(
-              "تغییرات ذخیره نشده‌اند. می‌خواهید ببندید؟ متن به‌صورت خودکار ذخیره شده و بعداً قابل بازیابی است.",
-            );
-            if (!keep) return;
+            void confirmDiscard().then((keep) => {
+              if (keep) setEditorOpen(false);
+            });
+            return;
           }
           setEditorOpen(open);
         }}
@@ -922,19 +958,6 @@ export default function AdminCMSPagesPage() {
                   </p>
                 </div>
               )}
-              <div className="grid gap-2">
-                <Label htmlFor="page-locale">زبان</Label>
-                <select
-                  id="page-locale"
-                  value={formLocale}
-                  onChange={(e) => setFormLocale(e.target.value)}
-                  className="h-9 rounded-md border border-input bg-background px-3 text-sm"
-                >
-                  <option value="fa">فارسی</option>
-                  <option value="en">English</option>
-                  <option value="ar">العربية</option>
-                </select>
-              </div>
               {/* A page could not carry a custom term at all before: the link
                   table's foreign key pointed at blog_posts. Only mounted for a
                   saved page, because there is no id to attach terms to yet. */}

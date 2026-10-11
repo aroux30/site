@@ -22,8 +22,6 @@ export interface RoutingConfig {
   permalink_structure: string;
   category_base: string;
   tag_base: string;
-  enabled_locales: string;
-  default_locale: string;
   /** Public origin, for anything that must be absolute (JSON-LD, feeds). */
   site_url?: string;
   /** Configured store name, used as the publisher in structured data. */
@@ -34,8 +32,6 @@ export const DEFAULT_ROUTING: RoutingConfig = {
   permalink_structure: "/blog/%postname%/",
   category_base: "category",
   tag_base: "tag",
-  enabled_locales: "fa",
-  default_locale: "fa",
   site_url: "",
   blogname: "فروشگاه",
 };
@@ -246,14 +242,15 @@ export const RESERVED_ROOTS: ReadonlySet<string> = new Set([
   "favorites",
   "search",
   "payment",
-  "mock-gateway",
   "rewards",
-  "returns",
-  "wholesale",
   "contact",
   "about",
   "faq",
   "terms",
   "privacy",
-  "newsletter",
+  // The HTML sitemap is a real storefront route; without this entry a
+  // slug-shaped permalink structure ("/%postname%/") would rewrite
+  // /sitemap-page to /blog/sitemap-page, where no post exists — the page
+  // would 404 exactly on the sites that configured pretty permalinks.
+  "sitemap-page",
 ]);

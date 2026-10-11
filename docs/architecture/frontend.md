@@ -221,18 +221,14 @@ frontend/
 │   │   ├── categories.ts           # Category queries
 │   │   └── search.ts              # Search queries
 │   │
-│   ├── types/                        # TypeScript type definitions
-│   │   ├── product.ts
-│   │   ├── order.ts
-│   │   ├── user.ts
-│   │   ├── cart.ts
-│   │   ├── category.ts
-│   │   ├── payment.ts
-│   │   └── api.ts                   # Generic API types
-│   │
-│   └── messages/                     # Internationalization
-│       ├── fa.json                   # Persian translations
-│       └── en.json                   # English translations
+│   └── types/                        # TypeScript type definitions
+│       ├── product.ts
+│       ├── order.ts
+│       ├── user.ts
+│       ├── cart.ts
+│       ├── category.ts
+│       ├── payment.ts
+│       └── api.ts                   # Generic API types
 │
 ├── tailwind.config.ts               # Tailwind CSS configuration
 ├── next.config.mjs                  # Next.js configuration

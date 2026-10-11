@@ -12,12 +12,10 @@ Scheduling model:
   loses the race (or a re-fired "run now" on an in-flight run) sees the
   existing run and returns it unchanged.
 
-Delivery: recipients are emailed the CSV artifact through the real
-notification email service (``email_service.send_email``, which writes an
-``EmailDeliveryLog``). When SMTP is not configured the service's
-documented mock fallback reports success with a simulated marker — the run
-then records ``email: skipped_not_configured`` and completes with
-``completed_no_delivery`` so ops can see nothing actually went out.
+Delivery: the CSV artifact is archived next to the run (``artifact_path``)
+and the in-app run record is the delivery surface. The email delivery half
+(recipients, SMTP) was removed on 2026-10-07 with the rest of the email
+feature.
 """
 
 from __future__ import annotations
@@ -34,7 +32,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config.settings import get_settings
 from app.core.exceptions.handlers import NotFoundError, ValidationError
-from app.modules.notifications.application import email_service
 from app.modules.reporting.application import cron as cron_util
 from app.modules.reporting.application.csv_builder import build_csv_bytes
 from app.modules.reporting.application.renderers import HtmlReportRenderer
@@ -56,18 +53,14 @@ TZ_TEHRAN = ZoneInfo("Asia/Tehran")
 REPORT_TYPE_LABELS: dict[str, str] = {
     "sales": "گزارش فروش",
     "stock": "گزارش موجودی انبار",
-    "vendor_settlement": "گزارش تسویه فروشندگان",
-    "tax_vat": "گزارش مالیات بر ارزش افزوده",
 }
 
-DELIVERY_CHANNELS = ("email", "in_app")
+# DELIVERY_CHANNELS was removed on 2026-10-07 with the email feature.
 
 _FILTER_KEYS = (
     "date_from",
     "date_to",
     "group_by",
-    "warehouse_id",
-    "vendor_id",
     "category_id",
     "low_stock_only",
 )
@@ -128,7 +121,7 @@ def _validate_filters(report_type: ReportType, filters: dict[str, Any]) -> dict[
     }
     if filters.get("group_by") is not None:
         normalized["group_by"] = str(filters["group_by"])
-    for key in ("warehouse_id", "vendor_id", "category_id"):
+    for key in ("category_id",):
         parsed = _parse_optional_uuid(filters.get(key), key)
         if parsed is not None:
             normalized[key] = str(parsed)
@@ -151,25 +144,8 @@ def _validate_schedule(schedule_cron: str | None) -> str | None:
     return expression
 
 
-def _validate_channels(
-    channels: list[Any] | None, recipients: list[Any] | None
-) -> tuple[list[str], list[str]]:
-    normalized_channels: list[str] = []
-    for channel in channels or []:
-        channel_str = str(channel)
-        if channel_str not in DELIVERY_CHANNELS:
-            raise ValidationError(
-                detail=f"کانال تحویل نامعتبر است: {channel_str} (مجاز: email، in_app)",
-                error_code="INVALID_DELIVERY_CHANNEL",
-            )
-        normalized_channels.append(channel_str)
-    normalized_recipients = [str(r).strip() for r in recipients or [] if str(r).strip()]
-    if "email" in normalized_channels and not normalized_recipients:
-        raise ValidationError(
-            detail="برای کانال ایمیل دست‌کم یک گیرنده الزامی است",
-            error_code="RECIPIENTS_REQUIRED",
-        )
-    return normalized_channels, normalized_recipients
+# `_validate_channels` was removed on 2026-10-07 with the email delivery
+# half of saved reports.
 
 
 def _compute_next_run(
@@ -192,8 +168,6 @@ async def create_saved_report(
     report_type: ReportType,
     filters: dict[str, Any],
     schedule_cron: str | None = None,
-    delivery_channels: list[Any] | None = None,
-    recipients: list[Any] | None = None,
     is_active: bool = True,
 ) -> SavedReport:
     name = name.strip()
@@ -204,7 +178,6 @@ async def create_saved_report(
         )
     normalized_filters = _validate_filters(report_type, filters)
     cron_expression = _validate_schedule(schedule_cron)
-    channels, recipient_list = _validate_channels(delivery_channels, recipients)
 
     saved = SavedReport(
         owner_id=owner_id,
@@ -212,8 +185,6 @@ async def create_saved_report(
         report_type=report_type,
         filters=normalized_filters,
         schedule_cron=cron_expression,
-        delivery_channels=channels,
-        recipients=recipient_list,
         is_active=is_active,
         next_run_at=_compute_next_run(cron_expression) if is_active else None,
     )
@@ -235,8 +206,6 @@ async def update_saved_report(
     name: str | None = None,
     filters: dict[str, Any] | None = None,
     schedule_cron: str | None | object = ...,  # sentinel: ... = unchanged
-    delivery_channels: list[Any] | None = None,
-    recipients: list[Any] | None = None,
     is_active: bool | None = None,
 ) -> SavedReport:
     if name is not None:
@@ -250,13 +219,6 @@ async def update_saved_report(
         saved.filters = _validate_filters(saved.report_type, filters)
     if schedule_cron is not ...:
         saved.schedule_cron = _validate_schedule(schedule_cron)  # type: ignore[arg-type]
-    if delivery_channels is not None or recipients is not None:
-        channels, recipient_list = _validate_channels(
-            delivery_channels if delivery_channels is not None else saved.delivery_channels,
-            recipients if recipients is not None else saved.recipients,
-        )
-        saved.delivery_channels = channels
-        saved.recipients = recipient_list
     if is_active is not None:
         saved.is_active = is_active
 
@@ -303,8 +265,6 @@ def _filters_to_kwargs(filters: dict[str, Any]) -> dict[str, Any]:
         "date_from": _parse_iso_date(filters["date_from"], "date_from"),
         "date_to": _parse_iso_date(filters["date_to"], "date_to"),
         "group_by": filters.get("group_by"),
-        "warehouse_id": _parse_optional_uuid(filters.get("warehouse_id"), "warehouse_id"),
-        "vendor_id": _parse_optional_uuid(filters.get("vendor_id"), "vendor_id"),
         "category_id": _parse_optional_uuid(filters.get("category_id"), "category_id"),
         "low_stock_only": bool(filters.get("low_stock_only")),
     }
@@ -326,7 +286,12 @@ async def _try_claim_run(db: AsyncSession, run_id: uuid.UUID) -> bool:
 
 
 async def _persist_artifacts(run: ReportRun, result: ReportResult, title: str) -> None:
-    """Write CSV + HTML artifacts under the uploads/report-runs directory."""
+    """Write CSV + HTML artifacts under ``<UPLOAD_DIR>/report-runs``.
+
+    (The directory is ``/app/media/report-runs`` in the container — the
+    ``UPLOAD_DIR`` default is ``media``, not ``uploads``. The old docstring
+    said "uploads/report-runs", which named a directory nothing writes to.)
+    """
     base = _artifacts_dir()
     csv_bytes = build_csv_bytes(
         [col.label for col in result.columns],
@@ -342,46 +307,8 @@ async def _persist_artifacts(run: ReportRun, result: ReportResult, title: str) -
     run.html_path = str(html_path)
 
 
-async def _deliver_email(
-    db: AsyncSession,
-    *,
-    saved: SavedReport,
-    run: ReportRun,
-    title: str,
-) -> str:
-    """Send the CSV artifact to recipients; returns a delivery outcome tag."""
-    config = email_service.get_smtp_config()
-    if not config.is_configured:
-        await logger.awarning(
-            "saved_report_email_skipped_not_configured",
-            saved_report_id=str(saved.id),
-            run_id=str(run.id),
-        )
-        return "skipped_not_configured"
-
-    subject = f"{title} — {saved.filters['date_from']} تا {saved.filters['date_to']}"
-    text_body = (
-        f"{title}\nبازه: {saved.filters['date_from']} تا {saved.filters['date_to']}\n"
-        f"تعداد ردیف‌ها: {run.row_count}\nفایل CSV پیوست/بایگانی شد: {run.artifact_path}"
-    )
-    html_body = (
-        f"<h2>{title}</h2>"
-        f"<p>بازه: {saved.filters['date_from']} تا {saved.filters['date_to']}</p>"
-        f"<p>تعداد ردیف‌ها: {run.row_count}</p>"
-        f"<p>خروجی CSV در مسیر بایگانی گزارش ذخیره شد.</p>"
-    )
-    all_ok = True
-    for recipient in saved.recipients:
-        success, _log = await email_service.send_email(
-            db,
-            recipient=recipient,
-            subject=subject,
-            html_body=html_body,
-            text_body=text_body,
-            template="saved_report_delivery",
-        )
-        all_ok = all_ok and success
-    return "sent" if all_ok else "failed"
+# `_deliver_email` was removed on 2026-10-07 with the rest of the email
+# feature. Report artifacts are archived on disk and recorded on the run row.
 
 
 async def execute_saved_report(
@@ -427,24 +354,10 @@ async def execute_saved_report(
         await _persist_artifacts(run, result, title)
 
         delivery: dict[str, Any] = dict(run.delivery_result or {})
-        email_requested = "email" in (saved.delivery_channels or [])
-        if email_requested:
-            delivery["email"] = await _deliver_email(db, saved=saved, run=run, title=title)
-        else:
-            delivery["email"] = "not_requested"
-
+        delivery["email"] = "not_requested"
         run.delivery_result = delivery
         run.finished_at = datetime.now(UTC)
-        if email_requested and delivery["email"] in ("skipped_not_configured", "failed"):
-            run.status = (
-                ReportRunStatus.COMPLETED_NO_DELIVERY
-                if delivery["email"] == "skipped_not_configured"
-                else ReportRunStatus.FAILED
-            )
-            if run.status == ReportRunStatus.FAILED:
-                run.error_message = "ارسال ایمیل گزارش ناموفق بود"
-        else:
-            run.status = ReportRunStatus.SUCCEEDED
+        run.status = ReportRunStatus.SUCCEEDED
     except Exception as exc:
         run.status = ReportRunStatus.FAILED
         run.error_message = str(exc)[:1900]

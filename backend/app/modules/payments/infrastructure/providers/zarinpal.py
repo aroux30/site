@@ -66,8 +66,7 @@ class ZarinpalProvider(PaymentProvider):
         callback_url: str,
         description: str = "",
         mobile: str | None = None,
-        email: str | None = None,
-    ) -> PaymentResult:
+        ) -> PaymentResult:
         """Request a new payment authority from Zarinpal."""
 
         # Zarinpal v4 accepts Rials directly
@@ -82,8 +81,6 @@ class ZarinpalProvider(PaymentProvider):
         }
         if mobile:
             payload["metadata"]["mobile"] = mobile
-        if email:
-            payload["metadata"]["email"] = email
 
         await logger.ainfo(
             "zarinpal_create_payment_request",

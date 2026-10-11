@@ -59,6 +59,11 @@ export interface ApiProduct {
   min_price?: number | null;
   max_price?: number | null;
   variant_count: number;
+  // Operator SEO overrides (the catalog API returns them; the storefront's
+  // metadata must prefer them over derived values).
+  seo_title?: string | null;
+  seo_description?: string | null;
+  meta_keywords?: string | null;
   created_at?: string;
   updated_at?: string;
 }
@@ -295,7 +300,6 @@ export interface ContentSearchResult {
   title: string;
   slug: string;
   excerpt?: string | null;
-  locale?: string | null;
   category?: string | null;
   category_slug?: string | null;
   tags: string[];
@@ -333,7 +337,6 @@ export interface ContentSuggestResponse {
 export interface ContentSearchParams {
   q: string;
   type?: ContentSearchType;
-  locale?: string;
   page?: number;
   size?: number;
 }
@@ -378,6 +381,50 @@ export async function fetchReviews(
       { params },
     );
     return data;
+  }
+}
+
+/**
+ * The operator's stored schema override for a resource, or null.
+ *
+ * The editor's schema builder writes `seo_metadata.schema_markup`; the
+ * product layout merges it into the rendered JSON-LD. A fetch failure means
+ * "no override" — the built-in Product node still renders, so the page
+ * never loses its structured data to an SEO-module outage.
+ */
+export async function fetchSchemaOverride(
+  resourceType: string,
+  resourceId: string,
+): Promise<Record<string, unknown> | null> {
+  try {
+    const { data } = await apiClient.get<{ schema_markup?: unknown }>(
+      `/seo/${encodeURIComponent(resourceType)}/${encodeURIComponent(resourceId)}`,
+    );
+    const markup = data?.schema_markup;
+    if (markup && typeof markup === "object" && !Array.isArray(markup)) {
+      return markup as Record<string, unknown>;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Review stats only — used by the server-side product layout to build an
+ * honest AggregateRating JSON-LD node. Returns null when the fetch fails or
+ * the product has no reviews; the caller must not fabricate a rating.
+ */
+export async function fetchReviewStats(
+  productId: string,
+): Promise<ApiReviewStats | null> {
+  try {
+    const { data } = await apiClient.get<ApiReviewListResponse>("/reviews", {
+      params: { product_id: productId, size: 1 },
+    });
+    return data?.stats ?? null;
+  } catch {
+    return null;
   }
 }
 

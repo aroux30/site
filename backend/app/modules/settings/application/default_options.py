@@ -23,23 +23,16 @@ DEFAULTS: dict[str, str] = {
     # General
     "blogname": "فروشگاه",
     "blogdescription": "یک سایت فروشگاهی",
-    # Left empty on purpose. Five readers use `home`/`siteurl` as the public
-    # origin (feeds, OPML, sitemaps, newsletter links) and they all fall back
+    # Left empty on purpose. Four readers use `home`/`siteurl` as the public
+    # origin (feeds, OPML, sitemaps) and they all fall back
     # to the deployment's own env, so a seed of "https://example.com" was
     # published into every feed link, sitemap loc and password-reset URL on a
     # store that had moved on from it. An operator sets these once in Settings.
     "siteurl": "",
     "home": "",
-    "admin_email": "admin@example.com",
-    # How often the settings screen asks the operator to confirm the admin
-    # address is still theirs (WordPress's admin_email_check_interval). A
-    # working-but-abandoned address is otherwise the recovery channel forever.
-    "admin_email_check_interval": "180",
-    # The storefront contact card reads this. Empty by default: an unset store
-    # should show nothing rather than a placeholder address, and the
-    # /public/branding endpoint falls back to admin_email only when it is a
-    # real address.
-    "contact_email": "",
+    # `admin_email`, `admin_email_check_interval` and `contact_email` were
+    # removed on 2026-10-07 with the email feature. The storefront contact
+    # card now shows the phone number only.
     "date_format": "Y/m/d",
     "time_format": "H:i",
     "timezone_string": "Asia/Tehran",
@@ -59,26 +52,6 @@ DEFAULTS: dict[str, str] = {
     "show_on_front": "page",
     "page_on_front": "",
 
-    # Privacy — LIVE. Read by comment_ip_retention_service.mask_expired_ips, which
-    # reduces the author IP of any comment older than this to its network (/24 for
-    # IPv4, /64 for IPv6). A full address is kept for this long because a
-    # moderation backlog is measured in hours, not months; an operator handling a
-    # dispute can raise it. "0" masks every comment on the next scheduled run.
-    "privacy.ip_retention_days": "30",
-    # How long a produced GDPR export stays readable, in hours. 24 is the
-    # default; clamped to 1..720 (30 days) on read. Read by
-    # privacy_request_service.export_result_ttl, so changing it changes the
-    # expiry of exports produced after the change.
-    "privacy.export_retention_hours": "24",
-    # Which CMS page is the privacy policy. A slug, not an id, so it survives a
-    # database restore and is editable by hand — WordPress stores
-    # ``wp_page_for_privacy_policy`` as a post id and silently breaks when the
-    # ids change under a migration. Empty means "no policy published", which is
-    # the honest default for a store that has not written one yet: the form
-    # links render nothing rather than linking to a page that does not exist.
-    # Read by privacy_policy_service, which serves /settings/public/privacy-policy.
-    "privacy.policy_page": "",
-
     # Permalink — LIVE. These drive URL generation (RSS feed links, sitemap,
     # storefront link builders via lib/permalinks.ts) and URL resolution (the
     # Next.js middleware rewrites structured paths back onto the canonical
@@ -87,21 +60,13 @@ DEFAULTS: dict[str, str] = {
     "category_base": "category",
     "tag_base": "tag",
 
-    # i18n — comma-separated list of content locales; the first is the default.
-    # Content rows carry a locale each (blog_posts.locale / cms_pages.locale);
-    # the storefront language switcher and admin translation tooling read this.
-    "enabled_locales": "fa",
-    "default_locale": "fa",
-
     # Discussion / Comments
     "default_comment_status": "open",
     "comment_moderation": "1",
     "comment_max_links": "2",
-    # require_name_email: a guest comment must carry a name and an email.
-    # "0" keeps guest comments open, which is this site's default; the flag is
-    # enforced in CommentService.create_comment, not just hinted at in the form,
-    # because the API is the same endpoint the form posts to.
-    "require_name_email": "0",
+    # `require_name_email` was removed on 2026-10-07: the comment form no
+    # longer collects an email address at all (the column was dropped), so a
+    # guest comment always carries a name only.
     # Akismet, the external half of WordPress's spam decision. Seeded EMPTY,
     # which is a real state and not a placeholder to be filled in: with no key
     # the client makes no request at all and the local `spam_filter` engine
@@ -112,11 +77,8 @@ DEFAULTS: dict[str, str] = {
     # Empty means the public rest.akismet.com; set it to a self-hosted endpoint
     # to keep comment text inside the shop's own network.
     "spam_akismet_api_url": "",
-    # Comment notifications, WordPress's "Comments Notify" and "Moderation
-    # Notify". Both on: the email path was built to be used, and shipping it
-    # switched off would look like broken SMTP rather than a setting.
-    "comments_notify": "1",
-    "moderation_notify": "1",
+    # `comments_notify` / `moderation_notify` were removed on 2026-10-07 with
+    # the comment notification emails they switched.
     # Refuse comments on a post or page older than this many days.
     # close_comments_days_old is WordPress's close_comments_for_old_posts
     # pair, collapsed into one number so there is one field to explain and one
@@ -125,8 +87,8 @@ DEFAULTS: dict[str, str] = {
     # Auto-approve someone who already has an approved comment. Off by default
     # because it is a trust decision: a returning commenter stops waiting a day
     # for their second comment to appear, and the queue stops filling with
-    # replies to replies from people already known to the store. It keys on the
-    # email and, for guests, the name with it — never the name alone.
+    # replies to replies from people already known to the store. It keys on
+    # the name (the email column was removed on 2026-10-07).
     "comment_previously_approved": "0",
     # Registration is open by default on a storefront: a shop that cannot take
     # an order from a new customer is not a shop. Switched off it is not a
@@ -138,7 +100,7 @@ DEFAULTS: dict[str, str] = {
     # value is checked against the roles that exist rather than trusted.
     "registration_default_role": "customer",
     # Hold new accounts for an operator's approval. Off by default: a shop that
-    # cannot take an order from a new customer is not a shop. A wholesale
+    # cannot take an order from a new customer is not a shop. An invite-only
     # storefront or a closed beta turns it on, and the account is created
     # pending with no session until an operator approves it.
     "registration_approval_required": "0",
@@ -198,6 +160,97 @@ DEFAULTS: dict[str, str] = {
     # media_cdn_base_url is also read at runtime (media.application.public_url)
     # but has no seed row: the empty default means "serve from origin".
 
+    # Image SEO (Rank Math Pro parity: the Image SEO module). All applied at
+    # upload time by media.application.image_seo_service — the storefront
+    # stores alt/title/caption on the asset row, so the fix belongs where the
+    # row is written rather than at render time.
+    # image_seo_auto_alt: fill alt_text from the (cleaned) file name when the
+    # uploader left it empty. An image without alt is invisible to image
+    # search and a WCAG failure, so the default is on.
+    "image_seo_auto_alt": "1",
+    # image_seo_auto_title: fill title from the cleaned file name when empty.
+    "image_seo_auto_title": "1",
+    # image_seo_auto_caption: fill caption from the cleaned file name when
+    # empty. Off by default — a visible caption under every image is a layout
+    # decision, not an SEO default (Rank Math gates it behind a setting too).
+    "image_seo_auto_caption": "0",
+    # image_seo_auto_description: fill description (the long text field) from
+    # the cleaned file name when empty. Off by default, same reasoning.
+    "image_seo_auto_description": "0",
+    # image_seo_case: "none" | "lower" | "upper" — case applied to the
+    # auto-generated text only, never to operator-typed text (Rank Math's
+    # img_title_change_case / alt case settings).
+    "image_seo_case": "none",
+    # image_seo_filename_separators: characters in the original file name that
+    # become spaces in the generated text ("my-product_photo.jpg" →
+    # "my product photo"). Stored as the set, so an operator can add one.
+    "image_seo_filename_separators": "-_",
+    # image_seo_replacements: JSON array of {"from": "...", "to": "..."} pairs
+    # applied to the generated text (Rank Math's image_replacements). Empty
+    # means no replacements.
+    "image_seo_replacements": "[]",
+
+    # RSS feed extras (Rank Math's RSS module): text the operator wants around
+    # every feed item's body — a signature, a sponsorship note, a link back.
+    # Empty means nothing is injected; the feed stays byte-identical to before.
+    "rss_before_content": "",
+    "rss_after_content": "",
+    # rss_featured_image: include the post cover as <media:content> in RSS
+    # items. Feeds are read where images do not render inline, so the value is
+    # giving readers (and feed-based scrapers) the image URL itself. On by
+    # default, matching Rank Math.
+    "rss_featured_image": "1",
+
+    # Titles & Meta (Rank Math's Titles & Meta panel): one default
+    # title/description template per content type, plus the global separator.
+    # Rendered by seo.application.titles_meta_service with the variable engine
+    # in seo.application.template_engine. Empty/unset = the built-in default
+    # (DEFAULT_TITLE_TEMPLATES in that module), so these rows document the
+    # initial values rather than being required.
+    "seo_title_separator": "|",
+    "seo_default_title_template_post": "%title% %sep% %sitename%",
+    "seo_default_description_template_post": "%excerpt%",
+    "seo_default_title_template_page": "%title% %sep% %sitename%",
+    "seo_default_description_template_page": "%excerpt%",
+    "seo_default_title_template_product": "%title% %sep% خرید و بررسی",
+    "seo_default_description_template_product": "%excerpt%",
+    "seo_default_title_template_category": "%title% %sep% %sitename%",
+    "seo_default_description_template_category": "بهترین قیمت و مشخصات محصولات %title%",
+    "seo_default_title_template_tag": "%title% %sep% %sitename%",
+    "seo_default_description_template_tag": "مطالب مرتبط با %title%",
+    "seo_default_title_template_author": "نوشته‌های %title% %sep% %sitename%",
+    "seo_default_description_template_author": "همهٔ نوشته‌های %title%",
+    "seo_default_title_template_archive": "%title% %sep% %sitename%",
+    "seo_default_description_template_archive": "آرشیو %title%",
+    "seo_default_title_template_home": "%sitename% %sep% %sitedesc%",
+    "seo_default_description_template_home": "%sitedesc%",
+
+    # Breadcrumbs (Rank Math's Breadcrumbs panel). The storefront renders the
+    # trail and its BreadcrumbList JSON-LD; these options shape both, so the
+    # visible trail and the structured data can never disagree.
+    # seo_breadcrumb_home_label: the first crumb's text ("خانه" by default).
+    "seo_breadcrumb_home_label": "خانه",
+    # seo_breadcrumb_separator: the glyph BETWEEN crumbs in the visible trail.
+    # The JSON-LD carries no separator (it is structured, not rendered), so
+    # this option is presentation-only.
+    "seo_breadcrumb_separator": "/",
+    # seo_breadcrumb_show_blog: include the "وبلاگ" crumb in post trails.
+    # Off = Home > Category > Post (Rank Math's "remove blog from crumbs").
+    "seo_breadcrumb_show_blog": "1",
+
+    # Local SEO (Rank Math's Local SEO): the store's own business profile.
+    # Read by seo.application.local_seo_service, which builds the
+    # LocalBusiness JSON-LD; empty fields are omitted from the node, never
+    # emitted blank. A single business — not a multi-location directory.
+    "local_seo_business_name": "",
+    "local_seo_business_type": "Store",
+    "local_seo_address": "",
+    "local_seo_telephone": "",
+    "local_seo_opening_hours": "",
+    "local_seo_price_range": "",
+    "local_seo_latitude": "",
+    "local_seo_longitude": "",
+
     # URL embeds (oEmbed/Open Graph, read by content.application.embed_service).
     # The cache window was a module constant; 168 hours is the WordPress
     # default. Clamped to 1..720 on read.
@@ -208,7 +261,7 @@ DEFAULTS: dict[str, str] = {
     # the SSRF guard runs regardless.
     "embed_allowed_hosts": "",
 
-    # Privacy
+    # Visibility / robots.txt
     "blog_public": "1",
     # robots_extra_rules: operator-added lines appended verbatim to the
     # storefront's /robots.txt (WordPress's "robots.txt" filter). The built-in
@@ -218,17 +271,8 @@ DEFAULTS: dict[str, str] = {
     # app/robots.txt route; empty means "only the generated rules".
     "robots_extra_rules": "",
 
-    # Avatars — WordPress's show_avatars / avatar_default / avatar_rating.
-    # show_avatars: "1" renders avatars site-wide; "0" hides them (both the
-    #   uploaded image and the Gravatar fallback), matching WP's "Avatars" toggle.
-    # avatar_default: the gravatar `d=` param used when a visitor has no
-    #   Gravatar — one of mp/identicon/monsterid/wavatar/retro/robohash/blank/404.
-    # avatar_rating: the gravatar `r=` param — g/pg/r/x.
-    # Read by shared.content.gravatar.avatar_options; a bad stored value is
-    # coerced to the safe default rather than forwarded to Gravatar.
-    "show_avatars": "1",
-    "avatar_default": "mp",
-    "avatar_rating": "g",
+    # `show_avatars` / `avatar_default` / `avatar_rating` were removed on
+    # 2026-10-07 with the Gravatar feature (it keyed on email addresses).
     # Upload ceilings. Seeded to the values that used to be module constants,
     # so a fresh install and an upgraded one behave identically until an operator
     # changes them. Read per upload by MediaService.resolve_size_limit.
@@ -238,6 +282,33 @@ DEFAULTS: dict[str, str] = {
     "default_post_format": "standard",
     "media_max_file_size_mb": "10",
     "media_max_media_file_size_mb": "100",
+
+    # Wallet module switches. Each wallet capability is independently
+    # toggleable so an operator can disable one surface (say withdrawals, while
+    # a bank integration is being sorted out) without touching the others. The
+    # master ``wallet_enabled`` gates the module as a whole; when it is "0"
+    # every wallet route below it refuses. Read at request time by
+    # wallet.api.routes via SiteOptionsService — never cached, so a toggle takes
+    # effect on the next request. Default "1": the store ships with a working
+    # wallet. Enforced (not merely displayed) — see the route-level guards.
+    "wallet_enabled": "1",
+    # Gateway top-ups (charge the wallet through an online payment).
+    "wallet_deposit_enabled": "1",
+    # Customer withdrawal requests (submit → admin review → manual payout).
+    "wallet_withdraw_enabled": "1",
+    # Peer-to-peer wallet transfers between customers.
+    "wallet_transfer_enabled": "1",
+    # Admin balance adjustments (credit/debit a customer wallet from the panel).
+    "wallet_admin_adjust_enabled": "1",
+
+    # Storefront feature switches owned by the shopfeatures module (no dedicated
+    # admin panel of their own). Same contract as the wallet switches above:
+    # read at request time, never cached, enforced by a route guard AND mirrored
+    # in the client so the entry points disappear rather than erroring.
+    # Compare has no backend at all (localStorage only), so its switch purely
+    # gates the storefront rendering.
+    "wishlist_enabled": "1",
+    "compare_enabled": "1",
 }
 
 

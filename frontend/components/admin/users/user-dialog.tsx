@@ -27,7 +27,6 @@ interface Props {
 
 interface FormState {
   phone: string;
-  email: string;
   first_name: string;
   last_name: string;
   password: string;
@@ -39,7 +38,6 @@ interface FormState {
 
 const EMPTY: FormState = {
   phone: "",
-  email: "",
   first_name: "",
   last_name: "",
   password: "",
@@ -51,7 +49,6 @@ const EMPTY: FormState = {
  *  Any other role is still assignable after creation through the roles editor. */
 const CREATABLE_ROLES = [
   { value: "customer", label: "مشتری" },
-  { value: "vendor", label: "فروشنده" },
   { value: "author", label: "نویسنده" },
   { value: "editor", label: "ویرایشگر" },
   { value: "admin", label: "مدیر" },
@@ -61,7 +58,7 @@ const CREATABLE_ROLES = [
  * Create or edit one account.
  *
  * Both endpoints existed on the server and had a typed client, but the admin
- * users page was a read-only list with block/unblock and a GDPR download — so
+ * users page was a read-only list with block/unblock — so
  * an operator could not onboard a staff account at all, and could only reach
  * `POST /users/admin/users` or `PATCH /users/admin/users/{id}` by hand. The
  * role-management page assigns roles to accounts that could only be created out
@@ -82,7 +79,6 @@ export function UserDialog({ user, open, onOpenChange, onSaved }: Props) {
       editing
         ? {
             phone: user.phone ?? "",
-            email: user.email ?? "",
             first_name: user.first_name ?? "",
             last_name: user.last_name ?? "",
             password: "",
@@ -116,7 +112,6 @@ export function UserDialog({ user, open, onOpenChange, onSaved }: Props) {
     try {
       if (editing && user) {
         const payload: Partial<AdminUser> = {
-          email: form.email.trim() || undefined,
           first_name: form.first_name.trim() || undefined,
           last_name: form.last_name.trim() || undefined,
         };
@@ -124,7 +119,6 @@ export function UserDialog({ user, open, onOpenChange, onSaved }: Props) {
       } else {
         await usersAdminApi.createUser({
           phone: form.phone.trim(),
-          email: form.email.trim() || undefined,
           first_name: form.first_name.trim() || undefined,
           last_name: form.last_name.trim() || undefined,
           password: form.password,
@@ -156,8 +150,8 @@ export function UserDialog({ user, open, onOpenChange, onSaved }: Props) {
           <DialogTitle>{editing ? "ویرایش کاربر" : "کاربر جدید"}</DialogTitle>
           <DialogDescription>
             {editing
-              ? "تغییر ایمیل روی درخواست تأیید اثر می‌گذارد و لینک تأیید به آدرس جدید می‌رود."
-              : "پس از ساخت، ایمیل اطلاع‌رسانی برای صاحب حساب ارسال می‌شود."}
+              ? "تغییر نقش و وضعیت حساب از اینجا انجام می‌شود."
+              : "پس از ساخت، حساب با نقش انتخابی ساخته می‌شود."}
           </DialogDescription>
         </DialogHeader>
 
@@ -182,18 +176,8 @@ export function UserDialog({ user, open, onOpenChange, onSaved }: Props) {
             )}
           </div>
 
-          <div className="space-y-1.5">
-            <Label htmlFor="ud-email">ایمیل</Label>
-            <Input
-              id="ud-email"
-              dir="ltr"
-              type="email"
-              value={form.email}
-              disabled={busy}
-              onChange={(e) => set("email", e.target.value)}
-            />
-          </div>
-
+          {/* The email field was removed on 2026-10-07 with the rest of the
+              email feature. */}
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label htmlFor="ud-first">نام</Label>

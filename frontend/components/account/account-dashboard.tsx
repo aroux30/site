@@ -1,8 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { Suspense, useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 import {
   User,
   Package,
@@ -18,7 +17,6 @@ import {
   Trash2,
   Plus,
   ShoppingBag,
-  CheckCircle2,
   AlertCircle,
   Truck,
   Eye,
@@ -29,16 +27,12 @@ import {
   Building2,
   ExternalLink,
   Lock,
-  Mail,
   Phone,
   MessageSquare,
-  Printer,
-  FileText,
   Gift,
-  RotateCcw,
-  Repeat,
   Coins,
-  Store,
+  Send,
+  ArrowUpFromLine,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -64,14 +58,15 @@ import {
 } from "@/components/ui/dialog";
 import { useToast } from "@/components/ui/use-toast";
 import { formatPrice, toPersianDigits, toEnglishDigits } from "@/lib/utils";
+import { walletApi, type WalletWithdrawal } from "@/lib/api/wallet";
+import { useShopFeatures } from "@/hooks/use-shop-features";
+
 import { SavedCardsPanel } from "@/components/account/saved-cards-panel";
 import { maskNationalId, maskPhoneNumber } from "@/lib/pii-mask";
-import { checkReturnEligibility } from "@/lib/rma";
 import { ShipmentStepper } from "@/components/orders/shipment-stepper";
 import { ReferralPanel } from "@/components/account/referral-panel";
 import { OrderHistorySkeleton } from "@/components/shared/skeleton-loaders";
 import { apiErrorMessage } from "@/lib/api/error-message";
-import { authApi } from "@/lib/api/auth";
 import { useAuthStore } from "@/stores/auth-store";
 import { MfaSettingsCard } from "@/components/account/mfa-settings-card";
 import { PasskeyCard } from "@/components/account/passkey-card";
@@ -86,20 +81,17 @@ import apiClient from "@/lib/api/client";
 /* ------------------------------------------------------------------ */
 
 // Mirrors OrderStatus in backend/app/modules/orders/domain/models.py.
-// Note `canceled` (one l): the backend serialises the enum value, not the name.
+// The backend serialises the enum VALUE, not the name — the database stores
+// NAMES (WAITING_PAYMENT_GATEWAY, …) but every response body carries values.
+// Note `canceled` (one l).
 type OrderStatusType =
+  | "waiting_payment_gateway"
+  | "waiting_payment_card"
   | "pending"
-  | "confirmed"
   | "processing"
-  | "packing"
-  | "shipped"
-  | "delivered"
   | "completed"
   | "canceled"
-  | "on_hold"
-  | "returned"
-  | "refunded"
-  | "partially_refunded";
+  | "refunded";
 
 interface OrderItemDisplay {
   id: string;
@@ -119,7 +111,6 @@ interface OrderDisplay {
   shippingAddress?: string;
   trackingCode?: string;
   paymentMethod?: string;
-  deliveredAt?: string | null;
 }
 
 interface AddressItem {
@@ -176,18 +167,13 @@ const ORDER_STATUS_CONFIG: Record<
   OrderStatusType,
   { label: string; badgeVariant: "default" | "secondary" | "destructive" | "outline" | "success" | "warning" | "info" }
 > = {
-  pending: { label: "در انتظار پرداخت", badgeVariant: "warning" },
-  confirmed: { label: "تایید شده", badgeVariant: "info" },
+  waiting_payment_gateway: { label: "در انتظار تایید پرداخت", badgeVariant: "warning" },
+  waiting_payment_card: { label: "در انتظار تایید کارت به کارت", badgeVariant: "warning" },
+  pending: { label: "در حال انجام", badgeVariant: "info" },
   processing: { label: "در حال پردازش", badgeVariant: "default" },
-  packing: { label: "در حال بسته‌بندی", badgeVariant: "info" },
-  shipped: { label: "ارسال شده", badgeVariant: "info" },
-  delivered: { label: "تحویل داده شده", badgeVariant: "success" },
   completed: { label: "تکمیل شده", badgeVariant: "success" },
   canceled: { label: "لغو شده", badgeVariant: "destructive" },
-  on_hold: { label: "در انتظار بررسی", badgeVariant: "warning" },
-  returned: { label: "مرجوع شده", badgeVariant: "destructive" },
-  refunded: { label: "بازپرداخت شده", badgeVariant: "secondary" },
-  partially_refunded: { label: "بازپرداخت جزئی", badgeVariant: "secondary" },
+  refunded: { label: "بازگشت وجه", badgeVariant: "secondary" },
 };
 
 const TICKET_STATUS_CONFIG: Record<
@@ -266,18 +252,56 @@ function SectionLoadError({
   );
 }
 
+type AccountDashboardTab =
+  | "profile"
+  | "orders"
+  | "addresses"
+  | "wallet"
+  | "cards"
+  | "wishlist"
+  | "referrals"
+  | "support";
+
+/**
+ * Suspense boundary for the dashboard.
+ *
+ * The boundary is kept so the account pages keep their static-export-safe
+ * shape; the inner component no longer reads `useSearchParams` (the
+ * email-confirmation token it used was removed on 2026-10-07 with the email
+ * feature), but the fallback still mirrors the account area's loading state.
+ */
 export function AccountDashboard({
   initialTab = "profile",
 }: {
-  initialTab?:
-    | "profile"
-    | "orders"
-    | "addresses"
-    | "wallet"
-    | "cards"
-    | "wishlist"
-    | "referrals"
-    | "support";
+  initialTab?: AccountDashboardTab;
+}) {
+  return (
+    <Suspense fallback={<AccountDashboardFallback />}>
+      <AccountDashboardInner initialTab={initialTab} />
+    </Suspense>
+  );
+}
+
+function AccountDashboardFallback() {
+  return (
+    <div className="container-page py-8" dir="rtl">
+      <div className="animate-pulse space-y-6">
+        <div className="h-8 w-48 rounded-lg bg-muted/70" />
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="h-24 rounded-2xl border border-border bg-card" />
+          ))}
+        </div>
+        <div className="h-64 rounded-2xl border border-border bg-card" />
+      </div>
+    </div>
+  );
+}
+
+function AccountDashboardInner({
+  initialTab = "profile",
+}: {
+  initialTab?: AccountDashboardTab;
 }) {
   const { toast } = useToast();
   const { user, updateProfile } = useAuthStore();
@@ -286,16 +310,7 @@ export function AccountDashboard({
   const { logout, fetchCurrentUser } = useAuth();
   const { addItem: addToCart } = useCartStore();
 
-  const [activeTab, setActiveTab] = useState<
-    | "profile"
-    | "orders"
-    | "addresses"
-    | "wallet"
-    | "cards"
-    | "wishlist"
-    | "referrals"
-    | "support"
-  >(initialTab);
+  const [activeTab, setActiveTab] = useState<AccountDashboardTab>(initialTab);
 
   // Profile Form State — start from the real session user; never seed demo
   // values, they would stick for users whose profile fields are still empty.
@@ -305,36 +320,18 @@ export function AccountDashboard({
     // The public nickname. Empty means "show my first + last name", which is
     // what every consumer did before this field existed.
     displayName: user?.display_name ?? "",
-    email: user?.email ?? "",
     phone: user?.phone ?? "",
     nationalId: ((user as unknown as Record<string, unknown>)?.national_id as string) || ((user as unknown as Record<string, unknown>)?.nationalId as string) || "",
   });
   const [isSavingProfile, setIsSavingProfile] = useState(false);
 
-  // The outstanding email-change proposal, if the server holds one. Fetched on
-  // mount so a user who requested a change and then came back is told what is
-  // pending rather than being asked to resend.
-  const [pendingEmailChange, setPendingEmailChange] = useState<{
-    new_email: string;
-    expires_at: string;
-  } | null>(null);
-
-  // Email verification. `user.is_verified` used to be set by the OTP flow
-  // (phone ownership), so it never actually told anyone whether their email
-  // was confirmed; a resend is offered whenever the address is unconfirmed.
-  const [resendingVerification, setResendingVerification] = useState(false);
+  // The email-change / email-verification state and their effects were
+  // removed on 2026-10-07 with the rest of the email feature.
 
   // Custom avatar upload. The profile carried `avatar_url` and the PATCH
   // accepted it, but the account area had no way to get a file in: the media
   // library is admin-gated, so the field was only fillable by pasting a URL.
   const [avatarBusy, setAvatarBusy] = useState(false);
-
-  // True when the form holds an address the account does not have yet. Drives
-  // the "this will send a confirmation link" hint, so the change is never a
-  // surprise: the field looks editable but silently does something else.
-  const emailDiffersFromSaved =
-    profileForm.email.trim().toLowerCase() !== (user?.email ?? "").trim().toLowerCase() &&
-    profileForm.email.trim() !== "";
 
   // Password Form State
   const [passwordForm, setPasswordForm] = useState({
@@ -382,9 +379,44 @@ export function AccountDashboard({
   const [depositAmount, setDepositAmount] = useState<string>("500000");
   const [depositGateway, setDepositGateway] = useState<string>("zarinpal");
   const [isDepositing, setIsDepositing] = useState(false);
+  // Transfer (P2P) state
+  const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
+  const [transferForm, setTransferForm] = useState({ recipient_phone: "", amount: "", note: "" });
+  const [isTransferring, setIsTransferring] = useState(false);
+  // Withdrawal request state
+  const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
+  const [withdrawForm, setWithdrawForm] = useState({
+    amount: "",
+    iban: "",
+    card_number: "",
+    account_holder_name: "",
+  });
+  const [isWithdrawing, setIsWithdrawing] = useState(false);
+  const [withdrawals, setWithdrawals] = useState<WalletWithdrawal[]>([]);
+  // Which wallet capabilities the operator has enabled. A disabled capability
+  // hides its entry point entirely (no button that only answers with an error);
+  // a disabled MASTER switch hides the whole wallet surface (menu entry,
+  // balance chip, wallet tab). Default true so the UI is complete until the
+  // first /wallet response lands.
+  const [walletFeatures, setWalletFeatures] = useState({
+    enabled: true,
+    deposit: true,
+    withdraw: true,
+    transfer: true,
+  });
 
   // Wishlist State
   const [wishlist, setWishlist] = useState<WishlistItem[]>([]);
+  // Wishlist module switch. When off, the nav entry, the tab and the fetch all
+  // go away — an operator who disabled the module does not want a dead tab that
+  // renders an error card.
+  const shopFeatures = useShopFeatures();
+  // The initial effect below runs once with an empty dependency list, so it
+  // would otherwise close over the FIRST switch value and never see a change.
+  // A ref keeps the latest value readable from that long-lived closure without
+  // re-running the effect.
+  const shopFeaturesRef = useRef(shopFeatures);
+  shopFeaturesRef.current = shopFeatures;
   const [isLoadingWishlist, setIsLoadingWishlist] = useState(false);
 
   // Support Tickets State
@@ -408,83 +440,11 @@ export function AccountDashboard({
         firstName: user.firstName ?? "",
         lastName: user.lastName ?? "",
         displayName: user.display_name ?? "",
-        email: user.email ?? "",
         phone: user.phone ?? "",
       }));
     }
   }, [user]);
 
-  // Load the outstanding email-change proposal so the form can say what is
-  // waiting for confirmation. A failure here is deliberately silent and local:
-  // it only affects a hint, and the account screen should not look broken
-  // because an optional status call did not answer.
-  useEffect(() => {
-    let cancelled = false;
-    apiClient
-      .get<{ pending: boolean; new_email?: string; expires_at?: string }>("/auth/me/email/pending")
-      .then((res) => {
-        if (cancelled) return;
-        const body = res.data;
-        if (body?.pending && body.new_email) {
-          setPendingEmailChange({ new_email: body.new_email, expires_at: body.expires_at ?? "" });
-        } else {
-          setPendingEmailChange(null);
-        }
-      })
-      .catch(() => {
-        if (!cancelled) setPendingEmailChange(null);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [user?.email]);
-
-  // Redeem a confirmation link. The token arrives in the query string because
-  // that is where the emailed link points; it is stripped from the URL
-  // afterwards so it does not linger in history, in a shared screen, or in a
-  // screenshot. Without this the whole flow would be a backend capability no
-  // user could reach.
-  const searchParams = useSearchParams();
-  const [confirmingEmail, setConfirmingEmail] = useState(false);
-  const emailToken = searchParams.get("email_token");
-
-  useEffect(() => {
-    if (!emailToken || confirmingEmail) return;
-    setConfirmingEmail(true);
-
-    apiClient
-      .post("/auth/me/email/confirm", { token: emailToken })
-      .then(() => {
-        toast({
-          title: "ایمیل حساب تأیید شد",
-          description: "ایمیل حساب شما با موفقیت تغییر کرد.",
-          variant: "success",
-        });
-        // Re-read the account so the header and the form show the new address.
-        void fetchCurrentUser();
-      })
-      .catch((err: unknown) => {
-        toast({
-          title: "تأیید ایمیل ناموفق بود",
-          description: (err as Error)?.message || "این لینک معتبر نیست یا منقضی شده است.",
-          variant: "destructive",
-        });
-      })
-      .finally(() => {
-        setConfirmingEmail(false);
-        setPendingEmailChange(null);
-        // Drop the token from the address bar whether it worked or not.
-        window.history.replaceState(null, "", window.location.pathname);
-      });
-  }, [emailToken, confirmingEmail]);
-
-  /**
-   * Ask the server to mail a fresh verification link.
-   *
-   * The server reports honestly — "already verified", "no address", or a real
-   * send failure — so the toast carries its message rather than a fixed
-   * success line that would leave a user watching an empty inbox.
-   */
   /**
    * Upload a new avatar image.
    *
@@ -516,23 +476,54 @@ export function AccountDashboard({
     }
   };
 
-  const resendVerification = async () => {
-    setResendingVerification(true);
+  // Wallet loader, at component scope so both the initial effect and the
+  // transfer/withdraw handlers can call it after a mutation.
+  //
+  // Both requests are awaited with Promise.all so a failure rejects the whole
+  // call and is surfaced as a load error. The previous allSettled + catch
+  // could never fire (allSettled never rejects), so a failed read left the
+  // balance at 0 and the list empty while loadErrors stayed unset — the tab
+  // then rendered "no transactions", a statement of fact about a request that
+  // never succeeded.
+  const loadWalletData = async () => {
     try {
-      const res = await authApi.resendEmailVerification();
-      toast({
-        title: "ارسال پیوند تأیید",
-        description: res.message,
-        variant: res.message.includes("فرستاده شد") ? "success" : "destructive",
+      setLoadErrors((prev) => ({ ...prev, wallet: undefined }));
+      setIsLoadingWallet(true);
+      const [walletRes, txRes] = await Promise.all([
+        apiClient.get("/wallet"),
+        apiClient.get("/wallet/transactions"),
+      ]);
+      setWalletBalance(Math.trunc(((walletRes.data?.balance ?? 0) as number) / 10));
+      const f = walletRes.data?.features;
+      setWalletFeatures({
+        enabled: f?.enabled ?? true,
+        deposit: f?.deposit ?? true,
+        withdraw: f?.withdraw ?? true,
+        transfer: f?.transfer ?? true,
       });
-    } catch {
-      toast({
-        title: "ارسال پیوند تأیید ناموفق بود",
-        description: "لطفاً کمی بعد دوباره تلاش کنید.",
-        variant: "destructive",
-      });
+      const items = (txRes.data?.items ?? []) as Array<Record<string, unknown>>;
+      const mappedTx: WalletTransaction[] = items.map((t) => ({
+        id: String(t.id),
+        type: t.type === "credit" ? "deposit" : t.type === "debit" ? "withdraw" : ((t.type || "deposit") as WalletTransaction["type"]),
+        amount: Math.trunc(((t.amount || 0) as number) / 10),
+        date: t.created_at ? new Date(t.created_at as string).toLocaleDateString("fa-IR") : "",
+        description: (t.description || "تراکنش مالی") as string,
+        trackingCode: (t.reference_id || `TRX-${(t.id as string)?.slice?.(0, 7) || "00"}`) as string,
+        status: "success" as WalletTransaction["status"],
+      }));
+      setTransactions(mappedTx);
+    } catch (err) {
+      setLoadErrors((prev) => ({ ...prev, wallet: apiErrorMessage(err, "دریافت کیف پول ناموفق بود") }));
     } finally {
-      setResendingVerification(false);
+      setIsLoadingWallet(false);
+    }
+    // Withdrawal requests are a separate, non-critical read: a failure here
+    // must not mark the whole wallet tab as failed.
+    try {
+      const wr = await walletApi.listWithdrawals(1, 20);
+      setWithdrawals(wr.items);
+    } catch {
+      setWithdrawals([]);
     }
   };
 
@@ -555,16 +546,6 @@ export function AccountDashboard({
             shippingAddress: ((o.shipping_address as Record<string, unknown>)?.full_address || (o.shippingAddress as Record<string, unknown>)?.address || "تهران") as string,
             trackingCode: (o.tracking_code || o.tracking_number) as string | undefined,
             paymentMethod: (o.payment_method || "پرداخت اینترنتی") as string,
-            // The /orders response carries no delivery timestamp, so it is
-            // approximated by the last update. Both `delivered` and
-            // `completed` are post-delivery states — the backend accepts
-            // returns from either (returns_service.validate_eligibility) — so
-            // both must get a date, or the RMA UI claims the window expired.
-            deliveredAt: (o.delivered_at ||
-              o.deliveredAt ||
-              (["delivered", "completed"].includes(String(o.status).toLowerCase())
-                ? o.updated_at || o.created_at
-                : null)) as string | null,
             items: ((o.items || []) as Record<string, unknown>[]).map((it: Record<string, unknown>, idx: number) => ({
               id: String(it.id || idx),
               title: (it.product_title || it.title || it.product_name || "کالای سفارش") as string,
@@ -610,39 +591,16 @@ export function AccountDashboard({
       }
     };
 
-    // 3. Fetch Wallet from GET /wallet and GET /wallet/transactions
-    const fetchWallet = async () => {
-      try {
-        setLoadErrors((prev) => ({ ...prev, wallet: undefined }));
-        setIsLoadingWallet(true);
-        const [walletRes, txRes] = await Promise.allSettled([
-          apiClient.get("/wallet"),
-          apiClient.get("/wallet/transactions"),
-        ]);
-        if (walletRes.status === "fulfilled" && walletRes.value.data) {
-          setWalletBalance(Math.trunc(((walletRes.value.data.balance ?? 0) as number) / 10));
-        }
-        if (txRes.status === "fulfilled" && txRes.value.data?.items) {
-          const mappedTx: WalletTransaction[] = txRes.value.data.items.map((t: Record<string, unknown>) => ({
-            id: String(t.id),
-            type: t.type === "credit" ? "deposit" : t.type === "debit" ? "withdraw" : ((t.type || "deposit") as WalletTransaction["type"]),
-            amount: Math.trunc(((t.amount || 0) as number) / 10),
-            date: t.created_at ? new Date(t.created_at as string).toLocaleDateString("fa-IR") : "۱۴۰۳/۰۶/۰۱",
-            description: (t.description || "تراکنش مالی") as string,
-            trackingCode: (t.reference_id || `TRX-${(t.id as string)?.slice?.(0, 7) || "00"}`) as string,
-            status: (t.status === "failed" ? "failed" : t.status === "pending" ? "pending" : "success") as WalletTransaction["status"],
-          }));
-          setTransactions(mappedTx);
-        }
-      } catch (err) {
-        setLoadErrors((prev) => ({ ...prev, wallet: apiErrorMessage(err, "دریافت کیف پول ناموفق بود") }));
-      } finally {
-        setIsLoadingWallet(false);
-      }
-    };
+    // 3. Wallet is fetched by loadWalletData(), defined at component scope
+    // (see above the effect) so the transfer/withdraw handlers can refresh the
+    // wallet after a mutation.
 
     // 4. Fetch Wishlist from GET /wishlist
     const fetchWishlist = async () => {
+      // Skip entirely when the module is off: the route is guarded, so the
+      // call would be refused and only produce a console error for a feature
+      // the customer is not even supposed to see.
+      if (!shopFeaturesRef.current.wishlist) return;
       try {
         setLoadErrors((prev) => ({ ...prev, wishlist: undefined }));
         setIsLoadingWishlist(true);
@@ -701,31 +659,10 @@ export function AccountDashboard({
 
     fetchOrders();
     fetchAddresses();
-    fetchWallet();
+    loadWalletData();
     fetchWishlist();
     fetchTickets();
   }, []);
-
-  /* ---------------------------------------------------------------- */
-  /*  Actions: Orders & Invoice                                        */
-  /* ---------------------------------------------------------------- */
-
-  const handlePrintInvoice = (orderId: string) => {
-    // Rely on HttpOnly browser cookies sent with withCredentials
-    window.open(`/api/v1/orders/${orderId}/invoice`, "_blank");
-  };
-
-  /**
-   * The *fiscal* document — the posted invoice with its formal number, hash
-   * and frozen archive. Distinct from ``/invoice`` above, which renders a
-   * live receipt: the receipt is a courtesy copy, the fiscal document is the
-   * one an accountant or a dispute needs. The endpoint falls back to the
-   * receipt when no invoice has been posted yet, so the button is always
-   * safe to press.
-   */
-  const handleOpenFiscalDocument = (orderId: string) => {
-    window.open(`/api/v1/invoicing/orders/${orderId}/invoice-document`, "_blank");
-  };
 
   /* ---------------------------------------------------------------- */
   /*  Actions: Profile & Password                                      */
@@ -736,67 +673,24 @@ export function AccountDashboard({
     setIsSavingProfile(true);
     try {
       // The profile endpoint is PATCH /auth/me (the /users/me prefix 404s).
-      const res = await apiClient.patch<{
-        email_change?: { status: string; message: string; email_sent: boolean };
-      }>("/auth/me", {
+      // The email field and its two-step change flow were removed on
+      // 2026-10-07 with the rest of the email feature.
+      await apiClient.patch("/auth/me", {
         first_name: profileForm.firstName,
         last_name: profileForm.lastName,
         // Sent as an explicit value, including empty: clearing the nickname is
         // a real intent ("show my real name again"), and an omitted field
         // would silently keep the old one.
         display_name: profileForm.displayName.trim(),
-        email: profileForm.email,
         phone: profileForm.phone,
       });
 
-      // The email is NOT changed by this call. It is proposed, and a
-      // confirmation link goes to the new address; the account's address moves
-      // only when that link is redeemed. Writing the new value into the local
-      // store would show an address the server has not accepted yet, so the
-      // form is reverted to what the account actually holds.
-      const emailChange = res?.data?.email_change;
-      const emailWasChanged = profileForm.email.trim().toLowerCase() !== (user?.email ?? "").trim().toLowerCase();
-
-      if (emailWasChanged) {
-        updateProfile({
-          firstName: profileForm.firstName,
-          lastName: profileForm.lastName,
-          fullName: `${profileForm.firstName} ${profileForm.lastName}`.trim(),
-          email: user?.email ?? "",
-          phone: profileForm.phone,
-        });
-        setProfileForm((f) => ({ ...f, email: user?.email ?? "" }));
-      } else {
-        updateProfile({
-          firstName: profileForm.firstName,
-          lastName: profileForm.lastName,
-          fullName: `${profileForm.firstName} ${profileForm.lastName}`.trim(),
-          email: profileForm.email,
-          phone: profileForm.phone,
-        });
-      }
-
-      if (emailChange) {
-        // Two distinct outcomes, and the difference matters: with SMTP down the
-        // request is recorded but the link was never sent, so "check your inbox"
-        // would be a promise nobody kept.
-        toast({
-          title: emailChange.email_sent ? "درخواست تغییر ایمیل ثبت شد" : "درخواست ثبت شد، ایمیل ارسال نشد",
-          description: emailChange.email_sent
-            ? "لینک تأیید به ایمیل جدید فرستاده شد. تا زمانی که روی آن کلیک نکنید، ایمیل حساب شما تغییر نمی‌کند."
-            : "ارسال ایمیل با خطا مواجه شد. لطفاً کمی بعد دوباره تلاش کنید.",
-          variant: emailChange.email_sent ? "success" : "destructive",
-        });
-        // Reflect the proposal in the form immediately. Re-fetching would be
-        // rounder but slower, and this is the moment the user is looking at the
-        // field they just typed into.
-        setPendingEmailChange(
-          emailChange.status === "unchanged"
-            ? null
-            : { new_email: profileForm.email.trim().toLowerCase(), expires_at: "" },
-        );
-        return;
-      }
+      updateProfile({
+        firstName: profileForm.firstName,
+        lastName: profileForm.lastName,
+        fullName: `${profileForm.firstName} ${profileForm.lastName}`.trim(),
+        phone: profileForm.phone,
+      });
 
       toast({
         title: "اطلاعات حساب بروزرسانی شد",
@@ -1031,8 +925,11 @@ export function AccountDashboard({
 
   const handleDepositSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const numericAmount = parseInt(depositAmount.replace(/\D/g, ""), 10);
-    if (!numericAmount || numericAmount < 10_000) {
+    // The input is Toman; the API expects Rial (ADR-012: Rial at the boundary).
+    // Posting the raw Toman value undercharged by 10× — a ۱۰۰٬۰۰۰ تومان top-up
+    // charged ۱۰٬۰۰۰ تومان.
+    const numericToman = parseInt(depositAmount.replace(/\D/g, ""), 10);
+    if (!numericToman || numericToman < 10_000) {
       toast({
         title: "مبلغ نامعتبر",
         description: "حداقل مبلغ افزایش موجودی ۱۰,۰۰۰ تومان می‌باشد.",
@@ -1040,6 +937,7 @@ export function AccountDashboard({
       });
       return;
     }
+    const amountRial = numericToman * 10;
 
     setIsDepositing(true);
     try {
@@ -1049,7 +947,7 @@ export function AccountDashboard({
         "/wallet/topup",
         {
           provider: depositGateway,
-          amount: numericAmount,
+          amount: amountRial,
         },
       );
 
@@ -1076,6 +974,85 @@ export function AccountDashboard({
       });
     } finally {
       setIsDepositing(false);
+    }
+  };
+
+  /* ---------------------------------------------------------------- */
+  /*  Actions: Wallet Transfer (P2P)                                   */
+  /* ---------------------------------------------------------------- */
+
+  const handleTransferSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const amountToman = parseInt(toEnglishDigits(transferForm.amount).replace(/\D/g, ""), 10);
+    if (!transferForm.recipient_phone.trim() || !amountToman || amountToman < 1_000) {
+      toast({
+        title: "اطلاعات ناقص",
+        description: "شماره موبایل گیرنده و مبلغ (حداقل ۱,۰۰۰ تومان) را وارد کنید.",
+        variant: "destructive",
+      });
+      return;
+    }
+    setIsTransferring(true);
+    try {
+      await walletApi.transfer({
+        recipient_phone: transferForm.recipient_phone.trim(),
+        amount: amountToman * 10, // Toman → Rial at the boundary
+        note: transferForm.note.trim() || undefined,
+      });
+      toast({ title: "انتقال انجام شد", description: "مبلغ با موفقیت به کیف پول گیرنده منتقل شد." });
+      setIsTransferModalOpen(false);
+      setTransferForm({ recipient_phone: "", amount: "", note: "" });
+      await loadWalletData();
+    } catch (err: unknown) {
+      toast({
+        title: "خطا در انتقال",
+        description: apiErrorMessage(err, "انتقال انجام نشد. لطفاً دوباره تلاش کنید."),
+        variant: "destructive",
+      });
+    } finally {
+      setIsTransferring(false);
+    }
+  };
+
+  /* ---------------------------------------------------------------- */
+  /*  Actions: Wallet Withdrawal request                               */
+  /* ---------------------------------------------------------------- */
+
+  const handleWithdrawSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const amountToman = parseInt(toEnglishDigits(withdrawForm.amount).replace(/\D/g, ""), 10);
+    const hasDestination = withdrawForm.iban.trim() || withdrawForm.card_number.trim();
+    if (!amountToman || amountToman < 10_000 || !hasDestination) {
+      toast({
+        title: "اطلاعات ناقص",
+        description: "مبلغ (حداقل ۱۰,۰۰۰ تومان) و شماره شبا یا کارت مقصد را وارد کنید.",
+        variant: "destructive",
+      });
+      return;
+    }
+    setIsWithdrawing(true);
+    try {
+      await walletApi.createWithdrawal({
+        amount: amountToman * 10, // Toman → Rial at the boundary
+        iban: withdrawForm.iban.trim() || undefined,
+        card_number: withdrawForm.card_number.trim() || undefined,
+        account_holder_name: withdrawForm.account_holder_name.trim() || undefined,
+      });
+      toast({
+        title: "درخواست ثبت شد",
+        description: "مبلغ تا بررسی مدیریت بلوکه شد و پس از تأیید به حساب شما واریز می‌شود.",
+      });
+      setIsWithdrawModalOpen(false);
+      setWithdrawForm({ amount: "", iban: "", card_number: "", account_holder_name: "" });
+      await loadWalletData();
+    } catch (err: unknown) {
+      toast({
+        title: "خطا در ثبت درخواست",
+        description: apiErrorMessage(err, "ثبت درخواست برداشت انجام نشد. لطفاً دوباره تلاش کنید."),
+        variant: "destructive",
+      });
+    } finally {
+      setIsWithdrawing(false);
     }
   };
 
@@ -1190,15 +1167,7 @@ export function AccountDashboard({
   /* ---------------------------------------------------------------- */
 
   interface NavItem {
-    key:
-      | "profile"
-      | "orders"
-      | "addresses"
-      | "wallet"
-      | "cards"
-      | "wishlist"
-      | "referrals"
-      | "support";
+    key: AccountDashboardTab;
     label: string;
     icon: React.ComponentType<{ className?: string }>;
     badge?: number;
@@ -1209,10 +1178,16 @@ export function AccountDashboard({
     { key: "profile", label: "اطلاعات حساب", icon: User },
     { key: "orders", label: "سفارش‌ها", icon: Package, badge: orders.length },
     { key: "addresses", label: "آدرس‌ها", icon: MapPin, badge: addresses.length },
-    { key: "wallet", label: "کیف پول", icon: WalletIcon, highlight: formatPrice(walletBalance) },
+    // The wallet entry disappears entirely when the master switch is off —
+    // an operator who disabled the module does not want a dead tab in the menu.
+    ...(walletFeatures.enabled
+      ? [{ key: "wallet" as const, label: "کیف پول", icon: WalletIcon, highlight: formatPrice(walletBalance) }]
+      : []),
     { key: "cards", label: "کارت‌ها و اقساط", icon: CreditCard },
     { key: "referrals", label: "دعوت دوستان", icon: Users },
-    { key: "wishlist", label: "علاقه‌مندی‌ها", icon: Heart, badge: wishlist.length },
+    ...(shopFeatures.wishlist
+      ? [{ key: "wishlist" as const, label: "علاقه‌مندی‌ها", icon: Heart, badge: wishlist.length }]
+      : []),
     { key: "support", label: "تیکت‌های پشتیبانی", icon: Headphones, badge: tickets.length },
   ];
 
@@ -1256,12 +1231,14 @@ export function AccountDashboard({
             مدیریت مشخصات فردی، سفارش‌ها، آدرس‌ها و کیف پول
           </p>
         </div>
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 rounded-lg border bg-card px-3 py-1.5 text-sm">
-            <span className="text-xs text-muted-foreground">موجودی کیف پول:</span>
-            <span className="font-bold text-primary">{formatPrice(walletBalance)}</span>
+        {walletFeatures.enabled && (
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 rounded-lg border bg-card px-3 py-1.5 text-sm">
+              <span className="text-xs text-muted-foreground">موجودی کیف پول:</span>
+              <span className="font-bold text-primary">{formatPrice(walletBalance)}</span>
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-4">
@@ -1355,14 +1332,6 @@ export function AccountDashboard({
 
               <Separator className="my-3" />
               <Link
-                href="/account/subscriptions"
-                className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-              >
-                <Repeat className="h-4 w-4 shrink-0" />
-                <span>اشتراک‌های من</span>
-              </Link>
-
-              <Link
                 href="/account/notifications"
                 className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
               >
@@ -1386,35 +1355,15 @@ export function AccountDashboard({
                 <span>کدهای دیجیتال من</span>
               </Link>
 
-              {/* Route-based pages. Without these entries the cashback history
-                  and the seller dashboard existed but could only be reached by
-                  typing the URL — the same defect the admin nav guard exists to
-                  catch. */}
+              {/* Route-based pages. Without these entries the cashback
+                  history existed but could only be reached by typing the URL
+                  — the same defect the admin nav guard exists to catch. */}
               <Link
                 href="/account/cashback"
                 className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
               >
                 <Coins className="h-4 w-4 shrink-0" />
                 <span>کش‌بک من</span>
-              </Link>
-
-              <Link
-                href="/account/seller"
-                className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-              >
-                <Store className="h-4 w-4 shrink-0" />
-                <span>فروشندگی در بازارگاه</span>
-              </Link>
-
-              {/* Data-subject rights live on their own page rather than as a
-                  dashboard tab: filing an erasure takes a password and a
-                  confirmation, which is not a side-panel action. */}
-              <Link
-                href="/account/privacy"
-                className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-              >
-                <ShieldCheck className="h-4 w-4 shrink-0" />
-                <span>حریم خصوصی و داده‌های من</span>
               </Link>
 
               <button
@@ -1437,6 +1386,18 @@ export function AccountDashboard({
         {/* Main Content Area                                              */}
         {/* ============================================================== */}
         <div className="lg:col-span-3 space-y-6">
+
+          {/* The wallet tab can arrive selected via the /account/wallet deep
+              link while the master switch is off (the switch can also be
+              flipped after the tab was chosen). Falling through would leave the
+              whole panel blank, so retire the selection instead. */}
+          {activeTab === "wallet" && !walletFeatures.enabled && (
+            <div className="rounded-2xl border border-border/80 bg-card p-10 text-center">
+              <p className="text-sm text-muted-foreground">
+                کیف پول در حال حاضر غیرفعال است.
+              </p>
+            </div>
+          )}
 
           {/* ------------------------------------------------------------ */}
           {/* TAB 1: Profile Info & Change Password                        */}
@@ -1559,64 +1520,6 @@ export function AccountDashboard({
                       </div>
                     </div>
 
-                    <div className="space-y-1.5 sm:col-span-2">
-                      <Label htmlFor="email">پست الکترونیک (ایمیل)</Label>
-                      <div className="relative">
-                        <Input
-                          id="email"
-                          type="email"
-                          value={profileForm.email}
-                          onChange={(e) =>
-                            setProfileForm({ ...profileForm, email: e.target.value })
-                          }
-                          dir="ltr"
-                          className="pe-9 text-left font-mono"
-                          placeholder="name@example.com"
-                        />
-                        <Mail className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-                      </div>
-                      {pendingEmailChange ? (
-                        <p className="text-xs text-amber-600 dark:text-amber-400">
-                          درخواست تغییر به <span dir="ltr">{pendingEmailChange.new_email}</span> ثبت شده و
-                          منتظر تأیید است. ایمیل فعلی حساب شما همچنان{" "}
-                          <span dir="ltr">{user?.email || "—"}</span> است.
-                        </p>
-                      ) : emailDiffersFromSaved ? (
-                        <p className="text-xs text-muted-foreground">
-                          با ذخیره، لینک تأیید به این آدرس فرستاده می‌شود. ایمیل حساب شما تا پس از
-                          کلیک روی لینک تغییر نمی‌کند.
-                        </p>
-                      ) : null}
-                      {/* Verification status. A saved but unconfirmed address
-                          is where password resets go, so the user should see
-                          that state and be able to fix it without support. */}
-                      {!pendingEmailChange && !emailDiffersFromSaved && user?.email ? (
-                        user.is_verified ? (
-                          <p className="flex items-center gap-1 text-xs text-emerald-600 dark:text-emerald-400">
-                            <CheckCircle2 className="h-3.5 w-3.5" />
-                            ایمیل تأیید شده است.
-                          </p>
-                        ) : (
-                          <div className="flex flex-wrap items-center gap-2">
-                            <p className="text-xs text-amber-600 dark:text-amber-400">
-                              این ایمیل هنوز تأیید نشده است.
-                            </p>
-                            <Button
-                              type="button"
-                              variant="link"
-                              size="sm"
-                              className="h-auto p-0 text-xs"
-                              disabled={resendingVerification}
-                              onClick={() => void resendVerification()}
-                            >
-                              {resendingVerification
-                                ? "در حال ارسال…"
-                                : "ارسال پیوند تأیید"}
-                            </Button>
-                          </div>
-                        )
-                      ) : null}
-                    </div>
                   </div>
 
                   <div className="flex justify-end pt-2">
@@ -1814,56 +1717,6 @@ export function AccountDashboard({
                               </span>
                             </div>
                             <div className="flex items-center gap-2">
-                              {order.status === "delivered" && (() => {
-                                const eligibility = checkReturnEligibility("delivered", order.deliveredAt);
-                                if (eligibility.isEligible) {
-                                  return (
-                                    <Link href={`/returns/request?orderId=${order.id}`}>
-                                      <Button
-                                        variant="outline"
-                                        size="sm"
-                                        className="gap-1.5 text-xs text-amber-600 border-amber-500/30 hover:bg-amber-500/10"
-                                        title={`ثبت مرجوعی (${toPersianDigits(eligibility.daysRemaining)} روز از مهلت قانونی باقی مانده است)`}
-                                      >
-                                        <RotateCcw className="h-4 w-4" />
-                                        ثبت مرجوعی
-                                      </Button>
-                                    </Link>
-                                  );
-                                }
-                                return (
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    disabled
-                                    className="gap-1.5 text-xs text-muted-foreground opacity-60 cursor-not-allowed"
-                                    title="مهلت ۷ روزه مرجوعی منقضی شده است"
-                                  >
-                                    <RotateCcw className="h-4 w-4" />
-                                    مهلت ۷ روزه منقضی شده
-                                  </Button>
-                                );
-                              })()}
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handlePrintInvoice(order.id)}
-                                className="gap-1.5 text-xs"
-                                title="رسید سفارش — نسخه قابل چاپ"
-                              >
-                                <Printer className="h-4 w-4" />
-                                رسید سفارش
-                              </Button>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleOpenFiscalDocument(order.id)}
-                                className="gap-1.5 text-xs text-primary border-primary/20 hover:bg-primary/5"
-                                title="سند مالی رسمی با شماره و اثر انگشت دیجیتال"
-                              >
-                                <FileText className="h-4 w-4" />
-                                سند مالی رسمی
-                              </Button>
                               <Button
                                 variant="outline"
                                 size="sm"
@@ -2037,7 +1890,7 @@ export function AccountDashboard({
           {/* ------------------------------------------------------------ */}
           {/* TAB 4: Wallet & Transactions                                 */}
           {/* ------------------------------------------------------------ */}
-          {activeTab === "wallet" && (
+          {activeTab === "wallet" && walletFeatures.enabled && (
             <div className="space-y-6">
               {/* Wallet Hero Card */}
               <div className="relative overflow-hidden rounded-2xl bg-gradient-to-l from-primary/90 to-primary p-6 text-primary-foreground shadow-md">
@@ -2055,17 +1908,88 @@ export function AccountDashboard({
                     </p>
                   </div>
 
-                  <Button
-                    onClick={() => setIsDepositModalOpen(true)}
-                    variant="secondary"
-                    size="lg"
-                    className="gap-2 font-bold shadow-sm"
-                  >
-                    <Plus className="h-5 w-5" />
-                    افزایش موجودی (شارژ)
-                  </Button>
+                  <div className="flex flex-wrap gap-2">
+                    {walletFeatures.deposit && (
+                      <Button
+                        onClick={() => setIsDepositModalOpen(true)}
+                        variant="secondary"
+                        size="lg"
+                        className="gap-2 font-bold shadow-sm"
+                      >
+                        <Plus className="h-5 w-5" />
+                        افزایش موجودی (شارژ)
+                      </Button>
+                    )}
+                    {walletFeatures.transfer && (
+                      <Button
+                        onClick={() => setIsTransferModalOpen(true)}
+                        variant="outline"
+                        size="lg"
+                        className="gap-2 border-primary-foreground/40 bg-transparent font-bold text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground"
+                      >
+                        <Send className="h-5 w-5" />
+                        انتقال به کاربر
+                      </Button>
+                    )}
+                    {walletFeatures.withdraw && (
+                      <Button
+                        onClick={() => setIsWithdrawModalOpen(true)}
+                        variant="outline"
+                        size="lg"
+                        className="gap-2 border-primary-foreground/40 bg-transparent font-bold text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground"
+                      >
+                        <ArrowUpFromLine className="h-5 w-5" />
+                        درخواست برداشت
+                      </Button>
+                    )}
+                  </div>
                 </div>
               </div>
+
+              {/* Withdrawal requests */}
+              {walletFeatures.withdraw && withdrawals.length > 0 && (
+                <Card className="p-6">
+                  <div className="mb-4 border-b pb-4">
+                    <h2 className="text-lg font-semibold text-foreground">درخواست‌های برداشت</h2>
+                    <p className="text-xs text-muted-foreground">
+                      وضعیت درخواست‌های برداشت شما (پس از تأیید، واریز به‌صورت دستی انجام می‌شود)
+                    </p>
+                  </div>
+                  <div className="divide-y divide-border">
+                    {withdrawals.map((w) => {
+                      const labels: Record<string, string> = {
+                        pending_review: "در انتظار بررسی",
+                        approved: "تأییدشده (در انتظار واریز)",
+                        rejected: "ردشده",
+                        paid: "پرداخت‌شده",
+                      };
+                      const variants: Record<string, string> = {
+                        pending_review: "bg-amber-500/10 text-amber-600",
+                        approved: "bg-blue-500/10 text-blue-600",
+                        rejected: "bg-rose-500/10 text-rose-600",
+                        paid: "bg-emerald-500/10 text-emerald-600",
+                      };
+                      return (
+                        <div
+                          key={w.id}
+                          className="flex flex-col gap-2 py-3.5 sm:flex-row sm:items-center sm:justify-between"
+                        >
+                          <div>
+                            <p className="font-semibold text-sm text-foreground">
+                              {formatPrice(Math.trunc(w.amount / 10))}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {new Date(w.created_at).toLocaleDateString("fa-IR")}
+                              {w.admin_notes ? ` · ${w.admin_notes}` : ""}
+                            </p>
+                          </div>
+                          <Badge className={variants[w.status] ?? ""}>{labels[w.status] ?? w.status}</Badge>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </Card>
+              )}
 
               {/* Transactions List */}
               <Card className="p-6">
@@ -2094,7 +2018,12 @@ export function AccountDashboard({
                 ) : (
                   <div className="divide-y divide-border">
                     {transactions.map((tx) => {
-                      const isCredit = tx.type === "deposit" || tx.type === "refund";
+                      // Direction comes from the SIGN of the amount, which the
+                      // backend sets authoritatively (credit positive, debit
+                      // negative). Deriving it from the type string only knew
+                      // about deposit/refund, so a received P2P transfer
+                      // (transfer_in) rendered as a red debit.
+                      const isCredit = tx.amount >= 0;
                       return (
                         <div
                           key={tx.id}
@@ -2133,7 +2062,7 @@ export function AccountDashboard({
                               }`}
                             >
                               {isCredit ? "+ " : "- "}
-                              {formatPrice(tx.amount)}
+                              {formatPrice(Math.abs(tx.amount))}
                             </span>
                             <Badge
                               variant={
@@ -2174,7 +2103,7 @@ export function AccountDashboard({
           {/* ------------------------------------------------------------ */}
           {/* TAB 6: Wishlist                                              */}
           {/* ------------------------------------------------------------ */}
-          {activeTab === "wishlist" && (
+          {activeTab === "wishlist" && shopFeatures.wishlist && (
             <Card className="p-6">
               <div className="mb-6 flex items-center justify-between border-b pb-4">
                 <div>
@@ -2417,7 +2346,7 @@ export function AccountDashboard({
                 </div>
               </div>
 
-              {/* 4-Step Shipment Tracking Stepper & RMA Integration (Sprint 3 Phase 2) */}
+              {/* 4-Step Shipment Tracking Stepper (Sprint 3 Phase 2) */}
               {selectedOrderForTracking.status === "canceled" ? (
                 <div className="flex items-center gap-3 rounded-lg bg-destructive/10 p-4 text-destructive text-sm">
                   <AlertCircle className="h-5 w-5 shrink-0" />
@@ -2430,12 +2359,8 @@ export function AccountDashboard({
                 </div>
               ) : (
                 <ShipmentStepper
-                  orderId={selectedOrderForTracking.id}
                   trackingCode={selectedOrderForTracking.trackingCode}
-                  carrier="شرکت ملی پست ایران (پیشتاز)"
                   status={selectedOrderForTracking.status}
-                  deliveredAt={selectedOrderForTracking.deliveredAt}
-                  showRmaAction={true}
                 />
               )}
 
@@ -2459,16 +2384,6 @@ export function AccountDashboard({
             >
               بستن
             </Button>
-            {selectedOrderForTracking && (
-              <Button
-                variant="default"
-                onClick={() => handlePrintInvoice(selectedOrderForTracking.id)}
-                className="w-full sm:w-auto gap-2"
-              >
-                <Printer className="h-4 w-4" />
-                چاپ فاکتور رسمی
-              </Button>
-            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -2683,18 +2598,6 @@ export function AccountDashboard({
                   <Building2 className="h-4 w-4" />
                   درگاه شاپرک - زرین‌پال
                 </button>
-                <button
-                  type="button"
-                  onClick={() => setDepositGateway("idpay")}
-                  className={`flex items-center gap-2.5 rounded-lg border p-3 text-xs font-semibold transition-all ${
-                    depositGateway === "idpay"
-                      ? "border-primary bg-primary/5 text-primary"
-                      : "border-border hover:border-border/80 text-foreground"
-                  }`}
-                >
-                  <Building2 className="h-4 w-4" />
-                  درگاه پرداخت آی‌دی‌پی
-                </button>
               </div>
             </div>
 
@@ -2709,6 +2612,143 @@ export function AccountDashboard({
               <Button type="submit" disabled={isDepositing} className="gap-2">
                 {isDepositing ? "در حال اتصال..." : "ورود به درگاه پرداخت"}
                 <ExternalLink className="h-4 w-4" />
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* ============================================================== */}
+      {/* MODAL: Wallet Transfer (P2P)                                   */}
+      {/* ============================================================== */}
+      <Dialog open={isTransferModalOpen} onOpenChange={setIsTransferModalOpen}>
+        <DialogContent className="max-w-md" dir="rtl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Send className="h-5 w-5 text-primary" />
+              انتقال موجودی به کاربر دیگر
+            </DialogTitle>
+            <DialogDescription>
+              مبلغ را به کیف پول کاربر دیگری (بر اساس شماره موبایل) منتقل کنید.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleTransferSubmit} className="space-y-4 py-2">
+            <div className="space-y-1.5">
+              <Label htmlFor="transferPhone">شماره موبایل گیرنده</Label>
+              <Input
+                id="transferPhone"
+                value={transferForm.recipient_phone}
+                onChange={(e) => setTransferForm((f) => ({ ...f, recipient_phone: e.target.value }))}
+                placeholder="مثلاً: ۰۹۱۲۳۴۵۶۷۸۹"
+                className="font-mono text-left"
+                dir="ltr"
+                required
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="transferAmount">مبلغ (تومان)</Label>
+              <Input
+                id="transferAmount"
+                value={transferForm.amount ? Number(toEnglishDigits(transferForm.amount)).toLocaleString("fa-IR") : ""}
+                onChange={(e) =>
+                  setTransferForm((f) => ({ ...f, amount: toEnglishDigits(e.target.value).replace(/\D/g, "") }))
+                }
+                placeholder="مثلاً: ۵۰,۰۰۰"
+                className="font-bold text-lg text-left font-mono"
+                dir="ltr"
+                required
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="transferNote">توضیح (اختیاری)</Label>
+              <Textarea
+                id="transferNote"
+                value={transferForm.note}
+                onChange={(e) => setTransferForm((f) => ({ ...f, note: e.target.value }))}
+                placeholder="مثلاً: تسویه حساب"
+                rows={2}
+              />
+            </div>
+            <DialogFooter className="pt-4">
+              <Button type="button" variant="outline" onClick={() => setIsTransferModalOpen(false)}>
+                انصراف
+              </Button>
+              <Button type="submit" disabled={isTransferring} className="gap-2">
+                {isTransferring ? "در حال انتقال..." : "انتقال"}
+                <Send className="h-4 w-4" />
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* ============================================================== */}
+      {/* MODAL: Wallet Withdrawal request                               */}
+      {/* ============================================================== */}
+      <Dialog open={isWithdrawModalOpen} onOpenChange={setIsWithdrawModalOpen}>
+        <DialogContent className="max-w-md" dir="rtl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <ArrowUpFromLine className="h-5 w-5 text-primary" />
+              درخواست برداشت از کیف پول
+            </DialogTitle>
+            <DialogDescription>
+              مبلغ تا بررسی و تأیید مدیریت بلوکه می‌شود و سپس به‌صورت دستی به حساب شما واریز می‌گردد.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleWithdrawSubmit} className="space-y-4 py-2">
+            <div className="space-y-1.5">
+              <Label htmlFor="withdrawAmount">مبلغ برداشت (تومان)</Label>
+              <Input
+                id="withdrawAmount"
+                value={withdrawForm.amount ? Number(toEnglishDigits(withdrawForm.amount)).toLocaleString("fa-IR") : ""}
+                onChange={(e) =>
+                  setWithdrawForm((f) => ({ ...f, amount: toEnglishDigits(e.target.value).replace(/\D/g, "") }))
+                }
+                placeholder="مثلاً: ۱۰۰,۰۰۰"
+                className="font-bold text-lg text-left font-mono"
+                dir="ltr"
+                required
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="withdrawIban">شماره شبا (IR...)</Label>
+              <Input
+                id="withdrawIban"
+                value={withdrawForm.iban}
+                onChange={(e) => setWithdrawForm((f) => ({ ...f, iban: e.target.value }))}
+                placeholder="IR000000000000000000000000"
+                className="font-mono text-left"
+                dir="ltr"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="withdrawCard">یا شماره کارت</Label>
+              <Input
+                id="withdrawCard"
+                value={withdrawForm.card_number}
+                onChange={(e) => setWithdrawForm((f) => ({ ...f, card_number: toEnglishDigits(e.target.value).replace(/\D/g, "") }))}
+                placeholder="۶۰۳۷۹۹۱۲۳۴۵۶۷۸۹۰"
+                className="font-mono text-left"
+                dir="ltr"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="withdrawHolder">نام صاحب حساب</Label>
+              <Input
+                id="withdrawHolder"
+                value={withdrawForm.account_holder_name}
+                onChange={(e) => setWithdrawForm((f) => ({ ...f, account_holder_name: e.target.value }))}
+                placeholder="نام و نام خانوادگی"
+              />
+            </div>
+            <DialogFooter className="pt-4">
+              <Button type="button" variant="outline" onClick={() => setIsWithdrawModalOpen(false)}>
+                انصراف
+              </Button>
+              <Button type="submit" disabled={isWithdrawing} className="gap-2">
+                {isWithdrawing ? "در حال ثبت..." : "ثبت درخواست"}
+                <ArrowUpFromLine className="h-4 w-4" />
               </Button>
             </DialogFooter>
           </form>

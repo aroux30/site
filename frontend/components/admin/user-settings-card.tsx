@@ -5,8 +5,8 @@
  *
  * Both were previously absent, which meant registration was always open and
  * every new account was a `customer` with no way to change either. A store in
- * pre-launch needs the first off; a wholesale shop that only takes accounts
- * from businesses needs the second set.
+ * pre-launch needs the first off; an invite-only shop that vets new accounts
+ * needs the second set.
  *
  * The default-role field is a text input rather than a picker of roles on
  * purpose: the server refuses a privileged slug, and a dropdown full of

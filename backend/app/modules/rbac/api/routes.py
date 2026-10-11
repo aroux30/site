@@ -4,6 +4,12 @@ from __future__ import annotations
 
 import uuid
 
+# Runtime import, not TYPE_CHECKING: FastAPI evaluates the annotations below
+# with get_type_hints, and a name it cannot resolve makes it read the
+# parameter as a query parameter instead of a dependency. See
+# scripts/check_endpoint_annotations.py.
+from typing import Any
+
 from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 

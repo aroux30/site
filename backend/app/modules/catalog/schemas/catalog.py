@@ -15,6 +15,7 @@ from pydantic import (
     BaseModel,
     ConfigDict,
     Field,
+    ValidationInfo,
     field_validator,
     model_validator,
 )
@@ -458,17 +459,27 @@ class VariantResponse(BaseModel):
 
     @field_validator("price", mode="before")
     @classmethod
-    def convert_price(cls, v: int | None) -> int | None:
+    def convert_price(cls, v: int | None, info: ValidationInfo) -> int | None:
+        # context={"already_toman": True} marks values that came back from
+        # our own cache (serialized AFTER conversion) — re-running the
+        # Rial→Toman conversion on them divided prices by 10 a second time
+        # on every cache hit.
+        if info.context and info.context.get("already_toman"):
+            return v
         return rial_to_toman(v)
 
     @field_validator("compare_at_price", mode="before")
     @classmethod
-    def convert_compare_price(cls, v: int | None) -> int | None:
+    def convert_compare_price(cls, v: int | None, info: ValidationInfo) -> int | None:
+        if info.context and info.context.get("already_toman"):
+            return v
         return rial_to_toman(v)
 
     @field_validator("cost", mode="before")
     @classmethod
-    def convert_cost(cls, v: int | None) -> int | None:
+    def convert_cost(cls, v: int | None, info: ValidationInfo) -> int | None:
+        if info.context and info.context.get("already_toman"):
+            return v
         return rial_to_toman(v)
 
 
@@ -638,6 +649,18 @@ class ProductDetailResponse(BaseModel):
     seo_title: str | None = None
     seo_description: str | None = None
     meta_keywords: str | None = None
+    # The PDP reads this for og:image and the Product JSON-LD image. The
+    # list schema always had it; the detail schema did not, so every product
+    # page shipped no share image (found live 2026-10-10, SEO audit).
+    # Filled by `_to_detail_response` from the eagerly-loaded images.
+    primary_image_url: str | None = None
+    # Price range from active variants, in Toman at the boundary (same
+    # convention as ProductResponse). The PDP's Product JSON-LD builds its
+    # Offer price from min_price; without these fields the schema shipped
+    # "price": 0 on every product (Google rejects a zero-priced offer) while
+    # the page displayed the real price.
+    min_price: int | None = None
+    max_price: int | None = None
     created_at: datetime
     updated_at: datetime
     # Related objects
@@ -682,11 +705,6 @@ class ProductFilterParams(BaseModel):
     page: int = Field(1, ge=1)
     page_size: int = Field(20, ge=1, le=100)
     cursor: str | None = Field(None, description="Cursor for cursor-based pagination")
-
-
-# ============================================================================
-# Vendor Schemas (re-exported from vendors module)
-# ============================================================================
 
 
 # ── Cross-sell / Accessories (Odoo website_sale concept, clean-room) ───────

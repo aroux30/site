@@ -85,7 +85,6 @@ const FINANCIAL_ENDPOINTS = [
   "/cart/checkout",
   "/cashback",
   "/discounts",
-  "/admin/inventory/transfers",
 ];
 
 /**
@@ -93,6 +92,12 @@ const FINANCIAL_ENDPOINTS = [
  * read-only endpoint that the backend answers with 401 — the browser is
  * checking whether a session exists. These are expected control flow, not
  * failures, so they log at debug instead of error.
+ *
+ * `/auth/me` and `/notifications/notices/active` belong to this class too:
+ * a visitor with no session cookie gets a 401 by design, and the components
+ * that call them (header, admin bar, notice banner) render the guest state
+ * from it. Logging those at error level filled the console with expected
+ * traffic and buried real failures.
  */
 function isGuestSessionProbe(
   method: string,
@@ -100,7 +105,33 @@ function isGuestSessionProbe(
   status: number,
 ): boolean {
   if (method !== "GET" || status !== 401) return false;
-  return /\/(catalog|products|categories|search|content)\b/.test(url);
+  return (
+    /\/(auth\/me|auth\/refresh)\b/.test(url) ||
+    /\/notifications\/notices\/active\b/.test(url) ||
+    /\/(catalog|products|categories|search|content)\b/.test(url)
+  );
+}
+
+/**
+ * Whether a session could exist at all, judged from what the browser can see.
+ *
+ * The auth cookies are HttpOnly, so JS cannot read them; the persisted Zustand
+ * store is the only client-side signal that a user ever signed in. A visitor
+ * who has never logged in has no signal, and firing the refresh cascade for
+ * them is what destroyed the guest cart: `/auth/me` 401 → refresh attempt 401
+ * → `sessionStore.clearSessionId()`, which wiped `cart_session_id` on every
+ * page load and made the guest cart start over each time.
+ */
+export function mayHaveSession(): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    const raw = window.localStorage.getItem("auth-storage");
+    if (!raw) return false;
+    const parsed = JSON.parse(raw) as { state?: { isAuthenticated?: boolean } };
+    return Boolean(parsed?.state?.isAuthenticated);
+  } catch {
+    return false;
+  }
 }
 
 apiClient.interceptors.request.use(
@@ -269,13 +300,17 @@ apiClient.interceptors.response.use(
     // admin sessions mid-navigation (admin panel bounce bug).
     const isSessionCheck = originalRequest?.url?.includes("/auth/me");
 
-    // If 401 and not already retrying, attempt token refresh
+    // If 401 and not already retrying, attempt token refresh. Only for a
+    // caller that could plausibly hold a session: a visitor who never signed
+    // in has no cookies to refresh, and the attempt's own 401 used to clear
+    // the guest cart session id on every page load (see mayHaveSession).
     if (
       originalRequest &&
       error.response?.status === 401 &&
       !originalRequest._retry &&
       !isAuthEndpoint &&
-      isSessionCheck
+      isSessionCheck &&
+      mayHaveSession()
     ) {
       if (isRefreshing) {
         return new Promise((resolve, reject) => {

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Layout, RefreshCw, Plus, Menu, HelpCircle, Trash2, ChevronUp, ChevronDown, ArrowUp, ArrowDown } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -19,6 +19,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useToast } from "@/components/ui/use-toast";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 import apiClient from "@/lib/api/client";
 import {
   singleTypesAdminApi,
@@ -26,7 +27,7 @@ import {
   type HomepageConfig,
   type HeaderMenuConfig,
 } from "@/lib/api/content";
-import { Settings2, Megaphone, MousePointerClick, Monitor, Palette } from "lucide-react";
+import { Settings2, Megaphone, MousePointerClick } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -74,6 +75,7 @@ interface FAQItem {
 
 export default function AdminCMSPage() {
   const { toast } = useToast();
+  const confirm = useConfirm();
 
   // Block create/edit
   const [blockOpen, setBlockOpen] = useState(false);
@@ -172,7 +174,13 @@ export default function AdminCMSPage() {
   };
 
   const deleteFaq = async (f: FAQItem) => {
-    if (!confirm(`سوال «${f.question}» حذف شود؟`)) return;
+    const ok = await confirm({
+      title: "حذف سوال",
+      description: `سوال «${f.question}» حذف شود؟`,
+      confirmLabel: "حذف",
+      destructive: true,
+    });
+    if (!ok) return;
     try {
       await apiClient.delete(`/content/admin/faqs/${f.id}`);
       fetchData();
@@ -263,7 +271,13 @@ export default function AdminCMSPage() {
   };
 
   const deleteBlock = async (b: HomepageBlock) => {
-    if (!confirm(`بلوک «${b.title}» حذف شود؟`)) return;
+    const ok = await confirm({
+      title: "حذف بلوک",
+      description: `بلوک «${b.title}» حذف شود؟`,
+      confirmLabel: "حذف",
+      destructive: true,
+    });
+    if (!ok) return;
     try {
       await apiClient.delete(`/content/admin/blocks/${b.id}`);
       fetchData();
@@ -469,127 +483,6 @@ export default function AdminCMSPage() {
 }
 
 
-/** ویرایشگر توکن‌های تم (single type "theme") — رنگ‌ها با اعتبارسنجی hex در سرور. */
-function ThemeEditor() {
-  const { toast } = useToast();
-  const [colors, setColors] = useState<Record<string, string> | null>(null);
-  const [saving, setSaving] = useState(false);
-  const iframeRef = React.useRef<HTMLIFrameElement>(null);
-
-  const COLOR_KEYS = ["primary", "secondary", "accent", "background", "surface", "text", "muted"] as const;
-  const COLOR_LABELS: Record<string, string> = {
-    primary: "اصلی", secondary: "ثانویه", accent: "تأکیدی", background: "پس‌زمینه",
-    surface: "سطح", text: "متن", muted: "محو",
-  };
-
-  useEffect(() => {
-    let mounted = true;
-    (async () => {
-      try {
-        const res = await singleTypesApi.getTheme();
-        if (mounted) setColors(res.value?.colors ?? null);
-      } catch {
-        // theme single type optional
-      }
-    })();
-    return () => { mounted = false; };
-  }, []);
-
-  // Live preview: stream the current colors into the storefront iframe
-  // (ThemePreviewBridge applies them as CSS vars). Debounced so dragging a
-  // color picker doesn't post on every pixel; the iframe never reloads.
-  //
-  // "load" of the iframe races the first postMessage: the bridge listener
-  // mounts after hydration, so early messages are lost. Re-posting on the
-  // iframe's onLoad (below) covers the first paint; the effect covers edits.
-  useEffect(() => {
-    if (!colors) return;
-    const t = setTimeout(() => {
-      iframeRef.current?.contentWindow?.postMessage(
-        { type: "theme-preview", tokens: { colors } },
-        window.location.origin,
-      );
-    }, 250);
-    return () => clearTimeout(t);
-  }, [colors]);
-
-  const save = async () => {
-    if (!colors) return;
-    setSaving(true);
-    try {
-      const current = await singleTypesApi.getTheme();
-      const next = { ...(current.value ?? { name: "default" }), colors };
-      await singleTypesAdminApi.upsert("theme", next);
-      toast({ title: "تم ذخیره شد", description: "رنگ‌ها بدون دیپلوی روی فروشگاه اعمال می‌شوند" });
-    } catch (err: unknown) {
-      const detail = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail;
-      toast({ title: "خطا", description: detail ?? "رنگ باید در قالب #RRGGBB باشد", variant: "destructive" });
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  if (!colors) return null;
-
-  return (
-    <div className="space-y-3 mb-4">
-      <div className="flex items-center gap-2 text-sm font-medium">
-        <Palette className="h-4 w-4 text-primary" />
-        رنگ‌های تم
-      </div>
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-        {COLOR_KEYS.map((k) => (
-          <div key={k} className="space-y-1">
-            <label className="text-xs text-muted-foreground">{COLOR_LABELS[k]}</label>
-            <div className="flex items-center gap-1">
-              <input
-                type="color"
-                value={colors[k] ?? "#000000"}
-                onChange={(e) => setColors({ ...colors, [k]: e.target.value })}
-                className="h-8 w-8 cursor-pointer rounded border border-input bg-transparent"
-              />
-              <Input
-                dir="ltr"
-                value={colors[k] ?? ""}
-                onChange={(e) => setColors({ ...colors, [k]: e.target.value })}
-                className="h-8 font-mono text-xs"
-              />
-            </div>
-          </div>
-        ))}
-      </div>
-      <Button size="sm" variant="outline" onClick={save} disabled={saving}>
-        {saving ? "در حال ذخیره..." : "ذخیره تم"}
-      </Button>
-
-      {/* Live storefront preview — same-origin iframe; the postMessage above
-          recolors it without a reload (WordPress customizer parity). */}
-      <div className="overflow-hidden rounded-lg border border-border">
-        <div className="flex items-center gap-2 border-b border-border bg-muted/40 px-3 py-1.5 text-[11px] text-muted-foreground">
-          <Monitor className="h-3.5 w-3.5" />
-          پیش‌نمایش زنده فروشگاه
-        </div>
-        <iframe
-          ref={iframeRef}
-          src="/"
-          title="پیش‌نمایش زنده فروشگاه"
-          className="h-[420px] w-full border-0 bg-background"
-          onLoad={() => {
-            // Re-apply on (re)load: hydration finished by the time this
-            // fires, so the bridge listener is guaranteed to exist.
-            if (colors) {
-              iframeRef.current?.contentWindow?.postMessage(
-                { type: "theme-preview", tokens: { colors } },
-                window.location.origin,
-              );
-            }
-          }}
-        />
-      </div>
-    </div>
-  );
-}
-
 /** تایپ‌های تکی (Strapi-style): پیکربندی صفحه اصلی و هدر. */
 function SingleTypesCard() {
   const { toast } = useToast();
@@ -667,7 +560,6 @@ function SingleTypesCard() {
         <Settings2 className="h-4 w-4" />
         تایپ‌های تکی (پیکربندی)
       </h3>
-      <ThemeEditor />
       <div className="space-y-3">
         <div className="flex items-center justify-between rounded-lg border p-3">
           <div className="flex items-center gap-2">
@@ -711,6 +603,7 @@ function SingleTypesCard() {
 /** منوساز درختی: نمایش و افزودن آیتم‌های ناوبری هر موقعیت. */
 function MenuBuilderCard() {
   const { toast } = useToast();
+  const confirm = useConfirm();
   const [location, setLocation] = useState<string>("header_main");
 
   // The location list: built-ins plus whatever is in use. Fetched rather than
@@ -865,7 +758,13 @@ function MenuBuilderCard() {
   };
 
   const deleteItem = async (item: MenuItem) => {
-    if (!confirm(`آیتم «${item.title}» حذف شود؟`)) return;
+    const ok = await confirm({
+      title: "حذف آیتم",
+      description: `آیتم «${item.title}» حذف شود؟`,
+      confirmLabel: "حذف",
+      destructive: true,
+    });
+    if (!ok) return;
     try {
       await apiClient.delete(`/content/admin/menus/${item.id}`);
       fetchMenu();

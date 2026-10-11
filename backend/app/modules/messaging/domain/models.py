@@ -31,11 +31,12 @@ if TYPE_CHECKING:
 
 
 class CampaignChannel(enum.StrEnum):
-    """Supported broadcast communication channels."""
+    """Supported broadcast communication channels.
+
+    ``EMAIL`` was removed on 2026-10-07 with the rest of the email feature.
+    """
 
     SMS = "sms"
-    EMAIL = "email"
-    PUSH = "push"
     IN_APP = "in_app"
 
 

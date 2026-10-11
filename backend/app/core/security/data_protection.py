@@ -3,7 +3,6 @@
 Conforms to Evidence-Gated Production Hardening Master Task v3.0 Phase 10:
 - Phone number masking
 - National code / ID masking
-- Email redaction
 - IBAN and Card PAN masking
 - Dictionary-level recursive audit redaction
 """
@@ -50,22 +49,7 @@ def mask_national_code(code: str | None) -> str:
     return "****"
 
 
-def mask_email(email: str | None) -> str:
-    """Mask an email address while preserving domain context.
-
-    Example:
-        'johndoe@example.com' -> 'j***e@example.com'
-        'a@b.com' -> '*@b.com'
-    """
-    if not email or "@" not in email:
-        return ""
-    local_part, domain = email.split("@", 1)
-    if len(local_part) <= 2:
-        masked_local = f"{local_part[0]}*" if local_part else "*"
-    else:
-        masked_local = f"{local_part[0]}***{local_part[-1]}"
-    return f"{masked_local}@{domain}"
-
+# `mask_email` was removed on 2026-10-07 with the rest of the email feature.
 
 def mask_iban(iban: str | None) -> str:
     """Mask an Iranian IBAN (Sheba number).

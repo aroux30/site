@@ -2,9 +2,11 @@
 
 import { useCallback, useEffect } from "react";
 import { useCartStore, type CartItem } from "@/stores/cart-store";
+import { useTaxRatePercent } from "@/lib/tax-rate";
 
 export function useCart() {
   const store = useCartStore();
+  const taxRatePercent = useTaxRatePercent();
 
   // Rehydrate persisted state on mount (skipHydration: true in store config)
   useEffect(() => {
@@ -108,26 +110,27 @@ export function useCart() {
     const itemCount = store.totalItems;
     const subtotal = store.subtotal || store.totalPrice;
     const discount = store.couponDiscount || 0;
-    // Free shipping threshold: 500,000 Tomans (seed: free_shipping_min_toman)
-    const freeShippingEligible = subtotal >= 500000;
-    const shipping = subtotal === 0 ? 0 : freeShippingEligible ? 0 : 50000;
-    // VAT estimate matching the server formula (TaxService: 10% of
-    // subtotal − discount, computed in Rials) — QA B25: tax used to be
-    // invisible until the gateway charged more than the displayed total.
-    const tax = Math.round((Math.max(subtotal - discount, 0) * 10 * 1000) / 10000 / 10);
-    const total = Math.max(0, subtotal - discount + shipping + tax);
+    // VAT estimate matching the server formula: (amount_rial × basis_points)
+    // // 10000 with basis_points = rate × 100, computed in Rials — QA B25:
+    // tax used to be invisible until the gateway charged more than the
+    // displayed total. The rate comes from the single admin settings field
+    // (the tax engine and its hard-coded 10% were removed 2026-10-09).
+    const tax = Math.round(
+      (Math.max(subtotal - discount, 0) * taxRatePercent * 1000) / 10000 / 10,
+    );
+    // Shipping is never estimated client-side: the authoritative cost comes
+    // from the server quote at checkout (province + weight + store rates).
+    const total = Math.max(0, subtotal - discount + tax);
 
     return {
       itemCount,
       subtotal,
       discount,
-      shipping,
       tax,
+      taxRatePercent,
       total,
-      freeShippingEligible,
-      freeShippingRemaining: Math.max(0, 500000 - subtotal),
     };
-  }, [store.totalItems, store.subtotal, store.totalPrice, store.couponDiscount]);
+  }, [store.totalItems, store.subtotal, store.totalPrice, store.couponDiscount, taxRatePercent]);
 
   return {
     cartId: store.cartId,
@@ -141,6 +144,7 @@ export function useCart() {
     isLoading: store.isLoading,
     isSyncing: store.isSyncing,
     error: store.error,
+    taxRatePercent,
     addToCart,
     removeFromCart,
     updateItemQuantity,

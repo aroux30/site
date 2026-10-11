@@ -208,10 +208,17 @@ class SupportService:
         db: AsyncSession,
         user_id: uuid.UUID | None = None,
         status: TicketStatus | None = None,
+        priority: TicketPriority | None = None,
+        search: str | None = None,
         skip: int = 0,
         limit: int = 20,
     ) -> tuple[list[SupportTicket], int]:
-        """Return paginated tickets, optionally filtered by user and status."""
+        """Return paginated tickets, optionally filtered by user/status/priority.
+
+        ``search`` matches the ticket number or the subject (server-side —
+        the old admin page filtered only the current page in the browser,
+        so a ticket on page 2 was unfindable).
+        """
         base = select(SupportTicket)
         count_base = select(func.count()).select_from(SupportTicket)
 
@@ -223,10 +230,142 @@ class SupportService:
             base = base.where(SupportTicket.status == status)
             count_base = count_base.where(SupportTicket.status == status)
 
+        if priority is not None:
+            base = base.where(SupportTicket.priority == priority)
+            count_base = count_base.where(SupportTicket.priority == priority)
+
+        if search and search.strip():
+            term = f"%{search.strip()}%"
+            condition = SupportTicket.ticket_number.ilike(term) | SupportTicket.subject.ilike(term)
+            base = base.where(condition)
+            count_base = count_base.where(condition)
+
         total = (await db.execute(count_base)).scalar_one()
         stmt = base.order_by(SupportTicket.created_at.desc()).offset(skip).limit(limit)
         result = await db.execute(stmt)
         return list(result.scalars().all()), total
+
+    @staticmethod
+    async def admin_ticket_stats(db: AsyncSession) -> dict[str, Any]:
+        """Whole-table per-status counts + urgency/ownership extras.
+
+        One GROUP BY per dimension (not one query per status): the admin
+        board renders every column header at once. Zero-fill the enum so the
+        UI receives every status even when no ticket carries it.
+        """
+        status_rows = await db.execute(
+            select(SupportTicket.status, func.count(SupportTicket.id)).group_by(
+                SupportTicket.status
+            )
+        )
+        by_status = {status.value: int(count) for status, count in status_rows}
+
+        urgent_open = (
+            await db.execute(
+                select(func.count())
+                .select_from(SupportTicket)
+                .where(
+                    SupportTicket.priority == TicketPriority.URGENT,
+                    SupportTicket.status.notin_([TicketStatus.RESOLVED, TicketStatus.CLOSED]),
+                )
+            )
+        ).scalar_one()
+        unassigned = (
+            await db.execute(
+                select(func.count())
+                .select_from(SupportTicket)
+                .where(
+                    SupportTicket.assigned_to.is_(None),
+                    SupportTicket.status.notin_([TicketStatus.RESOLVED, TicketStatus.CLOSED]),
+                )
+            )
+        ).scalar_one()
+
+        statuses = [
+            {"status": member.value, "count": by_status.get(member.value, 0)}
+            for member in TicketStatus
+        ]
+        return {
+            "by_status": statuses,
+            "total_tickets": sum(entry["count"] for entry in statuses),
+            "urgent_open": int(urgent_open),
+            "unassigned": int(unassigned),
+        }
+
+    @staticmethod
+    async def enrich_admin_ticket_rows(db: AsyncSession, tickets: list[SupportTicket]) -> list[dict[str, Any]]:
+        """Attach customer identity and thread stats to admin list rows.
+
+        The admin list previously showed a raw user UUID and nothing else —
+        an operator could not tell who was writing. Two batched queries (no
+        N+1): one for the users' phones + profiles, one for per-ticket
+        message counts + the newest message preview.
+        """
+        from app.modules.users.domain.models import User, UserProfile
+
+        if not tickets:
+            return []
+
+        ticket_ids = [t.id for t in tickets]
+        user_ids = {t.user_id for t in tickets}
+
+        # Customer identity: phone from users, name from the joined profile
+        # (names do NOT live on the user row — the same bug the orders admin
+        # had: reading user.first_name returned None forever).
+        user_rows = await db.execute(
+            select(User.id, User.phone, UserProfile.first_name, UserProfile.last_name, UserProfile.display_name)
+            .outerjoin(UserProfile, UserProfile.user_id == User.id)
+            .where(User.id.in_(user_ids))
+        )
+        identity: dict[uuid.UUID, tuple[str | None, str | None]] = {}
+        for uid, phone, first, last, display in user_rows:
+            name = " ".join(n for n in (first, last) if n).strip() or display or None
+            identity[uid] = (name, phone)
+
+        # Thread stats: count per ticket + newest message per ticket.
+        counts_rows = await db.execute(
+            select(TicketMessage.ticket_id, func.count(TicketMessage.id))
+            .where(TicketMessage.ticket_id.in_(ticket_ids))
+            .group_by(TicketMessage.ticket_id)
+        )
+        counts = {tid: int(c) for tid, c in counts_rows}
+
+        # Newest message per ticket: window function keeps it to one query.
+        from sqlalchemy import desc
+
+        newest_rows = await db.execute(
+            select(TicketMessage.ticket_id, TicketMessage.body, TicketMessage.created_at)
+            .where(TicketMessage.ticket_id.in_(ticket_ids))
+            .order_by(TicketMessage.ticket_id, desc(TicketMessage.created_at))
+            .distinct(TicketMessage.ticket_id)
+        )
+        newest: dict[uuid.UUID, tuple[str, Any]] = {}
+        for tid, body, created in newest_rows:
+            newest[tid] = (body, created)
+
+        enriched: list[dict[str, Any]] = []
+        for ticket in tickets:
+            name, phone = identity.get(ticket.user_id, (None, None))
+            last = newest.get(ticket.id)
+            enriched.append(
+                {
+                    "id": ticket.id,
+                    "user_id": ticket.user_id,
+                    "subject": ticket.subject,
+                    "status": ticket.status,
+                    "priority": ticket.priority,
+                    "assigned_to": ticket.assigned_to,
+                    "ticket_number": ticket.ticket_number,
+                    "created_at": ticket.created_at,
+                    "updated_at": ticket.updated_at,
+                    "customer_name": name,
+                    "customer_phone": phone,
+                    "messages_count": counts.get(ticket.id, 0),
+                    "last_message_preview": (last[0][:120] if last and last[0] else None),
+                    "last_message_at": last[1] if last else None,
+                }
+            )
+        return enriched
 
     # ── Public Contact Form ───────────────────────────────────────────
 
@@ -235,7 +374,6 @@ class SupportService:
         db: AsyncSession,
         *,
         name: str,
-        email: str,
         subject: str,
         message: str,
     ) -> ContactMessage:
@@ -246,7 +384,6 @@ class SupportService:
         """
         contact = ContactMessage(
             name=name.strip(),
-            email=email.strip().lower(),
             subject=subject.strip(),
             message=message.strip(),
             is_read=False,
@@ -257,6 +394,5 @@ class SupportService:
         await logger.ainfo(
             "contact_message_created",
             contact_id=str(contact.id),
-            email=contact.email,
         )
         return contact

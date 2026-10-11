@@ -295,7 +295,6 @@ erDiagram
         uuid id PK
         uuid product_id FK
         uuid variant_id FK "nullable"
-        uuid warehouse_id FK
         int quantity "current available stock"
         int reserved_quantity "reserved for pending orders"
         int low_stock_threshold
@@ -328,21 +327,6 @@ erDiagram
         timestamp created_at
     }
 
-    WAREHOUSE {
-        uuid id PK
-        string name
-        string code UK
-        string address
-        string city
-        string province
-        boolean is_active
-        boolean is_default
-        int priority "for stock allocation"
-        timestamp created_at
-        timestamp updated_at
-    }
-
-    STOCK_ITEM }o--|| WAREHOUSE : "stored in"
     STOCK_ITEM ||--o{ STOCK_RESERVATION : reserves
     STOCK_ITEM ||--o{ STOCK_MOVEMENT : tracks
 ```
@@ -600,7 +584,7 @@ erDiagram
 erDiagram
     SHIPPING_METHOD {
         uuid id PK
-        string name "e.g. Post, Tipax, Express"
+        string name "e.g. Express post, Local courier"
         string code UK
         string provider "integration provider"
         text description
@@ -609,8 +593,6 @@ erDiagram
         bigint base_cost
         int estimated_days_min
         int estimated_days_max
-        boolean is_free_eligible "can be free with conditions"
-        bigint free_shipping_threshold "minimum order for free shipping"
         timestamp created_at
         timestamp updated_at
     }
@@ -733,7 +715,7 @@ erDiagram
         string code UK
         string name
         text description
-        enum type "PERCENTAGE | FIXED_AMOUNT | FREE_SHIPPING"
+        enum type "PERCENTAGE | FIXED_AMOUNT"
         bigint discount_value "percentage (e.g. 20) or fixed amount in Rials"
         bigint max_discount_amount "cap for percentage discounts"
         bigint min_order_amount "minimum order to apply"
@@ -1090,10 +1072,9 @@ erDiagram
 |                 | ProductImage              | `products.product_images`     | Product photo gallery                    |
 |                 | ProductAttribute          | `products.product_attributes` | Dynamic product specifications           |
 |                 | ProductTag                | `products.product_tags`       | Searchable tags                          |
-| **Inventory**   | StockItem                 | `inventory.stock_items`       | Stock levels per product/warehouse       |
+| **Inventory**   | StockItem                 | `inventory.stock_items`       | Stock levels per product                 |
 |                 | StockReservation          | `inventory.stock_reservations`| Temporary stock holds                    |
 |                 | StockMovement             | `inventory.stock_movements`   | Stock change audit trail                 |
-|                 | Warehouse                 | `inventory.warehouses`        | Physical warehouse locations             |
 | **Orders**      | Order                     | `orders.orders`               | Customer orders                          |
 |                 | OrderItem                 | `orders.order_items`          | Individual items in an order             |
 |                 | OrderStatusHistory        | `orders.order_status_history` | Order state change log                   |

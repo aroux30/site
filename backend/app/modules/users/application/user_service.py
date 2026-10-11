@@ -42,8 +42,8 @@ async def get_users(
     Returns ``(items, total_count)``.
 
     ``role`` filters server-side, on the role slug. It used to be a client-side
-    filter over the current page, so "show me the vendors" answered with the
-    vendors *on this page* — and an operator had to page through the whole
+    filter over the current page, so "show me the authors" answered with the
+    authors *on this page* — and an operator had to page through the whole
     store to find the one they wanted. The join is on the slug because that is
     what the admin table badges on.
 
@@ -71,7 +71,9 @@ async def get_users(
 
     if search is not None:
         pattern = f"%{search}%"
-        search_filter = User.phone.ilike(pattern) | User.email.ilike(pattern)
+        # The users.email column was dropped on 2026-10-07 (email removal);
+        # phone is the only identifier to search on.
+        search_filter = User.phone.ilike(pattern)
         stmt = stmt.where(search_filter)
         count_stmt = count_stmt.where(search_filter)
 
@@ -108,7 +110,6 @@ async def get_users(
             {
                 "id": user.id,
                 "phone": user.phone,
-                "email": user.email,
                 "first_name": profile.first_name if profile else None,
                 "last_name": profile.last_name if profile else None,
                 "display_name": profile.display_name if profile else None,
@@ -120,7 +121,7 @@ async def get_users(
                 "created_at": user.created_at,
                 "last_login": user.last_login,
                 # Slugs, not the Persian display name: the admin table filters
-                # and badges on ``super_admin``/``vendor``, so a display name
+                # and badges on ``super_admin``/``author``, so a display name
                 # made the role filter match nothing.
                 "roles": [ur.role.slug for ur in user.roles if ur.role is not None],
                 "is_superuser": bool(user.is_superuser),
@@ -140,11 +141,11 @@ async def get_user_entity(
 ) -> User | None:
     """The ORM row itself, or None.
 
-    For the paths that need a column the detail dict flattens away — the admin
-    password reset reads ``email`` and ``password_hash``, and neither is part of
-    ``get_user``'s payload because neither belongs in a response. Rebuilding a
-    query per field at each call site is how one of them ends up checking
-    ``is_active`` where it meant ``password_hash``.
+    For the paths that need a column the detail dict flattens away — e.g.
+    ``password_hash``, which is not part of ``get_user``'s payload because it
+    does not belong in a response. Rebuilding a query per field at each call
+    site is how one of them ends up checking ``is_active`` where it meant
+    ``password_hash``.
 
     Returns None rather than raising, because the caller here wants to answer
     404 itself; ``get_user`` raises, because its callers all want that.
@@ -176,7 +177,6 @@ async def get_user(
     return {
         "id": user.id,
         "phone": user.phone,
-        "email": user.email,
         "first_name": profile.first_name if profile else None,
         "last_name": profile.last_name if profile else None,
         "display_name": profile.display_name if profile else None,
@@ -185,11 +185,6 @@ async def get_user(
         "birth_date": str(profile.birth_date) if profile and profile.birth_date else None,
         "avatar_url": profile.avatar_url if profile else None,
         "gender": profile.gender if profile else None,
-        "is_b2b": bool(getattr(profile, "is_b2b", False)) if profile else False,
-        "company_name": getattr(profile, "company_name", None) if profile else None,
-        "tax_exemption_certificate_no": (
-            getattr(profile, "tax_exemption_certificate_no", None) if profile else None
-        ),
         "is_active": user.is_active,
         "is_verified": user.is_verified,
         "is_superuser": user.is_superuser,
@@ -214,17 +209,11 @@ async def create_user_admin(
     from app.modules.rbac.domain.models import Role, UserRole
 
     phone = data["phone"]
-    email = data.get("email")
     password = data.get("password")
 
     existing_phone = await db.execute(select(User).where(User.phone == phone))
     if existing_phone.scalar_one_or_none() is not None:
         raise ConflictError(detail="Phone number already registered")
-
-    if email:
-        existing_email = await db.execute(select(User).where(User.email == email))
-        if existing_email.scalar_one_or_none() is not None:
-            raise ConflictError(detail="Email already registered")
 
     pwd_hash = hash_password(password) if password else None
 
@@ -232,7 +221,6 @@ async def create_user_admin(
 
     user = User(
         phone=phone,
-        email=email,
         password_hash=pwd_hash,
         is_active=data.get("is_active", True),
         is_verified=data.get("is_verified", True),
@@ -271,38 +259,8 @@ async def create_user_admin(
     await db.flush()
     created = await get_user(db, user_id=user.id)
 
-    # Tell the account holder. An operator creating a staff or customer account
-    # left it completely silent: the address was stored, the password was set,
-    # and the new owner had no idea the account existed until they tried to
-    # log in and failed. Sent after the row is flushed so the id exists, and
-    # through the same path as every other transactional mail in the app.
-    #
-    # Best-effort: a mail outage must not roll back a user the operator just
-    # created, so the failure is logged and swallowed, exactly as in
-    # ``_send_password_reset`` and ``email_change_service``.
-    if email:
-        try:
-            from app.modules.notifications.application.email_service import send_email
-
-            await send_email(
-                db,
-                recipient=email,
-                subject="حساب شما ایجاد شد",
-                html_body=(
-                    '<div dir="rtl" style="font-family:Tahoma,sans-serif">'
-                    "<p>حساب کاربری شما در فروشگاه ایجاد شد.</p>"
-                    "<p>اگر این حساب را شما درخواست نکرده‌اید، "
-                    "همین حالا با پشتیبانی تماس بگیرید.</p>"
-                    "</div>"
-                ),
-                text_body=(
-                    "حساب کاربری شما در فروشگاه ایجاد شد.\n"
-                    "اگر این حساب را شما درخواست نکرده‌اید، "
-                    "همین حالا با پشتیبانی تماس بگیرید."
-                ),
-            )
-        except Exception:
-            logger.exception("admin_user_created_email_failed", user_id=str(user.id))
+    # The "your account was created" notification email was removed on
+    # 2026-10-07 with the rest of the email feature.
 
     await log_action(
         db,
@@ -578,9 +536,7 @@ async def update_user(
 ) -> dict[str, Any]:
     """Admin update of a user's fields."""
     # Same guard as block/unblock/soft_delete/restore. Without it this path was
-    # the only admin route on the user that could rewrite a superuser's fields,
-    # including their email — which is a takeover path, since the next password
-    # reset goes to the address the attacker chose.
+    # the only admin route on the user that could rewrite a superuser's fields.
     target = await db.get(User, user_id)
     if target is None:
         raise NotFoundError(resource="User", detail=f"User {user_id} not found")
@@ -591,25 +547,14 @@ async def update_user(
     user_fields = {}
     profile_fields = {}
 
-    for key in ("email", "is_active", "is_verified"):
+    # `email` was removed from the writable set on 2026-10-07 with the email
+    # feature; the column no longer exists.
+    for key in ("is_active", "is_verified"):
         if key in data and data[key] is not None:
             user_fields[key] = data[key]
 
-    if "email" in user_fields:
-        existing = await db.execute(
-            select(User).where(User.email == user_fields["email"], User.id != user_id)
-        )
-        if existing.scalar_one_or_none() is not None:
-            raise ConflictError(detail="Email already in use")
-
     for key in ("first_name", "last_name", "display_name"):
         if key in data and data[key] is not None:
-            profile_fields[key] = data[key]
-
-    # B2B / مالیات تکلیفی fields (tax engine v1) — additive; only mapped when
-    # explicitly provided so existing admin updates keep working untouched.
-    for key in ("is_b2b", "company_name", "tax_exemption_certificate_no"):
-        if key in data:
             profile_fields[key] = data[key]
 
     if user_fields:
@@ -1072,83 +1017,3 @@ async def delete_address(
         user_id=str(user_id),
         address_id=str(address_id),
     )
-
-
-async def list_failed_attempts(
-    db: AsyncSession,
-    *,
-    attempt_type: str | None = None,
-    identifier: str | None = None,
-    page: int = 1,
-    page_size: int = 50,
-) -> list[dict[str, Any]]:
-    """Persisted failed login/OTP/KYC attempts for the admin panel (Karta failed_attempts).
-
-    The search term is bound as a parameter via ``contains(autoescape=True)``;
-    user-supplied LIKE wildcards are escaped, never concatenated (P1.4).
-    """
-    from app.modules.users.domain.kyc_models import AttemptType, FailedAttempt
-
-    stmt = select(FailedAttempt).order_by(FailedAttempt.created_at.desc())
-    if attempt_type:
-        stmt = stmt.where(FailedAttempt.attempt_type == AttemptType(attempt_type))
-    if identifier:
-        stmt = stmt.where(FailedAttempt.identifier.contains(identifier, autoescape=True))
-    stmt = stmt.offset((page - 1) * page_size).limit(page_size)
-    rows = (await db.execute(stmt)).scalars().all()
-    return [
-        {
-            "id": r.id,
-            "identifier": r.identifier,
-            "attempt_type": (
-                r.attempt_type.value if hasattr(r.attempt_type, "value") else str(r.attempt_type)
-            ),
-            "ip_address": r.ip_address,
-            "user_agent": r.user_agent,
-            "created_at": r.created_at,
-        }
-        for r in rows
-    ]
-
-
-async def count_failed_attempts(
-    db: AsyncSession,
-    *,
-    attempt_type: str | None = None,
-    identifier: str | None = None,
-) -> int:
-    """Count failed attempts matching the admin panel filters."""
-    from app.modules.users.domain.kyc_models import AttemptType, FailedAttempt
-
-    stmt = select(func.count()).select_from(FailedAttempt)
-    if attempt_type:
-        stmt = stmt.where(FailedAttempt.attempt_type == AttemptType(attempt_type))
-    if identifier:
-        stmt = stmt.where(FailedAttempt.identifier.contains(identifier, autoescape=True))
-    return int((await db.execute(stmt)).scalar_one() or 0)
-
-
-async def list_trust_profiles(
-    db: AsyncSession,
-    *,
-    page: int = 1,
-    page_size: int = 50,
-) -> tuple[list[Any], int]:
-    """All user trust profiles, riskiest first (anti-fraud admin panel)."""
-    from app.modules.users.domain.kyc_models import UserTrustProfile
-
-    total_result = await db.execute(select(func.count()).select_from(UserTrustProfile))
-    total = int(total_result.scalar_one() or 0)
-    rows = (
-        (
-            await db.execute(
-                select(UserTrustProfile)
-                .order_by(UserTrustProfile.risk_score.desc())
-                .offset((page - 1) * page_size)
-                .limit(page_size)
-            )
-        )
-        .scalars()
-        .all()
-    )
-    return list(rows), total

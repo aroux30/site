@@ -14,7 +14,6 @@ export interface MediaUsage {
   custom_entries: number;
   categories: number;
   brands: number;
-  vendors: number;
   user_profiles: number;
   seo_metadata: number;
   documents: number;

@@ -3,7 +3,7 @@
  *
  * Covers the endpoints added for: custom taxonomies, custom post types,
  * editorial workflow, editorial calendar, quick edit, blog import/export,
- * post relationships, breadcrumbs, site options, site health, privacy/GDPR,
+ * post relationships, breadcrumbs, site options, site health,
  * widget areas, capabilities, media image editing, thumbnails, and EXIF.
  */
 
@@ -27,7 +27,7 @@ export interface CustomTaxonomy {
 }
 
 /** Content types a custom taxonomy can apply to. */
-export const OBJECT_TYPES = ["blog_post", "cms_page", "custom_post_entry"] as const;
+export const OBJECT_TYPES = ["blog_post", "cms_page"] as const;
 export type ObjectType = (typeof OBJECT_TYPES)[number];
 
 export interface CustomTaxonomyTerm {
@@ -166,179 +166,6 @@ export const taxonomiesApi = {
   },
 };
 
-// ── Custom post types ──────────────────────────────────────────────────────
-
-export interface ContentTypeField {
-  key: string;
-  label: string;
-  type: "text" | "number" | "image" | "rich" | "boolean" | "date";
-  required?: boolean;
-  min?: number;
-  max?: number;
-}
-
-export interface CustomPostType {
-  id: string;
-  name: string;
-  slug: string;
-  description?: string | null;
-  icon?: string | null;
-  field_schema?: ContentTypeField[] | null;
-  supports_categories: boolean;
-  supports_comments: boolean;
-  is_active: boolean;
-}
-
-export interface CustomPostEntry {
-  id: string;
-  title: string;
-  slug: string;
-  status: string;
-  fields?: Record<string, unknown> | null;
-  excerpt?: string | null;
-  cover_image_url?: string | null;
-  position?: number;
-  /** Set when the entry is dated forward; the beat task publishes it when the
-   *  time passes and clears the field. */
-  scheduled_publish_at?: string | null;
-  /** How many states have been snapshotted. Drives the History button label. */
-  revision_count?: number;
-}
-
-export interface CustomPostEntryRevision {
-  /** Per-entry monotonic. What the panel shows as "نسخهٔ ۳", so restoring
-   *  means a number an operator read, not an id they had to look up. */
-  revision_number: number;
-  title?: string | null;
-  excerpt?: string | null;
-  fields?: Record<string, unknown> | null;
-  created_at?: string | null;
-  created_by_id?: string | null;
-}
-
-export const contentTypesApi = {
-  list: async (): Promise<CustomPostType[]> => {
-    const { data } = await apiClient.get<CustomPostType[]>("/admin/blog/content-types");
-    return data;
-  },
-
-  create: async (body: {
-    name: string;
-    slug?: string;
-    description?: string;
-    icon?: string;
-    field_schema?: ContentTypeField[];
-  }): Promise<CustomPostType> => {
-    const { data } = await apiClient.post<CustomPostType>("/admin/blog/content-types", body);
-    return data;
-  },
-
-  update: async (
-    typeId: string,
-    body: Partial<{
-      name: string;
-      slug: string;
-      description: string | null;
-      icon: string | null;
-      field_schema: ContentTypeField[] | null;
-      supports_categories: boolean;
-      supports_comments: boolean;
-      is_active: boolean;
-    }>,
-  ): Promise<CustomPostType> => {
-    const { data } = await apiClient.patch<CustomPostType>(
-      `/admin/blog/content-types/${typeId}`,
-      body,
-    );
-    return data;
-  },
-
-  /** Deletes the post type and every entry under it. */
-  remove: async (
-    typeId: string,
-  ): Promise<{ content_types_deleted: number; entries_deleted: number }> => {
-    const { data } = await apiClient.delete<{
-      content_types_deleted: number;
-      entries_deleted: number;
-    }>(`/admin/blog/content-types/${typeId}`);
-    return data;
-  },
-
-  listEntries: async (typeId: string): Promise<CustomPostEntry[]> => {
-    const { data } = await apiClient.get<CustomPostEntry[]>(
-      `/admin/blog/content-types/${typeId}/entries`,
-    );
-    return data;
-  },
-
-  createEntry: async (
-    typeId: string,
-    body: {
-      title: string;
-      slug?: string;
-      fields?: Record<string, unknown>;
-      excerpt?: string;
-      cover_image_url?: string;
-    },
-  ): Promise<CustomPostEntry> => {
-    const { data } = await apiClient.post<CustomPostEntry>(
-      `/admin/blog/content-types/${typeId}/entries`,
-      body,
-    );
-    return data;
-  },
-
-  updateEntry: async (
-    typeId: string,
-    entryId: string,
-    body: Partial<{
-      title: string;
-      slug: string;
-      fields: Record<string, unknown> | null;
-      excerpt: string | null;
-      cover_image_url: string | null;
-      status: "draft" | "published" | "archived";
-      position: number;
-      /** Date the entry should go live by itself, ISO. Null clears it. */
-      scheduled_publish_at?: string | null;  // null unschedules
-    }>,
-  ): Promise<CustomPostEntry> => {
-    const { data } = await apiClient.patch<CustomPostEntry>(
-      `/admin/blog/content-types/${typeId}/entries/${entryId}`,
-      body,
-    );
-    return data;
-  },
-
-  /** Revisions of a custom post entry, newest first. */
-  entryRevisions: async (
-    entryId: string,
-  ): Promise<CustomPostEntryRevision[]> => {
-    const { data } = await apiClient.get<CustomPostEntryRevision[]>(
-      `/admin/blog/entries/${entryId}/revisions`,
-    );
-    return Array.isArray(data) ? data : [];
-  },
-
-  /** Write a stored revision back over the entry. */
-  restoreEntryRevision: async (
-    entryId: string,
-    revisionNumber: number,
-  ): Promise<CustomPostEntry> => {
-    const { data } = await apiClient.post<CustomPostEntry>(
-      `/admin/blog/entries/${entryId}/revisions/${revisionNumber}/restore`,
-    );
-    return data;
-  },
-
-  removeEntry: async (typeId: string, entryId: string): Promise<{ entries_deleted: number }> => {
-    const { data } = await apiClient.delete<{ entries_deleted: number }>(
-      `/admin/blog/content-types/${typeId}/entries/${entryId}`,
-    );
-    return data;
-  },
-};
-
 // ── Editorial workflow ─────────────────────────────────────────────────────
 
 export const editorialApi = {
@@ -445,7 +272,8 @@ export const blogTransferApi = {
    *
    *  The counts the file held travel with the result. A WXR with fifty posts
    *  that imports three should say so — otherwise the operator reads a
-   *  successful result as a complete migration.
+   *  successful result as a complete migration. Pages import as CMS pages;
+   *  their counts are part of the result.
    */
   importWxr: async (
     file: File,
@@ -454,7 +282,17 @@ export const blogTransferApi = {
     tags: number;
     posts: number;
     skipped: number;
-    parsed?: { posts: number; comments: number; categories: number };
+    comments: number;
+    comments_skipped: number;
+    pages_created: number;
+    pages_updated: number;
+    pages_reparented: number;
+    parsed?: {
+      posts: number;
+      pages: number;
+      comments: number;
+      categories: number;
+    };
   }> => {
     const form = new FormData();
     form.append("file", file);
@@ -463,7 +301,17 @@ export const blogTransferApi = {
       tags: number;
       posts: number;
       skipped: number;
-      parsed?: { posts: number; comments: number; categories: number };
+      comments: number;
+      comments_skipped: number;
+      pages_created: number;
+      pages_updated: number;
+      pages_reparented: number;
+      parsed?: {
+        posts: number;
+        pages: number;
+        comments: number;
+        categories: number;
+      };
     }>("/admin/blog/import/wxr", form, {
       headers: { "Content-Type": "multipart/form-data" },
     });
@@ -519,32 +367,8 @@ export const breadcrumbsApi = {
   },
 };
 
-// ── Gravatar ───────────────────────────────────────────────────────────────
-
-export const gravatarApi = {
-  url: async (email: string, size = 80): Promise<{ url: string | null }> => {
-    const { data } = await apiClient.get<{ url: string | null }>("/settings/public/gravatar", {
-      params: { email, size },
-    });
-    return data;
-  },
-};
-
-export interface AvatarOptions {
-  show_avatars: boolean;
-  avatar_default: string;
-  avatar_rating: string;
-  defaults: string[];
-  ratings: string[];
-}
-
-/** The site-wide avatar settings (public read). */
-export const avatarOptionsApi = {
-  get: async (): Promise<AvatarOptions> => {
-    const { data } = await apiClient.get<AvatarOptions>("/settings/public/avatar-options");
-    return data;
-  },
-};
+// The Gravatar client was removed on 2026-10-07 with the rest of the
+// email feature.
 
 // ── Site options ───────────────────────────────────────────────────────────
 
@@ -688,13 +512,17 @@ export const siteHealthApi = {
   /** Email a one-time recovery key to the site admin. The key is hashed at
    *  rest and never returned in this response — it goes to the mailbox. */
   sendRecoveryInvitation: async (): Promise<{
-    sent: boolean;
-    recipient?: string;
+    issued: boolean;
+    key?: string;
+    expires_at?: string | null;
+    reference?: string | null;
     reason?: string | null;
   }> => {
     const { data } = await apiClient.post<{
-      sent: boolean;
-      recipient?: string;
+      issued: boolean;
+      key?: string;
+      expires_at?: string | null;
+      reference?: string | null;
       reason?: string | null;
     }>("/settings/admin/recovery-mode/send-invitation");
     return data;
@@ -708,29 +536,6 @@ export const siteHealthApi = {
     const { data } = await apiClient.post<{ resumed: boolean; reason?: string }>(
       "/settings/admin/recovery-mode/verify-invitation",
       { key },
-    );
-    return data;
-  },
-};
-
-// ── Privacy / GDPR ─────────────────────────────────────────────────────────
-
-export const privacyApi = {
-  exportUser: async (userId: string): Promise<Record<string, unknown>> => {
-    const { data } = await apiClient.get<Record<string, unknown>>(
-      `/settings/admin/privacy/export/${userId}`,
-    );
-    return data;
-  },
-
-  eraseUser: async (
-    userId: string,
-    anonymize = true,
-  ): Promise<{ actions: string[]; erased_at: string }> => {
-    const { data } = await apiClient.post<{ actions: string[]; erased_at: string }>(
-      `/settings/admin/privacy/erase/${userId}`,
-      null,
-      { params: { anonymize } },
     );
     return data;
   },

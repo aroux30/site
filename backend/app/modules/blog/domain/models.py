@@ -67,10 +67,6 @@ class CommentStatus(str, enum.Enum):
 # strings to mirror SlugHistory.resource_type in wp_parity_models.py.
 COMMENT_RESOURCE_BLOG_POST = "blog_post"
 COMMENT_RESOURCE_CMS_PAGE = "cms_page"
-#: A custom post type entry. The third target a comment can sit on, which is
-#: what a type's ``supports_comments`` checkbox is asking for — without it the
-#: checkbox has nothing to switch on.
-COMMENT_RESOURCE_CONTENT_ENTRY = "content_entry"
 
 # Comment types, mirroring wp_comments.comment_type. "comment" is the default and
 # the only one a public reader may see; "note" is a private team note.
@@ -79,7 +75,6 @@ COMMENT_TYPE_NOTE = "note"
 COMMENT_RESOURCE_TYPES = (
     COMMENT_RESOURCE_BLOG_POST,
     COMMENT_RESOURCE_CMS_PAGE,
-    COMMENT_RESOURCE_CONTENT_ENTRY,
 )
 
 
@@ -152,27 +147,12 @@ class BlogPost(BaseModel):
         Index("ix_blog_posts_category_id", "category_id"),
         Index("ix_blog_posts_is_featured", "is_featured"),
         Index("ix_blog_posts_deleted_at", "deleted_at"),
-        Index("ix_blog_posts_translation_group", "translation_group"),
     )
 
     author_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("users.id", ondelete="SET NULL"),
         nullable=False,
-    )
-    locale: Mapped[str] = mapped_column(
-        String(10),
-        default="fa",
-        nullable=False,
-        server_default="fa",
-    )
-    # i18n: posts that are translations of one another share a group UUID.
-    # None = not translated. Blog post translations additionally link through
-    # the "translation" post relationship; the group makes page-level and
-    # public lookups uniform.
-    translation_group: Mapped[uuid.UUID | None] = mapped_column(
-        UUID(as_uuid=True),
-        nullable=True,
     )
     title: Mapped[str] = mapped_column(String(500), nullable=False)
     slug: Mapped[str] = mapped_column(String(550), unique=True, nullable=False)
@@ -441,9 +421,10 @@ class BlogComment(BaseModel):
         ForeignKey("users.id", ondelete="SET NULL"),
         nullable=True,
     )
-    # Guest comment fields (when author_id is NULL)
+    # Guest comment fields (when author_id is NULL). `author_email` was
+    # dropped on 2026-10-07 with the rest of the email feature (migration
+    # `rmemail1`).
     author_name: Mapped[str | None] = mapped_column(String(200), nullable=True)
-    author_email: Mapped[str | None] = mapped_column(String(255), nullable=True)
     author_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
     author_ip: Mapped[str | None] = mapped_column(String(45), nullable=True)
     author_user_agent: Mapped[str | None] = mapped_column(String(500), nullable=True)

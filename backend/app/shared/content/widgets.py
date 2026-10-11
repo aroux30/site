@@ -47,7 +47,6 @@ WIDGET_TYPES = {
     "menu": {"name": "Navigation Menu", "description": "Custom menu"},
     "image": {"name": "Image", "description": "Single image with optional link"},
     "social_links": {"name": "Social Links", "description": "Social media icon links"},
-    "newsletter": {"name": "Newsletter", "description": "Email subscription form"},
     "custom_html": {"name": "Custom HTML", "description": "Arbitrary HTML block"},
     # WordPress core widgets that were missing (the storefront renders each in
     # widget-area.tsx). Added so an operator can place the standard set without
@@ -104,7 +103,6 @@ WIDGET_CONFIG_SCHEMA: dict[str, list[dict[str, Any]]] = {
     "links": [{"key": "items", "label": "پیوندها", "kind": "links"}],
     "social_links": [{"key": "items", "label": "شبکه‌ها", "kind": "links"}],
     "menu": [{"key": "items", "label": "آیتم‌ها", "kind": "links"}],
-    "newsletter": [{"key": "source", "label": "برچسب منبع", "kind": "text"}],
     "rss": [
         {"key": "url", "label": "آدرس فید", "kind": "text"},
         {"key": "title", "label": "عنوان پیوند", "kind": "text"},

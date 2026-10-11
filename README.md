@@ -11,12 +11,12 @@ This platform is designed as a **Modular Monolith** following **Clean Architectu
 ### Key Features
 
 - **Full Persian/RTL Support** -- Native right-to-left layout, Persian number formatting, Jalali calendar
-- **Iranian Payment Gateways** -- Integration with Zarinpal, IDPay, NowPayments (Crypto/USDT), and Card-to-Card bank transfers
+- **Iranian Payment Gateways** -- Integration with Zarinpal and Card-to-Card bank transfers
 - **Advanced Product Search** -- Elasticsearch-powered search with custom Persian analyzer and faceted filtering. A Postgres `ILIKE` path backs the storefront search page, and the weighting profile is shared by both product query builders. (Synonym expansion is *not* implemented.)
 - **Digital Wallet** -- User wallet system for balance-based payments and cashback
 - **Modular Architecture** -- 44 independent business modules with clean boundaries
-- **631 REST API Endpoints** -- 559 router + 109 admin-router routes, fully documented with OpenAPI/Swagger
-- **Automated Tests** -- Backend pytest suite (1057 tests passing) plus a frontend Vitest suite (35 tests passing); Playwright E2E specs are configured. Both suites run alongside the invariant gates (`secret-scan`, `money-invariants`, `env-contract`, `schema-drift`).
+- **632 REST API paths** -- fully documented with OpenAPI/Swagger
+- **Automated Tests** -- Backend pytest suite (209 tests passing) plus a frontend Vitest suite (20 tests passing); Playwright E2E specs are configured.
 - **HttpOnly Secure Cookie Auth** -- XSS-resistant JWT authentication with refresh token rotation
 - **Performance Optimized** -- P95 API response time target under 300ms
 
@@ -56,7 +56,7 @@ This platform is designed as a **Modular Monolith** following **Clean Architectu
 | Database          | PostgreSQL 16               |
 | Cache             | Redis 7                     |
 | Search Engine     | Elasticsearch 8             |
-| Object Storage    | Local volume (`uploads_data`) |
+| Object Storage    | Local volume (`media_data` → `/app/media`; `uploads_data` exists but nothing writes to it) |
 | Reverse Proxy     | Nginx                       |
 | CDN               | Cloudflare                  |
 | Containerization  | Docker + Docker Compose     |
@@ -92,6 +92,7 @@ For detailed architecture documentation, see the [docs/architecture/](docs/archi
 - **Docker** 24+ and **Docker Compose** v2
 - **Node.js** 20+ (for local frontend development)
 - **Python** 3.12+ (for local backend development)
+- **Elasticsearch 8.x** (for local development without Docker — see below)
 
 ### Quick Start (Docker Compose)
 
@@ -131,11 +132,9 @@ For detailed architecture documentation, see the [docs/architecture/](docs/archi
     docker compose exec backend alembic upgrade head
     ```
 
-6. **Seed initial data (optional):**
-
-    ```bash
-    docker compose exec backend python scripts/seed.py
-    ```
+6. **Initial data** is seeded automatically at startup — the RBAC permission
+    catalog is bootstrapped by the app itself (`app/main.py` lifespan), so
+    there is no separate seed step.
 
 7. **Access the application:**
 
@@ -171,6 +170,44 @@ celery -A app.worker.celery_app worker --loglevel=info
 # Start Celery beat (separate terminal)
 celery -A app.worker.celery_app beat --loglevel=info
 ```
+
+#### Elasticsearch (required for search)
+
+Docker Compose starts Elasticsearch automatically. Without Docker, run it
+locally — the search endpoints degrade to empty results (and a down cluster
+adds an 8s retry wait per query until the circuit breaker trips) when it is
+absent.
+
+1. Download the same version the dev stack pins (see `docker-compose.yml`,
+   currently **8.15.0**) — the zip bundles its own JDK, no Java install
+   needed: <https://www.elastic.co/downloads/past-releases/elasticsearch-8-15-0>
+2. Configure for single-node dev (security off, mirrors the compose service)
+   in `config/elasticsearch.yml`:
+
+    ```yaml
+    discovery.type: single-node
+    xpack.security.enabled: false
+    ```
+
+3. Start it (PowerShell / cmd):
+
+    ```powershell
+    set ES_JAVA_OPTS=-Xms512m -Xmx512m
+    .\bin\elasticsearch.bat
+    ```
+
+4. Verify and load the indices:
+
+    ```bash
+    curl http://localhost:9200
+    cd backend && python scripts/reindex_search.py --index all
+    ```
+
+**Version pairing matters:** the Python client must match the server's major
+version. `pip install -e ".[dev]"` accepts `elasticsearch>=8.13`; a 9.x client
+against an 8.x server fails every request with
+`media_type_header_exception`. If you installed outside the lockfile, pin it:
+`pip install "elasticsearch[async]>=8.13,<9"`.
 
 #### Frontend
 
@@ -264,17 +301,14 @@ pytest
 # Run with coverage
 pytest --cov=app --cov-report=html
 
-# Run specific module tests
-pytest tests/unit/
-
-# Run integration tests
-pytest tests/integration/
+# Run a specific area
+pytest app/tests/unit/test_p2_call_sites.py
 ```
 
 #### Frontend
 
 ```bash
-# Run unit tests (Vitest, jsdom) -- 35 tests across 5 files
+# Run unit tests (Vitest, jsdom) -- 20 tests across 2 files
 npm test
 
 # Watch mode
@@ -292,7 +326,7 @@ npm run test:e2e:ui
 ```
 
 The Vitest suite covers the highest-risk pure logic: money/pricing tiers, payment
-routing, PII masking, RMA return rules, Iranian commerce validators (Shetab card
+routing, PII masking, Iranian commerce validators (Shetab card
 Luhn, national ID, mobile, postal code), dynamic field validation, bulk-import
 validation, and JSON-LD escaping. The Playwright specs exercise the storefront
 chrome (header, footer, listing and login pages) and skip data-dependent
@@ -322,13 +356,6 @@ docker compose exec backend python scripts/reindex_search.py
 
 # Reindex specific index
 docker compose exec backend python scripts/reindex_search.py --index products
-```
-
-### Module Scaffolding
-
-```bash
-# Generate a new module with all layers
-python scripts/generate_module.py module_name
 ```
 
 ---
@@ -396,22 +423,27 @@ curl http://localhost/api/v1/users/me \
 
 ### Backup Strategy
 
-Backups are driven by `scripts/backup.sh` (PostgreSQL `pg_dump` + MinIO `mc
-mirror`, checksummed, optionally AES-256 encrypted). Retention defaults to the
-last 7 backups, configurable with `--retain`. Scheduling, encryption, RPO/RTO
-and the restore-verification record are documented in
-[`docs/runbooks/BACKUP_RESTORE.md`](docs/runbooks/BACKUP_RESTORE.md).
+The backup scripts (`backup.sh` / `restore.sh` / `verify_backup.sh`) lived in
+the root `scripts/` directory, which was removed in the 2026-10-04 cleanup —
+they are not in this repository. The procedure below and the full runbook
+remain the reference; run the commands directly.
+
+```bash
+# Database dump + checksum
+docker compose exec -T postgres pg_dump -U ecommerce ecommerce | gzip > backups/app_db_$(date +%Y%m%d_%H%M%S).sql.gz
+```
 
 - **Database:** `pg_dump` into `backups/app_db_<timestamp>.sql.gz` with a
-  `.sha256` sidecar. Schedule via `scripts/cron.d/ecommerce-backup` or the
-  systemd units in `scripts/systemd/`.
+  `.sha256` sidecar. RPO/RTO, encryption and scheduling guidance are in
+  [`docs/runbooks/BACKUP_RESTORE.md`](docs/runbooks/BACKUP_RESTORE.md).
 - **Object Storage:** MinIO bucket mirrored to a `.tar.gz` (off-host copies are
   an operator responsibility — not automated).
 - **Elasticsearch:** `_snapshot` API when reachable; it is a derived index and
-  is skippable (rebuildable from PostgreSQL).
-- **Verification:** `scripts/verify_backup.sh` restores into a throwaway
-  database and drops it — run and record it, because an unverified backup is
-  not proof. **No restore has been verified in this repository's environment yet.**
+  is skippable (rebuildable from PostgreSQL via
+  `python scripts/reindex_search.py --index all`).
+- **Verification:** restore into a throwaway database and drop it — an
+  unverified backup is not a backup. **No restore has been verified in this
+  repository's environment yet.**
 - **Configuration:** All configuration in version control (except `.env`).
 
 ---

@@ -32,8 +32,10 @@ async def render_body(
     from app.modules.content.application.reusable_block_service import (
         ReusableBlockService,
     )
+    from app.shared.content.heading_normalizer import demote_body_h1
     from app.shared.content.shortcodes import process_shortcodes_async
     from app.shared.content.text_filters import wpautop_texturize_emoji
+    from app.shared.content.toc import add_toc_links
 
     expanded = await ReusableBlockService(db).expand(
         html, include_unpublished=include_unpublished
@@ -44,4 +46,16 @@ async def render_body(
     # the prose that comes out of a reusable block is typeset too. Before it
     # would type-set the ``[block slug="…"]`` tokens themselves, and after it
     # would retype a shortcode's own markup.
-    return wpautop_texturize_emoji(expanded)
+    filtered = wpautop_texturize_emoji(expanded)
+    # A migrated body often opens with its own <h1> (the source article's
+    # title lived inside the content), which would give the page two H1s —
+    # the template already renders the post title as one. Demote the body's
+    # H1 to H2 so the page has exactly one page title. Runs before the ToC
+    # pass so the demoted heading is still a ToC target.
+    filtered = demote_body_h1(filtered)
+    # The ToC pass runs after the text filters: it compares heading text to
+    # list items, and the filters (paragraph wrapping, entity decoding) are
+    # what make the two comparable. It adds `id`s to headings and wraps
+    # matching list items in anchor links — the "click a ToC entry and land
+    # on the section" behavior a migrated WordPress article's list lacks.
+    return add_toc_links(filtered)

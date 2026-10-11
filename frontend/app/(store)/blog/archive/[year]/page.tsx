@@ -5,6 +5,7 @@ import { CalendarDays } from "lucide-react";
 
 import { apiInternalUrl } from "@/lib/api/server-base";
 import { dateArchiveHref } from "@/lib/permalinks";
+import { siteOrigin } from "@/lib/site-url";
 
 /** Year archive, e.g. /blog/archive/2026.
  *
@@ -67,7 +68,17 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const label = month
     ? `${PERSIAN_MONTHS[month - 1]} ${year}`
     : `سال ${year}`;
-  return { title: `آرشیو ${label}`, description: `نوشته‌های منتشرشده در ${label}` };
+  // Self-canonical. Without it the page inherits the blog layout's
+  // `/blog` canonical and every archive tells Google "I am the blog index",
+  // which would drop the whole archive from the index.
+  // Single origin source (F-15): NEXT_PUBLIC_SITE_URL, not the DB value.
+  const base = siteOrigin().replace(/\/$/, "");
+  const path = month ? `/blog/archive/${year}/${month}` : `/blog/archive/${year}`;
+  return {
+    title: `آرشیو ${label}`,
+    description: `نوشته‌های منتشرشده در ${label}`,
+    alternates: { canonical: `${base}${path}` },
+  };
 }
 
 export default async function ArchivePage({ params }: Props) {

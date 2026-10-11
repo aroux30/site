@@ -43,20 +43,13 @@ def _payment_window_minutes() -> int:
 async def _get_item_for_update(
     db: AsyncSession,
     variant_id: uuid.UUID,
-    warehouse_id: uuid.UUID | None = None,
 ) -> InventoryItem:
     """Fetch the inventory row with ``SELECT … FOR UPDATE``.
 
-    ``warehouse_id`` selects the warehouse; when omitted the central
-    warehouse (DEFAULT_WAREHOUSE_ID) is used so every existing call site
-    (cart, checkout, orders) keeps working unchanged. Rows are unique per
-    (variant_id, warehouse_id).
+    Rows are unique per variant_id (single-location ledger).
     """
-    from app.modules.inventory.domain.models import DEFAULT_WAREHOUSE_ID
-
     stmt = select(InventoryItem).where(
         InventoryItem.variant_id == variant_id,
-        InventoryItem.warehouse_id == (warehouse_id or DEFAULT_WAREHOUSE_ID),
     ).with_for_update()
     result = await db.execute(stmt)
     item = result.scalar_one_or_none()
@@ -76,7 +69,6 @@ async def _record_transaction(
     reference_type: str | None = None,
     reference_id: uuid.UUID | None = None,
     notes: str | None = None,
-    warehouse_id: uuid.UUID | None = None,
 ) -> InventoryTransaction:
     txn = InventoryTransaction(
         inventory_item_id=inventory_item_id,
@@ -86,8 +78,6 @@ async def _record_transaction(
         reference_id=reference_id,
         notes=notes,
     )
-    if warehouse_id is not None:
-        txn.warehouse_id = warehouse_id
     db.add(txn)
     return txn
 
@@ -148,7 +138,6 @@ async def adjust_stock(
     reference_type: str | None = None,
     reference_id: uuid.UUID | None = None,
     notes: str | None = None,
-    warehouse_id: uuid.UUID | None = None,
 ) -> InventoryItem:
     """Adjust stock levels with full audit trail.
 
@@ -156,7 +145,7 @@ async def adjust_stock(
     must ensure the session is inside a transaction (the default ``get_db``
     dependency already commits on success / rolls back on error).
     """
-    item = await _get_item_for_update(db, variant_id, warehouse_id=warehouse_id)
+    item = await _get_item_for_update(db, variant_id)
 
     # Apply adjustment based on type
     if tx_type == TransactionType.RECEIVED:
@@ -184,12 +173,6 @@ async def adjust_stock(
             )
         item.available = new_available
 
-    elif tx_type == TransactionType.RETURNED:
-        if quantity <= 0:
-            raise ValidationError("Return quantity must be positive")
-        item.available += quantity
-        item.committed = max(0, item.committed - quantity)
-
     elif tx_type == TransactionType.SOLD:
         if quantity <= 0:
             raise ValidationError("Sold quantity must be positive")
@@ -208,7 +191,6 @@ async def adjust_stock(
         reference_type=reference_type,
         reference_id=reference_id,
         notes=notes,
-        warehouse_id=item.warehouse_id,
     )
 
     await db.flush()
@@ -229,7 +211,6 @@ async def reserve_stock(
     cart_id: uuid.UUID | None = None,
     order_id: uuid.UUID | None = None,
     ttl_minutes: int = 15,
-    warehouse_id: uuid.UUID | None = None,
 ) -> InventoryReservation:
     """Create a time-limited stock reservation.
 
@@ -240,7 +221,7 @@ async def reserve_stock(
     if quantity <= 0:
         raise ValidationError("Reserve quantity must be positive")
 
-    item = await _get_item_for_update(db, variant_id, warehouse_id=warehouse_id)
+    item = await _get_item_for_update(db, variant_id)
 
     if item.available < quantity:
         raise ConflictError(
@@ -274,7 +255,6 @@ async def reserve_stock(
                 {
                     "variant_id": str(variant_id),
                     "inventory_item_id": str(item.id),
-                    "warehouse_id": str(item.warehouse_id),
                     "available": int(item.available),
                     "threshold": int(item.low_stock_threshold),
                     "order_id": str(order_id) if order_id else None,
@@ -289,7 +269,6 @@ async def reserve_stock(
 
     reservation = InventoryReservation(
         inventory_item_id=item.id,
-        warehouse_id=item.warehouse_id,
         order_id=order_id,
         cart_id=cart_id,
         quantity=quantity,
@@ -306,7 +285,6 @@ async def reserve_stock(
         reference_type="cart" if cart_id else "order",
         reference_id=cart_id or order_id,
         notes=f"Reserved for {ttl_minutes} minutes",
-        warehouse_id=item.warehouse_id,
     )
 
     await db.flush()
@@ -449,18 +427,10 @@ async def check_availability(
     db: AsyncSession,
     variant_id: uuid.UUID,
     quantity: int,
-    warehouse_id: uuid.UUID | None = None,
 ) -> bool:
-    """Return ``True`` if *quantity* units are available.
-
-    ``warehouse_id`` scopes the check to a warehouse; when omitted the
-    central warehouse is used (same default as reserve_stock).
-    """
-    from app.modules.inventory.domain.models import DEFAULT_WAREHOUSE_ID
-
+    """Return ``True`` if *quantity* units are available."""
     stmt = select(InventoryItem).where(
         InventoryItem.variant_id == variant_id,
-        InventoryItem.warehouse_id == (warehouse_id or DEFAULT_WAREHOUSE_ID),
     )
     result = await db.execute(stmt)
     item = result.scalar_one_or_none()
@@ -745,173 +715,3 @@ async def restock_order(db: AsyncSession, order_id: uuid.UUID) -> int:
             units_restocked=restocked,
         )
     return restocked
-
-
-async def restock_returned_items(
-    db: AsyncSession,
-    entries: list[tuple[uuid.UUID, int]],
-) -> int:
-    """Return inspected-and-passed return items to available inventory.
-
-    Each entry is ``(variant_id, quantity)``.  Committed stock is moved back
-    to available (the order's committed units are still held when an order is
-    delivered/completed, so returning them from ``committed`` is correct).
-    Returns the number of units restocked.
-    """
-    restocked = 0
-    for variant_id, quantity in entries:
-        safe_variant_id = uuid.UUID(str(variant_id))
-        safe_quantity = int(quantity)
-        if safe_quantity <= 0:
-            continue
-        item_stmt = select(InventoryItem).filter_by(variant_id=safe_variant_id).with_for_update()
-        item = await db.scalar(item_stmt)
-        if item is None or item.committed < safe_quantity:
-            await logger.awarning(
-                "return_restock_skipped",
-                variant_id=str(safe_variant_id),
-                quantity=safe_quantity,
-                committed=item.committed if item is not None else None,
-            )
-            continue
-        item.committed -= safe_quantity
-        item.available += safe_quantity
-        restocked += safe_quantity
-
-        await _record_transaction(
-            db,
-            inventory_item_id=item.id,
-            quantity=safe_quantity,
-            tx_type=TransactionType.RETURNED,
-            reference_type="return_restock",
-            reference_id=safe_variant_id,
-            notes="Stock returned to available after passed return inspection",
-        )
-
-    if restocked:
-        await db.flush()
-        await logger.ainfo("return_items_restocked", units_restocked=restocked)
-    return restocked
-
-
-async def transfer_stock(
-    db: AsyncSession,
-    *,
-    variant_id: uuid.UUID,
-    quantity: int,
-    from_warehouse_id: uuid.UUID,
-    to_warehouse_id: uuid.UUID,
-    notes: str | None = None,
-) -> uuid.UUID:
-    """Move stock between two warehouses, atomically.
-
-    Pattern mirrors ``record_journal_entry``: lock both warehouse rows in
-    ascending warehouse_id order (no deadlock for opposing transfers),
-    subtract from the source with an explicit availability guard, add to the
-    destination (creating its row idempotently), and write two ADJUSTED
-    audit rows linked by one transfer id.
-
-    Returns the transfer id (shared UUID linking both audit rows).
-    """
-    from app.modules.inventory.domain.models import DEFAULT_WAREHOUSE_ID
-
-    if quantity <= 0:
-        raise ValidationError(
-            detail="Transfer quantity must be a positive integer",
-            error_code="INVALID_AMOUNT",
-        )
-    if from_warehouse_id == to_warehouse_id:
-        raise ValidationError(
-            detail="Cannot transfer stock to the same warehouse",
-            error_code="INVALID_TRANSFER_PAIR",
-        )
-
-    transfer_id = uuid.uuid4()
-
-    # Lock both warehouse rows in ascending order to prevent deadlock.
-    first, second = sorted([from_warehouse_id, to_warehouse_id], key=lambda u: str(u))
-    locked: dict[uuid.UUID, InventoryItem | None] = {}
-    for wh in (first, second):
-        stmt = (
-            select(InventoryItem)
-            .where(
-                InventoryItem.variant_id == variant_id,
-                InventoryItem.warehouse_id == wh,
-            )
-            .with_for_update()
-        )
-        locked[wh] = (await db.execute(stmt)).scalar_one_or_none()
-
-    src = locked[from_warehouse_id]
-    if src is None:
-        raise NotFoundError(resource="InventoryItem")
-    if src.available < quantity:
-        raise ConflictError(
-            detail=(
-                f"Insufficient stock in source warehouse: requested {quantity}, "
-                f"available {src.available}"
-            ),
-        )
-
-    dst = locked[to_warehouse_id]
-    if dst is None:
-        # Create the destination row idempotently (zero stock everywhere).
-        from sqlalchemy.dialects.postgresql import insert as pg_insert
-
-        await db.execute(
-            pg_insert(InventoryItem)
-            .values(
-                variant_id=variant_id,
-                warehouse_id=to_warehouse_id,
-                available=0,
-                reserved=0,
-                committed=0,
-                damaged=0,
-                incoming=0,
-            )
-            .on_conflict_do_nothing()
-        )
-        await db.flush()
-        dst = await db.scalar(
-            select(InventoryItem).where(
-                InventoryItem.variant_id == variant_id,
-                InventoryItem.warehouse_id == to_warehouse_id,
-            )
-        )
-        if dst is None:  # pragma: no cover - defensive
-            raise NotFoundError(resource="InventoryItem")
-
-    src.available -= quantity
-    dst.available += quantity
-
-    await _record_transaction(
-        db,
-        inventory_item_id=src.id,
-        quantity=-quantity,
-        tx_type=TransactionType.ADJUSTED,
-        reference_type="warehouse_transfer",
-        reference_id=transfer_id,
-        notes=notes or f"Transfer out to warehouse {to_warehouse_id}",
-        warehouse_id=src.warehouse_id,
-    )
-    await _record_transaction(
-        db,
-        inventory_item_id=dst.id,
-        quantity=quantity,
-        tx_type=TransactionType.ADJUSTED,
-        reference_type="warehouse_transfer",
-        reference_id=transfer_id,
-        notes=notes or f"Transfer in from warehouse {from_warehouse_id}",
-        warehouse_id=dst.warehouse_id,
-    )
-
-    await db.flush()
-    await logger.ainfo(
-        "warehouse_stock_transferred",
-        transfer_id=str(transfer_id),
-        variant_id=str(variant_id),
-        quantity=quantity,
-        from_warehouse_id=str(from_warehouse_id),
-        to_warehouse_id=str(to_warehouse_id),
-    )
-    return transfer_id

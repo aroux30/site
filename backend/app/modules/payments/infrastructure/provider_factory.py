@@ -20,8 +20,8 @@ def get_payment_provider(
     Parameters
     ----------
     provider_name:
-        One of ``"zarinpal"``, ``"idpay"``, ``"mock"``, ``"wallet"``,
-        ``"crypto"``, ``"card_transfer"`` (or alias ``"card_to_card"``).
+        One of ``"zarinpal"``, ``"wallet"``, ``"card_transfer"``
+        (or alias ``"card_to_card"``).
     merchant_id:
         Optional gateway credential override (e.g. a Zarinpal merchant id
         registered through the admin settings UI at runtime).
@@ -35,17 +35,6 @@ def get_payment_provider(
     # Normalize aliases
     if name in ("card_to_card", "c2c", "card"):
         name = "card_transfer"
-    elif name in ("nowpayments", "usdt", "btc", "eth"):
-        name = "crypto"
-
-    if name == "mock":
-        from app.core.config.settings import get_settings
-
-        settings = get_settings()
-        if settings.ENVIRONMENT == "production":
-            raise ValueError(
-                "Security violation: Mock payment provider is strictly disabled in production environment"  # noqa: E501
-            )
 
     registry = _provider_registry()
 
@@ -75,15 +64,6 @@ def _provider_registry() -> dict[str, PaymentProvider]:
     from app.modules.payments.infrastructure.providers.card_to_card import (
         CardToCardProvider,
     )
-    from app.modules.payments.infrastructure.providers.crypto import (
-        NowPaymentsProvider,
-    )
-    from app.modules.payments.infrastructure.providers.idpay import (
-        IDPayProvider,
-    )
-    from app.modules.payments.infrastructure.providers.mock import (
-        MockProvider,
-    )
     from app.modules.payments.infrastructure.providers.wallet import (
         WalletPaymentProvider,
     )
@@ -92,14 +72,10 @@ def _provider_registry() -> dict[str, PaymentProvider]:
     )
 
     card_provider = CardToCardProvider()
-    crypto_provider = NowPaymentsProvider()
 
     return {
         "zarinpal": ZarinpalProvider(),
-        "idpay": IDPayProvider(),
-        "mock": MockProvider(),
         "wallet": WalletPaymentProvider(),
-        "crypto": crypto_provider,
         "card_transfer": card_provider,
         "card_to_card": card_provider,
     }

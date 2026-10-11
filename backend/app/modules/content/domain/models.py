@@ -183,24 +183,12 @@ class CmsPage(BaseModel):
         Index("ix_cms_pages_slug", "slug"),
         Index("ix_cms_pages_status", "status"),
         Index("ix_cms_pages_published_at", "published_at"),
-        Index("ix_cms_pages_translation_group", "translation_group"),
     )
 
     title: Mapped[str] = mapped_column(String(300), nullable=False)
     slug: Mapped[str] = mapped_column(String(220), unique=True, nullable=False)
     body_html: Mapped[str] = mapped_column(Text, nullable=False, server_default=text("''"))
     excerpt: Mapped[str | None] = mapped_column(String(1000), nullable=True)
-    # Content locale (Strapi i18n parity with blog_posts.locale). Slugs stay
-    # globally unique, so a translation is a separate page row with its own slug.
-    locale: Mapped[str] = mapped_column(
-        String(10), default="fa", nullable=False, server_default=text("'fa'::character varying")
-    )
-    # i18n: pages that are translations of one another share a group UUID.
-    # None = not translated.
-    translation_group: Mapped[uuid.UUID | None] = mapped_column(
-        UUID(as_uuid=True),
-        nullable=True,
-    )
     status: Mapped[PageStatus] = mapped_column(
         Enum(PageStatus, name="cms_page_status_enum", native_enum=False),
         default=PageStatus.DRAFT,
@@ -235,6 +223,11 @@ class CmsPage(BaseModel):
     )
     seo_title: Mapped[str | None] = mapped_column(String(200), nullable=True)
     seo_description: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    # Rank Math's "focus keyword" — the keyphrase the page targets. Lives
+    # beside the other SEO columns because a page keeps its SEO here, not in
+    # `seo_metadata` (blog posts use that table; mixed storage would mean two
+    # places to look for one page's SEO state). Migration `seokw2`.
+    focus_keyword: Mapped[str | None] = mapped_column(Text, nullable=True)
     author_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("users.id", ondelete="SET NULL"),
@@ -300,6 +293,9 @@ class CmsPageRevision(BaseModel):
     status: Mapped[str] = mapped_column(String(32), nullable=False)
     seo_title: Mapped[str | None] = mapped_column(String(200), nullable=True)
     seo_description: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    # Carried in the snapshot so a revision restore brings the focus keyword
+    # back with the rest of the SEO fields (see seokw2).
+    focus_keyword: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_by: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("users.id", ondelete="SET NULL"),

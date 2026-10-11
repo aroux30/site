@@ -116,7 +116,12 @@ export function ProductQuickCard({ product, featured }: ProductQuickCardProps) {
             size="sm"
             onClick={handleAddToCart}
             disabled={adding}
-            className="rounded-xl font-bold h-9 px-3.5 gap-1.5 shadow-sm"
+            // bg-emerald-700, not the default bg-primary: the brand green
+            // (#10b77f) with white text is a 2.59:1 contrast ratio — below
+            // the 4.5:1 AA floor (Lighthouse color-contrast audit, live
+            // 2026-10-10). emerald-700 keeps the brand family and reaches
+            // 4.87:1.
+            className="rounded-xl font-bold h-9 px-3.5 gap-1.5 shadow-sm bg-emerald-700 hover:bg-emerald-800 text-white"
           >
             {added ? (
               <Check className="w-3.5 h-3.5" />

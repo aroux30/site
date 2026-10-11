@@ -53,19 +53,6 @@ CASES: list[tuple[str, Path, str, str, str]] = [
         "reassigning it would put a name on an action",
     ),
     (
-        # `lead_inquiries.owner_id` matches the `owner_id` fragment, so it is
-        # reassigned — and a lead's owner is a conversion target an operator may
-        # have assigned by hand. It is also the column whose loss is invisible:
-        # no rows raise, the store keeps working, and a sale is quietly
-        # re-attributed to somebody who never touched it. The exclusion is the
-        # only thing preventing that, and nothing else in the codebase checks it.
-        "a lead's owner column starts being reassigned",
-        SERVICE,
-        "        (\"lead_inquiries\", \"owner_id\"),\n",
-        "        (\"lead_inquiries\", \"converted_user_id\"),\n",
-        "reassigning it would put a name on an action",
-    ),
-    (
         "reassigning to oneself is allowed",
         SERVICE,
         '    if from_user_id == to_user_id:\n        raise ValueError(',

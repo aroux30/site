@@ -2,7 +2,7 @@
 
 Gap: docs/store-relevant-cms-gaps-2026-10-01.md, P0 "مدیا: هشدار استفاده پیش
 از حذف". Deleting an asset removed the row and the bytes with nothing warning
-that the image was a cover of a published post or a vendor's logo.
+that the image was a cover of a published post or a brand's logo.
 
 This runs against the live database and asserts the counter is not vacuously
 zero — the failure mode a usage counter ships with. Specifically it:

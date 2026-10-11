@@ -1,13 +1,13 @@
-"""Blog email notification service (WordPress parity).
+"""Blog notification service (WordPress parity).
 
-Sends email notifications for key blog events:
+Queues in-app notifications for key blog events (via the outbox pattern, so
+they never block the content write):
 - New post published → subscribers / admins
 - New comment → post author + parent comment author (threaded)
 - Comment approved → comment author
 
-Uses the platform's existing notification/messaging infrastructure.
-Notifications are queued via the outbox pattern so they never block
-the content write.
+The email half of this service was removed on 2026-10-07 with the rest of
+the email feature; the in-app notification is the surface.
 """
 
 from __future__ import annotations
@@ -24,7 +24,7 @@ logger: structlog.stdlib.BoundLogger = structlog.get_logger(__name__)
 
 
 class BlogNotificationService:
-    """Queue blog-related email notifications."""
+    """Queue blog-related in-app notifications."""
 
     def __init__(self, db: "AsyncSession") -> None:
         self.db = db
@@ -104,16 +104,18 @@ class BlogNotificationService:
         self,
         comment_id: uuid.UUID,
         post_title: str,
-        comment_author_email: str | None = None,
         comment_author_id: uuid.UUID | None = None,
     ) -> None:
-        """Queue notification when a comment is approved."""
+        """Queue notification when a comment is approved.
+
+        The `comment_author_email` payload field was removed on 2026-10-07
+        with the rest of the email feature.
+        """
         await self._emit(
             event_type="blog.comment.approved",
             payload={
                 "comment_id": str(comment_id),
                 "post_title": post_title,
-                "comment_author_email": comment_author_email,
                 "comment_author_id": str(comment_author_id) if comment_author_id else None,
                 "action": "comment_approved",
             },

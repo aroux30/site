@@ -189,6 +189,89 @@ async def import_feed(
     return stats
 
 
+# ---------------------------------------------------------------------------
+# WordPress WXR import (posts + pages + comments in one file)
+# ---------------------------------------------------------------------------
+#
+# WXR is the XML WordPress writes under Tools → Export. It is the only format
+# a WordPress install can hand you, so it belongs on this page next to the
+# CSV and feed cards rather than hidden behind the blog admin. The preview
+# comes first for the same reason the feed's does: importing an archive is not
+# reversible in one click, and "what is in this file?" is the question worth
+# answering before the irreversible step.
+
+
+@admin_router.post(
+    "/import/wxr/preview",
+    summary="Parse a WordPress WXR (XML) export and report what it holds (admin)",
+    dependencies=[_require_read],
+)
+async def preview_wxr_import(
+    file: UploadFile = File(...),
+) -> dict:
+    """Count and sample the WXR without writing anything.
+
+    Reports posts, pages, categories, tags and comments separately: a WXR
+    export that holds only pages and no posts is normal, and a preview that
+    collapsed them into one number would hide that.
+    """
+    from app.modules.blog.application.wxr_parser import parse_wxr
+
+    content = await file.read()
+    try:
+        parsed = parse_wxr(content)
+    except ValueError as exc:
+        raise ValidationError(str(exc)) from exc
+
+    return {
+        "format": "wxr",
+        "counts": parsed["counts"],
+        "sample": parsed["posts"][:5],
+        "sample_pages": parsed["pages"][:5],
+        "categories": parsed["categories"],
+        "tags": parsed["tags"],
+    }
+
+
+@admin_router.post(
+    "/import/wxr",
+    summary="Import a WordPress WXR (XML) export: posts, pages and comments (admin)",
+    dependencies=[_require_write],
+)
+async def import_wxr(
+    file: UploadFile = File(...),
+    skip_existing: bool = Query(True),
+    user_id: uuid.UUID = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    """Import a WXR file through the one shared path.
+
+    Posts, categories, tags and comments land as blog content; pages land as
+    CMS pages with their parent hierarchy; everything commits or rolls back
+    together (see ``blog.application.wxr_import``). Drafts stay drafts — the
+    file's own ``wp:status`` decides, and publishing remains a per-post act.
+    """
+    from app.modules.blog.application.wxr_import import import_wxr as run_wxr_import
+    from app.modules.blog.application.wxr_parser import parse_wxr
+
+    content = await file.read()
+    try:
+        parsed = parse_wxr(content)
+    except ValueError as exc:
+        raise ValidationError(str(exc)) from exc
+
+    counts = parsed["counts"]
+    if not counts["posts"] and not counts["pages"]:
+        raise ValidationError(
+            "این فایل هیچ نوشته یا برگه‌ای ندارد — پیش از خروجی گرفتن، "
+            "در وردپرس محتوا را در Export انتخاب کنید"
+        )
+
+    return await run_wxr_import(
+        db, parsed, author_id=user_id, skip_existing=skip_existing
+    )
+
+
 @admin_router.get(
     "/import-jobs",
     response_model=ImportJobListResponse,

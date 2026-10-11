@@ -5,6 +5,10 @@ import apiClient from "./client";
 export interface AuditLog {
   id: string; // backend is UUIDv4
   actor_id: string | null;
+  /** نام نمایشی عامل رویداد (از پروفایل)؛ null اگر حساب حذف شده باشد */
+  actor_name?: string | null;
+  /** شماره تماس عامل رویداد — شناسهٔ ورودی که اپراتور میشناسد */
+  actor_phone?: string | null;
   action: string;
   resource: string;
   resource_id: string | null;
@@ -17,40 +21,6 @@ export interface AuditLog {
   created_at: string;
 }
 
-export interface OperationalException {
-  id: number | string;
-  type?: string;
-  exception_type?: string;
-  severity: "low" | "medium" | "high" | "critical" | string;
-  message?: string;
-  details?: Record<string, unknown> | string | null;
-  resource_type?: string;
-  entity_type?: string;
-  resource_id?: string;
-  entity_id?: string;
-  status: "open" | "assigned" | "resolved" | "dismissed" | string;
-  assigned_to?: number | string | null;
-  owner_id?: string | null;
-  resolved_at?: string | null;
-  resolution_notes?: string | null;
-  created_at: string;
-}
-
-function normalizeException(raw: any): OperationalException {
-  return {
-    ...raw,
-    type: raw.type || raw.exception_type || "",
-    exception_type: raw.exception_type || raw.type || "",
-    message: raw.message || (typeof raw.details === "string" ? raw.details : JSON.stringify(raw.details || "")),
-    resource_type: raw.resource_type || raw.entity_type,
-    entity_type: raw.entity_type || raw.resource_type,
-    resource_id: raw.resource_id || raw.entity_id,
-    entity_id: raw.entity_id || raw.resource_id,
-    assigned_to: raw.assigned_to || raw.owner_id,
-    owner_id: raw.owner_id || raw.assigned_to,
-  };
-}
-
 /** یک ردیف تغییر سطح فیلد (ERP #9) */
 export interface EntityChange {
   id: string;
@@ -59,6 +29,10 @@ export interface EntityChange {
   operation: "create" | "update" | "delete";
   changed_fields: Array<{ field: string; old_value: unknown; new_value: unknown }>;
   actor_id: string | null;
+  /** نام نمایشی عامل تغییر (از پروفایل)؛ null اگر حساب حذف شده باشد */
+  actor_name?: string | null;
+  /** شماره تماس عامل تغییر */
+  actor_phone?: string | null;
   actor_type: "user" | "system" | "celery";
   request_id: string | null;
   source: "api" | "admin" | "service" | "seed";
@@ -73,9 +47,6 @@ export interface TrackedEntitySummary {
   row_count: number;
   last_change_at: string | null;
 }
-
-// Note: reconciliation endpoints are already covered by
-// frontend/lib/api/reconciliation.ts — not duplicated here.
 
 // --- API (admin) ---
 
@@ -96,56 +67,6 @@ export const auditApi = {
       { params },
     );
     return res.data;
-  },
-
-  /** لیست استثناهای عملیاتی */
-  listExceptions: async (params?: {
-    page?: number;
-    status?: string;
-    severity?: string;
-  }): Promise<{ items: OperationalException[]; total: number }> => {
-    const res = await apiClient.get<OperationalException[] | { items: OperationalException[]; total?: number }>(
-      "/audit/admin/exceptions",
-      { params },
-    );
-    const raw = res.data;
-    // The endpoint may answer with a bare array or a paginated envelope; the
-    // envelope is the only shape that carries a total.
-    const items = Array.isArray(raw) ? raw : raw?.items || [];
-    const total = Array.isArray(raw) ? raw.length : raw?.total ?? items.length;
-    return {
-      items: items.map(normalizeException),
-      total,
-    };
-  },
-
-  /** تخصیص استثنا به کاربر */
-  assignException: async (exceptionId: number | string, assigneeId: number | string): Promise<OperationalException> => {
-    const res = await apiClient.patch<OperationalException>(
-      `/audit/admin/exceptions/${exceptionId}/assign`,
-      { owner_id: String(assigneeId) },
-    );
-    return normalizeException(res.data);
-  },
-
-  /** حل‌وفصل استثنا */
-  resolveException: async (exceptionId: number | string, resolution?: string): Promise<OperationalException> => {
-    const notes = resolution && resolution.trim().length >= 3 ? resolution.trim() : "برطرف شد";
-    const res = await apiClient.patch<OperationalException>(
-      `/audit/admin/exceptions/${exceptionId}/resolve`,
-      { resolution_notes: notes },
-    );
-    return normalizeException(res.data);
-  },
-
-  /** رد استثنا */
-  dismissException: async (exceptionId: number | string, reason?: string): Promise<OperationalException> => {
-    const notes = reason && reason.trim().length >= 3 ? reason.trim() : "نادیده گرفته شد";
-    const res = await apiClient.patch<OperationalException>(
-      `/audit/admin/exceptions/${exceptionId}/dismiss`,
-      { resolution_notes: notes },
-    );
-    return normalizeException(res.data);
   },
 };
 

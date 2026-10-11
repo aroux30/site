@@ -40,9 +40,10 @@ import {
 import { useAuth } from "@/hooks/use-auth";
 import { useCart } from "@/hooks/use-cart";
 import { useCompareStore } from "@/stores/compare-store";
+import { useShopFeatures } from "@/hooks/use-shop-features";
 import { CartDrawer } from "@/components/cart/cart-drawer";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
-import { WidgetArea } from "@/components/layout/widget-area";
+import { WidgetArea, useHasWidgets } from "@/components/layout/widget-area";
 import { LiveSearchBar } from "@/components/search/live-search-bar";
 import {
   fetchCategories,
@@ -55,6 +56,10 @@ import { useSiteBranding } from "@/components/layout/site-branding-provider";
 
 // Fallback nav only until the CMS menu tree (header_main location) loads from
 // the API — editors can then change links from the admin panel without a deploy.
+// Fallback nav only until the CMS menu tree (header_main location) loads from
+// the API — editors can then change links from the admin panel without a deploy.
+// Feature-gated entries are filtered out further down, once the switch state
+// has loaded, so a disabled module leaves no link here either.
 const fallbackNavigationLinks = [
   { href: "/", label: "صفحه اصلی" },
   { href: "/products", label: "محصولات" },
@@ -65,6 +70,41 @@ const fallbackNavigationLinks = [
   { href: "/contact", label: "تماس با ما" },
 ];
 
+/** Whether a nav link points at a module that has an on/off switch. */
+function isFeatureGatedLink(
+  href: string,
+  features: { wishlist: boolean; compare: boolean },
+): boolean {
+  if (href === "/compare") return features.compare;
+  if (href.startsWith("/favorites") || href.startsWith("/account/favorites")) {
+    return features.wishlist;
+  }
+  return true;
+}
+
+/** Configured widget area (admin /admin/widgets), mounted above the header.
+ *
+ *  The `header_top` area was always editable in the admin but never mounted
+ *  anywhere, so anything an operator put there was invisible. It is mounted
+ *  here now — but only wrapped in its own padded, bordered strip when an editor
+ *  has actually put something there. `WidgetArea` renders `null` when the area
+ *  is empty, so mounting it inside a fixed wrapper left every visitor looking
+ *  at an empty grey strip above the header. This is the same `useHasWidgets`
+ *  guard `FooterWidgetStrip` uses, and the reason the strip appears the moment
+ *  the first widget is saved rather than being permanently present-but-blank. */
+function HeaderTopWidgets() {
+  const hasWidgets = useHasWidgets(["header_top"]);
+  if (!hasWidgets) return null;
+
+  return (
+    <div className="w-full border-b border-border bg-muted/40 px-4 py-3">
+      <div className="container mx-auto">
+        <WidgetArea area="header_top" />
+      </div>
+    </div>
+  );
+}
+
 export function Header() {
   const router = useRouter();
   const { siteName } = useSiteBranding();
@@ -72,6 +112,10 @@ export function Header() {
   const { totalItems } = useCart();
   const { products: compareProducts } = useCompareStore();
   const compareCount = compareProducts.length;
+  // The wishlist and compare entry points disappear entirely when their module
+  // switch is off — a header link to a page that then refuses to load is the
+  // defect the switch exists to prevent.
+  const shopFeatures = useShopFeatures();
 
   const [mounted, setMounted] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -151,9 +195,14 @@ export function Header() {
     };
   }, []);
 
-  const navigationLinks =
+  // Filter AFTER choosing the source, not before: a CMS-configured menu can
+// contain /compare or /favorites just as easily as the fallback can, and an
+// operator who switched a module off does not want it reachable by editing the
+// menu.
+  const navigationLinks = (
     cmsMenu?.map((item) => ({ href: item.url, label: item.title })) ??
-    fallbackNavigationLinks;
+    fallbackNavigationLinks
+  ).filter((link) => isFeatureGatedLink(link.href, shopFeatures));
 
   // Fetch real categories from API
   useEffect(() => {
@@ -293,14 +342,7 @@ export function Header() {
 
   return (
     <>
-    {/* Configured widget area (admin /admin/widgets). The `header_top` area was
-        always editable in the admin but never mounted anywhere, so anything
-        an operator put there was invisible. */}
-    <div className="w-full border-b border-border bg-muted/40 px-4 py-3">
-      <div className="container mx-auto">
-        <WidgetArea area="header_top" />
-      </div>
-    </div>
+    <HeaderTopWidgets />
     {/* Announcement bar from CMS homepage_config (admin /admin/cms) */}
     {announcement?.enabled && announcement.text ? (
       <div className="w-full bg-emerald-600 px-4 py-2 text-center text-xs font-semibold text-white">
@@ -319,8 +361,13 @@ export function Header() {
         scrolled && "shadow-md",
       )}
     >
-      {/* ===== Top Info Bar ===== */}
-      <div className="border-b border-border bg-primary text-primary-foreground">
+      {/* ===== Top Info Bar =====
+          `bg-emerald-800`, not `bg-primary`: the brand green (#10b77f) with
+          white text is a 2.59:1 contrast ratio, below the 4.5:1 AA floor —
+          Lighthouse's color-contrast audit failed on the phone number, and
+          the same pair carries every label in this bar. emerald-800 keeps
+          the brand family and reaches 7.0:1 with white. */}
+      <div className="border-b border-border bg-emerald-800 text-white">
         <div className="container mx-auto flex items-center justify-between px-4 py-1.5 text-xs">
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-1.5">
@@ -336,13 +383,9 @@ export function Header() {
           </div>
           <div className="flex min-w-0 items-center gap-4">
             {/* `min-w-0` plus hidden text lets this cluster shrink below its
-                intrinsic width. At 200% zoom the free-shipping sentence alone
-                is wider than the viewport, and without shrink permission it
-                pushed the whole bar — and every page with it — into
-                horizontal scroll. */}
-            <span className="hidden shrink min-w-0 truncate sm:inline sm:max-w-[14rem] font-medium">
-              ارسال رایگان برای سفارش‌های بالای ۵۰۰,۰۰۰ تومان
-            </span>
+                intrinsic width. At 200% zoom the rewards chip alone is wider
+                than the viewport, and without shrink permission it pushed the
+                whole bar — and every page with it — into horizontal scroll. */}
             <Link
               href="/rewards"
               className="flex min-w-0 shrink items-center gap-1.5 font-bold text-xs text-amber-950 bg-amber-300 hover:bg-amber-200 px-3 py-0.5 rounded-full shadow-xs transition-colors"
@@ -400,39 +443,43 @@ export function Header() {
               {/* Compare — a secondary action, hidden at the narrowest widths
                   where it would compete with search/cart for a 320px row and
                   push the cluster past the viewport edge. */}
-              <Link href="/compare" className="hidden sm:inline-flex">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="group relative"
-                  aria-label="مقایسه کالاها"
-                >
-                  <ArrowLeftRight className="h-5 w-5 transition-colors group-hover:text-primary" />
-                  {mounted && compareCount > 0 && (
-                    <Badge className="absolute -left-1.5 -top-1.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1 text-[11px] font-bold text-primary-foreground shadow-sm">
-                      {toPersianDigits(compareCount)}
-                    </Badge>
-                  )}
-                  <span className="pointer-events-none absolute -bottom-8 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md bg-foreground px-2 py-1 text-[10px] text-background opacity-0 shadow-lg transition-opacity group-hover:opacity-100 z-50">
-                    مقایسه کالاها
-                  </span>
-                </Button>
-              </Link>
+              {shopFeatures.compare && (
+                <Link href="/compare" className="hidden sm:inline-flex">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="group relative"
+                    aria-label="مقایسه کالاها"
+                  >
+                    <ArrowLeftRight className="h-5 w-5 transition-colors group-hover:text-primary" />
+                    {mounted && compareCount > 0 && (
+                      <Badge className="absolute -left-1.5 -top-1.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1 text-[11px] font-bold text-primary-foreground shadow-sm">
+                        {toPersianDigits(compareCount)}
+                      </Badge>
+                    )}
+                    <span className="pointer-events-none absolute -bottom-8 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md bg-foreground px-2 py-1 text-[10px] text-background opacity-0 shadow-lg transition-opacity group-hover:opacity-100 z-50">
+                      مقایسه کالاها
+                    </span>
+                  </Button>
+                </Link>
+              )}
 
               {/* Wishlist */}
-              <Link href="/account/favorites" className="hidden sm:inline-flex">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="group relative"
-                  aria-label="علاقه‌مندی‌ها"
-                >
-                  <Heart className="h-5 w-5 transition-colors group-hover:text-red-500" />
-                  <span className="pointer-events-none absolute -bottom-8 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md bg-foreground px-2 py-1 text-[10px] text-background opacity-0 shadow-lg transition-opacity group-hover:opacity-100 z-50">
-                    علاقه‌مندی‌ها
-                  </span>
-                </Button>
-              </Link>
+              {shopFeatures.wishlist && (
+                <Link href="/account/favorites" className="hidden sm:inline-flex">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="group relative"
+                    aria-label="علاقه‌مندی‌ها"
+                  >
+                    <Heart className="h-5 w-5 transition-colors group-hover:text-red-500" />
+                    <span className="pointer-events-none absolute -bottom-8 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md bg-foreground px-2 py-1 text-[10px] text-background opacity-0 shadow-lg transition-opacity group-hover:opacity-100 z-50">
+                      علاقه‌مندی‌ها
+                    </span>
+                  </Button>
+                </Link>
+              )}
 
               {/* Cart Drawer Trigger Button */}
               <Button
@@ -480,7 +527,7 @@ export function Header() {
                       <div className="flex flex-col space-y-1">
                         <p className="text-sm font-semibold leading-none">{userName}</p>
                         <p className="text-xs text-muted-foreground font-mono">
-                          {user.email || user.phone}
+                          {user.phone}
                         </p>
                       </div>
                     </DropdownMenuLabel>
@@ -497,12 +544,14 @@ export function Header() {
                         <Package className="h-4 w-4 text-muted-foreground" />
                       </Link>
                     </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link href="/account/favorites" className="w-full flex items-center justify-between cursor-pointer">
-                        <span>علاقه‌مندی‌ها</span>
-                        <Heart className="h-4 w-4 text-muted-foreground" />
-                      </Link>
-                    </DropdownMenuItem>
+                    {shopFeatures.wishlist && (
+                      <DropdownMenuItem asChild>
+                        <Link href="/account/favorites" className="w-full flex items-center justify-between cursor-pointer">
+                          <span>علاقه‌مندی‌ها</span>
+                          <Heart className="h-4 w-4 text-muted-foreground" />
+                        </Link>
+                      </DropdownMenuItem>
+                    )}
                     <DropdownMenuItem asChild>
                       <Link href="/account/referrals" className="w-full flex items-center justify-between cursor-pointer">
                         <span>دعوت دوستان</span>
@@ -526,14 +575,21 @@ export function Header() {
                   </DropdownMenuContent>
                 </DropdownMenu>
               ) : (
-                <Link href="/login">
+                <Link href="/login" aria-label="ورود یا ثبت‌نام">
                   <Button
                     variant="outline"
                     size="sm"
                     className="gap-2 rounded-xl border-primary/40 font-medium text-primary hover:bg-primary hover:text-primary-foreground transition-all"
                   >
-                    <User className="h-4 w-4" />
+                    {/* The label collapses below `sm`, leaving an icon-only
+                        button — Lighthouse's button-name and link-name
+                        audits both failed on it (a screen reader heard
+                        nothing). `aria-label` on the Link and a
+                        screen-reader-only span on the button keep a name at
+                        every width. */}
+                    <User className="h-4 w-4" aria-hidden="true" />
                     <span className="hidden sm:inline">ورود / ثبت‌نام</span>
+                    <span className="sr-only sm:hidden">ورود یا ثبت‌نام</span>
                   </Button>
                 </Link>
               )}
@@ -644,48 +700,60 @@ export function Header() {
               {/* Separator */}
               <div className="h-5 w-px bg-border mx-2" />
 
-              {/* Navigation Links — CMS parents with children render as dropdowns */}
+              {/* Navigation Links — CMS parents with children render as dropdowns.
+
+                  Both branches filter through isFeatureGatedLink. They are two
+                  separate renders of the same menu (the CMS one and the fallback
+                  one), and filtering only one leaves the other advertising a
+                  module that is switched off — which is how a disabled compare
+                  link stayed on screen on a store that has a CMS menu. */}
               {cmsMenu
-                ? cmsMenu.map((item) =>
-                    item.children && item.children.length > 0 ? (
-                      <DropdownMenu key={item.id}>
-                        <DropdownMenuTrigger asChild>
-                          <button className="flex items-center gap-1 rounded-lg px-3.5 py-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground">
-                            {item.title}
-                            <ChevronDown className="h-3.5 w-3.5" />
-                          </button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="start" className="min-w-44">
-                          {item.children.map((child) => (
-                            <DropdownMenuItem key={child.id} asChild>
-                              <Link href={child.url} prefetch={false}>
-                                {child.title}
-                              </Link>
-                            </DropdownMenuItem>
-                          ))}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    ) : (
+                ? cmsMenu
+                    .filter((item) => isFeatureGatedLink(item.url, shopFeatures))
+                    .map((item) =>
+                      item.children && item.children.length > 0 ? (
+                        <DropdownMenu key={item.id}>
+                          <DropdownMenuTrigger asChild>
+                            <button className="flex items-center gap-1 rounded-lg px-3.5 py-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground">
+                              {item.title}
+                              <ChevronDown className="h-3.5 w-3.5" />
+                            </button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="start" className="min-w-44">
+                            {item.children
+                              .filter((child) => isFeatureGatedLink(child.url, shopFeatures))
+                              .map((child) => (
+                                <DropdownMenuItem key={child.id} asChild>
+                                  <Link href={child.url} prefetch={false}>
+                                    {child.title}
+                                  </Link>
+                                </DropdownMenuItem>
+                              ))}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      ) : (
+                        <Link
+                          key={item.id}
+                          href={item.url}
+                          prefetch={false}
+                          className="rounded-lg px-3.5 py-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                        >
+                          {item.title}
+                        </Link>
+                      ),
+                    )
+                : fallbackNavigationLinks
+                    .filter((link) => isFeatureGatedLink(link.href, shopFeatures))
+                    .map((link) => (
                       <Link
-                        key={item.id}
-                        href={item.url}
+                        key={link.href}
+                        href={link.href}
                         prefetch={false}
                         className="rounded-lg px-3.5 py-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
                       >
-                        {item.title}
+                        {link.label}
                       </Link>
-                    ),
-                  )
-                : fallbackNavigationLinks.map((link) => (
-                    <Link
-                      key={link.href}
-                      href={link.href}
-                      prefetch={false}
-                      className="rounded-lg px-3.5 py-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
-                    >
-                      {link.label}
-                    </Link>
-                  ))}
+                    ))}
 
               {/* CMS-driven header CTA (header_menu single type) */}
               {headerCta?.visible && headerCta.url ? (
@@ -842,7 +910,11 @@ export function Header() {
                       label: item.title,
                     }))
                   : navigationLinks
-                ).map((link) => (
+                  // The CMS menu needs the same filter as the fallback: the
+                  // filter on navigationLinks only covers the non-CMS branch, so
+                  // without this an operator could keep /compare reachable by
+                  // having a CMS menu configured at all.
+                ).filter((link) => isFeatureGatedLink(link.href, shopFeatures)).map((link) => (
                   <li key={link.href}>
                     <Link
                       href={link.href}

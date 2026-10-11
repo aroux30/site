@@ -81,7 +81,7 @@ All 22 core components are strictly typed and adhere to the `cva` (class-varianc
 ### 4.2 Layout Components (`components/layout/`)
 - **Header:**
   - Sticky with scroll detection and subtle glassmorphism border.
-  - Quick top banner (contact info + free shipping threshold).
+  - Quick top banner (contact info + rewards chip).
   - Expandable smart search bar with live suggestion slots.
   - Mega-menu category trigger + quick links.
   - User avatar/menu, Wishlist counter, Cart badge indicator with pulse effect.

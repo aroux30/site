@@ -52,33 +52,6 @@ async def _send_notification_async(
                 elif ch == "sms" and user and user.phone:
                     # In production, call SMS gateway (e.g. Kavenegar)
                     dispatched_channels.append("sms")
-                elif ch == "email" and user and user.email:
-                    from app.modules.notifications.application import email_service
-
-                    html = await email_service.wrap_html_for_store(
-                        db,
-                        f"<p>{notif.body}</p>".replace("\n", "<br>"),
-                    )
-                    success, _log = await email_service.send_email(
-                        db,
-                        recipient=user.email,
-                        subject=notif.title,
-                        html_body=html,
-                        text_body=notif.body,
-                        template=notif.type,
-                        notification_id=notif.id,
-                    )
-                    # Persist the delivery-log row either way; a FAILED row
-                    # is exactly what ops needs to see.
-                    await db.commit()
-                    if success:
-                        dispatched_channels.append("email")
-                    else:
-                        await logger.aerror(
-                            "notification_email_delivery_failed",
-                            notification_id=str(notif.id),
-                            recipient=user.email,
-                        )
 
             await logger.ainfo(
                 "notification_dispatched",

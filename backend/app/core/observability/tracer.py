@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import logging
 from typing import TYPE_CHECKING, Any
+from urllib.parse import urlparse
 
 from opentelemetry import trace
 from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
@@ -31,6 +32,28 @@ logger = logging.getLogger(__name__)
 
 _tracer: Tracer | None = None
 _instrumented: bool = False
+
+
+def _otlp_http_session(endpoint: str) -> Any:
+    """A requests session for the OTLP exporter.
+
+    A collector on loopback must not be routed through an ambient proxy:
+    with HTTP_PROXY set (and NO_PROXY absent) the exporter posts to the
+    proxy instead of the collector and every batch dies as a ReadTimeout
+    on the proxy port — measured: delivered=False in 5.0s with the request
+    going to 127.0.0.1:10809, while the same export with ``trust_env=False``
+    reached the collector in 0.02s. The same hazard exists on Windows via
+    the registry proxy. An external collector (SaaS, another host) keeps
+    the default session so a corporate egress proxy still applies.
+    """
+    import requests
+
+    host = urlparse(endpoint).hostname or ""
+    is_loopback = host in {"localhost", "127.0.0.1", "::1"} or host.endswith(".localhost")
+    session = requests.Session()
+    if is_loopback:
+        session.trust_env = False
+    return session
 
 
 def setup_opentelemetry(app: FastAPI | None = None) -> TracerProvider:
@@ -58,7 +81,11 @@ def setup_opentelemetry(app: FastAPI | None = None) -> TracerProvider:
     # Configure OTLP HTTP span exporter
     try:
         otlp_endpoint = f"{settings.OTEL_EXPORTER_OTLP_ENDPOINT.rstrip('/')}/v1/traces"
-        otlp_exporter = OTLPSpanExporter(endpoint=otlp_endpoint, timeout=5)
+        otlp_exporter = OTLPSpanExporter(
+            endpoint=otlp_endpoint,
+            timeout=5,
+            session=_otlp_http_session(otlp_endpoint),
+        )
         provider.add_span_processor(BatchSpanProcessor(otlp_exporter))
 
         # The collector is optional infrastructure: when it is unreachable the

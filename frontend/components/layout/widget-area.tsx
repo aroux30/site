@@ -11,11 +11,11 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Search, Mail, Share2 } from "lucide-react";
+import { Search, Share2 } from "lucide-react";
 
 import { widgetsApi, type Widget } from "@/lib/api/wp-parity";
 import { fetchBlogPosts } from "@/lib/api/blog";
-import { newsletterApi } from "@/lib/api/newsletter";
+import { mayHaveSession } from "@/lib/api/client";
 
 type Cache = Awaited<ReturnType<typeof widgetsApi.publicAreas>>;
 
@@ -61,7 +61,7 @@ function WidgetBody({ widget }: { widget: Widget }) {
       // holds for every reader of this row and not only for this component. A
       // comment here that claims the value is sanitized is not what makes it so.
       return text ? (
-        // eslint-disable-next-line @eslint-react/no-danger -- sanitized
+        // eslint-disable-next-line react/no-danger -- sanitized
         // server-side on write by WidgetService._sanitise_widgets; see above
         <div
           className="custom-html-widget text-sm leading-relaxed"
@@ -93,9 +93,6 @@ function WidgetBody({ widget }: { widget: Widget }) {
           />
         </div>
       );
-
-    case "newsletter":
-      return <NewsletterWidget source={typeof config.source === "string" ? config.source : "widget"} />;
 
     case "social_links":
       return (
@@ -220,66 +217,6 @@ function WidgetBody({ widget }: { widget: Widget }) {
 function numberOf(value: unknown, fallback: number): number {
   const n = typeof value === "number" ? value : Number(value);
   return Number.isFinite(n) && n > 0 ? Math.min(Math.trunc(n), 50) : fallback;
-}
-
-/** Newsletter signup, wired to the real double opt-in endpoint.
- *
- * This was a bare input and a button with no handler, so the one widget that
- * collected an email address did nothing at all.
- */
-function NewsletterWidget({ source }: { source: string }) {
-  const [email, setEmail] = useState("");
-  const [state, setState] = useState<"idle" | "sending" | "sent" | "error">("idle");
-  const [message, setMessage] = useState("");
-
-  const submit = async (event: React.FormEvent) => {
-    event.preventDefault();
-    const trimmed = email.trim();
-    if (!trimmed || state === "sending") return;
-    setState("sending");
-    setMessage("");
-    try {
-      const { message: serverMessage } = await newsletterApi.subscribe(trimmed, source);
-      setState("sent");
-      setMessage(serverMessage);
-      setEmail("");
-    } catch (err) {
-      setState("error");
-      setMessage(
-        err instanceof Error ? err.message : "ثبت‌نام انجام نشد. لطفاً دوباره تلاش کنید.",
-      );
-    }
-  };
-
-  if (state === "sent") {
-    return <p className="rounded-lg bg-emerald-500/10 p-3 text-sm text-emerald-700 dark:text-emerald-400">{message}</p>;
-  }
-
-  return (
-    <form onSubmit={submit} className="flex flex-col gap-2">
-      <div className="flex gap-2">
-        <input
-          type="email"
-          required
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="ایمیل شما"
-          aria-label="ایمیل برای خبرنامه"
-          className="h-9 flex-1 rounded-lg border border-input bg-background px-3 text-sm"
-        />
-        <button
-          type="submit"
-          disabled={state === "sending"}
-          className="h-9 shrink-0 rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground disabled:opacity-60"
-        >
-          <Mail className="h-4 w-4" />
-        </button>
-      </div>
-      {state === "error" && message && (
-        <p className="text-xs text-destructive">{message}</p>
-      )}
-    </form>
-  );
 }
 
 /** Recent published posts, fetched from the public blog API. */
@@ -570,6 +507,9 @@ function MetaWidget() {
   useEffect(() => {
     let cancelled = false;
     // A cheap presence check: the account endpoint answers 401 for guests.
+    // Skipped when no session can exist — the 401 is expected, but it still
+    // shows up as a failed request in the console for every guest.
+    if (!mayHaveSession()) return;
     fetch("/api/v1/auth/me", { credentials: "include" })
       .then((res) => {
         if (!cancelled) setLoggedIn(res.ok);

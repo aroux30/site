@@ -900,6 +900,20 @@ class ProductService:
             CategoryResponse.model_validate(product.category) if product.category else None
         )
         brand_resp = BrandResponse.model_validate(product.brand) if product.brand else None
+        # Price range from active variants — the list mapper always had this,
+        # the detail mapper never did, so `min_price` was null on EVERY
+        # product page. The PDP's Product JSON-LD reads min_price for its
+        # Offer, so every rich result shipped "price": 0 (Google rejects a
+        # zero-priced offer) while the page displayed the real price. Toman
+        # at the boundary, same as the list mapper.
+        active_variants = [v for v in product.variants if v.is_active]
+        min_price: int | None = None
+        max_price: int | None = None
+        if active_variants:
+            prices = [v.price for v in active_variants]
+            min_price = rial_to_toman(min(prices))
+            max_price = rial_to_toman(max(prices))
+
         # Real-time availability per variant (Odoo "free_qty" concept): the
         # sellable on-hand count, so the PDP can show "in stock" vs "out of
         # stock" from actual inventory instead of treating is_active as stock.
@@ -924,6 +938,21 @@ class ProductService:
             for v in product.variants
         ]
         image_resps = [ProductImageResponse.model_validate(img) for img in product.images]
+
+        # The schema declares `primary_image_url` and the PDP reads it for
+        # og:image and the Product JSON-LD image — but this mapper never
+        # filled it, so every product page shipped no image (found live
+        # 2026-10-10 during the SEO audit). Same primary/lowest-position
+        # rule as the list mapper; None when the product has no images.
+        primary_image_url: str | None = None
+        if product.images:
+            primary_images = [img for img in product.images if img.is_primary]
+            if primary_images:
+                primary_image_url = primary_images[0].url
+            else:
+                primary_image_url = sorted(
+                    product.images, key=lambda i: i.position
+                )[0].url
 
         # Tags
         tag_resps: list[TagResponse] = []
@@ -962,6 +991,9 @@ class ProductService:
             seo_title=product.seo_title,
             seo_description=product.seo_description,
             meta_keywords=product.meta_keywords,
+            min_price=min_price,
+            max_price=max_price,
+            primary_image_url=primary_image_url,
             created_at=product.created_at,
             updated_at=product.updated_at,
             category=category_resp,

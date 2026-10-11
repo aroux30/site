@@ -26,12 +26,9 @@ from app.core.database.base import BaseModel
 
 class PaymentProvider(str, enum.Enum):
     ZARINPAL = "zarinpal"
-    IDPAY = "idpay"
     NEXTPAY = "nextpay"
     WALLET = "wallet"
     CARD_TRANSFER = "card_transfer"
-    CRYPTO = "crypto"
-    MOCK = "mock"
 
 
 class PaymentStatus(str, enum.Enum):

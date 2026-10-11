@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Phone, Mail, MapPin, Clock, Send, CheckCircle, Loader2, AlertCircle } from "lucide-react";
+import { Phone, MapPin, Clock, Send, CheckCircle, Loader2, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,12 +16,6 @@ import apiClient from "@/lib/api/client";
  * placeholders. Defaults here are a last resort for a store that has set
  * neither — never an example.com address.
  */
-const DEFAULT_CONTACT = {
-  email: "",
-  phone: "",
-  address: "",
-};
-
 const FALLBACK_LINES = ["—"];
 
 const contactInfo = [
@@ -30,12 +24,6 @@ const contactInfo = [
     title: "تلفن تماس",
     lines: ["۰۲۱-۱۲۳۴۵۶۷۸", "۰۹۱۲-۱۲۳-۴۵۶۷"],
     color: "text-blue-500 bg-blue-50",
-  },
-  {
-    icon: Mail,
-    title: "ایمیل",
-    lines: ["info@example.com", "support@example.com"],
-    color: "text-emerald-500 bg-emerald-50",
   },
   {
     icon: MapPin,
@@ -53,7 +41,6 @@ const contactInfo = [
 
 interface FormErrors {
   name?: string;
-  email?: string;
   subject?: string;
   message?: string;
 }
@@ -61,29 +48,10 @@ interface FormErrors {
 export default function ContactPage() {
   const [formData, setFormData] = useState({
     name: "",
-    email: "",
     subject: "",
     message: "",
   });
   const [errors, setErrors] = useState<FormErrors>({});
-  const [contact, setContact] = useState(DEFAULT_CONTACT);
-  // Operator-set contact details. A failure is not worth surfacing: the card
-  // falls back to the placeholders, which is better than an error box for
-  // decoration the visitor did not ask for.
-  useEffect(() => {
-    let cancelled = false;
-    apiClient
-      .get<{ contact_email?: string }>("/settings/public/branding")
-      .then((res) => {
-        if (cancelled) return;
-        const email = (res.data?.contact_email ?? "").trim();
-        if (email) setContact((c) => ({ ...c, email }));
-      })
-      .catch(() => undefined);
-    return () => {
-      cancelled = true;
-    };
-  }, []);
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -93,13 +61,6 @@ export default function ContactPage() {
 
     if (!formData.name.trim() || formData.name.trim().length < 2) {
       newErrors.name = "نام باید حداقل ۲ حرف باشد";
-    }
-
-    if (
-      !formData.email.trim() ||
-      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)
-    ) {
-      newErrors.email = "لطفاً ایمیل معتبر وارد کنید";
     }
 
     if (!formData.subject.trim() || formData.subject.trim().length < 3) {
@@ -173,7 +134,7 @@ export default function ContactPage() {
                   variant="outline"
                   onClick={() => {
                     setSubmitted(false);
-                    setFormData({ name: "", email: "", subject: "", message: "" });
+                    setFormData({ name: "", subject: "", message: "" });
                   }}
                 >
                   ارسال پیام جدید
@@ -198,24 +159,6 @@ export default function ContactPage() {
                       {errors.name && (
                         <p className="text-xs text-destructive">
                           {errors.name}
-                        </p>
-                      )}
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="email">ایمیل</Label>
-                      <Input
-                        id="email"
-                        name="email"
-                        type="email"
-                        value={formData.email}
-                        onChange={handleChange}
-                        placeholder="email@example.com"
-                        dir="ltr"
-                        className="text-left"
-                      />
-                      {errors.email && (
-                        <p className="text-xs text-destructive">
-                          {errors.email}
                         </p>
                       )}
                     </div>
@@ -289,10 +232,7 @@ export default function ContactPage() {
                   <h3 className="mb-1 font-semibold text-foreground">
                     {info.title}
                   </h3>
-                  {(info.title === "ایمیل" && contact.email
-                    ? [contact.email]
-                    : info.lines
-                  ).map((line, i) => (
+                  {info.lines.map((line, i) => (
                     <p key={i} className="text-sm text-muted-foreground">
                       {line}
                     </p>

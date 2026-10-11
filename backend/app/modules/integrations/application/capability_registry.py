@@ -173,54 +173,6 @@ def _payment_capabilities(
         )
     )
 
-    # IDPay has no credential field of its own — it reuses the shared gateway
-    # identifier. Claiming it is configured whenever *that* value is present
-    # would misreport the Zarinpal merchant id as an IDPay credential, so the
-    # provider selection is required as well.
-    idpay_selected = settings.PAYMENT_PROVIDER == "idpay"
-    records.append(
-        _external_status(
-            configured=idpay_selected and _configured(settings.PAYMENT_MERCHANT_ID),
-            enabled=_gateway_is_offered(settings, "idpay"),
-            sandbox=bool(settings.PAYMENT_SANDBOX),
-            updated_at=now,
-            capability_id="payment.idpay",
-            category=CapabilityCategory.PAYMENT,
-            display_name="IDPay",
-            customer_visible=True,
-        )
-    )
-
-    # Crypto: three distinct configuration facts, so it gets its own rule.
-    # A missing webhook secret does not stop payment *creation*, but it does
-    # disable authenticated confirmation — a provable impairment, hence
-    # DEGRADED rather than a generic health caveat.
-    crypto_configured = _configured(settings.NOWPAYMENTS_API_KEY)
-    if not crypto_configured:
-        crypto_status = CapabilityStatus.DISABLED
-        crypto_reason = CapabilityReason.NOT_CONFIGURED
-    elif settings.NOWPAYMENTS_SANDBOX:
-        crypto_status = CapabilityStatus.BETA
-        crypto_reason = CapabilityReason.SANDBOX_MODE
-    elif not _configured(settings.NOWPAYMENTS_IPN_SECRET):
-        crypto_status = CapabilityStatus.DEGRADED
-        crypto_reason = CapabilityReason.WEBHOOK_VERIFICATION_UNCONFIGURED
-    else:
-        crypto_status = CapabilityStatus.BETA
-        crypto_reason = CapabilityReason.UNVERIFIED_RUNTIME_HEALTH
-    records.append(
-        _record(
-            capability_id="payment.crypto",
-            category=CapabilityCategory.PAYMENT,
-            display_name="NowPayments (crypto)",
-            status=crypto_status,
-            configured=crypto_configured,
-            customer_visible=True,
-            reason_code=crypto_reason,
-            updated_at=now,
-        )
-    )
-
     # Card-to-card is local end to end: the customer transfers out of band and
     # submits a receipt. Nothing external is called, so it can be LIVE — but a
     # human approves every settlement, which is the caveat the reason carries.
@@ -258,71 +210,6 @@ def _payment_capabilities(
         )
     )
 
-    # Mock gateway: the settings validator refuses to boot production with it,
-    # so in production it is reported as hard-blocked rather than simulated.
-    mock_in_production = settings.ENVIRONMENT == "production"
-    records.append(
-        _record(
-            capability_id="payment.mock",
-            category=CapabilityCategory.PAYMENT,
-            display_name="Simulation gateway (development only)",
-            status=(
-                CapabilityStatus.DISABLED
-                if mock_in_production
-                else CapabilityStatus.MOCK
-            ),
-            configured=True,
-            customer_visible=not mock_in_production,
-            reason_code=(
-                CapabilityReason.PRODUCTION_RESTRICTED
-                if mock_in_production
-                else CapabilityReason.SIMULATION_PROVIDER
-            ),
-            updated_at=now,
-        )
-    )
-    return records
-
-
-# ─ Shipping ──────────────────────────────────────────────────────────────
-
-
-def _shipping_capabilities(settings: Settings, now: datetime) -> list[CapabilityRecord]:
-    records = [
-        _record(
-            capability_id="shipping.internal",
-            category=CapabilityCategory.SHIPPING,
-            display_name="In-house delivery",
-            status=CapabilityStatus.LIVE,
-            configured=True,
-            customer_visible=True,
-            reason_code=CapabilityReason.NONE,
-            updated_at=now,
-        )
-    ]
-
-    # The carrier adapters accept credentials as constructor arguments, but no
-    # carrier credential is declared in the settings surface, and the shipping
-    # service builds them without any. There is therefore no local
-    # configuration that could make these dispatch-capable, and in production
-    # they raise rather than silently fake a shipment. Reporting them as
-    # unconfigured is the honest, conservative read.
-    for capability_id, display_name in (
-        ("shipping.tipax", "Tipax courier"),
-        ("shipping.post_iran", "Iran Post (express)"),
-    ):
-        records.append(
-            _record(
-                capability_id=capability_id,
-                category=CapabilityCategory.SHIPPING,
-                display_name=display_name,
-                status=CapabilityStatus.DISABLED,
-                configured=False,
-                customer_visible=False,
-                reason_code=CapabilityReason.NOT_CONFIGURED,
-                updated_at=now,
-            )
-        )
     return records
 
 
@@ -392,105 +279,9 @@ def _messaging_capabilities(
         )
     )
 
-    # SMTP email: real transport when host + sender are configured (still
-    # never LIVE — runtime health is unverified). Unconfigured means the
-    # service falls back to log-only simulation, so the record distinguishes
-    # "off" from "pointed somewhere we have not probed".
-    smtp_configured = _configured(settings.SMTP_HOST) and _configured(
-        settings.SMTP_FROM_ADDRESS
-    )
-    records.append(
-        _external_status(
-            configured=smtp_configured,
-            sandbox=False,
-            updated_at=now,
-            capability_id="messaging.email_smtp",
-            category=CapabilityCategory.MESSAGING,
-            display_name="SMTP email delivery",
-            customer_visible=False,
-        )
-    )
-    if not smtp_configured:
-        # Mirror of the sms_simulation record: without SMTP settings every
-        # email is acknowledged in-process and nothing leaves the platform.
-        records.append(
-            _record(
-                capability_id="messaging.email_simulation",
-                category=CapabilityCategory.MESSAGING,
-                display_name="Internal email acknowledgement (SMTP not configured)",
-                status=CapabilityStatus.MOCK,
-                configured=True,
-                customer_visible=False,
-                reason_code=CapabilityReason.SIMULATED_DELIVERY,
-                updated_at=now,
-            )
-        )
+    # The SMTP email capability records were removed on 2026-10-07 with the
+    # rest of the email feature.
 
-    # Telegram Bot API: real transport when a bot token is configured (still
-    # never LIVE — runtime health is unverified). Unconfigured means the
-    # service falls back to log-only simulation, so the record distinguishes
-    # "off" from "pointed somewhere we have not probed".
-    telegram_configured = _configured(settings.TELEGRAM_BOT_TOKEN)
-    records.append(
-        _external_status(
-            configured=telegram_configured,
-            sandbox=False,
-            updated_at=now,
-            capability_id="messaging.telegram_bot",
-            category=CapabilityCategory.MESSAGING,
-            display_name="Telegram bot delivery",
-            customer_visible=False,
-        )
-    )
-    if not telegram_configured:
-        records.append(
-            _record(
-                capability_id="messaging.telegram_simulation",
-                category=CapabilityCategory.MESSAGING,
-                display_name="Internal Telegram acknowledgement (bot token not configured)",
-                status=CapabilityStatus.MOCK,
-                configured=True,
-                customer_visible=False,
-                reason_code=CapabilityReason.SIMULATED_DELIVERY,
-                updated_at=now,
-            )
-        )
-
-    # Web push (VAPID): real dispatch additionally needs the pywebpush
-    # package, which is currently NOT installed (documented dependency gap
-    # in notifications/application/push_service.py). Report the channel as
-    # MOCK whenever a real send is impossible so the registry never
-    # overstates the integration.
-    push_keys_configured = _configured(settings.VAPID_PUBLIC_KEY) and _configured(
-        settings.VAPID_PRIVATE_KEY
-    )
-    from app.modules.notifications.application.push_service import PYWEBPUSH_AVAILABLE
-
-    webpush_real = push_keys_configured and PYWEBPUSH_AVAILABLE
-    records.append(
-        _record(
-            capability_id="messaging.webpush_vapid",
-            category=CapabilityCategory.MESSAGING,
-            display_name="Web push (VAPID)",
-            status=(
-                CapabilityStatus.BETA
-                if webpush_real
-                else CapabilityStatus.MOCK
-            ),
-            configured=push_keys_configured,
-            customer_visible=False,
-            reason_code=(
-                CapabilityReason.UNVERIFIED_RUNTIME_HEALTH
-                if webpush_real
-                else (
-                    CapabilityReason.NOT_CONFIGURED
-                    if not push_keys_configured
-                    else CapabilityReason.SIMULATED_DELIVERY
-                )
-            ),
-            updated_at=now,
-        )
-    )
     return records
 
 
@@ -535,15 +326,6 @@ def _platform_capabilities(settings: Settings, now: datetime) -> list[Capability
             display_name="Object storage (S3-compatible)",
             customer_visible=False,
         ),
-        _external_status(
-            configured=_configured(settings.IDENTITY_PROVIDER_TOKEN),
-            sandbox=False,
-            updated_at=now,
-            capability_id="identity.zohal",
-            category=CapabilityCategory.IDENTITY,
-            display_name="Identity and mobile-ownership inquiry",
-            customer_visible=False,
-        ),
     ]
 
 
@@ -563,7 +345,7 @@ def build_capability_registry(
     a bare boolean on purpose: the registry never needs the value, so the value
     is never passed this far.
 
-    Order is fixed (payments, shipping, messaging, search, storage, identity)
+    Order is fixed (payments, messaging, search, storage)
     so the output is byte-stable between calls and diffable in tests.
     """
     generated_at = now or datetime.now(UTC)
@@ -573,7 +355,6 @@ def build_capability_registry(
             zarinpal_merchant_id_configured=zarinpal_merchant_id_configured,
             now=generated_at,
         ),
-        *_shipping_capabilities(settings, generated_at),
         *_messaging_capabilities(settings, generated_at),
         *_platform_capabilities(settings, generated_at),
     ]

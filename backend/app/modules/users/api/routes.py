@@ -9,12 +9,12 @@ from fastapi import APIRouter, Depends, Query, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database.session import get_db
+from app.core.exceptions.handlers import NotFoundError
 from app.core.security.dependencies import (
     RequirePermissions,
     get_current_user,
     get_current_user_id,
 )
-from app.modules.users.api.kyc_routes import router as kyc_router
 from app.modules.users.application import user_service
 from app.modules.users.schemas.user import (
     AddressCreate,
@@ -25,7 +25,6 @@ from app.modules.users.schemas.user import (
     AdminUserCreate,
     AdminUserUpdate,
     ApplicationPasswordAdminResponse,
-    PasswordResetIssuedResponse,
     ReassignPreviewResponse,
     UserDeleteResultResponse,
     UserDetailResponse,
@@ -105,55 +104,6 @@ async def delete_address(
     await user_service.delete_address(db, user_id=user_id, address_id=address_id)
 
 
-# ── Admin security panel endpoints (Karta failed_attempts, P1.4) ─────────
-
-
-@router.get(
-    "/admin/security/failed-attempts",
-    dependencies=[Depends(RequirePermissions("users:read"))],
-    summary="List persisted failed login/OTP/KYC attempts (admin)",
-)
-async def list_failed_attempts(
-    attempt_type: str | None = Query(None, description="otp | login | payment | kyc"),
-    identifier: str | None = Query(None, description="Filter by phone/email/IP"),
-    page: int = Query(1, ge=1),
-    page_size: int = Query(50, ge=1, le=200),
-    db: AsyncSession = Depends(get_db),
-) -> dict[str, Any]:
-    total = await user_service.count_failed_attempts(
-        db, attempt_type=attempt_type, identifier=identifier
-    )
-    rows = await user_service.list_failed_attempts(
-        db,
-        attempt_type=attempt_type,
-        identifier=identifier,
-        page=page,
-        page_size=page_size,
-    )
-    return {"items": rows, "total": total}
-
-
-@router.get(
-    "/admin/kyc/trust-profiles",
-    dependencies=[Depends(RequirePermissions("users:read"))],
-    summary="List all user trust profiles for the anti-fraud panel (admin)",
-)
-async def list_trust_profiles(
-    page: int = Query(1, ge=1),
-    page_size: int = Query(50, ge=1, le=200),
-    db: AsyncSession = Depends(get_db),
-) -> dict[str, Any]:
-    from app.modules.users.schemas.kyc import UserTrustProfileResponse
-
-    rows, total = await user_service.list_trust_profiles(db, page=page, page_size=page_size)
-    return {
-        "items": [
-            UserTrustProfileResponse.model_validate(r).model_dump(mode="json") for r in rows
-        ],
-        "total": total,
-    }
-
-
 # ── Admin user management ────────────────────────────────────────────────────
 
 
@@ -164,10 +114,10 @@ async def list_trust_profiles(
     summary="List all users (admin)",
 )
 async def list_users(
-    search: str | None = Query(None, description="Search by phone or email"),
+    search: str | None = Query(None, description="Search by phone"),
     is_active: bool | None = Query(None, description="Filter by active status"),
     role: str | None = Query(
-        None, description="Filter by role slug (server-side, e.g. 'vendor')"
+        None, description="Filter by role slug (server-side, e.g. 'author')"
     ),
     include_deleted: bool = Query(
         False, description="Include soft-deleted accounts (the restore view)"
@@ -243,55 +193,8 @@ async def update_user(
     return UserDetailResponse(**data)
 
 
-@router.post(
-    "/admin/users/{user_id}/password-reset",
-    response_model=PasswordResetIssuedResponse,
-    dependencies=[Depends(RequirePermissions("users:write"))],
-    summary="Email a password-reset link to a user (admin)",
-)
-async def send_password_reset(
-    user_id: uuid.UUID,
-    request: Request,
-    actor_id: uuid.UUID = Depends(get_current_user_id),
-    db: AsyncSession = Depends(get_db),
-) -> PasswordResetIssuedResponse:
-    """Issue a reset link for an account, at an operator's request.
-
-    P0 "کاربران: ارسال لینک بازنشانی رمز توسط ادمین". Every piece of the
-    machinery already existed for the self-service flow — the token, its hash,
-    the TTL, the voiding of the previous token, the email — but only reachable
-    when the account holder asked. An operator who locked someone out, or who is
-    onboarding someone whose password never reached them, had nothing.
-
-    Reports honestly. The public reset endpoint answers the same way whether or
-    not it sent anything, because the caller must not learn which addresses have
-    accounts; here the operator is already looking at a known account, so a
-    false "done" would only send them hunting for a mail that was never coming.
-    ``sent`` is false when the account has no address or no password to reset.
-    """
-    from app.modules.auth.application.auth_service import admin_request_password_reset
-
-    user = await user_service.get_user_entity(db, user_id=user_id)
-    if user is None:
-        raise NotFoundError("User", str(user_id))
-
-    forwarded = request.headers.get("x-forwarded-for")
-    ip = (
-        forwarded.split(",")[0].strip()
-        if forwarded
-        else (request.client.host if request.client else None)
-    )
-    sent = await admin_request_password_reset(
-        db, user=user, actor_id=actor_id, ip_address=ip
-    )
-    return PasswordResetIssuedResponse(
-        sent=sent,
-        detail=(
-            "پیوند بازنشانی رمز به کاربر ارسال شد."
-            if sent
-            else "این حساب ایمیل یا رمز عبور ندارد؛ پیوندی ارسال نشد."
-        ),
-    )
+# `POST /admin/users/{user_id}/password-reset` was removed on 2026-10-07 with
+# the rest of the email feature; recovery runs through the OTP flow.
 
 
 @router.post(
@@ -694,7 +597,3 @@ async def bulk_users(
         user_agent=request.headers.get("user-agent"),
     )
     return AdminBulkUserActionResponse(**result)
-
-
-# ── KYC and anti-fraud sub-router (Karta Phase 1) ──────────────────────────
-router.include_router(kyc_router)

@@ -4,7 +4,14 @@ How backups are taken, where they go, how they are protected, and the exact
 procedure to restore — including the **restore verification** that turns "we
 have backup files" into "we proved a backup restores".
 
-Scripts:
+> **Note (2026-10-04):** the root `scripts/` directory was removed in a
+> cleanup, so the helper scripts listed in the table below are **not present
+> in this repository**. The procedure sections show the equivalent manual
+> commands inline; where a step still names a script (the historical table,
+> and the scheduling units in §8), it is kept as the specification to rebuild
+> from. If the scripts are ever restored, everything below applies unchanged.
+
+Scripts (historical — see note above):
 
 | Script | Purpose |
 |---|---|
@@ -21,18 +28,20 @@ Scripts:
 | Service | Method | Source of truth? |
 |---|---|---|
 | **PostgreSQL** | `pg_dump` inside the `postgres` container → `app_db_<YYYYmmdd_HHMMSS>.sql.gz` | **Yes** |
-| **Uploaded media** | `tar czf` of `/app/uploads` from the `backend` container → `uploads_<ts>.tar.gz` | **Yes** |
+| **Uploaded media** | `tar czf` of `/app/media` from the `backend` container → `uploads_<ts>.tar.gz` (name is historical; the archive contains `media/`) | **Yes** |
 | **MinIO** | `mc mirror` of bucket `ecommerce-media` (default) → `minio_<bucket>_<ts>.tar.gz` | No — see note |
 | **Elasticsearch** | `_snapshot` API → `es_snapshots_<ts>.tar.gz`, **only if reachable** | No — derived index |
 
-**Media note.** Uploaded files are written to `UPLOAD_DIR` on the
-`uploads_data` volume; no code path in the application uses an S3 client
+**Media note.** Uploaded files are written to `UPLOAD_DIR` (default `media`,
+resolved against the app root → `/app/media` in the container, on the
+`media_data` volume); no code path in the application uses an S3 client
 (`media_service` has none). The MinIO bucket is therefore empty, and this
 runbook previously listed a MinIO mirror as *the* media backup — which meant
 product images and bank receipts were not covered by any artifact. The
-`uploads` archive above is the one that matters. MinIO is still snapshotted so
-that a future S3 migration inherits a working backup path; if that path is
-taken, this row becomes a real source again and the note should move with it.
+`uploads` archive above (the `tar` of `/app/media`) is the one that matters.
+MinIO is still snapshotted so that a future S3 migration inherits a working
+backup path; if that path is taken, this row becomes a real source again and
+the note should move with it.
 
 Elasticsearch is a derived search index that can be rebuilt from PostgreSQL, so
 its snapshot is best-effort: if ES is down, the repo `path.repo` is not
@@ -67,15 +76,17 @@ on-disk history, and ship copies off-host for anything beyond that (see §4).
 Encryption is **conditional, not automatic**:
 
 - It is applied only when a key is configured and encryption is requested.
-- Turn it on per-run: `bash scripts/backup.sh --encrypt`
+- Turn it on per-run: encrypt the artifact after `pg_dump`
+  (`openssl enc -aes-256-cbc -pbkdf2 -salt -in "$DUMP" -out "${DUMP}.enc"`).
 - Or persistently: set `BACKUP_REQUIRE_ENCRYPTION=1` in `.env`.
 - The key lives in `BACKUP_ENCRYPTION_KEY` (`openssl` AES-256-CBC, PBKDF2, salted).
 
-If encryption is requested but `BACKUP_ENCRYPTION_KEY` is unset, the script
+If encryption is requested but `BACKUP_ENCRYPTION_KEY` is unset, the procedure
 **fails loudly** and writes nothing — it never writes a plaintext file and
 reports it as encrypted. When no key is configured at all, artifacts are
-written **unencrypted** but always checksummed. `restore.sh` decrypts `.enc`
-artifacts transparently and requires the same key.
+written **unencrypted** but always checksummed. Restores decrypt `.enc`
+artifacts before loading (`openssl enc -d -aes-256-cbc -pbkdf2`) and require
+the same key.
 
 > Backup artifacts can contain PII (customer records, bank-card references) and
 > secrets. Keep them off any host you would not trust with the database, and
@@ -101,41 +112,63 @@ Default: `backups/` at the repo root (`-o/--output` overrides it).
 
 ### 5.1 Verify first (non-destructive) — always do this
 
+Restore the dump into a throwaway database, print the row counts, then drop it.
+The live database is untouched:
+
 ```bash
 cd /opt/app
-bash scripts/verify_backup.sh                       # newest backup
-bash scripts/verify_backup.sh -f backups/app_db_20260909_120000.sql.gz
-```
+DUMP=backups/app_db_20260909_120000.sql.gz
 
-This restores the dump into a throwaway database (`restore_verify_<timestamp>`),
-prints row counts for `users, orders, payments, wallets, wallet_transactions,
-products`, and **drops the throwaway database**. The live database is untouched.
-Exit code 0 means the backup is genuinely restorable.
+# 1. Checksum first — abort on mismatch (or a missing .sha256 sidecar).
+sha256sum -c "${DUMP}.sha256" || exit 1
+
+# 2. Restore into a throwaway database.
+VERIFY_DB="restore_verify_$(date +%Y%m%d_%H%M%S)"
+docker compose exec -T postgres createdb -U ecommerce "$VERIFY_DB"
+gunzip -c "$DUMP" | docker compose exec -T postgres psql -q -U ecommerce -d "$VERIFY_DB"
+
+# 3. Row counts — the proof the backup is genuinely restorable.
+docker compose exec -T postgres psql -U ecommerce -d "$VERIFY_DB" -c \
+  "SELECT 'users', count(*) FROM users UNION ALL SELECT 'orders', count(*) FROM orders UNION ALL SELECT 'payments', count(*) FROM payments UNION ALL SELECT 'wallets', count(*) FROM wallets UNION ALL SELECT 'wallet_transactions', count(*) FROM wallet_transactions UNION ALL SELECT 'products', count(*) FROM products;"
+
+# 4. Drop the throwaway database.
+docker compose exec -T postgres dropdb -U ecommerce "$VERIFY_DB"
+```
 
 ### 5.2 Restore for real (destructive)
 
 ```bash
 cd /opt/app
+DUMP=backups/app_db_<timestamp>.sql.gz
 
-# Confirm the artifact — checksum is verified automatically before any restore.
-bash scripts/restore.sh -f backups/app_db_<timestamp>.sql.gz      # prompts "yes"
-bash scripts/restore.sh -f backups/app_db_<timestamp>.sql.gz -y   # no prompt
+# Confirm the artifact — verify the checksum before any restore.
+sha256sum -c "${DUMP}.sha256" || exit 1
 
-# If the target DB already holds data, the script refuses unless you insist:
-bash scripts/restore.sh -f backups/app_db_<timestamp>.sql.gz -y --force
+# Refuse to touch a database that already holds data unless you insist.
+# (Check first; the live DB is dropped and recreated below.)
+docker compose exec -T postgres psql -U ecommerce -d ecommerce -tAc \
+  "SELECT count(*) FROM orders;"
 
-# Include uploaded media (archive from backup.sh):
-bash scripts/restore.sh -f backups/app_db_<timestamp>.sql.gz -y \
-  -u backups/uploads_<timestamp>.tar.gz
+# Drop, recreate, and load:
+docker compose exec -T postgres dropdb -U ecommerce ecommerce
+docker compose exec -T postgres createdb -U ecommerce ecommerce
+gunzip -c "$DUMP" | docker compose exec -T postgres psql -q -U ecommerce -d ecommerce
+
+# Include uploaded media, when you have the matching archive.
+# (Name is historical — the archive contains media/, not uploads/.
+#  Created with: docker compose exec -T backend tar czf - -C /app media \
+#                  > backups/uploads_<timestamp>.tar.gz)
+docker compose exec -T backend tar xzf - -C /app < backups/uploads_<timestamp>.tar.gz
 ```
 
-The script will:
+The manual procedure must:
 
 1. Verify the sha256 checksum and **abort on mismatch** (or if no `.sha256` is present).
-2. Decrypt transparently if the artifact is `.enc`.
-3. Refuse to restore into a database containing live data unless `--force` is given.
-4. Drop and recreate the target DB, load the dump (`psql`, or `pg_restore` for
-   custom-format dumps), optionally mirror MinIO back, then print key-table counts.
+2. Decrypt transparently if the artifact is `.enc` (see §3 for the openssl step).
+3. Refuse to restore into a database containing live data unless you explicitly
+   confirm — check the count first, as above.
+4. Drop and recreate the target DB, load the dump, optionally mirror MinIO back,
+   then print key-table counts.
 
 ### 5.3 After restoring
 
@@ -170,8 +203,9 @@ These are **targets, not measured figures for this environment** — see §7.
 > paths (pg_dump, pg_restore/psql, mc mirror, ES snapshot) are implemented but
 > **untested on this host**. No restore has been performed and none is claimed.
 
-Fill this in the first time you run `verify_backup.sh` on the production host,
-and update it weekly (a template row is shown filled as an example format):
+Fill this in the first time you run the §5.1 verification on the production
+host, and update it weekly (a template row is shown filled as an example
+format):
 
 | Date (Tehran) | Artifact verified | Row counts (users/orders/payments/wallets/wallet_transactions/products) | Verified by | Result |
 |---|---|---|---|---|
@@ -182,20 +216,33 @@ Record the exact command used and paste the row-count table it printed. If a
 run fails, record the failure and its error — a failed verification is the most
 important line in this table.
 
-To produce a row:
+To produce a row (the helper script is gone — see the note at the top — so
+run the equivalent by hand: restore the dump into a throwaway database with
+`createdb`/`pg_restore` or `psql`, print the row counts listed above, then
+`dropdb` it):
 
 ```bash
-cd /root/site && bash scripts/verify_backup.sh
+cd /root/site
+# e.g. with the dump from §5: restore into restore_verify_<timestamp>, count, drop
 ```
 
 ---
 
 ## 8. Scheduling
 
+> The packaged cron fragment and systemd units were part of the removed
+> `scripts/` directory. Recreate them from the specs below; the timing and
+> retention rules are unchanged.
+
 ### Option A — cron
 
 ```bash
-sudo cp scripts/cron.d/ecommerce-backup /etc/cron.d/ecommerce-backup
+# /etc/cron.d/ecommerce-backup — twice daily, 03:15 and 15:15 Tehran:
+#   15 3  * * *  root  /usr/local/bin/ecommerce-backup --retain 7
+#   15 15 * * *  root  /usr/local/bin/ecommerce-backup --retain 7
+#   0  5  * * 0  root  /usr/local/bin/ecommerce-backup --verify-only
+# where ecommerce-backup is the wrapper script you build from §4/§5:
+# pg_dump + media tar + sha256 sidecar + retention, exit non-zero on failure.
 sudo chown root:root /etc/cron.d/ecommerce-backup
 sudo chmod 0644 /etc/cron.d/ecommerce-backup
 ```
@@ -208,10 +255,8 @@ newline, or cron silently ignores them. Logs go to
 ### Option B — systemd timers
 
 ```bash
-sudo cp scripts/systemd/ecommerce-backup.service /etc/systemd/system/
-sudo cp scripts/systemd/ecommerce-backup.timer   /etc/systemd/system/
-sudo cp scripts/systemd/ecommerce-verify.service /etc/systemd/system/
-sudo cp scripts/systemd/ecommerce-verify.timer   /etc/systemd/system/
+# Recreate ecommerce-backup.{service,timer} and ecommerce-verify.{service,timer}
+# under /etc/systemd/system/ with the same schedule as the cron lines above:
 sudo systemctl daemon-reload
 sudo systemctl enable --now ecommerce-backup.timer ecommerce-verify.timer
 systemctl list-timers 'ecommerce-*'
@@ -224,10 +269,9 @@ Adjust `WorkingDirectory`/`ExecStart` in the units if the repo is not at
 
 ## 9. Failure handling
 
-`backup.sh` exits non-zero on **any** failure, including: Docker unavailable,
-`postgres`/`backend`/`minio` not running, an empty `pg_dump`, an empty uploads
-archive, a failed MinIO mirror, or
-encryption requested without a key. Wire this into alerting (cron `MAILTO`,
-systemd `OnFailure=`, or your monitoring stack) so a silently failing backup
-does not go unnoticed. A backup you only discover is broken during a restore is
-not a backup.
+The backup procedure must exit non-zero on **any** failure, including: Docker
+unavailable, `postgres`/`backend`/`minio` not running, an empty `pg_dump`, an
+empty media archive, a failed MinIO mirror, or encryption requested without a
+key. Wire this into alerting (cron `MAILTO`, systemd `OnFailure=`, or your
+monitoring stack) so a silently failing backup does not go unnoticed. A backup
+you only discover is broken during a restore is not a backup.

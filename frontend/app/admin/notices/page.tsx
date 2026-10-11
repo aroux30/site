@@ -275,7 +275,7 @@ export default function AdminNoticesPage() {
                     </Badge>
                   </div>
                   <div
-                    className="mt-3 text-xs text-muted-foreground line-clamp-2 prose prose-sm max-w-none"
+                    className="mt-3 text-xs text-muted-foreground line-clamp-2 prose prose-sm dark:prose-invert max-w-none"
                     dangerouslySetInnerHTML={{ __html: sanitizeHtml(n.content_html) }}
                   />
                 </Card>

@@ -62,19 +62,6 @@ class SEOService:
 
         update_data = data.model_dump(exclude_unset=True)
 
-        # ``HOOK_SEO_METADATA`` was declared and never dispatched, so a plugin
-        # that rewrote SEO before persist looked wired and silently never ran.
-        # Fires on the dict that is about to be written, not on the response,
-        # so a handler can actually change what is stored.
-        from app.shared.plugins.registry import HOOK_SEO_METADATA, registry
-
-        update_data = await registry.apply_filters(
-            HOOK_SEO_METADATA,
-            update_data,
-            resource_type=resource_type,
-            resource_id=str(resource_id),
-        )
-
         if record:
             for key, val in update_data.items():
                 setattr(record, key, val)
@@ -115,22 +102,64 @@ class SEOService:
         resource_type: str,
         resource_id: uuid.UUID,
     ) -> SEOMetadataResponse:
-        """Generate default SEO title, description, and JSON-LD schema from the domain model."""
+        """Generate default SEO title, description, and JSON-LD schema from the domain model.
+
+        The title/description come from the operator's Titles & Meta
+        templates (``titles_meta_service``) — the strings here are only the
+        fallback when even the template render is empty, and the built-in
+        template defaults reproduce the exact strings this method used to
+        hardcode.
+        """
+        from app.modules.seo.application.titles_meta_service import TitlesMetaService
+
+        tm = TitlesMetaService(self.db)
+
         if resource_type in ("blog_post", "post", "blog"):
             post = await self.db.get(BlogPost, resource_id)
             if post:
-                title = f"{post.title} | وبلاگ"
-                desc = post.excerpt or (
+                raw_desc = post.excerpt or (
                     post.content[:150] + "..." if len(post.content) > 150 else post.content
                 )
-                schema: dict[str, Any] = {
-                    "@context": "https://schema.org",
-                    "@type": "Article",
-                    "headline": post.title,
-                    "description": desc,
-                    "datePublished": post.published_at.isoformat() if post.published_at else None,
-                    "image": post.cover_image_url,
-                }
+                # `category` must be eager-loaded: touching the relationship
+                # on an async session raises MissingGreenlet (the exact bug
+                # blog-list-500 documented). A missing category is fine —
+                # %category% renders empty — but a lazy load is a crash.
+                from sqlalchemy import select as _select
+                from sqlalchemy.orm import selectinload as _selectinload
+
+                post = (
+                    await self.db.execute(
+                        _select(BlogPost)
+                        .where(BlogPost.id == post.id)
+                        .options(_selectinload(BlogPost.category))
+                    )
+                ).scalar_one()
+                # Focus keyword lives in seo_metadata (seokw1), not on the
+                # post row; the row we may be generating defaults FOR can
+                # carry one the operator already saved.
+                focus_row = (
+                    await self.db.execute(
+                        _select(SEOMetadata.focus_keyword).where(
+                            SEOMetadata.resource_type.in_(("blog_post", "post", "blog")),
+                            SEOMetadata.resource_id == post.id,
+                        )
+                    )
+                ).scalar_one_or_none()
+                title, desc = await tm.resolve(
+                    "post",
+                    title=post.title,
+                    excerpt=post.excerpt or raw_desc,
+                    focus_keyword=focus_row,
+                    category=post.category.name if post.category else None,
+                    modified=post.updated_at.isoformat() if post.updated_at else None,
+                    resource_id=str(post.id),
+                )
+                title = title or f"{post.title} | وبلاگ"
+                desc = desc or raw_desc
+                # schema_markup is None for the same reason as the product
+                # branch: a generated stub must not masquerade as an operator
+                # override, or the storefront's stored-override branch would
+                # pick it over the rich built-in Article node.
                 return SEOMetadataResponse(
                     id=uuid.uuid4(),
                     resource_type=resource_type,
@@ -141,20 +170,28 @@ class SEOService:
                     og_title=post.title,
                     og_description=desc,
                     og_image=post.cover_image_url,
-                    schema_markup=schema,
+                    schema_markup=None,
                 )
 
         if resource_type in ("product", "products"):
             prod = await self.db.get(Product, resource_id)
             if prod:
-                title = f"{prod.name} | خرید و بررسی"
-                desc = prod.short_description or prod.name
-                schema = {
-                    "@context": "https://schema.org",
-                    "@type": "Product",
-                    "name": prod.name,
-                    "description": desc,
-                }
+                raw_desc = prod.short_description or prod.name
+                title, desc = await tm.resolve(
+                    "product",
+                    title=prod.name,
+                    excerpt=raw_desc,
+                    resource_id=str(prod.id),
+                )
+                title = title or f"{prod.name} | خرید و بررسی"
+                desc = desc or raw_desc
+                # schema_markup is deliberately None here. A *generated* stub
+                # is not an operator override: returning one made the
+                # storefront's `schemaOverride ?? buildProductJsonLd` pick the
+                # stub (name+description only) over the rich built-in node
+                # (offers/price/availability), silently dropping the product
+                # rich result. Only a stored row carries schema_markup — the
+                # storefront builds its own node when none is stored.
                 return SEOMetadataResponse(
                     id=uuid.uuid4(),
                     resource_type=resource_type,
@@ -164,14 +201,21 @@ class SEOService:
                     canonical_url=f"/products/{prod.slug}",
                     og_title=prod.name,
                     og_description=desc,
-                    schema_markup=schema,
+                    schema_markup=None,
                 )
 
         if resource_type in ("category", "categories"):
             cat = await self.db.get(Category, resource_id)
             if cat:
-                title = f"خرید محصولات دسته‌بندی {cat.name}"
-                desc = cat.description or f"بهترین قیمت و مشخصات محصولات {cat.name}"
+                raw_desc = cat.description or f"بهترین قیمت و مشخصات محصولات {cat.name}"
+                title, desc = await tm.resolve(
+                    "category",
+                    title=cat.name,
+                    excerpt=raw_desc,
+                    resource_id=str(cat.id),
+                )
+                title = title or f"خرید محصولات دسته‌بندی {cat.name}"
+                desc = desc or raw_desc
                 return SEOMetadataResponse(
                     id=uuid.uuid4(),
                     resource_type=resource_type,

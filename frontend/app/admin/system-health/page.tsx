@@ -89,9 +89,12 @@ export default function SystemHealthPage() {
   const [showHistory, setShowHistory] = useState(false);
   const [optimizing, setOptimizing] = useState(false);
   const [recoveryPaused, setRecoveryPaused] = useState(false);
-  // Busy flag for the recovery-key email, so a double-click does not mint and
-  // send two keys.
+  // Busy flag for the recovery-key mint, so a double-click does not mint two
+  // keys.
   const [sendingKey, setSendingKey] = useState(false);
+  // The minted key, shown once. Since the email feature's removal (2026-10-07)
+  // the key is returned in the response and displayed here rather than mailed.
+  const [recoveryKey, setRecoveryKey] = useState<string | null>(null);
   // The info tab is a support tool, not a health signal, so it starts closed
   // rather than pushing the actual check results below the fold.
   const [showInfo, setShowInfo] = useState(false);
@@ -190,20 +193,21 @@ export default function SystemHealthPage() {
     setSendingKey(true);
     try {
       const res = await siteHealthApi.sendRecoveryInvitation();
-      if (res.sent) {
+      if (res.issued && res.key) {
+        setRecoveryKey(res.key);
         toast({
-          title: "کلید بازیابی ارسال شد",
-          description: `به ${res.recipient ?? "ایمیل مدیر"} — کوتاه‌عمر است و پس از رفع مشکل منقضی می‌شود.`,
+          title: "کلید بازیابی ساخته شد",
+          description: "کلید پایین همین کارت نمایش داده شد. کوتاه‌عمر است و پس از رفع مشکل منقضی می‌شود.",
         });
       } else {
         toast({
-          title: "ارسال کلید بازیابی ناموفق بود",
+          title: "ساخت کلید بازیابی ناموفق بود",
           description: res.reason ?? undefined,
           variant: "destructive",
         });
       }
     } catch {
-      toast({ title: "ارسال کلید بازیابی ناموفق بود", variant: "destructive" });
+      toast({ title: "ساخت کلید بازیابی ناموفق بود", variant: "destructive" });
     } finally {
       setSendingKey(false);
     }
@@ -387,17 +391,16 @@ export default function SystemHealthPage() {
               </div>
             </div>
             <div className="flex items-center gap-2">
-              {/* Email a one-time recovery key. The whole point of recovery
-                  mode is that the panel may be the broken thing — a key in
-                  the operator's mailbox is a way back that does not depend on
-                  this page rendering. */}
+              {/* Mint a one-time recovery key. Since the email feature's
+                  removal (2026-10-07) the key is displayed here rather than
+                  mailed; the display below the buttons shows it once. */}
               <Button
                 size="sm"
                 variant="outline"
                 onClick={() => void handleSendRecoveryKey()}
                 disabled={sendingKey}
               >
-                {sendingKey ? "در حال ارسال…" : "ارسال کلید بازیابی به ایمیل مدیر"}
+                {sendingKey ? "در حال ساخت…" : "ساخت کلید بازیابی"}
               </Button>
               <Button
                 size="sm"
@@ -408,6 +411,19 @@ export default function SystemHealthPage() {
               </Button>
             </div>
           </div>
+          {recoveryKey && (
+            <div className="mt-3 rounded-lg border border-border bg-muted/40 p-3">
+              <p className="text-xs text-muted-foreground">
+                کلید بازیابی (یک‌بار نمایش داده می‌شود — همین حالا کپی کنید):
+              </p>
+              <code
+                dir="ltr"
+                className="mt-1 block select-all break-all rounded bg-background px-2 py-1.5 font-mono text-xs text-foreground"
+              >
+                {recoveryKey}
+              </code>
+            </div>
+          )}
         </Card>
       )}
 

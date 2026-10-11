@@ -100,8 +100,15 @@ export function PostTermsPicker({
   }, [searches, load]);
 
   useEffect(() => {
+    // `initialTermIds` defaults to a fresh `[]` on every render, so depending
+    // on the array itself re-runs this effect every render: setSelected gets a
+    // new reference, the component re-renders, a new `[]` arrives — forever
+    // ("Maximum update depth exceeded" in the console whenever the editor
+    // opened). Keying on the contents runs it on mount and when the parent
+    // genuinely changes the selection, and never for an identical re-render.
     setSelected(initialTermIds);
-  }, [initialTermIds]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialTermIds.join("\u0000")]);
 
   const toggle = (termId: string) => {
     setSelected((prev) =>

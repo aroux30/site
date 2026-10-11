@@ -53,7 +53,6 @@ export interface TokenResponse {
 export interface UserProfileResponse {
   id: string;
   phone: string;
-  email?: string | null;
   first_name?: string | null;
   last_name?: string | null;
   national_code?: string | null;
@@ -76,9 +75,8 @@ export interface AuthResponse {
   user?: {
     id: string;
     name?: string;
-    email?: string;
     phone: string;
-    role?: "customer" | "admin" | "vendor";
+    role?: "customer" | "admin";
   };
 }
 

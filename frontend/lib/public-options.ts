@@ -34,3 +34,38 @@ export async function fetchPublicDiscussionOptions(): Promise<PublicDiscussionOp
     return DEFAULTS;
   }
 }
+
+export interface PublicBreadcrumbOptions {
+  homeLabel: string;
+  separator: string;
+  /** Whether post trails include the "وبلاگ" crumb. */
+  showBlog: boolean;
+}
+
+const BREADCRUMB_DEFAULTS: PublicBreadcrumbOptions = {
+  homeLabel: "خانه",
+  separator: "/",
+  showBlog: true,
+};
+
+/** The breadcrumb display settings; same fail-open shape as discussion. */
+export async function fetchPublicBreadcrumbOptions(): Promise<PublicBreadcrumbOptions> {
+  try {
+    const res = await fetch(`${apiInternalUrl()}/settings/public/breadcrumbs`, {
+      next: { revalidate: 300 },
+    });
+    if (!res.ok) return BREADCRUMB_DEFAULTS;
+    const data = (await res.json()) as {
+      home_label?: string;
+      separator?: string;
+      show_blog?: boolean;
+    };
+    return {
+      homeLabel: data.home_label || BREADCRUMB_DEFAULTS.homeLabel,
+      separator: data.separator || BREADCRUMB_DEFAULTS.separator,
+      showBlog: data.show_blog !== false,
+    };
+  } catch {
+    return BREADCRUMB_DEFAULTS;
+  }
+}

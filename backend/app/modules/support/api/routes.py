@@ -15,7 +15,7 @@ from app.core.security.dependencies import (
 )
 from app.core.security.rate_limiter import limiter
 from app.modules.support.application.support_service import SupportService
-from app.modules.support.domain.models import TicketStatus
+from app.modules.support.domain.models import TicketPriority, TicketStatus
 from app.modules.support.schemas.support import (
     ContactMessageCreate,
     ContactMessageResponse,
@@ -25,6 +25,7 @@ from app.modules.support.schemas.support import (
     TicketMessageCreate,
     TicketMessageResponse,
     TicketResponse,
+    TicketStatsResponse,
     TicketUpdateRequest,
 )
 
@@ -56,7 +57,6 @@ async def submit_contact_message(
     contact = await SupportService.create_contact_message(
         db,
         name=body.name,
-        email=body.email,
         subject=body.subject,
         message=body.message,
     )
@@ -245,19 +245,53 @@ async def reopen_ticket(
 )
 async def admin_list_tickets(
     status_filter: TicketStatus | None = Query(None, alias="status"),
+    priority: TicketPriority | None = Query(None),
+    search: str | None = Query(None, description="Match ticket number or subject"),
     user_id: uuid.UUID | None = Query(None, description="Filter by user ID"),
     skip: int = Query(0, ge=0),
     limit: int = Query(20, ge=1, le=100),
     db: AsyncSession = Depends(get_db),
 ) -> TicketListResponse:
-    """Return paginated support tickets across all users for staff/operators."""
+    """Return paginated support tickets across all users for staff/operators.
+
+    Rows carry the customer's name/phone and a thread summary so the admin
+    list/board can show WHO is writing and what the last message said —
+    previously the list rendered a raw user UUID and nothing else.
+    """
     items, total = await SupportService.list_tickets(
-        db, user_id=user_id, status=status_filter, skip=skip, limit=limit
+        db,
+        user_id=user_id,
+        status=status_filter,
+        priority=priority,
+        search=search,
+        skip=skip,
+        limit=limit,
     )
+    enriched = await SupportService.enrich_admin_ticket_rows(db, items)
     return TicketListResponse(
-        items=[TicketResponse.model_validate(t) for t in items],
+        items=[TicketResponse.model_validate(row) for row in enriched],
         total=total,
     )
+
+
+@router.get(
+    "/admin/tickets/stats",
+    response_model=TicketStatsResponse,
+    summary="Admin — per-status ticket counts",
+    dependencies=[Depends(RequirePermissions("support:read"))],
+)
+async def admin_ticket_stats(
+    db: AsyncSession = Depends(get_db),
+) -> TicketStatsResponse:
+    """Whole-table per-status counts for the admin board headers.
+
+    Registered BEFORE ``/admin/tickets/{ticket_id}`` on purpose: with the
+    detail route first, ``stats`` would be captured as a ticket id and the
+    request would 422 instead of reaching this handler (the same trap the
+    orders admin documented).
+    """
+    stats = await SupportService.admin_ticket_stats(db)
+    return TicketStatsResponse.model_validate(stats)
 
 
 @router.get(
@@ -277,7 +311,24 @@ async def admin_get_ticket(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Ticket not found.",
         )
-    return TicketDetailResponse.model_validate(ticket)
+    # Attach customer identity — the detail view used to show a raw UUID.
+    enriched = await SupportService.enrich_admin_ticket_rows(db, [ticket])
+    row = enriched[0] if enriched else {}
+    payload = {
+        "id": ticket.id,
+        "user_id": ticket.user_id,
+        "subject": ticket.subject,
+        "status": ticket.status,
+        "priority": ticket.priority,
+        "assigned_to": ticket.assigned_to,
+        "ticket_number": ticket.ticket_number,
+        "messages": ticket.messages,
+        "created_at": ticket.created_at,
+        "updated_at": ticket.updated_at,
+        "customer_name": row.get("customer_name"),
+        "customer_phone": row.get("customer_phone"),
+    }
+    return TicketDetailResponse.model_validate(payload)
 
 
 @router.post(

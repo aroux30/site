@@ -143,14 +143,3 @@ def test_the_info_tab_reports_a_mid_merge_database():
     src = inspect.getsource(svc.SiteHealthService.debug_info)
     assert "in_consistent_state" in src
     assert "len(rows) > 1" in src
-
-
-def test_the_info_tab_lists_the_scheduled_jobs():
-    import inspect
-
-    from app.modules.settings.application import site_health_service as svc
-
-    src = inspect.getsource(svc.SiteHealthService.debug_info)
-    # A support ticket asking "is the reminder job on?" is answered by the
-    # schedule, which is a different question from whether the beat is alive.
-    assert "beat_schedule" in src

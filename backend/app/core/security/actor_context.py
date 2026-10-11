@@ -25,6 +25,7 @@ from collections.abc import Iterator
 from contextlib import contextmanager
 from contextvars import ContextVar, Token
 from dataclasses import dataclass
+from typing import Any
 
 #: Source values. Kept as plain strings so this core module stays free of
 #: module-level enum imports (the audit module maps them onto ChangeSource).
@@ -41,19 +42,33 @@ KNOWN_SOURCES: frozenset[str] = frozenset(
 
 @dataclass(frozen=True, slots=True)
 class ActorContext:
-    """Who is acting, and through which surface."""
+    """Who is acting, and through which surface.
+
+    ``ip_address``/``user_agent`` describe the originating request. They are
+    part of the actor context — not a per-call argument — because the audit
+    writers deep in the service layer (RBAC, CMS, settings) have no request
+    object in hand; binding them once at the authentication funnel gives
+    every audit row its request details without touching 40+ call sites.
+    """
 
     actor_id: uuid.UUID | None = None
     source: str = SOURCE_SERVICE
+    ip_address: str | None = None
+    user_agent: str | None = None
 
 
 _actor: ContextVar[ActorContext | None] = ContextVar("current_actor_context", default=None)
+
+#: Sentinel for "argument omitted" — distinct from an explicit ``None``.
+_UNSET: Any = object()
 
 
 def bind_actor(
     actor_id: uuid.UUID | None = None,
     *,
     source: str = SOURCE_API,
+    ip_address: Any = _UNSET,
+    user_agent: Any = _UNSET,
 ) -> Token[ActorContext | None]:
     """Bind the acting identity for the current context.
 
@@ -61,8 +76,25 @@ def bind_actor(
     Idempotent overwrite is intentional: on an admin route the auth dependency
     binds ``api`` first and the permission gate re-binds ``admin`` afterwards,
     which is the value the change log should carry.
+
+    ``ip_address``/``user_agent`` follow *keep-if-omitted* semantics: the
+    re-binds above (``api`` → ``admin``, and the ``get_current_user_id``
+    re-bind) must not silently drop the request details the first bind
+    captured. Pass an explicit value — including ``None`` — to change them.
     """
-    return _actor.set(ActorContext(actor_id=actor_id, source=source))
+    previous = _actor.get()
+    if ip_address is _UNSET:
+        ip_address = previous.ip_address if previous is not None else None
+    if user_agent is _UNSET:
+        user_agent = previous.user_agent if previous is not None else None
+    return _actor.set(
+        ActorContext(
+            actor_id=actor_id,
+            source=source,
+            ip_address=ip_address,
+            user_agent=user_agent,
+        )
+    )
 
 
 def clear_actor() -> None:
@@ -87,20 +119,41 @@ def current_source(default: str = SOURCE_SERVICE) -> str:
     return ctx.source
 
 
+def current_ip_address() -> str | None:
+    """The bound request's client IP, or ``None`` outside a request."""
+    ctx = _actor.get()
+    return ctx.ip_address if ctx is not None else None
+
+
+def current_user_agent() -> str | None:
+    """The bound request's User-Agent header, or ``None`` outside a request."""
+    ctx = _actor.get()
+    return ctx.user_agent if ctx is not None else None
+
+
 @contextmanager
 def actor_scope(
     actor_id: uuid.UUID | None = None,
     *,
     source: str = SOURCE_SERVICE,
+    ip_address: str | None = None,
+    user_agent: str | None = None,
 ) -> Iterator[ActorContext]:
     """Temporarily bind an actor and restore the previous one on exit.
 
     Used by tasks and tests that must not leak provenance into the calling
     context.
     """
-    token = bind_actor(actor_id, source=source)
+    token = bind_actor(
+        actor_id, source=source, ip_address=ip_address, user_agent=user_agent
+    )
     try:
-        yield ActorContext(actor_id=actor_id, source=source)
+        yield ActorContext(
+            actor_id=actor_id,
+            source=source,
+            ip_address=ip_address,
+            user_agent=user_agent,
+        )
     finally:
         _actor.reset(token)
 

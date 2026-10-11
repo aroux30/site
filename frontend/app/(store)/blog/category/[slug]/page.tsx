@@ -25,7 +25,20 @@ const PAGE_SIZE = 12;
 async function findCategory(slug: string): Promise<BlogPostCategory | null> {
   try {
     const categories = await fetchBlogCategories();
-    return categories.find((c) => c.slug === slug) ?? null;
+    // Match on BOTH the raw and the decoded form: for a Persian slug the
+    // dynamic segment can arrive percent-encoded or decoded depending on the
+    // middleware rewrite path (found live 2026-10-10: every Persian category
+    // 404'd while ASCII ones worked). Comparing both forms is
+    // encoding-independent, and an ASCII slug is unchanged by decoding.
+    let decoded = slug;
+    try {
+      decoded = decodeURIComponent(slug);
+    } catch {
+      // A malformed %-sequence keeps the raw value.
+    }
+    return (
+      categories.find((c) => c.slug === slug || c.slug === decoded) ?? null
+    );
   } catch {
     // A category service outage is not "this category does not exist";
     // rethrowing lets error.tsx offer a retry instead of a false 404.
@@ -46,8 +59,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!category) return { title: "دسته یافت نشد" };
 
   return {
-    title: `${category.name} | وبلاگ`,
-    description: `مقالات دسته ${category.name}`,
+    // The operator's titles-meta template wins (rendered by the backend);
+    // the hardcoded form is the last fallback (SEO audit F-02).
+    title: category.seo_title || `${category.name} | وبلاگ`,
+    description:
+      category.seo_description || `مقالات دسته ${category.name}`,
     alternates: {
       canonical: `/blog/category/${category.slug}`,
       // Per-archive feed, so a reader can follow one category. The generator

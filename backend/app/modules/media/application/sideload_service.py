@@ -27,7 +27,7 @@ from __future__ import annotations
 
 import uuid
 from typing import Any
-from urllib.parse import urljoin
+from urllib.parse import urljoin, urlparse
 
 import httpx
 from fastapi import UploadFile
@@ -76,18 +76,35 @@ async def sideload_image(
     from app.modules.media.application.media_service import MediaService
 
     current = url.strip()
+    # `trust_env=False`: this is a server-side fetch on behalf of an operator,
+    # and the ambient proxy settings (on this machine, a localhost proxy on
+    # 10809) must not silently take over the connection. With trust_env on,
+    # httpx read the Windows registry's proxy and every sideload of an
+    # ordinary https image died with a DNS error for a host that resolves
+    # fine — the fetch never reached the URL guard's vetted address.
     async with httpx.AsyncClient(
-        timeout=_FETCH_TIMEOUT, follow_redirects=False
+        timeout=_FETCH_TIMEOUT, follow_redirects=False, trust_env=False
     ) as client:
         response = None
         for hop in range(MAX_SIDELOAD_REDIRECTS + 1):
             # Re-vet every hop. The first request goes to the pinned address so
             # the name cannot be re-resolved after the check; redirects start
             # from the Location header and go through the same guard.
-            connect_url, _ = await validate_pinned_url(current, what="نشانی")
+            connect_url, host = await validate_pinned_url(current, what="نشانی")
+            # An https request to an IP literal verifies the certificate
+            # against the *IP*, which every real certificate fails
+            # (`IP address mismatch`). The `sni_hostname` extension is the
+            # documented way to keep SNI and certificate verification on the
+            # original hostname while the TCP connection goes to the vetted
+            # address — the pinning and the TLS identity check both hold.
+            # The Host header carries the port when the URL names a
+            # non-default one, exactly as a direct request would.
+            parsed_current = urlparse(current)
+            host_header = host if parsed_current.port is None else f"{host}:{parsed_current.port}"
             response = await client.get(
                 connect_url,
-                headers={"User-Agent": f"{_UA} (media sideload)"},
+                headers={"Host": host_header, "User-Agent": f"{_UA} (media sideload)"},
+                extensions={"sni_hostname": host},
             )
             if response.is_redirect:
                 if hop >= MAX_SIDELOAD_REDIRECTS:
@@ -97,7 +114,12 @@ async def sideload_image(
                 location = response.headers.get("location")
                 if not location:
                     raise ValidationError("ریدایرکت بدون مقصد")
-                current = urljoin(connect_url, location)
+                # Joined against the ORIGINAL URL, not the pinned connect
+                # URL: a relative Location joined onto the IP literal would
+                # make the next hop look like an IP-addressed request, and
+                # the hostname (and with it SNI and certificate identity)
+                # would be lost after the first redirect.
+                current = urljoin(current, location)
                 continue
             break
 
@@ -158,25 +180,44 @@ async def read_capped(response: Any, *, cap: int = MAX_SIDELOAD_BYTES) -> bytes:
 
 
 class _BytesReader:
-    """A minimal async file object for ``UploadFile``.
+    """A minimal file object for ``UploadFile``, built from bytes.
 
     Starlette's ``UploadFile`` wants a spooled file. Building one from bytes
     keeps the sideload on the same validation path as a browser upload instead
     of a second, subtly different one.
+
+    **Sync on purpose.** Starlette decides how to call this object by asking it
+    ``getattr(file, "_rolled", True)`` — an object without that attribute is
+    treated as already-rolled and its ``read``/``seek`` are called
+    *synchronously* (`self.file.read(size)`, no await). The first version of
+    this class defined ``async def read``, so that call returned a coroutine,
+    the size check did ``len(coroutine)``, and every sideload died with a
+    ``TypeError`` — visible only when the fetch succeeded, which is why the
+    SNI and proxy bugs above had to be fixed before this one could even
+    surface. Declaring ``_rolled = False`` and sync methods is what makes
+    Starlette take its in-memory path, exactly as a real spooled file does.
     """
+
+    #: Tells Starlette this object is in memory (the SpooledTemporaryFile
+    #: contract). Absence of the attribute reads as rolled=True and switches
+    #: Starlette to sync calls — which is the path this class is built for.
+    _rolled = False
 
     def __init__(self, data: bytes) -> None:
         import io
 
         self._buffer = io.BytesIO(data)
 
-    async def read(self, size: int = -1) -> bytes:
+    def read(self, size: int = -1) -> bytes:
         return self._buffer.read(size)
 
-    async def seek(self, offset: int) -> None:
+    def seek(self, offset: int) -> None:
         self._buffer.seek(offset)
 
-    async def close(self) -> None:
+    def tell(self) -> int:
+        return self._buffer.tell()
+
+    def close(self) -> None:
         self._buffer.close()
 
 

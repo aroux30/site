@@ -1,10 +1,10 @@
 """Checkout API — re-export the router for auto-discovery by ``main.py``.
 
-Also exposes ``admin_router`` (tax engine v1 admin endpoints); ``main.py``
-auto-mounts it under the API prefix when present.
+The tax-engine admin router that used to be exposed here as ``admin_router``
+was removed on 2026-10-09 with the whole rule engine (owner's single-rate
+decision: the settings field is the only tax authority).
 """
 
 from app.modules.checkout.api.routes import router
-from app.modules.checkout.api.tax_routes import router as admin_router
 
-__all__ = ["router", "admin_router"]
+__all__ = ["router"]

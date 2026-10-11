@@ -51,6 +51,7 @@ import { AccessoryRail } from "@/components/store/accessory-rail";
 import { useCart } from "@/hooks/use-cart";
 import { useAuth } from "@/hooks/use-auth";
 import { useCompareStore } from "@/stores/compare-store";
+import { useShopFeatures } from "@/hooks/use-shop-features";
 import type { Product } from "@/types/product";
 import {
   useProduct,
@@ -93,6 +94,7 @@ export default function ProductDetailPage() {
   const { addToCart } = useCart();
   const { isAuthenticated } = useAuth();
   const { isInCompare, toggleProduct } = useCompareStore();
+  const shopFeatures = useShopFeatures();
 
   // ---------- TanStack Query: Product ----------
   const {
@@ -205,13 +207,17 @@ export default function ProductDetailPage() {
   // Check wishlist status
   const checkWishlistStatus = useCallback(async (productId: string) => {
     if (!isAuthenticated) return;
+    // Skip the request entirely when the module is off: it would be refused,
+    // and firing a call that is guaranteed to fail turns a hidden feature into
+    // a console error.
+    if (!shopFeatures.wishlist) return;
     try {
       const status = await checkWishlistApi(productId);
       setIsWishlisted(status.in_wishlist);
     } catch {
       // Ignore if unauthenticated or endpoint error
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, shopFeatures.wishlist]);
 
   useEffect(() => {
     if (product?.id) {
@@ -402,8 +408,10 @@ export default function ProductDetailPage() {
       })),
       type: product.product_type || product.category?.name || "کالای دیجیتال",
       weight: currentVariant?.weight ? `${currentVariant.weight} گرم` : undefined,
-      rating: reviewStats.average_rating || 4.7,
-      reviewCount: reviews.length,
+      // No reviews means no rating claim — a fabricated 4.7 followed the
+      // product into the compare table, where it read as fact.
+      rating: reviewStats.total_reviews > 0 ? reviewStats.average_rating : 0,
+      reviewCount: reviewStats.total_reviews,
       createdAt: product.created_at || new Date().toISOString(),
       updatedAt: product.updated_at || new Date().toISOString(),
     };
@@ -616,38 +624,42 @@ export default function ProductDetailPage() {
                 {/* Action Buttons on Image */}
                 <div className="absolute top-4 left-4 flex items-center gap-2">
                   {/* Compare Button */}
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={handleToggleCompare}
-                    className={`h-10 w-10 rounded-2xl bg-background/80 backdrop-blur hover:bg-background border-border shadow-sm transition-all ${
-                      inCompare
-                        ? "border-primary bg-primary/10 text-primary"
-                        : "text-muted-foreground hover:text-primary"
-                    }`}
-                    aria-label={inCompare ? "حذف از لیست مقایسه" : "افزودن به لیست مقایسه"}
-                    title={inCompare ? "حذف از مقایسه" : "مقایسه محصول"}
-                  >
-                    <ArrowLeftRight className="h-5 w-5" />
-                  </Button>
+                  {shopFeatures.compare && (
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={handleToggleCompare}
+                      className={`h-10 w-10 rounded-2xl bg-background/80 backdrop-blur hover:bg-background border-border shadow-sm transition-all ${
+                        inCompare
+                          ? "border-primary bg-primary/10 text-primary"
+                          : "text-muted-foreground hover:text-primary"
+                      }`}
+                      aria-label={inCompare ? "حذف از لیست مقایسه" : "افزودن به لیست مقایسه"}
+                      title={inCompare ? "حذف از مقایسه" : "مقایسه محصول"}
+                    >
+                      <ArrowLeftRight className="h-5 w-5" />
+                    </Button>
+                  )}
 
                   {/* Wishlist Button */}
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={handleToggleWishlist}
-                    disabled={wishlistLoading}
-                    className="h-10 w-10 rounded-2xl bg-background/80 backdrop-blur hover:bg-background border-border shadow-sm"
-                    aria-label="افزودن به علاقه‌مندی‌ها"
-                  >
-                    <Heart
-                      className={`h-5 w-5 transition-colors ${
-                        isWishlisted
-                          ? "fill-red-500 text-red-500"
-                          : "text-muted-foreground hover:text-red-500"
-                      }`}
-                    />
-                  </Button>
+                  {shopFeatures.wishlist && (
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={handleToggleWishlist}
+                      disabled={wishlistLoading}
+                      className="h-10 w-10 rounded-2xl bg-background/80 backdrop-blur hover:bg-background border-border shadow-sm"
+                      aria-label="افزودن به علاقه‌مندی‌ها"
+                    >
+                      <Heart
+                        className={`h-5 w-5 transition-colors ${
+                          isWishlisted
+                            ? "fill-red-500 text-red-500"
+                            : "text-muted-foreground hover:text-red-500"
+                        }`}
+                      />
+                    </Button>
+                  )}
                 </div>
               </div>
 
@@ -706,15 +718,25 @@ export default function ProductDetailPage() {
             {product.name}
           </h1>
 
-          {/* Ratings & Reviews summary */}
+          {/* Ratings & Reviews summary.
+              A product with zero reviews shows no number at all. The old
+              `average_rating || 4.7` printed a fabricated 4.7 next to
+              "(بر اساس ۰ نظر ثبت‌شده)" — telling every customer a brand-new
+              product had a great score. No reviews means no rating claim. */}
           <div className="flex items-center gap-3 text-xs sm:text-sm">
-            <div className="flex items-center gap-1 text-amber-500 font-bold">
-              <Star className="h-4 w-4 fill-amber-400" />
-              <span>{toPersianDigits(reviewStats.average_rating || 4.7)}</span>
-            </div>
-            <span className="text-muted-foreground">
-              (بر اساس {toPersianDigits(reviews.length)} نظر ثبت‌شده)
-            </span>
+            {reviewStats.total_reviews > 0 ? (
+              <>
+                <div className="flex items-center gap-1 text-amber-500 font-bold">
+                  <Star className="h-4 w-4 fill-amber-400" />
+                  <span>{toPersianDigits(reviewStats.average_rating.toFixed(1))}</span>
+                </div>
+                <span className="text-muted-foreground">
+                  (بر اساس {toPersianDigits(reviewStats.total_reviews)} نظر ثبت‌شده)
+                </span>
+              </>
+            ) : (
+              <span className="text-muted-foreground">هنوز نظری ثبت نشده است</span>
+            )}
           </div>
 
           <Separator />
@@ -983,46 +1005,50 @@ export default function ProductDetailPage() {
                 )}
               </Button>
 
-              <Button
-                variant="outline"
-                size="lg"
-                onClick={handleToggleWishlist}
-                disabled={wishlistLoading}
-                className={`gap-2 rounded-2xl h-12 border-2 ${
-                  isWishlisted
-                    ? "border-destructive/40 text-destructive hover:bg-destructive/10"
-                    : "border-border text-foreground hover:bg-muted"
-                }`}
-              >
-                <Heart
-                  className={`h-5 w-5 ${
-                    isWishlisted ? "fill-red-500 text-red-500" : ""
+              {shopFeatures.wishlist && (
+                <Button
+                  variant="outline"
+                  size="lg"
+                  onClick={handleToggleWishlist}
+                  disabled={wishlistLoading}
+                  className={`gap-2 rounded-2xl h-12 border-2 ${
+                    isWishlisted
+                      ? "border-destructive/40 text-destructive hover:bg-destructive/10"
+                      : "border-border text-foreground hover:bg-muted"
                   }`}
-                />
-                <span className="text-xs font-semibold">
-                  {isWishlisted ? "حذف از لیست علاقه‌مندی" : "افزودن به علاقه‌مندی"}
-                </span>
-              </Button>
+                >
+                  <Heart
+                    className={`h-5 w-5 ${
+                      isWishlisted ? "fill-red-500 text-red-500" : ""
+                    }`}
+                  />
+                  <span className="text-xs font-semibold">
+                    {isWishlisted ? "حذف از لیست علاقه‌مندی" : "افزودن به علاقه‌مندی"}
+                  </span>
+                </Button>
+              )}
 
-              <Button
-                variant="outline"
-                size="lg"
-                onClick={handleToggleCompare}
-                className={`gap-2 rounded-2xl h-12 border-2 transition-all ${
-                  inCompare
-                    ? "border-primary bg-primary/10 text-primary hover:bg-primary/20"
-                    : "border-border text-foreground hover:bg-muted"
-                }`}
-              >
-                <ArrowLeftRight className="h-5 w-5" />
-                <span className="text-xs font-semibold">
-                  {inCompare ? "حذف از مقایسه" : "مقایسه کالا"}
-                </span>
-              </Button>
+              {shopFeatures.compare && (
+                <Button
+                  variant="outline"
+                  size="lg"
+                  onClick={handleToggleCompare}
+                  className={`gap-2 rounded-2xl h-12 border-2 transition-all ${
+                    inCompare
+                      ? "border-primary bg-primary/10 text-primary hover:bg-primary/20"
+                      : "border-border text-foreground hover:bg-muted"
+                  }`}
+                >
+                  <ArrowLeftRight className="h-5 w-5" />
+                  <span className="text-xs font-semibold">
+                    {inCompare ? "حذف از مقایسه" : "مقایسه کالا"}
+                  </span>
+                </Button>
+              )}
             </div>
 
             {/* In-compare notice banner */}
-            {inCompare && (
+            {inCompare && shopFeatures.compare && (
               <div className="flex items-center justify-between rounded-2xl bg-primary/10 border border-primary/20 px-4 py-2.5 text-xs text-primary">
                 <span className="font-semibold flex items-center gap-1.5">
                   <CheckCircle2 className="h-4 w-4 shrink-0 text-primary" />
@@ -1075,9 +1101,6 @@ export default function ProductDetailPage() {
               <div className="text-xs">
                 <span className="font-bold text-foreground block">
                   امکان انتخاب بازه زمانی تحویل (صبح، عصر، شب)
-                </span>
-                <span className="text-muted-foreground mt-0.5 block">
-                  ارسال رایگان سفارش‌های بالای ۵۰۰,۰۰۰ تومان با پست پیشتاز
                 </span>
               </div>
             </div>
@@ -1173,63 +1196,70 @@ export default function ProductDetailPage() {
           {/* Reviews & Submission Form Tab */}
           <TabsContent value="reviews">
             <div className="space-y-8">
-              {/* Review Statistics Summary Box */}
+              {/* Review Statistics Summary Box.
+                  With zero reviews nothing here is a rating claim: no number,
+                  no stars, no fabricated 80/20 distribution. The old code
+                  printed 4.7 and a "80% five-star" bar chart for a product
+                  with no reviews at all. */}
               <Card className="rounded-3xl border border-border p-6">
-                <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
-                  <div className="flex flex-col items-center gap-2">
-                    <span className="text-5xl font-black text-foreground">
-                      {toPersianDigits(reviewStats.average_rating || 4.7)}
-                    </span>
-                    <div className="flex items-center gap-1 text-amber-400">
-                      {Array.from({ length: 5 }).map((_, i) => (
-                        <Star
-                          key={i}
-                          className={`h-4 w-4 ${
-                            i < Math.floor(reviewStats.average_rating || 4.7)
-                              ? "fill-amber-400"
-                              : "text-muted-foreground/30"
-                          }`}
-                        />
-                      ))}
+                {reviewStats.total_reviews > 0 ? (
+                  <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
+                    <div className="flex flex-col items-center gap-2">
+                      <span className="text-5xl font-black text-foreground">
+                        {toPersianDigits(reviewStats.average_rating.toFixed(1))}
+                      </span>
+                      <div className="flex items-center gap-1 text-amber-400">
+                        {Array.from({ length: 5 }).map((_, i) => (
+                          <Star
+                            key={i}
+                            className={`h-4 w-4 ${
+                              i < Math.round(reviewStats.average_rating)
+                                ? "fill-amber-400"
+                                : "text-muted-foreground/30"
+                            }`}
+                          />
+                        ))}
+                      </div>
+                      <span className="text-xs text-muted-foreground">
+                        از {toPersianDigits(reviewStats.total_reviews)} نظر ثبت‌شده
+                      </span>
                     </div>
-                    <span className="text-xs text-muted-foreground">
-                      از {toPersianDigits(reviews.length)} نظر ثبت‌شده
-                    </span>
-                  </div>
 
-                  {/* Rating Distribution Bars */}
-                  <div className="flex-1 w-full max-w-md space-y-1.5">
-                    {[5, 4, 3, 2, 1].map((star) => {
-                      const count =
-                        (reviewStats.distribution as any)?.[`star_${star}`] || 0;
-                      const pct =
-                        reviews.length > 0
-                          ? Math.round((count / reviews.length) * 100)
-                          : star === 5
-                            ? 80
-                            : star === 4
-                              ? 20
-                              : 0;
-                      return (
-                        <div key={star} className="flex items-center gap-3 text-xs">
-                          <span className="w-4 text-muted-foreground">
-                            {toPersianDigits(star)}
-                          </span>
-                          <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
-                          <div className="h-2 flex-1 rounded-full bg-muted overflow-hidden">
-                            <div
-                              className="h-full rounded-full bg-amber-400 transition-all"
-                              style={{ width: `${pct}%` }}
-                            />
+                    {/* Rating Distribution Bars — real counts only. */}
+                    <div className="flex-1 w-full max-w-md space-y-1.5">
+                      {[5, 4, 3, 2, 1].map((star) => {
+                        const count =
+                          reviewStats.distribution?.[
+                            `star_${star}` as keyof typeof reviewStats.distribution
+                          ] || 0;
+                        const pct = Math.round(
+                          (count / reviewStats.total_reviews) * 100,
+                        );
+                        return (
+                          <div key={star} className="flex items-center gap-3 text-xs">
+                            <span className="w-4 text-muted-foreground">
+                              {toPersianDigits(star)}
+                            </span>
+                            <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
+                            <div className="h-2 flex-1 rounded-full bg-muted overflow-hidden">
+                              <div
+                                className="h-full rounded-full bg-amber-400 transition-all"
+                                style={{ width: `${pct}%` }}
+                              />
+                            </div>
+                            <span className="w-8 text-muted-foreground text-left font-mono">
+                              {toPersianDigits(pct)}٪
+                            </span>
                           </div>
-                          <span className="w-8 text-muted-foreground text-left font-mono">
-                            {toPersianDigits(pct)}٪
-                          </span>
-                        </div>
-                      );
-                    })}
+                        );
+                      })}
+                    </div>
                   </div>
-                </div>
+                ) : (
+                  <p className="text-center text-sm text-muted-foreground">
+                    هنوز نظری برای این کالا ثبت نشده است. اولین نفری باشید که تجربه‌اش را می‌نویسد.
+                  </p>
+                )}
               </Card>
 
               {/* Review Submission Form */}

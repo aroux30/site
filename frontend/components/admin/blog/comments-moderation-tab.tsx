@@ -23,6 +23,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 import { DataTable, type DataTableColumn } from "@/components/admin/data-table";
 import {
   Dialog,
@@ -50,6 +51,7 @@ const commentStatusMeta: Record<CommentStatus, { label: string; className: strin
 
 export function CommentsModerationTab() {
   const { toast } = useToast();
+  const confirm = useConfirm();
   const [comments, setComments] = useState<BlogComment[]>([]);
   // The row the j/k shortcuts have moved to. Kept as an index rather than an
   // id so paging and refiltering do not leave it pointing at a row that is no
@@ -74,7 +76,6 @@ export function CommentsModerationTab() {
   const [editTarget, setEditTarget] = useState<BlogComment | null>(null);
   const [editContent, setEditContent] = useState("");
   const [editName, setEditName] = useState("");
-  const [editEmail, setEditEmail] = useState("");
   const [editUrl, setEditUrl] = useState("");
   const [editStatus, setEditStatus] = useState<CommentStatus>("approved");
   const [editSaving, setEditSaving] = useState(false);
@@ -217,7 +218,13 @@ export function CommentsModerationTab() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("این دیدگاه حذف شود؟")) return;
+    const ok = await confirm({
+      title: "حذف دیدگاه",
+      description: "این دیدگاه حذف شود؟",
+      confirmLabel: "حذف",
+      destructive: true,
+    });
+    if (!ok) return;
     try {
       await blogAdminApi.deleteComment(id);
       toast({ title: "دیدگاه حذف شد" });
@@ -291,7 +298,6 @@ export function CommentsModerationTab() {
     setEditTarget(c);
     setEditContent(c.content);
     setEditName(c.author_name ?? "");
-    setEditEmail(c.author_email ?? "");
     setEditUrl(c.author_url ?? "");
     setEditStatus(c.status);
     setEditDialogOpen(true);
@@ -315,16 +321,11 @@ export function CommentsModerationTab() {
     setEditSaving(true);
     try {
       // Only what changed is sent. The server treats an omitted field as
-      // "leave alone" and an empty one as "clear it", so sending a blank
-      // email because the operator never touched it would erase the address
-      // that identifies the commenter.
+      // "leave alone" and an empty one as "clear it".
       const patch: Parameters<typeof blogAdminApi.updateComment>[1] = {};
       if (editContent.trim() !== editTarget.content) patch.content = editContent.trim();
       if (editName.trim() !== (editTarget.author_name ?? "")) {
         patch.author_name = editName.trim();
-      }
-      if (editEmail.trim() !== (editTarget.author_email ?? "")) {
-        patch.author_email = editEmail.trim();
       }
       if (editUrl.trim() !== (editTarget.author_url ?? "")) {
         patch.author_url = editUrl.trim();
@@ -427,11 +428,6 @@ export function CommentsModerationTab() {
             <User className="h-3.5 w-3.5 text-muted-foreground" />
             <span>{c.author_name || "کاربر مهمان"}</span>
           </div>
-          {c.author_email && (
-            <div className="text-xs text-muted-foreground dir-ltr text-right mt-0.5">
-              {c.author_email}
-            </div>
-          )}
           {/* The address a comment came from is the single most useful signal
               when deciding what is spam — two comments from one address are
               one campaign. It is on the admin response only, so rendering it
@@ -682,7 +678,7 @@ export function CommentsModerationTab() {
             // reset a filter change gets below.
             setPage(1);
           }}
-          placeholder="جست‌وجو در متن، نام، ایمیل یا وب‌سایت نویسنده..."
+          placeholder="جست‌وجو در متن، نام یا وب‌سایت نویسنده..."
           aria-label="جست‌وجو در دیدگاه‌ها"
           className="text-xs"
         />
@@ -747,16 +743,6 @@ export function CommentsModerationTab() {
                   value={editName}
                   onChange={(e) => setEditName(e.target.value)}
                   className="text-xs"
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="edit-email">ایمیل</Label>
-                <Input
-                  id="edit-email"
-                  value={editEmail}
-                  onChange={(e) => setEditEmail(e.target.value)}
-                  dir="ltr"
-                  className="text-left font-mono text-xs"
                 />
               </div>
               <div className="grid gap-2">

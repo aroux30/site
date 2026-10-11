@@ -1,5 +1,6 @@
 import type { NextConfig } from "next";
 import path from "path";
+import { allowedImageHosts } from "./lib/image-hosts";
 
 const nextConfig: NextConfig = {
   output: "standalone",
@@ -16,19 +17,33 @@ const nextConfig: NextConfig = {
     // add SSRF/abuse surface for no functional gain. Additional CDN hosts must
     // be opted in explicitly via NEXT_PUBLIC_IMAGE_HOSTS (comma-separated
     // https hostnames) — never by widening to "**".
-    remotePatterns: [
-      {
-        protocol: "https",
-        hostname: "*.arouxpingg.com",
-      },
-      ...(process.env.NEXT_PUBLIC_IMAGE_HOSTS || "")
-        .split(",")
-        .map((h) => h.trim())
-        .filter(Boolean)
-        .map((hostname) => ({ protocol: "https" as const, hostname })),
-    ],
+    remotePatterns: allowedImageHosts().map((hostname) => ({
+      protocol: "https" as const,
+      hostname,
+    })),
     formats: ["image/avif", "image/webp"],
   },
+
+  // Bots that get a blocking (non-streamed) metadata render. Next.js streams
+  // metadata to user agents that run JavaScript, and blocks it for those that
+  // do not — the default list covers Googlebot's html variant, Bingbot, and
+  // every social preview fetcher. What it misses, and what this adds:
+  //
+  // - `HeadlessChrome` — Lighthouse 13's desktop UA; the default list has
+  //   only the older `Chrome-Lighthouse` string.
+  // - `moto g power` — Lighthouse 13's MOBILE UA (its default preset). This
+  //   is the one that actually bit: the audit navigated as a mobile Chrome
+  //   136, got the streamed response, and scored "no meta description" on a
+  //   page whose description is in the first head block for every
+  //   HTML-limited UA. Both presets now get blocking metadata.
+  // - The SEO crawlers (Ahrefs, Semrush, Screaming Frog, Majestic, DotBot)
+  //   parse the initial HTML and do not run JavaScript; a streamed
+  //   description is a missing description to them.
+  //
+  // The regex is the Next default plus these names, kept in one place so an
+  // upgrade that changes the default is a visible diff here.
+  htmlLimitedBots:
+    /[\w-]+-Google|Google-[\w-]+|Chrome-Lighthouse|HeadlessChrome|moto g power|Slurp|DuckDuckBot|baiduspider|yandex|sogou|bitlybot|tumblr|vkShare|quora link preview|redditbot|ia_archiver|Bingbot|BingPreview|applebot|facebookexternalhit|facebookcatalog|Twitterbot|LinkedInBot|Slackbot|Discordbot|WhatsApp|SkypeUriPreview|Yeti|googleweblight|AhrefsBot|SemrushBot|Screaming Frog|MJ12bot|DotBot|PetalBot|SeznamBot|DataForSeoBot/i,
 
   experimental: {
     optimizePackageImports: [

@@ -2,13 +2,13 @@
 
 Gap: docs/store-relevant-cms-gaps-2026-10-01.md, P0 "مدیا: هشدار استفاده پیش
 از حذف". Deleting an asset removed the row and the bytes immediately, with
-nothing telling the admin the image was the cover of a published post or the
-logo of a vendor.
+nothing telling the admin the image was the cover of a published post or a
+brand's logo.
 
 Media is referenced by URL, not by id, so the count has to be a search across
 every column that can hold one. The list below came from querying
 information_schema, not from a model's memory — several of these columns
-(``custom_post_entries.cover_image_url``, ``brands.logo_url``,
+(``categories.image_url``, ``brands.logo_url``,
 ``seo_metadata.og_image``) are exactly the ones a hand-written list misses.
 
 Counting is deliberately best-effort per column: a missing table or column is
@@ -38,14 +38,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 REFERENCE_COLUMNS: tuple[tuple[str, str], ...] = (
     ("blog_posts", "cover_image_url"),
     ("blog_post_revisions", "cover_image_url"),
-    ("custom_post_entries", "cover_image_url"),
     ("categories", "image_url"),
     ("brands", "logo_url"),
-    ("vendors", "logo_url"),
-    ("vendors", "banner_url"),
     ("user_profiles", "avatar_url"),
     ("seo_metadata", "og_image"),
-    ("attachments", "file_url"),
     ("ticket_attachments", "file_url"),
     ("card_transfer_receipts", "receipt_image_url"),
     ("shipments", "label_url"),
@@ -64,8 +60,7 @@ REFERENCE_COLUMNS: tuple[tuple[str, str], ...] = (
 )
 
 # Free-text columns: an image inside a body is a substring, not an equality.
-# ``custom_post_entries`` stores its body under a different name, so it is not
-# listed here; see find_media_reference_columns.py for the live list.
+# See find_media_reference_columns.py for the live list.
 HTML_COLUMNS: tuple[tuple[str, str], ...] = (
     ("blog_posts", "content"),
     ("cms_pages", "body_html"),
@@ -105,7 +100,6 @@ BUCKET_LABELS: tuple[tuple[str, str], ...] = (
     ("custom_entries", "ورودی سفارشی"),
     ("categories", "دسته‌بندی"),
     ("brands", "برند"),
-    ("vendors", "فروشنده"),
     ("user_profiles", "پروفایل کاربر"),
     ("seo_metadata", "متای سئو"),
     ("documents", "سند"),
@@ -123,7 +117,6 @@ class MediaUsage:
     custom_entries: int = 0
     categories: int = 0
     brands: int = 0
-    vendors: int = 0
     user_profiles: int = 0
     seo_metadata: int = 0
     documents: int = 0
@@ -169,19 +162,15 @@ def _bucket_for(table: str) -> str:
         # not stop an editor from cleaning up the library. Counted separately so
         # it can be reported as non-blocking.
         return "unknown"
-    if table == "custom_post_entries":
-        return "custom_entries"
     if table == "categories":
         return "categories"
     if table == "brands":
         return "brands"
-    if table == "vendors":
-        return "vendors"
     if table == "user_profiles":
         return "user_profiles"
     if table == "seo_metadata":
         return "seo_metadata"
-    if table in ("attachments", "ticket_attachments", "card_transfer_receipts"):
+    if table in ("ticket_attachments", "card_transfer_receipts"):
         return "documents"
     if table == "shipments":
         return "logistics"

@@ -20,6 +20,14 @@ from celery.schedules import crontab
 
 from app.core.config.settings import get_settings
 
+# Field-level audit capture (ERP #9): importing this module installs the
+# SQLAlchemy flush listeners that record before/after diffs into
+# entity_change_logs. The worker process runs its own interpreter, so it
+# needs its own import — a task that changes a tracked field (a scheduled
+# price update, an automated discount expiry) must land in the change log
+# exactly like an admin edit does. The import IS the wiring.
+from app.modules.audit.application import change_tracking  # noqa: F401
+
 settings = get_settings()
 
 #: Every module that defines tasks, imported at worker boot.
@@ -58,20 +66,15 @@ TASK_MODULES: tuple[str, ...] = (
     "app.modules.content.application.tasks",
     "app.modules.search.application.tasks",
     "app.modules.media.application.tasks",
+    "app.modules.seo.application.tasks",
     "app.modules.analytics.application.tasks",
-    "app.modules.integrations.application.tasks",
     "app.modules.dataexchange.application.tasks",
     "app.modules.reporting.application.tasks",
-    "app.modules.subscriptions.application.tasks",
     "app.modules.settings.application.tasks",
     "app.modules.automation.application.tasks",
-    "app.modules.audit.application.tasks",
     "app.modules.discounts.application.tasks",
-    "app.modules.newsletter.application.tasks",
     "app.modules.recommendations.application.tasks",
     "app.modules.wallet.application.tasks",
-    "app.modules.accounting.application.tasks",
-    "app.modules.invoicing.application.tasks",
     "app.modules.messaging.application.tasks",
     "app.modules.notifications.application.tasks",
 )
@@ -161,15 +164,10 @@ celery_app.autodiscover_tasks(
         "app.modules.catalog",
         "app.modules.orders",
         "app.modules.payments",
-        # Sweeps and backfills. ``sweep_wallet_withdrawals`` moves money, and
-        # without these two entries the worker registered neither module: the
-        # tasks were defined, nothing beat-scheduled them, and nothing enqueued
-        # them either — so pending withdrawals sat untouched with no error
-        # anywhere. Found by tests/test_celery_task_registration.py, which
-        # compares this list against the modules that actually ship a
-        # ``tasks.py``.
-        "app.modules.accounting",
-        "app.modules.invoicing",
+        # Sweeps and backfills: the tasks are defined here so a beat-scheduled
+        # job always finds a registered task. Found by
+        # tests/test_celery_task_registration.py, which compares this list
+        # against the modules that actually ship a ``tasks.py``.
         "app.modules.notifications",
         "app.modules.messaging",
         "app.modules.shipping",
@@ -186,7 +184,6 @@ celery_app.autodiscover_tasks(
         "app.modules.referrals",
         "app.modules.support",
         "app.modules.automation",
-        "app.modules.newsletter",
         "app.modules.audit",
         # beat_schedule references tasks from these modules; without them in
         # autodiscover the worker never registers those tasks and the beat
@@ -195,10 +192,8 @@ celery_app.autodiscover_tasks(
         "app.modules.inventory",
         "app.modules.blog",
         "app.modules.content",
-        "app.modules.integrations",
         "app.modules.dataexchange",
         "app.modules.reporting",
-        "app.modules.subscriptions",
         "app.modules.settings",
     ],
     # Task modules live at <pkg>.application.tasks, not <pkg>.tasks. Without
@@ -304,26 +299,6 @@ celery_app.conf.beat_schedule = {
         "schedule": crontab(hour="*/6", minute=15),
         "options": {"queue": "analytics"},
     },
-    # GDPR retention. An export the subject never collected kept its whole
-    # payload forever: the admin route existed and worked, but nothing called
-    # it, so the one case the window exists to cover never fired. Daily, off the
-    # hour — the windows are measured in days, so an hourly job would repeat the
-    # same scan 24 times for the same result.
-    "purge-expired-privacy-results": {
-        "task": "app.modules.settings.application.tasks.purge_expired_privacy_results",
-        "schedule": crontab(hour=4, minute=40),
-        "options": {"queue": "default"},
-    },
-    # Comment IP retention. Once a day, twenty minutes after the export purge so
-    # the two privacy sweeps do not compete for the same connections at the same
-    # minute. It rewrites rows, so it gets its own slot rather than riding along
-    # with the export purge: a slow mask job must not delay the export purge, and
-    # a failing one must not roll back the other.
-    "mask-expired-comment-ips": {
-        "task": "app.modules.settings.application.tasks.mask_expired_comment_ips",
-        "schedule": crontab(hour=5, minute=0),
-        "options": {"queue": "default"},
-    },
     # Media trash retention. Once a day, off the hour, deleting only what has
     # been in the trash longer than the retention window — so an operator who
     # trashes an image by mistake has 30 days to notice and restore it. The
@@ -333,6 +308,15 @@ celery_app.conf.beat_schedule = {
     "purge-media-trash": {
         "task": "app.modules.media.application.tasks.purge_expired_media_trash",
         "schedule": crontab(hour=3, minute=20),
+        "options": {"queue": "default"},
+    },
+    # Broken-link crawler (Link Genius / Rank Math Pro). Once a day at 04:37,
+    # off the hour and away from the other nightly jobs. It checks up to
+    # BATCH_SIZE URLs per run, skipping any checked in the last 24h, so a site
+    # with thousands of links makes steady progress without hammering hosts.
+    "link-audit-daily": {
+        "task": "app.modules.seo.application.tasks.run_link_audit",
+        "schedule": crontab(hour=4, minute=37),
         "options": {"queue": "default"},
     },
     # Generate daily analytics report
@@ -392,21 +376,6 @@ celery_app.conf.beat_schedule = {
         "schedule": crontab(minute="*/1"),
         "options": {"queue": "default"},
     },
-    # Custom post type entries, same minute-by-minute guarantee. Without it an
-    # entry dated forward through the content-types tab stayed a draft forever,
-    # with a filled schedule column and nothing acting on it.
-    "publish-scheduled-cpt-entries": {
-        "task": "app.modules.blog.application.tasks.publish_scheduled_cpt_entries",
-        "schedule": crontab(minute="*/1"),
-        "options": {"queue": "default"},
-    },
-    # Drain the outbound webhook delivery queue every minute (HMAC-signed
-    # POSTs with exponential backoff, max 8 attempts).
-    "process-pending-webhooks": {
-        "task": "app.modules.integrations.application.tasks.process_pending_webhooks",
-        "schedule": crontab(minute="*/1"),
-        "options": {"queue": "default"},
-    },
     # Check low stock daily
     "check-low-stock": {
         "task": "app.modules.inventory.application.tasks.check_low_stock_task",
@@ -426,46 +395,12 @@ celery_app.conf.beat_schedule = {
         "schedule": crontab(hour=2, minute=30),
         "options": {"queue": "default"},
     },
-    # Read-only payment reconciliation sweep. Runs every 30 minutes, offset
-    # from the top of the hour so it does not contend with the cart/cashback
-    # jobs. Findings are deduplicated by key, so repeated runs only refresh
-    # occurrence counts; the task never mutates financial records.
-    "reconcile-payments": {
-        "task": "app.modules.audit.application.tasks.reconcile_payments",
-        "schedule": crontab(minute="7,37"),
-        "options": {"queue": "default"},
-    },
-    # Read-only cross-axis order lifecycle audit. Offset from the payment
-    # sweep so the two read-heavy passes do not contend, and deliberately
-    # less frequent: a lifecycle contradiction is a data-integrity signal,
-    # not a live-money condition that needs half-hourly detection.
-    "audit-order-lifecycle": {
-        "task": "app.modules.audit.application.tasks.audit_order_lifecycle",
-        "schedule": crontab(minute="22", hour="*/2"),
-        "options": {"queue": "default"},
-    },
     # Dispatch scheduled saved reports every minute (Tehran time); the
     # dispatcher itself only fires reports whose next_run_at has passed.
     "dispatch-scheduled-reports": {
         "task": "app.modules.reporting.application.tasks.dispatch_due_reports",
         "schedule": crontab(minute="*/1"),
         "options": {"queue": "analytics"},
-    },
-    # Recurring subscription billing. Every 15 minutes, offset from other
-    # jobs; the runner only bills subscriptions whose next_billing_at has
-    # passed, and billing is idempotent per (subscription, period) — a late
-    # or duplicated tick cannot charge a customer twice.
-    "bill-due-subscriptions": {
-        "task": "app.modules.subscriptions.application.tasks.run_due_subscription_billings",
-        "schedule": crontab(minute="*/15"),
-        "options": {"queue": "default"},
-    },
-    # Send scheduled newsletter campaigns: the dispatcher picks up campaigns
-    # whose scheduled_at has passed and enqueues the chunked send task.
-    "dispatch-due-newsletter-campaigns": {
-        "task": "app.modules.newsletter.application.tasks.dispatch_due_scheduled_campaigns",
-        "schedule": crontab(minute="*/1"),
-        "options": {"queue": "default"},
     },
 }
 

@@ -43,6 +43,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useAuthStore } from "@/stores/auth-store";
 import type { ApiAddress } from "@/types/user";
 import apiClient from "@/lib/api/client";
+import type { Wallet as WalletResponse } from "@/lib/api/wallet";
 import { formatPrice, toPersianDigits } from "@/lib/utils";
 import { triggerCelebrationCannons } from "@/components/ui/confetti";
 import { EmptyState, ErrorState, PageLoader } from "@/components/shared/page-state";
@@ -64,7 +65,6 @@ interface ShippingOption {
   estimated_days_min: number;
   estimated_days_max: number;
   price: number; // in Toman
-  is_free: boolean;
 }
 
 interface PaymentMethod {
@@ -115,11 +115,11 @@ const STEPS: { key: CheckoutStep; label: string; icon: typeof MapPin }[] = [
   { key: "review", label: "بازبینی و پرداخت", icon: CheckCircle2 },
 ];
 
-/** Gateway durations offered for installment checkout. Mirrors the backend
- *  capability report (mock provider); a real credit-contract gateway replaces
- *  this list, and providers whose public API cannot sell installments never
- *  appear here. */
-const INSTALLMENT_MONTHS: number[] = [2, 4, 6, 12];
+/** Gateway durations offered for installment checkout. No wired provider
+ *  supports installments today (the capability report returns none), so this
+ *  list is empty and the section is hidden; a real credit-contract gateway
+ *  integration would populate it. */
+const INSTALLMENT_MONTHS: number[] = [];
 
 /**
  * Integer-Rial installment breakdown using the server's exact rule: the
@@ -186,6 +186,7 @@ export default function CheckoutPage() {
     removeCoupon,
     fetchCart,
     isLoading: cartIsLoading,
+    taxRatePercent,
   } = useCart();
 
   const { isAuthenticated, user, isLoading: authLoading } = useAuthStore();
@@ -220,6 +221,12 @@ export default function CheckoutPage() {
   // Step 3: Payment
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>("zarinpal");
+  // Master wallet switch. Until `/wallet` answers we assume "on" (matching the
+  // backend default) so the wallet tender is never silently dropped on a slow
+  // network; the moment the response says `enabled: false` every wallet
+  // affordance — payment method, icon and split-tender card — is removed, and
+  // a wallet selection that is no longer offered falls back to a real gateway.
+  const [walletEnabled, setWalletEnabled] = useState(true);
   const [loadingPaymentMethods, setLoadingPaymentMethods] = useState(false);
   const [customerNotes, setCustomerNotes] = useState("");
 
@@ -340,7 +347,6 @@ export default function CheckoutPage() {
         setLoadingShipping(true);
         // The shipping API is Rial-denominated: subtotal is Toman here, so
         // the boundary conversion is ×10 on the way out and ÷10 on display.
-        const subtotalRials = subtotal * 10;
 
         const response = await apiClient.post<{
           methods: Array<{
@@ -351,12 +357,10 @@ export default function CheckoutPage() {
             estimated_days_min: number;
             estimated_days_max: number;
             price: number;
-            is_free: boolean;
           }>;
         }>("/shipping/quote", {
           province,
           weight: 1.5,
-          order_amount: subtotalRials,
         });
 
         if (response.data && Array.isArray(response.data.methods) && response.data.methods.length > 0) {
@@ -368,7 +372,6 @@ export default function CheckoutPage() {
             estimated_days_min: m.estimated_days_min,
             estimated_days_max: m.estimated_days_max,
             price: Math.round(m.price / 10), // Rial → Toman at the display boundary
-            is_free: m.is_free,
           }));
           setShippingOptions(mapped);
           if (mapped[0]) {
@@ -397,11 +400,19 @@ export default function CheckoutPage() {
 
   // Payments upgrade v1: the wallet balance drives the split-tender offer
   // ("pay 120,000 from wallet, the rest by gateway"). Best-effort: a failed
-  // read hides the option rather than blocking checkout.
+  // read hides the option rather than blocking checkout. When the wallet
+  // master switch is off the balance is forced to 0 so every wallet affordance
+  // downstream (split-tender card, wallet tender) disappears with it.
   const loadSplitAndInstallmentData = useCallback(async () => {
     if (!isAuthenticated) return;
     try {
-      const walletRes = await apiClient.get<{ balance: number }>("/wallet");
+      const walletRes = await apiClient.get<WalletResponse>("/wallet");
+      const features = walletRes.data?.features;
+      if (features && !features.enabled) {
+        setWalletEnabled(false);
+        setWalletBalanceRials(0);
+        return;
+      }
       setWalletBalanceRials(Math.max(0, walletRes.data?.balance ?? 0));
     } catch {
       setWalletBalanceRials(0);
@@ -418,7 +429,9 @@ export default function CheckoutPage() {
       setLoadingPaymentMethods(true);
       const response = await apiClient.get<{ methods: PaymentMethod[] }>("/payments/methods");
       if (response.data && Array.isArray(response.data.methods)) {
-        const active = response.data.methods.filter((m) => m.is_enabled);
+        const active = response.data.methods.filter(
+          (m) => m.is_enabled && (m.provider !== "wallet" || walletEnabled),
+        );
         setPaymentMethods(active);
         const firstActive = active[0];
         if (firstActive) {
@@ -435,7 +448,18 @@ export default function CheckoutPage() {
     } finally {
       setLoadingPaymentMethods(false);
     }
-  }, []);
+  }, [walletEnabled]);
+
+  // Turning the master switch off must also retire a wallet selection the user
+  // already made — otherwise the summary would still promise wallet payment
+  // while the radio is gone.
+  useEffect(() => {
+    if (walletEnabled) return;
+    setSelectedPaymentMethod((current) =>
+      current === "wallet" ? "zarinpal" : current,
+    );
+    setSplitEnabled(false);
+  }, [walletEnabled]);
 
   const fallbackPaymentMethods = () => {
     const methods: PaymentMethod[] = [
@@ -448,14 +472,6 @@ export default function CheckoutPage() {
         description: "پرداخت اینترنتی با کلیه کارت‌های عضو شبکه شتاب",
       },
       {
-        provider: "idpay",
-        name: "IDPay",
-        name_fa: "درگاه پرداخت آی‌دی‌پی",
-        is_enabled: true,
-        icon: "idpay",
-        description: "پرداخت آنلاین و مطمئن از طریق شاپرک",
-      },
-      {
         provider: "wallet",
         name: "Wallet",
         name_fa: "کیف پول اختصاصی",
@@ -463,13 +479,13 @@ export default function CheckoutPage() {
         icon: "wallet",
         description: "پرداخت از موجودی کیف پول حساب کاربری",
       },
-      // NOTE: no mock gateway in the fallback list — a simulator must never
-      // be selectable on real checkout when the methods API fails.
     ];
-    setPaymentMethods(methods);
+    setPaymentMethods(methods.filter((m) => m.provider !== "wallet" || walletEnabled));
     setSelectedPaymentMethod("zarinpal");
   };
 
+  // Re-runs when `loadPaymentMethods` changes, which happens when the wallet
+  // master switch flips, so an off switch retires the wallet tender live.
   useEffect(() => {
     loadPaymentMethods();
   }, [loadPaymentMethods]);
@@ -527,11 +543,14 @@ export default function CheckoutPage() {
     return shippingOptions.find((s) => s.method_id === selectedShippingMethodId) || null;
   }, [shippingOptions, selectedShippingMethodId]);
 
-  const shippingCost = selectedShipping ? (selectedShipping.is_free ? 0 : selectedShipping.price) : 0;
-  // VAT mirrors the server formula (TaxService: 10% of subtotal − discount,
-  // computed in Rials) — QA B25: the gateway used to charge a tax amount the
-  // UI never showed.
-  const taxAmount = Math.round((Math.max(subtotal - couponDiscount, 0) * 10 * 1000) / 10000 / 10);
+  const shippingCost = selectedShipping ? selectedShipping.price : 0;
+  // VAT mirrors the server formula — (subtotal − discount) × the configured
+  // rate, computed in Rials — QA B25: the gateway used to charge a tax amount
+  // the UI never showed. The rate is the single admin settings field (the
+  // tax engine and its hard-coded 10% were removed 2026-10-09).
+  const taxAmount = Math.round(
+    (Math.max(subtotal - couponDiscount, 0) * taxRatePercent * 1000) / 10000 / 10,
+  );
   const grandTotal = Math.max(0, subtotal - couponDiscount + shippingCost + taxAmount);
 
   // Display totals (Toman): the server quote wins once it exists — client
@@ -789,7 +808,7 @@ export default function CheckoutPage() {
       // the gateway takes the remainder, as two allocations of one order. The
       // server revalidates the slices against the order total and settles the
       // wallet slice inside the same transaction.
-      if (splitEnabled && walletBalanceRials > 0 && orderData.total > 0) {
+      if (walletEnabled && splitEnabled && walletBalanceRials > 0 && orderData.total > 0) {
         const walletPart = Math.min(walletBalanceRials, orderData.total);
         const gatewayPart = orderData.total - walletPart;
         try {
@@ -1232,11 +1251,6 @@ export default function CheckoutPage() {
                           <div>
                             <div className="flex items-center gap-2">
                               <span className="font-bold text-foreground">{opt.name}</span>
-                              {opt.is_free && (
-                                <Badge className="bg-emerald-500 text-white text-[10px]">
-                                  رایگان
-                                </Badge>
-                              )}
                             </div>
 
                             <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
@@ -1250,11 +1264,7 @@ export default function CheckoutPage() {
                         </div>
 
                         <div className="text-left font-bold text-sm">
-                          {opt.is_free || opt.price === 0 ? (
-                            <span className="text-emerald-600 dark:text-emerald-400">رایگان</span>
-                          ) : (
-                            <span className="text-foreground">{formatPrice(opt.price)}</span>
-                          )}
+                          <span className="text-foreground">{formatPrice(opt.price)}</span>
                         </div>
                       </RadioCard>
                     );
@@ -1353,10 +1363,8 @@ export default function CheckoutPage() {
                         <div className="flex items-center gap-3">
                           <div className="flex items-center gap-3">
                             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted border border-border/80">
-                              {pm.provider === "wallet" ? (
+                              {pm.provider === "wallet" && walletEnabled ? (
                                 <Wallet className="h-5 w-5 text-primary" />
-                              ) : pm.provider === "mock" ? (
-                                <ShieldCheck className="h-5 w-5 text-emerald-600" />
                               ) : (
                                 <CreditCard className="h-5 w-5 text-primary" />
                               )}
@@ -1383,7 +1391,7 @@ export default function CheckoutPage() {
               )}
 
               {/* Split tender: wallet + gateway (payments upgrade v1) */}
-              {walletBalanceRials > 0 && (
+              {walletEnabled && walletBalanceRials > 0 && (
                 <div className="mt-5 rounded-2xl border border-border/80 bg-muted/20 p-4">
                   <label className="flex cursor-pointer items-start gap-3">
                     <input
@@ -1623,10 +1631,7 @@ export default function CheckoutPage() {
                       </span>
                       <p className="font-medium text-foreground">
                         {selectedShipping?.name} (
-                        {selectedShipping?.is_free
-                          ? "رایگان"
-                          : formatPrice(selectedShipping?.price || 0)}
-                        )
+                        {formatPrice(selectedShipping?.price || 0)})
                       </p>
                       <span className="text-xs text-muted-foreground">
                         تحویل بین {toPersianDigits(selectedShipping?.estimated_days_min || 1)} الی{" "}
@@ -1806,16 +1811,12 @@ export default function CheckoutPage() {
 
               <div className="flex items-center justify-between text-muted-foreground">
                 <span>هزینه ارسال</span>
-                {displayShipping === 0 ? (
-                  <span className="font-semibold text-emerald-600 dark:text-emerald-400">رایگان</span>
-                ) : (
-                  <span className="font-medium text-foreground">{formatPrice(displayShipping)}</span>
-                )}
+                <span className="font-medium text-foreground">{formatPrice(displayShipping)}</span>
               </div>
 
               {displayTax > 0 && (
                 <div className="flex items-center justify-between text-muted-foreground">
-                  <span>مالیات بر ارزش افزوده (۱۰٪)</span>
+                  <span>مالیات بر ارزش افزوده ({toPersianDigits(taxRatePercent)}٪)</span>
                   <span className="font-medium text-foreground">{formatPrice(displayTax)}</span>
                 </div>
               )}

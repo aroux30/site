@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
 
+import { openGraphBase } from "@/lib/seo-meta";
+import { siteOrigin } from "@/lib/site-url";
+
 /**
  * Result pages must not be indexed.
  *
@@ -12,8 +15,11 @@ import type { Metadata } from "next";
  * elsewhere can be indexed as "indexed, though blocked by robots.txt".
  */
 export const metadata: Metadata = {
-  title: "جستجو | فروشگاه",
+  // The root layout's title template appends "| <site name>" itself; adding
+  // it here produced "جستجو | فروشگاه | فروشگاه" (verified live 2026-10-10).
+  title: "جستجو",
   robots: { index: false, follow: true },
+  openGraph: openGraphBase({ url: `${siteOrigin()}/search` }),
 };
 
 export default function SearchLayout({

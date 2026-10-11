@@ -1,5 +1,5 @@
 /**
- * Runtime routing config (permalink structure, category/tag bases, locales).
+ * Runtime routing config (permalink structure, category/tag bases).
  *
  * ONE loader for both callers the settings screen promises to affect:
  *  - the middleware resolves structured URLs from it,

@@ -24,6 +24,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
 import {
   blogAdminApi,
@@ -56,6 +58,11 @@ interface BulkEdits {
   visibility?: PostVisibility;
   status?: BlogPostStatus;
   tag_ids?: string[];
+  // SEO fields (Rank Math's bulk edit) — written to seo_metadata server-side.
+  seo_title?: string;
+  seo_description?: string;
+  seo_focus_keyword?: string;
+  seo_robots_noindex?: boolean;
 }
 
 const POST_FORMATS: { value: PostFormat; label: string }[] = [
@@ -88,6 +95,12 @@ export function BulkEditDialog({
   const [comments, setComments] = useState<"keep" | "open" | "closed">("keep");
   const [featured, setFeatured] = useState<"keep" | "yes" | "no">("keep");
   const [tagIds, setTagIds] = useState<string[]>([]);
+  // SEO fields: "" = no change; the robots select is tri-state like the
+  // editor's Advanced tab (keep / force index / force noindex).
+  const [seoTitle, setSeoTitle] = useState("");
+  const [seoDescription, setSeoDescription] = useState("");
+  const [seoFocusKeyword, setSeoFocusKeyword] = useState("");
+  const [seoRobots, setSeoRobots] = useState<"keep" | "index" | "noindex">("keep");
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -100,6 +113,10 @@ export function BulkEditDialog({
     setComments("keep");
     setFeatured("keep");
     setTagIds([]);
+    setSeoTitle("");
+    setSeoDescription("");
+    setSeoFocusKeyword("");
+    setSeoRobots("keep");
   }, [open]);
 
   const edits = useMemo<{ payload: BulkEdits; count: number }>(() => {
@@ -137,8 +154,38 @@ export function BulkEditDialog({
       payload.tag_ids = tagIds;
       n += 1;
     }
+    // SEO fields: only non-empty values count as an edit (empty = leave).
+    if (seoTitle.trim()) {
+      payload.seo_title = seoTitle.trim();
+      n += 1;
+    }
+    if (seoDescription.trim()) {
+      payload.seo_description = seoDescription.trim();
+      n += 1;
+    }
+    if (seoFocusKeyword.trim()) {
+      payload.seo_focus_keyword = seoFocusKeyword.trim();
+      n += 1;
+    }
+    if (seoRobots !== "keep") {
+      payload.seo_robots_noindex = seoRobots === "noindex";
+      n += 1;
+    }
     return { payload, count: n };
-  }, [categoryId, authorId, format, visibility, status, comments, featured, tagIds]);
+  }, [
+    categoryId,
+    authorId,
+    format,
+    visibility,
+    status,
+    comments,
+    featured,
+    tagIds,
+    seoTitle,
+    seoDescription,
+    seoFocusKeyword,
+    seoRobots,
+  ]);
 
   const run = async () => {
     if (edits.count === 0) {
@@ -344,6 +391,65 @@ export function BulkEditDialog({
                 ? "بدون انتخاب = برچسب‌های دست‌نخورده می‌مانند"
                 : `برچسب‌های انتخابی جایگزین ${toPersianDigits(String(tagIds.length))} برچسب قبلی می‌شوند`}
             </span>
+          </div>
+
+          {/* SEO fields (Rank Math's bulk edit): blank = untouched. A bulk
+              action that blanked every field it did not mention would be a
+              data-loss machine, so emptiness is the "no change" signal. */}
+          <div className="space-y-3 rounded-lg border border-dashed border-border p-3">
+            <span className="text-xs font-medium text-muted-foreground">
+              سئو (خالی = دست‌نخورده)
+            </span>
+            <div className="grid gap-2">
+              <Label htmlFor="bulk-seo-title" className="text-xs">
+                عنوان سئو
+              </Label>
+              <Input
+                id="bulk-seo-title"
+                value={seoTitle}
+                onChange={(e) => setSeoTitle(e.target.value)}
+                placeholder="برای همهٔ نوشته‌های انتخابی"
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="bulk-seo-desc" className="text-xs">
+                توضیحات متا
+              </Label>
+              <Input
+                id="bulk-seo-desc"
+                value={seoDescription}
+                onChange={(e) => setSeoDescription(e.target.value)}
+                placeholder="برای همهٔ نوشته‌های انتخابی"
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="bulk-seo-kw" className="text-xs">
+                کلمه کلیدی کانونی
+              </Label>
+              <Input
+                id="bulk-seo-kw"
+                value={seoFocusKeyword}
+                onChange={(e) => setSeoFocusKeyword(e.target.value)}
+                placeholder="برای همهٔ نوشته‌های انتخابی"
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="bulk-seo-robots" className="text-xs">
+                ایندکس
+              </Label>
+              <select
+                id="bulk-seo-robots"
+                value={seoRobots}
+                onChange={(e) =>
+                  setSeoRobots(e.target.value as "keep" | "index" | "noindex")
+                }
+                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              >
+                <option value="keep">دست‌نخورده</option>
+                <option value="index">ایندکس شود</option>
+                <option value="noindex">ایندکس نشود (noindex)</option>
+              </select>
+            </div>
           </div>
         </div>
 

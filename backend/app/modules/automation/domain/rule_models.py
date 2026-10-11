@@ -38,8 +38,9 @@ class AutomationRule(BaseModel):
     (AND); a missing context field fails the condition.
 
     ``actions`` is a JSON list of ``{"type", "params"}`` with *type* one of
-    ``send_email | send_notification | fire_webhook``. Each action runs
-    independently — one failing action never aborts the others.
+    ``send_notification`` (``send_email`` was removed on 2026-10-07 with the
+    email feature). Each action runs independently — one failing action never
+    aborts the others.
     """
 
     __tablename__ = "automation_rules"

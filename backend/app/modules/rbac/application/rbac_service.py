@@ -199,14 +199,14 @@ async def create_role(
     actor_id: uuid.UUID,
 ) -> Role:
     """Create a new role."""
-    # Reserved slugs. ``super_admin`` is checked directly by six guards
+    # Reserved slugs. ``super_admin`` is checked directly by the guards
     # (dependencies.py, casbin_enforcer.py, object_capabilities.py twice,
-    # override_enforcement.py, approval_service.py) as an unconditional
-    # bypass — membership, not any permission grant. A role created with that
-    # slug therefore granted full access to anyone it was later assigned to,
-    # and it was assignable by anyone holding only ``rbac:write``. The seeded
-    # administrator slug is reserved for the same reason: a second role sharing
-    # it would collide with ROLE_ALIASES in capability_service.
+    # override_enforcement.py) as an unconditional bypass — membership, not
+    # any permission grant. A role created with that slug therefore granted
+    # full access to anyone it was later assigned to, and it was assignable by
+    # anyone holding only ``rbac:write``. The seeded administrator slug is
+    # reserved for the same reason: a second role sharing it would collide
+    # with ROLE_ALIASES in capability_service.
     _reject_reserved_slug(slug)
 
     existing = await db.execute(select(Role).where(Role.slug == slug))

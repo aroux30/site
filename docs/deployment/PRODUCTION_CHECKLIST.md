@@ -18,7 +18,7 @@ Required values — the application **refuses to boot** without them:
 | `MINIO_ACCESS_KEY` / `MINIO_SECRET_KEY` | Not `minioadmin` |
 | `DIGITAL_CARDS_ENCRYPTION_KEY` | Real base64 32-byte key (card PINs) |
 | `ADMIN_PHONE` / `ADMIN_PASSWORD` | Real Iranian mobile; password ≥ 12 chars, unique |
-| `PAYMENT_PROVIDER` | A real gateway (`zarinpal` / `idpay` / `crypto` / `card_transfer`) — `mock` fails boot |
+| `PAYMENT_PROVIDER` | A real gateway (`zarinpal` / `card_transfer`) |
 | `PAYMENT_SANDBOX` | `false` |
 | `SMS_PROVIDER` | `kavenegar` / `ghasedak` with real `SMS_API_KEY` — `mock` fails boot |
 | `CORS_ORIGINS` | Only the real HTTPS origins — localhost origins fail boot |

@@ -30,8 +30,7 @@ class WalletPaymentProvider(PaymentProvider):
         callback_url: str,
         description: str = "",
         mobile: str | None = None,
-        email: str | None = None,
-    ) -> PaymentResult:
+        ) -> PaymentResult:
         """Initiate payment from internal wallet balance.
 
         No external redirect is involved: the client completes the payment by

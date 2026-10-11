@@ -110,14 +110,16 @@ class RecoveryMode:
     ) -> dict[str, Any]:
         """Mint a one-time recovery key and store its hash in the pause state.
 
-        WordPress emails the site admin a recovery link carrying a temporary
+        WordPress used to email the site admin a recovery link carrying a temporary
         login key, so a locked-out operator gets back in without a shell. The
         plaintext key is returned here and never stored: the state keeps only a
         SHA-256 of it, so reading the pause file does not hand over a login.
 
         The key is bound to the current pause and expires with its own short
         window — a recovery key that outlives the incident is just a second
-        password.
+        password. Since the email feature's removal (2026-10-07) the plaintext
+        key is returned to the requesting admin session directly (see the
+        settings route), not mailed.
         """
         import hashlib
         import secrets

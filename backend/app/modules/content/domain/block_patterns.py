@@ -231,9 +231,9 @@ _PATTERNS: tuple[BlockPattern, ...] = (
             PatternVariable("title", "عنوان بخش", "پرسش‌های متداول"),
             PatternVariable("q1", "پرسش ۱", "چند روز به طول می‌انجامد تا سفارش ارسال شود؟"),
             PatternVariable("a1", "پاسخ ۱", "سفارش‌های تا ساعت ۱۴ روز کاری بعد ارسال می‌شوند."),
-            PatternVariable("q2", "پرسش ۲", "امکان مرجوع کردن کالا وجود دارد؟"),
+            PatternVariable("q2", "پرسش ۲", "آیا محصولات دارای ضمانت هستند؟"),
             PatternVariable(
-                "a2", "پاسخ ۲", "بله، تا ۷ روز پس از دریافت می‌توانید کالا را مرجوع کنید."
+                "a2", "پاسخ ۲", "بله، تمامی محصولات با ضمانت اصالت و سلامت کالا ارسال می‌شوند."
             ),
             PatternVariable("q3", "پرسش ۳", "چه روش‌های پرداختی پشتیبانی می‌شود؟"),
             PatternVariable(
@@ -260,41 +260,6 @@ _PATTERNS: tuple[BlockPattern, ...] = (
                   <p class="mt-3 text-sm text-muted-foreground">{{a3}}</p>
                 </details>
               </div>
-            </section>
-            """
-        ),
-    ),
-    BlockPattern(
-        slug="newsletter-signup",
-        title="فرم عضویت در خبرنامه",
-        description="دعوت به عضویت در خبرنامه با فیلد ایمیل و دکمه",
-        category="فرم و خبرنامه",
-        keywords=("newsletter", "خبرنامه", "ایمیل", "عضویت"),
-        variables=(
-            PatternVariable("title", "عنوان", "از تخفیف‌ها زودتر باخبر شوید"),
-            PatternVariable(
-                "subtitle", "زیرعنوان", "با عضویت در خبرنامه، اولین نفر باشید که حراج‌ها را می‌بیند."
-            ),
-            PatternVariable("placeholder", "متن راهنمای فیلد", "ایمیل شما"),
-            PatternVariable("button_text", "متن دکمه", "عضویت"),
-            PatternVariable("action_url", "نشانی عضویت", "/newsletter/subscribe"),
-        ),
-        # A link, not a <form>. WordPress dropped <form> from kses in 5.0.1 and
-        # so does our allowlist, which meant this pattern shipped broken: the
-        # whole form was stripped on save (754 -> 244 bytes) and the editor saw
-        # an empty box. The old markup also posted to /newsletter, which is not
-        # a route that exists. The subscribe page owns the real form.
-        html=_frag(
-            """
-            <section class="rounded-2xl bg-primary/10 p-8 text-center md:p-12">
-              <h2 class="text-2xl font-bold text-foreground md:text-3xl">{{title}}</h2>
-              <p class="mt-2 text-muted-foreground">{{subtitle}}</p>
-              <p class="mx-auto mt-4 max-w-md text-sm text-muted-foreground">{{placeholder}}</p>
-              <a href="{{action_url}}"
-                 class="mt-6 inline-flex rounded-xl bg-primary px-6 py-3 font-semibold
-                        text-primary-foreground transition hover:bg-primary/90">
-                {{button_text}}
-              </a>
             </section>
             """
         ),

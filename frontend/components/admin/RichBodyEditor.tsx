@@ -8,7 +8,7 @@
  * contentEditable surface, and Markdown is rendered to HTML on save/switch.
  */
 
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { sanitizeHtml, sanitizeRichHtml, renderMarkdown } from "@/lib/editor/markdown";
 import {
@@ -69,29 +69,34 @@ export default function RichBodyEditor({ value, onChange, placeholder }: Props) 
   const [selectedImageUrl, setSelectedImageUrl] = useState<string | null>(null);
 
   /**
-   * The value contract is HTML, owned by the parent — but a controlled
-   * `dangerouslySetInnerHTML` re-applies the *old* markup on every parent
-   * render, which silently reverted anything a toolbar command had just
-   * written to the DOM. Typing hid it (the parent re-renders on each
-   * keystroke, so the fresh value is already in `value`), but one-shot
-   * commands — alignment, a table insert, a horizontal rule — had their
-   * effect wiped a frame later.
+   * The editing surface is uncontrolled on purpose. Rendering the parent's
+   * HTML through `dangerouslySetInnerHTML` makes React re-write the div's
+   * children whenever the value changes — which is every keystroke, because
+   * each keystroke commits upward. Re-creating the text nodes drops the
+   * caret to the start of the surface, so typing "abc def" landed as
+   * "fed cba" (found live 2026-10-04: a FAQ answer saved scrambled).
    *
-   * So the editor keeps the last committed HTML itself and re-asserts it when
-   * the parent sends back something stale. A genuinely new value (a real
-   * parent state update) still wins.
+   * Instead the DOM is the source of truth while typing, and this effect
+   * re-applies the incoming value only when it genuinely differs from what
+   * the surface already shows. Our own keystroke echo compares equal and is
+   * left alone (caret intact); a real external change — opening another
+   * record, a reset — replaces the content. `mode` is a dependency because
+   * switching away from "visual" unmounts the div, and switching back mounts
+   * a fresh empty one that needs the value re-applied.
    */
-  const lastCommitted = useRef(value);
-  useEffect(() => {
-    if (value !== lastCommitted.current) lastCommitted.current = value;
-  }, [value]);
+  useLayoutEffect(() => {
+    const surface = visualRef.current;
+    if (!surface) return;
+    const incoming = sanitizeHtml(value);
+    if (incoming !== sanitizeHtml(surface.innerHTML)) {
+      surface.innerHTML = incoming;
+    }
+  }, [value, mode]);
 
   const commitVisual = useCallback(() => {
     const surface = visualRef.current;
     if (!surface) return;
-    const next = sanitizeHtml(surface.innerHTML);
-    lastCommitted.current = next;
-    onChange(next);
+    onChange(sanitizeHtml(surface.innerHTML));
   }, [onChange]);
 
   const countsHtml = useMemo(() => countWords(value), [value]);
@@ -554,13 +559,12 @@ export default function RichBodyEditor({ value, onChange, placeholder }: Props) 
               aria-label="متن نوشته"
               className={
                 fullscreen
-                  ? "min-h-[70vh] w-full flex-1 px-3 py-2 text-sm outline-none prose prose-sm max-w-none"
-                  : "min-h-40 w-full px-3 py-2 text-sm outline-none prose prose-sm max-w-none"
+                  ? "min-h-[70vh] w-full flex-1 px-3 py-2 text-sm outline-none prose prose-sm dark:prose-invert max-w-none"
+                  : "min-h-40 w-full px-3 py-2 text-sm outline-none prose prose-sm dark:prose-invert max-w-none"
               }
               data-placeholder={placeholder ?? "متن صفحه…"}
               onInput={() => commitVisual()}
               onClick={onSurfaceClick}
-              dangerouslySetInnerHTML={{ __html: sanitizeHtml(value) }}
             />
           )}
           {mode === "html" && (
@@ -590,7 +594,7 @@ export default function RichBodyEditor({ value, onChange, placeholder }: Props) 
           <div className="border-t md:border-t-0 md:border-s border-border overflow-y-auto">
             <div
               dir="rtl"
-              className="min-h-40 px-3 py-2 text-sm prose prose-sm max-w-none bg-muted/30"
+              className="min-h-40 px-3 py-2 text-sm prose prose-sm dark:prose-invert max-w-none bg-muted/30"
               dangerouslySetInnerHTML={{ __html: previewHtml }}
             />
           </div>

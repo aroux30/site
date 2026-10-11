@@ -24,11 +24,8 @@ const ENTITY_TYPE_LABELS: Record<string, string> = {
   product: "محصول",
   variant: "واریانت",
   discount: "تخفیف",
-  tax_rule: "قاعده مالیات",
   reorder_rule: "قاعده سفارش مجدد",
-  vendor: "فروشنده",
   wallet: "کیف پول",
-  price_list_rule: "قاعده قیمت‌گذاری",
 };
 
 const OPERATION_LABELS: Record<string, string> = {
@@ -51,10 +48,24 @@ function ChangeDiffRow({ change }: { change: EntityChange }) {
         <Badge variant="outline">{OPERATION_LABELS[change.operation] ?? change.operation}</Badge>
         <Badge variant="secondary">{SOURCE_LABELS[change.source] ?? change.source}</Badge>
         {change.actor_type === "user" && change.actor_id && (
-          <span className="font-mono" dir="ltr">{change.actor_id.slice(0, 8)}…</span>
+          <>
+            {change.actor_name || change.actor_phone ? (
+              <span className="font-medium text-foreground">
+                {change.actor_name ?? change.actor_phone}
+              </span>
+            ) : null}
+            <span className="font-mono text-[10px] opacity-70" dir="ltr">
+              {change.actor_id.slice(0, 8)}…
+            </span>
+          </>
         )}
         {change.actor_type !== "user" && (
           <span>{change.actor_type === "celery" ? "کار پس‌زمینه" : "سیستم"}</span>
+        )}
+        {change.request_id && (
+          <span className="font-mono text-[10px]" dir="ltr">
+            {change.request_id}
+          </span>
         )}
         {change.truncated && (
           <Badge variant="destructive" className="text-[10px]">مقدار بریده‌شده</Badge>
@@ -289,6 +300,13 @@ export default function AdminAuditPage() {
                   <span className="text-xs text-muted-foreground font-mono" dir="ltr">
                     {log.resource}
                   </span>
+                  {/* The reviewer's first question is "who?" — show the name
+                      (or phone fallback) without requiring an expand. */}
+                  {(log.actor_name || log.actor_phone) && (
+                    <span className="text-xs text-muted-foreground">
+                      {log.actor_name ?? log.actor_phone}
+                    </span>
+                  )}
                   {log.ip_address && (
                     <span className="text-[10px] text-muted-foreground font-mono" dir="ltr">
                       {log.ip_address}
@@ -303,7 +321,36 @@ export default function AdminAuditPage() {
                 <div className="mt-3 space-y-2 border-t pt-3 text-xs">
                   {log.actor_id && (
                     <p className="text-muted-foreground">
-                      کاربر عامل: <span className="font-mono" dir="ltr">{log.actor_id}</span>
+                      کاربر عامل:{" "}
+                      {log.actor_name ? (
+                        <span className="font-medium text-foreground">{log.actor_name}</span>
+                      ) : null}
+                      {log.actor_phone ? (
+                        <span className="font-mono ms-2" dir="ltr">{log.actor_phone}</span>
+                      ) : null}
+                      {/* Raw id stays visible for support tickets that quote it,
+                          but it is no longer the only identity shown. */}
+                      <span className="font-mono ms-2 text-[10px] opacity-60" dir="ltr">
+                        {log.actor_id}
+                      </span>
+                    </p>
+                  )}
+                  <div className="flex flex-wrap gap-x-4 gap-y-1 text-muted-foreground">
+                    {log.ip_address && (
+                      <span>
+                        IP: <span className="font-mono" dir="ltr">{log.ip_address}</span>
+                      </span>
+                    )}
+                    {log.request_id && (
+                      <span>
+                        شناسهٔ درخواست:{" "}
+                        <span className="font-mono" dir="ltr">{log.request_id}</span>
+                      </span>
+                    )}
+                  </div>
+                  {log.user_agent && (
+                    <p className="text-muted-foreground break-all" dir="ltr">
+                      {log.user_agent}
                     </p>
                   )}
                   {log.before && (
@@ -319,6 +366,14 @@ export default function AdminAuditPage() {
                       <p className="mb-1 text-muted-foreground">بعد:</p>
                       <pre dir="ltr" className="overflow-x-auto rounded bg-muted/50 p-2 font-mono text-[11px]">
                         {JSON.stringify(log.after, null, 2)}
+                      </pre>
+                    </div>
+                  )}
+                  {log.extra_data && (
+                    <div>
+                      <p className="mb-1 text-muted-foreground">داده تکمیلی:</p>
+                      <pre dir="ltr" className="overflow-x-auto rounded bg-muted/50 p-2 font-mono text-[11px]">
+                        {JSON.stringify(log.extra_data, null, 2)}
                       </pre>
                     </div>
                   )}
@@ -446,8 +501,8 @@ function ChangeLogTab({
         </div>
       ) : changes.length === 0 ? (
         <Card className="p-8 text-center text-sm text-muted-foreground">
-          هنوز تغییری ثبت نشده است. تغییرات پس از ویرایش قیمت، تخفیف، مالیات،
-          کمیسیون فروشنده یا موجودی انبار اینجا نمایش داده می‌شوند.
+          هنوز تغییری ثبت نشده است. تغییرات پس از ویرایش قیمت، تخفیف، مالیات
+          یا موجودی انبار اینجا نمایش داده می‌شوند.
         </Card>
       ) : (
         <div className="space-y-2">

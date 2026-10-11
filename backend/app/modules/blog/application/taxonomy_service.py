@@ -20,11 +20,6 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions.handlers import ConflictError, NotFoundError, ValidationError
-from app.modules.blog.domain.custom_post_types import (
-    CustomPostEntry,
-    CustomPostType,
-    CustomPostTypeStatus,
-)
 from app.modules.blog.domain.taxonomy_models import (
     CustomTaxonomy,
     CustomTaxonomyTerm,
@@ -39,16 +34,8 @@ _TAXONOMY_FIELDS = {
 # The closed set of content types a taxonomy can apply to. Kept as a constant
 # because it is the same list the picker offers, the attach route validates
 # against, and the column defaults to — three places that must not drift.
-OBJECT_TYPES = ("blog_post", "cms_page", "custom_post_entry")
+OBJECT_TYPES = ("blog_post", "cms_page")
 _TERM_FIELDS = {"name", "slug", "description", "parent_id", "position"}
-_CPT_FIELDS = {
-    "name", "slug", "description", "icon", "field_schema",
-    "supports_categories", "supports_comments", "is_active",
-}
-_ENTRY_FIELDS = {
-    "title", "slug", "fields", "excerpt", "cover_image_url", "status",
-    "position", "scheduled_publish_at",
-}
 
 
 def _validated_object_types(value: Any) -> list[str]:
@@ -100,18 +87,6 @@ async def _ensure_term_slug_free(
         stmt = stmt.where(CustomTaxonomyTerm.id != exclude)
     if (await db.execute(stmt)).first() is not None:
         raise ConflictError(f"اسلاگ «{slug}» در این تاکسونومی قبلاً استفاده شده است")
-
-
-async def _ensure_entry_slug_free(
-    db: AsyncSession, post_type_id: uuid.UUID, slug: str, *, exclude: uuid.UUID | None = None
-) -> None:
-    stmt = select(CustomPostEntry.id).where(
-        CustomPostEntry.post_type_id == post_type_id, CustomPostEntry.slug == slug
-    )
-    if exclude is not None:
-        stmt = stmt.where(CustomPostEntry.id != exclude)
-    if (await db.execute(stmt)).first() is not None:
-        raise ConflictError(f"اسلاگ «{slug}» در این نوع محتوا قبلاً استفاده شده است")
 
 
 class TaxonomyService:
@@ -239,124 +214,3 @@ class TaxonomyService:
         await db.commit()
         return {"terms_deleted": 1, "post_links_deleted": links}
 
-
-class ContentTypeService:
-    """Write path for custom post types and their entries."""
-
-    @staticmethod
-    async def update_content_type(
-        db: AsyncSession, type_id: uuid.UUID, body: dict[str, Any]
-    ) -> dict[str, Any]:
-        _reject_unknown(body, _CPT_FIELDS, "نوع محتوا")
-        cpt = await db.get(CustomPostType, type_id)
-        if cpt is None:
-            raise NotFoundError("CustomPostType", f"نوع محتوا {type_id} یافت نشد")
-
-        if "name" in body and body["name"]:
-            cpt.name = str(body["name"]).strip()
-        if body.get("slug"):
-            cpt.slug = generate_slug(str(body["slug"]))
-        for key in (
-            "description", "icon", "field_schema",
-            "supports_categories", "supports_comments", "is_active",
-        ):
-            if key in body:
-                setattr(cpt, key, body[key])
-
-        await db.commit()
-        await db.refresh(cpt)
-        return {
-            "id": str(cpt.id), "name": cpt.name, "slug": cpt.slug,
-            "description": cpt.description, "icon": cpt.icon,
-            "field_schema": cpt.field_schema,
-            "supports_categories": cpt.supports_categories,
-            "supports_comments": cpt.supports_comments, "is_active": cpt.is_active,
-        }
-
-    @staticmethod
-    async def delete_content_type(db: AsyncSession, type_id: uuid.UUID) -> dict[str, int]:
-        """Delete a post type and every entry under it (cascade)."""
-        cpt = await db.get(CustomPostType, type_id)
-        if cpt is None:
-            raise NotFoundError("CustomPostType", f"نوع محتوا {type_id} یافت نشد")
-        entries = (await db.execute(
-            select(func.count()).select_from(CustomPostEntry).where(
-                CustomPostEntry.post_type_id == type_id)
-        )).scalar_one()
-        await db.delete(cpt)
-        await db.commit()
-        return {"content_types_deleted": 1, "entries_deleted": entries}
-
-    @staticmethod
-    async def update_entry(
-        db: AsyncSession, entry_id: uuid.UUID, body: dict[str, Any]
-    ) -> dict[str, Any]:
-        _reject_unknown(body, _ENTRY_FIELDS, "ورودی")
-        entry = await db.get(CustomPostEntry, entry_id)
-        if entry is None:
-            raise NotFoundError("CustomPostEntry", f"ورودی {entry_id} یافت نشد")
-
-        # Snapshot the state this write is about to replace, before any of it is
-        # changed. After the fact the newest revision *is* the current row, and
-        # restoring it changes nothing — which reads as "restore is broken"
-        # rather than as "restore never had anything to restore".
-        from app.modules.blog.application import custom_post_revision_service
-
-        await custom_post_revision_service.update_entry(
-            db, entry, changes={}, snapshot=True
-        )
-
-        if "scheduled_publish_at" in body:
-            raw = body["scheduled_publish_at"]
-            entry.scheduled_publish_at = (
-                datetime.fromisoformat(str(raw)) if raw else None
-            )
-
-        if "title" in body and body["title"]:
-            entry.title = str(body["title"]).strip()
-        slug = generate_slug(str(body["slug"])) if body.get("slug") else (
-            generate_slug(entry.title) if body.get("title") else entry.slug
-        )
-        if slug != entry.slug:
-            await _ensure_entry_slug_free(
-                db, entry.post_type_id, slug, exclude=entry_id)
-            entry.slug = slug
-
-        for key in ("fields", "excerpt", "cover_image_url", "position"):
-            if key in body:
-                setattr(entry, key, body[key])
-        if body.get("status"):
-            try:
-                entry.status = CustomPostTypeStatus(str(body["status"]))
-            except ValueError as exc:
-                raise ValidationError(
-                    f"وضعیت نامعتبر: {body['status']}",
-                    extra={"allowed": [s.value for s in CustomPostTypeStatus]},
-                ) from exc
-            if entry.status is CustomPostTypeStatus.PUBLISHED and entry.published_at is None:
-                entry.published_at = datetime.now(timezone.utc)
-
-        await db.commit()
-        await db.refresh(entry)
-        return {
-            "id": str(entry.id), "title": entry.title, "slug": entry.slug,
-            "status": entry.status.value, "fields": entry.fields,
-            "excerpt": entry.excerpt, "cover_image_url": entry.cover_image_url,
-            "position": entry.position,
-            # Read back after a save, so the row shows what was just stored
-            # instead of flashing the previous value until a refetch.
-            "scheduled_publish_at": (
-                entry.scheduled_publish_at.isoformat()
-                if entry.scheduled_publish_at else None
-            ),
-            "revision_count": entry.revision_count or 0,
-        }
-
-    @staticmethod
-    async def delete_entry(db: AsyncSession, entry_id: uuid.UUID) -> dict[str, int]:
-        entry = await db.get(CustomPostEntry, entry_id)
-        if entry is None:
-            raise NotFoundError("CustomPostEntry", f"ورودی {entry_id} یافت نشد")
-        await db.delete(entry)
-        await db.commit()
-        return {"entries_deleted": 1}

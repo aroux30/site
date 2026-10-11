@@ -4,7 +4,7 @@ import { useCallback, useEffect } from "react";
 import { useAuthStore } from "@/stores/auth-store";
 import { useCartStore } from "@/stores/cart-store";
 import { useCompareStore } from "@/stores/compare-store";
-import apiClient, { sessionStore } from "@/lib/api/client";
+import apiClient, { sessionStore, mayHaveSession } from "@/lib/api/client";
 import type {
   User,
   UserProfileResponse,
@@ -22,6 +22,14 @@ import type {
 // Guards against rapid double clicks firing several /auth/logout requests
 // while the first one is still in flight.
 let isLoggingOut = false;
+
+// Single-flight for the session probe. Every `useAuth()` call site fires its
+// own `/auth/me` on mount (header, admin bar, account guard), so a storefront
+// page load sent three identical requests — and for a guest all three came
+// back 401, tripling the expected-failure traffic and the console noise.
+// One in-flight promise is shared by every mount; it is cleared when it
+// settles so an explicit refresh (login, account page focus) still re-fetches.
+let currentUserProbe: Promise<User | null> | null = null;
 
 function mapProfileToUser(data: UserProfileResponse): User {
   const fullName =
@@ -48,27 +56,46 @@ export function useAuth() {
   const store = useAuthStore();
 
   const fetchCurrentUser = useCallback(async (): Promise<User | null> => {
-    try {
-      store.setLoading(true);
-      const { data } = await apiClient.get<UserProfileResponse>("/auth/me");
-      const user = mapProfileToUser(data);
-      store.setUser(user);
-      return user;
-    } catch (err) {
-      // Only a 401 means the session is really gone; other failures
-      // (network, 5xx, rate limit) must not destroy the session.
-      const status =
-        (err as { status?: number; response?: { status?: number } })?.status ??
-        (err as { response?: { status?: number } })?.response?.status;
-      if (!status || status === 401) store.logout();
-      throw new Error("Failed to fetch current user");
-    } finally {
-      store.setLoading(false);
+    // Share one in-flight probe across every mounted useAuth(): without this
+    // a single page load fired three identical /auth/me requests.
+    if (!currentUserProbe) {
+      currentUserProbe = (async () => {
+        try {
+          store.setLoading(true);
+          const { data } = await apiClient.get<UserProfileResponse>("/auth/me");
+          const user = mapProfileToUser(data);
+          store.setUser(user);
+          return user;
+        } catch (err) {
+          // Only a 401 means the session is really gone; other failures
+          // (network, 5xx, rate limit) must not destroy the session.
+          const status =
+            (err as { status?: number; response?: { status?: number } })?.status ??
+            (err as { response?: { status?: number } })?.response?.status;
+          if (!status || status === 401) store.logout();
+          throw new Error("Failed to fetch current user");
+        } finally {
+          store.setLoading(false);
+          currentUserProbe = null;
+        }
+      })();
     }
+    return currentUserProbe;
   }, [store]);
 
   // Check auth status on mount by calling /auth/me with HttpOnly cookies.
+  // Skipped entirely for a visitor with no session signal: the probe would
+  // 401, which is expected but still shows as a failed request in the network
+  // panel and the console, and there is nothing to learn — a user who never
+  // signed in is not authenticated. A session that exists in cookies only
+  // (cleared localStorage, fresh browser profile) is still discovered: the
+  // account/admin guards call fetchCurrentUser() explicitly, and middleware
+  // protects those routes server-side regardless.
   useEffect(() => {
+    if (!mayHaveSession()) {
+      store.setLoading(false);
+      return;
+    }
     fetchCurrentUser().catch(() => {
       store.setLoading(false);
     });
@@ -113,9 +140,6 @@ export function useAuth() {
         password: userData.password,
         first_name: userData.first_name || userData.firstName || "",
         last_name: userData.last_name || userData.lastName || "",
-        // Only sent when present: an empty string would be stored as an email
-        // the account has no way to verify.
-        ...(userData.email ? { email: userData.email } : {}),
         // Only send the code when present: an empty string would be stored as
         // a referral code that can never resolve to a referrer.
         ...(userData.referral_code ? { referral_code: userData.referral_code } : {}),
@@ -193,7 +217,6 @@ export function useAuth() {
       const payload = {
         first_name: updates.first_name ?? updates.firstName,
         last_name: updates.last_name ?? updates.lastName,
-        email: updates.email,
         national_code: updates.national_code ?? updates.nationalId,
         birth_date: updates.birth_date ?? updates.birthDate,
         avatar_url: updates.avatar_url,

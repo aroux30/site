@@ -1,173 +1,105 @@
-"use client";
+import { notFound } from "next/navigation";
+import type { Metadata } from "next";
+import { apiInternalUrl } from "@/lib/api/server-base";
+import AuthorArchiveClient from "./author-archive-client";
 
-/** Author archive (WordPress parity: /author/<slug>).
+/**
+ * Metadata for the author archive — title/description from the operator's
+ * titles-meta template (rendered by the backend), plus the self-canonical
+ * the page lacked entirely (SEO audit F-03, live-verified: the sitemap
+ * advertised this URL and it answered 200 with no canonical).
  *
- * The permalink structure accepts %author% and links here; before this page
- * existed every such link 404'd. The slug is stable (users.author_slug), so a
- * profile rename never breaks an archive URL.
+ * `notFound()` must not run here (same trap the component documents): the
+ * metadata function only reports; the component decides the 404.
  */
-import { useCallback, useEffect, useState } from "react";
-import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
-import { ArrowRight, Loader2, User as UserIcon } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { useToast } from "@/components/ui/use-toast";
-import { fetchAuthorArchive } from "@/lib/api/blog";
-import type { BlogPost } from "@/lib/api/blog";
-import { postHref } from "@/lib/permalinks";
-import { useRoutingConfig } from "@/lib/use-routing";
-import { toPersianDigits } from "@/lib/utils";
-
-const PAGE_SIZE = 10;
-
-export default function AuthorArchivePage() {
-  const { toast } = useToast();
-  const router = useRouter();
-  const params = useParams<{ slug: string }>();
-  const slug = params?.slug ?? "";
-  const routing = useRoutingConfig();
-
-  const [author, setAuthor] = useState<{
-    slug: string;
-    name: string;
-    bio?: string | null;
-    avatar_url?: string | null;
-    post_count: number;
-  } | null>(null);
-  const [posts, setPosts] = useState<BlogPost[]>([]);
-  const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(0);
-  const [loading, setLoading] = useState(true);
-
-  const load = useCallback(
-    async (targetPage: number, signal?: AbortSignal) => {
-      setLoading(true);
-      try {
-        const res = await fetchAuthorArchive(slug, targetPage, PAGE_SIZE);
-        setAuthor(res.author);
-        setPosts(res.posts.items);
-        setTotalPages(res.posts.total_pages);
-        setPage(res.posts.page);
-      } catch {
-        // A missing slug is a 404, not an error toast: the archive is a
-        // destination a crawler may have guessed.
-        if (!signal?.aborted) router.replace("/blog");
-      } finally {
-        setLoading(false);
-      }
-    },
-    [slug, router],
-  );
-
-  useEffect(() => {
-    if (!slug) return;
-    const controller = new AbortController();
-    void load(1, controller.signal);
-    return () => controller.abort();
-  }, [slug, load]);
-
-  if (loading) {
-    return (
-      <div className="container flex min-h-[40vh] items-center justify-center">
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-      </div>
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  const canonical = `/author/${slug}`;
+  try {
+    const res = await fetch(
+      `${apiInternalUrl()}/blog/authors/${encodeURIComponent(slug)}?page=1&page_size=1`,
+      { next: { revalidate: 300 } },
     );
+    if (res.ok) {
+      const data = (await res.json()) as {
+        author?: {
+          name?: string;
+          seo_title?: string | null;
+          seo_description?: string | null;
+        };
+      };
+      return {
+        title:
+          data.author?.seo_title ||
+          (data.author?.name
+            ? `نوشته‌های ${data.author.name}`
+            : "آرشیو نویسنده"),
+        description: data.author?.seo_description ?? undefined,
+        alternates: { canonical },
+      };
+    }
+  } catch {
+    // Outage ≠ "author does not exist": return the safe title.
   }
+  return { title: "آرشیو نویسنده", alternates: { canonical } };
+}
 
-  if (!author) return null;
+/**
+ * Author archive route — a SERVER component wrapping the client archive.
+ *
+ * Why the wrapper exists (soft-404 fix, 2026-10-09): the archive itself is
+ * a client component, and a client component cannot set the HTTP status.
+ * A missing author was handled with `router.replace("/blog")`, so the page
+ * answered 200 for every guessed URL — a soft 404 that crawlers index and
+ * Search Console reports as an error. A server-side existence check before
+ * rendering lets `notFound()` run while headers are still open, which is
+ * what makes the response a real 404.
+ *
+ * The check is one lightweight fetch of the same endpoint the client uses;
+ * the client still fetches the full page data (author + posts + paging)
+ * because the shape it needs is bigger than this probe. The extra request
+ * is deliberate: it is the price of a correct status code, and it only
+ * happens on this archive route.
+ */
+/**
+ * Does the author exist? `true`/`false`/`null` (null = could not tell).
+ *
+ * `notFound()` is NOT called here, and must never be: it works by throwing
+ * a special error, so a call inside a `try` is caught by that `try`'s own
+ * `catch` — the first version of this wrapper did exactly that and the
+ * route answered 200 for every guessed slug (caught in review with a live
+ * probe). The decision is returned to the component, which calls
+ * `notFound()` outside any try.
+ */
+async function authorExists(slug: string): Promise<boolean | null> {
+  try {
+    const res = await fetch(
+      `${apiInternalUrl()}/blog/authors/${encodeURIComponent(slug)}?page=1&page_size=1`,
+      { next: { revalidate: 300 } },
+    );
+    if (res.status === 404) return false;
+    return true;
+  } catch {
+    // Network failure: we cannot tell. An outage must not read as
+    // "author does not exist" — the client renders and surfaces its error.
+    return null;
+  }
+}
 
-  return (
-    <div className="container py-10" dir="rtl">
-      <nav className="mb-6 text-sm text-muted-foreground">
-        <Link href="/blog" className="inline-flex items-center gap-1 hover:text-foreground">
-          <ArrowRight className="h-4 w-4" />
-          وبلاگ
-        </Link>
-      </nav>
+export default async function AuthorArchiveRoute({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const { slug } = await params;
+  if (!slug) notFound();
 
-      <header className="mb-8 flex items-start gap-4">
-        {author.avatar_url ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={author.avatar_url}
-            alt={author.name}
-            className="h-16 w-16 rounded-full object-cover"
-          />
-        ) : (
-          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted">
-            <UserIcon className="h-7 w-7 text-muted-foreground" />
-          </div>
-        )}
-        <div>
-          <h1 className="text-2xl font-bold">{author.name}</h1>
-          <p className="text-sm text-muted-foreground">
-            {toPersianDigits(author.post_count)} نوشته
-          </p>
-          {author.bio && <p className="mt-2 max-w-2xl text-sm">{author.bio}</p>}
-        </div>
-      </header>
+  const exists = await authorExists(slug);
+  if (exists === false) notFound();
 
-      {posts.length === 0 ? (
-        <Card>
-          <CardContent className="py-10 text-center text-muted-foreground">
-            این نویسنده هنوز نوشته‌ای منتشر نکرده است.
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {posts.map((post) => (
-            <Card key={post.id} className="overflow-hidden">
-              <CardContent className="p-5">
-                {post.category && (
-                  <p className="mb-2 text-xs text-muted-foreground">{post.category.name}</p>
-                )}
-                <h2 className="mb-2 text-lg font-semibold leading-snug">
-                  <Link
-                    href={postHref(routing.permalink_structure, {
-                      slug: post.slug,
-                      id: post.id,
-                      published_at: post.published_at,
-                      category_slug: post.category?.slug ?? null,
-                      author_slug: post.author_slug ?? null,
-                    })}
-                    className="hover:text-primary"
-                  >
-                    {post.title}
-                  </Link>
-                </h2>
-                {post.excerpt && (
-                  <p className="line-clamp-3 text-sm text-muted-foreground">{post.excerpt}</p>
-                )}
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      )}
-
-      {totalPages > 1 && (
-        <div className="mt-8 flex items-center justify-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={page <= 1 || loading}
-            onClick={() => void load(page - 1)}
-          >
-            قبلی
-          </Button>
-          <span className="text-sm text-muted-foreground">
-            {toPersianDigits(page)} از {toPersianDigits(totalPages)}
-          </span>
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={page >= totalPages || loading}
-            onClick={() => void load(page + 1)}
-          >
-            بعدی
-          </Button>
-        </div>
-      )}
-    </div>
-  );
+  return <AuthorArchiveClient />;
 }

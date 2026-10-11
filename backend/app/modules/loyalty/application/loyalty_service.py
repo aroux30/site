@@ -30,10 +30,9 @@ TIER_THRESHOLDS: dict[LoyaltyTier, int] = {
 TIER_BENEFITS: dict[LoyaltyTier, list[str]] = {
     LoyaltyTier.BRONZE: ["Basic member benefits"],
     LoyaltyTier.SILVER: ["5% bonus points", "Priority support"],
-    LoyaltyTier.GOLD: ["10% bonus points", "Free shipping", "Exclusive offers"],
+    LoyaltyTier.GOLD: ["10% bonus points", "Exclusive offers"],
     LoyaltyTier.PLATINUM: [
         "15% bonus points",
-        "Free express shipping",
         "VIP support",
         "Early access to sales",
     ],

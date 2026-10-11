@@ -184,8 +184,11 @@ def parse_feed(xml_bytes: bytes | str) -> dict[str, Any]:
 
     entries = _children(channel, "entry" if atom else "item")
     if len(entries) > MAX_ENTRIES:
+        # stdlib logging: keyword arguments raise TypeError at call time under
+        # a configured server (the same class of bug that made every WXR
+        # import 500). Format args, never structlog kwargs.
         logger.info(
-            "feed_entry_cap_applied", offered=len(entries), cap=MAX_ENTRIES
+            "feed_entry_cap_applied offered=%d cap=%d", len(entries), MAX_ENTRIES
         )
         entries = entries[:MAX_ENTRIES]
 
@@ -195,7 +198,7 @@ def parse_feed(xml_bytes: bytes | str) -> dict[str, Any]:
             # An untitled entry imports as a slug of nothing, and two of them
             # collide on the second. Skipping is visible; a silent collision is
             # not.
-            logger.info("feed_entry_skipped", reason="no title")
+            logger.info("feed_entry_skipped reason=no title")
             continue
 
         link = ""
@@ -250,7 +253,7 @@ def parse_feed(xml_bytes: bytes | str) -> dict[str, Any]:
                 creator = _text(_child(author, "name"))
 
         # The keys `import_json` actually reads, not the ones a feed names.
-        # It reads `category_slug` / `tag_slugs` / `status` / `locale`; a feed
+        # It reads `category_slug` / `tag_slugs` / `status`; a feed
         # gives a per-item category list and no status at all. Emitting the
         # feed's own vocabulary here would produce a dict that looks right and
         # imports untagged — every post would land uncategorised, silently.

@@ -24,7 +24,7 @@ Waiting is the right behaviour rather than skipping: a skipped check reports as
 "nothing to check", and this project's standing rule is that a gate which cannot
 fail is not a gate. Waiting costs seconds; skipping costs the guarantee.
 
-    PYTHONPATH=. python scripts/with_lock.py verify_comment_ip_retention.py
+    PYTHONPATH=. python scripts/with_lock.py verify_media_trash.py
 """
 
 from __future__ import annotations

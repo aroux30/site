@@ -21,7 +21,6 @@ export interface UserAddress {
 export interface AdminUser {
   id: string | number;
   phone: string;
-  email?: string;
   first_name?: string;
   last_name?: string;
   is_active: boolean;
@@ -62,28 +61,6 @@ export interface AdminApplicationPassword {
   expires_at: string | null;
   revoked_at: string | null;
   created_at: string | null;
-}
-
-export interface TrustProfile {
-  user_id: string | number;
-  shahkar_verified: boolean;
-  bank_card_verified?: boolean;
-  trust_level?: "none" | "basic" | "verified" | "trusted";
-  delivery_policy?: string;
-  is_trusted?: boolean;
-  risk_score?: number;
-  delayed_delivery_enabled?: boolean;
-}
-
-export interface BankCard {
-  id: string | number;
-  card_number_masked?: string;
-  card_pan_masked?: string;
-  iban?: string;
-  holder_name?: string;
-  bank_name?: string;
-  is_verified: boolean;
-  created_at: string;
 }
 
 // --- API (user) ---
@@ -138,68 +115,6 @@ export const usersApi = {
   deleteAddress: async (addressId: string | number): Promise<void> => {
     await apiClient.delete(`/users/me/addresses/${addressId}`);
   },
-
-  // --- KYC ---
-
-  verifyShahkar: async (data: {
-    national_id?: string;
-    national_code?: string;
-    phone?: string;
-    mobile?: string;
-  }): Promise<{ verified: boolean; message: string }> => {
-    const res = await apiClient.post<{ verified: boolean; message: string }>(
-      "/users/kyc/shahkar/verify",
-      {
-        national_code: data.national_code || data.national_id || "",
-        mobile: data.mobile || data.phone,
-      },
-    );
-    return res.data;
-  },
-
-  getTrustProfile: async (): Promise<TrustProfile> => {
-    const res = await apiClient.get<TrustProfile>("/users/kyc/trust-profile");
-    return res.data;
-  },
-
-  registerBankCard: async (data: {
-    card_number: string;
-    iban?: string;
-  }): Promise<BankCard> => {
-    const res = await apiClient.post<BankCard>("/users/kyc/bank-cards", data);
-    return res.data;
-  },
-
-  listBankCards: async (): Promise<BankCard[]> => {
-    const res = await apiClient.get<BankCard[] | { items: BankCard[] }>("/users/kyc/bank-cards");
-    const raw = res.data;
-    const items = Array.isArray(raw) ? raw : (raw as { items?: BankCard[] })?.items ?? [];
-    return items.map((c) => ({
-      ...c,
-      card_number_masked: c.card_number_masked || c.card_pan_masked || "",
-    }));
-  },
-
-  verifyCardMatch: async (data: {
-    card_number?: string;
-    payment_card_pan?: string;
-    national_id?: string;
-  }): Promise<{ matched: boolean; message: string }> => {
-    const res = await apiClient.post<{ matched: boolean; message: string }>(
-      "/users/kyc/bank-cards/verify-match",
-      {
-        payment_card_pan: data.payment_card_pan || data.card_number || "",
-      },
-    );
-    return res.data;
-  },
-
-  getDeliveryPolicy: async (): Promise<{ policy: string; restrictions: string[] }> => {
-    const res = await apiClient.get<{ policy: string; restrictions: string[] }>(
-      "/users/kyc/delivery-policy",
-    );
-    return res.data;
-  },
 };
 
 // --- API (admin) ---
@@ -226,7 +141,6 @@ export const usersAdminApi = {
 
   createUser: async (data: {
     phone: string;
-    email?: string;
     first_name?: string;
     last_name?: string;
     password: string;
@@ -288,21 +202,6 @@ export const usersAdminApi = {
       total: number;
       summary: string;
     }>(`/users/admin/users/${userId}/reassign-content`);
-    return res.data;
-  },
-
-  /**
-   * Email a password-reset link to a user, at an operator's request.
-   *
-   * Returns the server's answer rather than `void`, because the server has one
-   * worth having: an account with no address or no password to reset gets
-   * `sent: false`, and an operator who saw a plain success would go on watching
-   * an inbox for a message that was never written.
-   */
-  sendPasswordReset: async (userId: string | number): Promise<{ sent: boolean; detail: string }> => {
-    const res = await apiClient.post<{ sent: boolean; detail: string }>(
-      `/users/admin/users/${userId}/password-reset`,
-    );
     return res.data;
   },
 
@@ -385,26 +284,6 @@ export const usersAdminApi = {
       ids,
       ...options,
     });
-    return res.data;
-  },
-
-  listFailedAttempts: async (params?: {
-    page?: number;
-  }): Promise<{ items: Array<Record<string, unknown>>; total: number }> => {
-    const res = await apiClient.get<{ items: Array<Record<string, unknown>>; total: number }>(
-      "/users/admin/security/failed-attempts",
-      { params },
-    );
-    return res.data;
-  },
-
-  listTrustProfiles: async (params?: {
-    page?: number;
-  }): Promise<{ items: TrustProfile[]; total: number }> => {
-    const res = await apiClient.get<{ items: TrustProfile[]; total: number }>(
-      "/users/admin/kyc/trust-profiles",
-      { params },
-    );
     return res.data;
   },
 };

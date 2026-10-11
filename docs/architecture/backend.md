@@ -492,9 +492,9 @@ async def send_order_confirmation(event: OrderPlaced):
 | Attribute       | Value                                                       |
 |-----------------|-------------------------------------------------------------|
 | **Schema**      | `inventory`                                                  |
-| **Description** | Tracks product stock levels, manages reservations, and handles warehouse operations. |
-| **Entities**    | `StockItem`, `StockReservation`, `StockMovement`, `Warehouse` |
-| **Key Features**| Real-time stock tracking, reservation system (soft locks during checkout), stock movement history, low-stock alerts, multi-warehouse support. |
+| **Description** | Tracks product stock levels and manages reservations.        |
+| **Entities**    | `StockItem`, `StockReservation`, `StockMovement`             |
+| **Key Features**| Real-time stock tracking, reservation system (soft locks during checkout), stock movement history, low-stock alerts. |
 | **Events**      | `StockUpdated`, `StockReserved`, `StockReleased`, `LowStockAlert` |
 | **Dependencies**| `products` (product reference)                               |
 
@@ -584,7 +584,7 @@ async def send_order_confirmation(event: OrderPlaced):
 | **Schema**      | `shipping`                                                   |
 | **Description** | Integrates with shipping providers, calculates rates, and tracks deliveries. |
 | **Entities**    | `ShippingMethod`, `ShippingRate`, `Shipment`, `ShippingZone` |
-| **Key Features**| Multiple shipping providers (Post, Tipax, etc.), rate calculation based on weight/zone, shipment tracking integration, delivery time estimation, free shipping rules. |
+| **Key Features**| Shipping methods and rates, rate calculation based on weight/zone, local shipment tracking timeline, delivery time estimation. |
 | **Events**      | `ShipmentCreated`, `ShipmentStatusUpdated`, `ShipmentDelivered` |
 | **Dependencies**| `orders`                                                     |
 
@@ -1101,10 +1101,11 @@ Celery beat (every minute, Asia/Tehran)
 ```
 
 **Report types:** `sales` (gross/discount/tax/refund/net, group by
-day/week/month/category/vendor/channel), `stock` (on-hand/reserved/sellable,
-low-stock filter), `vendor_settlement` (commission, pending/payable/paid),
-`tax_vat` (composes `checkout.tax_service_v2.aggregate_vat_report` — tax
-math is never duplicated in the reporting layer).
+day/week/month/category/channel), `stock` (on-hand/reserved/sellable,
+low-stock filter).
+(The `tax_vat` report was removed 2026-10-09 with the tax rule engine; the
+VAT rate is a single admin settings field — `store.shipping_tax.tax_rate_percent`.
+The `vendor_settlement` report was removed 2026-10-10 with the vendors module.)
 
 **Status semantics (canonical, do not widen silently):** revenue-recognized
 orders = `COMPLETED + DELIVERED` (matches `AnalyticsService`); refunded

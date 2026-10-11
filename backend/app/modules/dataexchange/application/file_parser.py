@@ -108,6 +108,15 @@ def parse_upload(content: bytes, filename: str) -> tuple[list[str], list[tuple[i
         headers, rows = parse_xlsx(content)
     elif lowered.endswith(CSV_EXTENSIONS):
         headers, rows = parse_csv(content)
+    elif lowered.endswith((".xml", ".rss", ".atom")):
+        # Point at the right card instead of a flat "unsupported": a WXR
+        # export and an RSS feed are imported as documents (they are not
+        # tables to map), and each has its own card on this page.
+        raise ValidationError(
+            "فایل XML در این کارت پشتیبانی نمی‌شود — برای خروجی وردپرس از کارت "
+            "«ایمپورت از خروجی وردپرس (XML / WXR)» و برای فید از کارت "
+            "«ایمپورت از فید RSS یا Atom» استفاده کنید"
+        )
     else:
         raise ValidationError("فرمت فایل پشتیبانی نمی‌شود (فقط CSV یا XLSX)")
 

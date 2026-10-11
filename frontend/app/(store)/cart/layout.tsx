@@ -1,9 +1,13 @@
 import type { Metadata } from "next";
 
+import { openGraphBase } from "@/lib/seo-meta";
+import { siteOrigin } from "@/lib/site-url";
+
 export const metadata: Metadata = {
   title: "سبد خرید",
   description: "بررسی و ویرایش اقلام سبد خرید شما.",
   robots: { index: false, follow: true },
+  openGraph: openGraphBase({ url: `${siteOrigin()}/cart` }),
 };
 
 export default function CartLayout({

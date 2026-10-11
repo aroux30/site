@@ -5,7 +5,6 @@
  *   GET  /orders/{id}                → OrderResponse (includes items + timeline)
  *   GET  /orders/{id}/timeline       → OrderTimelineResponse
  *   GET  /orders/{id}/price-snapshot → PriceSnapshotResponse (has hash_valid)
- *   GET  /orders/{id}/returns        → list of RMAs for this order
  *   POST /orders/{id}/cancel         → OrderResponse (body: {reason, min 3 chars})
  *
  * Two contract facts this module is explicit about:
@@ -92,21 +91,6 @@ export interface PriceSnapshot {
   hashValid: boolean | null;
   createdAt: string | null;
 }
-
-export interface OrderRma {
-  id: string;
-  rmaNumber: string | null;
-  status: string;
-  refundAmount: number | null;
-  createdAt: string | null;
-  adminNotes: string | null;
-}
-
-// NOTE: normalizeRma is intentionally RETAINED (unused) rather than deleted.
-// The RMA card on the order page was removed because no backend endpoint
-// lists an order's returns. When such an endpoint exists, the normalizer is
-// the piece that parses it — and these lines are the reminder that its
-// response shape is INFERRED, not yet verified against a live server.
 
 function readString(value: unknown): string | null {
   if (typeof value !== "string") return null;
@@ -233,21 +217,6 @@ export function normalizeSnapshot(raw: unknown): PriceSnapshot | null {
   };
 }
 
-export function normalizeRma(raw: unknown): OrderRma | null {
-  const r = readRecord(raw);
-  if (!r) return null;
-  const id = readString(r.id);
-  if (!id) return null;
-  return {
-    id,
-    rmaNumber: readString(r.rma_number),
-    status: readString(r.status) ?? "unknown",
-    refundAmount: readInt(r.refund_amount),
-    createdAt: readString(r.created_at),
-    adminNotes: readString(r.admin_notes),
-  };
-}
-
 export async function fetchOrderDetail(
   orderId: string,
   client: AxiosInstance = apiClient,
@@ -264,29 +233,6 @@ export async function fetchPriceSnapshot(
   return normalizeSnapshot(res.data);
 }
 
-export async function fetchOrderReturns(
-  orderId: string,
-  client: AxiosInstance = apiClient,
-): Promise<{ items: OrderRma[]; invalidCount: number }> {
-  try {
-    const res = await client.get<unknown>(`${ORDERS_PATH}/${orderId}/returns`);
-    const rawList = Array.isArray(res.data) ? res.data : [];
-    const items: OrderRma[] = [];
-    let invalidCount = 0;
-    for (const r of rawList) {
-      const normalized = normalizeRma(r);
-      if (normalized) {
-        items.push(normalized);
-      } else {
-        invalidCount += 1;
-      }
-    }
-    return { items, invalidCount };
-  } catch {
-    return { items: [], invalidCount: 0 };
-  }
-}
-
 export async function cancelOrder(
   orderId: string,
   reason: string,
@@ -299,7 +245,11 @@ export async function cancelOrder(
 
 /** Statuses an order can be cancelled from, mirroring the order state machine.
  *  Mirrors `_CUSTOMER_CANCELABLE` in backend order_service.py exactly. */
-export const CANCELLABLE_STATUSES = ["pending", "confirmed"] as const;
+export const CANCELLABLE_STATUSES = [
+  "waiting_payment_gateway",
+  "waiting_payment_card",
+  "pending",
+] as const;
 
 export function isCancellable(status: string): boolean {
   return (CANCELLABLE_STATUSES as readonly string[]).includes(status);
@@ -309,19 +259,16 @@ export function isCancellable(status: string): boolean {
 // The backend serialises enum *values* (lowercase), so `canceled` — not
 // `cancelled` — is the value that actually arrives; a missing key here falls
 // through to orderStatusLabel and shows the raw English enum to the customer.
+// The database stores the enum NAMES (WAITING_PAYMENT_GATEWAY, …), but the API speaks
+// values, so every key here is a value.
 export const ORDER_STATUS_LABELS: Record<string, string> = {
-  pending: "در انتظار پرداخت",
-  confirmed: "تأییدشده",
+  waiting_payment_gateway: "در انتظار تایید پرداخت",
+  waiting_payment_card: "در انتظار تایید کارت به کارت",
+  pending: "در حال انجام",
   processing: "در حال پردازش",
-  packing: "در حال بسته‌بندی",
-  shipped: "ارسال‌شده",
-  delivered: "تحویل‌شده",
   completed: "تکمیل‌شده",
   canceled: "لغوشده",
-  on_hold: "در انتظار بررسی",
-  returned: "مرجوع‌شده",
-  refunded: "بازپرداخت‌شده",
-  partially_refunded: "بازپرداخت جزئی",
+  refunded: "بازگشت وجه",
 };
 
 export function orderStatusLabel(status: string): string {

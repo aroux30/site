@@ -12,8 +12,9 @@ import { useCart } from "@/hooks/use-cart";
 import { useToast } from "@/components/ui/use-toast";
 import { formatPrice } from "@/lib/utils";
 import { useAuth } from "@/hooks/use-auth";
+import { FeatureGuard } from "@/components/store/feature-guard";
 
-export default function FavoritesPage() {
+function FavoritesPageInner() {
   const { toast } = useToast();
   const { isAuthenticated, isLoading: isAuthLoading } = useAuth();
   const {
@@ -180,5 +181,14 @@ export default function FavoritesPage() {
         </div>
       )}
     </div>
+  );
+}
+
+/** Redirects away when the wishlist module switch is off. */
+export default function FavoritesPage() {
+  return (
+    <FeatureGuard feature="wishlist">
+      <FavoritesPageInner />
+    </FeatureGuard>
   );
 }

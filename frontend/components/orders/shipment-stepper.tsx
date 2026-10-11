@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState } from "react";
-import Link from "next/link";
 import {
   Package,
   Truck,
@@ -9,50 +8,37 @@ import {
   CheckCircle2,
   Copy,
   Check,
-  RotateCcw,
-  Clock,
-  ShieldAlert,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { toPersianDigits } from "@/lib/utils";
 import {
   SHIPMENT_STATUS_STEPS,
   SHIPMENT_STATUS_LABELS,
   SHIPMENT_STATUS_DESCRIPTIONS,
   getShipmentStepIndex,
   resolveShipmentStatus,
-  getReturnWindowCountdown,
   type ShipmentStatus,
   type ShipmentTrackingEvent,
 } from "@/lib/shipment-tracking";
 
 export interface ShipmentStepperProps {
-  orderId: string;
   trackingCode?: string | null;
   carrier?: string | null;
   status: string;
-  deliveredAt?: string | null;
   events?: ShipmentTrackingEvent[];
-  showRmaAction?: boolean;
 }
 
 const STEP_ICONS = [Package, Truck, MapPin, CheckCircle2];
 
 export function ShipmentStepper({
-  orderId,
   trackingCode,
-  carrier = "شرکت ملی پست ایران",
+  carrier = "پست",
   status,
-  deliveredAt,
   events,
-  showRmaAction = true,
 }: ShipmentStepperProps) {
   const [copied, setCopied] = useState(false);
 
   const currentStatus: ShipmentStatus = resolveShipmentStatus(status);
   const activeStepIndex = getShipmentStepIndex(currentStatus);
-  const rmaCountdown = getReturnWindowCountdown(currentStatus, deliveredAt);
 
   const handleCopyTrackingCode = () => {
     if (!trackingCode) return;
@@ -72,7 +58,7 @@ export function ShipmentStepper({
           <div>
             <span className="text-xs text-muted-foreground block">شرکت حمل‌ونقل:</span>
             <span className="text-sm font-bold text-foreground">
-              {carrier || "پست پیشتاز"}
+              {carrier || "پست"}
             </span>
           </div>
         </div>
@@ -167,52 +153,6 @@ export function ShipmentStepper({
                 </span>
               </div>
             ))}
-          </div>
-        </div>
-      )}
-
-      {/* Smart RMA Return Window Connection */}
-      {showRmaAction && currentStatus === "DELIVERED" && (
-        <div
-          className={`flex flex-wrap items-center justify-between gap-3 rounded-xl p-3.5 text-xs transition-colors ${
-            rmaCountdown.isOpen
-              ? "border border-amber-500/30 bg-amber-500/10 text-amber-900 dark:text-amber-300"
-              : "border border-border bg-muted text-muted-foreground"
-          }`}
-        >
-          <div className="flex items-center gap-2.5">
-            {rmaCountdown.isOpen ? (
-              <Clock className="h-5 w-5 text-amber-600 shrink-0" />
-            ) : (
-              <ShieldAlert className="h-5 w-5 text-muted-foreground shrink-0" />
-            )}
-            <div>
-              <p className="font-bold">
-                {rmaCountdown.isOpen
-                  ? `ضمانت بازگشت ۷ روزه فعال است (${toPersianDigits(rmaCountdown.daysRemaining)} روز باقی‌مانده)`
-                  : "مهلت قانونی ۷ روزه مرجوعی برای این سفارش به پایان رسیده است."}
-              </p>
-              {deliveredAt && (
-                <p className="text-[11px] opacity-80 mt-0.5">
-                  تحویل شده در: {deliveredAt.slice(0, 10)}
-                </p>
-              )}
-            </div>
-          </div>
-
-          <div>
-            {rmaCountdown.isOpen ? (
-              <Link href={`/returns/request?orderId=${orderId}`}>
-                <Button size="sm" className="gap-1.5 text-xs bg-amber-600 hover:bg-amber-700 text-white font-bold">
-                  <RotateCcw className="h-4 w-4" />
-                  ثبت درخواست مرجوعی
-                </Button>
-              </Link>
-            ) : (
-              <Button size="sm" variant="outline" disabled className="text-xs opacity-60">
-                مرجوعی غیرفعال
-              </Button>
-            )}
           </div>
         </div>
       )}

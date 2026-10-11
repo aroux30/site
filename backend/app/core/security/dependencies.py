@@ -105,6 +105,15 @@ async def _extract_token(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Account is disabled",
             )
+        # Bind like the JWT path: a script using an application password must
+        # have its writes attributed and its request details recorded, exactly
+        # as a browser session's are.
+        bind_actor(
+            uuid.UUID(app_payload["sub"]),
+            source=SOURCE_API,
+            ip_address=_request_ip(request),
+            user_agent=request.headers.get("user-agent"),
+        )
         return app_payload
 
     payload = verify_token(token, expected_type="access")
@@ -133,10 +142,31 @@ async def _extract_token(
     # Bind identity to the ambient actor context (see actor_context module):
     # this is the single point every authenticated route passes through, and
     # the audit module's change capture reads it from inside a DB flush where
-    # the request object is unreachable.
-    bind_actor(user_id, source=SOURCE_API)
+    # the request object is unreachable. The request's IP and User-Agent are
+    # bound here too, so audit writers deep in the service layer get them
+    # without every route forwarding them by hand.
+    bind_actor(
+        user_id,
+        source=SOURCE_API,
+        ip_address=_request_ip(request),
+        user_agent=request.headers.get("user-agent"),
+    )
 
     return payload
+
+
+def _request_ip(request: Request) -> str | None:
+    """Client IP using the project's trusted-proxy convention.
+
+    Rightmost-trusted-hop semantics live in ``rate_limiter.get_real_client_ip``;
+    importing it here would drag SlowAPI into every auth check, so the simple
+    first-hop form is used — the same one the auth routes already record with
+    (``_client_ip``), keeping the two paths consistent.
+    """
+    forwarded = request.headers.get("x-forwarded-for")
+    if forwarded:
+        return forwarded.split(",")[0].strip()
+    return request.client.host if request.client else None
 
 
 async def _extract_optional_token(

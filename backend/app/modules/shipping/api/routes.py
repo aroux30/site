@@ -5,19 +5,16 @@ from __future__ import annotations
 import uuid
 from typing import Any
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database.session import get_db
 from app.core.security.dependencies import (
     RequirePermissions,
-    get_current_active_user,
     get_current_user_id,
 )
 from app.modules.shipping.application import shipping_service
 from app.modules.shipping.schemas.shipping import (
-    PickupPointResponse,
-    PickupPointUpsertRequest,
     ShipmentCancelRequest,
     ShipmentCreateRequest,
     ShipmentResponse,
@@ -59,7 +56,6 @@ async def get_shipping_quote(
         db,
         province=body.province,
         weight=body.weight,
-        order_amount=body.order_amount,
     )
 
 
@@ -114,7 +110,6 @@ async def admin_create_shipment(
         actor_id=actor_id,
         tracking_code=body.tracking_code,
         delivery_type=body.delivery_type,
-        pickup_point_id=body.pickup_point_id,
     )
 
 
@@ -140,7 +135,7 @@ async def admin_update_shipment(
 
 
 
-# -- Cancellation, pickup points, cash-on-delivery (ERP feature #32) --------
+# -- Cancellation, cash-on-delivery (ERP feature #32) ----------------------
 
 
 @router.post(
@@ -178,36 +173,3 @@ async def admin_mark_cod_collected(
 ) -> ShipmentResponse:
     """Stamp a COD shipment as settled. Idempotent."""
     return await shipping_service.mark_cod_collected(db, shipment_id, actor_id=actor_id)
-
-
-@router.get(
-    "/pickup-points",
-    response_model=list[PickupPointResponse],
-    summary="List pickup points (public)",
-)
-async def get_pickup_points(
-    db: AsyncSession = Depends(get_db),
-    city: str | None = Query(None, description="Filter by city"),
-    provider: str | None = Query(None, description="Filter by carrier"),
-) -> list[PickupPointResponse]:
-    """Pickup locations offered at checkout, optionally filtered."""
-    points = await shipping_service.list_pickup_points(db, city=city, provider=provider)
-    return [PickupPointResponse.model_validate(p) for p in points]
-
-
-@router.post(
-    "/admin/pickup-points",
-    response_model=PickupPointResponse,
-    status_code=201,
-    summary="Create or refresh a pickup point (admin)",
-    dependencies=[Depends(RequirePermissions("shipping:write"))],
-)
-async def admin_upsert_pickup_point(
-    body: PickupPointUpsertRequest,
-    db: AsyncSession = Depends(get_db),
-    _user: dict[str, Any] = Depends(get_current_active_user),
-) -> PickupPointResponse:
-    """Upsert by (provider, external_id) -- carrier networks are re-imported."""
-    point = await shipping_service.upsert_pickup_point(db, **body.model_dump())
-    await db.commit()
-    return PickupPointResponse.model_validate(point)

@@ -5,20 +5,8 @@ import validator from "validator";
  * Provides input sanitization and verification against injection and malformed input.
  */
 export const SecurityValidator = {
-  /**
-   * Validate email address format and normalize it
-   */
-  isValidEmail(email: string | null | undefined): boolean {
-    if (!email) return false;
-    return validator.isEmail(email.trim());
-  },
-
-  /**
-   * Normalize email to lowercase and trim
-   */
-  normalizeEmail(email: string): string {
-    return validator.normalizeEmail(email.trim()) || email.trim().toLowerCase();
-  },
+  // isValidEmail / normalizeEmail were removed on 2026-10-07 with the rest
+  // of the email feature; nothing collects an address any more.
 
   /**
    * Verify strong password criteria (min 8 chars, 1 uppercase, 1 lowercase, 1 number)

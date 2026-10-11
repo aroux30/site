@@ -45,7 +45,6 @@ async def issue_gift_card(
         amount=body.amount,
         card_template=body.card_template,
         sender_name=body.sender_name,
-        recipient_email=body.recipient_email,
         recipient_phone=body.recipient_phone,
         message=body.message,
         created_by_user_id=user_id,

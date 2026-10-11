@@ -308,14 +308,48 @@ async def _check_content_search_index(db: AsyncSession) -> dict[str, Any]:
 
     A search outage that returns zero hits is indistinguishable from an empty
     catalogue, so a missing index reads as "this site has no articles".
-    """
-    try:
-        from app.modules.search.infrastructure.elasticsearch_client import (
-            get_elasticsearch_service,
-        )
 
-        client = await get_elasticsearch_service().connect()
-        healthy = bool(await client.ping())
+    This check builds its OWN short-lived client instead of borrowing the
+    shared search service, and that is the point of the function's shape.
+    The shared client is configured for the search path: 30s per attempt and
+    ``max_retries=3``, so even wrapped in ``asyncio.timeout`` it kept working
+    — the transport cancels one attempt, retries, and the live server measured
+    9 seconds for this one check while every other check finished under a
+    second. The whole report then crossed the frontend client's 15s abort and
+    the operator saw a network error instead of the report that already knew
+    what was wrong. A health check that cannot deliver the diagnosis because
+    of the condition it diagnoses is worse than no check.
+
+    One attempt, a short timeout, no retries, and the client is closed here —
+    nothing shared is touched, so viewing a report can never disturb
+    production search.
+    """
+    import asyncio
+
+    try:
+        from elasticsearch import AsyncElasticsearch
+
+        from app.core.config.settings import get_settings
+
+        probe = AsyncElasticsearch(
+            hosts=[str(get_settings().ELASTICSEARCH_URL)],
+            request_timeout=2.5,
+            max_retries=0,
+        )
+        try:
+            async with asyncio.timeout(4.0):
+                healthy = bool(await probe.ping())
+        finally:
+            await probe.close()
+    except TimeoutError:
+        # Same severity as the unreachable branch below: from the operator's
+        # seat "did not answer in time" and "refused the connection" are the
+        # same fact — the index is not serving — and the report should not
+        # change colour based on which way the network failed.
+        return _check(
+            "Content search", "warning", "unavailable",
+            "سرویس جستجو در ۳ ثانیه پاسخ نداد؛ نمایه در دسترس نیست",
+        )
     except Exception as exc:
         logger.warning("content_search_ping_failed", exc_info=exc)
         return _check(

@@ -14,37 +14,18 @@ from app.worker.celery_app import celery_app
 logger: structlog.stdlib.BoundLogger = structlog.get_logger(__name__)
 
 
-def _is_accounting_event(event_type: str) -> bool:
-    """Whether the accounting feed maps this event type (lazy import guard)."""
-    from app.modules.accounting.application.events import is_accounting_event
-
-    return is_accounting_event(event_type)
-
-
 _ORDER_NOTIFICATIONS: dict[str, dict[str, str]] = {
     "OrderCreated": {
         "notification_type": "order_created",
         "title": "سفارش شما ثبت شد",
     },
-    "OrderConfirmed": {
-        "notification_type": "order_confirmed",
-        "title": "سفارش شما تأیید شد",
+    "OrderAccepted": {
+        "notification_type": "order_accepted",
+        "title": "سفارش شما پذیرفته شد",
     },
     "OrderProcessing": {
         "notification_type": "order_processing",
         "title": "سفارش شما در حال پردازش است",
-    },
-    "OrderPacking": {
-        "notification_type": "order_packing",
-        "title": "سفارش شما در حال بسته‌بندی است",
-    },
-    "OrderShipped": {
-        "notification_type": "order_shipped",
-        "title": "سفارش شما ارسال شد",
-    },
-    "OrderDelivered": {
-        "notification_type": "order_delivered",
-        "title": "سفارش شما تحویل داده شد",
     },
     "OrderCompleted": {
         "notification_type": "order_completed",
@@ -66,13 +47,39 @@ _ORDER_NOTIFICATIONS: dict[str, dict[str, str]] = {
         "notification_type": "payment_failed",
         "title": "پرداخت شما ناموفق بود",
     },
-    "ReturnApproved": {
-        "notification_type": "return_approved",
-        "title": "درخواست مرجوعی شما تأیید شد",
+}
+
+#: Wallet event types published by wallet_service. Each carries ``user_id`` in
+#: the payload (the recipient). Bodies are built in ``_notify_wallet_event``
+#: because they need the amount/direction, which differ per event.
+_WALLET_NOTIFICATIONS = {
+    "WalletTransferSent": {
+        "notification_type": "wallet_transfer_sent",
+        "title": "انتقال از کیف پول انجام شد",
     },
-    "ReturnRefunded": {
-        "notification_type": "return_refunded",
-        "title": "بازگشت وجه مرجوعی انجام شد",
+    "WalletTransferReceived": {
+        "notification_type": "wallet_transfer_received",
+        "title": "مبلغی به کیف پول شما واریز شد",
+    },
+    "WalletWithdrawalRequested": {
+        "notification_type": "wallet_withdrawal_requested",
+        "title": "درخواست برداشت ثبت شد",
+    },
+    "WalletWithdrawalApproved": {
+        "notification_type": "wallet_withdrawal_approved",
+        "title": "درخواست برداشت تأیید شد",
+    },
+    "WalletWithdrawalRejected": {
+        "notification_type": "wallet_withdrawal_rejected",
+        "title": "درخواست برداشت رد شد",
+    },
+    "WalletWithdrawalPaid": {
+        "notification_type": "wallet_withdrawal_paid",
+        "title": "برداشت کیف پول پرداخت شد",
+    },
+    "WalletAdminAdjusted": {
+        "notification_type": "wallet_admin_adjusted",
+        "title": "موجودی کیف پول شما تغییر کرد",
     },
 }
 
@@ -96,20 +103,8 @@ async def _handle_message(
         spec = _ORDER_NOTIFICATIONS[event_type]
         if event_type == "PaymentCompleted":
             await _allocate_digital_cards(db, order_id=payload.get("order_id"))
-        if event_type == "OrderConfirmed":
+        if event_type == "OrderAccepted":
             await _award_order_points(db, order_id=payload.get("order_id"))
-        if event_type == "ReturnRefunded":
-            # Fiscal observation (additive): credit note for the RMA refund.
-            # Notification below is unaffected; the handler is idempotent
-            # per RMA id so outbox retries never duplicate the note.
-            from app.modules.invoicing.application import events as invoicing_events
-
-            await invoicing_events.handle_refund_event(
-                db,
-                event_type=event_type,
-                payload=payload,
-                message_id=str(message_id) if message_id else None,
-            )
         await _notify_order_event(
             db,
             event_type=event_type,
@@ -137,43 +132,22 @@ async def _handle_message(
         await _notify_refund_event(
             db, payload, message_id=str(message_id) if message_id else None
         )
-        # Fiscal observation (additive): issue a credit note for the refund.
-        # Runs after the notification so a credit-note failure never eats the
-        # customer notification; idempotent per event, outbox retry owns
-        # recovery if it raises.
-        from app.modules.invoicing.application import events as invoicing_events
-
-        await invoicing_events.handle_refund_event(
-            db,
-            event_type=event_type,
-            payload=payload,
-            message_id=str(message_id) if message_id else None,
-        )
 
     elif event_type == "CartRecoveryQueued":
         await _notify_cart_recovery(
             db, payload, message_id=str(message_id) if message_id else None
         )
 
-    elif event_type.startswith("webhook."):
-        # Outbound webhook fan-out: the outbox decouples the content write
-        # from the delivery queue. event name is the suffix after "webhook.".
-        from app.modules.integrations.application import webhook_service
-
-        await webhook_service.enqueue_event(
-            db, event_type.removeprefix("webhook."), payload
-        )
-
-    # Accounting feed (additive): map money events to journal entries. Runs
-    # after every notification path so an accounting failure can never eat a
-    # customer notification; idempotent per (source_type, source_id,
-    # entry_type) so outbox redelivery never posts a duplicate entry.
-    if _is_accounting_event(event_type):
-        from app.modules.accounting.application import events as accounting_events
-
-        await accounting_events.handle_accounting_event(
+    elif event_type in _WALLET_NOTIFICATIONS:
+        # Wallet events carry the recipient ``user_id`` directly in the
+        # payload (unlike order events, which resolve it via ``order_id``) —
+        # a wallet movement has no order to look up.
+        spec = _WALLET_NOTIFICATIONS[event_type]
+        await _notify_wallet_event(
             db,
             event_type=event_type,
+            notification_type=spec["notification_type"],
+            title=spec["title"],
             payload=payload,
             message_id=str(message_id) if message_id else None,
         )
@@ -182,9 +156,8 @@ async def _handle_message(
 async def _allocate_digital_cards(db: Any, *, order_id: Any) -> None:
     """Allocate digital-card stock for a paid order (Karta digital delivery).
 
-    Runs on PaymentCompleted so the retail checkout flow receives PINs the
-    same way the B2B reseller flow does; customers read them via
-    ``GET /inventory/digital/orders/{id}/cards``.
+    Runs on PaymentCompleted so the checkout flow delivers PINs; customers
+    read them via ``GET /inventory/digital/orders/{id}/cards``.
 
     Idempotent by transaction: allocation effects and the outbox
     ``processed`` flag commit atomically, so a retry only happens after a
@@ -349,7 +322,7 @@ async def _award_order_points(db: Any, *, order_id: Any) -> None:
         if order is None:
             logger.warning(
                 "outbox_order_not_found",
-                event_type="OrderConfirmed",
+                event_type="OrderAccepted",
                 order_id=str(order_id),
             )
             return
@@ -406,14 +379,6 @@ async def _notify_order_event(
             idempotency_key=f"outbox:{message_id}" if message_id else None,
         )
         _dispatch(str(notification.id))
-        await _maybe_dispatch_order_email(
-            db,
-            event_type=event_type,
-            notification_type=notification_type,
-            order=order,
-            notification_id=notification.id,
-            message_id=message_id,
-        )
         logger.info(
             "outbox_notification_created",
             event_type=event_type,
@@ -424,189 +389,9 @@ async def _notify_order_event(
         raise RuntimeError(f"notification handling failed for {event_type}: {exc}") from exc
 
 
-# Order events that also dispatch a transactional email (additive: the in-app
-# notification and SMS paths above are unchanged). Emails re-attempt on outbox
-# retry are deduped per outbox message id so a retried message never sends
-# the customer the same email twice.
-_ORDER_EMAIL_TEMPLATES: dict[str, str] = {
-    "order_confirmed": "order_confirmation",
-    "order_created": "order_confirmation",
-    "order_shipped": "order_shipped",
-}
-
-
-async def _invoice_attachment(
-    db: Any, order: Any, template_name: str
-) -> list[dict[str, Any]] | None:
-    """The order's invoice PDF, as an email attachment.
-
-    Returns None (not []) when there is nothing to attach, so the caller can
-    pass it straight through. Every failure is soft: an order confirmation
-    without its PDF is a worse email but a sent one, and raising here would
-    fail the whole outbox message and re-queue a notification the customer has
-    already seen in-app.
-
-    The bytes are read here rather than passed to a queue by path: the send
-    happens inside the same worker tick, so there is no window where the file
-    could move between being found and being read.
-    """
-    if template_name != "order_confirmation":
-        return None
-    try:
-        from pathlib import Path
-
-        from sqlalchemy import select
-
-        from app.modules.invoicing.domain.models import Invoice
-        from app.modules.notifications.application import email_service as es
-
-        invoice = (
-            await db.execute(
-                select(Invoice)
-                .where(Invoice.order_id == order.id)
-                .order_by(Invoice.created_at.desc())
-                .limit(1)
-            )
-        ).scalars().first()
-        if invoice is None or not invoice.archive_path:
-            return None
-        path = Path(str(invoice.archive_path))
-        if not path.is_file():
-            await logger.awarning(
-                "invoice_attachment_missing_on_disk",
-                order_id=str(order.id),
-                path=str(path)[:200],
-            )
-            return None
-        content = path.read_bytes()
-        return [
-            {
-                "filename": f"invoice-{invoice.number or order.order_number}.pdf",
-                "content": content,
-                "content_type": invoice.archive_content_type or "application/pdf",
-            }
-        ]
-    except Exception as exc:  # noqa: BLE001 — the email still has to go
-        await logger.awarning(
-            "invoice_attachment_unavailable",
-            order_id=str(getattr(order, "id", "")),
-            error=str(exc)[:200],
-        )
-        return None
-
-
-async def _maybe_dispatch_order_email(
-    db: Any,
-    *,
-    event_type: str,
-    notification_type: str,
-    order: Any,
-    notification_id: Any,
-    message_id: str | None,
-) -> None:
-    """Best-effort transactional email for key order lifecycle events.
-
-    Never raises: email failure must not roll back the outbox message (the
-    in-app notification already exists). Failures land in the delivery log
-    and the structured log for ops follow-up.
-    """
-    template_name = _ORDER_EMAIL_TEMPLATES.get(notification_type)
-    if template_name is None:
-        return
-    try:
-        from sqlalchemy import select
-
-        from app.modules.notifications.application import email_service
-        from app.modules.notifications.domain.models import (
-            EmailDeliveryLog,
-            EmailDeliveryStatus,
-        )
-        from app.modules.users.domain.models import User
-
-        user = await db.get(User, order.user_id)
-        if user is None or not user.email:
-            return
-
-        # Idempotency: one email per outbox message id. The dedupe key rides
-        # in provider_response (no schema change) — an earlier SENT row for
-        # this message suppresses resends on outbox retry.
-        if message_id:
-            marker = f"outbox:{message_id}"
-            dup_stmt = (
-                select(EmailDeliveryLog.id)
-                .where(
-                    EmailDeliveryLog.recipient == user.email,
-                    EmailDeliveryLog.template == template_name,
-                    EmailDeliveryLog.status == EmailDeliveryStatus.SENT,
-                    EmailDeliveryLog.provider_response.like(f"%{marker}%"),
-                )
-                .limit(1)
-            )
-            if (await db.execute(dup_stmt)).first() is not None:
-                logger.info(
-                    "order_email_deduplicated",
-                    event_type=event_type,
-                    order_id=str(order.id),
-                )
-                return
-
-        # DB first, built-in as the fallback. Reading the literals directly
-        # meant an admin's saved override never reached a real email, which is
-        # the same "the feature exists and does nothing" shape this keeps
-        # finding.
-        from app.modules.notifications.application.email_template_service import (
-            resolve_template,
-        )
-
-        try:
-            content = await resolve_template(db, template_name)
-        except Exception as exc:  # noqa: BLE001 — a missing template is not fatal
-            logger.warning("email_template_unresolved", name=str(template_name), error=str(exc))
-            return
-
-        total_toman = int(getattr(order, "total", 0) or 0) // 10
-        rendered = email_service.render_template(
-            content,
-            {
-                "customer_name": getattr(user, "full_name", "") or "کاربر",
-                "order_number": str(getattr(order, "order_number", "")),
-                "total_toman": f"{total_toman:,}",
-                "tracking_code": str(getattr(order, "tracking_code", "") or "—"),
-            },
-        )
-        success, log_row = await email_service.send_email(
-            db,
-            recipient=user.email,
-            subject=rendered.subject,
-            html_body=rendered.html,
-            text_body=rendered.text,
-            template=template_name,
-            notification_id=notification_id,
-            # The order confirmation carries the invoice. The PDF is already
-            # rendered and archived at posting time (invoice.archive_path), so
-            # this only reads bytes that already exist — and only for the
-            # confirmation, not for "shipped": a customer needs the document
-            # once, and a second copy in a shipping notice is noise.
-            attachments=await _invoice_attachment(db, order, template_name),
-        )
-        if message_id and log_row is not None:
-            log_row.provider_response = (
-                f"{log_row.provider_response or ''} [outbox:{message_id}]"
-            ).strip()
-        if not success:
-            await logger.aerror(
-                "order_email_delivery_failed",
-                event_type=event_type,
-                order_id=str(order.id),
-                recipient=user.email,
-            )
-    except Exception as exc:
-        await logger.awarning(
-            "order_email_dispatch_skipped",
-            event_type=event_type,
-            order_id=str(getattr(order, "id", "")),
-            error=str(exc),
-        )
+# The order-lifecycle transactional emails (order_confirmation / order_shipped)
+# were removed on 2026-10-07 with the rest of the email feature. The in-app
+# notification and SMS paths above are unchanged.
 
 
 async def _notify_refund_event(
@@ -646,9 +431,6 @@ async def _notify_refund_event(
             idempotency_key=f"outbox:{message_id}" if message_id else None,
         )
         _dispatch(str(notification.id))
-        await _maybe_dispatch_refund_email(
-            db, order=order, payload=payload, notification_id=notification.id
-        )
         logger.info(
             "outbox_notification_created",
             event_type="RefundProcessed",
@@ -658,57 +440,8 @@ async def _notify_refund_event(
         raise RuntimeError(f"notification handling failed for RefundProcessed: {exc}") from exc
 
 
-async def _maybe_dispatch_refund_email(
-    db: Any, *, order: Any, payload: dict[str, Any], notification_id: Any
-) -> None:
-    """Best-effort refund-processed transactional email (never raises)."""
-    try:
-        from app.modules.notifications.application import email_service
-        from app.modules.users.domain.models import User
-
-        user = await db.get(User, order.user_id)
-        if user is None or not user.email:
-            return
-
-        from app.modules.notifications.application.email_template_service import (
-            resolve_template,
-        )
-
-        try:
-            content = await resolve_template(db, "refund_processed")
-        except Exception as exc:  # noqa: BLE001
-            logger.warning("email_template_unresolved", name="refund_processed", error=str(exc))
-            return
-        amount_rial = int(payload.get("amount") or payload.get("amount_rial") or 0)
-        rendered = email_service.render_template(
-            content,
-            {
-                "customer_name": getattr(user, "full_name", "") or "کاربر",
-                "order_number": str(getattr(order, "order_number", "")),
-                "amount_toman": f"{amount_rial // 10:,}",
-            },
-        )
-        success, _log = await email_service.send_email(
-            db,
-            recipient=user.email,
-            subject=rendered.subject,
-            html_body=rendered.html,
-            text_body=rendered.text,
-            template="refund_processed",
-            notification_id=notification_id,
-        )
-        if not success:
-            await logger.aerror(
-                "refund_email_delivery_failed",
-                order_id=str(order.id),
-                recipient=user.email,
-            )
-    except Exception as exc:
-        await logger.awarning(
-            "refund_email_dispatch_skipped",
-            order_id=str(getattr(order, "id", "")),
-            error=str(exc),
-        )
+# `_maybe_dispatch_refund_email` was removed on 2026-10-07 with the rest of
+# the email feature; the in-app refund notification above still fires.
 
 
 async def _notify_cart_recovery(
@@ -786,6 +519,71 @@ async def _notify_cart_recovery(
         )
     except Exception as exc:
         raise RuntimeError(f"cart recovery handling failed for cart {cart_id}: {exc}") from exc
+
+
+async def _notify_wallet_event(
+    db: Any,
+    *,
+    event_type: str,
+    notification_type: str,
+    title: str,
+    payload: dict[str, Any],
+    message_id: str | None = None,
+) -> None:
+    """Create the customer-facing notification for a wallet event.
+
+    Recipient is ``payload['user_id']`` — a wallet movement has no order, so
+    the order-keyed helper cannot be reused. Idempotency is keyed on the
+    outbox ``message_id`` (the established ``outbox:{message_id}`` dedupe), so
+    a retry never double-notifies.
+    """
+    user_id = payload.get("user_id")
+    if not user_id:
+        logger.warning("outbox_wallet_event_no_user", event_type=event_type)
+        return
+    try:
+        import uuid as uuid_mod
+
+        from app.modules.notifications.application.notification_service import (
+            NotificationService,
+        )
+
+        amount = int(payload.get("amount", 0) or 0)
+        amount_toman = amount // 10
+        body_map = {
+            "WalletTransferSent": f"مبلغ {amount_toman:,} تومان از کیف پول به گیرنده منتقل شد.",
+            "WalletTransferReceived": f"مبلغ {amount_toman:,} تومان به کیف پول شما منتقل شد.",
+            "WalletWithdrawalRequested": (
+                f"درخواست برداشت {amount_toman:,} تومان ثبت شد و تا بررسی بلوکه است."
+            ),
+            "WalletWithdrawalApproved": (
+                f"درخواست برداشت {amount_toman:,} تومان تأیید شد و در انتظار واریز است."
+            ),
+            "WalletWithdrawalRejected": (
+                f"درخواست برداشت {amount_toman:,} تومان رد شد و مبلغ به کیف پول شما بازگشت."
+            ),
+            "WalletWithdrawalPaid": f"مبلغ برداشت {amount_toman:,} تومان به حساب شما واریز شد.",
+            "WalletAdminAdjusted": "موجودی کیف پول شما توسط مدیریت به‌روزرسانی شد.",
+        }
+        body = body_map.get(event_type, "کیف پول شما به‌روزرسانی شد.")
+
+        notification = await NotificationService.create_notification(
+            db,
+            user_id=uuid_mod.UUID(str(user_id)),
+            type=notification_type,
+            title=title,
+            body=body,
+            data=payload,
+            idempotency_key=f"outbox:{message_id}" if message_id else None,
+        )
+        _dispatch(str(notification.id))
+        logger.info(
+            "outbox_wallet_notification_created",
+            event_type=event_type,
+            notification_id=str(notification.id),
+        )
+    except Exception as exc:
+        raise RuntimeError(f"notification handling failed for {event_type}: {exc}") from exc
 
 
 def _dispatch(notification_id: str) -> None:

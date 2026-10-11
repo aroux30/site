@@ -16,7 +16,7 @@
                     ┌─────────────────────┼─────────────────────┐
                     ▼                     ▼                     ▼
           [ PostgreSQL / SQL ]       [ Redis Cache ]     [ External APIs ]
-          - SQLAlchemy Hooks        - Hit/Miss Metrics  - Zarinpal / IDPay
+          - SQLAlchemy Hooks        - Hit/Miss Metrics  - Zarinpal
           - Slow Query Log          - Latency Observer  - W3C Outbound Trace
                     │                     │                     │
                     └─────────────────────┼─────────────────────┘

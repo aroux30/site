@@ -30,30 +30,6 @@ from app.modules.blog.api.routes import admin_router, router  # noqa: E402
 from app.modules.blog.api.routes import _require_post_access  # noqa: E402
 
 
-async def _require_entry_access(
-    entry_id: uuid.UUID,
-    current_user: dict[str, Any],
-    db: AsyncSession,
-) -> None:
-    """Gate a custom-post-entry mutation on ownership of that entry.
-
-    Same reasoning as ``routes._require_post_access``: ``_require_blog_write``
-    proves the caller may write blog content, not whose content they may
-    touch. A custom post entry carries the same nullable ``author_id`` a post
-    does, so the identical rule applies.
-    """
-    from app.core.security.object_capabilities import (
-        OBJECT_RULES,
-        require_object_capability,
-    )
-    from app.modules.blog.domain.custom_post_types import CustomPostEntry
-
-    entry = await db.get(CustomPostEntry, entry_id)
-    if entry is None:
-        raise NotFoundError("CustomPostEntry", f"ورودی {entry_id} یافت نشد")
-
-    await require_object_capability(current_user, entry, OBJECT_RULES["custom_posts"])
-
 # ============================================================================
 # Custom taxonomies
 # ============================================================================
@@ -235,6 +211,8 @@ async def admin_list_page_terms(
     db: AsyncSession = Depends(get_db),
     _: Any = _require_blog_write,
 ) -> list[dict[str, Any]]:
+    from sqlalchemy import select
+
     from app.modules.blog.domain.taxonomy_models import CmsPageTerm
 
     rows = (
@@ -380,309 +358,14 @@ async def admin_delete_taxonomy_term(
 
 
 # ============================================================================
-# Custom post types
+# Custom post types removed 2026-10-09
+#
+# Custom post types (WP-parity: `/admin/blog/content-types*` and
+# `/content-types/{type_slug}/entries`) were removed on 2026-10-09 per owner
+# decision: the store is an e-commerce platform; standard blog posts, categories,
+# tags, and custom taxonomies suffice.
+# Archive: `_archived/content-types-removal-2026-10-09/`.
 # ============================================================================
-
-
-@admin_router.get("/content-types", summary="List custom post types (Admin)")
-async def admin_list_content_types(
-    db: AsyncSession = Depends(get_db),
-    _: Any = _require_blog_write,
-) -> list[dict[str, Any]]:
-    from sqlalchemy import select
-
-    from app.modules.blog.domain.custom_post_types import CustomPostType
-
-    rows = (await db.execute(select(CustomPostType).order_by(CustomPostType.name))).scalars().all()
-    return [
-        {
-            "id": str(t.id),
-            "name": t.name,
-            "slug": t.slug,
-            "description": t.description,
-            "icon": t.icon,
-            "field_schema": t.field_schema,
-            "supports_categories": t.supports_categories,
-            "supports_comments": t.supports_comments,
-            "is_active": t.is_active,
-        }
-        for t in rows
-    ]
-
-
-@admin_router.post(
-    "/content-types",
-    status_code=status.HTTP_201_CREATED,
-    summary="Register a custom post type (Admin)",
-)
-async def admin_create_content_type(
-    body: dict[str, Any],
-    db: AsyncSession = Depends(get_db),
-    _: Any = _require_blog_write,
-) -> dict[str, Any]:
-    from app.modules.blog.domain.custom_post_types import CustomPostType
-    from app.shared.domain.slug import generate_slug
-
-    cpt = CustomPostType(
-        name=body["name"],
-        slug=body.get("slug") or generate_slug(body["name"]),
-        description=body.get("description"),
-        icon=body.get("icon"),
-        field_schema=body.get("field_schema"),
-        supports_categories=bool(body.get("supports_categories", False)),
-        supports_comments=bool(body.get("supports_comments", False)),
-    )
-    db.add(cpt)
-    await db.commit()
-    await db.refresh(cpt)
-    return {"id": str(cpt.id), "name": cpt.name, "slug": cpt.slug}
-
-
-@admin_router.get("/content-types/{type_id}/entries", summary="List custom post entries (Admin)")
-async def admin_list_content_entries(
-    type_id: uuid.UUID,
-    db: AsyncSession = Depends(get_db),
-    _: Any = _require_blog_write,
-) -> list[dict[str, Any]]:
-    from sqlalchemy import select
-
-    from app.modules.blog.domain.custom_post_types import CustomPostEntry
-
-    stmt = (
-        select(CustomPostEntry)
-        .where(CustomPostEntry.post_type_id == type_id)
-        .order_by(CustomPostEntry.position, CustomPostEntry.created_at.desc())
-    )
-    rows = (await db.execute(stmt)).scalars().all()
-    return [
-        {
-            "id": str(e.id),
-            "title": e.title,
-            "slug": e.slug,
-            # `.value`, not str(): Python 3.11 str() on a str-Enum returns
-            # "CustomPostTypeStatus.PUBLISHED", which no client ever compares
-            # against. The enum-storage contract is the member NAME.
-            "status": e.status.value,
-            "fields": e.fields,
-            "excerpt": e.excerpt,
-            # Read by the list view to show *what is already scheduled*. It was
-            # absent here, so the tab rendered a blank schedule column for every
-            # entry: the field was settable through the form but no response
-            # ever carried it back, which looks exactly like scheduling not
-            # working.
-            "scheduled_publish_at": (
-                e.scheduled_publish_at.isoformat()
-                if e.scheduled_publish_at else None
-            ),
-            "revision_count": e.revision_count or 0,
-        }
-        for e in rows
-    ]
-
-
-@admin_router.post(
-    "/content-types/{type_id}/entries",
-    status_code=status.HTTP_201_CREATED,
-    summary="Create a custom post entry (Admin)",
-)
-async def admin_create_content_entry(
-    type_id: uuid.UUID,
-    body: dict[str, Any],
-    db: AsyncSession = Depends(get_db),
-    current_user: dict[str, Any] = Depends(get_current_user),
-    _: Any = _require_blog_write,
-) -> dict[str, Any]:
-    from app.modules.blog.domain.custom_post_types import CustomPostEntry
-    from app.shared.domain.slug import generate_slug
-
-    try:
-        author_id = uuid.UUID(str(current_user.get("sub", "")))
-    except (TypeError, ValueError):
-        author_id = None
-
-    entry = CustomPostEntry(
-        post_type_id=type_id,
-        title=body["title"],
-        slug=body.get("slug") or generate_slug(body["title"]),
-        fields=body.get("fields"),
-        excerpt=body.get("excerpt"),
-        cover_image_url=body.get("cover_image_url"),
-        position=int(body.get("position", 0)),
-        # Stamped at creation, like a blog post: the per-object check resolves
-        # "is this mine" from author_id, so an entry left null here would be
-        # orphaned the moment it is created and its own author could not edit
-        # it back.
-        author_id=author_id,
-    )
-    db.add(entry)
-    await db.commit()
-    await db.refresh(entry)
-    return {"id": str(entry.id), "title": entry.title, "slug": entry.slug}
-
-
-@admin_router.patch(
-    "/content-types/{type_id}", summary="Update a custom post type (Admin)"
-)
-async def admin_update_content_type(
-    type_id: uuid.UUID,
-    body: dict[str, Any],
-    db: AsyncSession = Depends(get_db),
-    _: Any = _require_blog_write,
-) -> dict[str, Any]:
-    from app.modules.blog.application.taxonomy_service import ContentTypeService
-
-    return await ContentTypeService.update_content_type(db, type_id, body)
-
-
-@admin_router.delete(
-    "/content-types/{type_id}",
-    summary="Delete a custom post type and its entries (Admin)",
-)
-async def admin_delete_content_type(
-    type_id: uuid.UUID,
-    db: AsyncSession = Depends(get_db),
-    _: Any = _require_blog_write,
-) -> dict[str, int]:
-    from app.modules.blog.application.taxonomy_service import ContentTypeService
-
-    return await ContentTypeService.delete_content_type(db, type_id)
-
-
-@admin_router.patch(
-    "/content-types/{type_id}/entries/{entry_id}",
-    summary="Update a custom post entry (Admin)",
-)
-async def admin_update_content_entry(
-    type_id: uuid.UUID,
-    entry_id: uuid.UUID,
-    body: dict[str, Any],
-    db: AsyncSession = Depends(get_db),
-    current_user: dict[str, Any] = Depends(get_current_user),
-    _: Any = _require_blog_write,
-) -> dict[str, Any]:
-    from app.modules.blog.application.taxonomy_service import ContentTypeService
-
-    await _require_entry_access(entry_id, current_user, db)
-    return await ContentTypeService.update_entry(db, entry_id, body)
-
-
-@admin_router.get(
-    "/entries/{entry_id}/revisions",
-    summary="List revisions of a custom post entry (Admin)",
-)
-async def admin_list_entry_revisions(
-    entry_id: uuid.UUID,
-    limit: int = Query(50, ge=1, le=200),
-    db: AsyncSession = Depends(get_db),
-    current_user: dict[str, Any] = Depends(get_current_user),
-    _: Any = _require_blog_write,
-) -> list[dict[str, Any]]:
-    from app.modules.blog.application import custom_post_revision_service as rev
-
-    await _require_entry_access(entry_id, current_user, db)
-    rows = await rev.list_revisions(db, entry_id, limit=limit)
-    return [
-        {
-            "revision_number": r.revision_number,
-            "title": r.title,
-            "excerpt": r.excerpt,
-            "fields": r.fields,
-            "created_at": r.created_at.isoformat() if r.created_at else None,
-            "created_by_id": str(r.created_by_id) if r.created_by_id else None,
-        }
-        for r in rows
-    ]
-
-
-@admin_router.post(
-    "/entries/{entry_id}/revisions/{revision_number}/restore",
-    summary="Restore a custom post entry revision (Admin)",
-)
-async def admin_restore_entry_revision(
-    entry_id: uuid.UUID,
-    revision_number: int,
-    db: AsyncSession = Depends(get_db),
-    current_user: dict[str, Any] = Depends(get_current_user),
-    _: Any = _require_blog_write,
-) -> dict[str, Any]:
-    from app.modules.blog.application import custom_post_revision_service as rev
-
-    await _require_entry_access(entry_id, current_user, db)
-    actor_id = None
-    try:
-        actor_id = uuid.UUID(current_user["sub"])
-    except (KeyError, ValueError):
-        pass
-
-    entry = await rev.restore_revision(
-        db, entry_id, revision_number, actor_id=actor_id
-    )
-    await db.commit()
-    return {
-        "id": str(entry.id), "title": entry.title, "slug": entry.slug,
-        "status": entry.status.value, "fields": entry.fields,
-    }
-
-
-@admin_router.delete(
-    "/content-types/{type_id}/entries/{entry_id}",
-    summary="Delete a custom post entry (Admin)",
-)
-async def admin_delete_content_entry(
-    type_id: uuid.UUID,
-    entry_id: uuid.UUID,
-    db: AsyncSession = Depends(get_db),
-    current_user: dict[str, Any] = Depends(get_current_user),
-    _: Any = _require_blog_write,
-) -> dict[str, int]:
-    from app.modules.blog.application.taxonomy_service import ContentTypeService
-
-    await _require_entry_access(entry_id, current_user, db)
-    return await ContentTypeService.delete_entry(db, entry_id)
-
-
-# ── Public reads ────────────────────────────────────────────────────────────
-# A custom post type or taxonomy that can only be seen in the admin is write-
-# only content: an entry gets created and can never be rendered anywhere. These
-# two routes close that loop, and both serve only published/active rows.
-
-
-@router.get(
-    "/content-types/{type_slug}/entries",
-    summary="List published entries of a public custom post type",
-)
-async def public_list_content_entries(
-    type_slug: str,
-    db: AsyncSession = Depends(get_db),
-) -> list[dict[str, Any]]:
-    from sqlalchemy import select
-
-    from app.modules.blog.domain.custom_post_types import (
-        CustomPostEntry,
-        CustomPostType,
-        CustomPostTypeStatus,
-    )
-
-    stmt = (
-        select(CustomPostEntry)
-        .join(CustomPostType, CustomPostEntry.post_type_id == CustomPostType.id)
-        .where(
-            CustomPostType.slug == type_slug,
-            CustomPostType.is_active.is_(True),
-            CustomPostEntry.status == CustomPostTypeStatus.PUBLISHED,
-        )
-        .order_by(CustomPostEntry.position, CustomPostEntry.published_at.desc())
-    )
-    rows = (await db.execute(stmt)).scalars().all()
-    return [
-        {
-            "id": str(e.id), "title": e.title, "slug": e.slug,
-            "excerpt": e.excerpt, "cover_image_url": e.cover_image_url,
-            "fields": e.fields, "published_at": e.published_at.isoformat()
-            if e.published_at else None,
-        }
-        for e in rows
-    ]
 
 
 @router.get(
@@ -935,19 +618,19 @@ async def admin_import_wxr(
     db: AsyncSession = Depends(get_db),
     current_user: dict[str, Any] = Depends(get_current_user),
     _: Any = _require_blog_write,
-) -> dict[str, int]:
+) -> dict[str, Any]:
     """Import the only format a WordPress site can hand you.
 
     The JSON route above could not serve this: it takes a parsed dict, and XML
     cannot be one. The service documented that as an open gap, which meant
     migrating from WordPress meant converting the file by hand first.
 
-    Parsed and handed to the *same* `import_json` the JSON route uses, so there
-    is one import implementation rather than two that drift. The parser is not
-    injected: an XML body is the whole point of this route, and an operator
-    choosing this one over `/import` has said what they are uploading.
+    Runs the same orchestrator the data-exchange route runs
+    (``blog.application.wxr_import``), so posts, pages and comments land the
+    same way whichever page the operator uploads from. Pages route to the
+    content module's importer; posts/comments to `import_json`.
     """
-    from app.modules.blog.application.transfer_service import BlogTransferService
+    from app.modules.blog.application.wxr_import import import_wxr as run_wxr_import
     from app.modules.blog.application.wxr_parser import parse_wxr
 
     raw = await file.read()
@@ -963,14 +646,12 @@ async def admin_import_wxr(
     except Exception:
         author_id = uuid.UUID("00000000-0000-0000-0000-000000000000")
 
-    result = await BlogTransferService.import_json(
-        db, parsed, author_id=author_id, skip_existing=True
-    )
     # The parsed counts travel with the result so an operator can see what the
     # file held versus what landed — a WXR with fifty posts that imports three
     # should say so rather than look like a clean run.
-    result["parsed"] = parsed["counts"]  # type: ignore[assignment]
-    return result
+    return await run_wxr_import(
+        db, parsed, author_id=author_id, skip_existing=True
+    )
 
 
 # ============================================================================
@@ -1036,7 +717,7 @@ async def admin_create_relationship(
 @admin_router.delete(
     "/posts/{post_id}/relationships/{relationship_id}",
     status_code=status.HTTP_204_NO_CONTENT,
-    summary="Unlink two posts (Admin) — e.g. remove a translation link",
+    summary="Unlink two posts (Admin)",
 )
 async def admin_delete_relationship(
     post_id: uuid.UUID,

@@ -61,7 +61,8 @@ class InternalGiftCard(BaseModel):
         server_default=text("'gold'::character varying"),
     )
     sender_name: Mapped[str | None] = mapped_column(String(100), nullable=True)
-    recipient_email: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    # `recipient_email` was dropped on 2026-10-07 with the rest of the
+    # email feature (migration `rmemail1`).
     recipient_phone: Mapped[str | None] = mapped_column(String(20), nullable=True)
     message: Mapped[str | None] = mapped_column(Text, nullable=True)
     is_active: Mapped[bool] = mapped_column(

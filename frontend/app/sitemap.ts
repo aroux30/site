@@ -13,10 +13,10 @@ import {
 } from "@/lib/permalinks";
 import { getRoutingConfig } from "@/lib/routing";
 import { apiInternalUrl } from "@/lib/api/server-base";
+import { siteOrigin } from "@/lib/site-url";
 
 interface CmsPageSitemapRow {
   slug: string;
-  locale?: string;
   updated_at?: string;
 }
 
@@ -27,7 +27,7 @@ interface SitemapSectionRow {
   priority?: number;
   /**
    * A rooted path, for sections that are not a bare slug: an author archive is
-   * "/blog/authors/<slug>" and a date archive is "/archive/<year>/<month>", so
+   * "/author/<slug>" and a date archive is "/blog/archive/<year>/<month>", so
    * there is no slug to append — the backend sends the path itself.
    */
   loc?: string;
@@ -49,6 +49,29 @@ interface SitemapEntriesPayload {
   blog_date_archives?: SitemapSectionRow[];
 }
 
+/**
+ * Slugs the operator marked noindex (Advanced tab), so the sitemap can
+ * exclude them. A sitemap that advertises a noindexed URL contradicts
+ * itself — Search Console reports "Submitted URL marked noindex" and
+ * crawlers discount the file. Fails open with empty lists: an outage must
+ * not empty the sitemap, and the pages themselves still carry noindex.
+ */
+async function fetchNoindexSlugs(): Promise<{ blog_posts: string[]; products: string[] }> {
+  try {
+    const res = await fetch(`${apiInternalUrl()}/content/sitemap-noindex`, {
+      next: { revalidate: 300 },
+    });
+    if (!res.ok) return { blog_posts: [], products: [] };
+    const data = (await res.json()) as { blog_posts?: string[]; products?: string[] };
+    return {
+      blog_posts: Array.isArray(data.blog_posts) ? data.blog_posts : [],
+      products: Array.isArray(data.products) ? data.products : [],
+    };
+  } catch {
+    return { blog_posts: [], products: [] };
+  }
+}
+
 async function fetchSitemapEntries(): Promise<SitemapEntriesPayload> {
   const apiBase = apiInternalUrl();
   try {
@@ -56,7 +79,7 @@ async function fetchSitemapEntries(): Promise<SitemapEntriesPayload> {
     // `settings:write`, and this fetch has no session — it answered 401,
     // which the `!res.ok` branch below swallowed, so CMS pages silently never
     // reached the sitemap. The public sitemap route returns only what a
-    // crawler needs (slug/locale/dates per section).
+    // crawler needs (slug/dates per section).
     const res = await fetch(`${apiBase}/content/sitemap-entries`, {
       next: { revalidate: 300 },
     });
@@ -111,21 +134,37 @@ function sectionRoutes(
 }
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+  // siteOrigin() reads NEXT_PUBLIC_SITE_URL → SITE_URL → localhost — the same
+  // resolver JSON-LD uses. Reading only NEXT_PUBLIC_SITE_URL would publish
+  // localhost URLs on a deployment that configures just SITE_URL.
+  const baseUrl = siteOrigin();
 
-  // Static core routes
+  // Static core routes that deserve indexing. `/cart`, `/login` and
+  // `/register` were listed here and do not belong: they are task pages with
+  // nothing to rank, Google reads their presence in a sitemap as an index
+  // request, and the account/login subtree is deliberately noindex (see the
+  // middleware). A sitemap that advertises noindexed pages contradicts
+  // itself — Search Console reports "Submitted URL marked noindex".
   const routes = [
     "",
     "/products",
     "/about",
     "/contact",
     "/blog",
-    "/cart",
-    "/login",
-    "/register",
+    // Indexable fixed pages that were missing from the sitemap entirely
+    // (SEO audit F-16, live-verified: all four answer 200, <loc> count 0).
+    // The single-loc rule below keeps exactly one entry even if a CMS page
+    // with the same slug is created later.
+    "/faq",
+    "/rewards",
+    "/sitemap-page",
+    "/terms",
   ].map((route) => ({
     url: `${baseUrl}${route}`,
-    lastModified: new Date(),
+    // No lastModified: `new Date()` claimed every static page changed at
+    // request time, which is noise crawlers learn to ignore (F-13). Omitting
+    // it is more honest than a fake date; CMS-backed entries below still
+    // carry their real updated_at.
     changeFrequency: "daily" as const,
     priority: route === "" ? 1.0 : 0.8,
   }));
@@ -139,6 +178,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   } catch {
     routing = DEFAULT_ROUTING;
   }
+
+  // Slugs the operator marked noindex — fetched before the post loop so the
+  // exclusion applies to blog URLs and product URLs alike.
+  const noindex = await fetchNoindexSlugs();
+  const noindexBlog = new Set(noindex.blog_posts);
+  const noindexProducts = new Set(noindex.products);
 
   // Blog posts advertised to search engines come from the CMS only — a
   // hardcoded slug list would send crawlers to 404s.
@@ -156,7 +201,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       posts.push(...items);
       if (items.length < PAGE || !batch.has_next) break;
     }
-    blogRoutes = posts.map((post) => ({
+    blogRoutes = posts
+      .filter((post) => !noindexBlog.has(post.slug))
+      .map((post) => ({
       url: `${baseUrl}${postHref(routing.permalink_structure, {
         slug: post.slug,
         id: post.id,
@@ -207,7 +254,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const productRoutes: MetadataRoute.Sitemap = sectionRoutes(
     baseUrl,
-    payload.products,
+    (payload.products ?? []).filter((row) => !noindexProducts.has(row.slug ?? "")),
     (slug) => `${baseUrl}/products/${slug}`,
     { changeFrequency: "daily", priority: 0.7 },
   );

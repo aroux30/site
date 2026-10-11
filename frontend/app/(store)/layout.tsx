@@ -1,6 +1,6 @@
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
-import { AdminBar, ADMIN_BAR_HEIGHT } from "@/components/layout/admin-bar";
+import { AdminBar, AdminBarSpacer } from "@/components/layout/admin-bar";
 import { FloatingCompareBar } from "@/components/compare/floating-compare-bar";
 import { FloatingCartBar } from "@/components/store/floating-cart-bar";
 import { MobileBottomNav } from "@/components/layout/mobile-bottom-nav";
@@ -12,10 +12,12 @@ export default function StoreLayout({
   children: React.ReactNode;
 }) {
   return (
-    // The pt- reserves room for the fixed admin bar. It is unconditional: the
-    // bar only renders for a signed-in admin, and making the padding depend on
-    // that would shift the whole page on every sign-in and sign-out.
-    <div className="flex min-h-screen flex-col" style={{ paddingTop: ADMIN_BAR_HEIGHT }}>
+    // The spacer reserves room for the fixed admin bar. It is unconditional
+    // while the bar shows — the bar only renders for a signed-in admin, and
+    // making the padding depend on auth would shift the whole page on every
+    // sign-in and sign-out — and collapses only in the «بدون نوار» preview
+    // tab, where the bar itself is hidden too.
+    <div className="flex min-h-screen flex-col">
       {/* First focusable element on the page: lets a keyboard user reach the
           content without tabbing through the whole header nav every time. */}
       <a
@@ -24,6 +26,7 @@ export default function StoreLayout({
       >
         پرش به محتوا
       </a>
+      <AdminBarSpacer />
       <AdminBar />
       <Header />
       {/* Admin-scheduled notices targeted at this route. The endpoint and

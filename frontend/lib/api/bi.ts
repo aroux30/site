@@ -42,8 +42,6 @@ export const biApi = {
     to: string;
     mode?: ComparisonMode;
     group_by?: string;
-    warehouse_id?: string;
-    vendor_id?: string;
     category_id?: string;
     row_key?: string;
   }): Promise<ComparisonResult> => {

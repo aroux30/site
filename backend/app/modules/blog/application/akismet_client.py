@@ -111,7 +111,6 @@ class AkismetClient:
         user_agent: str,
         comment_content: str,
         comment_author: str = "",
-        comment_author_email: str = "",
         comment_author_url: str = "",
         comment_type: str = "comment",
         is_test: bool = False,
@@ -141,7 +140,6 @@ class AkismetClient:
             "user_agent": user_agent or "",
             "comment_content": comment_content,
             "comment_author": comment_author,
-            "comment_author_email": comment_author_email,
             "comment_author_url": comment_author_url,
             "comment_type": comment_type,
             "blog_charset": "UTF-8",
@@ -201,6 +199,14 @@ class AkismetClient:
         Returns whether the submission was accepted. Callers deliberately do not
         retry — the decision is already stored locally, and a moderator's time
         is not worth spending on a request that failed.
+
+        "Accepted" means the body says so, not merely that the status was 200.
+        The live service answers an invalid or unverified key with HTTP 200 and
+        the body ``invalid``; reading the status alone made that rejection
+        indistinguishable from a success, so the loop logged nothing and
+        reported the training signal as sent for every submission a
+        misconfigured store ever made. The documented success body is
+        ``Thanks for making the web a better place.``
         """
         if not api_key or not api_key.strip() or not blog_url:
             return False
@@ -211,7 +217,7 @@ class AkismetClient:
         endpoint = f"{base}submit-spam" if is_spam else f"{base}submit-ham"
 
         try:
-            status, _ = await self._transport.post_form(
+            status, body = await self._transport.post_form(
                 f"{endpoint}?key={api_key}",
                 {
                     "blog": blog_url,
@@ -228,6 +234,23 @@ class AkismetClient:
 
         if status != 200:
             logger.info("akismet_feedback_rejected", status=status)
+            return False
+
+        # A 200 carrying `invalid` (bad key) or `missing` (unverified key / no
+        # blog) is a refusal. Anything else unrecognised is logged for the next
+        # person who needs to read a live response and treated as not sent —
+        # false negatives here cost one lost training signal; false positives
+        # cost the operator ever learning the loop is broken.
+        verdict = (body or "").strip().lower()
+        if verdict == "invalid" or verdict == "missing":
+            logger.info("akismet_feedback_rejected", status=status, reason=verdict)
+            return False
+        if "thanks" not in verdict:
+            logger.info(
+                "akismet_feedback_unrecognised",
+                status=status,
+                raw=(body or "")[:64],
+            )
             return False
         return True
 

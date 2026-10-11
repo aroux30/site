@@ -41,6 +41,14 @@ from app.core.security.ip_filter import IPFilterMiddleware
 from app.core.security.rate_limiter import limiter
 from app.core.security.security_headers import SecurityHeadersMiddleware
 
+# Field-level audit capture (ERP #9): importing this module installs the
+# SQLAlchemy flush listeners that record before/after diffs into
+# entity_change_logs. Until 2026-10-06 no boot path imported it, so the hook
+# never ran in any process and the table stayed empty forever — the admin
+# "تاریخچه تغییرات فیلدها" tab could never show anything. The import IS the
+# wiring; do not remove it as an "unused import".
+from app.modules.audit.application import change_tracking  # noqa: F401
+
 if TYPE_CHECKING:
     from collections.abc import AsyncIterator
 
@@ -97,53 +105,6 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         )
     except Exception:
         await logger.aexception("permission_seed_failed")
-
-    # Warehouse catalogue bootstrap: pre-multi-warehouse installs hold stock
-    # under DEFAULT_WAREHOUSE_ID with no catalogue row, which would make the
-    # admin warehouse list look empty while the ledger is not. Register that
-    # sentinel once; insert-only and never steals an existing default, so a
-    # failure must never block startup — log and continue.
-    try:
-        from app.core.database.session import async_session_factory
-        from app.modules.inventory.application import warehouse_service
-
-        async with async_session_factory() as db:
-            await warehouse_service.ensure_default_warehouse(db)
-            await db.commit()
-    except Exception:
-        await logger.aexception("warehouse_bootstrap_failed")
-
-    # Approval-policy bootstrap: seed the default money-flow chains (refund,
-    # wallet withdrawal, vendor settlement) once. Idempotent by
-    # (resource, min_amount) and insert-only, so a failure must never block
-    # startup — log and continue.
-    try:
-        from app.core.database.session import async_session_factory
-        from app.modules.approvals.application.policy_service import (
-            seed_default_policies,
-        )
-
-        async with async_session_factory() as db:
-            created = await seed_default_policies(db)
-            await db.commit()
-        if created:
-            await logger.ainfo("approval_policy_seed_done", created=created)
-    except Exception:
-        await logger.aexception("approval_policy_seed_failed")
-
-    # Plugin toggles: apply the persisted disable list before any request
-    # runs. Missing row = nothing disabled; a read failure is logged and
-    # swallowed so a settings-table problem never blocks a boot.
-    try:
-        from app.core.database.session import async_session_factory
-        from app.shared.plugins.registry import load_disabled_plugins
-
-        async with async_session_factory() as db:
-            disabled = await load_disabled_plugins(db)
-        if disabled:
-            await logger.ainfo("plugin_toggles_loaded", disabled=disabled)
-    except Exception:
-        await logger.aexception("plugin_toggle_load_failed")
 
     # Prometheus app info
     APP_INFO.info(
@@ -278,9 +239,6 @@ def _include_routers(app: FastAPI, prefix: str) -> None:
     be imported or resolved. Never silently skips broken routers in production.
     """
     module_router_specs: list[tuple[str, str, list[str]]] = [
-        ("app.modules.accounting.api", "/accounting", ["accounting"]),
-        ("app.modules.dms.api", "/documents", ["documents"]),
-        ("app.modules.crm.api", "/crm", ["crm"]),
         ("app.modules.calendar.api", "/calendar", ["calendar"]),
         ("app.modules.bi.api", "/bi", ["bi"]),
         ("app.modules.auth.api", "/auth", ["auth"]),
@@ -291,39 +249,33 @@ def _include_routers(app: FastAPI, prefix: str) -> None:
         ("app.modules.cart.api", "/cart", ["cart"]),
         ("app.modules.checkout.api", "/checkout", ["checkout"]),
         ("app.modules.orders.api", "/orders", ["orders"]),
-        ("app.modules.subscriptions.api", "/subscriptions", ["subscriptions"]),
         ("app.modules.payments.api", "/payments", ["payments"]),
         ("app.modules.wallet.api", "/wallet", ["wallet"]),
         ("app.modules.discounts.api", "/discounts", ["discounts"]),
-        ("app.modules.pricing.api", "/pricing", ["pricing"]),
         ("app.modules.shipping.api", "/shipping", ["shipping"]),
         ("app.modules.reviews.api", "/reviews", ["reviews"]),
         ("app.modules.wishlist.api", "/wishlist", ["wishlist"]),
+        ("app.modules.shopfeatures.api", "/shop-features", ["shop-features"]),
         ("app.modules.referrals.api", "/referrals", ["referrals"]),
         ("app.modules.cashback.api", "/cashback", ["cashback"]),
         ("app.modules.loyalty.api", "/loyalty", ["loyalty"]),
         ("app.modules.gamification.api", "/gamification", ["gamification"]),
         ("app.modules.notifications.api", "/notifications", ["notifications"]),
         ("app.modules.messaging.api", "/messaging", ["messaging"]),
-        ("app.modules.newsletter.api", "/newsletter", ["newsletter"]),
         ("app.modules.support.api", "/support", ["support"]),
         ("app.modules.blog.api", "/blog", ["blog"]),
         ("app.modules.seo.api", "/seo", ["seo"]),
         ("app.modules.search.api", "/search", ["search"]),
         ("app.modules.analytics.api", "/analytics", ["analytics"]),
         ("app.modules.recommendations.api", "/recommendations", ["recommendations"]),
-        ("app.modules.approvals.api", "/approvals", ["approvals"]),
         ("app.modules.media.api", "/media", ["media"]),
         ("app.modules.settings.api", "/settings", ["settings"]),
         ("app.modules.automation.api", "/automation", ["automation"]),
         ("app.modules.integrations.api", "/integrations", ["integrations"]),
         ("app.modules.content.api", "/content", ["content"]),
         ("app.modules.audit.api", "/audit", ["audit"]),
-        ("app.modules.vendors.api", "/vendors", ["vendors"]),
         ("app.modules.dataexchange.api", "/dataexchange", ["dataexchange"]),
-        ("app.modules.invoicing.api", "/invoicing", ["invoicing"]),
         ("app.modules.reporting.api", "/reporting", ["reporting"]),
-        ("app.modules.procurement.api", "/procurement", ["procurement"]),
     ]
 
     import importlib
@@ -336,8 +288,8 @@ def _include_routers(app: FastAPI, prefix: str) -> None:
             mod = importlib.import_module(module_path)  # nosemgrep (constant paths)
             router = getattr(mod, "router", None)
             if router is None:
-                # Admin-only modules (e.g. procurement) expose no
-                # customer-facing ``router`` — only ``admin_router``.
+                # A module may expose no customer-facing ``router`` — only
+                # ``admin_router`` (mounted below).
                 if getattr(mod, "admin_router", None) is None:
                     raise AttributeError(
                         f"Module '{module_path}' has neither 'router' nor 'admin_router'"
@@ -354,14 +306,10 @@ def _include_routers(app: FastAPI, prefix: str) -> None:
             if router is not None:
                 if url_prefix == "/seo":
                     app.include_router(router, prefix="/seo", include_in_schema=False)
-                elif url_prefix == "/vendors":
-                    app.include_router(router, prefix="/vendors", include_in_schema=False)
             # Also pick up admin_router if exposed
             admin_router = getattr(mod, "admin_router", None)
             if admin_router is not None:
                 app.include_router(admin_router, prefix=prefix, tags=[f"admin-{tags[0]}"])
-                if url_prefix == "/vendors":
-                    app.include_router(admin_router, prefix="", include_in_schema=False)
         except Exception as exc:
             # FAIL FAST: Never silently hide broken routes in production
             logger.exception("router_load_failed", module=module_path, error=str(exc))
@@ -535,7 +483,16 @@ def _register_infra_routes(app: FastAPI) -> None:
         async def _check_es() -> tuple[str, str]:
             try:
                 es_url = f"{str(settings.ELASTICSEARCH_URL).rstrip('/')}/_cluster/health"
-                async with httpx.AsyncClient(timeout=1.5) as http_c:
+                # trust_env=False: an internal-service probe must not inherit
+                # ambient proxy settings. On Windows, httpx's trust_env=True
+                # reads urllib.request.getproxies(), which reads the registry
+                # (ProxyEnable/ProxyServer under Internet Settings) — NOT just
+                # env vars, and it ignores ProxyOverride's localhost
+                # exceptions. With the registry proxy on, the localhost call
+                # is routed through the proxy and the 1.5s timeout fires —
+                # the check then reports ES "unavailable" while the cluster
+                # is healthy.
+                async with httpx.AsyncClient(timeout=1.5, trust_env=False) as http_c:
                     res = await http_c.get(es_url)
                     if res.status_code in (200, 401):  # 401 also indicates cluster is alive
                         return "elasticsearch", "ok"
@@ -612,7 +569,10 @@ def _register_infra_routes(app: FastAPI) -> None:
             t0 = time.perf_counter()
             try:
                 es_url = f"{str(settings.ELASTICSEARCH_URL).rstrip('/')}/_cluster/health"
-                async with httpx.AsyncClient(timeout=1.5) as http_c:
+                # trust_env=False — same reason as _check_es: a localhost
+                # probe must not be routed through ambient proxy settings
+                # (on Windows those live in the registry, not just env).
+                async with httpx.AsyncClient(timeout=1.5, trust_env=False) as http_c:
                     res = await http_c.get(es_url)
                     cluster_info = res.json() if res.status_code == 200 else {}
                     return "elasticsearch", {

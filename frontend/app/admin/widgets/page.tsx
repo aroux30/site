@@ -17,6 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/use-toast";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 import {
   widgetsApi,
   type Widget,
@@ -153,6 +154,7 @@ function ConfigField({
 
 export default function WidgetsPage() {
   const { toast } = useToast();
+  const confirm = useConfirm();
   const [areas, setAreas] = useState<Record<string, WidgetArea>>({});
   const [types, setTypes] = useState<Record<string, { name: string; description: string }>>({});
   const [configSchema, setConfigSchema] = useState<Record<string, WidgetConfigField[]>>({});
@@ -288,7 +290,13 @@ export default function WidgetsPage() {
   };
 
   const deleteArea = async (id: string) => {
-    if (!window.confirm(`ناحیهٔ «${areas[id]?.name ?? id}» حذف شود؟`)) return;
+    const ok = await confirm({
+      title: "حذف ناحیه",
+      description: `ناحیهٔ «${areas[id]?.name ?? id}» حذف شود؟`,
+      confirmLabel: "حذف",
+      destructive: true,
+    });
+    if (!ok) return;
     try {
       await widgetsApi.deleteArea(id);
       toast({ title: "ناحیه حذف شد" });

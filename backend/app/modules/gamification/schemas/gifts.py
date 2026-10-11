@@ -23,7 +23,6 @@ class InternalGiftCardIssueRequest(BaseModel):
         description="Visual theme: gold, birthday, festive, vip",
     )
     sender_name: str | None = Field(None, max_length=100)
-    recipient_email: str | None = Field(None, max_length=255)
     recipient_phone: str | None = Field(None, max_length=20)
     message: str | None = Field(None, max_length=1000)
     expires_at: datetime | None = None
@@ -38,7 +37,6 @@ class InternalGiftCardResponse(BaseModel):
     remaining_balance: int
     card_template: str
     sender_name: str | None = None
-    recipient_email: str | None = None
     recipient_phone: str | None = None
     message: str | None = None
     is_active: bool

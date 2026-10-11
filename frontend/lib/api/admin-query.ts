@@ -139,9 +139,8 @@ export function useAdminQuery<T>({
  * Invalidate one or more cached queries after a write.
  *
  * Every admin mutation needs this: the old pages called `load()` by hand after
- * a save, which only refreshed the list the page happened to own. A new
- * warehouse, for instance, changes both the warehouse list and the
- * stock-by-warehouse view — invalidating by prefix refreshes both without the
+ * a save, which only refreshed the list the page happened to own. A write that
+ * touches two related views — invalidating by prefix refreshes both without the
  * caller having to enumerate them.
  */
 export function useAdminInvalidate() {

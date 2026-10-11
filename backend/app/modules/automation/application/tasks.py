@@ -71,8 +71,8 @@ def dispatch_automation_trigger(trigger_type: str, context: dict[str, Any]) -> d
 # The outbox drain lives in ``outbox_worker`` rather than this module, so
 # autodiscover — which only ever imports ``<pkg>.application.tasks`` — never
 # reached it. The beat entry existed and looked correct, but the task was not
-# in the worker's registry, so nothing drained the queue: notifications, email,
-# accounting and loyalty all hung behind 2700+ PENDING rows. Imported here for
+# in the worker's registry, so nothing drained the queue: notifications, email
+# and loyalty all hung behind 2700+ PENDING rows. Imported here for
 # the registration side effect only, at the bottom so the import cycle back
 # into celery_app is already resolved. The name is bound to ``_outbox_worker``
 # rather than left dangling so linters and readers can see it is deliberate.

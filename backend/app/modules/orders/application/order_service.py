@@ -30,6 +30,10 @@ from app.modules.orders.domain.models import (
     OrderStatusHistory,
 )
 from app.modules.orders.schemas.order import (
+    AdminOrderDetailResponse,
+    AdminOrderPaymentSummary,
+    AdminOrderStatsResponse,
+    AdminOrderStatusCount,
     OrderBulkStatusResult,
     OrderBulkStatusResultItem,
     OrderFilterParams,
@@ -37,12 +41,10 @@ from app.modules.orders.schemas.order import (
     OrderListItem,
     OrderListResponse,
     OrderResponse,
-    OrderReturnResponse,
     OrderStatusHistoryResponse,
     OrderTimelineResponse,
     PaginationMeta,
     PaginationParams,
-    ReturnCreateRequest,
 )
 
 if TYPE_CHECKING:
@@ -53,70 +55,45 @@ logger: structlog.stdlib.BoundLogger = structlog.get_logger(__name__)
 
 # Maps current status → set of allowed next statuses
 #
-# PARTIALLY_REFUNDED / REFUNDED are reachable from any live fulfillment state
-# (not only RETURNED): a payment can be partially refunded while the order is
-# still being fulfilled, or fully refunded without a formal return (e.g. an
-# admin refund of a pending order). PARTIALLY_REFUNDED is not terminal — once
-# the remaining amount is refunded the order completes the transition to
-# REFUNDED.
+# The chain is deliberately short now (digital store, WooCommerce vocabulary):
+#
+#   waiting_payment_gateway ─┐                          ┌→ canceled
+#   waiting_payment_card    ─┼→ pending → processing → ┴→ completed
+#                    ┘                          └→ refunded
+#
+# REFUNDED is reachable from every non-terminal state, including the two
+# payment-waiting ones: an admin can refund an order that never got paid for.
+#
+# WAITING_PAYMENT_CARD deliberately has no exit except an explicit admin action. The
+# automated expiry sweep that cancels abandoned gateway payments MUST NOT touch
+# it — the customer's money may already be in the account while the admin is
+# still looking at the receipt, and silently canceling that order would destroy
+# a sale (and lose the refund obligation).
 _VALID_TRANSITIONS: dict[OrderStatus, frozenset[OrderStatus]] = {
+    # Gateway order, awaiting the callback. Expires to CANCELED on a timer.
+    OrderStatus.WAITING_PAYMENT_GATEWAY: frozenset(
+        {OrderStatus.PENDING, OrderStatus.CANCELED, OrderStatus.REFUNDED}
+    ),
+    # Card-to-card: waiting for an ADMIN. Never expires.
+    OrderStatus.WAITING_PAYMENT_CARD: frozenset(
+        {OrderStatus.PENDING, OrderStatus.CANCELED, OrderStatus.REFUNDED}
+    ),
+    # Paid and accepted.
     OrderStatus.PENDING: frozenset(
-        {
-            OrderStatus.CONFIRMED,
-            OrderStatus.CANCELED,
-            OrderStatus.PARTIALLY_REFUNDED,
-            OrderStatus.REFUNDED,
-        }
+        {OrderStatus.PROCESSING, OrderStatus.CANCELED, OrderStatus.REFUNDED}
     ),
-    OrderStatus.CONFIRMED: frozenset(
-        {
-            OrderStatus.PROCESSING,
-            OrderStatus.CANCELED,
-            OrderStatus.ON_HOLD,
-            OrderStatus.PARTIALLY_REFUNDED,
-            OrderStatus.REFUNDED,
-        }
-    ),
+    # Being fulfilled / under review.
     OrderStatus.PROCESSING: frozenset(
-        {
-            OrderStatus.PACKING,
-            OrderStatus.ON_HOLD,
-            OrderStatus.PARTIALLY_REFUNDED,
-            OrderStatus.REFUNDED,
-        }
-    ),
-    OrderStatus.ON_HOLD: frozenset(
-        {
-            OrderStatus.PROCESSING,
-            OrderStatus.CANCELED,
-            OrderStatus.PARTIALLY_REFUNDED,
-            OrderStatus.REFUNDED,
-        }
-    ),
-    OrderStatus.PACKING: frozenset(
-        {OrderStatus.SHIPPED, OrderStatus.PARTIALLY_REFUNDED, OrderStatus.REFUNDED}
-    ),
-    OrderStatus.SHIPPED: frozenset(
-        {OrderStatus.DELIVERED, OrderStatus.PARTIALLY_REFUNDED, OrderStatus.REFUNDED}
-    ),
-    OrderStatus.DELIVERED: frozenset(
-        {
-            OrderStatus.COMPLETED,
-            OrderStatus.RETURNED,
-            OrderStatus.PARTIALLY_REFUNDED,
-            OrderStatus.REFUNDED,
-        }
+        {OrderStatus.COMPLETED, OrderStatus.CANCELED, OrderStatus.REFUNDED}
     ),
     OrderStatus.COMPLETED: frozenset(),  # terminal
     OrderStatus.CANCELED: frozenset(),  # terminal
-    OrderStatus.RETURNED: frozenset({OrderStatus.REFUNDED, OrderStatus.PARTIALLY_REFUNDED}),
     OrderStatus.REFUNDED: frozenset(),  # terminal
-    OrderStatus.PARTIALLY_REFUNDED: frozenset({OrderStatus.REFUNDED}),
 }
 
 # Statuses the *customer* is allowed to cancel from
 _CUSTOMER_CANCELABLE: frozenset[OrderStatus] = frozenset(
-    {OrderStatus.PENDING, OrderStatus.CONFIRMED}
+    {OrderStatus.WAITING_PAYMENT_GATEWAY, OrderStatus.WAITING_PAYMENT_CARD, OrderStatus.PENDING}
 )
 
 
@@ -159,10 +136,11 @@ async def apply_refund_status(
     current = order.status
     if current in (OrderStatus.CANCELED, OrderStatus.REFUNDED):
         return None
-    if current == OrderStatus.PARTIALLY_REFUNDED and not fully_refunded:
-        return None
 
-    target = OrderStatus.REFUNDED if fully_refunded else OrderStatus.PARTIALLY_REFUNDED
+    # ``partially_refunded`` was removed as an order status (2026-10-11): the
+    # partial amount is tracked on the Refund/Payment rows, not on the order,
+    # so the order itself only ever reaches the terminal REFUNDED.
+    target = OrderStatus.REFUNDED
     if target == current:
         return None
 
@@ -401,6 +379,13 @@ def _apply_filters(stmt: Select[tuple[Order]], filters: OrderFilterParams) -> Se
     """Apply optional WHERE clauses to an order query."""
     if filters.status:
         stmt = stmt.where(Order.status == filters.status)
+    elif filters.statuses:
+        # `status` wins when both are sent: the caller asked for an exact
+        # single status, and silently widening it to a set would return rows
+        # it did not ask for.
+        wanted = [s.strip() for s in filters.statuses if s and s.strip()]
+        if wanted:
+            stmt = stmt.where(Order.status.in_(wanted))
     if filters.from_date:
         stmt = stmt.where(Order.created_at >= filters.from_date)
     if filters.to_date:
@@ -579,7 +564,7 @@ async def cancel_order(
             raise ConflictError(
                 detail=(
                     "این سفارش کالای دیجیتال تحویل‌شده دارد و قابل لغو خودکار نیست؛ "
-                    "برای بازگشت وجه از طریق درخواست مرجوعی اقدام کنید"
+                    "برای بازگشت وجه با پشتیبانی تماس بگیرید"
                 ),
                 error_code="ORDER_HAS_DELIVERED_DIGITAL_GOODS",
             )
@@ -643,117 +628,6 @@ async def cancel_order(
 
     await db.refresh(order, attribute_names=["status_history"])
     return _build_order_response(order)
-
-
-async def request_order_return(
-    db: AsyncSession,
-    user_id: uuid.UUID,
-    order_id: uuid.UUID,
-    body: ReturnCreateRequest,
-) -> OrderReturnResponse:
-    """Customer request for order return (RMA) within statutory 7-day window."""
-    from app.modules.orders.application.returns_service import ReturnsService
-    from app.modules.orders.domain.returns import ReturnItemSpec, ReturnReason
-    from app.modules.orders.schemas.order import OrderReturnResponse, ReturnItemResponse
-
-    stmt = (
-        select(Order)
-        .options(
-            selectinload(Order.items),
-            selectinload(Order.status_history),
-        )
-        .where(Order.id == order_id, Order.user_id == user_id)
-    )
-    result = await db.execute(stmt)
-    order = result.scalar_one_or_none()
-
-    if order is None:
-        raise NotFoundError("Order")
-
-    returns_service = ReturnsService(return_window_days=7)
-    delivered_event = next(
-        (h for h in (order.status_history or []) if h.to_status == OrderStatus.DELIVERED.value),
-        None,
-    )
-    delivered_at = delivered_event.created_at if delivered_event else order.updated_at
-
-    specs = [
-        ReturnItemSpec(
-            order_item_id=item.order_item_id,
-            variant_id=item.variant_id,
-            quantity=item.quantity,
-            reason=ReturnReason(item.reason)
-            if item.reason in [r.value for r in ReturnReason]
-            else ReturnReason.CUSTOMER_REMORSE,
-            customer_notes=item.customer_notes,
-        )
-        for item in body.items
-    ]
-
-    rma = returns_service.create_return_request(
-        order=order,
-        user_id=user_id,
-        delivered_at=delivered_at,
-        items=specs,
-    )
-
-    # Persist the RMA (BE-20): the lifecycle must be durable and
-    # admin-processable, not an in-memory object lost after the response.
-    from app.modules.orders.domain.return_models import (
-        OrderReturn as OrderReturnRow,
-    )
-    from app.modules.orders.domain.return_models import (
-        OrderReturnItem as OrderReturnItemRow,
-    )
-
-    rma_number = f"RMA-{rma.created_at.strftime('%Y%m%d')}-{uuid.uuid4().hex[:6].upper()}"
-    rma_row = OrderReturnRow(
-        id=rma.id,
-        rma_number=rma_number,
-        order_id=rma.order_id,
-        user_id=rma.user_id,
-        status=rma.status.value,
-        admin_notes=rma.admin_notes,
-        created_at=rma.created_at,
-    )
-    for i in rma.items:
-        rma_row.items.append(
-            OrderReturnItemRow(
-                return_id=rma.id,
-                order_item_id=i.order_item_id,
-                variant_id=i.variant_id,
-                quantity=i.quantity,
-                reason=i.reason.value,
-                customer_notes=i.customer_notes,
-            )
-        )
-    db.add(rma_row)
-    await db.flush()
-
-    return OrderReturnResponse(
-        id=rma.id,
-        rma_number=rma_number,
-        order_id=rma.order_id,
-        user_id=rma.user_id,
-        status=rma.status.value,
-        items=[
-            ReturnItemResponse(
-                order_item_id=i.order_item_id,
-                variant_id=i.variant_id,
-                quantity=i.quantity,
-                reason=i.reason.value,
-                customer_notes=i.customer_notes,
-                inspection_outcome=i.inspection_outcome.value if i.inspection_outcome else None,
-            )
-            for i in rma.items
-        ],
-        created_at=rma.created_at,
-        approved_at=rma.approved_at,
-        inspected_at=rma.inspected_at,
-        refunded_at=rma.refunded_at,
-        admin_notes=rma.admin_notes,
-        refund_amount=rma.refund_amount,
-    )
 
 
 async def get_order_timeline(
@@ -832,6 +706,123 @@ async def admin_get_orders(
             has_next=pagination.page < total_pages,
             has_prev=pagination.page > 1,
         ),
+    )
+
+
+async def admin_get_order_stats(db: AsyncSession) -> AdminOrderStatsResponse:
+    """Count and sum orders per status across the whole table.
+
+    One GROUP BY, not twelve COUNT queries: the admin board renders every
+    column header at once, and per-status endpoints would make the board's
+    first paint issue a dozen round trips. Zero-fill the enum so the UI
+    receives every status even when no order carries it.
+    """
+    rows = await db.execute(
+        select(Order.status, func.count(Order.id), func.coalesce(func.sum(Order.total), 0))
+        .group_by(Order.status)
+    )
+    by_status = {str(status.value): (int(count), int(total)) for status, count, total in rows}
+
+    statuses = [
+        AdminOrderStatusCount(
+            status=member.value,
+            count=by_status.get(member.value, (0, 0))[0],
+            total=by_status.get(member.value, (0, 0))[1],
+        )
+        for member in OrderStatus
+    ]
+
+    # Revenue excludes money that was given back or never became revenue:
+    # canceled orders, refunds, and held orders that may still be canceled.
+    revenue_statuses = {
+        OrderStatus.PENDING,
+        OrderStatus.PROCESSING,
+        OrderStatus.COMPLETED,
+    }
+    total_orders = sum(entry.count for entry in statuses)
+    total_revenue = sum(
+        entry.total for entry in statuses if OrderStatus(entry.status) in revenue_statuses
+    )
+
+    return AdminOrderStatsResponse(
+        by_status=statuses,
+        total_orders=total_orders,
+        total_revenue_rials=total_revenue,
+    )
+
+
+async def admin_get_order_detail(db: AsyncSession, order_id: uuid.UUID) -> AdminOrderDetailResponse:
+    """Return one order with full (unmasked) address, payments and customer.
+
+    Distinct from :func:`get_order` on purpose: that path is the customer's
+    and masks the address + checks ownership. This path is admin-only
+    (``orders:read``) and exists because the admin list endpoint carries no
+    address snapshot and no payment rows — the old board fabricated both.
+    """
+    from app.modules.payments.domain.models import Payment
+
+    stmt = (
+        select(Order)
+        .options(
+            selectinload(Order.items),
+            selectinload(Order.status_history),
+            selectinload(Order.payments),
+        )
+        .where(Order.id == order_id)
+    )
+    result = await db.execute(stmt)
+    order = result.scalar_one_or_none()
+    if order is None:
+        raise NotFoundError("Order")
+
+    timeline = sorted((order.status_history or []), key=lambda h: h.created_at)
+    payments = sorted(
+        (order.payments or []),
+        key=lambda p: p.created_at,
+        reverse=True,
+    )
+
+    customer_name: str | None = None
+    customer_phone: str | None = None
+    user = getattr(order, "user", None)
+    if user is not None:
+        customer_phone = getattr(user, "phone", None)
+        # Names live on the profile, not the user row (the old list mapper
+        # read user.first_name, which does not exist — every admin screen
+        # showed a null customer name).
+        profile = getattr(user, "profile", None)
+        if profile is not None:
+            names = [
+                getattr(profile, "first_name", None),
+                getattr(profile, "last_name", None),
+            ]
+            customer_name = " ".join(n for n in names if n).strip() or None
+        if not customer_name:
+            profile_display = getattr(profile, "display_name", None) if profile else None
+            customer_name = profile_display or None
+
+    return AdminOrderDetailResponse(
+        id=order.id,
+        order_number=order.order_number,
+        status=order.status.value,
+        user_id=order.user_id,
+        subtotal=order.subtotal,
+        shipping_cost=order.shipping_cost,
+        tax=order.tax,
+        discount_amount=order.discount_amount,
+        total=order.total,
+        shipping_address_snapshot=order.shipping_address_snapshot,
+        notes=order.notes,
+        ip_address=order.ip_address,
+        items=[_build_item_response(item) for item in (order.items or [])],
+        timeline=[_build_history_response(h) for h in timeline],
+        payments=[
+            AdminOrderPaymentSummary.model_validate(p) for p in payments
+        ],
+        customer_name=customer_name,
+        customer_phone=customer_phone,
+        created_at=order.created_at,
+        updated_at=order.updated_at,
     )
 
 
@@ -951,9 +942,6 @@ async def admin_update_status(
         )
     elif target in (
         OrderStatus.PROCESSING,
-        OrderStatus.PACKING,
-        OrderStatus.SHIPPED,
-        OrderStatus.DELIVERED,
         OrderStatus.COMPLETED,
     ):
         await _publish_order_event(
@@ -1125,350 +1113,3 @@ async def generate_unique_order_number(db: AsyncSession) -> str:
     date_part = datetime.now(UTC).strftime("%Y%m%d")
     return f"ORD-{date_part}-{suffix}"
 
-
-# ══════════════════════════════════════════════════════════════════════════
-# Admin RMA processing (TASK BE-20)
-# ══════════════════════════════════════════════════════════════════════════
-
-
-def _rma_row_to_response(row: Any) -> OrderReturnResponse:
-    """Map an OrderReturn row (with items) to the API response."""
-    from app.modules.orders.schemas.order import ReturnItemResponse
-
-    return OrderReturnResponse(
-        id=row.id,
-        rma_number=row.rma_number,
-        order_id=row.order_id,
-        user_id=row.user_id,
-        status=row.status,
-        items=[
-            ReturnItemResponse(
-                order_item_id=i.order_item_id,
-                variant_id=i.variant_id,
-                quantity=i.quantity,
-                reason=i.reason,
-                customer_notes=i.customer_notes,
-                inspection_outcome=i.inspection_outcome,
-            )
-            for i in (row.items or [])
-        ],
-        created_at=row.created_at,
-        approved_at=row.approved_at,
-        inspected_at=row.inspected_at,
-        refunded_at=row.refunded_at,
-        admin_notes=row.admin_notes,
-        refund_amount=row.refund_amount,
-    )
-
-
-async def get_order_returns(
-    db: AsyncSession,
-    user_id: uuid.UUID,
-    order_id: uuid.UUID,
-) -> list[OrderReturnResponse]:
-    """Customer: list all RMAs for an order owned by user_id."""
-    from app.modules.orders.domain.return_models import OrderReturn
-
-    # Verify order ownership (raises NotFoundError if order does not exist or belong to user)
-    await get_order(db, user_id, order_id)
-
-    stmt = (
-        select(OrderReturn)
-        .options(selectinload(OrderReturn.items))
-        .where(OrderReturn.order_id == order_id, OrderReturn.user_id == user_id)
-        .order_by(OrderReturn.created_at.desc())
-    )
-    result = await db.execute(stmt)
-    rows = result.scalars().all()
-    return [_rma_row_to_response(r) for r in rows]
-
-
-async def admin_list_returns(
-    db: AsyncSession,
-    status_filter: str | None,
-    page: int,
-    page_size: int,
-) -> dict[str, Any]:
-    """Admin: paginated list of RMAs, newest first."""
-    from app.modules.orders.domain.return_models import OrderReturn
-
-    stmt = select(OrderReturn).order_by(OrderReturn.created_at.desc())
-    count_stmt = select(func.count()).select_from(OrderReturn)
-    if status_filter:
-        stmt = stmt.filter_by(status=status_filter)
-        count_stmt = count_stmt.filter_by(status=status_filter)
-
-    total = (await db.scalar(count_stmt)) or 0
-    rows = (await db.scalars(stmt.limit(page_size).offset((page - 1) * page_size))).all()
-    return {
-        "items": [_rma_row_to_response(r) for r in rows],
-        "total": int(total),
-        "page": page,
-        "page_size": page_size,
-    }
-
-
-async def admin_transition_return(
-    db: AsyncSession,
-    return_id: uuid.UUID,
-    target: str,
-    actor_id: uuid.UUID,
-    notes: str | None = None,
-    inspection_outcomes: dict[str, str] | None = None,
-    refund_amount: int | None = None,
-) -> OrderReturnResponse:
-    """Admin: apply one RMA state-machine transition with full audit.
-
-    On REFUNDED, passed inspection items are restocked (P3-01) and a
-    ReturnRefunded event is published.  On APPROVED a ReturnApproved event
-    is published.  All transition rules come from the domain state machine
-    (``orders/domain/returns.py``), never from the caller.
-    """
-    from app.modules.orders.application.returns_service import ReturnsService
-    from app.modules.orders.domain.return_models import OrderReturn as OrderReturnRow
-    from app.modules.orders.domain.returns import (
-        RETURN_TRANSITIONS,
-        InspectionOutcome,
-        OrderReturnDomain,
-        ReturnItemSpec,
-        ReturnReason,
-        ReturnStatus,
-    )
-
-    try:
-        target_status = ReturnStatus(target)
-    except ValueError:
-        valid = ", ".join(s.value for s in ReturnStatus)
-        raise ValidationError(
-            f"Invalid return status '{target}'. Valid statuses: {valid}",
-            error_code="INVALID_RETURN_STATUS",
-        ) from None
-
-    safe_return_id = uuid.UUID(str(return_id))
-    row = await db.get(OrderReturnRow, safe_return_id, with_for_update=True)
-    if row is None:
-        raise NotFoundError("Return")
-
-    rma = OrderReturnDomain(
-        id=row.id,
-        order_id=row.order_id,
-        user_id=row.user_id,
-        status=ReturnStatus(row.status),
-        items=[
-            ReturnItemSpec(
-                order_item_id=i.order_item_id,
-                variant_id=i.variant_id,
-                quantity=i.quantity,
-                reason=ReturnReason(i.reason),
-                customer_notes=i.customer_notes,
-                inspection_outcome=InspectionOutcome(i.inspection_outcome)
-                if i.inspection_outcome
-                else None,
-            )
-            for i in (row.items or [])
-        ],
-        created_at=row.created_at,
-        approved_at=row.approved_at,
-        inspected_at=row.inspected_at,
-        refunded_at=row.refunded_at,
-        admin_notes=row.admin_notes,
-        refund_amount=row.refund_amount,
-    )
-
-    # Pre-check with the domain machine so an illegal move is a clean 422
-    # (the domain transition would otherwise raise a bare ValueError).
-    if not rma.can_transition_to(target_status):
-        allowed = ", ".join(s.value for s in RETURN_TRANSITIONS.get(rma.status, frozenset()))
-        raise ValidationError(
-            f"Cannot transition return from '{rma.status.value}' to "
-            f"'{target_status.value}'. Allowed: {allowed}",
-            error_code="INVALID_RETURN_TRANSITION",
-        )
-
-    service = ReturnsService(return_window_days=7)
-    if target_status == ReturnStatus.UNDER_REVIEW:
-        service.mark_under_review(rma, notes)
-    elif target_status == ReturnStatus.APPROVED:
-        service.approve_return(rma, notes)
-    elif target_status == ReturnStatus.REJECTED:
-        service.reject_return(rma, notes or "")
-    elif target_status == ReturnStatus.RECEIVED:
-        service.mark_received(rma)
-    elif target_status == ReturnStatus.INSPECTED:
-        outcomes: dict[uuid.UUID, Any] = {}
-        if inspection_outcomes:
-            for item_id_str, outcome_str in inspection_outcomes.items():
-                outcomes[uuid.UUID(item_id_str)] = InspectionOutcome(outcome_str)
-        service.complete_inspection(rma, outcomes, notes)
-    elif target_status == ReturnStatus.REFUNDED:
-        # The refund must be a real, bounded money movement: validate the
-        # amount against what the customer actually paid minus refunds that
-        # were already recorded, then settle it into the customer's wallet.
-        if not refund_amount or refund_amount <= 0:
-            raise ValidationError(
-                "مبلغ بازگشت وجه باید بزرگتر از صفر باشد",
-                error_code="INVALID_REFUND_AMOUNT",
-            )
-
-        from app.modules.payments.domain.models import (
-            Payment,
-            PaymentStatus,
-            Refund,
-            RefundStatus,
-        )
-
-        refund_order = await db.get(
-            Order,
-            row.order_id,
-            options=(selectinload(Order.payments).selectinload(Payment.refunds),),
-        )
-        if refund_order is None:
-            raise NotFoundError("Order")
-
-        completed_payments = [
-            p for p in refund_order.payments if p.status == PaymentStatus.COMPLETED
-        ]
-        paid_total = sum(p.amount for p in completed_payments)
-        refunded_so_far = sum(
-            r.amount
-            for p in refund_order.payments
-            for r in p.refunds
-            if r.status != RefundStatus.REJECTED
-        )
-        refundable = paid_total - refunded_so_far
-        if refund_amount > refundable:
-            raise ValidationError(
-                f"مبلغ بازگشت وجه ({refund_amount:,}) "
-                f"از سقف قابل بازگشت ({refundable:,}) بیشتر است",
-                error_code="REFUND_EXCEEDS_REFUNDABLE",
-            )
-        if not completed_payments:
-            raise ValidationError(
-                "برای این سفارش پرداخت تکمیلی‌ای برای بازگشت وجه یافت نشد",
-                error_code="NO_COMPLETED_PAYMENT",
-            )
-
-        service.process_refund(rma, refund_amount)
-
-        db.add(
-            Refund(
-                payment_id=completed_payments[0].id,
-                order_id=refund_order.id,
-                amount=refund_amount,
-                reason=f"بازگشت کالا (RMA {row.id})",
-                status=RefundStatus.PROCESSED,
-                processed_by=actor_id,
-                processed_at=datetime.now(UTC),
-            )
-        )
-        if refunded_so_far + refund_amount >= paid_total:
-            completed_payments[0].status = PaymentStatus.REFUNDED
-            refund_order.status = OrderStatus.REFUNDED
-        else:
-            refund_order.status = OrderStatus.PARTIALLY_REFUNDED
-
-        from app.modules.orders.domain.models import OrderStatusHistory
-        db.add(
-            OrderStatusHistory(
-                order_id=refund_order.id,
-                from_status=refund_order.status.value,
-                to_status=refund_order.status.value,
-                changed_by=actor_id,
-                reason=f"تغییر وضعیت ناشی از مرجوعی کالا (RMA {row.id})",
-                extra_data={"correlation_id": f"RMA-{row.id}", "actor_id": str(actor_id)},
-            )
-        )
-
-        from app.modules.wallet.application import wallet_service
-        from app.modules.wallet.domain.models import WalletTransactionType
-
-        await wallet_service.credit(
-            db,
-            user_id=row.user_id,
-            amount=refund_amount,
-            tx_type=WalletTransactionType.REFUND,
-            reference_type="rma_refund",
-            reference_id=row.id,
-            description=f"بازگشت وجه مرجوعی سفارش {refund_order.order_number}",
-        )
-    else:
-        # CLOSED / REPLACED
-        rma.transition_to(target_status, notes)
-
-    # Persist transition results
-    row.status = rma.status.value
-    if notes:
-        row.admin_notes = notes
-    row.approved_at = rma.approved_at
-    row.inspected_at = rma.inspected_at
-    row.refunded_at = rma.refunded_at
-    row.refund_amount = rma.refund_amount
-    if target_status == ReturnStatus.INSPECTED:
-        outcome_by_item = {i.order_item_id: i.inspection_outcome for i in rma.items}
-        for item_row in row.items or []:
-            outcome = outcome_by_item.get(item_row.order_item_id)
-            item_row.inspection_outcome = outcome.value if outcome else None
-    await db.flush()
-
-    # Restock passed items when the return is financially settled (P3-01)
-    if target_status == ReturnStatus.REFUNDED:
-        from app.modules.inventory.application import inventory_service
-
-        entries = [
-            (i.variant_id, i.quantity)
-            for i in rma.items
-            if i.inspection_outcome == InspectionOutcome.PASSED
-        ]
-        if entries:
-            try:
-                await inventory_service.restock_returned_items(db, entries)
-            except Exception as exc:
-                await logger.aerror(
-                    "return_restock_failed",
-                    return_id=str(row.id),
-                    error=str(exc),
-                )
-
-    # Lifecycle events
-    try:
-        from app.shared.events.outbox_service import OutboxService
-
-        if target_status == ReturnStatus.APPROVED:
-            await OutboxService.publish(
-                db,
-                event_type="ReturnApproved",
-                aggregate_type="return",
-                aggregate_id=str(row.id),
-                payload={
-                    "return_id": str(row.id),
-                    "order_id": str(row.order_id),
-                    "rma_number": row.rma_number,
-                },
-            )
-        elif target_status == ReturnStatus.REFUNDED:
-            await OutboxService.publish(
-                db,
-                event_type="ReturnRefunded",
-                aggregate_type="return",
-                aggregate_id=str(row.id),
-                payload={
-                    "return_id": str(row.id),
-                    "order_id": str(row.order_id),
-                    "rma_number": row.rma_number,
-                    "refund_amount": row.refund_amount,
-                },
-            )
-    except Exception as exc:
-        await logger.awarning(
-            "return_event_publish_skipped",
-            return_id=str(row.id),
-            error=str(exc),
-        )
-
-    await logger.ainfo(
-        "return_transitioned",
-        return_id=str(row.id),
-        to_status=target_status.value,
-        actor_id=str(actor_id),
-    )
-    return _rma_row_to_response(row)

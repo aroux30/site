@@ -16,8 +16,6 @@ import {
   XCircle,
   RefreshCw,
   Loader2,
-  Download,
-  KeyRound,
   Trash2,
   RotateCcw,
   MonitorSmartphone,
@@ -48,7 +46,6 @@ const PAGE_SIZE = 50;
 interface UserItem {
   id: string;
   phone: string;
-  email?: string;
   first_name?: string;
   last_name?: string;
   /** A user holds a set of roles, not one. The page used to read a singular
@@ -96,12 +93,8 @@ export default function AdminUsersPage() {
   };
   const [updatingUserId, setUpdatingUserId] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
-  // GDPR data export (per-row download button)
-  const [gdprBusyId, setGdprBusyId] = useState<string | null>(null);
-  // Admin-initiated password reset. Its own busy id rather than reusing the
-  // export one, so clicking one button does not grey out the other on the same
-  // row — they are independent operations that happen to sit next to each other.
-  const [resetBusyId, setResetBusyId] = useState<string | null>(null);
+  // The admin-initiated password-reset state (resetBusyId) was removed on
+  // 2026-10-07 with the rest of the email feature.
   // Restore of a soft-deleted account. Its own busy id for the same reason.
   const [restoreBusyId, setRestoreBusyId] = useState<string | null>(null);
   // Success notices live separately from errors: "sent, check the inbox" and
@@ -138,9 +131,9 @@ export default function AdminUsersPage() {
       // matched nobody, and the page showed no total so nothing looked cut.
       if (search.trim()) params.set("search", search.trim());
       // The role filter too. It ran client-side because the API had no role
-      // parameter, so "show me the vendors" answered with the vendors *on this
+      // parameter, so "show me the authors" answered with the authors *on this
       // page* — the operator paged to find the rest. "customer" is the absence
-      // of a staff/vendor role, which the server does not store; it maps to no
+      // of a staff role, which the server does not store; it maps to no
       // role param and is narrowed below, since the server has no "none of
       // these roles" clause.
       if (roleFilter !== "all" && roleFilter !== "customer") {
@@ -187,7 +180,7 @@ export default function AdminUsersPage() {
     roleFilter === "customer"
       ? users.filter((u) => {
           const roles = u.roles ?? u.role_slugs ?? [];
-          return !roles.includes("super_admin") && !roles.includes("vendor");
+          return !roles.includes("super_admin");
         })
       : users;
 
@@ -209,52 +202,8 @@ export default function AdminUsersPage() {
     setUpdatingUserId(null);
   };
 
-  // GDPR right of access: download everything stored for this user as JSON.
-  const exportUserData = async (id: string) => {
-    setGdprBusyId(id);
-    try {
-      const { privacyApi } = await import("@/lib/api/wp-parity");
-      const data = await privacyApi.exportUser(id);
-      const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `user-data-${id.slice(0, 8)}.json`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
-    } catch {
-      setActionError("خروجی گرفتن داده‌های کاربر ناموفق بود.");
-    } finally {
-      setGdprBusyId(null);
-    }
-  };
-
-  /**
-   * Ask the backend to email a reset link to this account.
-   *
-   * The server's `sent` is surfaced rather than assumed. An account with no
-   * address, or one that only ever signed in with an OTP and has no password to
-   * reset, gets a truthful "nothing was sent" — and an operator told "done"
-   * would go on watching an inbox for a message that was never written.
-   */
-  const sendPasswordReset = async (id: string) => {
-    setResetBusyId(id);
-    setActionError(null);
-    try {
-      const res = await usersAdminApi.sendPasswordReset(id);
-      if (res.sent) {
-        setNotice("پیوند بازنشانی رمز عبور به کاربر ارسال شد.");
-      } else {
-        setNotice(res.detail);
-      }
-    } catch {
-      setActionError("ارسال پیوند بازنشانی رمز ناموفق بود.");
-    } finally {
-      setResetBusyId(null);
-    }
-  };
+  // `sendPasswordReset` was removed on 2026-10-07 with the email-based
+  // admin password-reset route. Recovery runs through the OTP flow.
 
   const restoreUser = async (id: string) => {
     setRestoreBusyId(id);
@@ -427,7 +376,6 @@ export default function AdminUsersPage() {
             >
               {u.id.slice(0, 8)}…
             </div>
-            {u.email && <div className="text-xs text-muted-foreground">{u.email}</div>}
           </div>
         </div>
       ),
@@ -449,9 +397,6 @@ export default function AdminUsersPage() {
               <Shield className="h-3 w-3" /> مدیر کل
             </Badge>
           );
-        }
-        if (roles.includes("vendor")) {
-          return <Badge variant="secondary">فروشنده</Badge>;
         }
         return (
           <Badge variant="outline">
@@ -545,35 +490,7 @@ export default function AdminUsersPage() {
             )}
           </Button>
           )}
-          <Button
-            variant="ghost"
-            size="sm"
-            disabled={gdprBusyId === u.id}
-            onClick={() => void exportUserData(u.id)}
-            title="خروجی گرفتن داده‌های کاربر (GDPR)"
-            aria-label="خروجی داده‌های کاربر"
-          >
-            {gdprBusyId === u.id ? (
-              <Loader2 className="h-3.5 w-3.5 animate-spin" />
-            ) : (
-              <Download className="h-3.5 w-3.5 text-muted-foreground" />
-            )}
-          </Button>
           <EditUserButton user={u} onClick={() => openEditUser(u)} />
-          <Button
-            variant="ghost"
-            size="sm"
-            disabled={resetBusyId === u.id}
-            onClick={() => void sendPasswordReset(u.id)}
-            title="ارسال پیوند بازنشانی رمز عبور به این کاربر"
-            aria-label="ارسال پیوند بازنشانی رمز عبور"
-          >
-            {resetBusyId === u.id ? (
-              <Loader2 className="h-3.5 w-3.5 animate-spin" />
-            ) : (
-              <KeyRound className="h-3.5 w-3.5 text-muted-foreground" />
-            )}
-          </Button>
           {/* Sessions. Self-service "sign out everywhere" existed; an operator
               handling a stolen-account ticket had no way to see or cut a
               session on somebody else's account. */}
@@ -639,10 +556,10 @@ export default function AdminUsersPage() {
       </div>
 
       {/* Operation feedback. `actionError` was already being set by every row
-          action and rendered nowhere, so a failed GDPR export or a failed reset
-          looked exactly like a slow one — the operator's only signal was a
-          spinner that stopped. Notices are separate from errors because "sent,
-          check the inbox" and "failed" are different answers. */}
+          action and rendered nowhere, so a failed reset looked exactly like a
+          slow one — the operator's only signal was a spinner that stopped.
+          Notices are separate from errors because "sent, check the inbox" and
+          "failed" are different answers. */}
       {(actionError || notice) && (
         <div
           role="status"
@@ -680,11 +597,13 @@ export default function AdminUsersPage() {
                 // set's third page, which is usually empty.
                 setPage(1);
               }}
-              placeholder="جستجو با شماره موبایل، نام یا ایمیل..."
+              placeholder="جستجو با شماره موبایل یا نام..."
               className="ps-9"
             />
           </div>
-          <div className="flex items-center gap-2">
+          {/* Wraps on narrow screens: with nowrap this row ran ~70px past the
+              viewport at 390px and extended the page's scroll width. */}
+          <div className="flex flex-wrap items-center gap-2">
             <Filter className="h-4 w-4 text-muted-foreground" />
             <select
               value={roleFilter}
@@ -699,7 +618,6 @@ export default function AdminUsersPage() {
               <option value="all">همه نقش‌ها</option>
               <option value="customer">مشتریان</option>
               <option value="super_admin">مدیران سیستم</option>
-              <option value="vendor">فروشندگان</option>
             </select>
             {/* The restore view. Without it a soft-deleted account vanished
                 from the panel with no way back to it. */}
@@ -781,9 +699,9 @@ export default function AdminUsersPage() {
         </div>
       )}
 
-      {/* Create / edit. The list is otherwise read-only apart from block and
-          the GDPR export, so an operator had no way to onboard a staff
-          account from the admin at all. */}
+      {/* Create / edit. The list is otherwise read-only apart from block, so
+          an operator had no way to onboard a staff account from the admin at
+          all. */}
       <UserDialog
         user={userBeingEdited}
         open={userDialogOpen}

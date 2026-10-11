@@ -1,14 +1,17 @@
 """Live check: the site-identity settings are writable and actually read.
 
-P0 "تنظیمات: نام سایت، توضیح سایت و ایمیل ادمین از UI" and "نمایش/پنهان‌سازی
-سایت از موتورهای جست‌وجو". The keys were seeded and read by the feed, the
-sitemap and the robots route, but nothing on the admin side could write them —
-so the store's name in a feed was whatever the seed said, forever.
+P0 "تنظیمات: نام سایت، توضیح سایت" and "نمایش/پنهان‌سازی سایت از موتورهای
+جست‌وجو". The keys were seeded and read by the feed, the sitemap and the robots
+route, but nothing on the admin side could write them — so the store's name in
+a feed was whatever the seed said, forever.
 
 A UI test would only prove the form posts. What matters is the round trip:
 write the key, read it back through the *reader* that cares, and confirm the
 value moved. So this drives the real service and then asserts on the actual
 readers.
+
+The ``admin_email`` check that used to be part of this script was removed on
+2026-10-07 with the rest of the email feature (the option no longer exists).
 
     cd backend && PYTHONPATH=. python scripts/verify_site_identity.py
 """
@@ -21,6 +24,7 @@ import io
 import pkgutil
 import sys
 
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
@@ -39,6 +43,10 @@ from app.modules.settings.application.site_options_service import (  # noqa: E40
 
 PROBE = f"identity-probe-{__import__('uuid').uuid4().hex[:8]}"
 
+#: The keys this script writes and must restore. `blogname` and
+#: `blogdescription` are free text; `blog_public` is the search-engine switch.
+_KEYS = ("blogname", "blogdescription", "blog_public")
+
 
 def _database_url() -> str:
     for line in open(".env", encoding="utf-8"):
@@ -53,13 +61,12 @@ async def main() -> int:
     failures: list[str] = []
 
     async with session() as db:
-        # 1. Every one of the four keys is writable through the same call the
-        #    admin route makes.
-        originals = {}
-        for key in ("blogname", "blogdescription", "admin_email", "blog_public"):
-            originals[key] = await SiteOptionsService.get(db, key)
+        originals = {key: await SiteOptionsService.get(db, key) for key in _KEYS}
 
-        try:
+    try:
+        async with session() as db:
+            # 1. The key is writable through the same call the admin route
+            #    makes.
             await SiteOptionsService.set(db, "blogname", PROBE)
             await db.commit()
             read_back = await SiteOptionsService.get(db, "blogname")
@@ -96,32 +103,28 @@ async def main() -> int:
 
             await SiteOptionsService.set(db, "blog_public", "1")
             await db.commit()
-
-            # 4. admin_email is the sender of system mail, so an empty value
-            #    must not be accepted silently — the fallback exists, but the
-            #    UI is what guards the shape.
-            await SiteOptionsService.set(db, "admin_email", "owner@example.com")
+    finally:
+        # Restore every key this script touched, whatever happened above: a
+        # verification run must not leave a store named "identity-probe-…".
+        async with session() as db:
+            for key, original in originals.items():
+                if original is None:
+                    await db.execute(
+                        text("DELETE FROM site_options WHERE option_key = :k"),
+                        {"k": key},
+                    )
+                else:
+                    await SiteOptionsService.set(db, key, original)
             await db.commit()
-            email = await SiteOptionsService.get(db, "admin_email")
-            if email != "owner@example.com":
-                failures.append(f"admin_email read back as {email!r}")
-            else:
-                print("PASS: admin_email round-trips")
-
-        finally:
-            for key, value in originals.items():
-                await SiteOptionsService.set(db, key, value)
-            await db.commit()
-            print("restored the four original values")
-
-    await engine.dispose()
+        print("restored the site-identity options")
+        await engine.dispose()
 
     for f in failures:
         print("FAIL: %s" % f)
     if failures:
         return 1
     print("")
-    print("PASS: the identity settings are writable and a reader sees them.")
+    print("PASS: the site-identity settings round-trip through their readers.")
     return 0
 
 

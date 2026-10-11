@@ -32,7 +32,6 @@ const SECTION_LABELS: Record<string, string> = {
   modules: "ماژول‌ها",
   migrations: "مهاجرت‌های پایگاه داده",
   options: "تنظیمات سایت",
-  scheduled_jobs: "کارهای زمان‌بندی‌شده",
 };
 
 const FIELD_LABELS: Record<string, string> = {
@@ -55,9 +54,8 @@ const FIELD_LABELS: Record<string, string> = {
   api_docs_enabled: "مستندات API فعال",
   enabled_count: "تعداد ماژول‌های فعال",
   registered: "روش ثبت ماژول‌ها",
-  // The three rows below are what a support thread asks for first: which
-  // revision is stamped, how many options load on every request, and what the
-  // beat is configured to fire.
+  // The two rows below are what a support thread asks for first: which
+  // revision is stamped, and how many options load on every request.
   current_revision: "مرحلهٔ فعلی (revision)",
   in_consistent_state: "در وضعیت ناسازگار (مهاجرت نیمه‌کاره)",
   autoloaded_count: "تنظیمات autoload",
@@ -75,9 +73,7 @@ function formatValue(value: SiteHealthInfoSection[string]): string {
   if (typeof value === "boolean") return value ? "بله" : "خیر";
   if (typeof value === "number") return toPersianDigits(String(value));
   if (Array.isArray(value)) {
-    // String(value) on a list of objects renders "[object Object]". The
-    // scheduled-jobs row is the only list in this payload, and it is the one
-    // a reader most wants to read.
+    // String(value) on a list of objects renders "[object Object]".
     return value
       .map((entry) =>
         entry && typeof entry === "object"
@@ -198,9 +194,9 @@ export function SiteHealthInfoTab() {
                     className="grid grid-cols-1 gap-1 px-4 py-2 text-sm sm:grid-cols-[minmax(0,14rem)_1fr]"
                   >
                     <dt className="text-muted-foreground">{labelFor(name, field)}</dt>
-                    {/* whitespace-pre-line: a list value (the scheduled jobs)
-                        is joined with newlines, and without it all 25 jobs
-                        render on one unreadable line. */}
+                    {/* whitespace-pre-line: a list value is joined with
+                        newlines, and without it every entry renders on one
+                        unreadable line. */}
                     <dd className="break-all whitespace-pre-line font-mono text-xs sm:text-sm">
                       {formatValue(value)}
                     </dd>

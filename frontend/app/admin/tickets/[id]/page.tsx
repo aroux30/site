@@ -141,7 +141,17 @@ export default function AdminTicketDetailPage() {
             <div className="flex flex-wrap items-center gap-3 mt-1.5 text-xs text-muted-foreground">
               <span className="break-all">شماره تیکت: {ticket.ticket_number}</span>
               <span>•</span>
-              <span className="break-all">شناسه کاربر: {ticket.user_id}</span>
+              {/* Customer name instead of the raw UUID the page used to
+                  print (the admin detail endpoint now attaches identity). */}
+              <span>مشتری: {ticket.customer_name ?? "بدون نام پروفایل"}</span>
+              {ticket.customer_phone && (
+                <>
+                  <span>•</span>
+                  <span className="font-mono" dir="ltr">
+                    {toPersianDigits(ticket.customer_phone)}
+                  </span>
+                </>
+              )}
               <span>•</span>
               <span>
                 تاریخ ثبت:{" "}

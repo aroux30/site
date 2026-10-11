@@ -112,8 +112,7 @@ class CardToCardProvider(PaymentProvider):
         callback_url: str,
         description: str = "",
         mobile: str | None = None,
-        email: str | None = None,
-    ) -> PaymentResult:
+        ) -> PaymentResult:
         """Initiate a Card-to-Card payment and return merchant card details.
 
         Generates a unique tracking authority for the transaction. The payment

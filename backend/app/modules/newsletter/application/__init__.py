@@ -1,1 +1,0 @@
-"""Newsletter application package."""

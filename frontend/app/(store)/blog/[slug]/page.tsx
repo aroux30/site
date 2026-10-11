@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
@@ -22,29 +23,44 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { fetchBlogPostBySlug, fetchBlogPosts, type PostVisibility } from "@/lib/api/blog";
+import { fetchBlogPostBySlug, type PostVisibility } from "@/lib/api/blog";
 import { archiveHref, postHref } from "@/lib/permalinks";
 import { getRoutingConfig } from "@/lib/routing";
 import { apiInternalUrl } from "@/lib/api/server-base";
-import { alternatesFor, type AlternateLocale } from "@/lib/hreflang";
 import cleanHtml from "@/lib/sanitize-html";
+import { extractFaqEntries, faqJsonLd } from "@/lib/content-faq";
 import { safeJsonLd } from "@/lib/safe-json-ld";
-import { fetchPublicDiscussionOptions } from "@/lib/public-options";
+import {
+  fetchPublicBreadcrumbOptions,
+  fetchPublicDiscussionOptions,
+} from "@/lib/public-options";
 import { RemoteImage } from "@/components/shared/remote-image";
 import { BlogComments } from "@/components/blog/blog-comments";
 import PostFormatBody, { isSpecialFormat } from "@/components/blog/post-format-body";
 import { PasswordProtectedContent } from "@/components/blog/password-protected-content";
 import { siteOrigin } from "@/lib/site-url";
-import {
-  LanguageSwitcher,
-  type TranslationLink,
-} from "@/components/shared/language-switcher";
 
 interface BlogPostPageProps {
   params: Promise<{
     slug: string;
   }>;
 }
+
+/**
+ * The post fetch, deduplicated per request.
+ *
+ * `generateMetadata` and the page body both need the post, and each used to
+ * fetch it separately — two round trips before the first byte, and (before
+ * the `track_view` flag) two view counts. `cache()` makes the second caller
+ * reuse the first's promise: one fetch per request, and metadata resolves
+ * sooner because it is not queued behind a second network call.
+ *
+ * `trackView: false` here; the page body below counts the view itself via
+ * its own fetch, so metadata assembly never inflates the counter.
+ */
+const getPost = cache(async (slug: string) =>
+  fetchBlogPostBySlug(slug, { trackView: false }),
+);
 
 /** One end of the previous/next pair. */
 interface NeighborLink {
@@ -54,9 +70,6 @@ interface NeighborLink {
   published_at: string | null;
 }
 
-/** Sibling translations of the current post, resolved from the public list.
- *  Only posts sharing a translation_group are offered; a lone post renders
- *  no switcher. (Per-locale list filtering is on the routing roadmap.) */
 /** The previous and next published post.
  *
  * The endpoint existed with no caller, so a reader who landed mid-archive had
@@ -76,55 +89,31 @@ async function getNeighbors(
   }
 }
 
-async function getTranslationLinks(
-  translationGroup: string,
-  selfId: string,
-): Promise<TranslationLink[]> {
-  try {
-    const res = await fetchBlogPosts({ page: 1, page_size: 100 });
-    return res.items
-      .filter(
-        (p) =>
-          p.id !== selfId &&
-          p.translation_group === translationGroup &&
-          p.status === "published",
-      )
-      .map((p) => ({
-        locale: p.locale || "fa",
-        href: `/blog/${p.slug}`,
-        title: p.title,
-      }));
-  } catch {
-    return [];
-  }
+/** One Link Genius related-post suggestion (TF-IDF ranked). */
+interface GeniusRelated {
+  post_id: string;
+  title: string;
+  slug: string;
+  url: string;
+  score: number;
 }
 
-/** The post's own locale plus its published translations, for hreflang.
- *
- * Backed off to a Persian default rather than propagating: hreflang is a
- * refinement, and losing it must not cost the article its metadata.
- */
-async function fetchPostAlternates(
-  slug: string,
-): Promise<{ locale: string; translations: AlternateLocale[] }> {
+/** TF-IDF related posts (Link Genius) — the fallback when the same-category
+ * heuristic returns nothing (a post with no category, or the only post in its
+ * category). The ranking is computed server-side from the live bodies; this
+ * fetch only carries the result. Fails to an empty list, never breaking the
+ * article. */
+async function getGeniusRelated(slug: string, limit = 3): Promise<GeniusRelated[]> {
   try {
     const res = await fetch(
-      `${apiInternalUrl()}/blog/posts/${encodeURIComponent(slug)}/alternates`,
-      { next: { revalidate: 300 } },
+      `${apiInternalUrl()}/seo/blog/${encodeURIComponent(slug)}/related?limit=${limit}`,
+      { next: { revalidate: 600 } },
     );
-    if (!res.ok) return { locale: "fa", translations: [] };
-    const data = (await res.json()) as {
-      self: { locale: string };
-      alternates: AlternateLocale[];
-    };
-    return {
-      locale: data.self?.locale || "fa",
-      translations: (data.alternates ?? []).filter(
-        (a) => a.locale !== data.self?.locale,
-      ),
-    };
+    if (!res.ok) return [];
+    const data = (await res.json()) as { items?: GeniusRelated[] };
+    return data.items ?? [];
   } catch {
-    return { locale: "fa", translations: [] };
+    return [];
   }
 }
 
@@ -148,7 +137,9 @@ export async function generateMetadata(props: BlogPostPageProps): Promise<Metada
   const { slug } = await props.params;
   let visibility: PostVisibility | undefined;
   try {
-    visibility = (await fetchBlogPostBySlug(slug))?.visibility;
+    // Deduplicated fetch (see `getPost`); this is a metadata read, not a
+    // reader's page view, so the shared fetch never counts a view.
+    visibility = (await getPost(slug))?.visibility;
   } catch {
     visibility = undefined; // network failure: leave metadata as built
   }
@@ -167,7 +158,9 @@ async function buildPostMetadata({
   // means "article not found" (BUG-FE-06).
   let post: Awaited<ReturnType<typeof fetchBlogPostBySlug>> = null;
   try {
-    post = await fetchBlogPostBySlug(slug);
+    // Deduplicated fetch (see `getPost`) — the page body's own fetch below
+    // is the one that counts the view.
+    post = await getPost(slug);
   } catch {
     return {
       title: "وبلاگ تخصصی",
@@ -192,21 +185,127 @@ async function buildPostMetadata({
     author_slug: post.author_slug ?? null,
   });
 
-  // Translations come from the backend, and a failure here must not take the
-  // article down — a post without hreflang is still indexable.
-  const { locale, translations } = await fetchPostAlternates(post.slug);
+  // The operator's SEO fields win over the generated fallbacks. They existed
+  // on the response (and are what a WXR import brings in from Rank Math) but
+  // were never read here: a hand-tuned title was stored, displayed in the
+  // admin, and then ignored by the page the crawler actually sees.
+  const seo = post.seo;
+  const siteName = routing.blogname || "فروشگاه";
+  // Single source for the origin (SEO audit F-15): NEXT_PUBLIC_SITE_URL.
+  // The DB value feeds backend-built URLs only; reading it here too could
+  // publish a different canonical domain than the rest of the site.
+  const siteBase = siteOrigin();
+
+  // The share image must be one WE can serve. A cover that still points at
+  // the old site (`https://arouxshop.com/…` — what a WXR import stores when
+  // the sideload did not run) would break the moment that site goes away,
+  // which is the whole point of a migration: og:image and twitter:image
+  // would 404 and social cards would show nothing. A foreign-host URL is
+  // treated as "no image" — RemoteImage already degrades the on-page cover
+  // the same way, so the two agree.
+  const isLocalImage = (u?: string | null): u is string =>
+    !!u && (u.startsWith("/") || u.includes(new URL(siteBase).hostname));
+  const ogImage = isLocalImage(seo?.og_image)
+    ? seo.og_image
+    : isLocalImage(post.cover_image_url)
+      ? post.cover_image_url
+      : undefined;
+
+  // Absolute image URL for og:image — the stored value is site-relative
+  // (`/uploads/media/…`), and Facebook/LinkedIn fetch the og:image from
+  // their own servers, where a relative path means nothing.
+  const absoluteOgImage = ogImage
+    ? ogImage.startsWith("http")
+      ? ogImage
+      : `${siteBase.replace(/\/$/, "")}${ogImage.startsWith("/") ? "" : "/"}${ogImage}`
+    : undefined;
 
   return {
-    title: `${post.title} | وبلاگ تخصصی`,
-    description: post.excerpt || post.title,
-    openGraph: {
-      title: post.title,
-      description: post.excerpt || post.title,
-      type: "article",
-      publishedTime: post.published_at,
-      images: post.cover_image_url ? [post.cover_image_url] : [],
+    title: seo?.title || `${post.title} | وبلاگ تخصصی`,
+    description: seo?.description || post.excerpt || post.title,
+    // The article's own keywords, not the root layout's shop defaults. The
+    // layout sets generic keywords ("فروشگاه اینترنتی, خرید آنلاین…") which
+    // described the storefront, not the article — every article page showed
+    // them. The focus keyword from the SEO panel wins; the post's tags are
+    // the fallback; with neither, no keywords tag is emitted (better than a
+    // wrong one — search engines that still read it would be misled).
+    keywords:
+      (seo?.focus_keyword
+        ? seo.focus_keyword.split(",").map((k) => k.trim()).filter(Boolean)
+        : post.tags?.map((t) => t.name)) ?? undefined,
+    // `max-image-preview:large` lets Google show the full image in search
+    // results (the source site sends it; without it Google may show a
+    // thumbnail instead). `max-snippet:-1` lifts the snippet length cap.
+    //
+    // The operator's Advanced-tab choices override the defaults: an explicit
+    // true forces noindex/nofollow; an explicit false forces index/follow
+    // (so a page can opt back IN even when a broader rule would exclude it);
+    // null/undefined means "no choice" and the defaults apply.
+    robots: {
+      index: seo?.robots_noindex === true ? false : true,
+      follow: seo?.robots_nofollow === true ? false : true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
     },
-    alternates: alternatesFor(canonical, locale, translations),
+    openGraph: {
+      title: seo?.og_title || seo?.title || post.title,
+      description: seo?.og_description || seo?.description || post.excerpt || post.title,
+      // The operator's og:type when set; "article" is the correct default
+      // for a blog post (Next's type union only allows a few values, so a
+      // custom one goes through the `other` escape hatch below).
+      type: "article",
+      // og:url — the page's own address. It was missing, so a share had no
+      // canonical address attached.
+      url: seo?.canonical_url || canonical,
+      siteName,
+      locale: "fa_IR",
+      publishedTime: post.published_at ?? undefined,
+      modifiedTime: post.updated_at ?? undefined,
+      authors: post.author_name ? [post.author_name] : undefined,
+      section: post.category?.name ?? undefined,
+      tags: post.tags?.map((t) => t.name) ?? undefined,
+      images: absoluteOgImage ? [absoluteOgImage] : [],
+    },
+    twitter: {
+      card: "summary_large_image",
+      // Twitter overrides win over the OG values, which win over the post
+      // fields — Rank Math's precedence, and the reason the Social tab's
+      // fields are stored separately.
+      title: seo?.twitter_title || seo?.og_title || seo?.title || post.title,
+      description:
+        seo?.twitter_description ||
+        seo?.og_description ||
+        seo?.description ||
+        post.excerpt ||
+        post.title,
+      images: (seo?.twitter_image || absoluteOgImage)
+        ? [seo?.twitter_image || absoluteOgImage || ""]
+        : [],
+    },
+    // Twitter's author/reading-time labels. Next's `twitter` type has no
+    // field for them (they are Rank Math extras the source site sends), so
+    // they go through `other` — the escape hatch for arbitrary meta tags.
+    // A custom og:type also rides here: Next's typed `openGraph.type` only
+    // accepts a fixed union, and an operator's "product"/"video.other"
+    // choice must still reach the tag.
+    other: {
+      ...(post.author_name ? { "twitter:label1": "نویسنده", "twitter:data1": post.author_name } : {}),
+      ...(post.reading_time
+        ? { "twitter:label2": "زمان خواندن", "twitter:data2": `${post.reading_time} دقیقه` }
+        : {}),
+      ...(seo?.og_type ? { "og:type": seo.og_type } : {}),
+    },
+    alternates: {
+      canonical: seo?.canonical_url || canonical,
+      types: {
+        // Point crawlers at the article's RSS feed, the way the source site
+        // does — the feed existed but nothing in the head declared it.
+        // The public path, not the /api/v1 implementation detail (SEO audit
+        // F-12): a reader-facing feed URL should not leak the API prefix,
+        // and /blog/feed/rss is the stable public route.
+        "application/rss+xml": `${siteBase.replace(/\/$/, "")}/blog/feed/rss`,
+      },
+    },
   };
 }
 
@@ -227,11 +326,19 @@ export default async function BlogPostDetailPage({
   const { commentRegistration: requiresLogin } =
     await fetchPublicDiscussionOptions();
 
-  const translationLinks = post.translation_group
-    ? await getTranslationLinks(post.translation_group, post.id)
-    : [];
+  // Breadcrumb display settings (Rank Math's Breadcrumbs panel): the home
+  // label, the blog-crumb toggle and the separator all come from one source,
+  // so the visible trail and the BreadcrumbList JSON-LD cannot disagree.
+  const breadcrumbOptions = await fetchPublicBreadcrumbOptions();
 
   const { previous, next } = await getNeighbors(post.slug);
+
+  // Link Genius related posts: only fetched when the same-category heuristic
+  // came back empty, so the common case makes no extra request. This is the
+  // consumer for the /seo/blog/{slug}/related route — a route with no caller
+  // would be a gap.
+  const hasCategoryRelated = (post.related_posts?.length ?? 0) > 0;
+  const geniusRelated = hasCategoryRelated ? [] : await getGeniusRelated(post.slug, 3);
 
   // Permalink routing for the links this page renders (breadcrumbs, tag
   // chips, related posts); the canonical slug route always keeps working.
@@ -239,57 +346,124 @@ export default async function BlogPostDetailPage({
 
   // JSON-LD nodes need absolute URLs and the real publisher name; both were
   // hardcoded to example.com and a literal store name.
-  const siteBase = routing.site_url || siteOrigin();
+  // Same single-origin rule as above (F-15).
+  const siteBase = siteOrigin();
   const siteName = routing.blogname || "فروشگاه";
 
-  // Generate JSON-LD Structured Data
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "Article",
-    headline: post.title,
-    description: post.excerpt,
-    image: post.cover_image_url,
-    datePublished: post.published_at || post.created_at,
-    dateModified: post.updated_at || post.created_at,
-    author: {
-      "@type": "Person",
-      name: post.author_name || "تیم تحریریه",
-    },
-    publisher: {
-      "@type": "Organization",
-      name: siteName,
-      logo: {
-        "@type": "ImageObject",
-        url: `${siteBase}/logo.png`,
-      },
-    },
-  };
+  // The same canonical the head declares, for `mainEntityOfPage`.
+  const canonicalForJsonLd =
+    post.seo?.canonical_url ||
+    `${siteBase.replace(/\/$/, "")}${postHref(routing.permalink_structure, {
+      slug: post.slug,
+      id: post.id,
+      published_at: post.published_at,
+      category_slug: post.category?.slug ?? null,
+      author_slug: post.author_slug ?? null,
+    })}`;
+
+  // FAQPage structured data, when the body has a FAQ section. The API sends
+  // the already-rendered body (wpautop + ToC + heading demotion applied), so
+  // the heading levels here match what the reader sees.
+  const faqEntries = extractFaqEntries(post.content);
+
+  // Generate JSON-LD Structured Data.
+  //
+  // Completeness matters to Rich Results: Google reads `mainEntityOfPage`
+  // (which page this article is ON), `wordCount` and `articleSection`
+  // (used for the article rich card), and `keywords` (the focus keyword).
+  // The first version carried only headline/description/dates/author, and
+  // its `image` was site-relative — schema.org needs an absolute URL, so
+  // Google could not fetch it.
+  const jsonLdImage = post.cover_image_url
+    ? post.cover_image_url.startsWith("http")
+      ? post.cover_image_url
+      : `${siteBase.replace(/\/$/, "")}${post.cover_image_url.startsWith("/") ? "" : "/"}${post.cover_image_url}`
+    : undefined;
+  const wordCount = (post.content || "")
+    .replace(/<[^>]+>/g, " ")
+    .split(/\s+/)
+    .filter((w) => /\S/.test(w)).length;
+  const focusKeywords = post.seo?.focus_keyword;
+
+  // The operator's schema override, when one is stored (the editor's schema
+  // builder writes it to seo_metadata.schema_markup). This was saved but
+  // never rendered — the page always emitted its own Article node, so the
+  // operator's choice had no effect on the page. When present it REPLACES
+  // the Article node (Rank Math semantics: the stored schema is the page's
+  // schema), while the FAQ/Breadcrumb nodes below stay independent.
+  const storedSchema = post.seo?.schema_markup;
+
+  const jsonLd =
+    storedSchema && typeof storedSchema === "object" && !Array.isArray(storedSchema)
+      ? storedSchema
+      : {
+          "@context": "https://schema.org",
+          "@type": "Article",
+          headline: post.title,
+          description: post.seo?.description || post.excerpt,
+          ...(jsonLdImage ? { image: jsonLdImage } : {}),
+          datePublished: post.published_at || post.created_at,
+          dateModified: post.updated_at || post.created_at,
+          author: {
+            "@type": "Person",
+            name: post.author_name || "تیم تحریریه",
+          },
+          publisher: {
+            "@type": "Organization",
+            name: siteName,
+            logo: {
+              "@type": "ImageObject",
+              // /logo.png answers 404 (live-verified 2026-10-10); the only
+              // logo on disk is the SVG. A broken logo URL invalidates the
+              // Organization node for rich results.
+              url: `${siteBase}/logo.svg`,
+            },
+          },
+          // The page this article lives on. Required for the Article rich result.
+          mainEntityOfPage: {
+            "@type": "WebPage",
+            "@id": canonicalForJsonLd,
+          },
+          ...(wordCount > 0 ? { wordCount } : {}),
+          ...(post.category?.name ? { articleSection: post.category.name } : {}),
+          ...(focusKeywords ? { keywords: focusKeywords } : {}),
+          ...(post.tags && post.tags.length > 0
+            ? { about: post.tags.map((t) => ({ "@type": "Thing", name: t.name })) }
+            : {}),
+        };
 
   // BreadcrumbList JSON-LD: mirrors the visible trail so search engines can
   // render the same path in results. Built from the post itself rather than a
   // second fetch — the server component already has everything it needs.
+  //
+  // The trail mirrors the operator's breadcrumb settings (home label,
+  // blog-crumb toggle) so the JSON-LD and the visible nav below render the
+  // exact same path — a structured trail that disagrees with the page is a
+  // Rich Results mismatch.
+  const breadcrumbTrail: Array<{ name: string; item?: string }> = [
+    { name: breadcrumbOptions.homeLabel, item: siteBase },
+    ...(breadcrumbOptions.showBlog
+      ? [{ name: "وبلاگ", item: `${siteBase}/blog` }]
+      : []),
+    ...(post.category
+      ? [
+          {
+            name: post.category.name,
+            item: `${siteBase}${archiveHref(routing, "category", post.category.slug)}`,
+          },
+        ]
+      : []),
+    { name: post.title },
+  ];
   const breadcrumbJsonLd = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
-    itemListElement: [
-      { "@type": "ListItem", position: 1, name: "خانه", item: siteBase },
-      { "@type": "ListItem", position: 2, name: "وبلاگ", item: `${siteBase}/blog` },
-      ...(post.category
-        ? [
-            {
-              "@type": "ListItem",
-              position: 3,
-              name: post.category.name,
-              item: `${siteBase}${archiveHref(routing, "category", post.category.slug)}`,
-            },
-          ]
-        : []),
-      {
-        "@type": "ListItem",
-        position: post.category ? 4 : 3,
-        name: post.title,
-      },
-    ],
+    itemListElement: breadcrumbTrail.map((crumb, i) => ({
+      "@type": "ListItem",
+      position: i + 1,
+      name: crumb.name,
+      ...(crumb.item ? { item: crumb.item } : {}),
+    })),
   };
 
   return (
@@ -311,33 +485,40 @@ export default async function BlogPostDetailPage({
         dangerouslySetInnerHTML={{ __html: safeJsonLd(breadcrumbJsonLd) }}
       />
 
-      <article className="container mx-auto px-4 py-10 max-w-4xl">
-        {/* Language switcher — only rendered when sibling translations exist */}
-        <LanguageSwitcher
-          currentLocale={post.locale || "fa"}
-          translations={translationLinks}
+      {/* FAQPage JSON-LD — only when the body actually carries a FAQ
+          section (an H2 like "سوالات متداول" with at least two H3 Q&As).
+          A guide article without one emits no node; a fake or empty FAQ
+          node is a Rich Results violation. */}
+      {faqEntries && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: safeJsonLd(faqJsonLd(faqEntries)) }}
         />
+      )}
 
-        {/* Breadcrumb Navigation */}
-        <nav className="flex items-center gap-2 text-xs md:text-sm text-muted-foreground mb-8">
-          <Link href="/" className="hover:text-foreground transition-colors">
-            خانه
-          </Link>
-          <ChevronRight className="w-3.5 h-3.5 rtl:rotate-180" />
-          <Link href="/blog" className="hover:text-foreground transition-colors">
-            وبلاگ
-          </Link>
-          {post.category && (
-            <>
-              <ChevronRight className="w-3.5 h-3.5 rtl:rotate-180" />
-              <Link
-                href={archiveHref(routing, "category", post.category.slug)}
-                className="hover:text-foreground transition-colors"
-              >
-                {post.category.name}
-              </Link>
-            </>
-          )}
+      <article className="container mx-auto px-4 py-10 max-w-4xl">
+        {/* Breadcrumb Navigation — rendered from the same trail array the
+            JSON-LD above uses, so the visible path and the structured path
+            are one construction (they cannot disagree). The operator's
+            settings shape both: home label, blog-crumb toggle. */}
+        <nav
+          aria-label="مسیر صفحه"
+          className="flex items-center gap-2 text-xs md:text-sm text-muted-foreground mb-8"
+        >
+          {breadcrumbTrail
+            .filter((crumb) => crumb.item) // current page has no link
+            .map((crumb, i) => (
+              <span key={crumb.item ?? i} className="flex items-center gap-2">
+                {i > 0 && (
+                  <span aria-hidden="true" className="text-muted-foreground/50">
+                    {breadcrumbOptions.separator}
+                  </span>
+                )}
+                <Link href={crumb.item!} className="hover:text-foreground transition-colors">
+                  {crumb.name}
+                </Link>
+              </span>
+            ))}
         </nav>
 
         {/* Header Title Section */}
@@ -391,7 +572,7 @@ export default async function BlogPostDetailPage({
 
             <div className="flex items-center gap-2">
               <Button variant="outline" size="sm" asChild className="gap-1.5 text-xs">
-                <a href="/api/v1/blog/feed/rss" target="_blank" rel="noopener noreferrer">
+                <a href="/blog/feed/rss" target="_blank" rel="noopener noreferrer">
                   <Rss className="w-3.5 h-3.5 text-amber-500" />
                   خوراک RSS
                 </a>
@@ -420,15 +601,28 @@ export default async function BlogPostDetailPage({
           )}
         </header>
 
-        {/* Featured Cover Image */}
+        {/* Featured Cover Image — rendered through RemoteImage, not a raw
+            `next/image`.
+
+            A raw `Image` **throws during render** when the src host is not in
+            `images.remotePatterns`, and that throw takes the whole route down:
+            an imported post whose cover still points at the source site
+            (e.g. `arouxshop.com` — the WXR import stores whatever the file
+            carried) returned **HTTP 500 to every crawler**. Verified live:
+            Googlebot/bingbot/curl all received 500 on this page. `RemoteImage`
+            checks the host first and degrades to a neutral panel instead —
+            which is exactly what it was built for (see
+            components/shared/remote-image.tsx). The cover keeps its aspect
+            ratio (`h-auto`); `priority` is passed for the LCP hint when the
+            host is allowed. */}
         {post.cover_image_url && (
-          <div className="relative w-full h-[320px] md:h-[480px] rounded-3xl overflow-hidden mb-12 shadow-2xl border border-border">
-            <Image
+          <div className="relative w-full rounded-3xl overflow-hidden mb-12 shadow-2xl border border-border">
+            <RemoteImage
               src={post.cover_image_url}
               alt={post.title}
-              fill
+              fill={false}
               priority
-              className="object-cover"
+              className="w-full h-auto"
             />
           </div>
         )}
@@ -587,6 +781,32 @@ export default async function BlogPostDetailPage({
                   </div>
                   <CardContent className="p-5">
                     <Link href={postHref(routing.permalink_structure, { slug: rel.slug, id: rel.id, published_at: rel.published_at, category_slug: rel.category?.slug ?? null, author_slug: rel.author_slug ?? null })}>
+                      <h4 className="font-bold text-sm leading-snug line-clamp-2 group-hover:text-emerald-600 transition-colors">
+                        {rel.title}
+                      </h4>
+                    </Link>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* Link Genius fallback: TF-IDF related posts, shown only when the
+            same-category list above is empty (no category, or the only post
+            in its category). A reader never reaches the end of an article
+            with nowhere to go next. */}
+        {geniusRelated.length > 0 && (
+          <section className="pt-10 border-t border-border mt-16">
+            <h3 className="text-2xl font-bold mb-8">مقالات مرتبط پیشنهادی</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {geniusRelated.map((rel) => (
+                <Card
+                  key={rel.post_id}
+                  className="group overflow-hidden rounded-2xl border-border bg-card hover:shadow-lg transition-all"
+                >
+                  <CardContent className="p-5">
+                    <Link href={rel.url}>
                       <h4 className="font-bold text-sm leading-snug line-clamp-2 group-hover:text-emerald-600 transition-colors">
                         {rel.title}
                       </h4>

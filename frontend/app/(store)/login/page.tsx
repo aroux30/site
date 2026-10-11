@@ -435,12 +435,6 @@ function LoginForm() {
                       >
                         رمز عبور را فراموش کرده‌ام؟ ورود با کد یکبار مصرف
                       </button>
-                      <Link
-                        href="/forgot-password"
-                        className="block text-[11px] text-muted-foreground hover:underline"
-                      >
-                        بازیابی با ایمیل
-                      </Link>
                     </div>
                     <div className="relative">
                       <Input
@@ -726,8 +720,6 @@ function LoginForm() {
           </CardContent>
 
           <CardFooter className="flex flex-col gap-3 border-t border-border/40 pt-4 text-center text-xs">
-            {/* SSO (Google OIDC) — hidden automatically when the backend has no OAuth config */}
-            <GoogleSsoButton />
             <p className="text-muted-foreground">
               حساب کاربری ندارید؟{" "}
               <Link
@@ -801,67 +793,6 @@ function LoginForm() {
           </div>
         </aside>
       </div>
-    </div>
-  );
-}
-
-/**
- * دکمه ورود با گوگل — فقط وقتی بک‌اند OAuth را پیکربندی کرده باشد نمایش داده می‌شود.
- * جریان: redirect به /api/v1/auth/sso/google → گوگل → callback با کوکی نشست → بازگشت.
- */
-function GoogleSsoButton() {
-  const [available, setAvailable] = React.useState(false);
-  const searchParams = useSearchParams();
-
-  React.useEffect(() => {
-    let mounted = true;
-    (async () => {
-      try {
-        const res = await fetch("/api/v1/auth/sso/google", {
-          method: "GET",
-          redirect: "manual",
-          credentials: "include",
-        });
-        // configured → 302 to accounts.google.com ; not configured → 4xx JSON
-        if (mounted && (res.type === "opaqueredirect" || res.status === 302 || res.status === 0)) {
-          setAvailable(true);
-        }
-      } catch {
-        // network error → keep hidden
-      }
-    })();
-    return () => {
-      mounted = false;
-    };
-  }, []);
-
-  if (!available) return null;
-
-  const start = () => {
-    const redirect = searchParams.get("redirect");
-    if (redirect) sessionStorage.setItem("sso_return", redirect);
-    window.location.href = "/api/v1/auth/sso/google";
-  };
-
-  return (
-    <div className="w-full space-y-3">
-      <div className="relative">
-        <div className="absolute inset-0 flex items-center">
-          <span className="w-full border-t border-border/60" />
-        </div>
-        <div className="relative flex justify-center text-[11px]">
-          <span className="bg-card px-2 text-muted-foreground">یا</span>
-        </div>
-      </div>
-      <Button type="button" variant="outline" className="w-full" onClick={start}>
-        <svg className="me-2 h-4 w-4" viewBox="0 0 24 24" aria-hidden>
-          <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.27-4.74 3.27-8.1Z" />
-          <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84A11 11 0 0 0 12 23Z" />
-          <path fill="#FBBC05" d="M5.84 14.1a6.6 6.6 0 0 1 0-4.2V7.06H2.18a11 11 0 0 0 0 9.88l3.66-2.84Z" />
-          <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15A11 11 0 0 0 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52Z" />
-        </svg>
-        <span>ورود با حساب گوگل</span>
-      </Button>
     </div>
   );
 }

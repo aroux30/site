@@ -371,7 +371,7 @@ export default function AdminDigitalInventoryPage() {
             مدیریت و بارگذاری پین‌ها، سریال‌ها و فایل‌های لایسنس
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Button variant="outline" size="sm" onClick={fetchCards}>
             <RefreshCw className="h-4 w-4 ms-2" />
             بروزرسانی

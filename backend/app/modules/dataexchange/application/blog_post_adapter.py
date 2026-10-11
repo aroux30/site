@@ -77,12 +77,6 @@ def _validate_status(value: str) -> str | None:
     return None
 
 
-def _validate_locale(value: str) -> str | None:
-    if not 2 <= len(value.strip()) <= 10:
-        return "کد زبان باید بین ۲ تا ۱۰ کاراکتر باشد (مثلاً fa)"
-    return None
-
-
 def _validate_excerpt(value: str) -> str | None:
     if len(value) > 1000:
         return "چکیده بیش از ۱۰۰۰ کاراکتر است"
@@ -159,14 +153,6 @@ BLOG_POST_COLUMNS: tuple[ColumnSpec, ...] = (
         type="string",
         aliases=("وضعیت انتشار", "post_status"),
         extra_validator=_validate_status,
-    ),
-    ColumnSpec(
-        key="locale",
-        label="زبان",
-        required=False,
-        type="string",
-        aliases=("زبان محتوا", "lang", "language"),
-        extra_validator=_validate_locale,
     ),
     ColumnSpec(
         key="category_slugs",
@@ -319,8 +305,6 @@ async def upsert_blog_post_row(
             post.status = status
             if status == BlogPostStatus.PUBLISHED and post.published_at is None:
                 post.published_at = datetime.now(UTC)
-        if row.get("locale"):
-            post.locale = row["locale"]
         if category is not None:
             post.category_id = category.id
         await _upsert_seo_meta(db, post, row)
@@ -341,7 +325,6 @@ async def upsert_blog_post_row(
         excerpt=row.get("excerpt"),
         status=status or BlogPostStatus.DRAFT,
         published_at=datetime.now(UTC) if status == BlogPostStatus.PUBLISHED else None,
-        locale=row.get("locale") or "fa",
         category_id=category.id if category is not None else None,
     )
     db.add(post)
@@ -400,7 +383,6 @@ async def export_blog_post_rows(
             "excerpt": post.excerpt or "",
             "body": post.content,
             "status": post.status.value,
-            "locale": post.locale,
             "category_slugs": category.slug if category is not None else "",
             "tag_slugs": ",".join(tags),
             "seo_title": meta_map.get("seo_title", ""),

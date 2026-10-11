@@ -29,12 +29,12 @@ def resolve_served_file(uploads_root: Path, url_path: str) -> Path | None:
     file. This is the security boundary for the public serving route: the
     returned path is always a real file underneath ``<uploads_root>/media``.
 
-    The public root is ``<UPLOAD_DIR>/media``, NOT ``UPLOAD_DIR``. Four other
-    modules write private data under the same upload root — ``invoices/``
-    (buyer name, phone and address), ``digital_assets/`` (paid files),
-    ``dataexchange/`` and ``report-runs/``. Confining the route to the media
-    subdirectory is what keeps those unreachable; the previous version
-    confined it to the upload root, which served all four to anonymous callers.
+    The public root is ``<UPLOAD_DIR>/media``, NOT ``UPLOAD_DIR``. Other
+    modules write private data under the same upload root — ``digital_assets/``
+    (paid files), ``dataexchange/`` and ``report-runs/``. Confining the route
+    to the media subdirectory is what keeps those unreachable; the previous
+    version confined it to the upload root, which served all of them to
+    anonymous callers.
 
     Stored ``file_url`` values include the ``media/`` segment
     (``/uploads/media/<name>``, see ``media_service.upload_file``), and that

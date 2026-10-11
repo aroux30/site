@@ -1,9 +1,6 @@
 /**
- * Shipment Tracking State Machine & RMA Window Integration (Sprint 3 Phase 2)
+ * Shipment Tracking State Machine (Sprint 3 Phase 2)
  */
-
-import { checkReturnEligibility } from "./rma";
-import { toPersianDigits } from "./utils";
 
 export type ShipmentStatus = "PENDING" | "SHIPPED" | "IN_TRANSIT" | "DELIVERED";
 
@@ -44,12 +41,6 @@ export interface ShipmentDetails {
   events?: ShipmentTrackingEvent[];
 }
 
-export interface ReturnWindowCountdown {
-  isOpen: boolean;
-  daysRemaining: number;
-  label: string;
-}
-
 /**
  * Returns the 0-indexed step index for a shipment status.
  */
@@ -58,8 +49,9 @@ export function getShipmentStepIndex(status: string | null | undefined): number 
   const upper = status.trim().toUpperCase();
   switch (upper) {
     case "PENDING":
+    case "WAITING_PAYMENT_GATEWAY":
+    case "WAITING_PAYMENT_CARD":
     case "PROCESSING":
-    case "CONFIRMED":
       return 0;
     case "SHIPPED":
       return 1;
@@ -77,8 +69,8 @@ export function getShipmentStepIndex(status: string | null | undefined): number 
  *
  * Accepts both backend vocabularies, since the stepper is fed an order status
  * in one place and a shipment status in another:
- *  - OrderStatus  (orders/domain/models.py): pending, confirmed, processing,
- *    packing, shipped, delivered, completed, canceled, on_hold, returned, …
+ *  - OrderStatus  (orders/domain/models.py): waiting_payment_gateway, waiting_payment_card,
+ *    pending, processing, completed, canceled, refunded
  *  - ShipmentStatus (shipping/domain/models.py): pending, processing, shipped,
  *    in_transit, delivered, returned, cancelled
  * A completed order had its parcel delivered and then closed; without this it
@@ -94,37 +86,4 @@ export function resolveShipmentStatus(
   if (upper === "DELIVERED" || upper === "COMPLETED") return "DELIVERED";
   if (upper === "SHIPPED") return "SHIPPED";
   return "PENDING";
-}
-
-/**
- * Evaluates the 7-day RMA countdown window once an order reaches DELIVERED status.
- */
-export function getReturnWindowCountdown(
-  status: string | null | undefined,
-  deliveredAt: string | Date | null | undefined,
-  now: Date = new Date()
-): ReturnWindowCountdown {
-  const normStatus = resolveShipmentStatus(status);
-  if (normStatus !== "DELIVERED") {
-    return {
-      isOpen: false,
-      daysRemaining: 0,
-      label: "سفارش هنوز تحویل داده نشده است",
-    };
-  }
-
-  const eligibility = checkReturnEligibility("delivered", deliveredAt, now);
-  if (eligibility.isEligible) {
-    return {
-      isOpen: true,
-      daysRemaining: eligibility.daysRemaining,
-      label: `${toPersianDigits(eligibility.daysRemaining)} روز از مهلت قانونی مرجوعی باقی مانده است`,
-    };
-  }
-
-  return {
-    isOpen: false,
-    daysRemaining: 0,
-    label: "مهلت ۷ روزه مرجوعی به پایان رسیده است",
-  };
 }

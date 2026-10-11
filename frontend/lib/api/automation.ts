@@ -23,7 +23,8 @@ export type ConditionOperator =
   | "lte"
   | "contains";
 
-export type AutomationActionType = "send_email" | "send_notification" | "fire_webhook";
+// "send_email" was removed on 2026-10-07 with the rest of the email feature.
+export type AutomationActionType = "send_notification";
 
 /** One condition: a dotted path into the trigger context, compared to a value. */
 export interface RuleCondition {
@@ -114,9 +115,7 @@ export const OPERATOR_LABELS: Record<ConditionOperator, string> = {
 };
 
 export const ACTION_LABELS: Record<AutomationActionType, string> = {
-  send_email: "ارسال ایمیل",
   send_notification: "اعلان درون‌برنامه‌ای",
-  fire_webhook: "فراخوانی وب‌هوک",
 };
 
 /**
@@ -125,21 +124,11 @@ export const ACTION_LABELS: Record<AutomationActionType, string> = {
  * operator can act on, so the form labels them up front instead.
  */
 export const ACTION_PARAM_HINTS: Record<AutomationActionType, Record<string, string>> = {
-  send_email: {
-    recipient: "آدرس ایمیل دریافت‌کننده (الزامی)",
-    subject: "موضوع",
-    message: "متن ایمیل",
-    template: "نام قالب (اختیاری)",
-  },
   send_notification: {
     user_id: "شناسه کاربر (الزامی)",
     title: "عنوان",
     body: "متن",
     type: "نوع اعلان",
-  },
-  fire_webhook: {
-    event: "نام رویداد (الزامی)",
-    payload: "بارگذاری (اختیاری؛ در غیر این صورت کل context ارسال می‌شود)",
   },
 };
 
@@ -190,9 +179,9 @@ export const automationApi = {
    * اجرای آزمایشی قاعده با یک context دلخواه.
    *
    * This is not side-effect free: a matching rule really does run its actions,
-   * which really do send the email / create the notification / enqueue the
-   * webhook. The endpoint is a dry run in the sense that it ignores the rule's
-   * active flag and cooldown, not in the sense that it fakes the actions.
+   * which really do create the notification. The endpoint is
+   * a dry run in the sense that it ignores the rule's active flag and
+   * cooldown, not in the sense that it fakes the actions.
    */
   triggerRule: async (
     ruleId: string,
@@ -201,97 +190,6 @@ export const automationApi = {
     const res = await apiClient.post<RuleTestResult>(
       `/automation/admin/rules/${ruleId}/trigger`,
       { context },
-    );
-    return res.data;
-  },
-};
-
-// ── Outbox dead letters (wave 6 #82) ────────────────────────────────────────
-
-export type OutboxStatusFilter = "dead_letter" | "failed" | "pending" | "processed";
-
-export interface OutboxMessageItem {
-  id: string;
-  event_type: string;
-  aggregate_type: string;
-  aggregate_id: string;
-  status: string;
-  retry_count: number;
-  max_retries: number;
-  last_error: string | null;
-  created_at: string;
-  available_at: string;
-}
-
-export interface OutboxMessagePage {
-  items: OutboxMessageItem[];
-  total: number;
-  page: number;
-  page_size: number;
-  total_pages: number;
-}
-
-export interface RequeueResult {
-  id: string;
-  status: string;
-  retry_count: number;
-  message: string;
-}
-
-export const outboxApi = {
-  list: async (params: {
-    status?: OutboxStatusFilter;
-    page?: number;
-    page_size?: number;
-  }): Promise<OutboxMessagePage> => {
-    const res = await apiClient.get<OutboxMessagePage>(
-      "/automation/admin/outbox/dead-letters",
-      { params },
-    );
-    return res.data;
-  },
-
-  requeue: async (messageId: string): Promise<RequeueResult> => {
-    const res = await apiClient.post<RequeueResult>(
-      `/automation/admin/outbox/dead-letters/${messageId}/requeue`,
-    );
-    return res.data;
-  },
-
-  purge: async (messageId: string): Promise<void> => {
-    await apiClient.delete(`/automation/admin/outbox/dead-letters/${messageId}`);
-  },
-};
-
-export interface ScheduledJob {
-  name: string;
-  task: string | null;
-  schedule: string;
-  queue: string | null;
-  registered: boolean;
-}
-
-export interface ScheduledJobList {
-  count: number;
-  jobs: ScheduledJob[];
-}
-
-export interface RunJobResult {
-  dispatched: boolean;
-  task?: string;
-  reason?: string;
-}
-
-/** Scheduled jobs (Celery beat), WordPress's Tools → Cron Events. */
-export const scheduledJobsApi = {
-  list: async (): Promise<ScheduledJobList> => {
-    const res = await apiClient.get<ScheduledJobList>("/automation/admin/scheduled-jobs");
-    return res.data;
-  },
-
-  run: async (name: string): Promise<RunJobResult> => {
-    const res = await apiClient.post<RunJobResult>(
-      `/automation/admin/scheduled-jobs/${encodeURIComponent(name)}/run`,
     );
     return res.data;
   },

@@ -12,12 +12,14 @@ from __future__ import annotations
 
 import math
 import uuid
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
 import structlog
 from sqlalchemy import func, select
 
 from app.core.exceptions.handlers import (
+    ConflictError,
     NotFoundError,
     PaymentError,
     ValidationError,
@@ -26,16 +28,63 @@ from app.modules.wallet.domain.models import (
     Wallet,
     WalletTransaction,
     WalletTransactionType,
+    WalletTransfer,
+    WalletWithdrawalRequest,
+    WithdrawalStatus,
 )
 from app.modules.wallet.schemas.wallet import (
+    WalletAdminListResponse,
     WalletResponse,
     WalletTransactionListResponse,
     WalletTransactionResponse,
+    WalletTransferListResponse,
+    WalletTransferResponse,
+    WalletWithdrawalListResponse,
+    WalletWithdrawalResponse,
 )
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
 logger: structlog.stdlib.BoundLogger = structlog.get_logger(__name__)
+
+
+# ── Module switches ───────────────────────────────────────────────────────
+#
+# Each wallet capability is independently toggleable via a ``site_options``
+# text row ("1"/"0"), read at request time — never cached, so an operator's
+# change takes effect on the next request. This mirrors the enforced toggles
+# elsewhere (registration_enabled, media_watermark_enabled). The master
+# ``wallet_enabled`` gates every capability below it.
+_TRUTHY = {"1", "true", "yes", "on", "فعال", "بله"}
+
+_WALLET_SWITCH_KEYS = {
+    "wallet_enabled",
+    "wallet_deposit_enabled",
+    "wallet_withdraw_enabled",
+    "wallet_transfer_enabled",
+    "wallet_admin_adjust_enabled",
+}
+
+
+async def _switch_enabled(db: AsyncSession, key: str, *, default: bool = True) -> bool:
+    """Return whether a wallet switch is on, reading ``site_options`` live.
+
+    Unknown/absent keys fall back to ``default`` so a database that predates
+    the seed keeps the feature available rather than silently disabling it.
+    """
+    from app.modules.settings.application.site_options_service import SiteOptionsService
+
+    raw = await SiteOptionsService.get(db, key, "1" if default else "0")
+    return str(raw or "").strip().lower() in _TRUTHY
+
+
+async def _require_switch(db: AsyncSession, key: str) -> None:
+    """Raise a Persian 403-equivalent if a wallet switch is off."""
+    if not await _switch_enabled(db, key):
+        raise ValidationError(
+            detail="این بخش از کیف پول در حال حاضر غیرفعال است. لطفاً بعداً تلاش کنید.",
+            error_code="WALLET_FEATURE_DISABLED",
+        )
 
 
 # ── Public Service Functions ──────────────────────────────────────────────
@@ -57,7 +106,7 @@ async def get_or_create_wallet(
 
     wallet = await _get_wallet_for_update(db, user_id)
     if wallet is not None:
-        return WalletResponse.model_validate(wallet)
+        return await _wallet_response(db, wallet)
 
     # Insert-or-ignore: the winner creates the row, the loser's INSERT
     # conflicts and does nothing (no exception, no duplicate).
@@ -80,7 +129,27 @@ async def get_or_create_wallet(
         user_id=str(user_id),
         wallet_id=str(wallet.id),
     )
-    return WalletResponse.model_validate(wallet)
+    return await _wallet_response(db, wallet)
+
+
+async def _wallet_response(db: AsyncSession, wallet: Wallet) -> WalletResponse:
+    """Build a WalletResponse, attaching the current module switch state.
+
+    The storefront uses ``features`` to HIDE the deposit/withdraw/transfer
+    entry points when a switch is off, rather than showing a button whose only
+    outcome is an error. All three read as enabled when their switch row is
+    absent, so an un-migrated database keeps the full wallet.
+    """
+    from app.modules.wallet.schemas.wallet import WalletFeatures
+
+    master = await _switch_enabled(db, "wallet_enabled")
+    features = WalletFeatures(
+        enabled=master,
+        deposit=master and await _switch_enabled(db, "wallet_deposit_enabled"),
+        withdraw=master and await _switch_enabled(db, "wallet_withdraw_enabled"),
+        transfer=master and await _switch_enabled(db, "wallet_transfer_enabled"),
+    )
+    return WalletResponse.model_validate(wallet).model_copy(update={"features": features})
 
 
 async def get_balance(
@@ -139,7 +208,7 @@ async def check_sufficient_balance(
     wallet = await _get_wallet_for_update(db, user_id)
     if wallet is None:
         raise PaymentError(
-            detail="Wallet not found for this user",
+            detail="کیف پول برای این کاربر یافت نشد.",
             error_code="WALLET_NOT_FOUND",
         )
 
@@ -151,7 +220,7 @@ async def check_sufficient_balance(
 
     if ledger_balance < amount:
         raise PaymentError(
-            detail="Insufficient wallet balance for this payment",
+            detail="موجودی کیف پول برای این پرداخت کافی نیست.",
             error_code="INSUFFICIENT_WALLET_BALANCE",
         )
 
@@ -178,7 +247,7 @@ async def credit(
 
     if amount <= 0:
         raise ValidationError(
-            detail="Credit amount must be positive",
+            detail="مبلغ واریز باید یک عدد صحیح مثبت (ریال) باشد.",
             error_code="INVALID_AMOUNT",
         )
 
@@ -284,7 +353,7 @@ async def debit(
 
     if amount <= 0:
         raise ValidationError(
-            detail="Debit amount must be positive",
+            detail="مبلغ برداشت باید یک عدد صحیح مثبت (ریال) باشد.",
             error_code="INVALID_AMOUNT",
         )
 
@@ -334,7 +403,8 @@ async def debit(
         )
         raise ValidationError(
             detail=(
-                f"Insufficient wallet balance. Available: {ledger_balance}, Requested: {amount}"
+                f"موجودی کیف پول کافی نیست. موجودی قابل استفاده: {ledger_balance} ریال، "
+                f"مبلغ درخواستی: {amount} ریال."
             ),
             error_code="INSUFFICIENT_BALANCE",
         )
@@ -464,6 +534,8 @@ async def record_journal_entry(
     description: str,
     reference_type: str | None = None,
     reference_id: uuid.UUID | None = None,
+    debit_type: WalletTransactionType = WalletTransactionType.DEBIT,
+    credit_type: WalletTransactionType = WalletTransactionType.CREDIT,
 ) -> tuple[uuid.UUID, uuid.UUID]:
     """Write a balanced debit+credit pair across two wallets, atomically.
 
@@ -478,12 +550,12 @@ async def record_journal_entry(
     """
     if amount <= 0:
         raise ValidationError(
-            detail="Journal amount must be a positive integer (IRR)",
+            detail="مبلغ سند حسابداری باید یک عدد صحیح مثبت (ریال) باشد.",
             error_code="INVALID_AMOUNT",
         )
     if debit_user_id == credit_user_id:
         raise ValidationError(
-            detail="Cannot journal between the same wallet",
+            detail="ثبت سند بین یک کیف پول با خودش امکان‌پذیر نیست.",
             error_code="INVALID_JOURNAL_PAIR",
         )
 
@@ -520,8 +592,8 @@ async def record_journal_entry(
     if debit_ledger < amount:
         raise ValidationError(
             detail=(
-                f"Insufficient balance for journal entry. "
-                f"Available: {debit_ledger}, Requested: {amount}"
+                f"موجودی برای ثبت سند کافی نیست. موجودی قابل استفاده: {debit_ledger} ریال، "
+                f"مبلغ درخواستی: {amount} ریال."
             ),
             error_code="INSUFFICIENT_BALANCE",
         )
@@ -531,14 +603,14 @@ async def record_journal_entry(
     debit_wallet.balance = debit_new
     credit_wallet.balance = credit_new
 
-    # type uses the two enum members that exist (DEBIT/CREDIT), matching
-    # debit()/credit() semantics — the pair link is the shared
-    # journal_entry_id + reference_type, not a TRANSFER enum member
-    # (which does not exist and would need a DB migration).
+    # The pair link is the shared journal_entry_id + reference_type. Callers
+    # may pass a more specific type for each leg (e.g. TRANSFER_OUT /
+    # TRANSFER_IN for a P2P transfer) so the customer's history reads
+    # correctly; the default keeps generic DEBIT/CREDIT semantics.
     debit_tx = WalletTransaction(
         wallet_id=debit_wallet.id,
         amount=-amount,
-        type=WalletTransactionType.DEBIT,
+        type=debit_type,
         reference_type=_JOURNAL_REFERENCE_TYPE,
         reference_id=journal_entry_id,
         description=description,
@@ -547,7 +619,7 @@ async def record_journal_entry(
     credit_tx = WalletTransaction(
         wallet_id=credit_wallet.id,
         amount=amount,
-        type=WalletTransactionType.CREDIT,
+        type=credit_type,
         reference_type=_JOURNAL_REFERENCE_TYPE,
         reference_id=journal_entry_id,
         description=description,
@@ -573,6 +645,694 @@ async def record_journal_entry(
         reference_id=str(reference_id) if reference_id else None,
     )
     return journal_entry_id, debit_tx.id
+
+
+# ── Peer-to-peer transfers ────────────────────────────────────────────────
+
+_TRANSFER_REFERENCE_TYPE = "p2p_transfer"
+
+
+async def _resolve_recipient(db: AsyncSession, phone: str) -> uuid.UUID:
+    """Resolve a normalized phone number to an active user id."""
+    from app.modules.users.domain.models import User
+
+    stmt = select(User).where(User.phone == phone)
+    user = (await db.execute(stmt)).scalar_one_or_none()
+    if user is None or user.deleted_at is not None:
+        raise ValidationError(
+            detail="کاربری با این شماره موبایل یافت نشد.",
+            error_code="RECIPIENT_NOT_FOUND",
+        )
+    return user.id
+
+
+async def transfer(
+    db: AsyncSession,
+    *,
+    from_user_id: uuid.UUID,
+    recipient_phone: str,
+    amount: int,
+    note: str | None = None,
+    idempotency_key: str | None = None,
+) -> WalletTransferResponse:
+    """Transfer funds from one customer's wallet to another's.
+
+    The money movement is a single balanced journal entry
+    (``TRANSFER_OUT`` + ``TRANSFER_IN`` sharing one ``journal_entry_id``), so
+    it is atomic and the ledger stays zero-sum. Idempotency is claimed by the
+    ``wallet_transfers.idempotency_key`` unique constraint *before* any money
+    moves: a replay returns the original transfer and never debits twice.
+    """
+    await _require_switch(db, "wallet_transfer_enabled")
+    await _require_switch(db, "wallet_enabled")
+
+    if amount <= 0:
+        raise ValidationError(
+            detail="مبلغ انتقال باید یک عدد صحیح مثبت (ریال) باشد.",
+            error_code="INVALID_AMOUNT",
+        )
+
+    # Idempotent replay: return the original transfer unchanged.
+    if idempotency_key:
+        existing = (
+            await db.execute(
+                select(WalletTransfer).where(
+                    WalletTransfer.idempotency_key == idempotency_key
+                )
+            )
+        ).scalar_one_or_none()
+        if existing is not None:
+            if existing.from_user_id != from_user_id:
+                # A key reused by a different user must never leak another
+                # user's transfer.
+                raise NotFoundError(resource="WalletTransfer")
+            return WalletTransferResponse.model_validate(existing)
+
+    to_user_id = await _resolve_recipient(db, recipient_phone)
+    if to_user_id == from_user_id:
+        raise ValidationError(
+            detail="انتقال به کیف پول خودتان امکان‌پذیر نیست.",
+            error_code="SELF_TRANSFER",
+        )
+
+    # The recipient wallet must exist and be active. _get_or_create_system_wallet
+    # creates a missing wallet row idempotently (a brand-new recipient has none
+    # yet); the active check then rejects a deactivated wallet.
+    recipient_wallet = await _get_or_create_system_wallet(db, to_user_id)
+    _check_wallet_active(recipient_wallet)
+
+    # Claim the idempotency key BEFORE moving money: insert the transfer row
+    # first, so a concurrent replay collides on the unique constraint here —
+    # with no money moved — instead of after the journal entry. The insert
+    # runs inside a SAVEPOINT so a collision does not abort the caller's whole
+    # transaction (the established pattern in cashback/gamification).
+    from sqlalchemy.exc import IntegrityError
+
+    transfer_row = WalletTransfer(
+        from_user_id=from_user_id,
+        to_user_id=to_user_id,
+        amount=amount,
+        fee=0,
+        note=note,
+        idempotency_key=idempotency_key,
+    )
+    try:
+        async with db.begin_nested():
+            db.add(transfer_row)
+            await db.flush()
+    except IntegrityError:
+        if idempotency_key:
+            existing = (
+                await db.execute(
+                    select(WalletTransfer).where(
+                        WalletTransfer.idempotency_key == idempotency_key
+                    )
+                )
+            ).scalar_one_or_none()
+            if existing is not None:
+                return WalletTransferResponse.model_validate(existing)
+        raise
+
+    journal_entry_id, _debit_tx_id = await record_journal_entry(
+        db,
+        debit_user_id=from_user_id,
+        credit_user_id=to_user_id,
+        amount=amount,
+        description="انتقال موجودی کیف پول",
+        reference_type=_TRANSFER_REFERENCE_TYPE,
+        reference_id=transfer_row.id,
+        debit_type=WalletTransactionType.TRANSFER_OUT,
+        credit_type=WalletTransactionType.TRANSFER_IN,
+    )
+    transfer_row.journal_entry_id = journal_entry_id
+    await db.flush()
+
+    await _publish_wallet_event(
+        db,
+        event_type="WalletTransferSent",
+        aggregate_id=str(transfer_row.id),
+        payload={
+            "user_id": str(from_user_id),
+            "counterparty_user_id": str(to_user_id),
+            "amount": amount,
+            "transfer_id": str(transfer_row.id),
+            "direction": "out",
+        },
+    )
+    await _publish_wallet_event(
+        db,
+        event_type="WalletTransferReceived",
+        aggregate_id=str(transfer_row.id),
+        payload={
+            "user_id": str(to_user_id),
+            "counterparty_user_id": str(from_user_id),
+            "amount": amount,
+            "transfer_id": str(transfer_row.id),
+            "direction": "in",
+        },
+    )
+
+    await logger.ainfo(
+        "wallet_transfer_completed",
+        from_user_id=str(from_user_id),
+        to_user_id=str(to_user_id),
+        amount=amount,
+        transfer_id=str(transfer_row.id),
+    )
+    return WalletTransferResponse.model_validate(transfer_row)
+
+
+# ── Withdrawal requests (submit → hold → admin review → manual payout) ─────
+
+
+async def request_withdrawal(
+    db: AsyncSession,
+    *,
+    user_id: uuid.UUID,
+    amount: int,
+    iban: str | None = None,
+    card_number: str | None = None,
+    account_holder_name: str | None = None,
+    idempotency_key: str | None = None,
+) -> WalletWithdrawalResponse:
+    """Submit a withdrawal request and hold the funds immediately.
+
+    The funds leave the spendable balance at submission time (a
+    ``WITHDRAWAL_HOLD`` ledger debit linked via ``wallet_transaction_id``), so
+    a customer cannot spend the same balance twice while an admin reviews the
+    request. Rejection credits the funds back; approval + manual payout only
+    advance the status.
+    """
+    await _require_switch(db, "wallet_withdraw_enabled")
+    await _require_switch(db, "wallet_enabled")
+
+    if amount <= 0:
+        raise ValidationError(
+            detail="مبلغ برداشت باید یک عدد صحیح مثبت (ریال) باشد.",
+            error_code="INVALID_AMOUNT",
+        )
+    if not (iban or card_number):
+        raise ValidationError(
+            detail="وارد کردن شماره شبا یا شماره کارت مقصد الزامی است.",
+            error_code="WITHDRAWAL_DESTINATION_REQUIRED",
+        )
+
+    # Idempotent replay.
+    if idempotency_key:
+        existing = (
+            await db.execute(
+                select(WalletWithdrawalRequest).where(
+                    WalletWithdrawalRequest.idempotency_key == idempotency_key
+                )
+            )
+        ).scalar_one_or_none()
+        if existing is not None:
+            if existing.user_id != user_id:
+                raise NotFoundError(resource="WalletWithdrawalRequest")
+            return WalletWithdrawalResponse.model_validate(existing)
+
+    from sqlalchemy.exc import IntegrityError
+
+    request_row = WalletWithdrawalRequest(
+        user_id=user_id,
+        amount=amount,
+        status=WithdrawalStatus.PENDING_REVIEW,
+        iban=iban,
+        card_number=card_number,
+        account_holder_name=account_holder_name,
+        idempotency_key=idempotency_key,
+    )
+    try:
+        async with db.begin_nested():
+            db.add(request_row)
+            await db.flush()
+    except IntegrityError:
+        if idempotency_key:
+            existing = (
+                await db.execute(
+                    select(WalletWithdrawalRequest).where(
+                        WalletWithdrawalRequest.idempotency_key == idempotency_key
+                    )
+                )
+            ).scalar_one_or_none()
+            if existing is not None:
+                return WalletWithdrawalResponse.model_validate(existing)
+        raise
+
+    # Hold the funds. If the balance is insufficient, debit() raises and the
+    # whole transaction (including this request row) rolls back — no orphan.
+    hold_tx = await debit(
+        db,
+        user_id=user_id,
+        amount=amount,
+        tx_type=WalletTransactionType.WITHDRAWAL_HOLD,
+        reference_type="withdrawal_hold",
+        reference_id=request_row.id,
+        description="بلوکه‌سازی مبلغ درخواست برداشت",
+    )
+    request_row.wallet_transaction_id = hold_tx.id
+    await db.flush()
+
+    await _publish_wallet_event(
+        db,
+        event_type="WalletWithdrawalRequested",
+        aggregate_id=str(request_row.id),
+        payload={
+            "user_id": str(user_id),
+            "amount": amount,
+            "request_id": str(request_row.id),
+        },
+    )
+    await logger.ainfo(
+        "wallet_withdrawal_requested",
+        user_id=str(user_id),
+        amount=amount,
+        request_id=str(request_row.id),
+    )
+    return WalletWithdrawalResponse.model_validate(request_row)
+
+
+async def get_withdrawals(
+    db: AsyncSession,
+    *,
+    user_id: uuid.UUID,
+    page: int = 1,
+    page_size: int = 20,
+) -> WalletWithdrawalListResponse:
+    """Paginated list of the caller's own withdrawal requests, newest first."""
+    if page < 1:
+        page = 1
+    if page_size < 1:
+        page_size = 20
+    if page_size > 100:
+        page_size = 100
+
+    total = int(
+        await db.scalar(
+            select(func.count())
+            .select_from(WalletWithdrawalRequest)
+            .where(WalletWithdrawalRequest.user_id == user_id)
+        )
+        or 0
+    )
+    rows = (
+        (
+            await db.execute(
+                select(WalletWithdrawalRequest)
+                .where(WalletWithdrawalRequest.user_id == user_id)
+                .order_by(WalletWithdrawalRequest.created_at.desc())
+                .offset((page - 1) * page_size)
+                .limit(page_size)
+            )
+        )
+        .scalars()
+        .all()
+    )
+    return WalletWithdrawalListResponse(
+        items=[WalletWithdrawalResponse.model_validate(r) for r in rows],
+        total=total,
+        page=page,
+        page_size=page_size,
+        pages=max(1, math.ceil(total / page_size)),
+    )
+
+
+async def review_withdrawal(
+    db: AsyncSession,
+    *,
+    request_id: uuid.UUID,
+    admin_id: uuid.UUID,
+    is_approved: bool,
+    admin_notes: str | None = None,
+) -> WalletWithdrawalResponse:
+    """Admin approve/reject of a pending withdrawal request.
+
+    Approving only marks the request APPROVED (the money already left the
+    wallet at hold time); the admin then records the out-of-band bank payout
+    via :func:`mark_withdrawal_paid`. Rejecting credits the held funds back to
+    the wallet with a ``WITHDRAWAL_REVERSAL`` entry.
+    """
+    stmt = (
+        select(WalletWithdrawalRequest)
+        .where(WalletWithdrawalRequest.id == request_id)
+        .with_for_update()
+    )
+    request_row = (await db.execute(stmt)).scalar_one_or_none()
+    if request_row is None:
+        raise NotFoundError(resource="WalletWithdrawalRequest")
+
+    if request_row.status != WithdrawalStatus.PENDING_REVIEW:
+        raise ConflictError(
+            detail=f"این درخواست قبلاً تعیین وضعیت شده است: {request_row.status.value}"
+        )
+
+    request_row.reviewed_by = admin_id
+    request_row.reviewed_at = datetime.now(UTC)
+    request_row.admin_notes = admin_notes
+
+    if is_approved:
+        request_row.status = WithdrawalStatus.APPROVED
+        event_type = "WalletWithdrawalApproved"
+    else:
+        request_row.status = WithdrawalStatus.REJECTED
+        # Return the held funds to the customer's wallet.
+        await credit(
+            db,
+            user_id=request_row.user_id,
+            amount=request_row.amount,
+            tx_type=WalletTransactionType.WITHDRAWAL_REVERSAL,
+            reference_type="withdrawal_reject",
+            reference_id=request_row.id,
+            description="بازگشت مبلغ درخواست برداشت ردشده",
+        )
+        event_type = "WalletWithdrawalRejected"
+
+    await db.flush()
+    await _publish_wallet_event(
+        db,
+        event_type=event_type,
+        aggregate_id=str(request_row.id),
+        payload={
+            "user_id": str(request_row.user_id),
+            "amount": request_row.amount,
+            "request_id": str(request_row.id),
+            "admin_notes": admin_notes,
+        },
+    )
+    await logger.ainfo(
+        "wallet_withdrawal_reviewed",
+        request_id=str(request_id),
+        approved=is_approved,
+        admin_id=str(admin_id),
+    )
+    return WalletWithdrawalResponse.model_validate(request_row)
+
+
+async def mark_withdrawal_paid(
+    db: AsyncSession,
+    *,
+    request_id: uuid.UUID,
+    admin_id: uuid.UUID,
+    payout_reference: str,
+) -> WalletWithdrawalResponse:
+    """Record the manual bank payout for an APPROVED withdrawal request.
+
+    No money moves here — the debit happened at hold time. This is purely the
+    administrative record that the out-of-band transfer was made, with the
+    bank reference for reconciliation.
+    """
+    stmt = (
+        select(WalletWithdrawalRequest)
+        .where(WalletWithdrawalRequest.id == request_id)
+        .with_for_update()
+    )
+    request_row = (await db.execute(stmt)).scalar_one_or_none()
+    if request_row is None:
+        raise NotFoundError(resource="WalletWithdrawalRequest")
+
+    if request_row.status != WithdrawalStatus.APPROVED:
+        raise ConflictError(
+            detail="فقط درخواست‌های تأییدشده را می‌توان به‌عنوان پرداخت‌شده ثبت کرد."
+        )
+
+    request_row.status = WithdrawalStatus.PAID
+    request_row.payout_reference = payout_reference
+    request_row.paid_at = datetime.now(UTC)
+    await db.flush()
+
+    await _publish_wallet_event(
+        db,
+        event_type="WalletWithdrawalPaid",
+        aggregate_id=str(request_row.id),
+        payload={
+            "user_id": str(request_row.user_id),
+            "amount": request_row.amount,
+            "request_id": str(request_row.id),
+            "payout_reference": payout_reference,
+        },
+    )
+    await logger.ainfo(
+        "wallet_withdrawal_paid",
+        request_id=str(request_id),
+        admin_id=str(admin_id),
+        payout_reference=payout_reference,
+    )
+    return WalletWithdrawalResponse.model_validate(request_row)
+
+
+async def list_withdrawals_admin(
+    db: AsyncSession,
+    *,
+    status: WithdrawalStatus | None = None,
+    page: int = 1,
+    page_size: int = 20,
+) -> WalletWithdrawalListResponse:
+    """Admin list of withdrawal requests, optionally filtered by status."""
+    if page < 1:
+        page = 1
+    if page_size < 1:
+        page_size = 20
+    if page_size > 100:
+        page_size = 100
+
+    filters = []
+    if status is not None:
+        filters.append(WalletWithdrawalRequest.status == status)
+
+    total = int(
+        await db.scalar(
+            select(func.count()).select_from(WalletWithdrawalRequest).where(*filters)
+        )
+        or 0
+    )
+    rows = (
+        (
+            await db.execute(
+                select(WalletWithdrawalRequest)
+                .where(*filters)
+                .order_by(WalletWithdrawalRequest.created_at.desc())
+                .offset((page - 1) * page_size)
+                .limit(page_size)
+            )
+        )
+        .scalars()
+        .all()
+    )
+    return WalletWithdrawalListResponse(
+        items=[WalletWithdrawalResponse.model_validate(r) for r in rows],
+        total=total,
+        page=page,
+        page_size=page_size,
+        pages=max(1, math.ceil(total / page_size)),
+    )
+
+
+# ── Admin wallet surface ──────────────────────────────────────────────────
+
+
+async def admin_adjust(
+    db: AsyncSession,
+    *,
+    user_id: uuid.UUID,
+    amount: int,
+    reason: str,
+    admin_id: uuid.UUID,
+) -> WalletTransactionResponse:
+    """Admin credit/debit adjustment of a customer wallet.
+
+    ``amount`` is signed: positive credits, negative debits. The adjustment is
+    written as a single ``ADJUSTMENT`` ledger entry so it is indistinguishable
+    in the ledger from any other movement (no balance is ever set directly).
+    """
+    await _require_switch(db, "wallet_admin_adjust_enabled")
+
+    if amount == 0:
+        raise ValidationError(
+            detail="مبلغ اصلاح نمی‌تواند صفر باشد.",
+            error_code="INVALID_AMOUNT",
+        )
+
+    if amount > 0:
+        tx = await credit(
+            db,
+            user_id=user_id,
+            amount=amount,
+            tx_type=WalletTransactionType.ADJUSTMENT,
+            reference_type="admin_adjustment",
+            description=f"اصلاح موجودی توسط مدیر: {reason}",
+        )
+    else:
+        tx = await debit(
+            db,
+            user_id=user_id,
+            amount=-amount,
+            tx_type=WalletTransactionType.ADJUSTMENT,
+            reference_type="admin_adjustment",
+            description=f"اصلاح موجودی توسط مدیر: {reason}",
+        )
+
+    await _publish_wallet_event(
+        db,
+        event_type="WalletAdminAdjusted",
+        aggregate_id=str(user_id),
+        payload={
+            "user_id": str(user_id),
+            "amount": amount,
+            "reason": reason,
+            "admin_id": str(admin_id),
+        },
+    )
+    await logger.ainfo(
+        "wallet_admin_adjusted",
+        user_id=str(user_id),
+        amount=amount,
+        admin_id=str(admin_id),
+    )
+    return tx
+
+
+async def admin_list_wallets(
+    db: AsyncSession,
+    *,
+    search: str | None = None,
+    page: int = 1,
+    page_size: int = 20,
+) -> WalletAdminListResponse:
+    """Admin list of wallets, optionally filtered by the owner's phone."""
+    from app.modules.users.domain.models import User
+
+    if page < 1:
+        page = 1
+    if page_size < 1:
+        page_size = 20
+    if page_size > 100:
+        page_size = 100
+
+    stmt = select(Wallet)
+    count_stmt = select(func.count()).select_from(Wallet)
+    if search:
+        pattern = f"%{search.strip()}%"
+        stmt = stmt.join(User, User.id == Wallet.user_id).where(User.phone.ilike(pattern))
+        count_stmt = count_stmt.join(User, User.id == Wallet.user_id).where(
+            User.phone.ilike(pattern)
+        )
+
+    total = int(await db.scalar(count_stmt) or 0)
+    rows = (
+        (
+            await db.execute(
+                stmt.order_by(Wallet.created_at.desc())
+                .offset((page - 1) * page_size)
+                .limit(page_size)
+            )
+        )
+        .scalars()
+        .all()
+    )
+    from app.modules.wallet.schemas.wallet import WalletAdminListItem
+
+    return WalletAdminListResponse(
+        items=[WalletAdminListItem.model_validate(w) for w in rows],
+        total=total,
+        page=page,
+        page_size=page_size,
+        pages=max(1, math.ceil(total / page_size)),
+    )
+
+
+async def admin_list_transfers(
+    db: AsyncSession,
+    *,
+    page: int = 1,
+    page_size: int = 20,
+) -> WalletTransferListResponse:
+    """Admin list of peer-to-peer transfers, newest first."""
+    if page < 1:
+        page = 1
+    if page_size < 1:
+        page_size = 20
+    if page_size > 100:
+        page_size = 100
+
+    total = int(await db.scalar(select(func.count()).select_from(WalletTransfer)) or 0)
+    rows = (
+        (
+            await db.execute(
+                select(WalletTransfer)
+                .order_by(WalletTransfer.created_at.desc())
+                .offset((page - 1) * page_size)
+                .limit(page_size)
+            )
+        )
+        .scalars()
+        .all()
+    )
+    return WalletTransferListResponse(
+        items=[WalletTransferResponse.model_validate(r) for r in rows],
+        total=total,
+        page=page,
+        page_size=page_size,
+        pages=max(1, math.ceil(total / page_size)),
+    )
+
+
+async def admin_get_ledger(
+    db: AsyncSession,
+    *,
+    user_id: uuid.UUID,
+    page: int = 1,
+    page_size: int = 20,
+) -> WalletTransactionListResponse:
+    """Admin view of any customer's wallet ledger (read-only)."""
+    return await get_transactions(db, user_id=user_id, page=page, page_size=page_size)
+
+
+async def get_switches(db: AsyncSession) -> dict[str, bool]:
+    """Return the current wallet module switch states."""
+    return {key: await _switch_enabled(db, key) for key in sorted(_WALLET_SWITCH_KEYS)}
+
+
+async def set_switch(db: AsyncSession, *, key: str, enabled: bool) -> bool:
+    """Set a wallet module switch. Raises if the key is not a wallet switch."""
+    if key not in _WALLET_SWITCH_KEYS:
+        raise ValidationError(
+            detail="کلید تنظیمات کیف پول نامعتبر است.",
+            error_code="UNKNOWN_WALLET_SWITCH",
+        )
+    from app.modules.settings.application.site_options_service import SiteOptionsService
+
+    await SiteOptionsService.set(db, key, "1" if enabled else "0")
+    await logger.ainfo("wallet_switch_changed", key=key, enabled=enabled)
+    return enabled
+
+
+async def _publish_wallet_event(
+    db: AsyncSession,
+    *,
+    event_type: str,
+    aggregate_id: str,
+    payload: dict,
+) -> None:
+    """Publish a wallet event to the transactional outbox (never fatal).
+
+    Event names are literal strings (never derived from an enum value) so the
+    worker's dispatch table can match them exactly — deriving them is how the
+    order notifications silently dropped ``OrderOn_hold``.
+    """
+    try:
+        from app.shared.events.outbox_service import OutboxService
+
+        await OutboxService.publish(
+            db,
+            event_type=event_type,
+            aggregate_type="wallet",
+            aggregate_id=aggregate_id,
+            payload=payload,
+        )
+    except Exception as exc:
+        await logger.awarning(
+            "wallet_event_publish_skipped", event_type=event_type, error=str(exc)
+        )
 
 
 # ── Internal Helpers ──────────────────────────────────────────────────────
@@ -605,6 +1365,6 @@ def _check_wallet_active(wallet: Wallet) -> None:
     """Raise if the wallet is deactivated."""
     if not wallet.is_active:
         raise ValidationError(
-            detail="Wallet is deactivated",
+            detail="کیف پول غیرفعال است.",
             error_code="WALLET_INACTIVE",
         )

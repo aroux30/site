@@ -19,7 +19,6 @@ import structlog
 from sqlalchemy import func, or_, select
 
 from app.core.exceptions.handlers import NotFoundError, ValidationError
-from app.modules.blog.application.comment_email_service import CommentEmailService
 from app.modules.blog.application.spam_filter import score_comment
 from app.modules.blog.domain.models import (
     COMMENT_RESOURCE_BLOG_POST,
@@ -167,11 +166,8 @@ class CommentService:
 
     def __init__(self, db: AsyncSession) -> None:
         self.db = db
-        # comment id -> author email, for the guest-Gravatar fallback.
-        # ``BlogCommentResponse`` omits the email on purpose, so the avatar
-        # pass cannot read it off the response; it is staged here from the
-        # models that were just loaded and never serialized.
-        self._email_by_comment: dict[str, str | None] = {}
+        # The comment-id -> author-email side table (guest-Gravatar fallback)
+        # was removed on 2026-10-07 with the rest of the email feature.
 
     # ── Target resolution ─────────────────────────────────────────────────
 
@@ -193,37 +189,6 @@ class CommentService:
         if data.resource_id is None:
             raise ValidationError("یکی از post_id یا resource_id الزامی است")
         return data.resource_type, data.resource_id, None
-
-    async def _ensure_content_type_accepts_comments(self, entry_id: uuid.UUID) -> None:
-        """Whether this custom post type is commentable, per its own flag.
-
-        WordPress's ``supports`` checkbox decides this. It was stored and
-        serialised and never consulted, so turning it on did nothing at all —
-        which is the whole content of the gap: a checkbox in the admin that
-        lies.
-
-        The flag lives on the *type*, not the entry, so this reads the entry's
-        type rather than the entry. An entry of a type with comments off is
-        refused even if the entry itself is published, and vice versa — which
-        is what an operator expects when they tick the box once for a whole
-        content type.
-        """
-        from app.modules.blog.domain.custom_post_types import (
-            CustomPostEntry,
-            CustomPostType,
-        )
-
-        entry = await self.db.get(CustomPostEntry, entry_id)
-        if entry is None:
-            raise ValidationError("محتوای درخواستی یافت نشد")
-
-        ctype = await self.db.get(CustomPostType, entry.post_type_id)
-        if ctype is None:
-            raise ValidationError("نوع محتوای درخواستی یافت نشد")
-        if not ctype.supports_comments:
-            raise ValidationError(
-                "دیدگاه برای این نوع محتوا فعال نیست."
-            )
 
     async def _ensure_post_accepts_comments(self, post_id: uuid.UUID) -> None:
         """The post must exist, allow comments, and still be young enough.
@@ -366,21 +331,8 @@ class CommentService:
             self.db, "comment_max_links", 2, minimum=0, maximum=50
         )
 
-    async def _require_name_email_setting(self) -> bool:
-        """``require_name_email``: a guest comment must carry a name and an email.
-
-        Off by default, matching this site's existing posture, because
-        guest comments are open. The point of the option is that an operator who
-        *does* turn it on gets an enforcement, not just a form hint — and a
-        form hint is not enforcement, because the API is the same endpoint the
-        form posts to.
-        """
-        from app.modules.settings.application.site_options_service import (
-            SiteOptionsService,
-        )
-
-        raw = await SiteOptionsService.get(self.db, "require_name_email", "0")
-        return str(raw).strip().lower() in {"1", "true", "yes", "on"}
+    # `_require_name_email_setting` was removed on 2026-10-07 with the
+    # comment email field.
 
     async def _check_rate_limit(self, author_ip: str | None) -> None:
         """Cap comments per address per hour and per day.
@@ -539,7 +491,6 @@ class CommentService:
         content: str = "",
         author_name: str | None = None,
         author_url: str | None = None,
-        author_email: str | None = None,
     ) -> CommentStatus:
         """Decide the initial moderation status.
 
@@ -579,7 +530,7 @@ class CommentService:
         # that is where WordPress puts it (comment.php:133) and because the
         # hold's job is "nothing is trusted until a human looks", which a
         # returning commenter is the exception to.
-        if await self._previously_approved(author_name, author_email, author_id):
+        if await self._previously_approved(author_name, author_id):
             return CommentStatus.APPROVED
 
         raw = await SiteOptionsService.get(self.db, "comment_moderation", "1")
@@ -591,22 +542,20 @@ class CommentService:
     async def _previously_approved(
         self,
         author_name: str | None,
-        author_email: str | None,
         author_id: uuid.UUID | None,
     ) -> bool:
         """Has this commenter had a comment approved before?
 
         WordPress's `comment_previously_approved`, and the trust it builds is
         the difference between a store whose comment queue empties itself and
-        one where every returning customer waits a day for a reply. The lookup
-        is deliberately the one core uses — an account by id, otherwise the
-        name *and* the email together, never the name alone, because names are
-        the easiest thing for a spammer to borrow.
+        one where every returning customer waits a day for a reply.
 
-        The keyword escape hatch is part of this and not a detail: an address
-        that matches a moderation keyword must still be queued, so someone who
-        got into the database before that word list existed cannot hold their
-        approval hostage to it.
+        The lookup keys on the account id for signed-in commenters and on the
+        name for guests. It used to require the name *and* the email together
+        (names are easy for a spammer to borrow); the email column was removed
+        on 2026-10-07 with the rest of the email feature, so the guest path
+        now trusts a name — the same trade WordPress makes when it cannot see
+        an address, and the moderation keyword lists still apply on top.
         """
         from app.modules.settings.application.site_options_service import (
             SiteOptionsService,
@@ -616,22 +565,15 @@ class CommentService:
         if str(raw if raw is not None else "0").strip() != "1":
             return False
 
-        email = (author_email or "").strip().lower()
         name = (author_name or "").strip()
-        # Both fields required, exactly as core does: an empty name or an empty
-        # email would otherwise match a row where that column is null, which
-        # approves every nameless or address-less comment on the site.
-        if not name or not email:
+        if author_id is None and not name:
             return False
 
         query = select(BlogComment.id).where(
             BlogComment.status == CommentStatus.APPROVED,
-            BlogComment.author_email == email,
         )
         if author_id:
-            query = query.where(
-                BlogComment.author_id == author_id,
-            )
+            query = query.where(BlogComment.author_id == author_id)
         else:
             query = query.where(BlogComment.author_name == name)
 
@@ -641,8 +583,8 @@ class CommentService:
 
         mod_keys = await SiteOptionsService.get(self.db, "moderation_keys", "")
         keys = str(mod_keys or "")
-        if keys and email in keys.lower():
-            logger.info("comment_previous_approval_overridden", author_email=email[:64])
+        if keys and name and name.lower() in keys.lower():
+            logger.info("comment_previous_approval_overridden", author_name=name[:64])
             return False
         return True
 
@@ -735,13 +677,7 @@ class CommentService:
         elif resource_type == COMMENT_RESOURCE_BLOG_POST:
             await self._ensure_post_accepts_comments(resource_id)
         else:
-            # Previously this was a bare `else`, so a custom post type with
-            # `supports_comments` enabled fell through to the blog-post branch
-            # and failed on a post id that does not exist — an error about the
-            # wrong thing, on a type the operator had explicitly enabled
-            # comments for. The flag is read here rather than assumed: it is
-            # the only thing that says whether a CPT is commentable.
-            await self._ensure_content_type_accepts_comments(resource_id)
+            raise ValidationError("نوع منبع برای ثبت دیدگاه معتبر نیست")
 
         await self._check_link_limit(data.content)
         await self._check_flood(author_ip)
@@ -750,28 +686,9 @@ class CommentService:
         # create path, so neither can be bypassed by posting to the API instead
         # of the form.
         await self._check_rate_limit(author_ip)
-        # require_name_email is enforced here rather than in the schema because
-        # a signed-in commenter already has both, and the schema cannot tell
-        # that from the request alone.
-        if author_id is None and await self._require_name_email_setting():
-            missing = [
-                label
-                for label, value in (
-                    ("نام", (data.author_name or "").strip()),
-                    ("ایمیل", (data.author_email or "").strip()),
-                )
-                if not value
-            ]
-            if missing:
-                from app.core.exceptions.handlers import ValidationError
-
-                raise ValidationError(
-                    detail=(
-                        f"برای ثبت دیدگاه، {missing[0]} الزامی است."
-                        if len(missing) == 1
-                        else f"برای ثبت دیدگاه، {missing[0]} و {missing[1]} الزامی است."
-                    )
-                )
+        # The require_name_email option was removed on 2026-10-07 with the
+        # comment email field: the form always sends a name, and the email is
+        # no longer collected.
 
         # Validate parent comment if threaded reply: must exist, sit on the
         # same resource, and stay within the configured thread depth.
@@ -794,7 +711,6 @@ class CommentService:
             content=data.content,
             author_name=data.author_name,
             author_url=data.author_url,
-            author_email=data.author_email,
         )
 
         # Spam check. A comment that scores as spam is held for moderation
@@ -829,47 +745,7 @@ class CommentService:
                 raw=remote.raw,
             )
 
-        # A plugin can inspect or rewrite the payload before the row exists —
-        # the point where a spam rule or a required-field policy belongs. Fired
-        # after the sanitizer and the URL check, so a hook sees what would
-        # actually be stored rather than the raw request.
-        from app.shared.plugins.registry import (
-            HOOK_COMMENT_AFTER_CREATE,
-            HOOK_COMMENT_BEFORE_CREATE,
-            registry,
-        )
-
-        hook_fields = {
-            "content": _clean_comment_content(data.content),
-            "author_name": data.author_name,
-            "author_email": data.author_email,
-            "author_url": _normalize_comment_url(data.author_url),
-            "status": status,
-        }
-        hook_fields = await registry.apply_filters(
-            HOOK_COMMENT_BEFORE_CREATE,
-            hook_fields,
-            resource_type=resource_type,
-            resource_id=str(resource_id),
-        )
-        if isinstance(hook_fields, dict):
-            # Read back defensively: a hook may have dropped a key, and a
-            # missing one has to fall back to the validated value rather than
-            # become a NOT NULL violation.
-            content_text = _clean_comment_content(
-                str(hook_fields.get("content") or data.content)
-            )
-            author_name = hook_fields.get("author_name", data.author_name)
-            author_url = _normalize_comment_url(
-                hook_fields.get("author_url", data.author_url)
-            )
-            try:
-                status = CommentStatus(hook_fields.get("status") or status)
-            except ValueError:
-                # A hook returning a status outside the enum is ignored rather
-                # than failing the write; an unknown status would break every
-                # later read of the row.
-                status = CommentStatus.PENDING
+        content_text = _clean_comment_content(data.content)
 
         comment = BlogComment(
             post_id=post_id,
@@ -877,7 +753,6 @@ class CommentService:
             resource_id=resource_id,
             author_id=author_id,
             author_name=data.author_name,
-            author_email=data.author_email,
             author_url=_normalize_comment_url(data.author_url),
             author_ip=author_ip,
             author_user_agent=author_user_agent,
@@ -891,16 +766,6 @@ class CommentService:
 
         logger.info(
             "comment_created",
-            comment_id=str(comment.id),
-            resource_type=resource_type,
-            resource_id=str(resource_id),
-            status=status.value,
-        )
-
-        # After the commit, so a hook can read the row. Best-effort in the
-        # registry itself: a plugin that raises must not lose the comment.
-        await registry.do_action(
-            HOOK_COMMENT_AFTER_CREATE,
             comment_id=str(comment.id),
             resource_type=resource_type,
             resource_id=str(resource_id),
@@ -959,64 +824,14 @@ class CommentService:
                 ),
             )
 
-            # wp_notify_postauthor: the author gets this by email too, with
-            # Reply-To on the commenter so a reply reaches them directly. The
-            # in-app event above only reaches someone who is logged in, which
-            # is not the same thing for a store that runs on email.
-            # WordPress keeps these two separate, and so does this: the author
-            # hears about every comment, the moderators only about the ones
-            # waiting for them. Folding them together meant a moderated post
-            # notified the moderators *instead of* the author whenever the
-            # author had no address on file.
-            notify_author = await self._notification_setting("comments_notify", "1")
-            notify_moderators = await self._notification_setting(
-                "moderation_notify", "1"
-            )
-            is_pending = comment.status is CommentStatus.PENDING
-
-            author_email = await self._user_email(post.author_id) if notify_author else None
-            if not notify_author and is_pending and notify_moderators:
-                # Author notification is off, so the moderation address is the
-                # only one left — dropping the mail entirely would leave a held
-                # comment with nobody told about it.
-                author_email = await self._first_moderator_email()
-            elif is_pending and notify_moderators:
-                moderator_email = await self._first_moderator_email()
-                author_email = author_email or moderator_email
-
-            await CommentEmailService(self.db).notify_post_author(
-                post_title=post.title,
-                post_slug=post.slug,
-                comment_content=comment.content,
-                comment_status=comment.status.value,
-                comment_author_name=comment.author_name,
-                comment_author_email=comment.author_email,
-                author_email=author_email,
-                is_pending=is_pending,
-                admin_url=await self._site_url(),
-                # Without the id the moderator mail has no one-click links —
-                # the only way to approve is to open the panel.
-                comment_id=str(comment.id),
-            )
+            # The wp_notify_postauthor / moderation-notify emails were
+            # removed on 2026-10-07 with the rest of the email feature. The
+            # in-app notification above is the notification surface.
         except Exception as exc:  # noqa: BLE001
             logger.warning("comment_notify_failed", comment_id=str(comment.id), error=str(exc))
 
-    async def _notification_setting(self, key: str, default: str) -> bool:
-        """A comment-notification switch, read as a boolean.
-
-        ``comments_notify`` (tell the author a comment arrived) and
-        ``moderation_notify`` (tell the moderators one is waiting) are
-        WordPress's `Comments Notify` and `Moderation Notify`. Both default to
-        on: a store that has just had its notification path built would
-        otherwise ship with it silently off, and the symptom — no email, no
-        error — reads as "SMTP is broken" rather than "the option is off".
-        """
-        from app.modules.settings.application.site_options_service import (
-            SiteOptionsService,
-        )
-
-        raw = await SiteOptionsService.get(self.db, key, default)
-        return str(raw).strip().lower() not in {"0", "false", "no", "off"}
+    # `_notification_setting` was removed on 2026-10-07 with the email
+    # notifications whose switches it read (comments_notify / moderation_notify).
 
     async def _comments_closed_setting(self) -> int:
         """``close_comments_days_old``: refuse comments on an old post. 0 = never.
@@ -1035,38 +850,11 @@ class CommentService:
             self.db, "close_comments_days_old", 0, minimum=0, maximum=3650
         )
 
-    async def _user_email(self, user_id: uuid.UUID | None) -> str | None:
-        """A user's address, or None. Never guessed from anything but a stored one."""
-        if not user_id:
-            return None
-        from app.modules.users.domain.models import User
-
-        row = (await self.db.execute(
-            select(User.email).where(User.id == user_id)
-        )).scalar_one_or_none()
-        return (row or "").strip() or None
-
-    async def _first_moderator_email(self) -> str | None:
-        """One address for the moderation notice.
-
-        A single moderator, not all of them: a held comment on a busy store
-        would otherwise be one email per moderator, and they all read the same
-        queue anyway.
-        """
-        from app.modules.users.domain.models import User
-
-        rows = (await self.db.execute(
-            select(User.email).where(User.is_active == True)  # noqa: E712
-            .order_by(User.is_superuser.desc(), User.created_at)
-            .limit(25)
-        )).scalars().all()
-        for candidate in rows:
-            if (candidate or "").strip():
-                return candidate.strip()
-        return None
+    # `_user_email` / `_first_moderator_email` were removed on 2026-10-07
+    # with the comment notification emails they served.
 
     async def _site_url(self) -> str:
-        """The store's public origin, for the links inside an email."""
+        """The store's public origin, for outbound links."""
         from app.modules.settings.application.site_options_service import (
             SiteOptionsService,
         )
@@ -1110,7 +898,6 @@ class CommentService:
                 user_agent=user_agent or "",
                 comment_content=data.content,
                 comment_author=getattr(data, "author_name", "") or "",
-                comment_author_email=data.author_email or "",
                 comment_author_url=data.author_url or "",
                 api_url=await SiteOptionsService.get(self.db, API_URL_OPTION, ""),
             )
@@ -1183,9 +970,10 @@ class CommentService:
             comment.status = data.status
         # The author fields, only where supplied. `model_fields_set` is what
         # separates "sent empty" from "not sent": without it, a moderator
-        # fixing a typo in the body would also wipe the email address that
-        # identifies the commenter.
-        for field in ("author_name", "author_email", "author_url", "author_date"):
+        # fixing a typo in the body would also wipe the name that identifies
+        # the commenter. (`author_email` was removed on 2026-10-07 with the
+        # email feature.)
+        for field in ("author_name", "author_url", "author_date"):
             if field in data.model_fields_set:
                 value = getattr(data, field)
                 # An empty string means "clear it", matching how every other
@@ -1197,11 +985,7 @@ class CommentService:
         await self.db.refresh(comment)
 
         logger.info("comment_updated", comment_id=str(comment_id))
-        # Admin path: the moderation surface needs the email and the status.
-        # Routed through _build_response so the "every response stages the
-        # author email for the avatar pass" rule holds on this path too — it
-        # does not call _attach_avatars today, and a future edit that starts
-        # would otherwise silently lose the guest's Gravatar.
+        # Admin path: the moderation surface needs the status.
         return self._build_response(comment, moderation_fields=True)
 
     async def bulk_moderate(
@@ -1300,36 +1084,10 @@ class CommentService:
         comment_id: uuid.UUID,
         status: CommentStatus,
     ) -> BlogCommentResponse:
-        """Change comment moderation status (approve, spam, trash).
-
-        A plugin can veto or redirect the transition: a known-good commenter
-        auto-approved, a wordlist forcing spam. Fired before the write, and an
-        out-of-enum value from a hook is ignored rather than corrupting the row.
-        """
+        """Change comment moderation status (approve, spam, trash)."""
         comment = await self.db.get(BlogComment, comment_id)
         if not comment:
             raise NotFoundError("BlogComment", f"Comment {comment_id} not found")
-
-        from app.shared.plugins.registry import HOOK_COMMENT_BEFORE_MODERATE, registry
-
-        requested = await registry.apply_filters(
-            HOOK_COMMENT_BEFORE_MODERATE,
-            status,
-            comment_id=str(comment_id),
-            old_status=comment.status.value,
-            author_id=str(comment.author_id) if comment.author_id else None,
-        )
-        if isinstance(requested, CommentStatus):
-            status = requested
-        elif isinstance(requested, str):
-            try:
-                status = CommentStatus(requested)
-            except ValueError:
-                logger.warning(
-                    "comment_moderate_hook_bad_status",
-                    comment_id=str(comment_id),
-                    value=str(requested)[:60],
-                )
 
         old_status = comment.status
         comment.status = status
@@ -1371,21 +1129,10 @@ class CommentService:
                 await BlogNotificationService(self.db).notify_comment_approved(
                     comment_id=comment.id,
                     post_title=post.title if post else "",
-                    comment_author_email=comment.author_email,
                     comment_author_id=comment.author_id,
                 )
-                # wp_notify_comment: the "your comment is live" mail. Only to
-                # an address the commenter gave — the service returns early
-                # otherwise, so a comment from an account with no email on file
-                # sends nothing rather than a guessed one.
-                await CommentEmailService(self.db).notify_commenter_approved(
-                    comment_author_name=comment.author_name,
-                    comment_author_email=comment.author_email,
-                    post_title=post.title if post else "",
-                    post_slug=post.slug if post else "",
-                    comment_content=comment.content,
-                    site_url=await self._site_url(),
-                )
+                # The "your comment is live" email was removed on 2026-10-07
+                # with the rest of the email feature.
             except Exception as exc:  # noqa: BLE001
                 logger.warning(
                     "comment_approved_notify_failed",
@@ -1420,9 +1167,8 @@ class CommentService:
         """List comments with optional filtering and pagination.
 
         ``include_moderation_fields`` builds the admin schema, which carries
-        ``author_email`` and ``status``. It must stay False on every public
-        route: the anonymous comment list is the one endpoint that would hand a
-        visitor every commenter's address.
+        moderation-only fields such as ``status``. It must stay False on every
+        public route.
 
         Address the target either by legacy ``post_id`` or by the polymorphic
         ``resource_type``/``resource_id`` pair (``resource_type`` alone
@@ -1436,7 +1182,7 @@ class CommentService:
         an explicit value always wins, so a caller asking for 5 gets 5.
 
         ``search`` matches the text a moderator would search a comment by —
-        body, author name, email or website — because a spammer's tells are
+        body, author name or website — because a spammer's tells are
         usually in one of those rather than in the comment itself. Applied
         here rather than in the route so the storefront and the moderation
         table cannot disagree about what "search" means.
@@ -1471,7 +1217,6 @@ class CommentService:
                 or_(
                     BlogComment.content.ilike(needle),
                     BlogComment.author_name.ilike(needle),
-                    BlogComment.author_email.ilike(needle),
                     BlogComment.author_url.ilike(needle),
                 )
             )
@@ -1529,43 +1274,28 @@ class CommentService:
     async def _attach_avatars(self, comments: list[BlogCommentResponse]) -> None:
         """Fill in ``author_avatar_url`` for a whole thread in one pass.
 
-        Registered authors resolve through the profile/Gravatar lookup (two
-        queries for the whole batch); guests fall back to their Gravatar when
-        they left an email, which is what WordPress does. Recurses into
-        replies so a nested comment is not the one missing an avatar.
-
-        ``BlogCommentResponse`` deliberately omits ``author_email`` — a public
-        reader has no business receiving it — so the guest fallback reads the
-        email from the ``_email_by_comment`` side table, not off the response.
-        Reading it off the response raised AttributeError and 500'd every
-        guest comment, which is most of them on a storefront.
+        Only the uploaded profile avatar is resolved. The Gravatar fallback
+        keyed on email addresses and was removed on 2026-10-07 with the rest
+        of the email feature; a commenter without an uploaded avatar now
+        renders with initials (the frontend's existing fallback).
         """
-        from app.shared.content.gravatar import (
-            avatar_options,
-            avatars_for_users,
-            resolve_avatar_url,
-        )
+        from sqlalchemy import select
 
-        # Site-wide avatar settings (WordPress show_avatars/avatar_default/
-        # avatar_rating), read once for the whole batch. Off means the operator
-        # hid avatars site-wide: both the uploaded-image branch and the Gravatar
-        # branch must honour it, or the toggle would only hide half of them.
-        options = await avatar_options(self.db)
+        from app.modules.users.domain.models import UserProfile
 
         author_ids = [c.author_id for c in comments if c.author_id]
-        resolved = await avatars_for_users(self.db, author_ids, options=options)
+        avatars: dict[Any, str | None] = {}
+        if author_ids:
+            rows = await self.db.execute(
+                select(UserProfile.user_id, UserProfile.avatar_url).where(
+                    UserProfile.user_id.in_(list(dict.fromkeys(author_ids)))
+                )
+            )
+            avatars = {row.user_id: row.avatar_url for row in rows.all()}
 
         for comment in comments:
-            if comment.author_id and comment.author_id in resolved:
-                comment.author_avatar_url = resolved[comment.author_id]
-            else:
-                # A guest, or an author with neither a profile image nor a
-                # row in the users table this batch: Gravatar by email only.
-                # The email never leaves the server: only the derived URL does.
-                email = self._email_by_comment.get(str(comment.id))
-                comment.author_avatar_url = resolve_avatar_url(
-                    local_url=None, email=email, options=options
-                )
+            if comment.author_id:
+                comment.author_avatar_url = avatars.get(comment.author_id)
             if comment.replies:
                 await self._attach_avatars(comment.replies)
 
@@ -1575,19 +1305,10 @@ class CommentService:
     ) -> BlogCommentResponse:
         """Project a row onto the public or the moderation schema.
 
-        Not a staticmethod any more: staging the author email for the avatar
-        pass needs the instance's map.
-
         Splitting this out keeps the "which schema" decision in one place, so a
-        new call site cannot accidentally expose ``author_email`` by forgetting
-        to think about it.
-
-        The author email is also staged here for the guest-Gravatar fallback.
-        Doing it in this one method means every path that builds a response —
-        list, thread, create, update — has it, rather than each call site
-        remembering to.
+        new call site cannot accidentally expose moderation-only fields by
+        forgetting to think about it.
         """
-        self._email_by_comment[str(comment.id)] = comment.author_email
         if moderation_fields:
             return BlogCommentAdminResponse.model_validate(comment)
         return BlogCommentResponse.model_validate(comment)

@@ -1,1 +1,0 @@
-"""pricing application package."""

@@ -129,7 +129,7 @@ def wptexturize(text: str) -> str:
 
     Deliberately *not* implemented: fractions and the ordinal squaring that full
     ``wptexturize`` does. Those mangle digits, and a storefront shows prices,
-    phone numbers and order ids in every body and every email.
+    phone numbers and order ids in every body.
     """
     if not text:
         return text

@@ -9,7 +9,6 @@ import {
   RotateCcw,
   UserCircle,
   Phone,
-  Mail,
   MessageCircle,
   HelpCircle,
 } from "lucide-react";
@@ -293,18 +292,6 @@ export default function FAQPage() {
               </h3>
               <p className="text-xs text-muted-foreground" dir="ltr">
                 ۰۲۱-۱۲۳۴۵۶۷۸
-              </p>
-            </Card>
-
-            <Card className="p-5 transition-shadow hover:shadow-md">
-              <div className="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-lg bg-emerald-50 text-emerald-500 dark:bg-emerald-950/40">
-                <Mail className="h-5 w-5" />
-              </div>
-              <h3 className="mb-1 text-sm font-semibold text-foreground">
-                ایمیل
-              </h3>
-              <p className="text-xs text-muted-foreground" dir="ltr">
-                support@example.com
               </p>
             </Card>
 

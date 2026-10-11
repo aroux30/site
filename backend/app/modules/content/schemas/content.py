@@ -157,9 +157,11 @@ class CmsPageCreateRequest(BaseModel):
     visibility_password: str | None = Field(None, max_length=255)
     seo_title: str | None = Field(None, max_length=200)
     seo_description: str | None = Field(None, max_length=500)
+    # Rank Math's "focus keyword" — the keyphrase the page targets. The
+    # analyzer scores against it; stored so the choice survives a reopen.
+    focus_keyword: str | None = None
     scheduled_publish_at: datetime | None = None
     scheduled_unpublish_at: datetime | None = None
-    locale: str = Field("fa", min_length=2, max_length=10)
     # Hierarchical pages. The column and the FK have existed since the
     # WordPress-parity migration, but no schema carried them, so the tree could
     # not be built at all — and the breadcrumb's ancestor walk was provably
@@ -183,11 +185,9 @@ class CmsPageUpdateRequest(BaseModel):
     status: PageStatus | None = None
     seo_title: str | None = Field(None, max_length=200)
     seo_description: str | None = Field(None, max_length=500)
+    focus_keyword: str | None = None
     scheduled_publish_at: datetime | None = None
     scheduled_unpublish_at: datetime | None = None
-    # Editable after creation (WordPress/Strapi parity): the admin dialog sends
-    # it on PATCH; without this field Pydantic silently dropped the change.
-    locale: str | None = Field(None, min_length=2, max_length=10)
     parent_id: uuid.UUID | None = None
     # Sibling ordering, editable after creation like the parent.
     menu_order: int | None = Field(None, ge=-100_000, le=100_000)
@@ -228,14 +228,11 @@ class CmsPageResponse(BaseModel):
     published_at: datetime | None = None
     seo_title: str | None = None
     seo_description: str | None = None
+    focus_keyword: str | None = None
     author_id: uuid.UUID | None = None
     revision_number: int
     scheduled_publish_at: datetime | None = None
     scheduled_unpublish_at: datetime | None = None
-    locale: str = "fa"
-    # i18n: pages sharing a group are translations of one another (None = not
-    # translated). The storefront language switcher groups on this.
-    translation_group: uuid.UUID | None = None
     # Soft-delete marker: the admin table hides the restore/permanent-delete
     # controls without this — the rows were indistinguishable from live pages.
     deleted_at: datetime | None = None
@@ -374,7 +371,6 @@ class PublicPageSummary(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     slug: str
-    locale: str = "fa"
     updated_at: datetime
     published_at: datetime | None = None
 
@@ -485,6 +481,36 @@ class SitemapSectionRow(BaseModel):
     image_url: str | None = None
 
 
+class SitemapNewsRow(BaseModel):
+    """One news-sitemap entry: a recently published post.
+
+    Google's news sitemap requires the publication name, language and the
+    publication date alongside the URL; a post older than 48 hours must not be
+    listed (a stale entry is a policy violation that can drop the whole file).
+    """
+
+    loc: str
+    title: str
+    published_at: datetime
+    publication_name: str
+    language: str = "fa"
+
+
+class SitemapVideoRow(BaseModel):
+    """One video-sitemap entry: a post whose format is video with a cover.
+
+    Google requires thumbnail_loc, title and description plus a content URL
+    (or player URL); without a thumbnail the entry is invalid, so posts whose
+    cover is missing are skipped by the collector rather than emitted broken.
+    """
+
+    loc: str
+    title: str
+    description: str
+    thumbnail_url: str
+    published_at: datetime | None = None
+
+
 class SitemapEntriesResponse(BaseModel):
     """Extended sitemap payload for the storefront ``sitemap.ts``.
 
@@ -503,4 +529,9 @@ class SitemapEntriesResponse(BaseModel):
     # concerned. Additive keys, defaulted, so existing consumers keep working.
     blog_authors: list[SitemapSectionRow] = []
     blog_date_archives: list[SitemapSectionRow] = []
+    # News/video sitemap sources (Rank Math Pro parity). Served by their own
+    # route handlers because Next's metadata API cannot emit the news:/video:
+    # XML namespaces.
+    news: list[SitemapNewsRow] = []
+    videos: list[SitemapVideoRow] = []
     xml_fragment: str = ""

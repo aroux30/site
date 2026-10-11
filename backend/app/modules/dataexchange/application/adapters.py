@@ -256,6 +256,9 @@ def list_entity_types() -> list[dict[str, Any]]:
 # Importing the adapter modules registers them (side-effect of decorator).
 from app.modules.dataexchange.application import (  # noqa: E402
     blog_post_adapter,  # noqa: F401
+    blog_taxonomy_adapter,  # noqa: F401
     cms_page_adapter,  # noqa: F401
+    faq_adapter,  # noqa: F401
     product_adapter,  # noqa: F401
+    product_category_adapter,  # noqa: F401
 )

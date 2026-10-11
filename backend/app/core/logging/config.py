@@ -325,7 +325,7 @@ class WordPressStyleFileFormatter(logging.Formatter):
             origin = "DATABASE:PostgreSQL"
         elif "redis" in evt_lower or "cache" in evt_lower:
             origin = "CACHE:Redis"
-        elif "payment" in evt_lower or "zarinpal" in evt_lower or "idpay" in evt_lower:
+        elif "payment" in evt_lower or "zarinpal" in evt_lower:
             origin = "PAYMENT:Gateway"
         elif "http_request" in evt_lower or "fastapi" in evt_lower:
             origin = "API:FastAPI"

@@ -2,11 +2,11 @@
 
 ERP benchmark gap analysis (feature #6 Payments, P1 — tokenized charges).
 
-Design notes for a future recurring-charge service
---------------------------------------------------
+Design notes for tokenized charging
+-----------------------------------
 This module deliberately keeps the *token* opaque and gateway-scoped so a
-recurring/subscription engine (gap feature P1-4, hard-blocked on tokenization)
-can later call :func:`app.modules.payments.application.tokenization_service.charge_token`
+future recurring-charge feature can call
+:func:`app.modules.payments.application.tokenization_service.charge_token`
 repeatedly without re-presenting the customer.
 
 Security contract (non-negotiable):
@@ -27,17 +27,14 @@ for the capability contract):
 ===================  ==========================================================
 Provider             Tokenization status
 ===================  ==========================================================
-``mock``              Fully implemented (test/dev only; disabled in production)
 ``zarinpal``          NOT supported by the public v4 API — ``tokenize`` raises
                       ``NotImplementedError``. Zarinpal's "ZarinPal Plus" /
                       installment products are merchant-contract features that
                       issue their own tokens out of band; a real integration
                       must come from Zarinpal's merchant agreement, not this
                       code path.
-``idpay``             NOT supported by the public v1.1 API — same reasoning.
 ``wallet``            Not applicable (internal balance, no card to tokenize).
 ``card_transfer``     Not applicable (offline bank transfer, no token).
-``crypto``            Not applicable (on-chain, no card to tokenize).
 ===================  ==========================================================
 
 The capability abstraction exists so the calling code is already written

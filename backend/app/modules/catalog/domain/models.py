@@ -23,11 +23,6 @@ from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database.base import BaseModel
-from app.modules.vendors.domain.models import (
-    SettlementStatus,
-    Vendor,
-    VendorSettlement,
-)
 
 # ---- Enums ----
 
@@ -131,7 +126,6 @@ class Product(BaseModel):
         Index("ix_products_slug", "slug"),
         Index("ix_products_category_id", "category_id"),
         Index("ix_products_brand_id", "brand_id"),
-        Index("ix_products_vendor_id", "vendor_id"),
         Index("ix_products_status", "status"),
         Index("ix_products_is_active", "is_active"),
         Index("ix_products_is_featured", "is_featured"),
@@ -146,11 +140,6 @@ class Product(BaseModel):
     brand_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("brands.id", ondelete="SET NULL"),
-        nullable=True,
-    )
-    vendor_id: Mapped[uuid.UUID | None] = mapped_column(
-        UUID(as_uuid=True),
-        ForeignKey("vendors.id", ondelete="SET NULL"),
         nullable=True,
     )
     name: Mapped[str] = mapped_column(String(500), nullable=False)
@@ -188,9 +177,6 @@ class Product(BaseModel):
     brand: Mapped[Optional["Brand"]] = relationship(
         "Brand", back_populates="products", lazy="joined"
     )
-    vendor: Mapped[Optional["Vendor"]] = relationship(
-        "Vendor", back_populates="products", lazy="select"
-    )
     variants: Mapped[list["ProductVariant"]] = relationship(
         "ProductVariant", back_populates="product", lazy="select"
     )
@@ -220,7 +206,6 @@ class ProductVariant(BaseModel):
     __tablename__ = "product_variants"
     __table_args__ = (
         Index("ix_product_variants_product_id", "product_id"),
-        Index("ix_product_variants_vendor_id", "vendor_id"),
         Index("ix_product_variants_sku", "sku"),
         Index("ix_product_variants_is_active", "is_active"),
     )
@@ -229,11 +214,6 @@ class ProductVariant(BaseModel):
         UUID(as_uuid=True),
         ForeignKey("products.id", ondelete="CASCADE"),
         nullable=False,
-    )
-    vendor_id: Mapped[uuid.UUID | None] = mapped_column(
-        UUID(as_uuid=True),
-        ForeignKey("vendors.id", ondelete="SET NULL"),
-        nullable=True,
     )
     sku: Mapped[str] = mapped_column(String(100), unique=True, nullable=False)
     barcode: Mapped[str | None] = mapped_column(String(100), nullable=True)

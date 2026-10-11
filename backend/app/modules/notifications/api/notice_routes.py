@@ -3,12 +3,17 @@
 from __future__ import annotations
 
 import uuid
+from typing import Any
 
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database.session import get_db
-from app.core.security.dependencies import RequirePermissions, get_current_user_id
+from app.core.security.dependencies import (
+    RequirePermissions,
+    get_current_user_id,
+    get_current_user_optional,
+)
 from app.modules.messaging.application import sms_hub_service
 from app.modules.notifications.application import notice_service
 from app.modules.notifications.schemas.notices import (
@@ -37,9 +42,31 @@ async def get_active_notices(
         "all",
         description="Current page context: all, home, checkout, dashboard",
     ),
-    user_id: uuid.UUID | None = Depends(get_current_user_id),
+    payload: dict[str, Any] | None = Depends(get_current_user_optional),
     db: AsyncSession = Depends(get_db),
 ) -> list[NoticeResponse]:
+    """Public notices for the current visitor.
+
+    Anonymous by design: the storefront banner (``NoticeBanner``) renders
+    site-wide announcements for every visitor, and the service already models
+    the guest case (``user_id=None`` returns the full active set, skipping
+    only the per-user "seen" filter). The previous mandatory-auth guard made
+    the endpoint 401 for every guest, so an announcement targeted at
+    ``all``/``home``/``checkout`` was never visible to the audience it was
+    written for — and each storefront page load logged a console error.
+
+    Identity stays optional enrichment, not a gate: a valid token still
+    filters out notices the user has already dismissed; a missing one returns
+    the unfiltered active set. A *present-and-invalid* token still fails
+    loudly (``_extract_optional_token``), so a forged credential cannot
+    silently downgrade.
+    """
+    user_id: uuid.UUID | None = None
+    if payload:
+        try:
+            user_id = uuid.UUID(payload["sub"])
+        except (KeyError, ValueError):
+            user_id = None
     notices = await notice_service.get_active_notices_for_user(
         db, user_id=user_id, target_page=target_page
     )

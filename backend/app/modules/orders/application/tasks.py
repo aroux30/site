@@ -28,18 +28,28 @@ def _as_aware(dt: datetime) -> datetime:
 
 
 async def _cancel_stale_pending_orders_async() -> dict[str, Any]:
-    """Cancel PENDING orders whose payment never arrived within the TTL.
+    """Cancel WAITING_PAYMENT_GATEWAY orders whose payment never arrived within the TTL.
 
-    Checkout commits inventory at order-creation time, so an unpaid PENDING
-    order holds stock indefinitely.  This task cancels stale orders, returns
-    their stock to available inventory, and records a status-history entry.
+    Checkout commits inventory at order-creation time, so an unpaid order holds
+    stock indefinitely. This task cancels stale gateway orders, returns their
+    stock to available inventory, and records a status-history entry.
+
+    SCOPE — deliberately narrow. It touches ONLY ``WAITING_PAYMENT_GATEWAY``:
+
+    * ``WAITING_PAYMENT_CARD`` is never touched, at any age (owner decision
+      2026-10-11). A card-to-card order means the customer's money may already
+      be in the account while an admin is still looking at the receipt;
+      cancelling it on a timer would destroy a sale and lose the refund
+      obligation. Those wait for a human, however late they come.
+    * ``PENDING`` means the payment already SUCCEEDED and an operator owns the
+      order — auto-cancelling it would cancel a paid order.
 
     Reconciliation guard (Phase 4 §13): an order with a live payment attempt
-    (PENDING / PROCESSING / COMPLETED) is NEVER auto-cancelled. If the
-    customer paid at the gateway but the callback was lost, cancelling here
-    would strand the money at the gateway *and* block the late server-side
-    verify (a CANCELED order is not payable). Such orders stay PENDING so the
-    webhook / late callback / admin verify can still complete them; see
+    (PENDING / PROCESSING / COMPLETED) is NEVER auto-cancelled. If the customer
+    paid at the gateway but the callback was lost, cancelling here would strand
+    the money at the gateway *and* block the late server-side verify (a CANCELED
+    order is not payable). Such orders stay WAITING_PAYMENT_GATEWAY so the webhook /
+    late callback / admin verify can still complete them; see
     docs/runbooks/payment-reconciliation.md.
     """
     settings = get_settings()
@@ -49,7 +59,7 @@ async def _cancel_stale_pending_orders_async() -> dict[str, Any]:
 
     async with async_session_factory() as db:
         try:
-            stmt = select(Order).filter_by(status=OrderStatus.PENDING).with_for_update()
+            stmt = select(Order).filter_by(status=OrderStatus.WAITING_PAYMENT_GATEWAY).with_for_update()
             pending_orders = (await db.scalars(stmt)).all()
             # Filter the payment timeout in Python — pending orders are a
             # small, bounded set and this keeps the scan index-friendly.
@@ -167,7 +177,10 @@ async def _cancel_stale_pending_orders_async() -> dict[str, Any]:
     max_retries=5,
 )
 def cancel_stale_pending_orders() -> dict[str, Any]:
-    """Celery task entrypoint: auto-cancel unpaid PENDING orders.
+    """Celery task entrypoint: auto-cancel unpaid WAITING_PAYMENT_GATEWAY orders.
+
+    Never touches WAITING_PAYMENT_CARD (a human decides those) or PENDING (already
+    paid — an operator owns it).
 
     Retries with backoff: this task releases stock, so a transient database or
     broker failure that merely returned a dict left orders stuck holding

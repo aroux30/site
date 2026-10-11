@@ -6,7 +6,7 @@ import uuid
 from datetime import datetime
 from typing import Any
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict
 
 
 class AuditLogResponse(BaseModel):
@@ -16,6 +16,11 @@ class AuditLogResponse(BaseModel):
 
     id: uuid.UUID
     actor_id: uuid.UUID | None = None
+    #: Human-readable actor identity, resolved by the route (not a column).
+    #: The raw ``actor_id`` alone made every row read "کاربر عامل: <uuid>";
+    #: the reviewer's actual question is "who is this person?".
+    actor_name: str | None = None
+    actor_phone: str | None = None
     action: str
     resource: str
     resource_id: uuid.UUID | None = None
@@ -36,33 +41,6 @@ class AuditLogListResponse(BaseModel):
     page: int
     page_size: int
     pages: int
-
-
-# ── Operational Exception Schemas ─────────────────────────────────────────
-
-
-class OperationalExceptionResponse(BaseModel):
-    """Actionable operational anomaly for Admin Exception Center."""
-
-    id: uuid.UUID
-    exception_type: str
-    severity: str
-    status: str
-    entity_type: str
-    entity_id: str
-    details: dict[str, Any]
-    created_at: datetime
-    owner_id: uuid.UUID | None = None
-    resolved_at: datetime | None = None
-    resolution_notes: str | None = None
-
-
-class ExceptionAssignRequest(BaseModel):
-    owner_id: uuid.UUID
-
-
-class ExceptionResolveRequest(BaseModel):
-    resolution_notes: str = Field(..., min_length=3, max_length=2000)
 
 
 # ── Field-level change log schemas (ERP feature #9) ───────────────────────
@@ -87,6 +65,9 @@ class EntityChangeResponse(BaseModel):
     operation: str
     changed_fields: list[dict[str, Any]]
     actor_id: uuid.UUID | None = None
+    #: Human-readable actor identity, resolved by the route (not a column).
+    actor_name: str | None = None
+    actor_phone: str | None = None
     actor_type: str
     request_id: str | None = None
     source: str

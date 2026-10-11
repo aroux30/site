@@ -27,18 +27,34 @@ if TYPE_CHECKING:
 
 
 class OrderStatus(str, enum.Enum):
+    """Order lifecycle — a WooCommerce-style vocabulary, 2026-10-11.
+
+    Owner decision: the previous twelve-status chain modelled a physical
+    store. This is a DIGITAL store (2908 digital + 2238 simple products, 0
+    shipments), so the packaging and delivery stages were noise. The live
+    table backs that up — ``delivered``, ``on_hold``, ``returned`` and
+    ``partially_refunded`` held zero rows, and ``shipped``/``refunded`` one
+    each, both synthetic test fixtures.
+
+    The one distinction that DOES matter is payment: an unpaid order sitting
+    in a gateway and one waiting for an admin to eyeball a card-to-card
+    receipt need different handling. The first is abandoned by the customer
+    and should expire to ``canceled`` on its own; the second is an operator's
+    job and must never expire, however late they get to it.
+    """
+
+    #: Order created, sent to the gateway, awaiting the gateway callback.
+    #: Abandoned ones expire to CANCELED (see the pending-payment sweep).
+    WAITING_PAYMENT_GATEWAY = "waiting_payment_gateway"
+    #: Card-to-card receipt uploaded — waiting for an ADMIN, never expires.
+    WAITING_PAYMENT_CARD = "waiting_payment_card"
+    #: Paid and accepted; the operator is working on it.
     PENDING = "pending"
-    CONFIRMED = "confirmed"
+    #: Being fulfilled / under review (WooCommerce "On-hold" stage).
     PROCESSING = "processing"
-    PACKING = "packing"
-    SHIPPED = "shipped"
-    DELIVERED = "delivered"
     COMPLETED = "completed"
     CANCELED = "canceled"
-    ON_HOLD = "on_hold"
-    RETURNED = "returned"
     REFUNDED = "refunded"
-    PARTIALLY_REFUNDED = "partially_refunded"
 
 
 # ---- Models ----
@@ -63,8 +79,20 @@ class Order(BaseModel):
     )
     order_number: Mapped[str] = mapped_column(String(50), unique=True, nullable=False)
     status: Mapped[OrderStatus] = mapped_column(
-        Enum(OrderStatus, name="order_status_enum", native_enum=False),
-        default=OrderStatus.PENDING,
+        # `length` is explicit on purpose. Left to itself, SQLAlchemy derives
+        # the column width from the longest enum NAME at the time the DDL was
+        # written — that was `PARTIALLY_REFUNDED` (18), and the width silently
+        # survived the vocabulary change, so the longer names added later
+        # (`WAITING_PAYMENT_GATEWAY` is 23) fail at the database with
+        # StringDataRightTruncation. Pinning a comfortable width means a
+        # future rename cannot die that way.
+        Enum(OrderStatus, name="order_status_enum", native_enum=False, length=32),
+        # Safe default for any code path that constructs an Order without an
+        # explicit status. Checkout sets the real opening status
+        # (WAITING_PAYMENT_GATEWAY or WAITING_PAYMENT_CARD) based on the
+        # payment method; this is the fallback and matches the common
+        # (gateway) case.
+        default=OrderStatus.WAITING_PAYMENT_GATEWAY,
         nullable=False,
     )
     subtotal: Mapped[int] = mapped_column(BigInteger, nullable=False)

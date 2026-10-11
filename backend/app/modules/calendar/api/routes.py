@@ -36,7 +36,7 @@ async def list_calendar_events(
     ),
     sources: list[str] | None = Query(
         None,
-        description="Limit to these source modules (content, discounts, notifications, messaging, subscriptions)",
+        description="Limit to these source modules (content, discounts, notifications, messaging)",
     ),
 ) -> dict[str, Any]:
     """Everything scheduled in the window, from every owning module.
@@ -78,7 +78,6 @@ async def calendar_sources() -> dict[str, Any]:
             {"module": "discounts", "label": "بازه‌های تخفیف"},
             {"module": "notifications", "label": "اعلان‌های زمان‌دار"},
             {"module": "messaging", "label": "کمپین‌های پیامکی"},
-            {"module": "subscriptions", "label": "صورتحساب اشتراک‌ها"},
         ]
     }
 

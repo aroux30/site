@@ -73,13 +73,17 @@ CAPABILITY_PERMISSIONS: dict[str, frozenset[str]] = {
     "publish_pages": frozenset({"settings:write"}),
     "delete_pages": frozenset({"settings:write"}),
     "edit_others_pages": frozenset({"settings:write", "settings:write_others"}),
-    "edit_custom_posts": frozenset({"blog:write"}),
-    "publish_custom_posts": frozenset({"blog:write"}),
-    "delete_custom_posts": frozenset({"blog:write"}),
     "manage_taxonomies": frozenset({"blog:write"}),
     "manage_options": frozenset({"settings:write"}),
-    "export_content": frozenset({"settings:write"}),
-    "import_content": frozenset({"settings:write"}),
+    # Export/import front the «ورود و خروج داده» routes (dataexchange module,
+    # guarded by `dataexchange:write`) since 2026-10-07. They used to map to
+    # `settings:write` because that codename guarded the old
+    # /admin/content/export|import routes; those routes are gone, so the old
+    # mapping would have kept advertising a power no route grants. The
+    # dataexchange codenames belong to the admin role alone, which matches
+    # the WordPress split (administrator has export/import; editor does not).
+    "export_content": frozenset({"dataexchange:write"}),
+    "import_content": frozenset({"dataexchange:write"}),
     # Comments and terms
     # `moderate_comments` is deliberately *not* satisfied by `blog:write`. Every
     # author and contributor holds `blog:write`, and mapping the WordPress
@@ -112,7 +116,6 @@ ROLE_CAPABILITIES: dict[str, set[str]] = {
         "edit_posts", "edit_others_posts", "publish_posts", "delete_posts",
         "edit_pages", "edit_others_pages", "publish_pages", "delete_pages",
         "moderate_comments", "manage_categories", "manage_options",
-        "edit_custom_posts", "publish_custom_posts", "delete_custom_posts",
         "manage_taxonomies", "upload_files", "manage_media",
         "edit_users", "manage_roles", "export_content", "import_content",
     },
@@ -120,7 +123,6 @@ ROLE_CAPABILITIES: dict[str, set[str]] = {
         "edit_posts", "edit_others_posts", "publish_posts", "delete_posts",
         "edit_pages", "edit_others_pages", "publish_pages", "delete_pages",
         "moderate_comments", "manage_categories",
-        "edit_custom_posts", "publish_custom_posts",
         "manage_taxonomies", "upload_files", "manage_media",
     },
     "author": {

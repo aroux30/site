@@ -340,41 +340,6 @@ export default function CartPage() {
           <Card className="sticky top-24 p-6 shadow-sm border-border">
             <h2 className="mb-4 text-lg font-bold text-foreground">خلاصه سفارش</h2>
 
-            {/* Free Shipping Notification */}
-            <div className="mb-5 rounded-xl border border-primary/20 bg-primary/5 p-3 text-xs leading-relaxed">
-              {summary.freeShippingEligible ? (
-                <div className="flex items-center gap-2 text-primary font-medium">
-                  <CheckCircle2 className="h-4 w-4 flex-shrink-0" />
-                  <span>ارسال سفارش شما رایگان محاسبه خواهد شد!</span>
-                </div>
-              ) : (
-                <div className="flex flex-col gap-1.5">
-                  <div className="flex items-center gap-1.5 text-foreground font-medium">
-                    <Truck className="h-4 w-4 text-primary flex-shrink-0" />
-                    <span>
-                      با خرید{" "}
-                      <span className="font-bold text-primary">
-                        {formatPrice(summary.freeShippingRemaining)}
-                      </span>{" "}
-                      دیگر، ارسال سفارش شما رایگان می‌شود!
-                    </span>
-                  </div>
-                  {/* Progress Bar */}
-                  <div className="h-1.5 w-full overflow-hidden rounded-full bg-border">
-                    <div
-                      className="h-full bg-primary transition-all duration-500"
-                      style={{
-                        width: `${Math.min(
-                          100,
-                          Math.round((subtotal / 500000) * 100),
-                        )}%`,
-                      }}
-                    />
-                  </div>
-                </div>
-              )}
-            </div>
-
             {/* Price Calculations */}
             <div className="space-y-3 text-sm">
               <div className="flex items-center justify-between text-muted-foreground">
@@ -402,22 +367,9 @@ export default function CartPage() {
                 </div>
               )}
 
-              <div className="flex items-center justify-between text-muted-foreground">
-                <span>هزینه تخمینی ارسال</span>
-                {summary.shipping === 0 ? (
-                  <span className="font-semibold text-emerald-600 dark:text-emerald-400">
-                    رایگان
-                  </span>
-                ) : (
-                  <span className="font-medium text-foreground">
-                    {formatPrice(summary.shipping)}
-                  </span>
-                )}
-              </div>
-
               {summary.tax > 0 && (
                 <div className="flex items-center justify-between text-muted-foreground">
-                  <span>مالیات بر ارزش افزوده (۱۰٪)</span>
+                  <span>مالیات بر ارزش افزوده ({toPersianDigits(summary.taxRatePercent)}٪)</span>
                   <span className="font-medium text-foreground">
                     {formatPrice(summary.tax)}
                   </span>

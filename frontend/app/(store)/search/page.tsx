@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import React, { Suspense, useState, useEffect, useMemo, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useSearchParams, useRouter } from "next/navigation";
@@ -52,6 +52,32 @@ import {
 } from "@/lib/api/services";
 
 export default function SearchPage() {
+  // useSearchParams (inside) opts the subtree out of static prerendering; the
+  // Suspense boundary is what keeps the build from failing on it. Same pattern
+  // as the products listing.
+  return (
+    <Suspense fallback={<SearchPageSkeleton />}>
+      <SearchPageInner />
+    </Suspense>
+  );
+}
+
+function SearchPageSkeleton() {
+  return (
+    <div className="container mx-auto px-4 py-8" dir="rtl">
+      <div className="animate-pulse space-y-6">
+        <div className="h-10 w-64 rounded-lg bg-muted/70" />
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="h-72 rounded-2xl border border-border bg-card" />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function SearchPageInner() {
   const { toast } = useToast();
   const searchParams = useSearchParams();
   const router = useRouter();

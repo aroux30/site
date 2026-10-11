@@ -64,15 +64,41 @@ function isRewritable(src: string): boolean {
   return true;
 }
 
-function buildSrcset(src: string): string | null {
+/**
+ * Build the srcset, or null when it cannot be built honestly.
+ *
+ * The uploader only renders a derivative when the original is larger than
+ * the target (`generate_thumbnails` skips "original smaller than target"),
+ * so a 500px image has `-medium` (300w) but **no** `-medium_large` or
+ * `-large` file. The first version listed all three regardless, and the
+ * browser — told to fetch 768px by `sizes` — picked the 768w candidate and
+ * rendered a broken image; a 404 on a srcset entry is worse than no srcset,
+ * which is exactly what this file's own header says.
+ *
+ * Two rules make the output honest:
+ *
+ * 1. **The original is the largest candidate.** It always exists and always
+ *    matches its own width, so a wide viewport can never pick past it into a
+ *    file the upload never wrote.
+ * 2. **Without a `width` attribute, no srcset at all.** There is no way to
+ *    know which derivatives exist, and guessing is what broke. Images the
+ *    editor inserts carry no width, so they keep the plain `src` — correct
+ *    beats "optimised and occasionally broken".
+ */
+function buildSrcset(src: string, imgWidth: number | null): string | null {
+  if (!imgWidth) return null;
   const parts = splitName(src);
   if (!parts) return null;
-  return SRCSET_WIDTHS.map(([suffix, width]) => `${parts.dir}${parts.stem}-${suffix}${parts.ext} ${width}w`)
-    .join(", ");
+  const candidates = SRCSET_WIDTHS
+    .filter(([, width]) => width < imgWidth)
+    .map(([suffix, width]) => `${parts.dir}${parts.stem}-${suffix}${parts.ext} ${width}w`);
+  candidates.push(`${src} ${imgWidth}w`);
+  return candidates.length > 1 ? candidates.join(", ") : null;
 }
 
 const IMG_TAG = /<img\b[^>]*>/gi;
 const SRC_ATTR = /\ssrc\s*=\s*("([^"]*)"|'([^']*)'|([^\s>]+))/i;
+const WIDTH_ATTR = /\swidth\s*=\s*("(\d+)"|'(\d+)'|(\d+))/i;
 const SRCSET_ATTR = /\ssrcset\s*=/i;
 const SIZES_ATTR = /\ssizes\s*=/i;
 
@@ -93,14 +119,21 @@ export function withResponsiveImages(html: string): string {
     const src = m ? (m[2] ?? m[3] ?? m[4] ?? "") : "";
     if (!isRewritable(src)) return tag;
 
-    const srcset = buildSrcset(src);
+    const wm = WIDTH_ATTR.exec(tag);
+    const imgWidth = wm ? Number(wm[2] ?? wm[3] ?? wm[4]) : null;
+    const srcset = buildSrcset(src, imgWidth && imgWidth > 0 ? imgWidth : null);
     if (!srcset) return tag;
 
     // `sizes` is a hint, not a promise: with it absent the browser assumes
     // 100vw and picks the largest candidate on a wide screen even when the
     // image sits in a narrow column.
     const withSrcset = tag.replace(SRC_ATTR, ` src="${src}" srcset="${srcset}"`);
-    return SIZES_ATTR.test(withSrcset) ? withSrcset : `${withSrcset} sizes="${DEFAULT_SIZES}"`;
+    if (SIZES_ATTR.test(withSrcset)) return withSrcset;
+    // Insert before the closing `>` (or `/>`): appending after it put the
+    // attribute *outside* the tag, and the browser rendered it as literal
+    // text under the image — `<img … /> sizes="…"` showed the string
+    // `sizes="(max-width: 768px) 100vw, 768px"` on the page.
+    return withSrcset.replace(/\s*\/?>$/, (close) => ` sizes="${DEFAULT_SIZES}"${close}`);
   });
 }
 

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { Suspense, useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import {
@@ -49,6 +49,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useToast } from "@/components/ui/use-toast";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 import { DataTable, type DataTableColumn } from "@/components/admin/data-table";
 import { MediaPicker } from "@/components/admin/media-picker";
 import { BlockPatternPicker } from "@/components/admin/block-pattern-picker";
@@ -77,10 +78,10 @@ import { PostPreviewDialog } from "@/components/admin/blog/post-preview-dialog";
 import { RevisionCompareDialog } from "@/components/admin/blog/revision-compare-dialog";
 import { BulkEditDialog } from "@/components/admin/blog/bulk-edit-dialog";
 import { PostTermsPicker } from "@/components/admin/blog/post-terms-picker";
+import { PostSeoPanel } from "@/components/admin/blog/post-seo-panel";
 import { useAdminAuthors } from "@/hooks/use-admin-authors";
 import { TaxonomiesTab } from "@/components/admin/blog/taxonomies-tab";
 import { TaxonomyManagerTab } from "@/components/admin/blog/taxonomy-manager-tab";
-import { ContentTypesTab } from "@/components/admin/blog/content-types-tab";
 import { TransferTab } from "@/components/admin/blog/transfer-tab";
 
 const BLOG_TAXONOMIES_QUERY_KEY = "admin-blog-taxonomies" as const;
@@ -99,7 +100,29 @@ function isScheduled(post: BlogPost): boolean {
 }
 
 export default function AdminBlogPage() {
+  // useSearchParams (inside) opts the subtree out of static prerendering; the
+  // Suspense boundary is what keeps the build from failing on it. Same pattern
+  // as admin/media.
+  return (
+    <Suspense
+      fallback={
+        <div className="animate-pulse space-y-4 px-6 py-8">
+          <div className="h-8 w-56 rounded-lg bg-muted/70" />
+          <div className="h-64 rounded-2xl border border-border bg-card" />
+        </div>
+      }
+    >
+      <AdminBlogPageInner />
+    </Suspense>
+  );
+}
+
+function AdminBlogPageInner() {
   const { toast } = useToast();
+  // In-app confirmation, not `window.confirm`: the browser modal is silently a
+  // no-op in a sandboxed iframe, which made every delete button here look dead
+  // in the embedded preview.
+  const confirm = useConfirm();
   const [activeTab, setActiveTab] = useState<string>("posts");
   const [search, setSearch] = useState("");
   // `?search=` seeds the filter box. The admin bar's contextual "ویرایش نوشته"
@@ -142,7 +165,6 @@ export default function AdminBlogPage() {
   const [formExcerpt, setFormExcerpt] = useState("");
   const [formCover, setFormCover] = useState("");
   const [formStatus, setFormStatus] = useState<BlogPostStatus>("draft");
-  const [formLocale, setFormLocale] = useState<string>("fa");
   const [formCategory, setFormCategory] = useState<string>("");
   const [formTagIds, setFormTagIds] = useState<string[]>([]);
   const [formScheduled, setFormScheduled] = useState<string>("");
@@ -263,7 +285,6 @@ export default function AdminBlogPage() {
     setFormExcerpt("");
     setFormCover("");
     setFormStatus("draft");
-    setFormLocale("fa");
     setFormCategory("");
     setFormTagIds([]);
     setFormScheduled("");
@@ -289,11 +310,32 @@ export default function AdminBlogPage() {
     setEditing(post);
     setFormTitle(post.title);
     setFormSlug(post.slug);
-    setFormContent(post.content || "");
+    // The list payload deliberately carries no `content` (a page of 25 full
+    // bodies is megabytes), so `post.content` is undefined here and the editor
+    // opened empty — then Save or the 30s autosave wrote that emptiness back
+    // and silently erased the article. The detail endpoint is the only source
+    // of the body; fetch it before the dialog mounts.
+    let content = post.content;
+    if (content === undefined) {
+      try {
+        const full = await blogAdminApi.getPost(post.id);
+        content = full.content ?? "";
+        setEditing(full);
+      } catch {
+        // A failed fetch must not open an editor that looks loaded but is
+        // empty: that is the exact state a save would destroy the body from.
+        toast({
+          title: "متن نوشته خوانده نشد",
+          description: "برای جلوگیری از پاک شدن محتوا، ویرایشگر باز نشد. دوباره تلاش کنید.",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+    setFormContent(content || "");
     setFormExcerpt(post.excerpt || "");
     setFormCover(post.cover_image_url || "");
     setFormStatus(post.status);
-    setFormLocale(post.locale ?? "fa");
     setFormCategory(post.category_id || "");
     setFormTagIds((post.tags || []).map((t) => t.id));
     setFormScheduled(
@@ -487,7 +529,6 @@ export default function AdminBlogPage() {
       excerpt: formExcerpt || undefined,
       cover_image_url: formCover || undefined,
       status: formStatus,
-      locale: formLocale,
       category_id: formCategory || undefined,
       tag_ids: formTagIds,
       scheduled_for: formScheduled ? new Date(formScheduled).toISOString() : undefined,
@@ -523,7 +564,13 @@ export default function AdminBlogPage() {
 
   // Trash (soft delete)
   const handleTrash = async (post: BlogPost) => {
-    if (!confirm(`مقاله «${post.title}» به سطل زباله منتقل شود؟`)) return;
+    const ok = await confirm({
+      title: "انتقال به سطل زباله",
+      description: `مقاله «${post.title}» به سطل زباله منتقل شود؟ این عمل برگشت‌پذیر است.`,
+      confirmLabel: "انتقال",
+      destructive: true,
+    });
+    if (!ok) return;
     try {
       await blogAdminApi.deletePost(post.id);
       toast({ title: "مقاله به سطل زباله منتقل شد" });
@@ -576,12 +623,13 @@ export default function AdminBlogPage() {
           label: "حذف کامل",
           variant: "destructive" as const,
           onRun: async (rows: BlogPost[]) => {
-            if (
-              !window.confirm(
-                `${rows.length} نوشته برای همیشه حذف می‌شود. این عمل بازگشت‌پذیر نیست.`
-              )
-            )
-              return false;
+            const ok = await confirm({
+              title: "حذف کامل نوشته‌ها",
+              description: `${rows.length} نوشته برای همیشه حذف می‌شود. این عمل بازگشت‌پذیر نیست.`,
+              confirmLabel: "حذف کامل",
+              destructive: true,
+            });
+            if (!ok) return false;
             for (const post of rows) {
               await blogAdminApi.hardDeletePost(post.id);
             }
@@ -642,8 +690,13 @@ export default function AdminBlogPage() {
 
   // Permanent Delete
   const handlePermanentDelete = async (post: BlogPost) => {
-    if (!confirm(`آیا از حذف همیشگی «${post.title}» اطمینان دارید؟ این عمل قابل بازگشت نیست.`))
-      return;
+    const ok = await confirm({
+      title: "حذف همیشگی",
+      description: `آیا از حذف همیشگی «${post.title}» اطمینان دارید؟ این عمل قابل بازگشت نیست.`,
+      confirmLabel: "حذف همیشگی",
+      destructive: true,
+    });
+    if (!ok) return;
     try {
       await blogAdminApi.hardDeletePost(post.id);
       toast({ title: "مقاله برای همیشه پاک شد" });
@@ -723,8 +776,12 @@ export default function AdminBlogPage() {
 
   const handleRestore = async (revisionNumber: number) => {
     if (!revPost) return;
-    if (!confirm(`مقاله به نسخه ${toPersianDigits(String(revisionNumber))} بازگردانده شود؟`))
-      return;
+    const ok = await confirm({
+      title: "بازگردانی نسخه",
+      description: `مقاله به نسخه ${toPersianDigits(String(revisionNumber))} بازگردانده شود؟`,
+      confirmLabel: "بازگردانی",
+    });
+    if (!ok) return;
     setRestoring(revisionNumber);
     try {
       await blogAdminApi.restoreRevision(revPost.id, revisionNumber);
@@ -768,13 +825,43 @@ export default function AdminBlogPage() {
             </span>
           )}
           <span className="line-clamp-1 font-bold">{post.title}</span>
-          {post.locale && post.locale !== "fa" && (
-            <span className="rounded bg-muted px-1 py-0.5 text-[10px] font-medium uppercase text-muted-foreground">
-              {post.locale}
-            </span>
-          )}
         </div>
       ),
+    },
+    {
+      // SEO column (Rank Math's score column): the stored analyzer score and
+      // the focus keyword, so an operator scanning the list sees which posts
+      // need attention without opening each one. The score comes from
+      // seo_metadata.seo_score (written when the editor's panel saves).
+      key: "seo",
+      header: "سئو",
+      hideOnMobile: true,
+      className: "text-xs",
+      render: (post) => {
+        const score = post.seo_score;
+        const keyword = post.seo_focus_keyword;
+        if (score === null || score === undefined) {
+          return (
+            <span className="text-muted-foreground" title="هنوز تحلیل نشده">
+              —
+            </span>
+          );
+        }
+        const color =
+          score >= 80
+            ? "bg-emerald-600/10 text-emerald-700 border-emerald-600/30"
+            : score >= 50
+              ? "bg-amber-500/10 text-amber-700 border-amber-500/30"
+              : "bg-red-500/10 text-red-700 border-red-500/30";
+        return (
+          <span
+            className={`inline-flex items-center rounded-full border px-2 py-0.5 font-bold ${color}`}
+            title={keyword ? `کلمه کانونی: ${keyword}` : "کلمه کانونی تنظیم نشده"}
+          >
+            {toPersianDigits(String(score))}
+          </span>
+        );
+      },
     },
     {
       key: "category",
@@ -998,9 +1085,6 @@ export default function AdminBlogPage() {
           <TabsTrigger value="taxonomies" className="gap-1.5 text-xs">
             <Tag className="h-4 w-4" /> تاکسونومی‌ها
           </TabsTrigger>
-          <TabsTrigger value="content-types" className="gap-1.5 text-xs">
-            <FileCode className="h-4 w-4" /> تایپ‌های محتوا
-          </TabsTrigger>
           <TabsTrigger value="transfer" className="gap-1.5 text-xs">
             <Download className="h-4 w-4" /> ورود/خروج
           </TabsTrigger>
@@ -1133,11 +1217,6 @@ export default function AdminBlogPage() {
         {/* Custom Taxonomies Tab */}
         <TabsContent value="taxonomies">
           <TaxonomiesTab />
-        </TabsContent>
-
-        {/* Custom Post Types Tab */}
-        <TabsContent value="content-types">
-          <ContentTypesTab />
         </TabsContent>
 
         {/* Import / Export Tab */}
@@ -1574,6 +1653,23 @@ export default function AdminBlogPage() {
                 <PostTermsPicker postId={editing.id} objectType="blog_post" />
               </div>
             )}
+
+            {/* SEO panel — Rank Math's "SEO" box next to the content. The
+                engine and the admin page existed; the editor showed neither,
+                so a writer could not set or keep a focus keyword. Mounted
+                only for a saved post (seo_metadata keys on the post UUID). */}
+            <div className="grid gap-2">
+              <Label className="inline-flex items-center gap-1 text-xs">
+                <Search className="h-3.5 w-3.5" /> سئو
+              </Label>
+              <PostSeoPanel
+                postId={editing?.id ?? null}
+                title={formTitle}
+                content={formContent}
+                slug={formSlug}
+                excerpt={formExcerpt}
+              />
+            </div>
           </div>
 
           <DialogFooter className="flex items-center justify-between sm:justify-between">

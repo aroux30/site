@@ -98,6 +98,55 @@ export interface FeedImportStats {
   skipped: number;
 }
 
+/** One item (post or page) as a WordPress WXR export describes it. */
+export interface WxrItemPreview {
+  title: string;
+  slug: string | null;
+  status: string;
+  category_slugs?: string[];
+  tag_slugs?: string[];
+  parent_slug?: string | null;
+  published_at?: string | null;
+}
+
+/** What `previewWxr` reports: counts per kind, plus samples to eyeball. */
+export interface WxrPreview {
+  format: "wxr";
+  counts: {
+    categories: number;
+    tags: number;
+    posts: number;
+    pages: number;
+    comments: number;
+    comments_on_pages_skipped?: number;
+    menus: number;
+  };
+  sample: WxrItemPreview[];
+  sample_pages: WxrItemPreview[];
+  categories: Array<{ name: string; slug: string | null }>;
+  tags: Array<{ name: string; slug: string | null }>;
+}
+
+/** What `importWxr` creates, plus what the file held (parsed). */
+export interface WxrImportStats {
+  posts: number;
+  categories: number;
+  tags: number;
+  comments: number;
+  skipped: number;
+  comments_skipped: number;
+  pages_created: number;
+  pages_updated: number;
+  pages_reparented: number;
+  /** Pages the storefront refused (reserved slugs like `cart`). */
+  pages_skipped: number;
+  /** Remote images downloaded into the media library and rewritten to local URLs. */
+  images_imported: number;
+  /** Images that could not be fetched; their URLs were left pointing at the source. */
+  images_failed: number;
+  parsed: WxrPreview["counts"];
+}
+
 export const dataExchangeApi = {
   entities: () =>
     apiClient.get<DataExchangeEntity[]>("/admin/data-exchange/entities").then((r) => r.data),
@@ -118,7 +167,7 @@ export const dataExchangeApi = {
     const form = new FormData();
     form.append("file", file);
     return apiClient
-      .post<FeedPreview>("/admin/import-feed/preview", form, {
+      .post<FeedPreview>("/admin/import/feed/preview", form, {
         headers: { "Content-Type": "multipart/form-data" },
       })
       .then((r) => r.data);
@@ -132,7 +181,32 @@ export const dataExchangeApi = {
     const form = new FormData();
     form.append("file", file);
     return apiClient
-      .post<FeedImportStats>("/admin/import-feed", form, {
+      .post<FeedImportStats>("/admin/import/feed", form, {
+        headers: { "Content-Type": "multipart/form-data" },
+        params: { skip_existing: skipExisting },
+      })
+      .then((r) => r.data);
+  },
+  /** Parse a WordPress WXR (XML) export and report what it holds. Writes nothing. */
+  previewWxr: (file: File) => {
+    const form = new FormData();
+    form.append("file", file);
+    return apiClient
+      .post<WxrPreview>("/admin/import/wxr/preview", form, {
+        headers: { "Content-Type": "multipart/form-data" },
+      })
+      .then((r) => r.data);
+  },
+  /**
+   * Import a WordPress WXR export: posts, categories, tags, comments and
+   * pages (with their parent hierarchy) in one transaction. Drafts stay
+   * drafts — the file's own status decides.
+   */
+  importWxr: (file: File, skipExisting = true) => {
+    const form = new FormData();
+    form.append("file", file);
+    return apiClient
+      .post<WxrImportStats>("/admin/import/wxr", form, {
         headers: { "Content-Type": "multipart/form-data" },
         params: { skip_existing: skipExisting },
       })

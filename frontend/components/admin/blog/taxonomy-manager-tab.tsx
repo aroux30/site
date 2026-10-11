@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 import { fetchCategoryTree, fetchBlogCategories, fetchBlogTags, blogTaxonomyApi } from "@/lib/api/blog";
 import type { BlogPostCategory, BlogTag } from "@/lib/api/blog";
 import { toPersianDigits } from "@/lib/utils";
@@ -35,6 +36,7 @@ function flattenTree(
 
 export function TaxonomyManagerTab() {
   const { toast } = useToast();
+  const confirm = useConfirm();
   const [categories, setCategories] = useState<BlogPostCategory[]>([]);
   const [tree, setTree] = useState<BlogPostCategory[]>([]);
   const [tags, setTags] = useState<BlogTag[]>([]);
@@ -174,7 +176,13 @@ export function TaxonomyManagerTab() {
       count > 0
         ? `«${name}» ${toPersianDigits(count)} نوشته دارد. با حذف آن نوشته‌ها حذف نمی‌شوند و فقط از این ${verb} جدا می‌شوند. مطمئنید؟`
         : `«${name}» حذف شود؟`;
-    if (!window.confirm(message)) return;
+    const ok = await confirm({
+      title: `حذف ${verb}`,
+      description: message,
+      confirmLabel: "حذف",
+      destructive: true,
+    });
+    if (!ok) return;
 
     setBusy(`del-${id}`);
     try {

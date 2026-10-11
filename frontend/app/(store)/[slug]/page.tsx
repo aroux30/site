@@ -4,11 +4,8 @@ import { RemoteImage } from "@/components/shared/remote-image";
 
 import cleanHtml from "@/lib/sanitize-html";
 import { apiInternalUrl } from "@/lib/api/server-base";
-import {
-  alternatesFor,
-  oembedDiscoveryUrl,
-  type AlternateLocale,
-} from "@/lib/hreflang";
+import { oembedDiscoveryUrl, siteOrigin } from "@/lib/site-url";
+import { DEFAULT_OG_IMAGE } from "@/lib/seo-meta";
 
 // CMS pages are the editable storefront copy (about, terms, returns, …). The
 // backend is the source of truth; this route renders whatever slug an editor
@@ -49,40 +46,6 @@ async function fetchPage(slug: string): Promise<CmsPage | null> {
   }
 }
 
-interface PageAlternates {
-  self: { locale: string; slug: string };
-  alternates: AlternateLocaleWithSlug[];
-}
-
-interface AlternateLocaleWithSlug extends AlternateLocale {
-  slug: string;
-}
-
-// Translation siblings come from the backend rather than being guessed, and
-// a failure here must not take the page down: a page without hreflang is
-// still indexable, a page that 500s is not.
-async function fetchAlternates(slug: string): Promise<{
-  locale: string;
-  translations: AlternateLocale[];
-}> {
-  try {
-    const res = await fetch(
-      `${API_BASE}/content/pages/${encodeURIComponent(slug)}/alternates`,
-      { next: { revalidate: 300 } },
-    );
-    if (!res.ok) return { locale: "fa", translations: [] };
-    const data = (await res.json()) as PageAlternates;
-    return {
-      locale: data.self?.locale || "fa",
-      translations: (data.alternates ?? [])
-        .filter((a) => a.locale !== data.self?.locale)
-        .map((a) => ({ locale: a.locale, path: a.path })),
-    };
-  } catch {
-    return { locale: "fa", translations: [] };
-  }
-}
-
 // Next 15 hands route params to the page as a Promise; reading `.slug` off the
 // raw object is a deprecation that logs an error per request and will stop
 // working. The other dynamic routes (blog/[slug], tickets/[id], …) already
@@ -93,10 +56,24 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const page = await fetchPage(slug);
   if (!page) return {};
-  const { locale, translations } = await fetchAlternates(slug);
+  // A page with no hand-written description must not ship an empty one:
+  // Google fills the gap itself with body text (which is usually worse), and
+  // an absent meta description is a Lighthouse "missing description" finding.
+  // The first ~160 characters of the body, with tags stripped, is a better
+  // fallback than nothing — same rule as the blog's excerpt. The only case a
+  // page has no body text is a template stub (shortcode shells), which the
+  // operator's editor is the right place to fix, not an empty meta tag.
+  const fallbackDescription =
+    page.body_html
+      .replace(/<[^>]+>/g, " ")
+      .replace(/\s+/g, " ")
+      .trim()
+      .slice(0, 160) || undefined;
+
   return {
     title: page.seo_title || page.title,
-    description: page.seo_description || page.excerpt || undefined,
+    description:
+      page.seo_description || page.excerpt || fallbackDescription,
     // oEmbed discovery for this page, not just the site root.
     //
     // The root layout advertises `/oembed` with no `url`, which tells a reader
@@ -108,16 +85,23 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     // link as given, with no referer to infer a base from, so a relative one
     // resolves against nothing.
     alternates: {
-      ...alternatesFor(`/${slug}`, locale, translations),
+      canonical: `${siteOrigin()}/${slug}`,
       types: {
         "text/json+oembed": [{ url: oembedDiscoveryUrl(`/${slug}`) }],
       },
     },
     openGraph: {
       title: page.seo_title || page.title,
-      description: page.seo_description || page.excerpt || undefined,
+      description: fallbackDescription,
       type: "article",
-      url: oembedDiscoveryUrl(`/${slug}`),
+      // og:url is the PAGE's own address, not the oembed endpoint: the first
+      // version pointed every shared CMS page at /api/v1/content/oembed, so
+      // Facebook's crawler showed an API URL as the canonical address.
+      url: `${siteOrigin()}/${slug}`,
+      // The default share image the root layout declares is shadowed by this
+      // page-level object (Next.js replaces openGraph rather than merging), so
+      // it is repeated here — same reason every list page repeats it.
+      images: [DEFAULT_OG_IMAGE],
     },
   };
 }

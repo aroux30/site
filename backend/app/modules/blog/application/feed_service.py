@@ -131,7 +131,6 @@ def _feed_query(
     *,
     category_id: uuid.UUID | None = None,
     tag_id: uuid.UUID | None = None,
-    locale: str | None = None,
     limit: int = 20,
 ) -> Select:
     """SELECT for published posts, optionally scoped to a category/tag.
@@ -156,8 +155,6 @@ def _feed_query(
         stmt = stmt.join(BlogPostTag, BlogPostTag.post_id == BlogPost.id).where(
             BlogPostTag.tag_id == tag_id
         )
-    if locale:
-        stmt = stmt.where(BlogPost.locale == locale)
     return stmt.order_by(BlogPost.published_at.desc().nullslast()).limit(limit)
 
 
@@ -226,7 +223,6 @@ async def _fetch_feed_posts(
     *,
     category_slug: str | None = None,
     tag_slug: str | None = None,
-    locale: str | None = None,
     limit: int = 20,
 ) -> tuple[BlogCategory | None, BlogTag | None, list[BlogPost]]:
     """Resolve the slug filters, then fetch that scope's published posts."""
@@ -248,7 +244,6 @@ async def _fetch_feed_posts(
     stmt = _feed_query(
         category_id=category.id if category else None,
         tag_id=tag.id if tag else None,
-        locale=locale,
         limit=limit,
     )
     posts = (await db.execute(stmt)).scalars().unique().all()
@@ -268,8 +263,18 @@ def build_rss_xml(
     category: BlogCategory | None = None,
     tag: BlogTag | None = None,
     feed_path: str = "/blog/feed/rss",
+    before_content: str = "",
+    after_content: str = "",
+    featured_image: bool = True,
 ) -> str:
-    """Render an RSS 2.0 channel for the given posts (pure string building)."""
+    """Render an RSS 2.0 channel for the given posts (pure string building).
+
+    ``before_content``/``after_content`` wrap every item's body (Rank Math's
+    rss_before_content / rss_after_content): a signature or a note that belongs
+    in every feed copy. ``featured_image`` adds the post cover as
+    ``<media:content>`` — feeds do not render images inline, so the value is
+    giving readers the image URL itself.
+    """
     root = base_url.rstrip("/")
     now = _rfc822(datetime.now(UTC))
 
@@ -280,13 +285,27 @@ def build_rss_xml(
         if post.category:
             category_xml = f"      <category>{xml_escape(post.category.name)}</category>"
 
+        body = _prepared_body(post)
+        if before_content or after_content:
+            body = f"{before_content}{body}{after_content}"
+
+        media_xml = ""
+        if featured_image and post.cover_image_url:
+            cover = post.cover_image_url
+            if not cover.startswith(("http://", "https://")):
+                cover = f"{root}{cover if cover.startswith('/') else f'/{cover}'}"
+            media_xml = (
+                f'      <media:content url="{xml_escape(cover)}" medium="image"/>'
+            )
+
         item = f"""    <item>
       <title>{xml_escape(post.title)}</title>
       <link>{post_url}</link>
       <guid isPermaLink="true">{post_url}</guid>
       <pubDate>{_rfc822(post.published_at)}</pubDate>
       <description>{xml_escape(feed_excerpt(post))}</description>
-      <content:encoded>{_cdata(_prepared_body(post))}</content:encoded>
+      <content:encoded>{_cdata(body)}</content:encoded>
+{media_xml}
 {category_xml}
     </item>"""
         items.append(item)
@@ -296,7 +315,8 @@ def build_rss_xml(
     return f"""<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0"
      xmlns:content="http://purl.org/rss/1.0/modules/content/"
-     xmlns:atom="http://www.w3.org/2005/Atom">
+     xmlns:atom="http://www.w3.org/2005/Atom"
+     xmlns:media="http://search.yahoo.com/mrss/">
   <channel>
     <title>{xml_escape(_feed_title(site_title, category, tag))}</title>
     <link>{root}/blog</link>
@@ -316,11 +336,13 @@ async def generate_rss_feed(
     site_title: str = "وبلاگ",
     site_description: str = "آخرین مطالب وبلاگ",
     limit: int = 20,
-    locale: str | None = None,
     permalink_structure: str | None = None,
     category_slug: str | None = None,
     tag_slug: str | None = None,
     use_excerpt: bool = False,
+    before_content: str = "",
+    after_content: str = "",
+    featured_image: bool = True,
 ) -> str:
     """Generate an RSS 2.0 XML feed of published blog posts.
 
@@ -334,7 +356,6 @@ async def generate_rss_feed(
         db,
         category_slug=category_slug,
         tag_slug=tag_slug,
-        locale=locale,
         limit=limit,
     )
     await prepare_feed_posts(db, posts, use_excerpt=use_excerpt)
@@ -346,6 +367,9 @@ async def generate_rss_feed(
         permalink_structure=permalink_structure,
         category=category,
         tag=tag,
+        before_content=before_content,
+        after_content=after_content,
+        featured_image=featured_image,
     )
 
 
@@ -423,11 +447,17 @@ async def generate_atom_feed(
     site_title: str = "وبلاگ",
     site_description: str = "آخرین مطالب وبلاگ",
     limit: int = 20,
-    locale: str | None = None,
     permalink_structure: str | None = None,
     category_slug: str | None = None,
     tag_slug: str | None = None,
     use_excerpt: bool = False,
+    # Accepted and deliberately unused: `_feed_settings` is shared by every
+    # feed endpoint, and Atom has no media:content equivalent — its spec
+    # carries the image inside the entry's content. Swallowing the keys here
+    # keeps one settings dict valid for both formats.
+    before_content: str = "",
+    after_content: str = "",
+    featured_image: bool = True,
 ) -> str:
     """Generate an Atom 1.0 XML feed of published blog posts.
 
@@ -438,7 +468,6 @@ async def generate_atom_feed(
         db,
         category_slug=category_slug,
         tag_slug=tag_slug,
-        locale=locale,
         limit=limit,
     )
     await prepare_feed_posts(db, posts, use_excerpt=use_excerpt)
@@ -463,6 +492,10 @@ async def generate_term_feed(
     site_description: str = "آخرین مطالب وبلاگ",
     limit: int = 20,
     permalink_structure: str | None = None,
+    use_excerpt: bool = False,
+    before_content: str = "",
+    after_content: str = "",
+    featured_image: bool = True,
 ) -> str:
     """RSS or Atom feed for one category-or-tag slug (auto-resolved).
 
@@ -476,9 +509,20 @@ async def generate_term_feed(
         tag_slug=slug if kind == "tag" else None,
         limit=limit,
     )
+    await prepare_feed_posts(db, posts, use_excerpt=use_excerpt)
     feed_path = f"/api/v1/blog/feed/{fmt}/{slug}"
-    builder = build_atom_xml if fmt == "atom" else build_rss_xml
-    return builder(
+    if fmt == "atom":
+        return build_atom_xml(
+            posts,
+            base_url=base_url,
+            site_title=site_title,
+            site_description=site_description,
+            permalink_structure=permalink_structure,
+            category=term if kind == "category" else None,
+            tag=term if kind == "tag" else None,
+            feed_path=feed_path,
+        )
+    return build_rss_xml(
         posts,
         base_url=base_url,
         site_title=site_title,
@@ -487,6 +531,9 @@ async def generate_term_feed(
         category=term if kind == "category" else None,
         tag=term if kind == "tag" else None,
         feed_path=feed_path,
+        before_content=before_content,
+        after_content=after_content,
+        featured_image=featured_image,
     )
 
 

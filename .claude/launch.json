@@ -9,10 +9,52 @@
       "autoPort": false
     },
     {
+      "name": "frontend-preview",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [".claude/preview-frontend.cjs"],
+      "port": 3100,
+      "autoPort": false
+    },
+    {
+      "name": "frontend-preview-3200",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [".claude/preview-frontend.cjs", "3200", ".next-preview-3200"],
+      "port": 3200,
+      "autoPort": false
+    },
+    {
+      "name": "frontend-preview-3300",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [".claude/preview-frontend.cjs", "3300", ".next-preview-3300"],
+      "port": 3300,
+      "autoPort": false
+    },
+    {
+      "name": "frontend-preview-3400",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [".claude/preview-frontend.cjs", "3400", ".next-preview-3400"],
+      "port": 3400,
+      "autoPort": false
+    },
+    {
+      "name": "frontend-preview-3600",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [".claude/preview-frontend.cjs", "3600", ".next-preview-3600"],
+      "port": 3600,
+      "autoPort": false
+    },
+    {
       "name": "arch-graph",
       "runtimeExecutable": "python",
       "runtimeArgs": ["-m", "http.server", "8777", "--directory", "graphify-out"],
       "port": 8777
+    },
+    {
+      "name": "wallet-frontend-3500",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [".claude/preview-wallet.cjs", "3500", ".next-wallet-3500"],
+      "port": 3500
     }
-  ]
+  ],
+  "autoVerify": true
 }

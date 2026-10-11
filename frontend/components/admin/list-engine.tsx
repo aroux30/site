@@ -11,6 +11,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 import { cn } from "@/lib/utils";
 
 /**
@@ -251,6 +252,7 @@ export function BulkActionBar<T>({
 }) {
   const { selected, selectedRows, clearSelection, toggleAll, setPage } = useListSelection<T>();
   const [busy, setBusy] = useState<string | null>(null);
+  const confirm = useConfirm();
 
   const keys = rows.map((r) => (r as { id?: string }).id).filter(Boolean) as string[];
 
@@ -264,7 +266,21 @@ export function BulkActionBar<T>({
         ? selectedRows
         : rows.filter((r) => selected.has((r as { id?: string }).id!));
     const message = action.confirm?.(targets);
-    if (message && !window.confirm(message)) return;
+    // In-app confirmation, not `window.confirm`: the browser modal returns
+    // false with no dialog inside a sandboxed iframe, so every bulk action
+    // gated this way silently did nothing in an embedded preview.
+    if (message) {
+      const ok = await confirm({
+        // `label` is a ReactNode (it may carry an icon), so it is not a valid
+        // dialog title. The action's own `confirm` message already states what
+        // is about to happen; the title only names the kind of act.
+        title: action.variant === "destructive" ? "تأیید عملیات" : "ادامهٔ عملیات",
+        description: message,
+        confirmLabel: action.variant === "destructive" ? "تأیید" : "ادامه",
+        destructive: action.variant === "destructive",
+      });
+      if (!ok) return;
+    }
     setBusy(action.id);
     try {
       const ok = await action.onRun(targets);

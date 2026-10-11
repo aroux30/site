@@ -93,7 +93,6 @@ async def main() -> int:
                     resource_id=page_id,
                     content="پاسخ‌خواهی این دیدگاه برای بررسی آدرس مقصد",
                     author_name="بازدیدکننده",
-                    author_email="visitor@example.com",
                 ),
                 # no request object: the service takes the IP and UA as scalars,
                 author_id=None,
@@ -167,8 +166,7 @@ async def main() -> int:
                         post_id=post_id,
                         content="دیدگاه روی نوشته برای بررسی مسیر پاسخ",
                         author_name="بازدیدکننده",
-                        author_email="visitor@example.com",
-                    ),
+                        ),
                     # no request object: the service takes the IP and UA as scalars,
                     author_id=None,
                 )

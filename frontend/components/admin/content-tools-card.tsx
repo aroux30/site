@@ -25,6 +25,7 @@ import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 import { toPersianDigits } from "@/lib/utils";
 import { blogAdminApi } from "@/lib/api/blog";
 import { cmsPagesAdminApi } from "@/lib/api/content";
@@ -33,6 +34,7 @@ const fa = (n: number | undefined) => toPersianDigits(String(n ?? 0));
 
 export function ContentToolsCard() {
   const { toast } = useToast();
+  const confirm = useConfirm();
   const [busy, setBusy] = useState<"convert" | "posts" | "pages" | null>(null);
 
   /** Both purges share a window, because they are the same decision made twice. */
@@ -50,7 +52,13 @@ export function ContentToolsCard() {
     const warning = clearCategories
       ? "دسته‌های همه‌ی نوشته‌ها جدا می‌شوند و فقط برچسب باقی می‌ماند. این کار از طریق تاریخچه قابل بازگشت نیست."
       : "به هر نوشته‌ی دسته‌دار یک برچسب هم‌نام با دسته‌اش اضافه می‌شود. دسته‌ها دست‌نخورده می‌مانند.";
-    if (!window.confirm(`${warning}\n\nادامه می‌دهید؟`)) return;
+    const ok = await confirm({
+      title: "تبدیل دسته‌ها به برچسب‌ها",
+      description: `${warning} ادامه می‌دهید؟`,
+      confirmLabel: "ادامه",
+      destructive: true,
+    });
+    if (!ok) return;
 
     setBusy("convert");
     try {
@@ -83,7 +91,13 @@ export function ContentToolsCard() {
     const message = keepDays
       ? `فقط مواردی که بیش از ${fa(keepDays)} روز در زباله‌دان ${what} مانده‌اند برای همیشه حذف می‌شوند. تازه‌ترها می‌مانند تا اگر اشتباهی زباله کردید راه بازیابی باشد.`
       : `همه‌ی ${what} داخل زباله‌دان برای همیشه حذف می‌شوند. این عمل برگشت‌پذیر نیست.`;
-    if (!window.confirm(`${message}\n\nادامه می‌دهید؟`)) return;
+    const ok = await confirm({
+      title: "خالی‌کردن سطل زبالهٔ نوشته‌ها",
+      description: `${message} ادامه می‌دهید؟`,
+      confirmLabel: "ادامه",
+      destructive: true,
+    });
+    if (!ok) return;
 
     setBusy(kind);
     try {

@@ -408,13 +408,26 @@ async def get_product_by_slug(
     slug: str,
     db: AsyncSession = Depends(get_db),
 ) -> ProductDetailResponse:
-    """Retrieve a product with full details by its slug with Redis caching."""
+    """Retrieve a product with full details by its slug with Redis caching.
+
+    Cache round-trip note: the cached JSON was produced by `model_dump_json`
+    on an ALREADY-converted response (prices are Toman), and the field
+    validators convert Rial→Toman. Feeding the cache back through
+    `model_validate_json` therefore ran the conversion a SECOND time —
+    every cache hit divided variant prices by 10 again (observed live: a
+    10,000-Toman variant served as 1,000 once the cache warmed). The
+    `already_toman` context flag tells the validators the values are
+    post-conversion; cache key bumped so entries poisoned by the old
+    double-conversion are ignored rather than replayed.
+    """
     from app.core.cache.redis import cache_get, cache_set
 
-    cache_key = f"catalog:product:slug:{slug}"
+    cache_key = f"catalog:product:slug:v2:{slug}"
     hit = await cache_get(cache_key)
     if hit:
-        return ProductDetailResponse.model_validate_json(hit)
+        return ProductDetailResponse.model_validate_json(
+            hit, context={"already_toman": True}
+        )
 
     svc = ProductService(db)
     res = await svc.get_by_slug(slug)

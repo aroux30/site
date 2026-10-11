@@ -511,10 +511,10 @@ async def _read_capped(file: UploadFile, max_bytes: int | None) -> bytes:
     total passes the cap, so the peak allocation tracks the ceiling instead of
     the payload.
 
-    ``max_bytes`` is a caller-supplied cap (the return-proof route sets 10 MB).
-    It can only tighten the read, never widen it: the read cap is the minimum of
-    the global ceiling and whatever the caller asked for, and the per-category
-    limit is still applied after sniffing.
+    ``max_bytes`` is a caller-supplied cap (the customer upload ceiling is
+    10 MB). It can only tighten the read, never widen it: the read cap is the
+    minimum of the global ceiling and whatever the caller asked for, and the
+    per-category limit is still applied after sniffing.
 
     Raises ``ValidationError`` with ``FILE_TOO_LARGE`` once the cap is passed.
     """
@@ -562,7 +562,7 @@ class MediaService:
         """Validate, process, and persist an uploaded file.
 
         ``max_bytes`` lets a narrow caller cap the read below the global
-        100 MB ceiling — the return-proof route does, so a shopper upload
+        100 MB ceiling — the customer-facing routes do, so a shopper upload
         cannot allocate the same buffer a staff video upload would.
         """
         content_type = file.content_type or "application/octet-stream"
@@ -664,6 +664,20 @@ class MediaService:
 
         file_url = f"/uploads/media/{disk_name}"
 
+        # Image SEO (Rank Math parity): fill empty alt/title/caption from the
+        # file name, per the site options. Operator-typed values are never
+        # touched — only blanks are filled.
+        from app.modules.media.application.image_seo_service import fill_metadata
+
+        alt_text, title_text, caption_text, description_text = await fill_metadata(
+            db,
+            filename=safe_name,
+            alt_text=alt_text,
+            title=None,
+            caption=None,
+            description=None,
+        )
+
         asset = MediaAsset(
             id=file_id,
             uploader_id=uploader_id,
@@ -675,6 +689,9 @@ class MediaService:
             width=width,
             height=height,
             alt_text=alt_text,
+            title=title_text,
+            caption=caption_text,
+            description=description_text,
             folder=_sanitize_folder(folder),
         )
         db.add(asset)
@@ -1309,15 +1326,26 @@ class MediaService:
         *,
         width: int | None = None,
         height: int | None = None,
-        quality: int = 82,
-        fmt: str = "webp",
+        quality: int | None = None,
+        fmt: str | None = None,
     ) -> tuple[bytes, str]:
         """Render an on-the-fly resized image variant (Strapi/Payload-style).
 
         Variants are cached on disk under ``variants/`` keyed by asset id and
         parameter hash, so repeated requests are served without re-encoding.
         Returns ``(content_bytes, mime_type)``.
+
+        Optional parameters are normalised here rather than defaulted in the
+        signature, because the signature's default only applies when the
+        argument is *omitted*. The route forwards every query parameter by
+        name, so ``GET /variant?width=300`` (no ``fmt``) passed ``fmt=None``
+        straight into the validator below — and every image in the admin
+        library answered 422 "Unsupported variant format 'None'" while the
+        default on this line said "webp". A default that the only caller can
+        trip over is not a default.
         """
+        fmt = (fmt or "webp").lower()
+        quality = 82 if quality is None else quality
         if fmt not in {"webp", "jpeg", "png"}:
             raise ValidationError(detail=f"Unsupported variant format '{fmt}'", error_code="BAD_FORMAT")
         for value in (width, height):
@@ -1729,37 +1757,10 @@ class MediaService:
 
         Read what the filesystem cleanup needs before the row is gone — the ORM
         instance is expired after the delete + flush.
-
-        The hook point is here rather than on the three public entry points
-        (``purge_asset``, ``empty_trash``, the force branch of ``delete_asset``)
-        because this is the one path they all funnel through: a hook bound to a
-        single entry point would miss a scheduled purge, and a scheduled purge
-        is the one that runs unattended.
         """
-        from app.shared.plugins.registry import (
-            HOOK_MEDIA_AFTER_DELETE,
-            HOOK_MEDIA_BEFORE_DELETE,
-            registry,
-        )
-
         asset_hex = asset.id.hex
         file_url = asset.file_url
         asset_id = asset.id
-
-        # ``before_delete`` can veto: return False from the filter to abort.
-        # A plugin holding back a file a retention rule would otherwise purge
-        # is a real need — the alternative is that the only way to stop it is
-        # to switch the scheduled job off.
-        veto = await registry.apply_filters(
-            HOOK_MEDIA_BEFORE_DELETE,
-            True,
-            asset_id=asset_hex,
-            file_url=file_url,
-            mime_type=asset.mime_type,
-        )
-        if veto is False:
-            await logger.ainfo("media_delete_vetoed_by_plugin", asset_id=asset_hex)
-            return
 
         await db.delete(asset)
         await db.flush()
@@ -1771,14 +1772,6 @@ class MediaService:
                 "media_asset_files_not_removed", asset_id=str(asset_id), failures=failed
             )
 
-        # After the bytes are gone, not after the row: a plugin that wants to
-        # archive a copy needs the file, and the file is what this call removed.
-        await registry.do_action(
-            HOOK_MEDIA_AFTER_DELETE,
-            asset_id=asset_hex,
-            file_url=file_url,
-            files_removed=not failed,
-        )
         await logger.ainfo("media_asset_deleted", asset_id=asset_hex)
 
     @staticmethod

@@ -132,7 +132,7 @@ export function PostPreviewDialog({
             )}
 
             <div
-              className="prose prose-sm max-w-none leading-relaxed text-foreground/90"
+              className="prose prose-sm dark:prose-invert max-w-none leading-relaxed text-foreground/90"
               dangerouslySetInnerHTML={{ __html: cleanHtml(post.content || "") }}
             />
           </article>

@@ -29,7 +29,6 @@ class ContentSearchResult(BaseModel):
     title: str
     slug: str
     excerpt: str | None = None
-    locale: str | None = None
     category: str | None = None
     category_slug: str | None = None
     tags: list[str] = Field(default_factory=list)

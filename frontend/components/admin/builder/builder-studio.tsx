@@ -1,0 +1,228 @@
+"use client";
+
+import React, { useEffect, useCallback } from "react";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { Layers, PlusSquare } from "lucide-react";
+import { useToast } from "@/components/ui/use-toast";
+import { cmsPagesAdminApi, type CmsPage } from "@/lib/api/content";
+import { PageASTSchema } from "@/lib/builder/schema";
+import { useBuilderStore } from "@/stores/builder-store";
+import { BuilderToolbar } from "./builder-toolbar";
+import { BlocksPalette } from "./blocks-palette";
+import { LayersTree } from "./layers-tree";
+import { CanvasFrame } from "./canvas-frame";
+import { CanvasElement } from "./canvas-element";
+import { InspectorPanel } from "./inspector-panel";
+
+export interface BuilderStudioProps {
+  page: CmsPage;
+  onExit?: () => void;
+}
+
+export function BuilderStudio({ page, onExit }: BuilderStudioProps) {
+  const { toast } = useToast();
+
+  const ast = useBuilderStore((s) => s.ast);
+  const initPage = useBuilderStore((s) => s.initPage);
+  const activeBreakpoint = useBuilderStore((s) => s.activeBreakpoint);
+  const activeLeftTab = useBuilderStore((s) => s.activeLeftTab);
+  const setLeftTab = useBuilderStore((s) => s.setLeftTab);
+  const previewMode = useBuilderStore((s) => s.previewMode);
+  const moveElement = useBuilderStore((s) => s.moveElement);
+  const setIsSaving = useBuilderStore((s) => s.setIsSaving);
+  const markClean = useBuilderStore((s) => s.markClean);
+
+  // Initialize store on mount
+  useEffect(() => {
+    initPage(page.id, page.builder_data, page.title, page.slug);
+  }, [page.id, page.builder_data, page.title, page.slug, initPage]);
+
+  // Configure Dnd sensors with a 5px threshold to avoid interfering with clicks
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 5,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  const handleDragEnd = useCallback(
+    (event: DragEndEvent) => {
+      const { active, over } = event;
+      if (over && active.id !== over.id) {
+        moveElement(String(active.id), String(over.id));
+      }
+    },
+    [moveElement]
+  );
+
+  // Save Draft Action
+  const handleSaveDraft = useCallback(async () => {
+    setIsSaving(true);
+    try {
+      // Validate schema on client before sending
+      const validated = PageASTSchema.parse(ast);
+
+      await cmsPagesAdminApi.updatePage(page.id, {
+        builder_data: validated,
+        status: "draft",
+      });
+
+      markClean();
+      toast({
+        title: "پیش‌نویس ذخیره شد",
+        description: "تغییرات صفحه با موفقیت در دیتابیس ثبت شد.",
+      });
+    } catch (err) {
+      console.error("Save draft error:", err);
+      toast({
+        title: "خطا در ذخیره‌سازی",
+        description: "اعتبارسنجی ساختار صفحه با خطا مواجه شد.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  }, [ast, page.id, markClean, setIsSaving, toast]);
+
+  // Publish Page Action
+  const handlePublish = useCallback(async () => {
+    setIsSaving(true);
+    try {
+      const validated = PageASTSchema.parse(ast);
+
+      await cmsPagesAdminApi.updatePage(page.id, {
+        builder_data: validated,
+        status: "published",
+      });
+
+      markClean();
+      toast({
+        title: "صفحه منتشر شد",
+        description: "این برگه اکنون با خروجی بهینه‌شده در دسترس کاربران است.",
+      });
+    } catch (err) {
+      console.error("Publish error:", err);
+      toast({
+        title: "خطا در انتشار",
+        description: "امکان انتشار صفحه به دلیل خطای اعتبارسنجی میسر نشد.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  }, [ast, page.id, markClean, setIsSaving, toast]);
+
+  const handleExit = useCallback(() => {
+    if (onExit) {
+      onExit();
+    } else {
+      window.location.href = `/${page.slug}`;
+    }
+  }, [onExit, page.slug]);
+
+  const rootElementIds = ast.rootElements.map((el) => el.id);
+
+  return (
+    <div className="flex flex-col h-screen w-screen overflow-hidden bg-muted/20 font-sans" dir="rtl">
+      {/* Top Navigation Toolbar */}
+      <BuilderToolbar
+        onSaveDraft={handleSaveDraft}
+        onPublish={handlePublish}
+        onExit={handleExit}
+        pageStatus={page.status}
+      />
+
+      {/* Main 3-Column Studio Workspace */}
+      <div className="flex-1 flex overflow-hidden relative">
+        {/* Left Column: Blocks Palette & Layers Tree */}
+        {!previewMode && (
+          <aside className="w-72 bg-card border-e border-border flex flex-col shrink-0 z-20 shadow-sm">
+            {/* Sidebar Tab Switcher */}
+            <div className="grid grid-cols-2 p-1.5 m-2.5 rounded-xl bg-muted/60 border border-border/60">
+              <button
+                type="button"
+                onClick={() => setLeftTab("blocks")}
+                className={`flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs font-semibold transition ${
+                  activeLeftTab === "blocks"
+                    ? "bg-background text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                <PlusSquare className="w-3.5 h-3.5" />
+                <span>افزودن بلوک</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setLeftTab("layers")}
+                className={`flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs font-semibold transition ${
+                  activeLeftTab === "layers"
+                    ? "bg-background text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                <Layers className="w-3.5 h-3.5" />
+                <span>لایه‌ها</span>
+              </button>
+            </div>
+
+            {/* Sidebar Tab Content */}
+            <div className="flex-1 overflow-hidden">
+              {activeLeftTab === "blocks" ? <BlocksPalette /> : <LayersTree />}
+            </div>
+          </aside>
+        )}
+
+        {/* Center: Canvas Viewport Workspace */}
+        <main className="flex-1 overflow-y-auto relative flex flex-col items-center bg-muted/30">
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+          >
+            <SortableContext
+              items={rootElementIds}
+              strategy={verticalListSortingStrategy}
+            >
+              <CanvasFrame viewport={activeBreakpoint}>
+                <div className="space-y-4 min-h-[500px] w-full">
+                  {ast.rootElements.map((element) => (
+                    <CanvasElement
+                      key={element.id}
+                      element={element}
+                      activeBreakpoint={activeBreakpoint}
+                      depth={1}
+                    />
+                  ))}
+                </div>
+              </CanvasFrame>
+            </SortableContext>
+          </DndContext>
+        </main>
+
+        {/* Right Column: Element Inspector & Controls */}
+        {!previewMode && (
+          <aside className="w-80 bg-card border-s border-border shrink-0 z-20 shadow-sm">
+            <InspectorPanel />
+          </aside>
+        )}
+      </div>
+    </div>
+  );
+}

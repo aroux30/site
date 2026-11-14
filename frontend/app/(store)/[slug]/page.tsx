@@ -8,7 +8,7 @@ import cleanHtml from "@/lib/sanitize-html";
 import { apiInternalUrl } from "@/lib/api/server-base";
 import { oembedDiscoveryUrl, siteOrigin } from "@/lib/site-url";
 import { DEFAULT_OG_IMAGE } from "@/lib/seo-meta";
-import { VisualPageEditor } from "@/components/admin/visual-page-editor";
+import { BuilderStudio } from "@/components/admin/builder/builder-studio";
 
 // CMS pages are the editable storefront copy (about, terms, returns, …). The
 // backend is the source of truth; this route renders whatever slug an editor
@@ -30,6 +30,8 @@ interface CmsPage {
   title: string;
   slug: string;
   body_html: string;
+  builder_data?: any;
+  status?: string;
   excerpt: string | null;
   cover_image_url?: string | null;
   seo_title: string | null;
@@ -146,7 +148,7 @@ export default async function CmsPageRoute({ params, searchParams }: Props) {
     }
 
     if (isAdmin) {
-      return <VisualPageEditor page={page} />;
+      return <BuilderStudio page={page as any} />;
     }
   }
 

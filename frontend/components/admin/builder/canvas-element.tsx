@@ -149,7 +149,7 @@ export function CanvasElement({
     if (minHeight) styleObj.minHeight = `${minHeight.value}${minHeight.unit}`;
 
     const opacity = resolveResponsiveValue({ mobile: base?.opacity, tablet: tablet?.opacity, desktop: desktop?.opacity }, activeBreakpoint);
-    if (opacity !== undefined) styleObj.opacity = opacity;
+    if (opacity !== undefined && opacity !== null) styleObj.opacity = opacity;
 
     // Typography
     const fontObj = resolveResponsiveValue({ mobile: base?.typography, tablet: tablet?.typography, desktop: desktop?.typography }, activeBreakpoint);

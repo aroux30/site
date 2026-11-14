@@ -26,21 +26,21 @@ export interface SpacingBox {
 
 export interface TypographyStyle {
   fontFamily?: "vazirmatn" | "system-ui" | "inherit" | string;
-  fontSize?: UnitValue;
-  fontWeight?: "300" | "400" | "500" | "600" | "700" | "800" | "900" | "inherit";
-  lineHeight?: UnitValue;
-  letterSpacing?: UnitValue;
-  textAlign?: "right" | "center" | "left" | "justify" | "inherit";
-  textTransform?: "none" | "uppercase" | "lowercase" | "capitalize";
-  textDecoration?: "none" | "underline" | "line-through";
-  color?: string; // hex, hsl(var(--token)), or semantic token key
+  fontSize?: UnitValue | null;
+  fontWeight?: "300" | "400" | "500" | "600" | "700" | "800" | "900" | "inherit" | null;
+  lineHeight?: UnitValue | null;
+  letterSpacing?: UnitValue | null;
+  textAlign?: "right" | "center" | "left" | "justify" | "inherit" | null;
+  textTransform?: "none" | "uppercase" | "lowercase" | "capitalize" | null;
+  textDecoration?: "none" | "underline" | "line-through" | null;
+  color?: string | null; // hex, hsl(var(--token)), or semantic token key
 }
 
 export interface BorderStyle {
   style: "none" | "solid" | "dashed" | "dotted" | "double";
-  width?: SpacingBox;
-  color?: string;
-  radius?: SpacingBox;
+  width?: SpacingBox | null;
+  color?: string | null;
+  radius?: SpacingBox | null;
 }
 
 export interface BackgroundGradient {
@@ -51,35 +51,35 @@ export interface BackgroundGradient {
 
 export interface BackgroundStyle {
   type: "none" | "color" | "gradient" | "image";
-  color?: string;
-  gradient?: BackgroundGradient;
-  imageUrl?: string;
-  position?: "center" | "top" | "bottom" | "left" | "right";
-  size?: "cover" | "contain" | "auto";
+  color?: string | null;
+  gradient?: BackgroundGradient | null;
+  imageUrl?: string | null;
+  position?: "center" | "top" | "bottom" | "left" | "right" | null;
+  size?: "cover" | "contain" | "auto" | null;
 }
 
 export interface DeviceStyle {
-  typography?: TypographyStyle;
-  margin?: SpacingBox;
-  padding?: SpacingBox;
-  border?: BorderStyle;
-  background?: BackgroundStyle;
-  width?: UnitValue;
-  minHeight?: UnitValue;
-  display?: "block" | "flex" | "grid" | "inline-block" | "none" | "inherit";
-  opacity?: number;
-  zIndex?: number;
+  typography?: TypographyStyle | null;
+  margin?: SpacingBox | null;
+  padding?: SpacingBox | null;
+  border?: BorderStyle | null;
+  background?: BackgroundStyle | null;
+  width?: UnitValue | null;
+  minHeight?: UnitValue | null;
+  display?: "block" | "flex" | "grid" | "inline-block" | "none" | "inherit" | null;
+  opacity?: number | null;
+  zIndex?: number | null;
 }
 
 export interface ResponsiveStyles {
   /** Mobile is the base style (no media query / no prefix) */
   mobile: DeviceStyle;
   /** Tablet overrides via md: prefix (min-width: 768px) */
-  tablet?: DeviceStyle;
+  tablet?: DeviceStyle | null;
   /** Desktop overrides via lg: prefix (min-width: 1024px) */
-  desktop?: DeviceStyle;
-  customCssClass?: string;
-  customCssId?: string;
+  desktop?: DeviceStyle | null;
+  customCssClass?: string | null;
+  customCssId?: string | null;
   direction?: "rtl" | "ltr" | "inherit";
 }
 
@@ -101,9 +101,9 @@ export interface BuilderElement {
   isLocked: boolean;
   isHidden: boolean;
   styles: ResponsiveStyles;
-  layout?: ContainerLayout;
-  widgetType?: string;
-  widgetProps?: Record<string, unknown>;
+  layout?: ContainerLayout | null;
+  widgetType?: string | null;
+  widgetProps?: Record<string, unknown> | null;
   children: BuilderElement[];
 }
 

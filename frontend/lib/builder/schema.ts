@@ -24,23 +24,24 @@ export const SpacingBoxSchema = z.object({
 
 export const TypographyStyleSchema = z.object({
   fontFamily: z.string().default("inherit"),
-  fontSize: UnitValueSchema.optional(),
+  fontSize: UnitValueSchema.nullable().optional(),
   fontWeight: z
     .enum(["300", "400", "500", "600", "700", "800", "900", "inherit"])
+    .nullable()
     .optional(),
-  lineHeight: UnitValueSchema.optional(),
-  letterSpacing: UnitValueSchema.optional(),
-  textAlign: z.enum(["right", "center", "left", "justify", "inherit"]).optional(),
-  textTransform: z.enum(["none", "uppercase", "lowercase", "capitalize"]).optional(),
-  textDecoration: z.enum(["none", "underline", "line-through"]).optional(),
-  color: z.string().optional(),
+  lineHeight: UnitValueSchema.nullable().optional(),
+  letterSpacing: UnitValueSchema.nullable().optional(),
+  textAlign: z.enum(["right", "center", "left", "justify", "inherit"]).nullable().optional(),
+  textTransform: z.enum(["none", "uppercase", "lowercase", "capitalize"]).nullable().optional(),
+  textDecoration: z.enum(["none", "underline", "line-through"]).nullable().optional(),
+  color: z.string().nullable().optional(),
 });
 
 export const BorderStyleSchema = z.object({
   style: z.enum(["none", "solid", "dashed", "dotted", "double"]).default("none"),
-  width: SpacingBoxSchema.optional(),
-  color: z.string().optional(),
-  radius: SpacingBoxSchema.optional(),
+  width: SpacingBoxSchema.nullable().optional(),
+  color: z.string().nullable().optional(),
+  radius: SpacingBoxSchema.nullable().optional(),
 });
 
 export const BackgroundGradientSchema = z.object({
@@ -51,34 +52,35 @@ export const BackgroundGradientSchema = z.object({
 
 export const BackgroundStyleSchema = z.object({
   type: z.enum(["none", "color", "gradient", "image"]).default("none"),
-  color: z.string().optional(),
-  gradient: BackgroundGradientSchema.optional(),
-  imageUrl: z.string().optional(),
-  position: z.enum(["center", "top", "bottom", "left", "right"]).optional(),
-  size: z.enum(["cover", "contain", "auto"]).optional(),
+  color: z.string().nullable().optional(),
+  gradient: BackgroundGradientSchema.nullable().optional(),
+  imageUrl: z.string().nullable().optional(),
+  position: z.enum(["center", "top", "bottom", "left", "right"]).nullable().optional(),
+  size: z.enum(["cover", "contain", "auto"]).nullable().optional(),
 });
 
 export const DeviceStyleSchema = z.object({
-  typography: TypographyStyleSchema.optional(),
-  margin: SpacingBoxSchema.optional(),
-  padding: SpacingBoxSchema.optional(),
-  border: BorderStyleSchema.optional(),
-  background: BackgroundStyleSchema.optional(),
-  width: UnitValueSchema.optional(),
-  minHeight: UnitValueSchema.optional(),
+  typography: TypographyStyleSchema.nullable().optional(),
+  margin: SpacingBoxSchema.nullable().optional(),
+  padding: SpacingBoxSchema.nullable().optional(),
+  border: BorderStyleSchema.nullable().optional(),
+  background: BackgroundStyleSchema.nullable().optional(),
+  width: UnitValueSchema.nullable().optional(),
+  minHeight: UnitValueSchema.nullable().optional(),
   display: z
     .enum(["block", "flex", "grid", "inline-block", "none", "inherit"])
+    .nullable()
     .optional(),
-  opacity: z.number().min(0).max(1).optional(),
-  zIndex: z.number().int().min(0).max(999).optional(),
+  opacity: z.number().min(0).max(1).nullable().optional(),
+  zIndex: z.number().int().min(0).max(999).nullable().optional(),
 });
 
 export const ResponsiveStylesSchema = z.object({
   mobile: DeviceStyleSchema.default({}),
-  tablet: DeviceStyleSchema.optional(),
-  desktop: DeviceStyleSchema.optional(),
-  customCssClass: z.string().optional(),
-  customCssId: z.string().optional(),
+  tablet: DeviceStyleSchema.nullable().optional(),
+  desktop: DeviceStyleSchema.nullable().optional(),
+  customCssClass: z.string().nullable().optional(),
+  customCssId: z.string().nullable().optional(),
   direction: z.enum(["rtl", "ltr", "inherit"]).default("inherit"),
 });
 
@@ -111,9 +113,9 @@ export const BuilderElementSchema: z.ZodType<BuilderElement, z.ZodTypeDef, any> 
     isLocked: z.boolean().default(false),
     isHidden: z.boolean().default(false),
     styles: ResponsiveStylesSchema.default({ mobile: {} }),
-    layout: ContainerLayoutSchema.optional(),
-    widgetType: z.string().optional(),
-    widgetProps: z.record(z.unknown()).optional(),
+    layout: ContainerLayoutSchema.nullable().optional(),
+    widgetType: z.string().nullable().optional(),
+    widgetProps: z.record(z.unknown()).nullable().optional(),
     children: z.array(BuilderElementSchema).default([]),
   })
 );

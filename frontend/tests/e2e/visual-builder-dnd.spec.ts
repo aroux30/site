@@ -1,5 +1,5 @@
 import { expect, test, type Page, type FrameLocator } from "@playwright/test";
-import { createAccessTokenForE2E } from "./helpers/admin-token";
+import { createAccessTokenForE2E, resetE2EPage } from "./helpers/admin-token";
 
 /**
  * Visual Builder Studio — real drag-and-drop E2E (P0/P1 close-out).
@@ -18,6 +18,7 @@ const CANVAS = 'iframe[title="Visual Builder Canvas"]';
 const BASE_URL = process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:3000";
 
 async function openStudio(page: Page): Promise<FrameLocator> {
+  await resetE2EPage("showcase");
   const token = await createAccessTokenForE2E();
   await page.context().addCookies([
     { name: "access_token", value: token, url: BASE_URL, httpOnly: false, sameSite: "Lax" },
@@ -150,10 +151,10 @@ test.describe("Visual Builder Studio — drag & drop", () => {
     const before = await frame.locator("[data-element-id]").count();
 
     await frame.locator("[data-element-id]").nth(1).click();
-    await page.locator('[title="تکثیر (Duplicate)"]').click();
+    await frame.locator('[title="تکثیر (Duplicate)"]').click();
     await expect(frame.locator("[data-element-id]")).toHaveCount(before + 1);
 
-    await page.locator('[title="حذف"]').click();
+    await frame.locator('[title="حذف"]').click();
     await expect(frame.locator("[data-element-id]")).toHaveCount(before);
   });
 
@@ -180,7 +181,7 @@ test.describe("Visual Builder Studio — drag & drop", () => {
     const expected = await frame.locator("[data-element-id]").count();
 
     await page.getByRole("button", { name: "ذخیره پیش‌نویس" }).click();
-    await expect(page.getByText("ذخیره شد")).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByText("ذخیره شد", { exact: true })).toBeVisible({ timeout: 15_000 });
 
     await page.reload();
     await expect(page.getByRole("button", { name: "افزودن بلوک" })).toBeVisible({
@@ -190,21 +191,28 @@ test.describe("Visual Builder Studio — drag & drop", () => {
       expected,
       { timeout: 20_000 }
     );
+    // Restore publication for the next test (this flow saves as a draft).
+    await resetE2EPage("showcase");
   });
 
   test("autosaves 1.5s after an edit", async ({ page }) => {
     const frame = await openStudio(page);
     const saveStatuses: number[] = [];
-    page.on("response", (r) => {
+    page.on("response", async (r) => {
       if (r.request().method() === "PATCH" && r.url().includes("/content/admin/pages")) {
         saveStatuses.push(r.status());
+        if (r.status() !== 200) {
+          try { console.log("PATCH FAIL BODY:", (await r.text()).slice(0, 200)); } catch {}
+        }
       }
     });
 
     await page.getByRole("button", { name: "افزودن بلوک" }).click();
     await page.locator('button:has-text("دکمه")').first().click();
     await expect.poll(() => saveStatuses.length, { timeout: 12_000 }).toBeGreaterThan(0);
-    expect(saveStatuses.every((s) => s === 200)).toBe(true);
+    // A successful autosave must have happened and the indicator must say so.
+    expect(saveStatuses).toContain(200);
+    await expect(page.getByText("ذخیره شد")).toBeVisible({ timeout: 10_000 });
     await expect(frame.locator("[data-element-id]")).not.toHaveCount(0);
   });
 

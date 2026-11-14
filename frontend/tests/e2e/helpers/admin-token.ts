@@ -1,16 +1,23 @@
 /**
  * Mint a short-lived admin access token for E2E runs.
  *
- * The login form's password is not part of the repo (and must not be), so the
- * suite mints a token with the same signer the API uses and injects it as the
- * `access_token` cookie. This is the same trust boundary the real login
- * crosses — it only skips the form, not authentication itself.
+ * The admin password is not in the repo (and must not be), so the suite mints
+ * a token with the same signer the running API uses and injects it as the
+ * `access_token` cookie. This skips the login *form*, not authentication: the
+ * token still has to pass the API's own signature and role checks.
+ *
+ * The signing secret comes from the backend checkout that serves :8000 —
+ * ``E2E_BACKEND_DIR`` overrides it, otherwise the repo root's ``backend`` is
+ * used. A worktree without its own ``.env`` would fall back to the default
+ * secret and every token would be rejected as "Invalid token".
  */
 import { execFileSync } from "node:child_process";
 import path from "node:path";
 
 export async function createAccessTokenForE2E(): Promise<string> {
-  const backendDir = path.resolve(__dirname, "../../../../backend");
+  const repoRoot = path.resolve(__dirname, "../../../..");
+  const backendDir = process.env.E2E_BACKEND_DIR || path.join(repoRoot, "backend");
+
   const script = `
 import asyncio, datetime
 import app.tests.conftest  # registers every model module
@@ -22,10 +29,137 @@ from app.core.security.jwt import create_access_token
 async def main():
     async with async_session_factory() as s:
         u = (await s.execute(select(User).where(User.is_superuser.is_(True)))).scalars().first()
-        print(create_access_token(str(u.id), extra_claims={"roles": ["super_admin"], "is_superuser": True, "permissions": ["*"]}, expires_delta=datetime.timedelta(hours=2)))
+        print(create_access_token(
+            str(u.id),
+            extra_claims={"roles": ["super_admin"], "is_superuser": True, "permissions": ["*"]},
+            expires_delta=datetime.timedelta(hours=2),
+        ))
 
 asyncio.run(main())
 `;
-  const out = execFileSync("python", ["-c", script], { cwd: backendDir, encoding: "utf8" });
-  return out.trim().split("\n").pop()!.trim();
+
+  const out = execFileSync("python", ["-c", script], {
+    cwd: backendDir,
+    encoding: "utf8",
+  });
+  // structlog writes an info line to stdout before the token; the token is the
+  // last non-empty line.
+  const token = out
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .pop();
+
+  if (!token || token.split(".").length !== 3) {
+    throw new Error(
+      `Token helper produced no JWT from ${backendDir}. Raw output: ${out.slice(0, 200)}`
+    );
+  }
+  return token;
+}
+
+/**
+ * Reset the E2E CMS page to a known published fixture.
+ *
+ * The studio suite mutates a real page, and several of its flows change the
+ * tree (or, in the draft-save case, the publication state). Without a reset
+ * the tests become order-dependent: a draft save unpublishes the page and the
+ * next test's `goto` 404s. Every test starts from this fixture instead.
+ */
+export async function resetE2EPage(slug = "showcase"): Promise<void> {
+  const token = await createAccessTokenForE2E();
+  const apiBase = process.env.API_INTERNAL_URL ?? "http://localhost:8000/api/v1";
+
+  const listRes = await fetch(`${apiBase}/content/admin/pages?page_size=100`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  const list = (await listRes.json()) as { items: Array<{ id: string; slug: string }> };
+  const page = list.items.find((p) => p.slug === slug);
+  if (!page) throw new Error(`E2E page '${slug}' not found`);
+
+  const fixture = {
+    schemaVersion: 1,
+    title: "E2E Builder Page",
+    slug,
+    globalStyles: {},
+    rootElements: [
+      {
+        id: "el_e2econt1",
+        name: "کانتینر اصلی",
+        type: "container",
+        isLocked: false,
+        isHidden: false,
+        layout: {
+          kind: "flex",
+          direction: "column",
+          justifyContent: "start",
+          alignItems: "stretch",
+          flexWrap: "nowrap",
+          gap: { value: 16, unit: "px" },
+          gridColumns: 3,
+        },
+        styles: { mobile: {} },
+        children: [
+          {
+            id: "el_e2ehead1",
+            name: "سرتیتر اول",
+            type: "widget",
+            widgetType: "heading",
+            widgetProps: { text: "سرتیتر اول", tag: "h2" },
+            isLocked: false,
+            isHidden: false,
+            styles: { mobile: {} },
+            children: [],
+          },
+          {
+            id: "el_e2etext1",
+            name: "متن دوم",
+            type: "widget",
+            widgetType: "text_editor",
+            widgetProps: { content: "<p>متن دوم</p>" },
+            isLocked: false,
+            isHidden: false,
+            styles: { mobile: {} },
+            children: [],
+          },
+        ],
+      },
+      {
+        id: "el_e2econt2",
+        name: "کانتینر دوم",
+        type: "container",
+        isLocked: false,
+        isHidden: false,
+        layout: {
+          kind: "flex",
+          direction: "column",
+          justifyContent: "start",
+          alignItems: "stretch",
+          flexWrap: "nowrap",
+          gap: { value: 12, unit: "px" },
+          gridColumns: 1,
+        },
+        styles: { mobile: {} },
+        children: [],
+      },
+    ],
+  };
+
+  const res = await fetch(`${apiBase}/content/admin/pages/${page.id}`, {
+    method: "PATCH",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ builder_data: fixture, status: "published" }),
+  });
+  if (!res.ok) {
+    throw new Error(`E2E fixture reset failed: ${res.status} ${(await res.text()).slice(0, 200)}`);
+  }
+  // Drop the cached render so the next goto shows the fixture.
+  try {
+    await fetch(`http://localhost:3150/api/cms-revalidate?slug=${slug}`, { method: "POST" });
+  } catch {
+    /* the dev server may be on another port; ISR will catch up */
+  }
 }

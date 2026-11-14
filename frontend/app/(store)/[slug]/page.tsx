@@ -39,11 +39,21 @@ interface CmsPage {
   updated_at: string;
 }
 
+/**
+ * Tags let the editor invalidate one page instead of waiting out the ISR
+ * window. Saving a draft re-renders with `revalidateTag("cms-page:<slug>")`,
+ * so a reload right after a save shows the new tree rather than the copy
+ * cached up to 300s ago — which read as "the save did nothing".
+ */
+export function pageTag(slug: string): string {
+  return `cms-page:${slug}`;
+}
+
 async function fetchPage(slug: string): Promise<CmsPage | null> {
   try {
     const res = await fetch(
       `${API_BASE}/content/pages/${encodeURIComponent(slug)}`,
-      { next: { revalidate: 300 } },
+      { next: { revalidate: 300, tags: [pageTag(slug)] } },
     );
     if (!res.ok) return null;
     return (await res.json()) as CmsPage;

@@ -36,6 +36,19 @@ export function BuilderStudio({ page, onExit }: BuilderStudioProps) {
   const markClean = useBuilderStore((s) => s.markClean);
   const isDirty = useBuilderStore((s) => s.isDirty);
 
+  // Invalidate this page's cached storefront render so a reload right after a
+  // save shows the new tree instead of a copy up to 300s old. Best-effort: a
+  // failed revalidation only delays visibility until the ISR window lapses.
+  const revalidatePage = useCallback(async () => {
+    try {
+      await fetch(`/api/cms-revalidate?slug=${encodeURIComponent(page.slug)}`, {
+        method: "POST",
+      });
+    } catch {
+      /* non-fatal */
+    }
+  }, [page.slug]);
+
   // ── Concurrent Editing Lock ───────────────────────────────────────────────
   const { lockedByOther, takeOver, release } = usePageEditingLock(page.id, "pages");
 
@@ -71,13 +84,15 @@ export function BuilderStudio({ page, onExit }: BuilderStudioProps) {
         const validated = PageASTSchema.parse(useBuilderStore.getState().ast);
 
         // Update page draft in PostgreSQL
+        // No status field: autosave edits content only. Sending "draft" here
+        // unpublishes a live page — a save must never change publication.
         await cmsPagesAdminApi.updatePage(page.id, {
           builder_data: validated,
-          status: "draft",
         });
 
         // Save Redis snapshot for rapid crash recovery
         void blogAdminApi.saveAutosave(page.id, validated, "pages").catch(() => undefined);
+        void revalidatePage();
 
         setLastSavedAt(new Date().toLocaleTimeString("fa-IR"));
 
@@ -97,7 +112,7 @@ export function BuilderStudio({ page, onExit }: BuilderStudioProps) {
     }, 1500);
 
     return () => clearTimeout(timer);
-  }, [isDirty, ast, page.id, markClean]);
+  }, [isDirty, ast, page.id, markClean, revalidatePage]);
 
   // Manual Save Draft Action
   const handleSaveDraft = useCallback(async () => {
@@ -105,6 +120,7 @@ export function BuilderStudio({ page, onExit }: BuilderStudioProps) {
     try {
       const validated = PageASTSchema.parse(ast);
 
+      // Explicit draft save (the toolbar button is labelled "ذخیره پیش‌نویس").
       await cmsPagesAdminApi.updatePage(page.id, {
         builder_data: validated,
         status: "draft",
@@ -113,6 +129,7 @@ export function BuilderStudio({ page, onExit }: BuilderStudioProps) {
       markClean();
       setAutosaveStatus("saved");
       setLastSavedAt(new Date().toLocaleTimeString("fa-IR"));
+      void revalidatePage();
       toast({
         title: "پیش‌نویس ذخیره شد",
         description: "تغییرات صفحه با موفقیت در دیتابیس ثبت شد.",
@@ -143,6 +160,7 @@ export function BuilderStudio({ page, onExit }: BuilderStudioProps) {
       markClean();
       setAutosaveStatus("saved");
       setLastSavedAt(new Date().toLocaleTimeString("fa-IR"));
+      void revalidatePage();
       toast({
         title: "صفحه منتشر شد",
         description: "این برگه اکنون با خروجی بهینه‌شده در دسترس کاربران است.",

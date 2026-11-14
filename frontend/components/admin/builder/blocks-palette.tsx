@@ -64,8 +64,17 @@ export function BlocksPalette() {
                   <button
                     key={block.type}
                     type="button"
+                    draggable={true}
+                    onDragStart={(e) => {
+                      e.dataTransfer.setData(
+                        "application/json",
+                        JSON.stringify({ type: "block_def", blockType: block.type })
+                      );
+                      e.dataTransfer.effectAllowed = "copy";
+                    }}
                     onClick={() => handleAddBlock(block)}
-                    className="flex flex-col items-center justify-center p-3 rounded-xl border border-border/80 bg-card hover:bg-muted/50 hover:border-primary/50 text-center transition shadow-sm group"
+                    className="flex flex-col items-center justify-center p-3 rounded-xl border border-border/80 bg-card hover:bg-muted/50 hover:border-primary/50 text-center transition shadow-sm group cursor-grab active:cursor-grabbing"
+                    title="کلیک برای افزودن، یا کشیدن با ماوس به داخل بوم"
                   >
                     <Icon className="w-5 h-5 text-muted-foreground group-hover:text-primary mb-1.5 transition-colors" />
                     <span className="text-xs font-semibold text-foreground line-clamp-1">
@@ -94,8 +103,17 @@ export function BlocksPalette() {
                   <button
                     key={block.type}
                     type="button"
+                    draggable={true}
+                    onDragStart={(e) => {
+                      e.dataTransfer.setData(
+                        "application/json",
+                        JSON.stringify({ type: "block_def", blockType: block.type })
+                      );
+                      e.dataTransfer.effectAllowed = "copy";
+                    }}
                     onClick={() => handleAddBlock(block)}
-                    className="flex flex-col items-center justify-center p-3 rounded-xl border border-border/80 bg-card hover:bg-muted/50 hover:border-primary/50 text-center transition shadow-sm group"
+                    className="flex flex-col items-center justify-center p-3 rounded-xl border border-border/80 bg-card hover:bg-muted/50 hover:border-primary/50 text-center transition shadow-sm group cursor-grab active:cursor-grabbing"
+                    title="کلیک برای افزودن، یا کشیدن با ماوس به داخل بوم"
                   >
                     <Icon className="w-5 h-5 text-muted-foreground group-hover:text-primary mb-1.5 transition-colors" />
                     <span className="text-xs font-semibold text-foreground line-clamp-1">

@@ -15,6 +15,8 @@ import {
   Loader2,
   Layers,
   Sparkles,
+  Check,
+  AlertCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -25,6 +27,8 @@ interface BuilderToolbarProps {
   onPublish: () => Promise<void>;
   onExit: () => void;
   pageStatus?: string;
+  autosaveStatus?: "idle" | "saving" | "saved" | "error";
+  lastSavedAt?: string | null;
 }
 
 export function BuilderToolbar({
@@ -32,6 +36,8 @@ export function BuilderToolbar({
   onPublish,
   onExit,
   pageStatus = "draft",
+  autosaveStatus = "idle",
+  lastSavedAt,
 }: BuilderToolbarProps) {
   const ast = useBuilderStore((s) => s.ast);
   const activeBreakpoint = useBuilderStore((s) => s.activeBreakpoint);
@@ -94,7 +100,27 @@ export function BuilderToolbar({
           >
             {pageStatus === "published" ? "منتشرشده" : "پیش‌نویس"}
           </Badge>
-          {isDirty && (
+
+          {/* Autosave Status Indicator */}
+          {autosaveStatus === "saving" && (
+            <span className="flex items-center gap-1 text-[11px] text-muted-foreground animate-pulse">
+              <Loader2 className="w-3 h-3 animate-spin text-primary" />
+              <span>ذخیره خودکار...</span>
+            </span>
+          )}
+          {autosaveStatus === "saved" && !isDirty && (
+            <span className="flex items-center gap-1 text-[11px] text-emerald-600 dark:text-emerald-400">
+              <Check className="w-3 h-3" />
+              <span>ذخیره شد</span>
+            </span>
+          )}
+          {autosaveStatus === "error" && (
+            <span className="flex items-center gap-1 text-[11px] text-destructive">
+              <AlertCircle className="w-3 h-3" />
+              <span>خطای ذخیره خودکار</span>
+            </span>
+          )}
+          {isDirty && autosaveStatus !== "saving" && (
             <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" title="تغییرات ذخیره‌نشده" />
           )}
         </div>

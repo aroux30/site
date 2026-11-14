@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useCallback } from "react";
+import React, { useEffect, useCallback, useRef, useState } from "react";
 import {
   DndContext,
   closestCenter,
@@ -15,11 +15,15 @@ import {
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import { Layers, PlusSquare } from "lucide-react";
+import { Layers, PlusSquare, AlertTriangle, Lock } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
+import { Button } from "@/components/ui/button";
 import { cmsPagesAdminApi, type CmsPage } from "@/lib/api/content";
+import { blogAdminApi } from "@/lib/api/blog";
 import { PageASTSchema } from "@/lib/builder/schema";
+import { BASIC_BLOCK_DEFINITIONS } from "@/lib/builder/block-registry";
 import { useBuilderStore } from "@/stores/builder-store";
+import { usePageEditingLock } from "@/hooks/use-page-editing-lock";
 import { BuilderToolbar } from "./builder-toolbar";
 import { BlocksPalette } from "./blocks-palette";
 import { LayersTree } from "./layers-tree";
@@ -42,13 +46,73 @@ export function BuilderStudio({ page, onExit }: BuilderStudioProps) {
   const setLeftTab = useBuilderStore((s) => s.setLeftTab);
   const previewMode = useBuilderStore((s) => s.previewMode);
   const moveElement = useBuilderStore((s) => s.moveElement);
+  const addElement = useBuilderStore((s) => s.addElement);
   const setIsSaving = useBuilderStore((s) => s.setIsSaving);
   const markClean = useBuilderStore((s) => s.markClean);
+  const isDirty = useBuilderStore((s) => s.isDirty);
+
+  // ── Concurrent Editing Lock ───────────────────────────────────────────────
+  const { lockedByOther, takeOver, release } = usePageEditingLock(page.id, "pages");
+
+  // ── Autosave Management ───────────────────────────────────────────────────
+  const [autosaveStatus, setAutosaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  const [lastSavedAt, setLastSavedAt] = useState<string | null>(null);
+  const isAutosavingRef = useRef(false);
+  const inFlightMutationVersion = useRef(0);
 
   // Initialize store on mount
   useEffect(() => {
     initPage(page.id, page.builder_data, page.title, page.slug);
   }, [page.id, page.builder_data, page.title, page.slug, initPage]);
+
+  // Clean up lock on unmount
+  useEffect(() => {
+    return () => {
+      void release();
+    };
+  }, [release]);
+
+  // 1.5s Debounced In-flight Safe Autosave
+  useEffect(() => {
+    if (!isDirty || !page.id) return;
+
+    const timer = setTimeout(async () => {
+      if (isAutosavingRef.current) return;
+      isAutosavingRef.current = true;
+      inFlightMutationVersion.current = useBuilderStore.getState().mutationVersion;
+      setAutosaveStatus("saving");
+
+      try {
+        const validated = PageASTSchema.parse(useBuilderStore.getState().ast);
+
+        // Update page draft in PostgreSQL
+        await cmsPagesAdminApi.updatePage(page.id, {
+          builder_data: validated,
+          status: "draft",
+        });
+
+        // Save Redis snapshot for rapid crash recovery
+        void blogAdminApi.saveAutosave(page.id, validated, "pages").catch(() => undefined);
+
+        setLastSavedAt(new Date().toLocaleTimeString("fa-IR"));
+
+        // Only mark clean if no new edits arrived while in-flight
+        if (useBuilderStore.getState().mutationVersion === inFlightMutationVersion.current) {
+          markClean();
+          setAutosaveStatus("saved");
+        } else {
+          setAutosaveStatus("idle");
+        }
+      } catch (err) {
+        console.error("Autosave error:", err);
+        setAutosaveStatus("error");
+      } finally {
+        isAutosavingRef.current = false;
+      }
+    }, 1500);
+
+    return () => clearTimeout(timer);
+  }, [isDirty, ast, page.id, markClean]);
 
   // Configure Dnd sensors with a 5px threshold to avoid interfering with clicks
   const sensors = useSensors(
@@ -72,11 +136,10 @@ export function BuilderStudio({ page, onExit }: BuilderStudioProps) {
     [moveElement]
   );
 
-  // Save Draft Action
+  // Manual Save Draft Action
   const handleSaveDraft = useCallback(async () => {
     setIsSaving(true);
     try {
-      // Validate schema on client before sending
       const validated = PageASTSchema.parse(ast);
 
       await cmsPagesAdminApi.updatePage(page.id, {
@@ -85,6 +148,8 @@ export function BuilderStudio({ page, onExit }: BuilderStudioProps) {
       });
 
       markClean();
+      setAutosaveStatus("saved");
+      setLastSavedAt(new Date().toLocaleTimeString("fa-IR"));
       toast({
         title: "پیش‌نویس ذخیره شد",
         description: "تغییرات صفحه با موفقیت در دیتابیس ثبت شد.",
@@ -113,6 +178,8 @@ export function BuilderStudio({ page, onExit }: BuilderStudioProps) {
       });
 
       markClean();
+      setAutosaveStatus("saved");
+      setLastSavedAt(new Date().toLocaleTimeString("fa-IR"));
       toast({
         title: "صفحه منتشر شد",
         description: "این برگه اکنون با خروجی بهینه‌شده در دسترس کاربران است.",
@@ -130,23 +197,46 @@ export function BuilderStudio({ page, onExit }: BuilderStudioProps) {
   }, [ast, page.id, markClean, setIsSaving, toast]);
 
   const handleExit = useCallback(() => {
+    void release();
     if (onExit) {
       onExit();
     } else {
       window.location.href = `/${page.slug}`;
     }
-  }, [onExit, page.slug]);
+  }, [onExit, page.slug, release]);
 
   const rootElementIds = ast.rootElements.map((el) => el.id);
 
   return (
     <div className="flex flex-col h-screen w-screen overflow-hidden bg-muted/20 font-sans" dir="rtl">
+      {/* Concurrent Editing Lock Alert Banner */}
+      {lockedByOther && (
+        <div className="bg-amber-500/15 border-b border-amber-500/30 text-amber-900 dark:text-amber-200 px-4 py-2 text-xs flex items-center justify-between z-50 shrink-0">
+          <div className="flex items-center gap-2">
+            <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
+            <span>
+              این برگه در حال حاضر توسط <strong>{lockedByOther}</strong> در حال ویرایش است. ذخیره‌سازی ممکن است تغییرات ایشان را بازنویسی کند.
+            </span>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={takeOver}
+            className="h-7 text-xs border-amber-600/40 hover:bg-amber-500/20 text-amber-900 dark:text-amber-200"
+          >
+            در اختیار گرفتن قفل ویرایش
+          </Button>
+        </div>
+      )}
+
       {/* Top Navigation Toolbar */}
       <BuilderToolbar
         onSaveDraft={handleSaveDraft}
         onPublish={handlePublish}
         onExit={handleExit}
         pageStatus={page.status}
+        autosaveStatus={autosaveStatus}
+        lastSavedAt={lastSavedAt}
       />
 
       {/* Main 3-Column Studio Workspace */}
@@ -201,7 +291,27 @@ export function BuilderStudio({ page, onExit }: BuilderStudioProps) {
               strategy={verticalListSortingStrategy}
             >
               <CanvasFrame viewport={activeBreakpoint}>
-                <div className="space-y-4 min-h-[500px] w-full">
+                <div
+                  className="space-y-4 min-h-[500px] w-full"
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    e.dataTransfer.dropEffect = "copy";
+                  }}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    const raw = e.dataTransfer.getData("application/json");
+                    if (!raw) return;
+                    try {
+                      const data = JSON.parse(raw);
+                      if (data.type === "block_def" && data.blockType) {
+                        const def = BASIC_BLOCK_DEFINITIONS.find((b) => b.type === data.blockType);
+                        if (def) {
+                          addElement(def.createDefaultElement());
+                        }
+                      }
+                    } catch {}
+                  }}
+                >
                   {ast.rootElements.map((element) => (
                     <CanvasElement
                       key={element.id}

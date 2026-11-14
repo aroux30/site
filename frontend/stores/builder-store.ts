@@ -183,6 +183,7 @@ export interface BuilderState {
   previewMode: boolean;
   isDirty: boolean;
   isSaving: boolean;
+  mutationVersion: number;
   history: {
     past: PageAST[];
     future: PageAST[];
@@ -224,6 +225,7 @@ export const useBuilderStore = create<BuilderState>((set, get) => ({
   previewMode: false,
   isDirty: false,
   isSaving: false,
+  mutationVersion: 0,
   history: {
     past: [],
     future: [],
@@ -243,6 +245,7 @@ export const useBuilderStore = create<BuilderState>((set, get) => ({
       activeBreakpoint: "desktop",
       previewMode: false,
       isDirty: false,
+      mutationVersion: 0,
       history: { past: [], future: [] },
     });
   },
@@ -280,6 +283,7 @@ export const useBuilderStore = create<BuilderState>((set, get) => ({
       ast: { ...ast, rootElements: updatedRoots },
       selectedElementId: element.id,
       isDirty: true,
+      mutationVersion: get().mutationVersion + 1,
       history: { past: newPast, future: [] },
     });
   },
@@ -333,6 +337,7 @@ export const useBuilderStore = create<BuilderState>((set, get) => ({
       ast: { ...ast, rootElements: finalRoots },
       selectedElementId: activeId,
       isDirty: true,
+      mutationVersion: get().mutationVersion + 1,
       history: { past: newPast, future: [] },
     });
   },
@@ -349,6 +354,7 @@ export const useBuilderStore = create<BuilderState>((set, get) => ({
     set({
       ast: { ...ast, rootElements: updatedRoots },
       isDirty: true,
+      mutationVersion: get().mutationVersion + 1,
       history: { past: newPast, future: [] },
     });
   },
@@ -365,6 +371,7 @@ export const useBuilderStore = create<BuilderState>((set, get) => ({
     set({
       ast: { ...ast, rootElements: updatedRoots },
       isDirty: true,
+      mutationVersion: get().mutationVersion + 1,
       history: { past: newPast, future: [] },
     });
   },
@@ -390,6 +397,7 @@ export const useBuilderStore = create<BuilderState>((set, get) => ({
     set({
       ast: { ...ast, rootElements: updatedRoots },
       isDirty: true,
+      mutationVersion: get().mutationVersion + 1,
       history: { past: newPast, future: [] },
     });
   },
@@ -403,6 +411,7 @@ export const useBuilderStore = create<BuilderState>((set, get) => ({
       ast: { ...ast, rootElements: updatedRoots },
       selectedElementId: selectedElementId === id ? null : selectedElementId,
       isDirty: true,
+      mutationVersion: get().mutationVersion + 1,
       history: { past: newPast, future: [] },
     });
   },
@@ -431,6 +440,7 @@ export const useBuilderStore = create<BuilderState>((set, get) => ({
       ast: { ...ast, rootElements: updatedRoots },
       selectedElementId: cloned.id,
       isDirty: true,
+      mutationVersion: get().mutationVersion + 1,
       history: { past: newPast, future: [] },
     });
   },
@@ -446,6 +456,7 @@ export const useBuilderStore = create<BuilderState>((set, get) => ({
     set({
       ast: previous,
       isDirty: true,
+      mutationVersion: get().mutationVersion + 1,
       history: { past: newPast, future: newFuture },
     });
   },
@@ -461,6 +472,7 @@ export const useBuilderStore = create<BuilderState>((set, get) => ({
     set({
       ast: next,
       isDirty: true,
+      mutationVersion: get().mutationVersion + 1,
       history: { past: newPast, future: newFuture },
     });
   },

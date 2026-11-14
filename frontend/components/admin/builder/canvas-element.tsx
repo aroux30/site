@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useCallback, useMemo } from "react";
-import { useSortable } from "@dnd-kit/sortable";
+import React, { useCallback, useMemo, useState } from "react";
+import { useSortable, SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import {
   GripVertical,
@@ -12,8 +12,9 @@ import {
   Plus,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useBuilderStore, type Breakpoint } from "@/stores/builder-store";
+import { useBuilderStore, findElementAndParent, type Breakpoint } from "@/stores/builder-store";
 import { resolveResponsiveValue } from "@/lib/builder/schema";
+import { BASIC_BLOCK_DEFINITIONS } from "@/lib/builder/block-registry";
 import type { BuilderElement, DeviceStyle, ResponsiveStyles } from "@/types/builder";
 
 interface CanvasElementProps {
@@ -27,16 +28,58 @@ export function CanvasElement({
   activeBreakpoint,
   depth = 1,
 }: CanvasElementProps) {
+  const [isExternalDragOver, setIsExternalDragOver] = useState(false);
   const selectedElementId = useBuilderStore((s) => s.selectedElementId);
   const hoveredElementId = useBuilderStore((s) => s.hoveredElementId);
   const selectElement = useBuilderStore((s) => s.selectElement);
   const setHoveredElement = useBuilderStore((s) => s.setHoveredElement);
   const deleteElement = useBuilderStore((s) => s.deleteElement);
   const duplicateElement = useBuilderStore((s) => s.duplicateElement);
+  const addElement = useBuilderStore((s) => s.addElement);
+  const ast = useBuilderStore((s) => s.ast);
   const previewMode = useBuilderStore((s) => s.previewMode);
 
   const isSelected = selectedElementId === element.id;
   const isHovered = hoveredElementId === element.id && !isSelected;
+
+  const handleExternalDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    e.dataTransfer.dropEffect = "copy";
+    setIsExternalDragOver(true);
+  }, []);
+
+  const handleExternalDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsExternalDragOver(false);
+  }, []);
+
+  const handleExternalDrop = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setIsExternalDragOver(false);
+      const raw = e.dataTransfer.getData("application/json");
+      if (!raw) return;
+      try {
+        const data = JSON.parse(raw);
+        if (data.type === "block_def" && data.blockType) {
+          const def = BASIC_BLOCK_DEFINITIONS.find((b) => b.type === data.blockType);
+          if (def) {
+            const newEl = def.createDefaultElement();
+            if (element.type === "container") {
+              addElement(newEl, element.id);
+            } else {
+              const info = findElementAndParent(ast.rootElements, element.id);
+              addElement(newEl, info?.parent?.id, (info?.index ?? 0) + 1);
+            }
+          }
+        }
+      } catch {}
+    },
+    [element.id, element.type, ast.rootElements, addElement]
+  );
 
   const {
     attributes,
@@ -278,12 +321,16 @@ export function CanvasElement({
       onClick={handleClick}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
+      onDragOver={handleExternalDragOver}
+      onDragLeave={handleExternalDragLeave}
+      onDrop={handleExternalDrop}
       className={cn(
         "relative group/elem select-none",
         isContainer ? containerClasses : "block",
         !previewMode && "outline outline-1 outline-transparent transition-all",
         !previewMode && isHovered && "outline-dashed outline-sky-500/80 bg-sky-500/5",
         !previewMode && isSelected && "outline-2 outline-primary bg-primary/5 shadow-sm z-20",
+        !previewMode && isExternalDragOver && "outline-2 outline-emerald-500 bg-emerald-500/10 shadow-lg ring-2 ring-emerald-500/30",
         element.isHidden && "opacity-50"
       )}
       data-element-id={element.id}
@@ -333,14 +380,19 @@ export function CanvasElement({
       {/* Content Rendering */}
       {isContainer ? (
         element.children && element.children.length > 0 ? (
-          element.children.map((child) => (
-            <CanvasElement
-              key={child.id}
-              element={child}
-              activeBreakpoint={activeBreakpoint}
-              depth={depth + 1}
-            />
-          ))
+          <SortableContext
+            items={element.children.map((c) => c.id)}
+            strategy={verticalListSortingStrategy}
+          >
+            {element.children.map((child) => (
+              <CanvasElement
+                key={child.id}
+                element={child}
+                activeBreakpoint={activeBreakpoint}
+                depth={depth + 1}
+              />
+            ))}
+          </SortableContext>
         ) : (
           !previewMode && (
             <div className="flex flex-col items-center justify-center p-8 border-2 border-dashed border-border/80 rounded-xl bg-card/40 text-center w-full min-h-[120px]">
@@ -348,7 +400,7 @@ export function CanvasElement({
                 کانتینر خالی
               </span>
               <span className="text-[11px] text-muted-foreground/70">
-                بلوک‌ها را از پنل سمت چپ به اینجا بکشید
+                بلوک‌ها را از پنل سمت چپ به اینجا بکشید یا کلیک کنید
               </span>
             </div>
           )

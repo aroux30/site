@@ -1,8 +1,6 @@
 "use client";
 
 import React, { useCallback, useMemo, useState } from "react";
-import { useSortable, SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
 import {
   GripVertical,
   Copy,
@@ -36,71 +34,80 @@ export function CanvasElement({
   const deleteElement = useBuilderStore((s) => s.deleteElement);
   const duplicateElement = useBuilderStore((s) => s.duplicateElement);
   const addElement = useBuilderStore((s) => s.addElement);
+  const moveElement = useBuilderStore((s) => s.moveElement);
   const ast = useBuilderStore((s) => s.ast);
   const previewMode = useBuilderStore((s) => s.previewMode);
 
   const isSelected = selectedElementId === element.id;
   const isHovered = hoveredElementId === element.id && !isSelected;
 
-  const handleExternalDragOver = useCallback((e: React.DragEvent) => {
+  // Drag is native HTML5 drag-and-drop, not dnd-kit. The canvas lives in an
+  // iframe, and dnd-kit's pointer sensor never activates across the document
+  // boundary (the sensor attaches its move/up listeners to one document while
+  // the draggable nodes live in the other), so dragging silently did nothing.
+  // HTML5 drag events are dispatched by the browser into the iframe document
+  // and bubble normally — the same mechanism the palette→canvas drop uses.
+  const [isDragOver, setIsDragOver] = useState(false);
+
+  const readPayload = (e: React.DragEvent) => {
+    const raw = e.dataTransfer.getData("application/json");
+    if (!raw) return null;
+    try {
+      return JSON.parse(raw) as
+        | { type: "block_def"; blockType: string }
+        | { type: "element"; elementId: string };
+    } catch {
+      return null;
+    }
+  };
+
+  const onDragOver = useCallback(
+    (e: React.DragEvent) => {
+      if (previewMode) return;
+      e.preventDefault();
+      e.stopPropagation();
+      e.dataTransfer.dropEffect = "move";
+      setIsDragOver(true);
+    },
+    [previewMode]
+  );
+
+  const onDragLeave = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    e.dataTransfer.dropEffect = "copy";
-    setIsExternalDragOver(true);
+    setIsDragOver(false);
   }, []);
 
-  const handleExternalDragLeave = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsExternalDragOver(false);
-  }, []);
-
-  const handleExternalDrop = useCallback(
+  const onDrop = useCallback(
     (e: React.DragEvent) => {
       e.preventDefault();
       e.stopPropagation();
-      setIsExternalDragOver(false);
-      const raw = e.dataTransfer.getData("application/json");
-      if (!raw) return;
-      try {
-        const data = JSON.parse(raw);
-        if (data.type === "block_def" && data.blockType) {
-          const def = BASIC_BLOCK_DEFINITIONS.find((b) => b.type === data.blockType);
-          if (def) {
-            const newEl = def.createDefaultElement();
-            if (element.type === "container") {
-              addElement(newEl, element.id);
-            } else {
-              const info = findElementAndParent(ast.rootElements, element.id);
-              addElement(newEl, info?.parent?.id, (info?.index ?? 0) + 1);
-            }
-          }
+      setIsDragOver(false);
+      const payload = readPayload(e);
+      if (!payload) return;
+
+      if (payload.type === "element") {
+        // Reordering / moving an existing element.
+        if (payload.elementId !== element.id) {
+          moveElement(payload.elementId, element.id);
         }
-      } catch {}
+        return;
+      }
+
+      if (payload.type === "block_def" && payload.blockType) {
+        const def = BASIC_BLOCK_DEFINITIONS.find((b) => b.type === payload.blockType);
+        if (!def) return;
+        const newEl = def.createDefaultElement();
+        if (element.type === "container") {
+          addElement(newEl, element.id);
+        } else {
+          const info = findElementAndParent(ast.rootElements, element.id);
+          addElement(newEl, info?.parent?.id, (info?.index ?? 0) + 1);
+        }
+      }
     },
-    [element.id, element.type, ast.rootElements, addElement]
+    [element.id, element.type, ast.rootElements, addElement, moveElement]
   );
-
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({
-    id: element.id,
-    disabled: previewMode || element.isLocked,
-    data: {
-      element,
-    },
-  });
-
-  const sortableStyle = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.4 : 1,
-  };
 
   // Compute responsive inline styles based on active breakpoint
   const elementStyles = useMemo((): React.CSSProperties => {
@@ -316,21 +323,20 @@ export function CanvasElement({
 
   return (
     <div
-      ref={setNodeRef}
-      style={{ ...sortableStyle, ...elementStyles }}
+      style={elementStyles}
       onClick={handleClick}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
-      onDragOver={handleExternalDragOver}
-      onDragLeave={handleExternalDragLeave}
-      onDrop={handleExternalDrop}
+      onDragOver={onDragOver}
+      onDragLeave={onDragLeave}
+      onDrop={onDrop}
       className={cn(
         "relative group/elem select-none",
         isContainer ? containerClasses : "block",
         !previewMode && "outline outline-1 outline-transparent transition-all",
         !previewMode && isHovered && "outline-dashed outline-sky-500/80 bg-sky-500/5",
         !previewMode && isSelected && "outline-2 outline-primary bg-primary/5 shadow-sm z-20",
-        !previewMode && isExternalDragOver && "outline-2 outline-emerald-500 bg-emerald-500/10 shadow-lg ring-2 ring-emerald-500/30",
+        !previewMode && isDragOver && "outline-2 outline-emerald-500 bg-emerald-500/10 shadow-lg ring-2 ring-emerald-500/30",
         element.isHidden && "opacity-50"
       )}
       data-element-id={element.id}
@@ -341,10 +347,17 @@ export function CanvasElement({
           className="absolute -top-7 start-0 flex items-center gap-1 bg-primary text-primary-foreground text-[11px] font-bold rounded-t-md px-2 py-0.5 shadow-md z-30 pointer-events-auto"
           onClick={(e) => e.stopPropagation()}
         >
-          {/* Drag Handle */}
+          {/* Drag Handle — native HTML5 drag (see the note above onDrop). */}
           <span
-            {...attributes}
-            {...listeners}
+            draggable={!element.isLocked}
+            onDragStart={(e) => {
+              e.stopPropagation();
+              e.dataTransfer.setData(
+                "application/json",
+                JSON.stringify({ type: "element", elementId: element.id })
+              );
+              e.dataTransfer.effectAllowed = "move";
+            }}
             className="cursor-grab active:cursor-grabbing p-0.5 hover:bg-primary-foreground/20 rounded"
             title="جابه‌جایی"
           >
@@ -380,19 +393,14 @@ export function CanvasElement({
       {/* Content Rendering */}
       {isContainer ? (
         element.children && element.children.length > 0 ? (
-          <SortableContext
-            items={element.children.map((c) => c.id)}
-            strategy={verticalListSortingStrategy}
-          >
-            {element.children.map((child) => (
-              <CanvasElement
-                key={child.id}
-                element={child}
-                activeBreakpoint={activeBreakpoint}
-                depth={depth + 1}
-              />
-            ))}
-          </SortableContext>
+          element.children.map((child) => (
+            <CanvasElement
+              key={child.id}
+              element={child}
+              activeBreakpoint={activeBreakpoint}
+              depth={depth + 1}
+            />
+          ))
         ) : (
           !previewMode && (
             <div className="flex flex-col items-center justify-center p-8 border-2 border-dashed border-border/80 rounded-xl bg-card/40 text-center w-full min-h-[120px]">

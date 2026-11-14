@@ -14,16 +14,37 @@ import re
 from typing import Any, Literal
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
+
+def _to_camel(name: str) -> str:
+    """snake_case -> camelCase for wire compatibility with the builder.
+
+    The stored AST is read by the frontend's Zod schema (``rootElements``,
+    ``schemaVersion``, ``isLinked``, ``minHeight`` …). Pydantic's default
+    snake_case dump meant every save stored ``root_elements``, which the
+    frontend never saw — the page appeared to save but reloaded empty.
+    """
+    head, *rest = name.split("_")
+    return head + "".join(part.capitalize() for part in rest)
+
+
+class ASTModel(BaseModel):
+    """Base for every AST node: camelCase on the wire, snake_case in Python."""
+
+    model_config = ConfigDict(
+        alias_generator=_to_camel,
+        populate_by_name=True,
+    )
+
 # ── 1. Unit Values and Spacing ───────────────────────────────────────────────
 
 CSS_LENGTH_REGEX = re.compile(r"^-?\d+(\.\d+)?(px|rem|%|vh|vw|em|pt)$")
 ELEMENT_ID_REGEX = re.compile(r"^[a-zA-Z][a-zA-Z0-9_-]{5,15}$")
 
 
-class UnitValue(BaseModel):
+class UnitValue(ASTModel):
     """A scalar number with a CSS measurement unit."""
 
-    model_config = ConfigDict(frozen=True)
+    model_config = ConfigDict(frozen=True, alias_generator=_to_camel, populate_by_name=True)
 
     value: float = 0.0
     unit: Literal["px", "rem", "%", "vh", "vw", "em", "pt", "auto"] = "px"
@@ -36,7 +57,7 @@ class UnitValue(BaseModel):
         return f"{val_str}{self.unit}"
 
 
-class SpacingBox(BaseModel):
+class SpacingBox(ASTModel):
     """Padding or margin for four sides."""
 
     top: UnitValue = Field(default_factory=lambda: UnitValue(value=0, unit="px"))
@@ -49,7 +70,7 @@ class SpacingBox(BaseModel):
 # ── 2. Styles ───────────────────────────────────────────────────────────────
 
 
-class TypographyStyle(BaseModel):
+class TypographyStyle(ASTModel):
     font_family: str = "inherit"
     font_size: UnitValue | None = None
     font_weight: Literal["300", "400", "500", "600", "700", "800", "900", "inherit"] = "inherit"
@@ -61,20 +82,20 @@ class TypographyStyle(BaseModel):
     color: str | None = None  # hex, hsl(var(--token)), or semantic token key
 
 
-class BorderStyle(BaseModel):
+class BorderStyle(ASTModel):
     style: Literal["none", "solid", "dashed", "dotted", "double"] = "none"
     width: SpacingBox | None = None
     color: str | None = None
     radius: SpacingBox | None = None
 
 
-class BackgroundGradient(BaseModel):
+class BackgroundGradient(ASTModel):
     direction: Literal["to-r", "to-l", "to-t", "to-b", "to-tr", "to-tl"] = "to-l"
     from_color: str
     to_color: str
 
 
-class BackgroundStyle(BaseModel):
+class BackgroundStyle(ASTModel):
     type: Literal["none", "color", "gradient", "image"] = "none"
     color: str | None = None
     gradient: BackgroundGradient | None = None
@@ -83,7 +104,7 @@ class BackgroundStyle(BaseModel):
     size: Literal["cover", "contain", "auto"] = "cover"
 
 
-class DeviceStyle(BaseModel):
+class DeviceStyle(ASTModel):
     """Computed or override styles for one breakpoint."""
 
     typography: TypographyStyle | None = None
@@ -98,7 +119,7 @@ class DeviceStyle(BaseModel):
     z_index: int | None = Field(default=None, ge=0, le=999)
 
 
-class ResponsiveStyles(BaseModel):
+class ResponsiveStyles(ASTModel):
     """Mobile-first responsive styling. Mobile is base; tablet and desktop override."""
 
     mobile: DeviceStyle = Field(default_factory=DeviceStyle)
@@ -112,7 +133,7 @@ class ResponsiveStyles(BaseModel):
 # ── 3. Layout and Containers ────────────────────────────────────────────────
 
 
-class ContainerLayout(BaseModel):
+class ContainerLayout(ASTModel):
     """Flexbox or CSS Grid layout parameters for a container."""
 
     kind: Literal["flex", "grid"] = "flex"
@@ -128,7 +149,7 @@ class ContainerLayout(BaseModel):
 # ── 4. Elements and AST Nodes ───────────────────────────────────────────────
 
 
-class BuilderElement(BaseModel):
+class BuilderElement(ASTModel):
     """A single node in the visual page tree (either a container or a widget)."""
 
     id: str
@@ -155,7 +176,7 @@ class BuilderElement(BaseModel):
 # ── 5. Document Root Schema ─────────────────────────────────────────────────
 
 
-class PageAST(BaseModel):
+class PageAST(ASTModel):
     """Complete root AST document for a visual page."""
 
     schema_version: int = Field(default=1, ge=1, le=10)

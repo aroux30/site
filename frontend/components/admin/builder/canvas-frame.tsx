@@ -1,93 +1,104 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import { createPortal } from "react-dom";
+import { createRoot, type Root } from "react-dom/client";
 import { cn } from "@/lib/utils";
 import type { Breakpoint } from "@/stores/builder-store";
 
-interface CanvasFrameProps {
-  viewport: Breakpoint;
-  children: React.ReactNode;
-  className?: string;
-}
-
+/**
+ * The editor canvas, rendered inside an isolated iframe.
+ *
+ * The iframe is what makes the responsive preview truthful: `md:`/`lg:` media
+ * queries evaluate against the frame's own width (375/768/full), not the
+ * editor's browser window.
+ *
+ * The canvas gets its OWN React root inside the iframe document. That is not
+ * an optimisation — it is required. React 18/19 attach their synthetic event
+ * listeners to the root container, so a portal from the parent document into
+ * an iframe leaves every handler dead: native `pointerdown` fires in the
+ * iframe but React's `onPointerDown` never runs, which is exactly why
+ * dnd-kit drags could not start. Mounting a root in the iframe document puts
+ * the listener target and the DOM in the same document. The Zustand store is
+ * module-level, so both roots read and write the same AST.
+ */
 export function CanvasFrame({
   viewport,
   children,
   className,
-}: CanvasFrameProps) {
+}: {
+  viewport: Breakpoint;
+  children: React.ReactNode;
+  className?: string;
+}) {
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
-  const [mountNode, setMountNode] = useState<HTMLElement | null>(null);
-  const [iframeDoc, setIframeDoc] = useState<Document | null>(null);
+  const rootRef = useRef<Root | null>(null);
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
     const iframe = iframeRef.current;
     if (!iframe) return;
-
     const doc = iframe.contentDocument;
     if (!doc) return;
 
     if (!doc.getElementById("builder-canvas-mount")) {
       doc.open();
       doc.write(
-        '<!DOCTYPE html><html lang="fa" dir="rtl"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/><style>body { min-height: 100vh; padding: 24px; box-sizing: border-box; } a { pointer-events: none !important; }</style></head><body class="bg-background text-foreground font-sans antialiased p-0 m-0 min-h-screen"><div id="builder-canvas-mount"></div></body></html>'
+        '<!DOCTYPE html><html lang="fa" dir="rtl"><head><meta charset="utf-8"/>' +
+          '<meta name="viewport" content="width=device-width, initial-scale=1"/>' +
+          '<style>body{margin:0;padding:24px;min-height:100vh;box-sizing:border-box;}' +
+          'a{pointer-events:none!important;}</style></head>' +
+          '<body class="bg-background text-foreground font-sans antialiased">' +
+          '<div id="builder-canvas-mount"></div></body></html>'
       );
       doc.close();
     }
 
     const mount = doc.getElementById("builder-canvas-mount");
-    setMountNode(mount);
-    setIframeDoc(doc);
+    if (!mount) return;
 
-    // Synchronize parent document styles (Tailwind CSS, fonts, dark theme)
-    const syncHeadAndStyles = () => {
+    if (!rootRef.current) {
+      rootRef.current = createRoot(mount);
+    }
+
+    const sync = () => {
       if (!doc.head || !doc.documentElement) return;
-
       doc.documentElement.className = document.documentElement.className;
-      doc.documentElement.dir = document.documentElement.dir || "rtl";
+      doc.documentElement.dir = "rtl";
       doc.documentElement.lang = "fa";
-
       const parentStyle = document.documentElement.getAttribute("style");
-      if (parentStyle) {
-        doc.documentElement.setAttribute("style", parentStyle);
-      }
+      if (parentStyle) doc.documentElement.setAttribute("style", parentStyle);
 
-      // Clone parent stylesheets
-      const existingHrefs = new Set(
+      const hrefs = new Set(
         Array.from(doc.head.querySelectorAll("link[rel='stylesheet']")).map(
           (l) => (l as HTMLLinkElement).href
         )
       );
-
       document.querySelectorAll("link[rel='stylesheet']").forEach((link) => {
         const href = (link as HTMLLinkElement).href;
-        if (href && !existingHrefs.has(href)) {
-          const clone = link.cloneNode(true) as HTMLLinkElement;
-          doc.head.appendChild(clone);
+        if (href && !hrefs.has(href)) {
+          doc.head.appendChild(link.cloneNode(true));
         }
       });
 
-      // Clone inline style tags
-      const existingStyleTexts = new Set(
+      const styles = new Set(
         Array.from(doc.head.querySelectorAll("style")).map((s) => s.textContent)
       );
       document.querySelectorAll("style").forEach((style) => {
-        if (style.textContent && !existingStyleTexts.has(style.textContent)) {
-          const clone = style.cloneNode(true);
-          doc.head.appendChild(clone);
+        if (style.textContent && !styles.has(style.textContent)) {
+          doc.head.appendChild(style.cloneNode(true));
         }
       });
     };
 
-    syncHeadAndStyles();
+    sync();
+    setReady(true);
 
-    const themeObserver = new MutationObserver(() => syncHeadAndStyles());
+    const themeObserver = new MutationObserver(sync);
     themeObserver.observe(document.documentElement, {
       attributes: true,
       attributeFilter: ["class", "dir", "style"],
     });
-
-    const headObserver = new MutationObserver(() => syncHeadAndStyles());
+    const headObserver = new MutationObserver(sync);
     headObserver.observe(document.head, { childList: true, subtree: true });
 
     return () => {
@@ -96,31 +107,40 @@ export function CanvasFrame({
     };
   }, []);
 
-  // Dynamically adjust iframe height to match content
+  // Render children into the iframe's own root on every change. This root is
+  // separate from the parent's, so the parent's React tree never owns those
+  // nodes — which is the point.
   useEffect(() => {
-    if (!iframeRef.current || !iframeDoc) return;
-    const iframe = iframeRef.current;
-    const doc = iframeDoc;
+    if (!rootRef.current || !ready) return;
+    rootRef.current.render(<>{children}</>);
+  }, [children, ready]);
 
-    const updateHeight = () => {
-      if (!iframe || !doc.body) return;
-      const h = Math.max(
-        doc.body.scrollHeight,
-        doc.documentElement.scrollHeight,
-        700
-      );
+  useEffect(() => {
+    return () => {
+      const root = rootRef.current;
+      rootRef.current = null;
+      // Unmount after the current commit; unmounting synchronously during a
+      // parent unmount trips React's "cannot unmount while rendering" guard.
+      setTimeout(() => root?.unmount(), 0);
+    };
+  }, []);
+
+  // Keep the frame tall enough for its content (no nested scrollbars).
+  useEffect(() => {
+    const iframe = iframeRef.current;
+    if (!iframe || !ready) return;
+    const doc = iframe.contentDocument;
+    if (!doc?.body) return;
+    const update = () => {
+      const h = Math.max(doc.body.scrollHeight, doc.documentElement.scrollHeight, 700);
       iframe.style.height = `${h + 40}px`;
     };
-
-    updateHeight();
-    const ro = new ResizeObserver(() => updateHeight());
-    if (doc.body) ro.observe(doc.body);
-    if (doc.documentElement) ro.observe(doc.documentElement);
-
-    return () => {
-      ro.disconnect();
-    };
-  }, [iframeDoc, children, viewport]);
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(doc.body);
+    ro.observe(doc.documentElement);
+    return () => ro.disconnect();
+  }, [children, ready, viewport]);
 
   return (
     <div className={cn("relative w-full flex justify-center py-6 px-4", className)}>
@@ -138,7 +158,6 @@ export function CanvasFrame({
           className="w-full border-0 block bg-background"
           style={{ minHeight: "750px" }}
         />
-        {mountNode && createPortal(children, mountNode)}
       </div>
     </div>
   );

@@ -1,34 +1,19 @@
 "use client";
 
 import React, { useEffect, useCallback, useRef, useState } from "react";
-import {
-  DndContext,
-  closestCenter,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  type DragEndEvent,
-} from "@dnd-kit/core";
-import {
-  SortableContext,
-  sortableKeyboardCoordinates,
-  verticalListSortingStrategy,
-} from "@dnd-kit/sortable";
-import { Layers, PlusSquare, AlertTriangle, Lock } from "lucide-react";
+import { Layers, PlusSquare, AlertTriangle } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
 import { cmsPagesAdminApi, type CmsPage } from "@/lib/api/content";
 import { blogAdminApi } from "@/lib/api/blog";
 import { PageASTSchema } from "@/lib/builder/schema";
-import { BASIC_BLOCK_DEFINITIONS } from "@/lib/builder/block-registry";
 import { useBuilderStore } from "@/stores/builder-store";
 import { usePageEditingLock } from "@/hooks/use-page-editing-lock";
 import { BuilderToolbar } from "./builder-toolbar";
 import { BlocksPalette } from "./blocks-palette";
 import { LayersTree } from "./layers-tree";
 import { CanvasFrame } from "./canvas-frame";
-import { CanvasElement } from "./canvas-element";
+import { CanvasDndLayer } from "./canvas-dnd-layer";
 import { InspectorPanel } from "./inspector-panel";
 
 export interface BuilderStudioProps {
@@ -113,28 +98,6 @@ export function BuilderStudio({ page, onExit }: BuilderStudioProps) {
 
     return () => clearTimeout(timer);
   }, [isDirty, ast, page.id, markClean]);
-
-  // Configure Dnd sensors with a 5px threshold to avoid interfering with clicks
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 5,
-      },
-    }),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
-  );
-
-  const handleDragEnd = useCallback(
-    (event: DragEndEvent) => {
-      const { active, over } = event;
-      if (over && active.id !== over.id) {
-        moveElement(String(active.id), String(over.id));
-      }
-    },
-    [moveElement]
-  );
 
   // Manual Save Draft Action
   const handleSaveDraft = useCallback(async () => {
@@ -281,49 +244,15 @@ export function BuilderStudio({ page, onExit }: BuilderStudioProps) {
 
         {/* Center: Canvas Viewport Workspace */}
         <main className="flex-1 overflow-y-auto relative flex flex-col items-center bg-muted/30">
-          <DndContext
-            sensors={sensors}
-            collisionDetection={closestCenter}
-            onDragEnd={handleDragEnd}
-          >
-            <SortableContext
-              items={rootElementIds}
-              strategy={verticalListSortingStrategy}
-            >
-              <CanvasFrame viewport={activeBreakpoint}>
-                <div
-                  className="space-y-4 min-h-[500px] w-full"
-                  onDragOver={(e) => {
-                    e.preventDefault();
-                    e.dataTransfer.dropEffect = "copy";
-                  }}
-                  onDrop={(e) => {
-                    e.preventDefault();
-                    const raw = e.dataTransfer.getData("application/json");
-                    if (!raw) return;
-                    try {
-                      const data = JSON.parse(raw);
-                      if (data.type === "block_def" && data.blockType) {
-                        const def = BASIC_BLOCK_DEFINITIONS.find((b) => b.type === data.blockType);
-                        if (def) {
-                          addElement(def.createDefaultElement());
-                        }
-                      }
-                    } catch {}
-                  }}
-                >
-                  {ast.rootElements.map((element) => (
-                    <CanvasElement
-                      key={element.id}
-                      element={element}
-                      activeBreakpoint={activeBreakpoint}
-                      depth={1}
-                    />
-                  ))}
-                </div>
-              </CanvasFrame>
-            </SortableContext>
-          </DndContext>
+          {/* DnD lives INSIDE the iframe (CanvasDndLayer). A DndContext in this
+              document never receives pointer moves fired inside the canvas
+              document, so drags silently failed to start. */}
+          <CanvasFrame viewport={activeBreakpoint}>
+            <CanvasDndLayer
+              elements={ast.rootElements}
+              activeBreakpoint={activeBreakpoint}
+            />
+          </CanvasFrame>
         </main>
 
         {/* Right Column: Element Inspector & Controls */}

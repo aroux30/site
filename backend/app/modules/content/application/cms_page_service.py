@@ -473,7 +473,7 @@ async def create_page(
         from app.modules.content.domain.builder_validation import validate_page_ast
 
         validated_ast = validate_page_ast(data.builder_data)
-        builder_data_dict = validated_ast.model_dump()
+        builder_data_dict = validated_ast.model_dump(by_alias=True)
         body_html = ASTCompiler.compile(validated_ast)
     else:
         body_html = sanitize_html(data.body_html)
@@ -596,7 +596,7 @@ async def update_page(
             from app.modules.content.domain.builder_validation import validate_page_ast
 
             validated_ast = validate_page_ast(update_dict["builder_data"])
-            update_dict["builder_data"] = validated_ast.model_dump()
+            update_dict["builder_data"] = validated_ast.model_dump(by_alias=True)
             update_dict["body_html"] = ASTCompiler.compile(validated_ast)
         else:
             update_dict["builder_data"] = None
@@ -1109,7 +1109,7 @@ async def create_template(
         title=data.title.strip(),
         slug=slug,
         template_type=data.template_type,
-        builder_data=validated_ast.model_dump(),
+        builder_data=validated_ast.model_dump(by_alias=True),
         thumbnail_url=data.thumbnail_url,
         author_id=author_id,
     )
@@ -1132,7 +1132,7 @@ async def update_template(
         from app.modules.content.domain.builder_validation import validate_page_ast
 
         validated_ast = validate_page_ast(update_dict["builder_data"])
-        update_dict["builder_data"] = validated_ast.model_dump()
+        update_dict["builder_data"] = validated_ast.model_dump(by_alias=True)
 
     for k, v in update_dict.items():
         setattr(template, k, v)

@@ -36,11 +36,11 @@ async def _dispose_pool_after_test():
 
 def _make_sample_ast_dict(title: str, text: str) -> dict:
     return {
-        "schema_version": 1,
+        "schemaVersion": 1,
         "title": title,
         "slug": f"slug-{uuid.uuid4().hex[:8]}",
         "global_styles": {},
-        "root_elements": [
+        "rootElements": [
             {
                 "id": "el_sec01",
                 "name": "کانتینر اصلی",
@@ -51,8 +51,8 @@ def _make_sample_ast_dict(title: str, text: str) -> dict:
                         "id": "el_hd01",
                         "name": "سرتیتر",
                         "type": "widget",
-                        "widget_type": "heading",
-                        "widget_props": {"text": text, "tag": "h2"},
+                        "widgetType": "heading",
+                        "widgetProps": {"text": text, "tag": "h2"},
                         "children": [],
                     }
                 ],
@@ -181,21 +181,21 @@ async def test_restore_revision_restores_builder_data():
 async def test_reject_corrupted_ast_on_save():
     slug = f"test-corrupt-{uuid.uuid4().hex[:8]}"
     corrupted_ast = {
-        "schema_version": 1,
+        "schemaVersion": 1,
         "title": "خراب",
         "slug": slug,
-        "root_elements": [
+        "rootElements": [
             {
                 "id": "el_dup01",
                 "name": "یک",
                 "type": "widget",
-                "widget_type": "heading",
+                "widgetType": "heading",
             },
             {
                 "id": "el_dup01",  # duplicate ID
                 "name": "دو",
                 "type": "widget",
-                "widget_type": "button",
+                "widgetType": "button",
             },
         ],
     }

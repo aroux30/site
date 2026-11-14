@@ -47,6 +47,9 @@ class WalletFeatures(BaseModel):
     deposit: bool = True
     withdraw: bool = True
     transfer: bool = True
+    transfer_fee_rial: int = Field(default=0, description="Transfer fee in Rials (0 = free), used when fee_type=fixed")
+    transfer_fee_type: str = Field(default="fixed", description="Fee mode: 'fixed' or 'percent'")
+    transfer_fee_percent: int = Field(default=0, description="Fee percentage (e.g. 5 = 5%), used when fee_type=percent")
 
 
 class WalletResponse(BaseModel):

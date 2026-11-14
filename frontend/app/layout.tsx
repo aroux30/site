@@ -4,6 +4,7 @@ import { Providers } from "./providers";
 import "./globals.css";
 import { apiInternalUrl } from "@/lib/api/server-base";
 import { siteOrigin } from "@/lib/site-url";
+import { PluginWidgetLoader } from "@/components/chat/plugin-widget-loader";
 
 const vazirmatn = localFont({
   src: [
@@ -197,7 +198,13 @@ export default async function RootLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(buildSiteJsonLd(storeNameInPage)) }}
         />
-        <Providers>{children}</Providers>
+        <Providers>
+          {children}
+          {/* Root-mounted so it survives client-side admin ⇄ storefront
+              navigation; the component itself hides the widget on /admin
+              (WordPress parity: wp-admin never shows front-end widgets). */}
+          <PluginWidgetLoader />
+        </Providers>
       </body>
     </html>
   );

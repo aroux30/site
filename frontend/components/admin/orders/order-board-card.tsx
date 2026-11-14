@@ -18,7 +18,7 @@ import {
   User,
   Zap,
 } from "lucide-react";
-import { cn, formatPrice, toPersianDigits } from "@/lib/utils";
+import { cn, formatOrderCode, formatPrice, toPersianDigits } from "@/lib/utils";
 import {
   BOARD_COLUMNS,
   STATUS_VISUALS,
@@ -67,6 +67,7 @@ const STATUS_GLOW: Record<OrderStatus, string> = {
   waiting_payment_gateway: "shadow-amber-500/20 hover:shadow-amber-500/40",
   waiting_payment_card: "shadow-violet-500/20 hover:shadow-violet-500/40",
   pending: "shadow-blue-500/20 hover:shadow-blue-500/40",
+  doing_verified: "shadow-emerald-500/20 hover:shadow-emerald-500/40",
   processing: "shadow-indigo-500/20 hover:shadow-indigo-500/40",
   completed: "shadow-teal-500/20 hover:shadow-teal-500/40",
   canceled: "shadow-rose-600/20 hover:shadow-rose-600/40",
@@ -147,7 +148,7 @@ const OrderCardBody = memo(function OrderCardBody({
             className="truncate font-mono text-xs font-extrabold tracking-tight text-foreground transition-colors hover:text-primary"
             title="مشاهدهٔ جزئیات سفارش"
           >
-            {order.orderNumber}
+            {formatOrderCode(order.orderNumber)}
           </button>
         </div>
         <span
@@ -272,7 +273,11 @@ function OrderBoardCardShell({
       {...(overlay ? {} : attributes)}
       {...(overlay ? {} : listeners)}
       className={cn(
-        "group relative rounded-xl border p-3.5 transition-all duration-200",
+        // LAG FIX: the card must NOT transition `transform` — dnd-kit writes
+        // a fresh translate on every pointer frame, and a transition-all on
+        // the same property animated each update over 200ms, making the card
+        // trail the cursor (the exact «لگ» report). Only colors/shadow ease.
+        "group relative rounded-xl border p-3.5 transition-[background-color,border-color,box-shadow] duration-200",
         "cursor-grab active:cursor-grabbing select-none",
         // Solid card — NO backdrop-blur on cards (blurs 80 cards = GPU
         // overload + washed-out look in light mode). Glass effect is only
@@ -281,13 +286,15 @@ function OrderBoardCardShell({
         // Colored glow shadow per status
         glowClass,
         // Border with status tint
+        // No backdrop-blur on the moving clone: the GPU recomposites the blur
+        // every frame during the drag; the ring + shadow carry the effect.
         overlay
-          ? "rotate-2 scale-105 border-primary/60 shadow-xl shadow-primary/30 ring-2 ring-primary/40 backdrop-blur-md"
+          ? "rotate-2 scale-105 border-primary/60 shadow-xl shadow-primary/30 ring-2 ring-primary/40"
           : cn(borderGlow, "hover:scale-[1.02] hover:shadow-lg"),
         // Stale cards get a persistent warning glow
         stale && !overlay && "border-amber-500/50 shadow-amber-500/30 ring-1 ring-amber-500/30",
       )}
-      aria-label={`سفارش ${order.orderNumber}`}
+      aria-label={`سفارش ${formatOrderCode(order.orderNumber)}`}
     >
       {/* Top accent line — neon glow effect */}
       <div className={cn(

@@ -111,6 +111,37 @@ class WalletTransaction(BaseModel):
             unique=True,
             postgresql_where=text("reference_type = 'signup_gift' AND type = 'bonus'"),
         ),
+        # Business rule: referral/bonus rewards may be credited at most once
+        # per (reference_type, reference_id) — the money-level at-most-once
+        # backstop for the referral sweep (created by migration refbon1).
+        Index(
+            "uq_wallet_referral_rewards_once",
+            "reference_type",
+            "reference_id",
+            unique=True,
+            postgresql_where=text(
+                "reference_type IN ("
+                "'referral_signup_gift_l1', 'referral_signup_gift_l2', "
+                "'referral_commission_l1', 'referral_commission_l2', "
+                "'recharge_bonus'"
+                ")"
+            ),
+        ),
+        # Admin reward-history paging (created by migration refbon2): the
+        # partial predicate keeps the index proportional to reward rows only,
+        # never the whole ledger. Column order matches the history ORDER BY.
+        Index(
+            "ix_wallet_reward_history",
+            text("created_at DESC"),
+            text("id DESC"),
+            postgresql_where=text(
+                "reference_type IN ("
+                "'referral_signup_gift_l1', 'referral_signup_gift_l2', "
+                "'referral_commission_l1', 'referral_commission_l2', "
+                "'recharge_bonus'"
+                ")"
+            ),
+        ),
     )
 
     wallet_id: Mapped[uuid.UUID] = mapped_column(

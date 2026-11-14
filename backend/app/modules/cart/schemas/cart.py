@@ -31,6 +31,14 @@ class CartItemResponse(BaseModel):
     )
     image_url: str | None = None
     is_available: bool | None = None
+    # WooCommerce virtual/downloadable parity: the checkout uses this to skip
+    # the address + shipping steps for digital goods.
+    product_type: str | None = Field(
+        None, description="Product type (simple/variable/digital)"
+    )
+    requires_shipping: bool | None = Field(
+        None, description="False for digital goods — no delivery address needed"
+    )
 
     @property
     def price_toman(self) -> int:
@@ -56,6 +64,11 @@ class CartResponse(BaseModel):
     items: list[CartItemResponse] = []
     subtotal: int = Field(0, description="Sum of all line item subtotals (Rial)")
     item_count: int = Field(0, description="Total number of individual items")
+    # True unless EVERY line is digital — an all-digital cart ships no boxes,
+    # so checkout may skip the address and shipping steps entirely.
+    requires_shipping: bool = Field(
+        True, description="False when every item is digital (no shipping step)"
+    )
     expires_at: datetime | None = None
     created_at: datetime
     updated_at: datetime

@@ -1,14 +1,13 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Layout, RefreshCw, Plus, Menu, HelpCircle, Trash2, ChevronUp, ChevronDown, ArrowUp, ArrowDown } from "lucide-react";
+import { Layout, RefreshCw, Plus, Menu, Trash2, ChevronUp, ChevronDown, ArrowUp, ArrowDown } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import RichBodyEditor from "@/components/admin/RichBodyEditor";
 import ReusableBlocksCard from "@/components/admin/reusable-blocks-card";
 import {
   Dialog,
@@ -64,15 +63,6 @@ interface HomepageBlock {
   is_active: boolean;
 }
 
-interface FAQItem {
-  id: string;
-  question: string;
-  answer_html: string;
-  category: string;
-  position: number;
-  is_active: boolean;
-}
-
 export default function AdminCMSPage() {
   const { toast } = useToast();
   const confirm = useConfirm();
@@ -85,18 +75,6 @@ export default function AdminCMSPage() {
   const [blockConfig, setBlockConfig] = useState("{}");
   const [blockSaving, setBlockSaving] = useState(false);
 
-  // FAQ create/edit
-  const [faqOpen, setFaqOpen] = useState(false);
-  const [faqQuestion, setFaqQuestion] = useState("");
-  const [faqAnswer, setFaqAnswer] = useState("");
-  const [faqCategory, setFaqCategory] = useState("عمومی");
-  const [editingFaq, setEditingFaq] = useState<FAQItem | null>(null);
-  const [creating, setCreating] = useState(false);
-
-  // Blocks and FAQs load together but fail independently: the old code used
-  // Promise.allSettled and kept whichever half succeeded, so a FAQ outage
-  // still showed the blocks list. One query keeps that — a throw here would
-  // blank both halves.
   const {
     data: cmsData,
     loading,
@@ -104,100 +82,16 @@ export default function AdminCMSPage() {
   } = useAdminQuery({
     queryKey: [CMS_CONTENT_QUERY_KEY],
     queryFn: async () => {
-      const [blocksRes, faqsRes] = await Promise.allSettled([
-        // Admin list: includes inactive blocks so they can be re-enabled.
-        apiClient.get("/content/admin/blocks"),
-        apiClient.get("/content/faqs"),
-      ]);
+      // Admin list: includes inactive blocks so they can be re-enabled.
+      const blocksRes = await apiClient.get("/content/admin/blocks");
       return {
-        blocks:
-          blocksRes.status === "fulfilled" && Array.isArray(blocksRes.value.data)
-            ? (blocksRes.value.data as HomepageBlock[])
-            : [],
-        faqs:
-          faqsRes.status === "fulfilled" && Array.isArray(faqsRes.value.data?.items)
-            ? (faqsRes.value.data.items as FAQItem[])
-            : [],
+        blocks: Array.isArray(blocksRes.data) ? (blocksRes.data as HomepageBlock[]) : [],
       };
     },
     fallbackError: "بارگذاری CMS با خطا مواجه شد",
   });
   const blocks: HomepageBlock[] = cmsData?.blocks ?? [];
-  const faqs: FAQItem[] = cmsData?.faqs ?? [];
   const runMutation = useAdminMutation();
-
-  const openCreateFaq = () => {
-    setEditingFaq(null);
-    setFaqQuestion("");
-    setFaqAnswer("");
-    setFaqCategory("عمومی");
-    setFaqOpen(true);
-  };
-
-  const openEditFaq = (f: FAQItem) => {
-    setEditingFaq(f);
-    setFaqQuestion(f.question);
-    setFaqAnswer(f.answer_html);
-    setFaqCategory(f.category);
-    setFaqOpen(true);
-  };
-
-  const createFAQ = async () => {
-    if (!faqQuestion.trim() || !faqAnswer.trim()) {
-      toast({ title: "خطا", description: "سوال و پاسخ الزامی است", variant: "destructive" });
-      return;
-    }
-    setCreating(true);
-    try {
-      if (editingFaq) {
-        await apiClient.patch(`/content/admin/faqs/${editingFaq.id}`, {
-          question: faqQuestion,
-          answer_html: faqAnswer,
-          category: faqCategory,
-        });
-        toast({ title: "موفق", description: "سوال به‌روزرسانی شد" });
-      } else {
-        await apiClient.post("/content/admin/faqs", {
-          question: faqQuestion,
-          answer_html: faqAnswer,
-          category: faqCategory,
-        });
-        toast({ title: "موفق", description: "سوال جدید اضافه شد" });
-      }
-      setFaqOpen(false);
-      fetchData();
-    } catch {
-      toast({ title: "خطا", description: "ذخیره سوال با خطا مواجه شد", variant: "destructive" });
-    } finally {
-      setCreating(false);
-    }
-  };
-
-  const deleteFaq = async (f: FAQItem) => {
-    const ok = await confirm({
-      title: "حذف سوال",
-      description: `سوال «${f.question}» حذف شود؟`,
-      confirmLabel: "حذف",
-      destructive: true,
-    });
-    if (!ok) return;
-    try {
-      await apiClient.delete(`/content/admin/faqs/${f.id}`);
-      fetchData();
-    } catch {
-      toast({ title: "خطا", description: "حذف سوال ناموفق بود", variant: "destructive" });
-    }
-  };
-
-  const toggleFaq = async (f: FAQItem) => {
-    try {
-      await apiClient.patch(`/content/admin/faqs/${f.id}`, { is_active: !f.is_active });
-      fetchData();
-    } catch {
-      toast({ title: "خطا", description: "تغییر وضعیت ناموفق بود", variant: "destructive" });
-    }
-  };
-
 
   const openCreateBlock = () => {
     setEditingBlock(null);
@@ -295,7 +189,7 @@ export default function AdminCMSPage() {
             مدیریت محتوا و CMS
           </h2>
           <p className="text-sm text-muted-foreground mt-1">
-            چیدمان بلوک‌های صفحه اصلی، منوساز درختی و سوالات متداول
+            چیدمان بلوک‌های صفحه اصلی و منوساز درختی
           </p>
         </div>
         <Button variant="outline" size="sm" onClick={fetchData}>
@@ -366,48 +260,8 @@ export default function AdminCMSPage() {
           {/* Reusable blocks (synced patterns) */}
           <ReusableBlocksCard />
 
-          {/* FAQs */}
-          <Card className="p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold flex items-center gap-2">
-                <HelpCircle className="h-4 w-4" />
-                سوالات متداول
-              </h3>
-              <Button size="sm" variant="outline" onClick={openCreateFaq}>
-                <Plus className="h-4 w-4 ms-1" />
-                افزودن
-              </Button>
-            </div>
-            {faqs.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-8">
-                هنوز هیچ سوالی تعریف نشده است
-              </p>
-            ) : (
-              <div className="space-y-2 max-h-80 overflow-y-auto">
-                {faqs.map((f) => (
-                  <div key={f.id} className={`rounded-lg border p-3 ${!f.is_active ? "opacity-50" : ""}`}>
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="min-w-0">
-                        <p className="font-medium text-sm">{f.question}</p>
-                        <Badge variant="outline" className="text-xs mt-1">{f.category}</Badge>
-                      </div>
-                      <div className="flex shrink-0 gap-1">
-                        <Button size="sm" variant="ghost" className="h-7 px-2 text-xs" onClick={() => toggleFaq(f)}>
-                          {f.is_active ? "غیرفعال" : "فعال"}
-                        </Button>
-                        <Button size="sm" variant="ghost" className="h-7 px-2 text-xs" onClick={() => openEditFaq(f)}>
-                          ویرایش
-                        </Button>
-                        <Button size="sm" variant="ghost" className="h-7 px-2 text-destructive" onClick={() => deleteFaq(f)}>
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </Card>
+          {/* FAQ management moved to its own section (/admin/faq) — page
+              content, not layout. Pages embed entries via [faq]. */}
         </div>
       )}
 
@@ -445,35 +299,6 @@ export default function AdminCMSPage() {
             <Button variant="outline" onClick={() => setBlockOpen(false)}>انصراف</Button>
             <Button onClick={saveBlock} disabled={blockSaving}>
               {blockSaving ? "در حال ذخیره..." : editingBlock ? "به‌روزرسانی" : "ایجاد"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* FAQ Create Dialog */}
-      <Dialog open={faqOpen} onOpenChange={setFaqOpen}>
-        <DialogContent className="max-w-md" dir="rtl">
-          <DialogHeader>
-            <DialogTitle>{editingFaq ? "ویرایش سوال متداول" : "افزودن سوال متداول"}</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label>سوال</Label>
-              <Input value={faqQuestion} onChange={(e) => setFaqQuestion(e.target.value)} />
-            </div>
-            <div className="space-y-2">
-              <Label>پاسخ</Label>
-              <RichBodyEditor value={faqAnswer} onChange={setFaqAnswer} />
-            </div>
-            <div className="space-y-2">
-              <Label>دسته‌بندی</Label>
-              <Input value={faqCategory} onChange={(e) => setFaqCategory(e.target.value)} />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setFaqOpen(false)}>انصراف</Button>
-            <Button onClick={createFAQ} disabled={creating}>
-              {creating ? "در حال ذخیره..." : editingFaq ? "به‌روزرسانی" : "افزودن"}
             </Button>
           </DialogFooter>
         </DialogContent>

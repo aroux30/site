@@ -52,6 +52,10 @@ class OrderStatus(str, enum.Enum):
     PENDING = "pending"
     #: Being fulfilled / under review (WooCommerce "On-hold" stage).
     PROCESSING = "processing"
+    #: Paid by a MANUALLY VERIFIED customer (the user-verification port):
+    #: lands here instead of PENDING so the operator can tell verified
+    #: buyers apart at a glance. Sits between PENDING and PROCESSING.
+    DOING_VERIFIED = "doing_verified"
     COMPLETED = "completed"
     CANCELED = "canceled"
     REFUNDED = "refunded"

@@ -116,6 +116,9 @@ async def delete_address(
 async def list_users(
     search: str | None = Query(None, description="Search by phone"),
     is_active: bool | None = Query(None, description="Filter by active status"),
+    is_verified: bool | None = Query(
+        None, description="Filter by manual verification badge"
+    ),
     role: str | None = Query(
         None, description="Filter by role slug (server-side, e.g. 'author')"
     ),
@@ -133,6 +136,7 @@ async def list_users(
         db,
         search=search,
         is_active=is_active,
+        is_verified=is_verified,
         role=role,
         include_deleted=include_deleted,
         pending_approval=pending_approval,

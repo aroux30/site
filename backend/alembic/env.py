@@ -33,10 +33,12 @@ import app.modules.blog.domain.models  # noqa: F401
 import app.modules.cart.domain.models  # noqa: F401
 import app.modules.cashback.domain.models  # noqa: F401
 import app.modules.catalog.domain.models  # noqa: F401
+import app.modules.chat.domain.models  # noqa: F401
 import app.modules.checkout.domain.price_snapshot  # noqa: F401
 import app.modules.content.domain.models  # noqa: F401
 import app.modules.content.domain.meta  # noqa: F401
 import app.modules.content.domain.reusable_blocks  # noqa: F401
+import app.modules.currency.domain.models  # noqa: F401
 import app.modules.dataexchange.domain.models  # noqa: F401
 import app.modules.discounts.domain.models  # noqa: F401
 import app.modules.gamification.domain.models  # noqa: F401
@@ -64,6 +66,7 @@ import app.modules.settings.domain.models  # noqa: F401
 import app.modules.shipping.domain.models  # noqa: F401
 import app.modules.support.domain.models  # noqa: F401
 import app.modules.users.domain.models  # noqa: F401
+import app.modules.userverify.domain.models  # noqa: F401
 import app.modules.wallet.domain.models  # noqa: F401
 import app.modules.wishlist.domain.models  # noqa: F401
 import app.shared.events.outbox_models  # noqa: F401

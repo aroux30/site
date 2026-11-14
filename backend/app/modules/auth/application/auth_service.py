@@ -318,12 +318,23 @@ async def register(
 
             referrer_id = await ReferralService.resolve_referrer_by_code(db, referral_code)
             if referrer_id is not None and referrer_id != user.id:
-                await ReferralService.track_referral(
+                referral = await ReferralService.track_referral(
                     db,
                     referrer_id=referrer_id,
                     referred_id=user.id,
                     code=referral_code.upper().strip(),
                 )
+                # Pay the signup gift right now — the reward belongs to the
+                # moment of registration, not to the next sweep. Best-effort:
+                # an unpaid gift stays PENDING and the sweep retries it.
+                try:
+                    await ReferralService.pay_signup_gift_for_referral(db, referral)
+                except Exception as gift_exc:
+                    await logger.awarning(
+                        "referral_gift_eager_pay_skipped",
+                        referral_id=str(referral.id),
+                        error=str(gift_exc),
+                    )
         except Exception as exc:
             await logger.awarning(
                 "referral_tracking_skipped",
@@ -647,10 +658,46 @@ async def verify_otp(
             raise UnauthorizedError(detail="Account is deactivated")
 
         # Mark as verified if not already
-        if not user.is_verified:
+        just_verified = not user.is_verified
+        if just_verified:
             user.is_verified = True
         user.last_login = datetime.now(UTC)
         await db.flush()
+
+        # The phone is now PROVEN — release any signup gift the anti-farming
+        # gate was holding for this user (their referral row sat PENDING
+        # because the inviter's reward must not pay for a fake phone). This
+        # is the "pay the moment the condition becomes true" half of the
+        # gate; the sweep remains the retry path. Best-effort by contract.
+        if just_verified:
+            try:
+                from app.modules.referrals.application.referral_service import (
+                    ReferralService,
+                )
+                from app.modules.referrals.domain.models import (
+                    Referral,
+                    ReferralStatus,
+                )
+                from sqlalchemy import select as _select
+
+                referral_row = (
+                    await db.execute(
+                        _select(Referral)
+                        .where(
+                            Referral.referred_id == user.id,
+                            Referral.status == ReferralStatus.PENDING,
+                        )
+                        .limit(1)
+                    )
+                ).scalar_one_or_none()
+                if referral_row is not None:
+                    await ReferralService.pay_signup_gift_for_referral(db, referral_row)
+            except Exception as exc:
+                await logger.awarning(
+                    "referral_gift_release_on_verify_skipped",
+                    user_id=str(user.id),
+                    error=str(exc),
+                )
 
     tokens = await _create_token_pair(
         db,

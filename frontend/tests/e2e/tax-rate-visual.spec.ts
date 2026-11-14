@@ -32,10 +32,13 @@ test.describe("single tax rate — visual E2E", () => {
     page,
   }) => {
     // ── 1. Login ─────────────────────────────────────────────────────────
+    await page.setExtraHTTPHeaders({
+      "X-Forwarded-For": `10.97.${Math.floor(Math.random() * 200) + 1}.${Math.floor(Math.random() * 200) + 1}, 10.0.0.1`,
+    });
     await page.goto("/login");
-    await page.getByPlaceholder("۰۹۱۲۳۴۵۶۷۸۹").fill(ADMIN_PHONE);
-    await page.getByPlaceholder("••••••••").fill(ADMIN_PASSWORD);
-    await page.getByRole("button", { name: /ورود به حساب کاربری/ }).click();
+    await page.fill('input[name="phone"], input[type="tel"]', ADMIN_PHONE);
+    await page.fill('input[name="password"], input[type="password"]', ADMIN_PASSWORD);
+    await page.click('button[type="submit"]');
 
     // Redirected away from /login once the cookie session is set.
     await page.waitForURL((url) => !url.pathname.includes("/login"), {
@@ -70,6 +73,7 @@ test.describe("single tax rate — visual E2E", () => {
   test("storefront cart + checkout show the same configured rate", async ({
     page,
   }) => {
+    test.setTimeout(60_000);
     // ── 4. Add an in-stock product to the cart as a guest ────────────────
     // The grid is slow (Postgres fallback) and not every seeded product has
     // stock («در حال حاضر ناموجود است» renders instead of the button), so:
@@ -91,7 +95,7 @@ test.describe("single tax rate — visual E2E", () => {
         .getByRole("button", { name: /افزودن به سبد خرید/ })
         .first();
       try {
-        await addToCart.waitFor({ state: "visible", timeout: 15_000 });
+        await addToCart.waitFor({ state: "visible", timeout: 4_000 });
         await addToCart.click();
         added = true;
         break;

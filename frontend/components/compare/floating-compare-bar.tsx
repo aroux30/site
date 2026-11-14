@@ -21,7 +21,11 @@ export function FloatingCompareBar() {
   const pathname = usePathname();
   const { products, removeProduct, clearCompare } = useCompareStore();
   const [mounted, setMounted] = useState(false);
-  const [collapsed, setCollapsed] = useState(false);
+  // Mobile-first: the bar covers a full product card on a phone, so it starts
+  // collapsed there; desktop has room to show it expanded.
+  const [collapsed, setCollapsed] = useState(
+    typeof window !== "undefined" && window.innerWidth < 640,
+  );
   const shopFeatures = useShopFeatures();
 
   useEffect(() => {
@@ -44,7 +48,7 @@ export function FloatingCompareBar() {
   return (
     <aside
       aria-label="نوار مقایسه سریع"
-      className="fixed bottom-4 left-1/2 -translate-x-1/2 z-40 w-[94%] max-w-2xl transition-all duration-300 ease-in-out"
+      className="pointer-events-auto w-full transition-all duration-300 ease-in-out"
     >
       <div className="overflow-hidden rounded-2xl border border-primary/30 bg-background/95 backdrop-blur-md shadow-2xl ring-1 ring-black/5 dark:ring-white/10">
         {/* Header Strip */}

@@ -75,6 +75,7 @@ class CategoryRepository:
         parent_id: uuid.UUID | None | EllipsisType = ...,
         page: int = 1,
         page_size: int = 50,
+        q: str | None = None,
     ) -> tuple[Sequence[Category], int]:
         stmt = select(Category)
         count_stmt = select(func.count()).select_from(Category)
@@ -82,6 +83,11 @@ class CategoryRepository:
         if is_active is not None:
             stmt = stmt.where(Category.is_active == is_active)
             count_stmt = count_stmt.where(Category.is_active == is_active)
+
+        if q and q.strip():
+            safe_q = f"%{q.strip()}%"
+            stmt = stmt.where(or_(Category.name.ilike(safe_q), Category.slug.ilike(safe_q)))
+            count_stmt = count_stmt.where(or_(Category.name.ilike(safe_q), Category.slug.ilike(safe_q)))
 
         # parent_id sentinel: ... means "don't filter", None means "top-level"
         if parent_id is not ...:
@@ -96,7 +102,7 @@ class CategoryRepository:
         total = total_result.scalar() or 0
 
         stmt = (
-            stmt.order_by(Category.position, Category.name)
+            stmt.order_by(Category.position.asc(), Category.created_at.desc(), Category.name.asc())
             .offset((page - 1) * page_size)
             .limit(page_size)
         )
@@ -347,12 +353,31 @@ class ProductRepository:
                 )
             )
 
-        # Category filter
+        # Category filter: matches this category and all its descendants (hierarchical)
         if category_id is not None:
-            conditions.append(Product.category_id == category_id)
+            cat_path_subq = select(Category.path).where(Category.id == category_id).scalar_subquery()
+            conditions.append(
+                Product.category_id.in_(
+                    select(Category.id).where(
+                        or_(
+                            Category.id == category_id,
+                            Category.path.like(func.concat(cat_path_subq, "/%")),
+                        )
+                    )
+                )
+            )
         elif category_slug:
-            subq = select(Category.id).where(Category.slug == category_slug).scalar_subquery()
-            conditions.append(Product.category_id == subq)
+            cat_path_subq = select(Category.path).where(Category.slug == category_slug).scalar_subquery()
+            conditions.append(
+                Product.category_id.in_(
+                    select(Category.id).where(
+                        or_(
+                            Category.slug == category_slug,
+                            Category.path.like(func.concat(cat_path_subq, "/%")),
+                        )
+                    )
+                )
+            )
 
         # Brand filter
         if brand_id is not None:
@@ -869,14 +894,42 @@ class AttributeRepository:
     async def delete_value(
         self, attribute_id: uuid.UUID, value_id: uuid.UUID
     ) -> bool:
-        stmt = delete(AttributeValue).where(
-            AttributeValue.id == value_id,
-            AttributeValue.attribute_id == attribute_id,
-        )
-        result = cast(
-            "CursorResult[Any]", await self._session.execute(stmt)
-        )
-        return (result.rowcount or 0) > 0
+        """Remove one attribute value; False when it does not exist there.
+
+        ORM form (get + session.delete) rather than a bulk DELETE statement —
+        same effect, and the value's loaded state lets the FK check happen
+        in Python against the session's identity map.
+        """
+        value = await self._session.get(AttributeValue, value_id)
+        if value is None or value.attribute_id != attribute_id:
+            return False
+        await self._session.delete(value)
+        return True
+
+    async def detach_value_from_products(
+        self, attribute_id: uuid.UUID, value_id: uuid.UUID
+    ) -> int:
+        """Remove every product→value link for one attribute value.
+
+        The ``force`` delete of a value needs this before the value row
+        itself goes: ``product_attributes`` rows reference the value, so
+        deleting the value with them in place would fail on the foreign key
+        (or, with a DB-level cascade, silently strip whole specification rows
+        of products that also carry *other* values of the same attribute).
+        Detaching only the rows that point at THIS value keeps every other
+        specification of those products intact.
+        """
+        rows = (
+            await self._session.scalars(
+                select(ProductAttribute).where(
+                    ProductAttribute.attribute_id == attribute_id,
+                    ProductAttribute.attribute_value_id == value_id,
+                )
+            )
+        ).all()
+        for row in rows:
+            await self._session.delete(row)
+        return len(rows)
 
     async def count_value_products(
         self, attribute_id: uuid.UUID, value_id: uuid.UUID

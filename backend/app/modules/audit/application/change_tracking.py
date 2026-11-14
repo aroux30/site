@@ -108,7 +108,18 @@ TRACKED_ENTITIES: dict[str, dict[str, Any]] = {
         "operations": ["create", "update", "delete"],
     },
     "variant": {
-        "fields": ["price", "compare_at_price", "cost", "is_active"],
+        "fields": [
+            "price",
+            "compare_at_price",
+            "cost",
+            "is_active",
+            # USD source prices (Nobitex updater): captured so the change log
+            # tells apart "the sweep moved the Toman price" from "the operator
+            # changed the USD base", which the price/compare deltas alone
+            # cannot distinguish after a rate move.
+            "usd_price",
+            "usd_sale_price",
+        ],
         "operations": ["create", "update", "delete"],
     },
     "discount": {

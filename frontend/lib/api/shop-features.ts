@@ -17,16 +17,19 @@ import apiClient from "./client";
 export interface ShopFeatures {
   wishlist: boolean;
   compare: boolean;
+  chat: boolean;
 }
 
 interface RawShopFeatures {
   wishlist_enabled?: boolean;
   compare_enabled?: boolean;
+  chat_enabled?: boolean;
 }
 
 export const DEFAULT_SHOP_FEATURES: ShopFeatures = {
   wishlist: true,
   compare: true,
+  chat: true,
 };
 
 /**
@@ -40,6 +43,7 @@ export async function fetchShopFeatures(): Promise<ShopFeatures> {
     return {
       wishlist: res.data?.wishlist_enabled ?? true,
       compare: res.data?.compare_enabled ?? true,
+      chat: res.data?.chat_enabled ?? true,
     };
   } catch {
     return DEFAULT_SHOP_FEATURES;

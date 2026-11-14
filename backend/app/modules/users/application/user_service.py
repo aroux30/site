@@ -31,6 +31,7 @@ async def get_users(
     *,
     search: str | None = None,
     is_active: bool | None = None,
+    is_verified: bool | None = None,
     role: str | None = None,
     include_deleted: bool = False,
     pending_approval: bool | None = None,
@@ -80,6 +81,11 @@ async def get_users(
     if is_active is not None:
         stmt = stmt.where(User.is_active == is_active)
         count_stmt = count_stmt.where(User.is_active == is_active)
+
+    if is_verified is not None:
+        # Verification filter — the verification panel's "احراز شده / نشده" tabs.
+        stmt = stmt.where(User.is_verified == is_verified)
+        count_stmt = count_stmt.where(User.is_verified == is_verified)
 
     if pending_approval is not None:
         stmt = stmt.where(User.pending_approval == pending_approval)
@@ -559,6 +565,30 @@ async def update_user(
 
     if user_fields:
         await db.execute(update(User).where(User.id == user_id).values(**user_fields))
+
+    # User-verification port: a verification flip is a security decision, so it
+    # gets its own log row + Telegram notice (the WP plugin's behaviour), and
+    # granting the badge pulls the customer's still-waiting paid orders into
+    # the "doing_verified" lane (the plugin's thankyou hook has no equivalent).
+    if "is_verified" in user_fields:
+        try:
+            from app.modules.userverify.application.verification_service import (
+                VerificationService,
+            )
+
+            await VerificationService.notify_and_log(
+                db,
+                user_id=user_id,
+                admin_id=actor_id,
+                verified=bool(user_fields["is_verified"]),
+                ip_address=ip_address,
+            )
+            if user_fields["is_verified"]:
+                await VerificationService.reroute_waiting_orders(db, user_id, admin_id=actor_id)
+        except Exception as exc:  # never break a user update on the notifier
+            await logger.awarning(
+                "userverify_hook_skipped", user_id=str(user_id), error=str(exc)
+            )
 
     # Deactivation must take effect immediately (audit R4): kill refresh
     # sessions and put the user on the access-token denylist so live JWTs

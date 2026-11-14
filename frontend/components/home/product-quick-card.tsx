@@ -7,6 +7,7 @@ import { Check, ShoppingCart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { TiltCard3D } from "@/components/3d/tilt-card-3d";
+import { ClickSpark } from "@/components/ui/click-spark";
 import { formatPrice } from "@/lib/utils";
 import { useCart } from "@/hooks/use-cart";
 import { playAddToCartChime } from "@/lib/audio-effects";
@@ -112,24 +113,26 @@ export function ProductQuickCard({ product, featured }: ProductQuickCardProps) {
               {formatPrice(product.min_price || 0)}
             </span>
           </div>
-          <Button
-            size="sm"
-            onClick={handleAddToCart}
-            disabled={adding}
-            // bg-emerald-700, not the default bg-primary: the brand green
-            // (#10b77f) with white text is a 2.59:1 contrast ratio — below
-            // the 4.5:1 AA floor (Lighthouse color-contrast audit, live
-            // 2026-10-10). emerald-700 keeps the brand family and reaches
-            // 4.87:1.
-            className="rounded-xl font-bold h-9 px-3.5 gap-1.5 shadow-sm bg-emerald-700 hover:bg-emerald-800 text-white"
-          >
-            {added ? (
-              <Check className="w-3.5 h-3.5" />
-            ) : (
-              <ShoppingCart className="w-3.5 h-3.5" />
-            )}
-            <span className="text-xs">{added ? "اضافه شد" : "خرید"}</span>
-          </Button>
+          <ClickSpark>
+            <Button
+              size="sm"
+              onClick={handleAddToCart}
+              disabled={adding}
+              // bg-emerald-700, not the default bg-primary: the brand green
+              // (#10b77f) with white text is a 2.59:1 contrast ratio — below
+              // the 4.5:1 AA floor (Lighthouse color-contrast audit, live
+              // 2026-10-10). emerald-700 keeps the brand family and reaches
+              // 4.87:1.
+              className="rounded-xl font-bold h-9 px-3.5 gap-1.5 shadow-sm bg-emerald-700 hover:bg-emerald-800 text-white"
+            >
+              {added ? (
+                <Check className="w-3.5 h-3.5" />
+              ) : (
+                <ShoppingCart className="w-3.5 h-3.5" />
+              )}
+              <span className="text-xs">{added ? "اضافه شد" : "خرید"}</span>
+            </Button>
+          </ClickSpark>
         </div>
       </div>
     </TiltCard3D>

@@ -49,6 +49,9 @@ export function useCart() {
         image: product.image,
         variant: product.variant,
         sku: product.sku,
+        // Pass through: category dynamic fields AND "p:"-prefixed product
+        // add-on answers; checkout splits the two namespaces on the prefix.
+        customFields: product.customFields,
         maxQuantity: product.maxQuantity || 10,
         quantity: product.quantity ?? 1,
       });
@@ -139,6 +142,8 @@ export function useCart() {
     totalPrice: store.totalPrice,
     subtotal: store.subtotal,
     totalDiscount: store.totalDiscount,
+    /** False when every line is digital — checkout skips address/shipping. */
+    requiresShipping: store.requiresShipping,
     couponCode: store.couponCode,
     couponDiscount: store.couponDiscount,
     isLoading: store.isLoading,

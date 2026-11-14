@@ -379,6 +379,20 @@ async def update_shipment_status(
                         ),
                     )
                 )
+                # Referral commissions are paid at the completion event —
+                # best-effort; the sweep retries anything unpaid.
+                try:
+                    from app.modules.referrals.application.referral_service import (
+                        ReferralService,
+                    )
+
+                    await ReferralService.settle_order_rewards(db, order.id)
+                except Exception as exc:
+                    await logger.awarning(
+                        "referral_eager_settle_skipped",
+                        order_id=str(order.id),
+                        error=str(exc),
+                    )
 
         # Append shipment tracking event log (GAP-18)
         db.add(

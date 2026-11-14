@@ -239,6 +239,7 @@ export default function AdminFintechPage() {
           columns={gatewayColumns}
           rows={gateways}
           rowKey={(g) => g.id}
+          columnVisibilityKey="admin.fintech.gateways.columns"
           error={gatewaysError ? "خطا در دریافت درگاه‌های پرداخت" : null}
           emptyMessage="هیچ درگاهی ثبت نشده است."
         />
@@ -247,6 +248,7 @@ export default function AdminFintechPage() {
           columns={receiptColumns}
           rows={receipts}
           rowKey={(r) => r.id}
+          columnVisibilityKey="admin.fintech.receipts.columns"
           error={receiptsError ? "خطا در دریافت فیش‌های کارت به کارت" : null}
           emptyMessage="هیچ فیشی ثبت نشده است."
         />

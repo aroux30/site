@@ -22,7 +22,7 @@ function FavoritesPageInner() {
     isLoading: isWishlistLoading,
     isError: isWishlistError,
     refetch: refetchWishlist,
-  } = useWishlist();
+  } = useWishlist({ enabled: Boolean(isAuthenticated) });
   const toggleWishlist = useToggleWishlist();
   const { addToCart } = useCart();
 

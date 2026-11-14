@@ -4,6 +4,8 @@ import { useState, Suspense } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
+import apiClient from "@/lib/api/client";
 import {
   Search,
   SlidersHorizontal,
@@ -31,6 +33,8 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
+import { ClickSpark } from "@/components/ui/click-spark";
+import { StarRating } from "@/components/ui/star-rating";
 import {
   Select,
   SelectContent,
@@ -239,9 +243,19 @@ function ProductCard({ product }: { product: FacetedSearchHit }) {
           </div>
 
           {product.short_description && (
-            <p className="mb-3 line-clamp-1 text-xs text-muted-foreground">
+            <p className="mb-2 line-clamp-1 text-xs text-muted-foreground">
               {product.short_description}
             </p>
+          )}
+
+          {typeof product.rating_average === "number" && product.rating_average > 0 && (
+            <div className="mb-2">
+              <StarRating
+                value={product.rating_average}
+                size="xs"
+                reviewCount={product.rating_count ?? undefined}
+              />
+            </div>
           )}
 
           {/* Price Container */}
@@ -262,26 +276,28 @@ function ProductCard({ product }: { product: FacetedSearchHit }) {
 
       {/* Add To Cart Button */}
       <div className="px-4 pb-4">
-        <Button
-          size="sm"
-          onClick={handleAddToCart}
-          className="w-full gap-2 rounded-xl transition-all"
-          variant={added ? "secondary" : "default"}
-        >
-          {added ? (
-            <>
-              <Check className="h-4 w-4 text-emerald-600" />
-              <span className="text-xs font-bold text-emerald-600">
-                {"به سبد افزوده شد"}
-              </span>
-            </>
-          ) : (
-            <>
-              <ShoppingCart className="h-4 w-4" />
-              <span className="text-xs font-semibold">{"افزودن به سبد خرید"}</span>
-            </>
-          )}
-        </Button>
+        <ClickSpark className="w-full">
+          <Button
+            size="sm"
+            onClick={handleAddToCart}
+            className="w-full gap-2 rounded-xl transition-all"
+            variant={added ? "secondary" : "default"}
+          >
+            {added ? (
+              <>
+                <Check className="h-4 w-4 text-emerald-600" />
+                <span className="text-xs font-bold text-emerald-600">
+                  {"به سبد افزوده شد"}
+                </span>
+              </>
+            ) : (
+              <>
+                <ShoppingCart className="h-4 w-4" />
+                <span className="text-xs font-semibold">{"افزودن به سبد خرید"}</span>
+              </>
+            )}
+          </Button>
+        </ClickSpark>
       </div>
     </Card>
 
@@ -395,6 +411,7 @@ function ProductsListContent() {
     total,
     totalPages,
     page,
+    categoryLabel,
     isLoading,
     error,
     degraded,
@@ -413,7 +430,44 @@ function ProductsListContent() {
     refetch,
   } = useFacetedSearch();
 
+  // Load detailed category info (image, description, parent) when browsing a specific category
+  const { data: categoryDetail } = useQuery({
+    queryKey: ["category-store-detail", filters.category],
+    queryFn: async () => {
+      if (!filters.category) return null;
+      try {
+        const isUuid =
+          /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+            filters.category,
+          );
+        const url = isUuid
+          ? `/catalog/categories/${filters.category}`
+          : `/catalog/categories/by-slug/${encodeURIComponent(filters.category)}`;
+        const res = await apiClient.get(url);
+        return res.data as {
+          id: string;
+          name: string;
+          slug: string;
+          description?: string | null;
+          image_url?: string | null;
+          parent_id?: string | null;
+          parent_name?: string | null;
+        };
+      } catch {
+        return null;
+      }
+    },
+    enabled: Boolean(filters.category),
+    staleTime: 60_000,
+  });
+
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
+
+  // Brand facet keys are slugs; the chip must show the Persian brand name.
+  const brandLabel =
+    facets.find((f) => f.field === "brand")?.buckets.find(
+      (b) => b.key === filters.brand,
+    )?.label ?? filters.brand;
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -433,8 +487,18 @@ function ProductsListContent() {
             placeholder={"نام یا مدل کالا..."}
             value={filters.q}
             onChange={(e) => setQueryText(e.target.value)}
-            className="h-10 ps-9 text-xs rounded-xl"
+            className="h-10 ps-9 pe-16 text-xs rounded-xl"
           />
+          {/* Explicit submit button: Enter-only submission does not fire in
+              every embedded browser, and mobile users expect a search button
+              (WooCommerce parity). */}
+          <button
+            type="submit"
+            className="absolute left-1.5 top-1/2 -translate-y-1/2 rounded-lg bg-primary/10 px-2.5 py-1 text-[11px] font-bold text-primary transition-colors hover:bg-primary/20"
+            aria-label={"جستجو در نتایج"}
+          >
+            {"جستجو"}
+          </button>
         </form>
       </div>
 
@@ -457,21 +521,69 @@ function ProductsListContent() {
   return (
     <div className="container mx-auto px-4 py-8">
       {/* Top Header & Breadcrumb */}
-      <div className="mb-6 flex flex-col gap-2">
-        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+      <div className="mb-6 flex flex-col gap-3">
+        <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground" aria-label="مسیر ناوبری فروشگاه">
           <Link href="/" className="hover:text-primary transition-colors">
             {"صفحه اصلی"}
           </Link>
-          <ChevronLeft className="h-3.5 w-3.5" />
-          <span className="text-foreground font-medium">{"فروشگاه محصولات"}</span>
+          {categoryLabel ? (
+            <>
+              {categoryDetail?.parent_name && (
+                <>
+                  <ChevronLeft className="h-3.5 w-3.5" />
+                  <Link
+                    href={`/products?category_id=${categoryDetail.parent_id}`}
+                    className="hover:text-primary transition-colors"
+                  >
+                    {categoryDetail.parent_name}
+                  </Link>
+                </>
+              )}
+              <ChevronLeft className="h-3.5 w-3.5" />
+              <span className="text-foreground font-medium">{categoryLabel}</span>
+            </>
+          ) : (
+            <>
+              <ChevronLeft className="h-3.5 w-3.5" />
+              <span className="text-foreground font-medium">{"فروشگاه محصولات"}</span>
+            </>
+          )}
         </div>
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-          <h1 className="text-2xl font-black text-foreground">
-            {"لیست تمام محصولات"}
-          </h1>
-          <span className="text-xs sm:text-sm text-muted-foreground">
-            {"نمایش"} {toPersianDigits(results.length)} {"کالا از مجموع"}{" "}
-            {toPersianDigits(total)} {"محصول"}
+
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="flex items-center gap-3">
+            {categoryDetail?.image_url && (
+              <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-xl border border-border shadow-xs">
+                <RemoteImage
+                  src={categoryDetail.image_url}
+                  alt={categoryLabel || "Category"}
+                  fill
+                  className="object-cover"
+                  sizes="56px"
+                />
+              </div>
+            )}
+            <div>
+              <h1 className="text-2xl font-black text-foreground">
+                {categoryLabel ? categoryLabel : "لیست تمام محصولات"}
+              </h1>
+              {categoryDetail?.description && (
+                <p className="text-xs text-muted-foreground mt-1 max-w-xl line-clamp-2">
+                  {categoryDetail.description}
+                </p>
+              )}
+            </div>
+          </div>
+
+          <span className="text-xs sm:text-sm text-muted-foreground whitespace-nowrap">
+            {isLoading && results.length === 0 ? (
+              "در حال دریافت محصولات…"
+            ) : (
+              <>
+                {"نمایش"} {toPersianDigits(results.length)} {"کالا از مجموع"}{" "}
+                {toPersianDigits(total)} {"محصول"}
+              </>
+            )}
           </span>
         </div>
       </div>
@@ -513,7 +625,7 @@ function ProductsListContent() {
               variant="secondary"
               className="gap-1 rounded-lg text-xs py-1 px-2 font-normal"
             >
-              <span>{"دسته:"} {filters.category}</span>
+              <span>{"دسته:"} {categoryLabel ?? filters.category}</span>
               <X
                 className="h-3 w-3 cursor-pointer hover:text-red-500"
                 onClick={() => setCategory(null)}
@@ -525,7 +637,7 @@ function ProductsListContent() {
               variant="secondary"
               className="gap-1 rounded-lg text-xs py-1 px-2 font-normal"
             >
-              <span>{"برند:"} {filters.brand}</span>
+              <span>{"برند:"} {brandLabel}</span>
               <X
                 className="h-3 w-3 cursor-pointer hover:text-red-500"
                 onClick={() => setBrand(null)}

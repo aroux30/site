@@ -77,6 +77,10 @@ TASK_MODULES: tuple[str, ...] = (
     "app.modules.wallet.application.tasks",
     "app.modules.messaging.application.tasks",
     "app.modules.notifications.application.tasks",
+    "app.modules.chat.application.tasks",
+    "app.modules.referrals.application.tasks",
+    "app.modules.currency.application.tasks",
+    "app.modules.tgnotif.application.tasks",
 )
 
 def _assert_task_modules_exist(modules: tuple[str, ...]) -> None:
@@ -195,6 +199,8 @@ celery_app.autodiscover_tasks(
         "app.modules.dataexchange",
         "app.modules.reporting",
         "app.modules.settings",
+        "app.modules.chat",
+        "app.modules.currency",
     ],
     # Task modules live at <pkg>.application.tasks, not <pkg>.tasks. Without
     # related_name autodiscover imports app.modules.<x>.tasks, finds nothing,
@@ -268,6 +274,14 @@ celery_app.conf.beat_schedule = {
         "schedule": crontab(minute=12, hour=6),
         "options": {"queue": "default"},
     },
+    # Live-chat auto-cleanup, once a day at 03:41. Deletes sessions idle past
+    # the operator's ``auto_delete_days`` (plugin parity) plus stale presence
+    # rows. Off :00/:30 so it does not join another top-of-hour burst.
+    "chat-cleanup-daily": {
+        "task": "app.modules.chat.application.tasks.cleanup_old_chat_sessions",
+        "schedule": crontab(minute=41, hour=3),
+        "options": {"queue": "default"},
+    },
     # Expire stale shopping carts every hour
     "expire-stale-carts": {
         "task": "app.modules.cart.application.tasks.expire_stale_carts",
@@ -286,6 +300,21 @@ celery_app.conf.beat_schedule = {
     "process-pending-cashback": {
         "task": "app.modules.cashback.application.tasks.process_pending_cashback",
         "schedule": crontab(minute="*/30"),
+        "options": {"queue": "default"},
+    },
+    # Sweep pending referral/bonus rewards every 15 minutes (offsets the
+    # :00/:15/:30/:45 marks to avoid colliding with the cashback sweep).
+    "process-referral-rewards": {
+        "task": "app.modules.referrals.application.tasks.process_referral_rewards",
+        "schedule": crontab(minute="7,22,37,52"),
+        "options": {"queue": "default"},
+    },
+    # USD→Toman price sweep (Nobitex). Ticks every minute and runs only when
+    # the operator-configured interval has elapsed (checked inside the task,
+    # so the interval stays runtime-editable without a beat restart).
+    "run-usd-rate-update": {
+        "task": "app.modules.currency.application.tasks.run_usd_rate_update",
+        "schedule": crontab(minute="*/1"),
         "options": {"queue": "default"},
     },
     # Full search reindex every 6 hours (Phase 4 §11 — Option B-lite).

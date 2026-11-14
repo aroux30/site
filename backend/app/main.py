@@ -106,6 +106,21 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     except Exception:
         await logger.aexception("permission_seed_failed")
 
+    # Core storefront pages (about/terms/contact + FAQ entries) — WordPress-
+    # install style defaults. Insert-only and idempotent: operator edits in
+    # /admin/pages are never overwritten, and a wiped database gets its core
+    # pages back on the next backend boot without any manual step.
+    try:
+        from app.core.database.session import async_session_factory
+        from app.modules.content.application.default_pages import seed_default_pages
+
+        async with async_session_factory() as db:
+            page_stats = await seed_default_pages(db)
+            await db.commit()
+        await logger.ainfo("default_pages_seed_done", **page_stats)
+    except Exception:
+        await logger.aexception("default_pages_seed_failed")
+
     # Prometheus app info
     APP_INFO.info(
         {
@@ -121,10 +136,23 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     cleanup_task = asyncio.create_task(_reservation_cleanup_loop())
     await logger.ainfo("reservation_cleanup_started")
 
+    # In-process outbox poller: drains the transactional outbox so the
+    # Elasticsearch product projection tracks catalog writes even when the
+    # Celery worker container is not part of the deployment (native/dev
+    # launches). Claiming uses SKIP LOCKED leases, so this is safe to run
+    # alongside the Docker worker — each message processes exactly once.
+    from app.modules.automation.application.outbox_inline_worker import (
+        run_outbox_poller,
+    )
+
+    outbox_task = asyncio.create_task(run_outbox_poller())
+    await logger.ainfo("outbox_inline_poller_started")
+
     yield  # ── Application is running ──
 
     # Shutdown
     cleanup_task.cancel()
+    outbox_task.cancel()
     await close_redis()
     await logger.ainfo("shutdown_complete")
     shutdown_logging()
@@ -257,12 +285,14 @@ def _include_routers(app: FastAPI, prefix: str) -> None:
         ("app.modules.wishlist.api", "/wishlist", ["wishlist"]),
         ("app.modules.shopfeatures.api", "/shop-features", ["shop-features"]),
         ("app.modules.referrals.api", "/referrals", ["referrals"]),
+        ("app.modules.userverify.api", "/userverify", ["userverify"]),
         ("app.modules.cashback.api", "/cashback", ["cashback"]),
         ("app.modules.loyalty.api", "/loyalty", ["loyalty"]),
         ("app.modules.gamification.api", "/gamification", ["gamification"]),
         ("app.modules.notifications.api", "/notifications", ["notifications"]),
         ("app.modules.messaging.api", "/messaging", ["messaging"]),
         ("app.modules.support.api", "/support", ["support"]),
+        ("app.modules.chat.api", "/chat", ["chat"]),
         ("app.modules.blog.api", "/blog", ["blog"]),
         ("app.modules.seo.api", "/seo", ["seo"]),
         ("app.modules.search.api", "/search", ["search"]),
@@ -276,6 +306,8 @@ def _include_routers(app: FastAPI, prefix: str) -> None:
         ("app.modules.audit.api", "/audit", ["audit"]),
         ("app.modules.dataexchange.api", "/dataexchange", ["dataexchange"]),
         ("app.modules.reporting.api", "/reporting", ["reporting"]),
+        ("app.modules.currency.api", "/currency", ["currency"]),
+        ("app.modules.tgnotif.api", "/tgnotif", ["tgnotif"]),
     ]
 
     import importlib

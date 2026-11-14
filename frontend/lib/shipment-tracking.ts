@@ -1,32 +1,125 @@
 /**
- * Shipment Tracking State Machine (Sprint 3 Phase 2)
+ * Order Progress Tracking — Digital Store Model
+ *
+ * Replaced the old 4-step physical-shipment stepper (PENDING → SHIPPED →
+ * IN_TRANSIT → DELIVERED) with an order-lifecycle stepper that mirrors the
+ * actual backend state machine. The old stepper was designed for physical
+ * parcels — meaningless for a digital store — and always got stuck on step 1
+ * because it was being fed order statuses, not shipment records.
+ *
+ * The new model shows 5 stages matching the real order pipeline:
+ *   1. ثبت سفارش (order placed — payment stage)
+ *   2. تایید پرداخت (payment confirmed)
+ *   3. بررسی سفارش (processing / verification)
+ *   4. تکمیل سفارش (completed)
+ *   5. (terminal branches: canceled / refunded shown as banners, not steps)
+ *
+ * Synced with: backend/app/modules/orders/domain/models.py OrderStatus
+ *              frontend/lib/admin/order-domain.ts STATUS_VISUALS
  */
 
-export type ShipmentStatus = "PENDING" | "SHIPPED" | "IN_TRANSIT" | "DELIVERED";
+/** The stages a customer sees in the order progress stepper. */
+export type OrderProgressStage =
+  | "ORDER_PLACED"
+  | "PAYMENT_CONFIRMED"
+  | "PROCESSING"
+  | "COMPLETED";
 
-export const SHIPMENT_STATUS_STEPS: readonly ShipmentStatus[] = [
-  "PENDING",
-  "SHIPPED",
-  "IN_TRANSIT",
-  "DELIVERED",
+export const ORDER_PROGRESS_STEPS: readonly OrderProgressStage[] = [
+  "ORDER_PLACED",
+  "PAYMENT_CONFIRMED",
+  "PROCESSING",
+  "COMPLETED",
 ] as const;
 
-export const SHIPMENT_STATUS_LABELS: Record<ShipmentStatus, string> = {
-  PENDING: "در انتظار ارسال",
-  SHIPPED: "تحویل به شرکت پستی",
-  IN_TRANSIT: "در مسیر توزیع",
-  DELIVERED: "تحویل به گیرنده",
+export const ORDER_PROGRESS_LABELS: Record<OrderProgressStage, string> = {
+  ORDER_PLACED: "ثبت سفارش",
+  PAYMENT_CONFIRMED: "تایید پرداخت",
+  PROCESSING: "بررسی و پردازش",
+  COMPLETED: "تکمیل سفارش",
 };
 
-export const SHIPMENT_STATUS_DESCRIPTIONS: Record<ShipmentStatus, string> = {
-  PENDING: "مرسوله بسته‌بندی شده و در انتظار جمع‌آوری توسط مامور ارسال است.",
-  SHIPPED: "مرسوله تحویل باجه پستی / شرکت حمل‌ونقل گردید.",
-  IN_TRANSIT: "مرسوله در مرکز تجزیه و مبادلات پستی در حال انتقال به مقصد است.",
-  DELIVERED: "مرسوله با موفقیت تحویل گیرنده گردید.",
+export const ORDER_PROGRESS_DESCRIPTIONS: Record<OrderProgressStage, string> = {
+  ORDER_PLACED: "سفارش شما ثبت شده و در انتظار تایید پرداخت است.",
+  PAYMENT_CONFIRMED: "پرداخت شما تایید شده و سفارش در صف انجام قرار گرفت.",
+  PROCESSING: "سفارش شما در حال بررسی و پردازش توسط تیم ماست.",
+  COMPLETED: "سفارش شما با موفقیت تکمیل شد.",
 };
+
+/**
+ * Maps the real backend order status to the customer-facing progress stage.
+ *
+ * Every OrderStatus from the backend (8 values) maps to one of 4 progress
+ * stages, or to a terminal state (canceled/refunded) handled separately.
+ */
+export function resolveOrderProgress(
+  rawStatus: string | null | undefined,
+): { stage: OrderProgressStage; isTerminal: false } | { stage: "canceled" | "refunded"; isTerminal: true } {
+  if (!rawStatus) return { stage: "ORDER_PLACED", isTerminal: false };
+  const lower = rawStatus.trim().toLowerCase();
+
+  switch (lower) {
+    case "waiting_payment_gateway":
+    case "waiting_payment_card":
+      return { stage: "ORDER_PLACED", isTerminal: false };
+
+    case "pending":
+      return { stage: "PAYMENT_CONFIRMED", isTerminal: false };
+
+    case "doing_verified":
+    case "processing":
+      return { stage: "PROCESSING", isTerminal: false };
+
+    case "completed":
+      return { stage: "COMPLETED", isTerminal: false };
+
+    case "canceled":
+      return { stage: "canceled", isTerminal: true };
+
+    case "refunded":
+      return { stage: "refunded", isTerminal: true };
+
+    default:
+      return { stage: "ORDER_PLACED", isTerminal: false };
+  }
+}
+
+/**
+ * Returns the 0-indexed step for the progress stepper UI.
+ */
+export function getOrderStepIndex(stage: OrderProgressStage): number {
+  return ORDER_PROGRESS_STEPS.indexOf(stage);
+}
+
+// ── Legacy re-exports (for any code still importing old names) ──────────
+
+/** @deprecated Use OrderProgressStage instead */
+export type ShipmentStatus = OrderProgressStage;
+/** @deprecated Use ORDER_PROGRESS_STEPS instead */
+export const SHIPMENT_STATUS_STEPS = ORDER_PROGRESS_STEPS;
+/** @deprecated Use ORDER_PROGRESS_LABELS instead */
+export const SHIPMENT_STATUS_LABELS = ORDER_PROGRESS_LABELS;
+/** @deprecated Use ORDER_PROGRESS_DESCRIPTIONS instead */
+export const SHIPMENT_STATUS_DESCRIPTIONS = ORDER_PROGRESS_DESCRIPTIONS;
+
+/** @deprecated Use resolveOrderProgress instead */
+export function resolveShipmentStatus(
+  rawStatus: string | null | undefined,
+): OrderProgressStage {
+  const result = resolveOrderProgress(rawStatus);
+  if (result.isTerminal) return "ORDER_PLACED";
+  return result.stage;
+}
+
+/** @deprecated Use getOrderStepIndex instead */
+export function getShipmentStepIndex(status: string | null | undefined): number {
+  const result = resolveOrderProgress(status);
+  if (result.isTerminal) return 0;
+  return getOrderStepIndex(result.stage);
+}
 
 export interface ShipmentTrackingEvent {
-  status: ShipmentStatus;
+  status: OrderProgressStage;
   timestamp: string;
   location?: string;
   description?: string;
@@ -36,54 +129,7 @@ export interface ShipmentDetails {
   orderId: string;
   trackingCode?: string | null;
   carrier?: string | null;
-  status: ShipmentStatus;
+  status: OrderProgressStage;
   deliveredAt?: string | null;
   events?: ShipmentTrackingEvent[];
-}
-
-/**
- * Returns the 0-indexed step index for a shipment status.
- */
-export function getShipmentStepIndex(status: string | null | undefined): number {
-  if (!status) return 0;
-  const upper = status.trim().toUpperCase();
-  switch (upper) {
-    case "PENDING":
-    case "WAITING_PAYMENT_GATEWAY":
-    case "WAITING_PAYMENT_CARD":
-    case "PROCESSING":
-      return 0;
-    case "SHIPPED":
-      return 1;
-    case "IN_TRANSIT":
-      return 2;
-    case "DELIVERED":
-      return 3;
-    default:
-      return 0;
-  }
-}
-
-/**
- * Normalizes general order status or raw shipment status to the 4-stage shipment state machine.
- *
- * Accepts both backend vocabularies, since the stepper is fed an order status
- * in one place and a shipment status in another:
- *  - OrderStatus  (orders/domain/models.py): waiting_payment_gateway, waiting_payment_card,
- *    pending, processing, completed, canceled, refunded
- *  - ShipmentStatus (shipping/domain/models.py): pending, processing, shipped,
- *    in_transit, delivered, returned, cancelled
- * A completed order had its parcel delivered and then closed; without this it
- * fell through to PENDING and the tracking UI told the customer the parcel was
- * still awaiting dispatch.
- */
-export function resolveShipmentStatus(
-  rawStatus: string | null | undefined
-): ShipmentStatus {
-  if (!rawStatus) return "PENDING";
-  const upper = rawStatus.trim().toUpperCase();
-  if (upper === "IN_TRANSIT") return "IN_TRANSIT";
-  if (upper === "DELIVERED" || upper === "COMPLETED") return "DELIVERED";
-  if (upper === "SHIPPED") return "SHIPPED";
-  return "PENDING";
 }

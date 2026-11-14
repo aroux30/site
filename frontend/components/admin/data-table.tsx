@@ -35,10 +35,27 @@ export interface DataTableColumn<T> {
   render: (row: T) => ReactNode;
   /** Hide this column below `lg` (keeps wide tables usable on mobile). */
   hideOnMobile?: boolean;
+  /** Pin the column to the table's scroll edge (RTL: the left edge) so its
+   *  content — per-row actions — stays visible while the table scrolls
+   *  horizontally. Needs a solid bg on the cells to cover the scrolled
+   *  content passing underneath. */
+  stickyEdge?: boolean;
+  /** Tiered hiding for wide tables: the column disappears below the given
+   *  breakpoint and comes back above it. Tiers: md 768 / lg 1024 / xl 1280 /
+   *  2xl 1536. A 9-column table squeezed into a 1280px admin viewport (with
+   *  the sidebar) pushed its action buttons out of the card — hiding the
+   *  low-priority columns per tier keeps every cell contained. */
+  hideBelow?: "md" | "lg" | "xl" | "2xl";
   /** Make the header sortable. Value is compared with `<`/`>` on the row. */
   sortValue?: (row: T) => string | number | null | undefined;
   /** Label for the Screen Options column picker. Defaults to the key. */
   columnLabel?: string;
+  /**
+   * Pinned column: never hidden by the Screen Options picker and not listed
+   * in it. WordPress's `cb` (select-all) column behaves the same — hiding the
+   * only per-row checkbox would make bulk selection unreachable.
+   */
+  alwaysVisible?: boolean;
 }
 
 interface DataTableProps<T> {
@@ -58,6 +75,13 @@ interface DataTableProps<T> {
   /** Optional per-row extra classes (e.g. highlighting high-risk rows). */
   rowClassName?: (row: T) => string;
   className?: string;
+  /** Use table-layout: fixed for equal column distribution (default: auto). */
+  tableLayout?: "auto" | "fixed";
+  /** Minimum table width (px as CSS length). Below it the wrapper scrolls
+   *  horizontally instead of letting `whitespace-nowrap` cells overflow the
+   *  card — the admin products table at ~1280 viewports pushed its action
+   *  buttons outside the card borders without this. */
+  minWidth?: string;
 
   // ── list-engine features; all optional ───────────────────────────────────
   /** Show a select-all checkbox column and enable `bulkActions`. */
@@ -101,6 +125,8 @@ export function DataTable<T>({
   onRowClick,
   rowClassName,
   className,
+  tableLayout = "auto",
+  minWidth,
   selectable = false,
   bulkActions,
   bulkControls,
@@ -139,10 +165,14 @@ export function DataTable<T>({
     });
   }, [rows, engine.sortKey, engine.sortDir, sortableColumns]);
 
+  // The size selector lives in the engine: the `pageSize` prop is only its
+  // initial value. Client-side paging must slice with the live engine size,
+  // or picking a new size never applies (the trigger just snaps back).
+  const clientPageSize = pageSize ? engine.pageSize : null;
   const totalPages = isServerPaged
     ? Math.max(1, Math.ceil(serverTotal / (pageSize || 25)))
-    : pageSize
-      ? Math.max(1, Math.ceil(sorted.length / pageSize))
+    : clientPageSize
+      ? Math.max(1, Math.ceil(sorted.length / clientPageSize))
       : 1;
   // A filter that shrinks the result set can leave the current page past the
   // end, which renders an empty table with no explanation.
@@ -153,10 +183,10 @@ export function DataTable<T>({
   const visible = useMemo(() => {
     // Server mode: `rows` is already one page, so slicing again would hide
     // rows the server sent.
-    if (isServerPaged || !pageSize) return sorted;
-    const start = (engine.page - 1) * pageSize;
-    return sorted.slice(start, start + pageSize);
-  }, [sorted, engine.page, pageSize, isServerPaged]);
+    if (isServerPaged || !clientPageSize) return sorted;
+    const start = (engine.page - 1) * clientPageSize;
+    return sorted.slice(start, start + clientPageSize);
+  }, [sorted, engine.page, clientPageSize, isServerPaged]);
 
   const selectedRows = useMemo(
     () => rows.filter((r) => engine.selected.has(rowKey(r))),
@@ -164,9 +194,30 @@ export function DataTable<T>({
   );
   const engineWithRows = useMemo(() => ({ ...engine, selectedRows }), [engine, selectedRows]);
 
-  const shown = useMemo(() => engine.visibleColumns(columns), [engine, columns]);
-  const mobileHidden = (col: DataTableColumn<T>) =>
-    col.hideOnMobile ? "hidden lg:table-cell" : "";
+  // Pinned (`alwaysVisible`) columns survive even when a stale localStorage
+  // entry says they are hidden — the picker can no longer produce that state,
+  // but preferences written before the flag existed can.
+  const shown = useMemo(
+    () => columns.filter((c) => c.alwaysVisible || !engine.hiddenColumns.has(c.key)),
+    [engine, columns]
+  );
+  const mobileHidden = (col: DataTableColumn<T>) => {
+    if (col.hideOnMobile) return "hidden lg:table-cell";
+    switch (col.hideBelow) {
+      case "md":
+        return "hidden md:table-cell";
+      case "xl":
+        return "hidden xl:table-cell";
+      case "2xl":
+        return "hidden 2xl:table-cell";
+      case "lg":
+        return "hidden lg:table-cell";
+      default:
+        return "";
+    }
+  };
+  const stickyClass = (col: DataTableColumn<T>) =>
+    col.stickyEdge ? "sticky left-0 z-10 bg-card" : "";
 
   // The select-all checkbox covers the page on screen, not the whole filtered
   // set — checking 3 boxes when 20 rows are rendered would be a lie.
@@ -192,10 +243,12 @@ export function DataTable<T>({
             {columnVisibilityKey && (
               <ColumnVisibilityControl
                 storageKey={columnVisibilityKey}
-                columns={columns.map((c) => ({
-                  key: c.key,
-                  label: c.columnLabel ?? c.key,
-                }))}
+                columns={columns
+                  .filter((c) => !c.alwaysVisible)
+                  .map((c) => ({
+                    key: c.key,
+                    label: c.columnLabel ?? (typeof c.header === "string" ? c.header : c.key),
+                  }))}
               />
             )}
           </div>
@@ -215,11 +268,14 @@ export function DataTable<T>({
               the scroller clips them again. The table itself was always
               contained — it keeps scrolling inside the card unchanged. */}
           <div className="relative overflow-x-auto">
-            <table className="w-full text-right text-sm">
+            <table
+              className={cn("w-full text-center text-xs lg:text-sm", tableLayout === "fixed" && "table-fixed")}
+              style={minWidth ? { minWidth } : undefined}
+            >
               <thead className="border-b border-border bg-muted/50 text-xs text-muted-foreground">
                 <tr>
                   {selectable && (
-                    <th scope="col" className="w-10 px-4 py-3">
+                    <th scope="col" className="w-12 px-2 py-2 align-middle sm:px-3 lg:px-4">
                       <Checkbox
                         checked={allShownSelected ? true : someShownSelected ? "indeterminate" : false}
                         onCheckedChange={() => engine.toggleAll(shownKeys)}
@@ -228,7 +284,7 @@ export function DataTable<T>({
                     </th>
                   )}
                   {shown.map((col) => {
-                    const cellClass = cn("px-4 py-3", col.className, mobileHidden(col));
+                    const cellClass = cn("px-2 py-2 align-middle whitespace-nowrap sm:px-3 lg:px-4", col.className, mobileHidden(col), stickyClass(col));
                     if (col.sortValue) {
                       return (
                         <SortableHeader
@@ -300,7 +356,7 @@ export function DataTable<T>({
                         )}
                       >
                         {selectable && (
-                          <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
+                          <td className="px-2 py-2 align-middle sm:px-3 lg:px-4" onClick={(e) => e.stopPropagation()}>
                             <Checkbox
                               checked={engine.selected.has(key)}
                               onCheckedChange={() => engine.toggleRow(key)}
@@ -311,7 +367,7 @@ export function DataTable<T>({
                         {shown.map((col) => (
                           <td
                             key={col.key}
-                            className={cn("px-4 py-3", col.className, mobileHidden(col))}
+                            className={cn("px-2 py-2 align-middle sm:px-3 lg:px-4", col.className, mobileHidden(col), stickyClass(col))}
                           >
                             {col.render(row)}
                           </td>
@@ -331,7 +387,7 @@ export function DataTable<T>({
           <PaginationBar
             totalRows={isServerPaged ? serverTotal : sorted.length}
             page={engine.page}
-            pageSize={isServerPaged ? pageSize || 25 : pageSize!}
+            pageSize={isServerPaged ? pageSize || 25 : clientPageSize!}
             onPageChange={
               isServerPaged
                 ? (p) => onServerPageChange?.(p, pageSize || 25)

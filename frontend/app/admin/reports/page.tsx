@@ -24,6 +24,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { JalaliDatePicker } from "@/components/ui/jalali-datepicker";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -600,27 +601,19 @@ export default function AdminReportsPage() {
           </div>
           <div className="space-y-1.5">
             <Label>از تاریخ</Label>
-            <Input
-              type="date"
-              dir="ltr"
+            <JalaliDatePicker
               value={dateFrom}
-              onChange={(e) => setDateFrom(e.target.value)}
+              onChange={(value) => setDateFrom(value)}
+              placeholder="انتخاب تاریخ"
             />
-            <span className="block text-[10px] text-muted-foreground">
-              معادل شمسی: {formatJalali(dateFrom)}
-            </span>
           </div>
           <div className="space-y-1.5">
             <Label>تا تاریخ</Label>
-            <Input
-              type="date"
-              dir="ltr"
+            <JalaliDatePicker
               value={dateTo}
-              onChange={(e) => setDateTo(e.target.value)}
+              onChange={(value) => setDateTo(value)}
+              placeholder="انتخاب تاریخ"
             />
-            <span className="block text-[10px] text-muted-foreground">
-              معادل شمسی: {formatJalali(dateTo)}
-            </span>
           </div>
           <div className="space-y-1.5">
             <Label>گروه‌بندی</Label>
@@ -664,6 +657,7 @@ export default function AdminReportsPage() {
         columns={reportColumns}
         rows={report?.rows ?? []}
         rowKey={(row) => `${row.bucket}-${row.sku ?? ""}-${row.order_count ?? ""}`}
+        columnVisibilityKey="admin.reports.result.columns"
         loading={reportLoading}
         loadingMessage="در حال تولید گزارش..."
         error={reportError}
@@ -715,6 +709,7 @@ export default function AdminReportsPage() {
           columns={savedColumns}
           rows={savedReports}
           rowKey={(r) => r.id}
+          columnVisibilityKey="admin.reports.saved.columns"
           loading={savedLoading}
           error={savedError}
           emptyMessage="هنوز گزارشی ذخیره نشده است."
@@ -788,6 +783,7 @@ export default function AdminReportsPage() {
             columns={runColumns}
             rows={runs}
             rowKey={(r) => r.id}
+            columnVisibilityKey="admin.reports.runs.columns"
             loading={runsLoading}
             emptyMessage="هنوز اجرایی ثبت نشده است."
           />

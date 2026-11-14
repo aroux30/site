@@ -134,6 +134,78 @@ class NotificationService:
         )
         return notification
 
+    @staticmethod
+    async def notify_low_stock_admins(
+        db: AsyncSession,
+        *,
+        inventory_item_id: uuid.UUID,
+        variant_id: uuid.UUID,
+        available: int,
+        threshold: int,
+    ) -> int:
+        """Create an in-app low-stock notification for every admin.
+
+        WooCommerce sends the low-stock email to the store admin; the email
+        feature was removed from this store, so the equivalent alert is the
+        in-app notification delivered to admin accounts (superusers and the
+        ``admin`` role). ``idempotency_key`` pins the (item, available) pair —
+        the daily scan and the sale-time transition can both call this without
+        flooding the inbox; a new alert fires when the count changes again.
+        """
+        from sqlalchemy import or_, select
+
+        from app.modules.catalog.domain.models import Product, ProductVariant
+        from app.modules.rbac.domain.models import Role, UserRole
+        from app.modules.users.domain.models import User
+
+        variant = await db.get(ProductVariant, variant_id)
+        product_name = None
+        if variant is not None:
+            product = await db.get(Product, variant.product_id)
+            product_name = product.name if product else None
+
+        admin_user_ids = (
+            await db.execute(
+                select(User.id).where(
+                    or_(
+                        User.is_superuser.is_(True),
+                        User.id.in_(
+                            select(UserRole.user_id).join(
+                                Role, Role.id == UserRole.role_id
+                            ).where(Role.slug == "admin")
+                        ),
+                    )
+                )
+            )
+        ).scalars().all()
+
+        name = product_name or "کالا"
+        title = "هشدار کمبود موجودی"
+        body = (
+            f"موجودی «{name}» به {available} عدد رسیده است "
+            f"(آستانه‌ی هشدار: {threshold}). زمان تکمیل موجودی."
+        )
+
+        created = 0
+        for admin_id in admin_user_ids:
+            existing = await NotificationService.create_notification(
+                db,
+                user_id=admin_id,
+                type="inventory_low_stock",
+                title=title,
+                body=body,
+                data={
+                    "inventory_item_id": str(inventory_item_id),
+                    "variant_id": str(variant_id),
+                    "available": available,
+                    "threshold": threshold,
+                },
+                idempotency_key=f"low-stock:{inventory_item_id}:{available}",
+            )
+            if existing is not None:
+                created += 1
+        return created
+
     # ── Send ──────────────────────────────────────────────────────────
 
     @staticmethod

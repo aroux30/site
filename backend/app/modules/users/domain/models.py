@@ -182,63 +182,9 @@ class OTPRequest(BaseModel):
 # email-change / email-verification flows no longer exist. See
 # `_archived/email-removal-2026-10-07/`.
 
-
-class PasskeyCredential(BaseModel):
-    """A registered WebAuthn credential (a passkey) for one account.
-
-    P1 "کاربران: پاسکی". The backend had a challenge generator and nothing
-    else: no verification, no credential storage, no assertion path, and a
-    frontend hook whose every call 404'd. A passkey that cannot be verified is
-    not a passkey, so this table is what the flow was missing.
-
-    The public key is stored, never a secret — WebAuthn is a signature scheme,
-    and the private half never leaves the authenticator. ``sign_count`` is kept
-    and checked per assertion: a count that goes backwards is the one signal
-    the protocol gives that a credential was cloned.
-    """
-
-    __tablename__ = "passkey_credentials"
-    __table_args__ = (
-        Index("ix_passkey_credentials_user_id", "user_id"),
-        # The credential id is the lookup key during an assertion, and it must
-        # be unique across the whole table — not per user — because the login
-        # ceremony starts from the credential, before the account is known.
-        Index("ix_passkey_credentials_credential_id", "credential_id", unique=True),
-    )
-
-    user_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True),
-        ForeignKey("users.id", name="fk_passkey_credentials_user_id_users", ondelete="CASCADE"),
-        nullable=False,
-    )
-    #: Base64url credential id, as the authenticator reports it.
-    credential_id: Mapped[str] = mapped_column(String(500), nullable=False)
-    #: The credential public key, serialised (COSE key bytes, base64).
-    public_key: Mapped[str] = mapped_column(Text, nullable=False)
-    #: COSE algorithm identifier (-7 ES256, -257 RS256).
-    public_key_alg: Mapped[int] = mapped_column(nullable=False)
-    #: The authenticator's signature counter at last assertion.
-    sign_count: Mapped[int] = mapped_column(default=0, nullable=False)
-    #: A human label ("لپ‌تاپ من"), so a revocation screen is usable.
-    name: Mapped[str | None] = mapped_column(String(100), nullable=True)
-    #: Transports the authenticator advertises (usb, internal, …), as JSON.
-    transports: Mapped[list[str] | None] = mapped_column(
-        JSONB, nullable=True
-    )
-    last_used_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True
-    )
-    #: Set when the user revokes the credential. Kept rather than deleted so
-    #: an audit trail of which keys existed survives revocation.
-    revoked_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True
-    )
-
-    def __repr__(self) -> str:
-        return (
-            f"<PasskeyCredential(user_id={self.user_id}, "
-            f"name={self.name!r}, revoked={self.revoked_at is not None})>"
-        )
+# PasskeyCredential was removed with the passkey feature: the store signs in
+# with phone + password/OTP only. Its `passkey_credentials` table is dropped
+# by migration `rmpass1`.
 
 
 class Address(BaseModel):

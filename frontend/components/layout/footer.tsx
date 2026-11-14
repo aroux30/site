@@ -111,9 +111,20 @@ export function Footer() {
     };
   }, []);
 
-  const quickLinks =
+  // The HTML sitemap page (/sitemap-page) is linked ONLY here — WordPress
+  // parity: wp-login/sitemap style utility pages live in the footer, never in
+  // the main nav. Appended unconditionally (deduped) so the page stays
+  // reachable even when the CMS menu replaces the fallback links.
+  const sitemapLink = { href: "/sitemap-page", label: "نقشه سایت" };
+  const withSitemap = (links: { href: string; label: string }[]) =>
+    links.some((l) => l.href === sitemapLink.href)
+      ? links
+      : [...links, sitemapLink];
+
+  const quickLinks = withSitemap(
     footerCol1?.map((item) => ({ href: item.url, label: item.title })) ??
-    fallbackQuickLinks;
+      fallbackQuickLinks,
+  );
   const customerServiceLinks =
     footerCol2?.map((item) => ({ href: item.url, label: item.title })) ??
     fallbackCustomerServiceLinks;

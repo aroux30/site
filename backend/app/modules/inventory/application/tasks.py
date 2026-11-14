@@ -73,7 +73,28 @@ async def _check_low_stock_async() -> dict[str, Any]:
                     available=item.available,
                     threshold=item.low_stock_threshold,
                 )
+                # WooCommerce sends the admin a low-stock email; our alert is
+                # the in-app admin notification (deduped per item+count).
+                try:
+                    from app.modules.notifications.application.notification_service import (
+                        NotificationService,
+                    )
 
+                    await NotificationService.notify_low_stock_admins(
+                        db,
+                        inventory_item_id=item.id,
+                        variant_id=item.variant_id,
+                        available=item.available,
+                        threshold=item.low_stock_threshold,
+                    )
+                except Exception as exc:  # noqa: BLE001 — alert must not break scan
+                    await logger.awarning(
+                        "low_stock_notification_failed",
+                        item_id=str(item.id),
+                        error=str(exc)[:200],
+                    )
+
+            await db.commit()
             return {
                 "status": "success",
                 "low_stock_count": len(items),

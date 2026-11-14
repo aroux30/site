@@ -13,6 +13,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { JalaliDatePicker } from "@/components/ui/jalali-datepicker";
 import { DataTable, type DataTableColumn } from "@/components/admin/data-table";
 import { FilterSelect } from "@/components/admin/filter-select";
 import {
@@ -250,6 +251,7 @@ export default function AdminCashbackPage() {
     {
       key: "actions",
       header: "",
+      columnLabel: "عملیات",
       render: (r) => (
         <div className="flex gap-1">
           <Button variant="outline" size="sm" onClick={() => openEdit(r)}>
@@ -325,6 +327,7 @@ export default function AdminCashbackPage() {
         columns={columns}
         rows={rules}
         rowKey={(r) => r.id}
+        columnVisibilityKey="admin.cashback.columns"
         loading={loading}
         error={error}
         emptyMessage="قاعده کش‌بکی ثبت نشده است"
@@ -429,11 +432,10 @@ export default function AdminCashbackPage() {
               >
                 از تاریخ
               </label>
-              <Input
-                id="cashback-from"
-                type="date"
+              <JalaliDatePicker
                 value={form.startsAt}
-                onChange={(e) => setForm({ ...form, startsAt: e.target.value })}
+                onChange={(value) => setForm({ ...form, startsAt: value })}
+                placeholder="انتخاب تاریخ"
               />
             </div>
 
@@ -444,11 +446,10 @@ export default function AdminCashbackPage() {
               >
                 تا تاریخ
               </label>
-              <Input
-                id="cashback-to"
-                type="date"
+              <JalaliDatePicker
                 value={form.endsAt}
-                onChange={(e) => setForm({ ...form, endsAt: e.target.value })}
+                onChange={(value) => setForm({ ...form, endsAt: value })}
+                placeholder="انتخاب تاریخ"
               />
             </div>
 

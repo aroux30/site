@@ -176,7 +176,9 @@ async def admin_list_orders(
     max_total: int | None = Query(None),
     search: str | None = Query(None),
     page: int = Query(1, ge=1),
-    page_size: int = Query(20, ge=1, le=100),
+    # le=2000: the admin pager offers presets up to 500 plus a «تعداد دلخواه»
+    # free-text entry (e.g. 1003), so the cap must cover custom counts.
+    page_size: int = Query(20, ge=1, le=2000),
 ) -> OrderListResponse:
     filters = OrderFilterParams(
         status=status,

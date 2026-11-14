@@ -17,9 +17,11 @@ from __future__ import annotations
 
 import enum
 import uuid
+from typing import Any
 from datetime import datetime
 
 from sqlalchemy import (
+    BigInteger,
     Boolean,
     DateTime,
     Enum,
@@ -159,14 +161,83 @@ class CategoryCustomField(BaseModel):
         nullable=False,
         server_default=text("'text'::character varying"),
     )
+    # Optional helper line under the label (Woo Product Add-ons parity — the
+    # same shape the per-product addon fields carry).
+    description: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    # multiple_choice display style: select | radio.
+    display: Mapped[str | None] = mapped_column(String(20), nullable=True)
     # For select-type fields: the allowed answer values.
     options_json: Mapped[list[str] | None] = mapped_column(JSONB, nullable=True)
     is_required: Mapped[bool] = mapped_column(
         Boolean, default=False, nullable=False, server_default=text("false")
     )
+    # Restrictions: character length (texts), quantity (input_multiplier),
+    # Toman range (custom_price) — aligned with ProductAddonField.
+    min_val: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    max_val: Mapped[int | None] = mapped_column(Integer, nullable=True)
     position: Mapped[int] = mapped_column(
         Integer, default=0, nullable=False, server_default=text("0")
     )
 
     def __repr__(self) -> str:
         return f"<CategoryCustomField(category_id={self.category_id}, key={self.field_key})>"
+
+
+class ProductAddonField(BaseModel):
+    """Per-product add-on fields — WooCommerce Product Add-ons parity.
+
+    Where ``CategoryCustomField`` attaches buyer-input fields to a whole
+    category, this model attaches them to ONE product: the owner's request —
+    addon fields are often product-specific and meaningless store-wide
+    (engraving text on a mug, jersey name/number, gift wrap).
+
+    Field types mirror the reference plugin's panel (html-addon.php):
+    multiple_choice, checkbox, custom_text, custom_textarea, custom_price
+    (buyer-defined price), input_multiplier (quantity), heading.
+    File upload needs a public customer-upload endpoint this stack does not
+    have yet, so it is out of scope for now (declared in the delivery report).
+
+    Prices are stored in Rial (the catalog DB convention); the API boundary
+    converts Toman like everywhere else (memory: money-unit-two-conventions).
+    """
+
+    __tablename__ = "product_addon_fields"
+    __table_args__ = (Index("ix_product_addon_fields_product_id", "product_id"),)
+
+    product_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("products.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    field_key: Mapped[str] = mapped_column(String(64), nullable=False)
+    label: Mapped[str] = mapped_column(String(200), nullable=False)
+    # Optional helper line under the label (reference: description_enable).
+    description: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    field_type: Mapped[str] = mapped_column(
+        String(32),
+        default="custom_text",
+        nullable=False,
+        server_default=text("'custom_text'::character varying"),
+    )
+    # multiple_choice display style: select | radio | checkbox.
+    display: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    # Options for multiple_choice/checkbox: [{"label","price","price_type"}]
+    # (price = Rial int, price_type = flat_fee | quantity_based | percentage_based).
+    options_json: Mapped[list[dict[str, Any]] | None] = mapped_column(JSONB, nullable=True)
+    is_required: Mapped[bool] = mapped_column(
+        Boolean, default=False, nullable=False, server_default=text("false")
+    )
+    # Restrictions (reference: min/max) — character length for texts,
+    # quantity range for input_multiplier, price range (Rial) for custom_price.
+    min_val: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    max_val: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    # Field-level price adjustment for non-option types (input_multiplier):
+    # price in Rial + flat_fee | quantity_based | percentage_based.
+    price: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
+    price_type: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    position: Mapped[int] = mapped_column(
+        Integer, default=0, nullable=False, server_default=text("0")
+    )
+
+    def __repr__(self) -> str:
+        return f"<ProductAddonField(product_id={self.product_id}, key={self.field_key})>"

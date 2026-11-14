@@ -147,14 +147,16 @@ export function useOrders(params?: {
   });
 }
 
-/** Fetch wishlist */
-export function useWishlist() {
+/** Fetch wishlist (optionally gated on auth status so a signed-out visitor
+ *  does not spam the 401 unauthenticated endpoint on page load). */
+export function useWishlist(options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: queryKeys.wishlist.current,
     queryFn: async () => {
       const { data } = await apiClient.get("/wishlist");
       return data;
     },
+    enabled: options?.enabled ?? true,
   });
 }
 

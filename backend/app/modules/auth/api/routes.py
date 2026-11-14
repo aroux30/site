@@ -22,9 +22,6 @@ from app.core.security.dependencies import (
     get_current_user,
     get_current_user_id,
 )
-from app.core.security.mfa import (
-    get_webauthn_registration_challenge,
-)
 from app.core.security.rate_limiter import limiter
 from app.modules.auth.application import auth_service
 from app.modules.auth.schemas.auth import (
@@ -544,7 +541,7 @@ async def delete_session(
     return MessageResponse(message="Session revoked successfully")
 
 
-# ── Multi-Factor Authentication (MFA / TOTP / Passkeys) ─────────────────────
+# ── Multi-Factor Authentication (MFA / TOTP) ────────────────────────────────
 
 
 @router.post(
@@ -605,196 +602,6 @@ async def disable_totp(
         user_agent=_client_ua(request),
     )
     return MessageResponse(message="TOTP MFA disabled")
-
-
-@router.post(
-    "/mfa/passkey/register/options",
-    summary="Generate WebAuthn registration options challenge",
-)
-async def passkey_register_options(
-    user_id: uuid.UUID = Depends(get_current_user_id),
-    db: AsyncSession = Depends(get_db),
-) -> dict[str, Any]:
-    """Start passkey enrollment.
-
-    P1 "کاربران: پاسکی". Replaces a stub that returned a random challenge
-    nothing verified; the challenge is now stored so the verification that
-    follows has something to check against.
-    """
-    from app.modules.auth.application import passkey_service
-
-    return await passkey_service.begin_registration(db, user_id=user_id)
-
-
-@router.post(
-    "/mfa/passkey/register/verify",
-    summary="Verify a WebAuthn attestation and store the credential",
-)
-async def passkey_register_verify(
-    body: dict[str, Any],
-    user_id: uuid.UUID = Depends(get_current_user_id),
-    db: AsyncSession = Depends(get_db),
-) -> dict[str, Any]:
-    """Verify the browser's attestation and persist the public key.
-
-    The body is the credential the browser produced, taken whole — the fields
-    the verifier needs (id, response.clientDataJSON, response.attestationObject)
-    are defined by the WebAuthn spec, not by this API, so a hand-written
-    schema would only be a place to lose one.
-    """
-    from app.modules.auth.application import passkey_service
-
-    row = await passkey_service.finish_registration(
-        db,
-        user_id=user_id,
-        credential=body,
-        name=body.get("name") if isinstance(body.get("name"), str) else None,
-    )
-    return {
-        "id": str(row.id),
-        "credential_id": row.credential_id,
-        "name": row.name,
-        "created_at": row.created_at.isoformat() if row.created_at else None,
-    }
-
-
-@router.get(
-    "/mfa/passkey/credentials",
-    summary="List the account's registered passkeys",
-)
-async def passkey_list_credentials(
-    user_id: uuid.UUID = Depends(get_current_user_id),
-    db: AsyncSession = Depends(get_db),
-) -> list[dict[str, Any]]:
-    from app.modules.auth.application import passkey_service
-
-    rows = await passkey_service.list_credentials(db, user_id=user_id)
-    return [
-        {
-            "id": str(r.id),
-            "credential_id": r.credential_id,
-            "name": r.name,
-            "created_at": r.created_at.isoformat() if r.created_at else None,
-            "last_used_at": r.last_used_at.isoformat() if r.last_used_at else None,
-        }
-        for r in rows
-    ]
-
-
-@router.delete(
-    "/mfa/passkey/credentials/{credential_pk}",
-    status_code=status.HTTP_204_NO_CONTENT,
-    summary="Revoke one of the account's passkeys",
-)
-async def passkey_revoke_credential(
-    credential_pk: uuid.UUID,
-    user_id: uuid.UUID = Depends(get_current_user_id),
-    db: AsyncSession = Depends(get_db),
-) -> None:
-    from app.modules.auth.application import passkey_service
-
-    await passkey_service.revoke_credential(
-        db, user_id=user_id, credential_pk=credential_pk
-    )
-
-
-@router.post(
-    "/mfa/passkey/login/options",
-    summary="Generate WebAuthn assertion options for a passkey login",
-)
-async def passkey_login_options(
-    body: dict[str, Any],
-    db: AsyncSession = Depends(get_db),
-) -> dict[str, Any]:
-    """Start a passkey login for a named account.
-
-    The account is named by phone because the ceremony needs the credential
-    ids to offer, and without one the browser would show every passkey the
-    device holds. It is not an enumeration risk: the response is identical
-    (404) whether the phone is unknown or the account has no passkeys, so
-    "this account exists" is not learnable here.
-    """
-    from app.modules.auth.application import passkey_service
-
-    phone = str(body.get("phone") or "").strip()
-    if not phone:
-        raise ValidationError("شماره موبایل لازم است.")
-
-    from sqlalchemy import select as _select
-
-    from app.modules.users.domain.models import User as _User
-
-    user = (
-        await db.execute(_select(_User).where(_User.phone == phone))
-    ).scalar_one_or_none()
-    if user is None:
-        raise NotFoundError(resource="Passkey")
-
-    try:
-        return await passkey_service.begin_authentication(db, user_id=user.id)
-    except NotFoundError as exc:
-        # Same 404 as an unknown phone — see the docstring.
-        raise NotFoundError(resource="Passkey") from exc
-
-
-@router.post(
-    "/mfa/passkey/login/verify",
-    summary="Verify a WebAuthn assertion and issue a session",
-)
-async def passkey_login_verify(
-    body: dict[str, Any],
-    request: Request,
-    response: Response,
-    db: AsyncSession = Depends(get_db),
-) -> TokenResponse:
-    """Verify the assertion, then mint a session exactly as password login does.
-
-    Rate-limited on the same key as password login: an assertion is a
-    credential presentation, and an unthrottled one is a brute-force surface.
-    """
-    from app.modules.auth.application import passkey_service
-
-    phone = str(body.get("phone") or "").strip()
-    credential = body.get("credential")
-    if not phone or not isinstance(credential, dict):
-        raise ValidationError("درخواست ورود با کلید عبور ناقص است.")
-
-    from sqlalchemy import select as _select
-
-    from app.modules.users.domain.models import User as _User
-
-    user = (
-        await db.execute(_select(_User).where(_User.phone == phone))
-    ).scalar_one_or_none()
-    if user is None:
-        raise UnauthorizedError(detail="Invalid credentials")
-
-    await passkey_service.finish_authentication(
-        db, user_id=user.id, credential=credential
-    )
-
-    # Same session issuance as every other login path, so a passkey login is
-    # not a second-class session (the sid claim, the audit row, last_login).
-    tokens = await auth_service._create_token_pair(
-        db,
-        user,
-        ip_address=_client_ip(request),
-        user_agent=_client_ua(request),
-    )
-    await auth_service.log_action(
-        db,
-        actor_id=user.id,
-        action="user.login_passkey",
-        resource="user",
-        resource_id=user.id,
-        ip_address=_client_ip(request),
-        user_agent=_client_ua(request),
-    )
-    _set_auth_cookies(response, tokens["access_token"], tokens["refresh_token"], request)
-    tokens.pop("access_token", None)
-    return TokenResponse(**tokens)
-
-
 # ── Security Posture & Defense Status ────────────────────────────────────────
 
 
@@ -834,14 +641,8 @@ async def get_security_status() -> dict[str, Any]:
                 "model": "rbac_model.conf",
                 "policy_file": "rbac_policy.csv",
             },
-            "mfa_passkeys": {
+            "mfa_totp": {
                 "totp_2fa": "available (PyOTP) — per-user enrollment via /auth/mfa/totp/setup",
-                # Registration and assertion are now verified against stored
-                # public keys (passkey_service), with challenges held in Redis
-                # and sign counters checked. The previous note here said this
-                # was a stub — it no longer is, and the note was updated rather
-                # than left to describe a state that ended.
-                "fido2_webauthn": "active (registration + assertion verified via py-webauthn; credentials stored in passkey_credentials)",
             },
             "anti_bot": {
                 "honeypot_field": "active on Register & Login",

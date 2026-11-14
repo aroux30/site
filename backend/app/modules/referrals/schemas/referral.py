@@ -59,6 +59,7 @@ class CommissionResponse(BaseModel):
 
     id: uuid.UUID
     referral_id: uuid.UUID
+    earner_id: uuid.UUID
     order_id: uuid.UUID
     amount: int
     level: int

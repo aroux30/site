@@ -11,6 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { JalaliDatePicker } from "@/components/ui/jalali-datepicker";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -161,23 +162,19 @@ export default function AdminCalendarPage() {
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <div>
             <Label htmlFor="cal-from">از تاریخ</Label>
-            <Input
-              id="cal-from"
-              type="date"
+            <JalaliDatePicker
               value={fromDate}
-              onChange={(e) => setFromDate(e.target.value)}
-              dir="ltr"
+              onChange={(value) => setFromDate(value)}
+              placeholder="انتخاب تاریخ"
               className="mt-1"
             />
           </div>
           <div>
             <Label htmlFor="cal-to">تا تاریخ</Label>
-            <Input
-              id="cal-to"
-              type="date"
+            <JalaliDatePicker
               value={toDate}
-              onChange={(e) => setToDate(e.target.value)}
-              dir="ltr"
+              onChange={(value) => setToDate(value)}
+              placeholder="انتخاب تاریخ"
               className="mt-1"
             />
           </div>

@@ -10,6 +10,7 @@ from typing import Any
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from app.modules.orders.domain.models import OrderStatus
+from app.modules.users.application.validation_utils import normalise_digits
 
 # ── Order Item ─────────────────────────────────────────────────────────────
 
@@ -348,9 +349,26 @@ class OrderFilterParams(BaseModel):
     max_total: int | None = None
     search: str | None = Field(None, description="Search in order_number")
 
+    @field_validator("search")
+    @classmethod
+    def _normalize_search(
+        cls, value: str | None
+    ) -> str | None:
+        """Operators paste order codes with a leading «#» or in Persian digits.
+
+        Both must match the stored ASCII numeric order_number, so the term is
+        canonicalized before it reaches the SQL filter.
+        """
+        if value is None:
+            return None
+        normalized = normalise_digits(value).replace("#", "").strip()
+        return normalized or None
+
 
 class PaginationParams(BaseModel):
     """Query parameters for pagination."""
 
     page: int = Field(1, ge=1)
-    page_size: int = Field(20, ge=1, le=100)
+    # le=2000: outer bound shared by both order routes; the customer-facing
+    # route still caps at 100 via its own Query validation.
+    page_size: int = Field(20, ge=1, le=2000)

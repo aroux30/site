@@ -47,6 +47,11 @@ SHOP_FEATURE_SWITCHES: dict[str, bool] = {
     # toggle and the /compare page. No backend routes exist for compare, so
     # this only gates the storefront.
     "compare_enabled": True,
+    # ── Live chat ──
+    # Master: hides the floating chat widget on the storefront. The admin
+    # console and the backend routes stay reachable; only the visitor-facing
+    # widget disappears (the same "entry points gone" contract as the rest).
+    "chat_enabled": True,
 }
 
 
@@ -103,6 +108,7 @@ def require_feature(key: str):
 _PERSIAN_LABELS = {
     "wishlist_enabled": "علاقه‌مندی‌ها",
     "compare_enabled": "مقایسه کالاها",
+    "chat_enabled": "گفتگوی زنده",
 }
 
 

@@ -42,8 +42,10 @@ export function AdminUserNav() {
 
   return (
     <div className="flex items-center gap-3" suppressHydrationWarning>
-      {/* Desktop: name + role. Phone stays off this breakpoint. */}
-      <div className="hidden sm:flex flex-col items-end" suppressHydrationWarning>
+      {/* Desktop (xl+): name + role. Between md and xl the header shares its
+          width with the 400px search box, so only the avatar identifies the
+          user there. Phone stays off this breakpoint. */}
+      <div className="hidden xl:flex flex-col items-end" suppressHydrationWarning>
         <div className="flex items-center gap-1.5" suppressHydrationWarning>
           <span className="text-xs font-semibold text-foreground" suppressHydrationWarning>
             {displayName}
@@ -58,7 +60,9 @@ export function AdminUserNav() {
         </div>
       </div>
 
-      {/* Mobile: phone only — the compact identity when name would overflow. */}
+      {/* Mobile (<640px): phone only — the compact identity when even the
+          avatar alone would leave the header ambiguous. Tablets show just
+          the avatar. */}
       {userPhone ? (
         <span
           className="sm:hidden text-[11px] font-mono text-muted-foreground"

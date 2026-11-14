@@ -13,6 +13,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { JalaliDatePicker } from "@/components/ui/jalali-datepicker";
 import { DataTable, type DataTableColumn } from "@/components/admin/data-table";
 import { FilterSelect } from "@/components/admin/filter-select";
 import {
@@ -277,6 +278,7 @@ export default function AdminDiscountsPage() {
     {
       key: "actions",
       header: "",
+      columnLabel: "عملیات",
       render: (d) => (
         <div className="flex gap-1">
           <Button variant="outline" size="sm" onClick={() => openEdit(d)}>
@@ -351,6 +353,7 @@ export default function AdminDiscountsPage() {
         columns={columns}
         rows={discounts}
         rowKey={(d) => d.id}
+        columnVisibilityKey="admin.discounts.columns"
         loading={loading}
         error={error}
         emptyMessage="تخفیفی ثبت نشده است"
@@ -482,11 +485,10 @@ export default function AdminDiscountsPage() {
               >
                 از تاریخ
               </label>
-              <Input
-                id="discount-from"
-                type="date"
+              <JalaliDatePicker
                 value={form.startsAt}
-                onChange={(e) => setForm({ ...form, startsAt: e.target.value })}
+                onChange={(value) => setForm({ ...form, startsAt: value })}
+                placeholder="انتخاب تاریخ"
               />
             </div>
 
@@ -497,11 +499,10 @@ export default function AdminDiscountsPage() {
               >
                 تا تاریخ
               </label>
-              <Input
-                id="discount-to"
-                type="date"
+              <JalaliDatePicker
                 value={form.endsAt}
-                onChange={(e) => setForm({ ...form, endsAt: e.target.value })}
+                onChange={(value) => setForm({ ...form, endsAt: value })}
+                placeholder="انتخاب تاریخ"
               />
             </div>
 

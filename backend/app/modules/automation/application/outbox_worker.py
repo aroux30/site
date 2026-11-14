@@ -39,6 +39,10 @@ _ORDER_NOTIFICATIONS: dict[str, dict[str, str]] = {
         "notification_type": "order_canceled",
         "title": "سفارش شما لغو شد",
     },
+    "OrderDoingVerified": {
+        "notification_type": "order_doing_verified",
+        "title": "سفارش شما در حال بررسی و احراز است",
+    },
     "PaymentCompleted": {
         "notification_type": "payment_completed",
         "title": "پرداخت شما با موفقیت انجام شد",
@@ -114,6 +118,20 @@ async def _handle_message(
             data=payload,
             message_id=str(message_id) if message_id else None,
         )
+        # Telegram order notification (tgnotif module) — best-effort.
+        # Excluded events:
+        #   PaymentCompleted/Failed — payment events, not status changes
+        #   OrderCreated — fires before payment (waiting_payment_*), too noisy
+        #   OrderAccepted — intermediate; admin hasn't acted yet
+        _TGNOTIF_EXCLUDED = ("PaymentCompleted", "PaymentFailed", "OrderCreated", "OrderAccepted")
+        _order_id = payload.get("order_id")
+        if _order_id and event_type not in _TGNOTIF_EXCLUDED:
+            try:
+                from app.modules.tgnotif.application.tasks import send_tgnotif_order
+
+                send_tgnotif_order.delay(str(_order_id))
+            except Exception as _exc:
+                logger.warning("tgnotif_dispatch_failed", error=str(_exc))
 
     elif event_type in _BLOG_NOTIFICATIONS:
         # BlogNotificationService emitted this but nothing consumed it, so no

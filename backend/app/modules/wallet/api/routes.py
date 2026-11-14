@@ -315,14 +315,43 @@ _require_wallet_manage = Depends(RequirePermissions("wallet:manage"))
 )
 async def get_wallet_settings(
     db: AsyncSession = Depends(get_db),
-) -> dict[str, bool]:
-    """Return the current wallet module switch states.
+) -> dict[str, bool | int | str]:
+    """Return the current wallet module switch states + numeric + text settings.
 
-    Returned as a plain ``{key: bool}`` map (no response_model — a Pydantic
-    model would be inferred from the annotation and a bare ``dict[str, bool]``
-    is exactly what the admin page reads).
+    Returned as a plain ``{key: bool|int|str}`` map so the admin page can read
+    boolean switches, numeric values, and text settings.
     """
     return await wallet_service.get_switches(db)
+
+
+@admin_router.put(
+    "/settings/numeric/{key}",
+    summary="Set a wallet numeric setting (admin)",
+    dependencies=[_require_wallet_manage],
+)
+async def set_wallet_numeric_setting(
+    key: str,
+    value: int = Query(..., ge=0, description="Numeric value (e.g. fee in Rials)"),
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, str | int]:
+    """Set a numeric wallet setting like transfer fee (Rials)."""
+    result = await wallet_service.set_numeric_setting(db, key=key, value=value)
+    return {"key": key, "value": result}
+
+
+@admin_router.put(
+    "/settings/text/{key}",
+    summary="Set a wallet text setting (admin)",
+    dependencies=[_require_wallet_manage],
+)
+async def set_wallet_text_setting(
+    key: str,
+    value: str = Query(..., max_length=50, description="Text value (e.g. fee type)"),
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, str]:
+    """Set a text wallet setting like fee type (fixed/percent)."""
+    result = await wallet_service.set_text_setting(db, key=key, value=value)
+    return {"key": key, "value": result}
 
 
 @admin_router.put(

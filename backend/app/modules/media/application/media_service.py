@@ -191,7 +191,9 @@ _MAGIC_SIGNATURES: tuple[tuple[bytes, str], ...] = (
     (b"GIF89a", "image/gif"),
     (b"%PDF-", "application/pdf"),
     (b"ID3", "audio/mpeg"),
-    (b"\x1aE\xdf\xa3", "video/mp4"),        # Matroska/WebM family
+    # NOTE: the EBML signature (`1a45dfa3`) is the Matroska/WebM family — it is
+    # handled explicitly in `_sniff_mime` below (the DocType inside decides
+    # webm vs matroska), NOT as a fixed video/mp4 here.
 )
 
 
@@ -228,6 +230,16 @@ def _sniff_mime(content: bytes, declared: str) -> str:
             detected = "audio/mp4"
         else:
             detected = "video/mp4"
+    if detected is None and head.startswith(b"\x1aE\xdf\xa3"):
+        # EBML = Matroska/WebM. A MediaRecorder voice note is WebM (Opus). If the
+        # caller declared an audio/webm or video/webm type, keep it; otherwise
+        # WebM. (The old fixed `video/mp4` gave a .mp4 extension + video/mp4
+        # Content-Type to a .webm voice note.)
+        low = declared.lower()
+        if low in ("audio/webm", "video/webm"):
+            detected = low
+        else:
+            detected = "video/webm"
     if detected is None and head[:4] == b"RIFF":
         # RIFF is a container: WEBP, WAV and AVI all start with it.
         detected = {

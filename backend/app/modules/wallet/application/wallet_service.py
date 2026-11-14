@@ -65,6 +65,17 @@ _WALLET_SWITCH_KEYS = {
     "wallet_admin_adjust_enabled",
 }
 
+# Numeric settings exposed alongside the boolean switches in the admin panel.
+_WALLET_NUMERIC_KEYS = {
+    "wallet_transfer_fee_rial",
+    "wallet_transfer_fee_percent",
+}
+
+# Text settings (small enum-like values).
+_WALLET_TEXT_KEYS = {
+    "wallet_transfer_fee_type",  # "fixed" or "percent"
+}
+
 
 async def _switch_enabled(db: AsyncSession, key: str, *, default: bool = True) -> bool:
     """Return whether a wallet switch is on, reading ``site_options`` live.
@@ -141,13 +152,28 @@ async def _wallet_response(db: AsyncSession, wallet: Wallet) -> WalletResponse:
     absent, so an un-migrated database keeps the full wallet.
     """
     from app.modules.wallet.schemas.wallet import WalletFeatures
+    from app.modules.settings.application.site_options_service import SiteOptionsService
 
     master = await _switch_enabled(db, "wallet_enabled")
+    fee_type = await SiteOptionsService.get(db, "wallet_transfer_fee_type", "fixed")
+    fee_raw = await SiteOptionsService.get(db, "wallet_transfer_fee_rial", "0")
+    pct_raw = await SiteOptionsService.get(db, "wallet_transfer_fee_percent", "0")
+    try:
+        fee_rial = max(0, int(fee_raw))
+    except (ValueError, TypeError):
+        fee_rial = 0
+    try:
+        fee_pct = max(0, int(pct_raw))
+    except (ValueError, TypeError):
+        fee_pct = 0
     features = WalletFeatures(
         enabled=master,
         deposit=master and await _switch_enabled(db, "wallet_deposit_enabled"),
         withdraw=master and await _switch_enabled(db, "wallet_withdraw_enabled"),
         transfer=master and await _switch_enabled(db, "wallet_transfer_enabled"),
+        transfer_fee_rial=fee_rial,
+        transfer_fee_type=fee_type if fee_type in {"fixed", "percent"} else "fixed",
+        transfer_fee_percent=fee_pct,
     )
     return WalletResponse.model_validate(wallet).model_copy(update={"features": features})
 
@@ -715,6 +741,29 @@ async def transfer(
             error_code="SELF_TRANSFER",
         )
 
+    # ── Transfer fee ──────────────────────────────────────────────────
+    # Read the platform transfer fee from site_options. Supports two modes:
+    #   - "fixed":   flat Rial amount from wallet_transfer_fee_rial
+    #   - "percent": percentage of transfer amount from wallet_transfer_fee_percent
+    # The fee is burned: deducted from the sender but not credited anywhere.
+    from app.modules.settings.application.site_options_service import SiteOptionsService
+
+    fee_type = await SiteOptionsService.get(db, "wallet_transfer_fee_type", "fixed")
+    if fee_type == "percent":
+        pct_raw = await SiteOptionsService.get(db, "wallet_transfer_fee_percent", "0")
+        try:
+            pct = max(0, int(pct_raw))
+        except (ValueError, TypeError):
+            pct = 0
+        # Round up so a 1% fee on 150 Rials = 2 Rials, never 0.
+        transfer_fee = math.ceil(amount * pct / 100) if pct > 0 else 0
+    else:
+        fee_raw = await SiteOptionsService.get(db, "wallet_transfer_fee_rial", "0")
+        try:
+            transfer_fee = max(0, int(fee_raw))
+        except (ValueError, TypeError):
+            transfer_fee = 0
+
     # The recipient wallet must exist and be active. _get_or_create_system_wallet
     # creates a missing wallet row idempotently (a brand-new recipient has none
     # yet); the active check then rejects a deactivated wallet.
@@ -732,7 +781,7 @@ async def transfer(
         from_user_id=from_user_id,
         to_user_id=to_user_id,
         amount=amount,
-        fee=0,
+        fee=transfer_fee,
         note=note,
         idempotency_key=idempotency_key,
     )
@@ -767,6 +816,40 @@ async def transfer(
     transfer_row.journal_entry_id = journal_entry_id
     await db.flush()
 
+    # ── Burn the transfer fee (deducted from sender, credited nowhere) ──
+    if transfer_fee > 0:
+        sender_wallet = await _get_wallet_for_update(db, from_user_id)
+        if sender_wallet is None:  # pragma: no cover
+            raise NotFoundError(resource="Wallet")
+        fee_ledger = int(
+            await db.scalar(
+                select(func.coalesce(func.sum(WalletTransaction.amount), 0)).where(
+                    WalletTransaction.wallet_id == sender_wallet.id
+                )
+            )
+        )
+        if fee_ledger < transfer_fee:
+            raise ValidationError(
+                detail=(
+                    f"موجودی برای کسر کارمزد انتقال کافی نیست. "
+                    f"موجودی: {fee_ledger} ریال، کارمزد: {transfer_fee} ریال."
+                ),
+                error_code="INSUFFICIENT_BALANCE_FOR_FEE",
+            )
+        fee_balance_after = fee_ledger - transfer_fee
+        sender_wallet.balance = fee_balance_after
+        fee_tx = WalletTransaction(
+            wallet_id=sender_wallet.id,
+            amount=-transfer_fee,
+            type=WalletTransactionType.DEBIT,
+            reference_type=_TRANSFER_REFERENCE_TYPE,
+            reference_id=transfer_row.id,
+            description=f"کارمزد انتقال ({transfer_fee:,} ریال)",
+            balance_after=fee_balance_after,
+        )
+        db.add(fee_tx)
+        await db.flush()
+
     await _publish_wallet_event(
         db,
         event_type="WalletTransferSent",
@@ -775,6 +858,7 @@ async def transfer(
             "user_id": str(from_user_id),
             "counterparty_user_id": str(to_user_id),
             "amount": amount,
+            "fee": transfer_fee,
             "transfer_id": str(transfer_row.id),
             "direction": "out",
         },
@@ -797,6 +881,7 @@ async def transfer(
         from_user_id=str(from_user_id),
         to_user_id=str(to_user_id),
         amount=amount,
+        fee=transfer_fee,
         transfer_id=str(transfer_row.id),
     )
     return WalletTransferResponse.model_validate(transfer_row)
@@ -1287,9 +1372,22 @@ async def admin_get_ledger(
     return await get_transactions(db, user_id=user_id, page=page, page_size=page_size)
 
 
-async def get_switches(db: AsyncSession) -> dict[str, bool]:
-    """Return the current wallet module switch states."""
-    return {key: await _switch_enabled(db, key) for key in sorted(_WALLET_SWITCH_KEYS)}
+async def get_switches(db: AsyncSession) -> dict[str, bool | int | str]:
+    """Return the current wallet module switch states + numeric + text settings."""
+    from app.modules.settings.application.site_options_service import SiteOptionsService
+
+    result: dict[str, bool | int | str] = {}
+    for key in sorted(_WALLET_SWITCH_KEYS):
+        result[key] = await _switch_enabled(db, key)
+    for key in sorted(_WALLET_NUMERIC_KEYS):
+        raw = await SiteOptionsService.get(db, key, "0")
+        try:
+            result[key] = max(0, int(raw))
+        except (ValueError, TypeError):
+            result[key] = 0
+    for key in sorted(_WALLET_TEXT_KEYS):
+        result[key] = await SiteOptionsService.get(db, key, "fixed")
+    return result
 
 
 async def set_switch(db: AsyncSession, *, key: str, enabled: bool) -> bool:
@@ -1304,6 +1402,44 @@ async def set_switch(db: AsyncSession, *, key: str, enabled: bool) -> bool:
     await SiteOptionsService.set(db, key, "1" if enabled else "0")
     await logger.ainfo("wallet_switch_changed", key=key, enabled=enabled)
     return enabled
+
+
+async def set_numeric_setting(db: AsyncSession, *, key: str, value: int) -> int:
+    """Set a wallet numeric setting (e.g. transfer fee). Returns the stored value."""
+    if key not in _WALLET_NUMERIC_KEYS:
+        raise ValidationError(
+            detail="کلید تنظیمات عددی کیف پول نامعتبر است.",
+            error_code="UNKNOWN_WALLET_NUMERIC_KEY",
+        )
+    safe_value = max(0, value)
+    from app.modules.settings.application.site_options_service import SiteOptionsService
+
+    await SiteOptionsService.set(db, key, str(safe_value))
+    await logger.ainfo("wallet_numeric_setting_changed", key=key, value=safe_value)
+    return safe_value
+
+
+_VALID_FEE_TYPES = {"fixed", "percent"}
+
+
+async def set_text_setting(db: AsyncSession, *, key: str, value: str) -> str:
+    """Set a wallet text setting (e.g. fee type). Returns the stored value."""
+    if key not in _WALLET_TEXT_KEYS:
+        raise ValidationError(
+            detail="کلید تنظیمات متنی کیف پول نامعتبر است.",
+            error_code="UNKNOWN_WALLET_TEXT_KEY",
+        )
+    # Validate fee type values
+    if key == "wallet_transfer_fee_type" and value not in _VALID_FEE_TYPES:
+        raise ValidationError(
+            detail=f"نوع کارمزد باید یکی از {_VALID_FEE_TYPES} باشد.",
+            error_code="INVALID_FEE_TYPE",
+        )
+    from app.modules.settings.application.site_options_service import SiteOptionsService
+
+    await SiteOptionsService.set(db, key, value)
+    await logger.ainfo("wallet_text_setting_changed", key=key, value=value)
+    return value
 
 
 async def _publish_wallet_event(

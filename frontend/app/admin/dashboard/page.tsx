@@ -21,7 +21,7 @@ import { Card } from "@/components/ui/card";
 import { DataTable, type DataTableColumn } from "@/components/admin/data-table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { formatPrice, toPersianDigits } from "@/lib/utils";
+import { formatOrderCode, formatPrice, toPersianDigits } from "@/lib/utils";
 import apiClient from "@/lib/api/client";
 import { useAdminQuery } from "@/lib/api/admin-query";
 import { STATUS_VISUALS, type OrderStatus } from "@/lib/admin/order-domain";
@@ -86,6 +86,7 @@ const ORDER_STATUS_VARIANT: Record<
   waiting_payment_gateway: "warning",
   waiting_payment_card: "warning",
   pending: "info",
+  doing_verified: "success",
   processing: "default",
   completed: "success",
   canceled: "destructive",
@@ -198,7 +199,7 @@ export default function AdminDashboardPage() {
       key: "number",
       header: "شماره سفارش",
       className: "font-mono font-bold text-foreground",
-      render: (order) => order.orderNumber,
+      render: (order) => formatOrderCode(order.orderNumber),
     },
     {
       key: "customer",

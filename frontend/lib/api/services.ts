@@ -3,11 +3,14 @@ import apiClient from "./client";
 export interface ApiCategory {
   id: string;
   parent_id?: string | null;
+  parent_name?: string | null;
   name: string;
   slug: string;
   description?: string | null;
   image_url?: string | null;
   position?: number;
+  depth?: number;
+  path?: string | null;
   is_active: boolean;
 }
 
@@ -71,11 +74,20 @@ export interface ApiProduct {
 export interface ApiProductVariant {
   id: string;
   product_id: string;
-  sku: string;
+  /** Truly optional (owner directive): null = the product has no code. */
+  sku: string | null;
   barcode?: string | null;
   price: number;
   compare_at_price?: number | null;
   cost?: number | null;
+  /**
+   * USD source prices (Nobitex updater). Decimal on the wire — the backend
+   * serializes them as STRINGS ("9.99"), so never do arithmetic without
+   * Number() first. A non-null `usd_price` means the automatic USD→Toman
+   * sweep manages this variant's `price`.
+   */
+  usd_price?: string | null;
+  usd_sale_price?: string | null;
   weight?: number | null;
   is_active: boolean;
   position: number;
@@ -83,6 +95,15 @@ export interface ApiProductVariant {
   /** Sellable on-hand stock (Odoo free_qty concept). Populated by the detail
    * endpoint; a missing value means availability is unknown, not zero. */
   available?: number | null;
+  /** WooCommerce "Low stock threshold" parity — the admin low-stock alert
+   * fires at this count. Populated by the detail endpoint from the inventory
+   * ledger; null = the store-wide default (5) is in effect. */
+  low_stock_threshold?: number | null;
+  /** Inventory tracking flag from the ledger; null = unknown. */
+  track_inventory?: boolean | null;
+  /** WooCommerce "Allow backorders?" parity — a tracked variant stays
+   * buyable past zero when this is true. */
+  backorder_allowed?: boolean | null;
   created_at?: string;
   updated_at?: string;
 }
@@ -113,6 +134,36 @@ export interface ApiProductDetail extends ApiProduct {
   images: ApiProductImage[];
   tags: Array<{ id: string; name: string; slug: string }>;
   product_attributes: ApiProductAttribute[];
+  /** woo-variation-swatches parity: one selectable swatch group per attribute
+   *  the product varies on. `type` picks the swatch style (color circle /
+   *  image thumbnail / label button) and each option carries its payload. */
+  variation_attributes?: ApiVariationAttributeGroup[];
+  /** WooCommerce "Stock status" parity: manual availability for untracked
+   * products — "instock" | "outofstock". */
+  stock_status?: string;
+  /** Real stock of the first active variant (see ApiProductVariant.stock). */
+  stock?: number | null;
+  /** The variant's low-stock threshold (same source as stock). */
+  low_stock_threshold?: number | null;
+}
+
+/** One selectable swatch inside a variation attribute group. */
+export interface ApiVariationAttributeOption {
+  value_id: string;
+  value: string;
+  slug: string;
+  color?: string | null;
+  image_url?: string | null;
+  tooltip?: string | null;
+}
+
+/** A swatch group rendered as one row on the PDP. */
+export interface ApiVariationAttributeGroup {
+  attribute_id: string;
+  name: string;
+  slug: string;
+  type: "text" | "number" | "color" | "size" | "image" | "label";
+  options: ApiVariationAttributeOption[];
 }
 
 export interface ApiProductListResponse {
@@ -174,6 +225,9 @@ export interface ApiReviewItem {
   is_verified_purchase: boolean;
   helpful_count: number;
   unhelpful_count: number;
+  /** approved | pending — a pending status here is the shopper's OWN review
+   *  awaiting moderation (the list only returns approved + own-pending). */
+  status?: "approved" | "pending" | string;
   created_at: string;
 }
 
@@ -485,6 +539,10 @@ export interface FacetApi {
   field: string;
   display_name: string;
   buckets: FacetBucketApi[];
+  /** Continuous facets (price) carry the population's true bounds in Toman
+   *  so the client can size its slider to the catalogue. */
+  min?: number | null;
+  max?: number | null;
 }
 
 export interface FacetedSearchHit {
@@ -530,6 +588,136 @@ export interface FacetedSearchResponse {
   degraded?: boolean;
 }
 
+// ── Per-product add-on fields (WooCommerce Product Add-ons parity) ────────
+
+export interface ApiProductAddonOption {
+  label: string;
+  /** Option price in Toman at the API boundary (Rial in storage). */
+  price: number | null;
+  price_type: "flat_fee" | "quantity_based" | "percentage_based";
+}
+
+export interface ApiProductAddonField {
+  id: string;
+  product_id: string;
+  field_key: string;
+  label: string;
+  description: string | null;
+  /** multiple_choice | checkbox | custom_text | custom_textarea |
+   *  custom_price | input_multiplier | heading (file_upload پذیرفته نمی‌شود). */
+  field_type: string;
+  display: "select" | "radio" | "checkbox" | null;
+  options_json: ApiProductAddonOption[] | null;
+  is_required: boolean;
+  /** Characters (texts) / quantity (multiplier) / Toman (custom_price). */
+  min_val: number | null;
+  max_val: number | null;
+  /** Field-level price in Toman (input_multiplier). */
+  price: number | null;
+  price_type: "flat_fee" | "quantity_based" | "percentage_based" | null;
+  position: number;
+}
+
+/** GET /catalog/products/{id}/addon-fields — public definitions for the PDP. */
+export async function fetchProductAddonFields(
+  productId: string,
+): Promise<ApiProductAddonField[]> {
+  try {
+    const res = await apiClient.get<ApiProductAddonField[]>(
+      `/catalog/products/${productId}/addon-fields`,
+    );
+    return Array.isArray(res.data) ? res.data : [];
+  } catch {
+    return [];
+  }
+}
+
+/** Client-side addon answer values: keyed by field_key. Checkbox answers
+ *  carry an array of chosen labels, so the value is a union. */
+export type AddonAnswers = Record<string, string | number | (string | number)[]>;
+
+/** One option's price contribution in Toman for the given quantity. */
+export function addonOptionPriceToman(
+  option: ApiProductAddonOption,
+  quantity: number,
+): number {
+  const price = option.price || 0;
+  if (price <= 0) return 0;
+  if (option.price_type === "quantity_based") return price * Math.max(1, quantity);
+  return price;
+}
+
+/** Total add-on price (Toman) for the current answers — display only. */
+export function computeAddonTotalToman(
+  fields: ApiProductAddonField[],
+  answers: AddonAnswers,
+  quantity: number,
+): number {
+  let total = 0;
+  for (const f of fields) {
+    const raw = answers[f.field_key];
+    const empty = raw === undefined || raw === null || raw === "";
+    if (f.field_type === "checkbox" && Array.isArray(raw) && raw.length > 0) {
+      for (const label of raw) {
+        const opt = (f.options_json || []).find((o) => o.label === label);
+        if (opt) total += addonOptionPriceToman(opt, quantity);
+      }
+      continue;
+    }
+    if (empty) continue;
+    if (f.field_type === "multiple_choice") {
+      const opt = (f.options_json || []).find((o) => o.label === String(raw));
+      if (opt) total += addonOptionPriceToman(opt, quantity);
+    } else if (f.field_type === "custom_price") {
+      const amount = Number(raw) || 0;
+      total += amount * Math.max(1, quantity);
+    } else if (f.field_type === "input_multiplier") {
+      const amount = Number(raw) || 0;
+      if (f.price) total += f.price * amount;
+    }
+  }
+  return total;
+}
+
+/** Validate one answer; returns a Persian error message or null. */
+export function validateSingleAddon(
+  field: ApiProductAddonField,
+  value: string | number | (string | number)[] | undefined,
+): string | null {
+  if (field.field_type === "heading") return null;
+  if (field.field_type === "checkbox") {
+    const chosen = Array.isArray(value) ? value : [];
+    if (field.is_required && chosen.length === 0) {
+      return `انتخاب حداقل یک گزینه برای «${field.label}» الزامی است`;
+    }
+    return null;
+  }
+  const empty = value === undefined || value === null || String(value).trim() === "";
+  if (empty) {
+    return field.is_required ? `پر کردن فیلد «${field.label}» الزامی است` : null;
+  }
+  const str = String(value).trim();
+  if (field.field_type === "custom_price" || field.field_type === "input_multiplier") {
+    const num = Number(str);
+    if (Number.isNaN(num)) return `مقدار فیلد «${field.label}» باید عدد باشد`;
+    if (field.min_val !== null && num < field.min_val)
+      return field.field_type === "custom_price"
+        ? `حداقل مبلغ برای «${field.label}» ${field.min_val.toLocaleString("fa-IR")} تومان است`
+        : `حداقل مقدار «${field.label}» ${field.min_val} است`;
+    if (field.max_val !== null && num > field.max_val)
+      return field.field_type === "custom_price"
+        ? `حداکثر مبلغ برای «${field.label}» ${field.max_val.toLocaleString("fa-IR")} تومان است`
+        : `حداکثر مقدار «${field.label}» ${field.max_val} است`;
+    return null;
+  }
+  // Texts: character limits
+  if (field.max_val !== null && str.length > field.max_val)
+    return `متن «${field.label}» حداکثر ${field.max_val} کاراکتر است`;
+  if (field.min_val !== null && str.length < field.min_val)
+    return `متن «${field.label}» حداقل ${field.min_val} کاراکتر است`;
+  return null;
+}
+
 /** POST /search/products/faceted — faceted product search with aggregations. */
 export async function fetchFacetedSearch(
   request: FacetedSearchRequest,
@@ -559,9 +747,15 @@ export interface ApiCategoryCustomField {
   category_id: string;
   field_key: string;
   label: string;
-  field_type: "text" | "number" | "select";
+  description: string | null;
+  /** Legacy trio (text/number/select) plus the WooCommerce addon set. */
+  field_type: string;
+  display: "select" | "radio" | null;
   options_json: string[] | null;
   is_required: boolean;
+  /** Characters (texts) / quantity (multiplier) / Toman (custom_price). */
+  min_val: number | null;
+  max_val: number | null;
   position: number;
 }
 

@@ -5,6 +5,7 @@ from __future__ import annotations
 import uuid
 
 from fastapi import APIRouter, Depends, Query
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database.session import get_db
@@ -79,7 +80,41 @@ async def get_low_stock(
         page=page,
         page_size=page_size,
     )
-    return [LowStockAlert.model_validate(i) for i in items]
+    # Enrich with the product name + SKU: a low-stock alert that does not say
+    # WHICH product is low is useless when dozens of items are flagged.
+    variant_ids = [i.variant_id for i in items]
+    info_by_variant: dict[uuid.UUID, tuple[str | None, str | None, uuid.UUID | None]] = {}
+    if variant_ids:
+        from app.modules.catalog.domain.models import Product, ProductVariant
+
+        v_rows = (
+            await db.execute(
+                select(
+                    ProductVariant.id,
+                    ProductVariant.sku,
+                    ProductVariant.product_id,
+                ).where(ProductVariant.id.in_(variant_ids))
+            )
+        ).all()
+        product_ids = [r[2] for r in v_rows]
+        p_rows = (
+            await db.execute(
+                select(Product.id, Product.name).where(Product.id.in_(product_ids))
+            )
+        ).all()
+        name_by_pid = {r[0]: r[1] for r in p_rows}
+        for vid, v_sku, v_pid in v_rows:
+            info_by_variant[vid] = (name_by_pid.get(v_pid), v_sku, v_pid)
+    return [
+        LowStockAlert.model_validate(i).model_copy(
+            update={
+                "product_id": info_by_variant.get(i.variant_id, (None, None, None))[2],
+                "product_name": info_by_variant.get(i.variant_id, (None, None, None))[0],
+                "sku": info_by_variant.get(i.variant_id, (None, None, None))[1],
+            }
+        )
+        for i in items
+    ]
 
 
 # ── Reorder rules (Odoo orderpoint concept, clean-room) ────────────────────

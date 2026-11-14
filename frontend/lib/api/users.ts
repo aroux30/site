@@ -24,12 +24,16 @@ export interface AdminUser {
   first_name?: string;
   last_name?: string;
   is_active: boolean;
+  /** Manual verification badge (user-verification port). */
+  is_verified?: boolean;
   is_blocked?: boolean;
   is_deleted?: boolean;
   /** The public nickname, when set. */
   display_name?: string | null;
   /** True while the account waits for an operator's approval. */
   pending_approval?: boolean;
+  /** Role names the account holds (server-side filter uses this list). */
+  roles?: string[];
   created_at: string;
   last_login?: string;
 }
@@ -125,6 +129,8 @@ export const usersAdminApi = {
     page_size?: number;
     search?: string;
     is_active?: boolean;
+    /** Manual verification badge filter (user-verification port). */
+    is_verified?: boolean;
     /** Server-side role filter, by slug. Absent means every role. */
     role?: string;
     /** Include soft-deleted accounts — the restore view. */

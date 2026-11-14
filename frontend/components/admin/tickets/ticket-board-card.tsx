@@ -251,13 +251,19 @@ function TicketBoardCardShell({
       {...(overlay ? {} : attributes)}
       {...(overlay ? {} : listeners)}
       className={cn(
-        "group relative rounded-xl border p-3.5 transition-all duration-200",
+        // LAG FIX (same as orders board): the card must NOT transition
+        // `transform` — dnd-kit writes a fresh translate on every pointer
+        // frame, and a transition-all animated each update over 200ms,
+        // making the card trail the cursor. Only colors/shadow ease.
+        "group relative rounded-xl border p-3.5 transition-[background-color,border-color,box-shadow] duration-200",
         "cursor-grab active:cursor-grabbing select-none",
         "bg-card",
         "shadow-md",
         glowClass,
+        // No backdrop-blur on the moving clone: the GPU recomposites the blur
+        // every frame during the drag; the ring + shadow carry the effect.
         overlay
-          ? "rotate-2 scale-105 border-primary/60 shadow-xl shadow-primary/30 ring-2 ring-primary/40 backdrop-blur-md"
+          ? "rotate-2 scale-105 border-primary/60 shadow-xl shadow-primary/30 ring-2 ring-primary/40"
           : cn(borderGlow, "hover:scale-[1.02] hover:shadow-lg"),
         stale && !overlay && "border-amber-500/50 shadow-amber-500/30 ring-1 ring-amber-500/30",
       )}

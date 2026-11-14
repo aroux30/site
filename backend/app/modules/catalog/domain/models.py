@@ -3,6 +3,7 @@
 import enum
 import uuid
 from datetime import datetime
+from decimal import Decimal
 from typing import Any, Optional
 
 from sqlalchemy import (
@@ -14,6 +15,7 @@ from sqlalchemy import (
     ForeignKey,
     Index,
     Integer,
+    Numeric,
     String,
     Text,
     UniqueConstraint,
@@ -44,6 +46,11 @@ class AttributeType(str, enum.Enum):
     NUMBER = "number"
     COLOR = "color"
     SIZE = "size"
+    # Variation-swatch display types (woo-variation-swatches parity): an
+    # IMAGE attribute renders each value as its thumbnail, a LABEL one as a
+    # text button — the "60 UC / 325 UC / 660 UC" top-up selector shape.
+    IMAGE = "image"
+    LABEL = "label"
 
 
 # ---- Models ----
@@ -158,6 +165,13 @@ class Product(BaseModel):
     )
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     is_featured: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    # WooCommerce "Stock status" parity: a manual availability flag used when
+    # stock is NOT counted (untracked products are otherwise always buyable).
+    # "instock" | "outofstock"; "onbackorder" is derived at runtime from the
+    # inventory ledger's backorder flag for tracked variants.
+    stock_status: Mapped[str] = mapped_column(
+        String(20), default="instock", server_default=text("instock"), nullable=False
+    )
     # Karta per-invoice purchase limits (Sprint 1.5): backend is the source
     # of truth; the storefront stepper only mirrors these bounds.
     min_order_quantity: Mapped[int] = mapped_column(
@@ -215,11 +229,24 @@ class ProductVariant(BaseModel):
         ForeignKey("products.id", ondelete="CASCADE"),
         nullable=False,
     )
-    sku: Mapped[str] = mapped_column(String(100), unique=True, nullable=False)
+    # Truly optional (WooCommerce parity): empty means the product simply has
+    # no warehouse code. Postgres UNIQUE allows multiple NULLs.
+    sku: Mapped[str | None] = mapped_column(String(100), unique=True, nullable=True)
     barcode: Mapped[str | None] = mapped_column(String(100), nullable=True)
     price: Mapped[int] = mapped_column(BigInteger, nullable=False)
     compare_at_price: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
     cost: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
+    # USD-denominated source prices (Nobitex price updater). A variant with a
+    # ``usd_price`` is "managed": the currency sweep derives ``price`` (and,
+    # with ``usd_sale_price``, ``compare_at_price``) from these on every run.
+    # NUMERIC, not float — a USD price is money too, and 9.99 must not become
+    # 9.989999999999998 on the way to a multiplication.
+    usd_price: Mapped[Decimal | None] = mapped_column(
+        Numeric(12, 2), nullable=True
+    )
+    usd_sale_price: Mapped[Decimal | None] = mapped_column(
+        Numeric(12, 2), nullable=True
+    )
     weight: Mapped[float | None] = mapped_column(Float, nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     position: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
@@ -400,6 +427,13 @@ class AttributeValue(BaseModel):
     value: Mapped[str] = mapped_column(String(200), nullable=False)
     slug: Mapped[str] = mapped_column(String(220), nullable=False)
     position: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    # Swatch payloads (woo-variation-swatches parity): a COLOR attribute
+    # renders `color` as the swatch background, an IMAGE one renders
+    # `image_url`, and `tooltip` is the hover text any type may carry. All
+    # nullable — a plain LABEL swatch needs none of them.
+    color: Mapped[str | None] = mapped_column(String(30), nullable=True)
+    image_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    tooltip: Mapped[str | None] = mapped_column(String(300), nullable=True)
 
     # Relationships
     attribute: Mapped["Attribute"] = relationship("Attribute", back_populates="values")

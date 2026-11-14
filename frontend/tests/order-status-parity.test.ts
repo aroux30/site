@@ -93,9 +93,9 @@ function parsePythonTransitions(sourceRaw: string): Record<string, string[]> {
   // the digital-store chain (waiting_payment_gateway, waiting_payment_card, pending, processing,
   // completed, canceled, refunded). This guard exists so a silent shape change
   // is loud — it must be bumped deliberately, not made permissive.
-  if (count !== 7) {
+  if (count !== 8) {
     throw new Error(
-      `parsed ${count} statuses from _VALID_TRANSITIONS, expected 7 — ` +
+      `parsed ${count} statuses from _VALID_TRANSITIONS, expected 8 — ` +
         "the Python table changed shape and this parser needs updating " +
         `(parsed: ${Object.keys(table).join(", ")})`,
     );
@@ -146,7 +146,7 @@ describe("order status enum parity", () => {
     // 7 since 2026-10-11: the physical-store chain was replaced by the
     // digital-store chain (payment buckets + pending → processing → completed
     // + canceled/refunded).
-    expect(values.length, "enum values parsed").toBe(7);
+    expect(values.length, "enum values parsed").toBe(8);
     expect([...ORDER_STATUSES].sort()).toEqual([...values].sort());
   });
 

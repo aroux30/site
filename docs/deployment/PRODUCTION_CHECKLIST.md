@@ -60,6 +60,15 @@ docker compose -f docker-compose.yml -f docker-compose.prod.yml exec backend pyt
 - `/metrics` and `/deep-health` are **denied at the edge** — Prometheus scrapes
   `backend:8000` inside the Docker network.
 - nginx rate-limit zones (`auth_limit`, `login_limit`, general) active.
+- **SSE must not be buffered.** The live-chat widget opens a long-lived
+  `GET /api/v1/chat/stream` (Server-Sent Events). nginx buffers proxied
+  responses by default, which would hold every event until the connection
+  closes and defeat the stream. The backend already sends
+  `X-Accel-Buffering: no`, but confirm the edge does not override it — the
+  chat location needs `proxy_buffering off;` (and, if a global
+  `proxy_read_timeout` is short, a longer one for this path). The widget falls
+  back to 4s polling if the stream never connects, so a misconfigured proxy
+  degrades to the old behaviour rather than breaking chat.
 
 ## 5. Post-deploy smoke (5 minutes)
 

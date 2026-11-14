@@ -28,6 +28,7 @@ from app.modules.catalog.schemas.catalog import (
     AttributeResponse,
     AttributeUpdate,
     AttributeValueCreate,
+    AttributeValueUpdate,
     AttributeValueListResponse,
     AttributeValueResponse,
     BrandCreate,
@@ -92,18 +93,19 @@ def _accessory_to_response(product: Any) -> "ProductAccessoryResponse":
     summary="List categories",
 )
 async def list_categories(
+    q: str | None = Query(None, description="Search query by name or slug"),
     is_active: bool | None = Query(None),
     parent_id: uuid.UUID | None = Query(None, description="Filter by parent; omit for all"),
     page: int = Query(1, ge=1),
-    page_size: int = Query(50, ge=1, le=200),
+    page_size: int = Query(200, ge=1, le=1000),
     db: AsyncSession = Depends(get_db),
 ) -> CategoryListResponse:
-    """List categories with optional filtering by parent and active status."""
+    """List categories with optional filtering by search query, parent and active status."""
     svc = CategoryService(db)
     # Use sentinel to differentiate "not provided" from "explicitly None"
     _parent_id = parent_id if parent_id is not None else ...
     return await svc.list(
-        is_active=is_active, parent_id=_parent_id, page=page, page_size=page_size
+        is_active=is_active, parent_id=_parent_id, page=page, page_size=page_size, q=q
     )
 
 
@@ -329,6 +331,14 @@ async def list_products(
     q: str | None = Query(None, description="Full-text search"),
     category_id: uuid.UUID | None = Query(None),
     category_slug: str | None = Query(None),
+    category: str | None = Query(
+        None,
+        description=(
+            "Legacy category filter: accepts a category UUID or slug. Kept "
+            "because storefront links and external clients used this name; "
+            "an unknown value must filter to zero, never be silently ignored."
+        ),
+    ),
     brand_id: uuid.UUID | None = Query(None),
     brand_slug: str | None = Query(None),
     status_filter: ProductStatus | None = Query(None, alias="status"),
@@ -367,6 +377,15 @@ async def list_products(
             parsed_attr_values = [uuid.UUID(a.strip()) for a in attribute_values.split(",")]
         except ValueError:
             parsed_attr_values = None
+
+    # Legacy `?category=` — parse into the typed filter it represents.
+    # A non-UUID value is treated as a slug. An unknown slug yields zero rows
+    # (the repository joins on the slug), which is the honest answer.
+    if category and category_id is None and category_slug is None:
+        try:
+            category_id = uuid.UUID(category.strip())
+        except ValueError:
+            category_slug = category.strip()
 
     filters = ProductFilterParams(
         q=q,
@@ -878,6 +897,25 @@ async def create_attribute_value(
     return await svc.create_value(attribute_id, data)
 
 
+@router.patch(
+    "/attributes/{attribute_id}/values/{value_id}",
+    response_model=AttributeValueResponse,
+    summary="Update a value of an attribute",
+    dependencies=[_require_catalog_write],
+)
+async def update_attribute_value(
+    attribute_id: uuid.UUID,
+    value_id: uuid.UUID,
+    data: AttributeValueUpdate,
+    db: AsyncSession = Depends(get_db),
+) -> AttributeValueResponse:
+    """Update one value's label/position and its swatch payloads (color hex,
+    image URL, tooltip) — the admin variation manager's swatch editor.
+    Requires ``catalog:write``."""
+    svc = AttributeService(db)
+    return await svc.update_value(attribute_id, value_id, data)
+
+
 @router.delete(
     "/attributes/{attribute_id}/values/{value_id}",
     status_code=status.HTTP_204_NO_CONTENT,
@@ -887,14 +925,20 @@ async def create_attribute_value(
 async def delete_attribute_value(
     attribute_id: uuid.UUID,
     value_id: uuid.UUID,
+    force: bool = Query(
+        False,
+        description=(
+            "Delete even when products use this value. The product→value "
+            "links are detached first; their other specifications stay."
+        ),
+    ),
     db: AsyncSession = Depends(get_db),
 ) -> None:
-    """Delete one value.  Refused with 409 while products still use it.
-
-    Requires ``catalog:write``.
+    """Delete one value.  Refused with 409 while products still use it unless
+    ``force=true`` is passed.  Requires ``catalog:write``.
     """
     svc = AttributeService(db)
-    await svc.delete_value(attribute_id, value_id)
+    await svc.delete_value(attribute_id, value_id, force=force)
 
 
 # ── Dynamic category order fields (Karta categoryFields, Sprint 1.7) ──────
@@ -938,9 +982,46 @@ async def create_category_custom_field(
         field_key=str(body.get("field_key") or ""),
         label=str(body.get("label") or ""),
         field_type=str(body.get("field_type") or "text"),
+        description=body.get("description"),
+        display=body.get("display"),
         is_required=bool(body.get("is_required", False)),
         position=int(body.get("position", 0)),
         options=body.get("options"),
+        min_val=body.get("min_val"),
+        max_val=body.get("max_val"),
+    )
+    return CategoryCustomFieldResponse.model_validate(field).model_dump(mode="json")
+
+
+@router.put(
+    "/custom-fields/{field_id}",
+    response_model=dict,
+    summary="Edit a dynamic order-field definition (admin)",
+    dependencies=[Depends(RequirePermissions("catalog:write"))],
+)
+async def update_category_custom_field(
+    field_id: uuid.UUID,
+    body: dict[str, Any],
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, Any]:
+    """Edit label/type/options/limits of an existing category field.
+
+    ``field_key`` is immutable (it keys buyer answers and saved orders).
+    """
+    from app.modules.inventory.application import custom_field_service
+    from app.modules.inventory.schemas.digital import CategoryCustomFieldResponse
+
+    field = await custom_field_service.update_field(
+        db,
+        field_id=field_id,
+        label=str(body.get("label") or ""),
+        field_type=str(body.get("field_type") or "text"),
+        description=body.get("description"),
+        display=body.get("display"),
+        options=body.get("options"),
+        is_required=bool(body.get("is_required", False)),
+        min_val=body.get("min_val"),
+        max_val=body.get("max_val"),
     )
     return CategoryCustomFieldResponse.model_validate(field).model_dump(mode="json")
 
@@ -958,6 +1039,111 @@ async def delete_category_custom_field(
     from app.modules.inventory.application import custom_field_service
 
     await custom_field_service.delete_field(db, field_id=field_id)
+    return {"deleted": True}
+
+
+# ── Per-product add-on fields (WooCommerce Product Add-ons parity) ────────
+
+
+@router.get(
+    "/products/{product_id}/addon-fields",
+    response_model=list,
+    summary="List a product's add-on field definitions (public)",
+)
+async def list_product_addon_fields(
+    product_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+) -> list[dict[str, Any]]:
+    """Definitions the storefront product page renders as buyer-input add-ons."""
+    from app.modules.inventory.application import product_addon_service
+    from app.modules.inventory.schemas.digital import ProductAddonFieldResponse
+
+    fields = await product_addon_service.list_fields_for_product(db, product_id)
+    return [ProductAddonFieldResponse.model_validate(f).model_dump(mode="json") for f in fields]
+
+
+@router.post(
+    "/products/{product_id}/addon-fields",
+    response_model=dict,
+    status_code=status.HTTP_201_CREATED,
+    summary="Create an add-on field definition for a product (admin)",
+    dependencies=[Depends(RequirePermissions("catalog:write"))],
+)
+async def create_product_addon_field(
+    product_id: uuid.UUID,
+    body: dict[str, Any],
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, Any]:
+    from app.modules.inventory.application import product_addon_service
+    from app.modules.inventory.schemas.digital import ProductAddonFieldResponse
+
+    field = await product_addon_service.create_field(
+        db,
+        product_id=product_id,
+        field_key=str(body.get("field_key") or ""),
+        label=str(body.get("label") or ""),
+        field_type=str(body.get("field_type") or "custom_text"),
+        description=body.get("description"),
+        display=body.get("display"),
+        options=body.get("options"),
+        is_required=bool(body.get("is_required", False)),
+        min_val=body.get("min_val"),
+        max_val=body.get("max_val"),
+        price=body.get("price"),
+        price_type=body.get("price_type"),
+        position=int(body.get("position", 0)),
+    )
+    return ProductAddonFieldResponse.model_validate(field).model_dump(mode="json")
+
+
+@router.put(
+    "/addon-fields/{field_id}",
+    response_model=dict,
+    summary="Edit a product add-on field definition (admin)",
+    dependencies=[Depends(RequirePermissions("catalog:write"))],
+)
+async def update_product_addon_field(
+    field_id: uuid.UUID,
+    body: dict[str, Any],
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, Any]:
+    """Edit label/type/options/limits of an existing add-on definition.
+
+    ``field_key`` is immutable (it keys buyer answers and saved orders).
+    """
+    from app.modules.inventory.application import product_addon_service
+    from app.modules.inventory.schemas.digital import ProductAddonFieldResponse
+
+    field = await product_addon_service.update_field(
+        db,
+        field_id=field_id,
+        label=str(body.get("label") or ""),
+        field_type=str(body.get("field_type") or "custom_text"),
+        description=body.get("description"),
+        display=body.get("display"),
+        options=body.get("options"),
+        is_required=bool(body.get("is_required", False)),
+        min_val=body.get("min_val"),
+        max_val=body.get("max_val"),
+        price=body.get("price"),
+        price_type=body.get("price_type"),
+    )
+    return ProductAddonFieldResponse.model_validate(field).model_dump(mode="json")
+
+
+@router.delete(
+    "/addon-fields/{field_id}",
+    response_model=dict,
+    summary="Delete a product add-on field definition (admin)",
+    dependencies=[Depends(RequirePermissions("catalog:write"))],
+)
+async def delete_product_addon_field(
+    field_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, bool]:
+    from app.modules.inventory.application import product_addon_service
+
+    await product_addon_service.delete_field(db, field_id=field_id)
     return {"deleted": True}
 
 

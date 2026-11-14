@@ -52,7 +52,10 @@ const DEFAULT_FILTERS: FacetedFilterState = {
 function parseFiltersFromParams(searchParams: URLSearchParams): FacetedFilterState {
   const q = searchParams.get("q") || "";
   const category =
-    searchParams.get("category_id") || searchParams.get("category") || null;
+    searchParams.get("category_id") ||
+    searchParams.get("category_slug") ||
+    searchParams.get("category") ||
+    null;
   const brand =
     searchParams.get("brand") || searchParams.get("brand_id") || null;
   const minPriceRaw = searchParams.get("min_price");
@@ -90,7 +93,17 @@ function filtersToSearchParams(state: FacetedFilterState): URLSearchParams {
   const params = new URLSearchParams();
 
   if (state.q.trim()) params.set("q", state.q.trim());
-  if (state.category) params.set("category_id", state.category);
+  if (state.category) {
+    const isUuid =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+        state.category,
+      );
+    if (isUuid) {
+      params.set("category_id", state.category);
+    } else {
+      params.set("category_slug", state.category);
+    }
+  }
   if (state.brand) params.set("brand", state.brand);
   if (state.minPrice !== null && state.minPrice > 0)
     params.set("min_price", String(state.minPrice));
@@ -119,7 +132,17 @@ function buildApiRequest(
 ): FacetedSearchRequest {
   const filters: Record<string, string[]> = {};
 
-  if (state.category) filters.category_id = [state.category];
+  if (state.category) {
+    const isUuid =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+        state.category,
+      );
+    if (isUuid) {
+      filters.category_id = [state.category];
+    } else {
+      filters.category_slug = [state.category];
+    }
+  }
   if (state.brand) filters.brand = [state.brand];
   if (state.minRating !== null) filters.rating = [String(state.minRating)];
   if (state.inStockOnly) filters.in_stock = ["true"];
@@ -157,11 +180,26 @@ export function useFacetedSearch() {
   const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
 
+  // WordPress-style category archives (/category/<slug>): the slug lives in
+  // the path, not the query. A server-side rewrite cannot feed it to
+  // useSearchParams — the client parses the browser's URL — so the hook
+  // reads the path itself. It only seeds the filter when the query carries
+  // no category, so an explicit ?category_slug=… on the same path still wins.
+  const pathCategory = useMemo(() => {
+    const match = pathname.match(/^\/category\/([^/?#]+)/);
+    if (!match?.[1]) return null;
+    try {
+      return decodeURIComponent(match[1]);
+    } catch {
+      return match[1];
+    }
+  }, [pathname]);
+
   // Parse initial state from URL
-  const parsedFilters = useMemo(
-    () => parseFiltersFromParams(searchParams),
-    [searchParams],
-  );
+  const parsedFilters = useMemo(() => {
+    const fromQuery = parseFiltersFromParams(searchParams);
+    return fromQuery.category ? fromQuery : { ...fromQuery, category: pathCategory };
+  }, [searchParams, pathCategory]);
 
   const [filters, setFilters] = useState<FacetedFilterState>(parsedFilters);
   const [debouncedQuery, setDebouncedQuery] = useState(filters.q);
@@ -184,7 +222,12 @@ export function useFacetedSearch() {
       startTransition(() => {
         const params = filtersToSearchParams(nextState);
         const qs = params.toString();
-        router.push(`${pathname}${qs ? `?${qs}` : ""}`, { scroll: false });
+        // Dropping the category filter must leave the archive — on
+        // /category/<slug> the path itself IS the filter, so staying would
+        // immediately re-seed it. Return to the shop index instead.
+        const base =
+          !nextState.category && /^\/category\//.test(pathname) ? "/products" : pathname;
+        router.push(`${base}${qs ? `?${qs}` : ""}`, { scroll: false });
       });
     },
     [pathname, router],
@@ -212,13 +255,15 @@ export function useFacetedSearch() {
 
   const applyQueryText = useCallback(
     (q: string) => {
-      setFilters((prev) => {
-        const next = { ...prev, q, page: 1 };
-        syncToUrl(next);
-        return next;
-      });
+      // Compute the next state in the handler and push the URL here too —
+      // calling router.push from inside the setFilters updater is a render
+      // phase side effect, and the q param never reached the URL (verified
+      // live: chip rendered, address bar unchanged).
+      const next = { ...filters, q, page: 1 };
+      setFilters(next);
+      syncToUrl(next);
     },
-    [syncToUrl],
+    [filters, syncToUrl],
   );
 
   const setCategory = useCallback(
@@ -341,6 +386,25 @@ export function useFacetedSearch() {
     return count;
   }, [filters]);
 
+  // Human-readable category label for the active-filter chip. The URL may
+  // carry a UUID (PDP badge) or a slug (legacy links); showing either raw is
+  // unreadable to a shopper. Prefer the facet bucket's display name, then the
+  // first result's category_name (same category by construction), and only
+  // fall back to the raw value when neither exists.
+  const categoryLabel = useMemo(() => {
+    if (!filters.category) return null;
+    // Every hit is from the filtered category, so its name is the answer —
+    // and it covers both URL forms (UUID from the PDP badge, slug from legacy
+    // links), which a bucket-key comparison could not do for the slug form.
+    const firstHit = data?.hits?.[0];
+    if (firstHit?.category_name) return firstHit.category_name;
+    const bucket = (data?.facets ?? [])
+      .find((f) => f.field === "category_id")
+      ?.buckets.find((b) => b.key === filters.category);
+    if (bucket?.label) return bucket.label;
+    return filters.category;
+  }, [filters.category, data]);
+
   return {
     // State
     filters,
@@ -349,6 +413,7 @@ export function useFacetedSearch() {
     total: data?.total ?? 0,
     totalPages: data?.total_pages ?? 0,
     page: filters.page,
+    categoryLabel,
 
     // Loading / error
     isLoading: isLoading || isPending,

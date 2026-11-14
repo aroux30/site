@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import {
   Search,
   ShoppingCart,
@@ -22,6 +22,7 @@ import {
   Sparkles,
   ArrowLeftRight,
   Users,
+  Bell,
 } from "lucide-react";
 import { cn, toPersianDigits } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
@@ -52,7 +53,10 @@ import {
   type SearchSuggestionItem,
 } from "@/lib/api/services";
 import { contentApi, singleTypesApi, type MenuItem } from "@/lib/api/content";
+import { notificationsApi } from "@/lib/api/notifications";
 import { useSiteBranding } from "@/components/layout/site-branding-provider";
+import { TextLoop } from "@/components/ui/text-loop";
+import { MegaMenu } from "@/components/layout/mega-menu";
 
 // Fallback nav only until the CMS menu tree (header_main location) loads from
 // the API — editors can then change links from the admin panel without a deploy.
@@ -116,6 +120,24 @@ export function Header() {
   // switch is off — a header link to a page that then refuses to load is the
   // defect the switch exists to prevent.
   const shopFeatures = useShopFeatures();
+  const pathname = usePathname();
+  const [isVisualEditor, setIsVisualEditor] = useState(false);
+
+  useEffect(() => {
+    const checkVisualEditor = () => {
+      try {
+        const sp = new URLSearchParams(window.location.search);
+        setIsVisualEditor(
+          sp.get("visual_editor") === "true" || sp.get("edit") === "true",
+        );
+      } catch {
+        setIsVisualEditor(false);
+      }
+    };
+    checkVisualEditor();
+    window.addEventListener("popstate", checkVisualEditor);
+    return () => window.removeEventListener("popstate", checkVisualEditor);
+  }, [pathname]);
 
   const [mounted, setMounted] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -123,6 +145,9 @@ export function Header() {
   const [categoriesOpen, setCategoriesOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [cartDrawerOpen, setCartDrawerOpen] = useState(false);
+  // Unread notifications badge. Fetched once on mount (and only for an
+  // authenticated user); the inbox itself lives at /account/inbox.
+  const [unreadNotifications, setUnreadNotifications] = useState(0);
 
   // Live search state
   const [searchQuery, setSearchQuery] = useState("");
@@ -162,6 +187,18 @@ export function Header() {
   useEffect(() => {
     setMounted(true);
     let cancelled = false;
+    // Unread notifications badge — only for a signed-in user; a guest has
+    // no notifications and the call would just 401.
+    if (isAuthenticated) {
+      notificationsApi
+        .list({ is_read: false, limit: 1 })
+        .then((data) => {
+          if (!cancelled) setUnreadNotifications(data.unread_count);
+        })
+        .catch(() => {
+          // A badge is decoration — a failed count must not break the header.
+        });
+    }
     contentApi
       .getMenu("header_main")
       .then((items) => {
@@ -204,14 +241,31 @@ export function Header() {
     fallbackNavigationLinks
   ).filter((link) => isFeatureGatedLink(link.href, shopFeatures));
 
-  // Fetch real categories from API
+  // Fetch real categories from API. The dropdown is the storefront's
+  // category navigation: capping it at 100 hid every imported category past
+  // the cap (the catalogue holds thousands), so page through the full active
+  // set. The backend caps page_size at 1000.
   useEffect(() => {
     let isCancelled = false;
     async function loadCategories() {
       try {
-        const response = await fetchCategories({ is_active: true, page_size: 20 });
-        if (!isCancelled && response.items && response.items.length > 0) {
-          setCategories(response.items);
+        const PAGE = 1000;
+        const collected: ApiCategory[] = [];
+        let page = 1;
+        for (;;) {
+          const response = await fetchCategories({
+            is_active: true,
+            page,
+            page_size: PAGE,
+          });
+          const chunk = response.items ?? [];
+          collected.push(...chunk);
+          const totalPages = response.meta?.total_pages ?? page;
+          if (chunk.length === 0 || page >= totalPages) break;
+          page += 1;
+        }
+        if (!isCancelled && collected.length > 0) {
+          setCategories(collected);
         }
       } catch {
         // Leave the list empty — an honest empty dropdown beats dead links
@@ -342,6 +396,7 @@ export function Header() {
 
   return (
     <>
+    {isVisualEditor && <div aria-hidden className="h-14 shrink-0 w-full" />}
     <HeaderTopWidgets />
     {/* Announcement bar from CMS homepage_config (admin /admin/cms) */}
     {announcement?.enabled && announcement.text ? (
@@ -357,7 +412,8 @@ export function Header() {
     ) : null}
     <header
       className={cn(
-        "sticky top-0 z-50 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 transition-shadow",
+        "sticky z-40 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 transition-shadow",
+        isVisualEditor ? "top-14" : "top-0",
         scrolled && "shadow-md",
       )}
     >
@@ -377,8 +433,17 @@ export function Header() {
               </span>
             </div>
             <div className="hidden items-center gap-1.5 sm:flex">
-              <MapPin className="h-3 w-3" />
-              <span>ارسال سریع و مطمئن به سراسر ایران</span>
+              <MapPin className="h-3 w-3 shrink-0" />
+              <TextLoop
+                texts={[
+                  "ارسال سریع و مطمئن به سراسر ایران",
+                  "ضمانت اصالت و سلامت تمامی کالاها",
+                  "۷ روز فرصت تست و بازگشت بی‌قید و شرط",
+                  "مشاوره تخصصی و پشتیبانی ۲۴ ساعته",
+                ]}
+                interval={4000}
+                className="text-xs text-white/90"
+              />
             </div>
           </div>
           <div className="flex min-w-0 items-center gap-4">
@@ -476,6 +541,29 @@ export function Header() {
                     <Heart className="h-5 w-5 transition-colors group-hover:text-red-500" />
                     <span className="pointer-events-none absolute -bottom-8 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md bg-foreground px-2 py-1 text-[10px] text-background opacity-0 shadow-lg transition-opacity group-hover:opacity-100 z-50">
                       علاقه‌مندی‌ها
+                    </span>
+                  </Button>
+                </Link>
+              )}
+
+              {/* Notifications bell — links to the inbox; badge shows the
+                  unread count. Signed-in users only (a guest has no inbox). */}
+              {mounted && isAuthenticated && (
+                <Link href="/account/inbox" className="hidden sm:inline-flex">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="group relative"
+                    aria-label="اعلان‌ها"
+                  >
+                    <Bell className="h-5 w-5 transition-colors group-hover:text-primary" />
+                    {unreadNotifications > 0 && (
+                      <Badge className="absolute -left-1.5 -top-1.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1 text-[11px] font-bold text-primary-foreground shadow-sm">
+                        {unreadNotifications > 99 ? "۹۹+" : toPersianDigits(unreadNotifications)}
+                      </Badge>
+                    )}
+                    <span className="pointer-events-none absolute -bottom-8 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md bg-foreground px-2 py-1 text-[10px] text-background opacity-0 shadow-lg transition-opacity group-hover:opacity-100 z-50">
+                      اعلان‌ها
                     </span>
                   </Button>
                 </Link>
@@ -588,7 +676,7 @@ export function Header() {
                         screen-reader-only span on the button keep a name at
                         every width. */}
                     <User className="h-4 w-4" aria-hidden="true" />
-                    <span className="hidden sm:inline">ورود / ثبت‌نام</span>
+                    <span className="hidden sm:inline">ورود | ثبت‌نام</span>
                     <span className="sr-only sm:hidden">ورود یا ثبت‌نام</span>
                   </Button>
                 </Link>
@@ -632,70 +720,12 @@ export function Header() {
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1">
-              {/* Real Categories Dropdown */}
-              <div
-                className="group relative"
-                onMouseEnter={() => setCategoriesOpen(true)}
-                onMouseLeave={() => setCategoriesOpen(false)}
-              >
-                <button
-                  className={cn(
-                    "flex items-center gap-2 rounded-lg px-3.5 py-3 text-sm font-semibold transition-colors",
-                    "text-primary hover:bg-primary/5",
-                  )}
-                  onClick={() => setCategoriesOpen(!categoriesOpen)}
-                  aria-expanded={categoriesOpen}
-                  aria-haspopup="true"
-                >
-                  <Layers className="h-4 w-4 text-primary" />
-                  <span>دسته‌بندی کالاها</span>
-                  <ChevronDown
-                    className={cn(
-                      "h-3.5 w-3.5 transition-transform duration-200",
-                      categoriesOpen && "rotate-180",
-                    )}
-                  />
-                </button>
-
-                {/* Real Categories Dropdown Panel */}
-                <div
-                  className={cn(
-                    "absolute right-0 top-full z-50 w-72 rounded-xl border border-border bg-card p-2 shadow-2xl transition-all duration-200",
-                    categoriesOpen
-                      ? "visible translate-y-0 opacity-100"
-                      : "invisible -translate-y-2 opacity-0",
-                  )}
-                >
-                  <div className="px-3 py-1.5 text-xs font-semibold text-muted-foreground">
-                    همه دسته‌بندی‌ها
-                  </div>
-                  <div className="max-h-[380px] overflow-y-auto space-y-0.5">
-                    {categoriesLoading ? (
-                      <div className="space-y-1.5 px-2 py-1.5">
-                        {[...Array(4)].map((_, i) => (
-                          <div key={i} className="h-8 animate-pulse rounded-lg bg-muted" />
-                        ))}
-                      </div>
-                    ) : categories.length === 0 ? (
-                      <div className="px-3 py-4 text-xs text-muted-foreground">
-                        دسته‌بندی‌ای در دسترس نیست
-                      </div>
-                    ) : (
-                      categories.map((category) => (
-                      <Link
-                        key={category.id}
-                        href={`/products?category_id=${category.id}&category_slug=${category.slug}`}
-                        className="flex items-center justify-between rounded-lg px-3 py-2.5 text-sm text-foreground hover:bg-primary/10 hover:text-primary transition-colors"
-                        onClick={() => setCategoriesOpen(false)}
-                      >
-                        <span>{category.name}</span>
-                        <ArrowLeft className="h-3.5 w-3.5 opacity-60" />
-                      </Link>
-                    ))
-                    )}
-                  </div>
-                </div>
-              </div>
+              {/* Categories MegaMenu */}
+              <MegaMenu
+                categories={categories}
+                icon={<Layers className="h-4 w-4" />}
+                triggerClassName="rounded-lg px-3.5 py-3 text-sm font-semibold text-primary hover:bg-primary/5 bg-transparent"
+              />
 
               {/* Separator */}
               <div className="h-5 w-px bg-border mx-2" />

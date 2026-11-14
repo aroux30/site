@@ -69,7 +69,7 @@ function CategoryGridBlock({ config }: { config: Config }) {
                 name={item.name}
                 className={i % 4 === 0 || i % 4 === 3 ? "md:col-span-2 bg-card border-border/80" : "md:col-span-1 bg-card border-border/80"}
                 description={item.description ?? ""}
-                href={`/products?category=${encodeURIComponent(item.slug)}`}
+                href={`/category/${encodeURIComponent(item.slug)}`}
                 cta="مشاهده محصولات"
               />
             );

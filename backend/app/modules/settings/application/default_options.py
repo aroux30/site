@@ -59,6 +59,10 @@ DEFAULTS: dict[str, str] = {
     "permalink_structure": "/blog/%postname%/",
     "category_base": "category",
     "tag_base": "tag",
+    # WooCommerce-parity product base (options-permalink.php «پایهٔ کالا»).
+    # "products" is the physical Next.js route; any other single segment is
+    # aliased onto it by the middleware.
+    "product_base": "products",
 
     # Discussion / Comments
     "default_comment_status": "open",
@@ -298,6 +302,16 @@ DEFAULTS: dict[str, str] = {
     "wallet_withdraw_enabled": "1",
     # Peer-to-peer wallet transfers between customers.
     "wallet_transfer_enabled": "1",
+    # Transfer fee in Rials — deducted from the sender on top of the transfer
+    # amount. The fee is burned (not credited anywhere). "0" = free transfers.
+    "wallet_transfer_fee_rial": "0",
+    # Transfer fee type: "fixed" (flat Rial amount) or "percent" (percentage
+    # of the transfer amount). When "percent", wallet_transfer_fee_percent is
+    # used instead of wallet_transfer_fee_rial.
+    "wallet_transfer_fee_type": "fixed",
+    # Transfer fee percentage (e.g. "5" = 5%). Only used when fee_type is
+    # "percent". The resulting fee is rounded up to the nearest Rial.
+    "wallet_transfer_fee_percent": "0",
     # Admin balance adjustments (credit/debit a customer wallet from the panel).
     "wallet_admin_adjust_enabled": "1",
 

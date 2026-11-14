@@ -15,7 +15,7 @@ export default async function ProductsPage() {
   try {
     const res = await fetch(
       `${apiInternalUrl()}/catalog/products?is_active=true&page_size=50`,
-      { next: { revalidate: 300 } },
+      { cache: "no-store" },
     );
     if (res.ok) {
       // Live shape: {"items":[{slug, name, ...}], "meta":{...}}

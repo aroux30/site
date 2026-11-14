@@ -122,7 +122,7 @@ export function AdminGlobalSearch() {
   const showPanel = open && term.trim().length >= MIN_TERM_LENGTH;
 
   return (
-    <div ref={containerRef} className="relative w-full max-w-md">
+    <div ref={containerRef} className="relative w-[400px] max-w-full">
       <div className="relative">
         <Search className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <Input
@@ -135,7 +135,7 @@ export function AdminGlobalSearch() {
           onFocus={() => setOpen(true)}
           onKeyDown={onKeyDown}
           placeholder="جست‌وجو: شماره سفارش، تلفن، نام، SKU… (Ctrl+K)"
-          className="ps-9 pe-9"
+          className="ps-9 pe-3"
           aria-label="جست‌وجوی سراسری"
         />
         {loading && (

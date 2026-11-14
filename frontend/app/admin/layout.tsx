@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
 
@@ -11,6 +12,30 @@ import { AdminHelpDrawer } from "@/components/admin/help-drawer";
 import { AdminNotices } from "@/components/admin/admin-notices";
 import { AdminMobileNav, AdminSidebarNav } from "@/components/admin/admin-nav";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
+import { CalendarToggle } from "@/components/admin/calendar-toggle";
+import { useCalendar } from "@/lib/calendar-context";
+
+/**
+ * Forces a re-render of the admin content area whenever the calendar
+ * preference changes so that formatJalali / formatJalaliDateTime calls
+ * (which read localStorage) return fresh values. A changing `key` on the
+ * wrapper div forces React to unmount + remount the children, guaranteeing
+ * every column / cell that called formatJalali gets the new preference.
+ */
+function AdminContentArea({ children }: { children: React.ReactNode }) {
+  const { calendarType } = useCalendar();
+  return (
+    <main id="admin-content" tabIndex={-1} className="p-4 sm:p-6">
+      {/* Persistent notices, above the page rather than over it: an
+          operator has to be able to read one without losing the screen they
+          were on, and the toast that already existed could not do that. */}
+      <AdminNotices className="mb-4" />
+      <AdminAuthGuard>
+        <div key={calendarType}>{children}</div>
+      </AdminAuthGuard>
+    </main>
+  );
+}
 
 /**
  * The admin shell.
@@ -81,35 +106,44 @@ export default function AdminLayout({
       <div className="min-w-0 flex-1">
         {/* Top Bar */}
         <header className="sticky top-0 z-10 flex h-16 items-center justify-between gap-4 border-b border-border bg-background/95 px-4 backdrop-blur sm:px-6">
-          <div className="flex min-w-0 items-center gap-3">
-            {/* Mobile: the same grouped nav in a drawer. The old horizontal
-                strip rendered all 44 links in a scroll row, which was
-                unusable on a phone and had no grouping at all. */}
-            <AdminMobileNav />
-            <h2 className="hidden shrink-0 text-lg font-semibold text-foreground md:block">
-              پنل مدیریت
-            </h2>
+          {/* Right group (RTL start): title + global search stay pinned to
+              the right edge, exactly as the owner approved. */}
+          <div className="flex min-w-0 items-center gap-3 md:gap-4">
+            <div className="flex min-w-0 items-center gap-3">
+              {/* Mobile: the same grouped nav in a drawer. The old horizontal
+                  strip rendered all 44 links in a scroll row, which was
+                  unusable on a phone and had no grouping at all. */}
+              <AdminMobileNav />
+              <h2 className="hidden shrink-0 text-lg font-semibold text-foreground md:block">
+                پنل مدیریت
+              </h2>
+            </div>
+            {/* Global search sits in the header so it is reachable from every
+                admin screen — a support lookup must not require first knowing
+                which page the record lives on. Compact width, right after the
+                title (owner-approved layout). */}
+            <div className="hidden min-w-0 md:block">
+              <AdminGlobalSearch />
+            </div>
           </div>
-          {/* Global search sits in the header so it is reachable from every
-              admin screen — a support lookup must not require first knowing
-              which page the record lives on. */}
-          <AdminGlobalSearch />
-          <div className="flex shrink-0 items-center gap-3">
+          {/* Left group (RTL end): the utility controls anchor to the far
+              left edge — justify-between with only these two groups means
+              the middle stays empty instead of the controls drifting toward
+              the search box. */}
+          <div className="flex shrink-0 items-center gap-4">
             <AdminHelpDrawer />
-            <AdminTelemetryBadge />
+            {/* Dev-only observability badge: hidden below xl so the global
+                search keeps its room on narrower admin screens. */}
+            <div className="hidden xl:block">
+              <AdminTelemetryBadge />
+            </div>
+            <CalendarToggle />
             <ThemeToggle />
             <AdminUserNav />
           </div>
         </header>
 
-        {/* Page Content Guarded */}
-        <main id="admin-content" tabIndex={-1} className="p-4 sm:p-6">
-          {/* Persistent notices, above the page rather than over it: an
-              operator has to be able to read one without losing the screen they
-              were on, and the toast that already existed could not do that. */}
-          <AdminNotices className="mb-4" />
-          <AdminAuthGuard>{children}</AdminAuthGuard>
-        </main>
+        <AdminContentArea>{children}</AdminContentArea>
       </div>
     </div>
   );

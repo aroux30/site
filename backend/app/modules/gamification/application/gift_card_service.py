@@ -75,15 +75,24 @@ async def redeem_internal_gift_card(
     safe_user_id = uuid.UUID(str(user_id))
     clean_code = code.strip().upper()
 
-    # Lock every active card row for the duration of the redeem so two
-    # concurrent redeems of one code cannot both pass the claimed/balance
-    # checks and double-credit the wallet. The second transaction blocks on
-    # this SELECT ... FOR UPDATE and then sees is_active=False.
-    stmt = select(InternalGiftCard).where(InternalGiftCard.is_active.is_(True)).with_for_update()
-    active_cards = list((await db.execute(stmt)).scalars().all())
-    card = next((c for c in active_cards if c.code == clean_code), None)
+    # Lock ONLY this card's row for the duration of the redeem so two
+    # concurrent redeems of the same code cannot both pass the claimed/
+    # balance checks and double-credit the wallet. The second transaction
+    # blocks on this SELECT ... FOR UPDATE and then sees the claimed row.
+    #
+    # The code column is UNIQUE with its own index, so this is a single-row
+    # locked lookup. (An earlier version locked EVERY active card and
+    # filtered in Python — a request could then block all other redeems for
+    # the whole table: a self-inflicted DoS any authenticated user could
+    # trigger with two concurrent requests.)
+    stmt = (
+        select(InternalGiftCard)
+        .where(InternalGiftCard.code == clean_code)
+        .with_for_update()
+    )
+    card = (await db.execute(stmt)).scalar_one_or_none()
 
-    if card is None:
+    if card is None or not card.is_active:
         raise NotFoundError(
             resource="InternalGiftCard",
             detail="کد کارت هدیه نامعتبر است یا قبلاً استفاده شده است",

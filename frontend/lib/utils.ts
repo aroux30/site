@@ -23,6 +23,16 @@ export function toPersianDigits(value: string | number): string {
 }
 
 /**
+ * Display form of an order code: numeric codes render WordPress-style as
+ * «#۱۲» (Persian digits); legacy prefixed codes pass through untouched.
+ */
+export function formatOrderCode(orderNumber: string | null | undefined): string {
+  const code = (orderNumber ?? "").trim();
+  if (/^\d+$/.test(code)) return `#${toPersianDigits(code)}`;
+  return code;
+}
+
+/**
  * Convert Persian and Arabic digits to English digits.
  */
 export function toEnglishDigits(value: string): string {

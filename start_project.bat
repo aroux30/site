@@ -15,7 +15,9 @@ if exist "%HERE%\backend\app\main.py" (
 )
 
 rem Match a normal terminal PATH when launched by double-click.
-set "PATH=%ProgramFiles%\nodejs;%ProgramFiles%\Python314;%ProgramFiles%\Python314\Scripts;%PATH%"
+rem Docker bin is included: the data stores (postgres/redis/elasticsearch)
+rem run as compose containers since the native services were retired.
+set "PATH=%ProgramFiles%\nodejs;%ProgramFiles%\Python314;%ProgramFiles%\Python314\Scripts;%ProgramFiles%\Docker\Docker\resources\bin;%PATH%"
 
 set "PY="
 if exist "%ProgramFiles%\Python314\python.exe" set "PY=%ProgramFiles%\Python314\python.exe"
@@ -61,29 +63,47 @@ if not exist "%ROOT%\frontend\.env" (
     )
 )
 
-echo [1/4] Cleaning ports 3000 and 8000...
+echo [1/5] Cleaning ports 3000 and 8000...
 call :kill_port 3000
 call :kill_port 8000
-timeout /t 2 /nobreak >nul
+%SystemRoot%\System32\timeout.exe /t 2 /nobreak >nul
 echo       Ports are free.
 
-echo [2/4] Checking PostgreSQL and Redis...
-call :port_listening 5432
+echo [2/5] Starting data stores in Docker ^(postgres, redis, elasticsearch^)...
+call :ensure_docker
 if errorlevel 1 (
-    echo       [FAIL] PostgreSQL is not listening on 5432.
-    echo       Start Postgres, then run this launcher again.
+    echo       [FAIL] Docker engine is not available.
+    echo              Start Docker Desktop manually, then run this launcher again.
     goto fail
 )
-echo       PostgreSQL :5432 OK
-call :port_listening 6379
+pushd "%ROOT%"
+docker compose up -d postgres redis elasticsearch
 if errorlevel 1 (
-    echo       [FAIL] Redis is not listening on 6379.
-    echo       Backend will not boot without Redis.
+    popd
+    echo       [FAIL] docker compose up failed - see the error above.
     goto fail
 )
-echo       Redis      :6379 OK
+popd
+call :wait_container_healthy ecommerce-postgres 100
+if errorlevel 1 (
+    echo       [FAIL] postgres container did not become healthy in time.
+    goto fail
+)
+echo       postgres      :5432 OK
+call :wait_container_healthy ecommerce-redis 50
+if errorlevel 1 (
+    echo       [WARN] redis container still starting - backend may error until it is up.
+) else (
+    echo       redis         :6379 OK
+)
+call :wait_container_healthy ecommerce-elasticsearch 100
+if errorlevel 1 (
+    echo       [WARN] elasticsearch still starting - search uses the SQL fallback until it is up.
+) else (
+    echo       elasticsearch :9200 OK
+)
 
-echo [3/4] Database migrations + admin bootstrap...
+echo [3/5] Database migrations...
 cd /d "%ROOT%\backend"
 "%PY%" -m alembic upgrade head
 if errorlevel 1 (
@@ -101,13 +121,23 @@ if exist "%ROOT%\backend\scripts\ensure_admin.py" (
 ) else (
     echo       [SKIP] scripts\ensure_admin.py not present.
 )
+if exist "%ROOT%\backend\scripts\seed_pages.py" (
+    "%PY%" scripts\seed_pages.py
+    if errorlevel 1 (
+        echo       [WARN] seed_pages reported an error. Continuing.
+    ) else (
+        echo       CMS pages bootstrap finished.
+    )
+) else (
+    echo       [SKIP] scripts\seed_pages.py not present.
+)
 
-echo [4/4] Starting backend and frontend in new windows...
+echo [4/5] Starting backend and frontend in new windows...
 start "Backend :8000" cmd /k call "%~f0" backend
-timeout /t 4 /nobreak >nul
+%SystemRoot%\System32\timeout.exe /t 4 /nobreak >nul
 start "Frontend :3000" cmd /k call "%~f0" frontend
 
-echo       Waiting for health checks...
+echo [5/5] Waiting for health checks...
 set "BACKEND_OK=0"
 set "FRONTEND_OK=0"
 set /a TRIES=0
@@ -120,7 +150,7 @@ if not errorlevel 1 set "FRONTEND_OK=1"
 if "%BACKEND_OK%"=="1" if "%FRONTEND_OK%"=="1" goto health_done
 set /a TRIES+=1
 if %TRIES% GEQ 40 goto health_done
-timeout /t 1 /nobreak >nul
+%SystemRoot%\System32\timeout.exe /t 1 /nobreak >nul
 goto wait_health
 
 :health_done
@@ -141,7 +171,7 @@ if "%FRONTEND_OK%"=="1" (
     start "" http://localhost:3000
 ) else if "%BACKEND_OK%"=="1" (
     echo   Browser will open in 8 seconds...
-    timeout /t 8 /nobreak >nul
+    %SystemRoot%\System32\timeout.exe /t 8 /nobreak >nul
     start "" http://localhost:3000
 )
 
@@ -207,6 +237,49 @@ exit /b 0
 :port_listening
 netstat -ano 2>nul | findstr /C:":%~1 " | findstr /C:"LISTENING" >nul
 exit /b %ERRORLEVEL%
+
+:ensure_docker
+rem Ensure the Docker engine answers; launch Docker Desktop when needed.
+where docker >nul 2>&1
+if not errorlevel 1 goto docker_engine_check
+if exist "%ProgramFiles%\Docker\Docker\resources\bin\docker.exe" (
+    set "PATH=%ProgramFiles%\Docker\Docker\resources\bin;%PATH%"
+    goto docker_engine_check
+)
+echo       [FAIL] docker.exe not found - install Docker Desktop first.
+exit /b 1
+
+:docker_engine_check
+docker info >nul 2>&1
+if not errorlevel 1 exit /b 0
+echo       Docker Desktop is not running - starting it ^(can take 1-2 minutes^)...
+start "" "%ProgramFiles%\Docker\Docker\Docker Desktop.exe"
+set /a DOCKER_TRIES=0
+
+:docker_wait_loop
+%SystemRoot%\System32\timeout.exe /t 5 /nobreak >nul
+docker info >nul 2>&1
+if not errorlevel 1 exit /b 0
+set /a DOCKER_TRIES+=1
+if %DOCKER_TRIES% GEQ 36 (
+    echo       Timed out after ~3 minutes waiting for the Docker engine.
+    exit /b 1
+)
+echo       ...waiting for Docker engine ^(%DOCKER_TRIES%^)
+goto docker_wait_loop
+
+:wait_container_healthy
+rem %1 = container name, %2 = tries (one per 3 seconds)
+set "HC_STATUS="
+set /a HC_TRIES=0
+
+:hc_loop
+for /f "usebackq delims=" %%H in (`docker inspect --format "{{.State.Health.Status}}" %~1 2^>nul`) do set "HC_STATUS=%%H"
+if "%HC_STATUS%"=="healthy" exit /b 0
+set /a HC_TRIES+=1
+if %HC_TRIES% GEQ %~2 exit /b 1
+%SystemRoot%\System32\timeout.exe /t 3 /nobreak >nul
+goto hc_loop
 
 :print_admin_phone
 set "ADMIN_PHONE="

@@ -8,9 +8,33 @@ import { useEffect, useCallback, useSyncExternalStore } from "react";
 export function registerServiceWorker(): void {
   if (
     typeof window === "undefined" ||
-    !("serviceWorker" in navigator) ||
-    process.env.NODE_ENV !== "production"
+    !("serviceWorker" in navigator)
   ) {
+    return;
+  }
+
+  // ── Development heal ────────────────────────────────────────────────
+  // A service worker registered by an OLD build keeps serving stale pages
+  // and API responses from its v1-* caches on that origin — the source of
+  // «ویژگی‌ها غیب شدند» / hydration crashes that only happened on one host
+  // (localhost) and never on 127.0.0.1. In dev there is no reason to keep
+  // one: unregister it and drop every cache, on every load (idempotent).
+  if (process.env.NODE_ENV !== "production") {
+    window.addEventListener("load", async () => {
+      try {
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        await Promise.all(registrations.map((r) => r.unregister()));
+        const keys = await caches.keys();
+        await Promise.all(keys.map((k) => caches.delete(k)));
+        if (registrations.length > 0) {
+          console.info(
+            "[SW] Development mode: service worker and caches cleared.",
+          );
+        }
+      } catch {
+        // Nothing registered / storage unavailable — nothing to clean.
+      }
+    });
     return;
   }
 

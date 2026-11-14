@@ -11,6 +11,7 @@ from sqlalchemy import (
     Index,
     Integer,
     String,
+    UniqueConstraint,
 )
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -29,6 +30,9 @@ class ReferralStatus(str, enum.Enum):
 class CommissionStatus(str, enum.Enum):
     PENDING = "pending"
     PAID = "paid"
+    #: The earning order was canceled/refunded before payout (or the earner
+    #: is no longer eligible). Terminal; no money ever moves for these.
+    EXPIRED = "expired"
 
 
 # ---- Models ----
@@ -107,11 +111,27 @@ class ReferralCommission(BaseModel):
         Index("ix_referral_commissions_referral_id", "referral_id"),
         Index("ix_referral_commissions_order_id", "order_id"),
         Index("ix_referral_commissions_status", "status"),
+        Index("ix_referral_commissions_earner_id", "earner_id"),
+        # One commission per order per earner — the payout sweep's concurrency
+        # backstop (created by migration refbon1). A level-2 earner is
+        # resolved by walking the referral chain at payout time, so the row
+        # cannot rely on (referral_id, order_id) alone.
+        UniqueConstraint(
+            "order_id", "earner_id", name="uq_referral_commissions_order_earner"
+        ),
     )
 
     referral_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("referrals.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    #: The user who actually receives this commission. For level-1 this is the
+    #: referral's referrer; for level-2 it is the referrer's own referrer
+    #: (resolved through the chain — there is no level-2 ``referrals`` row).
+    earner_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("users.id", ondelete="CASCADE"),
         nullable=False,
     )
     order_id: Mapped[uuid.UUID] = mapped_column(

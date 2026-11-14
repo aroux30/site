@@ -42,7 +42,16 @@ export function useAdminBarHidden(): boolean {
   const [hidden, setHidden] = useState(false);
 
   useEffect(() => {
-    const param = new URLSearchParams(window.location.search).get("nobar");
+    const search = new URLSearchParams(window.location.search);
+    const param = search.get("nobar");
+    const isVisual =
+      search.get("visual_editor") === "true" || search.get("edit") === "true";
+
+    // Visual page editor renders its own fixed top toolbar; hide the redundant admin bar.
+    if (isVisual) {
+      setHidden(true);
+      return;
+    }
 
     if (param === "1") {
       try {

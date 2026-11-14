@@ -23,6 +23,10 @@ export interface CartItem {
   sku?: string;
   maxQuantity?: number;
   isAvailable?: boolean;
+  /** WooCommerce virtual/downloadable parity: digital goods ship nothing,
+   *  so checkout skips the address + shipping steps for them. */
+  productType?: string | null;
+  requiresShipping?: boolean;
   /** Dynamic category-field answers (Karta categoryFields) — client-held
    * until checkout, where they are validated server-side. */
   customFields?: Record<string, string | number>;
@@ -68,6 +72,8 @@ export interface BackendCartItem {
   is_available?: boolean | null;
   price_toman?: number;
   subtotal_toman?: number;
+  product_type?: string | null;
+  requires_shipping?: boolean | null;
 }
 
 export interface BackendCartResponse {
@@ -95,6 +101,8 @@ export interface CartStore {
   totalPrice: number;
   subtotal: number;
   totalDiscount: number;
+  /** False when every line is digital — checkout skips address/shipping. */
+  requiresShipping: boolean;
 
   // Actions
   fetchCart: () => Promise<void>;
@@ -149,6 +157,8 @@ function mapBackendItemToCartItem(bItem: BackendCartItem): CartItem {
     sku: bItem.sku || undefined,
     isAvailable: bItem.is_available ?? true,
     maxQuantity: 10,
+    productType: bItem.product_type ?? null,
+    requiresShipping: bItem.requires_shipping ?? true,
   };
 }
 
@@ -166,12 +176,16 @@ function computeTotals(items: CartItem[], couponDiscount: number = 0) {
   }, 0);
   const totalDiscount = itemDiscount + couponDiscount;
   const totalPrice = Math.max(0, subtotal - couponDiscount);
+  // True unless EVERY line is digital — mirrors the backend's CartResponse
+  // rule so checkout can skip address/shipping for all-digital carts.
+  const requiresShipping = items.some((item) => item.requiresShipping !== false);
 
   return {
     totalItems,
     subtotal,
     totalPrice,
     totalDiscount,
+    requiresShipping,
   };
 }
 
@@ -201,6 +215,7 @@ export const useCartStore = create<CartStore>()(
       totalPrice: 0,
       subtotal: 0,
       totalDiscount: 0,
+      requiresShipping: true,
 
       fetchCart: async () => {
         try {
@@ -249,8 +264,19 @@ export const useCartStore = create<CartStore>()(
           const existing = items[existingIndex]!;
           targetVariantId = targetVariantId || existing.variantId;
           const newQty = existing.quantity + addQty;
+          // Re-adding the same line refreshes its custom fields with the
+          // latest answers (WooCommerce keeps per-line data fresh the same
+          // way) — but only when the caller actually sent any.
           updatedItems = items.map((i, idx) =>
-            idx === existingIndex ? { ...i, quantity: newQty } : i,
+            idx === existingIndex
+              ? {
+                  ...i,
+                  quantity: newQty,
+                  ...(item.customFields !== undefined
+                    ? { customFields: item.customFields }
+                    : {}),
+                }
+              : i,
           );
         } else {
           const newItem: CartItem = {
@@ -503,6 +529,7 @@ export const useCartStore = create<CartStore>()(
           totalPrice: 0,
           subtotal: 0,
           totalDiscount: 0,
+          requiresShipping: true,
         });
 
         // Delete each item from backend if it has an id

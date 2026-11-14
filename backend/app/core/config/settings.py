@@ -90,15 +90,8 @@ class Settings(BaseSettings):
     # GOOGLE_OAUTH_CLIENT_ID / GOOGLE_OAUTH_CLIENT_SECRET /
     # GOOGLE_OAUTH_REDIRECT_URI were removed with the rest of the email
     # feature: the SSO flow matched users by verified email address.
-    # ── WebAuthn / passkeys ──────────────────────────────────────────────
-    # The Relying Party ID is the registrable domain the credential is bound
-    # to; the origin is what the browser reports and what verification checks
-    # against. Both default to localhost so development works out of the box,
-    # and both must be set to the real domain in production or every ceremony
-    # fails origin verification.
-    WEBAUTHN_RP_ID: str = "localhost"
-    WEBAUTHN_RP_NAME: str = "فروشگاه"
-    WEBAUTHN_ORIGIN: str = "http://localhost:3000"
+    # WEBAUTHN_RP_ID / WEBAUTHN_RP_NAME / WEBAUTHN_ORIGIN were removed with
+    # the passkey feature: the store signs in with phone + password/OTP only.
     JWT_ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7

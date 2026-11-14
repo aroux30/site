@@ -3,10 +3,12 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
   SelectItem,
+  SelectSeparator,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
@@ -219,7 +221,7 @@ export function SortableHeader({
       <button
         type="button"
         onClick={() => engine.setSort(columnKey)}
-        className="flex w-full items-center gap-1 px-4 py-3 text-right font-medium hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        className="flex w-full items-center justify-center gap-1 px-4 py-3 font-medium hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
         {children}
         <span aria-hidden="true" className="text-[10px] opacity-70">
@@ -381,21 +383,207 @@ export function ColumnVisibilityControl({
   }
 
   return (
+    <ColumnPickerPanel
+      className={className}
+      columns={columns}
+      hidden={hiddenColumns}
+      onToggle={toggleColumn}
+      onClose={() => setOpen(false)}
+    />
+  );
+}
+
+/** Shared picker UI: one checkbox per column + a close button. */
+function ColumnPickerPanel({
+  columns,
+  hidden,
+  onToggle,
+  onClose,
+  className,
+}: {
+  columns: { key: string; label: string }[];
+  hidden: Set<string>;
+  onToggle: (key: string) => void;
+  onClose: () => void;
+  className?: string;
+}) {
+  return (
     <div className={cn("flex flex-wrap items-center gap-2 rounded-lg border border-border p-2", className)}>
       {columns.map((col) => (
         <label key={col.key} className="flex cursor-pointer items-center gap-1.5 text-xs">
           <Checkbox
-            checked={!hiddenColumns.has(col.key)}
-            onCheckedChange={() => toggleColumn(col.key)}
+            checked={!hidden.has(col.key)}
+            onCheckedChange={() => onToggle(col.key)}
             aria-label={`نمایش ستون ${col.label}`}
           />
           {col.label}
         </label>
       ))}
-      <Button type="button" size="sm" variant="ghost" onClick={() => setOpen(false)}>
+      <Button type="button" size="sm" variant="ghost" onClick={onClose}>
         بستن
       </Button>
     </div>
+  );
+}
+
+/**
+ * Column-visibility state for hand-rolled tables that sit outside a
+ * ListEngineProvider (orders/tickets/media lists predate the engine). Same
+ * localStorage contract as `ColumnVisibilityControl`, so a screen can migrate
+ * to the engine later without losing anyone's preference.
+ */
+export function useColumnVisibility(storageKey: string) {
+  const [hidden, setHidden] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    try {
+      const raw = window.localStorage.getItem(storageKey);
+      if (raw) {
+        const parsed = JSON.parse(raw) as string[];
+        if (Array.isArray(parsed)) setHidden(new Set(parsed));
+      }
+    } catch {
+      /* preference is optional */
+    }
+  }, [storageKey]);
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(storageKey, JSON.stringify([...hidden]));
+    } catch {
+      /* preference is optional */
+    }
+  }, [hidden, storageKey]);
+
+  const toggle = useCallback((key: string) => {
+    setHidden((current) => {
+      const next = new Set(current);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  }, []);
+
+  const isHidden = useCallback((key: string) => hidden.has(key), [hidden]);
+
+  return { hidden, toggle, isHidden };
+}
+
+/** The «ستون‌ها» picker for a table driven by `useColumnVisibility`. */
+export function ColumnVisibilityToggle({
+  columns,
+  hidden,
+  onToggle,
+  className,
+}: {
+  columns: { key: string; label: string }[];
+  hidden: Set<string>;
+  onToggle: (key: string) => void;
+  className?: string;
+}) {
+  const [open, setOpen] = useState(false);
+
+  if (!open) {
+    return (
+      <Button type="button" size="sm" variant="outline" onClick={() => setOpen(true)} className={className}>
+        ستون‌ها
+      </Button>
+    );
+  }
+
+  return (
+    <ColumnPickerPanel
+      className={className}
+      columns={columns}
+      hidden={hidden}
+      onToggle={onToggle}
+      onClose={() => setOpen(false)}
+    />
+  );
+}
+
+/**
+ * Page-size dropdown with a «تعداد دلخواه» escape hatch for arbitrary
+ * counts (e.g. 101 or 1003). Picking it swaps the trigger for a tiny numeric
+ * input: Enter or blur applies (clamped to [1, max]), Escape cancels.
+ * A custom value that is not one of the presets appears in the dropdown
+ * as its own entry, so the trigger always renders a readable label.
+ */
+export function PageSizeSelect({
+  pageSize,
+  onPageSizeChange,
+  sizeOptions = [10, 20, 50, 100, 500],
+  /** Upper clamp for a custom count — must not exceed the backend page_size cap. */
+  max = 2000,
+}: {
+  pageSize: number;
+  onPageSizeChange: (size: number) => void;
+  sizeOptions?: number[];
+  max?: number;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState("");
+
+  const applyDraft = () => {
+    const parsed = Math.floor(Number(draft));
+    setEditing(false);
+    // Empty or junk input is a cancel, not "apply 1".
+    if (!Number.isFinite(parsed) || parsed < 1) return;
+    onPageSizeChange(Math.min(parsed, max));
+  };
+
+  if (editing) {
+    return (
+      <Input
+        type="number"
+        min={1}
+        max={max}
+        inputMode="numeric"
+        autoFocus
+        value={draft}
+        onChange={(e) => setDraft(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") applyDraft();
+          if (e.key === "Escape") setEditing(false);
+        }}
+        onBlur={applyDraft}
+        aria-label="تعداد دلخواه در هر صفحه"
+        placeholder="مثلاً 101"
+        className="h-8 w-32 text-xs"
+      />
+    );
+  }
+
+  const presets = sizeOptions.includes(pageSize)
+    ? sizeOptions
+    : [...sizeOptions, pageSize].sort((a, b) => a - b);
+
+  return (
+    <Select
+      value={String(pageSize)}
+      onValueChange={(v) => {
+        if (v === "__custom__") {
+          setDraft(String(pageSize));
+          setEditing(true);
+          return;
+        }
+        onPageSizeChange(Number(v));
+      }}
+    >
+      {/* w-32: the widest label «500 در صفحه» must not clamp to «…ر صفحه» */}
+      <SelectTrigger className="h-8 w-32 text-xs" aria-label="تعداد در هر صفحه">
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent>
+        {presets.map((n) => (
+          <SelectItem key={n} value={String(n)}>
+            {n} در صفحه
+          </SelectItem>
+        ))}
+        <SelectSeparator />
+        <SelectItem value="__custom__">تعداد دلخواه</SelectItem>
+      </SelectContent>
+    </Select>
   );
 }
 
@@ -407,7 +595,7 @@ export function PaginationBar({
   onPageChange,
   onPageSizeChange,
   className,
-  sizeOptions = [10, 20, 50, 100],
+  sizeOptions = [10, 20, 50, 100, 500],
 }: {
   totalRows: number;
   page: number;
@@ -427,18 +615,11 @@ export function PaginationBar({
         نمایش {from} تا {to} از {totalRows} مورد
       </span>
       <div className="flex items-center gap-2">
-        <Select value={String(pageSize)} onValueChange={(v) => onPageSizeChange(Number(v))}>
-          <SelectTrigger className="h-8 w-24 text-xs" aria-label="تعداد در هر صفحه">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {sizeOptions.map((n) => (
-              <SelectItem key={n} value={String(n)}>
-                {n} در صفحه
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <PageSizeSelect
+          pageSize={pageSize}
+          onPageSizeChange={onPageSizeChange}
+          sizeOptions={sizeOptions}
+        />
         <Button
           type="button"
           size="sm"

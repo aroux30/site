@@ -50,12 +50,17 @@ import {
 } from "@/components/ui/dialog";
 import { useToast } from "@/components/ui/use-toast";
 import { useConfirm } from "@/components/ui/confirm-dialog";
+import { JalaliDatePicker } from "@/components/ui/jalali-datepicker";
 import { mediaApi, type MediaAsset } from "@/lib/api/media";
 import { mediaEditingApi, type MediaEditStep } from "@/lib/api/wp-parity";
 import { useAdminMutation, useAdminQuery } from "@/lib/api/admin-query";
 import MediaTrashPanel from "@/components/admin/media-trash-panel";
 import { MediaDropzone } from "@/components/admin/media-dropzone";
 import { FilterSelect } from "@/components/admin/filter-select";
+import {
+  ColumnVisibilityToggle,
+  useColumnVisibility,
+} from "@/components/admin/list-engine";
 import {
   MEDIA_ACCEPT_ATTRIBUTE,
   MEDIA_MAX_BATCH_FILES,
@@ -174,6 +179,17 @@ function AdminMediaPageInner() {
   // is the question when the library is a thousand files and the operator is
   // looking for one of them rather than browsing.
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  // Screen Options (WordPress parity) for the list view's columns. The select
+  // checkbox is pinned — it is not in the picker.
+  const listColVis = useColumnVisibility("admin.media.list.columns");
+  const mediaListColumns = [
+    { key: "preview", label: "پیش‌نمایش" },
+    { key: "name", label: "نام فایل" },
+    { key: "type", label: "نوع" },
+    { key: "size", label: "اندازه" },
+    { key: "folder", label: "پوشه" },
+    { key: "date", label: "تاریخ" },
+  ];
   // WordPress's "uploaded between". Reaching for it is almost always "what
   // arrived this week", because that is when the disk or a mistake is.
   const [dateFrom, setDateFrom] = useState("");
@@ -1098,35 +1114,31 @@ function AdminMediaPageInner() {
               فقط پیوست‌نشده
             </label>
 
-            {/* WordPress's "uploaded between". Two date inputs rather than a
-                range picker: the picker is a bigger dependency for a filter an
-                operator uses once a week, and two <input type="date"> are
-                keyboard- and mobile-friendly for free. */}
+            {/* WordPress's "uploaded between". Two JalaliDatePicker inputs
+                for from/to date filtering — shows a Shamsi calendar popup. */}
             <div className="flex items-center gap-1.5 pb-1 text-xs">
               <Label htmlFor="media-date-from" className="text-[11px] text-muted-foreground">
                 از تاریخ
               </Label>
-              <Input
-                id="media-date-from"
-                type="date"
+              <JalaliDatePicker
                 value={dateFrom}
-                onChange={(e) => {
-                  setDateFrom(e.target.value);
+                onChange={(value) => {
+                  setDateFrom(value);
                   setPage(1);
                 }}
+                placeholder="از تاریخ"
                 className="h-9 w-36 text-xs"
               />
               <Label htmlFor="media-date-to" className="text-[11px] text-muted-foreground">
                 تا تاریخ
               </Label>
-              <Input
-                id="media-date-to"
-                type="date"
+              <JalaliDatePicker
                 value={dateTo}
-                onChange={(e) => {
-                  setDateTo(e.target.value);
+                onChange={(value) => {
+                  setDateTo(value);
                   setPage(1);
                 }}
+                placeholder="تا تاریخ"
                 className="h-9 w-36 text-xs"
               />
               {(dateFrom || dateTo) && (
@@ -1218,17 +1230,36 @@ function AdminMediaPageInner() {
                an operator who selects three rows here then switches back must
                not lose the selection, because the bulk bar is above both. */
             <Card className="overflow-hidden">
+              <div className="flex border-b bg-muted/20 px-2 py-2">
+                <ColumnVisibilityToggle
+                  columns={mediaListColumns}
+                  hidden={listColVis.hidden}
+                  onToggle={listColVis.toggle}
+                />
+              </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead className="border-b bg-muted/40 text-xs text-muted-foreground">
                     <tr>
                       <th className="w-10 p-2" />
-                      <th className="p-2 text-start font-medium">پیش‌نمایش</th>
-                      <th className="p-2 text-start font-medium">نام فایل</th>
-                      <th className="p-2 text-start font-medium">نوع</th>
-                      <th className="p-2 text-start font-medium">اندازه</th>
-                      <th className="p-2 text-start font-medium">پوشه</th>
-                      <th className="p-2 text-start font-medium">تاریخ</th>
+                      {!listColVis.isHidden("preview") && (
+                        <th className="p-2 text-start font-medium">پیش‌نمایش</th>
+                      )}
+                      {!listColVis.isHidden("name") && (
+                        <th className="p-2 text-start font-medium">نام فایل</th>
+                      )}
+                      {!listColVis.isHidden("type") && (
+                        <th className="p-2 text-start font-medium">نوع</th>
+                      )}
+                      {!listColVis.isHidden("size") && (
+                        <th className="p-2 text-start font-medium">اندازه</th>
+                      )}
+                      {!listColVis.isHidden("folder") && (
+                        <th className="p-2 text-start font-medium">پوشه</th>
+                      )}
+                      {!listColVis.isHidden("date") && (
+                        <th className="p-2 text-start font-medium">تاریخ</th>
+                      )}
                     </tr>
                   </thead>
                   <tbody>
@@ -1247,45 +1278,57 @@ function AdminMediaPageInner() {
                             aria-label={`انتخاب ${a.file_name}`}
                           />
                         </td>
-                        <td className="p-2">
-                          <button
-                            onClick={() => openDetail(a)}
-                            className="block h-10 w-14 overflow-hidden rounded"
-                          >
-                            <ImageWithFallback asset={a} className="h-10 w-14 object-cover" />
-                          </button>
-                        </td>
-                        <td className="p-2">
-                          <button
-                            onClick={() => openDetail(a)}
-                            className="text-start font-medium hover:underline"
-                            dir="ltr"
-                          >
-                            {a.file_name}
-                          </button>
-                          {needsAlt(a) && (
-                            <span
-                              className="ms-2 text-[10px] text-amber-600"
-                              title="این تصویر متن جایگزین ندارد"
+                        {!listColVis.isHidden("preview") && (
+                          <td className="p-2">
+                            <button
+                              onClick={() => openDetail(a)}
+                              className="block h-10 w-14 overflow-hidden rounded"
                             >
-                              بدون متن جایگزین
-                            </span>
-                          )}
-                        </td>
-                        <td className="p-2 text-xs text-muted-foreground" dir="ltr">
-                          {a.mime_type}
-                        </td>
-                        <td className="p-2 text-xs text-muted-foreground">
-                          {fmtSize(a.file_size)}
-                        </td>
-                        <td className="p-2 text-xs text-muted-foreground" dir="ltr">
-                          {a.folder || "—"}
-                        </td>
-                        <td className="p-2 text-xs text-muted-foreground">
-                          {toPersianDigits(
-                            new Date(a.created_at).toLocaleDateString("fa-IR"),
-                          )}
-                        </td>
+                              <ImageWithFallback asset={a} className="h-10 w-14 object-cover" />
+                            </button>
+                          </td>
+                        )}
+                        {!listColVis.isHidden("name") && (
+                          <td className="p-2">
+                            <button
+                              onClick={() => openDetail(a)}
+                              className="text-start font-medium hover:underline"
+                              dir="ltr"
+                            >
+                              {a.file_name}
+                            </button>
+                            {needsAlt(a) && (
+                              <span
+                                className="ms-2 text-[10px] text-amber-600"
+                                title="این تصویر متن جایگزین ندارد"
+                              >
+                                بدون متن جایگزین
+                              </span>
+                            )}
+                          </td>
+                        )}
+                        {!listColVis.isHidden("type") && (
+                          <td className="p-2 text-xs text-muted-foreground" dir="ltr">
+                            {a.mime_type}
+                          </td>
+                        )}
+                        {!listColVis.isHidden("size") && (
+                          <td className="p-2 text-xs text-muted-foreground">
+                            {fmtSize(a.file_size)}
+                          </td>
+                        )}
+                        {!listColVis.isHidden("folder") && (
+                          <td className="p-2 text-xs text-muted-foreground" dir="ltr">
+                            {a.folder || "—"}
+                          </td>
+                        )}
+                        {!listColVis.isHidden("date") && (
+                          <td className="p-2 text-xs text-muted-foreground">
+                            {toPersianDigits(
+                              new Date(a.created_at).toLocaleDateString("fa-IR"),
+                            )}
+                          </td>
+                        )}
                       </tr>
                     ))}
                   </tbody>

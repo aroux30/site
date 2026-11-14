@@ -19,6 +19,10 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
 import { useConfirm } from "@/components/ui/confirm-dialog";
 import {
+  ColumnVisibilityToggle,
+  useColumnVisibility,
+} from "@/components/admin/list-engine";
+import {
   clearNotFoundLogs,
   deleteNotFoundLog,
   fetchNotFoundLogs,
@@ -30,6 +34,16 @@ export default function NotFoundMonitorPage() {
   const router = useRouter();
   const { toast } = useToast();
   const confirm = useConfirm();
+
+  // Screen Options (WordPress parity): per-user column visibility.
+  const colVis = useColumnVisibility("admin.seo-404.columns");
+  const logColumns = [
+    { key: "path", label: "مسیر" },
+    { key: "hits", label: "تعداد" },
+    { key: "lastSeen", label: "آخرین بازدید" },
+    { key: "referrer", label: "ارجاع‌دهنده" },
+    { key: "actions", label: "عملیات" },
+  ];
   const [items, setItems] = useState<NotFoundLog[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
@@ -156,74 +170,101 @@ export default function NotFoundMonitorPage() {
         </div>
       ) : (
         <>
+          <div className="flex">
+            <ColumnVisibilityToggle
+              columns={logColumns}
+              hidden={colVis.hidden}
+              onToggle={colVis.toggle}
+            />
+          </div>
           <div className="overflow-x-auto rounded-2xl border border-border">
             <table className="w-full text-sm">
               <thead className="bg-muted/40 text-xs text-muted-foreground">
                 <tr>
-                  <th className="px-4 py-3 text-start font-medium">مسیر</th>
-                  <th className="px-4 py-3 text-start font-medium">تعداد</th>
-                  <th className="px-4 py-3 text-start font-medium">آخرین بازدید</th>
-                  <th className="px-4 py-3 text-start font-medium">ارجاع‌دهنده</th>
-                  <th className="px-4 py-3 text-start font-medium">عملیات</th>
+                  {!colVis.isHidden("path") && (
+                    <th className="px-4 py-3 text-start font-medium">مسیر</th>
+                  )}
+                  {!colVis.isHidden("hits") && (
+                    <th className="px-4 py-3 text-start font-medium">تعداد</th>
+                  )}
+                  {!colVis.isHidden("lastSeen") && (
+                    <th className="px-4 py-3 text-start font-medium">آخرین بازدید</th>
+                  )}
+                  {!colVis.isHidden("referrer") && (
+                    <th className="px-4 py-3 text-start font-medium">ارجاع‌دهنده</th>
+                  )}
+                  {!colVis.isHidden("actions") && (
+                    <th className="px-4 py-3 text-start font-medium">عملیات</th>
+                  )}
                 </tr>
               </thead>
               <tbody>
                 {items.map((r) => (
                   <tr key={r.id} className="border-t border-border">
-                    <td className="max-w-[280px] px-4 py-3">
-                      <span dir="ltr" className="block truncate font-mono text-xs" title={r.path}>
-                        {r.path}
-                      </span>
-                      {r.user_agent && (
-                        <span className="mt-0.5 block truncate text-[10px] text-muted-foreground" title={r.user_agent}>
-                          {r.user_agent.includes("bot") || r.user_agent.includes("Bot")
-                            ? "کرالر"
-                            : "مرورگر"}
-                          {" — "}
-                          {r.user_agent.slice(0, 60)}
+                    {!colVis.isHidden("path") && (
+                      <td className="max-w-[280px] px-4 py-3">
+                        <span dir="ltr" className="block truncate font-mono text-xs" title={r.path}>
+                          {r.path}
                         </span>
-                      )}
-                    </td>
-                    <td className="px-4 py-3">
-                      <Badge variant={r.hit_count >= 10 ? "destructive" : "outline"} className="tabular-nums">
-                        {toPersianDigits(String(r.hit_count))}
-                      </Badge>
-                    </td>
-                    <td className="whitespace-nowrap px-4 py-3 text-xs text-muted-foreground">
-                      {new Date(r.last_seen_at).toLocaleDateString("fa-IR")}
-                    </td>
-                    <td className="max-w-[200px] px-4 py-3">
-                      {r.referrer ? (
-                        <span dir="ltr" className="block truncate font-mono text-[10px]" title={r.referrer}>
-                          {r.referrer}
-                        </span>
-                      ) : (
-                        <span className="text-xs text-muted-foreground">—</span>
-                      )}
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-1">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="h-7 px-2 text-xs"
-                          onClick={() => goToRedirect(r.path)}
-                          title="ساخت ریدایرکت برای این مسیر"
-                        >
-                          <Signpost className="h-3.5 w-3.5 ms-1" />
-                          ریدایرکت
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-7 px-2 text-xs text-muted-foreground hover:text-destructive"
-                          onClick={() => void handleDelete(r.id)}
-                          title="حذف رکورد"
-                        >
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </Button>
-                      </div>
-                    </td>
+                        {r.user_agent && (
+                          <span className="mt-0.5 block truncate text-[10px] text-muted-foreground" title={r.user_agent}>
+                            {r.user_agent.includes("bot") || r.user_agent.includes("Bot")
+                              ? "کرالر"
+                              : "مرورگر"}
+                            {" — "}
+                            {r.user_agent.slice(0, 60)}
+                          </span>
+                        )}
+                      </td>
+                    )}
+                    {!colVis.isHidden("hits") && (
+                      <td className="px-4 py-3">
+                        <Badge variant={r.hit_count >= 10 ? "destructive" : "outline"} className="tabular-nums">
+                          {toPersianDigits(String(r.hit_count))}
+                        </Badge>
+                      </td>
+                    )}
+                    {!colVis.isHidden("lastSeen") && (
+                      <td className="whitespace-nowrap px-4 py-3 text-xs text-muted-foreground">
+                        {new Date(r.last_seen_at).toLocaleDateString("fa-IR")}
+                      </td>
+                    )}
+                    {!colVis.isHidden("referrer") && (
+                      <td className="max-w-[200px] px-4 py-3">
+                        {r.referrer ? (
+                          <span dir="ltr" className="block truncate font-mono text-[10px]" title={r.referrer}>
+                            {r.referrer}
+                          </span>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">—</span>
+                        )}
+                      </td>
+                    )}
+                    {!colVis.isHidden("actions") && (
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-1">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-7 px-2 text-xs"
+                            onClick={() => goToRedirect(r.path)}
+                            title="ساخت ریدایرکت برای این مسیر"
+                          >
+                            <Signpost className="h-3.5 w-3.5 ms-1" />
+                            ریدایرکت
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 px-2 text-xs text-muted-foreground hover:text-destructive"
+                            onClick={() => void handleDelete(r.id)}
+                            title="حذف رکورد"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
+                      </td>
+                    )}
                   </tr>
                 ))}
               </tbody>

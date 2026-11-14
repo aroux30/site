@@ -177,6 +177,7 @@ export default function DataExchangeExportPage() {
         columns={columns}
         rows={jobs}
         rowKey={(j) => j.id}
+        columnVisibilityKey="admin.data-exchange-export.columns"
         loading={loading}
         error={error}
         emptyMessage="هنوز هیچ export ساخته نشده است"

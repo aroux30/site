@@ -265,9 +265,10 @@ export const ORDER_STATUS_LABELS: Record<string, string> = {
   waiting_payment_gateway: "در انتظار تایید پرداخت",
   waiting_payment_card: "در انتظار تایید کارت به کارت",
   pending: "در حال انجام",
+  doing_verified: "در حال انجام (احراز شده)",
   processing: "در حال پردازش",
-  completed: "تکمیل‌شده",
-  canceled: "لغوشده",
+  completed: "تکمیل شده",
+  canceled: "لغو شده",
   refunded: "بازگشت وجه",
 };
 

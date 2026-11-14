@@ -19,10 +19,9 @@ import {
   Trash2,
   RotateCcw,
   Copy,
-  CheckSquare,
-  Square,
   History,
   LayoutTemplate,
+  Sparkles,
   Tag,
   Image as ImageIcon,
 } from "lucide-react";
@@ -43,6 +42,7 @@ import {
 import { useToast } from "@/components/ui/use-toast";
 import { useConfirm } from "@/components/ui/confirm-dialog";
 import { DataTable, type DataTableColumn } from "@/components/admin/data-table";
+import type { BulkAction } from "@/components/admin/list-engine";
 import { toPersianDigits } from "@/lib/utils";
 import {
   cmsPagesAdminApi,
@@ -105,8 +105,7 @@ function AdminCMSPagesPageInner() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   const [showTrashed, setShowTrashed] = useState(false);
-  const [selected, setSelected] = useState<Set<string>>(new Set());
-  const [previewPageId, setPreviewPageId] = useState<string | null>(null);  const [bulkBusy, setBulkBusy] = useState(false);
+  const [previewPageId, setPreviewPageId] = useState<string | null>(null);
 
   // create/edit dialog
   const [editorOpen, setEditorOpen] = useState(false);
@@ -171,13 +170,6 @@ function AdminCMSPagesPageInner() {
     toastDescription: "اتصال به سرویس محتوا برقرار نشد.",
   });
   const pages: CmsPage[] = pagesData?.items ?? [];
-
-  // Selection is cleared whenever the page set changes — the old fetch did
-  // `setSelected(new Set())` on every load, and a stale selection would let a
-  // bulk action target rows the operator can no longer see.
-  useEffect(() => {
-    setSelected(new Set());
-  }, [pagesData]);
 
   /** Live slug check while the editor is open.
    *
@@ -390,30 +382,15 @@ function AdminCMSPagesPageInner() {
     }
   };
 
-  const toggleSelect = (id: string) => {
-    setSelected((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  };
-
-  const runBulk = async (action: "publish" | "unpublish" | "trash" | "restore") => {
-    if (selected.size === 0) return;
-    const labels: Record<string, string> = {
-      publish: "انتشار", unpublish: "برگشت به پیش‌نویس", trash: "انتقال به سطل زباله", restore: "بازگردانی",
-    };
-    const ok = await confirm({
-      title: "عملیات گروهی صفحات",
-      description: `${toPersianDigits(String(selected.size))} صفحه — ${labels[action]}؟`,
-      confirmLabel: "ادامه",
-      destructive: true,
-    });
-    if (!ok) return;
-    setBulkBusy(true);
+  // Bulk actions for the DataTable's built-in selection — same select-all
+  // checkbox and bulk bar as every other admin list.
+  const runPageBulk = async (
+    action: "publish" | "unpublish" | "trash" | "restore",
+    rows: CmsPage[],
+    label: string,
+  ) => {
     try {
-      const result = await cmsPagesAdminApi.bulkAction(action, [...selected]);
+      const result = await cmsPagesAdminApi.bulkAction(action, rows.map((p) => p.id));
       if (result.failed > 0) {
         toast({
           title: `انجام شد با خطا`,
@@ -421,15 +398,46 @@ function AdminCMSPagesPageInner() {
           variant: "destructive",
         });
       } else {
-        toast({ title: `${labels[action]} انجام شد`, description: `${toPersianDigits(String(result.succeeded))} صفحه` });
+        toast({
+          title: `${label} انجام شد`,
+          description: `${toPersianDigits(String(result.succeeded))} صفحه`,
+        });
       }
       await fetchPages();
+      return true;
     } catch {
       toast({ title: "عملیات گروهی ناموفق بود", variant: "destructive" });
-    } finally {
-      setBulkBusy(false);
+      return false;
     }
   };
+
+  const pageBulkActions: BulkAction<CmsPage>[] = [
+    {
+      id: "publish",
+      label: "انتشار",
+      confirm: (rows) => `${toPersianDigits(String(rows.length))} صفحه منتشر شود؟`,
+      onRun: (rows) => runPageBulk("publish", rows, "انتشار"),
+    },
+    {
+      id: "unpublish",
+      label: "پیش‌نویس",
+      confirm: (rows) => `${toPersianDigits(String(rows.length))} صفحه به پیش‌نویس برگردد؟`,
+      onRun: (rows) => runPageBulk("unpublish", rows, "برگشت به پیش‌نویس"),
+    },
+    {
+      id: "trash",
+      label: "انتقال به سطل زباله",
+      confirm: (rows) =>
+        `${toPersianDigits(String(rows.length))} صفحه به سطل زباله منتقل شود؟`,
+      onRun: (rows) => runPageBulk("trash", rows, "انتقال به سطل زباله"),
+    },
+    {
+      id: "restore",
+      label: "بازگردانی",
+      confirm: (rows) => `${toPersianDigits(String(rows.length))} صفحه بازگردانی شود؟`,
+      onRun: (rows) => runPageBulk("restore", rows, "بازگردانی"),
+    },
+  ];
 
   const handleDelete = async (page: CmsPage) => {
     const ok = await confirm({
@@ -485,23 +493,6 @@ function AdminCMSPagesPageInner() {
   };
 
   const pageColumns: DataTableColumn<CmsPage>[] = [
-    {
-      key: "select",
-      header: "",
-      render: (page) => (
-        <button
-          onClick={() => toggleSelect(page.id)}
-          aria-label={selected.has(page.id) ? "برداشتن انتخاب" : "انتخاب"}
-          className="text-muted-foreground hover:text-foreground"
-        >
-          {selected.has(page.id) ? (
-            <CheckSquare className="h-4 w-4 text-primary" />
-          ) : (
-            <Square className="h-4 w-4" />
-          )}
-        </button>
-      ),
-    },
     {
       key: "title",
       header: "عنوان صفحه",
@@ -566,11 +557,18 @@ function AdminCMSPagesPageInner() {
       render: (page) => (
         <div className="flex items-center justify-center gap-2">
           {page.status === "published" ? (
-            <Button variant="outline" size="sm" asChild className="h-8 gap-1.5 text-xs">
-              <Link href={`/${page.slug}`} target="_blank">
-                <ExternalLink className="h-3.5 w-3.5" /> مشاهده
-              </Link>
-            </Button>
+            <>
+              <Button variant="outline" size="sm" asChild className="h-8 gap-1.5 text-xs">
+                <Link href={`/${page.slug}`} target="_blank">
+                  <ExternalLink className="h-3.5 w-3.5" /> مشاهده
+                </Link>
+              </Button>
+              <Button variant="outline" size="sm" asChild className="h-8 gap-1.5 text-xs">
+                <Link href={`/${page.slug}?visual_editor=true`} target="_blank">
+                  <Sparkles className="h-3.5 w-3.5 text-purple-600" /> ویرایشگر زنده
+                </Link>
+              </Button>
+            </>
           ) : (
             <Button
               variant="outline"
@@ -708,37 +706,15 @@ function AdminCMSPagesPageInner() {
         </div>
       </Card>
 
-      {/* Bulk actions */}
-      {selected.size > 0 && (
-        <Card className="p-3">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-sm text-muted-foreground">
-              {toPersianDigits(String(selected.size))} صفحه انتخاب شده:
-            </span>
-            <Button size="sm" variant="outline" disabled={bulkBusy} onClick={() => runBulk("publish")}>
-              انتشار
-            </Button>
-            <Button size="sm" variant="outline" disabled={bulkBusy} onClick={() => runBulk("unpublish")}>
-              پیش‌نویس
-            </Button>
-            <Button size="sm" variant="outline" disabled={bulkBusy} onClick={() => runBulk("trash")}>
-              انتقال به سطل زباله
-            </Button>
-            <Button size="sm" variant="outline" disabled={bulkBusy} onClick={() => runBulk("restore")}>
-              بازگردانی
-            </Button>
-            <Button size="sm" variant="ghost" disabled={bulkBusy} onClick={() => setSelected(new Set())}>
-              لغو انتخاب
-            </Button>
-          </div>
-        </Card>
-      )}
-
-      {/* Table */}
+      {/* Table — selection comes from DataTable's `selectable`, same as the
+          products/categories/orders lists. */}
       <DataTable<CmsPage>
         columns={pageColumns}
         rows={pages}
         rowKey={(p) => p.id}
+        columnVisibilityKey="admin.pages.columns"
+        selectable
+        bulkActions={pageBulkActions}
         emptyMessage={loading ? "در حال بارگذاری..." : "صفحه‌ای یافت نشد."}
       />
 
@@ -765,7 +741,7 @@ function AdminCMSPagesPageInner() {
           setEditorOpen(open);
         }}
       >
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editing ? "ویرایش صفحه" : "صفحه جدید"}</DialogTitle>
             <DialogDescription>

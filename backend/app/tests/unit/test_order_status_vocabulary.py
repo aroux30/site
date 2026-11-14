@@ -21,13 +21,14 @@ import inspect
 import pytest
 
 
-def test_enum_has_exactly_the_seven_owner_statuses():
+def test_enum_has_exactly_the_owner_statuses():
     from app.modules.orders.domain.models import OrderStatus
 
     assert {m.value for m in OrderStatus} == {
         "waiting_payment_gateway",
         "waiting_payment_card",
         "pending",
+        "doing_verified",
         "processing",
         "completed",
         "canceled",
@@ -61,6 +62,16 @@ def test_chain_is_the_short_linear_fulfilment_path():
     from app.modules.orders.domain.models import OrderStatus
 
     assert _VALID_TRANSITIONS[OrderStatus.PENDING] == frozenset(
+        {
+            OrderStatus.PROCESSING,
+            OrderStatus.DOING_VERIFIED,
+            OrderStatus.CANCELED,
+            OrderStatus.REFUNDED,
+        }
+    )
+    # The verified-badge lane (user-verification port) is a working stage
+    # parallel to PENDING: it advances to PROCESSING, never backwards.
+    assert _VALID_TRANSITIONS[OrderStatus.DOING_VERIFIED] == frozenset(
         {OrderStatus.PROCESSING, OrderStatus.CANCELED, OrderStatus.REFUNDED}
     )
     assert _VALID_TRANSITIONS[OrderStatus.PROCESSING] == frozenset(

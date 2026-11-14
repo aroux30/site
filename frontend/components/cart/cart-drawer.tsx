@@ -318,6 +318,20 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                   </Button>
                 </Link>
               </div>
+              {/* WooCommerce mini-cart parity: even an empty mini-cart keeps a
+                  "view cart" path, so the full /cart page stays reachable from
+                  the header in every state. A real outlined button — a muted
+                  text link read as plain text and was never noticed. */}
+              <Link href="/cart" onClick={onClose} className="mt-4 block w-full">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="w-full rounded-xl font-bold gap-2 border-border"
+                >
+                  <ExternalLink className="h-3.5 w-3.5" />
+                  مشاهده صفحه‌ی سبد خرید
+                </Button>
+              </Link>
             </div>
           ) : (
             items.map((item) => (

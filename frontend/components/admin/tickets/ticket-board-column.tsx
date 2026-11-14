@@ -106,7 +106,10 @@ function TicketBoardColumnInner({
         // of gap — the columns never lined up with their grid columns.
         // `w-full min-w-0` lets the track govern: the column fills its track,
         // and the track is what either fits the frame or scrolls inside it.
-        "flex w-full min-w-0 flex-col overflow-hidden rounded-2xl border transition-all duration-300",
+        // Highlight easing only (no all-properties transition on a big
+        // container — each hover-lane change re-animating border/shadow/layout
+        // on a full column was part of the drag jank).
+        "flex w-full min-w-0 flex-col overflow-hidden rounded-2xl border transition-[border-color,box-shadow,background-color] duration-300",
         "bg-card dark:bg-card/90",
         isOver && isLegalTarget && cn("ring-2 shadow-lg", ringGlow),
         isOver && !isLegalTarget && "ring-2 ring-destructive/60 shadow-lg shadow-destructive/20",

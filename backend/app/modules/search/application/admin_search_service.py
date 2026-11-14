@@ -43,6 +43,7 @@ from sqlalchemy import or_, select
 from app.modules.catalog.domain.models import Product
 from app.modules.orders.domain.models import Order
 from app.modules.support.domain.models import SupportTicket
+from app.modules.users.application.validation_utils import normalise_digits
 from app.modules.users.domain.models import User, UserProfile
 
 if TYPE_CHECKING:
@@ -140,6 +141,8 @@ async def _search_orders(
     pastes a full order number wants that order, not the five others that
     happen to contain the digits.
     """
+    # Operators type «#12» or «۱۲»; both must match the stored ASCII digits.
+    term = normalise_digits(term).replace("#", "").strip()
     pattern = _like(term)
     stmt = (
         select(Order)

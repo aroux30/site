@@ -682,6 +682,22 @@ async def verify_payment(
                 reference_id=payment.id,
                 description="شارژ کیف پول از طریق درگاه پرداخت",
             )
+            # Recharge bonus (بونوس شارژ): best-effort inline so the customer
+            # sees it immediately; the referral sweep is the durable retry.
+            # At-most-once via uq_wallet_referral_rewards_once.
+            try:
+                from app.modules.referrals.application.referral_service import (
+                    ReferralService,
+                )
+
+                await ReferralService.apply_recharge_bonus(
+                    db,
+                    user_id=topup_user,
+                    payment_id=payment.id,
+                    amount_rial=payment.amount,
+                )
+            except Exception as exc:
+                await logger.awarning("recharge_bonus_skipped", error=str(exc))
 
         # Internal wallet payments are charged here: the wallet debit must
         # happen inside the same locked transaction that completes the
@@ -798,6 +814,7 @@ async def verify_payment(
                 OrderStatus.WAITING_PAYMENT_GATEWAY,
                 OrderStatus.WAITING_PAYMENT_CARD,
                 OrderStatus.PENDING,
+                OrderStatus.DOING_VERIFIED,
             ):
                 # A canceled/refunded/completed order must never accept a
                 # payment completion — the transaction (including the
@@ -820,12 +837,25 @@ async def verify_payment(
                 # assignment would record from_status == to_status and the
                 # audit trail would claim the order never moved.
                 from_status = order.status
-                order.status = OrderStatus.PENDING
+                # User-verification port: a manually verified buyer's paid
+                # order enters the DOING_VERIFIED badge lane instead of PENDING
+                # (the plugin's payment-complete/thankyou hook). Best-effort.
+                try:
+                    from app.modules.userverify.application.verification_service import (
+                        VerificationService,
+                    )
+
+                    entry_status = await VerificationService.order_entry_status(
+                        db, order.user_id
+                    )
+                except Exception:
+                    entry_status = OrderStatus.PENDING
+                order.status = entry_status
                 order_confirmed = True
                 history = OrderStatusHistory(
                     order_id=order.id,
                     from_status=from_status.value,
-                    to_status=OrderStatus.PENDING.value,
+                    to_status=entry_status.value,
                     changed_by=None,
                     reason=f"Payment verified via {payment.provider.value} (ref: {result.ref_id})",
                 )
@@ -1558,6 +1588,20 @@ async def approve_payment(
             reference_id=payment.id,
             description="شارژ کیف پول (تأیید کارت به کارت توسط مدیریت)",
         )
+        # Recharge bonus — same rule as the gateway path above.
+        try:
+            from app.modules.referrals.application.referral_service import (
+                ReferralService,
+            )
+
+            await ReferralService.apply_recharge_bonus(
+                db,
+                user_id=topup_user,
+                payment_id=payment.id,
+                amount_rial=payment.amount,
+            )
+        except Exception as exc:
+            await logger.awarning("recharge_bonus_skipped", error=str(exc))
 
     # An approved card-to-card receipt moves the order from the admin-review
     # state into the operator's lane (PENDING). WAITING_PAYMENT_CARD is the one that
@@ -1569,21 +1613,39 @@ async def approve_payment(
 
         order_stmt = select(Order).where(Order.id == payment.order_id).with_for_update()
         order = (await db.execute(order_stmt)).scalar_one_or_none()
-        if order and order.status in (
-            OrderStatus.WAITING_PAYMENT_CARD,
-            OrderStatus.WAITING_PAYMENT_GATEWAY,
+        if (
+            order
+            and order.status
+            in (OrderStatus.WAITING_PAYMENT_CARD, OrderStatus.WAITING_PAYMENT_GATEWAY)
         ):
             from_status = order.status
-            order.status = OrderStatus.PENDING
-            order_confirmed = True
-            history = OrderStatusHistory(
-                order_id=order.id,
-                from_status=from_status.value,
-                to_status=OrderStatus.PENDING.value,
-                changed_by=admin_user_id,
-                reason=f"Admin approved payment (ref: {payment.provider_transaction_id})",
-            )
-            db.add(history)
+            # User-verification port: same badge-lane routing as the gateway
+            # path — a verified buyer's approved card-to-card order enters
+            # DOING_VERIFIED.
+            try:
+                from app.modules.userverify.application.verification_service import (
+                    VerificationService,
+                )
+
+                entry_status = await VerificationService.order_entry_status(
+                    db, order.user_id
+                )
+            except Exception:
+                entry_status = OrderStatus.PENDING
+            # A duplicate approval click (or one racing the gateway callback)
+            # must not write a fake PENDING -> PENDING history row; only
+            # mutate when the lane actually changes.
+            if entry_status != from_status:
+                order.status = entry_status
+                order_confirmed = True
+                history = OrderStatusHistory(
+                    order_id=order.id,
+                    from_status=from_status.value,
+                    to_status=entry_status.value,
+                    changed_by=admin_user_id,
+                    reason=f"Admin approved payment (ref: {payment.provider_transaction_id})",
+                )
+                db.add(history)
 
     await _record_transaction(
         db,
@@ -1721,7 +1783,7 @@ def get_payment_methods() -> PaymentMethodsResponse:
                 settings.PAYMENT_PROVIDER == "zarinpal" or settings.ENVIRONMENT == "development"
             ),
             icon="zarinpal",
-            description="Online payment via Zarinpal gateway",
+            description="پرداخت آنلاین امن با درگاه زرین‌پال",
             instructions="پرداخت آنلاین از طریق کلیه کارت‌های عضو شتاب با درگاه زرین‌پال",
             instructions_fa="پرداخت آنلاین از طریق کلیه کارت‌های عضو شتاب با درگاه زرین‌پال",
         ),
@@ -1731,7 +1793,7 @@ def get_payment_methods() -> PaymentMethodsResponse:
             name_fa="کارت به کارت",
             is_enabled=True,
             icon="credit-card",
-            description="Direct card to card bank transfer",
+            description="انتقال مستقیم وجه از کارت به کارت بانکی",
             instructions=f"انتقال وجه به کارت شماره {settings.CARD_TO_CARD_NUMBER} ({settings.CARD_TO_CARD_BANK} - {settings.CARD_TO_CARD_HOLDER}) و ثبت کد پیگیری فیش",  # noqa: E501
             instructions_fa=f"انتقال وجه به کارت شماره {settings.CARD_TO_CARD_NUMBER} ({settings.CARD_TO_CARD_BANK} - {settings.CARD_TO_CARD_HOLDER}) و ثبت کد پیگیری فیش",  # noqa: E501
         ),
@@ -1741,7 +1803,7 @@ def get_payment_methods() -> PaymentMethodsResponse:
             name_fa="کیف پول",
             is_enabled=True,
             icon="wallet",
-            description="Pay using your wallet balance",
+            description="پرداخت از موجودی کیف پول حساب شما",
             instructions="پرداخت سریع از موجودی حساب کیف پول شما",
             instructions_fa="پرداخت سریع از موجودی حساب کیف پول شما",
         ),

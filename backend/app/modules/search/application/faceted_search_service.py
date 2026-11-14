@@ -172,14 +172,16 @@ class FacetedSearchService:
         return {
             "facet_categories": {
                 "terms": {
-                    "field": "category_id",
+                    # Slug-keyed so the bucket key round-trips through the
+                    # category_slug filter and the storefront URL; the
+                    # Persian name rides as the bucket label via the sub-agg.
+                    "field": "category_slug",
                     "size": 50,
                 },
-            },
-            "facet_category_names": {
-                "terms": {
-                    "field": "category_name.keyword",
-                    "size": 50,
+                "aggs": {
+                    "cat_display_name": {
+                        "terms": {"field": "category_name.keyword", "size": 1},
+                    },
                 },
             },
             "facet_brands": {
@@ -190,11 +192,16 @@ class FacetedSearchService:
             },
             "facet_price_histogram": {
                 "histogram": {
+                    # The indexed field is Rial; the interval arrives in
+                    # Toman like the rest of the API contract, so convert —
+                    # or every bucket is ten times narrower than asked.
                     "field": "price",
-                    "interval": price_interval,
+                    "interval": toman_to_rial(price_interval),
                     "min_doc_count": 1,
                 },
             },
+            "facet_price_min": {"min": {"field": "price"}},
+            "facet_price_max": {"max": {"field": "price"}},
             "facet_rating": {
                 "terms": {
                     "field": "rating_average",
@@ -246,13 +253,49 @@ class FacetedSearchService:
         """
         clauses: list[dict[str, Any]] = []
 
-        # Category filter
-        if cat_values := filters.get("category_id"):
-            clauses.append({"terms": {"category_id": cat_values}})
+        # Category filter (support category_id, category_slug, or category)
+        cat_values = (
+            filters.get("category_id")
+            or filters.get("category_slug")
+            or filters.get("category")
+        )
+        if cat_values:
+            import uuid as _uuid
 
-        # Brand filter (match on keyword sub-field)
+            ids = []
+            slugs = []
+            for v in cat_values:
+                try:
+                    _uuid.UUID(str(v))
+                    ids.append(str(v))
+                except (ValueError, TypeError):
+                    slugs.append(str(v))
+            sub_clauses = []
+            if ids:
+                sub_clauses.append({"terms": {"category_id": ids}})
+                sub_clauses.append({"terms": {"category_ancestors": ids}})
+            if slugs:
+                sub_clauses.append({"terms": {"category_slug": slugs}})
+                sub_clauses.append({"terms": {"category_ancestors": slugs}})
+            if len(sub_clauses) == 1:
+                clauses.append(sub_clauses[0])
+            elif len(sub_clauses) > 1:
+                clauses.append({"bool": {"should": sub_clauses, "minimum_should_match": 1}})
+
+        # Brand filter — bucket keys are slugs in the SQL fallback; older
+        # index builds keyed by name. Match either so both key styles work.
         if brand_values := filters.get("brand"):
-            clauses.append({"terms": {"brand_name.keyword": brand_values}})
+            clauses.append(
+                {
+                    "bool": {
+                        "should": [
+                            {"terms": {"brand_name.keyword": brand_values}},
+                            {"terms": {"brand_slug": brand_values}},
+                        ],
+                        "minimum_should_match": 1,
+                    }
+                }
+            )
 
         # Rating filter
         if rating_values := filters.get("rating"):
@@ -332,12 +375,20 @@ class FacetedSearchService:
     ) -> FacetedSearchResult:
         """Answer the same request from Postgres when Elasticsearch is down.
 
-        Covers the storefront's actual usage: free-text query (name/
-        description ILIKE), category/brand filters, price range, availability,
-        sort, and pagination. Facets come back empty rather than fabricated —
-        computing full facet buckets in SQL would duplicate the ES aggregation
-        semantics, and an empty facet list is honest ("search is degraded")
-        while wrong counts would silently mislead.
+        WooCommerce-style behaviour — the storefront catalog filters straight
+        from SQL with no search engine involved. Facet buckets (category,
+        brand, price, availability, rating) are aggregated from the
+        *text-filtered* population, mirroring the ES ``post_filter``
+        convention the UI already renders: counts ignore the shopper's facet
+        selections but honour the search box. Every storefront filter is
+        honoured here: free-text query (name/description ILIKE), category with
+        descendants, brand (slug or name), price range, in-stock, minimum
+        rating, all sort options (incl. rating), and pagination.
+
+        Facets the data cannot support are omitted, never fabricated:
+        ``attr:*`` filters stay ignored while ``product_attributes`` is empty,
+        and the rating facet only appears once approved reviews exist.
+        ``degraded=True`` still flags the loss of relevance ranking.
 
         Prices: the DB stores Rial; the API contract is Toman (memory:
         money-unit-two-conventions), so the same conversion the ES path uses
@@ -348,13 +399,72 @@ class FacetedSearchService:
         from sqlalchemy.orm import joinedload
 
         from app.modules.catalog.domain.models import (
+            Brand,
             Category,
             Product,
             ProductImage,
             ProductStatus,
             ProductVariant,
         )
+        from app.modules.inventory.domain.models import InventoryItem
+        from app.modules.reviews.domain.models import Review, ReviewStatus
 
+        query = (request.query or "").strip()
+
+        # Shared population conditions: active products narrowed only by the
+        # free-text query. Facet aggregations and the hit query both start
+        # from this; facet selections are applied to hits only (post_filter).
+        base_conds = [
+            Product.status == ProductStatus.ACTIVE,
+            Product.is_active.is_(True),
+        ]
+        if query:
+            # SQLAlchemy binds the pattern as a parameter and autoescape
+            # neutralizes user-supplied %/_ wildcards, so a crafted query
+            # cannot broaden the ILIKE into a full-table scan.
+            base_conds.append(
+                or_(
+                    Product.name.icontains(query, autoescape=True),
+                    Product.description.icontains(query, autoescape=True),
+                )
+            )
+
+        # "In stock" = at least one active variant the inventory ledger says
+        # is buyable: units available, or stock not tracked at all (unlimited).
+        in_stock_exists = (
+            select(1)
+            .select_from(ProductVariant)
+            .join(InventoryItem, InventoryItem.variant_id == ProductVariant.id)
+            .where(
+                ProductVariant.product_id == Product.id,
+                ProductVariant.is_active.is_(True),
+                or_(
+                    InventoryItem.available > 0,
+                    InventoryItem.track_inventory.is_(False),
+                ),
+            )
+            .exists()
+        )
+
+        # Approved-review aggregates per product power the rating facet, the
+        # rating filter, rating sorting, and hit enrichment.
+        rating_agg = (
+            select(
+                Review.product_id.label("pid"),
+                sa_func.avg(Review.rating).label("avg_rating"),
+                sa_func.count(Review.id).label("rating_count"),
+            )
+            .where(Review.status == ReviewStatus.APPROVED)
+            .group_by(Review.product_id)
+            .subquery()
+        )
+
+        # ── Facets: aggregated over the text-filtered population ──────────
+        facets = await FacetedSearchService._pg_build_facets(
+            db, request, base_conds, in_stock_exists, rating_agg
+        )
+
+        # ── Hit query ──────────────────────────────────────────────────────
         base = (
             select(Product)
             .options(
@@ -362,18 +472,16 @@ class FacetedSearchService:
                 joinedload(Product.brand),
                 joinedload(Product.variants),
             )
-            .where(
-                Product.status == ProductStatus.ACTIVE,
-                Product.is_active.is_(True),
-            )
+            .where(*base_conds)
         )
-
-        query = (request.query or "").strip()
-        if query:
-            like = f"%{query}%"
-            base = base.where(
-                or_(Product.name.ilike(like), Product.description.ilike(like))
-            )
+        if request.sort_by == FacetedSortOption.RATING:
+            # Join the review aggregate only when sorting by rating: the
+            # selected coalesce column keeps ORDER BY … with DISTINCT valid
+            # in Postgres. Page hits get their ratings from the per-page
+            # lookup below, so no other sort pays for this join.
+            base = base.add_columns(
+                sa_func.coalesce(rating_agg.c.avg_rating, -1).label("sort_rating")
+            ).outerjoin(rating_agg, rating_agg.c.pid == Product.id)
 
         # Filters arrive as {field: [values]}. Only the ones the SQL path can
         # honour are applied; anything else (dynamic attr:*) is ignored rather
@@ -382,26 +490,66 @@ class FacetedSearchService:
         for field, values in filters.items():
             if not values:
                 continue
-            if field == "category_id":
+            if field in ("category_id", "category", "category_slug"):
                 import uuid as _uuid
 
                 ids = []
+                slugs = []
                 for v in values:
                     try:
                         ids.append(_uuid.UUID(v))
                     except (ValueError, TypeError):
-                        continue
+                        slugs.append(str(v))
+
+                cat_match_conditions = []
                 if ids:
-                    base = base.where(Product.category_id.in_(ids))
+                    cat_match_conditions.append(Category.id.in_(ids))
+                    for cid in ids:
+                        # Descendants: every category whose tree path extends
+                        # this one's path.
+                        path_subq = (
+                            select(Category.path).where(Category.id == cid).scalar_subquery()
+                        )
+                        cat_match_conditions.append(
+                            Category.path.startswith(sa_func.concat(path_subq, "/"))
+                        )
+                if slugs:
+                    cat_match_conditions.append(Category.slug.in_(slugs))
+                    for cslug in slugs:
+                        path_subq = (
+                            select(Category.path).where(Category.slug == cslug).scalar_subquery()
+                        )
+                        cat_match_conditions.append(
+                            Category.path.startswith(sa_func.concat(path_subq, "/"))
+                        )
+
+                if cat_match_conditions:
+                    descendant_subq = select(Category.id).where(or_(*cat_match_conditions))
+                    base = base.where(Product.category_id.in_(descendant_subq))
             elif field == "brand":
-                # brand facet values are slugs in the ES mapping.
+                # Bucket keys are slugs (see _pg_build_facets); legacy links
+                # and older index builds carry names — match either.
                 from app.modules.catalog.domain.models import Brand
 
                 base = base.where(
                     Product.brand_id.in_(
-                        select(Brand.id).where(Brand.slug.in_(values))
+                        select(Brand.id).where(
+                            or_(Brand.slug.in_(values), Brand.name.in_(values))
+                        )
                     )
                 )
+            elif field == "rating":
+                min_rating = min(float(r) for r in values)
+                rating_filter = (
+                    select(Review.product_id)
+                    .where(Review.status == ReviewStatus.APPROVED)
+                    .group_by(Review.product_id)
+                    .having(sa_func.avg(Review.rating) >= min_rating)
+                )
+                base = base.where(Product.id.in_(rating_filter))
+            elif field == "in_stock":
+                if "true" in [v.lower() for v in values]:
+                    base = base.where(in_stock_exists)
 
         # Join variants BEFORE any ProductVariant column is referenced: a
         # where() on a not-yet-joined table makes SQLAlchemy add it to the
@@ -444,6 +592,14 @@ class FacetedSearchService:
             base = base.order_by(ProductVariant.price.desc())
         elif request.sort_by == FacetedSortOption.NEWEST:
             base = base.order_by(Product.created_at.desc())
+        elif request.sort_by == FacetedSortOption.RATING:
+            # coalesce below zero keeps reviewed products on top while
+            # review-less products still get a deterministic newest-first
+            # order.
+            base = base.order_by(
+                sa_func.coalesce(rating_agg.c.avg_rating, -1).desc(),
+                Product.created_at.desc(),
+            )
         else:
             # Relevance: no text rank in SQL — featured first, then newest is
             # the closest honest ordering.
@@ -454,6 +610,22 @@ class FacetedSearchService:
         from_offset = (request.page - 1) * request.size
         base = base.distinct().offset(from_offset).limit(request.size)
         products = (await db.execute(base)).unique().scalars().all()
+
+        # Page ratings in one query (not per product) — ES hits carry these
+        # too, so star displays keep working in the fallback.
+        page_ratings: dict[Any, tuple[Any, Any]] = {}
+        if products:
+            rating_page_rows = (
+                await db.execute(
+                    select(
+                        rating_agg.c.pid,
+                        rating_agg.c.avg_rating,
+                        rating_agg.c.rating_count,
+                    ).where(rating_agg.c.pid.in_([p.id for p in products]))
+                )
+            ).all()
+            for pid, avg_r, cnt in rating_page_rows:
+                page_ratings[pid] = (avg_r, cnt)
 
         # Primary images in one query (not per product).
         images: dict[Any, str] = {}
@@ -493,6 +665,16 @@ class FacetedSearchService:
                         if variant and variant.compare_at_price
                         else None
                     ),
+                    rating_average=(
+                        round(float(page_ratings[p.id][0]), 2)
+                        if p.id in page_ratings
+                        else None
+                    ),
+                    rating_count=(
+                        int(page_ratings[p.id][1])
+                        if p.id in page_ratings
+                        else None
+                    ),
                     image_url=images.get(p.id),
                     is_active=p.is_active,
                     is_featured=p.is_featured,
@@ -508,13 +690,194 @@ class FacetedSearchService:
         )
         return FacetedSearchResult(
             hits=hits,
-            facets=[],
+            facets=facets,
             total=total,
             page=request.page,
             size=request.size,
             total_pages=math.ceil(total / request.size) if request.size > 0 else 0,
             degraded=True,
         )
+
+    @staticmethod
+    async def _pg_build_facets(
+        db: Any,
+        request: FacetedSearchRequest,
+        base_conds: list[Any],
+        in_stock_exists: Any,
+        rating_agg: Any,
+    ) -> list[Facet]:
+        """Aggregate real facet buckets over the text-filtered population.
+
+        Buckets are keyed the way the storefront round-trips them: categories
+        and brands by slug (the Persian name rides as ``label``), price by
+        Toman histogram start, availability by "true". WooCommerce parity: a
+        term with zero matching products simply does not appear, and counts
+        are computed before facet selections (post_filter semantics).
+        """
+        from sqlalchemy import func as sa_func
+        from sqlalchemy import select
+
+        from app.modules.catalog.domain.models import (
+            Brand,
+            Category,
+            Product,
+            ProductVariant,
+        )
+
+        facets: list[Facet] = []
+
+        # ── Category buckets (slug key, Persian name label) ────────────────
+        cat_rows = (
+            await db.execute(
+                select(
+                    Category.slug,
+                    Category.name,
+                    sa_func.count(sa_func.distinct(Product.id)).label("cnt"),
+                )
+                .join(Product, Product.category_id == Category.id)
+                .where(*base_conds)
+                .group_by(Category.slug, Category.name)
+                .order_by(
+                    sa_func.count(sa_func.distinct(Product.id)).desc(),
+                    Category.name,
+                )
+                .limit(50)
+            )
+        ).all()
+        if cat_rows:
+            facets.append(
+                Facet(
+                    field="category_id",
+                    display_name=_FACET_DISPLAY_NAMES["category_id"],
+                    buckets=[
+                        FacetBucket(key=slug, doc_count=cnt, label=name)
+                        for slug, name, cnt in cat_rows
+                    ],
+                )
+            )
+
+        # ── Brand buckets (slug key, Persian name label) ───────────────────
+        brand_rows = (
+            await db.execute(
+                select(
+                    Brand.slug,
+                    Brand.name,
+                    sa_func.count(sa_func.distinct(Product.id)).label("cnt"),
+                )
+                .join(Product, Product.brand_id == Brand.id)
+                .where(*base_conds)
+                .group_by(Brand.slug, Brand.name)
+                .order_by(
+                    sa_func.count(sa_func.distinct(Product.id)).desc(),
+                    Brand.name,
+                )
+                .limit(50)
+            )
+        ).all()
+        if brand_rows:
+            facets.append(
+                Facet(
+                    field="brand",
+                    display_name=_FACET_DISPLAY_NAMES["brand"],
+                    buckets=[
+                        FacetBucket(key=slug, doc_count=cnt, label=name)
+                        for slug, name, cnt in brand_rows
+                    ],
+                )
+            )
+
+        # ── Price facet: true bounds + histogram over each product's cheapest
+        #    active variant (Toman), so the slider sizes to the catalogue.
+        price_rows = (
+            await db.execute(
+                select(
+                    Product.id,
+                    sa_func.min(ProductVariant.price).label("p"),
+                )
+                .join(ProductVariant, ProductVariant.product_id == Product.id)
+                .where(
+                    *base_conds,
+                    ProductVariant.is_active.is_(True),
+                )
+                .group_by(Product.id)
+            )
+        ).all()
+        toman_prices = [
+            rial_to_toman(int(r.p)) for r in price_rows if r.p is not None
+        ]
+        if toman_prices:
+            interval = max(request.price_histogram_interval, 1)
+            buckets: dict[int, int] = {}
+            for tp in toman_prices:
+                start = (tp // interval) * interval
+                buckets[start] = buckets.get(start, 0) + 1
+            facets.append(
+                Facet(
+                    field="price",
+                    display_name=_FACET_DISPLAY_NAMES["price"],
+                    buckets=[
+                        FacetBucket(key=str(start), doc_count=cnt)
+                        for start, cnt in sorted(buckets.items())
+                    ],
+                    min=float(min(toman_prices)),
+                    max=float(max(toman_prices)),
+                )
+            )
+
+        # ── Availability facet (real inventory counts) ─────────────────────
+        in_stock_count = (
+            await db.execute(
+                select(sa_func.count(sa_func.distinct(Product.id))).where(
+                    *base_conds,
+                    in_stock_exists,
+                )
+            )
+        ).scalar_one()
+        if in_stock_count > 0:
+            facets.append(
+                Facet(
+                    field="availability",
+                    display_name=_FACET_DISPLAY_NAMES["availability"],
+                    buckets=[
+                        FacetBucket(
+                            key="true",
+                            doc_count=in_stock_count,
+                            label="فقط کالاهای موجود",
+                        ),
+                    ],
+                )
+            )
+
+        # ── Rating facet (approved reviews; hidden while none exist) ───────
+        rating_rows = (
+            await db.execute(
+                select(rating_agg.c.pid, rating_agg.c.avg_rating)
+                .join(Product, Product.id == rating_agg.c.pid)
+                .where(*base_conds)
+            )
+        ).all()
+        if rating_rows:
+            rating_buckets = [
+                FacetBucket(
+                    key=str(threshold),
+                    doc_count=sum(
+                        1 for r in rating_rows if float(r.avg_rating) >= threshold
+                    ),
+                    label="★" * threshold + " و بالاتر",
+                )
+                for threshold in (4, 3, 2, 1)
+                if any(float(r.avg_rating) >= threshold for r in rating_rows)
+            ]
+            if rating_buckets:
+                facets.append(
+                    Facet(
+                        field="rating",
+                        display_name=_FACET_DISPLAY_NAMES["rating"],
+                        buckets=rating_buckets,
+                    )
+                )
+
+        return facets
 
     @staticmethod
     def _parse_hit(hit: dict[str, Any]) -> SearchProductResult:
@@ -546,11 +909,8 @@ class FacetedSearchService:
         """Parse ES aggregation buckets into a list of Facet objects."""
         facets: list[Facet] = []
 
-        # Category facet (use readable names from the parallel agg)
-        cat_name_buckets = aggs.get("facet_category_names", {}).get("buckets", [])
-        cat_id_buckets = aggs.get("facet_categories", {}).get("buckets", [])
-        # Prefer name-based facet for display, fall back to ID-based
-        cat_buckets = cat_name_buckets or cat_id_buckets
+        # Category facet (slug-keyed buckets, Persian display name as label)
+        cat_buckets = aggs.get("facet_categories", {}).get("buckets", [])
         if cat_buckets:
             facets.append(
                 Facet(
@@ -560,7 +920,12 @@ class FacetedSearchService:
                         FacetBucket(
                             key=b["key"],
                             doc_count=b["doc_count"],
-                            label=b["key"] if cat_name_buckets else None,
+                            label=(
+                                (
+                                    b.get("cat_display_name", {}).get("buckets")
+                                    or [{}]
+                                )[0].get("key")
+                            ),
                         )
                         for b in cat_buckets
                     ],
@@ -588,6 +953,12 @@ class FacetedSearchService:
                 Facet(
                     field="price",
                     display_name=_FACET_DISPLAY_NAMES["price"],
+                    min=rial_to_toman(
+                        int(aggs.get("facet_price_min", {}).get("value") or 0)
+                    ),
+                    max=rial_to_toman(
+                        int(aggs.get("facet_price_max", {}).get("value") or 0)
+                    ),
                     buckets=[
                         FacetBucket(
                             # Bucket keys are Rial like the indexed field; the

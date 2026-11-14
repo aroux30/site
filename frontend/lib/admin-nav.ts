@@ -8,6 +8,8 @@ import {
   Boxes,
   CalendarDays,
   ChartLine,
+  CircleDollarSign,
+  CircleHelp,
   ClipboardCheck,
   Coins,
   Cog,
@@ -24,12 +26,14 @@ import {
   Link2,
   LayoutGrid,
   Megaphone,
+  MessagesSquare,
   Newspaper,
   Package,
   PanelsTopLeft,
   PlugZap,
   ScrollText,
   Search,
+  Send,
   Settings,
   ShieldCheck,
   ShoppingCart,
@@ -40,11 +44,17 @@ import {
   TrendingUp,
   Unlink,
   Type,
+  UserPlus,
   Users,
   UsersRound,
   Wallet,
   Zap,
   type LucideIcon,
+  Eye,
+  ImageIcon,
+  Route,
+  MapPin,
+  Brain,
 } from "lucide-react";
 
 /**
@@ -99,19 +109,27 @@ export const adminNavGroups: AdminNavGroup[] = [
     label: "فروشگاه",
     icon: Store,
     items: [
-      { href: "/admin/products", label: "محصولات", icon: Package },
+      // Categories come first (owner order 2026-10-24): a category is the
+      // parent a product is filed under, so the menu reads in definition
+      // order — دسته‌بندی‌ها then محصولات.
       { href: "/admin/categories", label: "دسته‌بندی‌ها", icon: FolderTree },
+      { href: "/admin/products", label: "محصولات", icon: Package },
       // «سفارش‌ها» and «میز کانبان سفارشات» were merged into one page on
       // 2026-10-10 (owner order: one menu, one page, list/board views). The
       // old /admin/kanban route still exists as a redirect to
       // /admin/orders?view=board, so it is deliberately NOT a nav entry —
       // see UNLINKED_BY_DESIGN in tests/admin-nav-reachability.test.ts.
       { href: "/admin/orders", label: "سفارش‌ها", icon: ShoppingCart },
+      // Telegram order notifications — ported from WP plugin (tgnotif module)
+      { href: "/admin/telegram-notify", label: "اطلاع‌رسانی تلگرام", icon: Send },
       {
         href: "/admin/digital-inventory",
         label: "انبار کدهای دیجیتال",
         icon: Boxes,
       },
+      // USD→Toman price updater (Nobitex), ported from the owner's WordPress
+      // plugin. It edits product prices, so it lives with the products.
+      { href: "/admin/currency", label: "به‌روزرسانی قیمت دلاری", icon: CircleDollarSign },
       { href: "/admin/reviews", label: "بررسی نظرات", icon: Star },
     ],
   },
@@ -121,7 +139,9 @@ export const adminNavGroups: AdminNavGroup[] = [
     icon: UsersRound,
     items: [
       { href: "/admin/users", label: "کاربران", icon: Users },
+      { href: "/admin/user-verification", label: "احراز کاربران", icon: ShieldCheck },
       { href: "/admin/tickets", label: "تیکت‌ها و پشتیبانی", icon: Headphones },
+      { href: "/admin/chat", label: "گفتگوی زنده", icon: MessagesSquare },
     ],
   },
   {
@@ -132,6 +152,7 @@ export const adminNavGroups: AdminNavGroup[] = [
       { href: "/admin/discounts", label: "تخفیف‌ها", icon: BadgePercent },
       { href: "/admin/cashback", label: "کش‌بک", icon: Coins },
       { href: "/admin/gamification", label: "کارت هدیه و گردونه شانس", icon: Gift },
+      { href: "/admin/referrals", label: "دعوت دوستان", icon: UserPlus },
     ],
   },
   {
@@ -150,6 +171,10 @@ export const adminNavGroups: AdminNavGroup[] = [
     items: [
       { href: "/admin/blog", label: "وبلاگ", icon: Newspaper },
       { href: "/admin/pages", label: "صفحات", icon: FileText },
+      // FAQ owns a section (owner decision 2026-11-04): it is page content —
+      // the /faq storefront page and the [faq] shortcode consume it — not a
+      // piece of the layout builder's dashboard.
+      { href: "/admin/faq", label: "سوالات متداول", icon: CircleHelp },
       { href: "/admin/cms", label: "محتوا و منوساز", icon: PanelsTopLeft },
       { href: "/admin/widgets", label: "نواحی ویجت", icon: LayoutGrid },
       { href: "/admin/media", label: "کتابخانه رسانه", icon: Images },
@@ -183,6 +208,20 @@ export const adminNavGroups: AdminNavGroup[] = [
       { href: "/admin/seo", label: "داشبورد سئو", icon: LayoutDashboard },
       // Titles & Meta (Rank Math parity): default templates per content type.
       { href: "/admin/seo/titles-meta", label: "عنوان و توضیحات پیش‌فرض", icon: Type },
+      // Search visibility (WordPress `blog_public`): the single write path for
+      // the noindex switch. It used to live in Settings → General and again in
+      // Settings → Content; both now link here instead of duplicating it.
+      { href: "/admin/seo/visibility", label: "نمایش در موتورهای جست‌وجو", icon: Eye },
+      // Image SEO (Rank Math parity): auto alt/title/caption at upload.
+      { href: "/admin/seo/image", label: "سئوی تصویر", icon: ImageIcon },
+      // Breadcrumbs (Rank Math parity): trail + BreadcrumbList structured data.
+      { href: "/admin/seo/breadcrumbs", label: "مسیر صفحه (Breadcrumbs)", icon: Route },
+      // Instant Indexing (Rank Math parity): IndexNow on publish.
+      { href: "/admin/seo/indexing", label: "ایندکس فوری", icon: Zap },
+      // Local SEO (Rank Math parity): LocalBusiness JSON-LD profile.
+      { href: "/admin/seo/local", label: "سئوی محلی", icon: MapPin },
+      // Content AI (Rank Math parity): meta suggestions via a configured LLM.
+      { href: "/admin/seo/content-ai", label: "هوش مصنوعی محتوا", icon: Brain },
       { href: "/admin/seo/link-counter", label: "شمارش لینک‌ها", icon: Link2 },
       { href: "/admin/seo/link-genius", label: "نابغهٔ لینک (Link Genius)", icon: Sparkles },
       { href: "/admin/seo/link-audit", label: "بررسی لینک‌های شکسته", icon: Unlink },
@@ -207,7 +246,16 @@ export const adminNavGroups: AdminNavGroup[] = [
     label: "سیستم",
     icon: Cog,
     items: [
-      { href: "/admin/settings", label: "تنظیمات", icon: Settings },
+      {
+        href: "/admin/settings",
+        label: "تنظیمات",
+        icon: Settings,
+        // WordPress keeps URL structure on its own screen (options-
+        // permalink.php) under Settings; same place here.
+        children: [
+          { href: "/admin/settings/permalink", label: "پیوندهای یکتا", icon: Link2 },
+        ],
+      },
       { href: "/admin/rbac", label: "نقش‌ها و دسترسی‌ها", icon: ShieldCheck },
       // Automation rules (trigger → conditions → actions). The engine and its
       // six admin routes shipped with no sidebar entry, so the whole feature

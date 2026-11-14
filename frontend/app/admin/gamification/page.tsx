@@ -20,6 +20,10 @@ import {
   MissingDataNotice,
   PartialDataNotice,
 } from "@/components/admin/async-state";
+import {
+  ColumnVisibilityToggle,
+  useColumnVisibility,
+} from "@/components/admin/list-engine";
 import apiClient from "@/lib/api/client";
 import { useAdminMutation, useAdminQuery } from "@/lib/api/admin-query";
 import { formatRial, toPersianDigits } from "@/lib/utils";
@@ -53,6 +57,27 @@ interface ChargePackage {
 export default function AdminGamificationPage() {
   const { toast } = useToast();
   const [giftCode, setGiftCode] = useState<string | null>(null);
+
+  // Screen Options (WordPress parity): one picker per tab's table.
+  const ruleColVis = useColumnVisibility("admin.gamification.rules.columns");
+  const ruleColumns = [
+    { key: "name", label: "نام قاعده" },
+    { key: "event", label: "رویداد" },
+    { key: "points", label: "امتیاز" },
+    { key: "status", label: "وضعیت" },
+    { key: "actions", label: "عملیات" },
+  ];
+  const rewardColVis = useColumnVisibility("admin.gamification.rewards.columns");
+  const rewardColumns = [
+    { key: "name", label: "نام جایزه" },
+    { key: "type", label: "نوع" },
+    { key: "points", label: "امتیاز لازم" },
+    { key: "stock", label: "موجودی" },
+    { key: "status", label: "وضعیت" },
+    { key: "actions", label: "عملیات" },
+  ];
+  const ruleColCount = ruleColumns.filter((c) => !ruleColVis.isHidden(c.key)).length;
+  const rewardColCount = rewardColumns.filter((c) => !rewardColVis.isHidden(c.key)).length;
 
   // Create gift card dialog
   const [giftOpen, setGiftOpen] = useState(false);
@@ -434,52 +459,81 @@ export default function AdminGamificationPage() {
               </p>
             </Card>
           ) : (
-            <div className="overflow-x-auto rounded-lg border border-border">
-              <table className="w-full text-right text-sm">
-                <thead className="border-b border-border bg-muted/50 text-xs text-muted-foreground">
-                  <tr>
-                    <th scope="col" className="px-4 py-3">نام قاعده</th>
-                    <th scope="col" className="px-4 py-3">رویداد</th>
-                    <th scope="col" className="px-4 py-3">امتیاز</th>
-                    <th scope="col" className="px-4 py-3">وضعیت</th>
-                    <th scope="col" className="px-4 py-3"> </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border/60">
-                  {rules.map((rule) => (
-                    <tr key={rule.id}>
-                      <td className="px-4 py-3 font-medium text-foreground">
-                        {rule.name}
-                      </td>
-                      <td className="px-4 py-3 font-mono text-xs" dir="ltr">
-                        {rule.eventType || "—"}
-                      </td>
-                      <td className="px-4 py-3 font-mono">
-                        {rule.points === null
-                          ? "—"
-                          : toPersianDigits(String(rule.points))}
-                      </td>
-                      <td className="px-4 py-3">
-                        {rule.isActive ? (
-                          <Badge variant="success">فعال</Badge>
-                        ) : (
-                          <Badge variant="outline">غیرفعال</Badge>
-                        )}
-                      </td>
-                      <td className="px-4 py-3">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => void toggleRule(rule)}
-                        >
-                          {rule.isActive ? "غیرفعال" : "فعال"}
-                        </Button>
-                      </td>
+            <>
+              <div className="flex">
+                <ColumnVisibilityToggle
+                  columns={ruleColumns}
+                  hidden={ruleColVis.hidden}
+                  onToggle={ruleColVis.toggle}
+                />
+              </div>
+              <div className="overflow-x-auto rounded-lg border border-border">
+                <table className="w-full text-right text-sm">
+                  <thead className="border-b border-border bg-muted/50 text-xs text-muted-foreground">
+                    <tr>
+                      {!ruleColVis.isHidden("name") && (
+                        <th scope="col" className="px-4 py-3">نام قاعده</th>
+                      )}
+                      {!ruleColVis.isHidden("event") && (
+                        <th scope="col" className="px-4 py-3">رویداد</th>
+                      )}
+                      {!ruleColVis.isHidden("points") && (
+                        <th scope="col" className="px-4 py-3">امتیاز</th>
+                      )}
+                      {!ruleColVis.isHidden("status") && (
+                        <th scope="col" className="px-4 py-3">وضعیت</th>
+                      )}
+                      {!ruleColVis.isHidden("actions") && (
+                        <th scope="col" className="px-4 py-3"> </th>
+                      )}
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody className="divide-y divide-border/60">
+                    {rules.map((rule) => (
+                      <tr key={rule.id}>
+                        {!ruleColVis.isHidden("name") && (
+                          <td className="px-4 py-3 font-medium text-foreground">
+                            {rule.name}
+                          </td>
+                        )}
+                        {!ruleColVis.isHidden("event") && (
+                          <td className="px-4 py-3 font-mono text-xs" dir="ltr">
+                            {rule.eventType || "—"}
+                          </td>
+                        )}
+                        {!ruleColVis.isHidden("points") && (
+                          <td className="px-4 py-3 font-mono">
+                            {rule.points === null
+                              ? "—"
+                              : toPersianDigits(String(rule.points))}
+                          </td>
+                        )}
+                        {!ruleColVis.isHidden("status") && (
+                          <td className="px-4 py-3">
+                            {rule.isActive ? (
+                              <Badge variant="success">فعال</Badge>
+                            ) : (
+                              <Badge variant="outline">غیرفعال</Badge>
+                            )}
+                          </td>
+                        )}
+                        {!ruleColVis.isHidden("actions") && (
+                          <td className="px-4 py-3">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => void toggleRule(rule)}
+                            >
+                              {rule.isActive ? "غیرفعال" : "فعال"}
+                            </Button>
+                          </td>
+                        )}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
           )}
         </TabsContent>
 
@@ -512,63 +566,96 @@ export default function AdminGamificationPage() {
               </p>
             </Card>
           ) : (
-            <div className="overflow-x-auto rounded-lg border border-border">
-              <table className="w-full text-right text-sm">
-                <thead className="border-b border-border bg-muted/50 text-xs text-muted-foreground">
-                  <tr>
-                    <th scope="col" className="px-4 py-3">نام جایزه</th>
-                    <th scope="col" className="px-4 py-3">نوع</th>
-                    <th scope="col" className="px-4 py-3">امتیاز لازم</th>
-                    <th scope="col" className="px-4 py-3">موجودی</th>
-                    <th scope="col" className="px-4 py-3">وضعیت</th>
-                    <th scope="col" className="px-4 py-3"> </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border/60">
-                  {rewards.map((reward) => (
-                    <tr key={reward.id}>
-                      <td className="px-4 py-3">
-                        <div className="font-medium text-foreground">{reward.name}</div>
-                        {reward.description && (
-                          <div className="text-[11px] text-muted-foreground">
-                            {reward.description}
-                          </div>
-                        )}
-                      </td>
-                      <td className="px-4 py-3">
-                        <Badge variant="secondary">{rewardTypeLabel(reward.type)}</Badge>
-                      </td>
-                      <td className="px-4 py-3 font-mono">
-                        {reward.pointsRequired === null
-                          ? "—"
-                          : toPersianDigits(String(reward.pointsRequired))}
-                      </td>
-                      <td className="px-4 py-3 font-mono text-xs">
-                        {reward.quantityAvailable === null
-                          ? "بدون محدودیت"
-                          : toPersianDigits(String(reward.quantityAvailable))}
-                      </td>
-                      <td className="px-4 py-3">
-                        {reward.isActive ? (
-                          <Badge variant="success">فعال</Badge>
-                        ) : (
-                          <Badge variant="outline">غیرفعال</Badge>
-                        )}
-                      </td>
-                      <td className="px-4 py-3">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => void toggleReward(reward)}
-                        >
-                          {reward.isActive ? "غیرفعال" : "فعال"}
-                        </Button>
-                      </td>
+            <>
+              <div className="flex">
+                <ColumnVisibilityToggle
+                  columns={rewardColumns}
+                  hidden={rewardColVis.hidden}
+                  onToggle={rewardColVis.toggle}
+                />
+              </div>
+              <div className="overflow-x-auto rounded-lg border border-border">
+                <table className="w-full text-right text-sm">
+                  <thead className="border-b border-border bg-muted/50 text-xs text-muted-foreground">
+                    <tr>
+                      {!rewardColVis.isHidden("name") && (
+                        <th scope="col" className="px-4 py-3">نام جایزه</th>
+                      )}
+                      {!rewardColVis.isHidden("type") && (
+                        <th scope="col" className="px-4 py-3">نوع</th>
+                      )}
+                      {!rewardColVis.isHidden("points") && (
+                        <th scope="col" className="px-4 py-3">امتیاز لازم</th>
+                      )}
+                      {!rewardColVis.isHidden("stock") && (
+                        <th scope="col" className="px-4 py-3">موجودی</th>
+                      )}
+                      {!rewardColVis.isHidden("status") && (
+                        <th scope="col" className="px-4 py-3">وضعیت</th>
+                      )}
+                      {!rewardColVis.isHidden("actions") && (
+                        <th scope="col" className="px-4 py-3"> </th>
+                      )}
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody className="divide-y divide-border/60">
+                    {rewards.map((reward) => (
+                      <tr key={reward.id}>
+                        {!rewardColVis.isHidden("name") && (
+                          <td className="px-4 py-3">
+                            <div className="font-medium text-foreground">{reward.name}</div>
+                            {reward.description && (
+                              <div className="text-[11px] text-muted-foreground">
+                                {reward.description}
+                              </div>
+                            )}
+                          </td>
+                        )}
+                        {!rewardColVis.isHidden("type") && (
+                          <td className="px-4 py-3">
+                            <Badge variant="secondary">{rewardTypeLabel(reward.type)}</Badge>
+                          </td>
+                        )}
+                        {!rewardColVis.isHidden("points") && (
+                          <td className="px-4 py-3 font-mono">
+                            {reward.pointsRequired === null
+                              ? "—"
+                              : toPersianDigits(String(reward.pointsRequired))}
+                          </td>
+                        )}
+                        {!rewardColVis.isHidden("stock") && (
+                          <td className="px-4 py-3 font-mono text-xs">
+                            {reward.quantityAvailable === null
+                              ? "بدون محدودیت"
+                              : toPersianDigits(String(reward.quantityAvailable))}
+                          </td>
+                        )}
+                        {!rewardColVis.isHidden("status") && (
+                          <td className="px-4 py-3">
+                            {reward.isActive ? (
+                              <Badge variant="success">فعال</Badge>
+                            ) : (
+                              <Badge variant="outline">غیرفعال</Badge>
+                            )}
+                          </td>
+                        )}
+                        {!rewardColVis.isHidden("actions") && (
+                          <td className="px-4 py-3">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => void toggleReward(reward)}
+                            >
+                              {reward.isActive ? "غیرفعال" : "فعال"}
+                            </Button>
+                          </td>
+                        )}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
           )}
         </TabsContent>
       </Tabs>

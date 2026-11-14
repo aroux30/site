@@ -133,31 +133,41 @@ function BucketCheckboxList({
 /* -------------------------------------------------------------------------- */
 
 const MAX_PRICE_LIMIT = 150_000_000;
+const PRICE_STEP = 500_000;
 
 function PriceRangeSection({
   minPrice,
   maxPrice,
+  dataMax,
   onChange,
 }: {
   minPrice: number | null;
   maxPrice: number | null;
+  /** True top price of the current result population (Toman), from the
+   *  price facet — keeps the slider sized to the catalogue instead of a
+   *  hard-coded cap that hides pricier products. */
+  dataMax?: number | null;
   onChange: (min: number | null, max: number | null) => void;
 }) {
-  const currentMin = minPrice ?? 0;
-  const currentMax = maxPrice ?? MAX_PRICE_LIMIT;
+  const sliderMax = dataMax
+    ? Math.max(Math.ceil(dataMax / PRICE_STEP) * PRICE_STEP, PRICE_STEP)
+    : MAX_PRICE_LIMIT;
+  // Clamp so a stale URL value above the slider can never crash the thumb.
+  const currentMin = Math.min(minPrice ?? 0, sliderMax);
+  const currentMax = Math.min(maxPrice ?? sliderMax, sliderMax);
 
   return (
     <div className="space-y-4">
       <div className="px-1 pt-2">
         <Slider
           min={0}
-          max={MAX_PRICE_LIMIT}
-          step={500_000}
+          max={sliderMax}
+          step={PRICE_STEP}
           value={[currentMin, currentMax]}
           onValueChange={(val) => {
             if (val.length === 2) {
               const newMin = val[0]! > 0 ? val[0]! : null;
-              const newMax = val[1]! < MAX_PRICE_LIMIT ? val[1]! : null;
+              const newMax = val[1]! < sliderMax ? val[1]! : null;
               onChange(newMin, newMax);
             }
           }}
@@ -269,6 +279,7 @@ export function FacetedFilter({
 
   const categoryFacet = findFacet("category_id");
   const brandFacet = findFacet("brand");
+  const priceFacet = findFacet("price");
   const ratingFacet = findFacet("rating");
   const availabilityFacet = findFacet("availability");
 
@@ -308,6 +319,7 @@ export function FacetedFilter({
         <PriceRangeSection
           minPrice={filters.minPrice}
           maxPrice={filters.maxPrice}
+          dataMax={priceFacet?.max ?? null}
           onChange={onPriceRangeChange}
         />
       </FilterSection>

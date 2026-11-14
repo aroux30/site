@@ -442,6 +442,7 @@ export default function AdminUsersPage() {
     {
       key: "actions",
       header: <span className="sr-only">عملیات</span>,
+      columnLabel: "عملیات",
       className: "text-center",
       render: (u) => (
         <div className="flex items-center justify-center gap-1">
@@ -657,6 +658,7 @@ export default function AdminUsersPage() {
         columns={userColumns}
         rows={filteredUsers}
         rowKey={(u) => u.id}
+        columnVisibilityKey="admin.users.columns"
         loading={loading}
         error={loadError ? "خطا در دریافت کاربران. لطفاً صفحه را دوباره بارگذاری کنید." : null}
         emptyMessage="کاربری با این مشخصات یافت نشد."

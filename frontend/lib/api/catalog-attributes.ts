@@ -14,7 +14,13 @@ import type { ApiPaginationMeta } from "./services";
 /* ------------------------------------------------------------------ */
 
 /** Mirrors the backend `AttributeType` enum (stored by member NAME). */
-export type ApiAttributeType = "text" | "number" | "color" | "size";
+export type ApiAttributeType =
+  | "text"
+  | "number"
+  | "color"
+  | "size"
+  | "image"
+  | "label";
 
 export interface ApiAttributeValue {
   id: string;
@@ -22,6 +28,10 @@ export interface ApiAttributeValue {
   value: string;
   slug: string;
   position: number;
+  /** Swatch payloads (woo-variation-swatches parity). */
+  color?: string | null;
+  image_url?: string | null;
+  tooltip?: string | null;
 }
 
 export interface ApiAttribute {
@@ -49,6 +59,9 @@ export interface ApiAttributeValueInput {
   value: string;
   slug?: string;
   position?: number;
+  color?: string | null;
+  image_url?: string | null;
+  tooltip?: string | null;
 }
 
 export interface ApiAttributeInput {
@@ -146,11 +159,37 @@ export async function createAttributeValue(
   return data;
 }
 
+/**
+ * Delete one value of an attribute.  Refuses with 409 while products still
+ * use it, naming how many; `force` accepts detaching those products first
+ * (their other specification values stay) and deletes the value anyway.
+ */
+export async function updateAttributeValue(
+  attributeId: string,
+  valueId: string,
+  payload: {
+    value?: string;
+    position?: number;
+    color?: string | null;
+    image_url?: string | null;
+    tooltip?: string | null;
+  },
+): Promise<ApiAttributeValue> {
+  const { data } = await apiClient.patch<ApiAttributeValue>(
+    `/catalog/attributes/${attributeId}/values/${valueId}`,
+    payload,
+  );
+  return data;
+}
+
 export async function deleteAttributeValue(
   attributeId: string,
   valueId: string,
+  force = false,
 ): Promise<void> {
-  await apiClient.delete(`/catalog/attributes/${attributeId}/values/${valueId}`);
+  await apiClient.delete(`/catalog/attributes/${attributeId}/values/${valueId}`, {
+    params: { force },
+  });
 }
 
 /* ------------------------------------------------------------------ */

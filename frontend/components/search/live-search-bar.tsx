@@ -330,27 +330,41 @@ export function LiveSearchBar({
           }}
           onKeyDown={handleInputKeyDown}
           autoFocus={autoFocus}
-          className="h-11 w-full rounded-xl border-2 border-border bg-muted/30 ps-10 pe-10 text-sm transition-colors focus:border-primary focus:bg-background"
+          className="h-11 w-full rounded-xl border-2 border-border bg-muted/30 ps-10 pe-16 text-sm transition-colors focus:border-primary focus:bg-background"
         />
 
         {isLoading ? (
           <Loader2 className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-muted-foreground" />
         ) : query ? (
-          <button
-            type="button"
-            onClick={() => {
-              setQuery("");
-              setSuggestions([]);
-              setSuggestionError(false);
-              setIsLoading(false);
-              setActiveOption(null);
-            }}
-            className="absolute left-3.5 top-1/2 -translate-y-1/2 p-0.5 text-muted-foreground transition-colors hover:text-foreground"
-            title="پاک کردن متن"
-            aria-label="پاک کردن متن جستجو"
-          >
-            <X className="h-4 w-4" />
-          </button>
+          <div className="absolute left-3 top-1/2 flex -translate-y-1/2 items-center gap-0.5">
+            {/* Submit button: Enter-only submission does not fire in every
+                embedded browser (same reason the products-list form has one),
+                and mobile keyboards often hide it — without this button the
+                /search results page was unreachable from the UI. */}
+            <button
+              type="submit"
+              className="rounded-lg p-1.5 text-primary transition-colors hover:bg-primary/10"
+              title="جست‌وجو"
+              aria-label="انجام جست‌وجو"
+            >
+              <Search className="h-4 w-4" />
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setQuery("");
+                setSuggestions([]);
+                setSuggestionError(false);
+                setIsLoading(false);
+                setActiveOption(null);
+              }}
+              className="p-0.5 text-muted-foreground transition-colors hover:text-foreground"
+              title="پاک کردن متن"
+              aria-label="پاک کردن متن جستجو"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
         ) : null}
       </form>
 

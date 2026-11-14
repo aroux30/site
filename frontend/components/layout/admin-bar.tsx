@@ -31,6 +31,7 @@ import {
   Settings,
   Plus,
   Pencil,
+  Sparkles,
   ExternalLink,
 } from "lucide-react";
 
@@ -60,7 +61,7 @@ export const ADMIN_BAR_HEIGHT = 36;
  * search param today, and a link that lands on the list with the object found
  * is honest — a guessed editor URL that 404s is worse than one extra click.
  */
-function editTargetFor(pathname: string): { href: string; label: string } | null {
+function editTargetFor(pathname: string): { href: string; label: string; visualHref?: string } | null {
   const segments = pathname.split("/").filter(Boolean);
   if (segments.length === 0) return null;
   const first = segments[0];
@@ -73,7 +74,11 @@ function editTargetFor(pathname: string): { href: string; label: string } | null
     // searches the words the title actually holds — a whole-string slug
     // search would match nothing and land the operator on an empty list.
     const words = second.replace(/-/g, " ");
-    return { href: `/admin/blog?search=${encodeURIComponent(words)}`, label: "ویرایش نوشته" };
+    return {
+      href: `/admin/blog?search=${encodeURIComponent(words)}`,
+      label: "ویرایش نوشته",
+      visualHref: `/blog/${encodeURIComponent(second)}?visual_editor=true`,
+    };
   }
   if (first === "products" && second) {
     return {
@@ -90,7 +95,11 @@ function editTargetFor(pathname: string): { href: string; label: string } | null
     "oembed", "uploads", "api",
   ]);
   if (segments.length === 1 && !RESERVED.has(first)) {
-    return { href: `/admin/pages?search=${encodeURIComponent(first)}`, label: "ویرایش برگه" };
+    return {
+      href: `/admin/pages?search=${encodeURIComponent(first)}`,
+      label: "ویرایش برگه",
+      visualHref: `/${encodeURIComponent(first)}?visual_editor=true`,
+    };
   }
   return null;
 }
@@ -128,6 +137,12 @@ function adminBarVisible(
   // Inside the admin the bar is redundant — the sidebar is right there — and it
   // would double up with the admin's own chrome.
   if (pathname?.startsWith("/admin")) return false;
+  if (typeof window !== "undefined") {
+    try {
+      const sp = new URLSearchParams(window.location.search);
+      if (sp.get("visual_editor") === "true" || sp.get("edit") === "true") return false;
+    } catch {}
+  }
 
   return true;
 }
@@ -274,13 +289,24 @@ export function AdminBar({ className }: AdminBarProps) {
             Page" here, and a link on the cart or checkout would be a link to
             nothing. */}
         {editTarget && (
-          <Link
-            href={editTarget.href}
-            className="flex shrink-0 items-center gap-1.5 rounded px-2 py-1 font-medium text-amber-700 hover:bg-amber-50 dark:text-amber-400 dark:hover:bg-amber-950/20"
-          >
-            <Pencil className="h-3.5 w-3.5" />
-            {editTarget.label}
-          </Link>
+          <>
+            <Link
+              href={editTarget.href}
+              className="flex shrink-0 items-center gap-1.5 rounded px-2 py-1 font-medium text-amber-700 hover:bg-amber-50 dark:text-amber-400 dark:hover:bg-amber-950/20"
+            >
+              <Pencil className="h-3.5 w-3.5" />
+              {editTarget.label}
+            </Link>
+            {editTarget.visualHref && (
+              <Link
+                href={editTarget.visualHref}
+                className="flex shrink-0 items-center gap-1.5 rounded px-2 py-1 font-medium text-purple-700 hover:bg-purple-50 dark:text-purple-400 dark:hover:bg-purple-950/20"
+              >
+                <Sparkles className="h-3.5 w-3.5 text-purple-600 dark:text-purple-400" />
+                ویرایش زنده (المنتور)
+              </Link>
+            )}
+          </>
         )}
 
         {/* Always last and always at the far end, so it is the one link that is

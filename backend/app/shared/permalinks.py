@@ -34,6 +34,41 @@ _DATE_ORDER = ("year", "monthnum", "day")
 
 _VALID_TAG_RE = re.compile(r"^/(?:[\w\-/%]+/)*[\w\-/%]*$")
 
+# First path segments owned by the storefront's physical file tree (mirrors
+# RESERVED_ROOTS in frontend/lib/permalinks.ts — the Next.js middleware skips
+# these when resolving structured post URLs, so a structure starting with one
+# of them can only work if the file tree itself serves it, i.e. only the
+# default /blog/%postname%/).
+_RESERVED_FIRST_SEGMENTS = frozenset(
+    {
+        "account",
+        "admin",
+        "api",
+        "_next",
+        "uploads",
+        "media",
+        "icons",
+        "fonts",
+        "products",
+        "cart",
+        "checkout",
+        "blog",
+        "login",
+        "register",
+        "compare",
+        "favorites",
+        "search",
+        "payment",
+        "rewards",
+        "contact",
+        "about",
+        "faq",
+        "terms",
+        "privacy",
+        "sitemap-page",
+    }
+)
+
 
 @dataclass(frozen=True)
 class PermalinkParts:
@@ -82,6 +117,23 @@ def validate_structure(structure: str) -> list[str]:
     ordered_dates = [d for d in _DATE_ORDER if d in positions]
     if [positions[d] for d in ordered_dates] != sorted(positions[d] for d in ordered_dates):
         problems.append("ترتیب تگ‌های تاریخ باید سال → ماه → روز باشد.")
+
+    # A literal first segment owned by the storefront's fixed routes can never
+    # resolve (the middleware skips reserved roots and the file tree only
+    # serves /blog/<slug>), so e.g. /blog/%category%/%postname%/ would emit
+    # dead URLs from the feed too. Mirrored in lib/permalinks.ts.
+    segments = [seg for seg in re.sub(r"/{2,}", "/", structure).split("/") if seg]
+    first = segments[0] if segments else ""
+    if (
+        first
+        and "%" not in first
+        and first.lower() in _RESERVED_FIRST_SEGMENTS
+        and structure != "/blog/%postname%/"
+    ):
+        problems.append(
+            f"مسیر «/{first}» مخصوص صفحات ثابت فروشگاه است و نمی‌تواند در ساختار پیوند بیاید"
+            " (به‌جز حالت پیش‌فرض /blog/%postname%/)."
+        )
 
     return problems
 

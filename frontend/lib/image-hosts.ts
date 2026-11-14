@@ -22,7 +22,10 @@
  */
 
 /** Hosts always permitted, matched as a single leading `*.` wildcard label. */
-export const ALWAYS_ALLOWED_IMAGE_HOSTS: readonly string[] = ["*.arouxpingg.com"];
+export const ALWAYS_ALLOWED_IMAGE_HOSTS: readonly string[] = [
+  "*.arouxpingg.com",
+  "images.unsplash.com",
+];
 
 /** Extra hosts the operator opts into, as a comma-separated list of hostnames. */
 export function optInImageHosts(): string[] {

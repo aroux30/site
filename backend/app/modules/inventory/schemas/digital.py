@@ -5,7 +5,9 @@ from __future__ import annotations
 import uuid
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict, Field
+from typing import Any
+
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from app.modules.inventory.domain.digital_models import DigitalCardStatus, DigitalDeliveryType
 
@@ -134,6 +136,56 @@ class CategoryCustomFieldCreateRequest(BaseModel):
     )
 
 
+class ProductAddonFieldResponse(BaseModel):
+    """Public definition of one per-product add-on field.
+
+    Prices cross the boundary in Toman (option ``price`` and field ``price``
+    are converted from the Rial storage); ``min``/``max`` follow the field
+    type (characters / quantity / Toman price range).
+    """
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: uuid.UUID
+    product_id: uuid.UUID
+    field_key: str
+    label: str
+    description: str | None = None
+    field_type: str
+    display: str | None = None
+    options_json: list[dict[str, Any]] | None = None
+    is_required: bool
+    min_val: int | None = None
+    max_val: int | None = None
+    price: int | None = None
+    price_type: str | None = None
+    position: int
+
+    @field_validator("options_json", mode="after")
+    @classmethod
+    def _options_prices_to_toman(
+        cls, value: list[dict[str, Any]] | None
+    ) -> list[dict[str, Any]] | None:
+        from app.modules.catalog.schemas.catalog import rial_to_toman
+
+        if not value:
+            return value
+        out: list[dict[str, Any]] = []
+        for opt in value:
+            opt = dict(opt)
+            if opt.get("price"):
+                opt["price"] = rial_to_toman(int(opt["price"]))
+            out.append(opt)
+        return out
+
+    @field_validator("price", mode="after")
+    @classmethod
+    def _field_price_to_toman(cls, value: int | None) -> int | None:
+        from app.modules.catalog.schemas.catalog import rial_to_toman
+
+        return rial_to_toman(int(value)) if value else value
+
+
 class CategoryCustomFieldResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -141,7 +193,11 @@ class CategoryCustomFieldResponse(BaseModel):
     category_id: uuid.UUID
     field_key: str
     label: str
+    description: str | None = None
     field_type: str
+    display: str | None = None
     options_json: list[str] | None = None
     is_required: bool
+    min_val: int | None = None
+    max_val: int | None = None
     position: int

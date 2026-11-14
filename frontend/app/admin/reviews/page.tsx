@@ -168,6 +168,7 @@ export default function AdminReviewsPage() {
     {
       key: "actions",
       header: "",
+      columnLabel: "عملیات",
       render: (r) => (
         <div className="flex gap-1">
           <Button
@@ -260,6 +261,7 @@ export default function AdminReviewsPage() {
         columns={columns}
         rows={reviews}
         rowKey={(r) => r.id}
+        columnVisibilityKey="admin.reviews.columns"
         loading={loading}
         error={error}
         emptyMessage="نظری در انتظار بررسی نیست"

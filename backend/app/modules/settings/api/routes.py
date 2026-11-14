@@ -634,12 +634,14 @@ async def get_public_routing(
         "permalink_structure",
         "category_base",
         "tag_base",
+        "product_base",
     )
     values = {key: (await SiteOptionsService.get(db, key)) for key in keys}
     return {
         "permalink_structure": values["permalink_structure"] or "/blog/%postname%/",
         "category_base": values["category_base"] or "category",
         "tag_base": values["tag_base"] or "tag",
+        "product_base": values["product_base"] or "products",
         "site_url": await public_base_url(db),
         "blogname": (await SiteOptionsService.get(db, "blogname")) or "فروشگاه",
     }

@@ -133,6 +133,44 @@ const config: Config = {
           "0%,70%,100%": { opacity: "1" },
           "20%,50%": { opacity: "0" },
         },
+        // N5: proactive-popup halo rings (plugin script.js `n8nHalo`).
+        "chat-halo": {
+          "0%": { transform: "scale(1)", opacity: "0.5" },
+          "100%": { transform: "scale(1.6)", opacity: "0" },
+        },
+        // H1: icon wiggle on hover (plugin script.js `n8nWiggle` L177).
+        "chat-wiggle": {
+          "0%": { transform: "rotate(0deg)" },
+          "25%": { transform: "rotate(-16deg)" },
+          "50%": { transform: "rotate(16deg)" },
+          "75%": { transform: "rotate(-8deg)" },
+          "100%": { transform: "rotate(0deg)" },
+        },
+        // H7: quick-flow / quick-reply staggered entrance (plugin script.js
+        // `n8nQrIn` L752/881 — buttons fade + rise in one after another).
+        "chat-qr-in": {
+          from: { opacity: "0", transform: "translateY(8px)" },
+          to: { opacity: "1", transform: "translateY(0)" },
+        },
+        // H9: proactive popup fade-in (plugin uses jQuery .fadeIn(300) L496).
+        "chat-fade-in": {
+          from: { opacity: "0" },
+          to: { opacity: "1" },
+        },
+        // HB1: the «قلب تپش» heartbeat — popup + ring gently scale (plugin
+        // script.js `n8nBreath`).
+        "chat-breath": {
+          "0%,100%": { transform: "scale(1)" },
+          "50%": { transform: "scale(1.06)" },
+        },
+        // Owner: the plugin's 6% breath is invisible on a 2px line. A clearly
+        // visible ring pulse — grows outward + fades, then returns (a real
+        // «بزرگ و کوچیک میشه» ripple).
+        "chat-ring-pulse": {
+          "0%": { transform: "scale(1)", opacity: "0.5" },
+          "50%": { transform: "scale(1.22)", opacity: "0.15" },
+          "100%": { transform: "scale(1)", opacity: "0.5" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -144,6 +182,13 @@ const config: Config = {
         "marquee-vertical": "marquee-vertical var(--duration) linear infinite",
         "spin-around": "spin-around 8s linear infinite",
         "caret-blink": "caret-blink 1.2s ease-out infinite",
+        "chat-halo": "chat-halo 2s infinite ease-out",
+        "chat-halo-delayed": "chat-halo 2s infinite ease-out 1s",
+        "chat-wiggle": "chat-wiggle 0.4s ease-in-out infinite",
+        "chat-qr-in": "chat-qr-in 0.35s ease forwards",
+        "chat-fade-in": "chat-fade-in 0.3s ease-out",
+        "chat-breath": "chat-breath 2.5s ease-in-out infinite",
+        "chat-ring-pulse": "chat-ring-pulse 2s ease-in-out infinite",
       },
     },
   },

@@ -23,7 +23,7 @@ export function FloatingCartBar() {
   return (
     <aside
       aria-label="سبد خرید شناور"
-      className="fixed bottom-4 start-1/2 -translate-x-1/2 z-40 w-[92%] max-w-xl animate-in fade-in slide-in-from-bottom-5 duration-300"
+      className="pointer-events-auto w-full animate-in fade-in slide-in-from-bottom-5 duration-300"
     >
       <div className="flex items-center justify-between gap-3 rounded-2xl border border-emerald-500/30 bg-background/95 p-3 sm:p-4 shadow-2xl backdrop-blur-xl">
         <div className="flex items-center gap-3">

@@ -1,6 +1,7 @@
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { AdminBar, AdminBarSpacer } from "@/components/layout/admin-bar";
+import { FloatingBottomDock } from "@/components/store/floating-bottom-dock";
 import { FloatingCompareBar } from "@/components/compare/floating-compare-bar";
 import { FloatingCartBar } from "@/components/store/floating-cart-bar";
 import { MobileBottomNav } from "@/components/layout/mobile-bottom-nav";
@@ -34,8 +35,15 @@ export default function StoreLayout({
           at checkout or the home page never reached a customer. */}
       <NoticeBanner />
       <main id="main-content" tabIndex={-1} className="flex-1 pb-16 md:pb-0">{children}</main>
-      <FloatingCompareBar />
-      <FloatingCartBar />
+      {/* The dock owns the viewport-aware bottom offset (above the mobile
+          nav + chat FAB) and stacks the compare/cart bars vertically, so the
+          two can never render at the same coordinates again. */}
+      <FloatingBottomDock>
+        <FloatingCompareBar />
+        <FloatingCartBar />
+      </FloatingBottomDock>
+      {/* PluginWidgetLoader lives in the ROOT layout now: it must keep
+          watching the route so the body-mounted chat FAB hides on /admin. */}
       <MobileBottomNav />
       <Footer />
     </div>

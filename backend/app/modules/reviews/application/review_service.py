@@ -175,13 +175,33 @@ class ReviewService:
         page: int = 1,
         size: int = 20,
         status_filter: str = "approved",
+        include_own_pending_for: uuid.UUID | None = None,
     ) -> ReviewListResponse:
-        """Return paginated reviews for a product with aggregate stats."""
+        """Return paginated reviews for a product with aggregate stats.
+
+        ``include_own_pending_for`` lets a signed-in viewer see their own
+        pending review alongside the approved ones — after submitting, the
+        review sits in moderation and hiding it entirely read as "my review
+        was lost" (live-reported). Stats stay approved-only.
+        """
         # Base query
         base = select(Review).where(Review.product_id == product_id)
 
         if status_filter != "all":
-            base = base.where(Review.status == ReviewStatus(status_filter))
+            if include_own_pending_for is not None:
+                from sqlalchemy import or_
+
+                base = base.where(
+                    or_(
+                        Review.status == ReviewStatus.APPROVED,
+                        and_(
+                            Review.status == ReviewStatus.PENDING,
+                            Review.user_id == include_own_pending_for,
+                        ),
+                    )
+                )
+            else:
+                base = base.where(Review.status == ReviewStatus(status_filter))
 
         # Count
         count_q = select(func.count()).select_from(base.subquery())

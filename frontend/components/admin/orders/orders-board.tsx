@@ -45,7 +45,7 @@ import {
   useResponsiveColsPerSlide,
   useSlideScrollReset,
 } from "@/lib/hooks/use-board-slides";
-import { cn, toPersianDigits } from "@/lib/utils";
+import { cn, formatOrderCode, toPersianDigits } from "@/lib/utils";
 import { OrderBoardColumn } from "./order-board-column";
 import { OrderBoardCard } from "./order-board-card";
 
@@ -445,7 +445,7 @@ export function OrdersBoard({ search, onOpenOrder }: OrdersBoardProps) {
         await adminOrdersApi.updateStatus(order.id, target);
         toast({
           title: "وضعیت سفارش تغییر کرد",
-          description: `سفارش ${order.orderNumber} با موفقیت منتقل شد.`,
+          description: `سفارش ${formatOrderCode(order.orderNumber)} با موفقیت منتقل شد.`,
           variant: "success",
         });
         // Resync the affected column(s) and the header counts. Failure to

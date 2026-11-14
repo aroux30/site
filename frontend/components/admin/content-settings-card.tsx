@@ -1,11 +1,12 @@
 "use client";
 
 /**
- * Content settings card (WordPress reading/permalink parity).
+ * Content settings card (WordPress reading-settings parity).
  *
  * Edits the site_options rows that control content behavior: posts per page,
- * excerpt length, permalink structure, comment defaults, and media sizes.
- * Values are stored server-side and consumed by the blog and storefront.
+ * excerpt length, comment defaults, and media sizes. Permalink settings moved
+ * to their own screen (/admin/settings/permalink), like WordPress keeps them
+ * on options-permalink.php.
  */
 
 import { useCallback, useEffect, useState } from "react";
@@ -19,9 +20,8 @@ import { useToast } from "@/components/ui/use-toast";
 import { siteOptionsApi } from "@/lib/api/wp-parity";
 
 // Keys this card owns, with Persian labels and input hints.
-// permalink_structure/category_base/tag_base are LIVE: the backend RSS feed
-// and the public routing endpoint consume them, and the middleware resolves
-// the structured paths (see the delivery report for the resolution wiring).
+// (permalink_structure/category_base/tag_base live on
+// /admin/settings/permalink — PermalinkSettingsCard.)
 const CONTENT_OPTIONS: Array<{
   key: string;
   label: string;
@@ -55,26 +55,6 @@ const CONTENT_OPTIONS: Array<{
     key: "excerpt_more",
     label: "متن ادامه خلاصه",
     placeholder: "...",
-  },
-  {
-    key: "permalink_structure",
-    label: "ساختار پیوند یکتا",
-    placeholder: "/blog/%postname%/",
-    dir: "ltr",
-    hint: "تگ‌ها: %postname% %post_id% %year% %monthnum% %day% %category% %author% — لینک‌های فروشگاه، فید RSS و sitemap از همین ساختار ساخته می‌شوند و مسیرهای قدیمی /blog/<اسلاگ> همچنان کار می‌کنند.",
-  },
-  {
-    key: "category_base",
-    label: "پیشوند دسته‌بندی",
-    placeholder: "category",
-    dir: "ltr",
-    hint: "مثلاً «موضوع» آرشیو دسته را به /موضوع/<اسلاگ> منتقل می‌کند.",
-  },
-  {
-    key: "tag_base",
-    label: "پیشوند برچسب",
-    placeholder: "tag",
-    dir: "ltr",
   },
   {
     key: "default_comment_status",
@@ -210,13 +190,6 @@ const CONTENT_OPTIONS: Array<{
     placeholder: "/uploads/media/…",
     dir: "ltr",
     hint: "آدرس تصویر انتخاب‌شده از کتابخانه مدیا؛ خالی = آیکون پیش‌فرض فروشگاه",
-  },
-  {
-    key: "blog_public",
-    label: "نمایش وبلاگ در موتورهای جست‌وجو",
-    placeholder: "1",
-    dir: "ltr",
-    hint: "0 = صفحات وبلاگ با noindex سرو می‌شوند (ساختار کل سایت حفظ می‌شود، فقط ایندکس نمی‌شود)",
   },
   // Upload ceilings. These were module constants, so raising the video limit
   // needed a code change and a redeploy; the backend reads them per upload and
@@ -358,7 +331,7 @@ export function ContentSettingsCard() {
       <div className="mb-4 flex items-center justify-between border-b border-border pb-3">
         <div className="flex items-center gap-2">
           <Settings2 className="h-5 w-5 text-primary" />
-          <h2 className="text-base font-bold text-foreground">تنظیمات محتوا و پیوند</h2>
+          <h2 className="text-base font-bold text-foreground">تنظیمات محتوا</h2>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" size="sm" onClick={() => void handleSeed()} disabled={seeding}>
@@ -374,39 +347,6 @@ export function ContentSettingsCard() {
         <p className="py-6 text-center text-xs text-muted-foreground">در حال بارگذاری…</p>
       ) : (
         <>
-          {/* WordPress-style structure presets — picking one fills the
-              permalink_structure input; custom structures stay free-form. */}
-          <div className="mb-5 space-y-2">
-            <Label className="text-xs">ساختارهای آماده (وردپرسی)</Label>
-            <div className="flex flex-wrap gap-2">
-              {[
-                { label: "نام نوشته", value: "/blog/%postname%/" },
-                { label: "سال و نام", value: "/%year%/%monthnum%/%postname%/" },
-                { label: "روز، ماه و نام", value: "/%year%/%monthnum%/%day%/%postname%/" },
-                { label: "عددی", value: "/archives/%post_id%" },
-                { label: "دسته و نام", value: "/blog/%category%/%postname%/" },
-              ].map((preset) => (
-                <button
-                  key={preset.value}
-                  type="button"
-                  onClick={() =>
-                    setValues((prev) => ({ ...prev, permalink_structure: preset.value }))
-                  }
-                  className={`rounded-full border px-3 py-1 text-[11px] transition-colors ${
-                    values.permalink_structure === preset.value
-                      ? "border-primary bg-primary/10 font-medium text-primary"
-                      : "border-border text-muted-foreground hover:border-primary/40 hover:text-foreground"
-                  }`}
-                >
-                  {preset.label}
-                  <span className="ms-1.5 font-mono text-[10px]" dir="ltr">
-                    {preset.value}
-                  </span>
-                </button>
-              ))}
-            </div>
-          </div>
-
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {CONTENT_OPTIONS.map((opt) => (
               <div key={opt.key} className="space-y-2">

@@ -149,6 +149,7 @@ PRODUCT_INDEX_MAPPING: dict[str, Any] = {
             "fields": {"keyword": {"type": "keyword"}},
         },
         "category_slug": {"type": "keyword"},
+        "category_ancestors": {"type": "keyword"},
         "brand_id": {"type": "keyword"},
         "brand_name": {
             "type": "text",

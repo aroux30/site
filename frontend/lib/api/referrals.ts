@@ -58,12 +58,14 @@ export async function fetchReferrals(skip = 0, limit = 20): Promise<ApiReferralL
 export interface ApiCommission {
   id: string;
   referral_id: string;
+  /** The user who receives this commission (covers L1 and L2 earners). */
+  earner_id: string;
   order_id: string;
   amount: number;
   level: number;
-  status: "pending" | "credited" | "expired";
+  /** Backend enum (referrals/domain/models.py CommissionStatus). */
+  status: "pending" | "paid" | "expired";
   created_at: string;
-  credited_at?: string;
 }
 
 export interface ApiCommissionList {

@@ -12,6 +12,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { JalaliDatePicker } from "@/components/ui/jalali-datepicker";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/use-toast";
@@ -22,6 +23,10 @@ import {
   type MetricDelta,
 } from "@/lib/api/bi";
 import { useAdminQuery } from "@/lib/api/admin-query";
+import {
+  ColumnVisibilityToggle,
+  useColumnVisibility,
+} from "@/components/admin/list-engine";
 
 const BI_OPTIONS_QUERY_KEY = "admin-bi-options" as const;
 
@@ -123,6 +128,11 @@ export default function AdminBiPage() {
   const [mode, setMode] = useState<ComparisonMode>("previous_period");
   const [groupBy, setGroupBy] = useState("day");
   const [rowKey, setRowKey] = useState("");
+
+  // Screen Options (WordPress parity): which metric columns the comparison
+  // table shows. The row-key column is pinned.
+  const metricColVis = useColumnVisibility("admin.bi.metrics.columns");
+  const isMetricHidden = metricColVis.isHidden;
   const [fromDate, setFromDate] = useState(() => {
     const d = new Date();
     d.setDate(d.getDate() - 30);
@@ -261,24 +271,18 @@ export default function AdminBiPage() {
           </div>
           <div>
             <Label htmlFor="bi-from">از تاریخ</Label>
-            <Input
-              id="bi-from"
-              type="date"
+            <JalaliDatePicker
               value={fromDate}
-              onChange={(e) => setFromDate(e.target.value)}
-              dir="ltr"
-              className="mt-1"
+              onChange={(value) => setFromDate(value)}
+              placeholder="انتخاب تاریخ"
             />
           </div>
           <div>
             <Label htmlFor="bi-to">تا تاریخ</Label>
-            <Input
-              id="bi-to"
-              type="date"
+            <JalaliDatePicker
               value={toDate}
-              onChange={(e) => setToDate(e.target.value)}
-              dir="ltr"
-              className="mt-1"
+              onChange={(value) => setToDate(value)}
+              placeholder="انتخاب تاریخ"
             />
           </div>
           <div>
@@ -352,6 +356,16 @@ export default function AdminBiPage() {
 
           {result.rows && result.rows.length > 0 && result.row_key && (
             <Card className="p-1">
+              <div className="flex p-2">
+                <ColumnVisibilityToggle
+                  columns={(result.metrics ?? []).map((metric) => ({
+                    key: metric,
+                    label: metricLabel(metric),
+                  }))}
+                  hidden={metricColVis.hidden}
+                  onToggle={metricColVis.toggle}
+                />
+              </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
@@ -359,7 +373,7 @@ export default function AdminBiPage() {
                       <th className="p-2 text-right font-medium">
                         {metricLabel(result.row_key)}
                       </th>
-                      {(result.metrics ?? []).map((metric) => (
+                      {(result.metrics ?? []).filter((m) => !isMetricHidden(m)).map((metric) => (
                         <th key={metric} className="p-2 text-right font-medium">
                           {metricLabel(metric)}
                         </th>
@@ -372,7 +386,7 @@ export default function AdminBiPage() {
                         <td className="p-2 font-medium">
                           {String(row[result.row_key as string] ?? "—")}
                         </td>
-                        {(result.metrics ?? []).map((metric) => {
+                        {(result.metrics ?? []).filter((m) => !isMetricHidden(m)).map((metric) => {
                           const cell = row[metric] as MetricDelta | undefined;
                           if (!cell) {
                             return (

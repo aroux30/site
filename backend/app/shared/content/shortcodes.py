@@ -298,6 +298,56 @@ def _render_embed(attrs: dict[str, str], content: str) -> str:
     )
 
 
+@shortcode("faq")
+async def _render_faq(attrs: dict[str, str], content: str, db: AsyncSession) -> str:
+    """Render the store's FAQ entries inline: [faq] or [faq category="پرداخت"].
+
+    WordPress parity: an FAQ plugin is worth little if its items cannot be
+    placed into a page. The entries stay managed in one place (the FAQ admin
+    section); this token expands on read, exactly like ``[block slug="…"]``,
+    so an edit to an answer reaches every page that embeds it. Markup mirrors
+    the static ``faq-accordion`` block pattern, so both render identically.
+    """
+    from html import escape
+
+    from app.modules.content.application.content_service import (
+        get_active_faqs_with_schema,
+    )
+
+    category = (attrs.get("category") or "").strip() or None
+    result = await get_active_faqs_with_schema(db, category=category)
+    faqs = result.get("items", [])
+    if not faqs:
+        # An empty result renders nothing rather than a stub box: the author
+        # sees a clean section, and the token stays visible in the editor.
+        return ""
+
+    show_headings = not category  # one category = no repeating group title
+    grouped: dict[str, list[str]] = {}
+    for item in faqs:
+        details = (
+            f'<details class="group rounded-xl border bg-background p-4 shadow-sm">'
+            f'<summary class="cursor-pointer font-semibold text-foreground">'
+            f'{escape(item.question)}</summary>'
+            f'<div class="mt-3 text-sm leading-7 text-muted-foreground">'
+            f'{item.answer_html}</div>'
+            f"</details>"
+        )
+        grouped.setdefault(item.category, []).append(details)
+
+    sections: list[str] = []
+    for group_name, items in grouped.items():
+        if show_headings:
+            sections.append(
+                f'<h3 class="shortcode-faq__group mt-6 mb-3 text-lg font-bold '
+                f'text-foreground">{escape(group_name)}</h3>'
+            )
+        sections.append(
+            f'<div class="shortcode-faq space-y-3">{"".join(items)}</div>'
+        )
+    return f'<div class="shortcode-faq-wrap">{"".join(sections)}</div>'
+
+
 # ── The four WordPress media shortcodes ────────────────────────────────────
 #
 # `caption`, `audio`, `video` and `playlist` are the ones a store actually

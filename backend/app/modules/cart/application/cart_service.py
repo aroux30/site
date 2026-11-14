@@ -19,7 +19,7 @@ from app.modules.cart.schemas.cart import (
     CartValidationIssue,
     CartValidationResponse,
 )
-from app.modules.catalog.domain.models import Product, ProductImage, ProductVariant
+from app.modules.catalog.domain.models import Product, ProductImage, ProductType, ProductVariant
 from app.modules.inventory.domain.models import InventoryItem
 
 if TYPE_CHECKING:
@@ -81,6 +81,16 @@ async def _enrich_cart_item(
         current_price=variant.price if variant else None,
         image_url=image_url,
         is_available=is_available,
+        product_type=(
+            variant.product.product_type.value
+            if variant and variant.product is not None
+            else None
+        ),
+        requires_shipping=(
+            variant.product.product_type != ProductType.DIGITAL
+            if variant and variant.product is not None
+            else True
+        ),
     )
 
 
@@ -105,6 +115,9 @@ async def _build_cart_response(
         id=cart.id,
         user_id=cart.user_id,
         session_id=cart.session_id,
+        # An empty cart defaults to True (a physical default is the safe
+        # ask); any physical line keeps True, all-digital lines set False.
+        requires_shipping=any(i.requires_shipping is not False for i in enriched_items),
         status=cart.status.value,
         items=enriched_items,
         subtotal=subtotal,
@@ -212,6 +225,38 @@ async def _validate_order_quantity(
         )
 
 
+async def _assert_purchasable(
+    db: AsyncSession,
+    variant: ProductVariant,
+    inv_item: InventoryItem | None,
+    quantity: int,
+) -> None:
+    """Single purchase gate for cart writes (WooCommerce parity).
+
+    Two independent signals:
+    1. The product's manual ``stock_status`` — an untracked product marked
+       "outofstock" is NOT buyable, however unlimited its supply is.
+    2. The inventory ledger — a tracked variant with ``backorder_allowed``
+       stays buyable past zero (pre-orders); otherwise available < quantity
+       is rejected exactly as before.
+    """
+    product = await db.get(Product, variant.product_id)
+    if product is not None and product.stock_status == "outofstock":
+        raise ConflictError(detail="این کالا فعلاً ناموجود است")
+    if (
+        inv_item is not None
+        and inv_item.track_inventory
+        and not inv_item.backorder_allowed
+        and inv_item.available < quantity
+    ):
+        raise ConflictError(
+            detail=(
+                f"Insufficient stock: requested {quantity}, "
+                f"available {inv_item.available}"
+            )
+        )
+
+
 async def add_item(
     db: AsyncSession,
     cart_id: uuid.UUID,
@@ -232,18 +277,11 @@ async def add_item(
     if variant is None:
         raise NotFoundError(resource="ProductVariant", detail="Variant not found or inactive")
 
-    # Check stock availability
+    # Check stock availability (single WooCommerce-parity gate)
     inv_stmt = select(InventoryItem).where(InventoryItem.variant_id == variant_id)
     inv_result = await db.execute(inv_stmt)
     inv_item = inv_result.scalar_one_or_none()
-    if (
-        inv_item is not None
-        and inv_item.track_inventory
-        and inv_item.available < quantity
-    ):
-        raise ConflictError(
-            detail=f"Insufficient stock: requested {quantity}, available {inv_item.available}"
-        )
+    await _assert_purchasable(db, variant, inv_item, quantity)
 
     # Load cart with items
     cart_stmt = (
@@ -266,17 +304,7 @@ async def add_item(
     if existing_item is not None:
         new_qty = existing_item.quantity + quantity
         # Re-check stock for increased quantity
-        if (
-            inv_item is not None
-            and inv_item.track_inventory
-            and inv_item.available < new_qty
-        ):
-            raise ConflictError(
-                detail=(
-                    f"Insufficient stock for total quantity {new_qty}: "
-                    f"available {inv_item.available}"
-                )
-            )
+        await _assert_purchasable(db, variant, inv_item, new_qty)
         await _validate_order_quantity(db, variant, new_qty)
         existing_item.quantity = new_qty
         # Tier-aware price snapshot (Sprint 1.6)
@@ -361,24 +389,17 @@ async def update_item_quantity(
             aggregate_id=cart_id,
         )
     else:
-        # Check stock availability for new quantity
+        # Check stock availability for new quantity (single gate)
         inv_stmt = select(InventoryItem).where(InventoryItem.variant_id == item.variant_id)
         inv_result = await db.execute(inv_stmt)
         inv_item = inv_result.scalar_one_or_none()
-        if (
-            inv_item
-            and inv_item.track_inventory
-            and inv_item.available < quantity
-        ):
-            raise ConflictError(
-                detail=f"Insufficient stock: requested {quantity}, available {inv_item.available}"
-            )
 
         # Refresh price snapshot with tier-aware unit price (Sprint 1.6)
         variant_stmt = select(ProductVariant).where(ProductVariant.id == item.variant_id)
         variant_result = await db.execute(variant_stmt)
         variant = variant_result.scalar_one_or_none()
         if variant is not None:
+            await _assert_purchasable(db, variant, inv_item, quantity)
             await _validate_order_quantity(db, variant, quantity)
             item.price_snapshot = await _resolve_line_price(db, variant, quantity)
 
@@ -563,7 +584,7 @@ async def validate_cart(
         inv_item = inv_result.scalar_one_or_none()
 
         if inv_item is not None and inv_item.track_inventory:
-            if inv_item.available <= 0:
+            if inv_item.available <= 0 and not inv_item.backorder_allowed:
                 issues.append(
                     CartValidationIssue(
                         variant_id=ci.variant_id,
@@ -574,7 +595,7 @@ async def validate_cart(
                 )
                 await db.delete(ci)
                 cart.items.remove(ci)
-            elif inv_item.available < ci.quantity:
+            elif not inv_item.backorder_allowed and inv_item.available < ci.quantity:
                 issues.append(
                     CartValidationIssue(
                         variant_id=ci.variant_id,
@@ -583,6 +604,24 @@ async def validate_cart(
                         new_value=inv_item.available,
                     )
                 )
+        else:
+            # Untracked variant: still respect the product's manual stock
+            # status (WooCommerce parity) — an item marked out of stock is
+            # dropped from the cart at validation time.
+            variant_row = await db.get(ProductVariant, ci.variant_id)
+            if variant_row is not None:
+                product_row = await db.get(Product, variant_row.product_id)
+                if product_row is not None and product_row.stock_status == "outofstock":
+                    issues.append(
+                        CartValidationIssue(
+                            variant_id=ci.variant_id,
+                            issue="out_of_stock",
+                            old_value=ci.quantity,
+                            new_value=0,
+                        )
+                    )
+                    await db.delete(ci)
+                    cart.items.remove(ci)
                 ci.quantity = inv_item.available
 
     await db.flush()

@@ -1,14 +1,20 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { AlertTriangle, CheckSquare, Eye, Loader2, Search, ShoppingCart, Square, X } from "lucide-react";
+import { AlertTriangle, Eye, Loader2, Search, ShoppingCart, X } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import {
+  ColumnVisibilityToggle,
+  PageSizeSelect,
+  useColumnVisibility,
+} from "@/components/admin/list-engine";
 import { useConfirm } from "@/components/ui/confirm-dialog";
 import { useToast } from "@/components/ui/use-toast";
-import { cn, formatPrice, toPersianDigits } from "@/lib/utils";
+import { cn, formatOrderCode, formatPrice, toPersianDigits } from "@/lib/utils";
 import {
   ORDER_STATUSES,
   STATUS_VISUALS,
@@ -59,7 +65,7 @@ const BULK_STATUS_OPTIONS: OrderStatus[] = ["pending", "processing", "completed"
  *  - Stale rows (24h+ in an active status) are flagged inline.
  */
 
-const PAGE_SIZE = 50;
+// Page size lives in the pager below (PageSizeSelect — presets + custom entry).
 
 export interface OrdersListViewProps {
   /** Lifted search term — shared with the board view. */
@@ -87,6 +93,7 @@ export function OrdersListView({
     initialStatus ?? "all",
   );
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(50);
   const [data, setData] = useState<AdminOrderPage | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -101,6 +108,22 @@ export function OrdersListView({
 
   const debouncedSearch = useDebouncedValue(search, 350);
 
+  // Screen Options (WordPress parity): per-user column visibility for this
+  // hand-rolled table. The select-all checkbox column is not in the list —
+  // hiding the only per-row checkbox would kill bulk selection.
+  const colVis = useColumnVisibility("admin.orders.list.columns");
+  const orderColumns = [
+    { key: "orderNumber", label: "شماره سفارش" },
+    { key: "customer", label: "مشتری" },
+    { key: "createdAt", label: "تاریخ ثبت" },
+    { key: "items", label: "اقلام" },
+    { key: "total", label: "مبلغ کل" },
+    { key: "payment", label: "پرداخت" },
+    { key: "status", label: "وضعیت" },
+    { key: "actions", label: "عملیات" },
+  ];
+  const colCount = 1 + orderColumns.filter((c) => !colVis.isHidden(c.key)).length;
+
   // A board → list deep link (?status=…) re-applies the filter when it
   // changes, so the operator lands on the status they clicked.
   useEffect(() => {
@@ -110,7 +133,7 @@ export function OrdersListView({
   // Filter changes strand the operator on page N of a smaller result set.
   useEffect(() => {
     setPage(1);
-  }, [debouncedSearch, statusFilter]);
+  }, [debouncedSearch, statusFilter, pageSize]);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -118,7 +141,7 @@ export function OrdersListView({
     try {
       const result = await adminOrdersApi.list({
         page,
-        pageSize: PAGE_SIZE,
+        pageSize,
         ...(statusFilter === "all" ? {} : { status: statusFilter }),
         search: debouncedSearch,
       });
@@ -129,7 +152,7 @@ export function OrdersListView({
     } finally {
       setLoading(false);
     }
-  }, [page, statusFilter, debouncedSearch]);
+  }, [page, pageSize, statusFilter, debouncedSearch]);
 
   useEffect(() => {
     void load();
@@ -149,6 +172,7 @@ export function OrdersListView({
   };
 
   const allVisibleSelected = rows.length > 0 && rows.every((o) => selected.has(o.id));
+  const someVisibleSelected = rows.some((o) => selected.has(o.id));
   const toggleSelectAllVisible = () => {
     setSelected((prev) => {
       const next = new Set(prev);
@@ -338,50 +362,72 @@ export function OrdersListView({
           <ul className="mt-2 space-y-1 text-xs text-destructive">
             {bulkRejected.map((r) => (
               <li key={r.orderNumber}>
-                <span className="font-mono">{r.orderNumber}</span> — {r.detail}
+                <span className="font-mono">{formatOrderCode(r.orderNumber)}</span> — {r.detail}
               </li>
             ))}
           </ul>
         </div>
       )}
 
+      {/* Screen Options — column picker, same control as the DataTable screens. */}
+      <div className="flex">
+        <ColumnVisibilityToggle
+          columns={orderColumns}
+          hidden={colVis.hidden}
+          onToggle={colVis.toggle}
+        />
+      </div>
+
       {/* Table */}
       <Card className="overflow-hidden">
         <div className="relative overflow-x-auto">
-          <table className="w-full text-right text-sm">
+          <table className="w-full text-center text-sm [&_th]:align-middle [&_td]:align-middle">
             <thead className="border-b border-border bg-muted/50 text-xs text-muted-foreground">
               <tr>
                 <th scope="col" className="w-10 px-4 py-3">
-                  <button
-                    type="button"
-                    onClick={toggleSelectAllVisible}
+                  {/* Same checkbox as the products/categories lists (DataTable
+                      selectable) — one selection control across the panel. */}
+                  <Checkbox
+                    checked={
+                      allVisibleSelected ? true : someVisibleSelected ? "indeterminate" : false
+                    }
+                    onCheckedChange={toggleSelectAllVisible}
                     disabled={rows.length === 0}
-                    aria-label={allVisibleSelected ? "برداشتن انتخاب همه" : "انتخاب همهٔ ردیف‌های این صفحه"}
-                    className="text-muted-foreground hover:text-foreground"
-                  >
-                    {allVisibleSelected ? (
-                      <CheckSquare className="h-4 w-4 text-primary" />
-                    ) : (
-                      <Square className="h-4 w-4" />
-                    )}
-                  </button>
+                    aria-label="انتخاب همهٔ ردیف‌های این صفحه"
+                  />
                 </th>
-                <th scope="col" className="px-4 py-3">شماره سفارش</th>
-                <th scope="col" className="px-4 py-3">مشتری</th>
-                <th scope="col" className="hidden px-4 py-3 lg:table-cell">تاریخ ثبت</th>
-                <th scope="col" className="hidden px-4 py-3 lg:table-cell">اقلام</th>
-                <th scope="col" className="px-4 py-3">مبلغ کل</th>
-                <th scope="col" className="hidden px-4 py-3 md:table-cell">پرداخت</th>
-                <th scope="col" className="px-4 py-3">وضعیت</th>
-                <th scope="col" className="px-4 py-3">
-                  <span className="sr-only">عملیات</span>
-                </th>
+                {!colVis.isHidden("orderNumber") && (
+                  <th scope="col" className="px-4 py-3">شماره سفارش</th>
+                )}
+                {!colVis.isHidden("customer") && (
+                  <th scope="col" className="px-4 py-3">مشتری</th>
+                )}
+                {!colVis.isHidden("createdAt") && (
+                  <th scope="col" className="hidden px-4 py-3 lg:table-cell">تاریخ ثبت</th>
+                )}
+                {!colVis.isHidden("items") && (
+                  <th scope="col" className="hidden px-4 py-3 lg:table-cell">اقلام</th>
+                )}
+                {!colVis.isHidden("total") && (
+                  <th scope="col" className="px-4 py-3">مبلغ کل</th>
+                )}
+                {!colVis.isHidden("payment") && (
+                  <th scope="col" className="hidden px-4 py-3 md:table-cell">پرداخت</th>
+                )}
+                {!colVis.isHidden("status") && (
+                  <th scope="col" className="px-4 py-3">وضعیت</th>
+                )}
+                {!colVis.isHidden("actions") && (
+                  <th scope="col" className="px-4 py-3">
+                    <span className="sr-only">عملیات</span>
+                  </th>
+                )}
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
               {loading && rows.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="p-0">
+                  <td colSpan={colCount} className="p-0">
                     <div className="flex items-center justify-center gap-2 py-16 text-muted-foreground">
                       <Loader2 className="h-5 w-5 animate-spin" />
                       در حال دریافت سفارش‌ها...
@@ -390,7 +436,7 @@ export function OrdersListView({
                 </tr>
               ) : rows.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="p-0">
+                  <td colSpan={colCount} className="p-0">
                     <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
                       <ShoppingCart className="mb-2 h-8 w-8 opacity-40" />
                       <p className="text-sm">هیچ سفارشی با این شرایط یافت نشد.</p>
@@ -412,77 +458,86 @@ export function OrdersListView({
                       onClick={() => onOpenOrder(order)}
                     >
                       <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
-                        <button
-                          type="button"
-                          onClick={() => toggleSelect(order.id)}
-                          aria-label={selected.has(order.id) ? `برداشتن انتخاب ${order.orderNumber}` : `انتخاب ${order.orderNumber}`}
-                          className="text-muted-foreground hover:text-foreground"
-                        >
-                          {selected.has(order.id) ? (
-                            <CheckSquare className="h-4 w-4 text-primary" />
-                          ) : (
-                            <Square className="h-4 w-4" />
-                          )}
-                        </button>
+                        <Checkbox
+                          checked={selected.has(order.id)}
+                          onCheckedChange={() => toggleSelect(order.id)}
+                          aria-label={`انتخاب ${formatOrderCode(order.orderNumber)}`}
+                        />
                       </td>
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-2">
-                          <span className="font-mono text-xs font-bold text-foreground">
-                            {order.orderNumber}
-                          </span>
-                          {stale && (
-                            <span title="بیش از ۲۴ ساعت در وضعیت فعال">
-                              <AlertTriangle className="h-3.5 w-3.5 text-amber-500" />
+                      {!colVis.isHidden("orderNumber") && (
+                        <td className="px-4 py-3">
+                          <div className="flex items-center justify-center gap-2">
+                            <span className="font-mono text-xs font-bold text-foreground">
+                              {formatOrderCode(order.orderNumber)}
                             </span>
-                          )}
-                        </div>
-                      </td>
-                      <td className="px-4 py-3">
-                        <p className="text-xs font-medium text-foreground">
-                          {order.customerName ?? "بدون نام پروفایل"}
-                        </p>
-                        {order.customerPhone && (
-                          <p className="font-mono text-[11px] text-muted-foreground" dir="ltr">
-                            {toPersianDigits(order.customerPhone)}
+                            {stale && (
+                              <span title="بیش از ۲۴ ساعت در وضعیت فعال">
+                                <AlertTriangle className="h-3.5 w-3.5 text-amber-500" />
+                              </span>
+                            )}
+                          </div>
+                        </td>
+                      )}
+                      {!colVis.isHidden("customer") && (
+                        <td className="px-4 py-3">
+                          <p className="text-xs font-medium text-foreground">
+                            {order.customerName ?? "بدون نام پروفایل"}
                           </p>
-                        )}
-                      </td>
-                      <td className="hidden px-4 py-3 text-xs text-muted-foreground lg:table-cell">
-                        {new Date(order.createdAt).toLocaleDateString("fa-IR")}
-                      </td>
-                      <td className="hidden px-4 py-3 font-mono text-xs lg:table-cell">
-                        {toPersianDigits(order.itemsCount)}
-                      </td>
-                      <td className="px-4 py-3 font-mono text-xs font-bold text-foreground">
-                        {formatPrice(rialsToToman(order.totalRial))}
-                      </td>
-                      <td className="hidden px-4 py-3 md:table-cell">
-                        {/* The list endpoint carries no payment rows, so the
-                            honest label is "بدون اطلاعات پرداخت" — the old
-                            page printed a fabricated "پرداخت شده". */}
-                        <Badge variant="outline" className="text-[10px] text-muted-foreground">
-                          بدون اطلاعات پرداخت
-                        </Badge>
-                      </td>
-                      <td className="px-4 py-3">
-                        <Badge variant="outline" className={cn("text-[11px]", visual.chip)}>
-                          {visual.label}
-                        </Badge>
-                      </td>
-                      <td className="px-4 py-3">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="gap-1 text-xs"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onOpenOrder(order);
-                          }}
-                        >
-                          <Eye className="h-3.5 w-3.5" />
-                          جزئیات
-                        </Button>
-                      </td>
+                          {order.customerPhone && (
+                            <p className="font-mono text-[11px] text-muted-foreground" dir="ltr">
+                              {toPersianDigits(order.customerPhone)}
+                            </p>
+                          )}
+                        </td>
+                      )}
+                      {!colVis.isHidden("createdAt") && (
+                        <td className="hidden px-4 py-3 text-xs text-muted-foreground lg:table-cell">
+                          {new Date(order.createdAt).toLocaleDateString("fa-IR")}
+                        </td>
+                      )}
+                      {!colVis.isHidden("items") && (
+                        <td className="hidden px-4 py-3 font-mono text-xs lg:table-cell">
+                          {toPersianDigits(order.itemsCount)}
+                        </td>
+                      )}
+                      {!colVis.isHidden("total") && (
+                        <td className="px-4 py-3 font-mono text-xs font-bold text-foreground">
+                          {formatPrice(rialsToToman(order.totalRial))}
+                        </td>
+                      )}
+                      {!colVis.isHidden("payment") && (
+                        <td className="hidden px-4 py-3 md:table-cell">
+                          {/* The list endpoint carries no payment rows, so the
+                              honest label is "بدون اطلاعات پرداخت" — the old
+                              page printed a fabricated "پرداخت شده". */}
+                          <Badge variant="outline" className="text-[10px] text-muted-foreground">
+                            بدون اطلاعات پرداخت
+                          </Badge>
+                        </td>
+                      )}
+                      {!colVis.isHidden("status") && (
+                        <td className="px-4 py-3">
+                          <Badge variant="outline" className={cn("text-[11px]", visual.chip)}>
+                            {visual.label}
+                          </Badge>
+                        </td>
+                      )}
+                      {!colVis.isHidden("actions") && (
+                        <td className="px-4 py-3">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="gap-1 text-xs"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onOpenOrder(order);
+                            }}
+                          >
+                            <Eye className="h-3.5 w-3.5" />
+                            جزئیات
+                          </Button>
+                        </td>
+                      )}
                     </tr>
                   );
                 })
@@ -492,33 +547,33 @@ export function OrdersListView({
         </div>
       </Card>
 
-      {/* Pager */}
-      {totalPages > 1 && (
-        <div className="flex items-center justify-between text-sm">
-          <span className="text-xs text-muted-foreground">
-            {toPersianDigits(total)} سفارش — صفحهٔ {toPersianDigits(page)} از{" "}
-            {toPersianDigits(totalPages)}
-          </span>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={page <= 1 || loading}
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-            >
-              قبلی
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={page >= totalPages || loading}
-              onClick={() => setPage((p) => p + 1)}
-            >
-              بعدی
-            </Button>
-          </div>
+      {/* Pager — the size selector stays visible even on one page, matching
+          the products/categories pager (list-engine PaginationBar). */}
+      <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
+        <span className="text-xs text-muted-foreground">
+          {toPersianDigits(total)} سفارش — صفحهٔ {toPersianDigits(page)} از{" "}
+          {toPersianDigits(totalPages)}
+        </span>
+        <div className="flex items-center gap-2">
+          <PageSizeSelect pageSize={pageSize} onPageSizeChange={setPageSize} />
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={page <= 1 || loading}
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+          >
+            قبلی
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={page >= totalPages || loading}
+            onClick={() => setPage((p) => p + 1)}
+          >
+            بعدی
+          </Button>
         </div>
-      )}
+      </div>
     </div>
   );
 }

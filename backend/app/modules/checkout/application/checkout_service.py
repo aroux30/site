@@ -87,6 +87,33 @@ async def _load_shipping_method(
     return method
 
 
+async def cart_requires_shipping(db: AsyncSession, cart: Cart) -> bool:
+    """Does this cart need a delivery address at all?
+
+    WooCommerce parity for virtual/downloadable goods: a cart made purely of
+    DIGITAL products ships nothing, so the whole address + shipping step is
+    skipped (quote, validation, and order creation all honour this). Any
+    physical line — or an undecidable one — keeps the shipping step, because
+    silently skipping an address for a shippable order is worse than asking.
+    """
+    from app.modules.catalog.domain.models import Product, ProductType
+
+    if not cart.items:
+        return True
+    # Carts hold a handful of lines; keyed ORM reads keep this simple and
+    # parameter-bound by construction.
+    fetched: set[uuid.UUID] = set()
+    for ci in cart.items:
+        if ci.variant_id in fetched:
+            continue
+        fetched.add(ci.variant_id)
+        variant = await db.get(ProductVariant, ci.variant_id)
+        product = await db.get(Product, variant.product_id) if variant else None
+        if product is None or product.product_type != ProductType.DIGITAL:
+            return True
+    return False
+
+
 async def _calculate_shipping(
     db: AsyncSession,
     method: ShippingMethod,
@@ -233,7 +260,10 @@ async def _build_line_items(
                 cart_item_id=ci.id,
                 variant_id=variant.id,
                 product_name=variant.product.name if variant.product else "Unknown",
-                sku=variant.sku,
+                # Digital products are provisioned without a warehouse SKU
+                # (the admin form hides the field for them), so an empty
+                # string — not a pydantic 500 — is the honest value here.
+                sku=variant.sku or "",
                 quantity=ci.quantity,
                 unit_price=unit_price,
                 subtotal=unit_price * ci.quantity,
@@ -291,16 +321,58 @@ async def _resolve_item_custom_fields(
         if variant is None:
             continue
         product = await db.get(_Product, variant.product_id)
-        if product is None or product.category_id is None:
+        if product is None:
             if answers:
                 raise ValidationError(
                     detail="این کالا فیلد سفارشی ندارد",
                     error_code="CUSTOM_FIELDS_NOT_ALLOWED",
                 )
             continue
-        validated[ci.id] = await custom_field_service.validate_answers(
-            db, category_id=product.category_id, answers=answers
-        )
+
+        # WooCommerce Product Add-ons parity: keys prefixed with "p:" are
+        # per-PRODUCT add-on answers (validated against ProductAddonField);
+        # everything else belongs to the CATEGORY dynamic fields.
+        addon_answers = {
+            k[2:]: v for k, v in answers.items() if str(k).startswith("p:")
+        }
+        category_answers = {
+            k: v for k, v in answers.items() if not str(k).startswith("p:")
+        }
+
+        merged: dict[str, Any] = {}
+        if addon_answers:
+            from app.modules.inventory.application import product_addon_service
+
+            addon_clean = await product_addon_service.validate_answers(
+                db,
+                product_id=product.id,
+                quantity=ci.quantity,
+                answers=addon_answers,
+            )
+            for k, v in addon_clean.items():
+                merged[f"p:{k}"] = v
+        if category_answers:
+            if product.category_id is None:
+                raise ValidationError(
+                    detail="این کالا فیلد سفارشی دسته ندارد",
+                    error_code="CUSTOM_FIELDS_NOT_ALLOWED",
+                )
+            category_clean = await custom_field_service.validate_answers(
+                db, category_id=product.category_id, answers=category_answers
+            )
+            merged.update(category_clean)
+        elif not addon_answers and (category_answers or addon_answers) is None:
+            pass
+
+        if not merged and answers:
+            # Answers arrived but matched neither namespace: reject so silent
+            # data loss can never masquerade as a saved field.
+            raise ValidationError(
+                detail="این کالا فیلد سفارشی ندارد",
+                error_code="CUSTOM_FIELDS_NOT_ALLOWED",
+            )
+        if merged:
+            validated[ci.id] = merged
     return validated
 
 
@@ -319,15 +391,31 @@ async def calculate_quote(
     if cart.user_id != user_id:
         raise ValidationError("Cart does not belong to the authenticated user")
 
-    address = await _load_address(db, data.address_id, user_id)
-    shipping_method = await _load_shipping_method(db, data.shipping_method_id)
+    # All-digital cart (WooCommerce virtual parity): no address, no shipping
+    # method, no shipping fee — the client omits both ids and we never ask.
+    needs_shipping = await cart_requires_shipping(db, cart)
+    if needs_shipping:
+        if data.address_id is None or data.shipping_method_id is None:
+            raise ValidationError(
+                detail="برای سفارش دارای کالای فیزیکی، آدرس و روش ارسال الزامی است",
+                error_code="SHIPPING_INFO_REQUIRED",
+            )
+        address = await _load_address(db, data.address_id, user_id)
+        shipping_method = await _load_shipping_method(db, data.shipping_method_id)
+    else:
+        address = None
+        shipping_method = None
 
     # Build line items with live prices
     line_items = await _build_line_items(db, cart)
     subtotal = sum(item.subtotal for item in line_items)
 
     # Shipping
-    shipping_cost = await _calculate_shipping(db, shipping_method, address.province)
+    shipping_cost = (
+        await _calculate_shipping(db, shipping_method, address.province)
+        if needs_shipping
+        else 0
+    )
 
     # Discount
     discount_amount = 0
@@ -379,17 +467,41 @@ async def validate_checkout(
         issues.append(CheckoutValidationIssue(field="cart_id", message=str(e.detail)))
         return CheckoutValidationResponse(is_valid=False, issues=issues)
 
-    # 2. Address
-    try:
-        await _load_address(db, data.address_id, user_id)
-    except NotFoundError as e:
-        issues.append(CheckoutValidationIssue(field="address_id", message=str(e.detail)))
+    # 2. Address — only when the cart actually ships something
+    needs_shipping = await cart_requires_shipping(db, cart)
+    if needs_shipping:
+        if data.address_id is None:
+            issues.append(
+                CheckoutValidationIssue(
+                    field="address_id",
+                    message="برای سفارش دارای کالای فیزیکی، انتخاب آدرس الزامی است",
+                )
+            )
+        else:
+            try:
+                await _load_address(db, data.address_id, user_id)
+            except NotFoundError as e:
+                issues.append(
+                    CheckoutValidationIssue(field="address_id", message=str(e.detail))
+                )
 
-    # 3. Shipping method
-    try:
-        await _load_shipping_method(db, data.shipping_method_id)
-    except NotFoundError as e:
-        issues.append(CheckoutValidationIssue(field="shipping_method_id", message=str(e.detail)))
+        # 3. Shipping method
+        if data.shipping_method_id is None:
+            issues.append(
+                CheckoutValidationIssue(
+                    field="shipping_method_id",
+                    message="برای سفارش دارای کالای فیزیکی، انتخاب روش ارسال الزامی است",
+                )
+            )
+        else:
+            try:
+                await _load_shipping_method(db, data.shipping_method_id)
+            except NotFoundError as e:
+                issues.append(
+                    CheckoutValidationIssue(
+                        field="shipping_method_id", message=str(e.detail)
+                    )
+                )
 
     # 4. Stock availability per item
     for ci in cart.items:
@@ -537,9 +649,19 @@ async def create_order(
     if cart.user_id != user_id:
         raise ValidationError("Cart does not belong to the authenticated user")
 
-    # ── 3. Load address and shipping ───────────────────────────────────
-    address = await _load_address(db, data.address_id, user_id)
-    shipping_method = await _load_shipping_method(db, data.shipping_method_id)
+    # ── 3. Load address and shipping (skipped for all-digital carts) ──
+    needs_shipping = await cart_requires_shipping(db, cart)
+    if needs_shipping:
+        if data.address_id is None or data.shipping_method_id is None:
+            raise ValidationError(
+                detail="برای سفارش دارای کالای فیزیکی، آدرس و روش ارسال الزامی است",
+                error_code="SHIPPING_INFO_REQUIRED",
+            )
+        address = await _load_address(db, data.address_id, user_id)
+        shipping_method = await _load_shipping_method(db, data.shipping_method_id)
+    else:
+        address = None
+        shipping_method = None
 
     # Build line items (with live, tier-aware prices)
     line_items = await _build_line_items(db, cart)
@@ -582,8 +704,12 @@ async def create_order(
             db, data.coupon_code, subtotal, user_id, items=coupon_items
         )
 
-    # ── 6. Calculate shipping ──────────────────────────────────────────
-    shipping_cost = await _calculate_shipping(db, shipping_method, address.province)
+    # ── 6. Calculate shipping (zero for all-digital carts) ────────────
+    shipping_cost = (
+        await _calculate_shipping(db, shipping_method, address.province)
+        if needs_shipping
+        else 0
+    )
 
     # Tax — the single configured rate (admin settings field) applied to the
     # discounted subtotal. The rule engine (effective-dated rules, withholding
@@ -600,24 +726,30 @@ async def create_order(
     total = max(total, 0)
 
     # ── 7. Create order ────────────────────────────────────────────────
-    # Shared generator with collision retry — a bare timestamp+3-byte
-    # number occasionally violates the unique orders.order_number
-    # constraint and would surface as a 500 at checkout.
+    # Sequential numeric order number (WordPress-style). The counter row is
+    # locked FOR UPDATE by the shared generator, so concurrent checkouts can
+    # never violate the unique orders.order_number constraint (which used to
+    # surface as a 500 at checkout).
     from app.modules.orders.application.order_service import generate_unique_order_number
 
     order_number = await generate_unique_order_number(db)
 
-    # Snapshot address
-    address_snapshot = {
-        "title": address.title,
-        "province": address.province,
-        "city": address.city,
-        "district": address.district,
-        "postal_code": address.postal_code,
-        "full_address": address.full_address,
-        "lat": address.lat,
-        "lng": address.lng,
-    }
+    # Snapshot address — null for all-digital orders: the column is a
+    # JSONB nullable snapshot, and a digital order has no delivery address
+    # to freeze (stamping an empty dict would read as a real address).
+    if needs_shipping and address is not None:
+        address_snapshot: dict[str, Any] | None = {
+            "title": address.title,
+            "province": address.province,
+            "city": address.city,
+            "district": address.district,
+            "postal_code": address.postal_code,
+            "full_address": address.full_address,
+            "lat": address.lat,
+            "lng": address.lng,
+        }
+    else:
+        address_snapshot = None
 
     # The order's opening status depends on HOW it will be paid, because the
     # two cases have opposite expiry rules:

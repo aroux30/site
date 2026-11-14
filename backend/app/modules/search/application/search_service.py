@@ -360,6 +360,7 @@ class SearchService:
                         "should": [
                             {"term": {"category_slug": filters.category}},
                             {"term": {"category_id": filters.category}},
+                            {"term": {"category_ancestors": filters.category}},
                         ],
                         "minimum_should_match": 1,
                     }
@@ -618,6 +619,16 @@ class SearchService:
                     }
                 )
 
+        # Category ancestors for hierarchical search (matches children when parent is filtered)
+        category_ancestors: list[str] = []
+        if product.category:
+            if product.category.path:
+                category_ancestors.extend([s for s in product.category.path.split("/") if s])
+            if product.category.parent_id:
+                category_ancestors.append(str(product.category.parent_id))
+        if product.category_id:
+            category_ancestors.append(str(product.category_id))
+
         return {
             "id": str(product.id),
             "name": product.name,
@@ -627,6 +638,7 @@ class SearchService:
             "category_id": str(product.category_id) if product.category_id else None,
             "category_name": product.category.name if product.category else None,
             "category_slug": product.category.slug if product.category else None,
+            "category_ancestors": list(set(category_ancestors)),
             "brand_id": str(product.brand_id) if product.brand_id else None,
             "brand_name": product.brand.name if product.brand else None,
             "brand_slug": product.brand.slug if product.brand else None,

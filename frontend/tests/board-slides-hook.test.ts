@@ -123,6 +123,7 @@ describe("slide slicing", () => {
   it("totalSlides is ceil(columns / colsPerSlide), and never zero", () => {
     expect(hook(TICKET_BOARD_COLUMNS, 5).result.current.totalSlides).toBe(1);
     expect(hook(TICKET_BOARD_COLUMNS, 2).result.current.totalSlides).toBe(3);
+    expect(hook(BOARD_COLUMNS, 8).result.current.totalSlides).toBe(1);
     expect(hook(BOARD_COLUMNS, 5).result.current.totalSlides).toBe(2);
     expect(hook(BOARD_COLUMNS, 3).result.current.totalSlides).toBe(3);
     // An empty board still reports one slide, so the pager's "1 / N" is never "1 / 0".
@@ -133,7 +134,7 @@ describe("slide slicing", () => {
   it("renders no pager when everything fits on one slide", () => {
     // A disabled "next" on a one-slide board is noise the owner would see.
     expect(hook(TICKET_BOARD_COLUMNS, 5).result.current.pager).toBeNull();
-    expect(hook(BOARD_COLUMNS, 7).result.current.pager).toBeNull();
+    expect(hook(BOARD_COLUMNS, 8).result.current.pager).toBeNull();
     // And does render one when it does not fit.
     expect(hook(BOARD_COLUMNS, 5).result.current.pager).not.toBeNull();
   });

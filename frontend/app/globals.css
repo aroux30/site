@@ -13,14 +13,14 @@
     --popover: 0 0% 100%;
     --popover-foreground: 150 10% 10%;
 
-    --primary: 160 84% 39%;
+    --primary: 160 84% 28%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 174 62% 47%;
+    --secondary: 174 62% 35%;
     --secondary-foreground: 0 0% 100%;
 
     --muted: 150 10% 96%;
-    --muted-foreground: 150 5% 45%;
+    --muted-foreground: 150 5% 38%;
 
     --accent: 150 10% 95%;
     --accent-foreground: 150 10% 10%;
@@ -307,10 +307,66 @@
   .wheel-rotor {
     transition-duration: 5.2s !important;
   }
+
+  /* Live-chat widget: its motion is owner-required parity with the live
+     WordPress site (halos, ring breath, FAB hover scale + icon wiggle, badge
+     pulse). The plugin builds these with INLINE styles, and the `*` kill-switch
+     above (an `!important` author rule) would otherwise zero every duration.
+     Re-declare each animation/transition with a higher-specificity `!important`
+     (same pattern as `.wheel-rotor`). Durations are the plugin's own values
+     (script.js:178-190, 203). The widget lives under `#n8n-w`. */
+  #n8n-w #n8n-toggle {
+    transition-duration: 0.3s !important;
+  }
+  #n8n-w #n8n-toggle:hover svg,
+  #n8n-w .ntab:hover svg,
+  #n8n-w #n8n-min:hover svg {
+    animation-duration: 0.4s !important;
+    animation-iteration-count: infinite !important;
+  }
+  #n8n-w #n8n-badge {
+    animation-duration: 1.5s !important;
+    animation-iteration-count: infinite !important;
+  }
+  #n8n-w .n8n-halo-1,
+  #n8n-w .n8n-halo-2 {
+    animation-duration: 2s !important;
+    animation-iteration-count: infinite !important;
+  }
+  #n8n-w #n8n-pro-ring,
+  #n8n-w #n8n-proactive-wrap {
+    animation-duration: 2.5s !important;
+    animation-iteration-count: infinite !important;
+  }
+  #n8n-w .n8n-proactive-close,
+  #n8n-w #n8n-user-handoff {
+    transition-duration: 0.2s !important;
+  }
+  #n8n-w .n8n-qf-btn,
+  #n8n-w .n8n-qr-btn {
+    transition-duration: 0.25s !important;
+  }
 }
+
 
 /* Lucky-wheel rotor: functional spin (shows the won segment). Kept as a class
    so the reduced-motion block above can exempt only this element. */
 .wheel-rotor {
   transition: transform 5.2s cubic-bezier(0.12, 0.9, 0.15, 1);
+}
+
+/* PulseHeart wishlist bounce — defined once, guarded by reduced-motion.
+   The global `prefers-reduced-motion: reduce` kill-switch above already
+   zeros animation-duration, but wrapping the keyframes themselves ensures
+   no animation name resolves when motion is unwanted. */
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes pulse-heart-bounce {
+    0%   { transform: scale(1);   }
+    40%  { transform: scale(1.3); }
+    100% { transform: scale(1);   }
+  }
+
+  .pulse-heart-active {
+    animation: pulse-heart-bounce 300ms ease-out;
+  }
 }

@@ -21,6 +21,7 @@ import {
   SlidersHorizontal,
   Heart,
   ArrowLeftRight,
+  MessagesSquare,
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -35,12 +36,6 @@ import { ContentSettingsCard } from "@/components/admin/content-settings-card";
 import { UserSettingsCard } from "@/components/admin/user-settings-card";
 import { ContentToolsCard } from "@/components/admin/content-tools-card";
 import { SiteIdentityCard } from "@/components/admin/site-identity-card";
-import { RobotsSettingsCard } from "@/components/admin/robots-settings-card";
-import { ImageSeoSettingsCard } from "@/components/admin/image-seo-settings-card";
-import { BreadcrumbSettingsCard } from "@/components/admin/breadcrumb-settings-card";
-import { IndexingSettingsCard } from "@/components/admin/indexing-settings-card";
-import { LocalSeoSettingsCard } from "@/components/admin/local-seo-settings-card";
-import { ContentAiSettingsCard } from "@/components/admin/content-ai-settings-card";
 
 const ZARINPAL_MERCHANT_KEY = "payment.zarinpal.merchant_id";
 
@@ -65,7 +60,7 @@ export default function AdminSettingsPage() {
   // switches above — those live under /admin/wallet and are stored separately;
   // this row only reads the old payment_flags.wallet_enabled for the payment
   // card. The feature switches live in site_options behind their own endpoints.
-  const [shopFeatures, setShopFeatures] = useState({ wishlist_enabled: true, compare_enabled: true });
+  const [shopFeatures, setShopFeatures] = useState({ wishlist_enabled: true, compare_enabled: true, chat_enabled: true });
   const [savingFeature, setSavingFeature] = useState<string | null>(null);
 
   // Feature switches have their own endpoints (not the /settings map above),
@@ -94,10 +89,14 @@ export default function AdminSettingsPage() {
     setShopFeatures({
       wishlist_enabled: shopFeaturesData.wishlist_enabled ?? true,
       compare_enabled: shopFeaturesData.compare_enabled ?? true,
+      chat_enabled: shopFeaturesData.chat_enabled ?? true,
     });
   }, [shopFeaturesLoading, shopFeaturesData]);
 
-  async function toggleShopFeature(key: "wishlist_enabled" | "compare_enabled", value: boolean) {
+  async function toggleShopFeature(
+    key: "wishlist_enabled" | "compare_enabled" | "chat_enabled",
+    value: boolean,
+  ) {
     setSavingFeature(key);
     // Optimistic: the toggle should feel instant, and the reload below is the
     // authority. Reverted on failure so the switch never lies about its state.
@@ -455,25 +454,13 @@ export default function AdminSettingsPage() {
 
         {activeTab === "content" && (
           <>
-        {/* Content & permalink settings (WordPress reading/permalink parity) */}
+        {/* Content & media behaviour: reading, comments, uploads, dates.
+            SEO settings moved to the SEO menu (owner request): image SEO,
+            breadcrumbs, indexing, local SEO, content AI, robots.txt and the
+            search-visibility switch now live under /admin/seo/*, one page each.
+            What stays here is only what affects authoring and media handling. */}
         <ContentSettingsCard />
         <UserSettingsCard />
-        <RobotsSettingsCard />
-        {/* Image SEO (Rank Math Pro parity): fill empty alt/title/caption
-            from the file name at upload time. */}
-        <ImageSeoSettingsCard />
-        {/* Breadcrumbs (Rank Math Pro parity): the trail shown above posts
-            and products, and the BreadcrumbList structured data. */}
-        <BreadcrumbSettingsCard />
-        {/* Instant Indexing (Rank Math Pro parity): IndexNow auto-submit on
-            publish + honest Google connection status. */}
-        <IndexingSettingsCard />
-        {/* Local SEO (Rank Math Pro parity): business profile → LocalBusiness
-            JSON-LD with a live preview of the emitted node. */}
-        <LocalSeoSettingsCard />
-        {/* Content AI (Rank Math Pro parity): meta suggestions via a
-            configured LLM — honest "not connected" without a key. */}
-        <ContentAiSettingsCard />
 
         {/* Category→tag conversion and the trash purge. Kept off the settings
             form on purpose: both are destructive-capable, and a mistyped value
@@ -653,6 +640,25 @@ export default function AdminSettingsPage() {
                   checked={shopFeatures.compare_enabled}
                   disabled={shopFeaturesLoading || savingFeature === "compare_enabled"}
                   onChange={(e) => toggleShopFeature("compare_enabled", e.target.checked)}
+                  className="h-4 w-4 rounded accent-primary disabled:opacity-50"
+                />
+              </div>
+
+              <div className="flex items-center justify-between rounded-lg border border-border p-3.5">
+                <div className="flex items-start gap-3">
+                  <MessagesSquare className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                  <div>
+                    <div className="font-medium text-foreground">گفتگوی زنده</div>
+                    <div className="text-xs text-muted-foreground">
+                      ویجت چت شناور در فروشگاه (متصل به n8n و پشتیبانی انسانی)
+                    </div>
+                  </div>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={shopFeatures.chat_enabled}
+                  disabled={shopFeaturesLoading || savingFeature === "chat_enabled"}
+                  onChange={(e) => toggleShopFeature("chat_enabled", e.target.checked)}
                   className="h-4 w-4 rounded accent-primary disabled:opacity-50"
                 />
               </div>

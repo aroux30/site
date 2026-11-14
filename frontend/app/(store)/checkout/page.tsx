@@ -22,6 +22,7 @@ import {
   FileText,
   Tag,
   RefreshCw,
+  Download,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -115,6 +116,13 @@ const STEPS: { key: CheckoutStep; label: string; icon: typeof MapPin }[] = [
   { key: "review", label: "بازبینی و پرداخت", icon: CheckCircle2 },
 ];
 
+/** Steps shown for an all-digital cart: nothing ships, so the address and
+ *  shipping steps disappear from the wizard (WooCommerce virtual parity). */
+const DIGITAL_STEPS: { key: CheckoutStep; label: string; icon: typeof MapPin }[] = [
+  { key: "payment", label: "روش پرداخت", icon: CreditCard },
+  { key: "review", label: "بازبینی و پرداخت", icon: CheckCircle2 },
+];
+
 /** Gateway durations offered for installment checkout. No wired provider
  *  supports installments today (the capability report returns none), so this
  *  list is empty and the section is hidden; a real credit-contract gateway
@@ -187,6 +195,7 @@ export default function CheckoutPage() {
     fetchCart,
     isLoading: cartIsLoading,
     taxRatePercent,
+    requiresShipping,
   } = useCart();
 
   const { isAuthenticated, user, isLoading: authLoading } = useAuthStore();
@@ -270,6 +279,18 @@ export default function CheckoutPage() {
       triggerCelebrationCannons();
     }
   }, [currentStep]);
+
+  // All-digital cart (WooCommerce virtual/downloadable parity): nothing to
+  // ship, so the address and shipping steps do not exist for this order.
+  // The state machine starts on "address" (the cart may still be loading at
+  // mount); once the cart says otherwise, past the skipped steps directly to
+  // payment — whether the user just landed or is mid-checkout.
+  useEffect(() => {
+    if (cartIsLoading || requiresShipping) return;
+    setCurrentStep((step) =>
+      step === "address" || step === "shipping" ? "payment" : step,
+    );
+  }, [cartIsLoading, requiresShipping]);
 
   // Coupon inline
   const [inputCoupon, setInputCoupon] = useState("");
@@ -592,9 +613,7 @@ export default function CheckoutPage() {
       return;
     }
     setCurrentStep("shipping");
-  };
-
-  const handleNextFromShipping = () => {
+  };  const handleNextFromShipping = () => {
     if (!selectedShippingMethodId) {
       toast({
         title: "روش ارسال انتخاب نشده است",
@@ -629,8 +648,14 @@ export default function CheckoutPage() {
       }
       const res = await apiClient.post<ServerQuote>("/checkout/quote", {
         cart_id: effectiveCartId,
-        address_id: selectedAddressId,
-        shipping_method_id: selectedShippingMethodId,
+        // All-digital cart: the server skips shipping entirely when both ids
+        // are omitted, so an address is never demanded for a digital order.
+        ...(requiresShipping
+          ? {
+              address_id: selectedAddressId,
+              shipping_method_id: selectedShippingMethodId,
+            }
+          : {}),
         coupon_code: couponCode || null,
       });
       setServerQuote(res.data);
@@ -649,7 +674,13 @@ export default function CheckoutPage() {
   const handleCreateOrderAndPay = async () => {
     if (isSubmitting || isSubmittingRef.current) return;
 
-    if (!selectedAddressId || !selectedShippingMethodId || !selectedPaymentMethod) {
+    // Address + shipping method are only demanded when something actually
+    // ships; an all-digital order checks out with payment alone.
+    if (requiresShipping && (!selectedAddressId || !selectedShippingMethodId)) {
+      setSubmitError("اطلاعات سفارش ناقص است. لطفاً مراحل را مجدداً بررسی کنید.");
+      return;
+    }
+    if (!selectedPaymentMethod) {
       setSubmitError("اطلاعات سفارش ناقص است. لطفاً مراحل را مجدداً بررسی کنید.");
       return;
     }
@@ -687,8 +718,14 @@ export default function CheckoutPage() {
 
       const payload = {
         cart_id: effectiveCartId,
-        address_id: selectedAddressId,
-        shipping_method_id: selectedShippingMethodId,
+        // All-digital cart: both ids stay out of the payload — the backend
+        // then skips shipping cost and the address snapshot entirely.
+        ...(requiresShipping
+          ? {
+              address_id: selectedAddressId,
+              shipping_method_id: selectedShippingMethodId,
+            }
+          : {}),
         coupon_code: couponCode || null,
         payment_method: selectedPaymentMethod,
         idempotency_key: idempotencyKey,
@@ -1018,17 +1055,25 @@ export default function CheckoutPage() {
   }
 
   return (
-    <div className="container-page py-8">
+    <div className="container-page mx-auto max-w-5xl py-8">
+      {/* A checkout form reads cramped at full container width on large
+          monitors; ~1024px centered matches the two-column invoice layout
+          the design targets (Digikala/WooCommerce do the same). */}
       {/* Header & Steps Breadcrumb */}
       <div className="mb-8">
         <h1 className="mb-6 text-2xl font-extrabold text-foreground">تکمیل و پرداخت سفارش</h1>
 
-        {/* Multi-Step Indicator */}
-        <div className="relative mx-auto max-w-3xl">
+        {/* Multi-Step Indicator — narrower container when only the payment
+            steps remain (digital cart): two circles stretched across 3xl
+            looked like two islands with an empty sea between them. */}
+        <div className={`relative mx-auto ${requiresShipping ? "max-w-3xl" : "max-w-md"}`}>
           <div className="flex items-center justify-between">
-            {STEPS.map((step, idx) => {
+            {(requiresShipping ? STEPS : DIGITAL_STEPS).map((step, idx) => {
               const Icon = step.icon;
-              const stepIndex = STEPS.findIndex((s) => s.key === currentStep);
+              const visibleSteps = requiresShipping ? STEPS : DIGITAL_STEPS;
+              const stepIndex = visibleSteps.findIndex(
+                (s) => s.key === currentStep,
+              );
               const isPassed = stepIndex > idx;
               const isCurrent = step.key === currentStep;
 
@@ -1069,7 +1114,7 @@ export default function CheckoutPage() {
                     </span>
                   </div>
 
-                  {idx < STEPS.length - 1 && (
+                  {idx < visibleSteps.length - 1 && (
                     <div
                       className={`h-0.5 flex-1 transition-colors ${
                         stepIndex > idx ? "bg-primary" : "bg-border"
@@ -1235,7 +1280,7 @@ export default function CheckoutPage() {
                   description="برای این مقصد در حال حاضر روش ارسال فعالی ثبت نشده است."
                 />
               ) : (
-                <div className="space-y-3">
+                <div className="flex flex-wrap gap-3">
                   {shippingOptions.map((opt) => {
                     const isSelected = opt.method_id === selectedShippingMethodId;
                     return (
@@ -1245,26 +1290,22 @@ export default function CheckoutPage() {
                         value={opt.method_id}
                         checked={isSelected}
                         onChange={() => setSelectedShippingMethodId(opt.method_id)}
-                        className="items-center justify-between"
+                        className="w-fit items-center gap-2.5 p-3.5"
                       >
-                        <div className="flex items-center gap-3">
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <span className="font-bold text-foreground">{opt.name}</span>
-                            </div>
-
-                            <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
-                              <Clock className="h-3 w-3" />
-                              <span>
-                                زمان تقریبی تحویل: {toPersianDigits(opt.estimated_days_min)} الی{" "}
-                                {toPersianDigits(opt.estimated_days_max)} روز کاری
-                              </span>
-                            </p>
+                        <div className="whitespace-nowrap">
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-bold text-foreground">{opt.name}</span>
+                            <span className="text-sm font-bold text-foreground">
+                              {formatPrice(opt.price)}
+                            </span>
                           </div>
-                        </div>
-
-                        <div className="text-left font-bold text-sm">
-                          <span className="text-foreground">{formatPrice(opt.price)}</span>
+                          <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
+                            <Clock className="h-3 w-3 shrink-0" />
+                            <span>
+                              زمان تقریبی تحویل: {toPersianDigits(opt.estimated_days_min)} الی{" "}
+                              {toPersianDigits(opt.estimated_days_max)} روز کاری
+                            </span>
+                          </p>
                         </div>
                       </RadioCard>
                     );
@@ -1348,42 +1389,49 @@ export default function CheckoutPage() {
               {loadingPaymentMethods ? (
                 <PageLoader message="در حال دریافت درگاه‌های پرداخت فعال..." className="min-h-0 py-12" />
               ) : (
-                <div className="space-y-3">
+                <div className="flex flex-wrap gap-3">
                   {paymentMethods.map((pm) => {
                     const isSelected = pm.provider === selectedPaymentMethod;
                     return (
+                      /* Compact grid tiles (Digikala-style): each option is a
+                         short card sized to its content — never a full-width
+                         row with a hollow middle. Radio → icon → name/desc
+                         hug the right edge; the "selected" badge sits at the
+                         top-left corner of its own tile. */
                       <RadioCard
                         key={pm.provider}
                         name="paymentMethod"
                         value={pm.provider}
                         checked={isSelected}
                         onChange={() => setSelectedPaymentMethod(pm.provider)}
-                        className="items-center justify-between"
+                        className="w-fit items-center gap-2.5 p-3.5"
                       >
-                        <div className="flex items-center gap-3">
-                          <div className="flex items-center gap-3">
-                            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted border border-border/80">
-                              {pm.provider === "wallet" && walletEnabled ? (
-                                <Wallet className="h-5 w-5 text-primary" />
-                              ) : (
-                                <CreditCard className="h-5 w-5 text-primary" />
-                              )}
-                            </div>
-
-                            <div>
-                              <div className="font-bold text-foreground">{pm.name_fa || pm.name}</div>
-                              <p className="text-xs text-muted-foreground mt-0.5">
-                                {pm.description || "پرداخت اینترنتی امن شاپرک"}
-                              </p>
-                            </div>
-                          </div>
+                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-muted border border-border/80">
+                          {pm.provider === "wallet" && walletEnabled ? (
+                            <Wallet className="h-[18px] w-[18px] text-primary" />
+                          ) : (
+                            <CreditCard className="h-[18px] w-[18px] text-primary" />
+                          )}
                         </div>
 
-                        {isSelected && (
-                          <Badge variant="outline" className="bg-primary/10 text-primary border-primary/30 text-xs">
-                            انتخاب شده
-                          </Badge>
-                        )}
+                        <div className="whitespace-nowrap">
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-bold text-foreground">
+                              {pm.name_fa || pm.name}
+                            </span>
+                            {isSelected && (
+                              <Badge
+                                variant="outline"
+                                className="shrink-0 bg-primary/10 text-primary border-primary/30 text-[11px]"
+                              >
+                                انتخاب شده
+                              </Badge>
+                            )}
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-0.5">
+                            {pm.description || "پرداخت اینترنتی امن شاپرک"}
+                          </p>
+                        </div>
                       </RadioCard>
                     );
                   })}
@@ -1514,27 +1562,6 @@ export default function CheckoutPage() {
                 </div>
               )}
 
-              {/* Supported Shetab Banks Trust Banner */}
-              <div className="mt-5 rounded-2xl border border-border/80 bg-muted/20 p-3.5">
-                <div className="flex items-center justify-between text-xs text-muted-foreground mb-2">
-                  <span className="font-semibold text-foreground flex items-center gap-1.5">
-                    <ShieldCheck className="h-4 w-4 text-emerald-600" />
-                    پشتیبانی از تمامی کارت‌های عضو شبکه بانکی شتاب
-                  </span>
-                  <span className="text-[11px]">رمز پویا (OTP)</span>
-                </div>
-                <div className="flex flex-wrap items-center gap-2 text-[11px]">
-                  {["بانک ملی", "بانک ملت", "بانک سامان", "بانک پاسارگاد", "بانک تجارت", "بانک صادرات", "بانک پارسیان", "اقتصاد نوین"].map((bankName, idx) => (
-                    <span
-                      key={idx}
-                      className="rounded-lg border border-border/60 bg-background/80 px-2 py-1 text-muted-foreground font-medium"
-                    >
-                      {bankName}
-                    </span>
-                  ))}
-                </div>
-              </div>
-
               {/* Optional Order Notes */}
               <div className="mt-6 border-t border-border pt-4">
                 <label className="mb-2 block text-xs font-semibold text-foreground flex items-center gap-1.5">
@@ -1598,62 +1625,83 @@ export default function CheckoutPage() {
                 </h2>
 
                 <div className="space-y-4 text-sm">
-                  {/* Selected Address Summary */}
-                  <div className="flex items-start justify-between rounded-xl border border-border/80 bg-muted/20 p-4">
-                    <div className="space-y-1">
-                      <span className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
-                        <MapPin className="h-3.5 w-3.5 text-primary" />
-                        آدرس تحویل:
-                      </span>
-                      <p className="font-medium text-foreground">
-                        {selectedAddress?.province}، {selectedAddress?.city}، {selectedAddress?.full_address}
-                      </p>
-                      <span className="text-xs text-muted-foreground">
-                        کد پستی: {selectedAddress?.postal_code ? toPersianDigits(selectedAddress.postal_code) : "-"}
-                      </span>
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setCurrentStep("address")}
-                      className="text-xs text-primary"
-                    >
-                      تغییر
-                    </Button>
-                  </div>
-
-                  {/* Selected Shipping Method Summary */}
-                  <div className="flex items-start justify-between rounded-xl border border-border/80 bg-muted/20 p-4">
-                    <div className="space-y-1">
-                      <span className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
-                        <Truck className="h-3.5 w-3.5 text-primary" />
-                        روش ارسال:
-                      </span>
-                      <p className="font-medium text-foreground">
-                        {selectedShipping?.name} (
-                        {formatPrice(selectedShipping?.price || 0)})
-                      </p>
-                      <span className="text-xs text-muted-foreground">
-                        تحویل بین {toPersianDigits(selectedShipping?.estimated_days_min || 1)} الی{" "}
-                        {toPersianDigits(selectedShipping?.estimated_days_max || 3)} روز کاری
-                      </span>
-                      {selectedSlot && (
-                        <span className="mt-1 flex items-center gap-1 text-xs font-medium text-primary">
-                          <Clock className="h-3.5 w-3.5" />
-                          بازه انتخابی: {selectedSlot.dayName} ({selectedSlot.dateStr}) —{" "}
-                          {selectedSlot.timeRange}
+                  {!requiresShipping ? (
+                    /* All-digital order: no address, no shipping — say what
+                       actually happens instead of leaving an empty slot. */
+                    <div className="flex items-start justify-between rounded-xl border border-border/80 bg-muted/20 p-4">
+                      <div className="space-y-1">
+                        <span className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
+                          <Download className="h-3.5 w-3.5 text-primary" />
+                          نحوه تحویل:
                         </span>
-                      )}
+                        <p className="font-medium text-foreground">
+                          کالای دیجیتال — بدون ارسال فیزیکی
+                        </p>
+                        <span className="text-xs text-muted-foreground">
+                          پس از پرداخت، کد/لایسنس یا لینک دانلود بلافاصله در حساب کاربری شما فعال می‌شود.
+                        </span>
+                      </div>
                     </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setCurrentStep("shipping")}
-                      className="text-xs text-primary"
-                    >
-                      تغییر
-                    </Button>
-                  </div>
+                  ) : (
+                    <>
+                      {/* Selected Address Summary */}
+                      <div className="flex items-start justify-between rounded-xl border border-border/80 bg-muted/20 p-4">
+                        <div className="space-y-1">
+                          <span className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
+                            <MapPin className="h-3.5 w-3.5 text-primary" />
+                            آدرس تحویل:
+                          </span>
+                          <p className="font-medium text-foreground">
+                            {selectedAddress?.province}، {selectedAddress?.city}، {selectedAddress?.full_address}
+                          </p>
+                          <span className="text-xs text-muted-foreground">
+                            کد پستی: {selectedAddress?.postal_code ? toPersianDigits(selectedAddress.postal_code) : "-"}
+                          </span>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setCurrentStep("address")}
+                          className="text-xs text-primary"
+                        >
+                          تغییر
+                        </Button>
+                      </div>
+
+                      {/* Selected Shipping Method Summary */}
+                      <div className="flex items-start justify-between rounded-xl border border-border/80 bg-muted/20 p-4">
+                        <div className="space-y-1">
+                          <span className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
+                            <Truck className="h-3.5 w-3.5 text-primary" />
+                            روش ارسال:
+                          </span>
+                          <p className="font-medium text-foreground">
+                            {selectedShipping?.name} (
+                            {formatPrice(selectedShipping?.price || 0)})
+                          </p>
+                          <span className="text-xs text-muted-foreground">
+                            تحویل بین {toPersianDigits(selectedShipping?.estimated_days_min || 1)} الی{" "}
+                            {toPersianDigits(selectedShipping?.estimated_days_max || 3)} روز کاری
+                          </span>
+                          {selectedSlot && (
+                            <span className="mt-1 flex items-center gap-1 text-xs font-medium text-primary">
+                              <Clock className="h-3.5 w-3.5" />
+                              بازه انتخابی: {selectedSlot.dayName} ({selectedSlot.dateStr}) —{" "}
+                              {selectedSlot.timeRange}
+                            </span>
+                          )}
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setCurrentStep("shipping")}
+                          className="text-xs text-primary"
+                        >
+                          تغییر
+                        </Button>
+                      </div>
+                    </>
+                  )}
 
                   {/* Selected Payment Method Summary */}
                   <div className="flex items-start justify-between rounded-xl border border-border/80 bg-muted/20 p-4">

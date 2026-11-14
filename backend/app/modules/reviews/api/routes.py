@@ -18,6 +18,7 @@ from app.core.database.session import get_db
 from app.core.security.dependencies import (
     RequirePermissions,
     get_current_user_id,
+    get_current_user_optional,
 )
 from app.modules.reviews.application.review_service import ReviewService
 from app.modules.reviews.schemas.review import (
@@ -47,14 +48,28 @@ async def list_reviews(
     page: int = Query(1, ge=1, description="Page number"),
     size: int = Query(20, ge=1, le=100, description="Results per page"),
     db: AsyncSession = Depends(get_db),
+    viewer: dict[str, Any] | None = Depends(get_current_user_optional),
 ) -> ReviewListResponse:
-    """List approved reviews for a product by query param."""
+    """List approved reviews for a product by query param.
+
+    A signed-in viewer ALSO sees their own pending review for this product
+    (badged «در انتظار تایید» client-side): after submitting, the review
+    enters moderation and the list previously rendered nothing — shoppers
+    believed their review was lost and retried into duplicate errors.
+    """
+    viewer_id: uuid.UUID | None = None
+    if viewer and viewer.get("sub"):
+        try:
+            viewer_id = uuid.UUID(str(viewer["sub"]))
+        except ValueError:
+            viewer_id = None
     return await _review_service.get_product_reviews(
         db=db,
         product_id=product_id,
         sort=sort,
         page=page,
         size=size,
+        include_own_pending_for=viewer_id,
     )
 
 
@@ -90,14 +105,27 @@ async def get_product_reviews(
     page: int = Query(1, ge=1, description="Page number"),
     size: int = Query(20, ge=1, le=100, description="Results per page"),
     db: AsyncSession = Depends(get_db),
+    viewer: dict[str, Any] | None = Depends(get_current_user_optional),
 ) -> ReviewListResponse:
-    """List approved reviews for a product with pagination and stats."""
+    """List approved reviews for a product with pagination and stats.
+
+    A signed-in viewer also sees their OWN pending review for this product
+    (badged «در انتظار تایید» client-side) — the storefront's review list
+    uses THIS endpoint, so the own-pending enrichment lives here too.
+    """
+    viewer_id: uuid.UUID | None = None
+    if viewer and viewer.get("sub"):
+        try:
+            viewer_id = uuid.UUID(str(viewer["sub"]))
+        except ValueError:
+            viewer_id = None
     return await _review_service.get_product_reviews(
         db=db,
         product_id=product_id,
         sort=sort,
         page=page,
         size=size,
+        include_own_pending_for=viewer_id,
     )
 
 

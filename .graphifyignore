@@ -6,6 +6,7 @@
 # named after this repository. The real reference lives at
 # C:\Users\Administrator\wp-core, outside this tree.
 .arena-ref/
+.claude/*.html
 
 # Build output and dependencies. Anchored with a trailing slash so a future
 # source package named `next/` or `node_modules/` at the repo root is not
@@ -25,11 +26,26 @@ node_modules/
 # output, not project content: they change on every run, say nothing about
 # the code, and each one would cost an image extraction pass.
 frontend/scripts/artifacts/
+frontend/scripts/*.png
+frontend/*.png
+frontend/tests/e2e/__screenshots__/
+frontend/test-results/
+docs/*.png
+docs/screenshots/
+.claude/*shots*/
+.claude/tmp/
 
 # Uploaded media and runtime logs are data, not source.
 media/
 backend/media/
 logs/
+
+# Mimosa scanner plugin state: session hook-state, finding ledgers, run
+# history and reports. Pure tool output that mutates on every session —
+# the 2026-10-24 update caught 23 of these riding in as "code" nodes.
+.mimosa/
+backend/.mimosa/
+frontend/.mimosa/
 
 # Retired modules and dead code, kept for the decision record and a possible
 # downgrade. They are not part of the live project — graphing them would put

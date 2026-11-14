@@ -6,9 +6,15 @@ import Image from "next/image";
 import {
   fetchCategoryCustomFields,
   fetchProductPricingTiers,
+  fetchProductAddonFields,
+  computeAddonTotalToman,
+  validateSingleAddon,
   type ApiCategoryCustomField,
   type ApiPriceTier,
+  type ApiProductAddonField,
+  type AddonAnswers,
 } from "@/lib/api/services";
+import { ProductAddonsForm } from "@/components/store/product-addons-form";
 import {
   validateSingleDynamicField,
   validateAllDynamicFields,
@@ -27,6 +33,7 @@ import {
   Minus,
   Plus,
   Check,
+  Clock,
   Package,
   AlertCircle,
   MessageSquare,
@@ -48,6 +55,12 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { formatPrice, toPersianDigits } from "@/lib/utils";
 import { playAddToCartChime } from "@/lib/audio-effects";
 import { AccessoryRail } from "@/components/store/accessory-rail";
+import { VariationSwatches } from "@/components/store/variation-swatches";
+import { StarRating } from "@/components/ui/star-rating";
+import { ReviewHistogram } from "@/components/store/review-histogram";
+import { RecentlyViewed, trackProductView } from "@/components/store/recently-viewed";
+import { ClickSpark } from "@/components/ui/click-spark";
+import { PulseHeart } from "@/components/ui/pulse-heart";
 import { useCart } from "@/hooks/use-cart";
 import { useAuth } from "@/hooks/use-auth";
 import { useCompareStore } from "@/stores/compare-store";
@@ -92,7 +105,7 @@ export default function ProductDetailPage() {
   const params = useParams<{ slug: string }>();
   const slug = params?.slug || "";
   const { addToCart } = useCart();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isLoading: isAuthLoading } = useAuth();
   const { isInCompare, toggleProduct } = useCompareStore();
   const shopFeatures = useShopFeatures();
 
@@ -113,6 +126,11 @@ export default function ProductDetailPage() {
   const [selectedVariantIndex, setSelectedVariantIndex] = useState(0);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
+  // Variation-swatch selection state: { attribute_slug: value_slug }. Kept in
+  // lockstep with selectedVariantIndex — either can drive the other.
+  const [swatchSelection, setSwatchSelection] = useState<
+    Record<string, string>
+  >({});
   const [addedToCartToast, setAddedToCartToast] = useState(false);
   const [addToCartError, setAddToCartError] = useState<string | null>(null);
   // A failed wishlist write must be reported, not silently flipped in the UI —
@@ -126,6 +144,31 @@ export default function ProductDetailPage() {
   const [fieldAnswers, setFieldAnswers] = useState<Record<string, string>>({});
   const [fieldError, setFieldError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+
+  // WooCommerce Product Add-ons parity: per-product addon fields (distinct
+  // from category fields) with their own answers/errors/price total.
+  const [addonDefs, setAddonDefs] = useState<ApiProductAddonField[]>([]);
+  const [addonAnswers, setAddonAnswers] = useState<AddonAnswers>({});
+  const [addonErrors, setAddonErrors] = useState<Record<string, string>>({});
+
+  const handleAddonChange = (
+    fieldKey: string,
+    value: string | number | (string | number)[],
+  ) => {
+    setAddonAnswers((prev) => ({ ...prev, [fieldKey]: value }));
+    const def = addonDefs.find((d) => d.field_key === fieldKey);
+    const err = def ? validateSingleAddon(def, value) : null;
+    setAddonErrors((prev) => {
+      const next = { ...prev };
+      if (err) next[fieldKey] = err;
+      else delete next[fieldKey];
+      return next;
+    });
+  };
+
+  const addonTotalToman = product
+    ? computeAddonTotalToman(addonDefs, addonAnswers, quantity)
+    : 0;
 
   const handleFieldChange = (def: ApiCategoryCustomField, value: string) => {
     setFieldAnswers((prev) => ({ ...prev, [def.field_key]: value }));
@@ -163,10 +206,25 @@ export default function ProductDetailPage() {
         if (!cancelled) setCustomFieldDefs(f);
       });
     }
+    fetchProductAddonFields(product.id).then((f) => {
+      if (!cancelled) {
+        setAddonDefs(f.filter((d) => d.field_type !== "file_upload"));
+        // Reset stale answers when navigating between products.
+        setAddonAnswers({});
+        setAddonErrors({});
+      }
+    });
     return () => {
       cancelled = true;
     };
   }, [product?.id, product?.category_id]);
+
+  // Track product view for RecentlyViewed shelf
+  useEffect(() => {
+    if (product) {
+      trackProductView(product);
+    }
+  }, [product]);
 
   // Wishlist state
   const [isWishlisted, setIsWishlisted] = useState(false);
@@ -201,6 +259,7 @@ export default function ProductDetailPage() {
   useEffect(() => {
     if (fetchedProduct?.variants && fetchedProduct.variants.length > 0) {
       setSelectedVariantIndex(0);
+      setSwatchSelection({});
     }
   }, [fetchedProduct]);
 
@@ -225,11 +284,73 @@ export default function ProductDetailPage() {
     }
   }, [product?.id, checkWishlistStatus]);
 
-  // Selected variant derivation (below the not-found/error early returns)
-  const currentVariant: ApiProductVariant | undefined =
-    product && product.variants && product.variants.length > 0
-      ? product.variants[selectedVariantIndex] || product.variants[0]
-      : undefined;
+  // Selected variant derivation (below the not-found/error early returns).
+  // Retired (is_active=false) variants stay in the list for order history —
+  // the selector must never land on one by default, so an index pointing at
+  // one resolves to the first ACTIVE variant instead.
+  const currentVariant: ApiProductVariant | undefined = (() => {
+    if (!product || !product.variants?.length) return undefined;
+    const picked = product.variants[selectedVariantIndex];
+    if (picked && picked.is_active) return picked;
+    return product.variants.find((v) => v.is_active) ?? picked;
+  })();
+
+  // ── Variation swatches (woo-variation-swatches parity) ──────────────────
+  const variationGroups = product?.variation_attributes ?? [];
+  const hasVariationGroups =
+    variationGroups.length > 0 &&
+    variationGroups.some((g) => g.options.length > 1 || g.options.length === 1);
+
+  // Effective selection: the explicit picks, seeded from the current variant
+  // so a fresh page load shows every group's current value instead of blanks.
+  const effectiveSelection: Record<string, string> = (() => {
+    if (Object.keys(swatchSelection).length > 0) return swatchSelection;
+    const attrs = currentVariant?.attributes;
+    if (!attrs) return {};
+    const seeded: Record<string, string> = {};
+    for (const g of variationGroups) {
+      const v = attrs[g.slug];
+      if (v !== undefined && v !== null) seeded[g.slug] = String(v);
+    }
+    return seeded;
+  })();
+
+  const handleSwatchSelect = (groupSlug: string, optionSlug: string) => {
+    if (!product) return;
+    const next = { ...effectiveSelection, [groupSlug]: optionSlug };
+    setSwatchSelection(next);
+    // The swatches only enable combinations that some buyable variant
+    // satisfies, so the first full match IS the shopper's pick.
+    const idx = product.variants.findIndex((v) => {
+      const attrs = v.attributes || {};
+      return Object.entries(next).every(
+        ([gSlug, vSlug]) => String(attrs[gSlug] ?? "") === vSlug,
+      );
+    });
+    if (idx >= 0) setSelectedVariantIndex(idx);
+  };
+
+  // Auto-focus the gallery on the variant's own image (plugin behavior:
+  // selecting a variation swaps the main product photo). A variant WITHOUT
+  // its own image falls back to the product's primary photo — keeping the
+  // previous variant's photo on screen read as if the new option shared it.
+  useEffect(() => {
+    if (!currentVariant || !product?.images?.length) return;
+    const vImg = product.images.find((i) => i.variant_id === currentVariant.id);
+    if (vImg) {
+      const idx = product.images.findIndex((i) => i.id === vImg.id);
+      if (idx >= 0) setSelectedImageIndex(idx);
+      return;
+    }
+    // Fallback target = a PRODUCT-level photo (no variant scope). The
+    // variant-scoped image is itself flagged is_primary, so searching by
+    // that flag alone landed right back on the previous option's photo.
+    const productLevelIdx = product.images.findIndex(
+      (i) => !i.variant_id,
+    );
+    setSelectedImageIndex(productLevelIdx >= 0 ? productLevelIdx : 0);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentVariant?.id]);
 
   const currentPrice = currentVariant?.price ?? (product?.min_price || 0);
   const originalPrice =
@@ -245,11 +366,21 @@ export default function ProductDetailPage() {
 
   // Real availability (Odoo free_qty concept): prefer the live stock count
   // over the is_active flag — a variant can be active but out of stock.
+  // WooCommerce parity: when the variant allows backorders, an empty stock
+  // reads as "پیش‌خرید" (buyable), not "ناموجود".
+  const isOnBackorder =
+    currentVariant !== undefined &&
+    currentVariant.available != null &&
+    currentVariant.available <= 0 &&
+    currentVariant.backorder_allowed === true;
   const isOutOfStock =
     currentVariant !== undefined
       ? currentVariant.available != null
-        ? currentVariant.available <= 0
-        : !currentVariant.is_active
+        ? currentVariant.available <= 0 && !isOnBackorder
+        : // Untracked (no ledger count): availability is the operator's
+          // manual وضعیت عرضه on the product, not the absent count —
+          // "outofstock" must render ناموجود, null alone never did.
+          !currentVariant.is_active || product?.stock_status === "outofstock"
       : false;
 
   // Karta findPrice (client preview): unit price for the current quantity.
@@ -300,6 +431,39 @@ export default function ProductDetailPage() {
           : undefined;
     }
 
+    // Product add-ons: validate each definition; answers cross the cart
+    // boundary with a "p:" prefix (checkout splits product add-ons from
+    // category fields on that prefix).
+    let answeredAddons: Record<string, string | number> | undefined = undefined;
+    if (addonDefs.length > 0) {
+      const errs: Record<string, string> = {};
+      for (const def of addonDefs) {
+        if (def.field_type === "heading") continue;
+        const err = validateSingleAddon(def, addonAnswers[def.field_key]);
+        if (err) errs[def.field_key] = err;
+      }
+      if (Object.keys(errs).length > 0) {
+        setAddonErrors(errs);
+        setFieldError("لطفاً فیلدهای سفارشی کالا را کامل کنید");
+        return;
+      }
+      setAddonErrors({});
+      const cleaned: Record<string, string | number> = {};
+      for (const def of addonDefs) {
+        if (def.field_type === "heading") continue;
+        const v = addonAnswers[def.field_key];
+        if (v === undefined || v === "" || v === null) continue;
+        if (Array.isArray(v)) {
+          if (v.length > 0) cleaned[def.field_key] = v.join("، ");
+        } else {
+          cleaned[def.field_key] = v;
+        }
+      }
+      if (Object.keys(cleaned).length > 0) {
+        answeredAddons = cleaned;
+      }
+    }
+
     let variantTitle = "";
     if (currentVariant?.attributes) {
       variantTitle = Object.entries(currentVariant.attributes)
@@ -316,10 +480,15 @@ export default function ProductDetailPage() {
         price: unitPriceForLine,
         originalPrice,
         image: displayImages[0],
-        variant: variantTitle || currentVariant?.sku,
+        variant: variantTitle || currentVariant?.sku || undefined,
         customFields:
-          answeredFields && Object.keys(answeredFields).length > 0
-            ? answeredFields
+          answeredFields || answeredAddons
+            ? {
+                ...(answeredFields || {}),
+                ...Object.fromEntries(
+                  Object.entries(answeredAddons || {}).map(([k, v]) => [`p:${k}`, v]),
+                ),
+              }
             : undefined,
       });
     } catch (err: unknown) {
@@ -450,20 +619,29 @@ export default function ProductDetailPage() {
       });
 
       setReviewSubmitSuccess(true);
+      // The success notice stays until the shopper leaves the page: the
+      // review enters moderation (pending) and does NOT appear in the list
+      // below — a 4-second flash read as "nothing happened" and the shopper
+      // retried into a confusing duplicate-review error (live-reported).
       setFormTitle("");
       setFormBody("");
       setFormPros("");
       setFormCons("");
       setFormRating(5);
-    } catch {
-      // The submit failed — tell the user honestly and keep the form so
-      // they can retry. Never fake a success here.
+    } catch (err) {
+      // The submit failed — say WHY, honestly, and keep the form so they can
+      // act on it. Never fake a success here.
+      const status =
+        (err as { response?: { status?: number } })?.response?.status ?? 0;
       setReviewSubmitError(
-        "ثبت دیدگاه انجام نشد. لطفاً دوباره تلاش کنید یا بعداً مراجعه کنید.",
+        status === 409
+          ? "شما قبلاً برای این کالا دیدگاه ثبت کرده‌اید؛ پس از تایید، همین‌جا نمایش داده می‌شود."
+          : status === 401
+            ? "برای ثبت دیدگاه ابتدا وارد حساب کاربری خود شوید."
+            : "ثبت دیدگاه انجام نشد. لطفاً دوباره تلاش کنید یا بعداً مراجعه کنید.",
       );
     } finally {
-      setTimeout(() => setReviewSubmitSuccess(false), 4000);
-    setTimeout(() => setReviewSubmitError(null), 4000);
+      setTimeout(() => setReviewSubmitError(null), 12000);
     }
   };
 
@@ -529,22 +707,36 @@ export default function ProductDetailPage() {
       {/* ------------------------------------------------------------------ */}
       {/*  Breadcrumbs                                                       */}
       {/* ------------------------------------------------------------------ */}
-      <nav className="mb-6 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
+      <nav className="mb-6 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground" aria-label="مسیر دسته‌بندی محصول">
         <Link href="/" className="hover:text-primary transition-colors">
           صفحه اصلی
         </Link>
-        <ChevronLeft className="h-3.5 w-3.5" />
-        <Link href="/products" className="hover:text-primary transition-colors">
-          محصولات
-        </Link>
-        {product.category && (
+        {product.category ? (
           <>
+            {product.category.parent_name && (
+              <>
+                <ChevronLeft className="h-3.5 w-3.5" />
+                <Link
+                  href={`/products?category_id=${product.category.parent_id}`}
+                  className="hover:text-primary transition-colors"
+                >
+                  {product.category.parent_name}
+                </Link>
+              </>
+            )}
             <ChevronLeft className="h-3.5 w-3.5" />
             <Link
               href={`/products?category_id=${product.category.id}`}
               className="hover:text-primary transition-colors"
             >
               {product.category.name}
+            </Link>
+          </>
+        ) : (
+          <>
+            <ChevronLeft className="h-3.5 w-3.5" />
+            <Link href="/products" className="hover:text-primary transition-colors">
+              محصولات
             </Link>
           </>
         )}
@@ -702,9 +894,11 @@ export default function ProductDetailPage() {
               </Badge>
             )}
             {product.category && (
-              <Badge variant="outline" className="rounded-lg text-xs">
-                دسته: {product.category.name}
-              </Badge>
+              <Link href={`/products?category_id=${product.category.id}`}>
+                <Badge variant="outline" className="rounded-lg text-xs hover:bg-muted cursor-pointer transition-colors">
+                  دسته: {product.category.name}
+                </Badge>
+              </Link>
             )}
             {product.is_featured && (
               <Badge className="bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-xs">
@@ -748,60 +942,93 @@ export default function ProductDetailPage() {
             </p>
           )}
 
-          {/* Variant Selector (Colors / Storage / Options) */}
-          {product.variants && product.variants.length > 0 && (
-            <div className="space-y-3 rounded-2xl border border-border bg-card p-4 shadow-sm">
-              <span className="text-xs font-bold text-foreground block">
-                انتخاب مشخصات و مدل کالا:
+          {/* Variant Selector — swatch groups (woo-variation-swatches
+              parity) when the product defines variation attributes; a legacy
+              flat button list otherwise. A single variant with no attributes
+              has nothing to choose and renders neither. */}
+          {product.variants &&
+          (product.variants.length > 1 ||
+            product.variants.some(
+              (v) => v.attributes && Object.keys(v.attributes).length > 0,
+            )) ? (
+            hasVariationGroups ? (
+              <div className="rounded-2xl border border-border bg-card p-4 shadow-sm">
+                <VariationSwatches
+                  groups={variationGroups}
+                  variants={product.variants}
+                  selected={effectiveSelection}
+                  onOptionSelect={handleSwatchSelect}
+                />
+              </div>
+            ) : (
+              <div className="space-y-3 rounded-2xl border border-border bg-card p-4 shadow-sm">
+                <span className="text-xs font-bold text-foreground block">
+                  انتخاب مشخصات و مدل کالا:
+                </span>
+                <div className="flex flex-wrap gap-2">
+                  {product.variants.map((variant, idx) => {
+                    const isSelected = selectedVariantIndex === idx;
+                    const label = variant.attributes
+                      ? Object.values(variant.attributes).join(" - ")
+                      : variant.sku;
+
+                    return (
+                      <button
+                        key={variant.id}
+                        type="button"
+                        onClick={() => setSelectedVariantIndex(idx)}
+                        className={`relative flex items-center gap-2 rounded-xl border-2 px-3 py-2 text-xs font-semibold transition-all ${
+                          isSelected
+                            ? "border-primary bg-primary/10 text-primary shadow-sm"
+                            : "border-border hover:border-muted-foreground text-foreground"
+                        } ${!variant.is_active ? "opacity-50" : ""}`}
+                      >
+                        {isSelected && <Check className="h-3.5 w-3.5" />}
+                        <span>{label}</span>
+                        {!variant.is_active && (
+                          <span className="text-[10px] text-red-500 font-normal">
+                            (ناموجود)
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )
+          ) : null}
+
+          {/* SKU & inventory availability — always shown, independent of the
+              selector card. SKU is optional (owner directive), so the code
+              line renders only when a code exists; the English "N/A" fallback
+              never appears in a Persian UI. */}
+          <div className="flex items-center justify-between text-xs text-muted-foreground rounded-2xl border border-border/60 bg-muted/20 px-4 py-2.5">
+            {currentVariant?.sku ? (
+              <span>
+                شناسه کالا (SKU):{" "}
+                <span className="font-mono font-medium text-foreground">
+                  {currentVariant.sku}
+                </span>
               </span>
-              <div className="flex flex-wrap gap-2">
-                {product.variants.map((variant, idx) => {
-                  const isSelected = selectedVariantIndex === idx;
-                  const label = variant.attributes
-                    ? Object.values(variant.attributes).join(" - ")
-                    : variant.sku;
-
-                  return (
-                    <button
-                      key={variant.id}
-                      type="button"
-                      onClick={() => setSelectedVariantIndex(idx)}
-                      className={`relative flex items-center gap-2 rounded-xl border-2 px-3 py-2 text-xs font-semibold transition-all ${
-                        isSelected
-                          ? "border-primary bg-primary/10 text-primary shadow-sm"
-                          : "border-border hover:border-muted-foreground text-foreground"
-                      } ${!variant.is_active ? "opacity-50" : ""}`}
-                    >
-                      {isSelected && <Check className="h-3.5 w-3.5" />}
-                      <span>{label}</span>
-                      {!variant.is_active && (
-                        <span className="text-[10px] text-red-500 font-normal">
-                          (ناموجود)
-                        </span>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-
-              {/* Display Current SKU & Inventory availability */}
-              <div className="flex items-center justify-between text-xs text-muted-foreground pt-1">
-                <span>
-                  شناسه کالا (SKU):{" "}
-                  <span className="font-mono font-medium text-foreground">
-                    {currentVariant?.sku || "N/A"}
-                  </span>
-                </span>
-                <span
-                  className={`font-semibold ${
-                    isOutOfStock ? "text-red-500" : "text-emerald-600"
-                  }`}
-                >
-                  {isOutOfStock ? "اتمام موجودی در انبار" : "موجود در انبار"}
-                </span>
-              </div>
-            </div>
-          )}
+            ) : (
+              <span />
+            )}
+            <span
+              className={`font-semibold ${
+                isOutOfStock
+                  ? "text-red-500"
+                  : isOnBackorder
+                    ? "text-amber-600"
+                    : "text-emerald-600"
+              }`}
+            >
+              {isOutOfStock
+                ? "اتمام موجودی در انبار"
+                : isOnBackorder
+                  ? "آماده‌ی پیش‌خرید"
+                  : "موجود در انبار"}
+            </span>
+          </div>
 
           {/* Price Box — the visual anchor of the buy decision */}
           <div className="rounded-2xl border border-primary/25 bg-card p-5 shadow-sm space-y-2">
@@ -980,30 +1207,55 @@ export default function ProductDetailPage() {
               </div>
             )}
 
-            <div className="flex flex-col sm:flex-row gap-3">
-              <Button
-                size="lg"
-                disabled={isOutOfStock}
-                onClick={handleAddToCart}
-                className="flex-1 gap-2 rounded-2xl h-12 text-base font-bold shadow-md transition-all"
-                variant={addedToCartToast ? "secondary" : "default"}
-              >
-                {addedToCartToast ? (
-                  <>
-                    <CheckCircle2 className="h-5 w-5 text-emerald-600" />
-                    <span className="text-emerald-600">
-                      به سبد خرید اضافه شد!
-                    </span>
-                  </>
-                ) : isOutOfStock ? (
-                  <span>در حال حاضر ناموجود است</span>
-                ) : (
-                  <>
-                    <ShoppingCart className="h-5 w-5" />
-                    <span>افزودن به سبد خرید</span>
-                  </>
+            {/* WooCommerce Product Add-ons parity: per-product addon fields */}
+            {addonDefs.length > 0 && (
+              <div className="space-y-3 rounded-xl border border-border p-4">
+                <p className="text-sm font-bold">فیلدهای سفارشی این کالا:</p>
+                <ProductAddonsForm
+                  fields={addonDefs}
+                  answers={addonAnswers}
+                  errors={addonErrors}
+                  quantity={quantity}
+                  onChange={handleAddonChange}
+                />
+                {addonTotalToman > 0 && (
+                  <p className="text-xs text-muted-foreground" dir="rtl">
+                    جمع هزینه فیلدهای سفارشی این کالا:{" "}
+                    <span className="font-bold text-foreground">
+                      {formatPrice(addonTotalToman)}
+                    </span>{" "}
+                    تومان
+                  </p>
                 )}
-              </Button>
+              </div>
+            )}
+
+            <div className="flex flex-col sm:flex-row gap-3">
+              <ClickSpark className="flex-1 inline-flex">
+                <Button
+                  size="lg"
+                  disabled={isOutOfStock}
+                  onClick={handleAddToCart}
+                  className="w-full gap-2 rounded-2xl h-12 text-base font-bold shadow-md transition-all"
+                  variant={addedToCartToast ? "secondary" : "default"}
+                >
+                  {addedToCartToast ? (
+                    <>
+                      <CheckCircle2 className="h-5 w-5 text-emerald-600" />
+                      <span className="text-emerald-600">
+                        به سبد خرید اضافه شد!
+                      </span>
+                    </>
+                  ) : isOutOfStock ? (
+                    <span>در حال حاضر ناموجود است</span>
+                  ) : (
+                    <>
+                      <ShoppingCart className="h-5 w-5" />
+                      <span>افزودن به سبد خرید</span>
+                    </>
+                  )}
+                </Button>
+              </ClickSpark>
 
               {shopFeatures.wishlist && (
                 <Button
@@ -1017,10 +1269,10 @@ export default function ProductDetailPage() {
                       : "border-border text-foreground hover:bg-muted"
                   }`}
                 >
-                  <Heart
-                    className={`h-5 w-5 ${
-                      isWishlisted ? "fill-red-500 text-red-500" : ""
-                    }`}
+                  <PulseHeart
+                    active={isWishlisted}
+                    size="sm"
+                    className="pointer-events-none"
                   />
                   <span className="text-xs font-semibold">
                     {isWishlisted ? "حذف از لیست علاقه‌مندی" : "افزودن به علاقه‌مندی"}
@@ -1202,59 +1454,24 @@ export default function ProductDetailPage() {
                   printed 4.7 and a "80% five-star" bar chart for a product
                   with no reviews at all. */}
               <Card className="rounded-3xl border border-border p-6">
-                {reviewStats.total_reviews > 0 ? (
-                  <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
-                    <div className="flex flex-col items-center gap-2">
-                      <span className="text-5xl font-black text-foreground">
-                        {toPersianDigits(reviewStats.average_rating.toFixed(1))}
-                      </span>
-                      <div className="flex items-center gap-1 text-amber-400">
-                        {Array.from({ length: 5 }).map((_, i) => (
-                          <Star
-                            key={i}
-                            className={`h-4 w-4 ${
-                              i < Math.round(reviewStats.average_rating)
-                                ? "fill-amber-400"
-                                : "text-muted-foreground/30"
-                            }`}
-                          />
-                        ))}
-                      </div>
-                      <span className="text-xs text-muted-foreground">
-                        از {toPersianDigits(reviewStats.total_reviews)} نظر ثبت‌شده
-                      </span>
-                    </div>
-
-                    {/* Rating Distribution Bars — real counts only. */}
-                    <div className="flex-1 w-full max-w-md space-y-1.5">
-                      {[5, 4, 3, 2, 1].map((star) => {
-                        const count =
-                          reviewStats.distribution?.[
-                            `star_${star}` as keyof typeof reviewStats.distribution
-                          ] || 0;
-                        const pct = Math.round(
-                          (count / reviewStats.total_reviews) * 100,
-                        );
-                        return (
-                          <div key={star} className="flex items-center gap-3 text-xs">
-                            <span className="w-4 text-muted-foreground">
-                              {toPersianDigits(star)}
-                            </span>
-                            <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
-                            <div className="h-2 flex-1 rounded-full bg-muted overflow-hidden">
-                              <div
-                                className="h-full rounded-full bg-amber-400 transition-all"
-                                style={{ width: `${pct}%` }}
-                              />
-                            </div>
-                            <span className="w-8 text-muted-foreground text-left font-mono">
-                              {toPersianDigits(pct)}٪
-                            </span>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
+                {/* Honesty rule: stats render only with approved reviews; a
+                    shopper's OWN pending review (in `reviews`, invisible to
+                    stats) gets the acknowledgment note — never a fabricated
+                    ۰.۰ «از ۰ نظر» block. */}
+                {reviewStats.total_reviews > 0 && reviewStats.distribution ? (
+                  <ReviewHistogram
+                    distribution={reviewStats.distribution}
+                    averageRating={reviewStats.average_rating}
+                    totalReviews={reviewStats.total_reviews}
+                    verifiedCount={reviewStats.verified_count}
+                    className="border-0 p-0 shadow-none bg-transparent"
+                  />
+                ) : reviews.length > 0 ? (
+                  /* Own pending review exists (stats count approved only) —
+                     acknowledge it instead of the "no reviews" notice. */
+                  <p className="text-center text-sm text-muted-foreground">
+                    دیدگاه شما ثبت شد و پس از تایید، در همین بخش نمایش داده می‌شود.
+                  </p>
                 ) : (
                   <p className="text-center text-sm text-muted-foreground">
                     هنوز نظری برای این کالا ثبت نشده است. اولین نفری باشید که تجربه‌اش را می‌نویسد.
@@ -1262,7 +1479,10 @@ export default function ProductDetailPage() {
                 )}
               </Card>
 
-              {/* Review Submission Form */}
+              {/* Review Submission Form — authenticated shoppers only. The
+                  backend rejects guest submissions with 401, and showing the
+                  full form to a signed-out visitor meant they filled it in,
+                  hit «ثبت» and nothing visibly happened (live-reported). */}
               <Card className="rounded-3xl border border-border p-6 space-y-4">
                 <div className="flex items-center gap-2">
                   <MessageSquare className="h-5 w-5 text-primary" />
@@ -1271,6 +1491,24 @@ export default function ProductDetailPage() {
                   </h3>
                 </div>
 
+                {isAuthLoading ? null : !isAuthenticated ? (
+                  <div className="flex flex-col items-center gap-3 py-6 text-center">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
+                      <MessageSquare className="h-5 w-5" />
+                    </div>
+                    <p className="text-sm text-muted-foreground max-w-sm">
+                      برای ثبت دیدگاه درباره این کالا، ابتدا وارد حساب کاربری خود شوید.
+                    </p>
+                    <Link
+                      href={`/login?redirect=/products/${slug}`}
+                      className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-xs font-bold text-primary-foreground hover:bg-primary/90 transition-colors"
+                    >
+                      ورود به حساب کاربری
+                      <ChevronLeft className="h-3.5 w-3.5" />
+                    </Link>
+                  </div>
+                ) : (
+                <>
                 {reviewSubmitSuccess && (
                   <div className="flex items-center gap-2 rounded-xl bg-success/10 text-success border border-success/20 p-3 text-xs">
                     <CheckCircle2 className="h-4 w-4" />
@@ -1291,24 +1529,11 @@ export default function ProductDetailPage() {
                     <span className="block text-xs font-semibold text-foreground mb-2">
                       امتیاز شما به کالا:
                     </span>
-                    <div className="flex items-center gap-2">
-                      {[1, 2, 3, 4, 5].map((star) => (
-                        <button
-                          key={star}
-                          type="button"
-                          onClick={() => setFormRating(star)}
-                          className="p-1 text-amber-400 hover:scale-110 transition-transform"
-                        >
-                          <Star
-                            className={`h-6 w-6 ${
-                              star <= formRating
-                                ? "fill-amber-400"
-                                : "text-muted-foreground/30"
-                            }`}
-                          />
-                        </button>
-                      ))}
-                    </div>
+                    <StarRating
+                      value={formRating}
+                      onChange={setFormRating}
+                      size="lg"
+                    />
                   </div>
 
                   {/* Title */}
@@ -1381,6 +1606,8 @@ export default function ProductDetailPage() {
                     <span>ثبت و ارسال نظر</span>
                   </Button>
                 </form>
+                </>
+                )}
               </Card>
 
               {/* Reviews List */}
@@ -1412,6 +1639,20 @@ export default function ProductDetailPage() {
                             )}
                           </div>
                         </div>
+
+                        {/* Own-review moderation state: the backend returns a
+                            shopper's own pending review to them only — badge
+                            it so "no visible change after submit" never reads
+                            as a lost review. */}
+                        {rev.status === "pending" && (
+                          <Badge
+                            variant="secondary"
+                            className="text-[10px] font-bold gap-1 bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30"
+                          >
+                            <Clock className="h-3 w-3" />
+                            در انتظار تایید
+                          </Badge>
+                        )}
 
                         {/* Star rating */}
                         <div className="flex items-center gap-1 text-amber-400">
@@ -1482,6 +1723,11 @@ export default function ProductDetailPage() {
           </TabsContent>
         </Tabs>
       </section>
+
+      {/* Recently Viewed Products */}
+      {product && (
+        <RecentlyViewed excludeId={product.id} className="mb-16" />
+      )}
 
       {/* Trust & Authenticity Strip */}
       <section aria-label="تضمین‌های خرید" className="mb-16">

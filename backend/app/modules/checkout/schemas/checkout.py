@@ -12,11 +12,17 @@ from pydantic import BaseModel, Field
 
 
 class CheckoutQuoteRequest(BaseModel):
-    """Input for calculating an order quote before committing."""
+    """Input for calculating an order quote before committing.
+
+    ``address_id`` / ``shipping_method_id`` are optional: an all-digital cart
+    (WooCommerce virtual/downloadable parity) ships nothing, so the client
+    omits both and the service skips the shipping step entirely. A cart with
+    any physical line still requires them — the service enforces that.
+    """
 
     cart_id: uuid.UUID
-    address_id: uuid.UUID
-    shipping_method_id: uuid.UUID
+    address_id: uuid.UUID | None = None
+    shipping_method_id: uuid.UUID | None = None
     coupon_code: str | None = Field(None, max_length=50, description="Optional coupon code")
 
 
@@ -75,8 +81,10 @@ class CreateOrderRequest(BaseModel):
     request is not processed twice (e.g. double-click protection)."""
 
     cart_id: uuid.UUID
-    address_id: uuid.UUID
-    shipping_method_id: uuid.UUID
+    # Optional for all-digital carts (see CheckoutQuoteRequest); required as
+    # soon as the cart contains any physical product.
+    address_id: uuid.UUID | None = None
+    shipping_method_id: uuid.UUID | None = None
     coupon_code: str | None = Field(None, max_length=50)
     payment_method: str = Field(
         ..., description="Payment method slug (e.g. 'zarinpal', 'wallet')"

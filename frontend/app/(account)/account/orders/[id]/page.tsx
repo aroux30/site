@@ -26,7 +26,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { apiErrorMessage } from "@/lib/api/error-message";
 import { formatJalaliDateTime } from "@/lib/date";
-import { formatPrice, toPersianDigits } from "@/lib/utils";
+import { formatOrderCode, formatPrice, toPersianDigits } from "@/lib/utils";
 import {
   cancelOrder,
   fetchOrderDetail,
@@ -179,7 +179,7 @@ export default function AccountOrderDetailPage() {
           </Button>
           <div>
             <h1 className="font-mono text-lg font-bold text-foreground" dir="ltr">
-              {order.orderNumber || order.id.slice(0, 8)}
+              {formatOrderCode(order.orderNumber || order.id.slice(0, 8))}
             </h1>
             <p className="text-xs text-muted-foreground">
               ثبت‌شده در {formatJalaliDateTime(order.createdAt)}

@@ -8,7 +8,7 @@ const TOAST_LIMIT = 5;
 // to the user as "the close button does nothing".
 const TOAST_REMOVE_DELAY = 400;
 
-type ToastVariant = "default" | "destructive" | "success";
+type ToastVariant = "default" | "destructive" | "success" | "info" | "warning";
 
 type Toast = {
   id: string;

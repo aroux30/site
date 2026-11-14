@@ -1,11 +1,14 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { cookies } from "next/headers";
+import { decodeJwt } from "jose";
 import { RemoteImage } from "@/components/shared/remote-image";
 
 import cleanHtml from "@/lib/sanitize-html";
 import { apiInternalUrl } from "@/lib/api/server-base";
 import { oembedDiscoveryUrl, siteOrigin } from "@/lib/site-url";
 import { DEFAULT_OG_IMAGE } from "@/lib/seo-meta";
+import { VisualPageEditor } from "@/components/admin/visual-page-editor";
 
 // CMS pages are the editable storefront copy (about, terms, returns, …). The
 // backend is the source of truth; this route renders whatever slug an editor
@@ -23,6 +26,7 @@ const API_BASE = apiInternalUrl();
  * so it is here rather than in a second, drifted copy.
  */
 interface CmsPage {
+  id?: string;
   title: string;
   slug: string;
   body_html: string;
@@ -50,7 +54,10 @@ async function fetchPage(slug: string): Promise<CmsPage | null> {
 // raw object is a deprecation that logs an error per request and will stop
 // working. The other dynamic routes (blog/[slug], tickets/[id], …) already
 // await it — this one page was still on the old shape.
-type Props = { params: Promise<{ slug: string }> };
+type Props = {
+  params: Promise<{ slug: string }>;
+  searchParams?: Promise<{ [key: string]: string | string[] | undefined }>;
+};
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
@@ -106,10 +113,42 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export default async function CmsPageRoute({ params }: Props) {
+export default async function CmsPageRoute({ params, searchParams }: Props) {
   const { slug } = await params;
+  const search = searchParams ? await searchParams : undefined;
   const page = await fetchPage(slug);
   if (!page) notFound();
+
+  const isEditRequested =
+    search?.visual_editor === "true" || search?.edit === "true";
+
+  if (isEditRequested) {
+    let isAdmin = false;
+    try {
+      const cookieStore = await cookies();
+      const token =
+        cookieStore.get("access_token")?.value ||
+        cookieStore.get("refresh_token")?.value;
+      if (token) {
+        const payload = decodeJwt(token);
+        const roles: string[] = Array.isArray(payload.roles)
+          ? (payload.roles as string[])
+          : typeof payload.role === "string"
+            ? [payload.role]
+            : [];
+        isAdmin =
+          roles.includes("admin") ||
+          roles.includes("super_admin") ||
+          Boolean(payload.is_superuser);
+      }
+    } catch {
+      isAdmin = false;
+    }
+
+    if (isAdmin) {
+      return <VisualPageEditor page={page} />;
+    }
+  }
 
   return (
     <article className="mx-auto max-w-3xl px-4 py-10">
@@ -134,7 +173,7 @@ export default async function CmsPageRoute({ params }: Props) {
         ) : null}
       </header>
       <div
-        className="cms-content max-w-none leading-8 text-foreground [&_h2]:mt-8 [&_h2]:text-xl [&_h2]:font-bold [&_h3]:mt-6 [&_h3]:text-lg [&_h3]:font-semibold [&_p]:my-4 [&_ul]:my-4 [&_ul]:list-disc [&_ul]:ps-6 [&_ol]:my-4 [&_ol]:list-decimal [&_ol]:ps-6 [&_a]:text-primary [&_a]:underline [&_img]:my-4 [&_img]:rounded-lg [&_blockquote]:border-s-4 [&_blockquote]:border-primary/30 [&_blockquote]:ps-4 [&_blockquote]:text-muted-foreground"
+        className="cms-content max-w-none leading-8 text-foreground [&_h2]:mt-8 [&_h2]:text-xl [&_h2]:font-bold [&_h3]:mt-6 [&_h3]:text-lg [&_h3]:font-semibold [&_p]:my-4 [&_ul]:my-4 [&_ul]:list-disc [&_ul]:ps-6 [&_ol]:my-4 [&_ol]:list-decimal [&_ol]:ps-6 [&_a:not([class*='bg-']):not([class*='border'])]:text-primary [&_a:not([class*='bg-']):not([class*='border'])]:underline [&_img]:my-4 [&_img]:rounded-lg [&_blockquote]:border-s-4 [&_blockquote]:border-primary/30 [&_blockquote]:ps-4 [&_blockquote]:text-muted-foreground"
         // body_html is editor-authored, but an admin account is not an XSS
         // license — sanitize before dangerouslySetInnerHTML.
         dangerouslySetInnerHTML={{ __html: cleanHtml(page.body_html) }}

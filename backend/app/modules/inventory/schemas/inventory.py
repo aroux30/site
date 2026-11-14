@@ -110,6 +110,12 @@ class LowStockAlert(BaseModel):
     low_stock_threshold: int
     reserved: int
     committed: int
+    # The admin alert must say WHICH product is low — name + SKU + product id
+    # enriched by the route from the variant/product tables (product_id lets
+    # the admin panel filter its table to just these products).
+    product_id: uuid.UUID | None = None
+    product_name: str | None = None
+    sku: str | None = None
 
 
 # ── List / pagination helpers ──────────────────────────────────────────────

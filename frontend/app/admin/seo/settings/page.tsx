@@ -17,9 +17,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
 import { apiClient } from "@/lib/api/client";
+import { RobotsSettingsCard } from "@/components/admin/robots-settings-card";
 
 interface RoutingConfig {
   site_url?: string;
@@ -29,28 +29,21 @@ interface RoutingConfig {
 export default function SeoSettingsPage() {
   const { toast } = useToast();
   const [siteUrl, setSiteUrl] = useState("");
-  const [robotsExtra, setRobotsExtra] = useState("");
   const [savedSiteUrl, setSavedSiteUrl] = useState("");
   const [loading, setLoading] = useState(true);
   const [savingUrl, setSavingUrl] = useState(false);
-  const [savingRobots, setSavingRobots] = useState(false);
   const [sitemapStatus, setSitemapStatus] = useState<"checking" | "ok" | "fail">("checking");
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
       try {
-        const [routing, robots] = await Promise.all([
-          apiClient.get<RoutingConfig>("/settings/public/routing").then((r) => r.data),
-          apiClient
-            .get<{ extra?: string }>("/settings/public/robots-extra")
-            .then((r) => r.data)
-            .catch(() => ({ extra: "" })),
-        ]);
+        const routing = await apiClient
+          .get<RoutingConfig>("/settings/public/routing")
+          .then((r) => r.data);
         if (cancelled) return;
         setSiteUrl(routing.site_url || "");
         setSavedSiteUrl(routing.site_url || "");
-        setRobotsExtra(robots.extra || "");
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -86,20 +79,6 @@ export default function SeoSettingsPage() {
       toast({ title: "ذخیره ناموفق بود", variant: "destructive" });
     } finally {
       setSavingUrl(false);
-    }
-  };
-
-  const saveRobots = async () => {
-    setSavingRobots(true);
-    try {
-      await apiClient.put(`/settings/admin/site-options/robots_extra_rules`, {
-        value: robotsExtra,
-      });
-      toast({ title: "خطوط robots.txt ذخیره شد" });
-    } catch {
-      toast({ title: "ذخیره ناموفق بود", variant: "destructive" });
-    } finally {
-      setSavingRobots(false);
     }
   };
 
@@ -196,36 +175,10 @@ export default function SeoSettingsPage() {
         </CardContent>
       </Card>
 
-      <Card className="rounded-2xl">
-        <CardHeader>
-          <CardTitle className="text-base">خطوط اضافی robots.txt</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <div className="grid gap-2">
-            <Label htmlFor="seo-robots-extra">دستورهای اضافی</Label>
-            <Textarea
-              id="seo-robots-extra"
-              value={robotsExtra}
-              onChange={(e) => setRobotsExtra(e.target.value)}
-              dir="ltr"
-              rows={5}
-              placeholder={"Disallow: /private/\nAllow: /private/public/"}
-              className="text-left font-mono text-xs"
-            />
-            <p className="text-[11px] text-muted-foreground">
-              این خطوط بعد از قوانین خودکار به robots.txt اضافه می‌شوند.
-            </p>
-          </div>
-          <Button
-            onClick={() => void saveRobots()}
-            disabled={savingRobots}
-            className="bg-emerald-600 hover:bg-emerald-700"
-          >
-            {savingRobots ? <Loader2 className="h-4 w-4 animate-spin ms-1" /> : <Save className="h-4 w-4 ms-1" />}
-            ذخیره خطوط robots
-          </Button>
-        </CardContent>
-      </Card>
+      {/* robots.txt — the shared card owns `robots_extra_rules`. It moved here
+          from Settings → Content & Media so there is exactly one editor for
+          this option (the page used to carry a second, near-identical form). */}
+      <RobotsSettingsCard />
     </div>
   );
 }

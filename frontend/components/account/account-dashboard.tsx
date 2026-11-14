@@ -57,11 +57,13 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { useToast } from "@/components/ui/use-toast";
-import { formatPrice, toPersianDigits, toEnglishDigits } from "@/lib/utils";
+import { AnimatedNumber } from "@/components/ui/animated-number";
+import { formatOrderCode, formatPrice, toPersianDigits, toEnglishDigits } from "@/lib/utils";
 import { walletApi, type WalletWithdrawal } from "@/lib/api/wallet";
 import { useShopFeatures } from "@/hooks/use-shop-features";
 
 import { SavedCardsPanel } from "@/components/account/saved-cards-panel";
+import { NotificationInbox } from "@/components/account/notification-inbox";
 import { maskNationalId, maskPhoneNumber } from "@/lib/pii-mask";
 import { ShipmentStepper } from "@/components/orders/shipment-stepper";
 import { ReferralPanel } from "@/components/account/referral-panel";
@@ -69,7 +71,6 @@ import { OrderHistorySkeleton } from "@/components/shared/skeleton-loaders";
 import { apiErrorMessage } from "@/lib/api/error-message";
 import { useAuthStore } from "@/stores/auth-store";
 import { MfaSettingsCard } from "@/components/account/mfa-settings-card";
-import { PasskeyCard } from "@/components/account/passkey-card";
 import { ApplicationPasswordsCard } from "@/components/account/application-passwords-card";
 import { SessionsCard } from "@/components/account/sessions-card";
 import { useCartStore } from "@/stores/cart-store";
@@ -88,6 +89,7 @@ type OrderStatusType =
   | "waiting_payment_gateway"
   | "waiting_payment_card"
   | "pending"
+  | "doing_verified"
   | "processing"
   | "completed"
   | "canceled"
@@ -170,6 +172,7 @@ const ORDER_STATUS_CONFIG: Record<
   waiting_payment_gateway: { label: "در انتظار تایید پرداخت", badgeVariant: "warning" },
   waiting_payment_card: { label: "در انتظار تایید کارت به کارت", badgeVariant: "warning" },
   pending: { label: "در حال انجام", badgeVariant: "info" },
+  doing_verified: { label: "در حال انجام (احراز شده)", badgeVariant: "success" },
   processing: { label: "در حال پردازش", badgeVariant: "default" },
   completed: { label: "تکمیل شده", badgeVariant: "success" },
   canceled: { label: "لغو شده", badgeVariant: "destructive" },
@@ -260,6 +263,7 @@ type AccountDashboardTab =
   | "cards"
   | "wishlist"
   | "referrals"
+  | "notifications"
   | "support";
 
 /**
@@ -383,6 +387,9 @@ function AccountDashboardInner({
   const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
   const [transferForm, setTransferForm] = useState({ recipient_phone: "", amount: "", note: "" });
   const [isTransferring, setIsTransferring] = useState(false);
+  const [transferFeeRial, setTransferFeeRial] = useState(0);
+  const [transferFeeType, setTransferFeeType] = useState<"fixed" | "percent">("fixed");
+  const [transferFeePercent, setTransferFeePercent] = useState(0);
   // Withdrawal request state
   const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
   const [withdrawForm, setWithdrawForm] = useState({
@@ -501,6 +508,9 @@ function AccountDashboardInner({
         withdraw: f?.withdraw ?? true,
         transfer: f?.transfer ?? true,
       });
+      setTransferFeeRial(typeof f?.transfer_fee_rial === "number" ? f.transfer_fee_rial : 0);
+      setTransferFeeType(f?.transfer_fee_type === "percent" ? "percent" : "fixed");
+      setTransferFeePercent(typeof f?.transfer_fee_percent === "number" ? f.transfer_fee_percent : 0);
       const items = (txRes.data?.items ?? []) as Array<Record<string, unknown>>;
       const mappedTx: WalletTransaction[] = items.map((t) => ({
         id: String(t.id),
@@ -1185,6 +1195,10 @@ function AccountDashboardInner({
       : []),
     { key: "cards", label: "کارت‌ها و اقساط", icon: CreditCard },
     { key: "referrals", label: "دعوت دوستان", icon: Users },
+    // The inbox: every in-app notification (order updates, wallet events,
+    // referral/bonus rewards). Before this tab nothing rendered
+    // notificationsApi.list, so notifications were written and never read.
+    { key: "notifications", label: "اعلان‌ها", icon: Bell },
     ...(shopFeatures.wishlist
       ? [{ key: "wishlist" as const, label: "علاقه‌مندی‌ها", icon: Heart, badge: wishlist.length }]
       : []),
@@ -1605,12 +1619,6 @@ function AccountDashboardInner({
                 />
               </div>
 
-              {/* Passkeys: passwordless sign-in with a device credential. The
-                  hook and endpoints were both stubs before this. */}
-              <div className="mt-6">
-                <PasskeyCard />
-              </div>
-
               {/* Application passwords: API credentials for a phone app or
                   script, revocable one at a time instead of the account
                   password itself. */}
@@ -1697,7 +1705,7 @@ function AccountDashboardInner({
                             <div>
                               <div className="flex items-center gap-2">
                                 <span className="font-bold text-foreground font-mono">
-                                  {order.orderNumber}
+                                  {formatOrderCode(order.orderNumber)}
                                 </span>
                                 <Badge variant={statusConfig.badgeVariant}>
                                   {statusConfig.label}
@@ -1901,7 +1909,7 @@ function AccountDashboardInner({
                       <span>موجودی قابل استفاده کیف پول</span>
                     </div>
                     <div className="text-3xl font-extrabold tracking-tight sm:text-4xl">
-                      {formatPrice(walletBalance)}
+                      <AnimatedNumber value={walletBalance} suffix=" تومان" />
                     </div>
                     <p className="text-xs text-primary-foreground/75 font-mono">
                       معادل {toPersianDigits(walletBalance * 10)} ریال
@@ -2099,6 +2107,11 @@ function AccountDashboardInner({
           {activeTab === "cards" && <SavedCardsPanel />}
 
           {activeTab === "referrals" && <ReferralPanel />}
+
+          {/* ------------------------------------------------------------ */}
+          {/* TAB: Notifications inbox                                      */}
+          {/* ------------------------------------------------------------ */}
+          {activeTab === "notifications" && <NotificationInbox />}
 
           {/* ------------------------------------------------------------ */}
           {/* TAB 6: Wishlist                                              */}
@@ -2315,10 +2328,10 @@ function AccountDashboardInner({
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-lg">
               <Truck className="h-5 w-5 text-primary" />
-              رهگیری و وضعیت سفارش {selectedOrderForTracking?.orderNumber}
+              وضعیت سفارش {formatOrderCode(selectedOrderForTracking?.orderNumber)}
             </DialogTitle>
             <DialogDescription>
-              مراحل پردازش، آماده‌سازی و ارسال بسته پستی
+              مراحل ثبت، پرداخت، پردازش و تکمیل سفارش
             </DialogDescription>
           </DialogHeader>
 
@@ -2327,9 +2340,9 @@ function AccountDashboardInner({
               {/* Top metadata info */}
               <div className="grid grid-cols-2 gap-3 rounded-lg bg-muted/50 p-3 text-xs sm:grid-cols-3">
                 <div>
-                  <span className="text-muted-foreground block">کد رهگیری پستی:</span>
+                  <span className="text-muted-foreground block">شماره سفارش:</span>
                   <span className="font-mono font-bold text-foreground">
-                    {selectedOrderForTracking.trackingCode || "در انتظار صدور"}
+                    {formatOrderCode(selectedOrderForTracking.orderNumber)}
                   </span>
                 </div>
                 <div>
@@ -2346,7 +2359,7 @@ function AccountDashboardInner({
                 </div>
               </div>
 
-              {/* 4-Step Shipment Tracking Stepper (Sprint 3 Phase 2) */}
+              {/* Order Progress Stepper — synced with backend order statuses */}
               {selectedOrderForTracking.status === "canceled" ? (
                 <div className="flex items-center gap-3 rounded-lg bg-destructive/10 p-4 text-destructive text-sm">
                   <AlertCircle className="h-5 w-5 shrink-0" />
@@ -2357,9 +2370,18 @@ function AccountDashboardInner({
                     </p>
                   </div>
                 </div>
+              ) : selectedOrderForTracking.status === "refunded" ? (
+                <div className="flex items-center gap-3 rounded-lg bg-slate-500/10 p-4 text-slate-600 dark:text-slate-400 text-sm">
+                  <AlertCircle className="h-5 w-5 shrink-0" />
+                  <div>
+                    <p className="font-bold">وجه این سفارش بازگشت داده شده است</p>
+                    <p className="text-xs opacity-80 mt-0.5">
+                      مبلغ سفارش به کیف پول شما واریز شده است.
+                    </p>
+                  </div>
+                </div>
               ) : (
                 <ShipmentStepper
-                  trackingCode={selectedOrderForTracking.trackingCode}
                   status={selectedOrderForTracking.status}
                 />
               )}
@@ -2367,7 +2389,7 @@ function AccountDashboardInner({
               {/* Shipping Address Footer */}
               {selectedOrderForTracking.shippingAddress && (
                 <div className="rounded-lg border border-border p-3 text-xs">
-                  <span className="text-muted-foreground block mb-1">نشانی تحویل گیرنده:</span>
+                  <span className="text-muted-foreground block mb-1">آدرس:</span>
                   <p className="font-medium text-foreground">
                     {selectedOrderForTracking.shippingAddress}
                   </p>
@@ -2669,6 +2691,39 @@ function AccountDashboardInner({
                 rows={2}
               />
             </div>
+
+            {/* ── Transfer fee info ── */}
+            {(() => {
+              const amountToman = parseInt(toEnglishDigits(transferForm.amount).replace(/\D/g, ""), 10) || 0;
+              let feeToman = 0;
+              let feeLabel = "";
+              if (transferFeeType === "percent" && transferFeePercent > 0) {
+                feeToman = Math.ceil(amountToman * transferFeePercent / 100);
+                feeLabel = `${transferFeePercent}٪ از مبلغ انتقال`;
+              } else if (transferFeeType === "fixed") {
+                feeToman = Math.trunc(transferFeeRial / 10);
+                feeLabel = "کارمزد ثابت";
+              }
+              if (feeToman <= 0) return null;
+              return (
+                <div className="rounded-lg border border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/30 p-3 space-y-1 text-sm">
+                  <div className="flex justify-between text-amber-700 dark:text-amber-400">
+                    <span>کارمزد انتقال ({feeLabel}):</span>
+                    <span className="font-semibold font-mono" dir="ltr">
+                      {feeToman.toLocaleString("fa-IR")} تومان
+                    </span>
+                  </div>
+                  {amountToman > 0 && (
+                    <div className="flex justify-between font-bold text-foreground border-t border-amber-200 dark:border-amber-800 pt-1">
+                      <span>مجموع کسر از کیف پول:</span>
+                      <span className="font-mono" dir="ltr">
+                        {(amountToman + feeToman).toLocaleString("fa-IR")} تومان
+                      </span>
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
             <DialogFooter className="pt-4">
               <Button type="button" variant="outline" onClick={() => setIsTransferModalOpen(false)}>
                 انصراف

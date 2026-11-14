@@ -28,10 +28,13 @@ const PAGE_BUDGET = 30_000;
 test.describe("link genius — visual E2E", () => {
   test("admin manages keyword maps and reads suggestions", async ({ page }) => {
     // ── 1. Login ─────────────────────────────────────────────────────────
+    await page.setExtraHTTPHeaders({
+      "X-Forwarded-For": `10.97.${Math.floor(Math.random() * 200) + 1}.${Math.floor(Math.random() * 200) + 1}, 10.0.0.1`,
+    });
     await page.goto("/login");
-    await page.getByPlaceholder("۰۹۱۲۳۴۵۶۷۸۹").fill(ADMIN_PHONE);
-    await page.getByPlaceholder("••••••••").fill(ADMIN_PASSWORD);
-    await page.getByRole("button", { name: /ورود به حساب کاربری/ }).click();
+    await page.fill('input[name="phone"], input[type="tel"]', ADMIN_PHONE);
+    await page.fill('input[name="password"], input[type="password"]', ADMIN_PASSWORD);
+    await page.click('button[type="submit"]');
     await page.waitForURL((url) => !url.pathname.includes("/login"), {
       timeout: PAGE_BUDGET,
     });

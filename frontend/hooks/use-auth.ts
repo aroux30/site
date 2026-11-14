@@ -4,6 +4,7 @@ import { useCallback, useEffect } from "react";
 import { useAuthStore } from "@/stores/auth-store";
 import { useCartStore } from "@/stores/cart-store";
 import { useCompareStore } from "@/stores/compare-store";
+import { clearRecentlyViewed } from "@/components/store/recently-viewed";
 import apiClient, { sessionStore, mayHaveSession } from "@/lib/api/client";
 import type {
   User,
@@ -198,6 +199,11 @@ export function useAuth() {
           useCompareStore.getState().clearCompare();
         } catch {
           /* compare store unavailable */
+        }
+        try {
+          clearRecentlyViewed();
+        } catch {
+          /* recently-viewed clear unavailable */
         }
         isLoggingOut = false;
         // Redirect away so the user never stays on an authenticated page as a

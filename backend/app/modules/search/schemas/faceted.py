@@ -29,6 +29,10 @@ class Facet(BaseModel):
     field: str
     display_name: str
     buckets: list[FacetBucket] = Field(default_factory=list)
+    # Continuous facets (price) also carry the population's true bounds so the
+    # client can size its slider to the catalogue instead of a hard-coded cap.
+    min: float | None = Field(None, description="Population minimum (numeric facets, Toman)")
+    max: float | None = Field(None, description="Population maximum (numeric facets, Toman)")
 
 
 class PriceRangeFilter(BaseModel):

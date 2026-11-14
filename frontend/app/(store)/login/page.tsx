@@ -18,10 +18,8 @@ import {
   Loader2,
   AlertCircle,
   CheckCircle2,
-  Fingerprint,
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
-import { usePasskey } from "@/hooks/use-passkey";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -80,10 +78,6 @@ function LoginForm() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
-  // Passkey sign-in. The ceremony needs the account's phone to know which
-  // credentials to offer, so it reuses the phone field in this tab.
-  const { authenticateWithPasskey, isSupported: passkeySupported } = usePasskey();
-  const [isPasskeySubmitting, setIsPasskeySubmitting] = useState(false);
   const [passwordError, setPasswordError] = useState<string | null>(null);
   const [mfaRequired, setMfaRequired] = useState(false);
   const [totpCode, setTotpCode] = useState("");
@@ -122,35 +116,6 @@ function LoginForm() {
     const secs = seconds % 60;
     const formatted = `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
     return toPersianDigits(formatted);
-  };
-
-  // ── Passkey Login Handler ───────────────────────────────────────────────────
-  const handlePasskeyLogin = async () => {
-    setPasswordError(null);
-    const cleanPhone = normalizeIranPhone(phone);
-    if (!isValidIranPhone(cleanPhone)) {
-      setPasswordError("برای ورود با کلید عبور، ابتدا شماره موبایل خود را وارد کنید.");
-      return;
-    }
-    setIsPasskeySubmitting(true);
-    try {
-      const ok = await authenticateWithPasskey(cleanPhone);
-      if (ok) {
-        toast({
-          title: "ورود موفق",
-          description: "با کلید عبور وارد شدید.",
-          variant: "success",
-        });
-        // Same single-path redirect as the password flow: the effect below
-        // owns navigation, so pushing here would race it.
-      } else {
-        setPasswordError(
-          "ورود با کلید عبور انجام نشد. می‌توانید با رمز عبور وارد شوید.",
-        );
-      }
-    } finally {
-      setIsPasskeySubmitting(false);
-    }
   };
 
   // ── Password Login Handler ──────────────────────────────────────────────────
@@ -523,32 +488,6 @@ function LoginForm() {
                       </>
                     )}
                   </Button>
-
-                  {/* Passwordless sign-in. Uses the phone already typed in
-                      this form — a passkey is bound to the account, and the
-                      server needs the account to know which credentials to
-                      offer. Hidden on devices with no WebAuthn support. */}
-                  {passkeySupported && (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="w-full font-medium"
-                      disabled={isPasswordSubmitting || isPasskeySubmitting}
-                      onClick={() => void handlePasskeyLogin()}
-                    >
-                      {isPasskeySubmitting ? (
-                        <>
-                          <Loader2 className="me-2 h-4 w-4 animate-spin" />
-                          <span>در حال ورود با کلید عبور...</span>
-                        </>
-                      ) : (
-                        <>
-                          <Fingerprint className="me-2 h-4 w-4" />
-                          <span>ورود با کلید عبور</span>
-                        </>
-                      )}
-                    </Button>
-                  )}
                 </form>
               </TabsContent>
 

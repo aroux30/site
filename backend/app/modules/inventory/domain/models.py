@@ -70,7 +70,9 @@ class InventoryItem(BaseModel):
     committed: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     damaged: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     incoming: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
-    low_stock_threshold: Mapped[int] = mapped_column(Integer, default=5, nullable=False)
+    # Nullable (owner directive): NULL = this variant NEVER triggers a
+    # low-stock alert. A set value = alert when available reaches it.
+    low_stock_threshold: Mapped[int | None] = mapped_column(Integer, nullable=True)
     backorder_allowed: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     track_inventory: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
 

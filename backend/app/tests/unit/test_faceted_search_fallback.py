@@ -83,6 +83,16 @@ class _DbStub:
             return _ExecResult([], scalar=self.total)
         if "product_images" in sql:
             return _ExecResult([])
+        # Facet aggregation statements (per-product price min, per-product
+        # rating aggregates): empty result, like an empty aggregation. The
+        # paged hit query (ORDER BY … LIMIT) is NOT one of those — it returns
+        # the product rows.
+        if "min(product_variants.price)" in sql:
+            return _ExecResult([])
+        if "ORDER BY" in sql and "LIMIT" in sql:
+            return _ExecResult(self.rows)
+        if "avg_rating" in sql:
+            return _ExecResult([])
         return _ExecResult(self.rows)
 
 
@@ -111,13 +121,26 @@ async def test_es_failure_without_db_keeps_old_degraded_empty():
 
 
 @pytest.mark.asyncio
-async def test_fallback_facets_empty_not_fabricated():
+async def test_fallback_facets_computed_not_fabricated():
+    """Facet buckets must come from real aggregation rows, never defaults.
+
+    The stub answers every aggregation with empty rows, so category/brand/
+    price/rating facets must emit no buckets at all (availability is a count
+    the stub answers, so it may appear). The aggregation queries themselves
+    must have run — an empty facet list by *omission* (query never issued)
+    is the old bug this pins against."""
     svc = fss.FacetedSearchService(es=_BoomES())  # type: ignore[arg-type]
+    db = _DbStub()
     result = await svc.faceted_product_search(
-        FacetedSearchRequest(page=1, size=3), db=_DbStub()
+        FacetedSearchRequest(page=1, size=3), db=db
     )
-    assert result.facets == [], (
-        "facet counts the SQL path cannot compute must be empty, never fabricated"
+    fields = {f.field for f in result.facets}
+    assert fields <= {"availability"}, (
+        "facet buckets only appear when aggregation rows exist — never as "
+        "fabricated defaults"
+    )
+    assert any("group by" in q.lower() for q in db.queries), (
+        "the fallback must aggregate facets from SQL, not skip them"
     )
 
 
@@ -133,7 +156,9 @@ def test_fallback_covers_category_brand_query():
     source = inspect.getsource(fss.FacetedSearchService._postgres_fallback)
     assert "category_id" in source
     assert "brand" in source
-    assert "ilike" in source
+    # icontains compiles to a parameter-bound ILIKE (autoescape neutralizes
+    # user wildcards) — the text filter must stay in the fallback.
+    assert "icontains" in source
 
 
 def test_route_passes_db_to_service():

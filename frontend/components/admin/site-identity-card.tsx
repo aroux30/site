@@ -15,7 +15,8 @@
  */
 
 import { useCallback, useEffect, useState } from "react";
-import { Globe, Save, Eye, EyeOff } from "lucide-react";
+import Link from "next/link";
+import { Globe, Save, ArrowLeft } from "lucide-react";
 
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -29,7 +30,6 @@ import { useAdminMutation } from "@/lib/api/admin-query";
 const KEYS = {
   blogname: "blogname",
   blogdescription: "blogdescription",
-  blogPublic: "blog_public",
   showOnFront: "show_on_front",
   pageOnFront: "page_on_front",
 } as const;
@@ -38,7 +38,6 @@ export function SiteIdentityCard() {
   const { toast } = useToast();
   const runMutation = useAdminMutation();
   const [saving, setSaving] = useState(false);
-  const [searchVisible, setSearchVisible] = useState(true);
 
   const [siteName, setSiteName] = useState("");
   const [tagline, setTagline] = useState("");
@@ -54,9 +53,6 @@ export function SiteIdentityCard() {
       const opts = await siteOptionsApi.list();
       setSiteName(opts[KEYS.blogname] ?? "");
       setTagline(opts[KEYS.blogdescription] ?? "");
-      // Stored as "1"/"0", the WordPress convention. Anything else is treated
-      // as visible rather than silently hiding the store from search engines.
-      setSearchVisible((opts[KEYS.blogPublic] ?? "1") !== "0");
       setShowOnFront((opts[KEYS.showOnFront] ?? "posts") === "page" ? "page" : "posts");
       setPageOnFront(opts[KEYS.pageOnFront] ?? "");
     } catch {
@@ -99,7 +95,6 @@ export function SiteIdentityCard() {
     const writes: Array<[string, string]> = [
       [KEYS.blogname, siteName.trim()],
       [KEYS.blogdescription, tagline.trim()],
-      [KEYS.blogPublic, searchVisible ? "1" : "0"],
       [KEYS.showOnFront, showOnFront],
       // An empty string is the honest value for "no page chosen"; the resolver
       // reads it as "fall back to the default home".
@@ -142,7 +137,11 @@ export function SiteIdentityCard() {
             value={siteName}
             onChange={(e) => setSiteName(e.target.value)}
             placeholder="نام فروشگاه"
-            dir="auto"
+            // WordPress fa_IR parity: the admin is RTL, so its text fields
+            // are right-aligned whatever the value is. dir="auto" flipped an
+            // empty or Latin-valued field to LTR and the Persian text sat at
+            // the left edge — hence the explicit rtl here.
+            dir="rtl"
           />
         </div>
 
@@ -153,7 +152,7 @@ export function SiteIdentityCard() {
             value={tagline}
             onChange={(e) => setTagline(e.target.value)}
             placeholder="یک جمله درباره فروشگاه"
-            dir="auto"
+            dir="rtl"
           />
         </div>
 
@@ -198,25 +197,25 @@ export function SiteIdentityCard() {
           </div>
         )}
 
-        <div className="space-y-2">
+        <div className="space-y-2 sm:col-span-2">
           <Label>نمایش در موتورهای جست‌وجو</Label>
-          <button
-            type="button"
-            onClick={() => setSearchVisible((v) => !v)}
-            className="flex h-9 w-full items-center justify-between rounded-md border border-input bg-background px-3 text-sm"
-            aria-pressed={searchVisible}
+          {/* The switch itself moved to SEO → Search visibility (owner
+              request: one write path for blog_public). This screen links
+              there instead of carrying a second copy that could drift. */}
+          <Link
+            href="/admin/seo/visibility"
+            className="flex h-9 w-full items-center justify-between rounded-md border border-input bg-background px-3 text-sm transition-colors hover:bg-muted"
           >
-            <span className={searchVisible ? "" : "text-muted-foreground line-through"}>
-              {searchVisible ? "موتورهای جست‌وجو مجاز" : "پنهان از موتورهای جست‌وجو"}
+            <span className="text-muted-foreground">
+              این تنظیم به بخش سئو منتقل شد
             </span>
-            {searchVisible ? (
-              <Eye className="h-4 w-4 text-muted-foreground" />
-            ) : (
-              <EyeOff className="h-4 w-4 text-muted-foreground" />
-            )}
-          </button>
+            <span className="flex items-center gap-1 text-xs font-medium text-primary">
+              مدیریت در سئو
+              <ArrowLeft className="h-3.5 w-3.5" />
+            </span>
+          </Link>
           <p className="text-xs text-muted-foreground">
-            پنهان‌کردن، دستور <code dir="ltr">noindex</code> را در robots.txt می‌نویسد.
+            مجاز یا پنهان‌کردن کل سایت برای خزنده‌ها در منوی سئو مدیریت می‌شود.
           </p>
         </div>
       </div>

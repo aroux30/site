@@ -47,7 +47,8 @@
       "Bash(python -m alembic heads)",
       "Bash(\"C:\\\\Program Files\\\\Python314\\\\python.exe\" -m graphify query \"SEO admin UI surfaces and storefront SEO rendering\")",
       "Bash(\"C:\\\\Program Files\\\\Python314\\\\python.exe\" -m graphify query \"SEO module backend app modules seo structure api application domain schemas\")",
-      "Bash(\"C:\\\\Program Files\\\\Python314\\\\python.exe\" -m graphify query \"Where are the content models BlogPost, CmsPage, Product, Category, Tag and their SEO fields defined?\")"
+      "Bash(\"C:\\\\Program Files\\\\Python314\\\\python.exe\" -m graphify query \"Where are the content models BlogPost, CmsPage, Product, Category, Tag and their SEO fields defined?\")",
+      "Bash(graphify --help)"
     ]
   }
 }

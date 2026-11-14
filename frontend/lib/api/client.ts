@@ -85,6 +85,10 @@ const FINANCIAL_ENDPOINTS = [
   "/cart/checkout",
   "/cashback",
   "/discounts",
+  // Admin referral config/sweep move money indirectly (the sweep pays
+  // rewards); the Idempotency-Key header makes an accidental double-click
+  // visible server-side rather than silently re-running.
+  "/referrals",
 ];
 
 /**
@@ -107,7 +111,8 @@ function isGuestSessionProbe(
   if (method !== "GET" || status !== 401) return false;
   return (
     /\/(auth\/me|auth\/refresh)\b/.test(url) ||
-    /\/notifications\/notices\/active\b/.test(url) ||
+    /\/notifications\b/.test(url) ||
+    /\/(wishlist|cart|wallet)\b/.test(url) ||
     /\/(catalog|products|categories|search|content)\b/.test(url)
   );
 }
@@ -273,6 +278,22 @@ apiClient.interceptors.response.use(
           requestId: obs.requestId,
           traceId: obs.traceId,
         });
+      } else if (status >= 400 && status < 500) {
+        // A 4xx is the API giving a *final, expected* answer to this visitor:
+        // 404 unknown slug, 401 signed-out, 403 forbidden, 422 form fields.
+        // Logging it as `error` made Next's dev overlay paint every normal
+        // dead-link visit red. It stays observable here (warn + metrics +
+        // telemetry pipelines treat warn as signal), only server failures
+        // (5xx) and network drops remain `error`.
+        logger.warn(
+          `API request rejected (client error): [${method}] ${url} (${status}) [${durationMs}ms]`,
+          {
+            durationMs,
+            status,
+            requestId: obs.requestId,
+            traceId: obs.traceId,
+          },
+        );
       } else {
         logger.error(
           `API request failed: [${method}] ${url} (${status}) [${durationMs}ms]`,

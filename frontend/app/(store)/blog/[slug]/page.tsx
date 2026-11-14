@@ -3,6 +3,8 @@ import { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
+import { cookies } from "next/headers";
+import { decodeJwt } from "jose";
 import {
   Calendar,
   Clock,
@@ -39,11 +41,13 @@ import { BlogComments } from "@/components/blog/blog-comments";
 import PostFormatBody, { isSpecialFormat } from "@/components/blog/post-format-body";
 import { PasswordProtectedContent } from "@/components/blog/password-protected-content";
 import { siteOrigin } from "@/lib/site-url";
+import { VisualPageEditor } from "@/components/admin/visual-page-editor";
 
 interface BlogPostPageProps {
   params: Promise<{
     slug: string;
   }>;
+  searchParams?: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
 /**
@@ -311,12 +315,57 @@ async function buildPostMetadata({
 
 export default async function BlogPostDetailPage({
   params,
+  searchParams,
 }: BlogPostPageProps) {
   const { slug } = await params;
+  const search = searchParams ? await searchParams : undefined;
   const post = await fetchBlogPostBySlug(slug);
 
   if (!post) {
     notFound();
+  }
+
+  const isEditRequested =
+    search?.visual_editor === "true" || search?.edit === "true";
+
+  if (isEditRequested) {
+    let isAdmin = false;
+    try {
+      const cookieStore = await cookies();
+      const token =
+        cookieStore.get("access_token")?.value ||
+        cookieStore.get("refresh_token")?.value;
+      if (token) {
+        const payload = decodeJwt(token);
+        const roles: string[] = Array.isArray(payload.roles)
+          ? (payload.roles as string[])
+          : typeof payload.role === "string"
+            ? [payload.role]
+            : [];
+        isAdmin =
+          roles.includes("admin") ||
+          roles.includes("super_admin") ||
+          Boolean(payload.is_superuser);
+      }
+    } catch {
+      isAdmin = false;
+    }
+
+    if (isAdmin) {
+      return (
+        <VisualPageEditor
+          page={{
+            id: post.id,
+            title: post.title,
+            slug: post.slug,
+            body_html: post.content || "",
+            excerpt: post.excerpt,
+            cover_image_url: post.cover_image_url,
+          }}
+          contentType="post"
+        />
+      );
+    }
   }
 
   // comment_registration: the form area renders a sign-in prompt instead of

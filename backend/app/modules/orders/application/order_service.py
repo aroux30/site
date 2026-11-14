@@ -7,8 +7,6 @@ from __future__ import annotations
 
 import contextlib
 import math
-import secrets
-import string
 import uuid
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any
@@ -23,6 +21,7 @@ from app.core.exceptions.handlers import (
     ValidationError,
 )
 from app.modules.orders.application.admin_order_helpers import enrich_admin_order_rows
+from app.modules.orders.application.order_number_service import next_order_number
 from app.modules.orders.domain.models import (
     Order,
     OrderItem,
@@ -58,8 +57,13 @@ logger: structlog.stdlib.BoundLogger = structlog.get_logger(__name__)
 # The chain is deliberately short now (digital store, WooCommerce vocabulary):
 #
 #   waiting_payment_gateway ─┐                          ┌→ canceled
-#   waiting_payment_card    ─┼→ pending → processing → ┴→ completed
-#                    ┘                          └→ refunded
+#   waiting_payment_card    ─┼→ pending ─┬→ doing_verified ─┐
+#                    ┘                   └→ processing → ───┴→ completed
+#                                        └→ refunded
+#
+# DOING_VERIFIED ("در حال انجام (احراز شده)") is the user-verification port's
+# badge lane: paid orders of a manually verified customer land there instead of
+# PENDING (or are moved there when the badge is granted).
 #
 # REFUNDED is reachable from every non-terminal state, including the two
 # payment-waiting ones: an admin can refund an order that never got paid for.
@@ -80,6 +84,16 @@ _VALID_TRANSITIONS: dict[OrderStatus, frozenset[OrderStatus]] = {
     ),
     # Paid and accepted.
     OrderStatus.PENDING: frozenset(
+        {
+            OrderStatus.PROCESSING,
+            OrderStatus.DOING_VERIFIED,
+            OrderStatus.CANCELED,
+            OrderStatus.REFUNDED,
+        }
+    ),
+    # Paid by a manually verified customer — same working stage as PENDING,
+    # distinguished so the operator sees the verified badge on the board.
+    OrderStatus.DOING_VERIFIED: frozenset(
         {OrderStatus.PROCESSING, OrderStatus.CANCELED, OrderStatus.REFUNDED}
     ),
     # Being fulfilled / under review.
@@ -230,14 +244,6 @@ async def _refund_cancelled_order_to_wallet(
 
 
 # ── Helpers ────────────────────────────────────────────────────────────────
-
-
-def _generate_order_number() -> str:
-    """Generate a human-readable order number: ``ORD-YYYYMMDD-XXXX``."""
-    alphabet = string.ascii_uppercase + string.digits
-    date_part = datetime.now(UTC).strftime("%Y%m%d")
-    random_part = "".join(secrets.choice(alphabet) for _ in range(4))
-    return f"ORD-{date_part}-{random_part}"
 
 
 async def _record_status_change(
@@ -943,10 +949,17 @@ async def admin_update_status(
     elif target in (
         OrderStatus.PROCESSING,
         OrderStatus.COMPLETED,
+        OrderStatus.DOING_VERIFIED,
     ):
+        # Map status → event type name (capitalize() fails for doing_verified)
+        _STATUS_EVENT_MAP = {
+            OrderStatus.PROCESSING: "OrderProcessing",
+            OrderStatus.COMPLETED: "OrderCompleted",
+            OrderStatus.DOING_VERIFIED: "OrderDoingVerified",
+        }
         await _publish_order_event(
             db,
-            f"Order{target.value.capitalize()}",
+            _STATUS_EVENT_MAP[target],
             order.id,
             {
                 "order_id": str(order.id),
@@ -956,6 +969,23 @@ async def admin_update_status(
                 "initiated_by": "admin",
             },
         )
+
+    # Referral commissions are paid at the moment the order completes —
+    # best-effort: a reward failure must never break the order flow. Anything
+    # unpaid stays PENDING and the referral sweep retries it.
+    if target == OrderStatus.COMPLETED:
+        try:
+            from app.modules.referrals.application.referral_service import (
+                ReferralService,
+            )
+
+            await ReferralService.settle_order_rewards(db, order.id)
+        except Exception as exc:
+            await logger.awarning(
+                "referral_eager_settle_skipped",
+                order_id=str(order.id),
+                error=str(exc),
+            )
 
     await _record_status_change(
         db,
@@ -1097,19 +1127,10 @@ async def admin_bulk_update_status(
 
 
 async def generate_unique_order_number(db: AsyncSession) -> str:
-    """Generate a unique order number, retrying on collision.
+    """Generate the next sequential numeric order number (``1``, ``2``, …).
 
-    Format: ``ORD-YYYYMMDD-XXXX`` (e.g. ``ORD-20260909-A3K7``).
+    Delegates to ``order_number_service`` — see that module for the locking
+    scheme that keeps concurrent checkouts collision-free.
     """
-    for _ in range(10):
-        candidate = _generate_order_number()
-        exists_stmt = select(select(Order.id).where(Order.order_number == candidate).exists())
-        exists = (await db.execute(exists_stmt)).scalar_one()
-        if not exists:
-            return candidate
-    # Extremely unlikely – fallback with more randomness
-    alphabet = string.ascii_uppercase + string.digits
-    suffix = "".join(secrets.choice(alphabet) for _ in range(8))
-    date_part = datetime.now(UTC).strftime("%Y%m%d")
-    return f"ORD-{date_part}-{suffix}"
+    return await next_order_number(db)
 

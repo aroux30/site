@@ -32,6 +32,9 @@ const FAILING_IMPACTS = new Set(["serious", "critical"]);
 
 for (const page of PUBLIC_PAGES) {
   test(`${page.name} has no serious accessibility violations`, async ({ page: p }) => {
+    // The products grid compiles on first hit in dev and its Postgres fallback
+    // query is slow; 30s (the global default) times out before axe can run.
+    test.setTimeout(90_000);
     const response = await p.goto(page.path, { waitUntil: "networkidle" });
 
     // A page that did not render cannot be assessed. Skip loudly rather than

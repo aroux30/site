@@ -65,6 +65,8 @@ export interface ProductCategory {
   name: string;
   slug: string;
   parentId?: string;
+  parent_id?: string | null;
+  parent_name?: string | null;
   image?: string;
   description?: string;
   productCount?: number;

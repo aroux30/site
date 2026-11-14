@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Wallet as WalletIcon,
   RefreshCw,
@@ -148,6 +148,18 @@ export default function AdminWalletPage() {
   const transfers = transfersQuery.data ?? [];
   const switches = settingsQuery.data ?? {};
   const runMutation = useAdminMutation();
+
+  // Local state for the numeric fee input (Toman) — synced from server on load.
+  const [feeInputToman, setFeeInputToman] = useState(0);
+  const [feeType, setFeeType] = useState<"fixed" | "percent">("fixed");
+  const [feePercent, setFeePercent] = useState(0);
+  useEffect(() => {
+    const d = settingsQuery.data as Record<string, unknown> | undefined;
+    if (!d) return;
+    if (typeof d.wallet_transfer_fee_rial === "number") setFeeInputToman(Math.trunc(d.wallet_transfer_fee_rial / 10));
+    if (d.wallet_transfer_fee_type === "fixed" || d.wallet_transfer_fee_type === "percent") setFeeType(d.wallet_transfer_fee_type);
+    if (typeof d.wallet_transfer_fee_percent === "number") setFeePercent(d.wallet_transfer_fee_percent);
+  }, [settingsQuery.data]);
 
   // Withdrawal review dialog
   const [reviewTarget, setReviewTarget] = useState<Withdrawal | null>(null);
@@ -360,6 +372,16 @@ export default function AdminWalletPage() {
     { key: "from", header: "از", className: "font-mono text-xs", render: (t) => <span dir="ltr">{t.from_user_id.slice(0, 8)}…</span> },
     { key: "to", header: "به", className: "font-mono text-xs", render: (t) => <span dir="ltr">{t.to_user_id.slice(0, 8)}…</span> },
     { key: "amount", header: "مبلغ", render: (t) => <span className="font-semibold">{fmtToman(t.amount)}</span> },
+    {
+      key: "fee",
+      header: "کارمزد",
+      render: (t) =>
+        t.fee > 0 ? (
+          <span className="text-amber-600 font-medium">{fmtToman(t.fee)}</span>
+        ) : (
+          <span className="text-muted-foreground text-xs">—</span>
+        ),
+    },
     { key: "note", header: "توضیح", render: (t) => t.note || "-" },
     {
       key: "date",
@@ -415,6 +437,7 @@ export default function AdminWalletPage() {
           columns={withdrawalColumns}
           rows={withdrawals}
           rowKey={(w) => w.id}
+          columnVisibilityKey="admin.wallet.withdrawals.columns"
           error={withdrawalsQuery.error ? "خطا در دریافت درخواست‌های برداشت" : null}
           emptyMessage="هیچ درخواست برداشتی ثبت نشده است."
         />
@@ -423,6 +446,7 @@ export default function AdminWalletPage() {
           columns={walletColumns}
           rows={wallets}
           rowKey={(w) => w.id}
+          columnVisibilityKey="admin.wallet.wallets.columns"
           error={walletsQuery.error ? "خطا در دریافت کیف پول‌ها" : null}
           emptyMessage="هیچ کیف پولی یافت نشد."
         />
@@ -431,6 +455,7 @@ export default function AdminWalletPage() {
           columns={transferColumns}
           rows={transfers}
           rowKey={(t) => t.id}
+          columnVisibilityKey="admin.wallet.transfers.columns"
           error={transfersQuery.error ? "خطا در دریافت انتقال‌ها" : null}
           emptyMessage="هیچ انتقالی ثبت نشده است."
         />
@@ -452,6 +477,104 @@ export default function AdminWalletPage() {
               />
             </div>
           ))}
+
+          {/* ── Transfer fee settings ── */}
+          <div className="pt-4 border-t">
+            <h3 className="font-semibold">تنظیمات کارمزد انتقال</h3>
+            <p className="text-xs text-muted-foreground mt-1">
+              کارمزد از فرستنده کسر و سوخت می‌شود. مقدار صفر = رایگان.
+            </p>
+          </div>
+
+          {/* Fee type selector */}
+          <div className="flex items-center justify-between rounded-lg border p-3.5 gap-4">
+            <div className="font-medium text-sm shrink-0">نوع کارمزد</div>
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                size="sm"
+                variant={feeType === "fixed" ? "default" : "outline"}
+                onClick={async () => {
+                  setFeeType("fixed");
+                  try {
+                    await apiClient.put("/admin/wallet/settings/text/wallet_transfer_fee_type?value=fixed");
+                    toast({ title: "ذخیره شد", description: "نوع کارمزد: مبلغ ثابت" });
+                  } catch {
+                    toast({ title: "خطا", description: "تنظیم ذخیره نشد.", variant: "destructive" });
+                  }
+                }}
+              >
+                مبلغ ثابت (تومان)
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant={feeType === "percent" ? "default" : "outline"}
+                onClick={async () => {
+                  setFeeType("percent");
+                  try {
+                    await apiClient.put("/admin/wallet/settings/text/wallet_transfer_fee_type?value=percent");
+                    toast({ title: "ذخیره شد", description: "نوع کارمزد: درصدی" });
+                  } catch {
+                    toast({ title: "خطا", description: "تنظیم ذخیره نشد.", variant: "destructive" });
+                  }
+                }}
+              >
+                درصدی (٪)
+              </Button>
+            </div>
+          </div>
+
+          {/* Fee value input — changes based on type */}
+          {feeType === "fixed" ? (
+            <div className="flex items-center justify-between rounded-lg border p-3.5 gap-4">
+              <div className="font-medium text-sm shrink-0">مبلغ کارمزد (تومان)</div>
+              <div className="flex items-center gap-2">
+                <Input
+                  type="number"
+                  min={0}
+                  className="w-36 text-left font-mono"
+                  dir="ltr"
+                  value={feeInputToman}
+                  onChange={(e) => setFeeInputToman(Math.max(0, parseInt(e.target.value) || 0))}
+                  onBlur={async () => {
+                    const rialValue = feeInputToman * 10;
+                    try {
+                      await apiClient.put(`/admin/wallet/settings/numeric/wallet_transfer_fee_rial?value=${rialValue}`);
+                      toast({ title: "ذخیره شد", description: `کارمزد: ${feeInputToman.toLocaleString("fa-IR")} تومان` });
+                    } catch {
+                      toast({ title: "خطا", description: "تنظیم ذخیره نشد.", variant: "destructive" });
+                    }
+                  }}
+                />
+                <span className="text-xs text-muted-foreground whitespace-nowrap">تومان</span>
+              </div>
+            </div>
+          ) : (
+            <div className="flex items-center justify-between rounded-lg border p-3.5 gap-4">
+              <div className="font-medium text-sm shrink-0">درصد کارمزد</div>
+              <div className="flex items-center gap-2">
+                <Input
+                  type="number"
+                  min={0}
+                  max={100}
+                  className="w-24 text-left font-mono"
+                  dir="ltr"
+                  value={feePercent}
+                  onChange={(e) => setFeePercent(Math.max(0, Math.min(100, parseInt(e.target.value) || 0)))}
+                  onBlur={async () => {
+                    try {
+                      await apiClient.put(`/admin/wallet/settings/numeric/wallet_transfer_fee_percent?value=${feePercent}`);
+                      toast({ title: "ذخیره شد", description: `کارمزد: ${feePercent}٪` });
+                    } catch {
+                      toast({ title: "خطا", description: "تنظیم ذخیره نشد.", variant: "destructive" });
+                    }
+                  }}
+                />
+                <span className="text-xs text-muted-foreground whitespace-nowrap">٪ از مبلغ انتقال</span>
+              </div>
+            </div>
+          )}
         </Card>
       )}
 

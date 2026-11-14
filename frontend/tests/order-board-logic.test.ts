@@ -39,7 +39,7 @@ const laneMembers = (lane: OrderStatus): readonly OrderStatus[] =>
   COLUMN_BACKEND_STATUSES[lane] ?? [];
 
 describe("board columns", () => {
-  it("the default board is all seven statuses, one column each", () => {
+  it("the default board is all eight statuses, one column each", () => {
     // Owner decision (2026-10-11, revised): every status is its OWN column —
     // «در انتظار تایید پرداخت», «در انتظار تایید کارت به کارت», «در حال انجام»,
     // «در حال پردازش», «تکمیل شده», «لغو شده» and «بازگشت وجه».
@@ -47,6 +47,7 @@ describe("board columns", () => {
       "waiting_payment_gateway",
       "waiting_payment_card",
       "pending",
+      "doing_verified",
       "processing",
       "completed",
       "canceled",

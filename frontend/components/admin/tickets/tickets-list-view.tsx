@@ -13,6 +13,10 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import {
+  ColumnVisibilityToggle,
+  useColumnVisibility,
+} from "@/components/admin/list-engine";
 import { cn, toPersianDigits } from "@/lib/utils";
 import {
   TICKET_PRIORITIES,
@@ -59,6 +63,19 @@ export function TicketsListView({ search, onSearchChange, onOpenTicket }: Ticket
   const [error, setError] = useState<string | null>(null);
 
   const debouncedSearch = useDebouncedValue(search, 350);
+
+  // Screen Options (WordPress parity): per-user column visibility, same
+  // control and storage contract as the DataTable screens.
+  const colVis = useColumnVisibility("admin.tickets.list.columns");
+  const ticketColumns = [
+    { key: "ticket", label: "تیکت" },
+    { key: "customer", label: "مشتری" },
+    { key: "priority", label: "اولویت" },
+    { key: "activity", label: "آخرین فعالیت" },
+    { key: "status", label: "وضعیت" },
+    { key: "actions", label: "عملیات" },
+  ];
+  const colCount = ticketColumns.filter((c) => !colVis.isHidden(c.key)).length;
 
   useEffect(() => {
     setPage(0);
@@ -213,26 +230,47 @@ export function TicketsListView({ search, onSearchChange, onOpenTicket }: Ticket
         </div>
       )}
 
+      {/* Screen Options — column picker, same control as the DataTable screens. */}
+      <div className="flex">
+        <ColumnVisibilityToggle
+          columns={ticketColumns}
+          hidden={colVis.hidden}
+          onToggle={colVis.toggle}
+        />
+      </div>
+
       {/* Table */}
       <Card className="overflow-hidden">
         <div className="relative overflow-x-auto">
           <table className="w-full text-right text-sm">
             <thead className="border-b border-border bg-muted/50 text-xs text-muted-foreground">
               <tr>
-                <th scope="col" className="px-4 py-3">تیکت</th>
-                <th scope="col" className="px-4 py-3">مشتری</th>
-                <th scope="col" className="hidden px-4 py-3 md:table-cell">اولویت</th>
-                <th scope="col" className="hidden px-4 py-3 lg:table-cell">آخرین فعالیت</th>
-                <th scope="col" className="px-4 py-3">وضعیت</th>
-                <th scope="col" className="px-4 py-3">
-                  <span className="sr-only">عملیات</span>
-                </th>
+                {!colVis.isHidden("ticket") && (
+                  <th scope="col" className="px-4 py-3">تیکت</th>
+                )}
+                {!colVis.isHidden("customer") && (
+                  <th scope="col" className="px-4 py-3">مشتری</th>
+                )}
+                {!colVis.isHidden("priority") && (
+                  <th scope="col" className="hidden px-4 py-3 md:table-cell">اولویت</th>
+                )}
+                {!colVis.isHidden("activity") && (
+                  <th scope="col" className="hidden px-4 py-3 lg:table-cell">آخرین فعالیت</th>
+                )}
+                {!colVis.isHidden("status") && (
+                  <th scope="col" className="px-4 py-3">وضعیت</th>
+                )}
+                {!colVis.isHidden("actions") && (
+                  <th scope="col" className="px-4 py-3">
+                    <span className="sr-only">عملیات</span>
+                  </th>
+                )}
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
               {loading && items.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="p-0">
+                  <td colSpan={colCount} className="p-0">
                     <div className="flex items-center justify-center gap-2 py-16 text-muted-foreground">
                       <Loader2 className="h-5 w-5 animate-spin" />
                       در حال دریافت تیکت‌ها...
@@ -241,7 +279,7 @@ export function TicketsListView({ search, onSearchChange, onOpenTicket }: Ticket
                 </tr>
               ) : items.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="p-0">
+                  <td colSpan={colCount} className="p-0">
                     <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
                       <Inbox className="mb-2 h-8 w-8 opacity-40" />
                       <p className="text-sm">تیکتی با این شرایط یافت نشد.</p>
@@ -262,62 +300,74 @@ export function TicketsListView({ search, onSearchChange, onOpenTicket }: Ticket
                       )}
                       onClick={() => onOpenTicket(ticket)}
                     >
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-2">
-                          <span className="font-mono text-xs font-bold text-foreground">
-                            {ticket.ticket_number}
-                          </span>
-                          {stale && (
-                            <span title="بیش از ۴۸ ساعت بدون تغییر">
-                              <AlertTriangle className="h-3.5 w-3.5 text-amber-500" />
+                      {!colVis.isHidden("ticket") && (
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-2">
+                            <span className="font-mono text-xs font-bold text-foreground">
+                              {ticket.ticket_number}
                             </span>
-                          )}
-                        </div>
-                        <p className="mt-0.5 line-clamp-1 text-xs text-muted-foreground">
-                          {ticket.subject}
-                        </p>
-                      </td>
-                      <td className="px-4 py-3">
-                        <p className="text-xs font-medium text-foreground">
-                          {ticket.customer_name ?? "بدون نام پروفایل"}
-                        </p>
-                        {ticket.customer_phone && (
-                          <p className="font-mono text-[11px] text-muted-foreground" dir="ltr">
-                            {toPersianDigits(ticket.customer_phone)}
+                            {stale && (
+                              <span title="بیش از ۴۸ ساعت بدون تغییر">
+                                <AlertTriangle className="h-3.5 w-3.5 text-amber-500" />
+                              </span>
+                            )}
+                          </div>
+                          <p className="mt-0.5 line-clamp-1 text-xs text-muted-foreground">
+                            {ticket.subject}
                           </p>
-                        )}
-                      </td>
-                      <td className="hidden px-4 py-3 md:table-cell">
-                        <Badge variant="outline" className={cn("text-[10px]", priorityVisual.chip)}>
-                          {priorityVisual.label}
-                        </Badge>
-                      </td>
-                      <td className="hidden px-4 py-3 text-xs text-muted-foreground lg:table-cell">
-                        <span className="flex items-center gap-1.5">
-                          <MessageSquare className="h-3.5 w-3.5" />
-                          {toPersianDigits(ticket.messages_count ?? 0)} پیام
-                          <span className="text-border">•</span>
-                          {formatTicketRelativeTime(ticket.updated_at, toPersianDigits)}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3">
-                        <Badge variant="outline" className={cn("text-[11px]", statusVisual.chip)}>
-                          {statusVisual.label}
-                        </Badge>
-                      </td>
-                      <td className="px-4 py-3">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="gap-1 text-xs"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onOpenTicket(ticket);
-                          }}
-                        >
-                          گفتگو
-                        </Button>
-                      </td>
+                        </td>
+                      )}
+                      {!colVis.isHidden("customer") && (
+                        <td className="px-4 py-3">
+                          <p className="text-xs font-medium text-foreground">
+                            {ticket.customer_name ?? "بدون نام پروفایل"}
+                          </p>
+                          {ticket.customer_phone && (
+                            <p className="font-mono text-[11px] text-muted-foreground" dir="ltr">
+                              {toPersianDigits(ticket.customer_phone)}
+                            </p>
+                          )}
+                        </td>
+                      )}
+                      {!colVis.isHidden("priority") && (
+                        <td className="hidden px-4 py-3 md:table-cell">
+                          <Badge variant="outline" className={cn("text-[10px]", priorityVisual.chip)}>
+                            {priorityVisual.label}
+                          </Badge>
+                        </td>
+                      )}
+                      {!colVis.isHidden("activity") && (
+                        <td className="hidden px-4 py-3 text-xs text-muted-foreground lg:table-cell">
+                          <span className="flex items-center gap-1.5">
+                            <MessageSquare className="h-3.5 w-3.5" />
+                            {toPersianDigits(ticket.messages_count ?? 0)} پیام
+                            <span className="text-border">•</span>
+                            {formatTicketRelativeTime(ticket.updated_at, toPersianDigits)}
+                          </span>
+                        </td>
+                      )}
+                      {!colVis.isHidden("status") && (
+                        <td className="px-4 py-3">
+                          <Badge variant="outline" className={cn("text-[11px]", statusVisual.chip)}>
+                            {statusVisual.label}
+                          </Badge>
+                        </td>
+                      )}
+                      {!colVis.isHidden("actions") && (
+                        <td className="px-4 py-3">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="gap-1 text-xs"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onOpenTicket(ticket);
+                            }}
+                          >
+                            گفتگو
+                          </Button>
+                        </td>
+                      )}
                     </tr>
                   );
                 })

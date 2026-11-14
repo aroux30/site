@@ -20,6 +20,7 @@ import { ProductQuickCard } from "@/components/home/product-quick-card";
 import { ErrorState } from "@/components/shared/page-state";
 import { BlockRenderer } from "@/components/home/block-renderer";
 import { TrustBadgesSection } from "@/components/shared/trust-badges";
+import { RecentlyViewed } from "@/components/store/recently-viewed";
 import { contentApi, type ContentBlock } from "@/lib/api/content";
 import { apiInternalUrl } from "@/lib/api/server-base";
 import { siteOrigin } from "@/lib/site-url";
@@ -50,7 +51,7 @@ const DEFAULT_HOME_METADATA: Metadata = {
 /*  collapses silently to an empty array or a fabricated fallback.      */
 /* ------------------------------------------------------------------ */
 
-type FetchResult<T> = { ok: true; data: T } | { ok: false };
+type FetchResult<T> = { ok: true; data: T; fallback?: boolean } | { ok: false };
 
 function apiBase(): string | null {
   const base = apiInternalUrl();
@@ -58,7 +59,9 @@ function apiBase(): string | null {
   return base;
 }
 
-async function fetchFeaturedProducts(): Promise<FetchResult<ApiProduct[]>> {
+async function fetchFeaturedProducts(): Promise<
+  FetchResult<ApiProduct[]> & { fallback?: boolean }
+> {
   const base = apiBase();
   if (!base) return { ok: false };
   try {
@@ -68,7 +71,19 @@ async function fetchFeaturedProducts(): Promise<FetchResult<ApiProduct[]>> {
     );
     if (!res.ok) return { ok: false };
     const data = (await res.json()) as { items?: ApiProduct[] };
-    return { ok: true, data: data.items ?? [] };
+    const items = data.items ?? [];
+    if (items.length > 0) return { ok: true, data: items };
+    // No featured products yet — a young catalogue must not render the
+    // homepage's main conversion surface as an empty notice. Fall back to
+    // the newest active products (shop-front default) and flag it, so the
+    // section heading stays honest («جدیدترین» not «پرفروش‌ترین»).
+    const resNewest = await fetch(
+      `${base}/catalog/products?is_active=true&page_size=6`,
+      { next: { revalidate: 300 } },
+    );
+    if (!resNewest.ok) return { ok: true, data: items };
+    const newest = (await resNewest.json()) as { items?: ApiProduct[] };
+    return { ok: true, data: newest.items ?? [], fallback: true };
   } catch {
     return { ok: false };
   }
@@ -195,7 +210,7 @@ export default async function HomePage() {
           ) : null}
         </header>
         <div
-          className="cms-content max-w-none leading-8 text-foreground [&_h2]:mt-8 [&_h2]:text-xl [&_h2]:font-bold [&_h3]:mt-6 [&_h3]:text-lg [&_h3]:font-semibold [&_p]:my-4 [&_ul]:my-4 [&_ul]:list-disc [&_ul]:ps-6 [&_ol]:my-4 [&_ol]:list-decimal [&_ol]:ps-6 [&_a]:text-primary [&_a]:underline [&_img]:my-4 [&_img]:rounded-lg [&_blockquote]:border-s-4 [&_blockquote]:border-primary/30 [&_blockquote]:ps-4 [&_blockquote]:text-muted-foreground"
+          className="cms-content max-w-none leading-8 text-foreground [&_h2]:mt-8 [&_h2]:text-xl [&_h2]:font-bold [&_h3]:mt-6 [&_h3]:text-lg [&_h3]:font-semibold [&_p]:my-4 [&_ul]:my-4 [&_ul]:list-disc [&_ul]:ps-6 [&_ol]:my-4 [&_ol]:list-decimal [&_ol]:ps-6 [&_a:not([class*='bg-']):not([class*='border'])]:text-primary [&_a:not([class*='bg-']):not([class*='border'])]:underline [&_img]:my-4 [&_img]:rounded-lg [&_blockquote]:border-s-4 [&_blockquote]:border-primary/30 [&_blockquote]:ps-4 [&_blockquote]:text-muted-foreground"
           // body_html is editor-authored, but an admin account is not an XSS
           // license — sanitize before dangerouslySetInnerHTML.
           dangerouslySetInnerHTML={{ __html: cleanHtml(frontPage.body_html) }}
@@ -237,13 +252,13 @@ export default async function HomePage() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
             {/* Left Content (Text + CTAs) */}
             <div className="lg:col-span-7 space-y-6 text-center lg:text-right">
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs font-semibold">
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-xs font-semibold">
                 <Sparkles className="w-3.5 h-3.5" />
                 <span>پلتفرم مدرن ایکامرس ایران • تجربه خرید هوشمند</span>
               </div>
 
               <h1 className="text-3xl sm:text-4xl lg:text-6xl font-black text-foreground tracking-tight leading-[1.2]">
-                تجربه خریدی <span className="text-emerald-600 dark:text-emerald-400">سریع، مطمئن</span> و فراتر از انتظار
+                تجربه خریدی <span className="text-emerald-700 dark:text-emerald-400">سریع، مطمئن</span> و فراتر از انتظار
               </h1>
 
               <p className="text-muted-foreground text-sm sm:text-base lg:text-lg max-w-2xl mx-auto lg:mx-0 leading-relaxed">
@@ -309,7 +324,7 @@ export default async function HomePage() {
         <div className="container mx-auto px-4 sm:px-6 max-w-7xl">
           <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-4">
             <div>
-              <div className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-600 dark:text-emerald-400 mb-2">
+              <div className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-700 dark:text-emerald-400 mb-2">
                 <Sparkles className="w-3.5 h-3.5" />
                 دسته‌بندی‌های فروشگاه
               </div>
@@ -317,7 +332,7 @@ export default async function HomePage() {
             </div>
             <Link
               href="/products"
-              className="text-xs sm:text-sm font-semibold text-emerald-600 dark:text-emerald-400 hover:underline inline-flex items-center gap-1"
+              className="text-xs sm:text-sm font-semibold text-emerald-700 dark:text-emerald-400 hover:underline inline-flex items-center gap-1"
             >
               مشاهده تمامی دسته‌ها
               <ChevronLeft className="w-4 h-4" />
@@ -364,15 +379,17 @@ export default async function HomePage() {
         <div className="container mx-auto px-4 sm:px-6 max-w-7xl">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-10 gap-4">
             <div>
-              <div className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-600 dark:text-emerald-400 mb-2">
+              <div className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-700 dark:text-emerald-400 mb-2">
                 <Zap className="w-3.5 h-3.5" />
-                کالاهای منتخب پرچمدار
+                {featured.fallback ? "تازه‌های فروشگاه" : "کالاهای منتخب پرچمدار"}
               </div>
-              <h2 className="heading-display">پرفروش‌ترین‌های این هفته</h2>
+              <h2 className="heading-display">
+                {featured.fallback ? "جدیدترین کالاهای فروشگاه" : "پرفروش‌ترین‌های این هفته"}
+              </h2>
             </div>
             <Link
               href="/products"
-              className="text-xs sm:text-sm font-semibold text-emerald-600 dark:text-emerald-400 hover:underline inline-flex items-center gap-1"
+              className="text-xs sm:text-sm font-semibold text-emerald-700 dark:text-emerald-400 hover:underline inline-flex items-center gap-1"
             >
               مشاهده تمام کالاها
               <ChevronLeft className="w-4 h-4" />
@@ -412,7 +429,12 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* ── 5. Enterprise Trust & Guarantees Section ── */}
+      {/* ── 5. Recently Viewed Products (client storage) ── */}
+      <section className="container mx-auto px-4 sm:px-6 max-w-7xl pb-10">
+        <RecentlyViewed />
+      </section>
+
+      {/* ── 6. Enterprise Trust & Guarantees Section ── */}
       <TrustBadgesSection />
     </div>
   );

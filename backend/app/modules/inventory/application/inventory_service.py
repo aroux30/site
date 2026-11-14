@@ -231,7 +231,12 @@ async def reserve_stock(
             ),
         )
 
-    was_above_threshold = item.available > item.low_stock_threshold
+    # NULL threshold = low-stock alerting disabled for this variant: the
+    # guard short-circuits so an int-vs-None comparison can never raise.
+    was_above_threshold = (
+        item.low_stock_threshold is not None
+        and item.available > item.low_stock_threshold
+    )
     item.available -= quantity
     item.reserved += quantity
 
@@ -244,7 +249,11 @@ async def reserve_stock(
     # exists separately (``check_low_stock_task``) for the standing case.
     #
     # Fire-and-forget: a broker problem must not fail a reservation.
-    if was_above_threshold and item.available <= item.low_stock_threshold:
+    if (
+        was_above_threshold
+        and item.low_stock_threshold is not None
+        and item.available <= item.low_stock_threshold
+    ):
         try:
             from app.modules.automation.application.tasks import (
                 queue_automation_trigger,
@@ -263,6 +272,28 @@ async def reserve_stock(
         except Exception as exc:  # noqa: BLE001 - additive side-effect only
             logger.warning(
                 "automation_stock_low_enqueue_failed",
+                item_id=str(item.id),
+                error=str(exc)[:200],
+            )
+
+        # WooCommerce sends the admin the low-stock email at the moment of the
+        # sale; our equivalent is the in-app admin notification (deduped per
+        # item+count, so later sales at the same count do not refire).
+        try:
+            from app.modules.notifications.application.notification_service import (
+                NotificationService,
+            )
+
+            await NotificationService.notify_low_stock_admins(
+                db,
+                inventory_item_id=item.id,
+                variant_id=variant_id,
+                available=int(item.available),
+                threshold=int(item.low_stock_threshold),
+            )
+        except Exception as exc:  # noqa: BLE001 - alert must not fail a sale
+            logger.warning(
+                "low_stock_notification_failed",
                 item_id=str(item.id),
                 error=str(exc)[:200],
             )

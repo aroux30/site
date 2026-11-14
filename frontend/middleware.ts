@@ -237,6 +237,23 @@ async function resolveStructuredPost(
     }
   }
 
+  // WooCommerce-parity product base (options-permalink.php «پایهٔ کالا»):
+  // a custom base aliases the shop. /<base>/<slug> → the product page and
+  // /<base> → the products listing (the middleware caller preserves the
+  // query string for the listing target, e.g. ?category_id=…). The default
+  // "products" IS the physical route, so it needs no rewrite.
+  const productBase = (routing.product_base || "products").toLowerCase();
+  if (
+    productBase !== "products" &&
+    !RESERVED_ROOTS.has(productBase) &&
+    first.toLowerCase() === productBase
+  ) {
+    if (segments.length === 1) return "/products";
+    if (segments.length === 2) {
+      return `/products/${encodeURIComponent(segments[1] ?? "")}`;
+    }
+  }
+
   if (isDefaultStructure(routing.permalink_structure)) return null;
   if (validateStructure(routing.permalink_structure).length > 0) return null;
   if (RESERVED_ROOTS.has(first.toLowerCase())) return null;
@@ -316,7 +333,11 @@ export async function middleware(request: NextRequest) {
       const routing = await getRoutingOptions();
       const target = await resolveStructuredPost(pathname, routing);
       if (target && target !== pathname) {
-        return NextResponse.rewrite(new URL(target, request.url));
+        const url = new URL(target, request.url);
+        // The product-base listing alias must keep its filters —
+        // /shop?category_id=… is the header's category link shape.
+        if (target === "/products") url.search = request.nextUrl.search;
+        return NextResponse.rewrite(url);
       }
     }
   }

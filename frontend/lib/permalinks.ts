@@ -22,6 +22,8 @@ export interface RoutingConfig {
   permalink_structure: string;
   category_base: string;
   tag_base: string;
+  /** WooCommerce-parity product base ("products" = the physical route). */
+  product_base: string;
   /** Public origin, for anything that must be absolute (JSON-LD, feeds). */
   site_url?: string;
   /** Configured store name, used as the publisher in structured data. */
@@ -32,6 +34,7 @@ export const DEFAULT_ROUTING: RoutingConfig = {
   permalink_structure: "/blog/%postname%/",
   category_base: "category",
   tag_base: "tag",
+  product_base: "products",
   site_url: "",
   blogname: "فروشگاه",
 };
@@ -55,6 +58,26 @@ const isDigits = (s: string): boolean => /^\d+$/.test(s);
 export function isDefaultStructure(structure: string): boolean {
   const s = (structure || "").trim();
   return s === "" || s === "/blog/%postname%/";
+}
+
+/**
+ * Problems with a proposed taxonomy/product base; empty array = valid.
+ *
+ * A base must be ONE segment: the middleware only rewrites /<base>/<slug>
+ * (two segments), so a base containing "/" would generate URLs nothing
+ * serves. A base equal to a fixed storefront root ("products", "blog", …)
+ * (other than "products" itself, which IS the product base's default) would
+ * collide with a real route and 404. Persian is fine — the middleware
+ * matches after percent-decoding.
+ */
+export function baseSegmentProblems(base: string, allow?: string): string[] {
+  const v = (base || "").trim().toLowerCase();
+  if (!v) return [];
+  if (v.includes("/")) return ["پیشوند باید یک بخش واحد باشد و «/» نداشته باشد."];
+  if (RESERVED_ROOTS.has(v) && v !== (allow ?? "").toLowerCase()) {
+    return [`«/${v}» مسیر ثابت فروشگاه است و نمی‌تواند پیشوند آرشیو شود.`];
+  }
+  return [];
 }
 
 /** Problems with a proposed structure; empty array = valid. Mirrors the
@@ -82,6 +105,22 @@ export function validateStructure(structure: string): string[] {
   );
   if (dp.some((p, i) => i > 0 && p < (dp[i - 1] as number))) {
     return ["ترتیب تاریخ: سال → ماه → روز."];
+  }
+  // A structure whose first literal (non-tag) segment is a reserved storefront
+  // root can never resolve: the physical file tree only serves /blog/<slug>
+  // (two segments), and the middleware deliberately skips reserved roots, so
+  // e.g. /blog/%category%/%postname%/ generates dead three-segment URLs. The
+  // default /blog/%postname%/ is the one exception — it IS the physical route
+  // and needs no rewrite.
+  const firstSegment = s.replace(/\/{2,}/g, "/").split("/").filter(Boolean)[0] ?? "";
+  if (
+    !firstSegment.includes("%") &&
+    RESERVED_ROOTS.has(firstSegment.toLowerCase()) &&
+    s !== "/blog/%postname%/"
+  ) {
+    return [
+      `مسیر «/${firstSegment}» مخصوص صفحات ثابت فروشگاه است و نمی‌تواند در ساختار پیوند بیاید (به‌جز حالت پیش‌فرض /blog/%postname%/).`,
+    ];
   }
   return [];
 }
@@ -224,6 +263,11 @@ export function matchPermalink(
  * rewritten, so resolution skips them outright.
  */
 export const RESERVED_ROOTS: ReadonlySet<string> = new Set([
+  // Shop category archives (/category/<slug> — next.config rewrites them to
+  // the filtered products list, WordPress-style). Reserved so a blog
+  // structure with a leading %category% token can never swallow a shop
+  // archive URL and rewrite it onto /blog/<slug>.
+  "category",
   "account",
   "admin",
   "api",

@@ -502,6 +502,7 @@ export default function DataExchangeImportPage() {
         columns={columns}
         rows={jobs}
         rowKey={(j) => j.id}
+        columnVisibilityKey="admin.data-exchange.columns"
         loading={loading}
         error={error}
         emptyMessage="هنوز هیچ import انجام نشده است"

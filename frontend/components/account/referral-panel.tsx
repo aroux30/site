@@ -162,7 +162,7 @@ export function ReferralPanel() {
           { label: "کل دعوت‌ها", value: stats.total_referrals },
           { label: "تکمیل‌شده", value: stats.completed_referrals },
           { label: "در انتظار", value: stats.pending_referrals },
-          { label: "سطح ۱", value: stats.level1_count },
+          { label: "دعوت‌های لایه دوم", value: stats.level2_count },
         ].map((item) => (
           <Card key={item.label} className="p-4 text-center">
             <div className="text-2xl font-black text-foreground">

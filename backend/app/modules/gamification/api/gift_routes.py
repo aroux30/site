@@ -35,7 +35,9 @@ router = APIRouter(prefix="/gifts", tags=["gamification-gifts"])
     summary="Issue a digital gift card voucher with a custom template (admin)",
     dependencies=[Depends(RequirePermissions("gamification:write"))],
 )
+@limiter.limit("30/minute")
 async def issue_gift_card(
+    request: Request,
     body: InternalGiftCardIssueRequest,
     user_id: uuid.UUID | None = Depends(get_current_user_id),
     db: AsyncSession = Depends(get_db),
@@ -77,7 +79,9 @@ async def redeem_gift_card(
     response_model=LuckyWheelSpinResponse,
     summary="Spin post-order lucky wheel to win prizes or wallet credit (Karta try_gifts)",
 )
+@limiter.limit("10/minute")
 async def spin_wheel(
+    request: Request,
     body: LuckyWheelSpinRequest,
     user_id: uuid.UUID = Depends(get_current_user_id),
     db: AsyncSession = Depends(get_db),
@@ -96,7 +100,9 @@ async def spin_wheel(
     response_model=SignupGiftResponse,
     summary="Claim welcome bonus credit upon initial phone verification",
 )
+@limiter.limit("5/minute")
 async def claim_signup_bonus(
+    request: Request,
     user_id: uuid.UUID = Depends(get_current_user_id),
     db: AsyncSession = Depends(get_db),
 ) -> SignupGiftResponse:
@@ -112,7 +118,9 @@ async def claim_signup_bonus(
     response_model=list[ChargePackageResponse],
     summary="List active incentive wallet top-up packages with bonus credit",
 )
+@limiter.limit("60/minute")
 async def list_charge_packages(
+    request: Request,
     db: AsyncSession = Depends(get_db),
 ) -> list[ChargePackageResponse]:
     packages = await gift_card_service.list_active_charge_packages(db)
@@ -125,7 +133,9 @@ async def list_charge_packages(
     summary="Create an incentive wallet top-up package with bonus (admin)",
     dependencies=[Depends(RequirePermissions("gamification:write"))],
 )
+@limiter.limit("20/minute")
 async def create_package(
+    request: Request,
     body: ChargePackageCreateRequest,
     db: AsyncSession = Depends(get_db),
 ) -> ChargePackageResponse:

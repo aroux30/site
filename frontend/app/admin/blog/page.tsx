@@ -50,6 +50,7 @@ import {
 } from "@/components/ui/dialog";
 import { useToast } from "@/components/ui/use-toast";
 import { useConfirm } from "@/components/ui/confirm-dialog";
+import { JalaliDatePicker } from "@/components/ui/jalali-datepicker";
 import { DataTable, type DataTableColumn } from "@/components/admin/data-table";
 import { MediaPicker } from "@/components/admin/media-picker";
 import { BlockPatternPicker } from "@/components/admin/block-pattern-picker";
@@ -951,11 +952,18 @@ function AdminBlogPageInner() {
         return (
           <div className="flex items-center justify-center gap-1 flex-wrap">
             {post.status === "published" && (
-              <Button variant="outline" size="sm" asChild className="h-7 px-2 text-xs">
-                <Link href={`/blog/${post.slug}`} target="_blank" title="مشاهده در سایت">
-                  <ExternalLink className="h-3.5 w-3.5" />
-                </Link>
-              </Button>
+              <>
+                <Button variant="outline" size="sm" asChild className="h-7 px-2 text-xs">
+                  <Link href={`/blog/${post.slug}`} target="_blank" title="مشاهده در سایت">
+                    <ExternalLink className="h-3.5 w-3.5" />
+                  </Link>
+                </Button>
+                <Button variant="outline" size="sm" asChild className="h-7 px-2 text-xs">
+                  <Link href={`/blog/${post.slug}?visual_editor=true`} target="_blank" title="ویرایشگر زنده (المنتور)">
+                    <Sparkles className="h-3.5 w-3.5 text-purple-600" />
+                  </Link>
+                </Button>
+              </>
             )}
             {post.status !== "published" && (
               <Button
@@ -1142,22 +1150,18 @@ function AdminBlogPageInner() {
               </label>
               <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                 <span>از</span>
-                <input
-                  type="date"
+                <JalaliDatePicker
                   value={dateFrom}
-                  max={dateTo || undefined}
-                  onChange={(e) => setDateFrom(e.target.value)}
-                  className="h-9 rounded-md border border-input bg-background px-2 text-xs"
-                  aria-label="انتشار از تاریخ"
+                  onChange={(value) => setDateFrom(value)}
+                  placeholder="از تاریخ"
+                  className="h-9 w-36 text-xs"
                 />
                 <span>تا</span>
-                <input
-                  type="date"
+                <JalaliDatePicker
                   value={dateTo}
-                  min={dateFrom || undefined}
-                  onChange={(e) => setDateTo(e.target.value)}
-                  className="h-9 rounded-md border border-input bg-background px-2 text-xs"
-                  aria-label="انتشار تا تاریخ"
+                  onChange={(value) => setDateTo(value)}
+                  placeholder="تا تاریخ"
+                  className="h-9 w-36 text-xs"
                 />
               </div>
               {(authorFilter || dateFrom || dateTo || featuredOnly) && (

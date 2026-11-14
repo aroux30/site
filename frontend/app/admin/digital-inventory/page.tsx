@@ -311,6 +311,9 @@ export default function AdminDigitalInventoryPage() {
       key: "select",
       header: "",
       className: "w-8",
+      // Hiding the only per-row checkbox would make bulk selection
+      // unreachable — pinned, like WordPress's `cb` column.
+      alwaysVisible: true,
       render: (card) => (
         <input
           type="checkbox"
@@ -470,6 +473,7 @@ export default function AdminDigitalInventoryPage() {
             columns={cardColumns}
             rows={filteredCards.slice(0, 50)}
             rowKey={(c) => c.id}
+            columnVisibilityKey="admin.digital-inventory.columns"
             emptyMessage="هیچ کارتی یافت نشد"
             emptyDescription="برای افزودن کارت جدید روی «بارگذاری کارت جدید» کلیک کنید"
             emptyIcon={<CreditCard className="h-12 w-12 text-muted-foreground/30" />}

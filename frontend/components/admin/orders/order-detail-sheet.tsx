@@ -25,7 +25,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/components/ui/use-toast";
-import { cn, formatPrice, toPersianDigits } from "@/lib/utils";
+import { cn, formatOrderCode, formatPrice, toPersianDigits } from "@/lib/utils";
 import {
   ORDER_STATUS_TRANSITIONS,
   STATUS_VISUALS,
@@ -128,7 +128,7 @@ export function OrderDetailSheet({ orderId, onClose, onStatusChanged }: OrderDet
       await adminOrdersApi.updateStatus(detail.id, target);
       toast({
         title: "وضعیت تغییر کرد",
-        description: `سفارش ${detail.orderNumber} به «${STATUS_VISUALS[target].label}» منتقل شد.`,
+        description: `سفارش ${formatOrderCode(detail.orderNumber)} به «${STATUS_VISUALS[target].label}» منتقل شد.`,
         variant: "success",
       });
       // Refetch the drawer (timeline grows) and tell the page to resync.
@@ -162,7 +162,7 @@ export function OrderDetailSheet({ orderId, onClose, onStatusChanged }: OrderDet
           <SheetTitle className="flex items-center gap-2">
             {detail ? (
               <>
-                <span className="font-mono">{detail.orderNumber}</span>
+                <span className="font-mono">{formatOrderCode(detail.orderNumber)}</span>
                 {visual && (
                   <Badge variant="outline" className={cn("text-xs", visual.chip)}>
                     {visual.label}

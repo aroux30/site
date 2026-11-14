@@ -9,10 +9,12 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime
-from typing import Any
+from decimal import Decimal
+from typing import Annotated, Any
 
 from pydantic import (
     BaseModel,
+    BeforeValidator,
     ConfigDict,
     Field,
     ValidationInfo,
@@ -112,6 +114,7 @@ class CategoryResponse(BaseModel):
 
     id: uuid.UUID
     parent_id: uuid.UUID | None = None
+    parent_name: str | None = None
     name: str
     slug: str
     description: str | None = None
@@ -122,6 +125,7 @@ class CategoryResponse(BaseModel):
     is_active: bool = True
     seo_title: str | None = None
     seo_description: str | None = None
+    products_count: int = 0
     created_at: datetime
     updated_at: datetime
 
@@ -267,6 +271,23 @@ class AttributeValueCreate(BaseModel):
     value: str = Field(..., min_length=1, max_length=200)
     slug: str | None = Field(None, max_length=220)
     position: int = Field(0, ge=0)
+    # Swatch payloads (woo-variation-swatches parity): COLOR values carry a
+    # hex, IMAGE values a thumbnail URL, any value an optional tooltip.
+    color: str | None = Field(None, max_length=30, description="Hex like #22c55e")
+    image_url: str | None = Field(None, max_length=500)
+    tooltip: str | None = Field(None, max_length=300)
+
+
+class AttributeValueUpdate(BaseModel):
+    """Schema for updating one attribute value (swatch payloads included)."""
+
+    model_config = ConfigDict(str_strip_whitespace=True)
+
+    value: str | None = Field(None, min_length=1, max_length=200)
+    position: int | None = Field(None, ge=0)
+    color: str | None = Field(None, max_length=30, description="Hex like #22c55e")
+    image_url: str | None = Field(None, max_length=500)
+    tooltip: str | None = Field(None, max_length=300)
 
 
 class AttributeValueResponse(BaseModel):
@@ -279,6 +300,9 @@ class AttributeValueResponse(BaseModel):
     value: str
     slug: str
     position: int = 0
+    color: str | None = None
+    image_url: str | None = None
+    tooltip: str | None = None
 
 
 class AttributeCreate(BaseModel):
@@ -392,19 +416,53 @@ class ImageReorderRequest(BaseModel):
 # ============================================================================
 
 
+def _blank_sku_to_none(v: Any) -> Any:
+    """An empty/blank warehouse code means "no code" (owner directive:
+    «کد انبار اختیاری — بزار باشه»). Clients that submit "" must clear the
+    SKU, not trip a length rule — the DB column is nullable exactly for
+    this, and the service layer already treats a submitted null as "clear".
+    """
+    if isinstance(v, str) and not v.strip():
+        return None
+    return v
+
+
+#: SKU fields accept "" as "clear", mirroring the nullable DB column.
+SkuField = Annotated[str | None, BeforeValidator(_blank_sku_to_none)]
+
+
 class VariantCreate(BaseModel):
     """Schema for creating a product variant.  Prices in Toman."""
 
     model_config = ConfigDict(str_strip_whitespace=True)
 
-    sku: str = Field(..., min_length=1, max_length=100)
+    # Optional: digital goods (subscriptions, codes) have no warehouse code.
+    # When omitted the service auto-generates a unique internal SKU.
+    sku: SkuField = Field(None, max_length=100)
     barcode: str | None = Field(None, max_length=100)
     price: int = Field(..., gt=0, description="Price in Toman")
     compare_at_price: int | None = Field(None, gt=0, description="Original price in Toman")
     cost: int | None = Field(None, gt=0, description="Cost in Toman")
+    # USD-denominated source prices (Nobitex price updater): when set, the
+    # currency sweep derives price/compare_at_price from these. Up to two
+    # decimals; JSON numbers are accepted (pydantic parses to Decimal).
+    usd_price: Decimal | None = Field(
+        None, ge=0, le=Decimal("9999999999.99"), description="Base price in USD"
+    )
+    usd_sale_price: Decimal | None = Field(
+        None, ge=0, le=Decimal("9999999999.99"), description="Sale price in USD"
+    )
     weight: float | None = Field(None, gt=0)
     is_active: bool = True
     position: int = Field(0, ge=0)
+    stock: int | None = Field(None, ge=0, description="Initial stock quantity")
+    # WooCommerce "Low stock threshold" parity: when set, the admin gets a
+    # low-stock alert at this count instead of the store-wide default (5).
+    # None = use the store default.
+    low_stock_threshold: int | None = Field(None, ge=0)
+    # WooCommerce "Allow backorders?" parity: when True, a tracked variant
+    # stays buyable after its stock reaches zero.
+    backorder_allowed: bool | None = None
     attributes: dict[str, Any] | None = Field(
         None, description="Variant-specific attributes as JSON"
     )
@@ -421,13 +479,33 @@ class VariantUpdate(BaseModel):
 
     model_config = ConfigDict(str_strip_whitespace=True)
 
-    sku: str | None = Field(None, min_length=1, max_length=100)
+    # "" normalizes to None = "clear the code" — never a length error.
+    sku: SkuField = Field(None, max_length=100)
     barcode: str | None = Field(None, max_length=100)
     price: int | None = Field(None, gt=0, description="Price in Toman")
     compare_at_price: int | None = Field(
         None, description="Original price in Toman; set 0 to clear"
     )
     cost: int | None = Field(None, description="Cost in Toman; set 0 to clear")
+    # None leaves the USD price untouched; 0 (like compare_at_price) clears it
+    # and takes the variant out of the automatic USD sweep.
+    usd_price: Decimal | None = Field(
+        None, ge=0, le=Decimal("9999999999.99"), description="Base price in USD; set 0 to clear"
+    )
+    usd_sale_price: Decimal | None = Field(
+        None, ge=0, le=Decimal("9999999999.99"), description="Sale price in USD"
+    )
+    # Low-stock alert threshold; None leaves the current value untouched.
+    low_stock_threshold: int | None = Field(None, ge=0)
+    # WooCommerce stock editing: a submitted `stock` re-points the inventory
+    # ledger (track_inventory ON). `original_stock` carries the quantity the
+    # editor was opened with — if the ledger moved since then, the update is
+    # rejected instead of clobbering someone else's change (WooCommerce's
+    # `_original_stock` concurrent-edit guard).
+    stock: int | None = Field(None, ge=0)
+    original_stock: int | None = Field(None, ge=0)
+    # WooCommerce "Allow backorders?" parity; None leaves the value untouched.
+    backorder_allowed: bool | None = None
     weight: float | None = None
     is_active: bool | None = None
     position: int | None = Field(None, ge=0)
@@ -441,11 +519,17 @@ class VariantResponse(BaseModel):
 
     id: uuid.UUID
     product_id: uuid.UUID
-    sku: str
+    # Truly optional (owner directive): null = the product has no code.
+    sku: str | None = None
     barcode: str | None = None
     price: int = Field(description="Price in Toman")
     compare_at_price: int | None = Field(None, description="Original price in Toman")
     cost: int | None = Field(None, description="Cost in Toman")
+    # USD source prices, NOT converted by the Toman validators below — they
+    # are USD, not Rial. A variant with usd_price is managed by the currency
+    # sweep; the admin editor shows these fields for such variants.
+    usd_price: Decimal | None = None
+    usd_sale_price: Decimal | None = None
     weight: float | None = None
     is_active: bool = True
     position: int = 0
@@ -454,6 +538,13 @@ class VariantResponse(BaseModel):
     # count, so the storefront can distinguish "active but out of stock" from
     # "active and in stock" — is_active alone is not an availability signal.
     available: int | None = None
+    # WooCommerce "Low stock threshold" parity; filled by the detail mapper
+    # from the inventory ledger (None = store default in use).
+    low_stock_threshold: int | None = None
+    # Inventory tracking flags for the admin editor's "manage stock" switch;
+    # None = no ledger row was found (availability unknown).
+    track_inventory: bool | None = None
+    backorder_allowed: bool | None = None
     created_at: datetime
     updated_at: datetime
 
@@ -508,6 +599,32 @@ class ProductAttributeResponse(BaseModel):
     attribute_value: str | None = None
 
 
+class VariationAttributeOption(BaseModel):
+    """One selectable swatch inside a variation attribute group."""
+
+    value_id: uuid.UUID
+    value: str
+    slug: str
+    color: str | None = None
+    image_url: str | None = None
+    tooltip: str | None = None
+
+
+class VariationAttributeGroup(BaseModel):
+    """A selectable attribute group for the PDP's swatch selector.
+
+    woo-variation-swatches parity: the PDP renders one swatch row per group —
+    ``type`` decides the swatch style (color circle / image thumbnail / label
+    button) — and the shopper's combination picks the variant.
+    """
+
+    attribute_id: uuid.UUID
+    name: str
+    slug: str
+    type: AttributeType
+    options: list[VariationAttributeOption] = Field(default_factory=list)
+
+
 # ============================================================================
 # Product Schemas
 # ============================================================================
@@ -528,6 +645,9 @@ class ProductCreate(BaseModel):
     status: ProductStatus = ProductStatus.DRAFT
     is_active: bool = True
     is_featured: bool = False
+    # WooCommerce "Stock status" parity: manual availability when stock is
+    # not counted. "onbackorder" is derived at runtime from the ledger.
+    stock_status: str = Field("instock", pattern="^(instock|outofstock)$")
     min_order_quantity: int = Field(1, ge=1, description="Minimum quantity per invoice")
     max_order_quantity: int | None = Field(None, ge=1, description="Maximum quantity per invoice")
     weight: float | None = Field(None, gt=0)
@@ -557,6 +677,11 @@ class ProductUpdate(BaseModel):
     status: ProductStatus | None = None
     is_active: bool | None = None
     is_featured: bool | None = None
+    # WooCommerce "Stock status" parity: manual availability when stock is
+    # not counted. Was missing here entirely — the admin form sent it on
+    # every edit and Pydantic silently dropped it, so flipping a product
+    # between موجود / ناموجود never persisted.
+    stock_status: str | None = Field(None, pattern="^(instock|outofstock)$")
     min_order_quantity: int | None = Field(None, ge=1)
     max_order_quantity: int | None = Field(None, ge=1)
     weight: float | None = None
@@ -570,6 +695,62 @@ class ProductUpdate(BaseModel):
     #: edit always dropped the attributes the editor could not see.
     tag_ids: list[uuid.UUID] | None = None
     attributes: list[ProductAttributeCreate] | None = None
+    #: Variation sync (woo-variation-swatches parity). Omit the field to leave
+    #: variants untouched. Rows WITH ``id`` patch that variant; rows without
+    #: one create a new variant; existing variants absent from the payload are
+    #: soft-retired (is_active=False) instead of deleted — order and cart rows
+    #: reference variants, so a hard delete would break purchase history.
+    variants: list[VariantSyncItem] | None = None
+
+
+class VariantSyncItem(BaseModel):
+    """One variant row in the admin product editor's variation manager.
+
+    Field parity with a simple product's editor (WooCommerce variation-row
+    parity): a variant carries the same commercial knobs the single-product
+    form offers — USD-managed prices (Nobitex sweep), low-stock threshold,
+    backorders — not just price/stock.
+    """
+
+    model_config = ConfigDict(str_strip_whitespace=True)
+
+    id: uuid.UUID | None = None
+    sku: SkuField = Field(None, max_length=100)
+    price: int | None = Field(None, gt=0, description="Price in Toman")
+    compare_at_price: int | None = Field(
+        None, ge=0, description="Original price in Toman; 0 clears"
+    )
+    is_active: bool = True
+    position: int = Field(0, ge=0)
+    # {attribute_slug: value_slug} — how the swatch selector matches options.
+    attributes: dict[str, Any] | None = None
+    # When set, the inventory ledger is (re)pointed at this sellable count.
+    stock: int | None = Field(None, ge=0)
+    # USD source prices (Nobitex sweep), same convention as VariantUpdate:
+    # omitted/None leaves untouched, 0 clears and takes the variant out of
+    # the automatic sweep.
+    usd_price: Decimal | None = Field(
+        None, ge=0, le=Decimal("9999999999.99"), description="Base price in USD"
+    )
+    usd_sale_price: Decimal | None = Field(
+        None, ge=0, le=Decimal("9999999999.99"), description="Sale price in USD"
+    )
+    # Low-stock alert threshold (None = leave untouched; store default in use).
+    low_stock_threshold: int | None = Field(None, ge=0)
+    # Allow backorders: after the count hits zero the variant stays buyable.
+    backorder_allowed: bool | None = None
+    # Manage-stock switch per variant (the simple-product editor's «مدیریت
+    # موجودی»): True = counted stock, False = untracked/unlimited. None leaves
+    # the ledger's current mode untouched.
+    manage_stock: bool | None = None
+    # Physical-goods-only knobs (hidden for digital products by the admin UI,
+    # still accepted here so one payload shape serves both types).
+    barcode: str | None = Field(None, max_length=100)
+    weight: float | None = Field(None, gt=0)
+    # Per-option gallery image (Woo variation-image parity): a URL upserts the
+    # variant-scoped primary image; an empty string clears it; omitted leaves
+    # the images untouched.
+    image_url: str | None = Field(None, max_length=500)
 
 
 class ProductBulkUpdateItem(BaseModel):
@@ -603,18 +784,32 @@ class ProductResponse(BaseModel):
     name: str
     slug: str
     category_id: uuid.UUID
+    category_name: str | None = None
+    category_slug: str | None = None
     brand_id: uuid.UUID | None = None
     short_description: str | None = None
     product_type: ProductType
     status: ProductStatus
     is_active: bool = True
     is_featured: bool = False
+    # WooCommerce "Stock status" parity — the admin table's "وضعیت موجودی"
+    # column and the storefront availability read this for untracked products
+    # (whose ledger stock is None = unlimited). Omitted, the list answered
+    # null and the table flagged every manually-available product ناموجود.
+    stock_status: str = "instock"
     min_order_quantity: int = 1
     max_order_quantity: int | None = None
     primary_image_url: str | None = None
     min_price: int | None = Field(None, description="Lowest variant price in Toman")
     max_price: int | None = Field(None, description="Highest variant price in Toman")
     variant_count: int = 0
+    # Real stock of the product's first active variant, populated by the list
+    # mapper from the inventory ledger. Without it the admin table showed
+    # EVERY product as out of stock (the field it read was always null).
+    stock: int | None = None
+    # The variant's low-stock threshold — so the admin badge "رو به اتمام"
+    # uses the SAME threshold as the low-stock banner/filter, not a hardcode.
+    low_stock_threshold: int | None = None
     created_at: datetime
     updated_at: datetime
 
@@ -642,6 +837,8 @@ class ProductDetailResponse(BaseModel):
     status: ProductStatus
     is_active: bool = True
     is_featured: bool = False
+    # WooCommerce "Stock status" parity (see ProductCreate).
+    stock_status: str = "instock"
     min_order_quantity: int = 1
     max_order_quantity: int | None = None
     weight: float | None = None
@@ -670,6 +867,12 @@ class ProductDetailResponse(BaseModel):
     images: list[ProductImageResponse] = Field(default_factory=list)
     tags: list[TagResponse] = Field(default_factory=list)
     product_attributes: list[ProductAttributeResponse] = Field(default_factory=list)
+    # Selectable swatch groups for the PDP (woo-variation-swatches parity):
+    # one entry per attribute the product varies on, with the display type
+    # and each option's swatch payload. Empty for simple products.
+    variation_attributes: list[VariationAttributeGroup] = Field(
+        default_factory=list
+    )
 
 
 # ============================================================================

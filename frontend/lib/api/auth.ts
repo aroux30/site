@@ -14,7 +14,6 @@ export interface AuthSession {
 export interface SecurityStatus {
   has_password: boolean;
   totp_enabled: boolean;
-  passkey_count: number;
   active_sessions: number;
   last_password_change?: string;
 }

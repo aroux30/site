@@ -1,4 +1,5 @@
 import apiClient from "./client";
+import type { PageAST, PageTemplate } from "@/types/builder";
 
 // --- Types ---
 
@@ -46,6 +47,7 @@ export interface CmsPage {
   title: string;
   slug: string;
   body_html: string;
+  builder_data?: PageAST | null;
   excerpt: string | null;
   status: CmsPageStatus;
   published_at: string | null;
@@ -85,6 +87,7 @@ export interface CmsPageRevision {
   title: string;
   slug: string;
   status: string;
+  builder_data?: PageAST | null;
   created_at: string;
 }
 
@@ -92,6 +95,7 @@ export interface CmsPageInput {
   title: string;
   slug?: string;
   body_html?: string;
+  builder_data?: PageAST | null;
   excerpt?: string | null;
   status?: CmsPageStatus;
   seo_title?: string | null;
@@ -268,6 +272,49 @@ export const cmsPagesAdminApi = {
       { ids },
     );
     return res.data;
+  },
+};
+
+export const pageTemplatesAdminApi = {
+  list: async (templateType?: "page" | "section"): Promise<PageTemplate[]> => {
+    const res = await apiClient.get<PageTemplate[]>("/content/admin/templates", {
+      params: templateType ? { template_type: templateType } : undefined,
+    });
+    return Array.isArray(res.data) ? res.data : [];
+  },
+
+  get: async (id: string): Promise<PageTemplate> => {
+    const res = await apiClient.get<PageTemplate>(`/content/admin/templates/${id}`);
+    return res.data;
+  },
+
+  create: async (data: {
+    title: string;
+    slug?: string;
+    template_type: "page" | "section";
+    builder_data: PageAST;
+    thumbnail_url?: string | null;
+  }): Promise<PageTemplate> => {
+    const res = await apiClient.post<PageTemplate>("/content/admin/templates", data);
+    return res.data;
+  },
+
+  update: async (
+    id: string,
+    data: Partial<{
+      title: string;
+      slug: string;
+      template_type: "page" | "section";
+      builder_data: PageAST;
+      thumbnail_url: string | null;
+    }>,
+  ): Promise<PageTemplate> => {
+    const res = await apiClient.patch<PageTemplate>(`/content/admin/templates/${id}`, data);
+    return res.data;
+  },
+
+  delete: async (id: string): Promise<void> => {
+    await apiClient.delete(`/content/admin/templates/${id}`);
   },
 };
 

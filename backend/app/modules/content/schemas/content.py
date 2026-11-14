@@ -5,7 +5,7 @@ from __future__ import annotations
 import re
 import uuid
 from datetime import datetime
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -175,6 +175,8 @@ class CmsPageCreateRequest(BaseModel):
     # Whether readers may comment on this page. Off by default: a page is a
     # static document until its editor opts in.
     allow_comments: bool = False
+    # Visual Page Builder AST (Phase P0)
+    builder_data: dict[str, Any] | None = None
 
 
 class CmsPageUpdateRequest(BaseModel):
@@ -202,6 +204,8 @@ class CmsPageUpdateRequest(BaseModel):
     # server-owned truth: without it in the update schema, the admin toggle
     # would send the field and Pydantic would drop it silently.
     allow_comments: bool | None = None
+    # Visual Page Builder AST (Phase P0)
+    builder_data: dict[str, Any] | None = None
 
 
 class CmsPageRevisionResponse(BaseModel):
@@ -213,6 +217,7 @@ class CmsPageRevisionResponse(BaseModel):
     title: str
     slug: str
     status: str
+    builder_data: dict[str, Any] | None = None
     created_at: datetime
 
 
@@ -223,6 +228,7 @@ class CmsPageResponse(BaseModel):
     title: str
     slug: str
     body_html: str
+    builder_data: dict[str, Any] | None = None
     excerpt: str | None = None
     status: PageStatus
     published_at: datetime | None = None
@@ -535,3 +541,37 @@ class SitemapEntriesResponse(BaseModel):
     news: list[SitemapNewsRow] = []
     videos: list[SitemapVideoRow] = []
     xml_fragment: str = ""
+
+
+# ── Page Template Schemas (Phase P0) ─────────────────────────────────────────
+
+
+class PageTemplateCreateRequest(BaseModel):
+    title: str = Field(..., min_length=1, max_length=200)
+    slug: str | None = Field(None, min_length=1, max_length=220)
+    template_type: Literal["page", "section"] = "page"
+    builder_data: dict[str, Any]
+    thumbnail_url: str | None = Field(None, max_length=500)
+
+
+class PageTemplateUpdateRequest(BaseModel):
+    title: str | None = Field(None, min_length=1, max_length=200)
+    slug: str | None = Field(None, min_length=1, max_length=220)
+    template_type: Literal["page", "section"] | None = None
+    builder_data: dict[str, Any] | None = None
+    thumbnail_url: str | None = Field(None, max_length=500)
+
+
+class PageTemplateResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: uuid.UUID
+    title: str
+    slug: str
+    template_type: str
+    builder_data: dict[str, Any]
+    thumbnail_url: str | None = None
+    author_id: uuid.UUID | None = None
+    created_at: datetime
+    updated_at: datetime
+

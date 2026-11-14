@@ -39,6 +39,9 @@ from app.modules.content.schemas.content import (
     MenuItemCreateRequest,
     MenuItemResponse,
     MenuItemUpdateRequest,
+    PageTemplateCreateRequest,
+    PageTemplateResponse,
+    PageTemplateUpdateRequest,
     PublicPageSummary,
     PublicPageSummaryList,
     ReusableBlockCreateRequest,
@@ -768,6 +771,79 @@ async def admin_diff_page_revisions(
     from app.modules.content.application import revision_diff_service
 
     return await revision_diff_service.diff_page_revisions(db, page_id, rev_a, rev_b)
+
+
+# ── Page Templates Endpoints (Visual Page Builder Phase P0) ─────────────────
+
+
+@router.get(
+    "/admin/templates",
+    response_model=list[PageTemplateResponse],
+    summary="List visual page and section templates (admin)",
+    dependencies=[_require_content_write],
+)
+async def admin_list_page_templates(
+    template_type: str | None = Query(None, description="'page' or 'section'"),
+    db: AsyncSession = Depends(get_db),
+) -> list[PageTemplateResponse]:
+    return await cms_page_service.list_templates(db, template_type=template_type)
+
+
+@router.get(
+    "/admin/templates/{template_id}",
+    response_model=PageTemplateResponse,
+    summary="Get visual template by id (admin)",
+    dependencies=[_require_content_write],
+)
+async def admin_get_page_template(
+    template_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+) -> PageTemplateResponse:
+    return await cms_page_service.get_template(db, template_id)
+
+
+@router.post(
+    "/admin/templates",
+    response_model=PageTemplateResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Save a design as reusable visual template (admin)",
+    dependencies=[_require_content_write],
+)
+async def admin_create_page_template(
+    body: PageTemplateCreateRequest,
+    db: AsyncSession = Depends(get_db),
+    current_user: dict[str, Any] = Depends(get_current_user),
+) -> PageTemplateResponse:
+    author_id = _actor_id(current_user)
+    return await cms_page_service.create_template(db, body, author_id=author_id)
+
+
+@router.patch(
+    "/admin/templates/{template_id}",
+    response_model=PageTemplateResponse,
+    summary="Update visual template (admin)",
+    dependencies=[_require_content_write],
+)
+async def admin_update_page_template(
+    template_id: uuid.UUID,
+    body: PageTemplateUpdateRequest,
+    db: AsyncSession = Depends(get_db),
+) -> PageTemplateResponse:
+    return await cms_page_service.update_template(db, template_id, body)
+
+
+@router.delete(
+    "/admin/templates/{template_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Delete visual template (admin)",
+    dependencies=[_require_content_write],
+)
+async def admin_delete_page_template(
+    template_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+) -> Response:
+    await cms_page_service.delete_template(db, template_id)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 # ── Block patterns (code-registered section templates, WordPress parity) ────

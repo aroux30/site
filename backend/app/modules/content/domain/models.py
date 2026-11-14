@@ -258,6 +258,8 @@ class CmsPage(BaseModel):
     )
     # Page template selection (e.g. "full-width", "sidebar", "landing")
     page_template: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    # Visual Page Builder AST (P0)
+    builder_data: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True)
 
     revisions: Mapped[list[CmsPageRevision]] = relationship(
         "CmsPageRevision",
@@ -296,6 +298,8 @@ class CmsPageRevision(BaseModel):
     # Carried in the snapshot so a revision restore brings the focus keyword
     # back with the rest of the SEO fields (see seokw2).
     focus_keyword: Mapped[str | None] = mapped_column(Text, nullable=True)
+    # Visual Page Builder AST snapshot (P0)
+    builder_data: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True)
     created_by: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("users.id", ondelete="SET NULL"),
@@ -306,3 +310,27 @@ class CmsPageRevision(BaseModel):
 
     def __repr__(self) -> str:
         return f"<CmsPageRevision(page_id={self.page_id}, rev={self.revision_number})>"
+
+
+class PageTemplate(BaseModel):
+    """Reusable visual page or section template."""
+
+    __tablename__ = "page_templates"
+    __table_args__ = (
+        Index("ix_page_templates_template_type", "template_type"),
+        Index("ix_page_templates_created_at", "created_at"),
+    )
+
+    title: Mapped[str] = mapped_column(String(200), nullable=False)
+    slug: Mapped[str] = mapped_column(String(220), unique=True, nullable=False)
+    template_type: Mapped[str] = mapped_column(String(50), nullable=False)  # "page" | "section"
+    builder_data: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False)
+    thumbnail_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    author_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("users.id", ondelete="SET NULL"),
+        nullable=True,
+    )
+
+    def __repr__(self) -> str:
+        return f"<PageTemplate(title={self.title}, type={self.template_type})>"

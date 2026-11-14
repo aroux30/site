@@ -14,7 +14,7 @@ from typing import TYPE_CHECKING, Any
 
 import structlog
 from fastapi import HTTPException
-from sqlalchemy import func, select
+from sqlalchemy import delete, func, select
 from sqlalchemy.orm import selectinload
 
 from app.core.exceptions.handlers import NotFoundError, ValidationError
@@ -27,6 +27,7 @@ from app.modules.content.domain.models import (
     CmsPage,
     CmsPageRevision,
     PageStatus,
+    PageTemplate,
     PageVisibility,
 )
 from app.modules.content.schemas.content import (
@@ -36,6 +37,9 @@ from app.modules.content.schemas.content import (
     CmsPageResponse,
     CmsPageRevisionResponse,
     CmsPageUpdateRequest,
+    PageTemplateCreateRequest,
+    PageTemplateResponse,
+    PageTemplateUpdateRequest,
 )
 from app.shared.content.html_sanitizer import sanitize_html
 from app.shared.domain.slug import generate_slug
@@ -75,6 +79,24 @@ def _status_value(status: Any) -> str:
     return status.value if isinstance(status, PageStatus) else str(status)
 
 
+async def _prune_revisions(
+    db: AsyncSession, page_id: uuid.UUID, *, max_revisions: int = 20
+) -> None:
+    """Retain only the most recent N revisions of a page."""
+    stmt = (
+        select(CmsPageRevision.id)
+        .where(CmsPageRevision.page_id == page_id)
+        .order_by(CmsPageRevision.revision_number.desc())
+        .offset(max_revisions)
+    )
+    res = await db.execute(stmt)
+    old_ids = res.scalars().all()
+    if old_ids:
+        await db.execute(
+            delete(CmsPageRevision).where(CmsPageRevision.id.in_(old_ids))
+        )
+
+
 def _snapshot(page: CmsPage, *, created_by: uuid.UUID | None) -> CmsPageRevision:
     """Build an immutable revision row from the page's current state."""
     return CmsPageRevision(
@@ -83,6 +105,7 @@ def _snapshot(page: CmsPage, *, created_by: uuid.UUID | None) -> CmsPageRevision
         title=page.title,
         slug=page.slug,
         body_html=page.body_html,
+        builder_data=page.builder_data,
         excerpt=page.excerpt,
         status=_status_value(page.status),
         seo_title=page.seo_title,
@@ -444,10 +467,22 @@ async def create_page(
     if data.status == PageStatus.PUBLISHED:
         published_at = datetime.now(UTC)
 
+    builder_data_dict: dict[str, Any] | None = None
+    if data.builder_data:
+        from app.modules.content.application.ast_compiler import ASTCompiler
+        from app.modules.content.domain.builder_validation import validate_page_ast
+
+        validated_ast = validate_page_ast(data.builder_data)
+        builder_data_dict = validated_ast.model_dump()
+        body_html = ASTCompiler.compile(validated_ast)
+    else:
+        body_html = sanitize_html(data.body_html)
+
     page = CmsPage(
         title=data.title.strip(),
         slug=slug,
-        body_html=sanitize_html(data.body_html),
+        body_html=body_html,
+        builder_data=builder_data_dict,
         excerpt=data.excerpt,
         status=data.status,
         seo_title=data.seo_title,
@@ -546,7 +581,7 @@ async def update_page(
             update_dict.setdefault("scheduled_unpublish_at", None)
 
     content_fields = {
-        "title", "body_html", "excerpt", "seo_title", "seo_description",
+        "title", "body_html", "builder_data", "excerpt", "seo_title", "seo_description",
         "focus_keyword", "slug",
     }
     is_content_edit = any(
@@ -554,11 +589,18 @@ async def update_page(
         for field in content_fields
     )
 
-    # Sanitise before anything is written, and before the revision snapshot is
-    # taken, so neither the live row nor the revision history can hold a
-    # payload. The browser's DOMPurify pass is not this boundary: the API
-    # accepts the same field directly.
-    if "body_html" in update_dict and update_dict["body_html"]:
+    # Process Visual Page Builder AST or direct HTML
+    if "builder_data" in update_dict:
+        if update_dict["builder_data"] is not None:
+            from app.modules.content.application.ast_compiler import ASTCompiler
+            from app.modules.content.domain.builder_validation import validate_page_ast
+
+            validated_ast = validate_page_ast(update_dict["builder_data"])
+            update_dict["builder_data"] = validated_ast.model_dump()
+            update_dict["body_html"] = ASTCompiler.compile(validated_ast)
+        else:
+            update_dict["builder_data"] = None
+    elif "body_html" in update_dict and update_dict["body_html"]:
         update_dict["body_html"] = sanitize_html(update_dict["body_html"])
 
     for key, value in update_dict.items():
@@ -568,6 +610,8 @@ async def update_page(
         page.revision_number = (page.revision_number or 1) + 1
         await db.flush()
         db.add(_snapshot(page, created_by=editor_id))
+        await db.flush()
+        await _prune_revisions(db, page.id, max_revisions=20)
 
     if page.slug != previous_slug:
         await record_slug_change(
@@ -863,6 +907,7 @@ async def restore_revision(
 
     page.title = revision.title
     page.body_html = revision.body_html
+    page.builder_data = revision.builder_data
     page.excerpt = revision.excerpt
     page.seo_title = revision.seo_title
     page.seo_description = revision.seo_description
@@ -871,6 +916,7 @@ async def restore_revision(
     await db.flush()
     db.add(_snapshot(page, created_by=editor_id))
     await db.flush()
+    await _prune_revisions(db, page.id, max_revisions=20)
 
     logger.info(
         "cms_page_restored",
@@ -1017,3 +1063,91 @@ async def list_published_page_summaries(
     )
     stmt = stmt.order_by(CmsPage.slug)
     return list((await db.execute(stmt)).scalars().all())
+
+
+# ── Page Template Management (Phase P0) ──────────────────────────────────────
+
+
+async def list_templates(
+    db: AsyncSession,
+    *,
+    template_type: str | None = None,
+) -> list[PageTemplateResponse]:
+    stmt = select(PageTemplate).order_by(PageTemplate.created_at.desc())
+    if template_type:
+        stmt = stmt.where(PageTemplate.template_type == template_type)
+    templates = (await db.execute(stmt)).scalars().all()
+    return [PageTemplateResponse.model_validate(t) for t in templates]
+
+
+async def get_template(
+    db: AsyncSession,
+    template_id: uuid.UUID,
+) -> PageTemplateResponse:
+    template = await db.get(PageTemplate, template_id)
+    if not template:
+        raise NotFoundError("PageTemplate", f"Template {template_id} not found")
+    return PageTemplateResponse.model_validate(template)
+
+
+async def create_template(
+    db: AsyncSession,
+    data: PageTemplateCreateRequest,
+    *,
+    author_id: uuid.UUID | None = None,
+) -> PageTemplateResponse:
+    from app.modules.content.domain.builder_validation import validate_page_ast
+
+    validated_ast = validate_page_ast(data.builder_data)
+    slug = (data.slug or "").strip() or generate_slug(data.title)
+
+    stmt = select(func.count(PageTemplate.id)).where(PageTemplate.slug == slug)
+    if (await db.execute(stmt)).scalar_one() > 0:
+        slug = f"{slug}-{uuid.uuid4().hex[:6]}"
+
+    template = PageTemplate(
+        title=data.title.strip(),
+        slug=slug,
+        template_type=data.template_type,
+        builder_data=validated_ast.model_dump(),
+        thumbnail_url=data.thumbnail_url,
+        author_id=author_id,
+    )
+    db.add(template)
+    await db.flush()
+    return PageTemplateResponse.model_validate(template)
+
+
+async def update_template(
+    db: AsyncSession,
+    template_id: uuid.UUID,
+    data: PageTemplateUpdateRequest,
+) -> PageTemplateResponse:
+    template = await db.get(PageTemplate, template_id)
+    if not template:
+        raise NotFoundError("PageTemplate", f"Template {template_id} not found")
+
+    update_dict = data.model_dump(exclude_unset=True)
+    if "builder_data" in update_dict and update_dict["builder_data"]:
+        from app.modules.content.domain.builder_validation import validate_page_ast
+
+        validated_ast = validate_page_ast(update_dict["builder_data"])
+        update_dict["builder_data"] = validated_ast.model_dump()
+
+    for k, v in update_dict.items():
+        setattr(template, k, v)
+
+    await db.flush()
+    return PageTemplateResponse.model_validate(template)
+
+
+async def delete_template(
+    db: AsyncSession,
+    template_id: uuid.UUID,
+) -> None:
+    template = await db.get(PageTemplate, template_id)
+    if not template:
+        raise NotFoundError("PageTemplate", f"Template {template_id} not found")
+    await db.delete(template)
+    await db.flush()
+

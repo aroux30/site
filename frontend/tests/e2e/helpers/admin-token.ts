@@ -77,7 +77,7 @@ asyncio.run(main())
  * the tests become order-dependent: a draft save unpublishes the page and the
  * next test's `goto` 404s. Every test starts from this fixture instead.
  */
-export async function resetE2EPage(slug = "showcase"): Promise<void> {
+export async function resetE2EPage(slug = "e2e-isolated-scratchpad"): Promise<void> {
   const token = await createAccessTokenForE2E();
   const apiBase = process.env.API_INTERNAL_URL ?? "http://localhost:8000/api/v1";
 
@@ -85,12 +85,11 @@ export async function resetE2EPage(slug = "showcase"): Promise<void> {
     headers: { Authorization: `Bearer ${token}` },
   });
   const list = (await listRes.json()) as { items: Array<{ id: string; slug: string }> };
-  const page = list.items.find((p) => p.slug === slug);
-  if (!page) throw new Error(`E2E page '${slug}' not found`);
+  let page = list.items.find((p) => p.slug === slug);
 
   const fixture = {
     schemaVersion: 1,
-    title: "E2E Builder Page",
+    title: "E2E Builder Scratchpad",
     slug,
     globalStyles: {},
     rootElements: [
@@ -156,16 +155,37 @@ export async function resetE2EPage(slug = "showcase"): Promise<void> {
     ],
   };
 
-  const res = await fetchWithRetry(`${apiBase}/content/admin/pages/${page.id}`, {
-    method: "PATCH",
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ builder_data: fixture, status: "published" }),
-  });
-  if (!res.ok) {
-    throw new Error(`E2E fixture reset failed: ${res.status} ${(await res.text()).slice(0, 200)}`);
+  if (!page) {
+    // Self-healing: create the isolated test scratchpad if it doesn't exist
+    const createRes = await fetchWithRetry(`${apiBase}/content/admin/pages`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        title: "E2E Builder Scratchpad",
+        slug,
+        builder_data: fixture,
+        status: "published",
+      }),
+    });
+    if (!createRes.ok) {
+      throw new Error(`E2E scratchpad creation failed: ${createRes.status}`);
+    }
+    page = (await createRes.json()) as { id: string; slug: string };
+  } else {
+    const res = await fetchWithRetry(`${apiBase}/content/admin/pages/${page.id}`, {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ builder_data: fixture, status: "published" }),
+    });
+    if (!res.ok) {
+      throw new Error(`E2E fixture reset failed: ${res.status} ${(await res.text()).slice(0, 200)}`);
+    }
   }
   // Drop the cached render so the next goto shows the fixture.
   const baseUrl = process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:3000";

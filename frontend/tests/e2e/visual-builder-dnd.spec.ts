@@ -9,21 +9,20 @@ import { createAccessTokenForE2E, resetE2EPage } from "./helpers/admin-token";
  * lives in an iframe with its own React root, so every locator goes through
  * `frameLocator`.
  *
- * The suite needs a CMS page that HAS builder_data (`showcase`). It mints an
- * admin token with the backend's own signer rather than typing a password
- * that is not in the repo.
+ * The suite uses an isolated test scratchpad page (`e2e-isolated-scratchpad`)
+ * so it never mutates or overwrites the real showcase or other CMS pages.
  */
 
 const CANVAS = 'iframe[title="Visual Builder Canvas"]';
 const BASE_URL = process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:3000";
 
 async function openStudio(page: Page): Promise<FrameLocator> {
-  await resetE2EPage("showcase");
+  await resetE2EPage("e2e-isolated-scratchpad");
   const token = await createAccessTokenForE2E();
   await page.context().addCookies([
     { name: "access_token", value: token, url: BASE_URL, httpOnly: false, sameSite: "Lax" },
   ]);
-  await page.goto("/showcase?visual_editor=true");
+  await page.goto("/e2e-isolated-scratchpad?visual_editor=true");
   await expect(page.getByRole("button", { name: "افزودن بلوک" })).toBeVisible({
     timeout: 30_000,
   });
@@ -192,7 +191,7 @@ test.describe("Visual Builder Studio — drag & drop", () => {
       { timeout: 20_000 }
     );
     // Restore publication for the next test (this flow saves as a draft).
-    await resetE2EPage("showcase");
+    await resetE2EPage("e2e-isolated-scratchpad");
   });
 
   test("autosaves 1.5s after an edit", async ({ page }) => {
@@ -233,7 +232,7 @@ test.describe("Visual Builder Studio — drag & drop", () => {
   });
 
   test("a non-admin never reaches the studio", async ({ page }) => {
-    await page.goto("/showcase?visual_editor=true");
+    await page.goto("/e2e-isolated-scratchpad?visual_editor=true");
     await expect(page.getByRole("button", { name: "افزودن بلوک" })).toHaveCount(0);
     await expect(page.locator(CANVAS)).toHaveCount(0);
   });

@@ -1,3 +1,14 @@
+async function fetchWithRetry(url: string, init?: RequestInit, retries = 3): Promise<Response> {
+  for (let i = 0; i < retries; i++) {
+    try {
+      return await fetch(url, init);
+    } catch (e: any) {
+      if (i === retries - 1) throw e;
+      await new Promise((r) => setTimeout(r, 250 * (i + 1)));
+    }
+  }
+  throw new Error(`fetch failed: ${url}`);
+}
 /**
  * Mint a short-lived admin access token for E2E runs.
  *
@@ -70,7 +81,7 @@ export async function resetE2EPage(slug = "showcase"): Promise<void> {
   const token = await createAccessTokenForE2E();
   const apiBase = process.env.API_INTERNAL_URL ?? "http://localhost:8000/api/v1";
 
-  const listRes = await fetch(`${apiBase}/content/admin/pages?page_size=100`, {
+  const listRes = await fetchWithRetry(`${apiBase}/content/admin/pages?page_size=100`, {
     headers: { Authorization: `Bearer ${token}` },
   });
   const list = (await listRes.json()) as { items: Array<{ id: string; slug: string }> };
@@ -145,7 +156,7 @@ export async function resetE2EPage(slug = "showcase"): Promise<void> {
     ],
   };
 
-  const res = await fetch(`${apiBase}/content/admin/pages/${page.id}`, {
+  const res = await fetchWithRetry(`${apiBase}/content/admin/pages/${page.id}`, {
     method: "PATCH",
     headers: {
       Authorization: `Bearer ${token}`,
@@ -157,8 +168,9 @@ export async function resetE2EPage(slug = "showcase"): Promise<void> {
     throw new Error(`E2E fixture reset failed: ${res.status} ${(await res.text()).slice(0, 200)}`);
   }
   // Drop the cached render so the next goto shows the fixture.
+  const baseUrl = process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:3000";
   try {
-    await fetch(`http://localhost:3150/api/cms-revalidate?slug=${slug}`, { method: "POST" });
+    await fetchWithRetry(`${baseUrl}/api/cms-revalidate?slug=${slug}`, { method: "POST" });
   } catch {
     /* the dev server may be on another port; ISR will catch up */
   }

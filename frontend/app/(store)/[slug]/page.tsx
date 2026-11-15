@@ -1,3 +1,4 @@
+import { pageTag } from "@/lib/builder/page-tag";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { cookies } from "next/headers";
@@ -45,9 +46,7 @@ interface CmsPage {
  * so a reload right after a save shows the new tree rather than the copy
  * cached up to 300s ago — which read as "the save did nothing".
  */
-export function pageTag(slug: string): string {
-  return `cms-page:${slug}`;
-}
+
 
 async function fetchPage(slug: string): Promise<CmsPage | null> {
   try {

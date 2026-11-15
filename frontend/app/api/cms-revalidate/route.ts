@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { revalidateTag } from "next/cache";
-import { pageTag } from "@/app/(store)/[slug]/page";
+import { pageTag } from "@/lib/builder/page-tag";
 
 /**
  * Invalidate one CMS page's cached render.

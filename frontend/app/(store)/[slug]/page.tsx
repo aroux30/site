@@ -62,6 +62,31 @@ async function fetchPage(slug: string): Promise<CmsPage | null> {
   }
 }
 
+/**
+ * The page as an editor sees it, including a draft.
+ *
+ * The public endpoint only serves published pages, so an editor who saved a
+ * draft was locked out of their own page: the editor URL 404'd and the only
+ * way back was to publish. This hits the admin endpoint with the caller's
+ * own token and returns null for anyone who is not allowed to see it.
+ */
+async function fetchPageForEditor(
+  slug: string,
+  token: string | undefined
+): Promise<CmsPage | null> {
+  if (!token) return null;
+  try {
+    const res = await fetch(
+      `${API_BASE}/content/admin/pages/by-slug/${encodeURIComponent(slug)}`,
+      { headers: { Authorization: `Bearer ${token}` }, cache: "no-store" }
+    );
+    if (!res.ok) return null;
+    return (await res.json()) as CmsPage;
+  } catch {
+    return null;
+  }
+}
+
 // Next 15 hands route params to the page as a Promise; reading `.slug` off the
 // raw object is a deprecation that logs an error per request and will stop
 // working. The other dynamic routes (blog/[slug], tickets/[id], …) already
@@ -128,21 +153,35 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function CmsPageRoute({ params, searchParams }: Props) {
   const { slug } = await params;
   const search = searchParams ? await searchParams : undefined;
-  const page = await fetchPage(slug);
-  if (!page) notFound();
 
   const isEditRequested =
     search?.visual_editor === "true" || search?.edit === "true";
 
+  let authToken: string | undefined;
+  if (isEditRequested) {
+    try {
+      const cookieStore = await cookies();
+      authToken =
+        cookieStore.get("access_token")?.value ||
+        cookieStore.get("refresh_token")?.value;
+    } catch {
+      authToken = undefined;
+    }
+  }
+
+  // An editor must be able to open their own draft. Try the admin view first
+  // when the editor was requested, and fall back to the public one so a
+  // signed-out visitor still gets the normal page (or a 404 for a draft).
+  const page =
+    (isEditRequested ? await fetchPageForEditor(slug, authToken) : null) ??
+    (await fetchPage(slug));
+  if (!page) notFound();
+
   if (isEditRequested) {
     let isAdmin = false;
     try {
-      const cookieStore = await cookies();
-      const token =
-        cookieStore.get("access_token")?.value ||
-        cookieStore.get("refresh_token")?.value;
-      if (token) {
-        const payload = decodeJwt(token);
+      if (authToken) {
+        const payload = decodeJwt(authToken);
         const roles: string[] = Array.isArray(payload.roles)
           ? (payload.roles as string[])
           : typeof payload.role === "string"

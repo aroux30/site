@@ -17,6 +17,7 @@ from sqlalchemy import (
     Index,
     Integer,
     String,
+    Text,
     UniqueConstraint,
     text,
 )
@@ -43,13 +44,14 @@ class SiteTheme(BaseModel):
 
     name: Mapped[str] = mapped_column(String(150), nullable=False)
     slug: Mapped[str] = mapped_column(String(180), unique=True, nullable=False)
-    description: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    description: Mapped[str | None] = mapped_column(Text, nullable=True)
     is_active: Mapped[bool] = mapped_column(
         Boolean, default=False, nullable=False, server_default=text("false")
     )
-    # DTCG design tokens payload: { "color": { "primary": { "$value": "#...", "$type": "color" } } }
     tokens: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False)
-    author_id: Mapped[uuid.UUID | None] = mapped_column(
+    density_config: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True)
+    version: Mapped[int | None] = mapped_column(Integer, default=1, server_default=text("1"), nullable=True)
+    created_by: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("users.id", ondelete="SET NULL"),
         nullable=True,
@@ -59,19 +61,26 @@ class SiteTheme(BaseModel):
         "ThemeRevision",
         back_populates="theme",
         cascade="all, delete-orphan",
-        order_by="ThemeRevision.revision_number.desc()",
+        order_by="ThemeRevision.created_at.desc()",
     )
+
+    @property
+    def author_id(self) -> uuid.UUID | None:
+        return self.created_by
+
+    @author_id.setter
+    def author_id(self, val: uuid.UUID | None) -> None:
+        self.created_by = val
 
     def __repr__(self) -> str:
         return f"<SiteTheme(slug={self.slug}, active={self.is_active})>"
 
 
 class ThemeRevision(BaseModel):
-    """Immutable snapshot of a site theme tokens at a specific revision number."""
+    """Immutable snapshot of site theme tokens at a specific revision number."""
 
     __tablename__ = "theme_revisions"
     __table_args__ = (
-        UniqueConstraint("theme_id", "revision_number", name="uq_theme_revisions_theme_rev"),
         Index("ix_theme_revisions_theme_id", "theme_id"),
     )
 
@@ -80,9 +89,11 @@ class ThemeRevision(BaseModel):
         ForeignKey("site_themes.id", ondelete="CASCADE"),
         nullable=False,
     )
-    revision_number: Mapped[int] = mapped_column(Integer, nullable=False)
     name: Mapped[str] = mapped_column(String(150), nullable=False)
+    version: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
+    change_summary: Mapped[str | None] = mapped_column(String(255), nullable=True)
     tokens: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False)
+    density_config: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True)
     created_by: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("users.id", ondelete="SET NULL"),
@@ -91,5 +102,13 @@ class ThemeRevision(BaseModel):
 
     theme: Mapped[SiteTheme] = relationship("SiteTheme", back_populates="revisions")
 
+    @property
+    def revision_number(self) -> int:
+        return self.version
+
+    @revision_number.setter
+    def revision_number(self, val: int) -> None:
+        self.version = val
+
     def __repr__(self) -> str:
-        return f"<ThemeRevision(theme_id={self.theme_id}, rev={self.revision_number})>"
+        return f"<ThemeRevision(theme_id={self.theme_id}, rev={self.version})>"

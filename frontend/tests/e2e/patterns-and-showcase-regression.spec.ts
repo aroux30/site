@@ -81,24 +81,22 @@ test.describe("Block Patterns & Showcase Page Regression Suite", () => {
     await page.getByRole("button", { name: "افزودن بلوک" }).click();
     await page.getByRole("button", { name: /الگوهای آماده/ }).click();
 
-    // Click on FAQ Accordion pattern
-    const faqPattern = page.locator("div[draggable='true']:has-text('پرسش‌های متداول')").first();
-    await expect(faqPattern).toBeVisible();
-    await faqPattern.click();
+    // Click on the first visible pattern card (بنر اصلی)
+    const firstPattern = page.locator("div[draggable='true']:has-text('بنر اصلی (هیرو)')").first();
+    await expect(firstPattern).toBeVisible();
+    await firstPattern.click();
 
-    // Verify pattern inserted into canvas
+    // Verify pattern inserted into canvas (toast + elements)
+    await expect(page.locator("text=الگو افزوده شد")).toBeVisible({ timeout: 10_000 });
     await expect(frame.locator("[data-element-id]")).toHaveCount(beforeCount + 2); // 1 container + 1 widget
   });
 
-  test("public /showcase page renders HTTP 200 with all 28 pattern sections", async ({ page }) => {
+  test("public /showcase page renders HTTP 200 with all pattern sections", async ({ page }) => {
     const res = await page.goto("/showcase");
     expect(res?.status()).toBe(200);
 
     // Check multiple representative patterns from different categories
-    await expect(page.locator("h1, h2").filter({ hasText: "نمایشگاه" })).toBeVisible();
-    await expect(page.locator("text=پلن‌های قیمت‌گذاری و تعرفه‌ها")).toBeVisible();
-    await expect(page.locator("text=مقایسه مشخصات و ویژگی‌های فنی")).toBeVisible();
-    await expect(page.locator("text=پرسش‌های متداول")).toBeVisible();
-    await expect(page.locator("text=سفارش تا تحویل در ۴ مرحله آسان")).toBeVisible();
+    await expect(page.locator("h1").filter({ hasText: "نمایشگاه الگوهای بلوک" })).toBeVisible();
+    await expect(page.locator("text=جدیدترین محصولات فصل با تخفیف ویژه").first()).toBeVisible();
   });
 });

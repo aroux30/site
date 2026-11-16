@@ -8,9 +8,11 @@ import {
   Lock,
   EyeOff,
   Plus,
+  BookmarkPlus,
 } from "lucide-react";
+import { SaveTemplateDialog } from "./save-template-dialog";
 import { cn } from "@/lib/utils";
-import { useBuilderStore, findElementAndParent, type Breakpoint } from "@/stores/builder-store";
+import { useBuilderStore, findElementAndParent, cloneElementWithNewIds, type Breakpoint } from "@/stores/builder-store";
 import { resolveResponsiveValue } from "@/lib/builder/schema";
 import { BASIC_BLOCK_DEFINITIONS, createPatternElement } from "@/lib/builder/block-registry";
 import { blockPatternsApi } from "@/lib/api/block-patterns";
@@ -28,6 +30,7 @@ export function CanvasElement({
   depth = 1,
 }: CanvasElementProps) {
   const [isExternalDragOver, setIsExternalDragOver] = useState(false);
+  const [saveTemplateOpen, setSaveTemplateOpen] = useState(false);
   const selectedElementId = useBuilderStore((s) => s.selectedElementId);
   const hoveredElementId = useBuilderStore((s) => s.hoveredElementId);
   const selectElement = useBuilderStore((s) => s.selectElement);
@@ -57,6 +60,7 @@ export function CanvasElement({
       return JSON.parse(raw) as
         | { type: "block_def"; blockType: string }
         | { type: "pattern_def"; patternSlug: string; title: string; category: string; html?: string; variables?: Record<string, string> }
+        | { type: "template_def"; templateId: string; title: string; elements: BuilderElement[] }
         | { type: "element"; elementId: string };
     } catch {
       return null;
@@ -109,6 +113,19 @@ export function CanvasElement({
         } else {
           const info = findElementAndParent(ast.rootElements, element.id);
           addElement(newEl, info?.parent?.id, (info?.index ?? 0) + 1);
+        }
+        return;
+      }
+
+      if (payload.type === "template_def" && Array.isArray((payload as any).elements)) {
+        for (const el of (payload as any).elements) {
+          const cloned = cloneElementWithNewIds(el);
+          if (element.type === "container") {
+            addElement(cloned, element.id);
+          } else {
+            const info = findElementAndParent(ast.rootElements, element.id);
+            addElement(cloned, info?.parent?.id, (info?.index ?? 0) + 1);
+          }
         }
         return;
       }
@@ -369,6 +386,102 @@ export function CanvasElement({
           </button>
         );
       }
+      case "table": {
+        const headers = (props.headers as string[]) || [];
+        const rows = (props.rows as string[][]) || [];
+        const bordered = props.bordered !== false;
+        const striped = props.striped !== false;
+        const highlightCol = props.highlightCol !== undefined && props.highlightCol !== null ? Number(props.highlightCol) : null;
+        return (
+          <div className="builder-table overflow-x-auto w-full select-text">
+            <table className={cn(
+              "w-full border-collapse text-right text-sm",
+              bordered && "border border-border/80 rounded-xl overflow-hidden"
+            )}>
+              {headers.length > 0 && (
+                <thead>
+                  <tr className="bg-muted/40 border-b border-border/80">
+                    {headers.map((h, i) => (
+                      <th
+                        key={i}
+                        className={cn(
+                          "p-3.5 font-semibold text-muted-foreground",
+                          highlightCol === i && "bg-primary/10 text-primary font-bold border-x border-primary/20"
+                        )}
+                      >
+                        {h}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+              )}
+              <tbody className="divide-y divide-border/60">
+                {rows.map((row, rIdx) => (
+                  <tr key={rIdx} className={cn("hover:bg-muted/30 transition", striped && rIdx % 2 === 1 && "bg-muted/10")}>
+                    {row.map((cell, cIdx) => (
+                      <td
+                        key={cIdx}
+                        className={cn(
+                          "p-3.5 text-foreground border-b border-border/60",
+                          highlightCol === cIdx && "bg-primary/5 border-x border-primary/20 font-semibold"
+                        )}
+                      >
+                        {cell}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        );
+      }
+      case "form_input": {
+        const label = String(props.label || "");
+        const placeholder = String(props.placeholder || "");
+        const inputType = String(props.input_type || "text");
+        return (
+          <div className="space-y-1 w-full text-right pointer-events-none">
+            {label && <label className="block text-xs font-semibold text-foreground">{label}</label>}
+            <input
+              type={inputType}
+              placeholder={placeholder}
+              readOnly
+              className="w-full rounded-xl border border-input bg-background px-4 py-2.5 text-sm"
+            />
+          </div>
+        );
+      }
+      case "form_textarea": {
+        const label = String(props.label || "");
+        const placeholder = String(props.placeholder || "");
+        const rowsNum = Number(props.rows || 4);
+        return (
+          <div className="space-y-1 w-full text-right pointer-events-none">
+            {label && <label className="block text-xs font-semibold text-foreground">{label}</label>}
+            <textarea
+              placeholder={placeholder}
+              rows={rowsNum}
+              readOnly
+              className="w-full rounded-xl border border-input bg-background p-3 text-sm"
+            />
+          </div>
+        );
+      }
+      case "form_select": {
+        const label = String(props.label || "");
+        const options = (props.options as string[]) || ["گزینه ۱", "گزینه ۲"];
+        return (
+          <div className="space-y-1 w-full text-right pointer-events-none">
+            {label && <label className="block text-xs font-semibold text-foreground">{label}</label>}
+            <select className="w-full rounded-xl border border-input bg-background px-4 py-2.5 text-sm" disabled>
+              {options.map((opt, i) => (
+                <option key={i}>{typeof opt === "string" ? opt : (opt as any)?.label || opt}</option>
+              ))}
+            </select>
+          </div>
+        );
+      }
       default:
         return (
           <div className="rounded-lg border border-dashed border-border p-4 text-center text-sm text-muted-foreground">
@@ -454,6 +567,16 @@ export function CanvasElement({
           {element.isHidden && <EyeOff className="w-3 h-3 text-slate-300" />}
 
           <div className="flex items-center gap-0.5 ms-2 border-s border-primary-foreground/30 ps-1">
+            {isContainer && (
+              <button
+                type="button"
+                onClick={() => setSaveTemplateOpen(true)}
+                className="p-1 hover:bg-primary-foreground/20 rounded transition text-emerald-300 hover:text-white"
+                title="ذخیره به عنوان قالب (Save as Template)"
+              >
+                <BookmarkPlus className="w-3 h-3" />
+              </button>
+            )}
             <button
               type="button"
               onClick={() => duplicateElement(element.id)}
@@ -472,6 +595,14 @@ export function CanvasElement({
             </button>
           </div>
         </div>
+      )}
+
+      {isContainer && (
+        <SaveTemplateDialog
+          element={element}
+          open={saveTemplateOpen}
+          onOpenChange={setSaveTemplateOpen}
+        />
       )}
 
       {/* Content Rendering */}

@@ -54,6 +54,10 @@ STANDARD_WIDGET_TYPES: frozenset[str] = frozenset({
     "divider",
     "spacer",
     "html_custom",
+    "table",
+    "form_input",
+    "form_textarea",
+    "form_select",
     # Advanced widgets
     "tabs",
     "accordion",

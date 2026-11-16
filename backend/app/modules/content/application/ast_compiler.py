@@ -160,6 +160,91 @@ class ASTCompiler:
             btn_label = html.escape(str(props.get("label", "افزودن به سبد خرید")))
             return f'<button type="button"{id_attr} class="w-full rounded-xl bg-primary py-3 px-6 font-bold text-primary-foreground shadow transition hover:bg-primary/90 {css_class}"{style_attr}>{btn_label}</button>'
 
+        elif widget_type == "table":
+            headers = props.get("headers", [])
+            rows = props.get("rows", [])
+            bordered = props.get("bordered", True)
+            striped = props.get("striped", True)
+            table_classes = ["w-full", "border-collapse", "text-right", "text-sm"]
+            if bordered:
+                table_classes.append("border border-border/80 rounded-xl overflow-hidden")
+
+            thead_html = ""
+            if headers:
+                th_cells = "".join(
+                    f'<th class="p-4 font-semibold text-muted-foreground border-b border-border/80">{html.escape(str(h))}</th>'
+                    for h in headers
+                )
+                thead_html = f'<thead><tr class="bg-muted/40">{th_cells}</tr></thead>'
+
+            tbody_rows = []
+            for idx, row in enumerate(rows):
+                tr_class = "hover:bg-muted/30"
+                if striped and idx % 2 == 1:
+                    tr_class += " bg-muted/10"
+                td_cells = "".join(
+                    f'<td class="p-4 text-foreground border-b border-border/60">{html.escape(str(cell))}</td>'
+                    for cell in row
+                )
+                tbody_rows.append(f'<tr class="{tr_class}">{td_cells}</tr>')
+
+            tbody_html = f'<tbody class="divide-y divide-border/60">{"".join(tbody_rows)}</tbody>'
+            return f'<div{id_attr} class="builder-table overflow-x-auto {css_class}"{style_attr}><table class="{" ".join(table_classes)}">{thead_html}{tbody_html}</table></div>'
+
+        elif widget_type == "form_input":
+            label = html.escape(str(props.get("label", "")))
+            name = html.escape(str(props.get("name", "field")))
+            placeholder = html.escape(str(props.get("placeholder", "")))
+            input_type = html.escape(str(props.get("input_type", "text")))
+            required = " required" if props.get("required") else ""
+            label_html = (
+                f'<label class="block text-xs font-semibold text-foreground mb-1">{label}</label>'
+                if label
+                else ""
+            )
+            return (
+                f'<div{id_attr} class="builder-form-group space-y-1 w-full {css_class}"{style_attr}>'
+                f'{label_html}<input type="{input_type}" name="{name}" placeholder="{placeholder}"{required} '
+                f'class="w-full rounded-xl border border-input bg-background px-4 py-2.5 text-sm transition focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary" /></div>'
+            )
+
+        elif widget_type == "form_textarea":
+            label = html.escape(str(props.get("label", "")))
+            name = html.escape(str(props.get("name", "message")))
+            placeholder = html.escape(str(props.get("placeholder", "")))
+            rows_num = int(props.get("rows", 4))
+            required = " required" if props.get("required") else ""
+            label_html = (
+                f'<label class="block text-xs font-semibold text-foreground mb-1">{label}</label>'
+                if label
+                else ""
+            )
+            return (
+                f'<div{id_attr} class="builder-form-group space-y-1 w-full {css_class}"{style_attr}>'
+                f'{label_html}<textarea name="{name}" rows="{rows_num}" placeholder="{placeholder}"{required} '
+                f'class="w-full rounded-xl border border-input bg-background p-3 text-sm transition focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"></textarea></div>'
+            )
+
+        elif widget_type == "form_select":
+            label = html.escape(str(props.get("label", "")))
+            name = html.escape(str(props.get("name", "select_field")))
+            options = props.get("options", [])
+            required = " required" if props.get("required") else ""
+            label_html = (
+                f'<label class="block text-xs font-semibold text-foreground mb-1">{label}</label>'
+                if label
+                else ""
+            )
+            opt_html = "".join(
+                f'<option value="{html.escape(str(o.get("value", o) if isinstance(o, dict) else o))}">'
+                f'{html.escape(str(o.get("label", o) if isinstance(o, dict) else o))}</option>'
+                for o in options
+            )
+            return (
+                f'<div{id_attr} class="builder-form-group space-y-1 w-full {css_class}"{style_attr}>'
+                f'{label_html}<select name="{name}"{required} class="w-full rounded-xl border border-input bg-background px-4 py-2.5 text-sm transition focus:border-primary focus:outline-none">{opt_html}</select></div>'
+            )
+
         # Generic fallback for any other registered widget
         fallback_title = html.escape(str(props.get("title", widget_type)))
         return f'<div{id_attr} class="builder-widget builder-{widget_type} {css_class}" data-widget="{html.escape(widget_type)}"{style_attr}>{fallback_title}</div>'

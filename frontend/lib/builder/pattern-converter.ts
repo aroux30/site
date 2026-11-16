@@ -143,6 +143,51 @@ function createHtmlCustomWidget(
   };
 }
 
+function createTableWidget(
+  headers: string[],
+  rows: string[][],
+  name = "جدول مشخصات",
+  options: { bordered?: boolean; striped?: boolean; highlightCol?: number } = {}
+): BuilderElement {
+  return {
+    id: generateElementId("tbl"),
+    name,
+    type: "widget",
+    widgetType: "table",
+    widgetProps: {
+      headers,
+      rows,
+      bordered: options.bordered !== false,
+      striped: options.striped !== false,
+      highlightCol: options.highlightCol ?? null,
+    },
+    isLocked: false,
+    isHidden: false,
+    styles: { mobile: {} },
+    children: [],
+  };
+}
+
+function createFormInputWidget(
+  label: string,
+  name: string,
+  placeholder = "",
+  required = false,
+  inputType = "text"
+): BuilderElement {
+  return {
+    id: generateElementId("inp"),
+    name: `فیلد: ${label}`,
+    type: "widget",
+    widgetType: "form_input",
+    widgetProps: { label, name, placeholder, input_type: inputType, required },
+    isLocked: false,
+    isHidden: false,
+    styles: { mobile: {} },
+    children: [],
+  };
+}
+
 /**
  * Built-in default values for the 28 standard block patterns.
  */
@@ -1115,13 +1160,28 @@ export function createPatternAST(
     case "comparison-table": {
       const title = vars.title || "مقایسه مشخصات و ویژگی‌های فنی";
       const subtitle = vars.subtitle || "تفاوت مدل‌های مختلف را به دقت بررسی کنید";
+      const col1Title = vars.col1_title || "ویژگی‌ها و قابلیت‌ها";
+      const col2Name = vars.col2_name || "مدل پرو";
+      const col2Price = vars.col2_price || "۴,۸۵۰,۰۰۰ تومان";
+      const col3Name = vars.col3_name || "مدل استاندارد";
+      const col3Price = vars.col3_price || "۲,۹۰۰,۰۰۰ تومان";
 
       return createContainerNode(`${pattern.category}: ${pattern.title}`, {
         customCssClass: "py-10 w-full",
         children: [
           createHeadingWidget(title, "h2", "text-2xl font-bold text-center text-foreground"),
           createTextWidget(`<p class="text-xs text-muted-foreground text-center mb-8">${subtitle}</p>`),
-          createHtmlCustomWidget(renderedHtml, "جدول مقایسه جامع"),
+          createTableWidget(
+            [col1Title, `${col2Name} (${col2Price})`, `${col3Name} (${col3Price})`],
+            [
+              [vars.f1_name || "گارانتی رسمی", `✓ ${vars.f1_v2 || "۱۸ ماه تعویض"}`, vars.f1_v3 || "۱۲ ماه تعمیر"],
+              [vars.f2_name || "پشتیبانی فنی", `✓ ${vars.f2_v2 || "۲۴ ساعته"}`, vars.f2_v3 || "روزهای کاری"],
+              [vars.f3_name || "ارسال اکسپرس", `✓ ${vars.f3_v2 || "رایگان"}`, vars.f3_v3 || "عادی"],
+              [vars.f4_name || "مهلت تست", `✓ ${vars.f4_v2 || "۱۴ روز"}`, vars.f4_v3 || "۷ روز"],
+            ],
+            "جدول مقایسه جامع",
+            { bordered: true, striped: true, highlightCol: 1 }
+          ),
         ],
       });
     }
@@ -1173,12 +1233,18 @@ export function createPatternAST(
         children: [
           createHeadingWidget(title, "h3", "text-xl font-bold text-foreground"),
           createTextWidget(`<p class="text-xs text-muted-foreground">${subtitle}</p>`),
-          createHtmlCustomWidget(
-            `<div class="space-y-3 text-right">` +
-              `<input type="text" placeholder="${vars.name_placeholder || "نام و نام خانوادگی"}" class="w-full rounded-xl border bg-background px-4 py-2 text-xs" />` +
-              `<input type="tel" placeholder="${vars.phone_placeholder || "شماره همراه"}" class="w-full rounded-xl border bg-background px-4 py-2 text-xs" />` +
-            `</div>`,
-            "فیلدهای فرم مشاوره"
+          createFormInputWidget(
+            "نام و نام خانوادگی",
+            "full_name",
+            vars.name_placeholder || "نام و نام خانوادگی",
+            true
+          ),
+          createFormInputWidget(
+            "شماره همراه",
+            "phone",
+            vars.phone_placeholder || "شماره همراه (مثلاً ۰۹۱۲۳۴۵۶۷۸۹)",
+            true,
+            "tel"
           ),
           createButtonWidget(buttonText, "#submit", "w-full bg-primary text-primary-foreground font-semibold py-3 rounded-xl"),
           createTextWidget(`<p class="text-[11px] text-muted-foreground/70">${privacyNote}</p>`),

@@ -3,7 +3,7 @@
 import React from "react";
 import { BASIC_BLOCK_DEFINITIONS, createPatternElement } from "@/lib/builder/block-registry";
 import { blockPatternsApi } from "@/lib/api/block-patterns";
-import { useBuilderStore, type Breakpoint } from "@/stores/builder-store";
+import { useBuilderStore, cloneElementWithNewIds, type Breakpoint } from "@/stores/builder-store";
 import type { BuilderElement } from "@/types/builder";
 import { CanvasElement } from "./canvas-element";
 
@@ -49,6 +49,7 @@ export function CanvasDndLayer({
           const data = JSON.parse(raw) as
             | { type: "block_def"; blockType: string }
             | { type: "pattern_def"; patternSlug: string; title: string; category: string; html?: string; variables?: Record<string, string> }
+            | { type: "template_def"; templateId: string; title: string; elements: BuilderElement[] }
             | { type: "element"; elementId: string };
 
           if (data.type === "block_def") {
@@ -62,6 +63,10 @@ export function CanvasDndLayer({
               data.variables
             );
             addElement(newEl);
+          } else if (data.type === "template_def" && Array.isArray((data as any).elements)) {
+            for (const el of (data as any).elements) {
+              addElement(cloneElementWithNewIds(el));
+            }
           } else if (data.type === "element") {
             // Moving an element to the root: append it last.
             const lastRoot = elements[elements.length - 1];

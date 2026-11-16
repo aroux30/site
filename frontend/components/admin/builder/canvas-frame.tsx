@@ -89,6 +89,23 @@ export function CanvasFrame({
           doc.head.appendChild(style.cloneNode(true));
         }
       });
+
+      // Always re-apply isolated design tokens after syncing parent theme styles
+      const gs = useBuilderStore.getState().ast.globalStyles;
+      if (gs?.primaryColor) {
+        doc.documentElement.style.setProperty("--primary", String(gs.primaryColor));
+      }
+      if (gs?.secondaryColor) {
+        doc.documentElement.style.setProperty("--secondary", String(gs.secondaryColor));
+      }
+      if (gs?.borderRadius) {
+        doc.documentElement.style.setProperty("--radius", String(gs.borderRadius));
+      }
+      if (gs?.fontFamily === "system-ui") {
+        doc.documentElement.style.setProperty("--font-vazirmatn", "system-ui, sans-serif");
+      } else if (gs?.fontFamily) {
+        doc.documentElement.style.setProperty("--font-vazirmatn", String(gs.fontFamily));
+      }
     };
 
     sync();

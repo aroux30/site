@@ -150,4 +150,43 @@ describe("Block Pattern to AST Converter", () => {
     expect(headings).toContain("مزیت دو");
     expect(headings).toContain("مزیت سه");
   });
+
+  it("deconstructs comparison-table into native table widget without html_custom", () => {
+    const comp = createPatternAST(
+      { slug: "comparison-table", title: "جدول مقایسه", category: "قیمت‌گذاری" },
+      "<section></section>"
+    );
+    const widgets: any[] = [];
+    function collect(el: any) {
+      if (el.type === "widget") widgets.push(el);
+      if (el.children) el.children.forEach(collect);
+    }
+    collect(comp);
+
+    const tableWidget = widgets.find((w) => w.widgetType === "table");
+    expect(tableWidget).toBeDefined();
+    expect(tableWidget.widgetProps.headers.length).toBeGreaterThan(0);
+    expect(tableWidget.widgetProps.rows.length).toBeGreaterThan(0);
+
+    const customHtmlWidget = widgets.find((w) => w.widgetType === "html_custom");
+    expect(customHtmlWidget).toBeUndefined();
+  });
+
+  it("deconstructs lead-capture-form into native form_input and button widgets without html_custom", () => {
+    const form = createPatternAST(
+      { slug: "lead-capture-form", title: "فرم سرنخ", category: "تماس" },
+      "<section></section>"
+    );
+    const widgets: any[] = [];
+    function collect(el: any) {
+      if (el.type === "widget") widgets.push(el);
+      if (el.children) el.children.forEach(collect);
+    }
+    collect(form);
+
+    const inputs = widgets.filter((w) => w.widgetType === "form_input");
+    expect(inputs.length).toBeGreaterThanOrEqual(2);
+    const customHtmlWidget = widgets.find((w) => w.widgetType === "html_custom");
+    expect(customHtmlWidget).toBeUndefined();
+  });
 });

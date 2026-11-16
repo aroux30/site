@@ -245,6 +245,82 @@ class ASTCompiler:
                 f'{label_html}<select name="{name}"{required} class="w-full rounded-xl border border-input bg-background px-4 py-2.5 text-sm transition focus:border-primary focus:outline-none">{opt_html}</select></div>'
             )
 
+        elif widget_type == "product_card":
+            p_name = html.escape(str(props.get("name", "محصول فروشگاه")))
+            p_price = html.escape(str(props.get("min_price", "")))
+            p_img = html.escape(str(props.get("primary_image_url", "/placeholder-hero.svg")))
+            p_instock = props.get("is_in_stock", True)
+            stock_badge = "" if p_instock else '<span class="text-xs text-destructive font-bold">ناموجود</span>'
+            return (
+                f'<div{id_attr} class="builder-product-card rounded-2xl border border-border/60 bg-card p-4 flex flex-col space-y-3 {css_class}" data-widget="product_card"{style_attr}>'
+                f'<div class="aspect-square rounded-xl bg-muted/20 overflow-hidden flex items-center justify-center">'
+                f'<img src="{p_img}" alt="{p_name}" class="object-contain p-2 max-h-full" loading="lazy" />'
+                f'</div>'
+                f'<div class="flex-1">'
+                f'<h3 class="font-bold text-foreground text-sm line-clamp-2">{p_name}</h3>'
+                f'{stock_badge}'
+                f'</div>'
+                f'<div class="flex items-center justify-between pt-2 border-t border-border/60">'
+                f'<span class="font-bold text-primary">{p_price} تومان</span>'
+                f'<button type="button" class="rounded-xl bg-primary px-3 py-1.5 text-xs text-primary-foreground font-bold">خرید</button>'
+                f'</div>'
+                f'</div>'
+            )
+
+        elif widget_type == "image_gallery":
+            images = props.get("images", [])
+            imgs_html = "".join(
+                f'<div class="aspect-square rounded-xl bg-muted/20 overflow-hidden flex items-center justify-center">'
+                f'<img src="{html.escape(str(img.get("url", img) if isinstance(img, dict) else img))}" alt="{html.escape(str(img.get("alt", "تصویر") if isinstance(img, dict) else "تصویر"))}" class="object-contain p-2 max-h-full" loading="lazy" />'
+                f'</div>'
+                for img in images
+            )
+            return (
+                f'<div{id_attr} class="builder-image-gallery grid grid-cols-2 gap-2 {css_class}" data-widget="image_gallery"{style_attr}>'
+                f'{imgs_html or "<div class=\"p-4 text-center text-xs text-muted-foreground\">گالری تصاویر</div>"}'
+                f'</div>'
+            )
+
+        elif widget_type == "star_rating":
+            val = props.get("value", 5)
+            rev_cnt = props.get("reviewCount", 0)
+            return (
+                f'<div{id_attr} class="builder-star-rating inline-flex items-center gap-1.5 p-2 rounded-lg bg-card border {css_class}" data-widget="star_rating"{style_attr}>'
+                f'<span class="text-amber-400 font-bold">★ {val}</span>'
+                f'<span class="text-xs text-muted-foreground">({rev_cnt} نظر)</span>'
+                f'</div>'
+            )
+
+        elif widget_type == "review_histogram":
+            avg = props.get("averageRating", 5)
+            total = props.get("totalReviews", 0)
+            return (
+                f'<div{id_attr} class="builder-review-histogram rounded-2xl border border-border/60 bg-card p-4 space-y-2 {css_class}" data-widget="review_histogram"{style_attr}>'
+                f'<div class="flex items-center justify-between">'
+                f'<span class="text-lg font-bold text-foreground">{avg} از ۵</span>'
+                f'<span class="text-xs text-muted-foreground">بر اساس {total} نظر</span>'
+                f'</div>'
+                f'<div class="h-2 rounded-full bg-muted overflow-hidden"><div class="h-full bg-emerald-500" style="width: 80%;"></div></div>'
+                f'</div>'
+            )
+
+        elif widget_type == "recently_viewed":
+            limit = props.get("limit", 4)
+            return (
+                f'<div{id_attr} class="builder-recently-viewed space-y-2 {css_class}" data-widget="recently_viewed" data-limit="{limit}"{style_attr}>'
+                f'<h4 class="font-bold text-sm text-foreground">بازدیدهای اخیر شما</h4>'
+                f'<div class="text-xs text-muted-foreground">نمایش آخرین محصولات بازدید شده</div>'
+                f'</div>'
+            )
+
+        elif widget_type == "mega_menu":
+            label = html.escape(str(props.get("label", "دسته‌بندی کالاها")))
+            return (
+                f'<nav{id_attr} class="builder-mega-menu inline-block {css_class}" data-widget="mega_menu"{style_attr}>'
+                f'<button type="button" class="rounded-xl px-4 py-2 bg-muted/60 font-bold text-sm text-foreground flex items-center gap-2">{label}</button>'
+                f'</nav>'
+            )
+
         # Generic fallback for any other registered widget
         fallback_title = html.escape(str(props.get("title", widget_type)))
         return f'<div{id_attr} class="builder-widget builder-{widget_type} {css_class}" data-widget="{html.escape(widget_type)}"{style_attr}>{fallback_title}</div>'

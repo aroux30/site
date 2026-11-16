@@ -16,6 +16,12 @@ import { useBuilderStore, findElementAndParent, cloneElementWithNewIds, type Bre
 import { resolveResponsiveValue } from "@/lib/builder/schema";
 import { BASIC_BLOCK_DEFINITIONS, createPatternElement } from "@/lib/builder/block-registry";
 import { blockPatternsApi } from "@/lib/api/block-patterns";
+import { ProductCard } from "@/components/store/product-card";
+import { ImageGallery } from "@/components/store/image-gallery";
+import { StarRating } from "@/components/ui/star-rating";
+import { ReviewHistogram } from "@/components/store/review-histogram";
+import { RecentlyViewed } from "@/components/store/recently-viewed";
+import { MegaMenu } from "@/components/layout/mega-menu";
 import type { BuilderElement, DeviceStyle, ResponsiveStyles } from "@/types/builder";
 
 interface CanvasElementProps {
@@ -364,10 +370,116 @@ export function CanvasElement({
           </div>
         );
       }
-      case "product_grid": {
+      case "product_card": {
+        const prod = {
+          id: String(props.id || "preview_prod_1"),
+          name: String(props.name || "هدفون بی‌سیم پرو مکس"),
+          slug: String(props.slug || "wireless-headphones"),
+          category_id: "",
+          is_active: true,
+          is_featured: Boolean(props.is_featured),
+          is_in_stock: props.is_in_stock !== false,
+          min_price: Number(props.min_price) || 1850000,
+          max_price: Number(props.max_price) || 2200000,
+          variant_count: Number(props.variant_count) || 1,
+          primary_image_url: String(props.primary_image_url || "/placeholder-hero.svg"),
+          rating_average: Number(props.rating_average) || 4.6,
+          review_count: Number(props.review_count) || 38,
+        };
         return (
-          <div className="rounded-xl border border-dashed border-border p-6 text-center text-xs text-muted-foreground">
-            ویترین محصولات ({String(props.limit || 6)} آیتم)
+          <div className="w-full max-w-sm">
+            <ProductCard product={prod as any} variant={(props.variant as any) || "default"} />
+          </div>
+        );
+      }
+      case "product_grid": {
+        const limit = Number(props.limit) || 4;
+        const sampleProducts = Array.from({ length: limit }, (_, i) => ({
+          id: `grid_prod_${i + 1}`,
+          name: `کالای نمونه شماره ${i + 1}`,
+          slug: `product-${i + 1}`,
+          category_id: "",
+          is_active: true,
+          is_featured: i === 0,
+          is_in_stock: true,
+          min_price: (i + 1) * 350000,
+          max_price: (i + 1) * 420000,
+          variant_count: 1,
+          primary_image_url: "/placeholder-hero.svg",
+          rating_average: 4.5,
+          review_count: 15 + i * 4,
+        }));
+        return (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 w-full">
+            {sampleProducts.map((p) => (
+              <ProductCard key={p.id} product={p as any} variant="compact" />
+            ))}
+          </div>
+        );
+      }
+      case "image_gallery": {
+        const images = Array.isArray(props.images) && props.images.length > 0
+          ? (props.images as any[])
+          : [
+              { url: "/placeholder-hero.svg", alt: "تصویر ۱" },
+              { url: "/placeholder.svg", alt: "تصویر ۲" },
+            ];
+        return (
+          <div className="w-full max-w-md mx-auto">
+            <ImageGallery images={images} productName={String(props.productName || "محصول نمونه")} />
+          </div>
+        );
+      }
+      case "star_rating": {
+        return (
+          <div className="inline-flex items-center gap-2 p-2 rounded-lg bg-card border">
+            <StarRating
+              value={Number(props.value) || 4.8}
+              reviewCount={props.reviewCount !== undefined ? Number(props.reviewCount) : 124}
+              size={(props.size as any) || "md"}
+              showValue={props.showValue !== false}
+            />
+          </div>
+        );
+      }
+      case "review_histogram": {
+        const dist = (props.distribution as any) || {
+          star_5: 58,
+          star_4: 18,
+          star_3: 6,
+          star_2: 3,
+          star_1: 1,
+        };
+        return (
+          <div className="w-full max-w-md">
+            <ReviewHistogram
+              distribution={dist}
+              averageRating={Number(props.averageRating) || 4.5}
+              totalReviews={Number(props.totalReviews) || 86}
+              verifiedCount={Number(props.verifiedCount) || 72}
+            />
+          </div>
+        );
+      }
+      case "recently_viewed": {
+        return (
+          <div className="w-full">
+            <RecentlyViewed limit={Number(props.limit) || 4} />
+          </div>
+        );
+      }
+      case "mega_menu": {
+        const sampleCats = [
+          { id: "c1", name: "کالای دیجیتال", slug: "digital", parent_id: null, is_active: true, display_order: 1, image_url: "/placeholder.svg" },
+          { id: "c2", name: "موبایل و تبلت", slug: "mobile", parent_id: "c1", is_active: true, display_order: 1, image_url: "/placeholder.svg" },
+          { id: "c3", name: "لپ‌تاپ", slug: "laptop", parent_id: "c1", is_active: true, display_order: 2, image_url: "/placeholder.svg" },
+          { id: "c4", name: "لوازم جانبی", slug: "accessories", parent_id: "c1", is_active: true, display_order: 3, image_url: "/placeholder.svg" },
+          { id: "c5", name: "خانه و آشپزخانه", slug: "home", parent_id: null, is_active: true, display_order: 2, image_url: "/placeholder.svg" },
+          { id: "c6", name: "لوازم برقی", slug: "appliances", parent_id: "c5", is_active: true, display_order: 1, image_url: "/placeholder.svg" },
+        ];
+        return (
+          <div className="inline-block p-1">
+            <MegaMenu categories={sampleCats as any} label={String(props.label || "دسته‌بندی کالاها")} />
           </div>
         );
       }

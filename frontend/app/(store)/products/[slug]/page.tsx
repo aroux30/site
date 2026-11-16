@@ -58,6 +58,7 @@ import { AccessoryRail } from "@/components/store/accessory-rail";
 import { VariationSwatches } from "@/components/store/variation-swatches";
 import { StarRating } from "@/components/ui/star-rating";
 import { ReviewHistogram } from "@/components/store/review-histogram";
+import { ImageGallery } from "@/components/store/image-gallery";
 import { RecentlyViewed, trackProductView } from "@/components/store/recently-viewed";
 import { ClickSpark } from "@/components/ui/click-spark";
 import { PulseHeart } from "@/components/ui/pulse-heart";

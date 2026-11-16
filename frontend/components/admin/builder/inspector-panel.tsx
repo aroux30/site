@@ -395,6 +395,206 @@ export function InspectorPanel() {
           </div>
         );
 
+      case "table": {
+        const headers = (props.headers as string[]) || [];
+        const rows = (props.rows as string[][]) || [];
+        const bordered = props.bordered !== false;
+        const striped = props.striped !== false;
+        return (
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs">عناوین ستون‌ها (با کاما جدا کنید)</Label>
+              <Input
+                value={headers.join("، ")}
+                onChange={(e) => {
+                  const arr = e.target.value.split(/[،,]/).map((s) => s.trim());
+                  handlePropChange("headers", arr);
+                }}
+                className="h-8 text-xs"
+                placeholder="عنوان ۱، عنوان ۲، عنوان ۳"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">سطرهای داده (هر خط یک سطر، با کاما جدا کنید)</Label>
+              <textarea
+                rows={5}
+                value={rows.map((r) => r.join("، ")).join("\n")}
+                onChange={(e) => {
+                  const newRows = e.target.value
+                    .split("\n")
+                    .map((line) => line.split(/[،,]/).map((s) => s.trim()))
+                    .filter((r) => r.length > 0 && r.some((c) => c !== ""));
+                  handlePropChange("rows", newRows);
+                }}
+                className="w-full rounded-md border border-input bg-background p-2 text-xs leading-relaxed"
+                placeholder="سطر ۱: سلول ۱، سلول ۲&#10;سطر ۲: سلول ۱، سلول ۲"
+              />
+            </div>
+            <div className="flex items-center justify-between pt-1">
+              <Label className="text-xs">حاشیه و خطوط کادر (Bordered)</Label>
+              <Switch
+                checked={bordered}
+                onCheckedChange={(val) => handlePropChange("bordered", val)}
+              />
+            </div>
+            <div className="flex items-center justify-between pt-1">
+              <Label className="text-xs">سطرهای یک‌در‌میان رنگی (Striped)</Label>
+              <Switch
+                checked={striped}
+                onCheckedChange={(val) => handlePropChange("striped", val)}
+              />
+            </div>
+          </div>
+        );
+      }
+
+      case "form_input":
+        return (
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs">عنوان فیلد (Label)</Label>
+              <Input
+                value={String(props.label || "")}
+                onChange={(e) => handlePropChange("label", e.target.value)}
+                className="h-8 text-xs"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">نام فیلد (Field Name)</Label>
+              <Input
+                value={String(props.name || "")}
+                onChange={(e) => handlePropChange("name", e.target.value)}
+                className="h-8 text-xs font-mono"
+                dir="ltr"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">متن راهنما (Placeholder)</Label>
+              <Input
+                value={String(props.placeholder || "")}
+                onChange={(e) => handlePropChange("placeholder", e.target.value)}
+                className="h-8 text-xs"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">نوع ورودی</Label>
+              <Select
+                value={String(props.input_type || "text")}
+                onValueChange={(val) => handlePropChange("input_type", val)}
+              >
+                <SelectTrigger className="h-8 text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="text">متن عادی (Text)</SelectItem>
+                  <SelectItem value="email">ایمیل (Email)</SelectItem>
+                  <SelectItem value="tel">تلفن همراه (Tel)</SelectItem>
+                  <SelectItem value="number">عدد (Number)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex items-center justify-between pt-1">
+              <Label className="text-xs">فیلد اجباری (Required)</Label>
+              <Switch
+                checked={Boolean(props.required)}
+                onCheckedChange={(val) => handlePropChange("required", val)}
+              />
+            </div>
+          </div>
+        );
+
+      case "form_textarea":
+        return (
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs">عنوان فیلد (Label)</Label>
+              <Input
+                value={String(props.label || "")}
+                onChange={(e) => handlePropChange("label", e.target.value)}
+                className="h-8 text-xs"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">نام فیلد (Field Name)</Label>
+              <Input
+                value={String(props.name || "")}
+                onChange={(e) => handlePropChange("name", e.target.value)}
+                className="h-8 text-xs font-mono"
+                dir="ltr"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">متن راهنما (Placeholder)</Label>
+              <Input
+                value={String(props.placeholder || "")}
+                onChange={(e) => handlePropChange("placeholder", e.target.value)}
+                className="h-8 text-xs"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">تعداد سطرها (ارتفاع)</Label>
+              <Input
+                type="number"
+                min={2}
+                max={20}
+                value={Number(props.rows || 4)}
+                onChange={(e) => handlePropChange("rows", parseInt(e.target.value, 10) || 4)}
+                className="h-8 text-xs"
+              />
+            </div>
+            <div className="flex items-center justify-between pt-1">
+              <Label className="text-xs">فیلد اجباری (Required)</Label>
+              <Switch
+                checked={Boolean(props.required)}
+                onCheckedChange={(val) => handlePropChange("required", val)}
+              />
+            </div>
+          </div>
+        );
+
+      case "form_select":
+        return (
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs">عنوان فیلد (Label)</Label>
+              <Input
+                value={String(props.label || "")}
+                onChange={(e) => handlePropChange("label", e.target.value)}
+                className="h-8 text-xs"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">نام فیلد (Field Name)</Label>
+              <Input
+                value={String(props.name || "")}
+                onChange={(e) => handlePropChange("name", e.target.value)}
+                className="h-8 text-xs font-mono"
+                dir="ltr"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">گزینه‌ها (با کاما یا در خطوط جداگانه بنویسید)</Label>
+              <textarea
+                rows={4}
+                value={Array.isArray(props.options) ? props.options.join("\n") : ""}
+                onChange={(e) => {
+                  const opts = e.target.value.split(/[\n،,]/).map((s) => s.trim()).filter(Boolean);
+                  handlePropChange("options", opts);
+                }}
+                className="w-full rounded-md border border-input bg-background p-2 text-xs leading-relaxed"
+                placeholder="گزینه ۱&#10;گزینه ۲&#10;گزینه ۳"
+              />
+            </div>
+            <div className="flex items-center justify-between pt-1">
+              <Label className="text-xs">فیلد اجباری (Required)</Label>
+              <Switch
+                checked={Boolean(props.required)}
+                onCheckedChange={(val) => handlePropChange("required", val)}
+              />
+            </div>
+          </div>
+        );
+
       default:
         return (
           <div className="text-xs text-muted-foreground py-2">

@@ -50,6 +50,8 @@ ALLOWED_TAGS: frozenset[str] = frozenset(
         "a", "img", "picture", "source", "video", "audio", "track",
         # blocks an editor emits
         "blockquote", "details", "summary", "address",
+        # forms and interactive controls
+        "button", "label", "input", "textarea", "select", "option",
     }
 )
 
@@ -58,6 +60,12 @@ ALLOWED_TAGS: frozenset[str] = frozenset(
 # the opener window.
 ALLOWED_ATTRIBUTES: dict[str, frozenset[str]] = {
     "*": frozenset({"class", "id", "title", "dir", "lang", "style", "role"}),
+    "button": frozenset({"type", "disabled"}),
+    "label": frozenset({"for"}),
+    "input": frozenset({"type", "name", "value", "placeholder", "required", "disabled", "readonly"}),
+    "textarea": frozenset({"name", "placeholder", "rows", "cols", "required", "disabled", "readonly"}),
+    "select": frozenset({"name", "required", "disabled"}),
+    "option": frozenset({"value", "selected"}),
     "a": frozenset({"href", "target", "rel", "name"}),
     "img": frozenset(
         {"src", "alt", "width", "height", "loading", "decoding", "srcset", "sizes"}

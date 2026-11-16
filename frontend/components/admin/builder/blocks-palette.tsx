@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useMemo, useEffect, useCallback } from "react";
-import { Search, Sparkles, Layout, Box, Loader2 } from "lucide-react";
+import { Search, Sparkles, Layout, Box, Loader2, Bookmark, FolderHeart } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -14,10 +14,12 @@ import {
   type BlockPattern,
   type BlockPatternCategoryGroup,
 } from "@/lib/api/block-patterns";
-import { useBuilderStore } from "@/stores/builder-store";
+import { pageTemplatesAdminApi } from "@/lib/api/content";
+import type { PageTemplate } from "@/types/builder";
+import { useBuilderStore, cloneElementWithNewIds } from "@/stores/builder-store";
 import { useToast } from "@/components/ui/use-toast";
 
-type PaletteTab = "basic" | "patterns";
+type PaletteTab = "basic" | "patterns" | "templates";
 
 export function BlocksPalette() {
   const { toast } = useToast();
@@ -28,9 +30,31 @@ export function BlocksPalette() {
   const [loadingPatterns, setLoadingPatterns] = useState(false);
   const [renderingSlug, setRenderingSlug] = useState<string | null>(null);
 
+  const [savedTemplates, setSavedTemplates] = useState<PageTemplate[]>([]);
+  const [loadingTemplates, setLoadingTemplates] = useState(false);
+
   const addElement = useBuilderStore((s) => s.addElement);
   const selectedElementId = useBuilderStore((s) => s.selectedElementId);
   const ast = useBuilderStore((s) => s.ast);
+
+  // Load section templates when templates tab is selected
+  const fetchTemplates = useCallback(async () => {
+    setLoadingTemplates(true);
+    try {
+      const data = await pageTemplatesAdminApi.list("section");
+      setSavedTemplates(data);
+    } catch (err) {
+      console.error("Failed to load templates:", err);
+    } finally {
+      setLoadingTemplates(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (activeTab === "templates") {
+      fetchTemplates();
+    }
+  }, [activeTab, fetchTemplates]);
 
   // Load 28 block patterns from backend API
   useEffect(() => {
@@ -133,34 +157,69 @@ export function BlocksPalette() {
     }
   };
 
+  const handleInsertTemplate = (tpl: PageTemplate) => {
+    const bData = (tpl as any).builder_data || tpl.builderData;
+    const rootEls = bData?.rootElements || (bData as any)?.root_elements || [];
+    if (rootEls.length === 0) return;
+    for (const el of rootEls) {
+      const cloned = cloneElementWithNewIds(el);
+      addElement(cloned, getTargetContainerId());
+    }
+    toast({
+      title: "قالب افزوده شد",
+      description: `قالب «${tpl.title}» به بوم اضافه شد.`,
+    });
+  };
+
+  const filteredSavedTemplates = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return savedTemplates.filter((t) => {
+      if (!q) return true;
+      return t.title.toLowerCase().includes(q) || (t.category || "").toLowerCase().includes(q);
+    });
+  }, [savedTemplates, search]);
+
   return (
     <div className="flex flex-col h-full space-y-3 p-3 select-none">
-      {/* Sub-tab toggle: Basic Blocks vs Ready Patterns */}
-      <div className="grid grid-cols-2 p-1 rounded-xl bg-muted/60 border border-border/70 text-xs shrink-0">
+      {/* Sub-tab toggle: Basic Blocks vs Ready Patterns vs Saved Templates */}
+      <div className="grid grid-cols-3 p-1 rounded-xl bg-muted/60 border border-border/70 text-xs shrink-0 gap-1">
         <button
           type="button"
           onClick={() => setActiveTab("basic")}
-          className={`flex items-center justify-center gap-1.5 py-1.5 rounded-lg font-semibold transition ${
+          className={`flex items-center justify-center gap-1 py-1.5 rounded-lg text-[11px] font-semibold transition ${
             activeTab === "basic"
               ? "bg-background text-foreground shadow-sm"
               : "text-muted-foreground hover:text-foreground"
           }`}
         >
-          <Box className="w-3.5 h-3.5" />
-          <span>بلوک‌های پایه (۹)</span>
+          <Box className="w-3 h-3 shrink-0" />
+          <span className="truncate">بلوک‌های پایه ({filteredBasicBlocks.length})</span>
         </button>
 
         <button
           type="button"
           onClick={() => setActiveTab("patterns")}
-          className={`flex items-center justify-center gap-1.5 py-1.5 rounded-lg font-semibold transition ${
+          className={`flex items-center justify-center gap-1 py-1.5 rounded-lg text-[11px] font-semibold transition ${
             activeTab === "patterns"
               ? "bg-background text-foreground shadow-sm"
               : "text-muted-foreground hover:text-foreground"
           }`}
         >
-          <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-          <span>الگوهای آماده (۲۸)</span>
+          <Sparkles className="w-3 h-3 text-amber-500 shrink-0" />
+          <span className="truncate">الگوهای آماده ({allPatterns.length})</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab("templates")}
+          className={`flex items-center justify-center gap-1 py-1.5 rounded-lg text-[11px] font-semibold transition ${
+            activeTab === "templates"
+              ? "bg-background text-foreground shadow-sm"
+              : "text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          <FolderHeart className="w-3 h-3 text-primary shrink-0" />
+          <span className="truncate">قالب‌های من</span>
         </button>
       </div>
 
@@ -171,7 +230,9 @@ export function BlocksPalette() {
           placeholder={
             activeTab === "basic"
               ? "جستجوی بلوک پایه..."
-              : "جستجو در ۲۸ الگوی آماده..."
+              : activeTab === "patterns"
+              ? "جستجو در ۲۸ الگوی آماده..."
+              : "جستجو در قالب‌های من..."
           }
           value={search}
           onChange={(e) => setSearch(e.target.value)}
@@ -292,7 +353,7 @@ export function BlocksPalette() {
               </div>
             )}
           </>
-        ) : (
+        ) : activeTab === "patterns" ? (
           /* Ready Patterns Tab */
           <div className="space-y-2">
             {loadingPatterns ? (
@@ -358,6 +419,62 @@ export function BlocksPalette() {
                     </div>
                   );
                 })}
+              </div>
+            )}
+          </div>
+        ) : (
+          /* Saved Templates Tab */
+          <div className="space-y-2">
+            {loadingTemplates ? (
+              <div className="flex items-center justify-center py-12 text-xs text-muted-foreground gap-2">
+                <Loader2 className="w-4 h-4 animate-spin text-primary" />
+                <span>در حال بارگذاری قالب‌های من...</span>
+              </div>
+            ) : filteredSavedTemplates.length === 0 ? (
+              <div className="text-center py-10 px-3 border border-dashed rounded-xl border-border/80 text-muted-foreground space-y-2">
+                <Bookmark className="w-8 h-8 opacity-30 mx-auto" />
+                <p className="text-xs font-semibold text-foreground">هنوز قالبی ذخیره نکرده‌اید</p>
+                <p className="text-[11px] leading-relaxed">
+                  می‌توانید هر کانتینر یا بخش را از نوار ابزار شناور آن روی بوم با دکمه «ذخیره به عنوان قالب» ذخیره کنید تا در این بخش نمایش داده شود.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {filteredSavedTemplates.map((tpl) => (
+                  <div
+                    key={tpl.id}
+                    draggable={true}
+                    onDragStart={(e) => {
+                      const bData = (tpl as any).builder_data || tpl.builderData;
+                      const rootEls = bData?.rootElements || (bData as any)?.root_elements || [];
+                      e.dataTransfer.setData(
+                        "application/json",
+                        JSON.stringify({
+                          type: "template_def",
+                          templateId: tpl.id,
+                          title: tpl.title,
+                          elements: rootEls,
+                        })
+                      );
+                      e.dataTransfer.effectAllowed = "all";
+                    }}
+                    onClick={() => handleInsertTemplate(tpl)}
+                    className="p-3 rounded-xl border border-border/80 bg-card hover:bg-muted/40 hover:border-primary/50 transition cursor-grab active:cursor-grabbing shadow-sm space-y-1.5 group"
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-foreground group-hover:text-primary transition-colors">
+                        {tpl.title}
+                      </span>
+                      <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4">
+                        {tpl.category || "عمومی"}
+                      </Badge>
+                    </div>
+                    <div className="flex items-center justify-between pt-1 border-t border-border/40 text-[10px] text-muted-foreground">
+                      <span>{((tpl as any).builder_data?.rootElements || tpl.builderData?.rootElements || []).length || 1} بخش محتوایی</span>
+                      <span className="text-primary font-semibold">کلیک یا درگ ↵</span>
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
           </div>

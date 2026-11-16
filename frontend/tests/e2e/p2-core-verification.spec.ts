@@ -102,11 +102,14 @@ test.describe("Phase P2.0 Core E2E Verification Suite", () => {
     // 3. Reload page
     await page.reload();
     await expect(page.getByRole("button", { name: "افزودن بلوک" })).toBeVisible({ timeout: 30_000 });
+    const reloadedFrame = page.frameLocator(CANVAS);
+    await expect(reloadedFrame.locator('[data-testid="builder-canvas-root"]')).toBeVisible({ timeout: 20_000 });
 
     // 4. Verify iframe re-hydrated with persisted primary color
-    const reloadedPrimary = await page.locator(CANVAS).evaluate((iframe: HTMLIFrameElement) => {
-      return iframe.contentDocument?.documentElement?.style.getPropertyValue("--primary");
-    });
-    expect(reloadedPrimary).toBe("#7c3aed");
+    await expect.poll(async () => {
+      return await page.locator(CANVAS).evaluate((iframe: HTMLIFrameElement) => {
+        return iframe.contentDocument?.documentElement?.style.getPropertyValue("--primary");
+      });
+    }, { timeout: 10_000 }).toBe("#7c3aed");
   });
 });

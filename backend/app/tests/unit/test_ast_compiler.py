@@ -81,3 +81,65 @@ def test_ast_compiler_strips_malicious_script_tags():
     assert "alert" not in result
     assert "onerror" not in result
     assert "متن سالم" in result
+
+
+def test_ast_compiler_renders_native_table_and_form_widgets():
+    ast = PageAST(
+        schema_version=1,
+        title="تست ویجت‌های جدول و فرم",
+        slug="test-table-form",
+        root_elements=[
+            BuilderElement(
+                id="el_sec02",
+                name="بخش جدول و فرم",
+                type="container",
+                children=[
+                    BuilderElement(
+                        id="el_tbl01",
+                        name="جدول مشخصات",
+                        type="widget",
+                        widget_type="table",
+                        widget_props={
+                            "headers": ["ویژگی", "مدل A", "مدل B"],
+                            "rows": [["گارانتی", "۱۸ ماه", "۱۲ ماه"], ["ارسال", "رایگان", "عادی"]],
+                            "bordered": True,
+                            "striped": True,
+                        },
+                    ),
+                    BuilderElement(
+                        id="el_inp01",
+                        name="ورودی نام",
+                        type="widget",
+                        widget_type="form_input",
+                        widget_props={
+                            "label": "نام کامل",
+                            "name": "full_name",
+                            "placeholder": "مثلاً علی رضایی",
+                            "required": True,
+                        },
+                    ),
+                    BuilderElement(
+                        id="el_txta01",
+                        name="پیام",
+                        type="widget",
+                        widget_type="form_textarea",
+                        widget_props={
+                            "label": "متن پیام",
+                            "name": "msg",
+                            "placeholder": "پیام خود را بنویسید",
+                        },
+                    ),
+                ],
+            )
+        ],
+    )
+    result = ASTCompiler.compile(ast)
+    assert '<table class="w-full border-collapse' in result
+    assert "<th" in result
+    assert "مدل A" in result
+    assert "۱۸ ماه" in result
+    assert 'name="full_name"' in result
+    assert 'placeholder="مثلاً علی رضایی"' in result
+    assert 'name="msg"' in result
+    assert "متن پیام</label>" in result
+

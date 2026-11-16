@@ -207,6 +207,7 @@ export interface BuilderState {
   updateDeviceStyles: (id: string, bp: Breakpoint, patch: Partial<DeviceStyle>) => void;
   deleteElement: (id: string) => void;
   duplicateElement: (id: string) => void;
+  updateGlobalStyles: (styles: Record<string, unknown>) => void;
 
   // History & Save
   undo: () => void;
@@ -439,6 +440,23 @@ export const useBuilderStore = create<BuilderState>((set, get) => ({
     set({
       ast: { ...ast, rootElements: updatedRoots },
       selectedElementId: cloned.id,
+      isDirty: true,
+      mutationVersion: get().mutationVersion + 1,
+      history: { past: newPast, future: [] },
+    });
+  },
+
+  updateGlobalStyles: (styles) => {
+    const { ast, history } = get();
+    const newPast = [...history.past, ast].slice(-MAX_HISTORY_LENGTH);
+    set({
+      ast: {
+        ...ast,
+        globalStyles: {
+          ...(ast.globalStyles || {}),
+          ...styles,
+        },
+      },
       isDirty: true,
       mutationVersion: get().mutationVersion + 1,
       history: { past: newPast, future: [] },

@@ -324,6 +324,9 @@ class PageTemplate(BaseModel):
     title: Mapped[str] = mapped_column(String(200), nullable=False)
     slug: Mapped[str] = mapped_column(String(220), unique=True, nullable=False)
     template_type: Mapped[str] = mapped_column(String(50), nullable=False)  # "page" | "section"
+    category: Mapped[str] = mapped_column(
+        String(100), default="عمومی", server_default=text("'عمومی'"), nullable=False
+    )
     builder_data: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False)
     thumbnail_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
     author_id: Mapped[uuid.UUID | None] = mapped_column(

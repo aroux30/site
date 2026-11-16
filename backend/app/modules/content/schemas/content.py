@@ -550,6 +550,7 @@ class PageTemplateCreateRequest(BaseModel):
     title: str = Field(..., min_length=1, max_length=200)
     slug: str | None = Field(None, min_length=1, max_length=220)
     template_type: Literal["page", "section"] = "page"
+    category: str = "عمومی"
     builder_data: dict[str, Any]
     thumbnail_url: str | None = Field(None, max_length=500)
 
@@ -558,6 +559,7 @@ class PageTemplateUpdateRequest(BaseModel):
     title: str | None = Field(None, min_length=1, max_length=200)
     slug: str | None = Field(None, min_length=1, max_length=220)
     template_type: Literal["page", "section"] | None = None
+    category: str | None = None
     builder_data: dict[str, Any] | None = None
     thumbnail_url: str | None = Field(None, max_length=500)
 
@@ -569,6 +571,7 @@ class PageTemplateResponse(BaseModel):
     title: str
     slug: str
     template_type: str
+    category: str = "عمومی"
     builder_data: dict[str, Any]
     thumbnail_url: str | None = None
     author_id: uuid.UUID | None = None

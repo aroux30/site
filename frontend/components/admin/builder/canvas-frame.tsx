@@ -3,7 +3,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { cn } from "@/lib/utils";
-import type { Breakpoint } from "@/stores/builder-store";
+import { useBuilderStore, type Breakpoint } from "@/stores/builder-store";
 
 /**
  * The editor canvas, rendered inside an isolated iframe.
@@ -33,6 +33,7 @@ export function CanvasFrame({
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
   const rootRef = useRef<Root | null>(null);
   const [ready, setReady] = useState(false);
+  const globalStyles = useBuilderStore((s) => s.ast.globalStyles);
 
   useEffect(() => {
     const iframe = iframeRef.current;
@@ -124,6 +125,29 @@ export function CanvasFrame({
     if (!rootRef.current || !ready) return;
     rootRef.current.render(<>{children}</>);
   }, [children, ready]);
+
+  // Inject Design Tokens (Global Styles) directly into iframe document element
+  useEffect(() => {
+    const iframe = iframeRef.current;
+    if (!iframe || !ready) return;
+    const doc = iframe.contentDocument;
+    if (!doc?.documentElement) return;
+
+    if (globalStyles?.primaryColor) {
+      doc.documentElement.style.setProperty("--primary", String(globalStyles.primaryColor));
+    }
+    if (globalStyles?.secondaryColor) {
+      doc.documentElement.style.setProperty("--secondary", String(globalStyles.secondaryColor));
+    }
+    if (globalStyles?.borderRadius) {
+      doc.documentElement.style.setProperty("--radius", String(globalStyles.borderRadius));
+    }
+    if (globalStyles?.fontFamily === "system-ui") {
+      doc.documentElement.style.setProperty("--font-vazirmatn", "system-ui, sans-serif");
+    } else if (globalStyles?.fontFamily) {
+      doc.documentElement.style.setProperty("--font-vazirmatn", String(globalStyles.fontFamily));
+    }
+  }, [globalStyles, ready]);
 
   useEffect(() => {
     return () => {

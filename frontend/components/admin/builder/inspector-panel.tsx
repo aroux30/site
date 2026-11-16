@@ -24,6 +24,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import { MediaPicker } from "@/components/admin/media-picker";
 import { useBuilderStore, findElementById, type InspectorTab } from "@/stores/builder-store";
 import type { DeviceStyle, SpacingBox, UnitType } from "@/types/builder";
 
@@ -331,11 +332,21 @@ export function InspectorPanel() {
         return (
           <div className="space-y-4">
             <div className="space-y-1.5">
-              <Label className="text-xs">آدرس تصویر (URL)</Label>
+              <Label className="text-xs">انتخاب از کتابخانه رسانه</Label>
+              <MediaPicker
+                value={String(props.url || "")}
+                onChange={(url) => handlePropChange("url", url)}
+                label="انتخاب یا آپلود تصویر"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">آدرس مستقیم تصویر (URL)</Label>
               <Input
                 value={String(props.url || "")}
                 onChange={(e) => handlePropChange("url", e.target.value)}
-                className="h-8 text-xs"
+                className="h-8 text-xs font-mono"
+                placeholder="https://... یا /placeholder.svg"
+                dir="ltr"
               />
             </div>
             <div className="space-y-1.5">

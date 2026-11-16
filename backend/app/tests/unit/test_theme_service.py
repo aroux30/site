@@ -174,3 +174,19 @@ def test_compile_theme_css_variables_and_string():
     assert "--primary: #059669;" in css_str
     assert "--radius: 14px;" in css_str
 
+
+@pytest.mark.asyncio
+async def test_theme_cache_invalidation_flow(monkeypatch):
+    from unittest.mock import AsyncMock
+
+    mock_cache_del = AsyncMock()
+    monkeypatch.setattr("app.modules.content.application.theme_service.cache_delete", mock_cache_del)
+
+    # Calling invalidate_theme_cache should delete both JSON and CSS keys
+    await theme_service.invalidate_theme_cache()
+
+    deleted_keys = [call.args[0] for call in mock_cache_del.call_args_list]
+    assert theme_service.ACTIVE_THEME_CACHE_KEY in deleted_keys
+    assert theme_service.ACTIVE_THEME_CSS_CACHE_KEY in deleted_keys
+
+

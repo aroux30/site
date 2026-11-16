@@ -195,6 +195,13 @@ export function CanvasElement({
       if (fontObj.lineHeight) styleObj.lineHeight = `${fontObj.lineHeight.value}${fontObj.lineHeight.unit}`;
       if (fontObj.textAlign && fontObj.textAlign !== "inherit") styleObj.textAlign = fontObj.textAlign;
       if (fontObj.color) styleObj.color = fontObj.color;
+      if (fontObj.fontFamily && fontObj.fontFamily !== "inherit") {
+        styleObj.fontFamily = fontObj.fontFamily.startsWith("var(")
+          ? fontObj.fontFamily
+          : fontObj.fontFamily === "vazirmatn"
+          ? "var(--font-vazirmatn, system-ui, sans-serif)"
+          : fontObj.fontFamily;
+      }
     }
 
     // Border & Radius
@@ -207,7 +214,9 @@ export function CanvasElement({
           styleObj.borderWidth = `${borderObj.width.top.value}${borderObj.width.top.unit}`;
         }
       }
-      if (borderObj.radius) {
+      if ((borderObj as any).radiusToken) {
+        styleObj.borderRadius = (borderObj as any).radiusToken;
+      } else if (borderObj.radius) {
         const r = borderObj.radius;
         styleObj.borderRadius = `${r.top.value}${r.top.unit} ${r.right.value}${r.right.unit} ${r.bottom.value}${r.bottom.unit} ${r.left.value}${r.left.unit}`;
       }

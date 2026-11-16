@@ -4,6 +4,8 @@ import React, { useEffect, useRef, useState } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { cn } from "@/lib/utils";
 import { useBuilderStore, type Breakpoint } from "@/stores/builder-store";
+import { themesAdminApi } from "@/lib/api/themes";
+import { extractCssVariablesFromTokens } from "@/lib/builder/theme-schema";
 
 /**
  * The editor canvas, rendered inside an isolated iframe.
@@ -12,14 +14,9 @@ import { useBuilderStore, type Breakpoint } from "@/stores/builder-store";
  * queries evaluate against the frame's own width (375/768/full), not the
  * editor's browser window.
  *
- * The canvas gets its OWN React root inside the iframe document. That is not
- * an optimisation — it is required. React 18/19 attach their synthetic event
- * listeners to the root container, so a portal from the parent document into
- * an iframe leaves every handler dead: native `pointerdown` fires in the
- * iframe but React's `onPointerDown` never runs, which is exactly why
- * dnd-kit drags could not start. Mounting a root in the iframe document puts
- * the listener target and the DOM in the same document. The Zustand store is
- * module-level, so both roots read and write the same AST.
+ * Implements two-layer design token inheritance:
+ * Layer 1 (Base): Active SiteTheme variables loaded automatically from backend.
+ * Layer 2 (Override): Page-level globalStyles applied on top.
  */
 export function CanvasFrame({
   viewport,
@@ -33,7 +30,27 @@ export function CanvasFrame({
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
   const rootRef = useRef<Root | null>(null);
   const [ready, setReady] = useState(false);
+  const [activeThemeVars, setActiveThemeVars] = useState<Record<string, string>>({});
   const globalStyles = useBuilderStore((s) => s.ast.globalStyles);
+
+  // Fetch active site theme as Layer 1 base tokens
+  useEffect(() => {
+    let isMounted = true;
+    themesAdminApi
+      .getActive()
+      .then((theme) => {
+        if (isMounted && theme?.tokens) {
+          const vars = extractCssVariablesFromTokens(theme.tokens);
+          setActiveThemeVars(vars);
+        }
+      })
+      .catch((err) => {
+        console.warn("Failed to load active site theme for CanvasFrame:", err);
+      });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   useEffect(() => {
     const iframe = iframeRef.current;
@@ -90,7 +107,13 @@ export function CanvasFrame({
         }
       });
 
-      // Always re-apply isolated design tokens after syncing parent theme styles
+      // Two-Layer Design Tokens:
+      // Layer 1 (Base): Active SiteTheme variables
+      for (const [key, val] of Object.entries(activeThemeVars)) {
+        doc.documentElement.style.setProperty(key, val);
+      }
+
+      // Layer 2 (Override): Page-level globalStyles
       const gs = useBuilderStore.getState().ast.globalStyles;
       if (gs?.primaryColor) {
         doc.documentElement.style.setProperty("--primary", String(gs.primaryColor));
@@ -143,13 +166,21 @@ export function CanvasFrame({
     rootRef.current.render(<>{children}</>);
   }, [children, ready]);
 
-  // Inject Design Tokens (Global Styles) directly into iframe document element
+  // Two-Layer Design Tokens Injection:
+  // Layer 1 (Base): Active SiteTheme variables
+  // Layer 2 (Override): Page-level globalStyles
   useEffect(() => {
     const iframe = iframeRef.current;
     if (!iframe || !ready) return;
     const doc = iframe.contentDocument;
     if (!doc?.documentElement) return;
 
+    // Apply Layer 1
+    for (const [key, val] of Object.entries(activeThemeVars)) {
+      doc.documentElement.style.setProperty(key, val);
+    }
+
+    // Apply Layer 2 (Override)
     if (globalStyles?.primaryColor) {
       doc.documentElement.style.setProperty("--primary", String(globalStyles.primaryColor));
     }
@@ -164,7 +195,7 @@ export function CanvasFrame({
     } else if (globalStyles?.fontFamily) {
       doc.documentElement.style.setProperty("--font-vazirmatn", String(globalStyles.fontFamily));
     }
-  }, [globalStyles, ready]);
+  }, [activeThemeVars, globalStyles, ready]);
 
   useEffect(() => {
     return () => {

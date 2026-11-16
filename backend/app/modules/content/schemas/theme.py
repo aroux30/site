@@ -100,16 +100,31 @@ def _lookup_path(tree: dict[str, Any], path_parts: list[str]) -> Any:
     return current
 
 
-def resolve_token_value(value_or_alias: Any, tokens: DesignTokensSchema, max_depth: int = 5) -> Any:
-    """Resolve token aliases (e.g. {primitive.color.emerald.600} -> #059669)."""
+class TokenCycleError(ValueError):
+    """Raised when a circular reference is detected in design token aliases."""
+
+    def __init__(self, cycle_path: list[str]) -> None:
+        self.cycle_path = cycle_path
+        path_str = " -> ".join(cycle_path)
+        super().__init__(f"Circular dependency detected in design token aliases: {path_str}")
+
+
+def resolve_token_value(value_or_alias: Any, tokens: DesignTokensSchema, max_depth: int = 10) -> Any:
+    """Resolve token aliases using a Directed Acyclic Graph (DAG) resolver with cycle detection."""
     current_val = value_or_alias
-    hops = 0
+    visited_chain: list[str] = []
 
     while isinstance(current_val, str) and _ALIAS_PATTERN.match(current_val.strip()):
-        if hops >= max_depth:
-            raise ValueError(f"Max alias resolution depth of {max_depth} exceeded for {value_or_alias}")
-        hops += 1
         path_str = _ALIAS_PATTERN.match(current_val.strip()).group(1)
+
+        if path_str in visited_chain:
+            cycle = visited_chain + [path_str]
+            raise TokenCycleError(cycle)
+
+        if len(visited_chain) >= max_depth:
+            raise ValueError(f"Max alias resolution depth of {max_depth} exceeded for {value_or_alias}")
+
+        visited_chain.append(path_str)
         parts = path_str.split(".")
 
         root_key = parts[0]
@@ -134,6 +149,78 @@ def resolve_token_value(value_or_alias: Any, tokens: DesignTokensSchema, max_dep
             current_val = target
 
     return current_val
+
+
+def compile_dtcg_to_css_variables(tokens: DesignTokensSchema) -> dict[str, str]:
+    """Dynamically compile all semantic and component tokens into standard CSS variables."""
+    css_vars: dict[str, str] = {
+        "--primary": "#059669",
+        "--secondary": "#0d9488",
+        "--background": "#ffffff",
+        "--foreground": "#09090b",
+        "--radius": "12px",
+        "--font-vazirmatn": "Vazirmatn, system-ui, sans-serif",
+    }
+
+    # Helper to recursively walk a dict and yield (path_tuple, DTCGToken)
+    def _walk(d: Any, prefix: list[str]) -> list[tuple[list[str], Any]]:
+        items = []
+        if isinstance(d, DTCGToken):
+            items.append((prefix, d.value))
+        elif isinstance(d, dict):
+            if "$value" in d or "value" in d:
+                val = d.get("$value", d.get("value"))
+                items.append((prefix, val))
+            else:
+                for k, v in d.items():
+                    items.extend(_walk(v, prefix + [k]))
+        return items
+
+    # Standard semantic shorthands
+    SHORTHAND_MAP = {
+        ("color", "primary"): "--primary",
+        ("color", "secondary"): "--secondary",
+        ("color", "background"): "--background",
+        ("color", "foreground"): "--foreground",
+        ("color", "surface"): "--surface",
+        ("color", "muted"): "--muted",
+        ("color", "border"): "--border",
+        ("color", "input"): "--input",
+        ("color", "ring"): "--ring",
+        ("color", "success"): "--success",
+        ("color", "warning"): "--warning",
+        ("color", "destructive"): "--destructive",
+        ("color", "info"): "--info",
+        ("dimension", "radius"): "--radius",
+        ("typography", "fontFamily"): "--font-vazirmatn",
+    }
+
+    # 1. Process Semantic tokens
+    for path, raw_val in _walk(tokens.semantic, []):
+        try:
+            resolved = str(resolve_token_value(raw_val, tokens))
+        except Exception:
+            resolved = str(raw_val)
+
+        tuple_key = tuple(path[:2])
+        if tuple_key in SHORTHAND_MAP:
+            css_vars[SHORTHAND_MAP[tuple_key]] = resolved
+
+        # Also emit standard kebab-case var name
+        kebab_name = "--" + "-".join(p.replace("_", "-") for p in path)
+        css_vars[kebab_name] = resolved
+
+    # 2. Process Component tokens
+    for path, raw_val in _walk(tokens.component, []):
+        try:
+            resolved = str(resolve_token_value(raw_val, tokens))
+        except Exception:
+            resolved = str(raw_val)
+
+        kebab_name = "--" + "-".join(p.replace("_", "-") for p in path)
+        css_vars[kebab_name] = resolved
+
+    return css_vars
 
 
 class SiteThemeCreateRequest(BaseModel):

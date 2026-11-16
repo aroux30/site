@@ -768,7 +768,7 @@ export function InspectorPanel() {
 
         {/* Background Color */}
         <div className="space-y-1.5">
-          <Label className="text-xs font-bold text-foreground">رنگ پس‌زمینه</Label>
+          <Label className="text-xs font-bold text-foreground">رنگ پس‌زمینه (Background)</Label>
           <div className="flex items-center gap-2">
             <input
               type="color"
@@ -785,7 +785,7 @@ export function InspectorPanel() {
             />
             <Input
               value={currentDeviceStyle.background?.color || ""}
-              placeholder="#ffffff یا hsl(var(--card))"
+              placeholder="#ffffff یا var(--primary)"
               onChange={(e) =>
                 handleDeviceStyleChange({
                   background: {
@@ -794,8 +794,147 @@ export function InspectorPanel() {
                   },
                 })
               }
-              className="h-8 text-xs flex-1"
+              className="h-8 text-xs flex-1 font-mono"
+              dir="ltr"
             />
+          </div>
+          {/* Quick Design System Token Chips */}
+          <div className="flex flex-wrap gap-1 mt-1.5">
+            <span className="text-[10px] text-muted-foreground me-1 self-center">توکن‌های تم:</span>
+            {[
+              { label: "رنگ اصلی", val: "var(--primary)" },
+              { label: "رنگ ثانویه", val: "var(--secondary)" },
+              { label: "سطح / کارت", val: "var(--surface, var(--card))" },
+              { label: "ملایم (Muted)", val: "var(--muted)" },
+              { label: "پس‌زمینه", val: "var(--background)" },
+            ].map((tok) => (
+              <button
+                key={tok.val}
+                type="button"
+                onClick={() =>
+                  handleDeviceStyleChange({
+                    background: {
+                      type: "color",
+                      color: tok.val,
+                    },
+                  })
+                }
+                className="px-2 py-0.5 rounded text-[10px] bg-muted/80 hover:bg-muted text-muted-foreground hover:text-foreground border border-border/60 transition"
+              >
+                {tok.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Text Color & Typography Tokens */}
+        <div className="space-y-1.5 pt-2 border-t">
+          <Label className="text-xs font-bold text-foreground">رنگ و تایپوگرافی متن (Typography)</Label>
+          <div className="flex items-center gap-2">
+            <input
+              type="color"
+              value={currentDeviceStyle.typography?.color || "#09090b"}
+              onChange={(e) =>
+                handleDeviceStyleChange({
+                  typography: {
+                    ...currentDeviceStyle.typography,
+                    color: e.target.value,
+                  },
+                })
+              }
+              className="w-8 h-8 rounded border border-input cursor-pointer p-0.5"
+            />
+            <Input
+              value={currentDeviceStyle.typography?.color || ""}
+              placeholder="#000000 یا var(--foreground)"
+              onChange={(e) =>
+                handleDeviceStyleChange({
+                  typography: {
+                    ...currentDeviceStyle.typography,
+                    color: e.target.value,
+                  },
+                })
+              }
+              className="h-8 text-xs flex-1 font-mono"
+              dir="ltr"
+            />
+          </div>
+          <div className="flex flex-wrap gap-1 mt-1.5">
+            <span className="text-[10px] text-muted-foreground me-1 self-center">توکن رنگ متن:</span>
+            {[
+              { label: "متن اصلی", val: "var(--foreground)" },
+              { label: "اصلی برند", val: "var(--primary)" },
+              { label: "ثانویه", val: "var(--secondary)" },
+              { label: "متن کمرنگ", val: "var(--muted-foreground)" },
+              { label: "موفقیت", val: "var(--success)" },
+              { label: "هشدار", val: "var(--destructive)" },
+            ].map((tok) => (
+              <button
+                key={tok.val}
+                type="button"
+                onClick={() =>
+                  handleDeviceStyleChange({
+                    typography: {
+                      ...currentDeviceStyle.typography,
+                      color: tok.val,
+                    },
+                  })
+                }
+                className="px-2 py-0.5 rounded text-[10px] bg-muted/80 hover:bg-muted text-muted-foreground hover:text-foreground border border-border/60 transition"
+              >
+                {tok.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Border Radius & Border Color Tokens */}
+        <div className="space-y-1.5 pt-2 border-t">
+          <Label className="text-xs font-bold text-foreground">شعاع گردی کادر (Border Radius)</Label>
+          <div className="flex items-center gap-2">
+            <Input
+              value={(currentDeviceStyle.border as any)?.radiusToken || ""}
+              placeholder="مثلاً 12px یا var(--radius)"
+              onChange={(e) =>
+                handleDeviceStyleChange({
+                  border: {
+                    ...currentDeviceStyle.border,
+                    style: currentDeviceStyle.border?.style || "solid",
+                    radiusToken: e.target.value,
+                  } as any,
+                })
+              }
+              className="h-8 text-xs flex-1 font-mono"
+              dir="ltr"
+            />
+          </div>
+          <div className="flex flex-wrap gap-1 mt-1.5">
+            <span className="text-[10px] text-muted-foreground me-1 self-center">توکن شعاع:</span>
+            {[
+              { label: "بدون گردی", val: "0px" },
+              { label: "شعاع تم سازمانی", val: "var(--radius)" },
+              { label: "کوچک (6px)", val: "6px" },
+              { label: "متوسط (12px)", val: "12px" },
+              { label: "بزرگ (16px)", val: "16px" },
+              { label: "کپسولی", val: "9999px" },
+            ].map((tok) => (
+              <button
+                key={tok.val}
+                type="button"
+                onClick={() =>
+                  handleDeviceStyleChange({
+                    border: {
+                      ...currentDeviceStyle.border,
+                      style: currentDeviceStyle.border?.style || "solid",
+                      radiusToken: tok.val,
+                    } as any,
+                  })
+                }
+                className="px-2 py-0.5 rounded text-[10px] bg-muted/80 hover:bg-muted text-muted-foreground hover:text-foreground border border-border/60 transition"
+              >
+                {tok.label}
+              </button>
+            ))}
           </div>
         </div>
       </div>

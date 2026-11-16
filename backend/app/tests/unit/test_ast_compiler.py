@@ -143,3 +143,71 @@ def test_ast_compiler_renders_native_table_and_form_widgets():
     assert 'name="msg"' in result
     assert "متن پیام</label>" in result
 
+
+def test_ast_compiler_renders_phase_3_storefront_widgets():
+    ast = PageAST(
+        schema_version=1,
+        title="تست ویجت‌های فروشگاهی فاز ۳",
+        slug="test-p3-widgets",
+        root_elements=[
+            BuilderElement(
+                id="el_p3_sec",
+                name="بخش فروشگاه",
+                type="container",
+                children=[
+                    BuilderElement(
+                        id="el_card01",
+                        name="کارت محصول",
+                        type="widget",
+                        widget_type="product_card",
+                        widget_props={
+                            "name": "ساعت هوشمند گلکسی",
+                            "min_price": "۲,۵۰۰,۰۰۰",
+                            "primary_image_url": "/watch.jpg",
+                            "is_in_stock": True,
+                        },
+                    ),
+                    BuilderElement(
+                        id="el_star01",
+                        name="امتیاز ستاره‌ای",
+                        type="widget",
+                        widget_type="star_rating",
+                        widget_props={"value": 4.9, "reviewCount": 42},
+                    ),
+                    BuilderElement(
+                        id="el_hist01",
+                        name="نمودار نظرات",
+                        type="widget",
+                        widget_type="review_histogram",
+                        widget_props={"averageRating": 4.7, "totalReviews": 95},
+                    ),
+                    BuilderElement(
+                        id="el_rv01",
+                        name="بازدیدهای اخیر",
+                        type="widget",
+                        widget_type="recently_viewed",
+                        widget_props={"limit": 6},
+                    ),
+                    BuilderElement(
+                        id="el_mega01",
+                        name="مگامنو",
+                        type="widget",
+                        widget_type="mega_menu",
+                        widget_props={"label": "دسته‌ها"},
+                    ),
+                ],
+            )
+        ],
+    )
+    result = ASTCompiler.compile(ast)
+    assert 'builder-product-card' in result
+    assert 'ساعت هوشمند گلکسی' in result
+    assert 'builder-star-rating' in result
+    assert '★ 4.9' in result
+    assert 'builder-review-histogram' in result
+    assert '۴۲ نظر' in result or '(42 نظر)' in result
+    assert 'builder-recently-viewed' in result
+    assert 'builder-mega-menu' in result
+    assert 'دسته‌ها' in result
+
+

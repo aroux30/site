@@ -69,7 +69,7 @@ STANDARD_WIDGET_TYPES: frozenset[str] = frozenset({
     "stats_counter",
     "icon_box",
     "faq",
-    # Store widgets
+    # Store widgets (Phase P2 & Phase P3)
     "product_grid",
     "product_card",
     "product_title",
@@ -79,6 +79,11 @@ STANDARD_WIDGET_TYPES: frozenset[str] = frozenset({
     "product_categories",
     "product_gallery",
     "shopping_cart",
+    "image_gallery",
+    "star_rating",
+    "review_histogram",
+    "recently_viewed",
+    "mega_menu",
     # Structural & Legacy
     "global_ref",
     "legacy_html",

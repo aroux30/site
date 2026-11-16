@@ -1,7 +1,8 @@
 "use client";
 
 import React from "react";
-import { BASIC_BLOCK_DEFINITIONS } from "@/lib/builder/block-registry";
+import { BASIC_BLOCK_DEFINITIONS, createPatternElement } from "@/lib/builder/block-registry";
+import { blockPatternsApi } from "@/lib/api/block-patterns";
 import { useBuilderStore, type Breakpoint } from "@/stores/builder-store";
 import type { BuilderElement } from "@/types/builder";
 import { CanvasElement } from "./canvas-element";
@@ -39,18 +40,26 @@ export function CanvasDndLayer({
         e.preventDefault();
         e.dataTransfer.dropEffect = "move";
       }}
-      onDrop={(e) => {
+      onDrop={async (e) => {
         e.preventDefault();
         const raw = e.dataTransfer.getData("application/json");
         if (!raw) return;
         try {
           const data = JSON.parse(raw) as
             | { type: "block_def"; blockType: string }
+            | { type: "pattern_def"; patternSlug: string; title: string; category: string; html?: string }
             | { type: "element"; elementId: string };
 
           if (data.type === "block_def") {
             const def = BASIC_BLOCK_DEFINITIONS.find((b) => b.type === data.blockType);
             if (def) addElement(def.createDefaultElement());
+          } else if (data.type === "pattern_def") {
+            const renderedHtml = data.html || (await blockPatternsApi.render(data.patternSlug, {})).html;
+            const newEl = createPatternElement(
+              { slug: data.patternSlug, title: data.title, category: data.category },
+              renderedHtml
+            );
+            addElement(newEl);
           } else if (data.type === "element") {
             // Moving an element to the root: append it last.
             const lastRoot = elements[elements.length - 1];

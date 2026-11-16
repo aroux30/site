@@ -12,7 +12,8 @@ import {
 import { cn } from "@/lib/utils";
 import { useBuilderStore, findElementAndParent, type Breakpoint } from "@/stores/builder-store";
 import { resolveResponsiveValue } from "@/lib/builder/schema";
-import { BASIC_BLOCK_DEFINITIONS } from "@/lib/builder/block-registry";
+import { BASIC_BLOCK_DEFINITIONS, createPatternElement } from "@/lib/builder/block-registry";
+import { blockPatternsApi } from "@/lib/api/block-patterns";
 import type { BuilderElement, DeviceStyle, ResponsiveStyles } from "@/types/builder";
 
 interface CanvasElementProps {
@@ -55,6 +56,7 @@ export function CanvasElement({
     try {
       return JSON.parse(raw) as
         | { type: "block_def"; blockType: string }
+        | { type: "pattern_def"; patternSlug: string; title: string; category: string; html?: string }
         | { type: "element"; elementId: string };
     } catch {
       return null;
@@ -79,7 +81,7 @@ export function CanvasElement({
   }, []);
 
   const onDrop = useCallback(
-    (e: React.DragEvent) => {
+    async (e: React.DragEvent) => {
       e.preventDefault();
       e.stopPropagation();
       setIsDragOver(false);
@@ -90,6 +92,21 @@ export function CanvasElement({
         // Reordering / moving an existing element.
         if (payload.elementId !== element.id) {
           moveElement(payload.elementId, element.id);
+        }
+        return;
+      }
+
+      if (payload.type === "pattern_def") {
+        const renderedHtml = payload.html || (await blockPatternsApi.render(payload.patternSlug, {})).html;
+        const newEl = createPatternElement(
+          { slug: payload.patternSlug, title: payload.title, category: payload.category },
+          renderedHtml
+        );
+        if (element.type === "container") {
+          addElement(newEl, element.id);
+        } else {
+          const info = findElementAndParent(ast.rootElements, element.id);
+          addElement(newEl, info?.parent?.id, (info?.index ?? 0) + 1);
         }
         return;
       }

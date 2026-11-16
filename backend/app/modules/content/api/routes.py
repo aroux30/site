@@ -53,6 +53,11 @@ from app.modules.content.schemas.content import (
     SitemapEntriesResponse,
     TreeMenuItemNode,
 )
+from app.modules.content.schemas.theme import (
+    SiteThemeCreateRequest,
+    SiteThemeResponse,
+    SiteThemeUpdateRequest,
+)
 
 router = APIRouter(tags=["content"])
 
@@ -1396,3 +1401,107 @@ async def oembed_embed(
         content=_json.dumps(payload, ensure_ascii=False),
         media_type="application/json",
     )
+
+
+# ── Site Themes & DTCG Design Tokens (Phase P2.0) ───────────────────────────
+
+
+@router.get(
+    "/themes/active",
+    response_model=SiteThemeResponse,
+    summary="Get currently active site theme with design tokens (public)",
+)
+async def get_active_theme(db: AsyncSession = Depends(get_db)) -> SiteThemeResponse:
+    from app.modules.content.application import theme_service
+
+    theme = await theme_service.get_active_theme(db)
+    if not theme:
+        raise NotFoundError("ActiveTheme", "تم فعالی یافت نشد")
+    return SiteThemeResponse.model_validate(theme)
+
+
+@router.get(
+    "/admin/themes",
+    response_model=list[SiteThemeResponse],
+    summary="List all site themes (admin)",
+    dependencies=[_require_content_write],
+)
+async def admin_list_themes(
+    limit: int = Query(50, ge=1, le=100),
+    offset: int = Query(0, ge=0),
+    db: AsyncSession = Depends(get_db),
+) -> list[SiteThemeResponse]:
+    from app.modules.content.application import theme_service
+
+    themes = await theme_service.list_themes(db, limit=limit, offset=offset)
+    return [SiteThemeResponse.model_validate(t) for t in themes]
+
+
+@router.post(
+    "/admin/themes",
+    response_model=SiteThemeResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Create a new site theme (admin)",
+    dependencies=[_require_content_write],
+)
+async def admin_create_theme(
+    body: SiteThemeCreateRequest,
+    current_user: dict[str, Any] = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> SiteThemeResponse:
+    from app.modules.content.application import theme_service
+
+    author_id = _actor_id(current_user)
+    theme = await theme_service.create_theme(
+        db,
+        name=body.name,
+        slug=body.slug,
+        tokens=body.tokens,
+        description=body.description,
+        is_active=body.is_active,
+        author_id=author_id,
+    )
+    return SiteThemeResponse.model_validate(theme)
+
+
+@router.patch(
+    "/admin/themes/{theme_id}",
+    response_model=SiteThemeResponse,
+    summary="Update site theme tokens or metadata (admin)",
+    dependencies=[_require_content_write],
+)
+async def admin_update_theme(
+    theme_id: uuid.UUID,
+    body: SiteThemeUpdateRequest,
+    current_user: dict[str, Any] = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> SiteThemeResponse:
+    from app.modules.content.application import theme_service
+
+    editor_id = _actor_id(current_user)
+    theme = await theme_service.update_theme(
+        db,
+        theme_id,
+        body,
+        editor_id=editor_id,
+    )
+    return SiteThemeResponse.model_validate(theme)
+
+
+@router.post(
+    "/admin/themes/{theme_id}/activate",
+    response_model=SiteThemeResponse,
+    summary="Activate site theme atomically (admin)",
+    dependencies=[_require_content_write],
+)
+async def admin_activate_theme(
+    theme_id: uuid.UUID,
+    current_user: dict[str, Any] = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> SiteThemeResponse:
+    from app.modules.content.application import theme_service
+
+    actor_id = _actor_id(current_user)
+    theme = await theme_service.activate_theme(db, theme_id, actor_id=actor_id)
+    return SiteThemeResponse.model_validate(theme)
+

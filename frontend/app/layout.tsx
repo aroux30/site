@@ -181,6 +181,18 @@ function buildSiteJsonLd(siteName: string) {
   ];
 }
 
+async function fetchActiveThemeCss(): Promise<string> {
+  try {
+    const res = await fetch(`${apiInternalUrl()}/content/themes/active/css`, {
+      next: { revalidate: 300, tags: ["active-theme-css"] },
+    });
+    if (!res.ok) return "";
+    return await res.text();
+  } catch {
+    return "";
+  }
+}
+
 export default async function RootLayout({
   children,
 }: {
@@ -190,9 +202,18 @@ export default async function RootLayout({
   // the name for itself. fetchBranding is revalidate-cached, so this is a cache
   // read rather than a second request.
   const storeNameInPage = (await fetchBranding()).store_name || "فروشگاه آنلاین";
+  const activeThemeCss = await fetchActiveThemeCss();
 
   return (
     <html lang="fa" dir="rtl" className={vazirmatn.variable}>
+      <head>
+        {activeThemeCss ? (
+          <style
+            id="active-site-theme-css"
+            dangerouslySetInnerHTML={{ __html: activeThemeCss }}
+          />
+        ) : null}
+      </head>
       <body className="min-h-screen bg-background font-sans antialiased">
         <script
           type="application/ld+json"

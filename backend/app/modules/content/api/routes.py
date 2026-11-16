@@ -57,6 +57,8 @@ from app.modules.content.schemas.theme import (
     SiteThemeCreateRequest,
     SiteThemeResponse,
     SiteThemeUpdateRequest,
+    ThemeRevisionResponse,
+    ThemeCloneRequest,
 )
 
 router = APIRouter(tags=["content"])
@@ -1417,7 +1419,24 @@ async def get_active_theme(db: AsyncSession = Depends(get_db)) -> SiteThemeRespo
     theme = await theme_service.get_active_theme(db)
     if not theme:
         raise NotFoundError("ActiveTheme", "تم فعالی یافت نشد")
-    return SiteThemeResponse.model_validate(theme)
+    resp = SiteThemeResponse.model_validate(theme)
+    resp.css_variables = theme_service.compile_theme_css_variables(theme)
+    return resp
+
+
+@router.get(
+    "/themes/active/css",
+    summary="Get compiled CSS variables stylesheet for active site theme (public)",
+)
+async def get_active_theme_css(db: AsyncSession = Depends(get_db)) -> Response:
+    from app.modules.content.application import theme_service
+
+    theme = await theme_service.get_active_theme(db)
+    if not theme:
+        css = ":root { --primary: #059669; --secondary: #0d9488; --radius: 12px; }"
+    else:
+        css = theme_service.compile_theme_css_string(theme)
+    return Response(content=css, media_type="text/css")
 
 
 @router.get(
@@ -1434,7 +1453,12 @@ async def admin_list_themes(
     from app.modules.content.application import theme_service
 
     themes = await theme_service.list_themes(db, limit=limit, offset=offset)
-    return [SiteThemeResponse.model_validate(t) for t in themes]
+    results = []
+    for t in themes:
+        res = SiteThemeResponse.model_validate(t)
+        res.css_variables = theme_service.compile_theme_css_variables(t)
+        results.append(res)
+    return results
 
 
 @router.post(
@@ -1461,7 +1485,9 @@ async def admin_create_theme(
         is_active=body.is_active,
         author_id=author_id,
     )
-    return SiteThemeResponse.model_validate(theme)
+    resp = SiteThemeResponse.model_validate(theme)
+    resp.css_variables = theme_service.compile_theme_css_variables(theme)
+    return resp
 
 
 @router.patch(
@@ -1485,7 +1511,9 @@ async def admin_update_theme(
         body,
         editor_id=editor_id,
     )
-    return SiteThemeResponse.model_validate(theme)
+    resp = SiteThemeResponse.model_validate(theme)
+    resp.css_variables = theme_service.compile_theme_css_variables(theme)
+    return resp
 
 
 @router.post(
@@ -1503,5 +1531,84 @@ async def admin_activate_theme(
 
     actor_id = _actor_id(current_user)
     theme = await theme_service.activate_theme(db, theme_id, actor_id=actor_id)
-    return SiteThemeResponse.model_validate(theme)
+    resp = SiteThemeResponse.model_validate(theme)
+    resp.css_variables = theme_service.compile_theme_css_variables(theme)
+    return resp
+
+
+@router.get(
+    "/admin/themes/{theme_id}/revisions",
+    response_model=list[ThemeRevisionResponse],
+    summary="Get revision history for a theme (admin)",
+    dependencies=[_require_content_write],
+)
+async def admin_list_theme_revisions(
+    theme_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+) -> list[ThemeRevisionResponse]:
+    from app.modules.content.application import theme_service
+
+    revs = await theme_service.list_theme_revisions(db, theme_id)
+    return [ThemeRevisionResponse.model_validate(r) for r in revs]
+
+
+@router.post(
+    "/admin/themes/{theme_id}/revisions/{revision_id}/restore",
+    response_model=SiteThemeResponse,
+    summary="Restore theme to a previous revision (admin)",
+    dependencies=[_require_content_write],
+)
+async def admin_restore_theme_revision(
+    theme_id: uuid.UUID,
+    revision_id: uuid.UUID,
+    current_user: dict[str, Any] = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> SiteThemeResponse:
+    from app.modules.content.application import theme_service
+
+    actor_id = _actor_id(current_user)
+    theme = await theme_service.restore_theme_revision(db, theme_id, revision_id, actor_id=actor_id)
+    resp = SiteThemeResponse.model_validate(theme)
+    resp.css_variables = theme_service.compile_theme_css_variables(theme)
+    return resp
+
+
+@router.post(
+    "/admin/themes/{theme_id}/clone",
+    response_model=SiteThemeResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Clone an existing theme into a new theme (admin)",
+    dependencies=[_require_content_write],
+)
+async def admin_clone_theme(
+    theme_id: uuid.UUID,
+    body: ThemeCloneRequest,
+    current_user: dict[str, Any] = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> SiteThemeResponse:
+    from app.modules.content.application import theme_service
+
+    actor_id = _actor_id(current_user)
+    theme = await theme_service.clone_theme(db, theme_id, body.name, body.slug, actor_id=actor_id)
+    resp = SiteThemeResponse.model_validate(theme)
+    resp.css_variables = theme_service.compile_theme_css_variables(theme)
+    return resp
+
+
+@router.delete(
+    "/admin/themes/{theme_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Delete a non-active theme (admin)",
+    dependencies=[_require_content_write],
+)
+async def admin_delete_theme(
+    theme_id: uuid.UUID,
+    current_user: dict[str, Any] = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> Response:
+    from app.modules.content.application import theme_service
+
+    actor_id = _actor_id(current_user)
+    await theme_service.delete_theme(db, theme_id, actor_id=actor_id)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 

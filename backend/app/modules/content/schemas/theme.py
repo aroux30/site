@@ -162,4 +162,23 @@ class SiteThemeResponse(BaseModel):
     description: str | None = None
     is_active: bool
     tokens: dict[str, Any]
+    css_variables: dict[str, str] = Field(default_factory=dict)
     author_id: uuid.UUID | None = None
+
+
+class ThemeRevisionResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: uuid.UUID
+    theme_id: uuid.UUID
+    version: int
+    name: str
+    change_summary: str | None = None
+    tokens: dict[str, Any]
+    created_by: uuid.UUID | None = None
+    created_at: datetime
+
+
+class ThemeCloneRequest(BaseModel):
+    name: str = Field(min_length=2, max_length=150)
+    slug: str = Field(min_length=2, max_length=180)

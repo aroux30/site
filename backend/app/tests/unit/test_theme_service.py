@@ -97,3 +97,80 @@ async def test_activate_theme_single_active_constraint():
         active_theme = await theme_service.get_active_theme(db)
         assert active_theme is not None
         assert active_theme.id == t2.id
+
+
+@pytest.mark.asyncio
+async def test_theme_revisions_and_restore():
+    slug = f"theme-rev-{uuid.uuid4().hex[:8]}"
+    tokens_v1 = {"semantic": {"color": {"primary": {"$value": "#10b981", "$type": "color"}}}}
+    tokens_v2 = {"semantic": {"color": {"primary": {"$value": "#f59e0b", "$type": "color"}}}}
+
+    async with async_session_factory() as db:
+        theme = await theme_service.create_theme(db, name="تم تست ریویژن", slug=slug, tokens=tokens_v1, is_active=False)
+        revs1 = await theme_service.list_theme_revisions(db, theme.id)
+        assert len(revs1) == 1
+        initial_rev_id = revs1[0].id
+
+        # Update theme to create revision 2
+        from app.modules.content.schemas.theme import SiteThemeUpdateRequest, DesignTokensSchema
+        updated = await theme_service.update_theme(
+            db,
+            theme.id,
+            SiteThemeUpdateRequest(tokens=DesignTokensSchema.model_validate(tokens_v2)),
+        )
+        assert updated.tokens["semantic"]["color"]["primary"]["$value"] == "#f59e0b"
+
+        revs2 = await theme_service.list_theme_revisions(db, theme.id)
+        assert len(revs2) == 2
+
+        # Restore initial revision 1
+        restored = await theme_service.restore_theme_revision(db, theme.id, initial_rev_id)
+        assert restored.tokens["semantic"]["color"]["primary"]["$value"] == "#10b981"
+
+
+@pytest.mark.asyncio
+async def test_theme_clone_and_delete():
+    source_slug = f"theme-src-{uuid.uuid4().hex[:8]}"
+    cloned_slug = f"theme-cln-{uuid.uuid4().hex[:8]}"
+    tokens = {"semantic": {"color": {"primary": {"$value": "#3b82f6", "$type": "color"}}}}
+
+    async with async_session_factory() as db:
+        source = await theme_service.create_theme(db, name="تم مبدا", slug=source_slug, tokens=tokens, is_active=False)
+
+        cloned = await theme_service.clone_theme(db, source.id, "تم کلون شده", cloned_slug)
+        assert cloned.id != source.id
+        assert cloned.slug == cloned_slug
+        assert cloned.is_active is False
+        assert cloned.tokens["semantic"]["color"]["primary"]["$value"] == "#3b82f6"
+
+        # Delete non-active theme
+        await theme_service.delete_theme(db, cloned.id)
+        assert await theme_service.get_theme_by_id(db, cloned.id) is None
+
+
+def test_compile_theme_css_variables_and_string():
+    tokens = {
+        "primitive": {
+            "color": {"emerald": {"600": {"$value": "#059669", "$type": "color"}}}
+        },
+        "semantic": {
+            "color": {
+                "primary": {"$value": "{primitive.color.emerald.600}", "$type": "color"},
+                "secondary": {"$value": "#0d9488", "$type": "color"},
+            },
+            "dimension": {
+                "radius": {"$value": "14px", "$type": "dimension"},
+            },
+        },
+    }
+
+    css_vars = theme_service.compile_theme_css_variables(tokens)
+    assert css_vars["--primary"] == "#059669"
+    assert css_vars["--secondary"] == "#0d9488"
+    assert css_vars["--radius"] == "14px"
+
+    css_str = theme_service.compile_theme_css_string(tokens)
+    assert ":root {" in css_str
+    assert "--primary: #059669;" in css_str
+    assert "--radius: 14px;" in css_str
+

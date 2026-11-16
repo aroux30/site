@@ -90,3 +90,73 @@ def test_site_theme_create_request_validation():
     assert req.name == "تم پاییزی"
     assert req.slug == "autumn-theme"
     assert req.tokens.semantic["color"]["primary"].value == "#f59e0b"
+
+
+def test_token_cycle_error_detection():
+    from app.modules.content.schemas.theme import TokenCycleError
+
+    # Circular alias: A points to B, B points to C, C points to A
+    cycle_raw = {
+        "primitive": {
+            "tokenA": {"$value": "{primitive.tokenB}"},
+            "tokenB": {"$value": "{primitive.tokenC}"},
+            "tokenC": {"$value": "{primitive.tokenA}"},
+        }
+    }
+    schema = DesignTokensSchema.model_validate(cycle_raw)
+
+    with pytest.raises(TokenCycleError) as exc_info:
+        resolve_token_value("{primitive.tokenA}", schema)
+
+    error_msg = str(exc_info.value)
+    assert "Circular dependency detected" in error_msg
+    assert "primitive.tokenA -> primitive.tokenB -> primitive.tokenC -> primitive.tokenA" in error_msg
+
+
+def test_compile_all_semantic_and_component_tokens():
+    from app.modules.content.schemas.theme import compile_dtcg_to_css_variables
+
+    tokens = {
+        "primitive": {
+            "color": {
+                "slate": {"900": {"$value": "#0f172a"}},
+            }
+        },
+        "semantic": {
+            "color": {
+                "primary": {"$value": "#059669"},
+                "secondary": {"$value": "#0d9488"},
+                "success": {"$value": "#16a34a"},
+                "warning": {"$value": "#f59e0b"},
+                "destructive": {"$value": "#e11d48"},
+                "info": {"$value": "#2563eb"},
+                "surface": {"$value": "{primitive.color.slate.900}"},
+            },
+            "dimension": {
+                "radius": {"$value": "16px"},
+            },
+            "typography": {
+                "fontFamily": {"$value": "Vazirmatn"},
+            },
+        },
+        "component": {
+            "button": {
+                "radius": {"$value": "{semantic.dimension.radius}"},
+            },
+        },
+    }
+
+    schema = DesignTokensSchema.model_validate(tokens)
+    css_vars = compile_dtcg_to_css_variables(schema)
+
+    assert css_vars["--primary"] == "#059669"
+    assert css_vars["--secondary"] == "#0d9488"
+    assert css_vars["--success"] == "#16a34a"
+    assert css_vars["--warning"] == "#f59e0b"
+    assert css_vars["--destructive"] == "#e11d48"
+    assert css_vars["--info"] == "#2563eb"
+    assert css_vars["--surface"] == "#0f172a"
+    assert css_vars["--radius"] == "16px"
+    assert css_vars["--font-vazirmatn"] == "Vazirmatn"
+    assert css_vars["--button-radius"] == "16px"
+

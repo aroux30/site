@@ -1414,13 +1414,27 @@ async def oembed_embed(
     summary="Get currently active site theme with design tokens (public)",
 )
 async def get_active_theme(db: AsyncSession = Depends(get_db)) -> SiteThemeResponse:
+    from app.core.cache.redis import cache_get, cache_set
     from app.modules.content.application import theme_service
+
+    cached_json = await cache_get(theme_service.ACTIVE_THEME_CACHE_KEY)
+    if cached_json:
+        try:
+            return SiteThemeResponse.model_validate_json(cached_json)
+        except Exception:
+            pass
 
     theme = await theme_service.get_active_theme(db)
     if not theme:
         raise NotFoundError("ActiveTheme", "تم فعالی یافت نشد")
     resp = SiteThemeResponse.model_validate(theme)
     resp.css_variables = theme_service.compile_theme_css_variables(theme)
+
+    try:
+        await cache_set(theme_service.ACTIVE_THEME_CACHE_KEY, resp.model_dump_json(), ttl=86400)
+    except Exception:
+        pass
+
     return resp
 
 
@@ -1429,13 +1443,24 @@ async def get_active_theme(db: AsyncSession = Depends(get_db)) -> SiteThemeRespo
     summary="Get compiled CSS variables stylesheet for active site theme (public)",
 )
 async def get_active_theme_css(db: AsyncSession = Depends(get_db)) -> Response:
+    from app.core.cache.redis import cache_get, cache_set
     from app.modules.content.application import theme_service
+
+    cached_css = await cache_get(theme_service.ACTIVE_THEME_CSS_CACHE_KEY)
+    if cached_css:
+        return Response(content=cached_css, media_type="text/css")
 
     theme = await theme_service.get_active_theme(db)
     if not theme:
         css = ":root { --primary: #059669; --secondary: #0d9488; --radius: 12px; }"
     else:
         css = theme_service.compile_theme_css_string(theme)
+
+    try:
+        await cache_set(theme_service.ACTIVE_THEME_CSS_CACHE_KEY, css, ttl=86400)
+    except Exception:
+        pass
+
     return Response(content=css, media_type="text/css")
 
 

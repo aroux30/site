@@ -1,9 +1,18 @@
 "use client";
 
 import React, { useState, useMemo, useEffect, useCallback } from "react";
-import { Search, Sparkles, Layout, Box, Loader2, Bookmark, FolderHeart } from "lucide-react";
+import { Search, Sparkles, Layout, Box, Loader2, Bookmark, FolderHeart, Eye, Pencil, Trash2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 import {
   BASIC_BLOCK_DEFINITIONS,
   createPatternElement,
@@ -32,6 +41,11 @@ export function BlocksPalette() {
 
   const [savedTemplates, setSavedTemplates] = useState<PageTemplate[]>([]);
   const [loadingTemplates, setLoadingTemplates] = useState(false);
+  const [previewTemplate, setPreviewTemplate] = useState<PageTemplate | null>(null);
+  const [editTemplate, setEditTemplate] = useState<PageTemplate | null>(null);
+  const [editTplTitle, setEditTplTitle] = useState("");
+  const [editTplCat, setEditTplCat] = useState("عمومی");
+  const [savingEdit, setSavingEdit] = useState(false);
 
   const addElement = useBuilderStore((s) => s.addElement);
   const selectedElementId = useBuilderStore((s) => s.selectedElementId);
@@ -169,6 +183,58 @@ export function BlocksPalette() {
       title: "قالب افزوده شد",
       description: `قالب «${tpl.title}» به بوم اضافه شد.`,
     });
+  };
+
+  const handleDeleteTemplate = async (id: string, title: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      await pageTemplatesAdminApi.delete(id);
+      toast({
+        title: "قالب حذف شد",
+        description: `قالب «${title}» حذف گردید.`,
+      });
+      fetchTemplates();
+    } catch (err) {
+      console.error("Delete template error:", err);
+      toast({
+        title: "خطا",
+        description: "حذف قالب با خطا مواجه شد.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleOpenEditTemplate = (tpl: PageTemplate, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setEditTemplate(tpl);
+    setEditTplTitle(tpl.title);
+    setEditTplCat(tpl.category || "عمومی");
+  };
+
+  const handleSaveEditTemplate = async () => {
+    if (!editTemplate || !editTplTitle.trim()) return;
+    setSavingEdit(true);
+    try {
+      await pageTemplatesAdminApi.update(editTemplate.id, {
+        title: editTplTitle.trim(),
+        category: editTplCat,
+      });
+      toast({
+        title: "قالب ویرایش شد",
+        description: "مشخصات قالب با موفقیت به‌روزرسانی شد.",
+      });
+      setEditTemplate(null);
+      fetchTemplates();
+    } catch (err) {
+      console.error("Update template error:", err);
+      toast({
+        title: "خطا",
+        description: "ویرایش قالب با خطا مواجه شد.",
+        variant: "destructive",
+      });
+    } finally {
+      setSavingEdit(false);
+    }
   };
 
   const filteredSavedTemplates = useMemo(() => {
@@ -465,9 +531,38 @@ export function BlocksPalette() {
                       <span className="text-xs font-bold text-foreground group-hover:text-primary transition-colors">
                         {tpl.title}
                       </span>
-                      <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4">
-                        {tpl.category || "عمومی"}
-                      </Badge>
+                      <div className="flex items-center gap-1">
+                        <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4">
+                          {tpl.category || "عمومی"}
+                        </Badge>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setPreviewTemplate(tpl);
+                          }}
+                          className="p-1 hover:bg-muted rounded text-muted-foreground hover:text-foreground"
+                          title="پیش‌نمایش ساختار قالب"
+                        >
+                          <Eye className="w-3 h-3" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={(e) => handleOpenEditTemplate(tpl, e)}
+                          className="p-1 hover:bg-muted rounded text-muted-foreground hover:text-foreground"
+                          title="ویرایش عنوان و دسته‌بندی"
+                        >
+                          <Pencil className="w-3 h-3" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={(e) => handleDeleteTemplate(tpl.id, tpl.title, e)}
+                          className="p-1 hover:bg-destructive/10 rounded text-destructive"
+                          title="حذف قالب"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </button>
+                      </div>
                     </div>
                     <div className="flex items-center justify-between pt-1 border-t border-border/40 text-[10px] text-muted-foreground">
                       <span>{((tpl as any).builder_data?.rootElements || tpl.builderData?.rootElements || []).length || 1} بخش محتوایی</span>
@@ -480,6 +575,92 @@ export function BlocksPalette() {
           </div>
         )}
       </div>
+
+      {/* Preview Template Structure Dialog */}
+      <Dialog open={Boolean(previewTemplate)} onOpenChange={(open) => !open && setPreviewTemplate(null)}>
+        <DialogContent className="max-w-md" dir="rtl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-base font-bold">
+              <Eye className="w-4 h-4 text-primary" />
+              <span>پیش‌نمایش ساختار قالب «{previewTemplate?.title}»</span>
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-3 py-2 text-xs">
+            <div className="flex items-center justify-between p-2.5 rounded-lg bg-muted/40 border">
+              <span className="text-muted-foreground">دسته‌بندی:</span>
+              <Badge variant="outline">{previewTemplate?.category || "عمومی"}</Badge>
+            </div>
+            <div className="p-3 rounded-lg border bg-card space-y-2">
+              <span className="font-semibold block text-foreground">المان‌های موجود در قالب:</span>
+              <ul className="space-y-1 text-muted-foreground list-disc ps-4">
+                {((previewTemplate as any)?.builder_data?.rootElements || previewTemplate?.builderData?.rootElements || []).map((el: any) => (
+                  <li key={el.id} className="font-mono text-[11px]">
+                    {el.name} ({el.type === "container" ? "کانتینر چیدمان" : el.widgetType || "ویجت"})
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+
+          <DialogFooter className="flex items-center justify-between gap-2">
+            <Button variant="outline" size="sm" onClick={() => setPreviewTemplate(null)}>
+              بستن
+            </Button>
+            {previewTemplate && (
+              <Button
+                size="sm"
+                onClick={() => {
+                  handleInsertTemplate(previewTemplate);
+                  setPreviewTemplate(null);
+                }}
+              >
+                درج این قالب در بوم
+              </Button>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Template Title/Category Dialog */}
+      <Dialog open={Boolean(editTemplate)} onOpenChange={(open) => !open && setEditTemplate(null)}>
+        <DialogContent className="max-w-md" dir="rtl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-base font-bold">
+              <Pencil className="w-4 h-4 text-primary" />
+              <span>ویرایش مشخصات قالب</span>
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-3 py-2 text-xs">
+            <div className="space-y-1.5">
+              <Label className="text-xs">عنوان قالب</Label>
+              <Input
+                value={editTplTitle}
+                onChange={(e) => setEditTplTitle(e.target.value)}
+                className="h-8 text-xs"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">دسته‌بندی قالب</Label>
+              <Input
+                value={editTplCat}
+                onChange={(e) => setEditTplCat(e.target.value)}
+                className="h-8 text-xs"
+              />
+            </div>
+          </div>
+
+          <DialogFooter className="flex items-center justify-end gap-2">
+            <Button variant="outline" size="sm" onClick={() => setEditTemplate(null)}>
+              انصراف
+            </Button>
+            <Button size="sm" onClick={handleSaveEditTemplate} disabled={savingEdit}>
+              {savingEdit ? "در حال ثبت..." : "ذخیره تغییرات"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

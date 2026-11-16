@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Paintbrush,
   Plus,
@@ -13,12 +13,18 @@ import {
   Sliders,
   Check,
   Sparkles,
+  Eye,
+  Palette,
+  Type,
+  Layers,
+  Box,
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   Dialog,
   DialogContent,
@@ -62,6 +68,13 @@ const RADIUS_OPTIONS = [
   { label: "خیلی بزرگ (24px)", value: "24px" },
 ];
 
+const SHADOW_OPTIONS = [
+  { label: "بدون سایه (None)", value: "none" },
+  { label: "ظریف (Sm)", value: "0 1px 2px 0 rgb(0 0 0 / 0.05)" },
+  { label: "استاندارد (Md)", value: "0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)" },
+  { label: "عمیق (Lg)", value: "0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)" },
+];
+
 export default function AdminThemesPage() {
   const { toast } = useToast();
   const confirm = useConfirm();
@@ -76,15 +89,32 @@ export default function AdminThemesPage() {
   const [revisions, setRevisions] = useState<ThemeRevision[]>([]);
   const [loadingRevisions, setLoadingRevisions] = useState(false);
   const [cloneTheme, setCloneTheme] = useState<SiteTheme | null>(null);
+  const [modalTab, setModalTab] = useState<"colors" | "typography" | "preview">("colors");
 
-  // Form states
+  // Form states - metadata
   const [formName, setFormName] = useState("");
   const [formSlug, setFormSlug] = useState("");
   const [formDesc, setFormDesc] = useState("");
+
+  // Form states - colors
   const [formPrimary, setFormPrimary] = useState("#059669");
   const [formSecondary, setFormSecondary] = useState("#0d9488");
+  const [formBackground, setFormBackground] = useState("#ffffff");
+  const [formForeground, setFormForeground] = useState("#09090b");
+  const [formSurface, setFormSurface] = useState("#f8fafc");
+  const [formMuted, setFormMuted] = useState("#f1f5f9");
+  const [formBorder, setFormBorder] = useState("#e2e8f0");
+  const [formSuccess, setFormSuccess] = useState("#16a34a");
+  const [formWarning, setFormWarning] = useState("#f59e0b");
+  const [formDestructive, setFormDestructive] = useState("#e11d48");
+  const [formInfo, setFormInfo] = useState("#2563eb");
+
+  // Form states - typography & dimensions
   const [formRadius, setFormRadius] = useState("12px");
+  const [formShadow, setFormShadow] = useState(SHADOW_OPTIONS[2].value);
   const [formFont, setFormFont] = useState("vazirmatn");
+  const [formFontSize, setFormFontSize] = useState("15px");
+
   const [submitting, setSubmitting] = useState(false);
 
   const fetchThemes = useCallback(async () => {
@@ -132,8 +162,20 @@ export default function AdminThemesPage() {
     setFormDesc("");
     setFormPrimary("#059669");
     setFormSecondary("#0d9488");
+    setFormBackground("#ffffff");
+    setFormForeground("#09090b");
+    setFormSurface("#f8fafc");
+    setFormMuted("#f1f5f9");
+    setFormBorder("#e2e8f0");
+    setFormSuccess("#16a34a");
+    setFormWarning("#f59e0b");
+    setFormDestructive("#e11d48");
+    setFormInfo("#2563eb");
     setFormRadius("12px");
+    setFormShadow(SHADOW_OPTIONS[2].value);
     setFormFont("vazirmatn");
+    setFormFontSize("15px");
+    setModalTab("colors");
     setCreateOpen(true);
   };
 
@@ -142,10 +184,70 @@ export default function AdminThemesPage() {
     setFormName(theme.name);
     setFormDesc(theme.description || "");
     const sem = theme.tokens?.semantic || {};
-    setFormPrimary(String(sem.color?.primary?.$value || "#059669"));
-    setFormSecondary(String(sem.color?.secondary?.$value || "#0d9488"));
+    const col = sem.color || {};
+    setFormPrimary(String(col.primary?.$value || "#059669"));
+    setFormSecondary(String(col.secondary?.$value || "#0d9488"));
+    setFormBackground(String(col.background?.$value || "#ffffff"));
+    setFormForeground(String(col.foreground?.$value || "#09090b"));
+    setFormSurface(String(col.surface?.$value || "#f8fafc"));
+    setFormMuted(String(col.muted?.$value || "#f1f5f9"));
+    setFormBorder(String(col.border?.$value || "#e2e8f0"));
+    setFormSuccess(String(col.success?.$value || "#16a34a"));
+    setFormWarning(String(col.warning?.$value || "#f59e0b"));
+    setFormDestructive(String(col.destructive?.$value || "#e11d48"));
+    setFormInfo(String(col.info?.$value || "#2563eb"));
+
     setFormRadius(String(sem.dimension?.radius?.$value || "12px"));
-    setFormFont(String(sem.typography?.fontFamily?.$value || "vazirmatn"));
+    setFormShadow(String(sem.shadow?.boxShadow?.$value || SHADOW_OPTIONS[2].value));
+    const fontVal = String(sem.typography?.fontFamily?.$value || "vazirmatn");
+    setFormFont(fontVal.includes("system-ui") && !fontVal.includes("Vazirmatn") ? "system-ui" : "vazirmatn");
+    setFormFontSize(String(sem.typography?.fontSize?.$value || "15px"));
+    setModalTab("colors");
+  };
+
+  const buildTokensPayload = (baseTokens?: any) => {
+    const base = baseTokens || DEFAULT_THEME_TOKENS;
+    return {
+      ...base,
+      semantic: {
+        ...(base.semantic || DEFAULT_THEME_TOKENS.semantic),
+        color: {
+          ...(base.semantic?.color || DEFAULT_THEME_TOKENS.semantic?.color),
+          primary: { $value: formPrimary, $type: "color", $description: "Brand Primary" },
+          secondary: { $value: formSecondary, $type: "color", $description: "Brand Secondary" },
+          background: { $value: formBackground, $type: "color", $description: "Page Background" },
+          foreground: { $value: formForeground, $type: "color", $description: "Page Text Color" },
+          surface: { $value: formSurface, $type: "color", $description: "Card / Container Surface" },
+          muted: { $value: formMuted, $type: "color", $description: "Muted Container / Input" },
+          border: { $value: formBorder, $type: "color", $description: "Borders & Dividers" },
+          success: { $value: formSuccess, $type: "color", $description: "Success Feedback" },
+          warning: { $value: formWarning, $type: "color", $description: "Warning Feedback" },
+          destructive: { $value: formDestructive, $type: "color", $description: "Destructive Action" },
+          info: { $value: formInfo, $type: "color", $description: "System Info" },
+        },
+        dimension: {
+          ...(base.semantic?.dimension || DEFAULT_THEME_TOKENS.semantic?.dimension),
+          radius: { $value: formRadius, $type: "dimension", $description: "Base Border Radius" },
+        },
+        typography: {
+          ...(base.semantic?.typography || DEFAULT_THEME_TOKENS.semantic?.typography),
+          fontFamily: {
+            $value: formFont === "system-ui" ? "system-ui, sans-serif" : "var(--font-vazirmatn, system-ui, sans-serif)",
+            $type: "fontFamily",
+          },
+          fontSize: { $value: formFontSize, $type: "dimension" },
+        },
+        shadow: {
+          boxShadow: { $value: formShadow, $type: "shadow" },
+        },
+      },
+      component: {
+        ...(base.component || DEFAULT_THEME_TOKENS.component),
+        button: {
+          radius: { $value: formRadius, $type: "dimension" },
+        },
+      },
+    };
   };
 
   const handleSaveCreate = async () => {
@@ -156,21 +258,7 @@ export default function AdminThemesPage() {
 
     setSubmitting(true);
     try {
-      const tokens = {
-        ...DEFAULT_THEME_TOKENS,
-        semantic: {
-          ...DEFAULT_THEME_TOKENS.semantic,
-          color: {
-            ...DEFAULT_THEME_TOKENS.semantic?.color,
-            primary: { $value: formPrimary, $type: "color" },
-            secondary: { $value: formSecondary, $type: "color" },
-          },
-          dimension: {
-            ...DEFAULT_THEME_TOKENS.semantic?.dimension,
-            radius: { $value: formRadius, $type: "dimension" },
-          },
-        },
-      };
+      const tokens = buildTokensPayload();
 
       await themesAdminApi.create({
         name: formName.trim(),
@@ -194,21 +282,7 @@ export default function AdminThemesPage() {
     if (!editTheme) return;
     setSubmitting(true);
     try {
-      const updatedTokens = {
-        ...(editTheme.tokens || DEFAULT_THEME_TOKENS),
-        semantic: {
-          ...(editTheme.tokens?.semantic || DEFAULT_THEME_TOKENS.semantic),
-          color: {
-            ...(editTheme.tokens?.semantic?.color || DEFAULT_THEME_TOKENS.semantic?.color),
-            primary: { $value: formPrimary, $type: "color" },
-            secondary: { $value: formSecondary, $type: "color" },
-          },
-          dimension: {
-            ...(editTheme.tokens?.semantic?.dimension || DEFAULT_THEME_TOKENS.semantic?.dimension),
-            radius: { $value: formRadius, $type: "dimension" },
-          },
-        },
-      };
+      const updatedTokens = buildTokensPayload(editTheme.tokens);
 
       await themesAdminApi.update(editTheme.id, {
         name: formName.trim(),
@@ -446,14 +520,14 @@ export default function AdminThemesPage() {
         })}
       </div>
 
-      {/* Create / Edit Dialog */}
+      {/* Create / Edit Dialog with Full Token Groups & Live Component Preview */}
       <Dialog open={createOpen || Boolean(editTheme)} onOpenChange={(open) => {
         if (!open) {
           setCreateOpen(false);
           setEditTheme(null);
         }
       }}>
-        <DialogContent className="max-w-md" dir="rtl">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto" dir="rtl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-base font-bold">
               <Paintbrush className="w-4 h-4 text-primary" />
@@ -461,8 +535,9 @@ export default function AdminThemesPage() {
             </DialogTitle>
           </DialogHeader>
 
-          <div className="space-y-4 py-2 text-xs">
-            <div className="space-y-1.5">
+          {/* Basic metadata */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 py-1 border-b pb-3">
+            <div className="space-y-1">
               <Label className="text-xs">نام تم</Label>
               <Input
                 value={formName}
@@ -471,9 +546,8 @@ export default function AdminThemesPage() {
                 placeholder="مثلاً: تم سازمانی نیلی"
               />
             </div>
-
-            {!editTheme && (
-              <div className="space-y-1.5">
+            {!editTheme ? (
+              <div className="space-y-1">
                 <Label className="text-xs">نامک تم (Slug)</Label>
                 <Input
                   value={formSlug}
@@ -483,9 +557,13 @@ export default function AdminThemesPage() {
                   placeholder="corporate-indigo"
                 />
               </div>
+            ) : (
+              <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground">نامک (غیرقابل تغییر)</Label>
+                <Input value={editTheme.slug} disabled className="h-8 text-xs font-mono bg-muted" dir="ltr" />
+              </div>
             )}
-
-            <div className="space-y-1.5">
+            <div className="space-y-1">
               <Label className="text-xs">توضیحات تم</Label>
               <Input
                 value={formDesc}
@@ -494,80 +572,527 @@ export default function AdminThemesPage() {
                 placeholder="توضیح کوتاه کاربرد تم"
               />
             </div>
-
-            {/* Primary Color Picker */}
-            <div className="space-y-1.5 pt-2 border-t">
-              <Label className="text-xs font-semibold">رنگ اصلی برند (Primary Color)</Label>
-              <div className="flex items-center gap-2">
-                <input
-                  type="color"
-                  value={formPrimary}
-                  onChange={(e) => setFormPrimary(e.target.value)}
-                  className="w-8 h-8 rounded-lg cursor-pointer border border-border"
-                />
-                <Input
-                  value={formPrimary}
-                  onChange={(e) => setFormPrimary(e.target.value)}
-                  className="h-8 font-mono text-xs"
-                  dir="ltr"
-                />
-              </div>
-              <div className="flex flex-wrap gap-1 mt-1">
-                {COLOR_PRESETS.map((c) => (
-                  <button
-                    key={c.hex}
-                    type="button"
-                    onClick={() => setFormPrimary(c.hex)}
-                    className="w-5 h-5 rounded-full border border-border shadow-2xs transition hover:scale-110 flex items-center justify-center"
-                    style={{ backgroundColor: c.hex }}
-                    title={c.name}
-                  >
-                    {formPrimary.toLowerCase() === c.hex.toLowerCase() && (
-                      <Check className="w-3 h-3 text-white drop-shadow" />
-                    )}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Secondary Color Picker */}
-            <div className="space-y-1.5">
-              <Label className="text-xs font-semibold">رنگ ثانویه / مکمل (Secondary Color)</Label>
-              <div className="flex items-center gap-2">
-                <input
-                  type="color"
-                  value={formSecondary}
-                  onChange={(e) => setFormSecondary(e.target.value)}
-                  className="w-8 h-8 rounded-lg cursor-pointer border border-border"
-                />
-                <Input
-                  value={formSecondary}
-                  onChange={(e) => setFormSecondary(e.target.value)}
-                  className="h-8 font-mono text-xs"
-                  dir="ltr"
-                />
-              </div>
-            </div>
-
-            {/* Radius Select */}
-            <div className="space-y-1.5">
-              <Label className="text-xs font-semibold">شعاع گردی کادرها (Border Radius)</Label>
-              <Select value={formRadius} onValueChange={setFormRadius}>
-                <SelectTrigger className="h-8 text-xs">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {RADIUS_OPTIONS.map((r) => (
-                    <SelectItem key={r.value} value={r.value}>
-                      {r.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
           </div>
 
-          <DialogFooter className="flex items-center justify-end gap-2 pt-2">
+          {/* Sub-tabs: Colors, Typography & Dimensions, Live Preview */}
+          <Tabs value={modalTab} onValueChange={(val: any) => setModalTab(val)} className="w-full">
+            <TabsList className="grid grid-cols-3 w-full h-9 mb-3">
+              <TabsTrigger value="colors" className="text-xs flex items-center gap-1.5">
+                <Palette className="w-3.5 h-3.5" />
+                <span>پالت رنگ‌های سازمانی</span>
+              </TabsTrigger>
+              <TabsTrigger value="typography" className="text-xs flex items-center gap-1.5">
+                <Type className="w-3.5 h-3.5" />
+                <span>تایپوگرافی، کادر و سایه</span>
+              </TabsTrigger>
+              <TabsTrigger value="preview" className="text-xs flex items-center gap-1.5 text-primary font-bold">
+                <Eye className="w-3.5 h-3.5" />
+                <span>پیش‌نمایش زنده کامپوننت‌ها</span>
+              </TabsTrigger>
+            </TabsList>
+
+            {/* TAB 1: Colors */}
+            <TabsContent value="colors" className="space-y-4 py-1">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Brand Colors */}
+                <div className="p-3.5 rounded-xl border bg-muted/20 space-y-3">
+                  <h4 className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5 text-primary" />
+                    <span>رنگ‌های اصلی برند (Brand Scale)</span>
+                  </h4>
+
+                  {/* Primary */}
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="font-semibold">رنگ اصلی (Primary)</span>
+                      <span className="font-mono text-muted-foreground text-[11px]">{formPrimary}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="color"
+                        value={formPrimary}
+                        onChange={(e) => setFormPrimary(e.target.value)}
+                        className="w-7 h-7 rounded cursor-pointer border"
+                      />
+                      <Input
+                        value={formPrimary}
+                        onChange={(e) => setFormPrimary(e.target.value)}
+                        className="h-7 text-xs font-mono"
+                        dir="ltr"
+                      />
+                    </div>
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {COLOR_PRESETS.map((c) => (
+                        <button
+                          key={c.hex}
+                          type="button"
+                          onClick={() => setFormPrimary(c.hex)}
+                          className="w-4 h-4 rounded-full border shadow-2xs transition hover:scale-110 flex items-center justify-center"
+                          style={{ backgroundColor: c.hex }}
+                          title={c.name}
+                        >
+                          {formPrimary.toLowerCase() === c.hex.toLowerCase() && (
+                            <Check className="w-2.5 h-2.5 text-white" />
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Secondary */}
+                  <div className="space-y-1 pt-1">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="font-semibold">رنگ مکمل / ثانویه (Secondary)</span>
+                      <span className="font-mono text-muted-foreground text-[11px]">{formSecondary}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="color"
+                        value={formSecondary}
+                        onChange={(e) => setFormSecondary(e.target.value)}
+                        className="w-7 h-7 rounded cursor-pointer border"
+                      />
+                      <Input
+                        value={formSecondary}
+                        onChange={(e) => setFormSecondary(e.target.value)}
+                        className="h-7 text-xs font-mono"
+                        dir="ltr"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Surface & Background Colors */}
+                <div className="p-3.5 rounded-xl border bg-muted/20 space-y-3">
+                  <h4 className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                    <Layers className="w-3.5 h-3.5 text-primary" />
+                    <span>سطوح و پس‌زمینه (Surface & Muted)</span>
+                  </h4>
+
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div>
+                      <Label className="text-[11px]">پس‌زمینه (Background)</Label>
+                      <div className="flex items-center gap-1.5 mt-1">
+                        <input
+                          type="color"
+                          value={formBackground}
+                          onChange={(e) => setFormBackground(e.target.value)}
+                          className="w-6 h-6 rounded cursor-pointer border"
+                        />
+                        <Input
+                          value={formBackground}
+                          onChange={(e) => setFormBackground(e.target.value)}
+                          className="h-7 text-xs font-mono"
+                          dir="ltr"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <Label className="text-[11px]">متن اصلی (Foreground)</Label>
+                      <div className="flex items-center gap-1.5 mt-1">
+                        <input
+                          type="color"
+                          value={formForeground}
+                          onChange={(e) => setFormForeground(e.target.value)}
+                          className="w-6 h-6 rounded cursor-pointer border"
+                        />
+                        <Input
+                          value={formForeground}
+                          onChange={(e) => setFormForeground(e.target.value)}
+                          className="h-7 text-xs font-mono"
+                          dir="ltr"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <Label className="text-[11px]">سطح کارت (Surface)</Label>
+                      <div className="flex items-center gap-1.5 mt-1">
+                        <input
+                          type="color"
+                          value={formSurface}
+                          onChange={(e) => setFormSurface(e.target.value)}
+                          className="w-6 h-6 rounded cursor-pointer border"
+                        />
+                        <Input
+                          value={formSurface}
+                          onChange={(e) => setFormSurface(e.target.value)}
+                          className="h-7 text-xs font-mono"
+                          dir="ltr"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <Label className="text-[11px]">خطوط کادر (Border)</Label>
+                      <div className="flex items-center gap-1.5 mt-1">
+                        <input
+                          type="color"
+                          value={formBorder}
+                          onChange={(e) => setFormBorder(e.target.value)}
+                          className="w-6 h-6 rounded cursor-pointer border"
+                        />
+                        <Input
+                          value={formBorder}
+                          onChange={(e) => setFormBorder(e.target.value)}
+                          className="h-7 text-xs font-mono"
+                          dir="ltr"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Status / Feedback Colors */}
+                <div className="p-3.5 rounded-xl border bg-muted/20 space-y-3 md:col-span-2">
+                  <h4 className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-primary" />
+                    <span>رنگ‌های وضعیت و بازخورد (Status Colors)</span>
+                  </h4>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+                    <div>
+                      <Label className="text-[11px] text-green-600 font-semibold">موفقیت (Success)</Label>
+                      <div className="flex items-center gap-1.5 mt-1">
+                        <input
+                          type="color"
+                          value={formSuccess}
+                          onChange={(e) => setFormSuccess(e.target.value)}
+                          className="w-6 h-6 rounded cursor-pointer border"
+                        />
+                        <Input
+                          value={formSuccess}
+                          onChange={(e) => setFormSuccess(e.target.value)}
+                          className="h-7 text-xs font-mono"
+                          dir="ltr"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <Label className="text-[11px] text-amber-600 font-semibold">هشدار (Warning)</Label>
+                      <div className="flex items-center gap-1.5 mt-1">
+                        <input
+                          type="color"
+                          value={formWarning}
+                          onChange={(e) => setFormWarning(e.target.value)}
+                          className="w-6 h-6 rounded cursor-pointer border"
+                        />
+                        <Input
+                          value={formWarning}
+                          onChange={(e) => setFormWarning(e.target.value)}
+                          className="h-7 text-xs font-mono"
+                          dir="ltr"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <Label className="text-[11px] text-rose-600 font-semibold">خطا (Destructive)</Label>
+                      <div className="flex items-center gap-1.5 mt-1">
+                        <input
+                          type="color"
+                          value={formDestructive}
+                          onChange={(e) => setFormDestructive(e.target.value)}
+                          className="w-6 h-6 rounded cursor-pointer border"
+                        />
+                        <Input
+                          value={formDestructive}
+                          onChange={(e) => setFormDestructive(e.target.value)}
+                          className="h-7 text-xs font-mono"
+                          dir="ltr"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <Label className="text-[11px] text-blue-600 font-semibold">اطلاعیه (Info)</Label>
+                      <div className="flex items-center gap-1.5 mt-1">
+                        <input
+                          type="color"
+                          value={formInfo}
+                          onChange={(e) => setFormInfo(e.target.value)}
+                          className="w-6 h-6 rounded cursor-pointer border"
+                        />
+                        <Input
+                          value={formInfo}
+                          onChange={(e) => setFormInfo(e.target.value)}
+                          className="h-7 text-xs font-mono"
+                          dir="ltr"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </TabsContent>
+
+            {/* TAB 2: Typography & Dimensions */}
+            <TabsContent value="typography" className="space-y-4 py-1">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Typography Settings */}
+                <div className="p-3.5 rounded-xl border bg-muted/20 space-y-3">
+                  <h4 className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                    <Type className="w-3.5 h-3.5 text-primary" />
+                    <span>تایپوگرافی و فونت</span>
+                  </h4>
+
+                  <div className="space-y-2 text-xs">
+                    <div className="space-y-1">
+                      <Label className="text-[11px]">خانواده فونت سراسری</Label>
+                      <Select value={formFont} onValueChange={setFormFont}>
+                        <SelectTrigger className="h-8 text-xs">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="vazirmatn">فونت وزیرمتن (Vazirmatn استاندارد RTL)</SelectItem>
+                          <SelectItem value="system-ui">فونت سیستمی (System UI)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-1">
+                      <Label className="text-[11px]">اندازه متن پایه (Base Font Size)</Label>
+                      <Select value={formFontSize} onValueChange={setFormFontSize}>
+                        <SelectTrigger className="h-8 text-xs">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="14px">14px (فشرده)</SelectItem>
+                          <SelectItem value="15px">15px (استاندارد وب فارسی)</SelectItem>
+                          <SelectItem value="16px">16px (درشت و خوانا)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Dimensions & Shadows */}
+                <div className="p-3.5 rounded-xl border bg-muted/20 space-y-3">
+                  <h4 className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                    <Box className="w-3.5 h-3.5 text-primary" />
+                    <span>شعاع کادر و سایه‌ها (Radius & Shadow)</span>
+                  </h4>
+
+                  <div className="space-y-2 text-xs">
+                    <div className="space-y-1">
+                      <Label className="text-[11px]">شعاع گردی پیش‌فرض (Border Radius)</Label>
+                      <Select value={formRadius} onValueChange={setFormRadius}>
+                        <SelectTrigger className="h-8 text-xs">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {RADIUS_OPTIONS.map((r) => (
+                            <SelectItem key={r.value} value={r.value}>
+                              {r.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-1">
+                      <Label className="text-[11px]">سطح سایه جعبه‌ای (Box Shadow)</Label>
+                      <Select value={formShadow} onValueChange={setFormShadow}>
+                        <SelectTrigger className="h-8 text-xs">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {SHADOW_OPTIONS.map((s) => (
+                            <SelectItem key={s.value} value={s.value}>
+                              {s.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </TabsContent>
+
+            {/* TAB 3: Live Component Preview */}
+            <TabsContent value="preview" className="space-y-4 py-1">
+              <div
+                className="p-5 rounded-2xl border space-y-5 transition-all"
+                style={{
+                  backgroundColor: formBackground,
+                  color: formForeground,
+                  fontFamily: formFont === "system-ui" ? "system-ui, sans-serif" : "var(--font-vazirmatn, system-ui, sans-serif)",
+                }}
+              >
+                <div className="border-b pb-3">
+                  <h3 className="text-sm font-bold flex items-center gap-2">
+                    <span>پیش‌نمایش زنده کامپوننت‌های رابط کاربری با توکن‌های انتخابی</span>
+                  </h3>
+                  <p className="text-xs opacity-75 mt-0.5">
+                    این پیش‌نمایش نحوه اعمال بی‌درنگ رنگ‌ها، شعاع گردی و سایه‌ها روی عناصر سایت را نشان می‌دهد.
+                  </p>
+                </div>
+
+                {/* 1. Buttons Preview */}
+                <div className="space-y-2">
+                  <span className="text-xs font-bold block">دکمه‌ها (Buttons):</span>
+                  <div className="flex flex-wrap items-center gap-2.5">
+                    <button
+                      type="button"
+                      style={{
+                        backgroundColor: formPrimary,
+                        color: "#ffffff",
+                        borderRadius: formRadius,
+                        boxShadow: formShadow !== "none" ? formShadow : undefined,
+                      }}
+                      className="px-4 py-2 text-xs font-bold transition hover:opacity-90"
+                    >
+                      دکمه اصلی (Primary)
+                    </button>
+
+                    <button
+                      type="button"
+                      style={{
+                        backgroundColor: formSecondary,
+                        color: "#ffffff",
+                        borderRadius: formRadius,
+                      }}
+                      className="px-4 py-2 text-xs font-semibold transition hover:opacity-90"
+                    >
+                      دکمه ثانویه (Secondary)
+                    </button>
+
+                    <button
+                      type="button"
+                      style={{
+                        backgroundColor: "transparent",
+                        borderColor: formBorder,
+                        borderWidth: "1px",
+                        borderStyle: "solid",
+                        color: formForeground,
+                        borderRadius: formRadius,
+                      }}
+                      className="px-4 py-2 text-xs font-medium transition hover:bg-black/5"
+                    >
+                      دکمه دورخط (Outline)
+                    </button>
+
+                    <button
+                      type="button"
+                      style={{
+                        backgroundColor: formDestructive,
+                        color: "#ffffff",
+                        borderRadius: formRadius,
+                      }}
+                      className="px-4 py-2 text-xs font-bold transition hover:opacity-90"
+                    >
+                      دکمه هشدار (Destructive)
+                    </button>
+                  </div>
+                </div>
+
+                {/* 2. Card Preview */}
+                <div className="space-y-2">
+                  <span className="text-xs font-bold block">کارت محصول و سطوح (Cards & Surfaces):</span>
+                  <div
+                    className="p-4 border transition-all max-w-md"
+                    style={{
+                      backgroundColor: formSurface,
+                      borderColor: formBorder,
+                      borderRadius: formRadius,
+                      boxShadow: formShadow !== "none" ? formShadow : undefined,
+                    }}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="font-bold text-sm">کفش ورزشی سبک رانینگ</span>
+                      <span
+                        className="px-2 py-0.5 text-[10px] font-bold rounded-full"
+                        style={{
+                          backgroundColor: formSuccess + "20",
+                          color: formSuccess,
+                        }}
+                      >
+                        موجود در انبار
+                      </span>
+                    </div>
+                    <p className="text-xs opacity-80 leading-relaxed mb-3">
+                      طراحی ارگونومیک با گردش هوای عالی، کفی طبی چندلایه و مناسب برای پیاده‌روی طولانی.
+                    </p>
+                    <div className="flex items-center justify-between pt-2 border-t" style={{ borderColor: formBorder }}>
+                      <span className="font-bold text-sm font-mono num-fa" style={{ color: formPrimary }}>
+                        ۲۵۰,۰۰۰ تومان
+                      </span>
+                      <button
+                        type="button"
+                        style={{
+                          backgroundColor: formPrimary,
+                          color: "#ffffff",
+                          borderRadius: formRadius,
+                        }}
+                        className="px-3 py-1.5 text-xs font-bold"
+                      >
+                        افزودن به سبد
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 3. Form Controls Preview */}
+                <div className="space-y-2">
+                  <span className="text-xs font-bold block">کنترل‌های فرم (Form Inputs):</span>
+                  <div className="flex flex-col sm:flex-row items-center gap-3 max-w-md">
+                    <input
+                      type="text"
+                      placeholder="آدرس ایمیل خود را وارد کنید..."
+                      style={{
+                        borderColor: formBorder,
+                        borderWidth: "1px",
+                        borderRadius: formRadius,
+                        backgroundColor: formBackground,
+                        color: formForeground,
+                      }}
+                      className="h-8 px-3 text-xs w-full focus:outline-hidden"
+                    />
+                    <button
+                      type="button"
+                      style={{
+                        backgroundColor: formPrimary,
+                        color: "#ffffff",
+                        borderRadius: formRadius,
+                      }}
+                      className="h-8 px-4 text-xs font-bold shrink-0"
+                    >
+                      عضویت
+                    </button>
+                  </div>
+                </div>
+
+                {/* 4. Badges Preview */}
+                <div className="space-y-2">
+                  <span className="text-xs font-bold block">نشان‌های وضعیت (Status Badges):</span>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span
+                      className="px-2.5 py-1 text-xs font-bold rounded-md"
+                      style={{ backgroundColor: formSuccess, color: "#ffffff" }}
+                    >
+                      تأیید شده
+                    </span>
+                    <span
+                      className="px-2.5 py-1 text-xs font-bold rounded-md"
+                      style={{ backgroundColor: formWarning, color: "#ffffff" }}
+                    >
+                      در انتظار پرداخت
+                    </span>
+                    <span
+                      className="px-2.5 py-1 text-xs font-bold rounded-md"
+                      style={{ backgroundColor: formDestructive, color: "#ffffff" }}
+                    >
+                      لغو سفارش
+                    </span>
+                    <span
+                      className="px-2.5 py-1 text-xs font-bold rounded-md"
+                      style={{ backgroundColor: formInfo, color: "#ffffff" }}
+                    >
+                      اطلاعیه سیستم
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </TabsContent>
+          </Tabs>
+
+          <DialogFooter className="flex items-center justify-between gap-2 pt-3 border-t">
             <Button
               variant="outline"
               size="sm"
@@ -579,9 +1104,19 @@ export default function AdminThemesPage() {
             >
               انصراف
             </Button>
-            <Button size="sm" onClick={editTheme ? handleSaveEdit : handleSaveCreate} disabled={submitting}>
-              {submitting ? "در حال ثبت..." : editTheme ? "ثبت ویرایش و ساخت نسخه جدید" : "ایجاد تم"}
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setModalTab(modalTab === "preview" ? "colors" : "preview")}
+                className="text-xs text-primary"
+              >
+                {modalTab === "preview" ? "بازگشت به تنظیمات" : "مشاهده پیش‌نمایش زنده"}
+              </Button>
+              <Button size="sm" onClick={editTheme ? handleSaveEdit : handleSaveCreate} disabled={submitting}>
+                {submitting ? "در حال ثبت..." : editTheme ? "ثبت ویرایش و ساخت نسخه جدید" : "ایجاد تم"}
+              </Button>
+            </div>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -611,7 +1146,7 @@ export default function AdminThemesPage() {
                 return (
                   <div
                     key={rev.id}
-                    className="p-3 rounded-xl border bg-card flex items-center justify-between gap-3 shadow-xs"
+                    className="p-3 rounded-xl border bg-card flex items-center justify-between gap-3 shadow-2xs"
                   >
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
@@ -646,53 +1181,6 @@ export default function AdminThemesPage() {
               })
             )}
           </div>
-
-          <DialogFooter>
-            <Button size="sm" variant="outline" onClick={() => setRevisionsTheme(null)}>
-              بستن
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Clone Theme Dialog */}
-      <Dialog open={Boolean(cloneTheme)} onOpenChange={(open) => !open && setCloneTheme(null)}>
-        <DialogContent className="max-w-md" dir="rtl">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-base font-bold">
-              <Copy className="w-4 h-4 text-primary" />
-              <span>کلون و کپی از تم «{cloneTheme?.name}»</span>
-            </DialogTitle>
-          </DialogHeader>
-
-          <div className="space-y-4 py-2 text-xs">
-            <div className="space-y-1.5">
-              <Label className="text-xs">نام تم جدید</Label>
-              <Input
-                value={formName}
-                onChange={(e) => setFormName(e.target.value)}
-                className="h-8 text-xs"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-xs">نامک تم جدید (Slug)</Label>
-              <Input
-                value={formSlug}
-                onChange={(e) => setFormSlug(e.target.value)}
-                className="h-8 text-xs font-mono"
-                dir="ltr"
-              />
-            </div>
-          </div>
-
-          <DialogFooter className="flex items-center justify-end gap-2 pt-2">
-            <Button variant="outline" size="sm" onClick={() => setCloneTheme(null)} disabled={submitting}>
-              انصراف
-            </Button>
-            <Button size="sm" onClick={handleSaveClone} disabled={submitting}>
-              {submitting ? "در حال کلون..." : "ایجاد نسخه کپی"}
-            </Button>
-          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

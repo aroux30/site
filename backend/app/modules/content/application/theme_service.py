@@ -12,18 +12,32 @@ import structlog
 from sqlalchemy import select, update
 from sqlalchemy.orm import selectinload
 
+from app.core.cache.redis import cache_delete, cache_get, cache_set
 from app.core.exceptions.handlers import NotFoundError, ValidationError
 from app.modules.content.domain.theme_models import SiteTheme, ThemeRevision
 from app.modules.content.schemas.theme import (
     DesignTokensSchema,
     SiteThemeCreateRequest,
     SiteThemeUpdateRequest,
+    compile_dtcg_to_css_variables,
 )
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
 
 logger: structlog.stdlib.BoundLogger = structlog.get_logger(__name__)
+
+ACTIVE_THEME_CACHE_KEY = "content:theme:active:json"
+ACTIVE_THEME_CSS_CACHE_KEY = "content:theme:active:css"
+
+
+async def invalidate_theme_cache() -> None:
+    """Evict active theme and compiled CSS from Redis cache."""
+    try:
+        await cache_delete(ACTIVE_THEME_CACHE_KEY)
+        await cache_delete(ACTIVE_THEME_CSS_CACHE_KEY)
+    except Exception as exc:
+        logger.warning("theme_cache_invalidation_failed", error=str(exc))
 
 
 def _snapshot(theme: SiteTheme, *, created_by: uuid.UUID | None, change_summary: str | None = None) -> ThemeRevision:
@@ -104,6 +118,8 @@ async def create_theme(
 
     await db.commit()
     await db.refresh(theme)
+    if is_active:
+        await invalidate_theme_cache()
     return theme
 
 
@@ -166,6 +182,8 @@ async def update_theme(
     await _audit(db, "site_theme.updated", theme, actor_id=editor_id, before=before_state)
     await db.commit()
     await db.refresh(theme)
+    if theme.is_active:
+        await invalidate_theme_cache()
     return theme
 
 
@@ -195,79 +213,15 @@ async def activate_theme(
     await _audit(db, "site_theme.activated", target, actor_id=actor_id)
     await db.commit()
     await db.refresh(target)
+    await invalidate_theme_cache()
     return target
 
 
 def compile_theme_css_variables(tokens_or_theme: dict[str, Any] | SiteTheme) -> dict[str, str]:
-    """Compile and resolve DTCG tokens into a flat dictionary of standard CSS variables."""
+    """Compile and resolve DTCG tokens into a flat dictionary of standard CSS variables via DAG resolver."""
     raw_tokens = tokens_or_theme.tokens if isinstance(tokens_or_theme, SiteTheme) else tokens_or_theme
     schema = DesignTokensSchema.model_validate(raw_tokens)
-
-    css_vars: dict[str, str] = {
-        "--primary": "#059669",
-        "--secondary": "#0d9488",
-        "--background": "#ffffff",
-        "--foreground": "#09090b",
-        "--radius": "12px",
-        "--font-vazirmatn": "Vazirmatn, system-ui, sans-serif",
-    }
-
-    from app.modules.content.schemas.theme import resolve_token_value
-
-    semantic = schema.semantic or {}
-
-    # Primary Color
-    if "color" in semantic and isinstance(semantic["color"], dict):
-        colors = semantic["color"]
-        if "primary" in colors:
-            val = getattr(colors["primary"], "value", colors["primary"])
-            try:
-                css_vars["--primary"] = str(resolve_token_value(val, schema))
-            except Exception:
-                css_vars["--primary"] = str(val)
-
-        if "secondary" in colors:
-            val = getattr(colors["secondary"], "value", colors["secondary"])
-            try:
-                css_vars["--secondary"] = str(resolve_token_value(val, schema))
-            except Exception:
-                css_vars["--secondary"] = str(val)
-
-        if "background" in colors:
-            val = getattr(colors["background"], "value", colors["background"])
-            try:
-                css_vars["--background"] = str(resolve_token_value(val, schema))
-            except Exception:
-                css_vars["--background"] = str(val)
-
-        if "foreground" in colors:
-            val = getattr(colors["foreground"], "value", colors["foreground"])
-            try:
-                css_vars["--foreground"] = str(resolve_token_value(val, schema))
-            except Exception:
-                css_vars["--foreground"] = str(val)
-
-    # Radius / Dimension
-    if "dimension" in semantic and isinstance(semantic["dimension"], dict):
-        dims = semantic["dimension"]
-        if "radius" in dims:
-            val = getattr(dims["radius"], "value", dims["radius"])
-            try:
-                css_vars["--radius"] = str(resolve_token_value(val, schema))
-            except Exception:
-                css_vars["--radius"] = str(val)
-
-    # Typography
-    if "typography" in semantic and isinstance(semantic["typography"], dict):
-        typo = semantic["typography"]
-        if "fontFamily" in typo:
-            val = getattr(typo["fontFamily"], "value", typo["fontFamily"])
-            try:
-                css_vars["--font-vazirmatn"] = str(resolve_token_value(val, schema))
-            except Exception:
-                css_vars["--font-vazirmatn"] = str(val)
-
-    return css_vars
+    return compile_dtcg_to_css_variables(schema)
 
 
 def compile_theme_css_string(tokens_or_theme: dict[str, Any] | SiteTheme) -> str:
@@ -333,6 +287,8 @@ async def restore_theme_revision(
     )
     await db.commit()
     await db.refresh(theme)
+    if theme.is_active:
+        await invalidate_theme_cache()
     return theme
 
 

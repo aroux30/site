@@ -292,6 +292,7 @@ export const pageTemplatesAdminApi = {
     title: string;
     slug?: string;
     template_type: "page" | "section";
+    category?: string;
     builder_data: PageAST;
     thumbnail_url?: string | null;
   }): Promise<PageTemplate> => {
@@ -305,6 +306,7 @@ export const pageTemplatesAdminApi = {
       title: string;
       slug: string;
       template_type: "page" | "section";
+      category: string;
       builder_data: PageAST;
       thumbnail_url: string | null;
     }>,

@@ -75,6 +75,16 @@ export function GlobalStylesDialog({ open, onOpenChange }: GlobalStylesDialogPro
     onOpenChange(false);
   };
 
+  const handleResetToSiteTheme = () => {
+    updateGlobalStyles({
+      primaryColor: undefined,
+      secondaryColor: undefined,
+      borderRadius: undefined,
+      fontFamily: undefined,
+    });
+    onOpenChange(false);
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md" dir="rtl">
@@ -174,13 +184,24 @@ export function GlobalStylesDialog({ open, onOpenChange }: GlobalStylesDialogPro
           </div>
         </div>
 
-        <DialogFooter className="flex items-center justify-end gap-2 pt-2">
-          <Button variant="outline" size="sm" onClick={() => onOpenChange(false)}>
-            انصراف
+        <DialogFooter className="flex items-center justify-between gap-2 pt-2">
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={handleResetToSiteTheme}
+            className="text-muted-foreground hover:text-foreground text-xs"
+          >
+            بازنشانی به تم پیش‌فرض سایت
           </Button>
-          <Button size="sm" onClick={handleSave}>
-            اعمال تغییرات
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={() => onOpenChange(false)}>
+              انصراف
+            </Button>
+            <Button size="sm" onClick={handleSave}>
+              اعمال تغییرات
+            </Button>
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>

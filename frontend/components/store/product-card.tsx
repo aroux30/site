@@ -102,6 +102,7 @@ export function ProductCard({
   };
 
   const productHref = `/products/${product.slug || product.id}`;
+  const isOutOfStock = product.is_in_stock === false || (product as any).stock_status === "out_of_stock";
   const hasDiscount =
     product.max_price &&
     product.min_price &&
@@ -140,15 +141,23 @@ export function ProductCard({
 
         {/* Badges */}
         <div className="absolute top-2 start-2 flex flex-col gap-1.5">
-          {(featured || product.is_featured) && (
-            <Badge className="bg-primary text-primary-foreground text-[10px] px-2 py-0.5 font-bold">
-              پیشنهاد ویژه
+          {isOutOfStock ? (
+            <Badge variant="destructive" className="bg-destructive text-destructive-foreground text-[10px] px-2 py-0.5 font-bold">
+              ناموجود
             </Badge>
-          )}
-          {discountPercent > 0 && (
-            <Badge className="bg-red-500 text-white text-[10px] px-2 py-0.5 font-bold">
-              {toPersianDigits(discountPercent)}٪ تخفیف
-            </Badge>
+          ) : (
+            <>
+              {(featured || product.is_featured) && (
+                <Badge className="bg-primary text-primary-foreground text-[10px] px-2 py-0.5 font-bold">
+                  پیشنهاد ویژه
+                </Badge>
+              )}
+              {discountPercent > 0 && (
+                <Badge className="bg-red-500 text-white text-[10px] px-2 py-0.5 font-bold">
+                  {toPersianDigits(discountPercent)}٪ تخفیف
+                </Badge>
+              )}
+            </>
           )}
         </div>
 
@@ -268,20 +277,38 @@ export function ProductCard({
           <Button
             size="sm"
             onClick={handleAddToCart}
-            disabled={adding}
-            aria-label={adding ? `در حال افزودن ${product.name} به سبد` : added ? `${product.name} اضافه شد` : `افزودن ${product.name} به سبد خرید`}
+            disabled={adding || isOutOfStock}
+            aria-label={
+              isOutOfStock
+                ? `${product.name} ناموجود است`
+                : adding
+                ? `در حال افزودن ${product.name} به سبد`
+                : added
+                ? `${product.name} اضافه شد`
+                : `افزودن ${product.name} به سبد خرید`
+            }
             aria-busy={adding}
             className={cn(
-              "rounded-xl font-bold gap-1.5 shadow-sm bg-primary hover:bg-primary/90 text-primary-foreground shrink-0",
+              "rounded-xl font-bold gap-1.5 shadow-sm shrink-0",
+              isOutOfStock
+                ? "bg-muted text-muted-foreground hover:bg-muted"
+                : "bg-primary hover:bg-primary/90 text-primary-foreground",
               isCompact ? "h-8 px-2.5" : "h-9 px-3.5"
             )}
           >
-            {added ? (
-              <Check className="w-3.5 h-3.5" />
+            {isOutOfStock ? (
+              <span className="text-xs">ناموجود</span>
+            ) : added ? (
+              <>
+                <Check className="w-3.5 h-3.5" />
+                <span className="text-xs">اضافه شد</span>
+              </>
             ) : (
-              <ShoppingCart className="w-3.5 h-3.5" />
+              <>
+                <ShoppingCart className="w-3.5 h-3.5" />
+                <span className="text-xs">خرید</span>
+              </>
             )}
-            <span className="text-xs">{added ? "اضافه شد" : "خرید"}</span>
           </Button>
         </ClickSpark>
       </div>

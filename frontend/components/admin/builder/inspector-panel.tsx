@@ -595,6 +595,124 @@ export function InspectorPanel() {
           </div>
         );
 
+      case "product_card":
+        return (
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs">نام محصول</Label>
+              <Input
+                value={String(props.name || "")}
+                onChange={(e) => handlePropChange("name", e.target.value)}
+                className="h-8 text-xs"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-1">
+                <Label className="text-xs">قیمت فروش (تومان)</Label>
+                <Input
+                  type="number"
+                  value={Number(props.min_price) || 0}
+                  onChange={(e) => handlePropChange("min_price", parseFloat(e.target.value) || 0)}
+                  className="h-8 text-xs"
+                />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">قیمت اصلی / خط خورده</Label>
+                <Input
+                  type="number"
+                  value={Number(props.max_price) || 0}
+                  onChange={(e) => handlePropChange("max_price", parseFloat(e.target.value) || 0)}
+                  className="h-8 text-xs"
+                />
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">تصویر محصول</Label>
+              <MediaPicker
+                value={String(props.primary_image_url || "")}
+                onChange={(url) => handlePropChange("primary_image_url", url)}
+                label="انتخاب تصویر محصول"
+              />
+            </div>
+            <div className="flex items-center justify-between pt-1">
+              <Label className="text-xs">موجود در انبار</Label>
+              <Switch
+                checked={props.is_in_stock !== false}
+                onCheckedChange={(val) => handlePropChange("is_in_stock", val)}
+              />
+            </div>
+          </div>
+        );
+
+      case "product_grid":
+        return (
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs">تعداد کالاهای نمایشی</Label>
+              <Input
+                type="number"
+                value={Number(props.limit) || 4}
+                onChange={(e) => handlePropChange("limit", parseInt(e.target.value) || 4)}
+                className="h-8 text-xs"
+              />
+            </div>
+          </div>
+        );
+
+      case "star_rating":
+        return (
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs">امتیاز (از ۵)</Label>
+              <Input
+                type="number"
+                step="0.1"
+                min="0"
+                max="5"
+                value={Number(props.value) || 5}
+                onChange={(e) => handlePropChange("value", parseFloat(e.target.value) || 5)}
+                className="h-8 text-xs"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">تعداد نظرات</Label>
+              <Input
+                type="number"
+                value={Number(props.reviewCount) || 0}
+                onChange={(e) => handlePropChange("reviewCount", parseInt(e.target.value) || 0)}
+                className="h-8 text-xs"
+              />
+            </div>
+          </div>
+        );
+
+      case "review_histogram":
+        return (
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs">میانگین امتیازات</Label>
+              <Input
+                type="number"
+                step="0.1"
+                min="0"
+                max="5"
+                value={Number(props.averageRating) || 4.5}
+                onChange={(e) => handlePropChange("averageRating", parseFloat(e.target.value) || 4.5)}
+                className="h-8 text-xs"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">تعداد کل نظرات</Label>
+              <Input
+                type="number"
+                value={Number(props.totalReviews) || 0}
+                onChange={(e) => handlePropChange("totalReviews", parseInt(e.target.value) || 0)}
+                className="h-8 text-xs"
+              />
+            </div>
+          </div>
+        );
+
       default:
         return (
           <div className="text-xs text-muted-foreground py-2">

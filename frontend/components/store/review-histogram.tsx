@@ -123,7 +123,7 @@ export function ReviewHistogram({
                         ? "bg-amber-400"
                         : "bg-red-400"
                   )}
-                  style={{ width: `${((count || 0) / maxCount) * 100}%` }}
+                  style={{ width: `${pct}%` }}
                 />
               </div>
               {/* Count */}

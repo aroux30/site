@@ -17,10 +17,12 @@ import {
   Sparkles,
   Check,
   AlertCircle,
+  Paintbrush,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useBuilderStore, type Breakpoint } from "@/stores/builder-store";
+import { GlobalStylesDialog } from "./global-styles-dialog";
 
 interface BuilderToolbarProps {
   onSaveDraft: () => Promise<void>;
@@ -49,6 +51,7 @@ export function BuilderToolbar({
   const history = useBuilderStore((s) => s.history);
   const undo = useBuilderStore((s) => s.undo);
   const redo = useBuilderStore((s) => s.redo);
+  const [globalStylesOpen, setGlobalStylesOpen] = React.useState(false);
 
   const canUndo = history.past.length > 0;
   const canRedo = history.future.length > 0;
@@ -194,6 +197,17 @@ export function BuilderToolbar({
         </div>
 
         <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setGlobalStylesOpen(true)}
+          className="h-8 gap-1.5 text-xs text-muted-foreground hover:text-foreground"
+          title="استایل‌های سراسری برگه"
+        >
+          <Paintbrush className="w-3.5 h-3.5" />
+          <span className="hidden sm:inline">استایل سراسری</span>
+        </Button>
+
+        <Button
           variant={previewMode ? "secondary" : "ghost"}
           size="sm"
           onClick={() => setPreviewMode(!previewMode)}
@@ -224,6 +238,8 @@ export function BuilderToolbar({
           <span>انتشار برگه</span>
         </Button>
       </div>
+
+      <GlobalStylesDialog open={globalStylesOpen} onOpenChange={setGlobalStylesOpen} />
     </header>
   );
 }

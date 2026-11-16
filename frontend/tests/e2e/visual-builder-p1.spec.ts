@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { createAccessTokenForE2E, resetE2EPage } from "./helpers/admin-token";
 
 /**
  * Visual Page Builder Studio Phase P1 Hardening End-to-End Suite.
@@ -13,37 +14,29 @@ import { expect, test, type Page } from "@playwright/test";
  * 7. Saving and state restoration
  */
 
-const ADMIN_PHONE = process.env.E2E_ADMIN_PHONE || "09120000000";
-const ADMIN_PASSWORD = process.env.E2E_ADMIN_PASSWORD || "Admin@123456";
-
-async function loginAdmin(page: Page) {
-  await page.setExtraHTTPHeaders({
-    "X-Forwarded-For": `10.97.${Math.floor(Math.random() * 200) + 1}.${Math.floor(Math.random() * 200) + 1}, 10.0.0.1`,
-  });
-  await page.goto("/login");
-  await page.fill('input[name="phone"], input[type="tel"]', ADMIN_PHONE);
-  await page.fill('input[name="password"], input[type="password"]', ADMIN_PASSWORD);
-  await page.click('button[type="submit"]');
-  await page.waitForURL(/admin|dashboard|\//, { timeout: 30_000 });
-}
+const BASE_URL = process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:3000";
 
 test.describe("Visual Page Builder Studio P1", () => {
   test("non-admin user cannot access the builder studio interface", async ({ page }) => {
     // Navigate without logging in
-    await page.goto("/terms?visual_editor=true");
+    await page.goto("/e2e-isolated-scratchpad?visual_editor=true");
     // Verify BuilderToolbar is not present
     await expect(page.locator("header:has-text('پیش‌نویس')")).toHaveCount(0);
     await expect(page.locator("button:has-text('افزودن بلوک')")).toHaveCount(0);
   });
 
   test("admin accesses builder studio, adds blocks, edits inspector, and switches viewports", async ({ page }) => {
-    await loginAdmin(page);
+    await resetE2EPage("e2e-isolated-scratchpad");
+    const token = await createAccessTokenForE2E();
+    await page.context().addCookies([
+      { name: "access_token", value: token, url: BASE_URL, httpOnly: false, sameSite: "Lax" },
+    ]);
 
     // Open a CMS page in visual editor mode
-    await page.goto("/terms?visual_editor=true");
+    await page.goto("/e2e-isolated-scratchpad?visual_editor=true");
 
     // 1. Verify Studio workspace layout renders
-    await expect(page.locator("header")).toBeVisible({ timeout: 25_000 });
+    await expect(page.locator("header:has-text('پیش‌نویس')")).toBeVisible({ timeout: 25_000 });
     await expect(page.getByRole("button", { name: "افزودن بلوک" })).toBeVisible();
     await expect(page.getByRole("button", { name: "لایه‌ها" })).toBeVisible();
 
@@ -52,7 +45,7 @@ test.describe("Visual Page Builder Studio P1", () => {
     await expect(page.getByText("درخت ساختار لایه‌ها")).toBeVisible();
 
     await page.getByRole("button", { name: "افزودن بلوک" }).click();
-    await expect(page.getByPlaceholder("جستجوی بلوک...")).toBeVisible();
+    await expect(page.getByPlaceholder("جستجوی بلوک پایه...")).toBeVisible();
 
     // 3. Add a Button block from palette
     const buttonBlockBtn = page.locator("button:has-text('دکمه')").first();

@@ -56,7 +56,7 @@ export function CanvasElement({
     try {
       return JSON.parse(raw) as
         | { type: "block_def"; blockType: string }
-        | { type: "pattern_def"; patternSlug: string; title: string; category: string; html?: string }
+        | { type: "pattern_def"; patternSlug: string; title: string; category: string; html?: string; variables?: Record<string, string> }
         | { type: "element"; elementId: string };
     } catch {
       return null;
@@ -68,7 +68,8 @@ export function CanvasElement({
       if (previewMode) return;
       e.preventDefault();
       e.stopPropagation();
-      e.dataTransfer.dropEffect = "move";
+      const isMove = e.dataTransfer.effectAllowed === "move";
+      e.dataTransfer.dropEffect = isMove ? "move" : "copy";
       setIsDragOver(true);
     },
     [previewMode]
@@ -100,7 +101,8 @@ export function CanvasElement({
         const renderedHtml = payload.html || (await blockPatternsApi.render(payload.patternSlug, {})).html;
         const newEl = createPatternElement(
           { slug: payload.patternSlug, title: payload.title, category: payload.category },
-          renderedHtml
+          renderedHtml,
+          payload.variables
         );
         if (element.type === "container") {
           addElement(newEl, element.id);
@@ -303,6 +305,70 @@ export function CanvasElement({
       case "divider": {
         return <hr className="w-full border-border/80 my-4" />;
       }
+      case "html_custom":
+      case "legacy_html": {
+        const rawHtml = String(props.html || props.content || "");
+        if (!rawHtml.trim()) {
+          return (
+            <div className="rounded-lg border border-dashed border-border p-4 text-center text-xs text-muted-foreground">
+              بلوک HTML سفارشی (خالی)
+            </div>
+          );
+        }
+        return (
+          <div
+            className="builder-custom-html w-full"
+            dangerouslySetInnerHTML={{ __html: rawHtml }}
+          />
+        );
+      }
+      case "icon": {
+        const iconChar = String(props.icon || "★");
+        return <span className="inline-block text-xl leading-none">{iconChar}</span>;
+      }
+      case "video": {
+        const url = String(props.url || "");
+        return (
+          <div className="aspect-video w-full rounded-xl overflow-hidden bg-black/10 flex items-center justify-center">
+            {url ? (
+              <video src={url} controls className="w-full h-full object-cover" />
+            ) : (
+              <span className="text-xs text-muted-foreground">ویدیو</span>
+            )}
+          </div>
+        );
+      }
+      case "product_grid": {
+        return (
+          <div className="rounded-xl border border-dashed border-border p-6 text-center text-xs text-muted-foreground">
+            ویترین محصولات ({String(props.limit || 6)} آیتم)
+          </div>
+        );
+      }
+      case "product_title": {
+        return (
+          <h1 className="text-2xl font-bold text-foreground">
+            {String(props.fallback_title || "عنوان محصول")}
+          </h1>
+        );
+      }
+      case "product_price": {
+        return (
+          <div className="text-xl font-black text-primary">
+            {String(props.fallback_price || "۰ تومان")}
+          </div>
+        );
+      }
+      case "add_to_cart": {
+        return (
+          <button
+            type="button"
+            className="w-full rounded-xl bg-primary py-3 px-6 font-bold text-primary-foreground shadow"
+          >
+            {String(props.label || "افزودن به سبد خرید")}
+          </button>
+        );
+      }
       default:
         return (
           <div className="rounded-lg border border-dashed border-border p-4 text-center text-sm text-muted-foreground">
@@ -354,7 +420,8 @@ export function CanvasElement({
         !previewMode && isHovered && "outline-dashed outline-sky-500/80 bg-sky-500/5",
         !previewMode && isSelected && "outline-2 outline-primary bg-primary/5 shadow-sm z-20",
         !previewMode && isDragOver && "outline-2 outline-emerald-500 bg-emerald-500/10 shadow-lg ring-2 ring-emerald-500/30",
-        element.isHidden && "opacity-50"
+        element.isHidden && "opacity-50",
+        element.styles?.customCssClass
       )}
       data-element-id={element.id}
     >

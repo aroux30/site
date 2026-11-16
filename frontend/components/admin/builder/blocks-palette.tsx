@@ -112,7 +112,10 @@ export function BlocksPalette() {
     setRenderingSlug(pattern.slug);
     try {
       const res = await blockPatternsApi.render(pattern.slug, {});
-      const newEl = createPatternElement(pattern, res.html);
+      const vars = Object.fromEntries(
+        pattern.variables.map((v) => [v.name, v.default])
+      );
+      const newEl = createPatternElement(pattern, res.html, vars);
       addElement(newEl, getTargetContainerId());
       toast({
         title: "الگو افزوده شد",
@@ -230,7 +233,7 @@ export function BlocksPalette() {
                             "application/json",
                             JSON.stringify({ type: "block_def", blockType: block.type })
                           );
-                          e.dataTransfer.effectAllowed = "copy";
+                          e.dataTransfer.effectAllowed = "all";
                         }}
                         onClick={() => handleAddBasicBlock(block)}
                         className="flex flex-col items-center justify-center p-3 rounded-xl border border-border/80 bg-card hover:bg-muted/50 hover:border-primary/50 text-center transition shadow-sm group cursor-grab active:cursor-grabbing"
@@ -269,7 +272,7 @@ export function BlocksPalette() {
                             "application/json",
                             JSON.stringify({ type: "block_def", blockType: block.type })
                           );
-                          e.dataTransfer.effectAllowed = "copy";
+                          e.dataTransfer.effectAllowed = "all";
                         }}
                         onClick={() => handleAddBasicBlock(block)}
                         className="flex flex-col items-center justify-center p-3 rounded-xl border border-border/80 bg-card hover:bg-muted/50 hover:border-primary/50 text-center transition shadow-sm group cursor-grab active:cursor-grabbing"
@@ -310,6 +313,9 @@ export function BlocksPalette() {
                       key={pattern.slug}
                       draggable={true}
                       onDragStart={(e) => {
+                        const vars = Object.fromEntries(
+                          pattern.variables.map((v) => [v.name, v.default])
+                        );
                         e.dataTransfer.setData(
                           "application/json",
                           JSON.stringify({
@@ -317,9 +323,10 @@ export function BlocksPalette() {
                             patternSlug: pattern.slug,
                             title: pattern.title,
                             category: pattern.category,
+                            variables: vars,
                           })
                         );
-                        e.dataTransfer.effectAllowed = "copy";
+                        e.dataTransfer.effectAllowed = "all";
                       }}
                       onClick={() => handleInsertPattern(pattern)}
                       className="p-3 rounded-xl border border-border/80 bg-card hover:bg-muted/40 hover:border-primary/50 transition cursor-grab active:cursor-grabbing shadow-sm space-y-1.5 group"

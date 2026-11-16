@@ -366,6 +366,24 @@ export function InspectorPanel() {
           </div>
         );
 
+      case "html_custom":
+      case "legacy_html":
+        return (
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs">کد HTML سفارشی</Label>
+              <textarea
+                rows={8}
+                value={String(props.html || props.content || "")}
+                onChange={(e) => handlePropChange("html", e.target.value)}
+                className="w-full rounded-md border border-input bg-background p-2 font-mono text-[11px] leading-relaxed"
+                dir="ltr"
+                placeholder="<div>...</div>"
+              />
+            </div>
+          </div>
+        );
+
       default:
         return (
           <div className="text-xs text-muted-foreground py-2">

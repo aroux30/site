@@ -355,57 +355,15 @@ export const BASIC_BLOCK_DEFINITIONS: BlockDefinition[] = [
   },
 ];
 
+import { createPatternAST } from "./pattern-converter";
+
 /**
- * Constructs a fully editable container + widget element from a rendered block pattern.
+ * Constructs a fully editable, nested container + widget element tree from a block pattern.
  */
 export function createPatternElement(
   pattern: { slug: string; title: string; category: string },
-  renderedHtml: string
+  renderedHtml: string,
+  variables?: Record<string, string>
 ): BuilderElement {
-  const containerId = `el_${Math.random().toString(36).slice(2, 10)}`;
-  const widgetId = `el_${Math.random().toString(36).slice(2, 10)}`;
-  return {
-    id: containerId,
-    name: `${pattern.category}: ${pattern.title}`,
-    type: "container",
-    isLocked: false,
-    isHidden: false,
-    layout: {
-      kind: "flex",
-      direction: "column",
-      justifyContent: "start",
-      alignItems: "stretch",
-      flexWrap: "nowrap",
-      gap: { value: 16, unit: "px" },
-      gridColumns: 1,
-    },
-    styles: {
-      mobile: {
-        margin: {
-          top: { value: 16, unit: "px" },
-          right: { value: 0, unit: "px" },
-          bottom: { value: 16, unit: "px" },
-          left: { value: 0, unit: "px" },
-          isLinked: false,
-        },
-      },
-    },
-    children: [
-      {
-        id: widgetId,
-        name: pattern.title,
-        type: "widget",
-        widgetType: "html_custom",
-        widgetProps: {
-          html: renderedHtml,
-          pattern_slug: pattern.slug,
-          category: pattern.category,
-        },
-        isLocked: false,
-        isHidden: false,
-        styles: { mobile: {} },
-        children: [],
-      },
-    ],
-  };
+  return createPatternAST(pattern, renderedHtml, variables);
 }

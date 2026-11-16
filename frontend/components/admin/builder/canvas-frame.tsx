@@ -101,7 +101,17 @@ export function CanvasFrame({
     const headObserver = new MutationObserver(sync);
     headObserver.observe(document.head, { childList: true, subtree: true });
 
+    const handleDragOver = (e: DragEvent) => {
+      e.preventDefault();
+      if (e.dataTransfer) {
+        const isMove = e.dataTransfer.effectAllowed === "move";
+        e.dataTransfer.dropEffect = isMove ? "move" : "copy";
+      }
+    };
+    doc.addEventListener("dragover", handleDragOver);
+
     return () => {
+      doc.removeEventListener("dragover", handleDragOver);
       themeObserver.disconnect();
       headObserver.disconnect();
     };

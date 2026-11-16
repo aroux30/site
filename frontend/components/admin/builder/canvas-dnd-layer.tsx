@@ -38,7 +38,8 @@ export function CanvasDndLayer({
       className="space-y-4 min-h-[500px] w-full"
       onDragOver={(e) => {
         e.preventDefault();
-        e.dataTransfer.dropEffect = "move";
+        const isMove = e.dataTransfer.effectAllowed === "move";
+        e.dataTransfer.dropEffect = isMove ? "move" : "copy";
       }}
       onDrop={async (e) => {
         e.preventDefault();
@@ -47,7 +48,7 @@ export function CanvasDndLayer({
         try {
           const data = JSON.parse(raw) as
             | { type: "block_def"; blockType: string }
-            | { type: "pattern_def"; patternSlug: string; title: string; category: string; html?: string }
+            | { type: "pattern_def"; patternSlug: string; title: string; category: string; html?: string; variables?: Record<string, string> }
             | { type: "element"; elementId: string };
 
           if (data.type === "block_def") {
@@ -57,7 +58,8 @@ export function CanvasDndLayer({
             const renderedHtml = data.html || (await blockPatternsApi.render(data.patternSlug, {})).html;
             const newEl = createPatternElement(
               { slug: data.patternSlug, title: data.title, category: data.category },
-              renderedHtml
+              renderedHtml,
+              data.variables
             );
             addElement(newEl);
           } else if (data.type === "element") {

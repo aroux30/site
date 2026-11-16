@@ -261,7 +261,15 @@ export function BuilderStudio({ page, onExit }: BuilderStudioProps) {
         )}
 
         {/* Center: Canvas Viewport Workspace */}
-        <main className="flex-1 overflow-y-auto relative flex flex-col items-center bg-muted/30">
+        <main
+          className="flex-1 overflow-y-auto relative flex flex-col items-center bg-muted/30"
+          onDragOver={(e) => {
+            e.preventDefault();
+            if (e.dataTransfer) {
+              e.dataTransfer.dropEffect = "copy";
+            }
+          }}
+        >
           {/* DnD lives INSIDE the iframe (CanvasDndLayer). A DndContext in this
               document never receives pointer moves fired inside the canvas
               document, so drags silently failed to start. */}

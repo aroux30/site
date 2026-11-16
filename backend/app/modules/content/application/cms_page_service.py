@@ -1109,6 +1109,7 @@ async def create_template(
         title=data.title.strip(),
         slug=slug,
         template_type=data.template_type,
+        category=getattr(data, "category", None) or "عمومی",
         builder_data=validated_ast.model_dump(by_alias=True),
         thumbnail_url=data.thumbnail_url,
         author_id=author_id,

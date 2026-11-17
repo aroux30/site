@@ -35,6 +35,8 @@ interface ProductCardProps {
     review_count?: number;
     /** Category name for display */
     category_name?: string;
+    /** Stock availability */
+    is_in_stock?: boolean;
   };
   /** Card visual variant */
   variant?: "default" | "compact";

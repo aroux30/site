@@ -123,6 +123,7 @@ export interface PageTemplate {
   title: string;
   slug: string;
   templateType: "page" | "section";
+  category?: string | null;
   builderData: PageAST;
   thumbnailUrl?: string | null;
   authorId?: string | null;

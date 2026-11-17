@@ -895,7 +895,7 @@ export function createPatternAST(
           createContainerNode("شبکه تصاویر گالری", {
             layout: { kind: "grid", direction: "row", justifyContent: "between", alignItems: "stretch", flexWrap: "wrap", gap: { value: 16, unit: "px" }, gridColumns: 4 },
             children: images.map((img, idx) =>
-              createImageWidget(img, `تصویر گالری ${idx + 1}`, "h-56 w-full rounded-xl object-cover shadow-sm")
+              createImageWidget(img || "/placeholder.svg", `تصویر گالری ${idx + 1}`, "h-56 w-full rounded-xl object-cover shadow-sm")
             ),
           }),
         ],

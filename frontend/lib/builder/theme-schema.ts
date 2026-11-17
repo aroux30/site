@@ -123,8 +123,8 @@ export function resolveTokenValue(
 
   while (typeof currentVal === "string" && ALIAS_PATTERN.test(currentVal.trim())) {
     const match = currentVal.trim().match(ALIAS_PATTERN);
-    if (!match) break;
-    const pathStr = match[1];
+    if (!match || !match[1]) break;
+    const pathStr: string = match[1];
 
     if (visitedChain.includes(pathStr)) {
       const cycle = [...visitedChain, pathStr];

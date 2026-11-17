@@ -8,15 +8,36 @@ test.describe("Phase 4 - Motion & Polish E2E Suite", () => {
   test("Builder Studio configures entrance animation in InspectorPanel and applies to canvas element", async ({
     page,
   }) => {
+    test.setTimeout(60_000);
     // 1. Reset isolated scratchpad and auth
     await resetE2EPage("e2e-isolated-scratchpad");
     const token = await createAccessTokenForE2E();
     await page.context().addCookies([
       { name: "access_token", value: token, url: BASE_URL, httpOnly: false, sameSite: "Lax" },
     ]);
+    await page.addInitScript(() => {
+      localStorage.setItem(
+        "auth-storage",
+        JSON.stringify({
+          state: {
+            user: {
+              id: "admin-1",
+              phone: "09123456789",
+              isSuperuser: true,
+              roles: ["super_admin"],
+            },
+            isAuthenticated: true,
+            isLoading: false,
+          },
+        })
+      );
+    });
 
     // 2. Open builder studio
-    await page.goto("/e2e-isolated-scratchpad?visual_editor=true");
+    await page.goto("/e2e-isolated-scratchpad?visual_editor=true", {
+      waitUntil: "domcontentloaded",
+      timeout: 45_000,
+    });
     await expect(page.getByRole("button", { name: "افزودن بلوک" })).toBeVisible({ timeout: 30_000 });
 
     const frame = page.frameLocator(CANVAS);

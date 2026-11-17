@@ -14,6 +14,23 @@ test.describe("Phase 3 - Storefront Components & Builder Integration E2E Suite",
     await page.context().addCookies([
       { name: "access_token", value: token, url: BASE_URL, httpOnly: false, sameSite: "Lax" },
     ]);
+    await page.addInitScript(() => {
+      localStorage.setItem(
+        "auth-storage",
+        JSON.stringify({
+          state: {
+            user: {
+              id: "admin-1",
+              phone: "09123456789",
+              isSuperuser: true,
+              roles: ["super_admin"],
+            },
+            isAuthenticated: true,
+            isLoading: false,
+          },
+        })
+      );
+    });
 
     // 2. Open builder studio
     await page.goto("/e2e-isolated-scratchpad?visual_editor=true");

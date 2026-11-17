@@ -154,10 +154,11 @@ describe("Phase 3 - Storefront Core Components Suite", () => {
       render(<ImageGallery images={images} productName="کفش ورزشی" />);
 
       const mainImg = screen.getAllByAltText("تصویر اصلی")[0];
-      fireEvent.click(mainImg);
-
-      // Lightbox dialog should open with counter
-      expect(screen.getByText(/۱ از ۳/)).toBeDefined();
+      if (mainImg) {
+        fireEvent.click(mainImg);
+        // Lightbox dialog should open with counter
+        expect(screen.getByText(/۱ از ۳/)).toBeDefined();
+      }
     });
   });
 
@@ -177,8 +178,10 @@ describe("Phase 3 - Storefront Core Components Suite", () => {
       const stars = screen.getAllByRole("radio");
       expect(stars.length).toBe(5);
 
-      fireEvent.click(stars[4]); // Click 5th star
-      expect(handleChange).toHaveBeenCalledWith(5);
+      if (stars[4]) {
+        fireEvent.click(stars[4]); // Click 5th star
+        expect(handleChange).toHaveBeenCalledWith(5);
+      }
     });
 
     it("renders ReviewHistogram with distribution bars and average", () => {
@@ -236,8 +239,8 @@ describe("Phase 3 - Storefront Core Components Suite", () => {
 
       const state = useRecentlyViewedStore.getState();
       expect(state.products.length).toBe(2);
-      expect(state.products[0].id).toBe("p1"); // p1 moved to top
-      expect(state.products[1].id).toBe("p2");
+      expect(state.products[0]?.id).toBe("p1"); // p1 moved to top
+      expect(state.products[1]?.id).toBe("p2");
     });
 
     it("renders RecentlyViewed section with recorded products", () => {

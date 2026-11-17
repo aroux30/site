@@ -197,3 +197,53 @@ def test_custom_css_security_url_injection_fails():
     css = "background-image: url('http://evil.com/hack.jpg');"
     with pytest.raises(InvalidCssError):
         validate_custom_css(css)
+
+
+def test_template_import_validation_rejects_xss_and_invalid_tokens():
+    """Verify that validate_page_ast used during template import catches security violations."""
+    # 1. Template with forbidden CSS tokens in customCssClass
+    bad_ast_dict = {
+        "schemaVersion": 1,
+        "title": "قالب مخرب",
+        "slug": "malicious-template",
+        "rootElements": [
+            {
+                "id": "el_sec_bad",
+                "name": "سکشن مخرب",
+                "type": "container",
+                "styles": {
+                    "mobile": {},
+                    "customCssClass": "test <script>alert(1)</script>",
+                },
+                "children": [],
+            }
+        ],
+    }
+    with pytest.raises(InvalidCssError):
+        validate_page_ast(bad_ast_dict)
+
+    # 2. Template with unregistered widget type
+    unregistered_widget_ast = {
+        "schemaVersion": 1,
+        "title": "قالب با ویجت نامعتبر",
+        "slug": "invalid-widget-template",
+        "rootElements": [
+            {
+                "id": "el_sec_good",
+                "name": "سکشن",
+                "type": "container",
+                "children": [
+                    {
+                        "id": "el_wid_bad",
+                        "name": "ویجت غیرمجاز",
+                        "type": "widget",
+                        "widgetType": "unauthorized_remote_eval",
+                        "children": [],
+                    }
+                ],
+            }
+        ],
+    }
+    with pytest.raises(InvalidWidgetTypeError):
+        validate_page_ast(unregistered_widget_ast)
+

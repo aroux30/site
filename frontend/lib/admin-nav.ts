@@ -25,6 +25,7 @@ import {
   LayoutDashboard,
   Link2,
   LayoutGrid,
+  Mail,
   Megaphone,
   MessagesSquare,
   Newspaper,
@@ -180,6 +181,7 @@ export const adminNavGroups: AdminNavGroup[] = [
       { href: "/admin/widgets", label: "نواحی ویجت", icon: LayoutGrid },
       { href: "/admin/media", label: "کتابخانه رسانه", icon: Images },
       { href: "/admin/themes", label: "تم‌ها و استایل", icon: Paintbrush },
+      { href: "/admin/forms", label: "فرم‌های دریافتی", icon: Mail },
       // «ریدایرکت‌ها» و «تحلیل سئو» در ۲۰۲۶-۱۰-۰۹ به گروه اختصاصی «سئو»
       // منتقل شدند (دستور مالک: منوی سئو مثل Rank Math). تحلیل سئوی مستقل
       // حذف شد؛ موتور امتیازدهی داخل ویرایشگر هر نوشته است.

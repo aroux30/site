@@ -48,7 +48,7 @@ interface CanvasElementProps {
   depth?: number;
 }
 
-export function CanvasElement({
+function CanvasElementComponent({
   element,
   activeBreakpoint,
   depth = 1,
@@ -61,9 +61,10 @@ export function CanvasElement({
   const [cartQuantity, setCartQuantity] = useState(1);
   const [activeGridFilter, setActiveGridFilter] = useState<string>("all");
 
-  const selectedElementId = useBuilderStore((s) => s.selectedElementId);
-  const selectedElementIds = useBuilderStore((s) => s.selectedElementIds);
-  const hoveredElementId = useBuilderStore((s) => s.hoveredElementId);
+  // Performance-optimized fine-grained selectors (P5 Hardening):
+  // Subscribe to boolean expressions instead of full AST tree, preventing cascade re-renders
+  const isSelected = useBuilderStore((s) => s.selectedElementId === element.id || s.selectedElementIds.includes(element.id));
+  const isHovered = useBuilderStore((s) => s.hoveredElementId === element.id && s.selectedElementId !== element.id);
   const selectElement = useBuilderStore((s) => s.selectElement);
   const toggleSelectElement = useBuilderStore((s) => s.toggleSelectElement);
   const setHoveredElement = useBuilderStore((s) => s.setHoveredElement);
@@ -74,11 +75,7 @@ export function CanvasElement({
   const copyElement = useBuilderStore((s) => s.copyElement);
   const copyStyles = useBuilderStore((s) => s.copyStyles);
   const makeGlobalComponent = useBuilderStore((s) => s.makeGlobalComponent);
-  const ast = useBuilderStore((s) => s.ast);
   const previewMode = useBuilderStore((s) => s.previewMode);
-
-  const isSelected = selectedElementId === element.id;
-  const isHovered = hoveredElementId === element.id && !isSelected;
 
   // Drag is native HTML5 drag-and-drop, not dnd-kit. The canvas lives in an
   // iframe, and dnd-kit's pointer sensor never activates across the document
@@ -143,22 +140,24 @@ export function CanvasElement({
           renderedHtml,
           payload.variables
         );
+        const roots = useBuilderStore.getState().ast.rootElements;
         if (element.type === "container") {
           addElement(newEl, element.id);
         } else {
-          const info = findElementAndParent(ast.rootElements, element.id);
+          const info = findElementAndParent(roots, element.id);
           addElement(newEl, info?.parent?.id, (info?.index ?? 0) + 1);
         }
         return;
       }
 
       if (payload.type === "template_def" && Array.isArray((payload as any).elements)) {
+        const roots = useBuilderStore.getState().ast.rootElements;
         for (const el of (payload as any).elements) {
           const cloned = cloneElementWithNewIds(el);
           if (element.type === "container") {
             addElement(cloned, element.id);
           } else {
-            const info = findElementAndParent(ast.rootElements, element.id);
+            const info = findElementAndParent(roots, element.id);
             addElement(cloned, info?.parent?.id, (info?.index ?? 0) + 1);
           }
         }
@@ -169,15 +168,16 @@ export function CanvasElement({
         const def = BASIC_BLOCK_DEFINITIONS.find((b) => b.type === payload.blockType);
         if (!def) return;
         const newEl = def.createDefaultElement();
+        const roots = useBuilderStore.getState().ast.rootElements;
         if (element.type === "container") {
           addElement(newEl, element.id);
         } else {
-          const info = findElementAndParent(ast.rootElements, element.id);
+          const info = findElementAndParent(roots, element.id);
           addElement(newEl, info?.parent?.id, (info?.index ?? 0) + 1);
         }
       }
     },
-    [element.id, element.type, ast.rootElements, addElement, moveElement]
+    [element.id, element.type, addElement, moveElement]
   );
 
   // Compute responsive inline styles based on active breakpoint
@@ -1294,3 +1294,5 @@ export function CanvasElement({
     </div>
   );
 }
+
+export const CanvasElement = React.memo(CanvasElementComponent);

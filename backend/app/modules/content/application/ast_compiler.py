@@ -22,31 +22,44 @@ class ASTCompiler:
     """Server-side compiler translating a PageAST tree into semantic HTML."""
 
     @classmethod
-    def compile(cls, ast: PageAST) -> str:
-        """Compile the full PageAST document into a single sanitized HTML string."""
+    def compile(cls, ast: PageAST, is_authenticated: bool = False) -> str:
+        """Compile the full PageAST document into a single sanitized HTML string.
+
+        When is_authenticated is False, blocks with auth_visibility="authenticated"
+        are omitted from the server output entirely to prevent leaking private content.
+        """
         buffer: list[str] = []
         # Root document wrapper with RTL direction
         buffer.append('<div class="builder-document" dir="rtl">')
         for el in ast.root_elements:
-            buffer.append(cls._compile_element(el))
+            compiled = cls._compile_element(el, is_authenticated=is_authenticated)
+            if compiled:
+                buffer.append(compiled)
         buffer.append("</div>")
 
         raw_html = "".join(buffer)
         return sanitize_html(raw_html)
 
     @classmethod
-    def _compile_element(cls, el: BuilderElement) -> str:
+    def _compile_element(cls, el: BuilderElement, is_authenticated: bool = False) -> str:
         if el.is_hidden:
             return ""
 
+        # Server-side authVisibility filtering (P5 Production Hardening):
+        # Drop completely from compiled HTML so guests cannot inspect member-only content
+        if el.auth_visibility == "authenticated" and not is_authenticated:
+            return ""
+        if el.auth_visibility == "guest" and is_authenticated:
+            return ""
+
         if el.type == "container":
-            return cls._compile_container(el)
+            return cls._compile_container(el, is_authenticated=is_authenticated)
         elif el.type == "widget":
             return cls._compile_widget(el)
         return ""
 
     @classmethod
-    def _compile_container(cls, el: BuilderElement) -> str:
+    def _compile_container(cls, el: BuilderElement, is_authenticated: bool = False) -> str:
         is_form = el.widget_type == "form_container"
         tag = "form" if is_form else "section"
         classes = ["builder-container", "relative"]
@@ -129,9 +142,13 @@ class ASTCompiler:
                 extra_attrs += f' data-error-message="{html.escape(str(props["error_message"]))}"'
             # Include anti-spam honeypot hidden field inside form
             hp_field = '<input type="text" name="_hp_website" style="display:none !important;" tabindex="-1" autocomplete="off" aria-hidden="true" />'
-            children_html = hp_field + "".join(cls._compile_element(child) for child in el.children)
+            children_html = hp_field + "".join(
+                cls._compile_element(child, is_authenticated=is_authenticated) for child in el.children
+            )
         else:
-            children_html = "".join(cls._compile_element(child) for child in el.children)
+            children_html = "".join(
+                cls._compile_element(child, is_authenticated=is_authenticated) for child in el.children
+            )
 
         return f"<{tag}{id_attr}{class_attr}{style_attr}{extra_attrs}>{children_html}</{tag}>"
 

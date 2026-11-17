@@ -60,6 +60,7 @@ describe("Image Inspector Media Library Integration", () => {
     // Verify store element props updated
     const updated = useBuilderStore.getState();
     const imgEl = updated.ast.rootElements[0];
-    expect(imgEl.widgetProps?.url).toBe("https://example.com/selected-image.webp");
+    expect(imgEl).toBeDefined();
+    expect(imgEl?.widgetProps?.url).toBe("https://example.com/selected-image.webp");
   });
 });

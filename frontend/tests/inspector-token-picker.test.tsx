@@ -40,8 +40,11 @@ describe("Inspector Design System Token Picker", () => {
     // Verify background color was updated to var(--primary)
     const updated = useBuilderStore.getState();
     const container = updated.ast.rootElements[0];
-    const bg = container.styles.desktop?.background?.color || container.styles.mobile?.background?.color;
-    expect(bg).toBe("var(--primary)");
+    expect(container).toBeDefined();
+    if (container) {
+      const bg = container.styles.desktop?.background?.color || container.styles.mobile?.background?.color;
+      expect(bg).toBe("var(--primary)");
+    }
   });
 
   it("allows selecting a design token CSS variable for text color and border radius", () => {
@@ -80,10 +83,13 @@ describe("Inspector Design System Token Picker", () => {
 
     const updated = useBuilderStore.getState();
     const btn = updated.ast.rootElements[0];
-    const typoColor = btn.styles.desktop?.typography?.color || btn.styles.mobile?.typography?.color;
-    const radToken = (btn.styles.desktop?.border as any)?.radiusToken || (btn.styles.mobile?.border as any)?.radiusToken;
+    expect(btn).toBeDefined();
+    if (btn) {
+      const typoColor = btn.styles.desktop?.typography?.color || btn.styles.mobile?.typography?.color;
+      const radToken = (btn.styles.desktop?.border as any)?.radiusToken || (btn.styles.mobile?.border as any)?.radiusToken;
 
-    expect(typoColor).toBe("var(--foreground)");
-    expect(radToken).toBe("var(--radius)");
+      expect(typoColor).toBe("var(--foreground)");
+      expect(radToken).toBe("var(--radius)");
+    }
   });
 });

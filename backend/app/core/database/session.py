@@ -42,6 +42,7 @@ def _build_engine() -> Any:
         pool_timeout=settings.DB_POOL_TIMEOUT,
         pool_pre_ping=True,
         echo=settings.DB_ECHO,
+        connect_args={"timeout": 1.0},
     )
 
     # Instrument with OpenTelemetry
@@ -155,9 +156,12 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
     async with async_session_factory() as session:
         try:
             yield session
-            await session.commit()
+            if session.is_active and (session.new or session.dirty or session.deleted):
+                await session.commit()
         except Exception:
-            await session.rollback()
+            with contextlib.suppress(Exception):
+                await session.rollback()
             raise
         finally:
-            await session.close()
+            with contextlib.suppress(Exception):
+                await session.close()

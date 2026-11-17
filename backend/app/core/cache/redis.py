@@ -44,6 +44,8 @@ async def init_redis() -> Redis:
             settings.redis_url_str,
             max_connections=50,
             decode_responses=True,
+            socket_connect_timeout=0.5,
+            socket_timeout=0.5,
         )
         _client = Redis(connection_pool=_pool)
     return _client

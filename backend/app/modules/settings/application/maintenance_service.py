@@ -208,6 +208,7 @@ def is_exempt_path(path: str) -> bool:
         or p.startswith("/api/v1/rbac/admin")
         or p.startswith("/admin")
         or p.startswith("/login")
+        or p.startswith("/api/v1/content/themes/active")
         or p in ("/health", "/ready")
     )
 

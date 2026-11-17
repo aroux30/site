@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import {
   Paintbrush,
   Plus,
@@ -47,6 +47,7 @@ import {
   type ThemeRevision,
 } from "@/lib/api/themes";
 import { DEFAULT_THEME_TOKENS } from "@/lib/builder/theme-schema";
+import { checkWcagCompliance } from "@/lib/wcag-contrast";
 
 const COLOR_PRESETS = [
   { name: "زمردی (Emerald)", hex: "#059669" },
@@ -111,11 +112,24 @@ export default function AdminThemesPage() {
 
   // Form states - typography & dimensions
   const [formRadius, setFormRadius] = useState("12px");
-  const [formShadow, setFormShadow] = useState(SHADOW_OPTIONS[2].value);
+  const [formShadow, setFormShadow] = useState(SHADOW_OPTIONS[2]?.value || "none");
   const [formFont, setFormFont] = useState("vazirmatn");
   const [formFontSize, setFormFontSize] = useState("15px");
 
   const [submitting, setSubmitting] = useState(false);
+
+  // WCAG 2.1 AA Contrast Ratios calculation
+  const textBgContrast = useMemo(() => {
+    return checkWcagCompliance(formForeground, formBackground);
+  }, [formForeground, formBackground]);
+
+  const textSurfaceContrast = useMemo(() => {
+    return checkWcagCompliance(formForeground, formSurface);
+  }, [formForeground, formSurface]);
+
+  const primaryBtnContrast = useMemo(() => {
+    return checkWcagCompliance("#ffffff", formPrimary);
+  }, [formPrimary]);
 
   const fetchThemes = useCallback(async () => {
     setLoading(true);
@@ -172,7 +186,7 @@ export default function AdminThemesPage() {
     setFormDestructive("#e11d48");
     setFormInfo("#2563eb");
     setFormRadius("12px");
-    setFormShadow(SHADOW_OPTIONS[2].value);
+    setFormShadow(SHADOW_OPTIONS[2]?.value || "none");
     setFormFont("vazirmatn");
     setFormFontSize("15px");
     setModalTab("colors");
@@ -198,7 +212,7 @@ export default function AdminThemesPage() {
     setFormInfo(String(col.info?.$value || "#2563eb"));
 
     setFormRadius(String(sem.dimension?.radius?.$value || "12px"));
-    setFormShadow(String(sem.shadow?.boxShadow?.$value || SHADOW_OPTIONS[2].value));
+    setFormShadow(String(sem.shadow?.boxShadow?.$value || SHADOW_OPTIONS[2]?.value || "none"));
     const fontVal = String(sem.typography?.fontFamily?.$value || "vazirmatn");
     setFormFont(fontVal.includes("system-ui") && !fontVal.includes("Vazirmatn") ? "system-ui" : "vazirmatn");
     setFormFontSize(String(sem.typography?.fontSize?.$value || "15px"));
@@ -317,7 +331,7 @@ export default function AdminThemesPage() {
   const handleRestoreRevision = async (themeId: string, revId: string) => {
     const ok = await confirm({
       title: "بازگردانی نسخه تم",
-      message: "آیا از بازگردانی توکن‌های تم به این نسخه اطمینان دارید؟ تغییرات فعلی به عنوان نسخه جدید ثبت خواهند شد.",
+      description: "آیا از بازگردانی توکن‌های تم به این نسخه اطمینان دارید؟ تغییرات فعلی به عنوان نسخه جدید ثبت خواهند شد.",
     });
     if (!ok) return;
 
@@ -354,8 +368,8 @@ export default function AdminThemesPage() {
   const handleDelete = async (theme: SiteTheme) => {
     const ok = await confirm({
       title: "حذف تم",
-      message: `آیا از حذف تم «${theme.name}» اطمینان دارید؟ این عمل غیرقابل‌بازگشت است.`,
-      confirmVariant: "destructive",
+      description: `آیا از حذف تم «${theme.name}» اطمینان دارید؟ این عمل غیرقابل‌بازگشت است.`,
+      destructive: true,
     });
     if (!ok) return;
 
@@ -814,6 +828,73 @@ export default function AdminThemesPage() {
                           className="h-7 text-xs font-mono"
                           dir="ltr"
                         />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* WCAG 2.1 AA Contrast Ratio Card */}
+                <div className="p-3.5 rounded-xl border bg-muted/20 space-y-2.5 md:col-span-2">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                      <Sparkles className="w-3.5 h-3.5 text-primary" />
+                      <span>اعتبارسنجی دسترس‌پذیری کنتراست رنگ (WCAG 2.1 AA)</span>
+                    </h4>
+                    <span className="text-[10px] text-muted-foreground">حداقل استاندارد: ۴.۵:۱</span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-xs">
+                    {/* Text vs Background */}
+                    <div className="p-2.5 rounded-lg border bg-background space-y-1">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[11px] font-semibold text-foreground">متن روی پس‌زمینه</span>
+                        {textBgContrast?.isNormalTextAA ? (
+                          <Badge className="bg-emerald-600 text-white text-[9px] px-1.5 py-0">تأیید AA</Badge>
+                        ) : (
+                          <Badge variant="destructive" className="text-[9px] px-1.5 py-0">کنتراست ضعیف</Badge>
+                        )}
+                      </div>
+                      <div className="flex items-baseline justify-between text-[11px] text-muted-foreground font-mono">
+                        <span>نسبت کنتراست:</span>
+                        <span className={textBgContrast?.isNormalTextAA ? "text-emerald-600 font-bold" : "text-destructive font-bold"}>
+                          {textBgContrast ? `${textBgContrast.ratio}:1` : "نامعتبر"}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Text vs Surface */}
+                    <div className="p-2.5 rounded-lg border bg-background space-y-1">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[11px] font-semibold text-foreground">متن روی کارت/سطح</span>
+                        {textSurfaceContrast?.isNormalTextAA ? (
+                          <Badge className="bg-emerald-600 text-white text-[9px] px-1.5 py-0">تأیید AA</Badge>
+                        ) : (
+                          <Badge variant="destructive" className="text-[9px] px-1.5 py-0">کنتراست ضعیف</Badge>
+                        )}
+                      </div>
+                      <div className="flex items-baseline justify-between text-[11px] text-muted-foreground font-mono">
+                        <span>نسبت کنتراست:</span>
+                        <span className={textSurfaceContrast?.isNormalTextAA ? "text-emerald-600 font-bold" : "text-destructive font-bold"}>
+                          {textSurfaceContrast ? `${textSurfaceContrast.ratio}:1` : "نامعتبر"}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Primary Button text vs Primary color */}
+                    <div className="p-2.5 rounded-lg border bg-background space-y-1">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[11px] font-semibold text-foreground">متن سفید روی دکمه اصلی</span>
+                        {primaryBtnContrast?.isLargeTextAA ? (
+                          <Badge className="bg-emerald-600 text-white text-[9px] px-1.5 py-0">تأیید AA</Badge>
+                        ) : (
+                          <Badge variant="destructive" className="text-[9px] px-1.5 py-0">کنتراست ضعیف</Badge>
+                        )}
+                      </div>
+                      <div className="flex items-baseline justify-between text-[11px] text-muted-foreground font-mono">
+                        <span>نسبت کنتراست:</span>
+                        <span className={primaryBtnContrast?.isLargeTextAA ? "text-emerald-600 font-bold" : "text-destructive font-bold"}>
+                          {primaryBtnContrast ? `${primaryBtnContrast.ratio}:1` : "نامعتبر"}
+                        </span>
                       </div>
                     </div>
                   </div>

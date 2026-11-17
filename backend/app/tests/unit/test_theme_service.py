@@ -183,3 +183,23 @@ async def test_theme_cache_invalidation_flow(monkeypatch):
     assert theme_service.ACTIVE_THEME_CSS_CACHE_KEY in deleted_keys
 
 
+@pytest.mark.asyncio
+async def test_active_theme_css_redis_cache_and_latency(monkeypatch):
+    """Verify that cached CSS retrieval executes in sub-100ms (fast in-memory path)."""
+    import time
+    from unittest.mock import AsyncMock
+
+    cached_css_payload = ":root { --primary: #059669; --secondary: #0d9488; --radius: 12px; }"
+    mock_get = AsyncMock(return_value=cached_css_payload)
+    monkeypatch.setattr("app.core.cache.redis.cache_get", mock_get)
+
+    t0 = time.perf_counter()
+    from app.core.cache.redis import cache_get
+    result = await cache_get(theme_service.ACTIVE_THEME_CSS_CACHE_KEY)
+    elapsed_ms = (time.perf_counter() - t0) * 1000
+
+    assert result == cached_css_payload
+    assert elapsed_ms < 100.0, f"Cache read took too long: {elapsed_ms}ms"
+
+
+

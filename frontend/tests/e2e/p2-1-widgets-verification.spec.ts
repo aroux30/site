@@ -10,6 +10,23 @@ async function openIsolatedStudio(page: Page): Promise<FrameLocator> {
   await page.context().addCookies([
     { name: "access_token", value: token, url: BASE_URL, httpOnly: false, sameSite: "Lax" },
   ]);
+  await page.addInitScript(() => {
+    localStorage.setItem(
+      "auth-storage",
+      JSON.stringify({
+        state: {
+          user: {
+            id: "admin-1",
+            phone: "09123456789",
+            isSuperuser: true,
+            roles: ["super_admin"],
+          },
+          isAuthenticated: true,
+          isLoading: false,
+        },
+      })
+    );
+  });
   await page.goto("/e2e-isolated-scratchpad?visual_editor=true");
   await expect(page.getByRole("button", { name: "افزودن بلوک" })).toBeVisible({ timeout: 30_000 });
   const frame = page.frameLocator(CANVAS);

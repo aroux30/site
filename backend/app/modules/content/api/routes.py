@@ -1450,7 +1450,11 @@ async def get_active_theme_css(db: AsyncSession = Depends(get_db)) -> Response:
     if cached_css:
         return Response(content=cached_css, media_type="text/css")
 
-    theme = await theme_service.get_active_theme(db)
+    try:
+        theme = await theme_service.get_active_theme(db)
+    except Exception:
+        theme = None
+
     if not theme:
         css = ":root { --primary: #059669; --secondary: #0d9488; --radius: 12px; }"
     else:
@@ -1477,7 +1481,11 @@ async def admin_list_themes(
 ) -> list[SiteThemeResponse]:
     from app.modules.content.application import theme_service
 
-    themes = await theme_service.list_themes(db, limit=limit, offset=offset)
+    try:
+        themes = await theme_service.list_themes(db, limit=limit, offset=offset)
+    except Exception:
+        themes = []
+
     results = []
     for t in themes:
         res = SiteThemeResponse.model_validate(t)

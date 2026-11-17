@@ -242,6 +242,12 @@ export function CanvasElement({
       }
     }
 
+    // Animation styles
+    if (res.animation && res.animation !== "none") {
+      if (res.animationDuration) styleObj.animationDuration = `${res.animationDuration}s`;
+      if (res.animationDelay) styleObj.animationDelay = `${res.animationDelay}s`;
+    }
+
     return styleObj;
   }, [element.styles, activeBreakpoint]);
 
@@ -655,6 +661,7 @@ export function CanvasElement({
         !previewMode && isSelected && "outline-2 outline-primary bg-primary/5 shadow-sm z-20",
         !previewMode && isDragOver && "outline-2 outline-emerald-500 bg-emerald-500/10 shadow-lg ring-2 ring-emerald-500/30",
         element.isHidden && "opacity-50",
+        element.styles?.animation && element.styles.animation !== "none" && `builder-animate-${element.styles.animation}`,
         element.styles?.customCssClass
       )}
       data-element-id={element.id}

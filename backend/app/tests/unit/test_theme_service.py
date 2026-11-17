@@ -12,13 +12,6 @@ from app.modules.content.domain.theme_models import SiteTheme, ThemeRevision
 from app.modules.content.schemas.theme import SiteThemeCreateRequest, SiteThemeUpdateRequest
 
 
-@pytest.fixture(autouse=True)
-async def _dispose_pool_after_test():
-    yield
-    from app.core.database.session import engine
-    await engine.dispose()
-
-
 @pytest.mark.asyncio
 async def test_create_and_get_theme():
     unique_slug = f"test-theme-{uuid.uuid4().hex[:8]}"

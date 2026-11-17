@@ -128,6 +128,9 @@ class ResponsiveStyles(ASTModel):
     custom_css_class: str | None = None
     custom_css_id: str | None = None
     direction: Literal["rtl", "ltr", "inherit"] = "inherit"
+    animation: str | None = None  # e.g. "fade-in", "slide-up", "zoom-in"
+    animation_duration: float | None = None  # in seconds (e.g. 0.5)
+    animation_delay: float | None = None  # in seconds (e.g. 0.2)
 
 
 # ── 3. Layout and Containers ────────────────────────────────────────────────

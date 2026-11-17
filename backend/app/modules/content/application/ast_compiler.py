@@ -91,6 +91,13 @@ class ASTCompiler:
         # Compile responsive padding / margin styles
         style_parts.extend(cls._compile_styles(el.styles))
 
+        if el.styles.animation and el.styles.animation != "none":
+            classes.append(f"builder-animate-{el.styles.animation}")
+            if el.styles.animation_duration:
+                style_parts.append(f"animation-duration: {el.styles.animation_duration}s;")
+            if el.styles.animation_delay:
+                style_parts.append(f"animation-delay: {el.styles.animation_delay}s;")
+
         if el.styles.custom_css_class:
             classes.append(el.styles.custom_css_class)
 
@@ -106,9 +113,20 @@ class ASTCompiler:
         widget_type = el.widget_type or "unknown"
         props = el.widget_props or {}
         styles = cls._compile_styles(el.styles)
+
+        classes_list = []
+        if el.styles.custom_css_class:
+            classes_list.append(el.styles.custom_css_class)
+        if el.styles.animation and el.styles.animation != "none":
+            classes_list.append(f"builder-animate-{el.styles.animation}")
+            if el.styles.animation_duration:
+                styles.append(f"animation-duration: {el.styles.animation_duration}s;")
+            if el.styles.animation_delay:
+                styles.append(f"animation-delay: {el.styles.animation_delay}s;")
+
         style_attr = f' style="{" ".join(styles)}"' if styles else ""
         id_attr = f' id="{html.escape(el.id)}"'
-        css_class = el.styles.custom_css_class or ""
+        css_class = " ".join(classes_list)
 
         if widget_type == "heading":
             tag = props.get("tag", "h2")

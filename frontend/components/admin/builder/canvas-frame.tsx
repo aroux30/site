@@ -64,7 +64,14 @@ export function CanvasFrame({
         '<!DOCTYPE html><html lang="fa" dir="rtl"><head><meta charset="utf-8"/>' +
           '<meta name="viewport" content="width=device-width, initial-scale=1"/>' +
           '<style>body{margin:0;padding:24px;min-height:100vh;box-sizing:border-box;}' +
-          'a{pointer-events:none!important;}</style></head>' +
+          'a{pointer-events:none!important;}' +
+          '@keyframes builderFadeIn{from{opacity:0;}to{opacity:1;}}' +
+          '@keyframes builderSlideUp{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}' +
+          '@keyframes builderZoomIn{from{opacity:0;transform:scale(0.95);}to{opacity:1;transform:scale(1);}}' +
+          '.builder-animate-fade-in{animation:builderFadeIn 0.6s cubic-bezier(0.16,1,0.3,1) both;}' +
+          '.builder-animate-slide-up{animation:builderSlideUp 0.6s cubic-bezier(0.16,1,0.3,1) both;}' +
+          '.builder-animate-zoom-in{animation:builderZoomIn 0.6s cubic-bezier(0.16,1,0.3,1) both;}' +
+          '</style></head>' +
           '<body class="bg-background text-foreground font-sans antialiased">' +
           '<div id="builder-canvas-mount"></div></body></html>'
       );

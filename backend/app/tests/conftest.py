@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import importlib
 import pkgutil
+import pytest
 
 import app.modules
 
@@ -28,3 +29,13 @@ def _import_every_model_module() -> None:
 
 
 _import_every_model_module()
+
+
+@pytest.fixture(autouse=True)
+async def _dispose_engine_between_tests():
+    yield
+    try:
+        from app.core.database.session import engine
+        await engine.dispose()
+    except Exception:
+        pass

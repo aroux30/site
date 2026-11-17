@@ -1112,6 +1112,69 @@ export function InspectorPanel() {
           />
         </div>
 
+        {/* Entrance / Scroll Animation */}
+        <div className="space-y-3 pt-2 border-t border-border/80">
+          <Label className="text-xs font-bold text-foreground block">انیمیشن ورود و اسکرول (Animation)</Label>
+          <div className="space-y-1.5">
+            <Label className="text-[11px] text-muted-foreground">نوع انیمیشن</Label>
+            <Select
+              value={selectedElement.styles.animation || "none"}
+              onValueChange={(val) =>
+                updateElementStyles(selectedElement.id, {
+                  animation: val,
+                })
+              }
+            >
+              <SelectTrigger className="h-8 text-xs">
+                <SelectValue placeholder="انتخاب انیمیشن" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">بدون انیمیشن (None)</SelectItem>
+                <SelectItem value="fade-in">محو شدن به پیدایش (Fade In)</SelectItem>
+                <SelectItem value="slide-up">لغزش از پایین به بالا (Slide Up)</SelectItem>
+                <SelectItem value="zoom-in">بزرگ‌نمایی نرم (Zoom In)</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {selectedElement.styles.animation && selectedElement.styles.animation !== "none" && (
+            <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-1">
+                <Label className="text-[11px] text-muted-foreground">مدت زمان (ثانیه)</Label>
+                <Input
+                  type="number"
+                  step="0.1"
+                  min="0.1"
+                  max="3"
+                  value={selectedElement.styles.animationDuration || 0.6}
+                  onChange={(e) =>
+                    updateElementStyles(selectedElement.id, {
+                      animationDuration: parseFloat(e.target.value) || 0.6,
+                    })
+                  }
+                  className="h-8 text-xs"
+                />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-[11px] text-muted-foreground">تأخیر (ثانیه)</Label>
+                <Input
+                  type="number"
+                  step="0.1"
+                  min="0"
+                  max="3"
+                  value={selectedElement.styles.animationDelay || 0}
+                  onChange={(e) =>
+                    updateElementStyles(selectedElement.id, {
+                      animationDelay: parseFloat(e.target.value) || 0,
+                    })
+                  }
+                  className="h-8 text-xs"
+                />
+              </div>
+            </div>
+          )}
+        </div>
+
         <div className="flex items-center justify-between pt-2 border-t border-border/80">
           <Label className="text-xs">مخفی کردن المان (Visibility)</Label>
           <Switch

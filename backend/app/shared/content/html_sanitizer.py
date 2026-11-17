@@ -104,6 +104,7 @@ ALLOWED_CSS_PROPERTIES: frozenset[str] = frozenset(
         "min-height", "display", "gap", "grid-template-columns",
         "flex-direction", "justify-content", "align-items", "opacity",
         "box-shadow", "overflow", "vertical-align", "white-space",
+        "animation-duration", "animation-delay", "animation-name",
     }
 )
 

@@ -211,3 +211,44 @@ def test_ast_compiler_renders_phase_3_storefront_widgets():
     assert 'دسته‌ها' in result
 
 
+def test_ast_compiler_renders_phase_4_entrance_animations():
+    ast = PageAST(
+        schema_version=1,
+        title="تست انیمیشن‌های فاز ۴",
+        slug="test-p4-animations",
+        root_elements=[
+            BuilderElement(
+                id="el_anim_sec",
+                name="بخش با انیمیشن",
+                type="container",
+                styles=ResponsiveStyles(
+                    animation="slide-up",
+                    animation_duration=0.8,
+                    animation_delay=0.2,
+                ),
+                children=[
+                    BuilderElement(
+                        id="el_anim_hd",
+                        name="سرتیتر متحرک",
+                        type="widget",
+                        widget_type="heading",
+                        widget_props={"text": "عنوان با فید", "tag": "h2"},
+                        styles=ResponsiveStyles(
+                            animation="fade-in",
+                            animation_duration=0.5,
+                        ),
+                    ),
+                ],
+            )
+        ],
+    )
+    result = ASTCompiler.compile(ast)
+    assert 'builder-animate-slide-up' in result
+    assert 'animation-duration:0.8s' in result or 'animation-duration: 0.8s' in result
+    assert 'animation-delay:0.2s' in result or 'animation-delay: 0.2s' in result
+    assert 'builder-animate-fade-in' in result
+    assert 'animation-duration:0.5s' in result or 'animation-duration: 0.5s' in result
+    assert 'عنوان با فید' in result
+
+
+

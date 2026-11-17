@@ -1,131 +1,93 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { cn, toPersianDigits } from "@/lib/utils";
-
-/* ------------------------------------------------------------------ */
-/*  AnimatedNumber — smooth counter with IntersectionObserver trigger  */
-/*  requestAnimationFrame + easeOutExpo curve.                        */
-/* ------------------------------------------------------------------ */
-
-const FA_FORMATTER = new Intl.NumberFormat("fa-IR");
-
-function easeOutExpo(t: number): number {
-  return t >= 1 ? 1 : 1 - Math.pow(2, -10 * t);
-}
 
 export interface AnimatedNumberProps {
   value: number;
-  /** Animation duration in ms (default 1000). */
-  duration?: number;
-  suffix?: string;
-  prefix?: string;
+  duration?: number; // duration in ms (default 1200)
   className?: string;
+  prefix?: string;
+  suffix?: string;
+  formatPersian?: boolean;
 }
 
+/**
+ * AnimatedNumber — Smooth easing number counter using requestAnimationFrame & IntersectionObserver.
+ * Completely lightweight, respects prefers-reduced-motion, and formats Persian numerals natively.
+ */
 export function AnimatedNumber({
   value,
-  duration = 1000,
-  suffix = "",
-  prefix = "",
+  duration = 1200,
   className,
+  prefix = "",
+  suffix = "",
+  formatPersian = true,
 }: AnimatedNumberProps) {
+  const [displayValue, setDisplayValue] = useState(0);
   const ref = useRef<HTMLSpanElement>(null);
-  const [display, setDisplay] = useState<string>(() =>
-    FA_FORMATTER.format(value),
-  );
-  const prevValue = useRef(0);
-  const hasAnimated = useRef(false);
-  const rafId = useRef<number | null>(null);
+  const animatedRef = useRef(false);
 
-  const animate = useCallback(
-    (from: number, to: number) => {
-      if (rafId.current != null) cancelAnimationFrame(rafId.current);
-
-      const start = performance.now();
-
-      const step = (now: number) => {
-        const elapsed = now - start;
-        const progress = Math.min(elapsed / duration, 1);
-        const eased = easeOutExpo(progress);
-        const current = Math.round(from + (to - from) * eased);
-
-        setDisplay(FA_FORMATTER.format(current));
-
-        if (progress < 1) {
-          rafId.current = requestAnimationFrame(step);
-        } else {
-          rafId.current = null;
-          prevValue.current = to;
-        }
-      };
-
-      rafId.current = requestAnimationFrame(step);
-    },
-    [duration],
-  );
-
-  /* Trigger animation when element enters viewport. */
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
 
+    if (
+      typeof window !== "undefined" &&
+      window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches
+    ) {
+      setDisplayValue(value);
+      return;
+    }
+
     const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry?.isIntersecting && !hasAnimated.current) {
-          hasAnimated.current = true;
-          const prefersReducedMotion =
-            typeof window !== "undefined" &&
-            typeof window.matchMedia === "function" &&
-            window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-          if (prefersReducedMotion) {
-            prevValue.current = value;
-            setDisplay(FA_FORMATTER.format(value));
-          } else {
-            animate(0, value);
-          }
+      (entries) => {
+        if (entries[0]?.isIntersecting && !animatedRef.current) {
+          animatedRef.current = true;
+          let startTime: number | null = null;
+          const startValue = 0;
+          const endValue = value;
+
+          const step = (timestamp: number) => {
+            if (!startTime) startTime = timestamp;
+            const progress = Math.min((timestamp - startTime) / duration, 1);
+            // Ease-out cubic formula
+            const easeOutProgress = 1 - Math.pow(1 - progress, 3);
+            const current = Math.floor(startValue + (endValue - startValue) * easeOutProgress);
+            setDisplayValue(current);
+
+            if (progress < 1) {
+              requestAnimationFrame(step);
+            } else {
+              setDisplayValue(endValue);
+            }
+          };
+
+          requestAnimationFrame(step);
         }
       },
-      { threshold: 0.1 },
+      { threshold: 0.1 }
     );
 
     observer.observe(el);
-    return () => observer.disconnect();
-  }, [value, animate]);
 
-  /* Re-animate when value changes (only after first viewport entry). */
-  useEffect(() => {
-    if (!hasAnimated.current) return;
-    const prefersReducedMotion =
-      typeof window !== "undefined" &&
-      typeof window.matchMedia === "function" &&
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (prefersReducedMotion) {
-      prevValue.current = value;
-      setDisplay(FA_FORMATTER.format(value));
-    } else {
-      animate(prevValue.current, value);
-    }
-  }, [value, animate]);
-
-  /* Cleanup on unmount. */
-  useEffect(() => {
     return () => {
-      if (rafId.current != null) cancelAnimationFrame(rafId.current);
+      observer.disconnect();
     };
-  }, []);
+  }, [value, duration]);
+
+  const formattedStr = displayValue.toLocaleString("en-US");
+  const finalStr = formatPersian ? toPersianDigits(formattedStr) : formattedStr;
 
   return (
     <span
       ref={ref}
-      role="status"
-      aria-live="polite"
-      className={cn("tabular-nums", className)}
-      dir="rtl"
+      className={cn("inline-block tabular-nums font-mono font-bold", className)}
+      dir="ltr"
     >
-      {prefix ? toPersianDigits(prefix) : null}
-      {display}
-      {suffix ? toPersianDigits(suffix) : null}
+      {prefix}
+      {finalStr}
+      {suffix}
     </span>
   );
 }

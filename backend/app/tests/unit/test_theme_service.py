@@ -6,7 +6,7 @@ import uuid
 import pytest
 from sqlalchemy import select, update
 
-from app.core.database.session import async_session_factory
+from app.core.database.session import async_session_factory, engine
 from app.modules.content.application import theme_service
 from app.modules.content.domain.theme_models import SiteTheme, ThemeRevision
 from app.modules.content.schemas.theme import SiteThemeCreateRequest, SiteThemeUpdateRequest
@@ -58,6 +58,8 @@ async def test_create_and_get_theme():
         assert fetched is not None
         assert fetched.id == theme.id
 
+    await engine.dispose()
+
 
 @pytest.mark.asyncio
 async def test_activate_theme_single_active_constraint():
@@ -91,6 +93,8 @@ async def test_activate_theme_single_active_constraint():
         assert active_theme is not None
         assert active_theme.id == t2.id
 
+    await engine.dispose()
+
 
 @pytest.mark.asyncio
 async def test_theme_revisions_and_restore():
@@ -120,6 +124,8 @@ async def test_theme_revisions_and_restore():
         restored = await theme_service.restore_theme_revision(db, theme.id, initial_rev_id)
         assert restored.tokens["semantic"]["color"]["primary"]["$value"] == "#10b981"
 
+    await engine.dispose()
+
 
 @pytest.mark.asyncio
 async def test_theme_clone_and_delete():
@@ -139,6 +145,8 @@ async def test_theme_clone_and_delete():
         # Delete non-active theme
         await theme_service.delete_theme(db, cloned.id)
         assert await theme_service.get_theme_by_id(db, cloned.id) is None
+
+    await engine.dispose()
 
 
 def test_compile_theme_css_variables_and_string():

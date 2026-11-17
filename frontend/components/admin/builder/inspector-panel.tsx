@@ -713,6 +713,332 @@ export function InspectorPanel() {
           </div>
         );
 
+      case "product_price":
+        return (
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs">قیمت فروش (تومان)</Label>
+              <Input
+                type="number"
+                value={Number(props.price) || 0}
+                onChange={(e) => handlePropChange("price", parseFloat(e.target.value) || 0)}
+                className="h-8 text-xs font-mono"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">قیمت قبل تخفیف (تومان)</Label>
+              <Input
+                type="number"
+                value={Number(props.compare_at_price) || 0}
+                onChange={(e) => handlePropChange("compare_at_price", parseFloat(e.target.value) || 0)}
+                className="h-8 text-xs font-mono"
+              />
+            </div>
+            <div className="flex items-center justify-between pt-1">
+              <Label className="text-xs">نمایش درصد تخفیف</Label>
+              <Switch
+                checked={props.show_discount !== false}
+                onCheckedChange={(val) => handlePropChange("show_discount", val)}
+              />
+            </div>
+          </div>
+        );
+
+      case "add_to_cart":
+        return (
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs">متن روی دکمه</Label>
+              <Input
+                value={String(props.label || "افزودن به سبد خرید")}
+                onChange={(e) => handlePropChange("label", e.target.value)}
+                className="h-8 text-xs"
+              />
+            </div>
+            <div className="flex items-center justify-between pt-1">
+              <Label className="text-xs">نمایش انتخابگر تعداد</Label>
+              <Switch
+                checked={props.show_quantity !== false}
+                onCheckedChange={(val) => handlePropChange("show_quantity", val)}
+              />
+            </div>
+          </div>
+        );
+
+      case "product_variants":
+        return (
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs">عنوان انتخابگر</Label>
+              <Input
+                value={String(props.product_title || "انتخاب تنوع و مشخصات")}
+                onChange={(e) => handlePropChange("product_title", e.target.value)}
+                className="h-8 text-xs"
+              />
+            </div>
+          </div>
+        );
+
+      case "mini_cart":
+        return (
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs">عنوان سبد</Label>
+              <Input
+                value={String(props.label || "سبد خرید")}
+                onChange={(e) => handlePropChange("label", e.target.value)}
+                className="h-8 text-xs"
+              />
+            </div>
+            <div className="flex items-center justify-between pt-1">
+              <Label className="text-xs">نمایش نشانگر تعداد (Badge)</Label>
+              <Switch
+                checked={props.show_badge !== false}
+                onCheckedChange={(val) => handlePropChange("show_badge", val)}
+              />
+            </div>
+          </div>
+        );
+
+      case "cart_summary":
+        return (
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs">آدرس صفحه تسویه حساب</Label>
+              <Input
+                value={String(props.checkout_url || "/checkout")}
+                onChange={(e) => handlePropChange("checkout_url", e.target.value)}
+                className="h-8 text-xs font-mono"
+                dir="ltr"
+              />
+            </div>
+            <div className="flex items-center justify-between pt-1">
+              <Label className="text-xs">نمایش ردیف تخفیف</Label>
+              <Switch
+                checked={props.show_discount !== false}
+                onCheckedChange={(val) => handlePropChange("show_discount", val)}
+              />
+            </div>
+          </div>
+        );
+
+      case "form_container":
+        return (
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs">آدرس اندپوینت ثبت فرم (Action URL)</Label>
+              <Input
+                value={String(props.submit_url || "/api/v1/content/forms/submit")}
+                onChange={(e) => handlePropChange("submit_url", e.target.value)}
+                className="h-8 text-xs font-mono"
+                dir="ltr"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">پیام موفقیت‌آمیز ثبت</Label>
+              <Input
+                value={String(props.success_message || "پیام شما با موفقیت ثبت شد.")}
+                onChange={(e) => handlePropChange("success_message", e.target.value)}
+                className="h-8 text-xs"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">پیام خطا در ارسال</Label>
+              <Input
+                value={String(props.error_message || "خطا در ارسال فرم. لطفاً فیلدها را بررسی نمایید.")}
+                onChange={(e) => handlePropChange("error_message", e.target.value)}
+                className="h-8 text-xs"
+              />
+            </div>
+          </div>
+        );
+
+      case "form_checkbox":
+        return (
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs">متن چک‌باکس</Label>
+              <Input
+                value={String(props.label || "شرایط و قوانین را مطالعه کرده و می‌پذیرم")}
+                onChange={(e) => handlePropChange("label", e.target.value)}
+                className="h-8 text-xs"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">نام فیلد (Field Name)</Label>
+              <Input
+                value={String(props.name || "accept_terms")}
+                onChange={(e) => handlePropChange("name", e.target.value)}
+                className="h-8 text-xs font-mono"
+                dir="ltr"
+              />
+            </div>
+            <div className="flex items-center justify-between pt-1">
+              <Label className="text-xs">فیلد الزامی (Required)</Label>
+              <Switch
+                checked={Boolean(props.required)}
+                onCheckedChange={(val) => handlePropChange("required", val)}
+              />
+            </div>
+          </div>
+        );
+
+      case "form_radio":
+        return (
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs">عنوان گروه گزینه‌ها</Label>
+              <Input
+                value={String(props.label || "روش ارسال")}
+                onChange={(e) => handlePropChange("label", e.target.value)}
+                className="h-8 text-xs"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">نام فیلد (Field Name)</Label>
+              <Input
+                value={String(props.name || "shipping_method")}
+                onChange={(e) => handlePropChange("name", e.target.value)}
+                className="h-8 text-xs font-mono"
+                dir="ltr"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">گزینه‌ها (هر سطر یک گزینه)</Label>
+              <textarea
+                rows={4}
+                value={Array.isArray(props.options) ? (props.options as string[]).join("\n") : "گزینه یک\nگزینه دو"}
+                onChange={(e) => handlePropChange("options", e.target.value.split("\n").filter((s) => s.trim()))}
+                className="w-full rounded-md border border-input bg-background p-2 text-xs leading-relaxed"
+              />
+            </div>
+          </div>
+        );
+
+      case "accordion": {
+        const items = (props.items as any[]) || [];
+        return (
+          <div className="space-y-4">
+            <Label className="text-xs font-bold block">مدیریت آیتم‌های تاشو (Accordion)</Label>
+            {items.map((item, idx) => (
+              <div key={idx} className="p-2.5 rounded-lg border bg-muted/30 space-y-2">
+                <div className="space-y-1">
+                  <Label className="text-[11px]">عنوان سؤال {idx + 1}</Label>
+                  <Input
+                    value={item.title || ""}
+                    onChange={(e) => {
+                      const updated = [...items];
+                      updated[idx] = { ...updated[idx], title: e.target.value };
+                      handlePropChange("items", updated);
+                    }}
+                    className="h-7 text-xs"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-[11px]">پاسخ / توضیحات</Label>
+                  <textarea
+                    rows={2}
+                    value={item.content || ""}
+                    onChange={(e) => {
+                      const updated = [...items];
+                      updated[idx] = { ...updated[idx], content: e.target.value };
+                      handlePropChange("items", updated);
+                    }}
+                    className="w-full rounded-md border border-input bg-background p-1.5 text-xs"
+                  />
+                </div>
+              </div>
+            ))}
+            <button
+              type="button"
+              onClick={() => handlePropChange("items", [...items, { title: "سؤال جدید", content: "پاسخ جدید" }])}
+              className="w-full py-1.5 rounded-lg border border-dashed border-primary text-xs font-semibold text-primary hover:bg-primary/5 transition"
+            >
+              + افزودن آیتم جدید به آکاردئون
+            </button>
+          </div>
+        );
+      }
+
+      case "countdown":
+        return (
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs">عنوان شمارنده</Label>
+              <Input
+                value={String(props.title || "مهلت تخفیف ویژه")}
+                onChange={(e) => handlePropChange("title", e.target.value)}
+                className="h-8 text-xs"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">تاریخ و ساعت پایان (ISO 8601)</Label>
+              <Input
+                value={String(props.target_date || "")}
+                onChange={(e) => handlePropChange("target_date", e.target.value)}
+                className="h-8 text-xs font-mono"
+                dir="ltr"
+                placeholder="2026-12-31T23:59:59"
+              />
+            </div>
+          </div>
+        );
+
+      case "video":
+        return (
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs">نوع منبع ویدئو</Label>
+              <Select
+                value={String(props.video_type || "aparat")}
+                onValueChange={(val) => handlePropChange("video_type", val)}
+              >
+                <SelectTrigger className="h-8 text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="aparat">آپارات (Aparat)</SelectItem>
+                  <SelectItem value="youtube">یوتیوب (YouTube)</SelectItem>
+                  <SelectItem value="direct">فایل مستقیم MP4</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">آدرس ویدئو (URL)</Label>
+              <Input
+                value={String(props.url || "")}
+                onChange={(e) => handlePropChange("url", e.target.value)}
+                className="h-8 text-xs font-mono"
+                dir="ltr"
+                placeholder="https://www.aparat.com/video/video/embed/videohash/..."
+              />
+            </div>
+          </div>
+        );
+
+      case "icon_box":
+        return (
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs">عنوان ویژگی</Label>
+              <Input
+                value={String(props.title || "ضمانت اصالت و سلامت")}
+                onChange={(e) => handlePropChange("title", e.target.value)}
+                className="h-8 text-xs"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">توضیحات</Label>
+              <textarea
+                rows={3}
+                value={String(props.description || "")}
+                onChange={(e) => handlePropChange("description", e.target.value)}
+                className="w-full rounded-md border border-input bg-background p-2 text-xs"
+              />
+            </div>
+          </div>
+        );
+
       default:
         return (
           <div className="text-xs text-muted-foreground py-2">
@@ -829,6 +1155,74 @@ export function InspectorPanel() {
               />
               <span className="text-[10px] text-muted-foreground">چپ</span>
             </div>
+          </div>
+          {/* Quick Spacing Scale Chips */}
+          <div className="flex flex-wrap gap-1 mt-1">
+            <span className="text-[10px] text-muted-foreground me-1 self-center">مقیاس پدینگ:</span>
+            {[
+              { label: "سکشن (۶۴px)", val: 64 },
+              { label: "بزرگ (۳۲px)", val: 32 },
+              { label: "پایه (۱۶px)", val: 16 },
+              { label: "کوچک (۸px)", val: 8 },
+              { label: "صفر", val: 0 },
+            ].map((sp) => (
+              <button
+                key={sp.label}
+                type="button"
+                onClick={() => {
+                  handleDeviceStyleChange({
+                    padding: {
+                      top: { value: sp.val, unit: "px" },
+                      right: { value: sp.val, unit: "px" },
+                      bottom: { value: sp.val, unit: "px" },
+                      left: { value: sp.val, unit: "px" },
+                      isLinked: true,
+                    },
+                  });
+                }}
+                className="px-2 py-0.5 rounded text-[10px] bg-muted/80 hover:bg-muted text-muted-foreground hover:text-foreground border border-border/60 transition"
+              >
+                {sp.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Width & Layout Dimensions Tokens */}
+        <div className="space-y-1.5 pt-2 border-t">
+          <Label className="text-xs font-bold text-foreground">عرض و محدوده عنصر (Width)</Label>
+          <div className="flex items-center gap-2">
+            <Input
+              value={currentDeviceStyle.width ? `${currentDeviceStyle.width.value}${currentDeviceStyle.width.unit}` : ""}
+              placeholder="100% یا 1280px"
+              onChange={(e) => {
+                const raw = e.target.value.trim();
+                if (raw.endsWith("%")) {
+                  handleDeviceStyleChange({ width: { value: parseFloat(raw) || 100, unit: "%" } });
+                } else if (raw.endsWith("px")) {
+                  handleDeviceStyleChange({ width: { value: parseFloat(raw) || 0, unit: "px" } });
+                }
+              }}
+              className="h-8 text-xs flex-1 font-mono"
+              dir="ltr"
+            />
+          </div>
+          <div className="flex flex-wrap gap-1 mt-1">
+            <span className="text-[10px] text-muted-foreground me-1 self-center">توکن‌های عرض:</span>
+            {[
+              { label: "تمام عرض (100%)", val: "100%", w: { value: 100, unit: "%" as UnitType } },
+              { label: "کانتینر (1280px)", val: "1280px", w: { value: 1280, unit: "px" as UnitType } },
+              { label: "محتوا (768px)", val: "768px", w: { value: 768, unit: "px" as UnitType } },
+            ].map((wt) => (
+              <button
+                key={wt.label}
+                type="button"
+                onClick={() => handleDeviceStyleChange({ width: wt.w })}
+                className="px-2 py-0.5 rounded text-[10px] bg-muted/80 hover:bg-muted text-muted-foreground hover:text-foreground border border-border/60 transition"
+              >
+                {wt.label}
+              </button>
+            ))}
           </div>
         </div>
 
@@ -1055,6 +1449,162 @@ export function InspectorPanel() {
             ))}
           </div>
         </div>
+
+        {/* Advanced Layout & Flexbox/Grid (P4) */}
+        <div className="space-y-4 pt-3 border-t border-border/80">
+          <Label className="text-xs font-bold text-foreground block">چیدمان پیشرفته (Advanced Layout - P4)</Label>
+
+          <div className="space-y-1.5">
+            <Label className="text-[11px] text-muted-foreground">نوع نمایش (Display)</Label>
+            <Select
+              value={currentDeviceStyle.display || "inherit"}
+              onValueChange={(val) => handleDeviceStyleChange({ display: val as any })}
+            >
+              <SelectTrigger className="h-8 text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="inherit">ارث‌بری (Inherit)</SelectItem>
+                <SelectItem value="block">بلاک (Block)</SelectItem>
+                <SelectItem value="flex">فلکس (Flexbox)</SelectItem>
+                <SelectItem value="grid">شبکه (CSS Grid)</SelectItem>
+                <SelectItem value="inline-block">درون‌خطی (Inline Block)</SelectItem>
+                <SelectItem value="none">مخفی (None)</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Flexbox options */}
+          <div className="p-2.5 rounded-lg border bg-muted/20 space-y-3">
+            <span className="text-[11px] font-bold text-foreground block">تنظیمات فلکس (Flexbox Controls)</span>
+            <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-1">
+                <Label className="text-[10px] text-muted-foreground">جهت چیدمان (Direction)</Label>
+                <Select
+                  value={currentDeviceStyle.flexDirection || "inherit"}
+                  onValueChange={(val) => handleDeviceStyleChange({ flexDirection: val as any })}
+                >
+                  <SelectTrigger className="h-7 text-xs"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="inherit">ارث‌بری</SelectItem>
+                    <SelectItem value="row">افقی (Row)</SelectItem>
+                    <SelectItem value="column">عمودی (Column)</SelectItem>
+                    <SelectItem value="row-reverse">افقی معکوس</SelectItem>
+                    <SelectItem value="column-reverse">عمودی معکوس</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-1">
+                <Label className="text-[10px] text-muted-foreground">ترازبندی اصلی (Justify)</Label>
+                <Select
+                  value={currentDeviceStyle.justifyContent || "inherit"}
+                  onValueChange={(val) => handleDeviceStyleChange({ justifyContent: val as any })}
+                >
+                  <SelectTrigger className="h-7 text-xs"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="inherit">ارث‌بری</SelectItem>
+                    <SelectItem value="start">شروع (Start)</SelectItem>
+                    <SelectItem value="center">وسط (Center)</SelectItem>
+                    <SelectItem value="end">انتها (End)</SelectItem>
+                    <SelectItem value="between">فاصله بینابین</SelectItem>
+                    <SelectItem value="around">فاصله پیرامون</SelectItem>
+                    <SelectItem value="evenly">فاصله مساوی</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-1">
+                <Label className="text-[10px] text-muted-foreground">ترازبندی عمود (Align)</Label>
+                <Select
+                  value={currentDeviceStyle.alignItems || "inherit"}
+                  onValueChange={(val) => handleDeviceStyleChange({ alignItems: val as any })}
+                >
+                  <SelectTrigger className="h-7 text-xs"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="inherit">ارث‌بری</SelectItem>
+                    <SelectItem value="stretch">کشیده (Stretch)</SelectItem>
+                    <SelectItem value="center">وسط (Center)</SelectItem>
+                    <SelectItem value="start">شروع (Start)</SelectItem>
+                    <SelectItem value="end">انتها (End)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-1">
+                <Label className="text-[10px] text-muted-foreground">شکست سطر (Wrap)</Label>
+                <Select
+                  value={currentDeviceStyle.flexWrap || "inherit"}
+                  onValueChange={(val) => handleDeviceStyleChange({ flexWrap: val as any })}
+                >
+                  <SelectTrigger className="h-7 text-xs"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="inherit">ارث‌بری</SelectItem>
+                    <SelectItem value="nowrap">یک‌سطری (Nowrap)</SelectItem>
+                    <SelectItem value="wrap">چندسطری (Wrap)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+
+          {/* Positioning & Z-Index & Overflow */}
+          <div className="p-2.5 rounded-lg border bg-muted/20 space-y-3">
+            <span className="text-[11px] font-bold text-foreground block">موقعیت‌یابی و لایه‌بندی (Positioning & Z-Index)</span>
+            <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-1">
+                <Label className="text-[10px] text-muted-foreground">موقعیت (Position)</Label>
+                <Select
+                  value={currentDeviceStyle.position || "inherit"}
+                  onValueChange={(val) => handleDeviceStyleChange({ position: val as any })}
+                >
+                  <SelectTrigger className="h-7 text-xs"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="inherit">ارث‌بری</SelectItem>
+                    <SelectItem value="static">عادی (Static)</SelectItem>
+                    <SelectItem value="relative">نسبی (Relative)</SelectItem>
+                    <SelectItem value="absolute">مطلق (Absolute)</SelectItem>
+                    <SelectItem value="sticky">چسبان (Sticky)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-1">
+                <Label className="text-[10px] text-muted-foreground">سرریز (Overflow)</Label>
+                <Select
+                  value={currentDeviceStyle.overflow || "inherit"}
+                  onValueChange={(val) => handleDeviceStyleChange({ overflow: val as any })}
+                >
+                  <SelectTrigger className="h-7 text-xs"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="inherit">ارث‌بری</SelectItem>
+                    <SelectItem value="visible">نمایان (Visible)</SelectItem>
+                    <SelectItem value="hidden">مخفی (Hidden)</SelectItem>
+                    <SelectItem value="scroll">اسکرول (Scroll)</SelectItem>
+                    <SelectItem value="auto">خودکار (Auto)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="space-y-1">
+              <Label className="text-[10px] text-muted-foreground">ترتیب لایه عمقی (Z-Index: 0-999)</Label>
+              <Input
+                type="number"
+                min={0}
+                max={999}
+                value={currentDeviceStyle.zIndex ?? ""}
+                placeholder="خودکار"
+                onChange={(e) =>
+                  handleDeviceStyleChange({
+                    zIndex: e.target.value === "" ? null : parseInt(e.target.value, 10),
+                  })
+                }
+                className="h-7 text-xs"
+              />
+            </div>
+          </div>
+        </div>
       </div>
     );
   };
@@ -1209,6 +1759,104 @@ export function InspectorPanel() {
               }));
             }}
           />
+        </div>
+
+        {/* Conditional Visibility (P4) */}
+        <div className="space-y-3 pt-3 border-t border-border/80">
+          <Label className="text-xs font-bold text-foreground block">نمایش شرطی (Conditional Visibility - P4)</Label>
+
+          <div className="space-y-2 p-2.5 rounded-lg border bg-muted/20">
+            <span className="text-[11px] font-semibold text-muted-foreground block">نمایش بر اساس نوع دستگاه:</span>
+            <div className="flex items-center justify-between text-xs">
+              <span>نمایش در دسکتاپ</span>
+              <Switch
+                checked={selectedElement.visibleOnDesktop !== false}
+                onCheckedChange={(val) =>
+                  useBuilderStore.getState().updateElementVisibility(selectedElement.id, { desktop: val })
+                }
+              />
+            </div>
+            <div className="flex items-center justify-between text-xs">
+              <span>نمایش در تبلت</span>
+              <Switch
+                checked={selectedElement.visibleOnTablet !== false}
+                onCheckedChange={(val) =>
+                  useBuilderStore.getState().updateElementVisibility(selectedElement.id, { tablet: val })
+                }
+              />
+            </div>
+            <div className="flex items-center justify-between text-xs">
+              <span>نمایش در موبایل</span>
+              <Switch
+                checked={selectedElement.visibleOnMobile !== false}
+                onCheckedChange={(val) =>
+                  useBuilderStore.getState().updateElementVisibility(selectedElement.id, { mobile: val })
+                }
+              />
+            </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label className="text-[11px] text-muted-foreground">شرط ورود کاربر (Auth Visibility)</Label>
+            <Select
+              value={selectedElement.authVisibility || "all"}
+              onValueChange={(val: any) =>
+                useBuilderStore.getState().updateElementVisibility(selectedElement.id, { auth: val })
+              }
+            >
+              <SelectTrigger className="h-8 text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">همه کاربران (عمومی)</SelectItem>
+                <SelectItem value="authenticated">فقط کاربران واردشده (اعضا)</SelectItem>
+                <SelectItem value="guest">فقط کاربران مهمان (واردنشده)</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        {/* Global Component Controls (P4) */}
+        <div className="space-y-2 pt-3 border-t border-border/80">
+          <Label className="text-xs font-bold text-foreground block">کامپوننت سراسری (Global / Synced Component)</Label>
+          {selectedElement.globalComponentId ? (
+            <div className="p-2.5 rounded-lg border border-emerald-500/30 bg-emerald-500/5 space-y-2">
+              <div className="flex items-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-400 font-bold">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                <span>کامپوننت همگام سراسری فعال است</span>
+              </div>
+              <p className="text-[10px] text-muted-foreground leading-relaxed">
+                تغییرات این المان به صورت خودکار در تمام نمونه‌های استفاده‌کننده از این کامپوننت همگام‌سازی می‌شود.
+              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  useBuilderStore.setState((s) => ({
+                    ast: {
+                      ...s.ast,
+                      rootElements: s.ast.rootElements.map((el) =>
+                        el.id === selectedElement.id ? { ...el, globalComponentId: null } : el
+                      ),
+                    },
+                    isDirty: true,
+                  }));
+                }}
+                className="w-full py-1 text-xs rounded border border-border text-muted-foreground hover:text-destructive hover:border-destructive transition"
+              >
+                جدا کردن از کامپوننت سراسری (Detach)
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => {
+                useBuilderStore.getState().makeGlobalComponent(selectedElement.id);
+              }}
+              className="w-full py-1.5 rounded-lg border border-primary text-xs font-semibold text-primary hover:bg-primary/5 transition"
+            >
+              تبدیل به کامپوننت همگام سراسری (Make Global)
+            </button>
+          )}
         </div>
       </div>
     );

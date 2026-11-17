@@ -18,11 +18,13 @@ import {
   Check,
   AlertCircle,
   Paintbrush,
+  Bookmark,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useBuilderStore, type Breakpoint } from "@/stores/builder-store";
 import { GlobalStylesDialog } from "./global-styles-dialog";
+import { SavePageTemplateDialog } from "./save-page-template-dialog";
 
 interface BuilderToolbarProps {
   onSaveDraft: () => Promise<void>;
@@ -51,14 +53,25 @@ export function BuilderToolbar({
   const history = useBuilderStore((s) => s.history);
   const undo = useBuilderStore((s) => s.undo);
   const redo = useBuilderStore((s) => s.redo);
+  const copyElement = useBuilderStore((s) => s.copyElement);
+  const pasteElement = useBuilderStore((s) => s.pasteElement);
+  const deleteElement = useBuilderStore((s) => s.deleteElement);
+  const deleteSelectedElements = useBuilderStore((s) => s.deleteSelectedElements);
+  const selectedElementId = useBuilderStore((s) => s.selectedElementId);
+  const selectedElementIds = useBuilderStore((s) => s.selectedElementIds);
   const [globalStylesOpen, setGlobalStylesOpen] = React.useState(false);
+  const [savePageTemplateOpen, setSavePageTemplateOpen] = React.useState(false);
 
   const canUndo = history.past.length > 0;
   const canRedo = history.future.length > 0;
 
-  // Keyboard shortcut listener for Undo/Redo
+  // Keyboard shortcut listener for Undo/Redo/Copy/Paste/Delete
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      const targetTag = (e.target as HTMLElement)?.tagName?.toLowerCase();
+      const isInput = targetTag === "input" || targetTag === "textarea" || (e.target as HTMLElement)?.isContentEditable;
+      if (isInput) return;
+
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z") {
         if (e.shiftKey) {
           e.preventDefault();
@@ -70,12 +83,25 @@ export function BuilderToolbar({
       } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "y") {
         e.preventDefault();
         redo();
+      } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "c") {
+        e.preventDefault();
+        copyElement();
+      } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "v") {
+        e.preventDefault();
+        pasteElement();
+      } else if (e.key === "Delete") {
+        e.preventDefault();
+        if (selectedElementIds.length > 0) {
+          deleteSelectedElements();
+        } else if (selectedElementId) {
+          deleteElement(selectedElementId);
+        }
       }
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [undo, redo]);
+  }, [undo, redo, copyElement, pasteElement, deleteElement, deleteSelectedElements, selectedElementId, selectedElementIds]);
 
   return (
     <header className="h-14 bg-card border-b border-border px-4 flex items-center justify-between select-none z-40 relative">
@@ -199,6 +225,17 @@ export function BuilderToolbar({
         <Button
           variant="ghost"
           size="sm"
+          onClick={() => setSavePageTemplateOpen(true)}
+          className="h-8 gap-1.5 text-xs text-muted-foreground hover:text-foreground"
+          title="ذخیره کل برگه به عنوان قالب"
+        >
+          <Bookmark className="w-3.5 h-3.5 text-primary" />
+          <span className="hidden sm:inline">قالب برگه</span>
+        </Button>
+
+        <Button
+          variant="ghost"
+          size="sm"
           onClick={() => setGlobalStylesOpen(true)}
           className="h-8 gap-1.5 text-xs text-muted-foreground hover:text-foreground"
           title="استایل‌های سراسری برگه"
@@ -240,6 +277,7 @@ export function BuilderToolbar({
       </div>
 
       <GlobalStylesDialog open={globalStylesOpen} onOpenChange={setGlobalStylesOpen} />
+      <SavePageTemplateDialog open={savePageTemplateOpen} onOpenChange={setSavePageTemplateOpen} />
     </header>
   );
 }

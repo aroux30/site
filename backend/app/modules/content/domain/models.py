@@ -337,3 +337,32 @@ class PageTemplate(BaseModel):
 
     def __repr__(self) -> str:
         return f"<PageTemplate(title={self.title}, type={self.template_type})>"
+
+
+class FormSubmission(BaseModel):
+    """Stores submissions from Visual Page Builder form_container widgets (Phase P4)."""
+
+    __tablename__ = "form_submissions"
+    __table_args__ = (
+        Index("ix_form_submissions_form_id", "form_id"),
+        Index("ix_form_submissions_page_id", "page_id"),
+        Index("ix_form_submissions_created_at", "created_at"),
+        Index("ix_form_submissions_is_read", "is_read"),
+    )
+
+    form_id: Mapped[str] = mapped_column(String(100), nullable=False)
+    page_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("cms_pages.id", ondelete="SET NULL"),
+        nullable=True,
+    )
+    page_slug: Mapped[str | None] = mapped_column(String(220), nullable=True)
+    data: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False)
+    ip_address: Mapped[str | None] = mapped_column(String(45), nullable=True)
+    user_agent: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    is_read: Mapped[bool] = mapped_column(
+        Boolean, default=False, server_default=text("false"), nullable=False
+    )
+
+    def __repr__(self) -> str:
+        return f"<FormSubmission(id={self.id}, form_id={self.form_id}, page={self.page_slug})>"

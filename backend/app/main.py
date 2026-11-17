@@ -29,6 +29,7 @@ from slowapi.middleware import SlowAPIMiddleware
 from app.core.exceptions.recovery_middleware import RecoveryModeMiddleware
 from app.core.middleware.maintenance_middleware import MaintenanceMiddleware
 
+# Visual Page Builder reload trigger
 from app.core.cache.redis import close_redis, init_redis
 from app.core.config.settings import get_settings
 from app.core.exceptions.handlers import register_exception_handlers

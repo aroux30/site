@@ -74,6 +74,10 @@ export const DEFAULT_THEME_TOKENS: DesignTokensDocument = {
     },
     dimension: {
       radius: { $value: "12px", $type: "dimension", $description: "Base Border Radius" },
+      containerWidth: { $value: "1280px", $type: "dimension", $description: "Max Container Width" },
+      contentWidth: { $value: "768px", $type: "dimension", $description: "Readable Content Width" },
+      sectionSpacing: { $value: "64px", $type: "dimension", $description: "Vertical Section Spacing" },
+      spacingScale: { $value: "16px", $type: "dimension", $description: "Base Spacing Unit" },
     },
     typography: {
       fontFamily: { $value: "var(--font-vazirmatn, system-ui, sans-serif)", $type: "fontFamily" },
@@ -164,6 +168,28 @@ export function resolveTokenValue(
   return currentVal;
 }
 
+export const SHORTHAND_MAP: Record<string, string> = {
+  "color.primary": "--primary",
+  "color.secondary": "--secondary",
+  "color.background": "--background",
+  "color.foreground": "--foreground",
+  "color.surface": "--surface",
+  "color.muted": "--muted",
+  "color.border": "--border",
+  "color.input": "--input",
+  "color.ring": "--ring",
+  "color.success": "--success",
+  "color.warning": "--warning",
+  "color.destructive": "--destructive",
+  "color.info": "--info",
+  "dimension.radius": "--radius",
+  "dimension.containerWidth": "--container-width",
+  "dimension.contentWidth": "--content-width",
+  "dimension.sectionSpacing": "--section-spacing",
+  "dimension.spacingScale": "--spacing-scale",
+  "typography.fontFamily": "--font-vazirmatn",
+};
+
 /**
  * Extract CSS variables map from design tokens for injection into CanvasFrame iframe :root.
  * Compiles all semantic and component tokens via DAG resolver.
@@ -200,24 +226,6 @@ export function extractCssVariablesFromTokens(tokens: DesignTokensDocument): Rec
     }
     return items;
   }
-
-  const SHORTHAND_MAP: Record<string, string> = {
-    "color.primary": "--primary",
-    "color.secondary": "--secondary",
-    "color.background": "--background",
-    "color.foreground": "--foreground",
-    "color.surface": "--surface",
-    "color.muted": "--muted",
-    "color.border": "--border",
-    "color.input": "--input",
-    "color.ring": "--ring",
-    "color.success": "--success",
-    "color.warning": "--warning",
-    "color.destructive": "--destructive",
-    "color.info": "--info",
-    "dimension.radius": "--radius",
-    "typography.fontFamily": "--font-vazirmatn",
-  };
 
   // 1. Process Semantic Tokens
   for (const item of walk(tokens.semantic || {}, [])) {

@@ -115,6 +115,10 @@ export default function AdminThemesPage() {
   const [formShadow, setFormShadow] = useState(SHADOW_OPTIONS[2]?.value || "none");
   const [formFont, setFormFont] = useState("vazirmatn");
   const [formFontSize, setFormFontSize] = useState("15px");
+  const [formContainerWidth, setFormContainerWidth] = useState("1280px");
+  const [formContentWidth, setFormContentWidth] = useState("768px");
+  const [formSectionSpacing, setFormSectionSpacing] = useState("64px");
+  const [formSpacingScale, setFormSpacingScale] = useState("16px");
 
   const [submitting, setSubmitting] = useState(false);
 
@@ -189,6 +193,10 @@ export default function AdminThemesPage() {
     setFormShadow(SHADOW_OPTIONS[2]?.value || "none");
     setFormFont("vazirmatn");
     setFormFontSize("15px");
+    setFormContainerWidth("1280px");
+    setFormContentWidth("768px");
+    setFormSectionSpacing("64px");
+    setFormSpacingScale("16px");
     setModalTab("colors");
     setCreateOpen(true);
   };
@@ -216,6 +224,10 @@ export default function AdminThemesPage() {
     const fontVal = String(sem.typography?.fontFamily?.$value || "vazirmatn");
     setFormFont(fontVal.includes("system-ui") && !fontVal.includes("Vazirmatn") ? "system-ui" : "vazirmatn");
     setFormFontSize(String(sem.typography?.fontSize?.$value || "15px"));
+    setFormContainerWidth(String(sem.dimension?.containerWidth?.$value || "1280px"));
+    setFormContentWidth(String(sem.dimension?.contentWidth?.$value || "768px"));
+    setFormSectionSpacing(String(sem.dimension?.sectionSpacing?.$value || "64px"));
+    setFormSpacingScale(String(sem.dimension?.spacingScale?.$value || "16px"));
     setModalTab("colors");
   };
 
@@ -242,6 +254,10 @@ export default function AdminThemesPage() {
         dimension: {
           ...(base.semantic?.dimension || DEFAULT_THEME_TOKENS.semantic?.dimension),
           radius: { $value: formRadius, $type: "dimension", $description: "Base Border Radius" },
+          containerWidth: { $value: formContainerWidth, $type: "dimension", $description: "Max Container Width" },
+          contentWidth: { $value: formContentWidth, $type: "dimension", $description: "Readable Content Width" },
+          sectionSpacing: { $value: formSectionSpacing, $type: "dimension", $description: "Vertical Section Spacing" },
+          spacingScale: { $value: formSpacingScale, $type: "dimension", $description: "Base Spacing Unit" },
         },
         typography: {
           ...(base.semantic?.typography || DEFAULT_THEME_TOKENS.semantic?.typography),
@@ -980,6 +996,57 @@ export default function AdminThemesPage() {
                           ))}
                         </SelectContent>
                       </Select>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Spacing & Layout Tokens (Phase P2 Master Roadmap) */}
+                <div className="p-3.5 rounded-xl border bg-muted/20 space-y-3 md:col-span-2">
+                  <h4 className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                    <Layers className="w-3.5 h-3.5 text-primary" />
+                    <span>توکن‌های چیدمان و فاصله‌گذاری (Layout & Spacing Tokens)</span>
+                  </h4>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs">
+                    <div className="space-y-1">
+                      <Label className="text-[11px]">حداکثر عرض کانتینر</Label>
+                      <Input
+                        value={formContainerWidth}
+                        onChange={(e) => setFormContainerWidth(e.target.value)}
+                        className="h-8 text-xs font-mono"
+                        dir="ltr"
+                        placeholder="1280px"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-[11px]">عرض متن خوانا (Content)</Label>
+                      <Input
+                        value={formContentWidth}
+                        onChange={(e) => setFormContentWidth(e.target.value)}
+                        className="h-8 text-xs font-mono"
+                        dir="ltr"
+                        placeholder="768px"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-[11px]">فاصله عمودی سکشن‌ها</Label>
+                      <Input
+                        value={formSectionSpacing}
+                        onChange={(e) => setFormSectionSpacing(e.target.value)}
+                        className="h-8 text-xs font-mono"
+                        dir="ltr"
+                        placeholder="64px"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-[11px]">مقیاس فاصله پایه (Scale)</Label>
+                      <Input
+                        value={formSpacingScale}
+                        onChange={(e) => setFormSpacingScale(e.target.value)}
+                        className="h-8 text-xs font-mono"
+                        dir="ltr"
+                        placeholder="16px"
+                      />
                     </div>
                   </div>
                 </div>

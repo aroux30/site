@@ -69,6 +69,19 @@ export interface DeviceStyle {
   display?: "block" | "flex" | "grid" | "inline-block" | "none" | "inherit" | null;
   opacity?: number | null;
   zIndex?: number | null;
+  // Advanced Layout (P4)
+  position?: "static" | "relative" | "absolute" | "sticky" | "inherit" | null;
+  top?: UnitValue | null;
+  bottom?: UnitValue | null;
+  left?: UnitValue | null;
+  right?: UnitValue | null;
+  overflow?: "visible" | "hidden" | "scroll" | "auto" | "inherit" | null;
+  flexDirection?: "row" | "column" | "row-reverse" | "column-reverse" | "inherit" | null;
+  justifyContent?: "start" | "center" | "end" | "between" | "around" | "evenly" | "inherit" | null;
+  alignItems?: "start" | "center" | "end" | "stretch" | "baseline" | "inherit" | null;
+  flexWrap?: "nowrap" | "wrap" | "wrap-reverse" | "inherit" | null;
+  gap?: UnitValue | null;
+  gridTemplateColumns?: string | null;
 }
 
 export interface ResponsiveStyles {
@@ -108,6 +121,13 @@ export interface BuilderElement {
   widgetType?: string | null;
   widgetProps?: Record<string, unknown> | null;
   children: BuilderElement[];
+  // Conditional visibility (P4)
+  visibleOnDesktop?: boolean;
+  visibleOnTablet?: boolean;
+  visibleOnMobile?: boolean;
+  authVisibility?: "all" | "authenticated" | "guest";
+  // Synced / Global Components (P4)
+  globalComponentId?: string | null;
 }
 
 export interface PageAST {

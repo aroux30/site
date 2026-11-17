@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useMemo, useEffect, useCallback } from "react";
-import { Search, Sparkles, Layout, Box, Loader2, Bookmark, FolderHeart, Eye, Pencil, Trash2 } from "lucide-react";
+import { Search, Sparkles, Layout, Box, Loader2, Bookmark, FolderHeart, Eye, Pencil, Trash2, Copy } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -51,11 +51,13 @@ export function BlocksPalette() {
   const selectedElementId = useBuilderStore((s) => s.selectedElementId);
   const ast = useBuilderStore((s) => s.ast);
 
-  // Load section templates when templates tab is selected
+  // Load all templates (page & section) when templates tab is selected
+  const [tplTypeFilter, setTplTypeFilter] = useState<"all" | "page" | "section">("all");
+
   const fetchTemplates = useCallback(async () => {
     setLoadingTemplates(true);
     try {
-      const data = await pageTemplatesAdminApi.list("section");
+      const data = await pageTemplatesAdminApi.list();
       setSavedTemplates(data);
     } catch (err) {
       console.error("Failed to load templates:", err);
@@ -185,6 +187,48 @@ export function BlocksPalette() {
     });
   };
 
+  const handleApplyPageTemplate = (tpl: PageTemplate) => {
+    const bData = (tpl as any).builder_data || tpl.builderData;
+    const rootEls = bData?.rootElements || (bData as any)?.root_elements || [];
+    if (rootEls.length === 0) return;
+    const clonedRoots = rootEls.map((el: any) => cloneElementWithNewIds(el));
+    useBuilderStore.setState((s) => ({
+      ast: {
+        ...s.ast,
+        globalStyles: bData?.globalStyles || s.ast.globalStyles,
+        rootElements: clonedRoots,
+      },
+      isDirty: true,
+    }));
+    toast({
+      title: "قالب برگه اعمال شد",
+      description: `محتوا و استایل‌های برگه با قالب «${tpl.title}» جایگزین شدند.`,
+    });
+  };
+
+  const handleDuplicateTemplate = async (tpl: PageTemplate, e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      const bData = (tpl as any).builder_data || tpl.builderData;
+      const slug = `tpl-${Math.random().toString(36).slice(2, 10)}`;
+      await pageTemplatesAdminApi.create({
+        title: `${tpl.title} (کپی)`,
+        slug,
+        template_type: tpl.templateType || (tpl as any).template_type || "section",
+        category: tpl.category || "عمومی",
+        builder_data: bData,
+      });
+      toast({
+        title: "قالب کپی شد",
+        description: `نسخه کپی از «${tpl.title}» ایجاد گردید.`,
+      });
+      fetchTemplates();
+    } catch (err) {
+      console.error("Duplicate template error:", err);
+      toast({ title: "خطا در کلون قالب", variant: "destructive" });
+    }
+  };
+
   const handleDeleteTemplate = async (id: string, title: string, e: React.MouseEvent) => {
     e.stopPropagation();
     try {
@@ -240,10 +284,14 @@ export function BlocksPalette() {
   const filteredSavedTemplates = useMemo(() => {
     const q = search.trim().toLowerCase();
     return savedTemplates.filter((t) => {
+      if (tplTypeFilter !== "all") {
+        const type = (t as any).template_type || t.templateType || "section";
+        if (type !== tplTypeFilter) return false;
+      }
       if (!q) return true;
       return t.title.toLowerCase().includes(q) || (t.category || "").toLowerCase().includes(q);
     });
-  }, [savedTemplates, search]);
+  }, [savedTemplates, search, tplTypeFilter]);
 
   return (
     <div className="flex flex-col h-full space-y-3 p-3 select-none">
@@ -491,6 +539,43 @@ export function BlocksPalette() {
         ) : (
           /* Saved Templates Tab */
           <div className="space-y-2">
+            {/* Template Type Filter: All vs Page vs Section */}
+            <div className="flex gap-1 pb-1 shrink-0 no-scrollbar">
+              <button
+                type="button"
+                onClick={() => setTplTypeFilter("all")}
+                className={`px-2 py-0.5 rounded-md text-[11px] font-medium transition ${
+                  tplTypeFilter === "all"
+                    ? "bg-primary text-primary-foreground font-bold"
+                    : "bg-muted/70 text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                همه ({savedTemplates.length})
+              </button>
+              <button
+                type="button"
+                onClick={() => setTplTypeFilter("page")}
+                className={`px-2 py-0.5 rounded-md text-[11px] font-medium transition ${
+                  tplTypeFilter === "page"
+                    ? "bg-purple-600 text-white font-bold"
+                    : "bg-muted/70 text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                قالب برگه ({savedTemplates.filter((t: any) => (t.template_type || t.templateType) === "page").length})
+              </button>
+              <button
+                type="button"
+                onClick={() => setTplTypeFilter("section")}
+                className={`px-2 py-0.5 rounded-md text-[11px] font-medium transition ${
+                  tplTypeFilter === "section"
+                    ? "bg-blue-600 text-white font-bold"
+                    : "bg-muted/70 text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                قالب بخش ({savedTemplates.filter((t: any) => ((t.template_type || t.templateType) || "section") === "section").length})
+              </button>
+            </div>
+
             {loadingTemplates ? (
               <div className="flex items-center justify-center py-12 text-xs text-muted-foreground gap-2">
                 <Loader2 className="w-4 h-4 animate-spin text-primary" />
@@ -499,77 +584,109 @@ export function BlocksPalette() {
             ) : filteredSavedTemplates.length === 0 ? (
               <div className="text-center py-10 px-3 border border-dashed rounded-xl border-border/80 text-muted-foreground space-y-2">
                 <Bookmark className="w-8 h-8 opacity-30 mx-auto" />
-                <p className="text-xs font-semibold text-foreground">هنوز قالبی ذخیره نکرده‌اید</p>
+                <p className="text-xs font-semibold text-foreground">قالبی یافت نشد</p>
                 <p className="text-[11px] leading-relaxed">
-                  می‌توانید هر کانتینر یا بخش را از نوار ابزار شناور آن روی بوم با دکمه «ذخیره به عنوان قالب» ذخیره کنید تا در این بخش نمایش داده شود.
+                  می‌توانید کل برگه را با دکمه «قالب برگه» در نوار بالا یا هر سکشن را با «ذخیره به عنوان قالب» ذخیره کنید.
                 </p>
               </div>
             ) : (
               <div className="space-y-2">
-                {filteredSavedTemplates.map((tpl) => (
-                  <div
-                    key={tpl.id}
-                    draggable={true}
-                    onDragStart={(e) => {
-                      const bData = (tpl as any).builder_data || tpl.builderData;
-                      const rootEls = bData?.rootElements || (bData as any)?.root_elements || [];
-                      e.dataTransfer.setData(
-                        "application/json",
-                        JSON.stringify({
-                          type: "template_def",
-                          templateId: tpl.id,
-                          title: tpl.title,
-                          elements: rootEls,
-                        })
-                      );
-                      e.dataTransfer.effectAllowed = "all";
-                    }}
-                    onClick={() => handleInsertTemplate(tpl)}
-                    className="p-3 rounded-xl border border-border/80 bg-card hover:bg-muted/40 hover:border-primary/50 transition cursor-grab active:cursor-grabbing shadow-sm space-y-1.5 group"
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-foreground group-hover:text-primary transition-colors">
-                        {tpl.title}
-                      </span>
-                      <div className="flex items-center gap-1">
-                        <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4">
-                          {tpl.category || "عمومی"}
-                        </Badge>
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setPreviewTemplate(tpl);
-                          }}
-                          className="p-1 hover:bg-muted rounded text-muted-foreground hover:text-foreground"
-                          title="پیش‌نمایش ساختار قالب"
-                        >
-                          <Eye className="w-3 h-3" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={(e) => handleOpenEditTemplate(tpl, e)}
-                          className="p-1 hover:bg-muted rounded text-muted-foreground hover:text-foreground"
-                          title="ویرایش عنوان و دسته‌بندی"
-                        >
-                          <Pencil className="w-3 h-3" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={(e) => handleDeleteTemplate(tpl.id, tpl.title, e)}
-                          className="p-1 hover:bg-destructive/10 rounded text-destructive"
-                          title="حذف قالب"
-                        >
-                          <Trash2 className="w-3 h-3" />
-                        </button>
+                {filteredSavedTemplates.map((tpl) => {
+                  const isPage = ((tpl as any).template_type || tpl.templateType) === "page";
+                  const bData = (tpl as any).builder_data || tpl.builderData;
+                  const rootEls = bData?.rootElements || (bData as any)?.root_elements || [];
+
+                  return (
+                    <div
+                      key={tpl.id}
+                      draggable={!isPage}
+                      onDragStart={(e) => {
+                        if (isPage) return;
+                        e.dataTransfer.setData(
+                          "application/json",
+                          JSON.stringify({
+                            type: "template_def",
+                            templateId: tpl.id,
+                            title: tpl.title,
+                            elements: rootEls,
+                          })
+                        );
+                        e.dataTransfer.effectAllowed = "all";
+                      }}
+                      onClick={() => (isPage ? handleApplyPageTemplate(tpl) : handleInsertTemplate(tpl))}
+                      className={`p-3 rounded-xl border border-border/80 bg-card hover:bg-muted/40 transition shadow-sm space-y-2 group ${
+                        isPage ? "cursor-pointer hover:border-purple-500/60" : "cursor-grab active:cursor-grabbing hover:border-primary/50"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-1.5 truncate">
+                          <span className="text-xs font-bold text-foreground group-hover:text-primary transition-colors truncate">
+                            {tpl.title}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1 shrink-0">
+                          {isPage ? (
+                            <Badge className="text-[9px] px-1.5 py-0 h-4 bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20">
+                              قالب برگه
+                            </Badge>
+                          ) : (
+                            <Badge className="text-[9px] px-1.5 py-0 h-4 bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
+                              قالب بخش
+                            </Badge>
+                          )}
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setPreviewTemplate(tpl);
+                            }}
+                            className="p-1 hover:bg-muted rounded text-muted-foreground hover:text-foreground"
+                            title="پیش‌نمایش ساختار قالب"
+                          >
+                            <Eye className="w-3 h-3" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={(e) => handleDuplicateTemplate(tpl, e)}
+                            className="p-1 hover:bg-muted rounded text-muted-foreground hover:text-foreground"
+                            title="تکثیر / کپی قالب"
+                          >
+                            <Copy className="w-3 h-3" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={(e) => handleOpenEditTemplate(tpl, e)}
+                            className="p-1 hover:bg-muted rounded text-muted-foreground hover:text-foreground"
+                            title="ویرایش عنوان و دسته‌بندی"
+                          >
+                            <Pencil className="w-3 h-3" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={(e) => handleDeleteTemplate(tpl.id, tpl.title, e)}
+                            className="p-1 hover:bg-destructive/10 rounded text-destructive"
+                            title="حذف قالب"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between pt-1 border-t border-border/40 text-[10px] text-muted-foreground">
+                        <div className="flex items-center gap-2">
+                          <span>{tpl.category || "عمومی"}</span>
+                          <span>•</span>
+                          <span>{rootEls.length || 1} بخش محتوایی</span>
+                        </div>
+                        {isPage ? (
+                          <span className="text-purple-600 dark:text-purple-400 font-semibold">اعمال روی برگه ↵</span>
+                        ) : (
+                          <span className="text-primary font-semibold">کلیک یا درگ ↵</span>
+                        )}
                       </div>
                     </div>
-                    <div className="flex items-center justify-between pt-1 border-t border-border/40 text-[10px] text-muted-foreground">
-                      <span>{((tpl as any).builder_data?.rootElements || tpl.builderData?.rootElements || []).length || 1} بخش محتوایی</span>
-                      <span className="text-primary font-semibold">کلیک یا درگ ↵</span>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
@@ -610,12 +727,20 @@ export function BlocksPalette() {
             {previewTemplate && (
               <Button
                 size="sm"
+                className={((previewTemplate as any)?.template_type || previewTemplate?.templateType) === "page" ? "bg-purple-600 hover:bg-purple-700 text-white" : ""}
                 onClick={() => {
-                  handleInsertTemplate(previewTemplate);
+                  const isPage = ((previewTemplate as any)?.template_type || previewTemplate?.templateType) === "page";
+                  if (isPage) {
+                    handleApplyPageTemplate(previewTemplate);
+                  } else {
+                    handleInsertTemplate(previewTemplate);
+                  }
                   setPreviewTemplate(null);
                 }}
               >
-                درج این قالب در بوم
+                {((previewTemplate as any)?.template_type || previewTemplate?.templateType) === "page"
+                  ? "اعمال این قالب روی برگه"
+                  : "درج این قالب در بوم"}
               </Button>
             )}
           </DialogFooter>

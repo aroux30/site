@@ -51,7 +51,7 @@ ALLOWED_TAGS: frozenset[str] = frozenset(
         # blocks an editor emits
         "blockquote", "details", "summary", "address",
         # forms and interactive controls
-        "button", "label", "input", "textarea", "select", "option",
+        "button", "label", "input", "textarea", "select", "option", "form",
     }
 )
 
@@ -59,10 +59,21 @@ ALLOWED_TAGS: frozenset[str] = frozenset(
 # forced to include noopener so an editor-authored link cannot reach back into
 # the opener window.
 ALLOWED_ATTRIBUTES: dict[str, frozenset[str]] = {
-    "*": frozenset({"class", "id", "title", "dir", "lang", "style", "role"}),
+    "*": frozenset({
+        "class", "id", "title", "dir", "lang", "style", "role",
+        "data-widget", "data-variant-id", "data-category", "data-filter",
+        "data-limit", "data-auth", "data-global-component", "data-target",
+    }),
     "button": frozenset({"type", "disabled"}),
     "label": frozenset({"for"}),
-    "input": frozenset({"type", "name", "value", "placeholder", "required", "disabled", "readonly"}),
+    "form": frozenset({
+        "action", "method", "enctype", "novalidate", "name", "target",
+        "data-form-container", "data-success-message", "data-error-message",
+    }),
+    "input": frozenset({
+        "type", "name", "value", "placeholder", "required", "disabled", "readonly",
+        "checked", "tabindex", "autocomplete", "aria-hidden",
+    }),
     "textarea": frozenset({"name", "placeholder", "rows", "cols", "required", "disabled", "readonly"}),
     "select": frozenset({"name", "required", "disabled"}),
     "option": frozenset({"value", "selected"}),
@@ -104,6 +115,7 @@ ALLOWED_CSS_PROPERTIES: frozenset[str] = frozenset(
         "min-height", "display", "gap", "grid-template-columns",
         "flex-direction", "justify-content", "align-items", "opacity",
         "box-shadow", "overflow", "vertical-align", "white-space",
+        "position", "top", "bottom", "left", "right", "z-index", "flex-wrap",
         "animation-duration", "animation-delay", "animation-name",
     }
 )
@@ -122,7 +134,7 @@ _CSS_SANITIZER = CSSSanitizer(allowed_css_properties=ALLOWED_CSS_PROPERTIES)
 _EMBED_HOSTS: tuple[str, ...] = (
     r"(?:www\.)?youtube\.com/embed",
     r"(?:www\.)?youtube-nocookie\.com/embed",
-    r"(?:www\.)?aparat\.com/video",
+    r"(?:www\.)?aparat\.com/(?:video|v)",
     r"(?:www\.)?twitch\.tv/embed",
     r"(?:www\.)?instagram\.com/embed",
 )

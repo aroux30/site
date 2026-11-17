@@ -320,6 +320,55 @@ export const pageTemplatesAdminApi = {
   },
 };
 
+export interface FormSubmissionItem {
+  id: string;
+  created_at: string;
+  form_id: string;
+  page_id?: string | null;
+  page_slug?: string | null;
+  data: Record<string, any>;
+  ip_address?: string | null;
+  user_agent?: string | null;
+  is_read: boolean;
+}
+
+export interface FormSubmissionListResponse {
+  items: FormSubmissionItem[];
+  total: number;
+  page: number;
+  page_size: number;
+  total_pages: number;
+}
+
+export const formSubmissionsAdminApi = {
+  list: async (params?: {
+    form_id?: string;
+    page_slug?: string;
+    unread_only?: boolean;
+    page?: number;
+    page_size?: number;
+  }): Promise<FormSubmissionListResponse> => {
+    const res = await apiClient.get<FormSubmissionListResponse>(
+      "/content/admin/forms/submissions",
+      { params }
+    );
+    return res.data;
+  },
+
+  markRead: async (id: string, is_read = true): Promise<FormSubmissionItem> => {
+    const res = await apiClient.patch<FormSubmissionItem>(
+      `/content/admin/forms/submissions/${id}/read`,
+      null,
+      { params: { is_read } }
+    );
+    return res.data;
+  },
+
+  delete: async (id: string): Promise<void> => {
+    await apiClient.delete(`/content/admin/forms/submissions/${id}`);
+  },
+};
+
 // --- API (admin) ---
 
 export const contentAdminApi = {

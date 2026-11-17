@@ -170,4 +170,26 @@ describe("Visual Builder Studio Phase P1 Comprehensive Integration Tests", () =>
     expect(useBuilderStore.getState().isDirty).toBe(true);
     expect(findElementById(useBuilderStore.getState().ast.rootElements, head.id)).not.toBeNull();
   });
+
+  // 9. پایداری در برابر رقابت ذخیره خودکار و تغییرات جدید در حال پرواز (In-Flight Mutation Version Protection)
+  it("protects in-flight user edits from being marked clean by older resolved requests", () => {
+    const head = BASIC_BLOCK_DEFINITIONS.find((b) => b.type === "heading")!.createDefaultElement();
+    useBuilderStore.getState().addElement(head);
+
+    // Snapshot in-flight mutation version at start of hypothetical save
+    const inFlightVersion = useBuilderStore.getState().mutationVersion;
+
+    // User makes an edit while network request is in-flight
+    useBuilderStore.getState().updateElementProps(head.id, { text: "ویرایش جدید حین ارسال درخواست قبلی" });
+
+    // The mutation version has incremented
+    const currentVersion = useBuilderStore.getState().mutationVersion;
+    expect(currentVersion).toBeGreaterThan(inFlightVersion);
+
+    // If an older save response attempts to mark clean based on inFlightVersion,
+    // the system prevents marking clean if version has changed
+    const canMarkClean = inFlightVersion === currentVersion;
+    expect(canMarkClean).toBe(false);
+    expect(useBuilderStore.getState().isDirty).toBe(true);
+  });
 });

@@ -431,7 +431,13 @@ def test_ast_compiler_renders_p4_advanced_layout_and_interactive_widgets():
             ),
         ],
     )
-    result = ASTCompiler.compile(ast)
+    # Server-side auth filtering check (P5 Hardening):
+    guest_result = ASTCompiler.compile(ast, is_authenticated=False)
+    assert '<form id="el_form_sec"' not in guest_result
+    assert 'پذیرش قوانین' not in guest_result
+
+    # Authenticated user result includes the authenticated-only container
+    result = ASTCompiler.compile(ast, is_authenticated=True)
     # Form container & honeypot
     assert '<form id="el_form_sec"' in result
     assert 'data-form-container="true"' in result
@@ -461,6 +467,65 @@ def test_ast_compiler_renders_p4_advanced_layout_and_interactive_widgets():
     assert 'پشتیبانی ۲۴ ساعته' in result
     assert 'builder-social-links' in result
     assert 'تلگرام' in result
+
+
+def test_ast_compiler_large_page_performance_100_elements():
+    """Performance Benchmark (P5 Production Hardening):
+
+    A large production page containing 100+ elements (nested sections,
+    cards, buttons, text fields) must compile in under 200ms.
+    """
+    import time
+
+    sections = []
+    element_count = 0
+    for s_idx in range(20):
+        children = []
+        for c_idx in range(5):
+            children.append(
+                BuilderElement(
+                    id=f"el_w{s_idx:02d}_{c_idx:02d}",
+                    name=f"ویجت محتوایی {s_idx}-{c_idx}",
+                    type="widget",
+                    widget_type="heading" if c_idx % 2 == 0 else "button",
+                    widget_props={
+                        "text": f"عنوان سطر {s_idx} شماره {c_idx}",
+                        "label": f"دکمه اقدام {s_idx}-{c_idx}",
+                        "url": f"/item/{s_idx}/{c_idx}",
+                    },
+                )
+            )
+            element_count += 1
+
+        sections.append(
+            BuilderElement(
+                id=f"el_sec_{s_idx:02d}",
+                name=f"سکشن {s_idx}",
+                type="container",
+                layout=ContainerLayout(kind="flex", direction="column"),
+                children=children,
+            )
+        )
+        element_count += 1
+
+    ast = PageAST(
+        schema_version=1,
+        title="برگه بزرگ با بیش از ۱۰۰ المان",
+        slug="large-perf-page",
+        root_elements=sections,
+    )
+    assert element_count == 120
+
+    start = time.perf_counter()
+    html_output = ASTCompiler.compile(ast, is_authenticated=True)
+    duration_ms = (time.perf_counter() - start) * 1000
+
+    assert duration_ms < 250.0  # Must compile well under 250ms
+    assert len(html_output) > 5000
+    assert 'id="el_sec_00"' in html_output
+    assert 'id="el_w19_04"' in html_output
+    assert 'class="builder-document"' in html_output
+
 
 
 

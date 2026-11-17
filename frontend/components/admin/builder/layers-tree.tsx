@@ -46,14 +46,16 @@ interface TreeItemProps {
   depth?: number;
 }
 
-function TreeItem({ element, depth = 0 }: TreeItemProps) {
-  const selectedElementId = useBuilderStore((s) => s.selectedElementId);
+const TreeItem = React.memo(function TreeItem({ element, depth = 0 }: TreeItemProps) {
+  // Fine-grained boolean selector (P5 Hardening):
+  // Only re-renders this item when its own selection state changes
+  const isSelected = useBuilderStore(
+    (s) => s.selectedElementId === element.id || s.selectedElementIds.includes(element.id)
+  );
   const selectElement = useBuilderStore((s) => s.selectElement);
   const deleteElement = useBuilderStore((s) => s.deleteElement);
   const duplicateElement = useBuilderStore((s) => s.duplicateElement);
-  const updateElementProps = useBuilderStore((s) => s.updateElementProps);
 
-  const isSelected = selectedElementId === element.id;
   const Icon = getElementIcon(element);
   const hasChildren = element.children && element.children.length > 0;
 
@@ -109,7 +111,7 @@ function TreeItem({ element, depth = 0 }: TreeItemProps) {
       )}
     </div>
   );
-}
+});
 
 export function LayersTree() {
   const ast = useBuilderStore((s) => s.ast);

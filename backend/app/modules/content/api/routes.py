@@ -14,6 +14,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database.session import get_db
 from app.core.exceptions.handlers import NotFoundError, ValidationError
 from app.core.security.dependencies import RequirePermissions, get_current_user
+from app.core.security.rate_limiter import limiter
 from app.modules.content.application import cms_page_service, content_service, single_type_service
 from app.modules.content.application.reusable_block_service import ReusableBlockService
 from app.modules.content.domain.models import MenuLocation, PageStatus
@@ -59,6 +60,12 @@ from app.modules.content.schemas.theme import (
     SiteThemeUpdateRequest,
     ThemeRevisionResponse,
     ThemeCloneRequest,
+)
+from app.modules.content.schemas.forms import (
+    FormSubmitRequest,
+    FormSubmitResponse,
+    FormSubmissionItemResponse,
+    FormSubmissionListResponse,
 )
 
 router = APIRouter(tags=["content"])
@@ -1644,4 +1651,98 @@ async def admin_delete_theme(
     actor_id = _actor_id(current_user)
     await theme_service.delete_theme(db, theme_id, actor_id=actor_id)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+# ── Form Builder Submissions (Phase P4) ─────────────────────────────────────
+
+
+@router.post(
+    "/forms/submit",
+    response_model=FormSubmitResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Submit visual page builder form (public storefront, rate-limited & honeypot protected)",
+)
+@limiter.limit("20/minute")
+async def submit_page_builder_form(
+    request: Request,
+    body: FormSubmitRequest,
+    db: AsyncSession = Depends(get_db),
+) -> FormSubmitResponse:
+    from app.modules.content.application.form_submission_service import FormSubmissionService
+
+    ip = _client_ip(request)
+    ua = _client_ua(request)
+    return await FormSubmissionService.submit_form(db, body, ip_address=ip, user_agent=ua)
+
+
+@router.get(
+    "/admin/forms/submissions",
+    response_model=FormSubmissionListResponse,
+    summary="List form submissions with pagination and filters (admin)",
+    dependencies=[_require_content_write],
+)
+async def admin_list_form_submissions(
+    form_id: str | None = Query(None, description="Filter by form ID"),
+    page_slug: str | None = Query(None, description="Filter by page slug"),
+    unread_only: bool = Query(False, description="Filter unread only"),
+    page: int = Query(1, ge=1),
+    page_size: int = Query(50, ge=1, le=100),
+    db: AsyncSession = Depends(get_db),
+) -> FormSubmissionListResponse:
+    from app.modules.content.application.form_submission_service import FormSubmissionService
+
+    items, total = await FormSubmissionService.list_submissions(
+        db,
+        form_id=form_id,
+        page_slug=page_slug,
+        unread_only=unread_only,
+        page=page,
+        page_size=page_size,
+    )
+    total_pages = (total + page_size - 1) // page_size if total > 0 else 1
+    return FormSubmissionListResponse(
+        items=[FormSubmissionItemResponse.model_validate(item) for item in items],
+        total=total,
+        page=page,
+        page_size=page_size,
+        total_pages=total_pages,
+    )
+
+
+@router.patch(
+    "/admin/forms/submissions/{submission_id}/read",
+    response_model=FormSubmissionItemResponse,
+    summary="Mark form submission as read/unread (admin)",
+    dependencies=[_require_content_write],
+)
+async def admin_mark_form_submission_read(
+    submission_id: uuid.UUID,
+    is_read: bool = Query(True),
+    db: AsyncSession = Depends(get_db),
+) -> FormSubmissionItemResponse:
+    from app.modules.content.application.form_submission_service import FormSubmissionService
+
+    sub = await FormSubmissionService.mark_as_read(db, submission_id, is_read=is_read)
+    if not sub:
+        raise NotFoundError("FormSubmission", "پیام فرم یافت نشد")
+    return FormSubmissionItemResponse.model_validate(sub)
+
+
+@router.delete(
+    "/admin/forms/submissions/{submission_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Delete form submission (admin)",
+    dependencies=[_require_content_write],
+)
+async def admin_delete_form_submission(
+    submission_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+) -> Response:
+    from app.modules.content.application.form_submission_service import FormSubmissionService
+
+    deleted = await FormSubmissionService.delete_submission(db, submission_id)
+    if not deleted:
+        raise NotFoundError("FormSubmission", "پیام فرم یافت نشد")
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
 

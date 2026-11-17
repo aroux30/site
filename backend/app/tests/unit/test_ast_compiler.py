@@ -251,4 +251,216 @@ def test_ast_compiler_renders_phase_4_entrance_animations():
     assert 'عنوان با فید' in result
 
 
+def test_ast_compiler_renders_p3_ecommerce_native_widgets():
+    ast = PageAST(
+        schema_version=1,
+        title="تست ویجت‌های بومی فروشگاهی P3",
+        slug="test-p3-native-ecom",
+        root_elements=[
+            BuilderElement(
+                id="el_ecom_sec",
+                name="بخش محصولات",
+                type="container",
+                children=[
+                    BuilderElement(
+                        id="el_price01",
+                        name="قیمت محصول",
+                        type="widget",
+                        widget_type="product_price",
+                        widget_props={"price": "۱,۲۰۰,۰۰۰", "compare_at_price": "۱,۵۰۰,۰۰۰", "currency": "تومان"},
+                    ),
+                    BuilderElement(
+                        id="el_cart_btn01",
+                        name="دکمه خرید",
+                        type="widget",
+                        widget_type="add_to_cart",
+                        widget_props={"label": "خرید آنلاین", "variant_id": "var_99"},
+                    ),
+                    BuilderElement(
+                        id="el_variants01",
+                        name="تنوع محصول",
+                        type="widget",
+                        widget_type="product_variants",
+                        widget_props={
+                            "product_title": "رنگ‌بندی هدفون",
+                            "variants": [
+                                {"id": "v1", "title": "مشکی مات", "price": "۱,۲۰۰,۰۰۰"},
+                                {"id": "v2", "title": "سفید صدفی", "price": "۱,۲۵۰,۰۰۰"},
+                            ],
+                        },
+                    ),
+                    BuilderElement(
+                        id="el_mini_cart01",
+                        name="مینی کارت",
+                        type="widget",
+                        widget_type="mini_cart",
+                        widget_props={"item_count": 3},
+                    ),
+                    BuilderElement(
+                        id="el_cart_sum01",
+                        name="خلاصه سبد",
+                        type="widget",
+                        widget_type="cart_summary",
+                        widget_props={"subtotal": "۳,۴۵۰,۰۰۰"},
+                    ),
+                    BuilderElement(
+                        id="el_grid01",
+                        name="ویترین کالاها",
+                        type="widget",
+                        widget_type="product_grid",
+                        widget_props={"limit": 4, "category": "digital", "show_pagination": True},
+                    ),
+                ],
+            )
+        ],
+    )
+    result = ASTCompiler.compile(ast)
+    assert 'builder-product-price' in result
+    assert '۱,۲۰۰,۰۰۰' in result
+    assert 'builder-add-to-cart' in result
+    assert 'data-variant-id="var_99"' in result
+    assert 'خرید آنلاین' in result
+    assert 'builder-product-variants' in result
+    assert 'مشکی مات' in result
+    assert 'builder-mini-cart' in result
+    assert 'builder-cart-summary' in result
+    assert '۳,۴۵۰,۰۰۰ تومان' in result
+    assert 'builder-product-grid' in result
+    assert 'data-category="digital"' in result
+    assert 'مشاهده محصولات بیشتر' in result
+
+
+def test_ast_compiler_renders_p4_advanced_layout_and_interactive_widgets():
+    from app.modules.content.domain.builder_ast import DeviceStyle
+
+    ast = PageAST(
+        schema_version=1,
+        title="تست قابلیت‌های P4",
+        slug="test-p4-advanced",
+        root_elements=[
+            # 1. Container with advanced layout & form
+            BuilderElement(
+                id="el_form_sec",
+                name="فرم تماس",
+                type="container",
+                widget_type="form_container",
+                widget_props={
+                    "submit_url": "/api/v1/content/forms/submit",
+                    "success_message": "پیام شما ارسال شد",
+                },
+                visible_on_desktop=True,
+                visible_on_mobile=False,  # hidden on mobile
+                auth_visibility="authenticated",
+                styles=ResponsiveStyles(
+                    mobile=DeviceStyle(
+                        position="relative",
+                        z_index=10,
+                        overflow="hidden",
+                    )
+                ),
+                children=[
+                    BuilderElement(
+                        id="el_chk01",
+                        name="تیک پذیرش",
+                        type="widget",
+                        widget_type="form_checkbox",
+                        widget_props={"label": "پذیرش قوانین", "name": "terms", "required": True},
+                    ),
+                    BuilderElement(
+                        id="el_rad01",
+                        name="رادیو انتخاب",
+                        type="widget",
+                        widget_type="form_radio",
+                        widget_props={"label": "نوع ارسال", "name": "ship", "options": ["پیشتاز", "پیک"]},
+                    ),
+                ],
+            ),
+            # 2. Interactive widgets
+            BuilderElement(
+                id="el_inter_sec",
+                name="ویجت‌های تعاملی",
+                type="container",
+                children=[
+                    BuilderElement(
+                        id="el_acc01",
+                        name="آکاردئون",
+                        type="widget",
+                        widget_type="accordion",
+                        widget_props={
+                            "items": [{"title": "گارانتی کالا چقدر است؟", "content": "۱۸ ماه ضمانت طلایی"}],
+                        },
+                    ),
+                    BuilderElement(
+                        id="el_tabs01",
+                        name="تب‌ها",
+                        type="widget",
+                        widget_type="tabs",
+                        widget_props={
+                            "tabs": [{"title": "توضیحات", "content": "توضیحات فنی محصول"}, {"title": "دیدگاه‌ها", "content": "دیدگاه خریداران"}],
+                        },
+                    ),
+                    BuilderElement(
+                        id="el_count01",
+                        name="شمارنده معکوس",
+                        type="widget",
+                        widget_type="countdown",
+                        widget_props={"title": "تخفیف ویژه شب عید"},
+                    ),
+                    BuilderElement(
+                        id="el_vid01",
+                        name="ویدئو",
+                        type="widget",
+                        widget_type="video",
+                        widget_props={"video_type": "aparat", "url": "https://www.aparat.com/v/example"},
+                    ),
+                    BuilderElement(
+                        id="el_box01",
+                        name="باکس آیکون",
+                        type="widget",
+                        widget_type="icon_box",
+                        widget_props={"title": "پشتیبانی ۲۴ ساعته", "description": "پاسخگویی هفت روز هفته"},
+                    ),
+                    BuilderElement(
+                        id="el_soc01",
+                        name="شبکه‌های اجتماعی",
+                        type="widget",
+                        widget_type="social_links",
+                        widget_props={"links": [{"platform": "تلگرام", "url": "https://t.me/example"}]},
+                    ),
+                ],
+            ),
+        ],
+    )
+    result = ASTCompiler.compile(ast)
+    # Form container & honeypot
+    assert '<form id="el_form_sec"' in result
+    assert 'data-form-container="true"' in result
+    assert 'data-success-message="پیام شما ارسال شد"' in result
+    assert '_hp_website' in result
+    assert 'max-md:hidden' in result  # mobile hidden
+    assert 'data-auth="authenticated"' in result
+    assert 'position:relative' in result or 'position: relative' in result
+    assert 'z-index:10' in result or 'z-index: 10' in result
+    assert 'overflow:hidden' in result or 'overflow: hidden' in result
+    # Form inputs
+    assert 'builder-form-checkbox' in result
+    assert 'پذیرش قوانین' in result
+    assert 'builder-form-radio' in result
+    assert 'پیشتاز' in result
+    # Interactive widgets
+    assert 'builder-accordion' in result
+    assert 'گارانتی کالا چقدر است؟' in result
+    assert '۱۸ ماه ضمانت طلایی' in result
+    assert 'builder-tabs' in result
+    assert 'دیدگاه‌ها' in result
+    assert 'builder-countdown' in result
+    assert 'تخفیف ویژه شب عید' in result
+    assert 'builder-video' in result
+    assert 'aparat.com' in result
+    assert 'builder-icon_box' in result or 'builder-icon-box' in result
+    assert 'پشتیبانی ۲۴ ساعته' in result
+    assert 'builder-social-links' in result
+    assert 'تلگرام' in result
+
+
 

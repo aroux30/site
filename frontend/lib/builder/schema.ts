@@ -73,6 +73,19 @@ export const DeviceStyleSchema = z.object({
     .optional(),
   opacity: z.number().min(0).max(1).nullable().optional(),
   zIndex: z.number().int().min(0).max(999).nullable().optional(),
+  // Advanced Layout (P4)
+  position: z.enum(["static", "relative", "absolute", "sticky", "inherit"]).nullable().optional(),
+  top: UnitValueSchema.nullable().optional(),
+  bottom: UnitValueSchema.nullable().optional(),
+  left: UnitValueSchema.nullable().optional(),
+  right: UnitValueSchema.nullable().optional(),
+  overflow: z.enum(["visible", "hidden", "scroll", "auto", "inherit"]).nullable().optional(),
+  flexDirection: z.enum(["row", "column", "row-reverse", "column-reverse", "inherit"]).nullable().optional(),
+  justifyContent: z.enum(["start", "center", "end", "between", "around", "evenly", "inherit"]).nullable().optional(),
+  alignItems: z.enum(["start", "center", "end", "stretch", "baseline", "inherit"]).nullable().optional(),
+  flexWrap: z.enum(["nowrap", "wrap", "wrap-reverse", "inherit"]).nullable().optional(),
+  gap: UnitValueSchema.nullable().optional(),
+  gridTemplateColumns: z.string().nullable().optional(),
 });
 
 export const ResponsiveStylesSchema = z.object({
@@ -117,6 +130,13 @@ export const BuilderElementSchema: z.ZodType<BuilderElement, z.ZodTypeDef, any> 
     widgetType: z.string().nullable().optional(),
     widgetProps: z.record(z.unknown()).nullable().optional(),
     children: z.array(BuilderElementSchema).default([]),
+    // Conditional visibility (P4)
+    visibleOnDesktop: z.boolean().default(true),
+    visibleOnTablet: z.boolean().default(true),
+    visibleOnMobile: z.boolean().default(true),
+    authVisibility: z.enum(["all", "authenticated", "guest"]).default("all"),
+    // Synced / Global Components (P4)
+    globalComponentId: z.string().nullable().optional(),
   })
 );
 

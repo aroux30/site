@@ -117,6 +117,19 @@ class DeviceStyle(ASTModel):
     display: Literal["block", "flex", "grid", "inline-block", "none", "inherit"] = "inherit"
     opacity: float | None = Field(default=None, ge=0.0, le=1.0)
     z_index: int | None = Field(default=None, ge=0, le=999)
+    # Advanced Layout (P4)
+    position: Literal["static", "relative", "absolute", "sticky", "inherit"] = "inherit"
+    top: UnitValue | None = None
+    bottom: UnitValue | None = None
+    left: UnitValue | None = None
+    right: UnitValue | None = None
+    overflow: Literal["visible", "hidden", "scroll", "auto", "inherit"] = "inherit"
+    flex_direction: Literal["row", "column", "row-reverse", "column-reverse", "inherit"] = "inherit"
+    justify_content: Literal["start", "center", "end", "between", "around", "evenly", "inherit"] = "inherit"
+    align_items: Literal["start", "center", "end", "stretch", "baseline", "inherit"] = "inherit"
+    flex_wrap: Literal["nowrap", "wrap", "wrap-reverse", "inherit"] = "inherit"
+    gap: UnitValue | None = None
+    grid_template_columns: str | None = None
 
 
 class ResponsiveStyles(ASTModel):
@@ -165,6 +178,13 @@ class BuilderElement(ASTModel):
     widget_type: str | None = None
     widget_props: dict[str, Any] = Field(default_factory=dict)
     children: list[BuilderElement] = Field(default_factory=list)
+    # Conditional visibility (P4)
+    visible_on_desktop: bool = True
+    visible_on_tablet: bool = True
+    visible_on_mobile: bool = True
+    auth_visibility: Literal["all", "authenticated", "guest"] = "all"
+    # Synced / Global Components (P4)
+    global_component_id: str | None = None
 
     @field_validator("id")
     @classmethod

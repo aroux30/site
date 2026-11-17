@@ -9,6 +9,21 @@ import {
   EyeOff,
   Plus,
   BookmarkPlus,
+  Globe,
+  Palette,
+  ShoppingCart,
+  CheckSquare,
+  CircleDot,
+  ChevronDown,
+  Folders,
+  Hourglass,
+  Video,
+  Sparkles,
+  Share2,
+  Tag,
+  Receipt,
+  Minus,
+  Check,
 } from "lucide-react";
 import { SaveTemplateDialog } from "./save-template-dialog";
 import { cn } from "@/lib/utils";
@@ -22,6 +37,9 @@ import { StarRating } from "@/components/ui/star-rating";
 import { ReviewHistogram } from "@/components/store/review-histogram";
 import { RecentlyViewed } from "@/components/store/recently-viewed";
 import { MegaMenu } from "@/components/layout/mega-menu";
+import { Badge } from "@/components/ui/badge";
+import { useCartStore } from "@/stores/cart-store";
+import { useToast } from "@/components/ui/use-toast";
 import type { BuilderElement, DeviceStyle, ResponsiveStyles } from "@/types/builder";
 
 interface CanvasElementProps {
@@ -35,16 +53,27 @@ export function CanvasElement({
   activeBreakpoint,
   depth = 1,
 }: CanvasElementProps) {
+  const { toast } = useToast();
   const [isExternalDragOver, setIsExternalDragOver] = useState(false);
   const [saveTemplateOpen, setSaveTemplateOpen] = useState(false);
+  const [activeTabIdx, setActiveTabIdx] = useState(0);
+  const [selectedVariantId, setSelectedVariantId] = useState<string>("var_1");
+  const [cartQuantity, setCartQuantity] = useState(1);
+  const [activeGridFilter, setActiveGridFilter] = useState<string>("all");
+
   const selectedElementId = useBuilderStore((s) => s.selectedElementId);
+  const selectedElementIds = useBuilderStore((s) => s.selectedElementIds);
   const hoveredElementId = useBuilderStore((s) => s.hoveredElementId);
   const selectElement = useBuilderStore((s) => s.selectElement);
+  const toggleSelectElement = useBuilderStore((s) => s.toggleSelectElement);
   const setHoveredElement = useBuilderStore((s) => s.setHoveredElement);
   const deleteElement = useBuilderStore((s) => s.deleteElement);
   const duplicateElement = useBuilderStore((s) => s.duplicateElement);
   const addElement = useBuilderStore((s) => s.addElement);
   const moveElement = useBuilderStore((s) => s.moveElement);
+  const copyElement = useBuilderStore((s) => s.copyElement);
+  const copyStyles = useBuilderStore((s) => s.copyStyles);
+  const makeGlobalComponent = useBuilderStore((s) => s.makeGlobalComponent);
   const ast = useBuilderStore((s) => s.ast);
   const previewMode = useBuilderStore((s) => s.previewMode);
 
@@ -248,17 +277,77 @@ export function CanvasElement({
       if (res.animationDelay) styleObj.animationDelay = `${res.animationDelay}s`;
     }
 
+    // Advanced Layout Controls (P4)
+    const position = resolveResponsiveValue({ mobile: base?.position, tablet: tablet?.position, desktop: desktop?.position }, activeBreakpoint);
+    if (position && position !== "inherit") styleObj.position = position as any;
+
+    const top = resolveResponsiveValue({ mobile: base?.top, tablet: tablet?.top, desktop: desktop?.top }, activeBreakpoint);
+    if (top) styleObj.top = `${top.value}${top.unit}`;
+
+    const bottom = resolveResponsiveValue({ mobile: base?.bottom, tablet: tablet?.bottom, desktop: desktop?.bottom }, activeBreakpoint);
+    if (bottom) styleObj.bottom = `${bottom.value}${bottom.unit}`;
+
+    const left = resolveResponsiveValue({ mobile: base?.left, tablet: tablet?.left, desktop: desktop?.left }, activeBreakpoint);
+    if (left) styleObj.left = `${left.value}${left.unit}`;
+
+    const right = resolveResponsiveValue({ mobile: base?.right, tablet: tablet?.right, desktop: desktop?.right }, activeBreakpoint);
+    if (right) styleObj.right = `${right.value}${right.unit}`;
+
+    const zIndex = resolveResponsiveValue({ mobile: base?.zIndex, tablet: tablet?.zIndex, desktop: desktop?.zIndex }, activeBreakpoint);
+    if (zIndex !== undefined && zIndex !== null) styleObj.zIndex = zIndex;
+
+    const overflow = resolveResponsiveValue({ mobile: base?.overflow, tablet: tablet?.overflow, desktop: desktop?.overflow }, activeBreakpoint);
+    if (overflow && overflow !== "inherit") styleObj.overflow = overflow as any;
+
+    const display = resolveResponsiveValue({ mobile: base?.display, tablet: tablet?.display, desktop: desktop?.display }, activeBreakpoint);
+    if (display && display !== "inherit") styleObj.display = display as any;
+
+    const flexDirection = resolveResponsiveValue({ mobile: base?.flexDirection, tablet: tablet?.flexDirection, desktop: desktop?.flexDirection }, activeBreakpoint);
+    if (flexDirection && flexDirection !== "inherit") styleObj.flexDirection = flexDirection as any;
+
+    const justifyContent = resolveResponsiveValue({ mobile: base?.justifyContent, tablet: tablet?.justifyContent, desktop: desktop?.justifyContent }, activeBreakpoint);
+    if (justifyContent && justifyContent !== "inherit") {
+      const jcMap: Record<string, string> = { start: "flex-start", end: "flex-end", between: "space-between", around: "space-around", evenly: "space-evenly" };
+      styleObj.justifyContent = (jcMap[justifyContent] || justifyContent) as any;
+    }
+
+    const alignItems = resolveResponsiveValue({ mobile: base?.alignItems, tablet: tablet?.alignItems, desktop: desktop?.alignItems }, activeBreakpoint);
+    if (alignItems && alignItems !== "inherit") {
+      const aiMap: Record<string, string> = { start: "flex-start", end: "flex-end" };
+      styleObj.alignItems = (aiMap[alignItems] || alignItems) as any;
+    }
+
+    const flexWrap = resolveResponsiveValue({ mobile: base?.flexWrap, tablet: tablet?.flexWrap, desktop: desktop?.flexWrap }, activeBreakpoint);
+    if (flexWrap && flexWrap !== "inherit") styleObj.flexWrap = flexWrap as any;
+
+    const gap = resolveResponsiveValue({ mobile: base?.gap, tablet: tablet?.gap, desktop: desktop?.gap }, activeBreakpoint);
+    if (gap) styleObj.gap = `${gap.value}${gap.unit}`;
+
+    const gridTemplateColumns = resolveResponsiveValue({ mobile: base?.gridTemplateColumns, tablet: tablet?.gridTemplateColumns, desktop: desktop?.gridTemplateColumns }, activeBreakpoint);
+    if (gridTemplateColumns) styleObj.gridTemplateColumns = gridTemplateColumns;
+
     return styleObj;
   }, [element.styles, activeBreakpoint]);
+
+  const isHiddenOnActiveBreakpoint = useMemo(() => {
+    if (activeBreakpoint === "desktop" && element.visibleOnDesktop === false) return true;
+    if (activeBreakpoint === "tablet" && element.visibleOnTablet === false) return true;
+    if (activeBreakpoint === "mobile" && element.visibleOnMobile === false) return true;
+    return false;
+  }, [activeBreakpoint, element.visibleOnDesktop, element.visibleOnTablet, element.visibleOnMobile]);
 
   const handleClick = useCallback(
     (e: React.MouseEvent) => {
       e.stopPropagation();
       if (!previewMode) {
-        selectElement(element.id);
+        if (e.ctrlKey || e.metaKey || e.shiftKey) {
+          toggleSelectElement(element.id, true);
+        } else {
+          selectElement(element.id);
+        }
       }
     },
-    [element.id, previewMode, selectElement]
+    [element.id, previewMode, selectElement, toggleSelectElement]
   );
 
   const handleMouseEnter = useCallback(
@@ -366,12 +455,21 @@ export function CanvasElement({
       }
       case "video": {
         const url = String(props.url || "");
+        const vType = String(props.video_type || "aparat");
+        const poster = props.poster ? String(props.poster) : undefined;
         return (
-          <div className="aspect-video w-full rounded-xl overflow-hidden bg-black/10 flex items-center justify-center">
+          <div className="aspect-video w-full rounded-2xl overflow-hidden bg-black/10 border border-border/80 flex items-center justify-center">
             {url ? (
-              <video src={url} controls className="w-full h-full object-cover" />
+              vType === "aparat" || vType === "youtube" ? (
+                <iframe src={url} className="w-full h-full border-0 pointer-events-none" allowFullScreen title="ویدیو" />
+              ) : (
+                <video src={url} controls poster={poster} className="w-full h-full object-cover" />
+              )
             ) : (
-              <span className="text-xs text-muted-foreground">ویدیو</span>
+              <div className="flex flex-col items-center gap-1.5 text-muted-foreground">
+                <Video className="w-6 h-6" />
+                <span className="text-xs">پخش‌کننده ویدئو (آدرس ویدئو را در بازرس وارد کنید)</span>
+              </div>
             )}
           </div>
         );
@@ -400,13 +498,16 @@ export function CanvasElement({
       }
       case "product_grid": {
         const limit = Number(props.limit) || 4;
+        const filter = String(props.filter || "all");
+        const showPagination = props.show_pagination !== false;
+
         const sampleProducts = Array.from({ length: limit }, (_, i) => ({
           id: `grid_prod_${i + 1}`,
           name: `کالای نمونه شماره ${i + 1}`,
           slug: `product-${i + 1}`,
           category_id: "",
           is_active: true,
-          is_featured: i === 0,
+          is_featured: i === 0 || filter === "featured",
           is_in_stock: true,
           min_price: (i + 1) * 350000,
           max_price: (i + 1) * 420000,
@@ -416,10 +517,47 @@ export function CanvasElement({
           review_count: 15 + i * 4,
         }));
         return (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 w-full">
-            {sampleProducts.map((p) => (
-              <ProductCard key={p.id} product={p as any} variant="compact" />
-            ))}
+          <div className="space-y-4 w-full">
+            {/* Filter Pills */}
+            <div className="flex items-center gap-1.5 pb-1">
+              {[
+                { key: "all", label: "همه محصولات" },
+                { key: "featured", label: "ویژه" },
+                { key: "best_sellers", label: "پرفروش‌ترین‌ها" },
+                { key: "new_arrivals", label: "جدیدترین‌ها" },
+              ].map((f) => (
+                <button
+                  key={f.key}
+                  type="button"
+                  onClick={() => setActiveGridFilter(f.key)}
+                  className={cn(
+                    "px-3 py-1 rounded-lg text-xs font-semibold transition",
+                    activeGridFilter === f.key
+                      ? "bg-primary text-primary-foreground shadow-sm"
+                      : "bg-muted/60 text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  {f.label}
+                </button>
+              ))}
+            </div>
+
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 w-full">
+              {sampleProducts.map((p) => (
+                <ProductCard key={p.id} product={p as any} variant="compact" />
+              ))}
+            </div>
+
+            {showPagination && (
+              <div className="text-center pt-2">
+                <button
+                  type="button"
+                  className="px-5 py-2 rounded-xl border border-primary text-xs font-bold text-primary hover:bg-primary/5 transition"
+                >
+                  مشاهده محصولات بیشتر (Load More)
+                </button>
+              </div>
+            )}
           </div>
         );
       }
@@ -497,20 +635,179 @@ export function CanvasElement({
         );
       }
       case "product_price": {
+        const price = Number(props.price || props.fallback_price) || 1850000;
+        const compareAt = props.compare_at_price ? Number(props.compare_at_price) : null;
+        const currency = String(props.currency || "تومان");
+        const showDiscount = props.show_discount !== false;
+        const discountPercent = compareAt && compareAt > price ? Math.round(((compareAt - price) / compareAt) * 100) : null;
+
         return (
-          <div className="text-xl font-black text-primary">
-            {String(props.fallback_price || "۰ تومان")}
+          <div className="flex items-center gap-2.5 flex-wrap">
+            <span className="text-2xl font-black text-primary tracking-tight">
+              {price.toLocaleString("fa-IR")} {currency}
+            </span>
+            {compareAt && compareAt > price && (
+              <del className="text-sm text-muted-foreground">
+                {compareAt.toLocaleString("fa-IR")} {currency}
+              </del>
+            )}
+            {showDiscount && discountPercent && (
+              <Badge className="bg-destructive text-destructive-foreground font-bold text-[11px] px-2 py-0.5 rounded-full">
+                {discountPercent}٪ تخفیف
+              </Badge>
+            )}
           </div>
         );
       }
       case "add_to_cart": {
+        const label = String(props.label || "افزودن به سبد خرید");
+        const showQty = props.show_quantity !== false;
+
+        const handleAddToCart = (e: React.MouseEvent) => {
+          e.stopPropagation();
+          useCartStore.getState().addItem({
+            productId: String(props.product_id || element.id),
+            variantId: String(props.variant_id || selectedVariantId || "var_1"),
+            title: String(props.product_title || "کالای فروشگاه"),
+            price: Number(props.price) || 1850000,
+            quantity: cartQuantity,
+          });
+          toast({
+            title: "به سبد خرید اضافه شد",
+            description: `${label} (${cartQuantity} عدد) با موفقیت در سبد ثبت گردید.`,
+          });
+        };
+
         return (
-          <button
-            type="button"
-            className="w-full rounded-xl bg-primary py-3 px-6 font-bold text-primary-foreground shadow"
-          >
-            {String(props.label || "افزودن به سبد خرید")}
-          </button>
+          <div className="flex items-center gap-2 w-full">
+            {showQty && (
+              <div className="flex items-center border border-border/80 rounded-xl bg-card overflow-hidden shrink-0">
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setCartQuantity(Math.max(1, cartQuantity - 1));
+                  }}
+                  className="px-2.5 py-2 hover:bg-muted text-xs text-muted-foreground"
+                >
+                  <Minus className="w-3.5 h-3.5" />
+                </button>
+                <span className="px-3 text-xs font-bold">{cartQuantity}</span>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setCartQuantity(cartQuantity + 1);
+                  }}
+                  className="px-2.5 py-2 hover:bg-muted text-xs text-muted-foreground"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            )}
+            <button
+              type="button"
+              onClick={handleAddToCart}
+              className="flex-1 rounded-xl bg-primary py-3 px-6 font-bold text-primary-foreground shadow hover:bg-primary/90 transition flex items-center justify-center gap-2 text-sm"
+            >
+              <ShoppingCart className="w-4 h-4" />
+              <span>{label}</span>
+            </button>
+          </div>
+        );
+      }
+      case "product_variants": {
+        const pTitle = String(props.product_title || "انتخاب تنوع و مشخصات");
+        const variants = (props.variants as any[]) || [
+          { id: "var_1", title: "مشکی مات", price: 1850000, is_in_stock: true },
+          { id: "var_2", title: "سفید صدفی", price: 1950000, is_in_stock: true },
+        ];
+
+        return (
+          <div className="space-y-2 w-full">
+            <span className="block text-xs font-bold text-foreground">{pTitle}</span>
+            <div className="flex flex-wrap gap-2">
+              {variants.map((v) => {
+                const isSelected = selectedVariantId === v.id;
+                return (
+                  <button
+                    key={v.id}
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedVariantId(v.id);
+                    }}
+                    className={cn(
+                      "px-3 py-1.5 rounded-xl border text-xs font-semibold transition flex items-center gap-1.5",
+                      isSelected
+                        ? "border-primary bg-primary/10 text-primary font-bold shadow-sm"
+                        : "border-border/80 bg-card hover:bg-muted/50 text-foreground"
+                    )}
+                  >
+                    {isSelected && <Check className="w-3.5 h-3.5 text-primary" />}
+                    <span>{v.title}</span>
+                    {v.price && (
+                      <span className="text-[10px] text-muted-foreground">
+                        ({Number(v.price).toLocaleString("fa-IR")} تومان)
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        );
+      }
+      case "mini_cart": {
+        const showBadge = props.show_badge !== false;
+        const label = String(props.label || "سبد خرید");
+        return (
+          <div className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-card border border-border/80 shadow-sm">
+            <ShoppingCart className="w-4 h-4 text-primary" />
+            <span className="text-xs font-bold text-foreground">{label}</span>
+            {showBadge && (
+              <Badge className="bg-primary text-primary-foreground text-[10px] font-bold px-1.5 py-0 h-4">
+                ۲
+              </Badge>
+            )}
+            <span className="text-xs text-muted-foreground font-semibold border-s ps-2">
+              ۳,۷۰۰,۰۰۰ تومان
+            </span>
+          </div>
+        );
+      }
+      case "cart_summary": {
+        return (
+          <div className="p-4 rounded-2xl border border-border/80 bg-card space-y-3 shadow-sm w-full max-w-sm">
+            <div className="flex items-center justify-between border-b pb-2">
+              <span className="text-xs font-bold text-foreground">خلاصه سبد خرید</span>
+              <Receipt className="w-4 h-4 text-primary" />
+            </div>
+            <div className="space-y-1.5 text-xs text-muted-foreground">
+              <div className="flex justify-between">
+                <span>جمع اقلام:</span>
+                <span className="font-semibold text-foreground">۳,۸۰۰,۰۰۰ تومان</span>
+              </div>
+              <div className="flex justify-between text-emerald-600">
+                <span>تخفیف:</span>
+                <span className="font-semibold">- ۱۰۰,۰۰۰ تومان</span>
+              </div>
+              <div className="flex justify-between">
+                <span>مالیات بر ارزش افزوده (۹٪):</span>
+                <span>۳۳۳,۰۰۰ تومان</span>
+              </div>
+            </div>
+            <div className="flex justify-between items-center pt-2 border-t font-bold text-sm text-foreground">
+              <span>مبلغ قابل پرداخت:</span>
+              <span className="text-primary text-base font-black">۴,۰۳۳,۰۰۰ تومان</span>
+            </div>
+            <button
+              type="button"
+              className="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition shadow"
+            >
+              ادامه فرآیند خرید
+            </button>
+          </div>
         );
       }
       case "table": {
@@ -609,6 +906,170 @@ export function CanvasElement({
           </div>
         );
       }
+      case "form_checkbox": {
+        const label = String(props.label || "شرایط و قوانین را می‌پذیرم");
+        const name = String(props.name || "terms");
+        return (
+          <div className="flex items-center gap-2 text-right">
+            <input
+              type="checkbox"
+              id={`chk_${element.id}`}
+              name={name}
+              defaultChecked={Boolean(props.checked)}
+              className="rounded border-input text-primary focus:ring-primary h-4 w-4"
+            />
+            <label htmlFor={`chk_${element.id}`} className="text-xs font-medium text-foreground cursor-pointer select-none">
+              {label}
+            </label>
+          </div>
+        );
+      }
+      case "form_radio": {
+        const label = String(props.label || "انتخاب گزینه");
+        const options = (props.options as string[]) || ["گزینه ۱", "گزینه ۲"];
+        const name = String(props.name || "radio_group");
+        return (
+          <div className="space-y-1.5 text-right w-full">
+            <span className="block text-xs font-bold text-foreground">{label}</span>
+            <div className="flex flex-col gap-1.5">
+              {options.map((opt, i) => (
+                <label key={i} className="flex items-center gap-2 text-xs text-foreground cursor-pointer select-none">
+                  <input
+                    type="radio"
+                    name={name}
+                    defaultChecked={i === 0}
+                    className="text-primary focus:ring-primary h-4 w-4"
+                  />
+                  <span>{opt}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+        );
+      }
+      case "accordion": {
+        const items = (props.items as any[]) || [
+          { title: "سؤال متداول ۱", content: "پاسخ مشروح به سؤال اول کاربر." },
+          { title: "سؤال متداول ۲", content: "پاسخ مشروح به سؤال دوم کاربر." },
+        ];
+        return (
+          <div className="space-y-2 w-full">
+            {items.map((item, idx) => (
+              <details
+                key={idx}
+                className="group rounded-xl border border-border/80 bg-card overflow-hidden shadow-sm"
+                open={item.default_open || idx === 0}
+              >
+                <summary className="p-3.5 font-bold text-xs text-foreground cursor-pointer list-none flex items-center justify-between hover:bg-muted/40 transition select-none">
+                  <span>{item.title}</span>
+                  <ChevronDown className="w-4 h-4 text-muted-foreground transition-transform group-open:rotate-180" />
+                </summary>
+                <div className="p-3.5 pt-0 text-xs text-muted-foreground border-t border-border/40 leading-relaxed">
+                  {item.content}
+                </div>
+              </details>
+            ))}
+          </div>
+        );
+      }
+      case "tabs": {
+        const tabsList = (props.tabs as any[]) || [
+          { title: "مشخصات کلی", content: "توضیحات مشخصات فنی و ویژگی‌های برجسته کالا." },
+          { title: "دیدگاه کاربران", content: "ثبت و بررسی دیدگاه‌های خریداران." },
+        ];
+        return (
+          <div className="rounded-xl border border-border/80 bg-card overflow-hidden w-full shadow-sm">
+            <div className="flex border-b border-border/60 bg-muted/30">
+              {tabsList.map((t, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setActiveTabIdx(idx);
+                  }}
+                  className={cn(
+                    "px-4 py-2.5 text-xs font-bold border-b-2 transition",
+                    activeTabIdx === idx
+                      ? "border-primary text-primary bg-background shadow-xs"
+                      : "border-transparent text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  {t.title}
+                </button>
+              ))}
+            </div>
+            <div className="p-4 text-xs text-muted-foreground leading-relaxed">
+              {tabsList[activeTabIdx]?.content || tabsList[0]?.content}
+            </div>
+          </div>
+        );
+      }
+      case "countdown": {
+        const title = String(props.title || "پیشنهاد شگفت‌انگیز");
+        return (
+          <div className="p-4 rounded-2xl bg-card border border-border/80 text-center space-y-3 shadow-sm w-full">
+            <h3 className="font-bold text-sm text-foreground">{title}</h3>
+            <div className="flex items-center justify-center gap-2 text-center" dir="ltr">
+              <div className="bg-muted/60 p-2 rounded-xl min-w-[50px]">
+                <span className="block text-lg font-black text-primary">۰۲</span>
+                <span className="text-[10px] text-muted-foreground">روز</span>
+              </div>
+              <span className="font-bold text-primary">:</span>
+              <div className="bg-muted/60 p-2 rounded-xl min-w-[50px]">
+                <span className="block text-lg font-black text-primary">۱۴</span>
+                <span className="text-[10px] text-muted-foreground">ساعت</span>
+              </div>
+              <span className="font-bold text-primary">:</span>
+              <div className="bg-muted/60 p-2 rounded-xl min-w-[50px]">
+                <span className="block text-lg font-black text-primary">۳۵</span>
+                <span className="text-[10px] text-muted-foreground">دقیقه</span>
+              </div>
+              <span className="font-bold text-primary">:</span>
+              <div className="bg-muted/60 p-2 rounded-xl min-w-[50px]">
+                <span className="block text-lg font-black text-primary">۴۸</span>
+                <span className="text-[10px] text-muted-foreground">ثانیه</span>
+              </div>
+            </div>
+          </div>
+        );
+      }
+      case "icon_box": {
+        const title = String(props.title || "ارسال سریع و مطمئن");
+        const desc = String(props.description || "تحویل در کمترین زمان ممکن با بسته‌بندی ویژه به سراسر کشور");
+        return (
+          <div className="p-4 rounded-2xl border border-border/80 bg-card flex items-start gap-3 shadow-sm w-full">
+            <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+              <Sparkles className="w-5 h-5" />
+            </div>
+            <div className="space-y-1 text-right">
+              <h4 className="font-bold text-xs text-foreground">{title}</h4>
+              <p className="text-[11px] text-muted-foreground leading-relaxed">{desc}</p>
+            </div>
+          </div>
+        );
+      }
+      case "social_links": {
+        const links = (props.links as any[]) || [
+          { platform: "اینستاگرام", url: "#" },
+          { platform: "تلگرام", url: "#" },
+        ];
+        return (
+          <div className="flex items-center gap-2 flex-wrap">
+            {links.map((l, idx) => (
+              <a
+                key={idx}
+                href={l.url || "#"}
+                onClick={(e) => e.preventDefault()}
+                className="p-2 rounded-xl bg-muted/60 hover:bg-primary hover:text-white transition text-xs font-bold flex items-center gap-1.5"
+              >
+                <Share2 className="w-3.5 h-3.5" />
+                <span>{l.platform}</span>
+              </a>
+            ))}
+          </div>
+        );
+      }
       default:
         return (
           <div className="rounded-lg border border-dashed border-border p-4 text-center text-sm text-muted-foreground">
@@ -695,11 +1156,63 @@ export function CanvasElement({
           {element.isHidden && <EyeOff className="w-3 h-3 text-slate-300" />}
 
           <div className="flex items-center gap-0.5 ms-2 border-s border-primary-foreground/30 ps-1">
+            {element.globalComponentId ? (
+              <span className="flex items-center gap-1 text-[10px] text-emerald-300 font-bold px-1" title="کامپوننت سراسری همگام">
+                <Globe className="w-3 h-3 animate-pulse" />
+                <span>همگام</span>
+              </span>
+            ) : (
+              <button
+                type="button"
+                onClick={() => {
+                  makeGlobalComponent(element.id);
+                  toast({
+                    title: "کامپوننت سراسری ایجاد شد",
+                    description: "این المان اکنون در سراسر برگه به عنوان کامپوننت همگام شناخته می‌شود.",
+                  });
+                }}
+                className="p-1 hover:bg-primary-foreground/20 rounded transition text-emerald-300 hover:text-white"
+                title="تبدیل به کامپوننت همگام سراسری (Global Component)"
+              >
+                <Globe className="w-3 h-3" />
+              </button>
+            )}
+
+            <button
+              type="button"
+              onClick={() => {
+                copyElement(element.id);
+                toast({
+                  title: "المان کپی شد",
+                  description: "المان در کلیپ‌بورد ذخیره شد. برای درج از Ctrl+V استفاده نمایید.",
+                });
+              }}
+              className="p-1 hover:bg-primary-foreground/20 rounded transition"
+              title="کپی المان (Ctrl+C)"
+            >
+              <Copy className="w-3 h-3" />
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                copyStyles(element.id);
+                toast({
+                  title: "استایل‌ها کپی شد",
+                  description: "استایل‌های المان در کلیپ‌بورد قرار گرفت.",
+                });
+              }}
+              className="p-1 hover:bg-primary-foreground/20 rounded transition"
+              title="کپی استایل‌ها (Copy Styles)"
+            >
+              <Palette className="w-3 h-3" />
+            </button>
+
             {isContainer && (
               <button
                 type="button"
                 onClick={() => setSaveTemplateOpen(true)}
-                className="p-1 hover:bg-primary-foreground/20 rounded transition text-emerald-300 hover:text-white"
+                className="p-1 hover:bg-primary-foreground/20 rounded transition text-amber-300 hover:text-white"
                 title="ذخیره به عنوان قالب (Save as Template)"
               >
                 <BookmarkPlus className="w-3 h-3" />
@@ -711,7 +1224,7 @@ export function CanvasElement({
               className="p-1 hover:bg-primary-foreground/20 rounded transition"
               title="تکثیر (Duplicate)"
             >
-              <Copy className="w-3 h-3" />
+              <Plus className="w-3 h-3" />
             </button>
             <button
               type="button"
@@ -722,6 +1235,25 @@ export function CanvasElement({
               <Trash2 className="w-3 h-3" />
             </button>
           </div>
+        </div>
+      )}
+
+      {/* Breakpoint Hidden Indicator */}
+      {isHiddenOnActiveBreakpoint && !previewMode && (
+        <div className="absolute top-1 end-1 z-30 pointer-events-none">
+          <Badge variant="outline" className="bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-300 text-[9px] px-1.5 py-0 h-4 flex items-center gap-1 shadow-xs">
+            <EyeOff className="w-2.5 h-2.5" />
+            <span>مخفی در {activeBreakpoint === "mobile" ? "موبایل" : activeBreakpoint === "tablet" ? "تبلت" : "دسکتاپ"}</span>
+          </Badge>
+        </div>
+      )}
+
+      {/* Form Container Identifier */}
+      {element.widgetType === "form_container" && !previewMode && (
+        <div className="absolute top-1 start-1 z-20 pointer-events-none">
+          <Badge variant="outline" className="bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-300 text-[9px] px-1.5 py-0 h-4">
+            فرم سازنده (Form Container)
+          </Badge>
         </div>
       )}
 

@@ -192,6 +192,10 @@ def compile_dtcg_to_css_variables(tokens: DesignTokensSchema) -> dict[str, str]:
         ("color", "destructive"): "--destructive",
         ("color", "info"): "--info",
         ("dimension", "radius"): "--radius",
+        ("dimension", "containerWidth"): "--container-width",
+        ("dimension", "contentWidth"): "--content-width",
+        ("dimension", "sectionSpacing"): "--section-spacing",
+        ("dimension", "spacingScale"): "--spacing-scale",
         ("typography", "fontFamily"): "--font-vazirmatn",
     }
 

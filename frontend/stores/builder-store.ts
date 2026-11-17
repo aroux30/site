@@ -176,6 +176,7 @@ export interface BuilderState {
   pageId: string | null;
   ast: PageAST;
   selectedElementId: string | null;
+  selectedElementIds: string[];
   hoveredElementId: string | null;
   activeBreakpoint: Breakpoint;
   activeLeftTab: LeftSidebarTab;
@@ -188,10 +189,15 @@ export interface BuilderState {
     past: PageAST[];
     future: PageAST[];
   };
+  clipboard: {
+    element: BuilderElement | null;
+    styles: ResponsiveStyles | null;
+  };
 
   // Actions
   initPage: (pageId: string, initialAst?: PageAST | null, fallbackTitle?: string, fallbackSlug?: string) => void;
   selectElement: (id: string | null) => void;
+  toggleSelectElement: (id: string, multi?: boolean) => void;
   setHoveredElement: (id: string | null) => void;
   setBreakpoint: (bp: Breakpoint) => void;
   setLeftTab: (tab: LeftSidebarTab) => void;
@@ -205,9 +211,24 @@ export interface BuilderState {
   updateElementProps: (id: string, props: Record<string, unknown>) => void;
   updateElementStyles: (id: string, styles: Partial<ResponsiveStyles>) => void;
   updateDeviceStyles: (id: string, bp: Breakpoint, patch: Partial<DeviceStyle>) => void;
+  updateElementVisibility: (
+    id: string,
+    visibility: { desktop?: boolean; tablet?: boolean; mobile?: boolean; auth?: "all" | "authenticated" | "guest" }
+  ) => void;
   deleteElement: (id: string) => void;
+  deleteSelectedElements: () => void;
   duplicateElement: (id: string) => void;
   updateGlobalStyles: (styles: Record<string, unknown>) => void;
+
+  // Productivity & Clipboard (P4)
+  copyElement: (id?: string) => void;
+  pasteElement: (targetContainerId?: string) => void;
+  copyStyles: (id?: string) => void;
+  pasteStyles: (targetId?: string) => void;
+
+  // Global Components (P4)
+  makeGlobalComponent: (id: string) => string | null;
+  updateGlobalComponent: (globalComponentId: string, patch: Partial<BuilderElement>) => void;
 
   // History & Save
   undo: () => void;
@@ -219,6 +240,7 @@ export const useBuilderStore = create<BuilderState>((set, get) => ({
   pageId: null,
   ast: createDefaultAST(),
   selectedElementId: null,
+  selectedElementIds: [],
   hoveredElementId: null,
   activeBreakpoint: "desktop",
   activeLeftTab: "blocks",
@@ -231,6 +253,10 @@ export const useBuilderStore = create<BuilderState>((set, get) => ({
     past: [],
     future: [],
   },
+  clipboard: {
+    element: null,
+    styles: null,
+  },
 
   initPage: (pageId, initialAst, fallbackTitle, fallbackSlug) => {
     const ast =
@@ -238,20 +264,41 @@ export const useBuilderStore = create<BuilderState>((set, get) => ({
         ? initialAst
         : createDefaultAST(fallbackTitle, fallbackSlug);
 
+    const initialSelected = ast.rootElements[0]?.children[0]?.id || ast.rootElements[0]?.id || null;
+
     set({
       pageId,
       ast,
-      selectedElementId: ast.rootElements[0]?.children[0]?.id || ast.rootElements[0]?.id || null,
+      selectedElementId: initialSelected,
+      selectedElementIds: initialSelected ? [initialSelected] : [],
       hoveredElementId: null,
       activeBreakpoint: "desktop",
       previewMode: false,
       isDirty: false,
       mutationVersion: 0,
       history: { past: [], future: [] },
+      clipboard: { element: null, styles: null },
     });
   },
 
-  selectElement: (id) => set({ selectedElementId: id }),
+  selectElement: (id) => set({ selectedElementId: id, selectedElementIds: id ? [id] : [] }),
+
+  toggleSelectElement: (id, multi = false) => {
+    const { selectedElementIds } = get();
+    if (!multi) {
+      set({ selectedElementId: id, selectedElementIds: [id] });
+      return;
+    }
+    const alreadySelected = selectedElementIds.includes(id);
+    const newSelected = alreadySelected
+      ? selectedElementIds.filter((item) => item !== id)
+      : [...selectedElementIds, id];
+
+    set({
+      selectedElementIds: newSelected,
+      selectedElementId: newSelected.length > 0 ? newSelected[newSelected.length - 1] : null,
+    });
+  },
   setHoveredElement: (id) => set({ hoveredElementId: id }),
   setBreakpoint: (bp) => set({ activeBreakpoint: bp }),
   setLeftTab: (tab) => set({ activeLeftTab: tab }),
@@ -440,6 +487,138 @@ export const useBuilderStore = create<BuilderState>((set, get) => ({
     set({
       ast: { ...ast, rootElements: updatedRoots },
       selectedElementId: cloned.id,
+      isDirty: true,
+      mutationVersion: get().mutationVersion + 1,
+      history: { past: newPast, future: [] },
+    });
+  },
+
+  updateElementVisibility: (id, visibility) => {
+    const { ast, history } = get();
+    const newPast = [...history.past, ast].slice(-MAX_HISTORY_LENGTH);
+
+    const updatedRoots = updateElementInTree(ast.rootElements, id, (el) => ({
+      ...el,
+      visibleOnDesktop: visibility.desktop !== undefined ? visibility.desktop : el.visibleOnDesktop,
+      visibleOnTablet: visibility.tablet !== undefined ? visibility.tablet : el.visibleOnTablet,
+      visibleOnMobile: visibility.mobile !== undefined ? visibility.mobile : el.visibleOnMobile,
+      authVisibility: visibility.auth !== undefined ? visibility.auth : el.authVisibility,
+    }));
+
+    set({
+      ast: { ...ast, rootElements: updatedRoots },
+      isDirty: true,
+      mutationVersion: get().mutationVersion + 1,
+      history: { past: newPast, future: [] },
+    });
+  },
+
+  deleteSelectedElements: () => {
+    const { ast, history, selectedElementIds } = get();
+    if (selectedElementIds.length === 0) return;
+
+    const newPast = [...history.past, ast].slice(-MAX_HISTORY_LENGTH);
+    let updatedRoots = [...ast.rootElements];
+    for (const id of selectedElementIds) {
+      updatedRoots = removeElementFromTree(updatedRoots, id);
+    }
+
+    set({
+      ast: { ...ast, rootElements: updatedRoots },
+      selectedElementId: null,
+      selectedElementIds: [],
+      isDirty: true,
+      mutationVersion: get().mutationVersion + 1,
+      history: { past: newPast, future: [] },
+    });
+  },
+
+  copyElement: (id) => {
+    const targetId = id || get().selectedElementId;
+    if (!targetId) return;
+    const { ast } = get();
+    const found = findElementById(ast.rootElements, targetId);
+    if (found) {
+      set({ clipboard: { ...get().clipboard, element: JSON.parse(JSON.stringify(found)) } });
+    }
+  },
+
+  pasteElement: (targetContainerId) => {
+    const { clipboard, selectedElementId, addElement } = get();
+    if (!clipboard.element) return;
+    const cloned = cloneElementWithNewIds(clipboard.element);
+    addElement(cloned, targetContainerId || selectedElementId || undefined);
+  },
+
+  copyStyles: (id) => {
+    const targetId = id || get().selectedElementId;
+    if (!targetId) return;
+    const { ast } = get();
+    const found = findElementById(ast.rootElements, targetId);
+    if (found?.styles) {
+      set({ clipboard: { ...get().clipboard, styles: JSON.parse(JSON.stringify(found.styles)) } });
+    }
+  },
+
+  pasteStyles: (targetId) => {
+    const id = targetId || get().selectedElementId;
+    if (!id) return;
+    const { clipboard, updateElementStyles } = get();
+    if (clipboard.styles) {
+      updateElementStyles(id, JSON.parse(JSON.stringify(clipboard.styles)));
+    }
+  },
+
+  makeGlobalComponent: (id) => {
+    const { ast, history } = get();
+    const found = findElementById(ast.rootElements, id);
+    if (!found) return null;
+
+    const globalId = `gc_${Math.random().toString(36).slice(2, 10)}`;
+    const newPast = [...history.past, ast].slice(-MAX_HISTORY_LENGTH);
+
+    const updatedRoots = updateElementInTree(ast.rootElements, id, (el) => ({
+      ...el,
+      globalComponentId: globalId,
+    }));
+
+    set({
+      ast: { ...ast, rootElements: updatedRoots },
+      isDirty: true,
+      mutationVersion: get().mutationVersion + 1,
+      history: { past: newPast, future: [] },
+    });
+    return globalId;
+  },
+
+  updateGlobalComponent: (globalComponentId, patch) => {
+    const { ast, history } = get();
+    const newPast = [...history.past, ast].slice(-MAX_HISTORY_LENGTH);
+
+    function syncGlobalInTree(elements: BuilderElement[]): BuilderElement[] {
+      return elements.map((el) => {
+        let current = el;
+        if (el.globalComponentId === globalComponentId) {
+          current = {
+            ...el,
+            ...patch,
+            id: el.id, // keep instance unique ID
+            globalComponentId,
+          };
+        }
+        if (current.children && current.children.length > 0) {
+          return {
+            ...current,
+            children: syncGlobalInTree(current.children),
+          };
+        }
+        return current;
+      });
+    }
+
+    const updatedRoots = syncGlobalInTree(ast.rootElements);
+    set({
+      ast: { ...ast, rootElements: updatedRoots },
       isDirty: true,
       mutationVersion: get().mutationVersion + 1,
       history: { past: newPast, future: [] },

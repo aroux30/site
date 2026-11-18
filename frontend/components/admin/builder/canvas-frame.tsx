@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
-import { createRoot, type Root } from "react-dom/client";
+import React, { useEffect, useRef, useState, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { cn } from "@/lib/utils";
 import { useBuilderStore, type Breakpoint } from "@/stores/builder-store";
 import { themesAdminApi } from "@/lib/api/themes";
@@ -28,7 +28,7 @@ export function CanvasFrame({
   className?: string;
 }) {
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
-  const rootRef = useRef<Root | null>(null);
+  const [mountNode, setMountNode] = useState<HTMLElement | null>(null);
   const [ready, setReady] = useState(false);
   const [activeThemeVars, setActiveThemeVars] = useState<Record<string, string>>({});
   const globalStyles = useBuilderStore((s) => s.ast.globalStyles);
@@ -52,10 +52,73 @@ export function CanvasFrame({
     };
   }, []);
 
-  useEffect(() => {
+  const syncStyles = useCallback((doc: Document) => {
+    if (!doc.head || !doc.documentElement) return;
+    doc.documentElement.className = document.documentElement.className;
+    doc.documentElement.dir = "rtl";
+    doc.documentElement.lang = "fa";
+    const parentStyle = document.documentElement.getAttribute("style");
+    if (parentStyle) doc.documentElement.setAttribute("style", parentStyle);
+
+    const hrefs = new Set(
+      Array.from(doc.head.querySelectorAll("link[rel='stylesheet']")).map(
+        (l) => (l as HTMLLinkElement).href
+      )
+    );
+    document.querySelectorAll("link[rel='stylesheet']").forEach((link) => {
+      const href = (link as HTMLLinkElement).href;
+      if (href && !hrefs.has(href)) {
+        doc.head.appendChild(link.cloneNode(true));
+      }
+    });
+
+    const styles = new Set(
+      Array.from(doc.head.querySelectorAll("style")).map((s) => s.textContent)
+    );
+    document.querySelectorAll("style").forEach((style) => {
+      if (style.textContent && !styles.has(style.textContent)) {
+        doc.head.appendChild(style.cloneNode(true));
+      }
+    });
+
+    // Two-Layer Design Tokens:
+    // Layer 1 (Base): Active SiteTheme variables
+    const hslKeys = new Set(["--primary", "--secondary", "--background", "--foreground", "--border", "--muted", "--ring", "--input", "--card", "--popover"]);
+    for (const [key, val] of Object.entries(activeThemeVars)) {
+      if (hslKeys.has(key) && String(val).startsWith("#")) {
+        doc.documentElement.style.setProperty(key, hexToHslChannels(String(val)));
+        doc.documentElement.style.setProperty(`--theme-${key.slice(2)}`, String(val));
+      } else {
+        doc.documentElement.style.setProperty(key, val);
+      }
+    }
+
+    // Layer 2 (Override): Page-level globalStyles
+    const gs = useBuilderStore.getState().ast.globalStyles;
+    if (gs?.primaryColor) {
+      const pVal = String(gs.primaryColor);
+      doc.documentElement.style.setProperty("--primary", pVal.startsWith("#") ? hexToHslChannels(pVal) : pVal);
+      doc.documentElement.style.setProperty("--theme-primary", pVal);
+    }
+    if (gs?.secondaryColor) {
+      const sVal = String(gs.secondaryColor);
+      doc.documentElement.style.setProperty("--secondary", sVal.startsWith("#") ? hexToHslChannels(sVal) : sVal);
+      doc.documentElement.style.setProperty("--theme-secondary", sVal);
+    }
+    if (gs?.borderRadius) {
+      doc.documentElement.style.setProperty("--radius", String(gs.borderRadius));
+    }
+    if (gs?.fontFamily === "system-ui") {
+      doc.documentElement.style.setProperty("--font-vazirmatn", "system-ui, sans-serif");
+    } else if (gs?.fontFamily) {
+      doc.documentElement.style.setProperty("--font-vazirmatn", String(gs.fontFamily));
+    }
+  }, [activeThemeVars]);
+
+  const initIframe = useCallback(() => {
     const iframe = iframeRef.current;
     if (!iframe) return;
-    const doc = iframe.contentDocument;
+    const doc = iframe.contentDocument || iframe.contentWindow?.document;
     if (!doc) return;
 
     if (!doc.getElementById("builder-canvas-mount")) {
@@ -81,83 +144,9 @@ export function CanvasFrame({
     const mount = doc.getElementById("builder-canvas-mount");
     if (!mount) return;
 
-    if (!rootRef.current) {
-      rootRef.current = createRoot(mount);
-    }
-
-    const sync = () => {
-      if (!doc.head || !doc.documentElement) return;
-      doc.documentElement.className = document.documentElement.className;
-      doc.documentElement.dir = "rtl";
-      doc.documentElement.lang = "fa";
-      const parentStyle = document.documentElement.getAttribute("style");
-      if (parentStyle) doc.documentElement.setAttribute("style", parentStyle);
-
-      const hrefs = new Set(
-        Array.from(doc.head.querySelectorAll("link[rel='stylesheet']")).map(
-          (l) => (l as HTMLLinkElement).href
-        )
-      );
-      document.querySelectorAll("link[rel='stylesheet']").forEach((link) => {
-        const href = (link as HTMLLinkElement).href;
-        if (href && !hrefs.has(href)) {
-          doc.head.appendChild(link.cloneNode(true));
-        }
-      });
-
-      const styles = new Set(
-        Array.from(doc.head.querySelectorAll("style")).map((s) => s.textContent)
-      );
-      document.querySelectorAll("style").forEach((style) => {
-        if (style.textContent && !styles.has(style.textContent)) {
-          doc.head.appendChild(style.cloneNode(true));
-        }
-      });
-
-      // Two-Layer Design Tokens:
-      // Layer 1 (Base): Active SiteTheme variables
-      const hslKeys = new Set(["--primary", "--secondary", "--background", "--foreground", "--border", "--muted", "--ring", "--input", "--card", "--popover"]);
-      for (const [key, val] of Object.entries(activeThemeVars)) {
-        if (hslKeys.has(key) && String(val).startsWith("#")) {
-          doc.documentElement.style.setProperty(key, hexToHslChannels(String(val)));
-          doc.documentElement.style.setProperty(`--theme-${key.slice(2)}`, String(val));
-        } else {
-          doc.documentElement.style.setProperty(key, val);
-        }
-      }
-
-      // Layer 2 (Override): Page-level globalStyles
-      const gs = useBuilderStore.getState().ast.globalStyles;
-      if (gs?.primaryColor) {
-        const pVal = String(gs.primaryColor);
-        doc.documentElement.style.setProperty("--primary", pVal.startsWith("#") ? hexToHslChannels(pVal) : pVal);
-        doc.documentElement.style.setProperty("--theme-primary", pVal);
-      }
-      if (gs?.secondaryColor) {
-        const sVal = String(gs.secondaryColor);
-        doc.documentElement.style.setProperty("--secondary", sVal.startsWith("#") ? hexToHslChannels(sVal) : sVal);
-        doc.documentElement.style.setProperty("--theme-secondary", sVal);
-      }
-      if (gs?.borderRadius) {
-        doc.documentElement.style.setProperty("--radius", String(gs.borderRadius));
-      }
-      if (gs?.fontFamily === "system-ui") {
-        doc.documentElement.style.setProperty("--font-vazirmatn", "system-ui, sans-serif");
-      } else if (gs?.fontFamily) {
-        doc.documentElement.style.setProperty("--font-vazirmatn", String(gs.fontFamily));
-      }
-    };
-
-    sync();
+    syncStyles(doc);
+    setMountNode(mount);
     setReady(true);
-
-    const themeObserver = new MutationObserver(sync);
-    themeObserver.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ["class", "dir", "style"],
-    });
-    const headObserver = new MutationObserver(sync);
-    headObserver.observe(document.head, { childList: true, subtree: true });
 
     const handleDragOver = (e: DragEvent) => {
       e.preventDefault();
@@ -170,65 +159,41 @@ export function CanvasFrame({
 
     return () => {
       doc.removeEventListener("dragover", handleDragOver);
-      themeObserver.disconnect();
-      headObserver.disconnect();
     };
-  }, []);
+  }, [syncStyles]);
 
-  // Render children into the iframe's own root on every change. This root is
-  // separate from the parent's, so the parent's React tree never owns those
-  // nodes — which is the point.
   useEffect(() => {
-    if (!rootRef.current || !ready) return;
-    rootRef.current.render(<>{children}</>);
-  }, [children, ready]);
+    const iframe = iframeRef.current;
+    if (!iframe) return;
 
-  // Two-Layer Design Tokens Injection:
-  // Layer 1 (Base): Active SiteTheme variables
-  // Layer 2 (Override): Page-level globalStyles
+    let cleanup: (() => void) | undefined = initIframe();
+
+    const onLoad = () => {
+      if (cleanup) cleanup();
+      cleanup = initIframe();
+    };
+
+    iframe.addEventListener("load", onLoad);
+    return () => {
+      iframe.removeEventListener("load", onLoad);
+      if (cleanup) cleanup();
+    };
+  }, [initIframe]);
+
+  // Two-Layer Design Tokens Injection updates
   useEffect(() => {
     const iframe = iframeRef.current;
     if (!iframe || !ready) return;
-    const doc = iframe.contentDocument;
+    const doc = iframe.contentDocument || iframe.contentWindow?.document;
     if (!doc?.documentElement) return;
-
-    // Apply Layer 1
-    for (const [key, val] of Object.entries(activeThemeVars)) {
-      doc.documentElement.style.setProperty(key, val);
-    }
-
-    // Apply Layer 2 (Override)
-    if (globalStyles?.primaryColor) {
-      doc.documentElement.style.setProperty("--primary", String(globalStyles.primaryColor));
-    }
-    if (globalStyles?.secondaryColor) {
-      doc.documentElement.style.setProperty("--secondary", String(globalStyles.secondaryColor));
-    }
-    if (globalStyles?.borderRadius) {
-      doc.documentElement.style.setProperty("--radius", String(globalStyles.borderRadius));
-    }
-    if (globalStyles?.fontFamily === "system-ui") {
-      doc.documentElement.style.setProperty("--font-vazirmatn", "system-ui, sans-serif");
-    } else if (globalStyles?.fontFamily) {
-      doc.documentElement.style.setProperty("--font-vazirmatn", String(globalStyles.fontFamily));
-    }
-  }, [activeThemeVars, globalStyles, ready]);
-
-  useEffect(() => {
-    return () => {
-      const root = rootRef.current;
-      rootRef.current = null;
-      // Unmount after the current commit; unmounting synchronously during a
-      // parent unmount trips React's "cannot unmount while rendering" guard.
-      setTimeout(() => root?.unmount(), 0);
-    };
-  }, []);
+    syncStyles(doc);
+  }, [activeThemeVars, globalStyles, ready, syncStyles]);
 
   // Keep the frame tall enough for its content (no nested scrollbars).
   useEffect(() => {
     const iframe = iframeRef.current;
     if (!iframe || !ready) return;
-    const doc = iframe.contentDocument;
+    const doc = iframe.contentDocument || iframe.contentWindow?.document;
     if (!doc?.body) return;
     const update = () => {
       const h = Math.max(doc.body.scrollHeight, doc.documentElement.scrollHeight, 700);
@@ -257,6 +222,7 @@ export function CanvasFrame({
           className="w-full border-0 block bg-background"
           style={{ minHeight: "750px" }}
         />
+        {mountNode && createPortal(children, mountNode)}
       </div>
     </div>
   );

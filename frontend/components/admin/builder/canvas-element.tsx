@@ -73,6 +73,20 @@ function CanvasElementComponent({
   const setHoveredElement = useBuilderStore((s) => s.setHoveredElement);
   const deleteElement = useBuilderStore((s) => s.deleteElement);
   const duplicateElement = useBuilderStore((s) => s.duplicateElement);
+
+  // Dynamic clearance detection: check if element is near the canvas top
+  useEffect(() => {
+    if (!elementRef.current) return;
+    const updateClearance = () => {
+      if (elementRef.current) {
+        const rect = elementRef.current.getBoundingClientRect();
+        setIsNearTop(rect.top < 36);
+      }
+    };
+    updateClearance();
+    window.addEventListener("scroll", updateClearance, true);
+    return () => window.removeEventListener("scroll", updateClearance, true);
+  }, [isSelected]);
   const addElement = useBuilderStore((s) => s.addElement);
   const moveElement = useBuilderStore((s) => s.moveElement);
   const copyElement = useBuilderStore((s) => s.copyElement);
@@ -1130,7 +1144,7 @@ function CanvasElementComponent({
         isContainer ? containerClasses : "block",
         !previewMode && "outline outline-1 outline-transparent transition-all",
         !previewMode && isHovered && "outline-dashed outline-sky-500/80 bg-sky-500/5",
-        !previewMode && isSelected && "outline-2 outline-primary bg-primary/5 shadow-sm z-20",
+        !previewMode && isSelected && "outline-2 outline-primary ring-2 ring-primary/20 bg-primary/5 shadow-md z-40 relative",
         !previewMode && isDragOver && "outline-2 outline-emerald-500 bg-emerald-500/10 shadow-lg ring-2 ring-emerald-500/30",
         element.isHidden && "opacity-50",
         element.styles?.animation && element.styles.animation !== "none" && `builder-animate-${element.styles.animation}`,
@@ -1142,8 +1156,8 @@ function CanvasElementComponent({
       {!previewMode && isSelected && (
         <div
           className={cn(
-            "absolute start-0 flex items-center gap-1 bg-primary text-primary-foreground text-[11px] font-bold px-2 py-0.5 shadow-md z-30 pointer-events-auto transition-all",
-            isNearTop ? "top-full mt-1.5 rounded-md" : "-top-7 rounded-t-md"
+            "absolute start-0 flex items-center gap-1.5 bg-primary text-primary-foreground text-xs font-bold px-2.5 py-1 shadow-xl z-50 pointer-events-auto border border-primary-foreground/20 transition-all",
+            isNearTop ? "top-full mt-1.5 rounded-lg" : "-top-8 rounded-t-lg"
           )}
           onClick={(e) => e.stopPropagation()}
         >
@@ -1158,21 +1172,21 @@ function CanvasElementComponent({
               );
               e.dataTransfer.effectAllowed = "move";
             }}
-            className="cursor-grab active:cursor-grabbing p-0.5 hover:bg-primary-foreground/20 rounded"
+            className="cursor-grab active:cursor-grabbing p-1 hover:bg-primary-foreground/20 rounded"
             title="جابه‌جایی"
           >
             <GripVertical className="w-3.5 h-3.5" />
           </span>
 
-          <span>{element.name}</span>
+          <span className="pe-1">{element.name}</span>
 
-          {element.isLocked && <Lock className="w-3 h-3 text-amber-300" />}
-          {element.isHidden && <EyeOff className="w-3 h-3 text-slate-300" />}
+          {element.isLocked && <Lock className="w-3.5 h-3.5 text-amber-200" />}
+          {element.isHidden && <EyeOff className="w-3.5 h-3.5 text-primary-foreground/70" />}
 
-          <div className="flex items-center gap-0.5 ms-2 border-s border-primary-foreground/30 ps-1">
+          <div className="flex items-center gap-0.5 ms-2 border-s border-primary-foreground/30 ps-1.5">
             {element.globalComponentId ? (
               <span className="flex items-center gap-1 text-[10px] text-emerald-300 font-bold px-1" title="کامپوننت سراسری همگام">
-                <Globe className="w-3 h-3 animate-pulse" />
+                <Globe className="w-3.5 h-3.5 animate-pulse" />
                 <span>همگام</span>
               </span>
             ) : (
@@ -1188,7 +1202,7 @@ function CanvasElementComponent({
                 className="p-1 hover:bg-primary-foreground/20 rounded transition text-emerald-300 hover:text-white"
                 title="تبدیل به کامپوننت همگام سراسری (Global Component)"
               >
-                <Globe className="w-3 h-3" />
+                <Globe className="w-3.5 h-3.5" />
               </button>
             )}
 
@@ -1204,7 +1218,7 @@ function CanvasElementComponent({
               className="p-1 hover:bg-primary-foreground/20 rounded transition"
               title="کپی المان (Ctrl+C)"
             >
-              <Copy className="w-3 h-3" />
+              <Copy className="w-3.5 h-3.5" />
             </button>
 
             <button
@@ -1219,17 +1233,17 @@ function CanvasElementComponent({
               className="p-1 hover:bg-primary-foreground/20 rounded transition"
               title="کپی استایل‌ها (Copy Styles)"
             >
-              <Palette className="w-3 h-3" />
+              <Palette className="w-3.5 h-3.5" />
             </button>
 
             {isContainer && (
               <button
                 type="button"
                 onClick={() => setSaveTemplateOpen(true)}
-                className="p-1 hover:bg-primary-foreground/20 rounded transition text-amber-300 hover:text-white"
+                className="p-1 hover:bg-primary-foreground/20 rounded transition text-amber-200 hover:text-white"
                 title="ذخیره به عنوان قالب (Save as Template)"
               >
-                <BookmarkPlus className="w-3 h-3" />
+                <BookmarkPlus className="w-3.5 h-3.5" />
               </button>
             )}
             <button
@@ -1238,15 +1252,15 @@ function CanvasElementComponent({
               className="p-1 hover:bg-primary-foreground/20 rounded transition"
               title="تکثیر (Duplicate)"
             >
-              <Plus className="w-3 h-3" />
+              <Plus className="w-3.5 h-3.5" />
             </button>
             <button
               type="button"
               onClick={() => deleteElement(element.id)}
-              className="p-1 hover:bg-destructive text-destructive-foreground hover:text-white rounded transition"
+              className="p-1 hover:bg-destructive hover:text-white rounded transition text-destructive-foreground"
               title="حذف"
             >
-              <Trash2 className="w-3 h-3" />
+              <Trash2 className="w-3.5 h-3.5" />
             </button>
           </div>
         </div>
@@ -1292,12 +1306,22 @@ function CanvasElementComponent({
           ))
         ) : (
           !previewMode && (
-            <div className="flex flex-col items-center justify-center p-8 border-2 border-dashed border-border/80 rounded-xl bg-card/40 text-center w-full min-h-[120px]">
-              <span className="text-xs font-semibold text-muted-foreground mb-1">
-                کانتینر خالی
+            <div
+              onClick={(e) => {
+                e.stopPropagation();
+                selectElement(element.id);
+                useBuilderStore.getState().setLeftTab("blocks");
+              }}
+              className="flex flex-col items-center justify-center p-6 border-2 border-dashed border-primary/40 hover:border-primary/80 rounded-2xl bg-card/60 hover:bg-primary/5 transition-all cursor-pointer text-center w-full min-h-[96px] my-1 shadow-xs group/empty"
+            >
+              <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center mb-1.5 group-hover/empty:bg-primary group-hover/empty:text-primary-foreground transition-colors shadow-xs">
+                <Plus className="w-4 h-4" />
+              </div>
+              <span className="text-xs font-bold text-foreground group-hover/empty:text-primary transition-colors">
+                + افزودن بلوک به این بخش
               </span>
-              <span className="text-[11px] text-muted-foreground/70">
-                بلوک‌ها را از پنل سمت چپ به اینجا بکشید یا کلیک کنید
+              <span className="text-[10px] text-muted-foreground mt-0.5">
+                کانتینر آماده درج محتوا است (برای انتخاب و افزودن کلیک کنید)
               </span>
             </div>
           )

@@ -32,6 +32,6 @@
     }
   },
   "enabledPlugins": {
-    "superpowers@superpowers-dev": true
+    "superpowers@superpowers-dev": false
   }
 }

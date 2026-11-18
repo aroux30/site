@@ -22,11 +22,12 @@ async function fetchWithRetry(url: string, init?: RequestInit, retries = 3): Pro
  * used. A worktree without its own ``.env`` would fall back to the default
  * secret and every token would be rejected as "Invalid token".
  */
-import { execFileSync } from "node:child_process";
+import { execSync } from "node:child_process";
 import path from "node:path";
+import fs from "node:fs";
 
 export async function createAccessTokenForE2E(): Promise<string> {
-  const repoRoot = path.resolve(__dirname, "../../../..");
+  const repoRoot = path.resolve(process.cwd(), "..");
   const backendDir = process.env.E2E_BACKEND_DIR || path.join(repoRoot, "backend");
 
   const script = `
@@ -48,7 +49,7 @@ async def main():
     except Exception:
         pass
 
-    print(create_access_token(
+    print("TOKEN_START:" + create_access_token(
         user_id,
         extra_claims={"roles": ["super_admin"], "is_superuser": True, "permissions": ["*"]},
         expires_delta=datetime.timedelta(hours=2),
@@ -57,17 +58,22 @@ async def main():
 asyncio.run(main())
 `;
 
-  const out = execFileSync("python", ["-c", script], {
-    cwd: backendDir,
-    encoding: "utf8",
-  });
-  // structlog writes an info line to stdout before the token; the token is the
-  // last non-empty line.
-  const token = out
-    .split("\n")
-    .map((line) => line.trim())
-    .filter(Boolean)
-    .pop();
+  const tmpFile = path.join(backendDir, `.e2e-token-${Date.now()}.py`);
+  fs.writeFileSync(tmpFile, script, "utf8");
+  let out = "";
+  try {
+    out = execSync(`python "${tmpFile}"`, {
+      cwd: backendDir,
+      encoding: "utf8",
+    });
+  } finally {
+    if (fs.existsSync(tmpFile)) {
+      try { fs.unlinkSync(tmpFile); } catch {}
+    }
+  }
+
+  const line = out.split("\n").find((l) => l.includes("TOKEN_START:"));
+  const token = line ? line.replace("TOKEN_START:", "").trim() : "";
 
   if (!token || token.split(".").length !== 3) {
     throw new Error(

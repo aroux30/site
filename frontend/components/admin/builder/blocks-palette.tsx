@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useMemo, useEffect, useCallback } from "react";
-import { Search, Sparkles, Layout, Box, Loader2, Bookmark, FolderHeart, Eye, Pencil, Trash2, Copy } from "lucide-react";
+import { Search, Sparkles, Layout, Box, Loader2, Bookmark, FolderHeart, Eye, Pencil, Trash2, Copy, Plus } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -411,14 +411,24 @@ export function BlocksPalette() {
                           e.dataTransfer.effectAllowed = "all";
                         }}
                         onClick={() => handleAddBasicBlock(block)}
-                        className="flex flex-col items-center justify-center p-3 rounded-xl border border-border/80 bg-card hover:bg-muted/50 hover:border-primary/50 text-center transition shadow-sm group cursor-grab active:cursor-grabbing"
-                        title="کلیک برای افزودن، یا کشیدن با ماوس به داخل بوم"
+                        className="flex flex-col items-start justify-between p-2.5 rounded-xl border border-border/80 bg-card hover:bg-muted/50 hover:border-primary/50 text-start transition shadow-xs group cursor-grab active:cursor-grabbing relative"
+                        title="کلیک برای درج فوری، یا کشیدن با ماوس به داخل بوم"
                       >
-                        <Icon className="w-5 h-5 text-muted-foreground group-hover:text-primary mb-1.5 transition-colors" />
-                        <span className="text-xs font-semibold text-foreground line-clamp-1">
+                        <div className="flex items-center justify-between w-full mb-1">
+                          <div className="p-1.5 rounded-lg bg-muted/80 text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary transition-colors">
+                            <Icon className="w-4 h-4" />
+                          </div>
+                          <span
+                            className="p-1 rounded-md bg-muted/80 text-muted-foreground group-hover:bg-primary group-hover:text-primary-foreground transition-all shadow-xs"
+                            title="درج فوری در بوم"
+                          >
+                            <Plus className="w-3.5 h-3.5" />
+                          </span>
+                        </div>
+                        <span className="text-xs font-bold text-foreground line-clamp-1 w-full mt-1">
                           {(block.name.split("(")[0] ?? block.name).trim()}
                         </span>
-                        <span className="text-[10px] text-muted-foreground mt-0.5 line-clamp-1">
+                        <span className="text-[10px] text-muted-foreground mt-0.5 line-clamp-1 w-full">
                           {block.description}
                         </span>
                       </button>
@@ -450,14 +460,24 @@ export function BlocksPalette() {
                           e.dataTransfer.effectAllowed = "all";
                         }}
                         onClick={() => handleAddBasicBlock(block)}
-                        className="flex flex-col items-center justify-center p-3 rounded-xl border border-border/80 bg-card hover:bg-muted/50 hover:border-primary/50 text-center transition shadow-sm group cursor-grab active:cursor-grabbing"
-                        title="کلیک برای افزودن، یا کشیدن با ماوس به داخل بوم"
+                        className="flex flex-col items-start justify-between p-2.5 rounded-xl border border-border/80 bg-card hover:bg-muted/50 hover:border-primary/50 text-start transition shadow-xs group cursor-grab active:cursor-grabbing relative"
+                        title="کلیک برای درج فوری، یا کشیدن با ماوس به داخل بوم"
                       >
-                        <Icon className="w-5 h-5 text-muted-foreground group-hover:text-primary mb-1.5 transition-colors" />
-                        <span className="text-xs font-semibold text-foreground line-clamp-1">
+                        <div className="flex items-center justify-between w-full mb-1">
+                          <div className="p-1.5 rounded-lg bg-muted/80 text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary transition-colors">
+                            <Icon className="w-4 h-4" />
+                          </div>
+                          <span
+                            className="p-1 rounded-md bg-muted/80 text-muted-foreground group-hover:bg-primary group-hover:text-primary-foreground transition-all shadow-xs"
+                            title="درج فوری در بوم"
+                          >
+                            <Plus className="w-3.5 h-3.5" />
+                          </span>
+                        </div>
+                        <span className="text-xs font-bold text-foreground line-clamp-1 w-full mt-1">
                           {(block.name.split("(")[0] ?? block.name).trim()}
                         </span>
-                        <span className="text-[10px] text-muted-foreground mt-0.5 line-clamp-1">
+                        <span className="text-[10px] text-muted-foreground mt-0.5 line-clamp-1 w-full">
                           {block.description}
                         </span>
                       </button>
@@ -510,9 +530,17 @@ export function BlocksPalette() {
                         <span className="text-xs font-bold text-foreground group-hover:text-primary transition-colors">
                           {pattern.title}
                         </span>
-                        <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4">
-                          {pattern.category}
-                        </Badge>
+                        <div className="flex items-center gap-1.5">
+                          <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4">
+                            {pattern.category}
+                          </Badge>
+                          <span
+                            className="p-1 rounded-md bg-muted/80 text-muted-foreground group-hover:bg-primary group-hover:text-primary-foreground transition-all shadow-xs"
+                            title="درج فوری الگو در بوم"
+                          >
+                            <Plus className="w-3.5 h-3.5" />
+                          </span>
+                        </div>
                       </div>
                       <p className="text-[11px] text-muted-foreground line-clamp-2 leading-relaxed">
                         {pattern.description}

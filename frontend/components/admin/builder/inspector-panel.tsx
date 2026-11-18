@@ -1864,7 +1864,7 @@ export function InspectorPanel() {
   };
 
   return (
-    <div className="flex flex-col h-full bg-card border-s border-border select-none">
+    <div className="flex flex-col h-full bg-card border-s border-border select-none" dir="rtl">
       <div className="px-4 py-3 border-b border-border/80 flex items-center justify-between bg-muted/30">
         <div className="truncate">
           <span className="text-xs font-bold text-foreground block truncate">
@@ -1881,14 +1881,14 @@ export function InspectorPanel() {
         onValueChange={(val) => setInspectorTab(val as InspectorTab)}
         className="flex-1 flex flex-col"
       >
-        <TabsList className="grid grid-cols-3 h-9 mx-3 my-2 rounded-lg bg-muted/60 p-0.5">
-          <TabsTrigger value="content" className="text-xs py-1">
+        <TabsList className="grid grid-cols-3 h-9 mx-3 my-2 rounded-xl bg-muted/70 p-1 border border-border/60">
+          <TabsTrigger value="content" className="text-xs py-1 font-semibold rounded-lg">
             محتوا
           </TabsTrigger>
-          <TabsTrigger value="style" className="text-xs py-1">
+          <TabsTrigger value="style" className="text-xs py-1 font-semibold rounded-lg">
             استایل
           </TabsTrigger>
-          <TabsTrigger value="advanced" className="text-xs py-1">
+          <TabsTrigger value="advanced" className="text-xs py-1 font-semibold rounded-lg">
             پیشرفته
           </TabsTrigger>
         </TabsList>

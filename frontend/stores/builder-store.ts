@@ -218,6 +218,8 @@ export interface BuilderState {
   deleteElement: (id: string) => void;
   deleteSelectedElements: () => void;
   duplicateElement: (id: string) => void;
+  toggleHideElement: (id: string) => void;
+  toggleLockElement: (id: string) => void;
   updateGlobalStyles: (styles: Record<string, unknown>) => void;
 
   // Productivity & Clipboard (P4)
@@ -487,6 +489,36 @@ export const useBuilderStore = create<BuilderState>((set, get) => ({
     set({
       ast: { ...ast, rootElements: updatedRoots },
       selectedElementId: cloned.id,
+      isDirty: true,
+      mutationVersion: get().mutationVersion + 1,
+      history: { past: newPast, future: [] },
+    });
+  },
+
+  toggleHideElement: (id) => {
+    const { ast, history } = get();
+    const newPast = [...history.past, ast].slice(-MAX_HISTORY_LENGTH);
+    const updatedRoots = updateElementInTree(ast.rootElements, id, (el) => ({
+      ...el,
+      isHidden: !el.isHidden,
+    }));
+    set({
+      ast: { ...ast, rootElements: updatedRoots },
+      isDirty: true,
+      mutationVersion: get().mutationVersion + 1,
+      history: { past: newPast, future: [] },
+    });
+  },
+
+  toggleLockElement: (id) => {
+    const { ast, history } = get();
+    const newPast = [...history.past, ast].slice(-MAX_HISTORY_LENGTH);
+    const updatedRoots = updateElementInTree(ast.rootElements, id, (el) => ({
+      ...el,
+      isLocked: !el.isLocked,
+    }));
+    set({
+      ast: { ...ast, rootElements: updatedRoots },
       isDirty: true,
       mutationVersion: get().mutationVersion + 1,
       history: { past: newPast, future: [] },

@@ -63,7 +63,7 @@ export function CanvasFrame({
       doc.write(
         '<!DOCTYPE html><html lang="fa" dir="rtl"><head><meta charset="utf-8"/>' +
           '<meta name="viewport" content="width=device-width, initial-scale=1"/>' +
-          '<style>body{margin:0;padding:24px;min-height:100vh;box-sizing:border-box;}' +
+          '<style>body{margin:0;padding:36px 24px 24px 24px;min-height:100vh;box-sizing:border-box;}' +
           'a{pointer-events:none!important;}' +
           '@keyframes builderFadeIn{from{opacity:0;}to{opacity:1;}}' +
           '@keyframes builderSlideUp{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}' +

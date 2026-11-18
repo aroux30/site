@@ -307,7 +307,7 @@ export function BlocksPalette() {
           }`}
         >
           <Box className="w-3 h-3 shrink-0" />
-          <span className="truncate">بلوک‌های پایه ({filteredBasicBlocks.length})</span>
+          <span className="truncate">بلوک‌ها ({filteredBasicBlocks.length})</span>
         </button>
 
         <button
@@ -320,7 +320,7 @@ export function BlocksPalette() {
           }`}
         >
           <Sparkles className="w-3 h-3 text-amber-500 shrink-0" />
-          <span className="truncate">الگوهای آماده ({allPatterns.length})</span>
+          <span className="truncate">الگوها ({allPatterns.length})</span>
         </button>
 
         <button

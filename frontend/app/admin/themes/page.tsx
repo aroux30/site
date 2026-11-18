@@ -47,6 +47,7 @@ import {
   type ThemeRevision,
 } from "@/lib/api/themes";
 import { DEFAULT_THEME_TOKENS } from "@/lib/builder/theme-schema";
+import { toValidHexColor } from "@/lib/builder/color-utils";
 import { checkWcagCompliance } from "@/lib/wcag-contrast";
 
 const COLOR_PRESETS = [
@@ -640,7 +641,7 @@ export default function AdminThemesPage() {
                     <div className="flex items-center gap-2">
                       <input
                         type="color"
-                        value={formPrimary}
+                        value={toValidHexColor(formPrimary, "#059669")}
                         onChange={(e) => setFormPrimary(e.target.value)}
                         className="w-7 h-7 rounded cursor-pointer border"
                       />
@@ -678,7 +679,7 @@ export default function AdminThemesPage() {
                     <div className="flex items-center gap-2">
                       <input
                         type="color"
-                        value={formSecondary}
+                        value={toValidHexColor(formSecondary, "#0d9488")}
                         onChange={(e) => setFormSecondary(e.target.value)}
                         className="w-7 h-7 rounded cursor-pointer border"
                       />
@@ -705,7 +706,7 @@ export default function AdminThemesPage() {
                       <div className="flex items-center gap-1.5 mt-1">
                         <input
                           type="color"
-                          value={formBackground}
+                          value={toValidHexColor(formBackground, "#ffffff")}
                           onChange={(e) => setFormBackground(e.target.value)}
                           className="w-6 h-6 rounded cursor-pointer border"
                         />
@@ -722,7 +723,7 @@ export default function AdminThemesPage() {
                       <div className="flex items-center gap-1.5 mt-1">
                         <input
                           type="color"
-                          value={formForeground}
+                          value={toValidHexColor(formForeground, "#09090b")}
                           onChange={(e) => setFormForeground(e.target.value)}
                           className="w-6 h-6 rounded cursor-pointer border"
                         />
@@ -739,7 +740,7 @@ export default function AdminThemesPage() {
                       <div className="flex items-center gap-1.5 mt-1">
                         <input
                           type="color"
-                          value={formSurface}
+                          value={toValidHexColor(formSurface, "#f8fafc")}
                           onChange={(e) => setFormSurface(e.target.value)}
                           className="w-6 h-6 rounded cursor-pointer border"
                         />
@@ -756,7 +757,7 @@ export default function AdminThemesPage() {
                       <div className="flex items-center gap-1.5 mt-1">
                         <input
                           type="color"
-                          value={formBorder}
+                          value={toValidHexColor(formBorder, "#e2e8f0")}
                           onChange={(e) => setFormBorder(e.target.value)}
                           className="w-6 h-6 rounded cursor-pointer border"
                         />
@@ -783,7 +784,7 @@ export default function AdminThemesPage() {
                       <div className="flex items-center gap-1.5 mt-1">
                         <input
                           type="color"
-                          value={formSuccess}
+                          value={toValidHexColor(formSuccess, "#16a34a")}
                           onChange={(e) => setFormSuccess(e.target.value)}
                           className="w-6 h-6 rounded cursor-pointer border"
                         />
@@ -800,7 +801,7 @@ export default function AdminThemesPage() {
                       <div className="flex items-center gap-1.5 mt-1">
                         <input
                           type="color"
-                          value={formWarning}
+                          value={toValidHexColor(formWarning, "#f59e0b")}
                           onChange={(e) => setFormWarning(e.target.value)}
                           className="w-6 h-6 rounded cursor-pointer border"
                         />
@@ -817,7 +818,7 @@ export default function AdminThemesPage() {
                       <div className="flex items-center gap-1.5 mt-1">
                         <input
                           type="color"
-                          value={formDestructive}
+                          value={toValidHexColor(formDestructive, "#e11d48")}
                           onChange={(e) => setFormDestructive(e.target.value)}
                           className="w-6 h-6 rounded cursor-pointer border"
                         />
@@ -834,7 +835,7 @@ export default function AdminThemesPage() {
                       <div className="flex items-center gap-1.5 mt-1">
                         <input
                           type="color"
-                          value={formInfo}
+                          value={toValidHexColor(formInfo, "#2563eb")}
                           onChange={(e) => setFormInfo(e.target.value)}
                           className="w-6 h-6 rounded cursor-pointer border"
                         />

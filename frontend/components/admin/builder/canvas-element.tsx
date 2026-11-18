@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState, useRef, useEffect } from "react";
 import {
   GripVertical,
   Copy,
@@ -40,6 +40,7 @@ import { MegaMenu } from "@/components/layout/mega-menu";
 import { Badge } from "@/components/ui/badge";
 import { useCartStore } from "@/stores/cart-store";
 import { useToast } from "@/components/ui/use-toast";
+import { normalizeCssColor } from "@/lib/builder/color-utils";
 import type { BuilderElement, DeviceStyle, ResponsiveStyles } from "@/types/builder";
 
 interface CanvasElementProps {
@@ -60,6 +61,8 @@ function CanvasElementComponent({
   const [selectedVariantId, setSelectedVariantId] = useState<string>("var_1");
   const [cartQuantity, setCartQuantity] = useState(1);
   const [activeGridFilter, setActiveGridFilter] = useState<string>("all");
+  const elementRef = useRef<HTMLDivElement>(null);
+  const [isNearTop, setIsNearTop] = useState(false);
 
   // Performance-optimized fine-grained selectors (P5 Hardening):
   // Subscribe to boolean expressions instead of full AST tree, preventing cascade re-renders
@@ -98,6 +101,13 @@ function CanvasElementComponent({
       return null;
     }
   };
+
+  useEffect(() => {
+    if (isSelected && elementRef.current) {
+      const rect = elementRef.current.getBoundingClientRect();
+      setIsNearTop(rect.top < 28);
+    }
+  }, [isSelected]);
 
   const onDragOver = useCallback(
     (e: React.DragEvent) => {
@@ -229,7 +239,7 @@ function CanvasElementComponent({
       if (fontObj.fontWeight && fontObj.fontWeight !== "inherit") styleObj.fontWeight = fontObj.fontWeight;
       if (fontObj.lineHeight) styleObj.lineHeight = `${fontObj.lineHeight.value}${fontObj.lineHeight.unit}`;
       if (fontObj.textAlign && fontObj.textAlign !== "inherit") styleObj.textAlign = fontObj.textAlign;
-      if (fontObj.color) styleObj.color = fontObj.color;
+      if (fontObj.color) styleObj.color = normalizeCssColor(fontObj.color);
       if (fontObj.fontFamily && fontObj.fontFamily !== "inherit") {
         styleObj.fontFamily = fontObj.fontFamily.startsWith("var(")
           ? fontObj.fontFamily
@@ -244,7 +254,7 @@ function CanvasElementComponent({
     if (borderObj) {
       if (borderObj.style !== "none") {
         styleObj.borderStyle = borderObj.style;
-        if (borderObj.color) styleObj.borderColor = borderObj.color;
+        if (borderObj.color) styleObj.borderColor = normalizeCssColor(borderObj.color);
         if (borderObj.width) {
           styleObj.borderWidth = `${borderObj.width.top.value}${borderObj.width.top.unit}`;
         }
@@ -261,7 +271,7 @@ function CanvasElementComponent({
     const bgObj = resolveResponsiveValue({ mobile: base?.background, tablet: tablet?.background, desktop: desktop?.background }, activeBreakpoint);
     if (bgObj) {
       if (bgObj.type === "color" && bgObj.color) {
-        styleObj.backgroundColor = bgObj.color;
+        styleObj.backgroundColor = normalizeCssColor(bgObj.color);
       } else if (bgObj.type === "gradient" && bgObj.gradient) {
         styleObj.backgroundImage = `linear-gradient(${bgObj.gradient.direction.replace("to-", "to ")}, ${bgObj.gradient.fromColor}, ${bgObj.gradient.toColor})`;
       } else if (bgObj.type === "image" && bgObj.imageUrl) {
@@ -1107,6 +1117,7 @@ function CanvasElementComponent({
 
   return (
     <div
+      ref={elementRef}
       style={elementStyles}
       onClick={handleClick}
       onMouseEnter={handleMouseEnter}
@@ -1130,7 +1141,10 @@ function CanvasElementComponent({
       {/* Floating Action Toolbar on Selected Element */}
       {!previewMode && isSelected && (
         <div
-          className="absolute -top-7 start-0 flex items-center gap-1 bg-primary text-primary-foreground text-[11px] font-bold rounded-t-md px-2 py-0.5 shadow-md z-30 pointer-events-auto"
+          className={cn(
+            "absolute start-0 flex items-center gap-1 bg-primary text-primary-foreground text-[11px] font-bold px-2 py-0.5 shadow-md z-30 pointer-events-auto transition-all",
+            isNearTop ? "top-full mt-1.5 rounded-md" : "-top-7 rounded-t-md"
+          )}
           onClick={(e) => e.stopPropagation()}
         >
           {/* Drag Handle — native HTML5 drag (see the note above onDrop). */}

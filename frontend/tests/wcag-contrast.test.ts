@@ -59,4 +59,17 @@ describe("Phase 5 - WCAG 2.1 AA Contrast Utilities", () => {
       expect(resultPoor.isLargeTextAA).toBe(false);
     }
   });
+
+  it("parses space-separated HSL channels and hsl() functions seamlessly", () => {
+    // White background in HSL channels: "0 0% 100%"
+    // Dark foreground in HSL channels: "240 10% 4%"
+    const ratioHsl = getContrastRatio("240 10% 4%", "0 0% 100%");
+    expect(ratioHsl).not.toBeNull();
+    expect(ratioHsl).toBeGreaterThan(15);
+
+    // Functional HSL and RGB syntax
+    const ratioFn = getContrastRatio("hsl(160, 84%, 28%)", "rgb(255, 255, 255)");
+    expect(ratioFn).not.toBeNull();
+    expect(ratioFn).toBeGreaterThanOrEqual(3.0);
+  });
 });

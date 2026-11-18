@@ -53,13 +53,89 @@ export function getRelativeLuminance(rgb: RGB): number {
 }
 
 /**
- * Calculates the WCAG contrast ratio between two hex colors.
+ * Convert HSL to RGB. H in [0, 360], S in [0, 100], L in [0, 100].
+ */
+export function hslToRgb(h: number, s: number, l: number): RGB {
+  const sNorm = s / 100;
+  const lNorm = l / 100;
+  const c = (1 - Math.abs(2 * lNorm - 1)) * sNorm;
+  const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
+  const m = lNorm - c / 2;
+  let r = 0, g = 0, b = 0;
+
+  if (0 <= h && h < 60) {
+    r = c; g = x; b = 0;
+  } else if (60 <= h && h < 120) {
+    r = x; g = c; b = 0;
+  } else if (120 <= h && h < 180) {
+    r = 0; g = c; b = x;
+  } else if (180 <= h && h < 240) {
+    r = 0; g = x; b = c;
+  } else if (240 <= h && h < 300) {
+    r = x; g = 0; b = c;
+  } else if (300 <= h && h <= 360) {
+    r = c; g = 0; b = x;
+  }
+
+  return {
+    r: Math.round((r + m) * 255),
+    g: Math.round((g + m) * 255),
+    b: Math.round((b + m) * 255),
+  };
+}
+
+/**
+ * Universal color parser: parses HEX (#fff, #059669), HSL string ('hsl(160, 84%, 39%)'),
+ * space-separated HSL channels ('160 84% 39%'), or RGB string ('rgb(5, 150, 105)').
+ */
+export function parseColorToRgb(color: string): RGB | null {
+  if (!color || typeof color !== "string") return null;
+  const str = color.trim().toLowerCase();
+
+  // 1. Hex
+  if (str.startsWith("#") || /^[0-9a-f]{3,6}$/.test(str)) {
+    return hexToRgb(str);
+  }
+
+  // 2. Space-separated HSL channels: e.g. "160 84% 39%"
+  const spaceHslMatch = str.match(/^(\d+(?:\.\d+)?)\s+(\d+(?:\.\d+)?)%\s+(\d+(?:\.\d+)?)%$/);
+  if (spaceHslMatch) {
+    const h = parseFloat(spaceHslMatch[1]!);
+    const s = parseFloat(spaceHslMatch[2]!);
+    const l = parseFloat(spaceHslMatch[3]!);
+    return hslToRgb(h, s, l);
+  }
+
+  // 3. Functional HSL: hsl(160, 84%, 39%) or hsl(160 84% 39%)
+  const fnHslMatch = str.match(/hsla?\(\s*(\d+(?:\.\d+)?)(?:deg)?[\s,]+(\d+(?:\.\d+)?)%[\s,]+(\d+(?:\.\d+)?)%/);
+  if (fnHslMatch) {
+    const h = parseFloat(fnHslMatch[1]!);
+    const s = parseFloat(fnHslMatch[2]!);
+    const l = parseFloat(fnHslMatch[3]!);
+    return hslToRgb(h, s, l);
+  }
+
+  // 4. Functional RGB: rgb(16, 185, 129)
+  const fnRgbMatch = str.match(/rgba?\(\s*(\d+)[\s,]+(\d+)[\s,]+(\d+)/);
+  if (fnRgbMatch) {
+    return {
+      r: Math.min(255, Math.max(0, parseInt(fnRgbMatch[1]!, 10))),
+      g: Math.min(255, Math.max(0, parseInt(fnRgbMatch[2]!, 10))),
+      b: Math.min(255, Math.max(0, parseInt(fnRgbMatch[3]!, 10))),
+    };
+  }
+
+  return null;
+}
+
+/**
+ * Calculates the WCAG contrast ratio between two colors (hex, HSL channels, hsl(), or rgb()).
  * Formula: (L1 + 0.05) / (L2 + 0.05) where L1 is the lighter color.
  * Returns ratio e.g. 4.5 for 4.5:1, or null if color parsing fails.
  */
 export function getContrastRatio(hex1: string, hex2: string): number | null {
-  const rgb1 = hexToRgb(hex1);
-  const rgb2 = hexToRgb(hex2);
+  const rgb1 = parseColorToRgb(hex1);
+  const rgb2 = parseColorToRgb(hex2);
   if (!rgb1 || !rgb2) return null;
 
   const lum1 = getRelativeLuminance(rgb1);

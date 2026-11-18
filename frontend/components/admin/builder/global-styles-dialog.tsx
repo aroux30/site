@@ -20,6 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useBuilderStore } from "@/stores/builder-store";
+import { toValidHexColor } from "@/lib/builder/color-utils";
 
 interface GlobalStylesDialogProps {
   open: boolean;
@@ -102,7 +103,7 @@ export function GlobalStylesDialog({ open, onOpenChange }: GlobalStylesDialogPro
             <div className="flex items-center gap-2">
               <input
                 type="color"
-                value={primary}
+                value={toValidHexColor(primary, "#059669")}
                 onChange={(e) => setPrimary(e.target.value)}
                 className="w-8 h-8 rounded-lg cursor-pointer border border-border"
               />
@@ -138,7 +139,7 @@ export function GlobalStylesDialog({ open, onOpenChange }: GlobalStylesDialogPro
             <div className="flex items-center gap-2">
               <input
                 type="color"
-                value={secondary}
+                value={toValidHexColor(secondary, "#0d9488")}
                 onChange={(e) => setSecondary(e.target.value)}
                 className="w-8 h-8 rounded-lg cursor-pointer border border-border"
               />

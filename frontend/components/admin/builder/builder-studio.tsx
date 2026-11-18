@@ -189,7 +189,7 @@ export function BuilderStudio({ page, onExit }: BuilderStudioProps) {
   const rootElementIds = ast.rootElements.map((el) => el.id);
 
   return (
-    <div className="flex flex-col h-screen w-screen overflow-hidden bg-muted/20 font-sans" dir="rtl">
+    <div className="fixed inset-0 z-50 flex flex-col h-screen w-screen overflow-hidden bg-background font-sans" dir="rtl">
       {/* Concurrent Editing Lock Alert Banner */}
       {lockedByOther && (
         <div className="bg-amber-500/15 border-b border-amber-500/30 text-amber-900 dark:text-amber-200 px-4 py-2 text-xs flex items-center justify-between z-50 shrink-0">
@@ -224,7 +224,7 @@ export function BuilderStudio({ page, onExit }: BuilderStudioProps) {
       <div className="flex-1 flex overflow-hidden relative">
         {/* Left Column: Blocks Palette & Layers Tree */}
         {!previewMode && (
-          <aside className="w-72 bg-card border-e border-border flex flex-col shrink-0 z-20 shadow-sm">
+          <aside className="w-80 bg-card border-e border-border flex flex-col shrink-0 z-20 shadow-sm">
             {/* Sidebar Tab Switcher */}
             <div className="grid grid-cols-2 p-1.5 m-2.5 rounded-xl bg-muted/60 border border-border/60">
               <button

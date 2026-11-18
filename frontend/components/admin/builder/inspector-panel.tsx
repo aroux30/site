@@ -26,6 +26,7 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { MediaPicker } from "@/components/admin/media-picker";
 import { useBuilderStore, findElementById, type InspectorTab } from "@/stores/builder-store";
+import { toValidHexColor, normalizeCssColor } from "@/lib/builder/color-utils";
 import type { DeviceStyle, SpacingBox, UnitType } from "@/types/builder";
 
 export function InspectorPanel() {
@@ -1210,9 +1211,9 @@ export function InspectorPanel() {
           <div className="flex flex-wrap gap-1 mt-1">
             <span className="text-[10px] text-muted-foreground me-1 self-center">توکن‌های عرض:</span>
             {[
-              { label: "تمام عرض (100%)", val: "100%", w: { value: 100, unit: "%" as UnitType } },
-              { label: "کانتینر (1280px)", val: "1280px", w: { value: 1280, unit: "px" as UnitType } },
-              { label: "محتوا (768px)", val: "768px", w: { value: 768, unit: "px" as UnitType } },
+              { label: "۱۰۰٪", w: { value: 100, unit: "%" as UnitType } },
+              { label: "۱۲۸۰px (کانتینر)", w: { value: 1280, unit: "px" as UnitType } },
+              { label: "۷۶۸px (محتوا)", w: { value: 768, unit: "px" as UnitType } },
             ].map((wt) => (
               <button
                 key={wt.label}
@@ -1284,7 +1285,7 @@ export function InspectorPanel() {
           <div className="flex items-center gap-2">
             <input
               type="color"
-              value={currentDeviceStyle.background?.color || "#ffffff"}
+              value={toValidHexColor(currentDeviceStyle.background?.color, "#ffffff")}
               onChange={(e) =>
                 handleDeviceStyleChange({
                   background: {
@@ -1297,12 +1298,12 @@ export function InspectorPanel() {
             />
             <Input
               value={currentDeviceStyle.background?.color || ""}
-              placeholder="#ffffff یا var(--primary)"
+              placeholder="#ffffff یا hsl(var(--primary))"
               onChange={(e) =>
                 handleDeviceStyleChange({
                   background: {
                     type: "color",
-                    color: e.target.value,
+                    color: normalizeCssColor(e.target.value) || e.target.value,
                   },
                 })
               }
@@ -1345,7 +1346,7 @@ export function InspectorPanel() {
           <div className="flex items-center gap-2">
             <input
               type="color"
-              value={currentDeviceStyle.typography?.color || "#09090b"}
+              value={toValidHexColor(currentDeviceStyle.typography?.color, "#09090b")}
               onChange={(e) =>
                 handleDeviceStyleChange({
                   typography: {
@@ -1358,12 +1359,12 @@ export function InspectorPanel() {
             />
             <Input
               value={currentDeviceStyle.typography?.color || ""}
-              placeholder="#000000 یا var(--foreground)"
+              placeholder="#000000 یا hsl(var(--foreground))"
               onChange={(e) =>
                 handleDeviceStyleChange({
                   typography: {
                     ...currentDeviceStyle.typography,
-                    color: e.target.value,
+                    color: normalizeCssColor(e.target.value) || e.target.value,
                   },
                 })
               }

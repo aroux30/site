@@ -172,7 +172,8 @@ def test_compile_theme_css_variables_and_string():
 
     css_str = theme_service.compile_theme_css_string(tokens)
     assert ":root {" in css_str
-    assert "--primary: #059669;" in css_str
+    assert "--theme-primary: #059669;" in css_str
+    assert "--primary: 161 94% 30%;" in css_str
     assert "--radius: 14px;" in css_str
 
 

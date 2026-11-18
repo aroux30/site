@@ -5,6 +5,7 @@ Handles creation, retrieval, updates, revision snapshotting, and atomic activati
 
 from __future__ import annotations
 
+import colorsys
 import uuid
 from typing import TYPE_CHECKING, Any
 
@@ -217,6 +218,53 @@ async def activate_theme(
     return target
 
 
+TAILWIND_HSL_VARS: frozenset[str] = frozenset({
+    "--primary",
+    "--secondary",
+    "--background",
+    "--foreground",
+    "--card",
+    "--card-foreground",
+    "--popover",
+    "--popover-foreground",
+    "--primary-foreground",
+    "--secondary-foreground",
+    "--muted",
+    "--muted-foreground",
+    "--accent",
+    "--accent-foreground",
+    "--destructive",
+    "--destructive-foreground",
+    "--success",
+    "--success-foreground",
+    "--warning",
+    "--warning-foreground",
+    "--info",
+    "--info-foreground",
+    "--border",
+    "--input",
+    "--ring",
+})
+
+
+def hex_to_hsl_channels(hex_str: str) -> str:
+    """Convert HEX color like #10b981 to space-separated HSL channels '160 84% 39%' for Tailwind hsl(var(...))."""
+    clean = str(hex_str).strip().lstrip("#")
+    if len(clean) == 3:
+        clean = "".join(c * 2 for c in clean)
+    if len(clean) != 6:
+        return str(hex_str)
+    try:
+        r, g, b = (int(clean[i : i + 2], 16) / 255.0 for i in (0, 2, 4))
+        h, l, s = colorsys.rgb_to_hls(r, g, b)
+        h_deg = round(h * 360) % 360
+        s_pct = round(s * 100)
+        l_pct = round(l * 100)
+        return f"{h_deg} {s_pct}% {l_pct}%"
+    except Exception:
+        return str(hex_str)
+
+
 def compile_theme_css_variables(tokens_or_theme: dict[str, Any] | SiteTheme) -> dict[str, str]:
     """Compile and resolve DTCG tokens into a flat dictionary of standard CSS variables via DAG resolver."""
     raw_tokens = tokens_or_theme.tokens if isinstance(tokens_or_theme, SiteTheme) else tokens_or_theme
@@ -225,10 +273,35 @@ def compile_theme_css_variables(tokens_or_theme: dict[str, Any] | SiteTheme) -> 
 
 
 def compile_theme_css_string(tokens_or_theme: dict[str, Any] | SiteTheme) -> str:
-    """Compile DTCG tokens into a valid CSS :root stylesheet string."""
+    """Compile DTCG tokens into a valid CSS stylesheet string.
+
+    Tailwind base variables (--primary, --secondary, etc.) are converted to space-separated
+    HSL channels so that `hsl(var(--...))` evaluates to valid colors.
+    Direct HEX values are also emitted under `--theme-*` prefix.
+    Background and foreground are scoped to :root:not(.dark) to preserve dark mode.
+    """
     vars_map = compile_theme_css_variables(tokens_or_theme)
-    lines = [f"  {k}: {v};" for k, v in vars_map.items()]
-    return ":root {\n" + "\n".join(lines) + "\n}"
+    root_lines: list[str] = []
+    light_only_lines: list[str] = []
+
+    for k, v in vars_map.items():
+        clean_key = k.lstrip("-")
+        root_lines.append(f"  --theme-{clean_key}: {v};")
+
+        if k in ("--background", "--foreground", "--card", "--popover"):
+            val_out = hex_to_hsl_channels(v) if str(v).startswith("#") else v
+            light_only_lines.append(f"  {k}: {val_out};")
+        elif k in TAILWIND_HSL_VARS:
+            val_out = hex_to_hsl_channels(v) if str(v).startswith("#") else v
+            root_lines.append(f"  {k}: {val_out};")
+        else:
+            root_lines.append(f"  {k}: {v};")
+
+    blocks = [":root {\n" + "\n".join(root_lines) + "\n}"]
+    if light_only_lines:
+        blocks.append(":root:not(.dark) {\n" + "\n".join(light_only_lines) + "\n}")
+
+    return "\n\n".join(blocks)
 
 
 async def list_theme_revisions(db: AsyncSession, theme_id: uuid.UUID) -> list[ThemeRevision]:

@@ -5,7 +5,7 @@ import { createRoot, type Root } from "react-dom/client";
 import { cn } from "@/lib/utils";
 import { useBuilderStore, type Breakpoint } from "@/stores/builder-store";
 import { themesAdminApi } from "@/lib/api/themes";
-import { extractCssVariablesFromTokens } from "@/lib/builder/theme-schema";
+import { extractCssVariablesFromTokens, hexToHslChannels } from "@/lib/builder/theme-schema";
 
 /**
  * The editor canvas, rendered inside an isolated iframe.
@@ -116,17 +116,27 @@ export function CanvasFrame({
 
       // Two-Layer Design Tokens:
       // Layer 1 (Base): Active SiteTheme variables
+      const hslKeys = new Set(["--primary", "--secondary", "--background", "--foreground", "--border", "--muted", "--ring", "--input", "--card", "--popover"]);
       for (const [key, val] of Object.entries(activeThemeVars)) {
-        doc.documentElement.style.setProperty(key, val);
+        if (hslKeys.has(key) && String(val).startsWith("#")) {
+          doc.documentElement.style.setProperty(key, hexToHslChannels(String(val)));
+          doc.documentElement.style.setProperty(`--theme-${key.slice(2)}`, String(val));
+        } else {
+          doc.documentElement.style.setProperty(key, val);
+        }
       }
 
       // Layer 2 (Override): Page-level globalStyles
       const gs = useBuilderStore.getState().ast.globalStyles;
       if (gs?.primaryColor) {
-        doc.documentElement.style.setProperty("--primary", String(gs.primaryColor));
+        const pVal = String(gs.primaryColor);
+        doc.documentElement.style.setProperty("--primary", pVal.startsWith("#") ? hexToHslChannels(pVal) : pVal);
+        doc.documentElement.style.setProperty("--theme-primary", pVal);
       }
       if (gs?.secondaryColor) {
-        doc.documentElement.style.setProperty("--secondary", String(gs.secondaryColor));
+        const sVal = String(gs.secondaryColor);
+        doc.documentElement.style.setProperty("--secondary", sVal.startsWith("#") ? hexToHslChannels(sVal) : sVal);
+        doc.documentElement.style.setProperty("--theme-secondary", sVal);
       }
       if (gs?.borderRadius) {
         doc.documentElement.style.setProperty("--radius", String(gs.borderRadius));

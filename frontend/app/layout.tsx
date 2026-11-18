@@ -3,6 +3,7 @@ import localFont from "next/font/local";
 import { Providers } from "./providers";
 import "./globals.css";
 import { apiInternalUrl } from "@/lib/api/server-base";
+import { hexToHslChannels } from "@/lib/builder/theme-schema";
 import { siteOrigin } from "@/lib/site-url";
 import { PluginWidgetLoader } from "@/components/chat/plugin-widget-loader";
 
@@ -181,13 +182,46 @@ function buildSiteJsonLd(siteName: string) {
   ];
 }
 
+function sanitizeThemeCssForTailwind(rawCss: string): string {
+  if (!rawCss) return "";
+  let css = rawCss.replace(
+    /(--(?:primary|secondary|background|foreground|card|muted|border|ring|input))\s*:\s*(#[0-9a-fA-F]{3,8})\s*;/g,
+    (_, varName, hexVal) => {
+      const hsl = hexToHslChannels(hexVal);
+      return `${varName}: ${hsl}; --theme-${varName.slice(2)}: ${hexVal};`;
+    }
+  );
+  if (css.includes("--background:") && !css.includes(":not(.dark)")) {
+    css = css.replace(/:root\s*\{([^}]*)\}/, (_, body) => {
+      const lightOnlyProps: string[] = [];
+      const baseProps: string[] = [];
+      for (const line of body.split(";")) {
+        const trimmed = line.trim();
+        if (!trimmed) continue;
+        if (trimmed.startsWith("--background:") || trimmed.startsWith("--foreground:")) {
+          lightOnlyProps.push(`  ${trimmed};`);
+        } else {
+          baseProps.push(`  ${trimmed};`);
+        }
+      }
+      let out = `:root {\n${baseProps.join("\n")}\n}`;
+      if (lightOnlyProps.length > 0) {
+        out += `\n\n:root:not(.dark) {\n${lightOnlyProps.join("\n")}\n}`;
+      }
+      return out;
+    });
+  }
+  return css;
+}
+
 async function fetchActiveThemeCss(): Promise<string> {
   try {
     const res = await fetch(`${apiInternalUrl()}/content/themes/active/css`, {
       next: { revalidate: 300, tags: ["active-theme-css"] },
     });
     if (!res.ok) return "";
-    return await res.text();
+    const raw = await res.text();
+    return sanitizeThemeCssForTailwind(raw);
   } catch {
     return "";
   }

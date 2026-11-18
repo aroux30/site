@@ -1463,7 +1463,16 @@ async def get_active_theme_css(db: AsyncSession = Depends(get_db)) -> Response:
         theme = None
 
     if not theme:
-        css = ":root { --primary: #059669; --secondary: #0d9488; --radius: 12px; }"
+        css = (
+            ":root {\n"
+            "  --primary: 160 84% 28%;\n"
+            "  --secondary: 174 62% 35%;\n"
+            "  --ring: 160 84% 28%;\n"
+            "  --radius: 0.75rem;\n"
+            "  --theme-primary: #059669;\n"
+            "  --theme-secondary: #0d9488;\n"
+            "}"
+        )
     else:
         css = theme_service.compile_theme_css_string(theme)
 

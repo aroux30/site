@@ -406,7 +406,7 @@ function CanvasElementComponent({
       case "heading": {
         const Tag = (props.tag as "h1" | "h2" | "h3" | "h4" | "h5" | "h6") || "h2";
         return (
-          <Tag className="font-bold tracking-tight text-foreground m-0">
+          <Tag className="font-bold tracking-tight text-foreground m-0 break-words [overflow-wrap:anywhere]">
             {String(props.text || "عنوان سرتیتر")}
           </Tag>
         );
@@ -414,7 +414,7 @@ function CanvasElementComponent({
       case "text_editor": {
         return (
           <div
-            className="prose dark:prose-invert max-w-none text-foreground/90 leading-relaxed"
+            className="prose dark:prose-invert max-w-none text-foreground/90 leading-relaxed break-words [overflow-wrap:anywhere]"
             dangerouslySetInnerHTML={{
               __html: String(props.content || "<p>متن پاراگراف را بنویسید...</p>"),
             }}

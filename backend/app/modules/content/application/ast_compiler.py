@@ -189,11 +189,11 @@ class ASTCompiler:
             if tag not in ("h1", "h2", "h3", "h4", "h5", "h6"):
                 tag = "h2"
             text = html.escape(str(props.get("text", "")))
-            return f'<{tag}{id_attr} class="font-bold text-foreground {css_class}"{style_attr}>{text}</{tag}>'
+            return f'<{tag}{id_attr} class="font-bold text-foreground break-words {css_class}"{style_attr}>{text}</{tag}>'
 
         elif widget_type == "text_editor":
             content = str(props.get("content", ""))
-            return f'<div{id_attr} class="prose dark:prose-invert max-w-none {css_class}"{style_attr}>{content}</div>'
+            return f'<div{id_attr} class="prose dark:prose-invert max-w-none break-words {css_class}"{style_attr}>{content}</div>'
 
         elif widget_type == "button":
             label = html.escape(str(props.get("label", "کلیک کنید")))

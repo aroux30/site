@@ -218,6 +218,7 @@ export function CanvasFrame({
       >
         <iframe
           ref={iframeRef}
+          data-testid="canvas-iframe"
           title="Visual Builder Canvas"
           className="w-full border-0 block bg-background"
           style={{ minHeight: "750px" }}

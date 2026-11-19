@@ -28,3 +28,15 @@ def _import_every_model_module() -> None:
 
 
 _import_every_model_module()
+
+import pytest
+from app.core.database.session import engine
+
+
+@pytest.fixture(autouse=True)
+async def _cleanup_engine_after_test():
+    yield
+    try:
+        await engine.dispose()
+    except Exception:
+        pass

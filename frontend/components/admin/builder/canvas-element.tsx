@@ -1155,6 +1155,7 @@ function CanvasElementComponent({
       {/* Floating Action Toolbar on Selected Element */}
       {!previewMode && isSelected && (
         <div
+          data-testid="floating-toolbar"
           className={cn(
             "absolute start-0 flex items-center gap-1.5 bg-primary text-primary-foreground text-xs font-bold px-2.5 py-1 shadow-xl z-50 pointer-events-auto border border-primary-foreground/20 transition-all",
             isNearTop ? "top-full mt-1.5 rounded-lg" : "-top-8 rounded-t-lg"
@@ -1312,6 +1313,7 @@ function CanvasElementComponent({
                 selectElement(element.id);
                 useBuilderStore.getState().setLeftTab("blocks");
               }}
+              data-testid="empty-container-guide"
               className="flex flex-col items-center justify-center p-6 border-2 border-dashed border-primary/40 hover:border-primary/80 rounded-2xl bg-card/60 hover:bg-primary/5 transition-all cursor-pointer text-center w-full min-h-[96px] my-1 shadow-xs group/empty"
             >
               <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center mb-1.5 group-hover/empty:bg-primary group-hover/empty:text-primary-foreground transition-colors shadow-xs">

@@ -69,6 +69,9 @@ const TreeItem = React.memo(function TreeItem({ element, depth = 0 }: TreeItemPr
     >
       <div
         onClick={() => selectElement(element.id)}
+        data-layer-row=""
+        data-depth={depth}
+        data-element-id={element.id}
         className={cn(
           "flex items-center justify-between py-1.5 px-2 rounded-lg cursor-pointer text-xs transition group my-0.5 border",
           isSelected

@@ -124,7 +124,7 @@ const TreeItem = React.memo(function TreeItem({ element, depth = 0 }: TreeItemPr
           )}
         </div>
 
-        {/* Action Buttons: ALWAYS visible on all items — ZERO opacity-0 */}
+        {/* Action Buttons: ALWAYS visible on all items with zero hiding */}
         <div
           className={cn(
             "flex items-center gap-0.5 shrink-0 transition-opacity",

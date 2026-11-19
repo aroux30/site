@@ -31,6 +31,27 @@ interface CartDrawerProps {
 /*  LineItem — reusable cart row (image, title, variant, stepper, line total) */
 /* -------------------------------------------------------------------------- */
 
+function formatVariantInfo(variant?: string | null): string | null {
+  if (!variant) return null;
+  const str = variant.trim();
+  if (str.startsWith("{") && str.endsWith("}")) {
+    try {
+      const jsonStr = str.replace(/'/g, '"');
+      const parsed = JSON.parse(jsonStr);
+      if (typeof parsed === "object" && parsed !== null) {
+        const values = Object.values(parsed).filter(Boolean);
+        if (values.length > 0) return values.join(" • ");
+      }
+    } catch {
+      const matches = str.match(/:\s*['"]([^'"]+)['"]/g);
+      if (matches) {
+        return matches.map((m) => m.replace(/[:\s'"]/g, "")).join(" • ");
+      }
+    }
+  }
+  return str;
+}
+
 function CartLineItem({
   item,
   onUpdateQuantity,
@@ -93,7 +114,7 @@ function CartLineItem({
 
           {item.variant && (
             <span className="text-[10px] text-muted-foreground block mt-0.5">
-              مدل / رنگ: {item.variant}
+              مدل / رنگ: {formatVariantInfo(item.variant)}
             </span>
           )}
         </div>
@@ -212,7 +233,7 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex"
+      className="fixed inset-0 z-[9999] flex"
       dir="rtl"
       role="dialog"
       aria-modal="true"

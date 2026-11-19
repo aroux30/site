@@ -1,0 +1,13 @@
+{
+  "stage": "after",
+  "timestamp": "2026-11-19T23:03:14.685Z",
+  "tests": {
+    "cartDrawer": {
+      "shot": "C:\\Users\\Administrator\\Desktop\\site\\.loop\\artifacts\\gym\\round-07\\after\\01-cart-drawer-open.png",
+      "opened": true
+    },
+    "floatingBar": {
+      "shot": "C:\\Users\\Administrator\\Desktop\\site\\.loop\\artifacts\\gym\\round-07\\after\\02-floating-cart-bar.png"
+    }
+  }
+}

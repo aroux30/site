@@ -18,7 +18,7 @@
 export function FloatingBottomDock({ children }: { children: React.ReactNode }) {
   return (
     <div
-      className="pointer-events-none fixed bottom-40 sm:bottom-24 min-[830px]:bottom-4 left-1/2 -translate-x-1/2 z-40 flex w-[94%] max-w-2xl flex-col gap-2"
+      className="pointer-events-none fixed bottom-48 sm:bottom-24 min-[830px]:bottom-4 left-1/2 -translate-x-1/2 z-40 flex w-[94%] max-w-2xl flex-col gap-2"
     >
       {children}
     </div>

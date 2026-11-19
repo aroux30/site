@@ -224,7 +224,7 @@ export function BuilderStudio({ page, onExit }: BuilderStudioProps) {
       <div className="flex-1 flex overflow-hidden relative">
         {/* Left Column: Blocks Palette & Layers Tree */}
         {!previewMode && (
-          <aside className="w-80 bg-card border-e border-border flex flex-col shrink-0 z-20 shadow-sm">
+          <aside className="w-80 bg-card border-e border-border flex flex-col shrink-0 z-20 shadow-sm hidden md:flex">
             {/* Sidebar Tab Switcher */}
             <div className="grid grid-cols-2 p-1.5 m-2.5 rounded-xl bg-muted/60 border border-border/60">
               <button
@@ -283,7 +283,7 @@ export function BuilderStudio({ page, onExit }: BuilderStudioProps) {
 
         {/* Right Column: Element Inspector & Controls */}
         {!previewMode && (
-          <aside className="w-80 bg-card border-s border-border shrink-0 z-20 shadow-sm">
+          <aside className="w-80 bg-card border-s border-border shrink-0 z-20 shadow-sm hidden lg:block">
             <InspectorPanel />
           </aside>
         )}

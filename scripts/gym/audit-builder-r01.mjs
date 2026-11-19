@@ -178,7 +178,7 @@ async function runAudit() {
     }
 
     const shotCanvas = path.join(ARTIFACTS_DIR, "03-canvas-toolbar-clearance.png");
-    await page.locator("main.flex-1").screenshot({ path: shotCanvas });
+    await page.locator("div.fixed.inset-0 main").first().screenshot({ path: shotCanvas });
     findings.checks.canvasScreenshot = shotCanvas;
 
     findings.checks.toolbarClearance = {

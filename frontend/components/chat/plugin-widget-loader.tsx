@@ -50,12 +50,27 @@ export function PluginWidgetLoader() {
   const pathname = usePathname();
   const features = useShopFeatures();
   const [ready, setReady] = useState(false);
+  const [isBuilder, setIsBuilder] = useState(false);
 
-  // WordPress parity: the chat widget is a front-end feature — wp-admin never
-  // shows it. The plugin appends its #n8n-w root straight to <body>, OUTSIDE
-  // the React tree, so a client-side walk from the storefront into /admin
-  // would otherwise leave the FAB floating over the dashboard.
-  const isStorefront = !pathname.startsWith("/admin");
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const sp = new URLSearchParams(window.location.search);
+      const isB =
+        sp.get("visual_editor") === "true" ||
+        sp.get("visual_editor") === "1" ||
+        sp.get("edit") === "true" ||
+        sp.get("edit") === "1" ||
+        sp.get("builder") === "1" ||
+        sp.get("builder") === "true";
+      setIsBuilder(isB);
+    }
+  }, [pathname]);
+
+  // WordPress parity: the chat widget is a front-end feature — wp-admin and
+  // the visual page builder studio never show it. The plugin appends its #n8n-w
+  // root straight to <body>, OUTSIDE the React tree, so walking into the builder
+  // or admin would otherwise leave the FAB floating over the studio controls.
+  const isStorefront = !pathname.startsWith("/admin") && !isBuilder;
 
   // Mounted in the ROOT layout: the loader keeps watching the route and
   // toggles the plugin's body-level widget on every admin ⇄ storefront move.

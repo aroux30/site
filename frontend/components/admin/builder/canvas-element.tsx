@@ -76,7 +76,7 @@ function CanvasElementComponent({
 
   // Dynamic clearance detection: check if element is near the canvas top
   useEffect(() => {
-    if (!elementRef.current) return;
+    if (!elementRef.current || !isSelected) return;
     const updateClearance = () => {
       if (elementRef.current) {
         const rect = elementRef.current.getBoundingClientRect();
@@ -115,13 +115,6 @@ function CanvasElementComponent({
       return null;
     }
   };
-
-  useEffect(() => {
-    if (isSelected && elementRef.current) {
-      const rect = elementRef.current.getBoundingClientRect();
-      setIsNearTop(rect.top < 28);
-    }
-  }, [isSelected]);
 
   const onDragOver = useCallback(
     (e: React.DragEvent) => {

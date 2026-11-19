@@ -75,8 +75,8 @@ const ToastClose = React.forwardRef<
     ref={ref}
     type="button"
     className={cn(
-      "absolute end-2 top-2 flex h-6 w-6 items-center justify-center rounded-full bg-red-500 text-white shadow-sm transition-colors hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-2",
-      "group-[.destructive]:bg-white/20 group-[.destructive]:text-white group-[.destructive]:hover:bg-white/30",
+      "absolute end-2 top-2 flex h-6 w-6 items-center justify-center rounded-full text-muted-foreground/70 transition-colors hover:text-foreground hover:bg-muted/80 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+      "group-[.destructive]:text-destructive-foreground/80 group-[.destructive]:hover:text-destructive-foreground group-[.destructive]:hover:bg-destructive/30",
       className,
     )}
     aria-label="بستن"

@@ -1,0 +1,15 @@
+{
+  "stage": "before",
+  "timestamp": "2026-11-19T22:26:33.799Z",
+  "tests": {
+    "skipLinkFocus": {
+      "isFocused": true
+    },
+    "headerFocus": {
+      "tag": "A",
+      "outline": "rgba(0, 0, 0, 0) solid 2px",
+      "boxShadow": "rgb(255, 255, 255) 0px 0px 0px 2px, rgb(16, 183, 127) 0px 0px 0px 4px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "hasVisibleFocus": true
+    }
+  }
+}

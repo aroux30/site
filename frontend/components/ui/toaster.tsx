@@ -30,7 +30,7 @@ export function Toaster() {
   return (
     <div
       dir="rtl"
-      className="pointer-events-none fixed top-0 z-[100] flex max-h-screen w-full flex-col-reverse gap-2 p-4 sm:bottom-0 sm:start-0 sm:top-auto sm:flex-col md:max-w-[420px]"
+      className="pointer-events-none fixed top-0 z-[100] flex max-h-screen w-full flex-col-reverse gap-2 p-4 sm:bottom-4 sm:start-auto sm:end-4 sm:top-auto sm:flex-col md:max-w-[420px]"
     >
       {toasts.map(({ id, title, description, action, variant, open }) => (
         <Toast key={id} variant={variant} open={open} className="shadow-lg backdrop-blur-sm">

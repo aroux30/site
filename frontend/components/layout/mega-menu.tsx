@@ -314,9 +314,22 @@ export function MegaMenu({
                     ))}
                   </div>
                 ) : (
-                  <p className="text-sm text-muted-foreground">
-                    زیردسته‌ای ثبت نشده
-                  </p>
+                  <div className="py-4 text-center space-y-3">
+                    <p className="text-xs text-muted-foreground">
+                      مشاهده تمامی محصولات دسته‌بندی «{activeCat.name}»
+                    </p>
+                    <Link
+                      href={`/category/${activeCat.slug}`}
+                      onClick={() => {
+                        setOpen(false);
+                        setActiveCategory(null);
+                      }}
+                      className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground text-xs font-bold transition-colors shadow-xs"
+                    >
+                      <span>ورود به {activeCat.name}</span>
+                      <ChevronLeft className="w-3.5 h-3.5" />
+                    </Link>
+                  </div>
                 )}
               </div>
             ) : (

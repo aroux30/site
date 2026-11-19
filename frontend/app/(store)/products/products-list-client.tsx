@@ -303,7 +303,7 @@ function ProductCard({ product }: { product: FacetedSearchHit }) {
 
     {/* Quick View Modal */}
     <Dialog open={quickViewOpen} onOpenChange={setQuickViewOpen}>
-      <DialogContent className="max-w-md rounded-3xl p-6">
+      <DialogContent className="max-w-md rounded-3xl p-6" dir="rtl">
         <DialogHeader>
           <DialogTitle className="text-base font-bold text-foreground">
             {product.name}
@@ -314,12 +314,12 @@ function ProductCard({ product }: { product: FacetedSearchHit }) {
         </DialogHeader>
 
         <div className="flex flex-col items-center gap-4 py-2">
-          <div className="relative aspect-square w-48 overflow-hidden rounded-2xl bg-muted/20 p-3">
+          <div className="relative aspect-square w-56 sm:w-64 overflow-hidden rounded-2xl bg-muted/20 p-3 flex items-center justify-center">
             <RemoteImage
-              src={product.image_url}
+              src={(product as any).primary_image_url || product.image_url}
               alt={product.name}
-              sizes="192px"
-              className="object-contain p-2"
+              sizes="256px"
+              className="object-contain p-2 w-full h-full"
             />
           </div>
 

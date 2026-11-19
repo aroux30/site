@@ -1,0 +1,27 @@
+{
+  "stage": "after",
+  "timestamp": "2026-11-19T20:15:20.838Z",
+  "tests": {
+    "megaMenu": {
+      "shot": "C:\\Users\\Administrator\\Desktop\\site\\.loop\\artifacts\\gym\\round-03\\after\\05-megamenu-expanded.png",
+      "opened": true
+    },
+    "quickView": {
+      "shot": "C:\\Users\\Administrator\\Desktop\\site\\.loop\\artifacts\\gym\\round-03\\after\\01-quickview-modal.png",
+      "opened": true
+    },
+    "formSubmit": {
+      "status": 201,
+      "ok": true
+    },
+    "adminFormsVerification": {
+      "shot": "C:\\Users\\Administrator\\Desktop\\site\\.loop\\artifacts\\gym\\round-03\\after\\03-form-submissions-admin.png"
+    },
+    "builderWidgets": {
+      "shot": "C:\\Users\\Administrator\\Desktop\\site\\.loop\\artifacts\\gym\\round-03\\after\\04-product-grid-filtered.png",
+      "filterExists": false
+    }
+  },
+  "consoleErrors": [],
+  "networkErrors": []
+}

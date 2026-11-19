@@ -54,32 +54,57 @@
 
 #### ۲. مستندات بصری (Vision Artifacts)
 - **قبل از اصلاح**: `.loop/artifacts/gym/round-02/before/`
-  - `01-blocks-palette-patterns.png`
-  - `02-blocks-palette-templates.png`
-  - `06-global-styles-dialog.png`
-  - `07-canvas-element-selected.png`
 - **بعد از اصلاح**: `.loop/artifacts/gym/round-02/after/`
-  - `02-blocks-palette-templates.png` (شمارنده `قالب‌های من (۶)` و چیدمان شکیل کارت‌ها)
-  - `06-global-styles-dialog.png` (فوتر مرتب و دکمه بازنشانی با آیکون اختصاصی)
 
 #### ۳. تست‌های رگرسیون دائمی اضافه‌شده
-- فایل تست Playwright: `frontend/tests/e2e/gym-r02-regression.spec.ts`
-  - تست ذخیره موفق پیش‌نویس بدون خطای ۵۰۰ (`PATCH /content/admin/pages/{id} -> 200 OK`)
-  - تست حضور شمارنده‌های صریح روی هر ۳ تب پالت بلوک‌ها
-  - تست باز شدن تمیز دیالوگ استایل سراسری و اعتبارسنجی مقادیر هگز ASCII
-  - نتیجه: **۳ تست سبز (`3 passed in 27.6s`)**
+- فایل تست Playwright: `frontend/tests/e2e/gym-r02-regression.spec.ts` (۳ تست سبز)
 
-#### ۴. نتایج کامل آزمون‌ها در راند ۲
+---
+
+### 🏋️ راند ۳ (Round 03) — وزنه ۳: ۲۰ کیلو (تعاملات ویجت‌های فروشگاه، مودال‌ها، مگامنو و فرم‌ساز)
+- **تاریخ اجرا**: 2026-11-19
+- **شاخه ایزوله**: `autofix/gym-loop`
+- **وضعیت**: ✅ کامل و سبز (۲ نقص تعاملی و ویجتی حل و با Vision تایید شدند)
+
+#### ۱. باگ‌های کشف‌شده با ابزار Vision و تعامل
+1. **فقدان جهت‌گیری RTL و تکیه بر پروپرتی غایب تصویر در مودال پیش‌نمایش سریع (`QuickViewModal` در لیست محصولات)**:
+   - *مشاهده در Vision*: در تصویر `01-quickview-modal.png`، کامپوننت دیالوگ فاقد جهت‌گیری صریح `dir="rtl"` بود و تصویر کالا به دلیل خواندن اشتباه از `product.image_url` به جای `product.primary_image_url` به صورت آیکون کوچک پلیس‌هولدر رندر می‌شد.
+   - *اصلاح*: اعمال صریح `dir="rtl"` روی کانتینر دیالوگ، اصلاح مسیر رندر تصویر به `(product as any).primary_image_url || product.image_url` و افزایش ابعاد باکس تصویر به ابعاد ریسپانسیو استاندارد `w-56 sm:w-64`.
+2. **بن‌بست بصری و پیام خنثی در بخش زیردسته‌های مگامنو (`MegaMenu`)**:
+   - *مشاهده در Vision*: در تصویر `before/05-megamenu-expanded.png`، برای دسته‌هایی که زیردسته مستقیم نداشتند یک پنل خالی با متن مرده «زیردسته‌ای ثبت نشده» نمایش داده می‌شد.
+   - *اصلاح*: بازطراحی پنل با دکمه اقدام مستقیم و لینک تبدیل شکیل `ورود به [نام دسته]` به جای پیام خالی خنثی.
+3. **تأیید چرخه کامل Form Builder و ثبت در پنل مدیریت**:
+   - ارسال واقعی فرم از طریق اندپوینت `/api/v1/content/forms/submit` و تأیید رویت فوری اطلاعات در صفحه `/admin/forms` بدون هیچ خطای سرور.
+
+#### ۲. مستندات بصری (Vision Artifacts)
+- **قبل از اصلاح**: `.loop/artifacts/gym/round-03/before/`
+  - `01-quickview-modal.png`
+  - `03-form-submissions-admin.png`
+  - `05-megamenu-expanded.png`
+- **بعد از اصلاح**: `.loop/artifacts/gym/round-03/after/`
+  - `01-quickview-modal.png` (مودال با تراز RTL و ابعاد مناسب)
+  - `05-megamenu-expanded.png` (کارت تعاملی ورود به دسته در مگامنو)
+
+#### ۳. تست‌های رگرسیون دائمی اضافه‌شده
+- فایل تست Playwright: `frontend/tests/e2e/gym-r03-regression.spec.ts`
+  - تست باز شدن مودال QuickView با چیدمان RTL و کانتینر تصویر کالا
+  - تست کارکرد مگامنو و وجود لینک ورود به دسته‌بندی برای حالت‌های خالی
+  - تست ثبت موفق داده در Form Builder و رویت ردیف در `/admin/forms`
+  - نتیجه: **۳ تست سبز (`3 passed in 30.9s`)**
+
+#### ۴. نتایج کامل آزمون‌ها در راند ۳
 - `npx tsc --noEmit`: ۰ خطا (سبز)
 - `npm test` (Vitest): **۳۶۹ تست سبز در ۴۵ فایل** (`369 passed`)
 - `python -m pytest app/tests/unit`: **۶۲۲ تست سبز** (`622 passed, 2 skipped`)
 - `gym-r01-regression.spec.ts`: **۴ تست سبز** (`4 passed`)
 - `gym-r02-regression.spec.ts`: **۳ تست سبز** (`3 passed`)
+- `gym-r03-regression.spec.ts`: **۳ تست سبز** (`3 passed`)
+- مجموع تست‌های رگرسیون تجمعی: **۱۰ تست Playwright سبز**
 - `node .loop/audits/deterministic-audit.mjs`: **پاس ۱۰۰٪ تمام چک‌ها (`passed: true`)**
 
 ---
 
 ## گام بعدی (Next Up)
-- **سطح فعال**: وزنه ۳ — ۲۰ کیلو (تعاملات پیچیده، Drag & Drop، ویجت‌های فروشگاهی و فرم‌ساز)
-- **دور بعدی**: راند ۳ (Round 03)
-- **تمرکز**: درگ بلوک‌ها بین کانتینرهای تودرتو، نمایش شرطی `authVisibility`، ویجت‌های فروشگاهی (`ProductCard`, `ProductGrid`, `QuickViewModal`, `ImageGallery`)، و تست ارسال فرم و رویت آن در پنل فرم‌ها.
+- **سطح فعال**: وزنه ۴ — ۳۵ کیلو (ریسپانسیو موبایل/تبلت، Dark Mode کامل، RTL فارسی و WCAG 2.1 AA)
+- **دور بعدی**: راند ۴ (Round 04)
+- **تمرکز**: ممیزی بصری در ۳ سایز (دسکتاپ، تبلت ۷۶۸px، موبایل ۳۷۵px) در هر دو حالت دارک و لایت، بررسی سرریزها، مودال‌ها، و اسکن کامل AxeBuilder بدون هیچ خطای critical/serious.

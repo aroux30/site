@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Paintbrush, Check } from "lucide-react";
+import { Paintbrush, Check, RotateCcw } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -21,6 +21,11 @@ import {
 } from "@/components/ui/select";
 import { useBuilderStore } from "@/stores/builder-store";
 import { toValidHexColor } from "@/lib/builder/color-utils";
+
+function toAsciiHex(val: string): string {
+  if (!val) return "";
+  return val.replace(/[۰-۹]/g, (d) => "۰۱۲۳۴۵۶۷۸۹".indexOf(d).toString()).trim();
+}
 
 interface GlobalStylesDialogProps {
   open: boolean;
@@ -109,7 +114,7 @@ export function GlobalStylesDialog({ open, onOpenChange }: GlobalStylesDialogPro
               />
               <Input
                 value={primary}
-                onChange={(e) => setPrimary(e.target.value)}
+                onChange={(e) => setPrimary(toAsciiHex(e.target.value))}
                 className="h-8 font-mono text-xs"
                 placeholder="#059669"
                 dir="ltr"
@@ -145,7 +150,7 @@ export function GlobalStylesDialog({ open, onOpenChange }: GlobalStylesDialogPro
               />
               <Input
                 value={secondary}
-                onChange={(e) => setSecondary(e.target.value)}
+                onChange={(e) => setSecondary(toAsciiHex(e.target.value))}
                 className="h-8 font-mono text-xs"
                 placeholder="#0d9488"
                 dir="ltr"
@@ -185,21 +190,22 @@ export function GlobalStylesDialog({ open, onOpenChange }: GlobalStylesDialogPro
           </div>
         </div>
 
-        <DialogFooter className="flex items-center justify-between gap-2 pt-2">
+        <DialogFooter className="flex flex-row items-center justify-between gap-2 pt-3 border-t">
           <Button
             type="button"
             variant="ghost"
             size="sm"
             onClick={handleResetToSiteTheme}
-            className="text-muted-foreground hover:text-foreground text-xs"
+            className="text-muted-foreground hover:text-foreground text-xs gap-1 border border-border/60"
           >
-            بازنشانی به تم پیش‌فرض سایت
+            <RotateCcw className="w-3.5 h-3.5" />
+            <span>بازنشانی به تم پیش‌فرض</span>
           </Button>
           <div className="flex items-center gap-2">
             <Button variant="outline" size="sm" onClick={() => onOpenChange(false)}>
               انصراف
             </Button>
-            <Button size="sm" onClick={handleSave}>
+            <Button size="sm" onClick={handleSave} className="bg-primary text-primary-foreground font-bold">
               اعمال تغییرات
             </Button>
           </div>

@@ -18,7 +18,7 @@ function getAdminToken() {
 import asyncio, datetime, uuid
 from app.core.security.jwt import create_access_token
 async def main():
-    user_id = str(uuid.UUID("00000000-0000-0000-0000-000000000001"))
+    user_id = str(uuid.UUID("47f274da-3abd-4d91-bc9c-83ba913fc66f"))
     print("TOKEN_START:" + create_access_token(
         user_id,
         extra_claims={"roles": ["super_admin"], "is_superuser": True, "permissions": ["*"]},

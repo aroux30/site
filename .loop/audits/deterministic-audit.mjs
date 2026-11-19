@@ -25,7 +25,7 @@ import asyncio, datetime, uuid
 from app.core.security.jwt import create_access_token
 
 async def main():
-    user_id = str(uuid.UUID("00000000-0000-0000-0000-000000000001"))
+    user_id = str(uuid.UUID("47f274da-3abd-4d91-bc9c-83ba913fc66f"))
     try:
         import app.tests.conftest
         from app.core.database.session import async_session_factory

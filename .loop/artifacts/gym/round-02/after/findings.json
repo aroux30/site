@@ -1,0 +1,41 @@
+{
+  "stage": "after",
+  "timestamp": "2026-11-19T19:28:56.351Z",
+  "tests": {
+    "patternsTab": {
+      "shot": "C:\\Users\\Administrator\\Desktop\\site\\.loop\\artifacts\\gym\\round-02\\after\\01-blocks-palette-patterns.png",
+      "visible": true
+    },
+    "templatesTab": {
+      "shot": "C:\\Users\\Administrator\\Desktop\\site\\.loop\\artifacts\\gym\\round-02\\after\\02-blocks-palette-templates.png",
+      "visible": true
+    },
+    "inspectorContent": {
+      "shot": "C:\\Users\\Administrator\\Desktop\\site\\.loop\\artifacts\\gym\\round-02\\after\\03-inspector-content-tab.png",
+      "visible": true
+    },
+    "inspectorStyle": {
+      "shot": "C:\\Users\\Administrator\\Desktop\\site\\.loop\\artifacts\\gym\\round-02\\after\\04-inspector-style-tab.png",
+      "visible": true
+    },
+    "inspectorAdvanced": {
+      "shot": "C:\\Users\\Administrator\\Desktop\\site\\.loop\\artifacts\\gym\\round-02\\after\\05-inspector-advanced-tab.png",
+      "visible": true
+    },
+    "canvasSelected": {
+      "shot": "C:\\Users\\Administrator\\Desktop\\site\\.loop\\artifacts\\gym\\round-02\\after\\07-canvas-element-selected.png"
+    },
+    "globalStyles": {
+      "shot": "C:\\Users\\Administrator\\Desktop\\site\\.loop\\artifacts\\gym\\round-02\\after\\06-global-styles-dialog.png",
+      "opened": true
+    },
+    "draftSave": {
+      "clicked": true
+    },
+    "reloadPersistence": {
+      "isRestored": true
+    }
+  },
+  "consoleErrors": [],
+  "networkErrors": []
+}

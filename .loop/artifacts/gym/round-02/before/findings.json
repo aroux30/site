@@ -1,0 +1,99 @@
+{
+  "stage": "before",
+  "timestamp": "2026-11-19T18:51:31.078Z",
+  "tests": {
+    "patternsTab": {
+      "shot": "C:\\Users\\Administrator\\Desktop\\site\\.loop\\artifacts\\gym\\round-02\\before\\01-blocks-palette-patterns.png",
+      "visible": true
+    },
+    "templatesTab": {
+      "shot": "C:\\Users\\Administrator\\Desktop\\site\\.loop\\artifacts\\gym\\round-02\\before\\02-blocks-palette-templates.png",
+      "visible": true
+    },
+    "inspectorContent": {
+      "shot": "C:\\Users\\Administrator\\Desktop\\site\\.loop\\artifacts\\gym\\round-02\\before\\03-inspector-content-tab.png",
+      "visible": true
+    },
+    "inspectorStyle": {
+      "shot": "C:\\Users\\Administrator\\Desktop\\site\\.loop\\artifacts\\gym\\round-02\\before\\04-inspector-style-tab.png",
+      "visible": true
+    },
+    "inspectorAdvanced": {
+      "shot": "C:\\Users\\Administrator\\Desktop\\site\\.loop\\artifacts\\gym\\round-02\\before\\05-inspector-advanced-tab.png",
+      "visible": true
+    },
+    "canvasSelected": {
+      "shot": "C:\\Users\\Administrator\\Desktop\\site\\.loop\\artifacts\\gym\\round-02\\before\\07-canvas-element-selected.png"
+    },
+    "globalStyles": {
+      "shot": "C:\\Users\\Administrator\\Desktop\\site\\.loop\\artifacts\\gym\\round-02\\before\\06-global-styles-dialog.png",
+      "opened": true
+    },
+    "draftSave": {
+      "clicked": true
+    },
+    "reloadPersistence": {
+      "isRestored": true
+    }
+  },
+  "consoleErrors": [
+    {
+      "url": "http://127.0.0.1:3000/e2e-isolated-scratchpad?visual_editor=true",
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "url": "http://127.0.0.1:3000/e2e-isolated-scratchpad?visual_editor=true",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    },
+    {
+      "url": "http://127.0.0.1:3000/e2e-isolated-scratchpad?visual_editor=true",
+      "text": "{\"timestamp\":\"2026-11-19T18:51:31.968Z\",\"level\":\"error\",\"message\":\"API request failed: [GET] /cart (500) [211.3ms]\",\"context\":{\"durationMs\":211.3,\"status\":500,\"requestId\":\"1550da06-aff3-4235-a317-6ae4ef0c6467\",\"traceId\":\"64237d18be5dacd49f64ff78b7ecfc2f\"},\"traceId\":\"64237d18be5dacd49f64ff78b7ecfc2f\",\"requestId\":\"1550da06-aff3-4235-a317-6ae4ef0c6467\",\"error\":{\"name\":\"AxiosError\",\"message\":\"Request failed with status code 500\",\"stack\":\"AxiosError: Request failed with status code 500\\n    at eX (http://127.0.0.1:3000/_next/static/chunks/8453-8b4eff7f3ee91e5c.js:1:23742)\\n    at XMLHttpRequest.b (http://127.0.0.1:3000/_next/static/chunks/8453-8b4eff7f3ee91e5c.js:1:30697)\"},\"url\":\"http://127.0.0.1:3000/e2e-isolated-scratchpad?visual_editor=true\",\"userAgent\":\"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.8010.12 Safari/537.36\",\"environment\":\"production\"}"
+    },
+    {
+      "url": "http://127.0.0.1:3000/e2e-isolated-scratchpad?visual_editor=true",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    },
+    {
+      "url": "http://127.0.0.1:3000/e2e-isolated-scratchpad?visual_editor=true",
+      "text": "{\"timestamp\":\"2026-11-19T18:51:40.834Z\",\"level\":\"error\",\"message\":\"API request failed: [PATCH] /content/admin/pages/aa5e98ad-e380-4e6f-90ad-5d8c9ef7d7a7 (500) [145.5ms]\",\"context\":{\"durationMs\":145.5,\"status\":500,\"requestId\":\"baa58697-54cd-4342-bf1a-e7eafb8a5ff0\",\"traceId\":\"64237d18be5dacd49f64ff78b7ecfc2f\"},\"traceId\":\"64237d18be5dacd49f64ff78b7ecfc2f\",\"requestId\":\"baa58697-54cd-4342-bf1a-e7eafb8a5ff0\",\"error\":{\"name\":\"AxiosError\",\"message\":\"Request failed with status code 500\",\"stack\":\"AxiosError: Request failed with status code 500\\n    at eX (http://127.0.0.1:3000/_next/static/chunks/8453-8b4eff7f3ee91e5c.js:1:23742)\\n    at XMLHttpRequest.b (http://127.0.0.1:3000/_next/static/chunks/8453-8b4eff7f3ee91e5c.js:1:30697)\"},\"url\":\"http://127.0.0.1:3000/e2e-isolated-scratchpad?visual_editor=true\",\"userAgent\":\"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.8010.12 Safari/537.36\",\"environment\":\"production\"}"
+    },
+    {
+      "url": "http://127.0.0.1:3000/e2e-isolated-scratchpad?visual_editor=true",
+      "text": "Save draft error: {status: 500, message: An unexpected internal error occurred, errors: null, response: Object, isAxiosError: true}"
+    },
+    {
+      "url": "http://127.0.0.1:3000/e2e-isolated-scratchpad?visual_editor=true",
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    },
+    {
+      "url": "http://127.0.0.1:3000/e2e-isolated-scratchpad?visual_editor=true",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    },
+    {
+      "url": "http://127.0.0.1:3000/e2e-isolated-scratchpad?visual_editor=true",
+      "text": "{\"timestamp\":\"2026-11-19T18:51:42.133Z\",\"level\":\"error\",\"message\":\"API request failed: [GET] /cart (500) [212.2ms]\",\"context\":{\"durationMs\":212.2,\"status\":500,\"requestId\":\"b6d14e0a-ab64-4bd1-8971-b55d57fee4cc\",\"traceId\":\"67d4ce45d649eee08ae8ca6662bcbfc8\"},\"traceId\":\"67d4ce45d649eee08ae8ca6662bcbfc8\",\"requestId\":\"b6d14e0a-ab64-4bd1-8971-b55d57fee4cc\",\"error\":{\"name\":\"AxiosError\",\"message\":\"Request failed with status code 500\",\"stack\":\"AxiosError: Request failed with status code 500\\n    at eX (http://127.0.0.1:3000/_next/static/chunks/8453-8b4eff7f3ee91e5c.js:1:23742)\\n    at XMLHttpRequest.b (http://127.0.0.1:3000/_next/static/chunks/8453-8b4eff7f3ee91e5c.js:1:30697)\"},\"url\":\"http://127.0.0.1:3000/e2e-isolated-scratchpad?visual_editor=true\",\"userAgent\":\"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.8010.12 Safari/537.36\",\"environment\":\"production\"}"
+    }
+  ],
+  "networkErrors": [
+    {
+      "url": "http://127.0.0.1:3000/api/v1/auth/me",
+      "status": 404
+    },
+    {
+      "url": "http://127.0.0.1:3000/api/v1/cart",
+      "status": 500
+    },
+    {
+      "url": "http://127.0.0.1:3000/api/v1/content/admin/pages/aa5e98ad-e380-4e6f-90ad-5d8c9ef7d7a7",
+      "status": 500
+    },
+    {
+      "url": "http://127.0.0.1:3000/api/v1/auth/me",
+      "status": 404
+    },
+    {
+      "url": "http://127.0.0.1:3000/api/v1/cart",
+      "status": 500
+    }
+  ]
+}

@@ -156,23 +156,25 @@ async def _audit(
     absent until 2026-10-06, so every cms_page.* row read "no IP" — an audit
     of content edits could not tell one operator's machine from another's.
     """
+    page_id_str = str(page.id)
     try:
         from app.modules.audit.application.audit_service import log_action
 
-        await log_action(
-            db,
-            actor_id=actor_id,
-            action=action,
-            resource="cms_page",
-            resource_id=page.id,
-            before=before,
-            after=after or {"title": page.title, "slug": page.slug,
-                            "status": _status_value(page.status)},
-            ip_address=ip_address,
-            user_agent=user_agent,
-        )
+        async with db.begin_nested():
+            await log_action(
+                db,
+                actor_id=actor_id,
+                action=action,
+                resource="cms_page",
+                resource_id=page.id,
+                before=before,
+                after=after or {"title": page.title, "slug": page.slug,
+                                "status": _status_value(page.status)},
+                ip_address=ip_address,
+                user_agent=user_agent,
+            )
     except Exception:  # noqa: BLE001
-        logger.warning("cms_audit_log_failed", action=action, page_id=str(page.id))
+        logger.warning("cms_audit_log_failed", action=action, page_id=page_id_str)
 
 
 async def _slug_exists(

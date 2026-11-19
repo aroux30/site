@@ -333,7 +333,7 @@ export function BlocksPalette() {
           }`}
         >
           <FolderHeart className="w-3 h-3 text-primary shrink-0" />
-          <span className="truncate">قالب‌های من</span>
+          <span className="truncate">قالب‌های من ({savedTemplates.length})</span>
         </button>
       </div>
 
@@ -646,12 +646,10 @@ export function BlocksPalette() {
                         isPage ? "cursor-pointer hover:border-purple-500/60" : "cursor-grab active:cursor-grabbing hover:border-primary/50"
                       }`}
                     >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-1.5 truncate">
-                          <span className="text-xs font-bold text-foreground group-hover:text-primary transition-colors truncate">
-                            {tpl.title}
-                          </span>
-                        </div>
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-xs font-bold text-foreground group-hover:text-primary transition-colors truncate flex-1">
+                          {tpl.title}
+                        </span>
                         <div className="flex items-center gap-1 shrink-0">
                           {isPage ? (
                             <Badge className="text-[9px] px-1.5 py-0 h-4 bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20">
@@ -662,41 +660,43 @@ export function BlocksPalette() {
                               قالب بخش
                             </Badge>
                           )}
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setPreviewTemplate(tpl);
-                            }}
-                            className="p-1 hover:bg-muted rounded text-muted-foreground hover:text-foreground"
-                            title="پیش‌نمایش ساختار قالب"
-                          >
-                            <Eye className="w-3 h-3" />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={(e) => handleDuplicateTemplate(tpl, e)}
-                            className="p-1 hover:bg-muted rounded text-muted-foreground hover:text-foreground"
-                            title="تکثیر / کپی قالب"
-                          >
-                            <Copy className="w-3 h-3" />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={(e) => handleOpenEditTemplate(tpl, e)}
-                            className="p-1 hover:bg-muted rounded text-muted-foreground hover:text-foreground"
-                            title="ویرایش عنوان و دسته‌بندی"
-                          >
-                            <Pencil className="w-3 h-3" />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={(e) => handleDeleteTemplate(tpl.id, tpl.title, e)}
-                            className="p-1 hover:bg-destructive/10 rounded text-destructive"
-                            title="حذف قالب"
-                          >
-                            <Trash2 className="w-3 h-3" />
-                          </button>
+                          <div className="flex items-center gap-0.5 bg-muted/60 rounded p-0.5 border border-border/50">
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setPreviewTemplate(tpl);
+                              }}
+                              className="p-1 hover:bg-muted rounded text-muted-foreground hover:text-foreground"
+                              title="پیش‌نمایش ساختار قالب"
+                            >
+                              <Eye className="w-3 h-3" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={(e) => handleDuplicateTemplate(tpl, e)}
+                              className="p-1 hover:bg-muted rounded text-muted-foreground hover:text-foreground"
+                              title="تکثیر / کپی قالب"
+                            >
+                              <Copy className="w-3 h-3" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={(e) => handleOpenEditTemplate(tpl, e)}
+                              className="p-1 hover:bg-muted rounded text-muted-foreground hover:text-foreground"
+                              title="ویرایش عنوان و دسته‌بندی"
+                            >
+                              <Pencil className="w-3 h-3" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={(e) => handleDeleteTemplate(tpl.id, tpl.title, e)}
+                              className="p-1 hover:bg-destructive/10 rounded text-destructive"
+                              title="حذف قالب"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                            </button>
+                          </div>
                         </div>
                       </div>
 

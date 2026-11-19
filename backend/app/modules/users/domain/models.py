@@ -215,7 +215,11 @@ class Address(BaseModel):
     user: Mapped["User"] = relationship("User", back_populates="addresses")
 
     def __repr__(self) -> str:
-        return f"<Address(id={self.id}, title={self.title}, city={self.city})>"
+        return f"<Address(id={self.id}, title={self.title}, city={self.city})>"\
+
+
+# Register relationship targets for SQLAlchemy class registry
+import app.modules.rbac.domain.models  # noqa: F401, E402
 
 
 class ApplicationPassword(BaseModel):

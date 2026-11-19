@@ -5,7 +5,11 @@ import path from "node:path";
 
 const CANVAS = 'iframe[title="Visual Builder Canvas"]';
 const BASE_URL = process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:3000";
-const AUDIT_DIR = path.resolve(process.cwd(), "public/ui-audit");
+const cwd = process.cwd();
+const frontendDir = fs.existsSync(path.join(cwd, "public"))
+  ? cwd
+  : path.join(cwd, "frontend");
+const AUDIT_DIR = path.resolve(frontendDir, "public/ui-audit");
 
 test.describe("Visual Audit & UI Proof", () => {
   test.beforeAll(() => {
@@ -47,7 +51,7 @@ test.describe("Visual Audit & UI Proof", () => {
 
     await resetE2EPage("e2e-isolated-scratchpad");
 
-    await page.goto("/e2e-isolated-scratchpad?visual_editor=true", {
+    await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?visual_editor=true`, {
       waitUntil: "domcontentloaded",
       timeout: 45_000,
     });

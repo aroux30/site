@@ -27,8 +27,12 @@ import path from "node:path";
 import fs from "node:fs";
 
 export async function createAccessTokenForE2E(): Promise<string> {
-  const repoRoot = path.resolve(process.cwd(), "..");
-  const backendDir = process.env.E2E_BACKEND_DIR || path.join(repoRoot, "backend");
+  const cwd = process.cwd();
+  const backendDir =
+    process.env.E2E_BACKEND_DIR ||
+    (fs.existsSync(path.join(cwd, "backend"))
+      ? path.join(cwd, "backend")
+      : path.join(cwd, "..", "backend"));
 
   const script = `
 import asyncio, datetime, uuid

@@ -226,7 +226,12 @@ export default async function CmsPageRoute({ params, searchParams }: Props) {
   const search = searchParams ? await searchParams : undefined;
 
   const isEditRequested =
-    search?.visual_editor === "true" || search?.edit === "true";
+    search?.visual_editor === "true" ||
+    search?.visual_editor === "1" ||
+    search?.edit === "true" ||
+    search?.edit === "1" ||
+    search?.builder === "1" ||
+    search?.builder === "true";
 
   let authToken: string | undefined;
   if (isEditRequested) {

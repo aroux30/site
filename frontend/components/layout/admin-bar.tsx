@@ -140,7 +140,14 @@ function adminBarVisible(
   if (typeof window !== "undefined") {
     try {
       const sp = new URLSearchParams(window.location.search);
-      if (sp.get("visual_editor") === "true" || sp.get("edit") === "true") return false;
+      if (
+        sp.get("visual_editor") === "true" ||
+        sp.get("visual_editor") === "1" ||
+        sp.get("edit") === "true" ||
+        sp.get("edit") === "1" ||
+        sp.get("builder") === "1" ||
+        sp.get("builder") === "true"
+      ) return false;
     } catch {}
   }
 

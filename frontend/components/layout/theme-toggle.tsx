@@ -10,11 +10,12 @@ export function ThemeToggle() {
 
   useEffect(() => {
     setMounted(true);
-    // Check initial preference from localStorage or system theme
+    // Check initial preference from localStorage, existing DOM class, or system theme
     const stored = localStorage.getItem("theme");
     const systemPrefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    const docHasDark = document.documentElement.classList.contains("dark");
 
-    if (stored === "dark" || (!stored && systemPrefersDark)) {
+    if (stored === "dark" || (!stored && (systemPrefersDark || docHasDark)) || docHasDark) {
       setIsDark(true);
       document.documentElement.classList.add("dark");
     } else {
@@ -37,7 +38,14 @@ export function ThemeToggle() {
 
   if (!mounted) {
     return (
-      <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl opacity-0" aria-label="تغییر تم" />
+      <Button
+        variant="ghost"
+        size="icon"
+        className="h-9 w-9 rounded-xl text-muted-foreground/40"
+        aria-label="تغییر تم"
+      >
+        <Moon className="h-4 w-4" />
+      </Button>
     );
   }
 

@@ -132,6 +132,10 @@ export function initGlobalErrorHandlers(): () => void {
 
   const errorHandler = (event: ErrorEvent): void => {
     const message = event.message || "Uncaught runtime exception";
+    // Benign browser layout timing notification per W3C ResizeObserver spec
+    if (message.includes("ResizeObserver loop")) {
+      return;
+    }
     const key = `${message}:${event.filename}:${event.lineno}`;
     if (isDuplicate(key)) return;
 

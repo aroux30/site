@@ -229,11 +229,6 @@ export function Hero3DScene() {
         />
       </Canvas>
       </CanvasErrorBoundary>
-
-      {/* Floating 3D Badge Indicator */}
-      <div className="pointer-events-none absolute bottom-4 start-1/2 -translate-x-1/2 rounded-full border border-white/15 bg-black/40 px-3.5 py-1 text-[11px] font-semibold text-emerald-300 backdrop-blur-md shadow-lg whitespace-nowrap">
-        ✨ نمای سه‌بعدی تعاملی ۳۶۰ درجه (با حرکت ماوس یا لمس بچرخانید)
-      </div>
     </div>
   );
 }

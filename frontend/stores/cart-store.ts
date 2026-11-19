@@ -201,6 +201,10 @@ function computeTotals(items: CartItem[], couponDiscount: number = 0) {
  *   - `@/hooks/use-auth.ts`   (cart merge on login)
  *   - pages that only need a single action (e.g. account page `addItem`)
  */
+// In-flight single-flight promise to prevent concurrent identical /cart requests
+// when multiple mounted components (header, floating dock, quick view) call fetchCart on mount.
+let fetchCartPromise: Promise<void> | null = null;
+
 export const useCartStore = create<CartStore>()(
   persist(
     (set, get) => ({
@@ -218,32 +222,40 @@ export const useCartStore = create<CartStore>()(
       requiresShipping: true,
 
       fetchCart: async () => {
-        try {
-          set({ isLoading: true, error: null });
-          const response = await apiClient.get<BackendCartResponse>("/cart");
-          const backendCart = response.data;
-
-          if (backendCart && Array.isArray(backendCart.items)) {
-            const mappedItems = reconcileCustomFields(
-              backendCart.items.map(mapBackendItemToCartItem),
-              get().items,
-            );
-            const totals = computeTotals(mappedItems, get().couponDiscount);
-
-            set({
-              cartId: backendCart.id,
-              items: mappedItems,
-              ...totals,
-              isLoading: false,
-              error: null,
-            });
-          } else {
-            set({ isLoading: false });
-          }
-        } catch (err: unknown) {
-          // If offline, keep local persisted items
-          set({ isLoading: false });
+        if (fetchCartPromise) {
+          return fetchCartPromise;
         }
+        fetchCartPromise = (async () => {
+          try {
+            set({ isLoading: true, error: null });
+            const response = await apiClient.get<BackendCartResponse>("/cart");
+            const backendCart = response.data;
+
+            if (backendCart && Array.isArray(backendCart.items)) {
+              const mappedItems = reconcileCustomFields(
+                backendCart.items.map(mapBackendItemToCartItem),
+                get().items,
+              );
+              const totals = computeTotals(mappedItems, get().couponDiscount);
+
+              set({
+                cartId: backendCart.id,
+                items: mappedItems,
+                ...totals,
+                isLoading: false,
+                error: null,
+              });
+            } else {
+              set({ isLoading: false });
+            }
+          } catch (err: unknown) {
+            // If offline, keep local persisted items
+            set({ isLoading: false });
+          } finally {
+            fetchCartPromise = null;
+          }
+        })();
+        return fetchCartPromise;
       },
 
       addItem: async (item) => {

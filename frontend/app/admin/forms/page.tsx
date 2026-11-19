@@ -200,13 +200,13 @@ export default function AdminFormsPage() {
                           </Badge>
                         )}
                       </td>
-                      <td className="p-3 font-mono text-[11px] text-foreground">
+                      <td className="p-3 font-mono text-[11px] text-foreground text-start" dir="ltr">
                         {sub.form_id}
                       </td>
-                      <td className="p-3 text-muted-foreground">
+                      <td className="p-3 text-muted-foreground font-mono text-[11px] text-start" dir="ltr">
                         {sub.page_slug || "نامشخص"}
                       </td>
-                      <td className="p-3 max-w-xs truncate text-muted-foreground">
+                      <td className="p-3 max-w-xs truncate text-muted-foreground text-start" dir="ltr">
                         {dataEntries
                           .slice(0, 3)
                           .map(([k, v]) => `${k}: ${String(v)}`)

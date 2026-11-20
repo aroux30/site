@@ -676,9 +676,35 @@ export function InspectorPanel() {
               <Label className="text-xs">تعداد کالاهای نمایشی</Label>
               <Input
                 type="number"
+                min={1}
+                max={12}
                 value={Number(props.limit) || 4}
                 onChange={(e) => handlePropChange("limit", parseInt(e.target.value) || 4)}
                 className="h-8 text-xs"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">فیلتر پیش‌فرض محصولات</Label>
+              <Select
+                value={String(props.filter || "all")}
+                onValueChange={(val) => handlePropChange("filter", val)}
+              >
+                <SelectTrigger className="h-8 text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">همه محصولات</SelectItem>
+                  <SelectItem value="featured">کالاهای ویژه</SelectItem>
+                  <SelectItem value="best_sellers">پرفروش‌ترین‌ها</SelectItem>
+                  <SelectItem value="new_arrivals">جدیدترین‌ها</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex items-center justify-between pt-1">
+              <Label className="text-xs">نمایش دکمه مشاهده بیشتر</Label>
+              <Switch
+                checked={props.show_pagination !== false}
+                onCheckedChange={(val) => handlePropChange("show_pagination", val)}
               />
             </div>
           </div>

@@ -557,18 +557,36 @@ class ASTCompiler:
 
         elif widget_type == "countdown":
             title = html.escape(str(props.get("title", "پیشنهاد شگفت‌انگیز")))
-            target = html.escape(str(props.get("target_date", "2026-12-31T23:59:59")))
+            target_str = str(props.get("target_date", "2026-12-31T23:59:59"))
+            target = html.escape(target_str)
+            d_fa, h_fa, m_fa, s_fa = "۰۲", "۱۴", "۳۵", "۰۰"
+            try:
+                from datetime import datetime, timezone
+                now_utc = datetime.now(timezone.utc)
+                target_dt = datetime.fromisoformat(target_str.replace("Z", "+00:00"))
+                diff_sec = max(0, int((target_dt - now_utc).total_seconds()))
+                d = diff_sec // 86400
+                h = (diff_sec % 86400) // 3600
+                m = (diff_sec % 3600) // 60
+                s = diff_sec % 60
+                persian_digits = "۰۱۲۳۴۵۶۷۸۹"
+                def to_fa(num: int) -> str:
+                    s_num = f"{num:02d}"
+                    return "".join(persian_digits[int(ch)] for ch in s_num)
+                d_fa, h_fa, m_fa, s_fa = to_fa(d), to_fa(h), to_fa(m), to_fa(s)
+            except Exception:
+                pass
             return (
                 f'<div{id_attr} class="builder-countdown p-4 rounded-2xl bg-card border border-border/80 text-center space-y-3 {css_class}" data-widget="countdown" data-target="{target}"{style_attr}>'
                 f'<h3 class="font-bold text-sm text-foreground">{title}</h3>'
                 f'<div class="flex items-center justify-center gap-2 text-center" dir="ltr">'
-                f'<div class="bg-muted/60 p-2 rounded-xl min-w-[50px]"><span class="block text-lg font-black text-primary">۰۲</span><span class="text-[10px] text-muted-foreground">روز</span></div>'
+                f'<div class="bg-muted/60 p-2 rounded-xl min-w-[50px]"><span class="block text-lg font-black text-primary">{d_fa}</span><span class="text-[10px] text-muted-foreground">روز</span></div>'
                 f'<span class="font-bold text-primary">:</span>'
-                f'<div class="bg-muted/60 p-2 rounded-xl min-w-[50px]"><span class="block text-lg font-black text-primary">۱۴</span><span class="text-[10px] text-muted-foreground">ساعت</span></div>'
+                f'<div class="bg-muted/60 p-2 rounded-xl min-w-[50px]"><span class="block text-lg font-black text-primary">{h_fa}</span><span class="text-[10px] text-muted-foreground">ساعت</span></div>'
                 f'<span class="font-bold text-primary">:</span>'
-                f'<div class="bg-muted/60 p-2 rounded-xl min-w-[50px]"><span class="block text-lg font-black text-primary">۳۵</span><span class="text-[10px] text-muted-foreground">دقیقه</span></div>'
+                f'<div class="bg-muted/60 p-2 rounded-xl min-w-[50px]"><span class="block text-lg font-black text-primary">{m_fa}</span><span class="text-[10px] text-muted-foreground">دقیقه</span></div>'
                 f'<span class="font-bold text-primary">:</span>'
-                f'<div class="bg-muted/60 p-2 rounded-xl min-w-[50px]"><span class="block text-lg font-black text-primary">۴۸</span><span class="text-[10px] text-muted-foreground">ثانیه</span></div>'
+                f'<div class="bg-muted/60 p-2 rounded-xl min-w-[50px]"><span class="block text-lg font-black text-primary">{s_fa}</span><span class="text-[10px] text-muted-foreground">ثانیه</span></div>'
                 f'</div>'
                 f'</div>'
             )

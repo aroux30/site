@@ -1046,27 +1046,49 @@ function CanvasElementComponent({
       }
       case "countdown": {
         const title = String(props.title || "پیشنهاد شگفت‌انگیز");
+        const targetDate = String(props.target_date || "");
+
+        let days = "۰۲";
+        let hours = "۱۴";
+        let minutes = "۳۵";
+        let seconds = "۴۸";
+
+        if (targetDate) {
+          const targetTime = new Date(targetDate).getTime();
+          if (!isNaN(targetTime)) {
+            const diff = Math.max(0, targetTime - Date.now());
+            const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const h = Math.floor((diff / (1000 * 60 * 60)) % 24);
+            const m = Math.floor((diff / (1000 * 60)) % 60);
+            const s = Math.floor((diff / 1000) % 60);
+            days = d.toLocaleString("fa-IR", { minimumIntegerDigits: 2 });
+            hours = h.toLocaleString("fa-IR", { minimumIntegerDigits: 2 });
+            minutes = m.toLocaleString("fa-IR", { minimumIntegerDigits: 2 });
+            seconds = s.toLocaleString("fa-IR", { minimumIntegerDigits: 2 });
+          }
+        }
+
         return (
           <div className="p-4 rounded-2xl bg-card border border-border/80 text-center space-y-3 shadow-sm w-full">
             <h3 className="font-bold text-sm text-foreground">{title}</h3>
             <div className="flex items-center justify-center gap-2 text-center" dir="ltr">
               <div className="bg-muted/60 p-2 rounded-xl min-w-[50px]">
-                <span className="block text-lg font-black text-primary">۰۲</span>
+                <span className="block text-lg font-black text-primary">{days}</span>
                 <span className="text-[10px] text-muted-foreground">روز</span>
               </div>
               <span className="font-bold text-primary">:</span>
               <div className="bg-muted/60 p-2 rounded-xl min-w-[50px]">
-                <span className="block text-lg font-black text-primary">۱۴</span>
+                <span className="block text-lg font-black text-primary">{hours}</span>
                 <span className="text-[10px] text-muted-foreground">ساعت</span>
               </div>
               <span className="font-bold text-primary">:</span>
               <div className="bg-muted/60 p-2 rounded-xl min-w-[50px]">
-                <span className="block text-lg font-black text-primary">۳۵</span>
+                <span className="block text-lg font-black text-primary">{minutes}</span>
                 <span className="text-[10px] text-muted-foreground">دقیقه</span>
               </div>
               <span className="font-bold text-primary">:</span>
               <div className="bg-muted/60 p-2 rounded-xl min-w-[50px]">
-                <span className="block text-lg font-black text-primary">۴۸</span>
+                <span className="block text-lg font-black text-primary">{seconds}</span>
                 <span className="text-[10px] text-muted-foreground">ثانیه</span>
               </div>
             </div>

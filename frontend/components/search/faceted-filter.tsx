@@ -42,10 +42,12 @@ export interface FacetedFilterProps {
 function FilterSection({
   title,
   defaultOpen = true,
+  activeCount = 0,
   children,
 }: {
   title: string;
   defaultOpen?: boolean;
+  activeCount?: number;
   children: React.ReactNode;
 }) {
   const [open, setOpen] = useState(defaultOpen);
@@ -57,7 +59,14 @@ function FilterSection({
         onClick={() => setOpen((o) => !o)}
         className="flex w-full items-center justify-between text-sm font-bold text-foreground"
       >
-        <span>{title}</span>
+        <span className="flex items-center gap-2">
+          <span>{title}</span>
+          {activeCount > 0 && (
+            <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-[10px] font-bold text-primary-foreground">
+              {toPersianDigits(activeCount)}
+            </span>
+          )}
+        </span>
         {open ? (
           <ChevronUp className="h-4 w-4 text-muted-foreground" />
         ) : (
@@ -107,8 +116,13 @@ function BucketCheckboxList({
               {bucket.label || bucket.key}
             </span>
             <Badge
-              variant="secondary"
-              className="h-5 min-w-[1.5rem] rounded-md px-1.5 py-0 text-[10px] font-medium text-muted-foreground"
+              variant={checked ? "default" : "secondary"}
+              className={cn(
+                "h-5 min-w-[1.5rem] rounded-md px-1.5 py-0 text-[10px] font-bold shrink-0 flex items-center justify-center",
+                checked
+                  ? "bg-primary text-primary-foreground shadow-xs"
+                  : "bg-muted text-muted-foreground"
+              )}
             >
               {toPersianDigits(bucket.doc_count)}
             </Badge>
@@ -177,13 +191,13 @@ function PriceRangeSection({
       <div className="grid grid-cols-2 gap-2 text-xs">
         <div>
           <span className="text-muted-foreground block mb-1">از:</span>
-          <div className="rounded-lg border border-border p-2 bg-muted/30 font-mono text-center">
+          <div className="rounded-lg border border-border p-2 bg-muted/30 font-mono text-center font-bold text-foreground">
             {formatPrice(currentMin)}
           </div>
         </div>
         <div>
           <span className="text-muted-foreground block mb-1">تا:</span>
-          <div className="rounded-lg border border-border p-2 bg-muted/30 font-mono text-center">
+          <div className="rounded-lg border border-border p-2 bg-muted/30 font-mono text-center font-bold text-foreground">
             {formatPrice(currentMax)}
           </div>
         </div>
@@ -244,8 +258,13 @@ function RatingSection({
             </span>
             {bucket && (
               <Badge
-                variant="secondary"
-                className="h-5 min-w-[1.5rem] rounded-md px-1.5 py-0 text-[10px] font-medium text-muted-foreground"
+                variant={selected ? "default" : "secondary"}
+                className={cn(
+                  "h-5 min-w-[1.5rem] rounded-md px-1.5 py-0 text-[10px] font-bold shrink-0 flex items-center justify-center",
+                  selected
+                    ? "bg-primary text-primary-foreground shadow-xs"
+                    : "bg-muted text-muted-foreground"
+                )}
               >
                 {toPersianDigits(bucket.doc_count)}
               </Badge>
@@ -290,7 +309,7 @@ export function FacetedFilter({
     <div className="space-y-4">
       {/* Categories */}
       {categoryFacet && categoryFacet.buckets.length > 0 && (
-        <FilterSection title="دسته‌بندی">
+        <FilterSection title="دسته‌بندی" activeCount={filters.category ? 1 : 0}>
           <BucketCheckboxList
             buckets={categoryFacet.buckets}
             selectedKeys={filters.category ? [filters.category] : []}
@@ -303,7 +322,7 @@ export function FacetedFilter({
 
       {/* Brands */}
       {brandFacet && brandFacet.buckets.length > 0 && (
-        <FilterSection title="برند">
+        <FilterSection title="برند" activeCount={filters.brand ? 1 : 0}>
           <BucketCheckboxList
             buckets={brandFacet.buckets}
             selectedKeys={filters.brand ? [filters.brand] : []}
@@ -315,7 +334,10 @@ export function FacetedFilter({
       )}
 
       {/* Price Range */}
-      <FilterSection title="محدوده قیمت (تومان)">
+      <FilterSection
+        title="محدوده قیمت (تومان)"
+        activeCount={filters.minPrice !== null || filters.maxPrice !== null ? 1 : 0}
+      >
         <PriceRangeSection
           minPrice={filters.minPrice}
           maxPrice={filters.maxPrice}
@@ -326,7 +348,7 @@ export function FacetedFilter({
 
       {/* Rating */}
       {ratingFacet && ratingFacet.buckets.length > 0 && (
-        <FilterSection title="امتیاز">
+        <FilterSection title="امتیاز" activeCount={filters.minRating !== null ? 1 : 0}>
           <RatingSection
             buckets={ratingFacet.buckets}
             currentRating={filters.minRating}
@@ -366,6 +388,7 @@ export function FacetedFilter({
             key={attrFacet.field}
             title={attrFacet.display_name}
             defaultOpen={false}
+            activeCount={selected.length}
           >
             <BucketCheckboxList
               buckets={attrFacet.buckets}

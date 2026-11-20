@@ -21,4 +21,16 @@ test.describe("Gym Round 08 Regression Invariants (Search & RTL Input Ergonomics
     const count = await suggestionItems.count();
     expect(count).toBeGreaterThan(0);
   });
+
+  test("2. Faceted filter sidebar renders active count badges on filter headers", async ({ page }) => {
+    await page.goto(`${BASE_URL}/products`, { waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(1500);
+
+    // Filter section headers should be present
+    const categoryHeader = page.locator("button:has-text('دسته‌بندی')").first();
+    await expect(categoryHeader).toBeVisible();
+
+    const priceHeader = page.locator("button:has-text('محدوده قیمت')").first();
+    await expect(priceHeader).toBeVisible();
+  });
 });

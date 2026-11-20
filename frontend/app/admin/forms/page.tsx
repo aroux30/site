@@ -206,11 +206,24 @@ export default function AdminFormsPage() {
                       <td className="p-3 text-muted-foreground font-mono text-[11px] text-start" dir="ltr">
                         {sub.page_slug || "نامشخص"}
                       </td>
-                      <td className="p-3 max-w-xs truncate text-muted-foreground text-start" dir="ltr">
-                        {dataEntries
-                          .slice(0, 3)
-                          .map(([k, v]) => `${k}: ${String(v)}`)
-                          .join(" | ")}
+                      <td className="p-3 max-w-sm truncate text-muted-foreground">
+                        <div className="flex items-center gap-1.5 truncate">
+                          {dataEntries.slice(0, 2).map(([k, v]) => (
+                            <span
+                              key={k}
+                              className="inline-flex items-center gap-1 rounded bg-muted/60 px-1.5 py-0.5 text-[11px] max-w-[150px] truncate"
+                              title={`${k}: ${String(v)}`}
+                            >
+                              <span className="text-muted-foreground font-mono text-[10px]" dir="ltr">{k}:</span>
+                              <span className="text-foreground truncate" dir="auto">{String(v)}</span>
+                            </span>
+                          ))}
+                          {dataEntries.length > 2 && (
+                            <span className="text-[10px] text-muted-foreground shrink-0">
+                              +{dataEntries.length - 2} فیلد دیگر
+                            </span>
+                          )}
+                        </div>
                       </td>
                       <td className="p-3 text-muted-foreground text-[11px] whitespace-nowrap">
                         {new Date(sub.created_at).toLocaleString("fa-IR")}

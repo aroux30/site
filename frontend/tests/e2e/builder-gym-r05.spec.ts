@@ -38,6 +38,9 @@ test.describe("Builder Gym Round 05: Weight 5 (Responsive Viewports, Dark Mode &
         { name: "access_token", value: token, url: BASE_URL, httpOnly: false, sameSite: "Lax" },
       ]);
     }
+    await context.setExtraHTTPHeaders({
+      "x-forwarded-for": `10.200.${Math.floor(Math.random() * 200)}.${Math.floor(Math.random() * 200)}`,
+    });
     await context.addInitScript(() => {
       localStorage.setItem(
         "auth-storage",

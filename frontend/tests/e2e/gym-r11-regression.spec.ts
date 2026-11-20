@@ -5,6 +5,9 @@ const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || "http://127.0.0.1:3000";
 
 test.describe("Gym Round 11 Regression Invariants (Checkout & Card Transfer)", () => {
   test.beforeEach(async ({ page }) => {
+    await page.setExtraHTTPHeaders({
+      "X-Forwarded-For": `10.96.${Math.floor(Math.random() * 240) + 1}.${Math.floor(Math.random() * 240) + 1}`,
+    });
     const token = await createAccessTokenForE2E();
     await page.context().addCookies([
       { name: "access_token", value: token, url: BASE_URL, httpOnly: false, sameSite: "Lax" },

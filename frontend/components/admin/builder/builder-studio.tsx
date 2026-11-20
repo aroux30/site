@@ -189,7 +189,7 @@ export function BuilderStudio({ page, onExit }: BuilderStudioProps) {
   const rootElementIds = ast.rootElements.map((el) => el.id);
 
   return (
-    <div className="fixed inset-0 z-[60] flex flex-col h-screen w-screen overflow-hidden bg-background font-sans" dir="rtl">
+    <div className="fixed inset-0 z-[100] flex flex-col h-screen w-screen overflow-hidden bg-background font-sans" dir="rtl">
       {/* Concurrent Editing Lock Alert Banner */}
       {lockedByOther && (
         <div className="bg-amber-500/15 border-b border-amber-500/30 text-amber-900 dark:text-amber-200 px-4 py-2 text-xs flex items-center justify-between z-50 shrink-0">

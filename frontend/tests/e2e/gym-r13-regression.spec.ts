@@ -3,6 +3,12 @@ import { test, expect } from "@playwright/test";
 const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || "http://127.0.0.1:3000";
 
 test.describe("Gym Round 13 Regression Invariants (Product Comparison & Matrix Fallback)", () => {
+  test.beforeEach(async ({ page }) => {
+    await page.setExtraHTTPHeaders({
+      "X-Forwarded-For": `10.98.${Math.floor(Math.random() * 240) + 1}.${Math.floor(Math.random() * 240) + 1}`,
+    });
+  });
+
   test("1. Empty compare page displays clear guidance card with add button", async ({ page }) => {
     await page.goto(`${BASE_URL}/compare`, { waitUntil: "domcontentloaded" });
     await page.waitForTimeout(1000);

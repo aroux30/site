@@ -128,7 +128,12 @@ export function Header() {
       try {
         const sp = new URLSearchParams(window.location.search);
         setIsVisualEditor(
-          sp.get("visual_editor") === "true" || sp.get("edit") === "true",
+          sp.get("visual_editor") === "true" ||
+          sp.get("visual_editor") === "1" ||
+          sp.get("edit") === "true" ||
+          sp.get("edit") === "1" ||
+          sp.get("builder") === "1" ||
+          sp.get("builder") === "true"
         );
       } catch {
         setIsVisualEditor(false);
@@ -394,9 +399,12 @@ export function Header() {
 
   const userInitial = userName.charAt(0).toUpperCase() || "ک";
 
+  if (isVisualEditor) {
+    return null;
+  }
+
   return (
     <>
-    {isVisualEditor && <div aria-hidden className="h-14 shrink-0 w-full" />}
     <HeaderTopWidgets />
     {/* Announcement bar from CMS homepage_config (admin /admin/cms) */}
     {announcement?.enabled && announcement.text ? (

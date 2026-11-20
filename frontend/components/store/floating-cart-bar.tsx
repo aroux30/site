@@ -18,7 +18,8 @@ export function FloatingCartBar() {
     setMounted(true);
   }, []);
 
-  const isCheckoutPage = pathname?.startsWith("/checkout") || pathname?.startsWith("/cart");
+  const isPdp = Boolean(pathname?.startsWith("/products/") && pathname.split("/").filter(Boolean).length >= 2);
+  const isCheckoutPage = pathname?.startsWith("/checkout") || pathname?.startsWith("/cart") || isPdp;
 
   if (!mounted || totalItems <= 0 || dismissed || isCheckoutPage) {
     return null;

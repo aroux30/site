@@ -1,0 +1,15 @@
+{
+  "stage": "after",
+  "timestamp": "2026-11-20T04:21:05.462Z",
+  "tests": {
+    "pdpTop": {
+      "shot": "C:\\Users\\Administrator\\Desktop\\site\\.loop\\artifacts\\gym\\round-14\\after\\01-pdp-hero-and-pricing.png"
+    },
+    "pdpTabs": {
+      "shot": "C:\\Users\\Administrator\\Desktop\\site\\.loop\\artifacts\\gym\\round-14\\after\\02-pdp-specs-and-reviews.png"
+    },
+    "pdpMobile": {
+      "shot": "C:\\Users\\Administrator\\Desktop\\site\\.loop\\artifacts\\gym\\round-14\\after\\03-pdp-mobile-view.png"
+    }
+  }
+}

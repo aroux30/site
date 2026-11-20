@@ -4,6 +4,12 @@ import { createAccessTokenForE2E } from "./helpers/admin-token";
 const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || "http://127.0.0.1:3000";
 
 test.describe("Gym Round 12 Regression Invariants (Blog, RSS & Author Archive)", () => {
+  test.beforeEach(async ({ page }) => {
+    await page.setExtraHTTPHeaders({
+      "X-Forwarded-For": `10.95.${Math.floor(Math.random() * 240) + 1}.${Math.floor(Math.random() * 240) + 1}`,
+    });
+  });
+
   test("1. Blog page RSS feed link points to public route /blog/feed/rss", async ({ page }) => {
     await page.goto(`${BASE_URL}/blog`, { waitUntil: "domcontentloaded" });
     await page.waitForTimeout(1000);

@@ -514,6 +514,7 @@ export default function AdminThemesPage() {
                     onClick={() => handleOpenRevisions(theme)}
                     className="h-8 text-xs text-muted-foreground hover:text-foreground"
                     title="تاریخچه نسخه‌ها"
+                    aria-label={`تاریخچه نسخه‌های تم ${theme.name}`}
                   >
                     <History className="w-3.5 h-3.5" />
                   </Button>
@@ -530,6 +531,7 @@ export default function AdminThemesPage() {
                     }}
                     className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
                     title="کلون تم"
+                    aria-label={`کلون تم ${theme.name}`}
                   >
                     <Copy className="w-3.5 h-3.5" />
                   </Button>
@@ -540,6 +542,7 @@ export default function AdminThemesPage() {
                       onClick={() => handleDelete(theme)}
                       className="h-8 w-8 p-0 text-destructive hover:bg-destructive/10"
                       title="حذف تم"
+                      aria-label={`حذف تم ${theme.name}`}
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </Button>

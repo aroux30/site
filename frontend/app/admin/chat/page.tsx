@@ -450,9 +450,10 @@ function AdminChatPageInner() {
               <span>کاربران فعال</span>
               <button
                 onClick={() => void reloadList()}
-                className="flex items-center gap-1 rounded bg-muted px-2 py-1 text-xs"
+                className="flex items-center gap-1 rounded bg-muted px-2 py-1 text-xs hover:bg-muted/80 transition"
+                title="بروزرسانی فهرست گفتگوها"
               >
-                <RefreshCw className="h-3 w-3" /> بروزرسانی
+                <RefreshCw className={`h-3 w-3 ${listLoading ? "animate-spin" : ""}`} /> <span>بروزرسانی</span>
               </button>
             </div>
             <div className="flex-1 overflow-y-auto">

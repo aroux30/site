@@ -215,13 +215,13 @@ export default function AdminNoticesPage() {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={() => void fetchNotices()} className="gap-1.5">
-            <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
-            بروزرسانی
+          <Button variant="outline" size="sm" onClick={() => void fetchNotices()} disabled={loading} className="gap-1.5 text-xs">
+            <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} />
+            <span>بروزرسانی</span>
           </Button>
-          <Button size="sm" onClick={() => setCreateOpen(true)} className="gap-1.5">
-            <Plus className="h-4 w-4" />
-            اطلاعیه جدید
+          <Button size="sm" onClick={() => setCreateOpen(true)} className="gap-1.5 text-xs">
+            <Plus className="h-3.5 w-3.5" />
+            <span>اطلاعیه جدید</span>
           </Button>
         </div>
       </div>

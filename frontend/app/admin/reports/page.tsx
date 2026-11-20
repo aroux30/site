@@ -370,7 +370,7 @@ export default function AdminReportsPage() {
       () =>
         (report?.columns ?? []).map((col) => ({
           key: col.key,
-          header: col.label,
+          header: col.label.replace(" (ریال)", " (تومان)").replace("(ریال)", "(تومان)"),
           className:
             col.kind === "money" || col.kind === "int"
               ? "font-mono text-left"
@@ -564,8 +564,10 @@ export default function AdminReportsPage() {
             size="sm"
             className="gap-2"
             onClick={() => void fetchReport()}
+            disabled={reportLoading}
           >
-            <RefreshCw className={`h-4 w-4 ${reportQuery.loading ? "animate-spin" : ""}`} /> به‌روزرسانی
+            <RefreshCw className={`h-4 w-4 ${reportLoading ? "animate-spin" : ""}`} />
+            <span>به‌روزرسانی</span>
           </Button>
           <Button
             variant="outline"
@@ -675,7 +677,9 @@ export default function AdminReportsPage() {
                 key={c.key}
                 className="rounded-xl border border-border bg-muted/30 p-3"
               >
-                <div className="text-[10px] text-muted-foreground">{c.label}</div>
+                <div className="text-[10px] text-muted-foreground">
+                  {c.label.replace(" (ریال)", " (تومان)").replace("(ریال)", "(تومان)")}
+                </div>
                 <div className="mt-1 font-mono text-sm font-bold" dir="auto">
                   {formatCell(report.totals[c.key], c.kind)}
                 </div>

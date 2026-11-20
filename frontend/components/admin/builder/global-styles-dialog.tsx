@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Paintbrush, Check, RotateCcw } from "lucide-react";
 import {
   Dialog,
@@ -71,6 +71,15 @@ export function GlobalStylesDialog({ open, onOpenChange }: GlobalStylesDialogPro
     String(globalStyles.fontFamily || "vazirmatn")
   );
 
+  useEffect(() => {
+    if (open) {
+      setPrimary(String(globalStyles.primaryColor || "#059669"));
+      setSecondary(String(globalStyles.secondaryColor || "#0d9488"));
+      setRadius(String(globalStyles.borderRadius || "12px"));
+      setFontFamily(String(globalStyles.fontFamily || "vazirmatn"));
+    }
+  }, [open, globalStyles.primaryColor, globalStyles.secondaryColor, globalStyles.borderRadius, globalStyles.fontFamily]);
+
   const handleSave = () => {
     updateGlobalStyles({
       primaryColor: primary,
@@ -82,6 +91,10 @@ export function GlobalStylesDialog({ open, onOpenChange }: GlobalStylesDialogPro
   };
 
   const handleResetToSiteTheme = () => {
+    setPrimary("#059669");
+    setSecondary("#0d9488");
+    setRadius("12px");
+    setFontFamily("vazirmatn");
     updateGlobalStyles({
       primaryColor: undefined,
       secondaryColor: undefined,

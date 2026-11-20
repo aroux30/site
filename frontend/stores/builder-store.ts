@@ -232,7 +232,6 @@ export interface BuilderState {
   toggleLockElement: (id: string) => void;
   setElementLocked: (id: string, isLocked: boolean) => void;
   renameElement: (id: string, name: string) => void;
-  updateElementLayout: (id: string, layout: Partial<ContainerLayout>) => void;
   unlinkGlobalComponent: (id: string) => void;
   updateGlobalStyles: (styles: Record<string, unknown>) => void;
 
@@ -739,37 +738,6 @@ export const useBuilderStore = create<BuilderState>((set, get) => ({
     });
   },
 
-  updateElementLayout: (id, layoutPatch) => {
-    const { ast, history } = get();
-    const newPast = [...history.past, ast].slice(-MAX_HISTORY_LENGTH);
-    const updatedRoots = updateElementInTree(ast.rootElements, id, (el) => {
-      const currentLayout = el.layout || {
-        kind: "flex",
-        direction: "column",
-        justifyContent: "start",
-        alignItems: "stretch",
-        flexWrap: "nowrap",
-        gap: { value: 16, unit: "px" },
-        gridColumns: 1,
-      };
-      return {
-        ...el,
-        layout: {
-          ...currentLayout,
-          ...layoutPatch,
-        },
-      };
-    });
-    set({
-      ast: { ...ast, rootElements: updatedRoots },
-      isDirty: true,
-      mutationVersion: get().mutationVersion + 1,
-      history: { past: newPast, future: [] },
-    });
-  },
-
-=======
->>>>>>> main
   updateElementVisibility: (id, visibility) => {
     const { ast, history } = get();
     const newPast = [...history.past, ast].slice(-MAX_HISTORY_LENGTH);

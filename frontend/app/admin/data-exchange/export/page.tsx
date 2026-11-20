@@ -163,12 +163,12 @@ export default function DataExchangeExportPage() {
             <option value="true">فقط فعال</option>
             <option value="false">فقط غیرفعال</option>
           </select>
-          <Button onClick={() => void doExport()} disabled={creating}>
-            <Download className="h-4 w-4 ms-1" />
+          <Button onClick={() => void doExport()} disabled={creating} className="gap-2">
+            <Download className="h-4 w-4" />
             {creating ? "در حال آماده‌سازی..." : "ساخت و دانلود خروجی"}
           </Button>
           <Button variant="ghost" size="sm" onClick={() => void load()}>
-            <RefreshCw className="h-4 w-4" />
+            <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
           </Button>
         </div>
       </Card>

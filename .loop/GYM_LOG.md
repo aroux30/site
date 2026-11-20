@@ -820,11 +820,50 @@
 
 ---
 
+### 🏋️ راند ۲۶ (Round 26) — وزنه ۶: +۱۰ کیلو تعمق مداوم (ورود داده، خروجی داده، سوالات متداول، بررسی نظرات و مرکز گزارش‌ها)
+- **تاریخ اجرا**: 2026-11-20
+- **شاخه ایزوله**: `autofix/gym-loop`
+- **وضعیت**: ✅ کامل و سبز (اصلاح چیدمان راست‌به‌چپ در سوالات متداول و مرکز گزارش‌ها، استانداردسازی فاصله‌گذاری دکمه‌ها و اسپینرهای فعال لودینگ با Vision)
+
+#### ۱. باگ‌های کشف‌شده با ابزار Vision و اصلاحات ریشه‌ای
+1. **فقدان صفت `dir="rtl"` در کانتینر اصلی سوالات متداول و مرکز گزارش‌ها**:
+   - *مشاهده در Vision*: در تصاویر `before/03-admin-faq.png` و `before/05-admin-reports.png`، کانتینرهای ریشه بدون ویژگی صریح `dir="rtl"` رندر می‌شدند که موجب ناهماهنگی تراز دکمه‌های هدر و هدایت بصری جدول پارامترهای گزارش می‌شد.
+   - *اصلاح ریشه‌ای*: در [faq/page.tsx](frontend/app/admin/faq/page.tsx) و [reports/page.tsx](frontend/app/admin/reports/page.tsx) صفت صریح `dir="rtl"` اضافه شد.
+2. **فواصل معکوس `ms-1` در دکمه‌های ورود داده، خروجی داده و بازخوانی نظرات**:
+   - *مشاهده در Vision*: در تصاویر `before/01-admin-data-exchange.png`، `before/02-admin-data-exchange-export.png` و `before/04-admin-reviews.png`، دکمه‌های «خروجی داده (Export)»، «انتخاب فایل و شروع»، «ساخت و دانلود خروجی»، «تازه‌سازی» و «به‌روزرسانی» از کلاس‌های `ms-1` روی آیکون‌ها استفاده می‌کردند که فاصله بین آیکون و لبه بیرونی دکمه ایجاد می‌کرد.
+   - *اصلاح ریشه‌ای*: در [data-exchange/page.tsx](frontend/app/admin/data-exchange/page.tsx)، [data-exchange/export/page.tsx](frontend/app/admin/data-exchange/export/page.tsx)، [reviews/page.tsx](frontend/app/admin/reviews/page.tsx) و [reports/page.tsx](frontend/app/admin/reports/page.tsx) فواصل با کلاس هماهنگ `gap-2` بازنویسی شده و انیمیشن چرخان لودینگ (`animate-spin`) برای دکمه‌های بازخوانی و به‌روزرسانی فعال گردید.
+
+#### ۲. مستندات بصری (Vision Artifacts)
+- **قبل از اصلاح**: `.loop/artifacts/gym/round-26/before/`
+  - `01-admin-data-exchange.png` (ورود داده)
+  - `02-admin-data-exchange-export.png` (خروجی داده)
+  - `03-admin-faq.png` (مدیریت سوالات متداول)
+  - `04-admin-reviews.png` (بررسی نظرات کاربران)
+  - `05-admin-reports.png` (مرکز گزارش‌ها)
+- **بعد از اصلاح**: `.loop/artifacts/gym/round-26/after/`
+  - `01-admin-data-exchange.png` (چیدمان استاندارد و دکمه‌های اصلاح‌شده ورود داده)
+  - `02-admin-data-exchange-export.png` (فرم منظم خروجی گرفتن داده)
+  - `03-admin-faq.png` (چیدمان استاندارد RTL سوالات متداول)
+  - `04-admin-reviews.png` (دکمه هماهنگ تازه‌سازی نظرات کاربران)
+  - `05-admin-reports.png` (نمای منظم و راست‌به‌چپ مرکز گزارش‌ها)
+
+#### ۳. تست‌های رگرسیون دائمی اضافه‌شده
+- فایل تست Playwright: `frontend/tests/e2e/gym-r26-regression.spec.ts` (۵ تست سبز)
+
+#### ۴. نتایج نهایی ممیزی و تست‌ها در راند ۲۶
+- `npx tsc --noEmit`: ۰ خطا (سبز)
+- `npm test` (Vitest): **۳۶۹ تست سبز در ۴۵ فایل** (`369 passed`)
+- `python -m pytest app/tests/unit`: **۶۲۲ تست سبز** (`622 passed, 2 skipped`)
+- مجموع تست‌های رگرسیون تجمعی (راند ۱ تا ۲۶): **۸۶ تست Playwright سبز**
+- `node .loop/audits/deterministic-audit.mjs`: **پاس ۱۰۰٪ تمام چک‌ها (`passed: true`)**
+
+---
+
 ## وضعیت جامع و تسلط بر هر ۵ سطح (Mastery Status)
 
 **GYM_ALL_5_LEVELS_MASTERED**
 
-تمام ۵ سطح نردبان تمرین پیش‌رونده (از ۵ کیلو تا ۵۰ کیلو) به همراه مراحل تکمیلی راندهای ۶ تا ۲۵ با ممیزی‌های زنده، مستندات تصویری Vision در پوشه‌های `.loop/artifacts/gym/round-01/` تا `.loop/artifacts/gym/round-25/`، ۸۱ تست رگرسیون تجمعی E2E، ۶۲۲ تست بک‌اند، ۳۶۹ تست فرانت‌اند و بیلد تمیز پروداکشن با موفقیت ۱۰۰٪ کامل ثبت و تسخیر شدند.
+تمام ۵ سطح نردبان تمرین پیش‌رونده (از ۵ کیلو تا ۵۰ کیلو) به همراه مراحل تکمیلی راندهای ۶ تا ۲۶ با ممیزی‌های زنده، مستندات تصویری Vision در پوشه‌های `.loop/artifacts/gym/round-01/` تا `.loop/artifacts/gym/round-26/`، ۸۶ تست رگرسیون تجمعی E2E، ۶۲۲ تست بک‌اند، ۳۶۹ تست فرانت‌اند و بیلد تمیز پروداکشن با موفقیت ۱۰۰٪ کامل ثبت و تسخیر شدند.
 
 
 

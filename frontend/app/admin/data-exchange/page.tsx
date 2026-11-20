@@ -285,9 +285,9 @@ export default function DataExchangeImportPage() {
             بارگذاری CSV یا XLSX، نگاشت ستون‌ها، اعتبارسنجی خشک (dry-run) و اجرای import با گزارش خطای ردیفی
           </p>
         </div>
-        <Button variant="outline" asChild>
+        <Button variant="outline" asChild className="gap-2">
           <Link href="/admin/data-exchange/export">
-            <Download className="h-4 w-4 ms-1" />
+            <Download className="h-4 w-4" />
             خروجی داده (Export)
           </Link>
         </Button>
@@ -323,12 +323,12 @@ export default function DataExchangeImportPage() {
               if (f) void doUpload(f);
             }}
           />
-          <Button onClick={() => fileRef.current?.click()} disabled={uploading}>
-            <Upload className="h-4 w-4 ms-1" />
+          <Button onClick={() => fileRef.current?.click()} disabled={uploading} className="gap-2">
+            <Upload className="h-4 w-4" />
             {uploading ? "در حال بارگذاری..." : "انتخاب فایل و شروع"}
           </Button>
           <Button variant="ghost" size="sm" onClick={() => void load()}>
-            <RefreshCw className="h-4 w-4" />
+            <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
           </Button>
         </div>
       </Card>

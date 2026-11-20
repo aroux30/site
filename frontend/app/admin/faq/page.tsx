@@ -13,7 +13,7 @@ import FaqManagerCard from "@/components/admin/faq-manager-card";
 
 export default function AdminFaqPage() {
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" dir="rtl">
       <div className="flex items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-foreground">سوالات متداول</h1>

@@ -543,7 +543,7 @@ export default function AdminReportsPage() {
   const CurrentIcon = currentDef.icon;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" dir="rtl">
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
@@ -565,7 +565,7 @@ export default function AdminReportsPage() {
             className="gap-2"
             onClick={() => void fetchReport()}
           >
-            <RefreshCw className="h-4 w-4" /> به‌روزرسانی
+            <RefreshCw className={`h-4 w-4 ${reportQuery.loading ? "animate-spin" : ""}`} /> به‌روزرسانی
           </Button>
           <Button
             variant="outline"

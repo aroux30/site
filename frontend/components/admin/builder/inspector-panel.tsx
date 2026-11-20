@@ -1124,11 +1124,11 @@ export function InspectorPanel() {
           <div className="flex flex-wrap gap-1 mt-1">
             <span className="text-[10px] text-muted-foreground me-1 self-center">مقیاس پدینگ:</span>
             {[
-              { label: "سکشن (۶۴px)", val: 64 },
-              { label: "بزرگ (۳۲px)", val: 32 },
-              { label: "پایه (۱۶px)", val: 16 },
-              { label: "کوچک (۸px)", val: 8 },
               { label: "صفر", val: 0 },
+              { label: "کوچک (۸px)", val: 8 },
+              { label: "پایه (۱۶px)", val: 16 },
+              { label: "بزرگ (۳۲px)", val: 32 },
+              { label: "سکشن (۶۴px)", val: 64 },
             ].map((sp) => (
               <button
                 key={sp.label}
@@ -1158,13 +1158,22 @@ export function InspectorPanel() {
           <div className="flex items-center gap-2">
             <Input
               value={currentDeviceStyle.width ? `${currentDeviceStyle.width.value}${currentDeviceStyle.width.unit}` : ""}
-              placeholder="100% یا 1280px"
+              placeholder="100% / 1280px / خودکار"
               onChange={(e) => {
                 const raw = e.target.value.trim();
+                if (!raw || raw === "auto") {
+                  handleDeviceStyleChange({ width: undefined });
+                  return;
+                }
                 if (raw.endsWith("%")) {
                   handleDeviceStyleChange({ width: { value: parseFloat(raw) || 100, unit: "%" } });
                 } else if (raw.endsWith("px")) {
                   handleDeviceStyleChange({ width: { value: parseFloat(raw) || 0, unit: "px" } });
+                } else {
+                  const val = parseFloat(raw);
+                  if (!isNaN(val)) {
+                    handleDeviceStyleChange({ width: { value: val, unit: "px" } });
+                  }
                 }
               }}
               className="h-8 text-xs flex-1 font-mono"
@@ -1174,6 +1183,7 @@ export function InspectorPanel() {
           <div className="flex flex-wrap gap-1 mt-1">
             <span className="text-[10px] text-muted-foreground me-1 self-center">توکن‌های عرض:</span>
             {[
+              { label: "خودکار (Auto)", w: undefined },
               { label: "۱۰۰٪", w: { value: 100, unit: "%" as UnitType } },
               { label: "۱۲۸۰px (کانتینر)", w: { value: 1280, unit: "px" as UnitType } },
               { label: "۷۶۸px (محتوا)", w: { value: 768, unit: "px" as UnitType } },
@@ -1582,9 +1592,7 @@ export function InspectorPanel() {
           <Label className="text-xs">نام نمایشی المان در لایه‌ها</Label>
           <Input
             value={selectedElement.name}
-            onChange={(e) => {
-              updateElementName(selectedElement.id, e.target.value);
-            }}
+            onChange={(e) => updateElementName(selectedElement.id, e.target.value)}
             className="h-8 text-xs"
           />
         </div>
@@ -1684,9 +1692,7 @@ export function InspectorPanel() {
           <Label className="text-xs">مخفی کردن المان (Visibility)</Label>
           <Switch
             checked={selectedElement.isHidden}
-            onCheckedChange={() => {
-              toggleHideElement(selectedElement.id);
-            }}
+            onCheckedChange={() => toggleHideElement(selectedElement.id)}
           />
         </div>
 
@@ -1694,9 +1700,7 @@ export function InspectorPanel() {
           <Label className="text-xs">قفل کردن المان در ویرایشگر</Label>
           <Switch
             checked={selectedElement.isLocked}
-            onCheckedChange={() => {
-              toggleLockElement(selectedElement.id);
-            }}
+            onCheckedChange={() => toggleLockElement(selectedElement.id)}
           />
         </div>
 

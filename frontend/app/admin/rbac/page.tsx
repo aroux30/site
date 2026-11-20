@@ -312,18 +312,18 @@ export default function AdminRbacPage() {
     <div className="space-y-6" dir="rtl">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-bold flex items-center gap-2">
+          <h1 className="text-xl font-bold flex items-center gap-2">
             <Shield className="h-5 w-5 text-primary" />
             نقش‌ها و دسترسی‌ها (RBAC)
-          </h2>
+          </h1>
           <p className="text-sm text-muted-foreground mt-1">
             مدیریت نقش‌ها و مجوزهای دقیق به سبک WordPress capabilities
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Button variant="outline" size="sm" onClick={() => void load()}>
-            <RefreshCw className="h-4 w-4 ms-2" />
-            بروزرسانی
+          <Button variant="outline" size="sm" onClick={() => void load()} disabled={loading}>
+            <RefreshCw className={`h-4 w-4 ms-2 ${loading ? "animate-spin" : ""}`} />
+            <span>بروزرسانی</span>
           </Button>
           <Button
             variant="outline"

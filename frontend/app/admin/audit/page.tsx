@@ -179,10 +179,10 @@ export default function AdminAuditPage() {
     <div className="space-y-6" dir="rtl">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-bold flex items-center gap-2">
+          <h1 className="text-xl font-bold flex items-center gap-2">
             <ScrollText className="h-5 w-5 text-primary" />
             گزارش رویدادها (Audit Trail)
-          </h2>
+          </h1>
           <p className="text-sm text-muted-foreground mt-1">
             تاریخچه تغییرات حساس سیستم — قابل فیلتر بر اساس عملیات و منبع
           </p>
@@ -191,9 +191,10 @@ export default function AdminAuditPage() {
           variant="outline"
           size="sm"
           onClick={tab === "actions" ? load : loadChanges}
+          disabled={loading || changesLoading}
         >
-          <RefreshCw className="h-4 w-4 ms-2" />
-          بروزرسانی
+          <RefreshCw className={`h-4 w-4 ms-2 ${(loading || changesLoading) ? "animate-spin" : ""}`} />
+          <span>بروزرسانی</span>
         </Button>
       </div>
 
@@ -252,7 +253,7 @@ export default function AdminAuditPage() {
       <Card className="p-4">
         <div className="flex flex-col gap-3 sm:flex-row">
           <div className="relative flex-1">
-            <Search className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Search className="absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground pointer-events-none" />
             <Input
               value={actionFilter}
               onChange={(e) => {
@@ -260,7 +261,7 @@ export default function AdminAuditPage() {
                 setPage(1);
               }}
               placeholder="فیلتر عملیات (مثلاً cms_page.updated)"
-              className="ps-9"
+              className="pe-9 text-start"
               dir="ltr"
             />
           </div>
@@ -272,7 +273,7 @@ export default function AdminAuditPage() {
             }}
             placeholder="منبع (resource)"
             dir="ltr"
-            className="sm:w-64"
+            className="sm:w-64 text-start"
           />
         </div>
       </Card>

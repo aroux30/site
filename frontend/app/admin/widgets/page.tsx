@@ -25,6 +25,23 @@ import {
   type WidgetConfigField,
 } from "@/lib/api/wp-parity";
 
+const AREA_NAMES_FA: Record<string, string> = {
+  sidebar: "نوار کناری (Sidebar)",
+  footer_1: "ستون اول فوتر",
+  footer_2: "ستون دوم فوتر",
+  footer_3: "ستون سوم فوتر",
+  header_top: "نوار بالای هدر",
+};
+
+const WIDGET_TYPE_NAMES_FA: Record<string, string> = {
+  text: "متن و محتوای سفارشی (Text)",
+  search: "کادر جستجو (Search)",
+  categories: "دسته‌بندی‌های وبلاگ (Categories)",
+  recent_posts: "آخرین مقالات (Recent Posts)",
+  links: "فهرست پیوندها (Links)",
+  custom_html: "کد HTML دلخواه (Custom HTML)",
+};
+
 function newWidgetId() {
   return `w_${Math.random().toString(36).slice(2, 10)}`;
 }
@@ -334,7 +351,7 @@ export default function WidgetsPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" dir="rtl">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-lg font-bold">نواحی ویجت</h1>
@@ -364,11 +381,11 @@ export default function WidgetsPage() {
                     onClick={() => selectArea(id)}
                     className={`flex flex-1 items-center justify-between rounded-md border p-2.5 text-start text-xs transition-colors ${
                       selectedArea === id
-                        ? "border-primary bg-primary/5"
+                        ? "border-primary bg-primary/5 font-bold"
                         : "border-transparent hover:bg-muted/50"
                     }`}
                   >
-                    <span>{area.name}</span>
+                    <span>{AREA_NAMES_FA[id] || area.name}</span>
                     <Badge variant="secondary" className="text-[10px]">
                       {area.widgets?.length ?? 0}
                     </Badge>
@@ -427,9 +444,9 @@ export default function WidgetsPage() {
               <Card className="space-y-3 p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <div className="text-sm font-semibold">{areas[selectedArea].name}</div>
+                    <div className="text-sm font-semibold">{AREA_NAMES_FA[selectedArea] || areas[selectedArea].name}</div>
                     <div className="text-[11px] text-muted-foreground">
-                      {areas[selectedArea].description}
+                      {areas[selectedArea].description || "مدیریت محتوای چیدمان ناحیهٔ ویجت"}
                     </div>
                   </div>
                   <Button size="sm" onClick={() => void handleSave()} disabled={saving}>
@@ -441,7 +458,7 @@ export default function WidgetsPage() {
               {/* Add widget — the config form is driven by the per-type
                   schema from the API, so each type gets its own fields. */}
               <Card className="space-y-3 p-4">
-                <Label className="text-xs">افزودن ویجت</Label>
+                <Label className="text-xs font-semibold">افزودن ویجت جدید</Label>
                 <div className="flex flex-wrap gap-2">
                   <select
                     value={addingType}
@@ -453,14 +470,14 @@ export default function WidgetsPage() {
                   >
                     {Object.entries(types).map(([key, meta]) => (
                       <option key={key} value={key}>
-                        {meta.name}
+                        {WIDGET_TYPE_NAMES_FA[key] || meta.name}
                       </option>
                     ))}
                   </select>
                   <Input
                     value={addingTitle}
                     onChange={(e) => setAddingTitle(e.target.value)}
-                    placeholder="عنوان (اختیاری)"
+                    placeholder="عنوان ویجت (اختیاری)"
                     className="min-w-[140px] flex-1 text-xs"
                   />
                 </div>
@@ -532,11 +549,11 @@ export default function WidgetsPage() {
                             <Input
                               value={widget.title ?? ""}
                               onChange={(e) => setWidgetTitle(widget.id, e.target.value)}
-                              placeholder={types[widget.type]?.name ?? widget.type}
+                              placeholder={WIDGET_TYPE_NAMES_FA[widget.type] || types[widget.type]?.name || widget.type}
                               className="h-8 max-w-[220px] text-xs"
                             />
-                            <Badge variant="outline" className="text-[10px]" dir="ltr">
-                              {widget.type}
+                            <Badge variant="outline" className="text-[10px]">
+                              {WIDGET_TYPE_NAMES_FA[widget.type] || types[widget.type]?.name || widget.type}
                             </Badge>
                           </div>
                           <div className="flex flex-col gap-0.5">

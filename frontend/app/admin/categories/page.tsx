@@ -507,7 +507,7 @@ export default function AdminCategoriesPage() {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" dir="rtl">
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
@@ -524,7 +524,7 @@ export default function AdminCategoriesPage() {
               <Plus className="h-4 w-4" /> افزودن دسته‌بندی
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto" dir="rtl">
             <DialogHeader>
               <DialogTitle>ایجاد دسته‌بندی جدید</DialogTitle>
             </DialogHeader>
@@ -682,7 +682,7 @@ export default function AdminCategoriesPage() {
 
         {/* Edit Category Modal */}
         <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto" dir="rtl">
             <DialogHeader>
               <DialogTitle>ویرایش دسته‌بندی</DialogTitle>
             </DialogHeader>

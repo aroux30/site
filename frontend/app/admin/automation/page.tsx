@@ -374,13 +374,13 @@ export default function AdminAutomationPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={() => void load()}>
-            <RefreshCw className="ms-2 h-4 w-4" />
-            بروزرسانی
+          <Button variant="outline" size="sm" onClick={() => void load()} disabled={loading}>
+            <RefreshCw className={`ms-1.5 h-4 w-4 ${loading ? "animate-spin" : ""}`} />
+            <span>بروزرسانی</span>
           </Button>
           <Button size="sm" onClick={openCreate}>
-            <Plus className="ms-2 h-4 w-4" />
-            قاعده جدید
+            <Plus className="ms-1.5 h-4 w-4" />
+            <span>قاعده جدید</span>
           </Button>
         </div>
       </div>

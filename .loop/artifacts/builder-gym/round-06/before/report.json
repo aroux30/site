@@ -1,0 +1,20 @@
+{
+  "stage": "before",
+  "timestamp": "2026-11-20T10:30:06.979Z",
+  "weight": "Weight 2: Deep Visual Audit of Block Patterns (Patterns 1 to 7) & Widget Custom Classes (10kg)",
+  "checks": {
+    "patternsPaletteScreenshot": "C:\\Users\\Administrator\\Desktop\\site\\.claude\\worktrees\\lucid-cartwright-fe0984\\.loop\\artifacts\\builder-gym\\round-06\\before\\01-patterns-palette-list.png",
+    "heroAndFeaturesScreenshot": "C:\\Users\\Administrator\\Desktop\\site\\.claude\\worktrees\\lucid-cartwright-fe0984\\.loop\\artifacts\\builder-gym\\round-06\\before\\02-pattern-hero-and-features.png",
+    "heroHeadingClasses": {
+      "classes": "font-bold tracking-tight text-foreground m-0 break-words [overflow-wrap:anywhere]",
+      "hasText3xl": false,
+      "hasMdText5xl": false
+    },
+    "showcaseAndTestimonialsScreenshot": "C:\\Users\\Administrator\\Desktop\\site\\.claude\\worktrees\\lucid-cartwright-fe0984\\.loop\\artifacts\\builder-gym\\round-06\\before\\03-pattern-product-showcase-testimonials.png",
+    "faqImageCountdownScreenshot": "C:\\Users\\Administrator\\Desktop\\site\\.claude\\worktrees\\lucid-cartwright-fe0984\\.loop\\artifacts\\builder-gym\\round-06\\before\\04-pattern-faq-image-countdown.png",
+    "countdownHeadingClasses": {
+      "classes": "font-bold tracking-tight text-foreground m-0 break-words [overflow-wrap:anywhere]",
+      "hasTextPrimary": false
+    }
+  }
+}

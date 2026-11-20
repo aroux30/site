@@ -1,0 +1,9 @@
+{
+  "stage": "after",
+  "timestamp": "2026-11-20T16:07:22.014Z",
+  "weight": "Weight 6: Template Dialog Synchronization & Theme Reset (90kg)",
+  "checks": {
+    "savePageTemplateScreenshot": "C:\\Users\\Administrator\\Desktop\\site\\.claude\\worktrees\\lucid-cartwright-fe0984\\.loop\\artifacts\\builder-gym\\round-13\\after\\01-save-page-template-dialog.png",
+    "globalStylesScreenshot": "C:\\Users\\Administrator\\Desktop\\site\\.claude\\worktrees\\lucid-cartwright-fe0984\\.loop\\artifacts\\builder-gym\\round-13\\after\\02-global-styles-reset-dialog.png"
+  }
+}

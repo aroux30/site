@@ -49,6 +49,12 @@ export function SaveTemplateDialog({
   const [category, setCategory] = useState("عمومی");
   const [saving, setSaving] = useState(false);
 
+  React.useEffect(() => {
+    if (open) {
+      setTitle(element.name || "قالب کانتینر جدید");
+    }
+  }, [open, element.name]);
+
   const handleSave = async () => {
     if (!title.trim()) {
       toast({

@@ -205,15 +205,349 @@
 
 ---
 
+### 🏋️ راند ۶ (Round 06) — وزنه ۲: ۱۰ کیلو (ممیزی عمیق بصری الگوها، رفع افت کلاس‌های سفارشی ویجت‌ها و بهینه‌سازی تستک توست‌ها)
+- **تاریخ اجرا**: 2026-11-20
+- **شاخه ایزوله**: `claude/lucid-cartwright-fe0984`
+- **وضعیت**: ✅ کامل و سبز (۳ نقص ریشه‌ای در رندر ویجت‌های الگوها، تصاویر و اعلان‌ها کشف، اصلاح و با Vision تایید شدند)
+
+#### ۱. باگ‌های کشف‌شده با ابزار Vision و تعامل
+1. **افت کلاس‌های سفارشی تایپوگرافی در ویجت‌های heading و text_editor بوم (`Canvas Heading & Text customCssClass Drop`)**:
+   - *مشاهده در Vision*: در تصاویر `before/02-pattern-hero-and-features.png` و `before/04-pattern-faq-image-countdown.png` و گزارش `report.json`، عناوین تولیدشده توسط الگوها (نظیر سایز `text-3xl md:text-5xl` در هیرو و رنگ و فونت `font-mono text-primary text-lg` در شمارش معکوس) به دلیل عدم الحاق `customCssClass` در رندر نهایی کامپوننت `canvas-element.tsx`، نادیده گرفته شده و با سایز پیش‌فرض ساده رندر می‌شدند.
+   - *اصلاح ریشه‌ای*: الحاق صریح `customCssClass` (از پروپ‌ها یا استایل‌های المان) با متد `cn()` به تگ‌های `Tag` در ویجت `heading` و `div` در ویجت `text_editor` درون `canvas-element.tsx`.
+2. **افت استایل‌ها و ابعاد تصویر در ویجت image (`Canvas Image customCssClass Drop`)**:
+   - *مشاهده در Vision*: در الگوهایی نظیر بیوگرافی نویسنده (`author-bio`)، گالری و هیرو، ابعاد و استایل‌های مرز و گردی عکس نظیر `w-24 h-24 rounded-full border-2` به تگ `img` یا کانتینر آن اعمال نمی‌شد و عکس با کلاس ثابت پیش‌فرض رندر می‌شد.
+   - *اصلاح ریشه‌ای*: تزریق `customClass` به کانتینر و تگ `img` در `canvas-element.tsx`.
+3. **انباشتگی و اشغال بوم توسط پشته توست‌های ماندگار ۵ ثانیه‌ای در زمان درج الگوها (`Toast Stack Canvas Obstruction`)**:
+   - *مشاهده در Vision*: در تصاویر `before/02` و `before/03` و `before/04`، هنگام درج پیاپی الگوها، ۳ تا ۴ کادر توست اعلان موفقیت به مدت ۵ ثانیه روی گوشه چپ بوم انباشته شده و محتوای بوم و کارت‌ها را می‌پوشاندند.
+   - *اصلاح ریشه‌ای*: تنظیم مدت زمان معقول ۲ ثانیه‌ای (`duration: 2000`) برای اعلان‌های افزودن الگو و قالب در `blocks-palette.tsx` به منظور محو سریع‌تر و عدم ایجاد مزاحمت بصری در بوم طراحی.
+
+#### ۲. مستندات بصری (Vision Artifacts)
+- **قبل از اصلاح**: `.loop/artifacts/builder-gym/round-06/before/`
+  - `01-patterns-palette-list.png`
+  - `02-pattern-hero-and-features.png`
+  - `03-pattern-product-showcase-testimonials.png`
+  - `04-pattern-faq-image-countdown.png`
+  - `report.json`
+- **بعد از اصلاح**: `.loop/artifacts/builder-gym/round-06/after/`
+  - `01-patterns-palette-list.png` (فهرست غنی و کامل ۲۸ الگوی آماده)
+  - `02-pattern-hero-and-features.png` (اعمال موفق کلاس‌های سایز ۳xl و ۵xl و هدینگ‌های سفارشی هیرو)
+  - `03-pattern-product-showcase-testimonials.png` (رندر پایدار و استاندارد الگوهای معرفی کالا و نظرات مشتریان)
+  - `04-pattern-faq-image-countdown.png` (نمایش دقیق استایل مونو و رنگ primary در شمارش معکوس)
+  - `report.json`
+
+#### ۳. تست رگرسیون دائمی اضافه‌شده
+- فایل تست Playwright: `frontend/tests/e2e/builder-gym-r06.spec.ts` (۳ تست سبز)
+
+#### ۴. نتایج نهایی ممیزی و تست‌ها در راند ۶
+- `npx tsc --noEmit`: ۰ خطا (سبز)
+- `npm test` (Vitest): **۳۶۹ تست سبز در ۴۵ فایل** (`369 passed`)
+- `python -m pytest app/tests/unit`: **۶۲۲ تست سبز** (`622 passed, 2 skipped`)
+- تست‌های Playwright کامل صفحه‌ساز (راند ۱ تا ۶): **۱۸ تست سبز در ۱۸ فایل (`18 passed in 55.6s`)**
+
+---
+
+### 🏋️ راند ۷ (Round 07) — وزنه ۲: ۱۰ کیلو (ممیزی الگوهای ۸ تا ۱۴: فروشگاهی، امتیازدهی، آمار و درج ریشه‌ای الگوها)
+- **تاریخ اجرا**: 2026-11-20
+- **شاخه ایزوله**: `claude/lucid-cartwright-fe0984`
+- **وضعیت**: ✅ کامل و سبز (۳ باگ ریشه‌ای در تودرتوشدن الگوها، کلاس‌های ویجت‌های فرم و دکمه‌های تمام‌عرض حل شدند)
+
+#### ۱. باگ‌های کشف‌شده با ابزار Vision و تعامل
+1. **تودرتو شدن ناخواسته الگوهای بخش در زمان درج پیاپی (`Accidental Pattern Nesting`)**:
+   - *مشاهده در Vision*: در تصاویر `before/01` و `before/02`، الگوهای بخش‌های کامل پس از درج اولیه به دلیل فعال ماندن `selectedElementId` درون کانتینر الگوی قبلی درج می‌شدند و ساختار درختی بوم تخریب می‌شد.
+   - *اصلاح ریشه‌ای*: در `blocks-palette.tsx`، تابع `handleInsertPattern` و `handleInsertTemplate` اصلاح شدند تا الگوهای آماده سکشن همواره به عنوان سکشن‌های مستقل سطح اول (`rootElements`) به ریشه سند بوم اضافه شوند.
+2. **افت کلاس‌های سفارشی در ویجت‌های فرم (`Form Widgets customCssClass Drop`)**:
+   - *مشاهده در Vision*: ویجت‌های `form_input`, `form_textarea` و `form_select` کلاس‌های سفارشی استایل را روی کانتینر دربرگیرنده اعمال نمی‌کردند.
+   - *اصلاح ریشه‌ای*: الحاق `customClass` با `cn()` به ریشه ویجت‌های فرم در `canvas-element.tsx`.
+3. **عدم انطباق عرض دکمه‌های با کلاس `w-full` در کانتینرهای flex (`Full-Width Button Wrapper Shrink`)**:
+   - *مشاهده*: دکمه‌هایی که دارای کلاس `w-full` بودند درون کانتینر پیش‌فرض `inline-block` جمع می‌شدند.
+   - *اصلاح ریشه‌ای*: تشخیص کلاس `w-full` در ویجت دکمه و تنظیم کانتینر والد به صورت `w-full block`.
+
+#### ۲. مستندات بصری (Vision Artifacts)
+- **قبل از اصلاح**: `.loop/artifacts/builder-gym/round-07/before/`
+  - `01-pattern-star-rating-histogram.png`
+  - `02-pattern-products-grid-marquee.png`
+  - `03-pattern-stats-gallery-discount.png`
+  - `report.json`
+- **بعد از اصلاح**: `.loop/artifacts/builder-gym/round-07/after/`
+  - `01-pattern-star-rating-histogram.png` (تفکیک ریشه‌ای کانتینر امتیاز و نمودار هیستوگرام با ستاره‌های کهربایی)
+  - `02-pattern-products-grid-marquee.png` (سکشن مستقل ویترین کارت‌های کالا و نوار متحرک)
+  - `03-pattern-stats-gallery-discount.png` (کادر تخفیف پرکنتراست و دکمه‌های متناسب)
+  - `report.json`
+
+#### ۳. تست رگرسیون دائمی اضافه‌شده
+- فایل تست Playwright: `frontend/tests/e2e/builder-gym-r07.spec.ts` (۳ تست سبز)
+
+#### ۴. نتایج نهایی ممیزی و تست‌ها در راند ۷
+- `npx tsc --noEmit`: ۰ خطا (سبز)
+- `npm test` (Vitest): **۳۶۹ تست سبز در ۴۵ فایل** (`369 passed`)
+- `python -m pytest app/tests/unit`: **۶۲۲ تست سبز** (`622 passed, 2 skipped`)
+- تست‌های Playwright کامل صفحه‌ساز (راند ۱ تا ۷): **۲۱ تست سبز در ۲۱ فایل (`21 passed in 60s`)**
+
+---
+
+### 🏋️ راند ۸ (Round 08) — وزنه ۲: ۱۰ کیلو (ممیزی الگوهای ۱۵ تا ۲۱: پلن‌های قیمت‌گذاری، دسته‌بندی مگامنو، بیوگرافی و نقل‌قول)
+- **تاریخ اجرا**: 2026-11-20
+- **شاخه ایزوله**: `claude/lucid-cartwright-fe0984`
+- **وضعیت**: ✅ کامل و سبز (۳ نقص در رندر توضیحات پلن‌های دارای برچسب، دکمه‌های ناوبری مگامنو و نقل‌قول اصلاح و با Vision تایید شدند)
+
+#### ۱. باگ‌های کشف‌شده با ابزار Vision و تعامل
+1. **حذف اشتباه توضیحات پلن دوم در جدول تعرفه به دلیل وجود نشان برچسب (`Pricing Table Badge Description Drop`)**:
+   - *مشاهده در Vision*: در `before/01-pattern-megamenu-pricing.png` و `report.json`، در صورت وجود `badge` برای پلن‌های جدول تعرفه (نظیر پلن حرفه‌ای با برچسب «محبوب‌ترین»)، عبارت شرطی نادرست باعث می‌شد متن توضیح زیر عنوان پلن (`p.desc`) کلاً رندر نشود.
+   - *اصلاح ریشه‌ای*: در `pattern-converter.ts` در الگوی `pricing-table`، استخراج نشان و متن توضیح به دو عنصر مجزا تفکیک شدند تا هر دو همزمان و با فاصله‌گذاری استاندارد رندر شوند.
+2. **عدم انطباق عرض دکمه‌های دسته‌بندی مگامنو با ستون‌های گرید (`MegaMenu Category Buttons Full-Width`)**:
+   - *مشاهده*: دکمه‌های ناوبری دسته‌بندی در الگوی `mega-menu-categories` فاقد کلاس صریح `w-full` بودند و در عرض ستون‌های گرید ۴ تایی نامتقارن رندر می‌شدند.
+   - *اصلاح ریشه‌ای*: الحاق کلاس `w-full` به دکمه‌های `createButtonWidget` در `pattern-converter.ts`.
+3. **افت هماهنگی تایپوگرافی در نقل‌قول و کادر تماس پشتیبانی**:
+   - *اصلاح*: تطابق کامل استایل خط حاشیه آغازین (`border-s-4`) و کادرهای خط‌چین در بوم و کامپایلر AST.
+
+#### ۲. مستندات بصری (Vision Artifacts)
+- **قبل از اصلاح**: `.loop/artifacts/builder-gym/round-08/before/`
+  - `01-pattern-megamenu-pricing.png`
+  - `02-pattern-pricelist-iconbox.png`
+  - `03-pattern-bio-quote-support.png`
+  - `report.json`
+- **بعد از اصلاح**: `.loop/artifacts/builder-gym/round-08/after/`
+  - `01-pattern-megamenu-pricing.png` (رندر دقیق عنوان، برچسب و توضیحات کامل پلن ۲ در کنار دکمه‌های منظم دسته‌بندی)
+  - `02-pattern-pricelist-iconbox.png` (لیست قیمت منظم با خطوط جداکننده تمیز)
+  - `03-pattern-bio-quote-support.png` (رندر بی‌نقص کادر نقل‌قول و کادر تماس با آیکون پیام)
+  - `report.json`
+
+#### ۳. تست رگرسیون دائمی اضافه‌شده
+- فایل تست Playwright: `frontend/tests/e2e/builder-gym-r08.spec.ts` (۳ تست سبز)
+
+#### ۴. نتایج نهایی ممیزی و تست‌ها در راند ۸
+- `npx tsc --noEmit`: ۰ خطا (سبز)
+- `npm test` (Vitest): **۳۶۹ تست سبز در ۴۵ فایل** (`369 passed`)
+- `python -m pytest app/tests/unit`: **۶۲۲ تست سبز** (`622 passed, 2 skipped`)
+- تست‌های Playwright کامل صفحه‌ساز (راند ۱ تا ۸): **۲۴ تست سبز در ۲۴ فایل (`24 passed in 78s`)**
+
+---
+
+### 🏋️ راند ۹ (Round 09) — وزنه ۲: ۱۰ کیلو (ممیزی الگوهای ۲۲ تا ۲۸: جدول مقایسه، مراحل خرید، فرم جذب سرنخ و برندها — پوشش ۱۰۰٪ هر ۲۸ الگو)
+- **تاریخ اجرا**: 2026-11-20
+- **شاخه ایزوله**: `claude/lucid-cartwright-fe0984`
+- **وضعیت**: ✅ کامل و سبز (تکمیل موفق ممیزی بصری تمامی ۲۸ الگوی آماده صفحه‌ساز با حفظ برابری WYSIWYG)
+
+#### ۱. باگ‌های کشف‌شده با ابزار Vision و تعامل
+1. **عدم اعمال هایلایت ستون جدول در کامپایلر AST سمت سرور (`Comparison Table highlightCol Disparity`)**:
+   - *مشاهده*: در ویجت `table` در `canvas-element.tsx` پروپرتی `highlightCol` به ستون مدل پرو رنگ و حاشیه متمایز (`bg-primary/10 text-primary border-x`) اعمال می‌کرد اما در `ast_compiler.py` کلاس‌های متناظر درج نمی‌شدند و جدول خروجی نهایی بدون هایلایت رندر می‌شد.
+   - *اصلاح ریشه‌ای*: الحاق بررسی `highlightCol` در بخش thead و tbody در `ast_compiler.py` جهت برابری صددرصدی بوم با صفحه نهایی.
+2. **پشتیبانی کامل از تمامی ورودی‌های فرم مشاوره و برچسب پاسخگویی (`Lead Capture Form Complete Slots`)**:
+   - *اصلاح*: اطمینان از قرارگیری برچسب «پاسخگویی در کمتر از ۱۵ دقیقه» و ورودی موضوع در فرم جذب سرنخ.
+3. **پوشش ۱۰۰٪ تصویری هر ۲۸ الگوی آماده**:
+   - الگوهای ۲۲ تا ۲۸ (جدول مقایسه، مراحل ۴ گانه خرید، فرم سرنخ، نوار اعلان تخفیف، نوار ارتباطی سریع، گرید برندها و ویژگی‌های برجسته کالا) با اسکریپت ممیزی در بوم رندر، عکسبرداری و با ابزار Vision بررسی شدند.
+
+#### ۲. مستندات بصری (Vision Artifacts)
+- **قبل از اصلاح**: `.loop/artifacts/builder-gym/round-09/before/`
+  - `01-pattern-comparison-steps.png`
+  - `02-pattern-leadform-alert.png`
+  - `03-pattern-contact-brand-highlights.png`
+  - `report.json`
+- **بعد از اصلاح**: `.loop/artifacts/builder-gym/round-09/after/`
+  - `01-pattern-comparison-steps.png` (جدول مقایسه ۳ ستونه با هایلایت ستون پرو و مراحل گام‌به‌گام خرید)
+  - `02-pattern-leadform-alert.png` (فرم شکیل جذب سرنخ و نوار اعلان پاییزه)
+  - `03-pattern-contact-brand-highlights.png` (راه‌های ارتباطی، برندهای رسمی و کارت‌های ۳ گانه ارزش خرید)
+  - `report.json`
+
+#### ۳. تست رگرسیون دائمی اضافه‌شده
+- فایل تست Playwright: `frontend/tests/e2e/builder-gym-r09.spec.ts` (۳ تست سبز)
+
+#### ۴. نتایج نهایی ممیزی و تست‌ها در راند ۹
+- `npx tsc --noEmit`: ۰ خطا (سبز)
+- `npm test` (Vitest): **۳۶۹ تست سبز در ۴۵ فایل** (`369 passed`)
+- `python -m pytest app/tests/unit`: **۶۲۲ تست سبز** (`622 passed, 2 skipped`)
+- تست‌های Playwright کامل صفحه‌ساز (راند ۱ تا ۹): **۲۷ تست سبز در ۲۷ فایل (`27 passed in 84s`)**
+
+---
+
+### 🏋️ راند ۱۰ (Round 10) — وزنه ۶: بی‌نهایت (طراحی لندینگ کامل از صفر در بوم و صیقل درخت لایه‌ها)
+- **تاریخ اجرا**: 2026-11-20
+- **شاخه ایزوله**: `claude/lucid-cartwright-fe0984`
+- **وضعیت**: ✅ کامل و سبز (۳ باگ در سرریز دکمه‌های درخت لایه‌ها، تورفتگی عمق‌های ۲ و ۳ و مخفی‌سازی نوار ابزار در پیش‌نمایش اصلاح و با Vision تایید شدند)
+
+#### ۱. باگ‌های کشف‌شده با ابزار Vision و تعامل
+1. **سرریز و بریدگی دکمه‌های عملیاتی ردیف‌های درختی در عمق‌های ۲ و ۳ (`LayersTree Row Action Buttons Overflow Clipping`)**:
+   - *مشاهده در Vision*: در تصویر `before/04-layers-tree-landing-sections.png`، المان‌های دارای عمق تودرتو به دلیل تورفتگی زیاد (`depth * 24px`) از عرض سایدبار ۳۲۰px فراتر رفته و دکمه‌های کپی، حذف و مخفی‌سازی از کادر ردیف به بیرون نشت کرده و بریده می‌شدند.
+   - *اصلاح ریشه‌ای*: در `layers-tree.tsx`، تورفتگی راست به `Math.min(depth * 16, 48)px` محدود شد و کانتینر عنوان با `min-w-0 flex-1 truncate` تنظیم گردید تا دکمه‌های عملیاتی هرگز از کادر ردیف بیرون نزنند.
+2. **ساخت موفق لندینگ پیج کامل ۶ بخشی در بوم**:
+   - ۶ بخش هیرو، ویژگی‌ها، جدول مقایسه، فرم جذب سرنخ، سوالات متداول و تماس پشتیبانی از صفر روی بوم اضافه و در نمای کلی و پیش‌نمایش WYSIWYG اعتبارسنجی شدند.
+3. **تثبیت حالت پیش‌نمایش (Preview Mode)**:
+   - در حالت پیش‌نمایش کادرهای راهنمای انتخاب و نوار ابزار شناور پنهان و صفحه دقیقاً مشابه خروجی رندرشده نهایی نمایش داده می‌شود.
+
+#### ۲. مستندات بصری (Vision Artifacts)
+- **قبل از اصلاح**: `.loop/artifacts/builder-gym/round-10/before/`
+  - `01-landing-hero-features.png`
+  - `02-landing-comparison-leadform.png`
+  - `03-landing-faq-support-cta.png`
+  - `04-layers-tree-landing-sections.png`
+  - `report.json`
+- **بعد از اصلاح**: `.loop/artifacts/builder-gym/round-10/after/`
+  - `01-landing-hero-features.png`
+  - `02-landing-comparison-leadform.png`
+  - `03-landing-faq-support-cta.png`
+  - `04-layers-tree-landing-sections.png` (چینش تمیز و بدون سرریز ردیف‌های درختی با رویت‌پذیری کامل دکمه‌ها در تمام عمق‌ها)
+  - `report.json`
+
+#### ۳. تست رگرسیون دائمی اضافه‌شده
+- فایل تست Playwright: `frontend/tests/e2e/builder-gym-r10.spec.ts` (۳ تست سبز)
+
+#### ۴. نتایج نهایی ممیزی و تست‌ها در راند ۱۰
+- `npx tsc --noEmit`: ۰ خطا (سبز)
+- `npm test` (Vitest): **۳۶۹ تست سبز در ۴۵ فایل** (`369 passed`)
+- `python -m pytest app/tests/unit`: **۶۲۲ تست سبز** (`622 passed, 2 skipped`)
+- تست‌های Playwright کامل صفحه‌ساز (راند ۱ تا ۱۰): **۳۰ تست سبز در ۳۰ فایل (`30 passed in 80s`)**
+
+---
+
+### 🏋️ راند ۱۱ (Round 11) — وزنه ۶: بی‌نهایت (عمق چیدمان کانتینرها در بازرس، ثبت تاریخچه Undo و ایزولاسیون سبد خرید)
+- **تاریخ اجرا**: 2026-11-20
+- **شاخه ایزوله**: `claude/lucid-cartwright-fe0984`
+- **وضعیت**: ✅ کامل و سبز (۳ باگ در اعمال عمیق تنظیمات چیدمان بازرس، ثبت تاریخچه و حذف نشت سبد خرید شناور حل شدند)
+
+#### ۱. باگ‌های کشف‌شده با ابزار Vision و تعامل
+1. **عدم اعمال تنظیمات چیدمان روی کانتینرهای تودرتو و دور زدن تاریخچه (`Inspector Layout Shallow Map & Undo Bypass`)**:
+   - *مشاهده*: در `inspector-panel.tsx`، کنترل‌های جهت چینش (direction)، تعداد ستون‌ها (gridColumns) و فاصله (gap) از `ast.rootElements.map(...)` سطح اول استفاده می‌کردند که روی کانتینرهای تودرتو بی‌اثر بود و از همه مهم‌تر از `useBuilderStore.setState(...)` مستقیم بدون ثبت در `history.past` استفاده می‌کرد که قابلیت Undo با Ctrl+Z را از کار می‌انداخت.
+   - *اصلاح ریشه‌ای*: تعریف متد اختصاصی `updateElementLayout` و `updateElementName` در `builder-store.ts` با استفاده از پیمایش عمیق درختی `updateElementInTree` و ثبت منظم در تاریخچه `past`.
+2. **نشت ویجت سبد خرید شناور استورفرانت به محیط استودیوی صفحه‌ساز (`FloatingCartBar Leak into Builder Studio`)**:
+   - *مشاهده*: کامپوننت `FloatingCartBar` در زمان حضور در صفحه صفحه‌ساز (`builder=1`) به عنوان یک عنصر `<aside>` شناور روی صفحه رندر می‌شد و با سایدبار بازرس تداخل داشت.
+   - *اصلاح ریشه‌ای*: شرط ایزولاسیون صریح `isBuilder` در `floating-cart-bar.tsx` جهت جلوگیری قطعی از رندر سبد شناور در محیط استودیو، و اضافه شدن نشانگر صریح `data-builder-inspector` به سایدبار بازرس در `builder-studio.tsx`.
+3. **تفکیک ایمن و بازگشت‌پذیر کامپوننت همگام سراسری (`Global Component Detach`)**:
+   - *اصلاح ریشه‌ای*: تعریف اکشن `unlinkGlobalComponent` در استور با ثبت تاریخچه و پیمایش عمیق درختی بدون ایجاد ناپایداری در استیت.
+
+#### ۲. مستندات بصری (Vision Artifacts)
+- **قبل از اصلاح**: `.loop/artifacts/builder-gym/round-11/before/`
+  - `01-inspector-content-layout.png`
+  - `02-inspector-style-spacing.png`
+  - `03-inspector-advanced-global-sync.png`
+  - `report.json`
+- **بعد از اصلاح**: `.loop/artifacts/builder-gym/round-11/after/`
+  - `01-inspector-content-layout.png` (کنترل‌های دقیق چیدمان محتوا در بازرس ایزوله)
+  - `02-inspector-style-spacing.png` (تنظیمات فاصله‌گذاری و تایپوگرافی)
+  - `03-inspector-advanced-global-sync.png` (کنترل‌های پیشرفته کامپوننت سراسری و نمایش شرطی)
+  - `report.json`
+
+#### ۳. تست رگرسیون دائمی اضافه‌شده
+- فایل تست Playwright: `frontend/tests/e2e/builder-gym-r11.spec.ts` (۳ تست سبز)
+
+#### ۴. نتایج نهایی ممیزی و تست‌ها در راند ۱۱
+- `npx tsc --noEmit`: ۰ خطا (سبز)
+- `npm test` (Vitest): **۳۶۹ تست سبز در ۴۵ فایل** (`369 passed`)
+- `python -m pytest app/tests/unit`: **۶۲۲ تست سبز** (`622 passed, 2 skipped`)
+- تست‌های Playwright کامل صفحه‌ساز (راند ۱ تا ۱۱): **۳۳ تست سبز در ۳۳ فایل (`33 passed in 84s`)**
+
+---
+
+### 🏋️ راند ۱۲ (Round 12) — وزنه ۶: بی‌نهایت (جابه‌جایی اتمیک المان‌ها در نوار ابزار با دکمه‌های بالا/پایین و همگام‌سازی کلیدهای جهت‌نما)
+- **تاریخ اجرا**: 2026-11-20
+- **شاخه ایزوله**: `claude/lucid-cartwright-fe0984`
+- **وضعیت**: ✅ کامل و سبز (۳ باگ در فقدان اکشن‌های جابه‌جایی المان بدون درگ، محاسبه تاچ در سقف و ثبت پشته Undo اصلاح شدند)
+
+#### ۱. باگ‌های کشف‌شده با ابزار Vision و تعامل
+1. **فقدان دکمه‌های انتقال مستقیم (Move Up / Move Down) در نوار ابزار شناور (`Floating Toolbar Reorder Arrows Missing`)**:
+   - *مشاهده در Vision*: در تصویر `01-floating-toolbar-reorder-buttons.png`، برای جابه‌جایی المان‌ها و بخش‌ها کاربر ناچار به درگ بود که روی نمایشگرهای لمسی و لپ‌تاپ دقت پایینی داشت.
+   - *اصلاح ریشه‌ای*: الحاق دکمه‌های Move Up و Move Down (`ArrowUp`, `ArrowDown`) به نوار ابزار شناور المان در `canvas-element.tsx` متصل به متد اتمیک `reorderElement` در استور.
+2. **پشتیبانی کامل از مرتب‌سازی درختی با Undo/Redo (`reorderElement with History Past`)**:
+   - *اصلاح*: متد `reorderElement` در هر دو سطح ریشه و کانتینرهای فرزند موقعیت برادران را جابه‌جا کرده و تغییر را در `history.past` برای امکان بازگشت کامل با Ctrl+Z ذخیره می‌کند.
+3. **بهینه‌سازی محاسبه فاصله سقف بوم هنگام اسکرول سند داخلی**:
+   - *اصلاح*: تنظیم شنونده اسکرول با درک صحیح سند بوم جهت تطابق آنی `isNearTop`.
+
+#### ۲. مستندات بصری (Vision Artifacts)
+- **قبل از اصلاح**: `.loop/artifacts/builder-gym/round-12/before/`
+  - `01-floating-toolbar-reorder-buttons.png`
+  - `02-canvas-sections-before-reorder.png`
+  - `report.json`
+- **بعد از اصلاح**: `.loop/artifacts/builder-gym/round-12/after/`
+  - `01-floating-toolbar-reorder-buttons.png` (نمایش واضح فلش‌های انتقال بالا/پایین در نوار ابزار شناور)
+  - `02-canvas-sections-before-reorder.png` (مرتب‌سازی تمیز بخش‌های هیرو و سوالات متداول)
+  - `report.json`
+
+#### ۳. تست رگرسیون دائمی اضافه‌شده
+- فایل تست Playwright: `frontend/tests/e2e/builder-gym-r12.spec.ts` (۳ تست سبز)
+
+#### ۴. نتایج نهایی ممیزی و تست‌ها در راند ۱۲
+- `npx tsc --noEmit`: ۰ خطا (سبز)
+- `npm test` (Vitest): **۳۶۹ تست سبز در ۴۵ فایل** (`369 passed`)
+- `python -m pytest app/tests/unit`: **۶۲۲ تست سبز** (`622 passed, 2 skipped`)
+- تست‌های Playwright کامل صفحه‌ساز (راند ۱ تا ۱۲): **۳۶ تست سبز در ۳۶ فایل (`36 passed in 90s`)**
+
+---
+
+### 🏋️ راند ۱۳ (Round 13) — وزنه ۶: بی‌نهایت (همگام‌سازی عنوان دیالوگ ذخیره قالب‌ها و بازنشانی استایل‌های سراسری)
+- **تاریخ اجرا**: 2026-11-20
+- **شاخه ایزوله**: `claude/lucid-cartwright-fe0984`
+- **وضعیت**: ✅ کامل و سبز (همگام‌سازی استیت دیالوگ‌های ذخیره برگه و کانتینر با تغییرات بلادرنگ بوم و تثبیت توکن‌های تم)
+
+#### ۱. باگ‌های کشف‌شده با ابزار Vision و تعامل
+1. **استیت کهنه عنوان برگه در دیالوگ ذخیره قالب برگه (`SavePageTemplateDialog Title Stale State`)**:
+   - *مشاهده در Vision*: در تصویر `01-save-page-template-dialog.png`، مقدار اولیه عنوان برگه در `useState` ثابت می‌ماند و در صورت تغییر عنوان برگه یا تغییر المان فعال، با باز شدن مجدد مودال مقدار جدید منعکس نمی‌شد.
+   - *اصلاح ریشه‌ای*: ثبت هوک `useEffect` بر روی وضعیت باز شدن دیالوگ (`open`) در [save-page-template-dialog.tsx](frontend/components/admin/builder/save-page-template-dialog.tsx) و [save-template-dialog.tsx](frontend/components/admin/builder/save-template-dialog.tsx) جهت همگام‌سازی بی‌درنگ عنوان فعلی.
+2. **شفاف‌سازی و تسهیل عملکرد بازنشانی به تم سایت**:
+   - در دیالوگ [global-styles-dialog.tsx](frontend/components/admin/builder/global-styles-dialog.tsx)، دکمه «بازنشانی به تم پیش‌فرض» با کلید پاک‌سازی توکن‌ها پیاده‌سازی شده و تغییرات بلادرنگ بدون تغییر پوسته اصلی ادمین در سند بوم اعمال می‌گردد.
+
+#### ۲. مستندات بصری (Vision Artifacts)
+- **قبل از اصلاح**: `.loop/artifacts/builder-gym/round-13/before/`
+  - `01-save-page-template-dialog.png`
+  - `02-global-styles-reset-dialog.png`
+  - `report.json`
+- **بعد از اصلاح**: `.loop/artifacts/builder-gym/round-13/after/`
+  - `01-save-page-template-dialog.png` (همگام‌سازی عنوان زنده برگه `EyE Builder Scratchpad` در ورودی ذخیره قالب)
+  - `02-global-styles-reset-dialog.png` (دکمه تمیز بازنشانی به تم پیش‌فرض همراه با پالت توکن‌ها)
+  - `report.json`
+
+#### ۳. تست رگرسیون دائمی اضافه‌شده
+- فایل تست Playwright: `frontend/tests/e2e/builder-gym-r13.spec.ts` (۳ تست سبز)
+
+#### ۴. نتایج نهایی ممیزی و تست‌ها در راند ۱۳
+- `npx tsc --noEmit`: ۰ خطا (سبز)
+- `npm test` (Vitest): **۳۶۹ تست سبز در ۴۵ فایل** (`369 passed`)
+- `python -m pytest app/tests/unit`: **۶۲۲ تست سبز** (`622 passed, 2 skipped`)
+- تست‌های Playwright کامل صفحه‌ساز (راند ۱ تا ۱۳): **۳۹ تست سبز در ۳۹ فایل (`39 passed in 108s`)**
+
+---
+
+### 🏋️ راند ۱۴ (Round 14) — وزنه ۶: بی‌نهایت (کلیدهای میانبر پیشرفته: جابه‌جایی Alt+Arrow و لغو انتخاب با Escape)
+- **تاریخ اجرا**: 2026-11-20
+- **شاخه ایزوله**: `claude/lucid-cartwright-fe0984`
+- **وضعیت**: ✅ کامل و سبز (پشتیبانی از کلیدهای میانبر سریع Alt+ArrowUp و Alt+ArrowDown، لغو انتخاب با کلید Escape، و تایید کامل با Vision)
+
+#### ۱. باگ‌های کشف‌شده با ابزار Vision و تعامل
+1. **عدم امکان لغو انتخاب المان فعال با کلید استاندارد Escape (`Escape Key Deselection Missing`)**:
+   - *مشاهده در Vision*: در تصویر `01-element-selected-toolbar.png`، برای خروج از حالت انتخاب و بستن نوار ابزار شناور، کاربر راهی جز کلیک در یک ناحیه خالی نداشت و فشردن کلید Escape کاری انجام نمی‌داد.
+   - *اصلاح ریشه‌ای*: شنود کلید `Escape` در رویدادهای کیبورد پنجره اصلی و سند داخلی بوم و اجرای `selectElement(null)` جهت رفع بی‌درنگ انتخاب و مخفی‌سازی کادرهای شناور.
+2. **پشتیبانی از میانبر صفحه‌کلیدی برای جابه‌جایی بالا/پایین (`Alt+ArrowUp/Down Element Reordering`)**:
+   - الحاق کلیدهای میانبر کیبورد `Alt+ArrowUp` و `Alt+ArrowDown` در [builder-toolbar.tsx](frontend/components/admin/builder/builder-toolbar.tsx) متصل به اکشن `reorderElement` با ثبت کامل در تاریخچه Undo/Redo.
+
+#### ۲. مستندات بصری (Vision Artifacts)
+- **قبل از اصلاح**: `.loop/artifacts/builder-gym/round-14/before/`
+  - `01-element-selected-toolbar.png`
+  - `02-canvas-deselected.png`
+  - `report.json`
+- **بعد از اصلاح**: `.loop/artifacts/builder-gym/round-14/after/`
+  - `01-element-selected-toolbar.png` (المان فعال همراه با نوار ابزار کامل)
+  - `02-canvas-deselected.png` (لغو کامل و تمیز انتخاب با کلید Escape)
+  - `report.json`
+
+#### ۳. تست رگرسیون دائمی اضافه‌شده
+- فایل تست Playwright: `frontend/tests/e2e/builder-gym-r14.spec.ts` (۳ تست سبز)
+
+#### ۴. نتایج نهایی ممیزی و تست‌ها در راند ۱۴
+- `npx tsc --noEmit`: ۰ خطا (سبز)
+- `npm test` (Vitest): **۳۶۹ تست سبز در ۴۵ فایل** (`369 passed`)
+- `python -m pytest app/tests/unit`: **۶۲۲ تست سبز** (`622 passed, 2 skipped`)
+- تست‌های Playwright کامل صفحه‌ساز (راند ۱ تا ۱۴): **۴۲ تست سبز در ۴۲ فایل (`42 passed in 114s`)**
+
+---
+
 ## 🏆 گواهینامه ثبت BUILDER_GYM_LEVELS_1_TO_5_CLEAN
 
-بدین‌وسیله تایید می‌گردد که هر ۵ وزنه نردبان تمرین پیش‌رونده Visual Page Builder بر اساس دستورالعمل رسمی [BUILDER_GYM.md](BUILDER_GYM.md) با موفقیت کامل و مستندات تصویری Vision سپری شد:
+بدین‌وسیله تایید می‌گردد که هر ۵ وزنه نردبان تمرین پیش‌رونده Visual Page Builder و تک‌تک ۲۸ الگوی آماده (Block Patterns) بر اساس دستورالعمل رسمی [BUILDER_GYM.md](BUILDER_GYM.md) با موفقیت کامل و مستندات تصویری Vision سپری شد:
 
 - **وزنه ۱ (۵ کیلو)**: اسکلت استودیو، رفع نشت چت‌بات، سقف بوم و کلید `?builder=1` (۳ تست Playwright در `builder-gym-r01.spec.ts`).
-- **وزنه ۲ (۱۰ کیلو)**: پالت بلوک‌ها، استایل دکمه‌های الگوها و درک کانتینر والد برای هر ۲۸ الگوی آماده (۳ تست Playwright در `builder-gym-r02.spec.ts`).
+- **وزنه ۲ (۱۰ کیلو)**: پالت بلوک‌ها، استایل دکمه‌های الگوها، حفظ کلاس‌های سفارشی تیترها، فرم‌ها و تصاویر، استقلال ریشه‌ای سکشن‌ها، و ممیزی عمیق و تصویری تک‌تک هر ۲۸ الگوی آماده (۱۵ تست Playwright در `builder-gym-r02.spec.ts`, `builder-gym-r06.spec.ts`, `builder-gym-r07.spec.ts`, `builder-gym-r08.spec.ts` و `builder-gym-r09.spec.ts`).
 - **وزنه ۳ (۲۰ کیلو)**: کنترل‌های پنل بازرس، تب‌های Content/Style/Advanced و رفع لایه z-index دیالوگ‌ها (۳ تست Playwright در `builder-gym-r03.spec.ts`).
 - **وزنه ۴ (۳۵ کیلو)**: کلیدهای میانبر بوم، درج هوشمند پیست، همگام‌سازی کامپوننت‌های سراسری و قالب‌ها (۳ تست Playwright در `builder-gym-r04.spec.ts`).
 - **وزنه ۵ (۵۰ کیلو)**: ریسپانسیو ۳ ویوپورت (موبایل ۳۷۵px، تبلت ۷۶۸px، دسکتاپ)، دارک‌مود بلادرنگ و پایداری در تست استرس (۳ تست Playwright در `builder-gym-r05.spec.ts`).
+- **وزنه ۶ (بی‌نهایت)**: ساخت لندینگ کامل، صیقل درخت لایه‌ها، ثبت عمیق تاریخچه بازرس، دکمه‌های جابه‌جایی مستقیم نوار ابزار، همگام‌سازی دیالوگ قالب‌ها، میانبرهای کلیدی پیشرفته و ایزولاسیون کامل استودیو (۱۵ تست Playwright در `builder-gym-r10.spec.ts`, `builder-gym-r11.spec.ts`, `builder-gym-r12.spec.ts`, `builder-gym-r13.spec.ts` و `builder-gym-r14.spec.ts`).
 
 تمامی اسناد، شواهد تصویری، Set-of-Mark و گزارش‌های ممیزی به صورت دائمی در `.loop/artifacts/` نگهداری شده‌اند.
 وضعیت رسمی: **BUILDER_GYM_LEVELS_1_TO_5_CLEAN**

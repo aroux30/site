@@ -1,0 +1,12 @@
+{
+  "stage": "before",
+  "timestamp": "2026-11-20T13:17:00.064Z",
+  "weight": "Weight 6: Full Landing Page Assembly & Studio Micro UX (60kg)",
+  "checks": {
+    "landingTopScreenshot": "C:\\Users\\Administrator\\Desktop\\site\\.claude\\worktrees\\lucid-cartwright-fe0984\\.loop\\artifacts\\builder-gym\\round-10\\before\\01-landing-hero-features.png",
+    "landingMiddleScreenshot": "C:\\Users\\Administrator\\Desktop\\site\\.claude\\worktrees\\lucid-cartwright-fe0984\\.loop\\artifacts\\builder-gym\\round-10\\before\\02-landing-comparison-leadform.png",
+    "landingBottomScreenshot": "C:\\Users\\Administrator\\Desktop\\site\\.claude\\worktrees\\lucid-cartwright-fe0984\\.loop\\artifacts\\builder-gym\\round-10\\before\\03-landing-faq-support-cta.png",
+    "layersScreenshot": "C:\\Users\\Administrator\\Desktop\\site\\.claude\\worktrees\\lucid-cartwright-fe0984\\.loop\\artifacts\\builder-gym\\round-10\\before\\04-layers-tree-landing-sections.png",
+    "rootSectionsCount": 0
+  }
+}

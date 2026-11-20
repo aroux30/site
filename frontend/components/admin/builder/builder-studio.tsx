@@ -283,7 +283,7 @@ export function BuilderStudio({ page, onExit }: BuilderStudioProps) {
 
         {/* Right Column: Element Inspector & Controls */}
         {!previewMode && (
-          <aside className="w-80 bg-card border-s border-border shrink-0 z-20 shadow-sm hidden lg:block">
+          <aside data-builder-inspector="" className="w-80 bg-card border-s border-border shrink-0 z-20 shadow-sm hidden lg:block">
             <InspectorPanel />
           </aside>
         )}

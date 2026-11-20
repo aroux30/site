@@ -168,6 +168,9 @@ class ASTCompiler:
 
         if el.styles.custom_css_class:
             classes_list.append(el.styles.custom_css_class)
+        prop_class = props.get("customCssClass")
+        if prop_class and str(prop_class) not in classes_list:
+            classes_list.append(str(prop_class))
         if el.styles.animation and el.styles.animation != "none":
             classes_list.append(f"builder-animate-{el.styles.animation}")
             if el.styles.animation_duration:

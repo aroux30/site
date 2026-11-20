@@ -3,6 +3,7 @@
 import { create } from "zustand";
 import type {
   BuilderElement,
+  ContainerLayout,
   DeviceStyle,
   PageAST,
   ResponsiveStyles,
@@ -208,7 +209,10 @@ export interface BuilderState {
   // Tree mutations
   addElement: (element: BuilderElement, targetContainerId?: string, targetIndex?: number) => void;
   moveElement: (activeId: string, overId: string) => void;
+  reorderElement: (id: string, direction: "up" | "down") => void;
   updateElementProps: (id: string, props: Record<string, unknown>) => void;
+  updateElementLayout: (id: string, layout: Partial<ContainerLayout>) => void;
+  updateElementName: (id: string, name: string) => void;
   updateElementStyles: (id: string, styles: Partial<ResponsiveStyles>) => void;
   updateDeviceStyles: (id: string, bp: Breakpoint, patch: Partial<DeviceStyle>) => void;
   updateElementVisibility: (
@@ -218,9 +222,9 @@ export interface BuilderState {
   deleteElement: (id: string) => void;
   deleteSelectedElements: () => void;
   duplicateElement: (id: string) => void;
-  updateElementName: (id: string, name: string) => void;
   toggleHideElement: (id: string) => void;
   toggleLockElement: (id: string) => void;
+  unlinkGlobalComponent: (id: string) => void;
   updateGlobalStyles: (styles: Record<string, unknown>) => void;
 
   // Productivity & Clipboard (P4)
@@ -394,6 +398,47 @@ export const useBuilderStore = create<BuilderState>((set, get) => ({
     });
   },
 
+  reorderElement: (id, direction) => {
+    const { ast, history } = get();
+    const info = findElementAndParent(ast.rootElements, id);
+    if (!info) return;
+
+    const newPast = [...history.past, ast].slice(-MAX_HISTORY_LENGTH);
+    let updatedRoots: BuilderElement[];
+
+    if (info.parent) {
+      // Reorder inside parent container
+      const siblings = [...(info.parent.children || [])];
+      const newIdx = direction === "up" ? info.index - 1 : info.index + 1;
+      if (newIdx < 0 || newIdx >= siblings.length) return;
+
+      const [removed] = siblings.splice(info.index, 1);
+      siblings.splice(newIdx, 0, removed!);
+
+      updatedRoots = updateElementInTree(ast.rootElements, info.parent.id, (parent) => ({
+        ...parent,
+        children: siblings,
+      }));
+    } else {
+      // Reorder at rootElements level
+      const roots = [...ast.rootElements];
+      const newIdx = direction === "up" ? info.index - 1 : info.index + 1;
+      if (newIdx < 0 || newIdx >= roots.length) return;
+
+      const [removed] = roots.splice(info.index, 1);
+      roots.splice(newIdx, 0, removed!);
+      updatedRoots = roots;
+    }
+
+    set({
+      ast: { ...ast, rootElements: updatedRoots },
+      selectedElementId: id,
+      isDirty: true,
+      mutationVersion: get().mutationVersion + 1,
+      history: { past: newPast, future: [] },
+    });
+  },
+
   updateElementProps: (id, props) => {
     const { ast, history } = get();
     const newPast = [...history.past, ast].slice(-MAX_HISTORY_LENGTH);
@@ -421,6 +466,38 @@ export const useBuilderStore = create<BuilderState>((set, get) => ({
         widgetProps: { ...(el.widgetProps || {}), ...props },
       }));
     }
+
+    set({
+      ast: { ...ast, rootElements: updatedRoots },
+      isDirty: true,
+      mutationVersion: get().mutationVersion + 1,
+      history: { past: newPast, future: [] },
+    });
+  },
+
+  updateElementLayout: (id, layout) => {
+    const { ast, history } = get();
+    const newPast = [...history.past, ast].slice(-MAX_HISTORY_LENGTH);
+    const updatedRoots = updateElementInTree(ast.rootElements, id, (el) => ({
+      ...el,
+      layout: el.layout ? { ...el.layout, ...layout } : (layout as ContainerLayout),
+    }));
+
+    set({
+      ast: { ...ast, rootElements: updatedRoots },
+      isDirty: true,
+      mutationVersion: get().mutationVersion + 1,
+      history: { past: newPast, future: [] },
+    });
+  },
+
+  updateElementName: (id, name) => {
+    const { ast, history } = get();
+    const newPast = [...history.past, ast].slice(-MAX_HISTORY_LENGTH);
+    const updatedRoots = updateElementInTree(ast.rootElements, id, (el) => ({
+      ...el,
+      name,
+    }));
 
     set({
       ast: { ...ast, rootElements: updatedRoots },
@@ -562,21 +639,6 @@ export const useBuilderStore = create<BuilderState>((set, get) => ({
     });
   },
 
-  updateElementName: (id, name) => {
-    const { ast, history } = get();
-    const newPast = [...history.past, ast].slice(-MAX_HISTORY_LENGTH);
-    const updatedRoots = updateElementInTree(ast.rootElements, id, (el) => ({
-      ...el,
-      name,
-    }));
-    set({
-      ast: { ...ast, rootElements: updatedRoots },
-      isDirty: true,
-      mutationVersion: get().mutationVersion + 1,
-      history: { past: newPast, future: [] },
-    });
-  },
-
   toggleHideElement: (id) => {
     const { ast, history } = get();
     const newPast = [...history.past, ast].slice(-MAX_HISTORY_LENGTH);
@@ -598,6 +660,21 @@ export const useBuilderStore = create<BuilderState>((set, get) => ({
     const updatedRoots = updateElementInTree(ast.rootElements, id, (el) => ({
       ...el,
       isLocked: !el.isLocked,
+    }));
+    set({
+      ast: { ...ast, rootElements: updatedRoots },
+      isDirty: true,
+      mutationVersion: get().mutationVersion + 1,
+      history: { past: newPast, future: [] },
+    });
+  },
+
+  unlinkGlobalComponent: (id) => {
+    const { ast, history } = get();
+    const newPast = [...history.past, ast].slice(-MAX_HISTORY_LENGTH);
+    const updatedRoots = updateElementInTree(ast.rootElements, id, (el) => ({
+      ...el,
+      globalComponentId: null,
     }));
     set({
       ast: { ...ast, rootElements: updatedRoots },

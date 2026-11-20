@@ -1,0 +1,18 @@
+{
+  "stage": "after",
+  "timestamp": "2026-11-20T12:16:28.151Z",
+  "weight": "Weight 2: Deep Visual Audit of Block Patterns Batch 2 (Patterns 8-14: E-Commerce, Ratings & Stats) (10kg)",
+  "checks": {
+    "ratingsScreenshot": "C:\\Users\\Administrator\\Desktop\\site\\.claude\\worktrees\\lucid-cartwright-fe0984\\.loop\\artifacts\\builder-gym\\round-07\\after\\01-pattern-star-rating-histogram.png",
+    "starHeading": {
+      "classes": "tracking-tight m-0 break-words [overflow-wrap:anywhere] text-amber-400 font-bold text-sm",
+      "hasTextAmber400": true
+    },
+    "productsGridMarqueeScreenshot": "C:\\Users\\Administrator\\Desktop\\site\\.claude\\worktrees\\lucid-cartwright-fe0984\\.loop\\artifacts\\builder-gym\\round-07\\after\\02-pattern-products-grid-marquee.png",
+    "statsGalleryDiscountScreenshot": "C:\\Users\\Administrator\\Desktop\\site\\.claude\\worktrees\\lucid-cartwright-fe0984\\.loop\\artifacts\\builder-gym\\round-07\\after\\03-pattern-stats-gallery-discount.png",
+    "discountHeading": {
+      "classes": "tracking-tight m-0 break-words [overflow-wrap:anywhere] text-3xl font-black text-destructive-foreground",
+      "hasDestructiveForeground": true
+    }
+  }
+}

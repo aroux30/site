@@ -1,0 +1,15 @@
+{
+  "stage": "after",
+  "timestamp": "2026-11-20T03:41:39.882Z",
+  "tests": {
+    "compareEmpty": {
+      "shot": "C:\\Users\\Administrator\\Desktop\\site\\.loop\\artifacts\\gym\\round-13\\after\\01-compare-empty.png"
+    },
+    "comparePopulated": {
+      "shot": "C:\\Users\\Administrator\\Desktop\\site\\.loop\\artifacts\\gym\\round-13\\after\\02-compare-matrix-populated.png"
+    },
+    "floatingCompare": {
+      "shot": "C:\\Users\\Administrator\\Desktop\\site\\.loop\\artifacts\\gym\\round-13\\after\\03-floating-compare-dock.png"
+    }
+  }
+}

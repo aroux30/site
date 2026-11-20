@@ -377,13 +377,19 @@ function ComparePageInner() {
                             className="max-h-full max-w-full object-contain"
                             onError={(e) => {
                               e.currentTarget.style.display = "none";
-                              e.currentTarget.nextElementSibling?.classList.remove("hidden");
+                              const fallback = e.currentTarget.parentElement?.querySelector(".compare-fallback-placeholder");
+                              if (fallback) fallback.classList.remove("hidden");
                             }}
                           />
-                        ) : null}
-                        <div className="hidden flex-col items-center justify-center text-muted-foreground">
-                          <Package className="h-12 w-12 opacity-40 mb-1" />
-                          <span className="text-[10px]">{product.brand?.name}</span>
+                        ) : (
+                          <div className="flex flex-col items-center justify-center text-muted-foreground">
+                            <Package className="h-10 w-10 opacity-40 mb-1" />
+                            <span className="text-[10px]">{product.brand?.name || "کالای دیجیتال"}</span>
+                          </div>
+                        )}
+                        <div className="hidden compare-fallback-placeholder flex-col items-center justify-center text-muted-foreground">
+                          <Package className="h-10 w-10 opacity-40 mb-1" />
+                          <span className="text-[10px]">{product.brand?.name || "کالای دیجیتال"}</span>
                         </div>
 
                         {discountPercent > 0 && (

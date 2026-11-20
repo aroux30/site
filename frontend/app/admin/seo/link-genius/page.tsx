@@ -143,7 +143,7 @@ export default function LinkGeniusPage() {
   }, [selectedPost, loadSuggestions, toast]);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" dir="rtl">
       <div>
         <h1 className="flex items-center gap-2 text-xl font-bold">
           <Sparkles className="h-5 w-5 text-primary" />
@@ -155,7 +155,7 @@ export default function LinkGeniusPage() {
         </p>
       </div>
 
-      <Tabs defaultValue="suggestions">
+      <Tabs defaultValue="suggestions" dir="rtl">
         <TabsList>
           <TabsTrigger value="suggestions">پیشنهاد لینک</TabsTrigger>
           <TabsTrigger value="maps">نقشه‌های کلیدواژه</TabsTrigger>
@@ -186,9 +186,9 @@ export default function LinkGeniusPage() {
                 variant="outline"
                 size="sm"
                 onClick={() => void loadSuggestions(selectedPost)}
-                disabled={!selectedPost}
+                disabled={!selectedPost || loadingSuggestions}
               >
-                <RefreshCw className="h-4 w-4 ms-2" />
+                <RefreshCw className={`h-4 w-4 ms-2 ${loadingSuggestions ? "animate-spin" : ""}`} />
                 بروزرسانی
               </Button>
               <Button

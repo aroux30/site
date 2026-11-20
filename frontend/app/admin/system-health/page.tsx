@@ -20,6 +20,7 @@ import {
   Wrench,
   Info,
   History,
+  Loader2,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -217,7 +218,7 @@ export default function SystemHealthPage() {
   const OverallIcon = overall?.icon ?? Activity;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" dir="rtl">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-lg font-bold">سلامت سامانه</h1>
@@ -428,8 +429,9 @@ export default function SystemHealthPage() {
       )}
 
       {loading && !report ? (
-        <Card className="p-10 text-center text-xs text-muted-foreground">
-          در حال اجرای بررسی‌ها…
+        <Card className="flex flex-col items-center justify-center p-12 text-center text-xs text-muted-foreground gap-3">
+          <Loader2 className="h-6 w-6 animate-spin text-primary" />
+          <span>در حال اجرای بررسی‌ها…</span>
         </Card>
       ) : report ? (
         <>

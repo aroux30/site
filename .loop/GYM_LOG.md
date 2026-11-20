@@ -703,11 +703,50 @@
 
 ---
 
+### 🏋️ راند ۲۳ (Round 23) — وزنه ۶: +۱۰ کیلو تعمق مداوم (تنظیمات سئو، ربات‌ها، نمایش در موتورهای جست‌وجو، هوش مصنوعی محتوا، بررسی لینک‌ها و شمارنده لینک)
+- **تاریخ اجرا**: 2026-11-20
+- **شاخه ایزوله**: `autofix/gym-loop`
+- **وضعیت**: ✅ کامل و سبز (اصلاح چیدمان راست‌به‌چپ در کل مجموعه تنظیمات عمومی سئو، فاصله‌گذاری استاندارد دکمه‌ها و تعبیه اسپینر با Vision)
+
+#### ۱. باگ‌های کشف‌شده با ابزار Vision و اصلاحات ریشه‌ای
+1. **فقدان صفت `dir="rtl"` در کانتینرهای اصلی تنظیمات سئو، نمایش، هوش مصنوعی و بررسی لینک‌ها**:
+   - *مشاهده در Vision*: در تصاویر `before/01-seo-settings.png`، `before/02-seo-visibility.png`، `before/03-seo-content-ai.png`، `before/04-seo-link-audit.png` و `before/05-seo-link-counter.png`، به دلیل فقدان ویژگی صریح `dir="rtl"`، جهت فلو و تراز دکمه‌ها به گوشه چپ متمایل بود و فرم‌ها هماهنگی با زبان فارسی نداشتند.
+   - *اصلاح ریشه‌ای*: در صفحات [settings/page.tsx](frontend/app/admin/seo/settings/page.tsx)، [visibility/page.tsx](frontend/app/admin/seo/visibility/page.tsx)، [content-ai/page.tsx](frontend/app/admin/seo/content-ai/page.tsx)، [link-audit/page.tsx](frontend/app/admin/seo/link-audit/page.tsx) و [link-counter/page.tsx](frontend/app/admin/seo/link-counter/page.tsx) ویژگی صریح `dir="rtl"` افزوده شد.
+2. **فواصل معکوس و غیراستاندارد در دکمه‌های اقدام و ذخیره کارت‌های فرعی**:
+   - *مشاهده در Vision*: دکمه‌های «ذخیره آدرس»، «ذخیره قواعد robots.txt»، «ذخیره وضعیت نمایش»، «ذخیره تنظیمات» و «بررسی کن» از فواصل `ms-1` و `ms-2` استفاده می‌کردند که فاصله نادرست نسبت به حاشیه بیرونی ایجاد می‌کرد.
+   - *اصلاح ریشه‌ای*: در [robots-settings-card.tsx](frontend/components/admin/robots-settings-card.tsx)، [search-visibility-card.tsx](frontend/components/admin/search-visibility-card.tsx)، [content-ai-settings-card.tsx](frontend/components/admin/content-ai-settings-card.tsx) و کامپوننت‌های مرتبط، فواصل به `gap-2` استانداردسازی شد و اسپینرهای چرخان لودینگ فعال گردید.
+
+#### ۲. مستندات بصری (Vision Artifacts)
+- **قبل از اصلاح**: `.loop/artifacts/gym/round-23/before/`
+  - `01-seo-settings.png` (تنظیمات سئو و قواعد ربات‌ها)
+  - `02-seo-visibility.png` (نمایش در موتورهای جست‌وجو)
+  - `03-seo-content-ai.png` (هوش مصنوعی محتوا)
+  - `04-seo-link-audit.png` (بررسی لینک‌های شکسته)
+  - `05-seo-link-counter.png` (شمارش لینک‌ها و وضعیت یتیم)
+- **بعد از اصلاح**: `.loop/artifacts/gym/round-23/after/`
+  - `01-seo-settings.png` (ساختار استاندارد RTL و فاصله‌گذاری مناسب دکمه‌های ذخیره)
+  - `02-seo-visibility.png` (تراز راست‌به‌چپ شکیل وضعیت نمایش)
+  - `03-seo-content-ai.png` (تنظیمات تمیز هوش مصنوعی محتوا)
+  - `04-seo-link-audit.png` (چیدمان متعادل بررسی لینک‌ها)
+  - `05-seo-link-counter.png` (آمار دقیق لینک‌ها با تراز RTL)
+
+#### ۳. تست‌های رگرسیون دائمی اضافه‌شده
+- فایل تست Playwright: `frontend/tests/e2e/gym-r23-regression.spec.ts` (۵ تست سبز)
+
+#### ۴. نتایج نهایی ممیزی و تست‌ها در راند ۲۳
+- `npx tsc --noEmit`: ۰ خطا (سبز)
+- `npm test` (Vitest): **۳۶۹ تست سبز در ۴۵ فایل** (`369 passed`)
+- `python -m pytest app/tests/unit`: **۶۲۲ تست سبز** (`622 passed, 2 skipped`)
+- مجموع تست‌های رگرسیون تجمعی (راند ۱ تا ۲۳): **۷۱ تست Playwright سبز**
+- `node .loop/audits/deterministic-audit.mjs`: **پاس ۱۰۰٪ تمام چک‌ها (`passed: true`)**
+
+---
+
 ## وضعیت جامع و تسلط بر هر ۵ سطح (Mastery Status)
 
 **GYM_ALL_5_LEVELS_MASTERED**
 
-تمام ۵ سطح نردبان تمرین پیش‌رونده (از ۵ کیلو تا ۵۰ کیلو) به همراه مراحل تکمیلی راندهای ۶ تا ۲۲ با ممیزی‌های زنده، مستندات تصویری Vision در پوشه‌های `.loop/artifacts/gym/round-01/` تا `.loop/artifacts/gym/round-22/`، ۶۶ تست رگرسیون تجمعی E2E، ۶۲۲ تست بک‌اند، ۳۶۹ تست فرانت‌اند و بیلد تمیز پروداکشن با موفقیت ۱۰۰٪ کامل ثبت و تسخیر شدند.
+تمام ۵ سطح نردبان تمرین پیش‌رونده (از ۵ کیلو تا ۵۰ کیلو) به همراه مراحل تکمیلی راندهای ۶ تا ۲۳ با ممیزی‌های زنده، مستندات تصویری Vision در پوشه‌های `.loop/artifacts/gym/round-01/` تا `.loop/artifacts/gym/round-23/`، ۷۱ تست رگرسیون تجمعی E2E، ۶۲۲ تست بک‌اند، ۳۶۹ تست فرانت‌اند و بیلد تمیز پروداکشن با موفقیت ۱۰۰٪ کامل ثبت و تسخیر شدند.
 
 
 

@@ -64,8 +64,8 @@ const TreeItem = React.memo(function TreeItem({ element, depth = 0 }: TreeItemPr
 
   return (
     <div
-      className={cn("flex flex-col select-none", depth > 0 && "pr-1")}
-      style={{ marginRight: depth > 0 ? `${depth * 24}px` : 0 }}
+      className={cn("flex flex-col select-none", depth > 0 && "pr-0.5")}
+      style={{ marginRight: depth > 0 ? `${Math.min(depth * 16, 48)}px` : 0 }}
     >
       <div
         onClick={() => selectElement(element.id)}
@@ -73,13 +73,13 @@ const TreeItem = React.memo(function TreeItem({ element, depth = 0 }: TreeItemPr
         data-depth={depth}
         data-element-id={element.id}
         className={cn(
-          "flex items-center justify-between py-1.5 px-2 rounded-lg cursor-pointer text-xs transition group my-0.5 border",
+          "flex items-center justify-between py-1.5 px-2 rounded-lg cursor-pointer text-xs transition group my-0.5 border overflow-hidden",
           isSelected
             ? "bg-primary text-primary-foreground font-semibold shadow-xs border-primary"
             : "hover:bg-muted/70 text-foreground bg-card/70 border-border/50"
         )}
       >
-        <div className="flex items-center gap-1.5 truncate">
+        <div className="flex items-center gap-1.5 min-w-0 flex-1 truncate">
           {/* Expand / Collapse Chevron for containers with children */}
           {hasChildren ? (
             <button

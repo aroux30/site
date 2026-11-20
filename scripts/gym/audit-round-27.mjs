@@ -8,7 +8,7 @@ const { chromium } = req("playwright");
 
 const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || "http://127.0.0.1:3000";
 const STAGE = process.argv[2] || "before";
-const ARTIFACTS_DIR = path.resolve(`C:/Users/Administrator/Desktop/site/.loop/artifacts/gym/round-25/${STAGE}`);
+const ARTIFACTS_DIR = path.resolve(`C:/Users/Administrator/Desktop/site/.loop/artifacts/gym/round-27/${STAGE}`);
 const BACKEND_DIR = path.resolve("C:/Users/Administrator/Desktop/site/backend");
 
 fs.mkdirSync(ARTIFACTS_DIR, { recursive: true });
@@ -26,7 +26,7 @@ async def main():
     ))
 asyncio.run(main())
 `;
-  const tmp = path.join(BACKEND_DIR, `.gym-r25-tok-${Date.now()}.py`);
+  const tmp = path.join(BACKEND_DIR, `.gym-r27-tok-${Date.now()}.py`);
   fs.writeFileSync(tmp, script, "utf8");
   try {
     const out = execSync(`python "${tmp}"`, { cwd: BACKEND_DIR, encoding: "utf8" });
@@ -37,22 +37,21 @@ asyncio.run(main())
   }
 }
 
-async function runRound25Audit() {
-  console.log(`>>> [Gym Round 25: Permalinks, Widgets, Automation, Audit & BI Periodic] Stage: [${STAGE}]...`);
+async function runRound21Audit() {
+  console.log(`>>> [Gym Round 27: Notices, Titles-Meta & Telegram Notify] Stage: [${STAGE}]...`);
   const token = getAdminToken();
 
   const browser = await chromium.launch({ headless: true, args: ["--no-sandbox", "--disable-dev-shm-usage"] });
   const context = await browser.newContext({
     viewport: { width: 1440, height: 900 },
     extraHTTPHeaders: {
-      "X-Forwarded-For": `10.95.${Math.floor(Math.random() * 240) + 1}.${Math.floor(Math.random() * 240) + 1}`,
+      "X-Forwarded-For": `10.86.${Math.floor(Math.random() * 240) + 1}.${Math.floor(Math.random() * 240) + 1}`,
     },
   });
 
   if (token) {
     await context.addCookies([
       { name: "access_token", value: token, url: BASE_URL, httpOnly: false, sameSite: "Lax" },
-      { name: "access_token", value: token, url: "http://localhost:3000", httpOnly: false, sameSite: "Lax" },
     ]);
   }
   await context.addInitScript(() => {
@@ -72,54 +71,60 @@ async function runRound25Audit() {
   };
 
   try {
-    // 1. Visit Admin Permalinks /admin/settings/permalink
-    console.log("    1. Navigating to Admin Permalinks /admin/settings/permalink...");
-    await page.goto(`${BASE_URL}/admin/settings/permalink`, { waitUntil: "domcontentloaded" });
+    // 1. Visit Admin Notices /admin/notices
+    console.log("    1. Navigating to Admin Notices /admin/notices...");
+    await page.goto(`${BASE_URL}/admin/notices`, { waitUntil: "domcontentloaded" });
     await page.waitForTimeout(2000);
-    const shotPermalinks = path.join(ARTIFACTS_DIR, "01-admin-permalinks.png");
-    await page.screenshot({ path: shotPermalinks });
-    findings.tests.permalinks = { shot: shotPermalinks };
 
-    // 2. Visit Admin Widgets /admin/widgets
-    console.log("    2. Navigating to Admin Widgets /admin/widgets...");
-    await page.goto(`${BASE_URL}/admin/widgets`, { waitUntil: "domcontentloaded" });
-    await page.waitForTimeout(2000);
-    const shotWidgets = path.join(ARTIFACTS_DIR, "02-admin-widgets.png");
-    await page.screenshot({ path: shotWidgets });
-    findings.tests.widgets = { shot: shotWidgets };
+    const shotNotices = path.join(ARTIFACTS_DIR, "01-admin-notices.png");
+    await page.screenshot({ path: shotNotices });
+    findings.tests.notices = { shot: shotNotices };
 
-    // 3. Visit Admin Automation /admin/automation
-    console.log("    3. Navigating to Admin Automation /admin/automation...");
-    await page.goto(`${BASE_URL}/admin/automation`, { waitUntil: "domcontentloaded" });
-    await page.waitForTimeout(2000);
-    const shotAutomation = path.join(ARTIFACTS_DIR, "03-admin-automation.png");
-    await page.screenshot({ path: shotAutomation });
-    findings.tests.automation = { shot: shotAutomation };
+    // Also switch to SMS tab in notices
+    const smsTab = page.locator("button[role='tab']:has-text('ارسال پیامک')");
+    if (await smsTab.isVisible()) {
+      await smsTab.click();
+      await page.waitForTimeout(1000);
+      const shotSms = path.join(ARTIFACTS_DIR, "01-b-admin-notices-sms.png");
+      await page.screenshot({ path: shotSms });
+      findings.tests.noticesSms = { shot: shotSms };
+    }
 
-    // 4. Visit Admin Audit /admin/audit
-    console.log("    4. Navigating to Admin Audit /admin/audit...");
-    await page.goto(`${BASE_URL}/admin/audit`, { waitUntil: "domcontentloaded" });
+    // 2. Visit Admin SEO Titles & Meta /admin/seo/titles-meta
+    console.log("    2. Navigating to Admin SEO Titles & Meta /admin/seo/titles-meta...");
+    await page.goto(`${BASE_URL}/admin/seo/titles-meta`, { waitUntil: "domcontentloaded" });
     await page.waitForTimeout(2000);
-    const shotAudit = path.join(ARTIFACTS_DIR, "04-admin-audit.png");
-    await page.screenshot({ path: shotAudit });
-    findings.tests.audit = { shot: shotAudit };
 
-    // 5. Visit Admin BI /admin/bi
-    console.log("    5. Navigating to Admin BI /admin/bi...");
-    await page.goto(`${BASE_URL}/admin/bi`, { waitUntil: "domcontentloaded" });
+    const shotTitlesMeta = path.join(ARTIFACTS_DIR, "02-seo-titles-meta.png");
+    await page.screenshot({ path: shotTitlesMeta });
+    findings.tests.titlesMeta = { shot: shotTitlesMeta };
+
+    // 3. Visit Admin Telegram Notify /admin/telegram-notify
+    console.log("    3. Navigating to Admin Telegram Notify /admin/telegram-notify...");
+    await page.goto(`${BASE_URL}/admin/telegram-notify`, { waitUntil: "domcontentloaded" });
     await page.waitForTimeout(2000);
-    const shotBi = path.join(ARTIFACTS_DIR, "05-admin-bi.png");
-    await page.screenshot({ path: shotBi });
-    findings.tests.bi = { shot: shotBi };
+
+    const shotTelegramNotify = path.join(ARTIFACTS_DIR, "03-admin-telegram-notify.png");
+    await page.screenshot({ path: shotTelegramNotify });
+    findings.tests.telegramNotify = { shot: shotTelegramNotify };
+
+    // 4. Visit Admin SEO Indexing /admin/seo/indexing
+    console.log("    4. Navigating to Admin SEO Indexing /admin/seo/indexing...");
+    await page.goto(`${BASE_URL}/admin/seo/indexing`, { waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(2000);
+
+    const shotIndexing = path.join(ARTIFACTS_DIR, "04-seo-indexing.png");
+    await page.screenshot({ path: shotIndexing });
+    findings.tests.indexing = { shot: shotIndexing };
 
     fs.writeFileSync(path.join(ARTIFACTS_DIR, "findings.json"), JSON.stringify(findings, null, 2), "utf8");
     console.log(`>>> [OK] Saved screenshots to ${ARTIFACTS_DIR}`);
   } catch (err) {
-    console.error(">>> [ERROR in audit-round-25]", err);
+    console.error(">>> [ERROR in audit-round-27]", err);
     throw err;
   } finally {
     await browser.close();
   }
 }
 
-runRound25Audit();
+runRound21Audit();

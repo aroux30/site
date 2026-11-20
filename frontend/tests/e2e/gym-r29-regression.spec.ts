@@ -3,7 +3,7 @@ import { createAccessTokenForE2E } from "./helpers/admin-token";
 
 const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || "http://127.0.0.1:3000";
 
-test.describe("Gym Round 23 Regression Invariants (SEO Settings, Visibility, Content AI, Link Audit & Counter)", () => {
+test.describe("Gym Round 29 Regression Invariants (SEO Settings, Visibility, Content AI, Link Audit & Counter)", () => {
   test.beforeEach(async ({ page }) => {
     await page.setExtraHTTPHeaders({
       "X-Forwarded-For": `10.92.${Math.floor(Math.random() * 240) + 1}.${Math.floor(Math.random() * 240) + 1}`,

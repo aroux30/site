@@ -8,7 +8,7 @@ const { chromium } = req("playwright");
 
 const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || "http://127.0.0.1:3000";
 const STAGE = process.argv[2] || "before";
-const ARTIFACTS_DIR = path.resolve(`C:/Users/Administrator/Desktop/site/.loop/artifacts/gym/round-23/${STAGE}`);
+const ARTIFACTS_DIR = path.resolve(`C:/Users/Administrator/Desktop/site/.loop/artifacts/gym/round-29/${STAGE}`);
 const BACKEND_DIR = path.resolve("C:/Users/Administrator/Desktop/site/backend");
 
 fs.mkdirSync(ARTIFACTS_DIR, { recursive: true });
@@ -26,7 +26,7 @@ async def main():
     ))
 asyncio.run(main())
 `;
-  const tmp = path.join(BACKEND_DIR, `.gym-r23-tok-${Date.now()}.py`);
+  const tmp = path.join(BACKEND_DIR, `.gym-r29-tok-${Date.now()}.py`);
   fs.writeFileSync(tmp, script, "utf8");
   try {
     const out = execSync(`python "${tmp}"`, { cwd: BACKEND_DIR, encoding: "utf8" });
@@ -38,7 +38,7 @@ asyncio.run(main())
 }
 
 async function runRound23Audit() {
-  console.log(`>>> [Gym Round 23: SEO Settings, Search Visibility, Content AI, Link Audit & Counter] Stage: [${STAGE}]...`);
+  console.log(`>>> [Gym Round 29: SEO Settings, Search Visibility, Content AI, Link Audit & Counter] Stage: [${STAGE}]...`);
   const token = getAdminToken();
 
   const browser = await chromium.launch({ headless: true, args: ["--no-sandbox", "--disable-dev-shm-usage"] });
@@ -115,7 +115,7 @@ async function runRound23Audit() {
     fs.writeFileSync(path.join(ARTIFACTS_DIR, "findings.json"), JSON.stringify(findings, null, 2), "utf8");
     console.log(`>>> [OK] Saved screenshots to ${ARTIFACTS_DIR}`);
   } catch (err) {
-    console.error(">>> [ERROR in audit-round-23]", err);
+    console.error(">>> [ERROR in audit-round-29]", err);
     throw err;
   } finally {
     await browser.close();

@@ -8,7 +8,7 @@ const { chromium } = req("playwright");
 
 const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || "http://127.0.0.1:3000";
 const STAGE = process.argv[2] || "before";
-const ARTIFACTS_DIR = path.resolve(`C:/Users/Administrator/Desktop/site/.loop/artifacts/gym/round-22/${STAGE}`);
+const ARTIFACTS_DIR = path.resolve(`C:/Users/Administrator/Desktop/site/.loop/artifacts/gym/round-31/${STAGE}`);
 const BACKEND_DIR = path.resolve("C:/Users/Administrator/Desktop/site/backend");
 
 fs.mkdirSync(ARTIFACTS_DIR, { recursive: true });
@@ -26,7 +26,7 @@ async def main():
     ))
 asyncio.run(main())
 `;
-  const tmp = path.join(BACKEND_DIR, `.gym-r22-tok-${Date.now()}.py`);
+  const tmp = path.join(BACKEND_DIR, `.gym-r31-tok-${Date.now()}.py`);
   fs.writeFileSync(tmp, script, "utf8");
   try {
     const out = execSync(`python "${tmp}"`, { cwd: BACKEND_DIR, encoding: "utf8" });
@@ -37,15 +37,15 @@ asyncio.run(main())
   }
 }
 
-async function runRound22Audit() {
-  console.log(`>>> [Gym Round 22: Local SEO, Breadcrumbs, Image SEO & Status] Stage: [${STAGE}]...`);
+async function runRound25Audit() {
+  console.log(`>>> [Gym Round 31: Permalinks, Widgets, Automation, Audit & BI Periodic] Stage: [${STAGE}]...`);
   const token = getAdminToken();
 
   const browser = await chromium.launch({ headless: true, args: ["--no-sandbox", "--disable-dev-shm-usage"] });
   const context = await browser.newContext({
     viewport: { width: 1440, height: 900 },
     extraHTTPHeaders: {
-      "X-Forwarded-For": `10.88.${Math.floor(Math.random() * 240) + 1}.${Math.floor(Math.random() * 240) + 1}`,
+      "X-Forwarded-For": `10.95.${Math.floor(Math.random() * 240) + 1}.${Math.floor(Math.random() * 240) + 1}`,
     },
   });
 
@@ -72,59 +72,54 @@ async function runRound22Audit() {
   };
 
   try {
-    // 1. Visit Admin Local SEO /admin/seo/local
-    console.log("    1. Navigating to Admin Local SEO /admin/seo/local...");
-    await page.goto(`${BASE_URL}/admin/seo/local`, { waitUntil: "domcontentloaded" });
+    // 1. Visit Admin Permalinks /admin/settings/permalink
+    console.log("    1. Navigating to Admin Permalinks /admin/settings/permalink...");
+    await page.goto(`${BASE_URL}/admin/settings/permalink`, { waitUntil: "domcontentloaded" });
     await page.waitForTimeout(2000);
+    const shotPermalinks = path.join(ARTIFACTS_DIR, "01-admin-permalinks.png");
+    await page.screenshot({ path: shotPermalinks });
+    findings.tests.permalinks = { shot: shotPermalinks };
 
-    const shotLocal = path.join(ARTIFACTS_DIR, "01-seo-local.png");
-    await page.screenshot({ path: shotLocal });
-    findings.tests.localSeo = { shot: shotLocal };
-
-    // 2. Visit Admin Breadcrumbs /admin/seo/breadcrumbs
-    console.log("    2. Navigating to Admin Breadcrumbs /admin/seo/breadcrumbs...");
-    await page.goto(`${BASE_URL}/admin/seo/breadcrumbs`, { waitUntil: "domcontentloaded" });
+    // 2. Visit Admin Widgets /admin/widgets
+    console.log("    2. Navigating to Admin Widgets /admin/widgets...");
+    await page.goto(`${BASE_URL}/admin/widgets`, { waitUntil: "domcontentloaded" });
     await page.waitForTimeout(2000);
+    const shotWidgets = path.join(ARTIFACTS_DIR, "02-admin-widgets.png");
+    await page.screenshot({ path: shotWidgets });
+    findings.tests.widgets = { shot: shotWidgets };
 
-    const shotBreadcrumbs = path.join(ARTIFACTS_DIR, "02-seo-breadcrumbs.png");
-    await page.screenshot({ path: shotBreadcrumbs });
-    findings.tests.breadcrumbs = { shot: shotBreadcrumbs };
-
-    // 3. Visit Admin Image SEO /admin/seo/image
-    console.log("    3. Navigating to Admin Image SEO /admin/seo/image...");
-    await page.goto(`${BASE_URL}/admin/seo/image`, { waitUntil: "domcontentloaded" });
+    // 3. Visit Admin Automation /admin/automation
+    console.log("    3. Navigating to Admin Automation /admin/automation...");
+    await page.goto(`${BASE_URL}/admin/automation`, { waitUntil: "domcontentloaded" });
     await page.waitForTimeout(2000);
+    const shotAutomation = path.join(ARTIFACTS_DIR, "03-admin-automation.png");
+    await page.screenshot({ path: shotAutomation });
+    findings.tests.automation = { shot: shotAutomation };
 
-    const shotImageSeo = path.join(ARTIFACTS_DIR, "03-seo-image.png");
-    await page.screenshot({ path: shotImageSeo });
-    findings.tests.imageSeo = { shot: shotImageSeo };
-
-    // 4. Visit Admin SEO Status /admin/seo/status
-    console.log("    4. Navigating to Admin SEO Status /admin/seo/status...");
-    await page.goto(`${BASE_URL}/admin/seo/status`, { waitUntil: "domcontentloaded" });
+    // 4. Visit Admin Audit /admin/audit
+    console.log("    4. Navigating to Admin Audit /admin/audit...");
+    await page.goto(`${BASE_URL}/admin/audit`, { waitUntil: "domcontentloaded" });
     await page.waitForTimeout(2000);
+    const shotAudit = path.join(ARTIFACTS_DIR, "04-admin-audit.png");
+    await page.screenshot({ path: shotAudit });
+    findings.tests.audit = { shot: shotAudit };
 
-    const shotStatus = path.join(ARTIFACTS_DIR, "04-seo-status.png");
-    await page.screenshot({ path: shotStatus });
-    findings.tests.seoStatus = { shot: shotStatus };
-
-    // 5. Visit Admin 404 Monitor /admin/seo/404
-    console.log("    5. Navigating to Admin 404 Monitor /admin/seo/404...");
-    await page.goto(`${BASE_URL}/admin/seo/404`, { waitUntil: "domcontentloaded" });
+    // 5. Visit Admin BI /admin/bi
+    console.log("    5. Navigating to Admin BI /admin/bi...");
+    await page.goto(`${BASE_URL}/admin/bi`, { waitUntil: "domcontentloaded" });
     await page.waitForTimeout(2000);
-
-    const shot404 = path.join(ARTIFACTS_DIR, "05-seo-404.png");
-    await page.screenshot({ path: shot404 });
-    findings.tests.seo404 = { shot: shot404 };
+    const shotBi = path.join(ARTIFACTS_DIR, "05-admin-bi.png");
+    await page.screenshot({ path: shotBi });
+    findings.tests.bi = { shot: shotBi };
 
     fs.writeFileSync(path.join(ARTIFACTS_DIR, "findings.json"), JSON.stringify(findings, null, 2), "utf8");
     console.log(`>>> [OK] Saved screenshots to ${ARTIFACTS_DIR}`);
   } catch (err) {
-    console.error(">>> [ERROR in audit-round-22]", err);
+    console.error(">>> [ERROR in audit-round-31]", err);
     throw err;
   } finally {
     await browser.close();
   }
 }
 
-runRound22Audit();
+runRound25Audit();

@@ -622,7 +622,7 @@
 
 ---
 
-### 🏋️ راند ۲۱ (Round 21) — وزنه ۶: +۱۰ کیلو تعمق مداوم (قالب‌های متادیتای سئو، اعلانات و پیامک، اطلاع‌رسانی تلگرام و ایندکس فوری)
+### 🏋️ راند ۲۷ (Round 27) — وزنه ۶: +۱۰ کیلو تعمق مداوم (قالب‌های متادیتای سئو، اعلانات و پیامک، اطلاع‌رسانی تلگرام و ایندکس فوری)
 - **تاریخ اجرا**: 2026-11-20
 - **شاخه ایزوله**: `autofix/gym-loop`
 - **وضعیت**: ✅ کامل و سبز (اصلاح تایمرهای لایو دیبانس در پیش‌نمایش قالب‌ها، تنظیم صریح جهت RTL در صفحات سئو و تلگرام، ارتقای فاصله استاندارد آیکون‌ها و دکمه‌ها با Vision)
@@ -639,13 +639,13 @@
    - *اصلاح ریشه‌ای*: در [notices/page.tsx](frontend/app/admin/notices/page.tsx) ویژگی `dir="rtl"` به کامپوننت `Tabs` اضافه شد و در [indexing-settings-card.tsx](frontend/components/admin/indexing-settings-card.tsx) و [indexing/page.tsx](frontend/app/admin/seo/indexing/page.tsx) ساختار فاصله‌گذاری و استایل دکمه‌ها اصلاح شد.
 
 #### ۲. مستندات بصری (Vision Artifacts)
-- **قبل از اصلاح**: `.loop/artifacts/gym/round-21/before/`
+- **قبل از اصلاح**: `.loop/artifacts/gym/round-27/before/`
   - `01-admin-notices.png` (صفحه اعلانات زمان‌دار)
   - `01-b-admin-notices-sms.png` (تب ارسال پیامک تکی)
   - `02-seo-titles-meta.png` (پیش‌نمایش‌های خاموش بدون لایو تایمر مجزا)
   - `03-admin-telegram-notify.png` (فرم تلگرام با فاصله‌گذاری‌های معکوس)
   - `04-seo-indexing.png` (ایندکس فوری)
-- **بعد از اصلاح**: `.loop/artifacts/gym/round-21/after/`
+- **بعد از اصلاح**: `.loop/artifacts/gym/round-27/after/`
   - `01-admin-notices.png` (چیدمان استاندارد و راست‌به‌چپ اعلانات)
   - `01-b-admin-notices-sms.png` (فرم تمیز و هماهنگ ارسال پیامک)
   - `02-seo-titles-meta.png` (پیش‌نمایش زنده سبز فعال برای نوشته‌ها و برگه‌ها)
@@ -653,9 +653,9 @@
   - `04-seo-indexing.png` (نمای هماهنگ ایندکس فوری)
 
 #### ۳. تست‌های رگرسیون دائمی اضافه‌شده
-- فایل تست Playwright: `frontend/tests/e2e/gym-r21-regression.spec.ts` (۴ تست سبز)
+- فایل تست Playwright: `frontend/tests/e2e/gym-r27-regression.spec.ts` (۴ تست سبز)
 
-#### ۴. نتایج نهایی ممیزی و تست‌ها در راند ۲۱
+#### ۴. نتایج نهایی ممیزی و تست‌ها در راند ۲۷
 - `npx tsc --noEmit`: ۰ خطا (سبز)
 - `npm test` (Vitest): **۳۶۹ تست سبز در ۴۵ فایل** (`369 passed`)
 - `python -m pytest app/tests/unit`: **۶۲۲ تست سبز** (`622 passed, 2 skipped`)
@@ -664,7 +664,7 @@
 
 ---
 
-### 🏋️ راند ۲۲ (Round 22) — وزنه ۶: +۱۰ کیلو تعمق مداوم (سئوی محلی، مسیر صفحه، سئوی تصویر، ابزارهای وضعیت و مانیتور ۴۰۴)
+### 🏋️ راند ۲۸ (Round 28) — وزنه ۶: +۱۰ کیلو تعمق مداوم (سئوی محلی، مسیر صفحه، سئوی تصویر، ابزارهای وضعیت و مانیتور ۴۰۴)
 - **تاریخ اجرا**: 2026-11-20
 - **شاخه ایزوله**: `autofix/gym-loop`
 - **وضعیت**: ✅ کامل و سبز (اصلاح چیدمان راست‌به‌چپ در ۵ صفحه سئو، یکپارچه‌سازی فاصله‌گذاری و استایل دکمه‌های اقدام با Vision)
@@ -678,13 +678,13 @@
    - *اصلاح ریشه‌ای*: در تمام کامپوننت‌های [local-seo-settings-card.tsx](frontend/components/admin/local-seo-settings-card.tsx)، [breadcrumb-settings-card.tsx](frontend/components/admin/breadcrumb-settings-card.tsx)، [image-seo-settings-card.tsx](frontend/components/admin/image-seo-settings-card.tsx)، [status/page.tsx](frontend/app/admin/seo/status/page.tsx) و [404/page.tsx](frontend/app/admin/seo/404/page.tsx) فاصله‌گذاری‌ها به `gap-2` و `gap-1.5` با اسپینر بارگذاری فعال (`Loader2`) ارتقا یافت.
 
 #### ۲. مستندات بصری (Vision Artifacts)
-- **قبل از اصلاح**: `.loop/artifacts/gym/round-22/before/`
+- **قبل از اصلاح**: `.loop/artifacts/gym/round-28/before/`
   - `01-seo-local.png` (سئوی محلی با دکمه نامتعادل)
   - `02-seo-breadcrumbs.png` (تنظیمات مسیر صفحه)
   - `03-seo-image.png` (سئوی تصویر)
   - `04-seo-status.png` (ابزارها و وضعیت سئو)
   - `05-seo-404.png` (مانیتور ۴۰۴)
-- **بعد از اصلاح**: `.loop/artifacts/gym/round-22/after/`
+- **بعد از اصلاح**: `.loop/artifacts/gym/round-28/after/`
   - `01-seo-local.png` (ساختار استاندارد RTL و دکمه ذخیره اصلاح‌شده)
   - `02-seo-breadcrumbs.png` (فلو هماهنگ و تمیز تنظیمات مسیر)
   - `03-seo-image.png` (چیدمان دقیق گزینه‌های سئوی تصویر)
@@ -692,9 +692,9 @@
   - `05-seo-404.png` (نمای هماهنگ مانیتور ۴۰۴)
 
 #### ۳. تست‌های رگرسیون دائمی اضافه‌شده
-- فایل تست Playwright: `frontend/tests/e2e/gym-r22-regression.spec.ts` (۵ تست سبز)
+- فایل تست Playwright: `frontend/tests/e2e/gym-r28-regression.spec.ts` (۵ تست سبز)
 
-#### ۴. نتایج نهایی ممیزی و تست‌ها در راند ۲۲
+#### ۴. نتایج نهایی ممیزی و تست‌ها در راند ۲۸
 - `npx tsc --noEmit`: ۰ خطا (سبز)
 - `npm test` (Vitest): **۳۶۹ تست سبز در ۴۵ فایل** (`369 passed`)
 - `python -m pytest app/tests/unit`: **۶۲۲ تست سبز** (`622 passed, 2 skipped`)
@@ -703,7 +703,7 @@
 
 ---
 
-### 🏋️ راند ۲۳ (Round 23) — وزنه ۶: +۱۰ کیلو تعمق مداوم (تنظیمات سئو، ربات‌ها، نمایش در موتورهای جست‌وجو، هوش مصنوعی محتوا، بررسی لینک‌ها و شمارنده لینک)
+### 🏋️ راند ۲۹ (Round 29) — وزنه ۶: +۱۰ کیلو تعمق مداوم (تنظیمات سئو، ربات‌ها، نمایش در موتورهای جست‌وجو، هوش مصنوعی محتوا، بررسی لینک‌ها و شمارنده لینک)
 - **تاریخ اجرا**: 2026-11-20
 - **شاخه ایزوله**: `autofix/gym-loop`
 - **وضعیت**: ✅ کامل و سبز (اصلاح چیدمان راست‌به‌چپ در کل مجموعه تنظیمات عمومی سئو، فاصله‌گذاری استاندارد دکمه‌ها و تعبیه اسپینر با Vision)
@@ -717,13 +717,13 @@
    - *اصلاح ریشه‌ای*: در [robots-settings-card.tsx](frontend/components/admin/robots-settings-card.tsx)، [search-visibility-card.tsx](frontend/components/admin/search-visibility-card.tsx)، [content-ai-settings-card.tsx](frontend/components/admin/content-ai-settings-card.tsx) و کامپوننت‌های مرتبط، فواصل به `gap-2` استانداردسازی شد و اسپینرهای چرخان لودینگ فعال گردید.
 
 #### ۲. مستندات بصری (Vision Artifacts)
-- **قبل از اصلاح**: `.loop/artifacts/gym/round-23/before/`
+- **قبل از اصلاح**: `.loop/artifacts/gym/round-29/before/`
   - `01-seo-settings.png` (تنظیمات سئو و قواعد ربات‌ها)
   - `02-seo-visibility.png` (نمایش در موتورهای جست‌وجو)
   - `03-seo-content-ai.png` (هوش مصنوعی محتوا)
   - `04-seo-link-audit.png` (بررسی لینک‌های شکسته)
   - `05-seo-link-counter.png` (شمارش لینک‌ها و وضعیت یتیم)
-- **بعد از اصلاح**: `.loop/artifacts/gym/round-23/after/`
+- **بعد از اصلاح**: `.loop/artifacts/gym/round-29/after/`
   - `01-seo-settings.png` (ساختار استاندارد RTL و فاصله‌گذاری مناسب دکمه‌های ذخیره)
   - `02-seo-visibility.png` (تراز راست‌به‌چپ شکیل وضعیت نمایش)
   - `03-seo-content-ai.png` (تنظیمات تمیز هوش مصنوعی محتوا)
@@ -731,9 +731,9 @@
   - `05-seo-link-counter.png` (آمار دقیق لینک‌ها با تراز RTL)
 
 #### ۳. تست‌های رگرسیون دائمی اضافه‌شده
-- فایل تست Playwright: `frontend/tests/e2e/gym-r23-regression.spec.ts` (۵ تست سبز)
+- فایل تست Playwright: `frontend/tests/e2e/gym-r29-regression.spec.ts` (۵ تست سبز)
 
-#### ۴. نتایج نهایی ممیزی و تست‌ها در راند ۲۳
+#### ۴. نتایج نهایی ممیزی و تست‌ها در راند ۲۹
 - `npx tsc --noEmit`: ۰ خطا (سبز)
 - `npm test` (Vitest): **۳۶۹ تست سبز در ۴۵ فایل** (`369 passed`)
 - `python -m pytest app/tests/unit`: **۶۲۲ تست سبز** (`622 passed, 2 skipped`)
@@ -742,7 +742,7 @@
 
 ---
 
-### 🏋️ راند ۲۴ (Round 24) — وزنه ۶: +۱۰ کیلو تعمق مداوم (انبار دیجیتال، درگاه‌های فین‌تک، گیمیفیکیشن، کش‌بک و قابلیت‌های یکپارچه‌سازی)
+### 🏋️ راند ۳۰ (Round 30) — وزنه ۶: +۱۰ کیلو تعمق مداوم (انبار دیجیتال، درگاه‌های فین‌تک، گیمیفیکیشن، کش‌بک و قابلیت‌های یکپارچه‌سازی)
 - **تاریخ اجرا**: 2026-11-20
 - **شاخه ایزوله**: `autofix/gym-loop`
 - **وضعیت**: ✅ کامل و سبز (اصلاح فاصله‌گذاری معکوس دکمه‌های اقدام، تعبیه اسپینرهای فعال لودینگ، استانداردسازی هدرها و تب‌ها با Vision)
@@ -756,13 +756,13 @@
    - *اصلاح ریشه‌ای*: کلاس پویا `${loading ? "animate-spin" : ""}` به آیکون‌های Refresh دکمه‌ها اضافه شد تا وضعیت لودینگ زنده به وضوح نمایش داده شود.
 
 #### ۲. مستندات بصری (Vision Artifacts)
-- **قبل از اصلاح**: `.loop/artifacts/gym/round-24/before/`
+- **قبل از اصلاح**: `.loop/artifacts/gym/round-30/before/`
   - `01-admin-digital-inventory.png` (انبار کدهای دیجیتال)
   - `02-admin-fintech.png` (درگاه‌های پرداخت و فیش‌های کارت‌به‌کارت)
   - `03-admin-gamification.png` (باشگاه مشتریان و گیمیفیکیشن)
   - `04-admin-cashback.png` (قواعد کش‌بک)
   - `05-admin-integrations.png` (فهرست قابلیت‌های یکپارچه‌سازی)
-- **بعد از اصلاح**: `.loop/artifacts/gym/round-24/after/`
+- **بعد از اصلاح**: `.loop/artifacts/gym/round-30/after/`
   - `01-admin-digital-inventory.png` (چیدمان و فاصله‌گذاری هماهنگ دکمه‌های انبار دیجیتال)
   - `02-admin-fintech.png` (تب‌ها و دکمه‌های استاندارد فین‌تک)
   - `03-admin-gamification.png` (دکمه‌های هم‌تراز صدور کارت هدیه و بسته‌های شارژ)
@@ -770,9 +770,9 @@
   - `05-admin-integrations.png` (فهرست یکپارچه‌سازی)
 
 #### ۳. تست‌های رگرسیون دائمی اضافه‌شده
-- فایل تست Playwright: `frontend/tests/e2e/gym-r24-regression.spec.ts` (۵ تست سبز)
+- فایل تست Playwright: `frontend/tests/e2e/gym-r30-regression.spec.ts` (۵ تست سبز)
 
-#### ۴. نتایج نهایی ممیزی و تست‌ها در راند ۲۴
+#### ۴. نتایج نهایی ممیزی و تست‌ها در راند ۳۰
 - `npx tsc --noEmit`: ۰ خطا (سبز)
 - `npm test` (Vitest): **۳۶۹ تست سبز در ۴۵ فایل** (`369 passed`)
 - `python -m pytest app/tests/unit`: **۶۲۲ تست سبز** (`622 passed, 2 skipped`)
@@ -781,7 +781,7 @@
 
 ---
 
-### 🏋️ راند ۲۵ (Round 25) — وزنه ۶: +۱۰ کیلو تعمق مداوم (پیوندهای یکتا، نواحی ویجت، قواعد خودکارسازی، گزارش رویدادها و مقایسه دوره‌ای BI)
+### 🏋️ راند ۳۱ (Round 31) — وزنه ۶: +۱۰ کیلو تعمق مداوم (پیوندهای یکتا، نواحی ویجت، قواعد خودکارسازی، گزارش رویدادها و مقایسه دوره‌ای BI)
 - **تاریخ اجرا**: 2026-11-20
 - **شاخه ایزوله**: `autofix/gym-loop`
 - **وضعیت**: ✅ کامل و سبز (اصلاح چیدمان راست‌به‌چپ در پیوندهای یکتا و نواحی ویجت، استانداردسازی فاصله‌گذاری دکمه‌ها و اسپینرهای فعال لودینگ با Vision)
@@ -795,13 +795,13 @@
    - *اصلاح ریشه‌ای*: در [automation/page.tsx](frontend/app/admin/automation/page.tsx)، [audit/page.tsx](frontend/app/admin/audit/page.tsx) و [bi/page.tsx](frontend/app/admin/bi/page.tsx) فواصل با کلاس هماهنگ `gap-2` بازنویسی شده و انیمیشن چرخان لودینگ (`animate-spin`) برای تمام دکمه‌های بازخوانی فعال گردید.
 
 #### ۲. مستندات بصری (Vision Artifacts)
-- **قبل از اصلاح**: `.loop/artifacts/gym/round-25/before/`
+- **قبل از اصلاح**: `.loop/artifacts/gym/round-31/before/`
   - `01-admin-permalinks.png` (تنظیمات پیوندهای یکتا)
   - `02-admin-widgets.png` (نواحی ویجت با چیدمان نامتعادل)
   - `03-admin-automation.png` (قواعد خودکارسازی)
   - `04-admin-audit.png` (گزارش رویدادهای سیستم)
   - `05-admin-bi.png` (مقایسه دوره‌ای گزارش‌ها)
-- **بعد از اصلاح**: `.loop/artifacts/gym/round-25/after/`
+- **بعد از اصلاح**: `.loop/artifacts/gym/round-31/after/`
   - `01-admin-permalinks.png` (ساختار استاندارد RTL تنظیمات پیوندهای یکتا)
   - `02-admin-widgets.png` (چیدمان مرتب نواحی و ویرایشگر ویجت‌ها در RTL)
   - `03-admin-automation.png` (دکمه‌های هماهنگ با انیمیشن فعال قواعد خودکارسازی)
@@ -809,9 +809,9 @@
   - `05-admin-bi.png` (نمای منظم مقایسه دوره‌ای گزارش‌های هوش تجاری)
 
 #### ۳. تست‌های رگرسیون دائمی اضافه‌شده
-- فایل تست Playwright: `frontend/tests/e2e/gym-r25-regression.spec.ts` (۵ تست سبز)
+- فایل تست Playwright: `frontend/tests/e2e/gym-r31-regression.spec.ts` (۵ تست سبز)
 
-#### ۴. نتایج نهایی ممیزی و تست‌ها در راند ۲۵
+#### ۴. نتایج نهایی ممیزی و تست‌ها در راند ۳۱
 - `npx tsc --noEmit`: ۰ خطا (سبز)
 - `npm test` (Vitest): **۳۶۹ تست سبز در ۴۵ فایل** (`369 passed`)
 - `python -m pytest app/tests/unit`: **۶۲۲ تست سبز** (`622 passed, 2 skipped`)
@@ -820,7 +820,7 @@
 
 ---
 
-### 🏋️ راند ۲۶ (Round 26) — وزنه ۶: +۱۰ کیلو تعمق مداوم (ورود داده، خروجی داده، سوالات متداول، بررسی نظرات و مرکز گزارش‌ها)
+### 🏋️ راند ۳۲ (Round 32) — وزنه ۶: +۱۰ کیلو تعمق مداوم (ورود داده، خروجی داده، سوالات متداول، بررسی نظرات و مرکز گزارش‌ها)
 - **تاریخ اجرا**: 2026-11-20
 - **شاخه ایزوله**: `autofix/gym-loop`
 - **وضعیت**: ✅ کامل و سبز (اصلاح چیدمان راست‌به‌چپ در سوالات متداول و مرکز گزارش‌ها، استانداردسازی فاصله‌گذاری دکمه‌ها و اسپینرهای فعال لودینگ با Vision)
@@ -834,13 +834,13 @@
    - *اصلاح ریشه‌ای*: در [data-exchange/page.tsx](frontend/app/admin/data-exchange/page.tsx)، [data-exchange/export/page.tsx](frontend/app/admin/data-exchange/export/page.tsx)، [reviews/page.tsx](frontend/app/admin/reviews/page.tsx) و [reports/page.tsx](frontend/app/admin/reports/page.tsx) فواصل با کلاس هماهنگ `gap-2` بازنویسی شده و انیمیشن چرخان لودینگ (`animate-spin`) برای دکمه‌های بازخوانی و به‌روزرسانی فعال گردید.
 
 #### ۲. مستندات بصری (Vision Artifacts)
-- **قبل از اصلاح**: `.loop/artifacts/gym/round-26/before/`
+- **قبل از اصلاح**: `.loop/artifacts/gym/round-32/before/`
   - `01-admin-data-exchange.png` (ورود داده)
   - `02-admin-data-exchange-export.png` (خروجی داده)
   - `03-admin-faq.png` (مدیریت سوالات متداول)
   - `04-admin-reviews.png` (بررسی نظرات کاربران)
   - `05-admin-reports.png` (مرکز گزارش‌ها)
-- **بعد از اصلاح**: `.loop/artifacts/gym/round-26/after/`
+- **بعد از اصلاح**: `.loop/artifacts/gym/round-32/after/`
   - `01-admin-data-exchange.png` (چیدمان استاندارد و دکمه‌های اصلاح‌شده ورود داده)
   - `02-admin-data-exchange-export.png` (فرم منظم خروجی گرفتن داده)
   - `03-admin-faq.png` (چیدمان استاندارد RTL سوالات متداول)
@@ -848,9 +848,9 @@
   - `05-admin-reports.png` (نمای منظم و راست‌به‌چپ مرکز گزارش‌ها)
 
 #### ۳. تست‌های رگرسیون دائمی اضافه‌شده
-- فایل تست Playwright: `frontend/tests/e2e/gym-r26-regression.spec.ts` (۵ تست سبز)
+- فایل تست Playwright: `frontend/tests/e2e/gym-r32-regression.spec.ts` (۵ تست سبز)
 
-#### ۴. نتایج نهایی ممیزی و تست‌ها در راند ۲۶
+#### ۴. نتایج نهایی ممیزی و تست‌ها در راند ۳۲
 - `npx tsc --noEmit`: ۰ خطا (سبز)
 - `npm test` (Vitest): **۳۶۹ تست سبز در ۴۵ فایل** (`369 passed`)
 - `python -m pytest app/tests/unit`: **۶۲۲ تست سبز** (`622 passed, 2 skipped`)
@@ -863,7 +863,7 @@
 
 **GYM_ALL_5_LEVELS_MASTERED**
 
-تمام ۵ سطح نردبان تمرین پیش‌رونده (از ۵ کیلو تا ۵۰ کیلو) به همراه مراحل تکمیلی راندهای ۶ تا ۲۶ با ممیزی‌های زنده، مستندات تصویری Vision در پوشه‌های `.loop/artifacts/gym/round-01/` تا `.loop/artifacts/gym/round-26/`، ۸۶ تست رگرسیون تجمعی E2E، ۶۲۲ تست بک‌اند، ۳۶۹ تست فرانت‌اند و بیلد تمیز پروداکشن با موفقیت ۱۰۰٪ کامل ثبت و تسخیر شدند.
+تمام ۵ سطح نردبان تمرین پیش‌رونده (از ۵ کیلو تا ۵۰ کیلو) به همراه مراحل تکمیلی راندهای ۶ تا ۲۶ با ممیزی‌های زنده، مستندات تصویری Vision در پوشه‌های `.loop/artifacts/gym/round-01/` تا `.loop/artifacts/gym/round-32/`، ۸۶ تست رگرسیون تجمعی E2E، ۶۲۲ تست بک‌اند، ۳۶۹ تست فرانت‌اند و بیلد تمیز پروداکشن با موفقیت ۱۰۰٪ کامل ثبت و تسخیر شدند.
 
 
 

@@ -1,0 +1,15 @@
+{
+  "stage": "before",
+  "timestamp": "2026-11-20T02:38:19.702Z",
+  "tests": {
+    "blogMain": {
+      "shot": "C:\\Users\\Administrator\\Desktop\\site\\.loop\\artifacts\\gym\\round-12\\before\\01-blog-main.png"
+    },
+    "adminBlog": {
+      "shot": "C:\\Users\\Administrator\\Desktop\\site\\.loop\\artifacts\\gym\\round-12\\before\\02-admin-blog.png"
+    },
+    "authorArchive": {
+      "shot": "C:\\Users\\Administrator\\Desktop\\site\\.loop\\artifacts\\gym\\round-12\\before\\03-author-archive.png"
+    }
+  }
+}

@@ -164,7 +164,7 @@ export default function BlogListClient() {
               asChild
               className="bg-white/10 hover:bg-white/20 text-white border-white/20 rounded-2xl h-[50px] px-4 gap-2"
             >
-              <a href="/api/v1/blog/feed/rss" target="_blank" rel="noopener noreferrer">
+              <a href="/blog/feed/rss" target="_blank" rel="noopener noreferrer">
                 <Rss className="w-4 h-4 text-amber-400" />
                 خوراک RSS
               </a>

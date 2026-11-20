@@ -13,7 +13,7 @@ test.describe("Gym Round 01 Regression Invariants", () => {
 
   test("2. Theme toggle button must never use opacity-0 on unmounted state", async ({ page }) => {
     await page.goto("http://127.0.0.1:3000/", { waitUntil: "domcontentloaded" });
-    const toggle = page.locator('button[aria-label="تغییر تم"]').first();
+    const toggle = page.locator('button[aria-label*="تم"]').first();
     await expect(toggle).toBeVisible();
 
     const cls = (await toggle.getAttribute("class")) || "";

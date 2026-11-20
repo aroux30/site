@@ -286,11 +286,11 @@ export default function AdminCashbackPage() {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={() => void reload()}>
-            <RefreshCw className="ms-1 h-4 w-4" /> تازه‌سازی
+          <Button variant="outline" onClick={() => void reload()} className="gap-2">
+            <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} /> تازه‌سازی
           </Button>
-          <Button onClick={openCreate}>
-            <Plus className="ms-1 h-4 w-4" /> قاعده جدید
+          <Button onClick={openCreate} className="gap-2">
+            <Plus className="h-4 w-4" /> قاعده جدید
           </Button>
         </div>
       </section>

@@ -363,12 +363,12 @@ export default function AdminGamificationPage() {
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Button variant="outline" size="sm" onClick={() => void load()}>
-            <RefreshCw className="h-4 w-4 ms-2" />
+          <Button variant="outline" size="sm" onClick={() => void load()} className="gap-2">
+            <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
             بروزرسانی
           </Button>
-          <Button size="sm" onClick={() => setGiftOpen(true)}>
-            <Plus className="h-4 w-4 ms-2" />
+          <Button size="sm" onClick={() => setGiftOpen(true)} className="gap-2">
+            <Plus className="h-4 w-4" />
             صدور کارت هدیه
           </Button>
         </div>
@@ -391,8 +391,8 @@ export default function AdminGamificationPage() {
 
         <TabsContent value="packages">
           <div className="mb-4 flex justify-end">
-            <Button size="sm" onClick={() => setPackageOpen(true)}>
-              <Plus className="h-4 w-4 ms-2" />
+            <Button size="sm" onClick={() => setPackageOpen(true)} className="gap-2">
+              <Plus className="h-4 w-4" />
               بسته شارژ جدید
             </Button>
           </div>
@@ -428,8 +428,8 @@ export default function AdminGamificationPage() {
 
         <TabsContent value="rules" className="space-y-4">
           <div className="flex flex-wrap justify-end gap-2">
-            <Button size="sm" onClick={() => setRuleDialogOpen(true)}>
-              <Plus className="h-4 w-4 ms-2" />
+            <Button size="sm" onClick={() => setRuleDialogOpen(true)} className="gap-2">
+              <Plus className="h-4 w-4" />
               قاعده جدید
             </Button>
           </div>

@@ -1,0 +1,10 @@
+{
+  "report": {
+    "rightSidebarOverflow": false,
+    "iframeOverflow": false,
+    "rightWidth": 319,
+    "iframeWidth": 766,
+    "url": "http://127.0.0.1:3000/e2e-isolated-scratchpad?builder=1"
+  },
+  "consoleErrors": []
+}

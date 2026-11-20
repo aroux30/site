@@ -205,6 +205,49 @@
 
 ---
 
+### 🏋️ راند ۶ (Round 06) — وزنه ۶: بی‌نهایت (۶۰ کیلو — چیدمان کانتینرهای تودرتو، تطابق کامل Gap بوم با کامپایلر، و کنترل‌های غنی محتوایی بازرس)
+- **تاریخ اجرا**: 2026-11-20
+- **شاخه ایزوله**: `claude/amazing-gagarin-884885`
+- **وضعیت**: ✅ کامل و سبز (۴ نقص ریشه‌ای در چیدمان عمیق AST، فاصله‌گذاری WYSIWYG و ویجت‌های بازرس حل و با Vision تایید شدند)
+
+#### ۱. باگ‌های کشف‌شده با ابزار Vision و تعامل
+1. **تخریب یا عدم اعمال چیدمان کانتینرهای تودرتو در Inspector (`Nested Container Layout Mutation Failure`)**:
+   - *مشاهده در Vision*: در تصویر `before/05-canvas-landing-patterns.png` و `before/06-nested-element-selected.png`، با کلیک روی یک کانتینر فرزند درون الگوها و تغییر چیدمان (فلکس‌باکس/گرید یا فاصله بین آیتم‌ها)، تابع `rootElements.map` در `inspector-panel.tsx` به صورت سطحی عمل می‌کرد و المان‌های تودرتو در عمق درخت را نمی‌یافت. همچنین این تغییرات بدون ثبت در تاریخچه Undo (`history.past`) و بدون افزایش `mutationVersion` انجام می‌شد.
+   - *اصلاح ریشه‌ای*: ایجاد متدهای استاندارد و بازگشتی `updateElementLayout`، `renameElement`، `setElementHidden`، `setElementLocked` و `detachGlobalComponent` در `frontend/stores/builder-store.ts` با پشتیبانی کامل از درخت عمیق AST و سیستم Undo/Redo.
+2. **تطابق ناقص فاصله کانتینر (Gap) بین بوم ادیتور و کامپایلر بک‌اند (`WYSIWYG Container Gap Parity Discrepancy`)**:
+   - *مشاهده*: در `ast_compiler.py` فاصله `layout.gap` به صورت مستقیم به استایل تبدیل می‌شد، اما در `canvas-element.tsx` فاصله تنها در صورت تعریف در `styles.mobile.gap` روی استایل اعمال می‌شد و مقدار `layout.gap` نادیده گرفته می‌شد.
+   - *اصلاح ریشه‌ای*: اعمال مستقیم `element.layout.gap` روی `styleObj.gap` در `canvas-element.tsx` در صورت عدم وجود اورراید ریسپانسیو.
+3. **فقدان کنترل‌های اختصاصی محتوا در بازرس برای ویجت‌های تب‌ها، خط جداکننده، شبکه‌های اجتماعی و گالری تصاویر**:
+   - *مشاهده در Vision*: هنگام انتخاب ویجت `tabs`، پیام پیش‌فرض «تنظیمات اختصاصی محتوایی برای این نوع ویجت تعریف نشده است» نمایش داده می‌شد و کاربر قادر به ویرایش عناوین و متن تب‌ها نبود.
+   - *اصلاح ریشه‌ای*: توسعه کنترل‌های کامل و فرم‌های افزودن/حذف/ویرایش در `inspector-panel.tsx` برای ویجت‌های `tabs`، `divider`، `social_links` و `image_gallery`.
+
+#### ۲. مستندات بصری (Vision Artifacts)
+- **قبل از اصلاح**: `.loop/artifacts/builder-gym/round-06/before/`
+  - `01-studio-initial.png`
+  - `02-patterns-palette.png`
+  - `03-canvas-with-pattern.png`
+  - `04-element-selected-inspector.png`
+  - `05-canvas-landing-patterns.png`
+  - `06-nested-element-selected.png`
+- **بعد از اصلاح**: `.loop/artifacts/builder-gym/round-06/after/`
+  - `01-studio-initial.png`
+  - `02-patterns-palette.png`
+  - `03-canvas-with-pattern.png`
+  - `04-element-selected-inspector.png`
+  - `05-tabs-inspector-rich-controls.png` (نمایش فرم کامل زبانه‌های محتوا با افزودن/حذف تب، ویرایش عنوان و متن، و تطابق بی‌نقص با بوم)
+
+#### ۳. تست‌های رگرسیون دائمی اضافه‌شده
+- فایل تست Playwright: `frontend/tests/e2e/builder-gym-r06.spec.ts` (۳ تست سبز)
+- فایل تست Vitest: `frontend/tests/builder-store.test.ts` (۲ تست رگرسیون جدید برای چیدمان تودرتو و عملیات لایه‌ها)
+
+#### ۴. نتایج نهایی ممیزی و تست‌ها در راند ۶
+- `npx tsc --noEmit`: ۰ خطا (سبز)
+- `npm test` (Vitest): **۳۷۱ تست سبز در ۴۵ فایل** (`371 passed`)
+- `python -m pytest app/tests/unit`: **۶۲۲ تست سبز** (`622 passed, 2 skipped`)
+- تست‌های Playwright کامل صفحه‌ساز (راند ۱ تا ۶): **۱۸ تست سبز در ۶ فایل (`18 passed in 29.0s`)**
+
+---
+
 ## 🏆 گواهینامه ثبت BUILDER_GYM_LEVELS_1_TO_5_CLEAN
 
 بدین‌وسیله تایید می‌گردد که هر ۵ وزنه نردبان تمرین پیش‌رونده Visual Page Builder بر اساس دستورالعمل رسمی [BUILDER_GYM.md](BUILDER_GYM.md) با موفقیت کامل و مستندات تصویری Vision سپری شد:

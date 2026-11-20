@@ -338,7 +338,11 @@ function CanvasElementComponent({
     if (flexWrap && flexWrap !== "inherit") styleObj.flexWrap = flexWrap as any;
 
     const gap = resolveResponsiveValue({ mobile: base?.gap, tablet: tablet?.gap, desktop: desktop?.gap }, activeBreakpoint);
-    if (gap) styleObj.gap = `${gap.value}${gap.unit}`;
+    if (gap) {
+      styleObj.gap = `${gap.value}${gap.unit}`;
+    } else if (element.layout?.gap) {
+      styleObj.gap = `${element.layout.gap.value}${element.layout.gap.unit}`;
+    }
 
     const gridTemplateColumns = resolveResponsiveValue({ mobile: base?.gridTemplateColumns, tablet: tablet?.gridTemplateColumns, desktop: desktop?.gridTemplateColumns }, activeBreakpoint);
     if (gridTemplateColumns) styleObj.gridTemplateColumns = gridTemplateColumns;
@@ -453,7 +457,16 @@ function CanvasElementComponent({
         );
       }
       case "divider": {
-        return <hr className="w-full border-border/80 my-4" />;
+        const dStyle = String(props.style || "solid");
+        return (
+          <hr
+            className={cn(
+              "w-full border-border/80 my-4",
+              dStyle === "dashed" && "border-dashed",
+              dStyle === "dotted" && "border-dotted"
+            )}
+          />
+        );
       }
       case "html_custom":
       case "legacy_html": {

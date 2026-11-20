@@ -40,6 +40,11 @@ export function InspectorPanel() {
   const updateElementProps = useBuilderStore((s) => s.updateElementProps);
   const updateDeviceStyles = useBuilderStore((s) => s.updateDeviceStyles);
   const updateElementStyles = useBuilderStore((s) => s.updateElementStyles);
+  const updateElementLayout = useBuilderStore((s) => s.updateElementLayout);
+  const renameElement = useBuilderStore((s) => s.renameElement);
+  const setElementHidden = useBuilderStore((s) => s.setElementHidden);
+  const setElementLocked = useBuilderStore((s) => s.setElementLocked);
+  const detachGlobalComponent = useBuilderStore((s) => s.detachGlobalComponent);
 
   const selectedElement = selectedElementId
     ? findElementById(ast.rootElements, selectedElementId)
@@ -137,19 +142,7 @@ export function InspectorPanel() {
             <Select
               value={layout.kind}
               onValueChange={(val: "flex" | "grid") => {
-                const updatedRoots = ast.rootElements;
-                // update layout
-                useBuilderStore.setState((s) => ({
-                  ast: {
-                    ...s.ast,
-                    rootElements: s.ast.rootElements.map((el) =>
-                      el.id === selectedElement.id
-                        ? { ...el, layout: { ...layout, kind: val } }
-                        : el
-                    ),
-                  },
-                  isDirty: true,
-                }));
+                updateElementLayout(selectedElement.id, { kind: val });
               }}
             >
               <SelectTrigger className="h-8 text-xs">
@@ -163,33 +156,78 @@ export function InspectorPanel() {
           </div>
 
           {layout.kind === "flex" && (
-            <div className="space-y-1.5">
-              <Label className="text-xs">جهت چینش (Direction)</Label>
-              <Select
-                value={layout.direction}
-                onValueChange={(val: "column" | "row") => {
-                  useBuilderStore.setState((s) => ({
-                    ast: {
-                      ...s.ast,
-                      rootElements: s.ast.rootElements.map((el) =>
-                        el.id === selectedElement.id
-                          ? { ...el, layout: { ...layout, direction: val } }
-                          : el
-                      ),
-                    },
-                    isDirty: true,
-                  }));
-                }}
-              >
-                <SelectTrigger className="h-8 text-xs">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="column">عمودی (ستون)</SelectItem>
-                  <SelectItem value="row">افقی (سطر)</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            <>
+              <div className="space-y-1.5">
+                <Label className="text-xs">جهت چینش (Direction)</Label>
+                <Select
+                  value={layout.direction}
+                  onValueChange={(val: "column" | "row") => {
+                    updateElementLayout(selectedElement.id, { direction: val });
+                  }}
+                >
+                  <SelectTrigger className="h-8 text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="column">عمودی (ستون)</SelectItem>
+                    <SelectItem value="row">افقی (سطر)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label className="text-xs">ترازبندی افقی / اصلی (Justify Content)</Label>
+                <Select
+                  value={layout.justifyContent || "start"}
+                  onValueChange={(val: any) => {
+                    updateElementLayout(selectedElement.id, { justifyContent: val });
+                  }}
+                >
+                  <SelectTrigger className="h-8 text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="start">شروع (Start)</SelectItem>
+                    <SelectItem value="center">وسط (Center)</SelectItem>
+                    <SelectItem value="end">پایان (End)</SelectItem>
+                    <SelectItem value="between">فاصله‌گذاری مساوی (Between)</SelectItem>
+                    <SelectItem value="around">فاصله‌گذاری دور (Around)</SelectItem>
+                    <SelectItem value="evenly">یکدست (Evenly)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label className="text-xs">ترازبندی عمودی / فرعی (Align Items)</Label>
+                <Select
+                  value={layout.alignItems || "stretch"}
+                  onValueChange={(val: any) => {
+                    updateElementLayout(selectedElement.id, { alignItems: val });
+                  }}
+                >
+                  <SelectTrigger className="h-8 text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="stretch">کشیده (Stretch)</SelectItem>
+                    <SelectItem value="center">وسط (Center)</SelectItem>
+                    <SelectItem value="start">شروع (Start)</SelectItem>
+                    <SelectItem value="end">پایان (End)</SelectItem>
+                    <SelectItem value="baseline">خط مبنا (Baseline)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="flex items-center justify-between pt-1">
+                <Label className="text-xs">شکستن به سطر بعدی (Flex Wrap)</Label>
+                <Switch
+                  checked={layout.flexWrap === "wrap"}
+                  onCheckedChange={(val) => {
+                    updateElementLayout(selectedElement.id, { flexWrap: val ? "wrap" : "nowrap" });
+                  }}
+                />
+              </div>
+            </>
           )}
 
           {layout.kind === "grid" && (
@@ -202,17 +240,7 @@ export function InspectorPanel() {
                 value={layout.gridColumns}
                 onChange={(e) => {
                   const num = parseInt(e.target.value, 10) || 1;
-                  useBuilderStore.setState((s) => ({
-                    ast: {
-                      ...s.ast,
-                      rootElements: s.ast.rootElements.map((el) =>
-                        el.id === selectedElement.id
-                          ? { ...el, layout: { ...layout, gridColumns: num } }
-                          : el
-                      ),
-                    },
-                    isDirty: true,
-                  }));
+                  updateElementLayout(selectedElement.id, { gridColumns: num });
                 }}
                 className="h-8 text-xs"
               />
@@ -221,29 +249,25 @@ export function InspectorPanel() {
 
           <div className="space-y-1.5">
             <Label className="text-xs">فاصله بین آیتم‌ها (Gap)</Label>
-            <div className="flex items-center gap-2">
+            <div className="relative flex items-center">
               <Input
+                data-testid="container-gap-input"
                 type="number"
                 min={0}
                 max={128}
                 value={layout.gap.value}
                 onChange={(e) => {
                   const val = parseFloat(e.target.value) || 0;
-                  useBuilderStore.setState((s) => ({
-                    ast: {
-                      ...s.ast,
-                      rootElements: s.ast.rootElements.map((el) =>
-                        el.id === selectedElement.id
-                          ? { ...el, layout: { ...layout, gap: { ...layout.gap, value: val } } }
-                          : el
-                      ),
-                    },
-                    isDirty: true,
-                  }));
+                  updateElementLayout(selectedElement.id, {
+                    gap: { ...layout.gap, value: val },
+                  });
                 }}
-                className="h-8 text-xs"
+                className="h-8 text-xs pe-8 ps-2"
+                dir="ltr"
               />
-              <span className="text-xs text-muted-foreground">px</span>
+              <span className="absolute end-2 text-[11px] font-mono text-muted-foreground select-none pointer-events-none">
+                px
+              </span>
             </div>
           </div>
         </div>
@@ -1040,6 +1064,227 @@ export function InspectorPanel() {
           </div>
         );
 
+      case "tabs": {
+        const tabsList = (props.tabs as any[]) || [
+          { title: "مشخصات کلی", content: "توضیحات و مشخصات فنی کالا و جدول ابعاد و وزن." },
+          { title: "دیدگاه خریداران", content: "نظرات ثبت‌شده کاربران و تجربیات استفاده." },
+        ];
+        return (
+          <div className="space-y-4" data-testid="tabs-inspector-controls">
+            <div className="flex items-center justify-between">
+              <Label className="text-xs font-bold">زبانه‌های محتوایی (Tabs)</Label>
+              <button
+                type="button"
+                onClick={() => {
+                  const updated = [...tabsList, { title: `تب جدید ${tabsList.length + 1}`, content: "محتوای زبانه جدید را اینجا بنویسید." }];
+                  handlePropChange("tabs", updated);
+                }}
+                className="text-[11px] text-primary hover:underline font-semibold"
+              >
+                + افزودن زبانه
+              </button>
+            </div>
+            <div className="space-y-3">
+              {tabsList.map((t, idx) => (
+                <div key={idx} className="p-2.5 rounded-lg border bg-muted/20 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-bold text-muted-foreground">زبانه {idx + 1}</span>
+                    {tabsList.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const updated = tabsList.filter((_, i) => i !== idx);
+                          handlePropChange("tabs", updated);
+                        }}
+                        className="text-[10px] text-destructive hover:underline"
+                      >
+                        حذف
+                      </button>
+                    )}
+                  </div>
+                  <Input
+                    value={t.title || ""}
+                    placeholder="عنوان زبانه"
+                    onChange={(e) => {
+                      const updated = [...tabsList];
+                      updated[idx] = { ...updated[idx], title: e.target.value };
+                      handlePropChange("tabs", updated);
+                    }}
+                    className="h-8 text-xs"
+                  />
+                  <textarea
+                    rows={3}
+                    value={t.content || ""}
+                    placeholder="محتوای متنی زبانه"
+                    onChange={(e) => {
+                      const updated = [...tabsList];
+                      updated[idx] = { ...updated[idx], content: e.target.value };
+                      handlePropChange("tabs", updated);
+                    }}
+                    className="w-full rounded-md border border-input bg-background p-2 text-xs"
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      }
+
+      case "divider": {
+        const style = String(props.style || "solid");
+        return (
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs">نوع خط جداکننده</Label>
+              <Select
+                value={style}
+                onValueChange={(val) => handlePropChange("style", val)}
+              >
+                <SelectTrigger className="h-8 text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="solid">خط پیوسته (Solid)</SelectItem>
+                  <SelectItem value="dashed">خط‌چین (Dashed)</SelectItem>
+                  <SelectItem value="dotted">نقطه‌چین (Dotted)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        );
+      }
+
+      case "social_links": {
+        const links = (props.links as any[]) || [
+          { platform: "اینستاگرام", url: "https://instagram.com" },
+          { platform: "تلگرام", url: "https://t.me" },
+        ];
+        return (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <Label className="text-xs font-bold">لینک‌های شبکه‌های اجتماعی</Label>
+              <button
+                type="button"
+                onClick={() => {
+                  const updated = [...links, { platform: "واتساپ", url: "https://wa.me" }];
+                  handlePropChange("links", updated);
+                }}
+                className="text-[11px] text-primary hover:underline font-semibold"
+              >
+                + افزودن شبکه
+              </button>
+            </div>
+            <div className="space-y-2">
+              {links.map((link, idx) => (
+                <div key={idx} className="p-2.5 rounded-lg border bg-muted/20 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Input
+                      value={link.platform || ""}
+                      placeholder="نام پلتفرم"
+                      onChange={(e) => {
+                        const updated = [...links];
+                        updated[idx] = { ...updated[idx], platform: e.target.value };
+                        handlePropChange("links", updated);
+                      }}
+                      className="h-8 text-xs w-28"
+                    />
+                    {links.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const updated = links.filter((_, i) => i !== idx);
+                          handlePropChange("links", updated);
+                        }}
+                        className="text-[10px] text-destructive hover:underline"
+                      >
+                        حذف
+                      </button>
+                    )}
+                  </div>
+                  <Input
+                    value={link.url || ""}
+                    placeholder="https://..."
+                    onChange={(e) => {
+                      const updated = [...links];
+                      updated[idx] = { ...updated[idx], url: e.target.value };
+                      handlePropChange("links", updated);
+                    }}
+                    className="h-8 text-xs font-mono"
+                    dir="ltr"
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      }
+
+      case "image_gallery": {
+        const images = (props.images as any[]) || [
+          { url: "/placeholder-hero.svg", alt: "تصویر ۱" },
+          { url: "/placeholder.svg", alt: "تصویر ۲" },
+        ];
+        return (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <Label className="text-xs font-bold">تصاویر گالری</Label>
+              <button
+                type="button"
+                onClick={() => {
+                  const updated = [...images, { url: "/placeholder.svg", alt: `تصویر ${images.length + 1}` }];
+                  handlePropChange("images", updated);
+                }}
+                className="text-[11px] text-primary hover:underline font-semibold"
+              >
+                + افزودن تصویر
+              </button>
+            </div>
+            <div className="space-y-2">
+              {images.map((img, idx) => (
+                <div key={idx} className="p-2 rounded-lg border bg-muted/20 space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] text-muted-foreground font-semibold">تصویر {idx + 1}</span>
+                    {images.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const updated = images.filter((_, i) => i !== idx);
+                          handlePropChange("images", updated);
+                        }}
+                        className="text-[10px] text-destructive hover:underline"
+                      >
+                        حذف
+                      </button>
+                    )}
+                  </div>
+                  <Input
+                    value={img.url || ""}
+                    placeholder="/path/to/image.jpg"
+                    onChange={(e) => {
+                      const updated = [...images];
+                      updated[idx] = { ...updated[idx], url: e.target.value };
+                      handlePropChange("images", updated);
+                    }}
+                    className="h-7 text-xs font-mono"
+                    dir="ltr"
+                  />
+                  <Input
+                    value={img.alt || ""}
+                    placeholder="متن جایگزین (Alt)"
+                    onChange={(e) => {
+                      const updated = [...images];
+                      updated[idx] = { ...updated[idx], alt: e.target.value };
+                      handlePropChange("images", updated);
+                    }}
+                    className="h-7 text-xs"
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      }
+
       default:
         return (
           <div className="text-xs text-muted-foreground py-2">
@@ -1620,16 +1865,7 @@ export function InspectorPanel() {
           <Input
             value={selectedElement.name}
             onChange={(e) => {
-              const name = e.target.value;
-              useBuilderStore.setState((s) => ({
-                ast: {
-                  ...s.ast,
-                  rootElements: s.ast.rootElements.map((el) =>
-                    el.id === selectedElement.id ? { ...el, name } : el
-                  ),
-                },
-                isDirty: true,
-              }));
+              renameElement(selectedElement.id, e.target.value);
             }}
             className="h-8 text-xs"
           />
@@ -1731,15 +1967,7 @@ export function InspectorPanel() {
           <Switch
             checked={selectedElement.isHidden}
             onCheckedChange={(val) => {
-              useBuilderStore.setState((s) => ({
-                ast: {
-                  ...s.ast,
-                  rootElements: s.ast.rootElements.map((el) =>
-                    el.id === selectedElement.id ? { ...el, isHidden: val } : el
-                  ),
-                },
-                isDirty: true,
-              }));
+              setElementHidden(selectedElement.id, val);
             }}
           />
         </div>
@@ -1749,15 +1977,7 @@ export function InspectorPanel() {
           <Switch
             checked={selectedElement.isLocked}
             onCheckedChange={(val) => {
-              useBuilderStore.setState((s) => ({
-                ast: {
-                  ...s.ast,
-                  rootElements: s.ast.rootElements.map((el) =>
-                    el.id === selectedElement.id ? { ...el, isLocked: val } : el
-                  ),
-                },
-                isDirty: true,
-              }));
+              setElementLocked(selectedElement.id, val);
             }}
           />
         </div>
@@ -1832,15 +2052,7 @@ export function InspectorPanel() {
               <button
                 type="button"
                 onClick={() => {
-                  useBuilderStore.setState((s) => ({
-                    ast: {
-                      ...s.ast,
-                      rootElements: s.ast.rootElements.map((el) =>
-                        el.id === selectedElement.id ? { ...el, globalComponentId: null } : el
-                      ),
-                    },
-                    isDirty: true,
-                  }));
+                  detachGlobalComponent(selectedElement.id);
                 }}
                 className="w-full py-1 text-xs rounded border border-border text-muted-foreground hover:text-destructive hover:border-destructive transition"
               >

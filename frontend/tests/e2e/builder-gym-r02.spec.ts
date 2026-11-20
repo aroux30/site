@@ -86,9 +86,9 @@ test.describe("Builder Gym Round 02: Weight 2 (Blocks & Patterns Regression)", (
     await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
     const patternsTab = page.locator("button:has-text('الگوها')").first();
     await patternsTab.click();
-    await page.waitForTimeout(800);
+    await expect(page.locator("[data-pattern-slug]").first()).toBeVisible({ timeout: 10000 });
 
-    const cards = page.locator("div[data-pattern-slug]");
+    const cards = page.locator("[data-pattern-slug]");
     const count = await cards.count();
     expect(count).toBe(28);
   });

@@ -157,4 +157,77 @@ describe("Visual Page Builder Zustand Store & Undo/Redo Engine (Phase P1)", () =
     current = findElementById(useBuilderStore.getState().ast.rootElements, firstWidget.id);
     expect(current?.widgetProps?.text).toBe("ویرایش ۲");
   });
+
+  it("updates element layout for nested containers and records undo history", () => {
+    const rootContainer = useBuilderStore.getState().ast.rootElements[0]!;
+    const nestedContainer: BuilderElement = {
+      id: "cont_nested_1",
+      name: "کانتینر تودرتو",
+      type: "container",
+      layout: {
+        kind: "flex",
+        direction: "column",
+        justifyContent: "start",
+        alignItems: "stretch",
+        flexWrap: "nowrap",
+        gap: { value: 16, unit: "px" },
+        gridColumns: 1,
+      },
+      isLocked: false,
+      isHidden: false,
+      styles: { mobile: {} },
+      children: [],
+    };
+
+    useBuilderStore.getState().addElement(nestedContainer, rootContainer.id);
+
+    // Update nested container layout
+    useBuilderStore.getState().updateElementLayout("cont_nested_1", {
+      kind: "grid",
+      gridColumns: 4,
+      gap: { value: 24, unit: "px" },
+      justifyContent: "center",
+      alignItems: "center",
+    });
+
+    const updated = findElementById(useBuilderStore.getState().ast.rootElements, "cont_nested_1");
+    expect(updated?.layout?.kind).toBe("grid");
+    expect(updated?.layout?.gridColumns).toBe(4);
+    expect(updated?.layout?.gap.value).toBe(24);
+    expect(updated?.layout?.justifyContent).toBe("center");
+    expect(updated?.layout?.alignItems).toBe("center");
+
+    // Undo should revert layout
+    useBuilderStore.getState().undo();
+    const reverted = findElementById(useBuilderStore.getState().ast.rootElements, "cont_nested_1");
+    expect(reverted?.layout?.kind).toBe("flex");
+    expect(reverted?.layout?.gridColumns).toBe(1);
+    expect(reverted?.layout?.gap.value).toBe(16);
+  });
+
+  it("renames, hides, locks, and detaches elements with undo history", () => {
+    const targetEl = useBuilderStore.getState().ast.rootElements[0]!.children[0]!;
+
+    // Rename
+    useBuilderStore.getState().renameElement(targetEl.id, "سرتیتر سفارشی جدید");
+    let current = findElementById(useBuilderStore.getState().ast.rootElements, targetEl.id);
+    expect(current?.name).toBe("سرتیتر سفارشی جدید");
+
+    // Hide and Lock
+    useBuilderStore.getState().setElementHidden(targetEl.id, true);
+    useBuilderStore.getState().setElementLocked(targetEl.id, true);
+    current = findElementById(useBuilderStore.getState().ast.rootElements, targetEl.id);
+    expect(current?.isHidden).toBe(true);
+    expect(current?.isLocked).toBe(true);
+
+    // Make and Detach Global Component
+    const globalId = useBuilderStore.getState().makeGlobalComponent(targetEl.id);
+    expect(globalId).toBeTruthy();
+    current = findElementById(useBuilderStore.getState().ast.rootElements, targetEl.id);
+    expect(current?.globalComponentId).toBe(globalId);
+
+    useBuilderStore.getState().detachGlobalComponent(targetEl.id);
+    current = findElementById(useBuilderStore.getState().ast.rootElements, targetEl.id);
+    expect(current?.globalComponentId).toBeNull();
+  });
 });

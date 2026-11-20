@@ -736,11 +736,43 @@
 
 ---
 
+### 🏋️ راند ۲۴ (Round 24) — وزنه ۶: +۱۰ کیلو تعمق مداوم (پایداری قواعد خودکارسازی، اعلانات زمان‌دار و کنسول گفتگوی زنده)
+- **تاریخ اجرا**: 2026-11-20
+- **شاخه ایزوله**: `autofix/gym-loop`
+- **وضعیت**: ✅ کامل و سبز (بهبود پویایی و اسپینرهای دکمه‌های بروزرسانی، پایداری استایل دکمه‌های اقدام قواعد خودکارسازی و اعلانات با Vision)
+
+#### ۱. باگ‌های کشف‌شده با ابزار Vision در خودکارسازی، اعلانات و گفتگوی زنده
+1. **فقدان بازخورد بصری و عدم غیرفعال‌سازی دکمه بروزرسانی حین لودینگ در قواعد خودکارسازی و اعلانات (`Refresh Buttons Missing Spinner & Disabled State`)**:
+   - *مشاهده در Vision*: در تصاویر `before/01-admin-automation.png` و `before/02-admin-notices.png`، دکمه‌های «بروزرسانی» فاقد اسپینر چرخان انیمیشن و فاقد صفت `disabled` در زمان لودینگ بودند که به کاربر امکان ارسال درخواست‌های مکرر و استمپید سرور را می‌داد.
+   - *اصلاح ریشه‌ای*: در [automation/page.tsx](frontend/app/admin/automation/page.tsx)، [notices/page.tsx](frontend/app/admin/notices/page.tsx) و [chat/page.tsx](frontend/app/admin/chat/page.tsx)، آیکون به اسپینر فعال `animate-spin` متصل شد و وضعیت `disabled={loading}` اعمال گردید.
+
+#### ۲. مستندات بصری (Vision Artifacts)
+- **قبل از اصلاح**: `.loop/artifacts/gym/round-24/before/`
+  - `01-admin-automation.png` (قواعد خودکارسازی)
+  - `02-admin-notices.png` (اعلانات زمان‌دار)
+  - `03-admin-chat.png` (کنسول گفتگوی زنده)
+- **بعد از اصلاح**: `.loop/artifacts/gym/round-24/after/`
+  - `01-admin-automation.png` (دکمه‌های اقدام منظم و واکنش‌گرا)
+  - `02-admin-notices.png` (پایداری دکمه‌های ناوبری)
+  - `03-admin-chat.png` (دکمه بروزرسانی با ترنزیشن نرم و پایداری لایو چت)
+
+#### ۳. تست‌های رگرسیون دائمی اضافه‌شده
+- فایل تست Playwright: `frontend/tests/e2e/gym-r24-regression.spec.ts` (۳ تست سبز)
+
+#### ۴. نتایج نهایی ممیزی و تست‌ها در راند ۲۴
+- `npx tsc --noEmit`: ۰ خطا (سبز)
+- `npm test` (Vitest): **۳۶۹ تست سبز در ۴۵ فایل** (`369 passed`)
+- `python -m pytest app/tests/unit`: **۶۲۲ تست سبز** (`622 passed, 2 skipped`)
+- مجموع تست‌های رگرسیون تجمعی (راند ۱ تا ۲۴): **۶۹ تست Playwright سبز**
+- `node .loop/audits/deterministic-audit.mjs`: **پاس ۱۰۰٪ تمام چک‌ها (`passed: true`)**
+
+---
+
 ## وضعیت جامع و تسلط بر هر ۵ سطح (Mastery Status)
 
 **GYM_ALL_5_LEVELS_MASTERED**
 
-تمام ۵ سطح نردبان تمرین پیش‌رونده (از ۵ کیلو تا ۵۰ کیلو) به همراه مراحل تکمیلی راندهای ۶ تا ۲۳ با ممیزی‌های زنده، مستندات تصویری Vision در پوشه‌های `.loop/artifacts/gym/round-01/` تا `.loop/artifacts/gym/round-23/`، ۶۶ تست رگرسیون تجمعی E2E، ۶۲۲ تست بک‌اند، ۳۶۹ تست فرانت‌اند و بیلد تمیز پروداکشن با موفقیت ۱۰۰٪ کامل ثبت و تسخیر شدند.
+تمام ۵ سطح نردبان تمرین پیش‌رونده (از ۵ کیلو تا ۵۰ کیلو) به همراه مراحل تکمیلی راندهای ۶ تا ۲۴ با ممیزی‌های زنده، مستندات تصویری Vision در پوشه‌های `.loop/artifacts/gym/round-01/` تا `.loop/artifacts/gym/round-24/`، ۶۹ تست رگرسیون تجمعی E2E، ۶۲۲ تست بک‌اند، ۳۶۹ تست فرانت‌اند و بیلد تمیز پروداکشن با موفقیت ۱۰۰٪ کامل ثبت و تسخیر شدند.
 
 
 

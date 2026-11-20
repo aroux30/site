@@ -664,11 +664,50 @@
 
 ---
 
+### 🏋️ راند ۲۲ (Round 22) — وزنه ۶: +۱۰ کیلو تعمق مداوم (سئوی محلی، مسیر صفحه، سئوی تصویر، ابزارهای وضعیت و مانیتور ۴۰۴)
+- **تاریخ اجرا**: 2026-11-20
+- **شاخه ایزوله**: `autofix/gym-loop`
+- **وضعیت**: ✅ کامل و سبز (اصلاح چیدمان راست‌به‌چپ در ۵ صفحه سئو، یکپارچه‌سازی فاصله‌گذاری و استایل دکمه‌های اقدام با Vision)
+
+#### ۱. باگ‌های کشف‌شده با ابزار Vision و اصلاحات ریشه‌ای
+1. **فقدان صفت `dir="rtl"` در کانتینرهای اصلی سئوی محلی، مسیر صفحه، سئوی تصویر، وضعیت و مانیتور ۴۰۴**:
+   - *مشاهده در Vision*: در تصاویر `before/01-seo-local.png`، `before/02-seo-breadcrumbs.png`، `before/03-seo-image.png`، `before/04-seo-status.png` و `before/05-seo-404.png`، کانتینرهای ریشه بدون ویژگی صریح `dir="rtl"` رندر می‌شدند که موجب جابه‌جایی جایگاه دکمه‌های عملیاتی `justify-end` به انتهای چپ و به هم ریختن جهت فلو فرم‌ها شده بود.
+   - *اصلاح ریشه‌ای*: در [local/page.tsx](frontend/app/admin/seo/local/page.tsx)، [breadcrumbs/page.tsx](frontend/app/admin/seo/breadcrumbs/page.tsx)، [image/page.tsx](frontend/app/admin/seo/image/page.tsx)، [status/page.tsx](frontend/app/admin/seo/status/page.tsx) و [404/page.tsx](frontend/app/admin/seo/404/page.tsx) صفت صریح `dir="rtl"` اضافه شد.
+2. **استفاده از کلاس‌های فاصله‌گذاری معکوس `ms-1` و `ms-2` در دکمه‌های کارت‌های سئو**:
+   - *مشاهده در Vision*: دکمه‌های «ذخیره اطلاعات کسب‌وکار»، «ذخیره تنظیمات مسیر»، «ذخیره تنظیمات سئوی تصویر»، «خروجی JSON»، «ایمپورت JSON»، «بازخوانی» و «پاک‌سازی همه» از کلاس‌های `ms-1` و `ms-2` روی آیکون‌ها استفاده می‌کردند که فاصله بین آیکون و لبه بیرونی دکمه ایجاد می‌کرد نه فاصله میان آیکون و متن.
+   - *اصلاح ریشه‌ای*: در تمام کامپوننت‌های [local-seo-settings-card.tsx](frontend/components/admin/local-seo-settings-card.tsx)، [breadcrumb-settings-card.tsx](frontend/components/admin/breadcrumb-settings-card.tsx)، [image-seo-settings-card.tsx](frontend/components/admin/image-seo-settings-card.tsx)، [status/page.tsx](frontend/app/admin/seo/status/page.tsx) و [404/page.tsx](frontend/app/admin/seo/404/page.tsx) فاصله‌گذاری‌ها به `gap-2` و `gap-1.5` با اسپینر بارگذاری فعال (`Loader2`) ارتقا یافت.
+
+#### ۲. مستندات بصری (Vision Artifacts)
+- **قبل از اصلاح**: `.loop/artifacts/gym/round-22/before/`
+  - `01-seo-local.png` (سئوی محلی با دکمه نامتعادل)
+  - `02-seo-breadcrumbs.png` (تنظیمات مسیر صفحه)
+  - `03-seo-image.png` (سئوی تصویر)
+  - `04-seo-status.png` (ابزارها و وضعیت سئو)
+  - `05-seo-404.png` (مانیتور ۴۰۴)
+- **بعد از اصلاح**: `.loop/artifacts/gym/round-22/after/`
+  - `01-seo-local.png` (ساختار استاندارد RTL و دکمه ذخیره اصلاح‌شده)
+  - `02-seo-breadcrumbs.png` (فلو هماهنگ و تمیز تنظیمات مسیر)
+  - `03-seo-image.png` (چیدمان دقیق گزینه‌های سئوی تصویر)
+  - `04-seo-status.png` (کارت‌های مرتب وضعیت و پشتیبان‌گیری سئو)
+  - `05-seo-404.png` (نمای هماهنگ مانیتور ۴۰۴)
+
+#### ۳. تست‌های رگرسیون دائمی اضافه‌شده
+- فایل تست Playwright: `frontend/tests/e2e/gym-r22-regression.spec.ts` (۵ تست سبز)
+
+#### ۴. نتایج نهایی ممیزی و تست‌ها در راند ۲۲
+- `npx tsc --noEmit`: ۰ خطا (سبز)
+- `npm test` (Vitest): **۳۶۹ تست سبز در ۴۵ فایل** (`369 passed`)
+- `python -m pytest app/tests/unit`: **۶۲۲ تست سبز** (`622 passed, 2 skipped`)
+- مجموع تست‌های رگرسیون تجمعی (راند ۱ تا ۲۲): **۶۶ تست Playwright سبز**
+- `node .loop/audits/deterministic-audit.mjs`: **پاس ۱۰۰٪ تمام چک‌ها (`passed: true`)**
+
+---
+
 ## وضعیت جامع و تسلط بر هر ۵ سطح (Mastery Status)
 
 **GYM_ALL_5_LEVELS_MASTERED**
 
-تمام ۵ سطح نردبان تمرین پیش‌رونده (از ۵ کیلو تا ۵۰ کیلو) به همراه مراحل تکمیلی راندهای ۶ تا ۲۱ با ممیزی‌های زنده، مستندات تصویری Vision در پوشه‌های `.loop/artifacts/gym/round-01/` تا `.loop/artifacts/gym/round-21/`، ۶۱ تست رگرسیون تجمعی E2E، ۶۲۲ تست بک‌اند، ۳۶۹ تست فرانت‌اند و بیلد تمیز پروداکشن با موفقیت ۱۰۰٪ کامل ثبت و تسخیر شدند.
+تمام ۵ سطح نردبان تمرین پیش‌رونده (از ۵ کیلو تا ۵۰ کیلو) به همراه مراحل تکمیلی راندهای ۶ تا ۲۲ با ممیزی‌های زنده، مستندات تصویری Vision در پوشه‌های `.loop/artifacts/gym/round-01/` تا `.loop/artifacts/gym/round-22/`، ۶۶ تست رگرسیون تجمعی E2E، ۶۲۲ تست بک‌اند، ۳۶۹ تست فرانت‌اند و بیلد تمیز پروداکشن با موفقیت ۱۰۰٪ کامل ثبت و تسخیر شدند.
 
 
 

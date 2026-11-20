@@ -112,7 +112,7 @@ export default function SeoStatusPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" dir="rtl">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="flex items-center gap-2 text-xl font-bold">
@@ -196,8 +196,8 @@ export default function SeoStatusPage() {
           }}
         />
         <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={() => void exportSettings()}>
-            <Download className="h-4 w-4 ms-2" />
+          <Button variant="outline" size="sm" onClick={() => void exportSettings()} className="gap-1.5">
+            <Download className="h-4 w-4" />
             خروجی JSON
           </Button>
           <Button
@@ -205,11 +205,12 @@ export default function SeoStatusPage() {
             size="sm"
             onClick={() => importRef.current?.click()}
             disabled={importing}
+            className="gap-1.5"
           >
             {importing ? (
-              <Loader2 className="h-4 w-4 ms-2 animate-spin" />
+              <Loader2 className="h-4 w-4 animate-spin" />
             ) : (
-              <Upload className="h-4 w-4 ms-2" />
+              <Upload className="h-4 w-4" />
             )}
             ایمپورت JSON
           </Button>

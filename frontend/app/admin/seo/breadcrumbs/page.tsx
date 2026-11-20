@@ -9,7 +9,7 @@ import { BreadcrumbSettingsCard } from "@/components/admin/breadcrumb-settings-c
  */
 export default function BreadcrumbsSeoPage() {
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" dir="rtl">
       <div>
         <h1 className="text-2xl font-black">مسیر صفحه (Breadcrumbs)</h1>
         <p className="mt-1 text-sm text-muted-foreground">

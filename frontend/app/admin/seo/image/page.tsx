@@ -9,7 +9,7 @@ import { ImageSeoSettingsCard } from "@/components/admin/image-seo-settings-card
  */
 export default function ImageSeoPage() {
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" dir="rtl">
       <div>
         <h1 className="text-2xl font-black">سئوی تصویر</h1>
         <p className="mt-1 text-sm text-muted-foreground">

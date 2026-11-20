@@ -450,11 +450,46 @@
 
 ---
 
+### 🏋️ راند ۱۶ (Round 16) — وزنه ۶: +۱۰ کیلو تعمق مداوم (باشگاه مشتریان و گیمیفیکیشن، مهار نوار شناور سبد، نوار پیشرفت سطوح وفاداری و بسته‌های شارژ)
+- **تاریخ اجرا**: 2026-11-20
+- **شاخه ایزوله**: `autofix/gym-loop`
+- **وضعیت**: ✅ کامل و سبز (مهار نوار شناور سبد خرید در صفحه جوایز، تصحیح جهت گرادیان نوار وفاداری RTL با Vision)
+
+#### ۱. باگ‌های کشف‌شده با ابزار Vision در باشگاه مشتریان و گیمیفیکیشن
+1. **تداخل نوار شناور سبد خرید با کارت‌های گردونه شانس و سطوح وفاداری در `/rewards` (`Rewards Page CTA Occlusion by Floating Cart Bar`)**:
+   - *مشاهده در Vision*: در تصاویر `before/01-rewards-desktop.png` و `before/03-rewards-mobile.png`، نوار شناور سبد خرید روی کارت‌های معرفی گردونه شانس، دکمه‌های اقدام به چرخش و راهنمای قوانین باشگاه سایه انداخته و کلیک کاربر را مختل می‌کرد.
+   - *اصلاح ریشه‌ای*: در [floating-cart-bar.tsx](frontend/components/store/floating-cart-bar.tsx)، شرط بررسی مسیر اصلاح گردید تا صفحه جوایز و باشگاه مشتریان (`/rewards`) نیز نوار شناور را مهار کند و فضای تعاملی گردونه شانس کاملاً آزاد باشد.
+2. **اصلاح جهت گرادیان نوار پیشرفت سطح وفاداری برای محیط RTL (`Loyalty Tier Progress Bar RTL Gradient Direction`)**:
+   - *مشاهده در Vision*: نوار پیشرفت در [user-tier-banner.tsx](frontend/components/gamification/user-tier-banner.tsx) از کلاس چپ‌به‌راست `bg-gradient-to-r` استفاده می‌کرد که در ظاهر با جریان متنی راست‌به‌چپ ناسازگار بود. این گرادیان به صورت هماهنگ به `bg-gradient-to-l` تغییر یافت.
+3. **بهبود کنتراست نشان بونوس بسته‌های شارژ در پنل ادمین**:
+   - در [admin/gamification/page.tsx](frontend/app/admin/gamification/page.tsx)، کنتراست برچسب بونوس شارژ به `text-emerald-600 dark:text-emerald-400 font-medium` ارتقا یافت تا معیارهای خوانایی WCAG AA را احراز کند.
+
+#### ۲. مستندات بصری (Vision Artifacts)
+- **قبل از اصلاح**: `.loop/artifacts/gym/round-16/before/`
+  - `01-rewards-desktop.png` (هم‌پوشانی نوار روی گردونه شانس)
+  - `02-admin-gamification.png` (پنل مدیریت گیمیفیکیشن)
+  - `03-rewards-mobile.png` (تداخل نوار روی دکمه چرخش موبایل)
+- **بعد از اصلاح**: `.loop/artifacts/gym/round-16/after/`
+  - `01-rewards-desktop.png` (فضای کاملاً تمیز و باز گردونه شانس)
+  - `03-rewards-mobile.png` (دکمه کاملاً قابل دسترس گردونه در موبایل)
+
+#### ۳. تست‌های رگرسیون دائمی اضافه‌شده
+- فایل تست Playwright: `frontend/tests/e2e/gym-r16-regression.spec.ts` (۳ تست سبز)
+
+#### ۴. نتایج نهایی ممیزی و تست‌ها در راند ۱۶
+- `npx tsc --noEmit`: ۰ خطا (سبز)
+- `npm test` (Vitest): **۳۶۹ تست سبز در ۴۵ فایل** (`369 passed`)
+- `python -m pytest app/tests/unit`: **۶۲۲ تست سبز** (`622 passed, 2 skipped`)
+- مجموع تست‌های رگرسیون تجمعی (راند ۱ تا ۱۶): **۴۵ تست Playwright سبز**
+- `node .loop/audits/deterministic-audit.mjs`: **پاس ۱۰۰٪ تمام چک‌ها (`passed: true`)**
+
+---
+
 ## وضعیت جامع و تسلط بر هر ۵ سطح (Mastery Status)
 
 **GYM_ALL_5_LEVELS_MASTERED**
 
-تمام ۵ سطح نردبان تمرین پیش‌رونده (از ۵ کیلو تا ۵۰ کیلو) به همراه مراحل تکمیلی راندهای ۶ تا ۱۵ با ممیزی‌های زنده، مستندات تصویری Vision در پوشه‌های `.loop/artifacts/gym/round-01/` تا `.loop/artifacts/gym/round-15/`، ۴۲ تست رگرسیون تجمعی E2E، ۶۲۲ تست بک‌اند، ۳۶۹ تست فرانت‌اند و بیلد تمیز پروداکشن با موفقیت ۱۰۰٪ کامل ثبت و تسخیر شدند.
+تمام ۵ سطح نردبان تمرین پیش‌رونده (از ۵ کیلو تا ۵۰ کیلو) به همراه مراحل تکمیلی راندهای ۶ تا ۱۶ با ممیزی‌های زنده، مستندات تصویری Vision در پوشه‌های `.loop/artifacts/gym/round-01/` تا `.loop/artifacts/gym/round-16/`، ۴۵ تست رگرسیون تجمعی E2E، ۶۲۲ تست بک‌اند، ۳۶۹ تست فرانت‌اند و بیلد تمیز پروداکشن با موفقیت ۱۰۰٪ کامل ثبت و تسخیر شدند.
 
 
 

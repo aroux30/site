@@ -209,7 +209,7 @@ export function UserTierBanner({
                 {/* Progress bar */}
                 <div className="h-3 w-full overflow-hidden rounded-full bg-muted border border-border/80">
                   <div
-                    className="h-full rounded-full bg-gradient-to-r from-primary to-amber-500 transition-all duration-700 ease-out"
+                    className="h-full rounded-full bg-gradient-to-l from-primary to-amber-500 transition-all duration-700 ease-out"
                     style={{ width: `${progressPercent}%` }}
                   />
                 </div>

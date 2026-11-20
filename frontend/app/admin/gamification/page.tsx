@@ -417,7 +417,7 @@ export default function AdminGamificationPage() {
                   <p className="text-sm text-muted-foreground">
                     اعتبار: <span className="font-medium text-emerald-600">{p.credit_amount.toLocaleString("fa-IR")}</span> ریال
                   </p>
-                  <Badge className="mt-2 bg-emerald-500/10 text-emerald-500">
+                  <Badge className="mt-2 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-medium">
                     بونوس: {(p.credit_amount - p.pay_amount).toLocaleString("fa-IR")} ریال
                   </Badge>
                 </Card>

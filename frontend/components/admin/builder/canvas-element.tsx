@@ -24,6 +24,8 @@ import {
   Receipt,
   Minus,
   Check,
+  ArrowUp,
+  ArrowDown,
 } from "lucide-react";
 import { SaveTemplateDialog } from "./save-template-dialog";
 import { cn } from "@/lib/utils";
@@ -89,6 +91,7 @@ function CanvasElementComponent({
   }, [isSelected]);
   const addElement = useBuilderStore((s) => s.addElement);
   const moveElement = useBuilderStore((s) => s.moveElement);
+  const reorderElement = useBuilderStore((s) => s.reorderElement);
   const copyElement = useBuilderStore((s) => s.copyElement);
   const copyStyles = useBuilderStore((s) => s.copyStyles);
   const makeGlobalComponent = useBuilderStore((s) => s.makeGlobalComponent);
@@ -1257,6 +1260,24 @@ function CanvasElementComponent({
                 <BookmarkPlus className="w-3.5 h-3.5" />
               </button>
             )}
+            <button
+              type="button"
+              onClick={() => reorderElement(element.id, "up")}
+              className="p-1 hover:bg-primary-foreground/20 rounded transition"
+              title="انتقال به بالا (Move Up)"
+              data-testid="move-up-btn"
+            >
+              <ArrowUp className="w-3.5 h-3.5" />
+            </button>
+            <button
+              type="button"
+              onClick={() => reorderElement(element.id, "down")}
+              className="p-1 hover:bg-primary-foreground/20 rounded transition"
+              title="انتقال به پایین (Move Down)"
+              data-testid="move-down-btn"
+            >
+              <ArrowDown className="w-3.5 h-3.5" />
+            </button>
             <button
               type="button"
               onClick={() => duplicateElement(element.id)}

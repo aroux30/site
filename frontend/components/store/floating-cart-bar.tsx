@@ -19,10 +19,18 @@ export function FloatingCartBar() {
   }, []);
 
   const isPdp = Boolean(pathname?.startsWith("/products/") && pathname.split("/").filter(Boolean).length >= 2);
-  const isRewards = Boolean(pathname?.startsWith("/rewards"));
-  const isCheckoutPage = pathname?.startsWith("/checkout") || pathname?.startsWith("/cart") || isRewards || isPdp;
+  const isExcluded =
+    pathname?.startsWith("/checkout") ||
+    pathname?.startsWith("/cart") ||
+    pathname?.startsWith("/rewards") ||
+    pathname?.startsWith("/compare") ||
+    pathname?.startsWith("/faq") ||
+    pathname?.startsWith("/contact") ||
+    pathname?.startsWith("/about") ||
+    pathname?.startsWith("/terms") ||
+    isPdp;
 
-  if (!mounted || totalItems <= 0 || dismissed || isCheckoutPage) {
+  if (!mounted || totalItems <= 0 || dismissed || isExcluded) {
     return null;
   }
 

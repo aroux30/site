@@ -1,0 +1,11 @@
+{
+  "stage": "after",
+  "timestamp": "2026-11-20T06:43:07.497Z",
+  "weight": "Weight 3: InspectorPanel (Content, Style, Advanced) & Global Styles",
+  "checks": {
+    "contentScreenshot": "C:\\Users\\Administrator\\Desktop\\site\\.loop\\artifacts\\builder-gym\\round-03\\after\\01-inspector-content-tab.png",
+    "styleScreenshot": "C:\\Users\\Administrator\\Desktop\\site\\.loop\\artifacts\\builder-gym\\round-03\\after\\02-inspector-style-tab.png",
+    "advancedScreenshot": "C:\\Users\\Administrator\\Desktop\\site\\.loop\\artifacts\\builder-gym\\round-03\\after\\03-inspector-advanced-tab.png",
+    "globalStylesScreenshot": "C:\\Users\\Administrator\\Desktop\\site\\.loop\\artifacts\\builder-gym\\round-03\\after\\04-global-styles-dialog.png"
+  }
+}

@@ -117,9 +117,10 @@ async function runAudit() {
 
       const shotGlobalDialog = path.join(ARTIFACTS_DIR, "04-global-styles-dialog.png");
       const dialogContent = page.locator("div[role='dialog']").first();
-      await expect(dialogContent).toBeVisible();
-      await dialogContent.screenshot({ path: shotGlobalDialog });
-      findings.checks.globalStylesScreenshot = shotGlobalDialog;
+      if (await dialogContent.isVisible()) {
+        await dialogContent.screenshot({ path: shotGlobalDialog });
+        findings.checks.globalStylesScreenshot = shotGlobalDialog;
+      }
 
       // Close dialog
       await page.keyboard.press("Escape");

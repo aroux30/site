@@ -1,0 +1,21 @@
+{
+  "stage": "after",
+  "timestamp": "2026-11-20T13:21:50.243Z",
+  "tests": {
+    "seoSettings": {
+      "shot": "C:\\Users\\Administrator\\Desktop\\site\\.loop\\artifacts\\gym\\round-23\\after\\01-seo-settings.png"
+    },
+    "searchVisibility": {
+      "shot": "C:\\Users\\Administrator\\Desktop\\site\\.loop\\artifacts\\gym\\round-23\\after\\02-seo-visibility.png"
+    },
+    "contentAi": {
+      "shot": "C:\\Users\\Administrator\\Desktop\\site\\.loop\\artifacts\\gym\\round-23\\after\\03-seo-content-ai.png"
+    },
+    "linkAudit": {
+      "shot": "C:\\Users\\Administrator\\Desktop\\site\\.loop\\artifacts\\gym\\round-23\\after\\04-seo-link-audit.png"
+    },
+    "linkCounter": {
+      "shot": "C:\\Users\\Administrator\\Desktop\\site\\.loop\\artifacts\\gym\\round-23\\after\\05-seo-link-counter.png"
+    }
+  }
+}

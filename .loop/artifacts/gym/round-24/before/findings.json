@@ -1,0 +1,21 @@
+{
+  "stage": "before",
+  "timestamp": "2026-11-20T13:52:07.088Z",
+  "tests": {
+    "digitalInventory": {
+      "shot": "C:\\Users\\Administrator\\Desktop\\site\\.loop\\artifacts\\gym\\round-24\\before\\01-admin-digital-inventory.png"
+    },
+    "fintech": {
+      "shot": "C:\\Users\\Administrator\\Desktop\\site\\.loop\\artifacts\\gym\\round-24\\before\\02-admin-fintech.png"
+    },
+    "gamification": {
+      "shot": "C:\\Users\\Administrator\\Desktop\\site\\.loop\\artifacts\\gym\\round-24\\before\\03-admin-gamification.png"
+    },
+    "cashback": {
+      "shot": "C:\\Users\\Administrator\\Desktop\\site\\.loop\\artifacts\\gym\\round-24\\before\\04-admin-cashback.png"
+    },
+    "integrations": {
+      "shot": "C:\\Users\\Administrator\\Desktop\\site\\.loop\\artifacts\\gym\\round-24\\before\\05-admin-integrations.png"
+    }
+  }
+}

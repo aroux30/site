@@ -107,7 +107,7 @@ export default function AccountTicketsPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="container mx-auto px-4 py-8 space-y-6" dir="rtl">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-xl font-bold text-foreground">تیکت‌های پشتیبانی</h1>

@@ -1,0 +1,15 @@
+{
+  "stage": "after",
+  "timestamp": "2026-11-20T06:07:50.581Z",
+  "tests": {
+    "userTickets": {
+      "shot": "C:\\Users\\Administrator\\Desktop\\site\\.loop\\artifacts\\gym\\round-17\\after\\01-user-tickets.png"
+    },
+    "adminTicketsList": {
+      "shot": "C:\\Users\\Administrator\\Desktop\\site\\.loop\\artifacts\\gym\\round-17\\after\\02-admin-tickets-list.png"
+    },
+    "adminTicketsBoard": {
+      "shot": "C:\\Users\\Administrator\\Desktop\\site\\.loop\\artifacts\\gym\\round-17\\after\\03-admin-tickets-board.png"
+    }
+  }
+}

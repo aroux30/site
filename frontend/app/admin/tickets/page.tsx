@@ -67,26 +67,28 @@ function TicketsPageInner() {
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <div className="relative w-full sm:w-64">
-            <Search className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="جستجو در شماره تیکت یا موضوع..."
-              className="h-9 ps-9 pe-9 text-xs sm:text-sm"
-              aria-label="جستجوی تیکت"
-            />
-            {search && (
-              <button
-                type="button"
-                onClick={() => setSearch("")}
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                aria-label="پاک کردن جستجو"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            )}
-          </div>
+          {view === "board" && (
+            <div className="relative w-full sm:w-64">
+              <Search className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="جستجو در شماره تیکت یا موضوع..."
+                className="h-9 ps-9 pe-9 text-xs sm:text-sm"
+                aria-label="جستجوی تیکت"
+              />
+              {search && (
+                <button
+                  type="button"
+                  onClick={() => setSearch("")}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  aria-label="پاک کردن جستجو"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              )}
+            </div>
+          )}
 
           <div
             role="tablist"

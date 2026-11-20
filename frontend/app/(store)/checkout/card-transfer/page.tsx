@@ -55,7 +55,6 @@ function CardTransferForm() {
 
   const load = useCallback(async () => {
     if (!orderId) {
-      setLoadError("شناسه سفارش در آدرس یافت نشد.");
       setLoading(false);
       return;
     }
@@ -85,6 +84,29 @@ function CardTransferForm() {
   useEffect(() => {
     void load();
   }, [load]);
+
+  if (!orderId) {
+    return (
+      <div className="container-page py-12">
+        <Card className="mx-auto max-w-2xl space-y-4 p-8 text-center rounded-3xl border border-border shadow-sm">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400">
+            <AlertCircle className="h-7 w-7" />
+          </div>
+          <h1 className="text-lg font-bold text-foreground">
+            شناسه سفارش مشخص نشده است
+          </h1>
+          <p className="text-sm text-muted-foreground max-w-md mx-auto leading-relaxed">
+            برای ثبت فیش کارت به کارت، لطفاً ابتدا سفارش مورد نظر خود را از صفحه سفارش‌ها انتخاب فرمایید.
+          </p>
+          <div className="pt-2">
+            <Link href="/account/orders">
+              <Button className="rounded-xl px-6 font-bold">مشاهده لیست سفارش‌ها</Button>
+            </Link>
+          </div>
+        </Card>
+      </div>
+    );
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

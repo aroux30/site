@@ -1,0 +1,15 @@
+{
+  "stage": "before",
+  "timestamp": "2026-11-20T01:58:05.992Z",
+  "tests": {
+    "checkout": {
+      "shot": "C:\\Users\\Administrator\\Desktop\\site\\.loop\\artifacts\\gym\\round-11\\before\\01-checkout-main.png"
+    },
+    "cardTransfer": {
+      "shot": "C:\\Users\\Administrator\\Desktop\\site\\.loop\\artifacts\\gym\\round-11\\before\\02-card-transfer.png"
+    },
+    "cart": {
+      "shot": "C:\\Users\\Administrator\\Desktop\\site\\.loop\\artifacts\\gym\\round-11\\before\\03-cart-page.png"
+    }
+  }
+}

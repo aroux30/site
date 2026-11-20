@@ -2,12 +2,14 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { ShoppingBag, ArrowLeft, X, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/hooks/use-cart";
 import { formatPrice, toPersianDigits } from "@/lib/utils";
 
 export function FloatingCartBar() {
+  const pathname = usePathname();
   const { totalItems, subtotal } = useCart();
   const [mounted, setMounted] = useState(false);
   const [dismissed, setDismissed] = useState(false);
@@ -16,7 +18,9 @@ export function FloatingCartBar() {
     setMounted(true);
   }, []);
 
-  if (!mounted || totalItems <= 0 || dismissed) {
+  const isCheckoutPage = pathname?.startsWith("/checkout") || pathname?.startsWith("/cart");
+
+  if (!mounted || totalItems <= 0 || dismissed || isCheckoutPage) {
     return null;
   }
 

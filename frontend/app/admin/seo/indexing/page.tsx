@@ -8,7 +8,7 @@ import { IndexingSettingsCard } from "@/components/admin/indexing-settings-card"
  */
 export default function InstantIndexingPage() {
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" dir="rtl">
       <div>
         <h1 className="text-2xl font-black">ایندکس فوری</h1>
         <p className="mt-1 text-sm text-muted-foreground">

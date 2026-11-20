@@ -231,7 +231,7 @@ export default function TelegramNotifyPage() {
   }
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto">
+    <div className="space-y-6 max-w-4xl mx-auto" dir="rtl">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -246,12 +246,13 @@ export default function TelegramNotifyPage() {
             size="sm"
             onClick={handleTest}
             disabled={testing || !config.enabled}
+            className="gap-2"
           >
-            {testing ? <Loader2 className="h-4 w-4 animate-spin ml-2" /> : <Send className="h-4 w-4 ml-2" />}
+            {testing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
             ارسال تست
           </Button>
-          <Button size="sm" onClick={handleSave} disabled={saving || !dirty}>
-            {saving ? <Loader2 className="h-4 w-4 animate-spin ml-2" /> : <Save className="h-4 w-4 ml-2" />}
+          <Button size="sm" onClick={handleSave} disabled={saving || !dirty} className="gap-2">
+            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
             ذخیره تنظیمات
           </Button>
         </div>
@@ -314,8 +315,9 @@ export default function TelegramNotifyPage() {
             variant="outline"
             onClick={handleRegisterWebhook}
             disabled={registeringWebhook || !config.bot_token}
+            className="gap-2"
           >
-            {registeringWebhook ? <Loader2 className="h-4 w-4 animate-spin ml-2" /> : <Globe className="h-4 w-4 ml-2" />}
+            {registeringWebhook ? <Loader2 className="h-4 w-4 animate-spin" /> : <Globe className="h-4 w-4" />}
             ثبت وبهوک در تلگرام
           </Button>
         </CardContent>

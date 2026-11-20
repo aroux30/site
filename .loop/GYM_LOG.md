@@ -622,11 +622,53 @@
 
 ---
 
+### 🏋️ راند ۲۱ (Round 21) — وزنه ۶: +۱۰ کیلو تعمق مداوم (قالب‌های متادیتای سئو، اعلانات و پیامک، اطلاع‌رسانی تلگرام و ایندکس فوری)
+- **تاریخ اجرا**: 2026-11-20
+- **شاخه ایزوله**: `autofix/gym-loop`
+- **وضعیت**: ✅ کامل و سبز (اصلاح تایمرهای لایو دیبانس در پیش‌نمایش قالب‌ها، تنظیم صریح جهت RTL در صفحات سئو و تلگرام، ارتقای فاصله استاندارد آیکون‌ها و دکمه‌ها با Vision)
+
+#### ۱. باگ‌های کشف‌شده با ابزار Vision و اصلاحات ریشه‌ای
+1. **تداخل تایمر سراسری دیباونس در پیش‌نمایش زنده قالب‌های متادیتا (`Titles & Meta Global Debounce Timer Collisions`)**:
+   - *مشاهده در Vision*: در تصویر `before/02-seo-titles-meta.png`، تایمر دیباونس پیش‌نمایش به صورت یک شیء منفرد اشتراکی تعریف شده بود که با تغییر هم‌زمان یا چندتایی قالب‌ها، پیش‌نمایش سایر محتواها متوقف یا نادیده گرفته می‌شد.
+   - *اصلاح ریشه‌ای*: در [titles-meta/page.tsx](frontend/app/admin/seo/titles-meta/page.tsx)، تایمرها به `useRef<Record<string, Timeout>>` تبدیل شدند تا هر نوع محتوا (نوشته، برگه، محصول) به طور مستقل دیباونس شود، جهت‌دهی صریح `dir="rtl"` اضافه شد و نشانگر پیش‌نمایش زنده در نمای بعد با موفقیت بارگذاری شد.
+2. **فقدان صفت راست‌به‌چپ (RTL) و استفاده از فاصله‌گذاری معکوس در اطلاع‌رسانی تلگرام (`Telegram Notify Missing dir="rtl" & Inverted Icon Margins`)**:
+   - *مشاهده در Vision*: در تصویر `before/03-admin-telegram-notify.png`، کانتینر اصلی صفحه فاقد ویژگی `dir="rtl"` بود و دکمه‌های «ارسال تست»، «ذخیره تنظیمات» و «ثبت وبهوک» از کلاس‌های `ml-2` استفاده می‌کردند که در حالت راست‌به‌چپ فاصله نامناسب بین آیکون و لبه دکمه ایجاد می‌کرد.
+   - *اصلاح ریشه‌ای*: در [telegram-notify/page.tsx](frontend/app/admin/telegram-notify/page.tsx)، صفت `dir="rtl"` اضافه شد و فاصله‌گذاری دکمه‌ها به کلاس یکپارچه `gap-2` ارتقا یافت.
+3. **همگام‌سازی RTL و ساختار دکمه‌ها در اعلانات، پیامک و ایندکس فوری (`Notices, SMS Dispatch & Indexing RTL Synchronization`)**:
+   - *مشاهده در Vision*: در تصاویر `before/01-admin-notices.png`، `before/01-b-admin-notices-sms.png` و `before/04-seo-indexing.png`، عدم تعریف صریح جهت روی تب‌ها و فاصله‌گذاری غیراستاندارد دکمه‌های عملیاتی شناسایی گردید.
+   - *اصلاح ریشه‌ای*: در [notices/page.tsx](frontend/app/admin/notices/page.tsx) ویژگی `dir="rtl"` به کامپوننت `Tabs` اضافه شد و در [indexing-settings-card.tsx](frontend/components/admin/indexing-settings-card.tsx) و [indexing/page.tsx](frontend/app/admin/seo/indexing/page.tsx) ساختار فاصله‌گذاری و استایل دکمه‌ها اصلاح شد.
+
+#### ۲. مستندات بصری (Vision Artifacts)
+- **قبل از اصلاح**: `.loop/artifacts/gym/round-21/before/`
+  - `01-admin-notices.png` (صفحه اعلانات زمان‌دار)
+  - `01-b-admin-notices-sms.png` (تب ارسال پیامک تکی)
+  - `02-seo-titles-meta.png` (پیش‌نمایش‌های خاموش بدون لایو تایمر مجزا)
+  - `03-admin-telegram-notify.png` (فرم تلگرام با فاصله‌گذاری‌های معکوس)
+  - `04-seo-indexing.png` (ایندکس فوری)
+- **بعد از اصلاح**: `.loop/artifacts/gym/round-21/after/`
+  - `01-admin-notices.png` (چیدمان استاندارد و راست‌به‌چپ اعلانات)
+  - `01-b-admin-notices-sms.png` (فرم تمیز و هماهنگ ارسال پیامک)
+  - `02-seo-titles-meta.png` (پیش‌نمایش زنده سبز فعال برای نوشته‌ها و برگه‌ها)
+  - `03-admin-telegram-notify.png` (چیدمان منظم دکمه‌ها با gap استاندارد و ساختار RTL)
+  - `04-seo-indexing.png` (نمای هماهنگ ایندکس فوری)
+
+#### ۳. تست‌های رگرسیون دائمی اضافه‌شده
+- فایل تست Playwright: `frontend/tests/e2e/gym-r21-regression.spec.ts` (۴ تست سبز)
+
+#### ۴. نتایج نهایی ممیزی و تست‌ها در راند ۲۱
+- `npx tsc --noEmit`: ۰ خطا (سبز)
+- `npm test` (Vitest): **۳۶۹ تست سبز در ۴۵ فایل** (`369 passed`)
+- `python -m pytest app/tests/unit`: **۶۲۲ تست سبز** (`622 passed, 2 skipped`)
+- مجموع تست‌های رگرسیون تجمعی (راند ۱ تا ۲۱): **۶۱ تست Playwright سبز**
+- `node .loop/audits/deterministic-audit.mjs`: **پاس ۱۰۰٪ تمام چک‌ها (`passed: true`)**
+
+---
+
 ## وضعیت جامع و تسلط بر هر ۵ سطح (Mastery Status)
 
 **GYM_ALL_5_LEVELS_MASTERED**
 
-تمام ۵ سطح نردبان تمرین پیش‌رونده (از ۵ کیلو تا ۵۰ کیلو) به همراه مراحل تکمیلی راندهای ۶ تا ۲۰ با ممیزی‌های زنده، مستندات تصویری Vision در پوشه‌های `.loop/artifacts/gym/round-01/` تا `.loop/artifacts/gym/round-20/`، ۵۷ تست رگرسیون تجمعی E2E، ۶۲۲ تست بک‌اند، ۳۶۹ تست فرانت‌اند و بیلد تمیز پروداکشن با موفقیت ۱۰۰٪ کامل ثبت و تسخیر شدند.
+تمام ۵ سطح نردبان تمرین پیش‌رونده (از ۵ کیلو تا ۵۰ کیلو) به همراه مراحل تکمیلی راندهای ۶ تا ۲۱ با ممیزی‌های زنده، مستندات تصویری Vision در پوشه‌های `.loop/artifacts/gym/round-01/` تا `.loop/artifacts/gym/round-21/`، ۶۱ تست رگرسیون تجمعی E2E، ۶۲۲ تست بک‌اند، ۳۶۹ تست فرانت‌اند و بیلد تمیز پروداکشن با موفقیت ۱۰۰٪ کامل ثبت و تسخیر شدند.
 
 
 

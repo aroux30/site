@@ -15,7 +15,7 @@
  * emit, not a client-side approximation.
  */
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Loader2, RotateCcw, Save, Wand2 } from "lucide-react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -70,16 +70,16 @@ export default function TitlesMetaPage() {
     void load();
   }, [load]);
 
-  // Live preview per row, debounced — one server round trip per pause, not
-  // per keystroke (the renderer is authoritative; approximating it in the
-  // client is how previews start lying).
-  const debounceRef = useState<{ t: ReturnType<typeof setTimeout> | null }>({
-    t: null,
-  })[0];
+  // Live preview per row, debounced per content type — one server round trip
+  // per pause per row, not per keystroke.
+  const timersRef = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
+
   const schedulePreview = useCallback(
     (contentType: string, template: string) => {
-      if (debounceRef.t) clearTimeout(debounceRef.t);
-      debounceRef.t = setTimeout(async () => {
+      if (timersRef.current[contentType]) {
+        clearTimeout(timersRef.current[contentType]);
+      }
+      timersRef.current[contentType] = setTimeout(async () => {
         try {
           const { rendered } = await previewTitlesMeta({
             template,
@@ -91,13 +91,13 @@ export default function TitlesMetaPage() {
         }
       }, 500);
     },
-    [debounceRef],
+    [],
   );
 
   useEffect(() => {
     if (!meta) return;
     for (const t of meta.templates) {
-      schedulePreview(t.content_type, drafts[t.content_type]?.title ?? "");
+      schedulePreview(t.content_type, drafts[t.content_type]?.title ?? t.title_template);
     }
     // Only on load: typing schedules its own preview.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -150,20 +150,20 @@ export default function TitlesMetaPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" dir="rtl">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-xl font-bold">عنوان و توضیحات پیش‌فرض</h1>
           <p className="mt-1 text-xs text-muted-foreground">
             قالب پیش‌فرض هر نوع محتوا. متغیرها با علامت درصد نوشته می‌شوند، مثل{" "}
-            <code dir="ltr" className="mx-1">%title% %sep% %sitename%</code>
+            <code dir="ltr" className="mx-1 rounded bg-muted px-1.5 py-0.5 font-mono text-[11px]">%title% %sep% %sitename%</code>
           </p>
         </div>
-        <Button onClick={save} disabled={saving}>
+        <Button onClick={save} disabled={saving} className="gap-2">
           {saving ? (
-            <Loader2 className="h-4 w-4 ms-1 animate-spin" />
+            <Loader2 className="h-4 w-4 animate-spin" />
           ) : (
-            <Save className="h-4 w-4 ms-1" />
+            <Save className="h-4 w-4" />
           )}
           {saving ? "در حال ذخیره..." : "ذخیره همه"}
         </Button>
@@ -178,11 +178,11 @@ export default function TitlesMetaPage() {
             <Input
               value={separator}
               onChange={(e) => setSeparator(e.target.value)}
-              className="w-24"
+              className="w-24 text-center font-mono font-bold"
               dir="ltr"
             />
             <span className="text-xs text-muted-foreground">
-              بین عنوان و نام سایت قرار می‌گیرد (متغیر <code dir="ltr">%sep%</code>).
+              بین عنوان و نام سایت قرار می‌گیرد (متغیر <code dir="ltr" className="rounded bg-muted px-1 py-0.5 font-mono">%sep%</code>).
             </span>
           </div>
         </CardContent>

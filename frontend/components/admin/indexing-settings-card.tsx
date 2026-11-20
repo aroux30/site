@@ -162,11 +162,11 @@ export function IndexingSettingsCard() {
             placeholder={"https://example.com/blog/post-1\nhttps://example.com/products/x"}
             className="w-full rounded-md border border-input bg-background p-2 font-mono text-[11px]"
           />
-          <Button size="sm" onClick={() => void submitManual()} disabled={submitting}>
+          <Button size="sm" onClick={() => void submitManual()} disabled={submitting} className="gap-1.5">
             {submitting ? (
-              <Loader2 className="h-3.5 w-3.5 ms-1 animate-spin" />
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
             ) : (
-              <Send className="h-3.5 w-3.5 ms-1" />
+              <Send className="h-3.5 w-3.5" />
             )}
             ارسال به IndexNow
           </Button>

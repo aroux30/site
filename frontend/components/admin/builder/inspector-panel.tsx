@@ -948,7 +948,21 @@ export function InspectorPanel() {
             {items.map((item, idx) => (
               <div key={idx} className="p-2.5 rounded-lg border bg-muted/30 space-y-2">
                 <div className="space-y-1">
-                  <Label className="text-[11px]">عنوان سؤال {idx + 1}</Label>
+                  <div className="flex items-center justify-between">
+                    <Label className="text-[11px]">عنوان سؤال {idx + 1}</Label>
+                    {items.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const updated = items.filter((_, i) => i !== idx);
+                          handlePropChange("items", updated);
+                        }}
+                        className="text-[10px] text-destructive hover:underline"
+                      >
+                        حذف
+                      </button>
+                    )}
+                  </div>
                   <Input
                     value={item.title || ""}
                     onChange={(e) => {

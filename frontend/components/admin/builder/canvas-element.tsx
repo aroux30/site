@@ -565,7 +565,10 @@ function CanvasElementComponent({
                 <button
                   key={f.key}
                   type="button"
-                  onClick={() => setActiveGridFilter(f.key)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setActiveGridFilter(f.key);
+                  }}
                   className={cn(
                     "px-3 py-1 rounded-lg text-xs font-semibold transition",
                     activeGridFilter === f.key

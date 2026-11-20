@@ -177,7 +177,7 @@ export function BlocksPalette() {
     const rootEls = bData?.rootElements || (bData as any)?.root_elements || [];
     if (rootEls.length === 0) return;
     for (const el of rootEls) {
-      const cloned = cloneElementWithNewIds(el);
+      const cloned = cloneElementWithNewIds(el, false);
       addElement(cloned, getTargetContainerId());
     }
     toast({
@@ -190,7 +190,7 @@ export function BlocksPalette() {
     const bData = (tpl as any).builder_data || tpl.builderData;
     const rootEls = bData?.rootElements || (bData as any)?.root_elements || [];
     if (rootEls.length === 0) return;
-    const clonedRoots = rootEls.map((el: any) => cloneElementWithNewIds(el));
+    const clonedRoots = rootEls.map((el: any) => cloneElementWithNewIds(el, false));
     const currentAst = useBuilderStore.getState().ast;
     useBuilderStore.getState().replacePageAST({
       ...currentAst,

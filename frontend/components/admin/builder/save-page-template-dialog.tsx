@@ -47,6 +47,13 @@ export function SavePageTemplateDialog({
   const [category, setCategory] = useState("صفحات فرود (Landing)");
   const [saving, setSaving] = useState(false);
 
+  // Sync title when ast.title changes or dialog re-opens
+  React.useEffect(() => {
+    if (open) {
+      setTitle(ast.title ? `قالب ${ast.title}` : "قالب برگه جدید");
+    }
+  }, [open, ast.title]);
+
   const handleSave = async () => {
     if (!title.trim()) {
       toast({

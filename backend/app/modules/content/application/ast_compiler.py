@@ -521,7 +521,7 @@ class ASTCompiler:
         elif widget_type == "accordion":
             items = props.get("items", [{"title": "پرسش متداول ۱", "content": "پاسخ پرسش متداول ۱"}])
             items_html = "".join(
-                f'<details class="group rounded-xl border border-border/80 bg-card overflow-hidden" {"open" if itm.get("default_open") else ""}>'
+                f'<details class="group rounded-xl border border-border/80 bg-card overflow-hidden" {"open" if (itm.get("default_open") or (itm.get("default_open") is None and idx == 0)) else ""}>'
                 f'<summary class="p-3.5 font-bold text-xs text-foreground cursor-pointer list-none flex items-center justify-between hover:bg-muted/40 transition select-none">'
                 f'<span>{html.escape(str(itm.get("title", "پرسش")))}</span>'
                 f'<span class="transition-transform group-open:rotate-180">▾</span>'
@@ -530,7 +530,7 @@ class ASTCompiler:
                 f'{html.escape(str(itm.get("content", "")))}'
                 f'</div>'
                 f'</details>'
-                for itm in items
+                for idx, itm in enumerate(items)
             )
             return f'<div{id_attr} class="builder-accordion space-y-2 w-full {css_class}" data-widget="accordion"{style_attr}>{items_html}</div>'
 

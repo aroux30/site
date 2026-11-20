@@ -49,13 +49,18 @@ export function findElementAndParent(
   return null;
 }
 
-export function cloneElementWithNewIds(el: BuilderElement): BuilderElement {
+export function cloneElementWithNewIds(
+  el: BuilderElement,
+  appendCopySuffix = true
+): BuilderElement {
   const newId = `el_${Math.random().toString(36).slice(2, 10)}`;
   return {
     ...el,
     id: newId,
-    name: `${el.name} (کپی)`,
-    children: el.children ? el.children.map(cloneElementWithNewIds) : [],
+    name: appendCopySuffix ? `${el.name} (کپی)` : el.name,
+    children: el.children
+      ? el.children.map((child) => cloneElementWithNewIds(child, appendCopySuffix))
+      : [],
   };
 }
 

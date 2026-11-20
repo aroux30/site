@@ -45,9 +45,16 @@ export function SaveTemplateDialog({
   onOpenChange,
 }: SaveTemplateDialogProps) {
   const { toast } = useToast();
-  const [title, setTitle] = useState(element.name || "قالب کانتینر جدید");
+  const [title, setTitle] = useState(element.name || "قالب بخش جدید");
   const [category, setCategory] = useState("عمومی");
   const [saving, setSaving] = useState(false);
+
+  // Sync title when element changes or dialog re-opens
+  React.useEffect(() => {
+    if (open) {
+      setTitle(element.name || "قالب بخش جدید");
+    }
+  }, [open, element.name]);
 
   const handleSave = async () => {
     if (!title.trim()) {

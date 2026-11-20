@@ -1,0 +1,9 @@
+{
+  "stage": "before",
+  "timestamp": "2026-11-20T16:48:51.435Z",
+  "weight": "Weight 6: Keyboard Shortcut Reordering & Escape Deselection (100kg)",
+  "checks": {
+    "elementSelectedScreenshot": "C:\\Users\\Administrator\\Desktop\\site\\.claude\\worktrees\\lucid-cartwright-fe0984\\.loop\\artifacts\\builder-gym\\round-14\\before\\01-element-selected-toolbar.png",
+    "elementDeselectedScreenshot": "C:\\Users\\Administrator\\Desktop\\site\\.claude\\worktrees\\lucid-cartwright-fe0984\\.loop\\artifacts\\builder-gym\\round-14\\before\\02-canvas-deselected.png"
+  }
+}

@@ -505,6 +505,39 @@
 
 ---
 
+### 🏋️ راند ۱۴ (Round 14) — وزنه ۶: بی‌نهایت (کلیدهای میانبر پیشرفته: جابه‌جایی Alt+Arrow و لغو انتخاب با Escape)
+- **تاریخ اجرا**: 2026-11-20
+- **شاخه ایزوله**: `claude/lucid-cartwright-fe0984`
+- **وضعیت**: ✅ کامل و سبز (پشتیبانی از کلیدهای میانبر سریع Alt+ArrowUp و Alt+ArrowDown، لغو انتخاب با کلید Escape، و تایید کامل با Vision)
+
+#### ۱. باگ‌های کشف‌شده با ابزار Vision و تعامل
+1. **عدم امکان لغو انتخاب المان فعال با کلید استاندارد Escape (`Escape Key Deselection Missing`)**:
+   - *مشاهده در Vision*: در تصویر `01-element-selected-toolbar.png`، برای خروج از حالت انتخاب و بستن نوار ابزار شناور، کاربر راهی جز کلیک در یک ناحیه خالی نداشت و فشردن کلید Escape کاری انجام نمی‌داد.
+   - *اصلاح ریشه‌ای*: شنود کلید `Escape` در رویدادهای کیبورد پنجره اصلی و سند داخلی بوم و اجرای `selectElement(null)` جهت رفع بی‌درنگ انتخاب و مخفی‌سازی کادرهای شناور.
+2. **پشتیبانی از میانبر صفحه‌کلیدی برای جابه‌جایی بالا/پایین (`Alt+ArrowUp/Down Element Reordering`)**:
+   - الحاق کلیدهای میانبر کیبورد `Alt+ArrowUp` و `Alt+ArrowDown` در [builder-toolbar.tsx](frontend/components/admin/builder/builder-toolbar.tsx) متصل به اکشن `reorderElement` با ثبت کامل در تاریخچه Undo/Redo.
+
+#### ۲. مستندات بصری (Vision Artifacts)
+- **قبل از اصلاح**: `.loop/artifacts/builder-gym/round-14/before/`
+  - `01-element-selected-toolbar.png`
+  - `02-canvas-deselected.png`
+  - `report.json`
+- **بعد از اصلاح**: `.loop/artifacts/builder-gym/round-14/after/`
+  - `01-element-selected-toolbar.png` (المان فعال همراه با نوار ابزار کامل)
+  - `02-canvas-deselected.png` (لغو کامل و تمیز انتخاب با کلید Escape)
+  - `report.json`
+
+#### ۳. تست رگرسیون دائمی اضافه‌شده
+- فایل تست Playwright: `frontend/tests/e2e/builder-gym-r14.spec.ts` (۳ تست سبز)
+
+#### ۴. نتایج نهایی ممیزی و تست‌ها در راند ۱۴
+- `npx tsc --noEmit`: ۰ خطا (سبز)
+- `npm test` (Vitest): **۳۶۹ تست سبز در ۴۵ فایل** (`369 passed`)
+- `python -m pytest app/tests/unit`: **۶۲۲ تست سبز** (`622 passed, 2 skipped`)
+- تست‌های Playwright کامل صفحه‌ساز (راند ۱ تا ۱۴): **۴۲ تست سبز در ۴۲ فایل (`42 passed in 114s`)**
+
+---
+
 ## 🏆 گواهینامه ثبت BUILDER_GYM_LEVELS_1_TO_5_CLEAN
 
 بدین‌وسیله تایید می‌گردد که هر ۵ وزنه نردبان تمرین پیش‌رونده Visual Page Builder و تک‌تک ۲۸ الگوی آماده (Block Patterns) بر اساس دستورالعمل رسمی [BUILDER_GYM.md](BUILDER_GYM.md) با موفقیت کامل و مستندات تصویری Vision سپری شد:
@@ -514,7 +547,7 @@
 - **وزنه ۳ (۲۰ کیلو)**: کنترل‌های پنل بازرس، تب‌های Content/Style/Advanced و رفع لایه z-index دیالوگ‌ها (۳ تست Playwright در `builder-gym-r03.spec.ts`).
 - **وزنه ۴ (۳۵ کیلو)**: کلیدهای میانبر بوم، درج هوشمند پیست، همگام‌سازی کامپوننت‌های سراسری و قالب‌ها (۳ تست Playwright در `builder-gym-r04.spec.ts`).
 - **وزنه ۵ (۵۰ کیلو)**: ریسپانسیو ۳ ویوپورت (موبایل ۳۷۵px، تبلت ۷۶۸px، دسکتاپ)، دارک‌مود بلادرنگ و پایداری در تست استرس (۳ تست Playwright در `builder-gym-r05.spec.ts`).
-- **وزنه ۶ (بی‌نهایت)**: ساخت لندینگ کامل، صیقل درخت لایه‌ها، ثبت عمیق تاریخچه بازرس، دکمه‌های جابه‌جایی مستقیم نوار ابزار، همگام‌سازی دیالوگ قالب‌ها و ایزولاسیون کامل استودیو (۱۲ تست Playwright در `builder-gym-r10.spec.ts`, `builder-gym-r11.spec.ts`, `builder-gym-r12.spec.ts` و `builder-gym-r13.spec.ts`).
+- **وزنه ۶ (بی‌نهایت)**: ساخت لندینگ کامل، صیقل درخت لایه‌ها، ثبت عمیق تاریخچه بازرس، دکمه‌های جابه‌جایی مستقیم نوار ابزار، همگام‌سازی دیالوگ قالب‌ها، میانبرهای کلیدی پیشرفته و ایزولاسیون کامل استودیو (۱۵ تست Playwright در `builder-gym-r10.spec.ts`, `builder-gym-r11.spec.ts`, `builder-gym-r12.spec.ts`, `builder-gym-r13.spec.ts` و `builder-gym-r14.spec.ts`).
 
 تمامی اسناد، شواهد تصویری، Set-of-Mark و گزارش‌های ممیزی به صورت دائمی در `.loop/artifacts/` نگهداری شده‌اند.
 وضعیت رسمی: **BUILDER_GYM_LEVELS_1_TO_5_CLEAN**

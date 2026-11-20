@@ -282,21 +282,27 @@ export default function DataExchangeImportPage() {
             ورود داده (Import)
           </h2>
           <p className="text-sm text-muted-foreground mt-1">
-            بارگذاری CSV یا XLSX، نگاشت ستون‌ها، اعتبارسنجی خشک (dry-run) و اجرای import با گزارش خطای ردیفی
+            بارگذاری CSV یا XLSX، نگاشت ستون‌ها، اعتبارسنجی اولیه (dry-run) و اجرای ورود داده با گزارش خطای ردیفی
           </p>
         </div>
-        <Button variant="outline" asChild>
-          <Link href="/admin/data-exchange/export">
-            <Download className="h-4 w-4 ms-1" />
-            خروجی داده (Export)
-          </Link>
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={() => void load()} disabled={loading} className="gap-1.5 text-xs">
+            <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} />
+            <span>بروزرسانی</span>
+          </Button>
+          <Button variant="outline" size="sm" asChild className="gap-1.5 text-xs">
+            <Link href="/admin/data-exchange/export">
+              <Download className="h-3.5 w-3.5 ms-1" />
+              <span>خروجی داده (Export)</span>
+            </Link>
+          </Button>
+        </div>
       </div>
 
       <Card className="p-6 space-y-4">
         <h3 className="text-lg font-semibold flex items-center gap-2">
           <Upload className="h-5 w-5 text-primary" />
-          شروع import جدید
+          بارگذاری و ورود داده جدید
         </h3>
         <div className="flex flex-wrap items-center gap-3">
           <select
@@ -326,9 +332,6 @@ export default function DataExchangeImportPage() {
           <Button onClick={() => fileRef.current?.click()} disabled={uploading}>
             <Upload className="h-4 w-4 ms-1" />
             {uploading ? "در حال بارگذاری..." : "انتخاب فایل و شروع"}
-          </Button>
-          <Button variant="ghost" size="sm" onClick={() => void load()}>
-            <RefreshCw className="h-4 w-4" />
           </Button>
         </div>
       </Card>

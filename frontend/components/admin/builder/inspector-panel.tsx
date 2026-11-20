@@ -42,8 +42,11 @@ export function InspectorPanel() {
   const updateElementStyles = useBuilderStore((s) => s.updateElementStyles);
   const updateElementLayout = useBuilderStore((s) => s.updateElementLayout);
   const renameElement = useBuilderStore((s) => s.renameElement);
+  const updateElementName = useBuilderStore((s) => s.updateElementName);
   const setElementHidden = useBuilderStore((s) => s.setElementHidden);
+  const toggleHideElement = useBuilderStore((s) => s.toggleHideElement);
   const setElementLocked = useBuilderStore((s) => s.setElementLocked);
+  const toggleLockElement = useBuilderStore((s) => s.toggleLockElement);
   const detachGlobalComponent = useBuilderStore((s) => s.detachGlobalComponent);
 
   const selectedElement = selectedElementId
@@ -1626,13 +1629,22 @@ export function InspectorPanel() {
           <div className="flex items-center gap-2">
             <Input
               value={currentDeviceStyle.width ? `${currentDeviceStyle.width.value}${currentDeviceStyle.width.unit}` : ""}
-              placeholder="100% یا 1280px"
+              placeholder="100% / 1280px / خودکار"
               onChange={(e) => {
                 const raw = e.target.value.trim();
+                if (!raw || raw === "auto") {
+                  handleDeviceStyleChange({ width: undefined });
+                  return;
+                }
                 if (raw.endsWith("%")) {
                   handleDeviceStyleChange({ width: { value: parseFloat(raw) || 100, unit: "%" } });
                 } else if (raw.endsWith("px")) {
                   handleDeviceStyleChange({ width: { value: parseFloat(raw) || 0, unit: "px" } });
+                } else {
+                  const val = parseFloat(raw);
+                  if (!isNaN(val)) {
+                    handleDeviceStyleChange({ width: { value: val, unit: "px" } });
+                  }
                 }
               }}
               className="h-8 text-xs flex-1 font-mono"
@@ -1642,6 +1654,7 @@ export function InspectorPanel() {
           <div className="flex flex-wrap gap-1 mt-1">
             <span className="text-[10px] text-muted-foreground me-1 self-center">توکن‌های عرض:</span>
             {[
+              { label: "خودکار (Auto)", w: undefined },
               { label: "۱۰۰٪", w: { value: 100, unit: "%" as UnitType } },
               { label: "۱۲۸۰ پیکسل (کانتینر)", w: { value: 1280, unit: "px" as UnitType } },
               { label: "۷۶۸ پیکسل (محتوا)", w: { value: 768, unit: "px" as UnitType } },

@@ -310,7 +310,7 @@ export const BASIC_BLOCK_DEFINITIONS: BlockDefinition[] = [
     name: "تصویر (Image)",
     category: "basic",
     icon: Image,
-    description: "تصویر با پشتیبانی از کتابخانه رسانه و Alt Text",
+    description: "تصویر با پشتیبانی از کتابخانه رسانه و متن جایگزین",
     createDefaultElement: () => ({
       id: `el_${Math.random().toString(36).slice(2, 10)}`,
       name: "تصویر",
@@ -344,7 +344,7 @@ export const BASIC_BLOCK_DEFINITIONS: BlockDefinition[] = [
     name: "دکمه اقدام (Button)",
     category: "basic",
     icon: MousePointer,
-    description: "دکمه فراخوان به عمل (Call to Action) با استایل‌های سازمانی",
+    description: "دکمه اقدام و فراخوان به عمل با استایل‌های متنوع سازمانی",
     createDefaultElement: () => ({
       id: `el_${Math.random().toString(36).slice(2, 10)}`,
       name: "دکمه اقدام",

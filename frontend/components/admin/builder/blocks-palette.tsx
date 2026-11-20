@@ -645,20 +645,33 @@ export function BlocksPalette() {
                       }`}
                     >
                       <div className="flex items-center justify-between gap-2">
-                        <span className="text-xs font-bold text-foreground group-hover:text-primary transition-colors truncate flex-1">
+                        <span className="text-xs font-bold text-foreground group-hover:text-primary transition-colors truncate flex-1" title={tpl.title}>
                           {tpl.title}
                         </span>
-                        <div className="flex items-center gap-1 shrink-0">
+                        {isPage ? (
+                          <Badge className="text-[9px] px-1.5 py-0 h-4 shrink-0 bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20">
+                            قالب برگه
+                          </Badge>
+                        ) : (
+                          <Badge className="text-[9px] px-1.5 py-0 h-4 shrink-0 bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
+                            قالب بخش
+                          </Badge>
+                        )}
+                      </div>
+
+                      <div className="flex items-center justify-between pt-1.5 border-t border-border/40 text-[10px] text-muted-foreground">
+                        <div className="flex items-center gap-1.5">
+                          <span>{tpl.category || "عمومی"}</span>
+                          <span>•</span>
+                          <span>{rootEls.length || 1} بخش</span>
+                        </div>
+                        <div className="flex items-center gap-2">
                           {isPage ? (
-                            <Badge className="text-[9px] px-1.5 py-0 h-4 bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20">
-                              قالب برگه
-                            </Badge>
+                            <span className="text-purple-600 dark:text-purple-400 font-semibold">اعمال روی برگه ↵</span>
                           ) : (
-                            <Badge className="text-[9px] px-1.5 py-0 h-4 bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
-                              قالب بخش
-                            </Badge>
+                            <span className="text-primary font-semibold">کلیک یا درگ ↵</span>
                           )}
-                          <div className="flex items-center gap-0.5 bg-muted/60 rounded p-0.5 border border-border/50">
+                          <div className="flex items-center gap-0.5 bg-muted/60 rounded p-0.5 border border-border/50" onClick={(e) => e.stopPropagation()}>
                             <button
                               type="button"
                               onClick={(e) => {
@@ -696,19 +709,6 @@ export function BlocksPalette() {
                             </button>
                           </div>
                         </div>
-                      </div>
-
-                      <div className="flex items-center justify-between pt-1 border-t border-border/40 text-[10px] text-muted-foreground">
-                        <div className="flex items-center gap-2">
-                          <span>{tpl.category || "عمومی"}</span>
-                          <span>•</span>
-                          <span>{rootEls.length || 1} بخش محتوایی</span>
-                        </div>
-                        {isPage ? (
-                          <span className="text-purple-600 dark:text-purple-400 font-semibold">اعمال روی برگه ↵</span>
-                        ) : (
-                          <span className="text-primary font-semibold">کلیک یا درگ ↵</span>
-                        )}
                       </div>
                     </div>
                   );

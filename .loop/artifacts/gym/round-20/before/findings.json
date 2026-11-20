@@ -1,0 +1,15 @@
+{
+  "stage": "before",
+  "timestamp": "2026-11-20T08:08:32.309Z",
+  "tests": {
+    "systemHealth": {
+      "shot": "C:\\Users\\Administrator\\Desktop\\site\\.loop\\artifacts\\gym\\round-20\\before\\01-system-health.png"
+    },
+    "linkGenius": {
+      "shot": "C:\\Users\\Administrator\\Desktop\\site\\.loop\\artifacts\\gym\\round-20\\before\\02-link-genius.png"
+    },
+    "adminCalendar": {
+      "shot": "C:\\Users\\Administrator\\Desktop\\site\\.loop\\artifacts\\gym\\round-20\\before\\03-admin-calendar.png"
+    }
+  }
+}

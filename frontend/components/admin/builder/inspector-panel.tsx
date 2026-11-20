@@ -771,6 +771,59 @@ export function InspectorPanel() {
           </div>
         );
 
+      case "product_title":
+        return (
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs">عنوان نمایشی محصول</Label>
+              <Input
+                value={String(props.fallback_title || "عنوان محصول")}
+                onChange={(e) => handlePropChange("fallback_title", e.target.value)}
+                className="h-8 text-xs"
+              />
+            </div>
+          </div>
+        );
+
+      case "recently_viewed":
+        return (
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs">عنوان بخش</Label>
+              <Input
+                value={String(props.title || "بازدیدهای اخیر شما")}
+                onChange={(e) => handlePropChange("title", e.target.value)}
+                className="h-8 text-xs"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">تعداد کالاهای اخیر (Limit)</Label>
+              <Input
+                type="number"
+                min={1}
+                max={12}
+                value={Number(props.limit) || 4}
+                onChange={(e) => handlePropChange("limit", parseInt(e.target.value) || 4)}
+                className="h-8 text-xs"
+              />
+            </div>
+          </div>
+        );
+
+      case "mega_menu":
+        return (
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs">عنوان دکمه ناوبری (Label)</Label>
+              <Input
+                value={String(props.label || "دسته‌بندی کالاها")}
+                onChange={(e) => handlePropChange("label", e.target.value)}
+                className="h-8 text-xs"
+              />
+            </div>
+          </div>
+        );
+
       case "product_price":
         return (
           <div className="space-y-4">

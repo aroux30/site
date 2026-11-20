@@ -645,9 +645,30 @@ function CanvasElementComponent({
         );
       }
       case "recently_viewed": {
+        const title = String(props.title || "بازدیدهای اخیر شما");
+        const limit = Number(props.limit) || 4;
+        const dummyRecentProducts = Array.from({ length: limit }, (_, i) => ({
+          id: `recent_${i + 1}`,
+          name: `کالای مشاهده‌شده ${i + 1}`,
+          slug: `recent-prod-${i + 1}`,
+          category_id: "",
+          is_active: true,
+          is_in_stock: true,
+          min_price: (i + 1) * 290000,
+          max_price: (i + 1) * 350000,
+          variant_count: 1,
+          primary_image_url: "/placeholder-hero.svg",
+          rating_average: 4.7,
+          review_count: 22,
+        }));
         return (
-          <div className="w-full">
-            <RecentlyViewed limit={Number(props.limit) || 4} />
+          <div className="w-full space-y-3">
+            <h4 className="text-sm font-bold text-foreground">{title}</h4>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              {dummyRecentProducts.map((p) => (
+                <ProductCard key={p.id} product={p as any} variant="compact" />
+              ))}
+            </div>
           </div>
         );
       }

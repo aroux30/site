@@ -1,0 +1,15 @@
+{
+  "stage": "after",
+  "timestamp": "2026-11-20T07:38:41.280Z",
+  "tests": {
+    "adminCurrency": {
+      "shot": "C:\\Users\\Administrator\\Desktop\\site\\.loop\\artifacts\\gym\\round-19\\after\\01-admin-currency.png"
+    },
+    "storefrontFavorites": {
+      "shot": "C:\\Users\\Administrator\\Desktop\\site\\.loop\\artifacts\\gym\\round-19\\after\\02-storefront-favorites.png"
+    },
+    "favoritesMobile": {
+      "shot": "C:\\Users\\Administrator\\Desktop\\site\\.loop\\artifacts\\gym\\round-19\\after\\03-favorites-mobile.png"
+    }
+  }
+}

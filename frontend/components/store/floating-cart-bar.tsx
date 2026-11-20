@@ -24,6 +24,7 @@ export function FloatingCartBar() {
     pathname?.startsWith("/cart") ||
     pathname?.startsWith("/rewards") ||
     pathname?.startsWith("/compare") ||
+    pathname?.startsWith("/favorites") ||
     pathname?.startsWith("/faq") ||
     pathname?.startsWith("/contact") ||
     pathname?.startsWith("/about") ||

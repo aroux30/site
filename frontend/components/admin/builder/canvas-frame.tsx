@@ -214,6 +214,27 @@ export function CanvasFrame({
     syncStyles(doc);
   }, [activeThemeVars, globalStyles, ready, syncStyles]);
 
+  // Live dark mode and style synchronization from parent document to canvas iframe
+  useEffect(() => {
+    const iframe = iframeRef.current;
+    if (!iframe || !ready) return;
+    const doc = iframe.contentDocument || iframe.contentWindow?.document;
+    if (!doc?.documentElement) return;
+
+    const observer = new MutationObserver(() => {
+      doc.documentElement.className = document.documentElement.className;
+      const parentStyle = document.documentElement.getAttribute("style");
+      if (parentStyle) doc.documentElement.setAttribute("style", parentStyle);
+    });
+
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class", "style"],
+    });
+
+    return () => observer.disconnect();
+  }, [ready]);
+
   // Keep the frame tall enough for its content (no nested scrollbars).
   useEffect(() => {
     const iframe = iframeRef.current;

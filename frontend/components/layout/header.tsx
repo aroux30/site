@@ -835,24 +835,16 @@ export function Header() {
 
       {/* ===== Mobile Navigation Drawer =====
           The drawer is anchored to the inline start edge and slides out along
-          the inline axis, so it works identically in RTL and LTR. A closed
-          drawer must be translated fully off-screen: `translate-x-full` moves
-          toward +X, which in RTL is *into* the viewport, so the closed drawer
-          stayed visible and added horizontal scroll to every page. */}
-      <div
-        aria-hidden={!mobileMenuOpen}
-        // The closed drawer must be removed from the document's scrollable
-        // area, not merely visually translated. In an RTL document a transform
-        // does not shrink `scrollWidth`, so a drawer parked off-screen still
-        // extends the page's scrollable width and produces horizontal scroll on
-        // every route. `hidden` when closed is the only version that is
-        // correct regardless of writing direction.
-        className={cn(
-          "fixed bottom-0 right-0 top-0 z-50 w-[310px] overflow-y-auto bg-background shadow-2xl transition-transform duration-300 ease-out lg:hidden",
-          mobileMenuOpen ? "block translate-x-0" : "hidden",
-        )}
-        style={{ right: 0, left: "auto" }}
-      >
+          the inline axis, so it works identically in RTL and LTR. Unmounted
+          when closed so no focusable elements remain in aria-hidden tree. */}
+      {mobileMenuOpen && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="منوی موبایل"
+          className="fixed bottom-0 right-0 top-0 z-50 w-[310px] overflow-y-auto bg-background shadow-2xl transition-transform duration-300 ease-out lg:hidden block translate-x-0"
+          style={{ right: 0, left: "auto" }}
+        >
         {/* Drawer Header */}
         <div className="flex items-center justify-between border-b border-border px-4 py-4">
           <Link
@@ -1002,6 +994,7 @@ export function Header() {
           </span>
         </div>
       </div>
+      )}
 
       {/* Slide-over Interactive Cart Drawer */}
       <CartDrawer

@@ -50,7 +50,7 @@ import { JalaliDatePicker } from "@/components/ui/jalali-datepicker";
 import { DataTable, type DataTableColumn } from "@/components/admin/data-table";
 import { FilterSelect } from "@/components/admin/filter-select";
 import { formatJalali, formatJalaliDateTime } from "@/lib/date";
-import { toPersianDigits } from "@/lib/utils";
+import { toEnglishDigits, toPersianDigits } from "@/lib/utils";
 import {
   exportRateHistory,
   fetchRateHistory,
@@ -70,7 +70,7 @@ function fmtToman(rial: number): string {
 
 /** Toman input text → Rial for the wire. */
 function tomanToRial(toman: string): number {
-  const n = Number(toman.replace(/[^\d]/g, ""));
+  const n = Number(toEnglishDigits(toman).replace(/[^\d]/g, ""));
   return Number.isFinite(n) ? n * 10 : 0;
 }
 
@@ -334,7 +334,7 @@ function SettingsTab() {
                   dir="ltr"
                   className="font-mono"
                   value={manualRateText ? Number(manualRateText).toLocaleString("fa-IR") : ""}
-                  onChange={(e) => setManualRateText(e.target.value.replace(/\D/g, ""))}
+                  onChange={(e) => setManualRateText(toEnglishDigits(e.target.value).replace(/\D/g, ""))}
                   placeholder="مثلاً: ۱۸۵٬۰۰۰"
                 />
                 <span className="text-xs whitespace-nowrap text-muted-foreground">تومان</span>
@@ -373,7 +373,7 @@ function SettingsTab() {
                   dir="ltr"
                   className="font-mono"
                   value={roundingText ? Number(roundingText).toLocaleString("fa-IR") : ""}
-                  onChange={(e) => setRoundingText(e.target.value.replace(/\D/g, ""))}
+                  onChange={(e) => setRoundingText(toEnglishDigits(e.target.value).replace(/\D/g, ""))}
                   placeholder="مثلاً: ۱۰۰"
                 />
                 <span className="text-xs whitespace-nowrap text-muted-foreground">تومان</span>

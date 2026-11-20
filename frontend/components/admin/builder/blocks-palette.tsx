@@ -159,6 +159,7 @@ export function BlocksPalette() {
       toast({
         title: "الگو افزوده شد",
         description: `الگوی «${pattern.title}» به برگه اضافه شد.`,
+        duration: 2000,
       });
     } catch (err) {
       console.error("Failed to render pattern:", err);
@@ -166,6 +167,7 @@ export function BlocksPalette() {
         title: "خطا در افزودن الگو",
         description: "رندر الگوی انتخابی با خطا مواجه شد.",
         variant: "destructive",
+        duration: 3000,
       });
     } finally {
       setRenderingSlug(null);
@@ -183,6 +185,7 @@ export function BlocksPalette() {
     toast({
       title: "قالب افزوده شد",
       description: `قالب «${tpl.title}» به بوم اضافه شد.`,
+      duration: 2000,
     });
   };
 

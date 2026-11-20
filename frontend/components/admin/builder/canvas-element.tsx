@@ -398,16 +398,21 @@ function CanvasElementComponent({
     switch (element.widgetType) {
       case "heading": {
         const Tag = (props.tag as "h1" | "h2" | "h3" | "h4" | "h5" | "h6") || "h2";
+        const customClass = String(props.customCssClass || element.styles?.customCssClass || "");
         return (
-          <Tag className="font-bold tracking-tight text-foreground m-0 break-words [overflow-wrap:anywhere]">
+          <Tag className={cn("font-bold tracking-tight text-foreground m-0 break-words [overflow-wrap:anywhere]", customClass)}>
             {String(props.text || "عنوان سرتیتر")}
           </Tag>
         );
       }
       case "text_editor": {
+        const customClass = String(props.customCssClass || element.styles?.customCssClass || "");
         return (
           <div
-            className="prose dark:prose-invert max-w-none text-foreground/90 leading-relaxed break-words [overflow-wrap:anywhere]"
+            className={cn(
+              "prose dark:prose-invert max-w-none text-foreground/90 leading-relaxed break-words [overflow-wrap:anywhere]",
+              customClass
+            )}
             dangerouslySetInnerHTML={{
               __html: String(props.content || "<p>متن پاراگراف را بنویسید...</p>"),
             }}
@@ -430,13 +435,14 @@ function CanvasElementComponent({
         );
       }
       case "image": {
+        const customClass = String(props.customCssClass || element.styles?.customCssClass || "");
         return (
-          <div className="relative overflow-hidden rounded-xl bg-muted/30">
+          <div className={cn("relative overflow-hidden rounded-xl bg-muted/30", customClass)}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={String(props.url || "/placeholder-hero.svg")}
               alt={String(props.alt || "تصویر شاخص")}
-              className="h-auto max-w-full rounded-xl object-cover"
+              className={cn("h-auto max-w-full rounded-xl object-cover", customClass)}
             />
           </div>
         );

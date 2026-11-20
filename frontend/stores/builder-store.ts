@@ -218,6 +218,7 @@ export interface BuilderState {
   deleteElement: (id: string) => void;
   deleteSelectedElements: () => void;
   duplicateElement: (id: string) => void;
+  updateElementName: (id: string, name: string) => void;
   toggleHideElement: (id: string) => void;
   toggleLockElement: (id: string) => void;
   updateGlobalStyles: (styles: Record<string, unknown>) => void;
@@ -555,6 +556,21 @@ export const useBuilderStore = create<BuilderState>((set, get) => ({
     set({
       ast: { ...ast, rootElements: updatedRoots },
       selectedElementId: cloned.id,
+      isDirty: true,
+      mutationVersion: get().mutationVersion + 1,
+      history: { past: newPast, future: [] },
+    });
+  },
+
+  updateElementName: (id, name) => {
+    const { ast, history } = get();
+    const newPast = [...history.past, ast].slice(-MAX_HISTORY_LENGTH);
+    const updatedRoots = updateElementInTree(ast.rootElements, id, (el) => ({
+      ...el,
+      name,
+    }));
+    set({
+      ast: { ...ast, rootElements: updatedRoots },
       isDirty: true,
       mutationVersion: get().mutationVersion + 1,
       history: { past: newPast, future: [] },

@@ -191,8 +191,9 @@ export default function AdminAuditPage() {
           variant="outline"
           size="sm"
           onClick={tab === "actions" ? load : loadChanges}
+          className="gap-2"
         >
-          <RefreshCw className="h-4 w-4 ms-2" />
+          <RefreshCw className={`h-4 w-4 ${(tab === "actions" ? loading : changesLoading) ? "animate-spin" : ""}`} />
           بروزرسانی
         </Button>
       </div>

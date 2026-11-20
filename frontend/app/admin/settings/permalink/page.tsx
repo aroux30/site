@@ -14,7 +14,7 @@ export const metadata: Metadata = {
  */
 export default function AdminPermalinkSettingsPage() {
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" dir="rtl">
       <div className="flex items-center gap-3">
         <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary ring-1 ring-primary/20">
           <Link2 className="h-5 w-5" />

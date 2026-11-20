@@ -940,7 +940,7 @@ export function createPatternAST(
           createContainerNode("شبکه دسته‌بندی‌ها", {
             layout: { kind: "grid", direction: "row", justifyContent: "between", alignItems: "stretch", flexWrap: "wrap", gap: { value: 16, unit: "px" }, gridColumns: 4 },
             children: cats.map((c) =>
-              createButtonWidget(c.name, c.url, "rounded-xl border bg-background p-4 text-center font-bold text-foreground hover:bg-muted/40 transition")
+              createButtonWidget(c.name, c.url, "w-full rounded-xl border bg-background p-4 text-center font-bold text-foreground hover:bg-muted/40 transition")
             ),
           }),
         ],
@@ -1002,14 +1002,13 @@ export function createPatternAST(
                 children: [
                   p.badge
                     ? createTextWidget(`<span class="inline-block text-[10px] font-bold bg-primary text-primary-foreground px-2 py-0.5 rounded-full mb-2">${p.badge}</span>`)
-                    : createHeadingWidget(p.name, "h3", "text-xl font-bold"),
-                  p.badge
-                    ? createHeadingWidget(p.name, "h3", "text-xl font-bold")
-                    : createTextWidget(`<p class="text-xs text-muted-foreground">${p.desc}</p>`),
+                    : null,
+                  createHeadingWidget(p.name, "h3", "text-xl font-bold"),
+                  createTextWidget(`<p class="text-xs text-muted-foreground">${p.desc}</p>`),
                   createHeadingWidget(p.price, "h4", "text-2xl font-black text-primary my-3"),
                   createTextWidget(`<ul class="text-xs space-y-2 text-muted-foreground">${p.features.map(f => `<li>✓ ${f}</li>`).join("")}</ul>`),
                   createButtonWidget(p.cta, p.url, `w-full mt-6 ${p.isFeatured ? "bg-primary text-primary-foreground font-bold" : ""}`),
-                ],
+                ].filter(Boolean) as BuilderElement[],
               })
             ),
           }),

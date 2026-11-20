@@ -191,14 +191,12 @@ export function BlocksPalette() {
     const rootEls = bData?.rootElements || (bData as any)?.root_elements || [];
     if (rootEls.length === 0) return;
     const clonedRoots = rootEls.map((el: any) => cloneElementWithNewIds(el));
-    useBuilderStore.setState((s) => ({
-      ast: {
-        ...s.ast,
-        globalStyles: bData?.globalStyles || s.ast.globalStyles,
-        rootElements: clonedRoots,
-      },
-      isDirty: true,
-    }));
+    const currentAst = useBuilderStore.getState().ast;
+    useBuilderStore.getState().replacePageAST({
+      ...currentAst,
+      globalStyles: bData?.globalStyles || currentAst.globalStyles,
+      rootElements: clonedRoots,
+    });
     toast({
       title: "قالب برگه اعمال شد",
       description: `محتوا و استایل‌های برگه با قالب «${tpl.title}» جایگزین شدند.`,

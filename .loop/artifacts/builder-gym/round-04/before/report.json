@@ -1,0 +1,20 @@
+{
+  "stage": "before",
+  "timestamp": "2026-11-20T06:54:18.499Z",
+  "weight": "Weight 4: Drag & Drop, Shortcuts, Global Components & Templates (35kg)",
+  "checks": {
+    "copyPasteShortcut": {
+      "passed": false,
+      "initialCount": 4,
+      "postPasteCount": 4,
+      "details": "FAIL: Ctrl+C / Ctrl+V shortcut failed when focused in canvas iframe"
+    },
+    "shortcutsScreenshot": "C:\\Users\\Administrator\\Desktop\\site\\.loop\\artifacts\\builder-gym\\round-04\\before\\01-canvas-shortcuts-paste.png",
+    "undoShortcut": {
+      "passed": true,
+      "postUndoCount": 4,
+      "details": "Undo (Ctrl+Z) successfully restored previous element tree state"
+    },
+    "templatesTabScreenshot": "C:\\Users\\Administrator\\Desktop\\site\\.loop\\artifacts\\builder-gym\\round-04\\before\\02-palette-templates-tab.png"
+  }
+}

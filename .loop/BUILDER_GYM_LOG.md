@@ -131,4 +131,44 @@
 
 ---
 
+### 🏋️ راند ۴ (Round 04) — وزنه ۴: ۳۵ کیلو (کلیدهای میانبر درون بوم، درج هوشمند پیست، همگام‌سازی کامپوننت‌های سراسری و قالب‌ها)
+- **تاریخ اجرا**: 2026-11-20
+- **شاخه ایزوله**: `autofix/gym-loop`
+- **وضعیت**: ✅ کامل و سبز (۴ نقص ریشه‌ای در بهره‌وری و میانبرها، همگام‌سازی و اعمال قالب‌ها برطرف شدند)
+
+#### ۱. باگ‌های کشف‌شده با ابزار Vision و تعامل
+1. **از کار افتادن کلیدهای میانبر درون بوم Iframe (`Canvas Iframe Shortcut Event Swallowing`)**:
+   - *مشاهده در Vision*: در تصویر `before/01-canvas-shortcuts-paste.png`، کلیک و انتخاب المان درون Iframe بوم باعث انتقال فوکوس به سند داخلی می‌شد و در نتیجه فشردن `Ctrl+C` و `Ctrl+V` یا `Ctrl+Z` به پنجره اصلی (`window`) نمی‌رسید و هیچ عملیاتی صورت نمی‌گرفت (`report.json: passed: false`).
+   - *اصلاح ریشه‌ای*: ثبت شنونده `keydown` در سند داخلی `CanvasFrame` در `frontend/components/admin/builder/canvas-frame.tsx` و فوروارد رویدادهای کیبورد به پنجره والد.
+2. **تخریب ساختار AST هنگام پیست روی المان‌های غیرکانتینر (`Paste Into Non-Container AST Corruption`)**:
+   - *مشاهده*: در صورت انتخاب یک المان متنی یا دکمه و زدن پیست، تابع `pasteElement` المان کپی‌شده را به عنوان فرزند آن المان درج می‌کرد که ساختار درختی را نامعتبر می‌ساخت.
+   - *اصلاح ریشه‌ای*: ارتقای منطق `pasteElement` در `frontend/stores/builder-store.ts` به گونه‌ای که با پیمایش درخت والد، در صورت انتخاب یک المان غیرکانتینر، المان کپی‌شده به عنوان برادر مجاور (`sibling`) با `index + 1` درج می‌شود.
+3. **عدم همگام‌سازی خودکار ویرایش کامپوننت‌های سراسری روی سایر نمونه‌ها (`Global Components Out of Sync`)**:
+   - *مشاهده*: ویرایش پروپ‌ها و استایل‌های یک کامپوننت علامت‌گذاری‌شده به عنوان سراسری (`globalComponentId`) فقط روی نمونه فعلی اثر می‌کرد و سایر نمونه‌های همگام به‌روزرسانی نمی‌شدند.
+   - *اصلاح ریشه‌ای*: بازنویسی `updateElementProps`، `updateElementStyles` و `updateDeviceStyles` در `builder-store.ts` برای به‌روزرسانی تمام نودهای دارای همان `globalComponentId` در سراسر درخت AST.
+4. **عدم ثبت تاریخچه Undo در زمان اعمال قالب کامل برگه (`Page Template Apply Undo Loss`)**:
+   - *مشاهده*: در `blocks-palette.tsx`، تابع `handleApplyPageTemplate` مستقیماً استیت را بدون ثبت در `history.past` تغییر می‌داد و امکان بازگشت با `Ctrl+Z` وجود نداشت.
+   - *اصلاح ریشه‌ای*: ایجاد متد اختصاصی `replacePageAST` در `builder-store.ts` با حفظ تاریخچه `past` و مدیریت صحیح `mutationVersion`.
+
+#### ۲. مستندات بصری (Vision Artifacts)
+- **قبل از اصلاح**: `.loop/artifacts/builder-gym/round-04/before/`
+  - `01-canvas-shortcuts-paste.png`
+  - `02-palette-templates-tab.png`
+- **بعد از اصلاح**: `.loop/artifacts/builder-gym/round-04/after/`
+  - `01-canvas-shortcuts-paste.png` (درج موفق المان کپی‌شده «متن دوم (کپی)» دقیقاً در مجاورت المان فعال)
+  - `02-palette-templates-tab.png` (نمایش تمیز و بی‌نقص زبانه قالب‌های من با امکان درگ، کپی و حذف)
+
+#### ۳. تست رگرسیون دائمی اضافه‌شده
+- فایل تست Playwright: `frontend/tests/e2e/builder-gym-r04.spec.ts` (۳ تست سبز)
+
+#### ۴. نتایج نهایی ممیزی و تست‌ها در راند ۴
+- `npx tsc --noEmit`: ۰ خطا (سبز)
+- `npm test` (Vitest): **۳۶۹ تست سبز در ۴۵ فایل** (`369 passed`)
+- `python -m pytest app/tests/unit`: **۶۲۲ تست سبز** (`622 passed, 2 skipped`)
+- تست‌های Playwright راند ۴: **۳ تست سبز (`3 passed in 13.2s`)**
+- `node .loop/audits/deterministic-audit.mjs`: **پاس ۱۰۰٪ تمام چک‌ها (`passed: true`)**
+
+---
+
+
 

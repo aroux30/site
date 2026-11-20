@@ -157,8 +157,33 @@ export function CanvasFrame({
     };
     doc.addEventListener("dragover", handleDragOver);
 
+    // Forward keyboard events (Ctrl+Z, Ctrl+Y, Ctrl+C, Ctrl+V, Delete) to parent window
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const targetTag = (e.target as HTMLElement)?.tagName?.toLowerCase();
+      const isInput =
+        targetTag === "input" ||
+        targetTag === "textarea" ||
+        (e.target as HTMLElement)?.isContentEditable;
+      if (isInput) return;
+
+      window.dispatchEvent(
+        new KeyboardEvent(e.type, {
+          key: e.key,
+          code: e.code,
+          ctrlKey: e.ctrlKey,
+          metaKey: e.metaKey,
+          shiftKey: e.shiftKey,
+          altKey: e.altKey,
+          bubbles: true,
+          cancelable: true,
+        })
+      );
+    };
+    doc.addEventListener("keydown", handleKeyDown);
+
     return () => {
       doc.removeEventListener("dragover", handleDragOver);
+      doc.removeEventListener("keydown", handleKeyDown);
     };
   }, [syncStyles]);
 

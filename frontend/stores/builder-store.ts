@@ -231,6 +231,7 @@ export interface BuilderState {
   // Global Components (P4)
   makeGlobalComponent: (id: string) => string | null;
   updateGlobalComponent: (globalComponentId: string, patch: Partial<BuilderElement>) => void;
+  replacePageAST: (newAst: PageAST) => void;
 
   // History & Save
   undo: () => void;
@@ -395,11 +396,30 @@ export const useBuilderStore = create<BuilderState>((set, get) => ({
   updateElementProps: (id, props) => {
     const { ast, history } = get();
     const newPast = [...history.past, ast].slice(-MAX_HISTORY_LENGTH);
+    const target = findElementById(ast.rootElements, id);
+    const globalId = target?.globalComponentId;
 
-    const updatedRoots = updateElementInTree(ast.rootElements, id, (el) => ({
-      ...el,
-      widgetProps: { ...(el.widgetProps || {}), ...props },
-    }));
+    let updatedRoots: BuilderElement[];
+    if (globalId) {
+      function syncPropsInTree(elements: BuilderElement[]): BuilderElement[] {
+        return elements.map((el) => {
+          let curr = el;
+          if (el.globalComponentId === globalId) {
+            curr = { ...el, widgetProps: { ...(el.widgetProps || {}), ...props } };
+          }
+          if (curr.children && curr.children.length > 0) {
+            curr = { ...curr, children: syncPropsInTree(curr.children) };
+          }
+          return curr;
+        });
+      }
+      updatedRoots = syncPropsInTree(ast.rootElements);
+    } else {
+      updatedRoots = updateElementInTree(ast.rootElements, id, (el) => ({
+        ...el,
+        widgetProps: { ...(el.widgetProps || {}), ...props },
+      }));
+    }
 
     set({
       ast: { ...ast, rootElements: updatedRoots },
@@ -412,11 +432,30 @@ export const useBuilderStore = create<BuilderState>((set, get) => ({
   updateElementStyles: (id, styles) => {
     const { ast, history } = get();
     const newPast = [...history.past, ast].slice(-MAX_HISTORY_LENGTH);
+    const target = findElementById(ast.rootElements, id);
+    const globalId = target?.globalComponentId;
 
-    const updatedRoots = updateElementInTree(ast.rootElements, id, (el) => ({
-      ...el,
-      styles: { ...(el.styles || { mobile: {} }), ...styles },
-    }));
+    let updatedRoots: BuilderElement[];
+    if (globalId) {
+      function syncStylesInTree(elements: BuilderElement[]): BuilderElement[] {
+        return elements.map((el) => {
+          let curr = el;
+          if (el.globalComponentId === globalId) {
+            curr = { ...el, styles: { ...(el.styles || { mobile: {} }), ...styles } };
+          }
+          if (curr.children && curr.children.length > 0) {
+            curr = { ...curr, children: syncStylesInTree(curr.children) };
+          }
+          return curr;
+        });
+      }
+      updatedRoots = syncStylesInTree(ast.rootElements);
+    } else {
+      updatedRoots = updateElementInTree(ast.rootElements, id, (el) => ({
+        ...el,
+        styles: { ...(el.styles || { mobile: {} }), ...styles },
+      }));
+    }
 
     set({
       ast: { ...ast, rootElements: updatedRoots },
@@ -429,20 +468,47 @@ export const useBuilderStore = create<BuilderState>((set, get) => ({
   updateDeviceStyles: (id, bp, patch) => {
     const { ast, history } = get();
     const newPast = [...history.past, ast].slice(-MAX_HISTORY_LENGTH);
+    const target = findElementById(ast.rootElements, id);
+    const globalId = target?.globalComponentId;
 
-    const updatedRoots = updateElementInTree(ast.rootElements, id, (el) => {
-      const currentStyles = el.styles || { mobile: {} };
-      const currentDeviceStyle = currentStyles[bp] || {};
-      const updatedDeviceStyle = { ...currentDeviceStyle, ...patch };
+    let updatedRoots: BuilderElement[];
+    if (globalId) {
+      function syncDeviceStylesInTree(elements: BuilderElement[]): BuilderElement[] {
+        return elements.map((el) => {
+          let curr = el;
+          if (el.globalComponentId === globalId) {
+            const currentStyles = el.styles || { mobile: {} };
+            const currentDeviceStyle = currentStyles[bp] || {};
+            curr = {
+              ...el,
+              styles: {
+                ...currentStyles,
+                [bp]: { ...currentDeviceStyle, ...patch },
+              },
+            };
+          }
+          if (curr.children && curr.children.length > 0) {
+            curr = { ...curr, children: syncDeviceStylesInTree(curr.children) };
+          }
+          return curr;
+        });
+      }
+      updatedRoots = syncDeviceStylesInTree(ast.rootElements);
+    } else {
+      updatedRoots = updateElementInTree(ast.rootElements, id, (el) => {
+        const currentStyles = el.styles || { mobile: {} };
+        const currentDeviceStyle = currentStyles[bp] || {};
+        const updatedDeviceStyle = { ...currentDeviceStyle, ...patch };
 
-      return {
-        ...el,
-        styles: {
-          ...currentStyles,
-          [bp]: updatedDeviceStyle,
-        },
-      };
-    });
+        return {
+          ...el,
+          styles: {
+            ...currentStyles,
+            [bp]: updatedDeviceStyle,
+          },
+        };
+      });
+    }
 
     set({
       ast: { ...ast, rootElements: updatedRoots },
@@ -576,10 +642,32 @@ export const useBuilderStore = create<BuilderState>((set, get) => ({
   },
 
   pasteElement: (targetContainerId) => {
-    const { clipboard, selectedElementId, addElement } = get();
+    const { clipboard, selectedElementId, ast, addElement } = get();
     if (!clipboard.element) return;
     const cloned = cloneElementWithNewIds(clipboard.element);
-    addElement(cloned, targetContainerId || selectedElementId || undefined);
+
+    if (targetContainerId) {
+      addElement(cloned, targetContainerId);
+      return;
+    }
+
+    if (selectedElementId) {
+      const info = findElementAndParent(ast.rootElements, selectedElementId);
+      if (info) {
+        if (info.element.type === "container") {
+          addElement(cloned, selectedElementId);
+          return;
+        } else if (info.parent) {
+          addElement(cloned, info.parent.id, info.index + 1);
+          return;
+        } else {
+          addElement(cloned, undefined, info.index + 1);
+          return;
+        }
+      }
+    }
+
+    addElement(cloned);
   },
 
   copyStyles: (id) => {
@@ -651,6 +739,19 @@ export const useBuilderStore = create<BuilderState>((set, get) => ({
     const updatedRoots = syncGlobalInTree(ast.rootElements);
     set({
       ast: { ...ast, rootElements: updatedRoots },
+      isDirty: true,
+      mutationVersion: get().mutationVersion + 1,
+      history: { past: newPast, future: [] },
+    });
+  },
+
+  replacePageAST: (newAst) => {
+    const { ast, history } = get();
+    const newPast = [...history.past, ast].slice(-MAX_HISTORY_LENGTH);
+    set({
+      ast: newAst,
+      selectedElementId: null,
+      selectedElementIds: [],
       isDirty: true,
       mutationVersion: get().mutationVersion + 1,
       history: { past: newPast, future: [] },

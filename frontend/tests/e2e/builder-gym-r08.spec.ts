@@ -3,7 +3,7 @@ import path from "node:path";
 import fs from "node:fs";
 import { execSync } from "node:child_process";
 
-const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || "http://127.0.0.1:3000";
+const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || "http://127.0.0.1:3100";
 const BACKEND_DIR = path.resolve("C:/Users/Administrator/Desktop/site/backend");
 
 function getAdminToken() {
@@ -30,17 +30,18 @@ asyncio.run(main())
   }
 }
 
-test.describe("Builder Gym Round 08: Accordion Item CRUD, Dynamic Title Sync & Filter Event Propagation", () => {
+test.describe("Builder Gym Round 08: Weight 2 (Pricing Table, Categories & Quotes Regression)", () => {
   test.beforeEach(async ({ context }) => {
+    const probeIp = `10.97.${Math.floor(Math.random() * 200) + 1}.${Math.floor(Math.random() * 200) + 1}`;
+    await context.setExtraHTTPHeaders({
+      "X-Forwarded-For": `${probeIp}, 10.0.0.1`,
+    });
     const token = getAdminToken();
     if (token) {
       await context.addCookies([
         { name: "access_token", value: token, url: BASE_URL, httpOnly: false, sameSite: "Lax" },
       ]);
     }
-    await context.setExtraHTTPHeaders({
-      "x-forwarded-for": `10.200.${Math.floor(Math.random() * 200)}.${Math.floor(Math.random() * 200)}`,
-    });
     await context.addInitScript(() => {
       localStorage.setItem(
         "auth-storage",
@@ -51,95 +52,55 @@ test.describe("Builder Gym Round 08: Accordion Item CRUD, Dynamic Title Sync & F
     });
   });
 
-  test("1. Accordion items can be added and deleted in Inspector with real-time canvas sync", async ({ page }) => {
+  test("1. pricing-table renders description for all plans including featured plan 2", async ({ page }) => {
     await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
-    await page.waitForTimeout(1500);
+    const patternsTab = page.locator("button:has-text('الگوها')").first();
+    await patternsTab.waitFor({ state: "visible", timeout: 15000 });
+    await patternsTab.click();
 
-    // Switch to basic blocks tab
-    const basicBlocksSubTab = page.getByRole("button", { name: /بلوک‌ها/i });
-    await basicBlocksSubTab.click();
-    await page.waitForTimeout(400);
+    const pricingCard = page.locator("div[data-pattern-slug='pricing-table']").first();
+    await expect(pricingCard).toBeVisible({ timeout: 15000 });
+    await pricingCard.click();
 
-    // Search and add accordion block
-    const searchInput = page.getByPlaceholder("جستجوی بلوک پایه...");
-    await searchInput.fill("آکاردئون");
-    await page.waitForTimeout(300);
-
-    const accordionCard = page.locator("button", { hasText: "آکاردئون" }).first();
-    await expect(accordionCard).toBeVisible();
-    await accordionCard.click();
-    await page.waitForTimeout(600);
-
-    // Check inspector has accordion manager
-    const accordionTitle = page.locator("text=مدیریت آیتم‌های تاشو (Accordion)");
-    await expect(accordionTitle).toBeVisible();
-
-    // Count initial items
-    const initialDeleteBtns = page.locator("div.space-y-4 button:has-text('حذف')");
-    const count = await initialDeleteBtns.count();
-
-    // Add a new item
-    const addBtn = page.getByRole("button", { name: "+ افزودن آیتم جدید به آکاردئون" });
-    await expect(addBtn).toBeVisible();
-    await addBtn.click();
-    await page.waitForTimeout(400);
-
-    // Now delete the newly added item
-    const newDeleteBtns = page.locator("div.space-y-4 button:has-text('حذف')");
-    expect(await newDeleteBtns.count()).toBeGreaterThan(count);
-
-    await newDeleteBtns.last().click();
-    await page.waitForTimeout(400);
-
-    expect(await page.locator("div.space-y-4 button:has-text('حذف')").count()).toBe(count);
-  });
-
-  test("2. Save Page Template dialog dynamically reflects the current page title on open", async ({ page }) => {
-    await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
-    await page.waitForTimeout(1500);
-
-    const savePageTplBtn = page.getByRole("button", { name: /قالب برگه/i });
-    await expect(savePageTplBtn).toBeVisible();
-    await savePageTplBtn.click();
-    await page.waitForTimeout(500);
-
-    const dialog = page.locator("div[role='dialog']").first();
-    await expect(dialog).toBeVisible();
-
-    const titleInput = dialog.locator("input.h-8").first();
-    const val = await titleInput.inputValue();
-    expect(val).toContain("E2E Builder Scratchpad");
-
-    await page.keyboard.press("Escape");
-    await page.waitForTimeout(300);
-  });
-
-  test("3. Product grid filter tabs stop propagation on click inside canvas", async ({ page }) => {
-    await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
-    await page.waitForTimeout(1500);
-
-    // Switch to basic blocks tab
-    const basicBlocksSubTab = page.getByRole("button", { name: /بلوک‌ها/i });
-    await basicBlocksSubTab.click();
-    await page.waitForTimeout(400);
-
-    const searchInput = page.getByPlaceholder("جستجوی بلوک پایه...");
-    await searchInput.fill("ویترین محصولات");
-    await page.waitForTimeout(300);
-
-    const gridBlockCard = page.locator("button", { hasText: "ویترین محصولات" }).first();
-    await expect(gridBlockCard).toBeVisible();
-    await gridBlockCard.click();
-    await page.waitForTimeout(800);
-
-    // Frame canvas
     const frame = page.frameLocator('iframe[title="Visual Builder Canvas"]');
-    const featuredBtn = frame.locator("button:has-text('ویژه')").first();
-    await expect(featuredBtn).toBeVisible();
-    await featuredBtn.click();
-    await page.waitForTimeout(400);
+    const plan2Desc = frame.locator("text=/بهترین انتخاب برای تیم‌ها/").first();
+    await expect(plan2Desc).toBeVisible({ timeout: 15000 });
 
-    // Active filter class applied to button
-    await expect(featuredBtn).toHaveClass(/bg-primary/);
+    const plan1Heading = frame.locator("h3:has-text('پایه')").first();
+    const plan2Heading = frame.locator("h3:has-text('حرفه‌ای')").first();
+    const plan3Heading = frame.locator("h3:has-text('ویژه')").first();
+    await expect(plan1Heading).toBeVisible({ timeout: 15000 });
+    await expect(plan2Heading).toBeVisible({ timeout: 15000 });
+    await expect(plan3Heading).toBeVisible({ timeout: 15000 });
+  });
+
+  test("2. mega-menu-categories renders 4 full-width category buttons", async ({ page }) => {
+    await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
+    const patternsTab = page.locator("button:has-text('الگوها')").first();
+    await patternsTab.waitFor({ state: "visible", timeout: 15000 });
+    await patternsTab.click();
+
+    const megaMenuCard = page.locator("div[data-pattern-slug='mega-menu-categories']").first();
+    await expect(megaMenuCard).toBeVisible({ timeout: 15000 });
+    await megaMenuCard.click();
+
+    const frame = page.frameLocator('iframe[title="Visual Builder Canvas"]');
+    const laptopBtn = frame.locator("span:has-text('لپ‌تاپ و کامپیوتر')").first();
+    await expect(laptopBtn).toBeVisible({ timeout: 15000 });
+  });
+
+  test("3. pull-quote and support-callout render semantic quote and support box", async ({ page }) => {
+    await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
+    const patternsTab = page.locator("button:has-text('الگوها')").first();
+    await patternsTab.waitFor({ state: "visible", timeout: 15000 });
+    await patternsTab.click();
+
+    const quoteCard = page.locator("div[data-pattern-slug='pull-quote']").first();
+    await expect(quoteCard).toBeVisible({ timeout: 15000 });
+    await quoteCard.click();
+
+    const frame = page.frameLocator('iframe[title="Visual Builder Canvas"]');
+    const quoteEl = frame.locator("h3:has-text('سرمایه‌گذاری روی کیفیت')").first();
+    await expect(quoteEl).toBeVisible({ timeout: 15000 });
   });
 });

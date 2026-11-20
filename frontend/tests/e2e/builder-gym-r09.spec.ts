@@ -3,7 +3,7 @@ import path from "node:path";
 import fs from "node:fs";
 import { execSync } from "node:child_process";
 
-const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || "http://127.0.0.1:3200";
+const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || "http://127.0.0.1:3100";
 const BACKEND_DIR = path.resolve("C:/Users/Administrator/Desktop/site/backend");
 
 function getAdminToken() {
@@ -30,17 +30,18 @@ asyncio.run(main())
   }
 }
 
-test.describe("Builder Gym Round 09: Dynamic Countdown Calculation & Product Grid Inspector Controls", () => {
+test.describe("Builder Gym Round 09: Weight 2 (Comparison Table, Lead Form & Brand Highlights)", () => {
   test.beforeEach(async ({ context }) => {
+    const probeIp = `10.97.${Math.floor(Math.random() * 200) + 1}.${Math.floor(Math.random() * 200) + 1}`;
+    await context.setExtraHTTPHeaders({
+      "X-Forwarded-For": `${probeIp}, 10.0.0.1`,
+    });
     const token = getAdminToken();
     if (token) {
       await context.addCookies([
         { name: "access_token", value: token, url: BASE_URL, httpOnly: false, sameSite: "Lax" },
       ]);
     }
-    await context.setExtraHTTPHeaders({
-      "x-forwarded-for": `10.200.${Math.floor(Math.random() * 200)}.${Math.floor(Math.random() * 200)}`,
-    });
     await context.addInitScript(() => {
       localStorage.setItem(
         "auth-storage",
@@ -51,88 +52,61 @@ test.describe("Builder Gym Round 09: Dynamic Countdown Calculation & Product Gri
     });
   });
 
-  test("1. Countdown block dynamically computes Persian remaining days from target date", async ({ page }) => {
+  test("1. comparison-table renders 3-column table with column 1 highlighted", async ({ page }) => {
     await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
-    await page.waitForTimeout(1500);
+    const patternsTab = page.locator("button:has-text('الگوها')").first();
+    await patternsTab.waitFor({ state: "visible", timeout: 15000 });
+    await patternsTab.click();
 
-    // Switch to basic blocks tab
-    const basicBlocksSubTab = page.getByRole("button", { name: /بلوک‌ها/i });
-    await basicBlocksSubTab.click();
-    await page.waitForTimeout(400);
+    const compCard = page.locator("div[data-pattern-slug='comparison-table']").first();
+    await expect(compCard).toBeVisible({ timeout: 15000 });
+    await compCard.click();
 
-    // Search and click countdown block
-    const searchInput = page.getByPlaceholder("جستجوی بلوک پایه...");
-    await searchInput.fill("شمارنده معکوس");
-    await page.waitForTimeout(300);
-
-    const countdownCard = page.locator("button", { hasText: "شمارنده معکوس" }).first();
-    await expect(countdownCard).toBeVisible();
-    await countdownCard.click();
-    await page.waitForTimeout(600);
-
-    // In inspector, change target date to 5 days ahead
-    const dateInput = page.locator("input.font-mono[placeholder*='2026-12-31']");
-    await expect(dateInput).toBeVisible();
-    const futureDate = new Date(Date.now() + 5 * 86400 * 1000).toISOString();
-    await dateInput.fill(futureDate);
-    await page.waitForTimeout(500);
-
-    // Verify canvas displays computed days
     const frame = page.frameLocator('iframe[title="Visual Builder Canvas"]');
-    const dayUnits = frame.locator("span:has-text('روز')");
-    await expect(dayUnits).toBeVisible();
+    const tableEl = frame.locator("table").first();
+    await expect(tableEl).toBeVisible({ timeout: 15000 });
+
+    const thPro = frame.locator("th:has-text('مدل پرو')").first();
+    await expect(thPro).toBeVisible();
+    const classes = await thPro.getAttribute("class");
+    expect(classes).toContain("bg-primary/10");
   });
 
-  test("2. Product grid block offers filter and pagination controls in Inspector", async ({ page }) => {
+  test("2. lead-capture-form renders contact inputs and full-width submit button", async ({ page }) => {
     await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
-    await page.waitForTimeout(1500);
+    const patternsTab = page.locator("button:has-text('الگوها')").first();
+    await patternsTab.waitFor({ state: "visible", timeout: 15000 });
+    await patternsTab.click();
 
-    // Switch to basic blocks tab
-    const basicBlocksSubTab = page.getByRole("button", { name: /بلوک‌ها/i });
-    await basicBlocksSubTab.click();
-    await page.waitForTimeout(400);
+    const leadCard = page.locator("div[data-pattern-slug='lead-capture-form']").first();
+    await expect(leadCard).toBeVisible({ timeout: 15000 });
+    await leadCard.click();
 
-    const searchInput = page.getByPlaceholder("جستجوی بلوک پایه...");
-    await searchInput.fill("ویترین محصولات");
-    await page.waitForTimeout(300);
+    const frame = page.frameLocator('iframe[title="Visual Builder Canvas"]');
+    const nameInput = frame.locator("input[placeholder*='نام و نام خانوادگی']").first();
+    const phoneInput = frame.locator("input[placeholder*='شماره همراه']").first();
+    await expect(nameInput).toBeVisible({ timeout: 15000 });
+    await expect(phoneInput).toBeVisible({ timeout: 15000 });
 
-    const gridBlockCard = page.locator("button", { hasText: "ویترین محصولات" }).first();
-    await expect(gridBlockCard).toBeVisible();
-    await gridBlockCard.click();
-    await page.waitForTimeout(800);
-
-    // Verify inspector controls for product grid
-    const limitLabel = page.locator("text=تعداد کالاهای نمایشی");
-    await expect(limitLabel).toBeVisible();
-
-    const filterSelect = page.locator("text=فیلتر پیش‌فرض محصولات");
-    await expect(filterSelect).toBeVisible();
-
-    const paginationSwitch = page.locator("text=نمایش دکمه مشاهده بیشتر");
-    await expect(paginationSwitch).toBeVisible();
+    const submitBtn = frame.locator("span:has-text('درخواست تماس رایگان')").first();
+    await expect(submitBtn).toBeVisible();
   });
 
-  test("3. Video widget URL and source type selection updates properly in Inspector", async ({ page }) => {
+  test("3. brand-logo-carousel renders logos grid and trust badge note", async ({ page }) => {
     await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
-    await page.waitForTimeout(1500);
+    const patternsTab = page.locator("button:has-text('الگوها')").first();
+    await patternsTab.waitFor({ state: "visible", timeout: 15000 });
+    await patternsTab.click();
 
-    const basicBlocksSubTab = page.getByRole("button", { name: /بلوک‌ها/i });
-    await basicBlocksSubTab.click();
-    await page.waitForTimeout(400);
+    const brandCard = page.locator("div[data-pattern-slug='brand-logo-carousel']").first();
+    await expect(brandCard).toBeVisible({ timeout: 15000 });
+    await brandCard.click();
 
-    const searchInput = page.getByPlaceholder("جستجوی بلوک پایه...");
-    await searchInput.fill("پخش‌کننده ویدئو");
-    await page.waitForTimeout(300);
+    const frame = page.frameLocator('iframe[title="Visual Builder Canvas"]');
+    const brandHeading = frame.locator("h2:has-text('برندهای معتبر')").first();
+    await expect(brandHeading).toBeVisible({ timeout: 15000 });
 
-    const videoCard = page.locator("button", { hasText: "پخش‌کننده ویدئو" }).first();
-    await expect(videoCard).toBeVisible();
-    await videoCard.click();
-    await page.waitForTimeout(800);
-
-    const videoTypeSelect = page.locator("text=نوع منبع ویدئو");
-    await expect(videoTypeSelect).toBeVisible();
-
-    const urlInput = page.locator("div.space-y-4 input.h-8").last();
-    await expect(urlInput).toBeVisible();
+    const samsungTile = frame.locator("text=/سامسونگ/").first();
+    await expect(samsungTile).toBeVisible();
   });
 });

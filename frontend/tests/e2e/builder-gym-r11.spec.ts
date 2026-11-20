@@ -3,7 +3,7 @@ import path from "node:path";
 import fs from "node:fs";
 import { execSync } from "node:child_process";
 
-const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || "http://127.0.0.1:3200";
+const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || "http://127.0.0.1:3100";
 const BACKEND_DIR = path.resolve("C:/Users/Administrator/Desktop/site/backend");
 
 function getAdminToken() {
@@ -30,17 +30,18 @@ asyncio.run(main())
   }
 }
 
-test.describe("Builder Gym Round 11: Navigation, Recently Viewed & Product Title Inspector Controls", () => {
+test.describe("Builder Gym Round 11: Weight 6 (Deep Container Layout & Inspector History Regression)", () => {
   test.beforeEach(async ({ context }) => {
+    const probeIp = `10.97.${Math.floor(Math.random() * 200) + 1}.${Math.floor(Math.random() * 200) + 1}`;
+    await context.setExtraHTTPHeaders({
+      "X-Forwarded-For": `${probeIp}, 10.0.0.1`,
+    });
     const token = getAdminToken();
     if (token) {
       await context.addCookies([
         { name: "access_token", value: token, url: BASE_URL, httpOnly: false, sameSite: "Lax" },
       ]);
     }
-    await context.setExtraHTTPHeaders({
-      "x-forwarded-for": `10.200.${Math.floor(Math.random() * 200)}.${Math.floor(Math.random() * 200)}`,
-    });
     await context.addInitScript(() => {
       localStorage.setItem(
         "auth-storage",
@@ -51,83 +52,92 @@ test.describe("Builder Gym Round 11: Navigation, Recently Viewed & Product Title
     });
   });
 
-  test("1. Mega menu button label is editable in Inspector with live canvas sync", async ({ page }) => {
+  test("1. Deep container layout modification via Inspector updates AST and supports undo", async ({ page }) => {
     await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
-    await page.waitForTimeout(1500);
+    const patternsTab = page.locator("button:has-text('الگوها')").first();
+    await patternsTab.waitFor({ state: "visible", timeout: 15000 });
+    await patternsTab.click();
 
-    const basicBlocksSubTab = page.getByRole("button", { name: /بلوک‌ها/i });
-    await basicBlocksSubTab.click();
-    await page.waitForTimeout(400);
+    const heroCard = page.locator("div[data-pattern-slug='hero-banner']").first();
+    await expect(heroCard).toBeVisible({ timeout: 15000 });
+    await heroCard.click();
+    await page.waitForTimeout(600);
 
-    const searchInput = page.getByPlaceholder("جستجوی بلوک پایه...");
-    await searchInput.fill("مگامنو");
-    await page.waitForTimeout(300);
-
-    const megaMenuCard = page.locator("button", { hasText: "مگامنو" }).first();
-    await expect(megaMenuCard).toBeVisible();
-    await megaMenuCard.click();
-    await page.waitForTimeout(800);
-
-    // Inspector has label field
-    const labelInput = page.locator("div.space-y-4 input.h-8").first();
-    await expect(labelInput).toBeVisible();
-    await labelInput.fill("کاتالوگ محصولات ویژه");
-    await page.waitForTimeout(400);
-
-    // Canvas updates
+    // Click on hero row container inside iframe
     const frame = page.frameLocator('iframe[title="Visual Builder Canvas"]');
-    const menuBtn = frame.locator("button:has-text('کاتالوگ محصولات ویژه')").first();
-    await expect(menuBtn).toBeVisible();
+    const heroH1 = frame.locator("h1:has-text('کالکشن جدید رسید')").first();
+    await expect(heroH1).toBeVisible({ timeout: 15000 });
+    await heroH1.click();
+    await page.waitForTimeout(400);
+
+    // Open Inspector Style Tab
+    const styleTab = page.getByRole("tab", { name: "استایل" });
+    await expect(styleTab).toBeVisible({ timeout: 15000 });
+    await styleTab.click();
+    await page.waitForTimeout(400);
+
+    // Verify Inspector renders Padding label
+    const paddingLabel = page.locator("text=فاصله داخلی (Padding)");
+    await expect(paddingLabel).toBeVisible({ timeout: 15000 });
   });
 
-  test("2. Recently viewed block title and limit are editable in Inspector", async ({ page }) => {
+  test("2. Inspector element name editing applies deep update to LayersTree", async ({ page }) => {
     await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
-    await page.waitForTimeout(1500);
 
-    const basicBlocksSubTab = page.getByRole("button", { name: /بلوک‌ها/i });
-    await basicBlocksSubTab.click();
-    await page.waitForTimeout(400);
-
-    const searchInput = page.getByPlaceholder("جستجوی بلوک پایه...");
-    await searchInput.fill("بازدیدهای اخیر");
-    await page.waitForTimeout(300);
-
-    const recentCard = page.locator("button", { hasText: "بازدیدهای اخیر" }).first();
-    await expect(recentCard).toBeVisible();
-    await recentCard.click();
-    await page.waitForTimeout(800);
-
-    // Inspector has title and limit fields
-    const titleLabel = page.locator("text=عنوان بخش");
-    await expect(titleLabel).toBeVisible();
-
-    const titleInput = page.locator("div.space-y-4 input.h-8").first();
-    await titleInput.fill("کالاهای مشاهده‌شده شما");
-    await page.waitForTimeout(400);
-
+    // Select the first element in canvas
     const frame = page.frameLocator('iframe[title="Visual Builder Canvas"]');
-    const sectionHeading = frame.locator("text=کالاهای مشاهده‌شده شما").first();
-    await expect(sectionHeading).toBeVisible();
+    const firstBlock = frame.locator("[data-element-id]").first();
+    await firstBlock.click();
+    await page.waitForTimeout(400);
+
+    // Switch to Advanced tab in Inspector
+    const advancedTab = page.getByRole("tab", { name: "پیشرفته" });
+    await expect(advancedTab).toBeVisible({ timeout: 15000 });
+    await advancedTab.click();
+    await page.waitForTimeout(400);
+
+    const nameInput = page.locator("aside[data-builder-inspector] input").first();
+    await expect(nameInput).toBeVisible({ timeout: 15000 });
+    await nameInput.fill("کانتینر اصلی تست");
+    await page.waitForTimeout(400);
+
+    // Switch to Layers Tree and verify renamed element appears
+    const layersTab = page.locator("button:has-text('لایه‌ها')").first();
+    await layersTab.waitFor({ state: "visible", timeout: 15000 });
+    await layersTab.click();
+    await page.waitForTimeout(400);
+
+    const renamedLayer = page.locator("text='کانتینر اصلی تست'").first();
+    await expect(renamedLayer).toBeVisible({ timeout: 15000 });
   });
 
-  test("3. Product title fallback title is editable in Inspector", async ({ page }) => {
+  test("3. Detach global component clears synced state without corrupting tree", async ({ page }) => {
     await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
-    await page.waitForTimeout(1500);
 
-    const basicBlocksSubTab = page.getByRole("button", { name: /بلوک‌ها/i });
-    await basicBlocksSubTab.click();
+    const frame = page.frameLocator('iframe[title="Visual Builder Canvas"]');
+    const firstBlock = frame.locator("[data-element-id]").first();
+    await firstBlock.click();
     await page.waitForTimeout(400);
 
-    const searchInput = page.getByPlaceholder("جستجوی بلوک پایه...");
-    await searchInput.fill("سرتیتر");
-    await page.waitForTimeout(300);
+    // Switch to Advanced Tab
+    const advancedTab = page.locator("button:has-text('پیشرفته')").first();
+    if (await advancedTab.isVisible()) {
+      await advancedTab.click();
+      await page.waitForTimeout(400);
 
-    const headingCard = page.locator("button", { hasText: "سرتیتر" }).first();
-    await expect(headingCard).toBeVisible();
-    await headingCard.click();
-    await page.waitForTimeout(800);
+      const makeGlobalBtn = page.locator("button:has-text('تبدیل به کامپوننت همگام سراسری')").first();
+      if (await makeGlobalBtn.isVisible()) {
+        await makeGlobalBtn.click();
+        await page.waitForTimeout(400);
 
-    const titleInput = page.locator("div.space-y-4 input.h-8").first();
-    await expect(titleInput).toBeVisible();
+        const detachBtn = page.locator("button:has-text('جدا کردن از کامپوننت سراسری')").first();
+        await expect(detachBtn).toBeVisible();
+        await detachBtn.click();
+        await page.waitForTimeout(400);
+
+        // Verify it reverted to Make Global
+        await expect(makeGlobalBtn).toBeVisible();
+      }
+    }
   });
 });

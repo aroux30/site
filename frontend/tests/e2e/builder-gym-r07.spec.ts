@@ -30,17 +30,18 @@ asyncio.run(main())
   }
 }
 
-test.describe("Builder Gym Round 07: Global Design Tokens, Width Presets & WYSIWYG Storefront Parity", () => {
+test.describe("Builder Gym Round 07: Weight 2 (E-Commerce, Ratings & Root-Level Pattern Insertion)", () => {
   test.beforeEach(async ({ context }) => {
+    const probeIp = `10.97.${Math.floor(Math.random() * 200) + 1}.${Math.floor(Math.random() * 200) + 1}`;
+    await context.setExtraHTTPHeaders({
+      "X-Forwarded-For": `${probeIp}, 10.0.0.1`,
+    });
     const token = getAdminToken();
     if (token) {
       await context.addCookies([
         { name: "access_token", value: token, url: BASE_URL, httpOnly: false, sameSite: "Lax" },
       ]);
     }
-    await context.setExtraHTTPHeaders({
-      "x-forwarded-for": `10.200.${Math.floor(Math.random() * 200)}.${Math.floor(Math.random() * 200)}`,
-    });
     await context.addInitScript(() => {
       localStorage.setItem(
         "auth-storage",
@@ -51,61 +52,63 @@ test.describe("Builder Gym Round 07: Global Design Tokens, Width Presets & WYSIW
     });
   });
 
-  test("1. Global Styles Dialog includes color presets for both Primary and Secondary colors", async ({ page }) => {
+  test("1. star-rating-display applies text-amber-400 and font-bold to rating heading", async ({ page }) => {
     await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
-    await page.waitForTimeout(1500);
+    const patternsTab = page.locator("button:has-text('الگوها')").first();
+    await patternsTab.waitFor({ state: "visible", timeout: 15000 });
+    await patternsTab.click();
 
-    const globalStylesBtn = page.getByRole("button", { name: /استایل سراسری/i });
-    await expect(globalStylesBtn).toBeVisible();
-    await globalStylesBtn.click();
-    await page.waitForTimeout(600);
-
-    const dialog = page.locator("div[role='dialog']").first();
-    await expect(dialog).toBeVisible();
-
-    // Check secondary color presets are rendered
-    const secondaryLabel = dialog.locator("text=رنگ مکمل / ثانویه (Secondary Color)");
-    await expect(secondaryLabel).toBeVisible();
-
-    // Swatches exist under secondary color
-    const swatches = dialog.locator("div.space-y-1\\.5:has-text('Secondary Color') button");
-    const count = await swatches.count();
-    expect(count).toBeGreaterThanOrEqual(8);
-  });
-
-  test("2. Width token chips apply responsive dimensions with proper RTL labels", async ({ page }) => {
-    await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
-    await page.waitForTimeout(1500);
+    const starCard = page.locator("div[data-pattern-slug='star-rating-display']").first();
+    await expect(starCard).toBeVisible({ timeout: 15000 });
+    await starCard.click();
 
     const frame = page.frameLocator('iframe[title="Visual Builder Canvas"]');
-    const firstEl = frame.locator("[data-element-id]").first();
-    await firstEl.click();
-    await page.waitForTimeout(400);
+    const starHeading = frame.locator("h4:has-text('★★★★☆')").first();
+    await expect(starHeading).toBeVisible({ timeout: 15000 });
 
-    const styleTab = page.getByRole("tab", { name: "استایل" });
-    await styleTab.click();
-    await page.waitForTimeout(400);
-
-    const container1280Chip = page.getByRole("button", { name: "۱۲۸۰ پیکسل (کانتینر)" });
-    await expect(container1280Chip).toBeVisible();
-    await container1280Chip.click();
-    await page.waitForTimeout(400);
-
-    const widthInput = page.locator("input[placeholder*='100% یا 1280px']");
-    const val = await widthInput.inputValue();
-    expect(val).toBe("1280px");
+    const classes = await starHeading.getAttribute("class");
+    expect(classes).toContain("text-amber-400");
+    expect(classes).toContain("font-bold");
   });
 
-  test("3. Published storefront page with builder_data renders full-width without redundant h1 header", async ({ page }) => {
-    await page.goto(`${BASE_URL}/e2e-isolated-scratchpad`, { waitUntil: "domcontentloaded" });
-    await page.waitForTimeout(1500);
+  test("2. discount-badge-banner renders text-destructive-foreground on percentage and custom button styling", async ({ page }) => {
+    await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
+    const patternsTab = page.locator("button:has-text('الگوها')").first();
+    await patternsTab.waitFor({ state: "visible", timeout: 15000 });
+    await patternsTab.click();
 
-    // Redundant default header should NOT be present
-    const redundantHeader = page.locator("article header h1.text-3xl");
-    await expect(redundantHeader).toHaveCount(0);
+    const discountCard = page.locator("div[data-pattern-slug='discount-badge-banner']").first();
+    await expect(discountCard).toBeVisible({ timeout: 15000 });
+    await discountCard.click();
 
-    // Full-width builder content wrapper is rendered
-    const builderContent = page.locator(".builder-rendered-content");
-    await expect(builderContent).toBeVisible();
+    const frame = page.frameLocator('iframe[title="Visual Builder Canvas"]');
+    const discountHeading = frame.locator("h3:has-text('تخفیف')").first();
+    await expect(discountHeading).toBeVisible({ timeout: 15000 });
+
+    const classes = await discountHeading.getAttribute("class");
+    expect(classes).toContain("text-destructive-foreground");
+  });
+
+  test("3. Consecutively inserted patterns become independent root-level sections", async ({ page }) => {
+    await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
+    const patternsTab = page.locator("button:has-text('الگوها')").first();
+    await patternsTab.waitFor({ state: "visible", timeout: 15000 });
+    await patternsTab.click();
+
+    const card1 = page.locator("div[data-pattern-slug='stats-counter']").first();
+    await expect(card1).toBeVisible({ timeout: 15000 });
+    await card1.click();
+    await page.waitForTimeout(600);
+
+    const card2 = page.locator("div[data-pattern-slug='image-gallery-showcase']").first();
+    await expect(card2).toBeVisible({ timeout: 15000 });
+    await card2.click();
+    await page.waitForTimeout(600);
+
+    const frame = page.frameLocator('iframe[title="Visual Builder Canvas"]');
+    const statsContainer = frame.locator("h3:has-text('۱,۲۳۴')").first();
+    const galleryContainer = frame.locator("h2:has-text('گالری محصولات')").first();
+    await expect(statsContainer).toBeVisible({ timeout: 15000 });
+    await expect(galleryContainer).toBeVisible({ timeout: 15000 });
   });
 });

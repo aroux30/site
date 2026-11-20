@@ -207,8 +207,8 @@ export default function AdminReviewsPage() {
             رد آن را از دید عمومی خارج می‌سازد.
           </p>
         </div>
-        <Button variant="outline" onClick={() => void reload()}>
-          <RefreshCw className="ms-1 h-4 w-4" /> تازه‌سازی
+        <Button variant="outline" onClick={() => void reload()} className="gap-2">
+          <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} /> تازه‌سازی
         </Button>
       </section>
 

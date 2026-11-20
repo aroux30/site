@@ -30,7 +30,7 @@ asyncio.run(main())
   }
 }
 
-test.describe("Builder Gym Round 06: Progressive Overload (Nested Layouts, Gap Parity & Inspector Content Controls)", () => {
+test.describe("Builder Gym Round 06: Weight 2 (Pattern Converter Classes & Toast Stacking Regression)", () => {
   test.beforeEach(async ({ context }) => {
     const token = getAdminToken();
     if (token) {
@@ -38,9 +38,6 @@ test.describe("Builder Gym Round 06: Progressive Overload (Nested Layouts, Gap P
         { name: "access_token", value: token, url: BASE_URL, httpOnly: false, sameSite: "Lax" },
       ]);
     }
-    await context.setExtraHTTPHeaders({
-      "x-forwarded-for": `10.200.${Math.floor(Math.random() * 200)}.${Math.floor(Math.random() * 200)}`,
-    });
     await context.addInitScript(() => {
       localStorage.setItem(
         "auth-storage",
@@ -51,95 +48,53 @@ test.describe("Builder Gym Round 06: Progressive Overload (Nested Layouts, Gap P
     });
   });
 
-  test("1. Container layout update in inspector modifies AST node layout and gap properly", async ({ page }) => {
+  test("1. Heading and text_editor widgets on canvas preserve customCssClass from AST", async ({ page }) => {
     await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
-    await page.waitForTimeout(1500);
+    const patternsTab = page.locator("button:has-text('الگوها')").first();
+    await patternsTab.click();
 
-    // Switch to basic blocks tab
-    const basicBlocksSubTab = page.getByRole("button", { name: /بلوک‌ها/i });
-    await basicBlocksSubTab.click();
-    await page.waitForTimeout(400);
+    const heroCard = page.locator("div[data-pattern-slug='hero-banner']").first();
+    await expect(heroCard).toBeVisible({ timeout: 15000 });
+    await heroCard.click();
 
-    // Click on the container block to insert a new container
-    const containerBlockCard = page.locator("button", { hasText: "کانتینر" }).first();
-    await expect(containerBlockCard).toBeVisible();
-    await containerBlockCard.click();
-    await page.waitForTimeout(600);
-
-    // In inspector, layout controls should be visible for the container
-    const layoutLabel = page.locator("text=نوع چیدمان کانتینر");
-    await expect(layoutLabel).toBeVisible();
-
-    // Change gap input
-    const gapInput = page.locator('[data-testid="container-gap-input"]');
-    await expect(gapInput).toBeVisible();
-    await gapInput.fill("28");
-    await page.waitForTimeout(400);
-
-    const val = await gapInput.inputValue();
-    expect(val).toBe("28");
-  });
-
-  test("2. Tabs and Divider widgets have dedicated rich content inspector controls", async ({ page }) => {
-    await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
-    await page.waitForTimeout(1500);
-
-    // Switch to basic blocks tab
-    const basicBlocksSubTab = page.getByRole("button", { name: /بلوک‌ها/i });
-    await basicBlocksSubTab.click();
-    await page.waitForTimeout(400);
-
-    // Search and click tabs block
-    const searchInput = page.getByPlaceholder("جستجوی بلوک پایه...");
-    await searchInput.fill("تب‌های محتوا");
-    await page.waitForTimeout(300);
-
-    const tabsBlockCard = page.locator("button", { hasText: "تب‌های محتوا" }).first();
-    await expect(tabsBlockCard).toBeVisible();
-    await tabsBlockCard.click();
-    await page.waitForTimeout(800);
-
-    // Check inspector content controls for tabs
-    const tabsControls = page.locator('[data-testid="tabs-inspector-controls"]');
-    await expect(tabsControls).toBeVisible();
-
-    // Add new tab button should be clickable
-    const addTabBtn = page.getByRole("button", { name: "+ افزودن زبانه" });
-    await expect(addTabBtn).toBeVisible();
-    await addTabBtn.click();
-    await page.waitForTimeout(400);
-
-    const tab3Label = page.locator("text=زبانه").first();
-    await expect(tab3Label).toBeVisible();
-  });
-
-  test("3. Element renaming and visibility toggles operate correctly without AST corruption", async ({ page }) => {
-    await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
-    await page.waitForTimeout(1500);
-
-    // Select first canvas element
     const frame = page.frameLocator('iframe[title="Visual Builder Canvas"]');
-    const firstEl = frame.locator("[data-element-id]").first();
-    await firstEl.click();
-    await page.waitForTimeout(400);
+    const heroHeading = frame.locator("h1:has-text('کالکشن جدید رسید')").first();
+    await expect(heroHeading).toBeVisible({ timeout: 15000 });
 
-    // Switch inspector to Advanced tab
-    const advancedTab = page.getByRole("tab", { name: "پیشرفته" });
-    await advancedTab.click();
-    await page.waitForTimeout(400);
+    // Verify customCssClass from createHeadingWidget is applied
+    const classes = await heroHeading.getAttribute("class");
+    expect(classes).toContain("text-3xl");
+    expect(classes).toContain("md:text-5xl");
+  });
 
-    // Rename input is the first text input in the advanced tab
-    const nameInput = page.locator("div.space-y-4 input.h-8").first();
-    await expect(nameInput).toBeVisible();
-    await nameInput.fill("سکشن لندینگ آزمایشی");
-    await page.waitForTimeout(400);
+  test("2. Countdown-offer pattern applies font-mono and text-primary to timer heading", async ({ page }) => {
+    await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
+    const patternsTab = page.locator("button:has-text('الگوها')").first();
+    await patternsTab.click();
 
-    // Switch to layers tab in sidebar to verify the rename is immediately visible
-    const layersTab = page.getByRole("button", { name: "لایه‌ها" });
-    await layersTab.click();
-    await page.waitForTimeout(500);
+    const countdownCard = page.locator("div[data-pattern-slug='countdown-offer']").first();
+    await expect(countdownCard).toBeVisible({ timeout: 15000 });
+    await countdownCard.click();
 
-    const renamedItem = page.locator("text=سکشن لندینگ آزمایشی").first();
-    await expect(renamedItem).toBeVisible();
+    const frame = page.frameLocator('iframe[title="Visual Builder Canvas"]');
+    const timerHeading = frame.locator("h3:has-text('مهلت:')").first();
+    await expect(timerHeading).toBeVisible({ timeout: 15000 });
+
+    const classes = await timerHeading.getAttribute("class");
+    expect(classes).toContain("font-mono");
+    expect(classes).toContain("text-primary");
+  });
+
+  test("3. Rapid pattern additions auto-dismiss toasts without viewport overlay clutter", async ({ page }) => {
+    await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
+    const patternsTab = page.locator("button:has-text('الگوها')").first();
+    await patternsTab.click();
+
+    const featureCard = page.locator("div[data-pattern-slug='feature-grid']").first();
+    await expect(featureCard).toBeVisible({ timeout: 15000 });
+    await featureCard.click();
+
+    const toastItem = page.locator("[role='alert']").first();
+    await expect(toastItem).toBeVisible();
   });
 });

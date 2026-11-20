@@ -92,7 +92,7 @@ export default function SeoSettingsPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" dir="rtl">
       <div>
         <h1 className="text-2xl font-black">تنظیمات سئو</h1>
         <p className="mt-1 text-sm text-muted-foreground">
@@ -129,9 +129,9 @@ export default function SeoSettingsPage() {
           <Button
             onClick={() => void saveSiteUrl()}
             disabled={savingUrl || !siteUrl.trim() || siteUrl.trim() === savedSiteUrl}
-            className="bg-emerald-600 hover:bg-emerald-700"
+            className="bg-emerald-600 hover:bg-emerald-700 gap-2"
           >
-            {savingUrl ? <Loader2 className="h-4 w-4 animate-spin ms-1" /> : <Save className="h-4 w-4 ms-1" />}
+            {savingUrl ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
             ذخیره آدرس
           </Button>
         </CardContent>

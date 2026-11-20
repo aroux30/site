@@ -1,0 +1,17 @@
+{
+  "stage": "after",
+  "timestamp": "2026-11-20T13:02:52.103Z",
+  "weight": "Weight 2: Deep Visual Audit of Block Patterns Batch 4 (Patterns 22-28: Comparison Table, Lead Form & Highlights) (10kg)",
+  "checks": {
+    "comparisonStepsScreenshot": "C:\\Users\\Administrator\\Desktop\\site\\.claude\\worktrees\\lucid-cartwright-fe0984\\.loop\\artifacts\\builder-gym\\round-09\\after\\01-pattern-comparison-steps.png",
+    "tableHighlight": {
+      "classes": "p-3.5 bg-primary/10 text-primary font-bold border-x border-primary/20",
+      "hasPrimaryBg": true
+    },
+    "leadFormAlertScreenshot": "C:\\Users\\Administrator\\Desktop\\site\\.claude\\worktrees\\lucid-cartwright-fe0984\\.loop\\artifacts\\builder-gym\\round-09\\after\\02-pattern-leadform-alert.png",
+    "leadFormBadge": {
+      "rendered": true
+    },
+    "contactBrandHighlightsScreenshot": "C:\\Users\\Administrator\\Desktop\\site\\.claude\\worktrees\\lucid-cartwright-fe0984\\.loop\\artifacts\\builder-gym\\round-09\\after\\03-pattern-contact-brand-highlights.png"
+  }
+}

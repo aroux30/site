@@ -48,7 +48,7 @@ export default function LinkCounterPage() {
   }, [load, orphansOnly]);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" dir="rtl">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="flex items-center gap-2 text-xl font-bold">
@@ -69,8 +69,8 @@ export default function LinkCounterPage() {
             />
             فقط نوشته‌های یتیم
           </label>
-          <Button variant="outline" size="sm" onClick={() => void load(orphansOnly)}>
-            <RefreshCw className="h-4 w-4 ms-2" />
+          <Button variant="outline" size="sm" onClick={() => void load(orphansOnly)} className="gap-2">
+            <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
             بروزرسانی
           </Button>
         </div>

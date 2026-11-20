@@ -28,11 +28,18 @@ import fs from "node:fs";
 
 export async function createAccessTokenForE2E(): Promise<string> {
   const cwd = process.cwd();
+  const candidateDirs = [
+    process.env.E2E_BACKEND_DIR,
+    path.resolve(cwd, "../../../../backend"),
+    path.resolve(cwd, "../../../backend"),
+    path.join(cwd, "backend"),
+    path.join(cwd, "..", "backend"),
+  ].filter(Boolean) as string[];
+
   const backendDir =
-    process.env.E2E_BACKEND_DIR ||
-    (fs.existsSync(path.join(cwd, "backend"))
-      ? path.join(cwd, "backend")
-      : path.join(cwd, "..", "backend"));
+    candidateDirs.find((d) => fs.existsSync(path.join(d, ".env"))) ||
+    candidateDirs.find((d) => fs.existsSync(d)) ||
+    path.join(cwd, "backend");
 
   const script = `
 import asyncio, datetime, uuid

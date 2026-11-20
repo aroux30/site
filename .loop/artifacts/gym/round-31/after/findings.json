@@ -1,0 +1,21 @@
+{
+  "stage": "after",
+  "timestamp": "2026-11-20T14:58:14.489Z",
+  "tests": {
+    "permalinks": {
+      "shot": "C:\\Users\\Administrator\\Desktop\\site\\.loop\\artifacts\\gym\\round-25\\after\\01-admin-permalinks.png"
+    },
+    "widgets": {
+      "shot": "C:\\Users\\Administrator\\Desktop\\site\\.loop\\artifacts\\gym\\round-25\\after\\02-admin-widgets.png"
+    },
+    "automation": {
+      "shot": "C:\\Users\\Administrator\\Desktop\\site\\.loop\\artifacts\\gym\\round-25\\after\\03-admin-automation.png"
+    },
+    "audit": {
+      "shot": "C:\\Users\\Administrator\\Desktop\\site\\.loop\\artifacts\\gym\\round-25\\after\\04-admin-audit.png"
+    },
+    "bi": {
+      "shot": "C:\\Users\\Administrator\\Desktop\\site\\.loop\\artifacts\\gym\\round-25\\after\\05-admin-bi.png"
+    }
+  }
+}

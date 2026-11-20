@@ -1,0 +1,13 @@
+{
+  "stage": "after",
+  "timestamp": "2026-11-20T15:36:10.432Z",
+  "weight": "Weight 6: Toolbar Reordering Arrows & Element Placement (80kg)",
+  "checks": {
+    "toolbarScreenshot": "C:\\Users\\Administrator\\Desktop\\site\\.claude\\worktrees\\lucid-cartwright-fe0984\\.loop\\artifacts\\builder-gym\\round-12\\after\\01-floating-toolbar-reorder-buttons.png",
+    "moveButtons": {
+      "moveUp": true,
+      "moveDown": true
+    },
+    "beforeReorderScreenshot": "C:\\Users\\Administrator\\Desktop\\site\\.claude\\worktrees\\lucid-cartwright-fe0984\\.loop\\artifacts\\builder-gym\\round-12\\after\\02-canvas-sections-before-reorder.png"
+  }
+}

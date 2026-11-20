@@ -1,0 +1,21 @@
+{
+  "stage": "after",
+  "timestamp": "2026-11-20T10:26:57.812Z",
+  "tests": {
+    "notices": {
+      "shot": "C:\\Users\\Administrator\\Desktop\\site\\.loop\\artifacts\\gym\\round-21\\after\\01-admin-notices.png"
+    },
+    "noticesSms": {
+      "shot": "C:\\Users\\Administrator\\Desktop\\site\\.loop\\artifacts\\gym\\round-21\\after\\01-b-admin-notices-sms.png"
+    },
+    "titlesMeta": {
+      "shot": "C:\\Users\\Administrator\\Desktop\\site\\.loop\\artifacts\\gym\\round-21\\after\\02-seo-titles-meta.png"
+    },
+    "telegramNotify": {
+      "shot": "C:\\Users\\Administrator\\Desktop\\site\\.loop\\artifacts\\gym\\round-21\\after\\03-admin-telegram-notify.png"
+    },
+    "indexing": {
+      "shot": "C:\\Users\\Administrator\\Desktop\\site\\.loop\\artifacts\\gym\\round-21\\after\\04-seo-indexing.png"
+    }
+  }
+}

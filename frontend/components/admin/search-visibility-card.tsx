@@ -16,7 +16,7 @@
  */
 
 import { useCallback, useEffect, useState } from "react";
-import { Eye, EyeOff, Save, Search } from "lucide-react";
+import { Eye, EyeOff, Loader2, Save, Search } from "lucide-react";
 
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -111,8 +111,8 @@ export function SearchVisibilityCard() {
       )}
 
       <div className="mt-5 flex justify-end">
-        <Button onClick={save} disabled={loading || saving}>
-          <Save className="h-4 w-4 ms-1" />
+        <Button onClick={save} disabled={loading || saving} className="gap-2">
+          {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
           {saving ? "در حال ذخیره..." : "ذخیره وضعیت نمایش"}
         </Button>
       </div>

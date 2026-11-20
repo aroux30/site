@@ -359,7 +359,7 @@ export default function WidgetsPage() {
             نوار کناری و ستون‌های فوتر فروشگاه را بدون تغییر کد بچینید
           </p>
         </div>
-        <Button variant="outline" size="sm" onClick={() => void load()} disabled={loading}>
+        <Button variant="outline" size="sm" onClick={() => void load()} disabled={loading} className="gap-2">
           <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} /> بارگذاری مجدد
         </Button>
       </div>
@@ -430,7 +430,7 @@ export default function WidgetsPage() {
               size="sm"
               onClick={() => void createArea()}
               disabled={creatingArea}
-              className="w-full"
+              className="w-full gap-1.5"
             >
               <Plus className="h-4 w-4" /> {creatingArea ? "در حال ساخت…" : "ساخت ناحیه"}
             </Button>
@@ -449,7 +449,7 @@ export default function WidgetsPage() {
                       {areas[selectedArea].description || "مدیریت محتوای چیدمان ناحیهٔ ویجت"}
                     </div>
                   </div>
-                  <Button size="sm" onClick={() => void handleSave()} disabled={saving}>
+                  <Button size="sm" onClick={() => void handleSave()} disabled={saving} className="gap-1.5">
                     <Save className="h-4 w-4" /> {saving ? "در حال ذخیره…" : "ذخیره"}
                   </Button>
                 </div>
@@ -496,7 +496,7 @@ export default function WidgetsPage() {
                   </div>
                 )}
                 <div className="flex justify-end">
-                  <Button size="sm" variant="outline" onClick={addWidget}>
+                  <Button size="sm" variant="outline" onClick={addWidget} className="gap-1.5">
                     <Plus className="h-4 w-4" /> افزودن
                   </Button>
                 </div>

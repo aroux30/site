@@ -89,6 +89,13 @@ export function BuilderToolbar({
       } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "v") {
         e.preventDefault();
         pasteElement();
+      } else if (e.altKey && (e.key === "ArrowUp" || e.key === "ArrowDown")) {
+        e.preventDefault();
+        if (selectedElementId) {
+          useBuilderStore.getState().reorderElement(selectedElementId, e.key === "ArrowUp" ? "up" : "down");
+        }
+      } else if (e.key === "Escape") {
+        useBuilderStore.getState().selectElement(null as any);
       } else if (e.key === "Delete") {
         e.preventDefault();
         if (selectedElementIds.length > 0) {

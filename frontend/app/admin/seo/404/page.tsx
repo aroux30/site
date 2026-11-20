@@ -111,7 +111,7 @@ export default function NotFoundMonitorPage() {
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-5" dir="rtl">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="text-2xl font-black">مانیتور ۴۰۴</h1>
@@ -121,13 +121,13 @@ export default function NotFoundMonitorPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={() => void load(page, search)}>
-            <RefreshCw className="h-3.5 w-3.5 ms-1" />
+          <Button variant="outline" size="sm" onClick={() => void load(page, search)} className="gap-1.5">
+            <RefreshCw className="h-3.5 w-3.5" />
             بازخوانی
           </Button>
           {total > 0 && (
-            <Button variant="outline" size="sm" className="text-destructive" onClick={() => void handleClear()}>
-              <Trash2 className="h-3.5 w-3.5 ms-1" />
+            <Button variant="outline" size="sm" className="gap-1.5 text-destructive" onClick={() => void handleClear()}>
+              <Trash2 className="h-3.5 w-3.5" />
               پاک‌سازی همه
             </Button>
           )}

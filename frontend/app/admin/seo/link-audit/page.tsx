@@ -139,7 +139,7 @@ export default function LinkAuditPage() {
   const brokenTotal = (counts.broken ?? 0) + (counts.error ?? 0) + (counts.timeout ?? 0);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" dir="rtl">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="flex items-center gap-2 text-xl font-bold">
@@ -152,11 +152,11 @@ export default function LinkAuditPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button size="sm" onClick={() => void handleRun()} disabled={running}>
+          <Button size="sm" onClick={() => void handleRun()} disabled={running} className="gap-2">
             {running ? (
-              <Loader2 className="h-4 w-4 animate-spin ms-2" />
+              <Loader2 className="h-4 w-4 animate-spin" />
             ) : (
-              <RefreshCw className="h-4 w-4 ms-2" />
+              <RefreshCw className="h-4 w-4" />
             )}
             بررسی کن
           </Button>

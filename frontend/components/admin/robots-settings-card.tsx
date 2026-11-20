@@ -10,7 +10,7 @@
  */
 
 import { useCallback, useEffect, useState } from "react";
-import { Bot, Save } from "lucide-react";
+import { Bot, Loader2, Save } from "lucide-react";
 
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -88,8 +88,8 @@ export function RobotsSettingsCard() {
       </div>
 
       <div className="mt-5 flex justify-end">
-        <Button onClick={save} disabled={saving}>
-          <Save className="h-4 w-4 ms-1" />
+        <Button onClick={save} disabled={saving} className="gap-2">
+          {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
           {saving ? "در حال ذخیره..." : "ذخیره قواعد robots.txt"}
         </Button>
       </div>

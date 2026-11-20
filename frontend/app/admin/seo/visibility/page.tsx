@@ -10,7 +10,7 @@ import { SearchVisibilityCard } from "@/components/admin/search-visibility-card"
  */
 export default function SearchVisibilityPage() {
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" dir="rtl">
       <div>
         <h1 className="text-2xl font-black">نمایش در موتورهای جست‌وجو</h1>
         <p className="mt-1 text-sm text-muted-foreground">

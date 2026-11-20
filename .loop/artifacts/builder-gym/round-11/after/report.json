@@ -1,0 +1,10 @@
+{
+  "stage": "after",
+  "timestamp": "2026-11-20T14:39:32.705Z",
+  "weight": "Weight 6: Deep Container Layout & Global Component Detach (70kg)",
+  "checks": {
+    "contentLayoutScreenshot": "C:\\Users\\Administrator\\Desktop\\site\\.claude\\worktrees\\lucid-cartwright-fe0984\\.loop\\artifacts\\builder-gym\\round-11\\after\\01-inspector-content-layout.png",
+    "styleSpacingScreenshot": "C:\\Users\\Administrator\\Desktop\\site\\.claude\\worktrees\\lucid-cartwright-fe0984\\.loop\\artifacts\\builder-gym\\round-11\\after\\02-inspector-style-spacing.png",
+    "advancedGlobalScreenshot": "C:\\Users\\Administrator\\Desktop\\site\\.claude\\worktrees\\lucid-cartwright-fe0984\\.loop\\artifacts\\builder-gym\\round-11\\after\\03-inspector-advanced-global-sync.png"
+  }
+}

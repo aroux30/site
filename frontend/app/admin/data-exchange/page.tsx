@@ -292,7 +292,7 @@ export default function DataExchangeImportPage() {
           </Button>
           <Button variant="outline" size="sm" asChild className="gap-1.5 text-xs">
             <Link href="/admin/data-exchange/export">
-              <Download className="h-3.5 w-3.5 ms-1" />
+              <Download className="h-3.5 w-3.5" />
               <span>خروجی داده (Export)</span>
             </Link>
           </Button>
@@ -329,8 +329,8 @@ export default function DataExchangeImportPage() {
               if (f) void doUpload(f);
             }}
           />
-          <Button onClick={() => fileRef.current?.click()} disabled={uploading}>
-            <Upload className="h-4 w-4 ms-1" />
+          <Button onClick={() => fileRef.current?.click()} disabled={uploading} className="gap-2">
+            <Upload className="h-4 w-4" />
             {uploading ? "در حال بارگذاری..." : "انتخاب فایل و شروع"}
           </Button>
         </div>

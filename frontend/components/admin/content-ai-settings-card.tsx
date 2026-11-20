@@ -167,8 +167,8 @@ export function ContentAiSettingsCard() {
         </div>
 
         <div className="flex justify-end">
-          <Button size="sm" onClick={saveConfig} disabled={saving}>
-            <Save className="h-4 w-4 ms-1" />
+          <Button size="sm" onClick={saveConfig} disabled={saving} className="gap-2">
+            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
             {saving ? "در حال ذخیره..." : "ذخیره تنظیمات"}
           </Button>
         </div>

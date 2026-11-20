@@ -214,20 +214,20 @@ export default function AdminFintechPage() {
             مدیریت درگاه‌های پرداخت و بررسی فیش‌های کارت‌به‌کارت
           </p>
         </div>
-        <Button variant="outline" size="sm" onClick={fetchData}>
-          <RefreshCw className="h-4 w-4 ms-2" />
+        <Button variant="outline" size="sm" onClick={fetchData} className="gap-2">
+          <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
           بروزرسانی
         </Button>
       </div>
 
       {/* Tab Switch */}
       <div className="flex gap-2">
-        <Button variant={tab === "gateways" ? "default" : "outline"} size="sm" onClick={() => setTab("gateways")}>
-          <CreditCard className="h-4 w-4 ms-2" />
+        <Button variant={tab === "gateways" ? "default" : "outline"} size="sm" onClick={() => setTab("gateways")} className="gap-2">
+          <CreditCard className="h-4 w-4" />
           درگاه‌های پرداخت ({gateways.length})
         </Button>
-        <Button variant={tab === "receipts" ? "default" : "outline"} size="sm" onClick={() => setTab("receipts")}>
-          <Receipt className="h-4 w-4 ms-2" />
+        <Button variant={tab === "receipts" ? "default" : "outline"} size="sm" onClick={() => setTab("receipts")} className="gap-2">
+          <Receipt className="h-4 w-4" />
           فیش‌های کارت‌به‌کارت ({receipts.length})
         </Button>
       </div>

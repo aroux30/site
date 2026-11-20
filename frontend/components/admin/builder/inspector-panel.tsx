@@ -41,13 +41,20 @@ export function InspectorPanel() {
   const updateDeviceStyles = useBuilderStore((s) => s.updateDeviceStyles);
   const updateElementStyles = useBuilderStore((s) => s.updateElementStyles);
   const updateElementLayout = useBuilderStore((s) => s.updateElementLayout);
+<<<<<<< HEAD
   const renameElement = useBuilderStore((s) => s.renameElement);
+=======
+>>>>>>> main
   const updateElementName = useBuilderStore((s) => s.updateElementName);
   const setElementHidden = useBuilderStore((s) => s.setElementHidden);
   const toggleHideElement = useBuilderStore((s) => s.toggleHideElement);
   const setElementLocked = useBuilderStore((s) => s.setElementLocked);
   const toggleLockElement = useBuilderStore((s) => s.toggleLockElement);
+<<<<<<< HEAD
   const detachGlobalComponent = useBuilderStore((s) => s.detachGlobalComponent);
+=======
+  const unlinkGlobalComponent = useBuilderStore((s) => s.unlinkGlobalComponent);
+>>>>>>> main
 
   const selectedElement = selectedElementId
     ? findElementById(ast.rootElements, selectedElementId)
@@ -159,6 +166,7 @@ export function InspectorPanel() {
           </div>
 
           {layout.kind === "flex" && (
+<<<<<<< HEAD
             <>
               <div className="space-y-1.5">
                 <Label className="text-xs">جهت چینش (Direction)</Label>
@@ -231,6 +239,25 @@ export function InspectorPanel() {
                 />
               </div>
             </>
+=======
+            <div className="space-y-1.5">
+              <Label className="text-xs">جهت چینش (Direction)</Label>
+              <Select
+                value={layout.direction}
+                onValueChange={(val: "column" | "row") => {
+                  updateElementLayout(selectedElement.id, { direction: val });
+                }}
+              >
+                <SelectTrigger className="h-8 text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="column">عمودی (ستون)</SelectItem>
+                  <SelectItem value="row">افقی (سطر)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+>>>>>>> main
           )}
 
           {layout.kind === "grid" && (
@@ -261,9 +288,13 @@ export function InspectorPanel() {
                 value={layout.gap.value}
                 onChange={(e) => {
                   const val = parseFloat(e.target.value) || 0;
+<<<<<<< HEAD
                   updateElementLayout(selectedElement.id, {
                     gap: { ...layout.gap, value: val },
                   });
+=======
+                  updateElementLayout(selectedElement.id, { gap: { ...layout.gap, value: val } });
+>>>>>>> main
                 }}
                 className="h-8 text-xs pe-8 ps-2"
                 dir="ltr"
@@ -2251,7 +2282,11 @@ export function InspectorPanel() {
               <button
                 type="button"
                 onClick={() => {
+<<<<<<< HEAD
                   detachGlobalComponent(selectedElement.id);
+=======
+                  unlinkGlobalComponent(selectedElement.id);
+>>>>>>> main
                 }}
                 className="w-full py-1 text-xs rounded border border-border text-muted-foreground hover:text-destructive hover:border-destructive transition"
               >

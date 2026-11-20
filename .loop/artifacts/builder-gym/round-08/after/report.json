@@ -1,0 +1,13 @@
+{
+  "stage": "after",
+  "timestamp": "2026-11-20T12:34:26.600Z",
+  "weight": "Weight 2: Deep Visual Audit of Block Patterns Batch 3 (Patterns 15-21: Pricing, Author Bio & Quotes) (10kg)",
+  "checks": {
+    "megamenuPricingScreenshot": "C:\\Users\\Administrator\\Desktop\\site\\.claude\\worktrees\\lucid-cartwright-fe0984\\.loop\\artifacts\\builder-gym\\round-08\\after\\01-pattern-megamenu-pricing.png",
+    "pricingPlan2Desc": {
+      "rendered": true
+    },
+    "priceListIconBoxScreenshot": "C:\\Users\\Administrator\\Desktop\\site\\.claude\\worktrees\\lucid-cartwright-fe0984\\.loop\\artifacts\\builder-gym\\round-08\\after\\02-pattern-pricelist-iconbox.png",
+    "bioQuoteSupportScreenshot": "C:\\Users\\Administrator\\Desktop\\site\\.claude\\worktrees\\lucid-cartwright-fe0984\\.loop\\artifacts\\builder-gym\\round-08\\after\\03-pattern-bio-quote-support.png"
+  }
+}

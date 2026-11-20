@@ -375,16 +375,16 @@ export default function AdminDigitalInventoryPage() {
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Button variant="outline" size="sm" onClick={fetchCards}>
-            <RefreshCw className="h-4 w-4 ms-2" />
+          <Button variant="outline" size="sm" onClick={fetchCards} className="gap-2">
+            <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
             بروزرسانی
           </Button>
-          <Button size="sm" variant="outline" onClick={() => setTiersOpen(true)}>
-            <Layers className="h-4 w-4 ms-2" />
+          <Button size="sm" variant="outline" onClick={() => setTiersOpen(true)} className="gap-2">
+            <Layers className="h-4 w-4" />
             قیمت‌گذاری پلکانی
           </Button>
-          <Button size="sm" onClick={() => setImportOpen(true)}>
-            <Upload className="h-4 w-4 ms-2" />
+          <Button size="sm" onClick={() => setImportOpen(true)} className="gap-2">
+            <Upload className="h-4 w-4" />
             بارگذاری کارت جدید
           </Button>
         </div>

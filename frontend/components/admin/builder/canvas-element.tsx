@@ -24,6 +24,8 @@ import {
   Receipt,
   Minus,
   Check,
+  ArrowUp,
+  ArrowDown,
 } from "lucide-react";
 import { SaveTemplateDialog } from "./save-template-dialog";
 import { cn } from "@/lib/utils";
@@ -89,6 +91,7 @@ function CanvasElementComponent({
   }, [isSelected]);
   const addElement = useBuilderStore((s) => s.addElement);
   const moveElement = useBuilderStore((s) => s.moveElement);
+  const reorderElement = useBuilderStore((s) => s.reorderElement);
   const copyElement = useBuilderStore((s) => s.copyElement);
   const copyStyles = useBuilderStore((s) => s.copyStyles);
   const makeGlobalComponent = useBuilderStore((s) => s.makeGlobalComponent);
@@ -402,16 +405,21 @@ function CanvasElementComponent({
     switch (element.widgetType) {
       case "heading": {
         const Tag = (props.tag as "h1" | "h2" | "h3" | "h4" | "h5" | "h6") || "h2";
+        const customClass = String(props.customCssClass || element.styles?.customCssClass || "");
         return (
-          <Tag className="font-bold tracking-tight text-foreground m-0 break-words [overflow-wrap:anywhere]">
+          <Tag className={cn("font-bold tracking-tight text-foreground m-0 break-words [overflow-wrap:anywhere]", customClass)}>
             {String(props.text || "عنوان سرتیتر")}
           </Tag>
         );
       }
       case "text_editor": {
+        const customClass = String(props.customCssClass || element.styles?.customCssClass || "");
         return (
           <div
-            className="prose dark:prose-invert max-w-none text-foreground/90 leading-relaxed break-words [overflow-wrap:anywhere]"
+            className={cn(
+              "prose dark:prose-invert max-w-none text-foreground/90 leading-relaxed break-words [overflow-wrap:anywhere]",
+              customClass
+            )}
             dangerouslySetInnerHTML={{
               __html: String(props.content || "<p>متن پاراگراف را بنویسید...</p>"),
             }}
@@ -420,11 +428,13 @@ function CanvasElementComponent({
       }
       case "button": {
         const customClass = String(props.customCssClass || element.styles?.customCssClass || "");
+        const isFull = customClass.includes("w-full");
         return (
-          <div className="inline-block">
+          <div className={isFull ? "w-full block" : "inline-block"}>
             <span
               className={cn(
                 "inline-flex items-center justify-center rounded-xl bg-primary px-6 py-3 font-semibold text-primary-foreground shadow-sm transition",
+                isFull && "w-full",
                 customClass
               )}
             >
@@ -434,13 +444,14 @@ function CanvasElementComponent({
         );
       }
       case "image": {
+        const customClass = String(props.customCssClass || element.styles?.customCssClass || "");
         return (
-          <div className="relative overflow-hidden rounded-xl bg-muted/30">
+          <div className={cn("relative overflow-hidden rounded-xl bg-muted/30", customClass)}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={String(props.url || "/placeholder-hero.svg")}
               alt={String(props.alt || "تصویر شاخص")}
-              className="h-auto max-w-full rounded-xl object-cover"
+              className={cn("h-auto max-w-full rounded-xl object-cover", customClass)}
             />
           </div>
         );
@@ -926,8 +937,9 @@ function CanvasElementComponent({
         const label = String(props.label || "");
         const placeholder = String(props.placeholder || "");
         const inputType = String(props.input_type || "text");
+        const customClass = String(props.customCssClass || element.styles?.customCssClass || "");
         return (
-          <div className="space-y-1 w-full text-right pointer-events-none">
+          <div className={cn("space-y-1 w-full text-right pointer-events-none", customClass)}>
             {label && <label className="block text-xs font-semibold text-foreground">{label}</label>}
             <input
               type={inputType}
@@ -942,8 +954,9 @@ function CanvasElementComponent({
         const label = String(props.label || "");
         const placeholder = String(props.placeholder || "");
         const rowsNum = Number(props.rows || 4);
+        const customClass = String(props.customCssClass || element.styles?.customCssClass || "");
         return (
-          <div className="space-y-1 w-full text-right pointer-events-none">
+          <div className={cn("space-y-1 w-full text-right pointer-events-none", customClass)}>
             {label && <label className="block text-xs font-semibold text-foreground">{label}</label>}
             <textarea
               placeholder={placeholder}
@@ -957,8 +970,9 @@ function CanvasElementComponent({
       case "form_select": {
         const label = String(props.label || "");
         const options = (props.options as string[]) || ["گزینه ۱", "گزینه ۲"];
+        const customClass = String(props.customCssClass || element.styles?.customCssClass || "");
         return (
-          <div className="space-y-1 w-full text-right pointer-events-none">
+          <div className={cn("space-y-1 w-full text-right pointer-events-none", customClass)}>
             {label && <label className="block text-xs font-semibold text-foreground">{label}</label>}
             <select className="w-full rounded-xl border border-input bg-background px-4 py-2.5 text-sm" disabled>
               {options.map((opt, i) => (
@@ -1307,6 +1321,24 @@ function CanvasElementComponent({
                 <BookmarkPlus className="w-3.5 h-3.5" />
               </button>
             )}
+            <button
+              type="button"
+              onClick={() => reorderElement(element.id, "up")}
+              className="p-1 hover:bg-primary-foreground/20 rounded transition"
+              title="انتقال به بالا (Move Up)"
+              data-testid="move-up-btn"
+            >
+              <ArrowUp className="w-3.5 h-3.5" />
+            </button>
+            <button
+              type="button"
+              onClick={() => reorderElement(element.id, "down")}
+              className="p-1 hover:bg-primary-foreground/20 rounded transition"
+              title="انتقال به پایین (Move Down)"
+              data-testid="move-down-btn"
+            >
+              <ArrowDown className="w-3.5 h-3.5" />
+            </button>
             <button
               type="button"
               onClick={() => duplicateElement(element.id)}

@@ -226,7 +226,7 @@ export default function AdminNoticesPage() {
         </div>
       </div>
 
-      <Tabs defaultValue="notices" className="space-y-4">
+      <Tabs defaultValue="notices" className="space-y-4" dir="rtl">
         <TabsList className="bg-card border border-border p-1">
           <TabsTrigger value="notices" className="gap-1.5 text-xs">
             <Bell className="h-3.5 w-3.5" /> اطلاعیه‌ها
@@ -334,7 +334,7 @@ export default function AdminNoticesPage() {
             </div>
 
             <div className="flex items-center gap-2">
-              <Button size="sm" onClick={() => void dispatchSms()} disabled={sending}>
+              <Button size="sm" onClick={() => void dispatchSms()} disabled={sending} className="gap-1.5">
                 {sending ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (

@@ -816,10 +816,12 @@ function CanvasElementComponent({
         );
       }
       case "cart_summary": {
+        const title = String(props.title || "خلاصه سبد خرید");
+        const btnLabel = String(props.button_label || "ادامه فرآیند خرید");
         return (
           <div className="p-4 rounded-2xl border border-border/80 bg-card space-y-3 shadow-sm w-full max-w-sm">
             <div className="flex items-center justify-between border-b pb-2">
-              <span className="text-xs font-bold text-foreground">خلاصه سبد خرید</span>
+              <span className="text-xs font-bold text-foreground">{title}</span>
               <Receipt className="w-4 h-4 text-primary" />
             </div>
             <div className="space-y-1.5 text-xs text-muted-foreground">
@@ -844,7 +846,7 @@ function CanvasElementComponent({
               type="button"
               className="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition shadow"
             >
-              ادامه فرآیند خرید
+              {btnLabel}
             </button>
           </div>
         );

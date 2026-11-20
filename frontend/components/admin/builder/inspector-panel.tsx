@@ -734,6 +734,13 @@ export function InspectorPanel() {
                 className="h-8 text-xs"
               />
             </div>
+            <div className="flex items-center justify-between pt-1">
+              <Label className="text-xs">نمایش عدد امتیاز</Label>
+              <Switch
+                checked={props.showValue !== false}
+                onCheckedChange={(val) => handlePropChange("showValue", val)}
+              />
+            </div>
           </div>
         );
 
@@ -816,7 +823,11 @@ export function InspectorPanel() {
           </div>
         );
 
-      case "product_variants":
+      case "product_variants": {
+        const variants = (props.variants as any[]) || [
+          { id: "var_1", title: "مشکی مات", price: 1850000, is_in_stock: true },
+          { id: "var_2", title: "سفید صدفی", price: 1950000, is_in_stock: true },
+        ];
         return (
           <div className="space-y-4">
             <div className="space-y-1.5">
@@ -827,8 +838,74 @@ export function InspectorPanel() {
                 className="h-8 text-xs"
               />
             </div>
+            <div className="space-y-2 pt-2 border-t">
+              <div className="flex items-center justify-between">
+                <Label className="text-xs font-bold">تنوع‌های محصول (Variants)</Label>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const newVar = {
+                      id: `var_${Date.now()}`,
+                      title: `تنوع جدید ${variants.length + 1}`,
+                      price: 1850000,
+                      is_in_stock: true,
+                    };
+                    handlePropChange("variants", [...variants, newVar]);
+                  }}
+                  className="text-[11px] text-primary hover:underline font-semibold"
+                >
+                  + افزودن تنوع
+                </button>
+              </div>
+              <div className="space-y-2">
+                {variants.map((v, idx) => (
+                  <div key={v.id || idx} className="p-2 rounded-lg border bg-muted/20 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <Input
+                        value={v.title || ""}
+                        placeholder="عنوان تنوع"
+                        onChange={(e) => {
+                          const updated = [...variants];
+                          updated[idx] = { ...updated[idx], title: e.target.value };
+                          handlePropChange("variants", updated);
+                        }}
+                        className="h-7 text-xs flex-1 me-2"
+                      />
+                      {variants.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const updated = variants.filter((_, i) => i !== idx);
+                            handlePropChange("variants", updated);
+                          }}
+                          className="text-[10px] text-destructive hover:underline shrink-0"
+                        >
+                          حذف
+                        </button>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="flex-1 space-y-1">
+                        <Label className="text-[10px] text-muted-foreground">قیمت (تومان)</Label>
+                        <Input
+                          type="number"
+                          value={v.price || 0}
+                          onChange={(e) => {
+                            const updated = [...variants];
+                            updated[idx] = { ...updated[idx], price: parseFloat(e.target.value) || 0 };
+                            handlePropChange("variants", updated);
+                          }}
+                          className="h-7 text-xs font-mono"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         );
+      }
 
       case "mini_cart":
         return (
@@ -854,6 +931,22 @@ export function InspectorPanel() {
       case "cart_summary":
         return (
           <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs">عنوان خلاصه سبد</Label>
+              <Input
+                value={String(props.title || "خلاصه سبد خرید")}
+                onChange={(e) => handlePropChange("title", e.target.value)}
+                className="h-8 text-xs"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">متن دکمه تسویه</Label>
+              <Input
+                value={String(props.button_label || "ادامه فرآیند خرید")}
+                onChange={(e) => handlePropChange("button_label", e.target.value)}
+                className="h-8 text-xs"
+              />
+            </div>
             <div className="space-y-1.5">
               <Label className="text-xs">آدرس صفحه تسویه حساب</Label>
               <Input

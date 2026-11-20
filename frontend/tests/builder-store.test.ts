@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { useBuilderStore, findElementById } from "@/stores/builder-store";
+import { useBuilderStore, findElementById, cloneElementWithNewIds } from "@/stores/builder-store";
 import type { BuilderElement } from "@/types/builder";
 
 describe("Visual Page Builder Zustand Store & Undo/Redo Engine (Phase P1)", () => {
@@ -229,5 +229,18 @@ describe("Visual Page Builder Zustand Store & Undo/Redo Engine (Phase P1)", () =
     useBuilderStore.getState().detachGlobalComponent(targetEl.id);
     current = findElementById(useBuilderStore.getState().ast.rootElements, targetEl.id);
     expect(current?.globalComponentId).toBeNull();
+  });
+
+  it("cloneElementWithNewIds respects appendCopySuffix flag", () => {
+    const targetEl = useBuilderStore.getState().ast.rootElements[0]!.children[0]!;
+
+    // Default: appends (کپی)
+    const clonedWithSuffix = cloneElementWithNewIds(targetEl, true);
+    expect(clonedWithSuffix.name).toContain("(کپی)");
+
+    // Clean clone: preserves original clean name
+    const clonedClean = cloneElementWithNewIds(targetEl, false);
+    expect(clonedClean.name).toBe(targetEl.name);
+    expect(clonedClean.id).not.toBe(targetEl.id);
   });
 });

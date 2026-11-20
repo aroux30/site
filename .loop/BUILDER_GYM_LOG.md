@@ -367,6 +367,46 @@
 
 ---
 
+### 🏋️ راند ۱۰ (Round 10) — وزنه ۶: بی‌نهایت (۱۰۰ کیلو — مدیریت کامل CRUD تنوع‌های محصول در بازرس و سفارشی‌سازی خلاصه سبد خرید)
+- **تاریخ اجرا**: 2026-11-20
+- **شاخه ایزوله**: `claude/amazing-gagarin-884885`
+- **وضعیت**: ✅ کامل و سبز (مدیریت تنوع کالاها، ویرایش عناوین و کلیدهای تسویه حساب در سبد خرید و ۳۰ تست سبز روی پورت ۳۲۰۰)
+
+#### ۱. باگ‌های کشف‌شده با ابزار Vision و تعامل
+1. **عدم امکان افزودن، ویرایش و حذف تنوع‌های محصول در Inspector (`Missing Product Variants CRUD Controls`)**:
+   - *مشاهده در Vision*: در تصویر `before/02-variants-inspector.png`، برای ویجت تنوع محصول تنها فیلد ساده «عنوان انتخابگر» در دسترس بود و تنوع‌ها به صورت مقادیر ثابت هاردکدشده ("مشکی مات"، "سفید صدفی") رندر می‌شدند.
+   - *اصلاح ریشه‌ای*: توسعه فرم داینامیک کامل مدیریت تنوع‌ها (افزودن تنوع جدید، حذف، ویرایش عنوان تنوع و تغییر قیمت به تومان) در `frontend/components/admin/builder/inspector-panel.tsx` با اتصال مستقیم به بوم.
+2. **فقدان کنترل‌های عنوان و برچسب دکمه تسویه حساب در خلاصه سبد خرید (`Hardcoded Cart Summary Labels`)**:
+   - *مشاهده در Vision*: عنوان «خلاصه سبد خرید» و دکمه «ادامه فرآیند خرید» در ویجت `cart_summary` به صورت ثابت رندر می‌شدند.
+   - *اصلاح ریشه‌ای*: اضافه شدن فیلدهای «عنوان خلاصه سبد» و «متن دکمه تسویه» در `inspector-panel.tsx` و اعمال آن‌ها در `canvas-element.tsx`.
+
+#### ۲. مستندات بصری (Vision Artifacts)
+- **قبل از اصلاح**: `.loop/artifacts/builder-gym/round-10/before/`
+  - `01-studio-clean.png`
+  - `02-variants-inspector.png` (تنها عنوان انتخابگر در بازرس موجود بود)
+  - `03-star-rating-inspector.png`
+  - `04-cart-summary-inspector.png`
+  - `05-canvas-ecommerce-blocks.png`
+- **بعد از اصلاح**: `.loop/artifacts/builder-gym/round-10/after/`
+  - `01-studio-clean.png`
+  - `02-variants-inspector.png` (فرم کامل مدیریت تنوع‌های کالا با دکمه افزودن و حذف، و فیلدهای قیمت)
+  - `03-star-rating-inspector.png`
+  - `04-cart-summary-inspector.png`
+  - `05-canvas-ecommerce-blocks.png`
+
+#### ۳. تست‌های رگرسیون دائمی اضافه‌شده
+- فایل تست Playwright: `frontend/tests/e2e/builder-gym-r10.spec.ts` (۳ تست سبز)
+- فایل تست Vitest: `frontend/tests/builder-store.test.ts` (تست رگرسیون تایید عدم الصاق ناخواسته پسوند کپی)
+
+#### ۴. نتایج نهایی ممیزی و تست‌ها در راند ۱۰
+- `npx tsc --noEmit`: ۰ خطا (سبز)
+- `npm test` (Vitest): **۳۷۲ تست سبز در ۴۵ فایل** (`372 passed`)
+- `python -m pytest app/tests/unit`: **۶۲۲ تست سبز** (`622 passed, 2 skipped`)
+- تست‌های Playwright کامل صفحه‌ساز (راند ۱ تا ۱۰): **۳۰ تست سبز در ۱۰ فایل (`30 passed in 51.0s`)**
+- شناسه بیلد ایزوله روی پورت ۳۲۰۰: `1Ydl6zUZo6wzo6tEVPben`
+
+---
+
 ## 🏆 گواهینامه ثبت BUILDER_GYM_LEVELS_1_TO_5_CLEAN
 
 بدین‌وسیله تایید می‌گردد که هر ۵ وزنه نردبان تمرین پیش‌رونده Visual Page Builder بر اساس دستورالعمل رسمی [BUILDER_GYM.md](BUILDER_GYM.md) با موفقیت کامل و مستندات تصویری Vision سپری شد:

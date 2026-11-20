@@ -40,6 +40,11 @@ export function InspectorPanel() {
   const updateElementProps = useBuilderStore((s) => s.updateElementProps);
   const updateDeviceStyles = useBuilderStore((s) => s.updateDeviceStyles);
   const updateElementStyles = useBuilderStore((s) => s.updateElementStyles);
+  const updateElementLayout = useBuilderStore((s) => s.updateElementLayout);
+  const updateElementName = useBuilderStore((s) => s.updateElementName);
+  const toggleHideElement = useBuilderStore((s) => s.toggleHideElement);
+  const toggleLockElement = useBuilderStore((s) => s.toggleLockElement);
+  const unlinkGlobalComponent = useBuilderStore((s) => s.unlinkGlobalComponent);
 
   const selectedElement = selectedElementId
     ? findElementById(ast.rootElements, selectedElementId)
@@ -137,19 +142,7 @@ export function InspectorPanel() {
             <Select
               value={layout.kind}
               onValueChange={(val: "flex" | "grid") => {
-                const updatedRoots = ast.rootElements;
-                // update layout
-                useBuilderStore.setState((s) => ({
-                  ast: {
-                    ...s.ast,
-                    rootElements: s.ast.rootElements.map((el) =>
-                      el.id === selectedElement.id
-                        ? { ...el, layout: { ...layout, kind: val } }
-                        : el
-                    ),
-                  },
-                  isDirty: true,
-                }));
+                updateElementLayout(selectedElement.id, { kind: val });
               }}
             >
               <SelectTrigger className="h-8 text-xs">
@@ -168,17 +161,7 @@ export function InspectorPanel() {
               <Select
                 value={layout.direction}
                 onValueChange={(val: "column" | "row") => {
-                  useBuilderStore.setState((s) => ({
-                    ast: {
-                      ...s.ast,
-                      rootElements: s.ast.rootElements.map((el) =>
-                        el.id === selectedElement.id
-                          ? { ...el, layout: { ...layout, direction: val } }
-                          : el
-                      ),
-                    },
-                    isDirty: true,
-                  }));
+                  updateElementLayout(selectedElement.id, { direction: val });
                 }}
               >
                 <SelectTrigger className="h-8 text-xs">
@@ -202,17 +185,7 @@ export function InspectorPanel() {
                 value={layout.gridColumns}
                 onChange={(e) => {
                   const num = parseInt(e.target.value, 10) || 1;
-                  useBuilderStore.setState((s) => ({
-                    ast: {
-                      ...s.ast,
-                      rootElements: s.ast.rootElements.map((el) =>
-                        el.id === selectedElement.id
-                          ? { ...el, layout: { ...layout, gridColumns: num } }
-                          : el
-                      ),
-                    },
-                    isDirty: true,
-                  }));
+                  updateElementLayout(selectedElement.id, { gridColumns: num });
                 }}
                 className="h-8 text-xs"
               />
@@ -229,17 +202,7 @@ export function InspectorPanel() {
                 value={layout.gap.value}
                 onChange={(e) => {
                   const val = parseFloat(e.target.value) || 0;
-                  useBuilderStore.setState((s) => ({
-                    ast: {
-                      ...s.ast,
-                      rootElements: s.ast.rootElements.map((el) =>
-                        el.id === selectedElement.id
-                          ? { ...el, layout: { ...layout, gap: { ...layout.gap, value: val } } }
-                          : el
-                      ),
-                    },
-                    isDirty: true,
-                  }));
+                  updateElementLayout(selectedElement.id, { gap: { ...layout.gap, value: val } });
                 }}
                 className="h-8 text-xs"
               />
@@ -1620,16 +1583,7 @@ export function InspectorPanel() {
           <Input
             value={selectedElement.name}
             onChange={(e) => {
-              const name = e.target.value;
-              useBuilderStore.setState((s) => ({
-                ast: {
-                  ...s.ast,
-                  rootElements: s.ast.rootElements.map((el) =>
-                    el.id === selectedElement.id ? { ...el, name } : el
-                  ),
-                },
-                isDirty: true,
-              }));
+              updateElementName(selectedElement.id, e.target.value);
             }}
             className="h-8 text-xs"
           />
@@ -1730,16 +1684,8 @@ export function InspectorPanel() {
           <Label className="text-xs">مخفی کردن المان (Visibility)</Label>
           <Switch
             checked={selectedElement.isHidden}
-            onCheckedChange={(val) => {
-              useBuilderStore.setState((s) => ({
-                ast: {
-                  ...s.ast,
-                  rootElements: s.ast.rootElements.map((el) =>
-                    el.id === selectedElement.id ? { ...el, isHidden: val } : el
-                  ),
-                },
-                isDirty: true,
-              }));
+            onCheckedChange={() => {
+              toggleHideElement(selectedElement.id);
             }}
           />
         </div>
@@ -1748,16 +1694,8 @@ export function InspectorPanel() {
           <Label className="text-xs">قفل کردن المان در ویرایشگر</Label>
           <Switch
             checked={selectedElement.isLocked}
-            onCheckedChange={(val) => {
-              useBuilderStore.setState((s) => ({
-                ast: {
-                  ...s.ast,
-                  rootElements: s.ast.rootElements.map((el) =>
-                    el.id === selectedElement.id ? { ...el, isLocked: val } : el
-                  ),
-                },
-                isDirty: true,
-              }));
+            onCheckedChange={() => {
+              toggleLockElement(selectedElement.id);
             }}
           />
         </div>
@@ -1832,15 +1770,7 @@ export function InspectorPanel() {
               <button
                 type="button"
                 onClick={() => {
-                  useBuilderStore.setState((s) => ({
-                    ast: {
-                      ...s.ast,
-                      rootElements: s.ast.rootElements.map((el) =>
-                        el.id === selectedElement.id ? { ...el, globalComponentId: null } : el
-                      ),
-                    },
-                    isDirty: true,
-                  }));
+                  unlinkGlobalComponent(selectedElement.id);
                 }}
                 className="w-full py-1 text-xs rounded border border-border text-muted-foreground hover:text-destructive hover:border-destructive transition"
               >

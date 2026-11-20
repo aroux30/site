@@ -18,8 +18,15 @@ export function FloatingCartBar() {
     setMounted(true);
   }, []);
 
+  const isBuilder =
+    typeof window !== "undefined" &&
+    (window.location.search.includes("builder=") ||
+      window.location.search.includes("visual_editor=") ||
+      window.location.search.includes("edit="));
+
   const isPdp = Boolean(pathname?.startsWith("/products/") && pathname.split("/").filter(Boolean).length >= 2);
   const isExcluded =
+    pathname?.startsWith("/admin") ||
     pathname?.startsWith("/checkout") ||
     pathname?.startsWith("/cart") ||
     pathname?.startsWith("/rewards") ||
@@ -29,7 +36,8 @@ export function FloatingCartBar() {
     pathname?.startsWith("/contact") ||
     pathname?.startsWith("/about") ||
     pathname?.startsWith("/terms") ||
-    isPdp;
+    isPdp ||
+    isBuilder;
 
   if (!mounted || totalItems <= 0 || dismissed || isExcluded) {
     return null;

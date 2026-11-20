@@ -244,13 +244,13 @@
 - **بعد از اصلاح**: `.loop/artifacts/gym/round-09/after/01-account-dashboard.png`
 
 #### ۳. تست‌های رگرسیون دائمی اضافه‌شده
-- فایل تست Playwright: `frontend/tests/e2e/gym-r09-regression.spec.ts` (۲ تست سبز)
+- فایل تست Playwright: `frontend/tests/e2e/gym-r09-regression.spec.ts` (۳ تست سبز شامل ماسک PII، سفارش‌ها و آدرس‌ها)
 
 #### ۴. نتایج نهایی ممیزی و تست‌ها در راند ۹
 - `npx tsc --noEmit`: ۰ خطا (سبز)
 - `npm test` (Vitest): **۳۶۹ تست سبز در ۴۵ فایل** (`369 passed`)
 - `python -m pytest app/tests/unit`: **۶۲۲ تست سبز** (`622 passed, 2 skipped`)
-- مجموع تست‌های رگرسیون تجمعی (راند ۱ تا ۹): **۲۵ تست Playwright سبز**
+- مجموع تست‌های رگرسیون تجمعی (راند ۱ تا ۹): **۲۷ تست Playwright سبز**
 - `node .loop/audits/deterministic-audit.mjs`: **پاس ۱۰۰٪ تمام چک‌ها (`passed: true`)**
 
 ---
@@ -278,7 +278,7 @@
 - `npx tsc --noEmit`: ۰ خطا (سبز)
 - `npm test` (Vitest): **۳۶۹ تست سبز در ۴۵ فایل** (`369 passed`)
 - `python -m pytest app/tests/unit`: **۶۲۲ تست سبز** (`622 passed, 2 skipped`)
-- مجموع تست‌های رگرسیون تجمعی (راند ۱ تا ۱۰): **۲۸ تست Playwright سبز**
+- مجموع تست‌های رگرسیون تجمعی (راند ۱ تا ۱۰): **۲۹ تست Playwright سبز**
 - `node .loop/audits/deterministic-audit.mjs`: **پاس ۱۰۰٪ تمام چک‌ها (`passed: true`)**
 
 ---
@@ -287,7 +287,8 @@
 
 **GYM_ALL_5_LEVELS_MASTERED**
 
-تمام ۵ سطح نردبان تمرین پیش‌رونده (از ۵ کیلو تا ۵۰ کیلو) به همراه مراحل تکمیلی راندهای ۶ تا ۱۰ با ممیزی‌های زنده، مستندات تصویری Vision در پوشه‌های `.loop/artifacts/gym/round-01/` تا `.loop/artifacts/gym/round-10/`، ۲۸ تست رگرسیون تجمعی E2E، ۶۲۲ تست بک‌اند، ۳۶۹ تست فرانت‌اند و بیلد تمیز پروداکشن با موفقیت ۱۰۰٪ کامل ثبت و تسخیر شدند.
+تمام ۵ سطح نردبان تمرین پیش‌رونده (از ۵ کیلو تا ۵۰ کیلو) به همراه مراحل تکمیلی راندهای ۶ تا ۱۰ با ممیزی‌های زنده، مستندات تصویری Vision در پوشه‌های `.loop/artifacts/gym/round-01/` تا `.loop/artifacts/gym/round-10/`، ۲۹ تست رگرسیون تجمعی E2E، ۶۲۲ تست بک‌اند، ۳۶۹ تست فرانت‌اند و بیلد تمیز پروداکشن با موفقیت ۱۰۰٪ کامل ثبت و تسخیر شدند.
+
 
 
 

@@ -1,0 +1,21 @@
+{
+  "stage": "before",
+  "timestamp": "2026-11-20T01:09:38.370Z",
+  "tests": {
+    "profile": {
+      "shot": "C:\\Users\\Administrator\\Desktop\\site\\.loop\\artifacts\\gym\\round-09\\before\\01-account-profile.png"
+    },
+    "orders": {
+      "shot": "C:\\Users\\Administrator\\Desktop\\site\\.loop\\artifacts\\gym\\round-09\\before\\02-account-orders.png"
+    },
+    "addresses": {
+      "shot": "C:\\Users\\Administrator\\Desktop\\site\\.loop\\artifacts\\gym\\round-09\\before\\03-account-addresses.png"
+    },
+    "wallet": {
+      "shot": "C:\\Users\\Administrator\\Desktop\\site\\.loop\\artifacts\\gym\\round-09\\before\\04-account-wallet.png"
+    },
+    "digitalCodes": {
+      "shot": "C:\\Users\\Administrator\\Desktop\\site\\.loop\\artifacts\\gym\\round-09\\before\\05-account-digital-codes.png"
+    }
+  }
+}

@@ -1486,14 +1486,7 @@ function AccountDashboardInner({
 
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <div className="space-y-1.5">
-                      <div className="flex items-center justify-between">
-                        <Label htmlFor="phone">شماره موبایل</Label>
-                        {profileForm.phone && (
-                          <span className="text-[11px] font-mono text-muted-foreground" dir="ltr">
-                            نمایش امن: {maskPhoneNumber(profileForm.phone)}
-                          </span>
-                        )}
-                      </div>
+                      <Label htmlFor="phone">شماره موبایل</Label>
                       <div className="relative">
                         <Input
                           id="phone"
@@ -1507,17 +1500,16 @@ function AccountDashboardInner({
                         />
                         <Phone className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
                       </div>
+                      {profileForm.phone && (
+                        <p className="text-[11px] text-muted-foreground flex items-center justify-between">
+                          <span>نمایش امن:</span>
+                          <span className="font-mono" dir="ltr">{maskPhoneNumber(profileForm.phone)}</span>
+                        </p>
+                      )}
                     </div>
 
                     <div className="space-y-1.5">
-                      <div className="flex items-center justify-between">
-                        <Label htmlFor="nationalId">کد ملی</Label>
-                        {profileForm.nationalId && (
-                          <span className="text-[11px] font-mono text-muted-foreground" dir="ltr">
-                            نمایش امن: {maskNationalId(profileForm.nationalId)}
-                          </span>
-                        )}
-                      </div>
+                      <Label htmlFor="nationalId">کد ملی</Label>
                       <div className="relative">
                         <Input
                           id="nationalId"
@@ -1532,6 +1524,12 @@ function AccountDashboardInner({
                         />
                         <ShieldCheck className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
                       </div>
+                      {profileForm.nationalId && (
+                        <p className="text-[11px] text-muted-foreground flex items-center justify-between">
+                          <span>نمایش امن:</span>
+                          <span className="font-mono" dir="ltr">{maskNationalId(profileForm.nationalId)}</span>
+                        </p>
+                      )}
                     </div>
 
                   </div>

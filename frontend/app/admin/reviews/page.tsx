@@ -214,7 +214,7 @@ export default function AdminReviewsPage() {
 
       {distribution && (
         <Card className="p-4">
-          <div className="grid grid-cols-3 gap-4 sm:grid-cols-6">
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 lg:grid-cols-7">
             <div>
               <div className="text-[11px] text-muted-foreground">در انتظار بررسی</div>
               <div className="mt-0.5 text-lg font-bold">
@@ -241,6 +241,7 @@ export default function AdminReviewsPage() {
                 ["۴ ستاره", distribution.star4],
                 ["۳ ستاره", distribution.star3],
                 ["۲ ستاره", distribution.star2],
+                ["۱ ستاره", distribution.star1],
               ] as const
             ).map(([label, count]) => (
               <div key={label}>

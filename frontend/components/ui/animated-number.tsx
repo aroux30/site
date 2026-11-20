@@ -10,11 +10,13 @@ export interface AnimatedNumberProps {
   prefix?: string;
   suffix?: string;
   formatPersian?: boolean;
+  dir?: "rtl" | "ltr" | "auto";
 }
 
 /**
  * AnimatedNumber — Smooth easing number counter using requestAnimationFrame & IntersectionObserver.
- * Completely lightweight, respects prefers-reduced-motion, and formats Persian numerals natively.
+ * Completely lightweight, respects prefers-reduced-motion, supports dynamic value transitions,
+ * and formats Persian numerals natively in RTL reading direction.
  */
 export function AnimatedNumber({
   value,
@@ -23,10 +25,12 @@ export function AnimatedNumber({
   prefix = "",
   suffix = "",
   formatPersian = true,
+  dir,
 }: AnimatedNumberProps) {
-  const [displayValue, setDisplayValue] = useState(0);
+  const [displayValue, setDisplayValue] = useState(value);
   const ref = useRef<HTMLSpanElement>(null);
-  const animatedRef = useRef(false);
+  const prevValueRef = useRef(value);
+  const inViewRef = useRef(false);
 
   useEffect(() => {
     const el = ref.current;
@@ -37,33 +41,42 @@ export function AnimatedNumber({
       window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches
     ) {
       setDisplayValue(value);
+      prevValueRef.current = value;
+      return;
+    }
+
+    const animateTransition = (fromVal: number, toVal: number) => {
+      let startTime: number | null = null;
+      const step = (timestamp: number) => {
+        if (!startTime) startTime = timestamp;
+        const progress = Math.min((timestamp - startTime) / duration, 1);
+        const easeOutProgress = 1 - Math.pow(1 - progress, 3);
+        const current = Math.floor(fromVal + (toVal - fromVal) * easeOutProgress);
+        setDisplayValue(current);
+
+        if (progress < 1) {
+          requestAnimationFrame(step);
+        } else {
+          setDisplayValue(toVal);
+          prevValueRef.current = toVal;
+        }
+      };
+      requestAnimationFrame(step);
+    };
+
+    if (inViewRef.current) {
+      if (prevValueRef.current !== value) {
+        animateTransition(prevValueRef.current, value);
+      }
       return;
     }
 
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0]?.isIntersecting && !animatedRef.current) {
-          animatedRef.current = true;
-          let startTime: number | null = null;
-          const startValue = 0;
-          const endValue = value;
-
-          const step = (timestamp: number) => {
-            if (!startTime) startTime = timestamp;
-            const progress = Math.min((timestamp - startTime) / duration, 1);
-            // Ease-out cubic formula
-            const easeOutProgress = 1 - Math.pow(1 - progress, 3);
-            const current = Math.floor(startValue + (endValue - startValue) * easeOutProgress);
-            setDisplayValue(current);
-
-            if (progress < 1) {
-              requestAnimationFrame(step);
-            } else {
-              setDisplayValue(endValue);
-            }
-          };
-
-          requestAnimationFrame(step);
+        if (entries[0]?.isIntersecting) {
+          inViewRef.current = true;
+          animateTransition(0, value);
+          observer.disconnect();
         }
       },
       { threshold: 0.1 }
@@ -78,12 +91,13 @@ export function AnimatedNumber({
 
   const formattedStr = displayValue.toLocaleString("en-US");
   const finalStr = formatPersian ? toPersianDigits(formattedStr) : formattedStr;
+  const resolvedDir = dir ?? (formatPersian ? "rtl" : "ltr");
 
   return (
     <span
       ref={ref}
       className={cn("inline-block tabular-nums font-mono font-bold", className)}
-      dir="ltr"
+      dir={resolvedDir}
     >
       {prefix}
       {finalStr}

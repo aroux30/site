@@ -30,6 +30,7 @@ import apiClient from "@/lib/api/client";
 import { useAdminMutation, useAdminQuery } from "@/lib/api/admin-query";
 import { DataTable, type DataTableColumn } from "@/components/admin/data-table";
 import { PageLoader } from "@/components/shared/page-state";
+import { toPersianDigits } from "@/lib/utils";
 
 const WITHDRAWALS_KEY = "admin-wallet-withdrawals" as const;
 const WALLETS_KEY = "admin-wallet-wallets" as const;
@@ -414,15 +415,15 @@ export default function AdminWalletPage() {
       <div className="flex flex-wrap gap-2">
         <Button variant={tab === "withdrawals" ? "default" : "outline"} size="sm" onClick={() => setTab("withdrawals")}>
           <Banknote className="h-4 w-4 ms-2" />
-          برداشت‌ها ({withdrawals.length})
+          برداشت‌ها ({toPersianDigits(withdrawals.length)})
         </Button>
         <Button variant={tab === "wallets" ? "default" : "outline"} size="sm" onClick={() => setTab("wallets")}>
           <WalletIcon className="h-4 w-4 ms-2" />
-          کیف پول‌ها ({wallets.length})
+          کیف پول‌ها ({toPersianDigits(wallets.length)})
         </Button>
         <Button variant={tab === "transfers" ? "default" : "outline"} size="sm" onClick={() => setTab("transfers")}>
           <ArrowLeftRight className="h-4 w-4 ms-2" />
-          انتقال‌ها ({transfers.length})
+          انتقال‌ها ({toPersianDigits(transfers.length)})
         </Button>
         <Button variant={tab === "settings" ? "default" : "outline"} size="sm" onClick={() => setTab("settings")}>
           <Settings2 className="h-4 w-4 ms-2" />

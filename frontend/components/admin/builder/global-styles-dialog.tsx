@@ -156,6 +156,22 @@ export function GlobalStylesDialog({ open, onOpenChange }: GlobalStylesDialogPro
                 dir="ltr"
               />
             </div>
+            <div className="flex flex-wrap gap-1 mt-1">
+              {COLOR_PRESETS.map((c) => (
+                <button
+                  key={c.hex}
+                  type="button"
+                  onClick={() => setSecondary(c.hex)}
+                  className="w-5 h-5 rounded-full border border-border shadow-xs transition hover:scale-110 flex items-center justify-center"
+                  style={{ backgroundColor: c.hex }}
+                  title={c.name}
+                >
+                  {secondary.toLowerCase() === c.hex.toLowerCase() && (
+                    <Check className="w-3 h-3 text-white drop-shadow" />
+                  )}
+                </button>
+              ))}
+            </div>
           </div>
 
           {/* Base Border Radius */}

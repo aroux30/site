@@ -277,6 +277,23 @@ export default async function CmsPageRoute({ params, searchParams }: Props) {
     }
   }
 
+  const hasBuilderData = Boolean(
+    page.builder_data &&
+    Array.isArray(page.builder_data.rootElements || page.builder_data.root_elements) &&
+    (page.builder_data.rootElements || page.builder_data.root_elements).length > 0
+  );
+
+  if (hasBuilderData) {
+    return (
+      <div className="w-full">
+        <div
+          className="builder-rendered-content w-full"
+          dangerouslySetInnerHTML={{ __html: cleanHtml(page.body_html) }}
+        />
+      </div>
+    );
+  }
+
   return (
     <article className="mx-auto max-w-3xl px-4 py-10">
       {/* Hero image. RemoteImage because a cover can point at a host that is

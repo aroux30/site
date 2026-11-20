@@ -1406,10 +1406,10 @@ export function InspectorPanel() {
           <div className="flex flex-wrap gap-1 mt-1">
             <span className="text-[10px] text-muted-foreground me-1 self-center">مقیاس پدینگ:</span>
             {[
-              { label: "سکشن (۶۴px)", val: 64 },
-              { label: "بزرگ (۳۲px)", val: 32 },
-              { label: "پایه (۱۶px)", val: 16 },
-              { label: "کوچک (۸px)", val: 8 },
+              { label: "۶۴ پیکسل (سکشن)", val: 64 },
+              { label: "۳۲ پیکسل (بزرگ)", val: 32 },
+              { label: "۱۶ پیکسل (پایه)", val: 16 },
+              { label: "۸ پیکسل (کوچک)", val: 8 },
               { label: "صفر", val: 0 },
             ].map((sp) => (
               <button
@@ -1457,8 +1457,8 @@ export function InspectorPanel() {
             <span className="text-[10px] text-muted-foreground me-1 self-center">توکن‌های عرض:</span>
             {[
               { label: "۱۰۰٪", w: { value: 100, unit: "%" as UnitType } },
-              { label: "۱۲۸۰px (کانتینر)", w: { value: 1280, unit: "px" as UnitType } },
-              { label: "۷۶۸px (محتوا)", w: { value: 768, unit: "px" as UnitType } },
+              { label: "۱۲۸۰ پیکسل (کانتینر)", w: { value: 1280, unit: "px" as UnitType } },
+              { label: "۷۶۸ پیکسل (محتوا)", w: { value: 768, unit: "px" as UnitType } },
             ].map((wt) => (
               <button
                 key={wt.label}

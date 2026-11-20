@@ -248,6 +248,48 @@
 
 ---
 
+### 🏋️ راند ۷ (Round 07) — وزنه ۶: بی‌نهایت (۷۰ کیلو — توکن‌های رنگ ثانویه سراسری، چیپ‌های ابعاد بدون وارونگی RTL و برابری کامل استورفرانت با بوم)
+- **تاریخ اجرا**: 2026-11-20
+- **شاخه ایزوله**: `claude/amazing-gagarin-884885`
+- **وضعیت**: ✅ کامل و سبز (۳ باگ ریشه‌ای استایل سراسری، چیپ‌های بازرس و رندر تمام‌عرض صفحه نهایی اصلاح و با Vision تایید شدند)
+
+#### ۱. باگ‌های کشف‌شده با ابزار Vision و تعامل
+1. **فقدان پالت دکمه‌های آماده رنگ مکمل (Secondary Accent Color Presets) در GlobalStylesDialog**:
+   - *مشاهده در Vision*: در تصویر `before/02-global-styles-dialog.png`، برای رنگ اصلی برند یک ردیف دکمه‌های گرد رنگی پیش‌فرض (زمردی، فیروزه‌ای، آبی، بنفش و...) وجود داشت اما برای رنگ مکمل/ثانویه هیچ پالتی تعبیه نشده بود و کاربر مجبور بود مقدار هگز را دستی تایپ کند.
+   - *اصلاح ریشه‌ای*: اضافه شدن پالت کامل ۸ رنگی `COLOR_PRESETS` برای انتخابگر رنگ ثانویه در `frontend/components/admin/builder/global-styles-dialog.tsx`.
+2. **وارونگی و به‌هم‌ریختگی چیپ‌های سریع ابعاد و پدینگ در جهت RTL بازرس**:
+   - *مشاهده در Vision*: در تصویر `before/04-inspector-style-tab.png`، متن‌های آمیخته فارسی و انگلیسی نظیر `۱۲۸۰px (کانتینر)` و `سکشن (۶۴px)` به دلیل تداخل کاراکترهای جهت‌دار پرانتزها و اعداد وارونه رندر می‌شدند.
+   - *اصلاح ریشه‌ای*: اصلاح متون به فارسی یکدست (`۱۲۸۰ پیکسل (کانتینر)`، `۷۶۸ پیکسل (محتوا)`، `۶۴ پیکسل (سکشن)`) در `frontend/components/admin/builder/inspector-panel.tsx`.
+3. **محدودسازی غیرمجاز صفحات ساخته‌شده با صفحه‌ساز به عرض ۷۶۸px و درج سرتیتر تکراری (`Storefront WYSIWYG Parity Violation`)**:
+   - *مشاهده در Vision*: در تصویر `before/06-storefront-rendered-page.png`، صفحه عمومی بر اساس کدهای قدیمی `max-w-3xl` محدود شده و یک تگ `<header><h1>{page.title}</h1></header>` به عنوان سرتیتر تکراری بالای محتوای طراحی‌شده در بیلدر رندر می‌شد.
+   - *اصلاح ریشه‌ای*: تشخیص صفحات بیلدر (`hasBuilderData`) در `frontend/app/(store)/[slug]/page.tsx` و رندر تمام‌عرض محتوای کامپایل‌شده بدون سرتیتر مازاد.
+
+#### ۲. مستندات بصری (Vision Artifacts)
+- **قبل از اصلاح**: `.loop/artifacts/builder-gym/round-07/before/`
+  - `01-studio-clean.png`
+  - `02-global-styles-dialog.png`
+  - `03-save-page-template-dialog.png`
+  - `04-inspector-style-tab.png`
+  - `05-inspector-style-scrolled.png`
+  - `06-storefront-rendered-page.png`
+- **بعد از اصلاح**: `.loop/artifacts/builder-gym/round-07/after/`
+  - `01-studio-clean.png`
+  - `02-global-styles-dialog.png` (مشاهده پالت کامل دکمه‌های گرد رنگ برای هر دو رنگ اصلی و مکمل)
+  - `03-save-page-template-dialog.png`
+  - `04-inspector-style-tab.png` (چیپ‌های کاملاً منظم و مرتب ابعاد و پدینگ بدون وارونگی متن)
+  - `06-storefront-rendered-page.png` (حذف سرتیتر مازاد و رندر تمام‌عرض دقیقاً منطبق با طراحی بوم)
+
+#### ۳. تست‌های رگرسیون دائمی اضافه‌شده
+- فایل تست Playwright: `frontend/tests/e2e/builder-gym-r07.spec.ts` (۳ تست سبز)
+
+#### ۴. نتایج نهایی ممیزی و تست‌ها در راند ۷
+- `npx tsc --noEmit`: ۰ خطا (سبز)
+- `npm test` (Vitest): **۳۷۱ تست سبز در ۴۵ فایل** (`371 passed`)
+- `python -m pytest app/tests/unit`: **۶۲۲ تست سبز** (`622 passed, 2 skipped`)
+- تست‌های Playwright کامل صفحه‌ساز (راند ۱ تا ۷): **۲۱ تست سبز در ۷ فایل (`21 passed in 34.5s`)**
+
+---
+
 ## 🏆 گواهینامه ثبت BUILDER_GYM_LEVELS_1_TO_5_CLEAN
 
 بدین‌وسیله تایید می‌گردد که هر ۵ وزنه نردبان تمرین پیش‌رونده Visual Page Builder بر اساس دستورالعمل رسمی [BUILDER_GYM.md](BUILDER_GYM.md) با موفقیت کامل و مستندات تصویری Vision سپری شد:

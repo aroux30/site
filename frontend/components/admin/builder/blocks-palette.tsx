@@ -155,7 +155,8 @@ export function BlocksPalette() {
         pattern.variables.map((v) => [v.name, v.default])
       );
       const newEl = createPatternElement(pattern, res.html, vars);
-      addElement(newEl, getTargetContainerId());
+      // Patterns are top-level sections: always insert at root level
+      addElement(newEl);
       toast({
         title: "الگو افزوده شد",
         description: `الگوی «${pattern.title}» به برگه اضافه شد.`,
@@ -180,7 +181,7 @@ export function BlocksPalette() {
     if (rootEls.length === 0) return;
     for (const el of rootEls) {
       const cloned = cloneElementWithNewIds(el);
-      addElement(cloned, getTargetContainerId());
+      addElement(cloned);
     }
     toast({
       title: "قالب افزوده شد",

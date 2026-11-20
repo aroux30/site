@@ -421,11 +421,13 @@ function CanvasElementComponent({
       }
       case "button": {
         const customClass = String(props.customCssClass || element.styles?.customCssClass || "");
+        const isFull = customClass.includes("w-full");
         return (
-          <div className="inline-block">
+          <div className={isFull ? "w-full block" : "inline-block"}>
             <span
               className={cn(
                 "inline-flex items-center justify-center rounded-xl bg-primary px-6 py-3 font-semibold text-primary-foreground shadow-sm transition",
+                isFull && "w-full",
                 customClass
               )}
             >
@@ -893,8 +895,9 @@ function CanvasElementComponent({
         const label = String(props.label || "");
         const placeholder = String(props.placeholder || "");
         const inputType = String(props.input_type || "text");
+        const customClass = String(props.customCssClass || element.styles?.customCssClass || "");
         return (
-          <div className="space-y-1 w-full text-right pointer-events-none">
+          <div className={cn("space-y-1 w-full text-right pointer-events-none", customClass)}>
             {label && <label className="block text-xs font-semibold text-foreground">{label}</label>}
             <input
               type={inputType}
@@ -909,8 +912,9 @@ function CanvasElementComponent({
         const label = String(props.label || "");
         const placeholder = String(props.placeholder || "");
         const rowsNum = Number(props.rows || 4);
+        const customClass = String(props.customCssClass || element.styles?.customCssClass || "");
         return (
-          <div className="space-y-1 w-full text-right pointer-events-none">
+          <div className={cn("space-y-1 w-full text-right pointer-events-none", customClass)}>
             {label && <label className="block text-xs font-semibold text-foreground">{label}</label>}
             <textarea
               placeholder={placeholder}
@@ -924,8 +928,9 @@ function CanvasElementComponent({
       case "form_select": {
         const label = String(props.label || "");
         const options = (props.options as string[]) || ["گزینه ۱", "گزینه ۲"];
+        const customClass = String(props.customCssClass || element.styles?.customCssClass || "");
         return (
-          <div className="space-y-1 w-full text-right pointer-events-none">
+          <div className={cn("space-y-1 w-full text-right pointer-events-none", customClass)}>
             {label && <label className="block text-xs font-semibold text-foreground">{label}</label>}
             <select className="w-full rounded-xl border border-input bg-background px-4 py-2.5 text-sm" disabled>
               {options.map((opt, i) => (

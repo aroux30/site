@@ -51,7 +51,7 @@ function createHeadingWidget(
     name: `عنوان: ${text.slice(0, 20)}`,
     type: "widget",
     widgetType: "heading",
-    widgetProps: { text, tag },
+    widgetProps: { text, tag, customCssClass: customCssClass || undefined },
     isLocked: false,
     isHidden: false,
     styles: {
@@ -68,7 +68,7 @@ function createTextWidget(content: string, customCssClass?: string): BuilderElem
     name: "متن و پاراگراف",
     type: "widget",
     widgetType: "text_editor",
-    widgetProps: { content },
+    widgetProps: { content, customCssClass: customCssClass || undefined },
     isLocked: false,
     isHidden: false,
     styles: {
@@ -90,7 +90,7 @@ function createButtonWidget(
     name: `دکمه: ${label}`,
     type: "widget",
     widgetType: "button",
-    widgetProps: { label, url, newTab },
+    widgetProps: { label, url, newTab, customCssClass: customCssClass || undefined },
     isLocked: false,
     isHidden: false,
     styles: {
@@ -111,7 +111,7 @@ function createImageWidget(
     name: `تصویر: ${alt.slice(0, 20)}`,
     type: "widget",
     widgetType: "image",
-    widgetProps: { url, alt },
+    widgetProps: { url, alt, customCssClass: customCssClass || undefined },
     isLocked: false,
     isHidden: false,
     styles: {

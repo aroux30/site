@@ -415,9 +415,15 @@ function CanvasElementComponent({
         );
       }
       case "button": {
+        const customClass = String(props.customCssClass || element.styles?.customCssClass || "");
         return (
           <div className="inline-block">
-            <span className="inline-flex items-center justify-center rounded-xl bg-primary px-6 py-3 font-semibold text-primary-foreground shadow-sm transition">
+            <span
+              className={cn(
+                "inline-flex items-center justify-center rounded-xl bg-primary px-6 py-3 font-semibold text-primary-foreground shadow-sm transition",
+                customClass
+              )}
+            >
               {String(props.label || "دکمه اقدام")}
             </span>
           </div>

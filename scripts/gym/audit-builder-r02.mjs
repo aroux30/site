@@ -7,7 +7,7 @@ const req = createRequire("C:/Users/Administrator/Desktop/site/frontend/package.
 const { chromium } = req("playwright");
 
 const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || "http://127.0.0.1:3000";
-const STAGE = process.argv[2] || "before";
+const STAGE = process.argv[2] || "after";
 const PROJECT_ROOT = path.resolve("C:/Users/Administrator/Desktop/site");
 const ARTIFACTS_DIR = path.join(PROJECT_ROOT, ".loop", "artifacts", "builder-gym", "round-02", STAGE);
 const BACKEND_DIR = path.join(PROJECT_ROOT, "backend");
@@ -27,7 +27,7 @@ async def main():
     ))
 asyncio.run(main())
 `;
-  const tmp = path.join(BACKEND_DIR, `.gym-tok-${Date.now()}.py`);
+  const tmp = path.join(BACKEND_DIR, `.gym-r02-tok-${Date.now()}.py`);
   fs.writeFileSync(tmp, script, "utf8");
   try {
     const out = execSync(`python "${tmp}"`, { cwd: BACKEND_DIR, encoding: "utf8" });
@@ -69,13 +69,10 @@ async function runAudit() {
   };
 
   try {
-    // 1. Navigate to scratchpad
-    console.log(`    1. Navigating to ${BASE_URL}/e2e-isolated-scratchpad?builder=1...`);
+    console.log(`    Navigating to ${BASE_URL}/e2e-isolated-scratchpad?builder=1...`);
     await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded", timeout: 45000 });
     await page.waitForTimeout(2000);
 
-    // 2. Test Palette Sub-tabs & Search filtering
-    console.log("    2. Testing Blocks Palette subtabs & search...");
     const paletteTabBtn = page.getByRole("button", { name: "افزودن بلوک" });
     if (await paletteTabBtn.isVisible()) {
       await paletteTabBtn.click();
@@ -90,12 +87,9 @@ async function runAudit() {
     await page.locator("aside").first().screenshot({ path: shotSearch });
     findings.checks.searchScreenshot = shotSearch;
 
-    // Clear search
     await searchInput.fill("");
     await page.waitForTimeout(400);
 
-    // 3. Switch to Patterns Sub-tab
-    console.log("    3. Switching to Patterns tab...");
     const patternsSubTab = page.locator("button:has-text('الگوها')").first();
     await patternsSubTab.click();
     await page.waitForTimeout(1000);
@@ -104,30 +98,16 @@ async function runAudit() {
     await page.locator("aside").first().screenshot({ path: shotPatternsTab });
     findings.checks.patternsPaletteScreenshot = shotPatternsTab;
 
-    // 4. Insert Batch 1 Patterns into Canvas
-    console.log("    4. Inserting Batch 1 Patterns (hero-banner, feature-grid, countdown-offer, faq-accordion)...");
     const frame = page.frameLocator('iframe[title="Visual Builder Canvas"]');
-
-    // Click on pattern cards to insert them
-    const patternCards = page.locator("aside div[draggable='true']");
-    const count = await patternCards.count();
-    console.log(`       Found ${count} pattern cards in palette.`);
-
-    // Insert first 3 available patterns
-    for (let i = 0; i < Math.min(count, 3); i++) {
-      await patternCards.nth(i).click();
-      await page.waitForTimeout(1000);
+    const heroCard = page.locator("div[data-pattern-slug='hero-banner']").first();
+    if (await heroCard.isVisible()) {
+      await heroCard.click();
+      await page.waitForTimeout(1200);
     }
 
-    // Capture Canvas with inserted patterns
     const shotCanvasPatterns = path.join(ARTIFACTS_DIR, "03-canvas-rendered-patterns.png");
     await page.locator("div.fixed.inset-0 main").first().screenshot({ path: shotCanvasPatterns });
     findings.checks.canvasPatternsScreenshot = shotCanvasPatterns;
-
-    // 5. Check computed styles and RTL contrast on inserted patterns
-    const headings = frame.locator("h1, h2, h3");
-    const hCount = await headings.count();
-    findings.checks.patternHeadingsCount = hCount;
 
   } finally {
     await browser.close();

@@ -25,7 +25,7 @@ import {
 } from "@/lib/api/block-patterns";
 import { pageTemplatesAdminApi } from "@/lib/api/content";
 import type { PageTemplate } from "@/types/builder";
-import { useBuilderStore, cloneElementWithNewIds } from "@/stores/builder-store";
+import { useBuilderStore, cloneElementWithNewIds, findElementById } from "@/stores/builder-store";
 import { useToast } from "@/components/ui/use-toast";
 
 type PaletteTab = "basic" | "patterns" | "templates";
@@ -137,9 +137,8 @@ export function BlocksPalette() {
   }, [allPatterns, search, selectedCategory]);
 
   const getTargetContainerId = useCallback(() => {
-    const selectedEl = selectedElementId
-      ? ast.rootElements.find((r) => r.id === selectedElementId)
-      : null;
+    if (!selectedElementId) return undefined;
+    const selectedEl = findElementById(ast.rootElements, selectedElementId);
     return selectedEl?.type === "container" ? selectedEl.id : undefined;
   }, [ast.rootElements, selectedElementId]);
 
@@ -506,6 +505,7 @@ export function BlocksPalette() {
                   return (
                     <div
                       key={pattern.slug}
+                      data-pattern-slug={pattern.slug}
                       draggable={true}
                       onDragStart={(e) => {
                         const vars = Object.fromEntries(

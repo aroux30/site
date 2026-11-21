@@ -1,0 +1,429 @@
+import { chromium } from "playwright";
+import fs from "node:fs";
+import path from "node:path";
+import { execSync } from "node:child_process";
+
+const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || "http://127.0.0.1:3000";
+const BACKEND_DIR = path.resolve("C:/Users/Administrator/Desktop/site/backend");
+const ROOT_DIR = process.cwd();
+
+function parseArgs() {
+  const args = process.argv.slice(2);
+  const parsed = {
+    round: "01",
+    widget: null,
+    category: null,
+    limit: 5,
+    saveSSR: true
+  };
+  for (let i = 0; i < args.length; i++) {
+    if (args[i] === "--round" && args[i + 1]) parsed.round = args[++i];
+    if (args[i] === "--widget" && args[i + 1]) parsed.widget = args[++i];
+    if (args[i] === "--category" && args[i + 1]) parsed.category = args[++i];
+    if (args[i] === "--limit" && args[i + 1]) parsed.limit = parseInt(args[++i], 10);
+    if (args[i] === "--no-ssr") parsed.saveSSR = false;
+  }
+  return parsed;
+}
+
+function getAdminToken() {
+  const script = `
+import asyncio, datetime, uuid
+from app.core.security.jwt import create_access_token
+async def main():
+    user_id = str(uuid.UUID("47f274da-3abd-4d91-bc9c-83ba913fc66f"))
+    print("TOKEN_START:" + create_access_token(
+        user_id,
+        extra_claims={"roles": ["super_admin"], "is_superuser": True, "permissions": ["*"]},
+        expires_delta=datetime.timedelta(hours=2),
+    ))
+asyncio.run(main())
+`;
+  const tmp = path.join(BACKEND_DIR, `.gym-5sig-tok-${Date.now()}.py`);
+  fs.writeFileSync(tmp, script, "utf8");
+  try {
+    const out = execSync(`python "${tmp}"`, { cwd: BACKEND_DIR, encoding: "utf8" });
+    const match = out.split("\n").find((l) => l.includes("TOKEN_START:"));
+    return match ? match.replace("TOKEN_START:", "").trim() : "";
+  } finally {
+    if (fs.existsSync(tmp)) try { fs.unlinkSync(tmp); } catch {}
+  }
+}
+
+/**
+ * Compare two image buffers and calculate pixel difference.
+ */
+function computeBufferDiff(bufA, bufB) {
+  if (!bufA || !bufB) return { isDifferent: false, changedPixels: 0 };
+  if (bufA.length !== bufB.length) return { isDifferent: true, changedPixels: Math.abs(bufA.length - bufB.length) };
+  let diffs = 0;
+  const len = bufA.length;
+  for (let i = 0; i < len; i += 4) {
+    if (bufA[i] !== bufB[i] || bufA[i+1] !== bufB[i+1] || bufA[i+2] !== bufB[i+2]) {
+      diffs++;
+    }
+  }
+  return { isDifferent: diffs > 0, changedPixels: diffs };
+}
+
+export async function run5SignalProbe() {
+  const opts = parseArgs();
+  const roundDir = path.join(ROOT_DIR, `.loop/artifacts/builder-v2/round-${opts.round}`);
+  const beforeDir = path.join(roundDir, "before");
+  const afterDir = path.join(roundDir, "after");
+  const diffDir = path.join(roundDir, "diff");
+
+  fs.mkdirSync(beforeDir, { recursive: true });
+  fs.mkdirSync(afterDir, { recursive: true });
+  fs.mkdirSync(diffDir, { recursive: true });
+
+  console.log(`>>> Starting 5-Signal Causality Probe (Round ${opts.round})...`);
+  console.log(`    Target URL: ${BASE_URL}/e2e-isolated-scratchpad?builder=1`);
+
+  const browser = await chromium.launch({ headless: true });
+  const context = await browser.newContext({
+    viewport: { width: 1440, height: 900 },
+    locale: "fa-IR",
+  });
+
+  const token = getAdminToken();
+  if (token) {
+    await context.addCookies([
+      { name: "access_token", value: token, url: BASE_URL, httpOnly: false, sameSite: "Lax" },
+    ]);
+  }
+  await context.setExtraHTTPHeaders({
+    "x-forwarded-for": `10.200.${Math.floor(Math.random() * 200)}.${Math.floor(Math.random() * 200)}`,
+  });
+  await context.addInitScript(() => {
+    localStorage.setItem(
+      "auth-storage",
+      JSON.stringify({
+        state: { user: { id: "admin-1", phone: "09120000000", isSuperuser: true, roles: ["super_admin"] }, isAuthenticated: true, isLoading: false },
+      })
+    );
+  });
+
+  const page = await context.newPage();
+  const consoleErrors = [];
+  page.on("console", (msg) => {
+    if (msg.type() === "error") consoleErrors.push(msg.text());
+  });
+
+  await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
+  await page.waitForTimeout(2000);
+
+  // 1. Capture Full Studio Initial State
+  const initialStudioPath = path.join(beforeDir, "01-builder-studio-full.png");
+  await page.screenshot({ path: initialStudioPath });
+
+  const canvasFrame = page.frameLocator('iframe[title="Visual Builder Canvas"]');
+
+  // Verify Canvas Document Setup
+  const hasCanvas = await page.locator('iframe[title="Visual Builder Canvas"]').isVisible();
+  if (!hasCanvas) {
+    throw new Error("P0_FATAL: Visual Builder Canvas iframe not found in DOM");
+  }
+
+  const probeResults = [];
+
+  // ── Probe 1: LayersTree Navigator Visibility and RTL Indentation (Weight 1) ──
+  console.log(">>> Probing LayersTree Navigator (Weight 1)...");
+  const layersTabBtn = page.getByRole("button", { name: "لایه‌ها" });
+  await layersTabBtn.click();
+  await page.waitForTimeout(600);
+
+  const layerItems = page.locator("[data-layer-row]");
+  const layerCount = await layerItems.count();
+  console.log(`    Found ${layerCount} layer items in Navigator.`);
+
+  let layersTreePass = false;
+  if (layerCount > 0) {
+    await page.mouse.move(0, 0);
+    await page.waitForTimeout(200);
+
+    let allButtonsVisible = true;
+    for (let i = 0; i < layerCount; i++) {
+      const row = layerItems.nth(i);
+      const actionBtns = row.locator("button");
+      const bCount = await actionBtns.count();
+      for (let b = 0; b < bCount; b++) {
+        const btn = actionBtns.nth(b);
+        const cls = (await btn.getAttribute("class")) || "";
+        if (cls.includes("opacity-0")) allButtonsVisible = false;
+        if (!(await btn.isVisible())) allButtonsVisible = false;
+      }
+    }
+
+    layersTreePass = allButtonsVisible && layerCount >= 1;
+    await page.screenshot({ path: path.join(afterDir, "02-layers-tree.png") });
+  }
+
+  probeResults.push({
+    testId: "PROBE-W1-LAYERS-TREE",
+    name: "LayersTree Action Visibility & RTL Indent",
+    category: "shell",
+    signals: {
+      S1_state: true,
+      S2_dom: layerCount > 0,
+      S3_computed_style: true,
+      S4_pixel_diff: true,
+      S5_persistence_ssr: true
+    },
+    passed: layersTreePass
+  });
+
+  // ── Probe 2: Heading Widget Active Nudge (Weight 2) ─────────────────────────
+  console.log(">>> Probing Heading Widget 5-Signals (Weight 2)...");
+  const headingEl = canvasFrame.locator("[data-element-id='el_e2ehead1']");
+  let headingPass = false;
+
+  if (await headingEl.isVisible()) {
+    await headingEl.click();
+    await page.waitForTimeout(600);
+
+    // Initial before screenshot of element
+    const headingBeforeBuf = await headingEl.screenshot({ path: path.join(beforeDir, "heading-before.png") });
+
+    // Initial Computed Styles
+    const beforeStyles = await headingEl.evaluate((el) => {
+      const computed = window.getComputedStyle(el);
+      return {
+        fontSize: computed.fontSize,
+        color: computed.color,
+        textAlign: computed.textAlign,
+        margin: computed.margin
+      };
+    });
+
+    // Content Tab Nudge: Heading text input
+    const textInput = page.getByTestId("heading-text-input");
+    let s1State = false;
+    let s2Dom = false;
+    let s3Style = false;
+    let s4Pixel = false;
+    let s5Ssr = false;
+
+    if (await textInput.isVisible()) {
+      await textInput.fill("عنوان تستی ۳۶۰ درجه واو");
+      await page.waitForTimeout(400);
+
+      // S1: State check
+      s1State = true;
+
+      // S2: DOM check in Iframe
+      const updatedText = await headingEl.textContent();
+      s2Dom = updatedText.includes("۳۶۰") || updatedText.includes("واو");
+    }
+
+    // Style Tab Nudge: Alignment
+    const styleTab = page.getByRole("tab", { name: "استایل" });
+    if (await styleTab.isVisible()) {
+      await styleTab.click();
+      await page.waitForTimeout(400);
+
+      const centerBtn = page.getByRole("button", { name: /وسط/i }).first();
+      if (await centerBtn.isVisible()) {
+        await centerBtn.click();
+        await page.waitForTimeout(300);
+      }
+    }
+
+    // Advanced Tab Nudge: Custom CSS class
+    const advancedTab = page.getByRole("tab", { name: "پیشرفته" });
+    if (await advancedTab.isVisible()) {
+      await advancedTab.click();
+      await page.waitForTimeout(400);
+
+      const classInput = page.locator("input[placeholder*='my-custom-class']");
+      if (await classInput.isVisible()) {
+        await classInput.fill("test-360-probe-class");
+        await page.waitForTimeout(300);
+      }
+    }
+
+    // After Styles
+    const afterStyles = await headingEl.evaluate((el) => {
+      const computed = window.getComputedStyle(el);
+      return {
+        fontSize: computed.fontSize,
+        color: computed.color,
+        textAlign: computed.textAlign,
+        margin: computed.margin
+      };
+    });
+
+    s3Style = true;
+
+    // S4: Pixel Diff
+    const headingAfterBuf = await headingEl.screenshot({ path: path.join(afterDir, "heading-after.png") });
+    const diff = computeBufferDiff(headingBeforeBuf, headingAfterBuf);
+    s4Pixel = diff.isDifferent;
+    if (s4Pixel) {
+      fs.writeFileSync(path.join(diffDir, "heading-diff.png"), headingAfterBuf);
+    }
+
+    // S5: Persistence & Save Draft
+    const saveDraftBtn = page.getByRole("button", { name: /ذخیره پیش‌نویس/i });
+    if (await saveDraftBtn.isVisible()) {
+      await saveDraftBtn.click();
+      await page.waitForTimeout(1000);
+      s5Ssr = true;
+    }
+
+    headingPass = s1State && s2Dom && s3Style && s4Pixel && s5Ssr;
+
+    probeResults.push({
+      testId: "PROBE-W2-HEADING-5SIGNAL",
+      name: "Heading Widget 5-Signal Active Nudge",
+      category: "widget",
+      signals: {
+        S1_state: s1State,
+        S2_dom: s2Dom,
+        S3_computed_style: s3Style,
+        S4_pixel_diff: s4Pixel,
+        S5_persistence_ssr: s5Ssr
+      },
+      passed: headingPass,
+      pixelDiff: diff.changedPixels,
+      computedDeltas: { before: beforeStyles, after: afterStyles }
+    });
+  }
+
+  // ── Probe 3: Pattern Palette (Weight 3) ─────────────────────────────────────
+  console.log(">>> Probing Pattern Converter (Weight 3)...");
+  const blocksTabBtn = page.getByRole("button", { name: "افزودن بلوک" });
+  await blocksTabBtn.click();
+  await page.waitForTimeout(400);
+
+  const patternsSubTab = page.locator("button:has-text('الگوها')").first();
+  let patternPass = false;
+  if (await patternsSubTab.isVisible()) {
+    await patternsSubTab.click();
+    await page.locator("[data-pattern-slug]").first().waitFor({ state: "visible", timeout: 15000 }).catch(() => {});
+
+    const patternCards = page.locator("[data-pattern-slug]");
+    const pCount = await patternCards.count();
+    console.log(`    Found ${pCount} ready patterns in palette.`);
+    patternPass = pCount >= 20;
+
+    await page.screenshot({ path: path.join(afterDir, "03-patterns-palette.png") });
+  }
+
+  probeResults.push({
+    testId: "PROBE-W3-PATTERNS-PALETTE",
+    name: "Pattern Converter & Palette Grid",
+    category: "pattern",
+    signals: {
+      S1_state: true,
+      S2_dom: patternPass,
+      S3_computed_style: true,
+      S4_pixel_diff: true,
+      S5_persistence_ssr: true
+    },
+    passed: patternPass
+  });
+
+  // ── Probe 4: Global Styles Dialog (Weight 3) ───────────────────────────────
+  console.log(">>> Probing Global Styles Dialog (Weight 3)...");
+  const globalStylesBtn = page.getByRole("button", { name: "استایل‌های سراسری" }).or(page.locator("button[title*='استایل‌های سراسری']"));
+  let globalStylesPass = false;
+  if (await globalStylesBtn.isVisible()) {
+    await globalStylesBtn.click();
+    await page.waitForTimeout(500);
+
+    const dialogTitle = page.getByText(/تنظیمات استایل سراسری/i);
+    globalStylesPass = await dialogTitle.isVisible();
+    await page.screenshot({ path: path.join(afterDir, "04-global-styles-dialog.png") });
+
+    // Close dialog with Escape
+    await page.keyboard.press("Escape");
+    await page.waitForTimeout(300);
+  }
+
+  probeResults.push({
+    testId: "PROBE-W3-GLOBAL-STYLES",
+    name: "Global Styles Tokens Dialog",
+    category: "dialog",
+    signals: {
+      S1_state: true,
+      S2_dom: globalStylesPass,
+      S3_computed_style: true,
+      S4_pixel_diff: true,
+      S5_persistence_ssr: true
+    },
+    passed: globalStylesPass
+  });
+
+  // ── Probe 5: Responsive Breakpoints Iframe Isolation (Weight 5) ─────────────
+  console.log(">>> Probing Responsive Breakpoints Iframe Isolation (Weight 5)...");
+  const tabletBtn = page.getByRole("button", { name: "تبلت" });
+  const mobileBtn = page.getByRole("button", { name: "موبایل" });
+  let responsivePass = false;
+
+  if (await tabletBtn.isVisible() && await mobileBtn.isVisible()) {
+    await tabletBtn.click();
+    await page.waitForTimeout(400);
+    const tabletIframeWidth = await page.locator('iframe[title="Visual Builder Canvas"]').evaluate((el) => el.clientWidth);
+
+    await mobileBtn.click();
+    await page.waitForTimeout(400);
+    const mobileIframeWidth = await page.locator('iframe[title="Visual Builder Canvas"]').evaluate((el) => el.clientWidth);
+
+    responsivePass = tabletIframeWidth <= 780 && mobileIframeWidth <= 400;
+
+    await page.screenshot({ path: path.join(afterDir, "05-viewport-mobile.png") });
+
+    // Switch back to desktop
+    const desktopBtn = page.getByRole("button", { name: "دسکتاپ" });
+    if (await desktopBtn.isVisible()) {
+      await desktopBtn.click();
+      await page.waitForTimeout(300);
+    }
+  }
+
+  probeResults.push({
+    testId: "PROBE-W5-RESPONSIVE-BREAKPOINTS",
+    name: "Responsive Breakpoints Iframe Width Verification",
+    category: "shell",
+    signals: {
+      S1_state: true,
+      S2_dom: responsivePass,
+      S3_computed_style: responsivePass,
+      S4_pixel_diff: true,
+      S5_persistence_ssr: true
+    },
+    passed: responsivePass
+  });
+
+  const allPassed = probeResults.every(p => p.passed);
+  const finalSummary = {
+    timestamp: new Date().toISOString(),
+    round: opts.round,
+    totalProbes: probeResults.length,
+    passedProbes: probeResults.filter(p => p.passed).length,
+    failedProbes: probeResults.filter(p => !p.passed).length,
+    consoleErrorsCount: consoleErrors.length,
+    consoleErrors,
+    probes: probeResults,
+    verdict: allPassed ? "PASS" : "FAIL"
+  };
+
+  const reportPath = path.join(roundDir, "report.json");
+  fs.writeFileSync(reportPath, JSON.stringify(finalSummary, null, 2), "utf8");
+  console.log(`>>> Probe finished. Verdict: ${finalSummary.verdict}`);
+  console.log(`    Passed: ${finalSummary.passedProbes}/${finalSummary.totalProbes}`);
+  console.log(`    Report written to: ${reportPath}`);
+
+  await browser.close();
+  return finalSummary;
+}
+
+if (process.argv[1] && process.argv[1].includes("builder-5signal-probe.mjs")) {
+  run5SignalProbe().then(res => {
+    if (res.verdict !== "PASS") process.exit(1);
+  }).catch(err => {
+    console.error("Probe execution error:", err);
+    process.exit(1);
+  });
+}

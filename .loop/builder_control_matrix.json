@@ -1,0 +1,4290 @@
+{
+  "version": "2.0.0",
+  "lastUpdated": "2026-11-21T14:43:48.619Z",
+  "totalRows": 70,
+  "summary": {
+    "widgets": 35,
+    "patterns": 28,
+    "shellItems": 3,
+    "dialogs": 4,
+    "passedCount": 0,
+    "pendingCount": 70
+  },
+  "verificationPolicy": {
+    "strictScopeLock": true,
+    "forbiddenForceTrue": true,
+    "forbiddenTestSkip": true,
+    "requires5Signals": true
+  },
+  "rows": [
+    {
+      "id": "WIDGET-container",
+      "itemType": "widget",
+      "slug": "container",
+      "title": "کانتینر (Container)",
+      "category": "basic",
+      "tabs": {
+        "content": {
+          "controls": [
+            "layoutKind",
+            "direction",
+            "justifyContent",
+            "alignItems",
+            "flexWrap",
+            "gap",
+            "boxedWidth"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "style": {
+          "controls": [
+            "typographyFontFamily",
+            "typographyFontSize",
+            "typographyFontWeight",
+            "typographyLineHeight",
+            "typographyTextAlign",
+            "typographyColor",
+            "backgroundMode",
+            "backgroundColor",
+            "backgroundGradient",
+            "backgroundImage",
+            "backgroundOverlayMode",
+            "backgroundOverlayColor",
+            "backgroundOverlayOpacity",
+            "borderStyle",
+            "borderColor",
+            "borderWidth",
+            "borderRadius",
+            "boxShadowPreset",
+            "cssFilters",
+            "opacitySlider"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "advanced": {
+          "controls": [
+            "marginSpacingBox",
+            "paddingSpacingBox",
+            "layoutPosition",
+            "zIndex",
+            "responsiveVisibilityDesktop",
+            "responsiveVisibilityTablet",
+            "responsiveVisibilityMobile",
+            "authVisibility",
+            "globalComponentSync",
+            "customCssClass",
+            "customCssId",
+            "motionAnimation",
+            "animationDuration",
+            "animationDelay",
+            "shapeDividerTop",
+            "shapeDividerBottom",
+            "shapeDividerColor"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        }
+      },
+      "signalsRequired": [
+        "S1_state",
+        "S2_dom",
+        "S3_computed_style",
+        "S4_pixel_diff",
+        "S5_persistence_ssr"
+      ],
+      "status": "pending",
+      "lastVerified": null
+    },
+    {
+      "id": "WIDGET-section",
+      "itemType": "widget",
+      "slug": "section",
+      "title": "بخش سرتاسری (Section)",
+      "category": "basic",
+      "tabs": {
+        "content": {
+          "controls": [
+            "layoutKind",
+            "direction",
+            "justifyContent",
+            "gap",
+            "paddingPreset"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "style": {
+          "controls": [
+            "typographyFontFamily",
+            "typographyFontSize",
+            "typographyFontWeight",
+            "typographyLineHeight",
+            "typographyTextAlign",
+            "typographyColor",
+            "backgroundMode",
+            "backgroundColor",
+            "backgroundGradient",
+            "backgroundImage",
+            "backgroundOverlayMode",
+            "backgroundOverlayColor",
+            "backgroundOverlayOpacity",
+            "borderStyle",
+            "borderColor",
+            "borderWidth",
+            "borderRadius",
+            "boxShadowPreset",
+            "cssFilters",
+            "opacitySlider"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "advanced": {
+          "controls": [
+            "marginSpacingBox",
+            "paddingSpacingBox",
+            "layoutPosition",
+            "zIndex",
+            "responsiveVisibilityDesktop",
+            "responsiveVisibilityTablet",
+            "responsiveVisibilityMobile",
+            "authVisibility",
+            "globalComponentSync",
+            "customCssClass",
+            "customCssId",
+            "motionAnimation",
+            "animationDuration",
+            "animationDelay",
+            "shapeDividerTop",
+            "shapeDividerBottom",
+            "shapeDividerColor"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        }
+      },
+      "signalsRequired": [
+        "S1_state",
+        "S2_dom",
+        "S3_computed_style",
+        "S4_pixel_diff",
+        "S5_persistence_ssr"
+      ],
+      "status": "pending",
+      "lastVerified": null
+    },
+    {
+      "id": "WIDGET-columns",
+      "itemType": "widget",
+      "slug": "columns",
+      "title": "چندستونه (Columns)",
+      "category": "basic",
+      "tabs": {
+        "content": {
+          "controls": [
+            "columnCount",
+            "columnGaps",
+            "responsiveStacking"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "style": {
+          "controls": [
+            "typographyFontFamily",
+            "typographyFontSize",
+            "typographyFontWeight",
+            "typographyLineHeight",
+            "typographyTextAlign",
+            "typographyColor",
+            "backgroundMode",
+            "backgroundColor",
+            "backgroundGradient",
+            "backgroundImage",
+            "backgroundOverlayMode",
+            "backgroundOverlayColor",
+            "backgroundOverlayOpacity",
+            "borderStyle",
+            "borderColor",
+            "borderWidth",
+            "borderRadius",
+            "boxShadowPreset",
+            "cssFilters",
+            "opacitySlider"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "advanced": {
+          "controls": [
+            "marginSpacingBox",
+            "paddingSpacingBox",
+            "layoutPosition",
+            "zIndex",
+            "responsiveVisibilityDesktop",
+            "responsiveVisibilityTablet",
+            "responsiveVisibilityMobile",
+            "authVisibility",
+            "globalComponentSync",
+            "customCssClass",
+            "customCssId",
+            "motionAnimation",
+            "animationDuration",
+            "animationDelay",
+            "shapeDividerTop",
+            "shapeDividerBottom",
+            "shapeDividerColor"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        }
+      },
+      "signalsRequired": [
+        "S1_state",
+        "S2_dom",
+        "S3_computed_style",
+        "S4_pixel_diff",
+        "S5_persistence_ssr"
+      ],
+      "status": "pending",
+      "lastVerified": null
+    },
+    {
+      "id": "WIDGET-heading",
+      "itemType": "widget",
+      "slug": "heading",
+      "title": "سرتیتر (Heading)",
+      "category": "basic",
+      "tabs": {
+        "content": {
+          "controls": [
+            "text",
+            "tag",
+            "customCssClass"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "style": {
+          "controls": [
+            "typographyFontFamily",
+            "typographyFontSize",
+            "typographyFontWeight",
+            "typographyLineHeight",
+            "typographyTextAlign",
+            "typographyColor",
+            "backgroundMode",
+            "backgroundColor",
+            "backgroundGradient",
+            "backgroundImage",
+            "backgroundOverlayMode",
+            "backgroundOverlayColor",
+            "backgroundOverlayOpacity",
+            "borderStyle",
+            "borderColor",
+            "borderWidth",
+            "borderRadius",
+            "boxShadowPreset",
+            "cssFilters",
+            "opacitySlider"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "advanced": {
+          "controls": [
+            "marginSpacingBox",
+            "paddingSpacingBox",
+            "layoutPosition",
+            "zIndex",
+            "responsiveVisibilityDesktop",
+            "responsiveVisibilityTablet",
+            "responsiveVisibilityMobile",
+            "authVisibility",
+            "globalComponentSync",
+            "customCssClass",
+            "customCssId",
+            "motionAnimation",
+            "animationDuration",
+            "animationDelay",
+            "shapeDividerTop",
+            "shapeDividerBottom",
+            "shapeDividerColor"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        }
+      },
+      "signalsRequired": [
+        "S1_state",
+        "S2_dom",
+        "S3_computed_style",
+        "S4_pixel_diff",
+        "S5_persistence_ssr"
+      ],
+      "status": "pending",
+      "lastVerified": null
+    },
+    {
+      "id": "WIDGET-paragraph",
+      "itemType": "widget",
+      "slug": "paragraph",
+      "title": "پاراگراف متن (Paragraph / Text Editor)",
+      "category": "basic",
+      "tabs": {
+        "content": {
+          "controls": [
+            "content",
+            "textAlignment",
+            "lineHeight"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "style": {
+          "controls": [
+            "typographyFontFamily",
+            "typographyFontSize",
+            "typographyFontWeight",
+            "typographyLineHeight",
+            "typographyTextAlign",
+            "typographyColor",
+            "backgroundMode",
+            "backgroundColor",
+            "backgroundGradient",
+            "backgroundImage",
+            "backgroundOverlayMode",
+            "backgroundOverlayColor",
+            "backgroundOverlayOpacity",
+            "borderStyle",
+            "borderColor",
+            "borderWidth",
+            "borderRadius",
+            "boxShadowPreset",
+            "cssFilters",
+            "opacitySlider"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "advanced": {
+          "controls": [
+            "marginSpacingBox",
+            "paddingSpacingBox",
+            "layoutPosition",
+            "zIndex",
+            "responsiveVisibilityDesktop",
+            "responsiveVisibilityTablet",
+            "responsiveVisibilityMobile",
+            "authVisibility",
+            "globalComponentSync",
+            "customCssClass",
+            "customCssId",
+            "motionAnimation",
+            "animationDuration",
+            "animationDelay",
+            "shapeDividerTop",
+            "shapeDividerBottom",
+            "shapeDividerColor"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        }
+      },
+      "signalsRequired": [
+        "S1_state",
+        "S2_dom",
+        "S3_computed_style",
+        "S4_pixel_diff",
+        "S5_persistence_ssr"
+      ],
+      "status": "pending",
+      "lastVerified": null
+    },
+    {
+      "id": "WIDGET-text",
+      "itemType": "widget",
+      "slug": "text",
+      "title": "متن کوتاه (Text)",
+      "category": "basic",
+      "tabs": {
+        "content": {
+          "controls": [
+            "text",
+            "tag",
+            "fontSize"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "style": {
+          "controls": [
+            "typographyFontFamily",
+            "typographyFontSize",
+            "typographyFontWeight",
+            "typographyLineHeight",
+            "typographyTextAlign",
+            "typographyColor",
+            "backgroundMode",
+            "backgroundColor",
+            "backgroundGradient",
+            "backgroundImage",
+            "backgroundOverlayMode",
+            "backgroundOverlayColor",
+            "backgroundOverlayOpacity",
+            "borderStyle",
+            "borderColor",
+            "borderWidth",
+            "borderRadius",
+            "boxShadowPreset",
+            "cssFilters",
+            "opacitySlider"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "advanced": {
+          "controls": [
+            "marginSpacingBox",
+            "paddingSpacingBox",
+            "layoutPosition",
+            "zIndex",
+            "responsiveVisibilityDesktop",
+            "responsiveVisibilityTablet",
+            "responsiveVisibilityMobile",
+            "authVisibility",
+            "globalComponentSync",
+            "customCssClass",
+            "customCssId",
+            "motionAnimation",
+            "animationDuration",
+            "animationDelay",
+            "shapeDividerTop",
+            "shapeDividerBottom",
+            "shapeDividerColor"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        }
+      },
+      "signalsRequired": [
+        "S1_state",
+        "S2_dom",
+        "S3_computed_style",
+        "S4_pixel_diff",
+        "S5_persistence_ssr"
+      ],
+      "status": "pending",
+      "lastVerified": null
+    },
+    {
+      "id": "WIDGET-image",
+      "itemType": "widget",
+      "slug": "image",
+      "title": "تصویر شاخص (Image)",
+      "category": "basic",
+      "tabs": {
+        "content": {
+          "controls": [
+            "url",
+            "alt",
+            "mediaLibraryPicker",
+            "objectFit"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "style": {
+          "controls": [
+            "typographyFontFamily",
+            "typographyFontSize",
+            "typographyFontWeight",
+            "typographyLineHeight",
+            "typographyTextAlign",
+            "typographyColor",
+            "backgroundMode",
+            "backgroundColor",
+            "backgroundGradient",
+            "backgroundImage",
+            "backgroundOverlayMode",
+            "backgroundOverlayColor",
+            "backgroundOverlayOpacity",
+            "borderStyle",
+            "borderColor",
+            "borderWidth",
+            "borderRadius",
+            "boxShadowPreset",
+            "cssFilters",
+            "opacitySlider"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "advanced": {
+          "controls": [
+            "marginSpacingBox",
+            "paddingSpacingBox",
+            "layoutPosition",
+            "zIndex",
+            "responsiveVisibilityDesktop",
+            "responsiveVisibilityTablet",
+            "responsiveVisibilityMobile",
+            "authVisibility",
+            "globalComponentSync",
+            "customCssClass",
+            "customCssId",
+            "motionAnimation",
+            "animationDuration",
+            "animationDelay",
+            "shapeDividerTop",
+            "shapeDividerBottom",
+            "shapeDividerColor"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        }
+      },
+      "signalsRequired": [
+        "S1_state",
+        "S2_dom",
+        "S3_computed_style",
+        "S4_pixel_diff",
+        "S5_persistence_ssr"
+      ],
+      "status": "pending",
+      "lastVerified": null
+    },
+    {
+      "id": "WIDGET-button",
+      "itemType": "widget",
+      "slug": "button",
+      "title": "دکمه اقدام (Button)",
+      "category": "basic",
+      "tabs": {
+        "content": {
+          "controls": [
+            "label",
+            "url",
+            "newTab",
+            "buttonSize"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "style": {
+          "controls": [
+            "typographyFontFamily",
+            "typographyFontSize",
+            "typographyFontWeight",
+            "typographyLineHeight",
+            "typographyTextAlign",
+            "typographyColor",
+            "backgroundMode",
+            "backgroundColor",
+            "backgroundGradient",
+            "backgroundImage",
+            "backgroundOverlayMode",
+            "backgroundOverlayColor",
+            "backgroundOverlayOpacity",
+            "borderStyle",
+            "borderColor",
+            "borderWidth",
+            "borderRadius",
+            "boxShadowPreset",
+            "cssFilters",
+            "opacitySlider"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "advanced": {
+          "controls": [
+            "marginSpacingBox",
+            "paddingSpacingBox",
+            "layoutPosition",
+            "zIndex",
+            "responsiveVisibilityDesktop",
+            "responsiveVisibilityTablet",
+            "responsiveVisibilityMobile",
+            "authVisibility",
+            "globalComponentSync",
+            "customCssClass",
+            "customCssId",
+            "motionAnimation",
+            "animationDuration",
+            "animationDelay",
+            "shapeDividerTop",
+            "shapeDividerBottom",
+            "shapeDividerColor"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        }
+      },
+      "signalsRequired": [
+        "S1_state",
+        "S2_dom",
+        "S3_computed_style",
+        "S4_pixel_diff",
+        "S5_persistence_ssr"
+      ],
+      "status": "pending",
+      "lastVerified": null
+    },
+    {
+      "id": "WIDGET-spacer",
+      "itemType": "widget",
+      "slug": "spacer",
+      "title": "فاصله‌ساز (Spacer)",
+      "category": "basic",
+      "tabs": {
+        "content": {
+          "controls": [
+            "height",
+            "responsiveHeight"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "style": {
+          "controls": [
+            "typographyFontFamily",
+            "typographyFontSize",
+            "typographyFontWeight",
+            "typographyLineHeight",
+            "typographyTextAlign",
+            "typographyColor",
+            "backgroundMode",
+            "backgroundColor",
+            "backgroundGradient",
+            "backgroundImage",
+            "backgroundOverlayMode",
+            "backgroundOverlayColor",
+            "backgroundOverlayOpacity",
+            "borderStyle",
+            "borderColor",
+            "borderWidth",
+            "borderRadius",
+            "boxShadowPreset",
+            "cssFilters",
+            "opacitySlider"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "advanced": {
+          "controls": [
+            "marginSpacingBox",
+            "paddingSpacingBox",
+            "layoutPosition",
+            "zIndex",
+            "responsiveVisibilityDesktop",
+            "responsiveVisibilityTablet",
+            "responsiveVisibilityMobile",
+            "authVisibility",
+            "globalComponentSync",
+            "customCssClass",
+            "customCssId",
+            "motionAnimation",
+            "animationDuration",
+            "animationDelay",
+            "shapeDividerTop",
+            "shapeDividerBottom",
+            "shapeDividerColor"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        }
+      },
+      "signalsRequired": [
+        "S1_state",
+        "S2_dom",
+        "S3_computed_style",
+        "S4_pixel_diff",
+        "S5_persistence_ssr"
+      ],
+      "status": "pending",
+      "lastVerified": null
+    },
+    {
+      "id": "WIDGET-divider",
+      "itemType": "widget",
+      "slug": "divider",
+      "title": "خط جداکننده (Divider)",
+      "category": "basic",
+      "tabs": {
+        "content": {
+          "controls": [
+            "borderStyle",
+            "thickness",
+            "color",
+            "widthPercentage"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "style": {
+          "controls": [
+            "typographyFontFamily",
+            "typographyFontSize",
+            "typographyFontWeight",
+            "typographyLineHeight",
+            "typographyTextAlign",
+            "typographyColor",
+            "backgroundMode",
+            "backgroundColor",
+            "backgroundGradient",
+            "backgroundImage",
+            "backgroundOverlayMode",
+            "backgroundOverlayColor",
+            "backgroundOverlayOpacity",
+            "borderStyle",
+            "borderColor",
+            "borderWidth",
+            "borderRadius",
+            "boxShadowPreset",
+            "cssFilters",
+            "opacitySlider"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "advanced": {
+          "controls": [
+            "marginSpacingBox",
+            "paddingSpacingBox",
+            "layoutPosition",
+            "zIndex",
+            "responsiveVisibilityDesktop",
+            "responsiveVisibilityTablet",
+            "responsiveVisibilityMobile",
+            "authVisibility",
+            "globalComponentSync",
+            "customCssClass",
+            "customCssId",
+            "motionAnimation",
+            "animationDuration",
+            "animationDelay",
+            "shapeDividerTop",
+            "shapeDividerBottom",
+            "shapeDividerColor"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        }
+      },
+      "signalsRequired": [
+        "S1_state",
+        "S2_dom",
+        "S3_computed_style",
+        "S4_pixel_diff",
+        "S5_persistence_ssr"
+      ],
+      "status": "pending",
+      "lastVerified": null
+    },
+    {
+      "id": "WIDGET-table",
+      "itemType": "widget",
+      "slug": "table",
+      "title": "جدول داده‌ها (Table)",
+      "category": "interactive_form",
+      "tabs": {
+        "content": {
+          "controls": [
+            "headers",
+            "rows",
+            "bordered",
+            "striped",
+            "cellAlignment"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "style": {
+          "controls": [
+            "typographyFontFamily",
+            "typographyFontSize",
+            "typographyFontWeight",
+            "typographyLineHeight",
+            "typographyTextAlign",
+            "typographyColor",
+            "backgroundMode",
+            "backgroundColor",
+            "backgroundGradient",
+            "backgroundImage",
+            "backgroundOverlayMode",
+            "backgroundOverlayColor",
+            "backgroundOverlayOpacity",
+            "borderStyle",
+            "borderColor",
+            "borderWidth",
+            "borderRadius",
+            "boxShadowPreset",
+            "cssFilters",
+            "opacitySlider"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "advanced": {
+          "controls": [
+            "marginSpacingBox",
+            "paddingSpacingBox",
+            "layoutPosition",
+            "zIndex",
+            "responsiveVisibilityDesktop",
+            "responsiveVisibilityTablet",
+            "responsiveVisibilityMobile",
+            "authVisibility",
+            "globalComponentSync",
+            "customCssClass",
+            "customCssId",
+            "motionAnimation",
+            "animationDuration",
+            "animationDelay",
+            "shapeDividerTop",
+            "shapeDividerBottom",
+            "shapeDividerColor"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        }
+      },
+      "signalsRequired": [
+        "S1_state",
+        "S2_dom",
+        "S3_computed_style",
+        "S4_pixel_diff",
+        "S5_persistence_ssr"
+      ],
+      "status": "pending",
+      "lastVerified": null
+    },
+    {
+      "id": "WIDGET-form_container",
+      "itemType": "widget",
+      "slug": "form_container",
+      "title": "کانتینر فرم (Form Container)",
+      "category": "interactive_form",
+      "tabs": {
+        "content": {
+          "controls": [
+            "submitUrl",
+            "successMessage",
+            "errorMessage",
+            "emailNotification"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "style": {
+          "controls": [
+            "typographyFontFamily",
+            "typographyFontSize",
+            "typographyFontWeight",
+            "typographyLineHeight",
+            "typographyTextAlign",
+            "typographyColor",
+            "backgroundMode",
+            "backgroundColor",
+            "backgroundGradient",
+            "backgroundImage",
+            "backgroundOverlayMode",
+            "backgroundOverlayColor",
+            "backgroundOverlayOpacity",
+            "borderStyle",
+            "borderColor",
+            "borderWidth",
+            "borderRadius",
+            "boxShadowPreset",
+            "cssFilters",
+            "opacitySlider"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "advanced": {
+          "controls": [
+            "marginSpacingBox",
+            "paddingSpacingBox",
+            "layoutPosition",
+            "zIndex",
+            "responsiveVisibilityDesktop",
+            "responsiveVisibilityTablet",
+            "responsiveVisibilityMobile",
+            "authVisibility",
+            "globalComponentSync",
+            "customCssClass",
+            "customCssId",
+            "motionAnimation",
+            "animationDuration",
+            "animationDelay",
+            "shapeDividerTop",
+            "shapeDividerBottom",
+            "shapeDividerColor"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        }
+      },
+      "signalsRequired": [
+        "S1_state",
+        "S2_dom",
+        "S3_computed_style",
+        "S4_pixel_diff",
+        "S5_persistence_ssr"
+      ],
+      "status": "pending",
+      "lastVerified": null
+    },
+    {
+      "id": "WIDGET-form_input",
+      "itemType": "widget",
+      "slug": "form_input",
+      "title": "ورودی متنی فرم (Form Input)",
+      "category": "interactive_form",
+      "tabs": {
+        "content": {
+          "controls": [
+            "label",
+            "name",
+            "placeholder",
+            "inputType",
+            "required"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "style": {
+          "controls": [
+            "typographyFontFamily",
+            "typographyFontSize",
+            "typographyFontWeight",
+            "typographyLineHeight",
+            "typographyTextAlign",
+            "typographyColor",
+            "backgroundMode",
+            "backgroundColor",
+            "backgroundGradient",
+            "backgroundImage",
+            "backgroundOverlayMode",
+            "backgroundOverlayColor",
+            "backgroundOverlayOpacity",
+            "borderStyle",
+            "borderColor",
+            "borderWidth",
+            "borderRadius",
+            "boxShadowPreset",
+            "cssFilters",
+            "opacitySlider"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "advanced": {
+          "controls": [
+            "marginSpacingBox",
+            "paddingSpacingBox",
+            "layoutPosition",
+            "zIndex",
+            "responsiveVisibilityDesktop",
+            "responsiveVisibilityTablet",
+            "responsiveVisibilityMobile",
+            "authVisibility",
+            "globalComponentSync",
+            "customCssClass",
+            "customCssId",
+            "motionAnimation",
+            "animationDuration",
+            "animationDelay",
+            "shapeDividerTop",
+            "shapeDividerBottom",
+            "shapeDividerColor"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        }
+      },
+      "signalsRequired": [
+        "S1_state",
+        "S2_dom",
+        "S3_computed_style",
+        "S4_pixel_diff",
+        "S5_persistence_ssr"
+      ],
+      "status": "pending",
+      "lastVerified": null
+    },
+    {
+      "id": "WIDGET-form_textarea",
+      "itemType": "widget",
+      "slug": "form_textarea",
+      "title": "متن چندخطی فرم (Form Textarea)",
+      "category": "interactive_form",
+      "tabs": {
+        "content": {
+          "controls": [
+            "label",
+            "name",
+            "placeholder",
+            "rows",
+            "required"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "style": {
+          "controls": [
+            "typographyFontFamily",
+            "typographyFontSize",
+            "typographyFontWeight",
+            "typographyLineHeight",
+            "typographyTextAlign",
+            "typographyColor",
+            "backgroundMode",
+            "backgroundColor",
+            "backgroundGradient",
+            "backgroundImage",
+            "backgroundOverlayMode",
+            "backgroundOverlayColor",
+            "backgroundOverlayOpacity",
+            "borderStyle",
+            "borderColor",
+            "borderWidth",
+            "borderRadius",
+            "boxShadowPreset",
+            "cssFilters",
+            "opacitySlider"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "advanced": {
+          "controls": [
+            "marginSpacingBox",
+            "paddingSpacingBox",
+            "layoutPosition",
+            "zIndex",
+            "responsiveVisibilityDesktop",
+            "responsiveVisibilityTablet",
+            "responsiveVisibilityMobile",
+            "authVisibility",
+            "globalComponentSync",
+            "customCssClass",
+            "customCssId",
+            "motionAnimation",
+            "animationDuration",
+            "animationDelay",
+            "shapeDividerTop",
+            "shapeDividerBottom",
+            "shapeDividerColor"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        }
+      },
+      "signalsRequired": [
+        "S1_state",
+        "S2_dom",
+        "S3_computed_style",
+        "S4_pixel_diff",
+        "S5_persistence_ssr"
+      ],
+      "status": "pending",
+      "lastVerified": null
+    },
+    {
+      "id": "WIDGET-form_select",
+      "itemType": "widget",
+      "slug": "form_select",
+      "title": "منوی کشویی فرم (Form Select)",
+      "category": "interactive_form",
+      "tabs": {
+        "content": {
+          "controls": [
+            "label",
+            "name",
+            "options",
+            "required"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "style": {
+          "controls": [
+            "typographyFontFamily",
+            "typographyFontSize",
+            "typographyFontWeight",
+            "typographyLineHeight",
+            "typographyTextAlign",
+            "typographyColor",
+            "backgroundMode",
+            "backgroundColor",
+            "backgroundGradient",
+            "backgroundImage",
+            "backgroundOverlayMode",
+            "backgroundOverlayColor",
+            "backgroundOverlayOpacity",
+            "borderStyle",
+            "borderColor",
+            "borderWidth",
+            "borderRadius",
+            "boxShadowPreset",
+            "cssFilters",
+            "opacitySlider"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "advanced": {
+          "controls": [
+            "marginSpacingBox",
+            "paddingSpacingBox",
+            "layoutPosition",
+            "zIndex",
+            "responsiveVisibilityDesktop",
+            "responsiveVisibilityTablet",
+            "responsiveVisibilityMobile",
+            "authVisibility",
+            "globalComponentSync",
+            "customCssClass",
+            "customCssId",
+            "motionAnimation",
+            "animationDuration",
+            "animationDelay",
+            "shapeDividerTop",
+            "shapeDividerBottom",
+            "shapeDividerColor"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        }
+      },
+      "signalsRequired": [
+        "S1_state",
+        "S2_dom",
+        "S3_computed_style",
+        "S4_pixel_diff",
+        "S5_persistence_ssr"
+      ],
+      "status": "pending",
+      "lastVerified": null
+    },
+    {
+      "id": "WIDGET-form_checkbox",
+      "itemType": "widget",
+      "slug": "form_checkbox",
+      "title": "کادر تأیید فرم (Form Checkbox)",
+      "category": "interactive_form",
+      "tabs": {
+        "content": {
+          "controls": [
+            "label",
+            "name",
+            "checked",
+            "required"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "style": {
+          "controls": [
+            "typographyFontFamily",
+            "typographyFontSize",
+            "typographyFontWeight",
+            "typographyLineHeight",
+            "typographyTextAlign",
+            "typographyColor",
+            "backgroundMode",
+            "backgroundColor",
+            "backgroundGradient",
+            "backgroundImage",
+            "backgroundOverlayMode",
+            "backgroundOverlayColor",
+            "backgroundOverlayOpacity",
+            "borderStyle",
+            "borderColor",
+            "borderWidth",
+            "borderRadius",
+            "boxShadowPreset",
+            "cssFilters",
+            "opacitySlider"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "advanced": {
+          "controls": [
+            "marginSpacingBox",
+            "paddingSpacingBox",
+            "layoutPosition",
+            "zIndex",
+            "responsiveVisibilityDesktop",
+            "responsiveVisibilityTablet",
+            "responsiveVisibilityMobile",
+            "authVisibility",
+            "globalComponentSync",
+            "customCssClass",
+            "customCssId",
+            "motionAnimation",
+            "animationDuration",
+            "animationDelay",
+            "shapeDividerTop",
+            "shapeDividerBottom",
+            "shapeDividerColor"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        }
+      },
+      "signalsRequired": [
+        "S1_state",
+        "S2_dom",
+        "S3_computed_style",
+        "S4_pixel_diff",
+        "S5_persistence_ssr"
+      ],
+      "status": "pending",
+      "lastVerified": null
+    },
+    {
+      "id": "WIDGET-form_radio",
+      "itemType": "widget",
+      "slug": "form_radio",
+      "title": "دکمه‌های رادیویی فرم (Form Radio)",
+      "category": "interactive_form",
+      "tabs": {
+        "content": {
+          "controls": [
+            "label",
+            "name",
+            "options",
+            "defaultValue"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "style": {
+          "controls": [
+            "typographyFontFamily",
+            "typographyFontSize",
+            "typographyFontWeight",
+            "typographyLineHeight",
+            "typographyTextAlign",
+            "typographyColor",
+            "backgroundMode",
+            "backgroundColor",
+            "backgroundGradient",
+            "backgroundImage",
+            "backgroundOverlayMode",
+            "backgroundOverlayColor",
+            "backgroundOverlayOpacity",
+            "borderStyle",
+            "borderColor",
+            "borderWidth",
+            "borderRadius",
+            "boxShadowPreset",
+            "cssFilters",
+            "opacitySlider"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "advanced": {
+          "controls": [
+            "marginSpacingBox",
+            "paddingSpacingBox",
+            "layoutPosition",
+            "zIndex",
+            "responsiveVisibilityDesktop",
+            "responsiveVisibilityTablet",
+            "responsiveVisibilityMobile",
+            "authVisibility",
+            "globalComponentSync",
+            "customCssClass",
+            "customCssId",
+            "motionAnimation",
+            "animationDuration",
+            "animationDelay",
+            "shapeDividerTop",
+            "shapeDividerBottom",
+            "shapeDividerColor"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        }
+      },
+      "signalsRequired": [
+        "S1_state",
+        "S2_dom",
+        "S3_computed_style",
+        "S4_pixel_diff",
+        "S5_persistence_ssr"
+      ],
+      "status": "pending",
+      "lastVerified": null
+    },
+    {
+      "id": "WIDGET-accordion",
+      "itemType": "widget",
+      "slug": "accordion",
+      "title": "آکاردئون پرسش‌وپاسخ (Accordion)",
+      "category": "interactive_form",
+      "tabs": {
+        "content": {
+          "controls": [
+            "items",
+            "addItem",
+            "removeItem",
+            "defaultOpenFirst"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "style": {
+          "controls": [
+            "typographyFontFamily",
+            "typographyFontSize",
+            "typographyFontWeight",
+            "typographyLineHeight",
+            "typographyTextAlign",
+            "typographyColor",
+            "backgroundMode",
+            "backgroundColor",
+            "backgroundGradient",
+            "backgroundImage",
+            "backgroundOverlayMode",
+            "backgroundOverlayColor",
+            "backgroundOverlayOpacity",
+            "borderStyle",
+            "borderColor",
+            "borderWidth",
+            "borderRadius",
+            "boxShadowPreset",
+            "cssFilters",
+            "opacitySlider"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "advanced": {
+          "controls": [
+            "marginSpacingBox",
+            "paddingSpacingBox",
+            "layoutPosition",
+            "zIndex",
+            "responsiveVisibilityDesktop",
+            "responsiveVisibilityTablet",
+            "responsiveVisibilityMobile",
+            "authVisibility",
+            "globalComponentSync",
+            "customCssClass",
+            "customCssId",
+            "motionAnimation",
+            "animationDuration",
+            "animationDelay",
+            "shapeDividerTop",
+            "shapeDividerBottom",
+            "shapeDividerColor"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        }
+      },
+      "signalsRequired": [
+        "S1_state",
+        "S2_dom",
+        "S3_computed_style",
+        "S4_pixel_diff",
+        "S5_persistence_ssr"
+      ],
+      "status": "pending",
+      "lastVerified": null
+    },
+    {
+      "id": "WIDGET-tabs",
+      "itemType": "widget",
+      "slug": "tabs",
+      "title": "تب‌های چندگانه (Tabs)",
+      "category": "interactive_form",
+      "tabs": {
+        "content": {
+          "controls": [
+            "tabList",
+            "addTab",
+            "removeTab",
+            "activeTabIndex"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "style": {
+          "controls": [
+            "typographyFontFamily",
+            "typographyFontSize",
+            "typographyFontWeight",
+            "typographyLineHeight",
+            "typographyTextAlign",
+            "typographyColor",
+            "backgroundMode",
+            "backgroundColor",
+            "backgroundGradient",
+            "backgroundImage",
+            "backgroundOverlayMode",
+            "backgroundOverlayColor",
+            "backgroundOverlayOpacity",
+            "borderStyle",
+            "borderColor",
+            "borderWidth",
+            "borderRadius",
+            "boxShadowPreset",
+            "cssFilters",
+            "opacitySlider"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "advanced": {
+          "controls": [
+            "marginSpacingBox",
+            "paddingSpacingBox",
+            "layoutPosition",
+            "zIndex",
+            "responsiveVisibilityDesktop",
+            "responsiveVisibilityTablet",
+            "responsiveVisibilityMobile",
+            "authVisibility",
+            "globalComponentSync",
+            "customCssClass",
+            "customCssId",
+            "motionAnimation",
+            "animationDuration",
+            "animationDelay",
+            "shapeDividerTop",
+            "shapeDividerBottom",
+            "shapeDividerColor"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        }
+      },
+      "signalsRequired": [
+        "S1_state",
+        "S2_dom",
+        "S3_computed_style",
+        "S4_pixel_diff",
+        "S5_persistence_ssr"
+      ],
+      "status": "pending",
+      "lastVerified": null
+    },
+    {
+      "id": "WIDGET-countdown",
+      "itemType": "widget",
+      "slug": "countdown",
+      "title": "شمارنده معکوس (Countdown)",
+      "category": "interactive_form",
+      "tabs": {
+        "content": {
+          "controls": [
+            "title",
+            "targetDate",
+            "expiredMessage"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "style": {
+          "controls": [
+            "typographyFontFamily",
+            "typographyFontSize",
+            "typographyFontWeight",
+            "typographyLineHeight",
+            "typographyTextAlign",
+            "typographyColor",
+            "backgroundMode",
+            "backgroundColor",
+            "backgroundGradient",
+            "backgroundImage",
+            "backgroundOverlayMode",
+            "backgroundOverlayColor",
+            "backgroundOverlayOpacity",
+            "borderStyle",
+            "borderColor",
+            "borderWidth",
+            "borderRadius",
+            "boxShadowPreset",
+            "cssFilters",
+            "opacitySlider"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "advanced": {
+          "controls": [
+            "marginSpacingBox",
+            "paddingSpacingBox",
+            "layoutPosition",
+            "zIndex",
+            "responsiveVisibilityDesktop",
+            "responsiveVisibilityTablet",
+            "responsiveVisibilityMobile",
+            "authVisibility",
+            "globalComponentSync",
+            "customCssClass",
+            "customCssId",
+            "motionAnimation",
+            "animationDuration",
+            "animationDelay",
+            "shapeDividerTop",
+            "shapeDividerBottom",
+            "shapeDividerColor"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        }
+      },
+      "signalsRequired": [
+        "S1_state",
+        "S2_dom",
+        "S3_computed_style",
+        "S4_pixel_diff",
+        "S5_persistence_ssr"
+      ],
+      "status": "pending",
+      "lastVerified": null
+    },
+    {
+      "id": "WIDGET-video",
+      "itemType": "widget",
+      "slug": "video",
+      "title": "ویدئو و رسانه (Video)",
+      "category": "interactive_form",
+      "tabs": {
+        "content": {
+          "controls": [
+            "videoType",
+            "url",
+            "poster",
+            "autoplay",
+            "controls"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "style": {
+          "controls": [
+            "typographyFontFamily",
+            "typographyFontSize",
+            "typographyFontWeight",
+            "typographyLineHeight",
+            "typographyTextAlign",
+            "typographyColor",
+            "backgroundMode",
+            "backgroundColor",
+            "backgroundGradient",
+            "backgroundImage",
+            "backgroundOverlayMode",
+            "backgroundOverlayColor",
+            "backgroundOverlayOpacity",
+            "borderStyle",
+            "borderColor",
+            "borderWidth",
+            "borderRadius",
+            "boxShadowPreset",
+            "cssFilters",
+            "opacitySlider"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "advanced": {
+          "controls": [
+            "marginSpacingBox",
+            "paddingSpacingBox",
+            "layoutPosition",
+            "zIndex",
+            "responsiveVisibilityDesktop",
+            "responsiveVisibilityTablet",
+            "responsiveVisibilityMobile",
+            "authVisibility",
+            "globalComponentSync",
+            "customCssClass",
+            "customCssId",
+            "motionAnimation",
+            "animationDuration",
+            "animationDelay",
+            "shapeDividerTop",
+            "shapeDividerBottom",
+            "shapeDividerColor"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        }
+      },
+      "signalsRequired": [
+        "S1_state",
+        "S2_dom",
+        "S3_computed_style",
+        "S4_pixel_diff",
+        "S5_persistence_ssr"
+      ],
+      "status": "pending",
+      "lastVerified": null
+    },
+    {
+      "id": "WIDGET-icon_box",
+      "itemType": "widget",
+      "slug": "icon_box",
+      "title": "باکس آیکون و خدمات (Icon Box)",
+      "category": "interactive_form",
+      "tabs": {
+        "content": {
+          "controls": [
+            "icon",
+            "title",
+            "description",
+            "linkUrl"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "style": {
+          "controls": [
+            "typographyFontFamily",
+            "typographyFontSize",
+            "typographyFontWeight",
+            "typographyLineHeight",
+            "typographyTextAlign",
+            "typographyColor",
+            "backgroundMode",
+            "backgroundColor",
+            "backgroundGradient",
+            "backgroundImage",
+            "backgroundOverlayMode",
+            "backgroundOverlayColor",
+            "backgroundOverlayOpacity",
+            "borderStyle",
+            "borderColor",
+            "borderWidth",
+            "borderRadius",
+            "boxShadowPreset",
+            "cssFilters",
+            "opacitySlider"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "advanced": {
+          "controls": [
+            "marginSpacingBox",
+            "paddingSpacingBox",
+            "layoutPosition",
+            "zIndex",
+            "responsiveVisibilityDesktop",
+            "responsiveVisibilityTablet",
+            "responsiveVisibilityMobile",
+            "authVisibility",
+            "globalComponentSync",
+            "customCssClass",
+            "customCssId",
+            "motionAnimation",
+            "animationDuration",
+            "animationDelay",
+            "shapeDividerTop",
+            "shapeDividerBottom",
+            "shapeDividerColor"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        }
+      },
+      "signalsRequired": [
+        "S1_state",
+        "S2_dom",
+        "S3_computed_style",
+        "S4_pixel_diff",
+        "S5_persistence_ssr"
+      ],
+      "status": "pending",
+      "lastVerified": null
+    },
+    {
+      "id": "WIDGET-social_links",
+      "itemType": "widget",
+      "slug": "social_links",
+      "title": "لینک‌های شبکه‌های اجتماعی (Social Links)",
+      "category": "interactive_form",
+      "tabs": {
+        "content": {
+          "controls": [
+            "platforms",
+            "addPlatform",
+            "removePlatform",
+            "iconSize"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "style": {
+          "controls": [
+            "typographyFontFamily",
+            "typographyFontSize",
+            "typographyFontWeight",
+            "typographyLineHeight",
+            "typographyTextAlign",
+            "typographyColor",
+            "backgroundMode",
+            "backgroundColor",
+            "backgroundGradient",
+            "backgroundImage",
+            "backgroundOverlayMode",
+            "backgroundOverlayColor",
+            "backgroundOverlayOpacity",
+            "borderStyle",
+            "borderColor",
+            "borderWidth",
+            "borderRadius",
+            "boxShadowPreset",
+            "cssFilters",
+            "opacitySlider"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "advanced": {
+          "controls": [
+            "marginSpacingBox",
+            "paddingSpacingBox",
+            "layoutPosition",
+            "zIndex",
+            "responsiveVisibilityDesktop",
+            "responsiveVisibilityTablet",
+            "responsiveVisibilityMobile",
+            "authVisibility",
+            "globalComponentSync",
+            "customCssClass",
+            "customCssId",
+            "motionAnimation",
+            "animationDuration",
+            "animationDelay",
+            "shapeDividerTop",
+            "shapeDividerBottom",
+            "shapeDividerColor"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        }
+      },
+      "signalsRequired": [
+        "S1_state",
+        "S2_dom",
+        "S3_computed_style",
+        "S4_pixel_diff",
+        "S5_persistence_ssr"
+      ],
+      "status": "pending",
+      "lastVerified": null
+    },
+    {
+      "id": "WIDGET-product_card",
+      "itemType": "widget",
+      "slug": "product_card",
+      "title": "کارت تک‌محصول (Product Card)",
+      "category": "shop",
+      "tabs": {
+        "content": {
+          "controls": [
+            "name",
+            "price",
+            "image",
+            "inStock",
+            "ctaText"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "style": {
+          "controls": [
+            "typographyFontFamily",
+            "typographyFontSize",
+            "typographyFontWeight",
+            "typographyLineHeight",
+            "typographyTextAlign",
+            "typographyColor",
+            "backgroundMode",
+            "backgroundColor",
+            "backgroundGradient",
+            "backgroundImage",
+            "backgroundOverlayMode",
+            "backgroundOverlayColor",
+            "backgroundOverlayOpacity",
+            "borderStyle",
+            "borderColor",
+            "borderWidth",
+            "borderRadius",
+            "boxShadowPreset",
+            "cssFilters",
+            "opacitySlider"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "advanced": {
+          "controls": [
+            "marginSpacingBox",
+            "paddingSpacingBox",
+            "layoutPosition",
+            "zIndex",
+            "responsiveVisibilityDesktop",
+            "responsiveVisibilityTablet",
+            "responsiveVisibilityMobile",
+            "authVisibility",
+            "globalComponentSync",
+            "customCssClass",
+            "customCssId",
+            "motionAnimation",
+            "animationDuration",
+            "animationDelay",
+            "shapeDividerTop",
+            "shapeDividerBottom",
+            "shapeDividerColor"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        }
+      },
+      "signalsRequired": [
+        "S1_state",
+        "S2_dom",
+        "S3_computed_style",
+        "S4_pixel_diff",
+        "S5_persistence_ssr"
+      ],
+      "status": "pending",
+      "lastVerified": null
+    },
+    {
+      "id": "WIDGET-product_grid",
+      "itemType": "widget",
+      "slug": "product_grid",
+      "title": "گرید ویترین محصولات (Product Grid)",
+      "category": "shop",
+      "tabs": {
+        "content": {
+          "controls": [
+            "limit",
+            "categoryFilter",
+            "sortOrder",
+            "pagination"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "style": {
+          "controls": [
+            "typographyFontFamily",
+            "typographyFontSize",
+            "typographyFontWeight",
+            "typographyLineHeight",
+            "typographyTextAlign",
+            "typographyColor",
+            "backgroundMode",
+            "backgroundColor",
+            "backgroundGradient",
+            "backgroundImage",
+            "backgroundOverlayMode",
+            "backgroundOverlayColor",
+            "backgroundOverlayOpacity",
+            "borderStyle",
+            "borderColor",
+            "borderWidth",
+            "borderRadius",
+            "boxShadowPreset",
+            "cssFilters",
+            "opacitySlider"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "advanced": {
+          "controls": [
+            "marginSpacingBox",
+            "paddingSpacingBox",
+            "layoutPosition",
+            "zIndex",
+            "responsiveVisibilityDesktop",
+            "responsiveVisibilityTablet",
+            "responsiveVisibilityMobile",
+            "authVisibility",
+            "globalComponentSync",
+            "customCssClass",
+            "customCssId",
+            "motionAnimation",
+            "animationDuration",
+            "animationDelay",
+            "shapeDividerTop",
+            "shapeDividerBottom",
+            "shapeDividerColor"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        }
+      },
+      "signalsRequired": [
+        "S1_state",
+        "S2_dom",
+        "S3_computed_style",
+        "S4_pixel_diff",
+        "S5_persistence_ssr"
+      ],
+      "status": "pending",
+      "lastVerified": null
+    },
+    {
+      "id": "WIDGET-image_gallery",
+      "itemType": "widget",
+      "slug": "image_gallery",
+      "title": "گالری تصاویر محصول (Image Gallery)",
+      "category": "shop",
+      "tabs": {
+        "content": {
+          "controls": [
+            "images",
+            "columns",
+            "lightbox",
+            "aspectRatio"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "style": {
+          "controls": [
+            "typographyFontFamily",
+            "typographyFontSize",
+            "typographyFontWeight",
+            "typographyLineHeight",
+            "typographyTextAlign",
+            "typographyColor",
+            "backgroundMode",
+            "backgroundColor",
+            "backgroundGradient",
+            "backgroundImage",
+            "backgroundOverlayMode",
+            "backgroundOverlayColor",
+            "backgroundOverlayOpacity",
+            "borderStyle",
+            "borderColor",
+            "borderWidth",
+            "borderRadius",
+            "boxShadowPreset",
+            "cssFilters",
+            "opacitySlider"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "advanced": {
+          "controls": [
+            "marginSpacingBox",
+            "paddingSpacingBox",
+            "layoutPosition",
+            "zIndex",
+            "responsiveVisibilityDesktop",
+            "responsiveVisibilityTablet",
+            "responsiveVisibilityMobile",
+            "authVisibility",
+            "globalComponentSync",
+            "customCssClass",
+            "customCssId",
+            "motionAnimation",
+            "animationDuration",
+            "animationDelay",
+            "shapeDividerTop",
+            "shapeDividerBottom",
+            "shapeDividerColor"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        }
+      },
+      "signalsRequired": [
+        "S1_state",
+        "S2_dom",
+        "S3_computed_style",
+        "S4_pixel_diff",
+        "S5_persistence_ssr"
+      ],
+      "status": "pending",
+      "lastVerified": null
+    },
+    {
+      "id": "WIDGET-star_rating",
+      "itemType": "widget",
+      "slug": "star_rating",
+      "title": "امتیاز ستاره‌ای (Star Rating)",
+      "category": "shop",
+      "tabs": {
+        "content": {
+          "controls": [
+            "ratingValue",
+            "maxStars",
+            "reviewCount",
+            "starColor"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "style": {
+          "controls": [
+            "typographyFontFamily",
+            "typographyFontSize",
+            "typographyFontWeight",
+            "typographyLineHeight",
+            "typographyTextAlign",
+            "typographyColor",
+            "backgroundMode",
+            "backgroundColor",
+            "backgroundGradient",
+            "backgroundImage",
+            "backgroundOverlayMode",
+            "backgroundOverlayColor",
+            "backgroundOverlayOpacity",
+            "borderStyle",
+            "borderColor",
+            "borderWidth",
+            "borderRadius",
+            "boxShadowPreset",
+            "cssFilters",
+            "opacitySlider"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "advanced": {
+          "controls": [
+            "marginSpacingBox",
+            "paddingSpacingBox",
+            "layoutPosition",
+            "zIndex",
+            "responsiveVisibilityDesktop",
+            "responsiveVisibilityTablet",
+            "responsiveVisibilityMobile",
+            "authVisibility",
+            "globalComponentSync",
+            "customCssClass",
+            "customCssId",
+            "motionAnimation",
+            "animationDuration",
+            "animationDelay",
+            "shapeDividerTop",
+            "shapeDividerBottom",
+            "shapeDividerColor"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        }
+      },
+      "signalsRequired": [
+        "S1_state",
+        "S2_dom",
+        "S3_computed_style",
+        "S4_pixel_diff",
+        "S5_persistence_ssr"
+      ],
+      "status": "pending",
+      "lastVerified": null
+    },
+    {
+      "id": "WIDGET-review_histogram",
+      "itemType": "widget",
+      "slug": "review_histogram",
+      "title": "نمودار میله‌ای نظرات (Review Histogram)",
+      "category": "shop",
+      "tabs": {
+        "content": {
+          "controls": [
+            "averageRating",
+            "totalReviews",
+            "distributionBars"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "style": {
+          "controls": [
+            "typographyFontFamily",
+            "typographyFontSize",
+            "typographyFontWeight",
+            "typographyLineHeight",
+            "typographyTextAlign",
+            "typographyColor",
+            "backgroundMode",
+            "backgroundColor",
+            "backgroundGradient",
+            "backgroundImage",
+            "backgroundOverlayMode",
+            "backgroundOverlayColor",
+            "backgroundOverlayOpacity",
+            "borderStyle",
+            "borderColor",
+            "borderWidth",
+            "borderRadius",
+            "boxShadowPreset",
+            "cssFilters",
+            "opacitySlider"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "advanced": {
+          "controls": [
+            "marginSpacingBox",
+            "paddingSpacingBox",
+            "layoutPosition",
+            "zIndex",
+            "responsiveVisibilityDesktop",
+            "responsiveVisibilityTablet",
+            "responsiveVisibilityMobile",
+            "authVisibility",
+            "globalComponentSync",
+            "customCssClass",
+            "customCssId",
+            "motionAnimation",
+            "animationDuration",
+            "animationDelay",
+            "shapeDividerTop",
+            "shapeDividerBottom",
+            "shapeDividerColor"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        }
+      },
+      "signalsRequired": [
+        "S1_state",
+        "S2_dom",
+        "S3_computed_style",
+        "S4_pixel_diff",
+        "S5_persistence_ssr"
+      ],
+      "status": "pending",
+      "lastVerified": null
+    },
+    {
+      "id": "WIDGET-recently_viewed",
+      "itemType": "widget",
+      "slug": "recently_viewed",
+      "title": "بازدیدهای اخیر (Recently Viewed)",
+      "category": "shop",
+      "tabs": {
+        "content": {
+          "controls": [
+            "limit",
+            "displayTitle",
+            "clearButton"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "style": {
+          "controls": [
+            "typographyFontFamily",
+            "typographyFontSize",
+            "typographyFontWeight",
+            "typographyLineHeight",
+            "typographyTextAlign",
+            "typographyColor",
+            "backgroundMode",
+            "backgroundColor",
+            "backgroundGradient",
+            "backgroundImage",
+            "backgroundOverlayMode",
+            "backgroundOverlayColor",
+            "backgroundOverlayOpacity",
+            "borderStyle",
+            "borderColor",
+            "borderWidth",
+            "borderRadius",
+            "boxShadowPreset",
+            "cssFilters",
+            "opacitySlider"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "advanced": {
+          "controls": [
+            "marginSpacingBox",
+            "paddingSpacingBox",
+            "layoutPosition",
+            "zIndex",
+            "responsiveVisibilityDesktop",
+            "responsiveVisibilityTablet",
+            "responsiveVisibilityMobile",
+            "authVisibility",
+            "globalComponentSync",
+            "customCssClass",
+            "customCssId",
+            "motionAnimation",
+            "animationDuration",
+            "animationDelay",
+            "shapeDividerTop",
+            "shapeDividerBottom",
+            "shapeDividerColor"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        }
+      },
+      "signalsRequired": [
+        "S1_state",
+        "S2_dom",
+        "S3_computed_style",
+        "S4_pixel_diff",
+        "S5_persistence_ssr"
+      ],
+      "status": "pending",
+      "lastVerified": null
+    },
+    {
+      "id": "WIDGET-mega_menu",
+      "itemType": "widget",
+      "slug": "mega_menu",
+      "title": "مگامنو دسته‌بندی‌ها (Mega Menu)",
+      "category": "shop",
+      "tabs": {
+        "content": {
+          "controls": [
+            "menuLabel",
+            "categorySource",
+            "depth",
+            "featuredBadge"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "style": {
+          "controls": [
+            "typographyFontFamily",
+            "typographyFontSize",
+            "typographyFontWeight",
+            "typographyLineHeight",
+            "typographyTextAlign",
+            "typographyColor",
+            "backgroundMode",
+            "backgroundColor",
+            "backgroundGradient",
+            "backgroundImage",
+            "backgroundOverlayMode",
+            "backgroundOverlayColor",
+            "backgroundOverlayOpacity",
+            "borderStyle",
+            "borderColor",
+            "borderWidth",
+            "borderRadius",
+            "boxShadowPreset",
+            "cssFilters",
+            "opacitySlider"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "advanced": {
+          "controls": [
+            "marginSpacingBox",
+            "paddingSpacingBox",
+            "layoutPosition",
+            "zIndex",
+            "responsiveVisibilityDesktop",
+            "responsiveVisibilityTablet",
+            "responsiveVisibilityMobile",
+            "authVisibility",
+            "globalComponentSync",
+            "customCssClass",
+            "customCssId",
+            "motionAnimation",
+            "animationDuration",
+            "animationDelay",
+            "shapeDividerTop",
+            "shapeDividerBottom",
+            "shapeDividerColor"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        }
+      },
+      "signalsRequired": [
+        "S1_state",
+        "S2_dom",
+        "S3_computed_style",
+        "S4_pixel_diff",
+        "S5_persistence_ssr"
+      ],
+      "status": "pending",
+      "lastVerified": null
+    },
+    {
+      "id": "WIDGET-product_price",
+      "itemType": "widget",
+      "slug": "product_price",
+      "title": "قیمت هوشمند کالا (Product Price)",
+      "category": "shop",
+      "tabs": {
+        "content": {
+          "controls": [
+            "price",
+            "compareAtPrice",
+            "currency",
+            "discountBadge"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "style": {
+          "controls": [
+            "typographyFontFamily",
+            "typographyFontSize",
+            "typographyFontWeight",
+            "typographyLineHeight",
+            "typographyTextAlign",
+            "typographyColor",
+            "backgroundMode",
+            "backgroundColor",
+            "backgroundGradient",
+            "backgroundImage",
+            "backgroundOverlayMode",
+            "backgroundOverlayColor",
+            "backgroundOverlayOpacity",
+            "borderStyle",
+            "borderColor",
+            "borderWidth",
+            "borderRadius",
+            "boxShadowPreset",
+            "cssFilters",
+            "opacitySlider"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "advanced": {
+          "controls": [
+            "marginSpacingBox",
+            "paddingSpacingBox",
+            "layoutPosition",
+            "zIndex",
+            "responsiveVisibilityDesktop",
+            "responsiveVisibilityTablet",
+            "responsiveVisibilityMobile",
+            "authVisibility",
+            "globalComponentSync",
+            "customCssClass",
+            "customCssId",
+            "motionAnimation",
+            "animationDuration",
+            "animationDelay",
+            "shapeDividerTop",
+            "shapeDividerBottom",
+            "shapeDividerColor"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        }
+      },
+      "signalsRequired": [
+        "S1_state",
+        "S2_dom",
+        "S3_computed_style",
+        "S4_pixel_diff",
+        "S5_persistence_ssr"
+      ],
+      "status": "pending",
+      "lastVerified": null
+    },
+    {
+      "id": "WIDGET-product_variants",
+      "itemType": "widget",
+      "slug": "product_variants",
+      "title": "سلکتور تنوع‌ها (Product Variants)",
+      "category": "shop",
+      "tabs": {
+        "content": {
+          "controls": [
+            "variantsList",
+            "displayStyle",
+            "priceUpdateSync"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "style": {
+          "controls": [
+            "typographyFontFamily",
+            "typographyFontSize",
+            "typographyFontWeight",
+            "typographyLineHeight",
+            "typographyTextAlign",
+            "typographyColor",
+            "backgroundMode",
+            "backgroundColor",
+            "backgroundGradient",
+            "backgroundImage",
+            "backgroundOverlayMode",
+            "backgroundOverlayColor",
+            "backgroundOverlayOpacity",
+            "borderStyle",
+            "borderColor",
+            "borderWidth",
+            "borderRadius",
+            "boxShadowPreset",
+            "cssFilters",
+            "opacitySlider"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "advanced": {
+          "controls": [
+            "marginSpacingBox",
+            "paddingSpacingBox",
+            "layoutPosition",
+            "zIndex",
+            "responsiveVisibilityDesktop",
+            "responsiveVisibilityTablet",
+            "responsiveVisibilityMobile",
+            "authVisibility",
+            "globalComponentSync",
+            "customCssClass",
+            "customCssId",
+            "motionAnimation",
+            "animationDuration",
+            "animationDelay",
+            "shapeDividerTop",
+            "shapeDividerBottom",
+            "shapeDividerColor"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        }
+      },
+      "signalsRequired": [
+        "S1_state",
+        "S2_dom",
+        "S3_computed_style",
+        "S4_pixel_diff",
+        "S5_persistence_ssr"
+      ],
+      "status": "pending",
+      "lastVerified": null
+    },
+    {
+      "id": "WIDGET-add_to_cart",
+      "itemType": "widget",
+      "slug": "add_to_cart",
+      "title": "دکمه خرید مستقیم (Add to Cart)",
+      "category": "shop",
+      "tabs": {
+        "content": {
+          "controls": [
+            "buttonText",
+            "variantId",
+            "directCheckoutRedirect"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "style": {
+          "controls": [
+            "typographyFontFamily",
+            "typographyFontSize",
+            "typographyFontWeight",
+            "typographyLineHeight",
+            "typographyTextAlign",
+            "typographyColor",
+            "backgroundMode",
+            "backgroundColor",
+            "backgroundGradient",
+            "backgroundImage",
+            "backgroundOverlayMode",
+            "backgroundOverlayColor",
+            "backgroundOverlayOpacity",
+            "borderStyle",
+            "borderColor",
+            "borderWidth",
+            "borderRadius",
+            "boxShadowPreset",
+            "cssFilters",
+            "opacitySlider"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "advanced": {
+          "controls": [
+            "marginSpacingBox",
+            "paddingSpacingBox",
+            "layoutPosition",
+            "zIndex",
+            "responsiveVisibilityDesktop",
+            "responsiveVisibilityTablet",
+            "responsiveVisibilityMobile",
+            "authVisibility",
+            "globalComponentSync",
+            "customCssClass",
+            "customCssId",
+            "motionAnimation",
+            "animationDuration",
+            "animationDelay",
+            "shapeDividerTop",
+            "shapeDividerBottom",
+            "shapeDividerColor"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        }
+      },
+      "signalsRequired": [
+        "S1_state",
+        "S2_dom",
+        "S3_computed_style",
+        "S4_pixel_diff",
+        "S5_persistence_ssr"
+      ],
+      "status": "pending",
+      "lastVerified": null
+    },
+    {
+      "id": "WIDGET-mini_cart",
+      "itemType": "widget",
+      "slug": "mini_cart",
+      "title": "پیش‌نمایش سریع سبد (Mini Cart)",
+      "category": "shop",
+      "tabs": {
+        "content": {
+          "controls": [
+            "showCountBadge",
+            "dropdownPreview",
+            "iconStyle"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "style": {
+          "controls": [
+            "typographyFontFamily",
+            "typographyFontSize",
+            "typographyFontWeight",
+            "typographyLineHeight",
+            "typographyTextAlign",
+            "typographyColor",
+            "backgroundMode",
+            "backgroundColor",
+            "backgroundGradient",
+            "backgroundImage",
+            "backgroundOverlayMode",
+            "backgroundOverlayColor",
+            "backgroundOverlayOpacity",
+            "borderStyle",
+            "borderColor",
+            "borderWidth",
+            "borderRadius",
+            "boxShadowPreset",
+            "cssFilters",
+            "opacitySlider"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "advanced": {
+          "controls": [
+            "marginSpacingBox",
+            "paddingSpacingBox",
+            "layoutPosition",
+            "zIndex",
+            "responsiveVisibilityDesktop",
+            "responsiveVisibilityTablet",
+            "responsiveVisibilityMobile",
+            "authVisibility",
+            "globalComponentSync",
+            "customCssClass",
+            "customCssId",
+            "motionAnimation",
+            "animationDuration",
+            "animationDelay",
+            "shapeDividerTop",
+            "shapeDividerBottom",
+            "shapeDividerColor"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        }
+      },
+      "signalsRequired": [
+        "S1_state",
+        "S2_dom",
+        "S3_computed_style",
+        "S4_pixel_diff",
+        "S5_persistence_ssr"
+      ],
+      "status": "pending",
+      "lastVerified": null
+    },
+    {
+      "id": "WIDGET-cart_summary",
+      "itemType": "widget",
+      "slug": "cart_summary",
+      "title": "خلاصه سبد سفارش (Cart Summary)",
+      "category": "shop",
+      "tabs": {
+        "content": {
+          "controls": [
+            "showSubtotal",
+            "showTax",
+            "checkoutButtonLabel"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "style": {
+          "controls": [
+            "typographyFontFamily",
+            "typographyFontSize",
+            "typographyFontWeight",
+            "typographyLineHeight",
+            "typographyTextAlign",
+            "typographyColor",
+            "backgroundMode",
+            "backgroundColor",
+            "backgroundGradient",
+            "backgroundImage",
+            "backgroundOverlayMode",
+            "backgroundOverlayColor",
+            "backgroundOverlayOpacity",
+            "borderStyle",
+            "borderColor",
+            "borderWidth",
+            "borderRadius",
+            "boxShadowPreset",
+            "cssFilters",
+            "opacitySlider"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "advanced": {
+          "controls": [
+            "marginSpacingBox",
+            "paddingSpacingBox",
+            "layoutPosition",
+            "zIndex",
+            "responsiveVisibilityDesktop",
+            "responsiveVisibilityTablet",
+            "responsiveVisibilityMobile",
+            "authVisibility",
+            "globalComponentSync",
+            "customCssClass",
+            "customCssId",
+            "motionAnimation",
+            "animationDuration",
+            "animationDelay",
+            "shapeDividerTop",
+            "shapeDividerBottom",
+            "shapeDividerColor"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        }
+      },
+      "signalsRequired": [
+        "S1_state",
+        "S2_dom",
+        "S3_computed_style",
+        "S4_pixel_diff",
+        "S5_persistence_ssr"
+      ],
+      "status": "pending",
+      "lastVerified": null
+    },
+    {
+      "id": "PATTERN-hero-banner",
+      "itemType": "pattern",
+      "slug": "hero-banner",
+      "title": "بنر اصلی (هیرو)",
+      "category": "بنر و هیرو",
+      "tabs": {
+        "content": {
+          "controls": [
+            "patternInsertion",
+            "variableReplacement",
+            "treeReparenting"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "style": {
+          "controls": [
+            "presetStylesApplied",
+            "hslTokensAligned",
+            "responsiveCssVariables"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "advanced": {
+          "controls": [
+            "containerWrapping",
+            "wrapperAnimation",
+            "customClasses"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        }
+      },
+      "signalsRequired": [
+        "S1_state",
+        "S2_dom",
+        "S3_computed_style",
+        "S4_pixel_diff",
+        "S5_persistence_ssr"
+      ],
+      "status": "pending",
+      "lastVerified": null
+    },
+    {
+      "id": "PATTERN-feature-grid",
+      "itemType": "pattern",
+      "slug": "feature-grid",
+      "title": "شبکه ویژگی‌ها",
+      "category": "محتوا",
+      "tabs": {
+        "content": {
+          "controls": [
+            "patternInsertion",
+            "variableReplacement",
+            "treeReparenting"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "style": {
+          "controls": [
+            "presetStylesApplied",
+            "hslTokensAligned",
+            "responsiveCssVariables"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "advanced": {
+          "controls": [
+            "containerWrapping",
+            "wrapperAnimation",
+            "customClasses"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        }
+      },
+      "signalsRequired": [
+        "S1_state",
+        "S2_dom",
+        "S3_computed_style",
+        "S4_pixel_diff",
+        "S5_persistence_ssr"
+      ],
+      "status": "pending",
+      "lastVerified": null
+    },
+    {
+      "id": "PATTERN-product-showcase-cta",
+      "itemType": "pattern",
+      "slug": "product-showcase-cta",
+      "title": "معرفی محصولات با دکمه",
+      "category": "محصولات",
+      "tabs": {
+        "content": {
+          "controls": [
+            "patternInsertion",
+            "variableReplacement",
+            "treeReparenting"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "style": {
+          "controls": [
+            "presetStylesApplied",
+            "hslTokensAligned",
+            "responsiveCssVariables"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "advanced": {
+          "controls": [
+            "containerWrapping",
+            "wrapperAnimation",
+            "customClasses"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        }
+      },
+      "signalsRequired": [
+        "S1_state",
+        "S2_dom",
+        "S3_computed_style",
+        "S4_pixel_diff",
+        "S5_persistence_ssr"
+      ],
+      "status": "pending",
+      "lastVerified": null
+    },
+    {
+      "id": "PATTERN-testimonials",
+      "itemType": "pattern",
+      "slug": "testimonials",
+      "title": "نظرات مشتریان",
+      "category": "محتوا",
+      "tabs": {
+        "content": {
+          "controls": [
+            "patternInsertion",
+            "variableReplacement",
+            "treeReparenting"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "style": {
+          "controls": [
+            "presetStylesApplied",
+            "hslTokensAligned",
+            "responsiveCssVariables"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "advanced": {
+          "controls": [
+            "containerWrapping",
+            "wrapperAnimation",
+            "customClasses"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        }
+      },
+      "signalsRequired": [
+        "S1_state",
+        "S2_dom",
+        "S3_computed_style",
+        "S4_pixel_diff",
+        "S5_persistence_ssr"
+      ],
+      "status": "pending",
+      "lastVerified": null
+    },
+    {
+      "id": "PATTERN-faq-accordion",
+      "itemType": "pattern",
+      "slug": "faq-accordion",
+      "title": "پرسش‌های متداول (آکاردئون)",
+      "category": "محتوا",
+      "tabs": {
+        "content": {
+          "controls": [
+            "patternInsertion",
+            "variableReplacement",
+            "treeReparenting"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "style": {
+          "controls": [
+            "presetStylesApplied",
+            "hslTokensAligned",
+            "responsiveCssVariables"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "advanced": {
+          "controls": [
+            "containerWrapping",
+            "wrapperAnimation",
+            "customClasses"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        }
+      },
+      "signalsRequired": [
+        "S1_state",
+        "S2_dom",
+        "S3_computed_style",
+        "S4_pixel_diff",
+        "S5_persistence_ssr"
+      ],
+      "status": "pending",
+      "lastVerified": null
+    },
+    {
+      "id": "PATTERN-image-text",
+      "itemType": "pattern",
+      "slug": "image-text",
+      "title": "تصویر و متن متناوب",
+      "category": "محتوا",
+      "tabs": {
+        "content": {
+          "controls": [
+            "patternInsertion",
+            "variableReplacement",
+            "treeReparenting"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "style": {
+          "controls": [
+            "presetStylesApplied",
+            "hslTokensAligned",
+            "responsiveCssVariables"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "advanced": {
+          "controls": [
+            "containerWrapping",
+            "wrapperAnimation",
+            "customClasses"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        }
+      },
+      "signalsRequired": [
+        "S1_state",
+        "S2_dom",
+        "S3_computed_style",
+        "S4_pixel_diff",
+        "S5_persistence_ssr"
+      ],
+      "status": "pending",
+      "lastVerified": null
+    },
+    {
+      "id": "PATTERN-countdown-offer",
+      "itemType": "pattern",
+      "slug": "countdown-offer",
+      "title": "پیشنهاد شگفت‌انگیز زمان‌دار",
+      "category": "بنر و هیرو",
+      "tabs": {
+        "content": {
+          "controls": [
+            "patternInsertion",
+            "variableReplacement",
+            "treeReparenting"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "style": {
+          "controls": [
+            "presetStylesApplied",
+            "hslTokensAligned",
+            "responsiveCssVariables"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "advanced": {
+          "controls": [
+            "containerWrapping",
+            "wrapperAnimation",
+            "customClasses"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        }
+      },
+      "signalsRequired": [
+        "S1_state",
+        "S2_dom",
+        "S3_computed_style",
+        "S4_pixel_diff",
+        "S5_persistence_ssr"
+      ],
+      "status": "pending",
+      "lastVerified": null
+    },
+    {
+      "id": "PATTERN-star-rating-display",
+      "itemType": "pattern",
+      "slug": "star-rating-display",
+      "title": "نمایش امتیاز ستاره‌ای",
+      "category": "محصولات",
+      "tabs": {
+        "content": {
+          "controls": [
+            "patternInsertion",
+            "variableReplacement",
+            "treeReparenting"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "style": {
+          "controls": [
+            "presetStylesApplied",
+            "hslTokensAligned",
+            "responsiveCssVariables"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "advanced": {
+          "controls": [
+            "containerWrapping",
+            "wrapperAnimation",
+            "customClasses"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        }
+      },
+      "signalsRequired": [
+        "S1_state",
+        "S2_dom",
+        "S3_computed_style",
+        "S4_pixel_diff",
+        "S5_persistence_ssr"
+      ],
+      "status": "pending",
+      "lastVerified": null
+    },
+    {
+      "id": "PATTERN-review-histogram",
+      "itemType": "pattern",
+      "slug": "review-histogram",
+      "title": "نمودار توزیع امتیاز",
+      "category": "محصولات",
+      "tabs": {
+        "content": {
+          "controls": [
+            "patternInsertion",
+            "variableReplacement",
+            "treeReparenting"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "style": {
+          "controls": [
+            "presetStylesApplied",
+            "hslTokensAligned",
+            "responsiveCssVariables"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "advanced": {
+          "controls": [
+            "containerWrapping",
+            "wrapperAnimation",
+            "customClasses"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        }
+      },
+      "signalsRequired": [
+        "S1_state",
+        "S2_dom",
+        "S3_computed_style",
+        "S4_pixel_diff",
+        "S5_persistence_ssr"
+      ],
+      "status": "pending",
+      "lastVerified": null
+    },
+    {
+      "id": "PATTERN-product-card-grid",
+      "itemType": "pattern",
+      "slug": "product-card-grid",
+      "title": "گرید ویترین کالاها",
+      "category": "محصولات",
+      "tabs": {
+        "content": {
+          "controls": [
+            "patternInsertion",
+            "variableReplacement",
+            "treeReparenting"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "style": {
+          "controls": [
+            "presetStylesApplied",
+            "hslTokensAligned",
+            "responsiveCssVariables"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "advanced": {
+          "controls": [
+            "containerWrapping",
+            "wrapperAnimation",
+            "customClasses"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        }
+      },
+      "signalsRequired": [
+        "S1_state",
+        "S2_dom",
+        "S3_computed_style",
+        "S4_pixel_diff",
+        "S5_persistence_ssr"
+      ],
+      "status": "pending",
+      "lastVerified": null
+    },
+    {
+      "id": "PATTERN-text-marquee",
+      "itemType": "pattern",
+      "slug": "text-marquee",
+      "title": "متن چرخشی تبلیغاتی",
+      "category": "بنر و هیرو",
+      "tabs": {
+        "content": {
+          "controls": [
+            "patternInsertion",
+            "variableReplacement",
+            "treeReparenting"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "style": {
+          "controls": [
+            "presetStylesApplied",
+            "hslTokensAligned",
+            "responsiveCssVariables"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "advanced": {
+          "controls": [
+            "containerWrapping",
+            "wrapperAnimation",
+            "customClasses"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        }
+      },
+      "signalsRequired": [
+        "S1_state",
+        "S2_dom",
+        "S3_computed_style",
+        "S4_pixel_diff",
+        "S5_persistence_ssr"
+      ],
+      "status": "pending",
+      "lastVerified": null
+    },
+    {
+      "id": "PATTERN-stats-counter",
+      "itemType": "pattern",
+      "slug": "stats-counter",
+      "title": "شمارنده آمار و ارقام",
+      "category": "محتوا",
+      "tabs": {
+        "content": {
+          "controls": [
+            "patternInsertion",
+            "variableReplacement",
+            "treeReparenting"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "style": {
+          "controls": [
+            "presetStylesApplied",
+            "hslTokensAligned",
+            "responsiveCssVariables"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "advanced": {
+          "controls": [
+            "containerWrapping",
+            "wrapperAnimation",
+            "customClasses"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        }
+      },
+      "signalsRequired": [
+        "S1_state",
+        "S2_dom",
+        "S3_computed_style",
+        "S4_pixel_diff",
+        "S5_persistence_ssr"
+      ],
+      "status": "pending",
+      "lastVerified": null
+    },
+    {
+      "id": "PATTERN-image-gallery-showcase",
+      "itemType": "pattern",
+      "slug": "image-gallery-showcase",
+      "title": "گالری تصاویر محصولات",
+      "category": "محتوا",
+      "tabs": {
+        "content": {
+          "controls": [
+            "patternInsertion",
+            "variableReplacement",
+            "treeReparenting"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "style": {
+          "controls": [
+            "presetStylesApplied",
+            "hslTokensAligned",
+            "responsiveCssVariables"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "advanced": {
+          "controls": [
+            "containerWrapping",
+            "wrapperAnimation",
+            "customClasses"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        }
+      },
+      "signalsRequired": [
+        "S1_state",
+        "S2_dom",
+        "S3_computed_style",
+        "S4_pixel_diff",
+        "S5_persistence_ssr"
+      ],
+      "status": "pending",
+      "lastVerified": null
+    },
+    {
+      "id": "PATTERN-discount-badge-banner",
+      "itemType": "pattern",
+      "slug": "discount-badge-banner",
+      "title": "بنر تخفیف ویژه با دکمه خرید",
+      "category": "بنر و هیرو",
+      "tabs": {
+        "content": {
+          "controls": [
+            "patternInsertion",
+            "variableReplacement",
+            "treeReparenting"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "style": {
+          "controls": [
+            "presetStylesApplied",
+            "hslTokensAligned",
+            "responsiveCssVariables"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "advanced": {
+          "controls": [
+            "containerWrapping",
+            "wrapperAnimation",
+            "customClasses"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        }
+      },
+      "signalsRequired": [
+        "S1_state",
+        "S2_dom",
+        "S3_computed_style",
+        "S4_pixel_diff",
+        "S5_persistence_ssr"
+      ],
+      "status": "pending",
+      "lastVerified": null
+    },
+    {
+      "id": "PATTERN-mega-menu-categories",
+      "itemType": "pattern",
+      "slug": "mega-menu-categories",
+      "title": "مگامنو دسته‌بندی کالاها",
+      "category": "ناوبری",
+      "tabs": {
+        "content": {
+          "controls": [
+            "patternInsertion",
+            "variableReplacement",
+            "treeReparenting"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "style": {
+          "controls": [
+            "presetStylesApplied",
+            "hslTokensAligned",
+            "responsiveCssVariables"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "advanced": {
+          "controls": [
+            "containerWrapping",
+            "wrapperAnimation",
+            "customClasses"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        }
+      },
+      "signalsRequired": [
+        "S1_state",
+        "S2_dom",
+        "S3_computed_style",
+        "S4_pixel_diff",
+        "S5_persistence_ssr"
+      ],
+      "status": "pending",
+      "lastVerified": null
+    },
+    {
+      "id": "PATTERN-pricing-table",
+      "itemType": "pattern",
+      "slug": "pricing-table",
+      "title": "جدول تعرفه و پلن‌های اشتراک",
+      "category": "فروشگاهی",
+      "tabs": {
+        "content": {
+          "controls": [
+            "patternInsertion",
+            "variableReplacement",
+            "treeReparenting"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "style": {
+          "controls": [
+            "presetStylesApplied",
+            "hslTokensAligned",
+            "responsiveCssVariables"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "advanced": {
+          "controls": [
+            "containerWrapping",
+            "wrapperAnimation",
+            "customClasses"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        }
+      },
+      "signalsRequired": [
+        "S1_state",
+        "S2_dom",
+        "S3_computed_style",
+        "S4_pixel_diff",
+        "S5_persistence_ssr"
+      ],
+      "status": "pending",
+      "lastVerified": null
+    },
+    {
+      "id": "PATTERN-price-list",
+      "itemType": "pattern",
+      "slug": "price-list",
+      "title": "لیست قیمت خدمات و کالاها",
+      "category": "فروشگاهی",
+      "tabs": {
+        "content": {
+          "controls": [
+            "patternInsertion",
+            "variableReplacement",
+            "treeReparenting"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "style": {
+          "controls": [
+            "presetStylesApplied",
+            "hslTokensAligned",
+            "responsiveCssVariables"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "advanced": {
+          "controls": [
+            "containerWrapping",
+            "wrapperAnimation",
+            "customClasses"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        }
+      },
+      "signalsRequired": [
+        "S1_state",
+        "S2_dom",
+        "S3_computed_style",
+        "S4_pixel_diff",
+        "S5_persistence_ssr"
+      ],
+      "status": "pending",
+      "lastVerified": null
+    },
+    {
+      "id": "PATTERN-icon-box-grid",
+      "itemType": "pattern",
+      "slug": "icon-box-grid",
+      "title": "جعبه‌های مزایا و خدمات",
+      "category": "محتوا",
+      "tabs": {
+        "content": {
+          "controls": [
+            "patternInsertion",
+            "variableReplacement",
+            "treeReparenting"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "style": {
+          "controls": [
+            "presetStylesApplied",
+            "hslTokensAligned",
+            "responsiveCssVariables"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "advanced": {
+          "controls": [
+            "containerWrapping",
+            "wrapperAnimation",
+            "customClasses"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        }
+      },
+      "signalsRequired": [
+        "S1_state",
+        "S2_dom",
+        "S3_computed_style",
+        "S4_pixel_diff",
+        "S5_persistence_ssr"
+      ],
+      "status": "pending",
+      "lastVerified": null
+    },
+    {
+      "id": "PATTERN-author-bio",
+      "itemType": "pattern",
+      "slug": "author-bio",
+      "title": "کارت معرفی کارشناس / نویسنده",
+      "category": "محتوا",
+      "tabs": {
+        "content": {
+          "controls": [
+            "patternInsertion",
+            "variableReplacement",
+            "treeReparenting"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "style": {
+          "controls": [
+            "presetStylesApplied",
+            "hslTokensAligned",
+            "responsiveCssVariables"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "advanced": {
+          "controls": [
+            "containerWrapping",
+            "wrapperAnimation",
+            "customClasses"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        }
+      },
+      "signalsRequired": [
+        "S1_state",
+        "S2_dom",
+        "S3_computed_style",
+        "S4_pixel_diff",
+        "S5_persistence_ssr"
+      ],
+      "status": "pending",
+      "lastVerified": null
+    },
+    {
+      "id": "PATTERN-pull-quote",
+      "itemType": "pattern",
+      "slug": "pull-quote",
+      "title": "نقل‌قول و پیام برجسته",
+      "category": "محتوا",
+      "tabs": {
+        "content": {
+          "controls": [
+            "patternInsertion",
+            "variableReplacement",
+            "treeReparenting"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "style": {
+          "controls": [
+            "presetStylesApplied",
+            "hslTokensAligned",
+            "responsiveCssVariables"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "advanced": {
+          "controls": [
+            "containerWrapping",
+            "wrapperAnimation",
+            "customClasses"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        }
+      },
+      "signalsRequired": [
+        "S1_state",
+        "S2_dom",
+        "S3_computed_style",
+        "S4_pixel_diff",
+        "S5_persistence_ssr"
+      ],
+      "status": "pending",
+      "lastVerified": null
+    },
+    {
+      "id": "PATTERN-support-callout",
+      "itemType": "pattern",
+      "slug": "support-callout",
+      "title": "کادر تماس و پشتیبانی سریع",
+      "category": "محتوا",
+      "tabs": {
+        "content": {
+          "controls": [
+            "patternInsertion",
+            "variableReplacement",
+            "treeReparenting"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "style": {
+          "controls": [
+            "presetStylesApplied",
+            "hslTokensAligned",
+            "responsiveCssVariables"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "advanced": {
+          "controls": [
+            "containerWrapping",
+            "wrapperAnimation",
+            "customClasses"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        }
+      },
+      "signalsRequired": [
+        "S1_state",
+        "S2_dom",
+        "S3_computed_style",
+        "S4_pixel_diff",
+        "S5_persistence_ssr"
+      ],
+      "status": "pending",
+      "lastVerified": null
+    },
+    {
+      "id": "PATTERN-comparison-table",
+      "itemType": "pattern",
+      "slug": "comparison-table",
+      "title": "جدول مقایسه ویژگی‌ها",
+      "category": "فروشگاهی",
+      "tabs": {
+        "content": {
+          "controls": [
+            "patternInsertion",
+            "variableReplacement",
+            "treeReparenting"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "style": {
+          "controls": [
+            "presetStylesApplied",
+            "hslTokensAligned",
+            "responsiveCssVariables"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "advanced": {
+          "controls": [
+            "containerWrapping",
+            "wrapperAnimation",
+            "customClasses"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        }
+      },
+      "signalsRequired": [
+        "S1_state",
+        "S2_dom",
+        "S3_computed_style",
+        "S4_pixel_diff",
+        "S5_persistence_ssr"
+      ],
+      "status": "pending",
+      "lastVerified": null
+    },
+    {
+      "id": "PATTERN-process-steps",
+      "itemType": "pattern",
+      "slug": "process-steps",
+      "title": "مراحل گام‌به‌گام خرید و تحویل",
+      "category": "محتوا",
+      "tabs": {
+        "content": {
+          "controls": [
+            "patternInsertion",
+            "variableReplacement",
+            "treeReparenting"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "style": {
+          "controls": [
+            "presetStylesApplied",
+            "hslTokensAligned",
+            "responsiveCssVariables"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "advanced": {
+          "controls": [
+            "containerWrapping",
+            "wrapperAnimation",
+            "customClasses"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        }
+      },
+      "signalsRequired": [
+        "S1_state",
+        "S2_dom",
+        "S3_computed_style",
+        "S4_pixel_diff",
+        "S5_persistence_ssr"
+      ],
+      "status": "pending",
+      "lastVerified": null
+    },
+    {
+      "id": "PATTERN-lead-capture-form",
+      "itemType": "pattern",
+      "slug": "lead-capture-form",
+      "title": "فرم ثبت درخواست و مشاوره",
+      "category": "تعاملی",
+      "tabs": {
+        "content": {
+          "controls": [
+            "patternInsertion",
+            "variableReplacement",
+            "treeReparenting"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "style": {
+          "controls": [
+            "presetStylesApplied",
+            "hslTokensAligned",
+            "responsiveCssVariables"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "advanced": {
+          "controls": [
+            "containerWrapping",
+            "wrapperAnimation",
+            "customClasses"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        }
+      },
+      "signalsRequired": [
+        "S1_state",
+        "S2_dom",
+        "S3_computed_style",
+        "S4_pixel_diff",
+        "S5_persistence_ssr"
+      ],
+      "status": "pending",
+      "lastVerified": null
+    },
+    {
+      "id": "PATTERN-alert-banner",
+      "itemType": "pattern",
+      "slug": "alert-banner",
+      "title": "نوار اطلاع‌رسانی بالای صفحه",
+      "category": "بنر و هیرو",
+      "tabs": {
+        "content": {
+          "controls": [
+            "patternInsertion",
+            "variableReplacement",
+            "treeReparenting"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "style": {
+          "controls": [
+            "presetStylesApplied",
+            "hslTokensAligned",
+            "responsiveCssVariables"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "advanced": {
+          "controls": [
+            "containerWrapping",
+            "wrapperAnimation",
+            "customClasses"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        }
+      },
+      "signalsRequired": [
+        "S1_state",
+        "S2_dom",
+        "S3_computed_style",
+        "S4_pixel_diff",
+        "S5_persistence_ssr"
+      ],
+      "status": "pending",
+      "lastVerified": null
+    },
+    {
+      "id": "PATTERN-floating-contact-bar",
+      "itemType": "pattern",
+      "slug": "floating-contact-bar",
+      "title": "نوار ارتباطی سریع شناور",
+      "category": "تعاملی",
+      "tabs": {
+        "content": {
+          "controls": [
+            "patternInsertion",
+            "variableReplacement",
+            "treeReparenting"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "style": {
+          "controls": [
+            "presetStylesApplied",
+            "hslTokensAligned",
+            "responsiveCssVariables"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "advanced": {
+          "controls": [
+            "containerWrapping",
+            "wrapperAnimation",
+            "customClasses"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        }
+      },
+      "signalsRequired": [
+        "S1_state",
+        "S2_dom",
+        "S3_computed_style",
+        "S4_pixel_diff",
+        "S5_persistence_ssr"
+      ],
+      "status": "pending",
+      "lastVerified": null
+    },
+    {
+      "id": "PATTERN-brand-logo-carousel",
+      "itemType": "pattern",
+      "slug": "brand-logo-carousel",
+      "title": "گردونه برندهای همکار",
+      "category": "محتوا",
+      "tabs": {
+        "content": {
+          "controls": [
+            "patternInsertion",
+            "variableReplacement",
+            "treeReparenting"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "style": {
+          "controls": [
+            "presetStylesApplied",
+            "hslTokensAligned",
+            "responsiveCssVariables"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "advanced": {
+          "controls": [
+            "containerWrapping",
+            "wrapperAnimation",
+            "customClasses"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        }
+      },
+      "signalsRequired": [
+        "S1_state",
+        "S2_dom",
+        "S3_computed_style",
+        "S4_pixel_diff",
+        "S5_persistence_ssr"
+      ],
+      "status": "pending",
+      "lastVerified": null
+    },
+    {
+      "id": "PATTERN-product-highlights",
+      "itemType": "pattern",
+      "slug": "product-highlights",
+      "title": "ویژگی‌های کلیدی محصول",
+      "category": "محصولات",
+      "tabs": {
+        "content": {
+          "controls": [
+            "patternInsertion",
+            "variableReplacement",
+            "treeReparenting"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "style": {
+          "controls": [
+            "presetStylesApplied",
+            "hslTokensAligned",
+            "responsiveCssVariables"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "advanced": {
+          "controls": [
+            "containerWrapping",
+            "wrapperAnimation",
+            "customClasses"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        }
+      },
+      "signalsRequired": [
+        "S1_state",
+        "S2_dom",
+        "S3_computed_style",
+        "S4_pixel_diff",
+        "S5_persistence_ssr"
+      ],
+      "status": "pending",
+      "lastVerified": null
+    },
+    {
+      "id": "SHELL-builder-toolbar",
+      "itemType": "shell",
+      "slug": "builder-toolbar",
+      "title": "نوار ابزار بالای استودیو (Builder Toolbar)",
+      "category": "shell",
+      "tabs": {
+        "content": {
+          "controls": [
+            "saveDraft",
+            "publish",
+            "breakpointSwitch",
+            "previewMode",
+            "undoRedo",
+            "titleEdit"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "style": {
+          "controls": [
+            "fullscreenLayout",
+            "zeroOverflow",
+            "themeTokensApplied"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "advanced": {
+          "controls": [
+            "accessibilityAria",
+            "keyboardShortcutsIntegration"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        }
+      },
+      "signalsRequired": [
+        "S1_state",
+        "S2_dom",
+        "S3_computed_style",
+        "S4_pixel_diff",
+        "S5_persistence_ssr"
+      ],
+      "status": "pending",
+      "lastVerified": null
+    },
+    {
+      "id": "SHELL-layers-tree",
+      "itemType": "shell",
+      "slug": "layers-tree",
+      "title": "درخت لایه‌ها و ناوبر (Layers Tree Navigator)",
+      "category": "shell",
+      "tabs": {
+        "content": {
+          "controls": [
+            "itemSelect",
+            "reorderDrag",
+            "visibilityToggle",
+            "lockToggle",
+            "deleteAction",
+            "duplicateAction"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "style": {
+          "controls": [
+            "fullscreenLayout",
+            "zeroOverflow",
+            "themeTokensApplied"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "advanced": {
+          "controls": [
+            "accessibilityAria",
+            "keyboardShortcutsIntegration"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        }
+      },
+      "signalsRequired": [
+        "S1_state",
+        "S2_dom",
+        "S3_computed_style",
+        "S4_pixel_diff",
+        "S5_persistence_ssr"
+      ],
+      "status": "pending",
+      "lastVerified": null
+    },
+    {
+      "id": "SHELL-blocks-palette",
+      "itemType": "shell",
+      "slug": "blocks-palette",
+      "title": "پالت انتخاب بلوک‌ها (Blocks Palette)",
+      "category": "shell",
+      "tabs": {
+        "content": {
+          "controls": [
+            "blocksSearch",
+            "blocksFilter",
+            "patternSelect",
+            "dragPayload"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "style": {
+          "controls": [
+            "fullscreenLayout",
+            "zeroOverflow",
+            "themeTokensApplied"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "advanced": {
+          "controls": [
+            "accessibilityAria",
+            "keyboardShortcutsIntegration"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        }
+      },
+      "signalsRequired": [
+        "S1_state",
+        "S2_dom",
+        "S3_computed_style",
+        "S4_pixel_diff",
+        "S5_persistence_ssr"
+      ],
+      "status": "pending",
+      "lastVerified": null
+    },
+    {
+      "id": "DIALOG-global-styles-dialog",
+      "itemType": "dialog",
+      "slug": "global-styles-dialog",
+      "title": "پنجره استایل‌های سراسری (Global Styles)",
+      "category": "dialog",
+      "tabs": {
+        "content": {
+          "controls": [
+            "primaryColor",
+            "secondaryColor",
+            "accentColor",
+            "fontFamily",
+            "borderRadius",
+            "resetToDefault"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "style": {
+          "controls": [
+            "dialogOverlayHighZIndex",
+            "colorTokensPreview",
+            "rtlLayout"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "advanced": {
+          "controls": [
+            "escapeKeyDismiss",
+            "persistPayloadToStorage"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        }
+      },
+      "signalsRequired": [
+        "S1_state",
+        "S2_dom",
+        "S3_computed_style",
+        "S4_pixel_diff",
+        "S5_persistence_ssr"
+      ],
+      "status": "pending",
+      "lastVerified": null
+    },
+    {
+      "id": "DIALOG-save-template-dialog",
+      "itemType": "dialog",
+      "slug": "save-template-dialog",
+      "title": "ذخیره الگوی سکشن (Save Section Template)",
+      "category": "dialog",
+      "tabs": {
+        "content": {
+          "controls": [
+            "templateTitle",
+            "templateCategory",
+            "persistSave"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "style": {
+          "controls": [
+            "dialogOverlayHighZIndex",
+            "colorTokensPreview",
+            "rtlLayout"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "advanced": {
+          "controls": [
+            "escapeKeyDismiss",
+            "persistPayloadToStorage"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        }
+      },
+      "signalsRequired": [
+        "S1_state",
+        "S2_dom",
+        "S3_computed_style",
+        "S4_pixel_diff",
+        "S5_persistence_ssr"
+      ],
+      "status": "pending",
+      "lastVerified": null
+    },
+    {
+      "id": "DIALOG-save-page-template-dialog",
+      "itemType": "dialog",
+      "slug": "save-page-template-dialog",
+      "title": "ذخیره قالب کل صفحه (Save Full Page Template)",
+      "category": "dialog",
+      "tabs": {
+        "content": {
+          "controls": [
+            "pageTitle",
+            "slugSync",
+            "persistSave"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "style": {
+          "controls": [
+            "dialogOverlayHighZIndex",
+            "colorTokensPreview",
+            "rtlLayout"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "advanced": {
+          "controls": [
+            "escapeKeyDismiss",
+            "persistPayloadToStorage"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        }
+      },
+      "signalsRequired": [
+        "S1_state",
+        "S2_dom",
+        "S3_computed_style",
+        "S4_pixel_diff",
+        "S5_persistence_ssr"
+      ],
+      "status": "pending",
+      "lastVerified": null
+    },
+    {
+      "id": "DIALOG-keyboard-shortcuts-dialog",
+      "itemType": "dialog",
+      "slug": "keyboard-shortcuts-dialog",
+      "title": "راهنمای کلیدهای میانبر (Keyboard Shortcuts)",
+      "category": "dialog",
+      "tabs": {
+        "content": {
+          "controls": [
+            "dialogRender",
+            "keyBindingList",
+            "closeAction"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "style": {
+          "controls": [
+            "dialogOverlayHighZIndex",
+            "colorTokensPreview",
+            "rtlLayout"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        },
+        "advanced": {
+          "controls": [
+            "escapeKeyDismiss",
+            "persistPayloadToStorage"
+          ],
+          "status": "pending",
+          "verifiedSignals": []
+        }
+      },
+      "signalsRequired": [
+        "S1_state",
+        "S2_dom",
+        "S3_computed_style",
+        "S4_pixel_diff",
+        "S5_persistence_ssr"
+      ],
+      "status": "pending",
+      "lastVerified": null
+    }
+  ]
+}

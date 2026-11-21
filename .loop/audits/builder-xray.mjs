@@ -917,6 +917,22 @@ async function runXRayAudit() {
         addFailure("P1", "NAVIGATOR_FEATURES_MISSING", "layers-tree", "Navigator search input or toggle-all button is missing.");
       }
     }
+
+    // ── Check Elementor Hotkeys Modal (Shift+? / Toolbar button) ──
+    const hotkeysBtn = page.locator('[data-testid="hotkeys-btn"]').first();
+    if (await hotkeysBtn.isVisible()) {
+      await hotkeysBtn.click();
+      await page.waitForTimeout(300);
+
+      const modal = page.locator('[data-testid="hotkeys-modal"]').first();
+      if (await modal.isVisible()) {
+        console.log("    ✅ Elementor Hotkeys Cheatsheet modal opened successfully.");
+        await page.keyboard.press("Escape");
+        await page.waitForTimeout(200);
+      } else {
+        addFailure("P1", "HOTKEYS_MODAL_NOT_OPEN", "toolbar", "Clicking hotkeys button did not open modal.");
+      }
+    }
   } catch (ctxErr) {
     addFailure("P1", "ADVANCED_UX_EXCEPTION", "elementor-parity", ctxErr.message);
   }

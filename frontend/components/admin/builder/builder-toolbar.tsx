@@ -19,12 +19,14 @@ import {
   AlertCircle,
   Paintbrush,
   Bookmark,
+  Keyboard,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useBuilderStore, type Breakpoint } from "@/stores/builder-store";
 import { GlobalStylesDialog } from "./global-styles-dialog";
 import { SavePageTemplateDialog } from "./save-page-template-dialog";
+import { HotkeysDialog } from "./hotkeys-dialog";
 
 interface BuilderToolbarProps {
   onSaveDraft: () => Promise<void>;
@@ -61,18 +63,22 @@ export function BuilderToolbar({
   const selectedElementIds = useBuilderStore((s) => s.selectedElementIds);
   const [globalStylesOpen, setGlobalStylesOpen] = React.useState(false);
   const [savePageTemplateOpen, setSavePageTemplateOpen] = React.useState(false);
+  const [hotkeysOpen, setHotkeysOpen] = React.useState(false);
 
   const canUndo = history.past.length > 0;
   const canRedo = history.future.length > 0;
 
-  // Keyboard shortcut listener for Undo/Redo/Copy/Paste/Delete
+  // Keyboard shortcut listener for Undo/Redo/Copy/Paste/Delete/Hotkeys
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const targetTag = (e.target as HTMLElement)?.tagName?.toLowerCase();
       const isInput = targetTag === "input" || targetTag === "textarea" || (e.target as HTMLElement)?.isContentEditable;
       if (isInput) return;
 
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z") {
+      if ((e.shiftKey && e.key === "?") || ((e.ctrlKey || e.metaKey) && e.key === "/")) {
+        e.preventDefault();
+        setHotkeysOpen((prev) => !prev);
+      } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z") {
         if (e.shiftKey) {
           e.preventDefault();
           redo();
@@ -252,6 +258,18 @@ export function BuilderToolbar({
         </Button>
 
         <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setHotkeysOpen(true)}
+          className="h-8 gap-1.5 text-xs text-muted-foreground hover:text-foreground"
+          title="راهنمای کلیدهای میانبر (Shift+?)"
+          data-testid="hotkeys-btn"
+        >
+          <Keyboard className="w-3.5 h-3.5 text-muted-foreground" />
+          <span className="hidden md:inline">میانبرها</span>
+        </Button>
+
+        <Button
           variant={previewMode ? "secondary" : "ghost"}
           size="sm"
           onClick={() => setPreviewMode(!previewMode)}
@@ -285,6 +303,7 @@ export function BuilderToolbar({
 
       <GlobalStylesDialog open={globalStylesOpen} onOpenChange={setGlobalStylesOpen} />
       <SavePageTemplateDialog open={savePageTemplateOpen} onOpenChange={setSavePageTemplateOpen} />
+      <HotkeysDialog open={hotkeysOpen} onOpenChange={setHotkeysOpen} />
     </header>
   );
 }

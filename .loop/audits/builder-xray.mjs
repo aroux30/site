@@ -917,6 +917,40 @@ async function runXRayAudit() {
     }
   }
 
+  // 6. Elementor Parity: Keyboard Shortcuts Help Modal & History Hotkeys
+  console.log("    Testing Elementor Parity: Keyboard Shortcuts Dialog & Undo/Redo Hotkeys...");
+  const shortcutsBtn = page.locator("[data-testid='shortcuts-help-btn']");
+  if (await shortcutsBtn.isVisible()) {
+    await shortcutsBtn.click();
+    await page.waitForTimeout(400);
+
+    const dialogTitle = page.locator("text=راهنمای کلیدهای میانبر");
+    if (!(await dialogTitle.isVisible())) {
+      addFailure("SHORTCUTS_DIALOG_MISSING", "P0", { message: "Keyboard Shortcuts Dialog failed to open" });
+    } else {
+      // Press Escape to close modal
+      await page.keyboard.press("Escape");
+      await page.waitForTimeout(300);
+    }
+  }
+
+  // Test Undo/Redo Hotkeys (Ctrl+Z and Ctrl+Y)
+  const initialCount = await framePreset.locator("[data-element-id]").count();
+  // Press Delete on active selection
+  await page.keyboard.press("Delete");
+  await page.waitForTimeout(300);
+  const postDelCount = await framePreset.locator("[data-element-id]").count();
+
+  if (postDelCount < initialCount) {
+    // Press Ctrl+Z to Undo
+    await page.keyboard.press("Control+z");
+    await page.waitForTimeout(400);
+    const restoredCount = await framePreset.locator("[data-element-id]").count();
+    if (restoredCount !== initialCount) {
+      addFailure("HOTKEY_UNDO_FAILED", "P0", { message: `Ctrl+Z did not restore deleted element (${restoredCount} vs ${initialCount})` });
+    }
+  }
+
   // ──────────────────────────────────────────────────────────────────────────
   // Write Final Matrix Report
   // ──────────────────────────────────────────────────────────────────────────

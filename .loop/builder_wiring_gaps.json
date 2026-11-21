@@ -1,58 +1,15 @@
 {
-  "timestamp": "2026-11-21T14:39:59.552Z",
+  "timestamp": "2026-11-21T14:55:08.939Z",
   "summary": {
     "hardcodedOrEmptyCount": 0,
-    "unreadInCanvasCount": 6,
+    "unreadInCanvasCount": 0,
     "uncompiledInSsrCount": 0,
     "widgetBlindSpotsCount": 0,
-    "totalGaps": 6
+    "totalGaps": 0
   },
   "categories": {
     "HARDCODED_OR_EMPTY_UI": [],
-    "UNREAD_IN_CANVAS": [
-      {
-        "prop": "newTab",
-        "source": "inspector-panel.tsx",
-        "target": "canvas-element.tsx",
-        "issue": "PROP_NOT_RENDERED_IN_CANVAS",
-        "detail": "Property \"newTab\" is edited in Inspector but never read in CanvasElementComponent"
-      },
-      {
-        "prop": "required",
-        "source": "inspector-panel.tsx",
-        "target": "canvas-element.tsx",
-        "issue": "PROP_NOT_RENDERED_IN_CANVAS",
-        "detail": "Property \"required\" is edited in Inspector but never read in CanvasElementComponent"
-      },
-      {
-        "prop": "checkout_url",
-        "source": "inspector-panel.tsx",
-        "target": "canvas-element.tsx",
-        "issue": "PROP_NOT_RENDERED_IN_CANVAS",
-        "detail": "Property \"checkout_url\" is edited in Inspector but never read in CanvasElementComponent"
-      },
-      {
-        "prop": "submit_url",
-        "source": "inspector-panel.tsx",
-        "target": "canvas-element.tsx",
-        "issue": "PROP_NOT_RENDERED_IN_CANVAS",
-        "detail": "Property \"submit_url\" is edited in Inspector but never read in CanvasElementComponent"
-      },
-      {
-        "prop": "success_message",
-        "source": "inspector-panel.tsx",
-        "target": "canvas-element.tsx",
-        "issue": "PROP_NOT_RENDERED_IN_CANVAS",
-        "detail": "Property \"success_message\" is edited in Inspector but never read in CanvasElementComponent"
-      },
-      {
-        "prop": "error_message",
-        "source": "inspector-panel.tsx",
-        "target": "canvas-element.tsx",
-        "issue": "PROP_NOT_RENDERED_IN_CANVAS",
-        "detail": "Property \"error_message\" is edited in Inspector but never read in CanvasElementComponent"
-      }
-    ],
+    "UNREAD_IN_CANVAS": [],
     "UNCOMPILED_IN_SSR": [],
     "WIDGET_CONTROL_BLIND_SPOTS": []
   }

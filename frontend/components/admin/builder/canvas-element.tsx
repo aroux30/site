@@ -673,6 +673,8 @@ function CanvasElementComponent({
             <a
               href={url}
               data-url={url}
+              target={props.newTab ? "_blank" : undefined}
+              rel={props.newTab ? "noopener noreferrer" : undefined}
               onDoubleClick={(e) => {
                 if (!previewMode) {
                   e.stopPropagation();
@@ -1124,6 +1126,7 @@ function CanvasElementComponent({
             </div>
             <button
               type="button"
+              data-checkout-url={props.checkout_url ? String(props.checkout_url) : undefined}
               className="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition shadow"
             >
               {btnLabel}
@@ -1185,13 +1188,20 @@ function CanvasElementComponent({
         const label = String(props.label || "");
         const placeholder = String(props.placeholder || "");
         const inputType = String(props.input_type || "text");
+        const isRequired = Boolean(props.required);
         const customClass = String(props.customCssClass || element.styles?.customCssClass || "");
         return (
-          <div className={cn("space-y-1 w-full text-right pointer-events-none", customClass)}>
-            {label && <label className="block text-xs font-semibold text-foreground">{label}</label>}
+          <div className={cn("space-y-1 w-full text-right pointer-events-none", customClass)} data-required={isRequired ? "true" : undefined}>
+            {label && (
+              <label className="block text-xs font-semibold text-foreground">
+                {label}
+                {isRequired && <span className="text-destructive ms-1">*</span>}
+              </label>
+            )}
             <input
               type={inputType}
               placeholder={placeholder}
+              required={isRequired}
               readOnly
               className="w-full rounded-xl border border-input bg-background px-4 py-2.5 text-sm"
             />
@@ -1202,13 +1212,20 @@ function CanvasElementComponent({
         const label = String(props.label || "");
         const placeholder = String(props.placeholder || "");
         const rowsNum = Number(props.rows || 4);
+        const isRequired = Boolean(props.required);
         const customClass = String(props.customCssClass || element.styles?.customCssClass || "");
         return (
-          <div className={cn("space-y-1 w-full text-right pointer-events-none", customClass)}>
-            {label && <label className="block text-xs font-semibold text-foreground">{label}</label>}
+          <div className={cn("space-y-1 w-full text-right pointer-events-none", customClass)} data-required={isRequired ? "true" : undefined}>
+            {label && (
+              <label className="block text-xs font-semibold text-foreground">
+                {label}
+                {isRequired && <span className="text-destructive ms-1">*</span>}
+              </label>
+            )}
             <textarea
               placeholder={placeholder}
               rows={rowsNum}
+              required={isRequired}
               readOnly
               className="w-full rounded-xl border border-input bg-background p-3 text-sm"
             />
@@ -1218,11 +1235,17 @@ function CanvasElementComponent({
       case "form_select": {
         const label = String(props.label || "");
         const options = (props.options as string[]) || ["گزینه ۱", "گزینه ۲"];
+        const isRequired = Boolean(props.required);
         const customClass = String(props.customCssClass || element.styles?.customCssClass || "");
         return (
-          <div className={cn("space-y-1 w-full text-right pointer-events-none", customClass)}>
-            {label && <label className="block text-xs font-semibold text-foreground">{label}</label>}
-            <select className="w-full rounded-xl border border-input bg-background px-4 py-2.5 text-sm" disabled>
+          <div className={cn("space-y-1 w-full text-right pointer-events-none", customClass)} data-required={isRequired ? "true" : undefined}>
+            {label && (
+              <label className="block text-xs font-semibold text-foreground">
+                {label}
+                {isRequired && <span className="text-destructive ms-1">*</span>}
+              </label>
+            )}
+            <select className="w-full rounded-xl border border-input bg-background px-4 py-2.5 text-sm" required={isRequired} disabled>
               {options.map((opt, i) => (
                 <option key={i}>{typeof opt === "string" ? opt : (opt as any)?.label || opt}</option>
               ))}
@@ -1489,7 +1512,12 @@ function CanvasElementComponent({
 
       {/* Form Container Identifier */}
       {element.widgetType === "form_container" && !previewMode && (
-        <div className="absolute top-1 start-1 z-20 pointer-events-none">
+        <div
+          className="absolute top-1 start-1 z-20 pointer-events-none"
+          data-submit-url={String(element.widgetProps?.submit_url || "")}
+          data-success-message={String(element.widgetProps?.success_message || "")}
+          data-error-message={String(element.widgetProps?.error_message || "")}
+        >
           <Badge variant="outline" className="bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-300 text-[9px] px-1.5 py-0 h-4">
             فرم سازنده (Form Container)
           </Badge>

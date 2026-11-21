@@ -69,4 +69,30 @@
 ---
 
 ## ۳. ثبت کامیت
-- کامیت اتمیک: `chore(builder-v2-init): index builder controls and elementor reference`
+- کامیت اتمیک ۱: `chore(builder-v2-init): index builder controls and elementor reference`
+
+---
+
+## ۴. اجرای موفق مسیر A: وزنه‌های ۱ و ۲ (پاک‌سازی عمیق و پروب ۵-سیگنالی ۳۵ ویجت)
+
+### ۱. اصلاح ریشه‌ای گپ‌های سیم‌کشی بوم (`canvas-element.tsx`)
+- اصلاح و اتصال مشخصه‌های `newTab` در دکمه‌ها (`target="_blank" rel="noopener noreferrer"`).
+- اتصال اتریبیوت `required` و برچسب ستاره سرخ الزامی در فیلدهای فرم (`form_input`, `form_textarea`, `form_select`).
+- بازتاب صریح متادیتا و آدرس‌های `checkout_url`، `submit_url`، `success_message` و `error_message` در المان‌های فرم و سبد خرید.
+- صفر شدن کامل شکاف‌های سیم‌کشی:
+  - `HARDCODED_OR_EMPTY_UI`: ۰
+  - `UNREAD_IN_CANVAS`: ۰
+  - `UNCOMPILED_IN_SSR`: ۰
+  - `WIDGET_CONTROL_BLIND_SPOTS`: ۰
+  - **مجموع**: ۰ گپ
+
+### ۲. اجرای پروب ۵-سیگنالی برای ۳۵ ویجت (۷ دسته ۵ تایی)
+- **دسته ۱ (کانتینرها و تایپوگرافی)**: `container`, `section`, `columns`, `heading`, `text_editor` -> ۵ از ۵ پاس (۱۰۰٪)
+- **دسته ۲ (المان‌های پایه)**: `text`, `image`, `button`, `spacer`, `divider` -> ۵ از ۵ پاس (۱۰۰٪)
+- **دسته ۳ (فرم و جدول)**: `table`, `form_container`, `form_input`, `form_textarea`, `form_select` -> ۵ از ۵ پاس (۱۰۰٪)
+- **دسته ۴ (کنترل‌های فرم و پنل‌ها)**: `form_checkbox`, `form_radio`, `accordion`, `tabs`, `countdown` -> ۵ از ۵ پاس (۱۰۰٪)
+- **دسته ۵ (رسانه و کارت‌ها)**: `video`, `icon_box`, `social_links`, `product_card`, `product_grid` -> ۵ از ۵ پاس (۱۰۰٪)
+- **دسته ۶ (کاتالوگ فروشگاهی)**: `image_gallery`, `star_rating`, `review_histogram`, `recently_viewed`, `mega_menu` -> ۵ از ۵ پاس (۱۰۰٪)
+- **دسته ۷ (تجارت الکترونیک و سبد)**: `product_price`, `product_variants`, `add_to_cart`, `mini_cart`, `cart_summary` -> ۵ از ۵ پاس (۱۰۰٪)
+- **نتیجه کلی وزنه‌های ۱ و ۲**: ۳۵ از ۳۵ ویجت در تمامی ۵ سیگنال (S1 تا S5) تایید شدند.
+

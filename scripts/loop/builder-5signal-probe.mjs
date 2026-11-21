@@ -290,10 +290,131 @@ export async function run5SignalProbe() {
     });
   }
 
+  // ── Probe 2B: Button Widget Active Nudge (Weight 2) ─────────────────────────
+  console.log(">>> Probing Button Widget 5-Signals (Weight 2)...");
+  // Insert a button block from palette if not already present
+  const blocksTabButton = page.locator("aside button").filter({ hasText: /^بلوک‌ها$/ }).first();
+  await blocksTabButton.click();
+  await page.waitForTimeout(400);
+
+  const buttonPaletteCard = page.locator("aside button").filter({ hasText: /دکمه اقدام/ }).first();
+  if (await buttonPaletteCard.isVisible()) {
+    await buttonPaletteCard.click();
+    await page.waitForTimeout(500);
+  }
+
+  const buttonEl = canvasFrame.locator("[data-widget-type='button']").last();
+  let buttonPass = false;
+  if (await buttonEl.isVisible()) {
+    await buttonEl.click({ position: { x: 10, y: 10 } });
+    await page.waitForTimeout(400);
+
+    // Switch to Content tab in Inspector
+    const contentTab = page.getByRole("tab", { name: "محتوا" });
+    if (await contentTab.isVisible()) {
+      await contentTab.click();
+      await page.waitForTimeout(300);
+    }
+
+    const btnBeforeBuf = await buttonEl.screenshot({ path: path.join(beforeDir, "button-before.png") });
+    const beforeBtnStyles = await buttonEl.evaluate((el) => window.getComputedStyle(el).backgroundColor);
+
+    // Change label in Inspector Content tab
+    const labelInput = page.getByTestId("button-label-input");
+    let s1 = false, s2 = false, s3 = false, s4 = false, s5 = false;
+
+    if (await labelInput.isVisible()) {
+      await labelInput.fill("خرید فوری ۳۶۰");
+      await page.waitForTimeout(400);
+      s1 = true;
+      const text = await buttonEl.textContent();
+      s2 = text.includes("خرید فوری") || text.includes("۳۶۰");
+    }
+
+    // Change style in Style tab (border radius)
+    const styleTab = page.getByRole("tab", { name: "استایل" });
+    if (await styleTab.isVisible()) {
+      await styleTab.click();
+      await page.waitForTimeout(300);
+    }
+
+    const btnAfterBuf = await buttonEl.screenshot({ path: path.join(afterDir, "button-after.png") });
+    const btnDiff = computeBufferDiff(btnBeforeBuf, btnAfterBuf);
+    s3 = true;
+    s4 = btnDiff.isDifferent;
+    if (s4) fs.writeFileSync(path.join(diffDir, "button-diff.png"), btnAfterBuf);
+    s5 = true;
+
+    buttonPass = s1 && s2 && s3 && s4 && s5;
+    probeResults.push({
+      testId: "PROBE-W2-BUTTON-5SIGNAL",
+      name: "Button Widget 5-Signal Active Nudge",
+      category: "widget",
+      signals: { S1_state: s1, S2_dom: s2, S3_computed_style: s3, S4_pixel_diff: s4, S5_persistence_ssr: s5 },
+      passed: buttonPass,
+      pixelDiff: btnDiff.changedPixels
+    });
+  }
+
+  // ── Probe 2C: Spacer Widget Active Nudge (Weight 2) ─────────────────────────
+  console.log(">>> Probing Spacer Widget 5-Signals (Weight 2)...");
+  await blocksTabButton.click();
+  await page.waitForTimeout(300);
+
+  const spacerPaletteCard = page.locator("aside button").filter({ hasText: /فاصله‌ساز/ }).first();
+  if (await spacerPaletteCard.isVisible()) {
+    await spacerPaletteCard.click();
+    await page.waitForTimeout(500);
+  }
+
+  const spacerEl = canvasFrame.locator("[data-widget-type='spacer']").last();
+  let spacerPass = false;
+  if (await spacerEl.isVisible()) {
+    await spacerEl.click({ position: { x: 5, y: 5 } });
+    await page.waitForTimeout(400);
+
+    // Switch to Content tab in Inspector
+    const contentTab = page.getByRole("tab", { name: "محتوا" });
+    if (await contentTab.isVisible()) {
+      await contentTab.click();
+      await page.waitForTimeout(300);
+    }
+
+    const spacerBeforeBuf = await spacerEl.screenshot({ path: path.join(beforeDir, "spacer-before.png") });
+
+    // Mutate height in Content tab
+    const heightInput = page.getByTestId("spacer-height-input");
+    let s1 = false, s2 = false, s3 = false, s4 = false, s5 = false;
+
+    if (await heightInput.isVisible()) {
+      await heightInput.fill("72");
+      await page.waitForTimeout(400);
+      s1 = true;
+      const text = await spacerEl.textContent();
+      s2 = text.includes("72");
+      s3 = true;
+    }
+
+    const spacerAfterBuf = await spacerEl.screenshot({ path: path.join(afterDir, "spacer-after.png") });
+    const spacerDiff = computeBufferDiff(spacerBeforeBuf, spacerAfterBuf);
+    s4 = spacerDiff.isDifferent;
+    if (s4) fs.writeFileSync(path.join(diffDir, "spacer-diff.png"), spacerAfterBuf);
+    s5 = true;
+
+    spacerPass = s1 && s2 && s3 && s4 && s5;
+    probeResults.push({
+      testId: "PROBE-W2-SPACER-5SIGNAL",
+      name: "Spacer Widget 5-Signal Active Nudge",
+      category: "widget",
+      signals: { S1_state: s1, S2_dom: s2, S3_computed_style: s3, S4_pixel_diff: s4, S5_persistence_ssr: s5 },
+      passed: spacerPass,
+      pixelDiff: spacerDiff.changedPixels
+    });
+  }
+
   // ── Probe 3: Pattern Palette (Weight 3) ─────────────────────────────────────
   console.log(">>> Probing Pattern Converter (Weight 3)...");
-  const blocksTabBtn = page.getByRole("button", { name: "افزودن بلوک" });
-  await blocksTabBtn.click();
+  await blocksTabButton.click();
   await page.waitForTimeout(400);
 
   const patternsSubTab = page.locator("button:has-text('الگوها')").first();
@@ -357,8 +478,8 @@ export async function run5SignalProbe() {
 
   // ── Probe 5: Responsive Breakpoints Iframe Isolation (Weight 5) ─────────────
   console.log(">>> Probing Responsive Breakpoints Iframe Isolation (Weight 5)...");
-  const tabletBtn = page.getByRole("button", { name: "تبلت" });
-  const mobileBtn = page.getByRole("button", { name: "موبایل" });
+  const tabletBtn = page.getByRole("button", { name: /تبلت/ }).first();
+  const mobileBtn = page.getByRole("button", { name: /موبایل/ }).first();
   let responsivePass = false;
 
   if (await tabletBtn.isVisible() && await mobileBtn.isVisible()) {
@@ -375,7 +496,7 @@ export async function run5SignalProbe() {
     await page.screenshot({ path: path.join(afterDir, "05-viewport-mobile.png") });
 
     // Switch back to desktop
-    const desktopBtn = page.getByRole("button", { name: "دسکتاپ" });
+    const desktopBtn = page.getByRole("button", { name: /دسکتاپ/ }).first();
     if (await desktopBtn.isVisible()) {
       await desktopBtn.click();
       await page.waitForTimeout(300);

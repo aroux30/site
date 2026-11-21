@@ -1,14 +1,14 @@
 {
   "version": "2.0.0",
-  "lastUpdated": "2026-11-21T14:43:48.619Z",
+  "lastUpdated": "2026-11-21T16:15:29.931Z",
   "totalRows": 70,
   "summary": {
     "widgets": 35,
     "patterns": 28,
     "shellItems": 3,
     "dialogs": 4,
-    "passedCount": 0,
-    "pendingCount": 70
+    "passedCount": 7,
+    "pendingCount": 63
   },
   "verificationPolicy": {
     "strictScopeLock": true,
@@ -264,8 +264,14 @@
             "tag",
             "customCssClass"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "style": {
           "controls": [
@@ -290,8 +296,14 @@
             "cssFilters",
             "opacitySlider"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "advanced": {
           "controls": [
@@ -313,8 +325,14 @@
             "shapeDividerBottom",
             "shapeDividerColor"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         }
       },
       "signalsRequired": [
@@ -324,8 +342,8 @@
         "S4_pixel_diff",
         "S5_persistence_ssr"
       ],
-      "status": "pending",
-      "lastVerified": null
+      "status": "passed",
+      "lastVerified": "2026-11-21T16:15:29.930Z"
     },
     {
       "id": "WIDGET-paragraph",
@@ -570,8 +588,14 @@
             "newTab",
             "buttonSize"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "style": {
           "controls": [
@@ -596,8 +620,14 @@
             "cssFilters",
             "opacitySlider"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "advanced": {
           "controls": [
@@ -619,8 +649,14 @@
             "shapeDividerBottom",
             "shapeDividerColor"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         }
       },
       "signalsRequired": [
@@ -630,8 +666,8 @@
         "S4_pixel_diff",
         "S5_persistence_ssr"
       ],
-      "status": "pending",
-      "lastVerified": null
+      "status": "passed",
+      "lastVerified": "2026-11-21T16:15:29.931Z"
     },
     {
       "id": "WIDGET-spacer",
@@ -645,8 +681,14 @@
             "height",
             "responsiveHeight"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "style": {
           "controls": [
@@ -671,8 +713,14 @@
             "cssFilters",
             "opacitySlider"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "advanced": {
           "controls": [
@@ -694,8 +742,14 @@
             "shapeDividerBottom",
             "shapeDividerColor"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         }
       },
       "signalsRequired": [
@@ -705,8 +759,8 @@
         "S4_pixel_diff",
         "S5_persistence_ssr"
       ],
-      "status": "pending",
-      "lastVerified": null
+      "status": "passed",
+      "lastVerified": "2026-11-21T16:15:29.931Z"
     },
     {
       "id": "WIDGET-divider",
@@ -3984,8 +4038,14 @@
             "undoRedo",
             "titleEdit"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "style": {
           "controls": [
@@ -3993,16 +4053,28 @@
             "zeroOverflow",
             "themeTokensApplied"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "advanced": {
           "controls": [
             "accessibilityAria",
             "keyboardShortcutsIntegration"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         }
       },
       "signalsRequired": [
@@ -4012,8 +4084,8 @@
         "S4_pixel_diff",
         "S5_persistence_ssr"
       ],
-      "status": "pending",
-      "lastVerified": null
+      "status": "passed",
+      "lastVerified": "2026-11-21T16:15:29.931Z"
     },
     {
       "id": "SHELL-layers-tree",
@@ -4031,8 +4103,14 @@
             "deleteAction",
             "duplicateAction"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "style": {
           "controls": [
@@ -4040,16 +4118,28 @@
             "zeroOverflow",
             "themeTokensApplied"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "advanced": {
           "controls": [
             "accessibilityAria",
             "keyboardShortcutsIntegration"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         }
       },
       "signalsRequired": [
@@ -4059,8 +4149,8 @@
         "S4_pixel_diff",
         "S5_persistence_ssr"
       ],
-      "status": "pending",
-      "lastVerified": null
+      "status": "passed",
+      "lastVerified": "2026-11-21T16:15:29.931Z"
     },
     {
       "id": "SHELL-blocks-palette",
@@ -4076,8 +4166,14 @@
             "patternSelect",
             "dragPayload"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "style": {
           "controls": [
@@ -4085,16 +4181,28 @@
             "zeroOverflow",
             "themeTokensApplied"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "advanced": {
           "controls": [
             "accessibilityAria",
             "keyboardShortcutsIntegration"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         }
       },
       "signalsRequired": [
@@ -4104,8 +4212,8 @@
         "S4_pixel_diff",
         "S5_persistence_ssr"
       ],
-      "status": "pending",
-      "lastVerified": null
+      "status": "passed",
+      "lastVerified": "2026-11-21T16:15:29.931Z"
     },
     {
       "id": "DIALOG-global-styles-dialog",
@@ -4123,8 +4231,14 @@
             "borderRadius",
             "resetToDefault"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "style": {
           "controls": [
@@ -4132,16 +4246,28 @@
             "colorTokensPreview",
             "rtlLayout"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "advanced": {
           "controls": [
             "escapeKeyDismiss",
             "persistPayloadToStorage"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         }
       },
       "signalsRequired": [
@@ -4151,8 +4277,8 @@
         "S4_pixel_diff",
         "S5_persistence_ssr"
       ],
-      "status": "pending",
-      "lastVerified": null
+      "status": "passed",
+      "lastVerified": "2026-11-21T16:15:29.931Z"
     },
     {
       "id": "DIALOG-save-template-dialog",

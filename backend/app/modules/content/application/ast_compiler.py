@@ -215,7 +215,7 @@ class ASTCompiler:
             text = html.escape(str(props.get("text", "")))
             return f'<{tag}{id_attr} class="font-bold text-foreground break-words {css_class}"{style_attr}>{text}</{tag}>'
 
-        elif widget_type == "text_editor":
+        elif widget_type in ("text_editor", "paragraph", "text"):
             content = str(props.get("content", ""))
             return f'<div{id_attr} class="prose dark:prose-invert max-w-none break-words {css_class}"{style_attr}>{content}</div>'
 
@@ -231,7 +231,13 @@ class ASTCompiler:
             return f'<img src="{src}" alt="{alt}"{id_attr} class="rounded-xl object-cover max-w-full h-auto {css_class}" loading="lazy"{style_attr} />'
 
         elif widget_type == "divider":
-            return f'<hr{id_attr} class="my-6 border-border/80 {css_class}"{style_attr} />'
+            d_style = str(props.get("style", "solid"))
+            divider_class = ""
+            if d_style == "dashed":
+                divider_class = " border-dashed"
+            elif d_style == "dotted":
+                divider_class = " border-dotted"
+            return f'<hr{id_attr} class="my-6 border-border/80{divider_class} {css_class}"{style_attr} />'
 
         elif widget_type == "spacer":
             h = props.get("height", 32)
@@ -785,6 +791,19 @@ class ASTCompiler:
             parts.append(f"opacity: {base.opacity};")
         if base.filter:
             parts.append(f"filter: {base.filter};")
+        elif base.filter_blur and base.filter_blur > 0:
+            parts.append(f"filter: blur({int(base.filter_blur)}px);")
+
+        if base.backdrop_blur and base.backdrop_blur != "none":
+            blur_map = {
+                "sm": "blur(4px)",
+                "md": "blur(8px)",
+                "lg": "blur(16px)",
+                "xl": "blur(24px)",
+            }
+            blur_val = blur_map.get(base.backdrop_blur, f"blur({base.backdrop_blur})")
+            parts.append(f"backdrop-filter: {blur_val}; -webkit-backdrop-filter: {blur_val};")
+
         if base.box_shadow:
             parts.append(f"box-shadow: {base.box_shadow};")
 

@@ -1,20 +1,15 @@
 {
-  "timestamp": "2026-11-21T14:42:21.289Z",
+  "timestamp": "2026-11-21T15:31:14.138Z",
   "summary": {
     "hardcodedOrEmptyCount": 0,
     "unreadInCanvasCount": 0,
-    "uncompiledInSSRCount": 1,
+    "uncompiledInSSRCount": 0,
     "widgetControlBlindSpotsCount": 0
   },
   "gaps": {
     "HARDCODED_OR_EMPTY_UI": [],
     "UNREAD_IN_CANVAS": [],
-    "UNCOMPILED_IN_SSR": [
-      {
-        "property": "backdropBlur",
-        "issue": "Style property 'backdropBlur' (backdrop_blur) is not compiled into HTML attributes or styles in ast_compiler.py"
-      }
-    ],
+    "UNCOMPILED_IN_SSR": [],
     "WIDGET_CONTROL_BLIND_SPOTS": []
   }
 }

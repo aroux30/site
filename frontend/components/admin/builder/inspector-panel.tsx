@@ -378,6 +378,8 @@ export function InspectorPanel() {
         );
 
       case "text_editor":
+      case "paragraph":
+      case "text":
         return (
           <div className="space-y-4">
             <div className="space-y-1.5">
@@ -399,6 +401,7 @@ export function InspectorPanel() {
             <div className="space-y-1.5">
               <Label className="text-xs">متن دکمه</Label>
               <Input
+                data-testid="button-label-input"
                 value={String(props.label || "")}
                 onChange={(e) => handlePropChange("label", e.target.value)}
                 className="h-8 text-xs"
@@ -461,6 +464,7 @@ export function InspectorPanel() {
             <div className="space-y-1.5">
               <Label className="text-xs">ارتفاع فاصله (پیکسل)</Label>
               <Input
+                data-testid="spacer-height-input"
                 type="number"
                 min={8}
                 max={300}

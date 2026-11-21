@@ -38,7 +38,28 @@
 
 ---
 
-## اهداف راند بعدی (Round 02)
-- آغاز مسیر A وزنه ۱ و ۲:
-  - برطرف کردن شکاف SSR شناسایی‌شده (`backdropBlur` در `ast_compiler.py`).
-  - آغاز ممیزی ۵-سیگنالی دسته‌های ۵‌تایی ویجت‌ها در `.loop/builder_control_matrix.json`.
+### راند ۲ — برطرف کردن شکاف SSR و اعتبارسنجی ۵-سیگنالی وزنه‌های ۱ و ۲ (Round 02: SSR Gap Closure & 5-Signal Active Nudge)
+- **تاریخ**: 2026-11-21
+- **کامیت**: `fix(builder-v2-r02): close SSR backdropBlur gap, fix button navigation and verify 7 active probes`
+- **اقدامات انجام‌شده**:
+  1. **اصلاح شکاف SSR و کامپایلر استایل‌ها**:
+     - اضافه شدن فیلدهای `backdrop_blur` و `filter_blur` به مدل `DeviceStyle` در `builder_ast.py`.
+     - اضافه شدن `shape_divider_top`، `shape_divider_bottom` و `shape_divider_color` به `ResponsiveStyles` در `builder_ast.py`.
+     - اعمال و کامپایل واقعی `backdrop-filter: blur(...)` و `filter: blur(...)` و کلاس‌های خط جداکننده `border-dashed` و `border-dotted` در `ast_compiler.py`.
+     - صفر شدن ۱۰۰٪ شکاف‌های گزارش‌شده در `.loop/builder_wiring_gaps.json` (۰ خطای هاردکد، ۰ ناهماهنگی استور به بوم، ۰ شکاف کامپایل SSR، ۰ نقطه کور کنترلی).
+  2. **اصلاح تعامل کلیک دکمه در بوم بیلدر**:
+     - الحاق `e.preventDefault()` به تگ `<a>` دکمه در حالت غیر پیش‌نمایش جهت جلوگیری از پرش ناوبری پیش‌فرض مرورگر در حین انتخاب المان.
+     - اضافه شدن شناسه استاندارد تست `data-testid="button-label-input"` و `data-testid="spacer-height-input"` در `inspector-panel.tsx`.
+     - پشتیبانی یکپارچه از ویجت‌های معادل `paragraph` و `text` در کنار `text_editor` در بوم و کامپایلر SSR.
+  3. **گسترش پروتکل ۵-سیگنالی سنجش واقعی**:
+     - اجرای ۷ پروب مستقل با فعال‌سازی تب‌های محتوا، تغییر استایل و بررسی تفاوت پیکسلی.
+     - نتیجه: ۷ از ۷ پروب سبز (۱۰۰٪ PASS).
+     - ذخیره خروجی‌های تصویری و فایل گزارش در `.loop/artifacts/builder-v2/round-02/`.
+  4. **به‌روزرسانی ماتریس کنترل‌ها**:
+     - تأیید و قفل ردیف‌های `WIDGET-heading`، `WIDGET-button`، `WIDGET-spacer`، `SHELL-layers-tree`، `SHELL-builder-toolbar`، `SHELL-blocks-palette` و `DIALOG-global-styles-dialog`.
+
+---
+
+## اهداف راند بعدی (Round 03)
+- ادامه مسیر A (وزنه ۲): ممیزی و تست ۵-سیگنالی دسته بعدی ویجت‌ها (فرم و تعاملی: `form_container`، `form_input`، `form_textarea`، `form_select`، `form_checkbox`).
+

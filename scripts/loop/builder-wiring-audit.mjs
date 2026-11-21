@@ -112,7 +112,9 @@ function runWiringAudit() {
 
   for (const w of ALL_35_WIDGETS) {
     const inCanvas = canvasContent.includes(`widgetType === "${w}"`) || canvasContent.includes(`widget_type == "${w}"`) || canvasContent.includes(w);
-    const inCompiler = compilerPyContent.includes(`widget_type == "${w}"`) || (w === "columns" || w === "section" || w === "container");
+    const inCompiler = compilerPyContent.includes(`widget_type == "${w}"`) ||
+      (compilerPyContent.includes('widget_type in') && compilerPyContent.includes(`"${w}"`)) ||
+      (w === "columns" || w === "section" || w === "container");
     if (!inCompiler) {
       uncompiledInSSR.push({
         widgetType: w,

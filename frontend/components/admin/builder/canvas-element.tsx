@@ -569,7 +569,9 @@ function CanvasElementComponent({
           </Tag>
         );
       }
-      case "text_editor": {
+      case "text_editor":
+      case "paragraph":
+      case "text": {
         const customClass = String(props.customCssClass || element.styles?.customCssClass || "");
         const rawContent = String(props.content || "<p>متن پاراگراف را بنویسید...</p>");
         const hasTags = /<[a-z][\s\S]*>/i.test(rawContent);
@@ -673,6 +675,11 @@ function CanvasElementComponent({
             <a
               href={url}
               data-url={url}
+              onClick={(e) => {
+                if (!previewMode) {
+                  e.preventDefault();
+                }
+              }}
               onDoubleClick={(e) => {
                 if (!previewMode) {
                   e.stopPropagation();
@@ -1472,6 +1479,7 @@ function CanvasElementComponent({
       id={element.styles?.customCssId || undefined}
       data-element-id={element.id}
       data-element-name={element.name}
+      data-widget-type={element.widgetType || element.type}
     >
       {/* Background Overlay (Elementor Parity) */}
       {overlayStyle && (

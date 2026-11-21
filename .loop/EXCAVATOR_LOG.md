@@ -9,6 +9,7 @@
 | Round | Before Failures | After Failures | Root Causes Fixed | Patterns Passed | Blocks Passed | Dead Controls Remaining | Status |
 | :---: | :---: | :---: | :--- | :---: | :---: | :---: | :---: |
 | **Round 01** | **123** (P0: 37, P1: 86) | **0** (P0: 0, P1: 0) | **۱. معماری لایه مستقل Selection & Toolbar Overlay Portal**<br>**۲. ریشه‌کنی تگ‌های HTML خام از ۲۸ الگوی آماده**<br>**۳. انتخابگر چیدمان ساختار ستونی کانتینر (Elementor Layout Picker)**<br>**۴. منوی راست‌کلیک جامع (Context Menu) روی بوم و لایه‌ها**<br>**۵. تغییرنام مستقیم (Inline Rename) و درگ‌انددراپ لایه‌ها در Navigator** | **28/28** | **34/34** | **0** | ✅ کامل و سبز |
+| **Round 02** | **1** (P0: 1, P1: 0) | **0** (P0: 0, P1: 0) | **۱. ممیزی عمیق کنترل‌های بازرس روی متن و سطح تگ ویجت تیتر**<br>**۲. افزودن پالت جامع گرادیانت و سایه باکس (Box Shadow & Gradients)**<br>**۳. همگام‌سازی کامل کامپایلر بک‌اند (ast_compiler) با گرادیانت‌ها و سایه باکس**<br>**۴. تصحیح هندسه و محاسبه مرز امن نوار ابزار روی المان‌های کم‌ارتفاع سطری** | **28/28** | **34/34** | **0** | ✅ کامل و سبز |
 
 ---
 
@@ -68,3 +69,37 @@
   - `.loop/artifacts/excavator/round-01/after/01-studio-clean.png`
   - `.loop/artifacts/excavator/round-01/after/02-overlay-toolbar-unclipped.png`
   - `.loop/artifacts/excavator/round-01/after/03-context-menu-active.png`
+
+---
+
+## جزییات ریشه‌ای و معماری راند ۲ (Round 02 Deep Architectural Root Causes)
+
+### ۱. ارتقای کنترل‌های استایل گروه‌بندی‌شده بازرس (Elementor Box Shadow & Gradients Parity)
+- **نوآوری و توسعه**:
+  - افزودن کنترل‌های سریع و آماده برای گرادیانت‌های پس‌زمینه (طلایی، آبی، زمردی، رز) در [inspector-panel.tsx](frontend/components/admin/builder/inspector-panel.tsx).
+  - افزودن کنترل سایه کادر (Box Shadow) با ۵ سطح استاندارد (`none`, `sm`, `md`, `lg`, `xl`) در مدل AST و پنل بازرس.
+  - پشتیبانی کامل از `box_shadow` و گرادیانت در کامپایلر سروری [ast_compiler.py](backend/app/modules/content/application/ast_compiler.py) جهت برابری صددرصدی بوم با صفحه رندرشده نهایی (WYSIWYG Parity).
+
+### ۲. اعتبارسنجی سخت‌گیرانه‌تر اشعه ایکس در راند ۲
+- **چک‌های جدید اضافه‌شده به builder-xray.mjs**:
+  - بررسی باز شدن و رویت‌پذیری منوی راست‌کلیک روی عناصر بوم با راست‌کلیک واقعی ماوس.
+  - بررسی فعال‌سازی منوی راست‌کلیک روی ردیف‌های ساختار درخت لایه‌ها (Navigator).
+  - بررسی فعال‌سازی حالت تغییرنام مستقیم (Inline Rename) با دابل‌کلیک روی عنوان المان در درخت لایه‌ها.
+  - بررسی پایداری وضعیت ذخیره‌سازی پیش‌نویس (Save Draft) و پاک شدن فلگ `isDirty`.
+  - شکارچی کنترل‌های بازرس برای اعتبارسنجی جهش بلادرنگ متن ویجت تیتر در DOM بوم.
+
+### ۳. نتایج ارزیابی و ممیزی نهایی در راند ۲
+- **دستگاه اشعه ایکس (`EXCAVATOR_ROUND=round-02 node .loop/audits/builder-xray.mjs`)**:
+  - **مجموع خرابی‌ها**: **۰ خطا** (`totalFailures: 0, p0Count: 0, p1Count: 0`)
+  - **پاس الگوهای آماده**: **۲۸ از ۲۸ الگو (۱۰۰٪ سبز)**
+  - **پاس بلوک‌های پایه**: **۳۴ از ۳۴ بلوک (۱۰۰٪ سبز)**
+  - **کنترل‌های مرده بازرس**: **۰ کنترل مرده**
+- **چک‌های سلامت پلتفرم**:
+  - `npx tsc --noEmit`: ۰ خطا
+  - `npm test` (Vitest): **۳۷۲ تست سبز در ۴۵ فایل**
+  - `python -m pytest app/tests/unit`: **۶۲۲ تست سبز (۲ معاف)**
+  - تست‌های Playwright صفحه‌ساز: **۱۲ تست سبز در ۱۲ فایل**
+- **مستندات تصویری Vision**:
+  - `.loop/artifacts/excavator/round-02/after/01-inspector-shadow-and-gradients.png`
+  - `.loop/artifacts/excavator/round-02/after/02-layers-tree-navigator-parity.png`
+  - `.loop/artifacts/excavator/round-02/after/03-container-structure-picker.png`

@@ -130,6 +130,7 @@ class DeviceStyle(ASTModel):
     flex_wrap: Literal["nowrap", "wrap", "wrap-reverse", "inherit"] = "inherit"
     gap: UnitValue | None = None
     grid_template_columns: str | None = None
+    box_shadow: str | None = None
 
 
 class ResponsiveStyles(ASTModel):

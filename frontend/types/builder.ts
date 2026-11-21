@@ -69,6 +69,7 @@ export interface DeviceStyle {
   display?: "block" | "flex" | "grid" | "inline-block" | "none" | "inherit" | null;
   opacity?: number | null;
   zIndex?: number | null;
+  boxShadow?: string | null;
   // Advanced Layout (P4)
   position?: "static" | "relative" | "absolute" | "sticky" | "inherit" | null;
   top?: UnitValue | null;

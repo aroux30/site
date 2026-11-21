@@ -278,6 +278,12 @@ function CanvasElementComponent({
       }
     }
 
+    // Box Shadow
+    const shadow = resolveResponsiveValue({ mobile: base?.boxShadow, tablet: tablet?.boxShadow, desktop: desktop?.boxShadow }, activeBreakpoint);
+    if (shadow && shadow !== "none") {
+      styleObj.boxShadow = shadow;
+    }
+
     // Background
     const bgObj = resolveResponsiveValue({ mobile: base?.background, tablet: tablet?.background, desktop: desktop?.background }, activeBreakpoint);
     if (bgObj) {

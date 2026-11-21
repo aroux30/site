@@ -1928,6 +1928,33 @@ export function InspectorPanel() {
           </div>
         </div>
 
+        {/* Box Shadow Controls (Elementor Shadow Group) */}
+        <div className="space-y-1.5 pt-2 border-t">
+          <Label className="text-xs font-bold text-foreground">سایه کادر (Box Shadow - Elementor)</Label>
+          <div className="flex flex-wrap gap-1">
+            {[
+              { label: "بدون سایه", val: "none" },
+              { label: "ملایم (sm)", val: "0 1px 2px 0 rgb(0 0 0 / 0.05)" },
+              { label: "استاندارد (md)", val: "0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)" },
+              { label: "برجسته (lg)", val: "0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)" },
+              { label: "عمیق (xl)", val: "0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)" },
+            ].map((sh) => (
+              <button
+                key={sh.label}
+                type="button"
+                onClick={() =>
+                  handleDeviceStyleChange({
+                    boxShadow: sh.val,
+                  } as any)
+                }
+                className="px-2 py-0.5 rounded text-[10px] bg-muted/80 hover:bg-muted text-muted-foreground hover:text-foreground border border-border/60 transition"
+              >
+                {sh.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
         {/* Advanced Layout & Flexbox/Grid (P4) */}
         <div className="space-y-4 pt-3 border-t border-border/80">
           <Label className="text-xs font-bold text-foreground block">چیدمان پیشرفته (Advanced Layout - P4)</Label>

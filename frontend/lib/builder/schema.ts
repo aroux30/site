@@ -73,6 +73,7 @@ export const DeviceStyleSchema = z.object({
     .optional(),
   opacity: z.number().min(0).max(1).nullable().optional(),
   zIndex: z.number().int().min(0).max(999).nullable().optional(),
+  boxShadow: z.string().nullable().optional(),
   // Advanced Layout (P4)
   position: z.enum(["static", "relative", "absolute", "sticky", "inherit"]).nullable().optional(),
   top: UnitValueSchema.nullable().optional(),

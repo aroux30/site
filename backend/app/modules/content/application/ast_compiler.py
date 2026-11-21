@@ -670,6 +670,19 @@ class ASTCompiler:
                 parts.append(f"background-color: hsl({bg_color});")
             else:
                 parts.append(f"background-color: {bg_color};")
+        elif base.background and base.background.gradient:
+            grad = base.background.gradient
+            direction_css = grad.direction.replace("to-", "to ")
+            parts.append(f"background-image: linear-gradient({direction_css}, {grad.from_color}, {grad.to_color});")
+        elif base.background and base.background.image_url:
+            parts.append(f"background-image: url('{base.background.image_url}');")
+            if base.background.position:
+                parts.append(f"background-position: {base.background.position};")
+            if base.background.size:
+                parts.append(f"background-size: {base.background.size};")
+
+        if base.box_shadow and base.box_shadow != "none":
+            parts.append(f"box-shadow: {base.box_shadow};")
 
         # Advanced Layout (P4)
         if base.position and base.position != "inherit":

@@ -11,7 +11,8 @@ const { chromium } = req("playwright");
 const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || "http://127.0.0.1:3000";
 const PROJECT_ROOT = path.resolve(".");
 const BACKEND_DIR = path.join(PROJECT_ROOT, "backend");
-const ARTIFACTS_DIR = path.join(PROJECT_ROOT, ".loop", "artifacts", "excavator", "round-01", "before");
+const ROUND = process.env.EXCAVATOR_ROUND || "round-02";
+const ARTIFACTS_DIR = path.join(PROJECT_ROOT, ".loop", "artifacts", "excavator", ROUND, "before");
 const AUDITS_DIR = path.join(PROJECT_ROOT, ".loop", "audits");
 const MATRIX_PATH = path.join(PROJECT_ROOT, ".loop", "XRAY_MATRIX.json");
 
@@ -605,6 +606,28 @@ async function runXRay() {
         }
       }
     }
+
+    // Test 3: Heading Widget - Content Tab Text Mutation
+    const headLoc = frame.locator('[data-element-id="head_test_hunter"]');
+    await headLoc.click();
+    await page.waitForTimeout(300);
+
+    const contentTabTrigger = page.locator('[data-builder-inspector] button[role="tab"]:has-text("محتوا")').first();
+    if (await contentTabTrigger.isVisible()) {
+      await contentTabTrigger.click();
+      await page.waitForTimeout(300);
+    }
+
+    const headingTextInput = page.locator('[data-builder-inspector] input[type="text"]').first();
+    if (await headingTextInput.isVisible()) {
+      await headingTextInput.fill("تیتر به روز شده تستر");
+      await page.waitForTimeout(300);
+      const updatedText = await headLoc.evaluate((el) => el.textContent?.trim());
+      if (!updatedText || !updatedText.includes("تیتر به روز شده تستر")) {
+        await addFailure("P0", "DEAD_INSPECTOR_CONTROL", "heading::text", `Heading text changed in inspector to 'تیتر به روز شده تستر' but DOM text is '${updatedText}'`);
+        matrix.deadControlsRemaining++;
+      }
+    }
   };
 
   await testDeadControls();
@@ -613,10 +636,12 @@ async function runXRay() {
   // ──────────────────────────────────────────────────────────────────────────
   // 4. STUDIO LAYOUT & WYSIWYG PARITY
   // ──────────────────────────────────────────────────────────────────────────
-  console.log(">>> [X-RAY] Phase 4: Studio Layout and WYSIWYG Parity Checks...");
+  console.log(">>> [X-RAY] Phase 4: Studio Layout, Elementor Context Menu, Navigator & Parity Checks...");
 
-  // Check category filter chips clipping
-  const patternsTab = page.locator("button:has-text('الگوها')").first();
+  // Check 4.1: Category filter chips clipping
+  const mainTab = page.locator("aside button:has-text('افزودن بلوک')").first();
+  if (await mainTab.isVisible()) await mainTab.click();
+  const patternsTab = page.locator("aside button:has-text('الگوها')").first();
   await patternsTab.click();
   await page.waitForTimeout(300);
 
@@ -636,6 +661,81 @@ async function runXRay() {
 
   if (chipsClipping && chipsClipping.length > 0) {
     await addFailure("P1", "CATEGORY_CHIP_CLIPPED", "blocks-palette::categories", `Category chips clipped or truncated: ${chipsClipping.join(", ")}`);
+  }
+
+  // Check 4.2: Context Menu (Elementor Architecture Parity) on Canvas
+  try {
+    const frame = await getCanvasFrame();
+    const firstBlock = frame.locator("[data-element-id]").first();
+    if (await firstBlock.isVisible()) {
+      await firstBlock.click({ button: "right" });
+      await page.waitForTimeout(300);
+      const ctxMenu = page.locator("#builder-context-menu").first();
+      if (!(await ctxMenu.isVisible())) {
+        await addFailure("P0", "CONTEXT_MENU_CANVAS_MISSING", "canvas::contextmenu", "Right-click on canvas element did not open #builder-context-menu");
+      } else {
+        await page.keyboard.press("Escape");
+        await page.waitForTimeout(200);
+      }
+    }
+  } catch (ctxErr) {
+    await addFailure("P0", "CONTEXT_MENU_CANVAS_ERROR", "canvas::contextmenu", `Context menu test failed: ${ctxErr.message}`);
+  }
+
+  // Check 4.3: Navigator (LayersTree) Right-Click Context Menu & Inline Rename
+  try {
+    const layersTab = page.locator("aside button:has-text('لایه‌ها')").first();
+    if (await layersTab.isVisible()) {
+      await layersTab.click();
+      await page.waitForTimeout(300);
+
+      const layerRow = page.locator("[data-layer-row]").first();
+      if (await layerRow.isVisible()) {
+        // Right-click on layer row
+        await layerRow.click({ button: "right" });
+        await page.waitForTimeout(300);
+        const ctxMenu = page.locator("#builder-context-menu").first();
+        if (!(await ctxMenu.isVisible())) {
+          await addFailure("P0", "CONTEXT_MENU_LAYERS_MISSING", "layers::contextmenu", "Right-click on layer row did not open #builder-context-menu");
+        } else {
+          await page.keyboard.press("Escape");
+          await page.waitForTimeout(200);
+        }
+
+        // Double-click inline rename
+        const nameSpan = layerRow.locator("span.cursor-text").first();
+        if (await nameSpan.isVisible()) {
+          await nameSpan.dblclick();
+          await page.waitForTimeout(200);
+          const renameInput = layerRow.locator("input[type='text']").first();
+          if (!(await renameInput.isVisible())) {
+            await addFailure("P1", "NAVIGATOR_INLINE_RENAME_MISSING", "layers::rename", "Double-click on layer title did not activate inline rename input");
+          } else {
+            await page.keyboard.press("Escape");
+          }
+        }
+      }
+    }
+  } catch (layersErr) {
+    await addFailure("P0", "NAVIGATOR_TEST_ERROR", "layers-tree", `Navigator test failed: ${layersErr.message}`);
+  }
+
+  // Check 4.4: Save Draft & WYSIWYG Parity Check
+  try {
+    const saveDraftBtn = page.locator("button:has-text('ذخیره پیش‌نویس')").first();
+    if (await saveDraftBtn.isVisible()) {
+      await saveDraftBtn.click();
+      await page.waitForTimeout(1000);
+      const isClean = await page.evaluate(() => {
+        const store = window.__BUILDER_STORE__;
+        return store ? !store.getState().isDirty : false;
+      });
+      if (!isClean) {
+        await addFailure("P1", "DRAFT_SAVE_UNCLEAN", "builder::save", "After clicking Save Draft, builder store remained dirty");
+      }
+    }
+  } catch (saveErr) {
+    await addFailure("P1", "DRAFT_SAVE_FAILED", "builder::save", `Save draft check failed: ${saveErr.message}`);
   }
 
   // Final Summary & Write Output

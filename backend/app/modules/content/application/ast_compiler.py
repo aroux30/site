@@ -853,6 +853,60 @@ class ASTCompiler:
             anchor_id = html.escape(str(props.get("anchor_id", "section-anchor")))
             return f'<div id="{anchor_id}" class="builder-menu-anchor sr-only" data-widget="menu_anchor"></div>'
 
+        elif widget_type == "icon_list":
+            items = props.get("items", [])
+            items_html = "".join(
+                f'<li class="flex items-center gap-2.5 text-xs text-foreground font-medium">'
+                f'<span class="w-5 h-5 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0">✓</span>'
+                f'<span>{html.escape(str(item.get("text", item) if isinstance(item, dict) else item))}</span>'
+                f'</li>'
+                for item in items
+            )
+            return (
+                f'<ul{id_attr} class="builder-icon-list space-y-2.5 w-full text-right p-0 m-0 list-none {css_class}" data-widget="icon_list"{style_attr}>'
+                f'{items_html}'
+                f'</ul>'
+            )
+
+        elif widget_type == "blockquote":
+            text = html.escape(str(props.get("text", "")))
+            author = props.get("author")
+            author_html = f'<cite class="block text-xs text-muted-foreground not-italic mt-1.5 font-semibold">— {html.escape(str(author))}</cite>' if author else ""
+            return (
+                f'<blockquote{id_attr} class="builder-blockquote border-s-4 border-primary ps-4 py-2 my-2 text-foreground/90 italic font-medium w-full text-right {css_class}" data-widget="blockquote"{style_attr}>'
+                f'<p class="text-sm leading-relaxed">«{text}»</p>'
+                f'{author_html}'
+                f'</blockquote>'
+            )
+
+        elif widget_type == "price_table":
+            title = html.escape(str(props.get("title", "پلن پایه")))
+            badge = props.get("badge")
+            badge_html = f'<span class="inline-block px-3 py-1 rounded-full bg-primary/15 text-primary text-xs font-bold">{html.escape(str(badge))}</span>' if badge else ""
+            price = html.escape(str(props.get("price", "۲۹۰,۰۰۰")))
+            currency = html.escape(str(props.get("currency", "تومان / ماهانه")))
+            features = props.get("features", [])
+            features_html = "".join(
+                f'<li class="flex items-center gap-2">'
+                f'<span class="text-emerald-500 font-bold">✓</span>'
+                f'<span>{html.escape(str(f))}</span>'
+                f'</li>'
+                for f in features
+            )
+            btn_text = html.escape(str(props.get("button_text", "انتخاب پلن")))
+            return (
+                f'<div{id_attr} class="builder-price-table p-6 rounded-2xl border border-border/80 bg-card text-center space-y-4 shadow-sm w-full {css_class}" data-widget="price_table"{style_attr}>'
+                f'{badge_html}'
+                f'<h3 class="text-lg font-bold text-foreground">{title}</h3>'
+                f'<div class="py-2 border-y border-border/50">'
+                f'<span class="text-3xl font-black text-primary font-mono">{price}</span>'
+                f'<span class="text-xs text-muted-foreground ms-1">{currency}</span>'
+                f'</div>'
+                f'<ul class="space-y-2 text-right text-xs text-muted-foreground">{features_html}</ul>'
+                f'<button type="button" class="w-full py-2.5 rounded-xl bg-primary text-primary-foreground font-bold text-xs shadow">{btn_text}</button>'
+                f'</div>'
+            )
+
         # Generic fallback for any other registered widget
         fallback_title = html.escape(str(props.get("title", widget_type)))
         return f'<div{id_attr} class="builder-widget builder-{widget_type} {css_class}" data-widget="{html.escape(widget_type)}"{style_attr}>{fallback_title}</div>'

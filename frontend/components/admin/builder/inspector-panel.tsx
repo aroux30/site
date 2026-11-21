@@ -1898,6 +1898,134 @@ export function InspectorPanel() {
         );
       }
 
+      case "icon_list": {
+        const items = (props.items as any[]) || [
+          { text: "ارسال سریع با پست پیشتاز", icon: "check" },
+          { text: "ضمانت بازگشت وجه تا ۷ روز", icon: "check" },
+          { text: "پشتیبانی اختصاصی ۲۴ ساعته", icon: "check" },
+        ];
+        return (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <Label className="text-xs font-bold">آیتم‌های لیست آیکون</Label>
+              <button
+                type="button"
+                onClick={() => {
+                  const updated = [...items, { text: `آیتم جدید ${items.length + 1}`, icon: "check" }];
+                  handlePropChange("items", updated);
+                }}
+                className="text-[11px] text-primary hover:underline font-semibold"
+              >
+                + افزودن آیتم
+              </button>
+            </div>
+            <div className="space-y-2">
+              {items.map((item, idx) => (
+                <div key={idx} className="flex items-center gap-2">
+                  <Input
+                    value={item.text || ""}
+                    onChange={(e) => {
+                      const updated = [...items];
+                      updated[idx] = { ...updated[idx], text: e.target.value };
+                      handlePropChange("items", updated);
+                    }}
+                    className="h-8 text-xs flex-1"
+                  />
+                  {items.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const updated = items.filter((_, i) => i !== idx);
+                        handlePropChange("items", updated);
+                      }}
+                      className="text-xs text-destructive hover:underline px-1"
+                    >
+                      حذف
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      }
+
+      case "blockquote":
+        return (
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs">متن نقل‌قول</Label>
+              <textarea
+                data-testid="blockquote-text-input"
+                rows={4}
+                value={String(props.text || "")}
+                onChange={(e) => handlePropChange("text", e.target.value)}
+                className="w-full rounded-md border border-input bg-background p-2 text-xs leading-relaxed"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">نویسنده یا مرجع سخن</Label>
+              <Input
+                data-testid="blockquote-author-input"
+                value={String(props.author || "")}
+                onChange={(e) => handlePropChange("author", e.target.value)}
+                className="h-8 text-xs"
+              />
+            </div>
+          </div>
+        );
+
+      case "price_table":
+        return (
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs">عنوان پلن</Label>
+              <Input
+                data-testid="price-table-title-input"
+                value={String(props.title || "")}
+                onChange={(e) => handlePropChange("title", e.target.value)}
+                className="h-8 text-xs"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-1">
+                <Label className="text-xs">مبلغ قیمت</Label>
+                <Input
+                  value={String(props.price || "")}
+                  onChange={(e) => handlePropChange("price", e.target.value)}
+                  className="h-8 text-xs font-mono"
+                  dir="ltr"
+                />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">واحد قیمت / دوره</Label>
+                <Input
+                  value={String(props.currency || "تومان / ماهانه")}
+                  onChange={(e) => handlePropChange("currency", e.target.value)}
+                  className="h-8 text-xs"
+                />
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">برچسب ویژه (Badge)</Label>
+              <Input
+                value={String(props.badge || "")}
+                placeholder="محبوب‌ترین"
+                onChange={(e) => handlePropChange("badge", e.target.value)}
+                className="h-8 text-xs"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">متن دکمه خرید</Label>
+              <Input
+                value={String(props.button_text || "انتخاب پلن")}
+                onChange={(e) => handlePropChange("button_text", e.target.value)}
+                className="h-8 text-xs"
+              />
+            </div>
+          </div>
+        );
+
       default:
         return (
           <div className="text-xs text-muted-foreground py-2">

@@ -40,6 +40,8 @@ import {
   Megaphone,
   RotateCw,
   Anchor,
+  ListCheck,
+  CreditCard,
   type LucideIcon,
 } from "lucide-react";
 import type { BuilderElement } from "@/types/builder";
@@ -1248,6 +1250,121 @@ export const BASIC_BLOCK_DEFINITIONS: BlockDefinition[] = [
       isLocked: false,
       isHidden: false,
       styles: { mobile: {} },
+      children: [],
+    }),
+  },
+  {
+    type: "icon_list",
+    name: "لیست آیکون (Icon List)",
+    category: "basic",
+    icon: ListCheck,
+    description: "فهرست آیتم‌های متنی همراه با آیکون‌های تیک و سفارشی",
+    createDefaultElement: () => ({
+      id: `el_${Math.random().toString(36).slice(2, 10)}`,
+      name: "لیست آیکون‌دار",
+      type: "widget",
+      widgetType: "icon_list",
+      widgetProps: {
+        items: [
+          { text: "ارسال سریع با پست پیشتاز", icon: "check" },
+          { text: "ضمانت بازگشت وجه تا ۷ روز", icon: "check" },
+          { text: "پشتیبانی اختصاصی ۲۴ ساعته", icon: "check" },
+        ],
+      },
+      isLocked: false,
+      isHidden: false,
+      styles: {
+        mobile: {
+          padding: {
+            top: { value: 8, unit: "px" },
+            right: { value: 8, unit: "px" },
+            bottom: { value: 8, unit: "px" },
+            left: { value: 8, unit: "px" },
+            isLinked: true,
+          },
+        },
+      },
+      children: [],
+    }),
+  },
+  {
+    type: "blockquote",
+    name: "نقل‌قول برجسته (Blockquote)",
+    category: "basic",
+    icon: Quote,
+    description: "باکس نقل‌قول نویسنده یا متن برگزیده با حاشیه رنگی راست",
+    createDefaultElement: () => ({
+      id: `el_${Math.random().toString(36).slice(2, 10)}`,
+      name: "نقل‌قول برجسته",
+      type: "widget",
+      widgetType: "blockquote",
+      widgetProps: {
+        text: "سادگی نهایت هوشمندی و پیچیدگی در طراحی تجربه کاربری است.",
+        author: "استیو جابز",
+      },
+      isLocked: false,
+      isHidden: false,
+      styles: {
+        mobile: {
+          padding: {
+            top: { value: 12, unit: "px" },
+            right: { value: 16, unit: "px" },
+            bottom: { value: 12, unit: "px" },
+            left: { value: 16, unit: "px" },
+            isLinked: true,
+          },
+        },
+      },
+      children: [],
+    }),
+  },
+  {
+    type: "price_table",
+    name: "جدول تعرفه و قیمت (Price Table)",
+    category: "basic",
+    icon: CreditCard,
+    description: "کارت تعرفه شامل عنوان پلن، قیمت، ویژگی‌ها و دکمه خرید",
+    createDefaultElement: () => ({
+      id: `el_${Math.random().toString(36).slice(2, 10)}`,
+      name: "کارت قیمت‌گذاری",
+      type: "widget",
+      widgetType: "price_table",
+      widgetProps: {
+        title: "پلن ویژه کسب‌وکار",
+        badge: "محبوب‌ترین",
+        price: "۴۹۰,۰۰۰",
+        currency: "تومان / ماهانه",
+        features: [
+          "دسترسی به تمامی ابزارهای پیشرفته",
+          "پشتیبانی تلفنی و تیکت آنلاین",
+          "گزارش‌گیری خودکار روزانه",
+          "فضای ذخیره‌سازی نامحدود",
+        ],
+        button_text: "شروع دوره آزمایشی",
+      },
+      isLocked: false,
+      isHidden: false,
+      styles: {
+        mobile: {
+          padding: {
+            top: { value: 24, unit: "px" },
+            right: { value: 20, unit: "px" },
+            bottom: { value: 24, unit: "px" },
+            left: { value: 20, unit: "px" },
+            isLinked: true,
+          },
+          border: {
+            style: "solid",
+            radius: {
+              top: { value: 20, unit: "px" },
+              right: { value: 20, unit: "px" },
+              bottom: { value: 20, unit: "px" },
+              left: { value: 20, unit: "px" },
+              isLinked: true,
+            },
+          },
+        },
+      },
       children: [],
     }),
   },

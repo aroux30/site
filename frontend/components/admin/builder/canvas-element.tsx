@@ -1659,6 +1659,68 @@ function CanvasElementComponent({
           </div>
         );
       }
+      case "icon_list": {
+        const items = (props.items as any[]) || [
+          { text: "ارسال سریع با پست پیشتاز", icon: "check" },
+          { text: "ضمانت بازگشت وجه تا ۷ روز", icon: "check" },
+          { text: "پشتیبانی اختصاصی ۲۴ ساعته", icon: "check" },
+        ];
+        return (
+          <ul className="space-y-2.5 w-full text-right p-0 m-0 list-none">
+            {items.map((item, idx) => (
+              <li key={idx} className="flex items-center gap-2.5 text-xs text-foreground font-medium">
+                <span className="w-5 h-5 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                  <Check className="w-3 h-3" />
+                </span>
+                <span>{item.text}</span>
+              </li>
+            ))}
+          </ul>
+        );
+      }
+      case "blockquote": {
+        const text = String(props.text || "نقل‌قول برگزیده شما در این قسمت قرار می‌گیرد.");
+        const author = String(props.author || "");
+        return (
+          <blockquote className="border-s-4 border-primary ps-4 py-2 my-2 text-foreground/90 italic font-medium w-full text-right">
+            <p className="text-sm leading-relaxed">«{text}»</p>
+            {author && <cite className="block text-xs text-muted-foreground not-italic mt-1.5 font-semibold">— {author}</cite>}
+          </blockquote>
+        );
+      }
+      case "price_table": {
+        const title = String(props.title || "پلن پایه");
+        const badge = props.badge ? String(props.badge) : undefined;
+        const price = String(props.price || "۲۹۰,۰۰۰");
+        const currency = String(props.currency || "تومان / ماهانه");
+        const features = (props.features as string[]) || ["امکان اول", "امکان دوم", "امکان سوم"];
+        const btnText = String(props.button_text || "انتخاب پلن");
+        return (
+          <div className="p-6 rounded-2xl border border-border/80 bg-card text-center space-y-4 shadow-sm w-full">
+            {badge && (
+              <span className="inline-block px-3 py-1 rounded-full bg-primary/15 text-primary text-xs font-bold">
+                {badge}
+              </span>
+            )}
+            <h3 className="text-lg font-bold text-foreground">{title}</h3>
+            <div className="py-2 border-y border-border/50">
+              <span className="text-3xl font-black text-primary font-mono">{price}</span>
+              <span className="text-xs text-muted-foreground ms-1">{currency}</span>
+            </div>
+            <ul className="space-y-2 text-right text-xs text-muted-foreground">
+              {features.map((f, idx) => (
+                <li key={idx} className="flex items-center gap-2">
+                  <Check className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                  <span>{f}</span>
+                </li>
+              ))}
+            </ul>
+            <button type="button" className="w-full py-2.5 rounded-xl bg-primary text-primary-foreground font-bold text-xs shadow hover:bg-primary/90 transition">
+              {btnText}
+            </button>
+          </div>
+        );
+      }
       default:
         return (
           <div className="rounded-lg border border-dashed border-border p-4 text-center text-sm text-muted-foreground">

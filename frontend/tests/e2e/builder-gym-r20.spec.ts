@@ -55,7 +55,7 @@ test.describe("Builder Gym Round 20: Navigation, Recently Viewed & Product Title
     await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
     await page.waitForTimeout(1500);
 
-    const basicBlocksSubTab = page.getByRole("button", { name: /بلوک‌ها/i });
+    const basicBlocksSubTab = page.getByRole("button", { name: "بلوک‌ها", exact: true }).first();
     await basicBlocksSubTab.click();
     await page.waitForTimeout(400);
 
@@ -84,7 +84,7 @@ test.describe("Builder Gym Round 20: Navigation, Recently Viewed & Product Title
     await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
     await page.waitForTimeout(1500);
 
-    const basicBlocksSubTab = page.getByRole("button", { name: /بلوک‌ها/i });
+    const basicBlocksSubTab = page.getByRole("button", { name: "بلوک‌ها", exact: true }).first();
     await basicBlocksSubTab.click();
     await page.waitForTimeout(400);
 
@@ -114,7 +114,7 @@ test.describe("Builder Gym Round 20: Navigation, Recently Viewed & Product Title
     await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
     await page.waitForTimeout(1500);
 
-    const basicBlocksSubTab = page.getByRole("button", { name: /بلوک‌ها/i });
+    const basicBlocksSubTab = page.getByRole("button", { name: "بلوک‌ها", exact: true }).first();
     await basicBlocksSubTab.click();
     await page.waitForTimeout(400);
 

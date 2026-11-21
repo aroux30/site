@@ -673,6 +673,8 @@ function CanvasElementComponent({
             <a
               href={url}
               data-url={url}
+              target={props.newTab ? "_blank" : undefined}
+              rel={props.newTab ? "noopener noreferrer" : undefined}
               onDoubleClick={(e) => {
                 if (!previewMode) {
                   e.stopPropagation();
@@ -1122,12 +1124,12 @@ function CanvasElementComponent({
               <span>مبلغ قابل پرداخت:</span>
               <span className="text-primary text-base font-black">۴,۰۳۳,۰۰۰ تومان</span>
             </div>
-            <button
-              type="button"
-              className="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition shadow"
+            <a
+              href={String(props.checkout_url || "/checkout")}
+              className="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition shadow block text-center"
             >
               {btnLabel}
-            </button>
+            </a>
           </div>
         );
       }
@@ -1185,13 +1187,20 @@ function CanvasElementComponent({
         const label = String(props.label || "");
         const placeholder = String(props.placeholder || "");
         const inputType = String(props.input_type || "text");
+        const isReq = Boolean(props.required);
         const customClass = String(props.customCssClass || element.styles?.customCssClass || "");
         return (
           <div className={cn("space-y-1 w-full text-right pointer-events-none", customClass)}>
-            {label && <label className="block text-xs font-semibold text-foreground">{label}</label>}
+            {label && (
+              <label className="block text-xs font-semibold text-foreground">
+                {label}
+                {isReq && <span className="text-destructive ms-1">*</span>}
+              </label>
+            )}
             <input
               type={inputType}
               placeholder={placeholder}
+              required={isReq}
               readOnly
               className="w-full rounded-xl border border-input bg-background px-4 py-2.5 text-sm"
             />
@@ -1202,13 +1211,20 @@ function CanvasElementComponent({
         const label = String(props.label || "");
         const placeholder = String(props.placeholder || "");
         const rowsNum = Number(props.rows || 4);
+        const isReq = Boolean(props.required);
         const customClass = String(props.customCssClass || element.styles?.customCssClass || "");
         return (
           <div className={cn("space-y-1 w-full text-right pointer-events-none", customClass)}>
-            {label && <label className="block text-xs font-semibold text-foreground">{label}</label>}
+            {label && (
+              <label className="block text-xs font-semibold text-foreground">
+                {label}
+                {isReq && <span className="text-destructive ms-1">*</span>}
+              </label>
+            )}
             <textarea
               placeholder={placeholder}
               rows={rowsNum}
+              required={isReq}
               readOnly
               className="w-full rounded-xl border border-input bg-background p-3 text-sm"
             />
@@ -1218,11 +1234,21 @@ function CanvasElementComponent({
       case "form_select": {
         const label = String(props.label || "");
         const options = (props.options as string[]) || ["گزینه ۱", "گزینه ۲"];
+        const isReq = Boolean(props.required);
         const customClass = String(props.customCssClass || element.styles?.customCssClass || "");
         return (
           <div className={cn("space-y-1 w-full text-right pointer-events-none", customClass)}>
-            {label && <label className="block text-xs font-semibold text-foreground">{label}</label>}
-            <select className="w-full rounded-xl border border-input bg-background px-4 py-2.5 text-sm" disabled>
+            {label && (
+              <label className="block text-xs font-semibold text-foreground">
+                {label}
+                {isReq && <span className="text-destructive ms-1">*</span>}
+              </label>
+            )}
+            <select
+              required={isReq}
+              className="w-full rounded-xl border border-input bg-background px-4 py-2.5 text-sm"
+              disabled
+            >
               {options.map((opt, i) => (
                 <option key={i}>{typeof opt === "string" ? opt : (opt as any)?.label || opt}</option>
               ))}
@@ -1233,17 +1259,20 @@ function CanvasElementComponent({
       case "form_checkbox": {
         const label = String(props.label || "شرایط و قوانین را می‌پذیرم");
         const name = String(props.name || "terms");
+        const isReq = Boolean(props.required);
         return (
           <div className="flex items-center gap-2 text-right">
             <input
               type="checkbox"
               id={`chk_${element.id}`}
               name={name}
+              required={isReq}
               defaultChecked={Boolean(props.checked)}
               className="rounded border-input text-primary focus:ring-primary h-4 w-4"
             />
             <label htmlFor={`chk_${element.id}`} className="text-xs font-medium text-foreground cursor-pointer select-none">
               {label}
+              {isReq && <span className="text-destructive ms-1">*</span>}
             </label>
           </div>
         );
@@ -1472,6 +1501,9 @@ function CanvasElementComponent({
       id={element.styles?.customCssId || undefined}
       data-element-id={element.id}
       data-element-name={element.name}
+      data-submit-url={element.widgetType === "form_container" ? String(element.widgetProps?.submit_url || "") : undefined}
+      data-success-message={element.widgetType === "form_container" ? String(element.widgetProps?.success_message || "") : undefined}
+      data-error-message={element.widgetType === "form_container" ? String(element.widgetProps?.error_message || "") : undefined}
     >
       {/* Background Overlay (Elementor Parity) */}
       {overlayStyle && (
@@ -1610,7 +1642,7 @@ function CanvasElementComponent({
                   useBuilderStore.getState().setLeftTab("blocks");
                 }}
                 data-testid="empty-container-guide"
-                className="flex flex-col items-center justify-center p-4 border border-dashed border-primary/30 hover:border-primary/60 rounded-xl bg-card/40 hover:bg-primary/5 transition-all cursor-pointer text-center w-full min-h-[64px] shadow-xs group/empty"
+                className="flex flex-col items-center justify-center p-4 border border-dashed border-primary/30 hover:border-primary/60 rounded-xl bg-card/40 hover:bg-primary/5 transition-all cursor-pointer text-center w-full min-h-[80px] shadow-xs group/empty"
               >
                 <div className="flex items-center gap-2 text-xs font-bold text-foreground group-hover/empty:text-primary transition-colors">
                   <Plus className="w-3.5 h-3.5 text-primary" />

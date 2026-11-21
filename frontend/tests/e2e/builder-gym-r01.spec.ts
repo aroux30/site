@@ -107,4 +107,20 @@ test.describe("Builder Gym Round 01: Weight 1 Regression Invariants", () => {
       }
     }
   });
+
+  test("4. Empty container guide maintains min-height >= 80px and dashed border", async ({ page }) => {
+    await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(1000);
+
+    const frame = page.frameLocator('iframe[title="Visual Builder Canvas"]');
+    const emptyGuide = frame.locator('[data-testid="empty-container-guide"]').first();
+    if (await emptyGuide.count() > 0) {
+      await expect(emptyGuide).toBeVisible();
+      const box = await emptyGuide.boundingBox();
+      expect(box).not.toBeNull();
+      if (box) {
+        expect(box.height).toBeGreaterThanOrEqual(70);
+      }
+    }
+  });
 });

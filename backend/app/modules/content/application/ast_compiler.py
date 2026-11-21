@@ -152,6 +152,43 @@ class ASTCompiler:
                 ov_styles.append(f"background-image: linear-gradient({d}, {overlay.gradient.from_color}, {overlay.gradient.to_color});")
             overlay_html = f'<div class="builder-background-overlay" style="{" ".join(ov_styles)}" aria-hidden="true"></div>'
 
+        # Compile shape dividers (Elementor Parity)
+        top_divider_html = ""
+        bottom_divider_html = ""
+        divider_color = html.escape(str(el.styles.shape_divider_color or "#ffffff"))
+
+        top_shape = el.styles.shape_divider_top
+        if top_shape and top_shape != "none":
+            top_paths = {
+                "waves": "M421.9,6.5c22.6-2.5,51.5,0.4,75.5,5.3c23.6,4.9,70.9,23.5,100.5,35.7c75.8,32.2,133.7,44.5,192.6,49.7c23.6,2.1,48.7,3.5,103.4-2.5c54.7-6,106.2-25.6,106.2-25.6V0H0v30.3c0,0,72,32.6,158.4,30.5c39.2-0.7,92.8-6.7,134-22.4c21.2-8.1,52.2-18.2,79.7-24.2C399.3,7.9,411.6,7.5,421.9,6.5z",
+                "curve": "M1000,4.3V0H0v4.3C0.9,23.1,126.7,99.2,500,100S1000,22.7,1000,4.3z",
+                "triangle": "M500,98.9L0,6.1V0h1000v6.1L500,98.9z",
+                "tilt": "M0,6V0h1000v100L0,6z",
+            }
+            d = top_paths.get(top_shape, "")
+            if d:
+                top_divider_html = (
+                    f'<div class="builder-shape-divider-top absolute top-0 start-0 w-full overflow-hidden leading-none z-10 pointer-events-none" style="height: 48px;" aria-hidden="true">'
+                    f'<svg viewBox="0 0 1000 100" preserveAspectRatio="none" class="w-full h-full block"><path fill="{divider_color}" d="{d}" /></svg>'
+                    f'</div>'
+                )
+
+        bottom_shape = el.styles.shape_divider_bottom
+        if bottom_shape and bottom_shape != "none":
+            bottom_paths = {
+                "waves": "M421.9,6.5c22.6-2.5,51.5,0.4,75.5,5.3c23.6,4.9,70.9,23.5,100.5,35.7c75.8,32.2,133.7,44.5,192.6,49.7c23.6,2.1,48.7,3.5,103.4-2.5c54.7-6,106.2-25.6,106.2-25.6V0H0v30.3c0,0,72,32.6,158.4,30.5c39.2-0.7,92.8-6.7,134-22.4c21.2-8.1,52.2-18.2,79.7-24.2C399.3,7.9,411.6,7.5,421.9,6.5z",
+                "curve": "M1000,4.3V0H0v4.3C0.9,23.1,126.7,99.2,500,100S1000,22.7,1000,4.3z",
+                "triangle": "M500,98.9L0,6.1V0h1000v6.1L500,98.9z",
+                "tilt": "M0,6V0h1000v100L0,6z",
+            }
+            d = bottom_paths.get(bottom_shape, "")
+            if d:
+                bottom_divider_html = (
+                    f'<div class="builder-shape-divider-bottom absolute bottom-0 start-0 w-full overflow-hidden leading-none z-10 pointer-events-none rotate-180" style="height: 48px;" aria-hidden="true">'
+                    f'<svg viewBox="0 0 1000 100" preserveAspectRatio="none" class="w-full h-full block"><path fill="{divider_color}" d="{d}" /></svg>'
+                    f'</div>'
+                )
+
         if is_form:
             props = el.widget_props or {}
             submit_url = html.escape(str(props.get("submit_url", "/api/v1/content/forms/submit")))
@@ -162,13 +199,13 @@ class ASTCompiler:
                 extra_attrs += f' data-error-message="{html.escape(str(props["error_message"]))}"'
             # Include anti-spam honeypot hidden field inside form
             hp_field = '<input type="text" name="_hp_website" style="display:none !important;" tabindex="-1" autocomplete="off" aria-hidden="true" />'
-            children_html = overlay_html + hp_field + "".join(
+            children_html = top_divider_html + overlay_html + hp_field + "".join(
                 cls._compile_element(child, is_authenticated=is_authenticated) for child in el.children
-            )
+            ) + bottom_divider_html
         else:
-            children_html = overlay_html + "".join(
+            children_html = top_divider_html + overlay_html + "".join(
                 cls._compile_element(child, is_authenticated=is_authenticated) for child in el.children
-            )
+            ) + bottom_divider_html
 
         return f"<{tag}{id_attr}{class_attr}{style_attr}{extra_attrs}>{children_html}</{tag}>"
 
@@ -236,6 +273,10 @@ class ASTCompiler:
         elif widget_type == "spacer":
             h = props.get("height", 32)
             return f'<div{id_attr} class="w-full {css_class}" style="height: {int(h)}px;" aria-hidden="true"></div>'
+
+        elif widget_type == "columns":
+            cols_html = "".join(cls._compile_element(child, is_authenticated=is_authenticated) for child in el.children)
+            return f'<div{id_attr} class="grid grid-cols-1 md:grid-cols-2 gap-4 w-full {css_class}"{style_attr}>{cols_html}</div>'
 
         elif widget_type == "html_custom" or widget_type == "legacy_html":
             raw_html = str(props.get("html", props.get("content", "")))

@@ -1,0 +1,16 @@
+{
+  "timestamp": "2026-11-21T14:58:18.759Z",
+  "summary": {
+    "totalIssues": 0,
+    "hardcodedOrEmptyCount": 0,
+    "unreadInCanvasCount": 0,
+    "uncompiledInSsrCount": 0,
+    "widgetControlBlindSpotsCount": 0
+  },
+  "categories": {
+    "HARDCODED_OR_EMPTY_UI": [],
+    "UNREAD_IN_CANVAS": [],
+    "UNCOMPILED_IN_SSR": [],
+    "WIDGET_CONTROL_BLIND_SPOTS": []
+  }
+}

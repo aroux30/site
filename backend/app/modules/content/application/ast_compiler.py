@@ -690,6 +690,8 @@ class ASTCompiler:
             parts.append(f"right: {base.right.to_css()};")
         if base.z_index is not None:
             parts.append(f"z-index: {base.z_index};")
+        if base.opacity is not None:
+            parts.append(f"opacity: {base.opacity};")
         if base.overflow and base.overflow != "inherit":
             parts.append(f"overflow: {base.overflow};")
         if base.display and base.display != "inherit":

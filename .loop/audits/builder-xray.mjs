@@ -1251,6 +1251,24 @@ async function runXRayAudit() {
     addFailure("CONTAINER_BOXED_WIDTH_FAILED", "P0", { message: `Boxed container maxWidth not applied in canvas DOM (got: ${JSON.stringify(boxedApplied)})` });
   }
 
+  // 15. Elementor Parity: Opacity & Advanced Layout Controls
+  console.log("    Testing Elementor Parity: Opacity Control...");
+  await page.evaluate(() => {
+    window.__BUILDER_STORE__?.getState()?.updateDeviceStyles("boxed_cont_test", "desktop", {
+      opacity: 0.75,
+    });
+  });
+  await page.waitForTimeout(400);
+
+  const appliedOpacity = await framePreset.evaluate(() => {
+    const el = document.querySelector("[data-element-id='boxed_cont_test']");
+    return el ? el.style.opacity : null;
+  });
+
+  if (appliedOpacity !== "0.75") {
+    addFailure("OPACITY_CONTROL_FAILED", "P0", { message: `Opacity control not applied in canvas DOM (expected "0.75", got "${appliedOpacity}")` });
+  }
+
   // ──────────────────────────────────────────────────────────────────────────
   // Write Final Matrix Report
   // ──────────────────────────────────────────────────────────────────────────

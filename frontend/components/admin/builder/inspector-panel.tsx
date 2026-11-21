@@ -2571,21 +2571,44 @@ export function InspectorPanel() {
               </div>
             </div>
 
-            <div className="space-y-1">
-              <Label className="text-[10px] text-muted-foreground">ترتیب لایه عمقی (Z-Index: 0-999)</Label>
-              <Input
-                type="number"
-                min={0}
-                max={999}
-                value={currentDeviceStyle.zIndex ?? ""}
-                placeholder="خودکار"
-                onChange={(e) =>
-                  handleDeviceStyleChange({
-                    zIndex: e.target.value === "" ? null : parseInt(e.target.value, 10),
-                  })
-                }
-                className="h-7 text-xs"
-              />
+            <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-1">
+                <Label className="text-[10px] text-muted-foreground">ترتیب لایه عمقی (Z-Index)</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  max={999}
+                  value={currentDeviceStyle.zIndex ?? ""}
+                  placeholder="خودکار"
+                  onChange={(e) =>
+                    handleDeviceStyleChange({
+                      zIndex: e.target.value === "" ? null : parseInt(e.target.value, 10),
+                    })
+                  }
+                  className="h-7 text-xs"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <Label className="text-[10px] text-muted-foreground">میزان شفافیت (Opacity)</Label>
+                <Input
+                  data-testid="opacity-input"
+                  type="number"
+                  step="0.05"
+                  min={0}
+                  max={1}
+                  value={currentDeviceStyle.opacity ?? ""}
+                  placeholder="۱.۰"
+                  onChange={(e) => {
+                    const val = e.target.value === "" ? null : parseFloat(e.target.value);
+                    handleDeviceStyleChange({
+                      opacity: val !== null && !isNaN(val) ? Math.max(0, Math.min(1, val)) : null,
+                    });
+                  }}
+                  className="h-7 text-xs font-mono"
+                  dir="ltr"
+                />
+              </div>
             </div>
           </div>
         </div>

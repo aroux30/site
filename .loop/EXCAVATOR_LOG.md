@@ -22,6 +22,46 @@
 | **Round 11** | 0 | **0** | **0 / 0** | 28 / 28 ✅ | 34 / 34 ✅ | 0 خطای مرده ✅ | **بازتاب دقیق شناسه و کلاس‌های سفارشی CSS در بوم و کامپایلر (Custom CSS ID & Class Anchor Reflection)**: رفع نقص اتصال customCssId روی تگ‌های DOM بوم و کامپایلر بک‌اند جهت پیمایش و انکر لینک‌های صفحه |
 | **Round 12** | 0 | **0** | **0 / 0** | 28 / 28 ✅ | 34 / 34 ✅ | 0 خطای مرده ✅ | **تثبیت دیالوگ ذخیره قالب برگه (Elementor Save Page as Template Parity)**: اعتبارسنجی باز شدن و فرم ورودی نام قالب برگه در نوار ابزار و پوشش کامل در آزمون‌های خودکار اشعه ایکس |
 | **Round 13** | 0 | **0** | **0 / 0** | 28 / 28 ✅ | 34 / 34 ✅ | 0 خطای مرده ✅ | **کنترل‌های چیدمان جعبه‌ای در برابر تمام‌عرض کانتینر (Elementor Boxed vs Full Width Container Parity)**: اضافه شدن سوئیچ Boxed/Full-Width با عرض دلخواه در بازرس، اعمال خودکار `maxWidth` و `mx-auto` در بوم و کامپایلر سرور |
+| **Round 14** | 0 | **0** | **0 / 0** | 28 / 28 ✅ | 34 / 34 ✅ | 0 خطای مرده ✅ | **کنترل شفافیت و لایه‌بندی المان‌ها (Elementor Opacity & Layering Parity)**: اضافه شدن ورودی کنترل شفافیت (Opacity) در پنل بازرس، اعمال در کامپایلر سرور و آزمون اشعه ایکس |
+
+---
+
+## جزئیات راند ۱۴ (Round 14)
+
+- **شاخه ایزوله**: `claude/reverent-jang-441af1`
+- **تاریخ اجرا**: 2026-11-21
+- **وضعیت نهایی اشعه ایکس (.loop/XRAY_MATRIX.json)**:
+  - `totalFailures`: **0**
+  - `p0Count`: **0**
+  - `p1Count`: **0**
+  - `patterns`: ۲۸ از ۲۸ سبز (`passed: true`)
+  - `blocks`: ۳۴ از ۳۴ سبز (`passed: true`)
+  - `deadControls`: ۰ کنترل مرده
+  - `opacityControl`: تایید اعمال مقدار شفافیت عددی در بوم و کامپایلر سرور
+  - `containerBoxedWidth`: سبز
+  - `savePageTemplateDialog`: سبز
+  - `customCssIdReflection`: سبز
+  - `globalStylesTwoLayerTokens`: سبز
+  - `historyTimelinePanel`: سبز
+  - `multiSelectionOverlay`: سبز
+  - `persistentClipboard`: سبز
+  - `wrapUnwrapContainer`: سبز
+  - `responsiveVisibility`: سبز
+  - `shortcutsModal`: سبز
+  - `hotkeyUndoRedo`: سبز
+  - `layersTreeDnD`: سبز
+  - `containerPresetPicker`: سبز
+  - `contextMenu`: سبز
+  - `categoryChipsClipping`: سبز و بدون بریدگی
+  - `dragAndDrop`: سبز
+  - `wysiwygParity`: تطابق ۱۰۰٪ بوم و صفحه نهایی
+
+### قابلیت‌های راند ۱۴:
+1. **کنترل شفافیت المان‌ها (Opacity Control)**:
+   - در پنل بازرس تب استایل در بخش چیدمان پیشرفته، ورودی اختصاصی میزان شفافیت (Opacity از ۰.۰ تا ۱.۰) اضافه شد.
+   - مقدار شفافیت مستقیماً به استایل عنصر در بوم و اتریبیوت `style="opacity: ...;"` در خروجی کامپایلر سمت سرور (`ast_compiler.py`) اعمال می‌شود.
+2. **گسترش ممیزی خودکار اشعه ایکس**:
+   - آزمون شماره ۱۵ در `builder-xray.mjs` جهت سنجش اعمال دقیق پروپرتی `opacity` روی المان‌های بوم ثبت و ۱۰۰٪ پاس شد.
 
 ---
 

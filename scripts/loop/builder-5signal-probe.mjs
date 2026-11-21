@@ -14,7 +14,7 @@ import path from 'node:path';
 import fs from 'node:fs';
 import { execSync } from 'node:child_process';
 
-const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || 'http://127.0.0.1:3770';
+const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || 'http://127.0.0.1:3800';
 const BACKEND_DIR = path.resolve('C:/Users/Administrator/Desktop/site/backend');
 const ARTIFACTS_DIR = path.resolve('.loop/artifacts/builder-v2/probe');
 

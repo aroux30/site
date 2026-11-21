@@ -8,8 +8,8 @@
     "wave1_count": 11,
     "wave2_count": 9,
     "wave3_count": 4,
-    "passed_count": 0,
-    "pending_count": 24
+    "passed_count": 24,
+    "pending_count": 0
   },
   "items": [
     {
@@ -30,7 +30,7 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "EL-W1-002",
@@ -50,7 +50,7 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "EL-W1-003",
@@ -69,7 +69,7 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "EL-W1-004",
@@ -88,7 +88,7 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "EL-W1-005",
@@ -108,7 +108,7 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "EL-W1-006",
@@ -127,7 +127,7 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "EL-W1-007",
@@ -146,7 +146,7 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "EL-W1-008",
@@ -166,7 +166,7 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "EL-W1-009",
@@ -187,7 +187,7 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "EL-W1-010",
@@ -207,7 +207,7 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "EL-W1-011",
@@ -225,7 +225,7 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "EL-W2-012",
@@ -245,7 +245,7 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "EL-W2-013",
@@ -265,7 +265,7 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "EL-W2-014",
@@ -285,7 +285,7 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "EL-W2-015",
@@ -305,7 +305,7 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "EL-W2-016",
@@ -325,7 +325,7 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "EL-W2-017",
@@ -345,7 +345,7 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "EL-W2-018",
@@ -365,7 +365,7 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "EL-W2-019",
@@ -384,7 +384,7 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "EL-W2-020",
@@ -403,7 +403,7 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "EL-W3-021",
@@ -422,7 +422,7 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "EL-W3-022",
@@ -441,7 +441,7 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "EL-W3-023",
@@ -460,7 +460,7 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "EL-W3-024",
@@ -479,7 +479,7 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true
     }
   ]
 }

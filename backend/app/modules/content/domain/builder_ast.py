@@ -111,6 +111,21 @@ class BackgroundOverlayStyle(ASTModel):
     opacity: float | None = Field(default=None, ge=0.0, le=1.0)
 
 
+class TransformStyle(ASTModel):
+    rotate: float | None = None
+    scale: float | None = None
+    skew_x: float | None = None
+    skew_y: float | None = None
+    translate_x: float | None = None
+    translate_y: float | None = None
+
+
+class MaskStyle(ASTModel):
+    shape: str | None = None
+    size: Literal["contain", "cover", "auto"] | None = "contain"
+    position: str | None = "center"
+
+
 class DeviceStyle(ASTModel):
     """Computed or override styles for one breakpoint."""
 
@@ -144,6 +159,8 @@ class DeviceStyle(ASTModel):
     gap: UnitValue | None = None
     grid_template_columns: str | None = None
     box_shadow: str | None = None
+    transform: TransformStyle | None = None
+    mask: MaskStyle | None = None
 
 
 class ResponsiveStyles(ASTModel):
@@ -222,3 +239,16 @@ class PageAST(ASTModel):
     slug: str = Field(..., min_length=1, max_length=220)
     global_styles: dict[str, Any] = Field(default_factory=dict)
     root_elements: list[BuilderElement] = Field(default_factory=list)
+
+
+class ThemeTemplateConditions(ASTModel):
+    include: list[str] = Field(default_factory=lambda: ["entire_site"])
+    exclude: list[str] = Field(default_factory=list)
+
+
+class ThemeTemplate(ASTModel):
+    id: str
+    location: Literal["header", "footer", "single_product", "product_archive", "not_found", "custom"] = "custom"
+    title: str
+    conditions: ThemeTemplateConditions = Field(default_factory=ThemeTemplateConditions)
+    builder_data: PageAST

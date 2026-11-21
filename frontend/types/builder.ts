@@ -65,6 +65,21 @@ export interface BackgroundOverlayStyle {
   opacity?: number | null;
 }
 
+export interface TransformStyle {
+  rotate?: number | null; // degrees
+  scale?: number | null;  // ratio (e.g. 1.05)
+  skewX?: number | null;  // degrees
+  skewY?: number | null;  // degrees
+  translateX?: number | null; // px
+  translateY?: number | null; // px
+}
+
+export interface MaskStyle {
+  shape?: "none" | "circle" | "flower" | "triangle" | "blob" | "hexagon" | string | null;
+  size?: "contain" | "cover" | "auto" | null;
+  position?: string | null;
+}
+
 export interface DeviceStyle {
   typography?: TypographyStyle | null;
   margin?: SpacingBox | null;
@@ -98,6 +113,8 @@ export interface DeviceStyle {
   shadow?: string | null;
   backdropBlur?: "none" | "sm" | "md" | "lg" | "xl" | string | null;
   filterBlur?: number | null;
+  transform?: TransformStyle | null;
+  mask?: MaskStyle | null;
 }
 
 export interface ResponsiveStyles {
@@ -156,6 +173,19 @@ export interface PageAST {
   slug: string;
   globalStyles?: Record<string, unknown>;
   rootElements: BuilderElement[];
+}
+
+export type ThemeTemplateLocation = "header" | "footer" | "single_product" | "product_archive" | "not_found" | "custom";
+
+export interface ThemeTemplate {
+  id: string;
+  location: ThemeTemplateLocation;
+  title: string;
+  conditions: {
+    include: string[]; // e.g. ["entire_site", "products/*", "archives"]
+    exclude?: string[];
+  };
+  builderData: PageAST;
 }
 
 export interface PageTemplate {

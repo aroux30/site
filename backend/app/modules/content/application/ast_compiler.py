@@ -505,7 +505,7 @@ class ASTCompiler:
                 f'</div>'
             )
 
-        elif widget_type == "product_grid":
+        elif widget_type in ("product_grid", "loop_grid"):
             limit = int(props.get("limit", 4))
             cat = html.escape(str(props.get("category", "all")))
             flt = html.escape(str(props.get("filter", "all")))
@@ -529,7 +529,7 @@ class ASTCompiler:
                 else ""
             )
             return (
-                f'<div{id_attr} class="builder-product-grid space-y-4 {css_class}" data-widget="product_grid" data-category="{cat}" data-filter="{flt}" data-limit="{limit}"{style_attr}>'
+                f'<div{id_attr} class="builder-product-grid space-y-4 {css_class}" data-widget="{html.escape(widget_type)}" data-category="{cat}" data-filter="{flt}" data-limit="{limit}"{style_attr}>'
                 f'<div class="grid grid-cols-2 md:grid-cols-4 gap-4">{grid_cards_html}</div>'
                 f'{pagination_btn}'
                 f'</div>'
@@ -683,6 +683,105 @@ class ASTCompiler:
                 f'</div>'
             )
 
+        elif widget_type == "counter":
+            title = html.escape(str(props.get("title", "شمارنده")))
+            ending = props.get("ending_number", 100)
+            prefix = html.escape(str(props.get("prefix", "")))
+            suffix = html.escape(str(props.get("suffix", "")))
+            return (
+                f'<div{id_attr} class="builder-counter p-4 rounded-2xl border border-border/80 bg-card text-center space-y-1 {css_class}" data-widget="counter"{style_attr}>'
+                f'<div class="text-3xl font-black text-primary font-mono">{prefix}{ending}{suffix}</div>'
+                f'<div class="text-xs font-semibold text-muted-foreground">{title}</div>'
+                f'</div>'
+            )
+
+        elif widget_type == "progress_bar":
+            title = html.escape(str(props.get("title", "پیشرفت کار")))
+            pct = max(0, min(100, int(props.get("percentage", 75))))
+            show_pct = props.get("show_percentage", True)
+            pct_span = f'<span class="font-mono text-primary">{pct}%</span>' if show_pct else ""
+            return (
+                f'<div{id_attr} class="builder-progress-bar space-y-1.5 w-full text-right {css_class}" data-widget="progress_bar"{style_attr}>'
+                f'<div class="flex items-center justify-between text-xs font-semibold text-foreground"><span>{title}</span>{pct_span}</div>'
+                f'<div class="h-3 w-full rounded-full bg-muted overflow-hidden"><div class="h-full bg-primary rounded-full" style="width: {pct}%;"></div></div>'
+                f'</div>'
+            )
+
+        elif widget_type == "testimonial":
+            author = html.escape(str(props.get("author", "نام مشتری")))
+            role = html.escape(str(props.get("role", "")))
+            company = html.escape(str(props.get("company", "")))
+            quote = html.escape(str(props.get("quote", "")))
+            avatar = html.escape(str(props.get("avatar_url", "/placeholder-hero.svg")))
+            role_part = f"{role} - {company}" if company else role
+            return (
+                f'<blockquote{id_attr} class="builder-testimonial p-4 rounded-2xl border border-border/80 bg-card space-y-3 {css_class}" data-widget="testimonial"{style_attr}>'
+                f'<p class="text-xs text-muted-foreground leading-relaxed italic">«{quote}»</p>'
+                f'<div class="flex items-center gap-3 pt-2 border-t border-border/60">'
+                f'<img src="{avatar}" alt="{author}" class="w-9 h-9 rounded-full object-cover shrink-0" loading="lazy" />'
+                f'<div><div class="text-xs font-bold text-foreground">{author}</div><div class="text-[10px] text-muted-foreground">{role_part}</div></div>'
+                f'</div>'
+                f'</blockquote>'
+            )
+
+        elif widget_type == "alert":
+            title = html.escape(str(props.get("title", "اعلان")))
+            msg = html.escape(str(props.get("message", "")))
+            a_type = str(props.get("alert_type", "info"))
+            return (
+                f'<div{id_attr} class="builder-alert builder-alert-{html.escape(a_type)} p-3.5 rounded-xl border text-right space-y-1 {css_class}" data-widget="alert"{style_attr}>'
+                f'<div class="text-xs font-bold">{title}</div>'
+                f'<div class="text-[11px] leading-relaxed opacity-90">{msg}</div>'
+                f'</div>'
+            )
+
+        elif widget_type == "call_to_action":
+            title = html.escape(str(props.get("title", "اقدام به عمل")))
+            desc = html.escape(str(props.get("description", "")))
+            btn_label = html.escape(str(props.get("button_label", "شروع کنید")))
+            btn_url = html.escape(str(props.get("button_url", "/products")))
+            badge = html.escape(str(props.get("badge", "")))
+            badge_html = f'<span class="inline-block px-2.5 py-0.5 rounded-full bg-primary text-primary-foreground text-[10px] font-bold">{badge}</span>' if badge else ""
+            return (
+                f'<div{id_attr} class="builder-cta p-6 rounded-2xl border border-primary/20 bg-primary/5 text-center space-y-3 {css_class}" data-widget="call_to_action"{style_attr}>'
+                f'{badge_html}'
+                f'<h3 class="text-lg font-bold text-foreground">{title}</h3>'
+                f'<p class="text-xs text-muted-foreground max-w-md mx-auto leading-relaxed">{desc}</p>'
+                f'<div><a href="{btn_url}" class="inline-flex items-center justify-center px-5 py-2.5 rounded-xl bg-primary text-primary-foreground font-bold text-xs shadow hover:bg-primary/90 transition">{btn_label}</a></div>'
+                f'</div>'
+            )
+
+        elif widget_type == "animated_headline":
+            before = html.escape(str(props.get("before_text", "")))
+            highlight = html.escape(str(props.get("highlighted_text", "تیتر متحرک")))
+            after = html.escape(str(props.get("after_text", "")))
+            return (
+                f'<h2{id_attr} class="builder-animated-headline text-2xl lg:text-3xl font-extrabold text-foreground text-center py-2 {css_class}" data-widget="animated_headline"{style_attr}>'
+                f'<span class="before-text">{before} </span>'
+                f'<span class="highlighted-text text-primary underline decoration-wavy">{highlight}</span>'
+                f'<span class="after-text"> {after}</span>'
+                f'</h2>'
+            )
+
+        elif widget_type == "flip_box":
+            front_title = html.escape(str(props.get("front_title", "روی کارت")))
+            front_desc = html.escape(str(props.get("front_desc", "")))
+            back_title = html.escape(str(props.get("back_title", "پشت کارت")))
+            back_desc = html.escape(str(props.get("back_desc", "")))
+            btn_text = html.escape(str(props.get("button_text", "مشاهده")))
+            btn_url = html.escape(str(props.get("button_url", "#")))
+            return (
+                f'<div{id_attr} class="builder-flip-box p-6 rounded-2xl border border-border/80 bg-card text-center space-y-2 {css_class}" data-widget="flip_box"{style_attr}>'
+                f'<h4 class="font-bold text-foreground text-base">{front_title}</h4>'
+                f'<p class="text-xs text-muted-foreground">{front_desc}</p>'
+                f'<div class="pt-2 border-t border-border/50">'
+                f'<div class="font-bold text-xs text-primary">{back_title}</div>'
+                f'<p class="text-[11px] text-muted-foreground">{back_desc}</p>'
+                f'<a href="{btn_url}" class="inline-block mt-2 px-4 py-1.5 rounded-lg bg-primary text-white text-xs font-bold">{btn_text}</a>'
+                f'</div>'
+                f'</div>'
+            )
+
         # Generic fallback for any other registered widget
         fallback_title = html.escape(str(props.get("title", widget_type)))
         return f'<div{id_attr} class="builder-widget builder-{widget_type} {css_class}" data-widget="{html.escape(widget_type)}"{style_attr}>{fallback_title}</div>'
@@ -810,5 +909,27 @@ class ASTCompiler:
             parts.append(f"filter: {base.filter};")
         if base.box_shadow:
             parts.append(f"box-shadow: {base.box_shadow};")
+        if base.transform:
+            t = base.transform
+            t_parts = []
+            if t.rotate:
+                t_parts.append(f"rotate({t.rotate}deg)")
+            if t.scale:
+                t_parts.append(f"scale({t.scale})")
+            if t.skew_x:
+                t_parts.append(f"skewX({t.skew_x}deg)")
+            if t.skew_y:
+                t_parts.append(f"skewY({t.skew_y}deg)")
+            if t.translate_x or t.translate_y:
+                t_parts.append(f"translate({t.translate_x or 0}px, {t.translate_y or 0}px)")
+            if t_parts:
+                parts.append(f"transform: {' '.join(t_parts)};")
+        if base.mask and base.mask.shape and base.mask.shape != "none":
+            m = base.mask
+            parts.append(f"-webkit-mask-image: url('/masks/{m.shape}.svg'); mask-image: url('/masks/{m.shape}.svg');")
+            if m.size:
+                parts.append(f"mask-size: {m.size}; -webkit-mask-size: {m.size};")
+            if m.position:
+                parts.append(f"mask-position: {m.position}; -webkit-mask-position: {m.position};")
 
         return parts

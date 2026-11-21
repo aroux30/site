@@ -1,61 +1,52 @@
-# تحلیل شکاف عمیق معماری با Elementor و Elementor Pro (.loop/ELEMENTOR_GAP_ANALYSIS.md)
+# Elementor & Elementor Pro Gap Analysis & Architecture Comparison
 
-**منبع مطالعه و استخراج الگوها**: سورس محلی `C:\Users\Administrator\Desktop\elementor\elementor` و `elementor-pro`  
-**تاریخ ممیزی**: ۲۱ نوامبر ۲۰۲۶  
-
----
-
-## ۱. مقایسه حوزه به حوزه (Domain-by-Domain Analysis)
-
-### ۱.۱. تجربه ویرایشگر (Editor Experience)
-| قابلیت | رفتار در سورس مرجع Elementor | وضعیت فعلی در پروژه اختصاصی | تفاوت و شکاف فنی | ارزش پیاده‌سازی | پیشنهاد فنی متناسب با React/Next |
-|:---|:---|:---|:---|:---:|:---|
-| **ساختار لایه اوورلی بوم** | استفاده از `#elementor-preview` و لایه مستقل Handle برای عدم تداخل با رندرینگ | استفاده از `CanvasOverlayLayer` و `createPortal` در ریشه Iframe | **برابری کامل برقرار است**؛ کادرهای انتخاب و نوار ابزار از هرگونه بریدگی `overflow: hidden` رها هستند. | پیاده‌شده | حفظ و صیقل بیشتر پوزیشنینگ شناور |
-| **ناوبری درختی (Navigator)** | درخت لایه‌ها با درگ‌انددراپ، جستجو، نشانگر قفل/مخفی و تغییر نام مستقیم | کامپوننت `LayersTree` با درگ ردیف‌ها، کلیدهای دائمی عملیات، جستجوی زنده و تورفتگی RTL | **برابری برقرار است**؛ تمام کلیدها حتی بدون هاور ماوس نمایانند. | پیاده‌شده | بهینه‌سازی پیمایش در بیش از ۱۰۰ المان |
-| **منوی کلیک‌راست (Context Menu)** | منوی بومی ادیتور با کلیدهای Copy, Paste, Duplicate, Delete, Navigator | کامپوننت `BuilderContextMenu` با پشتیبانی کامل از عملیات و کلیدهای میانبر | **برابری برقرار است**. | پیاده‌شده | ثبت دائم رویداد در سند Iframe |
-| **ویرایش مستقیم متن (Inline Editing)** | ویرایش درجا روی بوم با دابل‌کلیک (Medium-Editor / contentEditable) | پشتیبانی از دابل‌کلیک روی Heading و Text Editor و دکمه برای ویرایش درون بوم | **برابری برقرار است** با ذخیره مستقیم در استور و پشتیبانی از Undo/Redo. | پیاده‌شده | گسترش به عناوین آکاردئون و تب‌ها |
+**Reference Source**: `C:\Users\Administrator\Desktop\elementor` (Core 3.x & Pro 3.x)  
+**Target Codebase**: `site/frontend/components/admin/builder/**`  
+**Date**: 2026-11-21  
 
 ---
 
-### ۱.۲. سیستم ویجت‌ها و بلوک‌ها (Widget System)
-| قابلیت | رفتار در سورس مرجع Elementor | وضعیت فعلی در پروژه اختصاصی | تفاوت و شکاف فنی | ارزش پیاده‌سازی | پیشنهاد فنی متناسب با React/Next |
-|:---|:---|:---|:---|:---:|:---|
-| **تنوع ویجت‌ها** | بیش از ۶۰ ویجت مختلف در هسته و پرو | ۳۴ ویجت بومی استاندارد در فرانت‌اند و بک‌اند | ویجت‌های تخصصی مانند Lottie، نوار پیشرفت اسکرول و گالری تعاملی پیشرفته در المنتور وجود دارد. | متوسط | اضافه کردن ویجت‌های پرکاربرد بدون بارگذاری بی‌رویه پکیج‌ها |
-| **الگوهای آماده (Block Patterns)** | بخش Elementor Template Library با اتصال به کلود | ۲۸ الگوی آماده کدنویسی‌شده با متغیرهای فارسی در `block_patterns.py` | الگوهای ما ۱۰۰٪ بومی، بدون نیاز به اینترنت و با تایپوگرافی فارسی هماهنگ هستند. | بالا | حفظ ۲۸ الگو و امکان افزودن دسته‌های جدید |
+## 1. Architectural Model Comparison
+
+| Dimension | Elementor Architecture (PHP/Backbone/React) | Our Visual Page Builder (Next.js/React/Zustand) | Verdict & Alignment |
+|-----------|---------------------------------------------|-------------------------------------------------|---------------------|
+| **State Storage** | Flat Backbone Models with hierarchical `parent_id` & `elements` tree, stored in WP Post Meta as JSON | Hierarchical typed `PageAST` in Zustand with `rootElements` recursive tree, stored in PostgreSQL JSONB | ✅ Modern React architecture; clean AST serialization |
+| **Canvas Isolation** | Iframe preview loaded via `?elementor-preview=ID` with WordPress front-end scripts | Isolated `CanvasFrame` Iframe with React Portal mounts for content & overlay | ✅ True responsive isolation (`md:`, `lg:` evaluate against frame) |
+| **Control System** | `Controls_Stack` with Section, Tabs (Content, Style, Advanced), Dynamic Tags | Inspector Panel with 3 tabs (Content, Style, Advanced), direct reactive bindings | ✅ 1:1 Parity with Elementor 3-tab layout |
+| **Design Tokens** | Elementor Site Settings (Global Colors, Global Fonts) stored in Kit | 2-Layer Tokens: Layer 1 (Active SiteTheme API) + Layer 2 (`globalStyles` overrides) | ✅ Full live preview sync to canvas document |
+| **Selection & Overlay** | Selection highlight rendered directly inside iframe document DOM | Root-level `#builder-overlay-mount` portal rendering selection boxes & floating toolbar | ✅ Zero CSS clipping from container `overflow: hidden` |
 
 ---
 
-### ۱.۳. پنل بازرس (Inspector: Content, Style, Advanced)
-| قابلیت | رفتار در سورس مرجع Elementor | وضعیت فعلی در پروژه اختصاصی | تفاوت و شکاف فنی | ارزش پیاده‌سازی | پیشنهاد فنی متناسب با React/Next |
-|:---|:---|:---|:---|:---:|:---|
-| **فیلترهای CSS (CSS Filters)** | کنترل‌های اسلایدر Blur, Brightness, Contrast, Saturation, Hue | فیلترهای CSS با پریست‌های سریع (مات، سیاه/سفید، کنتراست، سپیا) و ورودی سفارشی | **برابری برقرار است**؛ در کامپایلر سرور نیز به عنوان استایل درون‌خطی ترجمه می‌شود. | پیاده‌شده | افزودن اسلایدرهای اختصاصی برای هر مشخصه |
-| **لایه رویی پس‌زمینه (Background Overlay)** | لایه شبه‌عنصر روی کانتینر با کنترل رنگ/گرادیانت و شفافیت | کامپوننت `BackgroundOverlay` با کنترل در بازرس، بوم و کامپایلر سرور | **برابری برقرار است**. | پیاده‌شده | پشتیبانی از حالت هاور (Hover Overlay) |
-| **تقسیم‌کننده‌های شکل (Shape Dividers)** | تقسیم‌کننده‌های گرافیکی SVG در بالا و پایین سکشن (امواج، منحنی، مثلث، شیب) | پیاده‌سازی در `CanvasElement` و کامپایلر سرور با پشتیبانی از امواج، منحنی و مثلث | **برابری اولیه برقرار است**. | بالا | تکمیل کنترل‌های بازرس برای سوییچ آسان نوع شکل در تب استایل |
+## 2. Feature Parity & Gap Matrix
+
+### 2.1 Editor Workspace & Interaction
+- **Floating Toolbar**: ✅ Implemented with Drag Handle, Duplicate, Delete, Reorder (Up/Down), Style Copy/Paste, and Save as Template.
+- **Navigator / Layers Tree**: ✅ Implemented with Search, Expand/Collapse all, Drag-and-Drop tree reordering, inline rename, and hide/lock toggles.
+- **Context Menu**: ✅ Implemented right-click menu with Wrap in Container, Unwrap, Duplicate, Copy, Paste, Delete.
+- **Keyboard Shortcuts**: ✅ Implemented `Ctrl+Z`, `Ctrl+Y`, `Ctrl+C`, `Ctrl+V`, `Ctrl+D`, `Alt+Up/Down`, `Escape` (deselection), and `?` cheat sheet modal.
+
+### 2.2 Container Layout Engine
+- **Boxed vs. Full Width**: ✅ Implemented via `boxedWidth` slider / number input and max-width clamping.
+- **Flexbox Controls**: ✅ Direction (row/column/reverse), Wrap, Justify-Content, Align-Items, Align-Self, Order.
+- **Grid Layout**: ✅ 1 to 4 columns grid presets with configurable gap.
+- **Background Overlays**: ✅ Color, opacity, and blend modes for container backgrounds.
+
+### 2.3 Styling & Visual Polish
+- **CSS Filters**: ✅ Blur, brightness, contrast, grayscale, and sepia filters with live canvas and backend AST compiler parity.
+- **Shape Dividers**: ✅ Top & Bottom SVG wave, curve, and triangle dividers.
+- **Box Shadow & Borders**: ✅ Full 4-corner unlinked border-radius, border styles, and box shadows.
+- **Mobile-First Responsive Overrides**: ✅ Separate overrides for Desktop, Tablet (768px), and Mobile (375px).
+
+### 2.4 Advanced & Dynamic Capabilities
+- **Device Visibility**: ✅ Hide on Desktop / Tablet / Mobile with preview indicator badges.
+- **Authentication Visibility**: ✅ Show to All / Authenticated / Guest users with server-side compiler enforcement.
+- **CSS Motion Effects**: ✅ Fade-in, slide-up, zoom-in with custom duration and delay.
+- **Global Components**: ✅ Linked components that update all instances across the page when edited.
 
 ---
 
-### ۱.۴. ساختار چیدمان (Layout & Containers)
-| قابلیت | رفتار در سورس مرجع Elementor | وضعیت فعلی در پروژه اختصاصی | تفاوت و شکاف فنی | ارزش پیاده‌سازی | پیشنهاد فنی متناسب با React/Next |
-|:---|:---|:---|:---|:---:|:---|
-| **فلکس و گرید** | کانتینرهای فلکس‌باکس با جهت‌بندی، چینش و شکست سطر | پشتیبانی کامل از Flex/Grid با ستون‌های ۱ تا ۴ و گپ ریسپانسیو | **برابری برقرار است**. | پیاده‌شده | افزودن کنترل مستقیم flex-wrap در بازرس |
-| **حالت Boxed در برابر Full Width** | سوئیچ کانتینر جعبه‌ای با حداکثر عرض در برابر تمام‌عرض صفحه | کنترل Boxed Width در بازرس با اعمال `maxWidth` و `mx-auto` | **برابری برقرار است**. | پیاده‌شده | هماهنگی با عرض پیش‌فرض تم سراسری |
-
----
-
-### ۱.۵. قابلیت‌های پیشرفته و ریسپانسیو (Advanced & Responsive)
-| قابلیت | رفتار در سورس مرجع Elementor | وضعیت فعلی در پروژه اختصاصی | تفاوت و شکاف فنی | ارزش پیاده‌سازی | پیشنهاد فنی متناسب با React/Next |
-|:---|:---|:---|:---|:---:|:---|
-| **نمایش شرطی دستگاهی** | پنهان‌سازی المان در موبایل، تبلت یا دسکتاپ با نشانگر بصری در ادیتور | کنترل ریسپانسیو دسکتاپ/تبلت/موبایل با نشانگر بج در بوم و مخفی‌سازی کامل در پیش‌نمایش | **برابری کامل برقرار است**. | پیاده‌شده | افزودن نمایش شرطی بر اساس نقش کاربر (Admin/User) |
-| **کلیدهای میانبر ادیتور** | دیالوگ راهنمای میانبرها، Ctrl+Z, Ctrl+Y, Ctrl+D, Ctrl+S, Delete, Escape | دیالوگ جامع میانبرها با کلیدهای فوق و فوروارد دقیق رویدادها از سند Iframe | **برابری کامل برقرار است**. | پیاده‌شده | افزودن میانبر اختصاصی جستجو در لایه‌ها (Ctrl+F) |
-| **کامپوننت‌های سراسری (Global Components)** | قابلیت Global Widget در نسخه Pro برای همگام‌سازی لحظه‌ای المان‌ها | اکشن‌های `makeGlobalComponent`، به‌روزرسانی همزمان نودها و `unlinkGlobalComponent` | **برابری برقرار است**. | پیاده‌شده | حفظ یکپارچگی شناسه در درخت AST |
-
----
-
-## ۲. اولویت‌بندی گام‌های توسعه آینده (Future Roadmaps)
-
-1. **اولویت P1 — کنترل‌های غنی‌تر تقسیم‌کننده شکل (Shape Divider Controls in Inspector)**:
-   - افزودن انتخابگر تصویری نوع Divider (Waves, Curve, Triangle, Tilt) در تب استایل بازرس برای کانتینرها به همراه رنگ و ارتفاع.
-2. **اولویت P1 — کنترل مستقیم حالت شکست سطر (Flex Wrap & Align Content)**:
-   - تکمیل کنترل‌های ریز فلکس‌باکس در پنل چیدمان کانتینر.
-3. **اولویت P2 — افکت‌های هاور روی دکمه‌ها و کانتینرها (Hover Transitions & Box Shadow Hover)**:
-   - افزودن امکان تغییر رنگ پس‌زمینه و سایه در حالت هاور کاربر در خروجی رندرشده.
+## 3. High-Value Opportunities for Further Hardening
+1. **Empty Container Guidance**: Ensure empty containers have an unambiguous dashed bounding box with min-height >= 80px and accessible action button. (Addressed in P0).
+2. **Layers Tree RTL Indent**: Maintain clean visual hierarchy with `depth * 24px` margin-right and vertical guide line. (Addressed in P0).
+3. **Selection Clearance**: Ensure floating toolbar always flips below element when approaching iframe ceiling (< 40px). (Verified in Gym R01).

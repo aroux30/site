@@ -54,6 +54,7 @@ test.describe("Builder Gym Round 11: Weight 6 (Deep Container Layout & Inspector
 
   test("1. Deep container layout modification via Inspector updates AST and supports undo", async ({ page }) => {
     await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(1000);
     const patternsTab = page.locator("button:has-text('الگوها')").first();
     await patternsTab.waitFor({ state: "visible", timeout: 15000 });
     await patternsTab.click();

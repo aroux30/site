@@ -56,7 +56,7 @@ test.describe("Builder Gym Round 18: Dynamic Countdown Calculation & Product Gri
     await page.waitForTimeout(1500);
 
     // Switch to basic blocks tab
-    const basicBlocksSubTab = page.getByRole("button", { name: "بلوک‌ها", exact: true }).first();
+    const basicBlocksSubTab = page.getByRole("button", { name: "بلوک‌ها", exact: true });
     await basicBlocksSubTab.click();
     await page.waitForTimeout(400);
 
@@ -87,11 +87,10 @@ test.describe("Builder Gym Round 18: Dynamic Countdown Calculation & Product Gri
     await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
     await page.waitForTimeout(1500);
 
-    const blocksTab = page.locator('[data-testid="sidebar-tab-blocks"]').first();
-    if (await blocksTab.isVisible()) {
-      await blocksTab.click();
-      await page.waitForTimeout(300);
-    }
+    // Switch to basic blocks tab
+    const basicBlocksSubTab = page.getByRole("button", { name: "بلوک‌ها", exact: true });
+    await basicBlocksSubTab.click();
+    await page.waitForTimeout(400);
 
     const searchInput = page.getByPlaceholder("جستجوی بلوک پایه...");
     await searchInput.fill("ویترین محصولات");
@@ -117,7 +116,7 @@ test.describe("Builder Gym Round 18: Dynamic Countdown Calculation & Product Gri
     await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
     await page.waitForTimeout(1500);
 
-    const basicBlocksSubTab = page.getByRole("button", { name: "بلوک‌ها", exact: true }).first();
+    const basicBlocksSubTab = page.getByRole("button", { name: "بلوک‌ها", exact: true });
     await basicBlocksSubTab.click();
     await page.waitForTimeout(400);
 

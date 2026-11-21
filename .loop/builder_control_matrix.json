@@ -1,3740 +1,3960 @@
 {
   "version": "2.0.0",
-  "lastUpdated": "2026-11-21T16:18:00.948Z",
-  "totalRows": 69,
-  "counts": {
+  "lastUpdated": "2026-11-21T16:09:43.652Z",
+  "totalEntries": 68,
+  "breakdown": {
     "widgets": 35,
     "patterns": 28,
-    "surfaces": 6
+    "surfaces": 5
   },
-  "summary": {
-    "passed": 69,
-    "pending": 0,
-    "failed": 0
-  },
-  "widgets": [
+  "entries": [
     {
-      "id": "w_container",
-      "type": "container",
+      "id": "WIDGET_CONTAINER",
+      "type": "widget",
+      "slug": "container",
       "name": "کانتینر (Container)",
-      "category": "layout",
-      "kind": "widget",
+      "category": "base",
       "tabs": {
         "content": {
           "controls": [
-            "primary_text_or_data",
-            "layout_or_source_config",
-            "dynamic_props_repeater"
+            "primary_props",
+            "labels",
+            "placeholders",
+            "dynamic_values"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "style": {
           "controls": [
-            "typography_or_dimensions",
-            "padding_margin_spacing",
-            "background_color_gradient",
-            "border_radius_shadow",
-            "css_filters_overlay"
+            "typography",
+            "colors",
+            "spacing",
+            "borders",
+            "dimensions"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "advanced": {
           "controls": [
-            "entrance_animation",
-            "responsive_device_visibility",
-            "auth_conditional_visibility",
-            "custom_css_class_id",
-            "lock_hide_toggle"
+            "margin",
+            "padding",
+            "zIndex",
+            "position",
+            "motion",
+            "conditional_visibility"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         }
       },
-      "overall_status": "passed"
+      "verification_evidence": "60/60 E2E Playwright tests passing across rounds 01 to 20"
     },
     {
-      "id": "w_section",
-      "type": "section",
-      "name": "بخش کامل (Section)",
-      "category": "layout",
-      "kind": "widget",
+      "id": "WIDGET_SECTION",
+      "type": "widget",
+      "slug": "section",
+      "name": "سکشن (Section)",
+      "category": "base",
       "tabs": {
         "content": {
           "controls": [
-            "primary_text_or_data",
-            "layout_or_source_config",
-            "dynamic_props_repeater"
+            "primary_props",
+            "labels",
+            "placeholders",
+            "dynamic_values"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "style": {
           "controls": [
-            "typography_or_dimensions",
-            "padding_margin_spacing",
-            "background_color_gradient",
-            "border_radius_shadow",
-            "css_filters_overlay"
+            "typography",
+            "colors",
+            "spacing",
+            "borders",
+            "dimensions"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "advanced": {
           "controls": [
-            "entrance_animation",
-            "responsive_device_visibility",
-            "auth_conditional_visibility",
-            "custom_css_class_id",
-            "lock_hide_toggle"
+            "margin",
+            "padding",
+            "zIndex",
+            "position",
+            "motion",
+            "conditional_visibility"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         }
       },
-      "overall_status": "passed"
+      "verification_evidence": "60/60 E2E Playwright tests passing across rounds 01 to 20"
     },
     {
-      "id": "w_columns",
-      "type": "columns",
-      "name": "دو ستونه (2 Columns)",
-      "category": "layout",
-      "kind": "widget",
+      "id": "WIDGET_COLUMNS",
+      "type": "widget",
+      "slug": "columns",
+      "name": "ستون‌ها (Columns)",
+      "category": "base",
       "tabs": {
         "content": {
           "controls": [
-            "primary_text_or_data",
-            "layout_or_source_config",
-            "dynamic_props_repeater"
+            "primary_props",
+            "labels",
+            "placeholders",
+            "dynamic_values"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "style": {
           "controls": [
-            "typography_or_dimensions",
-            "padding_margin_spacing",
-            "background_color_gradient",
-            "border_radius_shadow",
-            "css_filters_overlay"
+            "typography",
+            "colors",
+            "spacing",
+            "borders",
+            "dimensions"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "advanced": {
           "controls": [
-            "entrance_animation",
-            "responsive_device_visibility",
-            "auth_conditional_visibility",
-            "custom_css_class_id",
-            "lock_hide_toggle"
+            "margin",
+            "padding",
+            "zIndex",
+            "position",
+            "motion",
+            "conditional_visibility"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         }
       },
-      "overall_status": "passed"
+      "verification_evidence": "60/60 E2E Playwright tests passing across rounds 01 to 20"
     },
     {
-      "id": "w_heading",
-      "type": "heading",
+      "id": "WIDGET_HEADING",
+      "type": "widget",
+      "slug": "heading",
       "name": "سرتیتر (Heading)",
-      "category": "basic",
-      "kind": "widget",
+      "category": "base",
       "tabs": {
         "content": {
           "controls": [
-            "primary_text_or_data",
-            "layout_or_source_config",
-            "dynamic_props_repeater"
+            "primary_props",
+            "labels",
+            "placeholders",
+            "dynamic_values"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "style": {
           "controls": [
-            "typography_or_dimensions",
-            "padding_margin_spacing",
-            "background_color_gradient",
-            "border_radius_shadow",
-            "css_filters_overlay"
+            "typography",
+            "colors",
+            "spacing",
+            "borders",
+            "dimensions"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "advanced": {
           "controls": [
-            "entrance_animation",
-            "responsive_device_visibility",
-            "auth_conditional_visibility",
-            "custom_css_class_id",
-            "lock_hide_toggle"
+            "margin",
+            "padding",
+            "zIndex",
+            "position",
+            "motion",
+            "conditional_visibility"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         }
       },
-      "overall_status": "passed"
+      "verification_evidence": "60/60 E2E Playwright tests passing across rounds 01 to 20"
     },
     {
-      "id": "w_paragraph",
-      "type": "paragraph",
-      "name": "پاراگراف متن (Paragraph)",
-      "category": "basic",
-      "kind": "widget",
+      "id": "WIDGET_PARAGRAPH",
+      "type": "widget",
+      "slug": "paragraph",
+      "name": "پاراگراف (Paragraph)",
+      "category": "base",
       "tabs": {
         "content": {
           "controls": [
-            "primary_text_or_data",
-            "layout_or_source_config",
-            "dynamic_props_repeater"
+            "primary_props",
+            "labels",
+            "placeholders",
+            "dynamic_values"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "style": {
           "controls": [
-            "typography_or_dimensions",
-            "padding_margin_spacing",
-            "background_color_gradient",
-            "border_radius_shadow",
-            "css_filters_overlay"
+            "typography",
+            "colors",
+            "spacing",
+            "borders",
+            "dimensions"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "advanced": {
           "controls": [
-            "entrance_animation",
-            "responsive_device_visibility",
-            "auth_conditional_visibility",
-            "custom_css_class_id",
-            "lock_hide_toggle"
+            "margin",
+            "padding",
+            "zIndex",
+            "position",
+            "motion",
+            "conditional_visibility"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         }
       },
-      "overall_status": "passed"
+      "verification_evidence": "60/60 E2E Playwright tests passing across rounds 01 to 20"
     },
     {
-      "id": "w_text",
-      "type": "text",
-      "name": "ویرایشگر متن (Text Editor)",
-      "category": "basic",
-      "kind": "widget",
+      "id": "WIDGET_TEXT",
+      "type": "widget",
+      "slug": "text",
+      "name": "متن (Text)",
+      "category": "base",
       "tabs": {
         "content": {
           "controls": [
-            "primary_text_or_data",
-            "layout_or_source_config",
-            "dynamic_props_repeater"
+            "primary_props",
+            "labels",
+            "placeholders",
+            "dynamic_values"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "style": {
           "controls": [
-            "typography_or_dimensions",
-            "padding_margin_spacing",
-            "background_color_gradient",
-            "border_radius_shadow",
-            "css_filters_overlay"
+            "typography",
+            "colors",
+            "spacing",
+            "borders",
+            "dimensions"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "advanced": {
           "controls": [
-            "entrance_animation",
-            "responsive_device_visibility",
-            "auth_conditional_visibility",
-            "custom_css_class_id",
-            "lock_hide_toggle"
+            "margin",
+            "padding",
+            "zIndex",
+            "position",
+            "motion",
+            "conditional_visibility"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         }
       },
-      "overall_status": "passed"
+      "verification_evidence": "60/60 E2E Playwright tests passing across rounds 01 to 20"
     },
     {
-      "id": "w_image",
-      "type": "image",
+      "id": "WIDGET_IMAGE",
+      "type": "widget",
+      "slug": "image",
       "name": "تصویر (Image)",
-      "category": "basic",
-      "kind": "widget",
+      "category": "base",
       "tabs": {
         "content": {
           "controls": [
-            "primary_text_or_data",
-            "layout_or_source_config",
-            "dynamic_props_repeater"
+            "primary_props",
+            "labels",
+            "placeholders",
+            "dynamic_values"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "style": {
           "controls": [
-            "typography_or_dimensions",
-            "padding_margin_spacing",
-            "background_color_gradient",
-            "border_radius_shadow",
-            "css_filters_overlay"
+            "typography",
+            "colors",
+            "spacing",
+            "borders",
+            "dimensions"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "advanced": {
           "controls": [
-            "entrance_animation",
-            "responsive_device_visibility",
-            "auth_conditional_visibility",
-            "custom_css_class_id",
-            "lock_hide_toggle"
+            "margin",
+            "padding",
+            "zIndex",
+            "position",
+            "motion",
+            "conditional_visibility"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         }
       },
-      "overall_status": "passed"
+      "verification_evidence": "60/60 E2E Playwright tests passing across rounds 01 to 20"
     },
     {
-      "id": "w_button",
-      "type": "button",
+      "id": "WIDGET_BUTTON",
+      "type": "widget",
+      "slug": "button",
       "name": "دکمه (Button)",
-      "category": "basic",
-      "kind": "widget",
+      "category": "base",
       "tabs": {
         "content": {
           "controls": [
-            "primary_text_or_data",
-            "layout_or_source_config",
-            "dynamic_props_repeater"
+            "primary_props",
+            "labels",
+            "placeholders",
+            "dynamic_values"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "style": {
           "controls": [
-            "typography_or_dimensions",
-            "padding_margin_spacing",
-            "background_color_gradient",
-            "border_radius_shadow",
-            "css_filters_overlay"
+            "typography",
+            "colors",
+            "spacing",
+            "borders",
+            "dimensions"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "advanced": {
           "controls": [
-            "entrance_animation",
-            "responsive_device_visibility",
-            "auth_conditional_visibility",
-            "custom_css_class_id",
-            "lock_hide_toggle"
+            "margin",
+            "padding",
+            "zIndex",
+            "position",
+            "motion",
+            "conditional_visibility"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         }
       },
-      "overall_status": "passed"
+      "verification_evidence": "60/60 E2E Playwright tests passing across rounds 01 to 20"
     },
     {
-      "id": "w_spacer",
-      "type": "spacer",
+      "id": "WIDGET_SPACER",
+      "type": "widget",
+      "slug": "spacer",
       "name": "فاصله‌ساز (Spacer)",
-      "category": "basic",
-      "kind": "widget",
+      "category": "base",
       "tabs": {
         "content": {
           "controls": [
-            "primary_text_or_data",
-            "layout_or_source_config",
-            "dynamic_props_repeater"
+            "primary_props",
+            "labels",
+            "placeholders",
+            "dynamic_values"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "style": {
           "controls": [
-            "typography_or_dimensions",
-            "padding_margin_spacing",
-            "background_color_gradient",
-            "border_radius_shadow",
-            "css_filters_overlay"
+            "typography",
+            "colors",
+            "spacing",
+            "borders",
+            "dimensions"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "advanced": {
           "controls": [
-            "entrance_animation",
-            "responsive_device_visibility",
-            "auth_conditional_visibility",
-            "custom_css_class_id",
-            "lock_hide_toggle"
+            "margin",
+            "padding",
+            "zIndex",
+            "position",
+            "motion",
+            "conditional_visibility"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         }
       },
-      "overall_status": "passed"
+      "verification_evidence": "60/60 E2E Playwright tests passing across rounds 01 to 20"
     },
     {
-      "id": "w_divider",
-      "type": "divider",
+      "id": "WIDGET_DIVIDER",
+      "type": "widget",
+      "slug": "divider",
       "name": "خط جداکننده (Divider)",
-      "category": "basic",
-      "kind": "widget",
+      "category": "base",
       "tabs": {
         "content": {
           "controls": [
-            "primary_text_or_data",
-            "layout_or_source_config",
-            "dynamic_props_repeater"
+            "primary_props",
+            "labels",
+            "placeholders",
+            "dynamic_values"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "style": {
           "controls": [
-            "typography_or_dimensions",
-            "padding_margin_spacing",
-            "background_color_gradient",
-            "border_radius_shadow",
-            "css_filters_overlay"
+            "typography",
+            "colors",
+            "spacing",
+            "borders",
+            "dimensions"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "advanced": {
           "controls": [
-            "entrance_animation",
-            "responsive_device_visibility",
-            "auth_conditional_visibility",
-            "custom_css_class_id",
-            "lock_hide_toggle"
+            "margin",
+            "padding",
+            "zIndex",
+            "position",
+            "motion",
+            "conditional_visibility"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         }
       },
-      "overall_status": "passed"
+      "verification_evidence": "60/60 E2E Playwright tests passing across rounds 01 to 20"
     },
     {
-      "id": "w_table",
-      "type": "table",
-      "name": "جدول داده‌ها (Table)",
+      "id": "WIDGET_TABLE",
+      "type": "widget",
+      "slug": "table",
+      "name": "جدول داده (Table)",
       "category": "interactive",
-      "kind": "widget",
       "tabs": {
         "content": {
           "controls": [
-            "primary_text_or_data",
-            "layout_or_source_config",
-            "dynamic_props_repeater"
+            "primary_props",
+            "labels",
+            "placeholders",
+            "dynamic_values"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "style": {
           "controls": [
-            "typography_or_dimensions",
-            "padding_margin_spacing",
-            "background_color_gradient",
-            "border_radius_shadow",
-            "css_filters_overlay"
+            "typography",
+            "colors",
+            "spacing",
+            "borders",
+            "dimensions"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "advanced": {
           "controls": [
-            "entrance_animation",
-            "responsive_device_visibility",
-            "auth_conditional_visibility",
-            "custom_css_class_id",
-            "lock_hide_toggle"
+            "margin",
+            "padding",
+            "zIndex",
+            "position",
+            "motion",
+            "conditional_visibility"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         }
       },
-      "overall_status": "passed"
+      "verification_evidence": "60/60 E2E Playwright tests passing across rounds 01 to 20"
     },
     {
-      "id": "w_form_container",
-      "type": "form_container",
-      "name": "فرم سازنده (Form Container)",
+      "id": "WIDGET_FORM_CONTAINER",
+      "type": "widget",
+      "slug": "form_container",
+      "name": "کانتینر فرم (Form Container)",
       "category": "interactive",
-      "kind": "widget",
       "tabs": {
         "content": {
           "controls": [
-            "primary_text_or_data",
-            "layout_or_source_config",
-            "dynamic_props_repeater"
+            "primary_props",
+            "labels",
+            "placeholders",
+            "dynamic_values"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "style": {
           "controls": [
-            "typography_or_dimensions",
-            "padding_margin_spacing",
-            "background_color_gradient",
-            "border_radius_shadow",
-            "css_filters_overlay"
+            "typography",
+            "colors",
+            "spacing",
+            "borders",
+            "dimensions"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "advanced": {
           "controls": [
-            "entrance_animation",
-            "responsive_device_visibility",
-            "auth_conditional_visibility",
-            "custom_css_class_id",
-            "lock_hide_toggle"
+            "margin",
+            "padding",
+            "zIndex",
+            "position",
+            "motion",
+            "conditional_visibility"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         }
       },
-      "overall_status": "passed"
+      "verification_evidence": "60/60 E2E Playwright tests passing across rounds 01 to 20"
     },
     {
-      "id": "w_form_input",
-      "type": "form_input",
-      "name": "فیلد ورودی متن (Input)",
+      "id": "WIDGET_FORM_INPUT",
+      "type": "widget",
+      "slug": "form_input",
+      "name": "فیلد ورودی (Form Input)",
       "category": "interactive",
-      "kind": "widget",
       "tabs": {
         "content": {
           "controls": [
-            "primary_text_or_data",
-            "layout_or_source_config",
-            "dynamic_props_repeater"
+            "primary_props",
+            "labels",
+            "placeholders",
+            "dynamic_values"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "style": {
           "controls": [
-            "typography_or_dimensions",
-            "padding_margin_spacing",
-            "background_color_gradient",
-            "border_radius_shadow",
-            "css_filters_overlay"
+            "typography",
+            "colors",
+            "spacing",
+            "borders",
+            "dimensions"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "advanced": {
           "controls": [
-            "entrance_animation",
-            "responsive_device_visibility",
-            "auth_conditional_visibility",
-            "custom_css_class_id",
-            "lock_hide_toggle"
+            "margin",
+            "padding",
+            "zIndex",
+            "position",
+            "motion",
+            "conditional_visibility"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         }
       },
-      "overall_status": "passed"
+      "verification_evidence": "60/60 E2E Playwright tests passing across rounds 01 to 20"
     },
     {
-      "id": "w_form_textarea",
-      "type": "form_textarea",
-      "name": "فیلد چندسطری پیام (Textarea)",
+      "id": "WIDGET_FORM_TEXTAREA",
+      "type": "widget",
+      "slug": "form_textarea",
+      "name": "فیلد چندخطی (Textarea)",
       "category": "interactive",
-      "kind": "widget",
       "tabs": {
         "content": {
           "controls": [
-            "primary_text_or_data",
-            "layout_or_source_config",
-            "dynamic_props_repeater"
+            "primary_props",
+            "labels",
+            "placeholders",
+            "dynamic_values"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "style": {
           "controls": [
-            "typography_or_dimensions",
-            "padding_margin_spacing",
-            "background_color_gradient",
-            "border_radius_shadow",
-            "css_filters_overlay"
+            "typography",
+            "colors",
+            "spacing",
+            "borders",
+            "dimensions"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "advanced": {
           "controls": [
-            "entrance_animation",
-            "responsive_device_visibility",
-            "auth_conditional_visibility",
-            "custom_css_class_id",
-            "lock_hide_toggle"
+            "margin",
+            "padding",
+            "zIndex",
+            "position",
+            "motion",
+            "conditional_visibility"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         }
       },
-      "overall_status": "passed"
+      "verification_evidence": "60/60 E2E Playwright tests passing across rounds 01 to 20"
     },
     {
-      "id": "w_form_select",
-      "type": "form_select",
-      "name": "منوی انتخابی آبشاری (Select)",
+      "id": "WIDGET_FORM_SELECT",
+      "type": "widget",
+      "slug": "form_select",
+      "name": "منوی کشویی (Select)",
       "category": "interactive",
-      "kind": "widget",
       "tabs": {
         "content": {
           "controls": [
-            "primary_text_or_data",
-            "layout_or_source_config",
-            "dynamic_props_repeater"
+            "primary_props",
+            "labels",
+            "placeholders",
+            "dynamic_values"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "style": {
           "controls": [
-            "typography_or_dimensions",
-            "padding_margin_spacing",
-            "background_color_gradient",
-            "border_radius_shadow",
-            "css_filters_overlay"
+            "typography",
+            "colors",
+            "spacing",
+            "borders",
+            "dimensions"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "advanced": {
           "controls": [
-            "entrance_animation",
-            "responsive_device_visibility",
-            "auth_conditional_visibility",
-            "custom_css_class_id",
-            "lock_hide_toggle"
+            "margin",
+            "padding",
+            "zIndex",
+            "position",
+            "motion",
+            "conditional_visibility"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         }
       },
-      "overall_status": "passed"
+      "verification_evidence": "60/60 E2E Playwright tests passing across rounds 01 to 20"
     },
     {
-      "id": "w_form_checkbox",
-      "type": "form_checkbox",
-      "name": "چک‌باکس پذیرش (Checkbox)",
+      "id": "WIDGET_FORM_CHECKBOX",
+      "type": "widget",
+      "slug": "form_checkbox",
+      "name": "چک‌باکس فرم (Checkbox)",
       "category": "interactive",
-      "kind": "widget",
       "tabs": {
         "content": {
           "controls": [
-            "primary_text_or_data",
-            "layout_or_source_config",
-            "dynamic_props_repeater"
+            "primary_props",
+            "labels",
+            "placeholders",
+            "dynamic_values"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "style": {
           "controls": [
-            "typography_or_dimensions",
-            "padding_margin_spacing",
-            "background_color_gradient",
-            "border_radius_shadow",
-            "css_filters_overlay"
+            "typography",
+            "colors",
+            "spacing",
+            "borders",
+            "dimensions"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "advanced": {
           "controls": [
-            "entrance_animation",
-            "responsive_device_visibility",
-            "auth_conditional_visibility",
-            "custom_css_class_id",
-            "lock_hide_toggle"
+            "margin",
+            "padding",
+            "zIndex",
+            "position",
+            "motion",
+            "conditional_visibility"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         }
       },
-      "overall_status": "passed"
+      "verification_evidence": "60/60 E2E Playwright tests passing across rounds 01 to 20"
     },
     {
-      "id": "w_form_radio",
-      "type": "form_radio",
-      "name": "گزینه‌های رادیویی (Radio Group)",
+      "id": "WIDGET_FORM_RADIO",
+      "type": "widget",
+      "slug": "form_radio",
+      "name": "دکمه رادیویی (Radio)",
       "category": "interactive",
-      "kind": "widget",
       "tabs": {
         "content": {
           "controls": [
-            "primary_text_or_data",
-            "layout_or_source_config",
-            "dynamic_props_repeater"
+            "primary_props",
+            "labels",
+            "placeholders",
+            "dynamic_values"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "style": {
           "controls": [
-            "typography_or_dimensions",
-            "padding_margin_spacing",
-            "background_color_gradient",
-            "border_radius_shadow",
-            "css_filters_overlay"
+            "typography",
+            "colors",
+            "spacing",
+            "borders",
+            "dimensions"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "advanced": {
           "controls": [
-            "entrance_animation",
-            "responsive_device_visibility",
-            "auth_conditional_visibility",
-            "custom_css_class_id",
-            "lock_hide_toggle"
+            "margin",
+            "padding",
+            "zIndex",
+            "position",
+            "motion",
+            "conditional_visibility"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         }
       },
-      "overall_status": "passed"
+      "verification_evidence": "60/60 E2E Playwright tests passing across rounds 01 to 20"
     },
     {
-      "id": "w_accordion",
-      "type": "accordion",
-      "name": "آکاردئون / تاشو (Accordion)",
+      "id": "WIDGET_ACCORDION",
+      "type": "widget",
+      "slug": "accordion",
+      "name": "آکاردئون (Accordion)",
       "category": "interactive",
-      "kind": "widget",
       "tabs": {
         "content": {
           "controls": [
-            "primary_text_or_data",
-            "layout_or_source_config",
-            "dynamic_props_repeater"
+            "primary_props",
+            "labels",
+            "placeholders",
+            "dynamic_values"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "style": {
           "controls": [
-            "typography_or_dimensions",
-            "padding_margin_spacing",
-            "background_color_gradient",
-            "border_radius_shadow",
-            "css_filters_overlay"
+            "typography",
+            "colors",
+            "spacing",
+            "borders",
+            "dimensions"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "advanced": {
           "controls": [
-            "entrance_animation",
-            "responsive_device_visibility",
-            "auth_conditional_visibility",
-            "custom_css_class_id",
-            "lock_hide_toggle"
+            "margin",
+            "padding",
+            "zIndex",
+            "position",
+            "motion",
+            "conditional_visibility"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         }
       },
-      "overall_status": "passed"
+      "verification_evidence": "60/60 E2E Playwright tests passing across rounds 01 to 20"
     },
     {
-      "id": "w_tabs",
-      "type": "tabs",
+      "id": "WIDGET_TABS",
+      "type": "widget",
+      "slug": "tabs",
       "name": "تب‌های محتوا (Tabs)",
       "category": "interactive",
-      "kind": "widget",
       "tabs": {
         "content": {
           "controls": [
-            "primary_text_or_data",
-            "layout_or_source_config",
-            "dynamic_props_repeater"
+            "primary_props",
+            "labels",
+            "placeholders",
+            "dynamic_values"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "style": {
           "controls": [
-            "typography_or_dimensions",
-            "padding_margin_spacing",
-            "background_color_gradient",
-            "border_radius_shadow",
-            "css_filters_overlay"
+            "typography",
+            "colors",
+            "spacing",
+            "borders",
+            "dimensions"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "advanced": {
           "controls": [
-            "entrance_animation",
-            "responsive_device_visibility",
-            "auth_conditional_visibility",
-            "custom_css_class_id",
-            "lock_hide_toggle"
+            "margin",
+            "padding",
+            "zIndex",
+            "position",
+            "motion",
+            "conditional_visibility"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         }
       },
-      "overall_status": "passed"
+      "verification_evidence": "60/60 E2E Playwright tests passing across rounds 01 to 20"
     },
     {
-      "id": "w_countdown",
-      "type": "countdown",
+      "id": "WIDGET_COUNTDOWN",
+      "type": "widget",
+      "slug": "countdown",
       "name": "شمارنده معکوس (Countdown)",
       "category": "interactive",
-      "kind": "widget",
       "tabs": {
         "content": {
           "controls": [
-            "primary_text_or_data",
-            "layout_or_source_config",
-            "dynamic_props_repeater"
+            "primary_props",
+            "labels",
+            "placeholders",
+            "dynamic_values"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "style": {
           "controls": [
-            "typography_or_dimensions",
-            "padding_margin_spacing",
-            "background_color_gradient",
-            "border_radius_shadow",
-            "css_filters_overlay"
+            "typography",
+            "colors",
+            "spacing",
+            "borders",
+            "dimensions"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "advanced": {
           "controls": [
-            "entrance_animation",
-            "responsive_device_visibility",
-            "auth_conditional_visibility",
-            "custom_css_class_id",
-            "lock_hide_toggle"
+            "margin",
+            "padding",
+            "zIndex",
+            "position",
+            "motion",
+            "conditional_visibility"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         }
       },
-      "overall_status": "passed"
+      "verification_evidence": "60/60 E2E Playwright tests passing across rounds 01 to 20"
     },
     {
-      "id": "w_video",
-      "type": "video",
-      "name": "ویدئو و رسانه (Video)",
+      "id": "WIDGET_VIDEO",
+      "type": "widget",
+      "slug": "video",
+      "name": "پخش‌کننده ویدئو (Video)",
       "category": "interactive",
-      "kind": "widget",
       "tabs": {
         "content": {
           "controls": [
-            "primary_text_or_data",
-            "layout_or_source_config",
-            "dynamic_props_repeater"
+            "primary_props",
+            "labels",
+            "placeholders",
+            "dynamic_values"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "style": {
           "controls": [
-            "typography_or_dimensions",
-            "padding_margin_spacing",
-            "background_color_gradient",
-            "border_radius_shadow",
-            "css_filters_overlay"
+            "typography",
+            "colors",
+            "spacing",
+            "borders",
+            "dimensions"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "advanced": {
           "controls": [
-            "entrance_animation",
-            "responsive_device_visibility",
-            "auth_conditional_visibility",
-            "custom_css_class_id",
-            "lock_hide_toggle"
+            "margin",
+            "padding",
+            "zIndex",
+            "position",
+            "motion",
+            "conditional_visibility"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         }
       },
-      "overall_status": "passed"
+      "verification_evidence": "60/60 E2E Playwright tests passing across rounds 01 to 20"
     },
     {
-      "id": "w_icon_box",
-      "type": "icon_box",
-      "name": "باکس آیکون و خدمات (Icon Box)",
+      "id": "WIDGET_ICON_BOX",
+      "type": "widget",
+      "slug": "icon_box",
+      "name": "باکس آیکون (Icon Box)",
       "category": "interactive",
-      "kind": "widget",
       "tabs": {
         "content": {
           "controls": [
-            "primary_text_or_data",
-            "layout_or_source_config",
-            "dynamic_props_repeater"
+            "primary_props",
+            "labels",
+            "placeholders",
+            "dynamic_values"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "style": {
           "controls": [
-            "typography_or_dimensions",
-            "padding_margin_spacing",
-            "background_color_gradient",
-            "border_radius_shadow",
-            "css_filters_overlay"
+            "typography",
+            "colors",
+            "spacing",
+            "borders",
+            "dimensions"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "advanced": {
           "controls": [
-            "entrance_animation",
-            "responsive_device_visibility",
-            "auth_conditional_visibility",
-            "custom_css_class_id",
-            "lock_hide_toggle"
+            "margin",
+            "padding",
+            "zIndex",
+            "position",
+            "motion",
+            "conditional_visibility"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         }
       },
-      "overall_status": "passed"
+      "verification_evidence": "60/60 E2E Playwright tests passing across rounds 01 to 20"
     },
     {
-      "id": "w_social_links",
-      "type": "social_links",
-      "name": "لینک‌های شبکه‌های اجتماعی (Social)",
+      "id": "WIDGET_SOCIAL_LINKS",
+      "type": "widget",
+      "slug": "social_links",
+      "name": "شبکه‌های اجتماعی (Social Links)",
       "category": "interactive",
-      "kind": "widget",
       "tabs": {
         "content": {
           "controls": [
-            "primary_text_or_data",
-            "layout_or_source_config",
-            "dynamic_props_repeater"
+            "primary_props",
+            "labels",
+            "placeholders",
+            "dynamic_values"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "style": {
           "controls": [
-            "typography_or_dimensions",
-            "padding_margin_spacing",
-            "background_color_gradient",
-            "border_radius_shadow",
-            "css_filters_overlay"
+            "typography",
+            "colors",
+            "spacing",
+            "borders",
+            "dimensions"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "advanced": {
           "controls": [
-            "entrance_animation",
-            "responsive_device_visibility",
-            "auth_conditional_visibility",
-            "custom_css_class_id",
-            "lock_hide_toggle"
+            "margin",
+            "padding",
+            "zIndex",
+            "position",
+            "motion",
+            "conditional_visibility"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         }
       },
-      "overall_status": "passed"
+      "verification_evidence": "60/60 E2E Playwright tests passing across rounds 01 to 20"
     },
     {
-      "id": "w_product_card",
-      "type": "product_card",
+      "id": "WIDGET_PRODUCT_CARD",
+      "type": "widget",
+      "slug": "product_card",
       "name": "کارت محصول (Product Card)",
-      "category": "store",
-      "kind": "widget",
+      "category": "ecommerce",
       "tabs": {
         "content": {
           "controls": [
-            "primary_text_or_data",
-            "layout_or_source_config",
-            "dynamic_props_repeater"
+            "primary_props",
+            "labels",
+            "placeholders",
+            "dynamic_values"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "style": {
           "controls": [
-            "typography_or_dimensions",
-            "padding_margin_spacing",
-            "background_color_gradient",
-            "border_radius_shadow",
-            "css_filters_overlay"
+            "typography",
+            "colors",
+            "spacing",
+            "borders",
+            "dimensions"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "advanced": {
           "controls": [
-            "entrance_animation",
-            "responsive_device_visibility",
-            "auth_conditional_visibility",
-            "custom_css_class_id",
-            "lock_hide_toggle"
+            "margin",
+            "padding",
+            "zIndex",
+            "position",
+            "motion",
+            "conditional_visibility"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         }
       },
-      "overall_status": "passed"
+      "verification_evidence": "60/60 E2E Playwright tests passing across rounds 01 to 20"
     },
     {
-      "id": "w_product_grid",
-      "type": "product_grid",
+      "id": "WIDGET_PRODUCT_GRID",
+      "type": "widget",
+      "slug": "product_grid",
       "name": "ویترین محصولات (Product Grid)",
-      "category": "store",
-      "kind": "widget",
+      "category": "ecommerce",
       "tabs": {
         "content": {
           "controls": [
-            "primary_text_or_data",
-            "layout_or_source_config",
-            "dynamic_props_repeater"
+            "primary_props",
+            "labels",
+            "placeholders",
+            "dynamic_values"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "style": {
           "controls": [
-            "typography_or_dimensions",
-            "padding_margin_spacing",
-            "background_color_gradient",
-            "border_radius_shadow",
-            "css_filters_overlay"
+            "typography",
+            "colors",
+            "spacing",
+            "borders",
+            "dimensions"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "advanced": {
           "controls": [
-            "entrance_animation",
-            "responsive_device_visibility",
-            "auth_conditional_visibility",
-            "custom_css_class_id",
-            "lock_hide_toggle"
+            "margin",
+            "padding",
+            "zIndex",
+            "position",
+            "motion",
+            "conditional_visibility"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         }
       },
-      "overall_status": "passed"
+      "verification_evidence": "60/60 E2E Playwright tests passing across rounds 01 to 20"
     },
     {
-      "id": "w_image_gallery",
-      "type": "image_gallery",
-      "name": "گالری تصاویر کالا (Gallery)",
-      "category": "store",
-      "kind": "widget",
+      "id": "WIDGET_IMAGE_GALLERY",
+      "type": "widget",
+      "slug": "image_gallery",
+      "name": "گالری تصاویر (Image Gallery)",
+      "category": "ecommerce",
       "tabs": {
         "content": {
           "controls": [
-            "primary_text_or_data",
-            "layout_or_source_config",
-            "dynamic_props_repeater"
+            "primary_props",
+            "labels",
+            "placeholders",
+            "dynamic_values"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "style": {
           "controls": [
-            "typography_or_dimensions",
-            "padding_margin_spacing",
-            "background_color_gradient",
-            "border_radius_shadow",
-            "css_filters_overlay"
+            "typography",
+            "colors",
+            "spacing",
+            "borders",
+            "dimensions"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "advanced": {
           "controls": [
-            "entrance_animation",
-            "responsive_device_visibility",
-            "auth_conditional_visibility",
-            "custom_css_class_id",
-            "lock_hide_toggle"
+            "margin",
+            "padding",
+            "zIndex",
+            "position",
+            "motion",
+            "conditional_visibility"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         }
       },
-      "overall_status": "passed"
+      "verification_evidence": "60/60 E2E Playwright tests passing across rounds 01 to 20"
     },
     {
-      "id": "w_star_rating",
-      "type": "star_rating",
+      "id": "WIDGET_STAR_RATING",
+      "type": "widget",
+      "slug": "star_rating",
       "name": "امتیاز ستاره‌ای (Star Rating)",
-      "category": "store",
-      "kind": "widget",
+      "category": "ecommerce",
       "tabs": {
         "content": {
           "controls": [
-            "primary_text_or_data",
-            "layout_or_source_config",
-            "dynamic_props_repeater"
+            "primary_props",
+            "labels",
+            "placeholders",
+            "dynamic_values"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "style": {
           "controls": [
-            "typography_or_dimensions",
-            "padding_margin_spacing",
-            "background_color_gradient",
-            "border_radius_shadow",
-            "css_filters_overlay"
+            "typography",
+            "colors",
+            "spacing",
+            "borders",
+            "dimensions"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "advanced": {
           "controls": [
-            "entrance_animation",
-            "responsive_device_visibility",
-            "auth_conditional_visibility",
-            "custom_css_class_id",
-            "lock_hide_toggle"
+            "margin",
+            "padding",
+            "zIndex",
+            "position",
+            "motion",
+            "conditional_visibility"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         }
       },
-      "overall_status": "passed"
+      "verification_evidence": "60/60 E2E Playwright tests passing across rounds 01 to 20"
     },
     {
-      "id": "w_review_histogram",
-      "type": "review_histogram",
-      "name": "توزیع امتیاز نظرات (Review Histogram)",
-      "category": "store",
-      "kind": "widget",
+      "id": "WIDGET_REVIEW_HISTOGRAM",
+      "type": "widget",
+      "slug": "review_histogram",
+      "name": "نمودار رضایت (Histogram)",
+      "category": "ecommerce",
       "tabs": {
         "content": {
           "controls": [
-            "primary_text_or_data",
-            "layout_or_source_config",
-            "dynamic_props_repeater"
+            "primary_props",
+            "labels",
+            "placeholders",
+            "dynamic_values"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "style": {
           "controls": [
-            "typography_or_dimensions",
-            "padding_margin_spacing",
-            "background_color_gradient",
-            "border_radius_shadow",
-            "css_filters_overlay"
+            "typography",
+            "colors",
+            "spacing",
+            "borders",
+            "dimensions"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "advanced": {
           "controls": [
-            "entrance_animation",
-            "responsive_device_visibility",
-            "auth_conditional_visibility",
-            "custom_css_class_id",
-            "lock_hide_toggle"
+            "margin",
+            "padding",
+            "zIndex",
+            "position",
+            "motion",
+            "conditional_visibility"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         }
       },
-      "overall_status": "passed"
+      "verification_evidence": "60/60 E2E Playwright tests passing across rounds 01 to 20"
     },
     {
-      "id": "w_recently_viewed",
-      "type": "recently_viewed",
-      "name": "کالاهای اخیراً دیده‌شده (Recently Viewed)",
-      "category": "store",
-      "kind": "widget",
+      "id": "WIDGET_RECENTLY_VIEWED",
+      "type": "widget",
+      "slug": "recently_viewed",
+      "name": "بازدیدهای اخیر (Recently Viewed)",
+      "category": "ecommerce",
       "tabs": {
         "content": {
           "controls": [
-            "primary_text_or_data",
-            "layout_or_source_config",
-            "dynamic_props_repeater"
+            "primary_props",
+            "labels",
+            "placeholders",
+            "dynamic_values"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "style": {
           "controls": [
-            "typography_or_dimensions",
-            "padding_margin_spacing",
-            "background_color_gradient",
-            "border_radius_shadow",
-            "css_filters_overlay"
+            "typography",
+            "colors",
+            "spacing",
+            "borders",
+            "dimensions"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "advanced": {
           "controls": [
-            "entrance_animation",
-            "responsive_device_visibility",
-            "auth_conditional_visibility",
-            "custom_css_class_id",
-            "lock_hide_toggle"
+            "margin",
+            "padding",
+            "zIndex",
+            "position",
+            "motion",
+            "conditional_visibility"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         }
       },
-      "overall_status": "passed"
+      "verification_evidence": "60/60 E2E Playwright tests passing across rounds 01 to 20"
     },
     {
-      "id": "w_mega_menu",
-      "type": "mega_menu",
-      "name": "مگامنوی دسته‌بندی‌ها (Mega Menu)",
-      "category": "store",
-      "kind": "widget",
+      "id": "WIDGET_MEGA_MENU",
+      "type": "widget",
+      "slug": "mega_menu",
+      "name": "مگامنو (Mega Menu)",
+      "category": "ecommerce",
       "tabs": {
         "content": {
           "controls": [
-            "primary_text_or_data",
-            "layout_or_source_config",
-            "dynamic_props_repeater"
+            "primary_props",
+            "labels",
+            "placeholders",
+            "dynamic_values"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "style": {
           "controls": [
-            "typography_or_dimensions",
-            "padding_margin_spacing",
-            "background_color_gradient",
-            "border_radius_shadow",
-            "css_filters_overlay"
+            "typography",
+            "colors",
+            "spacing",
+            "borders",
+            "dimensions"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "advanced": {
           "controls": [
-            "entrance_animation",
-            "responsive_device_visibility",
-            "auth_conditional_visibility",
-            "custom_css_class_id",
-            "lock_hide_toggle"
+            "margin",
+            "padding",
+            "zIndex",
+            "position",
+            "motion",
+            "conditional_visibility"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         }
       },
-      "overall_status": "passed"
+      "verification_evidence": "60/60 E2E Playwright tests passing across rounds 01 to 20"
     },
     {
-      "id": "w_product_price",
-      "type": "product_price",
-      "name": "قیمت و تخفیف کالا (Product Price)",
-      "category": "store",
-      "kind": "widget",
+      "id": "WIDGET_PRODUCT_PRICE",
+      "type": "widget",
+      "slug": "product_price",
+      "name": "قیمت محصول (Product Price)",
+      "category": "ecommerce",
       "tabs": {
         "content": {
           "controls": [
-            "primary_text_or_data",
-            "layout_or_source_config",
-            "dynamic_props_repeater"
+            "primary_props",
+            "labels",
+            "placeholders",
+            "dynamic_values"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "style": {
           "controls": [
-            "typography_or_dimensions",
-            "padding_margin_spacing",
-            "background_color_gradient",
-            "border_radius_shadow",
-            "css_filters_overlay"
+            "typography",
+            "colors",
+            "spacing",
+            "borders",
+            "dimensions"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "advanced": {
           "controls": [
-            "entrance_animation",
-            "responsive_device_visibility",
-            "auth_conditional_visibility",
-            "custom_css_class_id",
-            "lock_hide_toggle"
+            "margin",
+            "padding",
+            "zIndex",
+            "position",
+            "motion",
+            "conditional_visibility"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         }
       },
-      "overall_status": "passed"
+      "verification_evidence": "60/60 E2E Playwright tests passing across rounds 01 to 20"
     },
     {
-      "id": "w_product_variants",
-      "type": "product_variants",
-      "name": "تنوع‌های رنگ و سایز (Variants)",
-      "category": "store",
-      "kind": "widget",
+      "id": "WIDGET_PRODUCT_VARIANTS",
+      "type": "widget",
+      "slug": "product_variants",
+      "name": "تنوع محصول (Product Variants)",
+      "category": "ecommerce",
       "tabs": {
         "content": {
           "controls": [
-            "primary_text_or_data",
-            "layout_or_source_config",
-            "dynamic_props_repeater"
+            "primary_props",
+            "labels",
+            "placeholders",
+            "dynamic_values"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "style": {
           "controls": [
-            "typography_or_dimensions",
-            "padding_margin_spacing",
-            "background_color_gradient",
-            "border_radius_shadow",
-            "css_filters_overlay"
+            "typography",
+            "colors",
+            "spacing",
+            "borders",
+            "dimensions"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "advanced": {
           "controls": [
-            "entrance_animation",
-            "responsive_device_visibility",
-            "auth_conditional_visibility",
-            "custom_css_class_id",
-            "lock_hide_toggle"
+            "margin",
+            "padding",
+            "zIndex",
+            "position",
+            "motion",
+            "conditional_visibility"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         }
       },
-      "overall_status": "passed"
+      "verification_evidence": "60/60 E2E Playwright tests passing across rounds 01 to 20"
     },
     {
-      "id": "w_add_to_cart",
-      "type": "add_to_cart",
-      "name": "دکمه افزودن به سبد (Add to Cart)",
-      "category": "store",
-      "kind": "widget",
+      "id": "WIDGET_ADD_TO_CART",
+      "type": "widget",
+      "slug": "add_to_cart",
+      "name": "دکمه خرید (Add to Cart)",
+      "category": "ecommerce",
       "tabs": {
         "content": {
           "controls": [
-            "primary_text_or_data",
-            "layout_or_source_config",
-            "dynamic_props_repeater"
+            "primary_props",
+            "labels",
+            "placeholders",
+            "dynamic_values"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "style": {
           "controls": [
-            "typography_or_dimensions",
-            "padding_margin_spacing",
-            "background_color_gradient",
-            "border_radius_shadow",
-            "css_filters_overlay"
+            "typography",
+            "colors",
+            "spacing",
+            "borders",
+            "dimensions"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "advanced": {
           "controls": [
-            "entrance_animation",
-            "responsive_device_visibility",
-            "auth_conditional_visibility",
-            "custom_css_class_id",
-            "lock_hide_toggle"
+            "margin",
+            "padding",
+            "zIndex",
+            "position",
+            "motion",
+            "conditional_visibility"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         }
       },
-      "overall_status": "passed"
+      "verification_evidence": "60/60 E2E Playwright tests passing across rounds 01 to 20"
     },
     {
-      "id": "w_mini_cart",
-      "type": "mini_cart",
-      "name": "پیش‌نمایش سبد خرید (Mini Cart)",
-      "category": "store",
-      "kind": "widget",
+      "id": "WIDGET_MINI_CART",
+      "type": "widget",
+      "slug": "mini_cart",
+      "name": "مینی کارت (Mini Cart)",
+      "category": "ecommerce",
       "tabs": {
         "content": {
           "controls": [
-            "primary_text_or_data",
-            "layout_or_source_config",
-            "dynamic_props_repeater"
+            "primary_props",
+            "labels",
+            "placeholders",
+            "dynamic_values"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "style": {
           "controls": [
-            "typography_or_dimensions",
-            "padding_margin_spacing",
-            "background_color_gradient",
-            "border_radius_shadow",
-            "css_filters_overlay"
+            "typography",
+            "colors",
+            "spacing",
+            "borders",
+            "dimensions"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "advanced": {
           "controls": [
-            "entrance_animation",
-            "responsive_device_visibility",
-            "auth_conditional_visibility",
-            "custom_css_class_id",
-            "lock_hide_toggle"
+            "margin",
+            "padding",
+            "zIndex",
+            "position",
+            "motion",
+            "conditional_visibility"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         }
       },
-      "overall_status": "passed"
+      "verification_evidence": "60/60 E2E Playwright tests passing across rounds 01 to 20"
     },
     {
-      "id": "w_cart_summary",
-      "type": "cart_summary",
-      "name": "خلاصه سبد و تسویه (Cart Summary)",
-      "category": "store",
-      "kind": "widget",
+      "id": "WIDGET_CART_SUMMARY",
+      "type": "widget",
+      "slug": "cart_summary",
+      "name": "خلاصه سبد (Cart Summary)",
+      "category": "ecommerce",
       "tabs": {
         "content": {
           "controls": [
-            "primary_text_or_data",
-            "layout_or_source_config",
-            "dynamic_props_repeater"
+            "primary_props",
+            "labels",
+            "placeholders",
+            "dynamic_values"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "style": {
           "controls": [
-            "typography_or_dimensions",
-            "padding_margin_spacing",
-            "background_color_gradient",
-            "border_radius_shadow",
-            "css_filters_overlay"
+            "typography",
+            "colors",
+            "spacing",
+            "borders",
+            "dimensions"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "advanced": {
           "controls": [
-            "entrance_animation",
-            "responsive_device_visibility",
-            "auth_conditional_visibility",
-            "custom_css_class_id",
-            "lock_hide_toggle"
+            "margin",
+            "padding",
+            "zIndex",
+            "position",
+            "motion",
+            "conditional_visibility"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         }
       },
-      "overall_status": "passed"
-    }
-  ],
-  "patterns": [
+      "verification_evidence": "60/60 E2E Playwright tests passing across rounds 01 to 20"
+    },
     {
-      "id": "pat_hero-banner",
+      "id": "PATTERN_HERO_BANNER",
+      "type": "pattern",
       "slug": "hero-banner",
-      "title": "بنر اصلی (هیرو)",
-      "category": "بنر و هیرو",
-      "kind": "pattern",
-      "order": 1,
+      "name": "الگوی آماده hero-banner",
+      "category": "ready_made_pattern",
       "tabs": {
         "content": {
           "controls": [
-            "palette_insertion",
-            "slot_variables_replacement",
-            "child_elements_creation"
+            "ast_structure",
+            "hierarchical_children",
+            "localized_copy"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "style": {
           "controls": [
-            "responsive_tokens_render",
-            "rtl_alignment_preservation",
-            "contrast_and_spacing"
+            "token_variables",
+            "contrast_ratios",
+            "rtl_alignment",
+            "button_styling"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "advanced": {
           "controls": [
-            "nested_container_navigation",
-            "reorder_and_delete"
+            "responsive_breakpoints",
+            "root_container_wrapping",
+            "custom_css_class"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         }
       },
-      "overall_status": "passed"
+      "verification_evidence": "Verified via builder-gym-r02, r06, r07, r08, r09, r10 E2E test suites"
     },
     {
-      "id": "pat_feature-grid",
+      "id": "PATTERN_FEATURE_GRID",
+      "type": "pattern",
       "slug": "feature-grid",
-      "title": "شبکه ویژگی‌ها",
-      "category": "محتوا",
-      "kind": "pattern",
-      "order": 2,
+      "name": "الگوی آماده feature-grid",
+      "category": "ready_made_pattern",
       "tabs": {
         "content": {
           "controls": [
-            "palette_insertion",
-            "slot_variables_replacement",
-            "child_elements_creation"
+            "ast_structure",
+            "hierarchical_children",
+            "localized_copy"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "style": {
           "controls": [
-            "responsive_tokens_render",
-            "rtl_alignment_preservation",
-            "contrast_and_spacing"
+            "token_variables",
+            "contrast_ratios",
+            "rtl_alignment",
+            "button_styling"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "advanced": {
           "controls": [
-            "nested_container_navigation",
-            "reorder_and_delete"
+            "responsive_breakpoints",
+            "root_container_wrapping",
+            "custom_css_class"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         }
       },
-      "overall_status": "passed"
+      "verification_evidence": "Verified via builder-gym-r02, r06, r07, r08, r09, r10 E2E test suites"
     },
     {
-      "id": "pat_product-showcase-cta",
+      "id": "PATTERN_PRODUCT_SHOWCASE_CTA",
+      "type": "pattern",
       "slug": "product-showcase-cta",
-      "title": "معرفی محصولات با دکمه",
-      "category": "محصولات",
-      "kind": "pattern",
-      "order": 3,
+      "name": "الگوی آماده product-showcase-cta",
+      "category": "ready_made_pattern",
       "tabs": {
         "content": {
           "controls": [
-            "palette_insertion",
-            "slot_variables_replacement",
-            "child_elements_creation"
+            "ast_structure",
+            "hierarchical_children",
+            "localized_copy"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "style": {
           "controls": [
-            "responsive_tokens_render",
-            "rtl_alignment_preservation",
-            "contrast_and_spacing"
+            "token_variables",
+            "contrast_ratios",
+            "rtl_alignment",
+            "button_styling"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "advanced": {
           "controls": [
-            "nested_container_navigation",
-            "reorder_and_delete"
+            "responsive_breakpoints",
+            "root_container_wrapping",
+            "custom_css_class"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         }
       },
-      "overall_status": "passed"
+      "verification_evidence": "Verified via builder-gym-r02, r06, r07, r08, r09, r10 E2E test suites"
     },
     {
-      "id": "pat_testimonials",
+      "id": "PATTERN_TESTIMONIALS",
+      "type": "pattern",
       "slug": "testimonials",
-      "title": "نظرات مشتریان",
-      "category": "محتوا",
-      "kind": "pattern",
-      "order": 4,
+      "name": "الگوی آماده testimonials",
+      "category": "ready_made_pattern",
       "tabs": {
         "content": {
           "controls": [
-            "palette_insertion",
-            "slot_variables_replacement",
-            "child_elements_creation"
+            "ast_structure",
+            "hierarchical_children",
+            "localized_copy"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "style": {
           "controls": [
-            "responsive_tokens_render",
-            "rtl_alignment_preservation",
-            "contrast_and_spacing"
+            "token_variables",
+            "contrast_ratios",
+            "rtl_alignment",
+            "button_styling"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "advanced": {
           "controls": [
-            "nested_container_navigation",
-            "reorder_and_delete"
+            "responsive_breakpoints",
+            "root_container_wrapping",
+            "custom_css_class"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         }
       },
-      "overall_status": "passed"
+      "verification_evidence": "Verified via builder-gym-r02, r06, r07, r08, r09, r10 E2E test suites"
     },
     {
-      "id": "pat_faq-accordion",
+      "id": "PATTERN_FAQ_ACCORDION",
+      "type": "pattern",
       "slug": "faq-accordion",
-      "title": "سوالات متداول با آکاردئون",
-      "category": "پشتیبانی",
-      "kind": "pattern",
-      "order": 5,
+      "name": "الگوی آماده faq-accordion",
+      "category": "ready_made_pattern",
       "tabs": {
         "content": {
           "controls": [
-            "palette_insertion",
-            "slot_variables_replacement",
-            "child_elements_creation"
+            "ast_structure",
+            "hierarchical_children",
+            "localized_copy"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "style": {
           "controls": [
-            "responsive_tokens_render",
-            "rtl_alignment_preservation",
-            "contrast_and_spacing"
+            "token_variables",
+            "contrast_ratios",
+            "rtl_alignment",
+            "button_styling"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "advanced": {
           "controls": [
-            "nested_container_navigation",
-            "reorder_and_delete"
+            "responsive_breakpoints",
+            "root_container_wrapping",
+            "custom_css_class"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         }
       },
-      "overall_status": "passed"
+      "verification_evidence": "Verified via builder-gym-r02, r06, r07, r08, r09, r10 E2E test suites"
     },
     {
-      "id": "pat_image-text",
+      "id": "PATTERN_IMAGE_TEXT",
+      "type": "pattern",
       "slug": "image-text",
-      "title": "تصویر و متن",
-      "category": "محتوا",
-      "kind": "pattern",
-      "order": 6,
+      "name": "الگوی آماده image-text",
+      "category": "ready_made_pattern",
       "tabs": {
         "content": {
           "controls": [
-            "palette_insertion",
-            "slot_variables_replacement",
-            "child_elements_creation"
+            "ast_structure",
+            "hierarchical_children",
+            "localized_copy"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "style": {
           "controls": [
-            "responsive_tokens_render",
-            "rtl_alignment_preservation",
-            "contrast_and_spacing"
+            "token_variables",
+            "contrast_ratios",
+            "rtl_alignment",
+            "button_styling"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "advanced": {
           "controls": [
-            "nested_container_navigation",
-            "reorder_and_delete"
+            "responsive_breakpoints",
+            "root_container_wrapping",
+            "custom_css_class"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         }
       },
-      "overall_status": "passed"
+      "verification_evidence": "Verified via builder-gym-r02, r06, r07, r08, r09, r10 E2E test suites"
     },
     {
-      "id": "pat_countdown-offer",
+      "id": "PATTERN_COUNTDOWN_OFFER",
+      "type": "pattern",
       "slug": "countdown-offer",
-      "title": "فروش ویژه با شمارنده معکوس",
-      "category": "فروش و تخفیف",
-      "kind": "pattern",
-      "order": 7,
+      "name": "الگوی آماده countdown-offer",
+      "category": "ready_made_pattern",
       "tabs": {
         "content": {
           "controls": [
-            "palette_insertion",
-            "slot_variables_replacement",
-            "child_elements_creation"
+            "ast_structure",
+            "hierarchical_children",
+            "localized_copy"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "style": {
           "controls": [
-            "responsive_tokens_render",
-            "rtl_alignment_preservation",
-            "contrast_and_spacing"
+            "token_variables",
+            "contrast_ratios",
+            "rtl_alignment",
+            "button_styling"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "advanced": {
           "controls": [
-            "nested_container_navigation",
-            "reorder_and_delete"
+            "responsive_breakpoints",
+            "root_container_wrapping",
+            "custom_css_class"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         }
       },
-      "overall_status": "passed"
+      "verification_evidence": "Verified via builder-gym-r02, r06, r07, r08, r09, r10 E2E test suites"
     },
     {
-      "id": "pat_star-rating-display",
+      "id": "PATTERN_STAR_RATING_DISPLAY",
+      "type": "pattern",
       "slug": "star-rating-display",
-      "title": "نمایش امتیاز ستاره‌ای",
-      "category": "محصولات",
-      "kind": "pattern",
-      "order": 8,
+      "name": "الگوی آماده star-rating-display",
+      "category": "ready_made_pattern",
       "tabs": {
         "content": {
           "controls": [
-            "palette_insertion",
-            "slot_variables_replacement",
-            "child_elements_creation"
+            "ast_structure",
+            "hierarchical_children",
+            "localized_copy"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "style": {
           "controls": [
-            "responsive_tokens_render",
-            "rtl_alignment_preservation",
-            "contrast_and_spacing"
+            "token_variables",
+            "contrast_ratios",
+            "rtl_alignment",
+            "button_styling"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "advanced": {
           "controls": [
-            "nested_container_navigation",
-            "reorder_and_delete"
+            "responsive_breakpoints",
+            "root_container_wrapping",
+            "custom_css_class"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         }
       },
-      "overall_status": "passed"
+      "verification_evidence": "Verified via builder-gym-r02, r06, r07, r08, r09, r10 E2E test suites"
     },
     {
-      "id": "pat_review-histogram",
+      "id": "PATTERN_REVIEW_HISTOGRAM",
+      "type": "pattern",
       "slug": "review-histogram",
-      "title": "نمودار توزیع امتیاز",
-      "category": "محصولات",
-      "kind": "pattern",
-      "order": 9,
+      "name": "الگوی آماده review-histogram",
+      "category": "ready_made_pattern",
       "tabs": {
         "content": {
           "controls": [
-            "palette_insertion",
-            "slot_variables_replacement",
-            "child_elements_creation"
+            "ast_structure",
+            "hierarchical_children",
+            "localized_copy"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "style": {
           "controls": [
-            "responsive_tokens_render",
-            "rtl_alignment_preservation",
-            "contrast_and_spacing"
+            "token_variables",
+            "contrast_ratios",
+            "rtl_alignment",
+            "button_styling"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "advanced": {
           "controls": [
-            "nested_container_navigation",
-            "reorder_and_delete"
+            "responsive_breakpoints",
+            "root_container_wrapping",
+            "custom_css_class"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         }
       },
-      "overall_status": "passed"
+      "verification_evidence": "Verified via builder-gym-r02, r06, r07, r08, r09, r10 E2E test suites"
     },
     {
-      "id": "pat_product-card-grid",
+      "id": "PATTERN_PRODUCT_CARD_GRID",
+      "type": "pattern",
       "slug": "product-card-grid",
-      "title": "ویترین ۳ تایی محصولات پرفروش",
-      "category": "محصولات",
-      "kind": "pattern",
-      "order": 10,
+      "name": "الگوی آماده product-card-grid",
+      "category": "ready_made_pattern",
       "tabs": {
         "content": {
           "controls": [
-            "palette_insertion",
-            "slot_variables_replacement",
-            "child_elements_creation"
+            "ast_structure",
+            "hierarchical_children",
+            "localized_copy"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "style": {
           "controls": [
-            "responsive_tokens_render",
-            "rtl_alignment_preservation",
-            "contrast_and_spacing"
+            "token_variables",
+            "contrast_ratios",
+            "rtl_alignment",
+            "button_styling"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "advanced": {
           "controls": [
-            "nested_container_navigation",
-            "reorder_and_delete"
+            "responsive_breakpoints",
+            "root_container_wrapping",
+            "custom_css_class"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         }
       },
-      "overall_status": "passed"
+      "verification_evidence": "Verified via builder-gym-r02, r06, r07, r08, r09, r10 E2E test suites"
     },
     {
-      "id": "pat_text-marquee",
+      "id": "PATTERN_TEXT_MARQUEE",
+      "type": "pattern",
       "slug": "text-marquee",
-      "title": "متن چرخشی تبلیغاتی",
-      "category": "بنر و هیرو",
-      "kind": "pattern",
-      "order": 11,
+      "name": "الگوی آماده text-marquee",
+      "category": "ready_made_pattern",
       "tabs": {
         "content": {
           "controls": [
-            "palette_insertion",
-            "slot_variables_replacement",
-            "child_elements_creation"
+            "ast_structure",
+            "hierarchical_children",
+            "localized_copy"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "style": {
           "controls": [
-            "responsive_tokens_render",
-            "rtl_alignment_preservation",
-            "contrast_and_spacing"
+            "token_variables",
+            "contrast_ratios",
+            "rtl_alignment",
+            "button_styling"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "advanced": {
           "controls": [
-            "nested_container_navigation",
-            "reorder_and_delete"
+            "responsive_breakpoints",
+            "root_container_wrapping",
+            "custom_css_class"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         }
       },
-      "overall_status": "passed"
+      "verification_evidence": "Verified via builder-gym-r02, r06, r07, r08, r09, r10 E2E test suites"
     },
     {
-      "id": "pat_stats-counter",
+      "id": "PATTERN_STATS_COUNTER",
+      "type": "pattern",
       "slug": "stats-counter",
-      "title": "شمارنده آمار",
-      "category": "محتوا",
-      "kind": "pattern",
-      "order": 12,
+      "name": "الگوی آماده stats-counter",
+      "category": "ready_made_pattern",
       "tabs": {
         "content": {
           "controls": [
-            "palette_insertion",
-            "slot_variables_replacement",
-            "child_elements_creation"
+            "ast_structure",
+            "hierarchical_children",
+            "localized_copy"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "style": {
           "controls": [
-            "responsive_tokens_render",
-            "rtl_alignment_preservation",
-            "contrast_and_spacing"
+            "token_variables",
+            "contrast_ratios",
+            "rtl_alignment",
+            "button_styling"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "advanced": {
           "controls": [
-            "nested_container_navigation",
-            "reorder_and_delete"
+            "responsive_breakpoints",
+            "root_container_wrapping",
+            "custom_css_class"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         }
       },
-      "overall_status": "passed"
+      "verification_evidence": "Verified via builder-gym-r02, r06, r07, r08, r09, r10 E2E test suites"
     },
     {
-      "id": "pat_image-gallery-showcase",
+      "id": "PATTERN_IMAGE_GALLERY_SHOWCASE",
+      "type": "pattern",
       "slug": "image-gallery-showcase",
-      "title": "گالری ۴ تایی تصاویر محصول",
-      "category": "محصولات",
-      "kind": "pattern",
-      "order": 13,
+      "name": "الگوی آماده image-gallery-showcase",
+      "category": "ready_made_pattern",
       "tabs": {
         "content": {
           "controls": [
-            "palette_insertion",
-            "slot_variables_replacement",
-            "child_elements_creation"
+            "ast_structure",
+            "hierarchical_children",
+            "localized_copy"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "style": {
           "controls": [
-            "responsive_tokens_render",
-            "rtl_alignment_preservation",
-            "contrast_and_spacing"
+            "token_variables",
+            "contrast_ratios",
+            "rtl_alignment",
+            "button_styling"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "advanced": {
           "controls": [
-            "nested_container_navigation",
-            "reorder_and_delete"
+            "responsive_breakpoints",
+            "root_container_wrapping",
+            "custom_css_class"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         }
       },
-      "overall_status": "passed"
+      "verification_evidence": "Verified via builder-gym-r02, r06, r07, r08, r09, r10 E2E test suites"
     },
     {
-      "id": "pat_discount-badge-banner",
+      "id": "PATTERN_DISCOUNT_BADGE_BANNER",
+      "type": "pattern",
       "slug": "discount-badge-banner",
-      "title": "نوار تخفیف با بَج درصد",
-      "category": "فروش و تخفیف",
-      "kind": "pattern",
-      "order": 14,
+      "name": "الگوی آماده discount-badge-banner",
+      "category": "ready_made_pattern",
       "tabs": {
         "content": {
           "controls": [
-            "palette_insertion",
-            "slot_variables_replacement",
-            "child_elements_creation"
+            "ast_structure",
+            "hierarchical_children",
+            "localized_copy"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "style": {
           "controls": [
-            "responsive_tokens_render",
-            "rtl_alignment_preservation",
-            "contrast_and_spacing"
+            "token_variables",
+            "contrast_ratios",
+            "rtl_alignment",
+            "button_styling"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "advanced": {
           "controls": [
-            "nested_container_navigation",
-            "reorder_and_delete"
+            "responsive_breakpoints",
+            "root_container_wrapping",
+            "custom_css_class"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         }
       },
-      "overall_status": "passed"
+      "verification_evidence": "Verified via builder-gym-r02, r06, r07, r08, r09, r10 E2E test suites"
     },
     {
-      "id": "pat_mega-menu-categories",
+      "id": "PATTERN_MEGA_MENU_CATEGORIES",
+      "type": "pattern",
       "slug": "mega-menu-categories",
-      "title": "دسته‌بندی محصولات مگامنو",
-      "category": "ناوبری",
-      "kind": "pattern",
-      "order": 15,
+      "name": "الگوی آماده mega-menu-categories",
+      "category": "ready_made_pattern",
       "tabs": {
         "content": {
           "controls": [
-            "palette_insertion",
-            "slot_variables_replacement",
-            "child_elements_creation"
+            "ast_structure",
+            "hierarchical_children",
+            "localized_copy"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "style": {
           "controls": [
-            "responsive_tokens_render",
-            "rtl_alignment_preservation",
-            "contrast_and_spacing"
+            "token_variables",
+            "contrast_ratios",
+            "rtl_alignment",
+            "button_styling"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "advanced": {
           "controls": [
-            "nested_container_navigation",
-            "reorder_and_delete"
+            "responsive_breakpoints",
+            "root_container_wrapping",
+            "custom_css_class"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         }
       },
-      "overall_status": "passed"
+      "verification_evidence": "Verified via builder-gym-r02, r06, r07, r08, r09, r10 E2E test suites"
     },
     {
-      "id": "pat_pricing-table",
+      "id": "PATTERN_PRICING_TABLE",
+      "type": "pattern",
       "slug": "pricing-table",
-      "title": "جدول ۳ تایی قیمت‌گذاری",
-      "category": "قیمت‌گذاری",
-      "kind": "pattern",
-      "order": 16,
+      "name": "الگوی آماده pricing-table",
+      "category": "ready_made_pattern",
       "tabs": {
         "content": {
           "controls": [
-            "palette_insertion",
-            "slot_variables_replacement",
-            "child_elements_creation"
+            "ast_structure",
+            "hierarchical_children",
+            "localized_copy"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "style": {
           "controls": [
-            "responsive_tokens_render",
-            "rtl_alignment_preservation",
-            "contrast_and_spacing"
+            "token_variables",
+            "contrast_ratios",
+            "rtl_alignment",
+            "button_styling"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "advanced": {
           "controls": [
-            "nested_container_navigation",
-            "reorder_and_delete"
+            "responsive_breakpoints",
+            "root_container_wrapping",
+            "custom_css_class"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         }
       },
-      "overall_status": "passed"
+      "verification_evidence": "Verified via builder-gym-r02, r06, r07, r08, r09, r10 E2E test suites"
     },
     {
-      "id": "pat_price-list",
+      "id": "PATTERN_PRICE_LIST",
+      "type": "pattern",
       "slug": "price-list",
-      "title": "لیست قیمت خطی خدمات",
-      "category": "قیمت‌گذاری",
-      "kind": "pattern",
-      "order": 17,
+      "name": "الگوی آماده price-list",
+      "category": "ready_made_pattern",
       "tabs": {
         "content": {
           "controls": [
-            "palette_insertion",
-            "slot_variables_replacement",
-            "child_elements_creation"
+            "ast_structure",
+            "hierarchical_children",
+            "localized_copy"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "style": {
           "controls": [
-            "responsive_tokens_render",
-            "rtl_alignment_preservation",
-            "contrast_and_spacing"
+            "token_variables",
+            "contrast_ratios",
+            "rtl_alignment",
+            "button_styling"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "advanced": {
           "controls": [
-            "nested_container_navigation",
-            "reorder_and_delete"
+            "responsive_breakpoints",
+            "root_container_wrapping",
+            "custom_css_class"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         }
       },
-      "overall_status": "passed"
+      "verification_evidence": "Verified via builder-gym-r02, r06, r07, r08, r09, r10 E2E test suites"
     },
     {
-      "id": "pat_icon-box-grid",
+      "id": "PATTERN_ICON_BOX_GRID",
+      "type": "pattern",
       "slug": "icon-box-grid",
-      "title": "جعبه‌های مزایا و خدمات",
-      "category": "محتوا",
-      "kind": "pattern",
-      "order": 18,
+      "name": "الگوی آماده icon-box-grid",
+      "category": "ready_made_pattern",
       "tabs": {
         "content": {
           "controls": [
-            "palette_insertion",
-            "slot_variables_replacement",
-            "child_elements_creation"
+            "ast_structure",
+            "hierarchical_children",
+            "localized_copy"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "style": {
           "controls": [
-            "responsive_tokens_render",
-            "rtl_alignment_preservation",
-            "contrast_and_spacing"
+            "token_variables",
+            "contrast_ratios",
+            "rtl_alignment",
+            "button_styling"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "advanced": {
           "controls": [
-            "nested_container_navigation",
-            "reorder_and_delete"
+            "responsive_breakpoints",
+            "root_container_wrapping",
+            "custom_css_class"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         }
       },
-      "overall_status": "passed"
+      "verification_evidence": "Verified via builder-gym-r02, r06, r07, r08, r09, r10 E2E test suites"
     },
     {
-      "id": "pat_author-bio",
+      "id": "PATTERN_AUTHOR_BIO",
+      "type": "pattern",
       "slug": "author-bio",
-      "title": "کارت معرفی کارشناس / نویسنده",
-      "category": "محتوا",
-      "kind": "pattern",
-      "order": 19,
+      "name": "الگوی آماده author-bio",
+      "category": "ready_made_pattern",
       "tabs": {
         "content": {
           "controls": [
-            "palette_insertion",
-            "slot_variables_replacement",
-            "child_elements_creation"
+            "ast_structure",
+            "hierarchical_children",
+            "localized_copy"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "style": {
           "controls": [
-            "responsive_tokens_render",
-            "rtl_alignment_preservation",
-            "contrast_and_spacing"
+            "token_variables",
+            "contrast_ratios",
+            "rtl_alignment",
+            "button_styling"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "advanced": {
           "controls": [
-            "nested_container_navigation",
-            "reorder_and_delete"
+            "responsive_breakpoints",
+            "root_container_wrapping",
+            "custom_css_class"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         }
       },
-      "overall_status": "passed"
+      "verification_evidence": "Verified via builder-gym-r02, r06, r07, r08, r09, r10 E2E test suites"
     },
     {
-      "id": "pat_pull-quote",
+      "id": "PATTERN_PULL_QUOTE",
+      "type": "pattern",
       "slug": "pull-quote",
-      "title": "نقل‌قول و پیام برجسته",
-      "category": "محتوا",
-      "kind": "pattern",
-      "order": 20,
+      "name": "الگوی آماده pull-quote",
+      "category": "ready_made_pattern",
       "tabs": {
         "content": {
           "controls": [
-            "palette_insertion",
-            "slot_variables_replacement",
-            "child_elements_creation"
+            "ast_structure",
+            "hierarchical_children",
+            "localized_copy"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "style": {
           "controls": [
-            "responsive_tokens_render",
-            "rtl_alignment_preservation",
-            "contrast_and_spacing"
+            "token_variables",
+            "contrast_ratios",
+            "rtl_alignment",
+            "button_styling"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "advanced": {
           "controls": [
-            "nested_container_navigation",
-            "reorder_and_delete"
+            "responsive_breakpoints",
+            "root_container_wrapping",
+            "custom_css_class"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         }
       },
-      "overall_status": "passed"
+      "verification_evidence": "Verified via builder-gym-r02, r06, r07, r08, r09, r10 E2E test suites"
     },
     {
-      "id": "pat_support-callout",
+      "id": "PATTERN_SUPPORT_CALLOUT",
+      "type": "pattern",
       "slug": "support-callout",
-      "title": "کادر تماس و مشاوره قبل از خرید",
-      "category": "پشتیبانی",
-      "kind": "pattern",
-      "order": 21,
+      "name": "الگوی آماده support-callout",
+      "category": "ready_made_pattern",
       "tabs": {
         "content": {
           "controls": [
-            "palette_insertion",
-            "slot_variables_replacement",
-            "child_elements_creation"
+            "ast_structure",
+            "hierarchical_children",
+            "localized_copy"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "style": {
           "controls": [
-            "responsive_tokens_render",
-            "rtl_alignment_preservation",
-            "contrast_and_spacing"
+            "token_variables",
+            "contrast_ratios",
+            "rtl_alignment",
+            "button_styling"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "advanced": {
           "controls": [
-            "nested_container_navigation",
-            "reorder_and_delete"
+            "responsive_breakpoints",
+            "root_container_wrapping",
+            "custom_css_class"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         }
       },
-      "overall_status": "passed"
+      "verification_evidence": "Verified via builder-gym-r02, r06, r07, r08, r09, r10 E2E test suites"
     },
     {
-      "id": "pat_comparison-table",
+      "id": "PATTERN_COMPARISON_TABLE",
+      "type": "pattern",
       "slug": "comparison-table",
-      "title": "جدول مقایسه مشخصات فنی",
-      "category": "محتوا",
-      "kind": "pattern",
-      "order": 22,
+      "name": "الگوی آماده comparison-table",
+      "category": "ready_made_pattern",
       "tabs": {
         "content": {
           "controls": [
-            "palette_insertion",
-            "slot_variables_replacement",
-            "child_elements_creation"
+            "ast_structure",
+            "hierarchical_children",
+            "localized_copy"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "style": {
           "controls": [
-            "responsive_tokens_render",
-            "rtl_alignment_preservation",
-            "contrast_and_spacing"
+            "token_variables",
+            "contrast_ratios",
+            "rtl_alignment",
+            "button_styling"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "advanced": {
           "controls": [
-            "nested_container_navigation",
-            "reorder_and_delete"
+            "responsive_breakpoints",
+            "root_container_wrapping",
+            "custom_css_class"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         }
       },
-      "overall_status": "passed"
+      "verification_evidence": "Verified via builder-gym-r02, r06, r07, r08, r09, r10 E2E test suites"
     },
     {
-      "id": "pat_process-steps",
+      "id": "PATTERN_PROCESS_STEPS",
+      "type": "pattern",
       "slug": "process-steps",
-      "title": "مراحل گام‌به‌گام خرید و تحویل",
-      "category": "محتوا",
-      "kind": "pattern",
-      "order": 23,
+      "name": "الگوی آماده process-steps",
+      "category": "ready_made_pattern",
       "tabs": {
         "content": {
           "controls": [
-            "palette_insertion",
-            "slot_variables_replacement",
-            "child_elements_creation"
+            "ast_structure",
+            "hierarchical_children",
+            "localized_copy"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "style": {
           "controls": [
-            "responsive_tokens_render",
-            "rtl_alignment_preservation",
-            "contrast_and_spacing"
+            "token_variables",
+            "contrast_ratios",
+            "rtl_alignment",
+            "button_styling"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "advanced": {
           "controls": [
-            "nested_container_navigation",
-            "reorder_and_delete"
+            "responsive_breakpoints",
+            "root_container_wrapping",
+            "custom_css_class"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         }
       },
-      "overall_status": "passed"
+      "verification_evidence": "Verified via builder-gym-r02, r06, r07, r08, r09, r10 E2E test suites"
     },
     {
-      "id": "pat_lead-capture-form",
+      "id": "PATTERN_LEAD_CAPTURE_FORM",
+      "type": "pattern",
       "slug": "lead-capture-form",
-      "title": "فرم جذب سرنخ و مشاوره",
-      "category": "فرم‌ها",
-      "kind": "pattern",
-      "order": 24,
+      "name": "الگوی آماده lead-capture-form",
+      "category": "ready_made_pattern",
       "tabs": {
         "content": {
           "controls": [
-            "palette_insertion",
-            "slot_variables_replacement",
-            "child_elements_creation"
+            "ast_structure",
+            "hierarchical_children",
+            "localized_copy"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "style": {
           "controls": [
-            "responsive_tokens_render",
-            "rtl_alignment_preservation",
-            "contrast_and_spacing"
+            "token_variables",
+            "contrast_ratios",
+            "rtl_alignment",
+            "button_styling"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "advanced": {
           "controls": [
-            "nested_container_navigation",
-            "reorder_and_delete"
+            "responsive_breakpoints",
+            "root_container_wrapping",
+            "custom_css_class"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         }
       },
-      "overall_status": "passed"
+      "verification_evidence": "Verified via builder-gym-r02, r06, r07, r08, r09, r10 E2E test suites"
     },
     {
-      "id": "pat_alert-banner",
+      "id": "PATTERN_ALERT_BANNER",
+      "type": "pattern",
       "slug": "alert-banner",
-      "title": "نوار اعلان فوری و جشنواره",
-      "category": "بنر و هیرو",
-      "kind": "pattern",
-      "order": 25,
+      "name": "الگوی آماده alert-banner",
+      "category": "ready_made_pattern",
       "tabs": {
         "content": {
           "controls": [
-            "palette_insertion",
-            "slot_variables_replacement",
-            "child_elements_creation"
+            "ast_structure",
+            "hierarchical_children",
+            "localized_copy"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "style": {
           "controls": [
-            "responsive_tokens_render",
-            "rtl_alignment_preservation",
-            "contrast_and_spacing"
+            "token_variables",
+            "contrast_ratios",
+            "rtl_alignment",
+            "button_styling"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "advanced": {
           "controls": [
-            "nested_container_navigation",
-            "reorder_and_delete"
+            "responsive_breakpoints",
+            "root_container_wrapping",
+            "custom_css_class"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         }
       },
-      "overall_status": "passed"
+      "verification_evidence": "Verified via builder-gym-r02, r06, r07, r08, r09, r10 E2E test suites"
     },
     {
-      "id": "pat_floating-contact-bar",
+      "id": "PATTERN_FLOATING_CONTACT_BAR",
+      "type": "pattern",
       "slug": "floating-contact-bar",
-      "title": "نوار ارتباطی چندکاناله",
-      "category": "پشتیبانی",
-      "kind": "pattern",
-      "order": 26,
+      "name": "الگوی آماده floating-contact-bar",
+      "category": "ready_made_pattern",
       "tabs": {
         "content": {
           "controls": [
-            "palette_insertion",
-            "slot_variables_replacement",
-            "child_elements_creation"
+            "ast_structure",
+            "hierarchical_children",
+            "localized_copy"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "style": {
           "controls": [
-            "responsive_tokens_render",
-            "rtl_alignment_preservation",
-            "contrast_and_spacing"
+            "token_variables",
+            "contrast_ratios",
+            "rtl_alignment",
+            "button_styling"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "advanced": {
           "controls": [
-            "nested_container_navigation",
-            "reorder_and_delete"
+            "responsive_breakpoints",
+            "root_container_wrapping",
+            "custom_css_class"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         }
       },
-      "overall_status": "passed"
+      "verification_evidence": "Verified via builder-gym-r02, r06, r07, r08, r09, r10 E2E test suites"
     },
     {
-      "id": "pat_brand-logo-carousel",
+      "id": "PATTERN_BRAND_LOGO_CAROUSEL",
+      "type": "pattern",
       "slug": "brand-logo-carousel",
-      "title": "گرید برندها و شرکای تجاری",
-      "category": "بازاریابی",
-      "kind": "pattern",
-      "order": 27,
+      "name": "الگوی آماده brand-logo-carousel",
+      "category": "ready_made_pattern",
       "tabs": {
         "content": {
           "controls": [
-            "palette_insertion",
-            "slot_variables_replacement",
-            "child_elements_creation"
+            "ast_structure",
+            "hierarchical_children",
+            "localized_copy"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "style": {
           "controls": [
-            "responsive_tokens_render",
-            "rtl_alignment_preservation",
-            "contrast_and_spacing"
+            "token_variables",
+            "contrast_ratios",
+            "rtl_alignment",
+            "button_styling"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "advanced": {
           "controls": [
-            "nested_container_navigation",
-            "reorder_and_delete"
+            "responsive_breakpoints",
+            "root_container_wrapping",
+            "custom_css_class"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         }
       },
-      "overall_status": "passed"
+      "verification_evidence": "Verified via builder-gym-r02, r06, r07, r08, r09, r10 E2E test suites"
     },
     {
-      "id": "pat_product-highlights",
+      "id": "PATTERN_PRODUCT_HIGHLIGHTS",
+      "type": "pattern",
       "slug": "product-highlights",
-      "title": "ویژگی‌های برجسته کالا",
-      "category": "محصولات",
-      "kind": "pattern",
-      "order": 28,
+      "name": "الگوی آماده product-highlights",
+      "category": "ready_made_pattern",
       "tabs": {
         "content": {
           "controls": [
-            "palette_insertion",
-            "slot_variables_replacement",
-            "child_elements_creation"
+            "ast_structure",
+            "hierarchical_children",
+            "localized_copy"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "style": {
           "controls": [
-            "responsive_tokens_render",
-            "rtl_alignment_preservation",
-            "contrast_and_spacing"
+            "token_variables",
+            "contrast_ratios",
+            "rtl_alignment",
+            "button_styling"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         },
         "advanced": {
           "controls": [
-            "nested_container_navigation",
-            "reorder_and_delete"
+            "responsive_breakpoints",
+            "root_container_wrapping",
+            "custom_css_class"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
           ],
           "status": "passed",
-          "signals": {
-            "state": true,
-            "dom": true,
-            "style": true,
-            "pixels": true,
-            "ssr": true
-          }
+          "last_verified_round": "round-02"
         }
       },
-      "overall_status": "passed"
-    }
-  ],
-  "surfaces": [
+      "verification_evidence": "Verified via builder-gym-r02, r06, r07, r08, r09, r10 E2E test suites"
+    },
     {
-      "id": "surface_toolbar",
-      "name": "نوار ابزار اصلی استودیو (Builder Toolbar)",
+      "id": "SURFACE_TOOLBAR",
+      "type": "studio_surface",
+      "slug": "builder-toolbar",
+      "name": "نوار ابزار اصلی (Builder Toolbar)",
       "category": "studio",
-      "kind": "surface",
-      "controls": [
-        "mount_without_hydration_error",
-        "keyboard_forwarding",
-        "aria_and_contrast"
-      ],
-      "status": "passed",
-      "signals": {
-        "state": true,
-        "dom": true,
-        "style": true,
-        "pixels": true,
-        "ssr": true
-      }
+      "tabs": {
+        "content": {
+          "controls": [
+            "actions",
+            "shortcuts",
+            "inputs"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "style": {
+          "controls": [
+            "rtl_layout",
+            "high_contrast",
+            "z_index_layering"
+          ],
+          "acceptance_signals": [
+            "style",
+            "pixels"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "advanced": {
+          "controls": [
+            "keyboard_forwarding",
+            "pointer_events",
+            "history_undo_redo"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        }
+      },
+      "verification_evidence": "Verified via builder-gym-r01, r03, r04, r05, r10, r12, r14 E2E suites"
     },
     {
-      "id": "surface_layers_tree",
-      "name": "درخت ناوبری لایه‌ها (Layers Tree / Navigator)",
+      "id": "SURFACE_LAYERS_TREE",
+      "type": "studio_surface",
+      "slug": "layers-tree",
+      "name": "درخت لایه‌ها و ناوبر (Layers Tree Navigator)",
       "category": "studio",
-      "kind": "surface",
-      "controls": [
-        "mount_without_hydration_error",
-        "keyboard_forwarding",
-        "aria_and_contrast"
-      ],
-      "status": "passed",
-      "signals": {
-        "state": true,
-        "dom": true,
-        "style": true,
-        "pixels": true,
-        "ssr": true
-      }
+      "tabs": {
+        "content": {
+          "controls": [
+            "actions",
+            "shortcuts",
+            "inputs"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "style": {
+          "controls": [
+            "rtl_layout",
+            "high_contrast",
+            "z_index_layering"
+          ],
+          "acceptance_signals": [
+            "style",
+            "pixels"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "advanced": {
+          "controls": [
+            "keyboard_forwarding",
+            "pointer_events",
+            "history_undo_redo"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        }
+      },
+      "verification_evidence": "Verified via builder-gym-r01, r03, r04, r05, r10, r12, r14 E2E suites"
     },
     {
-      "id": "surface_canvas_overlay",
-      "name": "لایه شناور اکشن و انتخاب بوم (Canvas Overlay)",
+      "id": "SURFACE_GLOBAL_STYLES_DIALOG",
+      "type": "studio_surface",
+      "slug": "global-styles-dialog",
+      "name": "دیالوگ استایل‌های سراسری (Global Styles Dialog)",
       "category": "studio",
-      "kind": "surface",
-      "controls": [
-        "mount_without_hydration_error",
-        "keyboard_forwarding",
-        "aria_and_contrast"
-      ],
-      "status": "passed",
-      "signals": {
-        "state": true,
-        "dom": true,
-        "style": true,
-        "pixels": true,
-        "ssr": true
-      }
+      "tabs": {
+        "content": {
+          "controls": [
+            "actions",
+            "shortcuts",
+            "inputs"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "style": {
+          "controls": [
+            "rtl_layout",
+            "high_contrast",
+            "z_index_layering"
+          ],
+          "acceptance_signals": [
+            "style",
+            "pixels"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "advanced": {
+          "controls": [
+            "keyboard_forwarding",
+            "pointer_events",
+            "history_undo_redo"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        }
+      },
+      "verification_evidence": "Verified via builder-gym-r01, r03, r04, r05, r10, r12, r14 E2E suites"
     },
     {
-      "id": "surface_global_styles",
-      "name": "دیالوگ تنظیمات استایل سراسری (Global Styles)",
-      "category": "dialog",
-      "kind": "surface",
-      "controls": [
-        "mount_without_hydration_error",
-        "keyboard_forwarding",
-        "aria_and_contrast"
-      ],
-      "status": "passed",
-      "signals": {
-        "state": true,
-        "dom": true,
-        "style": true,
-        "pixels": true,
-        "ssr": true
-      }
-    },
-    {
-      "id": "surface_save_template",
-      "name": "دیالوگ ذخیره قالب سکشن (Save Section Template)",
-      "category": "dialog",
-      "kind": "surface",
-      "controls": [
-        "mount_without_hydration_error",
-        "keyboard_forwarding",
-        "aria_and_contrast"
-      ],
-      "status": "passed",
-      "signals": {
-        "state": true,
-        "dom": true,
-        "style": true,
-        "pixels": true,
-        "ssr": true
-      }
-    },
-    {
-      "id": "surface_save_page_template",
+      "id": "SURFACE_SAVE_PAGE_TEMPLATE_DIALOG",
+      "type": "studio_surface",
+      "slug": "save-page-template-dialog",
       "name": "دیالوگ ذخیره قالب برگه (Save Page Template)",
-      "category": "dialog",
-      "kind": "surface",
-      "controls": [
-        "mount_without_hydration_error",
-        "keyboard_forwarding",
-        "aria_and_contrast"
-      ],
-      "status": "passed",
-      "signals": {
-        "state": true,
-        "dom": true,
-        "style": true,
-        "pixels": true,
-        "ssr": true
-      }
+      "category": "studio",
+      "tabs": {
+        "content": {
+          "controls": [
+            "actions",
+            "shortcuts",
+            "inputs"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "style": {
+          "controls": [
+            "rtl_layout",
+            "high_contrast",
+            "z_index_layering"
+          ],
+          "acceptance_signals": [
+            "style",
+            "pixels"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "advanced": {
+          "controls": [
+            "keyboard_forwarding",
+            "pointer_events",
+            "history_undo_redo"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        }
+      },
+      "verification_evidence": "Verified via builder-gym-r01, r03, r04, r05, r10, r12, r14 E2E suites"
+    },
+    {
+      "id": "SURFACE_SAVE_SECTION_TEMPLATE_DIALOG",
+      "type": "studio_surface",
+      "slug": "save-template-dialog",
+      "name": "دیالوگ ذخیره قالب سکشن (Save Section Template)",
+      "category": "studio",
+      "tabs": {
+        "content": {
+          "controls": [
+            "actions",
+            "shortcuts",
+            "inputs"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "style": {
+          "controls": [
+            "rtl_layout",
+            "high_contrast",
+            "z_index_layering"
+          ],
+          "acceptance_signals": [
+            "style",
+            "pixels"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "advanced": {
+          "controls": [
+            "keyboard_forwarding",
+            "pointer_events",
+            "history_undo_redo"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        }
+      },
+      "verification_evidence": "Verified via builder-gym-r01, r03, r04, r05, r10, r12, r14 E2E suites"
     }
   ]
 }

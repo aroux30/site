@@ -1,16 +1,14 @@
 {
-  "timestamp": "2026-11-21T14:58:18.759Z",
+  "version": "2.0.0",
+  "scannedAt": "2026-11-21T16:09:43.651Z",
   "summary": {
-    "totalIssues": 0,
-    "hardcodedOrEmptyCount": 0,
-    "unreadInCanvasCount": 0,
-    "uncompiledInSsrCount": 0,
-    "widgetControlBlindSpotsCount": 0
+    "HARDCODED_OR_EMPTY_UI_COUNT": 0,
+    "UNREAD_IN_CANVAS_COUNT": 0,
+    "UNCOMPILED_IN_SSR_COUNT": 0,
+    "WIDGET_CONTROL_BLIND_SPOTS_COUNT": 0
   },
-  "categories": {
-    "HARDCODED_OR_EMPTY_UI": [],
-    "UNREAD_IN_CANVAS": [],
-    "UNCOMPILED_IN_SSR": [],
-    "WIDGET_CONTROL_BLIND_SPOTS": []
-  }
+  "HARDCODED_OR_EMPTY_UI": [],
+  "UNREAD_IN_CANVAS": [],
+  "UNCOMPILED_IN_SSR": [],
+  "WIDGET_CONTROL_BLIND_SPOTS": []
 }

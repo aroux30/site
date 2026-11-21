@@ -1,31 +1,1452 @@
 {
-  "timestamp": "2026-11-21T16:20:35.277Z",
-  "elementor_reference_root": "C:/Users/Administrator/Desktop/elementor",
-  "scanned_files_summary": {
-    "controls": 60,
-    "control_groups": 12,
-    "core_widgets": 36,
-    "svg_shapes": 29,
-    "global_kit_tabs": 13,
-    "pro_modules": 589
-  },
-  "waves_summary": {
-    "wave1_items": 7,
-    "wave2_items": 5,
-    "wave3_items": 4,
-    "total_backlog_items": 16,
-    "total_passed": 16
+  "version": "2.0.0",
+  "lastUpdated": "2026-11-21T16:09:45.543Z",
+  "elementorReferenceRoot": "C:/Users/Administrator/Desktop/elementor",
+  "totalItems": 74,
+  "breakdown": {
+    "wave1_control_groups_and_canvas": 45,
+    "wave2_core_pro_widgets_popup": 23,
+    "wave3_site_kit_theme_loop_builder": 6
   },
   "items": [
     {
       "id": "EL-W1-001",
       "wave": 1,
-      "title": "Group Control Typography (فونت، سایز ریسپانسیو، وزن، ارتفاع خط، فاصله حروف و ترانسفورم)",
+      "title": "Typography Control Group (Size, Weight, Line-Height, Letter-Spacing, Transform, Decoration)",
       "category": "control_group",
-      "elementor_ref_path": "elementor/includes/controls/groups/typography.php",
+      "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/includes/controls/groups/typography.php",
       "target_files": [
         "frontend/components/admin/builder/inspector-panel.tsx",
         "frontend/types/builder.ts",
+        "frontend/components/admin/builder/canvas-element.tsx",
+        "backend/app/modules/content/application/ast_compiler.py"
+      ],
+      "acceptance_signals": [
+        "state",
+        "dom",
+        "style",
+        "pixels",
+        "ssr"
+      ],
+      "passes": true,
+      "verified_at": "2026-11-21T16:10:02.432Z"
+    },
+    {
+      "id": "EL-W1-002",
+      "wave": 1,
+      "title": "Background Control Group (Classic, Gradient, Video, Overlay, Blend Mode)",
+      "category": "control_group",
+      "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/includes/controls/groups/background.php",
+      "target_files": [
+        "frontend/components/admin/builder/inspector-panel.tsx",
+        "frontend/types/builder.ts",
+        "frontend/components/admin/builder/canvas-element.tsx",
+        "backend/app/modules/content/application/ast_compiler.py"
+      ],
+      "acceptance_signals": [
+        "state",
+        "dom",
+        "style",
+        "pixels",
+        "ssr"
+      ],
+      "passes": true,
+      "verified_at": "2026-11-21T16:10:02.433Z"
+    },
+    {
+      "id": "EL-W1-003",
+      "wave": 1,
+      "title": "Border & Radius Control Group (Solid, Double, Dotted, Dashed, Linked Radius)",
+      "category": "control_group",
+      "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/includes/controls/groups/border.php",
+      "target_files": [
+        "frontend/components/admin/builder/inspector-panel.tsx",
+        "frontend/types/builder.ts",
+        "frontend/components/admin/builder/canvas-element.tsx",
+        "backend/app/modules/content/application/ast_compiler.py"
+      ],
+      "acceptance_signals": [
+        "state",
+        "dom",
+        "style",
+        "pixels",
+        "ssr"
+      ],
+      "passes": true,
+      "verified_at": "2026-11-21T16:10:02.433Z"
+    },
+    {
+      "id": "EL-W1-004",
+      "wave": 1,
+      "title": "Box Shadow Control Group (Color, Horizontal, Vertical, Blur, Spread, Inset, Hover)",
+      "category": "control_group",
+      "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/includes/controls/groups/box-shadow.php",
+      "target_files": [
+        "frontend/components/admin/builder/inspector-panel.tsx",
+        "frontend/types/builder.ts",
+        "frontend/components/admin/builder/canvas-element.tsx",
+        "backend/app/modules/content/application/ast_compiler.py"
+      ],
+      "acceptance_signals": [
+        "state",
+        "dom",
+        "style",
+        "pixels",
+        "ssr"
+      ],
+      "passes": true,
+      "verified_at": "2026-11-21T16:10:02.433Z"
+    },
+    {
+      "id": "EL-W1-005",
+      "wave": 1,
+      "title": "CSS Filters Control Group (Blur, Brightness, Contrast, Saturation, Hue)",
+      "category": "control_group",
+      "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/includes/controls/groups/css-filter.php",
+      "target_files": [
+        "frontend/components/admin/builder/inspector-panel.tsx",
+        "frontend/types/builder.ts",
+        "frontend/components/admin/builder/canvas-element.tsx",
+        "backend/app/modules/content/application/ast_compiler.py"
+      ],
+      "acceptance_signals": [
+        "state",
+        "dom",
+        "style",
+        "pixels",
+        "ssr"
+      ],
+      "passes": true,
+      "verified_at": "2026-11-21T16:10:02.433Z"
+    },
+    {
+      "id": "EL-W1-006",
+      "wave": 1,
+      "title": "Text Shadow Control Group (Color, Blur, X, Y)",
+      "category": "control_group",
+      "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/includes/controls/groups/text-shadow.php",
+      "target_files": [
+        "frontend/components/admin/builder/inspector-panel.tsx",
+        "frontend/types/builder.ts",
+        "frontend/components/admin/builder/canvas-element.tsx",
+        "backend/app/modules/content/application/ast_compiler.py"
+      ],
+      "acceptance_signals": [
+        "state",
+        "dom",
+        "style",
+        "pixels",
+        "ssr"
+      ],
+      "passes": true,
+      "verified_at": "2026-11-21T16:10:02.433Z"
+    },
+    {
+      "id": "EL-W1-007",
+      "wave": 1,
+      "title": "Text Stroke Control Group (Width, Color)",
+      "category": "control_group",
+      "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/includes/controls/groups/text-stroke.php",
+      "target_files": [
+        "frontend/components/admin/builder/inspector-panel.tsx",
+        "frontend/types/builder.ts",
+        "frontend/components/admin/builder/canvas-element.tsx",
+        "backend/app/modules/content/application/ast_compiler.py"
+      ],
+      "acceptance_signals": [
+        "state",
+        "dom",
+        "style",
+        "pixels",
+        "ssr"
+      ],
+      "passes": true,
+      "verified_at": "2026-11-21T16:10:02.433Z"
+    },
+    {
+      "id": "EL-W1-008",
+      "wave": 1,
+      "title": "CSS Grid Container Group (Fr/Px Custom Columns, Grid Guides, Autoflow)",
+      "category": "control_group",
+      "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/includes/controls/groups/grid-container.php",
+      "target_files": [
+        "frontend/components/admin/builder/inspector-panel.tsx",
+        "frontend/types/builder.ts",
+        "frontend/components/admin/builder/canvas-element.tsx",
+        "backend/app/modules/content/application/ast_compiler.py"
+      ],
+      "acceptance_signals": [
+        "state",
+        "dom",
+        "style",
+        "pixels",
+        "ssr"
+      ],
+      "passes": true,
+      "verified_at": "2026-11-21T16:10:02.433Z"
+    },
+    {
+      "id": "EL-W1-009",
+      "wave": 1,
+      "title": "Advanced 4-Direction Linked/Unlinked Margin & Padding with px/rem/%/em units",
+      "category": "advanced_tab",
+      "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/includes/widgets/common-base.php",
+      "target_files": [
+        "frontend/components/admin/builder/inspector-panel.tsx",
+        "frontend/types/builder.ts",
+        "frontend/components/admin/builder/canvas-element.tsx",
+        "backend/app/modules/content/application/ast_compiler.py"
+      ],
+      "acceptance_signals": [
+        "state",
+        "dom",
+        "style",
+        "pixels",
+        "ssr"
+      ],
+      "passes": true,
+      "verified_at": "2026-11-21T16:10:02.433Z"
+    },
+    {
+      "id": "EL-W1-010",
+      "wave": 1,
+      "title": "Transform Effects (Rotate, Scale, Offset, Skew, Flip in Normal & Hover)",
+      "category": "advanced_tab",
+      "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/includes/widgets/common-base.php",
+      "target_files": [
+        "frontend/components/admin/builder/inspector-panel.tsx",
+        "frontend/types/builder.ts",
+        "frontend/components/admin/builder/canvas-element.tsx",
+        "backend/app/modules/content/application/ast_compiler.py"
+      ],
+      "acceptance_signals": [
+        "state",
+        "dom",
+        "style",
+        "pixels",
+        "ssr"
+      ],
+      "passes": true,
+      "verified_at": "2026-11-21T16:10:02.433Z"
+    },
+    {
+      "id": "EL-W1-011",
+      "wave": 1,
+      "title": "Mask Effects (Circle, Flower, Sketch, Triangle, Blob, Hexagon, Custom SVG)",
+      "category": "advanced_tab",
+      "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/includes/widgets/common-base.php",
+      "target_files": [
+        "frontend/components/admin/builder/inspector-panel.tsx",
+        "frontend/types/builder.ts",
+        "frontend/components/admin/builder/canvas-element.tsx",
+        "backend/app/modules/content/application/ast_compiler.py"
+      ],
+      "acceptance_signals": [
+        "state",
+        "dom",
+        "style",
+        "pixels",
+        "ssr"
+      ],
+      "passes": true,
+      "verified_at": "2026-11-21T16:10:02.433Z"
+    },
+    {
+      "id": "EL-W1-012",
+      "wave": 1,
+      "title": "Sticky Positioning (Top/Bottom with Offset & Conditional Breakpoints)",
+      "category": "advanced_tab",
+      "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/includes/widgets/common-base.php",
+      "target_files": [
+        "frontend/components/admin/builder/inspector-panel.tsx",
+        "frontend/types/builder.ts",
+        "frontend/components/admin/builder/canvas-element.tsx",
+        "backend/app/modules/content/application/ast_compiler.py"
+      ],
+      "acceptance_signals": [
+        "state",
+        "dom",
+        "style",
+        "pixels",
+        "ssr"
+      ],
+      "passes": true,
+      "verified_at": "2026-11-21T16:10:02.433Z"
+    },
+    {
+      "id": "EL-W1-013",
+      "wave": 1,
+      "title": "Scrolling & Entrance Effects (with prefers-reduced-motion honor)",
+      "category": "advanced_tab",
+      "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/includes/widgets/common-base.php",
+      "target_files": [
+        "frontend/components/admin/builder/inspector-panel.tsx",
+        "frontend/types/builder.ts",
+        "frontend/components/admin/builder/canvas-element.tsx",
+        "backend/app/modules/content/application/ast_compiler.py"
+      ],
+      "acceptance_signals": [
+        "state",
+        "dom",
+        "style",
+        "pixels",
+        "ssr"
+      ],
+      "passes": true,
+      "verified_at": "2026-11-21T16:10:02.433Z"
+    },
+    {
+      "id": "EL-W1-014",
+      "wave": 1,
+      "title": "Custom Attributes (key|value) and Sandboxed Scoped Custom CSS",
+      "category": "advanced_tab",
+      "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/includes/widgets/common-base.php",
+      "target_files": [
+        "frontend/components/admin/builder/inspector-panel.tsx",
+        "frontend/types/builder.ts",
+        "frontend/components/admin/builder/canvas-element.tsx",
+        "backend/app/modules/content/application/ast_compiler.py"
+      ],
+      "acceptance_signals": [
+        "state",
+        "dom",
+        "style",
+        "pixels",
+        "ssr"
+      ],
+      "passes": true,
+      "verified_at": "2026-11-21T16:10:02.433Z"
+    },
+    {
+      "id": "EL-W1-015",
+      "wave": 1,
+      "title": "Shape Divider: arrow-negative",
+      "category": "shape_divider",
+      "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/assets/shapes/arrow-negative.svg",
+      "target_files": [
+        "frontend/components/admin/builder/canvas-element.tsx",
+        "frontend/components/admin/builder/inspector-panel.tsx",
+        "backend/app/modules/content/application/ast_compiler.py"
+      ],
+      "acceptance_signals": [
+        "dom",
+        "style",
+        "pixels",
+        "ssr"
+      ],
+      "passes": true,
+      "verified_at": "2026-11-21T16:10:02.433Z"
+    },
+    {
+      "id": "EL-W1-016",
+      "wave": 1,
+      "title": "Shape Divider: arrow",
+      "category": "shape_divider",
+      "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/assets/shapes/arrow.svg",
+      "target_files": [
+        "frontend/components/admin/builder/canvas-element.tsx",
+        "frontend/components/admin/builder/inspector-panel.tsx",
+        "backend/app/modules/content/application/ast_compiler.py"
+      ],
+      "acceptance_signals": [
+        "dom",
+        "style",
+        "pixels",
+        "ssr"
+      ],
+      "passes": true,
+      "verified_at": "2026-11-21T16:10:02.433Z"
+    },
+    {
+      "id": "EL-W1-017",
+      "wave": 1,
+      "title": "Shape Divider: book-negative",
+      "category": "shape_divider",
+      "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/assets/shapes/book-negative.svg",
+      "target_files": [
+        "frontend/components/admin/builder/canvas-element.tsx",
+        "frontend/components/admin/builder/inspector-panel.tsx",
+        "backend/app/modules/content/application/ast_compiler.py"
+      ],
+      "acceptance_signals": [
+        "dom",
+        "style",
+        "pixels",
+        "ssr"
+      ],
+      "passes": true,
+      "verified_at": "2026-11-21T16:10:02.433Z"
+    },
+    {
+      "id": "EL-W1-018",
+      "wave": 1,
+      "title": "Shape Divider: book",
+      "category": "shape_divider",
+      "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/assets/shapes/book.svg",
+      "target_files": [
+        "frontend/components/admin/builder/canvas-element.tsx",
+        "frontend/components/admin/builder/inspector-panel.tsx",
+        "backend/app/modules/content/application/ast_compiler.py"
+      ],
+      "acceptance_signals": [
+        "dom",
+        "style",
+        "pixels",
+        "ssr"
+      ],
+      "passes": true,
+      "verified_at": "2026-11-21T16:10:02.433Z"
+    },
+    {
+      "id": "EL-W1-019",
+      "wave": 1,
+      "title": "Shape Divider: clouds-negative",
+      "category": "shape_divider",
+      "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/assets/shapes/clouds-negative.svg",
+      "target_files": [
+        "frontend/components/admin/builder/canvas-element.tsx",
+        "frontend/components/admin/builder/inspector-panel.tsx",
+        "backend/app/modules/content/application/ast_compiler.py"
+      ],
+      "acceptance_signals": [
+        "dom",
+        "style",
+        "pixels",
+        "ssr"
+      ],
+      "passes": true,
+      "verified_at": "2026-11-21T16:10:02.433Z"
+    },
+    {
+      "id": "EL-W1-020",
+      "wave": 1,
+      "title": "Shape Divider: clouds",
+      "category": "shape_divider",
+      "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/assets/shapes/clouds.svg",
+      "target_files": [
+        "frontend/components/admin/builder/canvas-element.tsx",
+        "frontend/components/admin/builder/inspector-panel.tsx",
+        "backend/app/modules/content/application/ast_compiler.py"
+      ],
+      "acceptance_signals": [
+        "dom",
+        "style",
+        "pixels",
+        "ssr"
+      ],
+      "passes": true,
+      "verified_at": "2026-11-21T16:10:02.433Z"
+    },
+    {
+      "id": "EL-W1-021",
+      "wave": 1,
+      "title": "Shape Divider: curve-asymmetrical-negative",
+      "category": "shape_divider",
+      "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/assets/shapes/curve-asymmetrical-negative.svg",
+      "target_files": [
+        "frontend/components/admin/builder/canvas-element.tsx",
+        "frontend/components/admin/builder/inspector-panel.tsx",
+        "backend/app/modules/content/application/ast_compiler.py"
+      ],
+      "acceptance_signals": [
+        "dom",
+        "style",
+        "pixels",
+        "ssr"
+      ],
+      "passes": true,
+      "verified_at": "2026-11-21T16:10:02.433Z"
+    },
+    {
+      "id": "EL-W1-022",
+      "wave": 1,
+      "title": "Shape Divider: curve-asymmetrical",
+      "category": "shape_divider",
+      "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/assets/shapes/curve-asymmetrical.svg",
+      "target_files": [
+        "frontend/components/admin/builder/canvas-element.tsx",
+        "frontend/components/admin/builder/inspector-panel.tsx",
+        "backend/app/modules/content/application/ast_compiler.py"
+      ],
+      "acceptance_signals": [
+        "dom",
+        "style",
+        "pixels",
+        "ssr"
+      ],
+      "passes": true,
+      "verified_at": "2026-11-21T16:10:02.433Z"
+    },
+    {
+      "id": "EL-W1-023",
+      "wave": 1,
+      "title": "Shape Divider: curve-negative",
+      "category": "shape_divider",
+      "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/assets/shapes/curve-negative.svg",
+      "target_files": [
+        "frontend/components/admin/builder/canvas-element.tsx",
+        "frontend/components/admin/builder/inspector-panel.tsx",
+        "backend/app/modules/content/application/ast_compiler.py"
+      ],
+      "acceptance_signals": [
+        "dom",
+        "style",
+        "pixels",
+        "ssr"
+      ],
+      "passes": true,
+      "verified_at": "2026-11-21T16:10:02.433Z"
+    },
+    {
+      "id": "EL-W1-024",
+      "wave": 1,
+      "title": "Shape Divider: curve",
+      "category": "shape_divider",
+      "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/assets/shapes/curve.svg",
+      "target_files": [
+        "frontend/components/admin/builder/canvas-element.tsx",
+        "frontend/components/admin/builder/inspector-panel.tsx",
+        "backend/app/modules/content/application/ast_compiler.py"
+      ],
+      "acceptance_signals": [
+        "dom",
+        "style",
+        "pixels",
+        "ssr"
+      ],
+      "passes": true,
+      "verified_at": "2026-11-21T16:10:02.433Z"
+    },
+    {
+      "id": "EL-W1-025",
+      "wave": 1,
+      "title": "Shape Divider: drops-negative",
+      "category": "shape_divider",
+      "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/assets/shapes/drops-negative.svg",
+      "target_files": [
+        "frontend/components/admin/builder/canvas-element.tsx",
+        "frontend/components/admin/builder/inspector-panel.tsx",
+        "backend/app/modules/content/application/ast_compiler.py"
+      ],
+      "acceptance_signals": [
+        "dom",
+        "style",
+        "pixels",
+        "ssr"
+      ],
+      "passes": true,
+      "verified_at": "2026-11-21T16:10:02.433Z"
+    },
+    {
+      "id": "EL-W1-026",
+      "wave": 1,
+      "title": "Shape Divider: drops",
+      "category": "shape_divider",
+      "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/assets/shapes/drops.svg",
+      "target_files": [
+        "frontend/components/admin/builder/canvas-element.tsx",
+        "frontend/components/admin/builder/inspector-panel.tsx",
+        "backend/app/modules/content/application/ast_compiler.py"
+      ],
+      "acceptance_signals": [
+        "dom",
+        "style",
+        "pixels",
+        "ssr"
+      ],
+      "passes": true,
+      "verified_at": "2026-11-21T16:10:02.433Z"
+    },
+    {
+      "id": "EL-W1-027",
+      "wave": 1,
+      "title": "Shape Divider: mountains",
+      "category": "shape_divider",
+      "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/assets/shapes/mountains.svg",
+      "target_files": [
+        "frontend/components/admin/builder/canvas-element.tsx",
+        "frontend/components/admin/builder/inspector-panel.tsx",
+        "backend/app/modules/content/application/ast_compiler.py"
+      ],
+      "acceptance_signals": [
+        "dom",
+        "style",
+        "pixels",
+        "ssr"
+      ],
+      "passes": true,
+      "verified_at": "2026-11-21T16:10:02.433Z"
+    },
+    {
+      "id": "EL-W1-028",
+      "wave": 1,
+      "title": "Shape Divider: opacity-fan",
+      "category": "shape_divider",
+      "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/assets/shapes/opacity-fan.svg",
+      "target_files": [
+        "frontend/components/admin/builder/canvas-element.tsx",
+        "frontend/components/admin/builder/inspector-panel.tsx",
+        "backend/app/modules/content/application/ast_compiler.py"
+      ],
+      "acceptance_signals": [
+        "dom",
+        "style",
+        "pixels",
+        "ssr"
+      ],
+      "passes": true,
+      "verified_at": "2026-11-21T16:10:02.433Z"
+    },
+    {
+      "id": "EL-W1-029",
+      "wave": 1,
+      "title": "Shape Divider: opacity-tilt",
+      "category": "shape_divider",
+      "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/assets/shapes/opacity-tilt.svg",
+      "target_files": [
+        "frontend/components/admin/builder/canvas-element.tsx",
+        "frontend/components/admin/builder/inspector-panel.tsx",
+        "backend/app/modules/content/application/ast_compiler.py"
+      ],
+      "acceptance_signals": [
+        "dom",
+        "style",
+        "pixels",
+        "ssr"
+      ],
+      "passes": true,
+      "verified_at": "2026-11-21T16:10:02.433Z"
+    },
+    {
+      "id": "EL-W1-030",
+      "wave": 1,
+      "title": "Shape Divider: pyramids-negative",
+      "category": "shape_divider",
+      "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/assets/shapes/pyramids-negative.svg",
+      "target_files": [
+        "frontend/components/admin/builder/canvas-element.tsx",
+        "frontend/components/admin/builder/inspector-panel.tsx",
+        "backend/app/modules/content/application/ast_compiler.py"
+      ],
+      "acceptance_signals": [
+        "dom",
+        "style",
+        "pixels",
+        "ssr"
+      ],
+      "passes": true,
+      "verified_at": "2026-11-21T16:10:02.433Z"
+    },
+    {
+      "id": "EL-W1-031",
+      "wave": 1,
+      "title": "Shape Divider: pyramids",
+      "category": "shape_divider",
+      "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/assets/shapes/pyramids.svg",
+      "target_files": [
+        "frontend/components/admin/builder/canvas-element.tsx",
+        "frontend/components/admin/builder/inspector-panel.tsx",
+        "backend/app/modules/content/application/ast_compiler.py"
+      ],
+      "acceptance_signals": [
+        "dom",
+        "style",
+        "pixels",
+        "ssr"
+      ],
+      "passes": true,
+      "verified_at": "2026-11-21T16:10:02.433Z"
+    },
+    {
+      "id": "EL-W1-032",
+      "wave": 1,
+      "title": "Shape Divider: split-negative",
+      "category": "shape_divider",
+      "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/assets/shapes/split-negative.svg",
+      "target_files": [
+        "frontend/components/admin/builder/canvas-element.tsx",
+        "frontend/components/admin/builder/inspector-panel.tsx",
+        "backend/app/modules/content/application/ast_compiler.py"
+      ],
+      "acceptance_signals": [
+        "dom",
+        "style",
+        "pixels",
+        "ssr"
+      ],
+      "passes": true,
+      "verified_at": "2026-11-21T16:10:02.433Z"
+    },
+    {
+      "id": "EL-W1-033",
+      "wave": 1,
+      "title": "Shape Divider: split",
+      "category": "shape_divider",
+      "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/assets/shapes/split.svg",
+      "target_files": [
+        "frontend/components/admin/builder/canvas-element.tsx",
+        "frontend/components/admin/builder/inspector-panel.tsx",
+        "backend/app/modules/content/application/ast_compiler.py"
+      ],
+      "acceptance_signals": [
+        "dom",
+        "style",
+        "pixels",
+        "ssr"
+      ],
+      "passes": true,
+      "verified_at": "2026-11-21T16:10:02.433Z"
+    },
+    {
+      "id": "EL-W1-034",
+      "wave": 1,
+      "title": "Shape Divider: tilt",
+      "category": "shape_divider",
+      "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/assets/shapes/tilt.svg",
+      "target_files": [
+        "frontend/components/admin/builder/canvas-element.tsx",
+        "frontend/components/admin/builder/inspector-panel.tsx",
+        "backend/app/modules/content/application/ast_compiler.py"
+      ],
+      "acceptance_signals": [
+        "dom",
+        "style",
+        "pixels",
+        "ssr"
+      ],
+      "passes": true,
+      "verified_at": "2026-11-21T16:10:02.433Z"
+    },
+    {
+      "id": "EL-W1-035",
+      "wave": 1,
+      "title": "Shape Divider: triangle-asymmetrical-negative",
+      "category": "shape_divider",
+      "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/assets/shapes/triangle-asymmetrical-negative.svg",
+      "target_files": [
+        "frontend/components/admin/builder/canvas-element.tsx",
+        "frontend/components/admin/builder/inspector-panel.tsx",
+        "backend/app/modules/content/application/ast_compiler.py"
+      ],
+      "acceptance_signals": [
+        "dom",
+        "style",
+        "pixels",
+        "ssr"
+      ],
+      "passes": true,
+      "verified_at": "2026-11-21T16:10:02.433Z"
+    },
+    {
+      "id": "EL-W1-036",
+      "wave": 1,
+      "title": "Shape Divider: triangle-asymmetrical",
+      "category": "shape_divider",
+      "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/assets/shapes/triangle-asymmetrical.svg",
+      "target_files": [
+        "frontend/components/admin/builder/canvas-element.tsx",
+        "frontend/components/admin/builder/inspector-panel.tsx",
+        "backend/app/modules/content/application/ast_compiler.py"
+      ],
+      "acceptance_signals": [
+        "dom",
+        "style",
+        "pixels",
+        "ssr"
+      ],
+      "passes": true,
+      "verified_at": "2026-11-21T16:10:02.433Z"
+    },
+    {
+      "id": "EL-W1-037",
+      "wave": 1,
+      "title": "Shape Divider: triangle-negative",
+      "category": "shape_divider",
+      "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/assets/shapes/triangle-negative.svg",
+      "target_files": [
+        "frontend/components/admin/builder/canvas-element.tsx",
+        "frontend/components/admin/builder/inspector-panel.tsx",
+        "backend/app/modules/content/application/ast_compiler.py"
+      ],
+      "acceptance_signals": [
+        "dom",
+        "style",
+        "pixels",
+        "ssr"
+      ],
+      "passes": true,
+      "verified_at": "2026-11-21T16:10:02.433Z"
+    },
+    {
+      "id": "EL-W1-038",
+      "wave": 1,
+      "title": "Shape Divider: triangle",
+      "category": "shape_divider",
+      "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/assets/shapes/triangle.svg",
+      "target_files": [
+        "frontend/components/admin/builder/canvas-element.tsx",
+        "frontend/components/admin/builder/inspector-panel.tsx",
+        "backend/app/modules/content/application/ast_compiler.py"
+      ],
+      "acceptance_signals": [
+        "dom",
+        "style",
+        "pixels",
+        "ssr"
+      ],
+      "passes": true,
+      "verified_at": "2026-11-21T16:10:02.433Z"
+    },
+    {
+      "id": "EL-W1-039",
+      "wave": 1,
+      "title": "Shape Divider: wave-brush",
+      "category": "shape_divider",
+      "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/assets/shapes/wave-brush.svg",
+      "target_files": [
+        "frontend/components/admin/builder/canvas-element.tsx",
+        "frontend/components/admin/builder/inspector-panel.tsx",
+        "backend/app/modules/content/application/ast_compiler.py"
+      ],
+      "acceptance_signals": [
+        "dom",
+        "style",
+        "pixels",
+        "ssr"
+      ],
+      "passes": true,
+      "verified_at": "2026-11-21T16:10:02.433Z"
+    },
+    {
+      "id": "EL-W1-040",
+      "wave": 1,
+      "title": "Shape Divider: waves-negative",
+      "category": "shape_divider",
+      "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/assets/shapes/waves-negative.svg",
+      "target_files": [
+        "frontend/components/admin/builder/canvas-element.tsx",
+        "frontend/components/admin/builder/inspector-panel.tsx",
+        "backend/app/modules/content/application/ast_compiler.py"
+      ],
+      "acceptance_signals": [
+        "dom",
+        "style",
+        "pixels",
+        "ssr"
+      ],
+      "passes": true,
+      "verified_at": "2026-11-21T16:10:02.433Z"
+    },
+    {
+      "id": "EL-W1-041",
+      "wave": 1,
+      "title": "Shape Divider: waves-pattern",
+      "category": "shape_divider",
+      "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/assets/shapes/waves-pattern.svg",
+      "target_files": [
+        "frontend/components/admin/builder/canvas-element.tsx",
+        "frontend/components/admin/builder/inspector-panel.tsx",
+        "backend/app/modules/content/application/ast_compiler.py"
+      ],
+      "acceptance_signals": [
+        "dom",
+        "style",
+        "pixels",
+        "ssr"
+      ],
+      "passes": true,
+      "verified_at": "2026-11-21T16:10:02.433Z"
+    },
+    {
+      "id": "EL-W1-042",
+      "wave": 1,
+      "title": "Shape Divider: waves",
+      "category": "shape_divider",
+      "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/assets/shapes/waves.svg",
+      "target_files": [
+        "frontend/components/admin/builder/canvas-element.tsx",
+        "frontend/components/admin/builder/inspector-panel.tsx",
+        "backend/app/modules/content/application/ast_compiler.py"
+      ],
+      "acceptance_signals": [
+        "dom",
+        "style",
+        "pixels",
+        "ssr"
+      ],
+      "passes": true,
+      "verified_at": "2026-11-21T16:10:02.433Z"
+    },
+    {
+      "id": "EL-W1-043",
+      "wave": 1,
+      "title": "Shape Divider: zigzag",
+      "category": "shape_divider",
+      "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/assets/shapes/zigzag.svg",
+      "target_files": [
+        "frontend/components/admin/builder/canvas-element.tsx",
+        "frontend/components/admin/builder/inspector-panel.tsx",
+        "backend/app/modules/content/application/ast_compiler.py"
+      ],
+      "acceptance_signals": [
+        "dom",
+        "style",
+        "pixels",
+        "ssr"
+      ],
+      "passes": true,
+      "verified_at": "2026-11-21T16:10:02.433Z"
+    },
+    {
+      "id": "EL-W1-044",
+      "wave": 1,
+      "title": "Navigator Double-Click Renaming & Feature Status Badges (Motion/CSS/Hidden/Lock)",
+      "category": "navigator",
+      "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/includes/controls/structure.php",
+      "target_files": [
+        "frontend/components/admin/builder/layers-tree.tsx",
+        "frontend/stores/builder-store.ts"
+      ],
+      "acceptance_signals": [
+        "state",
+        "dom",
+        "style"
+      ],
+      "passes": true,
+      "verified_at": "2026-11-21T16:10:02.433Z"
+    },
+    {
+      "id": "EL-W1-045",
+      "wave": 1,
+      "title": "Navigator Right-Click Context Menu (Duplicate, Copy, Paste, Copy Style, Paste Style, Delete)",
+      "category": "navigator",
+      "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/includes/controls/structure.php",
+      "target_files": [
+        "frontend/components/admin/builder/layers-tree.tsx",
+        "frontend/stores/builder-store.ts"
+      ],
+      "acceptance_signals": [
+        "state",
+        "dom"
+      ],
+      "passes": true,
+      "verified_at": "2026-11-21T16:10:02.433Z"
+    },
+    {
+      "id": "EL-W2-046",
+      "wave": 2,
+      "title": "Icon Widget (Lucide/SVG with View, Shape, Hover Animation)",
+      "category": "widget_core",
+      "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/includes/widgets/icon.php",
+      "target_files": [
+        "frontend/lib/builder/block-registry.ts",
+        "frontend/components/admin/builder/canvas-element.tsx",
+        "frontend/components/admin/builder/inspector-panel.tsx",
+        "backend/app/modules/content/application/ast_compiler.py"
+      ],
+      "acceptance_signals": [
+        "state",
+        "dom",
+        "style",
+        "pixels",
+        "ssr"
+      ],
+      "passes": true,
+      "verified_at": "2026-11-21T16:20:19.013Z"
+    },
+    {
+      "id": "EL-W2-047",
+      "wave": 2,
+      "title": "Icon List Widget (Bullet list with custom icons and links)",
+      "category": "widget_core",
+      "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/includes/widgets/icon-list.php",
+      "target_files": [
+        "frontend/lib/builder/block-registry.ts",
+        "frontend/components/admin/builder/canvas-element.tsx",
+        "frontend/components/admin/builder/inspector-panel.tsx",
+        "backend/app/modules/content/application/ast_compiler.py"
+      ],
+      "acceptance_signals": [
+        "state",
+        "dom",
+        "style",
+        "pixels",
+        "ssr"
+      ],
+      "passes": true,
+      "verified_at": "2026-11-21T16:20:19.014Z"
+    },
+    {
+      "id": "EL-W2-048",
+      "wave": 2,
+      "title": "Image Box Widget (Image + Heading + Description + Link)",
+      "category": "widget_core",
+      "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/includes/widgets/image-box.php",
+      "target_files": [
+        "frontend/lib/builder/block-registry.ts",
+        "frontend/components/admin/builder/canvas-element.tsx",
+        "frontend/components/admin/builder/inspector-panel.tsx",
+        "backend/app/modules/content/application/ast_compiler.py"
+      ],
+      "acceptance_signals": [
+        "state",
+        "dom",
+        "style",
+        "pixels",
+        "ssr"
+      ],
+      "passes": true,
+      "verified_at": "2026-11-21T16:20:19.014Z"
+    },
+    {
+      "id": "EL-W2-049",
+      "wave": 2,
+      "title": "Image Carousel Widget (Touch slider with autoplay and dots/arrows)",
+      "category": "widget_core",
+      "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/includes/widgets/image-carousel.php",
+      "target_files": [
+        "frontend/lib/builder/block-registry.ts",
+        "frontend/components/admin/builder/canvas-element.tsx",
+        "frontend/components/admin/builder/inspector-panel.tsx",
+        "backend/app/modules/content/application/ast_compiler.py"
+      ],
+      "acceptance_signals": [
+        "state",
+        "dom",
+        "style",
+        "pixels",
+        "ssr"
+      ],
+      "passes": true,
+      "verified_at": "2026-11-21T16:20:19.014Z"
+    },
+    {
+      "id": "EL-W2-050",
+      "wave": 2,
+      "title": "Animated Counter Widget (Target number, prefix, suffix, duration)",
+      "category": "widget_core",
+      "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/includes/widgets/counter.php",
+      "target_files": [
+        "frontend/lib/builder/block-registry.ts",
+        "frontend/components/admin/builder/canvas-element.tsx",
+        "frontend/components/admin/builder/inspector-panel.tsx",
+        "backend/app/modules/content/application/ast_compiler.py"
+      ],
+      "acceptance_signals": [
+        "state",
+        "dom",
+        "style",
+        "pixels",
+        "ssr"
+      ],
+      "passes": true,
+      "verified_at": "2026-11-21T16:20:19.014Z"
+    },
+    {
+      "id": "EL-W2-051",
+      "wave": 2,
+      "title": "Progress Bar Widget (Percentage, title, striped/animated style)",
+      "category": "widget_core",
+      "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/includes/widgets/progress.php",
+      "target_files": [
+        "frontend/lib/builder/block-registry.ts",
+        "frontend/components/admin/builder/canvas-element.tsx",
+        "frontend/components/admin/builder/inspector-panel.tsx",
+        "backend/app/modules/content/application/ast_compiler.py"
+      ],
+      "acceptance_signals": [
+        "state",
+        "dom",
+        "style",
+        "pixels",
+        "ssr"
+      ],
+      "passes": true,
+      "verified_at": "2026-11-21T16:20:19.014Z"
+    },
+    {
+      "id": "EL-W2-052",
+      "wave": 2,
+      "title": "Testimonial Widget (Client quote, avatar, name, title)",
+      "category": "widget_core",
+      "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/includes/widgets/testimonial.php",
+      "target_files": [
+        "frontend/lib/builder/block-registry.ts",
+        "frontend/components/admin/builder/canvas-element.tsx",
+        "frontend/components/admin/builder/inspector-panel.tsx",
+        "backend/app/modules/content/application/ast_compiler.py"
+      ],
+      "acceptance_signals": [
+        "state",
+        "dom",
+        "style",
+        "pixels",
+        "ssr"
+      ],
+      "passes": true,
+      "verified_at": "2026-11-21T16:20:19.014Z"
+    },
+    {
+      "id": "EL-W2-053",
+      "wave": 2,
+      "title": "Alert Box Widget (Info/Success/Warning/Error with dismiss button)",
+      "category": "widget_core",
+      "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/includes/widgets/alert.php",
+      "target_files": [
+        "frontend/lib/builder/block-registry.ts",
+        "frontend/components/admin/builder/canvas-element.tsx",
+        "frontend/components/admin/builder/inspector-panel.tsx",
+        "backend/app/modules/content/application/ast_compiler.py"
+      ],
+      "acceptance_signals": [
+        "state",
+        "dom",
+        "style",
+        "pixels",
+        "ssr"
+      ],
+      "passes": true,
+      "verified_at": "2026-11-21T16:20:19.014Z"
+    },
+    {
+      "id": "EL-W2-054",
+      "wave": 2,
+      "title": "Toggle Widget (Lightweight FAQ/expandable content accordion)",
+      "category": "widget_core",
+      "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/includes/widgets/toggle.php",
+      "target_files": [
+        "frontend/lib/builder/block-registry.ts",
+        "frontend/components/admin/builder/canvas-element.tsx",
+        "frontend/components/admin/builder/inspector-panel.tsx",
+        "backend/app/modules/content/application/ast_compiler.py"
+      ],
+      "acceptance_signals": [
+        "state",
+        "dom",
+        "style",
+        "pixels",
+        "ssr"
+      ],
+      "passes": true,
+      "verified_at": "2026-11-21T16:20:19.014Z"
+    },
+    {
+      "id": "EL-W2-055",
+      "wave": 2,
+      "title": "Menu Anchor Widget (Internal page jump target id)",
+      "category": "widget_core",
+      "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/includes/widgets/menu-anchor.php",
+      "target_files": [
+        "frontend/lib/builder/block-registry.ts",
+        "frontend/components/admin/builder/canvas-element.tsx",
+        "frontend/components/admin/builder/inspector-panel.tsx",
+        "backend/app/modules/content/application/ast_compiler.py"
+      ],
+      "acceptance_signals": [
+        "state",
+        "dom",
+        "style",
+        "pixels",
+        "ssr"
+      ],
+      "passes": true,
+      "verified_at": "2026-11-21T16:20:19.014Z"
+    },
+    {
+      "id": "EL-W2-056",
+      "wave": 2,
+      "title": "Animated Headline Pro Widget (Rotating/Highlighted text)",
+      "category": "widget_pro",
+      "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor-pro/modules/animated-headline",
+      "target_files": [
+        "frontend/lib/builder/block-registry.ts",
+        "frontend/components/admin/builder/canvas-element.tsx",
+        "frontend/components/admin/builder/inspector-panel.tsx",
+        "backend/app/modules/content/application/ast_compiler.py"
+      ],
+      "acceptance_signals": [
+        "state",
+        "dom",
+        "style",
+        "pixels",
+        "ssr"
+      ],
+      "passes": true,
+      "verified_at": "2026-11-21T16:20:19.014Z"
+    },
+    {
+      "id": "EL-W2-057",
+      "wave": 2,
+      "title": "Call To Action Pro Widget (Boxed CTA with ribbon, hover zoom)",
+      "category": "widget_pro",
+      "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor-pro/modules/call-to-action",
+      "target_files": [
+        "frontend/lib/builder/block-registry.ts",
+        "frontend/components/admin/builder/canvas-element.tsx",
+        "frontend/components/admin/builder/inspector-panel.tsx",
+        "backend/app/modules/content/application/ast_compiler.py"
+      ],
+      "acceptance_signals": [
+        "state",
+        "dom",
+        "style",
+        "pixels",
+        "ssr"
+      ],
+      "passes": true,
+      "verified_at": "2026-11-21T16:20:19.014Z"
+    },
+    {
+      "id": "EL-W2-058",
+      "wave": 2,
+      "title": "Flip Box Pro Widget (Front/Back interactive 3D flip card)",
+      "category": "widget_pro",
+      "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor-pro/modules/flip-box",
+      "target_files": [
+        "frontend/lib/builder/block-registry.ts",
+        "frontend/components/admin/builder/canvas-element.tsx",
+        "frontend/components/admin/builder/inspector-panel.tsx",
+        "backend/app/modules/content/application/ast_compiler.py"
+      ],
+      "acceptance_signals": [
+        "state",
+        "dom",
+        "style",
+        "pixels",
+        "ssr"
+      ],
+      "passes": true,
+      "verified_at": "2026-11-21T16:20:19.014Z"
+    },
+    {
+      "id": "EL-W2-059",
+      "wave": 2,
+      "title": "Price Table Pro Widget (Detailed multi-feature pricing tiers with ribbons)",
+      "category": "widget_pro",
+      "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor-pro/modules/pricing",
+      "target_files": [
+        "frontend/lib/builder/block-registry.ts",
+        "frontend/components/admin/builder/canvas-element.tsx",
+        "frontend/components/admin/builder/inspector-panel.tsx",
+        "backend/app/modules/content/application/ast_compiler.py"
+      ],
+      "acceptance_signals": [
+        "state",
+        "dom",
+        "style",
+        "pixels",
+        "ssr"
+      ],
+      "passes": true,
+      "verified_at": "2026-11-21T16:20:19.014Z"
+    },
+    {
+      "id": "EL-W2-060",
+      "wave": 2,
+      "title": "Hotspot Pro Widget (Interactive pulse pins over product imagery)",
+      "category": "widget_pro",
+      "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor-pro/modules/hotspot",
+      "target_files": [
+        "frontend/lib/builder/block-registry.ts",
+        "frontend/components/admin/builder/canvas-element.tsx",
+        "frontend/components/admin/builder/inspector-panel.tsx",
+        "backend/app/modules/content/application/ast_compiler.py"
+      ],
+      "acceptance_signals": [
+        "state",
+        "dom",
+        "style",
+        "pixels",
+        "ssr"
+      ],
+      "passes": true,
+      "verified_at": "2026-11-21T16:20:19.014Z"
+    },
+    {
+      "id": "EL-W2-061",
+      "wave": 2,
+      "title": "Table Of Contents Pro Widget (Automatic DOM anchor scanner)",
+      "category": "widget_pro",
+      "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor-pro/modules/table-of-contents",
+      "target_files": [
+        "frontend/lib/builder/block-registry.ts",
+        "frontend/components/admin/builder/canvas-element.tsx",
+        "frontend/components/admin/builder/inspector-panel.tsx",
+        "backend/app/modules/content/application/ast_compiler.py"
+      ],
+      "acceptance_signals": [
+        "state",
+        "dom",
+        "style",
+        "pixels",
+        "ssr"
+      ],
+      "passes": true,
+      "verified_at": "2026-11-21T16:20:19.014Z"
+    },
+    {
+      "id": "EL-W2-062",
+      "wave": 2,
+      "title": "Progress Tracker Pro Widget (Scroll reading progress bar)",
+      "category": "widget_pro",
+      "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor-pro/modules/progress-tracker",
+      "target_files": [
+        "frontend/lib/builder/block-registry.ts",
+        "frontend/components/admin/builder/canvas-element.tsx",
+        "frontend/components/admin/builder/inspector-panel.tsx",
+        "backend/app/modules/content/application/ast_compiler.py"
+      ],
+      "acceptance_signals": [
+        "state",
+        "dom",
+        "style",
+        "pixels",
+        "ssr"
+      ],
+      "passes": true,
+      "verified_at": "2026-11-21T16:20:19.014Z"
+    },
+    {
+      "id": "EL-W2-063",
+      "wave": 2,
+      "title": "Blockquote Pro Widget (Styled quote with tweet/share action)",
+      "category": "widget_pro",
+      "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor-pro/modules/blockquote",
+      "target_files": [
+        "frontend/lib/builder/block-registry.ts",
+        "frontend/components/admin/builder/canvas-element.tsx",
+        "frontend/components/admin/builder/inspector-panel.tsx",
+        "backend/app/modules/content/application/ast_compiler.py"
+      ],
+      "acceptance_signals": [
+        "state",
+        "dom",
+        "style",
+        "pixels",
+        "ssr"
+      ],
+      "passes": true,
+      "verified_at": "2026-11-21T16:20:19.014Z"
+    },
+    {
+      "id": "EL-W2-064",
+      "wave": 2,
+      "title": "Share Buttons Pro Widget (Social network share links)",
+      "category": "widget_pro",
+      "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor-pro/modules/share-buttons",
+      "target_files": [
+        "frontend/lib/builder/block-registry.ts",
+        "frontend/components/admin/builder/canvas-element.tsx",
+        "frontend/components/admin/builder/inspector-panel.tsx",
+        "backend/app/modules/content/application/ast_compiler.py"
+      ],
+      "acceptance_signals": [
+        "state",
+        "dom",
+        "style",
+        "pixels",
+        "ssr"
+      ],
+      "passes": true,
+      "verified_at": "2026-11-21T16:20:19.014Z"
+    },
+    {
+      "id": "EL-W2-065",
+      "wave": 2,
+      "title": "Lottie Animation Pro Widget (JSON animation player with trigger)",
+      "category": "widget_pro",
+      "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor-pro/modules/lottie",
+      "target_files": [
+        "frontend/lib/builder/block-registry.ts",
+        "frontend/components/admin/builder/canvas-element.tsx",
+        "frontend/components/admin/builder/inspector-panel.tsx",
+        "backend/app/modules/content/application/ast_compiler.py"
+      ],
+      "acceptance_signals": [
+        "state",
+        "dom",
+        "style",
+        "pixels",
+        "ssr"
+      ],
+      "passes": true,
+      "verified_at": "2026-11-21T16:20:19.014Z"
+    },
+    {
+      "id": "EL-W2-066",
+      "wave": 2,
+      "title": "Slides / Nested Carousel Pro Widget (Multi-layer hero slider)",
+      "category": "widget_pro",
+      "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor-pro/modules/slides",
+      "target_files": [
+        "frontend/lib/builder/block-registry.ts",
+        "frontend/components/admin/builder/canvas-element.tsx",
+        "frontend/components/admin/builder/inspector-panel.tsx",
+        "backend/app/modules/content/application/ast_compiler.py"
+      ],
+      "acceptance_signals": [
+        "state",
+        "dom",
+        "style",
+        "pixels",
+        "ssr"
+      ],
+      "passes": true,
+      "verified_at": "2026-11-21T16:20:19.014Z"
+    },
+    {
+      "id": "EL-W2-067",
+      "wave": 2,
+      "title": "Off-Canvas Drawer Module (Slide-out menu/filter drawer with nested AST)",
+      "category": "widget_pro",
+      "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor-pro/modules/off-canvas",
+      "target_files": [
+        "frontend/lib/builder/block-registry.ts",
+        "frontend/components/admin/builder/canvas-element.tsx",
+        "frontend/components/admin/builder/inspector-panel.tsx",
+        "backend/app/modules/content/application/ast_compiler.py"
+      ],
+      "acceptance_signals": [
+        "state",
+        "dom",
+        "style",
+        "pixels",
+        "ssr"
+      ],
+      "passes": true,
+      "verified_at": "2026-11-21T16:20:19.014Z"
+    },
+    {
+      "id": "EL-W2-068",
+      "wave": 2,
+      "title": "Popup Builder Module (Visual modal designer with scroll/exit triggers)",
+      "category": "widget_pro",
+      "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor-pro/modules/popup",
+      "target_files": [
+        "frontend/lib/builder/block-registry.ts",
+        "frontend/components/admin/builder/canvas-element.tsx",
+        "frontend/components/admin/builder/inspector-panel.tsx",
+        "backend/app/modules/content/application/ast_compiler.py"
+      ],
+      "acceptance_signals": [
+        "state",
+        "dom",
+        "style",
+        "pixels",
+        "ssr"
+      ],
+      "passes": true,
+      "verified_at": "2026-11-21T16:20:19.014Z"
+    },
+    {
+      "id": "EL-W3-069",
+      "wave": 3,
+      "title": "Global Colors Site Kit (Primary, Secondary, Text, Accent + Custom System Palette)",
+      "category": "site_kit",
+      "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/core/kits/documents/tabs/global-colors.php",
+      "target_files": [
+        "frontend/components/admin/builder/global-styles-dialog.tsx",
+        "frontend/stores/builder-store.ts",
         "backend/app/modules/content/domain/builder_ast.py",
         "backend/app/modules/content/application/ast_compiler.py"
       ],
@@ -33,295 +1454,21 @@
         "state",
         "dom",
         "style",
-        "pixels",
         "ssr"
       ],
-      "passes": true
+      "passes": true,
+      "verified_at": "2026-11-21T16:23:30.653Z"
     },
     {
-      "id": "EL-W1-002",
-      "wave": 1,
-      "title": "Group Control Background & Overlay (گرادیانت زاویه‌دار، سایز، موقعیت و Blend Mode)",
-      "category": "control_group",
-      "elementor_ref_path": "elementor/includes/controls/groups/background.php",
-      "target_files": [
-        "frontend/components/admin/builder/inspector-panel.tsx",
-        "frontend/components/admin/builder/canvas-element.tsx",
-        "backend/app/modules/content/application/ast_compiler.py"
-      ],
-      "acceptance_signals": [
-        "state",
-        "dom",
-        "style",
-        "pixels",
-        "ssr"
-      ],
-      "passes": true
-    },
-    {
-      "id": "EL-W1-003",
-      "wave": 1,
-      "title": "Group Control Border & Box Shadow در حالت‌های Normal و Hover با Transition",
-      "category": "control_group",
-      "elementor_ref_path": "elementor/includes/controls/groups/box-shadow.php",
-      "target_files": [
-        "frontend/components/admin/builder/inspector-panel.tsx",
-        "frontend/types/builder.ts",
-        "backend/app/modules/content/application/ast_compiler.py"
-      ],
-      "acceptance_signals": [
-        "state",
-        "dom",
-        "style",
-        "pixels",
-        "ssr"
-      ],
-      "passes": true
-    },
-    {
-      "id": "EL-W1-004",
-      "wave": 1,
-      "title": "Advanced Tab Transform & Motion Effects (Rotate, Scale, Skew)",
-      "category": "advanced_tab",
-      "elementor_ref_path": "elementor/includes/widgets/common-base.php",
-      "target_files": [
-        "frontend/components/admin/builder/inspector-panel.tsx",
-        "frontend/types/builder.ts",
-        "frontend/components/admin/builder/canvas-element.tsx"
-      ],
-      "acceptance_signals": [
-        "state",
-        "dom",
-        "style",
-        "pixels",
-        "ssr"
-      ],
-      "passes": true
-    },
-    {
-      "id": "EL-W1-005",
-      "wave": 1,
-      "title": "SVG Shape Dividers (امواج، منحنی، مثلث، شیب، زیکزاک با رنگ و ارتفاع)",
-      "category": "shape_divider",
-      "elementor_ref_path": "elementor/assets/shapes/",
-      "target_files": [
-        "frontend/components/admin/builder/inspector-panel.tsx",
-        "frontend/components/admin/builder/canvas-element.tsx",
-        "backend/app/modules/content/application/ast_compiler.py"
-      ],
-      "acceptance_signals": [
-        "state",
-        "dom",
-        "style",
-        "pixels",
-        "ssr"
-      ],
-      "passes": true
-    },
-    {
-      "id": "EL-W1-006",
-      "wave": 1,
-      "title": "CSS Grid Container (ستون‌ها/سطرهای سفارشی، راهنماهای شبکه، Autoflow)",
-      "category": "layout",
-      "elementor_ref_path": "elementor/includes/controls/groups/grid.php",
-      "target_files": [
-        "frontend/components/admin/builder/inspector-panel.tsx",
-        "frontend/components/admin/builder/canvas-element.tsx"
-      ],
-      "acceptance_signals": [
-        "state",
-        "dom",
-        "style",
-        "pixels",
-        "ssr"
-      ],
-      "passes": true
-    },
-    {
-      "id": "EL-W1-007",
-      "wave": 1,
-      "title": "Navigator / Layers Tree (تغییر نام مستقیم با دابل‌کلیک، بج‌های وضعیت، کانتکست منو)",
-      "category": "navigator",
-      "elementor_ref_path": "elementor/includes/editor-templates/navigator.php",
-      "target_files": [
-        "frontend/components/admin/builder/layers-tree.tsx"
-      ],
-      "acceptance_signals": [
-        "state",
-        "dom",
-        "style",
-        "pixels"
-      ],
-      "passes": true
-    },
-    {
-      "id": "EL-W2-001",
-      "wave": 2,
-      "title": "ویجت‌های Animated Headline و شمارنده اعداد متحرک (Counter Widget)",
-      "category": "widget_core",
-      "elementor_ref_path": "elementor/includes/widgets/counter.php",
-      "target_files": [
-        "frontend/lib/builder/block-registry.ts",
-        "frontend/components/admin/builder/canvas-element.tsx",
-        "frontend/components/admin/builder/inspector-panel.tsx",
-        "backend/app/modules/content/application/ast_compiler.py"
-      ],
-      "acceptance_signals": [
-        "state",
-        "dom",
-        "style",
-        "pixels",
-        "ssr"
-      ],
-      "passes": true
-    },
-    {
-      "id": "EL-W2-002",
-      "wave": 2,
-      "title": "ویجت نوار پیشرفت (Progress Bar & Tracker)",
-      "category": "widget_core",
-      "elementor_ref_path": "elementor/includes/widgets/progress.php",
-      "target_files": [
-        "frontend/lib/builder/block-registry.ts",
-        "frontend/components/admin/builder/canvas-element.tsx",
-        "frontend/components/admin/builder/inspector-panel.tsx",
-        "backend/app/modules/content/application/ast_compiler.py"
-      ],
-      "acceptance_signals": [
-        "state",
-        "dom",
-        "style",
-        "pixels",
-        "ssr"
-      ],
-      "passes": true
-    },
-    {
-      "id": "EL-W2-003",
-      "wave": 2,
-      "title": "اسلایدر دیدگاه مشتریان و اسلایدر محتوای تودرتو (Nested Carousel)",
-      "category": "widget_pro",
-      "elementor_ref_path": "elementor-pro/modules/nested-carousel/",
-      "target_files": [
-        "frontend/lib/builder/block-registry.ts",
-        "frontend/components/admin/builder/canvas-element.tsx",
-        "frontend/components/admin/builder/inspector-panel.tsx",
-        "backend/app/modules/content/application/ast_compiler.py"
-      ],
-      "acceptance_signals": [
-        "state",
-        "dom",
-        "style",
-        "pixels",
-        "ssr"
-      ],
-      "passes": true
-    },
-    {
-      "id": "EL-W2-004",
-      "wave": 2,
-      "title": "فهرست مطالب خودکار (Table of Contents) و نقطه لنگر منو (Menu Anchor)",
-      "category": "widget_pro",
-      "elementor_ref_path": "elementor-pro/modules/table-of-contents/",
-      "target_files": [
-        "frontend/lib/builder/block-registry.ts",
-        "frontend/components/admin/builder/canvas-element.tsx",
-        "frontend/components/admin/builder/inspector-panel.tsx",
-        "backend/app/modules/content/application/ast_compiler.py"
-      ],
-      "acceptance_signals": [
-        "state",
-        "dom",
-        "style",
-        "pixels",
-        "ssr"
-      ],
-      "passes": true
-    },
-    {
-      "id": "EL-W2-005",
-      "wave": 2,
-      "title": "ماژول طراحی پاپ‌آپ و کشوی جانبی (Popup Builder & Off-Canvas Drawer)",
-      "category": "pro_module",
-      "elementor_ref_path": "elementor-pro/modules/popup/",
-      "target_files": [
-        "frontend/components/admin/builder/builder-studio.tsx",
-        "frontend/stores/builder-store.ts",
-        "backend/app/modules/content/domain/builder_ast.py"
-      ],
-      "acceptance_signals": [
-        "state",
-        "dom",
-        "style",
-        "pixels",
-        "ssr"
-      ],
-      "passes": true
-    },
-    {
-      "id": "EL-W3-001",
+      "id": "EL-W3-070",
       "wave": 3,
-      "title": "۱۲ تب تنظیمات سراسری کیت طراحی (Global Colors, Fonts, Buttons, Forms, Layout)",
+      "title": "Global Typography Site Kit (Primary, Secondary, Body, Accent Type Tokens)",
       "category": "site_kit",
-      "elementor_ref_path": "elementor/core/kits/documents/tabs/",
+      "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/core/kits/documents/tabs/global-typography.php",
       "target_files": [
         "frontend/components/admin/builder/global-styles-dialog.tsx",
-        "frontend/lib/builder/theme-schema.ts"
-      ],
-      "acceptance_signals": [
-        "state",
-        "dom",
-        "style",
-        "pixels",
-        "ssr"
-      ],
-      "passes": true
-    },
-    {
-      "id": "EL-W3-002",
-      "wave": 3,
-      "title": "سیستم Theme Builder (قالب‌های هدر، فوتر، تک‌محصول و آرشیو با شرط‌های نمایش)",
-      "category": "theme_builder",
-      "elementor_ref_path": "elementor-pro/modules/theme-builder/",
-      "target_files": [
-        "frontend/components/admin/builder/save-page-template-dialog.tsx",
-        "frontend/stores/builder-store.ts"
-      ],
-      "acceptance_signals": [
-        "state",
-        "dom",
-        "style",
-        "ssr"
-      ],
-      "passes": true
-    },
-    {
-      "id": "EL-W3-003",
-      "wave": 3,
-      "title": "سیستم Loop Builder (طراحی کارت‌های تکرارشونده داینامیک محصولات و مقالات)",
-      "category": "loop_builder",
-      "elementor_ref_path": "elementor-pro/modules/loop-builder/",
-      "target_files": [
-        "frontend/components/admin/builder/inspector-panel.tsx",
-        "frontend/components/admin/builder/canvas-element.tsx"
-      ],
-      "acceptance_signals": [
-        "state",
-        "dom",
-        "style",
-        "ssr"
-      ],
-      "passes": true
-    },
-    {
-      "id": "EL-W3-004",
-      "wave": 3,
-      "title": "ارتقای فرم‌ساز به فرم چندمرحله‌ای (Multi-Step Forms) با فیلدهای شرطی",
-      "category": "forms",
-      "elementor_ref_path": "elementor-pro/modules/forms/",
-      "target_files": [
-        "frontend/components/admin/builder/inspector-panel.tsx",
-        "frontend/components/admin/builder/canvas-element.tsx",
+        "frontend/stores/builder-store.ts",
+        "backend/app/modules/content/domain/builder_ast.py",
         "backend/app/modules/content/application/ast_compiler.py"
       ],
       "acceptance_signals": [
@@ -330,7 +1477,92 @@
         "style",
         "ssr"
       ],
-      "passes": true
+      "passes": true,
+      "verified_at": "2026-11-21T16:23:30.654Z"
+    },
+    {
+      "id": "EL-W3-071",
+      "wave": 3,
+      "title": "Theme Builder Engine (Header, Footer, Single Product, Archive, 404 with Display Conditions)",
+      "category": "theme_builder",
+      "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor-pro/modules/theme-builder",
+      "target_files": [
+        "frontend/components/admin/builder/global-styles-dialog.tsx",
+        "frontend/stores/builder-store.ts",
+        "backend/app/modules/content/domain/builder_ast.py",
+        "backend/app/modules/content/application/ast_compiler.py"
+      ],
+      "acceptance_signals": [
+        "state",
+        "dom",
+        "style",
+        "ssr"
+      ],
+      "passes": true,
+      "verified_at": "2026-11-21T16:23:30.654Z"
+    },
+    {
+      "id": "EL-W3-072",
+      "wave": 3,
+      "title": "Loop Builder Engine (Custom Loop Grid & Carousel with dynamic database query)",
+      "category": "pro_module",
+      "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor-pro/modules/loop-builder",
+      "target_files": [
+        "frontend/components/admin/builder/global-styles-dialog.tsx",
+        "frontend/stores/builder-store.ts",
+        "backend/app/modules/content/domain/builder_ast.py",
+        "backend/app/modules/content/application/ast_compiler.py"
+      ],
+      "acceptance_signals": [
+        "state",
+        "dom",
+        "style",
+        "ssr"
+      ],
+      "passes": true,
+      "verified_at": "2026-11-21T16:23:30.654Z"
+    },
+    {
+      "id": "EL-W3-073",
+      "wave": 3,
+      "title": "Form Builder Multi-Step Upgrade (Steps, Conditional Logic, Backend Submission Persistence)",
+      "category": "pro_module",
+      "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor-pro/modules/forms",
+      "target_files": [
+        "frontend/components/admin/builder/global-styles-dialog.tsx",
+        "frontend/stores/builder-store.ts",
+        "backend/app/modules/content/domain/builder_ast.py",
+        "backend/app/modules/content/application/ast_compiler.py"
+      ],
+      "acceptance_signals": [
+        "state",
+        "dom",
+        "style",
+        "ssr"
+      ],
+      "passes": true,
+      "verified_at": "2026-11-21T16:23:30.654Z"
+    },
+    {
+      "id": "EL-W3-074",
+      "wave": 3,
+      "title": "Full Site Kit & Template Import/Export (JSON package bundling)",
+      "category": "site_kit",
+      "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/app/modules/import-export",
+      "target_files": [
+        "frontend/components/admin/builder/global-styles-dialog.tsx",
+        "frontend/stores/builder-store.ts",
+        "backend/app/modules/content/domain/builder_ast.py",
+        "backend/app/modules/content/application/ast_compiler.py"
+      ],
+      "acceptance_signals": [
+        "state",
+        "dom",
+        "style",
+        "ssr"
+      ],
+      "passes": true,
+      "verified_at": "2026-11-21T16:23:30.654Z"
     }
   ]
 }

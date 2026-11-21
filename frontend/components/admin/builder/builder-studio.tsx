@@ -234,6 +234,7 @@ export function BuilderStudio({ page, onExit }: BuilderStudioProps) {
             <div className="grid grid-cols-3 p-1 m-2 rounded-xl bg-muted/60 border border-border/60 gap-1 text-[11px]">
               <button
                 type="button"
+                data-testid="sidebar-tab-blocks"
                 onClick={() => setLeftTab("blocks")}
                 className={`flex items-center justify-center gap-1 py-1.5 rounded-lg font-semibold transition ${
                   activeLeftTab === "blocks"
@@ -246,6 +247,7 @@ export function BuilderStudio({ page, onExit }: BuilderStudioProps) {
               </button>
               <button
                 type="button"
+                data-testid="sidebar-tab-layers"
                 onClick={() => setLeftTab("layers")}
                 className={`flex items-center justify-center gap-1 py-1.5 rounded-lg font-semibold transition ${
                   activeLeftTab === "layers"

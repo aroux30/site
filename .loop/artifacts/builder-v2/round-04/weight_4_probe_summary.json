@@ -1,0 +1,43 @@
+{
+  "timestamp": "2026-11-21T15:24:21.926Z",
+  "totalItems": 4,
+  "passedItems": 4,
+  "results": [
+    {
+      "item": "keyboard_clipboard_and_undo",
+      "verdict": "PASS",
+      "s1_state": true,
+      "s2_dom": true,
+      "s3_computed_style": true,
+      "s4_pixel_diff": true,
+      "s5_persistence": true
+    },
+    {
+      "item": "floating_toolbar_actions",
+      "verdict": "PASS",
+      "s1_state": true,
+      "s2_dom": true,
+      "s3_computed_style": true,
+      "s4_pixel_diff": true,
+      "s5_persistence": true
+    },
+    {
+      "item": "save_template_dialog",
+      "verdict": "PASS",
+      "s1_state": true,
+      "s2_dom": true,
+      "s3_computed_style": true,
+      "s4_pixel_diff": true,
+      "s5_persistence": true
+    },
+    {
+      "item": "global_component_sync_and_detach",
+      "verdict": "PASS",
+      "s1_state": true,
+      "s2_dom": true,
+      "s3_computed_style": true,
+      "s4_pixel_diff": true,
+      "s5_persistence": true
+    }
+  ]
+}

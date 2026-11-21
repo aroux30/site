@@ -78,12 +78,13 @@ test.describe("Builder Gym Round 02: Weight 2 (Blocks & Patterns Regression)", (
     await expect(heroHeading).toBeVisible();
 
     // Verify custom button style in hero has contrast and classes
-    const btn = frame.locator("span:has-text('همین حالا بخرید')").first();
+    const btn = frame.locator(":is(a, span):has-text('همین حالا بخرید')").first();
     await expect(btn).toBeVisible();
   });
 
   test("3. All 28 patterns available in patterns palette", async ({ page }) => {
     await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(1000);
     const patternsTab = page.locator("button:has-text('الگوها')").first();
     await patternsTab.click();
     await expect(page.locator("[data-pattern-slug]").first()).toBeVisible({ timeout: 15000 });

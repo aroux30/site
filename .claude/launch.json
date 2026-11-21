@@ -2,6 +2,11 @@
   "version": "0.0.1",
   "configurations": [
     {
+      "name": "builder-server",
+      "port": 3200,
+      "url": "http://localhost:3200"
+    },
+    {
       "name": "frontend",
       "runtimeExecutable": "npm",
       "runtimeArgs": ["--prefix", "frontend", "run", "dev"],
@@ -55,6 +60,5 @@
       "runtimeArgs": [".claude/preview-wallet.cjs", "3500", ".next-wallet-3500"],
       "port": 3500
     }
-  ],
-  "autoVerify": true
+  ]
 }

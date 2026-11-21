@@ -1,0 +1,428 @@
+{
+  "timestamp": "2026-11-21T15:16:26.395Z",
+  "totalProbed": 35,
+  "passedCount": 35,
+  "failedCount": 0,
+  "results": [
+    {
+      "batch": "1",
+      "widget": "container",
+      "signals": {
+        "S1_state": true,
+        "S2_dom": true,
+        "S3_computed_style": true,
+        "S4_pixel_render": true,
+        "S5_ssr_parity": true
+      },
+      "passed": true
+    },
+    {
+      "batch": "1",
+      "widget": "section",
+      "signals": {
+        "S1_state": true,
+        "S2_dom": true,
+        "S3_computed_style": true,
+        "S4_pixel_render": true,
+        "S5_ssr_parity": true
+      },
+      "passed": true
+    },
+    {
+      "batch": "1",
+      "widget": "columns",
+      "signals": {
+        "S1_state": true,
+        "S2_dom": true,
+        "S3_computed_style": true,
+        "S4_pixel_render": true,
+        "S5_ssr_parity": true
+      },
+      "passed": true
+    },
+    {
+      "batch": "1",
+      "widget": "heading",
+      "signals": {
+        "S1_state": true,
+        "S2_dom": true,
+        "S3_computed_style": true,
+        "S4_pixel_render": true,
+        "S5_ssr_parity": true
+      },
+      "passed": true
+    },
+    {
+      "batch": "1",
+      "widget": "text_editor",
+      "signals": {
+        "S1_state": true,
+        "S2_dom": true,
+        "S3_computed_style": true,
+        "S4_pixel_render": true,
+        "S5_ssr_parity": true
+      },
+      "passed": true
+    },
+    {
+      "batch": "2",
+      "widget": "image",
+      "signals": {
+        "S1_state": true,
+        "S2_dom": true,
+        "S3_computed_style": true,
+        "S4_pixel_render": true,
+        "S5_ssr_parity": true
+      },
+      "passed": true
+    },
+    {
+      "batch": "2",
+      "widget": "button",
+      "signals": {
+        "S1_state": true,
+        "S2_dom": true,
+        "S3_computed_style": true,
+        "S4_pixel_render": true,
+        "S5_ssr_parity": true
+      },
+      "passed": true
+    },
+    {
+      "batch": "2",
+      "widget": "spacer",
+      "signals": {
+        "S1_state": true,
+        "S2_dom": true,
+        "S3_computed_style": true,
+        "S4_pixel_render": true,
+        "S5_ssr_parity": true
+      },
+      "passed": true
+    },
+    {
+      "batch": "2",
+      "widget": "divider",
+      "signals": {
+        "S1_state": true,
+        "S2_dom": true,
+        "S3_computed_style": true,
+        "S4_pixel_render": true,
+        "S5_ssr_parity": true
+      },
+      "passed": true
+    },
+    {
+      "batch": "2",
+      "widget": "table",
+      "signals": {
+        "S1_state": true,
+        "S2_dom": true,
+        "S3_computed_style": true,
+        "S4_pixel_render": true,
+        "S5_ssr_parity": true
+      },
+      "passed": true
+    },
+    {
+      "batch": "3",
+      "widget": "form_container",
+      "signals": {
+        "S1_state": true,
+        "S2_dom": true,
+        "S3_computed_style": true,
+        "S4_pixel_render": true,
+        "S5_ssr_parity": true
+      },
+      "passed": true
+    },
+    {
+      "batch": "3",
+      "widget": "form_input",
+      "signals": {
+        "S1_state": true,
+        "S2_dom": true,
+        "S3_computed_style": true,
+        "S4_pixel_render": true,
+        "S5_ssr_parity": true
+      },
+      "passed": true
+    },
+    {
+      "batch": "3",
+      "widget": "form_textarea",
+      "signals": {
+        "S1_state": true,
+        "S2_dom": true,
+        "S3_computed_style": true,
+        "S4_pixel_render": true,
+        "S5_ssr_parity": true
+      },
+      "passed": true
+    },
+    {
+      "batch": "3",
+      "widget": "form_select",
+      "signals": {
+        "S1_state": true,
+        "S2_dom": true,
+        "S3_computed_style": true,
+        "S4_pixel_render": true,
+        "S5_ssr_parity": true
+      },
+      "passed": true
+    },
+    {
+      "batch": "3",
+      "widget": "form_checkbox",
+      "signals": {
+        "S1_state": true,
+        "S2_dom": true,
+        "S3_computed_style": true,
+        "S4_pixel_render": true,
+        "S5_ssr_parity": true
+      },
+      "passed": true
+    },
+    {
+      "batch": "4",
+      "widget": "form_radio",
+      "signals": {
+        "S1_state": true,
+        "S2_dom": true,
+        "S3_computed_style": true,
+        "S4_pixel_render": true,
+        "S5_ssr_parity": true
+      },
+      "passed": true
+    },
+    {
+      "batch": "4",
+      "widget": "accordion",
+      "signals": {
+        "S1_state": true,
+        "S2_dom": true,
+        "S3_computed_style": true,
+        "S4_pixel_render": true,
+        "S5_ssr_parity": true
+      },
+      "passed": true
+    },
+    {
+      "batch": "4",
+      "widget": "tabs",
+      "signals": {
+        "S1_state": true,
+        "S2_dom": true,
+        "S3_computed_style": true,
+        "S4_pixel_render": true,
+        "S5_ssr_parity": true
+      },
+      "passed": true
+    },
+    {
+      "batch": "4",
+      "widget": "countdown",
+      "signals": {
+        "S1_state": true,
+        "S2_dom": true,
+        "S3_computed_style": true,
+        "S4_pixel_render": true,
+        "S5_ssr_parity": true
+      },
+      "passed": true
+    },
+    {
+      "batch": "4",
+      "widget": "video",
+      "signals": {
+        "S1_state": true,
+        "S2_dom": true,
+        "S3_computed_style": true,
+        "S4_pixel_render": true,
+        "S5_ssr_parity": true
+      },
+      "passed": true
+    },
+    {
+      "batch": "5",
+      "widget": "icon_box",
+      "signals": {
+        "S1_state": true,
+        "S2_dom": true,
+        "S3_computed_style": true,
+        "S4_pixel_render": true,
+        "S5_ssr_parity": true
+      },
+      "passed": true
+    },
+    {
+      "batch": "5",
+      "widget": "social_links",
+      "signals": {
+        "S1_state": true,
+        "S2_dom": true,
+        "S3_computed_style": true,
+        "S4_pixel_render": true,
+        "S5_ssr_parity": true
+      },
+      "passed": true
+    },
+    {
+      "batch": "5",
+      "widget": "image_gallery",
+      "signals": {
+        "S1_state": true,
+        "S2_dom": true,
+        "S3_computed_style": true,
+        "S4_pixel_render": true,
+        "S5_ssr_parity": true
+      },
+      "passed": true
+    },
+    {
+      "batch": "5",
+      "widget": "star_rating",
+      "signals": {
+        "S1_state": true,
+        "S2_dom": true,
+        "S3_computed_style": true,
+        "S4_pixel_render": true,
+        "S5_ssr_parity": true
+      },
+      "passed": true
+    },
+    {
+      "batch": "5",
+      "widget": "review_histogram",
+      "signals": {
+        "S1_state": true,
+        "S2_dom": true,
+        "S3_computed_style": true,
+        "S4_pixel_render": true,
+        "S5_ssr_parity": true
+      },
+      "passed": true
+    },
+    {
+      "batch": "6",
+      "widget": "product_card",
+      "signals": {
+        "S1_state": true,
+        "S2_dom": true,
+        "S3_computed_style": true,
+        "S4_pixel_render": true,
+        "S5_ssr_parity": true
+      },
+      "passed": true
+    },
+    {
+      "batch": "6",
+      "widget": "product_grid",
+      "signals": {
+        "S1_state": true,
+        "S2_dom": true,
+        "S3_computed_style": true,
+        "S4_pixel_render": true,
+        "S5_ssr_parity": true
+      },
+      "passed": true
+    },
+    {
+      "batch": "6",
+      "widget": "product_variants",
+      "signals": {
+        "S1_state": true,
+        "S2_dom": true,
+        "S3_computed_style": true,
+        "S4_pixel_render": true,
+        "S5_ssr_parity": true
+      },
+      "passed": true
+    },
+    {
+      "batch": "6",
+      "widget": "product_price",
+      "signals": {
+        "S1_state": true,
+        "S2_dom": true,
+        "S3_computed_style": true,
+        "S4_pixel_render": true,
+        "S5_ssr_parity": true
+      },
+      "passed": true
+    },
+    {
+      "batch": "6",
+      "widget": "add_to_cart",
+      "signals": {
+        "S1_state": true,
+        "S2_dom": true,
+        "S3_computed_style": true,
+        "S4_pixel_render": true,
+        "S5_ssr_parity": true
+      },
+      "passed": true
+    },
+    {
+      "batch": "7",
+      "widget": "mini_cart",
+      "signals": {
+        "S1_state": true,
+        "S2_dom": true,
+        "S3_computed_style": true,
+        "S4_pixel_render": true,
+        "S5_ssr_parity": true
+      },
+      "passed": true
+    },
+    {
+      "batch": "7",
+      "widget": "cart_summary",
+      "signals": {
+        "S1_state": true,
+        "S2_dom": true,
+        "S3_computed_style": true,
+        "S4_pixel_render": true,
+        "S5_ssr_parity": true
+      },
+      "passed": true
+    },
+    {
+      "batch": "7",
+      "widget": "recently_viewed",
+      "signals": {
+        "S1_state": true,
+        "S2_dom": true,
+        "S3_computed_style": true,
+        "S4_pixel_render": true,
+        "S5_ssr_parity": true
+      },
+      "passed": true
+    },
+    {
+      "batch": "7",
+      "widget": "mega_menu",
+      "signals": {
+        "S1_state": true,
+        "S2_dom": true,
+        "S3_computed_style": true,
+        "S4_pixel_render": true,
+        "S5_ssr_parity": true
+      },
+      "passed": true
+    },
+    {
+      "batch": "7",
+      "widget": "paragraph",
+      "signals": {
+        "S1_state": true,
+        "S2_dom": true,
+        "S3_computed_style": true,
+        "S4_pixel_render": true,
+        "S5_ssr_parity": true
+      },
+      "passed": true
+    }
+  ]
+}

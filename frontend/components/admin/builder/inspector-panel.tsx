@@ -1697,7 +1697,7 @@ export function InspectorPanel() {
           <div className="flex items-center gap-2">
             <Input
               value={currentDeviceStyle.width ? `${currentDeviceStyle.width.value}${currentDeviceStyle.width.unit}` : ""}
-              placeholder="100% / 1280px / خودکار"
+              placeholder="100% یا 1280px یا خودکار"
               onChange={(e) => {
                 const raw = e.target.value.trim();
                 if (!raw || raw === "auto") {

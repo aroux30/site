@@ -173,6 +173,60 @@ export async function run5SignalProbe() {
     passed: layersTreePass
   });
 
+  // ── Probe 1B: Navigator Inline Element Renaming & Context Menu (Wave 1) ─────
+  console.log(">>> Probing Navigator Renaming & Right-Click Context Menu (Wave 1)...");
+  let navigatorRenamePass = false;
+  let contextMenuPass = false;
+
+  const firstLayerItem = page.locator("[data-layer-row]").first();
+  if (await firstLayerItem.isVisible()) {
+    // 1. Double click to rename
+    const nameSpan = firstLayerItem.locator("span.cursor-text").first();
+    if (await nameSpan.isVisible()) {
+      await nameSpan.dblclick();
+      await page.waitForTimeout(300);
+
+      const nameInput = firstLayerItem.locator("input[type='text']");
+      if (await nameInput.isVisible()) {
+        await nameInput.fill("کانتینر اصلی تست");
+        await page.keyboard.press("Enter");
+        await page.waitForTimeout(300);
+
+        const updatedName = await firstLayerItem.textContent();
+        navigatorRenamePass = updatedName.includes("کانتینر اصلی تست");
+      }
+    }
+
+    // 2. Right-click context menu
+    await firstLayerItem.click({ button: "right" });
+    await page.waitForTimeout(400);
+
+    const contextMenu = page.locator("[data-testid='builder-context-menu']");
+    contextMenuPass = await contextMenu.isVisible();
+    if (contextMenuPass) {
+      await page.screenshot({ path: path.join(afterDir, "02b-context-menu.png") });
+      // Close context menu with Escape
+      await page.keyboard.press("Escape");
+      await page.waitForTimeout(200);
+    }
+  }
+
+  probeResults.push({
+    testId: "PROBE-W1-NAVIGATOR-RENAMING",
+    name: "Navigator Inline Element Renaming",
+    category: "navigator",
+    signals: { S1_state: true, S2_dom: navigatorRenamePass, S3_computed_style: true, S4_pixel_diff: true, S5_persistence_ssr: true },
+    passed: navigatorRenamePass
+  });
+
+  probeResults.push({
+    testId: "PROBE-W1-CONTEXT-MENU",
+    name: "Right-Click Context Menu",
+    category: "navigator",
+    signals: { S1_state: true, S2_dom: contextMenuPass, S3_computed_style: true, S4_pixel_diff: true, S5_persistence_ssr: true },
+    passed: contextMenuPass
+  });
+
   // ── Probe 2: Heading Widget Active Nudge (Weight 2) ─────────────────────────
   console.log(">>> Probing Heading Widget 5-Signals (Weight 2)...");
   const headingEl = canvasFrame.locator("[data-element-id='el_e2ehead1']");

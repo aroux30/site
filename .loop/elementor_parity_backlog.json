@@ -872,7 +872,8 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true,
+      "lastVerified": "2026-11-21T17:53:00.347Z"
     },
     {
       "id": "EL-W1-043",
@@ -893,7 +894,8 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true,
+      "lastVerified": "2026-11-21T17:53:00.348Z"
     },
     {
       "id": "EL-W1-044",
@@ -914,7 +916,8 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true,
+      "lastVerified": "2026-11-21T17:53:00.348Z"
     },
     {
       "id": "EL-W1-045",

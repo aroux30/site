@@ -65,6 +65,7 @@ function CanvasElementComponent({
   const [activeGridFilter, setActiveGridFilter] = useState<string>("all");
   const elementRef = useRef<HTMLDivElement>(null);
   const [isNearTop, setIsNearTop] = useState(false);
+  const [isInlineEditing, setIsInlineEditing] = useState(false);
 
   // Performance-optimized fine-grained selectors (P5 Hardening):
   // Subscribe to boolean expressions instead of full AST tree, preventing cascade re-renders
@@ -75,6 +76,7 @@ function CanvasElementComponent({
   const setHoveredElement = useBuilderStore((s) => s.setHoveredElement);
   const deleteElement = useBuilderStore((s) => s.deleteElement);
   const duplicateElement = useBuilderStore((s) => s.duplicateElement);
+  const updateElementProps = useBuilderStore((s) => s.updateElementProps);
 
   // Dynamic clearance detection: check if element is near the canvas top
   useEffect(() => {
@@ -412,9 +414,52 @@ function CanvasElementComponent({
       case "heading": {
         const Tag = (props.tag as "h1" | "h2" | "h3" | "h4" | "h5" | "h6") || "h2";
         const customClass = String(props.customCssClass || element.styles?.customCssClass || "");
+        const textVal = String(props.text || "عنوان سرتیتر");
+
+        if (isInlineEditing && !previewMode) {
+          return (
+            <Tag
+              contentEditable
+              suppressContentEditableWarning
+              autoFocus
+              data-testid="inline-text-editor"
+              className={cn("font-bold tracking-tight text-foreground m-0 break-words [overflow-wrap:anywhere] outline-2 outline-primary bg-primary/10 rounded px-1 min-w-[60px]", customClass)}
+              onBlur={(e) => {
+                const newText = e.currentTarget.textContent?.trim() || "";
+                if (newText && newText !== textVal) {
+                  updateElementProps(element.id, { text: newText });
+                }
+                setIsInlineEditing(false);
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  e.currentTarget.blur();
+                } else if (e.key === "Escape") {
+                  e.preventDefault();
+                  e.currentTarget.textContent = textVal;
+                  setIsInlineEditing(false);
+                }
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {textVal}
+            </Tag>
+          );
+        }
+
         return (
-          <Tag className={cn("font-bold tracking-tight text-foreground m-0 break-words [overflow-wrap:anywhere]", customClass)}>
-            {String(props.text || "عنوان سرتیتر")}
+          <Tag
+            onDoubleClick={(e) => {
+              if (!previewMode) {
+                e.stopPropagation();
+                setIsInlineEditing(true);
+              }
+            }}
+            title="دابل‌کلیک برای ویرایش مستقیم متن (Inline Editing)"
+            className={cn("font-bold tracking-tight text-foreground m-0 break-words [overflow-wrap:anywhere]", customClass)}
+          >
+            {textVal}
           </Tag>
         );
       }
@@ -422,8 +467,44 @@ function CanvasElementComponent({
         const customClass = String(props.customCssClass || element.styles?.customCssClass || "");
         const rawContent = String(props.content || "<p>متن پاراگراف را بنویسید...</p>");
         const hasTags = /<[a-z][\s\S]*>/i.test(rawContent);
+
+        if (isInlineEditing && !previewMode) {
+          return (
+            <div
+              contentEditable
+              suppressContentEditableWarning
+              autoFocus
+              data-testid="inline-text-editor"
+              className={cn("prose dark:prose-invert max-w-none text-foreground/90 leading-relaxed break-words [overflow-wrap:anywhere] outline-2 outline-primary bg-primary/10 rounded p-1 min-h-[30px]", customClass)}
+              onBlur={(e) => {
+                const newContent = e.currentTarget.innerHTML || "";
+                if (newContent && newContent !== rawContent) {
+                  updateElementProps(element.id, { content: newContent });
+                }
+                setIsInlineEditing(false);
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Escape") {
+                  e.preventDefault();
+                  e.currentTarget.innerHTML = rawContent;
+                  setIsInlineEditing(false);
+                }
+              }}
+              onClick={(e) => e.stopPropagation()}
+              dangerouslySetInnerHTML={{ __html: rawContent }}
+            />
+          );
+        }
+
         return (
           <div
+            onDoubleClick={(e) => {
+              if (!previewMode) {
+                e.stopPropagation();
+                setIsInlineEditing(true);
+              }
+            }}
+            title="دابل‌کلیک برای ویرایش مستقیم متن (Inline Editing)"
             className={cn(
               "prose dark:prose-invert max-w-none text-foreground/90 leading-relaxed break-words [overflow-wrap:anywhere]",
               customClass
@@ -441,18 +522,65 @@ function CanvasElementComponent({
         const customClass = String(props.customCssClass || element.styles?.customCssClass || "");
         const isFull = customClass.includes("w-full");
         const url = String(props.url || "#");
+        const labelVal = String(props.label || "دکمه اقدام");
+
+        if (isInlineEditing && !previewMode) {
+          return (
+            <div className={isFull ? "w-full block" : "inline-block"}>
+              <span
+                contentEditable
+                suppressContentEditableWarning
+                autoFocus
+                data-testid="inline-text-editor"
+                className={cn(
+                  "inline-flex items-center justify-center rounded-xl bg-primary px-6 py-3 font-semibold text-primary-foreground shadow-sm transition outline-2 outline-white",
+                  isFull && "w-full",
+                  customClass
+                )}
+                onBlur={(e) => {
+                  const newLabel = e.currentTarget.textContent?.trim() || "";
+                  if (newLabel && newLabel !== labelVal) {
+                    updateElementProps(element.id, { label: newLabel });
+                  }
+                  setIsInlineEditing(false);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    e.currentTarget.blur();
+                  } else if (e.key === "Escape") {
+                    e.preventDefault();
+                    e.currentTarget.textContent = labelVal;
+                    setIsInlineEditing(false);
+                  }
+                }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                {labelVal}
+              </span>
+            </div>
+          );
+        }
+
         return (
           <div className={isFull ? "w-full block" : "inline-block"}>
             <a
               href={url}
               data-url={url}
+              onDoubleClick={(e) => {
+                if (!previewMode) {
+                  e.stopPropagation();
+                  setIsInlineEditing(true);
+                }
+              }}
+              title="دابل‌کلیک برای ویرایش مستقیم متن دکمه"
               className={cn(
                 "inline-flex items-center justify-center rounded-xl bg-primary px-6 py-3 font-semibold text-primary-foreground shadow-sm transition",
                 isFull && "w-full",
                 customClass
               )}
             >
-              {String(props.label || "دکمه اقدام")}
+              {labelVal}
             </a>
           </div>
         );

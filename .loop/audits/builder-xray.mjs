@@ -862,6 +862,22 @@ async function runXRayAudit() {
         addFailure("P1", "CONTEXT_MENU_NOT_SHOWN", "canvas-element", "Right-click on element did not open [data-testid=\"builder-context-menu\"].");
       }
     }
+
+    // ── Check Inline Text Editing on Canvas ──
+    const headEl = frame.locator('h1, h2, h3').first();
+    if (await headEl.isVisible()) {
+      await headEl.dblclick();
+      await page.waitForTimeout(300);
+
+      const inlineEditor = frame.locator('[data-testid="inline-text-editor"]').first();
+      if (await inlineEditor.isVisible()) {
+        console.log("    ✅ Inline Text Editing activated on double-click successfully.");
+        await page.keyboard.press("Escape");
+        await page.waitForTimeout(200);
+      } else {
+        addFailure("P1", "INLINE_EDITING_NOT_ACTIVE", "heading", "Double click on heading did not activate [data-testid=\"inline-text-editor\"].");
+      }
+    }
   } catch (ctxErr) {
     addFailure("P1", "ADVANCED_UX_EXCEPTION", "elementor-parity", ctxErr.message);
   }

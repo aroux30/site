@@ -27,6 +27,7 @@ import { Switch } from "@/components/ui/switch";
 import { MediaPicker } from "@/components/admin/media-picker";
 import { useBuilderStore, findElementById, type InspectorTab } from "@/stores/builder-store";
 import { toValidHexColor, normalizeCssColor } from "@/lib/builder/color-utils";
+import { cn } from "@/lib/utils";
 import type { DeviceStyle, SpacingBox, UnitType } from "@/types/builder";
 
 export function InspectorPanel() {
@@ -1876,6 +1877,90 @@ export function InspectorPanel() {
                 {tok.label}
               </button>
             ))}
+          </div>
+
+          {/* Typography Details (Font Size, Weight, Alignment) */}
+          <div className="grid grid-cols-2 gap-2 pt-2 border-t border-border/40">
+            <div className="space-y-1">
+              <Label className="text-[10px] text-muted-foreground">اندازه قلم (Font Size)</Label>
+              <Input
+                type="number"
+                min={8}
+                max={96}
+                value={currentDeviceStyle.typography?.fontSize?.value || 16}
+                onChange={(e) =>
+                  handleDeviceStyleChange({
+                    typography: {
+                      ...currentDeviceStyle.typography,
+                      fontSize: { value: parseFloat(e.target.value) || 16, unit: "px" },
+                    },
+                  })
+                }
+                className="h-7 text-xs"
+              />
+            </div>
+
+            <div className="space-y-1">
+              <Label className="text-[10px] text-muted-foreground">وزن قلم (Font Weight)</Label>
+              <Select
+                value={currentDeviceStyle.typography?.fontWeight || "inherit"}
+                onValueChange={(val: any) =>
+                  handleDeviceStyleChange({
+                    typography: {
+                      ...currentDeviceStyle.typography,
+                      fontWeight: val === "inherit" ? null : val,
+                    },
+                  })
+                }
+              >
+                <SelectTrigger className="h-7 text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="inherit">ارث‌بری (Inherit)</SelectItem>
+                  <SelectItem value="300">۳۰۰ (نازک - Light)</SelectItem>
+                  <SelectItem value="400">۴۰۰ (عادی - Regular)</SelectItem>
+                  <SelectItem value="500">۵۰۰ (متوسط - Medium)</SelectItem>
+                  <SelectItem value="600">۶۰۰ (نیمه‌پررنگ - SemiBold)</SelectItem>
+                  <SelectItem value="700">۷۰۰ (پررنگ - Bold)</SelectItem>
+                  <SelectItem value="800">۸۰۰ (خیلی پررنگ - ExtraBold)</SelectItem>
+                  <SelectItem value="900">۹۰۰ (سیاه - Black)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="space-y-1 pt-1.5">
+            <Label className="text-[10px] text-muted-foreground">ترازبندی افقی متن (Text Align)</Label>
+            <div className="grid grid-cols-4 gap-1">
+              {[
+                { label: "راست", val: "right" },
+                { label: "وسط", val: "center" },
+                { label: "چپ", val: "left" },
+                { label: "هم‌تراز", val: "justify" },
+              ].map((al) => (
+                <button
+                  key={al.val}
+                  type="button"
+                  onClick={() =>
+                    handleDeviceStyleChange({
+                      typography: {
+                        ...currentDeviceStyle.typography,
+                        textAlign: al.val as any,
+                      },
+                    })
+                  }
+                  className={cn(
+                    "py-1 rounded text-[11px] font-semibold border transition",
+                    currentDeviceStyle.typography?.textAlign === al.val
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "bg-muted/60 text-muted-foreground hover:text-foreground border-border/60"
+                  )}
+                >
+                  {al.label}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 

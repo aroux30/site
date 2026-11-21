@@ -56,7 +56,7 @@ test.describe("Builder Gym Round 19: Ecommerce Block Customization (Variants CRU
     await page.waitForTimeout(1500);
 
     // Switch to basic blocks tab
-    const basicBlocksSubTab = page.getByRole("button", { name: /بلوک‌ها/i });
+    const basicBlocksSubTab = page.getByRole("button", { name: "بلوک‌ها", exact: true });
     await basicBlocksSubTab.click();
     await page.waitForTimeout(400);
 
@@ -86,7 +86,7 @@ test.describe("Builder Gym Round 19: Ecommerce Block Customization (Variants CRU
     await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
     await page.waitForTimeout(1500);
 
-    const basicBlocksSubTab = page.getByRole("button", { name: /بلوک‌ها/i });
+    const basicBlocksSubTab = page.getByRole("button", { name: "بلوک‌ها", exact: true });
     await basicBlocksSubTab.click();
     await page.waitForTimeout(400);
 
@@ -115,7 +115,7 @@ test.describe("Builder Gym Round 19: Ecommerce Block Customization (Variants CRU
     await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
     await page.waitForTimeout(1500);
 
-    const basicBlocksSubTab = page.getByRole("button", { name: /بلوک‌ها/i });
+    const basicBlocksSubTab = page.getByRole("button", { name: "بلوک‌ها", exact: true });
     await basicBlocksSubTab.click();
     await page.waitForTimeout(400);
 

@@ -54,6 +54,7 @@ test.describe("Builder Gym Round 09: Weight 2 (Comparison Table, Lead Form & Bra
 
   test("1. comparison-table renders 3-column table with column 1 highlighted", async ({ page }) => {
     await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(1000);
     const patternsTab = page.locator("button:has-text('الگوها')").first();
     await patternsTab.waitFor({ state: "visible", timeout: 15000 });
     await patternsTab.click();
@@ -74,6 +75,7 @@ test.describe("Builder Gym Round 09: Weight 2 (Comparison Table, Lead Form & Bra
 
   test("2. lead-capture-form renders contact inputs and full-width submit button", async ({ page }) => {
     await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(1000);
     const patternsTab = page.locator("button:has-text('الگوها')").first();
     await patternsTab.waitFor({ state: "visible", timeout: 15000 });
     await patternsTab.click();
@@ -94,6 +96,7 @@ test.describe("Builder Gym Round 09: Weight 2 (Comparison Table, Lead Form & Bra
 
   test("3. brand-logo-carousel renders logos grid and trust badge note", async ({ page }) => {
     await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(1000);
     const patternsTab = page.locator("button:has-text('الگوها')").first();
     await patternsTab.waitFor({ state: "visible", timeout: 15000 });
     await patternsTab.click();

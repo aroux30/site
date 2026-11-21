@@ -84,6 +84,7 @@ test.describe("Builder Gym Round 02: Weight 2 (Blocks & Patterns Regression)", (
 
   test("3. All 28 patterns available in patterns palette", async ({ page }) => {
     await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(1000);
     const patternsTab = page.locator("button:has-text('الگوها')").first();
     await patternsTab.click();
     await expect(page.locator("[data-pattern-slug]").first()).toBeVisible({ timeout: 15000 });

@@ -54,6 +54,7 @@ test.describe("Builder Gym Round 13: Weight 6 (Template Dialog Title Sync & Glob
 
   test("1. SavePageTemplateDialog synchronizes title from current AST and renders categories", async ({ page }) => {
     await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(1000);
 
     const savePageTplBtn = page.locator("button:has-text('قالب برگه')").first();
     await expect(savePageTplBtn).toBeVisible({ timeout: 15000 });
@@ -71,6 +72,7 @@ test.describe("Builder Gym Round 13: Weight 6 (Template Dialog Title Sync & Glob
 
   test("2. GlobalStylesDialog includes Reset to Theme action button", async ({ page }) => {
     await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(1000);
 
     const globalStylesBtn = page.locator("button:has-text('استایل سراسری')").first();
     await expect(globalStylesBtn).toBeVisible({ timeout: 15000 });

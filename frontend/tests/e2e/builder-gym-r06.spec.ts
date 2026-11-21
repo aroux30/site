@@ -50,6 +50,7 @@ test.describe("Builder Gym Round 06: Weight 2 (Pattern Converter Classes & Toast
 
   test("1. Heading and text_editor widgets on canvas preserve customCssClass from AST", async ({ page }) => {
     await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(1000);
     const patternsTab = page.locator("button:has-text('الگوها')").first();
     await patternsTab.click();
 
@@ -69,6 +70,7 @@ test.describe("Builder Gym Round 06: Weight 2 (Pattern Converter Classes & Toast
 
   test("2. Countdown-offer pattern applies font-mono and text-primary to timer heading", async ({ page }) => {
     await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(1000);
     const patternsTab = page.locator("button:has-text('الگوها')").first();
     await patternsTab.click();
 
@@ -87,6 +89,7 @@ test.describe("Builder Gym Round 06: Weight 2 (Pattern Converter Classes & Toast
 
   test("3. Rapid pattern additions auto-dismiss toasts without viewport overlay clutter", async ({ page }) => {
     await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(1000);
     const patternsTab = page.locator("button:has-text('الگوها')").first();
     await patternsTab.click();
 

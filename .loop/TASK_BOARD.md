@@ -2,7 +2,7 @@
 
 **System State**: ACTIVE  
 **Current Branch**: `claude/hungry-khorana-4f765b`  
-**Current Milestone**: Level 1–5 Verification & Parity Hardening  
+**Current Milestone**: Level 1 & Level 2 Clean, Transitioning to Level 3  
 **Target URL**: `http://127.0.0.1:3200/e2e-isolated-scratchpad?builder=1`  
 
 ---
@@ -19,8 +19,10 @@
 | **TB-06** | P0 Bugfix | Initial selection null in `builder-store.ts` to avoid pointer intercept | Agent 5 (Frontend Engineer) | P0 | **COMPLETED** | `builder-store.ts`, test passes |
 | **TB-07** | P0 Bugfix | Wrap button widget text with `<span className="truncate">` | Agent 5 (Frontend Engineer) | P0 | **COMPLETED** | `canvas-element.tsx`, verified |
 | **TB-08** | E2E Harness | Gym R01 verification (ceiling clearance, ?builder=1, LayersTree) | Agent 4 (Functional QA) | P0 | **COMPLETED** | `builder-gym-r01.spec.ts` 3/3 passed |
-| **TB-09** | Parity Test | Gym R02 verification (blocks search & 28 patterns) | Agent 4 (Functional QA) | P1 | **IN PROGRESS** | Awaiting rebuild completion |
-| **TB-10** | Independent Review | Independent architectural & regression code review | Agent 6 (Independent Reviewer) | P0 | **PENDING** | Scheduled after rebuild |
+| **TB-09** | Parity Test | Gym R02 verification (blocks search & 28 patterns) | Agent 4 (Functional QA) | P1 | **COMPLETED** | `builder-gym-r02.spec.ts` 3/3 passed |
+| **TB-10** | Regression Matrix | Run full 60-test E2E suite across rounds 01 to 20 | Agent 4 (Functional QA) | P0 | **COMPLETED** | **60/60 tests passed** |
+| **TB-11** | Code Quality | Unit test suite (Vitest + Pytest) & TypeScript validation | Agent 1 (Lead Architect) | P0 | **COMPLETED** | 372 vitest, 622 pytest, 0 tsc |
+| **TB-12** | Independent Review | Independent architectural & regression code review | Agent 6 (Independent Reviewer) | P0 | **COMPLETED** | `.loop/ROUND_REPORTS/round-02.md` |
 
 ---
 

@@ -54,6 +54,7 @@ test.describe("Builder Gym Round 08: Weight 2 (Pricing Table, Categories & Quote
 
   test("1. pricing-table renders description for all plans including featured plan 2", async ({ page }) => {
     await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(1000);
     const patternsTab = page.locator("button:has-text('الگوها')").first();
     await patternsTab.waitFor({ state: "visible", timeout: 15000 });
     await patternsTab.click();
@@ -76,6 +77,7 @@ test.describe("Builder Gym Round 08: Weight 2 (Pricing Table, Categories & Quote
 
   test("2. mega-menu-categories renders 4 full-width category buttons", async ({ page }) => {
     await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(1000);
     const patternsTab = page.locator("button:has-text('الگوها')").first();
     await patternsTab.waitFor({ state: "visible", timeout: 15000 });
     await patternsTab.click();
@@ -91,6 +93,7 @@ test.describe("Builder Gym Round 08: Weight 2 (Pricing Table, Categories & Quote
 
   test("3. pull-quote and support-callout render semantic quote and support box", async ({ page }) => {
     await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(1000);
     const patternsTab = page.locator("button:has-text('الگوها')").first();
     await patternsTab.waitFor({ state: "visible", timeout: 15000 });
     await patternsTab.click();

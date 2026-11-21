@@ -11,7 +11,7 @@ const { chromium } = req("playwright");
 const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || "http://127.0.0.1:3000";
 const PROJECT_ROOT = path.resolve(".");
 const BACKEND_DIR = path.join(PROJECT_ROOT, "backend");
-const ROUND = process.env.EXCAVATOR_ROUND || "round-13";
+const ROUND = process.env.EXCAVATOR_ROUND || "round-14";
 const ARTIFACTS_DIR = path.join(PROJECT_ROOT, ".loop", "artifacts", "excavator", ROUND, "before");
 const AUDITS_DIR = path.join(PROJECT_ROOT, ".loop", "audits");
 const MATRIX_PATH = path.join(PROJECT_ROOT, ".loop", "XRAY_MATRIX.json");
@@ -1108,6 +1108,35 @@ async function runXRay() {
     }
   } catch (gsErr) {
     await addFailure("P0", "GLOBAL_STYLES_TEST_ERROR", "theme::globalStyles", `Global styles test crashed: ${gsErr.message}`);
+  }
+
+  // Check 4.14: Multi-Selection & Bulk Deletion via Delete Key
+  try {
+    const frame = await getCanvasFrame();
+    const countBefore = await frame.locator("[data-element-id]").count();
+
+    if (countBefore >= 2) {
+      // Select multiple elements via store
+      await page.evaluate(() => {
+        const store = window.__BUILDER_STORE__;
+        if (!store) return;
+        const roots = store.getState().ast.rootElements;
+        const ids = roots.slice(0, 2).map((r) => r.id);
+        store.setState({ selectedElementIds: ids, selectedElementId: ids[0] });
+      });
+      await page.waitForTimeout(200);
+
+      // Press Delete key
+      await page.keyboard.press("Delete");
+      await page.waitForTimeout(400);
+
+      const countAfter = await frame.locator("[data-element-id]").count();
+      if (countAfter >= countBefore) {
+        await addFailure("P0", "MULTI_DELETE_FAILED", "builder::deleteSelectedElements", `Bulk delete did not reduce element count: ${countBefore} -> ${countAfter}`);
+      }
+    }
+  } catch (bulkErr) {
+    await addFailure("P0", "MULTI_DELETE_ERROR", "builder::deleteSelectedElements", `Bulk delete test crashed: ${bulkErr.message}`);
   }
 
   // Final Summary & Write Output

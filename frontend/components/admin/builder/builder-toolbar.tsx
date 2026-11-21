@@ -367,6 +367,7 @@ export function BuilderToolbar({
           size="sm"
           onClick={onPublish}
           disabled={isSaving}
+          data-testid="publish-page-btn"
           className="h-8 gap-1.5 text-xs bg-emerald-600 hover:bg-emerald-700 text-white"
         >
           {isSaving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}

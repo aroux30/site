@@ -27,7 +27,8 @@ const req = createRequire(frontendPkgPath);
 const { chromium } = req("playwright");
 
 const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || "http://127.0.0.1:3300";
-const BACKEND_DIR = path.join(projectRoot, "backend");
+const ROOT_SITE = path.resolve("C:/Users/Administrator/Desktop/site");
+const BACKEND_DIR = path.join(ROOT_SITE, "backend");
 
 const WIDGET_BATCHES = [
   // Batch 1: Basic Layout & Text

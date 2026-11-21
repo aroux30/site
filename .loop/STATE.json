@@ -1,6 +1,6 @@
 {
-  "lastUpdated": "2026-11-21T15:15:00.000Z",
-  "activeRound": "round-01",
+  "lastUpdated": "2026-11-21T16:35:00.000Z",
+  "activeRound": "round-02",
   "currentLevel": "Level 6 — Infinite Product Challenge (Elite V2)",
   "activeBranch": "claude/intelligent-bhabha-e2ac6c",
   "isolatedServerPort": 3300,
@@ -23,6 +23,7 @@
   },
   "flags": {
     "BUILDER_ELITE_V2_100PCT_VERIFIED": true,
+    "ROUND_02_LEVEL_6_CLEAN": true,
     "WEIGHTS_1_TO_5_CLEAN": true,
     "WAVES_1_TO_3_CLEAN": true,
     "BUILDER_GYM_LEVELS_1_TO_5_CLEAN": true,

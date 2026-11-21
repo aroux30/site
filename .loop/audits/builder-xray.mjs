@@ -987,6 +987,20 @@ async function runXRayAudit() {
         console.log("    ✅ Elementor Responsive Device Visibility Controls (Desktop/Tablet/Mobile) verified in Inspector.");
       }
     }
+
+    // ── Check Direct Page Title Editing in Toolbar (Elementor Title Parity) ──
+    const titleSpan = page.locator("header span[title*='ویرایش نام برگه']").first();
+    if (await titleSpan.isVisible()) {
+      await titleSpan.dblclick();
+      await page.waitForTimeout(200);
+
+      const titleInput = page.locator("header input[type='text']").first();
+      if (await titleInput.isVisible()) {
+        console.log("    ✅ Direct Page Title editing activated on double-click in Toolbar.");
+        await page.keyboard.press("Escape");
+        await page.waitForTimeout(100);
+      }
+    }
   } catch (ctxErr) {
     addFailure("P1", "ADVANCED_UX_EXCEPTION", "elementor-parity", ctxErr.message);
   }

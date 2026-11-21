@@ -234,6 +234,7 @@ export interface BuilderState {
   renameElement: (id: string, name: string) => void;
   unlinkGlobalComponent: (id: string) => void;
   updateGlobalStyles: (styles: Record<string, unknown>) => void;
+  updatePageTitle: (title: string) => void;
 
   // Productivity & Clipboard (P4)
   copyElement: (id?: string) => void;
@@ -930,6 +931,20 @@ export const useBuilderStore = create<BuilderState>((set, get) => ({
           ...(ast.globalStyles || {}),
           ...styles,
         },
+      },
+      isDirty: true,
+      mutationVersion: get().mutationVersion + 1,
+      history: { past: newPast, future: [] },
+    });
+  },
+
+  updatePageTitle: (title) => {
+    const { ast, history } = get();
+    const newPast = [...history.past, ast].slice(-MAX_HISTORY_LENGTH);
+    set({
+      ast: {
+        ...ast,
+        title: title.trim(),
       },
       isDirty: true,
       mutationVersion: get().mutationVersion + 1,

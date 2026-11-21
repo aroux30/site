@@ -25,6 +25,7 @@ export function HotkeysDialog({ open, onOpenChange }: HotkeysDialogProps) {
         { label: "تکرار تغییر بازگردانده شده (Redo)", keys: ["Ctrl", "Shift", "Z"] },
         { label: "کپی المان انتخاب‌شده", keys: ["Ctrl", "C"] },
         { label: "چسباندن المان از کلیپ‌بورد", keys: ["Ctrl", "V"] },
+        { label: "چسباندن استایل‌ها (Paste Style)", keys: ["Ctrl", "Shift", "V"] },
         { label: "تکثیر سریع المان", keys: ["Ctrl", "D"] },
         { label: "حذف المان انتخاب‌شده", keys: ["Delete"] },
         { label: "لغو انتخاب المان", keys: ["Escape"] },

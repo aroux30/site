@@ -1543,6 +1543,13 @@ function CanvasElementComponent({
               />
             </svg>
           )}
+          {!["waves", "curve", "triangle", "tilt"].includes((element.styles?.shapeDividerTop || (element.styles?.mobile as any)?.shapeDividerTop) || "") && (
+            <img
+              src={`/shapes/${element.styles?.shapeDividerTop || (element.styles?.mobile as any)?.shapeDividerTop}.svg`}
+              alt=""
+              className="w-full h-full block object-fill"
+            />
+          )}
         </div>
       )}
 
@@ -1584,6 +1591,13 @@ function CanvasElementComponent({
                 d="M0,6V0h1000v100L0,6z"
               />
             </svg>
+          )}
+          {!["waves", "curve", "triangle", "tilt"].includes((element.styles?.shapeDividerBottom || (element.styles?.mobile as any)?.shapeDividerBottom) || "") && (
+            <img
+              src={`/shapes/${element.styles?.shapeDividerBottom || (element.styles?.mobile as any)?.shapeDividerBottom}.svg`}
+              alt=""
+              className="w-full h-full block object-fill"
+            />
           )}
         </div>
       )}

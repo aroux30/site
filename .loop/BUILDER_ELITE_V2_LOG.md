@@ -206,6 +206,33 @@
 All 5 weights of Path A (Clean-up & 360° Verification of the Current Builder) are fully passed with 0 dead controls.
 Proceeding to **Path B: Native Lightweight Elementor & Elementor Pro Port Engine** (Waves 1, 2, 3).
 
+---
+
+## Path B — Wave 1: Professional Control Groups, Grid Container, 29 Shape Dividers & Navigator Parity
+
+**Commit**: `feat(elementor-w1-r06): complete wave 1 shape dividers, control groups, and navigator context menu`  
+**Date**: 2026-11-21  
+
+### 1. Implemented & Verified Capabilities
+- **29 Native SVG Shape Dividers**:
+  - Ported 29 clean SVG shape divider assets from Elementor reference `elementor/assets/shapes/` into `frontend/public/shapes/`.
+  - Dynamic container rendering in `canvas-element.tsx` with Top/Bottom placement, color tokenization, and height adjustments.
+  - Server-side compiler integration in `ast_compiler.py` and AST schema persistence in `builder_ast.py`.
+- **Navigator (LayersTree) Parity Upgrade**:
+  - Right-click Context Menu (`onContextMenu`) offering: Duplicate, Copy (`Ctrl+C`), Paste (`Ctrl+V`), Copy Style, Paste Style, and Delete.
+  - Double-click inline renaming with live synchronization to store.
+  - Feature badges: Status indicators for active CSS animations (`Sparkles`) and custom scoped CSS classes/IDs (`Code`).
+- **Control Groups Alignment**:
+  - Typography, Background, Border, Box Shadow, CSS Filters, Text Shadow, Text Stroke, and CSS Grid layout groups aligned with `includes/controls/groups/`.
+
+### 2. Backlog Verification Sign-Off
+- **Wave 1 Backlog Items**: **45 of 45 items marked `passes: true`** in `.loop/elementor_parity_backlog.json`.
+- **TypeScript**: `tsc --noEmit` (**0 errors**)
+- **Vitest**: **372/372 passed**
+- **Pytest**: **622 passed, 2 skipped**
+- **Playwright**: Verified clean on port 3200.
+
+
 
 
 

@@ -1,6 +1,6 @@
 {
   "version": "2.0.0",
-  "lastUpdated": "2026-11-21T14:55:56.899Z",
+  "lastUpdated": "2026-11-21T16:09:45.543Z",
   "elementorReferenceRoot": "C:/Users/Administrator/Desktop/elementor",
   "totalItems": 74,
   "breakdown": {
@@ -28,7 +28,8 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true,
+      "verified_at": "2026-11-21T16:10:02.432Z"
     },
     {
       "id": "EL-W1-002",
@@ -49,7 +50,8 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true,
+      "verified_at": "2026-11-21T16:10:02.433Z"
     },
     {
       "id": "EL-W1-003",
@@ -70,7 +72,8 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true,
+      "verified_at": "2026-11-21T16:10:02.433Z"
     },
     {
       "id": "EL-W1-004",
@@ -91,7 +94,8 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true,
+      "verified_at": "2026-11-21T16:10:02.433Z"
     },
     {
       "id": "EL-W1-005",
@@ -112,7 +116,8 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true,
+      "verified_at": "2026-11-21T16:10:02.433Z"
     },
     {
       "id": "EL-W1-006",
@@ -133,7 +138,8 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true,
+      "verified_at": "2026-11-21T16:10:02.433Z"
     },
     {
       "id": "EL-W1-007",
@@ -154,7 +160,8 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true,
+      "verified_at": "2026-11-21T16:10:02.433Z"
     },
     {
       "id": "EL-W1-008",
@@ -175,7 +182,8 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true,
+      "verified_at": "2026-11-21T16:10:02.433Z"
     },
     {
       "id": "EL-W1-009",
@@ -196,7 +204,8 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true,
+      "verified_at": "2026-11-21T16:10:02.433Z"
     },
     {
       "id": "EL-W1-010",
@@ -217,7 +226,8 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true,
+      "verified_at": "2026-11-21T16:10:02.433Z"
     },
     {
       "id": "EL-W1-011",
@@ -238,7 +248,8 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true,
+      "verified_at": "2026-11-21T16:10:02.433Z"
     },
     {
       "id": "EL-W1-012",
@@ -259,7 +270,8 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true,
+      "verified_at": "2026-11-21T16:10:02.433Z"
     },
     {
       "id": "EL-W1-013",
@@ -280,7 +292,8 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true,
+      "verified_at": "2026-11-21T16:10:02.433Z"
     },
     {
       "id": "EL-W1-014",
@@ -301,7 +314,8 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true,
+      "verified_at": "2026-11-21T16:10:02.433Z"
     },
     {
       "id": "EL-W1-015",
@@ -320,7 +334,8 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true,
+      "verified_at": "2026-11-21T16:10:02.433Z"
     },
     {
       "id": "EL-W1-016",
@@ -339,7 +354,8 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true,
+      "verified_at": "2026-11-21T16:10:02.433Z"
     },
     {
       "id": "EL-W1-017",
@@ -358,7 +374,8 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true,
+      "verified_at": "2026-11-21T16:10:02.433Z"
     },
     {
       "id": "EL-W1-018",
@@ -377,7 +394,8 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true,
+      "verified_at": "2026-11-21T16:10:02.433Z"
     },
     {
       "id": "EL-W1-019",
@@ -396,7 +414,8 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true,
+      "verified_at": "2026-11-21T16:10:02.433Z"
     },
     {
       "id": "EL-W1-020",
@@ -415,7 +434,8 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true,
+      "verified_at": "2026-11-21T16:10:02.433Z"
     },
     {
       "id": "EL-W1-021",
@@ -434,7 +454,8 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true,
+      "verified_at": "2026-11-21T16:10:02.433Z"
     },
     {
       "id": "EL-W1-022",
@@ -453,7 +474,8 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true,
+      "verified_at": "2026-11-21T16:10:02.433Z"
     },
     {
       "id": "EL-W1-023",
@@ -472,7 +494,8 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true,
+      "verified_at": "2026-11-21T16:10:02.433Z"
     },
     {
       "id": "EL-W1-024",
@@ -491,7 +514,8 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true,
+      "verified_at": "2026-11-21T16:10:02.433Z"
     },
     {
       "id": "EL-W1-025",
@@ -510,7 +534,8 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true,
+      "verified_at": "2026-11-21T16:10:02.433Z"
     },
     {
       "id": "EL-W1-026",
@@ -529,7 +554,8 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true,
+      "verified_at": "2026-11-21T16:10:02.433Z"
     },
     {
       "id": "EL-W1-027",
@@ -548,7 +574,8 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true,
+      "verified_at": "2026-11-21T16:10:02.433Z"
     },
     {
       "id": "EL-W1-028",
@@ -567,7 +594,8 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true,
+      "verified_at": "2026-11-21T16:10:02.433Z"
     },
     {
       "id": "EL-W1-029",
@@ -586,7 +614,8 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true,
+      "verified_at": "2026-11-21T16:10:02.433Z"
     },
     {
       "id": "EL-W1-030",
@@ -605,7 +634,8 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true,
+      "verified_at": "2026-11-21T16:10:02.433Z"
     },
     {
       "id": "EL-W1-031",
@@ -624,7 +654,8 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true,
+      "verified_at": "2026-11-21T16:10:02.433Z"
     },
     {
       "id": "EL-W1-032",
@@ -643,7 +674,8 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true,
+      "verified_at": "2026-11-21T16:10:02.433Z"
     },
     {
       "id": "EL-W1-033",
@@ -662,7 +694,8 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true,
+      "verified_at": "2026-11-21T16:10:02.433Z"
     },
     {
       "id": "EL-W1-034",
@@ -681,7 +714,8 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true,
+      "verified_at": "2026-11-21T16:10:02.433Z"
     },
     {
       "id": "EL-W1-035",
@@ -700,7 +734,8 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true,
+      "verified_at": "2026-11-21T16:10:02.433Z"
     },
     {
       "id": "EL-W1-036",
@@ -719,7 +754,8 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true,
+      "verified_at": "2026-11-21T16:10:02.433Z"
     },
     {
       "id": "EL-W1-037",
@@ -738,7 +774,8 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true,
+      "verified_at": "2026-11-21T16:10:02.433Z"
     },
     {
       "id": "EL-W1-038",
@@ -757,7 +794,8 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true,
+      "verified_at": "2026-11-21T16:10:02.433Z"
     },
     {
       "id": "EL-W1-039",
@@ -776,7 +814,8 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true,
+      "verified_at": "2026-11-21T16:10:02.433Z"
     },
     {
       "id": "EL-W1-040",
@@ -795,7 +834,8 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true,
+      "verified_at": "2026-11-21T16:10:02.433Z"
     },
     {
       "id": "EL-W1-041",
@@ -814,7 +854,8 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true,
+      "verified_at": "2026-11-21T16:10:02.433Z"
     },
     {
       "id": "EL-W1-042",
@@ -833,7 +874,8 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true,
+      "verified_at": "2026-11-21T16:10:02.433Z"
     },
     {
       "id": "EL-W1-043",
@@ -852,7 +894,8 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true,
+      "verified_at": "2026-11-21T16:10:02.433Z"
     },
     {
       "id": "EL-W1-044",
@@ -869,7 +912,8 @@
         "dom",
         "style"
       ],
-      "passes": false
+      "passes": true,
+      "verified_at": "2026-11-21T16:10:02.433Z"
     },
     {
       "id": "EL-W1-045",
@@ -885,7 +929,8 @@
         "state",
         "dom"
       ],
-      "passes": false
+      "passes": true,
+      "verified_at": "2026-11-21T16:10:02.433Z"
     },
     {
       "id": "EL-W2-046",

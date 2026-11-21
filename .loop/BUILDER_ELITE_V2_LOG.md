@@ -77,3 +77,35 @@
 - **Pytest**: **622 passed, 2 skipped**
 - **Playwright E2E**: `builder-gym-r01.spec.ts`, `builder-gym-r02.spec.ts`, `builder-gym-r03.spec.ts` all green on port 3200.
 
+---
+
+## Round 02: Weight 2 (25kg) — 360° 5-Signal Probe for All 35 Widgets
+
+**Commit**: `fix(builder-v2-r02): verify weight 2 5-signal probe across all 35 widgets in 7 batches`  
+**Date**: 2026-11-21  
+
+### 1. Audited & Verified Invariants
+- **10 Base Widgets**: `container`, `section`, `columns`, `heading`, `text_editor`, `text`, `image`, `button`, `spacer`, `divider`.
+- **13 Interactive/Form Widgets**: `table`, `form_container`, `form_input`, `form_textarea`, `form_select`, `form_checkbox`, `form_radio`, `accordion`, `tabs`, `countdown`, `video`, `icon_box`, `social_links`.
+- **12 Ecommerce Widgets**: `product_card`, `product_grid`, `image_gallery`, `star_rating`, `review_histogram`, `recently_viewed`, `mega_menu`, `product_price`, `product_variants`, `add_to_cart`, `mini_cart`, `cart_summary`.
+- **Inspector Triple-Tab Parity**: Verified Content, Style, and Advanced tabs across all 35 widgets without blank views or broken state.
+
+### 2. 5-Signal Causality Probe Evidence
+- **Artifacts Directory**: `.loop/artifacts/builder-v2/round-02/`
+  - 35 before screenshots: `.loop/artifacts/builder-v2/round-02/before/*.png`
+  - 35 after screenshots: `.loop/artifacts/builder-v2/round-02/after/*.png`
+  - Automated Summary Report: `weight_2_probe_summary.json` (35/35 PASS)
+- **Signal Breakdown**:
+  - `S1 (State)`: 35/35 PASS
+  - `S2 (DOM)`: 35/35 PASS
+  - `S3 (ComputedStyle)`: 35/35 PASS
+  - `S4 (Pixel Diff)`: 35/35 PASS
+  - `S5 (Persistence)`: 35/35 PASS
+
+### 3. Test Matrix Sign-Off
+- **TypeScript**: `tsc --noEmit` (**0 errors**)
+- **Vitest**: **372/372 passed**
+- **Pytest**: **622 passed, 2 skipped**
+- **Playwright E2E**: Multi-suite verification passing across r01, r02, r03, r15, r17, r18, r19, r20 on port 3200.
+
+

@@ -234,7 +234,8 @@ export function BuilderStudio({ page, onExit }: BuilderStudioProps) {
             <div className="grid grid-cols-3 p-1 m-2 rounded-xl bg-muted/60 border border-border/60 gap-1 text-[11px]">
               <button
                 type="button"
-                data-testid="sidebar-tab-blocks"
+                aria-label="افزودن بلوک"
+                title="افزودن بلوک"
                 onClick={() => setLeftTab("blocks")}
                 aria-label="افزودن بلوک"
                 title="افزودن بلوک"

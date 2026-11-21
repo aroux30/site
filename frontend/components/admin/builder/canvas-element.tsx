@@ -466,6 +466,48 @@ function CanvasElementComponent({
     const gridTemplateColumns = resolveResponsiveValue({ mobile: base?.gridTemplateColumns, tablet: tablet?.gridTemplateColumns, desktop: desktop?.gridTemplateColumns }, activeBreakpoint);
     if (gridTemplateColumns) styleObj.gridTemplateColumns = gridTemplateColumns;
 
+    // Transform (Elementor Parity Wave 1)
+    const transform = resolveResponsiveValue({ mobile: base?.transform, tablet: tablet?.transform, desktop: desktop?.transform }, activeBreakpoint);
+    if (transform) {
+      const tParts: string[] = [];
+      if (transform.rotate) tParts.push(`rotate(${transform.rotate}deg)`);
+      if (transform.scale) tParts.push(`scale(${transform.scale})`);
+      if (transform.skewX) tParts.push(`skewX(${transform.skewX}deg)`);
+      if (transform.skewY) tParts.push(`skewY(${transform.skewY}deg)`);
+      if (transform.flipX) tParts.push("scaleX(-1)");
+      if (transform.flipY) tParts.push("scaleY(-1)");
+      if (tParts.length > 0) styleObj.transform = tParts.join(" ");
+    }
+
+    // Mask (Elementor Parity Wave 1)
+    const mask = resolveResponsiveValue({ mobile: base?.mask, tablet: tablet?.mask, desktop: desktop?.mask }, activeBreakpoint);
+    if (mask && mask.shape && mask.shape !== "none") {
+      const shapeMap: Record<string, string> = {
+        circle: "radial-gradient(circle, black 60%, transparent 60%)",
+        flower: "radial-gradient(circle at 50% 50%, black 50%, transparent 50%)",
+        hexagon: "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)",
+      };
+      const maskVal = shapeMap[mask.shape] || `url(${mask.shape})`;
+      if (mask.shape === "hexagon") {
+        styleObj.clipPath = maskVal;
+      } else {
+        styleObj.maskImage = maskVal;
+        (styleObj as any).WebkitMaskImage = maskVal;
+        if (mask.size) {
+          styleObj.maskSize = mask.size;
+          (styleObj as any).WebkitMaskSize = mask.size;
+        }
+        if (mask.position) {
+          styleObj.maskPosition = mask.position;
+          (styleObj as any).WebkitMaskPosition = mask.position;
+        }
+        if (mask.repeat) {
+          styleObj.maskRepeat = mask.repeat;
+          (styleObj as any).WebkitMaskRepeat = mask.repeat;
+        }
+      }
+    }
+
     // Elementor Boxed Container Max-Width & Centering
     if (element.type === "container" && element.layout?.boxedWidth) {
       styleObj.maxWidth = `${element.layout.boxedWidth.value}${element.layout.boxedWidth.unit}`;
@@ -621,8 +663,8 @@ function CanvasElementComponent({
         );
       }
       case "text_editor":
-      case "text":
-      case "paragraph": {
+      case "paragraph":
+      case "text": {
         const customClass = String(props.customCssClass || element.styles?.customCssClass || "");
         const rawContent = String(props.content || props.text || "<p>متن پاراگراف را بنویسید...</p>");
         const hasTags = /<[a-z][\s\S]*>/i.test(rawContent);
@@ -726,6 +768,11 @@ function CanvasElementComponent({
             <a
               href={url}
               data-url={url}
+              onClick={(e) => {
+                if (!previewMode) {
+                  e.preventDefault();
+                }
+              }}
               onDoubleClick={(e) => {
                 if (!previewMode) {
                   e.stopPropagation();
@@ -739,7 +786,7 @@ function CanvasElementComponent({
                 customClass
               )}
             >
-              <span>{labelVal}</span>
+              <span className="truncate">{labelVal}</span>
             </a>
           </div>
         );
@@ -1622,6 +1669,40 @@ function CanvasElementComponent({
           </div>
         );
       }
+      case "counter": {
+        const end = Number(props.ending_number) || 100;
+        const prefix = String(props.prefix || "");
+        const suffix = String(props.suffix || "");
+        const title = String(props.title || "عنوان شمارنده");
+        return (
+          <div className="flex flex-col items-center justify-center p-3 text-center space-y-1 w-full">
+            <div className="text-3xl lg:text-4xl font-extrabold text-primary tracking-tight font-mono" dir="ltr">
+              {prefix}{end.toLocaleString("fa-IR")}{suffix}
+            </div>
+            {title && <span className="text-xs font-semibold text-muted-foreground">{title}</span>}
+          </div>
+        );
+      }
+      case "alert": {
+        const alertType = String(props.alert_type || "info");
+        const title = String(props.title || "اطلاعیه مهم");
+        const desc = String(props.description || "");
+        const typeClasses: Record<string, string> = {
+          info: "bg-blue-500/10 text-blue-700 dark:text-blue-300 border-blue-500/30",
+          success: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/30",
+          warning: "bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/30",
+          danger: "bg-rose-500/10 text-rose-700 dark:text-rose-300 border-rose-500/30",
+        };
+        const activeClass = typeClasses[alertType] || typeClasses.info;
+        return (
+          <div className={cn("p-4 rounded-xl border flex items-start gap-3 w-full", activeClass)}>
+            <div className="space-y-1 text-right flex-1">
+              <h4 className="font-bold text-xs">{title}</h4>
+              {desc && <p className="text-[11px] leading-relaxed opacity-90">{desc}</p>}
+            </div>
+          </div>
+        );
+      }
       default:
         return (
           <div className="rounded-lg border border-dashed border-border p-4 text-center text-sm text-muted-foreground">
@@ -1680,10 +1761,8 @@ function CanvasElementComponent({
       id={element.styles?.customCssId || undefined}
       data-element-id={element.id}
       data-element-name={element.name}
-      data-submit-url={element.widgetType === "form_container" ? String(element.widgetProps?.submit_url || "") : undefined}
-      data-success-message={element.widgetType === "form_container" ? String(element.widgetProps?.success_message || "") : undefined}
-      data-error-message={element.widgetType === "form_container" ? String(element.widgetProps?.error_message || "") : undefined}
-      {...customAttrs}
+      data-widget-type={element.widgetType || element.type}
+      {...(element.styles?.customAttributes || {})}
     >
       {/* Scoped Custom CSS */}
       {(element.styles as any)?.customCss && (
@@ -1864,7 +1943,7 @@ function CanvasElementComponent({
                   useBuilderStore.getState().setLeftTab("blocks");
                 }}
                 data-testid="empty-container-guide"
-                className="flex flex-col items-center justify-center p-5 border-2 border-dashed border-primary/30 hover:border-primary/60 rounded-xl bg-card/40 hover:bg-primary/5 transition-all cursor-pointer text-center w-full min-h-[80px] shadow-xs group/empty"
+                className="flex flex-col items-center justify-center p-4 border border-dashed border-primary/30 hover:border-primary/60 rounded-xl bg-card/40 hover:bg-primary/5 transition-all cursor-pointer text-center w-full min-h-[80px] shadow-xs group/empty"
               >
                 <div className="flex items-center gap-2 text-xs font-bold text-foreground group-hover/empty:text-primary transition-colors">
                   <Plus className="w-4 h-4 text-primary" />

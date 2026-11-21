@@ -378,8 +378,8 @@ export function InspectorPanel() {
         );
 
       case "text_editor":
-      case "text":
       case "paragraph":
+      case "text":
         return (
           <div className="space-y-4">
             <div className="space-y-1.5">
@@ -404,6 +404,7 @@ export function InspectorPanel() {
             <div className="space-y-1.5">
               <Label className="text-xs">متن دکمه</Label>
               <Input
+                data-testid="button-label-input"
                 value={String(props.label || "")}
                 onChange={(e) => handlePropChange("label", e.target.value)}
                 className="h-8 text-xs"
@@ -466,6 +467,7 @@ export function InspectorPanel() {
             <div className="space-y-1.5">
               <Label className="text-xs">ارتفاع فاصله (پیکسل)</Label>
               <Input
+                data-testid="spacer-height-input"
                 type="number"
                 min={8}
                 max={300}
@@ -505,6 +507,7 @@ export function InspectorPanel() {
             <div className="space-y-1.5">
               <Label className="text-xs">عناوین ستون‌ها (با کاما جدا کنید)</Label>
               <Input
+                data-testid="table-headers-input"
                 value={headers.join("، ")}
                 onChange={(e) => {
                   const arr = e.target.value.split(/[،,]/).map((s) => s.trim());
@@ -554,6 +557,7 @@ export function InspectorPanel() {
             <div className="space-y-1.5">
               <Label className="text-xs">عنوان فیلد (Label)</Label>
               <Input
+                data-testid="form-input-label-input"
                 value={String(props.label || "")}
                 onChange={(e) => handlePropChange("label", e.target.value)}
                 className="h-8 text-xs"
@@ -609,6 +613,7 @@ export function InspectorPanel() {
             <div className="space-y-1.5">
               <Label className="text-xs">عنوان فیلد (Label)</Label>
               <Input
+                data-testid="form-textarea-label-input"
                 value={String(props.label || "")}
                 onChange={(e) => handlePropChange("label", e.target.value)}
                 className="h-8 text-xs"
@@ -658,6 +663,7 @@ export function InspectorPanel() {
             <div className="space-y-1.5">
               <Label className="text-xs">عنوان فیلد (Label)</Label>
               <Input
+                data-testid="form-select-label-input"
                 value={String(props.label || "")}
                 onChange={(e) => handlePropChange("label", e.target.value)}
                 className="h-8 text-xs"
@@ -701,6 +707,7 @@ export function InspectorPanel() {
             <div className="space-y-1.5">
               <Label className="text-xs">نام محصول</Label>
               <Input
+                data-testid="product-card-name-input"
                 value={String(props.name || "")}
                 onChange={(e) => handlePropChange("name", e.target.value)}
                 className="h-8 text-xs"
@@ -791,6 +798,7 @@ export function InspectorPanel() {
             <div className="space-y-1.5">
               <Label className="text-xs">امتیاز (از ۵)</Label>
               <Input
+                data-testid="star-rating-value-input"
                 type="number"
                 step="0.1"
                 min="0"
@@ -905,6 +913,7 @@ export function InspectorPanel() {
             <div className="space-y-1.5">
               <Label className="text-xs">قیمت فروش (تومان)</Label>
               <Input
+                data-testid="product-price-input"
                 type="number"
                 value={Number(props.price) || 0}
                 onChange={(e) => handlePropChange("price", parseFloat(e.target.value) || 0)}
@@ -936,6 +945,7 @@ export function InspectorPanel() {
             <div className="space-y-1.5">
               <Label className="text-xs">متن روی دکمه</Label>
               <Input
+                data-testid="add-to-cart-label-input"
                 value={String(props.label || "افزودن به سبد خرید")}
                 onChange={(e) => handlePropChange("label", e.target.value)}
                 className="h-8 text-xs"
@@ -1100,6 +1110,7 @@ export function InspectorPanel() {
             <div className="space-y-1.5">
               <Label className="text-xs">آدرس اندپوینت ثبت فرم (Action URL)</Label>
               <Input
+                data-testid="form-container-submit-url"
                 value={String(props.submit_url || "/api/v1/content/forms/submit")}
                 onChange={(e) => handlePropChange("submit_url", e.target.value)}
                 className="h-8 text-xs font-mono"
@@ -1109,6 +1120,7 @@ export function InspectorPanel() {
             <div className="space-y-1.5">
               <Label className="text-xs">پیام موفقیت‌آمیز ثبت</Label>
               <Input
+                data-testid="form-container-success-input"
                 value={String(props.success_message || "پیام شما با موفقیت ثبت شد.")}
                 onChange={(e) => handlePropChange("success_message", e.target.value)}
                 className="h-8 text-xs"
@@ -1211,6 +1223,7 @@ export function InspectorPanel() {
                     )}
                   </div>
                   <Input
+                    data-testid={`accordion-item-title-${idx}`}
                     value={item.title || ""}
                     onChange={(e) => {
                       const updated = [...items];
@@ -1237,6 +1250,7 @@ export function InspectorPanel() {
             ))}
             <button
               type="button"
+              data-testid="accordion-add-item-btn"
               onClick={() => handlePropChange("items", [...items, { title: "سؤال جدید", content: "پاسخ جدید" }])}
               className="w-full py-1.5 rounded-lg border border-dashed border-primary text-xs font-semibold text-primary hover:bg-primary/5 transition"
             >
@@ -1308,6 +1322,7 @@ export function InspectorPanel() {
             <div className="space-y-1.5">
               <Label className="text-xs">عنوان ویژگی</Label>
               <Input
+                data-testid="iconbox-title-input"
                 value={String(props.title || "ضمانت اصالت و سلامت")}
                 onChange={(e) => handlePropChange("title", e.target.value)}
                 className="h-8 text-xs"
@@ -1336,6 +1351,7 @@ export function InspectorPanel() {
               <Label className="text-xs font-bold">زبانه‌های محتوایی (Tabs)</Label>
               <button
                 type="button"
+                data-testid="tabs-add-tab-btn"
                 onClick={() => {
                   const updated = [...tabsList, { title: `تب جدید ${tabsList.length + 1}`, content: "محتوای زبانه جدید را اینجا بنویسید." }];
                   handlePropChange("tabs", updated);
@@ -1364,6 +1380,7 @@ export function InspectorPanel() {
                     )}
                   </div>
                   <Input
+                    data-testid={`tab-title-input-${idx}`}
                     value={t.title || ""}
                     placeholder="عنوان زبانه"
                     onChange={(e) => {
@@ -1854,57 +1871,97 @@ export function InspectorPanel() {
         );
       }
 
-      case "off_canvas":
+      case "counter":
         return (
           <div className="space-y-4">
-            <div className="space-y-1.5">
-              <Label className="text-xs">عنوان کشوی جانبی</Label>
-              <Input
-                value={String(props.drawer_title || "منوی سریع")}
-                onChange={(e) => handlePropChange("drawer_title", e.target.value)}
-                className="h-8 text-xs"
-              />
+            <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-1">
+                <Label className="text-xs">عدد شروع</Label>
+                <Input
+                  type="number"
+                  value={Number(props.starting_number) || 0}
+                  onChange={(e) => handlePropChange("starting_number", parseInt(e.target.value, 10) || 0)}
+                  className="h-8 text-xs font-mono"
+                />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">عدد پایان</Label>
+                <Input
+                  data-testid="counter-ending-input"
+                  type="number"
+                  value={Number(props.ending_number) || 100}
+                  onChange={(e) => handlePropChange("ending_number", parseInt(e.target.value, 10) || 100)}
+                  className="h-8 text-xs font-mono"
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-1">
+                <Label className="text-xs">پیشوند (Prefix)</Label>
+                <Input
+                  value={String(props.prefix || "")}
+                  onChange={(e) => handlePropChange("prefix", e.target.value)}
+                  className="h-8 text-xs"
+                />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">پسوند (Suffix)</Label>
+                <Input
+                  value={String(props.suffix || "")}
+                  onChange={(e) => handlePropChange("suffix", e.target.value)}
+                  className="h-8 text-xs"
+                />
+              </div>
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs">موقعیت اسلاید</Label>
-              <Select
-                value={String(props.position || "right")}
-                onValueChange={(val) => handlePropChange("position", val)}
-              >
-                <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="right">راست (Right)</SelectItem>
-                  <SelectItem value="left">چپ (Left)</SelectItem>
-                </SelectContent>
-              </Select>
+              <Label className="text-xs">عنوان زیر شمارنده</Label>
+              <Input
+                data-testid="counter-title-input"
+                value={String(props.title || "")}
+                onChange={(e) => handlePropChange("title", e.target.value)}
+                className="h-8 text-xs"
+              />
             </div>
           </div>
         );
 
-      case "popup_builder":
+      case "alert":
         return (
           <div className="space-y-4">
             <div className="space-y-1.5">
-              <Label className="text-xs">عنوان پاپ‌آپ</Label>
+              <Label className="text-xs">نوع پیام (Alert Type)</Label>
+              <Select
+                value={String(props.alert_type || "info")}
+                onValueChange={(val) => handlePropChange("alert_type", val)}
+              >
+                <SelectTrigger className="h-8 text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="info">اطلاع‌رسانی (آبی)</SelectItem>
+                  <SelectItem value="success">موفقیت‌آمیز (سبز)</SelectItem>
+                  <SelectItem value="warning">هشدار (زرد)</SelectItem>
+                  <SelectItem value="danger">خطر / خطا (قرمز)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">عنوان پیام</Label>
               <Input
-                value={String(props.popup_title || "تخفیف ویژه")}
-                onChange={(e) => handlePropChange("popup_title", e.target.value)}
+                data-testid="alert-title-input"
+                value={String(props.title || "")}
+                onChange={(e) => handlePropChange("title", e.target.value)}
                 className="h-8 text-xs"
               />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs">رویداد باز شدن (Trigger)</Label>
-              <Select
-                value={String(props.trigger || "exit_intent")}
-                onValueChange={(val) => handlePropChange("trigger", val)}
-              >
-                <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="exit_intent">هنگام خروج از صفحه (Exit Intent)</SelectItem>
-                  <SelectItem value="page_load">پس از بارگذاری صفحه</SelectItem>
-                  <SelectItem value="scroll_depth">پس از اسکرول ۵۰ درصد</SelectItem>
-                </SelectContent>
-              </Select>
+              <Label className="text-xs">متن کامل پیام</Label>
+              <textarea
+                rows={3}
+                value={String(props.description || "")}
+                onChange={(e) => handlePropChange("description", e.target.value)}
+                className="w-full rounded-md border border-input bg-background p-2 text-xs"
+              />
             </div>
           </div>
         );
@@ -3290,28 +3347,76 @@ export function InspectorPanel() {
           />
         </div>
 
-        {/* Custom Attributes (Elementor Pro Parity) */}
-        <div className="space-y-1.5 pt-2 border-t border-border/80" data-testid="custom-attributes-control">
-          <div className="flex items-center justify-between">
-            <Label className="text-xs font-bold text-foreground">ویژگی‌های سفارشی (Custom Attributes - المنتور)</Label>
-            <span className="text-[10px] text-muted-foreground font-mono">key|value</span>
+        {/* Transform (Elementor Parity Wave 1) */}
+        <div className="space-y-3 pt-2 border-t border-border/80">
+          <Label className="text-xs font-bold text-foreground block">تبدیل و چرخش (Transform)</Label>
+          <div className="grid grid-cols-2 gap-2">
+            <div className="space-y-1">
+              <Label className="text-[11px] text-muted-foreground">زاویه چرخش (درجه)</Label>
+              <Input
+                data-testid="transform-rotate-input"
+                type="number"
+                min={-360}
+                max={360}
+                value={currentDeviceStyle.transform?.rotate ?? ""}
+                placeholder="۰°"
+                onChange={(e) => {
+                  const val = e.target.value === "" ? null : parseFloat(e.target.value);
+                  handleDeviceStyleChange({
+                    transform: { ...(currentDeviceStyle.transform || {}), rotate: val },
+                  });
+                }}
+                className="h-8 text-xs font-mono"
+                dir="ltr"
+              />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-[11px] text-muted-foreground">مقیاس (Scale)</Label>
+              <Input
+                data-testid="transform-scale-input"
+                type="number"
+                step="0.05"
+                min={0.1}
+                max={3}
+                value={currentDeviceStyle.transform?.scale ?? ""}
+                placeholder="۱.۰"
+                onChange={(e) => {
+                  const val = e.target.value === "" ? null : parseFloat(e.target.value);
+                  handleDeviceStyleChange({
+                    transform: { ...(currentDeviceStyle.transform || {}), scale: val },
+                  });
+                }}
+                className="h-8 text-xs font-mono"
+                dir="ltr"
+              />
+            </div>
           </div>
-          <p className="text-[11px] text-muted-foreground leading-relaxed">
-            ویژگی‌های سفارشی المان را وارد کنید. هر ویژگی در یک خط، کلید و مقدار با نویسه <code className="text-primary font-bold">|</code> تفکیک می‌شوند (مانند <span dir="ltr" className="font-mono text-[10px]">data-tracking|hero-cta</span>).
-          </p>
-          <textarea
-            data-testid="custom-attributes-textarea"
-            rows={3}
-            dir="ltr"
-            placeholder={"data-tracking|hero-cta\nrel|sponsored"}
-            value={selectedElement.styles.customAttributes || ""}
-            onChange={(e) =>
-              updateElementStyles(selectedElement.id, {
-                customAttributes: e.target.value,
-              })
-            }
-            className="w-full rounded-md border border-input bg-background p-2 text-xs font-mono outline-none focus:ring-1 focus:ring-primary"
-          />
+        </div>
+
+        {/* Masking (Elementor Parity Wave 1) */}
+        <div className="space-y-3 pt-2 border-t border-border/80">
+          <Label className="text-xs font-bold text-foreground block">ماسک تصویر و المان (Mask)</Label>
+          <div className="space-y-1.5">
+            <Label className="text-[11px] text-muted-foreground">شکل ماسک</Label>
+            <Select
+              value={currentDeviceStyle.mask?.shape || "none"}
+              onValueChange={(val) =>
+                handleDeviceStyleChange({
+                  mask: { ...(currentDeviceStyle.mask || {}), shape: val === "none" ? undefined : val },
+                })
+              }
+            >
+              <SelectTrigger data-testid="mask-shape-select" className="h-8 text-xs">
+                <SelectValue placeholder="انتخاب شکل ماسک" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">بدون ماسک (None)</SelectItem>
+                <SelectItem value="circle">دایره‌ای (Circle)</SelectItem>
+                <SelectItem value="flower">گلبرگ (Flower)</SelectItem>
+                <SelectItem value="hexagon">شش‌ضلعی (Hexagon)</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
         {/* Entrance / Scroll Animation */}
@@ -3466,6 +3571,75 @@ export function InspectorPanel() {
             }}
           />
         </div>
+
+        {/* Shape Dividers (Elementor Parity Wave 1) */}
+        {selectedElement.type === "container" && (
+          <div className="space-y-3 pt-3 border-t border-border/80">
+            <Label className="text-xs font-bold text-foreground block">اشکال جداکننده بخش (Shape Dividers)</Label>
+            <div className="space-y-1.5">
+              <Label className="text-[11px] text-muted-foreground">شکل جداکننده بالا (Top Shape)</Label>
+              <Select
+                value={selectedElement.styles?.shapeDividerTop || "none"}
+                onValueChange={(val) =>
+                  updateElementStyles(selectedElement.id, {
+                    shapeDividerTop: val,
+                  })
+                }
+              >
+                <SelectTrigger data-testid="shape-divider-top-select" className="h-8 text-xs">
+                  <SelectValue placeholder="انتخاب شکل بالا" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">بدون جداکننده (None)</SelectItem>
+                  <SelectItem value="waves">امواج نرم (Waves)</SelectItem>
+                  <SelectItem value="curve">منحنی مقعر (Curve)</SelectItem>
+                  <SelectItem value="triangle">مثلث (Triangle)</SelectItem>
+                  <SelectItem value="tilt">شیب مایل (Tilt)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className="text-[11px] text-muted-foreground">شکل جداکننده پایین (Bottom Shape)</Label>
+              <Select
+                value={selectedElement.styles?.shapeDividerBottom || "none"}
+                onValueChange={(val) =>
+                  updateElementStyles(selectedElement.id, {
+                    shapeDividerBottom: val,
+                  })
+                }
+              >
+                <SelectTrigger data-testid="shape-divider-bottom-select" className="h-8 text-xs">
+                  <SelectValue placeholder="انتخاب شکل پایین" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">بدون جداکننده (None)</SelectItem>
+                  <SelectItem value="waves">امواج نرم (Waves)</SelectItem>
+                  <SelectItem value="curve">منحنی مقعر (Curve)</SelectItem>
+                  <SelectItem value="triangle">مثلث (Triangle)</SelectItem>
+                  <SelectItem value="tilt">شیب مایل (Tilt)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className="text-[11px] text-muted-foreground">رنگ شکل جداکننده</Label>
+              <Input
+                data-testid="shape-divider-color-input"
+                type="text"
+                placeholder="#ffffff"
+                value={selectedElement.styles?.shapeDividerColor || "#ffffff"}
+                onChange={(e) =>
+                  updateElementStyles(selectedElement.id, {
+                    shapeDividerColor: e.target.value,
+                  })
+                }
+                className="h-8 text-xs font-mono"
+                dir="ltr"
+              />
+            </div>
+          </div>
+        )}
 
         {/* Conditional Visibility (P4) */}
         <div className="space-y-3 pt-3 border-t border-border/80">

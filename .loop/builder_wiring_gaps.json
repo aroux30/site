@@ -1,12 +1,12 @@
 {
-  "timestamp": "2026-11-21T15:58:44.028Z",
+  "timestamp": "2026-11-21T19:48:27.533Z",
   "summary": {
     "hardcodedOrEmptyCount": 0,
     "unreadInCanvasCount": 0,
-    "uncompiledInSsrCount": 0,
+    "uncompiledInSSRCount": 0,
     "widgetControlBlindSpotsCount": 0
   },
-  "categories": {
+  "gaps": {
     "HARDCODED_OR_EMPTY_UI": [],
     "UNREAD_IN_CANVAS": [],
     "UNCOMPILED_IN_SSR": [],

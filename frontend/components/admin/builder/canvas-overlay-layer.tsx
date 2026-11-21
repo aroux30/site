@@ -348,6 +348,7 @@ export function CanvasOverlayLayer({
               {isContainer && (
                 <button
                   type="button"
+                  data-testid="save-section-template-toolbar-btn"
                   onClick={() => setSaveTemplateOpen(true)}
                   className="p-1 hover:bg-primary-foreground/20 rounded transition text-amber-200 hover:text-white"
                   title="ذخیره به عنوان قالب (Save as Template)"

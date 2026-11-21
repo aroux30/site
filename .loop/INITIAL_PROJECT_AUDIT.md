@@ -1,39 +1,68 @@
-# ممیزی شناسایی اولیه پروژه (Initial Project Reconnaissance & Audit)
-**تاریخ**: 2026-11-21  
-**محیط اجرا**: ویندوز ۱۰ پرو | Git Worktree ایزوله: `stoic-wing-5e1e27`  
-**شاخه فعال**: `claude/stoic-wing-5e1e27`  
+# Initial Project Audit (.loop/INITIAL_PROJECT_AUDIT.md)
+**Date**: 2026-11-21  
+**Auditor**: Autonomous Multi-Agent Visual Page Builder Engineering System  
+**Working Directory**: `C:\Users\Administrator\Desktop\site\.claude\worktrees\heuristic-lamport-ee5149`  
+**Reference Directory**: `C:\Users\Administrator\Desktop\elementor`  
+**Git Branch**: `claude/heuristic-lamport-ee5149` (isolated worktree)  
+**Status**: CLEAN, ALL BASELINE TESTS PASSING  
 
 ---
 
-## ۱. وضعیت ساختار پروژه و محیط اجرا
-- **مخزن اصلی**: `C:\Users\Administrator\Desktop\site`
-- **ورک‌تری ایزوله**: `C:\Users\Administrator\Desktop\site\.claude\worktrees\stoic-wing-5e1e27`
-- **مرجع مقایسه المنتور**: `C:\Users\Administrator\Desktop\elementor` (شامل `elementor` هسته و `elementor-pro` - کاملاً Read-Only و بدون تغییر)
-- **وضعیت Git**: کاملاً تمیز بر پایه ادغام ویژگی‌های excavator و parity؛ آماده توسعه روی شاخه کاری ایزوله.
-- **تست‌های واحد**:
-  - فرانت‌اند (Vitest): **۳۷۲ تست سبز** (۴۵ فایل تست در ۱۶.۶ ثانیه).
-  - تایپ‌اسکریپت: کامپایل ۱۰۰٪ تمیز (`tsc --noEmit` بدون خطای نوع).
-  - بک‌اند (Pytest Unit): **تمام تست‌های واحد سبز**.
+## 1. Executive Summary & Architecture Map
+The project is a custom production e-commerce and visual CMS web application with:
+- **Frontend**: Next.js 15.5.25 (App Router, Turbopack, TailwindCSS, Radix UI primitives, Lucide icons, Zustand store).
+- **Backend**: FastAPI, SQLAlchemy async ORM, PostgreSQL 16 (Docker container `ecommerce-postgres`), Redis 7 (`ecommerce-redis`), Elasticsearch 8.15 (`ecommerce-elasticsearch`).
+- **Visual Page Builder Scope**:
+  - Studio Environment: `http://127.0.0.1:3000/e2e-isolated-scratchpad?builder=1`
+  - Rendered Storefront Parity Page: `http://127.0.0.1:3000/e2e-isolated-scratchpad`
+  - Core Studio: `frontend/components/admin/builder/builder-studio.tsx`
+  - Iframe Canvas: `frontend/components/admin/builder/canvas-frame.tsx`
+  - Canvas Elements: `frontend/components/admin/builder/canvas-element.tsx`
+  - Overlay Portal & Toolbar: `frontend/components/admin/builder/canvas-overlay-layer.tsx`
+  - Blocks Palette: `frontend/components/admin/builder/blocks-palette.tsx`
+  - Layers Tree (Navigator): `frontend/components/admin/builder/layers-tree.tsx`
+  - Inspector Panel: `frontend/components/admin/builder/inspector-panel.tsx`
+  - State Store: `frontend/stores/builder-store.ts`
+  - Block Registry: `frontend/lib/builder/block-registry.ts` (35 block definitions)
+  - Pattern Converter: `frontend/lib/builder/pattern-converter.ts` (28 code-registered patterns)
+  - Backend AST & Compiler: `backend/app/modules/content/application/ast_compiler.py`, `backend/app/modules/content/domain/builder_ast.py`
 
 ---
 
-## ۲. معماری Visual Page Builder پروژه
-### فرانت‌اند:
-- **استودیو سازنده (`BuilderStudio`)**: چیدمان سه‌ستونه تمام‌صفحه (نوار ابزار بالا، سایدبار پالت بلوک‌ها/لایه‌ها/تاریخچه در راست، بوم آی‌فریم در مرکز، پنل بازرس المان در چپ).
-- **بوم ویرایشگر (`CanvasFrame` & `CanvasDndLayer`)**: رندر بوم داخل آی‌فریم ایزوله با `createPortal` جهت ارزیابی دقیق مدیا کوئری‌های ریسپانسیو و تزریق دو لایه توکن‌های طراحی (تم سراسری + استایل برگه).
-- **نوار ابزار و کادربندی شناور (`CanvasOverlayLayer`)**: لایه مستقل شناور در ریشه بوم جهت جلوگیری کامل از قطع شدن نوار ابزار توسط کانتینرهای با `overflow: hidden`.
-- **درخت لایه‌ها (`LayersTree`)**: نمایش کامل سلسله‌مراتب درختی، تورفتگی عمودی RTL معادل `depth * 24px`، خط راهنمای عمودی فیروزه‌ای، تغییر نام با دابل‌کلیک و کلیدهای حذف/تکثیر/مخفی‌سازی همواره مرئی (`opacity-80 hover:opacity-100`).
-- **پنل بازرس (`InspectorPanel`)**: سه تب اصلی Content، Style و Advanced با کنترل‌های تایپوگرافی، حاشیه، پدینگ، فاصله‌گذاری، سایه کادر، گرادیان، فیلترهای CSS، انیمیشن‌ها و شرایط نمایش دستگاهی.
-- **استور سازنده (`builder-store.ts`)**: مدیریت حالت یکپارچه با ساختار درختی AST بر پایه Zustand با تاریخچه Undo/Redo تا سقف ۲۰ گام، کلیپ‌بورد المان و استایل، و ذخیره خودکار امن با debounce.
-
-### بک‌اند:
-- **اسکیما و اعتبارسنجی AST (`builder_ast.py` & `builder_validation.py`)**: اعتبارسنجی ساختار JSON، کنترل امنیتی نوع المان‌ها، اعتبارسنجی پدینگ و مارجین.
-- **کامپایلر سرور (`ast_compiler.py`)**: تبدیل مستقیم ساختار AST المان‌ها به HTML بهینه‌سازی‌شده برای سئو با متغیرهای توکن و استایل‌های خطی سازگار با RTL.
-- **پالایش امنیتی HTML (`html_sanitizer.py`)**: پاکسازی ورودی‌های غنی و ایمن‌سازی تگ‌ها در برابر آسیب‌پذیری‌های تزریق کدهای مخرب.
+## 2. Environment & Tooling Verification
+- **Git State**: Clean worktree on branch `claude/heuristic-lamport-ee5149`.
+- **Node.js**: v26.1.0 on Windows 10 Pro 10.0.19045.
+- **Python**: 3.14.5 with pytest 9.1.1.
+- **Frontend Typecheck**: `npm --prefix frontend run type-check` (tsc --noEmit) -> 0 errors.
+- **Frontend Unit Tests**: `npm --prefix frontend test` (vitest run) -> 372 passed in 45 test files.
+- **Backend Unit Tests**: `cd backend && python -m pytest app/tests/unit` -> 622 passed, 2 skipped.
+- **Deterministic Audit**: `node .loop/audits/deterministic-audit.mjs` -> PASSED (7/7 checks green, 0 WCAG violations).
+- **Playwright Gym Tests (Rounds 1-5)**: 15/15 passed in 26.5s.
 
 ---
 
-## ۳. منابع در دسترس و ابزارهای چندعاملی
-- **موتور ساب‌ایجنت‌ها**: در دسترس با نقش‌های تخصصی Lead Architect, Feature Researcher, Functional QA, Code Reviewer.
-- **پورت‌های سرور پیش‌نمایش**: پورت اختصاصی ۳۷۰۰ با بیلد پروداکشن برای تست‌های Playwright فعال شده و تست‌های رگرسیون تایید شدند.
-- **سورس مرجع المنتور**: نسخه کامل المنتور و المنتور پرو در دسترس محلی برای استخراج معماری و الگوهای پیشرفته.
+## 3. Elementor & Elementor Pro Local Reference Availability
+- Path: `C:\Users\Administrator\Desktop\elementor`
+- `elementor/`: Core Elementor version (35 core widgets in `includes/widgets/`, layout engine, responsive handlers, CSS variables).
+- `elementor-pro/`: Pro modules (64 modules in `modules/`, loop builder, theme builder, motion-fx, popup, forms, dynamic tags, custom css).
+- Policy: Read-only reference for architecture, interaction patterns, and parity analysis. No modifications made to reference source.
+
+---
+
+## 4. Multi-Agent Orchestration Strategy
+- Execution Harness: Claude Code CLI / SDK within isolated git worktree.
+- Specialized Roles:
+  1. **Lead Architect & Auditor**: Repository discovery, dependency graph, contract mapping.
+  2. **Elementor Research Specialist**: Direct inspection of Elementor & Elementor Pro modules.
+  3. **UI/UX & Accessibility Engineer**: DOM geometry, RTL indentation, dark mode, Axe audit.
+  4. **Functional QA & Test Engineer**: Regression locking, Playwright E2E coverage.
+  5. **Frontend & Backend Implementation Engineer**: Code improvements, AST validation, WYSIWYG parity.
+  6. **Independent Reviewer & Verifier**: Critical verification before completion, proof-of-work enforcement.
+
+---
+
+## 5. Scope Guardrail Reminders
+- Locked Scope: Visual Page Builder components and backend compiler.
+- Protected files: `backend/app/modules/audit/application/audit_service.py` (STRICTLY UNTOUCHED).
+- Showcase: Strictly untouched.
+- Primary E2E Test Target: `/e2e-isolated-scratchpad?builder=1` and `/e2e-isolated-scratchpad`.

@@ -2280,6 +2280,61 @@ export function InspectorPanel() {
           </div>
         </div>
 
+        {/* Section Shape Dividers (Elementor Parity) */}
+        {selectedElement.type === "container" && (
+          <div className="space-y-3 pt-2 border-t">
+            <Label className="text-xs font-bold text-foreground block">جداکننده شکل کانتینر (Shape Divider)</Label>
+
+            <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-1">
+                <Label className="text-[10px] text-muted-foreground">شکل بالا (Top)</Label>
+                <Select
+                  value={selectedElement.styles?.shapeDividerTop || "none"}
+                  onValueChange={(val: string) =>
+                    updateElementStyles(selectedElement.id, {
+                      shapeDividerTop: val === "none" ? null : val,
+                    })
+                  }
+                >
+                  <SelectTrigger className="h-7 text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">بدون شکل</SelectItem>
+                    <SelectItem value="waves">موجی (Waves)</SelectItem>
+                    <SelectItem value="curve">منحنی (Curve)</SelectItem>
+                    <SelectItem value="triangle">مثلث (Triangle)</SelectItem>
+                    <SelectItem value="tilt">مورب (Tilt)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-1">
+                <Label className="text-[10px] text-muted-foreground">شکل پایین (Bottom)</Label>
+                <Select
+                  value={selectedElement.styles?.shapeDividerBottom || "none"}
+                  onValueChange={(val: string) =>
+                    updateElementStyles(selectedElement.id, {
+                      shapeDividerBottom: val === "none" ? null : val,
+                    })
+                  }
+                >
+                  <SelectTrigger className="h-7 text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">بدون شکل</SelectItem>
+                    <SelectItem value="waves">موجی (Waves)</SelectItem>
+                    <SelectItem value="curve">منحنی (Curve)</SelectItem>
+                    <SelectItem value="triangle">مثلث (Triangle)</SelectItem>
+                    <SelectItem value="tilt">مورب (Tilt)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Advanced Layout & Flexbox/Grid (P4) */}
         <div className="space-y-4 pt-3 border-t border-border/80">
           <Label className="text-xs font-bold text-foreground block">چیدمان پیشرفته (Advanced Layout - P4)</Label>

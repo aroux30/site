@@ -1397,6 +1397,90 @@ function CanvasElementComponent({
         />
       )}
 
+      {/* Top Shape Divider (Elementor Parity) */}
+      {isContainer && (element.styles?.shapeDividerTop || (element.styles?.mobile as any)?.shapeDividerTop) && (element.styles?.shapeDividerTop || (element.styles?.mobile as any)?.shapeDividerTop) !== "none" && (
+        <div
+          data-testid="shape-divider-top"
+          className="absolute top-0 start-0 w-full overflow-hidden leading-none z-10 pointer-events-none"
+          style={{ height: "48px" }}
+        >
+          {((element.styles?.shapeDividerTop || (element.styles?.mobile as any)?.shapeDividerTop) === "waves") && (
+            <svg viewBox="0 0 1000 100" preserveAspectRatio="none" className="w-full h-full block">
+              <path
+                fill={element.styles?.shapeDividerColor || (element.styles?.mobile as any)?.shapeDividerColor || "#ffffff"}
+                d="M421.9,6.5c22.6-2.5,51.5,0.4,75.5,5.3c23.6,4.9,70.9,23.5,100.5,35.7c75.8,32.2,133.7,44.5,192.6,49.7c23.6,2.1,48.7,3.5,103.4-2.5c54.7-6,106.2-25.6,106.2-25.6V0H0v30.3c0,0,72,32.6,158.4,30.5c39.2-0.7,92.8-6.7,134-22.4c21.2-8.1,52.2-18.2,79.7-24.2C399.3,7.9,411.6,7.5,421.9,6.5z"
+              />
+            </svg>
+          )}
+          {((element.styles?.shapeDividerTop || (element.styles?.mobile as any)?.shapeDividerTop) === "curve") && (
+            <svg viewBox="0 0 1000 100" preserveAspectRatio="none" className="w-full h-full block">
+              <path
+                fill={element.styles?.shapeDividerColor || (element.styles?.mobile as any)?.shapeDividerColor || "#ffffff"}
+                d="M1000,4.3V0H0v4.3C0.9,23.1,126.7,99.2,500,100S1000,22.7,1000,4.3z"
+              />
+            </svg>
+          )}
+          {((element.styles?.shapeDividerTop || (element.styles?.mobile as any)?.shapeDividerTop) === "triangle") && (
+            <svg viewBox="0 0 1000 100" preserveAspectRatio="none" className="w-full h-full block">
+              <path
+                fill={element.styles?.shapeDividerColor || (element.styles?.mobile as any)?.shapeDividerColor || "#ffffff"}
+                d="M500,98.9L0,6.1V0h1000v6.1L500,98.9z"
+              />
+            </svg>
+          )}
+          {((element.styles?.shapeDividerTop || (element.styles?.mobile as any)?.shapeDividerTop) === "tilt") && (
+            <svg viewBox="0 0 1000 100" preserveAspectRatio="none" className="w-full h-full block">
+              <path
+                fill={element.styles?.shapeDividerColor || (element.styles?.mobile as any)?.shapeDividerColor || "#ffffff"}
+                d="M0,6V0h1000v100L0,6z"
+              />
+            </svg>
+          )}
+        </div>
+      )}
+
+      {/* Bottom Shape Divider (Elementor Parity) */}
+      {isContainer && (element.styles?.shapeDividerBottom || (element.styles?.mobile as any)?.shapeDividerBottom) && (element.styles?.shapeDividerBottom || (element.styles?.mobile as any)?.shapeDividerBottom) !== "none" && (
+        <div
+          data-testid="shape-divider-bottom"
+          className="absolute bottom-0 start-0 w-full overflow-hidden leading-none z-10 pointer-events-none rotate-180"
+          style={{ height: "48px" }}
+        >
+          {((element.styles?.shapeDividerBottom || (element.styles?.mobile as any)?.shapeDividerBottom) === "waves") && (
+            <svg viewBox="0 0 1000 100" preserveAspectRatio="none" className="w-full h-full block">
+              <path
+                fill={element.styles?.shapeDividerColor || (element.styles?.mobile as any)?.shapeDividerColor || "#ffffff"}
+                d="M421.9,6.5c22.6-2.5,51.5,0.4,75.5,5.3c23.6,4.9,70.9,23.5,100.5,35.7c75.8,32.2,133.7,44.5,192.6,49.7c23.6,2.1,48.7,3.5,103.4-2.5c54.7-6,106.2-25.6,106.2-25.6V0H0v30.3c0,0,72,32.6,158.4,30.5c39.2-0.7,92.8-6.7,134-22.4c21.2-8.1,52.2-18.2,79.7-24.2C399.3,7.9,411.6,7.5,421.9,6.5z"
+              />
+            </svg>
+          )}
+          {((element.styles?.shapeDividerBottom || (element.styles?.mobile as any)?.shapeDividerBottom) === "curve") && (
+            <svg viewBox="0 0 1000 100" preserveAspectRatio="none" className="w-full h-full block">
+              <path
+                fill={element.styles?.shapeDividerColor || (element.styles?.mobile as any)?.shapeDividerColor || "#ffffff"}
+                d="M1000,4.3V0H0v4.3C0.9,23.1,126.7,99.2,500,100S1000,22.7,1000,4.3z"
+              />
+            </svg>
+          )}
+          {((element.styles?.shapeDividerBottom || (element.styles?.mobile as any)?.shapeDividerBottom) === "triangle") && (
+            <svg viewBox="0 0 1000 100" preserveAspectRatio="none" className="w-full h-full block">
+              <path
+                fill={element.styles?.shapeDividerColor || (element.styles?.mobile as any)?.shapeDividerColor || "#ffffff"}
+                d="M500,98.9L0,6.1V0h1000v6.1L500,98.9z"
+              />
+            </svg>
+          )}
+          {((element.styles?.shapeDividerBottom || (element.styles?.mobile as any)?.shapeDividerBottom) === "tilt") && (
+            <svg viewBox="0 0 1000 100" preserveAspectRatio="none" className="w-full h-full block">
+              <path
+                fill={element.styles?.shapeDividerColor || (element.styles?.mobile as any)?.shapeDividerColor || "#ffffff"}
+                d="M0,6V0h1000v100L0,6z"
+              />
+            </svg>
+          )}
+        </div>
+      )}
+
       {/* Content Rendering */}
       {isContainer ? (
         element.children && element.children.length > 0 ? (

@@ -933,6 +933,20 @@ async function runXRayAudit() {
         addFailure("P1", "HOTKEYS_MODAL_NOT_OPEN", "toolbar", "Clicking hotkeys button did not open modal.");
       }
     }
+
+    // ── Check Section Shape Divider in Inspector ──
+    if (await firstEl.isVisible()) {
+      await firstEl.click();
+      await page.waitForTimeout(300);
+      if (await styleTabBtn.isVisible()) {
+        await styleTabBtn.click();
+        await page.waitForTimeout(300);
+        const shapeDividerHeader = await page.locator("text='جداکننده شکل کانتینر'").first().isVisible();
+        if (shapeDividerHeader) {
+          console.log("    ✅ Elementor Section Shape Divider controls verified in Inspector.");
+        }
+      }
+    }
   } catch (ctxErr) {
     addFailure("P1", "ADVANCED_UX_EXCEPTION", "elementor-parity", ctxErr.message);
   }

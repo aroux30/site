@@ -15,6 +15,7 @@
 | **Round 04** | 0 Failures (توسعه پیش‌رونده) | **0 Failures (0 P0, 0 P1)** | **کنترل‌های گرادیانت پس‌زمینه (رنگ شروع/پایان و جهت)، استایل و ضخامت حاشیه کادر (Border Style & Width) به سبک المنتور** | **28 / 28 (100%)** | **34 / 34 (100%)** | **0 (صفر)** | ✅ **پاس ۱۰۰٪ کامل** |
 | **Round 05** | 0 Failures (توسعه پیش‌رونده) | **0 Failures (0 P0, 0 P1)** | **قابلیت‌های ناوبری لایه‌ها (جستجوی بلادرنگ المان‌ها، دکمه باز/بسته کردن همه، شمارنده کل) و ویرایش درون‌متنی دکمه‌ها** | **28 / 28 (100%)** | **34 / 34 (100%)** | **0 (صفر)** | ✅ **پاس ۱۰۰٪ کامل** |
 | **Round 06** | 0 Failures (توسعه پیش‌رونده) | **0 Failures (0 P0, 0 P1)** | **دیالوگ راهنمای کلیدهای میانبر (Elementor Hotkeys Parity) با میانبر سراسری Shift+? و دکمه تولبار** | **28 / 28 (100%)** | **34 / 34 (100%)** | **0 (صفر)** | ✅ **پاس ۱۰۰٪ کامل** |
+| **Round 07** | 0 Failures (توسعه پیش‌رونده) | **0 Failures (0 P0, 0 P1)** | **جداکننده‌های شکل کانتینر (Shape Dividers: Waves, Curve, Triangle, Tilt) در سقف و کف بخش‌ها به سبک المنتور** | **28 / 28 (100%)** | **34 / 34 (100%)** | **0 (صفر)** | ✅ **پاس ۱۰۰٪ کامل** |
 
 ---
 
@@ -253,6 +254,47 @@
 - `npm test` (Vitest): **۳۷۲ تست سبز در ۴۵ فایل** (`372 passed`)
 - `python -m pytest app/tests/unit`: **۶۲۲ تست سبز** (`622 passed, 2 skipped`)
 - `node .loop/audits/builder-xray.mjs`: **پاس ۱۰۰٪ تمامی چک‌ها با ۰ خطا**
+
+---
+
+## جزئیات راند ۷ (Round 07) — جداکننده‌های شکل کانتینر (Shape Dividers)
+
+- **شاخه ایزوله**: `claude/hungry-ardinghelli-71d423`
+- **تاریخ ممیزی**: 2026-11-21
+- **آمار ماتریس اشعه ایکس (`.loop/XRAY_MATRIX.json`)**:
+  - `totalChecks`: ۷۰ چک جامع
+  - `passedChecks`: ۷۰ چک سبز
+  - `failedChecks`: ۰
+  - `totalFailures`: **۰**
+  - `p0Count`: **۰**
+  - `p1Count`: **۰**
+  - `p2Count`: **۰**
+  - `patternsPassed`: **۲۸ / ۲۸**
+  - `blocksPassed`: **۳۴ / ۳۴**
+  - `deadControlsRemaining`: **۰**
+
+### ۱. قابلیت‌ها و معماری‌های پیاده‌سازی‌شده
+1. **جداکننده‌های شکل کانتینر (Section Shape Dividers به سبک المنتور)**:
+   - پیاده‌سازی ۴ شکل اصلی مشتق‌شده از `elementor-ref/elementor/assets/shapes`:
+     - موجی (Waves)
+     - منحنی (Curve)
+     - مثلث (Triangle)
+     - مورب (Tilt)
+   - قرارگیری به صورت لایه وکتور SVG بدون تداخل با محتوا در بالای سکشن (`data-testid="shape-divider-top"`) و پایین سکشن با چرخش ۱۸۰ درجه (`data-testid="shape-divider-bottom"`).
+2. **کنترل‌های اختصاصی Shape Divider در پنل بازرس**:
+   - منوی کشویی انتخاب شکل بالا و شکل پایین در تب استایل برای هر کانتینر.
+
+### ۲. شواهد بصری و فایل‌های راند ۷
+- **بعد از اصلاح**: `.loop/artifacts/excavator/round-07/after/`
+  - `01-canvas-shape-divider-waves.png` (رندر سکشن سبز با جداکننده شکل موجی و منحنی در بوم)
+  - `02-inspector-shape-divider-controls.png` (نمایش منوی کشویی انتخاب شکل در بازرس)
+
+### ۳. گیت‌های صحت‌سنجی نهایی راند ۷
+- `npx tsc --noEmit`: ۰ خطا (سبز)
+- `npm test` (Vitest): **۳۷۲ تست سبز در ۴۵ فایل** (`372 passed`)
+- `python -m pytest app/tests/unit`: **۶۲۲ تست سبز** (`622 passed, 2 skipped`)
+- `node .loop/audits/builder-xray.mjs`: **پاس ۱۰۰٪ تمامی چک‌ها با ۰ خطا**
+
 
 
 

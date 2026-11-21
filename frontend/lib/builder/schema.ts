@@ -96,6 +96,12 @@ export const ResponsiveStylesSchema = z.object({
   customCssClass: z.string().nullable().optional(),
   customCssId: z.string().nullable().optional(),
   direction: z.enum(["rtl", "ltr", "inherit"]).default("inherit"),
+  animation: z.string().nullable().optional(),
+  animationDuration: z.number().nullable().optional(),
+  animationDelay: z.number().nullable().optional(),
+  shapeDividerTop: z.string().nullable().optional(),
+  shapeDividerBottom: z.string().nullable().optional(),
+  shapeDividerColor: z.string().nullable().optional(),
 });
 
 // ── 3. Container Layout Schema ──────────────────────────────────────────────

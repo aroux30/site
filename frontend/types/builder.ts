@@ -98,6 +98,9 @@ export interface ResponsiveStyles {
   animation?: "none" | "fade-in" | "slide-up" | "zoom-in" | string | null;
   animationDuration?: number | null; // seconds
   animationDelay?: number | null; // seconds
+  shapeDividerTop?: "none" | "waves" | "curve" | "triangle" | "tilt" | string | null;
+  shapeDividerBottom?: "none" | "waves" | "curve" | "triangle" | "tilt" | string | null;
+  shapeDividerColor?: string | null;
 }
 
 export interface ContainerLayout {

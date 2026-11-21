@@ -670,6 +670,68 @@ class ASTCompiler:
                 f'</div>'
             )
 
+        elif widget_type == "alert":
+            title = html.escape(str(props.get("title", "پیام اطلاع‌رسانی")))
+            desc = html.escape(str(props.get("description", "")))
+            a_type = html.escape(str(props.get("alert_type", "info")))
+            return (
+                f'<div{id_attr} class="builder-alert p-4 rounded-xl border data-alert-{a_type} {css_class}" data-widget="alert"{style_attr}>'
+                f'<h5 class="font-bold text-xs">{title}</h5>'
+                f'<p class="text-[11px] leading-relaxed opacity-90">{desc}</p>'
+                f'</div>'
+            )
+
+        elif widget_type == "counter":
+            target = html.escape(str(props.get("target_number", "100")))
+            prefix = html.escape(str(props.get("prefix", "")))
+            suffix = html.escape(str(props.get("suffix", "+")))
+            title = html.escape(str(props.get("title", "مشتریان راضی")))
+            return (
+                f'<div{id_attr} class="builder-counter p-4 rounded-2xl bg-card border border-border/80 text-center space-y-1 {css_class}" data-widget="counter"{style_attr}>'
+                f'<div class="text-3xl font-black text-primary">{prefix}{target}{suffix}</div>'
+                f'<div class="text-xs text-muted-foreground">{title}</div>'
+                f'</div>'
+            )
+
+        elif widget_type == "progress_bar":
+            percent = int(props.get("percentage", 75))
+            title = html.escape(str(props.get("title", "پیشرفت پروژه")))
+            return (
+                f'<div{id_attr} class="builder-progress-bar space-y-2 w-full text-right {css_class}" data-widget="progress_bar"{style_attr}>'
+                f'<div class="flex justify-between items-center text-xs font-bold"><span>{title}</span><span>{percent}%</span></div>'
+                f'<div class="h-3 w-full rounded-full bg-muted overflow-hidden"><div class="h-full bg-primary rounded-full" style="width: {percent}%;"></div></div>'
+                f'</div>'
+            )
+
+        elif widget_type == "testimonial":
+            quote = html.escape(str(props.get("quote", "")))
+            name = html.escape(str(props.get("author_name", "مشتری")))
+            role = html.escape(str(props.get("author_role", "")))
+            avatar = html.escape(str(props.get("avatar_url", "/placeholder-hero.svg")))
+            return (
+                f'<div{id_attr} class="builder-testimonial p-5 rounded-2xl border border-border/80 bg-card space-y-3 {css_class}" data-widget="testimonial"{style_attr}>'
+                f'<p class="text-xs text-muted-foreground italic">«{quote}»</p>'
+                f'<div class="flex items-center gap-3 pt-1 border-t border-border/40">'
+                f'<img src="{avatar}" alt="{name}" class="w-9 h-9 rounded-full object-cover" loading="lazy" />'
+                f'<div><div class="text-xs font-bold">{name}</div><div class="text-[10px] text-muted-foreground">{role}</div></div>'
+                f'</div>'
+                f'</div>'
+            )
+
+        elif widget_type == "blockquote":
+            text = html.escape(str(props.get("text", "")))
+            author = html.escape(str(props.get("author", "")))
+            return (
+                f'<blockquote{id_attr} class="builder-blockquote border-r-4 border-primary pr-4 py-2 my-2 bg-primary/5 rounded-l-xl text-right {css_class}" data-widget="blockquote"{style_attr}>'
+                f'<p class="text-xs font-medium leading-relaxed">{text}</p>'
+                f'<cite class="block text-[11px] text-muted-foreground not-italic">— {author}</cite>'
+                f'</blockquote>'
+            )
+
+        elif widget_type == "menu_anchor":
+            anchor_id = html.escape(str(props.get("anchor_id", "section-target")))
+            return f'<div id="{anchor_id}" class="builder-menu-anchor w-full h-0 opacity-0 pointer-events-none -my-1" aria-hidden="true"></div>'
+
         # Generic fallback for any other registered widget
         fallback_title = html.escape(str(props.get("title", widget_type)))
         return f'<div{id_attr} class="builder-widget builder-{widget_type} {css_class}" data-widget="{html.escape(widget_type)}"{style_attr}>{fallback_title}</div>'

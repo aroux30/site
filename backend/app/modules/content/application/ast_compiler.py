@@ -173,6 +173,16 @@ class ASTCompiler:
                 ov_styles.append(f"background-image: linear-gradient({d}, {overlay.gradient.from_color}, {overlay.gradient.to_color});")
             overlay_html = f'<div class="builder-background-overlay" style="{" ".join(ov_styles)}" aria-hidden="true"></div>'
 
+        # Compile shape dividers if present (Elementor Parity)
+        top_divider = el.styles.shape_divider_top
+        bottom_divider = el.styles.shape_divider_bottom
+        shape_color = html.escape(el.styles.shape_divider_color or "#ffffff")
+        shape_dividers_html = ""
+        if top_divider and top_divider != "none":
+            shape_dividers_html += f'<div class="builder-shape-divider builder-shape-divider-top" data-shape="{html.escape(top_divider)}" style="position: absolute; top: 0; left: 0; width: 100%; height: 48px; overflow: hidden; pointer-events: none; z-index: 10;"><img src="/shapes/{html.escape(top_divider)}.svg" alt="" style="width: 100%; height: 100%; display: block;" /></div>'
+        if bottom_divider and bottom_divider != "none":
+            shape_dividers_html += f'<div class="builder-shape-divider builder-shape-divider-bottom" data-shape="{html.escape(bottom_divider)}" style="position: absolute; bottom: 0; left: 0; width: 100%; height: 48px; overflow: hidden; pointer-events: none; z-index: 10; transform: rotate(180deg);"><img src="/shapes/{html.escape(bottom_divider)}.svg" alt="" style="width: 100%; height: 100%; display: block;" /></div>'
+
         if is_form:
             props = el.widget_props or {}
             submit_url = html.escape(str(props.get("submit_url", "/api/v1/content/forms/submit")))
@@ -183,13 +193,13 @@ class ASTCompiler:
                 extra_attrs += f' data-error-message="{html.escape(str(props["error_message"]))}"'
             # Include anti-spam honeypot hidden field inside form
             hp_field = '<input type="text" name="_hp_website" style="display:none !important;" tabindex="-1" autocomplete="off" aria-hidden="true" />'
-            children_html = overlay_html + hp_field + "".join(
+            children_html = overlay_html + shape_dividers_html + hp_field + "".join(
                 cls._compile_element(child, is_authenticated=is_authenticated) for child in el.children
-            )
+            ) + bottom_divider_html
         else:
-            children_html = overlay_html + "".join(
+            children_html = overlay_html + shape_dividers_html + "".join(
                 cls._compile_element(child, is_authenticated=is_authenticated) for child in el.children
-            )
+            ) + bottom_divider_html
 
         return f"<{tag}{id_attr}{class_attr}{style_attr}{extra_attrs}>{children_html}</{tag}>"
 
@@ -259,6 +269,10 @@ class ASTCompiler:
         elif widget_type == "spacer":
             h = props.get("height", 32)
             return f'<div{id_attr} class="w-full {css_class}" style="height: {int(h)}px;" aria-hidden="true"{extra_attrs}></div>'
+
+        elif widget_type == "columns":
+            cols_html = "".join(cls._compile_element(child, is_authenticated=is_authenticated) for child in el.children)
+            return f'<div{id_attr} class="grid grid-cols-1 md:grid-cols-2 gap-4 w-full {css_class}"{style_attr}>{cols_html}</div>'
 
         elif widget_type == "html_custom" or widget_type == "legacy_html":
             raw_html = str(props.get("html", props.get("content", "")))
@@ -684,8 +698,8 @@ class ASTCompiler:
             )
 
         elif widget_type == "counter":
-            title = html.escape(str(props.get("title", "شمارنده")))
-            ending = props.get("ending_number", 100)
+            title = html.escape(str(props.get("title", props.get("label", "شمارنده"))))
+            ending = props.get("ending_number", props.get("target_number", 100))
             prefix = html.escape(str(props.get("prefix", "")))
             suffix = html.escape(str(props.get("suffix", "")))
             return (
@@ -708,8 +722,8 @@ class ASTCompiler:
             )
 
         elif widget_type == "testimonial":
-            author = html.escape(str(props.get("author", "نام مشتری")))
-            role = html.escape(str(props.get("role", "")))
+            author = html.escape(str(props.get("author", props.get("author_name", "نام مشتری"))))
+            role = html.escape(str(props.get("role", props.get("author_role", ""))))
             company = html.escape(str(props.get("company", "")))
             quote = html.escape(str(props.get("quote", "")))
             avatar = html.escape(str(props.get("avatar_url", "/placeholder-hero.svg")))
@@ -726,7 +740,7 @@ class ASTCompiler:
 
         elif widget_type == "alert":
             title = html.escape(str(props.get("title", "اعلان")))
-            msg = html.escape(str(props.get("message", "")))
+            msg = html.escape(str(props.get("message", props.get("description", ""))))
             a_type = str(props.get("alert_type", "info"))
             return (
                 f'<div{id_attr} class="builder-alert builder-alert-{html.escape(a_type)} p-3.5 rounded-xl border text-right space-y-1 {css_class}" data-widget="alert"{style_attr}>'
@@ -781,6 +795,20 @@ class ASTCompiler:
                 f'</div>'
                 f'</div>'
             )
+
+        elif widget_type == "blockquote":
+            text = html.escape(str(props.get("text", "")))
+            author = html.escape(str(props.get("author", "")))
+            return (
+                f'<blockquote{id_attr} class="builder-blockquote border-r-4 border-primary pr-4 py-2 my-2 bg-primary/5 rounded-l-xl text-right {css_class}" data-widget="blockquote"{style_attr}>'
+                f'<p class="text-xs font-medium leading-relaxed">{text}</p>'
+                f'<cite class="block text-[11px] text-muted-foreground not-italic">— {author}</cite>'
+                f'</blockquote>'
+            )
+
+        elif widget_type == "menu_anchor":
+            anchor_id = html.escape(str(props.get("anchor_id", "section-target")))
+            return f'<div id="{anchor_id}" class="builder-menu-anchor w-full h-0 opacity-0 pointer-events-none -my-1" aria-hidden="true"></div>'
 
         # Generic fallback for any other registered widget
         fallback_title = html.escape(str(props.get("title", widget_type)))

@@ -3,7 +3,7 @@ import path from "node:path";
 import fs from "node:fs";
 import { execSync } from "node:child_process";
 
-const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || "http://127.0.0.1:3100";
+const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || "http://127.0.0.1:3000";
 const BACKEND_DIR = path.resolve("C:/Users/Administrator/Desktop/site/backend");
 
 function getAdminToken() {
@@ -72,6 +72,7 @@ test.describe("Builder Gym Round 14: Weight 6 (Keyboard Reordering Alt+Arrows & 
 
   test("2. Alt+ArrowDown forwards keyboard reordering and changes section hierarchy", async ({ page }) => {
     await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(1000);
 
     const patternsTab = page.locator("button:has-text('الگوها')").first();
     await patternsTab.waitFor({ state: "visible", timeout: 15000 });

@@ -54,6 +54,7 @@ test.describe("Builder Gym Round 07: Weight 2 (E-Commerce, Ratings & Root-Level 
 
   test("1. star-rating-display applies text-amber-400 and font-bold to rating heading", async ({ page }) => {
     await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(1000);
     const patternsTab = page.locator("button:has-text('الگوها')").first();
     await patternsTab.waitFor({ state: "visible", timeout: 15000 });
     await patternsTab.click();
@@ -73,6 +74,7 @@ test.describe("Builder Gym Round 07: Weight 2 (E-Commerce, Ratings & Root-Level 
 
   test("2. discount-badge-banner renders text-destructive-foreground on percentage and custom button styling", async ({ page }) => {
     await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(1000);
     const patternsTab = page.locator("button:has-text('الگوها')").first();
     await patternsTab.waitFor({ state: "visible", timeout: 15000 });
     await patternsTab.click();
@@ -91,6 +93,7 @@ test.describe("Builder Gym Round 07: Weight 2 (E-Commerce, Ratings & Root-Level 
 
   test("3. Consecutively inserted patterns become independent root-level sections", async ({ page }) => {
     await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(1000);
     const patternsTab = page.locator("button:has-text('الگوها')").first();
     await patternsTab.waitFor({ state: "visible", timeout: 15000 });
     await patternsTab.click();

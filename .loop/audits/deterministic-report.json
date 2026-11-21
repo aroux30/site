@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-11-20T08:57:43.835Z",
+  "timestamp": "2026-11-21T16:21:02.560Z",
   "passed": true,
   "checks": [
     {
@@ -26,7 +26,7 @@
     {
       "name": "empty_container_guide",
       "passed": true,
-      "details": "Empty container dashed box rendered with height 123px and actionable guide button."
+      "details": "Empty container dashed box rendered with height 80px and actionable guide button."
     },
     {
       "name": "canvas_toolbar_clipping",

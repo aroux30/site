@@ -94,7 +94,7 @@ test.describe("Builder Gym Round 18: Dynamic Countdown Calculation & Product Gri
 
     const searchInput = page.getByPlaceholder("جستجوی بلوک پایه...");
     await searchInput.fill("ویترین محصولات");
-    await page.waitForTimeout(300);
+    await page.waitForTimeout(400);
 
     const gridBlockCard = page.locator("button", { hasText: "ویترین محصولات" }).first();
     await expect(gridBlockCard).toBeVisible();

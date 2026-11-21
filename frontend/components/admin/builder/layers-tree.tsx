@@ -20,6 +20,8 @@ import {
   Search,
   ChevronsDown,
   ChevronsUp,
+  Sparkles,
+  Code,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
@@ -81,6 +83,16 @@ const TreeItem = React.memo(function TreeItem({
   const renameElement = useBuilderStore((s) => s.renameElement);
   const moveElement = useBuilderStore((s) => s.moveElement);
   const [isEditingName, setIsEditingName] = useState(false);
+  const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
+
+  React.useEffect(() => {
+    if (!contextMenu) return;
+    const close = () => setContextMenu(null);
+    window.addEventListener("click", close);
+    return () => {
+      window.removeEventListener("click", close);
+    };
+  }, [contextMenu]);
 
   const Icon = getElementIcon(element);
   const hasChildren = element.children && element.children.length > 0;
@@ -92,6 +104,12 @@ const TreeItem = React.memo(function TreeItem({
     >
       <div
         onClick={() => selectElement(element.id)}
+        onContextMenu={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          selectElement(element.id);
+          setContextMenu({ x: e.clientX, y: e.clientY });
+        }}
         draggable={!element.isLocked}
         onDragStart={(e) => {
           e.stopPropagation();
@@ -202,6 +220,16 @@ const TreeItem = React.memo(function TreeItem({
           {element.isHidden && (
             <EyeOff className={cn("w-3 h-3 shrink-0 ms-1", isSelected ? "text-primary-foreground/70" : "text-muted-foreground")} />
           )}
+          {element.styles?.animation && element.styles.animation !== "none" && (
+            <span title="انیمیشن فعال" className="inline-flex items-center">
+              <Sparkles className={cn("w-3 h-3 shrink-0 ms-1", isSelected ? "text-sky-200" : "text-sky-500")} />
+            </span>
+          )}
+          {(element.styles?.customCssClass || element.styles?.customCssId) && (
+            <span title="استایل CSS سفارشی" className="inline-flex items-center">
+              <Code className={cn("w-3 h-3 shrink-0 ms-1", isSelected ? "text-purple-200" : "text-purple-500")} />
+            </span>
+          )}
         </div>
 
         {/* Action Buttons: ALWAYS visible on all items with zero hiding */}
@@ -266,6 +294,93 @@ const TreeItem = React.memo(function TreeItem({
           </button>
         </div>
       </div>
+
+      {/* Right-Click Navigator Context Menu (Elementor Parity) */}
+      {contextMenu && (
+        <>
+          <div
+            className="fixed inset-0 z-[99990]"
+            onClick={(e) => {
+              e.stopPropagation();
+              setContextMenu(null);
+            }}
+          />
+          <div
+            data-testid="navigator-context-menu"
+            style={{ top: contextMenu.y, left: Math.min(contextMenu.x, 1000) }}
+            className="fixed z-[99991] min-w-[160px] rounded-xl border border-border/80 bg-popover/95 backdrop-blur-md p-1 shadow-xl text-xs space-y-0.5 animate-in fade-in-50 zoom-in-95"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              onClick={() => {
+                duplicateElement(element.id);
+                setContextMenu(null);
+              }}
+              className="w-full text-right px-2.5 py-1.5 rounded-lg hover:bg-muted transition flex items-center justify-between"
+            >
+              <span>تکثیر</span>
+              <Copy className="w-3.5 h-3.5 text-muted-foreground" />
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                useBuilderStore.getState().copyElement(element.id);
+                setContextMenu(null);
+              }}
+              className="w-full text-right px-2.5 py-1.5 rounded-lg hover:bg-muted transition flex items-center justify-between"
+            >
+              <span>کپی</span>
+              <span className="text-[10px] text-muted-foreground">Ctrl+C</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                useBuilderStore.getState().pasteElement(element.id);
+                setContextMenu(null);
+              }}
+              className="w-full text-right px-2.5 py-1.5 rounded-lg hover:bg-muted transition flex items-center justify-between"
+            >
+              <span>جای‌گذاری</span>
+              <span className="text-[10px] text-muted-foreground">Ctrl+V</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                useBuilderStore.getState().copyStyles(element.id);
+                setContextMenu(null);
+              }}
+              className="w-full text-right px-2.5 py-1.5 rounded-lg hover:bg-muted transition flex items-center justify-between"
+            >
+              <span>کپی استایل</span>
+              <Sparkles className="w-3.5 h-3.5 text-muted-foreground" />
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                useBuilderStore.getState().pasteStyles(element.id);
+                setContextMenu(null);
+              }}
+              className="w-full text-right px-2.5 py-1.5 rounded-lg hover:bg-muted transition flex items-center justify-between"
+            >
+              <span>جای‌گذاری استایل</span>
+              <Sparkles className="w-3.5 h-3.5 text-muted-foreground" />
+            </button>
+            <div className="h-px bg-border/60 my-1" />
+            <button
+              type="button"
+              onClick={() => {
+                deleteElement(element.id);
+                setContextMenu(null);
+              }}
+              className="w-full text-right px-2.5 py-1.5 rounded-lg hover:bg-destructive/10 text-destructive transition flex items-center justify-between"
+            >
+              <span>حذف</span>
+              <Trash2 className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </>
+      )}
 
       {hasChildren && effectiveExpanded && (
         <div className="flex flex-col border-r-2 border-primary/40 mr-3 pr-3 space-y-1 my-1">

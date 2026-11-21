@@ -1,52 +1,95 @@
-# Elementor & Elementor Pro Gap Analysis & Architecture Comparison
+# تحلیل عمیق شکاف‌ها و برابری با المنتور و المنتور پرو (.loop/ELEMENTOR_GAP_ANALYSIS.md)
 
-**Reference Source**: `C:\Users\Administrator\Desktop\elementor` (Core 3.x & Pro 3.x)  
-**Target Codebase**: `site/frontend/components/admin/builder/**`  
-**Date**: 2026-11-21  
-
----
-
-## 1. Architectural Model Comparison
-
-| Dimension | Elementor Architecture (PHP/Backbone/React) | Our Visual Page Builder (Next.js/React/Zustand) | Verdict & Alignment |
-|-----------|---------------------------------------------|-------------------------------------------------|---------------------|
-| **State Storage** | Flat Backbone Models with hierarchical `parent_id` & `elements` tree, stored in WP Post Meta as JSON | Hierarchical typed `PageAST` in Zustand with `rootElements` recursive tree, stored in PostgreSQL JSONB | ✅ Modern React architecture; clean AST serialization |
-| **Canvas Isolation** | Iframe preview loaded via `?elementor-preview=ID` with WordPress front-end scripts | Isolated `CanvasFrame` Iframe with React Portal mounts for content & overlay | ✅ True responsive isolation (`md:`, `lg:` evaluate against frame) |
-| **Control System** | `Controls_Stack` with Section, Tabs (Content, Style, Advanced), Dynamic Tags | Inspector Panel with 3 tabs (Content, Style, Advanced), direct reactive bindings | ✅ 1:1 Parity with Elementor 3-tab layout |
-| **Design Tokens** | Elementor Site Settings (Global Colors, Global Fonts) stored in Kit | 2-Layer Tokens: Layer 1 (Active SiteTheme API) + Layer 2 (`globalStyles` overrides) | ✅ Full live preview sync to canvas document |
-| **Selection & Overlay** | Selection highlight rendered directly inside iframe document DOM | Root-level `#builder-overlay-mount` portal rendering selection boxes & floating toolbar | ✅ Zero CSS clipping from container `overflow: hidden` |
+**مرجع مطالعه**: سورس محلی `C:\Users\Administrator\Desktop\elementor` (شامل هسته المنتور و ماژول‌های المنتور پرو)  
+**معماری پروژه مقصد**: React 18 / Next.js 15 (App Router) / Tailwind CSS / FastAPI / PostgreSQL  
 
 ---
 
-## 2. Feature Parity & Gap Matrix
+## ۱. مقایسه در سطح تجربه کاربری و محیط ادیتور (Editor Experience)
 
-### 2.1 Editor Workspace & Interaction
-- **Floating Toolbar**: ✅ Implemented with Drag Handle, Duplicate, Delete, Reorder (Up/Down), Style Copy/Paste, and Save as Template.
-- **Navigator / Layers Tree**: ✅ Implemented with Search, Expand/Collapse all, Drag-and-Drop tree reordering, inline rename, and hide/lock toggles.
-- **Context Menu**: ✅ Implemented right-click menu with Wrap in Container, Unwrap, Duplicate, Copy, Paste, Delete.
-- **Keyboard Shortcuts**: ✅ Implemented `Ctrl+Z`, `Ctrl+Y`, `Ctrl+C`, `Ctrl+V`, `Ctrl+D`, `Alt+Up/Down`, `Escape` (deselection), and `?` cheat sheet modal.
+### الف. تفکیک سایدبار و نویگیتور (Navigator / Layers Tree)
+- **در المنتور**: نویگیتور المنتور (`includes/widgets/common.php` و ماژول نویگیتور در JS) به عنوان یک پنل شناور یا داک‌شده برای مشاهده ساختار درخت، تغییر نام با دابل‌کلیک، مخفی‌سازی چشم، و قفل المان عمل می‌کند.
+- **در پروژه ما**: کامپوننت `LayersTree` در سایدبار راست قرار دارد و قابلیت‌های زیر با المنتور برابری می‌کنند:
+  1. ساختار درختی کامل تودرتو با تورفتگی RTL به ازای هر سطح (`depth * 24px`) و خط راهنمای عمودی.
+  2. دکمه‌های دائمی رویت‌پذیر برای حذف، تکثیر و مخفی‌سازی.
+  3. ویرایش نام با دابل‌کلیک متصل به `renameElement` در استور.
+  4. جستجوی زنده لایه‌ها و دکمه‌های باز و بسته کردن سراسری (Expand / Collapse All).
+  5. درگ‌انددراپ ردیف‌های درختی برای جابه‌جایی المان‌ها و انتقال بین کانتینرها.
+- **ارزیابی شکاف**: تطابق کامل حاصل شده است.
 
-### 2.2 Container Layout Engine
-- **Boxed vs. Full Width**: ✅ Implemented via `boxedWidth` slider / number input and max-width clamping.
-- **Flexbox Controls**: ✅ Direction (row/column/reverse), Wrap, Justify-Content, Align-Items, Align-Self, Order.
-- **Grid Layout**: ✅ 1 to 4 columns grid presets with configurable gap.
-- **Background Overlays**: ✅ Color, opacity, and blend modes for container backgrounds.
+### ب. نوار ابزار شناور المان و بوم (Canvas Overlay Layer)
+- **در المنتور**: دستگیره‌های المان (Element Handles) روی بوم در یک لایه مجزا بالای المان فعال رندر می‌شوند تا فرزندان المان و محتوای فلکس دچار شکست چیدمان نشوند.
+- **در پروژه ما**: در کامیت `ab62289`، نوار ابزار درون المان حذف شد و با کامپوننت پرتال `CanvasOverlayLayer` در ریشه آی‌فریم جایگزین شد. این کامپوننت کادرهای هاور، سلکشن، مولتی‌سلکت و نوار ابزار شناور را با محاسبه دقیق `getBoundingClientRect()` بالای المان رندر می‌کند و در صورت نزدیکی به سقف آی‌فریم به زیر المان منتقل می‌شود تا بریده نشود.
+- **ارزیابی شکاف**: تطابق کامل معماری با المنتور برقرار است.
 
-### 2.3 Styling & Visual Polish
-- **CSS Filters**: ✅ Blur, brightness, contrast, grayscale, and sepia filters with live canvas and backend AST compiler parity.
-- **Shape Dividers**: ✅ Top & Bottom SVG wave, curve, and triangle dividers.
-- **Box Shadow & Borders**: ✅ Full 4-corner unlinked border-radius, border styles, and box shadows.
-- **Mobile-First Responsive Overrides**: ✅ Separate overrides for Desktop, Tablet (768px), and Mobile (375px).
-
-### 2.4 Advanced & Dynamic Capabilities
-- **Device Visibility**: ✅ Hide on Desktop / Tablet / Mobile with preview indicator badges.
-- **Authentication Visibility**: ✅ Show to All / Authenticated / Guest users with server-side compiler enforcement.
-- **CSS Motion Effects**: ✅ Fade-in, slide-up, zoom-in with custom duration and delay.
-- **Global Components**: ✅ Linked components that update all instances across the page when edited.
+### ج. منوی راست‌کلیک (Context Menu)
+- **در المنتور**: راست‌کلیک روی هر المان منوی عملیاتی شامل Edit, Duplicate, Copy, Paste, Paste Style, Save as Template, Delete باز می‌کند.
+- **در پروژه ما**: کامپوننت `BuilderContextMenu` با شنود رویداد `contextmenu` در بوم و درخت لایه‌ها، منوی متناسب با نوع المان (شامل Wrap in Container, Unwrap Container, Duplicate, Copy, Paste Style, Delete) را نمایش می‌دهد.
+- **ارزیابی شکاف**: تطابق کامل برقرار است.
 
 ---
 
-## 3. High-Value Opportunities for Further Hardening
-1. **Empty Container Guidance**: Ensure empty containers have an unambiguous dashed bounding box with min-height >= 80px and accessible action button. (Addressed in P0).
-2. **Layers Tree RTL Indent**: Maintain clean visual hierarchy with `depth * 24px` margin-right and vertical guide line. (Addressed in P0).
-3. **Selection Clearance**: Ensure floating toolbar always flips below element when approaching iframe ceiling (< 40px). (Verified in Gym R01).
+## ۲. سیستم کانتینر و چیدمان فلکس‌باکس (Layout & Flexbox Containers)
+
+### الف. کانتینرهای فلکس در برابر سطرهای قدیمی المنتور
+- **در المنتور**: المنتور از سیستم Flexbox Container و CSS Grid پشتیبانی می‌کند و ابزارهای Justify-Content, Align-Items, Direction, Wrap, Gap, و Align-Self / Order را ارائه می‌دهد.
+- **در پروژه ما**:
+  1. کانتینرها از هر دو حالت Flex و Grid پشتیبانی می‌کنند.
+  2. جهت چیدمان (سطری، ستونی، معکوس سطری و معکوس ستونی) در بازرس پشتیبانی می‌شود.
+  3. کنترل‌های Boxed Width در برابر Full Width با امکان تنظیم ماکسیمم عرض دلخواه پیاده‌سازی شده است.
+  4. کنترل‌های اختصاصی Flex Item (`alignSelf` و `order`) در راند ۱۵ اضافه شده و در بوم و کامپایلر سرور اعمال می‌شوند.
+  5. پریست‌های آماده ستونی با `ContainerPresetPicker` برای ایجاد سریع ستون‌های ۱ تا ۴ تایی در کانتینر خالی فراهم شده است.
+  6. کانتینر خالی با حداقل ارتفاع ۸۰px و دکمه راهنما نمایش داده می‌شود.
+- **ارزیابی شکاف**: تطابق کامل با سیستم کانتینر المنتور.
+
+---
+
+## ۳. کنترل‌های بازرس و استایل‌دهی (Inspector Controls Parity)
+
+| ردیف | قابلیت در المنتور | وضعیت در پروژه ما | نحوه نگاشت به معماری پروژه |
+| :---: | :--- | :--- | :--- |
+| ۱ | **Background Multi-Type** (Classic, Gradient, Image) | پیاده‌سازی کامل | سوییچر ۴ حالته در تب استایل بازرس، کامپایل به کدهای تمیز CSS در بوم و سرور |
+| ۲ | **Background Overlay** | پیاده‌سازی کامل | لایه `absolute inset-0 pointer-events-none` با گرادیانت/رنگ و شفافیت مجزا |
+| ۳ | **CSS Filters** (Blur, Brightness, Contrast, Grayscale, Sepia) | پیاده‌سازی کامل | فیلدهای فیلتر با پریست‌های فوری در بازرس و اعمال `filter` در سرور و بوم |
+| ۴ | **Box Shadow Controls** | پیاده‌سازی کامل | پریست‌های آماده و تنظیم مقادیر X, Y, Blur, Spread, Color |
+| ۵ | **Borders & Radius** | پیاده‌سازی کامل | انتخاب استایل خط، ضخامت، رنگ و گردی گوشه با قفل پیوسته جهات |
+| ۶ | **Spacing (Margin & Padding)** | پیاده‌سازی کامل | پدینگ و مارجین ۴ طرفه با قفل یکپارچه و مقادیر واکنش‌گرا |
+| ۷ | **Responsive Visibility** (Hide on Desktop/Tablet/Mobile) | پیاده‌سازی کامل | تنظیم مقادیر بولین در AST، نمایش نشانگر در ویرایشگر، مخفی‌سازی در پیش‌نمایش |
+| ۸ | **Auth-based Conditional Visibility** | پیاده‌سازی کامل | فیلتر نمایش برای کاربران واردشده یا مهمان در استورفرانت |
+| ۹ | **Custom CSS ID & Classes** | پیاده‌سازی کامل | اتصال مستقیم `customCssId` و `customCssClass` در تگ‌های DOM بوم و سرور |
+| ۱۰ | **Motion Effects & Entrance Animations** | پیاده‌سازی کامل | انیمیشن‌های Fade In, Slide Up, Zoom In با کلاس‌های کلیدفریم استاندارد |
+
+---
+
+## ۴. سیستم قالب‌ها و کامپوننت‌های سراسری (Templates & Global Widgets)
+
+- **در المنتور Pro**:
+  - امکان ذخیره سکشن به عنوان Template و درج مجدد.
+  - امکان ذخیره کل برگه به عنوان Page Template.
+  - کامپوننت‌های همگام سراسری (Global Widgets) که با ویرایش یکی، تمام موارد همگام می‌شوند و قابلیت Unlink دارند.
+- **در پروژه ما**:
+  1. `SaveTemplateDialog`: ذخیره هر کانتینر به عنوان قالب سکشن در دیتابیس با قابلیت درج از تب «قالب‌های من».
+  2. `SavePageTemplateDialog`: ذخیره کل ساختار صفحه جاری به عنوان قالب برگه.
+  3. `Global Components`: اکشن `makeGlobalComponent` در استور شناسه سراسری تولید کرده و تمام تغییرات پروپ‌ها، استایل‌ها و استایل‌های دستگاهی به صورت بلادرنگ در سراسر درخت AST روی تمامی نمونه‌های دارای آن شناسه همگام می‌شوند. اکشن `detachGlobalComponent` نیز امکان تفکیک امن یک نمونه را فراهم می‌کند.
+- **ارزیابی شکاف**: تطابق کامل برقرار است.
+
+---
+
+## ۵. مقایسه چرخه داده و برابری WYSIWYG (Serialization & WYSIWYG Parity)
+
+- **در المنتور**: داده‌ها در متای وردپرس به صورت JSON ذخیره شده و رندر فرانت‌اند توسط کلاس‌های ویجت PHP و کدهای CSS داینامیک انجام می‌شود.
+- **در پروژه ما**:
+  - ذخیره در دیتابیس PostgreSQL به صورت ساختار تایپ‌شده `PageAST` صورت می‌گیرد.
+  - اعتبارسنجی فرانت‌اند با Zod (`PageASTSchema`) و بک‌اند با Pydantic صورت می‌پذیرد.
+  - کامپایلر سمت سرور (`backend/app/modules/content/application/ast_compiler.py`) با حفظ کامل تمامی کلاس‌های سفارشی، اتریبیوت‌های استایل، شناسه انکر، لایه‌های اوورلی و فیلترهای CSS خروجی HTML پاک تولید می‌کند.
+  - خروجی کامپایلر با `cleanHtml` ضدعفونی شده و در استورفرانت بدون کوچک‌ترین مغایرت بصری با بوم ادیتور رندر می‌شود.
+
+---
+
+## ۶. قابلیت‌های خارج از محدوده یا وابسته به وردپرس (Non-Goals / Excluded)
+موارد زیر در سورس مرجع المنتور وجود دارند اما به دلیل وابستگی به معماری وردپرس یا عدم تطابق با نیازهای پروژه به درستی کنار گذاشته شده‌اند:
+1. سیستم پست تایپ‌ها و متای دیتابیس وردپرس (`wp_postmeta`, `wp_posts`).
+2. هوک‌ها و اکشن‌های PHP وردپرس (`add_action`, `do_action`, `apply_filters`).
+3. ووکامرس قدیمی و شورت‌کدهای PHP.
+4. ابزارهای وابسته به قالب‌های سنتی PHP وردپرس (Header/Footer Builder سنتی PHP).
+5. پنل‌های سنگین و ماژول‌های ابری شخص ثالث تجاری المنتور.

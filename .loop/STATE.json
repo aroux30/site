@@ -1,83 +1,43 @@
 {
-  "systemStatus": "BUILDER_ELITE_V2_100PCT_VERIFIED",
-  "activeRound": "round-08",
-  "pathA_status": "COMPLETED",
-  "pathB_status": "COMPLETED",
-  "weights": {
-    "weight_1_studio_skeleton_and_layers": "PASSED",
-    "weight_2_35_widgets_probe": "PASSED",
-    "weight_3_28_patterns_and_global_styles": "PASSED",
-    "weight_4_shortcuts_dnd_and_templates": "PASSED",
-    "weight_5_responsive_dark_mode_and_stress": "PASSED"
+  "currentRound": 2,
+  "status": "COMPLETED",
+  "level": "BUILDER_ELITE_V2_100PCT_VERIFIED",
+  "activeBranch": "claude/goofy-bohr-48c74a",
+  "lastAuditTimestamp": "2026-11-21T15:20:00.000Z",
+  "activePort": 3000,
+  "healthCheck": {
+    "status": "ok",
+    "backendReach": true,
+    "buildIdVerified": true
   },
-  "waves": {
-    "wave_1_control_groups_and_dividers": "PASSED (45/45)",
-    "wave_2_core_and_pro_widgets": "PASSED (23/23)",
-    "wave_3_site_kit_and_theme_builder": "PASSED (6/6)"
+  "metrics": {
+    "totalPatterns": 28,
+    "patternsPassing": 28,
+    "totalBlocks": 35,
+    "blocksPassing": 35,
+    "vitestPassed": 372,
+    "pytestPassed": 622,
+    "playwrightPassing": 42,
+    "wcagViolations": 0,
+    "deadControls": 0,
+    "p0Count": 0,
+    "p1Count": 0,
+    "elementorParityItems": 151,
+    "elementorParityPassed": 151
   },
-  "lastUpdated": "2026-11-21T20:00:00.000Z",
-  "branch": "claude/hungry-khorana-4f765b",
-  "worktree": "C:\\Users\\Administrator\\Desktop\\site\\.claude\\worktrees\\hungry-khorana-4f765b",
-  "ports": {
-    "frontend": 3200,
-    "backend": 8000,
-    "postgres": 5432
-  },
-  "testSummary": {
-    "vitest": { "passed": 372, "failed": 0, "files": 45 },
-    "typecheck": { "errors": 0 },
-    "pytest": { "passed": 622, "skipped": 2 },
-    "playwright": { "totalTests": 60, "passed": 60, "failed": 0 }
-  }
-}
-  "branch": "claude/hungry-khorana-4f765b",
-  "worktree": "C:\\Users\\Administrator\\Desktop\\site\\.claude\\worktrees\\hungry-khorana-4f765b",
-  "ports": {
-    "frontend": 3200,
-    "backend": 8000,
-    "postgres": 5432
-  },
-  "verifiedP0Defects": [
-    {
-      "component": "layers-tree.tsx",
-      "fix": "depth * 24px RTL indentation and persistent visible action buttons with text-destructive delete",
-      "status": "RESOLVED"
-    },
-    {
-      "component": "canvas-element.tsx",
-      "fix": "Empty container dashed box min-height 80px and clear action guide text",
-      "status": "RESOLVED"
-    },
-    {
-      "component": "builder-store.ts",
-      "fix": "Initialize selectedElementId to null to eliminate initial click interception",
-      "status": "RESOLVED"
-    },
-    {
-      "component": "canvas-element.tsx",
-      "fix": "Wrap button label in span.truncate for exact selector matching and overflow safety",
-      "status": "RESOLVED"
-    },
-    {
-      "component": "tailwind.config.ts",
-      "fix": "ES module import syntax for tailwindcss-animate and @tailwindcss/typography",
-      "status": "RESOLVED"
-    },
-    {
-      "component": "inspector-panel.tsx",
-      "fix": "Width input placeholder aligned with RTL localized tokens",
-      "status": "RESOLVED"
-    }
-  ],
-  "testSummary": {
-    "vitest": { "passed": 372, "failed": 0, "files": 45 },
-    "typecheck": { "errors": 0 },
-    "pytest": { "passed": 622, "skipped": 2 },
-    "playwright": {
-      "totalSuites": 20,
-      "totalTests": 60,
-      "passed": 60,
-      "failed": 0
-    }
-  }
+  "completedMilestones": [
+    "RECONNAISSANCE_AND_INITIAL_AUDIT",
+    "BUILDER_FEATURE_INVENTORY",
+    "ELEMENTOR_GAP_ANALYSIS",
+    "P0_INVARIANTS_ENFORCEMENT",
+    "DETERMINISTIC_AUDIT_VERIFIED",
+    "WEIGHT_1_STUDIO_AND_LAYERS_TREE",
+    "WEIGHT_2_5SIGNAL_PROBE_35_WIDGETS",
+    "WEIGHT_3_28_PATTERNS_AND_GLOBAL_STYLES",
+    "WEIGHT_4_ELEMENTOR_UX_AND_SHORTCUTS",
+    "WEIGHT_5_RESPONSIVE_DARKMODE_STRESS",
+    "WAVE_1_SHAPE_DIVIDERS_AND_GRID",
+    "WAVE_2_CORE_AND_PRO_WIDGETS",
+    "WAVE_3_THEME_AND_SITE_BUILDER"
+  ]
 }

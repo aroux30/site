@@ -1,135 +1,126 @@
-# Visual Page Builder — Feature Inventory
+# فهرست جامع و ممیزی قابلیت‌های صفحه‌ساز بصری (.loop/BUILDER_FEATURE_INVENTORY.md)
 
-**Audit Date**: 2026-11-21  
-**Total Blocks**: 34  
-**Total Patterns**: 28  
-**Total Inspector Controls**: 52+  
-**Status Legend**:
-- `PASS`: Verified working in UI, AST, and rendering.
-- `PARTIAL`: Partially functional; minor gaps or edge cases exist.
-- `FAIL`: Broken or produces reproducible error.
-- `UNVERIFIED`: Not yet verified in real browser interaction.
+**تاریخ تدوین**: ۲۱ نوامبر ۲۰۲۶ (2026-11-21)  
+**معیار ارزیابی**: آزمایش واقعی در مرورگر و بوم ایزوله `/e2e-isolated-scratchpad?builder=1`  
+**وضعیت‌های ارزیابی**: `PASS` (سالم و آزموده‌شده), `PARTIAL` (نقص جزئی), `FAIL` (باگ قابل بازتولید), `MISSING` (فقدان قابلیت), `UNVERIFIED` (نیازمند آزمون مجدد)  
 
 ---
 
-## 1. Widget & Block Inventory (34 Blocks)
+## ۱. هسته استودیو و نوار ابزار (Studio Foundation & Toolbar)
 
-### 1.1 Layout Blocks
-| # | Block Name | Type | Key Features | Status |
-|---|------------|------|--------------|--------|
-| 1 | كانتینر (Container) | `container` | Flex/Grid, Direction, Wrap, Gap, Padding, Boxed Width | **PASS** |
-| 2 | بخش کامل (Section) | `section` | Full-width container with default padding | **PASS** |
-| 3 | دو ستونه (2 Columns) | `columns` | Grid layout preset with 2 equal column containers | **PASS** |
-| 4 | فرم سازنده (Form Container) | `form_container` | Dedicated form wrapper with submission endpoint | **PASS** |
-
-### 1.2 Basic Content Blocks
-| # | Block Name | Type | Key Features | Status |
-|---|------------|------|--------------|--------|
-| 5 | سرتیتر (Heading) | `heading` | H1–H6 tags, font size, weight, inline editing | **PASS** |
-| 6 | پاراگراف متن (Paragraph) | `text_editor` | Rich HTML text, typography, color, inline editing | **PASS** |
-| 7 | تصویر (Image) | `image` | URL, Alt, rounded border, object-fit, custom classes | **PASS** |
-| 8 | دکمه اقدام (Button) | `button` | Label, URL, primary/secondary variants, full-width | **PASS** |
-| 9 | فاصله خالی (Spacer) | `spacer` | Vertical space generator (height in px) | **PASS** |
-| 10 | خط جداکننده (Divider) | `divider` | Style (solid/dashed/dotted), width, color, height | **PASS** |
-| 11 | جدول داده (Table) | `table` | Header columns, rows, cell formatting, column highlight | **PASS** |
-
-### 1.3 Interactive & Form Fields
-| # | Block Name | Type | Key Features | Status |
-|---|------------|------|--------------|--------|
-| 12 | فیلد ورودی متن (Input) | `form_input` | Text/email/tel/number, placeholder, required flag | **PASS** |
-| 13 | متن چندخطی (Textarea) | `form_textarea` | Rows, placeholder, required validation | **PASS** |
-| 14 | منوی انتخابی (Select) | `form_select` | Dynamic options array, placeholder, value | **PASS** |
-| 15 | چک‌باکس (Checkbox) | `form_checkbox` | Checkbox toggle, label, default checked | **PASS** |
-| 16 | دکمه رادیویی (Radio) | `form_radio` | Group name, options array | **PASS** |
-| 17 | آکاردئون (Accordion) | `accordion` | Collapsible items, default open, multi-expand | **PASS** |
-| 18 | زبانه‌ها (Tabs) | `tabs` | Tab headers, tab panels, active state | **PASS** |
-| 19 | شمارش معکوس (Countdown) | `countdown` | Target date/time, days/hours/minutes/seconds slots | **PASS** |
-| 20 | پخش‌کننده ویدیو (Video) | `video` | Aparat / MP4 embed, aspect ratio, controls | **PASS** |
-| 21 | جعبه آیکون (Icon Box) | `icon_box` | Icon picker, title, description, badge | **PASS** |
-| 22 | پیوندهای اجتماعی (Social Links) | `social_links` | Telegram, Instagram, WhatsApp, Twitter, YouTube | **PASS** |
-| 23 | گالری تصاویر (Image Gallery) | `image_gallery` | Multi-image grid, columns, lightbox preview | **PASS** |
-| 24 | امتیاز ستاره‌ای (Star Rating) | `star_rating` | 1–5 stars, rating score display, review count | **PASS** |
-| 25 | نمودار بازخوردها (Histogram) | `review_histogram` | 5-star distribution bars, percentages | **PASS** |
-| 26 | دسته‌بندی مگامنو (Mega Menu) | `mega_menu` | Multi-level category hierarchy links | **PASS** |
-
-### 1.4 E-commerce Native Blocks
-| # | Block Name | Type | Key Features | Status |
-|---|------------|------|--------------|--------|
-| 27 | کارت محصول (Product Card) | `product_card` | Image, title, price, discount badge, buy button | **PASS** |
-| 28 | شبکه محصولات (Product Grid) | `product_grid` | Query by category/tag, column count, pagination | **PASS** |
-| 29 | متغیرهای محصول (Variants) | `product_variants` | Color & size selector, stock indicator | **PASS** |
-| 30 | قیمت محصول (Product Price) | `product_price` | Regular price, sale price, Toman currency formatting | **PASS** |
-| 31 | افزودن به سبد خرید (Add to Cart) | `add_to_cart` | Quantity stepper, animated cart button | **PASS** |
-| 32 | پیش‌نمایش سبد خرید (Mini Cart) | `mini_cart` | Slide-over cart preview, item list, checkout CTA | **PASS** |
-| 33 | خلاصه سفارش (Cart Summary) | `cart_summary` | Subtotal, discounts, shipping, final payable amount | **PASS** |
-| 34 | محصولات اخیراً بازدیدشده | `recently_viewed` | LocalStorage tracking of viewed products | **PASS** |
+| ردیف | نام قابلیت | مسیر فایل | محل در UI | رفتار مورد انتظار | رفتار مشاهده‌شده | وضعیت | اولویت | شواهد |
+| :---: | :--- | :--- | :--- | :--- | :--- | :---: | :---: | :--- |
+| ۱ | استودیو تمام‌صفحه | `builder-studio.tsx` | ریشه صفحه با `builder=1` | باز شدن محیط ادیتور بدون هدر و فوتر عمومی سایت | استودیو به صورت fullscreen و z-[100] لود می‌شود | **PASS** | P0 | `builder-gym-r01.spec.ts` (تست ۱) |
+| ۲ | ایزولاسیون چت‌بات | `plugin-widget-loader.tsx` | پایین راست بوم | مخفی‌سازی کامل ویجت چت در محیط سازنده | ویجت چت `#n8n-w` به صورت `display: none` مخفی می‌شود | **PASS** | P0 | `builder-gym-r01.spec.ts` (تست ۱) |
+| ۳ | نوار ابزار بالا | `builder-toolbar.tsx` | بالای استودیو | نمایش دکمه‌های کنترل برگه، ویوپورت، تاریخچه و ذخیره | نمایش مرتب با استایل RTL و دکمه‌های واکنش‌گرا | **PASS** | P1 | تست‌های بصری راند ۱ |
+| ۴ | انتخابگر ویوپورت ۳ گانه | `builder-toolbar.tsx` | مرکز نوار ابزار | تغییر عرض بوم به ۱۰۰٪ (دسکتاپ)، ۷۶۸px (تبلت) و ۳۷۵px (موبایل) | اعمال انیمیشنی عرض روی کانتینر Iframe | **PASS** | P1 | `builder-gym-r05.spec.ts` (تست ۱) |
+| ۵ | دکمه‌های بازگشت و انجام مجدد | `builder-toolbar.tsx` | سمت راست نوار ابزار | فعال/غیرفعال بودن بر اساس طول تاریخچه `past` و `future` | اتصال دقیق به `undo()` و `redo()` استور | **PASS** | P1 | `builder-gym-r04.spec.ts` (تست ۱) |
+| ۶ | دکمه استایل‌های سراسری | `global-styles-dialog.tsx` | نوار ابزار | باز شدن دیالوگ توکن‌های رنگ و تایپوگرافی با z-index بالاتر از استودیو | دیالوگ با `z-[120]` بدون تداخل بصری لود می‌شود | **PASS** | P1 | `builder-gym-r03.spec.ts` (تست ۱) |
+| ۷ | مودال کلیدهای میانبر | `hotkeys-dialog.tsx` | نوار ابزار / کلید ؟ | نمایش جدول راهنمای کلیدهای میانبر | نمایش کامل میانبرها به فارسی با جدول دسته‌بندی‌شده | **PASS** | P2 | `builder-xray.mjs` (تست میانبرها) |
+| ۸ | پیش‌نمایش برگه (Preview Mode) | `builder-toolbar.tsx` | نوار ابزار | مخفی‌سازی تمام نوارها و سایدبارها و کادرهای انتخاب | نمایش پاک خروجی WYSIWYG برگه با دکمه بازگشت به ویرایش | **PASS** | P1 | `builder-gym-r10.spec.ts` (تست ۳) |
+| ۹ | ذخیره پیش‌نویس دستی و خودکار | `builder-studio.tsx` | نوار ابزار | ارسال بدون وقفه AST به اندپوینت بک‌اند همراه با ذخیره Redis | ذخیره موفق با وضعیت "ذخیره شد" و ثبت ساعت | **PASS** | P0 | تست بیلد و اندپوینت‌های CMS |
+| ۱۰ | دیالوگ ذخیره قالب برگه | `save-page-template-dialog.tsx`| نوار ابزار | ذخیره کل ساختار صفحه جاری به عنوان قالب آماده برگه | ذخیره در دیتابیس با slug و دسته‌بندی اختصاصی | **PASS** | P1 | `builder-gym-r13.spec.ts` (تست ۱) |
 
 ---
 
-## 2. Block Patterns Inventory (28 Patterns)
+## ۲. بوم سازنده و لایه انتخاب (Canvas & Overlay Layer)
 
-| # | Slug | Category | Title | Status |
-|---|------|----------|-------|--------|
-| 1 | `hero-banner` | بنر و هیرو | بنر اصلی فروشگاهی با دکمه اقدام و برچسب | **PASS** |
-| 2 | `features-grid` | معرفی خدمات | گرید ۳ ستونه ویژگی‌ها و مزایای خرید | **PASS** |
-| 3 | `product-showcase` | محصولات | معرفی محصول ویژه با عکس بزرگ و قیمت | **PASS** |
-| 4 | `testimonials-carousel` | نظرات | کارت‌های رضایت مشتریان با آواتار و ستاره | **PASS** |
-| 5 | `faq-accordion` | سوالات متداول | پرسش و پاسخ‌های متداول تاشو | **PASS** |
-| 6 | `contact-form-card` | تماس | فرم تماس دو ستونه با نقشه و راه‌های ارتباطی | **PASS** |
-| 7 | `countdown-sale` | تخفیف | بنر شمارش معکوس حراج شگفت‌انگیز | **PASS** |
-| 8 | `stats-counter` | آمار | ارقام و دستاوردهای کلیدی فروشگاه | **PASS** |
-| 9 | `gallery-masonry` | رسانه | گالری تصاویر شبکه با کادربندی منظم | **PASS** |
-| 10 | `newsletter-box` | تعامل | باکس عضویت در خبرنامه با ایمیل و پیام تشکر | **PASS** |
-| 11 | `pricing-table` | تعرفه | جدول ۳ ستونه تعرفه خدمات با برچسب محبوب‌ترین | **PASS** |
-| 12 | `cta-banner` | فراخوان | بنر فوری اقدام به خرید با پس‌زمینه رنگی | **PASS** |
-| 13 | `author-bio` | نویسنده | معرفی نویسنده یا مدیر با تصویر گرد و بیوگرافی | **PASS** |
-| 14 | `steps-process` | راهنما | مراحل ۴ گانه فرآیند خرید تا تحویل | **PASS** |
-| 15 | `comparison-table` | جدول | جدول مقایسه فنی ویژگی‌ها و پلن‌ها | **PASS** |
-| 16 | `quote-box` | نقل قول | کادر نقل قول شاخص با خط حاشیه آغازین | **PASS** |
-| 17 | `video-presentation` | ویدیو | معرفی ویدیویی با دکمه پخش و پوستر | **PASS** |
-| 18 | `mega-menu-categories` | ناوبری | مگامنوی ناوبری دسته‌های اصلی با آیکون | **PASS** |
-| 19 | `recently-viewed-shelf` | هوشمند | قفسه بازدیدهای اخیر کاربر | **PASS** |
-| 20 | `lead-capture-form` | جذب سرنخ | فرم درخواست مشاوره رایگان با برچسب پاسخگویی | **PASS** |
-| 21 | `support-contact-box` | پشتیبانی | کادر اطلاعات تماس فوری و ساعات پاسخگویی | **PASS** |
-| 22 | `alert-notice-bar` | اعلان | نوار باریک هشدار جشنواره و اطلاعیه تخفیف | **PASS** |
-| 23 | `social-proof-rating` | اعتماد | امتیاز کلی کاربران با هیستوگرام ستاره‌ها | **PASS** |
-| 24 | `product-features-bullet` | محصول | مشخصات و مزایای برجسته کالا با تیک سبز | **PASS** |
-| 25 | `partner-brands-grid` | برندها | لوگوی برندهای معتبر و همکاران تجاری | **PASS** |
-| 26 | `store-quick-contact` | تماس | کارت ارتباط مستقیم با واتساپ و تلگرام | **PASS** |
-| 27 | `products-grid-feed` | کالاها | ویترین ۴ ستونه جدیدترین محصولات | **PASS** |
-| 28 | `discount-marquee` | تخفیف | نوار متحرک کدهای تخفیف جاری | **PASS** |
+| ردیف | نام قابلیت | مسیر فایل | محل در UI | رفتار مورد انتظار | رفتار مشاهده‌شده | وضعیت | اولویت | شواهد |
+| :---: | :--- | :--- | :--- | :--- | :--- | :---: | :---: | :--- |
+| ۱۱ | آی‌فریم ایزوله بوم | `canvas-frame.tsx` | مرکز صفحه | ایزولاسیون کامل مدیاکوئری‌ها و رندر پورتال React | بوم در آی‌فریم مستقل با dir="rtl" و فونت وزیرمتن رندر می‌شود | **PASS** | P0 | `deterministic-audit.mjs` |
+| ۱۲ | تزریق توکن‌های تم ۲ لایه | `canvas-frame.tsx` | هدر سند آی‌فریم | تزریق متغیرهای تم سایت (لایه ۱) و اورراید برگه (لایه ۲) | متغیرهای CSS به صورت HSL فضایی تزریق می‌شوند | **PASS** | P1 | `deterministic-report.json` |
+| ۱۳ | کادر خط‌چین هاور | `canvas-overlay-layer.tsx` | لایه پرتال بوم | خط‌چین آبی آسمانی دور المانی که ماوس روی آن است | نمایش دقیق بر اساس `getBoundingClientRect()` با انیمیشن نرم | **PASS** | P2 | آزمون‌های اشعه ایکس |
+| ۱۴ | کادر انتخاب المان (Selection Ring) | `canvas-overlay-layer.tsx` | لایه پرتال بوم | حلقه برجسته دور المان انتخابی با سایه نئونی | ترسیم دقیق در پرتال با z-index بالا بدون دستکاری فلکس فرزندان | **PASS** | P1 | `builder-gym-r01.spec.ts` (تست ۲) |
+| ۱۵ | کادرهای انتخاب چندگانه | `canvas-overlay-layer.tsx` | لایه پرتال بوم | ترسیم کادر دور تک‌تک المان‌های انتخاب‌شده با Shift/Ctrl | نمایش همزمان چندین کادر با امکان حذف گروهی | **PASS** | P2 | `builder-xray.mjs` (تست مولتی‌سلکت) |
+| ۱۶ | نوار ابزار شناور المان | `canvas-overlay-layer.tsx` | بالای المان فعال | نمایش دکمه‌های جابه‌جایی، تکثیر، حذف، کپی و تبدیل به سراسری | سقف امن بوم محاسبه شده و در صورت نزدیکی به سقف زیر المان می‌افتد | **PASS** | P0 | `builder-gym-r01.spec.ts` (تست ۲) |
+| ۱۷ | کانتینر خالی با راهنما | `canvas-element.tsx` | کانتینرهای بدون فرزند | کادر خط‌چین با حداقل ارتفاع ۸۰px و دکمه راهنمای افزودن بلوک | کادر خط‌چین شکیل با دکمه هدایت به پالت بلوک‌ها | **PASS** | P0 | `deterministic-report.json` |
+| ۱۸ | انتخابگر پریست ستونی کانتینر | `container-preset-picker.tsx` | کانتینر خالی | ۶ پریست ستونی ۱ تا ۴ تایی آماده برای ساخت فوری ستون‌ها | ایجاد فوری ساختار ستون‌ها با کلیک روی هر پریست | **PASS** | P1 | `builder-xray.mjs` (راند ۲) |
+| ۱۹ | فوروارد کلیدهای میانبر از Iframe | `canvas-frame.tsx` | سند داخلی آی‌فریم | ارسال کلیدهای Ctrl+Z, Ctrl+C, Ctrl+V, Del به پنجره والد | فوروارد بی‌درنگ رویدادهای کیبورد با `window.dispatchEvent` | **PASS** | P1 | `builder-gym-r04.spec.ts` (تست ۱) |
+| ۲۰ | منوی راست‌کلیک کانتکست | `builder-context-menu.tsx` | بوم و درخت لایه‌ها | باز شدن منوی عملیات کپی، پیست، تکثیر، حذف، Wrap و Unwrap | منوی حرفه‌ای با طراحی مدرن و کلیدهای میانبر راهنما | **PASS** | P1 | `builder-xray.mjs` (راند ۱) |
 
 ---
 
-## 3. Inspector Controls Inventory
+## ۳. درخت لایه‌ها (Layers Tree / Navigator)
 
-### 3.1 Content Tab
-- Direct Text & Heading Tag (`h1`..`h6`)
-- Links (`url`, `target="_blank"`)
-- Image Picker & Dimensions (`width`, `height`, `alt`)
-- Form Inputs (`placeholder`, `required`, `input_type`)
-- Accordion & Tabs Item CRUD (Add, Rename, Delete, Reorder)
-- Table Column & Row Editors
+| ردیف | نام قابلیت | مسیر فایل | محل در UI | رفتار مورد انتظار | رفتار مشاهده‌شده | وضعیت | اولویت | شواهد |
+| :---: | :--- | :--- | :--- | :--- | :--- | :---: | :---: | :--- |
+| ۲۱ | ساختار درختی تودرتو | `layers-tree.tsx` | سایدبار راست تب لایه‌ها | نمایش سلسله‌مراتب المان‌ها و کانتینرها | نمایش بازگشتی ساختار AST با آیکون‌های اختصاصی هر ویجت | **PASS** | P0 | `deterministic-report.json` |
+| ۲۲ | تورفتگی استاندارد RTL | `layers-tree.tsx` | ردیف‌های فرزندی | تورفتگی راست به صورت صریح `depth * 24px` | تورفتگی دقیق و خط راهنمای عمودی فیروزه‌ای `border-r-2 border-primary/40` | **PASS** | P0 | `deterministic-report.json` |
+| ۲۳ | دکمه‌های عملیاتی دائمی | `layers-tree.tsx` | انتهای هر ردیف | رویت‌پذیری ۱۰۰٪ دکمه‌های مخفی‌سازی، تکثیر و حذف بدون نیاز به هاور | دکمه‌ها با `opacity-80 hover:opacity-100` و رنگ صریح `text-destructive` برای حذف | **PASS** | P0 | `deterministic-report.json` |
+| ۲۴ | جستجوی زنده لایه‌ها | `layers-tree.tsx` | بالای پنل لایه‌ها | فیلتر آنی المان‌ها بر اساس نام فارسی یا نوع ویجت | فیلتر دقیق المان‌ها و باز شدن خودکار شاخه‌های منطبق | **PASS** | P2 | `builder-xray.mjs` (راند ۱۶) |
+| ۲۵ | باز و بسته کردن سراسری | `layers-tree.tsx` | هدر پنل لایه‌ها | دکمه‌های Expand All و Collapse All برای مدیریت لایه‌ها | عملکرد یکپارچه با متغیر `forceExpanded` | **PASS** | P2 | `builder-xray.mjs` (راند ۱۶) |
+| ۲۶ | ویرایش نام با دابل‌کلیک | `layers-tree.tsx` | عنوان ردیف | تبدیل عنوان به اینپوت متنی برای تغییر نام نمایشی المان | ویرایش در لحظه با کلید Enter و ثبت در تاریخچه Undo | **PASS** | P2 | `builder-xray.mjs` (راند ۱) |
+| ۲۷ | درگ‌انددراپ ردیف‌های درختی | `layers-tree.tsx` | گریپ هر ردیف | جابه‌جایی المان‌ها بین شاخه‌ها و تغییر والد با درگ | عملکرد بومی HTML5 با متد اتمیک `moveElement` | **PASS** | P1 | `builder-xray.mjs` (راند ۳) |
 
-### 3.2 Style Tab
-- Layout Direction (Row, Row-Reverse, Column, Column-Reverse)
-- Alignment & Justification (Start, Center, End, Between, Stretch)
-- Container Dimensions (Boxed vs Full Width, Custom Max-Width)
-- Gaps (Grid / Flex gap with px/rem units)
-- Backgrounds (Solid Color, Multi-Stop Gradient, Image)
-- Background Overlay (Color, Opacity, Blend Mode)
-- Typography (Font Family, Size, Weight, Line Height, Letter Spacing)
-- Border & Border Radius (Linked / Unlinked 4 corners, Style, Color)
-- Box Shadow (X, Y, Blur, Spread, Color, Inset)
-- CSS Graphical Filters (Blur, Brightness, Contrast, Grayscale, Sepia)
-- Opacity (0.0 to 1.0)
-- Align-Self & Flex Order
+---
 
-### 3.3 Advanced Tab
-- Responsive Device Visibility (`visibleOnDesktop`, `visibleOnTablet`, `visibleOnMobile`)
-- Authentication Visibility (`all`, `authenticated`, `guest`)
-- CSS Motion Effects & Animations (`fade-in`, `slide-up`, `zoom-in`, `duration`, `delay`)
-- Global Component Sync (`globalComponentId`)
-- Custom CSS ID (Anchor Navigation)
-- Custom CSS Classes (`className` injection)
-- Lock Element & Hide Element toggles
+## ۴. پالت بلوک‌ها و الگوها (Blocks & Patterns Palette)
+
+| ردیف | نام قابلیت | مسیر فایل | محل در UI | رفتار مورد انتظار | رفتار مشاهده‌شده | وضعیت | اولویت | شواهد |
+| :---: | :--- | :--- | :--- | :--- | :--- | :---: | :---: | :--- |
+| ۲۸ | ۳۴ بلوک پایه رجیستری | `block-registry.ts` | تب اول پالت | دسترسی به تمامی ۳۴ ویجت ساختاری، تعاملی و فروشگاهی | فهرست کامل با آیکون‌های متمایز و درگ/کلیک برای درج | **PASS** | P0 | `builder-gym-r02.spec.ts` |
+| ۲۹ | ۲۸ الگوی آماده سکشن | `pattern-converter.ts` | تب دوم پالت | دسترسی به ۲۸ الگوی استاندارد بدون خطای رندر | تبدیل عمیق به AST استاندارد بدون تگ خام HTML | **PASS** | P0 | `builder-gym-r02.spec.ts` (تست ۳) |
+| ۳۰ | فیلتر دسته‌بندی و سرچ الگوها | `blocks-palette.tsx` | بالای پالت الگوها | فیلتر چیپ‌های موضوعی (هیرو، محتوا، فروشگاهی، ...) و متن | فیلتر بلادرنگ بدون لگ و پرش | **PASS** | P1 | `builder-gym-r02.spec.ts` (تست ۱) |
+| ۳۱ | مدیریت قالب‌های ذخیره‌شده من | `blocks-palette.tsx` | تب سوم پالت | نمایش، درج، کپی، ویرایش نام و حذف قالب‌های آماده کاربر | دیالوگ پیش‌نمایش و اعمال قالب برگه/سکشن | **PASS** | P1 | `builder-gym-r04.spec.ts` (تست ۳) |
+| ۳۲ | درج ریشه‌ای الگوهای سکشن | `blocks-palette.tsx` | عملکرد درج الگو | درج الگوهای بخش همواره در سطح اول (`rootElements`) | عدم تودرتو شدن ناخواسته با المان‌های فعال داخلی | **PASS** | P1 | `builder-gym-r07.spec.ts` |
+
+---
+
+## ۵. موجودی کامل ۳۴ ویجت و وضعیت برابری آن‌ها
+
+| # | نوع ویجت (`widgetType`) | نام نمایشی | دسته‌بندی | کنترل‌های بازرس | وضعیت رندر بوم | برابری WYSIWYG سرور | وضعیت |
+| :-: | :--- | :--- | :--- | :---: | :---: | :---: | :---: |
+| ۱ | `container` | کانتینر انعطاف‌پذیر | Layout | فلکس/گرید، پدینگ، مارجین، پس‌زمینه، کادر، فیلتر | بوم کامل | کامپایلر سرور کامل | **PASS** |
+| ۲ | `section` | سکشن سرتاسری | Layout | چیدمان جعبه‌ای/تمام‌عرض، فاصله‌گذاری، پس‌زمینه | بوم کامل | کامپایلر سرور کامل | **PASS** |
+| ۳ | `columns` | دو ستونه آماده | Layout | تنظیمات عرض ستون‌ها و گپ | بوم کامل | کامپایلر سرور کامل | **PASS** |
+| ۴ | `form_container` | کانتینر فرم | Layout / Forms | عنوان، اکشن ارسال، متد POST | بوم کامل | کامپایلر سرور کامل | **PASS** |
+| ۵ | `heading` | سرتیتر | Basic | تگ H1 تا H6، متن، ترازبندی، رنگ و تایپوگرافی | بوم کامل | کامپایلر سرور کامل | **PASS** |
+| ۶ | `text_editor` | پاراگراف متن | Basic | ادیتور متن، استایل فونت، سایز، رنگ | بوم کامل | کامپایلر سرور کامل | **PASS** |
+| ۷ | `image` | تصویر | Basic | آدرس عکس، متن جایگزین، ابعاد، استایل گوشه | بوم کامل | کامپایلر سرور کامل | **PASS** |
+| ۸ | `button` | دکمه اقدام | Basic | متن دکمه، لینک، باز شدن در تب جدید، کلاس رنگ | بوم کامل | کامپایلر سرور کامل | **PASS** |
+| ۹ | `spacer` | فاصله‌ساز | Basic | ارتفاع بر حسب پیکسل | بوم کامل | کامپایلر سرور کامل | **PASS** |
+| ۱۰ | `divider` | خط جداکننده | Basic | استایل خط (solid, dashed, dotted)، رنگ | بوم کامل | کامپایلر سرور کامل | **PASS** |
+| ۱۱ | `table` | جدول داده | Basic | ویرایش سطور و ستون‌ها، هایلایت ستون خاص، استایل راه‌راه | بوم کامل | کامپایلر سرور کامل | **PASS** |
+| ۱۲ | `form_input` | فیلد ورودی متن | Forms | برچسب، متن راهنما، نوع ورودی (text/email/tel)، الزامی بودن | بوم کامل | کامپایلر سرور کامل | **PASS** |
+| ۱۳ | `form_textarea` | متن چندخطی | Forms | برچسب، متن راهنما، تعداد سطرها، الزامی بودن | بوم کامل | کامپایلر سرور کامل | **PASS** |
+| ۱۴ | `form_select` | منوی کشویی | Forms | برچسب، گزینه‌های انتخابی، گزینه پیش‌فرض | بوم کامل | کامپایلر سرور کامل | **PASS** |
+| ۱۵ | `form_checkbox` | چک‌باکس فرم | Forms | متن گزینه، پیش‌فرض فعال/غیرفعال | بوم کامل | کامپایلر سرور کامل | **PASS** |
+| ۱۶ | `form_radio` | دکمه رادیویی | Forms | نام گروه، گزینه‌ها و مقادیر | بوم کامل | کامپایلر سرور کامل | **PASS** |
+| ۱۷ | `product_card` | کارت محصول | E-commerce | انتخاب کالای نمونه، قالب کامپکت/پیش‌فرض | بوم کامل | کامپایلر سرور کامل | **PASS** |
+| ۱۸ | `product_grid` | ویترین محصولات | E-commerce | فیلتر پیش‌فرض (ویژه/پرفروش)، صفحه‌بندی | بوم کامل | کامپایلر سرور کامل | **PASS** |
+| ۱۹ | `product_variants` | تنوع محصول | E-commerce | افزودن/ویرایش تنوع‌ها، قیمت دلخواه به تومان | بوم کامل | کامپایلر سرور کامل | **PASS** |
+| ۲۰ | `product_price` | قیمت محصول | E-commerce | قیمت اصلی، تخفیف و برچسب تومان | بوم کامل | کامپایلر سرور کامل | **PASS** |
+| ۲۱ | `add_to_cart` | دکمه خرید | E-commerce | متن دکمه، نمایش آیکون سبد | بوم کامل | کامپایلر سرور کامل | **PASS** |
+| ۲۲ | `mini_cart` | مینی کارت | E-commerce | نشان تعداد اقلام، مجموع سبد | بوم کامل | کامپایلر سرور کامل | **PASS** |
+| ۲۳ | `cart_summary` | خلاصه سبد خرید | E-commerce | عنوان خلاصه، متن دکمه تسویه | بوم کامل | کامپایلر سرور کامل | **PASS** |
+| ۲۴ | `accordion` | آکاردئون تعاملی | Interactive | افزودن/حذف آیتم‌ها، عنوان و متن تاشو | بوم کامل | کامپایلر سرور کامل | **PASS** |
+| ۲۵ | `tabs` | تب‌های محتوایی | Interactive | مدیریت تب‌ها، عناوین و محتوای تب‌ها | بوم کامل | کامپایلر سرور کامل | **PASS** |
+| ۲۶ | `countdown` | شمارنده معکوس | Interactive | تاریخ هدف، عنوان پیشنهاد، محاسبه بلادرنگ | بوم کامل | کامپایلر سرور کامل | **PASS** |
+| ۲۷ | `video` | پخش‌کننده ویدئو | Media | آدرس ویدئو، پشتیبانی از آپارات و یوتیوب | بوم کامل | کامپایلر سرور کامل | **PASS** |
+| ۲۸ | `icon_box` | باکس آیکون و ویژگی | Interactive | آیکون، عنوان، متن توضیح و رنگ آیکون | بوم کامل | کامپایلر سرور کامل | **PASS** |
+| ۲۹ | `social_links` | شبکه‌های اجتماعی | Interactive | افزودن لینک تلگرام، اینستاگرام، واتساپ | بوم کامل | کامپایلر سرور کامل | **PASS** |
+| ۳۰ | `image_gallery` | گالری تصاویر | Media | مدیریت عکس‌ها، انتخاب ستون‌های گالری | بوم کامل | کامپایلر سرور کامل | **PASS** |
+| ۳۱ | `star_rating` | امتیاز ستاره‌ای | Feedback | نمره امتیاز (۱ تا ۵)، تعداد دیدگاه‌ها | بوم کامل | کامپایلر سرور کامل | **PASS** |
+| ۳۲ | `review_histogram` | نمودار نظرات | Feedback | توزیع ستاره‌های ۱ تا ۵ و میانگین | بوم کامل | کامپایلر سرور کامل | **PASS** |
+| ۳۳ | `recently_viewed` | بازدیدهای اخیر | E-commerce | سقف تعداد اقلام، پیش‌نمایش کارت‌ها | بوم کامل | کامپایلر سرور کامل | **PASS** |
+| ۳۴ | `mega_menu` | مگامنو ناوبری | Navigation | عنوان دسته‌ها، ساختار ستونی لینک‌ها | بوم کامل | کامپایلر سرور کامل | **PASS** |
+
+---
+
+## ۶. پنل بازرس (Inspector Panel: Content, Style, Advanced)
+
+| حوزه کنترل | قابلیت‌های پیاده‌سازی‌شده | اعمال در بوم | اعمال در کامپایلر سرور | وضعیت |
+| :--- | :--- | :---: | :---: | :---: |
+| **محتوا (Content)** | ادیتور مستقیم متن، سطوح هدینگ H1-H6، فیلدهای فرم، آیتم‌های آکاردئون و تب‌ها، تنوع کالا | بله | بله | **PASS** |
+| **چیدمان کانتینر (Layout)** | فلکس‌باکس و گرید، جهت ستونی/سطری، Justify و Align، فاصله گپ، ستون‌های جعبه‌ای و تمام‌عرض | بله | بله | **PASS** |
+| **تایپوگرافی (Typography)** | فونت وزیرمتن و سیستم، سایزهای پیش‌فرض و سفارشی، ضخامت، فاصله خطوط و رنگ | بله | بله | **PASS** |
+| **پس‌زمینه (Background)** | سوئیچر ۴ حالته: تک‌رنگ، گرادیانت چندجهته با زاویه دلخواه، تصویر پس‌زمینه با موقعیت و سایز | بله | بله | **PASS** |
+| **لایه رویی پس‌زمینه (Overlay)** | Background Overlay مستقل با شفافیت و گرادیانت بدون محو کردن متون فرزند | بله | بله | **PASS** |
+| **حاشیه و کادر (Borders)** | استایل خط حاشیه، ضخامت، رنگ، گردی گوشه‌ها (Border Radius) با قفل یکپارچه | بله | بله | **PASS** |
+| **سایه‌ها (Box Shadow)** | پریست‌های آماده سایه و تنظیم دستی رنگ، بلور و موقعیت X/Y | بله | بله | **PASS** |
+| **فاصله‌گذاری (Spacing)** | پدینگ و مارجین ۴ جهته با سوئیچ قفل پیوسته برای مقادیر یکسان | بله | بله | **PASS** |
+| **فیلترهای گرافیکی (CSS Filters)** | پریست‌های بلور، سیاه و سفید، کنتراست و سپیا، همراه با فیلتر دستی | بله | بله | **PASS** |
+| **نمایش شرطی (Visibility)** | مخفی‌سازی بر اساس دستگاه (دسکتاپ، تبلت، موبایل) و وضعیت احراز هویت | بله | بله | **PASS** |
+| **انیمیشن‌ها (Animations)** | انیمیشن‌های ورود (Fade In, Slide Up, Zoom In) با کلاس‌های اختصاصی CSS | بله | بله | **PASS** |
+| **شناسه‌ها و کلاس‌ها** | فیلدهای `customCssId` برای انکر لینک‌ها و `customCssClass` برای استایل‌های سفارشی | بله | بله | **PASS** |
+| **کامپوننت سراسری (Global)** | ایجاد شناسه سراسری، همگام‌سازی بلادرنگ تمامی نمونه‌ها، و تفکیک (Detach) | بله | بله | **PASS** |

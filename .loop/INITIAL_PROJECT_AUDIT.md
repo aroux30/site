@@ -1,105 +1,97 @@
-# Initial Project Reconnaissance & Builder Architecture Audit
+# ممیزی شناسایی اولیه پروژه (Stage 0: Reconnaissance & Initial Audit)
 
-**Date**: 2026-11-21  
-**Working Directory**: `C:\Users\Administrator\Desktop\site\.claude\worktrees\hungry-khorana-4f765b`  
-**Git Branch**: `claude/hungry-khorana-4f765b` (Clean working tree)  
-**Main Branch**: `main`  
-**Reference Source**: `C:\Users\Administrator\Desktop\elementor` (Read-only, Elementor & Elementor Pro)
-
----
-
-## 1. Executive Summary
-
-This project encompasses a production-grade Visual Page Builder built for an Iranian e-commerce & CMS platform. The builder enables visual composition of CMS pages and landing pages with real-time WYSIWYG fidelity, bidirectional RTL layout support, responsive breakpoint editing (Desktop, Tablet 768px, Mobile 375px), deep undo/redo history, template management, and server-side AST compilation.
+**تاریخ ممیزی**: ۲۱ نوامبر ۲۰۲۶ (2026-11-21)  
+**محیط اجرا**: ویندوز ۱۰ پرو (Windows 10 Pro 10.0.19045)  
+**شاخه گیت فعال**: `claude/goofy-bohr-48c74a` در ورک‌تری ایزوله `C:\Users\Administrator\Desktop\site\.claude\worktrees\goofy-bohr-48c74a`  
+**مخزن مرجع المنتور**: `C:\Users\Administrator\Desktop\elementor` (شامل دو پکیج کامل `elementor` و `elementor-pro`)  
 
 ---
 
-## 2. Environment & System Architecture
+## ۱. ساختار پروژه و وضعیت گیت (Git & Working Tree Status)
+- **وضعیت شاخه**: تمیز (Working tree clean) بدون هیچ تغییر کامیت‌نشده ناخواسته.
+- **شاخه اصلی**: `main`
+- **کامیت‌های اخیر**:
+  - `b849aff` Merge branch 'claude/hungry-ardinghelli-71d423'
+  - `c98e045` merge: resolve conflicts between main and excavator branch, unifying Elementor parity features
+  - `101eb63` Merge branch 'main' of https://github.com/aroux30/site into claude/nice-roentgen-94fdac
+  - `bf822d0` fix(excavator-r11): implement toolbar direct page title inline editing and Ctrl+D / Ctrl+Shift+V shortcuts
+  - `c41a746` fix(excavator-r18): implement Elementor CSS filters controls and server compiler parity
+- **وضعیت سشن‌ها و ورک‌تری‌ها**:
+  - سشن‌های فعال موازی در ورک‌تری‌های اختصاصی خود در حال اجرا هستند. پورت‌های ۳۱۰۰ و ۳۲۰۰ توسط سشن‌های دیگر استفاده می‌شوند.
+  - پورت ۳۰۰۰ به صورت مستقل با بیلد پروداکشن Next.js استاندارد (`next start -p 3000`) بالا آمده و اندپوینت `/api/health` سلامت کامل سرور و اتصال بک‌اند (HTTP 200) را با شناسه بیلد معتبر گزارش می‌کند.
 
-### 2.1 Workspace and Services
-- **OS**: Windows 10 Pro (x64)
-- **Node.js**: v20.x, npm, Next.js 15.5.25
-- **Backend**: Python 3.12, FastAPI, SQLAlchemy 2 (asyncpg)
-- **Database Services**:
-  - PostgreSQL (Docker, port 5432)
-  - Redis (Docker, port 6379)
-  - Elasticsearch (local/Docker, port 9200)
-- **Testing Runtimes**:
-  - Frontend Unit/Integration: Vitest (`npm test`)
-  - Type-checking: `tsc --noEmit`
-  - E2E & Browser Automation: Playwright with Chromium headless (`@playwright/test`)
-  - Backend Unit: Pytest (`python -m pytest app/tests/unit`)
+---
 
-### 2.2 Primary Builder Codebase Structure
-```
-frontend/
-├── components/admin/builder/
-│   ├── builder-studio.tsx               # Main 3-column studio layout, toolbar, state bridge
-│   ├── builder-toolbar.tsx              # Top navigation, responsive mode switcher, preview, actions
-│   ├── blocks-palette.tsx               # Blocks (34), Patterns (28), Templates (3-tab sidebar)
-│   ├── layers-tree.tsx                  # Navigator tree, DnD reorder, search, expand/collapse
-│   ├── canvas-frame.tsx                 # Isolated iframe canvas with 2-layer design token injection
-│   ├── canvas-dnd-layer.tsx             # @dnd-kit/core drag & drop integration inside canvas
-│   ├── canvas-element.tsx               # Recursive AST renderer for containers & widgets
-│   ├── canvas-overlay-layer.tsx         # Root overlay portal for selection & floating toolbar
-│   ├── inspector-panel.tsx              # 3-tab inspector (Content, Style, Advanced)
-│   ├── global-styles-dialog.tsx         # Page-level design tokens (colors, typography, radius)
-│   ├── save-template-dialog.tsx         # Container section template export dialog
-│   ├── save-page-template-dialog.tsx    # Full page template export dialog
-│   ├── container-preset-picker.tsx      # 6 ready-made column layouts for empty containers
-│   ├── builder-context-menu.tsx         # Right-click context menu (duplicate, delete, wrap, unwrap)
-│   ├── history-panel.tsx                # Revision history timeline and jump-to-state
-│   └── hotkeys-dialog.tsx               # Keyboard shortcuts cheat sheet (Ctrl+Z, Ctrl+D, etc.)
-├── stores/
-│   └── builder-store.ts                 # Zustand reactive state, AST mutations, undo/redo past/future
-├── lib/builder/
-│   ├── block-registry.ts                # 34 basic block definitions & factory methods
-│   ├── pattern-converter.ts             # 28 block patterns converter & HTML generator
-│   ├── schema.ts                        # Zod schema validation for PageAST & BuilderElement
-│   └── theme-schema.ts                  # HSL color conversion & CSS variable token extraction
-└── types/
-    └── builder.ts                       # TypeScript interfaces for AST, Styles, Layout, & Widgets
-```
+## ۲. پشته فناوری و ابزارهای پروژه (Tech Stack & Tooling)
+- **فرانت‌اند**: Next.js 15.5.25 (App Router)، React 18، TypeScript 5، Tailwind CSS، Radix UI، Lucide React، Zustand (`builder-store.ts`)
+- **بک‌اند**: FastAPI / Python 3.14، SQLAlchemy (Async)، PostgreSQL 16 در Docker، Redis در Docker، Pydantic v2
+- **تست‌ها**:
+  - فرانت‌اند یونیت/کامپوننت: Vitest v5.0.1 (۳۷۲ تست سبز در ۴۵ فایل)
+  - تایپ‌چک فرانت‌اند: `npx tsc --noEmit` (۰ خطا)
+  - تست‌های ای۲ای/مرورگر: Playwright v1.48+، Axe Core Playwright (WCAG 2.1 AA)
+  - بک‌اند: Pytest v9.1.1 (۶۲۲ تست سبز، ۲ اسکیپ)
 
-### 2.3 Backend Services
+---
+
+## ۳. معماری Visual Page Builder پروژه
+صفحه‌ساز بصری اختصاصی بر مبنای چرخه داده‌ای زیر پیاده‌سازی شده است:
+
 ```
-backend/app/modules/content/
-├── domain/
-│   ├── builder_ast.py                   # Pydantic models for AST validation
-│   └── builder_validation.py            # AST validation rules, schema version checks
-├── application/
-│   ├── ast_compiler.py                  # Compiles JSON AST to production HTML
-│   ├── html_sanitizer.py                # Server-side HTML security sanitizer
-│   ├── cms_page_service.py              # CMS page CRUD, draft/publish lifecycle
-│   └── form_submission_service.py       # Builder form container submissions & spam protection
+ورودی کاربر (Drag & Drop / Inspector / Palette / Shortcuts)
+       ↓
+Builder Store (Zustand: builder-store.ts با مدیریت History past/future و پایش تغییرات)
+       ↓
+Page AST (درخت استاندارد JSON شامل rootElements, globalStyles, schemaVersion)
+       ↓
+Zod AST Validation (اعتبارسنجی فرانت‌اند با PageASTSchema)
+       ↓
+CanvasFrame (Iframe ایزوله برای ارزیابی صادقانه کوئری‌های مدیا و تزریق دو لایه توکن تم)
+       ↓
+CanvasOverlayLayer (لایه پرتال مستقل روی Iframe برای ترسیم کادرهای هاور، سلکشن و نوار ابزار شناور)
+       ↓
+Backend API (/api/v1/content/admin/pages/)
+       ↓
+PostgreSQL & Redis (ذخیره پیش‌نویس و اسنپ‌شات‌های بازیابی آنی کرش)
+       ↓
+AST Compiler (ast_compiler.py در بک‌اند برای کامپایل سروری به HTML امن و استاندارد)
+       ↓
+Storefront Renderer (رندر تمام‌عرض صفحات CMS با dangerouslySetInnerHTML و cleanHtml)
 ```
 
 ---
 
-## 3. Elementor & Elementor Pro Reference Status
+## ۴. اجزای کلیدی صفحه‌ساز
+۱. **BuilderStudio (`frontend/components/admin/builder/builder-studio.tsx`)**:
+   - محیط تمام‌صفحه با لایه‌بندی ۳ ستونه (پالت و درخت لایه‌ها در سمت راست، بوم آی‌فریم در مرکز، پنل بازرس در سمت چپ در RTL).
+   - نوار ابزار بالا با سوییچ ۳ ویوپورت (دسکتاپ، تبلت ۷۶۸px، موبایل ۳۷۵px)، دکمه‌های بازگشت/انجام مجدد (Undo/Redo)، استایل سراسری، کلیدهای میانبر، پیش‌نمایش و دکمه‌های ذخیره پیش‌نویس و انتشار.
 
-The local reference repository at `C:\Users\Administrator\Desktop\elementor` contains full source code for:
-- **Elementor Core**: `elementor/includes/`
-  - `base/controls-stack.php`: Unified control registration stack
-  - `container/container.php`: Flexbox & Grid modern container engine
-  - `editor-templates/`: Navigator, Panel, Library layout, Responsive bar
-- **Elementor Pro**: `elementor-pro/modules/`
-  - Display Conditions (`display-conditions/`): Device, authentication, role-based visibility
-  - Custom CSS & Attributes (`custom-css/`, `custom-attributes/`)
-  - Motion Effects & Animations (`motion-fx/`)
-  - Forms & Submissions (`forms/`)
-  - Global Widgets & Templates (`theme-builder/`, `assets-manager/`)
+۲. **CanvasFrame & CanvasOverlayLayer (`canvas-frame.tsx`, `canvas-overlay-layer.tsx`)**:
+   - سند داخلی آی‌فریم با استایل‌های پایه سایت و تزریق ۲ لایه توکن‌های طراحی (لایه ۱ تم فعال سایت + لایه ۲ استایل‌های سراسری برگه).
+   - رندر عناصر داخل آی‌فریم با درک ریسپانسیو واقعی.
+   - لایه پرتال شناور مستقل در ریشه آی‌فریم بدون ایجاد شکست در رندر فلکس/گرید فرزندان.
+
+۳. **BlocksPalette (`blocks-palette.tsx`)**:
+   - ۳ زبانه: بلوک‌های پایه (۳۴ بلوک)، الگوهای آماده (۲۸ الگوی کامل)، قالب‌های ذخیره‌شده من (قالب‌های برگه و کانتینر).
+   - فیلتر و جستجوی بلادرنگ.
+
+۴. **LayersTree (`layers-tree.tsx`)**:
+   - درخت کامل سلسله‌مراتبی المان‌ها با تورفتگی RTL به ازای هر عمق (`depth * 24px`) و خط راهنمای عمودی.
+   - دکمه‌های عملیاتی دائمی و بدون مخفی‌سازی (`opacity-80 hover:opacity-100`) برای مخفی‌سازی، تکثیر و حذف (`text-destructive`).
+   - درگ‌انددراپ ردیف‌های درختی، جستجوی زنده در لایه‌ها، دکمه‌های باز و بسته کردن سراسری، و دابل‌کلیک برای تغییر نام درجا.
+
+۵. **InspectorPanel (`inspector-panel.tsx`)**:
+   - ۳ تب مجزا: محتوا (Content)، استایل (Style)، و پیشرفته (Advanced).
+   - کنترل‌های غنی برای تایپوگرافی، پس‌زمینه (رنگ، گرادیانت، تصویر)، فیلترهای گرافیکی CSS، لایه رویی پس‌زمینه (Background Overlay)، سایه‌ها، کادر، انیمیشن‌ها، و نمایش شرطی بر اساس دستگاه و وضعیت احراز هویت.
+
+۶. **Block Registry & Pattern Converter (`block-registry.ts`, `pattern-converter.ts`)**:
+   - ثبت ۳۴ بلوک و ویجت واقعی فرانت‌اند.
+   - تبدیل عمیق ۲۸ الگوی آماده به نودهای استاندارد AST بدون نشت تگ‌های خام HTML.
 
 ---
 
-## 4. Current Test Baseline Status
-- **Vitest Unit Tests**: `tests/builder-schema.test.ts`, `tests/builder-store.test.ts` (17 passed)
-- **TypeScript Typecheck**: `tsc --noEmit` (0 errors)
-- **Playwright E2E**:
-  - `tests/e2e/builder-gym-r01.spec.ts`: 3/3 passed (10.1s)
-  - Regression suite: 18 rounds covered in `.loop/BUILDER_GYM_LOG.md` and `.loop/EXCAVATOR_LOG.md`
-- **Initial P0 Defect Status**:
-  1. `layers-tree.tsx`: `depth * 24px` RTL indentation verified and active.
-  2. `canvas-element.tsx`: Empty container dashed guide min-height updated to `80px` with clear Persian action text.
-  3. `builder-store.ts`: Initial selection set to `null` to eliminate pointer event interception on initial load.
-  4. `canvas-element.tsx`: Button widget text wrapped with `<span className="truncate">` for exact selector and overflow safety.
+## ۵. ارزیابی اولیه نواقص P0 و قوانین حفاظتی
+- **دکمه‌های LayersTree**: کلاس `opacity-0` به طور کامل حذف شده و تمامی دکمه‌ها با ماوس در مختصات (0, 0) قابل مشاهده و تعامل هستند.
+- **تورفتگی لایه‌ها**: تورفتگی راست به صورت دقیق `depth * 24px` با خط راهنمای عمودی `border-r-2 border-primary/40` تثبیت شده است.
+- **Empty Container Guide**: کادر خط‌چین با حداقل ارتفاع `80px` و دکمه راهنمای مشخص «افزودن بلوک به این بخش» برقرار است.
+- **ایزولاسیون کامل `audit_service.py` و `showcase`**: هیچ تغییری در این فایل‌ها داده نمی‌شود.
+- **ایزولاسیون تست‌ها**: تمام تست‌های خودکار روی برگه ایزوله `/e2e-isolated-scratchpad?builder=1` اجرا می‌شوند و صفحات عمومی فروشگاه دستکاری نمی‌شوند.

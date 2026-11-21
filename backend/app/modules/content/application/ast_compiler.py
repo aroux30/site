@@ -174,11 +174,11 @@ class ASTCompiler:
             hp_field = '<input type="text" name="_hp_website" style="display:none !important;" tabindex="-1" autocomplete="off" aria-hidden="true" />'
             children_html = overlay_html + shape_dividers_html + hp_field + "".join(
                 cls._compile_element(child, is_authenticated=is_authenticated) for child in el.children
-            ) + bottom_divider_html
+            )
         else:
             children_html = overlay_html + shape_dividers_html + "".join(
                 cls._compile_element(child, is_authenticated=is_authenticated) for child in el.children
-            ) + bottom_divider_html
+            )
 
         return f"<{tag}{id_attr}{class_attr}{style_attr}{extra_attrs}>{children_html}</{tag}>"
 
@@ -246,10 +246,6 @@ class ASTCompiler:
         elif widget_type == "spacer":
             h = props.get("height", 32)
             return f'<div{id_attr} class="w-full {css_class}" style="height: {int(h)}px;" aria-hidden="true"></div>'
-
-        elif widget_type == "columns":
-            cols_html = "".join(cls._compile_element(child, is_authenticated=is_authenticated) for child in el.children)
-            return f'<div{id_attr} class="grid grid-cols-1 md:grid-cols-2 gap-4 w-full {css_class}"{style_attr}>{cols_html}</div>'
 
         elif widget_type == "html_custom" or widget_type == "legacy_html":
             raw_html = str(props.get("html", props.get("content", "")))

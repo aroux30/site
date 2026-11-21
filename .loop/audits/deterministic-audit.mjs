@@ -218,14 +218,14 @@ async function runDeterministicAudit() {
 
     // 3. Navigate to Builder Studio
     console.log(">>> Navigating to Builder Studio scratchpad...");
-    await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, {
+    await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?visual_editor=true`, {
       waitUntil: "domcontentloaded",
       timeout: 45000,
     });
     await page.waitForTimeout(2000);
 
     // Build hierarchy if needed to ensure empty container guide and nested tree exist
-    const blocksTabBtn = page.getByRole("button", { name: "بلوک‌ها", exact: true }).or(page.getByRole("button", { name: "افزودن بلوک" })).first();
+    const blocksTabBtn = page.locator("button:has-text('بلوک‌ها')").or(page.getByRole("button", { name: "افزودن بلوک" })).first();
     if (await blocksTabBtn.isVisible()) {
       await blocksTabBtn.click();
       await page.waitForTimeout(500);

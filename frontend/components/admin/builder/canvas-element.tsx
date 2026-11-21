@@ -673,8 +673,6 @@ function CanvasElementComponent({
             <a
               href={url}
               data-url={url}
-              target={props.newTab ? "_blank" : undefined}
-              rel={props.newTab ? "noopener noreferrer" : undefined}
               onDoubleClick={(e) => {
                 if (!previewMode) {
                   e.stopPropagation();
@@ -688,7 +686,7 @@ function CanvasElementComponent({
                 customClass
               )}
             >
-              <span className="truncate">{labelVal}</span>
+              <span>{labelVal}</span>
             </a>
           </div>
         );
@@ -1124,12 +1122,12 @@ function CanvasElementComponent({
               <span>مبلغ قابل پرداخت:</span>
               <span className="text-primary text-base font-black">۴,۰۳۳,۰۰۰ تومان</span>
             </div>
-            <a
-              href={String(props.checkout_url || "/checkout")}
-              className="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition shadow block text-center"
+            <button
+              type="button"
+              className="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition shadow"
             >
               {btnLabel}
-            </a>
+            </button>
           </div>
         );
       }
@@ -1187,20 +1185,13 @@ function CanvasElementComponent({
         const label = String(props.label || "");
         const placeholder = String(props.placeholder || "");
         const inputType = String(props.input_type || "text");
-        const isReq = Boolean(props.required);
         const customClass = String(props.customCssClass || element.styles?.customCssClass || "");
         return (
           <div className={cn("space-y-1 w-full text-right pointer-events-none", customClass)}>
-            {label && (
-              <label className="block text-xs font-semibold text-foreground">
-                {label}
-                {isReq && <span className="text-destructive ms-1">*</span>}
-              </label>
-            )}
+            {label && <label className="block text-xs font-semibold text-foreground">{label}</label>}
             <input
               type={inputType}
               placeholder={placeholder}
-              required={isReq}
               readOnly
               className="w-full rounded-xl border border-input bg-background px-4 py-2.5 text-sm"
             />
@@ -1211,20 +1202,13 @@ function CanvasElementComponent({
         const label = String(props.label || "");
         const placeholder = String(props.placeholder || "");
         const rowsNum = Number(props.rows || 4);
-        const isReq = Boolean(props.required);
         const customClass = String(props.customCssClass || element.styles?.customCssClass || "");
         return (
           <div className={cn("space-y-1 w-full text-right pointer-events-none", customClass)}>
-            {label && (
-              <label className="block text-xs font-semibold text-foreground">
-                {label}
-                {isReq && <span className="text-destructive ms-1">*</span>}
-              </label>
-            )}
+            {label && <label className="block text-xs font-semibold text-foreground">{label}</label>}
             <textarea
               placeholder={placeholder}
               rows={rowsNum}
-              required={isReq}
               readOnly
               className="w-full rounded-xl border border-input bg-background p-3 text-sm"
             />
@@ -1234,21 +1218,11 @@ function CanvasElementComponent({
       case "form_select": {
         const label = String(props.label || "");
         const options = (props.options as string[]) || ["گزینه ۱", "گزینه ۲"];
-        const isReq = Boolean(props.required);
         const customClass = String(props.customCssClass || element.styles?.customCssClass || "");
         return (
           <div className={cn("space-y-1 w-full text-right pointer-events-none", customClass)}>
-            {label && (
-              <label className="block text-xs font-semibold text-foreground">
-                {label}
-                {isReq && <span className="text-destructive ms-1">*</span>}
-              </label>
-            )}
-            <select
-              required={isReq}
-              className="w-full rounded-xl border border-input bg-background px-4 py-2.5 text-sm"
-              disabled
-            >
+            {label && <label className="block text-xs font-semibold text-foreground">{label}</label>}
+            <select className="w-full rounded-xl border border-input bg-background px-4 py-2.5 text-sm" disabled>
               {options.map((opt, i) => (
                 <option key={i}>{typeof opt === "string" ? opt : (opt as any)?.label || opt}</option>
               ))}
@@ -1259,20 +1233,17 @@ function CanvasElementComponent({
       case "form_checkbox": {
         const label = String(props.label || "شرایط و قوانین را می‌پذیرم");
         const name = String(props.name || "terms");
-        const isReq = Boolean(props.required);
         return (
           <div className="flex items-center gap-2 text-right">
             <input
               type="checkbox"
               id={`chk_${element.id}`}
               name={name}
-              required={isReq}
               defaultChecked={Boolean(props.checked)}
               className="rounded border-input text-primary focus:ring-primary h-4 w-4"
             />
             <label htmlFor={`chk_${element.id}`} className="text-xs font-medium text-foreground cursor-pointer select-none">
               {label}
-              {isReq && <span className="text-destructive ms-1">*</span>}
             </label>
           </div>
         );
@@ -1445,88 +1416,6 @@ function CanvasElementComponent({
           </div>
         );
       }
-      case "alert": {
-        const title = String(props.title || "پیام اطلاع‌رسانی");
-        const desc = String(props.description || "توضیحات تکمیلی این پیام در این بخش نمایش داده می‌شود.");
-        const aType = String(props.alert_type || "info");
-        const colorClasses = {
-          info: "bg-sky-500/10 border-sky-500/30 text-sky-700 dark:text-sky-300",
-          success: "bg-emerald-500/10 border-emerald-500/30 text-emerald-700 dark:text-emerald-300",
-          warning: "bg-amber-500/10 border-amber-500/30 text-amber-700 dark:text-amber-300",
-          error: "bg-destructive/10 border-destructive/30 text-destructive",
-        }[aType] || "bg-sky-500/10 border-sky-500/30 text-sky-700 dark:text-sky-300";
-        return (
-          <div className={cn("p-4 rounded-xl border flex items-start justify-between gap-3 w-full", colorClasses)}>
-            <div className="space-y-1 text-right">
-              <h5 className="font-bold text-xs">{title}</h5>
-              <p className="text-[11px] leading-relaxed opacity-90">{desc}</p>
-            </div>
-          </div>
-        );
-      }
-      case "counter": {
-        const target = Number(props.target_number || 100);
-        const prefix = String(props.prefix || "");
-        const suffix = String(props.suffix || "+");
-        const title = String(props.title || "مشتریان راضی");
-        return (
-          <div className="p-4 rounded-2xl bg-card border border-border/80 text-center space-y-1 shadow-sm w-full">
-            <div className="text-3xl font-black text-primary tracking-tight" dir="ltr">
-              {prefix}{target.toLocaleString("fa-IR")}{suffix}
-            </div>
-            <div className="text-xs font-semibold text-muted-foreground">{title}</div>
-          </div>
-        );
-      }
-      case "progress_bar": {
-        const percent = Math.min(100, Math.max(0, Number(props.percentage || 75)));
-        const title = String(props.title || "پیشرفت پروژه");
-        return (
-          <div className="space-y-2 w-full text-right">
-            <div className="flex justify-between items-center text-xs font-bold text-foreground">
-              <span>{title}</span>
-              <span dir="ltr">{percent}%</span>
-            </div>
-            <div className="h-3 w-full rounded-full bg-muted overflow-hidden">
-              <div className="h-full bg-primary rounded-full transition-all duration-500" style={{ width: `${percent}%` }} />
-            </div>
-          </div>
-        );
-      }
-      case "testimonial": {
-        const quote = String(props.quote || "خرید بسیار عالی و بسته‌بندی کاملاً حرفه‌ای بود.");
-        const name = String(props.author_name || "مریم احمدی");
-        const role = String(props.author_role || "خریدار تأییدشده");
-        const avatar = String(props.avatar_url || "/placeholder-hero.svg");
-        return (
-          <div className="p-5 rounded-2xl border border-border/80 bg-card space-y-3 text-right shadow-sm w-full">
-            <p className="text-xs text-muted-foreground leading-relaxed italic">«{quote}»</p>
-            <div className="flex items-center gap-3 pt-1 border-t border-border/40">
-              <img src={avatar} alt={name} className="w-9 h-9 rounded-full object-cover border border-border/60" />
-              <div>
-                <div className="text-xs font-bold text-foreground">{name}</div>
-                <div className="text-[10px] text-muted-foreground">{role}</div>
-              </div>
-            </div>
-          </div>
-        );
-      }
-      case "blockquote": {
-        const text = String(props.text || "خلاقیت یعنی دیدن آنچه همه دیده‌اند و اندیشیدن آنچه هیچ‌کس نیندیشیده است.");
-        const author = String(props.author || "آلبرت اینشتین");
-        return (
-          <blockquote className="border-r-4 border-primary pr-4 py-2 my-2 bg-primary/5 rounded-l-xl text-right w-full space-y-1">
-            <p className="text-xs font-medium text-foreground leading-relaxed">{text}</p>
-            <cite className="block text-[11px] text-muted-foreground not-italic">— {author}</cite>
-          </blockquote>
-        );
-      }
-      case "menu_anchor": {
-        const anchorId = String(props.anchor_id || "section-target");
-        return (
-          <div id={anchorId} className="w-full h-0 opacity-0 pointer-events-none -my-1" aria-hidden="true" />
-        );
-      }
       default:
         return (
           <div className="rounded-lg border border-dashed border-border p-4 text-center text-sm text-muted-foreground">
@@ -1583,9 +1472,6 @@ function CanvasElementComponent({
       id={element.styles?.customCssId || undefined}
       data-element-id={element.id}
       data-element-name={element.name}
-      data-submit-url={element.widgetType === "form_container" ? String(element.widgetProps?.submit_url || "") : undefined}
-      data-success-message={element.widgetType === "form_container" ? String(element.widgetProps?.success_message || "") : undefined}
-      data-error-message={element.widgetType === "form_container" ? String(element.widgetProps?.error_message || "") : undefined}
     >
       {/* Background Overlay (Elementor Parity) */}
       {overlayStyle && (
@@ -1657,13 +1543,6 @@ function CanvasElementComponent({
               />
             </svg>
           )}
-          {!["waves", "curve", "triangle", "tilt"].includes((element.styles?.shapeDividerTop || (element.styles?.mobile as any)?.shapeDividerTop) || "") && (
-            <img
-              src={`/shapes/${element.styles?.shapeDividerTop || (element.styles?.mobile as any)?.shapeDividerTop}.svg`}
-              alt=""
-              className="w-full h-full block object-fill"
-            />
-          )}
         </div>
       )}
 
@@ -1705,13 +1584,6 @@ function CanvasElementComponent({
                 d="M0,6V0h1000v100L0,6z"
               />
             </svg>
-          )}
-          {!["waves", "curve", "triangle", "tilt"].includes((element.styles?.shapeDividerBottom || (element.styles?.mobile as any)?.shapeDividerBottom) || "") && (
-            <img
-              src={`/shapes/${element.styles?.shapeDividerBottom || (element.styles?.mobile as any)?.shapeDividerBottom}.svg`}
-              alt=""
-              className="w-full h-full block object-fill"
-            />
           )}
         </div>
       )}

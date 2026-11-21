@@ -1,295 +1,334 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import {
   Copy,
-  Scissors,
-  Clipboard,
-  Trash2,
   Plus,
+  Trash2,
   ArrowUp,
   ArrowDown,
   Palette,
+  ClipboardPaste,
   BookmarkPlus,
-  Edit,
+  Lock,
+  Unlock,
   Eye,
   EyeOff,
-  Lock,
+  Edit2,
+  FolderPlus,
+  FolderMinus,
 } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { useBuilderStore, findElementById } from "@/stores/builder-store";
 import { useToast } from "@/components/ui/use-toast";
+import { SaveTemplateDialog } from "./save-template-dialog";
 import type { BuilderElement } from "@/types/builder";
 
-export interface ContextMenuState {
-  isOpen: boolean;
+interface ContextMenuPosition {
   x: number;
   y: number;
-  elementId: string | null;
+  targetId: string;
 }
 
-interface BuilderContextMenuProps {
-  state: ContextMenuState;
-  onClose: () => void;
-  onOpenSaveTemplate?: (el: BuilderElement) => void;
-}
-
-export function BuilderContextMenu({
-  state,
-  onClose,
-  onOpenSaveTemplate,
-}: BuilderContextMenuProps) {
+export function BuilderContextMenu() {
   const { toast } = useToast();
+  const [pos, setPos] = useState<ContextMenuPosition | null>(null);
+  const [saveTemplateOpen, setSaveTemplateOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
   const ast = useBuilderStore((s) => s.ast);
   const clipboard = useBuilderStore((s) => s.clipboard);
-
   const selectElement = useBuilderStore((s) => s.selectElement);
   const deleteElement = useBuilderStore((s) => s.deleteElement);
   const duplicateElement = useBuilderStore((s) => s.duplicateElement);
-  const reorderElement = useBuilderStore((s) => s.reorderElement);
   const copyElement = useBuilderStore((s) => s.copyElement);
-  const pasteElement = useBuilderStore((s) => s.pasteElement);
   const copyStyles = useBuilderStore((s) => s.copyStyles);
+  const pasteElement = useBuilderStore((s) => s.pasteElement);
   const pasteStyles = useBuilderStore((s) => s.pasteStyles);
-  const toggleHideElement = useBuilderStore((s) => s.toggleHideElement);
+  const reorderElement = useBuilderStore((s) => s.reorderElement);
   const toggleLockElement = useBuilderStore((s) => s.toggleLockElement);
+  const toggleHideElement = useBuilderStore((s) => s.toggleHideElement);
+  const wrapInContainer = useBuilderStore((s) => s.wrapInContainer);
+  const unwrapContainer = useBuilderStore((s) => s.unwrapContainer);
 
-  // Close on outside click or Escape
+  const activeElement: BuilderElement | null = pos?.targetId
+    ? findElementById(ast.rootElements, pos.targetId)
+    : null;
+
+  const closeMenu = useCallback(() => setPos(null), []);
+
+  // Listen for contextmenu events on both window and iframe
   useEffect(() => {
-    if (!state.isOpen) return;
+    const handleContextMenu = (e: MouseEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (!target) return;
 
-    const handlePointerDown = (e: MouseEvent) => {
-      const menuEl = document.getElementById("builder-context-menu");
-      if (menuEl && !menuEl.contains(e.target as Node)) {
-        onClose();
+      const elemContainer = target.closest("[data-element-id]");
+      if (elemContainer) {
+        e.preventDefault();
+        e.stopPropagation();
+        const targetId = elemContainer.getAttribute("data-element-id");
+        if (targetId) {
+          selectElement(targetId);
+          // Clamp within window bounds
+          const menuWidth = 240;
+          const menuHeight = 360;
+          const x = Math.min(e.clientX, window.innerWidth - menuWidth - 8);
+          const y = Math.min(e.clientY, window.innerHeight - menuHeight - 8);
+          setPos({ x, y, targetId });
+        }
       }
     };
 
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        onClose();
+    const handleIframeMessage = (e: MessageEvent) => {
+      if (e.data?.type === "builder:contextmenu" && e.data.targetId) {
+        selectElement(e.data.targetId);
+        const menuWidth = 240;
+        const menuHeight = 360;
+        const x = Math.min(e.data.clientX, window.innerWidth - menuWidth - 8);
+        const y = Math.min(e.data.clientY, window.innerHeight - menuHeight - 8);
+        setPos({ x, y, targetId: e.data.targetId });
       }
     };
 
-    window.addEventListener("pointerdown", handlePointerDown, true);
-    window.addEventListener("keydown", handleKeyDown, true);
+    window.addEventListener("contextmenu", handleContextMenu);
+    window.addEventListener("message", handleIframeMessage);
+    window.addEventListener("click", closeMenu);
+    window.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") closeMenu();
+    });
+
     return () => {
-      window.removeEventListener("pointerdown", handlePointerDown, true);
-      window.removeEventListener("keydown", handleKeyDown, true);
+      window.removeEventListener("contextmenu", handleContextMenu);
+      window.removeEventListener("message", handleIframeMessage);
+      window.removeEventListener("click", closeMenu);
     };
-  }, [state.isOpen, onClose]);
+  }, [selectElement, closeMenu]);
 
-  if (!state.isOpen || !state.elementId) return null;
+  if (!pos || !activeElement) return null;
 
-  const targetEl = findElementById(ast.rootElements, state.elementId);
-  if (!targetEl) return null;
-
-  const isContainer = targetEl.type === "container";
+  const isContainer = activeElement.type === "container";
   const hasClipboardElement = Boolean(clipboard.element);
   const hasClipboardStyles = Boolean(clipboard.styles);
 
   return (
-    <div
-      id="builder-context-menu"
-      data-testid="builder-context-menu"
-      className="fixed z-[99999] bg-card text-foreground border border-border shadow-2xl rounded-xl p-1.5 min-w-[200px] text-xs font-medium space-y-0.5 select-none animate-in fade-in zoom-in-95 duration-100"
-      style={{
-        top: `${Math.min(state.y, window.innerHeight - 340)}px`,
-        left: `${Math.min(state.x, window.innerWidth - 220)}px`,
-      }}
-      dir="rtl"
-      onClick={(e) => e.stopPropagation()}
-      onContextMenu={(e) => e.preventDefault()}
-    >
-      <div className="px-2 py-1 text-[10px] font-bold text-muted-foreground border-b border-border/60 mb-1 flex items-center justify-between">
-        <span className="truncate max-w-[140px]">{targetEl.name}</span>
-        <span className="font-mono text-[9px] opacity-70">{targetEl.type}</span>
+    <>
+      <div
+        ref={menuRef}
+        data-testid="builder-context-menu"
+        style={{
+          position: "fixed",
+          top: pos.y,
+          left: pos.x,
+          zIndex: 999999,
+        }}
+        className="w-56 bg-popover/95 backdrop-blur-md text-popover-foreground border border-border shadow-2xl rounded-xl py-1.5 text-xs select-none animate-in fade-in zoom-in-95 duration-100"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="px-3 py-1.5 border-b border-border/60 text-[11px] font-bold text-muted-foreground flex items-center justify-between">
+          <span className="truncate">{activeElement.name}</span>
+          <span className="text-[10px] uppercase font-mono">{activeElement.widgetType || activeElement.type}</span>
+        </div>
+
+        <div className="py-1">
+          <button
+            type="button"
+            onClick={() => {
+              duplicateElement(activeElement.id);
+              closeMenu();
+            }}
+            className="w-full flex items-center justify-between px-3 py-1.5 hover:bg-accent hover:text-accent-foreground transition text-start"
+          >
+            <div className="flex items-center gap-2">
+              <Plus className="w-3.5 h-3.5 text-primary" />
+              <span>تکثیر</span>
+            </div>
+            <span className="text-[10px] text-muted-foreground font-mono">Ctrl+D</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              copyElement(activeElement.id);
+              toast({ title: "المان کپی شد", description: "آماده چسباندن با Ctrl+V" });
+              closeMenu();
+            }}
+            className="w-full flex items-center justify-between px-3 py-1.5 hover:bg-accent hover:text-accent-foreground transition text-start"
+          >
+            <div className="flex items-center gap-2">
+              <Copy className="w-3.5 h-3.5 text-muted-foreground" />
+              <span>کپی المان</span>
+            </div>
+            <span className="text-[10px] text-muted-foreground font-mono">Ctrl+C</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              copyStyles(activeElement.id);
+              toast({ title: "استایل‌ها کپی شد", description: "آماده اعمال روی المان دیگر" });
+              closeMenu();
+            }}
+            className="w-full flex items-center gap-2 px-3 py-1.5 hover:bg-accent hover:text-accent-foreground transition text-start"
+          >
+            <Palette className="w-3.5 h-3.5 text-muted-foreground" />
+            <span>کپی استایل‌ها</span>
+          </button>
+
+          <button
+            type="button"
+            disabled={!hasClipboardElement}
+            onClick={() => {
+              pasteElement(isContainer ? activeElement.id : undefined);
+              closeMenu();
+            }}
+            className={cn(
+              "w-full flex items-center justify-between px-3 py-1.5 hover:bg-accent hover:text-accent-foreground transition text-start",
+              !hasClipboardElement && "opacity-50 cursor-not-allowed"
+            )}
+          >
+            <div className="flex items-center gap-2">
+              <ClipboardPaste className="w-3.5 h-3.5 text-muted-foreground" />
+              <span>چسباندن المان</span>
+            </div>
+            <span className="text-[10px] text-muted-foreground font-mono">Ctrl+V</span>
+          </button>
+
+          <button
+            type="button"
+            disabled={!hasClipboardStyles}
+            onClick={() => {
+              pasteStyles(activeElement.id);
+              closeMenu();
+            }}
+            className={cn(
+              "w-full flex items-center gap-2 px-3 py-1.5 hover:bg-accent hover:text-accent-foreground transition text-start",
+              !hasClipboardStyles && "opacity-50 cursor-not-allowed"
+            )}
+          >
+            <Palette className="w-3.5 h-3.5 text-primary" />
+            <span>چسباندن استایل‌ها</span>
+          </button>
+        </div>
+
+        <div className="border-t border-border/60 py-1">
+          <button
+            type="button"
+            onClick={() => {
+              reorderElement(activeElement.id, "up");
+              closeMenu();
+            }}
+            className="w-full flex items-center gap-2 px-3 py-1.5 hover:bg-accent hover:text-accent-foreground transition text-start"
+          >
+            <ArrowUp className="w-3.5 h-3.5 text-muted-foreground" />
+            <span>انتقال به بالا</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              reorderElement(activeElement.id, "down");
+              closeMenu();
+            }}
+            className="w-full flex items-center gap-2 px-3 py-1.5 hover:bg-accent hover:text-accent-foreground transition text-start"
+          >
+            <ArrowDown className="w-3.5 h-3.5 text-muted-foreground" />
+            <span>انتقال به پایین</span>
+          </button>
+
+          {isContainer && (
+            <button
+              type="button"
+              onClick={() => {
+                setSaveTemplateOpen(true);
+                closeMenu();
+              }}
+              className="w-full flex items-center gap-2 px-3 py-1.5 hover:bg-accent hover:text-accent-foreground transition text-start text-amber-500 font-semibold"
+            >
+              <BookmarkPlus className="w-3.5 h-3.5" />
+              <span>ذخیره به عنوان قالب...</span>
+            </button>
+          )}
+
+          {/* Wrap / Unwrap Container (Elementor Workflow Parity) */}
+          <button
+            type="button"
+            onClick={() => {
+              wrapInContainer(activeElement.id);
+              toast({ title: "در کانتینر قرار گرفت", description: "یک کانتینر جدید به عنوان والد المان ساخته شد." });
+              closeMenu();
+            }}
+            className="w-full flex items-center gap-2 px-3 py-1.5 hover:bg-accent hover:text-accent-foreground transition text-start"
+          >
+            <FolderPlus className="w-3.5 h-3.5 text-primary" />
+            <span>گروه‌بندی در کانتینر جدید</span>
+          </button>
+
+          {isContainer && (activeElement.children || []).length > 0 && (
+            <button
+              type="button"
+              onClick={() => {
+                unwrapContainer(activeElement.id);
+                toast({ title: "کانتینر حذف شد", description: "فرزندان کانتینر به سطح والد منتقل شدند." });
+                closeMenu();
+              }}
+              className="w-full flex items-center gap-2 px-3 py-1.5 hover:bg-accent hover:text-accent-foreground transition text-start text-amber-600"
+            >
+              <FolderMinus className="w-3.5 h-3.5" />
+              <span>خروج از کانتینر (Unwrap)</span>
+            </button>
+          )}
+
+          <button
+            type="button"
+            onClick={() => {
+              toggleLockElement(activeElement.id);
+              closeMenu();
+            }}
+            className="w-full flex items-center gap-2 px-3 py-1.5 hover:bg-accent hover:text-accent-foreground transition text-start"
+          >
+            {activeElement.isLocked ? <Unlock className="w-3.5 h-3.5 text-amber-500" /> : <Lock className="w-3.5 h-3.5 text-muted-foreground" />}
+            <span>{activeElement.isLocked ? "باز کردن قفل" : "قفل کردن المان"}</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              toggleHideElement(activeElement.id);
+              closeMenu();
+            }}
+            className="w-full flex items-center gap-2 px-3 py-1.5 hover:bg-accent hover:text-accent-foreground transition text-start"
+          >
+            {activeElement.isHidden ? <Eye className="w-3.5 h-3.5 text-primary" /> : <EyeOff className="w-3.5 h-3.5 text-muted-foreground" />}
+            <span>{activeElement.isHidden ? "نمایش المان" : "مخفی کردن"}</span>
+          </button>
+        </div>
+
+        <div className="border-t border-border/60 pt-1">
+          <button
+            type="button"
+            onClick={() => {
+              deleteElement(activeElement.id);
+              closeMenu();
+            }}
+            className="w-full flex items-center justify-between px-3 py-1.5 hover:bg-destructive hover:text-destructive-foreground transition text-start text-destructive font-semibold"
+          >
+            <div className="flex items-center gap-2">
+              <Trash2 className="w-3.5 h-3.5" />
+              <span>حذف</span>
+            </div>
+            <span className="text-[10px] font-mono">Del</span>
+          </button>
+        </div>
       </div>
 
-      {/* Edit / Select */}
-      <button
-        type="button"
-        onClick={() => {
-          selectElement(targetEl.id);
-          onClose();
-        }}
-        className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-primary/10 hover:text-primary transition text-right"
-      >
-        <span className="flex items-center gap-2">
-          <Edit className="w-3.5 h-3.5" />
-          <span>ویرایش در بازرس</span>
-        </span>
-      </button>
-
-      {/* Duplicate */}
-      <button
-        type="button"
-        onClick={() => {
-          duplicateElement(targetEl.id);
-          toast({ title: "تکثیر شد", description: `المان «${targetEl.name}» تکثیر شد.` });
-          onClose();
-        }}
-        className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-primary/10 hover:text-primary transition text-right"
-      >
-        <span className="flex items-center gap-2">
-          <Plus className="w-3.5 h-3.5" />
-          <span>تکثیر</span>
-        </span>
-        <span className="font-mono text-[10px] text-muted-foreground">Ctrl+D</span>
-      </button>
-
-      {/* Copy */}
-      <button
-        type="button"
-        onClick={() => {
-          copyElement(targetEl.id);
-          toast({ title: "کپی شد", description: "المان در کلیپ‌بورد کپی شد." });
-          onClose();
-        }}
-        className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-primary/10 hover:text-primary transition text-right"
-      >
-        <span className="flex items-center gap-2">
-          <Copy className="w-3.5 h-3.5" />
-          <span>کپی المان</span>
-        </span>
-        <span className="font-mono text-[10px] text-muted-foreground">Ctrl+C</span>
-      </button>
-
-      {/* Paste */}
-      <button
-        type="button"
-        disabled={!hasClipboardElement}
-        onClick={() => {
-          pasteElement(isContainer ? targetEl.id : undefined);
-          toast({ title: "درج شد", description: "المان از کلیپ‌بورد درج شد." });
-          onClose();
-        }}
-        className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-primary/10 hover:text-primary disabled:opacity-40 disabled:pointer-events-none transition text-right"
-      >
-        <span className="flex items-center gap-2">
-          <Clipboard className="w-3.5 h-3.5" />
-          <span>پیست المان</span>
-        </span>
-        <span className="font-mono text-[10px] text-muted-foreground">Ctrl+V</span>
-      </button>
-
-      <div className="h-px bg-border/60 my-1" />
-
-      {/* Copy Styles */}
-      <button
-        type="button"
-        onClick={() => {
-          copyStyles(targetEl.id);
-          toast({ title: "استایل‌ها کپی شد", description: "استایل‌ها در حافظه موقت قرار گرفتند." });
-          onClose();
-        }}
-        className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-primary/10 hover:text-primary transition text-right"
-      >
-        <span className="flex items-center gap-2">
-          <Palette className="w-3.5 h-3.5" />
-          <span>کپی استایل‌ها</span>
-        </span>
-      </button>
-
-      {/* Paste Styles */}
-      <button
-        type="button"
-        disabled={!hasClipboardStyles}
-        onClick={() => {
-          pasteStyles(targetEl.id);
-          toast({ title: "استایل‌ها اعمال شد", description: "استایل‌ها بر روی المان اعمال شدند." });
-          onClose();
-        }}
-        className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-primary/10 hover:text-primary disabled:opacity-40 disabled:pointer-events-none transition text-right"
-      >
-        <span className="flex items-center gap-2">
-          <Palette className="w-3.5 h-3.5 text-primary" />
-          <span>پیست استایل‌ها</span>
-        </span>
-      </button>
-
-      <div className="h-px bg-border/60 my-1" />
-
-      {/* Reorder Up / Down */}
-      <button
-        type="button"
-        onClick={() => {
-          reorderElement(targetEl.id, "up");
-          onClose();
-        }}
-        className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-primary/10 hover:text-primary transition text-right"
-      >
-        <span className="flex items-center gap-2">
-          <ArrowUp className="w-3.5 h-3.5" />
-          <span>انتقال به بالا</span>
-        </span>
-        <span className="font-mono text-[10px] text-muted-foreground">Alt+↑</span>
-      </button>
-
-      <button
-        type="button"
-        onClick={() => {
-          reorderElement(targetEl.id, "down");
-          onClose();
-        }}
-        className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-primary/10 hover:text-primary transition text-right"
-      >
-        <span className="flex items-center gap-2">
-          <ArrowDown className="w-3.5 h-3.5" />
-          <span>انتقال به پایین</span>
-        </span>
-        <span className="font-mono text-[10px] text-muted-foreground">Alt+↓</span>
-      </button>
-
-      {/* Save Template if container */}
-      {isContainer && onOpenSaveTemplate && (
-        <button
-          type="button"
-          onClick={() => {
-            onOpenSaveTemplate(targetEl);
-            onClose();
-          }}
-          className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-amber-500/15 hover:text-amber-600 transition text-right"
-        >
-          <span className="flex items-center gap-2 text-amber-600 dark:text-amber-400">
-            <BookmarkPlus className="w-3.5 h-3.5" />
-            <span>ذخیره به عنوان قالب</span>
-          </span>
-        </button>
+      {isContainer && (
+        <SaveTemplateDialog
+          element={activeElement}
+          open={saveTemplateOpen}
+          onOpenChange={setSaveTemplateOpen}
+        />
       )}
-
-      {/* Toggle Hide */}
-      <button
-        type="button"
-        onClick={() => {
-          toggleHideElement(targetEl.id);
-          onClose();
-        }}
-        className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-muted transition text-right text-muted-foreground"
-      >
-        <span className="flex items-center gap-2">
-          {targetEl.isHidden ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
-          <span>{targetEl.isHidden ? "نمایش المان" : "مخفی‌سازی"}</span>
-        </span>
-      </button>
-
-      <div className="h-px bg-border/60 my-1" />
-
-      {/* Delete */}
-      <button
-        type="button"
-        onClick={() => {
-          deleteElement(targetEl.id);
-          toast({ title: "حذف شد", description: "المان از صفحه حذف گردید." });
-          onClose();
-        }}
-        className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-destructive/10 text-destructive transition text-right font-bold"
-      >
-        <span className="flex items-center gap-2">
-          <Trash2 className="w-3.5 h-3.5" />
-          <span>حذف</span>
-        </span>
-        <span className="font-mono text-[10px] opacity-70">Delete</span>
-      </button>
-    </div>
+    </>
   );
 }

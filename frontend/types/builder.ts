@@ -58,15 +58,24 @@ export interface BackgroundStyle {
   size?: "cover" | "contain" | "auto" | null;
 }
 
+export interface BackgroundOverlayStyle {
+  type: "none" | "color" | "gradient";
+  color?: string | null;
+  gradient?: BackgroundGradient | null;
+  opacity?: number | null;
+}
+
 export interface DeviceStyle {
   typography?: TypographyStyle | null;
   margin?: SpacingBox | null;
   padding?: SpacingBox | null;
   border?: BorderStyle | null;
   background?: BackgroundStyle | null;
+  backgroundOverlay?: BackgroundOverlayStyle | null;
   width?: UnitValue | null;
   minHeight?: UnitValue | null;
   display?: "block" | "flex" | "grid" | "inline-block" | "none" | "inherit" | null;
+  filter?: string | null;
   opacity?: number | null;
   zIndex?: number | null;
   boxShadow?: string | null;
@@ -80,6 +89,9 @@ export interface DeviceStyle {
   flexDirection?: "row" | "column" | "row-reverse" | "column-reverse" | "inherit" | null;
   justifyContent?: "start" | "center" | "end" | "between" | "around" | "evenly" | "inherit" | null;
   alignItems?: "start" | "center" | "end" | "stretch" | "baseline" | "inherit" | null;
+  alignSelf?: "auto" | "start" | "center" | "end" | "stretch" | "inherit" | null;
+  order?: number | null;
+  flexGrow?: number | null;
   flexWrap?: "nowrap" | "wrap" | "wrap-reverse" | "inherit" | null;
   gap?: UnitValue | null;
   gridTemplateColumns?: string | null;

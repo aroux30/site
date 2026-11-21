@@ -28,7 +28,6 @@ import {
   ArrowDown,
 } from "lucide-react";
 import { SaveTemplateDialog } from "./save-template-dialog";
-import { ContainerStructurePicker } from "./container-structure-picker";
 import { cn } from "@/lib/utils";
 import { useBuilderStore, findElementAndParent, cloneElementWithNewIds, type Breakpoint } from "@/stores/builder-store";
 import { resolveResponsiveValue } from "@/lib/builder/schema";
@@ -40,6 +39,7 @@ import { StarRating } from "@/components/ui/star-rating";
 import { ReviewHistogram } from "@/components/store/review-histogram";
 import { RecentlyViewed } from "@/components/store/recently-viewed";
 import { MegaMenu } from "@/components/layout/mega-menu";
+import { ContainerPresetPicker } from "./container-preset-picker";
 import { Badge } from "@/components/ui/badge";
 import { useCartStore } from "@/stores/cart-store";
 import { useToast } from "@/components/ui/use-toast";
@@ -64,10 +64,9 @@ function CanvasElementComponent({
   const [selectedVariantId, setSelectedVariantId] = useState<string>("var_1");
   const [cartQuantity, setCartQuantity] = useState(1);
   const [activeGridFilter, setActiveGridFilter] = useState<string>("all");
+  const [isInlineEditing, setIsInlineEditing] = useState(false);
   const elementRef = useRef<HTMLDivElement>(null);
   const [isNearTop, setIsNearTop] = useState(false);
-  const [isInlineEditing, setIsInlineEditing] = useState(false);
-  const [inlineText, setInlineText] = useState("");
 
   // Performance-optimized fine-grained selectors (P5 Hardening):
   // Subscribe to boolean expressions instead of full AST tree, preventing cascade re-renders
@@ -78,6 +77,7 @@ function CanvasElementComponent({
   const setHoveredElement = useBuilderStore((s) => s.setHoveredElement);
   const deleteElement = useBuilderStore((s) => s.deleteElement);
   const duplicateElement = useBuilderStore((s) => s.duplicateElement);
+  const updateElementProps = useBuilderStore((s) => s.updateElementProps);
 
   // Dynamic clearance detection: check if element is near the canvas top
   useEffect(() => {
@@ -97,7 +97,6 @@ function CanvasElementComponent({
   const reorderElement = useBuilderStore((s) => s.reorderElement);
   const copyElement = useBuilderStore((s) => s.copyElement);
   const copyStyles = useBuilderStore((s) => s.copyStyles);
-  const updateElementProps = useBuilderStore((s) => s.updateElementProps);
   const makeGlobalComponent = useBuilderStore((s) => s.makeGlobalComponent);
   const previewMode = useBuilderStore((s) => s.previewMode);
 
@@ -218,11 +217,11 @@ function CanvasElementComponent({
     const resolvePadding = () => {
       const p = resolveResponsiveValue({ mobile: base?.padding, tablet: tablet?.padding, desktop: desktop?.padding }, activeBreakpoint);
       if (p) {
-        const top = p.top || { value: 0, unit: "px" };
-        const right = p.right || (p.isLinked ? top : { value: 0, unit: "px" });
-        const bottom = p.bottom || (p.isLinked ? top : { value: 0, unit: "px" });
-        const left = p.left || (p.isLinked ? top : { value: 0, unit: "px" });
-        return `${top.value}${top.unit} ${right.value}${right.unit} ${bottom.value}${bottom.unit} ${left.value}${left.unit}`;
+        const top = p.top ? `${p.top.value}${p.top.unit}` : "0px";
+        const right = p.right ? `${p.right.value}${p.right.unit}` : top;
+        const bottom = p.bottom ? `${p.bottom.value}${p.bottom.unit}` : top;
+        const left = p.left ? `${p.left.value}${p.left.unit}` : right;
+        return `${top} ${right} ${bottom} ${left}`;
       }
       return undefined;
     };
@@ -230,11 +229,11 @@ function CanvasElementComponent({
     const resolveMargin = () => {
       const m = resolveResponsiveValue({ mobile: base?.margin, tablet: tablet?.margin, desktop: desktop?.margin }, activeBreakpoint);
       if (m) {
-        const top = m.top || { value: 0, unit: "px" };
-        const right = m.right || (m.isLinked ? top : { value: 0, unit: "px" });
-        const bottom = m.bottom || (m.isLinked ? top : { value: 0, unit: "px" });
-        const left = m.left || (m.isLinked ? top : { value: 0, unit: "px" });
-        return `${top.value}${top.unit} ${right.value}${right.unit} ${bottom.value}${bottom.unit} ${left.value}${left.unit}`;
+        const top = m.top ? `${m.top.value}${m.top.unit}` : "0px";
+        const right = m.right ? `${m.right.value}${m.right.unit}` : top;
+        const bottom = m.bottom ? `${m.bottom.value}${m.bottom.unit}` : top;
+        const left = m.left ? `${m.left.value}${m.left.unit}` : right;
+        return `${top} ${right} ${bottom} ${left}`;
       }
       return undefined;
     };
@@ -278,21 +277,38 @@ function CanvasElementComponent({
         styleObj.borderStyle = borderObj.style;
         if (borderObj.color) styleObj.borderColor = normalizeCssColor(borderObj.color);
         if (borderObj.width) {
-          const w = borderObj.width.top || borderObj.width;
-          if (w && w.value !== undefined) {
-            styleObj.borderWidth = `${w.value}${w.unit || "px"}`;
-          }
+          styleObj.borderWidth = `${borderObj.width.top.value}${borderObj.width.top.unit}`;
         }
       }
       if ((borderObj as any).radiusToken) {
         styleObj.borderRadius = (borderObj as any).radiusToken;
       } else if (borderObj.radius) {
         const r = borderObj.radius;
-        const top = r.top || { value: 0, unit: "px" };
-        const right = r.right || (r.isLinked ? top : { value: 0, unit: "px" });
-        const bottom = r.bottom || (r.isLinked ? top : { value: 0, unit: "px" });
-        const left = r.left || (r.isLinked ? top : { value: 0, unit: "px" });
-        styleObj.borderRadius = `${top.value}${top.unit} ${right.value}${right.unit} ${bottom.value}${bottom.unit} ${left.value}${left.unit}`;
+        styleObj.borderRadius = `${r.top.value}${r.top.unit} ${r.right.value}${r.right.unit} ${r.bottom.value}${r.bottom.unit} ${r.left.value}${r.left.unit}`;
+      }
+    }
+
+    // Background
+    const bgObj = resolveResponsiveValue({ mobile: base?.background, tablet: tablet?.background, desktop: desktop?.background }, activeBreakpoint);
+    if (bgObj) {
+      if (bgObj.type === "color" && bgObj.color) {
+        styleObj.backgroundColor = normalizeCssColor(bgObj.color);
+      } else if (bgObj.type === "gradient" && bgObj.gradient) {
+        const dirMap: Record<string, string> = {
+          "to-r": "to right",
+          "to-l": "to left",
+          "to-b": "to bottom",
+          "to-t": "to top",
+          "to-tr": "to top right",
+          "to-tl": "to top left",
+        };
+        const dir = dirMap[bgObj.gradient.direction] || "to right";
+        styleObj.backgroundImage = `linear-gradient(${dir}, ${bgObj.gradient.fromColor}, ${bgObj.gradient.toColor})`;
+      } else if (bgObj.type === "image" && bgObj.imageUrl) {
+        styleObj.backgroundImage = `url(${bgObj.imageUrl})`;
+        styleObj.backgroundPosition = bgObj.position || "center";
+        styleObj.backgroundSize = bgObj.size || "cover";
+        styleObj.backgroundRepeat = "no-repeat";
       }
     }
 
@@ -302,18 +318,10 @@ function CanvasElementComponent({
       styleObj.boxShadow = shadow;
     }
 
-    // Background
-    const bgObj = resolveResponsiveValue({ mobile: base?.background, tablet: tablet?.background, desktop: desktop?.background }, activeBreakpoint);
-    if (bgObj) {
-      if (bgObj.type === "color" && bgObj.color) {
-        styleObj.backgroundColor = normalizeCssColor(bgObj.color);
-      } else if (bgObj.type === "gradient" && bgObj.gradient) {
-        styleObj.backgroundImage = `linear-gradient(${bgObj.gradient.direction.replace("to-", "to ")}, ${bgObj.gradient.fromColor}, ${bgObj.gradient.toColor})`;
-      } else if (bgObj.type === "image" && bgObj.imageUrl) {
-        styleObj.backgroundImage = `url(${bgObj.imageUrl})`;
-        styleObj.backgroundPosition = bgObj.position || "center";
-        styleObj.backgroundSize = bgObj.size || "cover";
-      }
+    // CSS Filters (Elementor Filter Parity)
+    const filter = resolveResponsiveValue({ mobile: base?.filter, tablet: tablet?.filter, desktop: desktop?.filter }, activeBreakpoint);
+    if (filter && filter !== "none") {
+      styleObj.filter = filter;
     }
 
     // Animation styles
@@ -362,6 +370,22 @@ function CanvasElementComponent({
       styleObj.alignItems = (aiMap[alignItems] || alignItems) as any;
     }
 
+    const alignSelf = resolveResponsiveValue({ mobile: base?.alignSelf, tablet: tablet?.alignSelf, desktop: desktop?.alignSelf }, activeBreakpoint);
+    if (alignSelf && alignSelf !== "inherit") {
+      const asMap: Record<string, string> = { start: "flex-start", end: "flex-end" };
+      styleObj.alignSelf = (asMap[alignSelf] || alignSelf) as any;
+    }
+
+    const order = resolveResponsiveValue({ mobile: base?.order, tablet: tablet?.order, desktop: desktop?.order }, activeBreakpoint);
+    if (order !== undefined && order !== null) {
+      styleObj.order = order;
+    }
+
+    const flexGrow = resolveResponsiveValue({ mobile: base?.flexGrow, tablet: tablet?.flexGrow, desktop: desktop?.flexGrow }, activeBreakpoint);
+    if (flexGrow !== undefined && flexGrow !== null) {
+      styleObj.flexGrow = flexGrow;
+    }
+
     const flexWrap = resolveResponsiveValue({ mobile: base?.flexWrap, tablet: tablet?.flexWrap, desktop: desktop?.flexWrap }, activeBreakpoint);
     if (flexWrap && flexWrap !== "inherit") styleObj.flexWrap = flexWrap as any;
 
@@ -375,8 +399,56 @@ function CanvasElementComponent({
     const gridTemplateColumns = resolveResponsiveValue({ mobile: base?.gridTemplateColumns, tablet: tablet?.gridTemplateColumns, desktop: desktop?.gridTemplateColumns }, activeBreakpoint);
     if (gridTemplateColumns) styleObj.gridTemplateColumns = gridTemplateColumns;
 
+    // Elementor Boxed Container Max-Width & Centering
+    if (element.type === "container" && element.layout?.boxedWidth) {
+      styleObj.maxWidth = `${element.layout.boxedWidth.value}${element.layout.boxedWidth.unit}`;
+      styleObj.marginLeft = "auto";
+      styleObj.marginRight = "auto";
+    }
+
     return styleObj;
   }, [element.styles, element.layout, activeBreakpoint]);
+
+  // Elementor Background Overlay calculation
+  const overlayStyle = useMemo((): React.CSSProperties | null => {
+    const res = element.styles;
+    if (!res) return null;
+    const base = res.mobile;
+    const tablet = res.tablet;
+    const desktop = res.desktop;
+
+    const overlay = resolveResponsiveValue(
+      { mobile: base?.backgroundOverlay, tablet: tablet?.backgroundOverlay, desktop: desktop?.backgroundOverlay },
+      activeBreakpoint
+    );
+    if (!overlay || overlay.type === "none") return null;
+
+    const s: React.CSSProperties = {
+      position: "absolute",
+      inset: 0,
+      pointerEvents: "none",
+      borderRadius: "inherit",
+      zIndex: 0,
+    };
+    if (overlay.opacity !== undefined && overlay.opacity !== null) {
+      s.opacity = overlay.opacity;
+    }
+    if (overlay.type === "color" && overlay.color) {
+      s.backgroundColor = normalizeCssColor(overlay.color);
+    } else if (overlay.type === "gradient" && overlay.gradient) {
+      const dirMap: Record<string, string> = {
+        "to-r": "to right",
+        "to-l": "to left",
+        "to-b": "to bottom",
+        "to-t": "to top",
+        "to-tr": "to top right",
+        "to-tl": "to top left",
+      };
+      const dir = dirMap[overlay.gradient.direction] || "to bottom";
+      s.backgroundImage = `linear-gradient(${dir}, ${overlay.gradient.fromColor}, ${overlay.gradient.toColor})`;
+    }
+    return s;
+  }, [element.styles, activeBreakpoint]);
 
   const isHiddenOnActiveBreakpoint = useMemo(() => {
     if (activeBreakpoint === "desktop" && element.visibleOnDesktop === false) return true;
@@ -419,7 +491,7 @@ function CanvasElementComponent({
     [previewMode, setHoveredElement]
   );
 
-  if (element.isHidden && previewMode) {
+  if ((element.isHidden || isHiddenOnActiveBreakpoint) && previewMode) {
     return null;
   }
 
@@ -431,106 +503,54 @@ function CanvasElementComponent({
       case "heading": {
         const Tag = (props.tag as "h1" | "h2" | "h3" | "h4" | "h5" | "h6") || "h2";
         const customClass = String(props.customCssClass || element.styles?.customCssClass || "");
-        const currentText = String(props.text || "عنوان سرتیتر");
-
-        if (isInlineEditing && !previewMode) {
-          return (
-            <input
-              type="text"
-              autoFocus
-              value={inlineText}
-              onChange={(e) => setInlineText(e.target.value)}
-              onClick={(e) => e.stopPropagation()}
-              onBlur={() => {
-                setIsInlineEditing(false);
-                if (inlineText.trim() && inlineText !== currentText) {
-                  updateElementProps(element.id, { text: inlineText.trim() });
-                }
-              }}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  setIsInlineEditing(false);
-                  if (inlineText.trim() && inlineText !== currentText) {
-                    updateElementProps(element.id, { text: inlineText.trim() });
-                  }
-                }
-                if (e.key === "Escape") {
-                  setIsInlineEditing(false);
-                }
-              }}
-              className={cn(
-                "w-full bg-background/90 text-foreground font-bold tracking-tight rounded-lg p-1 border-2 border-primary outline-none shadow-sm",
-                customClass
-              )}
-            />
-          );
-        }
-
         return (
           <Tag
+            contentEditable={isSelected && isInlineEditing && !previewMode}
+            suppressContentEditableWarning={true}
             onDoubleClick={(e) => {
-              if (!previewMode) {
-                e.stopPropagation();
-                setInlineText(currentText);
-                setIsInlineEditing(true);
-              }
+              e.stopPropagation();
+              if (!previewMode) setIsInlineEditing(true);
             }}
-            title={!previewMode ? "برای ویرایش مستقیم متن دابل‌کلیک کنید (Elementor Inline Editing)" : undefined}
-            className={cn("font-bold tracking-tight text-foreground m-0 break-words [overflow-wrap:anywhere] cursor-text", customClass)}
+            onBlur={(e) => {
+              setIsInlineEditing(false);
+              const newText = e.currentTarget.textContent || "";
+              updateElementProps(element.id, { text: newText });
+            }}
+            className={cn("font-bold tracking-tight text-foreground m-0 break-words [overflow-wrap:anywhere] outline-none", isInlineEditing && "ring-1 ring-primary rounded px-1", customClass)}
           >
-            {currentText}
+            {String(props.text || "عنوان سرتیتر")}
           </Tag>
         );
       }
       case "text_editor": {
         const customClass = String(props.customCssClass || element.styles?.customCssClass || "");
-        const currentContent = String(props.content || "<p>متن پاراگراف را بنویسید...</p>");
-
-        if (isInlineEditing && !previewMode) {
-          return (
-            <textarea
-              autoFocus
-              rows={3}
-              value={inlineText}
-              onChange={(e) => setInlineText(e.target.value)}
-              onClick={(e) => e.stopPropagation()}
-              onBlur={() => {
-                setIsInlineEditing(false);
-                if (inlineText.trim() && inlineText !== currentContent) {
-                  updateElementProps(element.id, { content: inlineText.trim() });
-                }
-              }}
-              onKeyDown={(e) => {
-                if (e.key === "Escape") {
-                  setIsInlineEditing(false);
-                }
-              }}
-              className={cn(
-                "w-full bg-background/90 text-foreground rounded-lg p-2 border-2 border-primary outline-none shadow-sm leading-relaxed",
-                customClass
-              )}
-            />
-          );
-        }
-
+        const rawContent = String(props.content || "متن پاراگراف را بنویسید...");
+        const isHtml = rawContent.startsWith("<") && rawContent.endsWith(">");
         return (
           <div
+            contentEditable={isSelected && isInlineEditing && !previewMode}
+            suppressContentEditableWarning={true}
             onDoubleClick={(e) => {
-              if (!previewMode) {
-                e.stopPropagation();
-                setInlineText(currentContent);
-                setIsInlineEditing(true);
-              }
+              e.stopPropagation();
+              if (!previewMode) setIsInlineEditing(true);
             }}
-            title={!previewMode ? "برای ویرایش مستقیم متن دابل‌کلیک کنید (Elementor Inline Editing)" : undefined}
+            onBlur={(e) => {
+              setIsInlineEditing(false);
+              const newContent = e.currentTarget.textContent || "";
+              updateElementProps(element.id, { content: newContent });
+            }}
             className={cn(
-              "prose dark:prose-invert max-w-none text-foreground/90 leading-relaxed break-words [overflow-wrap:anywhere] cursor-text",
+              "prose dark:prose-invert max-w-none text-foreground/90 leading-relaxed break-words [overflow-wrap:anywhere] outline-none",
+              isInlineEditing && "ring-1 ring-primary rounded px-1",
               customClass
             )}
-            dangerouslySetInnerHTML={{
-              __html: currentContent,
-            }}
-          />
+          >
+            {isHtml ? (
+              <div dangerouslySetInnerHTML={{ __html: rawContent }} />
+            ) : (
+              <p className="m-0 leading-relaxed">{rawContent}</p>
+            )}
+          </div>
         );
       }
       case "button": {
@@ -553,7 +573,7 @@ function CanvasElementComponent({
       case "image": {
         const customClass = String(props.customCssClass || element.styles?.customCssClass || "");
         return (
-          <div className={cn("relative overflow-hidden rounded-xl bg-muted/30", customClass)}>
+          <div className={cn("relative overflow-hidden rounded-xl bg-muted/30 min-h-[120px] w-full flex items-center justify-center", customClass)}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={String(props.url || "/placeholder-hero.svg")}
@@ -1323,16 +1343,19 @@ function CanvasElementComponent({
       className={cn(
         "relative group/elem select-none",
         isContainer ? containerClasses : "block",
-        !previewMode && "outline outline-1 outline-transparent transition-all",
-        !previewMode && isHovered && "outline-dashed outline-sky-500/80 bg-sky-500/5",
-        !previewMode && isSelected && "outline-2 outline-primary ring-2 ring-primary/20 bg-primary/5 shadow-md z-40 relative",
         !previewMode && isDragOver && "outline-2 outline-emerald-500 bg-emerald-500/10 shadow-lg ring-2 ring-emerald-500/30",
         element.isHidden && "opacity-50",
         element.styles?.animation && element.styles.animation !== "none" && `builder-animate-${element.styles.animation}`,
         element.styles?.customCssClass
       )}
       data-element-id={element.id}
+      id={element.styles?.customCssId || undefined}
     >
+      {/* Background Overlay (Elementor Parity) */}
+      {overlayStyle && (
+        <div data-testid="background-overlay" style={overlayStyle} aria-hidden="true" />
+      )}
+
       {/* Breakpoint Hidden Indicator */}
       {isHiddenOnActiveBreakpoint && !previewMode && (
         <div className="absolute top-1 end-1 z-30 pointer-events-none">
@@ -1373,7 +1396,8 @@ function CanvasElementComponent({
           ))
         ) : (
           !previewMode && (
-            <div className="space-y-3 w-full my-2">
+            <div className="space-y-3 w-full">
+              <ContainerPresetPicker containerId={element.id} />
               <div
                 onClick={(e) => {
                   e.stopPropagation();
@@ -1381,23 +1405,13 @@ function CanvasElementComponent({
                   useBuilderStore.getState().setLeftTab("blocks");
                 }}
                 data-testid="empty-container-guide"
-                className="flex flex-col items-center justify-center p-6 border-2 border-dashed border-primary/40 hover:border-primary/80 rounded-2xl bg-card/60 hover:bg-primary/5 transition-all cursor-pointer text-center w-full min-h-[96px] shadow-xs group/empty"
+                className="flex flex-col items-center justify-center p-4 border border-dashed border-primary/30 hover:border-primary/60 rounded-xl bg-card/40 hover:bg-primary/5 transition-all cursor-pointer text-center w-full min-h-[64px] shadow-xs group/empty"
               >
-                <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center mb-1.5 group-hover/empty:bg-primary group-hover/empty:text-primary-foreground transition-colors shadow-xs">
-                  <Plus className="w-4 h-4" />
+                <div className="flex items-center gap-2 text-xs font-bold text-foreground group-hover/empty:text-primary transition-colors">
+                  <Plus className="w-3.5 h-3.5 text-primary" />
+                  <span>+ یا افزودن مستقیم ویجت دلخواه از پالت</span>
                 </div>
-                <span className="text-xs font-bold text-foreground group-hover/empty:text-primary transition-colors">
-                  + افزودن بلوک به این بخش
-                </span>
-                <span className="text-[10px] text-muted-foreground mt-0.5">
-                  کانتینر آماده درج محتوا است (برای انتخاب و افزودن کلیک کنید)
-                </span>
               </div>
-
-              {/* Elementor Structure / Layout Preset Selector for Empty Containers */}
-              {depth === 1 && (
-                <ContainerStructurePicker targetContainerId={element.id} />
-              )}
             </div>
           )
         )

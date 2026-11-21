@@ -361,9 +361,9 @@ export function BlocksPalette() {
           <button
             type="button"
             onClick={() => setSelectedCategory("all")}
-            className={`px-2.5 py-1 rounded-md text-[11px] font-medium transition whitespace-nowrap ${
+            className={`px-2.5 py-1 rounded-lg text-[11px] font-medium whitespace-nowrap transition ${
               selectedCategory === "all"
-                ? "bg-primary text-primary-foreground font-bold"
+                ? "bg-primary text-primary-foreground font-bold shadow-xs"
                 : "bg-muted/70 text-muted-foreground hover:text-foreground"
             }`}
           >
@@ -374,9 +374,9 @@ export function BlocksPalette() {
               key={cat}
               type="button"
               onClick={() => setSelectedCategory(cat)}
-              className={`px-2.5 py-1 rounded-md text-[11px] font-medium transition whitespace-nowrap ${
+              className={`px-2.5 py-1 rounded-lg text-[11px] font-medium whitespace-nowrap transition ${
                 selectedCategory === cat
-                  ? "bg-primary text-primary-foreground font-bold"
+                  ? "bg-primary text-primary-foreground font-bold shadow-xs"
                   : "bg-muted/70 text-muted-foreground hover:text-foreground"
               }`}
             >

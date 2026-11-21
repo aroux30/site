@@ -63,17 +63,28 @@ function createHeadingWidget(
 }
 
 function createTextWidget(content: string, customCssClass?: string): BuilderElement {
+  let cleanContent = content;
+  let cleanClass = customCssClass || "";
+
+  if (cleanContent.includes("<") && cleanContent.includes(">")) {
+    const classMatch = cleanContent.match(/class=["']([^"']+)["']/);
+    if (classMatch && classMatch[1]) {
+      cleanClass = `${cleanClass} ${classMatch[1]}`.trim();
+    }
+    cleanContent = cleanContent.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+  }
+
   return {
     id: generateElementId("text"),
     name: "متن و پاراگراف",
     type: "widget",
     widgetType: "text_editor",
-    widgetProps: { content, customCssClass: customCssClass || undefined },
+    widgetProps: { content: cleanContent, customCssClass: cleanClass || undefined },
     isLocked: false,
     isHidden: false,
     styles: {
       mobile: {},
-      customCssClass: customCssClass || undefined,
+      customCssClass: cleanClass || undefined,
     },
     children: [],
   };
@@ -791,28 +802,31 @@ export function createPatternAST(
         customCssClass: "rounded-2xl border bg-background p-6 space-y-4",
         children: [
           createHeadingWidget(`میانگین امتیاز: ${average} از ۵ (${total} نظر ثبت شده)`, "h3", "text-lg font-bold text-foreground"),
-          {
-            id: generateElementId("rev"),
-            name: "توزیع امتیازات",
-            type: "widget",
-            widgetType: "review_histogram",
-            widgetProps: {
-              averageRating: 4.3,
-              totalReviews: 128,
-              verifiedCount: 128,
-              distribution: {
-                star_5: parseInt(vars.star5 || "61") || 61,
-                star_4: parseInt(vars.star4 || "42") || 42,
-                star_3: parseInt(vars.star3 || "15") || 15,
-                star_2: parseInt(vars.star2 || "7") || 7,
-                star_1: parseInt(vars.star1 || "3") || 3,
-              },
-            },
-            isLocked: false,
-            isHidden: false,
-            styles: { mobile: {} },
-            children: [],
-          },
+          createContainerNode("توزیع ستاره‌ها", {
+            customCssClass: "space-y-2 text-sm text-muted-foreground",
+            children: [
+              createContainerNode("سطر ۵ ستاره", {
+                layout: { kind: "flex", direction: "row", justifyContent: "between", alignItems: "center", flexWrap: "nowrap", gap: { value: 8, unit: "px" }, gridColumns: 1 },
+                children: [createTextWidget("۵ ستاره"), createTextWidget(`${vars.star5 || "۶۱"}٪`, "font-bold text-foreground")],
+              }),
+              createContainerNode("سطر ۴ ستاره", {
+                layout: { kind: "flex", direction: "row", justifyContent: "between", alignItems: "center", flexWrap: "nowrap", gap: { value: 8, unit: "px" }, gridColumns: 1 },
+                children: [createTextWidget("۴ ستاره"), createTextWidget(`${vars.star4 || "۴۲"}٪`, "font-bold text-foreground")],
+              }),
+              createContainerNode("سطر ۳ ستاره", {
+                layout: { kind: "flex", direction: "row", justifyContent: "between", alignItems: "center", flexWrap: "nowrap", gap: { value: 8, unit: "px" }, gridColumns: 1 },
+                children: [createTextWidget("۳ ستاره"), createTextWidget(`${vars.star3 || "۱۵"}٪`, "font-bold text-foreground")],
+              }),
+              createContainerNode("سطر ۲ ستاره", {
+                layout: { kind: "flex", direction: "row", justifyContent: "between", alignItems: "center", flexWrap: "nowrap", gap: { value: 8, unit: "px" }, gridColumns: 1 },
+                children: [createTextWidget("۲ ستاره"), createTextWidget(`${vars.star2 || "۷"}٪`, "font-bold text-foreground")],
+              }),
+              createContainerNode("سطر ۱ ستاره", {
+                layout: { kind: "flex", direction: "row", justifyContent: "between", alignItems: "center", flexWrap: "nowrap", gap: { value: 8, unit: "px" }, gridColumns: 1 },
+                children: [createTextWidget("۱ ستاره"), createTextWidget(`${vars.star1 || "۳"}٪`, "font-bold text-foreground")],
+              }),
+            ],
+          }),
         ],
       });
     }
@@ -1019,7 +1033,7 @@ export function createPatternAST(
                   createHeadingWidget(p.name, "h3", "text-xl font-bold"),
                   createTextWidget(p.desc, "text-xs text-muted-foreground"),
                   createHeadingWidget(p.price, "h4", "text-2xl font-black text-primary my-3"),
-                  createTextWidget(p.features.map(f => `✓ ${f}`).join("\n"), "text-xs space-y-2 text-muted-foreground whitespace-pre-line"),
+                  createTextWidget(p.features.join(" • "), "text-xs text-muted-foreground"),
                   createButtonWidget(p.cta, p.url, `w-full mt-6 ${p.isFeatured ? "bg-primary text-primary-foreground font-bold" : ""}`),
                 ].filter(Boolean) as BuilderElement[],
               })
@@ -1139,7 +1153,7 @@ export function createPatternAST(
         customCssClass: "my-8 border-s-4 border-primary bg-muted/30 p-6 rounded-e-xl space-y-3",
         children: [
           createHeadingWidget(`«${quoteText}»`, "h3", "text-lg md:text-xl font-semibold italic text-foreground leading-relaxed"),
-          createTextWidget(`${authorName} - ${authorTitle} (${sourceNote})`, "text-xs text-muted-foreground font-medium"),
+          createTextWidget(`${authorName} - ${authorTitle} (${sourceNote})`, "text-xs text-muted-foreground font-semibold"),
         ],
       });
     }
@@ -1162,7 +1176,8 @@ export function createPatternAST(
             layout: { kind: "flex", direction: "column", justifyContent: "start", alignItems: "stretch", flexWrap: "nowrap", gap: { value: 8, unit: "px" }, gridColumns: 1 },
             children: [
               createHeadingWidget(`${icon} ${title}`, "h3", "text-lg font-bold text-foreground"),
-              createTextWidget(`${description}\n${phoneLabel} ${phoneNumber}`, "text-xs text-muted-foreground leading-relaxed whitespace-pre-line"),
+              createTextWidget(description, "text-xs text-muted-foreground leading-relaxed"),
+              createTextWidget(`${phoneLabel} ${phoneNumber}`, "text-sm font-bold text-primary mt-1"),
             ],
           }),
           createButtonWidget(ctaText, ctaUrl, "bg-primary text-primary-foreground font-semibold px-6 py-2.5 rounded-xl"),
@@ -1183,7 +1198,7 @@ export function createPatternAST(
         customCssClass: "py-10 w-full",
         children: [
           createHeadingWidget(title, "h2", "text-2xl font-bold text-center text-foreground"),
-          createTextWidget(subtitle, "text-xs text-muted-foreground text-center mb-8"),
+          createTextWidget(`<p class="text-xs text-muted-foreground text-center mb-8">${subtitle}</p>`),
           createTableWidget(
             [col1Title, `${col2Name} (${col2Price})`, `${col3Name} (${col3Price})`],
             [
@@ -1334,7 +1349,7 @@ export function createPatternAST(
           createContainerNode("شبکه لوگوها", {
             layout: { kind: "grid", direction: "row", justifyContent: "between", alignItems: "stretch", flexWrap: "wrap", gap: { value: 12, unit: "px" }, gridColumns: 6 },
             children: logos.map((b) =>
-              createTextWidget(b || "", "rounded-lg border bg-background p-3 text-xs font-bold text-muted-foreground text-center")
+              createHeadingWidget(b || "", "h5", "rounded-lg border bg-background p-3 text-xs font-bold text-muted-foreground text-center")
             ),
           }),
           createTextWidget(vars.trust_badge || "", "text-xs text-muted-foreground/80 font-medium"),

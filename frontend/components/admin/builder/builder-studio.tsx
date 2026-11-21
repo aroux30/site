@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useCallback, useRef, useState } from "react";
-import { Layers, PlusSquare, AlertTriangle } from "lucide-react";
+import { Layers, PlusSquare, AlertTriangle, History } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
 import { cmsPagesAdminApi, type CmsPage } from "@/lib/api/content";
@@ -15,9 +15,8 @@ import { LayersTree } from "./layers-tree";
 import { CanvasFrame } from "./canvas-frame";
 import { CanvasDndLayer } from "./canvas-dnd-layer";
 import { InspectorPanel } from "./inspector-panel";
-import { BuilderContextMenu, type ContextMenuState } from "./builder-context-menu";
-import { SaveTemplateDialog } from "./save-template-dialog";
-import type { BuilderElement } from "@/types/builder";
+import { BuilderContextMenu } from "./builder-context-menu";
+import { HistoryPanel } from "./history-panel";
 
 export interface BuilderStudioProps {
   page: CmsPage;
@@ -67,11 +66,6 @@ export function BuilderStudio({ page, onExit }: BuilderStudioProps) {
     if (typeof window !== "undefined") {
       (window as any).__BUILDER_STORE__ = useBuilderStore;
     }
-    return () => {
-      if (typeof window !== "undefined") {
-        delete (window as any).__BUILDER_STORE__;
-      }
-    };
   }, [page.id, page.builder_data, page.title, page.slug, initPage]);
 
   // Clean up lock on unmount
@@ -80,33 +74,6 @@ export function BuilderStudio({ page, onExit }: BuilderStudioProps) {
       void release();
     };
   }, [release]);
-
-  // Context Menu State (Elementor Parity)
-  const [contextMenuState, setContextMenuState] = useState<ContextMenuState>({
-    isOpen: false,
-    x: 0,
-    y: 0,
-    elementId: null,
-  });
-  const [contextMenuSaveTemplateEl, setContextMenuSaveTemplateEl] = useState<BuilderElement | null>(null);
-
-  useEffect(() => {
-    const handleContextMenuEvent = (e: Event) => {
-      const customEvent = e as CustomEvent<{ elementId: string; x: number; y: number }>;
-      if (customEvent.detail) {
-        setContextMenuState({
-          isOpen: true,
-          x: customEvent.detail.x,
-          y: customEvent.detail.y,
-          elementId: customEvent.detail.elementId,
-        });
-      }
-    };
-    window.addEventListener("builder-context-menu", handleContextMenuEvent);
-    return () => {
-      window.removeEventListener("builder-context-menu", handleContextMenuEvent);
-    };
-  }, []);
 
   // 1.5s Debounced In-flight Safe Autosave
   useEffect(() => {
@@ -263,37 +230,56 @@ export function BuilderStudio({ page, onExit }: BuilderStudioProps) {
         {/* Left Column: Blocks Palette & Layers Tree */}
         {!previewMode && (
           <aside className="w-80 bg-card border-e border-border flex flex-col shrink-0 z-20 shadow-sm hidden md:flex">
-            {/* Sidebar Tab Switcher */}
-            <div className="grid grid-cols-2 p-1.5 m-2.5 rounded-xl bg-muted/60 border border-border/60">
+            {/* Sidebar Tab Switcher (Elementor 3-Tab Parity: Blocks / Layers / History) */}
+            <div className="grid grid-cols-3 p-1 m-2 rounded-xl bg-muted/60 border border-border/60 gap-1 text-[11px]">
               <button
                 type="button"
                 onClick={() => setLeftTab("blocks")}
-                className={`flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs font-semibold transition ${
+                className={`flex items-center justify-center gap-1 py-1.5 rounded-lg font-semibold transition ${
                   activeLeftTab === "blocks"
                     ? "bg-background text-foreground shadow-sm"
                     : "text-muted-foreground hover:text-foreground"
                 }`}
               >
-                <PlusSquare className="w-3.5 h-3.5" />
-                <span>افزودن بلوک</span>
+                <PlusSquare className="w-3.5 h-3.5 shrink-0" />
+                <span className="truncate">بلوک‌ها</span>
               </button>
               <button
                 type="button"
                 onClick={() => setLeftTab("layers")}
-                className={`flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs font-semibold transition ${
+                className={`flex items-center justify-center gap-1 py-1.5 rounded-lg font-semibold transition ${
                   activeLeftTab === "layers"
                     ? "bg-background text-foreground shadow-sm"
                     : "text-muted-foreground hover:text-foreground"
                 }`}
               >
-                <Layers className="w-3.5 h-3.5" />
-                <span>لایه‌ها</span>
+                <Layers className="w-3.5 h-3.5 shrink-0" />
+                <span className="truncate">لایه‌ها</span>
+              </button>
+              <button
+                type="button"
+                data-testid="history-tab-btn"
+                onClick={() => setLeftTab("history")}
+                className={`flex items-center justify-center gap-1 py-1.5 rounded-lg font-semibold transition ${
+                  activeLeftTab === "history"
+                    ? "bg-background text-foreground shadow-sm font-bold"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                <History className="w-3.5 h-3.5 shrink-0 text-primary" />
+                <span className="truncate">تاریخچه</span>
               </button>
             </div>
 
             {/* Sidebar Tab Content */}
             <div className="flex-1 overflow-hidden">
-              {activeLeftTab === "blocks" ? <BlocksPalette /> : <LayersTree />}
+              {activeLeftTab === "blocks" ? (
+                <BlocksPalette />
+              ) : activeLeftTab === "layers" ? (
+                <LayersTree />
+              ) : (
+                <HistoryPanel />
+              )}
             </div>
           </aside>
         )}
@@ -327,22 +313,8 @@ export function BuilderStudio({ page, onExit }: BuilderStudioProps) {
         )}
       </div>
 
-      {/* Context Menu (Elementor Architecture Parity) */}
-      <BuilderContextMenu
-        state={contextMenuState}
-        onClose={() => setContextMenuState((s) => ({ ...s, isOpen: false }))}
-        onOpenSaveTemplate={(el) => setContextMenuSaveTemplateEl(el)}
-      />
-
-      {contextMenuSaveTemplateEl && (
-        <SaveTemplateDialog
-          element={contextMenuSaveTemplateEl}
-          open={Boolean(contextMenuSaveTemplateEl)}
-          onOpenChange={(open) => {
-            if (!open) setContextMenuSaveTemplateEl(null);
-          }}
-        />
-      )}
+      {/* Global Canvas & Studio Context Menu */}
+      {!previewMode && <BuilderContextMenu />}
     </div>
   );
 }

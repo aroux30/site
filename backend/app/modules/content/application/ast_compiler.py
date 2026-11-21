@@ -110,6 +110,10 @@ class ASTCompiler:
             if layout.gap and layout.gap.value > 0:
                 style_parts.append(f"gap: {layout.gap.to_css()};")
 
+        # Boxed container layout: restrict maxWidth and auto-center
+        if layout.boxed_width and layout.boxed_width.value > 0:
+            style_parts.append(f"max-width: {layout.boxed_width.to_css()}; margin-left: auto; margin-right: auto;")
+
         # Compile responsive padding / margin / advanced layout styles
         style_parts.extend(cls._compile_styles(el.styles))
 
@@ -125,12 +129,28 @@ class ASTCompiler:
 
         style_attr = f' style="{" ".join(style_parts)}"' if style_parts else ""
         class_attr = f' class="{" ".join(classes)}"'
-        id_attr = f' id="{html.escape(el.id)}"'
+        element_id = el.styles.custom_css_id or el.id
+        id_attr = f' id="{html.escape(element_id)}"'
         extra_attrs = ""
         if el.auth_visibility != "all":
             extra_attrs += f' data-auth="{html.escape(el.auth_visibility)}"'
         if el.global_component_id:
             extra_attrs += f' data-global-component="{html.escape(el.global_component_id)}"'
+
+        # Compile background overlay if present
+        overlay = el.styles.mobile.background_overlay
+        overlay_html = ""
+        if overlay and overlay.type != "none":
+            ov_styles = ["position: absolute;", "inset: 0;", "pointer-events: none;", "border-radius: inherit;"]
+            if overlay.opacity is not None:
+                ov_styles.append(f"opacity: {overlay.opacity};")
+            if overlay.type == "color" and overlay.color:
+                ov_styles.append(f"background-color: {overlay.color};")
+            elif overlay.type == "gradient" and overlay.gradient:
+                dir_map = {"to-r": "to right", "to-l": "to left", "to-b": "to bottom", "to-t": "to top"}
+                d = dir_map.get(overlay.gradient.direction, "to bottom")
+                ov_styles.append(f"background-image: linear-gradient({d}, {overlay.gradient.from_color}, {overlay.gradient.to_color});")
+            overlay_html = f'<div class="builder-background-overlay" style="{" ".join(ov_styles)}" aria-hidden="true"></div>'
 
         if is_form:
             props = el.widget_props or {}
@@ -142,11 +162,11 @@ class ASTCompiler:
                 extra_attrs += f' data-error-message="{html.escape(str(props["error_message"]))}"'
             # Include anti-spam honeypot hidden field inside form
             hp_field = '<input type="text" name="_hp_website" style="display:none !important;" tabindex="-1" autocomplete="off" aria-hidden="true" />'
-            children_html = hp_field + "".join(
+            children_html = overlay_html + hp_field + "".join(
                 cls._compile_element(child, is_authenticated=is_authenticated) for child in el.children
             )
         else:
-            children_html = "".join(
+            children_html = overlay_html + "".join(
                 cls._compile_element(child, is_authenticated=is_authenticated) for child in el.children
             )
 
@@ -179,7 +199,8 @@ class ASTCompiler:
                 styles.append(f"animation-delay: {el.styles.animation_delay}s;")
 
         style_attr = f' style="{" ".join(styles)}"' if styles else ""
-        id_attr = f' id="{html.escape(el.id)}"'
+        widget_id = el.styles.custom_css_id or el.id
+        id_attr = f' id="{html.escape(widget_id)}"'
         extra_attrs = ""
         if el.auth_visibility != "all":
             extra_attrs += f' data-auth="{html.escape(el.auth_visibility)}"'
@@ -733,6 +754,8 @@ class ASTCompiler:
             parts.append(f"right: {base.right.to_css()};")
         if base.z_index is not None:
             parts.append(f"z-index: {base.z_index};")
+        if base.opacity is not None:
+            parts.append(f"opacity: {base.opacity};")
         if base.overflow and base.overflow != "inherit":
             parts.append(f"overflow: {base.overflow};")
         if base.display and base.display != "inherit":
@@ -745,6 +768,13 @@ class ASTCompiler:
         if base.align_items and base.align_items != "inherit":
             ai_map = {"start": "flex-start", "end": "flex-end"}
             parts.append(f"align-items: {ai_map.get(base.align_items, base.align_items)};")
+        if base.align_self and base.align_self != "inherit":
+            as_map = {"start": "flex-start", "end": "flex-end"}
+            parts.append(f"align-self: {as_map.get(base.align_self, base.align_self)};")
+        if base.order is not None:
+            parts.append(f"order: {base.order};")
+        if base.flex_grow is not None:
+            parts.append(f"flex-grow: {base.flex_grow};")
         if base.flex_wrap and base.flex_wrap != "inherit":
             parts.append(f"flex-wrap: {base.flex_wrap};")
         if base.gap:
@@ -753,5 +783,9 @@ class ASTCompiler:
             parts.append(f"grid-template-columns: {base.grid_template_columns};")
         if base.opacity is not None:
             parts.append(f"opacity: {base.opacity};")
+        if base.filter:
+            parts.append(f"filter: {base.filter};")
+        if base.box_shadow:
+            parts.append(f"box-shadow: {base.box_shadow};")
 
         return parts

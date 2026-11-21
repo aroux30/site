@@ -19,12 +19,14 @@ import {
   AlertCircle,
   Paintbrush,
   Bookmark,
+  Keyboard,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useBuilderStore, type Breakpoint } from "@/stores/builder-store";
 import { GlobalStylesDialog } from "./global-styles-dialog";
 import { SavePageTemplateDialog } from "./save-page-template-dialog";
+import { KeyboardShortcutsDialog } from "./keyboard-shortcuts-dialog";
 
 interface BuilderToolbarProps {
   onSaveDraft: () => Promise<void>;
@@ -55,17 +57,19 @@ export function BuilderToolbar({
   const redo = useBuilderStore((s) => s.redo);
   const copyElement = useBuilderStore((s) => s.copyElement);
   const pasteElement = useBuilderStore((s) => s.pasteElement);
+  const duplicateElement = useBuilderStore((s) => s.duplicateElement);
   const deleteElement = useBuilderStore((s) => s.deleteElement);
   const deleteSelectedElements = useBuilderStore((s) => s.deleteSelectedElements);
   const selectedElementId = useBuilderStore((s) => s.selectedElementId);
   const selectedElementIds = useBuilderStore((s) => s.selectedElementIds);
   const [globalStylesOpen, setGlobalStylesOpen] = React.useState(false);
   const [savePageTemplateOpen, setSavePageTemplateOpen] = React.useState(false);
+  const [shortcutsOpen, setShortcutsOpen] = React.useState(false);
 
   const canUndo = history.past.length > 0;
   const canRedo = history.future.length > 0;
 
-  // Keyboard shortcut listener for Undo/Redo/Copy/Paste/Delete
+  // Keyboard shortcut listener for Undo/Redo/Copy/Paste/Delete/Duplicate/Save/Help
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const targetTag = (e.target as HTMLElement)?.tagName?.toLowerCase();
@@ -83,12 +87,23 @@ export function BuilderToolbar({
       } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "y") {
         e.preventDefault();
         redo();
+      } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "d") {
+        e.preventDefault();
+        if (selectedElementId) {
+          duplicateElement(selectedElementId);
+        }
+      } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") {
+        e.preventDefault();
+        void onSaveDraft();
       } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "c") {
         e.preventDefault();
         copyElement();
       } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "v") {
         e.preventDefault();
         pasteElement();
+      } else if (e.key === "?" || (e.shiftKey && e.key === "/")) {
+        e.preventDefault();
+        setShortcutsOpen((prev) => !prev);
       } else if (e.altKey && (e.key === "ArrowUp" || e.key === "ArrowDown")) {
         e.preventDefault();
         if (selectedElementId) {
@@ -108,7 +123,7 @@ export function BuilderToolbar({
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [undo, redo, copyElement, pasteElement, deleteElement, deleteSelectedElements, selectedElementId, selectedElementIds]);
+  }, [undo, redo, copyElement, pasteElement, duplicateElement, deleteElement, deleteSelectedElements, selectedElementId, selectedElementIds, onSaveDraft]);
 
   return (
     <header className="h-14 bg-card border-b border-border px-4 flex items-center justify-between select-none z-40 relative">
@@ -262,6 +277,18 @@ export function BuilderToolbar({
         </Button>
 
         <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setShortcutsOpen(true)}
+          className="h-8 gap-1.5 text-xs text-muted-foreground hover:text-foreground"
+          title="کلیدهای میانبر (؟)"
+          data-testid="shortcuts-help-btn"
+        >
+          <Keyboard className="w-3.5 h-3.5" />
+          <span className="hidden sm:inline">میانبرها</span>
+        </Button>
+
+        <Button
           variant="outline"
           size="sm"
           onClick={onSaveDraft}
@@ -285,6 +312,7 @@ export function BuilderToolbar({
 
       <GlobalStylesDialog open={globalStylesOpen} onOpenChange={setGlobalStylesOpen} />
       <SavePageTemplateDialog open={savePageTemplateOpen} onOpenChange={setSavePageTemplateOpen} />
+      <KeyboardShortcutsDialog open={shortcutsOpen} onOpenChange={setShortcutsOpen} />
     </header>
   );
 }

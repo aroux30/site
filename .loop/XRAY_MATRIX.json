@@ -1,22 +1,456 @@
 {
-  "timestamp": "2026-11-21T09:45:42.989Z",
+  "timestamp": "2026-11-21T09:55:52.445Z",
+  "round": "round-18",
+  "stage": "after",
   "totalFailures": 0,
   "p0Count": 0,
   "p1Count": 0,
-  "p2Count": 0,
-  "patternsPassed": 28,
-  "patternsTotal": 28,
-  "blocksPassed": 34,
-  "blocksTotal": 34,
-  "deadControlsRemaining": 0,
-  "failures": [],
-  "summary": {
-    "totalFailures": 0,
-    "p0Count": 0,
-    "p1Count": 0,
-    "p2Count": 0,
-    "patternsPassed": "28/28",
-    "blocksPassed": "34/34",
-    "deadControlsRemaining": 0
-  }
+  "patterns": [
+    {
+      "index": 1,
+      "slug": "hero-banner",
+      "title": "بنر اصلی (هیرو)",
+      "category": "بنر و هیرو",
+      "passed": true,
+      "failures": []
+    },
+    {
+      "index": 2,
+      "slug": "text-marquee",
+      "title": "متن چرخشی تبلیغاتی",
+      "category": "بنر و هیرو",
+      "passed": true,
+      "failures": []
+    },
+    {
+      "index": 3,
+      "slug": "feature-grid",
+      "title": "شبکه ویژگی‌ها",
+      "category": "محتوا",
+      "passed": true,
+      "failures": []
+    },
+    {
+      "index": 4,
+      "slug": "image-text",
+      "title": "تصویر و متن",
+      "category": "محتوا",
+      "passed": true,
+      "failures": []
+    },
+    {
+      "index": 5,
+      "slug": "stats-counter",
+      "title": "شمارنده آمار",
+      "category": "محتوا",
+      "passed": true,
+      "failures": []
+    },
+    {
+      "index": 6,
+      "slug": "icon-box-grid",
+      "title": "جعبه‌های مزایا و خدمات",
+      "category": "محتوا",
+      "passed": true,
+      "failures": []
+    },
+    {
+      "index": 7,
+      "slug": "author-bio",
+      "title": "کارت معرفی کارشناس / نویسنده",
+      "category": "محتوا",
+      "passed": true,
+      "failures": []
+    },
+    {
+      "index": 8,
+      "slug": "pull-quote",
+      "title": "نقل‌قول و پیام برجسته",
+      "category": "محتوا",
+      "passed": true,
+      "failures": []
+    },
+    {
+      "index": 9,
+      "slug": "process-steps",
+      "title": "مراحل گام‌به‌گام خرید و تحویل",
+      "category": "محتوا",
+      "passed": true,
+      "failures": []
+    },
+    {
+      "index": 10,
+      "slug": "product-showcase-cta",
+      "title": "معرفی محصولات با دکمه",
+      "category": "محصولات",
+      "passed": true,
+      "failures": []
+    },
+    {
+      "index": 11,
+      "slug": "star-rating-display",
+      "title": "نمایش امتیاز ستاره‌ای",
+      "category": "محصولات",
+      "passed": true,
+      "failures": []
+    },
+    {
+      "index": 12,
+      "slug": "review-histogram",
+      "title": "نمودار توزیع امتیاز",
+      "category": "محصولات",
+      "passed": true,
+      "failures": []
+    },
+    {
+      "index": 13,
+      "slug": "product-card-grid",
+      "title": "شبکه کارت محصول",
+      "category": "محصولات",
+      "passed": true,
+      "failures": []
+    },
+    {
+      "index": 14,
+      "slug": "image-gallery-showcase",
+      "title": "گالری تصاویر",
+      "category": "محصولات",
+      "passed": true,
+      "failures": []
+    },
+    {
+      "index": 15,
+      "slug": "product-highlights",
+      "title": "مزایای کلیدی و برتری‌های کالا",
+      "category": "محصولات",
+      "passed": true,
+      "failures": []
+    },
+    {
+      "index": 16,
+      "slug": "testimonials",
+      "title": "نظرات مشتریان",
+      "category": "اعتماد و بازخورد",
+      "passed": true,
+      "failures": []
+    },
+    {
+      "index": 17,
+      "slug": "brand-logo-carousel",
+      "title": "ردیف برندهای همکار و نمادهای اعتماد",
+      "category": "اعتماد و بازخورد",
+      "passed": true,
+      "failures": []
+    },
+    {
+      "index": 18,
+      "slug": "faq-accordion",
+      "title": "پرسش‌های متداول",
+      "category": "پرسش‌های متداول",
+      "passed": true,
+      "failures": []
+    },
+    {
+      "index": 19,
+      "slug": "countdown-offer",
+      "title": "بنر فروش ویژه با شمارش معکوس",
+      "category": "فروش و تخفیف",
+      "passed": true,
+      "failures": []
+    },
+    {
+      "index": 20,
+      "slug": "discount-badge-banner",
+      "title": "نوار تخفیف با بَج",
+      "category": "فروش و تخفیف",
+      "passed": true,
+      "failures": []
+    },
+    {
+      "index": 21,
+      "slug": "alert-banner",
+      "title": "نوار اعلان و هشدار مهم فروشگاه",
+      "category": "فروش و تخفیف",
+      "passed": true,
+      "failures": []
+    },
+    {
+      "index": 22,
+      "slug": "mega-menu-categories",
+      "title": "لیست دسته‌بندی‌ها",
+      "category": "ناوبری",
+      "passed": true,
+      "failures": []
+    },
+    {
+      "index": 23,
+      "slug": "pricing-table",
+      "title": "جدول قیمت‌گذاری و تعرفه‌ها",
+      "category": "قیمت‌گذاری و تعرفه",
+      "passed": true,
+      "failures": []
+    },
+    {
+      "index": 24,
+      "slug": "price-list",
+      "title": "لیست قیمت آیتم‌ها و خدمات",
+      "category": "قیمت‌گذاری و تعرفه",
+      "passed": true,
+      "failures": []
+    },
+    {
+      "index": 25,
+      "slug": "comparison-table",
+      "title": "جدول مقایسه محصولات و مشخصات",
+      "category": "قیمت‌گذاری و تعرفه",
+      "passed": true,
+      "failures": []
+    },
+    {
+      "index": 26,
+      "slug": "support-callout",
+      "title": "جعبه راهنما و مشاوره خرید",
+      "category": "پشتیبانی و تماس",
+      "passed": true,
+      "failures": []
+    },
+    {
+      "index": 27,
+      "slug": "lead-capture-form",
+      "title": "فرم درخواست مشاوره تلفنی و تماس فوری",
+      "category": "پشتیبانی و تماس",
+      "passed": true,
+      "failures": []
+    },
+    {
+      "index": 28,
+      "slug": "floating-contact-bar",
+      "title": "نوار ارتباط سریع و شبکه‌های اجتماعی",
+      "category": "پشتیبانی و تماس",
+      "passed": true,
+      "failures": []
+    }
+  ],
+  "blocks": [
+    {
+      "index": 1,
+      "type": "container",
+      "passed": true,
+      "failures": []
+    },
+    {
+      "index": 2,
+      "type": "section",
+      "passed": true,
+      "failures": []
+    },
+    {
+      "index": 3,
+      "type": "columns",
+      "passed": true,
+      "failures": []
+    },
+    {
+      "index": 4,
+      "type": "form_container",
+      "passed": true,
+      "failures": []
+    },
+    {
+      "index": 5,
+      "type": "heading",
+      "passed": true,
+      "failures": []
+    },
+    {
+      "index": 6,
+      "type": "text_editor",
+      "passed": true,
+      "failures": []
+    },
+    {
+      "index": 7,
+      "type": "image",
+      "passed": true,
+      "failures": []
+    },
+    {
+      "index": 8,
+      "type": "button",
+      "passed": true,
+      "failures": []
+    },
+    {
+      "index": 9,
+      "type": "spacer",
+      "passed": true,
+      "failures": []
+    },
+    {
+      "index": 10,
+      "type": "divider",
+      "passed": true,
+      "failures": []
+    },
+    {
+      "index": 11,
+      "type": "table",
+      "passed": true,
+      "failures": []
+    },
+    {
+      "index": 12,
+      "type": "form_input",
+      "passed": true,
+      "failures": []
+    },
+    {
+      "index": 13,
+      "type": "form_textarea",
+      "passed": true,
+      "failures": []
+    },
+    {
+      "index": 14,
+      "type": "form_select",
+      "passed": true,
+      "failures": []
+    },
+    {
+      "index": 15,
+      "type": "product_card",
+      "passed": true,
+      "failures": []
+    },
+    {
+      "index": 16,
+      "type": "product_grid",
+      "passed": true,
+      "failures": []
+    },
+    {
+      "index": 17,
+      "type": "product_variants",
+      "passed": true,
+      "failures": []
+    },
+    {
+      "index": 18,
+      "type": "product_price",
+      "passed": true,
+      "failures": []
+    },
+    {
+      "index": 19,
+      "type": "add_to_cart",
+      "passed": true,
+      "failures": []
+    },
+    {
+      "index": 20,
+      "type": "mini_cart",
+      "passed": true,
+      "failures": []
+    },
+    {
+      "index": 21,
+      "type": "cart_summary",
+      "passed": true,
+      "failures": []
+    },
+    {
+      "index": 22,
+      "type": "form_checkbox",
+      "passed": true,
+      "failures": []
+    },
+    {
+      "index": 23,
+      "type": "form_radio",
+      "passed": true,
+      "failures": []
+    },
+    {
+      "index": 24,
+      "type": "accordion",
+      "passed": true,
+      "failures": []
+    },
+    {
+      "index": 25,
+      "type": "tabs",
+      "passed": true,
+      "failures": []
+    },
+    {
+      "index": 26,
+      "type": "countdown",
+      "passed": true,
+      "failures": []
+    },
+    {
+      "index": 27,
+      "type": "video",
+      "passed": true,
+      "failures": []
+    },
+    {
+      "index": 28,
+      "type": "icon_box",
+      "passed": true,
+      "failures": []
+    },
+    {
+      "index": 29,
+      "type": "social_links",
+      "passed": true,
+      "failures": []
+    },
+    {
+      "index": 30,
+      "type": "image_gallery",
+      "passed": true,
+      "failures": []
+    },
+    {
+      "index": 31,
+      "type": "star_rating",
+      "passed": true,
+      "failures": []
+    },
+    {
+      "index": 32,
+      "type": "review_histogram",
+      "passed": true,
+      "failures": []
+    },
+    {
+      "index": 33,
+      "type": "recently_viewed",
+      "passed": true,
+      "failures": []
+    },
+    {
+      "index": 34,
+      "type": "mega_menu",
+      "passed": true,
+      "failures": []
+    }
+  ],
+  "deadControls": [],
+  "layoutAndInteraction": {
+    "categoryChipsClipping": {
+      "passed": true,
+      "issues": []
+    },
+    "dragAndDrop": {
+      "passed": true,
+      "issues": []
+    },
+    "wysiwygParity": {
+      "passed": true,
+      "issues": []
+    }
+  },
+  "hydrationErrors": []
 }

@@ -104,6 +104,13 @@ class BackgroundStyle(ASTModel):
     size: Literal["cover", "contain", "auto"] = "cover"
 
 
+class BackgroundOverlayStyle(ASTModel):
+    type: Literal["none", "color", "gradient"] = "none"
+    color: str | None = None
+    gradient: BackgroundGradient | None = None
+    opacity: float | None = Field(default=None, ge=0.0, le=1.0)
+
+
 class DeviceStyle(ASTModel):
     """Computed or override styles for one breakpoint."""
 
@@ -112,9 +119,12 @@ class DeviceStyle(ASTModel):
     padding: SpacingBox | None = None
     border: BorderStyle | None = None
     background: BackgroundStyle | None = None
+    background_overlay: BackgroundOverlayStyle | None = None
     width: UnitValue | None = None
     min_height: UnitValue | None = None
     display: Literal["block", "flex", "grid", "inline-block", "none", "inherit"] = "inherit"
+    box_shadow: str | None = None
+    filter: str | None = None
     opacity: float | None = Field(default=None, ge=0.0, le=1.0)
     z_index: int | None = Field(default=None, ge=0, le=999)
     # Advanced Layout (P4)
@@ -127,6 +137,9 @@ class DeviceStyle(ASTModel):
     flex_direction: Literal["row", "column", "row-reverse", "column-reverse", "inherit"] = "inherit"
     justify_content: Literal["start", "center", "end", "between", "around", "evenly", "inherit"] = "inherit"
     align_items: Literal["start", "center", "end", "stretch", "baseline", "inherit"] = "inherit"
+    align_self: Literal["auto", "start", "center", "end", "stretch", "inherit"] | None = "inherit"
+    order: int | None = None
+    flex_grow: float | None = None
     flex_wrap: Literal["nowrap", "wrap", "wrap-reverse", "inherit"] = "inherit"
     gap: UnitValue | None = None
     grid_template_columns: str | None = None

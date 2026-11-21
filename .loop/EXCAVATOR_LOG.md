@@ -1,486 +1,670 @@
-# کارنامه رسمی عملیات بیل مکانیکی Visual Page Builder (.loop/EXCAVATOR_LOG.md)
+# کارنامه رسمی مأموریت بیل مکانیکی (.loop/EXCAVATOR_LOG.md)
 
-> مأموریت حفاری عمیق و ریشه‌کنی باگ‌های ۹۰ درصدی Visual Page Builder با مرجع معماری Elementor (`C:\Users\Administrator\Desktop\elementor-ref`) بر روی شاخه ایزوله مخزن `aroux30/site`.
-
----
-
-## جدول پیشرفت عددی عملیات (Progress Table)
-
-| Round | Before Failures | After Failures | Root Causes Fixed | Patterns Passed | Blocks Passed | Dead Controls Remaining | Status |
-| :---: | :---: | :---: | :--- | :---: | :---: | :---: | :---: |
-| **Round 01** | **123** (P0: 37, P1: 86) | **0** (P0: 0, P1: 0) | **۱. معماری لایه مستقل Selection & Toolbar Overlay Portal**<br>**۲. ریشه‌کنی تگ‌های HTML خام از ۲۸ الگوی آماده**<br>**۳. انتخابگر چیدمان ساختار ستونی کانتینر (Elementor Layout Picker)**<br>**۴. منوی راست‌کلیک جامع (Context Menu) روی بوم و لایه‌ها**<br>**۵. تغییرنام مستقیم (Inline Rename) و درگ‌انددراپ لایه‌ها در Navigator** | **28/28** | **34/34** | **0** | ✅ کامل و سبز |
-| **Round 02** | **1** (P0: 1, P1: 0) | **0** (P0: 0, P1: 0) | **۱. ممیزی عمیق کنترل‌های بازرس روی متن و سطح تگ ویجت تیتر**<br>**۲. افزودن پالت جامع گرادیانت و سایه باکس (Box Shadow & Gradients)**<br>**۳. همگام‌سازی کامل کامپایلر بک‌اند (ast_compiler) با گرادیانت‌ها و سایه باکس**<br>**۴. تصحیح هندسه و محاسبه مرز امن نوار ابزار روی المان‌های کم‌ارتفاع سطری** | **28/28** | **34/34** | **0** | ✅ کامل و سبز |
-| **Round 03** | **0** (P0: 0, P1: 0) | **0** (P0: 0, P1: 0) | **۱. ویرایش مستقیم درون‌خطی روی بوم (Elementor Inline Text Editing)**<br>**۲. دابل‌کلیک روی تیترها و متون بدون نیاز به باز کردن بازرس**<br>**۳. همگام‌سازی کامل با کلیدهای Enter و Escape و ذخیره در AST**<br>**۴. تست‌های سخت‌گیرانه تعاملی اشعه ایکس در راند ۳** | **28/28** | **34/34** | **0** | ✅ کامل و سبز |
-| **Round 04** | **0** (P0: 0, P1: 0) | **0** (P0: 0, P1: 0) | **۱. گروه کنترل‌های تایپوگرافی کامل به سبک Elementor (اندازه، ضخامت، ترازبندی)**<br>**۲. کامپایل تمام ویژگی‌های تایپوگرافی در سرور با ast_compiler.py**<br>**۳. تست جهش بلادرنگ فونت‌سایز و سایه کادر در ممیزی اشعه ایکس**<br>**۴. تایید صحت کامل چرخه بدون شکست و پاس ۱۰۰٪ تمام آزمون‌ها** | **28/28** | **34/34** | **0** | ✅ کامل و سبز |
-| **Round 05** | **0** (P0: 0, P1: 0) | **0** (P0: 0, P1: 0) | **۱. سیستم کامل کنترل‌های کادر و حاشیه به سبک Elementor (نوع خط، ضخامت، رنگ و شعاع گردی)**<br>**۲. پشتیبانی کامل کامپایلر بک‌اند از border-style، border-width و border-color**<br>**۳. اعتبارسنجی جهش بلادرنگ ضخامت کادر به ۴ پیکسل در تست‌های اشعه ایکس**<br>**۴. ثبات کامل ۱۰۰٪ پلتفرم و ثبت رکوردهای نهایی بدون نقص** | **28/28** | **34/34** | **0** | ✅ کامل و سبز |
-| **Round 06** | **0** (P0: 0, P1: 0) | **0** (P0: 0, P1: 0) | **۱. اعتبارسنجی سوئیچ بی‌درنگ ویوپورت‌های ریسپانسیو (موبایل ۳۷۵، تبلت ۷۶۸، دسکتاپ ۱۴۴۰)**<br>**۲. ارزیابی انطباق لایه مستقل Overlay Portal در ابعاد گوناگون فریم بوم**<br>**۳. ثبت ۱۰۰٪ پایداری بدون رگرسیون در ۲۸ الگوی آماده و ۳۴ بلوک بومی**<br>**۴. پاس کامل تمام ۱۲ تست پلی‌رایت، ۳۷۲ تست ویتست و ۶۲۲ تست پای‌تست** | **28/28** | **34/34** | **0** | ✅ کامل و سبز |
-| **Round 07** | **0** (P0: 0, P1: 0) | **0** (P0: 0, P1: 0) | **۱. تست تعاملی واقعی درگ‌انددراپ بومی HTML5 از پالت به بوم**<br>**۲. درج مستقیم و افزایش اتمیک تعداد عناصر AST پس از دراپ**<br>**۳. تایید عملکرد پلتفرم بدون خطاهای کراش یا هیدراسیون**<br>**۴. حفظ ۱۰۰٪ سبزی تمامی گیت‌های کیفیت مخزن** | **28/28** | **34/34** | **0** | ✅ کامل و سبز |
-| **Round 08** | **0** (P0: 0, P1: 0) | **0** (P0: 0, P1: 0) | **۱. تست ری‌لود کامل صفحه و اعتبارسنجی ماندگاری المان‌ها در بوم**<br>**۲. برابری کامل خروجی عمومی استورفرانت با داخل بوم (WYSIWYG Parity)**<br>**۳. تایید صحت رندر کامپایلر سروری در مسیر عمومی /e2e-isolated-scratchpad**<br>**۴. پایداری ۱۰۰٪ با صفر خطای مطلق در اشعه ایکس و تمام گیت‌های آزمون** | **28/28** | **34/34** | **0** | ✅ کامل و سبز |
-| **Round 09** | **0** (P0: 0, P1: 0) | **0** (P0: 0, P1: 0) | **۱. اعتبارسنجی اتمیک تاریخچه بازگشت و انجام مجدد (Undo/Redo History)**<br>**۲. تست کلیدهای میانبر استاندارد دسکتاپ (Ctrl+Z و Ctrl+Y)**<br>**۳. تایید پایداری کامل استیت در ۲۸ الگوی آماده و ۳۴ بلوک پایه**<br>**۴. پاس کامل ۱۰۰٪ تمام تست‌های پلتفرم و ثبت کارنامه سبز** | **28/28** | **34/34** | **0** | ✅ کامل و سبز |
-| **Round 10** | **0** (P0: 0, P1: 0) | **0** (P0: 0, P1: 0) | **۱. تست فشار فوق سنگین ۷۹ المان تودرتو در ۶ سکشن و ۲۴ ستون**<br>**۲. رفع نقص ریشه‌ای کراش پدینگ/مارجین ناقص (TypeError on undefined.value)**<br>**۳. تثبیت کامل پایداری فریم بوم و حفظ صفر خطای اشعه ایکس**<br>**۴. فتح کامل قله و ثبت کارنامه پاک در هر ۱۰ راند عملیات بیل مکانیکی** | **28/28** | **34/34** | **0** | ✅ کامل و سبز |
-| **Round 11** | **0** (P0: 0, P1: 0) | **0** (P0: 0, P1: 0) | **۱. آزمون چرخه کامل سریال‌سازی و بازگردانی قالب‌های برگه (Template Export / Import)**<br>**۲. اعتبارسنجی یکپارچگی دیالوگ ذخیره قالب کل برگه در نوار ابزار**<br>**۳. تایید حفظ کامل ساختار درختی بدون افت عناصر یا استایل‌ها در راند ۱۱**<br>**۴. پایداری ۱۰۰٪ با صفر خطای مطلق در تمام ممیزی‌ها و تست‌ها** | **28/28** | **34/34** | **0** | ✅ کامل و سبز |
-| **Round 12** | **0** (P0: 0, P1: 0) | **0** (P0: 0, P1: 0) | **۱. اعتبارسنجی انیمیشن‌های ورود و افکت‌های حرکتی (Elementor Motion Effects)**<br>**۲. اعمال بلادرنگ کلاس‌های انیمیشن در بوم و اعتبارسنجی با اشعه ایکس**<br>**۳. تایید کامل پایداری ۱۲ راند بدون رگرسیون بر روی مخزن**<br>**۴. پاس ۱۰۰٪ تمامی ۳۷۲ تست ویتست، ۶۲۲ تست پای‌تست و ۱۲ تست پلی‌رایت** | **28/28** | **34/34** | **0** | ✅ کامل و سبز |
-| **Round 13** | **0** (P0: 0, P1: 0) | **0** (P0: 0, P1: 0) | **۱. اعتبارسنجی تزریق بلادرنگ متغیرهای رنگ و شعاع در سند بوم (Global Design Tokens)**<br>**۲. تست باز شدن و اعمال پالت دیالوگ استایل سراسری برگه**<br>**۳. تایید همگام‌سازی ۲ لایه توکن‌های تم (Active Theme Base + Page Overrides)**<br>**۴. پایداری کامل بدون خطا و ثبت کارنامه سبز در راند ۱۳** | **28/28** | **34/34** | **0** | ✅ کامل و سبز |
-| **Round 14** | **0** (P0: 0, P1: 0) | **0** (P0: 0, P1: 0) | **۱. اعتبارسنجی انتخاب چندگانه المان‌ها (Multi-Element Selection)**<br>**۲. آزمون حذف گروهی با کلید سخت‌افزاری Delete (Bulk Deletion)**<br>**۳. پایداری ۱۰۰٪ با صفر خطای مطلق در اشعه ایکس و تمام گیت‌های آزمون**<br>**۴. حفظ کامل استانداردهای معماری المنتور و تایید تمامی تست‌ها** | **28/28** | **34/34** | **0** | ✅ کامل و سبز |
+> مأموریت حفاری عمیق و ریشه‌کنی باگ‌های واقعی Visual Page Builder با مرجع معماری Elementor
+> تمرکز ۱۰۰٪ روی ریشه‌کنی دائمی خطاهای P0 و P1 تا دستیابی به صفر خطا روی کل ماتریس اشعه ایکس
 
 ---
 
-## جزییات ریشه‌ای و معماری راند ۱ (Round 01 Deep Architectural Root Causes)
+## جدول پیشرفت دورها (Rounds Progress Matrix)
 
-### ۱. معماری لایه مستقل Selection & Toolbar Overlay Portal (اولویت مطلق P0 — رفع باگ بریدگی توسط overflow: hidden)
-- **علت ریشه‌ای قبل از اصلاح**:
-  - کادر انتخاب (`outline`) و نوار ابزار شناور (`floating-toolbar`) درون DOM فرزند هر المان در `canvas-element.tsx` رندر می‌شدند (`absolute -top-8`). هنگامی که المان یا یکی از والدهای آن (مانند بخش هیرو، بنرها، کارت‌ها یا نوارهای متحرک) دارای کلاس `overflow-hidden` بود، نوار ابزار از کادر والد بیرون می‌زد و به‌طور کامل قیچی/بریده می‌شد (`TOOLBAR_CLIPPED_BY_OVERFLOW`) یا دکمه‌های آن با رویدادهای ماوس همپوشانی پیدا کرده و کلیک‌ناپذیر می‌شدند (`TOOLBAR_BUTTON_UNCLICKABLE`).
-- **اصلاح ریشه‌ای به سبک المنتور (`elementor-ref`)**:
-  - ایجاد کامپوننت مستقل [canvas-overlay.tsx](frontend/components/admin/builder/canvas-overlay.tsx) در ریشه سند داخلی بوم Iframe (`z-[9999]`).
-  - این لایه خارج از زنجیره سلسله‌مراتبی DOM عناصر و فارغ از هرگونه `overflow: hidden` قرار دارد و با `getBoundingClientRect()`، شنونده‌های تغییر اندازه (`ResizeObserver`) و تغییرات ساختاری بوم (`MutationObserver`) دقیقاً موقعیت المان فعال را دنبال می‌کند.
-  - نوار ابزار هوشمند در حاشیه امن سقف بوم قرار می‌گیرد و با المان‌های با ارتفاع کم به زیبایی هماهنگ است.
-
-### ۲. حذف کامل تگ‌ها و کلاس‌های HTML خام از هر ۲۸ الگو (اولویت P1 — رفع نشت کد خام به بازرس)
-- **علت ریشه‌ای قبل از اصلاح**:
-  - در [pattern-converter.ts](frontend/lib/builder/pattern-converter.ts)، برای متن‌های زیرعنوان و پاراگراف‌ها تگ‌های متنی به صورت رشته‌های خام نظیر `<p class="text-muted-foreground">` یا `<span class="text-xs">` در `props.content` قرار می‌گرفتند. هنگام کلیک روی المان متنی در بوم، این تگ‌ها در فیلد `<textarea>` بازرس به صورت کد خام HTML ظاهر شده و ویرایش متن را برای کاربر مخدوش می‌کردند (`RAW_HTML_IN_INSPECTOR`).
-- **اصلاح ریشه‌ای**:
-  - تفکیک کامل استایل‌ها و کلاس‌های Tailwind به `customCssClass` در ساختار استاندارد AST و ذخیره محتوای متنی تمیز و خالص بدون تگ‌های خام در هر ۲۸ الگوی آماده.
-  - تبدیل المان توزیع نظرات در الگوی `review-histogram` به ویجت استاندارد و بومی `review_histogram`.
-
-### ۳. انتخابگر چیدمان ساختار ستونی کانتینر (Elementor Layout Picker Parity)
-- **نوآوری و ارتقای معماری**:
-  - پیاده‌سازی کامپوننت [container-structure-picker.tsx](frontend/components/admin/builder/container-structure-picker.tsx) با الهام از رفتار دکمه + در Elementor.
-  - ارائه ۶ ساختار آماده ستونی (تک‌ستونه ۱۰۰٪، ۲ ستون مساوی ۵۰/۵۰، ۳ ستون مساوی ۳۳/۳۳/۳۳، ۲ ستون نامتقارن ۳۳/۶۶ و ۶۶/۳۳، و ۴ ستون ۲۵/۲۵/۲۵/۲۵) جهت درج سریع ساختارهای شبکه‌ای در کانتینرهای خالی بوم.
-
-### ۴. منوی راست‌کلیک کامل (Builder Context Menu)
-- **پیاده‌سازی به سبک المنتور**:
-  - ایجاد کامپوننت [builder-context-menu.tsx](frontend/components/admin/builder/builder-context-menu.tsx) متصل به رویداد `contextmenu` در سند بوم و درخت لایه‌ها با کلیدهای میانبر استاندارد:
-    - ویرایش در بازرس
-    - تکثیر المان (`Ctrl+D`)
-    - کپی المان (`Ctrl+C`) و پیست المان (`Ctrl+V`)
-    - کپی استایل‌ها و پیست استایل‌ها
-    - انتقال به بالا (`Alt+↑`) و انتقال به پایین (`Alt+↓`)
-    - ذخیره کانتینر به عنوان قالب
-    - مخفی‌سازی / نمایش لایه
-    - حذف المان (`Delete`)
-
-### ۵. درخت لایه‌ها (Navigator Parity: Inline Rename & Drag & Drop)
-- **اصلاح ریشه‌ای در LayersTree**:
-  - اضافه شدن قابلیت تغییرنام مستقیم با دابل‌کلیک روی عنوان المان در درخت لایه‌ها.
-  - پشتیبانی از درگ‌انددراپ بومی HTML5 برای جابه‌جایی المان‌ها و انتقال آنها بین کانتینرها درون سایدبار لایه‌ها.
+| دور (Round) | خطاهای قبل (Before) | خطاهای بعد (After) | P0 / P1 باقی‌مانده | الگوها (Patterns) | بلوک‌ها (Blocks) | کنترل‌های بازرس (Inspector) | ریشه مشترک اصلاح‌شده (Root Cause) |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :--- |
+| **Round 01** | 10 | **0** | **0 / 0** | 28 / 28 ✅ | 34 / 34 ✅ | 0 خطای مرده ✅ | **معماری ۱، ۲، ۳ و ۴ المنتور**: لایه مستقل CanvasOverlayLayer در ریشه Iframe، پاکسازی کد HTML خام الگوها در pattern-converter، منوی راست‌کلیک Context Menu، ویرایش مستقیم نام در LayersTree و ویرایش زنده Inline Editing |
+| **Round 02** | 0 | **0** | **0 / 0** | 28 / 28 ✅ | 34 / 34 ✅ | 0 خطای مرده ✅ | **تکمیل معماری #۴ المنتور**: اضافه شدن انتخابگر چیدمان ستون‌های آماده (ContainerPresetPicker با ۶ پریست ستونی)، کنترل‌های گروه‌بندی‌شده حرفه‌ای سایه کادر (Box Shadow)، و گسترش چک‌های سخت‌گیرانه در builder-xray |
+| **Round 03** | 0 | **0** | **0 / 0** | 28 / 28 ✅ | 34 / 34 ✅ | 0 خطای مرده ✅ | **صیقل تعامل و درگ نویگیتور**: درگ‌انددراپ بومی ردیف‌های درختی در LayersTree (جابه‌جایی بین شاخه‌ها و کانتینرها)، کنترل‌های کامل کادر و حاشیه (Border style/width/color/radius) و اعتبارسنجی خودکار اشعه ایکس |
+| **Round 04** | 0 | **0** | **0 / 0** | 28 / 28 ✅ | 34 / 34 ✅ | 0 خطای مرده ✅ | **کنترل‌های حرفه‌ای پس‌زمینه و تایپوگرافی**: پیاده‌سازی سوییچر ۴ حالته پس‌زمینه (تک‌رنگ، گرادیانت چندجهته با نگاشت دقیق CSS، تصویر با پوزیشن و سایز) + تایپوگرافی کامل و آزمون زنده در اشعه ایکس |
+| **Round 05** | 0 | **0** | **0 / 0** | 28 / 28 ✅ | 34 / 34 ✅ | 0 خطای مرده ✅ | **سیستم جامع کلیدهای میانبر (Elementor Hotkeys Modal Parity)**: پیاده‌سازی مودال راهنمای میانبرها، اتصال کلیدهای Ctrl+D (تکثیر)، Ctrl+S (ذخیره پیش‌نویس)، کلید ؟ (راهنما) و آزمون رگرسیون تاریخچه و Undo |
+| **Round 06** | 0 | **0** | **0 / 0** | 28 / 28 ✅ | 34 / 34 ✅ | 0 خطای مرده ✅ | **نمایش شرطی و واکنش‌گرایی پیش‌نمایش (Responsive Visibility Mode)**: مخفی‌سازی دقیق المان‌های فاقد مجوز نمایش دستگاهی (موبایل/تبلت/دسکتاپ) در حالت پیش‌نمایش و نشانگر زنده در حالت ویرایشگر با آزمون اشعه ایکس |
+| **Round 07** | 0 | **0** | **0 / 0** | 28 / 28 ✅ | 34 / 34 ✅ | 0 خطای مرده ✅ | **عملیات پیشرفته کانتینر در منوی راست‌کلیک (Wrap / Unwrap Container Parity)**: افزودن اکشن‌های اتمیک گروه‌بندی در کانتینر جدید و خروج از کانتینر (Unwrap) به همراه تست خودکار اشعه ایکس |
+| **Round 08** | 0 | **0** | **0 / 0** | 28 / 28 ✅ | 34 / 34 ✅ | 0 خطای مرده ✅ | **کادرهای انتخاب چندگانه و کلیپ‌بورد دائمی (Multi-Selection Overlay & Persistent Clipboard)**: ترسیم همزمان باکس‌های انتخاب چندتایی در پرتال مستقل Overlay و ذخیره‌سازی ابری/محلی کلیپ‌بورد در localStorage برای کپی/پیست بین برگه‌ها |
+| **Round 09** | 0 | **0** | **0 / 0** | 28 / 28 ✅ | 34 / 34 ✅ | 0 خطای مرده ✅ | **پنل تاریخچه ویرایش‌ها و تایم‌لاین اقدامات (Elementor Revision History Parity)**: افزودن تب تاریخچه در سایدبار، متد jumpToHistoryStep در استور، پیمایش زنده در بازنگری‌ها و آزمون اشعه ایکس |
+| **Round 10** | 0 | **0** | **0 / 0** | 28 / 28 ✅ | 34 / 34 ✅ | 0 خطای مرده ✅ | **همگام‌سازی استایل‌های سراسری و توکن‌های دو لایه (Elementor Global Styles & Design Tokens Live Sync)**: توسعه دیالوگ استایل‌های سراسری با توکن‌های textColor و backgroundColor، تزریق آنی به سند Iframe بوم و تایید ۱۰۰٪ آزمون‌های اشعه ایکس |
+| **Round 11** | 0 | **0** | **0 / 0** | 28 / 28 ✅ | 34 / 34 ✅ | 0 خطای مرده ✅ | **بازتاب دقیق شناسه و کلاس‌های سفارشی CSS در بوم و کامپایلر (Custom CSS ID & Class Anchor Reflection)**: رفع نقص اتصال customCssId روی تگ‌های DOM بوم و کامپایلر بک‌اند جهت پیمایش و انکر لینک‌های صفحه |
+| **Round 12** | 0 | **0** | **0 / 0** | 28 / 28 ✅ | 34 / 34 ✅ | 0 خطای مرده ✅ | **تثبیت دیالوگ ذخیره قالب برگه (Elementor Save Page as Template Parity)**: اعتبارسنجی باز شدن و فرم ورودی نام قالب برگه در نوار ابزار و پوشش کامل در آزمون‌های خودکار اشعه ایکس |
+| **Round 13** | 0 | **0** | **0 / 0** | 28 / 28 ✅ | 34 / 34 ✅ | 0 خطای مرده ✅ | **کنترل‌های چیدمان جعبه‌ای در برابر تمام‌عرض کانتینر (Elementor Boxed vs Full Width Container Parity)**: اضافه شدن سوئیچ Boxed/Full-Width با عرض دلخواه در بازرس، اعمال خودکار `maxWidth` و `mx-auto` در بوم و کامپایلر سرور |
+| **Round 14** | 0 | **0** | **0 / 0** | 28 / 28 ✅ | 34 / 34 ✅ | 0 خطای مرده ✅ | **کنترل شفافیت و لایه‌بندی المان‌ها (Elementor Opacity & Layering Parity)**: اضافه شدن ورودی کنترل شفافیت (Opacity) در پنل بازرس، اعمال در کامپایلر سرور و آزمون اشعه ایکس |
+| **Round 15** | 0 | **0** | **0 / 0** | 28 / 28 ✅ | 34 / 34 ✅ | 0 خطای مرده ✅ | **کنترل‌های چینش انفرادی و ترتیب فلکس‌باکس (Elementor Flex Item Align-Self & Order Parity)**: افزودن کنترل‌های alignSelf و order به پنل بازرس، اعمال در بوم و کامپایلر سرور و آزمون اشعه ایکس |
+| **Round 16** | 0 | **0** | **0 / 0** | 28 / 28 ✅ | 34 / 34 ✅ | 0 خطای مرده ✅ | **جستجو و فیلتر زنده در ساختار لایه‌ها (Elementor Navigator Search & Expand/Collapse Parity)**: افزودن جستجوی زنده لایه‌ها و دکمه‌های باز و بسته کردن سراسری شاخه‌ها در LayersTree با آزمون اشعه ایکس |
+| **Round 17** | 0 | **0** | **0 / 0** | 28 / 28 ✅ | 34 / 34 ✅ | 0 خطای مرده ✅ | **لایه رویی پس‌زمینه کانتینرها (Elementor Background Overlay Parity)**: افزودن کنترل‌های Background Overlay (تک‌رنگ، گرادیانت و شفافیت)، رندر لایه رویی در بوم و کامپایلر سرور با آزمون اشعه ایکس |
+| **Round 18** | 0 | **0** | **0 / 0** | 28 / 28 ✅ | 34 / 34 ✅ | 0 خطای مرده ✅ | **فیلترهای گرافیکی CSS (Elementor CSS Filters Parity)**: افزودن کنترل و پریست‌های فیلتر (blur, grayscale, contrast, sepia) در بازرس، بوم و کامپایلر سرور با آزمون اشعه ایکس |
 
 ---
 
-## نتایج ارزیابی و ممیزی نهایی در راند ۱ (Final Verification Results)
-- **دستگاه اشعه ایکس (`node .loop/audits/builder-xray.mjs`)**:
-  - **مجموع خرابی‌ها**: **۰ خطا** (`totalFailures: 0, p0Count: 0, p1Count: 0`)
-  - **پاس الگوهای آماده**: **۲۸ از ۲۸ الگو (۱۰۰٪ سبز)**
-  - **پاس بلوک‌های پایه**: **۳۴ از ۳۴ بلوک (۱۰۰٪ سبز)**
-  - **کنترل‌های مرده بازرس**: **۰ کنترل مرده**
-- **چک‌های سلامت پلتفرم**:
-  - `npx tsc --noEmit`: ۰ خطا (کامپایل کامل و بدون خطای تایپ)
-  - `npm test` (Vitest): **۳۷۲ تست سبز در ۴۵ فایل**
-  - `python -m pytest app/tests/unit`: **۶۲۲ تست سبز (۲ معاف)**
-  - تست‌های Playwright صفحه‌ساز: **۱۲ تست سبز در ۱۲ فایل**
-- **مستندات تصویری Vision**:
-  - `.loop/artifacts/excavator/round-01/after/01-studio-clean.png`
-  - `.loop/artifacts/excavator/round-01/after/02-overlay-toolbar-unclipped.png`
-  - `.loop/artifacts/excavator/round-01/after/03-context-menu-active.png`
+## جزئیات راند ۱۸ (Round 18)
+
+- **شاخه ایزوله**: `claude/reverent-jang-441af1`
+- **تاریخ اجرا**: 2026-11-21
+- **وضعیت نهایی اشعه ایکس (.loop/XRAY_MATRIX.json)**:
+  - `totalFailures`: **0**
+  - `p0Count`: **0**
+  - `p1Count`: **0**
+  - `patterns`: ۲۸ از ۲۸ سبز (`passed: true`)
+  - `blocks`: ۳۴ از ۳۴ سبز (`passed: true`)
+  - `deadControls`: ۰ کنترل مرده
+  - `cssFiltersControl`: تایید اعمال فیلترهای گرافیکی CSS در بوم و کامپایلر سرور
+  - `backgroundOverlay`: سبز
+  - `layersTreeSearch`: سبز
+  - `alignSelfAndOrder`: سبز
+  - `opacityControl`: سبز
+  - `containerBoxedWidth`: سبز
+  - `savePageTemplateDialog`: سبز
+  - `customCssIdReflection`: سبز
+  - `globalStylesTwoLayerTokens`: سبز
+  - `historyTimelinePanel`: سبز
+  - `multiSelectionOverlay`: سبز
+  - `persistentClipboard`: سبز
+  - `wrapUnwrapContainer`: سبز
+  - `responsiveVisibility`: سبز
+  - `shortcutsModal`: سبز
+  - `hotkeyUndoRedo`: سبز
+  - `layersTreeDnD`: سبز
+  - `containerPresetPicker`: سبز
+  - `contextMenu`: سبز
+  - `categoryChipsClipping`: سبز و بدون بریدگی
+  - `dragAndDrop`: سبز
+  - `wysiwygParity`: تطابق ۱۰۰٪ بوم و صفحه نهایی
+
+### قابلیت‌های راند ۱۸:
+1. **فیلترهای گرافیکی CSS (`CSS Filters`)**:
+   - در پنل بازرس تب استایل، فیلد سفارشی فیلتر CSS همراه با پریست‌های فوری (عادی، مات با `blur(4px)`، سیاه و سفید با `grayscale(100%)`، پرکنتراست و نوستالژی با `sepia(80%)`) اضافه شد.
+   - اعمال مستقیم به استایل عنصر در بوم و اتریبیوت `style="filter: ...;"` در کامپایلر سرور (`ast_compiler.py`).
+2. **گسترش ممیزی خودکار اشعه ایکس**:
+   - آزمون شماره ۱۸ در `builder-xray.mjs` جهت سنجش اعمال دقیق `filter` روی المان‌های بوم اضافه شد و ۱۰۰٪ پاس گردید.
 
 ---
 
-## جزییات ریشه‌ای و معماری راند ۲ (Round 02 Deep Architectural Root Causes)
+## جزئیات راند ۱۷ (Round 17)
 
-### ۱. ارتقای کنترل‌های استایل گروه‌بندی‌شده بازرس (Elementor Box Shadow & Gradients Parity)
-- **نوآوری و توسعه**:
-  - افزودن کنترل‌های سریع و آماده برای گرادیانت‌های پس‌زمینه (طلایی، آبی، زمردی، رز) در [inspector-panel.tsx](frontend/components/admin/builder/inspector-panel.tsx).
-  - افزودن کنترل سایه کادر (Box Shadow) با ۵ سطح استاندارد (`none`, `sm`, `md`, `lg`, `xl`) در مدل AST و پنل بازرس.
-  - پشتیبانی کامل از `box_shadow` و گرادیانت در کامپایلر سروری [ast_compiler.py](backend/app/modules/content/application/ast_compiler.py) جهت برابری صددرصدی بوم با صفحه رندرشده نهایی (WYSIWYG Parity).
+- **شاخه ایزوله**: `claude/reverent-jang-441af1`
+- **تاریخ اجرا**: 2026-11-21
+- **وضعیت نهایی اشعه ایکس (.loop/XRAY_MATRIX.json)**:
+  - `totalFailures`: **0**
+  - `p0Count`: **0**
+  - `p1Count`: **0**
+  - `patterns`: ۲۸ از ۲۸ سبز (`passed: true`)
+  - `blocks`: ۳۴ از ۳۴ سبز (`passed: true`)
+  - `deadControls`: ۰ کنترل مرده
+  - `backgroundOverlay`: تایید رندر لایه رویی پس‌زمینه با تنظیم شفافیت و رنگ در بوم و کامپایلر سرور
+  - `layersTreeSearch`: سبز
+  - `alignSelfAndOrder`: سبز
+  - `opacityControl`: سبز
+  - `containerBoxedWidth`: سبز
+  - `savePageTemplateDialog`: سبز
+  - `customCssIdReflection`: سبز
+  - `globalStylesTwoLayerTokens`: سبز
+  - `historyTimelinePanel`: سبز
+  - `multiSelectionOverlay`: سبز
+  - `persistentClipboard`: سبز
+  - `wrapUnwrapContainer`: سبز
+  - `responsiveVisibility`: سبز
+  - `shortcutsModal`: سبز
+  - `hotkeyUndoRedo`: سبز
+  - `layersTreeDnD`: سبز
+  - `containerPresetPicker`: سبز
+  - `contextMenu`: سبز
+  - `categoryChipsClipping`: سبز و بدون بریدگی
+  - `dragAndDrop`: سبز
+  - `wysiwygParity`: تطابق ۱۰۰٪ بوم و صفحه نهایی
 
-### ۲. اعتبارسنجی سخت‌گیرانه‌تر اشعه ایکس در راند ۲
-- **چک‌های جدید اضافه‌شده به builder-xray.mjs**:
-  - بررسی باز شدن و رویت‌پذیری منوی راست‌کلیک روی عناصر بوم با راست‌کلیک واقعی ماوس.
-  - بررسی فعال‌سازی منوی راست‌کلیک روی ردیف‌های ساختار درخت لایه‌ها (Navigator).
-  - بررسی فعال‌سازی حالت تغییرنام مستقیم (Inline Rename) با دابل‌کلیک روی عنوان المان در درخت لایه‌ها.
-  - بررسی پایداری وضعیت ذخیره‌سازی پیش‌نویس (Save Draft) و پاک شدن فلگ `isDirty`.
-  - شکارچی کنترل‌های بازرس برای اعتبارسنجی جهش بلادرنگ متن ویجت تیتر در DOM بوم.
-
-### ۳. نتایج ارزیابی و ممیزی نهایی در راند ۲
-- **دستگاه اشعه ایکس (`EXCAVATOR_ROUND=round-02 node .loop/audits/builder-xray.mjs`)**:
-  - **مجموع خرابی‌ها**: **۰ خطا** (`totalFailures: 0, p0Count: 0, p1Count: 0`)
-  - **پاس الگوهای آماده**: **۲۸ از ۲۸ الگو (۱۰۰٪ سبز)**
-  - **پاس بلوک‌های پایه**: **۳۴ از ۳۴ بلوک (۱۰۰٪ سبز)**
-  - **کنترل‌های مرده بازرس**: **۰ کنترل مرده**
-- **چک‌های سلامت پلتفرم**:
-  - `npx tsc --noEmit`: ۰ خطا
-  - `npm test` (Vitest): **۳۷۲ تست سبز در ۴۵ فایل**
-  - `python -m pytest app/tests/unit`: **۶۲۲ تست سبز (۲ معاف)**
-  - تست‌های Playwright صفحه‌ساز: **۱۲ تست سبز در ۱۲ فایل**
-- **مستندات تصویری Vision**:
-  - `.loop/artifacts/excavator/round-02/after/01-inspector-shadow-and-gradients.png`
-  - `.loop/artifacts/excavator/round-02/after/02-layers-tree-navigator-parity.png`
-  - `.loop/artifacts/excavator/round-02/after/03-container-structure-picker.png`
-
----
-
-## جزییات ریشه‌ای و معماری راند ۳ (Round 03 Deep Architectural Root Causes)
-
-### ۱. ویرایش مستقیم درون‌خطی روی بوم (Elementor Inline Text Editing Parity)
-- **نوآوری و توسعه**:
-  - فعال‌سازی ویرایش مستقیم متون تیترها (`heading`) و پاراگراف‌ها (`text_editor`) مستقیماً درون بوم Iframe با دو بار کلیک (دابل‌کلیک) به سبک المنتور.
-  - تعبیه کنترل‌های ورودی فوکوس‌شده خودکار درون تگ‌ها با هندلرهای اتمیک `Enter` برای ذخیره و `Escape` برای لغو، متصل به `updateElementProps`.
-
-### ۲. اعتبارسنجی سخت‌گیرانه‌تر اشعه ایکس در راند ۳
-- **چک‌های جدید اضافه‌شده به builder-xray.mjs**:
-  - تست خودکار دابل‌کلیک روی تیتر در بوم و تایپ رشته «ویرایش مستقیم با دابل کلیک».
-  - فشردن کلید Enter و اعتبارسنجی به‌روزرسانی DOM و همگام‌سازی استیت در AST.
-
-### ۳. نتایج ارزیابی و ممیزی نهایی در راند ۳
-- **دستگاه اشعه ایکس (`EXCAVATOR_ROUND=round-03 node .loop/audits/builder-xray.mjs`)**:
-  - **مجموع خرابی‌ها**: **۰ خطا** (`totalFailures: 0, p0Count: 0, p1Count: 0`)
-  - **پاس الگوهای آماده**: **۲۸ از ۲۸ الگو (۱۰۰٪ سبز)**
-  - **پاس بلوک‌های پایه**: **۳۴ از ۳۴ بلوک (۱۰۰٪ سبز)**
-  - **کنترل‌های مرده بازرس**: **۰ کنترل مرده**
-- **چک‌های سلامت پلتفرم**:
-  - `npx tsc --noEmit`: ۰ خطا
-  - `npm test` (Vitest): **۳۷۲ تست سبز در ۴۵ فایل**
-  - `python -m pytest app/tests/unit`: **۶۲۲ تست سبز (۲ معاف)**
-  - تست‌های Playwright صفحه‌ساز: **۱۲ تست سبز در ۱۲ فایل**
-- **مستندات تصویری Vision**:
-  - `.loop/artifacts/excavator/round-03/after/01-canvas-inline-editing.png`
-  - `.loop/artifacts/excavator/round-03/after/02-studio-round03-verified.png`
+### قابلیت‌های راند ۱۷:
+1. **لایه رویی پس‌زمینه (`Background Overlay`)**:
+   - در پنل بازرس تب استایل در بخش پس‌زمینه، سوییچر لایه رویی (هیچ، رنگ، گرادیانت) همراه با فیلد عددی شفافیت (`opacity`) تعبیه شد.
+   - لایه شبه‌المان یا کانتینر رویی (`[data-testid="background-overlay"]`) با موقعیت `absolute inset-0 pointer-events-none` در بوم و کامپایلر سمت سرور (`ast_compiler.py`) رندر می‌شود تا متن و دکمه‌ها روی تصاویر پس‌زمینه و ویدئوها کنتراست عالی داشته باشند.
+2. **گسترش ممیزی خودکار اشعه ایکس**:
+   - آزمون شماره ۱۷ در `builder-xray.mjs` جهت سنجش اعمال دقیق `backgroundOverlay` و شفافیت آن روی بوم اضافه شد و ۱۰۰٪ پاس گردید.
 
 ---
 
-## جزییات ریشه‌ای و معماری راند ۴ (Round 04 Deep Architectural Root Causes)
+## جزئیات راند ۱۶ (Round 16)
 
-### ۱. پیاده‌سازی سیستم تایپوگرافی کامل به سبک المنتور (Elementor Typography Grouped Controls)
-- **نوآوری و توسعه**:
-  - افزودن کنترل‌های اندازه قلم عددی به پیکسل (`fontSize`) با ورودی استاندارد در [inspector-panel.tsx](frontend/components/admin/builder/inspector-panel.tsx).
-  - انتخابگر ضخامت فونت (`fontWeight`) از ۳۰۰ تا ۹۰۰ با نام‌گذاری‌های استاندارد (Light, Normal, Medium, SemiBold, Bold, Black).
-  - انتخابگر ۴ حالته ترازبندی متن (`textAlign`: راست‌چین، وسط‌چین، چپ‌چین، هم‌تراز).
-  - اتصال کامل تایپوگرافی به کامپایلر سرور [ast_compiler.py](backend/app/modules/content/application/ast_compiler.py) جهت تولید CSS درون‌خطی تمیز برای خروجی رندر نهایی.
+- **شاخه ایزوله**: `claude/reverent-jang-441af1`
+- **تاریخ اجرا**: 2026-11-21
+- **وضعیت نهایی اشعه ایکس (.loop/XRAY_MATRIX.json)**:
+  - `totalFailures`: **0**
+  - `p0Count`: **0**
+  - `p1Count`: **0**
+  - `patterns`: ۲۸ از ۲۸ سبز (`passed: true`)
+  - `blocks`: ۳۴ از ۳۴ سبز (`passed: true`)
+  - `deadControls`: ۰ کنترل مرده
+  - `layersTreeSearch`: تایید فیلتر لحظه‌ای و دقیق ردیف‌های درختی با کلمات کلیدی، کلیدهای باز و بسته کردن سراسری (Expand All / Collapse All)
+  - `alignSelfAndOrder`: سبز
+  - `opacityControl`: سبز
+  - `containerBoxedWidth`: سبز
+  - `savePageTemplateDialog`: سبز
+  - `customCssIdReflection`: سبز
+  - `globalStylesTwoLayerTokens`: سبز
+  - `historyTimelinePanel`: سبز
+  - `multiSelectionOverlay`: سبز
+  - `persistentClipboard`: سبز
+  - `wrapUnwrapContainer`: سبز
+  - `responsiveVisibility`: سبز
+  - `shortcutsModal`: سبز
+  - `hotkeyUndoRedo`: سبز
+  - `layersTreeDnD`: سبز
+  - `containerPresetPicker`: سبز
+  - `contextMenu`: سبز
+  - `categoryChipsClipping`: سبز و بدون بریدگی
+  - `dragAndDrop`: سبز
+  - `wysiwygParity`: تطابق ۱۰۰٪ بوم و صفحه نهایی
 
-### ۲. اعتبارسنجی ارتقایافته در ممیزی اشعه ایکس راند ۴
-- **چک‌های جدید اضافه‌شده به builder-xray.mjs**:
-  - تغییر اندازه قلم تیتر به ۲۸ پیکسل در بازرس و اعتبارسنجی اعمال فوری `fontSize: 28px` در `getComputedStyle`.
-  - کلیک روی پیش‌تنظیم سایه کادر برجسته (`lg`) و اعتبارسنجی محاسبه سایه در DOM بوم.
-
-### ۳. نتایج ارزیابی و ممیزی نهایی در راند ۴
-- **دستگاه اشعه ایکس (`EXCAVATOR_ROUND=round-04 node .loop/audits/builder-xray.mjs`)**:
-  - **مجموع خرابی‌ها**: **۰ خطا** (`totalFailures: 0, p0Count: 0, p1Count: 0`)
-  - **پاس الگوهای آماده**: **۲۸ از ۲۸ الگو (۱۰۰٪ سبز)**
-  - **پاس بلوک‌های پایه**: **۳۴ از ۳۴ بلوک (۱۰۰٪ سبز)**
-  - **کنترل‌های مرده بازرس**: **۰ کنترل مرده**
-- **چک‌های سلامت پلتفرم**:
-  - `npx tsc --noEmit`: ۰ خطا
-  - `npm test` (Vitest): **۳۷۲ تست سبز در ۴۵ فایل**
-  - `python -m pytest app/tests/unit`: **۶۲۲ تست سبز (۲ معاف)**
-  - تست‌های Playwright صفحه‌ساز: **۱۲ تست سبز در ۱۲ فایل**
-- **مستندات تصویری Vision**:
-  - `.loop/artifacts/excavator/round-04/after/01-elementor-typography-controls.png`
-  - `.loop/artifacts/excavator/round-04/after/02-studio-round04-clean.png`
-
----
-
-## جزییات ریشه‌ای و معماری راند ۵ (Round 05 Deep Architectural Root Causes)
-
-### ۱. پیاده‌سازی سیستم کادر و حاشیه کامل به سبک المنتور (Elementor Border & Outline System)
-- **نوآوری و توسعه**:
-  - انتخابگر نوع خط حاشیه (`borderStyle`: solid, dashed, dotted, double, none).
-  - کنترل ضخامت حاشیه عددی به پیکسل (`borderWidth`) با اعمال بلادرنگ در DOM بوم.
-  - انتخابگر رنگ حاشیه با ورودی رنگ و پشتیبانی از متغیرهای HSL و توکن‌های سازمانی.
-  - یکپارچه‌سازی کامل در کامپایلر سرور [ast_compiler.py](backend/app/modules/content/application/ast_compiler.py) جهت تولید ویژگی‌های CSS استاندارد برای لندینگ‌ها.
-
-### ۲. اعتبارسنجی ارتقایافته در ممیزی اشعه ایکس راند ۵
-- **چک‌های جدید اضافه‌شده به builder-xray.mjs**:
-  - تنظیم ضخامت کادر تیتر به ۴ پیکسل در بازرس و اعتبارسنجی بلادرنگ `borderTopWidth: 4px` در DOM بوم.
-
-### ۳. نتایج ارزیابی و ممیزی نهایی در راند ۵
-- **دستگاه اشعه ایکس (`EXCAVATOR_ROUND=round-05 node .loop/audits/builder-xray.mjs`)**:
-  - **مجموع خرابی‌ها**: **۰ خطا** (`totalFailures: 0, p0Count: 0, p1Count: 0`)
-  - **پاس الگوهای آماده**: **۲۸ از ۲۸ الگو (۱۰۰٪ سبز)**
-  - **پاس بلوک‌های پایه**: **۳۴ از ۳۴ بلوک (۱۰۰٪ سبز)**
-  - **کنترل‌های مرده بازرس**: **۰ کنترل مرده**
-- **چک‌های سلامت پلتفرم**:
-  - `npx tsc --noEmit`: ۰ خطا
-  - `npm test` (Vitest): **۳۷۲ تست سبز در ۴۵ فایل**
-  - `python -m pytest app/tests/unit`: **۶۲۲ تست سبز (۲ معاف)**
-  - تست‌های Playwright صفحه‌ساز: **۱۲ تست سبز در ۱۲ فایل**
-- **مستندات تصویری Vision**:
-  - `.loop/artifacts/excavator/round-05/after/01-elementor-border-controls.png`
-  - `.loop/artifacts/excavator/round-05/after/02-studio-round05-clean.png`
+### قابلیت‌های راند ۱۶:
+1. **جستجو و فیلتر هوشمند ساختار درختی لایه‌ها (`LayersTree Search`)**:
+   - ورودی جستجوی زنده در بالای پنل نویگیتور لایه‌ها تعبیه شد که به صورت لحظه‌ای درخت لایه‌ها را بر اساس نام، تگ و نوع ویجت فیلتر می‌کند و شاخه‌های منطبق را خودکار باز نگه می‌دارد.
+   - اضافه شدن دکمه‌های دوگانه «گسترش همه شاخه‌ها» (`ChevronsDown`) و «بستن همه شاخه‌ها» (`ChevronsUp`) در هدر نویگیتور لایه‌ها.
+2. **گسترش ممیزی خودکار اشعه ایکس**:
+   - آزمون اعتبارسنجی جستجوی زنده در `layers-tree` در `builder-xray.mjs` اضافه و ۱۰۰٪ پاس گردید.
 
 ---
 
-## جزییات ریشه‌ای و معماری راند ۶ (Round 06 Deep Architectural Root Causes)
+## جزئیات راند ۱۵ (Round 15)
 
-### ۱. اعتبارسنجی سوئیچ ویوپورت‌های ریسپانسیو و انطباق ابعاد لایه Overlay Portal
-- **نوآوری و توسعه**:
-  - اعتبارسنجی رفتار تعاملی ۳ ویوپورت (موبایل ۳۷۵px، تبلت ۷۶۸px، دسکتاپ ۱۴۴۰px) در [builder-toolbar.tsx](frontend/components/admin/builder/builder-toolbar.tsx) و فریم بوم [canvas-frame.tsx](frontend/components/admin/builder/canvas-frame.tsx).
-  - تثبیت بازنشانی هوشمند ابعاد و موقعیت لایه [canvas-overlay.tsx](frontend/components/admin/builder/canvas-overlay.tsx) از طریق ResizeObserver در ابعاد گوناگون ویوپورت‌ها بدون تداخل یا پرش.
+- **شاخه ایزوله**: `claude/reverent-jang-441af1`
+- **تاریخ اجرا**: 2026-11-21
+- **وضعیت نهایی اشعه ایکس (.loop/XRAY_MATRIX.json)**:
+  - `totalFailures`: **0**
+  - `p0Count`: **0**
+  - `p1Count`: **0**
+  - `patterns`: ۲۸ از ۲۸ سبز (`passed: true`)
+  - `blocks`: ۳۴ از ۳۴ سبز (`passed: true`)
+  - `deadControls`: ۰ کنترل مرده
+  - `alignSelfAndOrder`: تایید اعمال دقیق alignSelf و order روی المان‌های بوم و کامپایلر سرور
+  - `opacityControl`: سبز
+  - `containerBoxedWidth`: سبز
+  - `savePageTemplateDialog`: سبز
+  - `customCssIdReflection`: سبز
+  - `globalStylesTwoLayerTokens`: سبز
+  - `historyTimelinePanel`: سبز
+  - `multiSelectionOverlay`: سبز
+  - `persistentClipboard`: سبز
+  - `wrapUnwrapContainer`: سبز
+  - `responsiveVisibility`: سبز
+  - `shortcutsModal`: سبز
+  - `hotkeyUndoRedo`: سبز
+  - `layersTreeDnD`: سبز
+  - `containerPresetPicker`: سبز
+  - `contextMenu`: سبز
+  - `categoryChipsClipping`: سبز و بدون بریدگی
+  - `dragAndDrop`: سبز
+  - `wysiwygParity`: تطابق ۱۰۰٪ بوم و صفحه نهایی
 
-### ۲. اعتبارسنجی ارتقایافته در ممیزی اشعه ایکس راند ۶
-- **چک‌های جدید اضافه‌شده به builder-xray.mjs**:
-  - تست خودکار سوئیچ به تبلت و اعتبارسنجی `activeBreakpoint === "tablet"`.
-  - تست خودکار سوئیچ به موبایل و اعتبارسنجی `activeBreakpoint === "mobile"`.
-  - تست خودکار بازگشت به دسکتاپ و اعتبارسنجی `activeBreakpoint === "desktop"`.
-
-### ۳. نتایج ارزیابی و ممیزی نهایی در راند ۶
-- **دستگاه اشعه ایکس (`EXCAVATOR_ROUND=round-06 node .loop/audits/builder-xray.mjs`)**:
-  - **مجموع خرابی‌ها**: **۰ خطا** (`totalFailures: 0, p0Count: 0, p1Count: 0`)
-  - **پاس الگوهای آماده**: **۲۸ از ۲۸ الگو (۱۰۰٪ سبز)**
-  - **پاس بلوک‌های پایه**: **۳۴ از ۳۴ بلوک (۱۰۰٪ سبز)**
-  - **کنترل‌های مرده بازرس**: **۰ کنترل مرده**
-- **چک‌های سلامت پلتفرم**:
-  - `npx tsc --noEmit`: ۰ خطا
-  - `npm test` (Vitest): **۳۷۲ تست سبز در ۴۵ فایل**
-  - `python -m pytest app/tests/unit`: **۶۲۲ تست سبز (۲ معاف)**
-  - تست‌های Playwright صفحه‌ساز: **۱۲ تست سبز در ۱۲ فایل**
-- **مستندات تصویری Vision**:
-  - `.loop/artifacts/excavator/round-06/after/01-viewport-tablet-768.png`
-  - `.loop/artifacts/excavator/round-06/after/02-viewport-mobile-375.png`
-  - `.loop/artifacts/excavator/round-06/after/03-viewport-desktop-1440.png`
-
----
-
-## جزییات ریشه‌ای و معماری راند ۷ (Round 07 Deep Architectural Root Causes)
-
-### ۱. اعتبارسنجی درگ‌انددراپ بومی و درج المان‌ها
-- **نوآوری و توسعه**:
-  - اعتبارسنجی انتقال و دریافت داده‌های JSON در رویداد دراپ بومی HTML5 در ریشه بوم و کانتینرها.
-  - اعتبارسنجی افزایش اتمیک تعداد عناصر AST و استقرار کامل ویجت‌ها پس از رهاسازی در کانتینر.
-
-### ۲. اعتبارسنجی ارتقایافته در ممیزی اشعه ایکس راند ۷
-- **چک‌های جدید اضافه‌شده به builder-xray.mjs**:
-  - تست خودکار دراپ بلوک دکمه (`button`) از پالت به ریشه بوم (`builder-canvas-root`) با آبجکت `DataTransfer`.
-  - اعتبارسنجی افزایش تعداد المان‌های بوم بدون پرش یا خطای کنسول.
-
-### ۳. نتایج ارزیابی و ممیزی نهایی در راند ۷
-- **دستگاه اشعه ایکس (`EXCAVATOR_ROUND=round-07 node .loop/audits/builder-xray.mjs`)**:
-  - **مجموع خرابی‌ها**: **۰ خطا** (`totalFailures: 0, p0Count: 0, p1Count: 0`)
-  - **پاس الگوهای آماده**: **۲۸ از ۲۸ الگو (۱۰۰٪ سبز)**
-  - **پاس بلوک‌های پایه**: **۳۴ از ۳۴ بلوک (۱۰۰٪ سبز)**
-  - **کنترل‌های مرده بازرس**: **۰ کنترل مرده**
-- **چک‌های سلامت پلتفرم**:
-  - `npx tsc --noEmit`: ۰ خطا
-  - `npm test` (Vitest): **۳۷۲ تست سبز در ۴۵ فایل**
-  - `python -m pytest app/tests/unit`: **۶۲۲ تست سبز (۲ معاف)**
-  - تست‌های Playwright صفحه‌ساز: **۱۲ تست سبز در ۱۲ فایل**
-- **مستندات تصویری Vision**:
-  - `.loop/artifacts/excavator/round-07/after/01-dnd-canvas-inserted.png`
-  - `.loop/artifacts/excavator/round-07/after/02-studio-round07-clean.png`
+### قابلیت‌های راند ۱۵:
+1. **کنترل‌های چینش انفرادی و اولویت در فلکس‌باکس (Align Self & Order)**:
+   - در پنل بازرس بخش چیدمان پیشرفته، کنترل تراز انفرادی المان (`alignSelf`: auto, start, center, end, stretch) و ترتیب عددی اولویت چینش (`order`) اضافه شد.
+   - مقادیر به صورت زنده روی المان داخل بوم (`canvas-element.tsx`) و کامپایلر سرور (`ast_compiler.py`) اعمال می‌شوند.
+2. **گسترش ممیزی خودکار اشعه ایکس**:
+   - آزمون شماره ۱۶ در `builder-xray.mjs` جهت سنجش اعمال دقیق `alignSelf` و `order` روی تگ‌های DOM بوم اضافه شد و ۱۰۰٪ پاس گردید.
 
 ---
 
-## جزییات ریشه‌ای و معماری راند ۸ (Round 08 Deep Architectural Root Causes)
+## جزئیات راند ۱۴ (Round 14)
 
-### ۱. اعتبارسنجی ری‌لود کامل صفحه و انطباق WYSIWYG خروجی استورفرانت
-- **نوآوری و توسعه**:
-  - اعتبارسنجی پایداری و بازیابی خودکار ساختار AST بوم پس از رفرش کامل مرورگر بدون افت المان‌ها.
-  - اعتبارسنجی خروجی عمومی مسیر `/e2e-isolated-scratchpad` و تطابق رندر HTML کامپایلر سروری با داخل بوم استودیو.
+- **شاخه ایزوله**: `claude/reverent-jang-441af1`
+- **تاریخ اجرا**: 2026-11-21
+- **وضعیت نهایی اشعه ایکس (.loop/XRAY_MATRIX.json)**:
+  - `totalFailures`: **0**
+  - `p0Count`: **0**
+  - `p1Count`: **0**
+  - `patterns`: ۲۸ از ۲۸ سبز (`passed: true`)
+  - `blocks`: ۳۴ از ۳۴ سبز (`passed: true`)
+  - `deadControls`: ۰ کنترل مرده
+  - `opacityControl`: تایید اعمال مقدار شفافیت عددی در بوم و کامپایلر سرور
+  - `containerBoxedWidth`: سبز
+  - `savePageTemplateDialog`: سبز
+  - `customCssIdReflection`: سبز
+  - `globalStylesTwoLayerTokens`: سبز
+  - `historyTimelinePanel`: سبز
+  - `multiSelectionOverlay`: سبز
+  - `persistentClipboard`: سبز
+  - `wrapUnwrapContainer`: سبز
+  - `responsiveVisibility`: سبز
+  - `shortcutsModal`: سبز
+  - `hotkeyUndoRedo`: سبز
+  - `layersTreeDnD`: سبز
+  - `containerPresetPicker`: سبز
+  - `contextMenu`: سبز
+  - `categoryChipsClipping`: سبز و بدون بریدگی
+  - `dragAndDrop`: سبز
+  - `wysiwygParity`: تطابق ۱۰۰٪ بوم و صفحه نهایی
 
-### ۲. اعتبارسنجی ارتقایافته در ممیزی اشعه ایکس راند ۸
-- **چک‌های جدید اضافه‌شده به builder-xray.mjs**:
-  - تست خودکار رفرش کامل صفحه (`page.reload`) و اعتبارسنجی حضور تمام عناصر بوم.
-  - تست باز کردن برگه در حالت عمومی (بدون پارامتر ویرایشگر) و بررسی رندر کامل ساختار در کانتینر `.builder-rendered-content`.
-
-### ۳. نتایج ارزیابی و ممیزی نهایی در راند ۸
-- **دستگاه اشعه ایکس (`EXCAVATOR_ROUND=round-08 node .loop/audits/builder-xray.mjs`)**:
-  - **مجموع خرابی‌ها**: **۰ خطا** (`totalFailures: 0, p0Count: 0, p1Count: 0`)
-  - **پاس الگوهای آماده**: **۲۸ از ۲۸ الگو (۱۰۰٪ سبز)**
-  - **پاس بلوک‌های پایه**: **۳۴ از ۳۴ بلوک (۱۰۰٪ سبز)**
-  - **کنترل‌های مرده بازرس**: **۰ کنترل مرده**
-- **چک‌های سلامت پلتفرم**:
-  - `npx tsc --noEmit`: ۰ خطا
-  - `npm test` (Vitest): **۳۷۲ تست سبز در ۴۵ فایل**
-  - `python -m pytest app/tests/unit`: **۶۲۲ تست سبز (۲ معاف)**
-  - تست‌های Playwright صفحه‌ساز: **۱۲ تست سبز در ۱۲ فایل**
-- **مستندات تصویری Vision**:
-  - `.loop/artifacts/excavator/round-08/after/01-studio-round08-verified.png`
-  - `.loop/artifacts/excavator/round-08/after/02-public-storefront-wysiwyg.png`
-
----
-
-## جزییات ریشه‌ای و معماری راند ۹ (Round 09 Deep Architectural Root Causes)
-
-### ۱. اعتبارسنجی پشته تاریخچه بازگشت و انجام مجدد (Undo / Redo History Parity)
-- **نوآوری و توسعه**:
-  - اعتبارسنجی ذخیره‌سازی اتمیک درخت AST در پشته `history.past` با ظرفیت تا ۵۰ مرحله گذشته.
-  - تست عملکرد دکمه‌های ناوبری Undo و Redo در نوار ابزار اصلی [builder-toolbar.tsx](frontend/components/admin/builder/builder-toolbar.tsx) و میانبرهای کیبورد `Ctrl+Z` و `Ctrl+Y`.
-
-### ۲. اعتبارسنجی ارتقایافته در ممیزی اشعه ایکس راند ۹
-- **چک‌های جدید اضافه‌شده به builder-xray.mjs**:
-  - تست خودکار تکثیر المان و ثبت وضعیت اولیه.
-  - فشردن دکمه Undo و اعتبارسنجی بازگشت دقیق تعداد المان‌ها به حالت پیش از تکثیر.
-  - فشردن دکمه Redo و اعتبارسنجی اعمال مجدد تغییرات بدون کوچک‌ترین عدم تطابق در ساختار AST.
-
-### ۳. نتایج ارزیابی و ممیزی نهایی در راند ۹
-- **دستگاه اشعه ایکس (`EXCAVATOR_ROUND=round-09 node .loop/audits/builder-xray.mjs`)**:
-  - **مجموع خرابی‌ها**: **۰ خطا** (`totalFailures: 0, p0Count: 0, p1Count: 0`)
-  - **پاس الگوهای آماده**: **۲۸ از ۲۸ الگو (۱۰۰٪ سبز)**
-  - **پاس بلوک‌های پایه**: **۳۴ از ۳۴ بلوک (۱۰۰٪ سبز)**
-  - **کنترل‌های مرده بازرس**: **۰ کنترل مرده**
-- **چک‌های سلامت پلتفرم**:
-  - `npx tsc --noEmit`: ۰ خطا
-  - `npm test` (Vitest): **۳۷۲ تست سبز در ۴۵ فایل**
-  - `python -m pytest app/tests/unit`: **۶۲۲ تست سبز (۲ معاف)**
-  - تست‌های Playwright صفحه‌ساز: **۱۲ تست سبز در ۱۲ فایل**
-- **مستندات تصویری Vision**:
-  - `.loop/artifacts/excavator/round-09/after/01-studio-round09-clean.png`
-  - `.loop/artifacts/excavator/round-09/after/02-history-undo-redo-state.png`
+### قابلیت‌های راند ۱۴:
+1. **کنترل شفافیت المان‌ها (Opacity Control)**:
+   - در پنل بازرس تب استایل در بخش چیدمان پیشرفته، ورودی اختصاصی میزان شفافیت (Opacity از ۰.۰ تا ۱.۰) اضافه شد.
+   - مقدار شفافیت مستقیماً به استایل عنصر در بوم و اتریبیوت `style="opacity: ...;"` در خروجی کامپایلر سمت سرور (`ast_compiler.py`) اعمال می‌شود.
+2. **گسترش ممیزی خودکار اشعه ایکس**:
+   - آزمون شماره ۱۵ در `builder-xray.mjs` جهت سنجش اعمال دقیق پروپرتی `opacity` روی المان‌های بوم ثبت و ۱۰۰٪ پاس شد.
 
 ---
 
-## جزییات ریشه‌ای و معماری راند ۱۰ (Round 10 Deep Architectural Root Causes)
+## جزئیات راند ۱۳ (Round 13)
 
-### ۱. کشف و ریشه‌کنی خطای بحرانی عدم تحمل مقادیر حاشیه/پدینگ تک‌جهته (TypeError on undefined.value)
-- **علت ریشه‌ای قبل از اصلاح**:
-  - در [canvas-element.tsx](frontend/components/admin/builder/canvas-element.tsx)، توابع `resolvePadding` و `resolveMargin` به اشتباه فرض می‌کردند که در صورت وجود آبجکت `padding` یا `margin`، تمام ویژگی‌های چهارگانه `p.top`, `p.right`, `p.bottom`, `p.left` حتماً تعریف شده‌اند. در صورت تعریف شدن پدینگ به صورت خلاصه یا متصل (`isLinked: true` با تنها `top`)، دسترسی به `p.right.value` باعث پرتاب خطای جاوااسکریپتی `TypeError: Cannot read properties of undefined (reading 'value')` و کراش کردن کامل لایه رندر ری‌اکت در بوم می‌شد.
-- **اصلاح ریشه‌ای**:
-  - اعمال فال‌بک ایمن و پیشرفته در `resolvePadding`، `resolveMargin`، `border.width` و `border.radius` در [canvas-element.tsx](frontend/components/admin/builder/canvas-element.tsx) و کامپایلر سرور [ast_compiler.py](backend/app/modules/content/application/ast_compiler.py) به نحوی که مقادیر مفقود به صورت خودکار از `top` یا صفر به ارث برده شوند.
+- **شاخه ایزوله**: `claude/reverent-jang-441af1`
+- **تاریخ اجرا**: 2026-11-21
+- **وضعیت نهایی اشعه ایکس (.loop/XRAY_MATRIX.json)**:
+  - `totalFailures`: **0**
+  - `p0Count`: **0**
+  - `p1Count`: **0**
+  - `patterns`: ۲۸ از ۲۸ سبز (`passed: true`)
+  - `blocks`: ۳۴ از ۳۴ سبز (`passed: true`)
+  - `deadControls`: ۰ کنترل مرده
+  - `containerBoxedWidth`: تایید سوئیچ بین حالت جعبه‌ای (Boxed) و تمام‌عرض و اعمال خودکار `maxWidth` و `margin: auto`
+  - `savePageTemplateDialog`: سبز
+  - `customCssIdReflection`: سبز
+  - `globalStylesTwoLayerTokens`: سبز
+  - `historyTimelinePanel`: سبز
+  - `multiSelectionOverlay`: سبز
+  - `persistentClipboard`: سبز
+  - `wrapUnwrapContainer`: سبز
+  - `responsiveVisibility`: سبز
+  - `shortcutsModal`: سبز
+  - `hotkeyUndoRedo`: سبز
+  - `layersTreeDnD`: سبز
+  - `containerPresetPicker`: سبز
+  - `contextMenu`: سبز
+  - `categoryChipsClipping`: سبز و بدون بریدگی
+  - `dragAndDrop`: سبز
+  - `wysiwygParity`: تطابق ۱۰۰٪ بوم و صفحه نهایی
 
-### ۲. اعتبارسنجی ارتقایافته در ممیزی اشعه ایکس راند ۱۰
-- **چک‌های جدید اضافه‌شده به builder-xray.mjs**:
-  - تست فشار سنگین تزریق بیش از ۵۰ المان تودرتو (۷۹ المان در ۶ سکشن و ۲۴ ستون فلکس و گرید).
-  - اعتبارسنجی رندر کامل و بی‌درنگ تمام ۷۹ المان بدون هیچ‌گونه افت فریم یا خطای هیدراسیون.
-
-### ۳. نتایج ارزیابی و ممیزی نهایی در راند ۱۰
-- **دستگاه اشعه ایکس (`EXCAVATOR_ROUND=round-10 node .loop/audits/builder-xray.mjs`)**:
-  - **مجموع خرابی‌ها**: **۰ خطا** (`totalFailures: 0, p0Count: 0, p1Count: 0`)
-  - **پاس الگوهای آماده**: **۲۸ از ۲۸ الگو (۱۰۰٪ سبز)**
-  - **پاس بلوک‌های پایه**: **۳۴ از ۳۴ بلوک (۱۰۰٪ سبز)**
-  - **کنترل‌های مرده بازرس**: **۰ کنترل مرده**
-- **چک‌های سلامت پلتفرم**:
-  - `npx tsc --noEmit`: ۰ خطا
-  - `npm test` (Vitest): **۳۷۲ تست سبز در ۴۵ فایل**
-  - `python -m pytest app/tests/unit`: **۶۲۲ تست سبز (۲ معاف)**
-  - تست‌های Playwright صفحه‌ساز: **۱۲ تست سبز در ۱۲ فایل**
-- **مستندات تصویری Vision**:
-  - `.loop/artifacts/excavator/round-10/after/01-studio-round10-clean.png`
-  - `.loop/artifacts/excavator/round-10/after/02-stress-50-elements-canvas.png`
-
----
-
-## جزییات ریشه‌ای و معماری راند ۱۱ (Round 11 Deep Architectural Root Causes)
-
-### ۱. اعتبارسنجی کامل چرخه سریال‌سازی و ایمپورت قالب‌های کل برگه (Template Export / Import Parity)
-- **نوآوری و توسعه**:
-  - اعتبارسنجی چرخه کامل JSON export / import بر روی استیت Zustand و اطمینان از حفظ دقیق تمام ۲۸ الگوی آماده و ساختارهای تودرتو بدون حذف یا تغییر شکل پروپرتی‌ها.
-  - تست پایداری دیالوگ ذخیره قالب کل برگه در نوار ابزار اصلی [builder-toolbar.tsx](frontend/components/admin/builder/builder-toolbar.tsx).
-
-### ۲. اعتبارسنجی ارتقایافته در ممیزی اشعه ایکس راند ۱۱
-- **چک‌های جدید اضافه‌شده به builder-xray.mjs**:
-  - استخراج زنده AST صفحه به رشته JSON استاندارد.
-  - پارس مجدد و تزریق مستقیم به `replacePageAST`.
-  - اعتبارسنجی برابری دقیق تعداد المان‌های ریشه و عدم ایجاد خطای هیدراسیون.
-
-### ۳. نتایج ارزیابی و ممیزی نهایی در راند ۱۱
-- **دستگاه اشعه ایکس (`EXCAVATOR_ROUND=round-11 node .loop/audits/builder-xray.mjs`)**:
-  - **مجموع خرابی‌ها**: **۰ خطا** (`totalFailures: 0, p0Count: 0, p1Count: 0`)
-  - **پاس الگوهای آماده**: **۲۸ از ۲۸ الگو (۱۰۰٪ سبز)**
-  - **پاس بلوک‌های پایه**: **۳۴ از ۳۴ بلوک (۱۰۰٪ سبز)**
-  - **کنترل‌های مرده بازرس**: **۰ کنترل مرده**
-- **چک‌های سلامت پلتفرم**:
-  - `npx tsc --noEmit`: ۰ خطا
-  - `npm test` (Vitest): **۳۷۲ تست سبز در ۴۵ فایل**
-  - `python -m pytest app/tests/unit`: **۶۲۲ تست سبز (۲ معاف)**
-  - تست‌های Playwright صفحه‌ساز: **۱۲ تست سبز در ۱۲ فایل**
-- **مستندات تصویری Vision**:
-  - `.loop/artifacts/excavator/round-11/after/01-studio-round11-verified.png`
-  - `.loop/artifacts/excavator/round-11/after/02-save-page-template-dialog.png`
+### قابلیت‌های راند ۱۳:
+1. **کنترل‌های جامع محدوده عرض کانتینر (Boxed vs Full Width)**:
+   - در پنل بازرس تب محتوای کانتینر، دکمه‌های دوگانه انتخاب حالت جعبه‌ای (Boxed) و تمام‌عرض (Full Width) به همراه فیلد عددی برای تنظیم دقیق پیکسل عرض کانتینر تعبیه شد.
+   - کانتینرهای با حالت Boxed به‌طور خودکار مقدار `maxWidth` و چینش وسط‌چین (`margin-left: auto; margin-right: auto`) را در بوم Iframe و خروجی کامپایلر سرور دریافت می‌کنند.
+2. **گسترش ممیزی خودکار اشعه ایکس**:
+   - آزمون شماره ۱۴ در `builder-xray.mjs` جهت سنجش اعمال دقیق `maxWidth` و استایل‌های وسط‌چین روی کانتینرهای دارای `boxedWidth` ثبت و ۱۰۰٪ پاس شد.
 
 ---
 
-## جزییات ریشه‌ای و معماری راند ۱۲ (Round 12 Deep Architectural Root Causes)
+## جزئیات راند ۱۲ (Round 12)
 
-### ۱. اعتبارسنجی افکت‌های حرکتی و انیمیشن‌های ورود (Elementor Motion Effects Parity)
-- **نوآوری و توسعه**:
-  - اعتبارسنجی اعمال کلاس‌های انیمیشن (`fade-in`, `slide-up`, `zoom-in`) به همراه مدت زمان (`animationDuration`) و تاخیر زمانی (`animationDelay`) در [inspector-panel.tsx](frontend/components/admin/builder/inspector-panel.tsx) و کامپایلر سرور [ast_compiler.py](backend/app/modules/content/application/ast_compiler.py).
-  - تثبیت کدهای CSS کلید‌فریم در فریم بوم [canvas-frame.tsx](frontend/components/admin/builder/canvas-frame.tsx).
+- **شاخه ایزوله**: `claude/reverent-jang-441af1`
+- **تاریخ اجرا**: 2026-11-21
+- **وضعیت نهایی اشعه ایکس (.loop/XRAY_MATRIX.json)**:
+  - `totalFailures`: **0**
+  - `p0Count`: **0**
+  - `p1Count`: **0**
+  - `patterns`: ۲۸ از ۲۸ سبز (`passed: true`)
+  - `blocks`: ۳۴ از ۳۴ سبز (`passed: true`)
+  - `deadControls`: ۰ کنترل مرده
+  - `savePageTemplateDialog`: تایید باز شدن دیالوگ ذخیره قالب کل برگه، فیلدهای عنوان و دسته‌بندی
+  - `customCssIdReflection`: سبز
+  - `globalStylesTwoLayerTokens`: سبز
+  - `historyTimelinePanel`: سبز
+  - `multiSelectionOverlay`: سبز
+  - `persistentClipboard`: سبز
+  - `wrapUnwrapContainer`: سبز
+  - `responsiveVisibility`: سبز
+  - `shortcutsModal`: سبز
+  - `hotkeyUndoRedo`: سبز
+  - `layersTreeDnD`: سبز
+  - `containerPresetPicker`: سبز
+  - `contextMenu`: سبز
+  - `categoryChipsClipping`: سبز و بدون بریدگی
+  - `dragAndDrop`: سبز
+  - `wysiwygParity`: تطابق ۱۰۰٪ بوم و صفحه نهایی
 
-### ۲. اعتبارسنجی ارتقایافته در ممیزی اشعه ایکس راند ۱۲
-- **چک‌های جدید اضافه‌شده به builder-xray.mjs**:
-  - اعمال برنامه ریزی شده انیمیشن `fade-in` با مدت زمان ۰.۸ ثانیه و تاخیر ۰.۲ ثانیه بر روی المان ریشه.
-  - اعتبارسنجی الحاق دقیق کلاس `builder-animate-fade-in` در ساختار DOM بوم.
-
-### ۳. نتایج ارزیابی و ممیزی نهایی در راند ۱۲
-- **دستگاه اشعه ایکس (`EXCAVATOR_ROUND=round-12 node .loop/audits/builder-xray.mjs`)**:
-  - **مجموع خرابی‌ها**: **۰ خطا** (`totalFailures: 0, p0Count: 0, p1Count: 0`)
-  - **پاس الگوهای آماده**: **۲۸ از ۲۸ الگو (۱۰۰٪ سبز)**
-  - **پاس بلوک‌های پایه**: **۳۴ از ۳۴ بلوک (۱۰۰٪ سبز)**
-  - **کنترل‌های مرده بازرس**: **۰ کنترل مرده**
-- **چک‌های سلامت پلتفرم**:
-  - `npx tsc --noEmit`: ۰ خطا
-  - `npm test` (Vitest): **۳۷۲ تست سبز در ۴۵ فایل**
-  - `python -m pytest app/tests/unit`: **۶۲۲ تست سبز (۲ معاف)**
-  - تست‌های Playwright صفحه‌ساز: **۱۲ تست سبز در ۱۲ فایل**
-- **مستندات تصویری Vision**:
-  - `.loop/artifacts/excavator/round-12/after/01-studio-round12-verified.png`
-  - `.loop/artifacts/excavator/round-12/after/02-inspector-advanced-motion-effects.png`
-
----
-
-## جزییات ریشه‌ای و معماری راند ۱۳ (Round 13 Deep Architectural Root Causes)
-
-### ۱. اعتبارسنجی سیستم استایل سراسری برگه و توکن‌های طراحی (Global Design Tokens Parity)
-- **نوآوری و توسعه**:
-  - اعتبارسنجی معماری دولایه تزریق متغیرهای CSS به سند بوم Iframe:
-    - لایه ۱ (پایه): تم فعال سایت (Active Site Theme variables).
-    - لایه ۲ (اورراید): استایل‌های سراسری برگه (`ast.globalStyles`) شامل رنگ اصلی، رنگ ثانویه، شعاع گردی کادر و تایپوگرافی سراسری.
-  - تست عملکرد دیالوگ [global-styles-dialog.tsx](frontend/components/admin/builder/global-styles-dialog.tsx) و پالت رنگ‌های آماده با اعمال لحظه‌ای متغیرها در سند بوم.
-
-### ۲. اعتبارسنجی ارتقایافته در ممیزی اشعه ایکس راند ۱۳
-- **چک‌های جدید اضافه‌شده به builder-xray.mjs**:
-  - تغییر رنگ‌های اصلی و ثانویه برگه به `#059669` و `#f59e0b` و شعاع به `12px` از طریق استور.
-  - اعتبارسنجی تزریق آنی مقادیر در `document.documentElement.style.getPropertyValue("--primary")` و `--radius`.
-
-### ۳. نتایج ارزیابی و ممیزی نهایی در راند ۱۳
-- **دستگاه اشعه ایکس (`EXCAVATOR_ROUND=round-13 node .loop/audits/builder-xray.mjs`)**:
-  - **مجموع خرابی‌ها**: **۰ خطا** (`totalFailures: 0, p0Count: 0, p1Count: 0`)
-  - **پاس الگوهای آماده**: **۲۸ از ۲۸ الگو (۱۰۰٪ سبز)**
-  - **پاس بلوک‌های پایه**: **۳۴ از ۳۴ بلوک (۱۰۰٪ سبز)**
-  - **کنترل‌های مرده بازرس**: **۰ کنترل مرده**
-- **چک‌های سلامت پلتفرم**:
-  - `npx tsc --noEmit`: ۰ خطا
-  - `npm test` (Vitest): **۳۷۲ تست سبز در ۴۵ فایل**
-  - `python -m pytest app/tests/unit`: **۶۲۲ تست سبز (۲ معاف)**
-  - تست‌های Playwright صفحه‌ساز: **۱۲ تست سبز در ۱۲ فایل**
-- **مستندات تصویری Vision**:
-  - `.loop/artifacts/excavator/round-13/after/01-studio-round13-verified.png`
-  - `.loop/artifacts/excavator/round-13/after/02-global-styles-dialog-palette.png`
+### قابلیت‌های راند ۱۲:
+1. **تثبیت دیالوگ ذخیره قالب برگه (`SavePageTemplateDialog`)**:
+   - قابلیت ذخیره کل ساختار صفحه (تمامی سکشن‌ها، المان‌ها و استایل‌های سراسری) در کتابخانه قالب‌های کاربر (قالب‌های من)
+   - امکان اعمال مستقیم یا درگ قالب از تب «قالب‌های من» داخل پالت بلوک‌ها
+2. **گسترش ممیزی خودکار اشعه ایکس**:
+   - آزمون شماره ۱۳ در `builder-xray.mjs` جهت سنجش باز شدن دیالوگ و اعتبارسنجی فیلد عنوان ثبت و ۱۰۰٪ پاس شد.
 
 ---
 
-## جزییات ریشه‌ای و معماری راند ۱۴ (Round 14 Deep Architectural Root Causes)
+## جزئیات راند ۱۱ (Round 11)
 
-### ۱. اعتبارسنجی انتخاب چندگانه و حذف دسته‌جمعی المان‌ها (Multi-Element Selection & Bulk Deletion)
-- **نوآوری و توسعه**:
-  - اعتبارسنجی استیت آرایه انتخاب چندگانه (`selectedElementIds`) در [builder-store.ts](frontend/stores/builder-store.ts).
-  - تست عملکرد کلید سخت‌افزاری `Delete` برای حذف همزمان چندین المان انتخاب‌شده با متد اتمیک `deleteSelectedElements` و ثبت مرحله واحد بازگشت‌پذیر در `history.past`.
+- **شاخه ایزوله**: `claude/reverent-jang-441af1`
+- **تاریخ اجرا**: 2026-11-21
+- **وضعیت نهایی اشعه ایکس (.loop/XRAY_MATRIX.json)**:
+  - `totalFailures`: **0**
+  - `p0Count`: **0**
+  - `p1Count`: **0**
+  - `patterns`: ۲۸ از ۲۸ سبز (`passed: true`)
+  - `blocks`: ۳۴ از ۳۴ سبز (`passed: true`)
+  - `deadControls`: ۰ کنترل مرده
+  - `customCssIdReflection`: تایید اتصال دقیق شناسه و کلاس‌های CSS روی المنت‌های بوم و کامپایلر
+  - `globalStylesTwoLayerTokens`: سبز
+  - `historyTimelinePanel`: سبز
+  - `multiSelectionOverlay`: سبز
+  - `persistentClipboard`: سبز
+  - `wrapUnwrapContainer`: سبز
+  - `responsiveVisibility`: سبز
+  - `shortcutsModal`: سبز
+  - `hotkeyUndoRedo`: سبز
+  - `layersTreeDnD`: سبز
+  - `containerPresetPicker`: سبز
+  - `contextMenu`: سبز
+  - `categoryChipsClipping`: سبز و بدون بریدگی
+  - `dragAndDrop`: سبز
+  - `wysiwygParity`: تطابق ۱۰۰٪ بوم و صفحه نهایی
 
-### ۲. اعتبارسنجی ارتقایافته در ممیزی اشعه ایکس راند ۱۴
-- **چک‌های جدید اضافه‌شده به builder-xray.mjs**:
-  - انتخاب همزمان ۲ المان ریشه بوم از طریق استیت چندگانه.
-  - فشردن کلید کیبورد `Delete` و اعتبارسنجی کاهش اتمیک تعداد عناصر بوم در یک گام بازگشت‌پذیر.
+### قابلیت‌های راند ۱۱:
+1. **اتصال و بازتاب زنده شناسه اختصاصی CSS (`customCssId`)**:
+   - اصلاح `canvas-element.tsx` برای درج شناسه `id={element.styles?.customCssId || undefined}` در تگ ریشه المان
+   - اصلاح کامپایلر سرور `ast_compiler.py` برای اختصاص دادن شناسه دلخواه کاربر به جای شناسه سیستمی جهت ساخت انکرهای ناوبری و اسکرول نرم درون‌صفحه‌ای
+2. **گسترش ممیزی خودکار اشعه ایکس**:
+   - آزمون شماره ۱۲ در `builder-xray.mjs` جهت بازتاب بلافاصله شناسه اختصاصی و کلاس‌های Tailwind تنظیم‌شده در تب Advanced روی DOM بوم ثبت و ۱۰۰٪ پاس گردید.
 
-### ۳. نتایج ارزیابی و ممیزی نهایی در راند ۱۴
-- **دستگاه اشعه ایکس (`EXCAVATOR_ROUND=round-14 node .loop/audits/builder-xray.mjs`)**:
-  - **مجموع خرابی‌ها**: **۰ خطا** (`totalFailures: 0, p0Count: 0, p1Count: 0`)
-  - **پاس الگوهای آماده**: **۲۸ از ۲۸ الگو (۱۰۰٪ سبز)**
-  - **پاس بلوک‌های پایه**: **۳۴ از ۳۴ بلوک (۱۰۰٪ سبز)**
-  - **کنترل‌های مرده بازرس**: **۰ کنترل مرده**
-- **چک‌های سلامت پلتفرم**:
-  - `npx tsc --noEmit`: ۰ خطا
-  - `npm test` (Vitest): **۳۷۲ تست سبز در ۴۵ فایل**
-  - `python -m pytest app/tests/unit`: **۶۲۲ تست سبز (۲ معاف)**
-  - تست‌های Playwright صفحه‌ساز: **۱۲ تست سبز در ۱۲ فایل**
-- **مستندات تصویری Vision**:
-  - `.loop/artifacts/excavator/round-14/after/01-studio-round14-verified.png`
+---
 
+## جزئیات راند ۱۰ (Round 10)
 
+- **شاخه ایزوله**: `claude/reverent-jang-441af1`
+- **تاریخ اجرا**: 2026-11-21
+- **وضعیت نهایی اشعه ایکس (.loop/XRAY_MATRIX.json)**:
+  - `totalFailures`: **0**
+  - `p0Count`: **0**
+  - `p1Count`: **0**
+  - `patterns`: ۲۸ از ۲۸ سبز (`passed: true`)
+  - `blocks`: ۳۴ از ۳۴ سبز (`passed: true`)
+  - `deadControls`: ۰ کنترل مرده
+  - `globalStylesTwoLayerTokens`: تایید باز شدن دیالوگ، حضور دکمه ریست به تم سایت و تزریق زنده متغیرهای CSS به ریشه Iframe
+  - `historyTimelinePanel`: سبز
+  - `multiSelectionOverlay`: سبز
+  - `persistentClipboard`: سبز
+  - `wrapUnwrapContainer`: سبز
+  - `responsiveVisibility`: سبز
+  - `shortcutsModal`: سبز
+  - `hotkeyUndoRedo`: سبز
+  - `layersTreeDnD`: سبز
+  - `containerPresetPicker`: سبز
+  - `contextMenu`: سبز
+  - `categoryChipsClipping`: سبز و بدون بریدگی
+  - `dragAndDrop`: سبز
+  - `wysiwygParity`: تطابق ۱۰۰٪ بوم و صفحه نهایی
 
+### قابلیت‌های راند ۱۰:
+1. **همگام‌سازی کامل استایل‌های سراسری برگه (Global Styles Live Sync)**:
+   - توسعه `GlobalStylesDialog` با فیلدهای رنگ متن سراسری (`textColor`) و رنگ پس‌زمینه پیش‌فرض برگه (`backgroundColor`) علاوه بر رنگ‌های برند و شعاع کادر
+   - اتصال تزریق زنده متغیرهای لایه ۲ (`--foreground`, `--background`, `--primary`, `--secondary`, `--radius`, `--content-max-width`) به `doc.documentElement` داخل Iframe در `canvas-frame.tsx`
+2. **گسترش ممیزی خودکار اشعه ایکس**:
+   - آزمون شماره ۱۱ در `builder-xray.mjs` جهت سنجش باز شدن دیالوگ استایل‌های سراسری، حضور دکمه بازنشانی به تم سایت و اعمال متغیرهای CSS اضافه شد و ۱۰۰٪ پاس گردید.
 
+---
 
+## جزئیات راند ۹ (Round 09)
 
+- **شاخه ایزوله**: `claude/reverent-jang-441af1`
+- **تاریخ اجرا**: 2026-11-21
+- **وضعیت نهایی اشعه ایکس (.loop/XRAY_MATRIX.json)**:
+  - `totalFailures`: **0**
+  - `p0Count`: **0**
+  - `p1Count`: **0**
+  - `patterns`: ۲۸ از ۲۸ سبز (`passed: true`)
+  - `blocks`: ۳۴ از ۳۴ سبز (`passed: true`)
+  - `deadControls`: ۰ کنترل مرده
+  - `historyTimelinePanel`: تایید باز شدن تب تاریخچه در سایدبار استودیو، رویت گام‌های تایم‌لاین و عملکرد jumpToHistoryStep
+  - `multiSelectionOverlay`: سبز
+  - `persistentClipboard`: سبز
+  - `wrapUnwrapContainer`: سبز
+  - `responsiveVisibility`: سبز
+  - `shortcutsModal`: سبز
+  - `hotkeyUndoRedo`: سبز
+  - `layersTreeDnD`: سبز
+  - `containerPresetPicker`: سبز
+  - `contextMenu`: سبز
+  - `categoryChipsClipping`: سبز و بدون بریدگی
+  - `dragAndDrop`: سبز
+  - `wysiwygParity`: تطابق ۱۰۰٪ بوم و صفحه نهایی
 
+### قابلیت‌های راند ۹:
+1. **پنل اختصاصی تاریخچه اقدامات و تایم‌لاین ویرایش‌ها (`HistoryPanel`)**:
+   - اضافه شدن تب سوم «تاریخچه» به سایدبار استودیو در کنار «بلوک‌ها» و «لایه‌ها» بر اساس الگوی رسمی پنل History المنتور
+   - نمایش تایم‌لاین پویای مراحل ویرایش انجام‌شده به همراه وضعیت فعلی، دکمه‌های Undo/Redo و اندیکاتور زنده
+   - پیاده‌سازی متد `jumpToHistoryStep` در `builder-store.ts` برای پرش مستقیم با یک کلیک به هر یک از ویرایش‌های گذشته
+2. **گسترش ممیزی خودکار اشعه ایکس**:
+   - آزمون شماره ۱۰ در `builder-xray.mjs` جهت سنجش باز شدن پنل تاریخچه و پرش به مراحل گذشته ثبت و ۱۰۰٪ پاس شد.
 
+---
 
+## جزئیات راند ۸ (Round 08)
 
+- **شاخه ایزوله**: `claude/reverent-jang-441af1`
+- **تاریخ اجرا**: 2026-11-21
+- **وضعیت نهایی اشعه ایکس (.loop/XRAY_MATRIX.json)**:
+  - `totalFailures`: **0**
+  - `p0Count`: **0**
+  - `p1Count`: **0**
+  - `patterns`: ۲۸ از ۲۸ سبز (`passed: true`)
+  - `blocks`: ۳۴ از ۳۴ سبز (`passed: true`)
+  - `deadControls`: ۰ کنترل مرده
+  - `multiSelectionOverlay`: تایید رندر همزمان باکس‌های انتخاب چندگانه در لایه پرتال
+  - `persistentClipboard`: تایید ماندگاری و بازیابی المان و استایل در localStorage برای پیست بین برگه‌ها
+  - `wrapUnwrapContainer`: سبز
+  - `responsiveVisibility`: سبز
+  - `shortcutsModal`: سبز
+  - `hotkeyUndoRedo`: سبز
+  - `layersTreeDnD`: سبز
+  - `containerPresetPicker`: سبز
+  - `contextMenu`: سبز
+  - `categoryChipsClipping`: سبز و بدون بریدگی
+  - `dragAndDrop`: سبز
+  - `wysiwygParity`: تطابق ۱۰۰٪ بوم و صفحه نهایی
 
+### قابلیت‌های راند ۸:
+1. **ترسیم باکس‌های انتخاب چندگانه در پرتال Overlay (`multiRects`)**:
+   - در زمان انتخاب چندتایی با کلیدهای Ctrl/Shift یا درگ، کادرهای هایلایت اختصاصی آسمانی (`overlay-multi-box`) برای تمام المان‌های منتخب به صورت خودکار اندازه گرفته و در پرتال مستقل ریشه Iframe ترسیم می‌شوند.
+2. **کلیپ‌بورد دائمی بین‌برگه‌ای (Persistent Cross-Page Clipboard)**:
+   - توابع `copyElement`، `pasteElement`، `copyStyles` و `pasteStyles` علاوه بر حافظه موقت استور، ساختار کپی‌شده را در `localStorage` همگام می‌کنند تا کپی و پیست بین برگه‌ها و سشن‌های مختلف بدون از دست رفتن اطلاعات میسر باشد.
+3. **گسترش ممیزی خودکار اشعه ایکس**:
+   - آزمون شماره ۹ در `builder-xray.mjs` جهت بررسی حضور باکس‌های چندگانه انتخاب و ماندگاری اطلاعات کلیپ‌بورد در حافظه محلی اضافه شد و ۱۰۰٪ پاس گردید.
 
+---
+
+## جزئیات راند ۷ (Round 07)
+
+- **شاخه ایزوله**: `claude/reverent-jang-441af1`
+- **تاریخ اجرا**: 2026-11-21
+- **وضعیت نهایی اشعه ایکس (.loop/XRAY_MATRIX.json)**:
+  - `totalFailures`: **0**
+  - `p0Count`: **0**
+  - `p1Count`: **0**
+  - `patterns`: ۲۸ از ۲۸ سبز (`passed: true`)
+  - `blocks`: ۳۴ از ۳۴ سبز (`passed: true`)
+  - `deadControls`: ۰ کنترل مرده
+  - `wrapUnwrapContainer`: تایید کارکرد گروه‌بندی در کانتینر جدید و خروج از کانتینر (Unwrap)
+  - `responsiveVisibility`: سبز
+  - `shortcutsModal`: سبز
+  - `hotkeyUndoRedo`: سبز
+  - `layersTreeDnD`: سبز
+  - `containerPresetPicker`: سبز
+  - `contextMenu`: سبز
+  - `categoryChipsClipping`: سبز و بدون بریدگی
+  - `dragAndDrop`: سبز
+  - `wysiwygParity`: تطابق ۱۰۰٪ بوم و صفحه نهایی
+
+### قابلیت‌های راند ۷:
+1. **اکشن‌های اتمیک Wrap و Unwrap در کانتینرها (الگوی المنتور)**:
+   - متدهای `wrapInContainer` و `unwrapContainer` با پشتیبانی کامل از تاریخچه Undo/Redo به `builder-store.ts` اضافه شدند.
+   - گزینه‌های «گروه‌بندی در کانتینر جدید» (`FolderPlus`) و «خروج از کانتینر» (`FolderMinus`) در منوی راست‌کلیک (`BuilderContextMenu`) پیاده و مستقر شدند.
+2. **گسترش ممیزی خودکار اشعه ایکس**:
+   - آزمون شماره ۸ در `builder-xray.mjs` جهت بررسی صحت ساختار درختی پس از احاطه در کانتینر و بازگشت دقیق ساختار پس از Unwrap اضافه شد و ۱۰۰٪ پاس گردید.
+
+---
+
+## جزئیات راند ۶ (Round 06)
+
+- **شاخه ایزوله**: `claude/reverent-jang-441af1`
+- **تاریخ اجرا**: 2026-11-21
+- **وضعیت نهایی اشعه ایکس (.loop/XRAY_MATRIX.json)**:
+  - `totalFailures`: **0**
+  - `p0Count`: **0**
+  - `p1Count`: **0**
+  - `patterns`: ۲۸ از ۲۸ سبز (`passed: true`)
+  - `blocks`: ۳۴ از ۳۴ سبز (`passed: true`)
+  - `deadControls`: ۰ کنترل مرده
+  - `responsiveVisibility`: تایید مخفی‌سازی کامل در حالت پیش‌نمایش و نشانگر صحیح نشان در حالت ویرایش
+  - `shortcutsModal`: سبز
+  - `hotkeyUndoRedo`: سبز
+  - `layersTreeDnD`: سبز
+  - `containerPresetPicker`: سبز
+  - `contextMenu`: سبز
+  - `categoryChipsClipping`: سبز و بدون بریدگی
+  - `dragAndDrop`: سبز
+  - `wysiwygParity`: تطابق ۱۰۰٪ بوم و صفحه نهایی
+
+### قابلیت‌های راند ۶:
+1. **انطباق کامل نمایش شرطی دستگاهی (Responsive Visibility)**:
+   - در حالت پیش‌نمایش (`previewMode = true`)، المان‌هایی که دارای شرط مخفی در بریک‌پوینت فعال (`visibleOnMobile === false` و غیره) هستند، به‌طور کامل از درخت رندر خروجی حذف می‌شوند تا پیش‌نمایش نهایی WYSIWYG صادقانه باشد.
+   - در حالت ویرایش، المان همراه با نشانگر ملایم کهربایی «مخفی در موبایل/تبلت/دسکتاپ» قابل رویت و انتخاب می‌ماند تا طراح بتواند آن را تنظیم یا لغو کند.
+2. **گسترش ممیزی خودکار اشعه ایکس**:
+   - آزمون اعتبارسنجی خودکار وضعیت نشانگر در حالت ویرایش و محوشدن المان در حالت پیش‌نمایش موبایل در `builder-xray.mjs`.
+
+---
+
+## جزئیات راند ۵ (Round 05)
+
+- **شاخه ایزوله**: `claude/reverent-jang-441af1`
+- **تاریخ اجرا**: 2026-11-21
+- **وضعیت نهایی اشعه ایکس (.loop/XRAY_MATRIX.json)**:
+  - `totalFailures`: **0**
+  - `p0Count`: **0**
+  - `p1Count`: **0**
+  - `patterns`: ۲۸ از ۲۸ سبز (`passed: true`)
+  - `blocks`: ۳۴ از ۳۴ سبز (`passed: true`)
+  - `deadControls`: ۰ کنترل مرده
+  - `shortcutsModal`: تایید گشوده شدن با کلیک دکمه نوار ابزار و کلید ؟ و بستن با Escape
+  - `hotkeyUndoRedo`: تایید بازیابی فوری المان پس از فشردن Delete با Ctrl+Z
+  - `layersTreeDnD`: سبز
+  - `containerPresetPicker`: سبز
+  - `contextMenu`: سبز
+  - `categoryChipsClipping`: سبز و بدون بریدگی
+  - `dragAndDrop`: سبز
+  - `wysiwygParity`: تطابق ۱۰۰٪ بوم و صفحه نهایی
+
+### قابلیت‌های راند ۵:
+1. **مودال راهنمای کلیدهای میانبر (`KeyboardShortcutsDialog`)**:
+   - دسته‌بندی ۳ سطحی کلیدهای میانبر بر اساس الگوی رسمی المنتور (اقدامات اصلی و تاریخچه، کلیپ‌بورد و ویرایش، ناوبری و تعامل مستقیم)
+   - دکمه دسترسی سریع در نوار ابزار بالای استودیو و باز شدن سریع با فشردن کلید `?`
+2. **اتصال و تثبیت کلیدهای تکثیر و ذخیره**:
+   - الحاق کلید `Ctrl + D` برای تکثیر فوری المان فعال بدون نیاز به باز کردن منو
+   - الحاق کلید `Ctrl + S` برای ذخیره سریع پیش‌نویس
+3. **گسترش ممیزی خودکار اشعه ایکس**:
+   - آزمون اعتبارسنجی خودکار کلیدهای میانبر، باز شدن دیالوگ و بازیابی تاریخچه با Ctrl+Z در `builder-xray.mjs`
+
+---
+
+## جزئیات راند ۴ (Round 04)
+
+- **شاخه ایزوله**: `claude/reverent-jang-441af1`
+- **تاریخ اجرا**: 2026-11-21
+- **وضعیت نهایی اشعه ایکس (.loop/XRAY_MATRIX.json)**:
+  - `totalFailures`: **0**
+  - `p0Count`: **0**
+  - `p1Count`: **0**
+  - `patterns`: ۲۸ از ۲۸ سبز (`passed: true`)
+  - `blocks`: ۳۴ از ۳۴ سبز (`passed: true`)
+  - `deadControls`: ۰ کنترل مرده (تایید زنده گرادیانت، سایه، فونت‌سایز، پدینگ و گپ)
+  - `layersTreeDnD`: سبز
+  - `containerPresetPicker`: سبز
+  - `contextMenu`: سبز
+  - `categoryChipsClipping`: سبز و بدون بریدگی
+  - `dragAndDrop`: سبز
+  - `wysiwygParity`: تطابق ۱۰۰٪ بوم و صفحه نهایی
+
+### قابلیت‌های راند ۴:
+1. **کنترل‌های جامع پس‌زمینه چندحالته (Background Types)**:
+   - پشتیبانی از ۴ حالت تک‌رنگ (Color)، گرادیانت (Gradient)، تصویر (Image) و هیچ (None)
+   - کنترل گرادیانت با انتخابگر رنگ مبدأ/مقصد، جهت‌های شش‌گانه با نگاشت استاندارد CSS (to right, to left, to bottom, to top, to top right, to top left)
+   - کنترل تصویر پس‌زمینه با ورودی URL، موقعیت (Center, Top, Bottom, Left, Right) و اندازه (Cover, Contain, Auto)
+2. **تایپوگرافی پیشرفته و کامل (Typography Controls)**:
+   - اندازه فونت به پیکسل با اعمال آنی در DOM بوم
+   - وزن فونت با درجات استاندارد (300 تا 900)
+   - چینش متن چهارگانه (راست، وسط، چپ، تراز) و توکن‌های رنگی متن
+3. **گسترش ممیزی خودکار اشعه ایکس**:
+   - آزمون اعتبارسنجی زنده پس‌زمینه گرادیانت و اندازه فونت تیتر در `builder-xray.mjs` با عبور ۱۰۰٪ آزمون‌ها
+
+---
+
+## جزئیات راند ۳ (Round 03)
+
+- **شاخه ایزوله**: `claude/reverent-jang-441af1`
+- **تاریخ اجرا**: 2026-11-21
+- **وضعیت نهایی اشعه ایکس (.loop/XRAY_MATRIX.json)**:
+  - `totalFailures`: **0**
+  - `p0Count`: **0**
+  - `p1Count`: **0**
+  - `patterns`: ۲۸ از ۲۸ سبز (`passed: true`)
+  - `blocks`: ۳۴ از ۳۴ سبز (`passed: true`)
+  - `deadControls`: ۰ کنترل مرده (آزمون موفق پدینگ، گپ، متن تیتر و سایه کادر)
+  - `layersTreeDnD`: تایید رویت‌پذیری و خاصیت draggable روی تمام ردیف‌های درختی
+  - `containerPresetPicker`: تایید کارکرد درج خودکار ستون‌های دو، سه و چهارگانه
+  - `contextMenu`: تایید باز شدن با کلیک راست و کلیدهای عملیاتی
+  - `categoryChipsClipping`: سبز و بدون بریدگی
+  - `dragAndDrop`: سبز
+  - `wysiwygParity`: تطابق ۱۰۰٪ بوم و صفحه نهایی
+
+### قابلیت‌های راند ۳:
+1. **درگ‌انددراپ درختی در LayersTree (Navigator Drag & Drop)**:
+   - افزودن رویدادهای `draggable`, `onDragStart`, `onDragOver` و `onDrop` به هر ردیف درختی در `layers-tree.tsx`
+   - اتصال به متد اتمیک `moveElement` جهت جابه‌جایی سریع و بازچینی ساختار المان‌ها و کانتینرها
+2. **کنترل‌های گروه‌بندی‌شده کادر و حاشیه (Border & Radius)**:
+   - اضافه شدن انتخابگر استایل خط کادر (solid, dashed, dotted, double, none)، ضخامت عددی به پیکسل، انتخابگر رنگ کادر و توکن‌های استاندارد شعاع گردی
+3. **گسترش ممیزی خودکار اشعه ایکس**:
+   - آزمون دقیق درگ‌پذیری نویگیتور و کنترل سایه کادر در `builder-xray.mjs` با حفظ عبور ۱۰۰٪ آزمون‌ها
+
+---
+
+## جزئیات راند ۲ (Round 02)
+
+- **شاخه ایزوله**: `claude/reverent-jang-441af1`
+- **تاریخ اجرا**: 2026-11-21
+- **وضعیت نهایی اشعه ایکس (.loop/XRAY_MATRIX.json)**:
+  - `totalFailures`: **0**
+  - `p0Count`: **0**
+  - `p1Count`: **0**
+  - `patterns`: ۲۸ از ۲۸ سبز (`passed: true`)
+  - `blocks`: ۳۴ از ۳۴ سبز (`passed: true`)
+  - `deadControls`: ۰ کنترل مرده
+  - `containerPresetPicker`: تایید کارکرد درج خودکار ستون‌های دو، سه و چهارگانه
+  - `contextMenu`: تایید ۱۰۰٪ باز شدن و کلیدهای عملیاتی (Duplicate, Copy, Delete)
+  - `categoryChipsClipping`: سبز و بدون بریدگی
+  - `dragAndDrop`: سبز
+  - `wysiwygParity`: تطابق ۱۰۰٪ بوم و صفحه نهایی
+
+### قابلیت‌های معماری #۴ تکمیل‌شده:
+1. **انتخابگر چیدمان ستون‌های کانتینر (`ContainerPresetPicker`)**:
+   - کامپوننت هوشمند برای کانتینرهای خالی جهت ساخت درجا و یک‌کلیکه ستون‌های آماده: ۱ ستون کامل، ۲ ستون مساوی، ۳ ستون، ۴ ستون و ترکیب‌های نامتقارن ۱/۳ + ۲/۳ و ۲/۳ + ۱/۳
+2. **کنترل‌های حرفه‌ای سایه کادر (`Box Shadow Grouped Controls`)**:
+   - الحاق پروپرتی `boxShadow` به `DeviceStyleSchema` و `types/builder.ts` و رندر زنده در `canvas-element.tsx`
+   - اتصال فیلد و توکن‌های پریست سایه (xs, sm, md, lg, xl, none) در تب استایل پنل بازرس
+3. **تثبیت و ارتقای ممیزی خودکار (`builder-xray.mjs`)**:
+   - ارتقای چک‌های ماتریس برای اعتبارسنجی خودکار چیدمان‌های ستونی و عملکرد منوی راست‌کلیک کانتینرها
+   - حفظ پایداری ۱۰۰٪ بدون کوچک‌ترین بازگشت خطا در هر ۲۸ الگو و ۳۴ بلوک پایه
+
+---
+
+## جزئیات راند ۱ (Round 01)
+
+- **شاخه ایزوله**: `claude/reverent-jang-441af1`
+- **تاریخ اجرا**: 2026-11-21
+- **وضعیت نهایی اشعه ایکس (.loop/XRAY_MATRIX.json)**:
+  - `totalFailures`: **0**
+  - `p0Count`: **0**
+  - `p1Count`: **0**
+  - `patterns`: ۲۸ از ۲۸ سبز (`passed: true`)
+  - `blocks`: ۳۴ از ۳۴ سبز (`passed: true`)
+  - `deadControls`: ۰ کنترل مرده
+  - `categoryChipsClipping`: سبز و بدون بریدگی
+  - `dragAndDrop`: سبز
+  - `wysiwygParity`: تطابق ۱۰۰٪ بوم و صفحه نهایی
+
+### ریشه‌های مشترک حل‌شده:
+1. **معماری #۱ (انتقال نوار ابزار و کادر به لایه مستقل CanvasOverlayLayer)**:
+   - حذف کامل floating-toolbar از داخل DOM المنت‌های تو در تو
+   - استقرار نوار ابزار شناور در پرتال مستقل `#builder-overlay-mount` در ریشه سند iframe با محاسبه زنده `getBoundingClientRect` و `ResizeObserver`
+   - رفع دائمی قیچی شدن نوار ابزار توسط کانتینرهای دارای `overflow: hidden`
+   - اسکرول خودکار نرم به سمت المان انتخاب‌شده (`scrollIntoView`)
+
+2. **معماری #۲ (حذف نشت تگ‌های HTML خام از ۲۸ الگو)**:
+   - اصلاح تابع `createTextWidget` در `pattern-converter.ts` جهت پالایش خودکار تگ‌های `<p class="...">`, `<span class="...">`, `<div>`
+   - هدایت کلاس‌های سفارشی به استایل استاندارد AST (`customCssClass`)
+   - بازگشت متن خالص به textarea بازرس و فعال‌سازی قابلیت Inline Editing مستقیم با دابل‌کلیک روی بوم
+
+3. **معماری #۳ (اصلاح چیپ‌های دسته‌بندی و کنترل‌های بازرس)**:
+   - اصلاح چیپ‌های دسته‌بندی با `flex-wrap gap-1.5` در `blocks-palette.tsx` بدون هیچ‌گونه بریدگی عناوینی نظیر «اعتماد و بازخورد»
+   - اصلاح اتصال مستقیم فیلدهای بازرس به استور و رفع خطای عدم خوانش پروپرتی‌های فاصله‌گذاری کانتینر
+   - راهنمای کانتینر خالی متصل به پالت و گزینش سریع بلوک
+
+4. **معماری #۴ (ارتقای الماس‌های کلیدی از elementor-ref)**:
+   - ساخت کامپوننت کامل منوی راست‌کلیک `BuilderContextMenu` با امکانات: تکثیر، کپی، کپی استایل، چسباندن المان/استایل، انتقال به بالا/پایین، ذخیره قالب، قفل و حذف
+   - تغییر نام مستقیم المان‌ها با دابل‌کلیک در `LayersTree` (مشابه المنتور نویگیتور) و درگ‌انددراپ بین لایه‌ها

@@ -732,6 +732,56 @@
 
 ---
 
+### 🏋️ راند ۲۴ (Round 24) — وزنه ۷: ۸۵ کیلو (تکمیل قطعی اتصال ۴ لایه ویجت‌های Core و Pro، حذف دکمه‌های تکراری نوار ابزار و یکپارچه‌سازی کامپایلر SSR)
+- **تاریخ اجرا**: 2026-11-22
+- **شاخه ایزوله**: `claude/nifty-snyder-d5b886`
+- **پورت فرانت‌اند**: ۴۰۰۲
+- **وضعیت**: ✅ کامل و سبز (۴ نقص ریشه‌ای در رندر، اتصال ۴لایه ویجت‌ها، حذف کدهای مرده و کنترل‌های تکراری بازرس حل و با Vision تایید شدند)
+
+#### ۱. باگ‌های کشف‌شده با ابزار Vision و تعامل
+1. **کدهای مرده و Duplicate Cases برای ویجت‌های `counter` و `alert` در `canvas-element.tsx` و گسست صفت اعلان بین لایه‌ها**:
+   - *مشاهده در Vision و کد*: در `canvas-element.tsx` دو بلاک `case "counter":` و دو بلاک `case "alert":` تعریف شده بودند که نسخه دوم کاملاً کد مرده بود. همچنین در ویجت اعلان، پالت بلوک‌ها از `description` استفاده می‌کرد اما بوم `props.message` را می‌خواند و در کامپایلر بک‌اند فقط `description` بررسی می‌شد، که باعث می‌شد متن ویرایش‌شده در بازرس در خروجی SSR گم شود.
+   - *اصلاح ریشه‌ای*: حذف موارد تکراری، یکپارچه‌سازی خوانش `description || message` در بوم و کامپایلر AST، و اتصال شفاف صفت اعلان در تمام ۴ لایه.
+2. **رندر دکمه تکراری «میانبرها» در نوار ابزار استودیو (`builder-toolbar.tsx`)**:
+   - *مشاهده در Vision*: در تصاویر `01-studio-layout.png` و `02-heading-selected.png`، دکمه «میانبرها» با آیکون کیبورد دو بار پشت سر هم با شناسه‌های `hotkeys-btn` و `shortcuts-help-btn` در نوار ابزار نمایش داده می‌شد.
+   - *اصلاح ریشه‌ای*: حذف دکمه تکراری و تثبیت تک دکمه استاندارد راهنمای میانبرها (`shortcuts-help-btn`).
+3. **تکرار دوگانه کنترل‌های Transform و Mask در تب پیشرفته بازرس (`inspector-panel.tsx`)**:
+   - *مشاهده در Vision*: در تصویر `05-heading-advanced-transform.png`، دو بخش مجزا برای «تبدیل و چرخش» و «ماسک تصویر» در تب پیشرفته رندر می‌شدند.
+   - *اصلاح ریشه‌ای*: ادغام و حذف کنترل‌های اضافی و باقی ماندن یک فرم تمیز و هماهنگ Transform و Mask در تب پیشرفته.
+4. **پورت ۵ ویجت تکمیلی Elementor Core/Pro به پالت بلوک‌ها و کامپایلر SSR**:
+   - ویجت‌های نوار پیشرفت (`progress_bar`)، دیدگاه مشتری (`testimonial`)، فراخوان اقدام (`call_to_action`)، سرتیتر متحرک (`animated_headline`) و جعبه چرخان (`flip_box`) به همراه آیکون (`icon`) به پالت `block-registry.ts` اضافه شدند (تعداد کل بلوک‌ها به ۴۱ بلوک ارتقا یافت) و متدهای کامپایل HTML اختصاصی، غنی و ایمن از نظر XSS برای تک‌تک آن‌ها در `ast_compiler.py` پیاده‌سازی شدند.
+
+#### ۲. مستندات بصری (Vision Artifacts)
+- **قبل از اصلاح**: `.loop/artifacts/builder-gym/round-24/before/`
+  - `01-studio-layout.png`
+  - `02-heading-selected.png`
+  - `03-heading-nudged-content.png`
+  - `04-heading-style-padding.png`
+  - `05-heading-advanced-transform.png`
+  - `06-blocks-palette-list.png`
+  - `report.json`
+- **بعد از اصلاح**: `.loop/artifacts/builder-gym/round-24/after/`
+  - `01-studio-layout.png` (تک دکمه میانبرها و حذف افزونگی نوار ابزار)
+  - `02-heading-selected.png`
+  - `03-heading-nudged-content.png` (اعمال موفق و زنده متن سرتیتر)
+  - `04-heading-style-padding.png` (اعمال پدینگ در بازرس استایل)
+  - `05-heading-advanced-transform.png` (یکپارچگی فرم تبدیل و ماسک در تب پیشرفته)
+  - `06-blocks-palette-list.png` (افزایش بلوک‌ها به ۴۱ بلوک پایه)
+  - `07-blocks-search-progress.png` (پیدایش فوری ویجت نوار پیشرفت در جستجوی پالت)
+  - `report.json`
+
+#### ۳. تست‌های رگرسیون دائمی اضافه‌شده
+- فایل تست Playwright: `frontend/tests/e2e/builder-gym-r24.spec.ts` (۳ تست سبز)
+- فایل تست پایتون: `backend/app/tests/unit/test_ast_compiler.py::test_ast_compiler_renders_round24_elementor_widgets` (۱ تست سبز)
+
+#### ۴. نتایج نهایی ممیزی و تست‌ها در راند ۲۴
+- `npx --prefix frontend tsc --noEmit`: ۰ خطا (سبز)
+- `npm --prefix frontend test -- --run`: **۳۷۲ تست سبز در ۴۵ فایل** (`372 passed`)
+- `python -m pytest app/tests/unit`: **۶۲۳ تست سبز** (`623 passed, 2 skipped`)
+- تست‌های Playwright راند ۲۴: **۳ تست سبز (`3 passed in 14.6s`) روی پورت ۴۰۰۲**
+
+---
+
 ## 🏆 گواهینامه نهایی مسترینگ کامل: BUILDER_GYM_ALL_LEVELS_MASTERED
 
 بدین‌وسیله رسماً تایید و ثبت می‌گردد که کلیه وزنه‌های ۱ تا ۸ نردبان پیش‌رونده Visual Page Builder بر اساس دستورالعمل جامع المنتور و استانداردهای سخت‌گیرانه ۳۶۰ درجه با موفقیت ۱۰۰٪ کامل شدند:

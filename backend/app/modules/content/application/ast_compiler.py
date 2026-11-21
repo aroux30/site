@@ -743,7 +743,7 @@ class ASTCompiler:
         elif widget_type == "alert":
             alert_type = str(props.get("alert_type", "info"))
             title = html.escape(str(props.get("title", "اطلاعیه مهم")))
-            desc = html.escape(str(props.get("description", "")))
+            desc = html.escape(str(props.get("description") or props.get("message") or ""))
             type_classes = {
                 "info": "bg-blue-500/10 text-blue-700 border-blue-500/30",
                 "success": "bg-emerald-500/10 text-emerald-700 border-emerald-500/30",
@@ -759,6 +759,100 @@ class ASTCompiler:
                 f'</div>'
                 f'</div>'
             )
+
+        elif widget_type == "progress_bar":
+            title = html.escape(str(props.get("title", "پیشرفت کار")))
+            percentage = max(0, min(100, int(props.get("percentage", 75))))
+            show_percentage = props.get("show_percentage", True)
+            pct_span = f'<span class="font-mono text-primary">{percentage}%</span>' if show_percentage else ""
+            return (
+                f'<div{id_attr} class="builder-progress-bar space-y-1.5 w-full text-right {css_class}" data-widget="progress_bar"{style_attr}>'
+                f'<div class="flex items-center justify-between text-xs font-semibold text-foreground">'
+                f'<span>{title}</span>'
+                f'{pct_span}'
+                f'</div>'
+                f'<div class="h-3 w-full rounded-full bg-muted overflow-hidden">'
+                f'<div class="h-full bg-primary rounded-full transition-all duration-300" style="width: {percentage}%"></div>'
+                f'</div>'
+                f'</div>'
+            )
+
+        elif widget_type == "testimonial":
+            author = html.escape(str(props.get("author", "نام مشتری")))
+            role = html.escape(str(props.get("role", "سمت یا عنوان")))
+            company = html.escape(str(props.get("company", "")))
+            quote = html.escape(str(props.get("quote", "متن دیدگاه مشتری در اینجا نمایش داده می‌شود.")))
+            avatar = html.escape(str(props.get("avatar_url", "/placeholder-hero.svg")))
+            role_company = f"{role} - {company}" if company else role
+            return (
+                f'<div{id_attr} class="builder-testimonial p-4 rounded-2xl border border-border/80 bg-card space-y-3 shadow-sm w-full text-right {css_class}" data-widget="testimonial"{style_attr}>'
+                f'<p class="text-xs text-muted-foreground leading-relaxed italic">«{quote}»</p>'
+                f'<div class="flex items-center gap-3 pt-2 border-t border-border/60">'
+                f'<img src="{avatar}" alt="{author}" class="w-9 h-9 rounded-full object-cover shrink-0" />'
+                f'<div>'
+                f'<div class="text-xs font-bold text-foreground">{author}</div>'
+                f'<div class="text-[10px] text-muted-foreground">{role_company}</div>'
+                f'</div>'
+                f'</div>'
+                f'</div>'
+            )
+
+        elif widget_type == "call_to_action":
+            title = html.escape(str(props.get("title", "عنوان اقدام به عمل")))
+            desc = html.escape(str(props.get("description", "توضیحات مربوط به بنر تشویق به اقدام")))
+            btn_label = html.escape(str(props.get("button_label", "شروع کنید")))
+            badge = html.escape(str(props["badge"])) if props.get("badge") else ""
+            badge_html = f'<span class="inline-block px-2.5 py-0.5 rounded-full bg-primary text-primary-foreground text-[10px] font-bold">{badge}</span>' if badge else ""
+            return (
+                f'<div{id_attr} class="builder-cta p-6 rounded-2xl border border-primary/20 bg-primary/5 text-center space-y-3 shadow-sm w-full {css_class}" data-widget="call_to_action"{style_attr}>'
+                f'{badge_html}'
+                f'<h3 class="text-lg font-bold text-foreground">{title}</h3>'
+                f'<p class="text-xs text-muted-foreground max-w-md mx-auto leading-relaxed">{desc}</p>'
+                f'<div>'
+                f'<button type="button" class="inline-flex items-center justify-center px-5 py-2.5 rounded-xl bg-primary text-primary-foreground font-bold text-xs shadow hover:bg-primary/90 transition">{btn_label}</button>'
+                f'</div>'
+                f'</div>'
+            )
+
+        elif widget_type == "animated_headline":
+            before = html.escape(str(props.get("before_text", "")))
+            highlight = html.escape(str(props.get("highlighted_text", "تیتر متحرک")))
+            after = html.escape(str(props.get("after_text", "")))
+            before_html = f'<span class="me-2">{before}</span>' if before else ""
+            after_html = f'<span class="ms-2">{after}</span>' if after else ""
+            return (
+                f'<h2{id_attr} class="builder-animated-headline text-2xl lg:text-3xl font-extrabold text-foreground text-center py-2 leading-relaxed {css_class}" data-widget="animated_headline"{style_attr}>'
+                f'{before_html}'
+                f'<span class="relative inline-block px-2 text-primary font-black underline decoration-primary/40 decoration-wavy decoration-2 underline-offset-8">{highlight}</span>'
+                f'{after_html}'
+                f'</h2>'
+            )
+
+        elif widget_type == "flip_box":
+            front_title = html.escape(str(props.get("front_title", "روی کارت")))
+            front_desc = html.escape(str(props.get("front_desc", "توضیحات جلو")))
+            back_title = html.escape(str(props.get("back_title", "پشت کارت")))
+            back_desc = html.escape(str(props.get("back_desc", "توضیحات پشت")))
+            btn_text = html.escape(str(props.get("button_text", "مشاهده")))
+            return (
+                f'<div{id_attr} class="builder-flip-box group/flip w-full min-h-[220px] [perspective:1000px] {css_class}" data-widget="flip_box"{style_attr}>'
+                f'<div class="relative w-full h-full min-h-[220px] transition-transform duration-500 [transform-style:preserve-3d] group-hover/flip:[transform:rotateY(180deg)] rounded-2xl border border-border/80 shadow-sm">'
+                f'<div class="absolute inset-0 w-full h-full p-6 flex flex-col items-center justify-center text-center space-y-2 [backface-visibility:hidden] bg-card rounded-2xl">'
+                f'<h4 class="text-base font-bold text-foreground">{front_title}</h4>'
+                f'<p class="text-xs text-muted-foreground">{front_desc}</p>'
+                f'</div>'
+                f'<div class="absolute inset-0 w-full h-full p-6 flex flex-col items-center justify-center text-center space-y-3 [backface-visibility:hidden] [transform:rotateY(180deg)] bg-primary text-primary-foreground rounded-2xl">'
+                f'<h4 class="text-base font-bold">{back_title}</h4>'
+                f'<p class="text-xs opacity-90">{back_desc}</p>'
+                f'<button type="button" class="px-4 py-2 rounded-xl bg-white text-primary text-xs font-bold shadow hover:bg-white/90">{btn_text}</button>'
+                f'</div>'
+                f'</div>'
+                f'</div>'
+            )
+
+        elif widget_type == "icon":
+            icon_char = html.escape(str(props.get("icon", "★")))
+            return f'<span{id_attr} class="builder-icon inline-block text-xl leading-none {css_class}" data-widget="icon"{style_attr}>{icon_char}</span>'
 
         # Generic fallback for any other registered widget
         fallback_title = html.escape(str(props.get("title", widget_type)))

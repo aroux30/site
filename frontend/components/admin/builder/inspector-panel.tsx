@@ -1874,6 +1874,21 @@ export function InspectorPanel() {
         );
       }
 
+      case "icon":
+        return (
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs">کاراکتر یا نام آیکون</Label>
+              <Input
+                data-testid="icon-input"
+                value={String(props.icon || "★")}
+                onChange={(e) => handlePropChange("icon", e.target.value)}
+                className="h-8 text-xs font-mono"
+              />
+            </div>
+          </div>
+        );
+
       default:
         return (
           <div className="text-xs text-muted-foreground py-2">
@@ -3388,76 +3403,6 @@ export function InspectorPanel() {
               </div>
             </div>
           )}
-        </div>
-
-        {/* Transform & CSS Mask (Elementor Parity) */}
-        <div className="space-y-3 pt-2 border-t border-border/80">
-          <Label className="text-xs font-bold text-foreground block">تبدیل سه‌بعدی و چرخش (Transform - المنتور)</Label>
-          <div className="grid grid-cols-2 gap-2">
-            <div className="space-y-1">
-              <Label className="text-[10px] text-muted-foreground">چرخش (Rotate deg)</Label>
-              <Input
-                type="number"
-                value={currentDeviceStyle.transform?.rotate ?? 0}
-                onChange={(e) =>
-                  handleDeviceStyleChange({
-                    transform: {
-                      ...currentDeviceStyle.transform,
-                      rotate: parseFloat(e.target.value) || 0,
-                    },
-                  })
-                }
-                className="h-7 text-xs font-mono"
-                dir="ltr"
-              />
-            </div>
-            <div className="space-y-1">
-              <Label className="text-[10px] text-muted-foreground">مقیاس (Scale)</Label>
-              <Input
-                type="number"
-                step="0.05"
-                value={currentDeviceStyle.transform?.scale ?? 1}
-                onChange={(e) =>
-                  handleDeviceStyleChange({
-                    transform: {
-                      ...currentDeviceStyle.transform,
-                      scale: parseFloat(e.target.value) || 1,
-                    },
-                  })
-                }
-                className="h-7 text-xs font-mono"
-                dir="ltr"
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* CSS Mask Controls */}
-        <div className="space-y-2 pt-2 border-t border-border/80">
-          <Label className="text-xs font-bold text-foreground block">ماسک شکلی (CSS Mask - المنتور)</Label>
-          <Select
-            value={currentDeviceStyle.mask?.shape || "none"}
-            onValueChange={(val) =>
-              handleDeviceStyleChange({
-                mask: {
-                  ...currentDeviceStyle.mask,
-                  shape: val === "none" ? null : val,
-                },
-              })
-            }
-          >
-            <SelectTrigger className="h-8 text-xs">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="none">بدون ماسک</SelectItem>
-              <SelectItem value="circle">دایره (Circle)</SelectItem>
-              <SelectItem value="flower">گل (Flower)</SelectItem>
-              <SelectItem value="triangle">مثلث (Triangle)</SelectItem>
-              <SelectItem value="blob">حباب (Blob)</SelectItem>
-              <SelectItem value="hexagon">شش‌ضلعی (Hexagon)</SelectItem>
-            </SelectContent>
-          </Select>
         </div>
 
         <div className="flex items-center justify-between pt-2 border-t border-border/80">

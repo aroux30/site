@@ -527,5 +527,108 @@ def test_ast_compiler_large_page_performance_100_elements():
     assert 'class="builder-document"' in html_output
 
 
+def test_ast_compiler_renders_round24_elementor_widgets():
+    """Verify SSR AST compilation for progress_bar, testimonial, call_to_action, animated_headline, flip_box, and alert."""
+    ast = PageAST(
+        schema_version=1,
+        title="تست ویجت‌های پورت راند ۲۴",
+        slug="test-r24-widgets",
+        root_elements=[
+            BuilderElement(
+                id="el_sec_r24",
+                name="بخش ویجت‌های جدید",
+                type="container",
+                children=[
+                    BuilderElement(
+                        id="el_pb01",
+                        name="نوار پیشرفت",
+                        type="widget",
+                        widget_type="progress_bar",
+                        widget_props={"title": "پیشرفت پروژه", "percentage": 85, "show_percentage": True},
+                    ),
+                    BuilderElement(
+                        id="el_testi01",
+                        name="دیدگاه",
+                        type="widget",
+                        widget_type="testimonial",
+                        widget_props={
+                            "author": "محمد رضایی",
+                            "role": "مدیر مارکتینگ",
+                            "company": "دیجی‌تست",
+                            "quote": "خدمات فوق‌العاده حرفه‌ای و سریع",
+                        },
+                    ),
+                    BuilderElement(
+                        id="el_cta01",
+                        name="فراخوان",
+                        type="widget",
+                        widget_type="call_to_action",
+                        widget_props={
+                            "badge": "ویژه",
+                            "title": "ثبت نام زودهنگام",
+                            "description": "از تخفیف ۴۰ درصدی بهره‌مند شوید",
+                            "button_label": "عضویت سریع",
+                        },
+                    ),
+                    BuilderElement(
+                        id="el_anim01",
+                        name="سرتیتر انیمیشنی",
+                        type="widget",
+                        widget_type="animated_headline",
+                        widget_props={
+                            "before_text": "پلتفرم",
+                            "highlighted_text": "هوشمند",
+                            "after_text": "فروشگاهی",
+                        },
+                    ),
+                    BuilderElement(
+                        id="el_flip01",
+                        name="فلیپ‌باکس",
+                        type="widget",
+                        widget_type="flip_box",
+                        widget_props={
+                            "front_title": "پلن نقره‌ای",
+                            "front_desc": "برای استارتاپ‌ها",
+                            "back_title": "امکانات پلن",
+                            "back_desc": "پشتیبانی شبانه‌روزی",
+                            "button_text": "انتخاب پلن",
+                        },
+                    ),
+                    BuilderElement(
+                        id="el_alert01",
+                        name="اعلان",
+                        type="widget",
+                        widget_type="alert",
+                        widget_props={
+                            "alert_type": "warning",
+                            "title": "توجه مهم",
+                            "description": "به‌روزرسانی سرورها امشب انجام خواهد شد.",
+                        },
+                    ),
+                ],
+            )
+        ],
+    )
+    result = ASTCompiler.compile(ast)
+    assert 'builder-progress-bar' in result
+    assert 'پیشرفت پروژه' in result
+    assert '85%' in result
+    assert 'builder-testimonial' in result
+    assert 'محمد رضایی' in result
+    assert 'دیجی‌تست' in result
+    assert 'builder-cta' in result
+    assert 'ثبت نام زودهنگام' in result
+    assert 'عضویت سریع' in result
+    assert 'builder-animated-headline' in result
+    assert 'هوشمند' in result
+    assert 'builder-flip-box' in result
+    assert 'پلن نقره‌ای' in result
+    assert 'انتخاب پلن' in result
+    assert 'builder-alert' in result
+    assert 'bg-amber-500/10' in result
+    assert 'توجه مهم' in result
+
+
+
 
 

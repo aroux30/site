@@ -88,7 +88,7 @@ test.describe("Builder Gym Round 09: Weight 2 (Comparison Table, Lead Form & Bra
     await expect(nameInput).toBeVisible({ timeout: 15000 });
     await expect(phoneInput).toBeVisible({ timeout: 15000 });
 
-    const submitBtn = frame.locator("span:has-text('درخواست تماس رایگان')").first();
+    const submitBtn = frame.locator(":is(a, button, span):has-text('درخواست تماس رایگان')").first();
     await expect(submitBtn).toBeVisible();
   });
 

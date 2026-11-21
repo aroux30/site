@@ -121,7 +121,7 @@ test.describe("Builder Gym Round 05: Weight 5 (Responsive Viewports, Dark Mode &
     await layersTabBtn.click();
     await page.waitForTimeout(200);
 
-    const blocksTabBtn = page.getByRole("button", { name: "افزودن بلوک" });
+    const blocksTabBtn = page.getByRole("button", { name: "بلوک‌ها", exact: true }).first();
     await blocksTabBtn.click();
     await page.waitForTimeout(200);
 

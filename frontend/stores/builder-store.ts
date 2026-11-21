@@ -10,7 +10,7 @@ import type {
 } from "@/types/builder";
 
 export type Breakpoint = "desktop" | "tablet" | "mobile";
-export type LeftSidebarTab = "blocks" | "layers";
+export type LeftSidebarTab = "blocks" | "layers" | "history";
 export type InspectorTab = "content" | "style" | "advanced";
 
 const MAX_HISTORY_LENGTH = 50;
@@ -251,7 +251,8 @@ export interface BuilderState {
   wrapInContainer: (id: string) => void;
   unwrapContainer: (id: string) => void;
 
-  // History & Save
+  // History & Save (Elementor Actions & Revisions Parity)
+  jumpToHistoryStep: (index: number) => void;
   undo: () => void;
   redo: () => void;
   markClean: () => void;
@@ -1043,6 +1044,25 @@ export const useBuilderStore = create<BuilderState>((set, get) => ({
       isDirty: true,
       mutationVersion: get().mutationVersion + 1,
       history: { past: newPast, future: [] },
+    });
+  },
+
+  jumpToHistoryStep: (targetIndex: number) => {
+    const { ast, history } = get();
+    const allStates = [...history.past, ast, ...history.future];
+    if (targetIndex < 0 || targetIndex >= allStates.length) return;
+
+    const targetAst = allStates[targetIndex]!;
+    const newPast = allStates.slice(0, targetIndex);
+    const newFuture = allStates.slice(targetIndex + 1);
+
+    set({
+      ast: targetAst,
+      selectedElementId: null,
+      selectedElementIds: [],
+      isDirty: true,
+      mutationVersion: get().mutationVersion + 1,
+      history: { past: newPast, future: newFuture },
     });
   },
 

@@ -505,11 +505,16 @@ async function runXRayAudit() {
   // ──────────────────────────────────────────────────────────────────────────
   console.log("\n>>> [SECTION 2] Testing 34 Basic Blocks & Widgets...");
 
-  // Switch to basic blocks tab
-  const basicTabBtn = page.locator("button:has-text('بلوک‌ها')").first();
-  if (await basicTabBtn.isVisible()) {
-    await basicTabBtn.click();
-    await page.waitForTimeout(500);
+  // Switch to basic blocks tab in sidebar and sub-tab in palette
+  await page.evaluate(() => {
+    window.__BUILDER_STORE__?.getState()?.setLeftTab("blocks");
+  });
+  await page.waitForTimeout(300);
+
+  const paletteBasicSubTab = page.locator("button:has-text('بلوک‌ها (')").first();
+  if (await paletteBasicSubTab.isVisible()) {
+    await paletteBasicSubTab.click();
+    await page.waitForTimeout(400);
   }
 
   // Extract all block definitions from DOM or known list of 34
@@ -1087,6 +1092,36 @@ async function runXRayAudit() {
 
   if (!storedClip || !storedClip.includes("multi_1")) {
     addFailure("PERSISTENT_CLIPBOARD_FAILED", "P0", { message: "copyElement did not persist element to localStorage" });
+  }
+
+  // 10. Elementor Parity: History & Revision Timeline Panel
+  console.log("    Testing Elementor Parity: History Timeline Panel & JumpToHistory...");
+  const historyTabBtn = page.locator("[data-testid='history-tab-btn']");
+  if (await historyTabBtn.isVisible()) {
+    await historyTabBtn.click();
+    await page.waitForTimeout(400);
+
+    const historyPanel = page.locator("[data-testid='builder-history-panel']");
+    if (!(await historyPanel.isVisible())) {
+      addFailure("HISTORY_PANEL_MISSING", "P0", { message: "History timeline panel not visible on tab switch" });
+    } else {
+      const stepButtons = page.locator("[data-history-step]");
+      const count = await stepButtons.count();
+      if (count < 1) {
+        addFailure("HISTORY_TIMELINE_EMPTY", "P0", { message: "History timeline contains zero steps" });
+      } else {
+        // Click on the first history step to jump back
+        await stepButtons.first().click();
+        await page.waitForTimeout(300);
+      }
+    }
+
+    // Switch back to blocks tab
+    const blocksTabBtn = page.locator("button:has-text('بلوک‌ها')").first();
+    if (await blocksTabBtn.isVisible()) {
+      await blocksTabBtn.click();
+      await page.waitForTimeout(300);
+    }
   }
 
   // ──────────────────────────────────────────────────────────────────────────

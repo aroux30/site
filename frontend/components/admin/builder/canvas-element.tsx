@@ -294,11 +294,21 @@ function CanvasElementComponent({
       if (bgObj.type === "color" && bgObj.color) {
         styleObj.backgroundColor = normalizeCssColor(bgObj.color);
       } else if (bgObj.type === "gradient" && bgObj.gradient) {
-        styleObj.backgroundImage = `linear-gradient(${bgObj.gradient.direction.replace("to-", "to ")}, ${bgObj.gradient.fromColor}, ${bgObj.gradient.toColor})`;
+        const dirMap: Record<string, string> = {
+          "to-r": "to right",
+          "to-l": "to left",
+          "to-b": "to bottom",
+          "to-t": "to top",
+          "to-tr": "to top right",
+          "to-tl": "to top left",
+        };
+        const dir = dirMap[bgObj.gradient.direction] || "to right";
+        styleObj.backgroundImage = `linear-gradient(${dir}, ${bgObj.gradient.fromColor}, ${bgObj.gradient.toColor})`;
       } else if (bgObj.type === "image" && bgObj.imageUrl) {
         styleObj.backgroundImage = `url(${bgObj.imageUrl})`;
         styleObj.backgroundPosition = bgObj.position || "center";
         styleObj.backgroundSize = bgObj.size || "cover";
+        styleObj.backgroundRepeat = "no-repeat";
       }
     }
 

@@ -692,6 +692,24 @@ async function runXRayAudit() {
         addFailure("DEAD_INSPECTOR_CONTROL", "P0", { widget: "container", control: "boxShadow", message: msg });
       }
     }
+
+    // Test Background Gradient (Elementor Grouped Controls)
+    const gradTabBtn = page.locator("button:has-text('گرادیانت')").first();
+    if (await gradTabBtn.isVisible()) {
+      await gradTabBtn.click();
+      await page.waitForTimeout(400);
+
+      const appliedBg = await frameCont.evaluate(() => {
+        const el = document.querySelector("[data-element-id='test_cont_1']");
+        return el ? el.style.backgroundImage : null;
+      });
+
+      if (!appliedBg || !appliedBg.includes("linear-gradient")) {
+        const msg = `Container gradient background control is dead! Got: "${appliedBg}"`;
+        matrix.deadControls.push({ widget: "container", tab: "style", control: "gradient", severity: "P0", message: msg });
+        addFailure("DEAD_INSPECTOR_CONTROL", "P0", { widget: "container", control: "gradient", message: msg });
+      }
+    }
   }
 
   // 2. Test Heading controls
@@ -721,6 +739,29 @@ async function runXRayAudit() {
         const msg = `Heading text control is dead! Did not update text in canvas DOM.`;
         matrix.deadControls.push({ widget: "heading", tab: "content", control: "text", severity: "P0", message: msg });
         addFailure("DEAD_INSPECTOR_CONTROL", "P0", { widget: "heading", control: "text", message: msg });
+      }
+    }
+
+    // Switch to Style tab for Heading Typography
+    if (await styleTabTrigger.isVisible()) {
+      await styleTabTrigger.click();
+      await page.waitForTimeout(400);
+
+      const fontSizeInput = page.locator("[data-testid='typography-fontsize-input']").first();
+      if (await fontSizeInput.isVisible()) {
+        await fontSizeInput.fill("42");
+        await page.waitForTimeout(400);
+
+        const appliedFs = await frameCont.evaluate(() => {
+          const el = document.querySelector("[data-element-id='test_head_1']");
+          return el ? el.style.fontSize : null;
+        });
+
+        if (appliedFs !== "42px") {
+          const msg = `Heading typography font-size control is dead! Expected 42px, got "${appliedFs}"`;
+          matrix.deadControls.push({ widget: "heading", tab: "style", control: "fontSize", severity: "P0", message: msg });
+          addFailure("DEAD_INSPECTOR_CONTROL", "P0", { widget: "heading", control: "fontSize", message: msg });
+        }
       }
     }
   }

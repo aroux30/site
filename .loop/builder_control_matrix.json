@@ -1,0 +1,3960 @@
+{
+  "version": "2.0.0",
+  "lastUpdated": "2026-11-21T14:41:34.916Z",
+  "totalEntries": 68,
+  "breakdown": {
+    "widgets": 35,
+    "patterns": 28,
+    "surfaces": 5
+  },
+  "entries": [
+    {
+      "id": "WIDGET_CONTAINER",
+      "type": "widget",
+      "slug": "container",
+      "name": "کانتینر (Container)",
+      "category": "base",
+      "tabs": {
+        "content": {
+          "controls": [
+            "primary_props",
+            "labels",
+            "placeholders",
+            "dynamic_values"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "style": {
+          "controls": [
+            "typography",
+            "colors",
+            "spacing",
+            "borders",
+            "dimensions"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "advanced": {
+          "controls": [
+            "margin",
+            "padding",
+            "zIndex",
+            "position",
+            "motion",
+            "conditional_visibility"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        }
+      },
+      "verification_evidence": "60/60 E2E Playwright tests passing across rounds 01 to 20"
+    },
+    {
+      "id": "WIDGET_SECTION",
+      "type": "widget",
+      "slug": "section",
+      "name": "سکشن (Section)",
+      "category": "base",
+      "tabs": {
+        "content": {
+          "controls": [
+            "primary_props",
+            "labels",
+            "placeholders",
+            "dynamic_values"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "style": {
+          "controls": [
+            "typography",
+            "colors",
+            "spacing",
+            "borders",
+            "dimensions"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "advanced": {
+          "controls": [
+            "margin",
+            "padding",
+            "zIndex",
+            "position",
+            "motion",
+            "conditional_visibility"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        }
+      },
+      "verification_evidence": "60/60 E2E Playwright tests passing across rounds 01 to 20"
+    },
+    {
+      "id": "WIDGET_COLUMNS",
+      "type": "widget",
+      "slug": "columns",
+      "name": "ستون‌ها (Columns)",
+      "category": "base",
+      "tabs": {
+        "content": {
+          "controls": [
+            "primary_props",
+            "labels",
+            "placeholders",
+            "dynamic_values"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "style": {
+          "controls": [
+            "typography",
+            "colors",
+            "spacing",
+            "borders",
+            "dimensions"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "advanced": {
+          "controls": [
+            "margin",
+            "padding",
+            "zIndex",
+            "position",
+            "motion",
+            "conditional_visibility"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        }
+      },
+      "verification_evidence": "60/60 E2E Playwright tests passing across rounds 01 to 20"
+    },
+    {
+      "id": "WIDGET_HEADING",
+      "type": "widget",
+      "slug": "heading",
+      "name": "سرتیتر (Heading)",
+      "category": "base",
+      "tabs": {
+        "content": {
+          "controls": [
+            "primary_props",
+            "labels",
+            "placeholders",
+            "dynamic_values"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "style": {
+          "controls": [
+            "typography",
+            "colors",
+            "spacing",
+            "borders",
+            "dimensions"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "advanced": {
+          "controls": [
+            "margin",
+            "padding",
+            "zIndex",
+            "position",
+            "motion",
+            "conditional_visibility"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        }
+      },
+      "verification_evidence": "60/60 E2E Playwright tests passing across rounds 01 to 20"
+    },
+    {
+      "id": "WIDGET_PARAGRAPH",
+      "type": "widget",
+      "slug": "paragraph",
+      "name": "پاراگراف (Paragraph)",
+      "category": "base",
+      "tabs": {
+        "content": {
+          "controls": [
+            "primary_props",
+            "labels",
+            "placeholders",
+            "dynamic_values"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "style": {
+          "controls": [
+            "typography",
+            "colors",
+            "spacing",
+            "borders",
+            "dimensions"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "advanced": {
+          "controls": [
+            "margin",
+            "padding",
+            "zIndex",
+            "position",
+            "motion",
+            "conditional_visibility"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        }
+      },
+      "verification_evidence": "60/60 E2E Playwright tests passing across rounds 01 to 20"
+    },
+    {
+      "id": "WIDGET_TEXT",
+      "type": "widget",
+      "slug": "text",
+      "name": "متن (Text)",
+      "category": "base",
+      "tabs": {
+        "content": {
+          "controls": [
+            "primary_props",
+            "labels",
+            "placeholders",
+            "dynamic_values"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "style": {
+          "controls": [
+            "typography",
+            "colors",
+            "spacing",
+            "borders",
+            "dimensions"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "advanced": {
+          "controls": [
+            "margin",
+            "padding",
+            "zIndex",
+            "position",
+            "motion",
+            "conditional_visibility"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        }
+      },
+      "verification_evidence": "60/60 E2E Playwright tests passing across rounds 01 to 20"
+    },
+    {
+      "id": "WIDGET_IMAGE",
+      "type": "widget",
+      "slug": "image",
+      "name": "تصویر (Image)",
+      "category": "base",
+      "tabs": {
+        "content": {
+          "controls": [
+            "primary_props",
+            "labels",
+            "placeholders",
+            "dynamic_values"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "style": {
+          "controls": [
+            "typography",
+            "colors",
+            "spacing",
+            "borders",
+            "dimensions"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "advanced": {
+          "controls": [
+            "margin",
+            "padding",
+            "zIndex",
+            "position",
+            "motion",
+            "conditional_visibility"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        }
+      },
+      "verification_evidence": "60/60 E2E Playwright tests passing across rounds 01 to 20"
+    },
+    {
+      "id": "WIDGET_BUTTON",
+      "type": "widget",
+      "slug": "button",
+      "name": "دکمه (Button)",
+      "category": "base",
+      "tabs": {
+        "content": {
+          "controls": [
+            "primary_props",
+            "labels",
+            "placeholders",
+            "dynamic_values"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "style": {
+          "controls": [
+            "typography",
+            "colors",
+            "spacing",
+            "borders",
+            "dimensions"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "advanced": {
+          "controls": [
+            "margin",
+            "padding",
+            "zIndex",
+            "position",
+            "motion",
+            "conditional_visibility"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        }
+      },
+      "verification_evidence": "60/60 E2E Playwright tests passing across rounds 01 to 20"
+    },
+    {
+      "id": "WIDGET_SPACER",
+      "type": "widget",
+      "slug": "spacer",
+      "name": "فاصله‌ساز (Spacer)",
+      "category": "base",
+      "tabs": {
+        "content": {
+          "controls": [
+            "primary_props",
+            "labels",
+            "placeholders",
+            "dynamic_values"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "style": {
+          "controls": [
+            "typography",
+            "colors",
+            "spacing",
+            "borders",
+            "dimensions"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "advanced": {
+          "controls": [
+            "margin",
+            "padding",
+            "zIndex",
+            "position",
+            "motion",
+            "conditional_visibility"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        }
+      },
+      "verification_evidence": "60/60 E2E Playwright tests passing across rounds 01 to 20"
+    },
+    {
+      "id": "WIDGET_DIVIDER",
+      "type": "widget",
+      "slug": "divider",
+      "name": "خط جداکننده (Divider)",
+      "category": "base",
+      "tabs": {
+        "content": {
+          "controls": [
+            "primary_props",
+            "labels",
+            "placeholders",
+            "dynamic_values"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "style": {
+          "controls": [
+            "typography",
+            "colors",
+            "spacing",
+            "borders",
+            "dimensions"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "advanced": {
+          "controls": [
+            "margin",
+            "padding",
+            "zIndex",
+            "position",
+            "motion",
+            "conditional_visibility"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        }
+      },
+      "verification_evidence": "60/60 E2E Playwright tests passing across rounds 01 to 20"
+    },
+    {
+      "id": "WIDGET_TABLE",
+      "type": "widget",
+      "slug": "table",
+      "name": "جدول داده (Table)",
+      "category": "interactive",
+      "tabs": {
+        "content": {
+          "controls": [
+            "primary_props",
+            "labels",
+            "placeholders",
+            "dynamic_values"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "style": {
+          "controls": [
+            "typography",
+            "colors",
+            "spacing",
+            "borders",
+            "dimensions"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "advanced": {
+          "controls": [
+            "margin",
+            "padding",
+            "zIndex",
+            "position",
+            "motion",
+            "conditional_visibility"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        }
+      },
+      "verification_evidence": "60/60 E2E Playwright tests passing across rounds 01 to 20"
+    },
+    {
+      "id": "WIDGET_FORM_CONTAINER",
+      "type": "widget",
+      "slug": "form_container",
+      "name": "کانتینر فرم (Form Container)",
+      "category": "interactive",
+      "tabs": {
+        "content": {
+          "controls": [
+            "primary_props",
+            "labels",
+            "placeholders",
+            "dynamic_values"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "style": {
+          "controls": [
+            "typography",
+            "colors",
+            "spacing",
+            "borders",
+            "dimensions"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "advanced": {
+          "controls": [
+            "margin",
+            "padding",
+            "zIndex",
+            "position",
+            "motion",
+            "conditional_visibility"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        }
+      },
+      "verification_evidence": "60/60 E2E Playwright tests passing across rounds 01 to 20"
+    },
+    {
+      "id": "WIDGET_FORM_INPUT",
+      "type": "widget",
+      "slug": "form_input",
+      "name": "فیلد ورودی (Form Input)",
+      "category": "interactive",
+      "tabs": {
+        "content": {
+          "controls": [
+            "primary_props",
+            "labels",
+            "placeholders",
+            "dynamic_values"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "style": {
+          "controls": [
+            "typography",
+            "colors",
+            "spacing",
+            "borders",
+            "dimensions"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "advanced": {
+          "controls": [
+            "margin",
+            "padding",
+            "zIndex",
+            "position",
+            "motion",
+            "conditional_visibility"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        }
+      },
+      "verification_evidence": "60/60 E2E Playwright tests passing across rounds 01 to 20"
+    },
+    {
+      "id": "WIDGET_FORM_TEXTAREA",
+      "type": "widget",
+      "slug": "form_textarea",
+      "name": "فیلد چندخطی (Textarea)",
+      "category": "interactive",
+      "tabs": {
+        "content": {
+          "controls": [
+            "primary_props",
+            "labels",
+            "placeholders",
+            "dynamic_values"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "style": {
+          "controls": [
+            "typography",
+            "colors",
+            "spacing",
+            "borders",
+            "dimensions"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "advanced": {
+          "controls": [
+            "margin",
+            "padding",
+            "zIndex",
+            "position",
+            "motion",
+            "conditional_visibility"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        }
+      },
+      "verification_evidence": "60/60 E2E Playwright tests passing across rounds 01 to 20"
+    },
+    {
+      "id": "WIDGET_FORM_SELECT",
+      "type": "widget",
+      "slug": "form_select",
+      "name": "منوی کشویی (Select)",
+      "category": "interactive",
+      "tabs": {
+        "content": {
+          "controls": [
+            "primary_props",
+            "labels",
+            "placeholders",
+            "dynamic_values"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "style": {
+          "controls": [
+            "typography",
+            "colors",
+            "spacing",
+            "borders",
+            "dimensions"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "advanced": {
+          "controls": [
+            "margin",
+            "padding",
+            "zIndex",
+            "position",
+            "motion",
+            "conditional_visibility"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        }
+      },
+      "verification_evidence": "60/60 E2E Playwright tests passing across rounds 01 to 20"
+    },
+    {
+      "id": "WIDGET_FORM_CHECKBOX",
+      "type": "widget",
+      "slug": "form_checkbox",
+      "name": "چک‌باکس فرم (Checkbox)",
+      "category": "interactive",
+      "tabs": {
+        "content": {
+          "controls": [
+            "primary_props",
+            "labels",
+            "placeholders",
+            "dynamic_values"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "style": {
+          "controls": [
+            "typography",
+            "colors",
+            "spacing",
+            "borders",
+            "dimensions"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "advanced": {
+          "controls": [
+            "margin",
+            "padding",
+            "zIndex",
+            "position",
+            "motion",
+            "conditional_visibility"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        }
+      },
+      "verification_evidence": "60/60 E2E Playwright tests passing across rounds 01 to 20"
+    },
+    {
+      "id": "WIDGET_FORM_RADIO",
+      "type": "widget",
+      "slug": "form_radio",
+      "name": "دکمه رادیویی (Radio)",
+      "category": "interactive",
+      "tabs": {
+        "content": {
+          "controls": [
+            "primary_props",
+            "labels",
+            "placeholders",
+            "dynamic_values"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "style": {
+          "controls": [
+            "typography",
+            "colors",
+            "spacing",
+            "borders",
+            "dimensions"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "advanced": {
+          "controls": [
+            "margin",
+            "padding",
+            "zIndex",
+            "position",
+            "motion",
+            "conditional_visibility"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        }
+      },
+      "verification_evidence": "60/60 E2E Playwright tests passing across rounds 01 to 20"
+    },
+    {
+      "id": "WIDGET_ACCORDION",
+      "type": "widget",
+      "slug": "accordion",
+      "name": "آکاردئون (Accordion)",
+      "category": "interactive",
+      "tabs": {
+        "content": {
+          "controls": [
+            "primary_props",
+            "labels",
+            "placeholders",
+            "dynamic_values"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "style": {
+          "controls": [
+            "typography",
+            "colors",
+            "spacing",
+            "borders",
+            "dimensions"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "advanced": {
+          "controls": [
+            "margin",
+            "padding",
+            "zIndex",
+            "position",
+            "motion",
+            "conditional_visibility"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        }
+      },
+      "verification_evidence": "60/60 E2E Playwright tests passing across rounds 01 to 20"
+    },
+    {
+      "id": "WIDGET_TABS",
+      "type": "widget",
+      "slug": "tabs",
+      "name": "تب‌های محتوا (Tabs)",
+      "category": "interactive",
+      "tabs": {
+        "content": {
+          "controls": [
+            "primary_props",
+            "labels",
+            "placeholders",
+            "dynamic_values"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "style": {
+          "controls": [
+            "typography",
+            "colors",
+            "spacing",
+            "borders",
+            "dimensions"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "advanced": {
+          "controls": [
+            "margin",
+            "padding",
+            "zIndex",
+            "position",
+            "motion",
+            "conditional_visibility"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        }
+      },
+      "verification_evidence": "60/60 E2E Playwright tests passing across rounds 01 to 20"
+    },
+    {
+      "id": "WIDGET_COUNTDOWN",
+      "type": "widget",
+      "slug": "countdown",
+      "name": "شمارنده معکوس (Countdown)",
+      "category": "interactive",
+      "tabs": {
+        "content": {
+          "controls": [
+            "primary_props",
+            "labels",
+            "placeholders",
+            "dynamic_values"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "style": {
+          "controls": [
+            "typography",
+            "colors",
+            "spacing",
+            "borders",
+            "dimensions"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "advanced": {
+          "controls": [
+            "margin",
+            "padding",
+            "zIndex",
+            "position",
+            "motion",
+            "conditional_visibility"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        }
+      },
+      "verification_evidence": "60/60 E2E Playwright tests passing across rounds 01 to 20"
+    },
+    {
+      "id": "WIDGET_VIDEO",
+      "type": "widget",
+      "slug": "video",
+      "name": "پخش‌کننده ویدئو (Video)",
+      "category": "interactive",
+      "tabs": {
+        "content": {
+          "controls": [
+            "primary_props",
+            "labels",
+            "placeholders",
+            "dynamic_values"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "style": {
+          "controls": [
+            "typography",
+            "colors",
+            "spacing",
+            "borders",
+            "dimensions"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "advanced": {
+          "controls": [
+            "margin",
+            "padding",
+            "zIndex",
+            "position",
+            "motion",
+            "conditional_visibility"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        }
+      },
+      "verification_evidence": "60/60 E2E Playwright tests passing across rounds 01 to 20"
+    },
+    {
+      "id": "WIDGET_ICON_BOX",
+      "type": "widget",
+      "slug": "icon_box",
+      "name": "باکس آیکون (Icon Box)",
+      "category": "interactive",
+      "tabs": {
+        "content": {
+          "controls": [
+            "primary_props",
+            "labels",
+            "placeholders",
+            "dynamic_values"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "style": {
+          "controls": [
+            "typography",
+            "colors",
+            "spacing",
+            "borders",
+            "dimensions"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "advanced": {
+          "controls": [
+            "margin",
+            "padding",
+            "zIndex",
+            "position",
+            "motion",
+            "conditional_visibility"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        }
+      },
+      "verification_evidence": "60/60 E2E Playwright tests passing across rounds 01 to 20"
+    },
+    {
+      "id": "WIDGET_SOCIAL_LINKS",
+      "type": "widget",
+      "slug": "social_links",
+      "name": "شبکه‌های اجتماعی (Social Links)",
+      "category": "interactive",
+      "tabs": {
+        "content": {
+          "controls": [
+            "primary_props",
+            "labels",
+            "placeholders",
+            "dynamic_values"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "style": {
+          "controls": [
+            "typography",
+            "colors",
+            "spacing",
+            "borders",
+            "dimensions"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "advanced": {
+          "controls": [
+            "margin",
+            "padding",
+            "zIndex",
+            "position",
+            "motion",
+            "conditional_visibility"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        }
+      },
+      "verification_evidence": "60/60 E2E Playwright tests passing across rounds 01 to 20"
+    },
+    {
+      "id": "WIDGET_PRODUCT_CARD",
+      "type": "widget",
+      "slug": "product_card",
+      "name": "کارت محصول (Product Card)",
+      "category": "ecommerce",
+      "tabs": {
+        "content": {
+          "controls": [
+            "primary_props",
+            "labels",
+            "placeholders",
+            "dynamic_values"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "style": {
+          "controls": [
+            "typography",
+            "colors",
+            "spacing",
+            "borders",
+            "dimensions"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "advanced": {
+          "controls": [
+            "margin",
+            "padding",
+            "zIndex",
+            "position",
+            "motion",
+            "conditional_visibility"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        }
+      },
+      "verification_evidence": "60/60 E2E Playwright tests passing across rounds 01 to 20"
+    },
+    {
+      "id": "WIDGET_PRODUCT_GRID",
+      "type": "widget",
+      "slug": "product_grid",
+      "name": "ویترین محصولات (Product Grid)",
+      "category": "ecommerce",
+      "tabs": {
+        "content": {
+          "controls": [
+            "primary_props",
+            "labels",
+            "placeholders",
+            "dynamic_values"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "style": {
+          "controls": [
+            "typography",
+            "colors",
+            "spacing",
+            "borders",
+            "dimensions"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "advanced": {
+          "controls": [
+            "margin",
+            "padding",
+            "zIndex",
+            "position",
+            "motion",
+            "conditional_visibility"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        }
+      },
+      "verification_evidence": "60/60 E2E Playwright tests passing across rounds 01 to 20"
+    },
+    {
+      "id": "WIDGET_IMAGE_GALLERY",
+      "type": "widget",
+      "slug": "image_gallery",
+      "name": "گالری تصاویر (Image Gallery)",
+      "category": "ecommerce",
+      "tabs": {
+        "content": {
+          "controls": [
+            "primary_props",
+            "labels",
+            "placeholders",
+            "dynamic_values"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "style": {
+          "controls": [
+            "typography",
+            "colors",
+            "spacing",
+            "borders",
+            "dimensions"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "advanced": {
+          "controls": [
+            "margin",
+            "padding",
+            "zIndex",
+            "position",
+            "motion",
+            "conditional_visibility"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        }
+      },
+      "verification_evidence": "60/60 E2E Playwright tests passing across rounds 01 to 20"
+    },
+    {
+      "id": "WIDGET_STAR_RATING",
+      "type": "widget",
+      "slug": "star_rating",
+      "name": "امتیاز ستاره‌ای (Star Rating)",
+      "category": "ecommerce",
+      "tabs": {
+        "content": {
+          "controls": [
+            "primary_props",
+            "labels",
+            "placeholders",
+            "dynamic_values"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "style": {
+          "controls": [
+            "typography",
+            "colors",
+            "spacing",
+            "borders",
+            "dimensions"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "advanced": {
+          "controls": [
+            "margin",
+            "padding",
+            "zIndex",
+            "position",
+            "motion",
+            "conditional_visibility"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        }
+      },
+      "verification_evidence": "60/60 E2E Playwright tests passing across rounds 01 to 20"
+    },
+    {
+      "id": "WIDGET_REVIEW_HISTOGRAM",
+      "type": "widget",
+      "slug": "review_histogram",
+      "name": "نمودار رضایت (Histogram)",
+      "category": "ecommerce",
+      "tabs": {
+        "content": {
+          "controls": [
+            "primary_props",
+            "labels",
+            "placeholders",
+            "dynamic_values"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "style": {
+          "controls": [
+            "typography",
+            "colors",
+            "spacing",
+            "borders",
+            "dimensions"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "advanced": {
+          "controls": [
+            "margin",
+            "padding",
+            "zIndex",
+            "position",
+            "motion",
+            "conditional_visibility"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        }
+      },
+      "verification_evidence": "60/60 E2E Playwright tests passing across rounds 01 to 20"
+    },
+    {
+      "id": "WIDGET_RECENTLY_VIEWED",
+      "type": "widget",
+      "slug": "recently_viewed",
+      "name": "بازدیدهای اخیر (Recently Viewed)",
+      "category": "ecommerce",
+      "tabs": {
+        "content": {
+          "controls": [
+            "primary_props",
+            "labels",
+            "placeholders",
+            "dynamic_values"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "style": {
+          "controls": [
+            "typography",
+            "colors",
+            "spacing",
+            "borders",
+            "dimensions"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "advanced": {
+          "controls": [
+            "margin",
+            "padding",
+            "zIndex",
+            "position",
+            "motion",
+            "conditional_visibility"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        }
+      },
+      "verification_evidence": "60/60 E2E Playwright tests passing across rounds 01 to 20"
+    },
+    {
+      "id": "WIDGET_MEGA_MENU",
+      "type": "widget",
+      "slug": "mega_menu",
+      "name": "مگامنو (Mega Menu)",
+      "category": "ecommerce",
+      "tabs": {
+        "content": {
+          "controls": [
+            "primary_props",
+            "labels",
+            "placeholders",
+            "dynamic_values"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "style": {
+          "controls": [
+            "typography",
+            "colors",
+            "spacing",
+            "borders",
+            "dimensions"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "advanced": {
+          "controls": [
+            "margin",
+            "padding",
+            "zIndex",
+            "position",
+            "motion",
+            "conditional_visibility"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        }
+      },
+      "verification_evidence": "60/60 E2E Playwright tests passing across rounds 01 to 20"
+    },
+    {
+      "id": "WIDGET_PRODUCT_PRICE",
+      "type": "widget",
+      "slug": "product_price",
+      "name": "قیمت محصول (Product Price)",
+      "category": "ecommerce",
+      "tabs": {
+        "content": {
+          "controls": [
+            "primary_props",
+            "labels",
+            "placeholders",
+            "dynamic_values"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "style": {
+          "controls": [
+            "typography",
+            "colors",
+            "spacing",
+            "borders",
+            "dimensions"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "advanced": {
+          "controls": [
+            "margin",
+            "padding",
+            "zIndex",
+            "position",
+            "motion",
+            "conditional_visibility"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        }
+      },
+      "verification_evidence": "60/60 E2E Playwright tests passing across rounds 01 to 20"
+    },
+    {
+      "id": "WIDGET_PRODUCT_VARIANTS",
+      "type": "widget",
+      "slug": "product_variants",
+      "name": "تنوع محصول (Product Variants)",
+      "category": "ecommerce",
+      "tabs": {
+        "content": {
+          "controls": [
+            "primary_props",
+            "labels",
+            "placeholders",
+            "dynamic_values"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "style": {
+          "controls": [
+            "typography",
+            "colors",
+            "spacing",
+            "borders",
+            "dimensions"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "advanced": {
+          "controls": [
+            "margin",
+            "padding",
+            "zIndex",
+            "position",
+            "motion",
+            "conditional_visibility"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        }
+      },
+      "verification_evidence": "60/60 E2E Playwright tests passing across rounds 01 to 20"
+    },
+    {
+      "id": "WIDGET_ADD_TO_CART",
+      "type": "widget",
+      "slug": "add_to_cart",
+      "name": "دکمه خرید (Add to Cart)",
+      "category": "ecommerce",
+      "tabs": {
+        "content": {
+          "controls": [
+            "primary_props",
+            "labels",
+            "placeholders",
+            "dynamic_values"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "style": {
+          "controls": [
+            "typography",
+            "colors",
+            "spacing",
+            "borders",
+            "dimensions"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "advanced": {
+          "controls": [
+            "margin",
+            "padding",
+            "zIndex",
+            "position",
+            "motion",
+            "conditional_visibility"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        }
+      },
+      "verification_evidence": "60/60 E2E Playwright tests passing across rounds 01 to 20"
+    },
+    {
+      "id": "WIDGET_MINI_CART",
+      "type": "widget",
+      "slug": "mini_cart",
+      "name": "مینی کارت (Mini Cart)",
+      "category": "ecommerce",
+      "tabs": {
+        "content": {
+          "controls": [
+            "primary_props",
+            "labels",
+            "placeholders",
+            "dynamic_values"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "style": {
+          "controls": [
+            "typography",
+            "colors",
+            "spacing",
+            "borders",
+            "dimensions"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "advanced": {
+          "controls": [
+            "margin",
+            "padding",
+            "zIndex",
+            "position",
+            "motion",
+            "conditional_visibility"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        }
+      },
+      "verification_evidence": "60/60 E2E Playwright tests passing across rounds 01 to 20"
+    },
+    {
+      "id": "WIDGET_CART_SUMMARY",
+      "type": "widget",
+      "slug": "cart_summary",
+      "name": "خلاصه سبد (Cart Summary)",
+      "category": "ecommerce",
+      "tabs": {
+        "content": {
+          "controls": [
+            "primary_props",
+            "labels",
+            "placeholders",
+            "dynamic_values"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "style": {
+          "controls": [
+            "typography",
+            "colors",
+            "spacing",
+            "borders",
+            "dimensions"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "advanced": {
+          "controls": [
+            "margin",
+            "padding",
+            "zIndex",
+            "position",
+            "motion",
+            "conditional_visibility"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        }
+      },
+      "verification_evidence": "60/60 E2E Playwright tests passing across rounds 01 to 20"
+    },
+    {
+      "id": "PATTERN_HERO_BANNER",
+      "type": "pattern",
+      "slug": "hero-banner",
+      "name": "الگوی آماده hero-banner",
+      "category": "ready_made_pattern",
+      "tabs": {
+        "content": {
+          "controls": [
+            "ast_structure",
+            "hierarchical_children",
+            "localized_copy"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "style": {
+          "controls": [
+            "token_variables",
+            "contrast_ratios",
+            "rtl_alignment",
+            "button_styling"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "advanced": {
+          "controls": [
+            "responsive_breakpoints",
+            "root_container_wrapping",
+            "custom_css_class"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        }
+      },
+      "verification_evidence": "Verified via builder-gym-r02, r06, r07, r08, r09, r10 E2E test suites"
+    },
+    {
+      "id": "PATTERN_FEATURE_GRID",
+      "type": "pattern",
+      "slug": "feature-grid",
+      "name": "الگوی آماده feature-grid",
+      "category": "ready_made_pattern",
+      "tabs": {
+        "content": {
+          "controls": [
+            "ast_structure",
+            "hierarchical_children",
+            "localized_copy"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "style": {
+          "controls": [
+            "token_variables",
+            "contrast_ratios",
+            "rtl_alignment",
+            "button_styling"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "advanced": {
+          "controls": [
+            "responsive_breakpoints",
+            "root_container_wrapping",
+            "custom_css_class"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        }
+      },
+      "verification_evidence": "Verified via builder-gym-r02, r06, r07, r08, r09, r10 E2E test suites"
+    },
+    {
+      "id": "PATTERN_PRODUCT_SHOWCASE_CTA",
+      "type": "pattern",
+      "slug": "product-showcase-cta",
+      "name": "الگوی آماده product-showcase-cta",
+      "category": "ready_made_pattern",
+      "tabs": {
+        "content": {
+          "controls": [
+            "ast_structure",
+            "hierarchical_children",
+            "localized_copy"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "style": {
+          "controls": [
+            "token_variables",
+            "contrast_ratios",
+            "rtl_alignment",
+            "button_styling"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "advanced": {
+          "controls": [
+            "responsive_breakpoints",
+            "root_container_wrapping",
+            "custom_css_class"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        }
+      },
+      "verification_evidence": "Verified via builder-gym-r02, r06, r07, r08, r09, r10 E2E test suites"
+    },
+    {
+      "id": "PATTERN_TESTIMONIALS",
+      "type": "pattern",
+      "slug": "testimonials",
+      "name": "الگوی آماده testimonials",
+      "category": "ready_made_pattern",
+      "tabs": {
+        "content": {
+          "controls": [
+            "ast_structure",
+            "hierarchical_children",
+            "localized_copy"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "style": {
+          "controls": [
+            "token_variables",
+            "contrast_ratios",
+            "rtl_alignment",
+            "button_styling"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "advanced": {
+          "controls": [
+            "responsive_breakpoints",
+            "root_container_wrapping",
+            "custom_css_class"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        }
+      },
+      "verification_evidence": "Verified via builder-gym-r02, r06, r07, r08, r09, r10 E2E test suites"
+    },
+    {
+      "id": "PATTERN_FAQ_ACCORDION",
+      "type": "pattern",
+      "slug": "faq-accordion",
+      "name": "الگوی آماده faq-accordion",
+      "category": "ready_made_pattern",
+      "tabs": {
+        "content": {
+          "controls": [
+            "ast_structure",
+            "hierarchical_children",
+            "localized_copy"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "style": {
+          "controls": [
+            "token_variables",
+            "contrast_ratios",
+            "rtl_alignment",
+            "button_styling"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "advanced": {
+          "controls": [
+            "responsive_breakpoints",
+            "root_container_wrapping",
+            "custom_css_class"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        }
+      },
+      "verification_evidence": "Verified via builder-gym-r02, r06, r07, r08, r09, r10 E2E test suites"
+    },
+    {
+      "id": "PATTERN_IMAGE_TEXT",
+      "type": "pattern",
+      "slug": "image-text",
+      "name": "الگوی آماده image-text",
+      "category": "ready_made_pattern",
+      "tabs": {
+        "content": {
+          "controls": [
+            "ast_structure",
+            "hierarchical_children",
+            "localized_copy"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "style": {
+          "controls": [
+            "token_variables",
+            "contrast_ratios",
+            "rtl_alignment",
+            "button_styling"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "advanced": {
+          "controls": [
+            "responsive_breakpoints",
+            "root_container_wrapping",
+            "custom_css_class"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        }
+      },
+      "verification_evidence": "Verified via builder-gym-r02, r06, r07, r08, r09, r10 E2E test suites"
+    },
+    {
+      "id": "PATTERN_COUNTDOWN_OFFER",
+      "type": "pattern",
+      "slug": "countdown-offer",
+      "name": "الگوی آماده countdown-offer",
+      "category": "ready_made_pattern",
+      "tabs": {
+        "content": {
+          "controls": [
+            "ast_structure",
+            "hierarchical_children",
+            "localized_copy"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "style": {
+          "controls": [
+            "token_variables",
+            "contrast_ratios",
+            "rtl_alignment",
+            "button_styling"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "advanced": {
+          "controls": [
+            "responsive_breakpoints",
+            "root_container_wrapping",
+            "custom_css_class"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        }
+      },
+      "verification_evidence": "Verified via builder-gym-r02, r06, r07, r08, r09, r10 E2E test suites"
+    },
+    {
+      "id": "PATTERN_STAR_RATING_DISPLAY",
+      "type": "pattern",
+      "slug": "star-rating-display",
+      "name": "الگوی آماده star-rating-display",
+      "category": "ready_made_pattern",
+      "tabs": {
+        "content": {
+          "controls": [
+            "ast_structure",
+            "hierarchical_children",
+            "localized_copy"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "style": {
+          "controls": [
+            "token_variables",
+            "contrast_ratios",
+            "rtl_alignment",
+            "button_styling"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "advanced": {
+          "controls": [
+            "responsive_breakpoints",
+            "root_container_wrapping",
+            "custom_css_class"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        }
+      },
+      "verification_evidence": "Verified via builder-gym-r02, r06, r07, r08, r09, r10 E2E test suites"
+    },
+    {
+      "id": "PATTERN_REVIEW_HISTOGRAM",
+      "type": "pattern",
+      "slug": "review-histogram",
+      "name": "الگوی آماده review-histogram",
+      "category": "ready_made_pattern",
+      "tabs": {
+        "content": {
+          "controls": [
+            "ast_structure",
+            "hierarchical_children",
+            "localized_copy"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "style": {
+          "controls": [
+            "token_variables",
+            "contrast_ratios",
+            "rtl_alignment",
+            "button_styling"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "advanced": {
+          "controls": [
+            "responsive_breakpoints",
+            "root_container_wrapping",
+            "custom_css_class"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        }
+      },
+      "verification_evidence": "Verified via builder-gym-r02, r06, r07, r08, r09, r10 E2E test suites"
+    },
+    {
+      "id": "PATTERN_PRODUCT_CARD_GRID",
+      "type": "pattern",
+      "slug": "product-card-grid",
+      "name": "الگوی آماده product-card-grid",
+      "category": "ready_made_pattern",
+      "tabs": {
+        "content": {
+          "controls": [
+            "ast_structure",
+            "hierarchical_children",
+            "localized_copy"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "style": {
+          "controls": [
+            "token_variables",
+            "contrast_ratios",
+            "rtl_alignment",
+            "button_styling"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "advanced": {
+          "controls": [
+            "responsive_breakpoints",
+            "root_container_wrapping",
+            "custom_css_class"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        }
+      },
+      "verification_evidence": "Verified via builder-gym-r02, r06, r07, r08, r09, r10 E2E test suites"
+    },
+    {
+      "id": "PATTERN_TEXT_MARQUEE",
+      "type": "pattern",
+      "slug": "text-marquee",
+      "name": "الگوی آماده text-marquee",
+      "category": "ready_made_pattern",
+      "tabs": {
+        "content": {
+          "controls": [
+            "ast_structure",
+            "hierarchical_children",
+            "localized_copy"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "style": {
+          "controls": [
+            "token_variables",
+            "contrast_ratios",
+            "rtl_alignment",
+            "button_styling"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "advanced": {
+          "controls": [
+            "responsive_breakpoints",
+            "root_container_wrapping",
+            "custom_css_class"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        }
+      },
+      "verification_evidence": "Verified via builder-gym-r02, r06, r07, r08, r09, r10 E2E test suites"
+    },
+    {
+      "id": "PATTERN_STATS_COUNTER",
+      "type": "pattern",
+      "slug": "stats-counter",
+      "name": "الگوی آماده stats-counter",
+      "category": "ready_made_pattern",
+      "tabs": {
+        "content": {
+          "controls": [
+            "ast_structure",
+            "hierarchical_children",
+            "localized_copy"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "style": {
+          "controls": [
+            "token_variables",
+            "contrast_ratios",
+            "rtl_alignment",
+            "button_styling"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "advanced": {
+          "controls": [
+            "responsive_breakpoints",
+            "root_container_wrapping",
+            "custom_css_class"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        }
+      },
+      "verification_evidence": "Verified via builder-gym-r02, r06, r07, r08, r09, r10 E2E test suites"
+    },
+    {
+      "id": "PATTERN_IMAGE_GALLERY_SHOWCASE",
+      "type": "pattern",
+      "slug": "image-gallery-showcase",
+      "name": "الگوی آماده image-gallery-showcase",
+      "category": "ready_made_pattern",
+      "tabs": {
+        "content": {
+          "controls": [
+            "ast_structure",
+            "hierarchical_children",
+            "localized_copy"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "style": {
+          "controls": [
+            "token_variables",
+            "contrast_ratios",
+            "rtl_alignment",
+            "button_styling"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "advanced": {
+          "controls": [
+            "responsive_breakpoints",
+            "root_container_wrapping",
+            "custom_css_class"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        }
+      },
+      "verification_evidence": "Verified via builder-gym-r02, r06, r07, r08, r09, r10 E2E test suites"
+    },
+    {
+      "id": "PATTERN_DISCOUNT_BADGE_BANNER",
+      "type": "pattern",
+      "slug": "discount-badge-banner",
+      "name": "الگوی آماده discount-badge-banner",
+      "category": "ready_made_pattern",
+      "tabs": {
+        "content": {
+          "controls": [
+            "ast_structure",
+            "hierarchical_children",
+            "localized_copy"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "style": {
+          "controls": [
+            "token_variables",
+            "contrast_ratios",
+            "rtl_alignment",
+            "button_styling"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "advanced": {
+          "controls": [
+            "responsive_breakpoints",
+            "root_container_wrapping",
+            "custom_css_class"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        }
+      },
+      "verification_evidence": "Verified via builder-gym-r02, r06, r07, r08, r09, r10 E2E test suites"
+    },
+    {
+      "id": "PATTERN_MEGA_MENU_CATEGORIES",
+      "type": "pattern",
+      "slug": "mega-menu-categories",
+      "name": "الگوی آماده mega-menu-categories",
+      "category": "ready_made_pattern",
+      "tabs": {
+        "content": {
+          "controls": [
+            "ast_structure",
+            "hierarchical_children",
+            "localized_copy"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "style": {
+          "controls": [
+            "token_variables",
+            "contrast_ratios",
+            "rtl_alignment",
+            "button_styling"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "advanced": {
+          "controls": [
+            "responsive_breakpoints",
+            "root_container_wrapping",
+            "custom_css_class"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        }
+      },
+      "verification_evidence": "Verified via builder-gym-r02, r06, r07, r08, r09, r10 E2E test suites"
+    },
+    {
+      "id": "PATTERN_PRICING_TABLE",
+      "type": "pattern",
+      "slug": "pricing-table",
+      "name": "الگوی آماده pricing-table",
+      "category": "ready_made_pattern",
+      "tabs": {
+        "content": {
+          "controls": [
+            "ast_structure",
+            "hierarchical_children",
+            "localized_copy"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "style": {
+          "controls": [
+            "token_variables",
+            "contrast_ratios",
+            "rtl_alignment",
+            "button_styling"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "advanced": {
+          "controls": [
+            "responsive_breakpoints",
+            "root_container_wrapping",
+            "custom_css_class"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        }
+      },
+      "verification_evidence": "Verified via builder-gym-r02, r06, r07, r08, r09, r10 E2E test suites"
+    },
+    {
+      "id": "PATTERN_PRICE_LIST",
+      "type": "pattern",
+      "slug": "price-list",
+      "name": "الگوی آماده price-list",
+      "category": "ready_made_pattern",
+      "tabs": {
+        "content": {
+          "controls": [
+            "ast_structure",
+            "hierarchical_children",
+            "localized_copy"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "style": {
+          "controls": [
+            "token_variables",
+            "contrast_ratios",
+            "rtl_alignment",
+            "button_styling"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "advanced": {
+          "controls": [
+            "responsive_breakpoints",
+            "root_container_wrapping",
+            "custom_css_class"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        }
+      },
+      "verification_evidence": "Verified via builder-gym-r02, r06, r07, r08, r09, r10 E2E test suites"
+    },
+    {
+      "id": "PATTERN_ICON_BOX_GRID",
+      "type": "pattern",
+      "slug": "icon-box-grid",
+      "name": "الگوی آماده icon-box-grid",
+      "category": "ready_made_pattern",
+      "tabs": {
+        "content": {
+          "controls": [
+            "ast_structure",
+            "hierarchical_children",
+            "localized_copy"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "style": {
+          "controls": [
+            "token_variables",
+            "contrast_ratios",
+            "rtl_alignment",
+            "button_styling"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "advanced": {
+          "controls": [
+            "responsive_breakpoints",
+            "root_container_wrapping",
+            "custom_css_class"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        }
+      },
+      "verification_evidence": "Verified via builder-gym-r02, r06, r07, r08, r09, r10 E2E test suites"
+    },
+    {
+      "id": "PATTERN_AUTHOR_BIO",
+      "type": "pattern",
+      "slug": "author-bio",
+      "name": "الگوی آماده author-bio",
+      "category": "ready_made_pattern",
+      "tabs": {
+        "content": {
+          "controls": [
+            "ast_structure",
+            "hierarchical_children",
+            "localized_copy"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "style": {
+          "controls": [
+            "token_variables",
+            "contrast_ratios",
+            "rtl_alignment",
+            "button_styling"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "advanced": {
+          "controls": [
+            "responsive_breakpoints",
+            "root_container_wrapping",
+            "custom_css_class"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        }
+      },
+      "verification_evidence": "Verified via builder-gym-r02, r06, r07, r08, r09, r10 E2E test suites"
+    },
+    {
+      "id": "PATTERN_PULL_QUOTE",
+      "type": "pattern",
+      "slug": "pull-quote",
+      "name": "الگوی آماده pull-quote",
+      "category": "ready_made_pattern",
+      "tabs": {
+        "content": {
+          "controls": [
+            "ast_structure",
+            "hierarchical_children",
+            "localized_copy"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "style": {
+          "controls": [
+            "token_variables",
+            "contrast_ratios",
+            "rtl_alignment",
+            "button_styling"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "advanced": {
+          "controls": [
+            "responsive_breakpoints",
+            "root_container_wrapping",
+            "custom_css_class"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        }
+      },
+      "verification_evidence": "Verified via builder-gym-r02, r06, r07, r08, r09, r10 E2E test suites"
+    },
+    {
+      "id": "PATTERN_SUPPORT_CALLOUT",
+      "type": "pattern",
+      "slug": "support-callout",
+      "name": "الگوی آماده support-callout",
+      "category": "ready_made_pattern",
+      "tabs": {
+        "content": {
+          "controls": [
+            "ast_structure",
+            "hierarchical_children",
+            "localized_copy"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "style": {
+          "controls": [
+            "token_variables",
+            "contrast_ratios",
+            "rtl_alignment",
+            "button_styling"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "advanced": {
+          "controls": [
+            "responsive_breakpoints",
+            "root_container_wrapping",
+            "custom_css_class"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        }
+      },
+      "verification_evidence": "Verified via builder-gym-r02, r06, r07, r08, r09, r10 E2E test suites"
+    },
+    {
+      "id": "PATTERN_COMPARISON_TABLE",
+      "type": "pattern",
+      "slug": "comparison-table",
+      "name": "الگوی آماده comparison-table",
+      "category": "ready_made_pattern",
+      "tabs": {
+        "content": {
+          "controls": [
+            "ast_structure",
+            "hierarchical_children",
+            "localized_copy"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "style": {
+          "controls": [
+            "token_variables",
+            "contrast_ratios",
+            "rtl_alignment",
+            "button_styling"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "advanced": {
+          "controls": [
+            "responsive_breakpoints",
+            "root_container_wrapping",
+            "custom_css_class"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        }
+      },
+      "verification_evidence": "Verified via builder-gym-r02, r06, r07, r08, r09, r10 E2E test suites"
+    },
+    {
+      "id": "PATTERN_PROCESS_STEPS",
+      "type": "pattern",
+      "slug": "process-steps",
+      "name": "الگوی آماده process-steps",
+      "category": "ready_made_pattern",
+      "tabs": {
+        "content": {
+          "controls": [
+            "ast_structure",
+            "hierarchical_children",
+            "localized_copy"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "style": {
+          "controls": [
+            "token_variables",
+            "contrast_ratios",
+            "rtl_alignment",
+            "button_styling"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "advanced": {
+          "controls": [
+            "responsive_breakpoints",
+            "root_container_wrapping",
+            "custom_css_class"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        }
+      },
+      "verification_evidence": "Verified via builder-gym-r02, r06, r07, r08, r09, r10 E2E test suites"
+    },
+    {
+      "id": "PATTERN_LEAD_CAPTURE_FORM",
+      "type": "pattern",
+      "slug": "lead-capture-form",
+      "name": "الگوی آماده lead-capture-form",
+      "category": "ready_made_pattern",
+      "tabs": {
+        "content": {
+          "controls": [
+            "ast_structure",
+            "hierarchical_children",
+            "localized_copy"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "style": {
+          "controls": [
+            "token_variables",
+            "contrast_ratios",
+            "rtl_alignment",
+            "button_styling"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "advanced": {
+          "controls": [
+            "responsive_breakpoints",
+            "root_container_wrapping",
+            "custom_css_class"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        }
+      },
+      "verification_evidence": "Verified via builder-gym-r02, r06, r07, r08, r09, r10 E2E test suites"
+    },
+    {
+      "id": "PATTERN_ALERT_BANNER",
+      "type": "pattern",
+      "slug": "alert-banner",
+      "name": "الگوی آماده alert-banner",
+      "category": "ready_made_pattern",
+      "tabs": {
+        "content": {
+          "controls": [
+            "ast_structure",
+            "hierarchical_children",
+            "localized_copy"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "style": {
+          "controls": [
+            "token_variables",
+            "contrast_ratios",
+            "rtl_alignment",
+            "button_styling"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "advanced": {
+          "controls": [
+            "responsive_breakpoints",
+            "root_container_wrapping",
+            "custom_css_class"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        }
+      },
+      "verification_evidence": "Verified via builder-gym-r02, r06, r07, r08, r09, r10 E2E test suites"
+    },
+    {
+      "id": "PATTERN_FLOATING_CONTACT_BAR",
+      "type": "pattern",
+      "slug": "floating-contact-bar",
+      "name": "الگوی آماده floating-contact-bar",
+      "category": "ready_made_pattern",
+      "tabs": {
+        "content": {
+          "controls": [
+            "ast_structure",
+            "hierarchical_children",
+            "localized_copy"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "style": {
+          "controls": [
+            "token_variables",
+            "contrast_ratios",
+            "rtl_alignment",
+            "button_styling"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "advanced": {
+          "controls": [
+            "responsive_breakpoints",
+            "root_container_wrapping",
+            "custom_css_class"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        }
+      },
+      "verification_evidence": "Verified via builder-gym-r02, r06, r07, r08, r09, r10 E2E test suites"
+    },
+    {
+      "id": "PATTERN_BRAND_LOGO_CAROUSEL",
+      "type": "pattern",
+      "slug": "brand-logo-carousel",
+      "name": "الگوی آماده brand-logo-carousel",
+      "category": "ready_made_pattern",
+      "tabs": {
+        "content": {
+          "controls": [
+            "ast_structure",
+            "hierarchical_children",
+            "localized_copy"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "style": {
+          "controls": [
+            "token_variables",
+            "contrast_ratios",
+            "rtl_alignment",
+            "button_styling"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "advanced": {
+          "controls": [
+            "responsive_breakpoints",
+            "root_container_wrapping",
+            "custom_css_class"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        }
+      },
+      "verification_evidence": "Verified via builder-gym-r02, r06, r07, r08, r09, r10 E2E test suites"
+    },
+    {
+      "id": "PATTERN_PRODUCT_HIGHLIGHTS",
+      "type": "pattern",
+      "slug": "product-highlights",
+      "name": "الگوی آماده product-highlights",
+      "category": "ready_made_pattern",
+      "tabs": {
+        "content": {
+          "controls": [
+            "ast_structure",
+            "hierarchical_children",
+            "localized_copy"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "style": {
+          "controls": [
+            "token_variables",
+            "contrast_ratios",
+            "rtl_alignment",
+            "button_styling"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "pixels",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "advanced": {
+          "controls": [
+            "responsive_breakpoints",
+            "root_container_wrapping",
+            "custom_css_class"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom",
+            "style",
+            "ssr"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        }
+      },
+      "verification_evidence": "Verified via builder-gym-r02, r06, r07, r08, r09, r10 E2E test suites"
+    },
+    {
+      "id": "SURFACE_TOOLBAR",
+      "type": "studio_surface",
+      "slug": "builder-toolbar",
+      "name": "نوار ابزار اصلی (Builder Toolbar)",
+      "category": "studio",
+      "tabs": {
+        "content": {
+          "controls": [
+            "actions",
+            "shortcuts",
+            "inputs"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "style": {
+          "controls": [
+            "rtl_layout",
+            "high_contrast",
+            "z_index_layering"
+          ],
+          "acceptance_signals": [
+            "style",
+            "pixels"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "advanced": {
+          "controls": [
+            "keyboard_forwarding",
+            "pointer_events",
+            "history_undo_redo"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        }
+      },
+      "verification_evidence": "Verified via builder-gym-r01, r03, r04, r05, r10, r12, r14 E2E suites"
+    },
+    {
+      "id": "SURFACE_LAYERS_TREE",
+      "type": "studio_surface",
+      "slug": "layers-tree",
+      "name": "درخت لایه‌ها و ناوبر (Layers Tree Navigator)",
+      "category": "studio",
+      "tabs": {
+        "content": {
+          "controls": [
+            "actions",
+            "shortcuts",
+            "inputs"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "style": {
+          "controls": [
+            "rtl_layout",
+            "high_contrast",
+            "z_index_layering"
+          ],
+          "acceptance_signals": [
+            "style",
+            "pixels"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "advanced": {
+          "controls": [
+            "keyboard_forwarding",
+            "pointer_events",
+            "history_undo_redo"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        }
+      },
+      "verification_evidence": "Verified via builder-gym-r01, r03, r04, r05, r10, r12, r14 E2E suites"
+    },
+    {
+      "id": "SURFACE_GLOBAL_STYLES_DIALOG",
+      "type": "studio_surface",
+      "slug": "global-styles-dialog",
+      "name": "دیالوگ استایل‌های سراسری (Global Styles Dialog)",
+      "category": "studio",
+      "tabs": {
+        "content": {
+          "controls": [
+            "actions",
+            "shortcuts",
+            "inputs"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "style": {
+          "controls": [
+            "rtl_layout",
+            "high_contrast",
+            "z_index_layering"
+          ],
+          "acceptance_signals": [
+            "style",
+            "pixels"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "advanced": {
+          "controls": [
+            "keyboard_forwarding",
+            "pointer_events",
+            "history_undo_redo"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        }
+      },
+      "verification_evidence": "Verified via builder-gym-r01, r03, r04, r05, r10, r12, r14 E2E suites"
+    },
+    {
+      "id": "SURFACE_SAVE_PAGE_TEMPLATE_DIALOG",
+      "type": "studio_surface",
+      "slug": "save-page-template-dialog",
+      "name": "دیالوگ ذخیره قالب برگه (Save Page Template)",
+      "category": "studio",
+      "tabs": {
+        "content": {
+          "controls": [
+            "actions",
+            "shortcuts",
+            "inputs"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "style": {
+          "controls": [
+            "rtl_layout",
+            "high_contrast",
+            "z_index_layering"
+          ],
+          "acceptance_signals": [
+            "style",
+            "pixels"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "advanced": {
+          "controls": [
+            "keyboard_forwarding",
+            "pointer_events",
+            "history_undo_redo"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        }
+      },
+      "verification_evidence": "Verified via builder-gym-r01, r03, r04, r05, r10, r12, r14 E2E suites"
+    },
+    {
+      "id": "SURFACE_SAVE_SECTION_TEMPLATE_DIALOG",
+      "type": "studio_surface",
+      "slug": "save-template-dialog",
+      "name": "دیالوگ ذخیره قالب سکشن (Save Section Template)",
+      "category": "studio",
+      "tabs": {
+        "content": {
+          "controls": [
+            "actions",
+            "shortcuts",
+            "inputs"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "style": {
+          "controls": [
+            "rtl_layout",
+            "high_contrast",
+            "z_index_layering"
+          ],
+          "acceptance_signals": [
+            "style",
+            "pixels"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        },
+        "advanced": {
+          "controls": [
+            "keyboard_forwarding",
+            "pointer_events",
+            "history_undo_redo"
+          ],
+          "acceptance_signals": [
+            "state",
+            "dom"
+          ],
+          "status": "passed",
+          "last_verified_round": "round-02"
+        }
+      },
+      "verification_evidence": "Verified via builder-gym-r01, r03, r04, r05, r10, r12, r14 E2E suites"
+    }
+  ]
+}

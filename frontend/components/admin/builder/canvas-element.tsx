@@ -45,6 +45,7 @@ import { Badge } from "@/components/ui/badge";
 import { useCartStore } from "@/stores/cart-store";
 import { useToast } from "@/components/ui/use-toast";
 import { normalizeCssColor } from "@/lib/builder/color-utils";
+import { getBuilderIcon } from "@/lib/builder/icon-map";
 import type { BuilderElement, DeviceStyle, ResponsiveStyles } from "@/types/builder";
 
 interface CanvasElementProps {
@@ -1458,10 +1459,12 @@ function CanvasElementComponent({
       case "icon_box": {
         const title = String(props.title || "ارسال سریع و مطمئن");
         const desc = String(props.description || "تحویل در کمترین زمان ممکن با بسته‌بندی ویژه به سراسر کشور");
+        const iconKey = String(props.icon || "shield-check");
+        const BoxIcon = getBuilderIcon(iconKey);
         return (
           <div className="p-4 rounded-2xl border border-border/80 bg-card flex items-start gap-3 shadow-sm w-full">
             <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
-              <Sparkles className="w-5 h-5" />
+              <BoxIcon className="w-5 h-5" />
             </div>
             <div className="space-y-1 text-right">
               <h4 className="font-bold text-xs text-foreground">{title}</h4>
@@ -1470,13 +1473,197 @@ function CanvasElementComponent({
           </div>
         );
       }
+      case "icon": {
+        const iconKey = String(props.icon || "star");
+        const IconComponent = getBuilderIcon(iconKey);
+        const view = String(props.view || "default");
+        const shape = String(props.shape || "circle");
+        const size = Number(props.size || 32);
+        const rotate = Number(props.rotate || 0);
+        const url = String(props.url || "");
+        const newTab = Boolean(props.newTab);
+
+        const iconEl = (
+          <div
+            className={cn(
+              "inline-flex items-center justify-center transition-transform",
+              view === "stacked" && "bg-primary text-primary-foreground shadow-sm",
+              view === "framed" && "border-2 border-primary text-primary bg-transparent",
+              view === "default" && "text-primary",
+              shape === "circle" ? "rounded-full" : "rounded-xl"
+            )}
+            style={{
+              padding: view !== "default" ? `${Math.round(size * 0.4)}px` : undefined,
+              transform: rotate ? `rotate(${rotate}deg)` : undefined,
+            }}
+          >
+            <IconComponent style={{ width: `${size}px`, height: `${size}px` }} />
+          </div>
+        );
+
+        if (url) {
+          return (
+            <a
+              href={url}
+              target={newTab ? "_blank" : undefined}
+              rel={newTab ? "noopener noreferrer" : undefined}
+              className="inline-block"
+              onClick={(e) => e.preventDefault()}
+            >
+              {iconEl}
+            </a>
+          );
+        }
+        return <div className="inline-block">{iconEl}</div>;
+      }
+      case "icon_list": {
+        const layout = String(props.layout || "vertical");
+        const rawItems = Array.isArray(props.items) ? (props.items as any[]) : [];
+        const items = rawItems.length > 0 ? rawItems : [
+          { text: "ارسال سریع برای خریدهای بالای ۵۰۰ هزار تومان", icon: "truck", url: "" },
+          { text: "ضمانت بازگشت وجه تا ۷ روز کاری", icon: "shield-check", url: "" },
+          { text: "پشتیبانی ۲۴ ساعته در تمام روزهای هفته", icon: "headphones", url: "" },
+        ];
+        return (
+          <ul className={cn(
+            "w-full text-right space-y-2.5",
+            layout === "horizontal" && "flex flex-wrap items-center gap-4 space-y-0"
+          )}>
+            {items.map((item, idx) => {
+              const ItemIcon = getBuilderIcon(item.icon || "check");
+              return (
+                <li key={idx} className="flex items-center gap-2.5 text-xs text-foreground">
+                  <div className="w-5 h-5 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                    <ItemIcon className="w-3 h-3" />
+                  </div>
+                  {item.url ? (
+                    <a
+                      href={item.url}
+                      className="hover:text-primary transition hover:underline"
+                      onClick={(e) => e.preventDefault()}
+                    >
+                      {item.text}
+                    </a>
+                  ) : (
+                    <span>{item.text}</span>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        );
+      }
+      case "price_table": {
+        const title = String(props.title || "پلن استاندارد");
+        const subtitle = String(props.subtitle || "مناسب برای کسب‌وکارهای در حال رشد");
+        const price = String(props.price || "۴۹۰,۰۰۰");
+        const currency = String(props.currency || "تومان");
+        const period = String(props.period || "ماهانه");
+        const badge = String(props.badge || "");
+        const isFeatured = Boolean(props.is_featured);
+        const features = Array.isArray(props.features) ? (props.features as any[]) : [
+          { text: "دسترسی نامحدود به تمامی امکانات", available: true },
+          { text: "پشتیبانی اختصاصی تلفنی و تیکتی", available: true },
+          { text: "فضای ابری ۵۰ گیگابایت امن", available: true },
+          { text: "دامنه اختصاصی رایگان ۱ ساله", available: false },
+        ];
+        const btnLabel = String(props.button_label || "انتخاب و شروع پلن");
+        const btnUrl = String(props.button_url || "/checkout");
+
+        return (
+          <div className={cn(
+            "w-full max-w-sm rounded-3xl border bg-card p-6 text-right space-y-5 transition shadow-sm relative overflow-hidden",
+            isFeatured ? "border-primary shadow-md ring-2 ring-primary/20" : "border-border/80"
+          )}>
+            {badge && (
+              <div className="absolute top-3 left-3 bg-primary text-primary-foreground text-[10px] font-bold px-2.5 py-0.5 rounded-full shadow-xs">
+                {badge}
+              </div>
+            )}
+            <div className="space-y-1">
+              <h3 className="text-base font-extrabold text-foreground">{title}</h3>
+              {subtitle && <p className="text-[11px] text-muted-foreground">{subtitle}</p>}
+            </div>
+            <div className="flex items-baseline gap-1.5 border-y border-border/60 py-4">
+              <span className="text-2xl font-black text-primary font-mono">{price}</span>
+              <span className="text-xs font-semibold text-muted-foreground">{currency}</span>
+              {period && <span className="text-[10px] text-muted-foreground/80">/ {period}</span>}
+            </div>
+            <ul className="space-y-2.5 text-xs">
+              {features.map((f, i) => (
+                <li key={i} className="flex items-center gap-2">
+                  <div className={cn(
+                    "w-4 h-4 rounded-full flex items-center justify-center shrink-0",
+                    f.available ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" : "bg-muted text-muted-foreground/40"
+                  )}>
+                    {f.available ? <Check className="w-2.5 h-2.5" /> : <Minus className="w-2.5 h-2.5" />}
+                  </div>
+                  <span className={cn(f.available ? "text-foreground font-medium" : "text-muted-foreground line-through opacity-70")}>
+                    {f.text}
+                  </span>
+                </li>
+              ))}
+            </ul>
+            <a
+              href={btnUrl}
+              onClick={(e) => e.preventDefault()}
+              className={cn(
+                "block w-full text-center py-2.5 rounded-xl font-bold text-xs transition shadow-sm",
+                isFeatured
+                  ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                  : "bg-muted/80 text-foreground hover:bg-muted"
+              )}
+            >
+              {btnLabel}
+            </a>
+          </div>
+        );
+      }
+      case "price_list": {
+        const rawItems = Array.isArray(props.items) ? (props.items as any[]) : [];
+        const items = rawItems.length > 0 ? rawItems : [
+          { title: "مشاوره اختصاصی کسب‌وکار", description: "جلسه ۱ ساعته تحلیل استراتژیک", price: "۳۵۰,۰۰۰ تومان", url: "" },
+          { title: "طراحی هویت بصری و لوگو", description: "شامل فایل‌های وکتور و راهنمای رنگ", price: "۱,۲۰۰,۰۰۰ تومان", url: "" },
+          { title: "سئو و بهینه‌سازی فنی سایت", description: "گزارش جامع کلمات کلیدی و ممیزی", price: "۸۵۰,۰۰۰ تومان", url: "" },
+        ];
+        const sepStyle = String(props.separator_style || "dotted");
+
+        return (
+          <div className="w-full space-y-4 text-right">
+            {items.map((it, idx) => (
+              <div key={idx} className="space-y-1">
+                <div className="flex items-baseline justify-between gap-3">
+                  <span className="text-xs font-bold text-foreground shrink-0">{it.title}</span>
+                  {sepStyle !== "none" && (
+                    <div className={cn(
+                      "flex-1 border-b border-border/80 mx-1",
+                      sepStyle === "dotted" && "border-dotted",
+                      sepStyle === "dashed" && "border-dashed",
+                      sepStyle === "solid" && "border-solid"
+                    )} />
+                  )}
+                  <span className="text-xs font-black text-primary font-mono shrink-0">{it.price}</span>
+                </div>
+                {it.description && (
+                  <p className="text-[11px] text-muted-foreground">{it.description}</p>
+                )}
+              </div>
+            ))}
+          </div>
+        );
+      }
       case "counter": {
         const title = String(props.title || "شمارنده");
+        const starting = Number(props.starting_number ?? 0);
         const ending = Number(props.ending_number ?? 100);
         const prefix = String(props.prefix || "");
         const suffix = String(props.suffix || "");
         return (
-          <div className="p-4 rounded-2xl border border-border/80 bg-card text-center space-y-1 shadow-sm w-full">
+          <div
+            className="p-4 rounded-2xl border border-border/80 bg-card text-center space-y-1 shadow-sm w-full"
+            data-starting-number={starting}
+            data-ending-number={ending}
+          >
             <div className="text-3xl font-black text-primary font-mono" dir="ltr">
               {prefix}{ending.toLocaleString("fa-IR")}{suffix}
             </div>
@@ -1735,17 +1922,25 @@ function CanvasElementComponent({
 
       {/* Off-Canvas & Popup Identifiers */}
       {element.widgetType === "off_canvas" && !previewMode && (
-        <div className="absolute top-1 start-1 z-20 pointer-events-none">
+        <div
+          className="absolute top-1 start-1 z-20 pointer-events-none"
+          data-drawer-title={String(element.widgetProps?.drawer_title || "")}
+          data-position={String(element.widgetProps?.position || "right")}
+        >
           <Badge variant="outline" className="bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-300 text-[9px] px-1.5 py-0 h-4">
-            کشوی جانبی (Off-Canvas)
+            کشوی جانبی: {String(element.widgetProps?.drawer_title || "Off-Canvas")} ({String(element.widgetProps?.position || "right")})
           </Badge>
         </div>
       )}
 
       {element.widgetType === "popup_builder" && !previewMode && (
-        <div className="absolute top-1 start-1 z-20 pointer-events-none">
+        <div
+          className="absolute top-1 start-1 z-20 pointer-events-none"
+          data-popup-title={String(element.widgetProps?.popup_title || "")}
+          data-trigger={String(element.widgetProps?.trigger || "exit_intent")}
+        >
           <Badge variant="outline" className="bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-300 text-[9px] px-1.5 py-0 h-4">
-            پاپ‌آپ هوشمند (Popup)
+            پاپ‌آپ: {String(element.widgetProps?.popup_title || "Popup")} [{String(element.widgetProps?.trigger || "exit_intent")}]
           </Badge>
         </div>
       )}

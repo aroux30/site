@@ -806,6 +806,139 @@ class ASTCompiler:
             anchor_id = html.escape(str(props.get("anchor_id", "section-target")))
             return f'<div id="{anchor_id}" class="builder-menu-anchor w-full h-0 opacity-0 pointer-events-none -my-1" aria-hidden="true"></div>'
 
+        elif widget_type == "icon":
+            icon_key = html.escape(str(props.get("icon", "star")))
+            view = str(props.get("view", "default"))
+            shape = str(props.get("shape", "circle"))
+            size = int(props.get("size", 32))
+            rotate = int(props.get("rotate", 0))
+            url = str(props.get("url", ""))
+            new_tab = bool(props.get("newTab", False))
+            target_attr = ' target="_blank" rel="noopener noreferrer"' if new_tab else ""
+
+            view_classes = "text-primary"
+            if view == "stacked":
+                view_classes = "bg-primary text-white shadow-sm"
+            elif view == "framed":
+                view_classes = "border-2 border-primary text-primary bg-transparent"
+
+            shape_class = "rounded-full" if shape == "circle" else "rounded-xl"
+            pad_style = f"padding: {round(size * 0.4)}px;" if view != "default" else ""
+            rot_style = f"transform: rotate({rotate}deg);" if rotate else ""
+            inline_style = f' style="{pad_style} {rot_style}"'.strip()
+
+            inner_icon = f'<div class="inline-flex items-center justify-center {view_classes} {shape_class}"{inline_style}><span style="font-size: {size}px; line-height: 1;">★</span></div>'
+            if url:
+                return f'<div{id_attr} class="builder-icon inline-block {css_class}" data-widget="icon"{style_attr}><a href="{html.escape(url)}"{target_attr}>{inner_icon}</a></div>'
+            return f'<div{id_attr} class="builder-icon inline-block {css_class}" data-widget="icon"{style_attr}>{inner_icon}</div>'
+
+        elif widget_type == "icon_list":
+            layout = str(props.get("layout", "vertical"))
+            raw_items = props.get("items", [])
+            items = raw_items if isinstance(raw_items, list) and raw_items else [
+                {"text": "ارسال سریع به سراسر کشور", "icon": "truck", "url": ""},
+                {"text": "ضمانت بازگشت ۷ روزه", "icon": "shield-check", "url": ""},
+            ]
+            list_class = "space-y-2.5" if layout != "horizontal" else "flex flex-wrap items-center gap-4 space-y-0"
+            items_html = ""
+            for item in items:
+                text = html.escape(str(item.get("text", "")))
+                url = item.get("url", "")
+                text_content = f'<a href="{html.escape(str(url))}" class="hover:underline">{text}</a>' if url else f'<span>{text}</span>'
+                items_html += (
+                    f'<li class="flex items-center gap-2.5 text-xs text-foreground">'
+                    f'<div class="w-5 h-5 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0 text-[10px]">✓</div>'
+                    f'{text_content}'
+                    f'</li>'
+                )
+            return (
+                f'<ul{id_attr} class="builder-icon-list w-full text-right {list_class} {css_class}" data-widget="icon_list"{style_attr}>'
+                f'{items_html}'
+                f'</ul>'
+            )
+
+        elif widget_type == "price_table":
+            title = html.escape(str(props.get("title", "پلن استاندارد")))
+            subtitle = html.escape(str(props.get("subtitle", "")))
+            price = html.escape(str(props.get("price", "۴۹۰,۰۰۰")))
+            currency = html.escape(str(props.get("currency", "تومان")))
+            period = html.escape(str(props.get("period", "ماهانه")))
+            badge = html.escape(str(props.get("badge", "")))
+            is_featured = bool(props.get("is_featured", False))
+            btn_label = html.escape(str(props.get("button_label", "انتخاب و شروع پلن")))
+            btn_url = html.escape(str(props.get("button_url", "/checkout")))
+
+            featured_border = "border-primary shadow-md ring-2 ring-primary/20" if is_featured else "border-border/80"
+            badge_html = f'<div class="absolute top-3 left-3 bg-primary text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full">{badge}</div>' if badge else ""
+            subtitle_html = f'<p class="text-[11px] text-muted-foreground">{subtitle}</p>' if subtitle else ""
+            period_html = f'<span class="text-[10px] text-muted-foreground/80">/ {period}</span>' if period else ""
+
+            features = props.get("features", [])
+            features_html = ""
+            if isinstance(features, list):
+                for f in features:
+                    f_text = html.escape(str(f.get("text", "")))
+                    f_avail = bool(f.get("available", True))
+                    status_class = "text-foreground font-medium" if f_avail else "text-muted-foreground line-through opacity-70"
+                    icon_circle = "bg-emerald-500/10 text-emerald-600" if f_avail else "bg-muted text-muted-foreground/40"
+                    icon_char = "✓" if f_avail else "–"
+                    features_html += (
+                        f'<li class="flex items-center gap-2">'
+                        f'<div class="w-4 h-4 rounded-full flex items-center justify-center shrink-0 {icon_circle} text-[10px]">{icon_char}</div>'
+                        f'<span class="{status_class}">{f_text}</span>'
+                        f'</li>'
+                    )
+
+            btn_bg = "bg-primary text-white hover:bg-primary/90" if is_featured else "bg-muted/80 text-foreground hover:bg-muted"
+
+            return (
+                f'<div{id_attr} class="builder-price-table w-full max-w-sm rounded-3xl border bg-card p-6 text-right space-y-5 shadow-sm relative overflow-hidden {featured_border} {css_class}" data-widget="price_table"{style_attr}>'
+                f'{badge_html}'
+                f'<div class="space-y-1">'
+                f'<h3 class="text-base font-extrabold text-foreground">{title}</h3>'
+                f'{subtitle_html}'
+                f'</div>'
+                f'<div class="flex items-baseline gap-1.5 border-y border-border/60 py-4">'
+                f'<span class="text-2xl font-black text-primary font-mono">{price}</span>'
+                f'<span class="text-xs font-semibold text-muted-foreground">{currency}</span>'
+                f'{period_html}'
+                f'</div>'
+                f'<ul class="space-y-2.5 text-xs">{features_html}</ul>'
+                f'<a href="{btn_url}" class="block w-full text-center py-2.5 rounded-xl font-bold text-xs transition shadow-sm {btn_bg}">{btn_label}</a>'
+                f'</div>'
+            )
+
+        elif widget_type == "price_list":
+            sep_style = str(props.get("separator_style", "dotted"))
+            raw_items = props.get("items", [])
+            items = raw_items if isinstance(raw_items, list) and raw_items else [
+                {"title": "مشاوره اختصاصی", "price": "۳۵۰,۰۰۰ تومان", "description": "جلسه ۱ ساعته"}
+            ]
+            border_cls = "border-dotted" if sep_style == "dotted" else ("border-dashed" if sep_style == "dashed" else "border-solid")
+            sep_html = f'<div class="flex-1 border-b border-border/80 mx-1 {border_cls}"></div>' if sep_style != "none" else ""
+
+            items_html = ""
+            for it in items:
+                t = html.escape(str(it.get("title", "")))
+                p = html.escape(str(it.get("price", "")))
+                d = html.escape(str(it.get("description", "")))
+                desc_html = f'<p class="text-[11px] text-muted-foreground">{d}</p>' if d else ""
+                items_html += (
+                    f'<div class="space-y-1">'
+                    f'<div class="flex items-baseline justify-between gap-3">'
+                    f'<span class="text-xs font-bold text-foreground shrink-0">{t}</span>'
+                    f'{sep_html}'
+                    f'<span class="text-xs font-black text-primary font-mono shrink-0">{p}</span>'
+                    f'</div>'
+                    f'{desc_html}'
+                    f'</div>'
+                )
+            return (
+                f'<div{id_attr} class="builder-price-list w-full space-y-4 text-right {css_class}" data-widget="price_list"{style_attr}>'
+                f'{items_html}'
+                f'</div>'
+            )
+
         # Generic fallback for any other registered widget
         fallback_title = html.escape(str(props.get("title", widget_type)))
         return f'<div{id_attr} class="builder-widget builder-{widget_type} {css_class}" data-widget="{html.escape(widget_type)}"{style_attr}>{fallback_title}</div>'

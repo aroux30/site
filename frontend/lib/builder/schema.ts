@@ -71,6 +71,7 @@ export const DeviceStyleSchema = z.object({
     .enum(["block", "flex", "grid", "inline-block", "none", "inherit"])
     .nullable()
     .optional(),
+  boxShadow: z.string().nullable().optional(),
   opacity: z.number().min(0).max(1).nullable().optional(),
   zIndex: z.number().int().min(0).max(999).nullable().optional(),
   // Advanced Layout (P4)

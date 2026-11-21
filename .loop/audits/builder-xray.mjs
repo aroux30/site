@@ -238,19 +238,24 @@ async function runXRayAudit() {
     // 1. Clear canvas
     await clearCanvas();
 
-    // 2. Select category "همه" or click the pattern card
+    // 2. Clear search input if filled, and select "همه"
+    const searchInput = page.locator("input[placeholder*='الگو']").first();
+    if (await searchInput.isVisible()) {
+      await searchInput.fill("");
+      await page.waitForTimeout(200);
+    }
     const allCatBtn = page.locator("button:has-text('همه (')").first();
     if (await allCatBtn.isVisible()) {
       await allCatBtn.click();
       await page.waitForTimeout(200);
     }
 
-    const card = page.locator(`[data-pattern-slug="${p.slug}"]`);
+    let card = page.locator(`[data-pattern-slug="${p.slug}"]`);
     if (!(await card.isVisible())) {
       // Try searching for the pattern
-      const searchInput = page.locator("input[placeholder*='الگو']").first();
       await searchInput.fill(p.title);
       await page.waitForTimeout(300);
+      card = page.locator(`[data-pattern-slug="${p.slug}"]`);
     }
 
     if (!(await card.isVisible())) {
@@ -713,7 +718,7 @@ async function runXRayAudit() {
     await page.waitForTimeout(400);
 
     const chipsCheck = await page.evaluate(() => {
-      const container = document.querySelector("div.flex.gap-1.overflow-x-auto");
+      const container = document.querySelector("div.flex.gap-1, div.flex.gap-1\\.5, div.flex-wrap.gap-1\\.5");
       if (!container) return { found: false };
 
       const chips = Array.from(container.querySelectorAll("button"));
@@ -764,6 +769,75 @@ async function runXRayAudit() {
       addFailure("WYSIWYG_PARITY_MISMATCH", "P0", { message: msg });
     }
     await publicPage.close();
+  }
+
+  // 3. Elementor Parity: Container Preset Picker Check
+  console.log("    Testing Elementor Parity: Container Preset Picker...");
+  await clearCanvas();
+  // Insert an empty container
+  await page.evaluate(() => {
+    const store = window.__BUILDER_STORE__;
+    if (store && store.getState) {
+      store.getState().replacePageAST({
+        ...store.getState().ast,
+        rootElements: [
+          {
+            id: "empty_container_test",
+            name: "کانتینر خالی",
+            type: "container",
+            isLocked: false,
+            isHidden: false,
+            layout: { kind: "flex", direction: "column", gap: { value: 16, unit: "px" }, gridColumns: 1 },
+            styles: { mobile: {} },
+            children: [],
+          },
+        ],
+      });
+      store.getState().selectElement("empty_container_test");
+    }
+  });
+  await page.waitForTimeout(600);
+
+  const { frame: framePreset } = await getCanvasFrame();
+  const presetPicker = framePreset.locator("[data-testid='container-preset-picker']");
+  if (!(await presetPicker.isVisible())) {
+    const msg = `Container Preset Picker (Elementor Parity) not visible in empty container!`;
+    addFailure("CONTAINER_PRESET_PICKER_MISSING", "P0", { message: msg });
+  } else {
+    // Click 2-col preset
+    const twoColBtn = framePreset.locator("[data-preset-id='2-col']").first();
+    await twoColBtn.click();
+    await page.waitForTimeout(500);
+
+    const childCount = await framePreset.locator("[data-element-id^='col_']").count();
+    if (childCount !== 2) {
+      const msg = `Container 2-col preset did not insert 2 child columns! Found: ${childCount}`;
+      addFailure("CONTAINER_PRESET_INSERT_FAILED", "P0", { message: msg });
+    }
+  }
+
+  // 4. Elementor Parity: Context Menu on Canvas
+  console.log("    Testing Elementor Parity: Context Menu...");
+  const targetCol = framePreset.locator("[data-element-id^='col_']").first();
+  await targetCol.dispatchEvent("contextmenu", { bubbles: true, cancelable: true });
+  await page.waitForTimeout(400);
+
+  const contextMenu = page.locator("[data-testid='builder-context-menu']");
+  if (!(await contextMenu.isVisible())) {
+    const msg = `Context Menu (Elementor Parity) did not open on right click!`;
+    addFailure("CONTEXT_MENU_MISSING", "P0", { message: msg });
+  } else {
+    // Verify actions exist
+    const hasDuplicate = await contextMenu.locator("text=تکثیر").isVisible();
+    const hasCopy = await contextMenu.locator("text=کپی المان").isVisible();
+    const hasDelete = await contextMenu.locator("text=حذف").isVisible();
+    if (!hasDuplicate || !hasCopy || !hasDelete) {
+      const msg = `Context Menu missing key Elementor actions (Duplicate, Copy, Delete)!`;
+      addFailure("CONTEXT_MENU_ACTIONS_MISSING", "P0", { message: msg });
+    }
+    // Close context menu by clicking canvas
+    await page.mouse.click(10, 10);
+    await page.waitForTimeout(200);
   }
 
   // ──────────────────────────────────────────────────────────────────────────

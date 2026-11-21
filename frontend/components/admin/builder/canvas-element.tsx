@@ -39,6 +39,7 @@ import { StarRating } from "@/components/ui/star-rating";
 import { ReviewHistogram } from "@/components/store/review-histogram";
 import { RecentlyViewed } from "@/components/store/recently-viewed";
 import { MegaMenu } from "@/components/layout/mega-menu";
+import { ContainerPresetPicker } from "./container-preset-picker";
 import { Badge } from "@/components/ui/badge";
 import { useCartStore } from "@/stores/cart-store";
 import { useToast } from "@/components/ui/use-toast";
@@ -299,6 +300,12 @@ function CanvasElementComponent({
         styleObj.backgroundPosition = bgObj.position || "center";
         styleObj.backgroundSize = bgObj.size || "cover";
       }
+    }
+
+    // Box Shadow
+    const shadow = resolveResponsiveValue({ mobile: base?.boxShadow, tablet: tablet?.boxShadow, desktop: desktop?.boxShadow }, activeBreakpoint);
+    if (shadow && shadow !== "none") {
+      styleObj.boxShadow = shadow;
     }
 
     // Animation styles
@@ -1303,24 +1310,22 @@ function CanvasElementComponent({
           ))
         ) : (
           !previewMode && (
-            <div
-              onClick={(e) => {
-                e.stopPropagation();
-                selectElement(element.id);
-                useBuilderStore.getState().setLeftTab("blocks");
-              }}
-              data-testid="empty-container-guide"
-              className="flex flex-col items-center justify-center p-6 border-2 border-dashed border-primary/40 hover:border-primary/80 rounded-2xl bg-card/60 hover:bg-primary/5 transition-all cursor-pointer text-center w-full min-h-[96px] my-1 shadow-xs group/empty"
-            >
-              <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center mb-1.5 group-hover/empty:bg-primary group-hover/empty:text-primary-foreground transition-colors shadow-xs">
-                <Plus className="w-4 h-4" />
+            <div className="space-y-3 w-full">
+              <ContainerPresetPicker containerId={element.id} />
+              <div
+                onClick={(e) => {
+                  e.stopPropagation();
+                  selectElement(element.id);
+                  useBuilderStore.getState().setLeftTab("blocks");
+                }}
+                data-testid="empty-container-guide"
+                className="flex flex-col items-center justify-center p-4 border border-dashed border-primary/30 hover:border-primary/60 rounded-xl bg-card/40 hover:bg-primary/5 transition-all cursor-pointer text-center w-full min-h-[64px] shadow-xs group/empty"
+              >
+                <div className="flex items-center gap-2 text-xs font-bold text-foreground group-hover/empty:text-primary transition-colors">
+                  <Plus className="w-3.5 h-3.5 text-primary" />
+                  <span>+ یا افزودن مستقیم ویجت دلخواه از پالت</span>
+                </div>
               </div>
-              <span className="text-xs font-bold text-foreground group-hover/empty:text-primary transition-colors">
-                + افزودن بلوک به این بخش
-              </span>
-              <span className="text-[10px] text-muted-foreground mt-0.5">
-                کانتینر آماده درج محتوا است (برای انتخاب و افزودن کلیک کنید)
-              </span>
             </div>
           )
         )

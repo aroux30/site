@@ -1849,6 +1849,48 @@ export function InspectorPanel() {
           </div>
         </div>
 
+        {/* Box Shadow Preset Tokens (Elementor Grouped Controls) */}
+        <div className="space-y-1.5 pt-2 border-t">
+          <Label className="text-xs font-bold text-foreground">سایه کادر (Box Shadow - المنتور)</Label>
+          <div className="flex items-center gap-2">
+            <Input
+              value={currentDeviceStyle.boxShadow || ""}
+              placeholder="مثلاً 0 10px 15px -3px rgba(0,0,0,0.1)"
+              onChange={(e) =>
+                handleDeviceStyleChange({
+                  boxShadow: e.target.value.trim() || undefined,
+                })
+              }
+              className="h-8 text-xs flex-1 font-mono"
+              dir="ltr"
+            />
+          </div>
+          <div className="flex flex-wrap gap-1 mt-1.5">
+            <span className="text-[10px] text-muted-foreground me-1 self-center">پریست‌های سایه:</span>
+            {[
+              { label: "بدون سایه", val: "none" },
+              { label: "بسیار ظریف (xs)", val: "0 1px 2px 0 rgb(0 0 0 / 0.05)" },
+              { label: "نرم (sm)", val: "0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)" },
+              { label: "متوسط (md)", val: "0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)" },
+              { label: "عمیق (lg)", val: "0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)" },
+              { label: "شناور (xl)", val: "0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)" },
+            ].map((tok) => (
+              <button
+                key={tok.label}
+                type="button"
+                onClick={() =>
+                  handleDeviceStyleChange({
+                    boxShadow: tok.val === "none" ? undefined : tok.val,
+                  })
+                }
+                className="px-2 py-0.5 rounded text-[10px] bg-muted/80 hover:bg-muted text-muted-foreground hover:text-foreground border border-border/60 transition"
+              >
+                {tok.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
         {/* Border Radius & Border Color Tokens */}
         <div className="space-y-1.5 pt-2 border-t">
           <Label className="text-xs font-bold text-foreground">شعاع گردی کادر (Border Radius)</Label>

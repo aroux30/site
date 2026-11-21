@@ -590,9 +590,11 @@ function CanvasElementComponent({
           </Tag>
         );
       }
-      case "text_editor": {
+      case "text_editor":
+      case "text":
+      case "paragraph": {
         const customClass = String(props.customCssClass || element.styles?.customCssClass || "");
-        const rawContent = String(props.content || "<p>متن پاراگراف را بنویسید...</p>");
+        const rawContent = String(props.content || props.text || "<p>متن پاراگراف را بنویسید...</p>");
         const hasTags = /<[a-z][\s\S]*>/i.test(rawContent);
 
         if (isInlineEditing && !previewMode) {

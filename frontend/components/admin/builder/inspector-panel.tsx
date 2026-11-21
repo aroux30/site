@@ -378,6 +378,8 @@ export function InspectorPanel() {
         );
 
       case "text_editor":
+      case "text":
+      case "paragraph":
         return (
           <div className="space-y-4">
             <div className="space-y-1.5">
@@ -385,8 +387,11 @@ export function InspectorPanel() {
               <textarea
                 data-testid="text-editor-textarea"
                 rows={6}
-                value={String(props.content || "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim()}
-                onChange={(e) => handlePropChange("content", e.target.value)}
+                value={String(props.content || props.text || "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim()}
+                onChange={(e) => {
+                  handlePropChange("content", e.target.value);
+                  handlePropChange("text", e.target.value);
+                }}
                 className="w-full rounded-md border border-input bg-background p-2 text-xs leading-relaxed"
               />
             </div>

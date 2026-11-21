@@ -238,8 +238,8 @@ class ASTCompiler:
             text = html.escape(str(props.get("text", "")))
             return f'<{tag}{id_attr} class="font-bold text-foreground break-words {css_class}"{style_attr}{extra_attrs}>{text}</{tag}>'
 
-        elif widget_type == "text_editor":
-            content = str(props.get("content", ""))
+        elif widget_type in ("text_editor", "text", "paragraph"):
+            content = str(props.get("content", props.get("text", "")))
             return f'<div{id_attr} class="prose dark:prose-invert max-w-none break-words {css_class}"{style_attr}{extra_attrs}>{content}</div>'
 
         elif widget_type == "button":

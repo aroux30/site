@@ -629,6 +629,71 @@ def test_ast_compiler_renders_round24_elementor_widgets():
     assert 'توجه مهم' in result
 
 
+def test_ast_compiler_renders_round25_dynamic_ecommerce_props():
+    """Verify that cart_summary, recently_viewed, and mini_cart honor dynamic user customizations in SSR."""
+    ast = PageAST(
+        schema_version=1,
+        title="تست پورت‌های راند ۲۵",
+        slug="test-r25-ecom",
+        root_elements=[
+            BuilderElement(
+                id="el_sec_r25",
+                name="بخش فروشگاهی سفارشی",
+                type="container",
+                children=[
+                    BuilderElement(
+                        id="el_cs_custom",
+                        name="خلاصه سفارشی",
+                        type="widget",
+                        widget_type="cart_summary",
+                        widget_props={
+                            "title": "فاکتور نهایی و تسویه",
+                            "button_label": "پرداخت اینترنتی سفارش",
+                            "checkout_url": "/checkout/gateway",
+                            "show_discount": True,
+                            "subtotal": "۴,۵۰۰,۰۰۰",
+                        },
+                    ),
+                    BuilderElement(
+                        id="el_rv_custom",
+                        name="بازدیدهای سفارشی",
+                        type="widget",
+                        widget_type="recently_viewed",
+                        widget_props={
+                            "title": "محصولات مورد علاقه شما",
+                            "limit": 3,
+                        },
+                    ),
+                    BuilderElement(
+                        id="el_mc_custom",
+                        name="مینی کارت سفارشی",
+                        type="widget",
+                        widget_type="mini_cart",
+                        widget_props={
+                            "label": "سبد خرید من",
+                            "item_count": 5,
+                            "show_badge": True,
+                        },
+                    ),
+                ],
+            )
+        ],
+    )
+    result = ASTCompiler.compile(ast)
+    assert 'builder-cart-summary' in result
+    assert 'فاکتور نهایی و تسویه' in result
+    assert 'پرداخت اینترنتی سفارش' in result
+    assert '/checkout/gateway' in result
+    assert 'تخفیف:' in result
+    assert '۴,۵۰۰,۰۰۰ تومان' in result
+    assert 'builder-recently-viewed' in result
+    assert 'محصولات مورد علاقه شما' in result
+    assert 'کالای اخیر 3' in result
+    assert 'builder-mini-cart' in result
+    assert 'سبد خرید من' in result
+    assert '5</span>' in result
+
+
 
 
 

@@ -782,6 +782,48 @@
 
 ---
 
+### 🏋️ راند ۲۵ (Round 25) — وزنه ۲: ۱۵ کیلو (همگام‌سازی ۴ لایه‌ای ویجت‌های فروشگاهی: خلاصه سبد، مینی کارت، بازدیدهای اخیر و دکمه‌های تسویه)
+- **تاریخ اجرا**: 2026-11-22
+- **شاخه ایزوله**: `claude/nifty-snyder-d5b886`
+- **پورت فرانت‌اند**: ۴۰۰۲
+- **وضعیت**: ✅ کامل و سبز (۴ نقص گسست داده میان Inspector ↔ Store ↔ Canvas ↔ SSR Compiler در ویجت‌های فروشگاهی حل و با Vision تایید شدند)
+
+#### ۱. باگ‌های کشف‌شده با ابزار Vision و تعامل
+1. **نادیده گرفته شدن تاگل `show_discount` خلاصه سبد خرید در بوم (`Canvas cart_summary show_discount Ignored`)**:
+   - *مشاهده*: در `canvas-element.tsx`، ردیف تخفیف `- ۱۰۰,۰۰۰ تومان` به صورت ثابت نمایش داده می‌شد و مقدار `show_discount` ذخیره‌شده از پنل بازرس در بوم اثری نداشت.
+   - *اصلاح ریشه‌ای*: شرطی‌سازی رندر ردیف تخفیف بر اساس `props.show_discount !== false` در `canvas-element.tsx`.
+2. **هاردکد بودن عنوان، دکمه و آدرس تسویه خلاصه سبد خرید در کامپایلر بک‌اند (`SSR AST cart_summary Hardcoded Values`)**:
+   - *مشاهده*: در `ast_compiler.py`، مقادیر عنوان («خلاصه سبد خرید»)، دکمه («ادامه فرآیند خرید») و آدرس (`/checkout`) به صورت هاردکد شده کامپایل می‌شدند و مقادیر داینامیک تنظیم‌شده توسط ادمین در خروجی SSR منعکس نمی‌شدند.
+   - *اصلاح ریشه‌ای*: استخراج مقادیر از `props.get("title")`، `props.get("button_label")`، `props.get("checkout_url")` و `props.get("show_discount")` در `ast_compiler.py`.
+3. **هاردکد بودن عنوان و عدم توجه به `show_badge` در ویجت‌های مینی‌کارت و کالاهای اخیر در کامپایلر سرور**:
+   - *اصلاح ریشه‌ای*: استخراج عنوان سفارشی `label` و شرطی‌سازی نشانگر تعداد بر اساس `show_badge` در ویجت `mini_cart`، و استخراج عنوان `title` و رندر متناسب کارت‌های گرید در `recently_viewed` درون `ast_compiler.py`.
+
+#### ۲. مستندات بصری (Vision Artifacts)
+- **قبل از اصلاح**: `.loop/artifacts/builder-gym/round-25/before/`
+  - `01-studio-overview.png`
+  - `02-palette-search-cart.png`
+  - `03-cart-summary-selected.png`
+  - `04-cart-summary-nudged.png`
+  - `report.json`
+- **بعد از اصلاح**: `.loop/artifacts/builder-gym/round-25/after/`
+  - `01-studio-overview.png`
+  - `02-palette-search-cart.png`
+  - `03-cart-summary-selected.png`
+  - `04-cart-summary-nudged.png` (اعمال موفق و بلادرنگ عنوان «فاکتور نهایی و تسویه» و دکمه «پرداخت اینترنتی سفارش» در بوم)
+  - `report.json`
+
+#### ۳. تست‌های رگرسیون دائمی اضافه‌شده
+- فایل تست Playwright: `frontend/tests/e2e/builder-gym-r25.spec.ts` (۲ تست سبز)
+- فایل تست پایتون: `backend/app/tests/unit/test_ast_compiler.py::test_ast_compiler_renders_round25_dynamic_ecommerce_props` (۱ تست سبز)
+
+#### ۴. نتایج نهایی ممیزی و تست‌ها در راند ۲۵
+- `npx --prefix frontend tsc --noEmit`: ۰ خطا (سبز)
+- `npm --prefix frontend test -- --run`: **۳۷۲ تست سبز در ۴۵ فایل** (`372 passed`)
+- `python -m pytest app/tests/unit`: **۶۲۴ تست سبز** (`624 passed, 2 skipped`)
+- تست‌های Playwright راند ۲۵: **۲ تست سبز (`2 passed in 14.1s`) روی پورت ۴۰۰۲**
+
+---
+
 ## 🏆 گواهینامه نهایی مسترینگ کامل: BUILDER_GYM_ALL_LEVELS_MASTERED
 
 بدین‌وسیله رسماً تایید و ثبت می‌گردد که کلیه وزنه‌های ۱ تا ۸ نردبان پیش‌رونده Visual Page Builder بر اساس دستورالعمل جامع المنتور و استانداردهای سخت‌گیرانه ۳۶۰ درجه با موفقیت ۱۰۰٪ کامل شدند:

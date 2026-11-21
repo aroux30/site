@@ -458,11 +458,16 @@ class ASTCompiler:
             )
 
         elif widget_type == "recently_viewed":
-            limit = props.get("limit", 4)
+            rv_title = html.escape(str(props.get("title", "بازدیدهای اخیر شما")))
+            limit = max(1, min(12, int(props.get("limit", 4))))
+            cards = "".join(
+                f'<div class="rounded-xl border border-border/60 p-2.5 bg-card text-center text-xs text-muted-foreground">کالای اخیر {i + 1}</div>'
+                for i in range(limit)
+            )
             return (
                 f'<div{id_attr} class="builder-recently-viewed space-y-2 {css_class}" data-widget="recently_viewed" data-limit="{limit}"{style_attr}>'
-                f'<h4 class="font-bold text-sm text-foreground">بازدیدهای اخیر شما</h4>'
-                f'<div class="text-xs text-muted-foreground">نمایش آخرین محصولات بازدید شده</div>'
+                f'<h4 class="font-bold text-sm text-foreground">{rv_title}</h4>'
+                f'<div class="grid grid-cols-2 md:grid-cols-4 gap-3">{cards}</div>'
                 f'</div>'
             )
 
@@ -478,23 +483,25 @@ class ASTCompiler:
             price_val = props.get("price", props.get("min_price", "۰"))
             compare_price = props.get("compare_at_price")
             curr = html.escape(str(props.get("currency", "تومان")))
+            show_discount = props.get("show_discount", True) is not False
             badge_html = ""
             del_html = ""
             if compare_price:
                 del_html = f'<del class="text-xs text-muted-foreground">{html.escape(str(compare_price))} {curr}</del>'
-                try:
-                    p_norm = str(price_val).replace(",", "").replace("،", "")
-                    c_norm = str(compare_price).replace(",", "").replace("،", "")
-                    for pd, ed in [("۰","0"),("۱","1"),("۲","2"),("۳","3"),("۴","4"),("۵","5"),("۶","6"),("۷","7"),("۸","8"),("۹","9")]:
-                        p_norm = p_norm.replace(pd, ed)
-                        c_norm = c_norm.replace(pd, ed)
-                    c_float = float(c_norm)
-                    p_float = float(p_norm)
-                    if c_float > p_float and c_float > 0:
-                        diff = int(((c_float - p_float) / c_float) * 100)
-                        badge_html = f'<span class="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full font-bold">{diff}% تخفیف</span>'
-                except (ValueError, TypeError, ZeroDivisionError):
-                    pass
+                if show_discount:
+                    try:
+                        p_norm = str(price_val).replace(",", "").replace("،", "")
+                        c_norm = str(compare_price).replace(",", "").replace("،", "")
+                        for pd, ed in [("۰","0"),("۱","1"),("۲","2"),("۳","3"),("۴","4"),("۵","5"),("۶","6"),("۷","7"),("۸","8"),("۹","9")]:
+                            p_norm = p_norm.replace(pd, ed)
+                            c_norm = c_norm.replace(pd, ed)
+                        c_float = float(c_norm)
+                        p_float = float(p_norm)
+                        if c_float > p_float and c_float > 0:
+                            diff = int(((c_float - p_float) / c_float) * 100)
+                            badge_html = f'<span class="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full font-bold">{diff}% تخفیف</span>'
+                    except (ValueError, TypeError, ZeroDivisionError):
+                        pass
             return (
                 f'<div{id_attr} class="builder-product-price flex items-center gap-2 {css_class}" data-widget="product_price"{style_attr}>'
                 f'<span class="text-xl font-black text-primary">{html.escape(str(price_val))} {curr}</span>'
@@ -532,21 +539,36 @@ class ASTCompiler:
             )
 
         elif widget_type == "mini_cart":
+            label = html.escape(str(props.get("label", "سبد خرید")))
             count = int(props.get("item_count", 0))
+            show_badge = props.get("show_badge", True) is not False
+            badge_html = f'<span class="bg-primary text-primary-foreground text-xs font-bold px-2 py-0.5 rounded-full">{count}</span>' if show_badge else ""
             return (
                 f'<div{id_attr} class="builder-mini-cart inline-flex items-center gap-2 p-2 rounded-xl bg-card border border-border/80 {css_class}" data-widget="mini_cart"{style_attr}>'
-                f'<span class="text-xs font-bold">سبد خرید</span>'
-                f'<span class="bg-primary text-primary-foreground text-xs font-bold px-2 py-0.5 rounded-full">{count}</span>'
+                f'<span class="text-xs font-bold">{label}</span>'
+                f'{badge_html}'
                 f'</div>'
             )
 
         elif widget_type == "cart_summary":
-            subtotal = html.escape(str(props.get("subtotal", "۰")))
+            title = html.escape(str(props.get("title", "خلاصه سبد خرید")))
+            btn_label = html.escape(str(props.get("button_label", "ادامه فرآیند خرید")))
+            checkout_url = html.escape(str(props.get("checkout_url", "/checkout")))
+            show_discount = props.get("show_discount", True) is not False
+            subtotal = html.escape(str(props.get("subtotal", "۳,۸۰۰,۰۰۰")))
+            discount_row = (
+                '<div class="flex justify-between text-xs text-emerald-600 font-semibold">'
+                '<span>تخفیف:</span><span>- ۱۰۰,۰۰۰ تومان</span>'
+                '</div>'
+            ) if show_discount else ""
             return (
                 f'<div{id_attr} class="builder-cart-summary p-4 rounded-2xl border border-border/80 bg-card space-y-3 {css_class}" data-widget="cart_summary"{style_attr}>'
-                f'<h3 class="font-bold text-sm text-foreground">خلاصه سبد خرید</h3>'
+                f'<h3 class="font-bold text-sm text-foreground">{title}</h3>'
+                f'<div class="space-y-1.5">'
                 f'<div class="flex justify-between text-xs text-muted-foreground"><span>مجموع اقلام:</span><span class="font-bold text-foreground">{subtotal} تومان</span></div>'
-                f'<a href="/checkout" class="block w-full py-2.5 rounded-xl bg-emerald-600 text-white font-bold text-xs text-center hover:bg-emerald-700 transition">ادامه فرآیند خرید</a>'
+                f'{discount_row}'
+                f'</div>'
+                f'<a href="{checkout_url}" class="block w-full py-2.5 rounded-xl bg-emerald-600 text-white font-bold text-xs text-center hover:bg-emerald-700 transition">{btn_label}</a>'
                 f'</div>'
             )
 

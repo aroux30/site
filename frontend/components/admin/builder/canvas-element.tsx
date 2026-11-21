@@ -1176,6 +1176,7 @@ function CanvasElementComponent({
       case "cart_summary": {
         const title = String(props.title || "خلاصه سبد خرید");
         const btnLabel = String(props.button_label || "ادامه فرآیند خرید");
+        const showDiscount = props.show_discount !== false;
         return (
           <div className="p-4 rounded-2xl border border-border/80 bg-card space-y-3 shadow-sm w-full max-w-sm">
             <div className="flex items-center justify-between border-b pb-2">
@@ -1187,10 +1188,12 @@ function CanvasElementComponent({
                 <span>جمع اقلام:</span>
                 <span className="font-semibold text-foreground">۳,۸۰۰,۰۰۰ تومان</span>
               </div>
-              <div className="flex justify-between text-emerald-600">
-                <span>تخفیف:</span>
-                <span className="font-semibold">- ۱۰۰,۰۰۰ تومان</span>
-              </div>
+              {showDiscount && (
+                <div className="flex justify-between text-emerald-600">
+                  <span>تخفیف:</span>
+                  <span className="font-semibold">- ۱۰۰,۰۰۰ تومان</span>
+                </div>
+              )}
               <div className="flex justify-between">
                 <span>مالیات بر ارزش افزوده (۹٪):</span>
                 <span>۳۳۳,۰۰۰ تومان</span>

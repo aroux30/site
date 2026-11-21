@@ -377,6 +377,13 @@ function CanvasElementComponent({
     const gridTemplateColumns = resolveResponsiveValue({ mobile: base?.gridTemplateColumns, tablet: tablet?.gridTemplateColumns, desktop: desktop?.gridTemplateColumns }, activeBreakpoint);
     if (gridTemplateColumns) styleObj.gridTemplateColumns = gridTemplateColumns;
 
+    // Elementor Boxed Container Max-Width & Centering
+    if (element.type === "container" && element.layout?.boxedWidth) {
+      styleObj.maxWidth = `${element.layout.boxedWidth.value}${element.layout.boxedWidth.unit}`;
+      styleObj.marginLeft = "auto";
+      styleObj.marginRight = "auto";
+    }
+
     return styleObj;
   }, [element.styles, element.layout, activeBreakpoint]);
 

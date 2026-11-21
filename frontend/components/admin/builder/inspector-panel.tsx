@@ -275,6 +275,69 @@ export function InspectorPanel() {
               </span>
             </div>
           </div>
+
+          {/* Container Width (Boxed vs Full Width - Elementor Parity) */}
+          <div className="space-y-1.5 pt-2 border-t">
+            <Label className="text-xs font-semibold">محدوده عرض کانتینر (Content Width)</Label>
+            <div className="grid grid-cols-2 gap-1.5">
+              <button
+                type="button"
+                data-testid="container-width-boxed-btn"
+                onClick={() => {
+                  updateElementLayout(selectedElement.id, {
+                    boxedWidth: { value: 1280, unit: "px" },
+                  });
+                }}
+                className={cn(
+                  "py-1.5 px-2 rounded-lg text-xs font-semibold border transition",
+                  layout.boxedWidth
+                    ? "bg-primary text-primary-foreground border-primary shadow-xs"
+                    : "bg-muted/60 text-muted-foreground hover:text-foreground border-border/70"
+                )}
+              >
+                جعبه‌ای (Boxed)
+              </button>
+              <button
+                type="button"
+                data-testid="container-width-full-btn"
+                onClick={() => {
+                  updateElementLayout(selectedElement.id, {
+                    boxedWidth: null,
+                  });
+                }}
+                className={cn(
+                  "py-1.5 px-2 rounded-lg text-xs font-semibold border transition",
+                  !layout.boxedWidth
+                    ? "bg-primary text-primary-foreground border-primary shadow-xs"
+                    : "bg-muted/60 text-muted-foreground hover:text-foreground border-border/70"
+                )}
+              >
+                تمام‌عرض (Full Width)
+              </button>
+            </div>
+            {layout.boxedWidth && (
+              <div className="relative flex items-center mt-1">
+                <Input
+                  data-testid="container-boxed-width-input"
+                  type="number"
+                  min={320}
+                  max={2560}
+                  value={layout.boxedWidth.value}
+                  onChange={(e) => {
+                    const val = parseFloat(e.target.value) || 1280;
+                    updateElementLayout(selectedElement.id, {
+                      boxedWidth: { value: val, unit: "px" },
+                    });
+                  }}
+                  className="h-8 text-xs pe-8 ps-2"
+                  dir="ltr"
+                />
+                <span className="absolute end-2 text-[11px] font-mono text-muted-foreground select-none pointer-events-none">
+                  px
+                </span>
+              </div>
+            )}
+          </div>
         </div>
       );
     }

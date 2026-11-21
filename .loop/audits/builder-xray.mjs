@@ -1213,6 +1213,44 @@ async function runXRayAudit() {
     }
   }
 
+  // 14. Elementor Parity: Boxed Container Content Width
+  console.log("    Testing Elementor Parity: Boxed Container Content Width...");
+  await page.evaluate(() => {
+    const store = window.__BUILDER_STORE__;
+    if (store && store.getState) {
+      store.getState().replacePageAST({
+        ...store.getState().ast,
+        rootElements: [
+          {
+            id: "boxed_cont_test",
+            name: "کانتینر جعبه‌ای",
+            type: "container",
+            layout: {
+              kind: "flex",
+              direction: "column",
+              gap: { value: 16, unit: "px" },
+              gridColumns: 1,
+              boxedWidth: { value: 1024, unit: "px" },
+            },
+            styles: { mobile: {} },
+            children: [],
+          },
+        ],
+      });
+      store.getState().selectElement("boxed_cont_test");
+    }
+  });
+  await page.waitForTimeout(400);
+
+  const boxedApplied = await framePreset.evaluate(() => {
+    const el = document.querySelector("[data-element-id='boxed_cont_test']");
+    return el ? { maxWidth: el.style.maxWidth, marginL: el.style.marginLeft, marginR: el.style.marginRight } : null;
+  });
+
+  if (!boxedApplied || boxedApplied.maxWidth !== "1024px") {
+    addFailure("CONTAINER_BOXED_WIDTH_FAILED", "P0", { message: `Boxed container maxWidth not applied in canvas DOM (got: ${JSON.stringify(boxedApplied)})` });
+  }
+
   // ──────────────────────────────────────────────────────────────────────────
   // Write Final Matrix Report
   // ──────────────────────────────────────────────────────────────────────────

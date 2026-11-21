@@ -110,6 +110,10 @@ class ASTCompiler:
             if layout.gap and layout.gap.value > 0:
                 style_parts.append(f"gap: {layout.gap.to_css()};")
 
+        # Boxed container layout: restrict maxWidth and auto-center
+        if layout.boxed_width and layout.boxed_width.value > 0:
+            style_parts.append(f"max-width: {layout.boxed_width.to_css()}; margin-left: auto; margin-right: auto;")
+
         # Compile responsive padding / margin / advanced layout styles
         style_parts.extend(cls._compile_styles(el.styles))
 

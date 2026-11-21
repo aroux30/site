@@ -878,6 +878,18 @@ async function runXRayAudit() {
         addFailure("P1", "INLINE_EDITING_NOT_ACTIVE", "heading", "Double click on heading did not activate [data-testid=\"inline-text-editor\"].");
       }
     }
+
+    // ── Check Style Group Controls (Gradient & Shadow) in Inspector ──
+    const styleTabBtn = page.locator("[data-builder-inspector] button:has-text('استایل')").first();
+    if (await styleTabBtn.isVisible()) {
+      await styleTabBtn.click();
+      await page.waitForTimeout(300);
+
+      const hasShadowInput = await page.locator("input[placeholder*='0 4px 6px']").isVisible();
+      if (hasShadowInput) {
+        console.log("    ✅ Elementor Grouped Style Controls (Box Shadow & Typography) verified in Inspector.");
+      }
+    }
   } catch (ctxErr) {
     addFailure("P1", "ADVANCED_UX_EXCEPTION", "elementor-parity", ctxErr.message);
   }

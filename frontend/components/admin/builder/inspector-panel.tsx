@@ -1725,65 +1725,239 @@ export function InspectorPanel() {
           </div>
         </div>
 
-        {/* Background Color */}
-        <div className="space-y-1.5">
-          <Label className="text-xs font-bold text-foreground">رنگ پس‌زمینه (Background)</Label>
-          <div className="flex items-center gap-2">
-            <input
-              type="color"
-              value={toValidHexColor(currentDeviceStyle.background?.color, "#ffffff")}
-              onChange={(e) =>
+        {/* Background Style: Solid, Gradient, or Image (Elementor Parity) */}
+        <div className="space-y-3 pt-2 border-t">
+          <div className="flex items-center justify-between">
+            <Label className="text-xs font-bold text-foreground">پس‌زمینه (Background)</Label>
+            <Select
+              value={currentDeviceStyle.background?.type || "color"}
+              onValueChange={(val: "none" | "color" | "gradient" | "image") =>
                 handleDeviceStyleChange({
                   background: {
-                    type: "color",
-                    color: e.target.value,
+                    type: val,
+                    color: currentDeviceStyle.background?.color || "#ffffff",
+                    gradient: currentDeviceStyle.background?.gradient || {
+                      direction: "to-r",
+                      fromColor: "#10b981",
+                      toColor: "#3b82f6",
+                    },
+                    imageUrl: currentDeviceStyle.background?.imageUrl || "",
+                    position: "center",
+                    size: "cover",
                   },
                 })
               }
-              className="w-8 h-8 rounded border border-input cursor-pointer p-0.5"
-            />
-            <Input
-              value={currentDeviceStyle.background?.color || ""}
-              placeholder="#ffffff یا hsl(var(--primary))"
-              onChange={(e) =>
-                handleDeviceStyleChange({
-                  background: {
-                    type: "color",
-                    color: normalizeCssColor(e.target.value) || e.target.value,
-                  },
-                })
-              }
-              className="h-8 text-xs flex-1 font-mono"
-              dir="ltr"
-            />
+            >
+              <SelectTrigger className="h-7 text-xs w-32">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">بدون پس‌زمینه</SelectItem>
+                <SelectItem value="color">رنگ خالص (Solid)</SelectItem>
+                <SelectItem value="gradient">گرادیانت (Gradient)</SelectItem>
+                <SelectItem value="image">تصویر پس‌زمینه</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
-          {/* Quick Design System Token Chips */}
-          <div className="flex flex-wrap gap-1 mt-1.5">
-            <span className="text-[10px] text-muted-foreground me-1 self-center">توکن‌های تم:</span>
-            {[
-              { label: "رنگ اصلی", val: "var(--primary)" },
-              { label: "رنگ ثانویه", val: "var(--secondary)" },
-              { label: "سطح / کارت", val: "var(--surface, var(--card))" },
-              { label: "ملایم (Muted)", val: "var(--muted)" },
-              { label: "پس‌زمینه", val: "var(--background)" },
-            ].map((tok) => (
-              <button
-                key={tok.val}
-                type="button"
-                onClick={() =>
+
+          {currentDeviceStyle.background?.type === "gradient" ? (
+            <div className="p-2.5 rounded-lg border bg-muted/20 space-y-2.5">
+              <div className="grid grid-cols-2 gap-2">
+                <div className="space-y-1">
+                  <Label className="text-[10px] text-muted-foreground">رنگ شروع</Label>
+                  <div className="flex items-center gap-1.5">
+                    <input
+                      type="color"
+                      value={toValidHexColor(currentDeviceStyle.background.gradient?.fromColor, "#10b981")}
+                      onChange={(e) =>
+                        handleDeviceStyleChange({
+                          background: {
+                            ...currentDeviceStyle.background!,
+                            type: "gradient",
+                            gradient: {
+                              direction: currentDeviceStyle.background?.gradient?.direction || "to-r",
+                              fromColor: e.target.value,
+                              toColor: currentDeviceStyle.background?.gradient?.toColor || "#3b82f6",
+                            },
+                          },
+                        })
+                      }
+                      className="w-6 h-6 rounded border cursor-pointer p-0.5"
+                    />
+                    <Input
+                      value={currentDeviceStyle.background.gradient?.fromColor || "#10b981"}
+                      onChange={(e) =>
+                        handleDeviceStyleChange({
+                          background: {
+                            ...currentDeviceStyle.background!,
+                            type: "gradient",
+                            gradient: {
+                              direction: currentDeviceStyle.background?.gradient?.direction || "to-r",
+                              fromColor: e.target.value,
+                              toColor: currentDeviceStyle.background?.gradient?.toColor || "#3b82f6",
+                            },
+                          },
+                        })
+                      }
+                      className="h-7 text-[11px] font-mono"
+                      dir="ltr"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <Label className="text-[10px] text-muted-foreground">رنگ پایان</Label>
+                  <div className="flex items-center gap-1.5">
+                    <input
+                      type="color"
+                      value={toValidHexColor(currentDeviceStyle.background.gradient?.toColor, "#3b82f6")}
+                      onChange={(e) =>
+                        handleDeviceStyleChange({
+                          background: {
+                            ...currentDeviceStyle.background!,
+                            type: "gradient",
+                            gradient: {
+                              direction: currentDeviceStyle.background?.gradient?.direction || "to-r",
+                              fromColor: currentDeviceStyle.background?.gradient?.fromColor || "#10b981",
+                              toColor: e.target.value,
+                            },
+                          },
+                        })
+                      }
+                      className="w-6 h-6 rounded border cursor-pointer p-0.5"
+                    />
+                    <Input
+                      value={currentDeviceStyle.background.gradient?.toColor || "#3b82f6"}
+                      onChange={(e) =>
+                        handleDeviceStyleChange({
+                          background: {
+                            ...currentDeviceStyle.background!,
+                            type: "gradient",
+                            gradient: {
+                              direction: currentDeviceStyle.background?.gradient?.direction || "to-r",
+                              fromColor: currentDeviceStyle.background?.gradient?.fromColor || "#10b981",
+                              toColor: e.target.value,
+                            },
+                          },
+                        })
+                      }
+                      className="h-7 text-[11px] font-mono"
+                      dir="ltr"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <Label className="text-[10px] text-muted-foreground">جهت گرادیانت</Label>
+                <Select
+                  value={currentDeviceStyle.background.gradient?.direction || "to-r"}
+                  onValueChange={(val: any) =>
+                    handleDeviceStyleChange({
+                      background: {
+                        ...currentDeviceStyle.background!,
+                        type: "gradient",
+                        gradient: {
+                          fromColor: currentDeviceStyle.background?.gradient?.fromColor || "#10b981",
+                          toColor: currentDeviceStyle.background?.gradient?.toColor || "#3b82f6",
+                          direction: val,
+                        },
+                      },
+                    })
+                  }
+                >
+                  <SelectTrigger className="h-7 text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="to-r">افقی به راست (→)</SelectItem>
+                    <SelectItem value="to-l">افقی به چپ (←)</SelectItem>
+                    <SelectItem value="to-b">عمودی به پایین (↓)</SelectItem>
+                    <SelectItem value="to-t">عمودی به بالا (↑)</SelectItem>
+                    <SelectItem value="to-tr">مورب به بالا راست (↗)</SelectItem>
+                    <SelectItem value="to-tl">مورب به بالا چپ (↖)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          ) : currentDeviceStyle.background?.type === "image" ? (
+            <div className="p-2.5 rounded-lg border bg-muted/20 space-y-2">
+              <Label className="text-[10px] text-muted-foreground">آدرس تصویر پس‌زمینه (URL)</Label>
+              <Input
+                value={currentDeviceStyle.background.imageUrl || ""}
+                placeholder="https://... یا /image.png"
+                onChange={(e) =>
                   handleDeviceStyleChange({
                     background: {
-                      type: "color",
-                      color: tok.val,
+                      ...currentDeviceStyle.background!,
+                      type: "image",
+                      imageUrl: e.target.value,
                     },
                   })
                 }
-                className="px-2 py-0.5 rounded text-[10px] bg-muted/80 hover:bg-muted text-muted-foreground hover:text-foreground border border-border/60 transition"
-              >
-                {tok.label}
-              </button>
-            ))}
-          </div>
+                className="h-7 text-xs font-mono"
+                dir="ltr"
+              />
+            </div>
+          ) : currentDeviceStyle.background?.type === "none" ? null : (
+            <>
+              <div className="flex items-center gap-2">
+                <input
+                  type="color"
+                  value={toValidHexColor(currentDeviceStyle.background?.color, "#ffffff")}
+                  onChange={(e) =>
+                    handleDeviceStyleChange({
+                      background: {
+                        type: "color",
+                        color: e.target.value,
+                      },
+                    })
+                  }
+                  className="w-8 h-8 rounded border border-input cursor-pointer p-0.5"
+                />
+                <Input
+                  value={currentDeviceStyle.background?.color || ""}
+                  placeholder="#ffffff یا hsl(var(--primary))"
+                  onChange={(e) =>
+                    handleDeviceStyleChange({
+                      background: {
+                        type: "color",
+                        color: normalizeCssColor(e.target.value) || e.target.value,
+                      },
+                    })
+                  }
+                  className="h-8 text-xs flex-1 font-mono"
+                  dir="ltr"
+                />
+              </div>
+              <div className="flex flex-wrap gap-1 mt-1.5">
+                <span className="text-[10px] text-muted-foreground me-1 self-center">توکن‌های تم:</span>
+                {[
+                  { label: "رنگ اصلی", val: "var(--primary)" },
+                  { label: "رنگ ثانویه", val: "var(--secondary)" },
+                  { label: "سطح / کارت", val: "var(--surface, var(--card))" },
+                  { label: "ملایم (Muted)", val: "var(--muted)" },
+                  { label: "پس‌زمینه", val: "var(--background)" },
+                ].map((tok) => (
+                  <button
+                    key={tok.val}
+                    type="button"
+                    onClick={() =>
+                      handleDeviceStyleChange({
+                        background: {
+                          type: "color",
+                          color: tok.val,
+                        },
+                      })
+                    }
+                    className="px-2 py-0.5 rounded text-[10px] bg-muted/80 hover:bg-muted text-muted-foreground hover:text-foreground border border-border/60 transition"
+                  >
+                    {tok.label}
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
         </div>
 
         {/* Box Shadow Controls (Elementor Style Parity) */}
@@ -1964,53 +2138,145 @@ export function InspectorPanel() {
           </div>
         </div>
 
-        {/* Border Radius & Border Color Tokens */}
-        <div className="space-y-1.5 pt-2 border-t">
-          <Label className="text-xs font-bold text-foreground">شعاع گردی کادر (Border Radius)</Label>
-          <div className="flex items-center gap-2">
-            <Input
-              value={(currentDeviceStyle.border as any)?.radiusToken || ""}
-              placeholder="مثلاً 12px یا var(--radius)"
-              onChange={(e) =>
+        {/* Border Style, Width, Color & Radius (Elementor Parity) */}
+        <div className="space-y-2 pt-2 border-t">
+          <div className="flex items-center justify-between">
+            <Label className="text-xs font-bold text-foreground">نوع و حاشیه کادر (Border)</Label>
+            <Select
+              value={currentDeviceStyle.border?.style || "none"}
+              onValueChange={(val: any) =>
                 handleDeviceStyleChange({
                   border: {
                     ...currentDeviceStyle.border,
-                    style: currentDeviceStyle.border?.style || "solid",
-                    radiusToken: e.target.value,
-                  } as any,
+                    style: val,
+                    color: currentDeviceStyle.border?.color || "var(--border)",
+                  },
                 })
               }
-              className="h-8 text-xs flex-1 font-mono"
-              dir="ltr"
-            />
+            >
+              <SelectTrigger className="h-7 text-xs w-28">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">بدون حاشیه</SelectItem>
+                <SelectItem value="solid">یکپارچه (Solid)</SelectItem>
+                <SelectItem value="dashed">خط‌چین (Dashed)</SelectItem>
+                <SelectItem value="dotted">نقطه‌چین (Dotted)</SelectItem>
+                <SelectItem value="double">دوتایی (Double)</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
-          <div className="flex flex-wrap gap-1 mt-1.5">
-            <span className="text-[10px] text-muted-foreground me-1 self-center">توکن شعاع:</span>
-            {[
-              { label: "بدون گردی", val: "0px" },
-              { label: "شعاع تم سازمانی", val: "var(--radius)" },
-              { label: "کوچک (6px)", val: "6px" },
-              { label: "متوسط (12px)", val: "12px" },
-              { label: "بزرگ (16px)", val: "16px" },
-              { label: "کپسولی", val: "9999px" },
-            ].map((tok) => (
-              <button
-                key={tok.val}
-                type="button"
-                onClick={() =>
+
+          {currentDeviceStyle.border?.style && currentDeviceStyle.border.style !== "none" && (
+            <div className="grid grid-cols-2 gap-2 pt-1">
+              <div className="space-y-1">
+                <Label className="text-[10px] text-muted-foreground">ضخامت حاشیه (px)</Label>
+                <Input
+                  type="number"
+                  min={1}
+                  max={20}
+                  value={currentDeviceStyle.border.width?.top?.value || 1}
+                  onChange={(e) => {
+                    const w = parseFloat(e.target.value) || 1;
+                    handleDeviceStyleChange({
+                      border: {
+                        ...currentDeviceStyle.border!,
+                        width: {
+                          top: { value: w, unit: "px" },
+                          right: { value: w, unit: "px" },
+                          bottom: { value: w, unit: "px" },
+                          left: { value: w, unit: "px" },
+                          isLinked: true,
+                        },
+                      },
+                    });
+                  }}
+                  className="h-7 text-xs"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <Label className="text-[10px] text-muted-foreground">رنگ حاشیه</Label>
+                <div className="flex items-center gap-1.5">
+                  <input
+                    type="color"
+                    value={toValidHexColor(currentDeviceStyle.border.color, "#e4e4e7")}
+                    onChange={(e) =>
+                      handleDeviceStyleChange({
+                        border: {
+                          ...currentDeviceStyle.border!,
+                          color: e.target.value,
+                        },
+                      })
+                    }
+                    className="w-6 h-6 rounded border cursor-pointer p-0.5"
+                  />
+                  <Input
+                    value={currentDeviceStyle.border.color || ""}
+                    placeholder="var(--border)"
+                    onChange={(e) =>
+                      handleDeviceStyleChange({
+                        border: {
+                          ...currentDeviceStyle.border!,
+                          color: e.target.value,
+                        },
+                      })
+                    }
+                    className="h-7 text-[11px] font-mono flex-1"
+                    dir="ltr"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div className="space-y-1.5 pt-1.5">
+            <Label className="text-[11px] font-semibold text-foreground">شعاع گردی کادر (Border Radius)</Label>
+            <div className="flex items-center gap-2">
+              <Input
+                value={(currentDeviceStyle.border as any)?.radiusToken || ""}
+                placeholder="مثلاً 12px یا var(--radius)"
+                onChange={(e) =>
                   handleDeviceStyleChange({
                     border: {
                       ...currentDeviceStyle.border,
-                      style: currentDeviceStyle.border?.style || "solid",
-                      radiusToken: tok.val,
+                      style: currentDeviceStyle.border?.style || "none",
+                      radiusToken: e.target.value,
                     } as any,
                   })
                 }
-                className="px-2 py-0.5 rounded text-[10px] bg-muted/80 hover:bg-muted text-muted-foreground hover:text-foreground border border-border/60 transition"
-              >
-                {tok.label}
-              </button>
-            ))}
+                className="h-8 text-xs flex-1 font-mono"
+                dir="ltr"
+              />
+            </div>
+            <div className="flex flex-wrap gap-1 mt-1">
+              <span className="text-[10px] text-muted-foreground me-1 self-center">توکن شعاع:</span>
+              {[
+                { label: "بدون گردی", val: "0px" },
+                { label: "شعاع تم سازمانی", val: "var(--radius)" },
+                { label: "کوچک (6px)", val: "6px" },
+                { label: "متوسط (12px)", val: "12px" },
+                { label: "بزرگ (16px)", val: "16px" },
+                { label: "کپسولی", val: "9999px" },
+              ].map((tok) => (
+                <button
+                  key={tok.val}
+                  type="button"
+                  onClick={() =>
+                    handleDeviceStyleChange({
+                      border: {
+                        ...currentDeviceStyle.border,
+                        style: currentDeviceStyle.border?.style || "none",
+                        radiusToken: tok.val,
+                      } as any,
+                    })
+                  }
+                  className="px-2 py-0.5 rounded text-[10px] bg-muted/80 hover:bg-muted text-muted-foreground hover:text-foreground border border-border/60 transition"
+                >
+                  {tok.label}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 

@@ -88,7 +88,7 @@ const TreeItem = React.memo(function TreeItem({
   return (
     <div
       className={cn("flex flex-col select-none", depth > 0 && "pr-0.5")}
-      style={{ marginRight: depth > 0 ? `${Math.min(depth * 16, 48)}px` : 0 }}
+      style={{ marginRight: depth > 0 ? `${Math.min(depth * 24, 96)}px` : 0 }}
     >
       <div
         onClick={() => selectElement(element.id)}
@@ -268,7 +268,7 @@ const TreeItem = React.memo(function TreeItem({
       </div>
 
       {hasChildren && effectiveExpanded && (
-        <div className="flex flex-col border-r-2 border-primary/40 mr-3 pr-3 space-y-1 my-1">
+        <div className="flex flex-col border-r-2 border-primary/40 mr-6 pr-3 space-y-1 my-1">
           {element.children.map((child) => (
             <TreeItem
               key={child.id}

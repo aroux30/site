@@ -300,6 +300,7 @@ export function BlocksPalette() {
       <div className="grid grid-cols-3 p-1 rounded-xl bg-muted/60 border border-border/70 text-xs shrink-0 gap-1">
         <button
           type="button"
+          data-testid="blocks-palette-basic-tab-btn"
           onClick={() => setActiveTab("basic")}
           className={`flex items-center justify-center gap-1 py-1.5 rounded-lg text-[11px] font-semibold transition ${
             activeTab === "basic"
@@ -313,6 +314,7 @@ export function BlocksPalette() {
 
         <button
           type="button"
+          data-testid="patterns-tab-btn"
           onClick={() => setActiveTab("patterns")}
           className={`flex items-center justify-center gap-1 py-1.5 rounded-lg text-[11px] font-semibold transition ${
             activeTab === "patterns"
@@ -403,6 +405,7 @@ export function BlocksPalette() {
                       <button
                         key={block.type}
                         type="button"
+                        data-block-type={block.type}
                         draggable={true}
                         onDragStart={(e) => {
                           e.dataTransfer.setData(
@@ -452,6 +455,7 @@ export function BlocksPalette() {
                       <button
                         key={block.type}
                         type="button"
+                        data-block-type={block.type}
                         draggable={true}
                         onDragStart={(e) => {
                           e.dataTransfer.setData(

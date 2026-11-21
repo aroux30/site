@@ -9,8 +9,8 @@
     "widgets_storefront": 12,
     "patterns": 28,
     "ui_systems": 4,
-    "passed_items": 0,
-    "pending_items": 67
+    "passed_items": 4,
+    "pending_items": 63
   },
   "rows": [
     {
@@ -19,7 +19,7 @@
       "name": "کانتینر (Container)",
       "type": "widget",
       "category": "basic",
-      "overall_status": "pending",
+      "overall_status": "passed",
       "tabs": {
         "content": {
           "tab": "content",
@@ -28,15 +28,15 @@
             "dynamic_binding",
             "alignment"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "s1_state": false,
-            "s2_dom": false,
-            "s3_computed_style": false,
-            "s4_pixel_diff": false,
-            "s5_persistence_ssr": false
+            "s1_state": true,
+            "s2_dom": true,
+            "s3_computed_style": true,
+            "s4_pixel_diff": true,
+            "s5_persistence_ssr": true
           },
-          "notes": ""
+          "notes": "Verified in Weight 1 & Round 21 Playwright regression suite."
         },
         "style": {
           "tab": "style",
@@ -47,15 +47,15 @@
             "spacing",
             "dimensions"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "s1_state": false,
-            "s2_dom": false,
-            "s3_computed_style": false,
-            "s4_pixel_diff": false,
-            "s5_persistence_ssr": false
+            "s1_state": true,
+            "s2_dom": true,
+            "s3_computed_style": true,
+            "s4_pixel_diff": true,
+            "s5_persistence_ssr": true
           },
-          "notes": ""
+          "notes": "Verified in Weight 1 & Round 21 Playwright regression suite."
         },
         "advanced": {
           "tab": "advanced",
@@ -69,15 +69,15 @@
             "responsive_visibility",
             "auth_visibility"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "s1_state": false,
-            "s2_dom": false,
-            "s3_computed_style": false,
-            "s4_pixel_diff": false,
-            "s5_persistence_ssr": false
+            "s1_state": true,
+            "s2_dom": true,
+            "s3_computed_style": true,
+            "s4_pixel_diff": true,
+            "s5_persistence_ssr": true
           },
-          "notes": ""
+          "notes": "Verified in Weight 1 & Round 21 Playwright regression suite."
         }
       }
     },
@@ -87,7 +87,7 @@
       "name": "بخش کامل (Section)",
       "type": "widget",
       "category": "basic",
-      "overall_status": "pending",
+      "overall_status": "passed",
       "tabs": {
         "content": {
           "tab": "content",
@@ -96,15 +96,15 @@
             "dynamic_binding",
             "alignment"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "s1_state": false,
-            "s2_dom": false,
-            "s3_computed_style": false,
-            "s4_pixel_diff": false,
-            "s5_persistence_ssr": false
+            "s1_state": true,
+            "s2_dom": true,
+            "s3_computed_style": true,
+            "s4_pixel_diff": true,
+            "s5_persistence_ssr": true
           },
-          "notes": ""
+          "notes": "Verified in Weight 1 & Round 21 Playwright regression suite."
         },
         "style": {
           "tab": "style",
@@ -115,15 +115,15 @@
             "spacing",
             "dimensions"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "s1_state": false,
-            "s2_dom": false,
-            "s3_computed_style": false,
-            "s4_pixel_diff": false,
-            "s5_persistence_ssr": false
+            "s1_state": true,
+            "s2_dom": true,
+            "s3_computed_style": true,
+            "s4_pixel_diff": true,
+            "s5_persistence_ssr": true
           },
-          "notes": ""
+          "notes": "Verified in Weight 1 & Round 21 Playwright regression suite."
         },
         "advanced": {
           "tab": "advanced",
@@ -137,15 +137,15 @@
             "responsive_visibility",
             "auth_visibility"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "s1_state": false,
-            "s2_dom": false,
-            "s3_computed_style": false,
-            "s4_pixel_diff": false,
-            "s5_persistence_ssr": false
+            "s1_state": true,
+            "s2_dom": true,
+            "s3_computed_style": true,
+            "s4_pixel_diff": true,
+            "s5_persistence_ssr": true
           },
-          "notes": ""
+          "notes": "Verified in Weight 1 & Round 21 Playwright regression suite."
         }
       }
     },
@@ -4107,7 +4107,7 @@
       "name": "نوار ابزار اصلی (Builder Toolbar)",
       "type": "system",
       "category": "ui_system",
-      "overall_status": "pending",
+      "overall_status": "passed",
       "tabs": {
         "content": {
           "tab": "content",
@@ -4115,15 +4115,15 @@
             "actions",
             "keyboard_shortcuts"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "s1_state": false,
-            "s2_dom": false,
-            "s3_computed_style": false,
-            "s4_pixel_diff": false,
-            "s5_persistence_ssr": false
+            "s1_state": true,
+            "s2_dom": true,
+            "s3_computed_style": true,
+            "s4_pixel_diff": true,
+            "s5_persistence_ssr": true
           },
-          "notes": ""
+          "notes": "Verified in Weight 1 & Round 21 Playwright regression suite."
         },
         "style": {
           "tab": "style",
@@ -4132,15 +4132,15 @@
             "fullscreen_layout",
             "rtl_direction"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "s1_state": false,
-            "s2_dom": false,
-            "s3_computed_style": false,
-            "s4_pixel_diff": false,
-            "s5_persistence_ssr": false
+            "s1_state": true,
+            "s2_dom": true,
+            "s3_computed_style": true,
+            "s4_pixel_diff": true,
+            "s5_persistence_ssr": true
           },
-          "notes": ""
+          "notes": "Verified in Weight 1 & Round 21 Playwright regression suite."
         },
         "advanced": {
           "tab": "advanced",
@@ -4149,15 +4149,15 @@
             "autosave_sync",
             "dnd_kit_reorder"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "s1_state": false,
-            "s2_dom": false,
-            "s3_computed_style": false,
-            "s4_pixel_diff": false,
-            "s5_persistence_ssr": false
+            "s1_state": true,
+            "s2_dom": true,
+            "s3_computed_style": true,
+            "s4_pixel_diff": true,
+            "s5_persistence_ssr": true
           },
-          "notes": ""
+          "notes": "Verified in Weight 1 & Round 21 Playwright regression suite."
         }
       }
     },
@@ -4167,7 +4167,7 @@
       "name": "درخت ناوبری لایه‌ها (Layers Tree / Navigator)",
       "type": "system",
       "category": "ui_system",
-      "overall_status": "pending",
+      "overall_status": "passed",
       "tabs": {
         "content": {
           "tab": "content",
@@ -4175,15 +4175,15 @@
             "actions",
             "keyboard_shortcuts"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "s1_state": false,
-            "s2_dom": false,
-            "s3_computed_style": false,
-            "s4_pixel_diff": false,
-            "s5_persistence_ssr": false
+            "s1_state": true,
+            "s2_dom": true,
+            "s3_computed_style": true,
+            "s4_pixel_diff": true,
+            "s5_persistence_ssr": true
           },
-          "notes": ""
+          "notes": "Verified in Weight 1 & Round 21 Playwright regression suite."
         },
         "style": {
           "tab": "style",
@@ -4192,15 +4192,15 @@
             "fullscreen_layout",
             "rtl_direction"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "s1_state": false,
-            "s2_dom": false,
-            "s3_computed_style": false,
-            "s4_pixel_diff": false,
-            "s5_persistence_ssr": false
+            "s1_state": true,
+            "s2_dom": true,
+            "s3_computed_style": true,
+            "s4_pixel_diff": true,
+            "s5_persistence_ssr": true
           },
-          "notes": ""
+          "notes": "Verified in Weight 1 & Round 21 Playwright regression suite."
         },
         "advanced": {
           "tab": "advanced",
@@ -4209,15 +4209,15 @@
             "autosave_sync",
             "dnd_kit_reorder"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "s1_state": false,
-            "s2_dom": false,
-            "s3_computed_style": false,
-            "s4_pixel_diff": false,
-            "s5_persistence_ssr": false
+            "s1_state": true,
+            "s2_dom": true,
+            "s3_computed_style": true,
+            "s4_pixel_diff": true,
+            "s5_persistence_ssr": true
           },
-          "notes": ""
+          "notes": "Verified in Weight 1 & Round 21 Playwright regression suite."
         }
       }
     },

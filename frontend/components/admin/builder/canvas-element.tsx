@@ -361,7 +361,8 @@ function CanvasElementComponent({
     }
 
     // Animation styles
-    if (res.animation && res.animation !== "none") {
+    const anim = res.animation || (res as any).entranceAnimation;
+    if (anim && anim !== "none") {
       if (res.animationDuration) styleObj.animationDuration = `${res.animationDuration}s`;
       if (res.animationDelay) styleObj.animationDelay = `${res.animationDelay}s`;
     }
@@ -487,11 +488,12 @@ function CanvasElementComponent({
   }, [element.styles, activeBreakpoint]);
 
   const isHiddenOnActiveBreakpoint = useMemo(() => {
-    if (activeBreakpoint === "desktop" && element.visibleOnDesktop === false) return true;
-    if (activeBreakpoint === "tablet" && element.visibleOnTablet === false) return true;
-    if (activeBreakpoint === "mobile" && element.visibleOnMobile === false) return true;
+    const styles = element.styles as any;
+    if (activeBreakpoint === "desktop" && (element.visibleOnDesktop === false || styles?.hideOnDesktop === true)) return true;
+    if (activeBreakpoint === "tablet" && (element.visibleOnTablet === false || styles?.hideOnTablet === true)) return true;
+    if (activeBreakpoint === "mobile" && (element.visibleOnMobile === false || styles?.hideOnMobile === true)) return true;
     return false;
-  }, [activeBreakpoint, element.visibleOnDesktop, element.visibleOnTablet, element.visibleOnMobile]);
+  }, [activeBreakpoint, element.visibleOnDesktop, element.visibleOnTablet, element.visibleOnMobile, element.styles]);
 
   const handleClick = useCallback(
     (e: React.MouseEvent) => {
@@ -1485,7 +1487,9 @@ function CanvasElementComponent({
         isContainer ? containerClasses : "block",
         !previewMode && isDragOver && "outline-2 outline-emerald-500 bg-emerald-500/10 shadow-lg ring-2 ring-emerald-500/30",
         element.isHidden && "opacity-50",
-        element.styles?.animation && element.styles.animation !== "none" && `builder-animate-${element.styles.animation}`,
+        (element.styles?.animation || (element.styles as any)?.entranceAnimation) &&
+          (element.styles?.animation || (element.styles as any)?.entranceAnimation) !== "none" &&
+          `builder-animate-${element.styles?.animation || (element.styles as any)?.entranceAnimation}`,
         element.styles?.customCssClass
       )}
       id={element.styles?.customCssId || undefined}
@@ -1493,6 +1497,10 @@ function CanvasElementComponent({
       data-element-name={element.name}
       {...customAttrs}
     >
+      {/* Scoped Custom CSS */}
+      {(element.styles as any)?.customCss && (
+        <style dangerouslySetInnerHTML={{ __html: String((element.styles as any).customCss) }} />
+      )}
       {/* Background Overlay (Elementor Parity) */}
       {overlayStyle && (
         <div data-testid="background-overlay" style={overlayStyle} aria-hidden="true" />
@@ -1506,6 +1514,22 @@ function CanvasElementComponent({
           </Badge>
         </div>
       )}
+
+      {/* Auth Visibility Indicator */}
+      {(element.authVisibility || (element.styles as any)?.authVisibility) &&
+        (element.authVisibility || (element.styles as any)?.authVisibility) !== "all" &&
+        !previewMode && (
+          <div className="absolute top-1 start-1 z-30 pointer-events-none">
+            <Badge variant="outline" className="bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-300 text-[9px] px-1.5 py-0 h-4 flex items-center gap-1 shadow-xs">
+              <Lock className="w-2.5 h-2.5" />
+              <span>
+                {(element.authVisibility || (element.styles as any)?.authVisibility) === "authenticated"
+                  ? "فقط اعضا"
+                  : "فقط مهمان"}
+              </span>
+            </Badge>
+          </div>
+        )}
 
       {/* Form Container Identifier */}
       {element.widgetType === "form_container" && !previewMode && (

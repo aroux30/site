@@ -2044,6 +2044,28 @@ export function InspectorPanel() {
           </div>
         </div>
 
+        {/* Backdrop Filter & CSS Blur (Glassmorphism & Frosted Glass - Elementor Parity) */}
+        <div className="space-y-2 pt-2 border-t">
+          <div className="flex items-center justify-between">
+            <Label className="text-xs font-bold text-foreground">شیشه مات پس‌زمینه (Backdrop Blur - Glassmorphism)</Label>
+            <Select
+              value={currentDeviceStyle.backdropBlur || "none"}
+              onValueChange={(val: any) => handleDeviceStyleChange({ backdropBlur: val === "none" ? null : val })}
+            >
+              <SelectTrigger className="h-7 text-xs w-28">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">بدون تاری</SelectItem>
+                <SelectItem value="sm">تاری ملایم (4px)</SelectItem>
+                <SelectItem value="md">تاری متوسط (8px)</SelectItem>
+                <SelectItem value="lg">تاری شیشه‌ای (16px)</SelectItem>
+                <SelectItem value="xl">تاری عمیق (24px)</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
         {/* Text Color & Typography Tokens */}
         <div className="space-y-1.5 pt-2 border-t">
           <Label className="text-xs font-bold text-foreground">رنگ و تایپوگرافی متن (Typography)</Label>

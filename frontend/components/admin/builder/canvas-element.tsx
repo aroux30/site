@@ -299,6 +299,24 @@ function CanvasElementComponent({
       styleObj.boxShadow = shadow;
     }
 
+    // Backdrop Blur & CSS Filter Blur (Elementor Parity)
+    const backdropBlur = resolveResponsiveValue({ mobile: base?.backdropBlur, tablet: tablet?.backdropBlur, desktop: desktop?.backdropBlur }, activeBreakpoint);
+    if (backdropBlur && backdropBlur !== "none") {
+      const blurMap: Record<string, string> = {
+        sm: "blur(4px)",
+        md: "blur(8px)",
+        lg: "blur(16px)",
+        xl: "blur(24px)",
+      };
+      styleObj.backdropFilter = blurMap[backdropBlur] || `blur(${backdropBlur})`;
+      (styleObj as any).WebkitBackdropFilter = styleObj.backdropFilter;
+    }
+
+    const filterBlur = resolveResponsiveValue({ mobile: base?.filterBlur, tablet: tablet?.filterBlur, desktop: desktop?.filterBlur }, activeBreakpoint);
+    if (filterBlur && filterBlur > 0) {
+      styleObj.filter = `blur(${filterBlur}px)`;
+    }
+
     // Animation styles
     if (res.animation && res.animation !== "none") {
       if (res.animationDuration) styleObj.animationDuration = `${res.animationDuration}s`;

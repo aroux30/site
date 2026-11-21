@@ -17,6 +17,7 @@
 | **Round 06** | 0 Failures (توسعه پیش‌رونده) | **0 Failures (0 P0, 0 P1)** | **دیالوگ راهنمای کلیدهای میانبر (Elementor Hotkeys Parity) با میانبر سراسری Shift+? و دکمه تولبار** | **28 / 28 (100%)** | **34 / 34 (100%)** | **0 (صفر)** | ✅ **پاس ۱۰۰٪ کامل** |
 | **Round 07** | 0 Failures (توسعه پیش‌رونده) | **0 Failures (0 P0, 0 P1)** | **جداکننده‌های شکل کانتینر (Shape Dividers: Waves, Curve, Triangle, Tilt) در سقف و کف بخش‌ها به سبک المنتور** | **28 / 28 (100%)** | **34 / 34 (100%)** | **0 (صفر)** | ✅ **پاس ۱۰۰٪ کامل** |
 | **Round 08** | 0 Failures (توسعه پیش‌رونده) | **0 Failures (0 P0, 0 P1)** | **ارتفاع کانتینر و تمام‌صفحه (Fit to Screen 100vh)، کلید میانبر چرخش ویوپورت‌های ریسپانسیو (Ctrl+Shift+M)** | **28 / 28 (100%)** | **34 / 34 (100%)** | **0 (صفر)** | ✅ **پاس ۱۰۰٪ کامل** |
+| **Round 09** | 0 Failures (توسعه پیش‌رونده) | **0 Failures (0 P0, 0 P1)** | **تاری شیشه‌ای پس‌زمینه (Backdrop Filter / Glassmorphism) در ۴ سطح تاری در بازرس و بوم** | **28 / 28 (100%)** | **34 / 34 (100%)** | **0 (صفر)** | ✅ **پاس ۱۰۰٪ کامل** |
 
 ---
 
@@ -336,6 +337,46 @@
 - `npm test` (Vitest): **۳۷۲ تست سبز در ۴۵ فایل** (`372 passed`)
 - `python -m pytest app/tests/unit`: **۶۲۲ تست سبز** (`622 passed, 2 skipped`)
 - `node .loop/audits/builder-xray.mjs`: **پاس ۱۰۰٪ تمامی چک‌ها با ۰ خطا**
+
+---
+
+## جزئیات راند ۹ (Round 09) — تاری شیشه‌ای پس‌زمینه (Backdrop Filter / Glassmorphism)
+
+- **شاخه ایزوله**: `claude/hungry-ardinghelli-71d423`
+- **تاریخ ممیزی**: 2026-11-21
+- **آمار ماتریس اشعه ایکس (`.loop/XRAY_MATRIX.json`)**:
+  - `totalChecks`: ۷۰ چک جامع
+  - `passedChecks`: ۷۰ چک سبز
+  - `failedChecks`: ۰
+  - `totalFailures`: **۰**
+  - `p0Count`: **۰**
+  - `p1Count`: **۰**
+  - `p2Count`: **۰**
+  - `patternsPassed`: **۲۸ / ۲۸**
+  - `blocksPassed`: **۳۴ / ۳۴**
+  - `deadControlsRemaining`: **۰**
+
+### ۱. قابلیت‌ها و معماری‌های پیاده‌سازی‌شده
+1. **کنترل‌های فیلتر شیشه مات پس‌زمینه (Backdrop Filter / Glassmorphism Parity)**:
+   - افزودن پروپرتی `backdropBlur` و `filterBlur` به استایل‌های واکنش‌گرا در AST و اعتبارسنجی با Zod.
+   - منوی کشویی انتخاب سطح تاری پس‌زمینه در تب استایل پنل بازرس:
+     - تاری ملایم (4px)
+     - تاری متوسط (8px)
+     - تاری شیشه‌ای (16px)
+     - تاری عمیق (24px)
+   - اعمال بلادرنگ با `backdropFilter` و پیشوند `-webkit-backdrop-filter` روی بوم Iframe برای ایجاد کارت‌ها و سکشن‌های مدرن شیشه‌ای.
+
+### ۲. شواهد بصری و فایل‌های راند ۹
+- **بعد از اصلاح**: `.loop/artifacts/excavator/round-09/after/`
+  - `01-canvas-glassmorphism-backdrop-blur.png` (رندر کارت شیشه‌ای با تاری پس‌زمینه در بوم)
+  - `02-inspector-backdrop-blur-controls.png` (منوی کشویی انتخاب شیشه مات در پنل بازرس)
+
+### ۳. گیت‌های صحت‌سنجی نهایی راند ۹
+- `npx tsc --noEmit`: ۰ خطا (سبز)
+- `npm test` (Vitest): **۳۷۲ تست سبز در ۴۵ فایل** (`372 passed`)
+- `python -m pytest app/tests/unit`: **۶۲۲ تست سبز** (`622 passed, 2 skipped`)
+- `node .loop/audits/builder-xray.mjs`: **پاس ۱۰۰٪ تمامی چک‌ها با ۰ خطا**
+
 
 
 

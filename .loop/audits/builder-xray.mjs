@@ -950,6 +950,11 @@ async function runXRayAudit() {
         if (hasHeightPreset) {
           console.log("    ✅ Elementor Container Height & Fit to Screen controls verified in Inspector.");
         }
+
+        const hasBackdropBlur = await page.locator("text='شیشه مات پس‌زمینه'").first().isVisible();
+        if (hasBackdropBlur) {
+          console.log("    ✅ Elementor Backdrop Filter (Glassmorphism) controls verified in Inspector.");
+        }
       }
     }
 

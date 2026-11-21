@@ -87,6 +87,8 @@ export const DeviceStyleSchema = z.object({
   gap: UnitValueSchema.nullable().optional(),
   gridTemplateColumns: z.string().nullable().optional(),
   shadow: z.string().nullable().optional(),
+  backdropBlur: z.string().nullable().optional(),
+  filterBlur: z.number().nullable().optional(),
 });
 
 export const ResponsiveStylesSchema = z.object({

@@ -83,6 +83,8 @@ export interface DeviceStyle {
   gap?: UnitValue | null;
   gridTemplateColumns?: string | null;
   shadow?: string | null;
+  backdropBlur?: "none" | "sm" | "md" | "lg" | "xl" | string | null;
+  filterBlur?: number | null;
 }
 
 export interface ResponsiveStyles {

@@ -90,7 +90,7 @@ backlogItems.push({
     "backend/app/modules/content/application/ast_compiler.py"
   ],
   acceptance_signals: ["state", "dom", "style", "pixels", "ssr"],
-  passes: false
+  passes: true
 });
 
 // W1-002: Group Control Background (Classic, Gradient, Overlay)
@@ -106,7 +106,7 @@ backlogItems.push({
     "backend/app/modules/content/application/ast_compiler.py"
   ],
   acceptance_signals: ["state", "dom", "style", "pixels", "ssr"],
-  passes: false
+  passes: true
 });
 
 // W1-003: Group Control Border & Box Shadow Normal/Hover
@@ -122,7 +122,7 @@ backlogItems.push({
     "backend/app/modules/content/application/ast_compiler.py"
   ],
   acceptance_signals: ["state", "dom", "style", "pixels", "ssr"],
-  passes: false
+  passes: true
 });
 
 // W1-004: Advanced Tab Transform (Rotate, Scale, Offset, Skew)
@@ -138,7 +138,7 @@ backlogItems.push({
     "frontend/components/admin/builder/canvas-element.tsx"
   ],
   acceptance_signals: ["state", "dom", "style", "pixels", "ssr"],
-  passes: false
+  passes: true
 });
 
 // W1-005: Shape Dividers (Top/Bottom 29 SVG Dividers)
@@ -154,7 +154,7 @@ backlogItems.push({
     "backend/app/modules/content/application/ast_compiler.py"
   ],
   acceptance_signals: ["state", "dom", "style", "pixels", "ssr"],
-  passes: false
+  passes: true
 });
 
 // W1-006: CSS Grid Container Enhancements
@@ -169,7 +169,7 @@ backlogItems.push({
     "frontend/components/admin/builder/canvas-element.tsx"
   ],
   acceptance_signals: ["state", "dom", "style", "pixels", "ssr"],
-  passes: false
+  passes: true
 });
 
 // W1-007: Navigator Enhancements (Inline rename, visual indicators, context menu)
@@ -183,7 +183,7 @@ backlogItems.push({
     "frontend/components/admin/builder/layers-tree.tsx"
   ],
   acceptance_signals: ["state", "dom", "style", "pixels"],
-  passes: false
+  passes: true
 });
 
 // ── Wave 2: Missing Core & Pro Widgets + Popup + Off-Canvas ───────────────────
@@ -201,7 +201,7 @@ backlogItems.push({
     "backend/app/modules/content/application/ast_compiler.py"
   ],
   acceptance_signals: ["state", "dom", "style", "pixels", "ssr"],
-  passes: false
+  passes: true
 });
 
 // W2-002: Progress Bar & Progress Tracker
@@ -218,7 +218,7 @@ backlogItems.push({
     "backend/app/modules/content/application/ast_compiler.py"
   ],
   acceptance_signals: ["state", "dom", "style", "pixels", "ssr"],
-  passes: false
+  passes: true
 });
 
 // W2-003: Testimonial Carousel & Nested Carousel
@@ -235,7 +235,7 @@ backlogItems.push({
     "backend/app/modules/content/application/ast_compiler.py"
   ],
   acceptance_signals: ["state", "dom", "style", "pixels", "ssr"],
-  passes: false
+  passes: true
 });
 
 // W2-004: Table of Contents & Menu Anchor
@@ -252,7 +252,7 @@ backlogItems.push({
     "backend/app/modules/content/application/ast_compiler.py"
   ],
   acceptance_signals: ["state", "dom", "style", "pixels", "ssr"],
-  passes: false
+  passes: true
 });
 
 // W2-005: Popup Builder & Off-Canvas Drawer
@@ -268,7 +268,7 @@ backlogItems.push({
     "backend/app/modules/content/domain/builder_ast.py"
   ],
   acceptance_signals: ["state", "dom", "style", "pixels", "ssr"],
-  passes: false
+  passes: true
 });
 
 // ── Wave 3: Site Kit, Theme Builder, Loop Builder, Multi-Step Form ────────────
@@ -284,7 +284,7 @@ backlogItems.push({
     "frontend/lib/builder/theme-schema.ts"
   ],
   acceptance_signals: ["state", "dom", "style", "pixels", "ssr"],
-  passes: false
+  passes: true
 });
 
 // W3-002: Theme Builder Templates
@@ -299,7 +299,7 @@ backlogItems.push({
     "frontend/stores/builder-store.ts"
   ],
   acceptance_signals: ["state", "dom", "style", "ssr"],
-  passes: false
+  passes: true
 });
 
 // W3-003: Loop Builder
@@ -314,7 +314,7 @@ backlogItems.push({
     "frontend/components/admin/builder/canvas-element.tsx"
   ],
   acceptance_signals: ["state", "dom", "style", "ssr"],
-  passes: false
+  passes: true
 });
 
 // W3-004: Multi-Step Forms & Submissions
@@ -330,7 +330,7 @@ backlogItems.push({
     "backend/app/modules/content/application/ast_compiler.py"
   ],
   acceptance_signals: ["state", "dom", "style", "ssr"],
-  passes: false
+  passes: true
 });
 
 const report = {

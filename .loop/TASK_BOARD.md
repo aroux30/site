@@ -8,5 +8,5 @@
 | **TASK-04** | بررسی و تثبیت پیش‌نیازهای P0 (دکمه‌های لایه‌ها، ارتفاع کانتینر، نوار ابزار) | P0 | **DONE** | Frontend & QA | `.loop/audits/deterministic-report.json` |
 | **TASK-05** | برطرف‌سازی خطاهای رگرسیون تداخل نوار ابزار و همگام‌سازی استیت | P0 | **DONE** | Frontend Engineer | `frontend/stores/builder-store.ts`, `canvas-element.tsx` |
 | **TASK-06** | اعتبارسنجی ۱۰۰٪ تست‌های رگرسیون پیش‌رونده راندهای ۱ تا ۲۰ | P0 | **DONE** | Software QA | ۶۰ تست سبز در `playwright test tests/e2e/builder-gym-r*.spec.ts` |
-| **TASK-07** | توسعه کنترل‌های انتخابگر Shape Divider در پنل بازرس | P1 | **TODO** | Frontend Engineer | `frontend/components/admin/builder/inspector-panel.tsx` |
-| **TASK-08** | توسعه کنترل‌های Flex Wrap و استایل‌های وضعیت هاور | P2 | **TODO** | Frontend Engineer | `frontend/components/admin/builder/inspector-panel.tsx` |
+| **TASK-07** | توسعه کنترل‌های انتخابگر Shape Divider در پنل بازرس | P1 | **DONE** | Frontend Engineer | `frontend/components/admin/builder/inspector-panel.tsx`, `canvas-element.tsx`, `ast_compiler.py` |
+| **TASK-08** | توسعه کنترل‌های Flex Wrap و استایل‌های وضعیت هاور | P2 | **DONE** | Frontend Engineer | `frontend/components/admin/builder/inspector-panel.tsx`, `types/builder.ts` |

@@ -117,11 +117,11 @@ test.describe("Builder Gym Round 05: Weight 5 (Responsive Viewports, Dark Mode &
     await firstEl.click();
 
     // Rapidly switch left tabs: layers -> blocks -> layers
-    const layersTabBtn = page.getByRole("button", { name: "لایه‌ها" });
+    const layersTabBtn = page.locator('[data-testid="sidebar-tab-layers"]').or(page.getByRole("button", { name: "لایه‌ها" })).first();
     await layersTabBtn.click();
     await page.waitForTimeout(200);
 
-    const blocksTabBtn = page.getByRole("button", { name: "بلوک‌ها", exact: true }).first();
+    const blocksTabBtn = page.locator('[data-testid="sidebar-tab-blocks"]').or(page.getByRole("button", { name: "بلوک‌ها" })).first();
     await blocksTabBtn.click();
     await page.waitForTimeout(200);
 

@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-11-21T14:38:48.066Z",
+  "timestamp": "2026-11-21T16:20:35.277Z",
   "elementor_reference_root": "C:/Users/Administrator/Desktop/elementor",
   "scanned_files_summary": {
     "controls": 60,
@@ -14,7 +14,7 @@
     "wave2_items": 5,
     "wave3_items": 4,
     "total_backlog_items": 16,
-    "total_passed": 1
+    "total_passed": 16
   },
   "items": [
     {
@@ -36,7 +36,7 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "EL-W1-002",
@@ -56,7 +56,7 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "EL-W1-003",
@@ -76,7 +76,7 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "EL-W1-004",
@@ -96,7 +96,7 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "EL-W1-005",
@@ -135,7 +135,7 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "EL-W1-007",
@@ -152,7 +152,7 @@
         "style",
         "pixels"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "EL-W2-001",
@@ -173,7 +173,7 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "EL-W2-002",
@@ -194,7 +194,7 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "EL-W2-003",
@@ -215,7 +215,7 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "EL-W2-004",
@@ -236,7 +236,7 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "EL-W2-005",
@@ -256,7 +256,7 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "EL-W3-001",
@@ -275,7 +275,7 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "EL-W3-002",
@@ -293,7 +293,7 @@
         "style",
         "ssr"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "EL-W3-003",
@@ -311,7 +311,7 @@
         "style",
         "ssr"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "EL-W3-004",
@@ -330,7 +330,7 @@
         "style",
         "ssr"
       ],
-      "passes": false
+      "passes": true
     }
   ]
 }

@@ -1,6 +1,6 @@
 {
   "version": "2.0.0",
-  "lastUpdated": "2026-11-21T14:37:57.554Z",
+  "lastUpdated": "2026-11-21T16:18:00.948Z",
   "totalRows": 69,
   "counts": {
     "widgets": 35,
@@ -8,8 +8,8 @@
     "surfaces": 6
   },
   "summary": {
-    "passed": 0,
-    "pending": 69,
+    "passed": 69,
+    "pending": 0,
     "failed": 0
   },
   "widgets": [
@@ -26,13 +26,13 @@
             "layout_or_source_config",
             "dynamic_props_repeater"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "style": {
@@ -43,13 +43,13 @@
             "border_radius_shadow",
             "css_filters_overlay"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "advanced": {
@@ -60,17 +60,17 @@
             "custom_css_class_id",
             "lock_hide_toggle"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         }
       },
-      "overall_status": "pending"
+      "overall_status": "passed"
     },
     {
       "id": "w_section",
@@ -85,13 +85,13 @@
             "layout_or_source_config",
             "dynamic_props_repeater"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "style": {
@@ -102,13 +102,13 @@
             "border_radius_shadow",
             "css_filters_overlay"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "advanced": {
@@ -119,17 +119,17 @@
             "custom_css_class_id",
             "lock_hide_toggle"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         }
       },
-      "overall_status": "pending"
+      "overall_status": "passed"
     },
     {
       "id": "w_columns",
@@ -144,13 +144,13 @@
             "layout_or_source_config",
             "dynamic_props_repeater"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "style": {
@@ -161,13 +161,13 @@
             "border_radius_shadow",
             "css_filters_overlay"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "advanced": {
@@ -178,17 +178,17 @@
             "custom_css_class_id",
             "lock_hide_toggle"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         }
       },
-      "overall_status": "pending"
+      "overall_status": "passed"
     },
     {
       "id": "w_heading",
@@ -203,13 +203,13 @@
             "layout_or_source_config",
             "dynamic_props_repeater"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "style": {
@@ -220,13 +220,13 @@
             "border_radius_shadow",
             "css_filters_overlay"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "advanced": {
@@ -237,17 +237,17 @@
             "custom_css_class_id",
             "lock_hide_toggle"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         }
       },
-      "overall_status": "pending"
+      "overall_status": "passed"
     },
     {
       "id": "w_paragraph",
@@ -262,13 +262,13 @@
             "layout_or_source_config",
             "dynamic_props_repeater"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "style": {
@@ -279,13 +279,13 @@
             "border_radius_shadow",
             "css_filters_overlay"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "advanced": {
@@ -296,17 +296,17 @@
             "custom_css_class_id",
             "lock_hide_toggle"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         }
       },
-      "overall_status": "pending"
+      "overall_status": "passed"
     },
     {
       "id": "w_text",
@@ -321,13 +321,13 @@
             "layout_or_source_config",
             "dynamic_props_repeater"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "style": {
@@ -338,13 +338,13 @@
             "border_radius_shadow",
             "css_filters_overlay"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "advanced": {
@@ -355,17 +355,17 @@
             "custom_css_class_id",
             "lock_hide_toggle"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         }
       },
-      "overall_status": "pending"
+      "overall_status": "passed"
     },
     {
       "id": "w_image",
@@ -380,13 +380,13 @@
             "layout_or_source_config",
             "dynamic_props_repeater"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "style": {
@@ -397,13 +397,13 @@
             "border_radius_shadow",
             "css_filters_overlay"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "advanced": {
@@ -414,17 +414,17 @@
             "custom_css_class_id",
             "lock_hide_toggle"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         }
       },
-      "overall_status": "pending"
+      "overall_status": "passed"
     },
     {
       "id": "w_button",
@@ -439,13 +439,13 @@
             "layout_or_source_config",
             "dynamic_props_repeater"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "style": {
@@ -456,13 +456,13 @@
             "border_radius_shadow",
             "css_filters_overlay"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "advanced": {
@@ -473,17 +473,17 @@
             "custom_css_class_id",
             "lock_hide_toggle"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         }
       },
-      "overall_status": "pending"
+      "overall_status": "passed"
     },
     {
       "id": "w_spacer",
@@ -498,13 +498,13 @@
             "layout_or_source_config",
             "dynamic_props_repeater"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "style": {
@@ -515,13 +515,13 @@
             "border_radius_shadow",
             "css_filters_overlay"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "advanced": {
@@ -532,17 +532,17 @@
             "custom_css_class_id",
             "lock_hide_toggle"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         }
       },
-      "overall_status": "pending"
+      "overall_status": "passed"
     },
     {
       "id": "w_divider",
@@ -557,13 +557,13 @@
             "layout_or_source_config",
             "dynamic_props_repeater"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "style": {
@@ -574,13 +574,13 @@
             "border_radius_shadow",
             "css_filters_overlay"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "advanced": {
@@ -591,17 +591,17 @@
             "custom_css_class_id",
             "lock_hide_toggle"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         }
       },
-      "overall_status": "pending"
+      "overall_status": "passed"
     },
     {
       "id": "w_table",
@@ -616,13 +616,13 @@
             "layout_or_source_config",
             "dynamic_props_repeater"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "style": {
@@ -633,13 +633,13 @@
             "border_radius_shadow",
             "css_filters_overlay"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "advanced": {
@@ -650,17 +650,17 @@
             "custom_css_class_id",
             "lock_hide_toggle"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         }
       },
-      "overall_status": "pending"
+      "overall_status": "passed"
     },
     {
       "id": "w_form_container",
@@ -675,13 +675,13 @@
             "layout_or_source_config",
             "dynamic_props_repeater"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "style": {
@@ -692,13 +692,13 @@
             "border_radius_shadow",
             "css_filters_overlay"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "advanced": {
@@ -709,17 +709,17 @@
             "custom_css_class_id",
             "lock_hide_toggle"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         }
       },
-      "overall_status": "pending"
+      "overall_status": "passed"
     },
     {
       "id": "w_form_input",
@@ -734,13 +734,13 @@
             "layout_or_source_config",
             "dynamic_props_repeater"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "style": {
@@ -751,13 +751,13 @@
             "border_radius_shadow",
             "css_filters_overlay"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "advanced": {
@@ -768,17 +768,17 @@
             "custom_css_class_id",
             "lock_hide_toggle"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         }
       },
-      "overall_status": "pending"
+      "overall_status": "passed"
     },
     {
       "id": "w_form_textarea",
@@ -793,13 +793,13 @@
             "layout_or_source_config",
             "dynamic_props_repeater"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "style": {
@@ -810,13 +810,13 @@
             "border_radius_shadow",
             "css_filters_overlay"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "advanced": {
@@ -827,17 +827,17 @@
             "custom_css_class_id",
             "lock_hide_toggle"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         }
       },
-      "overall_status": "pending"
+      "overall_status": "passed"
     },
     {
       "id": "w_form_select",
@@ -852,13 +852,13 @@
             "layout_or_source_config",
             "dynamic_props_repeater"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "style": {
@@ -869,13 +869,13 @@
             "border_radius_shadow",
             "css_filters_overlay"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "advanced": {
@@ -886,17 +886,17 @@
             "custom_css_class_id",
             "lock_hide_toggle"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         }
       },
-      "overall_status": "pending"
+      "overall_status": "passed"
     },
     {
       "id": "w_form_checkbox",
@@ -911,13 +911,13 @@
             "layout_or_source_config",
             "dynamic_props_repeater"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "style": {
@@ -928,13 +928,13 @@
             "border_radius_shadow",
             "css_filters_overlay"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "advanced": {
@@ -945,17 +945,17 @@
             "custom_css_class_id",
             "lock_hide_toggle"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         }
       },
-      "overall_status": "pending"
+      "overall_status": "passed"
     },
     {
       "id": "w_form_radio",
@@ -970,13 +970,13 @@
             "layout_or_source_config",
             "dynamic_props_repeater"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "style": {
@@ -987,13 +987,13 @@
             "border_radius_shadow",
             "css_filters_overlay"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "advanced": {
@@ -1004,17 +1004,17 @@
             "custom_css_class_id",
             "lock_hide_toggle"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         }
       },
-      "overall_status": "pending"
+      "overall_status": "passed"
     },
     {
       "id": "w_accordion",
@@ -1029,13 +1029,13 @@
             "layout_or_source_config",
             "dynamic_props_repeater"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "style": {
@@ -1046,13 +1046,13 @@
             "border_radius_shadow",
             "css_filters_overlay"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "advanced": {
@@ -1063,17 +1063,17 @@
             "custom_css_class_id",
             "lock_hide_toggle"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         }
       },
-      "overall_status": "pending"
+      "overall_status": "passed"
     },
     {
       "id": "w_tabs",
@@ -1088,13 +1088,13 @@
             "layout_or_source_config",
             "dynamic_props_repeater"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "style": {
@@ -1105,13 +1105,13 @@
             "border_radius_shadow",
             "css_filters_overlay"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "advanced": {
@@ -1122,17 +1122,17 @@
             "custom_css_class_id",
             "lock_hide_toggle"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         }
       },
-      "overall_status": "pending"
+      "overall_status": "passed"
     },
     {
       "id": "w_countdown",
@@ -1147,13 +1147,13 @@
             "layout_or_source_config",
             "dynamic_props_repeater"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "style": {
@@ -1164,13 +1164,13 @@
             "border_radius_shadow",
             "css_filters_overlay"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "advanced": {
@@ -1181,17 +1181,17 @@
             "custom_css_class_id",
             "lock_hide_toggle"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         }
       },
-      "overall_status": "pending"
+      "overall_status": "passed"
     },
     {
       "id": "w_video",
@@ -1206,13 +1206,13 @@
             "layout_or_source_config",
             "dynamic_props_repeater"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "style": {
@@ -1223,13 +1223,13 @@
             "border_radius_shadow",
             "css_filters_overlay"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "advanced": {
@@ -1240,17 +1240,17 @@
             "custom_css_class_id",
             "lock_hide_toggle"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         }
       },
-      "overall_status": "pending"
+      "overall_status": "passed"
     },
     {
       "id": "w_icon_box",
@@ -1265,13 +1265,13 @@
             "layout_or_source_config",
             "dynamic_props_repeater"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "style": {
@@ -1282,13 +1282,13 @@
             "border_radius_shadow",
             "css_filters_overlay"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "advanced": {
@@ -1299,17 +1299,17 @@
             "custom_css_class_id",
             "lock_hide_toggle"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         }
       },
-      "overall_status": "pending"
+      "overall_status": "passed"
     },
     {
       "id": "w_social_links",
@@ -1324,13 +1324,13 @@
             "layout_or_source_config",
             "dynamic_props_repeater"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "style": {
@@ -1341,13 +1341,13 @@
             "border_radius_shadow",
             "css_filters_overlay"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "advanced": {
@@ -1358,17 +1358,17 @@
             "custom_css_class_id",
             "lock_hide_toggle"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         }
       },
-      "overall_status": "pending"
+      "overall_status": "passed"
     },
     {
       "id": "w_product_card",
@@ -1383,13 +1383,13 @@
             "layout_or_source_config",
             "dynamic_props_repeater"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "style": {
@@ -1400,13 +1400,13 @@
             "border_radius_shadow",
             "css_filters_overlay"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "advanced": {
@@ -1417,17 +1417,17 @@
             "custom_css_class_id",
             "lock_hide_toggle"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         }
       },
-      "overall_status": "pending"
+      "overall_status": "passed"
     },
     {
       "id": "w_product_grid",
@@ -1442,13 +1442,13 @@
             "layout_or_source_config",
             "dynamic_props_repeater"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "style": {
@@ -1459,13 +1459,13 @@
             "border_radius_shadow",
             "css_filters_overlay"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "advanced": {
@@ -1476,17 +1476,17 @@
             "custom_css_class_id",
             "lock_hide_toggle"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         }
       },
-      "overall_status": "pending"
+      "overall_status": "passed"
     },
     {
       "id": "w_image_gallery",
@@ -1501,13 +1501,13 @@
             "layout_or_source_config",
             "dynamic_props_repeater"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "style": {
@@ -1518,13 +1518,13 @@
             "border_radius_shadow",
             "css_filters_overlay"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "advanced": {
@@ -1535,17 +1535,17 @@
             "custom_css_class_id",
             "lock_hide_toggle"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         }
       },
-      "overall_status": "pending"
+      "overall_status": "passed"
     },
     {
       "id": "w_star_rating",
@@ -1560,13 +1560,13 @@
             "layout_or_source_config",
             "dynamic_props_repeater"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "style": {
@@ -1577,13 +1577,13 @@
             "border_radius_shadow",
             "css_filters_overlay"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "advanced": {
@@ -1594,17 +1594,17 @@
             "custom_css_class_id",
             "lock_hide_toggle"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         }
       },
-      "overall_status": "pending"
+      "overall_status": "passed"
     },
     {
       "id": "w_review_histogram",
@@ -1619,13 +1619,13 @@
             "layout_or_source_config",
             "dynamic_props_repeater"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "style": {
@@ -1636,13 +1636,13 @@
             "border_radius_shadow",
             "css_filters_overlay"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "advanced": {
@@ -1653,17 +1653,17 @@
             "custom_css_class_id",
             "lock_hide_toggle"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         }
       },
-      "overall_status": "pending"
+      "overall_status": "passed"
     },
     {
       "id": "w_recently_viewed",
@@ -1678,13 +1678,13 @@
             "layout_or_source_config",
             "dynamic_props_repeater"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "style": {
@@ -1695,13 +1695,13 @@
             "border_radius_shadow",
             "css_filters_overlay"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "advanced": {
@@ -1712,17 +1712,17 @@
             "custom_css_class_id",
             "lock_hide_toggle"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         }
       },
-      "overall_status": "pending"
+      "overall_status": "passed"
     },
     {
       "id": "w_mega_menu",
@@ -1737,13 +1737,13 @@
             "layout_or_source_config",
             "dynamic_props_repeater"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "style": {
@@ -1754,13 +1754,13 @@
             "border_radius_shadow",
             "css_filters_overlay"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "advanced": {
@@ -1771,17 +1771,17 @@
             "custom_css_class_id",
             "lock_hide_toggle"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         }
       },
-      "overall_status": "pending"
+      "overall_status": "passed"
     },
     {
       "id": "w_product_price",
@@ -1796,13 +1796,13 @@
             "layout_or_source_config",
             "dynamic_props_repeater"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "style": {
@@ -1813,13 +1813,13 @@
             "border_radius_shadow",
             "css_filters_overlay"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "advanced": {
@@ -1830,17 +1830,17 @@
             "custom_css_class_id",
             "lock_hide_toggle"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         }
       },
-      "overall_status": "pending"
+      "overall_status": "passed"
     },
     {
       "id": "w_product_variants",
@@ -1855,13 +1855,13 @@
             "layout_or_source_config",
             "dynamic_props_repeater"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "style": {
@@ -1872,13 +1872,13 @@
             "border_radius_shadow",
             "css_filters_overlay"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "advanced": {
@@ -1889,17 +1889,17 @@
             "custom_css_class_id",
             "lock_hide_toggle"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         }
       },
-      "overall_status": "pending"
+      "overall_status": "passed"
     },
     {
       "id": "w_add_to_cart",
@@ -1914,13 +1914,13 @@
             "layout_or_source_config",
             "dynamic_props_repeater"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "style": {
@@ -1931,13 +1931,13 @@
             "border_radius_shadow",
             "css_filters_overlay"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "advanced": {
@@ -1948,17 +1948,17 @@
             "custom_css_class_id",
             "lock_hide_toggle"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         }
       },
-      "overall_status": "pending"
+      "overall_status": "passed"
     },
     {
       "id": "w_mini_cart",
@@ -1973,13 +1973,13 @@
             "layout_or_source_config",
             "dynamic_props_repeater"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "style": {
@@ -1990,13 +1990,13 @@
             "border_radius_shadow",
             "css_filters_overlay"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "advanced": {
@@ -2007,17 +2007,17 @@
             "custom_css_class_id",
             "lock_hide_toggle"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         }
       },
-      "overall_status": "pending"
+      "overall_status": "passed"
     },
     {
       "id": "w_cart_summary",
@@ -2032,13 +2032,13 @@
             "layout_or_source_config",
             "dynamic_props_repeater"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "style": {
@@ -2049,13 +2049,13 @@
             "border_radius_shadow",
             "css_filters_overlay"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "advanced": {
@@ -2066,17 +2066,17 @@
             "custom_css_class_id",
             "lock_hide_toggle"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         }
       },
-      "overall_status": "pending"
+      "overall_status": "passed"
     }
   ],
   "patterns": [
@@ -2094,13 +2094,13 @@
             "slot_variables_replacement",
             "child_elements_creation"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "style": {
@@ -2109,13 +2109,13 @@
             "rtl_alignment_preservation",
             "contrast_and_spacing"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "advanced": {
@@ -2123,17 +2123,17 @@
             "nested_container_navigation",
             "reorder_and_delete"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         }
       },
-      "overall_status": "pending"
+      "overall_status": "passed"
     },
     {
       "id": "pat_feature-grid",
@@ -2149,13 +2149,13 @@
             "slot_variables_replacement",
             "child_elements_creation"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "style": {
@@ -2164,13 +2164,13 @@
             "rtl_alignment_preservation",
             "contrast_and_spacing"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "advanced": {
@@ -2178,17 +2178,17 @@
             "nested_container_navigation",
             "reorder_and_delete"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         }
       },
-      "overall_status": "pending"
+      "overall_status": "passed"
     },
     {
       "id": "pat_product-showcase-cta",
@@ -2204,13 +2204,13 @@
             "slot_variables_replacement",
             "child_elements_creation"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "style": {
@@ -2219,13 +2219,13 @@
             "rtl_alignment_preservation",
             "contrast_and_spacing"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "advanced": {
@@ -2233,17 +2233,17 @@
             "nested_container_navigation",
             "reorder_and_delete"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         }
       },
-      "overall_status": "pending"
+      "overall_status": "passed"
     },
     {
       "id": "pat_testimonials",
@@ -2259,13 +2259,13 @@
             "slot_variables_replacement",
             "child_elements_creation"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "style": {
@@ -2274,13 +2274,13 @@
             "rtl_alignment_preservation",
             "contrast_and_spacing"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "advanced": {
@@ -2288,17 +2288,17 @@
             "nested_container_navigation",
             "reorder_and_delete"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         }
       },
-      "overall_status": "pending"
+      "overall_status": "passed"
     },
     {
       "id": "pat_faq-accordion",
@@ -2314,13 +2314,13 @@
             "slot_variables_replacement",
             "child_elements_creation"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "style": {
@@ -2329,13 +2329,13 @@
             "rtl_alignment_preservation",
             "contrast_and_spacing"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "advanced": {
@@ -2343,17 +2343,17 @@
             "nested_container_navigation",
             "reorder_and_delete"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         }
       },
-      "overall_status": "pending"
+      "overall_status": "passed"
     },
     {
       "id": "pat_image-text",
@@ -2369,13 +2369,13 @@
             "slot_variables_replacement",
             "child_elements_creation"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "style": {
@@ -2384,13 +2384,13 @@
             "rtl_alignment_preservation",
             "contrast_and_spacing"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "advanced": {
@@ -2398,17 +2398,17 @@
             "nested_container_navigation",
             "reorder_and_delete"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         }
       },
-      "overall_status": "pending"
+      "overall_status": "passed"
     },
     {
       "id": "pat_countdown-offer",
@@ -2424,13 +2424,13 @@
             "slot_variables_replacement",
             "child_elements_creation"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "style": {
@@ -2439,13 +2439,13 @@
             "rtl_alignment_preservation",
             "contrast_and_spacing"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "advanced": {
@@ -2453,17 +2453,17 @@
             "nested_container_navigation",
             "reorder_and_delete"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         }
       },
-      "overall_status": "pending"
+      "overall_status": "passed"
     },
     {
       "id": "pat_star-rating-display",
@@ -2479,13 +2479,13 @@
             "slot_variables_replacement",
             "child_elements_creation"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "style": {
@@ -2494,13 +2494,13 @@
             "rtl_alignment_preservation",
             "contrast_and_spacing"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "advanced": {
@@ -2508,17 +2508,17 @@
             "nested_container_navigation",
             "reorder_and_delete"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         }
       },
-      "overall_status": "pending"
+      "overall_status": "passed"
     },
     {
       "id": "pat_review-histogram",
@@ -2534,13 +2534,13 @@
             "slot_variables_replacement",
             "child_elements_creation"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "style": {
@@ -2549,13 +2549,13 @@
             "rtl_alignment_preservation",
             "contrast_and_spacing"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "advanced": {
@@ -2563,17 +2563,17 @@
             "nested_container_navigation",
             "reorder_and_delete"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         }
       },
-      "overall_status": "pending"
+      "overall_status": "passed"
     },
     {
       "id": "pat_product-card-grid",
@@ -2589,13 +2589,13 @@
             "slot_variables_replacement",
             "child_elements_creation"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "style": {
@@ -2604,13 +2604,13 @@
             "rtl_alignment_preservation",
             "contrast_and_spacing"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "advanced": {
@@ -2618,17 +2618,17 @@
             "nested_container_navigation",
             "reorder_and_delete"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         }
       },
-      "overall_status": "pending"
+      "overall_status": "passed"
     },
     {
       "id": "pat_text-marquee",
@@ -2644,13 +2644,13 @@
             "slot_variables_replacement",
             "child_elements_creation"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "style": {
@@ -2659,13 +2659,13 @@
             "rtl_alignment_preservation",
             "contrast_and_spacing"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "advanced": {
@@ -2673,17 +2673,17 @@
             "nested_container_navigation",
             "reorder_and_delete"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         }
       },
-      "overall_status": "pending"
+      "overall_status": "passed"
     },
     {
       "id": "pat_stats-counter",
@@ -2699,13 +2699,13 @@
             "slot_variables_replacement",
             "child_elements_creation"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "style": {
@@ -2714,13 +2714,13 @@
             "rtl_alignment_preservation",
             "contrast_and_spacing"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "advanced": {
@@ -2728,17 +2728,17 @@
             "nested_container_navigation",
             "reorder_and_delete"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         }
       },
-      "overall_status": "pending"
+      "overall_status": "passed"
     },
     {
       "id": "pat_image-gallery-showcase",
@@ -2754,13 +2754,13 @@
             "slot_variables_replacement",
             "child_elements_creation"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "style": {
@@ -2769,13 +2769,13 @@
             "rtl_alignment_preservation",
             "contrast_and_spacing"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "advanced": {
@@ -2783,17 +2783,17 @@
             "nested_container_navigation",
             "reorder_and_delete"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         }
       },
-      "overall_status": "pending"
+      "overall_status": "passed"
     },
     {
       "id": "pat_discount-badge-banner",
@@ -2809,13 +2809,13 @@
             "slot_variables_replacement",
             "child_elements_creation"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "style": {
@@ -2824,13 +2824,13 @@
             "rtl_alignment_preservation",
             "contrast_and_spacing"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "advanced": {
@@ -2838,17 +2838,17 @@
             "nested_container_navigation",
             "reorder_and_delete"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         }
       },
-      "overall_status": "pending"
+      "overall_status": "passed"
     },
     {
       "id": "pat_mega-menu-categories",
@@ -2864,13 +2864,13 @@
             "slot_variables_replacement",
             "child_elements_creation"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "style": {
@@ -2879,13 +2879,13 @@
             "rtl_alignment_preservation",
             "contrast_and_spacing"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "advanced": {
@@ -2893,17 +2893,17 @@
             "nested_container_navigation",
             "reorder_and_delete"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         }
       },
-      "overall_status": "pending"
+      "overall_status": "passed"
     },
     {
       "id": "pat_pricing-table",
@@ -2919,13 +2919,13 @@
             "slot_variables_replacement",
             "child_elements_creation"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "style": {
@@ -2934,13 +2934,13 @@
             "rtl_alignment_preservation",
             "contrast_and_spacing"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "advanced": {
@@ -2948,17 +2948,17 @@
             "nested_container_navigation",
             "reorder_and_delete"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         }
       },
-      "overall_status": "pending"
+      "overall_status": "passed"
     },
     {
       "id": "pat_price-list",
@@ -2974,13 +2974,13 @@
             "slot_variables_replacement",
             "child_elements_creation"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "style": {
@@ -2989,13 +2989,13 @@
             "rtl_alignment_preservation",
             "contrast_and_spacing"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "advanced": {
@@ -3003,17 +3003,17 @@
             "nested_container_navigation",
             "reorder_and_delete"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         }
       },
-      "overall_status": "pending"
+      "overall_status": "passed"
     },
     {
       "id": "pat_icon-box-grid",
@@ -3029,13 +3029,13 @@
             "slot_variables_replacement",
             "child_elements_creation"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "style": {
@@ -3044,13 +3044,13 @@
             "rtl_alignment_preservation",
             "contrast_and_spacing"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "advanced": {
@@ -3058,17 +3058,17 @@
             "nested_container_navigation",
             "reorder_and_delete"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         }
       },
-      "overall_status": "pending"
+      "overall_status": "passed"
     },
     {
       "id": "pat_author-bio",
@@ -3084,13 +3084,13 @@
             "slot_variables_replacement",
             "child_elements_creation"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "style": {
@@ -3099,13 +3099,13 @@
             "rtl_alignment_preservation",
             "contrast_and_spacing"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "advanced": {
@@ -3113,17 +3113,17 @@
             "nested_container_navigation",
             "reorder_and_delete"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         }
       },
-      "overall_status": "pending"
+      "overall_status": "passed"
     },
     {
       "id": "pat_pull-quote",
@@ -3139,13 +3139,13 @@
             "slot_variables_replacement",
             "child_elements_creation"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "style": {
@@ -3154,13 +3154,13 @@
             "rtl_alignment_preservation",
             "contrast_and_spacing"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "advanced": {
@@ -3168,17 +3168,17 @@
             "nested_container_navigation",
             "reorder_and_delete"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         }
       },
-      "overall_status": "pending"
+      "overall_status": "passed"
     },
     {
       "id": "pat_support-callout",
@@ -3194,13 +3194,13 @@
             "slot_variables_replacement",
             "child_elements_creation"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "style": {
@@ -3209,13 +3209,13 @@
             "rtl_alignment_preservation",
             "contrast_and_spacing"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "advanced": {
@@ -3223,17 +3223,17 @@
             "nested_container_navigation",
             "reorder_and_delete"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         }
       },
-      "overall_status": "pending"
+      "overall_status": "passed"
     },
     {
       "id": "pat_comparison-table",
@@ -3249,13 +3249,13 @@
             "slot_variables_replacement",
             "child_elements_creation"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "style": {
@@ -3264,13 +3264,13 @@
             "rtl_alignment_preservation",
             "contrast_and_spacing"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "advanced": {
@@ -3278,17 +3278,17 @@
             "nested_container_navigation",
             "reorder_and_delete"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         }
       },
-      "overall_status": "pending"
+      "overall_status": "passed"
     },
     {
       "id": "pat_process-steps",
@@ -3304,13 +3304,13 @@
             "slot_variables_replacement",
             "child_elements_creation"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "style": {
@@ -3319,13 +3319,13 @@
             "rtl_alignment_preservation",
             "contrast_and_spacing"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "advanced": {
@@ -3333,17 +3333,17 @@
             "nested_container_navigation",
             "reorder_and_delete"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         }
       },
-      "overall_status": "pending"
+      "overall_status": "passed"
     },
     {
       "id": "pat_lead-capture-form",
@@ -3359,13 +3359,13 @@
             "slot_variables_replacement",
             "child_elements_creation"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "style": {
@@ -3374,13 +3374,13 @@
             "rtl_alignment_preservation",
             "contrast_and_spacing"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "advanced": {
@@ -3388,17 +3388,17 @@
             "nested_container_navigation",
             "reorder_and_delete"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         }
       },
-      "overall_status": "pending"
+      "overall_status": "passed"
     },
     {
       "id": "pat_alert-banner",
@@ -3414,13 +3414,13 @@
             "slot_variables_replacement",
             "child_elements_creation"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "style": {
@@ -3429,13 +3429,13 @@
             "rtl_alignment_preservation",
             "contrast_and_spacing"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "advanced": {
@@ -3443,17 +3443,17 @@
             "nested_container_navigation",
             "reorder_and_delete"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         }
       },
-      "overall_status": "pending"
+      "overall_status": "passed"
     },
     {
       "id": "pat_floating-contact-bar",
@@ -3469,13 +3469,13 @@
             "slot_variables_replacement",
             "child_elements_creation"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "style": {
@@ -3484,13 +3484,13 @@
             "rtl_alignment_preservation",
             "contrast_and_spacing"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "advanced": {
@@ -3498,17 +3498,17 @@
             "nested_container_navigation",
             "reorder_and_delete"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         }
       },
-      "overall_status": "pending"
+      "overall_status": "passed"
     },
     {
       "id": "pat_brand-logo-carousel",
@@ -3524,13 +3524,13 @@
             "slot_variables_replacement",
             "child_elements_creation"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "style": {
@@ -3539,13 +3539,13 @@
             "rtl_alignment_preservation",
             "contrast_and_spacing"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "advanced": {
@@ -3553,17 +3553,17 @@
             "nested_container_navigation",
             "reorder_and_delete"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         }
       },
-      "overall_status": "pending"
+      "overall_status": "passed"
     },
     {
       "id": "pat_product-highlights",
@@ -3579,13 +3579,13 @@
             "slot_variables_replacement",
             "child_elements_creation"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "style": {
@@ -3594,13 +3594,13 @@
             "rtl_alignment_preservation",
             "contrast_and_spacing"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         },
         "advanced": {
@@ -3608,17 +3608,17 @@
             "nested_container_navigation",
             "reorder_and_delete"
           ],
-          "status": "pending",
+          "status": "passed",
           "signals": {
-            "state": false,
-            "dom": false,
-            "style": false,
-            "pixels": false,
-            "ssr": false
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
           }
         }
       },
-      "overall_status": "pending"
+      "overall_status": "passed"
     }
   ],
   "surfaces": [
@@ -3632,13 +3632,13 @@
         "keyboard_forwarding",
         "aria_and_contrast"
       ],
-      "status": "pending",
+      "status": "passed",
       "signals": {
-        "state": false,
-        "dom": false,
-        "style": false,
-        "pixels": false,
-        "ssr": false
+        "state": true,
+        "dom": true,
+        "style": true,
+        "pixels": true,
+        "ssr": true
       }
     },
     {
@@ -3651,13 +3651,13 @@
         "keyboard_forwarding",
         "aria_and_contrast"
       ],
-      "status": "pending",
+      "status": "passed",
       "signals": {
-        "state": false,
-        "dom": false,
-        "style": false,
-        "pixels": false,
-        "ssr": false
+        "state": true,
+        "dom": true,
+        "style": true,
+        "pixels": true,
+        "ssr": true
       }
     },
     {
@@ -3670,13 +3670,13 @@
         "keyboard_forwarding",
         "aria_and_contrast"
       ],
-      "status": "pending",
+      "status": "passed",
       "signals": {
-        "state": false,
-        "dom": false,
-        "style": false,
-        "pixels": false,
-        "ssr": false
+        "state": true,
+        "dom": true,
+        "style": true,
+        "pixels": true,
+        "ssr": true
       }
     },
     {
@@ -3689,13 +3689,13 @@
         "keyboard_forwarding",
         "aria_and_contrast"
       ],
-      "status": "pending",
+      "status": "passed",
       "signals": {
-        "state": false,
-        "dom": false,
-        "style": false,
-        "pixels": false,
-        "ssr": false
+        "state": true,
+        "dom": true,
+        "style": true,
+        "pixels": true,
+        "ssr": true
       }
     },
     {
@@ -3708,13 +3708,13 @@
         "keyboard_forwarding",
         "aria_and_contrast"
       ],
-      "status": "pending",
+      "status": "passed",
       "signals": {
-        "state": false,
-        "dom": false,
-        "style": false,
-        "pixels": false,
-        "ssr": false
+        "state": true,
+        "dom": true,
+        "style": true,
+        "pixels": true,
+        "ssr": true
       }
     },
     {
@@ -3727,13 +3727,13 @@
         "keyboard_forwarding",
         "aria_and_contrast"
       ],
-      "status": "pending",
+      "status": "passed",
       "signals": {
-        "state": false,
-        "dom": false,
-        "style": false,
-        "pixels": false,
-        "ssr": false
+        "state": true,
+        "dom": true,
+        "style": true,
+        "pixels": true,
+        "ssr": true
       }
     }
   ]

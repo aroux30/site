@@ -247,6 +247,10 @@ export interface BuilderState {
   updateGlobalComponent: (globalComponentId: string, patch: Partial<BuilderElement>) => void;
   replacePageAST: (newAst: PageAST) => void;
 
+  // Container nesting & unwrap helpers (Elementor Container Tools)
+  wrapInContainer: (id: string) => void;
+  unwrapContainer: (id: string) => void;
+
   // History & Save
   undo: () => void;
   redo: () => void;
@@ -931,6 +935,85 @@ export const useBuilderStore = create<BuilderState>((set, get) => ({
           ...styles,
         },
       },
+      isDirty: true,
+      mutationVersion: get().mutationVersion + 1,
+      history: { past: newPast, future: [] },
+    });
+  },
+
+  wrapInContainer: (id) => {
+    const { ast, history } = get();
+    const info = findElementAndParent(ast.rootElements, id);
+    if (!info) return;
+
+    const newPast = [...history.past, ast].slice(-MAX_HISTORY_LENGTH);
+    const wrapper: BuilderElement = {
+      id: `cont_${Math.random().toString(36).slice(2, 10)}`,
+      name: "کانتینر احاطه‌کننده",
+      type: "container",
+      isLocked: false,
+      isHidden: false,
+      layout: {
+        kind: "flex",
+        direction: "column",
+        justifyContent: "start",
+        alignItems: "stretch",
+        flexWrap: "nowrap",
+        gap: { value: 16, unit: "px" },
+        gridColumns: 1,
+      },
+      styles: { mobile: {} },
+      children: [info.element],
+    };
+
+    let updatedRoots: BuilderElement[];
+    if (info.parent) {
+      updatedRoots = updateElementInTree(ast.rootElements, info.parent.id, (parent) => {
+        const siblings = [...(parent.children || [])];
+        siblings.splice(info.index, 1, wrapper);
+        return { ...parent, children: siblings };
+      });
+    } else {
+      updatedRoots = [...ast.rootElements];
+      updatedRoots.splice(info.index, 1, wrapper);
+    }
+
+    set({
+      ast: { ...ast, rootElements: updatedRoots },
+      selectedElementId: wrapper.id,
+      selectedElementIds: [wrapper.id],
+      isDirty: true,
+      mutationVersion: get().mutationVersion + 1,
+      history: { past: newPast, future: [] },
+    });
+  },
+
+  unwrapContainer: (id) => {
+    const { ast, history } = get();
+    const info = findElementAndParent(ast.rootElements, id);
+    if (!info || info.element.type !== "container") return;
+
+    const children = info.element.children || [];
+    if (children.length === 0) return;
+
+    const newPast = [...history.past, ast].slice(-MAX_HISTORY_LENGTH);
+    let updatedRoots: BuilderElement[];
+
+    if (info.parent) {
+      updatedRoots = updateElementInTree(ast.rootElements, info.parent.id, (parent) => {
+        const siblings = [...(parent.children || [])];
+        siblings.splice(info.index, 1, ...children);
+        return { ...parent, children: siblings };
+      });
+    } else {
+      updatedRoots = [...ast.rootElements];
+      updatedRoots.splice(info.index, 1, ...children);
+    }
+
+    set({
+      ast: { ...ast, rootElements: updatedRoots },
+      selectedElementId: children[0]?.id || null,
+      selectedElementIds: children[0]?.id ? [children[0].id] : [],
       isDirty: true,
       mutationVersion: get().mutationVersion + 1,
       history: { past: newPast, future: [] },

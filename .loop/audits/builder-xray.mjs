@@ -1003,6 +1003,38 @@ async function runXRayAudit() {
   });
   await page.waitForTimeout(300);
 
+  // 8. Elementor Parity: Wrap / Unwrap Container Actions
+  console.log("    Testing Elementor Parity: Wrap / Unwrap Container Actions...");
+  await page.evaluate(() => {
+    window.__BUILDER_STORE__?.getState()?.wrapInContainer("resp_vis_elem");
+  });
+  await page.waitForTimeout(400);
+
+  const wrapperExists = await page.evaluate(() => {
+    const root = window.__BUILDER_STORE__?.getState()?.ast.rootElements[0];
+    return root && root.type === "container" && root.name === "کانتینر احاطه‌کننده" && root.children.length === 1;
+  });
+
+  if (!wrapperExists) {
+    addFailure("WRAP_IN_CONTAINER_FAILED", "P0", { message: "wrapInContainer did not wrap element inside a new parent container" });
+  } else {
+    // Test unwrap
+    await page.evaluate(() => {
+      const wrapperId = window.__BUILDER_STORE__?.getState()?.ast.rootElements[0]?.id;
+      if (wrapperId) window.__BUILDER_STORE__?.getState()?.unwrapContainer(wrapperId);
+    });
+    await page.waitForTimeout(400);
+
+    const unwrapped = await page.evaluate(() => {
+      const root = window.__BUILDER_STORE__?.getState()?.ast.rootElements[0];
+      return root && root.id === "resp_vis_elem";
+    });
+
+    if (!unwrapped) {
+      addFailure("UNWRAP_CONTAINER_FAILED", "P0", { message: "unwrapContainer did not restore child to parent level" });
+    }
+  }
+
   // ──────────────────────────────────────────────────────────────────────────
   // Write Final Matrix Report
   // ──────────────────────────────────────────────────────────────────────────

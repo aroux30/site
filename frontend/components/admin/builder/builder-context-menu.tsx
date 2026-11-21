@@ -15,6 +15,8 @@ import {
   Eye,
   EyeOff,
   Edit2,
+  FolderPlus,
+  FolderMinus,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useBuilderStore, findElementById } from "@/stores/builder-store";
@@ -46,6 +48,8 @@ export function BuilderContextMenu() {
   const reorderElement = useBuilderStore((s) => s.reorderElement);
   const toggleLockElement = useBuilderStore((s) => s.toggleLockElement);
   const toggleHideElement = useBuilderStore((s) => s.toggleHideElement);
+  const wrapInContainer = useBuilderStore((s) => s.wrapInContainer);
+  const unwrapContainer = useBuilderStore((s) => s.unwrapContainer);
 
   const activeElement: BuilderElement | null = pos?.targetId
     ? findElementById(ast.rootElements, pos.targetId)
@@ -243,6 +247,35 @@ export function BuilderContextMenu() {
             >
               <BookmarkPlus className="w-3.5 h-3.5" />
               <span>ذخیره به عنوان قالب...</span>
+            </button>
+          )}
+
+          {/* Wrap / Unwrap Container (Elementor Workflow Parity) */}
+          <button
+            type="button"
+            onClick={() => {
+              wrapInContainer(activeElement.id);
+              toast({ title: "در کانتینر قرار گرفت", description: "یک کانتینر جدید به عنوان والد المان ساخته شد." });
+              closeMenu();
+            }}
+            className="w-full flex items-center gap-2 px-3 py-1.5 hover:bg-accent hover:text-accent-foreground transition text-start"
+          >
+            <FolderPlus className="w-3.5 h-3.5 text-primary" />
+            <span>گروه‌بندی در کانتینر جدید</span>
+          </button>
+
+          {isContainer && (activeElement.children || []).length > 0 && (
+            <button
+              type="button"
+              onClick={() => {
+                unwrapContainer(activeElement.id);
+                toast({ title: "کانتینر حذف شد", description: "فرزندان کانتینر به سطح والد منتقل شدند." });
+                closeMenu();
+              }}
+              className="w-full flex items-center gap-2 px-3 py-1.5 hover:bg-accent hover:text-accent-foreground transition text-start text-amber-600"
+            >
+              <FolderMinus className="w-3.5 h-3.5" />
+              <span>خروج از کانتینر (Unwrap)</span>
             </button>
           )}
 

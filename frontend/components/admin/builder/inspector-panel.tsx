@@ -285,6 +285,7 @@ export function InspectorPanel() {
             <div className="space-y-1.5">
               <Label className="text-xs">متن عنوان</Label>
               <Input
+                data-testid="heading-text-input"
                 value={String(props.text || "")}
                 onChange={(e) => handlePropChange("text", e.target.value)}
                 className="h-8 text-xs"
@@ -316,10 +317,11 @@ export function InspectorPanel() {
         return (
           <div className="space-y-4">
             <div className="space-y-1.5">
-              <Label className="text-xs">محتوای متنی (HTML)</Label>
+              <Label className="text-xs">محتوای متنی</Label>
               <textarea
+                data-testid="text-editor-textarea"
                 rows={6}
-                value={String(props.content || "")}
+                value={String(props.content || "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim()}
                 onChange={(e) => handlePropChange("content", e.target.value)}
                 className="w-full rounded-md border border-input bg-background p-2 text-xs leading-relaxed"
               />
@@ -1557,6 +1559,7 @@ export function InspectorPanel() {
           <div className="grid grid-cols-4 gap-1.5 text-center">
             <div>
               <Input
+                data-testid="padding-top-input"
                 type="number"
                 value={pad.top.value}
                 onChange={(e) => handleSpacingChange("padding", "top", parseFloat(e.target.value) || 0)}

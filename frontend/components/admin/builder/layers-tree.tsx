@@ -58,6 +58,9 @@ const TreeItem = React.memo(function TreeItem({ element, depth = 0 }: TreeItemPr
   const deleteElement = useBuilderStore((s) => s.deleteElement);
   const duplicateElement = useBuilderStore((s) => s.duplicateElement);
   const toggleHideElement = useBuilderStore((s) => s.toggleHideElement);
+  const renameElement = useBuilderStore((s) => s.renameElement);
+  const moveElement = useBuilderStore((s) => s.moveElement);
+  const [isEditingName, setIsEditingName] = useState(false);
 
   const Icon = getElementIcon(element);
   const hasChildren = element.children && element.children.length > 0;
@@ -117,7 +120,38 @@ const TreeItem = React.memo(function TreeItem({ element, depth = 0 }: TreeItemPr
           />
 
           <Icon className={cn("w-3.5 h-3.5 shrink-0", isSelected ? "text-primary-foreground" : "text-primary/70")} />
-          <span className="truncate">{element.name}</span>
+          {isEditingName ? (
+            <input
+              type="text"
+              defaultValue={element.name}
+              autoFocus
+              onClick={(e) => e.stopPropagation()}
+              onBlur={(e) => {
+                setIsEditingName(false);
+                const val = e.target.value.trim();
+                if (val && val !== element.name) renameElement(element.id, val);
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.currentTarget.blur();
+                } else if (e.key === "Escape") {
+                  setIsEditingName(false);
+                }
+              }}
+              className="bg-background text-foreground px-1 py-0.5 rounded text-xs w-full max-w-[120px] outline-none ring-1 ring-primary"
+            />
+          ) : (
+            <span
+              onDoubleClick={(e) => {
+                e.stopPropagation();
+                setIsEditingName(true);
+              }}
+              className="truncate cursor-text"
+              title="برای تغییر نام دابل کلیک کنید"
+            >
+              {element.name}
+            </span>
+          )}
 
           {element.isLocked && (
             <Lock className={cn("w-3 h-3 shrink-0 ms-1", isSelected ? "text-amber-200" : "text-amber-500")} />

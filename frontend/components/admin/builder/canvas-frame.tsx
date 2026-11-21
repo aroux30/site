@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import { useBuilderStore, type Breakpoint } from "@/stores/builder-store";
 import { themesAdminApi } from "@/lib/api/themes";
 import { extractCssVariablesFromTokens, hexToHslChannels } from "@/lib/builder/theme-schema";
+import { CanvasOverlayLayer } from "./canvas-overlay-layer";
 
 /**
  * The editor canvas, rendered inside an isolated iframe.
@@ -29,6 +30,7 @@ export function CanvasFrame({
 }) {
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
   const [mountNode, setMountNode] = useState<HTMLElement | null>(null);
+  const [overlayNode, setOverlayNode] = useState<HTMLElement | null>(null);
   const [ready, setReady] = useState(false);
   const [activeThemeVars, setActiveThemeVars] = useState<Record<string, string>>({});
   const globalStyles = useBuilderStore((s) => s.ast.globalStyles);
@@ -126,7 +128,7 @@ export function CanvasFrame({
       doc.write(
         '<!DOCTYPE html><html lang="fa" dir="rtl"><head><meta charset="utf-8"/>' +
           '<meta name="viewport" content="width=device-width, initial-scale=1"/>' +
-          '<style>body{margin:0;padding:36px 24px 24px 24px;min-height:100vh;box-sizing:border-box;}' +
+          '<style>body{margin:0;padding:36px 24px 24px 24px;min-height:100vh;box-sizing:border-box;position:relative;}' +
           'a{pointer-events:none!important;}' +
           '@keyframes builderFadeIn{from{opacity:0;}to{opacity:1;}}' +
           '@keyframes builderSlideUp{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}' +
@@ -135,17 +137,21 @@ export function CanvasFrame({
           '.builder-animate-slide-up{animation:builderSlideUp 0.6s cubic-bezier(0.16,1,0.3,1) both;}' +
           '.builder-animate-zoom-in{animation:builderZoomIn 0.6s cubic-bezier(0.16,1,0.3,1) both;}' +
           '</style></head>' +
-          '<body class="bg-background text-foreground font-sans antialiased">' +
-          '<div id="builder-canvas-mount"></div></body></html>'
+          '<body class="bg-background text-foreground font-sans antialiased relative">' +
+          '<div id="builder-canvas-mount"></div>' +
+          '<div id="builder-overlay-mount" style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:99990;"></div>' +
+          '</body></html>'
       );
       doc.close();
     }
 
     const mount = doc.getElementById("builder-canvas-mount");
+    const overlay = doc.getElementById("builder-overlay-mount");
     if (!mount) return;
 
     syncStyles(doc);
     setMountNode(mount);
+    setOverlayNode(overlay);
     setReady(true);
 
     const handleDragOver = (e: DragEvent) => {
@@ -181,9 +187,30 @@ export function CanvasFrame({
     };
     doc.addEventListener("keydown", handleKeyDown);
 
+    const handleContextMenu = (e: MouseEvent) => {
+      const target = e.target as HTMLElement | null;
+      const elemContainer = target?.closest("[data-element-id]");
+      if (elemContainer) {
+        e.preventDefault();
+        const targetId = elemContainer.getAttribute("data-element-id");
+        const iframeRect = iframe.getBoundingClientRect();
+        window.postMessage(
+          {
+            type: "builder:contextmenu",
+            targetId,
+            clientX: iframeRect.left + e.clientX,
+            clientY: iframeRect.top + e.clientY,
+          },
+          "*"
+        );
+      }
+    };
+    doc.addEventListener("contextmenu", handleContextMenu);
+
     return () => {
       doc.removeEventListener("dragover", handleDragOver);
       doc.removeEventListener("keydown", handleKeyDown);
+      doc.removeEventListener("contextmenu", handleContextMenu);
     };
   }, [syncStyles]);
 
@@ -270,6 +297,7 @@ export function CanvasFrame({
           style={{ minHeight: "750px" }}
         />
         {mountNode && createPortal(children, mountNode)}
+        {overlayNode && createPortal(<CanvasOverlayLayer doc={iframeRef.current?.contentDocument || null} />, overlayNode)}
       </div>
     </div>
   );

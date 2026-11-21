@@ -63,6 +63,7 @@ function CanvasElementComponent({
   const [selectedVariantId, setSelectedVariantId] = useState<string>("var_1");
   const [cartQuantity, setCartQuantity] = useState(1);
   const [activeGridFilter, setActiveGridFilter] = useState<string>("all");
+  const [isInlineEditing, setIsInlineEditing] = useState(false);
   const elementRef = useRef<HTMLDivElement>(null);
   const [isNearTop, setIsNearTop] = useState(false);
 
@@ -75,6 +76,7 @@ function CanvasElementComponent({
   const setHoveredElement = useBuilderStore((s) => s.setHoveredElement);
   const deleteElement = useBuilderStore((s) => s.deleteElement);
   const duplicateElement = useBuilderStore((s) => s.duplicateElement);
+  const updateElementProps = useBuilderStore((s) => s.updateElementProps);
 
   // Dynamic clearance detection: check if element is near the canvas top
   useEffect(() => {
@@ -214,7 +216,11 @@ function CanvasElementComponent({
     const resolvePadding = () => {
       const p = resolveResponsiveValue({ mobile: base?.padding, tablet: tablet?.padding, desktop: desktop?.padding }, activeBreakpoint);
       if (p) {
-        return `${p.top.value}${p.top.unit} ${p.right.value}${p.right.unit} ${p.bottom.value}${p.bottom.unit} ${p.left.value}${p.left.unit}`;
+        const top = p.top ? `${p.top.value}${p.top.unit}` : "0px";
+        const right = p.right ? `${p.right.value}${p.right.unit}` : top;
+        const bottom = p.bottom ? `${p.bottom.value}${p.bottom.unit}` : top;
+        const left = p.left ? `${p.left.value}${p.left.unit}` : right;
+        return `${top} ${right} ${bottom} ${left}`;
       }
       return undefined;
     };
@@ -222,7 +228,11 @@ function CanvasElementComponent({
     const resolveMargin = () => {
       const m = resolveResponsiveValue({ mobile: base?.margin, tablet: tablet?.margin, desktop: desktop?.margin }, activeBreakpoint);
       if (m) {
-        return `${m.top.value}${m.top.unit} ${m.right.value}${m.right.unit} ${m.bottom.value}${m.bottom.unit} ${m.left.value}${m.left.unit}`;
+        const top = m.top ? `${m.top.value}${m.top.unit}` : "0px";
+        const right = m.right ? `${m.right.value}${m.right.unit}` : top;
+        const bottom = m.bottom ? `${m.bottom.value}${m.bottom.unit}` : top;
+        const left = m.left ? `${m.left.value}${m.left.unit}` : right;
+        return `${top} ${right} ${bottom} ${left}`;
       }
       return undefined;
     };
@@ -351,7 +361,7 @@ function CanvasElementComponent({
     if (gridTemplateColumns) styleObj.gridTemplateColumns = gridTemplateColumns;
 
     return styleObj;
-  }, [element.styles, activeBreakpoint]);
+  }, [element.styles, element.layout, activeBreakpoint]);
 
   const isHiddenOnActiveBreakpoint = useMemo(() => {
     if (activeBreakpoint === "desktop" && element.visibleOnDesktop === false) return true;
@@ -407,23 +417,53 @@ function CanvasElementComponent({
         const Tag = (props.tag as "h1" | "h2" | "h3" | "h4" | "h5" | "h6") || "h2";
         const customClass = String(props.customCssClass || element.styles?.customCssClass || "");
         return (
-          <Tag className={cn("font-bold tracking-tight text-foreground m-0 break-words [overflow-wrap:anywhere]", customClass)}>
+          <Tag
+            contentEditable={isSelected && isInlineEditing && !previewMode}
+            suppressContentEditableWarning={true}
+            onDoubleClick={(e) => {
+              e.stopPropagation();
+              if (!previewMode) setIsInlineEditing(true);
+            }}
+            onBlur={(e) => {
+              setIsInlineEditing(false);
+              const newText = e.currentTarget.textContent || "";
+              updateElementProps(element.id, { text: newText });
+            }}
+            className={cn("font-bold tracking-tight text-foreground m-0 break-words [overflow-wrap:anywhere] outline-none", isInlineEditing && "ring-1 ring-primary rounded px-1", customClass)}
+          >
             {String(props.text || "عنوان سرتیتر")}
           </Tag>
         );
       }
       case "text_editor": {
         const customClass = String(props.customCssClass || element.styles?.customCssClass || "");
+        const rawContent = String(props.content || "متن پاراگراف را بنویسید...");
+        const isHtml = rawContent.startsWith("<") && rawContent.endsWith(">");
         return (
           <div
+            contentEditable={isSelected && isInlineEditing && !previewMode}
+            suppressContentEditableWarning={true}
+            onDoubleClick={(e) => {
+              e.stopPropagation();
+              if (!previewMode) setIsInlineEditing(true);
+            }}
+            onBlur={(e) => {
+              setIsInlineEditing(false);
+              const newContent = e.currentTarget.textContent || "";
+              updateElementProps(element.id, { content: newContent });
+            }}
             className={cn(
-              "prose dark:prose-invert max-w-none text-foreground/90 leading-relaxed break-words [overflow-wrap:anywhere]",
+              "prose dark:prose-invert max-w-none text-foreground/90 leading-relaxed break-words [overflow-wrap:anywhere] outline-none",
+              isInlineEditing && "ring-1 ring-primary rounded px-1",
               customClass
             )}
-            dangerouslySetInnerHTML={{
-              __html: String(props.content || "<p>متن پاراگراف را بنویسید...</p>"),
-            }}
-          />
+          >
+            {isHtml ? (
+              <div dangerouslySetInnerHTML={{ __html: rawContent }} />
+            ) : (
+              <p className="m-0 leading-relaxed">{rawContent}</p>
+            )}
+          </div>
         );
       }
       case "button": {
@@ -446,7 +486,7 @@ function CanvasElementComponent({
       case "image": {
         const customClass = String(props.customCssClass || element.styles?.customCssClass || "");
         return (
-          <div className={cn("relative overflow-hidden rounded-xl bg-muted/30", customClass)}>
+          <div className={cn("relative overflow-hidden rounded-xl bg-muted/30 min-h-[120px] w-full flex items-center justify-center", customClass)}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={String(props.url || "/placeholder-hero.svg")}
@@ -1216,9 +1256,6 @@ function CanvasElementComponent({
       className={cn(
         "relative group/elem select-none",
         isContainer ? containerClasses : "block",
-        !previewMode && "outline outline-1 outline-transparent transition-all",
-        !previewMode && isHovered && "outline-dashed outline-sky-500/80 bg-sky-500/5",
-        !previewMode && isSelected && "outline-2 outline-primary ring-2 ring-primary/20 bg-primary/5 shadow-md z-40 relative",
         !previewMode && isDragOver && "outline-2 outline-emerald-500 bg-emerald-500/10 shadow-lg ring-2 ring-emerald-500/30",
         element.isHidden && "opacity-50",
         element.styles?.animation && element.styles.animation !== "none" && `builder-animate-${element.styles.animation}`,
@@ -1226,139 +1263,6 @@ function CanvasElementComponent({
       )}
       data-element-id={element.id}
     >
-      {/* Floating Action Toolbar on Selected Element */}
-      {!previewMode && isSelected && (
-        <div
-          data-testid="floating-toolbar"
-          className={cn(
-            "absolute start-0 flex items-center gap-1.5 bg-primary text-primary-foreground text-xs font-bold px-2.5 py-1 shadow-xl z-50 pointer-events-auto border border-primary-foreground/20 transition-all",
-            isNearTop ? "top-full mt-1.5 rounded-lg" : "-top-8 rounded-t-lg"
-          )}
-          onClick={(e) => e.stopPropagation()}
-        >
-          {/* Drag Handle — native HTML5 drag (see the note above onDrop). */}
-          <span
-            draggable={!element.isLocked}
-            onDragStart={(e) => {
-              e.stopPropagation();
-              e.dataTransfer.setData(
-                "application/json",
-                JSON.stringify({ type: "element", elementId: element.id })
-              );
-              e.dataTransfer.effectAllowed = "move";
-            }}
-            className="cursor-grab active:cursor-grabbing p-1 hover:bg-primary-foreground/20 rounded"
-            title="جابه‌جایی"
-          >
-            <GripVertical className="w-3.5 h-3.5" />
-          </span>
-
-          <span className="pe-1">{element.name}</span>
-
-          {element.isLocked && <Lock className="w-3.5 h-3.5 text-amber-200" />}
-          {element.isHidden && <EyeOff className="w-3.5 h-3.5 text-primary-foreground/70" />}
-
-          <div className="flex items-center gap-0.5 ms-2 border-s border-primary-foreground/30 ps-1.5">
-            {element.globalComponentId ? (
-              <span className="flex items-center gap-1 text-[10px] text-emerald-300 font-bold px-1" title="کامپوننت سراسری همگام">
-                <Globe className="w-3.5 h-3.5 animate-pulse" />
-                <span>همگام</span>
-              </span>
-            ) : (
-              <button
-                type="button"
-                onClick={() => {
-                  makeGlobalComponent(element.id);
-                  toast({
-                    title: "کامپوننت سراسری ایجاد شد",
-                    description: "این المان اکنون در سراسر برگه به عنوان کامپوننت همگام شناخته می‌شود.",
-                  });
-                }}
-                className="p-1 hover:bg-primary-foreground/20 rounded transition text-emerald-300 hover:text-white"
-                title="تبدیل به کامپوننت همگام سراسری (Global Component)"
-              >
-                <Globe className="w-3.5 h-3.5" />
-              </button>
-            )}
-
-            <button
-              type="button"
-              onClick={() => {
-                copyElement(element.id);
-                toast({
-                  title: "المان کپی شد",
-                  description: "المان در کلیپ‌بورد ذخیره شد. برای درج از Ctrl+V استفاده نمایید.",
-                });
-              }}
-              className="p-1 hover:bg-primary-foreground/20 rounded transition"
-              title="کپی المان (Ctrl+C)"
-            >
-              <Copy className="w-3.5 h-3.5" />
-            </button>
-
-            <button
-              type="button"
-              onClick={() => {
-                copyStyles(element.id);
-                toast({
-                  title: "استایل‌ها کپی شد",
-                  description: "استایل‌های المان در کلیپ‌بورد قرار گرفت.",
-                });
-              }}
-              className="p-1 hover:bg-primary-foreground/20 rounded transition"
-              title="کپی استایل‌ها (Copy Styles)"
-            >
-              <Palette className="w-3.5 h-3.5" />
-            </button>
-
-            {isContainer && (
-              <button
-                type="button"
-                onClick={() => setSaveTemplateOpen(true)}
-                className="p-1 hover:bg-primary-foreground/20 rounded transition text-amber-200 hover:text-white"
-                title="ذخیره به عنوان قالب (Save as Template)"
-              >
-                <BookmarkPlus className="w-3.5 h-3.5" />
-              </button>
-            )}
-            <button
-              type="button"
-              onClick={() => reorderElement(element.id, "up")}
-              className="p-1 hover:bg-primary-foreground/20 rounded transition"
-              title="انتقال به بالا (Move Up)"
-              data-testid="move-up-btn"
-            >
-              <ArrowUp className="w-3.5 h-3.5" />
-            </button>
-            <button
-              type="button"
-              onClick={() => reorderElement(element.id, "down")}
-              className="p-1 hover:bg-primary-foreground/20 rounded transition"
-              title="انتقال به پایین (Move Down)"
-              data-testid="move-down-btn"
-            >
-              <ArrowDown className="w-3.5 h-3.5" />
-            </button>
-            <button
-              type="button"
-              onClick={() => duplicateElement(element.id)}
-              className="p-1 hover:bg-primary-foreground/20 rounded transition"
-              title="تکثیر (Duplicate)"
-            >
-              <Plus className="w-3.5 h-3.5" />
-            </button>
-            <button
-              type="button"
-              onClick={() => deleteElement(element.id)}
-              className="p-1 hover:bg-destructive hover:text-white rounded transition text-destructive-foreground"
-              title="حذف"
-            >
-              <Trash2 className="w-3.5 h-3.5" />
-            </button>
-          </div>
-        </div>
-      )}
-
       {/* Breakpoint Hidden Indicator */}
       {isHiddenOnActiveBreakpoint && !previewMode && (
         <div className="absolute top-1 end-1 z-30 pointer-events-none">

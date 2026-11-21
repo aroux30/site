@@ -15,6 +15,7 @@ import { LayersTree } from "./layers-tree";
 import { CanvasFrame } from "./canvas-frame";
 import { CanvasDndLayer } from "./canvas-dnd-layer";
 import { InspectorPanel } from "./inspector-panel";
+import { BuilderContextMenu } from "./builder-context-menu";
 
 export interface BuilderStudioProps {
   page: CmsPage;
@@ -61,6 +62,9 @@ export function BuilderStudio({ page, onExit }: BuilderStudioProps) {
   // Initialize store on mount
   useEffect(() => {
     initPage(page.id, page.builder_data, page.title, page.slug);
+    if (typeof window !== "undefined") {
+      (window as any).__BUILDER_STORE__ = useBuilderStore;
+    }
   }, [page.id, page.builder_data, page.title, page.slug, initPage]);
 
   // Clean up lock on unmount
@@ -288,6 +292,9 @@ export function BuilderStudio({ page, onExit }: BuilderStudioProps) {
           </aside>
         )}
       </div>
+
+      {/* Global Canvas & Studio Context Menu */}
+      {!previewMode && <BuilderContextMenu />}
     </div>
   );
 }

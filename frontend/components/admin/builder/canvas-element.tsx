@@ -318,6 +318,12 @@ function CanvasElementComponent({
       styleObj.boxShadow = shadow;
     }
 
+    // CSS Filters (Elementor Filter Parity)
+    const filter = resolveResponsiveValue({ mobile: base?.filter, tablet: tablet?.filter, desktop: desktop?.filter }, activeBreakpoint);
+    if (filter && filter !== "none") {
+      styleObj.filter = filter;
+    }
+
     // Animation styles
     if (res.animation && res.animation !== "none") {
       if (res.animationDuration) styleObj.animationDuration = `${res.animationDuration}s`;

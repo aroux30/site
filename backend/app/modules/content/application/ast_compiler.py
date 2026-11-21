@@ -734,5 +734,9 @@ class ASTCompiler:
             parts.append(f"grid-template-columns: {base.grid_template_columns};")
         if base.opacity is not None:
             parts.append(f"opacity: {base.opacity};")
+        if base.filter:
+            parts.append(f"filter: {base.filter};")
+        if base.box_shadow:
+            parts.append(f"box-shadow: {base.box_shadow};")
 
         return parts

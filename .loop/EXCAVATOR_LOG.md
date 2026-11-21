@@ -26,6 +26,50 @@
 | **Round 15** | 0 | **0** | **0 / 0** | 28 / 28 ✅ | 34 / 34 ✅ | 0 خطای مرده ✅ | **کنترل‌های چینش انفرادی و ترتیب فلکس‌باکس (Elementor Flex Item Align-Self & Order Parity)**: افزودن کنترل‌های alignSelf و order به پنل بازرس، اعمال در بوم و کامپایلر سرور و آزمون اشعه ایکس |
 | **Round 16** | 0 | **0** | **0 / 0** | 28 / 28 ✅ | 34 / 34 ✅ | 0 خطای مرده ✅ | **جستجو و فیلتر زنده در ساختار لایه‌ها (Elementor Navigator Search & Expand/Collapse Parity)**: افزودن جستجوی زنده لایه‌ها و دکمه‌های باز و بسته کردن سراسری شاخه‌ها در LayersTree با آزمون اشعه ایکس |
 | **Round 17** | 0 | **0** | **0 / 0** | 28 / 28 ✅ | 34 / 34 ✅ | 0 خطای مرده ✅ | **لایه رویی پس‌زمینه کانتینرها (Elementor Background Overlay Parity)**: افزودن کنترل‌های Background Overlay (تک‌رنگ، گرادیانت و شفافیت)، رندر لایه رویی در بوم و کامپایلر سرور با آزمون اشعه ایکس |
+| **Round 18** | 0 | **0** | **0 / 0** | 28 / 28 ✅ | 34 / 34 ✅ | 0 خطای مرده ✅ | **فیلترهای گرافیکی CSS (Elementor CSS Filters Parity)**: افزودن کنترل و پریست‌های فیلتر (blur, grayscale, contrast, sepia) در بازرس، بوم و کامپایلر سرور با آزمون اشعه ایکس |
+
+---
+
+## جزئیات راند ۱۸ (Round 18)
+
+- **شاخه ایزوله**: `claude/reverent-jang-441af1`
+- **تاریخ اجرا**: 2026-11-21
+- **وضعیت نهایی اشعه ایکس (.loop/XRAY_MATRIX.json)**:
+  - `totalFailures`: **0**
+  - `p0Count`: **0**
+  - `p1Count`: **0**
+  - `patterns`: ۲۸ از ۲۸ سبز (`passed: true`)
+  - `blocks`: ۳۴ از ۳۴ سبز (`passed: true`)
+  - `deadControls`: ۰ کنترل مرده
+  - `cssFiltersControl`: تایید اعمال فیلترهای گرافیکی CSS در بوم و کامپایلر سرور
+  - `backgroundOverlay`: سبز
+  - `layersTreeSearch`: سبز
+  - `alignSelfAndOrder`: سبز
+  - `opacityControl`: سبز
+  - `containerBoxedWidth`: سبز
+  - `savePageTemplateDialog`: سبز
+  - `customCssIdReflection`: سبز
+  - `globalStylesTwoLayerTokens`: سبز
+  - `historyTimelinePanel`: سبز
+  - `multiSelectionOverlay`: سبز
+  - `persistentClipboard`: سبز
+  - `wrapUnwrapContainer`: سبز
+  - `responsiveVisibility`: سبز
+  - `shortcutsModal`: سبز
+  - `hotkeyUndoRedo`: سبز
+  - `layersTreeDnD`: سبز
+  - `containerPresetPicker`: سبز
+  - `contextMenu`: سبز
+  - `categoryChipsClipping`: سبز و بدون بریدگی
+  - `dragAndDrop`: سبز
+  - `wysiwygParity`: تطابق ۱۰۰٪ بوم و صفحه نهایی
+
+### قابلیت‌های راند ۱۸:
+1. **فیلترهای گرافیکی CSS (`CSS Filters`)**:
+   - در پنل بازرس تب استایل، فیلد سفارشی فیلتر CSS همراه با پریست‌های فوری (عادی، مات با `blur(4px)`، سیاه و سفید با `grayscale(100%)`، پرکنتراست و نوستالژی با `sepia(80%)`) اضافه شد.
+   - اعمال مستقیم به استایل عنصر در بوم و اتریبیوت `style="filter: ...;"` در کامپایلر سرور (`ast_compiler.py`).
+2. **گسترش ممیزی خودکار اشعه ایکس**:
+   - آزمون شماره ۱۸ در `builder-xray.mjs` جهت سنجش اعمال دقیق `filter` روی المان‌های بوم اضافه شد و ۱۰۰٪ پاس گردید.
 
 ---
 

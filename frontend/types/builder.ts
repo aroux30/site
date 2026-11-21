@@ -76,6 +76,7 @@ export interface DeviceStyle {
   minHeight?: UnitValue | null;
   display?: "block" | "flex" | "grid" | "inline-block" | "none" | "inherit" | null;
   boxShadow?: string | null;
+  filter?: string | null;
   opacity?: number | null;
   zIndex?: number | null;
   // Advanced Layout (P4)

@@ -2345,6 +2345,48 @@ export function InspectorPanel() {
           </div>
         </div>
 
+        {/* CSS Filters (Elementor Parity) */}
+        <div className="space-y-1.5 pt-2 border-t">
+          <Label className="text-xs font-bold text-foreground">فیلترهای گرافیکی (CSS Filters - المنتور)</Label>
+          <div className="flex items-center gap-2">
+            <Input
+              data-testid="css-filter-input"
+              value={currentDeviceStyle.filter || ""}
+              placeholder="مثلاً blur(4px) یا grayscale(100%)"
+              onChange={(e) =>
+                handleDeviceStyleChange({
+                  filter: e.target.value.trim() || undefined,
+                })
+              }
+              className="h-8 text-xs flex-1 font-mono"
+              dir="ltr"
+            />
+          </div>
+          <div className="flex flex-wrap gap-1 mt-1.5">
+            <span className="text-[10px] text-muted-foreground me-1 self-center">پریست‌های فیلتر:</span>
+            {[
+              { label: "عادی (None)", val: "none" },
+              { label: "مات (Blur 4px)", val: "blur(4px)" },
+              { label: "سیاه و سفید", val: "grayscale(100%)" },
+              { label: "پرکنتراست", val: "contrast(125%) brightness(105%)" },
+              { label: "نوستالژی (Sepia)", val: "sepia(80%)" },
+            ].map((fil) => (
+              <button
+                key={fil.label}
+                type="button"
+                onClick={() =>
+                  handleDeviceStyleChange({
+                    filter: fil.val === "none" ? undefined : fil.val,
+                  })
+                }
+                className="px-2 py-0.5 rounded text-[10px] bg-muted/80 hover:bg-muted text-muted-foreground hover:text-foreground border border-border/60 transition"
+              >
+                {fil.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
         {/* Box Shadow Preset Tokens (Elementor Grouped Controls) */}
         <div className="space-y-1.5 pt-2 border-t">
           <Label className="text-xs font-bold text-foreground">سایه کادر (Box Shadow - المنتور)</Label>

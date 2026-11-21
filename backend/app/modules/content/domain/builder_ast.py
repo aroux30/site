@@ -123,6 +123,8 @@ class DeviceStyle(ASTModel):
     width: UnitValue | None = None
     min_height: UnitValue | None = None
     display: Literal["block", "flex", "grid", "inline-block", "none", "inherit"] = "inherit"
+    box_shadow: str | None = None
+    filter: str | None = None
     opacity: float | None = Field(default=None, ge=0.0, le=1.0)
     z_index: int | None = Field(default=None, ge=0, le=999)
     # Advanced Layout (P4)

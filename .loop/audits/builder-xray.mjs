@@ -1323,6 +1323,24 @@ async function runXRayAudit() {
     addFailure("BACKGROUND_OVERLAY_FAILED", "P0", { message: `Background overlay not rendered in canvas DOM (got: ${JSON.stringify(overlayApplied)})` });
   }
 
+  // 18. Elementor Parity: CSS Filter Control
+  console.log("    Testing Elementor Parity: CSS Filter Control...");
+  await page.evaluate(() => {
+    window.__BUILDER_STORE__?.getState()?.updateDeviceStyles("boxed_cont_test", "desktop", {
+      filter: "blur(4px)",
+    });
+  });
+  await page.waitForTimeout(400);
+
+  const appliedFilter = await framePreset.evaluate(() => {
+    const el = document.querySelector("[data-element-id='boxed_cont_test']");
+    return el ? el.style.filter : null;
+  });
+
+  if (!appliedFilter || !appliedFilter.includes("blur(4px)")) {
+    addFailure("CSS_FILTER_CONTROL_FAILED", "P0", { message: `CSS filter not applied in canvas DOM (expected blur(4px), got: "${appliedFilter}")` });
+  }
+
   // ──────────────────────────────────────────────────────────────────────────
   // Write Final Matrix Report
   // ──────────────────────────────────────────────────────────────────────────

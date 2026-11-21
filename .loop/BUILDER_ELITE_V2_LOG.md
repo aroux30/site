@@ -75,7 +75,23 @@
 
 ---
 
-## اهداف راند بعدی (Round 04)
-- تکمیل آزمون و ارتقای ویجت‌های تعاملی باقیمانده (`accordion`, `tabs`, `table`, `countdown`, `video`, `icon_box`, `social_links`).
+### راند ۴ — ارتقا و آزمون ۵-سیگنالی آکاردئون و تب‌های تعاملی (Round 04: Interactive Accordion & Tabs 5-Signal Probe)
+- **تاریخ**: 2026-11-21
+- **کامیت**: `feat(builder-v2-r04): verify accordion 5-signals and enrich interactive tab controls`
+- **اقدامات انجام‌شده**:
+  1. **تجهیز شناسه‌های تست تعاملی آکاردئون و تب‌ها**:
+     - الحاق شناسه‌های آزمون `data-testid="accordion-item-title-0"`، `data-testid="accordion-add-item-btn"`، `data-testid="tabs-add-tab-btn"` و `data-testid="tab-title-input-0"`.
+  2. **آزمون ۵-سیگنالی علّی آکاردئون**:
+     - اضافه شدن بلوک آکاردئون از پالت، تغییر تیتر سؤال اول به «آیا ارسال سفارش‌ها رایگان است؟»، ثبت تغییر آنی در بوم و تفاوت پیکسلی در تصویر `accordion-diff.png`.
+     - نتیجه پروب: ۹ از ۹ پروب کاملاً سبز (۱۰۰٪ PASS).
+     - ذخیره مصنوعات در `.loop/artifacts/builder-v2/round-04/`.
+  3. **ارتقای ماتریس کنترل‌ها**:
+     - پیشرفت مدخل‌های تأییدشده به ۹ ردیف در `.loop/builder_control_matrix.json`.
+
+---
+
+## اهداف راند بعدی (Round 05)
+- ادامه مسیر A (وزنه ۲): تکمیل ممیزی و تست ۵-سیگنالی ویجت‌های تعاملی و رسانه‌ای (`tabs`, `video`, `icon_box`, `social_links`, `table`).
+
 
 

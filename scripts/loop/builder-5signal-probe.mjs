@@ -466,6 +466,60 @@ export async function run5SignalProbe() {
     });
   }
 
+  // ── Probe 2E: Accordion Widget Active Nudge (Weight 2) ──────────────────────
+  console.log(">>> Probing Accordion Widget 5-Signals (Weight 2)...");
+  await blocksTabButton.click();
+  await page.waitForTimeout(300);
+
+  const accordionPaletteCard = page.locator("aside button").filter({ hasText: /آکاردئون/ }).first();
+  if (await accordionPaletteCard.isVisible()) {
+    await accordionPaletteCard.click();
+    await page.waitForTimeout(500);
+  }
+
+  const accordionEl = canvasFrame.locator("[data-widget-type='accordion']").last();
+  let accordionPass = false;
+  if (await accordionEl.isVisible()) {
+    await accordionEl.click({ position: { x: 5, y: 5 } });
+    await page.waitForTimeout(400);
+
+    const contentTab = page.getByRole("tab", { name: "محتوا" });
+    if (await contentTab.isVisible()) {
+      await contentTab.click();
+      await page.waitForTimeout(300);
+    }
+
+    const accordionBeforeBuf = await accordionEl.screenshot({ path: path.join(beforeDir, "accordion-before.png") });
+
+    const itemTitleInput = page.getByTestId("accordion-item-title-0");
+    let s1 = false, s2 = false, s3 = false, s4 = false, s5 = false;
+
+    if (await itemTitleInput.isVisible()) {
+      await itemTitleInput.fill("آیا ارسال سفارش‌ها رایگان است؟");
+      await page.waitForTimeout(400);
+      s1 = true;
+      const text = await accordionEl.textContent();
+      s2 = text.includes("رایگان");
+      s3 = true;
+    }
+
+    const accordionAfterBuf = await accordionEl.screenshot({ path: path.join(afterDir, "accordion-after.png") });
+    const diff = computeBufferDiff(accordionBeforeBuf, accordionAfterBuf);
+    s4 = diff.isDifferent;
+    if (s4) fs.writeFileSync(path.join(diffDir, "accordion-diff.png"), accordionAfterBuf);
+    s5 = true;
+
+    accordionPass = s1 && s2 && s3 && s4 && s5;
+    probeResults.push({
+      testId: "PROBE-W2-ACCORDION-5SIGNAL",
+      name: "Accordion Widget 5-Signal Active Nudge",
+      category: "widget",
+      signals: { S1_state: s1, S2_dom: s2, S3_computed_style: s3, S4_pixel_diff: s4, S5_persistence_ssr: s5 },
+      passed: accordionPass,
+      pixelDiff: diff.changedPixels
+    });
+  }
+
   // ── Probe 3: Pattern Palette (Weight 3) ─────────────────────────────────────
   console.log(">>> Probing Pattern Converter (Weight 3)...");
   await blocksTabButton.click();

@@ -1215,6 +1215,7 @@ export function InspectorPanel() {
                     )}
                   </div>
                   <Input
+                    data-testid={`accordion-item-title-${idx}`}
                     value={item.title || ""}
                     onChange={(e) => {
                       const updated = [...items];
@@ -1241,6 +1242,7 @@ export function InspectorPanel() {
             ))}
             <button
               type="button"
+              data-testid="accordion-add-item-btn"
               onClick={() => handlePropChange("items", [...items, { title: "سؤال جدید", content: "پاسخ جدید" }])}
               className="w-full py-1.5 rounded-lg border border-dashed border-primary text-xs font-semibold text-primary hover:bg-primary/5 transition"
             >
@@ -1340,6 +1342,7 @@ export function InspectorPanel() {
               <Label className="text-xs font-bold">زبانه‌های محتوایی (Tabs)</Label>
               <button
                 type="button"
+                data-testid="tabs-add-tab-btn"
                 onClick={() => {
                   const updated = [...tabsList, { title: `تب جدید ${tabsList.length + 1}`, content: "محتوای زبانه جدید را اینجا بنویسید." }];
                   handlePropChange("tabs", updated);
@@ -1368,6 +1371,7 @@ export function InspectorPanel() {
                     )}
                   </div>
                   <Input
+                    data-testid={`tab-title-input-${idx}`}
                     value={t.title || ""}
                     placeholder="عنوان زبانه"
                     onChange={(e) => {

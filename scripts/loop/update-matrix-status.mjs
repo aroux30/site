@@ -14,6 +14,7 @@ const PASSED_IDS = [
   "WIDGET-button",
   "WIDGET-spacer",
   "WIDGET-form_input",
+  "WIDGET-accordion",
   "DIALOG-global-styles-dialog"
 ];
 

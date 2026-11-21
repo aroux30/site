@@ -1269,6 +1269,25 @@ async function runXRayAudit() {
     addFailure("OPACITY_CONTROL_FAILED", "P0", { message: `Opacity control not applied in canvas DOM (expected "0.75", got "${appliedOpacity}")` });
   }
 
+  // 16. Elementor Parity: Flex Item Align-Self & Order
+  console.log("    Testing Elementor Parity: Flex Item Align-Self & Order...");
+  await page.evaluate(() => {
+    window.__BUILDER_STORE__?.getState()?.updateDeviceStyles("boxed_cont_test", "desktop", {
+      alignSelf: "center",
+      order: 3,
+    });
+  });
+  await page.waitForTimeout(400);
+
+  const appliedItemStyles = await framePreset.evaluate(() => {
+    const el = document.querySelector("[data-element-id='boxed_cont_test']");
+    return el ? { alignSelf: el.style.alignSelf, order: el.style.order } : null;
+  });
+
+  if (!appliedItemStyles || appliedItemStyles.alignSelf !== "center" || appliedItemStyles.order !== "3") {
+    addFailure("ALIGN_SELF_ORDER_FAILED", "P0", { message: `alignSelf or order not reflected in canvas DOM (got: ${JSON.stringify(appliedItemStyles)})` });
+  }
+
   // ──────────────────────────────────────────────────────────────────────────
   // Write Final Matrix Report
   // ──────────────────────────────────────────────────────────────────────────

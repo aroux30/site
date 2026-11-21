@@ -127,6 +127,9 @@ class DeviceStyle(ASTModel):
     flex_direction: Literal["row", "column", "row-reverse", "column-reverse", "inherit"] = "inherit"
     justify_content: Literal["start", "center", "end", "between", "around", "evenly", "inherit"] = "inherit"
     align_items: Literal["start", "center", "end", "stretch", "baseline", "inherit"] = "inherit"
+    align_self: Literal["auto", "start", "center", "end", "stretch", "inherit"] | None = "inherit"
+    order: int | None = None
+    flex_grow: float | None = None
     flex_wrap: Literal["nowrap", "wrap", "wrap-reverse", "inherit"] = "inherit"
     gap: UnitValue | None = None
     grid_template_columns: str | None = None

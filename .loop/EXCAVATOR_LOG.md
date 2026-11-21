@@ -23,6 +23,47 @@
 | **Round 12** | 0 | **0** | **0 / 0** | 28 / 28 ✅ | 34 / 34 ✅ | 0 خطای مرده ✅ | **تثبیت دیالوگ ذخیره قالب برگه (Elementor Save Page as Template Parity)**: اعتبارسنجی باز شدن و فرم ورودی نام قالب برگه در نوار ابزار و پوشش کامل در آزمون‌های خودکار اشعه ایکس |
 | **Round 13** | 0 | **0** | **0 / 0** | 28 / 28 ✅ | 34 / 34 ✅ | 0 خطای مرده ✅ | **کنترل‌های چیدمان جعبه‌ای در برابر تمام‌عرض کانتینر (Elementor Boxed vs Full Width Container Parity)**: اضافه شدن سوئیچ Boxed/Full-Width با عرض دلخواه در بازرس، اعمال خودکار `maxWidth` و `mx-auto` در بوم و کامپایلر سرور |
 | **Round 14** | 0 | **0** | **0 / 0** | 28 / 28 ✅ | 34 / 34 ✅ | 0 خطای مرده ✅ | **کنترل شفافیت و لایه‌بندی المان‌ها (Elementor Opacity & Layering Parity)**: اضافه شدن ورودی کنترل شفافیت (Opacity) در پنل بازرس، اعمال در کامپایلر سرور و آزمون اشعه ایکس |
+| **Round 15** | 0 | **0** | **0 / 0** | 28 / 28 ✅ | 34 / 34 ✅ | 0 خطای مرده ✅ | **کنترل‌های چینش انفرادی و ترتیب فلکس‌باکس (Elementor Flex Item Align-Self & Order Parity)**: افزودن کنترل‌های alignSelf و order به پنل بازرس، اعمال در بوم و کامپایلر سرور و آزمون اشعه ایکس |
+
+---
+
+## جزئیات راند ۱۵ (Round 15)
+
+- **شاخه ایزوله**: `claude/reverent-jang-441af1`
+- **تاریخ اجرا**: 2026-11-21
+- **وضعیت نهایی اشعه ایکس (.loop/XRAY_MATRIX.json)**:
+  - `totalFailures`: **0**
+  - `p0Count`: **0**
+  - `p1Count`: **0**
+  - `patterns`: ۲۸ از ۲۸ سبز (`passed: true`)
+  - `blocks`: ۳۴ از ۳۴ سبز (`passed: true`)
+  - `deadControls`: ۰ کنترل مرده
+  - `alignSelfAndOrder`: تایید اعمال دقیق alignSelf و order روی المان‌های بوم و کامپایلر سرور
+  - `opacityControl`: سبز
+  - `containerBoxedWidth`: سبز
+  - `savePageTemplateDialog`: سبز
+  - `customCssIdReflection`: سبز
+  - `globalStylesTwoLayerTokens`: سبز
+  - `historyTimelinePanel`: سبز
+  - `multiSelectionOverlay`: سبز
+  - `persistentClipboard`: سبز
+  - `wrapUnwrapContainer`: سبز
+  - `responsiveVisibility`: سبز
+  - `shortcutsModal`: سبز
+  - `hotkeyUndoRedo`: سبز
+  - `layersTreeDnD`: سبز
+  - `containerPresetPicker`: سبز
+  - `contextMenu`: سبز
+  - `categoryChipsClipping`: سبز و بدون بریدگی
+  - `dragAndDrop`: سبز
+  - `wysiwygParity`: تطابق ۱۰۰٪ بوم و صفحه نهایی
+
+### قابلیت‌های راند ۱۵:
+1. **کنترل‌های چینش انفرادی و اولویت در فلکس‌باکس (Align Self & Order)**:
+   - در پنل بازرس بخش چیدمان پیشرفته، کنترل تراز انفرادی المان (`alignSelf`: auto, start, center, end, stretch) و ترتیب عددی اولویت چینش (`order`) اضافه شد.
+   - مقادیر به صورت زنده روی المان داخل بوم (`canvas-element.tsx`) و کامپایلر سرور (`ast_compiler.py`) اعمال می‌شوند.
+2. **گسترش ممیزی خودکار اشعه ایکس**:
+   - آزمون شماره ۱۶ در `builder-xray.mjs` جهت سنجش اعمال دقیق `alignSelf` و `order` روی تگ‌های DOM بوم اضافه شد و ۱۰۰٪ پاس گردید.
 
 ---
 

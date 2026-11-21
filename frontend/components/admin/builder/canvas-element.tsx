@@ -364,6 +364,22 @@ function CanvasElementComponent({
       styleObj.alignItems = (aiMap[alignItems] || alignItems) as any;
     }
 
+    const alignSelf = resolveResponsiveValue({ mobile: base?.alignSelf, tablet: tablet?.alignSelf, desktop: desktop?.alignSelf }, activeBreakpoint);
+    if (alignSelf && alignSelf !== "inherit") {
+      const asMap: Record<string, string> = { start: "flex-start", end: "flex-end" };
+      styleObj.alignSelf = (asMap[alignSelf] || alignSelf) as any;
+    }
+
+    const order = resolveResponsiveValue({ mobile: base?.order, tablet: tablet?.order, desktop: desktop?.order }, activeBreakpoint);
+    if (order !== undefined && order !== null) {
+      styleObj.order = order;
+    }
+
+    const flexGrow = resolveResponsiveValue({ mobile: base?.flexGrow, tablet: tablet?.flexGrow, desktop: desktop?.flexGrow }, activeBreakpoint);
+    if (flexGrow !== undefined && flexGrow !== null) {
+      styleObj.flexGrow = flexGrow;
+    }
+
     const flexWrap = resolveResponsiveValue({ mobile: base?.flexWrap, tablet: tablet?.flexWrap, desktop: desktop?.flexWrap }, activeBreakpoint);
     if (flexWrap && flexWrap !== "inherit") styleObj.flexWrap = flexWrap as any;
 

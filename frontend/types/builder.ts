@@ -80,6 +80,9 @@ export interface DeviceStyle {
   flexDirection?: "row" | "column" | "row-reverse" | "column-reverse" | "inherit" | null;
   justifyContent?: "start" | "center" | "end" | "between" | "around" | "evenly" | "inherit" | null;
   alignItems?: "start" | "center" | "end" | "stretch" | "baseline" | "inherit" | null;
+  alignSelf?: "auto" | "start" | "center" | "end" | "stretch" | "inherit" | null;
+  order?: number | null;
+  flexGrow?: number | null;
   flexWrap?: "nowrap" | "wrap" | "wrap-reverse" | "inherit" | null;
   gap?: UnitValue | null;
   gridTemplateColumns?: string | null;

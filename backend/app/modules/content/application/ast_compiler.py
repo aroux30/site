@@ -704,6 +704,13 @@ class ASTCompiler:
         if base.align_items and base.align_items != "inherit":
             ai_map = {"start": "flex-start", "end": "flex-end"}
             parts.append(f"align-items: {ai_map.get(base.align_items, base.align_items)};")
+        if base.align_self and base.align_self != "inherit":
+            as_map = {"start": "flex-start", "end": "flex-end"}
+            parts.append(f"align-self: {as_map.get(base.align_self, base.align_self)};")
+        if base.order is not None:
+            parts.append(f"order: {base.order};")
+        if base.flex_grow is not None:
+            parts.append(f"flex-grow: {base.flex_grow};")
         if base.flex_wrap and base.flex_wrap != "inherit":
             parts.append(f"flex-wrap: {base.flex_wrap};")
         if base.gap:

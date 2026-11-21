@@ -2610,6 +2610,51 @@ export function InspectorPanel() {
                 />
               </div>
             </div>
+
+            {/* Flex Item Self Alignment & Order (Elementor Item Controls) */}
+            <div className="grid grid-cols-2 gap-2 pt-2 border-t border-border/50">
+              <div className="space-y-1">
+                <Label className="text-[10px] text-muted-foreground">تراز انفرادی (Align Self)</Label>
+                <Select
+                  value={currentDeviceStyle.alignSelf || "inherit"}
+                  onValueChange={(val: any) =>
+                    handleDeviceStyleChange({
+                      alignSelf: val === "inherit" ? undefined : val,
+                    })
+                  }
+                >
+                  <SelectTrigger className="h-7 text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="inherit">پیش‌فرض والد</SelectItem>
+                    <SelectItem value="auto">خودکار (Auto)</SelectItem>
+                    <SelectItem value="start">شروع (Start)</SelectItem>
+                    <SelectItem value="center">وسط (Center)</SelectItem>
+                    <SelectItem value="end">پایان (End)</SelectItem>
+                    <SelectItem value="stretch">کشیده (Stretch)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-1">
+                <Label className="text-[10px] text-muted-foreground">ترتیب چینش (Order)</Label>
+                <Input
+                  data-testid="order-input"
+                  type="number"
+                  value={currentDeviceStyle.order ?? ""}
+                  placeholder="خودکار"
+                  onChange={(e) => {
+                    const val = e.target.value === "" ? null : parseInt(e.target.value, 10);
+                    handleDeviceStyleChange({
+                      order: val !== null && !isNaN(val) ? val : null,
+                    });
+                  }}
+                  className="h-7 text-xs font-mono"
+                  dir="ltr"
+                />
+              </div>
+            </div>
           </div>
         </div>
       </div>

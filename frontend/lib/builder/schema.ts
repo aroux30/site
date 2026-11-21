@@ -66,6 +66,21 @@ export const BackgroundOverlayStyleSchema = z.object({
   opacity: z.number().min(0).max(1).nullable().optional(),
 });
 
+export const TransformStyleSchema = z.object({
+  rotate: z.number().nullable().optional(),
+  scale: z.number().nullable().optional(),
+  skewX: z.number().nullable().optional(),
+  skewY: z.number().nullable().optional(),
+  translateX: z.number().nullable().optional(),
+  translateY: z.number().nullable().optional(),
+});
+
+export const MaskStyleSchema = z.object({
+  shape: z.string().nullable().optional(),
+  size: z.enum(["contain", "cover", "auto"]).nullable().optional(),
+  position: z.string().nullable().optional(),
+});
+
 export const DeviceStyleSchema = z.object({
   typography: TypographyStyleSchema.nullable().optional(),
   margin: SpacingBoxSchema.nullable().optional(),
@@ -102,6 +117,8 @@ export const DeviceStyleSchema = z.object({
   shadow: z.string().nullable().optional(),
   backdropBlur: z.string().nullable().optional(),
   filterBlur: z.number().nullable().optional(),
+  transform: TransformStyleSchema.nullable().optional(),
+  mask: MaskStyleSchema.nullable().optional(),
 });
 
 export const ResponsiveStylesSchema = z.object({
@@ -110,6 +127,7 @@ export const ResponsiveStylesSchema = z.object({
   desktop: DeviceStyleSchema.nullable().optional(),
   customCssClass: z.string().nullable().optional(),
   customCssId: z.string().nullable().optional(),
+  customAttributes: z.string().nullable().optional(),
   direction: z.enum(["rtl", "ltr", "inherit"]).default("inherit"),
   animation: z.string().nullable().optional(),
   animationDuration: z.number().nullable().optional(),

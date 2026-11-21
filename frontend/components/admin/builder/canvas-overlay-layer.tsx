@@ -190,11 +190,11 @@ export function CanvasOverlayLayer({
     const scrollY = win.scrollY || 0;
     const viewportTop = selectedRect.top - scrollY;
 
-    // Flip below if too close to the top of the viewport
-    if (viewportTop < TOOLBAR_HEIGHT + 10) {
+    // Flip below only if there is not enough clearance above in both viewport and document
+    if (viewportTop < TOOLBAR_HEIGHT && selectedRect.top < TOOLBAR_HEIGHT + 2) {
       toolbarTop = selectedRect.top + selectedRect.height + 4;
     } else {
-      toolbarTop = selectedRect.top - TOOLBAR_HEIGHT - 4;
+      toolbarTop = Math.max(2, selectedRect.top - TOOLBAR_HEIGHT - 2);
     }
 
     // In RTL, align toolbar with the start of the element, strictly clamped within document bounds

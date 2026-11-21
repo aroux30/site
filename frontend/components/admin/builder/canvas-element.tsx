@@ -26,6 +26,7 @@ import {
   Check,
   ArrowUp,
   ArrowDown,
+  RotateCw,
 } from "lucide-react";
 import { SaveTemplateDialog } from "./save-template-dialog";
 import { cn } from "@/lib/utils";
@@ -99,6 +100,25 @@ function CanvasElementComponent({
   const copyStyles = useBuilderStore((s) => s.copyStyles);
   const makeGlobalComponent = useBuilderStore((s) => s.makeGlobalComponent);
   const previewMode = useBuilderStore((s) => s.previewMode);
+
+  // Custom Attributes (Elementor Pro Parity)
+  const customAttrs = useMemo(() => {
+    const raw = element.styles?.customAttributes;
+    if (!raw) return {};
+    const parsed: Record<string, string> = {};
+    const blacklist = new Set(["id", "class", "style", "data-element-id", "data-element-name"]);
+    for (const line of raw.split("\n")) {
+      const trimmed = line.trim();
+      if (!trimmed || !trimmed.includes("|")) continue;
+      const parts = trimmed.split("|");
+      const k = parts[0]?.trim().toLowerCase();
+      const v = parts.slice(1).join("|").trim();
+      if (k && !blacklist.has(k) && !k.startsWith("on")) {
+        parsed[k] = v;
+      }
+    }
+    return parsed;
+  }, [element.styles?.customAttributes]);
 
   // Drag is native HTML5 drag-and-drop, not dnd-kit. The canvas lives in an
   // iframe, and dnd-kit's pointer sensor never activates across the document
@@ -342,9 +362,39 @@ function CanvasElementComponent({
     }
 
     // Animation styles
-    if (res.animation && res.animation !== "none") {
+    const anim = res.animation || (res as any).entranceAnimation;
+    if (anim && anim !== "none") {
       if (res.animationDuration) styleObj.animationDuration = `${res.animationDuration}s`;
       if (res.animationDelay) styleObj.animationDelay = `${res.animationDelay}s`;
+    }
+
+    // Transform & CSS Mask (Elementor Parity)
+    const transform = resolveResponsiveValue({ mobile: base?.transform, tablet: tablet?.transform, desktop: desktop?.transform }, activeBreakpoint);
+    if (transform) {
+      const parts: string[] = [];
+      if (transform.rotate) parts.push(`rotate(${transform.rotate}deg)`);
+      if (transform.scale) parts.push(`scale(${transform.scale})`);
+      if (transform.skewX) parts.push(`skewX(${transform.skewX}deg)`);
+      if (transform.skewY) parts.push(`skewY(${transform.skewY}deg)`);
+      if (transform.translateX || transform.translateY) {
+        parts.push(`translate(${transform.translateX || 0}px, ${transform.translateY || 0}px)`);
+      }
+      if (parts.length > 0) {
+        styleObj.transform = parts.join(" ");
+      }
+    }
+
+    const mask = resolveResponsiveValue({ mobile: base?.mask, tablet: tablet?.mask, desktop: desktop?.mask }, activeBreakpoint);
+    if (mask && mask.shape && mask.shape !== "none") {
+      const maskVal = `url(/masks/${mask.shape}.svg)`;
+      (styleObj as any).WebkitMaskImage = maskVal;
+      (styleObj as any).maskImage = maskVal;
+      (styleObj as any).WebkitMaskSize = mask.size || "contain";
+      (styleObj as any).maskSize = mask.size || "contain";
+      (styleObj as any).WebkitMaskRepeat = "no-repeat";
+      (styleObj as any).maskRepeat = "no-repeat";
+      (styleObj as any).WebkitMaskPosition = mask.position || "center";
+      (styleObj as any).maskPosition = mask.position || "center";
     }
 
     // Advanced Layout Controls (P4)
@@ -468,11 +518,12 @@ function CanvasElementComponent({
   }, [element.styles, activeBreakpoint]);
 
   const isHiddenOnActiveBreakpoint = useMemo(() => {
-    if (activeBreakpoint === "desktop" && element.visibleOnDesktop === false) return true;
-    if (activeBreakpoint === "tablet" && element.visibleOnTablet === false) return true;
-    if (activeBreakpoint === "mobile" && element.visibleOnMobile === false) return true;
+    const styles = element.styles as any;
+    if (activeBreakpoint === "desktop" && (element.visibleOnDesktop === false || styles?.hideOnDesktop === true)) return true;
+    if (activeBreakpoint === "tablet" && (element.visibleOnTablet === false || styles?.hideOnTablet === true)) return true;
+    if (activeBreakpoint === "mobile" && (element.visibleOnMobile === false || styles?.hideOnMobile === true)) return true;
     return false;
-  }, [activeBreakpoint, element.visibleOnDesktop, element.visibleOnTablet, element.visibleOnMobile]);
+  }, [activeBreakpoint, element.visibleOnDesktop, element.visibleOnTablet, element.visibleOnMobile, element.styles]);
 
   const handleClick = useCallback(
     (e: React.MouseEvent) => {
@@ -569,9 +620,11 @@ function CanvasElementComponent({
           </Tag>
         );
       }
-      case "text_editor": {
+      case "text_editor":
+      case "text":
+      case "paragraph": {
         const customClass = String(props.customCssClass || element.styles?.customCssClass || "");
-        const rawContent = String(props.content || "<p>متن پاراگراف را بنویسید...</p>");
+        const rawContent = String(props.content || props.text || "<p>متن پاراگراف را بنویسید...</p>");
         const hasTags = /<[a-z][\s\S]*>/i.test(rawContent);
 
         if (isInlineEditing && !previewMode) {
@@ -791,7 +844,8 @@ function CanvasElementComponent({
           </div>
         );
       }
-      case "product_grid": {
+      case "product_grid":
+      case "loop_grid": {
         const limit = Number(props.limit) || 4;
         const filter = String(props.filter || "all");
         const showPagination = props.show_pagination !== false;
@@ -1416,6 +1470,137 @@ function CanvasElementComponent({
           </div>
         );
       }
+      case "counter": {
+        const title = String(props.title || "شمارنده");
+        const ending = Number(props.ending_number ?? 100);
+        const prefix = String(props.prefix || "");
+        const suffix = String(props.suffix || "");
+        return (
+          <div className="p-4 rounded-2xl border border-border/80 bg-card text-center space-y-1 shadow-sm w-full">
+            <div className="text-3xl font-black text-primary font-mono" dir="ltr">
+              {prefix}{ending.toLocaleString("fa-IR")}{suffix}
+            </div>
+            <div className="text-xs font-semibold text-muted-foreground">{title}</div>
+          </div>
+        );
+      }
+      case "progress_bar": {
+        const title = String(props.title || "پیشرفت کار");
+        const pct = Math.max(0, Math.min(100, Number(props.percentage ?? 75)));
+        const showPct = props.show_percentage !== false;
+        return (
+          <div className="space-y-1.5 w-full text-right">
+            <div className="flex items-center justify-between text-xs font-semibold text-foreground">
+              <span>{title}</span>
+              {showPct && <span className="font-mono text-primary">{pct}%</span>}
+            </div>
+            <div className="h-3 w-full rounded-full bg-muted overflow-hidden">
+              <div className="h-full bg-primary rounded-full transition-all duration-300" style={{ width: `${pct}%` }} />
+            </div>
+          </div>
+        );
+      }
+      case "testimonial": {
+        const author = String(props.author || "نام مشتری");
+        const role = String(props.role || "سمت یا عنوان");
+        const company = String(props.company || "");
+        const quote = String(props.quote || "متن دیدگاه مشتری در اینجا نمایش داده می‌شود.");
+        const avatar = String(props.avatar_url || "/placeholder-hero.svg");
+        return (
+          <div className="p-4 rounded-2xl border border-border/80 bg-card space-y-3 shadow-sm w-full text-right">
+            <p className="text-xs text-muted-foreground leading-relaxed italic">«{quote}»</p>
+            <div className="flex items-center gap-3 pt-2 border-t border-border/60">
+              <img src={avatar} alt={author} className="w-9 h-9 rounded-full object-cover shrink-0" />
+              <div>
+                <div className="text-xs font-bold text-foreground">{author}</div>
+                <div className="text-[10px] text-muted-foreground">{role}{company ? ` - ${company}` : ""}</div>
+              </div>
+            </div>
+          </div>
+        );
+      }
+      case "alert": {
+        const title = String(props.title || "اعلان");
+        const msg = String(props.message || "متن اعلان پیام");
+        const aType = String(props.alert_type || "info");
+        const bgMap: Record<string, string> = {
+          info: "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/30",
+          success: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30",
+          warning: "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30",
+          danger: "bg-destructive/10 text-destructive border-destructive/30",
+        };
+        return (
+          <div className={cn("p-3.5 rounded-xl border text-right space-y-1 w-full", bgMap[aType] || bgMap.info)}>
+            <div className="text-xs font-bold flex items-center gap-1.5">
+              <span>{title}</span>
+            </div>
+            <div className="text-[11px] leading-relaxed opacity-90">{msg}</div>
+          </div>
+        );
+      }
+      case "call_to_action": {
+        const title = String(props.title || "عنوان اقدام به عمل");
+        const desc = String(props.description || "توضیحات مربوط به بنر تشویق به اقدام");
+        const btnLabel = String(props.button_label || "شروع کنید");
+        const badge = props.badge ? String(props.badge) : undefined;
+        return (
+          <div className="p-6 rounded-2xl border border-primary/20 bg-primary/5 text-center space-y-3 shadow-sm w-full">
+            {badge && (
+              <span className="inline-block px-2.5 py-0.5 rounded-full bg-primary text-primary-foreground text-[10px] font-bold">
+                {badge}
+              </span>
+            )}
+            <h3 className="text-lg font-bold text-foreground">{title}</h3>
+            <p className="text-xs text-muted-foreground max-w-md mx-auto leading-relaxed">{desc}</p>
+            <div>
+              <button type="button" className="inline-flex items-center justify-center px-5 py-2.5 rounded-xl bg-primary text-primary-foreground font-bold text-xs shadow hover:bg-primary/90 transition">
+                {btnLabel}
+              </button>
+            </div>
+          </div>
+        );
+      }
+      case "animated_headline": {
+        const before = String(props.before_text || "");
+        const highlight = String(props.highlighted_text || "تیتر متحرک");
+        const after = String(props.after_text || "");
+        return (
+          <h2 className="text-2xl lg:text-3xl font-extrabold text-foreground text-center py-2 leading-relaxed">
+            {before && <span className="me-2">{before}</span>}
+            <span className="relative inline-block px-2 text-primary font-black underline decoration-primary/40 decoration-wavy decoration-2 underline-offset-8">
+              {highlight}
+            </span>
+            {after && <span className="ms-2">{after}</span>}
+          </h2>
+        );
+      }
+      case "flip_box": {
+        const frontTitle = String(props.front_title || "روی کارت");
+        const frontDesc = String(props.front_desc || "توضیحات جلو");
+        const backTitle = String(props.back_title || "پشت کارت");
+        const backDesc = String(props.back_desc || "توضیحات پشت");
+        const btnText = String(props.button_text || "مشاهده");
+        return (
+          <div className="group/flip w-full min-h-[220px] [perspective:1000px]">
+            <div className="relative w-full h-full min-h-[220px] transition-transform duration-500 [transform-style:preserve-3d] group-hover/flip:[transform:rotateY(180deg)] rounded-2xl border border-border/80 shadow-sm">
+              {/* Front Face */}
+              <div className="absolute inset-0 w-full h-full p-6 flex flex-col items-center justify-center text-center space-y-2 [backface-visibility:hidden] bg-card rounded-2xl">
+                <RotateCw className="w-8 h-8 text-primary mb-1" />
+                <h4 className="text-base font-bold text-foreground">{frontTitle}</h4>
+                <p className="text-xs text-muted-foreground">{frontDesc}</p>
+              </div>
+              {/* Back Face */}
+              <div className="absolute inset-0 w-full h-full p-6 flex flex-col items-center justify-center text-center space-y-3 [backface-visibility:hidden] [transform:rotateY(180deg)] bg-primary text-primary-foreground rounded-2xl">
+                <h4 className="text-base font-bold">{backTitle}</h4>
+                <p className="text-xs opacity-90">{backDesc}</p>
+                <button type="button" className="px-4 py-2 rounded-xl bg-white text-primary text-xs font-bold shadow hover:bg-white/90">
+                  {btnText}
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      }
       case "social_links": {
         const links = (props.links as any[]) || [
           { platform: "اینستاگرام", url: "#" },
@@ -1487,13 +1672,23 @@ function CanvasElementComponent({
         isContainer ? containerClasses : "block",
         !previewMode && isDragOver && "outline-2 outline-emerald-500 bg-emerald-500/10 shadow-lg ring-2 ring-emerald-500/30",
         element.isHidden && "opacity-50",
-        element.styles?.animation && element.styles.animation !== "none" && `builder-animate-${element.styles.animation}`,
+        (element.styles?.animation || (element.styles as any)?.entranceAnimation) &&
+          (element.styles?.animation || (element.styles as any)?.entranceAnimation) !== "none" &&
+          `builder-animate-${element.styles?.animation || (element.styles as any)?.entranceAnimation}`,
         element.styles?.customCssClass
       )}
       id={element.styles?.customCssId || undefined}
       data-element-id={element.id}
       data-element-name={element.name}
+      data-submit-url={element.widgetType === "form_container" ? String(element.widgetProps?.submit_url || "") : undefined}
+      data-success-message={element.widgetType === "form_container" ? String(element.widgetProps?.success_message || "") : undefined}
+      data-error-message={element.widgetType === "form_container" ? String(element.widgetProps?.error_message || "") : undefined}
+      {...customAttrs}
     >
+      {/* Scoped Custom CSS */}
+      {(element.styles as any)?.customCss && (
+        <style dangerouslySetInnerHTML={{ __html: String((element.styles as any).customCss) }} />
+      )}
       {/* Background Overlay (Elementor Parity) */}
       {overlayStyle && (
         <div data-testid="background-overlay" style={overlayStyle} aria-hidden="true" />
@@ -1508,6 +1703,22 @@ function CanvasElementComponent({
         </div>
       )}
 
+      {/* Auth Visibility Indicator */}
+      {(element.authVisibility || (element.styles as any)?.authVisibility) &&
+        (element.authVisibility || (element.styles as any)?.authVisibility) !== "all" &&
+        !previewMode && (
+          <div className="absolute top-1 start-1 z-30 pointer-events-none">
+            <Badge variant="outline" className="bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-300 text-[9px] px-1.5 py-0 h-4 flex items-center gap-1 shadow-xs">
+              <Lock className="w-2.5 h-2.5" />
+              <span>
+                {(element.authVisibility || (element.styles as any)?.authVisibility) === "authenticated"
+                  ? "فقط اعضا"
+                  : "فقط مهمان"}
+              </span>
+            </Badge>
+          </div>
+        )}
+
       {/* Form Container Identifier */}
       {element.widgetType === "form_container" && !previewMode && (
         <div
@@ -1518,6 +1729,23 @@ function CanvasElementComponent({
         >
           <Badge variant="outline" className="bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-300 text-[9px] px-1.5 py-0 h-4">
             فرم سازنده (Form Container)
+          </Badge>
+        </div>
+      )}
+
+      {/* Off-Canvas & Popup Identifiers */}
+      {element.widgetType === "off_canvas" && !previewMode && (
+        <div className="absolute top-1 start-1 z-20 pointer-events-none">
+          <Badge variant="outline" className="bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-300 text-[9px] px-1.5 py-0 h-4">
+            کشوی جانبی (Off-Canvas)
+          </Badge>
+        </div>
+      )}
+
+      {element.widgetType === "popup_builder" && !previewMode && (
+        <div className="absolute top-1 start-1 z-20 pointer-events-none">
+          <Badge variant="outline" className="bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-300 text-[9px] px-1.5 py-0 h-4">
+            پاپ‌آپ هوشمند (Popup)
           </Badge>
         </div>
       )}
@@ -1640,7 +1868,7 @@ function CanvasElementComponent({
               >
                 <div className="flex items-center gap-2 text-xs font-bold text-foreground group-hover/empty:text-primary transition-colors">
                   <Plus className="w-4 h-4 text-primary" />
-                  <span>افزودن بلوک به این بخش (یا انتخاب ویجت از پالت)</span>
+                  <span>افزودن بلوک به این بخش</span>
                 </div>
               </div>
             </div>

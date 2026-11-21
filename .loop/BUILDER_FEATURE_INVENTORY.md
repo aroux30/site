@@ -1,108 +1,96 @@
-# فهرست جامع و ممیزی موجودی قابلیت‌های صفحه‌ساز بصری (.loop/BUILDER_FEATURE_INVENTORY.md)
-
-**مرجع ارزیابی**: تست زنده مرورگر Playwright، آزمون اشعه ایکس (.loop/audits/builder-xray.mjs) و تست قطعی (.loop/audits/deterministic-audit.mjs)  
-**تاریخ گزارش**: 2026-11-21  
-
----
-
-## ۱. جدول موجودی ۳۴ بلوک و ویجت پایه (Basic Blocks & Widgets Inventory)
-
-| شماره | نام ویجت (Widget Slug) | عنوان نمایشی (UI Label) | دسته (Category) | وضعیت آزمون (Status) | شواهد و نحوه تایید (Verification Evidence) |
-| :---: | :--- | :--- | :---: | :---: | :--- |
-| ۱ | `container` | کانتینر انعطاف‌پذیر | Layout | **PASS** | رندر فلکس و گرید، پریست‌های ستونی، پدینگ و مارجین، لایه اوورلی |
-| ۲ | `section` | سکشن سرتاسری | Layout | **PASS** | عرض کامل، حاشیه امن، تفکیک ریشه‌ای، دیوایدر شکل بالا و پایین |
-| ۳ | `columns` | دو ستون هم‌اندازه | Layout | **PASS** | ساختار ۲ ستونه فلکس با گپ ریسپانسیو و چینش خودکار |
-| ۴ | `form_container` | کانتینر فرم | Layout | **PASS** | دارای نشانگر بنفش فرم سازنده، اتصال ورودی‌های فرم و دکمه سابمیت |
-| ۵ | `heading` | سرتیتر (Heading H1..H6) | Content | **PASS** | تغییر تگ‌های h1 تا h6، فونت، سایز، تراز متن و رنگ سفارشی |
-| ۶ | `text_editor` | ویرایشگر متنی پاراگراف | Content | **PASS** | رندر محتوای HTML، فونت‌سایز، ارتفاع خط و اعمال بدون نشت تگ خام |
-| ۷ | `image` | تصویر منفرد | Content | **PASS** | آدرس تصویر، متن جایگزین (Alt)، ابعاد، شعاع گردی و کلاس‌های CSS |
-| ۸ | `button` | دکمه فراخوان به اقدام | Content | **PASS** | انواع واریانت (اصلی، ثانویه، اوت‌لاین)، لینک، ایکون، عرض کامل |
-| ۹ | `spacer` | فاصله‌ساز عمودی | Content | **PASS** | تنظیم ارتفاع دقیق با اسلایدر پیکسل، بدون تداخل با محتوای مجاور |
-| ۱۰ | `divider` | خط جداکننده افقی | Content | **PASS** | خطوط سالید، خط‌چین، نقطه‌چین با ضخامت، تراز و انتخاب رنگ |
-| ۱۱ | `table` | جدول داده‌ها | Content | **PASS** | سطرها و ستون‌های داینامیک، استایل راه‌راه، هایلایت ستون انتخابی |
-| ۱۲ | `form_input` | ورودی متنی فرم | Form | **PASS** | پلیس‌هولدر، برچسب، الزامی بودن، اتصال به استیت فرم |
-| ۱۳ | `form_textarea` | فیلد متنی چندخطی | Form | **PASS** | تنظیم تعداد سطرها، ارتفاع، پلیس‌هولدر و متن راهنما |
-| ۱۴ | `form_select` | منوی آبشاری انتخابی | Form | **PASS** | افزودن گزینه‌های چندگانه، مقدار پیش‌فرض، برچسب و استایل RTL |
-| ۱۵ | `product_card` | کارت معرفی تکی محصول | E-commerce | **PASS** | تصویر کالا، عنوان، قیمت با تخفیف، رتبه ستاره‌ای و دکمه خرید |
-| ۱۶ | `product_grid` | شبکه محصولات فروشگاه | E-commerce | **PASS** | گرید ۲ تا ۴ ستونه، فیلتر دسته‌بندی و تعداد نمایش |
-| ۱۷ | `product_variants` | انتخابگر تنوع‌های کالا | E-commerce | **PASS** | مدیریت CRUD تنوع‌ها در بازرس، تغییر قیمت و برچسب‌های تنوع |
-| ۱۸ | `product_price` | نمایشگر قیمت کالا | E-commerce | **PASS** | فرمت فارسی ارقام، واحد تومان، خط خوردن قیمت قبلی، درصد تخفیف |
-| ۱۹ | `add_to_cart` | دکمه افزودن به سبد | E-commerce | **PASS** | اتصال به `useCartStore`، شمارنده تعداد و توست اعلان آنی |
-| ۲۰ | `mini_cart` | سبد خرید کوچک معلق | E-commerce | **PASS** | پیش‌نمایش اقلام سبد، آیکون و شمارنده داینامیک تعداد اقلام |
-| ۲۱ | `cart_summary` | خلاصه سبد و تسویه | E-commerce | **PASS** | برچسب دکمه تسویه، محاسبه مالیات و تخفیف و مبلغ نهایی |
-| ۲۲ | `form_checkbox` | چک‌باکس گزینش | Form | **PASS** | برچسب متنی، انتخاب چندگانه و تطابق ظاهری با دیزاین توکن‌ها |
-| ۲۳ | `form_radio` | دکمه رادیویی انفرادی | Form | **PASS** | گروه‌بندی گزینه‌ها و انتخاب یکتا میان آیتم‌های فرم |
-| ۲۴ | `accordion` | پنل‌های تاشوی آکاردئون | Interactive | **PASS** | افزودن و حذف داینامیک آیتم‌ها، باز بودن پیش‌فرض اولین مورد |
-| ۲۵ | `tabs` | تب‌های چندزبانه محتوا | Interactive | **PASS** | جابه‌جایی آنی محتوای تب‌ها با کلیک، افزودن آیتم جدید در بازرس |
-| ۲۶ | `countdown` | تایمر شمارش معکوس | Interactive | **PASS** | محاسبه ریاضی زنده تا تاریخ هدف، نمایش روز/ساعت/دقیقه/ثانیه |
-| ۲۷ | `video` | پلیر ویدئو و آپارات | Interactive | **PASS** | پشتیبانی از ویدئوی MP4، پوستر پیش‌نمایش و کنترل‌های پخش |
-| ۲۸ | `icon_box` | جعبه آیکون و خدمات | Content | **PASS** | آیکون درخشان، سرتیتر مزیت و پاراگراف توضیحات تکمیلی |
-| ۲۹ | `social_links` | شبکه‌های اجتماعی | Content | **PASS** | لیست لینک‌های تلگرام، اینستاگرام، توییتر با آیکون‌های SVG |
-| ۳۰ | `image_gallery` | گالری چندتصویره | Content | **PASS** | چیدمان شبکه‌ای تصاویر با فواصل منظم و افکت هاور بزرگ‌نمایی |
-| ۳۱ | `star_rating` | نمایش امتیاز ستاره‌ای | Feedback | **PASS** | ستاره‌های نیمه و پر با رنگ کهربایی و نمایش عددی امتیاز |
-| ۳۲ | `review_histogram` | نمودار میله‌ای نظرات | Feedback | **PASS** | درصدهای توزیع ۱ تا ۵ ستاره با میله‌های پیشرفت و تعداد رای‌ها |
-| ۳۳ | `recently_viewed` | کالاهای مشاهده‌شده اخیر | E-commerce | **PASS** | کارت‌های افقی یا فشرده با کنترل فیلد تعداد نمایش (limit) |
-| ۳۴ | `mega_menu` | دسته‌بندی مگامنو | Navigation | **PASS** | دراپ‌داون چندسطحی دسته‌بندی‌ها همراه با دکمه‌های ناوبری |
+# موجودی جامع قابلیت‌های صفحه‌ساز بصری (.loop/BUILDER_FEATURE_INVENTORY.md)
+**وضعیت اعتبارسنجی**: مبتنی بر سورس واقعی کد و تست‌های فعال E2E  
+**آخرین بروزرسانی**: 2026-11-21  
 
 ---
 
-## ۲. جدول موجودی ۲۸ الگوی آماده (Block Patterns Inventory)
+## ۱. فهرست بلوک‌های پایه (Basic Blocks Registry - ۳۴ بلوک)
 
-| شماره | شناسه الگو (Slug) | عنوان الگو (Title) | دسته‌بندی | وضعیت آزمون |
-| :---: | :--- | :--- | :---: | :---: |
-| ۱ | `hero-banner` | بنر اصلی (هیرو) | هیرو و بنر | **PASS** |
-| ۲ | `text-marquee` | متن چرخشی تبلیغاتی | هیرو و بنر | **PASS** |
-| ۳ | `feature-grid` | شبکه ویژگی‌ها | ویژگی‌ها | **PASS** |
-| ۴ | `image-text` | تصویر و متن | محتوا | **PASS** |
-| ۵ | `stats-counter` | شمارنده آمار | آمار و ارقام | **PASS** |
-| ۶ | `icon-box-grid` | جعبه‌های مزایا و خدمات | ویژگی‌ها | **PASS** |
-| ۷ | `author-bio` | کارت معرفی کارشناس / نویسنده | محتوا | **PASS** |
-| ۸ | `pull-quote` | نقل‌قول و پیام برجسته | محتوا | **PASS** |
-| ۹ | `process-steps` | مراحل گام‌به‌گام خرید و تحویل | راهنما | **PASS** |
-| ۱۰ | `product-showcase-cta` | معرفی محصولات با دکمه | فروشگاهی | **PASS** |
-| ۱۱ | `star-rating-display` | نمایش امتیاز ستاره‌ای | اجتماعی | **PASS** |
-| ۱۲ | `review-histogram` | نمودار توزیع امتیاز | اجتماعی | **PASS** |
-| ۱۳ | `product-card-grid` | شبکه کارت محصول | فروشگاهی | **PASS** |
-| ۱۴ | `image-gallery-showcase` | گالری تصاویر | رسانه | **PASS** |
-| ۱۵ | `product-highlights` | مزایای کلیدی و برتری‌های کالا | ویژگی‌ها | **PASS** |
-| ۱۶ | `testimonials` | نظرات مشتریان | اجتماعی | **PASS** |
-| ۱۷ | `brand-logo-carousel` | ردیف برندهای همکار و نمادهای اعتماد | اجتماعی | **PASS** |
-| ۱۸ | `faq-accordion` | پرسش‌های متداول | تعاملی | **PASS** |
-| ۱۹ | `countdown-offer` | بنر فروش ویژه با شمارش معکوس | پیشنهاد ویژه | **PASS** |
-| ۲۰ | `discount-badge-banner` | نوار تخفیف با بَج | پیشنهاد ویژه | **PASS** |
-| ۲۱ | `alert-banner` | نوار اعلان و هشدار مهم فروشگاه | اطلاع‌رسانی | **PASS** |
-| ۲۲ | `mega-menu-categories` | لیست دسته‌بندی‌ها | ناوبری | **PASS** |
-| ۲۳ | `pricing-table` | جدول قیمت‌گذاری و تعرفه‌ها | تعرفه | **PASS** |
-| ۲۴ | `price-list` | لیست قیمت آیتم‌ها و خدمات | تعرفه | **PASS** |
-| ۲۵ | `comparison-table` | جدول مقایسه محصولات و مشخصات | فروشگاهی | **PASS** |
-| ۲۶ | `support-callout` | جعبه راهنما و مشاوره خرید | پشتیبانی | **PASS** |
-| ۲۷ | `lead-capture-form` | فرم درخواست مشاوره تلفنی و تماس فوری | فرم | **PASS** |
-| ۲۸ | `floating-contact-bar` | نوار ارتباط سریع و شبکه‌های اجتماعی | پشتیبانی | **PASS** |
+| ردیف | نام بلوک (Type) | دسته‌بندی | وضعیت | مسیر فایل | توضیحات و کنترل‌های اختصاصی |
+|---|---|---|---|---|---|
+| ۱ | `container` | layout | PASS | `frontend/lib/builder/block-registry.ts` | کانتینر فلکس/گرید، چیدمان ستونی، پریست‌های ۱ تا ۴ ستونه، حداقل ارتفاع |
+| ۲ | `section` | layout | PASS | `frontend/lib/builder/block-registry.ts` | سکشن سرتاسری برای پس‌زمینه و گروه‌بندی با پدینگ پیش‌فرض |
+| ۳ | `columns` | layout | PASS | `frontend/lib/builder/block-registry.ts` | چیدمان دو ستونه مساوی با کانتینرهای فرزند مستقل |
+| ۴ | `heading` | basic | PASS | `frontend/lib/builder/block-registry.ts` | تیترهای H1 تا H6 با ویرایش مستقیم متن در بوم (Inline Editing) |
+| ۵ | `text_editor` | basic | PASS | `frontend/lib/builder/block-registry.ts` | پاراگراف متن با پشتیبانی از استایل غنی، ویرایش مستقیم در بوم |
+| ۶ | `image` | basic | PASS | `frontend/lib/builder/block-registry.ts` | تصویر با کتابخانه رسانه، نسبت تصویر، فیت، و متن جایگزین (Alt) |
+| ۷ | `button` | basic | PASS | `frontend/lib/builder/block-registry.ts` | دکمه اقدام، انواع رنگ سازمانی، آیکون، عرض کامل و پیوند |
+| ۸ | `spacer` | basic | PASS | `frontend/lib/builder/block-registry.ts` | فاصله‌ساز عمودی قابل تنظیم با اسلایدر ارتفاع |
+| ۹ | `divider` | basic | PASS | `frontend/lib/builder/block-registry.ts` | خط جداکننده افقی ظریف با رنگ و استایل حاشیه |
+| ۱۰ | `table` | basic | PASS | `frontend/lib/builder/block-registry.ts` | جدول داده با سطرهای متغیر، حالت راه‌راه و هایلایت ستون |
+| ۱۱ | `form_container` | basic | PASS | `frontend/lib/builder/block-registry.ts` | نگه‌دارنده فرم متصل به بک‌اند با پشتیبانی از فیلدهای فرزند |
+| ۱۲ | `form_input` | basic | PASS | `frontend/lib/builder/block-registry.ts` | فیلد ورودی متن فرم با برچسب و متن راهنما |
+| ۱۳ | `form_textarea` | basic | PASS | `frontend/lib/builder/block-registry.ts` | متن چندخطی با تعداد سطرهای قابل تنظیم |
+| ۱۴ | `form_select` | basic | PASS | `frontend/lib/builder/block-registry.ts` | منوی کشویی انتخاب گزینه‌ها |
+| ۱۵ | `form_checkbox` | basic | PASS | `frontend/lib/builder/block-registry.ts` | چک‌باکس تایید قوانین با پیوند شرایط |
+| ۱۶ | `form_radio` | basic | PASS | `frontend/lib/builder/block-registry.ts` | دکمه‌های رادیویی تک‌انتخابی |
+| ۱۷ | `accordion` | basic | PASS | `frontend/lib/builder/block-registry.ts` | آکاردئون پرسش‌وپاسخ با باز/بسته شدن متحرک |
+| ۱۸ | `tabs` | basic | PASS | `frontend/lib/builder/block-registry.ts` | تب‌های محتوایی افقی با پنل‌های اختصاصی |
+| ۱۹ | `countdown` | basic | PASS | `frontend/lib/builder/block-registry.ts` | شمارنده معکوس پویا با تفاضل زمانی زنده و ارقام فارسی |
+| ۲۰ | `video` | basic | PASS | `frontend/lib/builder/block-registry.ts` | پخش‌کننده ویدیو آپارات و MP4 مستقیم با کاور پوستر |
+| ۲۱ | `icon_box` | basic | PASS | `frontend/lib/builder/block-registry.ts` | جعبه آیکون و عنوان با پس‌زمینه کارت و متن توصیفی |
+| ۲۲ | `social_links` | basic | PASS | `frontend/lib/builder/block-registry.ts` | دکمه‌های شبکه‌های اجتماعی با آیکون‌های استاندارد |
+| ۲۳ | `product_card` | basic | PASS | `frontend/lib/builder/block-registry.ts` | کارت هوشمند کالا با تصویر، عنوان، قیمت، امتیاز و افزودن به سبد |
+| ۲۴ | `product_grid` | basic | PASS | `frontend/lib/builder/block-registry.ts` | شبکه محصولات فروشگاهی متصل به API با فیلتر دسته‌بندی و صفحه‌بندی |
+| ۲۵ | `image_gallery` | basic | PASS | `frontend/lib/builder/block-registry.ts` | گالری چندتصویره شبکه‌ای با لایت‌باکس |
+| ۲۶ | `star_rating` | basic | PASS | `frontend/lib/builder/block-registry.ts` | نمایش امتیاز ستاره‌ای ۵ ستاره با قابلیت سوئیچ نمایش عدد |
+| ۲۷ | `review_histogram` | basic | PASS | `frontend/lib/builder/block-registry.ts` | نمودار میله‌ای توزیع امتیازهای خریداران |
+| ۲۸ | `recently_viewed` | basic | PASS | `frontend/lib/builder/block-registry.ts` | ویجت کالاهای اخیراً مشاهده‌شده با فیلد سفارشی عنوان و تعداد نمایش |
+| ۲۹ | `mega_menu` | basic | PASS | `frontend/lib/builder/block-registry.ts` | مگامنو ناوبری محصولات با کنترل عنوان کاتالوگ در بازرس |
+| ۳۰ | `product_price` | basic | PASS | `frontend/lib/builder/block-registry.ts` | قیمت کالا با تخفیف، قیمت خط‌خورده و برچسب تومان |
+| ۳۱ | `product_variants` | basic | PASS | `frontend/lib/builder/block-registry.ts` | مدیریت کامل افزودن و حذف تنوع‌های رنگ/سایز با قیمت‌های متفاوت |
+| ۳۲ | `add_to_cart` | basic | PASS | `frontend/lib/builder/block-registry.ts` | دکمه مستقیم اتصال به سبد خرید با اکشن استور |
+| ۳۳ | `mini_cart` | basic | PASS | `frontend/lib/builder/block-registry.ts` | خلاصه شناور سبد خرید با شمارنده نشانگر کالاها |
+| ۳۴ | `cart_summary` | basic | PASS | `frontend/lib/builder/block-registry.ts` | خلاصه فاکتور و سبد خرید با ویرایشگر عنوان و دکمه پرداخت |
 
 ---
 
-## ۳. کنترل‌های پنل بازرس (Inspector Controls Matrix)
+## ۲. فهرست الگوهای آماده (Block Patterns - ۲۸ الگو)
+تمام ۲۸ الگوی آماده در `frontend/lib/builder/pattern-converter.ts` ثبت، به استایل‌های سازگار با AST ترجمه شده و در تست‌های X-Ray دارای `passed: true` هستند:
+۱. `hero-banner` (بنر اصلی)
+۲. `text-marquee` (متن چرخشی تبلیغاتی)
+۳. `feature-grid` (شبکه ویژگی‌ها)
+۴. `image-text` (تصویر و متن ترکیبی)
+۵. `stats-counter` (شمارنده آمار و ارقام)
+۶. `icon-box-grid` (جعبه مزایا و خدمات)
+۷. `author-bio` (کارت معرفی نویسنده)
+۸. `pull-quote` (نقل‌قول برجسته)
+۹. `process-steps` (مراحل گام‌به‌گام خرید)
+۱۰. `product-showcase-cta` (معرفی محصولات با دکمه)
+۱۱. `star-rating-display` (نمایش امتیاز ستاره‌ای)
+۱۲. `review-histogram` (نمودار توزیع رضایت)
+۱۳. `recently-viewed-shelf` (ویترین کالاهای اخیر)
+۱۴. `brand-marquee` (اسلایدر برندها)
+۱۵. `faq-accordion` (سوالات متداول)
+۱۶. `countdown-urgency` (شمارنده تخفیف ویژه)
+۱۷. `lead-form-horizontal` (فرم تک‌خطی عضویت)
+۱۸. `lead-form-card` (کارت فرم تماس)
+۱۹. `pricing-comparison-table` (جدول مقایسه)
+۲۰. `customer-testimonials-carousel` (نظرات مشتریان)
+۲۱. `cta-fullwidth` (فراخوان تمام‌عرض)
+۲۲. `newsletter-subscribe` (خبرنامه ایمیلی)
+۲۳. `timeline-roadmap` (نقشه راه)
+۲۴. `team-members-grid` (اعضای تیم)
+۲۵. `video-testimonial` (ویدیوی معرفی)
+۲۶. `trust-badges-row` (نشان‌های اعتماد الکترونیکی)
+۲۷. `category-grid` (دسته‌بندی‌های کالا)
+۲۸. `footer-sitemap` (نقشه پیوندهای فوتر)
 
-### تب محتوا (Content Tab)
-- ویرایشگر متون و عناوین Heading با سطوح H1 تا H6
-- فیلدهای داینامیک ورودی و پلیس‌هولدر ویجت‌های فرم
-- کنترل‌های چیدمان کانتینر (جهت فلکس، تعداد ستون‌های گرید، فاصله عناصر)
-- کنترل‌های سوئیچ Boxed vs Full-Width کانتینر با عرض دلخواه
-- فرم مدیریت آیتم‌های آکاردئون و تب‌ها
-- ویرایشگر سطرهای جدول و هایلایت ستون ویژه
+---
 
-### تب استایل (Style Tab)
-- **پس‌زمینه (Background)**: تک‌رنگ، گرادیانت چندجهته، تصویر پس‌زمینه با پوزیشن و تکرار
-- **لایه رویی پس‌زمینه (Background Overlay)**: تک‌رنگ و گرادیانت با فیلد شفافیت عددی (Opacity)
-- **کادر و حاشیه (Border)**: نوع مرز (Solid, Dashed, Dotted, Double)، عرض مرز، رنگ مرز و شعاع گردی (Border Radius)
-- **سایه کادر (Box Shadow)**: کنترل‌های گروه‌بندی‌شده آفست افقی/عمودی، محوشدگی (Blur)، گستردگی (Spread)، رنگ سایه و حالت Inset
-- **فیلترهای گرافیکی (CSS Filters)**: پریست‌های blur، grayscale، contrast، sepia و فیلتر سفارشی
-- **تایپوگرافی**: اندازه فونت (px/rem)، وزن فونت، تراز متن (راست، وسط، چپ، توزیع‌شده)
-- **فاصله‌گذاری**: پدینگ و مارجین برای ۴ جهت به تفکیک پیوسته یا مستقل
-
-### تب پیشرفته (Advanced Tab)
-- **انیمیشن‌های ورود**: انواع انیمیشن (fadeIn, slideUp, zoomIn, bounceIn) همراه با مدت زمان و تاخیر
-- **نمایش شرطی دستگاهی (Responsive Visibility)**: سوئیچ‌های پنهان‌سازی مستقل در دسکتاپ، تبلت و موبایل
-- **رویت‌پذیری احراز هویت (Auth Visibility)**: نمایش برای همه، کاربران واردشده یا مهمانان
-- **کامپوننت سراسری (Global Component)**: تبدیل المان به کامپوننت سراسری و امکان جداسازی (Detach)
-- **شناسه و کلاس‌های سفارشی**: فیلدهای `customCssId` و `customCssClass` با اعمال بلادرنگ روی تگ‌های DOM بوم و کامپایلر سرور
+## ۳. کنترل‌های بازرس (Inspector Controls)
+- **محتوا (Content)**: ورودی متن، انتخاب تگ تیتر H1-H6، نوع دکمه، درج رسانه، فیلدهای فرم، گزینه‌های سلکت، آیتم‌های آکاردئون و تب‌ها.
+- **استایل (Style)**:
+  - پدینگ و مارجین ۴ جهته تفکیک‌شده و متصل با قفل پیوند.
+  - رنگ پس‌زمینه، گرادیان‌های ۲ رنگ در جهات مختلف، تصویر پس‌زمینه با اندازه و موقعیت.
+  - حاشیه (Border)، ضخامت، استایل‌های Solid/Dashed/Dotted، شعاع گوشه‌ها (Border Radius) با توکن‌ها و ورودی‌های پیکسلی.
+  - سایه کادر (Box Shadow) با پریست‌های xs تا xl و حالت سفارشی.
+  - تایپوگرافی کامل: فونت، اندازه با واحد px/rem، وزن فونت ۱۰۰ تا ۹۰۰، فاصله خطوط و تراز متن.
+  - فیلترهای بصری CSS: Blur, Brightness, Contrast, Grayscale, Invert.
+  - استایل Overlay پس‌زمینه (Background Overlay) با ماتریال Glassmorphism و تاری پشت‌زمینه (Backdrop Blur).
+  - جداکننده‌های شکل بوم (Shape Dividers) بالا و پایین: Waves, Curve, Triangle, Tilt با انتخاب رنگ زنده.
+- **پیشرفته (Advanced)**:
+  - انیمیشن‌های ورود (Fade In, Slide Up, Zoom In).
+  - کنترل‌های دید دستگاهی (مخفی‌سازی انتخابی در دسکتاپ، تبلت و موبایل با نشانگر زنده در بوم).
+  - کامپوننت‌های همگام سراسری (Global Components).
+  - کلاس‌های سفارشی CSS و شناسه اختصاصی المان.

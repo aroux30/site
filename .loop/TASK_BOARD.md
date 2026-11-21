@@ -1,31 +1,11 @@
-# تخته وظایف و وضعیت عاملی صفحه‌ساز (.loop/TASK_BOARD.md)
+# تابلوی وظایف سیستم خودبهبودساز سازنده صفحات (.loop/TASK_BOARD.md)
 
-**آخرین به‌روزرسانی**: 2026-11-21  
-**وضعیت کلی**: ✅ کلیه آزمون‌های قطعی، اشعه ایکس، تست‌های واحد فرانت‌اند، تست‌های واحد بک‌اند و تایپ‌چک سبز هستند.  
-
----
-
-## ۱. وظایف تکمیل‌شده (Completed Tasks)
-
-| شناسه | شرح وظیفه | مسئول (Owner) | نتیجه و شواهد |
-| :---: | :--- | :---: | :---: |
-| **TSK-01** | راستی‌آزمایی مسیرهای محلی مخزن و سورس مرجع المنتور | Lead Architect | تایید مسیر `C:\Users\Administrator\Desktop\elementor` و ساختار پروژه `site` |
-| **TSK-02** | اصلاح و اعتبارسنجی تورفتگی درخت لایه‌ها (LayersTree RTL Indent) | Lead Architect & Frontend | تورفتگی ۲۴px به ازای هر سطح عمق (`depth * 24px`) با خط راهنما در `layers-tree.tsx` |
-| **TSK-03** | اصلاح و استانداردسازی کادر کانتینر خالی (Empty Container Guide) | Frontend Engineer | حداقل ارتفاع ۸۰px (`min-h-[80px]`) و دکمه «افزودن بلوک به این بخش» در `canvas-element.tsx` |
-| **TSK-04** | شناسه اختصاصی دکمه‌های بلوک‌ها در پالت (`data-block-type`) | Frontend Engineer | الحاق اتریبیوت `data-block-type` به تمام ۳۴ بلوک پایه در `blocks-palette.tsx` |
-| **TSK-05** | اجرای موفق و ۱۰۰٪ سبز ممیزی قطعی (`deterministic-audit.mjs`) | QA Engineer | عبور از تمامی چک‌های HSL، دسترسی‌پذیری WCAG، درخت لایه‌ها، کانتینر خالی، نوار ابزار و عدم خطای هیدریشن |
-| **TSK-06** | اجرای موفق و ۱۰۰٪ سبز ممیزی اشعه ایکس (`builder-xray.mjs`) | Independent QA | تایید تمامی ۲۸ الگو، ۳۴ بلوک پایه، کنترل‌های بازرس و ۱۸ قابلیت برابری المنتور با ۰ شکست |
-| **TSK-07** | تایید سلامت تست‌های جامع سیستم (`vitest` و `pytest`) | Independent QA | ۳۷۲ تست سبز Vitest فرانت‌اند و ۶۲۲ تست سبز Pytest بک‌اند با ۰ خطای رگرسیون |
-
----
-
-## ۲. وضعیت فعلی (In Progress)
-
-- ثبت گزارش‌های جامع مرحله صفر و مستندسازی کارنامه راند ۱ در `.loop/ROUND_REPORTS/round-01.md`
-
----
-
-## ۳. کارهای پیش‌رو (Next Steps / Backlog)
-
-- پایش مستمر تجربه طراحی لندینگ‌های پیچیده در Level 6 (Infinite Product Challenge)
-- غنی‌سازی انیمیشن‌های ورود و افکت‌های ترنزیشن تعاملی در المان‌های بوم
+| شناسه | شرح وظیفه | اولویت | وضعیت | مسئول | فایل‌های تحت تاثیر |
+|---|---|---|---|---|---|
+| TASK-01 | تثبیت و اجرای ممیزی P0: رویت‌پذیری دکمه‌های درخت لایه‌ها، تورفتگی ۲۴px در RTL و خط راهنمای عمودی | P0 | ✅ DONE | Lead Architect / Frontend | `layers-tree.tsx` |
+| TASK-02 | راهنمای کانتینر خالی با کادر خطچین، ارتفاع ۸۰px و دکمه راهنمای افزودن بلوک | P0 | ✅ DONE | Frontend Engineer | `canvas-element.tsx` |
+| TASK-03 | رفع کامل پدیده قطع شدن نوار ابزار در لبه بالای بوم و جلوگیری از مسدودسازی رویداد کلیک المان‌ها | P0 | ✅ DONE | Frontend Architect | `canvas-overlay-layer.tsx`, `canvas-frame.tsx` |
+| TASK-04 | آماده‌سازی و اعتبارسنجی سندهای ممیزی: موجودی قابلیت‌ها و تحلیل شکاف با المنتور | P1 | ✅ DONE | Elementor Specialist | `BUILDER_FEATURE_INVENTORY.md`, `ELEMENTOR_GAP_ANALYSIS.md` |
+| TASK-05 | پیاده‌سازی ویژگی‌های سفارشی داده (`Custom HTML / Data Attributes`) در تب Advanced بازرس و کامپایلر سرور | P1 | 🔄 IN_PROGRESS | Fullstack Engineer | `inspector-panel.tsx`, `ast_compiler.py`, `types/builder.ts` |
+| TASK-06 | تست‌های رگرسیون Playwright و تثبیت در راند ۲۱ | P1 | ⏳ PENDING | QA Engineer | `tests/e2e/builder-gym-r21.spec.ts` |
+| TASK-07 | بازبینی مستقل کد و ثبت گزارش اتمیک راند | P1 | ⏳ PENDING | Independent Reviewer | `.loop/ROUND_REPORTS/round-21.md` |

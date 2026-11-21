@@ -41,6 +41,25 @@ class ASTCompiler:
         return sanitize_html(raw_html)
 
     @classmethod
+    def _parse_custom_attributes(cls, raw: str | None) -> str:
+        """Parse key|value pairs from custom_attributes (Elementor Parity)."""
+        if not raw:
+            return ""
+        attrs: list[str] = []
+        blacklist = {"id", "class", "style", "data-element-id", "data-auth", "data-global-component"}
+        for line in raw.strip().splitlines():
+            line = line.strip()
+            if not line or "|" not in line:
+                continue
+            parts = line.split("|", 1)
+            k = parts[0].strip().lower()
+            v = parts[1].strip()
+            if not k or k in blacklist or k.startswith("on") or "javascript:" in v.lower():
+                continue
+            attrs.append(f' {html.escape(k)}="{html.escape(v)}"')
+        return "".join(attrs)
+
+    @classmethod
     def _compile_element(cls, el: BuilderElement, is_authenticated: bool = False) -> str:
         if el.is_hidden:
             return ""
@@ -136,6 +155,8 @@ class ASTCompiler:
             extra_attrs += f' data-auth="{html.escape(el.auth_visibility)}"'
         if el.global_component_id:
             extra_attrs += f' data-global-component="{html.escape(el.global_component_id)}"'
+        if el.styles.custom_attributes:
+            extra_attrs += cls._parse_custom_attributes(el.styles.custom_attributes)
 
         # Compile background overlay if present
         overlay = el.styles.mobile.background_overlay
@@ -216,6 +237,8 @@ class ASTCompiler:
             extra_attrs += f' data-auth="{html.escape(el.auth_visibility)}"'
         if el.global_component_id:
             extra_attrs += f' data-global-component="{html.escape(el.global_component_id)}"'
+        if el.styles.custom_attributes:
+            extra_attrs += cls._parse_custom_attributes(el.styles.custom_attributes)
         css_class = " ".join(classes_list)
 
         if widget_type == "heading":
@@ -223,37 +246,37 @@ class ASTCompiler:
             if tag not in ("h1", "h2", "h3", "h4", "h5", "h6"):
                 tag = "h2"
             text = html.escape(str(props.get("text", "")))
-            return f'<{tag}{id_attr} class="font-bold text-foreground break-words {css_class}"{style_attr}>{text}</{tag}>'
+            return f'<{tag}{id_attr} class="font-bold text-foreground break-words {css_class}"{style_attr}{extra_attrs}>{text}</{tag}>'
 
-        elif widget_type == "text_editor":
-            content = str(props.get("content", ""))
-            return f'<div{id_attr} class="prose dark:prose-invert max-w-none break-words {css_class}"{style_attr}>{content}</div>'
+        elif widget_type in ("text_editor", "text", "paragraph"):
+            content = str(props.get("content", props.get("text", "")))
+            return f'<div{id_attr} class="prose dark:prose-invert max-w-none break-words {css_class}"{style_attr}{extra_attrs}>{content}</div>'
 
         elif widget_type == "button":
             label = html.escape(str(props.get("label", "کلیک کنید")))
             url = html.escape(str(props.get("url", "#")))
             target = ' target="_blank" rel="noopener noreferrer"' if props.get("new_tab") else ""
-            return f'<a href="{url}"{id_attr} class="inline-flex items-center justify-center rounded-xl bg-primary px-6 py-3 font-semibold text-primary-foreground transition hover:opacity-90 {css_class}"{target}{style_attr}>{label}</a>'
+            return f'<a href="{url}"{id_attr} class="inline-flex items-center justify-center rounded-xl bg-primary px-6 py-3 font-semibold text-primary-foreground transition hover:opacity-90 {css_class}"{target}{style_attr}{extra_attrs}>{label}</a>'
 
         elif widget_type == "image":
             src = html.escape(str(props.get("url", "")))
             alt = html.escape(str(props.get("alt", "")))
-            return f'<img src="{src}" alt="{alt}"{id_attr} class="rounded-xl object-cover max-w-full h-auto {css_class}" loading="lazy"{style_attr} />'
+            return f'<img src="{src}" alt="{alt}"{id_attr} class="rounded-xl object-cover max-w-full h-auto {css_class}" loading="lazy"{style_attr}{extra_attrs} />'
 
         elif widget_type == "divider":
-            return f'<hr{id_attr} class="my-6 border-border/80 {css_class}"{style_attr} />'
+            return f'<hr{id_attr} class="my-6 border-border/80 {css_class}"{style_attr}{extra_attrs} />'
 
         elif widget_type == "spacer":
             h = props.get("height", 32)
-            return f'<div{id_attr} class="w-full {css_class}" style="height: {int(h)}px;" aria-hidden="true"></div>'
+            return f'<div{id_attr} class="w-full {css_class}" style="height: {int(h)}px;" aria-hidden="true"{extra_attrs}></div>'
 
         elif widget_type == "html_custom" or widget_type == "legacy_html":
             raw_html = str(props.get("html", props.get("content", "")))
-            return f'<div{id_attr} class="builder-custom-html {css_class}"{style_attr}>{raw_html}</div>'
+            return f'<div{id_attr} class="builder-custom-html {css_class}"{style_attr}{extra_attrs}>{raw_html}</div>'
 
         elif widget_type == "product_title":
             title_text = html.escape(str(props.get("fallback_title", "عنوان محصول")))
-            return f'<h1{id_attr} class="text-2xl lg:text-3xl font-bold text-foreground {css_class}"{style_attr}>{title_text}</h1>'
+            return f'<h1{id_attr} class="text-2xl lg:text-3xl font-bold text-foreground {css_class}"{style_attr}{extra_attrs}>{title_text}</h1>'
 
         elif widget_type == "table":
             headers = props.get("headers", [])
@@ -492,7 +515,7 @@ class ASTCompiler:
                 f'</div>'
             )
 
-        elif widget_type == "product_grid":
+        elif widget_type in ("product_grid", "loop_grid"):
             limit = int(props.get("limit", 4))
             cat = html.escape(str(props.get("category", "all")))
             flt = html.escape(str(props.get("filter", "all")))
@@ -516,7 +539,7 @@ class ASTCompiler:
                 else ""
             )
             return (
-                f'<div{id_attr} class="builder-product-grid space-y-4 {css_class}" data-widget="product_grid" data-category="{cat}" data-filter="{flt}" data-limit="{limit}"{style_attr}>'
+                f'<div{id_attr} class="builder-product-grid space-y-4 {css_class}" data-widget="{html.escape(widget_type)}" data-category="{cat}" data-filter="{flt}" data-limit="{limit}"{style_attr}>'
                 f'<div class="grid grid-cols-2 md:grid-cols-4 gap-4">{grid_cards_html}</div>'
                 f'{pagination_btn}'
                 f'</div>'
@@ -670,50 +693,101 @@ class ASTCompiler:
                 f'</div>'
             )
 
-        elif widget_type == "alert":
-            title = html.escape(str(props.get("title", "پیام اطلاع‌رسانی")))
-            desc = html.escape(str(props.get("description", "")))
-            a_type = html.escape(str(props.get("alert_type", "info")))
-            return (
-                f'<div{id_attr} class="builder-alert p-4 rounded-xl border data-alert-{a_type} {css_class}" data-widget="alert"{style_attr}>'
-                f'<h5 class="font-bold text-xs">{title}</h5>'
-                f'<p class="text-[11px] leading-relaxed opacity-90">{desc}</p>'
-                f'</div>'
-            )
-
         elif widget_type == "counter":
-            target = html.escape(str(props.get("target_number", "100")))
+            title = html.escape(str(props.get("title", props.get("label", "شمارنده"))))
+            ending = props.get("ending_number", props.get("target_number", 100))
             prefix = html.escape(str(props.get("prefix", "")))
-            suffix = html.escape(str(props.get("suffix", "+")))
-            title = html.escape(str(props.get("title", "مشتریان راضی")))
+            suffix = html.escape(str(props.get("suffix", "")))
             return (
-                f'<div{id_attr} class="builder-counter p-4 rounded-2xl bg-card border border-border/80 text-center space-y-1 {css_class}" data-widget="counter"{style_attr}>'
-                f'<div class="text-3xl font-black text-primary">{prefix}{target}{suffix}</div>'
-                f'<div class="text-xs text-muted-foreground">{title}</div>'
+                f'<div{id_attr} class="builder-counter p-4 rounded-2xl border border-border/80 bg-card text-center space-y-1 {css_class}" data-widget="counter"{style_attr}>'
+                f'<div class="text-3xl font-black text-primary font-mono">{prefix}{ending}{suffix}</div>'
+                f'<div class="text-xs font-semibold text-muted-foreground">{title}</div>'
                 f'</div>'
             )
 
         elif widget_type == "progress_bar":
-            percent = int(props.get("percentage", 75))
-            title = html.escape(str(props.get("title", "پیشرفت پروژه")))
+            title = html.escape(str(props.get("title", "پیشرفت کار")))
+            pct = max(0, min(100, int(props.get("percentage", 75))))
+            show_pct = props.get("show_percentage", True)
+            pct_span = f'<span class="font-mono text-primary">{pct}%</span>' if show_pct else ""
             return (
-                f'<div{id_attr} class="builder-progress-bar space-y-2 w-full text-right {css_class}" data-widget="progress_bar"{style_attr}>'
-                f'<div class="flex justify-between items-center text-xs font-bold"><span>{title}</span><span>{percent}%</span></div>'
-                f'<div class="h-3 w-full rounded-full bg-muted overflow-hidden"><div class="h-full bg-primary rounded-full" style="width: {percent}%;"></div></div>'
+                f'<div{id_attr} class="builder-progress-bar space-y-1.5 w-full text-right {css_class}" data-widget="progress_bar"{style_attr}>'
+                f'<div class="flex items-center justify-between text-xs font-semibold text-foreground"><span>{title}</span>{pct_span}</div>'
+                f'<div class="h-3 w-full rounded-full bg-muted overflow-hidden"><div class="h-full bg-primary rounded-full" style="width: {pct}%;"></div></div>'
                 f'</div>'
             )
 
         elif widget_type == "testimonial":
+            author = html.escape(str(props.get("author", props.get("author_name", "نام مشتری"))))
+            role = html.escape(str(props.get("role", props.get("author_role", ""))))
+            company = html.escape(str(props.get("company", "")))
             quote = html.escape(str(props.get("quote", "")))
-            name = html.escape(str(props.get("author_name", "مشتری")))
-            role = html.escape(str(props.get("author_role", "")))
             avatar = html.escape(str(props.get("avatar_url", "/placeholder-hero.svg")))
+            role_part = f"{role} - {company}" if company else role
             return (
-                f'<div{id_attr} class="builder-testimonial p-5 rounded-2xl border border-border/80 bg-card space-y-3 {css_class}" data-widget="testimonial"{style_attr}>'
-                f'<p class="text-xs text-muted-foreground italic">«{quote}»</p>'
-                f'<div class="flex items-center gap-3 pt-1 border-t border-border/40">'
-                f'<img src="{avatar}" alt="{name}" class="w-9 h-9 rounded-full object-cover" loading="lazy" />'
-                f'<div><div class="text-xs font-bold">{name}</div><div class="text-[10px] text-muted-foreground">{role}</div></div>'
+                f'<blockquote{id_attr} class="builder-testimonial p-4 rounded-2xl border border-border/80 bg-card space-y-3 {css_class}" data-widget="testimonial"{style_attr}>'
+                f'<p class="text-xs text-muted-foreground leading-relaxed italic">«{quote}»</p>'
+                f'<div class="flex items-center gap-3 pt-2 border-t border-border/60">'
+                f'<img src="{avatar}" alt="{author}" class="w-9 h-9 rounded-full object-cover shrink-0" loading="lazy" />'
+                f'<div><div class="text-xs font-bold text-foreground">{author}</div><div class="text-[10px] text-muted-foreground">{role_part}</div></div>'
+                f'</div>'
+                f'</blockquote>'
+            )
+
+        elif widget_type == "alert":
+            title = html.escape(str(props.get("title", "اعلان")))
+            msg = html.escape(str(props.get("message", props.get("description", ""))))
+            a_type = str(props.get("alert_type", "info"))
+            return (
+                f'<div{id_attr} class="builder-alert builder-alert-{html.escape(a_type)} p-3.5 rounded-xl border text-right space-y-1 {css_class}" data-widget="alert"{style_attr}>'
+                f'<div class="text-xs font-bold">{title}</div>'
+                f'<div class="text-[11px] leading-relaxed opacity-90">{msg}</div>'
+                f'</div>'
+            )
+
+        elif widget_type == "call_to_action":
+            title = html.escape(str(props.get("title", "اقدام به عمل")))
+            desc = html.escape(str(props.get("description", "")))
+            btn_label = html.escape(str(props.get("button_label", "شروع کنید")))
+            btn_url = html.escape(str(props.get("button_url", "/products")))
+            badge = html.escape(str(props.get("badge", "")))
+            badge_html = f'<span class="inline-block px-2.5 py-0.5 rounded-full bg-primary text-primary-foreground text-[10px] font-bold">{badge}</span>' if badge else ""
+            return (
+                f'<div{id_attr} class="builder-cta p-6 rounded-2xl border border-primary/20 bg-primary/5 text-center space-y-3 {css_class}" data-widget="call_to_action"{style_attr}>'
+                f'{badge_html}'
+                f'<h3 class="text-lg font-bold text-foreground">{title}</h3>'
+                f'<p class="text-xs text-muted-foreground max-w-md mx-auto leading-relaxed">{desc}</p>'
+                f'<div><a href="{btn_url}" class="inline-flex items-center justify-center px-5 py-2.5 rounded-xl bg-primary text-primary-foreground font-bold text-xs shadow hover:bg-primary/90 transition">{btn_label}</a></div>'
+                f'</div>'
+            )
+
+        elif widget_type == "animated_headline":
+            before = html.escape(str(props.get("before_text", "")))
+            highlight = html.escape(str(props.get("highlighted_text", "تیتر متحرک")))
+            after = html.escape(str(props.get("after_text", "")))
+            return (
+                f'<h2{id_attr} class="builder-animated-headline text-2xl lg:text-3xl font-extrabold text-foreground text-center py-2 {css_class}" data-widget="animated_headline"{style_attr}>'
+                f'<span class="before-text">{before} </span>'
+                f'<span class="highlighted-text text-primary underline decoration-wavy">{highlight}</span>'
+                f'<span class="after-text"> {after}</span>'
+                f'</h2>'
+            )
+
+        elif widget_type == "flip_box":
+            front_title = html.escape(str(props.get("front_title", "روی کارت")))
+            front_desc = html.escape(str(props.get("front_desc", "")))
+            back_title = html.escape(str(props.get("back_title", "پشت کارت")))
+            back_desc = html.escape(str(props.get("back_desc", "")))
+            btn_text = html.escape(str(props.get("button_text", "مشاهده")))
+            btn_url = html.escape(str(props.get("button_url", "#")))
+            return (
+                f'<div{id_attr} class="builder-flip-box p-6 rounded-2xl border border-border/80 bg-card text-center space-y-2 {css_class}" data-widget="flip_box"{style_attr}>'
+                f'<h4 class="font-bold text-foreground text-base">{front_title}</h4>'
+                f'<p class="text-xs text-muted-foreground">{front_desc}</p>'
+                f'<div class="pt-2 border-t border-border/50">'
+                f'<div class="font-bold text-xs text-primary">{back_title}</div>'
+                f'<p class="text-[11px] text-muted-foreground">{back_desc}</p>'
+                f'<a href="{btn_url}" class="inline-block mt-2 px-4 py-1.5 rounded-lg bg-primary text-white text-xs font-bold">{btn_text}</a>'
                 f'</div>'
                 f'</div>'
             )
@@ -859,5 +933,27 @@ class ASTCompiler:
             parts.append(f"filter: {base.filter};")
         if base.box_shadow:
             parts.append(f"box-shadow: {base.box_shadow};")
+        if base.transform:
+            t = base.transform
+            t_parts = []
+            if t.rotate:
+                t_parts.append(f"rotate({t.rotate}deg)")
+            if t.scale:
+                t_parts.append(f"scale({t.scale})")
+            if t.skew_x:
+                t_parts.append(f"skewX({t.skew_x}deg)")
+            if t.skew_y:
+                t_parts.append(f"skewY({t.skew_y}deg)")
+            if t.translate_x or t.translate_y:
+                t_parts.append(f"translate({t.translate_x or 0}px, {t.translate_y or 0}px)")
+            if t_parts:
+                parts.append(f"transform: {' '.join(t_parts)};")
+        if base.mask and base.mask.shape and base.mask.shape != "none":
+            m = base.mask
+            parts.append(f"-webkit-mask-image: url('/masks/{m.shape}.svg'); mask-image: url('/masks/{m.shape}.svg');")
+            if m.size:
+                parts.append(f"mask-size: {m.size}; -webkit-mask-size: {m.size};")
+            if m.position:
+                parts.append(f"mask-position: {m.position}; -webkit-mask-position: {m.position};")
 
         return parts

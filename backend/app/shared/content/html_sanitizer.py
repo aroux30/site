@@ -264,6 +264,15 @@ def drop_code_blocks(html: str) -> str:
     return _DROP_WITH_CONTENT_RE.sub("", html)
 
 
+def _is_allowed_attribute(tag: str, name: str, value: str) -> bool:
+    nl = name.lower()
+    if nl.startswith("data-") or nl.startswith("aria-"):
+        return True
+    tag_allowed = _EMBED_ALLOWED_ATTRIBUTES.get(tag, set())
+    universal_allowed = _EMBED_ALLOWED_ATTRIBUTES.get("*", set())
+    return nl in tag_allowed or nl in universal_allowed
+
+
 def sanitize_html(html: str | None) -> str:
     """Return ``html`` with everything outside the allowlist removed.
 
@@ -284,7 +293,7 @@ def sanitize_html(html: str | None) -> str:
     cleaned = bleach.clean(
         html,
         tags=_EMBED_ALLOWED_TAGS,
-        attributes=_EMBED_ALLOWED_ATTRIBUTES,
+        attributes=_is_allowed_attribute,
         protocols=ALLOWED_PROTOCOLS,
         css_sanitizer=_CSS_SANITIZER,
         strip=True,

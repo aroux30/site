@@ -3,7 +3,7 @@ import path from "node:path";
 import fs from "node:fs";
 import { execSync } from "node:child_process";
 
-const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || "http://127.0.0.1:3000";
+const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || "http://127.0.0.1:3100";
 const BACKEND_DIR = path.resolve("C:/Users/Administrator/Desktop/site/backend");
 
 function getAdminToken() {
@@ -54,11 +54,9 @@ test.describe("Builder Gym Round 08: Weight 2 (Pricing Table, Categories & Quote
 
   test("1. pricing-table renders description for all plans including featured plan 2", async ({ page }) => {
     await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
-    await page.waitForTimeout(1000);
     const patternsTab = page.locator("button:has-text('الگوها')").first();
     await patternsTab.waitFor({ state: "visible", timeout: 15000 });
     await patternsTab.click();
-    await page.waitForTimeout(500);
 
     const pricingCard = page.locator("div[data-pattern-slug='pricing-table']").first();
     await expect(pricingCard).toBeVisible({ timeout: 15000 });
@@ -78,28 +76,24 @@ test.describe("Builder Gym Round 08: Weight 2 (Pricing Table, Categories & Quote
 
   test("2. mega-menu-categories renders 4 full-width category buttons", async ({ page }) => {
     await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
-    await page.waitForTimeout(1000);
     const patternsTab = page.locator("button:has-text('الگوها')").first();
     await patternsTab.waitFor({ state: "visible", timeout: 15000 });
     await patternsTab.click();
-    await page.waitForTimeout(500);
 
     const megaMenuCard = page.locator("div[data-pattern-slug='mega-menu-categories']").first();
     await expect(megaMenuCard).toBeVisible({ timeout: 15000 });
     await megaMenuCard.click();
 
     const frame = page.frameLocator('iframe[title="Visual Builder Canvas"]');
-    const laptopBtn = frame.locator(":is(a, button, span):has-text('لپ‌تاپ و کامپیوتر')").first();
+    const laptopBtn = frame.locator("a:has-text('لپ‌تاپ و کامپیوتر'), button:has-text('لپ‌تاپ و کامپیوتر'), span:has-text('لپ‌تاپ و کامپیوتر')").first();
     await expect(laptopBtn).toBeVisible({ timeout: 15000 });
   });
 
   test("3. pull-quote and support-callout render semantic quote and support box", async ({ page }) => {
     await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
-    await page.waitForTimeout(1000);
     const patternsTab = page.locator("button:has-text('الگوها')").first();
     await patternsTab.waitFor({ state: "visible", timeout: 15000 });
     await patternsTab.click();
-    await page.waitForTimeout(500);
 
     const quoteCard = page.locator("div[data-pattern-slug='pull-quote']").first();
     await expect(quoteCard).toBeVisible({ timeout: 15000 });

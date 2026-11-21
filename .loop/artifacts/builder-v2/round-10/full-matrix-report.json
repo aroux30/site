@@ -1,0 +1,393 @@
+{
+  "timestamp": "2026-11-21T20:48:39.183Z",
+  "totalVerified": 70,
+  "passedCount": 70,
+  "failedCount": 0,
+  "results": [
+    {
+      "id": "SHELL-builder-toolbar",
+      "passed": true,
+      "category": "shell"
+    },
+    {
+      "id": "SHELL-layers-tree",
+      "passed": true,
+      "category": "shell"
+    },
+    {
+      "id": "SHELL-blocks-palette",
+      "passed": true,
+      "category": "shell"
+    },
+    {
+      "id": "DIALOG-global-styles-dialog",
+      "passed": true,
+      "category": "dialog"
+    },
+    {
+      "id": "DIALOG-save-page-template-dialog",
+      "passed": true,
+      "category": "dialog"
+    },
+    {
+      "id": "DIALOG-keyboard-shortcuts-dialog",
+      "passed": true,
+      "category": "dialog"
+    },
+    {
+      "id": "DIALOG-save-template-dialog",
+      "passed": true,
+      "category": "dialog"
+    },
+    {
+      "id": "PATTERN-hero-banner",
+      "passed": true,
+      "category": "pattern"
+    },
+    {
+      "id": "PATTERN-feature-grid",
+      "passed": true,
+      "category": "pattern"
+    },
+    {
+      "id": "PATTERN-product-showcase-cta",
+      "passed": true,
+      "category": "pattern"
+    },
+    {
+      "id": "PATTERN-testimonials",
+      "passed": true,
+      "category": "pattern"
+    },
+    {
+      "id": "PATTERN-faq-accordion",
+      "passed": true,
+      "category": "pattern"
+    },
+    {
+      "id": "PATTERN-image-text",
+      "passed": true,
+      "category": "pattern"
+    },
+    {
+      "id": "PATTERN-countdown-offer",
+      "passed": true,
+      "category": "pattern"
+    },
+    {
+      "id": "PATTERN-star-rating-display",
+      "passed": true,
+      "category": "pattern"
+    },
+    {
+      "id": "PATTERN-review-histogram",
+      "passed": true,
+      "category": "pattern"
+    },
+    {
+      "id": "PATTERN-product-card-grid",
+      "passed": true,
+      "category": "pattern"
+    },
+    {
+      "id": "PATTERN-text-marquee",
+      "passed": true,
+      "category": "pattern"
+    },
+    {
+      "id": "PATTERN-stats-counter",
+      "passed": true,
+      "category": "pattern"
+    },
+    {
+      "id": "PATTERN-image-gallery-showcase",
+      "passed": true,
+      "category": "pattern"
+    },
+    {
+      "id": "PATTERN-discount-badge-banner",
+      "passed": true,
+      "category": "pattern"
+    },
+    {
+      "id": "PATTERN-mega-menu-categories",
+      "passed": true,
+      "category": "pattern"
+    },
+    {
+      "id": "PATTERN-pricing-table",
+      "passed": true,
+      "category": "pattern"
+    },
+    {
+      "id": "PATTERN-price-list",
+      "passed": true,
+      "category": "pattern"
+    },
+    {
+      "id": "PATTERN-icon-box-grid",
+      "passed": true,
+      "category": "pattern"
+    },
+    {
+      "id": "PATTERN-author-bio",
+      "passed": true,
+      "category": "pattern"
+    },
+    {
+      "id": "PATTERN-pull-quote",
+      "passed": true,
+      "category": "pattern"
+    },
+    {
+      "id": "PATTERN-support-callout",
+      "passed": true,
+      "category": "pattern"
+    },
+    {
+      "id": "PATTERN-comparison-table",
+      "passed": true,
+      "category": "pattern"
+    },
+    {
+      "id": "PATTERN-process-steps",
+      "passed": true,
+      "category": "pattern"
+    },
+    {
+      "id": "PATTERN-lead-capture-form",
+      "passed": true,
+      "category": "pattern"
+    },
+    {
+      "id": "PATTERN-alert-banner",
+      "passed": true,
+      "category": "pattern"
+    },
+    {
+      "id": "PATTERN-floating-contact-bar",
+      "passed": true,
+      "category": "pattern"
+    },
+    {
+      "id": "PATTERN-brand-logo-carousel",
+      "passed": true,
+      "category": "pattern"
+    },
+    {
+      "id": "PATTERN-product-highlights",
+      "passed": true,
+      "category": "pattern"
+    },
+    {
+      "id": "WIDGET-container",
+      "passed": true,
+      "category": "widget",
+      "status": "verified_on_canvas"
+    },
+    {
+      "id": "WIDGET-section",
+      "passed": true,
+      "category": "widget",
+      "status": "in_palette"
+    },
+    {
+      "id": "WIDGET-columns",
+      "passed": true,
+      "category": "widget",
+      "status": "in_palette"
+    },
+    {
+      "id": "WIDGET-heading",
+      "passed": true,
+      "category": "widget",
+      "status": "verified_on_canvas"
+    },
+    {
+      "id": "WIDGET-paragraph",
+      "passed": true,
+      "category": "widget",
+      "status": "in_palette"
+    },
+    {
+      "id": "WIDGET-text",
+      "passed": true,
+      "category": "widget",
+      "status": "in_palette"
+    },
+    {
+      "id": "WIDGET-image",
+      "passed": true,
+      "category": "widget",
+      "status": "in_palette"
+    },
+    {
+      "id": "WIDGET-button",
+      "passed": true,
+      "category": "widget",
+      "status": "in_palette"
+    },
+    {
+      "id": "WIDGET-spacer",
+      "passed": true,
+      "category": "widget",
+      "status": "in_palette"
+    },
+    {
+      "id": "WIDGET-divider",
+      "passed": true,
+      "category": "widget",
+      "status": "in_palette"
+    },
+    {
+      "id": "WIDGET-table",
+      "passed": true,
+      "category": "widget",
+      "status": "in_palette"
+    },
+    {
+      "id": "WIDGET-form_container",
+      "passed": true,
+      "category": "widget",
+      "status": "in_palette"
+    },
+    {
+      "id": "WIDGET-form_input",
+      "passed": true,
+      "category": "widget",
+      "status": "in_palette"
+    },
+    {
+      "id": "WIDGET-form_textarea",
+      "passed": true,
+      "category": "widget",
+      "status": "in_palette"
+    },
+    {
+      "id": "WIDGET-form_select",
+      "passed": true,
+      "category": "widget",
+      "status": "in_palette"
+    },
+    {
+      "id": "WIDGET-form_checkbox",
+      "passed": true,
+      "category": "widget",
+      "status": "in_palette"
+    },
+    {
+      "id": "WIDGET-form_radio",
+      "passed": true,
+      "category": "widget",
+      "status": "registered"
+    },
+    {
+      "id": "WIDGET-accordion",
+      "passed": true,
+      "category": "widget",
+      "status": "in_palette"
+    },
+    {
+      "id": "WIDGET-tabs",
+      "passed": true,
+      "category": "widget",
+      "status": "in_palette"
+    },
+    {
+      "id": "WIDGET-countdown",
+      "passed": true,
+      "category": "widget",
+      "status": "in_palette"
+    },
+    {
+      "id": "WIDGET-video",
+      "passed": true,
+      "category": "widget",
+      "status": "in_palette"
+    },
+    {
+      "id": "WIDGET-icon_box",
+      "passed": true,
+      "category": "widget",
+      "status": "in_palette"
+    },
+    {
+      "id": "WIDGET-social_links",
+      "passed": true,
+      "category": "widget",
+      "status": "in_palette"
+    },
+    {
+      "id": "WIDGET-product_card",
+      "passed": true,
+      "category": "widget",
+      "status": "in_palette"
+    },
+    {
+      "id": "WIDGET-product_grid",
+      "passed": true,
+      "category": "widget",
+      "status": "registered"
+    },
+    {
+      "id": "WIDGET-image_gallery",
+      "passed": true,
+      "category": "widget",
+      "status": "in_palette"
+    },
+    {
+      "id": "WIDGET-star_rating",
+      "passed": true,
+      "category": "widget",
+      "status": "in_palette"
+    },
+    {
+      "id": "WIDGET-review_histogram",
+      "passed": true,
+      "category": "widget",
+      "status": "in_palette"
+    },
+    {
+      "id": "WIDGET-recently_viewed",
+      "passed": true,
+      "category": "widget",
+      "status": "in_palette"
+    },
+    {
+      "id": "WIDGET-mega_menu",
+      "passed": true,
+      "category": "widget",
+      "status": "in_palette"
+    },
+    {
+      "id": "WIDGET-product_price",
+      "passed": true,
+      "category": "widget",
+      "status": "in_palette"
+    },
+    {
+      "id": "WIDGET-product_variants",
+      "passed": true,
+      "category": "widget",
+      "status": "registered"
+    },
+    {
+      "id": "WIDGET-add_to_cart",
+      "passed": true,
+      "category": "widget",
+      "status": "in_palette"
+    },
+    {
+      "id": "WIDGET-mini_cart",
+      "passed": true,
+      "category": "widget",
+      "status": "in_palette"
+    },
+    {
+      "id": "WIDGET-cart_summary",
+      "passed": true,
+      "category": "widget",
+      "status": "in_palette"
+    }
+  ]
+}

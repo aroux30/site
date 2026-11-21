@@ -416,6 +416,48 @@ function CanvasElementComponent({
     const gridTemplateColumns = resolveResponsiveValue({ mobile: base?.gridTemplateColumns, tablet: tablet?.gridTemplateColumns, desktop: desktop?.gridTemplateColumns }, activeBreakpoint);
     if (gridTemplateColumns) styleObj.gridTemplateColumns = gridTemplateColumns;
 
+    // Transform (Elementor Parity Wave 1)
+    const transform = resolveResponsiveValue({ mobile: base?.transform, tablet: tablet?.transform, desktop: desktop?.transform }, activeBreakpoint);
+    if (transform) {
+      const tParts: string[] = [];
+      if (transform.rotate) tParts.push(`rotate(${transform.rotate}deg)`);
+      if (transform.scale) tParts.push(`scale(${transform.scale})`);
+      if (transform.skewX) tParts.push(`skewX(${transform.skewX}deg)`);
+      if (transform.skewY) tParts.push(`skewY(${transform.skewY}deg)`);
+      if (transform.flipX) tParts.push("scaleX(-1)");
+      if (transform.flipY) tParts.push("scaleY(-1)");
+      if (tParts.length > 0) styleObj.transform = tParts.join(" ");
+    }
+
+    // Mask (Elementor Parity Wave 1)
+    const mask = resolveResponsiveValue({ mobile: base?.mask, tablet: tablet?.mask, desktop: desktop?.mask }, activeBreakpoint);
+    if (mask && mask.shape && mask.shape !== "none") {
+      const shapeMap: Record<string, string> = {
+        circle: "radial-gradient(circle, black 60%, transparent 60%)",
+        flower: "radial-gradient(circle at 50% 50%, black 50%, transparent 50%)",
+        hexagon: "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)",
+      };
+      const maskVal = shapeMap[mask.shape] || `url(${mask.shape})`;
+      if (mask.shape === "hexagon") {
+        styleObj.clipPath = maskVal;
+      } else {
+        styleObj.maskImage = maskVal;
+        (styleObj as any).WebkitMaskImage = maskVal;
+        if (mask.size) {
+          styleObj.maskSize = mask.size;
+          (styleObj as any).WebkitMaskSize = mask.size;
+        }
+        if (mask.position) {
+          styleObj.maskPosition = mask.position;
+          (styleObj as any).WebkitMaskPosition = mask.position;
+        }
+        if (mask.repeat) {
+          styleObj.maskRepeat = mask.repeat;
+          (styleObj as any).WebkitMaskRepeat = mask.repeat;
+        }
+      }
+    }
+
     // Elementor Boxed Container Max-Width & Centering
     if (element.type === "container" && element.layout?.boxedWidth) {
       styleObj.maxWidth = `${element.layout.boxedWidth.value}${element.layout.boxedWidth.unit}`;
@@ -1514,6 +1556,7 @@ function CanvasElementComponent({
       data-element-id={element.id}
       data-element-name={element.name}
       data-widget-type={element.widgetType || element.type}
+      {...(element.styles?.customAttributes || {})}
     >
       {/* Background Overlay (Elementor Parity) */}
       {overlayStyle && (

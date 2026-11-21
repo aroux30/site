@@ -65,6 +65,22 @@ export interface BackgroundOverlayStyle {
   opacity?: number | null;
 }
 
+export interface TransformStyle {
+  rotate?: number | null; // degrees
+  scale?: number | null; // scale multiplier
+  skewX?: number | null; // degrees
+  skewY?: number | null; // degrees
+  flipX?: boolean;
+  flipY?: boolean;
+}
+
+export interface MaskStyle {
+  shape?: "none" | "circle" | "flower" | "sketch" | "triangle" | "blob" | "hexagon" | string | null;
+  size?: "contain" | "cover" | "auto" | null;
+  position?: "center" | "top" | "bottom" | "left" | "right" | null;
+  repeat?: "no-repeat" | "repeat" | null;
+}
+
 export interface DeviceStyle {
   typography?: TypographyStyle | null;
   margin?: SpacingBox | null;
@@ -79,6 +95,8 @@ export interface DeviceStyle {
   opacity?: number | null;
   zIndex?: number | null;
   boxShadow?: string | null;
+  transform?: TransformStyle | null;
+  mask?: MaskStyle | null;
   // Advanced Layout (P4)
   position?: "static" | "relative" | "absolute" | "sticky" | "inherit" | null;
   top?: UnitValue | null;
@@ -109,6 +127,8 @@ export interface ResponsiveStyles {
   desktop?: DeviceStyle | null;
   customCssClass?: string | null;
   customCssId?: string | null;
+  customAttributes?: Record<string, string> | null;
+  scopedCss?: string | null;
   direction?: "rtl" | "ltr" | "inherit";
   animation?: "none" | "fade-in" | "slide-up" | "zoom-in" | string | null;
   animationDuration?: number | null; // seconds

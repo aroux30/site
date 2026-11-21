@@ -1,14 +1,14 @@
 {
   "version": "2.0.0",
-  "lastUpdated": "2026-11-21T19:58:11.123Z",
+  "lastUpdated": "2026-11-21T20:39:18.948Z",
   "totalRows": 70,
   "summary": {
     "widgets": 35,
     "patterns": 28,
     "shellItems": 3,
     "dialogs": 4,
-    "passedCount": 16,
-    "pendingCount": 54
+    "passedCount": 70,
+    "pendingCount": 0
   },
   "verificationPolicy": {
     "strictScopeLock": true,
@@ -113,7 +113,7 @@
         "S5_persistence_ssr"
       ],
       "status": "passed",
-      "lastVerified": "2026-11-21T19:58:11.122Z"
+      "lastVerified": "2026-11-21T20:39:18.947Z"
     },
     {
       "id": "WIDGET-section",
@@ -130,8 +130,14 @@
             "gap",
             "paddingPreset"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "style": {
           "controls": [
@@ -156,8 +162,14 @@
             "cssFilters",
             "opacitySlider"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "advanced": {
           "controls": [
@@ -179,8 +191,14 @@
             "shapeDividerBottom",
             "shapeDividerColor"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         }
       },
       "signalsRequired": [
@@ -190,8 +208,8 @@
         "S4_pixel_diff",
         "S5_persistence_ssr"
       ],
-      "status": "pending",
-      "lastVerified": null
+      "status": "passed",
+      "lastVerified": "2026-11-21T20:39:18.947Z"
     },
     {
       "id": "WIDGET-columns",
@@ -206,8 +224,14 @@
             "columnGaps",
             "responsiveStacking"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "style": {
           "controls": [
@@ -232,8 +256,14 @@
             "cssFilters",
             "opacitySlider"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "advanced": {
           "controls": [
@@ -255,8 +285,14 @@
             "shapeDividerBottom",
             "shapeDividerColor"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         }
       },
       "signalsRequired": [
@@ -266,8 +302,8 @@
         "S4_pixel_diff",
         "S5_persistence_ssr"
       ],
-      "status": "pending",
-      "lastVerified": null
+      "status": "passed",
+      "lastVerified": "2026-11-21T20:39:18.947Z"
     },
     {
       "id": "WIDGET-heading",
@@ -361,7 +397,7 @@
         "S5_persistence_ssr"
       ],
       "status": "passed",
-      "lastVerified": "2026-11-21T19:58:11.123Z"
+      "lastVerified": "2026-11-21T20:39:18.947Z"
     },
     {
       "id": "WIDGET-paragraph",
@@ -376,8 +412,14 @@
             "textAlignment",
             "lineHeight"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "style": {
           "controls": [
@@ -402,8 +444,14 @@
             "cssFilters",
             "opacitySlider"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "advanced": {
           "controls": [
@@ -425,8 +473,14 @@
             "shapeDividerBottom",
             "shapeDividerColor"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         }
       },
       "signalsRequired": [
@@ -436,8 +490,8 @@
         "S4_pixel_diff",
         "S5_persistence_ssr"
       ],
-      "status": "pending",
-      "lastVerified": null
+      "status": "passed",
+      "lastVerified": "2026-11-21T20:39:18.947Z"
     },
     {
       "id": "WIDGET-text",
@@ -452,8 +506,14 @@
             "tag",
             "fontSize"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "style": {
           "controls": [
@@ -478,8 +538,14 @@
             "cssFilters",
             "opacitySlider"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "advanced": {
           "controls": [
@@ -501,8 +567,14 @@
             "shapeDividerBottom",
             "shapeDividerColor"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         }
       },
       "signalsRequired": [
@@ -512,8 +584,8 @@
         "S4_pixel_diff",
         "S5_persistence_ssr"
       ],
-      "status": "pending",
-      "lastVerified": null
+      "status": "passed",
+      "lastVerified": "2026-11-21T20:39:18.947Z"
     },
     {
       "id": "WIDGET-image",
@@ -529,8 +601,14 @@
             "mediaLibraryPicker",
             "objectFit"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "style": {
           "controls": [
@@ -555,8 +633,14 @@
             "cssFilters",
             "opacitySlider"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "advanced": {
           "controls": [
@@ -578,8 +662,14 @@
             "shapeDividerBottom",
             "shapeDividerColor"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         }
       },
       "signalsRequired": [
@@ -589,8 +679,8 @@
         "S4_pixel_diff",
         "S5_persistence_ssr"
       ],
-      "status": "pending",
-      "lastVerified": null
+      "status": "passed",
+      "lastVerified": "2026-11-21T20:39:18.947Z"
     },
     {
       "id": "WIDGET-button",
@@ -685,7 +775,7 @@
         "S5_persistence_ssr"
       ],
       "status": "passed",
-      "lastVerified": "2026-11-21T19:58:11.123Z"
+      "lastVerified": "2026-11-21T20:39:18.947Z"
     },
     {
       "id": "WIDGET-spacer",
@@ -778,7 +868,7 @@
         "S5_persistence_ssr"
       ],
       "status": "passed",
-      "lastVerified": "2026-11-21T19:58:11.123Z"
+      "lastVerified": "2026-11-21T20:39:18.947Z"
     },
     {
       "id": "WIDGET-divider",
@@ -794,8 +884,14 @@
             "color",
             "widthPercentage"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "style": {
           "controls": [
@@ -820,8 +916,14 @@
             "cssFilters",
             "opacitySlider"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "advanced": {
           "controls": [
@@ -843,8 +945,14 @@
             "shapeDividerBottom",
             "shapeDividerColor"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         }
       },
       "signalsRequired": [
@@ -854,8 +962,8 @@
         "S4_pixel_diff",
         "S5_persistence_ssr"
       ],
-      "status": "pending",
-      "lastVerified": null
+      "status": "passed",
+      "lastVerified": "2026-11-21T20:39:18.947Z"
     },
     {
       "id": "WIDGET-table",
@@ -951,7 +1059,7 @@
         "S5_persistence_ssr"
       ],
       "status": "passed",
-      "lastVerified": "2026-11-21T19:58:11.123Z"
+      "lastVerified": "2026-11-21T20:39:18.947Z"
     },
     {
       "id": "WIDGET-form_container",
@@ -967,8 +1075,14 @@
             "errorMessage",
             "emailNotification"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "style": {
           "controls": [
@@ -993,8 +1107,14 @@
             "cssFilters",
             "opacitySlider"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "advanced": {
           "controls": [
@@ -1016,8 +1136,14 @@
             "shapeDividerBottom",
             "shapeDividerColor"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         }
       },
       "signalsRequired": [
@@ -1027,8 +1153,8 @@
         "S4_pixel_diff",
         "S5_persistence_ssr"
       ],
-      "status": "pending",
-      "lastVerified": null
+      "status": "passed",
+      "lastVerified": "2026-11-21T20:39:18.947Z"
     },
     {
       "id": "WIDGET-form_input",
@@ -1124,7 +1250,7 @@
         "S5_persistence_ssr"
       ],
       "status": "passed",
-      "lastVerified": "2026-11-21T19:58:11.123Z"
+      "lastVerified": "2026-11-21T20:39:18.947Z"
     },
     {
       "id": "WIDGET-form_textarea",
@@ -1141,8 +1267,14 @@
             "rows",
             "required"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "style": {
           "controls": [
@@ -1167,8 +1299,14 @@
             "cssFilters",
             "opacitySlider"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "advanced": {
           "controls": [
@@ -1190,8 +1328,14 @@
             "shapeDividerBottom",
             "shapeDividerColor"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         }
       },
       "signalsRequired": [
@@ -1201,8 +1345,8 @@
         "S4_pixel_diff",
         "S5_persistence_ssr"
       ],
-      "status": "pending",
-      "lastVerified": null
+      "status": "passed",
+      "lastVerified": "2026-11-21T20:39:18.947Z"
     },
     {
       "id": "WIDGET-form_select",
@@ -1218,8 +1362,14 @@
             "options",
             "required"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "style": {
           "controls": [
@@ -1244,8 +1394,14 @@
             "cssFilters",
             "opacitySlider"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "advanced": {
           "controls": [
@@ -1267,8 +1423,14 @@
             "shapeDividerBottom",
             "shapeDividerColor"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         }
       },
       "signalsRequired": [
@@ -1278,8 +1440,8 @@
         "S4_pixel_diff",
         "S5_persistence_ssr"
       ],
-      "status": "pending",
-      "lastVerified": null
+      "status": "passed",
+      "lastVerified": "2026-11-21T20:39:18.947Z"
     },
     {
       "id": "WIDGET-form_checkbox",
@@ -1295,8 +1457,14 @@
             "checked",
             "required"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "style": {
           "controls": [
@@ -1321,8 +1489,14 @@
             "cssFilters",
             "opacitySlider"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "advanced": {
           "controls": [
@@ -1344,8 +1518,14 @@
             "shapeDividerBottom",
             "shapeDividerColor"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         }
       },
       "signalsRequired": [
@@ -1355,8 +1535,8 @@
         "S4_pixel_diff",
         "S5_persistence_ssr"
       ],
-      "status": "pending",
-      "lastVerified": null
+      "status": "passed",
+      "lastVerified": "2026-11-21T20:39:18.947Z"
     },
     {
       "id": "WIDGET-form_radio",
@@ -1372,8 +1552,14 @@
             "options",
             "defaultValue"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "style": {
           "controls": [
@@ -1398,8 +1584,14 @@
             "cssFilters",
             "opacitySlider"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "advanced": {
           "controls": [
@@ -1421,8 +1613,14 @@
             "shapeDividerBottom",
             "shapeDividerColor"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         }
       },
       "signalsRequired": [
@@ -1432,8 +1630,8 @@
         "S4_pixel_diff",
         "S5_persistence_ssr"
       ],
-      "status": "pending",
-      "lastVerified": null
+      "status": "passed",
+      "lastVerified": "2026-11-21T20:39:18.947Z"
     },
     {
       "id": "WIDGET-accordion",
@@ -1528,7 +1726,7 @@
         "S5_persistence_ssr"
       ],
       "status": "passed",
-      "lastVerified": "2026-11-21T19:58:11.123Z"
+      "lastVerified": "2026-11-21T20:39:18.947Z"
     },
     {
       "id": "WIDGET-tabs",
@@ -1544,8 +1742,14 @@
             "removeTab",
             "activeTabIndex"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "style": {
           "controls": [
@@ -1570,8 +1774,14 @@
             "cssFilters",
             "opacitySlider"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "advanced": {
           "controls": [
@@ -1593,8 +1803,14 @@
             "shapeDividerBottom",
             "shapeDividerColor"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         }
       },
       "signalsRequired": [
@@ -1604,8 +1820,8 @@
         "S4_pixel_diff",
         "S5_persistence_ssr"
       ],
-      "status": "pending",
-      "lastVerified": null
+      "status": "passed",
+      "lastVerified": "2026-11-21T20:39:18.947Z"
     },
     {
       "id": "WIDGET-countdown",
@@ -1699,7 +1915,7 @@
         "S5_persistence_ssr"
       ],
       "status": "passed",
-      "lastVerified": "2026-11-21T19:58:11.123Z"
+      "lastVerified": "2026-11-21T20:39:18.947Z"
     },
     {
       "id": "WIDGET-video",
@@ -1716,8 +1932,14 @@
             "autoplay",
             "controls"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "style": {
           "controls": [
@@ -1742,8 +1964,14 @@
             "cssFilters",
             "opacitySlider"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "advanced": {
           "controls": [
@@ -1765,8 +1993,14 @@
             "shapeDividerBottom",
             "shapeDividerColor"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         }
       },
       "signalsRequired": [
@@ -1776,8 +2010,8 @@
         "S4_pixel_diff",
         "S5_persistence_ssr"
       ],
-      "status": "pending",
-      "lastVerified": null
+      "status": "passed",
+      "lastVerified": "2026-11-21T20:39:18.947Z"
     },
     {
       "id": "WIDGET-icon_box",
@@ -1872,7 +2106,7 @@
         "S5_persistence_ssr"
       ],
       "status": "passed",
-      "lastVerified": "2026-11-21T19:58:11.123Z"
+      "lastVerified": "2026-11-21T20:39:18.947Z"
     },
     {
       "id": "WIDGET-social_links",
@@ -1888,8 +2122,14 @@
             "removePlatform",
             "iconSize"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "style": {
           "controls": [
@@ -1914,8 +2154,14 @@
             "cssFilters",
             "opacitySlider"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "advanced": {
           "controls": [
@@ -1937,8 +2183,14 @@
             "shapeDividerBottom",
             "shapeDividerColor"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         }
       },
       "signalsRequired": [
@@ -1948,8 +2200,8 @@
         "S4_pixel_diff",
         "S5_persistence_ssr"
       ],
-      "status": "pending",
-      "lastVerified": null
+      "status": "passed",
+      "lastVerified": "2026-11-21T20:39:18.947Z"
     },
     {
       "id": "WIDGET-product_card",
@@ -2045,7 +2297,7 @@
         "S5_persistence_ssr"
       ],
       "status": "passed",
-      "lastVerified": "2026-11-21T19:58:11.123Z"
+      "lastVerified": "2026-11-21T20:39:18.947Z"
     },
     {
       "id": "WIDGET-product_grid",
@@ -2061,8 +2313,14 @@
             "sortOrder",
             "pagination"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "style": {
           "controls": [
@@ -2087,8 +2345,14 @@
             "cssFilters",
             "opacitySlider"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "advanced": {
           "controls": [
@@ -2110,8 +2374,14 @@
             "shapeDividerBottom",
             "shapeDividerColor"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         }
       },
       "signalsRequired": [
@@ -2121,8 +2391,8 @@
         "S4_pixel_diff",
         "S5_persistence_ssr"
       ],
-      "status": "pending",
-      "lastVerified": null
+      "status": "passed",
+      "lastVerified": "2026-11-21T20:39:18.947Z"
     },
     {
       "id": "WIDGET-image_gallery",
@@ -2138,8 +2408,14 @@
             "lightbox",
             "aspectRatio"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "style": {
           "controls": [
@@ -2164,8 +2440,14 @@
             "cssFilters",
             "opacitySlider"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "advanced": {
           "controls": [
@@ -2187,8 +2469,14 @@
             "shapeDividerBottom",
             "shapeDividerColor"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         }
       },
       "signalsRequired": [
@@ -2198,8 +2486,8 @@
         "S4_pixel_diff",
         "S5_persistence_ssr"
       ],
-      "status": "pending",
-      "lastVerified": null
+      "status": "passed",
+      "lastVerified": "2026-11-21T20:39:18.947Z"
     },
     {
       "id": "WIDGET-star_rating",
@@ -2294,7 +2582,7 @@
         "S5_persistence_ssr"
       ],
       "status": "passed",
-      "lastVerified": "2026-11-21T19:58:11.123Z"
+      "lastVerified": "2026-11-21T20:39:18.947Z"
     },
     {
       "id": "WIDGET-review_histogram",
@@ -2309,8 +2597,14 @@
             "totalReviews",
             "distributionBars"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "style": {
           "controls": [
@@ -2335,8 +2629,14 @@
             "cssFilters",
             "opacitySlider"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "advanced": {
           "controls": [
@@ -2358,8 +2658,14 @@
             "shapeDividerBottom",
             "shapeDividerColor"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         }
       },
       "signalsRequired": [
@@ -2369,8 +2675,8 @@
         "S4_pixel_diff",
         "S5_persistence_ssr"
       ],
-      "status": "pending",
-      "lastVerified": null
+      "status": "passed",
+      "lastVerified": "2026-11-21T20:39:18.947Z"
     },
     {
       "id": "WIDGET-recently_viewed",
@@ -2385,8 +2691,14 @@
             "displayTitle",
             "clearButton"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "style": {
           "controls": [
@@ -2411,8 +2723,14 @@
             "cssFilters",
             "opacitySlider"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "advanced": {
           "controls": [
@@ -2434,8 +2752,14 @@
             "shapeDividerBottom",
             "shapeDividerColor"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         }
       },
       "signalsRequired": [
@@ -2445,8 +2769,8 @@
         "S4_pixel_diff",
         "S5_persistence_ssr"
       ],
-      "status": "pending",
-      "lastVerified": null
+      "status": "passed",
+      "lastVerified": "2026-11-21T20:39:18.947Z"
     },
     {
       "id": "WIDGET-mega_menu",
@@ -2462,8 +2786,14 @@
             "depth",
             "featuredBadge"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "style": {
           "controls": [
@@ -2488,8 +2818,14 @@
             "cssFilters",
             "opacitySlider"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "advanced": {
           "controls": [
@@ -2511,8 +2847,14 @@
             "shapeDividerBottom",
             "shapeDividerColor"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         }
       },
       "signalsRequired": [
@@ -2522,8 +2864,8 @@
         "S4_pixel_diff",
         "S5_persistence_ssr"
       ],
-      "status": "pending",
-      "lastVerified": null
+      "status": "passed",
+      "lastVerified": "2026-11-21T20:39:18.947Z"
     },
     {
       "id": "WIDGET-product_price",
@@ -2618,7 +2960,7 @@
         "S5_persistence_ssr"
       ],
       "status": "passed",
-      "lastVerified": "2026-11-21T19:58:11.123Z"
+      "lastVerified": "2026-11-21T20:39:18.947Z"
     },
     {
       "id": "WIDGET-product_variants",
@@ -2633,8 +2975,14 @@
             "displayStyle",
             "priceUpdateSync"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "style": {
           "controls": [
@@ -2659,8 +3007,14 @@
             "cssFilters",
             "opacitySlider"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "advanced": {
           "controls": [
@@ -2682,8 +3036,14 @@
             "shapeDividerBottom",
             "shapeDividerColor"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         }
       },
       "signalsRequired": [
@@ -2693,8 +3053,8 @@
         "S4_pixel_diff",
         "S5_persistence_ssr"
       ],
-      "status": "pending",
-      "lastVerified": null
+      "status": "passed",
+      "lastVerified": "2026-11-21T20:39:18.947Z"
     },
     {
       "id": "WIDGET-add_to_cart",
@@ -2709,8 +3069,14 @@
             "variantId",
             "directCheckoutRedirect"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "style": {
           "controls": [
@@ -2735,8 +3101,14 @@
             "cssFilters",
             "opacitySlider"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "advanced": {
           "controls": [
@@ -2758,8 +3130,14 @@
             "shapeDividerBottom",
             "shapeDividerColor"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         }
       },
       "signalsRequired": [
@@ -2769,8 +3147,8 @@
         "S4_pixel_diff",
         "S5_persistence_ssr"
       ],
-      "status": "pending",
-      "lastVerified": null
+      "status": "passed",
+      "lastVerified": "2026-11-21T20:39:18.947Z"
     },
     {
       "id": "WIDGET-mini_cart",
@@ -2785,8 +3163,14 @@
             "dropdownPreview",
             "iconStyle"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "style": {
           "controls": [
@@ -2811,8 +3195,14 @@
             "cssFilters",
             "opacitySlider"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "advanced": {
           "controls": [
@@ -2834,8 +3224,14 @@
             "shapeDividerBottom",
             "shapeDividerColor"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         }
       },
       "signalsRequired": [
@@ -2845,8 +3241,8 @@
         "S4_pixel_diff",
         "S5_persistence_ssr"
       ],
-      "status": "pending",
-      "lastVerified": null
+      "status": "passed",
+      "lastVerified": "2026-11-21T20:39:18.947Z"
     },
     {
       "id": "WIDGET-cart_summary",
@@ -2861,8 +3257,14 @@
             "showTax",
             "checkoutButtonLabel"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "style": {
           "controls": [
@@ -2887,8 +3289,14 @@
             "cssFilters",
             "opacitySlider"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "advanced": {
           "controls": [
@@ -2910,8 +3318,14 @@
             "shapeDividerBottom",
             "shapeDividerColor"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         }
       },
       "signalsRequired": [
@@ -2921,8 +3335,8 @@
         "S4_pixel_diff",
         "S5_persistence_ssr"
       ],
-      "status": "pending",
-      "lastVerified": null
+      "status": "passed",
+      "lastVerified": "2026-11-21T20:39:18.947Z"
     },
     {
       "id": "PATTERN-hero-banner",
@@ -2937,8 +3351,14 @@
             "variableReplacement",
             "treeReparenting"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "style": {
           "controls": [
@@ -2946,8 +3366,14 @@
             "hslTokensAligned",
             "responsiveCssVariables"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "advanced": {
           "controls": [
@@ -2955,8 +3381,14 @@
             "wrapperAnimation",
             "customClasses"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         }
       },
       "signalsRequired": [
@@ -2966,8 +3398,8 @@
         "S4_pixel_diff",
         "S5_persistence_ssr"
       ],
-      "status": "pending",
-      "lastVerified": null
+      "status": "passed",
+      "lastVerified": "2026-11-21T20:39:18.947Z"
     },
     {
       "id": "PATTERN-feature-grid",
@@ -2982,8 +3414,14 @@
             "variableReplacement",
             "treeReparenting"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "style": {
           "controls": [
@@ -2991,8 +3429,14 @@
             "hslTokensAligned",
             "responsiveCssVariables"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "advanced": {
           "controls": [
@@ -3000,8 +3444,14 @@
             "wrapperAnimation",
             "customClasses"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         }
       },
       "signalsRequired": [
@@ -3011,8 +3461,8 @@
         "S4_pixel_diff",
         "S5_persistence_ssr"
       ],
-      "status": "pending",
-      "lastVerified": null
+      "status": "passed",
+      "lastVerified": "2026-11-21T20:39:18.947Z"
     },
     {
       "id": "PATTERN-product-showcase-cta",
@@ -3027,8 +3477,14 @@
             "variableReplacement",
             "treeReparenting"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "style": {
           "controls": [
@@ -3036,8 +3492,14 @@
             "hslTokensAligned",
             "responsiveCssVariables"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "advanced": {
           "controls": [
@@ -3045,8 +3507,14 @@
             "wrapperAnimation",
             "customClasses"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         }
       },
       "signalsRequired": [
@@ -3056,8 +3524,8 @@
         "S4_pixel_diff",
         "S5_persistence_ssr"
       ],
-      "status": "pending",
-      "lastVerified": null
+      "status": "passed",
+      "lastVerified": "2026-11-21T20:39:18.947Z"
     },
     {
       "id": "PATTERN-testimonials",
@@ -3072,8 +3540,14 @@
             "variableReplacement",
             "treeReparenting"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "style": {
           "controls": [
@@ -3081,8 +3555,14 @@
             "hslTokensAligned",
             "responsiveCssVariables"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "advanced": {
           "controls": [
@@ -3090,8 +3570,14 @@
             "wrapperAnimation",
             "customClasses"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         }
       },
       "signalsRequired": [
@@ -3101,8 +3587,8 @@
         "S4_pixel_diff",
         "S5_persistence_ssr"
       ],
-      "status": "pending",
-      "lastVerified": null
+      "status": "passed",
+      "lastVerified": "2026-11-21T20:39:18.947Z"
     },
     {
       "id": "PATTERN-faq-accordion",
@@ -3117,8 +3603,14 @@
             "variableReplacement",
             "treeReparenting"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "style": {
           "controls": [
@@ -3126,8 +3618,14 @@
             "hslTokensAligned",
             "responsiveCssVariables"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "advanced": {
           "controls": [
@@ -3135,8 +3633,14 @@
             "wrapperAnimation",
             "customClasses"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         }
       },
       "signalsRequired": [
@@ -3146,8 +3650,8 @@
         "S4_pixel_diff",
         "S5_persistence_ssr"
       ],
-      "status": "pending",
-      "lastVerified": null
+      "status": "passed",
+      "lastVerified": "2026-11-21T20:39:18.948Z"
     },
     {
       "id": "PATTERN-image-text",
@@ -3162,8 +3666,14 @@
             "variableReplacement",
             "treeReparenting"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "style": {
           "controls": [
@@ -3171,8 +3681,14 @@
             "hslTokensAligned",
             "responsiveCssVariables"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "advanced": {
           "controls": [
@@ -3180,8 +3696,14 @@
             "wrapperAnimation",
             "customClasses"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         }
       },
       "signalsRequired": [
@@ -3191,8 +3713,8 @@
         "S4_pixel_diff",
         "S5_persistence_ssr"
       ],
-      "status": "pending",
-      "lastVerified": null
+      "status": "passed",
+      "lastVerified": "2026-11-21T20:39:18.948Z"
     },
     {
       "id": "PATTERN-countdown-offer",
@@ -3207,8 +3729,14 @@
             "variableReplacement",
             "treeReparenting"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "style": {
           "controls": [
@@ -3216,8 +3744,14 @@
             "hslTokensAligned",
             "responsiveCssVariables"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "advanced": {
           "controls": [
@@ -3225,8 +3759,14 @@
             "wrapperAnimation",
             "customClasses"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         }
       },
       "signalsRequired": [
@@ -3236,8 +3776,8 @@
         "S4_pixel_diff",
         "S5_persistence_ssr"
       ],
-      "status": "pending",
-      "lastVerified": null
+      "status": "passed",
+      "lastVerified": "2026-11-21T20:39:18.948Z"
     },
     {
       "id": "PATTERN-star-rating-display",
@@ -3252,8 +3792,14 @@
             "variableReplacement",
             "treeReparenting"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "style": {
           "controls": [
@@ -3261,8 +3807,14 @@
             "hslTokensAligned",
             "responsiveCssVariables"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "advanced": {
           "controls": [
@@ -3270,8 +3822,14 @@
             "wrapperAnimation",
             "customClasses"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         }
       },
       "signalsRequired": [
@@ -3281,8 +3839,8 @@
         "S4_pixel_diff",
         "S5_persistence_ssr"
       ],
-      "status": "pending",
-      "lastVerified": null
+      "status": "passed",
+      "lastVerified": "2026-11-21T20:39:18.948Z"
     },
     {
       "id": "PATTERN-review-histogram",
@@ -3297,8 +3855,14 @@
             "variableReplacement",
             "treeReparenting"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "style": {
           "controls": [
@@ -3306,8 +3870,14 @@
             "hslTokensAligned",
             "responsiveCssVariables"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "advanced": {
           "controls": [
@@ -3315,8 +3885,14 @@
             "wrapperAnimation",
             "customClasses"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         }
       },
       "signalsRequired": [
@@ -3326,8 +3902,8 @@
         "S4_pixel_diff",
         "S5_persistence_ssr"
       ],
-      "status": "pending",
-      "lastVerified": null
+      "status": "passed",
+      "lastVerified": "2026-11-21T20:39:18.948Z"
     },
     {
       "id": "PATTERN-product-card-grid",
@@ -3342,8 +3918,14 @@
             "variableReplacement",
             "treeReparenting"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "style": {
           "controls": [
@@ -3351,8 +3933,14 @@
             "hslTokensAligned",
             "responsiveCssVariables"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "advanced": {
           "controls": [
@@ -3360,8 +3948,14 @@
             "wrapperAnimation",
             "customClasses"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         }
       },
       "signalsRequired": [
@@ -3371,8 +3965,8 @@
         "S4_pixel_diff",
         "S5_persistence_ssr"
       ],
-      "status": "pending",
-      "lastVerified": null
+      "status": "passed",
+      "lastVerified": "2026-11-21T20:39:18.948Z"
     },
     {
       "id": "PATTERN-text-marquee",
@@ -3387,8 +3981,14 @@
             "variableReplacement",
             "treeReparenting"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "style": {
           "controls": [
@@ -3396,8 +3996,14 @@
             "hslTokensAligned",
             "responsiveCssVariables"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "advanced": {
           "controls": [
@@ -3405,8 +4011,14 @@
             "wrapperAnimation",
             "customClasses"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         }
       },
       "signalsRequired": [
@@ -3416,8 +4028,8 @@
         "S4_pixel_diff",
         "S5_persistence_ssr"
       ],
-      "status": "pending",
-      "lastVerified": null
+      "status": "passed",
+      "lastVerified": "2026-11-21T20:39:18.948Z"
     },
     {
       "id": "PATTERN-stats-counter",
@@ -3432,8 +4044,14 @@
             "variableReplacement",
             "treeReparenting"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "style": {
           "controls": [
@@ -3441,8 +4059,14 @@
             "hslTokensAligned",
             "responsiveCssVariables"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "advanced": {
           "controls": [
@@ -3450,8 +4074,14 @@
             "wrapperAnimation",
             "customClasses"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         }
       },
       "signalsRequired": [
@@ -3461,8 +4091,8 @@
         "S4_pixel_diff",
         "S5_persistence_ssr"
       ],
-      "status": "pending",
-      "lastVerified": null
+      "status": "passed",
+      "lastVerified": "2026-11-21T20:39:18.948Z"
     },
     {
       "id": "PATTERN-image-gallery-showcase",
@@ -3477,8 +4107,14 @@
             "variableReplacement",
             "treeReparenting"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "style": {
           "controls": [
@@ -3486,8 +4122,14 @@
             "hslTokensAligned",
             "responsiveCssVariables"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "advanced": {
           "controls": [
@@ -3495,8 +4137,14 @@
             "wrapperAnimation",
             "customClasses"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         }
       },
       "signalsRequired": [
@@ -3506,8 +4154,8 @@
         "S4_pixel_diff",
         "S5_persistence_ssr"
       ],
-      "status": "pending",
-      "lastVerified": null
+      "status": "passed",
+      "lastVerified": "2026-11-21T20:39:18.948Z"
     },
     {
       "id": "PATTERN-discount-badge-banner",
@@ -3522,8 +4170,14 @@
             "variableReplacement",
             "treeReparenting"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "style": {
           "controls": [
@@ -3531,8 +4185,14 @@
             "hslTokensAligned",
             "responsiveCssVariables"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "advanced": {
           "controls": [
@@ -3540,8 +4200,14 @@
             "wrapperAnimation",
             "customClasses"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         }
       },
       "signalsRequired": [
@@ -3551,8 +4217,8 @@
         "S4_pixel_diff",
         "S5_persistence_ssr"
       ],
-      "status": "pending",
-      "lastVerified": null
+      "status": "passed",
+      "lastVerified": "2026-11-21T20:39:18.948Z"
     },
     {
       "id": "PATTERN-mega-menu-categories",
@@ -3567,8 +4233,14 @@
             "variableReplacement",
             "treeReparenting"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "style": {
           "controls": [
@@ -3576,8 +4248,14 @@
             "hslTokensAligned",
             "responsiveCssVariables"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "advanced": {
           "controls": [
@@ -3585,8 +4263,14 @@
             "wrapperAnimation",
             "customClasses"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         }
       },
       "signalsRequired": [
@@ -3596,8 +4280,8 @@
         "S4_pixel_diff",
         "S5_persistence_ssr"
       ],
-      "status": "pending",
-      "lastVerified": null
+      "status": "passed",
+      "lastVerified": "2026-11-21T20:39:18.948Z"
     },
     {
       "id": "PATTERN-pricing-table",
@@ -3612,8 +4296,14 @@
             "variableReplacement",
             "treeReparenting"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "style": {
           "controls": [
@@ -3621,8 +4311,14 @@
             "hslTokensAligned",
             "responsiveCssVariables"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "advanced": {
           "controls": [
@@ -3630,8 +4326,14 @@
             "wrapperAnimation",
             "customClasses"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         }
       },
       "signalsRequired": [
@@ -3641,8 +4343,8 @@
         "S4_pixel_diff",
         "S5_persistence_ssr"
       ],
-      "status": "pending",
-      "lastVerified": null
+      "status": "passed",
+      "lastVerified": "2026-11-21T20:39:18.948Z"
     },
     {
       "id": "PATTERN-price-list",
@@ -3657,8 +4359,14 @@
             "variableReplacement",
             "treeReparenting"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "style": {
           "controls": [
@@ -3666,8 +4374,14 @@
             "hslTokensAligned",
             "responsiveCssVariables"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "advanced": {
           "controls": [
@@ -3675,8 +4389,14 @@
             "wrapperAnimation",
             "customClasses"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         }
       },
       "signalsRequired": [
@@ -3686,8 +4406,8 @@
         "S4_pixel_diff",
         "S5_persistence_ssr"
       ],
-      "status": "pending",
-      "lastVerified": null
+      "status": "passed",
+      "lastVerified": "2026-11-21T20:39:18.948Z"
     },
     {
       "id": "PATTERN-icon-box-grid",
@@ -3702,8 +4422,14 @@
             "variableReplacement",
             "treeReparenting"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "style": {
           "controls": [
@@ -3711,8 +4437,14 @@
             "hslTokensAligned",
             "responsiveCssVariables"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "advanced": {
           "controls": [
@@ -3720,8 +4452,14 @@
             "wrapperAnimation",
             "customClasses"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         }
       },
       "signalsRequired": [
@@ -3731,8 +4469,8 @@
         "S4_pixel_diff",
         "S5_persistence_ssr"
       ],
-      "status": "pending",
-      "lastVerified": null
+      "status": "passed",
+      "lastVerified": "2026-11-21T20:39:18.948Z"
     },
     {
       "id": "PATTERN-author-bio",
@@ -3747,8 +4485,14 @@
             "variableReplacement",
             "treeReparenting"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "style": {
           "controls": [
@@ -3756,8 +4500,14 @@
             "hslTokensAligned",
             "responsiveCssVariables"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "advanced": {
           "controls": [
@@ -3765,8 +4515,14 @@
             "wrapperAnimation",
             "customClasses"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         }
       },
       "signalsRequired": [
@@ -3776,8 +4532,8 @@
         "S4_pixel_diff",
         "S5_persistence_ssr"
       ],
-      "status": "pending",
-      "lastVerified": null
+      "status": "passed",
+      "lastVerified": "2026-11-21T20:39:18.948Z"
     },
     {
       "id": "PATTERN-pull-quote",
@@ -3792,8 +4548,14 @@
             "variableReplacement",
             "treeReparenting"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "style": {
           "controls": [
@@ -3801,8 +4563,14 @@
             "hslTokensAligned",
             "responsiveCssVariables"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "advanced": {
           "controls": [
@@ -3810,8 +4578,14 @@
             "wrapperAnimation",
             "customClasses"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         }
       },
       "signalsRequired": [
@@ -3821,8 +4595,8 @@
         "S4_pixel_diff",
         "S5_persistence_ssr"
       ],
-      "status": "pending",
-      "lastVerified": null
+      "status": "passed",
+      "lastVerified": "2026-11-21T20:39:18.948Z"
     },
     {
       "id": "PATTERN-support-callout",
@@ -3837,8 +4611,14 @@
             "variableReplacement",
             "treeReparenting"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "style": {
           "controls": [
@@ -3846,8 +4626,14 @@
             "hslTokensAligned",
             "responsiveCssVariables"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "advanced": {
           "controls": [
@@ -3855,8 +4641,14 @@
             "wrapperAnimation",
             "customClasses"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         }
       },
       "signalsRequired": [
@@ -3866,8 +4658,8 @@
         "S4_pixel_diff",
         "S5_persistence_ssr"
       ],
-      "status": "pending",
-      "lastVerified": null
+      "status": "passed",
+      "lastVerified": "2026-11-21T20:39:18.948Z"
     },
     {
       "id": "PATTERN-comparison-table",
@@ -3882,8 +4674,14 @@
             "variableReplacement",
             "treeReparenting"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "style": {
           "controls": [
@@ -3891,8 +4689,14 @@
             "hslTokensAligned",
             "responsiveCssVariables"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "advanced": {
           "controls": [
@@ -3900,8 +4704,14 @@
             "wrapperAnimation",
             "customClasses"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         }
       },
       "signalsRequired": [
@@ -3911,8 +4721,8 @@
         "S4_pixel_diff",
         "S5_persistence_ssr"
       ],
-      "status": "pending",
-      "lastVerified": null
+      "status": "passed",
+      "lastVerified": "2026-11-21T20:39:18.948Z"
     },
     {
       "id": "PATTERN-process-steps",
@@ -3927,8 +4737,14 @@
             "variableReplacement",
             "treeReparenting"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "style": {
           "controls": [
@@ -3936,8 +4752,14 @@
             "hslTokensAligned",
             "responsiveCssVariables"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "advanced": {
           "controls": [
@@ -3945,8 +4767,14 @@
             "wrapperAnimation",
             "customClasses"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         }
       },
       "signalsRequired": [
@@ -3956,8 +4784,8 @@
         "S4_pixel_diff",
         "S5_persistence_ssr"
       ],
-      "status": "pending",
-      "lastVerified": null
+      "status": "passed",
+      "lastVerified": "2026-11-21T20:39:18.948Z"
     },
     {
       "id": "PATTERN-lead-capture-form",
@@ -3972,8 +4800,14 @@
             "variableReplacement",
             "treeReparenting"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "style": {
           "controls": [
@@ -3981,8 +4815,14 @@
             "hslTokensAligned",
             "responsiveCssVariables"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "advanced": {
           "controls": [
@@ -3990,8 +4830,14 @@
             "wrapperAnimation",
             "customClasses"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         }
       },
       "signalsRequired": [
@@ -4001,8 +4847,8 @@
         "S4_pixel_diff",
         "S5_persistence_ssr"
       ],
-      "status": "pending",
-      "lastVerified": null
+      "status": "passed",
+      "lastVerified": "2026-11-21T20:39:18.948Z"
     },
     {
       "id": "PATTERN-alert-banner",
@@ -4017,8 +4863,14 @@
             "variableReplacement",
             "treeReparenting"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "style": {
           "controls": [
@@ -4026,8 +4878,14 @@
             "hslTokensAligned",
             "responsiveCssVariables"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "advanced": {
           "controls": [
@@ -4035,8 +4893,14 @@
             "wrapperAnimation",
             "customClasses"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         }
       },
       "signalsRequired": [
@@ -4046,8 +4910,8 @@
         "S4_pixel_diff",
         "S5_persistence_ssr"
       ],
-      "status": "pending",
-      "lastVerified": null
+      "status": "passed",
+      "lastVerified": "2026-11-21T20:39:18.948Z"
     },
     {
       "id": "PATTERN-floating-contact-bar",
@@ -4062,8 +4926,14 @@
             "variableReplacement",
             "treeReparenting"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "style": {
           "controls": [
@@ -4071,8 +4941,14 @@
             "hslTokensAligned",
             "responsiveCssVariables"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "advanced": {
           "controls": [
@@ -4080,8 +4956,14 @@
             "wrapperAnimation",
             "customClasses"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         }
       },
       "signalsRequired": [
@@ -4091,8 +4973,8 @@
         "S4_pixel_diff",
         "S5_persistence_ssr"
       ],
-      "status": "pending",
-      "lastVerified": null
+      "status": "passed",
+      "lastVerified": "2026-11-21T20:39:18.948Z"
     },
     {
       "id": "PATTERN-brand-logo-carousel",
@@ -4107,8 +4989,14 @@
             "variableReplacement",
             "treeReparenting"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "style": {
           "controls": [
@@ -4116,8 +5004,14 @@
             "hslTokensAligned",
             "responsiveCssVariables"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "advanced": {
           "controls": [
@@ -4125,8 +5019,14 @@
             "wrapperAnimation",
             "customClasses"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         }
       },
       "signalsRequired": [
@@ -4136,8 +5036,8 @@
         "S4_pixel_diff",
         "S5_persistence_ssr"
       ],
-      "status": "pending",
-      "lastVerified": null
+      "status": "passed",
+      "lastVerified": "2026-11-21T20:39:18.948Z"
     },
     {
       "id": "PATTERN-product-highlights",
@@ -4152,8 +5052,14 @@
             "variableReplacement",
             "treeReparenting"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "style": {
           "controls": [
@@ -4161,8 +5067,14 @@
             "hslTokensAligned",
             "responsiveCssVariables"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "advanced": {
           "controls": [
@@ -4170,8 +5082,14 @@
             "wrapperAnimation",
             "customClasses"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         }
       },
       "signalsRequired": [
@@ -4181,8 +5099,8 @@
         "S4_pixel_diff",
         "S5_persistence_ssr"
       ],
-      "status": "pending",
-      "lastVerified": null
+      "status": "passed",
+      "lastVerified": "2026-11-21T20:39:18.948Z"
     },
     {
       "id": "SHELL-builder-toolbar",
@@ -4247,7 +5165,7 @@
         "S5_persistence_ssr"
       ],
       "status": "passed",
-      "lastVerified": "2026-11-21T19:58:11.123Z"
+      "lastVerified": "2026-11-21T20:39:18.948Z"
     },
     {
       "id": "SHELL-layers-tree",
@@ -4312,7 +5230,7 @@
         "S5_persistence_ssr"
       ],
       "status": "passed",
-      "lastVerified": "2026-11-21T19:58:11.123Z"
+      "lastVerified": "2026-11-21T20:39:18.948Z"
     },
     {
       "id": "SHELL-blocks-palette",
@@ -4375,7 +5293,7 @@
         "S5_persistence_ssr"
       ],
       "status": "passed",
-      "lastVerified": "2026-11-21T19:58:11.123Z"
+      "lastVerified": "2026-11-21T20:39:18.948Z"
     },
     {
       "id": "DIALOG-global-styles-dialog",
@@ -4440,7 +5358,7 @@
         "S5_persistence_ssr"
       ],
       "status": "passed",
-      "lastVerified": "2026-11-21T19:58:11.123Z"
+      "lastVerified": "2026-11-21T20:39:18.948Z"
     },
     {
       "id": "DIALOG-save-template-dialog",
@@ -4455,8 +5373,14 @@
             "templateCategory",
             "persistSave"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "style": {
           "controls": [
@@ -4464,16 +5388,28 @@
             "colorTokensPreview",
             "rtlLayout"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "advanced": {
           "controls": [
             "escapeKeyDismiss",
             "persistPayloadToStorage"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         }
       },
       "signalsRequired": [
@@ -4483,8 +5419,8 @@
         "S4_pixel_diff",
         "S5_persistence_ssr"
       ],
-      "status": "pending",
-      "lastVerified": null
+      "status": "passed",
+      "lastVerified": "2026-11-21T20:39:18.948Z"
     },
     {
       "id": "DIALOG-save-page-template-dialog",
@@ -4499,8 +5435,14 @@
             "slugSync",
             "persistSave"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "style": {
           "controls": [
@@ -4508,16 +5450,28 @@
             "colorTokensPreview",
             "rtlLayout"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "advanced": {
           "controls": [
             "escapeKeyDismiss",
             "persistPayloadToStorage"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         }
       },
       "signalsRequired": [
@@ -4527,8 +5481,8 @@
         "S4_pixel_diff",
         "S5_persistence_ssr"
       ],
-      "status": "pending",
-      "lastVerified": null
+      "status": "passed",
+      "lastVerified": "2026-11-21T20:39:18.948Z"
     },
     {
       "id": "DIALOG-keyboard-shortcuts-dialog",
@@ -4543,8 +5497,14 @@
             "keyBindingList",
             "closeAction"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "style": {
           "controls": [
@@ -4552,16 +5512,28 @@
             "colorTokensPreview",
             "rtlLayout"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "advanced": {
           "controls": [
             "escapeKeyDismiss",
             "persistPayloadToStorage"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         }
       },
       "signalsRequired": [
@@ -4571,8 +5543,8 @@
         "S4_pixel_diff",
         "S5_persistence_ssr"
       ],
-      "status": "pending",
-      "lastVerified": null
+      "status": "passed",
+      "lastVerified": "2026-11-21T20:39:18.948Z"
     }
   ]
 }

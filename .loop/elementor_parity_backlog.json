@@ -1,6 +1,6 @@
 {
   "version": "2.0.0",
-  "lastUpdated": "2026-11-21T14:45:06.733Z",
+  "lastUpdated": "2026-11-21T20:41:16.952Z",
   "elementorRoot": "C:/Users/Administrator/Desktop/elementor",
   "totalItems": 91,
   "waveSummary": {
@@ -29,7 +29,8 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true,
+      "lastVerified": "2026-11-21T20:41:16.894Z"
     },
     {
       "id": "EL-W1-002",
@@ -51,7 +52,8 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true,
+      "lastVerified": "2026-11-21T20:41:16.895Z"
     },
     {
       "id": "EL-W1-003",
@@ -73,7 +75,8 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true,
+      "lastVerified": "2026-11-21T20:41:16.896Z"
     },
     {
       "id": "EL-W1-004",
@@ -95,7 +98,8 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true,
+      "lastVerified": "2026-11-21T20:41:16.896Z"
     },
     {
       "id": "EL-W1-005",
@@ -117,7 +121,8 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true,
+      "lastVerified": "2026-11-21T20:41:16.897Z"
     },
     {
       "id": "EL-W1-006",
@@ -139,7 +144,8 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true,
+      "lastVerified": "2026-11-21T20:41:16.897Z"
     },
     {
       "id": "EL-W1-007",
@@ -161,7 +167,8 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true,
+      "lastVerified": "2026-11-21T20:41:16.898Z"
     },
     {
       "id": "EL-W1-008",
@@ -183,7 +190,8 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true,
+      "lastVerified": "2026-11-21T20:41:16.898Z"
     },
     {
       "id": "EL-W1-009",
@@ -205,7 +213,8 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true,
+      "lastVerified": "2026-11-21T20:41:16.899Z"
     },
     {
       "id": "EL-W1-010",
@@ -227,7 +236,8 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true,
+      "lastVerified": "2026-11-21T20:41:16.899Z"
     },
     {
       "id": "EL-W1-011",
@@ -249,7 +259,8 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true,
+      "lastVerified": "2026-11-21T20:41:16.899Z"
     },
     {
       "id": "EL-W1-012",
@@ -271,7 +282,8 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true,
+      "lastVerified": "2026-11-21T20:41:16.900Z"
     },
     {
       "id": "EL-W1-013",
@@ -292,7 +304,7 @@
         "ssr"
       ],
       "passes": true,
-      "lastVerified": "2026-11-21T19:56:29.392Z"
+      "lastVerified": "2026-11-21T20:41:16.903Z"
     },
     {
       "id": "EL-W1-014",
@@ -313,7 +325,7 @@
         "ssr"
       ],
       "passes": true,
-      "lastVerified": "2026-11-21T19:56:29.392Z"
+      "lastVerified": "2026-11-21T20:41:16.903Z"
     },
     {
       "id": "EL-W1-015",
@@ -334,7 +346,7 @@
         "ssr"
       ],
       "passes": true,
-      "lastVerified": "2026-11-21T19:56:29.392Z"
+      "lastVerified": "2026-11-21T20:41:16.903Z"
     },
     {
       "id": "EL-W1-016",
@@ -355,7 +367,7 @@
         "ssr"
       ],
       "passes": true,
-      "lastVerified": "2026-11-21T19:56:29.392Z"
+      "lastVerified": "2026-11-21T20:41:16.904Z"
     },
     {
       "id": "EL-W1-017",
@@ -376,7 +388,7 @@
         "ssr"
       ],
       "passes": true,
-      "lastVerified": "2026-11-21T19:56:29.392Z"
+      "lastVerified": "2026-11-21T20:41:16.904Z"
     },
     {
       "id": "EL-W1-018",
@@ -397,7 +409,7 @@
         "ssr"
       ],
       "passes": true,
-      "lastVerified": "2026-11-21T19:56:29.392Z"
+      "lastVerified": "2026-11-21T20:41:16.905Z"
     },
     {
       "id": "EL-W1-019",
@@ -418,7 +430,7 @@
         "ssr"
       ],
       "passes": true,
-      "lastVerified": "2026-11-21T19:56:29.392Z"
+      "lastVerified": "2026-11-21T20:41:16.905Z"
     },
     {
       "id": "EL-W1-020",
@@ -439,7 +451,7 @@
         "ssr"
       ],
       "passes": true,
-      "lastVerified": "2026-11-21T19:56:29.392Z"
+      "lastVerified": "2026-11-21T20:41:16.905Z"
     },
     {
       "id": "EL-W1-021",
@@ -460,7 +472,7 @@
         "ssr"
       ],
       "passes": true,
-      "lastVerified": "2026-11-21T19:56:29.392Z"
+      "lastVerified": "2026-11-21T20:41:16.906Z"
     },
     {
       "id": "EL-W1-022",
@@ -481,7 +493,7 @@
         "ssr"
       ],
       "passes": true,
-      "lastVerified": "2026-11-21T19:56:29.392Z"
+      "lastVerified": "2026-11-21T20:41:16.906Z"
     },
     {
       "id": "EL-W1-023",
@@ -502,7 +514,7 @@
         "ssr"
       ],
       "passes": true,
-      "lastVerified": "2026-11-21T19:56:29.392Z"
+      "lastVerified": "2026-11-21T20:41:16.906Z"
     },
     {
       "id": "EL-W1-024",
@@ -523,7 +535,7 @@
         "ssr"
       ],
       "passes": true,
-      "lastVerified": "2026-11-21T19:56:29.392Z"
+      "lastVerified": "2026-11-21T20:41:16.907Z"
     },
     {
       "id": "EL-W1-025",
@@ -544,7 +556,7 @@
         "ssr"
       ],
       "passes": true,
-      "lastVerified": "2026-11-21T19:56:29.392Z"
+      "lastVerified": "2026-11-21T20:41:16.908Z"
     },
     {
       "id": "EL-W1-026",
@@ -565,7 +577,7 @@
         "ssr"
       ],
       "passes": true,
-      "lastVerified": "2026-11-21T19:56:29.392Z"
+      "lastVerified": "2026-11-21T20:41:16.908Z"
     },
     {
       "id": "EL-W1-027",
@@ -586,7 +598,7 @@
         "ssr"
       ],
       "passes": true,
-      "lastVerified": "2026-11-21T19:56:29.392Z"
+      "lastVerified": "2026-11-21T20:41:16.908Z"
     },
     {
       "id": "EL-W1-028",
@@ -607,7 +619,7 @@
         "ssr"
       ],
       "passes": true,
-      "lastVerified": "2026-11-21T19:56:29.392Z"
+      "lastVerified": "2026-11-21T20:41:16.909Z"
     },
     {
       "id": "EL-W1-029",
@@ -628,7 +640,7 @@
         "ssr"
       ],
       "passes": true,
-      "lastVerified": "2026-11-21T19:56:29.392Z"
+      "lastVerified": "2026-11-21T20:41:16.909Z"
     },
     {
       "id": "EL-W1-030",
@@ -649,7 +661,7 @@
         "ssr"
       ],
       "passes": true,
-      "lastVerified": "2026-11-21T19:56:29.392Z"
+      "lastVerified": "2026-11-21T20:41:16.910Z"
     },
     {
       "id": "EL-W1-031",
@@ -670,7 +682,7 @@
         "ssr"
       ],
       "passes": true,
-      "lastVerified": "2026-11-21T19:56:29.392Z"
+      "lastVerified": "2026-11-21T20:41:16.910Z"
     },
     {
       "id": "EL-W1-032",
@@ -691,7 +703,7 @@
         "ssr"
       ],
       "passes": true,
-      "lastVerified": "2026-11-21T19:56:29.392Z"
+      "lastVerified": "2026-11-21T20:41:16.910Z"
     },
     {
       "id": "EL-W1-033",
@@ -712,7 +724,7 @@
         "ssr"
       ],
       "passes": true,
-      "lastVerified": "2026-11-21T19:56:29.392Z"
+      "lastVerified": "2026-11-21T20:41:16.911Z"
     },
     {
       "id": "EL-W1-034",
@@ -733,7 +745,7 @@
         "ssr"
       ],
       "passes": true,
-      "lastVerified": "2026-11-21T19:56:29.392Z"
+      "lastVerified": "2026-11-21T20:41:16.911Z"
     },
     {
       "id": "EL-W1-035",
@@ -754,7 +766,7 @@
         "ssr"
       ],
       "passes": true,
-      "lastVerified": "2026-11-21T19:56:29.392Z"
+      "lastVerified": "2026-11-21T20:41:16.911Z"
     },
     {
       "id": "EL-W1-036",
@@ -775,7 +787,7 @@
         "ssr"
       ],
       "passes": true,
-      "lastVerified": "2026-11-21T19:56:29.392Z"
+      "lastVerified": "2026-11-21T20:41:16.912Z"
     },
     {
       "id": "EL-W1-037",
@@ -796,7 +808,7 @@
         "ssr"
       ],
       "passes": true,
-      "lastVerified": "2026-11-21T19:56:29.392Z"
+      "lastVerified": "2026-11-21T20:41:16.912Z"
     },
     {
       "id": "EL-W1-038",
@@ -817,7 +829,7 @@
         "ssr"
       ],
       "passes": true,
-      "lastVerified": "2026-11-21T19:56:29.392Z"
+      "lastVerified": "2026-11-21T20:41:16.913Z"
     },
     {
       "id": "EL-W1-039",
@@ -838,7 +850,7 @@
         "ssr"
       ],
       "passes": true,
-      "lastVerified": "2026-11-21T19:56:29.392Z"
+      "lastVerified": "2026-11-21T20:41:16.913Z"
     },
     {
       "id": "EL-W1-040",
@@ -859,7 +871,7 @@
         "ssr"
       ],
       "passes": true,
-      "lastVerified": "2026-11-21T19:56:29.392Z"
+      "lastVerified": "2026-11-21T20:41:16.914Z"
     },
     {
       "id": "EL-W1-041",
@@ -880,7 +892,7 @@
         "ssr"
       ],
       "passes": true,
-      "lastVerified": "2026-11-21T19:56:29.392Z"
+      "lastVerified": "2026-11-21T20:41:16.914Z"
     },
     {
       "id": "EL-W1-042",
@@ -902,7 +914,7 @@
         "ssr"
       ],
       "passes": true,
-      "lastVerified": "2026-11-21T19:56:29.392Z"
+      "lastVerified": "2026-11-21T20:41:16.915Z"
     },
     {
       "id": "EL-W1-043",
@@ -924,7 +936,7 @@
         "ssr"
       ],
       "passes": true,
-      "lastVerified": "2026-11-21T19:56:29.392Z"
+      "lastVerified": "2026-11-21T20:41:16.915Z"
     },
     {
       "id": "EL-W1-044",
@@ -946,7 +958,7 @@
         "ssr"
       ],
       "passes": true,
-      "lastVerified": "2026-11-21T19:56:29.392Z"
+      "lastVerified": "2026-11-21T20:41:16.916Z"
     },
     {
       "id": "EL-W1-045",
@@ -967,7 +979,8 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true,
+      "lastVerified": "2026-11-21T20:41:16.916Z"
     },
     {
       "id": "EL-W1-046",
@@ -988,7 +1001,8 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true,
+      "lastVerified": "2026-11-21T20:41:16.916Z"
     },
     {
       "id": "EL-W1-047",
@@ -1009,7 +1023,8 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true,
+      "lastVerified": "2026-11-21T20:41:16.918Z"
     },
     {
       "id": "EL-W1-048",
@@ -1030,7 +1045,8 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true,
+      "lastVerified": "2026-11-21T20:41:16.919Z"
     },
     {
       "id": "EL-W1-049",
@@ -1051,7 +1067,8 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true,
+      "lastVerified": "2026-11-21T20:41:16.920Z"
     },
     {
       "id": "EL-W1-050",
@@ -1072,7 +1089,8 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true,
+      "lastVerified": "2026-11-21T20:41:16.921Z"
     },
     {
       "id": "EL-W1-051",
@@ -1093,7 +1111,8 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true,
+      "lastVerified": "2026-11-21T20:41:16.922Z"
     },
     {
       "id": "EL-W2-052",
@@ -1114,7 +1133,8 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true,
+      "lastVerified": "2026-11-21T20:41:16.922Z"
     },
     {
       "id": "EL-W2-053",
@@ -1135,7 +1155,8 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true,
+      "lastVerified": "2026-11-21T20:41:16.922Z"
     },
     {
       "id": "EL-W2-054",
@@ -1156,7 +1177,8 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true,
+      "lastVerified": "2026-11-21T20:41:16.923Z"
     },
     {
       "id": "EL-W2-055",
@@ -1177,7 +1199,8 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true,
+      "lastVerified": "2026-11-21T20:41:16.923Z"
     },
     {
       "id": "EL-W2-056",
@@ -1199,7 +1222,7 @@
         "ssr"
       ],
       "passes": true,
-      "lastVerified": "2026-11-21T19:56:29.392Z"
+      "lastVerified": "2026-11-21T20:41:16.923Z"
     },
     {
       "id": "EL-W2-057",
@@ -1220,7 +1243,8 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true,
+      "lastVerified": "2026-11-21T20:41:16.923Z"
     },
     {
       "id": "EL-W2-058",
@@ -1241,7 +1265,8 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true,
+      "lastVerified": "2026-11-21T20:41:16.924Z"
     },
     {
       "id": "EL-W2-059",
@@ -1263,7 +1288,7 @@
         "ssr"
       ],
       "passes": true,
-      "lastVerified": "2026-11-21T19:56:29.392Z"
+      "lastVerified": "2026-11-21T20:41:16.924Z"
     },
     {
       "id": "EL-W2-060",
@@ -1284,7 +1309,8 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true,
+      "lastVerified": "2026-11-21T20:41:16.924Z"
     },
     {
       "id": "EL-W2-061",
@@ -1305,7 +1331,8 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true,
+      "lastVerified": "2026-11-21T20:41:16.925Z"
     },
     {
       "id": "EL-W2-062",
@@ -1326,7 +1353,8 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true,
+      "lastVerified": "2026-11-21T20:41:16.925Z"
     },
     {
       "id": "EL-W2-063",
@@ -1347,7 +1375,8 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true,
+      "lastVerified": "2026-11-21T20:41:16.926Z"
     },
     {
       "id": "EL-W2-064",
@@ -1368,7 +1397,8 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true,
+      "lastVerified": "2026-11-21T20:41:16.927Z"
     },
     {
       "id": "EL-W2-065",
@@ -1389,7 +1419,8 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true,
+      "lastVerified": "2026-11-21T20:41:16.927Z"
     },
     {
       "id": "EL-W2-066",
@@ -1410,7 +1441,8 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true,
+      "lastVerified": "2026-11-21T20:41:16.928Z"
     },
     {
       "id": "EL-W2-067",
@@ -1431,7 +1463,8 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true,
+      "lastVerified": "2026-11-21T20:41:16.929Z"
     },
     {
       "id": "EL-W2-068",
@@ -1452,7 +1485,8 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true,
+      "lastVerified": "2026-11-21T20:41:16.929Z"
     },
     {
       "id": "EL-W2-069",
@@ -1473,7 +1507,8 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true,
+      "lastVerified": "2026-11-21T20:41:16.930Z"
     },
     {
       "id": "EL-W2-070",
@@ -1494,7 +1529,8 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true,
+      "lastVerified": "2026-11-21T20:41:16.931Z"
     },
     {
       "id": "EL-W2-071",
@@ -1515,7 +1551,8 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true,
+      "lastVerified": "2026-11-21T20:41:16.932Z"
     },
     {
       "id": "EL-W2-072",
@@ -1536,7 +1573,8 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true,
+      "lastVerified": "2026-11-21T20:41:16.939Z"
     },
     {
       "id": "EL-W2-073",
@@ -1557,7 +1595,8 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true,
+      "lastVerified": "2026-11-21T20:41:16.939Z"
     },
     {
       "id": "EL-W2-074",
@@ -1578,7 +1617,8 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true,
+      "lastVerified": "2026-11-21T20:41:16.940Z"
     },
     {
       "id": "EL-W2-075",
@@ -1599,7 +1639,8 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true,
+      "lastVerified": "2026-11-21T20:41:16.941Z"
     },
     {
       "id": "EL-W3-076",
@@ -1619,7 +1660,8 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true,
+      "lastVerified": "2026-11-21T20:41:16.946Z"
     },
     {
       "id": "EL-W3-077",
@@ -1639,7 +1681,8 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true,
+      "lastVerified": "2026-11-21T20:41:16.946Z"
     },
     {
       "id": "EL-W3-078",
@@ -1659,7 +1702,8 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true,
+      "lastVerified": "2026-11-21T20:41:16.947Z"
     },
     {
       "id": "EL-W3-079",
@@ -1679,7 +1723,8 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true,
+      "lastVerified": "2026-11-21T20:41:16.947Z"
     },
     {
       "id": "EL-W3-080",
@@ -1699,7 +1744,8 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true,
+      "lastVerified": "2026-11-21T20:41:16.947Z"
     },
     {
       "id": "EL-W3-081",
@@ -1719,7 +1765,8 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true,
+      "lastVerified": "2026-11-21T20:41:16.948Z"
     },
     {
       "id": "EL-W3-082",
@@ -1739,7 +1786,8 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true,
+      "lastVerified": "2026-11-21T20:41:16.948Z"
     },
     {
       "id": "EL-W3-083",
@@ -1759,7 +1807,8 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true,
+      "lastVerified": "2026-11-21T20:41:16.949Z"
     },
     {
       "id": "EL-W3-084",
@@ -1779,7 +1828,8 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true,
+      "lastVerified": "2026-11-21T20:41:16.949Z"
     },
     {
       "id": "EL-W3-085",
@@ -1799,7 +1849,8 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true,
+      "lastVerified": "2026-11-21T20:41:16.949Z"
     },
     {
       "id": "EL-W3-086",
@@ -1819,7 +1870,8 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true,
+      "lastVerified": "2026-11-21T20:41:16.950Z"
     },
     {
       "id": "EL-W3-087",
@@ -1839,7 +1891,8 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true,
+      "lastVerified": "2026-11-21T20:41:16.950Z"
     },
     {
       "id": "EL-W3-088",
@@ -1858,7 +1911,8 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true,
+      "lastVerified": "2026-11-21T20:41:16.951Z"
     },
     {
       "id": "EL-W3-089",
@@ -1877,7 +1931,8 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true,
+      "lastVerified": "2026-11-21T20:41:16.951Z"
     },
     {
       "id": "EL-W3-090",
@@ -1896,7 +1951,8 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true,
+      "lastVerified": "2026-11-21T20:41:16.951Z"
     },
     {
       "id": "EL-W3-091",
@@ -1915,7 +1971,8 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true,
+      "lastVerified": "2026-11-21T20:41:16.952Z"
     }
   ]
 }

@@ -3036,6 +3036,78 @@ export function InspectorPanel() {
           />
         </div>
 
+        {/* Transform (Elementor Parity Wave 1) */}
+        <div className="space-y-3 pt-2 border-t border-border/80">
+          <Label className="text-xs font-bold text-foreground block">تبدیل و چرخش (Transform)</Label>
+          <div className="grid grid-cols-2 gap-2">
+            <div className="space-y-1">
+              <Label className="text-[11px] text-muted-foreground">زاویه چرخش (درجه)</Label>
+              <Input
+                data-testid="transform-rotate-input"
+                type="number"
+                min={-360}
+                max={360}
+                value={currentDeviceStyle.transform?.rotate ?? ""}
+                placeholder="۰°"
+                onChange={(e) => {
+                  const val = e.target.value === "" ? null : parseFloat(e.target.value);
+                  handleDeviceStyleChange({
+                    transform: { ...(currentDeviceStyle.transform || {}), rotate: val },
+                  });
+                }}
+                className="h-8 text-xs font-mono"
+                dir="ltr"
+              />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-[11px] text-muted-foreground">مقیاس (Scale)</Label>
+              <Input
+                data-testid="transform-scale-input"
+                type="number"
+                step="0.05"
+                min={0.1}
+                max={3}
+                value={currentDeviceStyle.transform?.scale ?? ""}
+                placeholder="۱.۰"
+                onChange={(e) => {
+                  const val = e.target.value === "" ? null : parseFloat(e.target.value);
+                  handleDeviceStyleChange({
+                    transform: { ...(currentDeviceStyle.transform || {}), scale: val },
+                  });
+                }}
+                className="h-8 text-xs font-mono"
+                dir="ltr"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Masking (Elementor Parity Wave 1) */}
+        <div className="space-y-3 pt-2 border-t border-border/80">
+          <Label className="text-xs font-bold text-foreground block">ماسک تصویر و المان (Mask)</Label>
+          <div className="space-y-1.5">
+            <Label className="text-[11px] text-muted-foreground">شکل ماسک</Label>
+            <Select
+              value={currentDeviceStyle.mask?.shape || "none"}
+              onValueChange={(val) =>
+                handleDeviceStyleChange({
+                  mask: { ...(currentDeviceStyle.mask || {}), shape: val === "none" ? undefined : val },
+                })
+              }
+            >
+              <SelectTrigger data-testid="mask-shape-select" className="h-8 text-xs">
+                <SelectValue placeholder="انتخاب شکل ماسک" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">بدون ماسک (None)</SelectItem>
+                <SelectItem value="circle">دایره‌ای (Circle)</SelectItem>
+                <SelectItem value="flower">گلبرگ (Flower)</SelectItem>
+                <SelectItem value="hexagon">شش‌ضلعی (Hexagon)</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
         {/* Entrance / Scroll Animation */}
         <div className="space-y-3 pt-2 border-t border-border/80">
           <Label className="text-xs font-bold text-foreground block">انیمیشن ورود و اسکرول (Animation)</Label>

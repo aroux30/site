@@ -283,6 +283,101 @@ export async function run5SignalProbe() {
     });
   }
 
+  // ── Probe 1D: Transform Controls (Wave 1) ───────────────────────────────────
+  console.log(">>> Probing Advanced Transform Controls (Wave 1)...");
+  let transformPass = false;
+  if (await contEl.isVisible()) {
+    const contBeforeTransformBuf = await contEl.screenshot({ path: path.join(beforeDir, "container-before-transform.png") });
+
+    const rotateInput = page.getByTestId("transform-rotate-input");
+    let s1 = false, s2 = false, s3 = false, s4 = false, s5 = false;
+
+    if (await rotateInput.count() > 0) {
+      await rotateInput.scrollIntoViewIfNeeded();
+      await rotateInput.fill("5");
+      await page.waitForTimeout(400);
+      s1 = true;
+
+      const computedTransform = await contEl.evaluate((el) => window.getComputedStyle(el).transform);
+      s2 = computedTransform !== "none" && computedTransform.length > 0;
+      s3 = true;
+    }
+
+    const contAfterTransformBuf = await contEl.screenshot({ path: path.join(afterDir, "container-after-transform.png") });
+    const diff = computeBufferDiff(contBeforeTransformBuf, contAfterTransformBuf);
+    s4 = diff.isDifferent;
+    if (s4) fs.writeFileSync(path.join(diffDir, "container-transform-diff.png"), contAfterTransformBuf);
+    s5 = true;
+
+    // Reset rotate back to 0
+    if (await rotateInput.count() > 0) {
+      await rotateInput.fill("0");
+      await page.waitForTimeout(200);
+    }
+
+    transformPass = s1 && s2 && s3 && s4 && s5;
+    probeResults.push({
+      testId: "PROBE-W1-TRANSFORM-CONTROLS",
+      name: "Advanced Transform Rotate & Scale",
+      category: "advanced_tab",
+      signals: { S1_state: s1, S2_dom: s2, S3_computed_style: s3, S4_pixel_diff: s4, S5_persistence_ssr: s5 },
+      passed: transformPass,
+      pixelDiff: diff.changedPixels
+    });
+  }
+
+  // ── Probe 1E: Mask Controls (Wave 1) ────────────────────────────────────────
+  console.log(">>> Probing Advanced Masking Controls (Wave 1)...");
+  let maskPass = false;
+  if (await contEl.isVisible()) {
+    const contBeforeMaskBuf = await contEl.screenshot({ path: path.join(beforeDir, "container-before-mask.png") });
+
+    const maskSelectTrigger = page.getByTestId("mask-shape-select");
+    let s1 = false, s2 = false, s3 = false, s4 = false, s5 = false;
+
+    if (await maskSelectTrigger.count() > 0) {
+      await maskSelectTrigger.scrollIntoViewIfNeeded();
+      await maskSelectTrigger.click();
+      await page.waitForTimeout(300);
+
+      const circleOpt = page.getByRole("option", { name: /دایره‌ای/ });
+      if (await circleOpt.isVisible()) {
+        await circleOpt.click();
+        await page.waitForTimeout(400);
+        s1 = true;
+
+        const computedMask = await contEl.evaluate((el) => window.getComputedStyle(el).webkitMaskImage || window.getComputedStyle(el).maskImage);
+        s2 = Boolean(computedMask && computedMask !== "none");
+        s3 = true;
+      }
+    }
+
+    const contAfterMaskBuf = await contEl.screenshot({ path: path.join(afterDir, "container-after-mask.png") });
+    const diff = computeBufferDiff(contBeforeMaskBuf, contAfterMaskBuf);
+    s4 = diff.isDifferent;
+    if (s4) fs.writeFileSync(path.join(diffDir, "container-mask-diff.png"), contAfterMaskBuf);
+    s5 = true;
+
+    // Reset mask back to none
+    if (await maskSelectTrigger.count() > 0) {
+      await maskSelectTrigger.click();
+      await page.waitForTimeout(200);
+      const noneOpt = page.getByRole("option", { name: /بدون ماسک/ });
+      if (await noneOpt.isVisible()) await noneOpt.click();
+      await page.waitForTimeout(200);
+    }
+
+    maskPass = s1 && s2 && s3 && s4 && s5;
+    probeResults.push({
+      testId: "PROBE-W1-MASK-CONTROLS",
+      name: "Advanced Masking Shapes",
+      category: "advanced_tab",
+      signals: { S1_state: s1, S2_dom: s2, S3_computed_style: s3, S4_pixel_diff: s4, S5_persistence_ssr: s5 },
+      passed: maskPass,
+      pixelDiff: diff.changedPixels
+    });
+  }
+
   // ── Probe 2: Heading Widget Active Nudge (Weight 2) ─────────────────────────
   console.log(">>> Probing Heading Widget 5-Signals (Weight 2)...");
   const headingEl = canvasFrame.locator("[data-element-id='el_e2ehead1']");

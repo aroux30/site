@@ -7,6 +7,7 @@ and sanitized HTML suitable for fallback and SSR display.
 from __future__ import annotations
 
 import html
+import re
 from typing import Any
 
 from app.modules.content.domain.builder_ast import (
@@ -136,6 +137,11 @@ class ASTCompiler:
             extra_attrs += f' data-auth="{html.escape(el.auth_visibility)}"'
         if el.global_component_id:
             extra_attrs += f' data-global-component="{html.escape(el.global_component_id)}"'
+        if el.styles.custom_attributes:
+            for k, v in el.styles.custom_attributes.items():
+                safe_k = re.sub(r'[^a-zA-Z0-9_-]', '', str(k))
+                if safe_k:
+                    extra_attrs += f' {safe_k}="{html.escape(str(v))}"'
 
         # Compile background overlay if present
         overlay = el.styles.mobile.background_overlay
@@ -238,6 +244,11 @@ class ASTCompiler:
             extra_attrs += f' data-auth="{html.escape(el.auth_visibility)}"'
         if el.global_component_id:
             extra_attrs += f' data-global-component="{html.escape(el.global_component_id)}"'
+        if el.styles.custom_attributes:
+            for k, v in el.styles.custom_attributes.items():
+                safe_k = re.sub(r'[^a-zA-Z0-9_-]', '', str(k))
+                if safe_k:
+                    extra_attrs += f' {safe_k}="{html.escape(str(v))}"'
         css_class = " ".join(classes_list)
 
         if widget_type == "heading":
@@ -870,5 +881,44 @@ class ASTCompiler:
 
         if base.box_shadow:
             parts.append(f"box-shadow: {base.box_shadow};")
+
+        # Transform (Elementor Parity Wave 1)
+        if base.transform:
+            tf = base.transform
+            t_parts = []
+            if tf.rotate:
+                t_parts.append(f"rotate({tf.rotate}deg)")
+            if tf.scale:
+                t_parts.append(f"scale({tf.scale})")
+            if tf.skew_x:
+                t_parts.append(f"skewX({tf.skew_x}deg)")
+            if tf.skew_y:
+                t_parts.append(f"skewY({tf.skew_y}deg)")
+            if tf.flip_x:
+                t_parts.append("scaleX(-1)")
+            if tf.flip_y:
+                t_parts.append("scaleY(-1)")
+            if t_parts:
+                parts.append(f"transform: {' '.join(t_parts)};")
+
+        # Masking (Elementor Parity Wave 1)
+        if base.mask and base.mask.shape and base.mask.shape != "none":
+            m = base.mask
+            shape_map = {
+                "circle": "radial-gradient(circle, black 60%, transparent 60%)",
+                "flower": "radial-gradient(circle at 50% 50%, black 50%, transparent 50%)",
+                "hexagon": "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)",
+            }
+            mask_val = shape_map.get(m.shape, f"url('{m.shape}')")
+            if m.shape == "hexagon":
+                parts.append(f"clip-path: {mask_val};")
+            else:
+                parts.append(f"-webkit-mask-image: {mask_val}; mask-image: {mask_val};")
+                if m.size:
+                    parts.append(f"-webkit-mask-size: {m.size}; mask-size: {m.size};")
+                if m.position:
+                    parts.append(f"-webkit-mask-position: {m.position}; mask-position: {m.position};")
+                if m.repeat:
+                    parts.append(f"-webkit-mask-repeat: {m.repeat}; mask-repeat: {m.repeat};")
 
         return parts

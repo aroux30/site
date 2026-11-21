@@ -11,7 +11,7 @@ const { chromium } = req("playwright");
 const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || "http://127.0.0.1:3000";
 const PROJECT_ROOT = path.resolve(".");
 const BACKEND_DIR = path.join(PROJECT_ROOT, "backend");
-const ROUND = process.env.EXCAVATOR_ROUND || "round-03";
+const ROUND = process.env.EXCAVATOR_ROUND || "round-05";
 const ARTIFACTS_DIR = path.join(PROJECT_ROOT, ".loop", "artifacts", "excavator", ROUND, "before");
 const AUDITS_DIR = path.join(PROJECT_ROOT, ".loop", "audits");
 const MATRIX_PATH = path.join(PROJECT_ROOT, ".loop", "XRAY_MATRIX.json");
@@ -681,6 +681,18 @@ async function runXRay() {
           const computedShadow = await headLoc.evaluate((el) => window.getComputedStyle(el).boxShadow);
           if (!computedShadow || computedShadow === "none") {
             await addFailure("P0", "DEAD_INSPECTOR_CONTROL", "boxShadow::preset", "Box shadow preset clicked but computedStyle.boxShadow is none");
+            matrix.deadControlsRemaining++;
+          }
+        }
+
+        // Test 6: Border Width & Style Controls (Elementor Border System)
+        const borderWidthInput = page.locator('input[placeholder="مثلاً 1"]').first();
+        if (await borderWidthInput.isVisible()) {
+          await borderWidthInput.fill("4");
+          await page.waitForTimeout(300);
+          const computedBorderWidth = await headLoc.evaluate((el) => window.getComputedStyle(el).borderTopWidth);
+          if (computedBorderWidth !== "4px") {
+            await addFailure("P0", "DEAD_INSPECTOR_CONTROL", "border::width", `Border width set to 4px in inspector but computedStyle.borderTopWidth is ${computedBorderWidth}`);
             matrix.deadControlsRemaining++;
           }
         }

@@ -676,6 +676,22 @@ class ASTCompiler:
                 parts.append(f"text-align: {typo.text_align};")
             if typo.font_family and typo.font_family != "inherit":
                 parts.append(f"font-family: {typo.font_family};")
+        if base.border:
+            b = base.border
+            if b.style and b.style != "none":
+                parts.append(f"border-style: {b.style};")
+                if b.color:
+                    b_color = b.color
+                    if b_color.startswith("var(--"):
+                        parts.append(f"border-color: hsl({b_color});")
+                    else:
+                        parts.append(f"border-color: {b_color};")
+                if b.width and b.width.top:
+                    parts.append(f"border-width: {b.width.top.to_css()};")
+            if b.radius:
+                r = b.radius
+                parts.append(f"border-radius: {r.top.to_css()} {r.right.to_css()} {r.bottom.to_css()} {r.left.to_css()};")
+
         if base.background and base.background.color:
             bg_color = base.background.color
             if bg_color.startswith("var(--"):

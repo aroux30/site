@@ -1962,10 +1962,112 @@ export function InspectorPanel() {
           </div>
         </div>
 
-        {/* Border Radius & Border Color Tokens */}
-        <div className="space-y-1.5 pt-2 border-t">
-          <Label className="text-xs font-bold text-foreground">شعاع گردی کادر (Border Radius)</Label>
-          <div className="flex items-center gap-2">
+        {/* Border System (Elementor Border Style, Width, Color, Radius) */}
+        <div className="space-y-3 pt-2 border-t">
+          <Label className="text-xs font-bold text-foreground">کادر و حاشیه (Elementor Border System)</Label>
+
+          {/* Border Style and Width */}
+          <div className="grid grid-cols-2 gap-2">
+            <div className="space-y-1">
+              <Label className="text-[10px] text-muted-foreground">نوع خط کادر (Style)</Label>
+              <Select
+                value={currentDeviceStyle.border?.style || "none"}
+                onValueChange={(val: any) =>
+                  handleDeviceStyleChange({
+                    border: {
+                      ...currentDeviceStyle.border,
+                      style: val,
+                    },
+                  })
+                }
+              >
+                <SelectTrigger className="h-7 text-xs"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">بدون خط (None)</SelectItem>
+                  <SelectItem value="solid">یکپارچه (Solid)</SelectItem>
+                  <SelectItem value="dashed">خط‌چین (Dashed)</SelectItem>
+                  <SelectItem value="dotted">نقطه‌چین (Dotted)</SelectItem>
+                  <SelectItem value="double">دوتایی (Double)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-1">
+              <Label className="text-[10px] text-muted-foreground">ضخامت کادر (Width)</Label>
+              <div className="relative flex items-center">
+                <Input
+                  type="number"
+                  min={0}
+                  max={24}
+                  value={currentDeviceStyle.border?.width?.top?.value || ""}
+                  placeholder="مثلاً 1"
+                  onChange={(e) => {
+                    const val = parseFloat(e.target.value);
+                    handleDeviceStyleChange({
+                      border: {
+                        ...currentDeviceStyle.border,
+                        style: currentDeviceStyle.border?.style === "none" ? "solid" : currentDeviceStyle.border?.style || "solid",
+                        width: isNaN(val)
+                          ? null
+                          : {
+                              top: { value: val, unit: "px" },
+                              right: { value: val, unit: "px" },
+                              bottom: { value: val, unit: "px" },
+                              left: { value: val, unit: "px" },
+                              isLinked: true,
+                            },
+                      },
+                    });
+                  }}
+                  className="h-7 text-xs pe-7 ps-2"
+                  dir="ltr"
+                />
+                <span className="absolute end-1.5 text-[10px] font-mono text-muted-foreground select-none pointer-events-none">
+                  px
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Border Color */}
+          <div className="space-y-1">
+            <Label className="text-[10px] text-muted-foreground">رنگ کادر (Border Color)</Label>
+            <div className="flex items-center gap-2">
+              <input
+                type="color"
+                value={toValidHexColor(currentDeviceStyle.border?.color, "#e4e4e7")}
+                onChange={(e) =>
+                  handleDeviceStyleChange({
+                    border: {
+                      ...currentDeviceStyle.border,
+                      style: currentDeviceStyle.border?.style === "none" ? "solid" : currentDeviceStyle.border?.style || "solid",
+                      color: e.target.value,
+                    },
+                  })
+                }
+                className="w-8 h-8 rounded border border-input cursor-pointer p-0.5"
+              />
+              <Input
+                value={currentDeviceStyle.border?.color || ""}
+                placeholder="#e4e4e7 یا hsl(var(--border))"
+                onChange={(e) =>
+                  handleDeviceStyleChange({
+                    border: {
+                      ...currentDeviceStyle.border,
+                      style: currentDeviceStyle.border?.style === "none" ? "solid" : currentDeviceStyle.border?.style || "solid",
+                      color: normalizeCssColor(e.target.value) || e.target.value,
+                    },
+                  })
+                }
+                className="h-8 text-xs flex-1 font-mono"
+                dir="ltr"
+              />
+            </div>
+          </div>
+
+          {/* Border Radius */}
+          <div className="space-y-1">
+            <Label className="text-[10px] text-muted-foreground">شعاع گردی کادر (Border Radius)</Label>
             <Input
               value={(currentDeviceStyle.border as any)?.radiusToken || ""}
               placeholder="مثلاً 12px یا var(--radius)"
@@ -1973,42 +2075,42 @@ export function InspectorPanel() {
                 handleDeviceStyleChange({
                   border: {
                     ...currentDeviceStyle.border,
-                    style: currentDeviceStyle.border?.style || "solid",
+                    style: currentDeviceStyle.border?.style || "none",
                     radiusToken: e.target.value,
                   } as any,
                 })
               }
-              className="h-8 text-xs flex-1 font-mono"
+              className="h-8 text-xs font-mono"
               dir="ltr"
             />
-          </div>
-          <div className="flex flex-wrap gap-1 mt-1.5">
-            <span className="text-[10px] text-muted-foreground me-1 self-center">توکن شعاع:</span>
-            {[
-              { label: "بدون گردی", val: "0px" },
-              { label: "شعاع تم سازمانی", val: "var(--radius)" },
-              { label: "کوچک (6px)", val: "6px" },
-              { label: "متوسط (12px)", val: "12px" },
-              { label: "بزرگ (16px)", val: "16px" },
-              { label: "کپسولی", val: "9999px" },
-            ].map((tok) => (
-              <button
-                key={tok.val}
-                type="button"
-                onClick={() =>
-                  handleDeviceStyleChange({
-                    border: {
-                      ...currentDeviceStyle.border,
-                      style: currentDeviceStyle.border?.style || "solid",
-                      radiusToken: tok.val,
-                    } as any,
-                  })
-                }
-                className="px-2 py-0.5 rounded text-[10px] bg-muted/80 hover:bg-muted text-muted-foreground hover:text-foreground border border-border/60 transition"
-              >
-                {tok.label}
-              </button>
-            ))}
+            <div className="flex flex-wrap gap-1 mt-1.5">
+              <span className="text-[10px] text-muted-foreground me-1 self-center">توکن شعاع:</span>
+              {[
+                { label: "بدون گردی", val: "0px" },
+                { label: "شعاع تم سازمانی", val: "var(--radius)" },
+                { label: "کوچک (6px)", val: "6px" },
+                { label: "متوسط (12px)", val: "12px" },
+                { label: "بزرگ (16px)", val: "16px" },
+                { label: "کپسولی", val: "9999px" },
+              ].map((tok) => (
+                <button
+                  key={tok.val}
+                  type="button"
+                  onClick={() =>
+                    handleDeviceStyleChange({
+                      border: {
+                        ...currentDeviceStyle.border,
+                        style: currentDeviceStyle.border?.style || "none",
+                        radiusToken: tok.val,
+                      } as any,
+                    })
+                  }
+                  className="px-2 py-0.5 rounded text-[10px] bg-muted/80 hover:bg-muted text-muted-foreground hover:text-foreground border border-border/60 transition"
+                >
+                  {tok.label}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 

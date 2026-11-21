@@ -159,6 +159,8 @@ class DeviceStyle(ASTModel):
     gap: UnitValue | None = None
     grid_template_columns: str | None = None
     box_shadow: str | None = None
+    backdrop_blur: str | None = None
+    filter_blur: float | None = None
     transform: TransformStyle | None = None
     mask: MaskStyle | None = None
 

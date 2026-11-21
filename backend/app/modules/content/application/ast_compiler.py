@@ -270,10 +270,6 @@ class ASTCompiler:
             h = props.get("height", 32)
             return f'<div{id_attr} class="w-full {css_class}" style="height: {int(h)}px;" aria-hidden="true"{extra_attrs}></div>'
 
-        elif widget_type == "columns":
-            cols_html = "".join(cls._compile_element(child, is_authenticated=is_authenticated) for child in el.children)
-            return f'<div{id_attr} class="grid grid-cols-1 md:grid-cols-2 gap-4 w-full {css_class}"{style_attr}>{cols_html}</div>'
-
         elif widget_type == "html_custom" or widget_type == "legacy_html":
             raw_html = str(props.get("html", props.get("content", "")))
             return f'<div{id_attr} class="builder-custom-html {css_class}"{style_attr}{extra_attrs}>{raw_html}</div>'

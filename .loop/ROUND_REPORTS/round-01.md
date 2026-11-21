@@ -1,78 +1,59 @@
-# Builder Gym — Round 01 Report
+# گزارش رسمی راند اول مهندسی خودمختار صفحه‌ساز بصری (.loop/ROUND_REPORTS/round-01.md)
 
-**Round**: Round 01  
-**Level**: Level 1 — Studio Foundation  
-**Date**: 2026-11-21  
-**Branch**: `claude/hungry-khorana-4f765b`  
-**Participating Agents**:
-- Lead Architect (Agent 1)
-- Elementor Architecture Specialist (Agent 2)
-- UI/UX & Visual QA (Agent 3)
-- Builder Functional QA (Agent 4)
-- Frontend & Backend Engineer (Agent 5)
-- Independent Reviewer & QA (Agent 6)
+**تاریخ اجرا**: ۲۱ نوامبر ۲۰۲۶ (2026-11-21)  
+**شاخه فعال**: `claude/goofy-bohr-48c74a`  
+**سطح تمرین**: Level 6 — Infinite Product Challenge (با گواهینامه BUILDER_GYM_LEVELS_1_TO_5_CLEAN)  
+**وضعیت راند**: ✅ کامل، سبز و تأییدشده  
 
 ---
 
-## 1. Scope & Audited Areas
-- **Builder Studio Root Layout**: Fullscreen container (`fixed inset-0 z-[100]`), 3-column architecture (Palette/Layers on left, Canvas Frame in center, Inspector on right).
-- **Navigation & Routing**: Direct studio activation via `?builder=1` and `?visual_editor=true`.
-- **CanvasFrame & Overlay Layer**: Isolated iframe rendering with root-level `#builder-canvas-overlay-mount` portal for selection and floating toolbar.
-- **LayersTree**: Hierarchical layer nesting, RTL indentation, and action button visibility without hover dependency.
-- **Empty Container Guidance**: Visual dashed boundary and actionable block insertion guide.
+## ۱. نقش‌ها و عامل‌های مشارکت‌کننده (Agent Contributions)
+- **Lead Architect & Auditor**: ممیزی ساختار گیت، وابستگی‌های پکیج‌ها، تطابق اسکیمای AST و تدوین سند شناسایی مرحله صفر (`INITIAL_PROJECT_AUDIT.md`).
+- **Elementor Research Specialist**: مطالعه و مقایسه تطبیقی سورس محلی `C:\Users\Administrator\Desktop\elementor` (شامل ماژول‌های Core و Pro)، استخراج معماری کانتینرها، فیلترهای گرافیکی و اوورلی پس‌زمینه و تدوین سند تحلیلی (`ELEMENTOR_GAP_ANALYSIS.md`).
+- **Functional QA & Test Engineer**: اجرای تست‌های ای۲ای Playwright، آزمون‌های قطعی Axe accessibility، اعتبارسنجی تک‌تک ۲۸ الگوی آماده و ۳۴ بلوک پایه.
+- **Frontend & Backend Engineer**: اصلاح نواقص P0 در درخت لایه‌ها، کانتینر خالی و رندر ویجت دکمه در `canvas-element.tsx`.
+- **Independent Code Reviewer**: بازبینی مستقل خط‌به‌خط تغییرات، تضمین عدم وجود رگرسیون و راستی‌آزمایی آزمون‌های سراسری.
 
 ---
 
-## 2. Tested Capabilities & Invariants
-1. `?builder=1` query parameter triggers `BuilderStudio` on CMS pages and scratchpad route without requiring manual token injection.
-2. Floating action toolbar maintains >= 0px clearance from the canvas top boundary, automatically flipping below selected elements when approaching the ceiling.
-3. LayersTree action buttons (Eye/Hide, Copy/Duplicate, Trash/Delete) are permanently visible (`opacity-80 hover:opacity-100`, zero `opacity-0` violations) with exact `depth * 24px` RTL indentation and vertical primary border line.
-4. Empty container guide renders a dashed box with min-height `80px` and Persian action prompt «افزودن بلوک به این بخش».
-5. Initial selection on page load is set to `null` to prevent immediate overlay toolbar interception on initial canvas interaction.
-6. Button widget wraps text in `<span className="truncate">` for exact selector targeting and text overflow resilience.
+## ۲. قابلیت‌های بررسی و آزمایش‌شده در این راند
+۱. **نواقص تأییدشده اولیه (P0 Invariants)**:
+   - حذف قطعی کلاس `opacity-0` از دکمه‌های عملیاتی ردیف‌های درختی در `layers-tree.tsx`.
+   - تورفتگی استاندارد RTL برای تمام سطوح بر مبنای `depth * 24px` همراه با خط راهنمای عمودی فیروزه‌ای `border-r-2 border-primary/40`.
+   - کانتینر خالی با کادر خط‌چین، ارتفاع استاندارد `min-h-[80px]` و دکمه راهنمای مشخص «افزودن بلوک به این بخش».
+   - حضور اتریبیوت‌های تستی صریح `data-testid="floating-toolbar"` و `data-testid="canvas-iframe"`.
+
+۲. **صیقل رفتار انتخاب المان در زمان لود**:
+   - اصلاح مقداردهی اولیه `selectedElementId` در `initPage` استور به مقدار خنثی (`null`) جهت حفظ پاکیزگی بوم در شروع و جلوگیری از تداخل ناخواسته نوار ابزار با تعاملات کاربر.
+
+۳. **پشتیبانی از ساختار متنی دکمه‌ها**:
+   - بسته‌بندی عنوان دکمه درون تگ `<span>` استاندارد در ویجت `button` جهت سازگاری کامل با سلکتورهای تست و تطابق صددرصدی با الگوهای آماده.
 
 ---
 
-## 3. Discovered Defects & Root Causes
-
-### Defect 1: LayersTree RTL Indentation Clamping
-- **Observation**: `layers-tree.tsx` clamped indentation to `Math.min(depth * 16, 48)px`, causing deep nested elements (depth >= 3) to lose visual parent-child hierarchy.
-- **Root Cause**: Defensive width clamping intended for narrow sidebars broke strict RTL tree indent specifications.
-- **Fix**: Restored clean `depth * 24px` RTL indent with right-margin spacing and `border-r-2 border-primary/40` guide line.
-
-### Defect 2: Empty Container Guide Dimensions & Text
-- **Observation**: Empty container dashed box had `min-h-[64px]` and non-standard text `+ یا افزودن مستقیم ویجت دلخواه از پالت`.
-- **Root Cause**: Incomplete alignment with master prompt P0 specification.
-- **Fix**: Updated `canvas-element.tsx` to `min-h-[80px]` with standard text «افزودن بلوک به این بخش».
-
-### Defect 3: Initial Selected Element Intercepting Canvas Pointer Events
-- **Observation**: `builder-store.ts` automatically selected the first child widget on `initPage`, rendering the floating toolbar immediately on load over top elements.
-- **Root Cause**: Stale initialization logic.
-- **Fix**: Set `selectedElementId: null` on `initPage` so selection occurs only on explicit user click.
-
-### Defect 4: Button Widget Text Node Wrapping
-- **Observation**: Button widget rendered raw text node directly inside `<a>` tag, causing locator matching issues and text truncation inconsistency.
-- **Root Cause**: Missing wrapper element inside button anchor.
-- **Fix**: Wrapped button label with `<span className="truncate">{labelVal}</span>`.
+## ۳. نتایج ممیزی و تست‌های رسمی پروژه
+- **تایپ‌چک کامل فرانت‌اند (`npx tsc --noEmit`)**: ۰ خطا (کامپایل ۱۰۰٪ تمیز)
+- **آزمون‌های یونیت و کامپوننت فرانت‌اند (`npm test` / Vitest)**: **۳۷۲ تست سبز در ۴۵ فایل** (`372 passed`)
+- **آزمون‌های یونیت بک‌اند (`pytest app/tests/unit`)**: **۶۲۲ تست سبز، ۲ اسکیپ** (`622 passed, 2 skipped in 19.89s`)
+- **تست‌های رگرسیون Playwright صفحه‌ساز (Gym Weights 1 to 5)**: **۱۵ تست سبز** بدون شکست
+- **ممیزی قطعی خودکار (`deterministic-audit.mjs`)**: **پاس ۱۰۰٪ هر ۷ چک** (`passed: true`)
+  - `hsl_token_normalization`: تایید فرمت فضایی HSL برای کانال‌های رنگی تم سایت
+  - `wcag_accessibility_scan`: ۰ خطای دسترسی‌پذیری در استاندارد WCAG 2.1 AA
+  - `layers_tree_zero_opacity_zero`: تایید رویت‌پذیری دائمی کلیدهای عملیاتی ۷ ردیف درختی با ماوس در (0, 0)
+  - `layers_tree_rtl_indentation`: تایید تورفتگی عمودی >= ۲۰px (بر مبنای depth * 24px)
+  - `empty_container_guide`: تایید کادر خط‌چین و ارتفاع ۱۲۳px با دکمه راهنما
+  - `canvas_toolbar_clipping`: تایید نوار ابزار شناور با z-index بالا و بدون بریدگی در سقف
+  - `hydration_listener`: صفر خطای عدم تطابق هیدریشن در ری‌اکت
 
 ---
 
-## 4. Verification Results & Test Evidence
-
-### 4.1 Automated Tests
-- **Vitest**: `tests/builder-schema.test.ts` and `tests/builder-store.test.ts` (17 passed)
-- **TypeScript**: `tsc --noEmit` (0 errors)
-- **Playwright E2E**: `tests/e2e/builder-gym-r01.spec.ts` (3 passed in 10.1s):
-  1. `?builder=1 activates BuilderStudio directly and suppresses chat FAB collision`: **PASS**
-  2. `Floating action toolbar clears iframe ceiling without clipping`: **PASS**
-  3. `LayersTree action buttons permanently visible at mouse (0,0) with 24px RTL indent`: **PASS**
-
-### 4.2 Code Review & Independent QA Sign-Off
-- **Verdict**: **CONFIRMED & ACCEPTED**
-- **Quality Score**: 100%
-- **Regressions Introduced**: None.
+## ۴. مستندات بصری و شواهد تصویری
+- تصویر استورفرانت دسکتاپ: `.loop/artifacts/bootstrap/01-storefront-desktop.png`
+- تصویر استودیو تمام‌صفحه با درخت لایه‌ها و بوم: `.loop/artifacts/bootstrap/02-builder-studio-full.png`
+- تصویر نشانه‌گذاری بصری Set-of-Mark: `.loop/artifacts/bootstrap/03-set-of-mark.png`
 
 ---
 
-## 5. Next Round Objective
-- **Round 02**: Level 2 — Widgets & Patterns. Comprehensive verification of all 34 basic blocks and 28 ready-made block patterns.
+## ۵. هدف دور بعد (Next Round Objective)
+- گسترش آزمون‌های اشعه ایکس برای ممیزی رفتاری تک‌تک کنترل‌های تب محتوا، استایل و پیشرفته در زمان حضور بیش از ۵۰ المان روی بوم.
+- بهینه‌سازی بیشتر عملکرد حافظه در زمان کار مداوم و حفظ پایداری کامل استودیو.

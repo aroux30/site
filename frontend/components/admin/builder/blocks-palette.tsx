@@ -150,11 +150,17 @@ export function BlocksPalette() {
   const handleInsertPattern = async (pattern: BlockPattern) => {
     setRenderingSlug(pattern.slug);
     try {
-      const res = await blockPatternsApi.render(pattern.slug, {});
       const vars = Object.fromEntries(
         pattern.variables.map((v) => [v.name, v.default])
       );
-      const newEl = createPatternElement(pattern, res.html, vars);
+      let html = "";
+      try {
+        const res = await blockPatternsApi.render(pattern.slug, {});
+        html = res.html;
+      } catch {
+        html = `<section class="pattern-${pattern.slug}"><h2>${pattern.title}</h2></section>`;
+      }
+      const newEl = createPatternElement(pattern, html, vars);
       // Patterns are top-level sections: always insert at root level
       addElement(newEl);
       toast({

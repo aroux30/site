@@ -46,6 +46,7 @@ export function HotkeysDialog({ open, onOpenChange }: HotkeysDialogProps) {
       icon: Layers,
       items: [
         { label: "راهنمای کلیدهای میانبر (این پنجره)", keys: ["Shift", "?"] },
+        { label: "چرخش بین ویوپورت‌های ریسپانسیو (Elementor)", keys: ["Ctrl", "Shift", "M"] },
         { label: "سوییچ بین تب‌های بلوک‌ها و لایه‌ها", keys: ["کلیک روی تب"] },
         { label: "انتخاب ساختار کانتینر جدید", keys: ["کلیک + در کانتینر"] },
         { label: "بازنشانی استایل‌های سراسری", keys: ["دیالوگ استایل سراسری"] },

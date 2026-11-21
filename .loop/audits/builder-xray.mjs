@@ -945,7 +945,30 @@ async function runXRayAudit() {
         if (shapeDividerHeader) {
           console.log("    ✅ Elementor Section Shape Divider controls verified in Inspector.");
         }
+
+        const hasHeightPreset = await page.locator("[data-testid*='height-preset']").first().isVisible();
+        if (hasHeightPreset) {
+          console.log("    ✅ Elementor Container Height & Fit to Screen controls verified in Inspector.");
+        }
       }
+    }
+
+    // ── Check Ctrl+Shift+M Responsive Viewport Cycling ──
+    const beforeBp = await page.evaluate(() => {
+      const s = (window.__builderStore || window.useBuilderStore).getState();
+      return s.activeBreakpoint;
+    });
+    await page.keyboard.press("Control+Shift+M");
+    await page.waitForTimeout(200);
+    const afterBp = await page.evaluate(() => {
+      const s = (window.__builderStore || window.useBuilderStore).getState();
+      return s.activeBreakpoint;
+    });
+    if (beforeBp !== afterBp) {
+      console.log(`    ✅ Ctrl+Shift+M cycled responsive breakpoint: ${beforeBp} -> ${afterBp}`);
+      // Cycle back
+      await page.keyboard.press("Control+Shift+M");
+      await page.keyboard.press("Control+Shift+M");
     }
   } catch (ctxErr) {
     addFailure("P1", "ADVANCED_UX_EXCEPTION", "elementor-parity", ctxErr.message);

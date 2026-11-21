@@ -1673,6 +1673,57 @@ export function InspectorPanel() {
           </div>
         </div>
 
+        {/* Height / Min-Height & Fit to Screen (Elementor Parity) */}
+        {selectedElement.type === "container" && (
+          <div className="space-y-1.5 pt-2 border-t">
+            <Label className="text-xs font-bold text-foreground">ارتفاع کانتینر (Height / Min-Height)</Label>
+            <div className="flex items-center gap-2">
+              <Input
+                value={currentDeviceStyle.minHeight ? `${currentDeviceStyle.minHeight.value}${currentDeviceStyle.minHeight.unit}` : ""}
+                placeholder="مثلاً 100vh یا 450px"
+                onChange={(e) => {
+                  const raw = e.target.value.trim();
+                  if (!raw || raw === "auto") {
+                    handleDeviceStyleChange({ minHeight: undefined });
+                    return;
+                  }
+                  if (raw.endsWith("vh")) {
+                    handleDeviceStyleChange({ minHeight: { value: parseFloat(raw) || 100, unit: "vh" as any } });
+                  } else if (raw.endsWith("px")) {
+                    handleDeviceStyleChange({ minHeight: { value: parseFloat(raw) || 0, unit: "px" } });
+                  } else {
+                    const val = parseFloat(raw);
+                    if (!isNaN(val)) {
+                      handleDeviceStyleChange({ minHeight: { value: val, unit: "px" } });
+                    }
+                  }
+                }}
+                className="h-8 text-xs flex-1 font-mono"
+                dir="ltr"
+              />
+            </div>
+            <div className="flex flex-wrap gap-1 mt-1">
+              <span className="text-[10px] text-muted-foreground me-1 self-center">پریست ارتفاع:</span>
+              {[
+                { label: "پیش‌فرض (خودکار)", h: undefined },
+                { label: "تمام‌صفحه (100vh)", h: { value: 100, unit: "vh" as any } },
+                { label: "هیرو بزرگ (600px)", h: { value: 600, unit: "px" as UnitType } },
+                { label: "سکشن متوسط (400px)", h: { value: 400, unit: "px" as UnitType } },
+              ].map((ht) => (
+                <button
+                  key={ht.label}
+                  type="button"
+                  data-testid={`height-preset-${ht.label}`}
+                  onClick={() => handleDeviceStyleChange({ minHeight: ht.h })}
+                  className="px-2 py-0.5 rounded text-[10px] bg-muted/80 hover:bg-muted text-muted-foreground hover:text-foreground border border-border/60 transition"
+                >
+                  {ht.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Margin Box */}
         <div className="space-y-2">
           <div className="flex items-center justify-between">

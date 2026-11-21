@@ -78,6 +78,11 @@ export function BuilderToolbar({
       if ((e.shiftKey && e.key === "?") || ((e.ctrlKey || e.metaKey) && e.key === "/")) {
         e.preventDefault();
         setHotkeysOpen((prev) => !prev);
+      } else if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === "m") {
+        e.preventDefault();
+        const currentBp = useBuilderStore.getState().activeBreakpoint;
+        const nextBp: Breakpoint = currentBp === "desktop" ? "tablet" : currentBp === "tablet" ? "mobile" : "desktop";
+        setBreakpoint(nextBp);
       } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z") {
         if (e.shiftKey) {
           e.preventDefault();

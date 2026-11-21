@@ -78,7 +78,7 @@ test.describe("Builder Gym Round 02: Weight 2 (Blocks & Patterns Regression)", (
     await expect(heroHeading).toBeVisible();
 
     // Verify custom button style in hero has contrast and classes
-    const btn = frame.locator("span:has-text('همین حالا بخرید')").first();
+    const btn = frame.locator("a:has-text('همین حالا بخرید'), span:has-text('همین حالا بخرید'), [data-element-name*='همین حالا بخرید']").first();
     await expect(btn).toBeVisible();
   });
 

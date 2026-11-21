@@ -1,0 +1,11 @@
+{
+  "activeRound": 21,
+  "level": 6,
+  "status": "IN_PROGRESS",
+  "lastCompletedRound": 20,
+  "levels1to5Status": "CLEAN",
+  "verificationPort": 3700,
+  "totalFailures": 0,
+  "p0Issues": "RESOLVED",
+  "timestamp": "2026-11-21T12:25:00.000Z"
+}

@@ -85,7 +85,7 @@ test.describe("Builder Gym Round 08: Weight 2 (Pricing Table, Categories & Quote
     await megaMenuCard.click();
 
     const frame = page.frameLocator('iframe[title="Visual Builder Canvas"]');
-    const laptopBtn = frame.locator("span:has-text('لپ‌تاپ و کامپیوتر')").first();
+    const laptopBtn = frame.locator("a:has-text('لپ‌تاپ و کامپیوتر'), button:has-text('لپ‌تاپ و کامپیوتر'), span:has-text('لپ‌تاپ و کامپیوتر')").first();
     await expect(laptopBtn).toBeVisible({ timeout: 15000 });
   });
 

@@ -100,6 +100,25 @@ function CanvasElementComponent({
   const makeGlobalComponent = useBuilderStore((s) => s.makeGlobalComponent);
   const previewMode = useBuilderStore((s) => s.previewMode);
 
+  // Custom Attributes (Elementor Pro Parity)
+  const customAttrs = useMemo(() => {
+    const raw = element.styles?.customAttributes;
+    if (!raw) return {};
+    const parsed: Record<string, string> = {};
+    const blacklist = new Set(["id", "class", "style", "data-element-id", "data-element-name"]);
+    for (const line of raw.split("\n")) {
+      const trimmed = line.trim();
+      if (!trimmed || !trimmed.includes("|")) continue;
+      const parts = trimmed.split("|");
+      const k = parts[0]?.trim().toLowerCase();
+      const v = parts.slice(1).join("|").trim();
+      if (k && !blacklist.has(k) && !k.startsWith("on")) {
+        parsed[k] = v;
+      }
+    }
+    return parsed;
+  }, [element.styles?.customAttributes]);
+
   // Drag is native HTML5 drag-and-drop, not dnd-kit. The canvas lives in an
   // iframe, and dnd-kit's pointer sensor never activates across the document
   // boundary (the sensor attaches its move/up listeners to one document while
@@ -1472,6 +1491,7 @@ function CanvasElementComponent({
       id={element.styles?.customCssId || undefined}
       data-element-id={element.id}
       data-element-name={element.name}
+      {...customAttrs}
     >
       {/* Background Overlay (Elementor Parity) */}
       {overlayStyle && (
@@ -1610,11 +1630,11 @@ function CanvasElementComponent({
                   useBuilderStore.getState().setLeftTab("blocks");
                 }}
                 data-testid="empty-container-guide"
-                className="flex flex-col items-center justify-center p-4 border border-dashed border-primary/30 hover:border-primary/60 rounded-xl bg-card/40 hover:bg-primary/5 transition-all cursor-pointer text-center w-full min-h-[64px] shadow-xs group/empty"
+                className="flex flex-col items-center justify-center p-4 border border-dashed border-primary/30 hover:border-primary/60 rounded-xl bg-card/40 hover:bg-primary/5 transition-all cursor-pointer text-center w-full min-h-[80px] shadow-xs group/empty"
               >
                 <div className="flex items-center gap-2 text-xs font-bold text-foreground group-hover/empty:text-primary transition-colors">
-                  <Plus className="w-3.5 h-3.5 text-primary" />
-                  <span>+ یا افزودن مستقیم ویجت دلخواه از پالت</span>
+                  <Plus className="w-4 h-4 text-primary" />
+                  <span>افزودن بلوک به این بخش</span>
                 </div>
               </div>
             </div>

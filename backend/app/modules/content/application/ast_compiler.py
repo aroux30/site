@@ -41,6 +41,25 @@ class ASTCompiler:
         return sanitize_html(raw_html)
 
     @classmethod
+    def _parse_custom_attributes(cls, raw: str | None) -> str:
+        """Parse key|value pairs from custom_attributes (Elementor Parity)."""
+        if not raw:
+            return ""
+        attrs: list[str] = []
+        blacklist = {"id", "class", "style", "data-element-id", "data-auth", "data-global-component"}
+        for line in raw.strip().splitlines():
+            line = line.strip()
+            if not line or "|" not in line:
+                continue
+            parts = line.split("|", 1)
+            k = parts[0].strip().lower()
+            v = parts[1].strip()
+            if not k or k in blacklist or k.startswith("on") or "javascript:" in v.lower():
+                continue
+            attrs.append(f' {html.escape(k)}="{html.escape(v)}"')
+        return "".join(attrs)
+
+    @classmethod
     def _compile_element(cls, el: BuilderElement, is_authenticated: bool = False) -> str:
         if el.is_hidden:
             return ""
@@ -136,6 +155,8 @@ class ASTCompiler:
             extra_attrs += f' data-auth="{html.escape(el.auth_visibility)}"'
         if el.global_component_id:
             extra_attrs += f' data-global-component="{html.escape(el.global_component_id)}"'
+        if el.styles.custom_attributes:
+            extra_attrs += cls._parse_custom_attributes(el.styles.custom_attributes)
 
         # Compile background overlay if present
         overlay = el.styles.mobile.background_overlay
@@ -206,6 +227,8 @@ class ASTCompiler:
             extra_attrs += f' data-auth="{html.escape(el.auth_visibility)}"'
         if el.global_component_id:
             extra_attrs += f' data-global-component="{html.escape(el.global_component_id)}"'
+        if el.styles.custom_attributes:
+            extra_attrs += cls._parse_custom_attributes(el.styles.custom_attributes)
         css_class = " ".join(classes_list)
 
         if widget_type == "heading":
@@ -213,37 +236,37 @@ class ASTCompiler:
             if tag not in ("h1", "h2", "h3", "h4", "h5", "h6"):
                 tag = "h2"
             text = html.escape(str(props.get("text", "")))
-            return f'<{tag}{id_attr} class="font-bold text-foreground break-words {css_class}"{style_attr}>{text}</{tag}>'
+            return f'<{tag}{id_attr} class="font-bold text-foreground break-words {css_class}"{style_attr}{extra_attrs}>{text}</{tag}>'
 
         elif widget_type == "text_editor":
             content = str(props.get("content", ""))
-            return f'<div{id_attr} class="prose dark:prose-invert max-w-none break-words {css_class}"{style_attr}>{content}</div>'
+            return f'<div{id_attr} class="prose dark:prose-invert max-w-none break-words {css_class}"{style_attr}{extra_attrs}>{content}</div>'
 
         elif widget_type == "button":
             label = html.escape(str(props.get("label", "کلیک کنید")))
             url = html.escape(str(props.get("url", "#")))
             target = ' target="_blank" rel="noopener noreferrer"' if props.get("new_tab") else ""
-            return f'<a href="{url}"{id_attr} class="inline-flex items-center justify-center rounded-xl bg-primary px-6 py-3 font-semibold text-primary-foreground transition hover:opacity-90 {css_class}"{target}{style_attr}>{label}</a>'
+            return f'<a href="{url}"{id_attr} class="inline-flex items-center justify-center rounded-xl bg-primary px-6 py-3 font-semibold text-primary-foreground transition hover:opacity-90 {css_class}"{target}{style_attr}{extra_attrs}>{label}</a>'
 
         elif widget_type == "image":
             src = html.escape(str(props.get("url", "")))
             alt = html.escape(str(props.get("alt", "")))
-            return f'<img src="{src}" alt="{alt}"{id_attr} class="rounded-xl object-cover max-w-full h-auto {css_class}" loading="lazy"{style_attr} />'
+            return f'<img src="{src}" alt="{alt}"{id_attr} class="rounded-xl object-cover max-w-full h-auto {css_class}" loading="lazy"{style_attr}{extra_attrs} />'
 
         elif widget_type == "divider":
-            return f'<hr{id_attr} class="my-6 border-border/80 {css_class}"{style_attr} />'
+            return f'<hr{id_attr} class="my-6 border-border/80 {css_class}"{style_attr}{extra_attrs} />'
 
         elif widget_type == "spacer":
             h = props.get("height", 32)
-            return f'<div{id_attr} class="w-full {css_class}" style="height: {int(h)}px;" aria-hidden="true"></div>'
+            return f'<div{id_attr} class="w-full {css_class}" style="height: {int(h)}px;" aria-hidden="true"{extra_attrs}></div>'
 
         elif widget_type == "html_custom" or widget_type == "legacy_html":
             raw_html = str(props.get("html", props.get("content", "")))
-            return f'<div{id_attr} class="builder-custom-html {css_class}"{style_attr}>{raw_html}</div>'
+            return f'<div{id_attr} class="builder-custom-html {css_class}"{style_attr}{extra_attrs}>{raw_html}</div>'
 
         elif widget_type == "product_title":
             title_text = html.escape(str(props.get("fallback_title", "عنوان محصول")))
-            return f'<h1{id_attr} class="text-2xl lg:text-3xl font-bold text-foreground {css_class}"{style_attr}>{title_text}</h1>'
+            return f'<h1{id_attr} class="text-2xl lg:text-3xl font-bold text-foreground {css_class}"{style_attr}{extra_attrs}>{title_text}</h1>'
 
         elif widget_type == "table":
             headers = props.get("headers", [])

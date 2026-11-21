@@ -154,6 +154,7 @@ class ResponsiveStyles(ASTModel):
     desktop: DeviceStyle | None = None
     custom_css_class: str | None = None
     custom_css_id: str | None = None
+    custom_attributes: str | None = None
     direction: Literal["rtl", "ltr", "inherit"] = "inherit"
     animation: str | None = None  # e.g. "fade-in", "slide-up", "zoom-in"
     animation_duration: float | None = None  # in seconds (e.g. 0.5)

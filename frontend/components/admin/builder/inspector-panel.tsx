@@ -1697,7 +1697,7 @@ export function InspectorPanel() {
           <div className="flex items-center gap-2">
             <Input
               value={currentDeviceStyle.width ? `${currentDeviceStyle.width.value}${currentDeviceStyle.width.unit}` : ""}
-              placeholder="100% / 1280px / خودکار"
+              placeholder="100% یا 1280px / خودکار"
               onChange={(e) => {
                 const raw = e.target.value.trim();
                 if (!raw || raw === "auto") {
@@ -2919,6 +2919,30 @@ export function InspectorPanel() {
               })
             }
             className="h-8 text-xs"
+          />
+        </div>
+
+        {/* Custom Attributes (Elementor Pro Parity) */}
+        <div className="space-y-1.5 pt-2 border-t border-border/80" data-testid="custom-attributes-control">
+          <div className="flex items-center justify-between">
+            <Label className="text-xs font-bold text-foreground">ویژگی‌های سفارشی (Custom Attributes - المنتور)</Label>
+            <span className="text-[10px] text-muted-foreground font-mono">key|value</span>
+          </div>
+          <p className="text-[11px] text-muted-foreground leading-relaxed">
+            ویژگی‌های سفارشی المان را وارد کنید. هر ویژگی در یک خط، کلید و مقدار با نویسه <code className="text-primary font-bold">|</code> تفکیک می‌شوند (مانند <span dir="ltr" className="font-mono text-[10px]">data-tracking|hero-cta</span>).
+          </p>
+          <textarea
+            data-testid="custom-attributes-textarea"
+            rows={3}
+            dir="ltr"
+            placeholder={"data-tracking|hero-cta\nrel|sponsored"}
+            value={selectedElement.styles.customAttributes || ""}
+            onChange={(e) =>
+              updateElementStyles(selectedElement.id, {
+                customAttributes: e.target.value,
+              })
+            }
+            className="w-full rounded-md border border-input bg-background p-2 text-xs font-mono outline-none focus:ring-1 focus:ring-primary"
           />
         </div>
 

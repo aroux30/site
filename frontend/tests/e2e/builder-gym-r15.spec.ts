@@ -56,7 +56,7 @@ test.describe("Builder Gym Round 15: Progressive Overload (Nested Layouts, Gap P
     await page.waitForTimeout(1500);
 
     // Switch to basic blocks tab
-    const basicBlocksSubTab = page.getByRole("button", { name: /بلوک‌ها/i });
+    const basicBlocksSubTab = page.getByRole("button", { name: "بلوک‌ها", exact: true });
     await basicBlocksSubTab.click();
     await page.waitForTimeout(400);
 
@@ -85,7 +85,7 @@ test.describe("Builder Gym Round 15: Progressive Overload (Nested Layouts, Gap P
     await page.waitForTimeout(1500);
 
     // Switch to basic blocks tab
-    const basicBlocksSubTab = page.getByRole("button", { name: /بلوک‌ها/i });
+    const basicBlocksSubTab = page.getByRole("button", { name: "بلوک‌ها", exact: true });
     await basicBlocksSubTab.click();
     await page.waitForTimeout(400);
 

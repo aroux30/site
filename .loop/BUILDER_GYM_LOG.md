@@ -732,6 +732,47 @@
 
 ---
 
+### 🏋️ راند ۱۵ (Round 15) — وزنه ۶: ۷۰ کیلو (تثبیت ۳۶۰ درجه ترنسفورم و ماسک، رفع تکثیر کنترل‌های بازرس و سلامت کامپایلر SSR)
+- **تاریخ اجرا**: 2026-11-22
+- **شاخه ایزوله**: `claude/relaxed-shamir-82671f`
+- **وضعیت**: ✅ کامل و سبز (۴ باگ عمیق و رگرسیون P0 در اتصال Transform/Mask، تکثیر دکمه‌های نوار ابزار و فیلتر Bleach حل و با Vision تایید شدند)
+
+#### ۱. باگ‌های کشف‌شده با ابزار Vision و Active Nudge
+1. **عدم بازتاب تغییر زاویه چرخش و مقیاس بر روی بوم Iframe (`Transform / Mask Canvas Disconnection`)**:
+   - *مشاهده چشمی در Vision*: پس از تغییر زاویه چرخش به ۲۵ درجه و مقیاس به ۱.۱۵ در بازرس، بوم در وضعیت قبلی باقی مانده بود.
+   - *علت ریشه‌ای*: حذف قطعه کد اتصال استایل‌های `transform` و `mask` در کامپوننت `canvas-element.tsx` در حین مرج شاخه‌ها.
+   - *اصلاح ریشه‌ای*: بازگردانی و اتصال کامل `transform` (شامل rotate, scale, skewX, skewY, translate, flipX, flipY) و ماسک‌های CSS با پشتیبانی از شیپ‌های استاندارد و SVG در `frontend/components/admin/builder/canvas-element.tsx`.
+2. **تکثیر بلوک‌های تنظیمات Transform و Mask در تب پیشرفته بازرس (`Duplicate Inspector Controls`)**:
+   - *مشاهده در تصویر `before/03-advanced-tab-before.png`*: دو بار رندر شدن بلوک‌های کنترل «تبدیل و چرخش» و «ماسک تصویر» در پنل بازرس.
+   - *اصلاح ریشه‌ای*: ادغام و یکپارچه‌سازی کامل کنترل‌ها در یک بلوک غنی استاندارد در `frontend/components/admin/builder/inspector-panel.tsx`.
+3. **وجود دو دکمه تکراری «میانبرها» در نوار ابزار استودیو (`Duplicate Shortcuts Toolbar Button`)**:
+   - *مشاهده در تصویر `before/01-studio-initial.png`*: دو کلید مجزا با آیکون کیبورد و عنوان «میانبرها» در سمت چپ نوار ابزار وجود داشت.
+   - *اصلاح ریشه‌ای*: حذف دکمه تکراری در `frontend/components/admin/builder/builder-toolbar.tsx`.
+4. **حذف استایل‌های Transform، Mask و Clip-Path توسط پالایشگر HTML بک‌اند (`Bleach CSS Sanitizer Stripping`)**:
+   - *مشاهده*: خروجی SSR کامپایلر فاقد ویژگی‌های چرخش و ماسک بود زیرا در لیست سفید مجاز Bleach قرار نداشتند.
+   - *اصلاح ریشه‌ای*: اضافه شدن `transform`، `mask-image`، `clip-path`، `-webkit-mask-image` و `backdrop-filter` به `ALLOWED_CSS_PROPERTIES` در `backend/app/shared/content/html_sanitizer.py`.
+
+#### ۲. مستندات بصری و شواهد ۵ سیگنالی
+- **قبل از اصلاح**: `.loop/artifacts/builder-gym/round-15/before/`
+  - `01-studio-initial.png` (نمایش دکمه مضاعف میانبرها)
+  - `02-element-selected.png` (وضعیت اولیه سرتیتر)
+  - `03-advanced-tab-before.png` (تکثیر کنترل‌های ترنسفورم و ماسک)
+- **بعد از اصلاح**: `.loop/artifacts/builder-gym/round-15/after/`
+  - `01-studio-initial.png` (نوار ابزار تک‌دکمه‌ای مرتب)
+  - `02-element-selected.png` (انتخاب استاندارد)
+  - `03-advanced-tab-after.png` (کنترل‌های یکپارچه و بهینه بازرس)
+  - `04-canvas-transform-applied.png` (اعمال زنده و چرخیدن واقعی المان در بوم با زاویه ۲۵ درجه و مقیاس ۱.۱۵)
+
+#### ۳. تست‌های رگرسیون دائمی و وضعیت تست‌ها
+- **تست رگرسیون فرانت‌اند**: تست واحد اعتبارسنجی اسکیما در `frontend/tests/builder-schema.test.ts`.
+- **تست رگرسیون بک‌اند**: تست واحد کامپایلر در `backend/app/tests/unit/test_ast_compiler.py::test_ast_compiler_transform_and_mask_elementor_parity`.
+- **تست‌های E2E مرورگر**: پاس کامل ۲ از ۲ تست در `frontend/tests/e2e/builder-elementor-w1.spec.ts`.
+- `npx tsc --noEmit`: ۰ خطا.
+- `npm test` (Vitest): **۳۷۳ تست سبز در ۴۵ فایل** (`373 passed`).
+- `python -m pytest app/tests/unit`: **۶۲۳ تست سبز** (`623 passed, 2 skipped`).
+
+---
+
 ## 🏆 گواهینامه نهایی مسترینگ کامل: BUILDER_GYM_ALL_LEVELS_MASTERED
 
 بدین‌وسیله رسماً تایید و ثبت می‌گردد که کلیه وزنه‌های ۱ تا ۸ نردبان پیش‌رونده Visual Page Builder بر اساس دستورالعمل جامع المنتور و استانداردهای سخت‌گیرانه ۳۶۰ درجه با موفقیت ۱۰۰٪ کامل شدند:

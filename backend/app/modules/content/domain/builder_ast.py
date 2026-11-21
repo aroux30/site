@@ -116,6 +116,8 @@ class TransformStyle(ASTModel):
     scale: float | None = None
     skew_x: float | None = None
     skew_y: float | None = None
+    translate_x: float | None = None
+    translate_y: float | None = None
     flip_x: bool = False
     flip_y: bool = False
 

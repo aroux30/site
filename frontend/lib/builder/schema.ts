@@ -73,6 +73,8 @@ export const TransformStyleSchema = z.object({
   skewY: z.number().nullable().optional(),
   translateX: z.number().nullable().optional(),
   translateY: z.number().nullable().optional(),
+  flipX: z.boolean().optional(),
+  flipY: z.boolean().optional(),
 });
 
 export const MaskStyleSchema = z.object({

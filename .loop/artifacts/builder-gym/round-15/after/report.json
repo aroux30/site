@@ -1,0 +1,34 @@
+{
+  "round": "15",
+  "stage": "after",
+  "timestamp": "2026-11-22T03:00:00.000Z",
+  "status": "PASS",
+  "defectsResolved": [
+    {
+      "id": "DEF-01-TOOLBAR-DUPLICATE-SHORTCUTS",
+      "resolution": "Removed redundant second shortcuts button in builder-toolbar.tsx.",
+      "visualProof": "01-studio-initial.png"
+    },
+    {
+      "id": "DEF-02-INSPECTOR-DUPLICATE-CONTROLS",
+      "resolution": "Consolidated duplicate Transform & Mask into a single unified control group in inspector-panel.tsx with Skew X/Y and Flip X/Y controls.",
+      "visualProof": "03-advanced-tab-after.png"
+    },
+    {
+      "id": "DEF-03-CANVAS-TRANSFORM-MASK-DISCONNECTED",
+      "resolution": "Re-wired transform and mask styles in canvas-element.tsx with live responsive resolution.",
+      "visualProof": "04-canvas-transform-applied.png"
+    },
+    {
+      "id": "DEF-04-SSR-HTML-SANITIZER-BLEACH-STRIP",
+      "resolution": "Updated bleach CSS allowlist in html_sanitizer.py and AST compiler to preserve transform, mask, clip-path and backdrop-filter.",
+      "visualProof": "test_ast_compiler_transform_and_mask_elementor_parity PASS"
+    }
+  ],
+  "verification": {
+    "playwrightW1": "2 passed in 8.4s",
+    "vitestUnit": "373 passed in 45 files",
+    "pytestUnit": "623 passed, 2 skipped",
+    "typeCheck": "0 errors"
+  }
+}

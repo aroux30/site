@@ -3257,7 +3257,7 @@ export function InspectorPanel() {
 
         {/* Transform (Elementor Parity Wave 1) */}
         <div className="space-y-3 pt-2 border-t border-border/80">
-          <Label className="text-xs font-bold text-foreground block">تبدیل و چرخش (Transform)</Label>
+          <Label className="text-xs font-bold text-foreground block">تبدیل سه‌بعدی و چرخش (Transform)</Label>
           <div className="grid grid-cols-2 gap-2">
             <div className="space-y-1">
               <Label className="text-[11px] text-muted-foreground">زاویه چرخش (درجه)</Label>
@@ -3299,6 +3299,84 @@ export function InspectorPanel() {
               />
             </div>
           </div>
+          <div className="grid grid-cols-2 gap-2">
+            <div className="space-y-1">
+              <Label className="text-[11px] text-muted-foreground">اریب افقی (Skew X)</Label>
+              <Input
+                data-testid="transform-skewx-input"
+                type="number"
+                min={-180}
+                max={180}
+                value={currentDeviceStyle.transform?.skewX ?? ""}
+                placeholder="۰°"
+                onChange={(e) => {
+                  const val = e.target.value === "" ? null : parseFloat(e.target.value);
+                  handleDeviceStyleChange({
+                    transform: { ...(currentDeviceStyle.transform || {}), skewX: val },
+                  });
+                }}
+                className="h-8 text-xs font-mono"
+                dir="ltr"
+              />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-[11px] text-muted-foreground">اریب عمودی (Skew Y)</Label>
+              <Input
+                data-testid="transform-skewy-input"
+                type="number"
+                min={-180}
+                max={180}
+                value={currentDeviceStyle.transform?.skewY ?? ""}
+                placeholder="۰°"
+                onChange={(e) => {
+                  const val = e.target.value === "" ? null : parseFloat(e.target.value);
+                  handleDeviceStyleChange({
+                    transform: { ...(currentDeviceStyle.transform || {}), skewY: val },
+                  });
+                }}
+                className="h-8 text-xs font-mono"
+                dir="ltr"
+              />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              data-testid="transform-flipx-btn"
+              onClick={() => {
+                const cur = currentDeviceStyle.transform?.flipX || false;
+                handleDeviceStyleChange({
+                  transform: { ...(currentDeviceStyle.transform || {}), flipX: !cur },
+                });
+              }}
+              className={cn(
+                "py-1.5 px-2 rounded-lg text-xs font-semibold border transition text-center",
+                currentDeviceStyle.transform?.flipX
+                  ? "bg-primary text-primary-foreground border-primary shadow-xs"
+                  : "bg-muted/60 text-muted-foreground hover:text-foreground border-border/70"
+              )}
+            >
+              وارون افقی (Flip X)
+            </button>
+            <button
+              type="button"
+              data-testid="transform-flipy-btn"
+              onClick={() => {
+                const cur = currentDeviceStyle.transform?.flipY || false;
+                handleDeviceStyleChange({
+                  transform: { ...(currentDeviceStyle.transform || {}), flipY: !cur },
+                });
+              }}
+              className={cn(
+                "py-1.5 px-2 rounded-lg text-xs font-semibold border transition text-center",
+                currentDeviceStyle.transform?.flipY
+                  ? "bg-primary text-primary-foreground border-primary shadow-xs"
+                  : "bg-muted/60 text-muted-foreground hover:text-foreground border-border/70"
+              )}
+            >
+              وارون عمودی (Flip Y)
+            </button>
+          </div>
         </div>
 
         {/* Masking (Elementor Parity Wave 1) */}
@@ -3321,6 +3399,8 @@ export function InspectorPanel() {
                 <SelectItem value="none">بدون ماسک (None)</SelectItem>
                 <SelectItem value="circle">دایره‌ای (Circle)</SelectItem>
                 <SelectItem value="flower">گلبرگ (Flower)</SelectItem>
+                <SelectItem value="triangle">مثلث (Triangle)</SelectItem>
+                <SelectItem value="blob">حباب (Blob)</SelectItem>
                 <SelectItem value="hexagon">شش‌ضلعی (Hexagon)</SelectItem>
               </SelectContent>
             </Select>
@@ -3388,76 +3468,6 @@ export function InspectorPanel() {
               </div>
             </div>
           )}
-        </div>
-
-        {/* Transform & CSS Mask (Elementor Parity) */}
-        <div className="space-y-3 pt-2 border-t border-border/80">
-          <Label className="text-xs font-bold text-foreground block">تبدیل سه‌بعدی و چرخش (Transform - المنتور)</Label>
-          <div className="grid grid-cols-2 gap-2">
-            <div className="space-y-1">
-              <Label className="text-[10px] text-muted-foreground">چرخش (Rotate deg)</Label>
-              <Input
-                type="number"
-                value={currentDeviceStyle.transform?.rotate ?? 0}
-                onChange={(e) =>
-                  handleDeviceStyleChange({
-                    transform: {
-                      ...currentDeviceStyle.transform,
-                      rotate: parseFloat(e.target.value) || 0,
-                    },
-                  })
-                }
-                className="h-7 text-xs font-mono"
-                dir="ltr"
-              />
-            </div>
-            <div className="space-y-1">
-              <Label className="text-[10px] text-muted-foreground">مقیاس (Scale)</Label>
-              <Input
-                type="number"
-                step="0.05"
-                value={currentDeviceStyle.transform?.scale ?? 1}
-                onChange={(e) =>
-                  handleDeviceStyleChange({
-                    transform: {
-                      ...currentDeviceStyle.transform,
-                      scale: parseFloat(e.target.value) || 1,
-                    },
-                  })
-                }
-                className="h-7 text-xs font-mono"
-                dir="ltr"
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* CSS Mask Controls */}
-        <div className="space-y-2 pt-2 border-t border-border/80">
-          <Label className="text-xs font-bold text-foreground block">ماسک شکلی (CSS Mask - المنتور)</Label>
-          <Select
-            value={currentDeviceStyle.mask?.shape || "none"}
-            onValueChange={(val) =>
-              handleDeviceStyleChange({
-                mask: {
-                  ...currentDeviceStyle.mask,
-                  shape: val === "none" ? null : val,
-                },
-              })
-            }
-          >
-            <SelectTrigger className="h-8 text-xs">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="none">بدون ماسک</SelectItem>
-              <SelectItem value="circle">دایره (Circle)</SelectItem>
-              <SelectItem value="flower">گل (Flower)</SelectItem>
-              <SelectItem value="triangle">مثلث (Triangle)</SelectItem>
-              <SelectItem value="blob">حباب (Blob)</SelectItem>
-              <SelectItem value="hexagon">شش‌ضلعی (Hexagon)</SelectItem>
-            </SelectContent>
-          </Select>
         </div>
 
         <div className="flex items-center justify-between pt-2 border-t border-border/80">

@@ -900,44 +900,24 @@ class ASTCompiler:
 
         if base.box_shadow:
             parts.append(f"box-shadow: {base.box_shadow};")
-        if base.transform:
-            t = base.transform
-            t_parts = []
-            if t.rotate:
-                t_parts.append(f"rotate({t.rotate}deg)")
-            if t.scale:
-                t_parts.append(f"scale({t.scale})")
-            if t.skew_x:
-                t_parts.append(f"skewX({t.skew_x}deg)")
-            if t.skew_y:
-                t_parts.append(f"skewY({t.skew_y}deg)")
-            if t.translate_x or t.translate_y:
-                t_parts.append(f"translate({t.translate_x or 0}px, {t.translate_y or 0}px)")
-            if t_parts:
-                parts.append(f"transform: {' '.join(t_parts)};")
-        if base.mask and base.mask.shape and base.mask.shape != "none":
-            m = base.mask
-            parts.append(f"-webkit-mask-image: url('/masks/{m.shape}.svg'); mask-image: url('/masks/{m.shape}.svg');")
-            if m.size:
-                parts.append(f"mask-size: {m.size}; -webkit-mask-size: {m.size};")
-            if m.position:
-                parts.append(f"mask-position: {m.position}; -webkit-mask-position: {m.position};")
 
         # Transform (Elementor Parity Wave 1)
         if base.transform:
-            tf = base.transform
+            t = base.transform
             t_parts = []
-            if tf.rotate:
-                t_parts.append(f"rotate({tf.rotate}deg)")
-            if tf.scale:
-                t_parts.append(f"scale({tf.scale})")
-            if tf.skew_x:
-                t_parts.append(f"skewX({tf.skew_x}deg)")
-            if tf.skew_y:
-                t_parts.append(f"skewY({tf.skew_y}deg)")
-            if tf.flip_x:
+            if t.rotate is not None:
+                t_parts.append(f"rotate({t.rotate}deg)")
+            if t.scale is not None:
+                t_parts.append(f"scale({t.scale})")
+            if t.skew_x is not None:
+                t_parts.append(f"skewX({t.skew_x}deg)")
+            if t.skew_y is not None:
+                t_parts.append(f"skewY({t.skew_y}deg)")
+            if t.translate_x or t.translate_y:
+                t_parts.append(f"translate({t.translate_x or 0}px, {t.translate_y or 0}px)")
+            if t.flip_x:
                 t_parts.append("scaleX(-1)")
-            if tf.flip_y:
+            if t.flip_y:
                 t_parts.append("scaleY(-1)")
             if t_parts:
                 parts.append(f"transform: {' '.join(t_parts)};")
@@ -950,16 +930,20 @@ class ASTCompiler:
                 "flower": "radial-gradient(circle at 50% 50%, black 50%, transparent 50%)",
                 "hexagon": "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)",
             }
-            mask_val = shape_map.get(m.shape, f"url('{m.shape}')")
-            if m.shape == "hexagon":
-                parts.append(f"clip-path: {mask_val};")
+            if m.shape in shape_map:
+                mask_val = shape_map[m.shape]
+                if m.shape == "hexagon":
+                    parts.append(f"clip-path: {mask_val};")
+                else:
+                    parts.append(f"-webkit-mask-image: {mask_val}; mask-image: {mask_val};")
             else:
-                parts.append(f"-webkit-mask-image: {mask_val}; mask-image: {mask_val};")
-                if m.size:
-                    parts.append(f"-webkit-mask-size: {m.size}; mask-size: {m.size};")
-                if m.position:
-                    parts.append(f"-webkit-mask-position: {m.position}; mask-position: {m.position};")
-                if m.repeat:
-                    parts.append(f"-webkit-mask-repeat: {m.repeat}; mask-repeat: {m.repeat};")
+                parts.append(f"-webkit-mask-image: url('/masks/{m.shape}.svg'); mask-image: url('/masks/{m.shape}.svg');")
+
+            if m.size:
+                parts.append(f"-webkit-mask-size: {m.size}; mask-size: {m.size};")
+            if m.position:
+                parts.append(f"-webkit-mask-position: {m.position}; mask-position: {m.position};")
+            if m.repeat:
+                parts.append(f"-webkit-mask-repeat: {m.repeat}; mask-repeat: {m.repeat};")
 
         return parts

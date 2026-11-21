@@ -319,18 +319,6 @@ export function BuilderToolbar({
         </Button>
 
         <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => setShortcutsOpen(true)}
-          className="h-8 gap-1.5 text-xs text-muted-foreground hover:text-foreground"
-          title="راهنمای کلیدهای میانبر (Shift+?)"
-          data-testid="hotkeys-btn"
-        >
-          <Keyboard className="w-3.5 h-3.5 text-muted-foreground" />
-          <span className="hidden md:inline">میانبرها</span>
-        </Button>
-
-        <Button
           variant={previewMode ? "secondary" : "ghost"}
           size="sm"
           onClick={() => setPreviewMode(!previewMode)}
@@ -345,11 +333,11 @@ export function BuilderToolbar({
           size="sm"
           onClick={() => setShortcutsOpen(true)}
           className="h-8 gap-1.5 text-xs text-muted-foreground hover:text-foreground"
-          title="کلیدهای میانبر (؟)"
-          data-testid="shortcuts-help-btn"
+          title="راهنمای کلیدهای میانبر (Shift+?)"
+          data-testid="hotkeys-btn"
         >
-          <Keyboard className="w-3.5 h-3.5" />
-          <span className="hidden sm:inline">میانبرها</span>
+          <Keyboard className="w-3.5 h-3.5 text-muted-foreground" />
+          <span className="hidden md:inline">میانبرها</span>
         </Button>
 
         <Button

@@ -451,6 +451,9 @@ function CanvasElementComponent({
       if (transform.scale) tParts.push(`scale(${transform.scale})`);
       if (transform.skewX) tParts.push(`skewX(${transform.skewX}deg)`);
       if (transform.skewY) tParts.push(`skewY(${transform.skewY}deg)`);
+      if (transform.translateX || transform.translateY) {
+        tParts.push(`translate(${transform.translateX || 0}px, ${transform.translateY || 0}px)`);
+      }
       if (transform.flipX) tParts.push("scaleX(-1)");
       if (transform.flipY) tParts.push("scaleY(-1)");
       if (tParts.length > 0) styleObj.transform = tParts.join(" ");

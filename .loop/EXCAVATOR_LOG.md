@@ -25,6 +25,49 @@
 | **Round 14** | 0 | **0** | **0 / 0** | 28 / 28 ✅ | 34 / 34 ✅ | 0 خطای مرده ✅ | **کنترل شفافیت و لایه‌بندی المان‌ها (Elementor Opacity & Layering Parity)**: اضافه شدن ورودی کنترل شفافیت (Opacity) در پنل بازرس، اعمال در کامپایلر سرور و آزمون اشعه ایکس |
 | **Round 15** | 0 | **0** | **0 / 0** | 28 / 28 ✅ | 34 / 34 ✅ | 0 خطای مرده ✅ | **کنترل‌های چینش انفرادی و ترتیب فلکس‌باکس (Elementor Flex Item Align-Self & Order Parity)**: افزودن کنترل‌های alignSelf و order به پنل بازرس، اعمال در بوم و کامپایلر سرور و آزمون اشعه ایکس |
 | **Round 16** | 0 | **0** | **0 / 0** | 28 / 28 ✅ | 34 / 34 ✅ | 0 خطای مرده ✅ | **جستجو و فیلتر زنده در ساختار لایه‌ها (Elementor Navigator Search & Expand/Collapse Parity)**: افزودن جستجوی زنده لایه‌ها و دکمه‌های باز و بسته کردن سراسری شاخه‌ها در LayersTree با آزمون اشعه ایکس |
+| **Round 17** | 0 | **0** | **0 / 0** | 28 / 28 ✅ | 34 / 34 ✅ | 0 خطای مرده ✅ | **لایه رویی پس‌زمینه کانتینرها (Elementor Background Overlay Parity)**: افزودن کنترل‌های Background Overlay (تک‌رنگ، گرادیانت و شفافیت)، رندر لایه رویی در بوم و کامپایلر سرور با آزمون اشعه ایکس |
+
+---
+
+## جزئیات راند ۱۷ (Round 17)
+
+- **شاخه ایزوله**: `claude/reverent-jang-441af1`
+- **تاریخ اجرا**: 2026-11-21
+- **وضعیت نهایی اشعه ایکس (.loop/XRAY_MATRIX.json)**:
+  - `totalFailures`: **0**
+  - `p0Count`: **0**
+  - `p1Count`: **0**
+  - `patterns`: ۲۸ از ۲۸ سبز (`passed: true`)
+  - `blocks`: ۳۴ از ۳۴ سبز (`passed: true`)
+  - `deadControls`: ۰ کنترل مرده
+  - `backgroundOverlay`: تایید رندر لایه رویی پس‌زمینه با تنظیم شفافیت و رنگ در بوم و کامپایلر سرور
+  - `layersTreeSearch`: سبز
+  - `alignSelfAndOrder`: سبز
+  - `opacityControl`: سبز
+  - `containerBoxedWidth`: سبز
+  - `savePageTemplateDialog`: سبز
+  - `customCssIdReflection`: سبز
+  - `globalStylesTwoLayerTokens`: سبز
+  - `historyTimelinePanel`: سبز
+  - `multiSelectionOverlay`: سبز
+  - `persistentClipboard`: سبز
+  - `wrapUnwrapContainer`: سبز
+  - `responsiveVisibility`: سبز
+  - `shortcutsModal`: سبز
+  - `hotkeyUndoRedo`: سبز
+  - `layersTreeDnD`: سبز
+  - `containerPresetPicker`: سبز
+  - `contextMenu`: سبز
+  - `categoryChipsClipping`: سبز و بدون بریدگی
+  - `dragAndDrop`: سبز
+  - `wysiwygParity`: تطابق ۱۰۰٪ بوم و صفحه نهایی
+
+### قابلیت‌های راند ۱۷:
+1. **لایه رویی پس‌زمینه (`Background Overlay`)**:
+   - در پنل بازرس تب استایل در بخش پس‌زمینه، سوییچر لایه رویی (هیچ، رنگ، گرادیانت) همراه با فیلد عددی شفافیت (`opacity`) تعبیه شد.
+   - لایه شبه‌المان یا کانتینر رویی (`[data-testid="background-overlay"]`) با موقعیت `absolute inset-0 pointer-events-none` در بوم و کامپایلر سمت سرور (`ast_compiler.py`) رندر می‌شود تا متن و دکمه‌ها روی تصاویر پس‌زمینه و ویدئوها کنتراست عالی داشته باشند.
+2. **گسترش ممیزی خودکار اشعه ایکس**:
+   - آزمون شماره ۱۷ در `builder-xray.mjs` جهت سنجش اعمال دقیق `backgroundOverlay` و شفافیت آن روی بوم اضافه شد و ۱۰۰٪ پاس گردید.
 
 ---
 

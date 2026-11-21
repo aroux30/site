@@ -59,12 +59,20 @@ export const BackgroundStyleSchema = z.object({
   size: z.enum(["cover", "contain", "auto"]).nullable().optional(),
 });
 
+export const BackgroundOverlayStyleSchema = z.object({
+  type: z.enum(["none", "color", "gradient"]).default("none"),
+  color: z.string().nullable().optional(),
+  gradient: BackgroundGradientSchema.nullable().optional(),
+  opacity: z.number().min(0).max(1).nullable().optional(),
+});
+
 export const DeviceStyleSchema = z.object({
   typography: TypographyStyleSchema.nullable().optional(),
   margin: SpacingBoxSchema.nullable().optional(),
   padding: SpacingBoxSchema.nullable().optional(),
   border: BorderStyleSchema.nullable().optional(),
   background: BackgroundStyleSchema.nullable().optional(),
+  backgroundOverlay: BackgroundOverlayStyleSchema.nullable().optional(),
   width: UnitValueSchema.nullable().optional(),
   minHeight: UnitValueSchema.nullable().optional(),
   display: z

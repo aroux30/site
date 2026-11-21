@@ -403,6 +403,47 @@ function CanvasElementComponent({
     return styleObj;
   }, [element.styles, element.layout, activeBreakpoint]);
 
+  // Elementor Background Overlay calculation
+  const overlayStyle = useMemo((): React.CSSProperties | null => {
+    const res = element.styles;
+    if (!res) return null;
+    const base = res.mobile;
+    const tablet = res.tablet;
+    const desktop = res.desktop;
+
+    const overlay = resolveResponsiveValue(
+      { mobile: base?.backgroundOverlay, tablet: tablet?.backgroundOverlay, desktop: desktop?.backgroundOverlay },
+      activeBreakpoint
+    );
+    if (!overlay || overlay.type === "none") return null;
+
+    const s: React.CSSProperties = {
+      position: "absolute",
+      inset: 0,
+      pointerEvents: "none",
+      borderRadius: "inherit",
+      zIndex: 0,
+    };
+    if (overlay.opacity !== undefined && overlay.opacity !== null) {
+      s.opacity = overlay.opacity;
+    }
+    if (overlay.type === "color" && overlay.color) {
+      s.backgroundColor = normalizeCssColor(overlay.color);
+    } else if (overlay.type === "gradient" && overlay.gradient) {
+      const dirMap: Record<string, string> = {
+        "to-r": "to right",
+        "to-l": "to left",
+        "to-b": "to bottom",
+        "to-t": "to top",
+        "to-tr": "to top right",
+        "to-tl": "to top left",
+      };
+      const dir = dirMap[overlay.gradient.direction] || "to bottom";
+      s.backgroundImage = `linear-gradient(${dir}, ${overlay.gradient.fromColor}, ${overlay.gradient.toColor})`;
+    }
+    return s;
+  }, [element.styles, activeBreakpoint]);
+
   const isHiddenOnActiveBreakpoint = useMemo(() => {
     if (activeBreakpoint === "desktop" && element.visibleOnDesktop === false) return true;
     if (activeBreakpoint === "tablet" && element.visibleOnTablet === false) return true;
@@ -1304,6 +1345,11 @@ function CanvasElementComponent({
       data-element-id={element.id}
       id={element.styles?.customCssId || undefined}
     >
+      {/* Background Overlay (Elementor Parity) */}
+      {overlayStyle && (
+        <div data-testid="background-overlay" style={overlayStyle} aria-hidden="true" />
+      )}
+
       {/* Breakpoint Hidden Indicator */}
       {isHiddenOnActiveBreakpoint && !previewMode && (
         <div className="absolute top-1 end-1 z-30 pointer-events-none">

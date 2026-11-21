@@ -104,6 +104,13 @@ class BackgroundStyle(ASTModel):
     size: Literal["cover", "contain", "auto"] = "cover"
 
 
+class BackgroundOverlayStyle(ASTModel):
+    type: Literal["none", "color", "gradient"] = "none"
+    color: str | None = None
+    gradient: BackgroundGradient | None = None
+    opacity: float | None = Field(default=None, ge=0.0, le=1.0)
+
+
 class DeviceStyle(ASTModel):
     """Computed or override styles for one breakpoint."""
 
@@ -112,6 +119,7 @@ class DeviceStyle(ASTModel):
     padding: SpacingBox | None = None
     border: BorderStyle | None = None
     background: BackgroundStyle | None = None
+    background_overlay: BackgroundOverlayStyle | None = None
     width: UnitValue | None = None
     min_height: UnitValue | None = None
     display: Literal["block", "flex", "grid", "inline-block", "none", "inherit"] = "inherit"

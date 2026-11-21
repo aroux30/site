@@ -2093,6 +2093,104 @@ export function InspectorPanel() {
               </div>
             </div>
           )}
+
+          {/* Background Overlay Controls (Elementor Parity) */}
+          <div className="space-y-2 pt-2 border-t border-border/50">
+            <div className="flex items-center justify-between">
+              <Label className="text-[11px] font-bold text-foreground">لایه رویی پس‌زمینه (Background Overlay)</Label>
+              <div className="flex gap-1 text-[9px] bg-muted/60 p-0.5 rounded border border-border/60">
+                {[
+                  { id: "none", label: "هیچ" },
+                  { id: "color", label: "رنگ" },
+                  { id: "gradient", label: "گرادیانت" },
+                ].map((ovType) => {
+                  const active = (currentDeviceStyle.backgroundOverlay?.type || "none") === ovType.id;
+                  return (
+                    <button
+                      key={ovType.id}
+                      type="button"
+                      data-testid={`overlay-type-${ovType.id}`}
+                      onClick={() =>
+                        handleDeviceStyleChange({
+                          backgroundOverlay: {
+                            ...currentDeviceStyle.backgroundOverlay,
+                            type: ovType.id as any,
+                            color: ovType.id === "color" ? (currentDeviceStyle.backgroundOverlay?.color || "rgba(0,0,0,0.5)") : undefined,
+                            opacity: currentDeviceStyle.backgroundOverlay?.opacity ?? 0.5,
+                          },
+                        })
+                      }
+                      className={cn(
+                        "px-1.5 py-0.5 rounded transition",
+                        active ? "bg-primary text-primary-foreground font-bold" : "text-muted-foreground hover:text-foreground"
+                      )}
+                    >
+                      {ovType.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {currentDeviceStyle.backgroundOverlay && currentDeviceStyle.backgroundOverlay.type !== "none" && (
+              <div className="space-y-2 p-2 rounded-lg border bg-muted/20">
+                {currentDeviceStyle.backgroundOverlay.type === "color" && (
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="color"
+                      value={toValidHexColor(currentDeviceStyle.backgroundOverlay.color, "#000000")}
+                      onChange={(e) =>
+                        handleDeviceStyleChange({
+                          backgroundOverlay: {
+                            ...currentDeviceStyle.backgroundOverlay!,
+                            color: e.target.value,
+                          },
+                        })
+                      }
+                      className="w-7 h-7 rounded border border-input cursor-pointer p-0.5"
+                    />
+                    <Input
+                      value={currentDeviceStyle.backgroundOverlay.color || ""}
+                      placeholder="rgba(0,0,0,0.5) یا #000000"
+                      onChange={(e) =>
+                        handleDeviceStyleChange({
+                          backgroundOverlay: {
+                            ...currentDeviceStyle.backgroundOverlay!,
+                            color: e.target.value,
+                          },
+                        })
+                      }
+                      className="h-7 text-xs flex-1 font-mono"
+                      dir="ltr"
+                    />
+                  </div>
+                )}
+
+                <div className="space-y-1">
+                  <Label className="text-[10px] text-muted-foreground">شفافیت لایه رویی (Opacity: 0-1)</Label>
+                  <Input
+                    data-testid="bg-overlay-opacity-input"
+                    type="number"
+                    step="0.05"
+                    min={0}
+                    max={1}
+                    value={currentDeviceStyle.backgroundOverlay.opacity ?? 0.5}
+                    onChange={(e) => {
+                      const val = parseFloat(e.target.value);
+                      handleDeviceStyleChange({
+                        backgroundOverlay: {
+                          ...currentDeviceStyle.backgroundOverlay!,
+                          opacity: !isNaN(val) ? Math.max(0, Math.min(1, val)) : 0.5,
+                        },
+                      });
+                    }}
+                    className="h-7 text-xs font-mono"
+                    dir="ltr"
+                  />
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Professional Typography Group Controls (Elementor Parity) */}

@@ -137,6 +137,21 @@ class ASTCompiler:
         if el.global_component_id:
             extra_attrs += f' data-global-component="{html.escape(el.global_component_id)}"'
 
+        # Compile background overlay if present
+        overlay = el.styles.mobile.background_overlay
+        overlay_html = ""
+        if overlay and overlay.type != "none":
+            ov_styles = ["position: absolute;", "inset: 0;", "pointer-events: none;", "border-radius: inherit;"]
+            if overlay.opacity is not None:
+                ov_styles.append(f"opacity: {overlay.opacity};")
+            if overlay.type == "color" and overlay.color:
+                ov_styles.append(f"background-color: {overlay.color};")
+            elif overlay.type == "gradient" and overlay.gradient:
+                dir_map = {"to-r": "to right", "to-l": "to left", "to-b": "to bottom", "to-t": "to top"}
+                d = dir_map.get(overlay.gradient.direction, "to bottom")
+                ov_styles.append(f"background-image: linear-gradient({d}, {overlay.gradient.from_color}, {overlay.gradient.to_color});")
+            overlay_html = f'<div class="builder-background-overlay" style="{" ".join(ov_styles)}" aria-hidden="true"></div>'
+
         if is_form:
             props = el.widget_props or {}
             submit_url = html.escape(str(props.get("submit_url", "/api/v1/content/forms/submit")))
@@ -147,11 +162,11 @@ class ASTCompiler:
                 extra_attrs += f' data-error-message="{html.escape(str(props["error_message"]))}"'
             # Include anti-spam honeypot hidden field inside form
             hp_field = '<input type="text" name="_hp_website" style="display:none !important;" tabindex="-1" autocomplete="off" aria-hidden="true" />'
-            children_html = hp_field + "".join(
+            children_html = overlay_html + hp_field + "".join(
                 cls._compile_element(child, is_authenticated=is_authenticated) for child in el.children
             )
         else:
-            children_html = "".join(
+            children_html = overlay_html + "".join(
                 cls._compile_element(child, is_authenticated=is_authenticated) for child in el.children
             )
 

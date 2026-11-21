@@ -1301,6 +1301,28 @@ async function runXRayAudit() {
     addFailure("ALIGN_SELF_ORDER_FAILED", "P0", { message: `alignSelf or order not reflected in canvas DOM (got: ${JSON.stringify(appliedItemStyles)})` });
   }
 
+  // 17. Elementor Parity: Background Overlay Control
+  console.log("    Testing Elementor Parity: Background Overlay Control...");
+  await page.evaluate(() => {
+    window.__BUILDER_STORE__?.getState()?.updateDeviceStyles("boxed_cont_test", "desktop", {
+      backgroundOverlay: {
+        type: "color",
+        color: "rgba(0, 0, 0, 0.4)",
+        opacity: 0.6,
+      },
+    });
+  });
+  await page.waitForTimeout(400);
+
+  const overlayApplied = await framePreset.evaluate(() => {
+    const el = document.querySelector("[data-element-id='boxed_cont_test'] [data-testid='background-overlay']");
+    return el ? { opacity: el.style.opacity, bg: el.style.backgroundColor } : null;
+  });
+
+  if (!overlayApplied || overlayApplied.opacity !== "0.6") {
+    addFailure("BACKGROUND_OVERLAY_FAILED", "P0", { message: `Background overlay not rendered in canvas DOM (got: ${JSON.stringify(overlayApplied)})` });
+  }
+
   // ──────────────────────────────────────────────────────────────────────────
   // Write Final Matrix Report
   // ──────────────────────────────────────────────────────────────────────────

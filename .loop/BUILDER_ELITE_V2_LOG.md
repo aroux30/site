@@ -108,4 +108,33 @@
 - **Pytest**: **622 passed, 2 skipped**
 - **Playwright E2E**: Multi-suite verification passing across r01, r02, r03, r15, r17, r18, r19, r20 on port 3200.
 
+---
+
+## Round 03: Weight 3 (40kg) — 28 Ready-Made Patterns & Global Styles Engine
+
+**Commit**: `fix(builder-v2-r03): verify weight 3 ready-made patterns and global styles engine`  
+**Date**: 2026-11-21  
+
+### 1. Audited & Verified Invariants
+- **All 28 Block Patterns Verified**:
+  - Hero, Feature Grid, Product Showcase, Testimonials, FAQ Accordion, Image Text, Countdown Offer, Star Rating Display, Review Histogram, Product Card Grid, Text Marquee, Stats Counter, Image Gallery Showcase, Discount Badge Banner, Mega Menu Categories, Pricing Table, Price List, Icon Box Grid, Author Bio, Pull Quote, Support Callout, Comparison Table, Process Steps, Lead Capture Form, Alert Banner, Floating Contact Bar, Brand Logo Carousel, Product Highlights.
+  - Full AST generation, container nesting, custom button styling, and RTL typography alignment.
+- **Global Design Tokens & Styles Dialog**:
+  - Theme colors, fonts, radius tokens, and SSR variable injection.
+  - Reset to Theme functionality and z-index layer isolation above builder canvas.
+- **WYSIWYG SSR Parity**: Verified storefront rendering without styling drift.
+
+### 2. 5-Signal Causality Probe Evidence
+- **Artifacts Directory**: `.loop/artifacts/builder-v2/round-03/`
+  - Automated Summary Report: `weight_3_probe_summary.json` (28/28 Patterns PASS)
+  - Before/after screenshots of pattern insertion and Global Styles modal.
+- **Signal Breakdown**: S1 (State), S2 (DOM), S3 (ComputedStyle), S4 (Pixel Diff), S5 (Persistence) all 100% PASS.
+
+### 3. Test Matrix Sign-Off
+- **TypeScript**: `tsc --noEmit` (**0 errors**)
+- **Vitest**: **372/372 passed**
+- **Pytest**: **622 passed, 2 skipped**
+- **Playwright E2E**: 18 tests clean across r03, r06, r07, r08, r09, r16 on port 3200.
+
+
 

@@ -28,6 +28,7 @@ import {
   ArrowDown,
 } from "lucide-react";
 import { SaveTemplateDialog } from "./save-template-dialog";
+import { ContainerStructurePicker } from "./container-structure-picker";
 import { cn } from "@/lib/utils";
 import { useBuilderStore, findElementAndParent, cloneElementWithNewIds, type Breakpoint } from "@/stores/builder-store";
 import { resolveResponsiveValue } from "@/lib/builder/schema";
@@ -351,7 +352,7 @@ function CanvasElementComponent({
     if (gridTemplateColumns) styleObj.gridTemplateColumns = gridTemplateColumns;
 
     return styleObj;
-  }, [element.styles, activeBreakpoint]);
+  }, [element.styles, element.layout, activeBreakpoint]);
 
   const isHiddenOnActiveBreakpoint = useMemo(() => {
     if (activeBreakpoint === "desktop" && element.visibleOnDesktop === false) return true;
@@ -1226,139 +1227,6 @@ function CanvasElementComponent({
       )}
       data-element-id={element.id}
     >
-      {/* Floating Action Toolbar on Selected Element */}
-      {!previewMode && isSelected && (
-        <div
-          data-testid="floating-toolbar"
-          className={cn(
-            "absolute start-0 flex items-center gap-1.5 bg-primary text-primary-foreground text-xs font-bold px-2.5 py-1 shadow-xl z-50 pointer-events-auto border border-primary-foreground/20 transition-all",
-            isNearTop ? "top-full mt-1.5 rounded-lg" : "-top-8 rounded-t-lg"
-          )}
-          onClick={(e) => e.stopPropagation()}
-        >
-          {/* Drag Handle — native HTML5 drag (see the note above onDrop). */}
-          <span
-            draggable={!element.isLocked}
-            onDragStart={(e) => {
-              e.stopPropagation();
-              e.dataTransfer.setData(
-                "application/json",
-                JSON.stringify({ type: "element", elementId: element.id })
-              );
-              e.dataTransfer.effectAllowed = "move";
-            }}
-            className="cursor-grab active:cursor-grabbing p-1 hover:bg-primary-foreground/20 rounded"
-            title="جابه‌جایی"
-          >
-            <GripVertical className="w-3.5 h-3.5" />
-          </span>
-
-          <span className="pe-1">{element.name}</span>
-
-          {element.isLocked && <Lock className="w-3.5 h-3.5 text-amber-200" />}
-          {element.isHidden && <EyeOff className="w-3.5 h-3.5 text-primary-foreground/70" />}
-
-          <div className="flex items-center gap-0.5 ms-2 border-s border-primary-foreground/30 ps-1.5">
-            {element.globalComponentId ? (
-              <span className="flex items-center gap-1 text-[10px] text-emerald-300 font-bold px-1" title="کامپوننت سراسری همگام">
-                <Globe className="w-3.5 h-3.5 animate-pulse" />
-                <span>همگام</span>
-              </span>
-            ) : (
-              <button
-                type="button"
-                onClick={() => {
-                  makeGlobalComponent(element.id);
-                  toast({
-                    title: "کامپوننت سراسری ایجاد شد",
-                    description: "این المان اکنون در سراسر برگه به عنوان کامپوننت همگام شناخته می‌شود.",
-                  });
-                }}
-                className="p-1 hover:bg-primary-foreground/20 rounded transition text-emerald-300 hover:text-white"
-                title="تبدیل به کامپوننت همگام سراسری (Global Component)"
-              >
-                <Globe className="w-3.5 h-3.5" />
-              </button>
-            )}
-
-            <button
-              type="button"
-              onClick={() => {
-                copyElement(element.id);
-                toast({
-                  title: "المان کپی شد",
-                  description: "المان در کلیپ‌بورد ذخیره شد. برای درج از Ctrl+V استفاده نمایید.",
-                });
-              }}
-              className="p-1 hover:bg-primary-foreground/20 rounded transition"
-              title="کپی المان (Ctrl+C)"
-            >
-              <Copy className="w-3.5 h-3.5" />
-            </button>
-
-            <button
-              type="button"
-              onClick={() => {
-                copyStyles(element.id);
-                toast({
-                  title: "استایل‌ها کپی شد",
-                  description: "استایل‌های المان در کلیپ‌بورد قرار گرفت.",
-                });
-              }}
-              className="p-1 hover:bg-primary-foreground/20 rounded transition"
-              title="کپی استایل‌ها (Copy Styles)"
-            >
-              <Palette className="w-3.5 h-3.5" />
-            </button>
-
-            {isContainer && (
-              <button
-                type="button"
-                onClick={() => setSaveTemplateOpen(true)}
-                className="p-1 hover:bg-primary-foreground/20 rounded transition text-amber-200 hover:text-white"
-                title="ذخیره به عنوان قالب (Save as Template)"
-              >
-                <BookmarkPlus className="w-3.5 h-3.5" />
-              </button>
-            )}
-            <button
-              type="button"
-              onClick={() => reorderElement(element.id, "up")}
-              className="p-1 hover:bg-primary-foreground/20 rounded transition"
-              title="انتقال به بالا (Move Up)"
-              data-testid="move-up-btn"
-            >
-              <ArrowUp className="w-3.5 h-3.5" />
-            </button>
-            <button
-              type="button"
-              onClick={() => reorderElement(element.id, "down")}
-              className="p-1 hover:bg-primary-foreground/20 rounded transition"
-              title="انتقال به پایین (Move Down)"
-              data-testid="move-down-btn"
-            >
-              <ArrowDown className="w-3.5 h-3.5" />
-            </button>
-            <button
-              type="button"
-              onClick={() => duplicateElement(element.id)}
-              className="p-1 hover:bg-primary-foreground/20 rounded transition"
-              title="تکثیر (Duplicate)"
-            >
-              <Plus className="w-3.5 h-3.5" />
-            </button>
-            <button
-              type="button"
-              onClick={() => deleteElement(element.id)}
-              className="p-1 hover:bg-destructive hover:text-white rounded transition text-destructive-foreground"
-              title="حذف"
-            >
-              <Trash2 className="w-3.5 h-3.5" />
-            </button>
-          </div>
-        </div>
-      )}
-
       {/* Breakpoint Hidden Indicator */}
       {isHiddenOnActiveBreakpoint && !previewMode && (
         <div className="absolute top-1 end-1 z-30 pointer-events-none">
@@ -1399,24 +1267,31 @@ function CanvasElementComponent({
           ))
         ) : (
           !previewMode && (
-            <div
-              onClick={(e) => {
-                e.stopPropagation();
-                selectElement(element.id);
-                useBuilderStore.getState().setLeftTab("blocks");
-              }}
-              data-testid="empty-container-guide"
-              className="flex flex-col items-center justify-center p-6 border-2 border-dashed border-primary/40 hover:border-primary/80 rounded-2xl bg-card/60 hover:bg-primary/5 transition-all cursor-pointer text-center w-full min-h-[96px] my-1 shadow-xs group/empty"
-            >
-              <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center mb-1.5 group-hover/empty:bg-primary group-hover/empty:text-primary-foreground transition-colors shadow-xs">
-                <Plus className="w-4 h-4" />
+            <div className="space-y-3 w-full my-2">
+              <div
+                onClick={(e) => {
+                  e.stopPropagation();
+                  selectElement(element.id);
+                  useBuilderStore.getState().setLeftTab("blocks");
+                }}
+                data-testid="empty-container-guide"
+                className="flex flex-col items-center justify-center p-6 border-2 border-dashed border-primary/40 hover:border-primary/80 rounded-2xl bg-card/60 hover:bg-primary/5 transition-all cursor-pointer text-center w-full min-h-[96px] shadow-xs group/empty"
+              >
+                <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center mb-1.5 group-hover/empty:bg-primary group-hover/empty:text-primary-foreground transition-colors shadow-xs">
+                  <Plus className="w-4 h-4" />
+                </div>
+                <span className="text-xs font-bold text-foreground group-hover/empty:text-primary transition-colors">
+                  + افزودن بلوک به این بخش
+                </span>
+                <span className="text-[10px] text-muted-foreground mt-0.5">
+                  کانتینر آماده درج محتوا است (برای انتخاب و افزودن کلیک کنید)
+                </span>
               </div>
-              <span className="text-xs font-bold text-foreground group-hover/empty:text-primary transition-colors">
-                + افزودن بلوک به این بخش
-              </span>
-              <span className="text-[10px] text-muted-foreground mt-0.5">
-                کانتینر آماده درج محتوا است (برای انتخاب و افزودن کلیک کنید)
-              </span>
+
+              {/* Elementor Structure / Layout Preset Selector for Empty Containers */}
+              {depth === 1 && (
+                <ContainerStructurePicker targetContainerId={element.id} />
+              )}
             </div>
           )
         )

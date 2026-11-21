@@ -1,0 +1,70 @@
+# کارنامه رسمی عملیات بیل مکانیکی Visual Page Builder (.loop/EXCAVATOR_LOG.md)
+
+> مأموریت حفاری عمیق و ریشه‌کنی باگ‌های ۹۰ درصدی Visual Page Builder با مرجع معماری Elementor (`C:\Users\Administrator\Desktop\elementor-ref`) بر روی شاخه ایزوله مخزن `aroux30/site`.
+
+---
+
+## جدول پیشرفت عددی عملیات (Progress Table)
+
+| Round | Before Failures | After Failures | Root Causes Fixed | Patterns Passed | Blocks Passed | Dead Controls Remaining | Status |
+| :---: | :---: | :---: | :--- | :---: | :---: | :---: | :---: |
+| **Round 01** | **123** (P0: 37, P1: 86) | **0** (P0: 0, P1: 0) | **۱. معماری لایه مستقل Selection & Toolbar Overlay Portal**<br>**۲. ریشه‌کنی تگ‌های HTML خام از ۲۸ الگوی آماده**<br>**۳. انتخابگر چیدمان ساختار ستونی کانتینر (Elementor Layout Picker)**<br>**۴. منوی راست‌کلیک جامع (Context Menu) روی بوم و لایه‌ها**<br>**۵. تغییرنام مستقیم (Inline Rename) و درگ‌انددراپ لایه‌ها در Navigator** | **28/28** | **34/34** | **0** | ✅ کامل و سبز |
+
+---
+
+## جزییات ریشه‌ای و معماری راند ۱ (Round 01 Deep Architectural Root Causes)
+
+### ۱. معماری لایه مستقل Selection & Toolbar Overlay Portal (اولویت مطلق P0 — رفع باگ بریدگی توسط overflow: hidden)
+- **علت ریشه‌ای قبل از اصلاح**:
+  - کادر انتخاب (`outline`) و نوار ابزار شناور (`floating-toolbar`) درون DOM فرزند هر المان در `canvas-element.tsx` رندر می‌شدند (`absolute -top-8`). هنگامی که المان یا یکی از والدهای آن (مانند بخش هیرو، بنرها، کارت‌ها یا نوارهای متحرک) دارای کلاس `overflow-hidden` بود، نوار ابزار از کادر والد بیرون می‌زد و به‌طور کامل قیچی/بریده می‌شد (`TOOLBAR_CLIPPED_BY_OVERFLOW`) یا دکمه‌های آن با رویدادهای ماوس همپوشانی پیدا کرده و کلیک‌ناپذیر می‌شدند (`TOOLBAR_BUTTON_UNCLICKABLE`).
+- **اصلاح ریشه‌ای به سبک المنتور (`elementor-ref`)**:
+  - ایجاد کامپوننت مستقل [canvas-overlay.tsx](frontend/components/admin/builder/canvas-overlay.tsx) در ریشه سند داخلی بوم Iframe (`z-[9999]`).
+  - این لایه خارج از زنجیره سلسله‌مراتبی DOM عناصر و فارغ از هرگونه `overflow: hidden` قرار دارد و با `getBoundingClientRect()`، شنونده‌های تغییر اندازه (`ResizeObserver`) و تغییرات ساختاری بوم (`MutationObserver`) دقیقاً موقعیت المان فعال را دنبال می‌کند.
+  - نوار ابزار هوشمند در حاشیه امن سقف بوم قرار می‌گیرد و با المان‌های با ارتفاع کم به زیبایی هماهنگ است.
+
+### ۲. حذف کامل تگ‌ها و کلاس‌های HTML خام از هر ۲۸ الگو (اولویت P1 — رفع نشت کد خام به بازرس)
+- **علت ریشه‌ای قبل از اصلاح**:
+  - در [pattern-converter.ts](frontend/lib/builder/pattern-converter.ts)، برای متن‌های زیرعنوان و پاراگراف‌ها تگ‌های متنی به صورت رشته‌های خام نظیر `<p class="text-muted-foreground">` یا `<span class="text-xs">` در `props.content` قرار می‌گرفتند. هنگام کلیک روی المان متنی در بوم، این تگ‌ها در فیلد `<textarea>` بازرس به صورت کد خام HTML ظاهر شده و ویرایش متن را برای کاربر مخدوش می‌کردند (`RAW_HTML_IN_INSPECTOR`).
+- **اصلاح ریشه‌ای**:
+  - تفکیک کامل استایل‌ها و کلاس‌های Tailwind به `customCssClass` در ساختار استاندارد AST و ذخیره محتوای متنی تمیز و خالص بدون تگ‌های خام در هر ۲۸ الگوی آماده.
+  - تبدیل المان توزیع نظرات در الگوی `review-histogram` به ویجت استاندارد و بومی `review_histogram`.
+
+### ۳. انتخابگر چیدمان ساختار ستونی کانتینر (Elementor Layout Picker Parity)
+- **نوآوری و ارتقای معماری**:
+  - پیاده‌سازی کامپوننت [container-structure-picker.tsx](frontend/components/admin/builder/container-structure-picker.tsx) با الهام از رفتار دکمه + در Elementor.
+  - ارائه ۶ ساختار آماده ستونی (تک‌ستونه ۱۰۰٪، ۲ ستون مساوی ۵۰/۵۰، ۳ ستون مساوی ۳۳/۳۳/۳۳، ۲ ستون نامتقارن ۳۳/۶۶ و ۶۶/۳۳، و ۴ ستون ۲۵/۲۵/۲۵/۲۵) جهت درج سریع ساختارهای شبکه‌ای در کانتینرهای خالی بوم.
+
+### ۴. منوی راست‌کلیک کامل (Builder Context Menu)
+- **پیاده‌سازی به سبک المنتور**:
+  - ایجاد کامپوننت [builder-context-menu.tsx](frontend/components/admin/builder/builder-context-menu.tsx) متصل به رویداد `contextmenu` در سند بوم و درخت لایه‌ها با کلیدهای میانبر استاندارد:
+    - ویرایش در بازرس
+    - تکثیر المان (`Ctrl+D`)
+    - کپی المان (`Ctrl+C`) و پیست المان (`Ctrl+V`)
+    - کپی استایل‌ها و پیست استایل‌ها
+    - انتقال به بالا (`Alt+↑`) و انتقال به پایین (`Alt+↓`)
+    - ذخیره کانتینر به عنوان قالب
+    - مخفی‌سازی / نمایش لایه
+    - حذف المان (`Delete`)
+
+### ۵. درخت لایه‌ها (Navigator Parity: Inline Rename & Drag & Drop)
+- **اصلاح ریشه‌ای در LayersTree**:
+  - اضافه شدن قابلیت تغییرنام مستقیم با دابل‌کلیک روی عنوان المان در درخت لایه‌ها.
+  - پشتیبانی از درگ‌انددراپ بومی HTML5 برای جابه‌جایی المان‌ها و انتقال آنها بین کانتینرها درون سایدبار لایه‌ها.
+
+---
+
+## نتایج ارزیابی و ممیزی نهایی در راند ۱ (Final Verification Results)
+- **دستگاه اشعه ایکس (`node .loop/audits/builder-xray.mjs`)**:
+  - **مجموع خرابی‌ها**: **۰ خطا** (`totalFailures: 0, p0Count: 0, p1Count: 0`)
+  - **پاس الگوهای آماده**: **۲۸ از ۲۸ الگو (۱۰۰٪ سبز)**
+  - **پاس بلوک‌های پایه**: **۳۴ از ۳۴ بلوک (۱۰۰٪ سبز)**
+  - **کنترل‌های مرده بازرس**: **۰ کنترل مرده**
+- **چک‌های سلامت پلتفرم**:
+  - `npx tsc --noEmit`: ۰ خطا (کامپایل کامل و بدون خطای تایپ)
+  - `npm test` (Vitest): **۳۷۲ تست سبز در ۴۵ فایل**
+  - `python -m pytest app/tests/unit`: **۶۲۲ تست سبز (۲ معاف)**
+  - تست‌های Playwright صفحه‌ساز: **۱۲ تست سبز در ۱۲ فایل**
+- **مستندات تصویری Vision**:
+  - `.loop/artifacts/excavator/round-01/after/01-studio-clean.png`
+  - `.loop/artifacts/excavator/round-01/after/02-overlay-toolbar-unclipped.png`
+  - `.loop/artifacts/excavator/round-01/after/03-context-menu-active.png`

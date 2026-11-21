@@ -58,9 +58,21 @@ const TreeItem = React.memo(function TreeItem({ element, depth = 0 }: TreeItemPr
   const deleteElement = useBuilderStore((s) => s.deleteElement);
   const duplicateElement = useBuilderStore((s) => s.duplicateElement);
   const toggleHideElement = useBuilderStore((s) => s.toggleHideElement);
+  const moveElement = useBuilderStore((s) => s.moveElement);
+  const renameElement = useBuilderStore((s) => s.renameElement);
+
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [editedName, setEditedName] = useState(element.name);
 
   const Icon = getElementIcon(element);
   const hasChildren = element.children && element.children.length > 0;
+
+  const handleFinishRename = () => {
+    setIsEditingName(false);
+    if (editedName.trim() && editedName !== element.name) {
+      renameElement(element.id, editedName.trim());
+    }
+  };
 
   return (
     <div
@@ -69,6 +81,46 @@ const TreeItem = React.memo(function TreeItem({ element, depth = 0 }: TreeItemPr
     >
       <div
         onClick={() => selectElement(element.id)}
+        onContextMenu={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          selectElement(element.id);
+          window.dispatchEvent(
+            new CustomEvent("builder-context-menu", {
+              detail: {
+                elementId: element.id,
+                x: e.clientX,
+                y: e.clientY,
+              },
+            })
+          );
+        }}
+        draggable={!element.isLocked}
+        onDragStart={(e) => {
+          e.stopPropagation();
+          e.dataTransfer.setData(
+            "application/json",
+            JSON.stringify({ type: "element", elementId: element.id })
+          );
+          e.dataTransfer.effectAllowed = "move";
+        }}
+        onDragOver={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          e.dataTransfer.dropEffect = "move";
+        }}
+        onDrop={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          const raw = e.dataTransfer.getData("application/json");
+          if (!raw) return;
+          try {
+            const data = JSON.parse(raw);
+            if (data.type === "element" && data.elementId && data.elementId !== element.id) {
+              moveElement(data.elementId, element.id);
+            }
+          } catch {}
+        }}
         data-layer-row=""
         data-depth={depth}
         data-element-id={element.id}
@@ -117,7 +169,38 @@ const TreeItem = React.memo(function TreeItem({ element, depth = 0 }: TreeItemPr
           />
 
           <Icon className={cn("w-3.5 h-3.5 shrink-0", isSelected ? "text-primary-foreground" : "text-primary/70")} />
-          <span className="truncate">{element.name}</span>
+
+          {/* Inline Rename (Double Click - Elementor Navigator Parity) */}
+          {isEditingName ? (
+            <input
+              type="text"
+              autoFocus
+              value={editedName}
+              onClick={(e) => e.stopPropagation()}
+              onChange={(e) => setEditedName(e.target.value)}
+              onBlur={handleFinishRename}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleFinishRename();
+                if (e.key === "Escape") {
+                  setEditedName(element.name);
+                  setIsEditingName(false);
+                }
+              }}
+              className="h-5 px-1 py-0 text-xs bg-background text-foreground border rounded w-28 text-right outline-none ring-1 ring-primary"
+            />
+          ) : (
+            <span
+              className="truncate cursor-text"
+              onDoubleClick={(e) => {
+                e.stopPropagation();
+                setEditedName(element.name);
+                setIsEditingName(true);
+              }}
+              title="دابل‌کلیک برای تغییر نام المان"
+            >
+              {element.name}
+            </span>
+          )}
 
           {element.isLocked && (
             <Lock className={cn("w-3 h-3 shrink-0 ms-1", isSelected ? "text-amber-200" : "text-amber-500")} />

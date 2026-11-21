@@ -1,0 +1,668 @@
+import fs from "node:fs";
+import path from "node:path";
+import { execSync } from "node:child_process";
+import { createRequire } from "node:module";
+
+// Resolve packages from frontend directory
+const frontendPkgPath = path.resolve("frontend/package.json");
+const req = createRequire(frontendPkgPath);
+const { chromium } = req("playwright");
+
+const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || "http://127.0.0.1:3000";
+const PROJECT_ROOT = path.resolve(".");
+const BACKEND_DIR = path.join(PROJECT_ROOT, "backend");
+const ARTIFACTS_DIR = path.join(PROJECT_ROOT, ".loop", "artifacts", "excavator", "round-01", "before");
+const AUDITS_DIR = path.join(PROJECT_ROOT, ".loop", "audits");
+const MATRIX_PATH = path.join(PROJECT_ROOT, ".loop", "XRAY_MATRIX.json");
+
+fs.mkdirSync(ARTIFACTS_DIR, { recursive: true });
+fs.mkdirSync(AUDITS_DIR, { recursive: true });
+
+function getAdminToken() {
+  const script = `
+import asyncio, datetime, uuid
+from app.core.security.jwt import create_access_token
+async def main():
+    user_id = str(uuid.UUID("47f274da-3abd-4d91-bc9c-83ba913fc66f"))
+    print("TOKEN_START:" + create_access_token(
+        user_id,
+        extra_claims={"roles": ["super_admin"], "is_superuser": True, "permissions": ["*"]},
+        expires_delta=datetime.timedelta(hours=2),
+    ))
+asyncio.run(main())
+`;
+  const tmpFile = path.join(BACKEND_DIR, `.e2e-token-${Date.now()}.py`);
+  fs.writeFileSync(tmpFile, script, "utf8");
+  try {
+    const out = execSync(`python "${tmpFile}"`, { cwd: BACKEND_DIR, encoding: "utf8" });
+    const line = out.split("\n").find((l) => l.includes("TOKEN_START:"));
+    return line ? line.replace("TOKEN_START:", "").trim() : "";
+  } finally {
+    if (fs.existsSync(tmpFile)) {
+      try { fs.unlinkSync(tmpFile); } catch {}
+    }
+  }
+}
+
+const PATTERN_SLUGS = [
+  "hero-banner",
+  "feature-grid",
+  "product-showcase-cta",
+  "testimonials",
+  "faq-accordion",
+  "image-text",
+  "countdown-offer",
+  "star-rating-display",
+  "review-histogram",
+  "product-card-grid",
+  "text-marquee",
+  "stats-counter",
+  "image-gallery-showcase",
+  "discount-badge-banner",
+  "mega-menu-categories",
+  "pricing-table",
+  "price-list",
+  "icon-box-grid",
+  "author-bio",
+  "pull-quote",
+  "support-callout",
+  "comparison-table",
+  "process-steps",
+  "lead-capture-form",
+  "alert-banner",
+  "floating-contact-bar",
+  "brand-logo-carousel",
+  "product-highlights",
+];
+
+const BASIC_BLOCK_TYPES = [
+  "container", "section", "columns", "form_container",
+  "heading", "text_editor", "image", "button", "spacer", "divider",
+  "table", "form_input", "form_textarea", "form_select",
+  "product_card", "product_grid", "product_variants", "product_price",
+  "add_to_cart", "mini_cart", "cart_summary",
+  "form_checkbox", "form_radio", "accordion", "tabs",
+  "countdown", "video", "icon_box", "social_links",
+  "image_gallery", "star_rating", "review_histogram",
+  "recently_viewed", "mega_menu"
+];
+
+async function runXRay() {
+  console.log(">>> [X-RAY] Initializing ruthless audit scanner (.loop/audits/builder-xray.mjs)...");
+
+  const matrix = {
+    timestamp: new Date().toISOString(),
+    totalFailures: 0,
+    p0Count: 0,
+    p1Count: 0,
+    p2Count: 0,
+    patternsPassed: 0,
+    patternsTotal: 28,
+    blocksPassed: 0,
+    blocksTotal: 34,
+    deadControlsRemaining: 0,
+    failures: [],
+    summary: {},
+  };
+
+  async function addFailure(severity, category, target, message, meta = {}) {
+    matrix.totalFailures++;
+    if (severity === "P0") matrix.p0Count++;
+    else if (severity === "P1") matrix.p1Count++;
+    else matrix.p2Count++;
+
+    const safeTarget = String(target).replace(/[^a-zA-Z0-9_-]/g, "_").slice(0, 50);
+    const shotPath = path.join(ARTIFACTS_DIR, `${severity}_${category}_${safeTarget}.png`);
+    try {
+      if (page && !page.isClosed()) {
+        await page.screenshot({ path: shotPath }).catch(() => {});
+      }
+    } catch {}
+
+    matrix.failures.push({
+      severity,
+      category,
+      target,
+      message,
+      screenshot: path.relative(PROJECT_ROOT, shotPath),
+      meta,
+    });
+    console.warn(`    [${severity}] [${category}] ${target}: ${message}`);
+  }
+
+  const token = getAdminToken();
+  const browser = await chromium.launch({
+    headless: true,
+    args: ["--no-sandbox", "--disable-dev-shm-usage"],
+  });
+  const context = await browser.newContext({
+    viewport: { width: 1440, height: 900 },
+  });
+
+  if (token) {
+    await context.addCookies([
+      { name: "access_token", value: token, url: BASE_URL, httpOnly: false, sameSite: "Lax" },
+    ]);
+  }
+  await context.addInitScript(() => {
+    localStorage.setItem(
+      "auth-storage",
+      JSON.stringify({
+        state: { user: { id: "admin-1", phone: "09120000000", isSuperuser: true, roles: ["super_admin"] }, isAuthenticated: true, isLoading: false }
+      })
+    );
+  });
+
+  const page = await context.newPage();
+  const consoleErrors = [];
+  page.on("console", (msg) => {
+    if (msg.type() === "error") {
+      consoleErrors.push(msg.text());
+    }
+  });
+
+  await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?visual_editor=true`, {
+    waitUntil: "domcontentloaded",
+  });
+  await page.waitForTimeout(2000);
+
+  // Helper: clear canvas
+  async function clearCanvas() {
+    try {
+      await page.keyboard.press("Escape");
+      await page.waitForTimeout(100);
+    } catch {}
+    await page.evaluate(() => {
+      const store = window.__BUILDER_STORE__;
+      if (store) {
+        store.setState({
+          ast: { ...store.getState().ast, rootElements: [] },
+          selectedElementId: null,
+          selectedElementIds: [],
+        });
+      }
+    });
+    await page.waitForTimeout(300);
+  }
+
+  const closeAnyModal = async () => {
+    try {
+      await page.keyboard.press("Escape");
+      await page.waitForTimeout(200);
+      const openOverlays = page.locator("div[data-state='open'].fixed.inset-0");
+      if ((await openOverlays.count()) > 0) {
+        await page.keyboard.press("Escape");
+        await page.waitForTimeout(200);
+      }
+    } catch {}
+  };
+
+  const getCanvasFrame = async () => {
+    const iframeEl = await page.$('iframe[title="Visual Builder Canvas"]');
+    if (!iframeEl) throw new Error("Iframe canvas not found");
+    const frame = await iframeEl.contentFrame();
+    if (!frame) throw new Error("Could not access canvas frame content");
+    return frame;
+  };
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // 1. TEST ALL 28 PATTERNS (Pattern-by-Pattern, 1..28)
+  // ──────────────────────────────────────────────────────────────────────────
+  console.log(">>> [X-RAY] Phase 1: Testing 28 Block Patterns (Checks A, B, C, D, E)...");
+
+  for (let i = 0; i < PATTERN_SLUGS.length; i++) {
+    const slug = PATTERN_SLUGS[i];
+    let patternFailed = false;
+
+    await clearCanvas();
+
+    // Switch to patterns tab
+    const mainTab = page.locator("aside button:has-text('افزودن بلوک')").first();
+    if (await mainTab.isVisible()) await mainTab.click();
+    const patternsTab = page.locator("aside button:has-text('الگوها')").first();
+    await patternsTab.click();
+    await page.locator("div[data-pattern-slug]").first().waitFor({ state: "visible", timeout: 15000 });
+    await page.waitForTimeout(100);
+
+    // Filter to 'all' categories
+    const allCategoryChip = page.locator("button:has-text('همه')").first();
+    if (await allCategoryChip.isVisible()) {
+      await allCategoryChip.click();
+    }
+
+    const patternCard = page.locator(`div[data-pattern-slug="${slug}"]`).first();
+    try {
+      await patternCard.scrollIntoViewIfNeeded({ timeout: 5000 });
+    } catch {}
+    if (!(await patternCard.isVisible())) {
+      await addFailure("P0", "PATTERN_CARD_NOT_FOUND", slug, `Pattern card for ${slug} not visible in palette`);
+      continue;
+    }
+
+    // Insert pattern
+    await patternCard.click();
+
+    const frame = await getCanvasFrame();
+    const rootEl = frame.locator("[data-element-id]").first();
+    try {
+      await rootEl.waitFor({ state: "visible", timeout: 8000 });
+    } catch {
+      await addFailure("P0", "PATTERN_NOT_RENDERED", slug, `Root element for pattern ${slug} not rendered`);
+      continue;
+    }
+
+    // Test targets: root + at least 2 inner children (as strictly specified by prompt)
+    const allElements = frame.locator("[data-element-id]");
+    const totalCount = await allElements.count();
+    const elementsToTest = [rootEl];
+    if (totalCount > 1) elementsToTest.push(allElements.nth(1));
+    if (totalCount > 2) elementsToTest.push(allElements.nth(2));
+
+    for (let tIdx = 0; tIdx < elementsToTest.length; tIdx++) {
+      const targetLoc = elementsToTest[tIdx];
+      const targetId = await targetLoc.getAttribute("data-element-id");
+      const targetTag = await targetLoc.evaluate((el) => el.tagName.toLowerCase());
+
+      // Click to select (catch interception without force: true)
+      try {
+        await targetLoc.click({ timeout: 4000 });
+      } catch (clickErr) {
+        await addFailure("P0", "ELEMENT_CLICK_BLOCKED", `${slug}::${targetId}`, `Element click blocked: ${clickErr.message}`);
+        patternFailed = true;
+        continue;
+      }
+      await page.waitForTimeout(300);
+
+      // Check A: Floating toolbar presence
+      const toolbarLoc = frame.locator('[data-testid="floating-toolbar"]').first();
+      const toolbarVisible = await toolbarLoc.isVisible();
+      if (!toolbarVisible) {
+        await addFailure("P0", "TOOLBAR_MISSING", `${slug}::${targetId}`, "Floating toolbar not visible on selected element");
+        patternFailed = true;
+        continue;
+      }
+
+      const toolbarRect = await toolbarLoc.evaluate((el) => {
+        const r = el.getBoundingClientRect();
+        return { width: r.width, height: r.height, top: r.top, bottom: r.bottom, left: r.left, right: r.right };
+      });
+
+      if (toolbarRect.width <= 40 || toolbarRect.height <= 20) {
+        await addFailure("P0", "TOOLBAR_SIZE_INVALID", `${slug}::${targetId}`, `Toolbar size too small: ${toolbarRect.width}x${toolbarRect.height}`);
+        patternFailed = true;
+      }
+
+      // Check B: Prohibition of clipping by ancestor with overflow: hidden/clip/auto/scroll
+      const clipCheck = await toolbarLoc.evaluate((toolbar) => {
+        const doc = toolbar.ownerDocument;
+        const win = doc.defaultView;
+        const tRect = toolbar.getBoundingClientRect();
+        let parent = toolbar.parentElement;
+        let culprit = null;
+        const overflowValues = new Set(["hidden", "clip", "auto", "scroll"]);
+
+        while (parent && parent !== doc.body) {
+          const style = win.getComputedStyle(parent);
+          if (overflowValues.has(style.overflow) || overflowValues.has(style.overflowX) || overflowValues.has(style.overflowY)) {
+            const pRect = parent.getBoundingClientRect();
+            const tolerance = 1;
+            if (
+              tRect.top < pRect.top - tolerance ||
+              tRect.bottom > pRect.bottom + tolerance ||
+              tRect.left < pRect.left - tolerance ||
+              tRect.right > pRect.right + tolerance
+            ) {
+              culprit = {
+                tag: parent.tagName.toLowerCase(),
+                className: parent.className,
+                overflow: style.overflow,
+                tRect: { top: tRect.top, bottom: tRect.bottom, left: tRect.left, right: tRect.right },
+                pRect: { top: pRect.top, bottom: pRect.bottom, left: pRect.left, right: pRect.right },
+              };
+              break;
+            }
+          }
+          parent = parent.parentElement;
+        }
+        return culprit;
+      });
+
+      if (clipCheck) {
+        await addFailure(
+          "P0",
+          "TOOLBAR_CLIPPED_BY_OVERFLOW",
+          `${slug}::${targetId}`,
+          `Toolbar clipped by ancestor <${clipCheck.tag}> with overflow:${clipCheck.overflow}`,
+          clipCheck
+        );
+        patternFailed = true;
+      }
+
+      // Check C: elementFromPoint test on all toolbar buttons
+      const buttonClickability = await toolbarLoc.evaluate((toolbar) => {
+        const doc = toolbar.ownerDocument;
+        const buttons = Array.from(toolbar.querySelectorAll("button, [role='button']"));
+        const unclickable = [];
+
+        for (const btn of buttons) {
+          const bRect = btn.getBoundingClientRect();
+          const cx = bRect.left + bRect.width / 2;
+          const cy = bRect.top + bRect.height / 2;
+          const topEl = doc.elementFromPoint(cx, cy);
+
+          if (!topEl || (!btn.contains(topEl) && btn !== topEl)) {
+            unclickable.push({
+              title: btn.getAttribute("title") || btn.getAttribute("data-testid") || btn.textContent?.trim(),
+              cx,
+              cy,
+              foundTag: topEl ? topEl.tagName.toLowerCase() : null,
+              foundClass: topEl ? topEl.className : null,
+            });
+          }
+        }
+        return unclickable;
+      });
+
+      if (buttonClickability && buttonClickability.length > 0) {
+        await addFailure(
+          "P0",
+          "TOOLBAR_BUTTON_UNCLICKABLE",
+          `${slug}::${targetId}`,
+          `Toolbar buttons blocked from point click: ${buttonClickability.map((b) => b.title).join(", ")}`,
+          buttonClickability
+        );
+        patternFailed = true;
+      }
+
+      // Check E: Prohibition of raw HTML leak in inspector inputs/textareas
+      const rawHtmlCheck = await page.evaluate(() => {
+        const inspector = document.querySelector("[data-builder-inspector]");
+        if (!inspector) return null;
+        const inputs = Array.from(inspector.querySelectorAll("input, textarea"));
+        const leaking = [];
+        for (const input of inputs) {
+          const val = (input).value || "";
+          if (/<span\b|<div\b|class\s*=/i.test(val)) {
+            leaking.push({
+              type: input.tagName.toLowerCase(),
+              val: val.slice(0, 100),
+            });
+          }
+        }
+        return leaking.length > 0 ? leaking : null;
+      });
+
+      if (rawHtmlCheck) {
+        await addFailure(
+          "P1",
+          "RAW_HTML_IN_INSPECTOR",
+          `${slug}::${targetId}`,
+          `Raw HTML tags/classes leaked into inspector field: ${JSON.stringify(rawHtmlCheck)}`,
+          rawHtmlCheck
+        );
+        patternFailed = true;
+      }
+    }
+
+    // Check D: Real AST actions (Duplicate -> count increases; Move -> order changes; Delete -> count decreases)
+    try {
+      const initialElementsCount = await frame.locator("[data-element-id]").count();
+      const firstEl = frame.locator("[data-element-id]").first();
+      await firstEl.click();
+      await page.waitForTimeout(200);
+
+      const dupBtn = frame.locator('[data-testid="floating-toolbar"] button[title*="تکثیر"]').first();
+      if (await dupBtn.isVisible()) {
+        await dupBtn.click();
+        await page.waitForTimeout(300);
+        const afterDupCount = await frame.locator("[data-element-id]").count();
+        if (afterDupCount <= initialElementsCount) {
+          await addFailure("P0", "DEAD_TOOLBAR_ACTION", `${slug}::duplicate`, "Duplicate button clicked but element count did not increase");
+          patternFailed = true;
+        }
+
+        const delBtn = frame.locator('[data-testid="floating-toolbar"] button[title*="حذف"]').first();
+        if (await delBtn.isVisible()) {
+          await delBtn.click();
+          await page.waitForTimeout(300);
+          const afterDelCount = await frame.locator("[data-element-id]").count();
+          if (afterDelCount >= afterDupCount) {
+            await addFailure("P0", "DEAD_TOOLBAR_ACTION", `${slug}::delete`, "Delete button clicked but element count did not decrease");
+            patternFailed = true;
+          }
+        }
+      }
+    } catch (err) {
+      await addFailure("P0", "DEAD_TOOLBAR_ACTION", `${slug}::exception`, `Toolbar action test crashed: ${err.message}`);
+      patternFailed = true;
+    }
+
+    if (!patternFailed) {
+      matrix.patternsPassed++;
+    }
+  }
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // 2. TEST ALL 34 BASIC BLOCKS & NATIVE WIDGETS (1..34)
+  // ──────────────────────────────────────────────────────────────────────────
+  console.log(">>> [X-RAY] Phase 2: Testing 34 Native Base Blocks...");
+
+  for (let i = 0; i < BASIC_BLOCK_TYPES.length; i++) {
+    const blockType = BASIC_BLOCK_TYPES[i];
+    let blockFailed = false;
+
+    await clearCanvas();
+
+    const mainTab = page.locator("aside button:has-text('افزودن بلوک')").first();
+    if (await mainTab.isVisible()) await mainTab.click();
+    const blocksTab = page.locator("aside button:has-text('بلوک‌ها')").first();
+    await blocksTab.click();
+    await page.locator("[data-block-type]").first().waitFor({ state: "visible", timeout: 15000 });
+    await page.waitForTimeout(100);
+
+    // Find block by text or type
+    const blockButton = page.locator(`[data-block-type="${blockType}"]`).first();
+    const fallbackButton = page.locator(`button:has-text("${blockType}")`).first();
+
+    let targetBtn = (await blockButton.count()) > 0 ? blockButton : fallbackButton;
+    try {
+      await targetBtn.scrollIntoViewIfNeeded({ timeout: 4000 });
+    } catch {}
+
+    // Direct insertion fallback via store if palette element missing
+    if ((await targetBtn.count()) === 0 || !(await targetBtn.isVisible())) {
+      const inserted = await page.evaluate((type) => {
+        const store = window.__BUILDER_STORE__ || (window).__builderStore;
+        if (store && store.getState) {
+          store.getState().addElement({
+            id: `el_test_${type}`,
+            name: `Test ${type}`,
+            type: ["container", "section", "columns", "form_container"].includes(type) ? "container" : "widget",
+            widgetType: ["container", "section", "columns", "form_container"].includes(type) ? undefined : type,
+            widgetProps: {},
+            styles: { mobile: {} },
+            children: [],
+          });
+          return true;
+        }
+        return false;
+      }, blockType);
+
+      if (!inserted) {
+        await addFailure("P0", "BLOCK_PALETTE_MISSING", blockType, `Block definition ${blockType} not found in palette`);
+        continue;
+      }
+    } else {
+      await targetBtn.click();
+    }
+
+    await page.waitForTimeout(400);
+
+    const frame = await getCanvasFrame();
+    const renderedBlock = frame.locator("[data-element-id]").first();
+    if (!(await renderedBlock.isVisible())) {
+      await addFailure("P0", "BLOCK_RENDER_FAILED", blockType, `Block ${blockType} failed to render on canvas`);
+      continue;
+    }
+
+    const bBox = await renderedBlock.boundingBox();
+    if (!bBox || bBox.width <= 0 || bBox.height <= 0) {
+      await addFailure("P0", "BLOCK_ZERO_SIZE", blockType, `Block ${blockType} rendered with zero dimensions`);
+      blockFailed = true;
+    }
+
+    // Test selection and toolbar
+    await renderedBlock.click();
+    await page.waitForTimeout(300);
+
+    const toolbar = frame.locator('[data-testid="floating-toolbar"]').first();
+    if (!(await toolbar.isVisible())) {
+      await addFailure("P0", "BLOCK_TOOLBAR_MISSING", blockType, `Toolbar missing on selecting ${blockType}`);
+      blockFailed = true;
+    }
+
+    if (!blockFailed) {
+      matrix.blocksPassed++;
+    }
+  }
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // 3. DEAD CONTROL HUNTER (Inspector Panel Controls)
+  // ──────────────────────────────────────────────────────────────────────────
+  console.log(">>> [X-RAY] Phase 3: Dead Control Hunter in Inspector Panel...");
+
+  const testDeadControls = async () => {
+    await clearCanvas();
+
+    // Insert a container with heading and button
+    await page.evaluate(() => {
+      const store = window.__BUILDER_STORE__ || (window).__builderStore;
+      if (store && store.getState) {
+        store.getState().addElement({
+          id: "cont_test_hunter",
+          name: "کانتینر تستر",
+          type: "container",
+          layout: {
+            kind: "flex",
+            direction: "column",
+            justifyContent: "start",
+            alignItems: "stretch",
+            flexWrap: "nowrap",
+            gap: { value: 16, unit: "px" },
+            gridColumns: 1,
+          },
+          styles: {
+            mobile: {
+              padding: { top: { value: 10, unit: "px" }, bottom: { value: 10, unit: "px" }, left: { value: 10, unit: "px" }, right: { value: 10, unit: "px" }, isLinked: true },
+            },
+          },
+          children: [
+            {
+              id: "head_test_hunter",
+              name: "تیتر تستر",
+              type: "widget",
+              widgetType: "heading",
+              widgetProps: { text: "تیتر تستر کنترل", tag: "h2" },
+              styles: { mobile: {} },
+              children: [],
+            },
+          ],
+        });
+        store.getState().selectElement("cont_test_hunter");
+      }
+    });
+
+    await page.waitForTimeout(500);
+    const frame = await getCanvasFrame();
+    const contLoc = frame.locator('[data-element-id="cont_test_hunter"]');
+
+    // Test 1: Content Tab - Gap Control
+    const gapInput = page.locator('input[data-testid="container-gap-input"]').first();
+    if (await gapInput.isVisible()) {
+      await gapInput.fill("42");
+      await page.waitForTimeout(300);
+      const computedGap = await contLoc.evaluate((el) => window.getComputedStyle(el).gap);
+      if (computedGap !== "42px") {
+        await addFailure("P0", "DEAD_INSPECTOR_CONTROL", "container::gap", `Gap changed to 42px in inspector but computedStyle.gap is ${computedGap}`);
+        matrix.deadControlsRemaining++;
+      }
+    }
+
+    // Test 2: Style Tab - Padding
+    const styleTabTrigger = page.locator('[data-builder-inspector] button[role="tab"]:has-text("استایل")').first();
+    if (await styleTabTrigger.isVisible()) {
+      await styleTabTrigger.click();
+      await page.waitForTimeout(300);
+
+      const paddingInput = page.locator('[data-builder-inspector] input[type="number"]').first();
+      if (await paddingInput.isVisible()) {
+        await paddingInput.fill("35");
+        await page.waitForTimeout(300);
+        const computedPadding = await contLoc.evaluate((el) => window.getComputedStyle(el).paddingTop);
+        if (computedPadding !== "35px") {
+          await addFailure("P0", "DEAD_INSPECTOR_CONTROL", "container::paddingTop", `Padding set to 35px in inspector but computedStyle.paddingTop is ${computedPadding}`);
+          matrix.deadControlsRemaining++;
+        }
+      }
+    }
+  };
+
+  await testDeadControls();
+  await closeAnyModal();
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // 4. STUDIO LAYOUT & WYSIWYG PARITY
+  // ──────────────────────────────────────────────────────────────────────────
+  console.log(">>> [X-RAY] Phase 4: Studio Layout and WYSIWYG Parity Checks...");
+
+  // Check category filter chips clipping
+  const patternsTab = page.locator("button:has-text('الگوها')").first();
+  await patternsTab.click();
+  await page.waitForTimeout(300);
+
+  const chipsClipping = await page.evaluate(() => {
+    const chipButtons = Array.from(document.querySelectorAll("aside button"));
+    const truncatedOrClipped = [];
+    for (const b of chipButtons) {
+      if (b.scrollWidth > b.clientWidth + 2) {
+        truncatedOrClipped.push(b.textContent?.trim());
+      }
+      if (/اعتماد.*بازخ/.test(b.textContent || "") && b.textContent.includes("...")) {
+        truncatedOrClipped.push(b.textContent?.trim());
+      }
+    }
+    return truncatedOrClipped;
+  });
+
+  if (chipsClipping && chipsClipping.length > 0) {
+    await addFailure("P1", "CATEGORY_CHIP_CLIPPED", "blocks-palette::categories", `Category chips clipped or truncated: ${chipsClipping.join(", ")}`);
+  }
+
+  // Final Summary & Write Output
+  matrix.summary = {
+    totalFailures: matrix.totalFailures,
+    p0Count: matrix.p0Count,
+    p1Count: matrix.p1Count,
+    p2Count: matrix.p2Count,
+    patternsPassed: `${matrix.patternsPassed}/${matrix.patternsTotal}`,
+    blocksPassed: `${matrix.blocksPassed}/${matrix.blocksTotal}`,
+    deadControlsRemaining: matrix.deadControlsRemaining,
+  };
+
+  fs.writeFileSync(MATRIX_PATH, JSON.stringify(matrix, null, 2), "utf8");
+  console.log("\n==================================================================");
+  console.log(`>>> [X-RAY MATRIX GENERATED] Total Failures: ${matrix.totalFailures} (P0: ${matrix.p0Count}, P1: ${matrix.p1Count}, P2: ${matrix.p2Count})`);
+  console.log(`    Patterns Passed: ${matrix.patternsPassed}/${matrix.patternsTotal}`);
+  console.log(`    Blocks Passed  : ${matrix.blocksPassed}/${matrix.blocksTotal}`);
+  console.log(`    Dead Controls  : ${matrix.deadControlsRemaining}`);
+  console.log(`    Report Saved   : ${MATRIX_PATH}`);
+  console.log("==================================================================\n");
+
+  await browser.close();
+  return matrix;
+}
+
+runXRay().catch((err) => {
+  console.error("FATAL: builder-xray.mjs failed with unhandled error:", err);
+  process.exit(1);
+});

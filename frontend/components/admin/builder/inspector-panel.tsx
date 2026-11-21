@@ -1724,9 +1724,9 @@ export function InspectorPanel() {
           </div>
         </div>
 
-        {/* Background Color */}
-        <div className="space-y-1.5">
-          <Label className="text-xs font-bold text-foreground">رنگ پس‌زمینه (Background)</Label>
+        {/* Background (Color & Gradient - Elementor Grouped System) */}
+        <div className="space-y-2 pt-2 border-t">
+          <Label className="text-xs font-bold text-foreground">پس‌زمینه (Background & Gradients)</Label>
           <div className="flex items-center gap-2">
             <input
               type="color"
@@ -1756,8 +1756,40 @@ export function InspectorPanel() {
               dir="ltr"
             />
           </div>
-          {/* Quick Design System Token Chips */}
+
+          {/* Quick Gradients (Elementor Parity) */}
           <div className="flex flex-wrap gap-1 mt-1.5">
+            <span className="text-[10px] text-muted-foreground me-1 self-center">گرادیانت آماده:</span>
+            {[
+              { label: "طلایی/کهربایی", from: "#f59e0b", to: "#d97706" },
+              { label: "آبی/نیلی", from: "#3b82f6", to: "#1d4ed8" },
+              { label: "زمردی/سبز", from: "#10b981", to: "#047857" },
+              { label: "رز/یاقوتی", from: "#f43f5e", to: "#be123c" },
+            ].map((g) => (
+              <button
+                key={g.label}
+                type="button"
+                onClick={() =>
+                  handleDeviceStyleChange({
+                    background: {
+                      type: "gradient",
+                      gradient: {
+                        direction: "to-r",
+                        fromColor: g.from,
+                        toColor: g.to,
+                      },
+                    },
+                  })
+                }
+                className="px-2 py-0.5 rounded text-[10px] bg-muted/80 hover:bg-muted text-muted-foreground hover:text-foreground border border-border/60 transition"
+              >
+                {g.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Quick Design System Token Chips */}
+          <div className="flex flex-wrap gap-1 mt-1">
             <span className="text-[10px] text-muted-foreground me-1 self-center">توکن‌های تم:</span>
             {[
               { label: "رنگ اصلی", val: "var(--primary)" },

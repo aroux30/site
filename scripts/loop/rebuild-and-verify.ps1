@@ -26,7 +26,8 @@ try {
         $pids = $connections | Select-Object -ExpandProperty OwningProcess -Unique
         foreach ($procId in $pids) {
             if ($procId -gt 4) {
-                Write-Host "    Killing process $procId on port $Port..."
+                Write-Host "    Killing process tree $procId on port $Port..."
+                cmd /c "taskkill /F /T /PID $procId" 2>$null
                 Stop-Process -Id $procId -Force -ErrorAction SilentlyContinue
             }
         }

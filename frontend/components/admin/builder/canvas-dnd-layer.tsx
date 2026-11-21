@@ -1,11 +1,12 @@
 "use client";
 
-import React from "react";
+import React, { useRef } from "react";
 import { BASIC_BLOCK_DEFINITIONS, createPatternElement } from "@/lib/builder/block-registry";
 import { blockPatternsApi } from "@/lib/api/block-patterns";
 import { useBuilderStore, cloneElementWithNewIds, type Breakpoint } from "@/stores/builder-store";
 import type { BuilderElement } from "@/types/builder";
 import { CanvasElement } from "./canvas-element";
+import { CanvasOverlay } from "./canvas-overlay";
 
 /**
  * The canvas content layer, rendered inside the iframe's own React root.
@@ -31,11 +32,13 @@ export function CanvasDndLayer({
 }) {
   const addElement = useBuilderStore((s) => s.addElement);
   const moveElement = useBuilderStore((s) => s.moveElement);
+  const canvasRootRef = useRef<HTMLDivElement>(null);
 
   return (
     <div
+      ref={canvasRootRef}
       data-testid="builder-canvas-root"
-      className="space-y-4 min-h-[500px] w-full"
+      className="space-y-4 min-h-[500px] w-full relative"
       onDragOver={(e) => {
         e.preventDefault();
         const isMove = e.dataTransfer.effectAllowed === "move";
@@ -87,6 +90,12 @@ export function CanvasDndLayer({
           depth={1}
         />
       ))}
+
+      {/* Elementor-style Root Overlay & Floating Toolbar Layer */}
+      <CanvasOverlay
+        activeBreakpoint={activeBreakpoint}
+        canvasRootRef={canvasRootRef}
+      />
     </div>
   );
 }

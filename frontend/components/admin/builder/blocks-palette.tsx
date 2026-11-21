@@ -357,11 +357,11 @@ export function BlocksPalette() {
 
       {/* Category chips when in Patterns tab */}
       {activeTab === "patterns" && categories.length > 0 && (
-        <div className="flex gap-1 overflow-x-auto pb-1 shrink-0 no-scrollbar">
+        <div className="flex flex-wrap gap-1.5 pb-1 shrink-0">
           <button
             type="button"
             onClick={() => setSelectedCategory("all")}
-            className={`px-2 py-0.5 rounded-md text-[11px] font-medium shrink-0 transition ${
+            className={`px-2.5 py-1 rounded-md text-[11px] font-medium transition whitespace-nowrap ${
               selectedCategory === "all"
                 ? "bg-primary text-primary-foreground font-bold"
                 : "bg-muted/70 text-muted-foreground hover:text-foreground"
@@ -374,7 +374,7 @@ export function BlocksPalette() {
               key={cat}
               type="button"
               onClick={() => setSelectedCategory(cat)}
-              className={`px-2 py-0.5 rounded-md text-[11px] font-medium shrink-0 transition ${
+              className={`px-2.5 py-1 rounded-md text-[11px] font-medium transition whitespace-nowrap ${
                 selectedCategory === cat
                   ? "bg-primary text-primary-foreground font-bold"
                   : "bg-muted/70 text-muted-foreground hover:text-foreground"
@@ -402,6 +402,7 @@ export function BlocksPalette() {
                     return (
                       <button
                         key={block.type}
+                        data-block-type={block.type}
                         type="button"
                         draggable={true}
                         onDragStart={(e) => {
@@ -451,6 +452,7 @@ export function BlocksPalette() {
                     return (
                       <button
                         key={block.type}
+                        data-block-type={block.type}
                         type="button"
                         draggable={true}
                         onDragStart={(e) => {

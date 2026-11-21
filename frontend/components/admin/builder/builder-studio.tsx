@@ -15,6 +15,9 @@ import { LayersTree } from "./layers-tree";
 import { CanvasFrame } from "./canvas-frame";
 import { CanvasDndLayer } from "./canvas-dnd-layer";
 import { InspectorPanel } from "./inspector-panel";
+import { BuilderContextMenu, type ContextMenuState } from "./builder-context-menu";
+import { SaveTemplateDialog } from "./save-template-dialog";
+import type { BuilderElement } from "@/types/builder";
 
 export interface BuilderStudioProps {
   page: CmsPage;
@@ -61,6 +64,14 @@ export function BuilderStudio({ page, onExit }: BuilderStudioProps) {
   // Initialize store on mount
   useEffect(() => {
     initPage(page.id, page.builder_data, page.title, page.slug);
+    if (typeof window !== "undefined") {
+      (window as any).__BUILDER_STORE__ = useBuilderStore;
+    }
+    return () => {
+      if (typeof window !== "undefined") {
+        delete (window as any).__BUILDER_STORE__;
+      }
+    };
   }, [page.id, page.builder_data, page.title, page.slug, initPage]);
 
   // Clean up lock on unmount
@@ -69,6 +80,33 @@ export function BuilderStudio({ page, onExit }: BuilderStudioProps) {
       void release();
     };
   }, [release]);
+
+  // Context Menu State (Elementor Parity)
+  const [contextMenuState, setContextMenuState] = useState<ContextMenuState>({
+    isOpen: false,
+    x: 0,
+    y: 0,
+    elementId: null,
+  });
+  const [contextMenuSaveTemplateEl, setContextMenuSaveTemplateEl] = useState<BuilderElement | null>(null);
+
+  useEffect(() => {
+    const handleContextMenuEvent = (e: Event) => {
+      const customEvent = e as CustomEvent<{ elementId: string; x: number; y: number }>;
+      if (customEvent.detail) {
+        setContextMenuState({
+          isOpen: true,
+          x: customEvent.detail.x,
+          y: customEvent.detail.y,
+          elementId: customEvent.detail.elementId,
+        });
+      }
+    };
+    window.addEventListener("builder-context-menu", handleContextMenuEvent);
+    return () => {
+      window.removeEventListener("builder-context-menu", handleContextMenuEvent);
+    };
+  }, []);
 
   // 1.5s Debounced In-flight Safe Autosave
   useEffect(() => {
@@ -288,6 +326,23 @@ export function BuilderStudio({ page, onExit }: BuilderStudioProps) {
           </aside>
         )}
       </div>
+
+      {/* Context Menu (Elementor Architecture Parity) */}
+      <BuilderContextMenu
+        state={contextMenuState}
+        onClose={() => setContextMenuState((s) => ({ ...s, isOpen: false }))}
+        onOpenSaveTemplate={(el) => setContextMenuSaveTemplateEl(el)}
+      />
+
+      {contextMenuSaveTemplateEl && (
+        <SaveTemplateDialog
+          element={contextMenuSaveTemplateEl}
+          open={Boolean(contextMenuSaveTemplateEl)}
+          onOpenChange={(open) => {
+            if (!open) setContextMenuSaveTemplateEl(null);
+          }}
+        />
+      )}
     </div>
   );
 }

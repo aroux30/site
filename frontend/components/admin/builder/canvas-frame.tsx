@@ -181,9 +181,31 @@ export function CanvasFrame({
     };
     doc.addEventListener("keydown", handleKeyDown);
 
+    // Forward right-click contextmenu event from iframe to studio
+    const handleContextMenu = (e: MouseEvent) => {
+      const target = e.target as HTMLElement | null;
+      const el = target?.closest("[data-element-id]") as HTMLElement | null;
+      if (el) {
+        e.preventDefault();
+        const id = el.getAttribute("data-element-id");
+        const iframeRect = iframeRef.current?.getBoundingClientRect() || { top: 0, left: 0 };
+        window.dispatchEvent(
+          new CustomEvent("builder-context-menu", {
+            detail: {
+              elementId: id,
+              x: e.clientX + iframeRect.left,
+              y: e.clientY + iframeRect.top,
+            },
+          })
+        );
+      }
+    };
+    doc.addEventListener("contextmenu", handleContextMenu);
+
     return () => {
       doc.removeEventListener("dragover", handleDragOver);
       doc.removeEventListener("keydown", handleKeyDown);
+      doc.removeEventListener("contextmenu", handleContextMenu);
     };
   }, [syncStyles]);
 

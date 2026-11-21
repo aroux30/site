@@ -191,9 +191,30 @@ export function CanvasFrame({
     };
     doc.addEventListener("keydown", handleKeyDown);
 
+    // Forward right-click context menu events from inside iframe to parent window
+    const handleContextMenu = (e: MouseEvent) => {
+      let target = e.target as HTMLElement | null;
+      while (target && target !== doc.body) {
+        const elId = target.getAttribute("data-element-id");
+        if (elId) {
+          e.preventDefault();
+          const iframeRect = iframe.getBoundingClientRect();
+          const clientX = iframeRect.left + e.clientX;
+          const clientY = iframeRect.top + e.clientY;
+          if (onContextMenu) {
+            onContextMenu({ clientX, clientY, preventDefault: () => {} } as any, elId);
+          }
+          break;
+        }
+        target = target.parentElement;
+      }
+    };
+    doc.addEventListener("contextmenu", handleContextMenu);
+
     return () => {
       doc.removeEventListener("dragover", handleDragOver);
       doc.removeEventListener("keydown", handleKeyDown);
+      doc.removeEventListener("contextmenu", handleContextMenu);
     };
   }, [syncStyles]);
 

@@ -1785,6 +1785,39 @@ export function InspectorPanel() {
           </div>
         </div>
 
+        {/* Box Shadow Controls (Elementor Style Parity) */}
+        <div className="space-y-1.5 pt-2 border-t">
+          <Label className="text-xs font-bold text-foreground">سایه کادر (Box Shadow - Elementor Style)</Label>
+          <div className="flex items-center gap-2">
+            <Input
+              value={currentDeviceStyle.shadow || ""}
+              placeholder="none / 0 4px 6px -1px rgba(0,0,0,0.1)"
+              onChange={(e) => handleDeviceStyleChange({ shadow: e.target.value })}
+              className="h-8 text-xs flex-1 font-mono"
+              dir="ltr"
+            />
+          </div>
+          <div className="flex flex-wrap gap-1 mt-1.5">
+            <span className="text-[10px] text-muted-foreground me-1 self-center">پریست سایه:</span>
+            {[
+              { label: "بدون سایه", val: "none" },
+              { label: "سایه ملایم (SM)", val: "0 1px 2px 0 rgba(0, 0, 0, 0.05)" },
+              { label: "سایه استاندارد (MD)", val: "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1)" },
+              { label: "سایه عمیق (LG)", val: "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1)" },
+              { label: "درخشش برند (Glow)", val: "0 0 15px rgba(16, 185, 129, 0.3)" },
+            ].map((sh) => (
+              <button
+                key={sh.label}
+                type="button"
+                onClick={() => handleDeviceStyleChange({ shadow: sh.val })}
+                className="px-2 py-0.5 rounded text-[10px] bg-muted/80 hover:bg-muted text-muted-foreground hover:text-foreground border border-border/60 transition"
+              >
+                {sh.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
         {/* Text Color & Typography Tokens */}
         <div className="space-y-1.5 pt-2 border-t">
           <Label className="text-xs font-bold text-foreground">رنگ و تایپوگرافی متن (Typography)</Label>

@@ -291,6 +291,12 @@ function CanvasElementComponent({
       }
     }
 
+    // Box Shadow
+    const shadow = resolveResponsiveValue({ mobile: base?.shadow, tablet: tablet?.shadow, desktop: desktop?.shadow }, activeBreakpoint);
+    if (shadow && shadow !== "none") {
+      styleObj.boxShadow = shadow;
+    }
+
     // Animation styles
     if (res.animation && res.animation !== "none") {
       if (res.animationDuration) styleObj.animationDuration = `${res.animationDuration}s`;
@@ -1277,23 +1283,80 @@ function CanvasElementComponent({
         ) : (
           !previewMode && (
             <div
+              data-testid="empty-container-guide"
+              className="flex flex-col items-center justify-center p-6 border-2 border-dashed border-primary/40 hover:border-primary/80 rounded-2xl bg-card/60 hover:bg-primary/5 transition-all text-center w-full min-h-[110px] my-1 shadow-xs group/empty cursor-pointer"
               onClick={(e) => {
                 e.stopPropagation();
                 selectElement(element.id);
                 useBuilderStore.getState().setLeftTab("blocks");
               }}
-              data-testid="empty-container-guide"
-              className="flex flex-col items-center justify-center p-6 border-2 border-dashed border-primary/40 hover:border-primary/80 rounded-2xl bg-card/60 hover:bg-primary/5 transition-all cursor-pointer text-center w-full min-h-[96px] my-1 shadow-xs group/empty"
             >
-              <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center mb-1.5 group-hover/empty:bg-primary group-hover/empty:text-primary-foreground transition-colors shadow-xs">
-                <Plus className="w-4 h-4" />
+              <div className="flex items-center gap-2 mb-1">
+                <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center group-hover/empty:bg-primary group-hover/empty:text-primary-foreground transition-colors shadow-xs">
+                  <Plus className="w-4 h-4" />
+                </div>
+                <span className="text-xs font-bold text-foreground group-hover/empty:text-primary transition-colors">
+                  + افزودن بلوک به این بخش
+                </span>
               </div>
-              <span className="text-xs font-bold text-foreground group-hover/empty:text-primary transition-colors">
-                + افزودن بلوک به این بخش
-              </span>
               <span className="text-[10px] text-muted-foreground mt-0.5">
                 کانتینر آماده درج محتوا است (برای انتخاب و افزودن کلیک کنید)
               </span>
+
+              {/* Elementor Structure Quick Presets */}
+              <div className="flex flex-wrap items-center justify-center gap-1.5 mt-3 pt-2 border-t border-border/60 w-full max-w-sm">
+                <span className="text-[10px] text-muted-foreground w-full mb-0.5">انتخاب سریع ساختار ستون‌ها (Elementor Presets):</span>
+                {[
+                  { label: "۱ ستون (۱۰۰٪)", cols: 1 },
+                  { label: "۲ ستون (۵۰/۵۰)", cols: 2 },
+                  { label: "۳ ستون (۳۳٪)", cols: 3 },
+                  { label: "۴ ستون (۲۵٪)", cols: 4 },
+                ].map((preset) => (
+                  <button
+                    key={preset.label}
+                    type="button"
+                    data-testid={`structure-preset-${preset.cols}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      selectElement(element.id);
+                      useBuilderStore.getState().updateElementLayout(element.id, {
+                        kind: "grid",
+                        gridColumns: preset.cols,
+                        gap: { value: 16, unit: "px" },
+                        direction: "row",
+                      });
+                      for (let i = 0; i < preset.cols; i++) {
+                        const colEl: BuilderElement = {
+                          id: `cont_col_${Math.random().toString(36).slice(2, 10)}`,
+                          name: `ستون ${i + 1}`,
+                          type: "container",
+                          isLocked: false,
+                          isHidden: false,
+                          layout: {
+                            kind: "flex",
+                            direction: "column",
+                            justifyContent: "start",
+                            alignItems: "stretch",
+                            flexWrap: "nowrap",
+                            gap: { value: 12, unit: "px" },
+                            gridColumns: 1,
+                          },
+                          styles: { mobile: {} },
+                          children: [],
+                        };
+                        addElement(colEl, element.id);
+                      }
+                      toast({
+                        title: "ساختار ستون‌ها ایجاد شد",
+                        description: `کانتینر ${preset.cols} ستونه آماده قرارگیری محتوا است.`,
+                      });
+                    }}
+                    className="px-2.5 py-1 rounded-lg text-[10px] font-semibold bg-background hover:bg-primary hover:text-primary-foreground text-foreground border border-border/80 transition shadow-xs"
+                  >
+                    {preset.label}
+                  </button>
+                ))}
+              </div>
             </div>
           )
         )

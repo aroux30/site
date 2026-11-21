@@ -86,6 +86,7 @@ export const DeviceStyleSchema = z.object({
   flexWrap: z.enum(["nowrap", "wrap", "wrap-reverse", "inherit"]).nullable().optional(),
   gap: UnitValueSchema.nullable().optional(),
   gridTemplateColumns: z.string().nullable().optional(),
+  shadow: z.string().nullable().optional(),
 });
 
 export const ResponsiveStylesSchema = z.object({

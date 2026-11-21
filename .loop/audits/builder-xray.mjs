@@ -816,6 +816,57 @@ async function runXRayAudit() {
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
+  // PART 4C: Elementor Parity Advanced UX Checks (Context Menu, Structure Preset)
+  // ─────────────────────────────────────────────────────────────────────────────
+  console.log("\n>>> [PART 4C] Testing Elementor Advanced UX (Context Menu & Structure Presets)...");
+  matrix.summary.totalChecks++;
+
+  try {
+    await clearCanvas();
+    if (await blocksTabBtn.isVisible()) {
+      await blocksTabBtn.click();
+      await page.waitForTimeout(300);
+      const contBtn = page.locator("button:has-text('کانتینر')").first();
+      if (await contBtn.isVisible()) await contBtn.click();
+      await page.waitForTimeout(400);
+    }
+
+    const frame = getCanvasFrame();
+    const emptyGuide = frame.locator('[data-testid="empty-container-guide"]').first();
+    const hasGuide = await emptyGuide.isVisible();
+    if (hasGuide) {
+      const preset2Btn = frame.locator('[data-testid="structure-preset-2"]').first();
+      if (await preset2Btn.isVisible()) {
+        await preset2Btn.click();
+        await page.waitForTimeout(500);
+        const childCols = await frame.locator('[data-element-id]').count();
+        if (childCols >= 3) {
+          console.log("    ✅ Elementor Structure Preset (2-col) created child columns successfully.");
+        } else {
+          addFailure("P1", "STRUCTURE_PRESET_FAILED", "empty-container", `Clicking 2-col preset resulted in ${childCols} elements instead of >= 3.`);
+        }
+      }
+    }
+
+    const firstEl = frame.locator('[data-element-id]').first();
+    if (await firstEl.isVisible()) {
+      await firstEl.click({ button: "right" });
+      await page.waitForTimeout(400);
+
+      const ctxMenu = page.locator('[data-testid="builder-context-menu"]').first();
+      if (await ctxMenu.isVisible()) {
+        console.log("    ✅ Elementor Context Menu opened successfully on right-click.");
+        await page.keyboard.press("Escape");
+        await page.waitForTimeout(200);
+      } else {
+        addFailure("P1", "CONTEXT_MENU_NOT_SHOWN", "canvas-element", "Right-click on element did not open [data-testid=\"builder-context-menu\"].");
+      }
+    }
+  } catch (ctxErr) {
+    addFailure("P1", "ADVANCED_UX_EXCEPTION", "elementor-parity", ctxErr.message);
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
   // Summary Calculation and Final Output
   // ─────────────────────────────────────────────────────────────────────────────
   matrix.summary.passedChecks = matrix.summary.totalChecks - matrix.failures.length;

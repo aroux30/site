@@ -82,6 +82,7 @@ export interface DeviceStyle {
   flexWrap?: "nowrap" | "wrap" | "wrap-reverse" | "inherit" | null;
   gap?: UnitValue | null;
   gridTemplateColumns?: string | null;
+  shadow?: string | null;
 }
 
 export interface ResponsiveStyles {

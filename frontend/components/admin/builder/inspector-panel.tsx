@@ -461,6 +461,26 @@ export function InspectorPanel() {
           </div>
         );
 
+      case "menu_anchor":
+        return (
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs">شناسه لنگر (Anchor ID)</Label>
+              <Input
+                data-testid="anchor-id-input"
+                value={String(props.anchor_id || "")}
+                placeholder="features"
+                onChange={(e) => handlePropChange("anchor_id", e.target.value)}
+                className="h-8 text-xs font-mono"
+                dir="ltr"
+              />
+              <p className="text-[10px] text-muted-foreground leading-relaxed">
+                برای لینک دادن به این نقطه از صفحه، در دکمه یا منو آدرس را به صورت <span className="text-primary font-bold">#features</span> وارد کنید.
+              </p>
+            </div>
+          </div>
+        );
+
       case "spacer":
         return (
           <div className="space-y-4">
@@ -1586,9 +1606,13 @@ export function InspectorPanel() {
             <div className="space-y-1.5">
               <Label className="text-xs">متن پیام</Label>
               <textarea
+                data-testid="alert-description-input"
                 rows={3}
-                value={String(props.message || "")}
-                onChange={(e) => handlePropChange("message", e.target.value)}
+                value={String(props.description || props.message || "")}
+                onChange={(e) => {
+                  handlePropChange("description", e.target.value);
+                  handlePropChange("message", e.target.value);
+                }}
                 className="w-full rounded-md border border-input bg-background p-2 text-xs leading-relaxed"
               />
             </div>
@@ -3255,6 +3279,38 @@ export function InspectorPanel() {
           />
         </div>
 
+        {/* Custom Attributes (Elementor Pro Parity) */}
+        <div className="space-y-1.5 pt-2 border-t border-border/80" data-testid="custom-attributes-control">
+          <div className="flex items-center justify-between">
+            <Label className="text-xs font-bold text-foreground">ویژگی‌های سفارشی (Custom Attributes - المنتور)</Label>
+            <span className="text-[10px] text-muted-foreground font-mono">key|value</span>
+          </div>
+          <p className="text-[11px] text-muted-foreground leading-relaxed">
+            ویژگی‌های سفارشی المان را وارد کنید. هر ویژگی در یک خط، کلید و مقدار با نویسه <code className="text-primary font-bold">|</code> تفکیک می‌شوند (مانند <span dir="ltr" className="font-mono text-[10px]">data-tracking|hero-cta</span>).
+          </p>
+          <textarea
+            data-testid="custom-attributes-textarea"
+            rows={3}
+            dir="ltr"
+            placeholder={"data-tracking|hero-cta\nrel|sponsored"}
+            value={
+              typeof selectedElement.styles.customAttributes === "string"
+                ? selectedElement.styles.customAttributes
+                : selectedElement.styles.customAttributes && typeof selectedElement.styles.customAttributes === "object"
+                ? Object.entries(selectedElement.styles.customAttributes)
+                    .map(([k, v]) => `${k}|${v}`)
+                    .join("\n")
+                : ""
+            }
+            onChange={(e) =>
+              updateElementStyles(selectedElement.id, {
+                customAttributes: e.target.value,
+              })
+            }
+            className="w-full rounded-md border border-input bg-background p-2 text-xs font-mono outline-none focus:ring-1 focus:ring-primary"
+          />
+        </div>
+
         {/* Transform (Elementor Parity Wave 1) */}
         <div className="space-y-3 pt-2 border-t border-border/80">
           <Label className="text-xs font-bold text-foreground block">تبدیل و چرخش (Transform)</Label>
@@ -3321,6 +3377,8 @@ export function InspectorPanel() {
                 <SelectItem value="none">بدون ماسک (None)</SelectItem>
                 <SelectItem value="circle">دایره‌ای (Circle)</SelectItem>
                 <SelectItem value="flower">گلبرگ (Flower)</SelectItem>
+                <SelectItem value="triangle">مثلثی (Triangle)</SelectItem>
+                <SelectItem value="blob">حبابی (Blob)</SelectItem>
                 <SelectItem value="hexagon">شش‌ضلعی (Hexagon)</SelectItem>
               </SelectContent>
             </Select>
@@ -3388,76 +3446,6 @@ export function InspectorPanel() {
               </div>
             </div>
           )}
-        </div>
-
-        {/* Transform & CSS Mask (Elementor Parity) */}
-        <div className="space-y-3 pt-2 border-t border-border/80">
-          <Label className="text-xs font-bold text-foreground block">تبدیل سه‌بعدی و چرخش (Transform - المنتور)</Label>
-          <div className="grid grid-cols-2 gap-2">
-            <div className="space-y-1">
-              <Label className="text-[10px] text-muted-foreground">چرخش (Rotate deg)</Label>
-              <Input
-                type="number"
-                value={currentDeviceStyle.transform?.rotate ?? 0}
-                onChange={(e) =>
-                  handleDeviceStyleChange({
-                    transform: {
-                      ...currentDeviceStyle.transform,
-                      rotate: parseFloat(e.target.value) || 0,
-                    },
-                  })
-                }
-                className="h-7 text-xs font-mono"
-                dir="ltr"
-              />
-            </div>
-            <div className="space-y-1">
-              <Label className="text-[10px] text-muted-foreground">مقیاس (Scale)</Label>
-              <Input
-                type="number"
-                step="0.05"
-                value={currentDeviceStyle.transform?.scale ?? 1}
-                onChange={(e) =>
-                  handleDeviceStyleChange({
-                    transform: {
-                      ...currentDeviceStyle.transform,
-                      scale: parseFloat(e.target.value) || 1,
-                    },
-                  })
-                }
-                className="h-7 text-xs font-mono"
-                dir="ltr"
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* CSS Mask Controls */}
-        <div className="space-y-2 pt-2 border-t border-border/80">
-          <Label className="text-xs font-bold text-foreground block">ماسک شکلی (CSS Mask - المنتور)</Label>
-          <Select
-            value={currentDeviceStyle.mask?.shape || "none"}
-            onValueChange={(val) =>
-              handleDeviceStyleChange({
-                mask: {
-                  ...currentDeviceStyle.mask,
-                  shape: val === "none" ? null : val,
-                },
-              })
-            }
-          >
-            <SelectTrigger className="h-8 text-xs">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="none">بدون ماسک</SelectItem>
-              <SelectItem value="circle">دایره (Circle)</SelectItem>
-              <SelectItem value="flower">گل (Flower)</SelectItem>
-              <SelectItem value="triangle">مثلث (Triangle)</SelectItem>
-              <SelectItem value="blob">حباب (Blob)</SelectItem>
-              <SelectItem value="hexagon">شش‌ضلعی (Hexagon)</SelectItem>
-            </SelectContent>
-          </Select>
         </div>
 
         <div className="flex items-center justify-between pt-2 border-t border-border/80">

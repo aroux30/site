@@ -732,6 +732,49 @@
 
 ---
 
+### 🏋️ راند ۲۴ (Round 24) — وزنه ۷ و ۸: ۸۵ و ۱۰۰ کیلو (تکمیل اتصال ۴ لایه ویجت‌های Core و Pro المنتور، رفع تکثیر دکمه میانبرها و تثبیت صفت‌های سفارشی)
+- **تاریخ اجرا**: 2026-11-22
+- **شاخه ایزوله**: `claude/trusting-booth-4a3d0e`
+- **پورت استودیو**: ۴۰۰۱ (`http://127.0.0.1:4001`)
+- **وضعیت**: ✅ کامل و سبز (اتصال کامل ۴ لایه‌ای ۵ ویجت مفقود المنتور، بازیابی کنترل ویژگی‌های سفارشی در بازرس پیشرفته، حذف دکمه تکراری میانبرها و رفع تکرار سوییچ کیس‌ها در بوم)
+
+#### ۱. باگ‌های کشف‌شده با ابزار Vision و اصلاحات ریشه‌ای در هر ۴ لایه
+1. **افت فیلد ویژگی‌های سفارشی (Custom Attributes) در تب پیشرفته بازرس**:
+   - *مشاهده در Vision*: در تصویر `before/03-inspector-advanced-missing-attrs.png`، فیلد `data-testid="custom-attributes-textarea"` در اثر تداخل مرج‌های پیشین حذف شده بود و تست رگرسیون `builder-gym-r21.spec.ts` فیل می‌شد.
+   - *اصلاح ریشه‌ای*: بازیابی کنترل کامل `custom-attributes-control` در [inspector-panel.tsx](frontend/components/admin/builder/inspector-panel.tsx) با پشتیبانی دوطرفه از فرمت‌های متنی `key|value` و شیء جاوااسکریپتی.
+2. **حذف تکرار کنترل‌های Transform و Mask در تب پیشرفته بازرس**:
+   - *مشاهده در Vision*: در تصاویر before، سکشن تبدیل (Transform) و ماسک (Mask) هر کدام دو بار در تب Advanced رندر می‌شدند. بخش‌های تکراری ادغام و منظم شدند و گزینه‌های ماسک (شامل triangle و blob) تثبیت شدند.
+3. **حذف دکمه تکراری «میانبرها» در نوار ابزار استودیو**:
+   - *مشاهده در Vision*: در تصویر `before/01-studio-overview.png`، دو دکمه کیبورد با عنوان «میانبرها» در طرفین دکمه «پیش‌نمایش» وجود داشت. دکمه مازاد حذف و تنها دکمه رسمی `data-testid="shortcuts-help-btn"` باقی ماند.
+4. **تکمیل اتصال ۵ ویجت کلیدی المنتور در پالت بلوک‌ها و کامپایلر سرور (4-Layer Parity)**:
+   - ویجت‌های `progress_bar` (نوار پیشرفت)، `testimonial` (نظر مشتری)، `call_to_action` (فراخوان اقدام)، `animated_headline` (تیتر متحرک)، `flip_box` (کارت چرخان) و `menu_anchor` (لنگر منو) که در بوم رندر می‌شدند، در [block-registry.ts](frontend/lib/builder/block-registry.ts) ثبت رسمی شدند و متدهای کامپایل HTML اختصاصی و بهینه‌سازی‌شده برای آن‌ها در [ast_compiler.py](backend/app/modules/content/application/ast_compiler.py) ایجاد شد.
+5. **رفع تکرار `case "counter"` و `case "alert"` در ساختار سوییچ بوم**:
+   - دو گره سوییچ تکراری در [canvas-element.tsx](frontend/components/admin/builder/canvas-element.tsx) حذف و استایل‌های هشدار با کامپایلر سرور یکپارچه گردید.
+
+#### ۲. مستندات بصری (Vision Artifacts)
+- **قبل از اصلاح**: `.loop/artifacts/builder-gym/round-15/before/`
+  - `01-studio-overview.png` (نمایش دکمه تکراری میانبرها)
+  - `02-blocks-palette-missing-progress.png` (فقدان ویجت پیشرفت در جستجوی پالت)
+  - `03-inspector-advanced-missing-attrs.png` (فقدان فیلد ویژگی‌های سفارشی و تکرار سکشن ترنسفرم و ماسک)
+  - `04-alert-widget-inspection.png`
+- **بعد از اصلاح**: `.loop/artifacts/builder-gym/round-15/after/`
+  - `01-studio-overview.png` (نوار ابزار کاملاً اصلاح‌شده و تمیز با تک دکمه میانبرها)
+  - `02-blocks-palette-missing-progress.png` (حضور موفق ویجت نوار پیشرفت در نتایج جستجوی پالت)
+  - `03-inspector-advanced-missing-attrs.png` (رویت‌پذیری و پر شدن زنده textarea با مقادیر data-tracking و aria-label)
+  - `04-alert-widget-inspection.png`
+
+#### ۳. تست رگرسیون دائمی اضافه‌شده
+- فایل تست Playwright: `frontend/tests/e2e/builder-gym-r22.spec.ts` (۲ تست سبز)
+- فایل تست Playwright: `frontend/tests/e2e/builder-gym-r21.spec.ts` (۳ تست سبز)
+
+#### ۴. نتایج نهایی ممیزی و گیت تست‌ها
+- `npx tsc --noEmit`: ۰ خطا (سبز)
+- `npm test` (Vitest): **۳۷۲ تست سبز در ۴۵ فایل** (`372 passed`)
+- `python -m pytest app/tests/unit`: **۶۲۲ تست سبز** (`622 passed, 2 skipped`)
+- تست‌های Playwright راند ۲۱ و ۲۲: **۵ تست سبز در ۱۲.۹ ثانیه**
+
+---
+
 ## 🏆 گواهینامه نهایی مسترینگ کامل: BUILDER_GYM_ALL_LEVELS_MASTERED
 
 بدین‌وسیله رسماً تایید و ثبت می‌گردد که کلیه وزنه‌های ۱ تا ۸ نردبان پیش‌رونده Visual Page Builder بر اساس دستورالعمل جامع المنتور و استانداردهای سخت‌گیرانه ۳۶۰ درجه با موفقیت ۱۰۰٪ کامل شدند:

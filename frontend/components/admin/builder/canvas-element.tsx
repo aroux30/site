@@ -781,6 +781,19 @@ function CanvasElementComponent({
           </div>
         );
       }
+      case "menu_anchor": {
+        const anchorId = String(props.anchor_id || "section-anchor");
+        return (
+          <div
+            id={anchorId}
+            className="w-full py-2 px-3 border border-dashed border-primary/40 bg-primary/5 rounded-lg text-xs font-mono text-primary flex items-center justify-between"
+            dir="ltr"
+          >
+            <span className="font-bold">#{anchorId}</span>
+            <span className="text-[10px] text-muted-foreground font-sans">(لنگر منو - Anchor)</span>
+          </div>
+        );
+      }
       case "spacer": {
         const h = Number(props.height || 32);
         return (
@@ -1545,20 +1558,20 @@ function CanvasElementComponent({
       }
       case "alert": {
         const title = String(props.title || "اعلان");
-        const msg = String(props.message || "متن اعلان پیام");
+        const desc = String(props.description || props.message || "متن اعلان پیام");
         const aType = String(props.alert_type || "info");
         const bgMap: Record<string, string> = {
-          info: "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/30",
-          success: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30",
-          warning: "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30",
-          danger: "bg-destructive/10 text-destructive border-destructive/30",
+          info: "bg-blue-500/10 text-blue-700 dark:text-blue-300 border-blue-500/30",
+          success: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/30",
+          warning: "bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/30",
+          danger: "bg-rose-500/10 text-rose-700 dark:text-rose-300 border-rose-500/30",
         };
         return (
-          <div className={cn("p-3.5 rounded-xl border text-right space-y-1 w-full", bgMap[aType] || bgMap.info)}>
-            <div className="text-xs font-bold flex items-center gap-1.5">
-              <span>{title}</span>
+          <div className={cn("p-4 rounded-xl border flex items-start gap-3 w-full text-right", bgMap[aType] || bgMap.info)}>
+            <div className="space-y-1 text-right flex-1">
+              <h4 className="font-bold text-xs">{title}</h4>
+              {desc && <p className="text-[11px] leading-relaxed opacity-90">{desc}</p>}
             </div>
-            <div className="text-[11px] leading-relaxed opacity-90">{msg}</div>
           </div>
         );
       }
@@ -1643,40 +1656,6 @@ function CanvasElementComponent({
                 <span>{l.platform}</span>
               </a>
             ))}
-          </div>
-        );
-      }
-      case "counter": {
-        const end = Number(props.ending_number) || 100;
-        const prefix = String(props.prefix || "");
-        const suffix = String(props.suffix || "");
-        const title = String(props.title || "عنوان شمارنده");
-        return (
-          <div className="flex flex-col items-center justify-center p-3 text-center space-y-1 w-full">
-            <div className="text-3xl lg:text-4xl font-extrabold text-primary tracking-tight font-mono" dir="ltr">
-              {prefix}{end.toLocaleString("fa-IR")}{suffix}
-            </div>
-            {title && <span className="text-xs font-semibold text-muted-foreground">{title}</span>}
-          </div>
-        );
-      }
-      case "alert": {
-        const alertType = String(props.alert_type || "info");
-        const title = String(props.title || "اطلاعیه مهم");
-        const desc = String(props.description || "");
-        const typeClasses: Record<string, string> = {
-          info: "bg-blue-500/10 text-blue-700 dark:text-blue-300 border-blue-500/30",
-          success: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/30",
-          warning: "bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/30",
-          danger: "bg-rose-500/10 text-rose-700 dark:text-rose-300 border-rose-500/30",
-        };
-        const activeClass = typeClasses[alertType] || typeClasses.info;
-        return (
-          <div className={cn("p-4 rounded-xl border flex items-start gap-3 w-full", activeClass)}>
-            <div className="space-y-1 text-right flex-1">
-              <h4 className="font-bold text-xs">{title}</h4>
-              {desc && <p className="text-[11px] leading-relaxed opacity-90">{desc}</p>}
-            </div>
           </div>
         );
       }

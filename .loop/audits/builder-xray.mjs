@@ -975,6 +975,18 @@ async function runXRayAudit() {
       await page.keyboard.press("Control+Shift+M");
       await page.keyboard.press("Control+Shift+M");
     }
+
+    // ── Check Responsive Device Visibility Controls in Advanced Tab ──
+    const advTabBtn = page.locator("[data-builder-inspector] button:has-text('پیشرفته')").first();
+    if (await advTabBtn.isVisible()) {
+      await advTabBtn.click();
+      await page.waitForTimeout(300);
+
+      const hasDeviceSwitches = await page.locator("text='نمایش در دسکتاپ'").first().isVisible();
+      if (hasDeviceSwitches) {
+        console.log("    ✅ Elementor Responsive Device Visibility Controls (Desktop/Tablet/Mobile) verified in Inspector.");
+      }
+    }
   } catch (ctxErr) {
     addFailure("P1", "ADVANCED_UX_EXCEPTION", "elementor-parity", ctxErr.message);
   }

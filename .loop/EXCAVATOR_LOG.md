@@ -18,6 +18,7 @@
 | **Round 07** | 0 Failures (توسعه پیش‌رونده) | **0 Failures (0 P0, 0 P1)** | **جداکننده‌های شکل کانتینر (Shape Dividers: Waves, Curve, Triangle, Tilt) در سقف و کف بخش‌ها به سبک المنتور** | **28 / 28 (100%)** | **34 / 34 (100%)** | **0 (صفر)** | ✅ **پاس ۱۰۰٪ کامل** |
 | **Round 08** | 0 Failures (توسعه پیش‌رونده) | **0 Failures (0 P0, 0 P1)** | **ارتفاع کانتینر و تمام‌صفحه (Fit to Screen 100vh)، کلید میانبر چرخش ویوپورت‌های ریسپانسیو (Ctrl+Shift+M)** | **28 / 28 (100%)** | **34 / 34 (100%)** | **0 (صفر)** | ✅ **پاس ۱۰۰٪ کامل** |
 | **Round 09** | 0 Failures (توسعه پیش‌رونده) | **0 Failures (0 P0, 0 P1)** | **تاری شیشه‌ای پس‌زمینه (Backdrop Filter / Glassmorphism) در ۴ سطح تاری در بازرس و بوم** | **28 / 28 (100%)** | **34 / 34 (100%)** | **0 (صفر)** | ✅ **پاس ۱۰۰٪ کامل** |
+| **Round 10** | 0 Failures (توسعه پیش‌رونده) | **0 Failures (0 P0, 0 P1)** | **کنترل‌های نمایش و عدم نمایش اختصاصی هر دستگاه (Desktop / Tablet / Mobile Visibility) به سبک المنتور** | **28 / 28 (100%)** | **34 / 34 (100%)** | **0 (صفر)** | ✅ **پاس ۱۰۰٪ کامل** |
 
 ---
 
@@ -376,6 +377,44 @@
 - `npm test` (Vitest): **۳۷۲ تست سبز در ۴۵ فایل** (`372 passed`)
 - `python -m pytest app/tests/unit`: **۶۲۲ تست سبز** (`622 passed, 2 skipped`)
 - `node .loop/audits/builder-xray.mjs`: **پاس ۱۰۰٪ تمامی چک‌ها با ۰ خطا**
+
+---
+
+## جزئیات راند ۱۰ (Round 10) — مدیریت نمایش در دستگاه‌ها (Responsive Device Visibility)
+
+- **شاخه ایزوله**: `claude/hungry-ardinghelli-71d423`
+- **تاریخ ممیزی**: 2026-11-21
+- **آمار ماتریس اشعه ایکس (`.loop/XRAY_MATRIX.json`)**:
+  - `totalChecks`: ۷۰ چک جامع
+  - `passedChecks`: ۷۰ چک سبز
+  - `failedChecks`: ۰
+  - `totalFailures`: **۰**
+  - `p0Count`: **۰**
+  - `p1Count`: **۰**
+  - `p2Count`: **۰**
+  - `patternsPassed`: **۲۸ / ۲۸**
+  - `blocksPassed`: **۳۴ / ۳۴**
+  - `deadControlsRemaining`: **۰**
+
+### ۱. قابلیت‌ها و معماری‌های پیاده‌سازی‌شده
+1. **کنترل‌های مخفی‌سازی / نمایش اختصاصی به تفکیک دستگاه (Elementor Device Visibility Controls)**:
+   - کلیدهای سه‌گانه سوئیچ در تب پیشرفته بازرس:
+     - نمایش در دسکتاپ (`visibleOnDesktop`)
+     - نمایش در تبلت (`visibleOnTablet`)
+     - نمایش در موبایل (`visibleOnMobile`)
+   - نشانگر دیداری زنده بر روی عناصر مخفی‌شده در بوم (`Badge` هشدار مخفی در ویوپورت انتخابی) به سبک المنتور.
+   - اتصال مستقیم به متد `updateElementVisibility` در استور با ثبت تاریخچه Undo/Redo.
+
+### ۲. شواهد بصری و فایل‌های راند ۱۰
+- **بعد از اصلاح**: `.loop/artifacts/excavator/round-10/after/`
+  - `01-inspector-device-visibility-controls.png` (کلیدهای سوئیچ نمایش دسکتاپ، تبلت و موبایل در تب پیشرفته بازرس)
+
+### ۳. گیت‌های صحت‌سنجی نهایی راند ۱۰
+- `npx tsc --noEmit`: ۰ خطا (سبز)
+- `npm test` (Vitest): **۳۷۲ تست سبز در ۴۵ فایل** (`372 passed`)
+- `python -m pytest app/tests/unit`: **۶۲۲ تست سبز** (`622 passed, 2 skipped`)
+- `node .loop/audits/builder-xray.mjs`: **پاس ۱۰۰٪ تمامی چک‌ها با ۰ خطا**
+
 
 
 

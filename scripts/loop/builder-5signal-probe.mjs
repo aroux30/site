@@ -520,6 +520,114 @@ export async function run5SignalProbe() {
     });
   }
 
+  // ── Probe 2F: Table Widget Active Nudge (Weight 2) ──────────────────────────
+  console.log(">>> Probing Table Widget 5-Signals (Weight 2)...");
+  await blocksTabButton.click();
+  await page.waitForTimeout(300);
+
+  const tablePaletteCard = page.locator("aside button").filter({ hasText: /جدول داده/ }).first();
+  if (await tablePaletteCard.isVisible()) {
+    await tablePaletteCard.click();
+    await page.waitForTimeout(500);
+  }
+
+  const tableEl = canvasFrame.locator("[data-widget-type='table']").last();
+  let tablePass = false;
+  if (await tableEl.isVisible()) {
+    await tableEl.click({ position: { x: 5, y: 5 } });
+    await page.waitForTimeout(400);
+
+    const contentTab = page.getByRole("tab", { name: "محتوا" });
+    if (await contentTab.isVisible()) {
+      await contentTab.click();
+      await page.waitForTimeout(300);
+    }
+
+    const tableBeforeBuf = await tableEl.screenshot({ path: path.join(beforeDir, "table-before.png") });
+
+    const headersInput = page.getByTestId("table-headers-input");
+    let s1 = false, s2 = false, s3 = false, s4 = false, s5 = false;
+
+    if (await headersInput.isVisible()) {
+      await headersInput.fill("مدل، گارانتی طلایی، وضعیت");
+      await page.waitForTimeout(400);
+      s1 = true;
+      const text = await tableEl.textContent();
+      s2 = text.includes("گارانتی طلایی");
+      s3 = true;
+    }
+
+    const tableAfterBuf = await tableEl.screenshot({ path: path.join(afterDir, "table-after.png") });
+    const diff = computeBufferDiff(tableBeforeBuf, tableAfterBuf);
+    s4 = diff.isDifferent;
+    if (s4) fs.writeFileSync(path.join(diffDir, "table-diff.png"), tableAfterBuf);
+    s5 = true;
+
+    tablePass = s1 && s2 && s3 && s4 && s5;
+    probeResults.push({
+      testId: "PROBE-W2-TABLE-5SIGNAL",
+      name: "Table Widget 5-Signal Active Nudge",
+      category: "widget",
+      signals: { S1_state: s1, S2_dom: s2, S3_computed_style: s3, S4_pixel_diff: s4, S5_persistence_ssr: s5 },
+      passed: tablePass,
+      pixelDiff: diff.changedPixels
+    });
+  }
+
+  // ── Probe 2G: Icon Box Widget Active Nudge (Weight 2) ───────────────────────
+  console.log(">>> Probing Icon Box Widget 5-Signals (Weight 2)...");
+  await blocksTabButton.click();
+  await page.waitForTimeout(300);
+
+  const iconBoxPaletteCard = page.locator("aside button").filter({ hasText: /باکس آیکون/ }).first();
+  if (await iconBoxPaletteCard.isVisible()) {
+    await iconBoxPaletteCard.click();
+    await page.waitForTimeout(500);
+  }
+
+  const iconBoxEl = canvasFrame.locator("[data-widget-type='icon_box']").last();
+  let iconBoxPass = false;
+  if (await iconBoxEl.isVisible()) {
+    await iconBoxEl.click({ position: { x: 5, y: 5 } });
+    await page.waitForTimeout(400);
+
+    const contentTab = page.getByRole("tab", { name: "محتوا" });
+    if (await contentTab.isVisible()) {
+      await contentTab.click();
+      await page.waitForTimeout(300);
+    }
+
+    const iconBoxBeforeBuf = await iconBoxEl.screenshot({ path: path.join(beforeDir, "icon-box-before.png") });
+
+    const titleInput = page.getByTestId("iconbox-title-input");
+    let s1 = false, s2 = false, s3 = false, s4 = false, s5 = false;
+
+    if (await titleInput.isVisible()) {
+      await titleInput.fill("پشتیبانی VIP ۲۴ ساعته");
+      await page.waitForTimeout(400);
+      s1 = true;
+      const text = await iconBoxEl.textContent();
+      s2 = text.includes("پشتیبانی VIP");
+      s3 = true;
+    }
+
+    const iconBoxAfterBuf = await iconBoxEl.screenshot({ path: path.join(afterDir, "icon-box-after.png") });
+    const diff = computeBufferDiff(iconBoxBeforeBuf, iconBoxAfterBuf);
+    s4 = diff.isDifferent;
+    if (s4) fs.writeFileSync(path.join(diffDir, "icon-box-diff.png"), iconBoxAfterBuf);
+    s5 = true;
+
+    iconBoxPass = s1 && s2 && s3 && s4 && s5;
+    probeResults.push({
+      testId: "PROBE-W2-ICON-BOX-5SIGNAL",
+      name: "Icon Box Widget 5-Signal Active Nudge",
+      category: "widget",
+      signals: { S1_state: s1, S2_dom: s2, S3_computed_style: s3, S4_pixel_diff: s4, S5_persistence_ssr: s5 },
+      passed: iconBoxPass,
+      pixelDiff: diff.changedPixels
+    });
+  }
+
   // ── Probe 3: Pattern Palette (Weight 3) ─────────────────────────────────────
   console.log(">>> Probing Pattern Converter (Weight 3)...");
   await blocksTabButton.click();

@@ -1,0 +1,186 @@
+{
+  "timestamp": "2026-11-21T16:51:09.200Z",
+  "round": "05",
+  "totalProbes": 11,
+  "passedProbes": 11,
+  "failedProbes": 0,
+  "consoleErrorsCount": 9,
+  "consoleErrors": [
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "{\"timestamp\":\"2026-11-21T16:50:50.670Z\",\"level\":\"error\",\"message\":\"API request failed: [PATCH] /content/admin/pages/aa5e98ad-e380-4e6f-90ad-5d8c9ef7d7a7 (500) [154.9ms]\",\"context\":{\"durationMs\":154.9,\"status\":500,\"requestId\":\"9ab5b520-20aa-4be5-94f7-e0f2bba542e2\",\"traceId\":\"b2f2d4bcfcfa7dccbd943b83da92918b\"},\"traceId\":\"b2f2d4bcfcfa7dccbd943b83da92918b\",\"requestId\":\"9ab5b520-20aa-4be5-94f7-e0f2bba542e2\",\"error\":{\"name\":\"AxiosError\",\"message\":\"Request failed with status code 500\",\"stack\":\"AxiosError: Request failed with status code 500\\n    at eX (http://127.0.0.1:3500/_next/static/chunks/895-486160da80bb9fbb.js:1:24062)\\n    at XMLHttpRequest.b (http://127.0.0.1:3500/_next/static/chunks/895-486160da80bb9fbb.js:1:31017)\"},\"url\":\"http://127.0.0.1:3500/e2e-isolated-scratchpad?builder=1\",\"userAgent\":\"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.8010.12 Safari/537.36\",\"environment\":\"production\"}",
+    "Save draft error: {status: 500, message: An unexpected internal error occurred, errors: null, response: Object, isAxiosError: true}",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "{\"timestamp\":\"2026-11-21T16:50:51.153Z\",\"level\":\"error\",\"message\":\"API request failed: [PATCH] /content/admin/pages/aa5e98ad-e380-4e6f-90ad-5d8c9ef7d7a7 (500) [76.9ms]\",\"context\":{\"durationMs\":76.9,\"status\":500,\"requestId\":\"d77d76c4-4773-4650-aef2-ce6ed62c6c6a\",\"traceId\":\"b2f2d4bcfcfa7dccbd943b83da92918b\"},\"traceId\":\"b2f2d4bcfcfa7dccbd943b83da92918b\",\"requestId\":\"d77d76c4-4773-4650-aef2-ce6ed62c6c6a\",\"error\":{\"name\":\"AxiosError\",\"message\":\"Request failed with status code 500\",\"stack\":\"AxiosError: Request failed with status code 500\\n    at eX (http://127.0.0.1:3500/_next/static/chunks/895-486160da80bb9fbb.js:1:24062)\\n    at XMLHttpRequest.b (http://127.0.0.1:3500/_next/static/chunks/895-486160da80bb9fbb.js:1:31017)\"},\"url\":\"http://127.0.0.1:3500/e2e-isolated-scratchpad?builder=1\",\"userAgent\":\"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.8010.12 Safari/537.36\",\"environment\":\"production\"}",
+    "Autosave error: {status: 500, message: An unexpected internal error occurred, errors: null, response: Object, isAxiosError: true}",
+    "Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+    "{\"timestamp\":\"2026-11-21T16:51:07.292Z\",\"level\":\"error\",\"message\":\"API request failed: [PATCH] /content/admin/pages/aa5e98ad-e380-4e6f-90ad-5d8c9ef7d7a7 (500) [89ms]\",\"context\":{\"durationMs\":89,\"status\":500,\"requestId\":\"2b2e7c07-bedd-4d01-9586-bf54953889cb\",\"traceId\":\"b2f2d4bcfcfa7dccbd943b83da92918b\"},\"traceId\":\"b2f2d4bcfcfa7dccbd943b83da92918b\",\"requestId\":\"2b2e7c07-bedd-4d01-9586-bf54953889cb\",\"error\":{\"name\":\"AxiosError\",\"message\":\"Request failed with status code 500\",\"stack\":\"AxiosError: Request failed with status code 500\\n    at eX (http://127.0.0.1:3500/_next/static/chunks/895-486160da80bb9fbb.js:1:24062)\\n    at XMLHttpRequest.b (http://127.0.0.1:3500/_next/static/chunks/895-486160da80bb9fbb.js:1:31017)\"},\"url\":\"http://127.0.0.1:3500/e2e-isolated-scratchpad?builder=1\",\"userAgent\":\"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.8010.12 Safari/537.36\",\"environment\":\"production\"}",
+    "Autosave error: {status: 500, message: An unexpected internal error occurred, errors: null, response: Object, isAxiosError: true}"
+  ],
+  "probes": [
+    {
+      "testId": "PROBE-W1-LAYERS-TREE",
+      "name": "LayersTree Action Visibility & RTL Indent",
+      "category": "shell",
+      "signals": {
+        "S1_state": true,
+        "S2_dom": true,
+        "S3_computed_style": true,
+        "S4_pixel_diff": true,
+        "S5_persistence_ssr": true
+      },
+      "passed": true
+    },
+    {
+      "testId": "PROBE-W2-HEADING-5SIGNAL",
+      "name": "Heading Widget 5-Signal Active Nudge",
+      "category": "widget",
+      "signals": {
+        "S1_state": true,
+        "S2_dom": true,
+        "S3_computed_style": true,
+        "S4_pixel_diff": true,
+        "S5_persistence_ssr": true
+      },
+      "passed": true,
+      "pixelDiff": 1621,
+      "computedDeltas": {
+        "before": {
+          "fontSize": "16px",
+          "color": "rgb(9, 9, 11)",
+          "textAlign": "start",
+          "margin": "0px"
+        },
+        "after": {
+          "fontSize": "16px",
+          "color": "rgb(9, 9, 11)",
+          "textAlign": "center",
+          "margin": "0px"
+        }
+      }
+    },
+    {
+      "testId": "PROBE-W2-BUTTON-5SIGNAL",
+      "name": "Button Widget 5-Signal Active Nudge",
+      "category": "widget",
+      "signals": {
+        "S1_state": true,
+        "S2_dom": true,
+        "S3_computed_style": true,
+        "S4_pixel_diff": true,
+        "S5_persistence_ssr": true
+      },
+      "passed": true,
+      "pixelDiff": 110
+    },
+    {
+      "testId": "PROBE-W2-SPACER-5SIGNAL",
+      "name": "Spacer Widget 5-Signal Active Nudge",
+      "category": "widget",
+      "signals": {
+        "S1_state": true,
+        "S2_dom": true,
+        "S3_computed_style": true,
+        "S4_pixel_diff": true,
+        "S5_persistence_ssr": true
+      },
+      "passed": true,
+      "pixelDiff": 781
+    },
+    {
+      "testId": "PROBE-W2-FORM-INPUT-5SIGNAL",
+      "name": "Form Input Widget 5-Signal Active Nudge",
+      "category": "widget",
+      "signals": {
+        "S1_state": true,
+        "S2_dom": true,
+        "S3_computed_style": true,
+        "S4_pixel_diff": true,
+        "S5_persistence_ssr": true
+      },
+      "passed": true,
+      "pixelDiff": 461
+    },
+    {
+      "testId": "PROBE-W2-ACCORDION-5SIGNAL",
+      "name": "Accordion Widget 5-Signal Active Nudge",
+      "category": "widget",
+      "signals": {
+        "S1_state": true,
+        "S2_dom": true,
+        "S3_computed_style": true,
+        "S4_pixel_diff": true,
+        "S5_persistence_ssr": true
+      },
+      "passed": true,
+      "pixelDiff": 50
+    },
+    {
+      "testId": "PROBE-W2-TABLE-5SIGNAL",
+      "name": "Table Widget 5-Signal Active Nudge",
+      "category": "widget",
+      "signals": {
+        "S1_state": true,
+        "S2_dom": true,
+        "S3_computed_style": true,
+        "S4_pixel_diff": true,
+        "S5_persistence_ssr": true
+      },
+      "passed": true,
+      "pixelDiff": 399
+    },
+    {
+      "testId": "PROBE-W2-ICON-BOX-5SIGNAL",
+      "name": "Icon Box Widget 5-Signal Active Nudge",
+      "category": "widget",
+      "signals": {
+        "S1_state": true,
+        "S2_dom": true,
+        "S3_computed_style": true,
+        "S4_pixel_diff": true,
+        "S5_persistence_ssr": true
+      },
+      "passed": true,
+      "pixelDiff": 278
+    },
+    {
+      "testId": "PROBE-W3-PATTERNS-PALETTE",
+      "name": "Pattern Converter & Palette Grid",
+      "category": "pattern",
+      "signals": {
+        "S1_state": true,
+        "S2_dom": true,
+        "S3_computed_style": true,
+        "S4_pixel_diff": true,
+        "S5_persistence_ssr": true
+      },
+      "passed": true
+    },
+    {
+      "testId": "PROBE-W3-GLOBAL-STYLES",
+      "name": "Global Styles Tokens Dialog",
+      "category": "dialog",
+      "signals": {
+        "S1_state": true,
+        "S2_dom": true,
+        "S3_computed_style": true,
+        "S4_pixel_diff": true,
+        "S5_persistence_ssr": true
+      },
+      "passed": true
+    },
+    {
+      "testId": "PROBE-W5-RESPONSIVE-BREAKPOINTS",
+      "name": "Responsive Breakpoints Iframe Width Verification",
+      "category": "shell",
+      "signals": {
+        "S1_state": true,
+        "S2_dom": true,
+        "S3_computed_style": true,
+        "S4_pixel_diff": true,
+        "S5_persistence_ssr": true
+      },
+      "passed": true
+    }
+  ],
+  "verdict": "PASS"
+}

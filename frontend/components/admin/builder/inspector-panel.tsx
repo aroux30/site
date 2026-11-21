@@ -504,6 +504,7 @@ export function InspectorPanel() {
             <div className="space-y-1.5">
               <Label className="text-xs">عناوین ستون‌ها (با کاما جدا کنید)</Label>
               <Input
+                data-testid="table-headers-input"
                 value={headers.join("، ")}
                 onChange={(e) => {
                   const arr = e.target.value.split(/[،,]/).map((s) => s.trim());
@@ -1314,6 +1315,7 @@ export function InspectorPanel() {
             <div className="space-y-1.5">
               <Label className="text-xs">عنوان ویژگی</Label>
               <Input
+                data-testid="iconbox-title-input"
                 value={String(props.title || "ضمانت اصالت و سلامت")}
                 onChange={(e) => handlePropChange("title", e.target.value)}
                 className="h-8 text-xs"

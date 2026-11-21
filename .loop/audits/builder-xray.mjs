@@ -11,7 +11,7 @@ const { chromium } = req("playwright");
 const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || "http://127.0.0.1:3000";
 const PROJECT_ROOT = path.resolve(".");
 const BACKEND_DIR = path.join(PROJECT_ROOT, "backend");
-const ROUND = process.env.EXCAVATOR_ROUND || "round-05";
+const ROUND = process.env.EXCAVATOR_ROUND || "round-06";
 const ARTIFACTS_DIR = path.join(PROJECT_ROOT, ".loop", "artifacts", "excavator", ROUND, "before");
 const AUDITS_DIR = path.join(PROJECT_ROOT, ".loop", "audits");
 const MATRIX_PATH = path.join(PROJECT_ROOT, ".loop", "XRAY_MATRIX.json");
@@ -808,6 +808,41 @@ async function runXRay() {
     }
   } catch (saveErr) {
     await addFailure("P1", "DRAFT_SAVE_FAILED", "builder::save", `Save draft check failed: ${saveErr.message}`);
+  }
+
+  // Check 4.5: Responsive Viewport Switcher Check (Tablet 768px, Mobile 375px, Desktop)
+  try {
+    const tabletBtn = page.locator("button:has-text('تبلت')").first();
+    const mobileBtn = page.locator("button:has-text('موبایل')").first();
+    const desktopBtn = page.locator("button:has-text('دسکتاپ')").first();
+
+    if (await tabletBtn.isVisible() && await mobileBtn.isVisible() && await desktopBtn.isVisible()) {
+      // 1. Switch to Tablet
+      await tabletBtn.click();
+      await page.waitForTimeout(400);
+      let bp = await page.evaluate(() => window.__BUILDER_STORE__?.getState().activeBreakpoint);
+      if (bp !== "tablet") {
+        await addFailure("P0", "VIEWPORT_SWITCH_FAILED", "viewport::tablet", `Clicked tablet button but activeBreakpoint is '${bp}'`);
+      }
+
+      // 2. Switch to Mobile
+      await mobileBtn.click();
+      await page.waitForTimeout(400);
+      bp = await page.evaluate(() => window.__BUILDER_STORE__?.getState().activeBreakpoint);
+      if (bp !== "mobile") {
+        await addFailure("P0", "VIEWPORT_SWITCH_FAILED", "viewport::mobile", `Clicked mobile button but activeBreakpoint is '${bp}'`);
+      }
+
+      // 3. Switch back to Desktop
+      await desktopBtn.click();
+      await page.waitForTimeout(400);
+      bp = await page.evaluate(() => window.__BUILDER_STORE__?.getState().activeBreakpoint);
+      if (bp !== "desktop") {
+        await addFailure("P0", "VIEWPORT_SWITCH_FAILED", "viewport::desktop", `Clicked desktop button but activeBreakpoint is '${bp}'`);
+      }
+    }
+  } catch (vpErr) {
+    await addFailure("P0", "VIEWPORT_SWITCH_ERROR", "viewport", `Viewport test failed: ${vpErr.message}`);
   }
 
   // Final Summary & Write Output

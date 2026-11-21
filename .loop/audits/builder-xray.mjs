@@ -11,7 +11,7 @@ const { chromium } = req("playwright");
 const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || "http://127.0.0.1:3000";
 const PROJECT_ROOT = path.resolve(".");
 const BACKEND_DIR = path.join(PROJECT_ROOT, "backend");
-const ROUND = process.env.EXCAVATOR_ROUND || "round-10";
+const ROUND = process.env.EXCAVATOR_ROUND || "round-11";
 const ARTIFACTS_DIR = path.join(PROJECT_ROOT, ".loop", "artifacts", "excavator", ROUND, "before");
 const AUDITS_DIR = path.join(PROJECT_ROOT, ".loop", "audits");
 const MATRIX_PATH = path.join(PROJECT_ROOT, ".loop", "XRAY_MATRIX.json");
@@ -1024,6 +1024,25 @@ async function runXRay() {
     }
   } catch (reloadErr) {
     await addFailure("P0", "RELOAD_ERROR", "builder::reload", `Reload check crashed: ${reloadErr.message}`);
+  }
+
+  // Check 4.11: Page AST Template Roundtrip (Elementor Template Export / Import Parity)
+  try {
+    const roundtripSuccess = await page.evaluate(() => {
+      const store = window.__BUILDER_STORE__;
+      if (!store) return false;
+      const currentAst = store.getState().ast;
+      const exportedJson = JSON.stringify(currentAst);
+      const reimportedAst = JSON.parse(exportedJson);
+      store.getState().replacePageAST(reimportedAst);
+      return store.getState().ast.rootElements.length === currentAst.rootElements.length;
+    });
+
+    if (!roundtripSuccess) {
+      await addFailure("P0", "TEMPLATE_ROUNDTRIP_FAILED", "builder::templates", "JSON template serialize & re-import mutated or dropped elements");
+    }
+  } catch (roundtripErr) {
+    await addFailure("P0", "TEMPLATE_ROUNDTRIP_ERROR", "builder::templates", `Template roundtrip test crashed: ${roundtripErr.message}`);
   }
 
   // Final Summary & Write Output

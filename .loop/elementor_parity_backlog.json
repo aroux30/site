@@ -1,0 +1,336 @@
+{
+  "timestamp": "2026-11-21T14:38:48.066Z",
+  "elementor_reference_root": "C:/Users/Administrator/Desktop/elementor",
+  "scanned_files_summary": {
+    "controls": 60,
+    "control_groups": 12,
+    "core_widgets": 36,
+    "svg_shapes": 29,
+    "global_kit_tabs": 13,
+    "pro_modules": 589
+  },
+  "waves_summary": {
+    "wave1_items": 7,
+    "wave2_items": 5,
+    "wave3_items": 4,
+    "total_backlog_items": 16,
+    "total_passed": 0
+  },
+  "items": [
+    {
+      "id": "EL-W1-001",
+      "wave": 1,
+      "title": "Group Control Typography (فونت، سایز ریسپانسیو، وزن، ارتفاع خط، فاصله حروف و ترانسفورم)",
+      "category": "control_group",
+      "elementor_ref_path": "elementor/includes/controls/groups/typography.php",
+      "target_files": [
+        "frontend/components/admin/builder/inspector-panel.tsx",
+        "frontend/types/builder.ts",
+        "backend/app/modules/content/domain/builder_ast.py",
+        "backend/app/modules/content/application/ast_compiler.py"
+      ],
+      "acceptance_signals": [
+        "state",
+        "dom",
+        "style",
+        "pixels",
+        "ssr"
+      ],
+      "passes": false
+    },
+    {
+      "id": "EL-W1-002",
+      "wave": 1,
+      "title": "Group Control Background & Overlay (گرادیانت زاویه‌دار، سایز، موقعیت و Blend Mode)",
+      "category": "control_group",
+      "elementor_ref_path": "elementor/includes/controls/groups/background.php",
+      "target_files": [
+        "frontend/components/admin/builder/inspector-panel.tsx",
+        "frontend/components/admin/builder/canvas-element.tsx",
+        "backend/app/modules/content/application/ast_compiler.py"
+      ],
+      "acceptance_signals": [
+        "state",
+        "dom",
+        "style",
+        "pixels",
+        "ssr"
+      ],
+      "passes": false
+    },
+    {
+      "id": "EL-W1-003",
+      "wave": 1,
+      "title": "Group Control Border & Box Shadow در حالت‌های Normal و Hover با Transition",
+      "category": "control_group",
+      "elementor_ref_path": "elementor/includes/controls/groups/box-shadow.php",
+      "target_files": [
+        "frontend/components/admin/builder/inspector-panel.tsx",
+        "frontend/types/builder.ts",
+        "backend/app/modules/content/application/ast_compiler.py"
+      ],
+      "acceptance_signals": [
+        "state",
+        "dom",
+        "style",
+        "pixels",
+        "ssr"
+      ],
+      "passes": false
+    },
+    {
+      "id": "EL-W1-004",
+      "wave": 1,
+      "title": "Advanced Tab Transform & Motion Effects (Rotate, Scale, Skew)",
+      "category": "advanced_tab",
+      "elementor_ref_path": "elementor/includes/widgets/common-base.php",
+      "target_files": [
+        "frontend/components/admin/builder/inspector-panel.tsx",
+        "frontend/types/builder.ts",
+        "frontend/components/admin/builder/canvas-element.tsx"
+      ],
+      "acceptance_signals": [
+        "state",
+        "dom",
+        "style",
+        "pixels",
+        "ssr"
+      ],
+      "passes": false
+    },
+    {
+      "id": "EL-W1-005",
+      "wave": 1,
+      "title": "SVG Shape Dividers (امواج، منحنی، مثلث، شیب، زیکزاک با رنگ و ارتفاع)",
+      "category": "shape_divider",
+      "elementor_ref_path": "elementor/assets/shapes/",
+      "target_files": [
+        "frontend/components/admin/builder/inspector-panel.tsx",
+        "frontend/components/admin/builder/canvas-element.tsx",
+        "backend/app/modules/content/application/ast_compiler.py"
+      ],
+      "acceptance_signals": [
+        "state",
+        "dom",
+        "style",
+        "pixels",
+        "ssr"
+      ],
+      "passes": false
+    },
+    {
+      "id": "EL-W1-006",
+      "wave": 1,
+      "title": "CSS Grid Container (ستون‌ها/سطرهای سفارشی، راهنماهای شبکه، Autoflow)",
+      "category": "layout",
+      "elementor_ref_path": "elementor/includes/controls/groups/grid.php",
+      "target_files": [
+        "frontend/components/admin/builder/inspector-panel.tsx",
+        "frontend/components/admin/builder/canvas-element.tsx"
+      ],
+      "acceptance_signals": [
+        "state",
+        "dom",
+        "style",
+        "pixels",
+        "ssr"
+      ],
+      "passes": false
+    },
+    {
+      "id": "EL-W1-007",
+      "wave": 1,
+      "title": "Navigator / Layers Tree (تغییر نام مستقیم با دابل‌کلیک، بج‌های وضعیت، کانتکست منو)",
+      "category": "navigator",
+      "elementor_ref_path": "elementor/includes/editor-templates/navigator.php",
+      "target_files": [
+        "frontend/components/admin/builder/layers-tree.tsx"
+      ],
+      "acceptance_signals": [
+        "state",
+        "dom",
+        "style",
+        "pixels"
+      ],
+      "passes": false
+    },
+    {
+      "id": "EL-W2-001",
+      "wave": 2,
+      "title": "ویجت‌های Animated Headline و شمارنده اعداد متحرک (Counter Widget)",
+      "category": "widget_core",
+      "elementor_ref_path": "elementor/includes/widgets/counter.php",
+      "target_files": [
+        "frontend/lib/builder/block-registry.ts",
+        "frontend/components/admin/builder/canvas-element.tsx",
+        "frontend/components/admin/builder/inspector-panel.tsx",
+        "backend/app/modules/content/application/ast_compiler.py"
+      ],
+      "acceptance_signals": [
+        "state",
+        "dom",
+        "style",
+        "pixels",
+        "ssr"
+      ],
+      "passes": false
+    },
+    {
+      "id": "EL-W2-002",
+      "wave": 2,
+      "title": "ویجت نوار پیشرفت (Progress Bar & Tracker)",
+      "category": "widget_core",
+      "elementor_ref_path": "elementor/includes/widgets/progress.php",
+      "target_files": [
+        "frontend/lib/builder/block-registry.ts",
+        "frontend/components/admin/builder/canvas-element.tsx",
+        "frontend/components/admin/builder/inspector-panel.tsx",
+        "backend/app/modules/content/application/ast_compiler.py"
+      ],
+      "acceptance_signals": [
+        "state",
+        "dom",
+        "style",
+        "pixels",
+        "ssr"
+      ],
+      "passes": false
+    },
+    {
+      "id": "EL-W2-003",
+      "wave": 2,
+      "title": "اسلایدر دیدگاه مشتریان و اسلایدر محتوای تودرتو (Nested Carousel)",
+      "category": "widget_pro",
+      "elementor_ref_path": "elementor-pro/modules/nested-carousel/",
+      "target_files": [
+        "frontend/lib/builder/block-registry.ts",
+        "frontend/components/admin/builder/canvas-element.tsx",
+        "frontend/components/admin/builder/inspector-panel.tsx",
+        "backend/app/modules/content/application/ast_compiler.py"
+      ],
+      "acceptance_signals": [
+        "state",
+        "dom",
+        "style",
+        "pixels",
+        "ssr"
+      ],
+      "passes": false
+    },
+    {
+      "id": "EL-W2-004",
+      "wave": 2,
+      "title": "فهرست مطالب خودکار (Table of Contents) و نقطه لنگر منو (Menu Anchor)",
+      "category": "widget_pro",
+      "elementor_ref_path": "elementor-pro/modules/table-of-contents/",
+      "target_files": [
+        "frontend/lib/builder/block-registry.ts",
+        "frontend/components/admin/builder/canvas-element.tsx",
+        "frontend/components/admin/builder/inspector-panel.tsx",
+        "backend/app/modules/content/application/ast_compiler.py"
+      ],
+      "acceptance_signals": [
+        "state",
+        "dom",
+        "style",
+        "pixels",
+        "ssr"
+      ],
+      "passes": false
+    },
+    {
+      "id": "EL-W2-005",
+      "wave": 2,
+      "title": "ماژول طراحی پاپ‌آپ و کشوی جانبی (Popup Builder & Off-Canvas Drawer)",
+      "category": "pro_module",
+      "elementor_ref_path": "elementor-pro/modules/popup/",
+      "target_files": [
+        "frontend/components/admin/builder/builder-studio.tsx",
+        "frontend/stores/builder-store.ts",
+        "backend/app/modules/content/domain/builder_ast.py"
+      ],
+      "acceptance_signals": [
+        "state",
+        "dom",
+        "style",
+        "pixels",
+        "ssr"
+      ],
+      "passes": false
+    },
+    {
+      "id": "EL-W3-001",
+      "wave": 3,
+      "title": "۱۲ تب تنظیمات سراسری کیت طراحی (Global Colors, Fonts, Buttons, Forms, Layout)",
+      "category": "site_kit",
+      "elementor_ref_path": "elementor/core/kits/documents/tabs/",
+      "target_files": [
+        "frontend/components/admin/builder/global-styles-dialog.tsx",
+        "frontend/lib/builder/theme-schema.ts"
+      ],
+      "acceptance_signals": [
+        "state",
+        "dom",
+        "style",
+        "pixels",
+        "ssr"
+      ],
+      "passes": false
+    },
+    {
+      "id": "EL-W3-002",
+      "wave": 3,
+      "title": "سیستم Theme Builder (قالب‌های هدر، فوتر، تک‌محصول و آرشیو با شرط‌های نمایش)",
+      "category": "theme_builder",
+      "elementor_ref_path": "elementor-pro/modules/theme-builder/",
+      "target_files": [
+        "frontend/components/admin/builder/save-page-template-dialog.tsx",
+        "frontend/stores/builder-store.ts"
+      ],
+      "acceptance_signals": [
+        "state",
+        "dom",
+        "style",
+        "ssr"
+      ],
+      "passes": false
+    },
+    {
+      "id": "EL-W3-003",
+      "wave": 3,
+      "title": "سیستم Loop Builder (طراحی کارت‌های تکرارشونده داینامیک محصولات و مقالات)",
+      "category": "loop_builder",
+      "elementor_ref_path": "elementor-pro/modules/loop-builder/",
+      "target_files": [
+        "frontend/components/admin/builder/inspector-panel.tsx",
+        "frontend/components/admin/builder/canvas-element.tsx"
+      ],
+      "acceptance_signals": [
+        "state",
+        "dom",
+        "style",
+        "ssr"
+      ],
+      "passes": false
+    },
+    {
+      "id": "EL-W3-004",
+      "wave": 3,
+      "title": "ارتقای فرم‌ساز به فرم چندمرحله‌ای (Multi-Step Forms) با فیلدهای شرطی",
+      "category": "forms",
+      "elementor_ref_path": "elementor-pro/modules/forms/",
+      "target_files": [
+        "frontend/components/admin/builder/inspector-panel.tsx",
+        "frontend/components/admin/builder/canvas-element.tsx",
+        "backend/app/modules/content/application/ast_compiler.py"
+      ],
+      "acceptance_signals": [
+        "state",
+        "dom",
+        "style",
+        "ssr"
+      ],
+      "passes": false
+    }
+  ]
+}

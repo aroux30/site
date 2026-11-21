@@ -115,6 +115,19 @@ export function CanvasFrame({
     } else if (gs?.fontFamily) {
       doc.documentElement.style.setProperty("--font-vazirmatn", String(gs.fontFamily));
     }
+    if (gs?.textColor) {
+      const tVal = String(gs.textColor);
+      doc.documentElement.style.setProperty("--foreground", tVal.startsWith("#") ? hexToHslChannels(tVal) : tVal);
+      doc.documentElement.style.setProperty("--theme-foreground", tVal);
+    }
+    if (gs?.backgroundColor) {
+      const bVal = String(gs.backgroundColor);
+      doc.documentElement.style.setProperty("--background", bVal.startsWith("#") ? hexToHslChannels(bVal) : bVal);
+      doc.documentElement.style.setProperty("--theme-background", bVal);
+    }
+    if (gs?.contentMaxWidth) {
+      doc.documentElement.style.setProperty("--content-max-width", String(gs.contentMaxWidth));
+    }
   }, [activeThemeVars]);
 
   const initIframe = useCallback(() => {

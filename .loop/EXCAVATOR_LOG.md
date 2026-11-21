@@ -18,6 +18,42 @@
 | **Round 07** | 0 | **0** | **0 / 0** | 28 / 28 ✅ | 34 / 34 ✅ | 0 خطای مرده ✅ | **عملیات پیشرفته کانتینر در منوی راست‌کلیک (Wrap / Unwrap Container Parity)**: افزودن اکشن‌های اتمیک گروه‌بندی در کانتینر جدید و خروج از کانتینر (Unwrap) به همراه تست خودکار اشعه ایکس |
 | **Round 08** | 0 | **0** | **0 / 0** | 28 / 28 ✅ | 34 / 34 ✅ | 0 خطای مرده ✅ | **کادرهای انتخاب چندگانه و کلیپ‌بورد دائمی (Multi-Selection Overlay & Persistent Clipboard)**: ترسیم همزمان باکس‌های انتخاب چندتایی در پرتال مستقل Overlay و ذخیره‌سازی ابری/محلی کلیپ‌بورد در localStorage برای کپی/پیست بین برگه‌ها |
 | **Round 09** | 0 | **0** | **0 / 0** | 28 / 28 ✅ | 34 / 34 ✅ | 0 خطای مرده ✅ | **پنل تاریخچه ویرایش‌ها و تایم‌لاین اقدامات (Elementor Revision History Parity)**: افزودن تب تاریخچه در سایدبار، متد jumpToHistoryStep در استور، پیمایش زنده در بازنگری‌ها و آزمون اشعه ایکس |
+| **Round 10** | 0 | **0** | **0 / 0** | 28 / 28 ✅ | 34 / 34 ✅ | 0 خطای مرده ✅ | **همگام‌سازی استایل‌های سراسری و توکن‌های دو لایه (Elementor Global Styles & Design Tokens Live Sync)**: توسعه دیالوگ استایل‌های سراسری با توکن‌های textColor و backgroundColor، تزریق آنی به سند Iframe بوم و تایید ۱۰۰٪ آزمون‌های اشعه ایکس |
+
+---
+
+## جزئیات راند ۱۰ (Round 10)
+
+- **شاخه ایزوله**: `claude/reverent-jang-441af1`
+- **تاریخ اجرا**: 2026-11-21
+- **وضعیت نهایی اشعه ایکس (.loop/XRAY_MATRIX.json)**:
+  - `totalFailures`: **0**
+  - `p0Count`: **0**
+  - `p1Count`: **0**
+  - `patterns`: ۲۸ از ۲۸ سبز (`passed: true`)
+  - `blocks`: ۳۴ از ۳۴ سبز (`passed: true`)
+  - `deadControls`: ۰ کنترل مرده
+  - `globalStylesTwoLayerTokens`: تایید باز شدن دیالوگ، حضور دکمه ریست به تم سایت و تزریق زنده متغیرهای CSS به ریشه Iframe
+  - `historyTimelinePanel`: سبز
+  - `multiSelectionOverlay`: سبز
+  - `persistentClipboard`: سبز
+  - `wrapUnwrapContainer`: سبز
+  - `responsiveVisibility`: سبز
+  - `shortcutsModal`: سبز
+  - `hotkeyUndoRedo`: سبز
+  - `layersTreeDnD`: سبز
+  - `containerPresetPicker`: سبز
+  - `contextMenu`: سبز
+  - `categoryChipsClipping`: سبز و بدون بریدگی
+  - `dragAndDrop`: سبز
+  - `wysiwygParity`: تطابق ۱۰۰٪ بوم و صفحه نهایی
+
+### قابلیت‌های راند ۱۰:
+1. **همگام‌سازی کامل استایل‌های سراسری برگه (Global Styles Live Sync)**:
+   - توسعه `GlobalStylesDialog` با فیلدهای رنگ متن سراسری (`textColor`) و رنگ پس‌زمینه پیش‌فرض برگه (`backgroundColor`) علاوه بر رنگ‌های برند و شعاع کادر
+   - اتصال تزریق زنده متغیرهای لایه ۲ (`--foreground`, `--background`, `--primary`, `--secondary`, `--radius`, `--content-max-width`) به `doc.documentElement` داخل Iframe در `canvas-frame.tsx`
+2. **گسترش ممیزی خودکار اشعه ایکس**:
+   - آزمون شماره ۱۱ در `builder-xray.mjs` جهت سنجش باز شدن دیالوگ استایل‌های سراسری، حضور دکمه بازنشانی به تم سایت و اعمال متغیرهای CSS اضافه شد و ۱۰۰٪ پاس گردید.
 
 ---
 

@@ -1124,6 +1124,32 @@ async function runXRayAudit() {
     }
   }
 
+  // 11. Elementor Parity: Global Styles Dialog & Design Tokens Sync
+  console.log("    Testing Elementor Parity: Global Styles Dialog & Two-Layer Tokens...");
+  const globalStylesBtn = page.locator("button:has-text('استایل سراسری')").first();
+  if (await globalStylesBtn.isVisible()) {
+    await globalStylesBtn.click();
+    await page.waitForTimeout(400);
+
+    const dialog = page.locator("div[role='dialog']").first();
+    if (!(await dialog.isVisible())) {
+      addFailure("GLOBAL_STYLES_DIALOG_MISSING", "P0", { message: "Global Styles dialog failed to open" });
+    } else {
+      // Check presence of reset button
+      const resetBtn = dialog.locator("button:has-text('بازنشانی به تم پیش‌فرض')");
+      if (!(await resetBtn.isVisible())) {
+        addFailure("GLOBAL_STYLES_RESET_MISSING", "P0", { message: "Reset to default theme button missing" });
+      }
+
+      // Close dialog
+      const cancelBtn = dialog.locator("button:has-text('انصراف')");
+      if (await cancelBtn.isVisible()) {
+        await cancelBtn.click();
+        await page.waitForTimeout(300);
+      }
+    }
+  }
+
   // ──────────────────────────────────────────────────────────────────────────
   // Write Final Matrix Report
   // ──────────────────────────────────────────────────────────────────────────

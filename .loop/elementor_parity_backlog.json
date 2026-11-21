@@ -14,7 +14,7 @@
     "wave2_items": 5,
     "wave3_items": 4,
     "total_backlog_items": 16,
-    "total_passed": 0
+    "total_passed": 1
   },
   "items": [
     {
@@ -116,7 +116,7 @@
         "pixels",
         "ssr"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "EL-W1-006",

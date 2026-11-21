@@ -1,74 +1,16 @@
 {
-  "timestamp": "2026-11-21T14:36:39.242Z",
+  "timestamp": "2026-11-21T14:58:18.759Z",
   "summary": {
-    "totalIssues": 10,
+    "totalIssues": 0,
     "hardcodedOrEmptyCount": 0,
-    "unreadInCanvasCount": 6,
-    "uncompiledInSsrCount": 4,
+    "unreadInCanvasCount": 0,
+    "uncompiledInSsrCount": 0,
     "widgetControlBlindSpotsCount": 0
   },
   "categories": {
     "HARDCODED_OR_EMPTY_UI": [],
-    "UNREAD_IN_CANVAS": [
-      {
-        "prop": "newTab",
-        "source": "inspector-panel.tsx",
-        "target": "canvas-element.tsx",
-        "issue": "Widget prop \"newTab\" is updated in Inspector but does not appear to be read in CanvasElement."
-      },
-      {
-        "prop": "required",
-        "source": "inspector-panel.tsx",
-        "target": "canvas-element.tsx",
-        "issue": "Widget prop \"required\" is updated in Inspector but does not appear to be read in CanvasElement."
-      },
-      {
-        "prop": "checkout_url",
-        "source": "inspector-panel.tsx",
-        "target": "canvas-element.tsx",
-        "issue": "Widget prop \"checkout_url\" is updated in Inspector but does not appear to be read in CanvasElement."
-      },
-      {
-        "prop": "submit_url",
-        "source": "inspector-panel.tsx",
-        "target": "canvas-element.tsx",
-        "issue": "Widget prop \"submit_url\" is updated in Inspector but does not appear to be read in CanvasElement."
-      },
-      {
-        "prop": "success_message",
-        "source": "inspector-panel.tsx",
-        "target": "canvas-element.tsx",
-        "issue": "Widget prop \"success_message\" is updated in Inspector but does not appear to be read in CanvasElement."
-      },
-      {
-        "prop": "error_message",
-        "source": "inspector-panel.tsx",
-        "target": "canvas-element.tsx",
-        "issue": "Widget prop \"error_message\" is updated in Inspector but does not appear to be read in CanvasElement."
-      }
-    ],
-    "UNCOMPILED_IN_SSR": [
-      {
-        "widgetType": "columns",
-        "file": "backend/app/modules/content/application/ast_compiler.py",
-        "issue": "Widget type \"columns\" is registered in frontend but missing in backend AST compiler."
-      },
-      {
-        "prop": "shape_divider_top",
-        "file": "backend/app/modules/content/application/ast_compiler.py",
-        "issue": "Shape divider property \"shape_divider_top\" may not be compiled into SSR HTML output."
-      },
-      {
-        "prop": "shape_divider_bottom",
-        "file": "backend/app/modules/content/application/ast_compiler.py",
-        "issue": "Shape divider property \"shape_divider_bottom\" may not be compiled into SSR HTML output."
-      },
-      {
-        "prop": "shape_divider_color",
-        "file": "backend/app/modules/content/application/ast_compiler.py",
-        "issue": "Shape divider property \"shape_divider_color\" may not be compiled into SSR HTML output."
-      }
-    ],
+    "UNREAD_IN_CANVAS": [],
+    "UNCOMPILED_IN_SSR": [],
     "WIDGET_CONTROL_BLIND_SPOTS": []
   }
 }

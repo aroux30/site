@@ -71,3 +71,30 @@
 - **Pytest**: ۶۲۲ تست سبز، ۲ تست صرف‌نظرشده در بک‌اند (`622 passed, 2 skipped`)
 - **Playwright E2E**: ۶ تست سبز در راندهای ۱ و ۲ (`6 passed`)
 - **Deterministic Audit**: ۱۰۰٪ پاس و صفر خطای WCAG 2.1 AA
+
+---
+
+## راند ۰۲ (Round 02): بستن کامل شکاف‌های سیم‌کشی و اتصال Shape Dividers و فرم‌ها در ۵ لایه
+
+### ۱. اصلاح ریشه‌ای شکاف‌های دسته‌های ۱ تا ۴ (`.loop/builder_wiring_gaps.json`)
+- **دسته ۲ (UNREAD_IN_CANVAS)**:
+  - سیم‌کشی کامل `newTab` در ویجت دکمه (`target="_blank"` و `rel="noopener noreferrer"`).
+  - سیم‌کشی کامل `checkout_url` در خلاصه سبد خرید (`cart_summary`).
+  - سیم‌کشی `required` در تمام فیلدهای ورودی فرم (`form_input`, `form_textarea`, `form_select`, `form_checkbox`).
+  - اتصال اتریبیوت‌های داده‌ای فرم کانتینر (`data-submit-url`, `data-success-message`, `data-error-message`).
+- **دسته ۳ (UNCOMPILED_IN_SSR)**:
+  - افزودن کامپایل اختصاصی ویجت `columns` در `ast_compiler.py`.
+  - افزودن پشتیبانی کامل از تقسیم‌کننده‌های شکل بالا و پایین (`shape_divider_top`, `shape_divider_bottom`, `shape_divider_color`) در کامپایلر SSR و اسکیمای Pydantic `builder_ast.py`.
+- **نتیجه اسکن مجدد**: **صفر شکاف باقی‌مانده** (`Total gaps identified: 0`).
+
+### ۲. پورت المنتور — آیتم EL-W1-005 (SVG Shape Dividers)
+- پشتیبانی کامل از اشکال Waves, Curve, Triangle, Tilt با تنظیم مستقیم رنگ در بازرس، بوم، و خروجی استاتیک سرور.
+
+### ۳. نتایج اعتبارسنجی دروازه‌های آزمون
+- **TypeScript**: `0 errors` (پاس کامل `npx tsc --noEmit`)
+- **Vitest**: ۳۷۲ تست سبز در ۴۵ فایل تست (`372 passed`)
+- **Pytest**: ۶۲۲ تست واحد بک‌اند سبز (`622 passed, 2 skipped`)
+- **Playwright E2E**: ۷ تست سبز در راندهای ۱ و ۲ (`7 passed in 18.8s`)
+- **Deterministic Audit**: ۱۰۰٪ پاس و صفر خطای WCAG 2.1 AA
+- **Rebuild & Verify**: بیلد موفق و همگام‌سازی سرور پروداکشن در پورت ۳۰۰۰ (`BUILD_ID: n0_nBX3ZARu89HV182wlg`)
+

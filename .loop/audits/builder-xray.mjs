@@ -11,7 +11,7 @@ const { chromium } = req("playwright");
 const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || "http://127.0.0.1:3000";
 const PROJECT_ROOT = path.resolve(".");
 const BACKEND_DIR = path.join(PROJECT_ROOT, "backend");
-const ROUND = process.env.EXCAVATOR_ROUND || "round-08";
+const ROUND = process.env.EXCAVATOR_ROUND || "round-09";
 const ARTIFACTS_DIR = path.join(PROJECT_ROOT, ".loop", "artifacts", "excavator", ROUND, "before");
 const AUDITS_DIR = path.join(PROJECT_ROOT, ".loop", "audits");
 const MATRIX_PATH = path.join(PROJECT_ROOT, ".loop", "XRAY_MATRIX.json");
@@ -902,6 +902,50 @@ async function runXRay() {
     await publicPage.close();
   } catch (wysiwygErr) {
     await addFailure("P0", "WYSIWYG_PARITY_ERROR", "storefront::parity", `WYSIWYG parity test crashed: ${wysiwygErr.message}`);
+  }
+
+  // Check 4.8: History Undo / Redo & Global Shortcut (Ctrl+Z / Ctrl+Y) Automation
+  try {
+    const frame = await getCanvasFrame();
+    const beforeActionCount = await frame.locator("[data-element-id]").count();
+
+    // 1. Duplicate first element to create history entry
+    const firstEl = frame.locator("[data-element-id]").first();
+    await firstEl.click();
+    await page.waitForTimeout(300);
+
+    const dupBtn = frame.locator('[data-testid="floating-toolbar"] button[title*="تکثیر"]').first();
+    if (await dupBtn.isVisible()) {
+      await dupBtn.click();
+      await page.waitForTimeout(400);
+
+      const afterDupCount = await frame.locator("[data-element-id]").count();
+      if (afterDupCount > beforeActionCount) {
+        // 2. Click Undo button in toolbar
+        const undoBtn = page.locator("button[title*='Ctrl+Z']").first();
+        if (await undoBtn.isEnabled()) {
+          await undoBtn.click();
+          await page.waitForTimeout(400);
+          const afterUndoCount = await frame.locator("[data-element-id]").count();
+          if (afterUndoCount !== beforeActionCount) {
+            await addFailure("P0", "HISTORY_UNDO_FAILED", "builder::undo", `Toolbar Undo failed: expected ${beforeActionCount} elements but found ${afterUndoCount}`);
+          }
+
+          // 3. Click Redo button in toolbar
+          const redoBtn = page.locator("button[title*='Ctrl+Y']").first();
+          if (await redoBtn.isEnabled()) {
+            await redoBtn.click();
+            await page.waitForTimeout(400);
+            const afterRedoCount = await frame.locator("[data-element-id]").count();
+            if (afterRedoCount !== afterDupCount) {
+              await addFailure("P0", "HISTORY_REDO_FAILED", "builder::redo", `Toolbar Redo failed: expected ${afterDupCount} elements but found ${afterRedoCount}`);
+            }
+          }
+        }
+      }
+    }
+  } catch (historyErr) {
+    await addFailure("P0", "HISTORY_TEST_ERROR", "builder::history", `Undo/Redo test crashed: ${historyErr.message}`);
   }
 
   // Final Summary & Write Output

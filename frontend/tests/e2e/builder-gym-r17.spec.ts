@@ -56,7 +56,7 @@ test.describe("Builder Gym Round 17: Accordion Item CRUD, Dynamic Title Sync & F
     await page.waitForTimeout(1500);
 
     // Switch to basic blocks tab
-    const basicBlocksSubTab = page.getByRole("button", { name: "بلوک‌ها", exact: true });
+    const basicBlocksSubTab = page.locator('[data-testid="sidebar-tab-blocks"], button:has-text("بلوک‌ها")').first();
     await basicBlocksSubTab.click();
     await page.waitForTimeout(400);
 
@@ -119,7 +119,7 @@ test.describe("Builder Gym Round 17: Accordion Item CRUD, Dynamic Title Sync & F
     await page.waitForTimeout(1500);
 
     // Switch to basic blocks tab
-    const basicBlocksSubTab = page.getByRole("button", { name: "بلوک‌ها", exact: true });
+    const basicBlocksSubTab = page.locator('[data-testid="sidebar-tab-blocks"], button:has-text("بلوک‌ها")').first();
     await basicBlocksSubTab.click();
     await page.waitForTimeout(400);
 

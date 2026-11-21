@@ -11,7 +11,7 @@ const { chromium } = req("playwright");
 const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || "http://127.0.0.1:3000";
 const PROJECT_ROOT = path.resolve(".");
 const BACKEND_DIR = path.join(PROJECT_ROOT, "backend");
-const ROUND = process.env.EXCAVATOR_ROUND || "round-07";
+const ROUND = process.env.EXCAVATOR_ROUND || "round-08";
 const ARTIFACTS_DIR = path.join(PROJECT_ROOT, ".loop", "artifacts", "excavator", ROUND, "before");
 const AUDITS_DIR = path.join(PROJECT_ROOT, ".loop", "audits");
 const MATRIX_PATH = path.join(PROJECT_ROOT, ".loop", "XRAY_MATRIX.json");
@@ -876,6 +876,32 @@ async function runXRay() {
     }
   } catch (dndErr) {
     await addFailure("P0", "DND_TEST_ERROR", "canvas::dnd", `Drag and drop test crashed: ${dndErr.message}`);
+  }
+
+  // Check 4.7: Full Page Reload and Public Storefront WYSIWYG Parity Check
+  try {
+    // 1. Reload the builder page completely and verify element persistence
+    await page.reload({ waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(2000);
+
+    const reloadedFrame = await getCanvasFrame();
+    const reloadedElementsCount = await reloadedFrame.locator("[data-element-id]").count();
+    if (reloadedElementsCount === 0) {
+      await addFailure("P0", "RELOAD_CANVAS_EMPTY", "builder::reload", "After full page reload, canvas was empty");
+    }
+
+    // 2. Open public storefront page in a fresh context (no visual_editor query)
+    const publicPage = await context.newPage();
+    await publicPage.goto(`${BASE_URL}/e2e-isolated-scratchpad`, { waitUntil: "domcontentloaded" });
+    await publicPage.waitForTimeout(1500);
+
+    const isRenderedContentVisible = await publicPage.locator(".builder-rendered-content, .prose, main, h1, h2").first().isVisible();
+    if (!isRenderedContentVisible) {
+      await addFailure("P0", "PUBLIC_STOREFRONT_WYSIWYG_MISSING", "storefront::wysiwyg", "Public page /e2e-isolated-scratchpad did not render compiled builder content");
+    }
+    await publicPage.close();
+  } catch (wysiwygErr) {
+    await addFailure("P0", "WYSIWYG_PARITY_ERROR", "storefront::parity", `WYSIWYG parity test crashed: ${wysiwygErr.message}`);
   }
 
   // Final Summary & Write Output

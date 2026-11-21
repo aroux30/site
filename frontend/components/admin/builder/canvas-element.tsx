@@ -105,19 +105,25 @@ function CanvasElementComponent({
   const customAttrs = useMemo(() => {
     const raw = element.styles?.customAttributes;
     if (!raw) return {};
-    const parsed: Record<string, string> = {};
-    const blacklist = new Set(["id", "class", "style", "data-element-id", "data-element-name"]);
-    for (const line of raw.split("\n")) {
-      const trimmed = line.trim();
-      if (!trimmed || !trimmed.includes("|")) continue;
-      const parts = trimmed.split("|");
-      const k = parts[0]?.trim().toLowerCase();
-      const v = parts.slice(1).join("|").trim();
-      if (k && !blacklist.has(k) && !k.startsWith("on")) {
-        parsed[k] = v;
-      }
+    if (typeof raw === "object" && !Array.isArray(raw)) {
+      return raw as Record<string, string>;
     }
-    return parsed;
+    if (typeof raw === "string") {
+      const parsed: Record<string, string> = {};
+      const blacklist = new Set(["id", "class", "style", "data-element-id", "data-element-name"]);
+      for (const line of (raw as string).split("\n")) {
+        const trimmed = line.trim();
+        if (!trimmed || !trimmed.includes("|")) continue;
+        const parts = trimmed.split("|");
+        const k = parts[0]?.trim().toLowerCase();
+        const v = parts.slice(1).join("|").trim();
+        if (k && !blacklist.has(k) && !k.startsWith("on")) {
+          parsed[k] = v;
+        }
+      }
+      return parsed;
+    }
+    return {};
   }, [element.styles?.customAttributes]);
 
   // Drag is native HTML5 drag-and-drop, not dnd-kit. The canvas lives in an
@@ -366,35 +372,6 @@ function CanvasElementComponent({
     if (anim && anim !== "none") {
       if (res.animationDuration) styleObj.animationDuration = `${res.animationDuration}s`;
       if (res.animationDelay) styleObj.animationDelay = `${res.animationDelay}s`;
-    }
-
-    // Transform & CSS Mask (Elementor Parity)
-    const transform = resolveResponsiveValue({ mobile: base?.transform, tablet: tablet?.transform, desktop: desktop?.transform }, activeBreakpoint);
-    if (transform) {
-      const parts: string[] = [];
-      if (transform.rotate) parts.push(`rotate(${transform.rotate}deg)`);
-      if (transform.scale) parts.push(`scale(${transform.scale})`);
-      if (transform.skewX) parts.push(`skewX(${transform.skewX}deg)`);
-      if (transform.skewY) parts.push(`skewY(${transform.skewY}deg)`);
-      if (transform.translateX || transform.translateY) {
-        parts.push(`translate(${transform.translateX || 0}px, ${transform.translateY || 0}px)`);
-      }
-      if (parts.length > 0) {
-        styleObj.transform = parts.join(" ");
-      }
-    }
-
-    const mask = resolveResponsiveValue({ mobile: base?.mask, tablet: tablet?.mask, desktop: desktop?.mask }, activeBreakpoint);
-    if (mask && mask.shape && mask.shape !== "none") {
-      const maskVal = `url(/masks/${mask.shape}.svg)`;
-      (styleObj as any).WebkitMaskImage = maskVal;
-      (styleObj as any).maskImage = maskVal;
-      (styleObj as any).WebkitMaskSize = mask.size || "contain";
-      (styleObj as any).maskSize = mask.size || "contain";
-      (styleObj as any).WebkitMaskRepeat = "no-repeat";
-      (styleObj as any).maskRepeat = "no-repeat";
-      (styleObj as any).WebkitMaskPosition = mask.position || "center";
-      (styleObj as any).maskPosition = mask.position || "center";
     }
 
     // Advanced Layout Controls (P4)
@@ -1762,7 +1739,7 @@ function CanvasElementComponent({
       data-element-id={element.id}
       data-element-name={element.name}
       data-widget-type={element.widgetType || element.type}
-      {...(element.styles?.customAttributes || {})}
+      {...customAttrs}
     >
       {/* Scoped Custom CSS */}
       {(element.styles as any)?.customCss && (

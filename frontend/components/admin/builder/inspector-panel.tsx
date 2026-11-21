@@ -1438,6 +1438,7 @@ export function InspectorPanel() {
             <div className="space-y-1.5">
               <Label className="text-xs">عنوان شمارنده</Label>
               <Input
+                data-testid="counter-title-input"
                 value={String(props.title || "مشتری خوشنود")}
                 onChange={(e) => handlePropChange("title", e.target.value)}
                 className="h-8 text-xs"
@@ -1457,6 +1458,7 @@ export function InspectorPanel() {
               <div className="space-y-1.5">
                 <Label className="text-xs">عدد پایان</Label>
                 <Input
+                  data-testid="counter-ending-input"
                   type="number"
                   value={Number(props.ending_number ?? 100)}
                   onChange={(e) => handlePropChange("ending_number", parseInt(e.target.value, 10) || 0)}
@@ -1575,6 +1577,7 @@ export function InspectorPanel() {
             <div className="space-y-1.5">
               <Label className="text-xs">عنوان اعلان</Label>
               <Input
+                data-testid="alert-title-input"
                 value={String(props.title || "")}
                 onChange={(e) => handlePropChange("title", e.target.value)}
                 className="h-8 text-xs"
@@ -1870,101 +1873,6 @@ export function InspectorPanel() {
           </div>
         );
       }
-
-      case "counter":
-        return (
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-2">
-              <div className="space-y-1">
-                <Label className="text-xs">عدد شروع</Label>
-                <Input
-                  type="number"
-                  value={Number(props.starting_number) || 0}
-                  onChange={(e) => handlePropChange("starting_number", parseInt(e.target.value, 10) || 0)}
-                  className="h-8 text-xs font-mono"
-                />
-              </div>
-              <div className="space-y-1">
-                <Label className="text-xs">عدد پایان</Label>
-                <Input
-                  data-testid="counter-ending-input"
-                  type="number"
-                  value={Number(props.ending_number) || 100}
-                  onChange={(e) => handlePropChange("ending_number", parseInt(e.target.value, 10) || 100)}
-                  className="h-8 text-xs font-mono"
-                />
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-2">
-              <div className="space-y-1">
-                <Label className="text-xs">پیشوند (Prefix)</Label>
-                <Input
-                  value={String(props.prefix || "")}
-                  onChange={(e) => handlePropChange("prefix", e.target.value)}
-                  className="h-8 text-xs"
-                />
-              </div>
-              <div className="space-y-1">
-                <Label className="text-xs">پسوند (Suffix)</Label>
-                <Input
-                  value={String(props.suffix || "")}
-                  onChange={(e) => handlePropChange("suffix", e.target.value)}
-                  className="h-8 text-xs"
-                />
-              </div>
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-xs">عنوان زیر شمارنده</Label>
-              <Input
-                data-testid="counter-title-input"
-                value={String(props.title || "")}
-                onChange={(e) => handlePropChange("title", e.target.value)}
-                className="h-8 text-xs"
-              />
-            </div>
-          </div>
-        );
-
-      case "alert":
-        return (
-          <div className="space-y-4">
-            <div className="space-y-1.5">
-              <Label className="text-xs">نوع پیام (Alert Type)</Label>
-              <Select
-                value={String(props.alert_type || "info")}
-                onValueChange={(val) => handlePropChange("alert_type", val)}
-              >
-                <SelectTrigger className="h-8 text-xs">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="info">اطلاع‌رسانی (آبی)</SelectItem>
-                  <SelectItem value="success">موفقیت‌آمیز (سبز)</SelectItem>
-                  <SelectItem value="warning">هشدار (زرد)</SelectItem>
-                  <SelectItem value="danger">خطر / خطا (قرمز)</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-xs">عنوان پیام</Label>
-              <Input
-                data-testid="alert-title-input"
-                value={String(props.title || "")}
-                onChange={(e) => handlePropChange("title", e.target.value)}
-                className="h-8 text-xs"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-xs">متن کامل پیام</Label>
-              <textarea
-                rows={3}
-                value={String(props.description || "")}
-                onChange={(e) => handlePropChange("description", e.target.value)}
-                className="w-full rounded-md border border-input bg-background p-2 text-xs"
-              />
-            </div>
-          </div>
-        );
 
       default:
         return (

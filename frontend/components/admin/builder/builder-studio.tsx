@@ -237,8 +237,6 @@ export function BuilderStudio({ page, onExit }: BuilderStudioProps) {
                 aria-label="افزودن بلوک"
                 title="افزودن بلوک"
                 onClick={() => setLeftTab("blocks")}
-                aria-label="افزودن بلوک"
-                title="افزودن بلوک"
                 className={`flex items-center justify-center gap-1 py-1.5 rounded-lg font-semibold transition ${
                   activeLeftTab === "blocks"
                     ? "bg-background text-foreground shadow-sm"

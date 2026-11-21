@@ -1,0 +1,28 @@
+{
+  "timestamp": "2026-11-21T14:40:42.685Z",
+  "summary": {
+    "hardcodedOrEmptyCount": 0,
+    "unreadInCanvasCount": 0,
+    "uncompiledInSsrCount": 2,
+    "blindSpotsCount": 0
+  },
+  "gaps": {
+    "HARDCODED_OR_EMPTY_UI": [],
+    "UNREAD_IN_CANVAS": [],
+    "UNCOMPILED_IN_SSR": [
+      {
+        "property": "backdropBlur",
+        "pythonProperty": "backdrop_blur",
+        "file": "backend/app/modules/content/application/ast_compiler.py",
+        "description": "Property 'backdropBlur' (backdrop_blur) is not compiled to HTML in ast_compiler.py"
+      },
+      {
+        "property": "filterBlur",
+        "pythonProperty": "filter_blur",
+        "file": "backend/app/modules/content/application/ast_compiler.py",
+        "description": "Property 'filterBlur' (filter_blur) is not compiled to HTML in ast_compiler.py"
+      }
+    ],
+    "WIDGET_CONTROL_BLIND_SPOTS": []
+  }
+}

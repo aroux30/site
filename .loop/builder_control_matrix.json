@@ -1,0 +1,1931 @@
+{
+  "version": "2.0.0",
+  "lastUpdated": "2026-11-21T14:41:33.727Z",
+  "totalRows": 69,
+  "stats": {
+    "widgetsTotal": 35,
+    "patternsTotal": 28,
+    "surfacesTotal": 6,
+    "passedCount": 0,
+    "failingCount": 0,
+    "pendingProbeCount": 69
+  },
+  "widgets": [
+    {
+      "seq": 1,
+      "id": "container",
+      "name": "کانتینر (Container)",
+      "category": "layout",
+      "tabs": {
+        "content": {
+          "hasControls": true,
+          "testedSignals": {
+            "state": false,
+            "dom": false,
+            "style": false,
+            "pixels": false,
+            "ssr": false
+          },
+          "status": "pending_probe"
+        },
+        "style": {
+          "hasControls": true,
+          "testedSignals": {
+            "state": false,
+            "dom": false,
+            "style": false,
+            "pixels": false,
+            "ssr": false
+          },
+          "status": "pending_probe"
+        },
+        "advanced": {
+          "hasControls": true,
+          "testedSignals": {
+            "state": false,
+            "dom": false,
+            "style": false,
+            "pixels": false,
+            "ssr": false
+          },
+          "status": "pending_probe"
+        }
+      },
+      "overallStatus": "pending_probe"
+    },
+    {
+      "seq": 2,
+      "id": "section",
+      "name": "بخش سرتاسری (Section)",
+      "category": "layout",
+      "tabs": {
+        "content": {
+          "hasControls": true,
+          "testedSignals": {
+            "state": false,
+            "dom": false,
+            "style": false,
+            "pixels": false,
+            "ssr": false
+          },
+          "status": "pending_probe"
+        },
+        "style": {
+          "hasControls": true,
+          "testedSignals": {
+            "state": false,
+            "dom": false,
+            "style": false,
+            "pixels": false,
+            "ssr": false
+          },
+          "status": "pending_probe"
+        },
+        "advanced": {
+          "hasControls": true,
+          "testedSignals": {
+            "state": false,
+            "dom": false,
+            "style": false,
+            "pixels": false,
+            "ssr": false
+          },
+          "status": "pending_probe"
+        }
+      },
+      "overallStatus": "pending_probe"
+    },
+    {
+      "seq": 3,
+      "id": "columns",
+      "name": "دو ستونه (2 Columns)",
+      "category": "layout",
+      "tabs": {
+        "content": {
+          "hasControls": true,
+          "testedSignals": {
+            "state": false,
+            "dom": false,
+            "style": false,
+            "pixels": false,
+            "ssr": false
+          },
+          "status": "pending_probe"
+        },
+        "style": {
+          "hasControls": true,
+          "testedSignals": {
+            "state": false,
+            "dom": false,
+            "style": false,
+            "pixels": false,
+            "ssr": false
+          },
+          "status": "pending_probe"
+        },
+        "advanced": {
+          "hasControls": true,
+          "testedSignals": {
+            "state": false,
+            "dom": false,
+            "style": false,
+            "pixels": false,
+            "ssr": false
+          },
+          "status": "pending_probe"
+        }
+      },
+      "overallStatus": "pending_probe"
+    },
+    {
+      "seq": 4,
+      "id": "heading",
+      "name": "سرتیتر (Heading)",
+      "category": "basic",
+      "tabs": {
+        "content": {
+          "hasControls": true,
+          "testedSignals": {
+            "state": false,
+            "dom": false,
+            "style": false,
+            "pixels": false,
+            "ssr": false
+          },
+          "status": "pending_probe"
+        },
+        "style": {
+          "hasControls": true,
+          "testedSignals": {
+            "state": true,
+            "dom": true,
+            "style": true,
+            "pixels": true,
+            "ssr": true
+          },
+          "status": "passed"
+        },
+        "advanced": {
+          "hasControls": true,
+          "testedSignals": {
+            "state": false,
+            "dom": false,
+            "style": false,
+            "pixels": false,
+            "ssr": false
+          },
+          "status": "pending_probe"
+        }
+      },
+      "overallStatus": "passed"
+    },
+    {
+      "seq": 5,
+      "id": "paragraph",
+      "name": "پاراگراف متن (Paragraph)",
+      "category": "basic",
+      "tabs": {
+        "content": {
+          "hasControls": true,
+          "testedSignals": {
+            "state": false,
+            "dom": false,
+            "style": false,
+            "pixels": false,
+            "ssr": false
+          },
+          "status": "pending_probe"
+        },
+        "style": {
+          "hasControls": true,
+          "testedSignals": {
+            "state": false,
+            "dom": false,
+            "style": false,
+            "pixels": false,
+            "ssr": false
+          },
+          "status": "pending_probe"
+        },
+        "advanced": {
+          "hasControls": true,
+          "testedSignals": {
+            "state": false,
+            "dom": false,
+            "style": false,
+            "pixels": false,
+            "ssr": false
+          },
+          "status": "pending_probe"
+        }
+      },
+      "overallStatus": "pending_probe"
+    },
+    {
+      "seq": 6,
+      "id": "text",
+      "name": "متن آزاد (Text)",
+      "category": "basic",
+      "tabs": {
+        "content": {
+          "hasControls": true,
+          "testedSignals": {
+            "state": false,
+            "dom": false,
+            "style": false,
+            "pixels": false,
+            "ssr": false
+          },
+          "status": "pending_probe"
+        },
+        "style": {
+          "hasControls": true,
+          "testedSignals": {
+            "state": false,
+            "dom": false,
+            "style": false,
+            "pixels": false,
+            "ssr": false
+          },
+          "status": "pending_probe"
+        },
+        "advanced": {
+          "hasControls": true,
+          "testedSignals": {
+            "state": false,
+            "dom": false,
+            "style": false,
+            "pixels": false,
+            "ssr": false
+          },
+          "status": "pending_probe"
+        }
+      },
+      "overallStatus": "pending_probe"
+    },
+    {
+      "seq": 7,
+      "id": "image",
+      "name": "تصویر (Image)",
+      "category": "basic",
+      "tabs": {
+        "content": {
+          "hasControls": true,
+          "testedSignals": {
+            "state": false,
+            "dom": false,
+            "style": false,
+            "pixels": false,
+            "ssr": false
+          },
+          "status": "pending_probe"
+        },
+        "style": {
+          "hasControls": true,
+          "testedSignals": {
+            "state": false,
+            "dom": false,
+            "style": false,
+            "pixels": false,
+            "ssr": false
+          },
+          "status": "pending_probe"
+        },
+        "advanced": {
+          "hasControls": true,
+          "testedSignals": {
+            "state": false,
+            "dom": false,
+            "style": false,
+            "pixels": false,
+            "ssr": false
+          },
+          "status": "pending_probe"
+        }
+      },
+      "overallStatus": "pending_probe"
+    },
+    {
+      "seq": 8,
+      "id": "button",
+      "name": "دکمه اقدام (Button)",
+      "category": "basic",
+      "tabs": {
+        "content": {
+          "hasControls": true,
+          "testedSignals": {
+            "state": false,
+            "dom": false,
+            "style": false,
+            "pixels": false,
+            "ssr": false
+          },
+          "status": "pending_probe"
+        },
+        "style": {
+          "hasControls": true,
+          "testedSignals": {
+            "state": false,
+            "dom": false,
+            "style": false,
+            "pixels": false,
+            "ssr": false
+          },
+          "status": "pending_probe"
+        },
+        "advanced": {
+          "hasControls": true,
+          "testedSignals": {
+            "state": false,
+            "dom": false,
+            "style": false,
+            "pixels": false,
+            "ssr": false
+          },
+          "status": "pending_probe"
+        }
+      },
+      "overallStatus": "pending_probe"
+    },
+    {
+      "seq": 9,
+      "id": "spacer",
+      "name": "فاصله‌ساز (Spacer)",
+      "category": "basic",
+      "tabs": {
+        "content": {
+          "hasControls": true,
+          "testedSignals": {
+            "state": false,
+            "dom": false,
+            "style": false,
+            "pixels": false,
+            "ssr": false
+          },
+          "status": "pending_probe"
+        },
+        "style": {
+          "hasControls": true,
+          "testedSignals": {
+            "state": false,
+            "dom": false,
+            "style": false,
+            "pixels": false,
+            "ssr": false
+          },
+          "status": "pending_probe"
+        },
+        "advanced": {
+          "hasControls": true,
+          "testedSignals": {
+            "state": false,
+            "dom": false,
+            "style": false,
+            "pixels": false,
+            "ssr": false
+          },
+          "status": "pending_probe"
+        }
+      },
+      "overallStatus": "pending_probe"
+    },
+    {
+      "seq": 10,
+      "id": "divider",
+      "name": "خط جداکننده (Divider)",
+      "category": "basic",
+      "tabs": {
+        "content": {
+          "hasControls": true,
+          "testedSignals": {
+            "state": false,
+            "dom": false,
+            "style": false,
+            "pixels": false,
+            "ssr": false
+          },
+          "status": "pending_probe"
+        },
+        "style": {
+          "hasControls": true,
+          "testedSignals": {
+            "state": false,
+            "dom": false,
+            "style": false,
+            "pixels": false,
+            "ssr": false
+          },
+          "status": "pending_probe"
+        },
+        "advanced": {
+          "hasControls": true,
+          "testedSignals": {
+            "state": false,
+            "dom": false,
+            "style": false,
+            "pixels": false,
+            "ssr": false
+          },
+          "status": "pending_probe"
+        }
+      },
+      "overallStatus": "pending_probe"
+    },
+    {
+      "seq": 11,
+      "id": "table",
+      "name": "جدول داده (Table)",
+      "category": "interactive",
+      "tabs": {
+        "content": {
+          "hasControls": true,
+          "testedSignals": {
+            "state": false,
+            "dom": false,
+            "style": false,
+            "pixels": false,
+            "ssr": false
+          },
+          "status": "pending_probe"
+        },
+        "style": {
+          "hasControls": true,
+          "testedSignals": {
+            "state": false,
+            "dom": false,
+            "style": false,
+            "pixels": false,
+            "ssr": false
+          },
+          "status": "pending_probe"
+        },
+        "advanced": {
+          "hasControls": true,
+          "testedSignals": {
+            "state": false,
+            "dom": false,
+            "style": false,
+            "pixels": false,
+            "ssr": false
+          },
+          "status": "pending_probe"
+        }
+      },
+      "overallStatus": "pending_probe"
+    },
+    {
+      "seq": 12,
+      "id": "form_container",
+      "name": "فرم سازنده (Form Container)",
+      "category": "form",
+      "tabs": {
+        "content": {
+          "hasControls": true,
+          "testedSignals": {
+            "state": false,
+            "dom": false,
+            "style": false,
+            "pixels": false,
+            "ssr": false
+          },
+          "status": "pending_probe"
+        },
+        "style": {
+          "hasControls": true,
+          "testedSignals": {
+            "state": false,
+            "dom": false,
+            "style": false,
+            "pixels": false,
+            "ssr": false
+          },
+          "status": "pending_probe"
+        },
+        "advanced": {
+          "hasControls": true,
+          "testedSignals": {
+            "state": false,
+            "dom": false,
+            "style": false,
+            "pixels": false,
+            "ssr": false
+          },
+          "status": "pending_probe"
+        }
+      },
+      "overallStatus": "pending_probe"
+    },
+    {
+      "seq": 13,
+      "id": "form_input",
+      "name": "فیلد ورودی متن (Input)",
+      "category": "form",
+      "tabs": {
+        "content": {
+          "hasControls": true,
+          "testedSignals": {
+            "state": false,
+            "dom": false,
+            "style": false,
+            "pixels": false,
+            "ssr": false
+          },
+          "status": "pending_probe"
+        },
+        "style": {
+          "hasControls": true,
+          "testedSignals": {
+            "state": false,
+            "dom": false,
+            "style": false,
+            "pixels": false,
+            "ssr": false
+          },
+          "status": "pending_probe"
+        },
+        "advanced": {
+          "hasControls": true,
+          "testedSignals": {
+            "state": false,
+            "dom": false,
+            "style": false,
+            "pixels": false,
+            "ssr": false
+          },
+          "status": "pending_probe"
+        }
+      },
+      "overallStatus": "pending_probe"
+    },
+    {
+      "seq": 14,
+      "id": "form_textarea",
+      "name": "متن چندخطی (Textarea)",
+      "category": "form",
+      "tabs": {
+        "content": {
+          "hasControls": true,
+          "testedSignals": {
+            "state": false,
+            "dom": false,
+            "style": false,
+            "pixels": false,
+            "ssr": false
+          },
+          "status": "pending_probe"
+        },
+        "style": {
+          "hasControls": true,
+          "testedSignals": {
+            "state": false,
+            "dom": false,
+            "style": false,
+            "pixels": false,
+            "ssr": false
+          },
+          "status": "pending_probe"
+        },
+        "advanced": {
+          "hasControls": true,
+          "testedSignals": {
+            "state": false,
+            "dom": false,
+            "style": false,
+            "pixels": false,
+            "ssr": false
+          },
+          "status": "pending_probe"
+        }
+      },
+      "overallStatus": "pending_probe"
+    },
+    {
+      "seq": 15,
+      "id": "form_select",
+      "name": "منوی کشویی (Select)",
+      "category": "form",
+      "tabs": {
+        "content": {
+          "hasControls": true,
+          "testedSignals": {
+            "state": false,
+            "dom": false,
+            "style": false,
+            "pixels": false,
+            "ssr": false
+          },
+          "status": "pending_probe"
+        },
+        "style": {
+          "hasControls": true,
+          "testedSignals": {
+            "state": false,
+            "dom": false,
+            "style": false,
+            "pixels": false,
+            "ssr": false
+          },
+          "status": "pending_probe"
+        },
+        "advanced": {
+          "hasControls": true,
+          "testedSignals": {
+            "state": false,
+            "dom": false,
+            "style": false,
+            "pixels": false,
+            "ssr": false
+          },
+          "status": "pending_probe"
+        }
+      },
+      "overallStatus": "pending_probe"
+    },
+    {
+      "seq": 16,
+      "id": "form_checkbox",
+      "name": "چک‌باکس فرم (Checkbox)",
+      "category": "form",
+      "tabs": {
+        "content": {
+          "hasControls": true,
+          "testedSignals": {
+            "state": false,
+            "dom": false,
+            "style": false,
+            "pixels": false,
+            "ssr": false
+          },
+          "status": "pending_probe"
+        },
+        "style": {
+          "hasControls": true,
+          "testedSignals": {
+            "state": false,
+            "dom": false,
+            "style": false,
+            "pixels": false,
+            "ssr": false
+          },
+          "status": "pending_probe"
+        },
+        "advanced": {
+          "hasControls": true,
+          "testedSignals": {
+            "state": false,
+            "dom": false,
+            "style": false,
+            "pixels": false,
+            "ssr": false
+          },
+          "status": "pending_probe"
+        }
+      },
+      "overallStatus": "pending_probe"
+    },
+    {
+      "seq": 17,
+      "id": "form_radio",
+      "name": "دکمه رادیویی (Radio Group)",
+      "category": "form",
+      "tabs": {
+        "content": {
+          "hasControls": true,
+          "testedSignals": {
+            "state": false,
+            "dom": false,
+            "style": false,
+            "pixels": false,
+            "ssr": false
+          },
+          "status": "pending_probe"
+        },
+        "style": {
+          "hasControls": true,
+          "testedSignals": {
+            "state": false,
+            "dom": false,
+            "style": false,
+            "pixels": false,
+            "ssr": false
+          },
+          "status": "pending_probe"
+        },
+        "advanced": {
+          "hasControls": true,
+          "testedSignals": {
+            "state": false,
+            "dom": false,
+            "style": false,
+            "pixels": false,
+            "ssr": false
+          },
+          "status": "pending_probe"
+        }
+      },
+      "overallStatus": "pending_probe"
+    },
+    {
+      "seq": 18,
+      "id": "accordion",
+      "name": "آکاردئون (Accordion)",
+      "category": "interactive",
+      "tabs": {
+        "content": {
+          "hasControls": true,
+          "testedSignals": {
+            "state": false,
+            "dom": false,
+            "style": false,
+            "pixels": false,
+            "ssr": false
+          },
+          "status": "pending_probe"
+        },
+        "style": {
+          "hasControls": true,
+          "testedSignals": {
+            "state": false,
+            "dom": false,
+            "style": false,
+            "pixels": false,
+            "ssr": false
+          },
+          "status": "pending_probe"
+        },
+        "advanced": {
+          "hasControls": true,
+          "testedSignals": {
+            "state": false,
+            "dom": false,
+            "style": false,
+            "pixels": false,
+            "ssr": false
+          },
+          "status": "pending_probe"
+        }
+      },
+      "overallStatus": "pending_probe"
+    },
+    {
+      "seq": 19,
+      "id": "tabs",
+      "name": "تب‌های محتوا (Tabs)",
+      "category": "interactive",
+      "tabs": {
+        "content": {
+          "hasControls": true,
+          "testedSignals": {
+            "state": false,
+            "dom": false,
+            "style": false,
+            "pixels": false,
+            "ssr": false
+          },
+          "status": "pending_probe"
+        },
+        "style": {
+          "hasControls": true,
+          "testedSignals": {
+            "state": false,
+            "dom": false,
+            "style": false,
+            "pixels": false,
+            "ssr": false
+          },
+          "status": "pending_probe"
+        },
+        "advanced": {
+          "hasControls": true,
+          "testedSignals": {
+            "state": false,
+            "dom": false,
+            "style": false,
+            "pixels": false,
+            "ssr": false
+          },
+          "status": "pending_probe"
+        }
+      },
+      "overallStatus": "pending_probe"
+    },
+    {
+      "seq": 20,
+      "id": "countdown",
+      "name": "شمارنده معکوس (Countdown)",
+      "category": "interactive",
+      "tabs": {
+        "content": {
+          "hasControls": true,
+          "testedSignals": {
+            "state": false,
+            "dom": false,
+            "style": false,
+            "pixels": false,
+            "ssr": false
+          },
+          "status": "pending_probe"
+        },
+        "style": {
+          "hasControls": true,
+          "testedSignals": {
+            "state": false,
+            "dom": false,
+            "style": false,
+            "pixels": false,
+            "ssr": false
+          },
+          "status": "pending_probe"
+        },
+        "advanced": {
+          "hasControls": true,
+          "testedSignals": {
+            "state": false,
+            "dom": false,
+            "style": false,
+            "pixels": false,
+            "ssr": false
+          },
+          "status": "pending_probe"
+        }
+      },
+      "overallStatus": "pending_probe"
+    },
+    {
+      "seq": 21,
+      "id": "video",
+      "name": "پخش‌کننده ویدئو (Video)",
+      "category": "interactive",
+      "tabs": {
+        "content": {
+          "hasControls": true,
+          "testedSignals": {
+            "state": false,
+            "dom": false,
+            "style": false,
+            "pixels": false,
+            "ssr": false
+          },
+          "status": "pending_probe"
+        },
+        "style": {
+          "hasControls": true,
+          "testedSignals": {
+            "state": false,
+            "dom": false,
+            "style": false,
+            "pixels": false,
+            "ssr": false
+          },
+          "status": "pending_probe"
+        },
+        "advanced": {
+          "hasControls": true,
+          "testedSignals": {
+            "state": false,
+            "dom": false,
+            "style": false,
+            "pixels": false,
+            "ssr": false
+          },
+          "status": "pending_probe"
+        }
+      },
+      "overallStatus": "pending_probe"
+    },
+    {
+      "seq": 22,
+      "id": "icon_box",
+      "name": "باکس آیکون و ویژگی (Icon Box)",
+      "category": "interactive",
+      "tabs": {
+        "content": {
+          "hasControls": true,
+          "testedSignals": {
+            "state": false,
+            "dom": false,
+            "style": false,
+            "pixels": false,
+            "ssr": false
+          },
+          "status": "pending_probe"
+        },
+        "style": {
+          "hasControls": true,
+          "testedSignals": {
+            "state": false,
+            "dom": false,
+            "style": false,
+            "pixels": false,
+            "ssr": false
+          },
+          "status": "pending_probe"
+        },
+        "advanced": {
+          "hasControls": true,
+          "testedSignals": {
+            "state": false,
+            "dom": false,
+            "style": false,
+            "pixels": false,
+            "ssr": false
+          },
+          "status": "pending_probe"
+        }
+      },
+      "overallStatus": "pending_probe"
+    },
+    {
+      "seq": 23,
+      "id": "social_links",
+      "name": "شبکه‌های اجتماعی (Social Links)",
+      "category": "interactive",
+      "tabs": {
+        "content": {
+          "hasControls": true,
+          "testedSignals": {
+            "state": false,
+            "dom": false,
+            "style": false,
+            "pixels": false,
+            "ssr": false
+          },
+          "status": "pending_probe"
+        },
+        "style": {
+          "hasControls": true,
+          "testedSignals": {
+            "state": false,
+            "dom": false,
+            "style": false,
+            "pixels": false,
+            "ssr": false
+          },
+          "status": "pending_probe"
+        },
+        "advanced": {
+          "hasControls": true,
+          "testedSignals": {
+            "state": false,
+            "dom": false,
+            "style": false,
+            "pixels": false,
+            "ssr": false
+          },
+          "status": "pending_probe"
+        }
+      },
+      "overallStatus": "pending_probe"
+    },
+    {
+      "seq": 24,
+      "id": "product_card",
+      "name": "کارت محصول (Product Card)",
+      "category": "ecommerce",
+      "tabs": {
+        "content": {
+          "hasControls": true,
+          "testedSignals": {
+            "state": false,
+            "dom": false,
+            "style": false,
+            "pixels": false,
+            "ssr": false
+          },
+          "status": "pending_probe"
+        },
+        "style": {
+          "hasControls": true,
+          "testedSignals": {
+            "state": false,
+            "dom": false,
+            "style": false,
+            "pixels": false,
+            "ssr": false
+          },
+          "status": "pending_probe"
+        },
+        "advanced": {
+          "hasControls": true,
+          "testedSignals": {
+            "state": false,
+            "dom": false,
+            "style": false,
+            "pixels": false,
+            "ssr": false
+          },
+          "status": "pending_probe"
+        }
+      },
+      "overallStatus": "pending_probe"
+    },
+    {
+      "seq": 25,
+      "id": "product_grid",
+      "name": "ویترین محصولات (Product Grid)",
+      "category": "ecommerce",
+      "tabs": {
+        "content": {
+          "hasControls": true,
+          "testedSignals": {
+            "state": false,
+            "dom": false,
+            "style": false,
+            "pixels": false,
+            "ssr": false
+          },
+          "status": "pending_probe"
+        },
+        "style": {
+          "hasControls": true,
+          "testedSignals": {
+            "state": false,
+            "dom": false,
+            "style": false,
+            "pixels": false,
+            "ssr": false
+          },
+          "status": "pending_probe"
+        },
+        "advanced": {
+          "hasControls": true,
+          "testedSignals": {
+            "state": false,
+            "dom": false,
+            "style": false,
+            "pixels": false,
+            "ssr": false
+          },
+          "status": "pending_probe"
+        }
+      },
+      "overallStatus": "pending_probe"
+    },
+    {
+      "seq": 26,
+      "id": "image_gallery",
+      "name": "گالری تصاویر (Image Gallery)",
+      "category": "ecommerce",
+      "tabs": {
+        "content": {
+          "hasControls": true,
+          "testedSignals": {
+            "state": false,
+            "dom": false,
+            "style": false,
+            "pixels": false,
+            "ssr": false
+          },
+          "status": "pending_probe"
+        },
+        "style": {
+          "hasControls": true,
+          "testedSignals": {
+            "state": false,
+            "dom": false,
+            "style": false,
+            "pixels": false,
+            "ssr": false
+          },
+          "status": "pending_probe"
+        },
+        "advanced": {
+          "hasControls": true,
+          "testedSignals": {
+            "state": false,
+            "dom": false,
+            "style": false,
+            "pixels": false,
+            "ssr": false
+          },
+          "status": "pending_probe"
+        }
+      },
+      "overallStatus": "pending_probe"
+    },
+    {
+      "seq": 27,
+      "id": "star_rating",
+      "name": "امتیاز ستاره‌ای (Star Rating)",
+      "category": "ecommerce",
+      "tabs": {
+        "content": {
+          "hasControls": true,
+          "testedSignals": {
+            "state": false,
+            "dom": false,
+            "style": false,
+            "pixels": false,
+            "ssr": false
+          },
+          "status": "pending_probe"
+        },
+        "style": {
+          "hasControls": true,
+          "testedSignals": {
+            "state": false,
+            "dom": false,
+            "style": false,
+            "pixels": false,
+            "ssr": false
+          },
+          "status": "pending_probe"
+        },
+        "advanced": {
+          "hasControls": true,
+          "testedSignals": {
+            "state": false,
+            "dom": false,
+            "style": false,
+            "pixels": false,
+            "ssr": false
+          },
+          "status": "pending_probe"
+        }
+      },
+      "overallStatus": "pending_probe"
+    },
+    {
+      "seq": 28,
+      "id": "review_histogram",
+      "name": "نمودار نظرات (Review Histogram)",
+      "category": "ecommerce",
+      "tabs": {
+        "content": {
+          "hasControls": true,
+          "testedSignals": {
+            "state": false,
+            "dom": false,
+            "style": false,
+            "pixels": false,
+            "ssr": false
+          },
+          "status": "pending_probe"
+        },
+        "style": {
+          "hasControls": true,
+          "testedSignals": {
+            "state": false,
+            "dom": false,
+            "style": false,
+            "pixels": false,
+            "ssr": false
+          },
+          "status": "pending_probe"
+        },
+        "advanced": {
+          "hasControls": true,
+          "testedSignals": {
+            "state": false,
+            "dom": false,
+            "style": false,
+            "pixels": false,
+            "ssr": false
+          },
+          "status": "pending_probe"
+        }
+      },
+      "overallStatus": "pending_probe"
+    },
+    {
+      "seq": 29,
+      "id": "recently_viewed",
+      "name": "بازدیدهای اخیر (Recently Viewed)",
+      "category": "ecommerce",
+      "tabs": {
+        "content": {
+          "hasControls": true,
+          "testedSignals": {
+            "state": false,
+            "dom": false,
+            "style": false,
+            "pixels": false,
+            "ssr": false
+          },
+          "status": "pending_probe"
+        },
+        "style": {
+          "hasControls": true,
+          "testedSignals": {
+            "state": false,
+            "dom": false,
+            "style": false,
+            "pixels": false,
+            "ssr": false
+          },
+          "status": "pending_probe"
+        },
+        "advanced": {
+          "hasControls": true,
+          "testedSignals": {
+            "state": false,
+            "dom": false,
+            "style": false,
+            "pixels": false,
+            "ssr": false
+          },
+          "status": "pending_probe"
+        }
+      },
+      "overallStatus": "pending_probe"
+    },
+    {
+      "seq": 30,
+      "id": "mega_menu",
+      "name": "مگامنو (Mega Menu)",
+      "category": "ecommerce",
+      "tabs": {
+        "content": {
+          "hasControls": true,
+          "testedSignals": {
+            "state": false,
+            "dom": false,
+            "style": false,
+            "pixels": false,
+            "ssr": false
+          },
+          "status": "pending_probe"
+        },
+        "style": {
+          "hasControls": true,
+          "testedSignals": {
+            "state": false,
+            "dom": false,
+            "style": false,
+            "pixels": false,
+            "ssr": false
+          },
+          "status": "pending_probe"
+        },
+        "advanced": {
+          "hasControls": true,
+          "testedSignals": {
+            "state": false,
+            "dom": false,
+            "style": false,
+            "pixels": false,
+            "ssr": false
+          },
+          "status": "pending_probe"
+        }
+      },
+      "overallStatus": "pending_probe"
+    },
+    {
+      "seq": 31,
+      "id": "product_price",
+      "name": "قیمت محصول (Product Price)",
+      "category": "ecommerce",
+      "tabs": {
+        "content": {
+          "hasControls": true,
+          "testedSignals": {
+            "state": false,
+            "dom": false,
+            "style": false,
+            "pixels": false,
+            "ssr": false
+          },
+          "status": "pending_probe"
+        },
+        "style": {
+          "hasControls": true,
+          "testedSignals": {
+            "state": false,
+            "dom": false,
+            "style": false,
+            "pixels": false,
+            "ssr": false
+          },
+          "status": "pending_probe"
+        },
+        "advanced": {
+          "hasControls": true,
+          "testedSignals": {
+            "state": false,
+            "dom": false,
+            "style": false,
+            "pixels": false,
+            "ssr": false
+          },
+          "status": "pending_probe"
+        }
+      },
+      "overallStatus": "pending_probe"
+    },
+    {
+      "seq": 32,
+      "id": "product_variants",
+      "name": "تنوع محصول (Product Variants)",
+      "category": "ecommerce",
+      "tabs": {
+        "content": {
+          "hasControls": true,
+          "testedSignals": {
+            "state": false,
+            "dom": false,
+            "style": false,
+            "pixels": false,
+            "ssr": false
+          },
+          "status": "pending_probe"
+        },
+        "style": {
+          "hasControls": true,
+          "testedSignals": {
+            "state": false,
+            "dom": false,
+            "style": false,
+            "pixels": false,
+            "ssr": false
+          },
+          "status": "pending_probe"
+        },
+        "advanced": {
+          "hasControls": true,
+          "testedSignals": {
+            "state": false,
+            "dom": false,
+            "style": false,
+            "pixels": false,
+            "ssr": false
+          },
+          "status": "pending_probe"
+        }
+      },
+      "overallStatus": "pending_probe"
+    },
+    {
+      "seq": 33,
+      "id": "add_to_cart",
+      "name": "دکمه خرید (Add to Cart)",
+      "category": "ecommerce",
+      "tabs": {
+        "content": {
+          "hasControls": true,
+          "testedSignals": {
+            "state": false,
+            "dom": false,
+            "style": false,
+            "pixels": false,
+            "ssr": false
+          },
+          "status": "pending_probe"
+        },
+        "style": {
+          "hasControls": true,
+          "testedSignals": {
+            "state": false,
+            "dom": false,
+            "style": false,
+            "pixels": false,
+            "ssr": false
+          },
+          "status": "pending_probe"
+        },
+        "advanced": {
+          "hasControls": true,
+          "testedSignals": {
+            "state": false,
+            "dom": false,
+            "style": false,
+            "pixels": false,
+            "ssr": false
+          },
+          "status": "pending_probe"
+        }
+      },
+      "overallStatus": "pending_probe"
+    },
+    {
+      "seq": 34,
+      "id": "mini_cart",
+      "name": "مینی کارت (Mini Cart)",
+      "category": "ecommerce",
+      "tabs": {
+        "content": {
+          "hasControls": true,
+          "testedSignals": {
+            "state": false,
+            "dom": false,
+            "style": false,
+            "pixels": false,
+            "ssr": false
+          },
+          "status": "pending_probe"
+        },
+        "style": {
+          "hasControls": true,
+          "testedSignals": {
+            "state": false,
+            "dom": false,
+            "style": false,
+            "pixels": false,
+            "ssr": false
+          },
+          "status": "pending_probe"
+        },
+        "advanced": {
+          "hasControls": true,
+          "testedSignals": {
+            "state": false,
+            "dom": false,
+            "style": false,
+            "pixels": false,
+            "ssr": false
+          },
+          "status": "pending_probe"
+        }
+      },
+      "overallStatus": "pending_probe"
+    },
+    {
+      "seq": 35,
+      "id": "cart_summary",
+      "name": "خلاصه سبد خرید (Cart Summary)",
+      "category": "ecommerce",
+      "tabs": {
+        "content": {
+          "hasControls": true,
+          "testedSignals": {
+            "state": false,
+            "dom": false,
+            "style": false,
+            "pixels": false,
+            "ssr": false
+          },
+          "status": "pending_probe"
+        },
+        "style": {
+          "hasControls": true,
+          "testedSignals": {
+            "state": false,
+            "dom": false,
+            "style": false,
+            "pixels": false,
+            "ssr": false
+          },
+          "status": "pending_probe"
+        },
+        "advanced": {
+          "hasControls": true,
+          "testedSignals": {
+            "state": false,
+            "dom": false,
+            "style": false,
+            "pixels": false,
+            "ssr": false
+          },
+          "status": "pending_probe"
+        }
+      },
+      "overallStatus": "pending_probe"
+    }
+  ],
+  "patterns": [
+    {
+      "seq": 1,
+      "slug": "hero-banner",
+      "name": "الگوی آماده: hero-banner",
+      "signals": {
+        "insertion": false,
+        "canvasRender": false,
+        "ssrRender": false,
+        "wysiwygParity": false,
+        "rtlCheck": false
+      },
+      "status": "pending_probe"
+    },
+    {
+      "seq": 2,
+      "slug": "feature-grid",
+      "name": "الگوی آماده: feature-grid",
+      "signals": {
+        "insertion": false,
+        "canvasRender": false,
+        "ssrRender": false,
+        "wysiwygParity": false,
+        "rtlCheck": false
+      },
+      "status": "pending_probe"
+    },
+    {
+      "seq": 3,
+      "slug": "product-showcase-cta",
+      "name": "الگوی آماده: product-showcase-cta",
+      "signals": {
+        "insertion": false,
+        "canvasRender": false,
+        "ssrRender": false,
+        "wysiwygParity": false,
+        "rtlCheck": false
+      },
+      "status": "pending_probe"
+    },
+    {
+      "seq": 4,
+      "slug": "testimonials",
+      "name": "الگوی آماده: testimonials",
+      "signals": {
+        "insertion": false,
+        "canvasRender": false,
+        "ssrRender": false,
+        "wysiwygParity": false,
+        "rtlCheck": false
+      },
+      "status": "pending_probe"
+    },
+    {
+      "seq": 5,
+      "slug": "faq-accordion",
+      "name": "الگوی آماده: faq-accordion",
+      "signals": {
+        "insertion": false,
+        "canvasRender": false,
+        "ssrRender": false,
+        "wysiwygParity": false,
+        "rtlCheck": false
+      },
+      "status": "pending_probe"
+    },
+    {
+      "seq": 6,
+      "slug": "image-text",
+      "name": "الگوی آماده: image-text",
+      "signals": {
+        "insertion": false,
+        "canvasRender": false,
+        "ssrRender": false,
+        "wysiwygParity": false,
+        "rtlCheck": false
+      },
+      "status": "pending_probe"
+    },
+    {
+      "seq": 7,
+      "slug": "countdown-offer",
+      "name": "الگوی آماده: countdown-offer",
+      "signals": {
+        "insertion": false,
+        "canvasRender": false,
+        "ssrRender": false,
+        "wysiwygParity": false,
+        "rtlCheck": false
+      },
+      "status": "pending_probe"
+    },
+    {
+      "seq": 8,
+      "slug": "star-rating-display",
+      "name": "الگوی آماده: star-rating-display",
+      "signals": {
+        "insertion": false,
+        "canvasRender": false,
+        "ssrRender": false,
+        "wysiwygParity": false,
+        "rtlCheck": false
+      },
+      "status": "pending_probe"
+    },
+    {
+      "seq": 9,
+      "slug": "review-histogram",
+      "name": "الگوی آماده: review-histogram",
+      "signals": {
+        "insertion": false,
+        "canvasRender": false,
+        "ssrRender": false,
+        "wysiwygParity": false,
+        "rtlCheck": false
+      },
+      "status": "pending_probe"
+    },
+    {
+      "seq": 10,
+      "slug": "product-card-grid",
+      "name": "الگوی آماده: product-card-grid",
+      "signals": {
+        "insertion": false,
+        "canvasRender": false,
+        "ssrRender": false,
+        "wysiwygParity": false,
+        "rtlCheck": false
+      },
+      "status": "pending_probe"
+    },
+    {
+      "seq": 11,
+      "slug": "text-marquee",
+      "name": "الگوی آماده: text-marquee",
+      "signals": {
+        "insertion": false,
+        "canvasRender": false,
+        "ssrRender": false,
+        "wysiwygParity": false,
+        "rtlCheck": false
+      },
+      "status": "pending_probe"
+    },
+    {
+      "seq": 12,
+      "slug": "stats-counter",
+      "name": "الگوی آماده: stats-counter",
+      "signals": {
+        "insertion": false,
+        "canvasRender": false,
+        "ssrRender": false,
+        "wysiwygParity": false,
+        "rtlCheck": false
+      },
+      "status": "pending_probe"
+    },
+    {
+      "seq": 13,
+      "slug": "image-gallery-showcase",
+      "name": "الگوی آماده: image-gallery-showcase",
+      "signals": {
+        "insertion": false,
+        "canvasRender": false,
+        "ssrRender": false,
+        "wysiwygParity": false,
+        "rtlCheck": false
+      },
+      "status": "pending_probe"
+    },
+    {
+      "seq": 14,
+      "slug": "discount-badge-banner",
+      "name": "الگوی آماده: discount-badge-banner",
+      "signals": {
+        "insertion": false,
+        "canvasRender": false,
+        "ssrRender": false,
+        "wysiwygParity": false,
+        "rtlCheck": false
+      },
+      "status": "pending_probe"
+    },
+    {
+      "seq": 15,
+      "slug": "mega-menu-categories",
+      "name": "الگوی آماده: mega-menu-categories",
+      "signals": {
+        "insertion": false,
+        "canvasRender": false,
+        "ssrRender": false,
+        "wysiwygParity": false,
+        "rtlCheck": false
+      },
+      "status": "pending_probe"
+    },
+    {
+      "seq": 16,
+      "slug": "pricing-table",
+      "name": "الگوی آماده: pricing-table",
+      "signals": {
+        "insertion": false,
+        "canvasRender": false,
+        "ssrRender": false,
+        "wysiwygParity": false,
+        "rtlCheck": false
+      },
+      "status": "pending_probe"
+    },
+    {
+      "seq": 17,
+      "slug": "price-list",
+      "name": "الگوی آماده: price-list",
+      "signals": {
+        "insertion": false,
+        "canvasRender": false,
+        "ssrRender": false,
+        "wysiwygParity": false,
+        "rtlCheck": false
+      },
+      "status": "pending_probe"
+    },
+    {
+      "seq": 18,
+      "slug": "icon-box-grid",
+      "name": "الگوی آماده: icon-box-grid",
+      "signals": {
+        "insertion": false,
+        "canvasRender": false,
+        "ssrRender": false,
+        "wysiwygParity": false,
+        "rtlCheck": false
+      },
+      "status": "pending_probe"
+    },
+    {
+      "seq": 19,
+      "slug": "author-bio",
+      "name": "الگوی آماده: author-bio",
+      "signals": {
+        "insertion": false,
+        "canvasRender": false,
+        "ssrRender": false,
+        "wysiwygParity": false,
+        "rtlCheck": false
+      },
+      "status": "pending_probe"
+    },
+    {
+      "seq": 20,
+      "slug": "pull-quote",
+      "name": "الگوی آماده: pull-quote",
+      "signals": {
+        "insertion": false,
+        "canvasRender": false,
+        "ssrRender": false,
+        "wysiwygParity": false,
+        "rtlCheck": false
+      },
+      "status": "pending_probe"
+    },
+    {
+      "seq": 21,
+      "slug": "support-callout",
+      "name": "الگوی آماده: support-callout",
+      "signals": {
+        "insertion": false,
+        "canvasRender": false,
+        "ssrRender": false,
+        "wysiwygParity": false,
+        "rtlCheck": false
+      },
+      "status": "pending_probe"
+    },
+    {
+      "seq": 22,
+      "slug": "comparison-table",
+      "name": "الگوی آماده: comparison-table",
+      "signals": {
+        "insertion": false,
+        "canvasRender": false,
+        "ssrRender": false,
+        "wysiwygParity": false,
+        "rtlCheck": false
+      },
+      "status": "pending_probe"
+    },
+    {
+      "seq": 23,
+      "slug": "process-steps",
+      "name": "الگوی آماده: process-steps",
+      "signals": {
+        "insertion": false,
+        "canvasRender": false,
+        "ssrRender": false,
+        "wysiwygParity": false,
+        "rtlCheck": false
+      },
+      "status": "pending_probe"
+    },
+    {
+      "seq": 24,
+      "slug": "lead-capture-form",
+      "name": "الگوی آماده: lead-capture-form",
+      "signals": {
+        "insertion": false,
+        "canvasRender": false,
+        "ssrRender": false,
+        "wysiwygParity": false,
+        "rtlCheck": false
+      },
+      "status": "pending_probe"
+    },
+    {
+      "seq": 25,
+      "slug": "alert-banner",
+      "name": "الگوی آماده: alert-banner",
+      "signals": {
+        "insertion": false,
+        "canvasRender": false,
+        "ssrRender": false,
+        "wysiwygParity": false,
+        "rtlCheck": false
+      },
+      "status": "pending_probe"
+    },
+    {
+      "seq": 26,
+      "slug": "floating-contact-bar",
+      "name": "الگوی آماده: floating-contact-bar",
+      "signals": {
+        "insertion": false,
+        "canvasRender": false,
+        "ssrRender": false,
+        "wysiwygParity": false,
+        "rtlCheck": false
+      },
+      "status": "pending_probe"
+    },
+    {
+      "seq": 27,
+      "slug": "brand-logo-carousel",
+      "name": "الگوی آماده: brand-logo-carousel",
+      "signals": {
+        "insertion": false,
+        "canvasRender": false,
+        "ssrRender": false,
+        "wysiwygParity": false,
+        "rtlCheck": false
+      },
+      "status": "pending_probe"
+    },
+    {
+      "seq": 28,
+      "slug": "product-highlights",
+      "name": "الگوی آماده: product-highlights",
+      "signals": {
+        "insertion": false,
+        "canvasRender": false,
+        "ssrRender": false,
+        "wysiwygParity": false,
+        "rtlCheck": false
+      },
+      "status": "pending_probe"
+    }
+  ],
+  "studioSurfaces": [
+    {
+      "seq": 1,
+      "id": "builder_toolbar",
+      "name": "نوار ابزار بالای استودیو",
+      "category": "studio",
+      "signals": {
+        "interactive": false,
+        "hotkeys": false,
+        "dialogState": false,
+        "responsive": false
+      },
+      "status": "pending_probe"
+    },
+    {
+      "seq": 2,
+      "id": "layers_tree",
+      "name": "درخت لایه‌ها و نویگیتور",
+      "category": "studio",
+      "signals": {
+        "interactive": false,
+        "hotkeys": false,
+        "dialogState": false,
+        "responsive": false
+      },
+      "status": "pending_probe"
+    },
+    {
+      "seq": 3,
+      "id": "global_styles_dialog",
+      "name": "دیالوگ تنظیمات استایل سراسری",
+      "category": "dialog",
+      "signals": {
+        "interactive": false,
+        "hotkeys": false,
+        "dialogState": false,
+        "responsive": false
+      },
+      "status": "pending_probe"
+    },
+    {
+      "seq": 4,
+      "id": "save_template_dialog",
+      "name": "دیالوگ ذخیره قالب سکشن",
+      "category": "dialog",
+      "signals": {
+        "interactive": false,
+        "hotkeys": false,
+        "dialogState": false,
+        "responsive": false
+      },
+      "status": "pending_probe"
+    },
+    {
+      "seq": 5,
+      "id": "save_page_template_dialog",
+      "name": "دیالوگ ذخیره قالب برگه",
+      "category": "dialog",
+      "signals": {
+        "interactive": false,
+        "hotkeys": false,
+        "dialogState": false,
+        "responsive": false
+      },
+      "status": "pending_probe"
+    },
+    {
+      "seq": 6,
+      "id": "keyboard_shortcuts_dialog",
+      "name": "دیالوگ راهنمای میانبرها",
+      "category": "dialog",
+      "signals": {
+        "interactive": false,
+        "hotkeys": false,
+        "dialogState": false,
+        "responsive": false
+      },
+      "status": "pending_probe"
+    }
+  ]
+}

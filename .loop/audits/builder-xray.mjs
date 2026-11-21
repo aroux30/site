@@ -1035,6 +1035,60 @@ async function runXRayAudit() {
     }
   }
 
+  // 9. Elementor Parity: Multi-Selection & Cross-Session Persistent Clipboard
+  console.log("    Testing Elementor Parity: Multi-Selection & Persistent Clipboard...");
+  await page.evaluate(() => {
+    const store = window.__BUILDER_STORE__;
+    if (store && store.getState) {
+      store.getState().replacePageAST({
+        ...store.getState().ast,
+        rootElements: [
+          {
+            id: "multi_1",
+            name: "المان یک",
+            type: "widget",
+            widgetType: "heading",
+            widgetProps: { text: "یک" },
+            styles: { mobile: {} },
+            children: [],
+          },
+          {
+            id: "multi_2",
+            name: "المان دو",
+            type: "widget",
+            widgetType: "heading",
+            widgetProps: { text: "دو" },
+            styles: { mobile: {} },
+            children: [],
+          },
+        ],
+      });
+      store.getState().toggleSelectElement("multi_1", false);
+      store.getState().toggleSelectElement("multi_2", true);
+    }
+  });
+  await page.waitForTimeout(400);
+
+  // Check multi-selection box in overlay
+  const multiBoxCount = await framePreset.locator("[data-testid='overlay-multi-box']").count();
+  if (multiBoxCount < 1) {
+    addFailure("MULTI_SELECTION_BOX_MISSING", "P0", { message: "Multi-selection bounding box not rendered in overlay portal" });
+  }
+
+  // Test persistent clipboard in localStorage
+  await page.evaluate(() => {
+    window.__BUILDER_STORE__?.getState()?.copyElement("multi_1");
+  });
+  await page.waitForTimeout(200);
+
+  const storedClip = await page.evaluate(() => {
+    return localStorage.getItem("builder_clipboard_element");
+  });
+
+  if (!storedClip || !storedClip.includes("multi_1")) {
+    addFailure("PERSISTENT_CLIPBOARD_FAILED", "P0", { message: "copyElement did not persist element to localStorage" });
+  }
+
   // ──────────────────────────────────────────────────────────────────────────
   // Write Final Matrix Report
   // ──────────────────────────────────────────────────────────────────────────

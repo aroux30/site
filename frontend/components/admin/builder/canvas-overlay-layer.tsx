@@ -34,11 +34,13 @@ export function CanvasOverlayLayer({
 }) {
   const { toast } = useToast();
   const selectedElementId = useBuilderStore((s) => s.selectedElementId);
+  const selectedElementIds = useBuilderStore((s) => s.selectedElementIds);
   const hoveredElementId = useBuilderStore((s) => s.hoveredElementId);
   const previewMode = useBuilderStore((s) => s.previewMode);
   const ast = useBuilderStore((s) => s.ast);
 
   const deleteElement = useBuilderStore((s) => s.deleteElement);
+  const deleteSelectedElements = useBuilderStore((s) => s.deleteSelectedElements);
   const duplicateElement = useBuilderStore((s) => s.duplicateElement);
   const reorderElement = useBuilderStore((s) => s.reorderElement);
   const copyElement = useBuilderStore((s) => s.copyElement);
@@ -46,6 +48,7 @@ export function CanvasOverlayLayer({
   const makeGlobalComponent = useBuilderStore((s) => s.makeGlobalComponent);
 
   const [selectedRect, setSelectedRect] = useState<ElementRect | null>(null);
+  const [multiRects, setMultiRects] = useState<{ id: string; rect: ElementRect }[]>([]);
   const [hoveredRect, setHoveredRect] = useState<ElementRect | null>(null);
   const [saveTemplateOpen, setSaveTemplateOpen] = useState(false);
 
@@ -65,7 +68,29 @@ export function CanvasOverlayLayer({
     const scrollX = win.scrollX || 0;
     const scrollY = win.scrollY || 0;
 
-    // 1. Measure selected element
+    // 1. Measure selected element & multi-selection
+    if (selectedElementIds.length > 1) {
+      const rects: { id: string; rect: ElementRect }[] = [];
+      for (const id of selectedElementIds) {
+        const el = doc.querySelector(`[data-element-id="${id}"]`);
+        if (el) {
+          const b = el.getBoundingClientRect();
+          rects.push({
+            id,
+            rect: {
+              top: b.top + scrollY,
+              left: b.left + scrollX,
+              width: b.width,
+              height: b.height,
+            },
+          });
+        }
+      }
+      setMultiRects(rects);
+    } else {
+      setMultiRects([]);
+    }
+
     if (selectedElementId) {
       const el = doc.querySelector(`[data-element-id="${selectedElementId}"]`);
       if (el) {
@@ -213,6 +238,24 @@ export function CanvasOverlayLayer({
             }}
             className="outline outline-2 outline-primary ring-2 ring-primary/20 bg-primary/5 transition-all duration-75 rounded-sm shadow-sm"
           />
+
+          {/* Additional Multi-Selection Boxes */}
+          {multiRects.map((mr) => (
+            <div
+              key={mr.id}
+              data-testid="overlay-multi-box"
+              style={{
+                position: "absolute",
+                top: mr.rect.top,
+                left: mr.rect.left,
+                width: mr.rect.width,
+                height: mr.rect.height,
+                pointerEvents: "none",
+                zIndex: 99994,
+              }}
+              className="outline outline-2 outline-sky-500 ring-2 ring-sky-500/20 bg-sky-500/5 transition-all duration-75 rounded-sm shadow-sm"
+            />
+          ))}
 
           {/* 3. Independent Floating Action Toolbar */}
           <div

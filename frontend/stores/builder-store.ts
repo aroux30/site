@@ -788,14 +788,27 @@ export const useBuilderStore = create<BuilderState>((set, get) => ({
     const { ast } = get();
     const found = findElementById(ast.rootElements, targetId);
     if (found) {
-      set({ clipboard: { ...get().clipboard, element: JSON.parse(JSON.stringify(found)) } });
+      const cloned = JSON.parse(JSON.stringify(found));
+      set({ clipboard: { ...get().clipboard, element: cloned } });
+      try {
+        if (typeof window !== "undefined") {
+          localStorage.setItem("builder_clipboard_element", JSON.stringify(cloned));
+        }
+      } catch {}
     }
   },
 
   pasteElement: (targetContainerId) => {
     const { clipboard, selectedElementId, ast, addElement } = get();
-    if (!clipboard.element) return;
-    const cloned = cloneElementWithNewIds(clipboard.element);
+    let elementToPaste = clipboard.element;
+    if (!elementToPaste && typeof window !== "undefined") {
+      try {
+        const stored = localStorage.getItem("builder_clipboard_element");
+        if (stored) elementToPaste = JSON.parse(stored);
+      } catch {}
+    }
+    if (!elementToPaste) return;
+    const cloned = cloneElementWithNewIds(elementToPaste);
 
     if (targetContainerId) {
       addElement(cloned, targetContainerId);
@@ -827,7 +840,13 @@ export const useBuilderStore = create<BuilderState>((set, get) => ({
     const { ast } = get();
     const found = findElementById(ast.rootElements, targetId);
     if (found?.styles) {
-      set({ clipboard: { ...get().clipboard, styles: JSON.parse(JSON.stringify(found.styles)) } });
+      const stylesCopy = JSON.parse(JSON.stringify(found.styles));
+      set({ clipboard: { ...get().clipboard, styles: stylesCopy } });
+      try {
+        if (typeof window !== "undefined") {
+          localStorage.setItem("builder_clipboard_styles", JSON.stringify(stylesCopy));
+        }
+      } catch {}
     }
   },
 
@@ -835,8 +854,15 @@ export const useBuilderStore = create<BuilderState>((set, get) => ({
     const id = targetId || get().selectedElementId;
     if (!id) return;
     const { clipboard, updateElementStyles } = get();
-    if (clipboard.styles) {
-      updateElementStyles(id, JSON.parse(JSON.stringify(clipboard.styles)));
+    let stylesToPaste = clipboard.styles;
+    if (!stylesToPaste && typeof window !== "undefined") {
+      try {
+        const stored = localStorage.getItem("builder_clipboard_styles");
+        if (stored) stylesToPaste = JSON.parse(stored);
+      } catch {}
+    }
+    if (stylesToPaste) {
+      updateElementStyles(id, JSON.parse(JSON.stringify(stylesToPaste)));
     }
   },
 

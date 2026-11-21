@@ -910,6 +910,7 @@ export function InspectorPanel() {
             <div className="space-y-1.5">
               <Label className="text-xs">قیمت فروش (تومان)</Label>
               <Input
+                data-testid="product-price-input"
                 type="number"
                 value={Number(props.price) || 0}
                 onChange={(e) => handlePropChange("price", parseFloat(e.target.value) || 0)}

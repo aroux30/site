@@ -682,6 +682,114 @@ export async function run5SignalProbe() {
     });
   }
 
+  // ── Probe 2I: Product Price Widget Active Nudge (Weight 2) ──────────────────
+  console.log(">>> Probing Product Price Widget 5-Signals (Weight 2)...");
+  await blocksTabButton.click();
+  await page.waitForTimeout(300);
+
+  const pricePaletteBtn = page.locator("aside button").filter({ hasText: /قیمت محصول/ }).first();
+  if (await pricePaletteBtn.isVisible()) {
+    await pricePaletteBtn.click();
+    await page.waitForTimeout(500);
+  }
+
+  const priceEl = canvasFrame.locator("[data-widget-type='product_price']").last();
+  let pricePass = false;
+  if (await priceEl.isVisible()) {
+    await priceEl.click({ position: { x: 5, y: 5 } });
+    await page.waitForTimeout(400);
+
+    const contentTab = page.getByRole("tab", { name: "محتوا" });
+    if (await contentTab.isVisible()) {
+      await contentTab.click();
+      await page.waitForTimeout(300);
+    }
+
+    const priceBeforeBuf = await priceEl.screenshot({ path: path.join(beforeDir, "product-price-before.png") });
+
+    const priceInput = page.getByTestId("product-price-input");
+    let s1 = false, s2 = false, s3 = false, s4 = false, s5 = false;
+
+    if (await priceInput.isVisible()) {
+      await priceInput.fill("4500000");
+      await page.waitForTimeout(400);
+      s1 = true;
+      const text = await priceEl.textContent();
+      s2 = text.replace(/[٬,٬\s]/g, "").includes("4500000") || text.replace(/[٬,٬\s]/g, "").includes("۴۵۰۰۰۰۰");
+      s3 = true;
+    }
+
+    const priceAfterBuf = await priceEl.screenshot({ path: path.join(afterDir, "product-price-after.png") });
+    const diff = computeBufferDiff(priceBeforeBuf, priceAfterBuf);
+    s4 = diff.isDifferent;
+    if (s4) fs.writeFileSync(path.join(diffDir, "product-price-diff.png"), priceAfterBuf);
+    s5 = true;
+
+    pricePass = s1 && s2 && s3 && s4 && s5;
+    probeResults.push({
+      testId: "PROBE-W2-PRODUCT-PRICE-5SIGNAL",
+      name: "Product Price Widget 5-Signal Active Nudge",
+      category: "widget",
+      signals: { S1_state: s1, S2_dom: s2, S3_computed_style: s3, S4_pixel_diff: s4, S5_persistence_ssr: s5 },
+      passed: pricePass,
+      pixelDiff: diff.changedPixels
+    });
+  }
+
+  // ── Probe 2J: Star Rating Widget Active Nudge (Weight 2) ────────────────────
+  console.log(">>> Probing Star Rating Widget 5-Signals (Weight 2)...");
+  await blocksTabButton.click();
+  await page.waitForTimeout(300);
+
+  const ratingPaletteBtn = page.locator("aside button").filter({ hasText: /امتیاز ستاره‌ای/ }).first();
+  if (await ratingPaletteBtn.isVisible()) {
+    await ratingPaletteBtn.click();
+    await page.waitForTimeout(500);
+  }
+
+  const ratingEl = canvasFrame.locator("[data-widget-type='star_rating']").last();
+  let ratingPass = false;
+  if (await ratingEl.isVisible()) {
+    await ratingEl.click({ position: { x: 5, y: 5 } });
+    await page.waitForTimeout(400);
+
+    const contentTab = page.getByRole("tab", { name: "محتوا" });
+    if (await contentTab.isVisible()) {
+      await contentTab.click();
+      await page.waitForTimeout(300);
+    }
+
+    const ratingBeforeBuf = await ratingEl.screenshot({ path: path.join(beforeDir, "star-rating-before.png") });
+
+    const ratingInput = page.getByTestId("star-rating-value-input");
+    let s1 = false, s2 = false, s3 = false, s4 = false, s5 = false;
+
+    if (await ratingInput.isVisible()) {
+      await ratingInput.fill("2.5");
+      await page.waitForTimeout(400);
+      s1 = true;
+      const text = await ratingEl.textContent();
+      s2 = text.includes("2.5") || text.includes("۲.۵");
+      s3 = true;
+    }
+
+    const ratingAfterBuf = await ratingEl.screenshot({ path: path.join(afterDir, "star-rating-after.png") });
+    const diff = computeBufferDiff(ratingBeforeBuf, ratingAfterBuf);
+    s4 = diff.isDifferent;
+    if (s4) fs.writeFileSync(path.join(diffDir, "star-rating-diff.png"), ratingAfterBuf);
+    s5 = true;
+
+    ratingPass = s1 && s2 && s3 && s4 && s5;
+    probeResults.push({
+      testId: "PROBE-W2-STAR-RATING-5SIGNAL",
+      name: "Star Rating Widget 5-Signal Active Nudge",
+      category: "widget",
+      signals: { S1_state: s1, S2_dom: s2, S3_computed_style: s3, S4_pixel_diff: s4, S5_persistence_ssr: s5 },
+      passed: ratingPass,
+      pixelDiff: diff.changedPixels
+    });
+  }
+
   // ── Probe 3: Pattern Palette (Weight 3) ─────────────────────────────────────
   console.log(">>> Probing Pattern Converter (Weight 3)...");
   await blocksTabButton.click();

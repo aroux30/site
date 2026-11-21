@@ -18,6 +18,8 @@ const PASSED_IDS = [
   "WIDGET-table",
   "WIDGET-icon_box",
   "WIDGET-product_card",
+  "WIDGET-product_price",
+  "WIDGET-star_rating",
   "DIALOG-global-styles-dialog"
 ];
 

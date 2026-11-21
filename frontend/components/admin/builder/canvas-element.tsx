@@ -421,7 +421,7 @@ function CanvasElementComponent({
     [previewMode, setHoveredElement]
   );
 
-  if (element.isHidden && previewMode) {
+  if ((element.isHidden || isHiddenOnActiveBreakpoint) && previewMode) {
     return null;
   }
 

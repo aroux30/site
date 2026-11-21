@@ -951,6 +951,58 @@ async function runXRayAudit() {
     }
   }
 
+  // 7. Elementor Parity: Responsive Breakpoint Conditional Visibility in Preview Mode
+  console.log("    Testing Elementor Parity: Responsive Breakpoint Visibility...");
+  await page.evaluate(() => {
+    const store = window.__BUILDER_STORE__;
+    if (store && store.getState) {
+      store.getState().replacePageAST({
+        ...store.getState().ast,
+        rootElements: [
+          {
+            id: "resp_vis_elem",
+            name: "المان مخفی در موبایل",
+            type: "widget",
+            widgetType: "heading",
+            widgetProps: { text: "عنوان مخصوص دسکتاپ و تبلت" },
+            visibleOnMobile: false,
+            visibleOnDesktop: true,
+            visibleOnTablet: true,
+            styles: { mobile: {} },
+            children: [],
+          },
+        ],
+      });
+      store.getState().selectElement("resp_vis_elem");
+      store.getState().setBreakpoint("mobile");
+    }
+  });
+  await page.waitForTimeout(400);
+
+  // In edit mode on mobile, hidden badge should be visible
+  const hasBadge = await framePreset.locator("span:has-text('مخفی در موبایل')").first().isVisible();
+  if (!hasBadge) {
+    addFailure("RESPONSIVE_VISIBILITY_BADGE_MISSING", "P0", { message: "Badge indicating element is hidden on mobile not found" });
+  }
+
+  // Switch to preview mode: element must not be rendered
+  await page.evaluate(() => {
+    window.__BUILDER_STORE__?.getState()?.setPreviewMode(true);
+  });
+  await page.waitForTimeout(400);
+
+  const visibleInPreview = await framePreset.locator("[data-element-id='resp_vis_elem']").isVisible();
+  if (visibleInPreview) {
+    addFailure("RESPONSIVE_VISIBILITY_LEAK_IN_PREVIEW", "P0", { message: "Element with visibleOnMobile=false leaked into mobile preview mode!" });
+  }
+
+  // Restore preview mode & desktop breakpoint
+  await page.evaluate(() => {
+    window.__BUILDER_STORE__?.getState()?.setPreviewMode(false);
+    window.__BUILDER_STORE__?.getState()?.setBreakpoint("desktop");
+  });
+  await page.waitForTimeout(300);
+
   // ──────────────────────────────────────────────────────────────────────────
   // Write Final Matrix Report
   // ──────────────────────────────────────────────────────────────────────────

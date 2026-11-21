@@ -195,11 +195,11 @@ class ASTCompiler:
             hp_field = '<input type="text" name="_hp_website" style="display:none !important;" tabindex="-1" autocomplete="off" aria-hidden="true" />'
             children_html = overlay_html + shape_dividers_html + hp_field + "".join(
                 cls._compile_element(child, is_authenticated=is_authenticated) for child in el.children
-            ) + bottom_divider_html
+            )
         else:
             children_html = overlay_html + shape_dividers_html + "".join(
                 cls._compile_element(child, is_authenticated=is_authenticated) for child in el.children
-            ) + bottom_divider_html
+            )
 
         return f"<{tag}{id_attr}{class_attr}{style_attr}{extra_attrs}>{children_html}</{tag}>"
 

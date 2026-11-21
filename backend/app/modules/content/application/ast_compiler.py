@@ -650,10 +650,18 @@ class ASTCompiler:
 
         if base.padding:
             p = base.padding
-            parts.append(f"padding: {p.top.to_css()} {p.right.to_css()} {p.bottom.to_css()} {p.left.to_css()};")
+            top = p.top.to_css() if p.top else "0px"
+            right = p.right.to_css() if p.right else (top if p.is_linked else "0px")
+            bottom = p.bottom.to_css() if p.bottom else (top if p.is_linked else "0px")
+            left = p.left.to_css() if p.left else (top if p.is_linked else "0px")
+            parts.append(f"padding: {top} {right} {bottom} {left};")
         if base.margin:
             m = base.margin
-            parts.append(f"margin: {m.top.to_css()} {m.right.to_css()} {m.bottom.to_css()} {m.left.to_css()};")
+            top = m.top.to_css() if m.top else "0px"
+            right = m.right.to_css() if m.right else (top if m.is_linked else "0px")
+            bottom = m.bottom.to_css() if m.bottom else (top if m.is_linked else "0px")
+            left = m.left.to_css() if m.left else (top if m.is_linked else "0px")
+            parts.append(f"margin: {top} {right} {bottom} {left};")
         if base.width:
             parts.append(f"width: {base.width.to_css()};")
         if base.min_height:

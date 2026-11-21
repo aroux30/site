@@ -11,7 +11,7 @@ const { chromium } = req("playwright");
 const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || "http://127.0.0.1:3000";
 const PROJECT_ROOT = path.resolve(".");
 const BACKEND_DIR = path.join(PROJECT_ROOT, "backend");
-const ROUND = process.env.EXCAVATOR_ROUND || "round-09";
+const ROUND = process.env.EXCAVATOR_ROUND || "round-10";
 const ARTIFACTS_DIR = path.join(PROJECT_ROOT, ".loop", "artifacts", "excavator", ROUND, "before");
 const AUDITS_DIR = path.join(PROJECT_ROOT, ".loop", "audits");
 const MATRIX_PATH = path.join(PROJECT_ROOT, ".loop", "XRAY_MATRIX.json");
@@ -199,7 +199,7 @@ async function runXRay() {
   };
 
   const getCanvasFrame = async () => {
-    const iframeEl = await page.$('iframe[title="Visual Builder Canvas"]');
+    const iframeEl = await page.waitForSelector('iframe[title="Visual Builder Canvas"]', { state: "attached", timeout: 15000 });
     if (!iframeEl) throw new Error("Iframe canvas not found");
     const frame = await iframeEl.contentFrame();
     if (!frame) throw new Error("Could not access canvas frame content");
@@ -878,19 +878,8 @@ async function runXRay() {
     await addFailure("P0", "DND_TEST_ERROR", "canvas::dnd", `Drag and drop test crashed: ${dndErr.message}`);
   }
 
-  // Check 4.7: Full Page Reload and Public Storefront WYSIWYG Parity Check
+  // Check 4.7: Public Storefront WYSIWYG Parity Check
   try {
-    // 1. Reload the builder page completely and verify element persistence
-    await page.reload({ waitUntil: "domcontentloaded" });
-    await page.waitForTimeout(2000);
-
-    const reloadedFrame = await getCanvasFrame();
-    const reloadedElementsCount = await reloadedFrame.locator("[data-element-id]").count();
-    if (reloadedElementsCount === 0) {
-      await addFailure("P0", "RELOAD_CANVAS_EMPTY", "builder::reload", "After full page reload, canvas was empty");
-    }
-
-    // 2. Open public storefront page in a fresh context (no visual_editor query)
     const publicPage = await context.newPage();
     await publicPage.goto(`${BASE_URL}/e2e-isolated-scratchpad`, { waitUntil: "domcontentloaded" });
     await publicPage.waitForTimeout(1500);
@@ -946,6 +935,95 @@ async function runXRay() {
     }
   } catch (historyErr) {
     await addFailure("P0", "HISTORY_TEST_ERROR", "builder::history", `Undo/Redo test crashed: ${historyErr.message}`);
+  }
+
+  // Check 4.9: Stress Test With 50+ Nested AST Elements
+  try {
+    const stressSuccess = await page.evaluate(() => {
+      const store = window.__BUILDER_STORE__;
+      if (!store) return false;
+
+      const rootContainers = [];
+      let elCounter = 1;
+      for (let s = 1; s <= 6; s++) {
+        const secChildren = [];
+        for (let c = 1; c <= 4; c++) {
+          const colChildren = [
+            {
+              id: `stress_head_${elCounter++}`,
+              name: `سرتیتر استرس ${elCounter}`,
+              type: "widget",
+              widgetType: "heading",
+              widgetProps: { text: `تست فشار تیتر ${elCounter}`, tag: "h3" },
+              styles: { mobile: {} },
+              children: [],
+            },
+            {
+              id: `stress_text_${elCounter++}`,
+              name: `متن استرس ${elCounter}`,
+              type: "widget",
+              widgetType: "text_editor",
+              widgetProps: { content: `متن توضیحی برای سنجش پایداری در عمق ${c}` },
+              styles: { mobile: {} },
+              children: [],
+            },
+          ];
+          secChildren.push({
+            id: `stress_col_${elCounter++}`,
+            name: `ستون فشار ${c}`,
+            type: "container",
+            layout: { kind: "flex", direction: "column", gap: { value: 8, unit: "px" } },
+            styles: { mobile: {} },
+            children: colChildren,
+          });
+        }
+        rootContainers.push({
+          id: `stress_sec_${elCounter++}`,
+          name: `سکشن فشار ${s}`,
+          type: "container",
+          layout: { kind: "grid", direction: "row", gridColumns: 4, gap: { value: 16, unit: "px" } },
+          styles: { mobile: { padding: { top: { value: 24, unit: "px" }, isLinked: true } } },
+          children: secChildren,
+        });
+      }
+
+      store.getState().replacePageAST({
+        schemaVersion: 1,
+        title: "تست فشار ۵۰ المان",
+        slug: "stress-test-page",
+        globalStyles: {},
+        rootElements: rootContainers,
+      });
+
+      return elCounter;
+    });
+
+    if (!stressSuccess || stressSuccess < 50) {
+      await addFailure("P0", "STRESS_INJECTION_FAILED", "builder::stress", `Failed to inject 50+ stress elements, counter was ${stressSuccess}`);
+    } else {
+      await page.waitForTimeout(1000);
+      const frame = await getCanvasFrame();
+      const renderedStressCount = await frame.locator("[data-element-id]").count();
+      if (renderedStressCount < 50) {
+        await addFailure("P0", "STRESS_RENDER_COUNT_LOW", "builder::stress", `Injected 50+ elements but canvas only rendered ${renderedStressCount}`);
+      }
+    }
+  } catch (stressErr) {
+    await addFailure("P0", "STRESS_TEST_ERROR", "builder::stress", `50+ elements stress test failed: ${stressErr.message}`);
+  }
+
+  // Check 4.10: Full Page Reload Persistence
+  try {
+    await page.reload({ waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(2000);
+
+    const reloadedFrame = await getCanvasFrame();
+    const reloadedElementsCount = await reloadedFrame.locator("[data-element-id]").count();
+    if (reloadedElementsCount === 0) {
+      await addFailure("P0", "RELOAD_CANVAS_EMPTY", "builder::reload", "After full page reload, canvas was empty");
+    }
+  } catch (reloadErr) {
+    await addFailure("P0", "RELOAD_ERROR", "builder::reload", `Reload check crashed: ${reloadErr.message}`);
   }
 
   // Final Summary & Write Output

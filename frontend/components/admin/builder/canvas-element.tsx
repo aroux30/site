@@ -218,7 +218,11 @@ function CanvasElementComponent({
     const resolvePadding = () => {
       const p = resolveResponsiveValue({ mobile: base?.padding, tablet: tablet?.padding, desktop: desktop?.padding }, activeBreakpoint);
       if (p) {
-        return `${p.top.value}${p.top.unit} ${p.right.value}${p.right.unit} ${p.bottom.value}${p.bottom.unit} ${p.left.value}${p.left.unit}`;
+        const top = p.top || { value: 0, unit: "px" };
+        const right = p.right || (p.isLinked ? top : { value: 0, unit: "px" });
+        const bottom = p.bottom || (p.isLinked ? top : { value: 0, unit: "px" });
+        const left = p.left || (p.isLinked ? top : { value: 0, unit: "px" });
+        return `${top.value}${top.unit} ${right.value}${right.unit} ${bottom.value}${bottom.unit} ${left.value}${left.unit}`;
       }
       return undefined;
     };
@@ -226,7 +230,11 @@ function CanvasElementComponent({
     const resolveMargin = () => {
       const m = resolveResponsiveValue({ mobile: base?.margin, tablet: tablet?.margin, desktop: desktop?.margin }, activeBreakpoint);
       if (m) {
-        return `${m.top.value}${m.top.unit} ${m.right.value}${m.right.unit} ${m.bottom.value}${m.bottom.unit} ${m.left.value}${m.left.unit}`;
+        const top = m.top || { value: 0, unit: "px" };
+        const right = m.right || (m.isLinked ? top : { value: 0, unit: "px" });
+        const bottom = m.bottom || (m.isLinked ? top : { value: 0, unit: "px" });
+        const left = m.left || (m.isLinked ? top : { value: 0, unit: "px" });
+        return `${top.value}${top.unit} ${right.value}${right.unit} ${bottom.value}${bottom.unit} ${left.value}${left.unit}`;
       }
       return undefined;
     };
@@ -270,14 +278,21 @@ function CanvasElementComponent({
         styleObj.borderStyle = borderObj.style;
         if (borderObj.color) styleObj.borderColor = normalizeCssColor(borderObj.color);
         if (borderObj.width) {
-          styleObj.borderWidth = `${borderObj.width.top.value}${borderObj.width.top.unit}`;
+          const w = borderObj.width.top || borderObj.width;
+          if (w && w.value !== undefined) {
+            styleObj.borderWidth = `${w.value}${w.unit || "px"}`;
+          }
         }
       }
       if ((borderObj as any).radiusToken) {
         styleObj.borderRadius = (borderObj as any).radiusToken;
       } else if (borderObj.radius) {
         const r = borderObj.radius;
-        styleObj.borderRadius = `${r.top.value}${r.top.unit} ${r.right.value}${r.right.unit} ${r.bottom.value}${r.bottom.unit} ${r.left.value}${r.left.unit}`;
+        const top = r.top || { value: 0, unit: "px" };
+        const right = r.right || (r.isLinked ? top : { value: 0, unit: "px" });
+        const bottom = r.bottom || (r.isLinked ? top : { value: 0, unit: "px" });
+        const left = r.left || (r.isLinked ? top : { value: 0, unit: "px" });
+        styleObj.borderRadius = `${top.value}${top.unit} ${right.value}${right.unit} ${bottom.value}${bottom.unit} ${left.value}${left.unit}`;
       }
     }
 

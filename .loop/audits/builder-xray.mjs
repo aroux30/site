@@ -11,7 +11,7 @@ const { chromium } = req("playwright");
 const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || "http://127.0.0.1:3000";
 const PROJECT_ROOT = path.resolve(".");
 const BACKEND_DIR = path.join(PROJECT_ROOT, "backend");
-const ROUND = process.env.EXCAVATOR_ROUND || "round-02";
+const ROUND = process.env.EXCAVATOR_ROUND || "round-03";
 const ARTIFACTS_DIR = path.join(PROJECT_ROOT, ".loop", "artifacts", "excavator", ROUND, "before");
 const AUDITS_DIR = path.join(PROJECT_ROOT, ".loop", "audits");
 const MATRIX_PATH = path.join(PROJECT_ROOT, ".loop", "XRAY_MATRIX.json");
@@ -650,6 +650,43 @@ async function runXRay() {
       }
     } catch (inlineErr) {
       await addFailure("P0", "INLINE_EDITING_ERROR", "heading::inline", `Inline editing test crashed: ${inlineErr.message}`);
+    }
+
+    // Test 5: Typography Font Size & Box Shadow Controls
+    try {
+      await headLoc.click();
+      await page.waitForTimeout(300);
+      const styleTab = page.locator('[data-builder-inspector] button[role="tab"]:has-text("استایل")').first();
+      if (await styleTab.isVisible()) {
+        await styleTab.click();
+        await page.waitForTimeout(300);
+
+        // Test Font Size input
+        const fontSizeInput = page.locator('input[placeholder="مثلاً 16"]').first();
+        if (await fontSizeInput.isVisible()) {
+          await fontSizeInput.fill("28");
+          await page.waitForTimeout(300);
+          const computedFontSize = await headLoc.evaluate((el) => window.getComputedStyle(el).fontSize);
+          if (computedFontSize !== "28px") {
+            await addFailure("P0", "DEAD_INSPECTOR_CONTROL", "typography::fontSize", `Font size set to 28px in inspector but computedStyle.fontSize is ${computedFontSize}`);
+            matrix.deadControlsRemaining++;
+          }
+        }
+
+        // Test Box Shadow preset
+        const shadowBtn = page.locator('button:has-text("برجسته (lg)")').first();
+        if (await shadowBtn.isVisible()) {
+          await shadowBtn.click();
+          await page.waitForTimeout(300);
+          const computedShadow = await headLoc.evaluate((el) => window.getComputedStyle(el).boxShadow);
+          if (!computedShadow || computedShadow === "none") {
+            await addFailure("P0", "DEAD_INSPECTOR_CONTROL", "boxShadow::preset", "Box shadow preset clicked but computedStyle.boxShadow is none");
+            matrix.deadControlsRemaining++;
+          }
+        }
+      }
+    } catch (typoErr) {
+      await addFailure("P0", "TYPOGRAPHY_CONTROL_ERROR", "inspector::typography", `Typography controls test failed: ${typoErr.message}`);
     }
   };
 

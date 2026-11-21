@@ -658,12 +658,24 @@ class ASTCompiler:
             parts.append(f"width: {base.width.to_css()};")
         if base.min_height:
             parts.append(f"min-height: {base.min_height.to_css()};")
-        if base.typography and base.typography.color:
-            color = base.typography.color
-            if color.startswith("var(--"):
-                parts.append(f"color: hsl({color});")
-            else:
-                parts.append(f"color: {color};")
+        if base.typography:
+            typo = base.typography
+            if typo.color:
+                color = typo.color
+                if color.startswith("var(--"):
+                    parts.append(f"color: hsl({color});")
+                else:
+                    parts.append(f"color: {color};")
+            if typo.font_size:
+                parts.append(f"font-size: {typo.font_size.to_css()};")
+            if typo.font_weight and typo.font_weight != "inherit":
+                parts.append(f"font-weight: {typo.font_weight};")
+            if typo.line_height:
+                parts.append(f"line-height: {typo.line_height.to_css()};")
+            if typo.text_align and typo.text_align != "inherit":
+                parts.append(f"text-align: {typo.text_align};")
+            if typo.font_family and typo.font_family != "inherit":
+                parts.append(f"font-family: {typo.font_family};")
         if base.background and base.background.color:
             bg_color = base.background.color
             if bg_color.startswith("var(--"):

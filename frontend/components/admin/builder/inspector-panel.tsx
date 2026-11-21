@@ -1817,9 +1817,93 @@ export function InspectorPanel() {
           </div>
         </div>
 
-        {/* Text Color & Typography Tokens */}
-        <div className="space-y-1.5 pt-2 border-t">
-          <Label className="text-xs font-bold text-foreground">رنگ و تایپوگرافی متن (Typography)</Label>
+        {/* Text Color & Typography (Full Elementor Typography System) */}
+        <div className="space-y-2.5 pt-2 border-t">
+          <Label className="text-xs font-bold text-foreground">تایپوگرافی کامل (Elementor Typography)</Label>
+
+          {/* Font Size & Weight */}
+          <div className="grid grid-cols-2 gap-2">
+            <div className="space-y-1">
+              <Label className="text-[10px] text-muted-foreground">اندازه قلم (Font Size)</Label>
+              <div className="relative flex items-center">
+                <Input
+                  type="number"
+                  min={8}
+                  max={96}
+                  value={currentDeviceStyle.typography?.fontSize?.value || ""}
+                  placeholder="مثلاً 16"
+                  onChange={(e) => {
+                    const val = parseFloat(e.target.value);
+                    handleDeviceStyleChange({
+                      typography: {
+                        ...currentDeviceStyle.typography,
+                        fontSize: isNaN(val) ? null : { value: val, unit: "px" },
+                      },
+                    });
+                  }}
+                  className="h-7 text-xs pe-7 ps-2"
+                  dir="ltr"
+                />
+                <span className="absolute end-1.5 text-[10px] font-mono text-muted-foreground select-none pointer-events-none">
+                  px
+                </span>
+              </div>
+            </div>
+
+            <div className="space-y-1">
+              <Label className="text-[10px] text-muted-foreground">ضخامت قلم (Weight)</Label>
+              <Select
+                value={currentDeviceStyle.typography?.fontWeight || "inherit"}
+                onValueChange={(val) =>
+                  handleDeviceStyleChange({
+                    typography: {
+                      ...currentDeviceStyle.typography,
+                      fontWeight: val as any,
+                    },
+                  })
+                }
+              >
+                <SelectTrigger className="h-7 text-xs"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="inherit">پیش‌فرض</SelectItem>
+                  <SelectItem value="300">باریک (Light 300)</SelectItem>
+                  <SelectItem value="400">عادی (Normal 400)</SelectItem>
+                  <SelectItem value="500">متوسط (Medium 500)</SelectItem>
+                  <SelectItem value="600">نیمه‌پررنگ (SemiBold 600)</SelectItem>
+                  <SelectItem value="700">پررنگ (Bold 700)</SelectItem>
+                  <SelectItem value="800">خیلی پررنگ (800)</SelectItem>
+                  <SelectItem value="900">سیاه (Black 900)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {/* Text Alignment */}
+          <div className="space-y-1">
+            <Label className="text-[10px] text-muted-foreground">ترازبندی متن (Text Align)</Label>
+            <Select
+              value={currentDeviceStyle.typography?.textAlign || "inherit"}
+              onValueChange={(val) =>
+                handleDeviceStyleChange({
+                  typography: {
+                    ...currentDeviceStyle.typography,
+                    textAlign: val as any,
+                  },
+                })
+              }
+            >
+              <SelectTrigger className="h-7 text-xs"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="inherit">ارث‌بری</SelectItem>
+                <SelectItem value="right">راست‌چین (RTL)</SelectItem>
+                <SelectItem value="center">وسط‌چین</SelectItem>
+                <SelectItem value="left">چپ‌چین</SelectItem>
+                <SelectItem value="justify">هم‌تراز (Justify)</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Color & Quick Tokens */}
           <div className="flex items-center gap-2">
             <input
               type="color"
@@ -1849,7 +1933,7 @@ export function InspectorPanel() {
               dir="ltr"
             />
           </div>
-          <div className="flex flex-wrap gap-1 mt-1.5">
+          <div className="flex flex-wrap gap-1 mt-1">
             <span className="text-[10px] text-muted-foreground me-1 self-center">توکن رنگ متن:</span>
             {[
               { label: "متن اصلی", val: "var(--foreground)" },

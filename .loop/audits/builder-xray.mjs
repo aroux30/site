@@ -258,6 +258,16 @@ async function runXRayAudit() {
   console.log("\n>>> [PART 4A] Checking Studio Layout & Panes for Clipping and Horizontal Overflow...");
   matrix.summary.totalChecks++;
 
+  // Ensure "افزودن بلوک" left sidebar tab is selected
+  const ensureBlocksSidebar = async () => {
+    const addBlockTab = page.locator("button:has-text('افزودن بلوک')").first();
+    if (await addBlockTab.isVisible()) {
+      await addBlockTab.click();
+      await page.waitForTimeout(200);
+    }
+  };
+  await ensureBlocksSidebar();
+
   // Switch to patterns tab to inspect category filter chips
   const patternsTabBtn = page.locator("button:has-text('الگوها')").first();
   if (await patternsTabBtn.isVisible()) {
@@ -325,8 +335,9 @@ async function runXRayAudit() {
     };
 
     try {
-      // 1. Clear canvas
+      // 1. Clear canvas and ensure blocks sidebar is open
       await clearCanvas();
+      await ensureBlocksSidebar();
 
       // 2. Select Patterns tab
       if (await patternsTabBtn.isVisible()) {
@@ -579,6 +590,7 @@ async function runXRayAudit() {
 
     try {
       await clearCanvas();
+      await ensureBlocksSidebar();
 
       if (await blocksTabBtn.isVisible()) {
         await blocksTabBtn.click();
@@ -888,6 +900,21 @@ async function runXRayAudit() {
       const hasShadowInput = await page.locator("input[placeholder*='0 4px 6px']").isVisible();
       if (hasShadowInput) {
         console.log("    ✅ Elementor Grouped Style Controls (Box Shadow & Typography) verified in Inspector.");
+      }
+    }
+
+    // ── Check Navigator (LayersTree) Search and Expand/Collapse ──
+    const layersTabBtn = page.locator("button:has-text('لایه‌ها')").first();
+    if (await layersTabBtn.isVisible()) {
+      await layersTabBtn.click();
+      await page.waitForTimeout(300);
+
+      const navSearch = page.locator("input[placeholder*='جستجوی لایه']").first();
+      const toggleAllBtn = page.locator("button:has-text('بستن همه'), button:has-text('باز کردن همه')").first();
+      if ((await navSearch.isVisible()) && (await toggleAllBtn.isVisible())) {
+        console.log("    ✅ Elementor Navigator Search & Expand/Collapse All verified.");
+      } else {
+        addFailure("P1", "NAVIGATOR_FEATURES_MISSING", "layers-tree", "Navigator search input or toggle-all button is missing.");
       }
     }
   } catch (ctxErr) {

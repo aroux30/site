@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import {
   Layers,
   Layout,
@@ -17,7 +17,10 @@ import {
   ChevronLeft,
   ChevronDown,
   GripVertical,
+  Search,
+  ChevronsUpDown,
 } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { useBuilderStore } from "@/stores/builder-store";
 import type { BuilderElement } from "@/types/builder";
@@ -45,12 +48,22 @@ interface TreeItemProps {
   element: BuilderElement;
   depth?: number;
   onContextMenu?: (e: React.MouseEvent, elementId: string) => void;
+  forceExpanded?: boolean | null;
+  searchFilter?: string;
 }
 
-const TreeItem = React.memo(function TreeItem({ element, depth = 0, onContextMenu }: TreeItemProps) {
+const TreeItem = React.memo(function TreeItem({
+  element,
+  depth = 0,
+  onContextMenu,
+  forceExpanded = null,
+  searchFilter = "",
+}: TreeItemProps) {
   const [isExpanded, setIsExpanded] = useState(true);
   const [isEditingName, setIsEditingName] = useState(false);
   const [nameDraft, setNameDraft] = useState(element.name);
+
+  const effectiveExpanded = forceExpanded !== null ? forceExpanded : isExpanded;
 
   // Fine-grained boolean selector (P5 Hardening):
   // Only re-renders this item when its own selection state changes
@@ -67,6 +80,12 @@ const TreeItem = React.memo(function TreeItem({ element, depth = 0, onContextMen
   const Icon = getElementIcon(element);
   const hasChildren = element.children && element.children.length > 0;
 
+  const matchesSearch = useMemo(() => {
+    if (!searchFilter.trim()) return true;
+    const q = searchFilter.toLowerCase();
+    return element.name.toLowerCase().includes(q) || element.id.toLowerCase().includes(q);
+  }, [element.name, element.id, searchFilter]);
+
   const handleFinishEditing = () => {
     setIsEditingName(false);
     if (nameDraft.trim() && nameDraft.trim() !== element.name) {
@@ -78,7 +97,7 @@ const TreeItem = React.memo(function TreeItem({ element, depth = 0, onContextMen
 
   return (
     <div
-      className={cn("flex flex-col select-none", depth > 0 && "pr-0.5")}
+      className={cn("flex flex-col select-none", depth > 0 && "pr-0.5", !matchesSearch && "opacity-40")}
       style={{ marginRight: depth > 0 ? `${Math.min(depth * 16, 48)}px` : 0 }}
     >
       <div
@@ -136,7 +155,7 @@ const TreeItem = React.memo(function TreeItem({ element, depth = 0, onContextMen
               type="button"
               onClick={(e) => {
                 e.stopPropagation();
-                setIsExpanded(!isExpanded);
+                setIsExpanded(!effectiveExpanded);
               }}
               className={cn(
                 "p-0.5 rounded transition",
@@ -144,9 +163,9 @@ const TreeItem = React.memo(function TreeItem({ element, depth = 0, onContextMen
                   ? "text-primary-foreground hover:bg-white/20"
                   : "text-muted-foreground hover:text-foreground hover:bg-muted"
               )}
-              title={isExpanded ? "بستن زیرمجموعه‌ها" : "باز کردن زیرمجموعه‌ها"}
+              title={effectiveExpanded ? "بستن زیرمجموعه‌ها" : "باز کردن زیرمجموعه‌ها"}
             >
-              {isExpanded ? (
+              {effectiveExpanded ? (
                 <ChevronDown className="w-3.5 h-3.5" />
               ) : (
                 <ChevronLeft className="w-3.5 h-3.5" />
@@ -265,10 +284,17 @@ const TreeItem = React.memo(function TreeItem({ element, depth = 0, onContextMen
         </div>
       </div>
 
-      {hasChildren && isExpanded && (
+      {hasChildren && effectiveExpanded && (
         <div className="flex flex-col border-r-2 border-primary/40 mr-3 pr-3 space-y-1 my-1">
           {element.children.map((child) => (
-            <TreeItem key={child.id} element={child} depth={depth + 1} onContextMenu={onContextMenu} />
+            <TreeItem
+              key={child.id}
+              element={child}
+              depth={depth + 1}
+              onContextMenu={onContextMenu}
+              forceExpanded={forceExpanded}
+              searchFilter={searchFilter}
+            />
           ))}
         </div>
       )}
@@ -276,19 +302,66 @@ const TreeItem = React.memo(function TreeItem({ element, depth = 0, onContextMen
   );
 });
 
+function countTotalElements(elements: BuilderElement[]): number {
+  let count = 0;
+  for (const el of elements) {
+    count++;
+    if (el.children && el.children.length > 0) {
+      count += countTotalElements(el.children);
+    }
+  }
+  return count;
+}
+
 export function LayersTree({ onContextMenu }: { onContextMenu?: (e: React.MouseEvent, elementId: string) => void }) {
   const ast = useBuilderStore((s) => s.ast);
+  const [search, setSearch] = useState("");
+  const [expandAll, setExpandAll] = useState<boolean | null>(null);
+
+  const totalCount = useMemo(() => countTotalElements(ast.rootElements), [ast.rootElements]);
 
   return (
     <div className="flex flex-col h-full p-3 space-y-2 select-none overflow-y-auto" dir="rtl">
-      <div className="flex items-center gap-2 px-2 py-1 text-xs font-bold text-muted-foreground uppercase tracking-wider">
-        <Layers className="w-4 h-4 text-primary" />
-        <span>درخت ساختار لایه‌ها (Navigator)</span>
+      <div className="flex items-center justify-between px-1 py-1 border-b border-border/60 pb-2">
+        <div className="flex items-center gap-1.5 text-xs font-bold text-foreground">
+          <Layers className="w-4 h-4 text-primary" />
+          <span>لایه‌ها (Navigator)</span>
+          <span className="text-[10px] bg-muted/80 text-muted-foreground px-1.5 py-0.5 rounded-full font-mono">
+            {totalCount}
+          </span>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => setExpandAll((prev) => (prev === true ? false : true))}
+          className="flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground py-0.5 px-1.5 rounded hover:bg-muted transition"
+          title="باز و بسته کردن همه لایه‌ها"
+        >
+          <ChevronsUpDown className="w-3 h-3" />
+          <span>{expandAll === true ? "بستن همه" : "باز کردن همه"}</span>
+        </button>
       </div>
 
-      <div className="space-y-0.5">
+      {/* Navigator Search */}
+      <div className="relative shrink-0">
+        <Search className="absolute start-2.5 top-2.5 h-3 w-3 text-muted-foreground" />
+        <Input
+          placeholder="جستجوی لایه بر اساس نام یا شناسه..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="ps-7 h-7 text-xs"
+        />
+      </div>
+
+      <div className="space-y-0.5 flex-1 overflow-y-auto pt-1">
         {ast.rootElements.map((el) => (
-          <TreeItem key={el.id} element={el} onContextMenu={onContextMenu} />
+          <TreeItem
+            key={el.id}
+            element={el}
+            onContextMenu={onContextMenu}
+            forceExpanded={expandAll}
+            searchFilter={search}
+          />
         ))}
       </div>
     </div>

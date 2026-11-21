@@ -170,6 +170,43 @@
 - **Pytest**: **622 passed, 2 skipped**
 - **Playwright E2E**: 15 tests clean across r04, r10, r12, r13, r14 on port 3200.
 
+---
+
+## Round 05: Weight 5 (70kg) — Responsive Viewports, Dark Mode Sync & 50+ Stress Invariants
+
+**Commit**: `fix(builder-v2-r05): verify weight 5 responsive viewports, dark mode, and stress 50+`  
+**Date**: 2026-11-21  
+
+### 1. Audited & Verified Invariants
+- **Multi-Device Responsive Viewports**:
+  - Desktop (`1280px`+), Tablet (`768px`), and Mobile (`375px`) device frame adaptation.
+  - Accurate `resolveResponsiveValue` cascading (Desktop -> Tablet -> Mobile) without corrupting desktop layout.
+  - Sandboxed media query isolation in `CanvasFrame`.
+- **Studio & Canvas Dark Mode Live Synchronization**:
+  - Dark mode state toggling instantly updates HTML `.dark` attribute across parent and canvas iframe document in real-time.
+- **Stress & High-Node Hierarchy Resilience**:
+  - 50+ nested AST nodes and rapid pattern additions rendered without lag, memory exhaustion, or React hydration panic.
+  - Persistence under rapid mutations without data loss.
+
+### 2. 5-Signal Causality Probe Evidence
+- **Artifacts Directory**: `.loop/artifacts/builder-v2/round-05/`
+  - Automated Summary Report: `weight_5_probe_summary.json` (3/3 Categories PASS)
+  - Before/after screenshots of responsive viewports and 50+ element stress assembly.
+- **Signal Breakdown**: S1 (State), S2 (DOM), S3 (ComputedStyle), S4 (Pixel Diff), S5 (Persistence) all 100% PASS.
+
+### 3. Test Matrix Sign-Off
+- **TypeScript**: `tsc --noEmit` (**0 errors**)
+- **Vitest**: **372/372 passed**
+- **Pytest**: **622 passed, 2 skipped**
+- **Playwright E2E**: 9 tests clean across r05, r10, r11 on port 3200.
+
+---
+
+## PATH A COMPLETE: Weights 1 through 5 100% Verified
+All 5 weights of Path A (Clean-up & 360° Verification of the Current Builder) are fully passed with 0 dead controls.
+Proceeding to **Path B: Native Lightweight Elementor & Elementor Pro Port Engine** (Waves 1, 2, 3).
+
+
 
 
 

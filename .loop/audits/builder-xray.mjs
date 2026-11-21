@@ -11,7 +11,7 @@ const { chromium } = req("playwright");
 const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || "http://127.0.0.1:3000";
 const PROJECT_ROOT = path.resolve(".");
 const BACKEND_DIR = path.join(PROJECT_ROOT, "backend");
-const ROUND = process.env.EXCAVATOR_ROUND || "round-11";
+const ROUND = process.env.EXCAVATOR_ROUND || "round-12";
 const ARTIFACTS_DIR = path.join(PROJECT_ROOT, ".loop", "artifacts", "excavator", ROUND, "before");
 const AUDITS_DIR = path.join(PROJECT_ROOT, ".loop", "audits");
 const MATRIX_PATH = path.join(PROJECT_ROOT, ".loop", "XRAY_MATRIX.json");
@@ -1043,6 +1043,36 @@ async function runXRay() {
     }
   } catch (roundtripErr) {
     await addFailure("P0", "TEMPLATE_ROUNDTRIP_ERROR", "builder::templates", `Template roundtrip test crashed: ${roundtripErr.message}`);
+  }
+
+  // Check 4.12: Elementor Motion Effects / Animations Parity Check
+  try {
+    const animationVerified = await page.evaluate(() => {
+      const store = window.__BUILDER_STORE__;
+      if (!store) return false;
+      const root = store.getState().ast.rootElements[0];
+      if (!root) return false;
+      store.getState().updateElementStyles(root.id, {
+        animation: "fade-in",
+        animationDuration: 0.8,
+        animationDelay: 0.2,
+      });
+      return true;
+    });
+
+    if (!animationVerified) {
+      await addFailure("P0", "ANIMATION_INSPECTOR_UPDATE_FAILED", "styles::animation", "Failed to apply motion effects animation via store");
+    } else {
+      await page.waitForTimeout(300);
+      const frame = await getCanvasFrame();
+      const firstEl = frame.locator("[data-element-id]").first();
+      const classes = await firstEl.getAttribute("class");
+      if (!classes || !classes.includes("builder-animate-fade-in")) {
+        await addFailure("P0", "ANIMATION_CLASS_NOT_APPLIED", "styles::animation", `Animation class builder-animate-fade-in not applied to element class: ${classes}`);
+      }
+    }
+  } catch (animErr) {
+    await addFailure("P0", "ANIMATION_TEST_ERROR", "styles::animation", `Animation verification failed: ${animErr.message}`);
   }
 
   // Final Summary & Write Output

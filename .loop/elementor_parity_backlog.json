@@ -1,0 +1,485 @@
+{
+  "version": "2.0.0",
+  "scanned_at": "2026-11-21T14:37:11.942Z",
+  "elementor_source_path": "C:/Users/Administrator/Desktop/elementor",
+  "total_files_scanned": 3374,
+  "total_items": 24,
+  "stats": {
+    "wave1_count": 11,
+    "wave2_count": 9,
+    "wave3_count": 4,
+    "passed_count": 0,
+    "pending_count": 24
+  },
+  "items": [
+    {
+      "id": "EL-W1-001",
+      "wave": 1,
+      "category": "control_group",
+      "title": "Group Control Typography (Responsive Size, LineHeight, LetterSpacing, Decoration, Transform)",
+      "elementor_ref_path": "elementor/includes/controls/groups/typography.php",
+      "target_files": [
+        "frontend/components/admin/builder/inspector-panel.tsx",
+        "frontend/types/builder.ts",
+        "backend/app/modules/content/application/ast_compiler.py"
+      ],
+      "acceptance_signals": [
+        "state",
+        "dom",
+        "style",
+        "pixels",
+        "ssr"
+      ],
+      "passes": false
+    },
+    {
+      "id": "EL-W1-002",
+      "wave": 1,
+      "category": "control_group",
+      "title": "Group Control Background (Classic, Gradient, Video, Overlay, Blend Mode)",
+      "elementor_ref_path": "elementor/includes/controls/groups/background.php",
+      "target_files": [
+        "frontend/components/admin/builder/inspector-panel.tsx",
+        "frontend/components/admin/builder/canvas-element.tsx",
+        "backend/app/modules/content/application/ast_compiler.py"
+      ],
+      "acceptance_signals": [
+        "state",
+        "dom",
+        "style",
+        "pixels",
+        "ssr"
+      ],
+      "passes": false
+    },
+    {
+      "id": "EL-W1-003",
+      "wave": 1,
+      "category": "control_group",
+      "title": "Group Control Border & Box Shadow with Normal/Hover transitions",
+      "elementor_ref_path": "elementor/includes/controls/groups/border.php",
+      "target_files": [
+        "frontend/components/admin/builder/inspector-panel.tsx",
+        "frontend/components/admin/builder/canvas-element.tsx"
+      ],
+      "acceptance_signals": [
+        "state",
+        "dom",
+        "style",
+        "pixels",
+        "ssr"
+      ],
+      "passes": false
+    },
+    {
+      "id": "EL-W1-004",
+      "wave": 1,
+      "category": "advanced_tab",
+      "title": "Advanced 4-Direction Spacing with Linked/Unlinked Toggle and px/rem/%/em units",
+      "elementor_ref_path": "elementor/includes/widgets/common-base.php",
+      "target_files": [
+        "frontend/components/admin/builder/inspector-panel.tsx",
+        "frontend/types/builder.ts"
+      ],
+      "acceptance_signals": [
+        "state",
+        "dom",
+        "style",
+        "pixels",
+        "ssr"
+      ],
+      "passes": false
+    },
+    {
+      "id": "EL-W1-005",
+      "wave": 1,
+      "category": "advanced_tab",
+      "title": "Advanced CSS Transform (Rotate, Scale, Offset, Skew, Flip) in Normal & Hover",
+      "elementor_ref_path": "elementor/includes/controls/groups/transform.php",
+      "target_files": [
+        "frontend/components/admin/builder/inspector-panel.tsx",
+        "frontend/components/admin/builder/canvas-element.tsx",
+        "backend/app/modules/content/application/ast_compiler.py"
+      ],
+      "acceptance_signals": [
+        "state",
+        "dom",
+        "style",
+        "pixels",
+        "ssr"
+      ],
+      "passes": false
+    },
+    {
+      "id": "EL-W1-006",
+      "wave": 1,
+      "category": "advanced_tab",
+      "title": "Advanced CSS Mask (Shapes: Circle, Flower, Blob, Hexagon, Custom SVG)",
+      "elementor_ref_path": "elementor/includes/controls/groups/mask.php",
+      "target_files": [
+        "frontend/components/admin/builder/inspector-panel.tsx",
+        "frontend/components/admin/builder/canvas-element.tsx"
+      ],
+      "acceptance_signals": [
+        "state",
+        "dom",
+        "style",
+        "pixels",
+        "ssr"
+      ],
+      "passes": false
+    },
+    {
+      "id": "EL-W1-007",
+      "wave": 1,
+      "category": "advanced_tab",
+      "title": "Advanced Sticky Header/Banner (Top/Bottom + Offset with z-index stacking)",
+      "elementor_ref_path": "elementor-pro/modules/sticky/module.php",
+      "target_files": [
+        "frontend/components/admin/builder/inspector-panel.tsx",
+        "frontend/components/admin/builder/canvas-element.tsx"
+      ],
+      "acceptance_signals": [
+        "state",
+        "dom",
+        "style",
+        "pixels",
+        "ssr"
+      ],
+      "passes": false
+    },
+    {
+      "id": "EL-W1-008",
+      "wave": 1,
+      "category": "advanced_tab",
+      "title": "Advanced Entrance & Motion Effects with prefers-reduced-motion compliance",
+      "elementor_ref_path": "elementor/includes/widgets/common-base.php",
+      "target_files": [
+        "frontend/components/admin/builder/inspector-panel.tsx",
+        "frontend/components/admin/builder/canvas-element.tsx",
+        "backend/app/modules/content/application/ast_compiler.py"
+      ],
+      "acceptance_signals": [
+        "state",
+        "dom",
+        "style",
+        "pixels",
+        "ssr"
+      ],
+      "passes": false
+    },
+    {
+      "id": "EL-W1-009",
+      "wave": 1,
+      "category": "advanced_tab",
+      "title": "Advanced Custom Attributes (Key|Value lines with security blacklist and live DOM reflection)",
+      "elementor_ref_path": "elementor-pro/modules/custom-attributes/module.php",
+      "target_files": [
+        "frontend/components/admin/builder/inspector-panel.tsx",
+        "frontend/components/admin/builder/canvas-element.tsx",
+        "backend/app/modules/content/application/ast_compiler.py",
+        "backend/app/shared/content/html_sanitizer.py"
+      ],
+      "acceptance_signals": [
+        "state",
+        "dom",
+        "style",
+        "pixels",
+        "ssr"
+      ],
+      "passes": false
+    },
+    {
+      "id": "EL-W1-010",
+      "wave": 1,
+      "category": "shape_divider",
+      "title": "Shape Dividers (30 SVG Shapes for Container Top/Bottom with Invert, Flip & Width/Height)",
+      "elementor_ref_path": "elementor/assets/shapes/",
+      "target_files": [
+        "frontend/components/admin/builder/inspector-panel.tsx",
+        "frontend/components/admin/builder/canvas-element.tsx",
+        "backend/app/modules/content/application/ast_compiler.py"
+      ],
+      "acceptance_signals": [
+        "state",
+        "dom",
+        "style",
+        "pixels",
+        "ssr"
+      ],
+      "passes": false
+    },
+    {
+      "id": "EL-W1-011",
+      "wave": 1,
+      "category": "navigator",
+      "title": "Navigator / LayersTree Inline Renaming, Visual Badges (Motion, Hidden, CustomCSS) & Context Menu",
+      "elementor_ref_path": "elementor/includes/managers/elements.php",
+      "target_files": [
+        "frontend/components/admin/builder/layers-tree.tsx"
+      ],
+      "acceptance_signals": [
+        "state",
+        "dom",
+        "style",
+        "pixels",
+        "ssr"
+      ],
+      "passes": false
+    },
+    {
+      "id": "EL-W2-012",
+      "wave": 2,
+      "category": "widget_core",
+      "title": "Core Animated Counter Widget (Animated counting up with prefix/suffix/duration)",
+      "elementor_ref_path": "elementor/includes/widgets/counter.php",
+      "target_files": [
+        "frontend/lib/builder/block-registry.ts",
+        "frontend/components/admin/builder/canvas-element.tsx",
+        "backend/app/modules/content/application/ast_compiler.py"
+      ],
+      "acceptance_signals": [
+        "state",
+        "dom",
+        "style",
+        "pixels",
+        "ssr"
+      ],
+      "passes": false
+    },
+    {
+      "id": "EL-W2-013",
+      "wave": 2,
+      "category": "widget_core",
+      "title": "Core Progress Bar Widget (Animated skill bar with percentage badge)",
+      "elementor_ref_path": "elementor/includes/widgets/progress.php",
+      "target_files": [
+        "frontend/lib/builder/block-registry.ts",
+        "frontend/components/admin/builder/canvas-element.tsx",
+        "backend/app/modules/content/application/ast_compiler.py"
+      ],
+      "acceptance_signals": [
+        "state",
+        "dom",
+        "style",
+        "pixels",
+        "ssr"
+      ],
+      "passes": false
+    },
+    {
+      "id": "EL-W2-014",
+      "wave": 2,
+      "category": "widget_core",
+      "title": "Core Testimonial Box Widget (Avatar, author, company, rating, quote text)",
+      "elementor_ref_path": "elementor/includes/widgets/testimonial.php",
+      "target_files": [
+        "frontend/lib/builder/block-registry.ts",
+        "frontend/components/admin/builder/canvas-element.tsx",
+        "backend/app/modules/content/application/ast_compiler.py"
+      ],
+      "acceptance_signals": [
+        "state",
+        "dom",
+        "style",
+        "pixels",
+        "ssr"
+      ],
+      "passes": false
+    },
+    {
+      "id": "EL-W2-015",
+      "wave": 2,
+      "category": "widget_core",
+      "title": "Core Alert Banner Widget (Dismissible info, success, warning, danger alerts)",
+      "elementor_ref_path": "elementor/includes/widgets/alert.php",
+      "target_files": [
+        "frontend/lib/builder/block-registry.ts",
+        "frontend/components/admin/builder/canvas-element.tsx",
+        "backend/app/modules/content/application/ast_compiler.py"
+      ],
+      "acceptance_signals": [
+        "state",
+        "dom",
+        "style",
+        "pixels",
+        "ssr"
+      ],
+      "passes": false
+    },
+    {
+      "id": "EL-W2-016",
+      "wave": 2,
+      "category": "widget_pro",
+      "title": "Pro Animated Headline Widget (Rotating, typing, highlighted text with SVG shapes)",
+      "elementor_ref_path": "elementor-pro/modules/animated-headline/widgets/animated-headline.php",
+      "target_files": [
+        "frontend/lib/builder/block-registry.ts",
+        "frontend/components/admin/builder/canvas-element.tsx",
+        "backend/app/modules/content/application/ast_compiler.py"
+      ],
+      "acceptance_signals": [
+        "state",
+        "dom",
+        "style",
+        "pixels",
+        "ssr"
+      ],
+      "passes": false
+    },
+    {
+      "id": "EL-W2-017",
+      "wave": 2,
+      "category": "widget_pro",
+      "title": "Pro Flip Box Widget (3D flip card with front and back interactive faces)",
+      "elementor_ref_path": "elementor-pro/modules/flip-box/widgets/flip-box.php",
+      "target_files": [
+        "frontend/lib/builder/block-registry.ts",
+        "frontend/components/admin/builder/canvas-element.tsx",
+        "backend/app/modules/content/application/ast_compiler.py"
+      ],
+      "acceptance_signals": [
+        "state",
+        "dom",
+        "style",
+        "pixels",
+        "ssr"
+      ],
+      "passes": false
+    },
+    {
+      "id": "EL-W2-018",
+      "wave": 2,
+      "category": "widget_pro",
+      "title": "Pro Call To Action (CTA) Widget (Boxed banner with image, badge, ribbon, heading and button)",
+      "elementor_ref_path": "elementor-pro/modules/call-to-action/widgets/call-to-action.php",
+      "target_files": [
+        "frontend/lib/builder/block-registry.ts",
+        "frontend/components/admin/builder/canvas-element.tsx",
+        "backend/app/modules/content/application/ast_compiler.py"
+      ],
+      "acceptance_signals": [
+        "state",
+        "dom",
+        "style",
+        "pixels",
+        "ssr"
+      ],
+      "passes": false
+    },
+    {
+      "id": "EL-W2-019",
+      "wave": 2,
+      "category": "pro_module",
+      "title": "Off-Canvas Drawer Module (Slide-in mobile navigation / filter drawer with nested container)",
+      "elementor_ref_path": "elementor-pro/modules/off-canvas/module.php",
+      "target_files": [
+        "frontend/components/admin/builder/canvas-element.tsx",
+        "frontend/stores/builder-store.ts"
+      ],
+      "acceptance_signals": [
+        "state",
+        "dom",
+        "style",
+        "pixels",
+        "ssr"
+      ],
+      "passes": false
+    },
+    {
+      "id": "EL-W2-020",
+      "wave": 2,
+      "category": "pro_module",
+      "title": "Popup Builder Module (Modal designer with load, scroll, exit-intent triggers)",
+      "elementor_ref_path": "elementor-pro/modules/popup/module.php",
+      "target_files": [
+        "frontend/components/admin/builder/canvas-element.tsx",
+        "frontend/stores/builder-store.ts"
+      ],
+      "acceptance_signals": [
+        "state",
+        "dom",
+        "style",
+        "pixels",
+        "ssr"
+      ],
+      "passes": false
+    },
+    {
+      "id": "EL-W3-021",
+      "wave": 3,
+      "category": "site_kit",
+      "title": "Global Site Kit 12 Tabs (Colors, Typography, Buttons, Images, Form Fields, Breakpoints, Lightbox)",
+      "elementor_ref_path": "elementor/core/kits/documents/tabs/",
+      "target_files": [
+        "frontend/components/admin/builder/global-styles-dialog.tsx",
+        "frontend/stores/builder-store.ts"
+      ],
+      "acceptance_signals": [
+        "state",
+        "dom",
+        "style",
+        "pixels",
+        "ssr"
+      ],
+      "passes": false
+    },
+    {
+      "id": "EL-W3-022",
+      "wave": 3,
+      "category": "theme_builder",
+      "title": "Theme Builder (Header, Footer, Single Product, Product Archive with Display Conditions)",
+      "elementor_ref_path": "elementor-pro/modules/theme-builder/module.php",
+      "target_files": [
+        "frontend/components/admin/builder/builder-studio.tsx",
+        "backend/app/modules/content/domain/builder_ast.py"
+      ],
+      "acceptance_signals": [
+        "state",
+        "dom",
+        "style",
+        "pixels",
+        "ssr"
+      ],
+      "passes": false
+    },
+    {
+      "id": "EL-W3-023",
+      "wave": 3,
+      "category": "loop_builder",
+      "title": "Loop Builder (Custom repeating item card template for Products & Blog Posts)",
+      "elementor_ref_path": "elementor-pro/modules/loop-builder/module.php",
+      "target_files": [
+        "frontend/components/admin/builder/canvas-element.tsx",
+        "backend/app/modules/content/application/ast_compiler.py"
+      ],
+      "acceptance_signals": [
+        "state",
+        "dom",
+        "style",
+        "pixels",
+        "ssr"
+      ],
+      "passes": false
+    },
+    {
+      "id": "EL-W3-024",
+      "wave": 3,
+      "category": "form_builder",
+      "title": "Multi-Step Form Builder with Conditional Fields and Backend Submissions",
+      "elementor_ref_path": "elementor-pro/modules/forms/module.php",
+      "target_files": [
+        "frontend/components/admin/builder/canvas-element.tsx",
+        "backend/app/modules/content/application/form_submission_service.py"
+      ],
+      "acceptance_signals": [
+        "state",
+        "dom",
+        "style",
+        "pixels",
+        "ssr"
+      ],
+      "passes": false
+    }
+  ]
+}

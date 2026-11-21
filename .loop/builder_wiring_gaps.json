@@ -1,0 +1,36 @@
+{
+  "timestamp": "2026-11-21T14:35:17.675Z",
+  "summary": {
+    "hardcodedOrEmptyCount": 0,
+    "unreadInCanvasCount": 5,
+    "uncompiledInSsrCount": 0,
+    "widgetControlBlindSpotsCount": 0
+  },
+  "categories": {
+    "HARDCODED_OR_EMPTY_UI": [],
+    "UNREAD_IN_CANVAS": [
+      {
+        "property": "entranceAnimation",
+        "reason": "Root responsive style property 'entranceAnimation' not handled in canvas-element.tsx."
+      },
+      {
+        "property": "hideOnMobile",
+        "reason": "Root responsive style property 'hideOnMobile' not handled in canvas-element.tsx."
+      },
+      {
+        "property": "hideOnTablet",
+        "reason": "Root responsive style property 'hideOnTablet' not handled in canvas-element.tsx."
+      },
+      {
+        "property": "hideOnDesktop",
+        "reason": "Root responsive style property 'hideOnDesktop' not handled in canvas-element.tsx."
+      },
+      {
+        "property": "authVisibility",
+        "reason": "Root responsive style property 'authVisibility' not handled in canvas-element.tsx."
+      }
+    ],
+    "UNCOMPILED_IN_SSR": [],
+    "WIDGET_CONTROL_BLIND_SPOTS": []
+  }
+}

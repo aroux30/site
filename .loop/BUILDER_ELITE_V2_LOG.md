@@ -136,5 +136,40 @@
 - **Pytest**: **622 passed, 2 skipped**
 - **Playwright E2E**: 18 tests clean across r03, r06, r07, r08, r09, r16 on port 3200.
 
+---
+
+## Round 04: Weight 4 (55kg) — Shortcuts, DnD, Templates, History & Global Components
+
+**Commit**: `fix(builder-v2-r04): verify weight 4 shortcuts, dnd, templates, and history`  
+**Date**: 2026-11-21  
+
+### 1. Audited & Verified Invariants
+- **Canvas Keyboard Shortcuts & Event Forwarding**:
+  - `Ctrl+C` (Copy) and `Ctrl+V` (Paste) with unique ID regeneration and hierarchy insertion.
+  - `Ctrl+Z` (Undo) and `Ctrl+Y` (Redo) restoring previous PageAST trees.
+  - `Escape` clearing active element and multiple selection.
+  - `Alt+ArrowUp` / `Alt+ArrowDown` for deterministic section reordering.
+- **Floating Toolbar Productivity Actions**:
+  - Move Up / Move Down buttons for immediate DOM & AST reordering.
+  - In-place element duplication and deletion without selection race conditions.
+- **Section & Full-Page Templates**:
+  - `SavePageTemplateDialog` dynamically binding current page title and categories.
+  - Palette Templates tab gracefully handling empty, loading, and populated states.
+- **Global Components**:
+  - Synced component creation (`makeGlobalComponent`) and clean detached independence (`detachGlobalComponent`) without tree corruption.
+
+### 2. 5-Signal Causality Probe Evidence
+- **Artifacts Directory**: `.loop/artifacts/builder-v2/round-04/`
+  - Automated Summary Report: `weight_4_probe_summary.json` (4/4 Categories PASS)
+  - Before/after screenshots of clipboard mutations and template dialogs.
+- **Signal Breakdown**: S1 (State), S2 (DOM), S3 (ComputedStyle), S4 (Pixel Diff), S5 (Persistence) all 100% PASS.
+
+### 3. Test Matrix Sign-Off
+- **TypeScript**: `tsc --noEmit` (**0 errors**)
+- **Vitest**: **372/372 passed**
+- **Pytest**: **622 passed, 2 skipped**
+- **Playwright E2E**: 15 tests clean across r04, r10, r12, r13, r14 on port 3200.
+
+
 
 

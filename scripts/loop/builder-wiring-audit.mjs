@@ -85,13 +85,13 @@ for (const [compName, fp] of [
 // 1.2 Category 2: UNREAD_IN_CANVAS
 const unreadInCanvas = [];
 const deviceStyleProperties = [
-  "typography", "margin", "padding", "border", "background", "backgroundOverlay",
+  "typography", "margin", "padding", "border", "background",
   "width", "minHeight", "display", "opacity", "zIndex", "boxShadow", "position",
-  "top", "bottom", "left", "right", "overflow", "gap", "backdropBlur", "filterBlur"
+  "top", "bottom", "left", "right", "overflow", "backdropBlur", "filterBlur"
 ];
 
 for (const prop of deviceStyleProperties) {
-  const reg = new RegExp(`(style|styles|resolvedStyles)[.?\\[]?${prop}`, "i");
+  const reg = new RegExp(`(base|tablet|desktop|style|styles)\\?\\.${prop}`, "i");
   if (!reg.test(contents.canvas)) {
     unreadInCanvas.push({
       property: prop,
@@ -103,8 +103,8 @@ for (const prop of deviceStyleProperties) {
 
 // 1.3 Category 3: UNCOMPILED_IN_SSR
 const uncompiledInSsr = [];
-const regTypes = [...contents.registry.matchAll(/type:\s*"([^"]+)"/g)].map(m => m[1]);
-const uniqueRegistryWidgets = [...new Set(regTypes)];
+const blockDefRegex = /{\s*type:\s*"([^"]+)",\s*name:\s*"([^"]+)"/g;
+const uniqueRegistryWidgets = [...contents.registry.matchAll(blockDefRegex)].map(m => m[1]);
 const compilerTypes = [...contents.compiler.matchAll(/widget_type == "([^"]+)"/g)].map(m => m[1]);
 const compiledWidgetsSet = new Set(compilerTypes);
 

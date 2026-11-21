@@ -85,11 +85,10 @@ test.describe("Builder Gym Round 01: Weight 1 Regression Invariants", () => {
     await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
     await page.mouse.move(0, 0);
 
-    const layersTab = page.getByRole("button", { name: "لایه‌ها" });
-    if (await layersTab.isVisible()) {
-      await layersTab.click();
-      await page.waitForTimeout(500);
-    }
+    const layersTab = page.locator("button:has-text('لایه‌ها')").first();
+    await layersTab.waitFor({ state: "visible", timeout: 15000 });
+    await layersTab.click();
+    await page.waitForTimeout(500);
 
     const rows = page.locator("[data-layer-row]");
     const count = await rows.count();

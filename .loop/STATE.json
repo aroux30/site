@@ -1,8 +1,8 @@
 {
-  "activeRound": "round-02",
-  "level": "Level 2: Widgets & Patterns",
+  "activeRound": "round-01",
+  "level": "Weight 1: Studio Skeleton, Dead Code Elimination & LayersTree Navigator",
   "status": "COMPLETED",
-  "lastUpdated": "2026-11-21T14:05:00.000Z",
+  "lastUpdated": "2026-11-21T18:35:00.000Z",
   "branch": "claude/hungry-khorana-4f765b",
   "worktree": "C:\\Users\\Administrator\\Desktop\\site\\.claude\\worktrees\\hungry-khorana-4f765b",
   "ports": {

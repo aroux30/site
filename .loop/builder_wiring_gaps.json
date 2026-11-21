@@ -1,138 +1,14 @@
 {
   "version": "2.0.0",
-  "scannedAt": "2026-11-21T14:41:34.914Z",
+  "scannedAt": "2026-11-21T14:55:56.399Z",
   "summary": {
     "HARDCODED_OR_EMPTY_UI_COUNT": 0,
-    "UNREAD_IN_CANVAS_COUNT": 21,
-    "UNCOMPILED_IN_SSR_COUNT": 3,
-    "WIDGET_CONTROL_BLIND_SPOTS_COUNT": 1
+    "UNREAD_IN_CANVAS_COUNT": 0,
+    "UNCOMPILED_IN_SSR_COUNT": 0,
+    "WIDGET_CONTROL_BLIND_SPOTS_COUNT": 0
   },
   "HARDCODED_OR_EMPTY_UI": [],
-  "UNREAD_IN_CANVAS": [
-    {
-      "property": "typography",
-      "source": "DeviceStyle",
-      "detail": "Property 'typography' in DeviceStyle has incomplete mapping or fallback inside canvas-element.tsx"
-    },
-    {
-      "property": "margin",
-      "source": "DeviceStyle",
-      "detail": "Property 'margin' in DeviceStyle has incomplete mapping or fallback inside canvas-element.tsx"
-    },
-    {
-      "property": "padding",
-      "source": "DeviceStyle",
-      "detail": "Property 'padding' in DeviceStyle has incomplete mapping or fallback inside canvas-element.tsx"
-    },
-    {
-      "property": "border",
-      "source": "DeviceStyle",
-      "detail": "Property 'border' in DeviceStyle has incomplete mapping or fallback inside canvas-element.tsx"
-    },
-    {
-      "property": "background",
-      "source": "DeviceStyle",
-      "detail": "Property 'background' in DeviceStyle has incomplete mapping or fallback inside canvas-element.tsx"
-    },
-    {
-      "property": "backgroundOverlay",
-      "source": "DeviceStyle",
-      "detail": "Property 'backgroundOverlay' in DeviceStyle has incomplete mapping or fallback inside canvas-element.tsx"
-    },
-    {
-      "property": "width",
-      "source": "DeviceStyle",
-      "detail": "Property 'width' in DeviceStyle has incomplete mapping or fallback inside canvas-element.tsx"
-    },
-    {
-      "property": "minHeight",
-      "source": "DeviceStyle",
-      "detail": "Property 'minHeight' in DeviceStyle has incomplete mapping or fallback inside canvas-element.tsx"
-    },
-    {
-      "property": "display",
-      "source": "DeviceStyle",
-      "detail": "Property 'display' in DeviceStyle has incomplete mapping or fallback inside canvas-element.tsx"
-    },
-    {
-      "property": "opacity",
-      "source": "DeviceStyle",
-      "detail": "Property 'opacity' in DeviceStyle has incomplete mapping or fallback inside canvas-element.tsx"
-    },
-    {
-      "property": "zIndex",
-      "source": "DeviceStyle",
-      "detail": "Property 'zIndex' in DeviceStyle has incomplete mapping or fallback inside canvas-element.tsx"
-    },
-    {
-      "property": "boxShadow",
-      "source": "DeviceStyle",
-      "detail": "Property 'boxShadow' in DeviceStyle has incomplete mapping or fallback inside canvas-element.tsx"
-    },
-    {
-      "property": "position",
-      "source": "DeviceStyle",
-      "detail": "Property 'position' in DeviceStyle has incomplete mapping or fallback inside canvas-element.tsx"
-    },
-    {
-      "property": "top",
-      "source": "DeviceStyle",
-      "detail": "Property 'top' in DeviceStyle has incomplete mapping or fallback inside canvas-element.tsx"
-    },
-    {
-      "property": "bottom",
-      "source": "DeviceStyle",
-      "detail": "Property 'bottom' in DeviceStyle has incomplete mapping or fallback inside canvas-element.tsx"
-    },
-    {
-      "property": "left",
-      "source": "DeviceStyle",
-      "detail": "Property 'left' in DeviceStyle has incomplete mapping or fallback inside canvas-element.tsx"
-    },
-    {
-      "property": "right",
-      "source": "DeviceStyle",
-      "detail": "Property 'right' in DeviceStyle has incomplete mapping or fallback inside canvas-element.tsx"
-    },
-    {
-      "property": "overflow",
-      "source": "DeviceStyle",
-      "detail": "Property 'overflow' in DeviceStyle has incomplete mapping or fallback inside canvas-element.tsx"
-    },
-    {
-      "property": "gap",
-      "source": "DeviceStyle",
-      "detail": "Property 'gap' in DeviceStyle has incomplete mapping or fallback inside canvas-element.tsx"
-    },
-    {
-      "property": "backdropBlur",
-      "source": "DeviceStyle",
-      "detail": "Property 'backdropBlur' in DeviceStyle has incomplete mapping or fallback inside canvas-element.tsx"
-    },
-    {
-      "property": "filterBlur",
-      "source": "DeviceStyle",
-      "detail": "Property 'filterBlur' in DeviceStyle has incomplete mapping or fallback inside canvas-element.tsx"
-    }
-  ],
-  "UNCOMPILED_IN_SSR": [
-    {
-      "widgetType": "widget",
-      "detail": "Widget type 'widget' is present in block-registry.ts but not explicitly handled in ast_compiler.py"
-    },
-    {
-      "widgetType": "text",
-      "detail": "Widget type 'text' is present in block-registry.ts but not explicitly handled in ast_compiler.py"
-    },
-    {
-      "widgetType": "aparat",
-      "detail": "Widget type 'aparat' is present in block-registry.ts but not explicitly handled in ast_compiler.py"
-    }
-  ],
-  "WIDGET_CONTROL_BLIND_SPOTS": [
-    {
-      "widgetType": "widget",
-      "detail": "Widget 'widget' has no dedicated control stack in InspectorPanel"
-    }
-  ]
+  "UNREAD_IN_CANVAS": [],
+  "UNCOMPILED_IN_SSR": [],
+  "WIDGET_CONTROL_BLIND_SPOTS": []
 }

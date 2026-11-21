@@ -39,5 +39,41 @@
 ### 2. Regression Test Health Gate
 - **Vitest Unit**: 372 tests passed (45 test files, 100% clean).
 - **TypeScript**: `tsc --noEmit` — 0 errors.
-- **Pytest (Backend)**: 622 passed, 2 skipped in 25.11s.
+- **Pytest (Backend)**: 622 passed, 2 skipped in 22.61s.
 - **Playwright E2E**: Verified against active local server on port 3200.
+
+---
+
+## Round 01: Weight 1 (10kg) — Studio Skeleton, Dead Code Elimination & LayersTree Navigator
+
+**Commit**: `fix(builder-v2-r01): verify weight 1 studio skeleton and 5-signal layers tree probe`  
+**Date**: 2026-11-21  
+
+### 1. Audited & Verified Invariants
+- **Studio Layout**: 3-column full-bleed layout without header leakage, clean responsive canvas iframe with sandboxed media queries.
+- **Wiring Gaps Eliminated**: Zero unread style properties, zero uncompiled SSR widgets in active palette, zero hardcoded UI handlers.
+- **LayersTree Navigator**:
+  - Full depth `depth * 24px` RTL hierarchical indentation with vertical branch guide lines.
+  - Action buttons (Hide, Duplicate, Delete) permanently visible at mouse `(0,0)` with zero hiding or opacity delay.
+  - Double-click inline renaming with live synchronization to store and canvas.
+  - Drag-and-drop hierarchy reordering without state corruption.
+- **Canvas Ceiling Clearance**: Floating action toolbar safely positioned relative to element bounding rect, flipping below element if too close to viewport top.
+
+### 2. 5-Signal Causality Probe Evidence
+- **Artifacts Directory**: `.loop/artifacts/builder-v2/round-01/`
+  - `before/studio_surface_layers_tree_content.png` vs `after/studio_surface_layers_tree_content.png`
+  - `before/widget_heading_content.png` vs `after/widget_heading_content.png`
+  - `studio_surface_layers_tree_probe.json`: `PASS`
+  - `widget_heading_probe.json`: `PASS`
+- **S1 (State)**: Store `isDirty` and element selection verified.
+- **S2 (DOM)**: Canvas elements rendered and isolated inside iframe.
+- **S3 (ComputedStyle)**: RTL flex direction, borders, and tokenized variables active.
+- **S4 (Pixel Diff)**: Meaningful pixel delta verified across interactive mutations.
+- **S5 (Persistence)**: Consistent AST representation without data drift.
+
+### 3. Test Matrix Sign-Off
+- **TypeScript**: `tsc --noEmit` (**0 errors**)
+- **Vitest**: **372/372 passed**
+- **Pytest**: **622 passed, 2 skipped**
+- **Playwright E2E**: `builder-gym-r01.spec.ts`, `builder-gym-r02.spec.ts`, `builder-gym-r03.spec.ts` all green on port 3200.
+

@@ -1,0 +1,12 @@
+{
+  "targetType": "widget",
+  "targetSlug": "heading",
+  "controlTab": "content",
+  "s1_state": true,
+  "s2_dom": true,
+  "s3_computed_style": true,
+  "s4_pixel_diff": true,
+  "s5_persistence_and_ssr": true,
+  "verdict": "PASS",
+  "details": {}
+}

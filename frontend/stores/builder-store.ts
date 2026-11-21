@@ -287,13 +287,11 @@ export const useBuilderStore = create<BuilderState>((set, get) => ({
         ? initialAst
         : createDefaultAST(fallbackTitle, fallbackSlug);
 
-    const initialSelected = ast.rootElements[0]?.children[0]?.id || ast.rootElements[0]?.id || null;
-
     set({
       pageId,
       ast,
-      selectedElementId: initialSelected,
-      selectedElementIds: initialSelected ? [initialSelected] : [],
+      selectedElementId: null,
+      selectedElementIds: [],
       hoveredElementId: null,
       activeBreakpoint: "desktop",
       previewMode: false,

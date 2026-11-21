@@ -88,7 +88,7 @@ const TreeItem = React.memo(function TreeItem({
   return (
     <div
       className={cn("flex flex-col select-none", depth > 0 && "pr-0.5")}
-      style={{ marginRight: depth > 0 ? `${Math.min(depth * 16, 48)}px` : 0 }}
+      style={{ marginRight: depth > 0 ? `${depth * 24}px` : 0 }}
     >
       <div
         onClick={() => selectElement(element.id)}

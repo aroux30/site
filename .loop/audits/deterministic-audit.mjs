@@ -225,7 +225,7 @@ async function runDeterministicAudit() {
     await page.waitForTimeout(2000);
 
     // Build hierarchy if needed to ensure empty container guide and nested tree exist
-    const blocksTabBtn = page.getByRole("button", { name: "افزودن بلوک" });
+    const blocksTabBtn = page.locator("button:has-text('بلوک‌ها')").or(page.getByRole("button", { name: "افزودن بلوک" })).first();
     if (await blocksTabBtn.isVisible()) {
       await blocksTabBtn.click();
       await page.waitForTimeout(500);

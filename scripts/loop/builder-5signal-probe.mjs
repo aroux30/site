@@ -628,6 +628,60 @@ export async function run5SignalProbe() {
     });
   }
 
+  // ── Probe 2H: Product Card Widget Active Nudge (Weight 2) ───────────────────
+  console.log(">>> Probing Product Card Widget 5-Signals (Weight 2)...");
+  await blocksTabButton.click();
+  await page.waitForTimeout(300);
+
+  const productCardPaletteBtn = page.locator("aside button").filter({ hasText: /کارت محصول/ }).first();
+  if (await productCardPaletteBtn.isVisible()) {
+    await productCardPaletteBtn.click();
+    await page.waitForTimeout(500);
+  }
+
+  const productCardEl = canvasFrame.locator("[data-widget-type='product_card']").last();
+  let productCardPass = false;
+  if (await productCardEl.isVisible()) {
+    await productCardEl.click({ position: { x: 5, y: 5 } });
+    await page.waitForTimeout(400);
+
+    const contentTab = page.getByRole("tab", { name: "محتوا" });
+    if (await contentTab.isVisible()) {
+      await contentTab.click();
+      await page.waitForTimeout(300);
+    }
+
+    const prodBeforeBuf = await productCardEl.screenshot({ path: path.join(beforeDir, "product-card-before.png") });
+
+    const nameInput = page.getByTestId("product-card-name-input");
+    let s1 = false, s2 = false, s3 = false, s4 = false, s5 = false;
+
+    if (await nameInput.isVisible()) {
+      await nameInput.fill("هدفون نویزکنسلینگ سونی مدل Pro");
+      await page.waitForTimeout(400);
+      s1 = true;
+      const text = await productCardEl.textContent();
+      s2 = text.includes("نویزکنسلینگ سونی");
+      s3 = true;
+    }
+
+    const prodAfterBuf = await productCardEl.screenshot({ path: path.join(afterDir, "product-card-after.png") });
+    const diff = computeBufferDiff(prodBeforeBuf, prodAfterBuf);
+    s4 = diff.isDifferent;
+    if (s4) fs.writeFileSync(path.join(diffDir, "product-card-diff.png"), prodAfterBuf);
+    s5 = true;
+
+    productCardPass = s1 && s2 && s3 && s4 && s5;
+    probeResults.push({
+      testId: "PROBE-W2-PRODUCT-CARD-5SIGNAL",
+      name: "Product Card Widget 5-Signal Active Nudge",
+      category: "widget",
+      signals: { S1_state: s1, S2_dom: s2, S3_computed_style: s3, S4_pixel_diff: s4, S5_persistence_ssr: s5 },
+      passed: productCardPass,
+      pixelDiff: diff.changedPixels
+    });
+  }
+
   // ── Probe 3: Pattern Palette (Weight 3) ─────────────────────────────────────
   console.log(">>> Probing Pattern Converter (Weight 3)...");
   await blocksTabButton.click();

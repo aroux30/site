@@ -704,6 +704,7 @@ export function InspectorPanel() {
             <div className="space-y-1.5">
               <Label className="text-xs">نام محصول</Label>
               <Input
+                data-testid="product-card-name-input"
                 value={String(props.name || "")}
                 onChange={(e) => handlePropChange("name", e.target.value)}
                 className="h-8 text-xs"
@@ -794,6 +795,7 @@ export function InspectorPanel() {
             <div className="space-y-1.5">
               <Label className="text-xs">امتیاز (از ۵)</Label>
               <Input
+                data-testid="star-rating-value-input"
                 type="number"
                 step="0.1"
                 min="0"
@@ -939,6 +941,7 @@ export function InspectorPanel() {
             <div className="space-y-1.5">
               <Label className="text-xs">متن روی دکمه</Label>
               <Input
+                data-testid="add-to-cart-label-input"
                 value={String(props.label || "افزودن به سبد خرید")}
                 onChange={(e) => handlePropChange("label", e.target.value)}
                 className="h-8 text-xs"

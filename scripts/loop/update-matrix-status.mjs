@@ -17,6 +17,7 @@ const PASSED_IDS = [
   "WIDGET-accordion",
   "WIDGET-table",
   "WIDGET-icon_box",
+  "WIDGET-product_card",
   "DIALOG-global-styles-dialog"
 ];
 

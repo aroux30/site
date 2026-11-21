@@ -106,8 +106,24 @@
 
 ---
 
-## اهداف راند بعدی (Round 06)
-- بررسی و تست ویجت‌های فروشگاهی (`product_card`, `product_grid`, `star_rating`, `product_price`, `add_to_cart`).
+### راند ۶ — آزمون ۵-سیگنالی کارت محصول و ویترین فروشگاهی (Round 06: Product Card 5-Signal Active Probe)
+- **تاریخ**: 2026-11-21
+- **کامیت**: `feat(builder-v2-r06): verify product card 5-signals and advance store widget parity`
+- **اقدامات انجام‌شده**:
+  1. **تجهیز شناسه‌های آزمون بازرس کارت محصول**:
+     - الحاق شناسه‌های تست `data-testid="product-card-name-input"`، `data-testid="star-rating-value-input"` و `data-testid="add-to-cart-label-input"`.
+  2. **آزمون ۵-سیگنالی علّی کارت محصول**:
+     - درج کارت محصول از پالت، تغییر نام کالا به «هدفون نویزکنسلینگ سونی مدل Pro»، بررسی انعکاس زنده روی تگ `<h3>` کارت داخل بوم آی‌فریم و ثبت تفاوت پیکسلی.
+     - نتیجه پروب: ۱۲ از ۱۲ پروب کاملاً سبز (۱۰۰٪ PASS).
+     - ذخیره مصنوعات و گزارش رسمی در `.loop/artifacts/builder-v2/round-06/`.
+  3. **ارتقای ماتریس کنترل‌ها**:
+     - ارتقای ردیف‌های تاییدشده به ۱۲ مدخل رسمی در `.loop/builder_control_matrix.json`.
+
+---
+
+## اهداف راند بعدی (Round 07)
+- تکمیل آزمون و ارتقای کنترل‌های باقیمانده فروشگاهی (`star_rating`, `product_price`, `add_to_cart`, `product_grid`).
+
 
 
 

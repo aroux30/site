@@ -1,14 +1,14 @@
 {
   "version": "2.0.0",
-  "lastUpdated": "2026-11-21T16:52:53.915Z",
+  "lastUpdated": "2026-11-21T17:07:30.778Z",
   "totalRows": 70,
   "summary": {
     "widgets": 35,
     "patterns": 28,
     "shellItems": 3,
     "dialogs": 4,
-    "passedCount": 11,
-    "pendingCount": 59
+    "passedCount": 12,
+    "pendingCount": 58
   },
   "verificationPolicy": {
     "strictScopeLock": true,
@@ -343,7 +343,7 @@
         "S5_persistence_ssr"
       ],
       "status": "passed",
-      "lastVerified": "2026-11-21T16:52:53.914Z"
+      "lastVerified": "2026-11-21T17:07:30.777Z"
     },
     {
       "id": "WIDGET-paragraph",
@@ -667,7 +667,7 @@
         "S5_persistence_ssr"
       ],
       "status": "passed",
-      "lastVerified": "2026-11-21T16:52:53.915Z"
+      "lastVerified": "2026-11-21T17:07:30.777Z"
     },
     {
       "id": "WIDGET-spacer",
@@ -760,7 +760,7 @@
         "S5_persistence_ssr"
       ],
       "status": "passed",
-      "lastVerified": "2026-11-21T16:52:53.915Z"
+      "lastVerified": "2026-11-21T17:07:30.777Z"
     },
     {
       "id": "WIDGET-divider",
@@ -933,7 +933,7 @@
         "S5_persistence_ssr"
       ],
       "status": "passed",
-      "lastVerified": "2026-11-21T16:52:53.915Z"
+      "lastVerified": "2026-11-21T17:07:30.777Z"
     },
     {
       "id": "WIDGET-form_container",
@@ -1106,7 +1106,7 @@
         "S5_persistence_ssr"
       ],
       "status": "passed",
-      "lastVerified": "2026-11-21T16:52:53.915Z"
+      "lastVerified": "2026-11-21T17:07:30.777Z"
     },
     {
       "id": "WIDGET-form_textarea",
@@ -1510,7 +1510,7 @@
         "S5_persistence_ssr"
       ],
       "status": "passed",
-      "lastVerified": "2026-11-21T16:52:53.915Z"
+      "lastVerified": "2026-11-21T17:07:30.777Z"
     },
     {
       "id": "WIDGET-tabs",
@@ -1836,7 +1836,7 @@
         "S5_persistence_ssr"
       ],
       "status": "passed",
-      "lastVerified": "2026-11-21T16:52:53.915Z"
+      "lastVerified": "2026-11-21T17:07:30.777Z"
     },
     {
       "id": "WIDGET-social_links",
@@ -1930,8 +1930,14 @@
             "inStock",
             "ctaText"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "style": {
           "controls": [
@@ -1956,8 +1962,14 @@
             "cssFilters",
             "opacitySlider"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "advanced": {
           "controls": [
@@ -1979,8 +1991,14 @@
             "shapeDividerBottom",
             "shapeDividerColor"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         }
       },
       "signalsRequired": [
@@ -1990,8 +2008,8 @@
         "S4_pixel_diff",
         "S5_persistence_ssr"
       ],
-      "status": "pending",
-      "lastVerified": null
+      "status": "passed",
+      "lastVerified": "2026-11-21T17:07:30.777Z"
     },
     {
       "id": "WIDGET-product_grid",
@@ -4157,7 +4175,7 @@
         "S5_persistence_ssr"
       ],
       "status": "passed",
-      "lastVerified": "2026-11-21T16:52:53.915Z"
+      "lastVerified": "2026-11-21T17:07:30.777Z"
     },
     {
       "id": "SHELL-layers-tree",
@@ -4222,7 +4240,7 @@
         "S5_persistence_ssr"
       ],
       "status": "passed",
-      "lastVerified": "2026-11-21T16:52:53.915Z"
+      "lastVerified": "2026-11-21T17:07:30.777Z"
     },
     {
       "id": "SHELL-blocks-palette",
@@ -4285,7 +4303,7 @@
         "S5_persistence_ssr"
       ],
       "status": "passed",
-      "lastVerified": "2026-11-21T16:52:53.915Z"
+      "lastVerified": "2026-11-21T17:07:30.777Z"
     },
     {
       "id": "DIALOG-global-styles-dialog",
@@ -4350,7 +4368,7 @@
         "S5_persistence_ssr"
       ],
       "status": "passed",
-      "lastVerified": "2026-11-21T16:52:53.915Z"
+      "lastVerified": "2026-11-21T17:07:30.777Z"
     },
     {
       "id": "DIALOG-save-template-dialog",

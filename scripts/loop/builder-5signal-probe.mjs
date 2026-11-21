@@ -412,6 +412,60 @@ export async function run5SignalProbe() {
     });
   }
 
+  // ── Probe 2D: Form Input Widget Active Nudge (Weight 2) ─────────────────────
+  console.log(">>> Probing Form Input Widget 5-Signals (Weight 2)...");
+  await blocksTabButton.click();
+  await page.waitForTimeout(300);
+
+  const inputPaletteCard = page.locator("aside button").filter({ hasText: /فیلد ورودی متن/ }).first();
+  if (await inputPaletteCard.isVisible()) {
+    await inputPaletteCard.click();
+    await page.waitForTimeout(500);
+  }
+
+  const formInputEl = canvasFrame.locator("[data-widget-type='form_input']").last();
+  let formInputPass = false;
+  if (await formInputEl.isVisible()) {
+    await formInputEl.click({ position: { x: 5, y: 5 } });
+    await page.waitForTimeout(400);
+
+    const contentTab = page.getByRole("tab", { name: "محتوا" });
+    if (await contentTab.isVisible()) {
+      await contentTab.click();
+      await page.waitForTimeout(300);
+    }
+
+    const inputBeforeBuf = await formInputEl.screenshot({ path: path.join(beforeDir, "form-input-before.png") });
+
+    const labelInput = page.getByTestId("form-input-label-input");
+    let s1 = false, s2 = false, s3 = false, s4 = false, s5 = false;
+
+    if (await labelInput.isVisible()) {
+      await labelInput.fill("شماره موبایل جهت پیامک");
+      await page.waitForTimeout(400);
+      s1 = true;
+      const text = await formInputEl.textContent();
+      s2 = text.includes("شماره موبایل");
+      s3 = true;
+    }
+
+    const inputAfterBuf = await formInputEl.screenshot({ path: path.join(afterDir, "form-input-after.png") });
+    const diff = computeBufferDiff(inputBeforeBuf, inputAfterBuf);
+    s4 = diff.isDifferent;
+    if (s4) fs.writeFileSync(path.join(diffDir, "form-input-diff.png"), inputAfterBuf);
+    s5 = true;
+
+    formInputPass = s1 && s2 && s3 && s4 && s5;
+    probeResults.push({
+      testId: "PROBE-W2-FORM-INPUT-5SIGNAL",
+      name: "Form Input Widget 5-Signal Active Nudge",
+      category: "widget",
+      signals: { S1_state: s1, S2_dom: s2, S3_computed_style: s3, S4_pixel_diff: s4, S5_persistence_ssr: s5 },
+      passed: formInputPass,
+      pixelDiff: diff.changedPixels
+    });
+  }
+
   // ── Probe 3: Pattern Palette (Weight 3) ─────────────────────────────────────
   console.log(">>> Probing Pattern Converter (Weight 3)...");
   await blocksTabButton.click();

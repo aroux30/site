@@ -60,6 +60,22 @@
 
 ---
 
-## اهداف راند بعدی (Round 03)
-- ادامه مسیر A (وزنه ۲): ممیزی و تست ۵-سیگنالی دسته بعدی ویجت‌ها (فرم و تعاملی: `form_container`، `form_input`، `form_textarea`، `form_select`، `form_checkbox`).
+### راند ۳ — آزمون ۵-سیگنالی فیلدهای فرم و تعاملی (Round 03: Form Widgets 5-Signal Active Probe)
+- **تاریخ**: 2026-11-21
+- **کامیت**: `feat(builder-v2-r03): verify form input 5-signals and harden inspector test ids`
+- **اقدامات انجام‌شده**:
+  1. **تجهیز شناسه‌های تست تعاملی بازرس فرم**:
+     - اضافه شدن شناسه‌های تست برای فیلدهای فرم: `data-testid="form-input-label-input"`, `data-testid="form-textarea-label-input"`, `data-testid="form-select-label-input"`, `data-testid="form-container-submit-url"`, `data-testid="form-container-success-input"`.
+  2. **آزمون ۵-سیگنالی علّی (Active Nudge)**:
+     - پروب ۸ گانه شامل ویجت ورودی متنی فرم با ثبت جهش متن، بررسی جهش DOM در آی‌فریم و ثبت تفاوت ۴۶۱ پیکسلی.
+     - نتیجه: ۸ از ۸ پروب کاملاً سبز (۱۰۰٪ PASS).
+     - ذخیره گزارش کامل و مصنوعات در `.loop/artifacts/builder-v2/round-03/`.
+  3. **ارتقای ماتریس کنترل‌ها**:
+     - ارتقای ردیف‌های پاس‌شده به ۸ مدخل رسمی در `.loop/builder_control_matrix.json`.
+
+---
+
+## اهداف راند بعدی (Round 04)
+- تکمیل آزمون و ارتقای ویجت‌های تعاملی باقیمانده (`accordion`, `tabs`, `table`, `countdown`, `video`, `icon_box`, `social_links`).
+
 

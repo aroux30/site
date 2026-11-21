@@ -553,6 +553,7 @@ export function InspectorPanel() {
             <div className="space-y-1.5">
               <Label className="text-xs">عنوان فیلد (Label)</Label>
               <Input
+                data-testid="form-input-label-input"
                 value={String(props.label || "")}
                 onChange={(e) => handlePropChange("label", e.target.value)}
                 className="h-8 text-xs"
@@ -608,6 +609,7 @@ export function InspectorPanel() {
             <div className="space-y-1.5">
               <Label className="text-xs">عنوان فیلد (Label)</Label>
               <Input
+                data-testid="form-textarea-label-input"
                 value={String(props.label || "")}
                 onChange={(e) => handlePropChange("label", e.target.value)}
                 className="h-8 text-xs"
@@ -657,6 +659,7 @@ export function InspectorPanel() {
             <div className="space-y-1.5">
               <Label className="text-xs">عنوان فیلد (Label)</Label>
               <Input
+                data-testid="form-select-label-input"
                 value={String(props.label || "")}
                 onChange={(e) => handlePropChange("label", e.target.value)}
                 className="h-8 text-xs"
@@ -1099,6 +1102,7 @@ export function InspectorPanel() {
             <div className="space-y-1.5">
               <Label className="text-xs">آدرس اندپوینت ثبت فرم (Action URL)</Label>
               <Input
+                data-testid="form-container-submit-url"
                 value={String(props.submit_url || "/api/v1/content/forms/submit")}
                 onChange={(e) => handlePropChange("submit_url", e.target.value)}
                 className="h-8 text-xs font-mono"
@@ -1108,6 +1112,7 @@ export function InspectorPanel() {
             <div className="space-y-1.5">
               <Label className="text-xs">پیام موفقیت‌آمیز ثبت</Label>
               <Input
+                data-testid="form-container-success-input"
                 value={String(props.success_message || "پیام شما با موفقیت ثبت شد.")}
                 onChange={(e) => handlePropChange("success_message", e.target.value)}
                 className="h-8 text-xs"

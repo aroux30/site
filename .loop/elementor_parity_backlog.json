@@ -15,7 +15,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W1-002",
@@ -33,7 +33,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W1-003",
@@ -51,7 +51,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W1-004",
@@ -69,7 +69,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W1-005",
@@ -87,7 +87,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W1-006",
@@ -105,7 +105,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W1-007",
@@ -123,7 +123,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W1-008",
@@ -141,7 +141,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W1-009",
@@ -159,7 +159,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W1-010",
@@ -177,7 +177,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W1-011",
@@ -195,7 +195,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W1-012",
@@ -213,7 +213,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W2-013",
@@ -234,7 +234,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W2-014",
@@ -255,7 +255,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W2-015",
@@ -276,7 +276,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W2-016",
@@ -297,7 +297,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W2-017",
@@ -318,7 +318,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W2-018",
@@ -339,7 +339,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W2-019",
@@ -360,7 +360,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W2-020",
@@ -381,7 +381,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W2-021",
@@ -402,7 +402,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W2-022",
@@ -423,7 +423,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W2-023",
@@ -444,7 +444,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W2-024",
@@ -465,7 +465,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W2-025",
@@ -486,7 +486,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W2-026",
@@ -507,7 +507,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W2-027",
@@ -528,7 +528,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W2-028",
@@ -549,7 +549,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W2-029",
@@ -570,7 +570,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W2-030",
@@ -591,7 +591,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W2-031",
@@ -612,7 +612,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W2-032",
@@ -633,7 +633,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W2-033",
@@ -654,7 +654,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W2-034",
@@ -675,7 +675,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W2-035",
@@ -696,7 +696,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W2-036",
@@ -717,7 +717,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W2-037",
@@ -738,7 +738,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W2-038",
@@ -759,7 +759,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W2-039",
@@ -780,7 +780,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W2-040",
@@ -801,7 +801,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W2-041",
@@ -822,7 +822,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W2-042",
@@ -843,7 +843,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W2-043",
@@ -864,7 +864,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W2-044",
@@ -885,7 +885,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W2-045",
@@ -906,7 +906,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W2-046",
@@ -927,7 +927,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W2-047",
@@ -948,7 +948,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W2-048",
@@ -969,7 +969,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W1-049",
@@ -989,7 +989,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W1-050",
@@ -1009,7 +1009,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W1-051",
@@ -1029,7 +1029,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W1-052",
@@ -1049,7 +1049,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W1-053",
@@ -1069,7 +1069,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W1-054",
@@ -1089,7 +1089,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W1-055",
@@ -1109,7 +1109,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W1-056",
@@ -1129,7 +1129,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W1-057",
@@ -1149,7 +1149,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W1-058",
@@ -1169,7 +1169,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W1-059",
@@ -1189,7 +1189,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W1-060",
@@ -1209,7 +1209,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W1-061",
@@ -1229,7 +1229,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W1-062",
@@ -1249,7 +1249,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W1-063",
@@ -1269,7 +1269,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W1-064",
@@ -1289,7 +1289,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W1-065",
@@ -1309,7 +1309,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W1-066",
@@ -1329,7 +1329,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W1-067",
@@ -1349,7 +1349,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W1-068",
@@ -1369,7 +1369,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W1-069",
@@ -1389,7 +1389,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W1-070",
@@ -1409,7 +1409,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W1-071",
@@ -1429,7 +1429,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W1-072",
@@ -1449,7 +1449,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W1-073",
@@ -1469,7 +1469,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W1-074",
@@ -1489,7 +1489,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W1-075",
@@ -1509,7 +1509,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W1-076",
@@ -1529,7 +1529,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W1-077",
@@ -1549,7 +1549,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W3-078",
@@ -1568,7 +1568,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W3-079",
@@ -1587,7 +1587,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W3-080",
@@ -1606,7 +1606,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W3-081",
@@ -1625,7 +1625,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W3-082",
@@ -1644,7 +1644,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W3-083",
@@ -1663,7 +1663,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W3-084",
@@ -1682,7 +1682,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W3-085",
@@ -1701,7 +1701,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W3-086",
@@ -1720,7 +1720,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W3-087",
@@ -1739,7 +1739,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W3-088",
@@ -1758,7 +1758,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W3-089",
@@ -1777,7 +1777,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W3-090",
@@ -1796,7 +1796,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W2-091",
@@ -1817,7 +1817,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W2-092",
@@ -1838,7 +1838,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W2-093",
@@ -1859,7 +1859,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W2-094",
@@ -1880,7 +1880,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W2-095",
@@ -1901,7 +1901,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W2-096",
@@ -1922,7 +1922,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W2-097",
@@ -1943,7 +1943,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W2-098",
@@ -1964,7 +1964,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W2-099",
@@ -1985,7 +1985,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W2-100",
@@ -2006,7 +2006,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W2-101",
@@ -2027,7 +2027,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W2-102",
@@ -2048,7 +2048,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W2-103",
@@ -2069,7 +2069,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W2-104",
@@ -2090,7 +2090,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W2-105",
@@ -2111,7 +2111,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W2-106",
@@ -2132,7 +2132,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W2-107",
@@ -2153,7 +2153,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W2-108",
@@ -2174,7 +2174,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W2-109",
@@ -2195,7 +2195,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W2-110",
@@ -2216,7 +2216,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W2-111",
@@ -2237,7 +2237,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W2-112",
@@ -2258,7 +2258,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W2-113",
@@ -2279,7 +2279,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W2-114",
@@ -2300,7 +2300,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W2-115",
@@ -2321,7 +2321,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W2-116",
@@ -2342,7 +2342,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W2-117",
@@ -2363,7 +2363,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W2-118",
@@ -2384,7 +2384,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W2-119",
@@ -2405,7 +2405,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W2-120",
@@ -2426,7 +2426,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W2-121",
@@ -2447,7 +2447,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W2-122",
@@ -2468,7 +2468,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W2-123",
@@ -2489,7 +2489,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W2-124",
@@ -2510,7 +2510,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W2-125",
@@ -2531,7 +2531,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W2-126",
@@ -2552,7 +2552,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W2-127",
@@ -2573,7 +2573,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W2-128",
@@ -2594,7 +2594,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W2-129",
@@ -2615,7 +2615,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W2-130",
@@ -2636,7 +2636,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W2-131",
@@ -2657,7 +2657,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W2-132",
@@ -2678,7 +2678,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W2-133",
@@ -2699,7 +2699,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W2-134",
@@ -2720,7 +2720,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W2-135",
@@ -2741,7 +2741,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W2-136",
@@ -2762,7 +2762,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W2-137",
@@ -2783,7 +2783,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W2-138",
@@ -2804,7 +2804,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W2-139",
@@ -2825,7 +2825,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W2-140",
@@ -2846,7 +2846,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W2-141",
@@ -2867,7 +2867,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W2-142",
@@ -2888,7 +2888,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W2-143",
@@ -2909,7 +2909,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W2-144",
@@ -2930,7 +2930,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W2-145",
@@ -2951,7 +2951,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W2-146",
@@ -2972,7 +2972,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W2-147",
@@ -2993,7 +2993,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W2-148",
@@ -3014,7 +3014,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W2-149",
@@ -3035,7 +3035,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W1-150",
@@ -3056,7 +3056,7 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "EL-W1-151",
@@ -3075,6 +3075,6 @@
       "pixels",
       "ssr"
     ],
-    "passes": false
+    "passes": true
   }
 ]

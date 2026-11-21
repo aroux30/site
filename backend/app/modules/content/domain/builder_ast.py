@@ -144,6 +144,8 @@ class DeviceStyle(ASTModel):
     gap: UnitValue | None = None
     grid_template_columns: str | None = None
     box_shadow: str | None = None
+    backdrop_blur: str | None = None
+    filter_blur: float | None = None
 
 
 class ResponsiveStyles(ASTModel):
@@ -158,6 +160,9 @@ class ResponsiveStyles(ASTModel):
     animation: str | None = None  # e.g. "fade-in", "slide-up", "zoom-in"
     animation_duration: float | None = None  # in seconds (e.g. 0.5)
     animation_delay: float | None = None  # in seconds (e.g. 0.2)
+    shape_divider_top: str | None = None
+    shape_divider_bottom: str | None = None
+    shape_divider_color: str | None = None
 
 
 # ── 3. Layout and Containers ────────────────────────────────────────────────

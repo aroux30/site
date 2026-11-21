@@ -152,6 +152,45 @@ class ASTCompiler:
                 ov_styles.append(f"background-image: linear-gradient({d}, {overlay.gradient.from_color}, {overlay.gradient.to_color});")
             overlay_html = f'<div class="builder-background-overlay" style="{" ".join(ov_styles)}" aria-hidden="true"></div>'
 
+        # Compile shape dividers (Elementor Parity)
+        shape_top = el.styles.shape_divider_top
+        shape_bot = el.styles.shape_divider_bottom
+        shape_color = html.escape(el.styles.shape_divider_color or "#ffffff")
+        divider_top_html = ""
+        divider_bot_html = ""
+
+        if shape_top == "waves":
+            divider_top_html = (
+                f'<div class="builder-shape-divider-top absolute top-0 start-0 w-full overflow-hidden leading-none z-10 pointer-events-none" style="height: 48px;" aria-hidden="true">'
+                f'<svg viewBox="0 0 1000 100" preserveAspectRatio="none" class="w-full h-full block">'
+                f'<path fill="{shape_color}" d="M421.9,6.5c22.6-2.5,51.5,0.4,75.5,5.3c23.6,4.9,70.9,23.5,100.5,35.7c75.8,32.2,133.7,44.5,192.6,49.7c23.6,2.1,48.7,3.5,103.4-2.5c54.7-6,106.2-25.6,106.2-25.6V0H0v30.3c0,0,72,32.6,158.4,30.5c39.2-0.7,92.8-6.7,134-22.4c21.2-8.1,52.2-18.2,79.7-24.2C399.3,7.9,411.6,7.5,421.9,6.5z"></path>'
+                f'</svg></div>'
+            )
+        elif shape_top == "triangle":
+            divider_top_html = (
+                f'<div class="builder-shape-divider-top absolute top-0 start-0 w-full overflow-hidden leading-none z-10 pointer-events-none" style="height: 48px;" aria-hidden="true">'
+                f'<svg viewBox="0 0 1000 100" preserveAspectRatio="none" class="w-full h-full block">'
+                f'<path fill="{shape_color}" d="M0,0 L500,100 L1000,0 Z"></path>'
+                f'</svg></div>'
+            )
+
+        if shape_bot == "waves":
+            divider_bot_html = (
+                f'<div class="builder-shape-divider-bottom absolute bottom-0 start-0 w-full overflow-hidden leading-none z-10 pointer-events-none rotate-180" style="height: 48px;" aria-hidden="true">'
+                f'<svg viewBox="0 0 1000 100" preserveAspectRatio="none" class="w-full h-full block">'
+                f'<path fill="{shape_color}" d="M421.9,6.5c22.6-2.5,51.5,0.4,75.5,5.3c23.6,4.9,70.9,23.5,100.5,35.7c75.8,32.2,133.7,44.5,192.6,49.7c23.6,2.1,48.7,3.5,103.4-2.5c54.7-6,106.2-25.6,106.2-25.6V0H0v30.3c0,0,72,32.6,158.4,30.5c39.2-0.7,92.8-6.7,134-22.4c21.2-8.1,52.2-18.2,79.7-24.2C399.3,7.9,411.6,7.5,421.9,6.5z"></path>'
+                f'</svg></div>'
+            )
+        elif shape_bot == "triangle":
+            divider_bot_html = (
+                f'<div class="builder-shape-divider-bottom absolute bottom-0 start-0 w-full overflow-hidden leading-none z-10 pointer-events-none" style="height: 48px;" aria-hidden="true">'
+                f'<svg viewBox="0 0 1000 100" preserveAspectRatio="none" class="w-full h-full block">'
+                f'<path fill="{shape_color}" d="M0,100 L500,0 L1000,100 Z"></path>'
+                f'</svg></div>'
+            )
+
+        dividers_html = divider_top_html + divider_bot_html
+
         if is_form:
             props = el.widget_props or {}
             submit_url = html.escape(str(props.get("submit_url", "/api/v1/content/forms/submit")))
@@ -162,11 +201,11 @@ class ASTCompiler:
                 extra_attrs += f' data-error-message="{html.escape(str(props["error_message"]))}"'
             # Include anti-spam honeypot hidden field inside form
             hp_field = '<input type="text" name="_hp_website" style="display:none !important;" tabindex="-1" autocomplete="off" aria-hidden="true" />'
-            children_html = overlay_html + hp_field + "".join(
+            children_html = overlay_html + dividers_html + hp_field + "".join(
                 cls._compile_element(child, is_authenticated=is_authenticated) for child in el.children
             )
         else:
-            children_html = overlay_html + "".join(
+            children_html = overlay_html + dividers_html + "".join(
                 cls._compile_element(child, is_authenticated=is_authenticated) for child in el.children
             )
 
@@ -785,6 +824,12 @@ class ASTCompiler:
             parts.append(f"opacity: {base.opacity};")
         if base.filter:
             parts.append(f"filter: {base.filter};")
+        elif base.filter_blur and base.filter_blur > 0:
+            parts.append(f"filter: blur({base.filter_blur}px);")
+        if base.backdrop_blur and base.backdrop_blur != "none":
+            blur_map = {"sm": "blur(4px)", "md": "blur(8px)", "lg": "blur(16px)", "xl": "blur(24px)"}
+            b_val = blur_map.get(base.backdrop_blur, f"blur({base.backdrop_blur})")
+            parts.append(f"backdrop-filter: {b_val}; -webkit-backdrop-filter: {b_val};")
         if base.box_shadow:
             parts.append(f"box-shadow: {base.box_shadow};")
 

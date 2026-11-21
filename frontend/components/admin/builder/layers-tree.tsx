@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import {
   Layers,
   Layout,
@@ -17,8 +17,12 @@ import {
   ChevronLeft,
   ChevronDown,
   GripVertical,
+  Search,
+  ChevronsDown,
+  ChevronsUp,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Input } from "@/components/ui/input";
 import { useBuilderStore } from "@/stores/builder-store";
 import type { BuilderElement } from "@/types/builder";
 
@@ -44,10 +48,26 @@ function getElementIcon(el: BuilderElement) {
 interface TreeItemProps {
   element: BuilderElement;
   depth?: number;
+  filterQuery?: string;
+  forceExpanded?: boolean | null;
 }
 
-const TreeItem = React.memo(function TreeItem({ element, depth = 0 }: TreeItemProps) {
+const TreeItem = React.memo(function TreeItem({
+  element,
+  depth = 0,
+  filterQuery = "",
+  forceExpanded = null,
+}: TreeItemProps) {
   const [isExpanded, setIsExpanded] = useState(true);
+
+  // Sync forced expand / collapse
+  React.useEffect(() => {
+    if (forceExpanded !== null) {
+      setIsExpanded(forceExpanded);
+    }
+  }, [forceExpanded]);
+
+  const effectiveExpanded = filterQuery ? true : isExpanded;
 
   // Fine-grained boolean selector (P5 Hardening):
   // Only re-renders this item when its own selection state changes
@@ -247,10 +267,16 @@ const TreeItem = React.memo(function TreeItem({ element, depth = 0 }: TreeItemPr
         </div>
       </div>
 
-      {hasChildren && isExpanded && (
+      {hasChildren && effectiveExpanded && (
         <div className="flex flex-col border-r-2 border-primary/40 mr-3 pr-3 space-y-1 my-1">
           {element.children.map((child) => (
-            <TreeItem key={child.id} element={child} depth={depth + 1} />
+            <TreeItem
+              key={child.id}
+              element={child}
+              depth={depth + 1}
+              filterQuery={filterQuery}
+              forceExpanded={forceExpanded}
+            />
           ))}
         </div>
       )}
@@ -260,18 +286,84 @@ const TreeItem = React.memo(function TreeItem({ element, depth = 0 }: TreeItemPr
 
 export function LayersTree() {
   const ast = useBuilderStore((s) => s.ast);
+  const [search, setSearch] = useState("");
+  const [forceExpanded, setForceExpanded] = useState<boolean | null>(null);
+
+  const filterText = search.trim().toLowerCase();
+
+  // Helper function to check if element or any child matches query
+  function matchesQuery(el: BuilderElement): boolean {
+    if (!filterText) return true;
+    if (el.name.toLowerCase().includes(filterText) || (el.widgetType && el.widgetType.toLowerCase().includes(filterText))) {
+      return true;
+    }
+    if (el.children && el.children.length > 0) {
+      return el.children.some(matchesQuery);
+    }
+    return false;
+  }
+
+  const filteredElements = useMemo(() => {
+    if (!filterText) return ast.rootElements;
+    return ast.rootElements.filter(matchesQuery);
+  }, [ast.rootElements, filterText]);
 
   return (
     <div className="flex flex-col h-full p-3 space-y-2 select-none overflow-y-auto" dir="rtl">
-      <div className="flex items-center gap-2 px-2 py-1 text-xs font-bold text-muted-foreground uppercase tracking-wider">
-        <Layers className="w-4 h-4 text-primary" />
-        <span>درخت ساختار لایه‌ها</span>
+      <div className="flex items-center justify-between px-1 text-xs font-bold text-muted-foreground uppercase tracking-wider">
+        <div className="flex items-center gap-1.5">
+          <Layers className="w-4 h-4 text-primary" />
+          <span>درخت ساختار لایه‌ها</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <button
+            type="button"
+            onClick={() => setForceExpanded(true)}
+            className="p-1 hover:bg-muted rounded text-muted-foreground hover:text-foreground transition"
+            title="گسترش همه شاخه‌ها"
+            data-testid="expand-all-layers-btn"
+          >
+            <ChevronsDown className="w-3.5 h-3.5" />
+          </button>
+          <button
+            type="button"
+            onClick={() => setForceExpanded(false)}
+            className="p-1 hover:bg-muted rounded text-muted-foreground hover:text-foreground transition"
+            title="بستن همه شاخه‌ها"
+            data-testid="collapse-all-layers-btn"
+          >
+            <ChevronsUp className="w-3.5 h-3.5" />
+          </button>
+        </div>
       </div>
 
-      <div className="space-y-0.5">
-        {ast.rootElements.map((el) => (
-          <TreeItem key={el.id} element={el} />
-        ))}
+      {/* Layers Quick Filter Search (Elementor Navigator Parity) */}
+      <div className="relative">
+        <Search className="absolute start-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
+        <Input
+          data-testid="layers-search-input"
+          placeholder="فیلتر المان‌ها و لایه‌ها..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="ps-8 h-8 text-xs"
+        />
+      </div>
+
+      <div className="space-y-0.5 mt-1">
+        {filteredElements.length === 0 ? (
+          <div className="text-center py-6 text-xs text-muted-foreground">
+            لایه‌ای با نام «{search}» یافت نشد.
+          </div>
+        ) : (
+          filteredElements.map((el) => (
+            <TreeItem
+              key={el.id}
+              element={el}
+              filterQuery={filterText}
+              forceExpanded={forceExpanded}
+            />
+          ))
+        )}
       </div>
     </div>
   );

@@ -24,6 +24,48 @@
 | **Round 13** | 0 | **0** | **0 / 0** | 28 / 28 ✅ | 34 / 34 ✅ | 0 خطای مرده ✅ | **کنترل‌های چیدمان جعبه‌ای در برابر تمام‌عرض کانتینر (Elementor Boxed vs Full Width Container Parity)**: اضافه شدن سوئیچ Boxed/Full-Width با عرض دلخواه در بازرس، اعمال خودکار `maxWidth` و `mx-auto` در بوم و کامپایلر سرور |
 | **Round 14** | 0 | **0** | **0 / 0** | 28 / 28 ✅ | 34 / 34 ✅ | 0 خطای مرده ✅ | **کنترل شفافیت و لایه‌بندی المان‌ها (Elementor Opacity & Layering Parity)**: اضافه شدن ورودی کنترل شفافیت (Opacity) در پنل بازرس، اعمال در کامپایلر سرور و آزمون اشعه ایکس |
 | **Round 15** | 0 | **0** | **0 / 0** | 28 / 28 ✅ | 34 / 34 ✅ | 0 خطای مرده ✅ | **کنترل‌های چینش انفرادی و ترتیب فلکس‌باکس (Elementor Flex Item Align-Self & Order Parity)**: افزودن کنترل‌های alignSelf و order به پنل بازرس، اعمال در بوم و کامپایلر سرور و آزمون اشعه ایکس |
+| **Round 16** | 0 | **0** | **0 / 0** | 28 / 28 ✅ | 34 / 34 ✅ | 0 خطای مرده ✅ | **جستجو و فیلتر زنده در ساختار لایه‌ها (Elementor Navigator Search & Expand/Collapse Parity)**: افزودن جستجوی زنده لایه‌ها و دکمه‌های باز و بسته کردن سراسری شاخه‌ها در LayersTree با آزمون اشعه ایکس |
+
+---
+
+## جزئیات راند ۱۶ (Round 16)
+
+- **شاخه ایزوله**: `claude/reverent-jang-441af1`
+- **تاریخ اجرا**: 2026-11-21
+- **وضعیت نهایی اشعه ایکس (.loop/XRAY_MATRIX.json)**:
+  - `totalFailures`: **0**
+  - `p0Count`: **0**
+  - `p1Count`: **0**
+  - `patterns`: ۲۸ از ۲۸ سبز (`passed: true`)
+  - `blocks`: ۳۴ از ۳۴ سبز (`passed: true`)
+  - `deadControls`: ۰ کنترل مرده
+  - `layersTreeSearch`: تایید فیلتر لحظه‌ای و دقیق ردیف‌های درختی با کلمات کلیدی، کلیدهای باز و بسته کردن سراسری (Expand All / Collapse All)
+  - `alignSelfAndOrder`: سبز
+  - `opacityControl`: سبز
+  - `containerBoxedWidth`: سبز
+  - `savePageTemplateDialog`: سبز
+  - `customCssIdReflection`: سبز
+  - `globalStylesTwoLayerTokens`: سبز
+  - `historyTimelinePanel`: سبز
+  - `multiSelectionOverlay`: سبز
+  - `persistentClipboard`: سبز
+  - `wrapUnwrapContainer`: سبز
+  - `responsiveVisibility`: سبز
+  - `shortcutsModal`: سبز
+  - `hotkeyUndoRedo`: سبز
+  - `layersTreeDnD`: سبز
+  - `containerPresetPicker`: سبز
+  - `contextMenu`: سبز
+  - `categoryChipsClipping`: سبز و بدون بریدگی
+  - `dragAndDrop`: سبز
+  - `wysiwygParity`: تطابق ۱۰۰٪ بوم و صفحه نهایی
+
+### قابلیت‌های راند ۱۶:
+1. **جستجو و فیلتر هوشمند ساختار درختی لایه‌ها (`LayersTree Search`)**:
+   - ورودی جستجوی زنده در بالای پنل نویگیتور لایه‌ها تعبیه شد که به صورت لحظه‌ای درخت لایه‌ها را بر اساس نام، تگ و نوع ویجت فیلتر می‌کند و شاخه‌های منطبق را خودکار باز نگه می‌دارد.
+   - اضافه شدن دکمه‌های دوگانه «گسترش همه شاخه‌ها» (`ChevronsDown`) و «بستن همه شاخه‌ها» (`ChevronsUp`) در هدر نویگیتور لایه‌ها.
+2. **گسترش ممیزی خودکار اشعه ایکس**:
+   - آزمون اعتبارسنجی جستجوی زنده در `layers-tree` در `builder-xray.mjs` اضافه و ۱۰۰٪ پاس گردید.
 
 ---
 

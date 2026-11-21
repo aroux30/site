@@ -920,6 +920,19 @@ async function runXRayAudit() {
         addFailure("LAYERS_TREE_DND_NOT_DRAGGABLE", "P0", { message: "LayersTree rows must be draggable for Elementor Navigator parity" });
       }
     }
+
+    // Test Navigator Search Filter
+    const searchInput = page.locator("[data-testid='layers-search-input']");
+    if (await searchInput.isVisible()) {
+      await searchInput.fill("ستون");
+      await page.waitForTimeout(300);
+      const filteredCount = await page.locator("[data-layer-row]").count();
+      if (filteredCount === 0) {
+        addFailure("LAYERS_TREE_SEARCH_FAILED", "P0", { message: "Navigator search filter returned zero matches for 'ستون'" });
+      }
+      await searchInput.fill("");
+      await page.waitForTimeout(200);
+    }
   }
 
   // 6. Elementor Parity: Keyboard Shortcuts Help Modal & History Hotkeys

@@ -11,7 +11,7 @@ const { chromium } = req("playwright");
 const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || "http://127.0.0.1:3000";
 const PROJECT_ROOT = path.resolve(".");
 const BACKEND_DIR = path.join(PROJECT_ROOT, "backend");
-const ROUND = process.env.EXCAVATOR_ROUND || "round-06";
+const ROUND = process.env.EXCAVATOR_ROUND || "round-07";
 const ARTIFACTS_DIR = path.join(PROJECT_ROOT, ".loop", "artifacts", "excavator", ROUND, "before");
 const AUDITS_DIR = path.join(PROJECT_ROOT, ".loop", "audits");
 const MATRIX_PATH = path.join(PROJECT_ROOT, ".loop", "XRAY_MATRIX.json");
@@ -843,6 +843,39 @@ async function runXRay() {
     }
   } catch (vpErr) {
     await addFailure("P0", "VIEWPORT_SWITCH_ERROR", "viewport", `Viewport test failed: ${vpErr.message}`);
+  }
+
+  // Check 4.6: Real Drag & Drop Insert and Element Reordering (HTML5 DnD)
+  try {
+    const frame = await getCanvasFrame();
+    const initialCount = await frame.locator("[data-element-id]").count();
+
+    // Trigger HTML5 drop onto canvas root
+    const dropSuccess = await frame.evaluate(() => {
+      const root = document.querySelector("[data-testid='builder-canvas-root']");
+      if (!root) return false;
+      const dataTransfer = new DataTransfer();
+      dataTransfer.setData("application/json", JSON.stringify({ type: "block_def", blockType: "button" }));
+      const dropEvent = new DragEvent("drop", {
+        bubbles: true,
+        cancelable: true,
+        dataTransfer,
+      });
+      root.dispatchEvent(dropEvent);
+      return true;
+    });
+
+    if (!dropSuccess) {
+      await addFailure("P0", "DND_CANVAS_ROOT_MISSING", "canvas::root", "Canvas root element not found for drop event");
+    } else {
+      await page.waitForTimeout(400);
+      const afterDropCount = await frame.locator("[data-element-id]").count();
+      if (afterDropCount <= initialCount) {
+        await addFailure("P0", "DND_INSERT_FAILED", "canvas::drop", `Dropped button block into canvas root but element count did not increase (${initialCount} -> ${afterDropCount})`);
+      }
+    }
+  } catch (dndErr) {
+    await addFailure("P0", "DND_TEST_ERROR", "canvas::dnd", `Drag and drop test crashed: ${dndErr.message}`);
   }
 
   // Final Summary & Write Output

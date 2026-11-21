@@ -674,6 +674,24 @@ async function runXRayAudit() {
         addFailure("DEAD_INSPECTOR_CONTROL", "P0", { widget: "container", control: "padding", message: msg });
       }
     }
+
+    // Test Box Shadow
+    const shadowPresetBtn = page.locator("button:has-text('عمیق (lg)')").first();
+    if (await shadowPresetBtn.isVisible()) {
+      await shadowPresetBtn.click();
+      await page.waitForTimeout(400);
+
+      const appliedShadow = await frameCont.evaluate(() => {
+        const el = document.querySelector("[data-element-id='test_cont_1']");
+        return el ? el.style.boxShadow : null;
+      });
+
+      if (!appliedShadow || !appliedShadow.includes("rgb")) {
+        const msg = `Container box-shadow control is dead! Got: "${appliedShadow}"`;
+        matrix.deadControls.push({ widget: "container", tab: "style", control: "boxShadow", severity: "P0", message: msg });
+        addFailure("DEAD_INSPECTOR_CONTROL", "P0", { widget: "container", control: "boxShadow", message: msg });
+      }
+    }
   }
 
   // 2. Test Heading controls
@@ -838,6 +856,24 @@ async function runXRayAudit() {
     // Close context menu by clicking canvas
     await page.mouse.click(10, 10);
     await page.waitForTimeout(200);
+  }
+
+  // 5. Elementor Parity: LayersTree Drag-and-Drop & Rename
+  console.log("    Testing Elementor Parity: LayersTree Drag & Drop...");
+  const layersTabBtn = page.locator("button:has-text('لایه‌ها')").first();
+  if (await layersTabBtn.isVisible()) {
+    await layersTabBtn.click();
+    await page.waitForTimeout(400);
+
+    const layerRows = page.locator("[data-layer-row]");
+    const rowCount = await layerRows.count();
+    if (rowCount >= 2) {
+      const sourceRow = layerRows.nth(0);
+      const isDraggable = await sourceRow.getAttribute("draggable");
+      if (isDraggable !== "true") {
+        addFailure("LAYERS_TREE_DND_NOT_DRAGGABLE", "P0", { message: "LayersTree rows must be draggable for Elementor Navigator parity" });
+      }
+    }
   }
 
   // ──────────────────────────────────────────────────────────────────────────

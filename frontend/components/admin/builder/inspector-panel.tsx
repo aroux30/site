@@ -1891,53 +1891,148 @@ export function InspectorPanel() {
           </div>
         </div>
 
-        {/* Border Radius & Border Color Tokens */}
-        <div className="space-y-1.5 pt-2 border-t">
-          <Label className="text-xs font-bold text-foreground">شعاع گردی کادر (Border Radius)</Label>
-          <div className="flex items-center gap-2">
-            <Input
-              value={(currentDeviceStyle.border as any)?.radiusToken || ""}
-              placeholder="مثلاً 12px یا var(--radius)"
-              onChange={(e) =>
-                handleDeviceStyleChange({
-                  border: {
-                    ...currentDeviceStyle.border,
-                    style: currentDeviceStyle.border?.style || "solid",
-                    radiusToken: e.target.value,
-                  } as any,
-                })
-              }
-              className="h-8 text-xs flex-1 font-mono"
-              dir="ltr"
-            />
-          </div>
-          <div className="flex flex-wrap gap-1 mt-1.5">
-            <span className="text-[10px] text-muted-foreground me-1 self-center">توکن شعاع:</span>
-            {[
-              { label: "بدون گردی", val: "0px" },
-              { label: "شعاع تم سازمانی", val: "var(--radius)" },
-              { label: "کوچک (6px)", val: "6px" },
-              { label: "متوسط (12px)", val: "12px" },
-              { label: "بزرگ (16px)", val: "16px" },
-              { label: "کپسولی", val: "9999px" },
-            ].map((tok) => (
-              <button
-                key={tok.val}
-                type="button"
-                onClick={() =>
+        {/* Border Style, Width, Color & Radius Grouped Controls */}
+        <div className="space-y-3 pt-2 border-t">
+          <Label className="text-xs font-bold text-foreground">کادر و حاشیه (Border & Radius - المنتور)</Label>
+
+          <div className="grid grid-cols-2 gap-2">
+            <div className="space-y-1">
+              <Label className="text-[11px] text-muted-foreground">نوع خط کادر</Label>
+              <Select
+                value={currentDeviceStyle.border?.style || "none"}
+                onValueChange={(val: any) =>
+                  handleDeviceStyleChange({
+                    border: {
+                      ...currentDeviceStyle.border,
+                      style: val,
+                    },
+                  })
+                }
+              >
+                <SelectTrigger className="h-8 text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">بدون کادر (None)</SelectItem>
+                  <SelectItem value="solid">یکپارچه (Solid)</SelectItem>
+                  <SelectItem value="dashed">خط‌چین (Dashed)</SelectItem>
+                  <SelectItem value="dotted">نقطه‌چین (Dotted)</SelectItem>
+                  <SelectItem value="double">دوتایی (Double)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-1">
+              <Label className="text-[11px] text-muted-foreground">ضخامت کادر (Width)</Label>
+              <Input
+                type="number"
+                min={0}
+                max={24}
+                value={currentDeviceStyle.border?.width?.top?.value ?? 0}
+                onChange={(e) => {
+                  const val = parseFloat(e.target.value) || 0;
                   handleDeviceStyleChange({
                     border: {
                       ...currentDeviceStyle.border,
                       style: currentDeviceStyle.border?.style || "solid",
-                      radiusToken: tok.val,
+                      width: {
+                        top: { value: val, unit: "px" },
+                        right: { value: val, unit: "px" },
+                        bottom: { value: val, unit: "px" },
+                        left: { value: val, unit: "px" },
+                        isLinked: true,
+                      },
+                    },
+                  });
+                }}
+                className="h-8 text-xs font-mono"
+                dir="ltr"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label className="text-[11px] text-muted-foreground">رنگ کادر</Label>
+            <div className="flex items-center gap-2">
+              <input
+                type="color"
+                value={toValidHexColor(currentDeviceStyle.border?.color, "#e4e4e7")}
+                onChange={(e) =>
+                  handleDeviceStyleChange({
+                    border: {
+                      ...currentDeviceStyle.border,
+                      style: currentDeviceStyle.border?.style || "solid",
+                      color: e.target.value,
+                    },
+                  })
+                }
+                className="w-8 h-8 rounded border border-input cursor-pointer p-0.5"
+              />
+              <Input
+                value={currentDeviceStyle.border?.color || ""}
+                placeholder="#e4e4e7 یا var(--border)"
+                onChange={(e) =>
+                  handleDeviceStyleChange({
+                    border: {
+                      ...currentDeviceStyle.border,
+                      style: currentDeviceStyle.border?.style || "solid",
+                      color: normalizeCssColor(e.target.value) || e.target.value,
+                    },
+                  })
+                }
+                className="h-8 text-xs flex-1 font-mono"
+                dir="ltr"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label className="text-xs font-bold text-foreground">شعاع گردی کادر (Border Radius)</Label>
+            <div className="flex items-center gap-2">
+              <Input
+                value={(currentDeviceStyle.border as any)?.radiusToken || ""}
+                placeholder="مثلاً 12px یا var(--radius)"
+                onChange={(e) =>
+                  handleDeviceStyleChange({
+                    border: {
+                      ...currentDeviceStyle.border,
+                      style: currentDeviceStyle.border?.style || "solid",
+                      radiusToken: e.target.value,
                     } as any,
                   })
                 }
-                className="px-2 py-0.5 rounded text-[10px] bg-muted/80 hover:bg-muted text-muted-foreground hover:text-foreground border border-border/60 transition"
-              >
-                {tok.label}
-              </button>
-            ))}
+                className="h-8 text-xs flex-1 font-mono"
+                dir="ltr"
+              />
+            </div>
+            <div className="flex flex-wrap gap-1 mt-1.5">
+              <span className="text-[10px] text-muted-foreground me-1 self-center">توکن شعاع:</span>
+              {[
+                { label: "بدون گردی", val: "0px" },
+                { label: "شعاع تم سازمانی", val: "var(--radius)" },
+                { label: "کوچک (6px)", val: "6px" },
+                { label: "متوسط (12px)", val: "12px" },
+                { label: "بزرگ (16px)", val: "16px" },
+                { label: "کپسولی", val: "9999px" },
+              ].map((tok) => (
+                <button
+                  key={tok.val}
+                  type="button"
+                  onClick={() =>
+                    handleDeviceStyleChange({
+                      border: {
+                        ...currentDeviceStyle.border,
+                        style: currentDeviceStyle.border?.style || "solid",
+                        radiusToken: tok.val,
+                      } as any,
+                    })
+                  }
+                  className="px-2 py-0.5 rounded text-[10px] bg-muted/80 hover:bg-muted text-muted-foreground hover:text-foreground border border-border/60 transition"
+                >
+                  {tok.label}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 

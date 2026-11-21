@@ -72,6 +72,29 @@ const TreeItem = React.memo(function TreeItem({ element, depth = 0 }: TreeItemPr
     >
       <div
         onClick={() => selectElement(element.id)}
+        draggable={!element.isLocked}
+        onDragStart={(e) => {
+          e.stopPropagation();
+          e.dataTransfer.setData("application/json", JSON.stringify({ type: "element", elementId: element.id }));
+          e.dataTransfer.effectAllowed = "move";
+        }}
+        onDragOver={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          e.dataTransfer.dropEffect = "move";
+        }}
+        onDrop={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          const raw = e.dataTransfer.getData("application/json");
+          if (!raw) return;
+          try {
+            const data = JSON.parse(raw);
+            if (data.type === "element" && data.elementId && data.elementId !== element.id) {
+              moveElement(data.elementId, element.id);
+            }
+          } catch {}
+        }}
         data-layer-row=""
         data-depth={depth}
         data-element-id={element.id}

@@ -104,6 +104,7 @@ export function ContainerPresetPicker({
               key={preset.id}
               type="button"
               data-preset-id={preset.id}
+              data-testid={`structure-preset-${preset.cols.length}`}
               onClick={() => applyPreset(preset)}
               className="flex flex-col items-center justify-center p-2 rounded-lg border border-border/70 bg-card hover:bg-primary/10 hover:border-primary transition group shadow-xs"
               title={preset.title}

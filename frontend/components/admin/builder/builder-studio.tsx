@@ -54,7 +54,6 @@ export function BuilderStudio({ page, onExit }: BuilderStudioProps) {
   // ── Concurrent Editing Lock ───────────────────────────────────────────────
   const { lockedByOther, takeOver, release } = usePageEditingLock(page.id, "pages");
 
-  // ── Autosave Management ───────────────────────────────────────────────────
   const [autosaveStatus, setAutosaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [lastSavedAt, setLastSavedAt] = useState<string | null>(null);
   const isAutosavingRef = useRef(false);
@@ -64,6 +63,7 @@ export function BuilderStudio({ page, onExit }: BuilderStudioProps) {
   useEffect(() => {
     initPage(page.id, page.builder_data, page.title, page.slug);
     if (typeof window !== "undefined") {
+      (window as any).__builderStore = useBuilderStore;
       (window as any).__BUILDER_STORE__ = useBuilderStore;
     }
   }, [page.id, page.builder_data, page.title, page.slug, initPage]);

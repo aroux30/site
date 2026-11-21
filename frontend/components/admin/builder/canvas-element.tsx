@@ -313,15 +313,32 @@ function CanvasElementComponent({
     }
 
     // Box Shadow
-    const shadow = resolveResponsiveValue({ mobile: base?.boxShadow, tablet: tablet?.boxShadow, desktop: desktop?.boxShadow }, activeBreakpoint);
+    const shadow = resolveResponsiveValue({ mobile: base?.shadow || base?.boxShadow, tablet: tablet?.shadow || tablet?.boxShadow, desktop: desktop?.shadow || desktop?.boxShadow }, activeBreakpoint);
     if (shadow && shadow !== "none") {
       styleObj.boxShadow = shadow;
     }
 
-    // CSS Filters (Elementor Filter Parity)
+    // CSS Filters & Backdrop Blur (Elementor Parity)
     const filter = resolveResponsiveValue({ mobile: base?.filter, tablet: tablet?.filter, desktop: desktop?.filter }, activeBreakpoint);
     if (filter && filter !== "none") {
       styleObj.filter = filter;
+    }
+
+    const backdropBlur = resolveResponsiveValue({ mobile: base?.backdropBlur, tablet: tablet?.backdropBlur, desktop: desktop?.backdropBlur }, activeBreakpoint);
+    if (backdropBlur && backdropBlur !== "none") {
+      const blurMap: Record<string, string> = {
+        sm: "blur(4px)",
+        md: "blur(8px)",
+        lg: "blur(16px)",
+        xl: "blur(24px)",
+      };
+      styleObj.backdropFilter = blurMap[backdropBlur] || `blur(${backdropBlur})`;
+      (styleObj as any).WebkitBackdropFilter = styleObj.backdropFilter;
+    }
+
+    const filterBlur = resolveResponsiveValue({ mobile: base?.filterBlur, tablet: tablet?.filterBlur, desktop: desktop?.filterBlur }, activeBreakpoint);
+    if (filterBlur && filterBlur > 0 && !filter) {
+      styleObj.filter = `blur(${filterBlur}px)`;
     }
 
     // Animation styles
@@ -503,49 +520,103 @@ function CanvasElementComponent({
       case "heading": {
         const Tag = (props.tag as "h1" | "h2" | "h3" | "h4" | "h5" | "h6") || "h2";
         const customClass = String(props.customCssClass || element.styles?.customCssClass || "");
+        const textVal = String(props.text || "عنوان سرتیتر");
+
+        if (isInlineEditing && !previewMode) {
+          return (
+            <Tag
+              contentEditable
+              suppressContentEditableWarning
+              autoFocus
+              data-testid="inline-text-editor"
+              className={cn("font-bold tracking-tight text-foreground m-0 break-words [overflow-wrap:anywhere] outline-2 outline-primary bg-primary/10 rounded px-1 min-w-[60px]", customClass)}
+              onBlur={(e) => {
+                const newText = e.currentTarget.textContent?.trim() || "";
+                if (newText && newText !== textVal) {
+                  updateElementProps(element.id, { text: newText });
+                }
+                setIsInlineEditing(false);
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  e.currentTarget.blur();
+                } else if (e.key === "Escape") {
+                  e.preventDefault();
+                  e.currentTarget.textContent = textVal;
+                  setIsInlineEditing(false);
+                }
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {textVal}
+            </Tag>
+          );
+        }
+
         return (
           <Tag
-            contentEditable={isSelected && isInlineEditing && !previewMode}
-            suppressContentEditableWarning={true}
             onDoubleClick={(e) => {
-              e.stopPropagation();
-              if (!previewMode) setIsInlineEditing(true);
+              if (!previewMode) {
+                e.stopPropagation();
+                setIsInlineEditing(true);
+              }
             }}
-            onBlur={(e) => {
-              setIsInlineEditing(false);
-              const newText = e.currentTarget.textContent || "";
-              updateElementProps(element.id, { text: newText });
-            }}
-            className={cn("font-bold tracking-tight text-foreground m-0 break-words [overflow-wrap:anywhere] outline-none", isInlineEditing && "ring-1 ring-primary rounded px-1", customClass)}
+            title="دابل‌کلیک برای ویرایش مستقیم متن (Inline Editing)"
+            className={cn("font-bold tracking-tight text-foreground m-0 break-words [overflow-wrap:anywhere]", customClass)}
           >
-            {String(props.text || "عنوان سرتیتر")}
+            {textVal}
           </Tag>
         );
       }
       case "text_editor": {
         const customClass = String(props.customCssClass || element.styles?.customCssClass || "");
-        const rawContent = String(props.content || "متن پاراگراف را بنویسید...");
-        const isHtml = rawContent.startsWith("<") && rawContent.endsWith(">");
+        const rawContent = String(props.content || "<p>متن پاراگراف را بنویسید...</p>");
+        const hasTags = /<[a-z][\s\S]*>/i.test(rawContent);
+
+        if (isInlineEditing && !previewMode) {
+          return (
+            <div
+              contentEditable
+              suppressContentEditableWarning
+              autoFocus
+              data-testid="inline-text-editor"
+              className={cn("prose dark:prose-invert max-w-none text-foreground/90 leading-relaxed break-words [overflow-wrap:anywhere] outline-2 outline-primary bg-primary/10 rounded p-1 min-h-[30px]", customClass)}
+              onBlur={(e) => {
+                const newContent = e.currentTarget.innerHTML || "";
+                if (newContent && newContent !== rawContent) {
+                  updateElementProps(element.id, { content: newContent });
+                }
+                setIsInlineEditing(false);
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Escape") {
+                  e.preventDefault();
+                  e.currentTarget.innerHTML = rawContent;
+                  setIsInlineEditing(false);
+                }
+              }}
+              onClick={(e) => e.stopPropagation()}
+              dangerouslySetInnerHTML={{ __html: rawContent }}
+            />
+          );
+        }
+
         return (
           <div
-            contentEditable={isSelected && isInlineEditing && !previewMode}
-            suppressContentEditableWarning={true}
             onDoubleClick={(e) => {
-              e.stopPropagation();
-              if (!previewMode) setIsInlineEditing(true);
+              if (!previewMode) {
+                e.stopPropagation();
+                setIsInlineEditing(true);
+              }
             }}
-            onBlur={(e) => {
-              setIsInlineEditing(false);
-              const newContent = e.currentTarget.textContent || "";
-              updateElementProps(element.id, { content: newContent });
-            }}
+            title="دابل‌کلیک برای ویرایش مستقیم متن (Inline Editing)"
             className={cn(
               "prose dark:prose-invert max-w-none text-foreground/90 leading-relaxed break-words [overflow-wrap:anywhere] outline-none",
-              isInlineEditing && "ring-1 ring-primary rounded px-1",
               customClass
             )}
           >
-            {isHtml ? (
+            {hasTags ? (
               <div dangerouslySetInnerHTML={{ __html: rawContent }} />
             ) : (
               <p className="m-0 leading-relaxed">{rawContent}</p>
@@ -556,17 +627,67 @@ function CanvasElementComponent({
       case "button": {
         const customClass = String(props.customCssClass || element.styles?.customCssClass || "");
         const isFull = customClass.includes("w-full");
+        const url = String(props.url || "#");
+        const labelVal = String(props.label || "دکمه اقدام");
+
+        if (isInlineEditing && !previewMode) {
+          return (
+            <div className={isFull ? "w-full block" : "inline-block"}>
+              <span
+                contentEditable
+                suppressContentEditableWarning
+                autoFocus
+                data-testid="inline-text-editor"
+                className={cn(
+                  "inline-flex items-center justify-center rounded-xl bg-primary px-6 py-3 font-semibold text-primary-foreground shadow-sm transition outline-2 outline-white",
+                  isFull && "w-full",
+                  customClass
+                )}
+                onBlur={(e) => {
+                  const newLabel = e.currentTarget.textContent?.trim() || "";
+                  if (newLabel && newLabel !== labelVal) {
+                    updateElementProps(element.id, { label: newLabel });
+                  }
+                  setIsInlineEditing(false);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    e.currentTarget.blur();
+                  } else if (e.key === "Escape") {
+                    e.preventDefault();
+                    e.currentTarget.textContent = labelVal;
+                    setIsInlineEditing(false);
+                  }
+                }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                {labelVal}
+              </span>
+            </div>
+          );
+        }
+
         return (
           <div className={isFull ? "w-full block" : "inline-block"}>
-            <span
+            <a
+              href={url}
+              data-url={url}
+              onDoubleClick={(e) => {
+                if (!previewMode) {
+                  e.stopPropagation();
+                  setIsInlineEditing(true);
+                }
+              }}
+              title="دابل‌کلیک برای ویرایش مستقیم متن دکمه"
               className={cn(
                 "inline-flex items-center justify-center rounded-xl bg-primary px-6 py-3 font-semibold text-primary-foreground shadow-sm transition",
                 isFull && "w-full",
                 customClass
               )}
             >
-              {String(props.label || "دکمه اقدام")}
-            </span>
+              {labelVal}
+            </a>
           </div>
         );
       }
@@ -1348,14 +1469,14 @@ function CanvasElementComponent({
         element.styles?.animation && element.styles.animation !== "none" && `builder-animate-${element.styles.animation}`,
         element.styles?.customCssClass
       )}
-      data-element-id={element.id}
       id={element.styles?.customCssId || undefined}
+      data-element-id={element.id}
+      data-element-name={element.name}
     >
       {/* Background Overlay (Elementor Parity) */}
       {overlayStyle && (
         <div data-testid="background-overlay" style={overlayStyle} aria-hidden="true" />
       )}
-
       {/* Breakpoint Hidden Indicator */}
       {isHiddenOnActiveBreakpoint && !previewMode && (
         <div className="absolute top-1 end-1 z-30 pointer-events-none">
@@ -1381,6 +1502,90 @@ function CanvasElementComponent({
           open={saveTemplateOpen}
           onOpenChange={setSaveTemplateOpen}
         />
+      )}
+
+      {/* Top Shape Divider (Elementor Parity) */}
+      {isContainer && (element.styles?.shapeDividerTop || (element.styles?.mobile as any)?.shapeDividerTop) && (element.styles?.shapeDividerTop || (element.styles?.mobile as any)?.shapeDividerTop) !== "none" && (
+        <div
+          data-testid="shape-divider-top"
+          className="absolute top-0 start-0 w-full overflow-hidden leading-none z-10 pointer-events-none"
+          style={{ height: "48px" }}
+        >
+          {((element.styles?.shapeDividerTop || (element.styles?.mobile as any)?.shapeDividerTop) === "waves") && (
+            <svg viewBox="0 0 1000 100" preserveAspectRatio="none" className="w-full h-full block">
+              <path
+                fill={element.styles?.shapeDividerColor || (element.styles?.mobile as any)?.shapeDividerColor || "#ffffff"}
+                d="M421.9,6.5c22.6-2.5,51.5,0.4,75.5,5.3c23.6,4.9,70.9,23.5,100.5,35.7c75.8,32.2,133.7,44.5,192.6,49.7c23.6,2.1,48.7,3.5,103.4-2.5c54.7-6,106.2-25.6,106.2-25.6V0H0v30.3c0,0,72,32.6,158.4,30.5c39.2-0.7,92.8-6.7,134-22.4c21.2-8.1,52.2-18.2,79.7-24.2C399.3,7.9,411.6,7.5,421.9,6.5z"
+              />
+            </svg>
+          )}
+          {((element.styles?.shapeDividerTop || (element.styles?.mobile as any)?.shapeDividerTop) === "curve") && (
+            <svg viewBox="0 0 1000 100" preserveAspectRatio="none" className="w-full h-full block">
+              <path
+                fill={element.styles?.shapeDividerColor || (element.styles?.mobile as any)?.shapeDividerColor || "#ffffff"}
+                d="M1000,4.3V0H0v4.3C0.9,23.1,126.7,99.2,500,100S1000,22.7,1000,4.3z"
+              />
+            </svg>
+          )}
+          {((element.styles?.shapeDividerTop || (element.styles?.mobile as any)?.shapeDividerTop) === "triangle") && (
+            <svg viewBox="0 0 1000 100" preserveAspectRatio="none" className="w-full h-full block">
+              <path
+                fill={element.styles?.shapeDividerColor || (element.styles?.mobile as any)?.shapeDividerColor || "#ffffff"}
+                d="M500,98.9L0,6.1V0h1000v6.1L500,98.9z"
+              />
+            </svg>
+          )}
+          {((element.styles?.shapeDividerTop || (element.styles?.mobile as any)?.shapeDividerTop) === "tilt") && (
+            <svg viewBox="0 0 1000 100" preserveAspectRatio="none" className="w-full h-full block">
+              <path
+                fill={element.styles?.shapeDividerColor || (element.styles?.mobile as any)?.shapeDividerColor || "#ffffff"}
+                d="M0,6V0h1000v100L0,6z"
+              />
+            </svg>
+          )}
+        </div>
+      )}
+
+      {/* Bottom Shape Divider (Elementor Parity) */}
+      {isContainer && (element.styles?.shapeDividerBottom || (element.styles?.mobile as any)?.shapeDividerBottom) && (element.styles?.shapeDividerBottom || (element.styles?.mobile as any)?.shapeDividerBottom) !== "none" && (
+        <div
+          data-testid="shape-divider-bottom"
+          className="absolute bottom-0 start-0 w-full overflow-hidden leading-none z-10 pointer-events-none rotate-180"
+          style={{ height: "48px" }}
+        >
+          {((element.styles?.shapeDividerBottom || (element.styles?.mobile as any)?.shapeDividerBottom) === "waves") && (
+            <svg viewBox="0 0 1000 100" preserveAspectRatio="none" className="w-full h-full block">
+              <path
+                fill={element.styles?.shapeDividerColor || (element.styles?.mobile as any)?.shapeDividerColor || "#ffffff"}
+                d="M421.9,6.5c22.6-2.5,51.5,0.4,75.5,5.3c23.6,4.9,70.9,23.5,100.5,35.7c75.8,32.2,133.7,44.5,192.6,49.7c23.6,2.1,48.7,3.5,103.4-2.5c54.7-6,106.2-25.6,106.2-25.6V0H0v30.3c0,0,72,32.6,158.4,30.5c39.2-0.7,92.8-6.7,134-22.4c21.2-8.1,52.2-18.2,79.7-24.2C399.3,7.9,411.6,7.5,421.9,6.5z"
+              />
+            </svg>
+          )}
+          {((element.styles?.shapeDividerBottom || (element.styles?.mobile as any)?.shapeDividerBottom) === "curve") && (
+            <svg viewBox="0 0 1000 100" preserveAspectRatio="none" className="w-full h-full block">
+              <path
+                fill={element.styles?.shapeDividerColor || (element.styles?.mobile as any)?.shapeDividerColor || "#ffffff"}
+                d="M1000,4.3V0H0v4.3C0.9,23.1,126.7,99.2,500,100S1000,22.7,1000,4.3z"
+              />
+            </svg>
+          )}
+          {((element.styles?.shapeDividerBottom || (element.styles?.mobile as any)?.shapeDividerBottom) === "triangle") && (
+            <svg viewBox="0 0 1000 100" preserveAspectRatio="none" className="w-full h-full block">
+              <path
+                fill={element.styles?.shapeDividerColor || (element.styles?.mobile as any)?.shapeDividerColor || "#ffffff"}
+                d="M500,98.9L0,6.1V0h1000v6.1L500,98.9z"
+              />
+            </svg>
+          )}
+          {((element.styles?.shapeDividerBottom || (element.styles?.mobile as any)?.shapeDividerBottom) === "tilt") && (
+            <svg viewBox="0 0 1000 100" preserveAspectRatio="none" className="w-full h-full block">
+              <path
+                fill={element.styles?.shapeDividerColor || (element.styles?.mobile as any)?.shapeDividerColor || "#ffffff"}
+                d="M0,6V0h1000v100L0,6z"
+              />
+            </svg>
+          )}
+        </div>
       )}
 
       {/* Content Rendering */}

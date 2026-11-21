@@ -65,18 +65,32 @@ export function BuilderToolbar({
   const [globalStylesOpen, setGlobalStylesOpen] = React.useState(false);
   const [savePageTemplateOpen, setSavePageTemplateOpen] = React.useState(false);
   const [shortcutsOpen, setShortcutsOpen] = React.useState(false);
+  const [isEditingTitle, setIsEditingTitle] = React.useState(false);
+  const [titleDraft, setTitleDraft] = React.useState(ast.title);
+
+  React.useEffect(() => {
+    setTitleDraft(ast.title);
+  }, [ast.title]);
 
   const canUndo = history.past.length > 0;
   const canRedo = history.future.length > 0;
 
-  // Keyboard shortcut listener for Undo/Redo/Copy/Paste/Delete/Duplicate/Save/Help
+  // Keyboard shortcut listener for Undo/Redo/Copy/Paste/Delete/Duplicate/Save/Help/Hotkeys
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const targetTag = (e.target as HTMLElement)?.tagName?.toLowerCase();
       const isInput = targetTag === "input" || targetTag === "textarea" || (e.target as HTMLElement)?.isContentEditable;
       if (isInput) return;
 
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z") {
+      if ((e.shiftKey && e.key === "?") || e.key === "?" || ((e.ctrlKey || e.metaKey) && e.key === "/")) {
+        e.preventDefault();
+        setShortcutsOpen((prev) => !prev);
+      } else if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === "m") {
+        e.preventDefault();
+        const currentBp = useBuilderStore.getState().activeBreakpoint;
+        const nextBp: Breakpoint = currentBp === "desktop" ? "tablet" : currentBp === "tablet" ? "mobile" : "desktop";
+        setBreakpoint(nextBp);
+      } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z") {
         if (e.shiftKey) {
           e.preventDefault();
           redo();
@@ -91,6 +105,11 @@ export function BuilderToolbar({
         e.preventDefault();
         if (selectedElementId) {
           duplicateElement(selectedElementId);
+        }
+      } else if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === "v") {
+        e.preventDefault();
+        if (selectedElementId) {
+          useBuilderStore.getState().pasteStyles(selectedElementId);
         }
       } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") {
         e.preventDefault();
@@ -142,9 +161,42 @@ export function BuilderToolbar({
         <div className="h-4 w-px bg-border/80" />
 
         <div className="flex items-center gap-2">
-          <span className="text-xs font-bold text-foreground max-w-[200px] truncate">
-            {ast.title || "برگه بدون عنوان"}
-          </span>
+          {isEditingTitle ? (
+            <input
+              type="text"
+              autoFocus
+              value={titleDraft}
+              onChange={(e) => setTitleDraft(e.target.value)}
+              onBlur={() => {
+                setIsEditingTitle(false);
+                if (titleDraft.trim() && titleDraft.trim() !== ast.title) {
+                  useBuilderStore.getState().updatePageTitle(titleDraft.trim());
+                } else {
+                  setTitleDraft(ast.title);
+                }
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  setIsEditingTitle(false);
+                  if (titleDraft.trim() && titleDraft.trim() !== ast.title) {
+                    useBuilderStore.getState().updatePageTitle(titleDraft.trim());
+                  }
+                } else if (e.key === "Escape") {
+                  setIsEditingTitle(false);
+                  setTitleDraft(ast.title);
+                }
+              }}
+              className="bg-background text-foreground px-2 py-0.5 rounded border border-input text-xs font-bold max-w-[200px] focus:outline-none"
+            />
+          ) : (
+            <span
+              onDoubleClick={() => setIsEditingTitle(true)}
+              className="text-xs font-bold text-foreground max-w-[200px] truncate cursor-pointer hover:underline"
+              title="دابل‌کلیک برای ویرایش نام برگه"
+            >
+              {ast.title || "برگه بدون عنوان"}
+            </span>
+          )}
           <Badge
             variant={pageStatus === "published" ? "default" : "secondary"}
             className="text-[10px] px-1.5 py-0 h-4"
@@ -264,6 +316,18 @@ export function BuilderToolbar({
         >
           <Paintbrush className="w-3.5 h-3.5" />
           <span className="hidden sm:inline">استایل سراسری</span>
+        </Button>
+
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setShortcutsOpen(true)}
+          className="h-8 gap-1.5 text-xs text-muted-foreground hover:text-foreground"
+          title="راهنمای کلیدهای میانبر (Shift+?)"
+          data-testid="hotkeys-btn"
+        >
+          <Keyboard className="w-3.5 h-3.5 text-muted-foreground" />
+          <span className="hidden md:inline">میانبرها</span>
         </Button>
 
         <Button

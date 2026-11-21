@@ -66,6 +66,8 @@ function CanvasElementComponent({
   const [activeGridFilter, setActiveGridFilter] = useState<string>("all");
   const elementRef = useRef<HTMLDivElement>(null);
   const [isNearTop, setIsNearTop] = useState(false);
+  const [isInlineEditing, setIsInlineEditing] = useState(false);
+  const [inlineText, setInlineText] = useState("");
 
   // Performance-optimized fine-grained selectors (P5 Hardening):
   // Subscribe to boolean expressions instead of full AST tree, preventing cascade re-renders
@@ -95,6 +97,7 @@ function CanvasElementComponent({
   const reorderElement = useBuilderStore((s) => s.reorderElement);
   const copyElement = useBuilderStore((s) => s.copyElement);
   const copyStyles = useBuilderStore((s) => s.copyStyles);
+  const updateElementProps = useBuilderStore((s) => s.updateElementProps);
   const makeGlobalComponent = useBuilderStore((s) => s.makeGlobalComponent);
   const previewMode = useBuilderStore((s) => s.previewMode);
 
@@ -413,22 +416,104 @@ function CanvasElementComponent({
       case "heading": {
         const Tag = (props.tag as "h1" | "h2" | "h3" | "h4" | "h5" | "h6") || "h2";
         const customClass = String(props.customCssClass || element.styles?.customCssClass || "");
+        const currentText = String(props.text || "عنوان سرتیتر");
+
+        if (isInlineEditing && !previewMode) {
+          return (
+            <input
+              type="text"
+              autoFocus
+              value={inlineText}
+              onChange={(e) => setInlineText(e.target.value)}
+              onClick={(e) => e.stopPropagation()}
+              onBlur={() => {
+                setIsInlineEditing(false);
+                if (inlineText.trim() && inlineText !== currentText) {
+                  updateElementProps(element.id, { text: inlineText.trim() });
+                }
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  setIsInlineEditing(false);
+                  if (inlineText.trim() && inlineText !== currentText) {
+                    updateElementProps(element.id, { text: inlineText.trim() });
+                  }
+                }
+                if (e.key === "Escape") {
+                  setIsInlineEditing(false);
+                }
+              }}
+              className={cn(
+                "w-full bg-background/90 text-foreground font-bold tracking-tight rounded-lg p-1 border-2 border-primary outline-none shadow-sm",
+                customClass
+              )}
+            />
+          );
+        }
+
         return (
-          <Tag className={cn("font-bold tracking-tight text-foreground m-0 break-words [overflow-wrap:anywhere]", customClass)}>
-            {String(props.text || "عنوان سرتیتر")}
+          <Tag
+            onDoubleClick={(e) => {
+              if (!previewMode) {
+                e.stopPropagation();
+                setInlineText(currentText);
+                setIsInlineEditing(true);
+              }
+            }}
+            title={!previewMode ? "برای ویرایش مستقیم متن دابل‌کلیک کنید (Elementor Inline Editing)" : undefined}
+            className={cn("font-bold tracking-tight text-foreground m-0 break-words [overflow-wrap:anywhere] cursor-text", customClass)}
+          >
+            {currentText}
           </Tag>
         );
       }
       case "text_editor": {
         const customClass = String(props.customCssClass || element.styles?.customCssClass || "");
+        const currentContent = String(props.content || "<p>متن پاراگراف را بنویسید...</p>");
+
+        if (isInlineEditing && !previewMode) {
+          return (
+            <textarea
+              autoFocus
+              rows={3}
+              value={inlineText}
+              onChange={(e) => setInlineText(e.target.value)}
+              onClick={(e) => e.stopPropagation()}
+              onBlur={() => {
+                setIsInlineEditing(false);
+                if (inlineText.trim() && inlineText !== currentContent) {
+                  updateElementProps(element.id, { content: inlineText.trim() });
+                }
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Escape") {
+                  setIsInlineEditing(false);
+                }
+              }}
+              className={cn(
+                "w-full bg-background/90 text-foreground rounded-lg p-2 border-2 border-primary outline-none shadow-sm leading-relaxed",
+                customClass
+              )}
+            />
+          );
+        }
+
         return (
           <div
+            onDoubleClick={(e) => {
+              if (!previewMode) {
+                e.stopPropagation();
+                setInlineText(currentContent);
+                setIsInlineEditing(true);
+              }
+            }}
+            title={!previewMode ? "برای ویرایش مستقیم متن دابل‌کلیک کنید (Elementor Inline Editing)" : undefined}
             className={cn(
-              "prose dark:prose-invert max-w-none text-foreground/90 leading-relaxed break-words [overflow-wrap:anywhere]",
+              "prose dark:prose-invert max-w-none text-foreground/90 leading-relaxed break-words [overflow-wrap:anywhere] cursor-text",
               customClass
             )}
             dangerouslySetInnerHTML={{
-              __html: String(props.content || "<p>متن پاراگراف را بنویسید...</p>"),
+              __html: currentContent,
             }}
           />
         );

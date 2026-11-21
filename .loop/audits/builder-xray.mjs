@@ -628,6 +628,29 @@ async function runXRay() {
         matrix.deadControlsRemaining++;
       }
     }
+
+    // Test 4: Elementor Inline Editing on Canvas (Double Click)
+    try {
+      const hTag = headLoc.locator("h2").first();
+      if (await hTag.isVisible()) {
+        await hTag.dblclick();
+        await page.waitForTimeout(300);
+        const inlineInput = headLoc.locator("input[type='text']").first();
+        if (await inlineInput.isVisible()) {
+          await inlineInput.fill("ویرایش مستقیم با دابل کلیک");
+          await page.keyboard.press("Enter");
+          await page.waitForTimeout(300);
+          const inlinedText = await headLoc.evaluate((el) => el.textContent?.trim());
+          if (!inlinedText || !inlinedText.includes("ویرایش مستقیم با دابل کلیک")) {
+            await addFailure("P0", "DEAD_INLINE_EDITING", "heading::inline", `Inline editing failed: expected 'ویرایش مستقیم با دابل کلیک' but got '${inlinedText}'`);
+          }
+        } else {
+          await addFailure("P0", "INLINE_EDITING_INPUT_MISSING", "heading::inline", "Double-click on heading did not activate inline input");
+        }
+      }
+    } catch (inlineErr) {
+      await addFailure("P0", "INLINE_EDITING_ERROR", "heading::inline", `Inline editing test crashed: ${inlineErr.message}`);
+    }
   };
 
   await testDeadControls();

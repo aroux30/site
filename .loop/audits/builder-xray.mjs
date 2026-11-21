@@ -1187,6 +1187,32 @@ async function runXRayAudit() {
     addFailure("CUSTOM_CSS_ID_REFLECTION_FAILED", "P0", { message: "customCssId or customCssClass not reflected on element in canvas DOM" });
   }
 
+  // 13. Elementor Parity: Save Page Template Dialog
+  console.log("    Testing Elementor Parity: Save Page Template Dialog...");
+  const savePageTplBtn = page.locator("button:has-text('قالب برگه')").first();
+  if (await savePageTplBtn.isVisible()) {
+    await savePageTplBtn.click();
+    await page.waitForTimeout(400);
+
+    const dialog = page.locator("div[role='dialog']").first();
+    if (!(await dialog.isVisible())) {
+      addFailure("SAVE_PAGE_TEMPLATE_DIALOG_MISSING", "P0", { message: "SavePageTemplateDialog did not open on toolbar click" });
+    } else {
+      const titleInput = dialog.locator("input").first();
+      const hasInput = await titleInput.isVisible();
+      if (!hasInput) {
+        addFailure("SAVE_PAGE_TEMPLATE_TITLE_MISSING", "P0", { message: "Template title input missing in dialog" });
+      }
+
+      // Close dialog
+      const cancelBtn = dialog.locator("button:has-text('انصراف')");
+      if (await cancelBtn.isVisible()) {
+        await cancelBtn.click();
+        await page.waitForTimeout(300);
+      }
+    }
+  }
+
   // ──────────────────────────────────────────────────────────────────────────
   // Write Final Matrix Report
   // ──────────────────────────────────────────────────────────────────────────

@@ -20,6 +20,44 @@
 | **Round 09** | 0 | **0** | **0 / 0** | 28 / 28 ✅ | 34 / 34 ✅ | 0 خطای مرده ✅ | **پنل تاریخچه ویرایش‌ها و تایم‌لاین اقدامات (Elementor Revision History Parity)**: افزودن تب تاریخچه در سایدبار، متد jumpToHistoryStep در استور، پیمایش زنده در بازنگری‌ها و آزمون اشعه ایکس |
 | **Round 10** | 0 | **0** | **0 / 0** | 28 / 28 ✅ | 34 / 34 ✅ | 0 خطای مرده ✅ | **همگام‌سازی استایل‌های سراسری و توکن‌های دو لایه (Elementor Global Styles & Design Tokens Live Sync)**: توسعه دیالوگ استایل‌های سراسری با توکن‌های textColor و backgroundColor، تزریق آنی به سند Iframe بوم و تایید ۱۰۰٪ آزمون‌های اشعه ایکس |
 | **Round 11** | 0 | **0** | **0 / 0** | 28 / 28 ✅ | 34 / 34 ✅ | 0 خطای مرده ✅ | **بازتاب دقیق شناسه و کلاس‌های سفارشی CSS در بوم و کامپایلر (Custom CSS ID & Class Anchor Reflection)**: رفع نقص اتصال customCssId روی تگ‌های DOM بوم و کامپایلر بک‌اند جهت پیمایش و انکر لینک‌های صفحه |
+| **Round 12** | 0 | **0** | **0 / 0** | 28 / 28 ✅ | 34 / 34 ✅ | 0 خطای مرده ✅ | **تثبیت دیالوگ ذخیره قالب برگه (Elementor Save Page as Template Parity)**: اعتبارسنجی باز شدن و فرم ورودی نام قالب برگه در نوار ابزار و پوشش کامل در آزمون‌های خودکار اشعه ایکس |
+
+---
+
+## جزئیات راند ۱۲ (Round 12)
+
+- **شاخه ایزوله**: `claude/reverent-jang-441af1`
+- **تاریخ اجرا**: 2026-11-21
+- **وضعیت نهایی اشعه ایکس (.loop/XRAY_MATRIX.json)**:
+  - `totalFailures`: **0**
+  - `p0Count`: **0**
+  - `p1Count`: **0**
+  - `patterns`: ۲۸ از ۲۸ سبز (`passed: true`)
+  - `blocks`: ۳۴ از ۳۴ سبز (`passed: true`)
+  - `deadControls`: ۰ کنترل مرده
+  - `savePageTemplateDialog`: تایید باز شدن دیالوگ ذخیره قالب کل برگه، فیلدهای عنوان و دسته‌بندی
+  - `customCssIdReflection`: سبز
+  - `globalStylesTwoLayerTokens`: سبز
+  - `historyTimelinePanel`: سبز
+  - `multiSelectionOverlay`: سبز
+  - `persistentClipboard`: سبز
+  - `wrapUnwrapContainer`: سبز
+  - `responsiveVisibility`: سبز
+  - `shortcutsModal`: سبز
+  - `hotkeyUndoRedo`: سبز
+  - `layersTreeDnD`: سبز
+  - `containerPresetPicker`: سبز
+  - `contextMenu`: سبز
+  - `categoryChipsClipping`: سبز و بدون بریدگی
+  - `dragAndDrop`: سبز
+  - `wysiwygParity`: تطابق ۱۰۰٪ بوم و صفحه نهایی
+
+### قابلیت‌های راند ۱۲:
+1. **تثبیت دیالوگ ذخیره قالب برگه (`SavePageTemplateDialog`)**:
+   - قابلیت ذخیره کل ساختار صفحه (تمامی سکشن‌ها، المان‌ها و استایل‌های سراسری) در کتابخانه قالب‌های کاربر (قالب‌های من)
+   - امکان اعمال مستقیم یا درگ قالب از تب «قالب‌های من» داخل پالت بلوک‌ها
+2. **گسترش ممیزی خودکار اشعه ایکس**:
+   - آزمون شماره ۱۳ در `builder-xray.mjs` جهت سنجش باز شدن دیالوگ و اعتبارسنجی فیلد عنوان ثبت و ۱۰۰٪ پاس شد.
 
 ---
 

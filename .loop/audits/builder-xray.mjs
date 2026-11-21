@@ -11,7 +11,7 @@ const { chromium } = req("playwright");
 const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || "http://127.0.0.1:3000";
 const PROJECT_ROOT = path.resolve(".");
 const BACKEND_DIR = path.join(PROJECT_ROOT, "backend");
-const ROUND = process.env.EXCAVATOR_ROUND || "round-12";
+const ROUND = process.env.EXCAVATOR_ROUND || "round-13";
 const ARTIFACTS_DIR = path.join(PROJECT_ROOT, ".loop", "artifacts", "excavator", ROUND, "before");
 const AUDITS_DIR = path.join(PROJECT_ROOT, ".loop", "audits");
 const MATRIX_PATH = path.join(PROJECT_ROOT, ".loop", "XRAY_MATRIX.json");
@@ -1073,6 +1073,41 @@ async function runXRay() {
     }
   } catch (animErr) {
     await addFailure("P0", "ANIMATION_TEST_ERROR", "styles::animation", `Animation verification failed: ${animErr.message}`);
+  }
+
+  // Check 4.13: Global Styles Primary & Secondary Color Tokens Mutation Check
+  try {
+    const globalStylesVerified = await page.evaluate(() => {
+      const store = window.__BUILDER_STORE__;
+      if (!store) return false;
+      store.getState().updateGlobalStyles({
+        primaryColor: "#059669",
+        secondaryColor: "#f59e0b",
+        borderRadius: "12px",
+      });
+      return true;
+    });
+
+    if (!globalStylesVerified) {
+      await addFailure("P0", "GLOBAL_STYLES_MUTATION_FAILED", "theme::globalStyles", "Failed to update globalStyles in builderStore");
+    } else {
+      await page.waitForTimeout(300);
+      const frame = await getCanvasFrame();
+      const docStyle = await frame.evaluate(() => {
+        const root = document.documentElement;
+        return {
+          primary: root.style.getPropertyValue("--primary"),
+          secondary: root.style.getPropertyValue("--secondary"),
+          radius: root.style.getPropertyValue("--radius"),
+        };
+      });
+
+      if (!docStyle.primary || !docStyle.radius) {
+        await addFailure("P0", "GLOBAL_CSS_VARS_NOT_INJECTED", "theme::cssVars", `Canvas document did not receive CSS variable overrides: ${JSON.stringify(docStyle)}`);
+      }
+    }
+  } catch (gsErr) {
+    await addFailure("P0", "GLOBAL_STYLES_TEST_ERROR", "theme::globalStyles", `Global styles test crashed: ${gsErr.message}`);
   }
 
   // Final Summary & Write Output

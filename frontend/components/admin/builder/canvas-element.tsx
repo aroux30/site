@@ -686,7 +686,7 @@ function CanvasElementComponent({
                 customClass
               )}
             >
-              {labelVal}
+              <span className="truncate">{labelVal}</span>
             </a>
           </div>
         );
@@ -1610,11 +1610,11 @@ function CanvasElementComponent({
                   useBuilderStore.getState().setLeftTab("blocks");
                 }}
                 data-testid="empty-container-guide"
-                className="flex flex-col items-center justify-center p-4 border border-dashed border-primary/30 hover:border-primary/60 rounded-xl bg-card/40 hover:bg-primary/5 transition-all cursor-pointer text-center w-full min-h-[64px] shadow-xs group/empty"
+                className="flex flex-col items-center justify-center p-4 border border-dashed border-primary/30 hover:border-primary/60 rounded-xl bg-card/40 hover:bg-primary/5 transition-all cursor-pointer text-center w-full min-h-[80px] shadow-xs group/empty"
               >
                 <div className="flex items-center gap-2 text-xs font-bold text-foreground group-hover/empty:text-primary transition-colors">
-                  <Plus className="w-3.5 h-3.5 text-primary" />
-                  <span>+ یا افزودن مستقیم ویجت دلخواه از پالت</span>
+                  <Plus className="w-4 h-4 text-primary" />
+                  <span>افزودن بلوک به این بخش</span>
                 </div>
               </div>
             </div>

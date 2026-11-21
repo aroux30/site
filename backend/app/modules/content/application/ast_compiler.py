@@ -125,7 +125,8 @@ class ASTCompiler:
 
         style_attr = f' style="{" ".join(style_parts)}"' if style_parts else ""
         class_attr = f' class="{" ".join(classes)}"'
-        id_attr = f' id="{html.escape(el.id)}"'
+        element_id = el.styles.custom_css_id or el.id
+        id_attr = f' id="{html.escape(element_id)}"'
         extra_attrs = ""
         if el.auth_visibility != "all":
             extra_attrs += f' data-auth="{html.escape(el.auth_visibility)}"'
@@ -179,7 +180,8 @@ class ASTCompiler:
                 styles.append(f"animation-delay: {el.styles.animation_delay}s;")
 
         style_attr = f' style="{" ".join(styles)}"' if styles else ""
-        id_attr = f' id="{html.escape(el.id)}"'
+        widget_id = el.styles.custom_css_id or el.id
+        id_attr = f' id="{html.escape(widget_id)}"'
         extra_attrs = ""
         if el.auth_visibility != "all":
             extra_attrs += f' data-auth="{html.escape(el.auth_visibility)}"'

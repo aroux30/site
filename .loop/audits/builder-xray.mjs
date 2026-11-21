@@ -1150,6 +1150,43 @@ async function runXRayAudit() {
     }
   }
 
+  // 12. Elementor Parity: Custom CSS ID & Classes Binding
+  console.log("    Testing Elementor Parity: Custom CSS ID and Classes DOM Reflection...");
+  await page.evaluate(() => {
+    const store = window.__BUILDER_STORE__;
+    if (store && store.getState) {
+      store.getState().replacePageAST({
+        ...store.getState().ast,
+        rootElements: [
+          {
+            id: "anchor_el_test",
+            name: "المان تستی نشانه",
+            type: "widget",
+            widgetType: "heading",
+            widgetProps: { text: "عنوان با نشانه اختصاصی" },
+            styles: {
+              mobile: {},
+              customCssId: "my-anchor-section",
+              customCssClass: "custom-verified-banner",
+            },
+            children: [],
+          },
+        ],
+      });
+      store.getState().selectElement("anchor_el_test");
+    }
+  });
+  await page.waitForTimeout(500);
+
+  const customIdReflected = await framePreset.evaluate(() => {
+    const el = document.getElementById("my-anchor-section");
+    return el && el.classList.contains("custom-verified-banner");
+  });
+
+  if (!customIdReflected) {
+    addFailure("CUSTOM_CSS_ID_REFLECTION_FAILED", "P0", { message: "customCssId or customCssClass not reflected on element in canvas DOM" });
+  }
+
   // ──────────────────────────────────────────────────────────────────────────
   // Write Final Matrix Report
   // ──────────────────────────────────────────────────────────────────────────

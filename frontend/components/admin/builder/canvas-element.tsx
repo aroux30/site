@@ -1279,6 +1279,7 @@ function CanvasElementComponent({
         element.styles?.customCssClass
       )}
       data-element-id={element.id}
+      id={element.styles?.customCssId || undefined}
     >
       {/* Breakpoint Hidden Indicator */}
       {isHiddenOnActiveBreakpoint && !previewMode && (

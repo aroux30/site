@@ -19,6 +19,43 @@
 | **Round 08** | 0 | **0** | **0 / 0** | 28 / 28 ✅ | 34 / 34 ✅ | 0 خطای مرده ✅ | **کادرهای انتخاب چندگانه و کلیپ‌بورد دائمی (Multi-Selection Overlay & Persistent Clipboard)**: ترسیم همزمان باکس‌های انتخاب چندتایی در پرتال مستقل Overlay و ذخیره‌سازی ابری/محلی کلیپ‌بورد در localStorage برای کپی/پیست بین برگه‌ها |
 | **Round 09** | 0 | **0** | **0 / 0** | 28 / 28 ✅ | 34 / 34 ✅ | 0 خطای مرده ✅ | **پنل تاریخچه ویرایش‌ها و تایم‌لاین اقدامات (Elementor Revision History Parity)**: افزودن تب تاریخچه در سایدبار، متد jumpToHistoryStep در استور، پیمایش زنده در بازنگری‌ها و آزمون اشعه ایکس |
 | **Round 10** | 0 | **0** | **0 / 0** | 28 / 28 ✅ | 34 / 34 ✅ | 0 خطای مرده ✅ | **همگام‌سازی استایل‌های سراسری و توکن‌های دو لایه (Elementor Global Styles & Design Tokens Live Sync)**: توسعه دیالوگ استایل‌های سراسری با توکن‌های textColor و backgroundColor، تزریق آنی به سند Iframe بوم و تایید ۱۰۰٪ آزمون‌های اشعه ایکس |
+| **Round 11** | 0 | **0** | **0 / 0** | 28 / 28 ✅ | 34 / 34 ✅ | 0 خطای مرده ✅ | **بازتاب دقیق شناسه و کلاس‌های سفارشی CSS در بوم و کامپایلر (Custom CSS ID & Class Anchor Reflection)**: رفع نقص اتصال customCssId روی تگ‌های DOM بوم و کامپایلر بک‌اند جهت پیمایش و انکر لینک‌های صفحه |
+
+---
+
+## جزئیات راند ۱۱ (Round 11)
+
+- **شاخه ایزوله**: `claude/reverent-jang-441af1`
+- **تاریخ اجرا**: 2026-11-21
+- **وضعیت نهایی اشعه ایکس (.loop/XRAY_MATRIX.json)**:
+  - `totalFailures`: **0**
+  - `p0Count`: **0**
+  - `p1Count`: **0**
+  - `patterns`: ۲۸ از ۲۸ سبز (`passed: true`)
+  - `blocks`: ۳۴ از ۳۴ سبز (`passed: true`)
+  - `deadControls`: ۰ کنترل مرده
+  - `customCssIdReflection`: تایید اتصال دقیق شناسه و کلاس‌های CSS روی المنت‌های بوم و کامپایلر
+  - `globalStylesTwoLayerTokens`: سبز
+  - `historyTimelinePanel`: سبز
+  - `multiSelectionOverlay`: سبز
+  - `persistentClipboard`: سبز
+  - `wrapUnwrapContainer`: سبز
+  - `responsiveVisibility`: سبز
+  - `shortcutsModal`: سبز
+  - `hotkeyUndoRedo`: سبز
+  - `layersTreeDnD`: سبز
+  - `containerPresetPicker`: سبز
+  - `contextMenu`: سبز
+  - `categoryChipsClipping`: سبز و بدون بریدگی
+  - `dragAndDrop`: سبز
+  - `wysiwygParity`: تطابق ۱۰۰٪ بوم و صفحه نهایی
+
+### قابلیت‌های راند ۱۱:
+1. **اتصال و بازتاب زنده شناسه اختصاصی CSS (`customCssId`)**:
+   - اصلاح `canvas-element.tsx` برای درج شناسه `id={element.styles?.customCssId || undefined}` در تگ ریشه المان
+   - اصلاح کامپایلر سرور `ast_compiler.py` برای اختصاص دادن شناسه دلخواه کاربر به جای شناسه سیستمی جهت ساخت انکرهای ناوبری و اسکرول نرم درون‌صفحه‌ای
+2. **گسترش ممیزی خودکار اشعه ایکس**:
+   - آزمون شماره ۱۲ در `builder-xray.mjs` جهت بازتاب بلافاصله شناسه اختصاصی و کلاس‌های Tailwind تنظیم‌شده در تب Advanced روی DOM بوم ثبت و ۱۰۰٪ پاس گردید.
 
 ---
 

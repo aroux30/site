@@ -15,6 +15,7 @@ import { LayersTree } from "./layers-tree";
 import { CanvasFrame } from "./canvas-frame";
 import { CanvasDndLayer } from "./canvas-dnd-layer";
 import { InspectorPanel } from "./inspector-panel";
+import { BuilderContextMenu, type ContextMenuState } from "./builder-context-menu";
 
 export interface BuilderStudioProps {
   page: CmsPage;
@@ -52,7 +53,26 @@ export function BuilderStudio({ page, onExit }: BuilderStudioProps) {
   // ── Concurrent Editing Lock ───────────────────────────────────────────────
   const { lockedByOther, takeOver, release } = usePageEditingLock(page.id, "pages");
 
-  // ── Autosave Management ───────────────────────────────────────────────────
+  // ── Context Menu State ────────────────────────────────────────────────────
+  const [contextMenu, setContextMenu] = useState<ContextMenuState>({
+    isOpen: false,
+    x: 0,
+    y: 0,
+    elementId: null,
+  });
+
+  const handleOpenContextMenu = useCallback((e: React.MouseEvent, elementId: string) => {
+    setContextMenu({
+      isOpen: true,
+      x: e.clientX,
+      y: e.clientY,
+      elementId,
+    });
+  }, []);
+
+  const handleCloseContextMenu = useCallback(() => {
+    setContextMenu((prev) => ({ ...prev, isOpen: false, elementId: null }));
+  }, []);
   const [autosaveStatus, setAutosaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [lastSavedAt, setLastSavedAt] = useState<string | null>(null);
   const isAutosavingRef = useRef(false);
@@ -61,6 +81,9 @@ export function BuilderStudio({ page, onExit }: BuilderStudioProps) {
   // Initialize store on mount
   useEffect(() => {
     initPage(page.id, page.builder_data, page.title, page.slug);
+    if (typeof window !== "undefined") {
+      (window as any).__builderStore = useBuilderStore;
+    }
   }, [page.id, page.builder_data, page.title, page.slug, initPage]);
 
   // Clean up lock on unmount
@@ -255,7 +278,7 @@ export function BuilderStudio({ page, onExit }: BuilderStudioProps) {
 
             {/* Sidebar Tab Content */}
             <div className="flex-1 overflow-hidden">
-              {activeLeftTab === "blocks" ? <BlocksPalette /> : <LayersTree />}
+              {activeLeftTab === "blocks" ? <BlocksPalette /> : <LayersTree onContextMenu={handleOpenContextMenu} />}
             </div>
           </aside>
         )}
@@ -273,7 +296,7 @@ export function BuilderStudio({ page, onExit }: BuilderStudioProps) {
           {/* DnD lives INSIDE the iframe (CanvasDndLayer). A DndContext in this
               document never receives pointer moves fired inside the canvas
               document, so drags silently failed to start. */}
-          <CanvasFrame viewport={activeBreakpoint}>
+          <CanvasFrame viewport={activeBreakpoint} onContextMenu={handleOpenContextMenu}>
             <CanvasDndLayer
               elements={ast.rootElements}
               activeBreakpoint={activeBreakpoint}
@@ -288,6 +311,12 @@ export function BuilderStudio({ page, onExit }: BuilderStudioProps) {
           </aside>
         )}
       </div>
+
+      {/* Context Menu (Elementor Right-Click Parity) */}
+      <BuilderContextMenu
+        menu={contextMenu}
+        onClose={handleCloseContextMenu}
+      />
     </div>
   );
 }

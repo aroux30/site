@@ -13,26 +13,27 @@ export function generateElementId(prefix = "el"): string {
 function createContainerNode(
   name: string,
   options: {
-    layout?: BuilderElement["layout"];
+    layout?: Partial<BuilderElement["layout"]>;
     customCssClass?: string;
     children?: BuilderElement[];
   } = {}
 ): BuilderElement {
+  const defaultLayout: BuilderElement["layout"] = {
+    kind: "flex",
+    direction: "column",
+    justifyContent: "start",
+    alignItems: "stretch",
+    flexWrap: "nowrap",
+    gap: { value: 16, unit: "px" },
+    gridColumns: 1,
+  };
   return {
     id: generateElementId("cont"),
     name,
     type: "container",
     isLocked: false,
     isHidden: false,
-    layout: options.layout || {
-      kind: "flex",
-      direction: "column",
-      justifyContent: "start",
-      alignItems: "stretch",
-      flexWrap: "nowrap",
-      gap: { value: 16, unit: "px" },
-      gridColumns: 1,
-    },
+    layout: options.layout ? { ...defaultLayout, ...options.layout } as BuilderElement["layout"] : defaultLayout,
     styles: {
       mobile: {},
       customCssClass: options.customCssClass || undefined,
@@ -63,17 +64,32 @@ function createHeadingWidget(
 }
 
 function createTextWidget(content: string, customCssClass?: string): BuilderElement {
+  let derivedClass = customCssClass || "";
+
+  // Extract class names if not explicitly provided
+  if (!customCssClass) {
+    const classMatches = content.matchAll(/class="([^"]*)"/gi);
+    const classes: string[] = [];
+    for (const m of classMatches) {
+      if (m[1]) classes.push(m[1]);
+    }
+    if (classes.length > 0) derivedClass = classes.join(" ");
+  }
+
+  // Strip all HTML tags to produce pure clean text for inline editing and clean inspector input
+  const cleanText = content.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+
   return {
     id: generateElementId("text"),
     name: "متن و پاراگراف",
     type: "widget",
     widgetType: "text_editor",
-    widgetProps: { content, customCssClass: customCssClass || undefined },
+    widgetProps: { content: cleanText, customCssClass: derivedClass.trim() || undefined },
     isLocked: false,
     isHidden: false,
     styles: {
       mobile: {},
-      customCssClass: customCssClass || undefined,
+      customCssClass: derivedClass.trim() || undefined,
     },
     children: [],
   };
@@ -778,7 +794,7 @@ export function createPatternAST(
         layout: { kind: "flex", direction: "row", justifyContent: "start", alignItems: "center", flexWrap: "nowrap", gap: { value: 8, unit: "px" }, gridColumns: 1 },
         children: [
           createHeadingWidget(`★★★★☆ ${rating}`, "h4", "text-amber-400 font-bold text-sm"),
-          createTextWidget(`<span class="text-xs text-muted-foreground">(${reviewCount} نظر)</span>`),
+          createTextWidget(`(${reviewCount} نظر)`, "text-xs text-muted-foreground"),
         ],
       });
     }
@@ -791,15 +807,46 @@ export function createPatternAST(
         customCssClass: "rounded-2xl border bg-background p-6 space-y-4",
         children: [
           createHeadingWidget(`میانگین امتیاز: ${average} از ۵ (${total} نظر ثبت شده)`, "h3", "text-lg font-bold text-foreground"),
-          createTextWidget(
-            `<div class="space-y-2 text-sm text-muted-foreground">` +
-              `<div class="flex justify-between"><span>۵ ستاره</span><span class="font-bold">${vars.star5 || "۶۱"}٪</span></div>` +
-              `<div class="flex justify-between"><span>۴ ستاره</span><span class="font-bold">${vars.star4 || "۴۲"}٪</span></div>` +
-              `<div class="flex justify-between"><span>۳ ستاره</span><span class="font-bold">${vars.star3 || "۱۵"}٪</span></div>` +
-              `<div class="flex justify-between"><span>۲ ستاره</span><span class="font-bold">${vars.star2 || "۷"}٪</span></div>` +
-              `<div class="flex justify-between"><span>۱ ستاره</span><span class="font-bold">${vars.star1 || "۳"}٪</span></div>` +
-            `</div>`
-          ),
+          createContainerNode("سطرهای درصد امتیازها", {
+            customCssClass: "space-y-2 text-sm text-muted-foreground",
+            children: [
+              createContainerNode("سطر ۵ ستاره", {
+                layout: { kind: "flex", direction: "row", justifyContent: "between", alignItems: "center" },
+                children: [
+                  createTextWidget("۵ ستاره"),
+                  createTextWidget(`${vars.star5 || "۶۱"}٪`, "font-bold text-foreground"),
+                ],
+              }),
+              createContainerNode("سطر ۴ ستاره", {
+                layout: { kind: "flex", direction: "row", justifyContent: "between", alignItems: "center" },
+                children: [
+                  createTextWidget("۴ ستاره"),
+                  createTextWidget(`${vars.star4 || "۴۲"}٪`, "font-bold text-foreground"),
+                ],
+              }),
+              createContainerNode("سطر ۳ ستاره", {
+                layout: { kind: "flex", direction: "row", justifyContent: "between", alignItems: "center" },
+                children: [
+                  createTextWidget("۳ ستاره"),
+                  createTextWidget(`${vars.star3 || "۱۵"}٪`, "font-bold text-foreground"),
+                ],
+              }),
+              createContainerNode("سطر ۲ ستاره", {
+                layout: { kind: "flex", direction: "row", justifyContent: "between", alignItems: "center" },
+                children: [
+                  createTextWidget("۲ ستاره"),
+                  createTextWidget(`${vars.star2 || "۷"}٪`, "font-bold text-foreground"),
+                ],
+              }),
+              createContainerNode("سطر ۱ ستاره", {
+                layout: { kind: "flex", direction: "row", justifyContent: "between", alignItems: "center" },
+                children: [
+                  createTextWidget("۱ ستاره"),
+                  createTextWidget(`${vars.star1 || "۳"}٪`, "font-bold text-foreground"),
+                ],
+              }),
+            ],
+          }),
         ],
       });
     }
@@ -832,7 +879,7 @@ export function createPatternAST(
                 children: [
                   createImageWidget(p.img, p.name, "h-48 w-full object-cover rounded-lg"),
                   createHeadingWidget(p.name, "h3", "font-bold text-base text-foreground"),
-                  createTextWidget(`<div class="font-bold text-primary">${p.price}</div>`),
+                  createTextWidget(p.price, "font-bold text-primary"),
                   createButtonWidget("مشاهده و خرید", p.url, "w-full text-center"),
                 ],
               })
@@ -850,7 +897,7 @@ export function createPatternAST(
           createContainerNode("نوار اعلانات", {
             layout: { kind: "flex", direction: "row", justifyContent: "around", alignItems: "center", flexWrap: "wrap", gap: { value: 16, unit: "px" }, gridColumns: 1 },
             children: texts.map((t, idx) =>
-              createTextWidget(`<span class="font-semibold text-foreground">✦ ${t}</span>`)
+              createTextWidget(`✦ ${t}`, "font-semibold text-foreground")
             ),
           }),
         ],
@@ -875,7 +922,7 @@ export function createPatternAST(
                 customCssClass: "text-center flex flex-col space-y-1",
                 children: [
                   createHeadingWidget(s.val, "h3", "text-3xl font-extrabold text-primary"),
-                  createTextWidget(`<span class="text-xs text-muted-foreground font-semibold">${s.lbl}</span>`),
+                  createTextWidget(s.lbl, "text-xs text-muted-foreground font-semibold"),
                 ],
               })
             ),
@@ -1001,12 +1048,12 @@ export function createPatternAST(
                 }`,
                 children: [
                   p.badge
-                    ? createTextWidget(`<span class="inline-block text-[10px] font-bold bg-primary text-primary-foreground px-2 py-0.5 rounded-full mb-2">${p.badge}</span>`)
+                    ? createTextWidget(p.badge, "inline-block text-[10px] font-bold bg-primary text-primary-foreground px-2 py-0.5 rounded-full mb-2")
                     : null,
                   createHeadingWidget(p.name, "h3", "text-xl font-bold"),
-                  createTextWidget(`<p class="text-xs text-muted-foreground">${p.desc}</p>`),
+                  createTextWidget(p.desc, "text-xs text-muted-foreground"),
                   createHeadingWidget(p.price, "h4", "text-2xl font-black text-primary my-3"),
-                  createTextWidget(`<ul class="text-xs space-y-2 text-muted-foreground">${p.features.map(f => `<li>✓ ${f}</li>`).join("")}</ul>`),
+                  createTextWidget(p.features.map(f => `✓ ${f}`).join("\n"), "text-xs space-y-2 text-muted-foreground whitespace-pre-line"),
                   createButtonWidget(p.cta, p.url, `w-full mt-6 ${p.isFeatured ? "bg-primary text-primary-foreground font-bold" : ""}`),
                 ].filter(Boolean) as BuilderElement[],
               })
@@ -1125,7 +1172,7 @@ export function createPatternAST(
         customCssClass: "my-8 border-s-4 border-primary bg-muted/30 p-6 rounded-e-xl space-y-3",
         children: [
           createHeadingWidget(`«${quoteText}»`, "h3", "text-lg md:text-xl font-semibold italic text-foreground leading-relaxed"),
-          createTextWidget(`<div class="text-xs text-muted-foreground"><strong>${authorName}</strong> - ${authorTitle} (${sourceNote})</div>`),
+          createTextWidget(`${authorName} - ${authorTitle} (${sourceNote})`, "text-xs text-muted-foreground font-semibold"),
         ],
       });
     }
@@ -1267,7 +1314,7 @@ export function createPatternAST(
             layout: { kind: "flex", direction: "column", justifyContent: "start", alignItems: "stretch", flexWrap: "nowrap", gap: { value: 4, unit: "px" }, gridColumns: 1 },
             children: [
               createHeadingWidget(`${icon} ${badge}: ${title}`, "h4", "font-bold text-sm text-foreground"),
-              createTextWidget(`<span class="text-xs text-muted-foreground">${description}</span>`),
+              createTextWidget(description, "text-xs text-muted-foreground"),
             ],
           }),
           createButtonWidget(ctaText, ctaUrl, "text-xs font-semibold px-4 py-1.5 rounded-lg bg-amber-500 text-white"),
@@ -1287,7 +1334,7 @@ export function createPatternAST(
             layout: { kind: "flex", direction: "column", justifyContent: "start", alignItems: "stretch", flexWrap: "nowrap", gap: { value: 4, unit: "px" }, gridColumns: 1 },
             children: [
               createHeadingWidget(heading, "h4", "text-sm font-bold text-foreground"),
-              createTextWidget(`<span class="text-xs text-emerald-600 font-semibold">● ${statusText}</span>`),
+              createTextWidget(`● ${statusText}`, "text-xs text-emerald-600 font-semibold"),
             ],
           }),
           createContainerNode("دکمه‌های ارتباطی", {
@@ -1314,16 +1361,16 @@ export function createPatternAST(
             customCssClass: "space-y-1",
             children: [
               createHeadingWidget(title, "h2", "text-xl font-bold text-foreground"),
-              createTextWidget(`<p class="text-xs text-muted-foreground">${subtitle}</p>`),
+              createTextWidget(subtitle, "text-xs text-muted-foreground"),
             ],
           }),
           createContainerNode("شبکه لوگوها", {
             layout: { kind: "grid", direction: "row", justifyContent: "between", alignItems: "stretch", flexWrap: "wrap", gap: { value: 12, unit: "px" }, gridColumns: 6 },
             children: logos.map((b) =>
-              createTextWidget(`<div class="rounded-lg border bg-background p-3 text-xs font-bold text-muted-foreground text-center">${b}</div>`)
+              createTextWidget(String(b || ""), "rounded-lg border bg-background p-3 text-xs font-bold text-muted-foreground text-center")
             ),
           }),
-          createTextWidget(`<p class="text-xs text-muted-foreground/80 font-medium">${vars.trust_badge || ""}</p>`),
+          createTextWidget(vars.trust_badge || "", "text-xs text-muted-foreground/80 font-medium"),
         ],
       });
     }

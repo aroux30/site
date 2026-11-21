@@ -1,0 +1,574 @@
+{
+  "timestamp": "2026-11-21T04:12:20.278Z",
+  "summary": {
+    "totalChecks": 69,
+    "passedChecks": 69,
+    "failedChecks": 0,
+    "totalFailures": 0,
+    "p0Count": 0,
+    "p1Count": 0,
+    "p2Count": 0,
+    "patternsPassed": "28/28",
+    "blocksPassed": "34/34",
+    "deadControlsRemaining": 0
+  },
+  "patterns": [
+    {
+      "index": 1,
+      "slug": "hero-banner",
+      "passed": true,
+      "failures": [],
+      "checkA": true,
+      "checkB": true,
+      "checkC": true,
+      "checkD": true,
+      "checkE": true
+    },
+    {
+      "index": 2,
+      "slug": "feature-grid",
+      "passed": true,
+      "failures": [],
+      "checkA": true,
+      "checkB": true,
+      "checkC": true,
+      "checkD": true,
+      "checkE": true
+    },
+    {
+      "index": 3,
+      "slug": "product-showcase-cta",
+      "passed": true,
+      "failures": [],
+      "checkA": true,
+      "checkB": true,
+      "checkC": true,
+      "checkD": true,
+      "checkE": true
+    },
+    {
+      "index": 4,
+      "slug": "testimonials",
+      "passed": true,
+      "failures": [],
+      "checkA": true,
+      "checkB": true,
+      "checkC": true,
+      "checkD": true,
+      "checkE": true
+    },
+    {
+      "index": 5,
+      "slug": "faq-accordion",
+      "passed": true,
+      "failures": [],
+      "checkA": true,
+      "checkB": true,
+      "checkC": true,
+      "checkD": true,
+      "checkE": true
+    },
+    {
+      "index": 6,
+      "slug": "image-text",
+      "passed": true,
+      "failures": [],
+      "checkA": true,
+      "checkB": true,
+      "checkC": true,
+      "checkD": true,
+      "checkE": true
+    },
+    {
+      "index": 7,
+      "slug": "countdown-offer",
+      "passed": true,
+      "failures": [],
+      "checkA": true,
+      "checkB": true,
+      "checkC": true,
+      "checkD": true,
+      "checkE": true
+    },
+    {
+      "index": 8,
+      "slug": "star-rating-display",
+      "passed": true,
+      "failures": [],
+      "checkA": true,
+      "checkB": true,
+      "checkC": true,
+      "checkD": true,
+      "checkE": true
+    },
+    {
+      "index": 9,
+      "slug": "review-histogram",
+      "passed": true,
+      "failures": [],
+      "checkA": true,
+      "checkB": true,
+      "checkC": true,
+      "checkD": true,
+      "checkE": true
+    },
+    {
+      "index": 10,
+      "slug": "product-card-grid",
+      "passed": true,
+      "failures": [],
+      "checkA": true,
+      "checkB": true,
+      "checkC": true,
+      "checkD": true,
+      "checkE": true
+    },
+    {
+      "index": 11,
+      "slug": "text-marquee",
+      "passed": true,
+      "failures": [],
+      "checkA": true,
+      "checkB": true,
+      "checkC": true,
+      "checkD": true,
+      "checkE": true
+    },
+    {
+      "index": 12,
+      "slug": "stats-counter",
+      "passed": true,
+      "failures": [],
+      "checkA": true,
+      "checkB": true,
+      "checkC": true,
+      "checkD": true,
+      "checkE": true
+    },
+    {
+      "index": 13,
+      "slug": "image-gallery-showcase",
+      "passed": true,
+      "failures": [],
+      "checkA": true,
+      "checkB": true,
+      "checkC": true,
+      "checkD": true,
+      "checkE": true
+    },
+    {
+      "index": 14,
+      "slug": "discount-badge-banner",
+      "passed": true,
+      "failures": [],
+      "checkA": true,
+      "checkB": true,
+      "checkC": true,
+      "checkD": true,
+      "checkE": true
+    },
+    {
+      "index": 15,
+      "slug": "mega-menu-categories",
+      "passed": true,
+      "failures": [],
+      "checkA": true,
+      "checkB": true,
+      "checkC": true,
+      "checkD": true,
+      "checkE": true
+    },
+    {
+      "index": 16,
+      "slug": "pricing-table",
+      "passed": true,
+      "failures": [],
+      "checkA": true,
+      "checkB": true,
+      "checkC": true,
+      "checkD": true,
+      "checkE": true
+    },
+    {
+      "index": 17,
+      "slug": "price-list",
+      "passed": true,
+      "failures": [],
+      "checkA": true,
+      "checkB": true,
+      "checkC": true,
+      "checkD": true,
+      "checkE": true
+    },
+    {
+      "index": 18,
+      "slug": "icon-box-grid",
+      "passed": true,
+      "failures": [],
+      "checkA": true,
+      "checkB": true,
+      "checkC": true,
+      "checkD": true,
+      "checkE": true
+    },
+    {
+      "index": 19,
+      "slug": "author-bio",
+      "passed": true,
+      "failures": [],
+      "checkA": true,
+      "checkB": true,
+      "checkC": true,
+      "checkD": true,
+      "checkE": true
+    },
+    {
+      "index": 20,
+      "slug": "pull-quote",
+      "passed": true,
+      "failures": [],
+      "checkA": true,
+      "checkB": true,
+      "checkC": true,
+      "checkD": true,
+      "checkE": true
+    },
+    {
+      "index": 21,
+      "slug": "support-callout",
+      "passed": true,
+      "failures": [],
+      "checkA": true,
+      "checkB": true,
+      "checkC": true,
+      "checkD": true,
+      "checkE": true
+    },
+    {
+      "index": 22,
+      "slug": "comparison-table",
+      "passed": true,
+      "failures": [],
+      "checkA": true,
+      "checkB": true,
+      "checkC": true,
+      "checkD": true,
+      "checkE": true
+    },
+    {
+      "index": 23,
+      "slug": "process-steps",
+      "passed": true,
+      "failures": [],
+      "checkA": true,
+      "checkB": true,
+      "checkC": true,
+      "checkD": true,
+      "checkE": true
+    },
+    {
+      "index": 24,
+      "slug": "lead-capture-form",
+      "passed": true,
+      "failures": [],
+      "checkA": true,
+      "checkB": true,
+      "checkC": true,
+      "checkD": true,
+      "checkE": true
+    },
+    {
+      "index": 25,
+      "slug": "alert-banner",
+      "passed": true,
+      "failures": [],
+      "checkA": true,
+      "checkB": true,
+      "checkC": true,
+      "checkD": true,
+      "checkE": true
+    },
+    {
+      "index": 26,
+      "slug": "floating-contact-bar",
+      "passed": true,
+      "failures": [],
+      "checkA": true,
+      "checkB": true,
+      "checkC": true,
+      "checkD": true,
+      "checkE": true
+    },
+    {
+      "index": 27,
+      "slug": "brand-logo-carousel",
+      "passed": true,
+      "failures": [],
+      "checkA": true,
+      "checkB": true,
+      "checkC": true,
+      "checkD": true,
+      "checkE": true
+    },
+    {
+      "index": 28,
+      "slug": "product-highlights",
+      "passed": true,
+      "failures": [],
+      "checkA": true,
+      "checkB": true,
+      "checkC": true,
+      "checkD": true,
+      "checkE": true
+    }
+  ],
+  "blocks": [
+    {
+      "index": 1,
+      "type": "container",
+      "name": "کانتینر (Container)",
+      "passed": true,
+      "failures": []
+    },
+    {
+      "index": 2,
+      "type": "section",
+      "name": "بخش کامل (Section)",
+      "passed": true,
+      "failures": []
+    },
+    {
+      "index": 3,
+      "type": "columns",
+      "name": "دو ستونه (2 Columns)",
+      "passed": true,
+      "failures": []
+    },
+    {
+      "index": 4,
+      "type": "form_container",
+      "name": "فرم سازنده (Form Container)",
+      "passed": true,
+      "failures": []
+    },
+    {
+      "index": 5,
+      "type": "heading",
+      "name": "سرتیتر (Heading)",
+      "passed": true,
+      "failures": []
+    },
+    {
+      "index": 6,
+      "type": "text_editor",
+      "name": "پاراگراف متن (Paragraph)",
+      "passed": true,
+      "failures": []
+    },
+    {
+      "index": 7,
+      "type": "image",
+      "name": "تصویر (Image)",
+      "passed": true,
+      "failures": []
+    },
+    {
+      "index": 8,
+      "type": "button",
+      "name": "دکمه اقدام (Button)",
+      "passed": true,
+      "failures": []
+    },
+    {
+      "index": 9,
+      "type": "spacer",
+      "name": "فاصله‌ساز (Spacer)",
+      "passed": true,
+      "failures": []
+    },
+    {
+      "index": 10,
+      "type": "divider",
+      "name": "خط جداکننده (Divider)",
+      "passed": true,
+      "failures": []
+    },
+    {
+      "index": 11,
+      "type": "table",
+      "name": "جدول داده (Table)",
+      "passed": true,
+      "failures": []
+    },
+    {
+      "index": 12,
+      "type": "form_input",
+      "name": "فیلد ورودی متن (Input)",
+      "passed": true,
+      "failures": []
+    },
+    {
+      "index": 13,
+      "type": "form_textarea",
+      "name": "متن چندخطی (Textarea)",
+      "passed": true,
+      "failures": []
+    },
+    {
+      "index": 14,
+      "type": "form_select",
+      "name": "منوی کشویی (Select)",
+      "passed": true,
+      "failures": []
+    },
+    {
+      "index": 15,
+      "type": "product_card",
+      "name": "کارت محصول (Product Card)",
+      "passed": true,
+      "failures": []
+    },
+    {
+      "index": 16,
+      "type": "product_grid",
+      "name": "ویترین محصولات (Product Grid)",
+      "passed": true,
+      "failures": []
+    },
+    {
+      "index": 17,
+      "type": "product_variants",
+      "name": "تنوع محصول (Product Variants)",
+      "passed": true,
+      "failures": []
+    },
+    {
+      "index": 18,
+      "type": "product_price",
+      "name": "قیمت محصول (Product Price)",
+      "passed": true,
+      "failures": []
+    },
+    {
+      "index": 19,
+      "type": "add_to_cart",
+      "name": "دکمه خرید (Add to Cart)",
+      "passed": true,
+      "failures": []
+    },
+    {
+      "index": 20,
+      "type": "mini_cart",
+      "name": "مینی کارت (Mini Cart)",
+      "passed": true,
+      "failures": []
+    },
+    {
+      "index": 21,
+      "type": "cart_summary",
+      "name": "خلاصه سبد خرید (Cart Summary)",
+      "passed": true,
+      "failures": []
+    },
+    {
+      "index": 22,
+      "type": "form_checkbox",
+      "name": "چک‌باکس فرم (Checkbox)",
+      "passed": true,
+      "failures": []
+    },
+    {
+      "index": 23,
+      "type": "form_radio",
+      "name": "دکمه رادیویی (Radio Group)",
+      "passed": true,
+      "failures": []
+    },
+    {
+      "index": 24,
+      "type": "accordion",
+      "name": "آکاردئون (Accordion)",
+      "passed": true,
+      "failures": []
+    },
+    {
+      "index": 25,
+      "type": "tabs",
+      "name": "تب‌های محتوا (Tabs)",
+      "passed": true,
+      "failures": []
+    },
+    {
+      "index": 26,
+      "type": "countdown",
+      "name": "شمارنده معکوس (Countdown)",
+      "passed": true,
+      "failures": []
+    },
+    {
+      "index": 27,
+      "type": "video",
+      "name": "پخش‌کننده ویدئو (Video)",
+      "passed": true,
+      "failures": []
+    },
+    {
+      "index": 28,
+      "type": "icon_box",
+      "name": "باکس آیکون و ویژگی (Icon Box)",
+      "passed": true,
+      "failures": []
+    },
+    {
+      "index": 29,
+      "type": "social_links",
+      "name": "شبکه‌های اجتماعی (Social Links)",
+      "passed": true,
+      "failures": []
+    },
+    {
+      "index": 30,
+      "type": "image_gallery",
+      "name": "گالری تصاویر (Image Gallery)",
+      "passed": true,
+      "failures": []
+    },
+    {
+      "index": 31,
+      "type": "star_rating",
+      "name": "امتیاز ستاره‌ای (Star Rating)",
+      "passed": true,
+      "failures": []
+    },
+    {
+      "index": 32,
+      "type": "review_histogram",
+      "name": "نمودار نظرات (Review Histogram)",
+      "passed": true,
+      "failures": []
+    },
+    {
+      "index": 33,
+      "type": "recently_viewed",
+      "name": "بازدیدهای اخیر (Recently Viewed)",
+      "passed": true,
+      "failures": []
+    },
+    {
+      "index": 34,
+      "type": "mega_menu",
+      "name": "مگامنو (Mega Menu)",
+      "passed": true,
+      "failures": []
+    }
+  ],
+  "deadControls": [],
+  "studioChecks": {
+    "categoryChipsClipped": false,
+    "horizontalOverflow": false,
+    "dndPassed": false,
+    "wysiwygParityPassed": true,
+    "failures": []
+  },
+  "failures": []
+}

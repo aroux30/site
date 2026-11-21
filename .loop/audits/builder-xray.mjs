@@ -293,13 +293,13 @@ async function runXRayAudit() {
 
     // Insert pattern
     await card.click();
-    // Wait for rendering to complete
-    await page.waitForTimeout(1000);
-
+    // Wait for rendering to complete (wait up to 5s for element to appear)
     const { frame } = await getCanvasFrame();
+    const rootEl = frame.locator("[data-element-id]").first();
+    await rootEl.waitFor({ timeout: 5000 }).catch(() => {});
+    await page.waitForTimeout(400);
 
     // Check root element inside canvas
-    const rootEl = frame.locator("[data-element-id]").first();
     const count = await rootEl.count();
     if (count === 0) {
       const msg = `Pattern "${p.slug}" did not insert any element into canvas!`;

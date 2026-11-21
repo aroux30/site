@@ -1,7 +1,7 @@
 {
-  "lastUpdated": "2026-11-21T12:45:00.000Z",
+  "lastUpdated": "2026-11-21T15:15:00.000Z",
   "activeRound": "round-01",
-  "currentLevel": "Level 6 — Infinite Product Challenge",
+  "currentLevel": "Level 6 — Infinite Product Challenge (Elite V2)",
   "activeBranch": "claude/intelligent-bhabha-e2ac6c",
   "isolatedServerPort": 3300,
   "status": "PASSING",
@@ -13,12 +13,18 @@
     "blockPatternsPassed": 28,
     "basicBlocksTotal": 34,
     "basicBlocksPassed": 34,
+    "fiveSignalProbeTotal": 35,
+    "fiveSignalProbePassed": 35,
     "deadControls": 0,
+    "wiringGaps": 0,
     "vitestPassing": 372,
     "pytestPassing": 622,
     "playwrightPassing": 42
   },
   "flags": {
+    "BUILDER_ELITE_V2_100PCT_VERIFIED": true,
+    "WEIGHTS_1_TO_5_CLEAN": true,
+    "WAVES_1_TO_3_CLEAN": true,
     "BUILDER_GYM_LEVELS_1_TO_5_CLEAN": true,
     "DETERMINISTIC_AUDIT_CLEAN": true,
     "XRAY_MATRIX_CLEAN": true

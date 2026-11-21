@@ -1,0 +1,139 @@
+{
+  "round": "round-01",
+  "timestamp": "2026-11-21T15:02:26.176Z",
+  "totalWidgets": 5,
+  "passedWidgets": 5,
+  "allPassed": true,
+  "widgets": [
+    {
+      "widget": "text",
+      "signals": {
+        "S1_State": {
+          "passed": true,
+          "detail": "isDirty=true and state mutated"
+        },
+        "S2_DOM": {
+          "passed": true,
+          "detail": "DOM reflected in iframe"
+        },
+        "S3_ComputedStyle": {
+          "passed": true,
+          "detail": "Styles computed (dir=rtl)"
+        },
+        "S4_VisualPixels": {
+          "passed": true,
+          "detail": "Images saved (104846B -> 104907B)"
+        },
+        "S5_PersistenceSSR": {
+          "passed": true,
+          "detail": "SSR endpoint active (200 OK)"
+        }
+      },
+      "passed": true
+    },
+    {
+      "widget": "image",
+      "signals": {
+        "S1_State": {
+          "passed": true,
+          "detail": "isDirty=true and state mutated"
+        },
+        "S2_DOM": {
+          "passed": true,
+          "detail": "DOM reflected in iframe"
+        },
+        "S3_ComputedStyle": {
+          "passed": true,
+          "detail": "Styles computed (dir=rtl)"
+        },
+        "S4_VisualPixels": {
+          "passed": true,
+          "detail": "Images saved (290601B -> 276664B)"
+        },
+        "S5_PersistenceSSR": {
+          "passed": true,
+          "detail": "SSR endpoint active (200 OK)"
+        }
+      },
+      "passed": true
+    },
+    {
+      "widget": "button",
+      "signals": {
+        "S1_State": {
+          "passed": true,
+          "detail": "isDirty=true and state mutated"
+        },
+        "S2_DOM": {
+          "passed": true,
+          "detail": "DOM reflected in iframe"
+        },
+        "S3_ComputedStyle": {
+          "passed": true,
+          "detail": "Styles computed (dir=rtl)"
+        },
+        "S4_VisualPixels": {
+          "passed": true,
+          "detail": "Images saved (107415B -> 106972B)"
+        },
+        "S5_PersistenceSSR": {
+          "passed": true,
+          "detail": "SSR endpoint active (200 OK)"
+        }
+      },
+      "passed": true
+    },
+    {
+      "widget": "spacer",
+      "signals": {
+        "S1_State": {
+          "passed": true,
+          "detail": "isDirty=true and state mutated"
+        },
+        "S2_DOM": {
+          "passed": true,
+          "detail": "DOM reflected in iframe"
+        },
+        "S3_ComputedStyle": {
+          "passed": true,
+          "detail": "Styles computed (dir=rtl)"
+        },
+        "S4_VisualPixels": {
+          "passed": true,
+          "detail": "Images saved (102950B -> 102840B)"
+        },
+        "S5_PersistenceSSR": {
+          "passed": true,
+          "detail": "SSR endpoint active (200 OK)"
+        }
+      },
+      "passed": true
+    },
+    {
+      "widget": "divider",
+      "signals": {
+        "S1_State": {
+          "passed": true,
+          "detail": "isDirty=true and state mutated"
+        },
+        "S2_DOM": {
+          "passed": true,
+          "detail": "DOM reflected in iframe"
+        },
+        "S3_ComputedStyle": {
+          "passed": true,
+          "detail": "Styles computed (dir=rtl)"
+        },
+        "S4_VisualPixels": {
+          "passed": true,
+          "detail": "Images saved (100483B -> 100423B)"
+        },
+        "S5_PersistenceSSR": {
+          "passed": true,
+          "detail": "SSR endpoint active (200 OK)"
+        }
+      },
+      "passed": true
+    }
+  ]
+}

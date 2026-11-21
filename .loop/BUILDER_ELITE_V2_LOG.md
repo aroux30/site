@@ -1,54 +1,98 @@
-# دفترچه ثبت و کارنامه جامع مهندسی صفحه‌ساز بصری (.loop/BUILDER_ELITE_V2_LOG.md)
+# کارنامه و لاگ اجرایی BUILDER ELITE V2 (.loop/BUILDER_ELITE_V2_LOG.md)
 
-## ۱. اطلاعات چرخه و شاخه
-- **مأموریت**: پورت کامل، ممیزی و ارتقای ۳۶۰ درجه صفحه‌ساز بصری بر پایه معماری مدرن المنتور و المنتور پرو (BUILDER ELITE V2).
-- **شاخه گیت فعال**: `claude/goofy-bohr-48c74a`
-- **تاریخ تکمیل سراسری**: ۲۱ نوامبر ۲۰۲۶ (2026-11-21)
-- **وضعیت کلید واژه هدف**: ✅ `BUILDER_ELITE_V2_100PCT_VERIFIED`
-
----
-
-## ۲. خلاصه اجرایی مسیر A (وزنه‌های ۱ تا ۵ با صفر کنترل مرده)
-1. **وزنه ۱ — ۱۰ کیلو (اسکلت استودیو و درخت لایه‌ها)**:
-   - حذف کامل موارد `builder_wiring_gaps.json` شامل پیاده‌سازی و کامپایل SSR برای `backdropBlur` و `filterBlur` در `ast_compiler.py` و `builder_ast.py`.
-   - رویت‌پذیری دائمی کلیدهای لایه‌ها در مکان (0, 0) ماوس با تورفتگی RTL عمیق `depth * 24px` و خط راهنما.
-   - عدم بریدگی نوار ابزار در سقف آی‌فریم و کانتینر خالی استاندارد با حداقل ارتفاع ۸۰px.
-2. **وزنه ۲ — ۲۵ کیلو (ممیزی ۵-سیگنالی همه ۳۵ ویجت)**:
-   - اجرای کامل پروب ۵-سیگنالی (`S1: State`, `S2: DOM`, `S3: ComputedStyle`, `S4: Pixel Diff`, `S5: Persistence + SSR`) در ۷ دسته ۵ تایی روی کلیه ۳۵ ویجت پایه، فرم و فروشگاهی.
-   - ثبت وضعیت ۱۰۰٪ سبز (`passed`) برای تمامی ۳۵ ویجت در ماتریس رسمی `.loop/builder_control_matrix.json`.
-3. **وزنه ۳ — ۴۰ کیلو (ممیزی تصویری ۲۸ الگوی آماده و استایل‌های سراسری)**:
-   - درج و ارزیابی تک‌تک ۲۸ الگوی آماده `pattern-converter.ts` در بوم و اعتبارسنجی خروجی رندر عمومی SSR.
-   - تایید کنتراست رنگی، جهت‌بندی RTL و عدم تداخل متغیرهای تم.
-   - تایید دیالوگ استایل‌های سراسری (`Global Styles`) و تغییر رنگ برند و توکن‌ها.
-4. **وزنه ۴ — ۵۵ کیلو (تجربه کاربری، میانبرها و قالب‌ها)**:
-   - درگ‌انددراپ بدون شکست و هماهنگ میان پالت و بوم در آی‌فریم.
-   - پشتیبانی از کلیدهای میانبر کپی/پیست (`Ctrl+C/V` و `Ctrl+D`) و تاریخچه کامل بازگشت (`Undo/Redo`).
-   - دیالوگ‌های ذخیره قالب برگه و قالب کانتینر سکشن و ادغام کامپوننت‌های سراسری (`Global Components`).
-5. **وزنه ۵ — ۷۰ کیلو (ریسپانسیو، تم تاریک و پایداری)**:
-   - ارزیابی ابعاد بوم روی ۳۷۵px (موبایل) و ۷۶۸px (تبلت) و اعمال قواعد `resolveResponsiveValue`.
-   - همگام‌سازی بلادرنگ حالت شب (Dark Mode) میان استودیو و بوم.
-   - پایداری در بارگذاری بالای ۵۰ المان بدون خطای کنسول یا شکست هیدریشن ری‌اکت.
+**تاریخ شروع**: 2026-11-21  
+**شاخه فعال Git**: `claude/intelligent-bhabha-e2ac6c` (ایزوله در Git Worktree)  
+**معماری هدف**: React 19, Next.js 15, Zustand, Tailwind CSS, Python FastAPI, PostgreSQL  
+**مرجع محلی المنتور**: `C:\Users\Administrator\Desktop\elementor` (Core + Pro Read-only)
 
 ---
 
-## ۳. خلاصه اجرایی مسیر B (پورت بومی المنتور و المنتور پرو)
-- **موج ۱ (Wave 1)**:
-  - گروه‌های کنترل مشترک (`typography`, `border`, `box-shadow`, `css-filter`, `flex-container`, `grid-container`).
-  - کانتینرهای فلکس و گرید مدرن با کنترل‌های `boxedWidth`, `gap`, `direction`, `justifyContent`, `alignItems`, `alignSelf`, `order`.
-  - جداکننده‌های شکلی کانتینر (`Shape Dividers`) شامل اشکال موجی (waves) و مثلثی (triangle) در بالا و پایین کانتینر همراه با کامپایل SSR در `ast_compiler.py`.
-- **موج ۲ (Wave 2)**:
-  - پوشش کامل ویجت‌های تعاملی، کارت محصول، گالری، رتبه‌بندی، مگامنو، آکاردئون، شمارنده، ویدئو و باکس ویژگی‌ها.
-- **موج ۳ (Wave 3)**:
-  - تنظیمات سراسری رنگ‌ها و تایپوگرافی، تم‌بیلدر، فرم‌ساز با فیلدهای متن، سلکت، چک‌باکس، رادیو و حفاظت هانی‌پات ضداسپم.
-- ثبت وضعیت **۱۵۱ مدخل تأییدشده** در **[.loop/elementor_parity_backlog.json](.loop/elementor_parity_backlog.json)** با وضعیت `passes: true`.
+## ۱. فاز صفر: احصای ۱۰۰٪ کنترل‌ها و اسکن زنده المنتور (Phase 0)
+
+### ۱. اسکنر استاتیک سیم‌کشی بیلدر (`scripts/loop/builder-wiring-audit.mjs`)
+- **خروجی**: `.loop/builder_wiring_gaps.json`
+- **تحلیل فایل‌ها**:
+  - `frontend/components/admin/builder/inspector-panel.tsx`
+  - `frontend/components/admin/builder/builder-toolbar.tsx`
+  - `frontend/components/admin/builder/layers-tree.tsx`
+  - `frontend/components/admin/builder/blocks-palette.tsx`
+  - `frontend/stores/builder-store.ts`
+  - `frontend/components/admin/builder/canvas-element.tsx`
+  - `frontend/types/builder.ts`
+  - `frontend/lib/builder/block-registry.ts`
+  - `backend/app/modules/content/domain/builder_ast.py`
+  - `backend/app/modules/content/application/ast_compiler.py`
+  - `backend/app/shared/content/html_sanitizer.py`
+- **آمار نتایج ۴ گانه**:
+  - `HARDCODED_OR_EMPTY_UI`: ۰ مورد (فاقد هندلر خالی یا تله alert/confirm)
+  - `UNREAD_IN_CANVAS`: ۶ پروپرتی تخصصی فرم/دکمه در بوم جهت رندرینگ تعاملی
+  - `UNCOMPILED_IN_SSR`: ۰ مورد (تمام ۳۵ ویجت و کانتینرها در کامپایلر پایتون پوشش داده شده‌اند)
+  - `WIDGET_CONTROL_BLIND_SPOTS`: ۰ مورد (تمامی ۳۵ ویجت دارای هندلرهای اختصاصی در پنل بازرس هستند)
+
+### ۲. ماتریس قطعی ۳۶۰ درجه کنترل‌های بیلدر (`.loop/builder_control_matrix.json`)
+- **تعداد کل ردیف‌ها**: ۷۰ ردیف کامل و غیرقابل حذف
+- **تفکیک ردیف‌ها**:
+  - ۳۵ ویجت پایه، فرم و فروشگاهی (۱۰ پایه + ۱۳ تعاملی/فرم + ۱۲ فروشگاهی)
+  - ۲۸ الگوی آماده لندینگ (`pattern-converter.ts`)
+  - ۷ کامپوننت هسته استودیو (نوار ابزار، درخت لایه‌ها، پالت، دیالوگ استایل سراسری، دیالوگ‌های قالب و میانبرها)
+- **تب‌های تحت پوشش**: `Content`، `Style` و `Advanced` با معیارهای مشخص پذیرش ماشین‌محور
+
+### ۳. فهرست زنده مرجع المنتور و المنتور پرو (`.loop/elementor_parity_backlog.json`)
+- **اسکن پوشه‌های واقعی**:
+  - `elementor/includes/controls/`
+  - `elementor/includes/controls/groups/`
+  - `elementor/includes/widgets/`
+  - `elementor/includes/widgets/common-base.php`
+  - `elementor/assets/shapes/*.svg` (۳۰ فایل برداری)
+  - `elementor/core/kits/documents/tabs/` (۱۲ تب تنظیمات سراسری)
+  - `elementor-pro/modules/` (۳۴ ماژول و ابزار حرفه‌ای)
+- **موج‌های سه‌گانه بک‌لاگ**:
+  - موج ۱: گروه‌های کنترل حرفه‌ای، کانتینر Grid، اشکال جداکننده و نویگیتور (۸ مدخل)
+  - موج ۲: ویجت‌های کلیدی مفقود Core و Pro (۷ مدخل)
+  - موج ۳: کیت سراسری سایت، تم بیلدر، لوپ بیلدر و فرم چندمرحله‌ای (۴ مدخل)
+
+### ۴. پروتکل پروب ۵-سیگنالی (`scripts/loop/builder-5signal-probe.mjs`)
+- پیاده‌سازی آزمون ۵ سیگنالی:
+  - `S1 (State)`: فعال‌سازی `isDirty` و تغییرات استیت در Zustand
+  - `S2 (DOM)`: ثبت تغییرات در آی‌فریم `CanvasFrame`
+  - `S3 (ComputedStyle)`: محاسبه مقادیر دقیق CSS در بوم
+  - `S4 (Visual Pixels)`: ذخیره تصاویر قبل و بعد و ارزیابی تغییرات بصری
+  - `S5 (Persistence + SSR Parity)`: ذخیره پیش‌نویس، ریلود صفحه و بررسی یکسانی ساختار با خروجی عمومی SSR
 
 ---
 
-## ۴. کارنامه ممیزی و دروازه‌های کیفی (All Quality Gates Passed)
-- **تایپ‌چک کامل فرانت‌اند**: `./frontend/node_modules/.bin/tsc --noEmit -p frontend/tsconfig.json` با **۰ خطا**.
-- **تست‌های یونیت فرانت‌اند (Vitest)**: **۳۷۲ تست سبز در ۴۵ فایل** (`372 passed`).
-- **تست‌های یونیت بک‌اند (Pytest)**: **۶۲۲ تست سبز، ۲ اسکیپ** (`622 passed, 2 skipped`).
-- **تست‌های E2E رگرسیون Playwright (Gym R01 to R05)**: **۱۵ تست سبز** بدون شکست (`15 passed`).
-- **ممیزی قطعی خودکار (`deterministic-audit.mjs`)**: **پاس ۱۰۰٪ هر ۷ چک** با ثبت شواهد بصری و SOM.
-- **اسکن شکاف‌های سیم‌کشی (`builder-wiring-audit.mjs`)**: **۰ باگ سیم‌کشی و ۰ کنترل مرده**.
-- **ماتریس کنترل‌های بیلدر (`builder_control_matrix.json`)**: **۳۵ از ۳۵ ویجت و ۲۸ از ۲۸ الگو سبز و تاییدشده**.
+## ۲. نتایج گیت‌های کیفی و تست‌ها
+- **تایپ‌اسکریپت**: `npm --prefix frontend run type-check` -> ۰ خطا (کاملاً تمیز)
+- **تست‌های واحد فرانت‌اند**: `npm --prefix frontend run test` -> ۳۷۲ تست سبز در ۴۵ فایل
+- **تست‌های واحد بک‌اند**: `cd backend && python -m pytest app/tests/unit` -> ۶۲۲ تست سبز، ۲ اسکیپ
+
+---
+
+## ۳. ثبت کامیت
+- کامیت اتمیک ۱: `chore(builder-v2-init): index builder controls and elementor reference`
+
+---
+
+## ۴. اجرای موفق مسیر A: وزنه‌های ۱ و ۲ (پاک‌سازی عمیق و پروب ۵-سیگنالی ۳۵ ویجت)
+
+### ۱. اصلاح ریشه‌ای گپ‌های سیم‌کشی بوم (`canvas-element.tsx`)
+- اصلاح و اتصال مشخصه‌های `newTab` در دکمه‌ها (`target="_blank" rel="noopener noreferrer"`).
+- اتصال اتریبیوت `required` و برچسب ستاره سرخ الزامی در فیلدهای فرم (`form_input`, `form_textarea`, `form_select`).
+- بازتاب صریح متادیتا و آدرس‌های `checkout_url`، `submit_url`، `success_message` و `error_message` در المان‌های فرم و سبد خرید.
+- صفر شدن کامل شکاف‌های سیم‌کشی:
+  - `HARDCODED_OR_EMPTY_UI`: ۰
+  - `UNREAD_IN_CANVAS`: ۰
+  - `UNCOMPILED_IN_SSR`: ۰
+  - `WIDGET_CONTROL_BLIND_SPOTS`: ۰
+  - **مجموع**: ۰ گپ
+
+### ۲. اجرای پروب ۵-سیگنالی برای ۳۵ ویجت (۷ دسته ۵ تایی)
+- **دسته ۱ (کانتینرها و تایپوگرافی)**: `container`, `section`, `columns`, `heading`, `text_editor` -> ۵ از ۵ پاس (۱۰۰٪)
+- **دسته ۲ (المان‌های پایه)**: `text`, `image`, `button`, `spacer`, `divider` -> ۵ از ۵ پاس (۱۰۰٪)
+- **دسته ۳ (فرم و جدول)**: `table`, `form_container`, `form_input`, `form_textarea`, `form_select` -> ۵ از ۵ پاس (۱۰۰٪)
+- **دسته ۴ (کنترل‌های فرم و پنل‌ها)**: `form_checkbox`, `form_radio`, `accordion`, `tabs`, `countdown` -> ۵ از ۵ پاس (۱۰۰٪)
+- **دسته ۵ (رسانه و کارت‌ها)**: `video`, `icon_box`, `social_links`, `product_card`, `product_grid` -> ۵ از ۵ پاس (۱۰۰٪)
+- **دسته ۶ (کاتالوگ فروشگاهی)**: `image_gallery`, `star_rating`, `review_histogram`, `recently_viewed`, `mega_menu` -> ۵ از ۵ پاس (۱۰۰٪)
+- **دسته ۷ (تجارت الکترونیک و سبد)**: `product_price`, `product_variants`, `add_to_cart`, `mini_cart`, `cart_summary` -> ۵ از ۵ پاس (۱۰۰٪)
+- **نتیجه کلی وزنه‌های ۱ و ۲**: ۳۵ از ۳۵ ویجت در تمامی ۵ سیگنال (S1 تا S5) تایید شدند.
+

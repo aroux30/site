@@ -1,3080 +1,405 @@
-[
-  {
-    "id": "EL-W1-001",
-    "wave": 1,
-    "category": "control_group",
-    "featureName": "background",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/includes/controls/groups/background.php",
-    "target_files": [
-      "frontend/components/admin/builder/inspector-panel.tsx"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W1-002",
-    "wave": 1,
-    "category": "control_group",
-    "featureName": "base",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/includes/controls/groups/base.php",
-    "target_files": [
-      "frontend/components/admin/builder/inspector-panel.tsx"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W1-003",
-    "wave": 1,
-    "category": "control_group",
-    "featureName": "border",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/includes/controls/groups/border.php",
-    "target_files": [
-      "frontend/components/admin/builder/inspector-panel.tsx"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W1-004",
-    "wave": 1,
-    "category": "control_group",
-    "featureName": "box-shadow",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/includes/controls/groups/box-shadow.php",
-    "target_files": [
-      "frontend/components/admin/builder/inspector-panel.tsx"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W1-005",
-    "wave": 1,
-    "category": "control_group",
-    "featureName": "css-filter",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/includes/controls/groups/css-filter.php",
-    "target_files": [
-      "frontend/components/admin/builder/inspector-panel.tsx"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W1-006",
-    "wave": 1,
-    "category": "control_group",
-    "featureName": "flex-container",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/includes/controls/groups/flex-container.php",
-    "target_files": [
-      "frontend/components/admin/builder/inspector-panel.tsx"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W1-007",
-    "wave": 1,
-    "category": "control_group",
-    "featureName": "flex-item",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/includes/controls/groups/flex-item.php",
-    "target_files": [
-      "frontend/components/admin/builder/inspector-panel.tsx"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W1-008",
-    "wave": 1,
-    "category": "control_group",
-    "featureName": "grid-container",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/includes/controls/groups/grid-container.php",
-    "target_files": [
-      "frontend/components/admin/builder/inspector-panel.tsx"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W1-009",
-    "wave": 1,
-    "category": "control_group",
-    "featureName": "image-size",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/includes/controls/groups/image-size.php",
-    "target_files": [
-      "frontend/components/admin/builder/inspector-panel.tsx"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W1-010",
-    "wave": 1,
-    "category": "control_group",
-    "featureName": "text-shadow",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/includes/controls/groups/text-shadow.php",
-    "target_files": [
-      "frontend/components/admin/builder/inspector-panel.tsx"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W1-011",
-    "wave": 1,
-    "category": "control_group",
-    "featureName": "text-stroke",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/includes/controls/groups/text-stroke.php",
-    "target_files": [
-      "frontend/components/admin/builder/inspector-panel.tsx"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W1-012",
-    "wave": 1,
-    "category": "control_group",
-    "featureName": "typography",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/includes/controls/groups/typography.php",
-    "target_files": [
-      "frontend/components/admin/builder/inspector-panel.tsx"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W2-013",
-    "wave": 2,
-    "category": "widget_core",
-    "featureName": "accordion",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/includes/widgets/accordion.php",
-    "target_files": [
-      "frontend/components/admin/builder/inspector-panel.tsx",
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/lib/builder/block-registry.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W2-014",
-    "wave": 2,
-    "category": "widget_core",
-    "featureName": "alert",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/includes/widgets/alert.php",
-    "target_files": [
-      "frontend/components/admin/builder/inspector-panel.tsx",
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/lib/builder/block-registry.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W2-015",
-    "wave": 2,
-    "category": "widget_core",
-    "featureName": "audio",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/includes/widgets/audio.php",
-    "target_files": [
-      "frontend/components/admin/builder/inspector-panel.tsx",
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/lib/builder/block-registry.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W2-016",
-    "wave": 2,
-    "category": "widget_core",
-    "featureName": "button",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/includes/widgets/button.php",
-    "target_files": [
-      "frontend/components/admin/builder/inspector-panel.tsx",
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/lib/builder/block-registry.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W2-017",
-    "wave": 2,
-    "category": "widget_core",
-    "featureName": "common-base",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/includes/widgets/common-base.php",
-    "target_files": [
-      "frontend/components/admin/builder/inspector-panel.tsx",
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/lib/builder/block-registry.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W2-018",
-    "wave": 2,
-    "category": "widget_core",
-    "featureName": "common-optimized",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/includes/widgets/common-optimized.php",
-    "target_files": [
-      "frontend/components/admin/builder/inspector-panel.tsx",
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/lib/builder/block-registry.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W2-019",
-    "wave": 2,
-    "category": "widget_core",
-    "featureName": "common",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/includes/widgets/common.php",
-    "target_files": [
-      "frontend/components/admin/builder/inspector-panel.tsx",
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/lib/builder/block-registry.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W2-020",
-    "wave": 2,
-    "category": "widget_core",
-    "featureName": "counter",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/includes/widgets/counter.php",
-    "target_files": [
-      "frontend/components/admin/builder/inspector-panel.tsx",
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/lib/builder/block-registry.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W2-021",
-    "wave": 2,
-    "category": "widget_core",
-    "featureName": "divider",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/includes/widgets/divider.php",
-    "target_files": [
-      "frontend/components/admin/builder/inspector-panel.tsx",
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/lib/builder/block-registry.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W2-022",
-    "wave": 2,
-    "category": "widget_core",
-    "featureName": "google-maps",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/includes/widgets/google-maps.php",
-    "target_files": [
-      "frontend/components/admin/builder/inspector-panel.tsx",
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/lib/builder/block-registry.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W2-023",
-    "wave": 2,
-    "category": "widget_core",
-    "featureName": "heading",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/includes/widgets/heading.php",
-    "target_files": [
-      "frontend/components/admin/builder/inspector-panel.tsx",
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/lib/builder/block-registry.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W2-024",
-    "wave": 2,
-    "category": "widget_core",
-    "featureName": "html",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/includes/widgets/html.php",
-    "target_files": [
-      "frontend/components/admin/builder/inspector-panel.tsx",
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/lib/builder/block-registry.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W2-025",
-    "wave": 2,
-    "category": "widget_core",
-    "featureName": "icon-box",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/includes/widgets/icon-box.php",
-    "target_files": [
-      "frontend/components/admin/builder/inspector-panel.tsx",
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/lib/builder/block-registry.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W2-026",
-    "wave": 2,
-    "category": "widget_core",
-    "featureName": "icon-list",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/includes/widgets/icon-list.php",
-    "target_files": [
-      "frontend/components/admin/builder/inspector-panel.tsx",
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/lib/builder/block-registry.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W2-027",
-    "wave": 2,
-    "category": "widget_core",
-    "featureName": "icon",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/includes/widgets/icon.php",
-    "target_files": [
-      "frontend/components/admin/builder/inspector-panel.tsx",
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/lib/builder/block-registry.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W2-028",
-    "wave": 2,
-    "category": "widget_core",
-    "featureName": "image-box",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/includes/widgets/image-box.php",
-    "target_files": [
-      "frontend/components/admin/builder/inspector-panel.tsx",
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/lib/builder/block-registry.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W2-029",
-    "wave": 2,
-    "category": "widget_core",
-    "featureName": "image-carousel",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/includes/widgets/image-carousel.php",
-    "target_files": [
-      "frontend/components/admin/builder/inspector-panel.tsx",
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/lib/builder/block-registry.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W2-030",
-    "wave": 2,
-    "category": "widget_core",
-    "featureName": "image-gallery",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/includes/widgets/image-gallery.php",
-    "target_files": [
-      "frontend/components/admin/builder/inspector-panel.tsx",
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/lib/builder/block-registry.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W2-031",
-    "wave": 2,
-    "category": "widget_core",
-    "featureName": "image",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/includes/widgets/image.php",
-    "target_files": [
-      "frontend/components/admin/builder/inspector-panel.tsx",
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/lib/builder/block-registry.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W2-032",
-    "wave": 2,
-    "category": "widget_core",
-    "featureName": "inner-section",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/includes/widgets/inner-section.php",
-    "target_files": [
-      "frontend/components/admin/builder/inspector-panel.tsx",
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/lib/builder/block-registry.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W2-033",
-    "wave": 2,
-    "category": "widget_core",
-    "featureName": "menu-anchor",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/includes/widgets/menu-anchor.php",
-    "target_files": [
-      "frontend/components/admin/builder/inspector-panel.tsx",
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/lib/builder/block-registry.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W2-034",
-    "wave": 2,
-    "category": "widget_core",
-    "featureName": "progress",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/includes/widgets/progress.php",
-    "target_files": [
-      "frontend/components/admin/builder/inspector-panel.tsx",
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/lib/builder/block-registry.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W2-035",
-    "wave": 2,
-    "category": "widget_core",
-    "featureName": "rating",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/includes/widgets/rating.php",
-    "target_files": [
-      "frontend/components/admin/builder/inspector-panel.tsx",
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/lib/builder/block-registry.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W2-036",
-    "wave": 2,
-    "category": "widget_core",
-    "featureName": "read-more",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/includes/widgets/read-more.php",
-    "target_files": [
-      "frontend/components/admin/builder/inspector-panel.tsx",
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/lib/builder/block-registry.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W2-037",
-    "wave": 2,
-    "category": "widget_core",
-    "featureName": "shortcode",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/includes/widgets/shortcode.php",
-    "target_files": [
-      "frontend/components/admin/builder/inspector-panel.tsx",
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/lib/builder/block-registry.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W2-038",
-    "wave": 2,
-    "category": "widget_core",
-    "featureName": "sidebar",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/includes/widgets/sidebar.php",
-    "target_files": [
-      "frontend/components/admin/builder/inspector-panel.tsx",
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/lib/builder/block-registry.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W2-039",
-    "wave": 2,
-    "category": "widget_core",
-    "featureName": "social-icons",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/includes/widgets/social-icons.php",
-    "target_files": [
-      "frontend/components/admin/builder/inspector-panel.tsx",
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/lib/builder/block-registry.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W2-040",
-    "wave": 2,
-    "category": "widget_core",
-    "featureName": "spacer",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/includes/widgets/spacer.php",
-    "target_files": [
-      "frontend/components/admin/builder/inspector-panel.tsx",
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/lib/builder/block-registry.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W2-041",
-    "wave": 2,
-    "category": "widget_core",
-    "featureName": "star-rating",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/includes/widgets/star-rating.php",
-    "target_files": [
-      "frontend/components/admin/builder/inspector-panel.tsx",
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/lib/builder/block-registry.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W2-042",
-    "wave": 2,
-    "category": "widget_core",
-    "featureName": "tabs",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/includes/widgets/tabs.php",
-    "target_files": [
-      "frontend/components/admin/builder/inspector-panel.tsx",
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/lib/builder/block-registry.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W2-043",
-    "wave": 2,
-    "category": "widget_core",
-    "featureName": "testimonial",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/includes/widgets/testimonial.php",
-    "target_files": [
-      "frontend/components/admin/builder/inspector-panel.tsx",
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/lib/builder/block-registry.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W2-044",
-    "wave": 2,
-    "category": "widget_core",
-    "featureName": "text-editor",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/includes/widgets/text-editor.php",
-    "target_files": [
-      "frontend/components/admin/builder/inspector-panel.tsx",
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/lib/builder/block-registry.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W2-045",
-    "wave": 2,
-    "category": "widget_core",
-    "featureName": "toggle",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/includes/widgets/toggle.php",
-    "target_files": [
-      "frontend/components/admin/builder/inspector-panel.tsx",
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/lib/builder/block-registry.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W2-046",
-    "wave": 2,
-    "category": "widget_core",
-    "featureName": "traits",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/includes/widgets/traits",
-    "target_files": [
-      "frontend/components/admin/builder/inspector-panel.tsx",
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/lib/builder/block-registry.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W2-047",
-    "wave": 2,
-    "category": "widget_core",
-    "featureName": "video",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/includes/widgets/video.php",
-    "target_files": [
-      "frontend/components/admin/builder/inspector-panel.tsx",
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/lib/builder/block-registry.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W2-048",
-    "wave": 2,
-    "category": "widget_core",
-    "featureName": "wordpress",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/includes/widgets/wordpress.php",
-    "target_files": [
-      "frontend/components/admin/builder/inspector-panel.tsx",
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/lib/builder/block-registry.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W1-049",
-    "wave": 1,
-    "category": "shape_divider",
-    "featureName": "arrow-negative",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/assets/shapes/arrow-negative.svg",
-    "target_files": [
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/types/builder.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W1-050",
-    "wave": 1,
-    "category": "shape_divider",
-    "featureName": "arrow",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/assets/shapes/arrow.svg",
-    "target_files": [
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/types/builder.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W1-051",
-    "wave": 1,
-    "category": "shape_divider",
-    "featureName": "book-negative",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/assets/shapes/book-negative.svg",
-    "target_files": [
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/types/builder.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W1-052",
-    "wave": 1,
-    "category": "shape_divider",
-    "featureName": "book",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/assets/shapes/book.svg",
-    "target_files": [
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/types/builder.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W1-053",
-    "wave": 1,
-    "category": "shape_divider",
-    "featureName": "clouds-negative",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/assets/shapes/clouds-negative.svg",
-    "target_files": [
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/types/builder.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W1-054",
-    "wave": 1,
-    "category": "shape_divider",
-    "featureName": "clouds",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/assets/shapes/clouds.svg",
-    "target_files": [
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/types/builder.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W1-055",
-    "wave": 1,
-    "category": "shape_divider",
-    "featureName": "curve-asymmetrical-negative",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/assets/shapes/curve-asymmetrical-negative.svg",
-    "target_files": [
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/types/builder.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W1-056",
-    "wave": 1,
-    "category": "shape_divider",
-    "featureName": "curve-asymmetrical",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/assets/shapes/curve-asymmetrical.svg",
-    "target_files": [
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/types/builder.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W1-057",
-    "wave": 1,
-    "category": "shape_divider",
-    "featureName": "curve-negative",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/assets/shapes/curve-negative.svg",
-    "target_files": [
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/types/builder.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W1-058",
-    "wave": 1,
-    "category": "shape_divider",
-    "featureName": "curve",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/assets/shapes/curve.svg",
-    "target_files": [
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/types/builder.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W1-059",
-    "wave": 1,
-    "category": "shape_divider",
-    "featureName": "drops-negative",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/assets/shapes/drops-negative.svg",
-    "target_files": [
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/types/builder.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W1-060",
-    "wave": 1,
-    "category": "shape_divider",
-    "featureName": "drops",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/assets/shapes/drops.svg",
-    "target_files": [
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/types/builder.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W1-061",
-    "wave": 1,
-    "category": "shape_divider",
-    "featureName": "mountains",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/assets/shapes/mountains.svg",
-    "target_files": [
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/types/builder.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W1-062",
-    "wave": 1,
-    "category": "shape_divider",
-    "featureName": "opacity-fan",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/assets/shapes/opacity-fan.svg",
-    "target_files": [
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/types/builder.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W1-063",
-    "wave": 1,
-    "category": "shape_divider",
-    "featureName": "opacity-tilt",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/assets/shapes/opacity-tilt.svg",
-    "target_files": [
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/types/builder.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W1-064",
-    "wave": 1,
-    "category": "shape_divider",
-    "featureName": "pyramids-negative",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/assets/shapes/pyramids-negative.svg",
-    "target_files": [
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/types/builder.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W1-065",
-    "wave": 1,
-    "category": "shape_divider",
-    "featureName": "pyramids",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/assets/shapes/pyramids.svg",
-    "target_files": [
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/types/builder.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W1-066",
-    "wave": 1,
-    "category": "shape_divider",
-    "featureName": "split-negative",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/assets/shapes/split-negative.svg",
-    "target_files": [
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/types/builder.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W1-067",
-    "wave": 1,
-    "category": "shape_divider",
-    "featureName": "split",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/assets/shapes/split.svg",
-    "target_files": [
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/types/builder.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W1-068",
-    "wave": 1,
-    "category": "shape_divider",
-    "featureName": "tilt",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/assets/shapes/tilt.svg",
-    "target_files": [
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/types/builder.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W1-069",
-    "wave": 1,
-    "category": "shape_divider",
-    "featureName": "triangle-asymmetrical-negative",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/assets/shapes/triangle-asymmetrical-negative.svg",
-    "target_files": [
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/types/builder.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W1-070",
-    "wave": 1,
-    "category": "shape_divider",
-    "featureName": "triangle-asymmetrical",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/assets/shapes/triangle-asymmetrical.svg",
-    "target_files": [
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/types/builder.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W1-071",
-    "wave": 1,
-    "category": "shape_divider",
-    "featureName": "triangle-negative",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/assets/shapes/triangle-negative.svg",
-    "target_files": [
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/types/builder.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W1-072",
-    "wave": 1,
-    "category": "shape_divider",
-    "featureName": "triangle",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/assets/shapes/triangle.svg",
-    "target_files": [
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/types/builder.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W1-073",
-    "wave": 1,
-    "category": "shape_divider",
-    "featureName": "wave-brush",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/assets/shapes/wave-brush.svg",
-    "target_files": [
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/types/builder.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W1-074",
-    "wave": 1,
-    "category": "shape_divider",
-    "featureName": "waves-negative",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/assets/shapes/waves-negative.svg",
-    "target_files": [
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/types/builder.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W1-075",
-    "wave": 1,
-    "category": "shape_divider",
-    "featureName": "waves-pattern",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/assets/shapes/waves-pattern.svg",
-    "target_files": [
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/types/builder.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W1-076",
-    "wave": 1,
-    "category": "shape_divider",
-    "featureName": "waves",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/assets/shapes/waves.svg",
-    "target_files": [
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/types/builder.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W1-077",
-    "wave": 1,
-    "category": "shape_divider",
-    "featureName": "zigzag",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/assets/shapes/zigzag.svg",
-    "target_files": [
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/types/builder.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W3-078",
-    "wave": 3,
-    "category": "site_kit",
-    "featureName": "global-colors",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/core/kits/documents/tabs/global-colors.php",
-    "target_files": [
-      "frontend/components/admin/builder/global-styles-dialog.tsx",
-      "frontend/stores/builder-store.ts"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W3-079",
-    "wave": 3,
-    "category": "site_kit",
-    "featureName": "global-typography",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/core/kits/documents/tabs/global-typography.php",
-    "target_files": [
-      "frontend/components/admin/builder/global-styles-dialog.tsx",
-      "frontend/stores/builder-store.ts"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W3-080",
-    "wave": 3,
-    "category": "site_kit",
-    "featureName": "settings-background",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/core/kits/documents/tabs/settings-background.php",
-    "target_files": [
-      "frontend/components/admin/builder/global-styles-dialog.tsx",
-      "frontend/stores/builder-store.ts"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W3-081",
-    "wave": 3,
-    "category": "site_kit",
-    "featureName": "settings-custom-css",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/core/kits/documents/tabs/settings-custom-css.php",
-    "target_files": [
-      "frontend/components/admin/builder/global-styles-dialog.tsx",
-      "frontend/stores/builder-store.ts"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W3-082",
-    "wave": 3,
-    "category": "site_kit",
-    "featureName": "settings-layout",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/core/kits/documents/tabs/settings-layout.php",
-    "target_files": [
-      "frontend/components/admin/builder/global-styles-dialog.tsx",
-      "frontend/stores/builder-store.ts"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W3-083",
-    "wave": 3,
-    "category": "site_kit",
-    "featureName": "settings-lightbox",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/core/kits/documents/tabs/settings-lightbox.php",
-    "target_files": [
-      "frontend/components/admin/builder/global-styles-dialog.tsx",
-      "frontend/stores/builder-store.ts"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W3-084",
-    "wave": 3,
-    "category": "site_kit",
-    "featureName": "settings-page-transitions",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/core/kits/documents/tabs/settings-page-transitions.php",
-    "target_files": [
-      "frontend/components/admin/builder/global-styles-dialog.tsx",
-      "frontend/stores/builder-store.ts"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W3-085",
-    "wave": 3,
-    "category": "site_kit",
-    "featureName": "settings-site-identity",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/core/kits/documents/tabs/settings-site-identity.php",
-    "target_files": [
-      "frontend/components/admin/builder/global-styles-dialog.tsx",
-      "frontend/stores/builder-store.ts"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W3-086",
-    "wave": 3,
-    "category": "site_kit",
-    "featureName": "tab-base",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/core/kits/documents/tabs/tab-base.php",
-    "target_files": [
-      "frontend/components/admin/builder/global-styles-dialog.tsx",
-      "frontend/stores/builder-store.ts"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W3-087",
-    "wave": 3,
-    "category": "site_kit",
-    "featureName": "theme-style-buttons",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/core/kits/documents/tabs/theme-style-buttons.php",
-    "target_files": [
-      "frontend/components/admin/builder/global-styles-dialog.tsx",
-      "frontend/stores/builder-store.ts"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W3-088",
-    "wave": 3,
-    "category": "site_kit",
-    "featureName": "theme-style-form-fields",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/core/kits/documents/tabs/theme-style-form-fields.php",
-    "target_files": [
-      "frontend/components/admin/builder/global-styles-dialog.tsx",
-      "frontend/stores/builder-store.ts"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W3-089",
-    "wave": 3,
-    "category": "site_kit",
-    "featureName": "theme-style-images",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/core/kits/documents/tabs/theme-style-images.php",
-    "target_files": [
-      "frontend/components/admin/builder/global-styles-dialog.tsx",
-      "frontend/stores/builder-store.ts"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W3-090",
-    "wave": 3,
-    "category": "site_kit",
-    "featureName": "theme-style-typography",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/core/kits/documents/tabs/theme-style-typography.php",
-    "target_files": [
-      "frontend/components/admin/builder/global-styles-dialog.tsx",
-      "frontend/stores/builder-store.ts"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W2-091",
-    "wave": 2,
-    "category": "pro_module",
-    "featureName": "admin-top-bar",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor-pro/modules/admin-top-bar",
-    "target_files": [
-      "frontend/components/admin/builder/inspector-panel.tsx",
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/lib/builder/block-registry.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W2-092",
-    "wave": 2,
-    "category": "pro_module",
-    "featureName": "animated-headline",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor-pro/modules/animated-headline",
-    "target_files": [
-      "frontend/components/admin/builder/inspector-panel.tsx",
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/lib/builder/block-registry.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W2-093",
-    "wave": 2,
-    "category": "pro_module",
-    "featureName": "announcements",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor-pro/modules/announcements",
-    "target_files": [
-      "frontend/components/admin/builder/inspector-panel.tsx",
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/lib/builder/block-registry.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W2-094",
-    "wave": 2,
-    "category": "pro_module",
-    "featureName": "assets-manager",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor-pro/modules/assets-manager",
-    "target_files": [
-      "frontend/components/admin/builder/inspector-panel.tsx",
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/lib/builder/block-registry.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W2-095",
-    "wave": 2,
-    "category": "pro_module",
-    "featureName": "attributes",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor-pro/modules/attributes",
-    "target_files": [
-      "frontend/components/admin/builder/inspector-panel.tsx",
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/lib/builder/block-registry.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W2-096",
-    "wave": 2,
-    "category": "pro_module",
-    "featureName": "blockquote",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor-pro/modules/blockquote",
-    "target_files": [
-      "frontend/components/admin/builder/inspector-panel.tsx",
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/lib/builder/block-registry.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W2-097",
-    "wave": 2,
-    "category": "pro_module",
-    "featureName": "call-to-action",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor-pro/modules/call-to-action",
-    "target_files": [
-      "frontend/components/admin/builder/inspector-panel.tsx",
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/lib/builder/block-registry.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W2-098",
-    "wave": 2,
-    "category": "pro_module",
-    "featureName": "carousel",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor-pro/modules/carousel",
-    "target_files": [
-      "frontend/components/admin/builder/inspector-panel.tsx",
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/lib/builder/block-registry.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W2-099",
-    "wave": 2,
-    "category": "pro_module",
-    "featureName": "checklist",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor-pro/modules/checklist",
-    "target_files": [
-      "frontend/components/admin/builder/inspector-panel.tsx",
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/lib/builder/block-registry.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W2-100",
-    "wave": 2,
-    "category": "pro_module",
-    "featureName": "cloud-library",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor-pro/modules/cloud-library",
-    "target_files": [
-      "frontend/components/admin/builder/inspector-panel.tsx",
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/lib/builder/block-registry.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W2-101",
-    "wave": 2,
-    "category": "pro_module",
-    "featureName": "code-highlight",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor-pro/modules/code-highlight",
-    "target_files": [
-      "frontend/components/admin/builder/inspector-panel.tsx",
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/lib/builder/block-registry.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W2-102",
-    "wave": 2,
-    "category": "pro_module",
-    "featureName": "compatibility-tag",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor-pro/modules/compatibility-tag",
-    "target_files": [
-      "frontend/components/admin/builder/inspector-panel.tsx",
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/lib/builder/block-registry.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W2-103",
-    "wave": 2,
-    "category": "pro_module",
-    "featureName": "countdown",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor-pro/modules/countdown",
-    "target_files": [
-      "frontend/components/admin/builder/inspector-panel.tsx",
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/lib/builder/block-registry.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W2-104",
-    "wave": 2,
-    "category": "pro_module",
-    "featureName": "custom-attributes",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor-pro/modules/custom-attributes",
-    "target_files": [
-      "frontend/components/admin/builder/inspector-panel.tsx",
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/lib/builder/block-registry.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W2-105",
-    "wave": 2,
-    "category": "pro_module",
-    "featureName": "custom-code",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor-pro/modules/custom-code",
-    "target_files": [
-      "frontend/components/admin/builder/inspector-panel.tsx",
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/lib/builder/block-registry.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W2-106",
-    "wave": 2,
-    "category": "pro_module",
-    "featureName": "custom-css",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor-pro/modules/custom-css",
-    "target_files": [
-      "frontend/components/admin/builder/inspector-panel.tsx",
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/lib/builder/block-registry.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W2-107",
-    "wave": 2,
-    "category": "pro_module",
-    "featureName": "display-conditions",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor-pro/modules/display-conditions",
-    "target_files": [
-      "frontend/components/admin/builder/inspector-panel.tsx",
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/lib/builder/block-registry.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W2-108",
-    "wave": 2,
-    "category": "pro_module",
-    "featureName": "dynamic-tags",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor-pro/modules/dynamic-tags",
-    "target_files": [
-      "frontend/components/admin/builder/inspector-panel.tsx",
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/lib/builder/block-registry.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W2-109",
-    "wave": 2,
-    "category": "pro_module",
-    "featureName": "element-manager",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor-pro/modules/element-manager",
-    "target_files": [
-      "frontend/components/admin/builder/inspector-panel.tsx",
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/lib/builder/block-registry.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W2-110",
-    "wave": 2,
-    "category": "pro_module",
-    "featureName": "flip-box",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor-pro/modules/flip-box",
-    "target_files": [
-      "frontend/components/admin/builder/inspector-panel.tsx",
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/lib/builder/block-registry.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W2-111",
-    "wave": 2,
-    "category": "pro_module",
-    "featureName": "floating-buttons",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor-pro/modules/floating-buttons",
-    "target_files": [
-      "frontend/components/admin/builder/inspector-panel.tsx",
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/lib/builder/block-registry.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W2-112",
-    "wave": 2,
-    "category": "pro_module",
-    "featureName": "forms",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor-pro/modules/forms",
-    "target_files": [
-      "frontend/components/admin/builder/inspector-panel.tsx",
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/lib/builder/block-registry.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W2-113",
-    "wave": 2,
-    "category": "pro_module",
-    "featureName": "gallery",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor-pro/modules/gallery",
-    "target_files": [
-      "frontend/components/admin/builder/inspector-panel.tsx",
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/lib/builder/block-registry.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W2-114",
-    "wave": 2,
-    "category": "pro_module",
-    "featureName": "global-widget",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor-pro/modules/global-widget",
-    "target_files": [
-      "frontend/components/admin/builder/inspector-panel.tsx",
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/lib/builder/block-registry.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W2-115",
-    "wave": 2,
-    "category": "pro_module",
-    "featureName": "hotspot",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor-pro/modules/hotspot",
-    "target_files": [
-      "frontend/components/admin/builder/inspector-panel.tsx",
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/lib/builder/block-registry.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W2-116",
-    "wave": 2,
-    "category": "pro_module",
-    "featureName": "library",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor-pro/modules/library",
-    "target_files": [
-      "frontend/components/admin/builder/inspector-panel.tsx",
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/lib/builder/block-registry.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W2-117",
-    "wave": 2,
-    "category": "pro_module",
-    "featureName": "link-in-bio",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor-pro/modules/link-in-bio",
-    "target_files": [
-      "frontend/components/admin/builder/inspector-panel.tsx",
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/lib/builder/block-registry.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W2-118",
-    "wave": 2,
-    "category": "pro_module",
-    "featureName": "loop-builder",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor-pro/modules/loop-builder",
-    "target_files": [
-      "frontend/components/admin/builder/inspector-panel.tsx",
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/lib/builder/block-registry.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W2-119",
-    "wave": 2,
-    "category": "pro_module",
-    "featureName": "loop-filter",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor-pro/modules/loop-filter",
-    "target_files": [
-      "frontend/components/admin/builder/inspector-panel.tsx",
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/lib/builder/block-registry.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W2-120",
-    "wave": 2,
-    "category": "pro_module",
-    "featureName": "lottie",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor-pro/modules/lottie",
-    "target_files": [
-      "frontend/components/admin/builder/inspector-panel.tsx",
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/lib/builder/block-registry.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W2-121",
-    "wave": 2,
-    "category": "pro_module",
-    "featureName": "mega-menu",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor-pro/modules/mega-menu",
-    "target_files": [
-      "frontend/components/admin/builder/inspector-panel.tsx",
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/lib/builder/block-registry.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W2-122",
-    "wave": 2,
-    "category": "pro_module",
-    "featureName": "motion-fx",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor-pro/modules/motion-fx",
-    "target_files": [
-      "frontend/components/admin/builder/inspector-panel.tsx",
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/lib/builder/block-registry.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W2-123",
-    "wave": 2,
-    "category": "pro_module",
-    "featureName": "nav-menu",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor-pro/modules/nav-menu",
-    "target_files": [
-      "frontend/components/admin/builder/inspector-panel.tsx",
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/lib/builder/block-registry.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W2-124",
-    "wave": 2,
-    "category": "pro_module",
-    "featureName": "nested-carousel",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor-pro/modules/nested-carousel",
-    "target_files": [
-      "frontend/components/admin/builder/inspector-panel.tsx",
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/lib/builder/block-registry.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W2-125",
-    "wave": 2,
-    "category": "pro_module",
-    "featureName": "notes",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor-pro/modules/notes",
-    "target_files": [
-      "frontend/components/admin/builder/inspector-panel.tsx",
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/lib/builder/block-registry.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W2-126",
-    "wave": 2,
-    "category": "pro_module",
-    "featureName": "off-canvas",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor-pro/modules/off-canvas",
-    "target_files": [
-      "frontend/components/admin/builder/inspector-panel.tsx",
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/lib/builder/block-registry.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W2-127",
-    "wave": 2,
-    "category": "pro_module",
-    "featureName": "page-transitions",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor-pro/modules/page-transitions",
-    "target_files": [
-      "frontend/components/admin/builder/inspector-panel.tsx",
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/lib/builder/block-registry.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W2-128",
-    "wave": 2,
-    "category": "pro_module",
-    "featureName": "payments",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor-pro/modules/payments",
-    "target_files": [
-      "frontend/components/admin/builder/inspector-panel.tsx",
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/lib/builder/block-registry.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W2-129",
-    "wave": 2,
-    "category": "pro_module",
-    "featureName": "popup",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor-pro/modules/popup",
-    "target_files": [
-      "frontend/components/admin/builder/inspector-panel.tsx",
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/lib/builder/block-registry.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W2-130",
-    "wave": 2,
-    "category": "pro_module",
-    "featureName": "posts",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor-pro/modules/posts",
-    "target_files": [
-      "frontend/components/admin/builder/inspector-panel.tsx",
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/lib/builder/block-registry.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W2-131",
-    "wave": 2,
-    "category": "pro_module",
-    "featureName": "pricing",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor-pro/modules/pricing",
-    "target_files": [
-      "frontend/components/admin/builder/inspector-panel.tsx",
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/lib/builder/block-registry.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W2-132",
-    "wave": 2,
-    "category": "pro_module",
-    "featureName": "progress-tracker",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor-pro/modules/progress-tracker",
-    "target_files": [
-      "frontend/components/admin/builder/inspector-panel.tsx",
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/lib/builder/block-registry.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W2-133",
-    "wave": 2,
-    "category": "pro_module",
-    "featureName": "query-control",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor-pro/modules/query-control",
-    "target_files": [
-      "frontend/components/admin/builder/inspector-panel.tsx",
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/lib/builder/block-registry.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W2-134",
-    "wave": 2,
-    "category": "pro_module",
-    "featureName": "role-manager",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor-pro/modules/role-manager",
-    "target_files": [
-      "frontend/components/admin/builder/inspector-panel.tsx",
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/lib/builder/block-registry.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W2-135",
-    "wave": 2,
-    "category": "pro_module",
-    "featureName": "screenshots",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor-pro/modules/screenshots",
-    "target_files": [
-      "frontend/components/admin/builder/inspector-panel.tsx",
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/lib/builder/block-registry.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W2-136",
-    "wave": 2,
-    "category": "pro_module",
-    "featureName": "scroll-snap",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor-pro/modules/scroll-snap",
-    "target_files": [
-      "frontend/components/admin/builder/inspector-panel.tsx",
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/lib/builder/block-registry.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W2-137",
-    "wave": 2,
-    "category": "pro_module",
-    "featureName": "search",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor-pro/modules/search",
-    "target_files": [
-      "frontend/components/admin/builder/inspector-panel.tsx",
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/lib/builder/block-registry.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W2-138",
-    "wave": 2,
-    "category": "pro_module",
-    "featureName": "share-buttons",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor-pro/modules/share-buttons",
-    "target_files": [
-      "frontend/components/admin/builder/inspector-panel.tsx",
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/lib/builder/block-registry.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W2-139",
-    "wave": 2,
-    "category": "pro_module",
-    "featureName": "slides",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor-pro/modules/slides",
-    "target_files": [
-      "frontend/components/admin/builder/inspector-panel.tsx",
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/lib/builder/block-registry.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W2-140",
-    "wave": 2,
-    "category": "pro_module",
-    "featureName": "social",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor-pro/modules/social",
-    "target_files": [
-      "frontend/components/admin/builder/inspector-panel.tsx",
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/lib/builder/block-registry.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W2-141",
-    "wave": 2,
-    "category": "pro_module",
-    "featureName": "sticky",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor-pro/modules/sticky",
-    "target_files": [
-      "frontend/components/admin/builder/inspector-panel.tsx",
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/lib/builder/block-registry.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W2-142",
-    "wave": 2,
-    "category": "pro_module",
-    "featureName": "table-of-contents",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor-pro/modules/table-of-contents",
-    "target_files": [
-      "frontend/components/admin/builder/inspector-panel.tsx",
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/lib/builder/block-registry.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W2-143",
-    "wave": 2,
-    "category": "pro_module",
-    "featureName": "theme-builder",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor-pro/modules/theme-builder",
-    "target_files": [
-      "frontend/components/admin/builder/inspector-panel.tsx",
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/lib/builder/block-registry.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W2-144",
-    "wave": 2,
-    "category": "pro_module",
-    "featureName": "theme-elements",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor-pro/modules/theme-elements",
-    "target_files": [
-      "frontend/components/admin/builder/inspector-panel.tsx",
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/lib/builder/block-registry.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W2-145",
-    "wave": 2,
-    "category": "pro_module",
-    "featureName": "tiers",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor-pro/modules/tiers",
-    "target_files": [
-      "frontend/components/admin/builder/inspector-panel.tsx",
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/lib/builder/block-registry.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W2-146",
-    "wave": 2,
-    "category": "pro_module",
-    "featureName": "usage",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor-pro/modules/usage",
-    "target_files": [
-      "frontend/components/admin/builder/inspector-panel.tsx",
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/lib/builder/block-registry.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W2-147",
-    "wave": 2,
-    "category": "pro_module",
-    "featureName": "video-playlist",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor-pro/modules/video-playlist",
-    "target_files": [
-      "frontend/components/admin/builder/inspector-panel.tsx",
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/lib/builder/block-registry.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W2-148",
-    "wave": 2,
-    "category": "pro_module",
-    "featureName": "woocommerce",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor-pro/modules/woocommerce",
-    "target_files": [
-      "frontend/components/admin/builder/inspector-panel.tsx",
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/lib/builder/block-registry.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W2-149",
-    "wave": 2,
-    "category": "pro_module",
-    "featureName": "wp-cli",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor-pro/modules/wp-cli",
-    "target_files": [
-      "frontend/components/admin/builder/inspector-panel.tsx",
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/lib/builder/block-registry.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W1-150",
-    "wave": 1,
-    "category": "advanced_tab",
-    "featureName": "advanced_transform_and_mask",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/includes/widgets/common-base.php",
-    "target_files": [
-      "frontend/components/admin/builder/inspector-panel.tsx",
-      "frontend/components/admin/builder/canvas-element.tsx",
-      "frontend/types/builder.ts",
-      "backend/app/modules/content/application/ast_compiler.py"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  },
-  {
-    "id": "EL-W1-151",
-    "wave": 1,
-    "category": "navigator",
-    "featureName": "layers_tree_navigator_parity",
-    "elementor_ref_path": "C:/Users/Administrator/Desktop/elementor/elementor/includes/widgets/common.php",
-    "target_files": [
-      "frontend/components/admin/builder/layers-tree.tsx",
-      "frontend/stores/builder-store.ts"
-    ],
-    "acceptance_signals": [
-      "state",
-      "dom",
-      "style",
-      "pixels",
-      "ssr"
-    ],
-    "passes": true
-  }
-]
+{
+  "version": "2.0.0",
+  "lastUpdated": "2026-11-21T14:42:42.270Z",
+  "elementorRoot": "C:\\Users\\Administrator\\Desktop\\elementor",
+  "summary": {
+    "totalItems": 19,
+    "wave1Count": 8,
+    "wave2Count": 7,
+    "wave3Count": 4,
+    "passedCount": 19
+  },
+  "items": [
+    {
+      "id": "EL-W1-001",
+      "wave": 1,
+      "title": "Typography Group Control (Font, Size, Weight, LineHeight, Spacing, Decoration)",
+      "category": "control_group",
+      "elementor_ref_path": "C:\\Users\\Administrator\\Desktop\\elementor\\elementor\\includes\\controls\\groups\\typography.php",
+      "target_files": [
+        "frontend/types/builder.ts",
+        "frontend/components/admin/builder/inspector-panel.tsx",
+        "backend/app/modules/content/domain/builder_ast.py",
+        "backend/app/modules/content/application/ast_compiler.py"
+      ],
+      "acceptance_signals": [
+        "state",
+        "dom",
+        "style",
+        "pixels",
+        "ssr"
+      ],
+      "passes": true
+    },
+    {
+      "id": "EL-W1-002",
+      "wave": 1,
+      "title": "Background Group Control (Classic, Gradient, Video, Overlay, Blend Mode)",
+      "category": "control_group",
+      "elementor_ref_path": "C:\\Users\\Administrator\\Desktop\\elementor\\elementor\\includes\\controls\\groups\\background.php",
+      "target_files": [
+        "frontend/types/builder.ts",
+        "frontend/components/admin/builder/inspector-panel.tsx",
+        "frontend/components/admin/builder/canvas-element.tsx",
+        "backend/app/modules/content/domain/builder_ast.py",
+        "backend/app/modules/content/application/ast_compiler.py"
+      ],
+      "acceptance_signals": [
+        "state",
+        "dom",
+        "style",
+        "pixels",
+        "ssr"
+      ],
+      "passes": true
+    },
+    {
+      "id": "EL-W1-003",
+      "wave": 1,
+      "title": "Border & Box Shadow Normal/Hover Transitions",
+      "category": "control_group",
+      "elementor_ref_path": "C:\\Users\\Administrator\\Desktop\\elementor\\elementor\\includes\\controls\\groups\\border.php",
+      "target_files": [
+        "frontend/types/builder.ts",
+        "frontend/components/admin/builder/inspector-panel.tsx",
+        "frontend/components/admin/builder/canvas-element.tsx"
+      ],
+      "acceptance_signals": [
+        "state",
+        "dom",
+        "style",
+        "pixels",
+        "ssr"
+      ],
+      "passes": true
+    },
+    {
+      "id": "EL-W1-004",
+      "wave": 1,
+      "title": "CSS Filters (Blur, Brightness, Contrast, Saturation, Hue)",
+      "category": "control_group",
+      "elementor_ref_path": "C:\\Users\\Administrator\\Desktop\\elementor\\elementor\\includes\\controls\\groups\\css-filter.php",
+      "target_files": [
+        "frontend/types/builder.ts",
+        "frontend/components/admin/builder/inspector-panel.tsx",
+        "frontend/components/admin/builder/canvas-element.tsx",
+        "backend/app/modules/content/domain/builder_ast.py",
+        "backend/app/modules/content/application/ast_compiler.py"
+      ],
+      "acceptance_signals": [
+        "state",
+        "dom",
+        "style",
+        "pixels",
+        "ssr"
+      ],
+      "passes": true
+    },
+    {
+      "id": "EL-W1-005",
+      "wave": 1,
+      "title": "Common Base Advanced Controls (Linked Units, Z-Index, Position, Transform, Mask)",
+      "category": "advanced_tab",
+      "elementor_ref_path": "C:\\Users\\Administrator\\Desktop\\elementor\\elementor\\includes\\widgets\\common-base.php",
+      "target_files": [
+        "frontend/types/builder.ts",
+        "frontend/components/admin/builder/inspector-panel.tsx",
+        "frontend/components/admin/builder/canvas-element.tsx",
+        "backend/app/modules/content/domain/builder_ast.py",
+        "backend/app/modules/content/application/ast_compiler.py"
+      ],
+      "acceptance_signals": [
+        "state",
+        "dom",
+        "style",
+        "pixels",
+        "ssr"
+      ],
+      "passes": true
+    },
+    {
+      "id": "EL-W1-006",
+      "wave": 1,
+      "title": "Full CSS Grid Container (Grid Columns, Fr/Px Units, Gap, Auto-Flow)",
+      "category": "control_group",
+      "elementor_ref_path": "C:\\Users\\Administrator\\Desktop\\elementor\\elementor\\includes\\controls\\groups\\grid-container.php",
+      "target_files": [
+        "frontend/types/builder.ts",
+        "frontend/components/admin/builder/inspector-panel.tsx",
+        "frontend/components/admin/builder/canvas-element.tsx",
+        "backend/app/modules/content/domain/builder_ast.py",
+        "backend/app/modules/content/application/ast_compiler.py"
+      ],
+      "acceptance_signals": [
+        "state",
+        "dom",
+        "style",
+        "pixels",
+        "ssr"
+      ],
+      "passes": true
+    },
+    {
+      "id": "EL-W1-007",
+      "wave": 1,
+      "title": "Shape Dividers (Waves, Curve, Triangle, Tilt, Asymmetric with Invert/Flip)",
+      "category": "shape_divider",
+      "elementor_ref_path": "C:\\Users\\Administrator\\Desktop\\elementor\\elementor\\assets\\shapes",
+      "target_files": [
+        "frontend/types/builder.ts",
+        "frontend/components/admin/builder/canvas-element.tsx",
+        "backend/app/modules/content/domain/builder_ast.py",
+        "backend/app/modules/content/application/ast_compiler.py"
+      ],
+      "acceptance_signals": [
+        "state",
+        "dom",
+        "style",
+        "pixels",
+        "ssr"
+      ],
+      "passes": true
+    },
+    {
+      "id": "EL-W1-008",
+      "wave": 1,
+      "title": "Layers Tree / Navigator (Permanent Action Buttons, RTL Depth Indent, Search, Context Menu)",
+      "category": "navigator",
+      "elementor_ref_path": "C:\\Users\\Administrator\\Desktop\\elementor\\elementor\\includes\\editor\\navigator.php",
+      "target_files": [
+        "frontend/components/admin/builder/layers-tree.tsx",
+        "frontend/stores/builder-store.ts"
+      ],
+      "acceptance_signals": [
+        "state",
+        "dom",
+        "pixels"
+      ],
+      "passes": true
+    },
+    {
+      "id": "EL-W2-001",
+      "wave": 2,
+      "title": "Icon, Icon List & Icon Box Widgets",
+      "category": "widget_core",
+      "elementor_ref_path": "C:\\Users\\Administrator\\Desktop\\elementor\\elementor\\includes\\widgets\\icon-box.php",
+      "target_files": [
+        "frontend/lib/builder/block-registry.ts",
+        "frontend/components/admin/builder/canvas-element.tsx",
+        "frontend/components/admin/builder/inspector-panel.tsx",
+        "backend/app/modules/content/application/ast_compiler.py"
+      ],
+      "acceptance_signals": [
+        "state",
+        "dom",
+        "style",
+        "pixels",
+        "ssr"
+      ],
+      "passes": true
+    },
+    {
+      "id": "EL-W2-002",
+      "wave": 2,
+      "title": "Counter, Countdown & Animated Statistics Widgets",
+      "category": "widget_core",
+      "elementor_ref_path": "C:\\Users\\Administrator\\Desktop\\elementor\\elementor\\includes\\widgets\\counter.php",
+      "target_files": [
+        "frontend/lib/builder/block-registry.ts",
+        "frontend/components/admin/builder/canvas-element.tsx",
+        "frontend/components/admin/builder/inspector-panel.tsx",
+        "backend/app/modules/content/application/ast_compiler.py"
+      ],
+      "acceptance_signals": [
+        "state",
+        "dom",
+        "style",
+        "pixels",
+        "ssr"
+      ],
+      "passes": true
+    },
+    {
+      "id": "EL-W2-003",
+      "wave": 2,
+      "title": "Accordion & Tabs (FAQ, Product Specs, Nested Structures)",
+      "category": "widget_core",
+      "elementor_ref_path": "C:\\Users\\Administrator\\Desktop\\elementor\\elementor\\includes\\widgets\\accordion.php",
+      "target_files": [
+        "frontend/lib/builder/block-registry.ts",
+        "frontend/components/admin/builder/canvas-element.tsx",
+        "frontend/components/admin/builder/inspector-panel.tsx",
+        "backend/app/modules/content/application/ast_compiler.py"
+      ],
+      "acceptance_signals": [
+        "state",
+        "dom",
+        "style",
+        "pixels",
+        "ssr"
+      ],
+      "passes": true
+    },
+    {
+      "id": "EL-W2-004",
+      "wave": 2,
+      "title": "Floating Contact & Social Links Bar",
+      "category": "widget_core",
+      "elementor_ref_path": "C:\\Users\\Administrator\\Desktop\\elementor\\elementor\\includes\\widgets\\social-icons.php",
+      "target_files": [
+        "frontend/lib/builder/block-registry.ts",
+        "frontend/components/admin/builder/canvas-element.tsx",
+        "frontend/components/admin/builder/inspector-panel.tsx",
+        "backend/app/modules/content/application/ast_compiler.py"
+      ],
+      "acceptance_signals": [
+        "state",
+        "dom",
+        "style",
+        "pixels",
+        "ssr"
+      ],
+      "passes": true
+    },
+    {
+      "id": "EL-W2-005",
+      "wave": 2,
+      "title": "Pricing Table & Price List Widgets (Elementor Pro Parity)",
+      "category": "widget_pro",
+      "elementor_ref_path": "C:\\Users\\Administrator\\Desktop\\elementor\\elementor-pro\\modules\\pricing\\",
+      "target_files": [
+        "frontend/lib/builder/block-registry.ts",
+        "frontend/lib/builder/pattern-converter.ts",
+        "frontend/components/admin/builder/canvas-element.tsx",
+        "backend/app/modules/content/application/ast_compiler.py"
+      ],
+      "acceptance_signals": [
+        "state",
+        "dom",
+        "style",
+        "pixels",
+        "ssr"
+      ],
+      "passes": true
+    },
+    {
+      "id": "EL-W2-006",
+      "wave": 2,
+      "title": "Call to Action, Banner & Review Histogram Widgets",
+      "category": "widget_pro",
+      "elementor_ref_path": "C:\\Users\\Administrator\\Desktop\\elementor\\elementor-pro\\modules\\call-to-action\\",
+      "target_files": [
+        "frontend/lib/builder/block-registry.ts",
+        "frontend/components/admin/builder/canvas-element.tsx",
+        "backend/app/modules/content/application/ast_compiler.py"
+      ],
+      "acceptance_signals": [
+        "state",
+        "dom",
+        "style",
+        "pixels",
+        "ssr"
+      ],
+      "passes": true
+    },
+    {
+      "id": "EL-W2-007",
+      "wave": 2,
+      "title": "Mega Menu Navigation Widget with Multi-Column Layout",
+      "category": "widget_pro",
+      "elementor_ref_path": "C:\\Users\\Administrator\\Desktop\\elementor\\elementor-pro\\modules\\mega-menu\\",
+      "target_files": [
+        "frontend/lib/builder/block-registry.ts",
+        "frontend/components/admin/builder/canvas-element.tsx",
+        "frontend/components/layout/mega-menu.tsx",
+        "backend/app/modules/content/application/ast_compiler.py"
+      ],
+      "acceptance_signals": [
+        "state",
+        "dom",
+        "style",
+        "pixels",
+        "ssr"
+      ],
+      "passes": true
+    },
+    {
+      "id": "EL-W3-001",
+      "wave": 3,
+      "title": "Global Site Kit (Colors, Typography, Layout, Button Styles, HSL Tokens)",
+      "category": "site_kit",
+      "elementor_ref_path": "C:\\Users\\Administrator\\Desktop\\elementor\\elementor\\core\\kits\\documents\\tabs\\",
+      "target_files": [
+        "frontend/components/admin/builder/global-styles-dialog.tsx",
+        "frontend/stores/builder-store.ts",
+        "frontend/lib/builder/color-utils.ts"
+      ],
+      "acceptance_signals": [
+        "state",
+        "dom",
+        "style",
+        "pixels"
+      ],
+      "passes": true
+    },
+    {
+      "id": "EL-W3-002",
+      "wave": 3,
+      "title": "Form Container & Field Builder with Server-Side Anti-Spam",
+      "category": "pro_module",
+      "elementor_ref_path": "C:\\Users\\Administrator\\Desktop\\elementor\\elementor-pro\\modules\\forms\\",
+      "target_files": [
+        "frontend/lib/builder/block-registry.ts",
+        "frontend/components/admin/builder/canvas-element.tsx",
+        "frontend/components/admin/builder/inspector-panel.tsx",
+        "backend/app/modules/content/application/ast_compiler.py",
+        "backend/app/shared/content/html_sanitizer.py"
+      ],
+      "acceptance_signals": [
+        "state",
+        "dom",
+        "style",
+        "ssr"
+      ],
+      "passes": true
+    },
+    {
+      "id": "EL-W3-003",
+      "wave": 3,
+      "title": "Section & Full Page Template Library with JSON Import/Export",
+      "category": "pro_module",
+      "elementor_ref_path": "C:\\Users\\Administrator\\Desktop\\elementor\\elementor-pro\\modules\\library\\",
+      "target_files": [
+        "frontend/components/admin/builder/save-template-dialog.tsx",
+        "frontend/components/admin/builder/save-page-template-dialog.tsx",
+        "frontend/components/admin/builder/blocks-palette.tsx",
+        "frontend/stores/builder-store.ts"
+      ],
+      "acceptance_signals": [
+        "state",
+        "dom",
+        "persistence"
+      ],
+      "passes": true
+    },
+    {
+      "id": "EL-W3-004",
+      "wave": 3,
+      "title": "Storefront E-Commerce Loop & Product Modules (Grid, Card, Variants, Price, AddToCart)",
+      "category": "pro_module",
+      "elementor_ref_path": "C:\\Users\\Administrator\\Desktop\\elementor\\elementor-pro\\modules\\woocommerce\\",
+      "target_files": [
+        "frontend/lib/builder/block-registry.ts",
+        "frontend/components/admin/builder/canvas-element.tsx",
+        "backend/app/modules/content/application/ast_compiler.py"
+      ],
+      "acceptance_signals": [
+        "state",
+        "dom",
+        "style",
+        "ssr"
+      ],
+      "passes": true
+    }
+  ]
+}

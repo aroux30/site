@@ -383,7 +383,7 @@ const TreeItem = React.memo(function TreeItem({
       )}
 
       {hasChildren && effectiveExpanded && (
-        <div className="flex flex-col border-r-2 border-primary/40 mr-3 pr-3 space-y-1 my-1">
+        <div className="flex flex-col border-r-2 border-primary/40 mr-6 pr-3 space-y-1 my-1">
           {element.children.map((child) => (
             <TreeItem
               key={child.id}

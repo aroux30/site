@@ -1,97 +1,77 @@
-# ممیزی شناسایی اولیه پروژه (Stage 0: Reconnaissance & Initial Audit)
+# گزارش شناسایی اولیه و ممیزی معماری صفحه‌ساز بصری (.loop/INITIAL_PROJECT_AUDIT.md)
 
-**تاریخ ممیزی**: ۲۱ نوامبر ۲۰۲۶ (2026-11-21)  
-**محیط اجرا**: ویندوز ۱۰ پرو (Windows 10 Pro 10.0.19045)  
-**شاخه گیت فعال**: `claude/goofy-bohr-48c74a` در ورک‌تری ایزوله `C:\Users\Administrator\Desktop\site\.claude\worktrees\goofy-bohr-48c74a`  
-**مخزن مرجع المنتور**: `C:\Users\Administrator\Desktop\elementor` (شامل دو پکیج کامل `elementor` و `elementor-pro`)  
-
----
-
-## ۱. ساختار پروژه و وضعیت گیت (Git & Working Tree Status)
-- **وضعیت شاخه**: تمیز (Working tree clean) بدون هیچ تغییر کامیت‌نشده ناخواسته.
-- **شاخه اصلی**: `main`
-- **کامیت‌های اخیر**:
-  - `b849aff` Merge branch 'claude/hungry-ardinghelli-71d423'
-  - `c98e045` merge: resolve conflicts between main and excavator branch, unifying Elementor parity features
-  - `101eb63` Merge branch 'main' of https://github.com/aroux30/site into claude/nice-roentgen-94fdac
-  - `bf822d0` fix(excavator-r11): implement toolbar direct page title inline editing and Ctrl+D / Ctrl+Shift+V shortcuts
-  - `c41a746` fix(excavator-r18): implement Elementor CSS filters controls and server compiler parity
-- **وضعیت سشن‌ها و ورک‌تری‌ها**:
-  - سشن‌های فعال موازی در ورک‌تری‌های اختصاصی خود در حال اجرا هستند. پورت‌های ۳۱۰۰ و ۳۲۰۰ توسط سشن‌های دیگر استفاده می‌شوند.
-  - پورت ۳۰۰۰ به صورت مستقل با بیلد پروداکشن Next.js استاندارد (`next start -p 3000`) بالا آمده و اندپوینت `/api/health` سلامت کامل سرور و اتصال بک‌اند (HTTP 200) را با شناسه بیلد معتبر گزارش می‌کند.
+**تاریخ ممیزی**: 2026-11-21  
+**شاخه جاری مخزن Git**: `claude/intelligent-bhabha-e2ac6c` (ایزوله در Git Worktree)  
+**محیط اجرا**: ویندوز ۱۰ پرو (Node.js v26.1.0, npm 11.13.0, Python 3.14.5)  
+**سورس مرجع المنتور**: `C:\Users\Administrator\Desktop\elementor` (شامل `elementor` و `elementor-pro`)  
+**پروژه اصلی**: `C:\Users\Administrator\Desktop\site`  
+**وضعیت سرور ایزوله**: پورت ۳۳۰۰ (پوسته Webpack با متغیر `NEXT_DIST_DIR=.next-preview-3300` جهت ایزولاسیون کامل از سرورهای هم‌زمان)  
 
 ---
 
-## ۲. پشته فناوری و ابزارهای پروژه (Tech Stack & Tooling)
-- **فرانت‌اند**: Next.js 15.5.25 (App Router)، React 18، TypeScript 5، Tailwind CSS، Radix UI، Lucide React، Zustand (`builder-store.ts`)
-- **بک‌اند**: FastAPI / Python 3.14، SQLAlchemy (Async)، PostgreSQL 16 در Docker، Redis در Docker، Pydantic v2
-- **تست‌ها**:
-  - فرانت‌اند یونیت/کامپوننت: Vitest v5.0.1 (۳۷۲ تست سبز در ۴۵ فایل)
-  - تایپ‌چک فرانت‌اند: `npx tsc --noEmit` (۰ خطا)
-  - تست‌های ای۲ای/مرورگر: Playwright v1.48+، Axe Core Playwright (WCAG 2.1 AA)
-  - بک‌اند: Pytest v9.1.1 (۶۲۲ تست سبز، ۲ اسکیپ)
+## ۱. نقشه ساختار و معماری صفحه‌ساز (Architecture Map)
 
----
+محیط Visual Page Builder یک سیستم ۳ ستونه مدرن است که بر بستر React 18 / Next.js 15 و پایگاه داده PostgreSQL توسعه داده شده است:
 
-## ۳. معماری Visual Page Builder پروژه
-صفحه‌ساز بصری اختصاصی بر مبنای چرخه داده‌ای زیر پیاده‌سازی شده است:
-
+```text
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                             BuilderToolbar                                  │
+│ [عنوان برگه] [ذخیره پیش‌نویس] [انتشار] [استایل سراسری] [قالب برگه] [ویوپورت]    │
+├────────────────────┬───────────────────────────────────┬────────────────────┤
+│   Left Sidebar     │           Center Canvas           │   Right Sidebar    │
+│  (BlocksPalette /  │    (CanvasFrame -> Iframe Sandbox │  (InspectorPanel)  │
+│   LayersTree /     │     + CanvasOverlayLayer Portal   │  [Content]         │
+│   HistoryPanel)    │     + CanvasElement Tree)         │  [Style]           │
+│                    │                                   │  [Advanced]        │
+└────────────────────┴───────────────────────────────────┴────────────────────┘
 ```
-ورودی کاربر (Drag & Drop / Inspector / Palette / Shortcuts)
+
+### چرخه کامل تبدیل داده (Data & Rendering Lifecycle)
+```text
+تعامل کاربر در استودیو (Palette / Drag & Drop / Shortcuts / Inspector)
        ↓
-Builder Store (Zustand: builder-store.ts با مدیریت History past/future و پایش تغییرات)
+استور مرکزی زاستند (useBuilderStore در frontend/stores/builder-store.ts)
        ↓
-Page AST (درخت استاندارد JSON شامل rootElements, globalStyles, schemaVersion)
+اعتبارسنجی ساختار درختی انتزاعی (Zod Schema: PageASTSchema در frontend/lib/builder/schema.ts)
        ↓
-Zod AST Validation (اعتبارسنجی فرانت‌اند با PageASTSchema)
+سریال‌سازی JSON و ذخیره در پایگاه داده (PostgreSQL via cmsPagesAdminApi / Redis Snapshot)
        ↓
-CanvasFrame (Iframe ایزوله برای ارزیابی صادقانه کوئری‌های مدیا و تزریق دو لایه توکن تم)
+کامپایلر سرور بک‌اند (FastAPI / ast_compiler.py / builder_ast.py)
        ↓
-CanvasOverlayLayer (لایه پرتال مستقل روی Iframe برای ترسیم کادرهای هاور، سلکشن و نوار ابزار شناور)
-       ↓
-Backend API (/api/v1/content/admin/pages/)
-       ↓
-PostgreSQL & Redis (ذخیره پیش‌نویس و اسنپ‌شات‌های بازیابی آنی کرش)
-       ↓
-AST Compiler (ast_compiler.py در بک‌اند برای کامپایل سروری به HTML امن و استاندارد)
-       ↓
-Storefront Renderer (رندر تمام‌عرض صفحات CMS با dangerouslySetInnerHTML و cleanHtml)
+رندر امن و استریلیزه (cleanHtml / HTML Sanitizer در استورفرانت)
 ```
 
 ---
 
-## ۴. اجزای کلیدی صفحه‌ساز
-۱. **BuilderStudio (`frontend/components/admin/builder/builder-studio.tsx`)**:
-   - محیط تمام‌صفحه با لایه‌بندی ۳ ستونه (پالت و درخت لایه‌ها در سمت راست، بوم آی‌فریم در مرکز، پنل بازرس در سمت چپ در RTL).
-   - نوار ابزار بالا با سوییچ ۳ ویوپورت (دسکتاپ، تبلت ۷۶۸px، موبایل ۳۷۵px)، دکمه‌های بازگشت/انجام مجدد (Undo/Redo)، استایل سراسری، کلیدهای میانبر، پیش‌نمایش و دکمه‌های ذخیره پیش‌نویس و انتشار.
+## ۲. نقشه وابستگی فایل‌های کلیدی (Dependency Map)
 
-۲. **CanvasFrame & CanvasOverlayLayer (`canvas-frame.tsx`, `canvas-overlay-layer.tsx`)**:
-   - سند داخلی آی‌فریم با استایل‌های پایه سایت و تزریق ۲ لایه توکن‌های طراحی (لایه ۱ تم فعال سایت + لایه ۲ استایل‌های سراسری برگه).
-   - رندر عناصر داخل آی‌فریم با درک ریسپانسیو واقعی.
-   - لایه پرتال شناور مستقل در ریشه آی‌فریم بدون ایجاد شکست در رندر فلکس/گرید فرزندان.
-
-۳. **BlocksPalette (`blocks-palette.tsx`)**:
-   - ۳ زبانه: بلوک‌های پایه (۳۴ بلوک)، الگوهای آماده (۲۸ الگوی کامل)، قالب‌های ذخیره‌شده من (قالب‌های برگه و کانتینر).
-   - فیلتر و جستجوی بلادرنگ.
-
-۴. **LayersTree (`layers-tree.tsx`)**:
-   - درخت کامل سلسله‌مراتبی المان‌ها با تورفتگی RTL به ازای هر عمق (`depth * 24px`) و خط راهنمای عمودی.
-   - دکمه‌های عملیاتی دائمی و بدون مخفی‌سازی (`opacity-80 hover:opacity-100`) برای مخفی‌سازی، تکثیر و حذف (`text-destructive`).
-   - درگ‌انددراپ ردیف‌های درختی، جستجوی زنده در لایه‌ها، دکمه‌های باز و بسته کردن سراسری، و دابل‌کلیک برای تغییر نام درجا.
-
-۵. **InspectorPanel (`inspector-panel.tsx`)**:
-   - ۳ تب مجزا: محتوا (Content)، استایل (Style)، و پیشرفته (Advanced).
-   - کنترل‌های غنی برای تایپوگرافی، پس‌زمینه (رنگ، گرادیانت، تصویر)، فیلترهای گرافیکی CSS، لایه رویی پس‌زمینه (Background Overlay)، سایه‌ها، کادر، انیمیشن‌ها، و نمایش شرطی بر اساس دستگاه و وضعیت احراز هویت.
-
-۶. **Block Registry & Pattern Converter (`block-registry.ts`, `pattern-converter.ts`)**:
-   - ثبت ۳۴ بلوک و ویجت واقعی فرانت‌اند.
-   - تبدیل عمیق ۲۸ الگوی آماده به نودهای استاندارد AST بدون نشت تگ‌های خام HTML.
+| حوزه | فایل‌های اصلی | مسئولیت فنی |
+| :--- | :--- | :--- |
+| **Studio Shell** | `frontend/components/admin/builder/builder-studio.tsx` | اسکلت ۳ ستونه، قفل هم‌زمانی ویرایش (`usePageEditingLock`)، مدیریت روتینگ و تب‌ها |
+| **Toolbar** | `frontend/components/admin/builder/builder-toolbar.tsx` | نوار ابزار اصلی، ذخیره پیش‌نویس، انتشار، پیش‌نمایش، کلیدهای میانبر، سوییچر ویوپورت |
+| **Blocks Palette** | `frontend/components/admin/builder/blocks-palette.tsx` | پالت ۳ زبانه (۳۴ بلوک پایه، ۲۸ الگوی آماده و قالب‌های من)، جستجو، فیلتر دسته‌بندی |
+| **Layers Tree** | `frontend/components/admin/builder/layers-tree.tsx` | درخت لایه‌ها (Navigator)، تورفتگی دقیق RTL با عمق ۲۴px، دکمه‌های عملیاتی همیشه روشن، درگ‌انددراپ، فیلتر زنده |
+| **Canvas Frame** | `frontend/components/admin/builder/canvas-frame.tsx` | بوم ایزوله Iframe، پورتال رندر React، همگام‌سازی بلادرنگ دارک‌مود و متغیرهای HSL تم |
+| **Canvas Element** | `frontend/components/admin/builder/canvas-element.tsx` | رندر زنده تک‌تک ۳۴ ویجت، نوار ابزار شناور المان، لایه اوورلی پس‌زمینه، کادر خط‌چین کانتینر خالی |
+| **Overlay Portal** | `frontend/components/admin/builder/canvas-overlay-layer.tsx` | کادرهای انتخاب چندگانه و منوی راست‌کلیک مستقل در پرتال بوم |
+| **Inspector Panel** | `frontend/components/admin/builder/inspector-panel.tsx` | پنل تنظیمات ۳ زبانه: محتوا (Content)، استایل (Style: پس‌زمینه، سایه، مرز، فیلتر CSS)، پیشرفته (Advanced: انیمیشن، نمایش شرطی دستگاه، رویت‌پذیری احراز هویت، کامپوننت سراسری) |
+| **Presets & Dialogs**| `container-preset-picker.tsx`, `global-styles-dialog.tsx`, `keyboard-shortcuts-dialog.tsx`, `save-page-template-dialog.tsx` | پریست‌های ستونی کانتینر، توکن‌های سراسری، راهنمای میانبرها و ذخیره قالب برگه |
+| **State Store** | `frontend/stores/builder-store.ts` | استور مرکزی Zustand: درخت عمیق AST، تاریخچه Undo/Redo تا ۳۰ مرحله، کلیپ‌بورد پایدار، همگام‌سازی کامپوننت‌های سراسری |
+| **Block Registry** | `frontend/lib/builder/block-registry.ts` | ثبت رسمی ۳۴ بلوک و ویجت اختصاصی همراه با متدهای `createDefaultElement()` |
+| **Backend Compiler**| `backend/app/modules/content/application/ast_compiler.py` | کامپایلر پایتون برای تبدیل درخت AST به خروجی HTML استاندارد منطبق بر تیل‌ویند و استایل‌های بوم |
 
 ---
 
-## ۵. ارزیابی اولیه نواقص P0 و قوانین حفاظتی
-- **دکمه‌های LayersTree**: کلاس `opacity-0` به طور کامل حذف شده و تمامی دکمه‌ها با ماوس در مختصات (0, 0) قابل مشاهده و تعامل هستند.
-- **تورفتگی لایه‌ها**: تورفتگی راست به صورت دقیق `depth * 24px` با خط راهنمای عمودی `border-r-2 border-primary/40` تثبیت شده است.
-- **Empty Container Guide**: کادر خط‌چین با حداقل ارتفاع `80px` و دکمه راهنمای مشخص «افزودن بلوک به این بخش» برقرار است.
-- **ایزولاسیون کامل `audit_service.py` و `showcase`**: هیچ تغییری در این فایل‌ها داده نمی‌شود.
-- **ایزولاسیون تست‌ها**: تمام تست‌های خودکار روی برگه ایزوله `/e2e-isolated-scratchpad?builder=1` اجرا می‌شوند و صفحات عمومی فروشگاه دستکاری نمی‌شوند.
+## ۳. ثبت ریسک‌های فنی (Technical Risk Register)
+
+1. **تداخل پورت‌ها در سشن‌های چندگانه (Multi-Session Port Collision)**:
+   - *ریسک*: در صورت اجرای چند سشن هم‌زمان، سرور پیش‌فرض پورت ۳۰۰۰ ممکن است توسط سشن دیگری اشغال شده باشد.
+   - *کنترل*: فعال‌سازی لانچرهای ایزوله نظیر `:3300` با دایرکتوری بیلد مجزا (`.next-preview-3300`) که از تداخل کش‌های `.next` جلوگیری می‌کند.
+2. **قفل شدن فایل‌ها در ویندوز (Windows File Lock on Rebuild)**:
+   - *ریسک*: پروسه‌های باز جاوااسکریپت مانع حذف کش و ری‌بیلد تمیز می‌گردند.
+   - *کنترل*: اسکریپت `rebuild-and-verify.ps1` و بستن پروسه‌های معلق پورت‌های بلااستفاده پیش از بیلد.
+3. **تطابق WYSIWYG میان بوم و خروجی نهایی**:
+   - *ریسک*: استایل‌های اعمال‌شده در بوم (مانند پس‌زمینه لایه رویی یا فیلترهای CSS) ممکن است در کامپایلر پایتون منعکس نشوند.
+   - *کنترل*: آزمون‌های خودکار اشعه ایکس (`builder-xray.mjs`) که تطابق ۱۰۰٪ خروجی کامپایلر بک‌اند با استایل‌های بوم را می‌سنجد.
+4. **محافظت از فایل‌های هسته‌ای**:
+   - فایل‌های `backend/app/modules/audit/application/audit_service.py` و مسیرهای مربوط به Showcase طبق قوانین پایه پروژه ایزوله و قفل هستند.

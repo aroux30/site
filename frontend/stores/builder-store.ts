@@ -10,7 +10,7 @@ import type {
 } from "@/types/builder";
 
 export type Breakpoint = "desktop" | "tablet" | "mobile";
-export type LeftSidebarTab = "blocks" | "layers";
+export type LeftSidebarTab = "blocks" | "layers" | "history";
 export type InspectorTab = "content" | "style" | "advanced";
 
 const MAX_HISTORY_LENGTH = 50;
@@ -248,7 +248,12 @@ export interface BuilderState {
   updateGlobalComponent: (globalComponentId: string, patch: Partial<BuilderElement>) => void;
   replacePageAST: (newAst: PageAST) => void;
 
-  // History & Save
+  // Container nesting & unwrap helpers (Elementor Container Tools)
+  wrapInContainer: (id: string) => void;
+  unwrapContainer: (id: string) => void;
+
+  // History & Save (Elementor Actions & Revisions Parity)
+  jumpToHistoryStep: (index: number) => void;
   undo: () => void;
   redo: () => void;
   markClean: () => void;
@@ -785,14 +790,27 @@ export const useBuilderStore = create<BuilderState>((set, get) => ({
     const { ast } = get();
     const found = findElementById(ast.rootElements, targetId);
     if (found) {
-      set({ clipboard: { ...get().clipboard, element: JSON.parse(JSON.stringify(found)) } });
+      const cloned = JSON.parse(JSON.stringify(found));
+      set({ clipboard: { ...get().clipboard, element: cloned } });
+      try {
+        if (typeof window !== "undefined") {
+          localStorage.setItem("builder_clipboard_element", JSON.stringify(cloned));
+        }
+      } catch {}
     }
   },
 
   pasteElement: (targetContainerId) => {
     const { clipboard, selectedElementId, ast, addElement } = get();
-    if (!clipboard.element) return;
-    const cloned = cloneElementWithNewIds(clipboard.element);
+    let elementToPaste = clipboard.element;
+    if (!elementToPaste && typeof window !== "undefined") {
+      try {
+        const stored = localStorage.getItem("builder_clipboard_element");
+        if (stored) elementToPaste = JSON.parse(stored);
+      } catch {}
+    }
+    if (!elementToPaste) return;
+    const cloned = cloneElementWithNewIds(elementToPaste);
 
     if (targetContainerId) {
       addElement(cloned, targetContainerId);
@@ -824,7 +842,13 @@ export const useBuilderStore = create<BuilderState>((set, get) => ({
     const { ast } = get();
     const found = findElementById(ast.rootElements, targetId);
     if (found?.styles) {
-      set({ clipboard: { ...get().clipboard, styles: JSON.parse(JSON.stringify(found.styles)) } });
+      const stylesCopy = JSON.parse(JSON.stringify(found.styles));
+      set({ clipboard: { ...get().clipboard, styles: stylesCopy } });
+      try {
+        if (typeof window !== "undefined") {
+          localStorage.setItem("builder_clipboard_styles", JSON.stringify(stylesCopy));
+        }
+      } catch {}
     }
   },
 
@@ -832,8 +856,15 @@ export const useBuilderStore = create<BuilderState>((set, get) => ({
     const id = targetId || get().selectedElementId;
     if (!id) return;
     const { clipboard, updateElementStyles } = get();
-    if (clipboard.styles) {
-      updateElementStyles(id, JSON.parse(JSON.stringify(clipboard.styles)));
+    let stylesToPaste = clipboard.styles;
+    if (!stylesToPaste && typeof window !== "undefined") {
+      try {
+        const stored = localStorage.getItem("builder_clipboard_styles");
+        if (stored) stylesToPaste = JSON.parse(stored);
+      } catch {}
+    }
+    if (stylesToPaste) {
+      updateElementStyles(id, JSON.parse(JSON.stringify(stylesToPaste)));
     }
   },
 
@@ -949,6 +980,104 @@ export const useBuilderStore = create<BuilderState>((set, get) => ({
       isDirty: true,
       mutationVersion: get().mutationVersion + 1,
       history: { past: newPast, future: [] },
+    });
+  },
+
+  wrapInContainer: (id) => {
+    const { ast, history } = get();
+    const info = findElementAndParent(ast.rootElements, id);
+    if (!info) return;
+
+    const newPast = [...history.past, ast].slice(-MAX_HISTORY_LENGTH);
+    const wrapper: BuilderElement = {
+      id: `cont_${Math.random().toString(36).slice(2, 10)}`,
+      name: "کانتینر احاطه‌کننده",
+      type: "container",
+      isLocked: false,
+      isHidden: false,
+      layout: {
+        kind: "flex",
+        direction: "column",
+        justifyContent: "start",
+        alignItems: "stretch",
+        flexWrap: "nowrap",
+        gap: { value: 16, unit: "px" },
+        gridColumns: 1,
+      },
+      styles: { mobile: {} },
+      children: [info.element],
+    };
+
+    let updatedRoots: BuilderElement[];
+    if (info.parent) {
+      updatedRoots = updateElementInTree(ast.rootElements, info.parent.id, (parent) => {
+        const siblings = [...(parent.children || [])];
+        siblings.splice(info.index, 1, wrapper);
+        return { ...parent, children: siblings };
+      });
+    } else {
+      updatedRoots = [...ast.rootElements];
+      updatedRoots.splice(info.index, 1, wrapper);
+    }
+
+    set({
+      ast: { ...ast, rootElements: updatedRoots },
+      selectedElementId: wrapper.id,
+      selectedElementIds: [wrapper.id],
+      isDirty: true,
+      mutationVersion: get().mutationVersion + 1,
+      history: { past: newPast, future: [] },
+    });
+  },
+
+  unwrapContainer: (id) => {
+    const { ast, history } = get();
+    const info = findElementAndParent(ast.rootElements, id);
+    if (!info || info.element.type !== "container") return;
+
+    const children = info.element.children || [];
+    if (children.length === 0) return;
+
+    const newPast = [...history.past, ast].slice(-MAX_HISTORY_LENGTH);
+    let updatedRoots: BuilderElement[];
+
+    if (info.parent) {
+      updatedRoots = updateElementInTree(ast.rootElements, info.parent.id, (parent) => {
+        const siblings = [...(parent.children || [])];
+        siblings.splice(info.index, 1, ...children);
+        return { ...parent, children: siblings };
+      });
+    } else {
+      updatedRoots = [...ast.rootElements];
+      updatedRoots.splice(info.index, 1, ...children);
+    }
+
+    set({
+      ast: { ...ast, rootElements: updatedRoots },
+      selectedElementId: children[0]?.id || null,
+      selectedElementIds: children[0]?.id ? [children[0].id] : [],
+      isDirty: true,
+      mutationVersion: get().mutationVersion + 1,
+      history: { past: newPast, future: [] },
+    });
+  },
+
+  jumpToHistoryStep: (targetIndex: number) => {
+    const { ast, history } = get();
+    const allStates = [...history.past, ast, ...history.future];
+    if (targetIndex < 0 || targetIndex >= allStates.length) return;
+
+    const targetAst = allStates[targetIndex]!;
+    const newPast = allStates.slice(0, targetIndex);
+    const newFuture = allStates.slice(targetIndex + 1);
+
+    set({
+      ast: targetAst,
+      selectedElementId: null,
+      selectedElementIds: [],
+      isDirty: true,
+      mutationVersion: get().mutationVersion + 1,
+      history: { past: newPast, future: newFuture },
     });
   },
 

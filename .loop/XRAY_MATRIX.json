@@ -1,574 +1,456 @@
 {
-  "timestamp": "2026-11-21T09:57:17.374Z",
-  "summary": {
-    "totalChecks": 70,
-    "passedChecks": 70,
-    "failedChecks": 0,
-    "totalFailures": 0,
-    "p0Count": 0,
-    "p1Count": 0,
-    "p2Count": 0,
-    "patternsPassed": "28/28",
-    "blocksPassed": "34/34",
-    "deadControlsRemaining": 0
-  },
+  "timestamp": "2026-11-21T09:55:52.445Z",
+  "round": "round-18",
+  "stage": "after",
+  "totalFailures": 0,
+  "p0Count": 0,
+  "p1Count": 0,
   "patterns": [
     {
       "index": 1,
       "slug": "hero-banner",
+      "title": "بنر اصلی (هیرو)",
+      "category": "بنر و هیرو",
       "passed": true,
-      "failures": [],
-      "checkA": true,
-      "checkB": true,
-      "checkC": true,
-      "checkD": true,
-      "checkE": true
+      "failures": []
     },
     {
       "index": 2,
-      "slug": "feature-grid",
+      "slug": "text-marquee",
+      "title": "متن چرخشی تبلیغاتی",
+      "category": "بنر و هیرو",
       "passed": true,
-      "failures": [],
-      "checkA": true,
-      "checkB": true,
-      "checkC": true,
-      "checkD": true,
-      "checkE": true
+      "failures": []
     },
     {
       "index": 3,
-      "slug": "product-showcase-cta",
+      "slug": "feature-grid",
+      "title": "شبکه ویژگی‌ها",
+      "category": "محتوا",
       "passed": true,
-      "failures": [],
-      "checkA": true,
-      "checkB": true,
-      "checkC": true,
-      "checkD": true,
-      "checkE": true
+      "failures": []
     },
     {
       "index": 4,
-      "slug": "testimonials",
+      "slug": "image-text",
+      "title": "تصویر و متن",
+      "category": "محتوا",
       "passed": true,
-      "failures": [],
-      "checkA": true,
-      "checkB": true,
-      "checkC": true,
-      "checkD": true,
-      "checkE": true
+      "failures": []
     },
     {
       "index": 5,
-      "slug": "faq-accordion",
+      "slug": "stats-counter",
+      "title": "شمارنده آمار",
+      "category": "محتوا",
       "passed": true,
-      "failures": [],
-      "checkA": true,
-      "checkB": true,
-      "checkC": true,
-      "checkD": true,
-      "checkE": true
+      "failures": []
     },
     {
       "index": 6,
-      "slug": "image-text",
+      "slug": "icon-box-grid",
+      "title": "جعبه‌های مزایا و خدمات",
+      "category": "محتوا",
       "passed": true,
-      "failures": [],
-      "checkA": true,
-      "checkB": true,
-      "checkC": true,
-      "checkD": true,
-      "checkE": true
+      "failures": []
     },
     {
       "index": 7,
-      "slug": "countdown-offer",
+      "slug": "author-bio",
+      "title": "کارت معرفی کارشناس / نویسنده",
+      "category": "محتوا",
       "passed": true,
-      "failures": [],
-      "checkA": true,
-      "checkB": true,
-      "checkC": true,
-      "checkD": true,
-      "checkE": true
+      "failures": []
     },
     {
       "index": 8,
-      "slug": "star-rating-display",
+      "slug": "pull-quote",
+      "title": "نقل‌قول و پیام برجسته",
+      "category": "محتوا",
       "passed": true,
-      "failures": [],
-      "checkA": true,
-      "checkB": true,
-      "checkC": true,
-      "checkD": true,
-      "checkE": true
+      "failures": []
     },
     {
       "index": 9,
-      "slug": "review-histogram",
+      "slug": "process-steps",
+      "title": "مراحل گام‌به‌گام خرید و تحویل",
+      "category": "محتوا",
       "passed": true,
-      "failures": [],
-      "checkA": true,
-      "checkB": true,
-      "checkC": true,
-      "checkD": true,
-      "checkE": true
+      "failures": []
     },
     {
       "index": 10,
-      "slug": "product-card-grid",
+      "slug": "product-showcase-cta",
+      "title": "معرفی محصولات با دکمه",
+      "category": "محصولات",
       "passed": true,
-      "failures": [],
-      "checkA": true,
-      "checkB": true,
-      "checkC": true,
-      "checkD": true,
-      "checkE": true
+      "failures": []
     },
     {
       "index": 11,
-      "slug": "text-marquee",
+      "slug": "star-rating-display",
+      "title": "نمایش امتیاز ستاره‌ای",
+      "category": "محصولات",
       "passed": true,
-      "failures": [],
-      "checkA": true,
-      "checkB": true,
-      "checkC": true,
-      "checkD": true,
-      "checkE": true
+      "failures": []
     },
     {
       "index": 12,
-      "slug": "stats-counter",
+      "slug": "review-histogram",
+      "title": "نمودار توزیع امتیاز",
+      "category": "محصولات",
       "passed": true,
-      "failures": [],
-      "checkA": true,
-      "checkB": true,
-      "checkC": true,
-      "checkD": true,
-      "checkE": true
+      "failures": []
     },
     {
       "index": 13,
-      "slug": "image-gallery-showcase",
+      "slug": "product-card-grid",
+      "title": "شبکه کارت محصول",
+      "category": "محصولات",
       "passed": true,
-      "failures": [],
-      "checkA": true,
-      "checkB": true,
-      "checkC": true,
-      "checkD": true,
-      "checkE": true
+      "failures": []
     },
     {
       "index": 14,
-      "slug": "discount-badge-banner",
+      "slug": "image-gallery-showcase",
+      "title": "گالری تصاویر",
+      "category": "محصولات",
       "passed": true,
-      "failures": [],
-      "checkA": true,
-      "checkB": true,
-      "checkC": true,
-      "checkD": true,
-      "checkE": true
+      "failures": []
     },
     {
       "index": 15,
-      "slug": "mega-menu-categories",
+      "slug": "product-highlights",
+      "title": "مزایای کلیدی و برتری‌های کالا",
+      "category": "محصولات",
       "passed": true,
-      "failures": [],
-      "checkA": true,
-      "checkB": true,
-      "checkC": true,
-      "checkD": true,
-      "checkE": true
+      "failures": []
     },
     {
       "index": 16,
-      "slug": "pricing-table",
+      "slug": "testimonials",
+      "title": "نظرات مشتریان",
+      "category": "اعتماد و بازخورد",
       "passed": true,
-      "failures": [],
-      "checkA": true,
-      "checkB": true,
-      "checkC": true,
-      "checkD": true,
-      "checkE": true
+      "failures": []
     },
     {
       "index": 17,
-      "slug": "price-list",
+      "slug": "brand-logo-carousel",
+      "title": "ردیف برندهای همکار و نمادهای اعتماد",
+      "category": "اعتماد و بازخورد",
       "passed": true,
-      "failures": [],
-      "checkA": true,
-      "checkB": true,
-      "checkC": true,
-      "checkD": true,
-      "checkE": true
+      "failures": []
     },
     {
       "index": 18,
-      "slug": "icon-box-grid",
+      "slug": "faq-accordion",
+      "title": "پرسش‌های متداول",
+      "category": "پرسش‌های متداول",
       "passed": true,
-      "failures": [],
-      "checkA": true,
-      "checkB": true,
-      "checkC": true,
-      "checkD": true,
-      "checkE": true
+      "failures": []
     },
     {
       "index": 19,
-      "slug": "author-bio",
+      "slug": "countdown-offer",
+      "title": "بنر فروش ویژه با شمارش معکوس",
+      "category": "فروش و تخفیف",
       "passed": true,
-      "failures": [],
-      "checkA": true,
-      "checkB": true,
-      "checkC": true,
-      "checkD": true,
-      "checkE": true
+      "failures": []
     },
     {
       "index": 20,
-      "slug": "pull-quote",
+      "slug": "discount-badge-banner",
+      "title": "نوار تخفیف با بَج",
+      "category": "فروش و تخفیف",
       "passed": true,
-      "failures": [],
-      "checkA": true,
-      "checkB": true,
-      "checkC": true,
-      "checkD": true,
-      "checkE": true
+      "failures": []
     },
     {
       "index": 21,
-      "slug": "support-callout",
+      "slug": "alert-banner",
+      "title": "نوار اعلان و هشدار مهم فروشگاه",
+      "category": "فروش و تخفیف",
       "passed": true,
-      "failures": [],
-      "checkA": true,
-      "checkB": true,
-      "checkC": true,
-      "checkD": true,
-      "checkE": true
+      "failures": []
     },
     {
       "index": 22,
-      "slug": "comparison-table",
+      "slug": "mega-menu-categories",
+      "title": "لیست دسته‌بندی‌ها",
+      "category": "ناوبری",
       "passed": true,
-      "failures": [],
-      "checkA": true,
-      "checkB": true,
-      "checkC": true,
-      "checkD": true,
-      "checkE": true
+      "failures": []
     },
     {
       "index": 23,
-      "slug": "process-steps",
+      "slug": "pricing-table",
+      "title": "جدول قیمت‌گذاری و تعرفه‌ها",
+      "category": "قیمت‌گذاری و تعرفه",
       "passed": true,
-      "failures": [],
-      "checkA": true,
-      "checkB": true,
-      "checkC": true,
-      "checkD": true,
-      "checkE": true
+      "failures": []
     },
     {
       "index": 24,
-      "slug": "lead-capture-form",
+      "slug": "price-list",
+      "title": "لیست قیمت آیتم‌ها و خدمات",
+      "category": "قیمت‌گذاری و تعرفه",
       "passed": true,
-      "failures": [],
-      "checkA": true,
-      "checkB": true,
-      "checkC": true,
-      "checkD": true,
-      "checkE": true
+      "failures": []
     },
     {
       "index": 25,
-      "slug": "alert-banner",
+      "slug": "comparison-table",
+      "title": "جدول مقایسه محصولات و مشخصات",
+      "category": "قیمت‌گذاری و تعرفه",
       "passed": true,
-      "failures": [],
-      "checkA": true,
-      "checkB": true,
-      "checkC": true,
-      "checkD": true,
-      "checkE": true
+      "failures": []
     },
     {
       "index": 26,
-      "slug": "floating-contact-bar",
+      "slug": "support-callout",
+      "title": "جعبه راهنما و مشاوره خرید",
+      "category": "پشتیبانی و تماس",
       "passed": true,
-      "failures": [],
-      "checkA": true,
-      "checkB": true,
-      "checkC": true,
-      "checkD": true,
-      "checkE": true
+      "failures": []
     },
     {
       "index": 27,
-      "slug": "brand-logo-carousel",
+      "slug": "lead-capture-form",
+      "title": "فرم درخواست مشاوره تلفنی و تماس فوری",
+      "category": "پشتیبانی و تماس",
       "passed": true,
-      "failures": [],
-      "checkA": true,
-      "checkB": true,
-      "checkC": true,
-      "checkD": true,
-      "checkE": true
+      "failures": []
     },
     {
       "index": 28,
-      "slug": "product-highlights",
+      "slug": "floating-contact-bar",
+      "title": "نوار ارتباط سریع و شبکه‌های اجتماعی",
+      "category": "پشتیبانی و تماس",
       "passed": true,
-      "failures": [],
-      "checkA": true,
-      "checkB": true,
-      "checkC": true,
-      "checkD": true,
-      "checkE": true
+      "failures": []
     }
   ],
   "blocks": [
     {
       "index": 1,
       "type": "container",
-      "name": "کانتینر (Container)",
       "passed": true,
       "failures": []
     },
     {
       "index": 2,
       "type": "section",
-      "name": "بخش کامل (Section)",
       "passed": true,
       "failures": []
     },
     {
       "index": 3,
       "type": "columns",
-      "name": "دو ستونه (2 Columns)",
       "passed": true,
       "failures": []
     },
     {
       "index": 4,
       "type": "form_container",
-      "name": "فرم سازنده (Form Container)",
       "passed": true,
       "failures": []
     },
     {
       "index": 5,
       "type": "heading",
-      "name": "سرتیتر (Heading)",
       "passed": true,
       "failures": []
     },
     {
       "index": 6,
       "type": "text_editor",
-      "name": "پاراگراف متن (Paragraph)",
       "passed": true,
       "failures": []
     },
     {
       "index": 7,
       "type": "image",
-      "name": "تصویر (Image)",
       "passed": true,
       "failures": []
     },
     {
       "index": 8,
       "type": "button",
-      "name": "دکمه اقدام (Button)",
       "passed": true,
       "failures": []
     },
     {
       "index": 9,
       "type": "spacer",
-      "name": "فاصله‌ساز (Spacer)",
       "passed": true,
       "failures": []
     },
     {
       "index": 10,
       "type": "divider",
-      "name": "خط جداکننده (Divider)",
       "passed": true,
       "failures": []
     },
     {
       "index": 11,
       "type": "table",
-      "name": "جدول داده (Table)",
       "passed": true,
       "failures": []
     },
     {
       "index": 12,
       "type": "form_input",
-      "name": "فیلد ورودی متن (Input)",
       "passed": true,
       "failures": []
     },
     {
       "index": 13,
       "type": "form_textarea",
-      "name": "متن چندخطی (Textarea)",
       "passed": true,
       "failures": []
     },
     {
       "index": 14,
       "type": "form_select",
-      "name": "منوی کشویی (Select)",
       "passed": true,
       "failures": []
     },
     {
       "index": 15,
       "type": "product_card",
-      "name": "کارت محصول (Product Card)",
       "passed": true,
       "failures": []
     },
     {
       "index": 16,
       "type": "product_grid",
-      "name": "ویترین محصولات (Product Grid)",
       "passed": true,
       "failures": []
     },
     {
       "index": 17,
       "type": "product_variants",
-      "name": "تنوع محصول (Product Variants)",
       "passed": true,
       "failures": []
     },
     {
       "index": 18,
       "type": "product_price",
-      "name": "قیمت محصول (Product Price)",
       "passed": true,
       "failures": []
     },
     {
       "index": 19,
       "type": "add_to_cart",
-      "name": "دکمه خرید (Add to Cart)",
       "passed": true,
       "failures": []
     },
     {
       "index": 20,
       "type": "mini_cart",
-      "name": "مینی کارت (Mini Cart)",
       "passed": true,
       "failures": []
     },
     {
       "index": 21,
       "type": "cart_summary",
-      "name": "خلاصه سبد خرید (Cart Summary)",
       "passed": true,
       "failures": []
     },
     {
       "index": 22,
       "type": "form_checkbox",
-      "name": "چک‌باکس فرم (Checkbox)",
       "passed": true,
       "failures": []
     },
     {
       "index": 23,
       "type": "form_radio",
-      "name": "دکمه رادیویی (Radio Group)",
       "passed": true,
       "failures": []
     },
     {
       "index": 24,
       "type": "accordion",
-      "name": "آکاردئون (Accordion)",
       "passed": true,
       "failures": []
     },
     {
       "index": 25,
       "type": "tabs",
-      "name": "تب‌های محتوا (Tabs)",
       "passed": true,
       "failures": []
     },
     {
       "index": 26,
       "type": "countdown",
-      "name": "شمارنده معکوس (Countdown)",
       "passed": true,
       "failures": []
     },
     {
       "index": 27,
       "type": "video",
-      "name": "پخش‌کننده ویدئو (Video)",
       "passed": true,
       "failures": []
     },
     {
       "index": 28,
       "type": "icon_box",
-      "name": "باکس آیکون و ویژگی (Icon Box)",
       "passed": true,
       "failures": []
     },
     {
       "index": 29,
       "type": "social_links",
-      "name": "شبکه‌های اجتماعی (Social Links)",
       "passed": true,
       "failures": []
     },
     {
       "index": 30,
       "type": "image_gallery",
-      "name": "گالری تصاویر (Image Gallery)",
       "passed": true,
       "failures": []
     },
     {
       "index": 31,
       "type": "star_rating",
-      "name": "امتیاز ستاره‌ای (Star Rating)",
       "passed": true,
       "failures": []
     },
     {
       "index": 32,
       "type": "review_histogram",
-      "name": "نمودار نظرات (Review Histogram)",
       "passed": true,
       "failures": []
     },
     {
       "index": 33,
       "type": "recently_viewed",
-      "name": "بازدیدهای اخیر (Recently Viewed)",
       "passed": true,
       "failures": []
     },
     {
       "index": 34,
       "type": "mega_menu",
-      "name": "مگامنو (Mega Menu)",
       "passed": true,
       "failures": []
     }
   ],
   "deadControls": [],
-  "studioChecks": {
-    "categoryChipsClipped": false,
-    "horizontalOverflow": false,
-    "dndPassed": false,
-    "wysiwygParityPassed": true,
-    "failures": []
+  "layoutAndInteraction": {
+    "categoryChipsClipping": {
+      "passed": true,
+      "issues": []
+    },
+    "dragAndDrop": {
+      "passed": true,
+      "issues": []
+    },
+    "wysiwygParity": {
+      "passed": true,
+      "issues": []
+    }
   },
-  "failures": []
+  "hydrationErrors": []
 }

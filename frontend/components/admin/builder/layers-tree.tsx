@@ -18,10 +18,11 @@ import {
   ChevronDown,
   GripVertical,
   Search,
-  ChevronsUpDown,
+  ChevronsDown,
+  ChevronsUp,
 } from "lucide-react";
-import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import { Input } from "@/components/ui/input";
 import { useBuilderStore } from "@/stores/builder-store";
 import type { BuilderElement } from "@/types/builder";
 
@@ -47,23 +48,26 @@ function getElementIcon(el: BuilderElement) {
 interface TreeItemProps {
   element: BuilderElement;
   depth?: number;
-  onContextMenu?: (e: React.MouseEvent, elementId: string) => void;
+  filterQuery?: string;
   forceExpanded?: boolean | null;
-  searchFilter?: string;
 }
 
 const TreeItem = React.memo(function TreeItem({
   element,
   depth = 0,
-  onContextMenu,
+  filterQuery = "",
   forceExpanded = null,
-  searchFilter = "",
 }: TreeItemProps) {
   const [isExpanded, setIsExpanded] = useState(true);
-  const [isEditingName, setIsEditingName] = useState(false);
-  const [nameDraft, setNameDraft] = useState(element.name);
 
-  const effectiveExpanded = forceExpanded !== null ? forceExpanded : isExpanded;
+  // Sync forced expand / collapse
+  React.useEffect(() => {
+    if (forceExpanded !== null) {
+      setIsExpanded(forceExpanded);
+    }
+  }, [forceExpanded]);
+
+  const effectiveExpanded = filterQuery ? true : isExpanded;
 
   // Fine-grained boolean selector (P5 Hardening):
   // Only re-renders this item when its own selection state changes
@@ -74,56 +78,29 @@ const TreeItem = React.memo(function TreeItem({
   const deleteElement = useBuilderStore((s) => s.deleteElement);
   const duplicateElement = useBuilderStore((s) => s.duplicateElement);
   const toggleHideElement = useBuilderStore((s) => s.toggleHideElement);
-  const updateElementName = useBuilderStore((s) => s.updateElementName);
+  const renameElement = useBuilderStore((s) => s.renameElement);
   const moveElement = useBuilderStore((s) => s.moveElement);
+  const [isEditingName, setIsEditingName] = useState(false);
 
   const Icon = getElementIcon(element);
   const hasChildren = element.children && element.children.length > 0;
 
-  const matchesSearch = useMemo(() => {
-    if (!searchFilter.trim()) return true;
-    const q = searchFilter.toLowerCase();
-    return element.name.toLowerCase().includes(q) || element.id.toLowerCase().includes(q);
-  }, [element.name, element.id, searchFilter]);
-
-  const handleFinishEditing = () => {
-    setIsEditingName(false);
-    if (nameDraft.trim() && nameDraft.trim() !== element.name) {
-      updateElementName(element.id, nameDraft.trim());
-    } else {
-      setNameDraft(element.name);
-    }
-  };
-
   return (
     <div
-      className={cn("flex flex-col select-none", depth > 0 && "pr-0.5", !matchesSearch && "opacity-40")}
+      className={cn("flex flex-col select-none", depth > 0 && "pr-0.5")}
       style={{ marginRight: depth > 0 ? `${Math.min(depth * 16, 48)}px` : 0 }}
     >
       <div
         onClick={() => selectElement(element.id)}
-        onDoubleClick={(e) => {
-          e.stopPropagation();
-          setIsEditingName(true);
-        }}
-        onContextMenu={(e) => {
-          if (onContextMenu) {
-            e.preventDefault();
-            e.stopPropagation();
-            onContextMenu(e, element.id);
-          }
-        }}
         draggable={!element.isLocked}
         onDragStart={(e) => {
           e.stopPropagation();
-          e.dataTransfer.setData(
-            "application/json",
-            JSON.stringify({ type: "element", elementId: element.id })
-          );
+          e.dataTransfer.setData("application/json", JSON.stringify({ type: "element", elementId: element.id }));
           e.dataTransfer.effectAllowed = "move";
         }}
         onDragOver={(e) => {
           e.preventDefault();
+          e.stopPropagation();
           e.dataTransfer.dropEffect = "move";
         }}
         onDrop={(e) => {
@@ -155,7 +132,7 @@ const TreeItem = React.memo(function TreeItem({
               type="button"
               onClick={(e) => {
                 e.stopPropagation();
-                setIsExpanded(!effectiveExpanded);
+                setIsExpanded(!isExpanded);
               }}
               className={cn(
                 "p-0.5 rounded transition",
@@ -163,9 +140,9 @@ const TreeItem = React.memo(function TreeItem({
                   ? "text-primary-foreground hover:bg-white/20"
                   : "text-muted-foreground hover:text-foreground hover:bg-muted"
               )}
-              title={effectiveExpanded ? "بستن زیرمجموعه‌ها" : "باز کردن زیرمجموعه‌ها"}
+              title={isExpanded ? "بستن زیرمجموعه‌ها" : "باز کردن زیرمجموعه‌ها"}
             >
-              {effectiveExpanded ? (
+              {isExpanded ? (
                 <ChevronDown className="w-3.5 h-3.5" />
               ) : (
                 <ChevronLeft className="w-3.5 h-3.5" />
@@ -186,28 +163,34 @@ const TreeItem = React.memo(function TreeItem({
           />
 
           <Icon className={cn("w-3.5 h-3.5 shrink-0", isSelected ? "text-primary-foreground" : "text-primary/70")} />
-
           {isEditingName ? (
             <input
               type="text"
+              defaultValue={element.name}
               autoFocus
-              value={nameDraft}
-              onChange={(e) => setNameDraft(e.target.value)}
-              onBlur={handleFinishEditing}
+              onClick={(e) => e.stopPropagation()}
+              onBlur={(e) => {
+                setIsEditingName(false);
+                const val = e.target.value.trim();
+                if (val && val !== element.name) renameElement(element.id, val);
+              }}
               onKeyDown={(e) => {
-                if (e.key === "Enter") handleFinishEditing();
-                if (e.key === "Escape") {
+                if (e.key === "Enter") {
+                  e.currentTarget.blur();
+                } else if (e.key === "Escape") {
                   setIsEditingName(false);
-                  setNameDraft(element.name);
                 }
               }}
-              onClick={(e) => e.stopPropagation()}
-              className="bg-background text-foreground px-1.5 py-0.5 rounded border border-input text-xs font-normal w-full max-w-[120px] focus:outline-none"
+              className="bg-background text-foreground px-1 py-0.5 rounded text-xs w-full max-w-[120px] outline-none ring-1 ring-primary"
             />
           ) : (
             <span
-              className="truncate"
-              title="دابل کلیک برای تغییر نام"
+              onDoubleClick={(e) => {
+                e.stopPropagation();
+                setIsEditingName(true);
+              }}
+              className="truncate cursor-text"
+              title="برای تغییر نام دابل کلیک کنید"
             >
               {element.name}
             </span>
@@ -291,9 +274,8 @@ const TreeItem = React.memo(function TreeItem({
               key={child.id}
               element={child}
               depth={depth + 1}
-              onContextMenu={onContextMenu}
+              filterQuery={filterQuery}
               forceExpanded={forceExpanded}
-              searchFilter={searchFilter}
             />
           ))}
         </div>
@@ -302,67 +284,86 @@ const TreeItem = React.memo(function TreeItem({
   );
 });
 
-function countTotalElements(elements: BuilderElement[]): number {
-  let count = 0;
-  for (const el of elements) {
-    count++;
-    if (el.children && el.children.length > 0) {
-      count += countTotalElements(el.children);
-    }
-  }
-  return count;
-}
-
-export function LayersTree({ onContextMenu }: { onContextMenu?: (e: React.MouseEvent, elementId: string) => void }) {
+export function LayersTree() {
   const ast = useBuilderStore((s) => s.ast);
   const [search, setSearch] = useState("");
-  const [expandAll, setExpandAll] = useState<boolean | null>(null);
+  const [forceExpanded, setForceExpanded] = useState<boolean | null>(null);
 
-  const totalCount = useMemo(() => countTotalElements(ast.rootElements), [ast.rootElements]);
+  const filterText = search.trim().toLowerCase();
+
+  // Helper function to check if element or any child matches query
+  function matchesQuery(el: BuilderElement): boolean {
+    if (!filterText) return true;
+    if (el.name.toLowerCase().includes(filterText) || (el.widgetType && el.widgetType.toLowerCase().includes(filterText))) {
+      return true;
+    }
+    if (el.children && el.children.length > 0) {
+      return el.children.some(matchesQuery);
+    }
+    return false;
+  }
+
+  const filteredElements = useMemo(() => {
+    if (!filterText) return ast.rootElements;
+    return ast.rootElements.filter(matchesQuery);
+  }, [ast.rootElements, filterText]);
 
   return (
     <div className="flex flex-col h-full p-3 space-y-2 select-none overflow-y-auto" dir="rtl">
-      <div className="flex items-center justify-between px-1 py-1 border-b border-border/60 pb-2">
-        <div className="flex items-center gap-1.5 text-xs font-bold text-foreground">
+      <div className="flex items-center justify-between px-1 text-xs font-bold text-muted-foreground uppercase tracking-wider">
+        <div className="flex items-center gap-1.5">
           <Layers className="w-4 h-4 text-primary" />
-          <span>لایه‌ها (Navigator)</span>
-          <span className="text-[10px] bg-muted/80 text-muted-foreground px-1.5 py-0.5 rounded-full font-mono">
-            {totalCount}
-          </span>
+          <span>درخت ساختار لایه‌ها</span>
         </div>
-
-        <button
-          type="button"
-          onClick={() => setExpandAll((prev) => (prev === true ? false : true))}
-          className="flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground py-0.5 px-1.5 rounded hover:bg-muted transition"
-          title="باز و بسته کردن همه لایه‌ها"
-        >
-          <ChevronsUpDown className="w-3 h-3" />
-          <span>{expandAll === true ? "بستن همه" : "باز کردن همه"}</span>
-        </button>
+        <div className="flex items-center gap-1">
+          <button
+            type="button"
+            onClick={() => setForceExpanded(true)}
+            className="p-1 hover:bg-muted rounded text-muted-foreground hover:text-foreground transition"
+            title="گسترش همه شاخه‌ها"
+            data-testid="expand-all-layers-btn"
+          >
+            <ChevronsDown className="w-3.5 h-3.5" />
+          </button>
+          <button
+            type="button"
+            onClick={() => setForceExpanded(false)}
+            className="p-1 hover:bg-muted rounded text-muted-foreground hover:text-foreground transition"
+            title="بستن همه شاخه‌ها"
+            data-testid="collapse-all-layers-btn"
+          >
+            <ChevronsUp className="w-3.5 h-3.5" />
+          </button>
+        </div>
       </div>
 
-      {/* Navigator Search */}
-      <div className="relative shrink-0">
-        <Search className="absolute start-2.5 top-2.5 h-3 w-3 text-muted-foreground" />
+      {/* Layers Quick Filter Search (Elementor Navigator Parity) */}
+      <div className="relative">
+        <Search className="absolute start-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
         <Input
-          placeholder="جستجوی لایه بر اساس نام یا شناسه..."
+          data-testid="layers-search-input"
+          placeholder="فیلتر المان‌ها و لایه‌ها..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="ps-7 h-7 text-xs"
+          className="ps-8 h-8 text-xs"
         />
       </div>
 
-      <div className="space-y-0.5 flex-1 overflow-y-auto pt-1">
-        {ast.rootElements.map((el) => (
-          <TreeItem
-            key={el.id}
-            element={el}
-            onContextMenu={onContextMenu}
-            forceExpanded={expandAll}
-            searchFilter={search}
-          />
-        ))}
+      <div className="space-y-0.5 mt-1">
+        {filteredElements.length === 0 ? (
+          <div className="text-center py-6 text-xs text-muted-foreground">
+            لایه‌ای با نام «{search}» یافت نشد.
+          </div>
+        ) : (
+          filteredElements.map((el) => (
+            <TreeItem
+              key={el.id}
+              element={el}
+              filterQuery={filterText}
+              forceExpanded={forceExpanded}
+            />
+          ))
+        )}
       </div>
     </div>
   );

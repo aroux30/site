@@ -59,18 +59,28 @@ export const BackgroundStyleSchema = z.object({
   size: z.enum(["cover", "contain", "auto"]).nullable().optional(),
 });
 
+export const BackgroundOverlayStyleSchema = z.object({
+  type: z.enum(["none", "color", "gradient"]).default("none"),
+  color: z.string().nullable().optional(),
+  gradient: BackgroundGradientSchema.nullable().optional(),
+  opacity: z.number().min(0).max(1).nullable().optional(),
+});
+
 export const DeviceStyleSchema = z.object({
   typography: TypographyStyleSchema.nullable().optional(),
   margin: SpacingBoxSchema.nullable().optional(),
   padding: SpacingBoxSchema.nullable().optional(),
   border: BorderStyleSchema.nullable().optional(),
   background: BackgroundStyleSchema.nullable().optional(),
+  backgroundOverlay: BackgroundOverlayStyleSchema.nullable().optional(),
   width: UnitValueSchema.nullable().optional(),
   minHeight: UnitValueSchema.nullable().optional(),
   display: z
     .enum(["block", "flex", "grid", "inline-block", "none", "inherit"])
     .nullable()
     .optional(),
+  boxShadow: z.string().nullable().optional(),
+  filter: z.string().nullable().optional(),
   opacity: z.number().min(0).max(1).nullable().optional(),
   zIndex: z.number().int().min(0).max(999).nullable().optional(),
   // Advanced Layout (P4)
@@ -83,6 +93,9 @@ export const DeviceStyleSchema = z.object({
   flexDirection: z.enum(["row", "column", "row-reverse", "column-reverse", "inherit"]).nullable().optional(),
   justifyContent: z.enum(["start", "center", "end", "between", "around", "evenly", "inherit"]).nullable().optional(),
   alignItems: z.enum(["start", "center", "end", "stretch", "baseline", "inherit"]).nullable().optional(),
+  alignSelf: z.enum(["auto", "start", "center", "end", "stretch", "inherit"]).nullable().optional(),
+  order: z.number().int().nullable().optional(),
+  flexGrow: z.number().nullable().optional(),
   flexWrap: z.enum(["nowrap", "wrap", "wrap-reverse", "inherit"]).nullable().optional(),
   gap: UnitValueSchema.nullable().optional(),
   gridTemplateColumns: z.string().nullable().optional(),

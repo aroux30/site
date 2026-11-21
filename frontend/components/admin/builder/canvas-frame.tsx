@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 import { useBuilderStore, type Breakpoint } from "@/stores/builder-store";
 import { themesAdminApi } from "@/lib/api/themes";
 import { extractCssVariablesFromTokens, hexToHslChannels } from "@/lib/builder/theme-schema";
-import { CanvasSelectionOverlay } from "./canvas-selection-overlay";
+import { CanvasOverlayLayer } from "./canvas-overlay-layer";
 
 /**
  * The editor canvas, rendered inside an isolated iframe.
@@ -23,17 +23,14 @@ export function CanvasFrame({
   viewport,
   children,
   className,
-  onContextMenu,
 }: {
   viewport: Breakpoint;
   children: React.ReactNode;
   className?: string;
-  onContextMenu?: (e: React.MouseEvent, elementId: string) => void;
 }) {
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
   const [mountNode, setMountNode] = useState<HTMLElement | null>(null);
   const [overlayNode, setOverlayNode] = useState<HTMLElement | null>(null);
-  const [iframeDoc, setIframeDoc] = useState<Document | null>(null);
   const [ready, setReady] = useState(false);
   const [activeThemeVars, setActiveThemeVars] = useState<Record<string, string>>({});
   const globalStyles = useBuilderStore((s) => s.ast.globalStyles);
@@ -118,6 +115,19 @@ export function CanvasFrame({
     } else if (gs?.fontFamily) {
       doc.documentElement.style.setProperty("--font-vazirmatn", String(gs.fontFamily));
     }
+    if (gs?.textColor) {
+      const tVal = String(gs.textColor);
+      doc.documentElement.style.setProperty("--foreground", tVal.startsWith("#") ? hexToHslChannels(tVal) : tVal);
+      doc.documentElement.style.setProperty("--theme-foreground", tVal);
+    }
+    if (gs?.backgroundColor) {
+      const bVal = String(gs.backgroundColor);
+      doc.documentElement.style.setProperty("--background", bVal.startsWith("#") ? hexToHslChannels(bVal) : bVal);
+      doc.documentElement.style.setProperty("--theme-background", bVal);
+    }
+    if (gs?.contentMaxWidth) {
+      doc.documentElement.style.setProperty("--content-max-width", String(gs.contentMaxWidth));
+    }
   }, [activeThemeVars]);
 
   const initIframe = useCallback(() => {
@@ -142,20 +152,19 @@ export function CanvasFrame({
           '</style></head>' +
           '<body class="bg-background text-foreground font-sans antialiased relative">' +
           '<div id="builder-canvas-mount"></div>' +
-          '<div id="builder-canvas-overlay-mount" style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:99999;"></div>' +
+          '<div id="builder-overlay-mount" style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:99990;"></div>' +
           '</body></html>'
       );
       doc.close();
     }
 
     const mount = doc.getElementById("builder-canvas-mount");
-    const overlay = doc.getElementById("builder-canvas-overlay-mount");
+    const overlay = doc.getElementById("builder-overlay-mount");
     if (!mount) return;
 
     syncStyles(doc);
     setMountNode(mount);
     setOverlayNode(overlay);
-    setIframeDoc(doc);
     setReady(true);
 
     const handleDragOver = (e: DragEvent) => {
@@ -191,22 +200,22 @@ export function CanvasFrame({
     };
     doc.addEventListener("keydown", handleKeyDown);
 
-    // Forward right-click context menu events from inside iframe to parent window
     const handleContextMenu = (e: MouseEvent) => {
-      let target = e.target as HTMLElement | null;
-      while (target && target !== doc.body) {
-        const elId = target.getAttribute("data-element-id");
-        if (elId) {
-          e.preventDefault();
-          const iframeRect = iframe.getBoundingClientRect();
-          const clientX = iframeRect.left + e.clientX;
-          const clientY = iframeRect.top + e.clientY;
-          if (onContextMenu) {
-            onContextMenu({ clientX, clientY, preventDefault: () => {} } as any, elId);
-          }
-          break;
-        }
-        target = target.parentElement;
+      const target = e.target as HTMLElement | null;
+      const elemContainer = target?.closest("[data-element-id]");
+      if (elemContainer) {
+        e.preventDefault();
+        const targetId = elemContainer.getAttribute("data-element-id");
+        const iframeRect = iframe.getBoundingClientRect();
+        window.postMessage(
+          {
+            type: "builder:contextmenu",
+            targetId,
+            clientX: iframeRect.left + e.clientX,
+            clientY: iframeRect.top + e.clientY,
+          },
+          "*"
+        );
       }
     };
     doc.addEventListener("contextmenu", handleContextMenu);
@@ -301,12 +310,7 @@ export function CanvasFrame({
           style={{ minHeight: "750px" }}
         />
         {mountNode && createPortal(children, mountNode)}
-        {overlayNode && (
-          createPortal(
-            <CanvasSelectionOverlay doc={iframeDoc} onContextMenu={onContextMenu} />,
-            overlayNode
-          )
-        )}
+        {overlayNode && createPortal(<CanvasOverlayLayer doc={iframeRef.current?.contentDocument || null} />, overlayNode)}
       </div>
     </div>
   );

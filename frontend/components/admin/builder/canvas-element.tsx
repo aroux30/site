@@ -39,6 +39,7 @@ import { StarRating } from "@/components/ui/star-rating";
 import { ReviewHistogram } from "@/components/store/review-histogram";
 import { RecentlyViewed } from "@/components/store/recently-viewed";
 import { MegaMenu } from "@/components/layout/mega-menu";
+import { ContainerPresetPicker } from "./container-preset-picker";
 import { Badge } from "@/components/ui/badge";
 import { useCartStore } from "@/stores/cart-store";
 import { useToast } from "@/components/ui/use-toast";
@@ -63,9 +64,9 @@ function CanvasElementComponent({
   const [selectedVariantId, setSelectedVariantId] = useState<string>("var_1");
   const [cartQuantity, setCartQuantity] = useState(1);
   const [activeGridFilter, setActiveGridFilter] = useState<string>("all");
+  const [isInlineEditing, setIsInlineEditing] = useState(false);
   const elementRef = useRef<HTMLDivElement>(null);
   const [isNearTop, setIsNearTop] = useState(false);
-  const [isInlineEditing, setIsInlineEditing] = useState(false);
 
   // Performance-optimized fine-grained selectors (P5 Hardening):
   // Subscribe to boolean expressions instead of full AST tree, preventing cascade re-renders
@@ -216,7 +217,11 @@ function CanvasElementComponent({
     const resolvePadding = () => {
       const p = resolveResponsiveValue({ mobile: base?.padding, tablet: tablet?.padding, desktop: desktop?.padding }, activeBreakpoint);
       if (p) {
-        return `${p.top.value}${p.top.unit} ${p.right.value}${p.right.unit} ${p.bottom.value}${p.bottom.unit} ${p.left.value}${p.left.unit}`;
+        const top = p.top ? `${p.top.value}${p.top.unit}` : "0px";
+        const right = p.right ? `${p.right.value}${p.right.unit}` : top;
+        const bottom = p.bottom ? `${p.bottom.value}${p.bottom.unit}` : top;
+        const left = p.left ? `${p.left.value}${p.left.unit}` : right;
+        return `${top} ${right} ${bottom} ${left}`;
       }
       return undefined;
     };
@@ -224,7 +229,11 @@ function CanvasElementComponent({
     const resolveMargin = () => {
       const m = resolveResponsiveValue({ mobile: base?.margin, tablet: tablet?.margin, desktop: desktop?.margin }, activeBreakpoint);
       if (m) {
-        return `${m.top.value}${m.top.unit} ${m.right.value}${m.right.unit} ${m.bottom.value}${m.bottom.unit} ${m.left.value}${m.left.unit}`;
+        const top = m.top ? `${m.top.value}${m.top.unit}` : "0px";
+        const right = m.right ? `${m.right.value}${m.right.unit}` : top;
+        const bottom = m.bottom ? `${m.bottom.value}${m.bottom.unit}` : top;
+        const left = m.left ? `${m.left.value}${m.left.unit}` : right;
+        return `${top} ${right} ${bottom} ${left}`;
       }
       return undefined;
     };
@@ -285,21 +294,36 @@ function CanvasElementComponent({
       if (bgObj.type === "color" && bgObj.color) {
         styleObj.backgroundColor = normalizeCssColor(bgObj.color);
       } else if (bgObj.type === "gradient" && bgObj.gradient) {
-        styleObj.backgroundImage = `linear-gradient(${bgObj.gradient.direction.replace("to-", "to ")}, ${bgObj.gradient.fromColor}, ${bgObj.gradient.toColor})`;
+        const dirMap: Record<string, string> = {
+          "to-r": "to right",
+          "to-l": "to left",
+          "to-b": "to bottom",
+          "to-t": "to top",
+          "to-tr": "to top right",
+          "to-tl": "to top left",
+        };
+        const dir = dirMap[bgObj.gradient.direction] || "to right";
+        styleObj.backgroundImage = `linear-gradient(${dir}, ${bgObj.gradient.fromColor}, ${bgObj.gradient.toColor})`;
       } else if (bgObj.type === "image" && bgObj.imageUrl) {
         styleObj.backgroundImage = `url(${bgObj.imageUrl})`;
         styleObj.backgroundPosition = bgObj.position || "center";
         styleObj.backgroundSize = bgObj.size || "cover";
+        styleObj.backgroundRepeat = "no-repeat";
       }
     }
 
     // Box Shadow
-    const shadow = resolveResponsiveValue({ mobile: base?.shadow, tablet: tablet?.shadow, desktop: desktop?.shadow }, activeBreakpoint);
+    const shadow = resolveResponsiveValue({ mobile: base?.shadow || base?.boxShadow, tablet: tablet?.shadow || tablet?.boxShadow, desktop: desktop?.shadow || desktop?.boxShadow }, activeBreakpoint);
     if (shadow && shadow !== "none") {
       styleObj.boxShadow = shadow;
     }
 
-    // Backdrop Blur & CSS Filter Blur (Elementor Parity)
+    // CSS Filters & Backdrop Blur (Elementor Parity)
+    const filter = resolveResponsiveValue({ mobile: base?.filter, tablet: tablet?.filter, desktop: desktop?.filter }, activeBreakpoint);
+    if (filter && filter !== "none") {
+      styleObj.filter = filter;
+    }
+
     const backdropBlur = resolveResponsiveValue({ mobile: base?.backdropBlur, tablet: tablet?.backdropBlur, desktop: desktop?.backdropBlur }, activeBreakpoint);
     if (backdropBlur && backdropBlur !== "none") {
       const blurMap: Record<string, string> = {
@@ -313,7 +337,7 @@ function CanvasElementComponent({
     }
 
     const filterBlur = resolveResponsiveValue({ mobile: base?.filterBlur, tablet: tablet?.filterBlur, desktop: desktop?.filterBlur }, activeBreakpoint);
-    if (filterBlur && filterBlur > 0) {
+    if (filterBlur && filterBlur > 0 && !filter) {
       styleObj.filter = `blur(${filterBlur}px)`;
     }
 
@@ -363,6 +387,22 @@ function CanvasElementComponent({
       styleObj.alignItems = (aiMap[alignItems] || alignItems) as any;
     }
 
+    const alignSelf = resolveResponsiveValue({ mobile: base?.alignSelf, tablet: tablet?.alignSelf, desktop: desktop?.alignSelf }, activeBreakpoint);
+    if (alignSelf && alignSelf !== "inherit") {
+      const asMap: Record<string, string> = { start: "flex-start", end: "flex-end" };
+      styleObj.alignSelf = (asMap[alignSelf] || alignSelf) as any;
+    }
+
+    const order = resolveResponsiveValue({ mobile: base?.order, tablet: tablet?.order, desktop: desktop?.order }, activeBreakpoint);
+    if (order !== undefined && order !== null) {
+      styleObj.order = order;
+    }
+
+    const flexGrow = resolveResponsiveValue({ mobile: base?.flexGrow, tablet: tablet?.flexGrow, desktop: desktop?.flexGrow }, activeBreakpoint);
+    if (flexGrow !== undefined && flexGrow !== null) {
+      styleObj.flexGrow = flexGrow;
+    }
+
     const flexWrap = resolveResponsiveValue({ mobile: base?.flexWrap, tablet: tablet?.flexWrap, desktop: desktop?.flexWrap }, activeBreakpoint);
     if (flexWrap && flexWrap !== "inherit") styleObj.flexWrap = flexWrap as any;
 
@@ -376,8 +416,56 @@ function CanvasElementComponent({
     const gridTemplateColumns = resolveResponsiveValue({ mobile: base?.gridTemplateColumns, tablet: tablet?.gridTemplateColumns, desktop: desktop?.gridTemplateColumns }, activeBreakpoint);
     if (gridTemplateColumns) styleObj.gridTemplateColumns = gridTemplateColumns;
 
+    // Elementor Boxed Container Max-Width & Centering
+    if (element.type === "container" && element.layout?.boxedWidth) {
+      styleObj.maxWidth = `${element.layout.boxedWidth.value}${element.layout.boxedWidth.unit}`;
+      styleObj.marginLeft = "auto";
+      styleObj.marginRight = "auto";
+    }
+
     return styleObj;
   }, [element.styles, element.layout, activeBreakpoint]);
+
+  // Elementor Background Overlay calculation
+  const overlayStyle = useMemo((): React.CSSProperties | null => {
+    const res = element.styles;
+    if (!res) return null;
+    const base = res.mobile;
+    const tablet = res.tablet;
+    const desktop = res.desktop;
+
+    const overlay = resolveResponsiveValue(
+      { mobile: base?.backgroundOverlay, tablet: tablet?.backgroundOverlay, desktop: desktop?.backgroundOverlay },
+      activeBreakpoint
+    );
+    if (!overlay || overlay.type === "none") return null;
+
+    const s: React.CSSProperties = {
+      position: "absolute",
+      inset: 0,
+      pointerEvents: "none",
+      borderRadius: "inherit",
+      zIndex: 0,
+    };
+    if (overlay.opacity !== undefined && overlay.opacity !== null) {
+      s.opacity = overlay.opacity;
+    }
+    if (overlay.type === "color" && overlay.color) {
+      s.backgroundColor = normalizeCssColor(overlay.color);
+    } else if (overlay.type === "gradient" && overlay.gradient) {
+      const dirMap: Record<string, string> = {
+        "to-r": "to right",
+        "to-l": "to left",
+        "to-b": "to bottom",
+        "to-t": "to top",
+        "to-tr": "to top right",
+        "to-tl": "to top left",
+      };
+      const dir = dirMap[overlay.gradient.direction] || "to bottom";
+      s.backgroundImage = `linear-gradient(${dir}, ${overlay.gradient.fromColor}, ${overlay.gradient.toColor})`;
+    }
+    return s;
+  }, [element.styles, activeBreakpoint]);
 
   const isHiddenOnActiveBreakpoint = useMemo(() => {
     if (activeBreakpoint === "desktop" && element.visibleOnDesktop === false) return true;
@@ -420,7 +508,7 @@ function CanvasElementComponent({
     [previewMode, setHoveredElement]
   );
 
-  if (element.isHidden && previewMode) {
+  if ((element.isHidden || isHiddenOnActiveBreakpoint) && previewMode) {
     return null;
   }
 
@@ -524,7 +612,7 @@ function CanvasElementComponent({
             }}
             title="دابل‌کلیک برای ویرایش مستقیم متن (Inline Editing)"
             className={cn(
-              "prose dark:prose-invert max-w-none text-foreground/90 leading-relaxed break-words [overflow-wrap:anywhere]",
+              "prose dark:prose-invert max-w-none text-foreground/90 leading-relaxed break-words [overflow-wrap:anywhere] outline-none",
               customClass
             )}
           >
@@ -606,7 +694,7 @@ function CanvasElementComponent({
       case "image": {
         const customClass = String(props.customCssClass || element.styles?.customCssClass || "");
         return (
-          <div className={cn("relative overflow-hidden rounded-xl bg-muted/30", customClass)}>
+          <div className={cn("relative overflow-hidden rounded-xl bg-muted/30 min-h-[120px] w-full flex items-center justify-center", customClass)}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={String(props.url || "/placeholder-hero.svg")}
@@ -1376,9 +1464,6 @@ function CanvasElementComponent({
       className={cn(
         "relative group/elem select-none",
         isContainer ? containerClasses : "block",
-        !previewMode && "outline outline-1 outline-transparent transition-all",
-        !previewMode && isHovered && "outline-dashed outline-sky-500/80 bg-sky-500/5",
-        !previewMode && isSelected && "outline-2 outline-primary ring-2 ring-primary/20 bg-primary/5 shadow-md z-40 relative",
         !previewMode && isDragOver && "outline-2 outline-emerald-500 bg-emerald-500/10 shadow-lg ring-2 ring-emerald-500/30",
         element.isHidden && "opacity-50",
         element.styles?.animation && element.styles.animation !== "none" && `builder-animate-${element.styles.animation}`,
@@ -1388,6 +1473,10 @@ function CanvasElementComponent({
       data-element-id={element.id}
       data-element-name={element.name}
     >
+      {/* Background Overlay (Elementor Parity) */}
+      {overlayStyle && (
+        <div data-testid="background-overlay" style={overlayStyle} aria-hidden="true" />
+      )}
       {/* Breakpoint Hidden Indicator */}
       {isHiddenOnActiveBreakpoint && !previewMode && (
         <div className="absolute top-1 end-1 z-30 pointer-events-none">
@@ -1512,80 +1601,21 @@ function CanvasElementComponent({
           ))
         ) : (
           !previewMode && (
-            <div
-              data-testid="empty-container-guide"
-              className="flex flex-col items-center justify-center p-6 border-2 border-dashed border-primary/40 hover:border-primary/80 rounded-2xl bg-card/60 hover:bg-primary/5 transition-all text-center w-full min-h-[110px] my-1 shadow-xs group/empty cursor-pointer"
-              onClick={(e) => {
-                e.stopPropagation();
-                selectElement(element.id);
-                useBuilderStore.getState().setLeftTab("blocks");
-              }}
-            >
-              <div className="flex items-center gap-2 mb-1">
-                <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center group-hover/empty:bg-primary group-hover/empty:text-primary-foreground transition-colors shadow-xs">
-                  <Plus className="w-4 h-4" />
+            <div className="space-y-3 w-full">
+              <ContainerPresetPicker containerId={element.id} />
+              <div
+                onClick={(e) => {
+                  e.stopPropagation();
+                  selectElement(element.id);
+                  useBuilderStore.getState().setLeftTab("blocks");
+                }}
+                data-testid="empty-container-guide"
+                className="flex flex-col items-center justify-center p-4 border border-dashed border-primary/30 hover:border-primary/60 rounded-xl bg-card/40 hover:bg-primary/5 transition-all cursor-pointer text-center w-full min-h-[64px] shadow-xs group/empty"
+              >
+                <div className="flex items-center gap-2 text-xs font-bold text-foreground group-hover/empty:text-primary transition-colors">
+                  <Plus className="w-3.5 h-3.5 text-primary" />
+                  <span>+ یا افزودن مستقیم ویجت دلخواه از پالت</span>
                 </div>
-                <span className="text-xs font-bold text-foreground group-hover/empty:text-primary transition-colors">
-                  + افزودن بلوک به این بخش
-                </span>
-              </div>
-              <span className="text-[10px] text-muted-foreground mt-0.5">
-                کانتینر آماده درج محتوا است (برای انتخاب و افزودن کلیک کنید)
-              </span>
-
-              {/* Elementor Structure Quick Presets */}
-              <div className="flex flex-wrap items-center justify-center gap-1.5 mt-3 pt-2 border-t border-border/60 w-full max-w-sm">
-                <span className="text-[10px] text-muted-foreground w-full mb-0.5">انتخاب سریع ساختار ستون‌ها (Elementor Presets):</span>
-                {[
-                  { label: "۱ ستون (۱۰۰٪)", cols: 1 },
-                  { label: "۲ ستون (۵۰/۵۰)", cols: 2 },
-                  { label: "۳ ستون (۳۳٪)", cols: 3 },
-                  { label: "۴ ستون (۲۵٪)", cols: 4 },
-                ].map((preset) => (
-                  <button
-                    key={preset.label}
-                    type="button"
-                    data-testid={`structure-preset-${preset.cols}`}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      selectElement(element.id);
-                      useBuilderStore.getState().updateElementLayout(element.id, {
-                        kind: "grid",
-                        gridColumns: preset.cols,
-                        gap: { value: 16, unit: "px" },
-                        direction: "row",
-                      });
-                      for (let i = 0; i < preset.cols; i++) {
-                        const colEl: BuilderElement = {
-                          id: `cont_col_${Math.random().toString(36).slice(2, 10)}`,
-                          name: `ستون ${i + 1}`,
-                          type: "container",
-                          isLocked: false,
-                          isHidden: false,
-                          layout: {
-                            kind: "flex",
-                            direction: "column",
-                            justifyContent: "start",
-                            alignItems: "stretch",
-                            flexWrap: "nowrap",
-                            gap: { value: 12, unit: "px" },
-                            gridColumns: 1,
-                          },
-                          styles: { mobile: {} },
-                          children: [],
-                        };
-                        addElement(colEl, element.id);
-                      }
-                      toast({
-                        title: "ساختار ستون‌ها ایجاد شد",
-                        description: `کانتینر ${preset.cols} ستونه آماده قرارگیری محتوا است.`,
-                      });
-                    }}
-                    className="px-2.5 py-1 rounded-lg text-[10px] font-semibold bg-background hover:bg-primary hover:text-primary-foreground text-foreground border border-border/80 transition shadow-xs"
-                  >
-                    {preset.label}
-                  </button>
-                ))}
               </div>
             </div>
           )

@@ -70,6 +70,12 @@ export function GlobalStylesDialog({ open, onOpenChange }: GlobalStylesDialogPro
   const [fontFamily, setFontFamily] = useState<string>(
     String(globalStyles.fontFamily || "vazirmatn")
   );
+  const [textColor, setTextColor] = useState<string>(
+    String(globalStyles.textColor || "")
+  );
+  const [backgroundColor, setBackgroundColor] = useState<string>(
+    String(globalStyles.backgroundColor || "")
+  );
 
   useEffect(() => {
     if (open) {
@@ -77,8 +83,10 @@ export function GlobalStylesDialog({ open, onOpenChange }: GlobalStylesDialogPro
       setSecondary(String(globalStyles.secondaryColor || "#0d9488"));
       setRadius(String(globalStyles.borderRadius || "12px"));
       setFontFamily(String(globalStyles.fontFamily || "vazirmatn"));
+      setTextColor(String(globalStyles.textColor || ""));
+      setBackgroundColor(String(globalStyles.backgroundColor || ""));
     }
-  }, [open, globalStyles.primaryColor, globalStyles.secondaryColor, globalStyles.borderRadius, globalStyles.fontFamily]);
+  }, [open, globalStyles.primaryColor, globalStyles.secondaryColor, globalStyles.borderRadius, globalStyles.fontFamily, globalStyles.textColor, globalStyles.backgroundColor]);
 
   const handleSave = () => {
     updateGlobalStyles({
@@ -86,6 +94,8 @@ export function GlobalStylesDialog({ open, onOpenChange }: GlobalStylesDialogPro
       secondaryColor: secondary,
       borderRadius: radius,
       fontFamily,
+      textColor: textColor || undefined,
+      backgroundColor: backgroundColor || undefined,
     });
     onOpenChange(false);
   };
@@ -95,11 +105,15 @@ export function GlobalStylesDialog({ open, onOpenChange }: GlobalStylesDialogPro
     setSecondary("#0d9488");
     setRadius("12px");
     setFontFamily("vazirmatn");
+    setTextColor("");
+    setBackgroundColor("");
     updateGlobalStyles({
       primaryColor: undefined,
       secondaryColor: undefined,
       borderRadius: undefined,
       fontFamily: undefined,
+      textColor: undefined,
+      backgroundColor: undefined,
     });
     onOpenChange(false);
   };
@@ -216,6 +230,46 @@ export function GlobalStylesDialog({ open, onOpenChange }: GlobalStylesDialogPro
                 <SelectItem value="system-ui">فونت سیستمی (System UI)</SelectItem>
               </SelectContent>
             </Select>
+          </div>
+
+          {/* Text Color Token */}
+          <div className="space-y-1.5">
+            <Label className="text-xs font-semibold">رنگ متن پیش‌فرض سراسری</Label>
+            <div className="flex items-center gap-2">
+              <input
+                type="color"
+                value={toValidHexColor(textColor, "#09090b")}
+                onChange={(e) => setTextColor(e.target.value)}
+                className="w-8 h-8 rounded-lg cursor-pointer border border-border"
+              />
+              <Input
+                value={textColor}
+                onChange={(e) => setTextColor(toAsciiHex(e.target.value))}
+                className="h-8 font-mono text-xs"
+                placeholder="اختیاری (مثلاً #09090b)"
+                dir="ltr"
+              />
+            </div>
+          </div>
+
+          {/* Background Color Token */}
+          <div className="space-y-1.5">
+            <Label className="text-xs font-semibold">رنگ پس‌زمینه سراسری برگه</Label>
+            <div className="flex items-center gap-2">
+              <input
+                type="color"
+                value={toValidHexColor(backgroundColor, "#ffffff")}
+                onChange={(e) => setBackgroundColor(e.target.value)}
+                className="w-8 h-8 rounded-lg cursor-pointer border border-border"
+              />
+              <Input
+                value={backgroundColor}
+                onChange={(e) => setBackgroundColor(toAsciiHex(e.target.value))}
+                className="h-8 font-mono text-xs"
+                placeholder="اختیاری (مثلاً #ffffff)"
+                dir="ltr"
+              />
+            </div>
           </div>
         </div>
 

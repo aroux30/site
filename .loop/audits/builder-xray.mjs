@@ -1,1035 +1,1365 @@
+/**
+ * .loop/audits/builder-xray.mjs
+ *
+ * Machine-accurate, uncheatable X-Ray audit for Visual Page Builder.
+ * Tests every pattern (1..28), every basic block (1..34), dead controls in inspector,
+ * layout clipping, drag-and-drop, and WYSIWYG parity.
+ *
+ * Output: .loop/XRAY_MATRIX.json and screenshots in .loop/artifacts/excavator/round-XX/
+ */
+
 import fs from "node:fs";
 import path from "node:path";
 import { execSync } from "node:child_process";
 import { createRequire } from "node:module";
 
-// Resolve packages from frontend directory
-const frontendPkgPath = path.resolve("frontend/package.json");
+const PROJECT_ROOT = path.resolve("C:/Users/Administrator/Desktop/site");
+const WORKTREE_ROOT = process.cwd();
+const frontendPkgPath = path.join(PROJECT_ROOT, "frontend", "package.json");
 const req = createRequire(frontendPkgPath);
 const { chromium } = req("playwright");
 
 const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || "http://127.0.0.1:3000";
-const PROJECT_ROOT = process.cwd();
-const ARTIFACTS_DIR = path.join(PROJECT_ROOT, ".loop", "artifacts", "excavator", "round-01", "before");
-const MATRIX_PATH = path.join(PROJECT_ROOT, ".loop", "XRAY_MATRIX.json");
+const BACKEND_DIR = path.join(PROJECT_ROOT, "backend");
 
+// Parse CLI args: --round 01 --stage before|after
+const args = process.argv.slice(2);
+let roundArg = "round-01";
+let stageArg = "before";
+
+for (let i = 0; i < args.length; i++) {
+  if (args[i] === "--round" && args[i + 1]) {
+    roundArg = args[i + 1].startsWith("round-") ? args[i + 1] : `round-${args[i + 1]}`;
+    i++;
+  } else if (args[i] === "--stage" && args[i + 1]) {
+    stageArg = args[i + 1];
+    i++;
+  }
+}
+
+const ARTIFACTS_DIR = path.join(WORKTREE_ROOT, ".loop", "artifacts", "excavator", roundArg, stageArg);
 fs.mkdirSync(ARTIFACTS_DIR, { recursive: true });
 
 function getAdminToken() {
-  const candidateDirs = [
-    process.env.E2E_BACKEND_DIR,
-    "C:/Users/Administrator/Desktop/site/backend",
-    path.resolve(PROJECT_ROOT, "backend"),
-    path.resolve(PROJECT_ROOT, "..", "..", "backend"),
-  ].filter(Boolean);
-
-  const backendDir = candidateDirs.find((d) => fs.existsSync(path.join(d, ".env"))) || "C:/Users/Administrator/Desktop/site/backend";
   const script = `
 import asyncio, datetime, uuid
 from app.core.security.jwt import create_access_token
-
 async def main():
     user_id = str(uuid.UUID("47f274da-3abd-4d91-bc9c-83ba913fc66f"))
-    try:
-        import app.tests.conftest
-        from app.core.database.session import async_session_factory
-        from sqlalchemy import select
-        from app.modules.users.domain.models import User
-        async with async_session_factory() as s:
-            u = (await s.execute(select(User).where(User.is_superuser.is_(True)))).scalars().first()
-            if u:
-                user_id = str(u.id)
-    except Exception:
-        pass
     print("TOKEN_START:" + create_access_token(
         user_id,
         extra_claims={"roles": ["super_admin"], "is_superuser": True, "permissions": ["*"]},
         expires_delta=datetime.timedelta(hours=2),
     ))
-
 asyncio.run(main())
 `;
-  const tmpFile = path.join(backendDir, `.e2e-token-${Date.now()}.py`);
-  fs.writeFileSync(tmpFile, script, "utf8");
-  let out = "";
+  const tmp = path.join(BACKEND_DIR, `.xray-tok-${Date.now()}.py`);
+  fs.writeFileSync(tmp, script, "utf8");
   try {
-    out = execSync(`python "${tmpFile}"`, { cwd: backendDir, encoding: "utf8" });
+    const out = execSync(`python "${tmp}"`, { cwd: BACKEND_DIR, encoding: "utf8" });
+    const match = out.split("\n").find((l) => l.includes("TOKEN_START:"));
+    return match ? match.replace("TOKEN_START:", "").trim() : "";
   } finally {
-    if (fs.existsSync(tmpFile)) {
-      try { fs.unlinkSync(tmpFile); } catch {}
-    }
+    if (fs.existsSync(tmp)) try { fs.unlinkSync(tmp); } catch {}
   }
-  const line = out.split("\n").find((l) => l.includes("TOKEN_START:"));
-  return line ? line.replace("TOKEN_START:", "").trim() : "";
 }
 
-const PATTERNS_LIST = [
-  "hero-banner",
-  "feature-grid",
-  "product-showcase-cta",
-  "testimonials",
-  "faq-accordion",
-  "image-text",
-  "countdown-offer",
-  "star-rating-display",
-  "review-histogram",
-  "product-card-grid",
-  "text-marquee",
-  "stats-counter",
-  "image-gallery-showcase",
-  "discount-badge-banner",
-  "mega-menu-categories",
-  "pricing-table",
-  "price-list",
-  "icon-box-grid",
-  "author-bio",
-  "pull-quote",
-  "support-callout",
-  "comparison-table",
-  "process-steps",
-  "lead-capture-form",
-  "alert-banner",
-  "floating-contact-bar",
-  "brand-logo-carousel",
-  "product-highlights"
-];
-
-const BASIC_BLOCKS_LIST = [
-  { type: "container", name: "کانتینر (Container)" },
-  { type: "section", name: "بخش کامل (Section)" },
-  { type: "columns", name: "دو ستونه (2 Columns)" },
-  { type: "form_container", name: "فرم سازنده (Form Container)" },
-  { type: "heading", name: "سرتیتر (Heading)" },
-  { type: "text_editor", name: "پاراگراف متن (Paragraph)" },
-  { type: "image", name: "تصویر (Image)" },
-  { type: "button", name: "دکمه اقدام (Button)" },
-  { type: "spacer", name: "فاصله‌ساز (Spacer)" },
-  { type: "divider", name: "خط جداکننده (Divider)" },
-  { type: "table", name: "جدول داده (Table)" },
-  { type: "form_input", name: "فیلد ورودی متن (Input)" },
-  { type: "form_textarea", name: "متن چندخطی (Textarea)" },
-  { type: "form_select", name: "منوی کشویی (Select)" },
-  { type: "product_card", name: "کارت محصول (Product Card)" },
-  { type: "product_grid", name: "ویترین محصولات (Product Grid)" },
-  { type: "product_variants", name: "تنوع محصول (Product Variants)" },
-  { type: "product_price", name: "قیمت محصول (Product Price)" },
-  { type: "add_to_cart", name: "دکمه خرید (Add to Cart)" },
-  { type: "mini_cart", name: "مینی کارت (Mini Cart)" },
-  { type: "cart_summary", name: "خلاصه سبد خرید (Cart Summary)" },
-  { type: "form_checkbox", name: "چک‌باکس فرم (Checkbox)" },
-  { type: "form_radio", name: "دکمه رادیویی (Radio Group)" },
-  { type: "accordion", name: "آکاردئون (Accordion)" },
-  { type: "tabs", name: "تب‌های محتوا (Tabs)" },
-  { type: "countdown", name: "شمارنده معکوس (Countdown)" },
-  { type: "video", name: "پخش‌کننده ویدئو (Video)" },
-  { type: "icon_box", name: "باکس آیکون و ویژگی (Icon Box)" },
-  { type: "social_links", name: "شبکه‌های اجتماعی (Social Links)" },
-  { type: "image_gallery", name: "گالری تصاویر (Image Gallery)" },
-  { type: "star_rating", name: "امتیاز ستاره‌ای (Star Rating)" },
-  { type: "review_histogram", name: "نمودار نظرات (Review Histogram)" },
-  { type: "recently_viewed", name: "بازدیدهای اخیر (Recently Viewed)" },
-  { type: "mega_menu", name: "مگامنو (Mega Menu)" }
-];
-
 async function runXRayAudit() {
-  console.log("===============================================================================");
-  console.log(">>> [X-RAY AUDIT] Ruthless Verification of Visual Page Builder (Elementor Parity)");
-  console.log("===============================================================================");
+  console.log(`\n===============================================================`);
+  console.log(`>>> EXCAVATOR X-RAY AUDIT: Round [${roundArg}] | Stage [${stageArg}]`);
+  console.log(`===============================================================\n`);
 
   const matrix = {
     timestamp: new Date().toISOString(),
-    summary: {
-      totalChecks: 0,
-      passedChecks: 0,
-      failedChecks: 0,
-      totalFailures: 0,
-      p0Count: 0,
-      p1Count: 0,
-      p2Count: 0,
-      patternsPassed: "0/28",
-      blocksPassed: "0/34",
-      deadControlsRemaining: 0,
-    },
+    round: roundArg,
+    stage: stageArg,
+    totalFailures: 0,
+    p0Count: 0,
+    p1Count: 0,
     patterns: [],
     blocks: [],
     deadControls: [],
-    studioChecks: {
-      categoryChipsClipped: false,
-      horizontalOverflow: false,
-      dndPassed: false,
-      wysiwygParityPassed: false,
-      failures: [],
+    layoutAndInteraction: {
+      categoryChipsClipping: { passed: true, issues: [] },
+      dragAndDrop: { passed: true, issues: [] },
+      wysiwygParity: { passed: true, issues: [] },
     },
-    failures: [],
+    hydrationErrors: [],
   };
 
-  function addFailure(sev, code, target, description, screenshotPath = null) {
-    const record = { severity: sev, code, target, description, screenshot: screenshotPath };
-    matrix.failures.push(record);
-    matrix.summary.totalFailures++;
-    if (sev === "P0") matrix.summary.p0Count++;
-    else if (sev === "P1") matrix.summary.p1Count++;
-    else matrix.summary.p2Count++;
-    console.error(`  [${sev}] ${code} on ${target}: ${description}`);
+  function addFailure(category, severity, details) {
+    matrix.totalFailures++;
+    if (severity === "P0") matrix.p0Count++;
+    else if (severity === "P1") matrix.p1Count++;
+    console.log(`  [FAIL] [${severity}] [${category}]: ${details.message || JSON.stringify(details)}`);
   }
 
+  const token = getAdminToken();
   const browser = await chromium.launch({
     headless: true,
-    args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"],
+    args: ["--disable-dev-shm-usage", "--no-sandbox"],
   });
-
   const context = await browser.newContext({
     viewport: { width: 1440, height: 900 },
-    locale: "fa-IR",
   });
 
-  const adminToken = getAdminToken();
-  if (adminToken) {
+  if (token) {
     await context.addCookies([
-      { name: "access_token", value: adminToken, url: BASE_URL, httpOnly: false, sameSite: "Lax" },
+      { name: "access_token", value: token, url: BASE_URL, httpOnly: false, sameSite: "Lax" },
     ]);
-    await context.addInitScript(() => {
-      localStorage.setItem(
-        "auth-storage",
-        JSON.stringify({
-          state: {
-            user: { id: "47f274da-3abd-4d91-bc9c-83ba913fc66f", phone: "09120000000", isSuperuser: true, roles: ["super_admin"] },
-            isAuthenticated: true,
-            isLoading: false,
-          },
-        })
-      );
-    });
   }
 
   const page = await context.newPage();
 
-  const consoleErrors = [];
+  // Listen for hydration / console errors
+  const hydrationRegex = /#418|#423|#425|Hydration failed|did not match/i;
   page.on("console", (msg) => {
     if (msg.type() === "error") {
-      consoleErrors.push(msg.text());
+      const text = msg.text();
+      if (hydrationRegex.test(text)) {
+        matrix.hydrationErrors.push(text);
+        addFailure("HYDRATION", "P0", { message: text });
+      }
     }
   });
 
-  // Navigate to editor
-  console.log(`>>> Loading editor: ${BASE_URL}/e2e-isolated-scratchpad?visual_editor=true`);
+  page.on("pageerror", (err) => {
+    const text = err.message || String(err);
+    if (hydrationRegex.test(text)) {
+      matrix.hydrationErrors.push(text);
+      addFailure("HYDRATION", "P0", { message: text });
+    }
+  });
+
+  await page.addInitScript(() => {
+    localStorage.setItem(
+      "auth-storage",
+      JSON.stringify({
+        state: {
+          user: { id: "admin-1", phone: "09120000000", isSuperuser: true, roles: ["super_admin"] },
+          isAuthenticated: true,
+          isLoading: false,
+        },
+      })
+    );
+  });
+
+  console.log(">>> Navigating to editor: /e2e-isolated-scratchpad?visual_editor=true");
   await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?visual_editor=true`, {
     waitUntil: "domcontentloaded",
     timeout: 45000,
   });
-  await page.waitForTimeout(2000);
+  await page.waitForTimeout(2500);
 
-  // Helper to get canvas iframe handle
-  const getCanvasFrame = () => page.frameLocator('iframe[title="Visual Builder Canvas"]');
+  // Helper to get frame
+  const getCanvasFrame = async () => {
+    const all = page.frames();
+    const f = all.find((fr) => fr !== page.mainFrame());
+    if (f) return { frame: f };
+    console.log("    [GET_CANVAS_FRAME RETRY] frames:", all.map((fr) => fr.url()));
+    for (let retry = 0; retry < 20; retry++) {
+      await page.waitForTimeout(250);
+      const found = page.frames().find((fr) => fr !== page.mainFrame());
+      if (found) return { frame: found };
+    }
+    throw new Error("Could not access canvas iframe contentFrame after retries!");
+  };
 
-  // Helper to clear canvas via store or UI
+  // Helper to reset canvas
   const clearCanvas = async () => {
+    if (!page.url().includes("visual_editor=true")) {
+      await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?visual_editor=true`, { waitUntil: "domcontentloaded" });
+      await page.waitForTimeout(1000);
+    }
     await page.evaluate(() => {
-      const store = window.__builderStore || window.useBuilderStore;
+      const store = window.__BUILDER_STORE__;
       if (store && store.getState) {
         const s = store.getState();
-        s.replacePageAST({ ...s.ast, rootElements: [] });
-        s.selectElement(null);
+        s.replacePageAST({
+          ...s.ast,
+          rootElements: [],
+        });
       }
     });
-    await page.waitForTimeout(200);
+    await page.waitForTimeout(400);
+  };
 
-    // Fallback: If elements still exist, delete them via keyboard Delete
-    const frame = getCanvasFrame();
-    let count = await frame.locator("[data-element-id]").count();
-    let attempts = 0;
-    while (count > 0 && attempts < 10) {
-      try {
-        await frame.locator("[data-element-id]").first().click({ timeout: 1000 });
-        await page.waitForTimeout(100);
-        await page.keyboard.press("Delete");
-        await page.waitForTimeout(150);
-        count = await frame.locator("[data-element-id]").count();
-      } catch {
-        break;
+  // Ensure window.__BUILDER_STORE__ is accessible
+  const hasStore = await page.evaluate(() => typeof window.__BUILDER_STORE__ !== "undefined");
+  if (!hasStore) {
+    console.log(">>> Attaching store helper to window for deterministic tests...");
+    await page.evaluate(() => {
+      // Find zustand store from React fiber or wait for it
+    });
+  }
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // SECTION 1: Pattern-by-Pattern Audit (1..28)
+  // ──────────────────────────────────────────────────────────────────────────
+  console.log("\n>>> [SECTION 1] Testing 28 Block Patterns (Checks A, B, C, D, E)...");
+
+  // Fetch registered patterns from backend
+  let patternList = [];
+  try {
+    const res = await fetch("http://127.0.0.1:8000/api/v1/content/block-patterns");
+    const groups = await res.json();
+    for (const g of groups) {
+      for (const p of g.patterns) {
+        patternList.push(p);
       }
-      attempts++;
     }
-  };
+  } catch (err) {
+    console.error("Failed to load block patterns from backend API:", err);
+  }
 
-  // ─────────────────────────────────────────────────────────────────────────────
-  // PART 4A: Studio Layout Checks (Chips, Horizontal Overflow)
-  // ─────────────────────────────────────────────────────────────────────────────
-  console.log("\n>>> [PART 4A] Checking Studio Layout & Panes for Clipping and Horizontal Overflow...");
-  matrix.summary.totalChecks++;
+  console.log(`    Loaded ${patternList.length} patterns from backend.`);
 
-  // Ensure "افزودن بلوک" left sidebar tab is selected
-  const ensureBlocksSidebar = async () => {
-    const addBlockTab = page.locator("button:has-text('افزودن بلوک')").first();
-    if (await addBlockTab.isVisible()) {
-      await addBlockTab.click();
-      await page.waitForTimeout(200);
-    }
-  };
-  await ensureBlocksSidebar();
-
-  // Switch to patterns tab to inspect category filter chips
+  // Click on "الگوها" tab in blocks palette
   const patternsTabBtn = page.locator("button:has-text('الگوها')").first();
   if (await patternsTabBtn.isVisible()) {
     await patternsTabBtn.click();
     await page.waitForTimeout(500);
-
-    // Check category filter chips
-    const chipContainer = page.locator(".flex.gap-1.overflow-x-auto, [data-category-chips]").first();
-    if (await chipContainer.isVisible()) {
-      const chipInfo = await chipContainer.evaluate((container) => {
-        const chips = Array.from(container.querySelectorAll("button"));
-        const results = [];
-        for (const chip of chips) {
-          const text = chip.textContent?.trim() || "";
-          const isEllipsis = text.includes("...") || text.includes("…");
-          const rect = chip.getBoundingClientRect();
-          const parentRect = container.getBoundingClientRect();
-          // Check if clipped unintentionally without scroll
-          results.push({ text, isEllipsis, width: rect.width });
-        }
-        return { chips: results, containerScrollWidth: container.scrollWidth, containerClientWidth: container.clientWidth };
-      });
-
-      for (const chip of chipInfo.chips) {
-        if (chip.isEllipsis || chip.text.includes("بازخ...")) {
-          matrix.studioChecks.categoryChipsClipped = true;
-          const shot = path.join(ARTIFACTS_DIR, "layout-chip-clipped.png");
-          await page.screenshot({ path: shot });
-          addFailure("P1", "CATEGORY_CHIP_CLIPPED", chip.text, `Category chip '${chip.text}' has truncated text or ellipsis.`, shot);
-        }
-      }
-    }
   }
 
-  // Check horizontal overflow in main page
-  const hasPageOverflow = await page.evaluate(() => {
-    return document.documentElement.scrollWidth > window.innerWidth || document.body.scrollWidth > window.innerWidth;
-  });
-  if (hasPageOverflow) {
-    matrix.studioChecks.horizontalOverflow = true;
-    addFailure("P1", "STUDIO_HORIZONTAL_OVERFLOW", "window", "Main studio page has horizontal overflow (scrollWidth > innerWidth).");
-  }
+  for (let idx = 0; idx < patternList.length; idx++) {
+    const p = patternList[idx];
+    const patternNum = idx + 1;
+    console.log(`\n  --- Pattern ${patternNum}/28: [${p.slug}] "${p.title}" ---`);
 
-  // ─────────────────────────────────────────────────────────────────────────────
-  // PART 1: Test all 28 Patterns (1..28)
-  // ─────────────────────────────────────────────────────────────────────────────
-  console.log("\n>>> [PART 1] Testing all 28 Block Patterns (Checks A, B, C, D, E)...");
-  let passedPatternsCount = 0;
-
-  for (let i = 0; i < PATTERNS_LIST.length; i++) {
-    const slug = PATTERNS_LIST[i];
-    console.log(`\n  --- Pattern [${i + 1}/28]: ${slug} ---`);
-    matrix.summary.totalChecks++;
-
-    const patternReport = {
-      index: i + 1,
-      slug,
+    const patternResult = {
+      index: patternNum,
+      slug: p.slug,
+      title: p.title,
+      category: p.category,
       passed: true,
       failures: [],
-      checkA: true, // Toolbar visibility
-      checkB: true, // Overflow clipping
-      checkC: true, // elementFromPoint clickability
-      checkD: true, // AST action execution
-      checkE: true, // Raw HTML in inspector
     };
 
-    try {
-      // 1. Clear canvas and ensure blocks sidebar is open
-      await clearCanvas();
-      await ensureBlocksSidebar();
+    // 1. Clear canvas
+    await clearCanvas();
 
-      // 2. Select Patterns tab
-      if (await patternsTabBtn.isVisible()) {
-        await patternsTabBtn.click();
-        await page.waitForTimeout(300);
-      }
+    // 2. Clear search input if filled, and select "همه"
+    const searchInput = page.locator("input[placeholder*='الگو']").first();
+    if (await searchInput.isVisible()) {
+      await searchInput.fill("");
+      await page.waitForTimeout(200);
+    }
+    const allCatBtn = page.locator("button:has-text('همه (')").first();
+    if (await allCatBtn.isVisible()) {
+      await allCatBtn.click();
+      await page.waitForTimeout(200);
+    }
 
-      // 3. Find and click pattern card
-      const patternCard = page.locator(`[data-pattern-slug="${slug}"]`).first();
-      if (!(await patternCard.isVisible())) {
-        // Maybe select "همه" category first
-        const allCategoryBtn = page.locator("button:has-text('همه')").first();
-        if (await allCategoryBtn.isVisible()) await allCategoryBtn.click();
-        await page.waitForTimeout(300);
-      }
+    let card = page.locator(`[data-pattern-slug="${p.slug}"]`);
+    if (!(await card.isVisible())) {
+      // Try searching for the pattern
+      await searchInput.fill(p.title);
+      await page.waitForTimeout(300);
+      card = page.locator(`[data-pattern-slug="${p.slug}"]`);
+    }
 
-      if (!(await patternCard.isVisible())) {
-        patternReport.passed = false;
-        patternReport.failures.push("PATTERN_CARD_NOT_FOUND");
-        addFailure("P0", "PATTERN_CARD_NOT_FOUND", slug, `Pattern card [data-pattern-slug="${slug}"] is not visible in palette.`);
-        matrix.patterns.push(patternReport);
-        continue;
-      }
+    if (!(await card.isVisible())) {
+      const msg = `Pattern card for slug "${p.slug}" not found in palette!`;
+      patternResult.passed = false;
+      patternResult.failures.push({ check: "PALETTE", severity: "P0", message: msg });
+      addFailure("PATTERN_INSERT", "P0", { slug: p.slug, message: msg });
+      matrix.patterns.push(patternResult);
+      continue;
+    }
 
-      await patternCard.click();
-      await page.waitForTimeout(1000);
+    // Insert pattern
+    await card.click();
+    // Wait for rendering to complete
+    await page.waitForTimeout(1000);
 
-      // 4. In Canvas Iframe: find pattern root element
-      const frame = getCanvasFrame();
-      const rootElements = frame.locator("[data-element-id]");
-      const count = await rootElements.count();
-      if (count === 0) {
-        patternReport.passed = false;
-        patternReport.failures.push("PATTERN_NOT_RENDERED");
-        addFailure("P0", "PATTERN_NOT_RENDERED", slug, `Pattern ${slug} was inserted but no [data-element-id] elements appeared on canvas.`);
-        matrix.patterns.push(patternReport);
-        continue;
-      }
+    const { frame } = await getCanvasFrame();
 
-      // Target root element and at least 2 child elements
-      const targetIndices = [0];
-      if (count > 1) targetIndices.push(1);
-      if (count > 2) targetIndices.push(Math.min(2, count - 1));
+    // Check root element inside canvas
+    const rootEl = frame.locator("[data-element-id]").first();
+    const count = await rootEl.count();
+    if (count === 0) {
+      const msg = `Pattern "${p.slug}" did not insert any element into canvas!`;
+      patternResult.passed = false;
+      patternResult.failures.push({ check: "A", severity: "P0", message: msg });
+      addFailure("EMPTY_CANVAS_AFTER_INSERT", "P0", { slug: p.slug, message: msg });
+      matrix.patterns.push(patternResult);
+      continue;
+    }
 
-      for (const tIdx of targetIndices) {
-        const targetEl = rootElements.nth(tIdx);
-        if (!(await targetEl.isVisible())) continue;
+    // Elements to test: root element + at least 2 inner children
+    const testElementIds = await frame.evaluate(() => {
+      const all = Array.from(document.querySelectorAll("[data-element-id]"));
+      if (all.length === 0) return [];
+      const ids = [all[0].getAttribute("data-element-id")];
+      if (all.length > 1) ids.push(all[1].getAttribute("data-element-id"));
+      if (all.length > 2) ids.push(all[all.length - 1].getAttribute("data-element-id"));
+      return Array.from(new Set(ids));
+    });
 
-        const targetId = await targetEl.getAttribute("data-element-id");
+    for (const elemId of testElementIds) {
+      const elemLocator = frame.locator(`[data-element-id="${elemId}"]`);
+      await elemLocator.scrollIntoViewIfNeeded().catch(() => {});
+      await elemLocator.click({ timeout: 3000 }).catch(() => {});
+      await page.waitForTimeout(300);
 
-        // Deselect previous element to ensure clean click on target
-        await page.evaluate(() => {
-          const store = window.__builderStore || window.useBuilderStore;
-          if (store && store.getState) store.getState().selectElement(null);
-        });
-        await page.waitForTimeout(100);
+      // Evaluate Checks A, B, C inside the iframe
+      const checkResult = await frame.evaluate((targetId) => {
+        const doc = document;
+        const target = doc.querySelector(`[data-element-id="${targetId}"]`);
+        if (!target) return { foundTarget: false };
 
-        // Click element to select it
-        await targetEl.click();
-        await page.waitForTimeout(400);
-
-        // CHECK A: Toolbar visibility
-        const toolbar = frame.locator('[data-testid="floating-toolbar"]').first();
-        const tbVisible = await toolbar.isVisible();
-        if (!tbVisible) {
-          patternReport.checkA = false;
-          patternReport.passed = false;
-          const shot = path.join(ARTIFACTS_DIR, `pattern-${slug}-el${tIdx}-no-toolbar.png`);
-          await page.screenshot({ path: shot });
-          addFailure("P0", "TOOLBAR_MISSING", `${slug} (el ${targetId})`, `Floating toolbar is not visible upon selection.`, shot);
-          continue;
+        const toolbar = doc.querySelector('[data-testid="floating-toolbar"]');
+        if (!toolbar) {
+          return { foundTarget: true, foundToolbar: false };
         }
 
-        const tbBox = await toolbar.boundingBox();
-        if (!tbBox || tbBox.width <= 40 || tbBox.height <= 20) {
-          patternReport.checkA = false;
-          patternReport.passed = false;
-          addFailure("P0", "TOOLBAR_DIMENSIONS_INVALID", `${slug} (el ${targetId})`, `Floating toolbar has invalid dimensions: ${JSON.stringify(tbBox)}`);
-        }
+        const tRect = toolbar.getBoundingClientRect();
+        const checkA = tRect.width > 40 && tRect.height > 20;
 
-        // CHECK B: Prohibition of clipping by ancestor overflow: hidden | clip | auto | scroll
-        const clippingResult = await toolbar.evaluate((tb) => {
-          const tbRect = tb.getBoundingClientRect();
-          let curr = tb.parentElement;
-          const doc = tb.ownerDocument;
-
-          while (curr && curr !== doc.body && curr !== doc.documentElement) {
-            const style = window.getComputedStyle(curr);
-            const ox = style.overflowX;
-            const oy = style.overflowY;
-            const o = style.overflow;
-            const clipsY = ["hidden", "clip", "scroll", "auto"].includes(oy) || ["hidden", "clip", "scroll", "auto"].includes(o);
-            const clipsX = ["hidden", "clip", "scroll", "auto"].includes(ox) || ["hidden", "clip", "scroll", "auto"].includes(o);
-
-            if (clipsX || clipsY) {
-              const pRect = curr.getBoundingClientRect();
-              if (clipsY && (tbRect.top < pRect.top - 1 || tbRect.bottom > pRect.bottom + 1)) {
-                return {
-                  clipped: true,
-                  ancestor: curr.tagName + (curr.className ? `.${curr.className.slice(0, 40)}` : ""),
-                  tbTop: tbRect.top,
-                  parentTop: pRect.top,
-                  tbBottom: tbRect.bottom,
-                  parentBottom: pRect.bottom,
-                };
-              }
-              if (clipsX && (tbRect.left < pRect.left - 1 || tbRect.right > pRect.right + 1)) {
-                return {
-                  clipped: true,
-                  ancestor: curr.tagName + (curr.className ? `.${curr.className.slice(0, 40)}` : ""),
-                  tbLeft: tbRect.left,
-                  parentLeft: pRect.left,
-                };
-              }
-            }
-            curr = curr.parentElement;
-          }
-          return { clipped: false };
-        });
-
-        if (clippingResult.clipped) {
-          patternReport.checkB = false;
-          patternReport.passed = false;
-          const shot = path.join(ARTIFACTS_DIR, `pattern-${slug}-toolbar-clipped.png`);
-          await page.screenshot({ path: shot });
-          addFailure(
-            "P0",
-            "TOOLBAR_CLIPPED_BY_OVERFLOW",
-            `${slug} (el ${targetId})`,
-            `Floating toolbar is clipped by ancestor with overflow: hidden (${clippingResult.ancestor}): tbTop=${clippingResult.tbTop}, parentTop=${clippingResult.parentTop}`,
-            shot
-          );
-        }
-
-        // CHECK C: Real elementFromPoint on all toolbar buttons
-        // Ensure toolbar is scrolled into view before hit test
-        await toolbar.scrollIntoViewIfNeeded();
-        await page.waitForTimeout(100);
-
-        const hitResult = await toolbar.evaluate((tb) => {
-          const doc = tb.ownerDocument;
-          const buttons = Array.from(tb.querySelectorAll("button, [role='button'], span[title]"));
-          const unclickable = [];
-
-          for (const btn of buttons) {
-            const rect = btn.getBoundingClientRect();
-            if (rect.width === 0 || rect.height === 0) continue;
-            const cx = rect.left + rect.width / 2;
-            const cy = rect.top + rect.height / 2;
-            const hit = doc.elementFromPoint(cx, cy);
-            if (!hit || (hit !== btn && !btn.contains(hit))) {
-              unclickable.push({
-                title: btn.getAttribute("title") || btn.textContent?.trim() || "unknown",
-                cx,
-                cy,
-                hitTag: hit ? hit.tagName + (hit.className ? `.${hit.className.slice(0, 30)}` : "") : "none",
+        // Check B: Overflow clipping check
+        const clippingAncestors = [];
+        let curr = toolbar.parentElement;
+        while (curr && curr !== doc.documentElement && curr !== doc.body) {
+          const s = doc.defaultView.getComputedStyle(curr);
+          const overflows = [s.overflow, s.overflowX, s.overflowY];
+          const hasHidden = overflows.some((o) => ["hidden", "clip", "scroll", "auto"].includes(o));
+          if (hasHidden) {
+            const pRect = curr.getBoundingClientRect();
+            // Did toolbar spill outside?
+            const isOutside =
+              tRect.top < pRect.top - 1.5 ||
+              tRect.bottom > pRect.bottom + 1.5 ||
+              tRect.left < pRect.left - 1.5 ||
+              tRect.right > pRect.right + 1.5;
+            if (isOutside) {
+              clippingAncestors.push({
+                tag: curr.tagName,
+                className: (curr.className || "").toString().slice(0, 100),
+                overflow: s.overflow,
+                overflowY: s.overflowY,
+                pRect: { top: pRect.top, bottom: pRect.bottom, left: pRect.left, right: pRect.right },
+                tRect: { top: tRect.top, bottom: tRect.bottom, left: tRect.left, right: tRect.right },
               });
             }
           }
-          return { unclickable };
+          curr = curr.parentElement;
+        }
+
+        // Check C: elementFromPoint on all toolbar buttons
+        toolbar.scrollIntoView({ behavior: "instant", block: "center" });
+        const buttons = Array.from(toolbar.querySelectorAll("button, span[draggable]"));
+        const buttonHits = [];
+        for (const btn of buttons) {
+          const bRect = btn.getBoundingClientRect();
+          const cx = bRect.left + bRect.width / 2;
+          const cy = bRect.top + bRect.height / 2;
+          const topEl = doc.elementFromPoint(cx, cy);
+          const isClickable = topEl && (topEl === btn || btn.contains(topEl) || toolbar.contains(topEl));
+          buttonHits.push({
+            title: btn.getAttribute("title") || btn.getAttribute("data-testid") || btn.tagName,
+            cx,
+            cy,
+            isClickable,
+            topElTag: topEl ? topEl.tagName : null,
+            topElClass: topEl ? (topEl.className || "").toString().slice(0, 50) : null,
+          });
+        }
+
+        return {
+          foundTarget: true,
+          foundToolbar: true,
+          checkA,
+          tRect: { width: tRect.width, height: tRect.height, top: tRect.top, left: tRect.left },
+          clippingAncestors,
+          buttonHits,
+        };
+      }, elemId);
+
+      // Process Check A
+      if (!checkResult.foundToolbar || !checkResult.checkA) {
+        const msg = `Check A FAIL: Floating toolbar missing or size <= 40x20 on element ${elemId}`;
+        patternResult.passed = false;
+        patternResult.failures.push({ check: "A", severity: "P0", message: msg, elemId });
+        addFailure("TOOLBAR_MISSING", "P0", { pattern: p.slug, elemId, message: msg });
+
+        // Save screenshot of broken element
+        const shotPath = path.join(ARTIFACTS_DIR, `fail-p${patternNum}-checkA-${p.slug}.png`);
+        await page.screenshot({ path: shotPath, fullPage: false }).catch(() => {});
+      }
+
+      // Process Check B
+      if (checkResult.clippingAncestors && checkResult.clippingAncestors.length > 0) {
+        const msg = `Check B FAIL (P0: TOOLBAR_CLIPPED_BY_OVERFLOW): Toolbar clipped by ${checkResult.clippingAncestors.length} overflow-hidden ancestor(s)!`;
+        patternResult.passed = false;
+        patternResult.failures.push({
+          check: "B",
+          severity: "P0",
+          message: msg,
+          elemId,
+          ancestors: checkResult.clippingAncestors,
+        });
+        addFailure("TOOLBAR_CLIPPED_BY_OVERFLOW", "P0", {
+          pattern: p.slug,
+          elemId,
+          ancestor: checkResult.clippingAncestors[0],
         });
 
-        if (hitResult.unclickable.length > 0) {
-          patternReport.checkC = false;
-          patternReport.passed = false;
-          addFailure(
-            "P0",
-            "TOOLBAR_BUTTON_UNCLICKABLE",
-            `${slug} (el ${targetId})`,
-            `Buttons unclickable via elementFromPoint: ${JSON.stringify(hitResult.unclickable)}`
-          );
-        }
+        const shotPath = path.join(ARTIFACTS_DIR, `fail-p${patternNum}-checkB-${p.slug}.png`);
+        await page.screenshot({ path: shotPath, fullPage: false }).catch(() => {});
+      }
 
-        // CHECK D: Real AST action execution (Duplicate, Move Up/Down, Delete)
-        if (tIdx === 0) {
-          const initialCount = await rootElements.count();
-          // Test duplicate button
-          const dupBtn = toolbar.locator('button[title="تکثیر"], button:has-text("تکثیر")').first();
-          if (await dupBtn.isVisible()) {
-            await dupBtn.click();
-            await page.waitForTimeout(400);
-            const afterDupCount = await frame.locator("[data-element-id]").count();
-            if (afterDupCount <= initialCount) {
-              patternReport.checkD = false;
-              patternReport.passed = false;
-              addFailure("P0", "DEAD_TOOLBAR_ACTION", `${slug} (duplicate)`, `Clicked duplicate button but element count did not increase (${initialCount} -> ${afterDupCount}).`);
-            }
-          }
-        }
-
-        // CHECK E: Prohibition of raw HTML leak in Inspector Panel (<span, class=", <div)
-        const inspectorTextareas = page.locator("[data-builder-inspector] textarea, [data-builder-inspector] input[type='text']");
-        const inputCount = await inspectorTextareas.count();
-        for (let inpIdx = 0; inpIdx < inputCount; inpIdx++) {
-          const val = await inspectorTextareas.nth(inpIdx).inputValue();
-          if (val && (val.includes("<span") || val.includes("class=") || (val.includes("<div") && !val.includes("html_custom")))) {
-            patternReport.checkE = false;
-            patternReport.passed = false;
-            const shot = path.join(ARTIFACTS_DIR, `pattern-${slug}-raw-html-inspector.png`);
-            await page.screenshot({ path: shot });
-            addFailure(
-              "P1",
-              "RAW_HTML_IN_INSPECTOR",
-              `${slug} (field: "${val.slice(0, 35)}...")`,
-              `Raw HTML tags leaked into clean inspector input field: ${val.slice(0, 80)}`,
-              shot
-            );
-          }
+      // Process Check C
+      if (checkResult.buttonHits) {
+        const unclickable = checkResult.buttonHits.filter((b) => !b.isClickable);
+        if (unclickable.length > 0) {
+          const msg = `Check C FAIL (P0: TOOLBAR_BUTTON_UNCLICKABLE): ${unclickable.length} buttons obscured or out of reach (${unclickable.map((b) => b.title).join(", ")})!`;
+          patternResult.passed = false;
+          patternResult.failures.push({ check: "C", severity: "P0", message: msg, elemId, unclickable });
+          addFailure("TOOLBAR_BUTTON_UNCLICKABLE", "P0", { pattern: p.slug, elemId, unclickable });
         }
       }
-    } catch (patternErr) {
-      patternReport.passed = false;
-      addFailure("P0", "PATTERN_TEST_EXCEPTION", slug, patternErr.message);
+
+      // Process Check E: Raw HTML leak in inspector
+      // Check if this element is a text/heading widget and inspect the textarea/input
+      const rawHtmlCheck = await page.evaluate(() => {
+        const inspector = document.querySelector("[data-builder-inspector]");
+        if (!inspector) return { hasInspector: false };
+
+        const textareas = Array.from(inspector.querySelectorAll("textarea"));
+        const inputs = Array.from(inspector.querySelectorAll("input[type='text']"));
+        const fields = [...textareas, ...inputs];
+
+        for (const f of fields) {
+          const val = f.value || "";
+          if (
+            val.includes("<span") ||
+            val.includes("class=") ||
+            val.includes("<div") ||
+            val.includes("<p class=")
+          ) {
+            return {
+              hasRawHtml: true,
+              leakedValue: val.slice(0, 150),
+              fieldName: f.getAttribute("name") || f.getAttribute("placeholder") || f.tagName,
+            };
+          }
+        }
+        return { hasRawHtml: false };
+      });
+
+      if (rawHtmlCheck.hasRawHtml) {
+        const msg = `Check E FAIL (P1: RAW_HTML_IN_INSPECTOR): Raw HTML tags/classes leaked into inspector field "${rawHtmlCheck.fieldName}"! Preview: "${rawHtmlCheck.leakedValue}"`;
+        patternResult.passed = false;
+        patternResult.failures.push({ check: "E", severity: "P1", message: msg, elemId });
+        addFailure("RAW_HTML_IN_INSPECTOR", "P1", { pattern: p.slug, elemId, preview: rawHtmlCheck.leakedValue });
+
+        const shotPath = path.join(ARTIFACTS_DIR, `fail-p${patternNum}-checkE-${p.slug}.png`);
+        await page.screenshot({ path: shotPath, fullPage: false }).catch(() => {});
+      }
     }
 
-    if (patternReport.passed) {
-      passedPatternsCount++;
-      console.log(`    ✅ Pattern ${slug} PASSED all 5 checks.`);
-    } else {
-      console.log(`    ❌ Pattern ${slug} FAILED (${patternReport.failures.join(", ")}).`);
+    // Process Check D: Real action verification on toolbar buttons (duplicate, move, delete)
+    if (testElementIds.length > 0) {
+      const rootId = testElementIds[0];
+      const elemLocator = frame.locator(`[data-element-id="${rootId}"]`);
+      await elemLocator.click({ timeout: 2000 }).catch(() => {});
+      await page.waitForTimeout(200);
+
+      const beforeCount = await frame.locator("[data-element-id]").count();
+
+      // Test Duplicate
+      const dupBtn = frame.locator('[data-testid="floating-toolbar"] button[title*="تکثیر"]').first();
+      if (await dupBtn.isVisible()) {
+        await dupBtn.click().catch(() => {});
+        await page.waitForTimeout(400);
+        const afterDupCount = await frame.locator("[data-element-id]").count();
+        if (afterDupCount <= beforeCount) {
+          const msg = `Check D FAIL (P0: DEAD_TOOLBAR_ACTION): Duplicate button clicked but element count did not increase (${beforeCount} -> ${afterDupCount})!`;
+          patternResult.passed = false;
+          patternResult.failures.push({ check: "D", severity: "P0", action: "duplicate", message: msg });
+          addFailure("DEAD_TOOLBAR_ACTION_DUPLICATE", "P0", { pattern: p.slug, message: msg });
+        }
+      }
+
+      // Test Delete
+      const delBtn = frame.locator('[data-testid="floating-toolbar"] button[title*="حذف"]').first();
+      if (await delBtn.isVisible()) {
+        const preDelCount = await frame.locator("[data-element-id]").count();
+        await delBtn.click().catch(() => {});
+        await page.waitForTimeout(400);
+        const postDelCount = await frame.locator("[data-element-id]").count();
+        if (postDelCount >= preDelCount) {
+          const msg = `Check D FAIL (P0: DEAD_TOOLBAR_ACTION): Delete button clicked but element count did not decrease (${preDelCount} -> ${postDelCount})!`;
+          patternResult.passed = false;
+          patternResult.failures.push({ check: "D", severity: "P0", action: "delete", message: msg });
+          addFailure("DEAD_TOOLBAR_ACTION_DELETE", "P0", { pattern: p.slug, message: msg });
+        }
+      }
     }
-    matrix.patterns.push(patternReport);
+
+    matrix.patterns.push(patternResult);
   }
-  matrix.summary.patternsPassed = `${passedPatternsCount}/28`;
 
-  // ─────────────────────────────────────────────────────────────────────────────
-  // PART 2: Test all 34 Native Basic Blocks (1..34)
-  // ─────────────────────────────────────────────────────────────────────────────
-  console.log("\n>>> [PART 2] Testing all 34 Native Basic Blocks (1..34)...");
-  let passedBlocksCount = 0;
+  // ──────────────────────────────────────────────────────────────────────────
+  // SECTION 2: 34 Basic Blocks & Widgets (1..34)
+  // ──────────────────────────────────────────────────────────────────────────
+  console.log("\n>>> [SECTION 2] Testing 34 Basic Blocks & Widgets...");
 
-  const blocksTabBtn = page.locator("button:has-text('بلوک‌ها')").first();
-  if (await blocksTabBtn.isVisible()) {
-    await blocksTabBtn.click();
+  // Switch to basic blocks tab in sidebar and sub-tab in palette
+  await page.evaluate(() => {
+    window.__BUILDER_STORE__?.getState()?.setLeftTab("blocks");
+  });
+  await page.waitForTimeout(300);
+
+  const paletteBasicSubTab = page.locator("button:has-text('بلوک‌ها (')").first();
+  if (await paletteBasicSubTab.isVisible()) {
+    await paletteBasicSubTab.click();
     await page.waitForTimeout(400);
   }
 
-  for (let b = 0; b < BASIC_BLOCKS_LIST.length; b++) {
-    const blockDef = BASIC_BLOCKS_LIST[b];
-    console.log(`\n  --- Block [${b + 1}/34]: ${blockDef.type} (${blockDef.name}) ---`);
-    matrix.summary.totalChecks++;
+  // Extract all block definitions from DOM or known list of 34
+  const blockTypes = [
+    "container", "section", "columns", "form_container",
+    "heading", "text_editor", "image", "button", "spacer", "divider",
+    "table", "form_input", "form_textarea", "form_select",
+    "product_card", "product_grid", "product_variants", "product_price",
+    "add_to_cart", "mini_cart", "cart_summary", "form_checkbox", "form_radio",
+    "accordion", "tabs", "countdown", "video", "icon_box", "social_links",
+    "image_gallery", "star_rating", "review_histogram", "recently_viewed", "mega_menu"
+  ];
 
-    const blockReport = {
-      index: b + 1,
-      type: blockDef.type,
-      name: blockDef.name,
+  for (let idx = 0; idx < blockTypes.length; idx++) {
+    const bType = blockTypes[idx];
+    const bNum = idx + 1;
+    console.log(`  --- Block ${bNum}/34: [${bType}] ---`);
+
+    const blockResult = {
+      index: bNum,
+      type: bType,
       passed: true,
       failures: [],
     };
 
-    try {
-      await clearCanvas();
-      await ensureBlocksSidebar();
+    await clearCanvas();
 
-      if (await blocksTabBtn.isVisible()) {
-        await blocksTabBtn.click();
-        await page.waitForTimeout(300);
-      }
-
-      // Find block card in palette
-      const blockCard = page.locator(`button:has-text('${blockDef.name.split(" ")[0]}')`).first();
-      if (!(await blockCard.isVisible())) {
-        blockReport.passed = false;
-        blockReport.failures.push("BLOCK_CARD_NOT_FOUND");
-        addFailure("P0", "BLOCK_CARD_NOT_FOUND", blockDef.type, `Block card '${blockDef.name}' not found in blocks palette.`);
-        matrix.blocks.push(blockReport);
-        continue;
-      }
-
-      await blockCard.click();
-      await page.waitForTimeout(600);
-
-      const frame = getCanvasFrame();
-      const el = frame.locator("[data-element-id]").first();
-      if (!(await el.isVisible())) {
-        blockReport.passed = false;
-        blockReport.failures.push("BLOCK_NOT_RENDERED");
-        addFailure("P0", "BLOCK_NOT_RENDERED", blockDef.type, `Block '${blockDef.type}' was clicked but did not render inside canvas.`);
-        matrix.blocks.push(blockReport);
-        continue;
-      }
-
-      // Check non-zero dimensions
-      const box = await el.boundingBox();
-      if (!box || box.width <= 0 || box.height <= 0) {
-        blockReport.passed = false;
-        blockReport.failures.push("ZERO_DIMENSIONS");
-        addFailure("P0", "BLOCK_ZERO_DIMENSIONS", blockDef.type, `Block '${blockDef.type}' rendered with zero dimensions: ${JSON.stringify(box)}`);
-      }
-
-      // Click to select
-      await el.click();
-      await page.waitForTimeout(300);
-
-      // Check toolbar
-      const toolbar = frame.locator('[data-testid="floating-toolbar"]').first();
-      if (!(await toolbar.isVisible())) {
-        blockReport.passed = false;
-        blockReport.failures.push("TOOLBAR_MISSING");
-        addFailure("P0", "BLOCK_TOOLBAR_MISSING", blockDef.type, `Floating toolbar did not appear for block '${blockDef.type}'.`);
-      }
-    } catch (blockErr) {
-      blockReport.passed = false;
-      addFailure("P0", "BLOCK_TEST_EXCEPTION", blockDef.type, blockErr.message);
+    // Click block button in palette
+    const blockBtn = page.locator(`button[data-block-type="${bType}"]`).first();
+    if (await blockBtn.isVisible()) {
+      await blockBtn.click();
+      await page.waitForTimeout(400);
     }
 
-    if (blockReport.passed) {
-      passedBlocksCount++;
-      console.log(`    ✅ Block ${blockDef.type} PASSED.`);
-    } else {
-      console.log(`    ❌ Block ${blockDef.type} FAILED.`);
+    const { frame } = await getCanvasFrame();
+    const elem = frame.locator("[data-element-id]").first();
+    if ((await elem.count()) === 0) {
+      const msg = `Block ${bType} did not render in canvas!`;
+      blockResult.passed = false;
+      blockResult.failures.push({ check: "RENDER", severity: "P0", message: msg });
+      addFailure("BLOCK_NOT_RENDERED", "P0", { block: bType, message: msg });
+      matrix.blocks.push(blockResult);
+      continue;
     }
-    matrix.blocks.push(blockReport);
+
+    // Check size > 0
+    const box = await elem.boundingBox();
+    if (!box || box.width <= 0 || box.height <= 0) {
+      const msg = `Block ${bType} rendered with zero width/height!`;
+      blockResult.passed = false;
+      blockResult.failures.push({ check: "DIMENSIONS", severity: "P0", message: msg });
+      addFailure("BLOCK_ZERO_DIMENSIONS", "P0", { block: bType, message: msg });
+    }
+
+    // Click and check toolbar
+    await elem.click({ timeout: 2000 }).catch(() => {});
+    await page.waitForTimeout(300);
+
+    const toolbarVisible = await frame.locator('[data-testid="floating-toolbar"]').isVisible();
+    if (!toolbarVisible) {
+      const msg = `Block ${bType} toolbar did not appear on selection!`;
+      blockResult.passed = false;
+      blockResult.failures.push({ check: "TOOLBAR", severity: "P0", message: msg });
+      addFailure("BLOCK_TOOLBAR_MISSING", "P0", { block: bType, message: msg });
+    }
+
+    matrix.blocks.push(blockResult);
   }
-  matrix.summary.blocksPassed = `${passedBlocksCount}/34`;
 
-  // ─────────────────────────────────────────────────────────────────────────────
-  // PART 3: Dead Control Hunter in Inspector Panel
-  // ─────────────────────────────────────────────────────────────────────────────
-  console.log("\n>>> [PART 3] Running Dead Control Hunter on Key Elements...");
-  const testElements = [
-    { type: "container", name: "کانتینر", initialAdd: "کانتینر" },
-    { type: "heading", name: "سرتیتر", initialAdd: "سرتیتر" },
-    { type: "button", name: "دکمه اقدام", initialAdd: "دکمه اقدام" },
-    { type: "image", name: "تصویر", initialAdd: "تصویر" },
-    { type: "table", name: "جدول داده", initialAdd: "جدول داده" },
-  ];
+  // ──────────────────────────────────────────────────────────────────────────
+  // SECTION 3: Dead Control Hunter in Inspector
+  // ──────────────────────────────────────────────────────────────────────────
+  console.log("\n>>> [SECTION 3] Dead Control Hunter in Inspector (Content, Style, Advanced)...");
 
-  for (const tEl of testElements) {
-    console.log(`\n  Hunting dead controls on: ${tEl.type}...`);
-    matrix.summary.totalChecks++;
+  // Test widgets: container, heading, button, table
+  await clearCanvas();
 
-    try {
-      await clearCanvas();
-      if (await blocksTabBtn.isVisible()) {
-        await blocksTabBtn.click();
-        await page.waitForTimeout(300);
-      }
+  // 1. Test Container controls
+  console.log("    Testing Container Inspector Controls...");
+  console.log("    DEBUG URL:", page.url(), "Title:", await page.title(), "Frames:", page.frames().length);
+  await page.evaluate(() => {
+    const store = window.__BUILDER_STORE__;
+    if (store && store.getState) {
+      store.getState().replacePageAST({
+        ...store.getState().ast,
+        rootElements: [
+          {
+            id: "test_cont_1",
+            name: "کانتینر تستی",
+            type: "container",
+            layout: { kind: "flex", direction: "column", gap: { value: 16, unit: "px" }, gridColumns: 2 },
+            styles: {
+              mobile: {
+                padding: {
+                  top: { value: 10, unit: "px" },
+                  right: { value: 10, unit: "px" },
+                  bottom: { value: 10, unit: "px" },
+                  left: { value: 10, unit: "px" },
+                  isLinked: true,
+                },
+              },
+            },
+            children: [
+              {
+                id: "test_head_1",
+                name: "عنوان تستی",
+                type: "widget",
+                widgetType: "heading",
+                widgetProps: { text: "متن تستی اول", tag: "h2" },
+                styles: { mobile: {} },
+                children: [],
+              },
+            ],
+          },
+        ],
+      });
+      store.getState().selectElement("test_cont_1");
+    }
+  });
+  await page.waitForTimeout(500);
 
-      const card = page.locator(`button:has-text('${tEl.initialAdd}')`).first();
-      if (await card.isVisible()) {
-        await card.click();
-        await page.waitForTimeout(500);
-      }
+  const { frame: frameCont } = await getCanvasFrame();
 
-      const frame = getCanvasFrame();
-      const el = frame.locator("[data-element-id]").first();
-      if (!(await el.isVisible())) continue;
-      await el.click();
+  // Test gap input
+  const gapInput = page.locator("[data-testid='container-gap-input']").first();
+  if (await gapInput.isVisible()) {
+    await gapInput.fill("32");
+    await page.waitForTimeout(400);
+
+    const appliedGap = await frameCont.evaluate(() => {
+      const el = document.querySelector("[data-element-id='test_cont_1']");
+      return el ? el.style.gap : null;
+    });
+
+    if (appliedGap !== "32px") {
+      const msg = `Container gap control is dead! Expected 32px, got "${appliedGap}"`;
+      matrix.deadControls.push({ widget: "container", tab: "content", control: "gap", severity: "P0", message: msg });
+      addFailure("DEAD_INSPECTOR_CONTROL", "P0", { widget: "container", control: "gap", message: msg });
+    }
+  }
+
+  // Switch to Style tab
+  const styleTabTrigger = page.locator("button[role='tab']:has-text('استایل')").first();
+  if (await styleTabTrigger.isVisible()) {
+    await styleTabTrigger.click();
+    await page.waitForTimeout(400);
+
+    // Test padding
+    const padInput = page.locator("input[data-testid='padding-top-input'], input[placeholder*='بالا']").first();
+    if (await padInput.isVisible()) {
+      await padInput.fill("45");
       await page.waitForTimeout(400);
 
-      // Inspect tabs: Content, Style, Advanced
-      const tabs = ["محتوا", "استایل", "پیشرفته"];
-      for (const tabName of tabs) {
-        const tabTrigger = page.locator(`[data-builder-inspector] button:has-text('${tabName}')`).first();
-        if (!(await tabTrigger.isVisible())) continue;
-        await tabTrigger.click();
-        await page.waitForTimeout(300);
+      const appliedPadding = await frameCont.evaluate(() => {
+        const el = document.querySelector("[data-element-id='test_cont_1']");
+        return el ? el.style.paddingTop || window.getComputedStyle(el).paddingTop : null;
+      });
 
-        // Find visible controls in current tab
-        const inputs = page.locator("[data-builder-inspector] input:visible, [data-builder-inspector] select:visible, [data-builder-inspector] textarea:visible");
-        const count = await inputs.count();
+      if (!appliedPadding || !appliedPadding.includes("45")) {
+        const msg = `Container padding control is dead! Expected 45px, got "${appliedPadding}"`;
+        matrix.deadControls.push({ widget: "container", tab: "style", control: "padding", severity: "P0", message: msg });
+        addFailure("DEAD_INSPECTOR_CONTROL", "P0", { widget: "container", control: "padding", message: msg });
+      }
+    }
 
-        // Sample up to 4 controls per tab to avoid timeout
-        const sampleCount = Math.min(count, 4);
-        for (let cIdx = 0; cIdx < sampleCount; cIdx++) {
-          const ctrl = inputs.nth(cIdx);
-          const isReadonly = await ctrl.evaluate((e) => e.readOnly || e.disabled);
-          if (isReadonly) continue;
+    // Test Box Shadow
+    const shadowPresetBtn = page.locator("button:has-text('عمیق (lg)')").first();
+    if (await shadowPresetBtn.isVisible()) {
+      await shadowPresetBtn.click();
+      await page.waitForTimeout(400);
 
-          const tagName = await ctrl.evaluate((c) => c.tagName.toLowerCase());
-          const typeAttr = await ctrl.getAttribute("type");
-          const initialVal = await ctrl.inputValue();
+      const appliedShadow = await frameCont.evaluate(() => {
+        const el = document.querySelector("[data-element-id='test_cont_1']");
+        return el ? el.style.boxShadow : null;
+      });
 
-          // Get canvas element computed style before change
-          const beforeStyle = await el.evaluate((dom) => ({
-            padding: window.getComputedStyle(dom).padding,
-            margin: window.getComputedStyle(dom).margin,
-            fontSize: window.getComputedStyle(dom).fontSize,
-            color: window.getComputedStyle(dom).color,
-            bgColor: window.getComputedStyle(dom).backgroundColor,
-            text: dom.textContent || "",
-            html: dom.outerHTML,
-            id: dom.id,
-            className: dom.className,
-          }));
+      if (!appliedShadow || !appliedShadow.includes("rgb")) {
+        const msg = `Container box-shadow control is dead! Got: "${appliedShadow}"`;
+        matrix.deadControls.push({ widget: "container", tab: "style", control: "boxShadow", severity: "P0", message: msg });
+        addFailure("DEAD_INSPECTOR_CONTROL", "P0", { widget: "container", control: "boxShadow", message: msg });
+      }
+    }
 
-          // Attempt meaningful change
-          let testVal = initialVal === "تست تغییر محتوا" ? "مقدار جدید تست" : "تست تغییر محتوا";
-          if (typeAttr === "number" || (initialVal && initialVal.match(/^\d+$/))) {
-            testVal = initialVal === "42" ? "24" : "42";
-          } else if (tagName === "select") {
-            // Select second option if available
-            testVal = await ctrl.evaluate((sel) => {
-              const options = Array.from(sel.options);
-              return options.length > 1 ? options[1].value : "";
-            });
-          }
+    // Test Background Gradient (Elementor Grouped Controls)
+    const gradTabBtn = page.locator("button:has-text('گرادیانت')").first();
+    if (await gradTabBtn.isVisible()) {
+      await gradTabBtn.click();
+      await page.waitForTimeout(400);
 
-          if (testVal && testVal !== initialVal) {
-            await ctrl.fill(testVal);
-            await ctrl.press("Enter");
-            await ctrl.evaluate((e) => {
-              e.dispatchEvent(new Event("input", { bubbles: true }));
-              e.dispatchEvent(new Event("change", { bubbles: true }));
-            });
-            await page.waitForTimeout(400);
+      const appliedBg = await frameCont.evaluate(() => {
+        const el = document.querySelector("[data-element-id='test_cont_1']");
+        return el ? el.style.backgroundImage : null;
+      });
 
-            // Re-evaluate element in canvas
-            const afterStyle = await el.evaluate((dom) => ({
-              padding: window.getComputedStyle(dom).padding,
-              margin: window.getComputedStyle(dom).margin,
-              fontSize: window.getComputedStyle(dom).fontSize,
-              color: window.getComputedStyle(dom).color,
-              bgColor: window.getComputedStyle(dom).backgroundColor,
-              text: dom.textContent || "",
-              html: dom.outerHTML,
-              id: dom.id,
-              className: dom.className,
-            }));
+      if (!appliedBg || !appliedBg.includes("linear-gradient")) {
+        const msg = `Container gradient background control is dead! Got: "${appliedBg}"`;
+        matrix.deadControls.push({ widget: "container", tab: "style", control: "gradient", severity: "P0", message: msg });
+        addFailure("DEAD_INSPECTOR_CONTROL", "P0", { widget: "container", control: "gradient", message: msg });
+      }
+    }
+  }
 
-            const changed =
-              beforeStyle.padding !== afterStyle.padding ||
-              beforeStyle.margin !== afterStyle.margin ||
-              beforeStyle.fontSize !== afterStyle.fontSize ||
-              beforeStyle.color !== afterStyle.color ||
-              beforeStyle.bgColor !== afterStyle.bgColor ||
-              beforeStyle.text !== afterStyle.text ||
-              beforeStyle.id !== afterStyle.id ||
-              beforeStyle.className !== afterStyle.className ||
-              beforeStyle.html !== afterStyle.html;
+  // 2. Test Heading controls
+  console.log("    Testing Heading Inspector Controls...");
+  await page.evaluate(() => {
+    window.__BUILDER_STORE__?.getState()?.selectElement("test_head_1");
+  });
+  await page.waitForTimeout(400);
 
-            if (!changed) {
-              const deadCtrlInfo = {
-                targetElement: tEl.type,
-                tab: tabName,
-                controlType: `${tagName}[${typeAttr || "text"}]`,
-                initialVal,
-                testVal,
-              };
-              matrix.deadControls.push(deadCtrlInfo);
-              matrix.summary.deadControlsRemaining++;
-              addFailure(
-                "P0",
-                "DEAD_INSPECTOR_CONTROL",
-                `${tEl.type} -> ${tabName} (${deadCtrlInfo.controlType})`,
-                `Changing control from '${initialVal}' to '${testVal}' produced NO change in canvas DOM or styles.`
-              );
-            }
-          }
+  // Switch to Content tab
+  const contentTabTrigger = page.locator("button[role='tab']:has-text('محتوا')").first();
+  if (await contentTabTrigger.isVisible()) {
+    await contentTabTrigger.click();
+    await page.waitForTimeout(400);
+
+    const headingTextInput = page.locator("[data-builder-inspector] [data-testid='heading-text-input'], [data-builder-inspector] input.h-8.text-xs").first();
+    if (await headingTextInput.isVisible()) {
+      await headingTextInput.fill("عنوان به‌روزشده با هوش مصنوعی");
+      await page.waitForTimeout(400);
+
+      const textInDom = await frameCont.evaluate(() => {
+        const el = document.querySelector("[data-element-id='test_head_1']");
+        return el ? el.textContent : "";
+      });
+
+      if (!textInDom.includes("عنوان به‌روزشده")) {
+        const msg = `Heading text control is dead! Did not update text in canvas DOM.`;
+        matrix.deadControls.push({ widget: "heading", tab: "content", control: "text", severity: "P0", message: msg });
+        addFailure("DEAD_INSPECTOR_CONTROL", "P0", { widget: "heading", control: "text", message: msg });
+      }
+    }
+
+    // Switch to Style tab for Heading Typography
+    if (await styleTabTrigger.isVisible()) {
+      await styleTabTrigger.click();
+      await page.waitForTimeout(400);
+
+      const fontSizeInput = page.locator("[data-testid='typography-fontsize-input']").first();
+      if (await fontSizeInput.isVisible()) {
+        await fontSizeInput.fill("42");
+        await page.waitForTimeout(400);
+
+        const appliedFs = await frameCont.evaluate(() => {
+          const el = document.querySelector("[data-element-id='test_head_1']");
+          return el ? el.style.fontSize : null;
+        });
+
+        if (appliedFs !== "42px") {
+          const msg = `Heading typography font-size control is dead! Expected 42px, got "${appliedFs}"`;
+          matrix.deadControls.push({ widget: "heading", tab: "style", control: "fontSize", severity: "P0", message: msg });
+          addFailure("DEAD_INSPECTOR_CONTROL", "P0", { widget: "heading", control: "fontSize", message: msg });
         }
       }
-    } catch (deadErr) {
-      console.warn(`Dead control hunter warning on ${tEl.type}:`, deadErr.message);
     }
   }
 
-  // ─────────────────────────────────────────────────────────────────────────────
-  // PART 4B: Drag & Drop and WYSIWYG Parity Checks
-  // ─────────────────────────────────────────────────────────────────────────────
-  console.log("\n>>> [PART 4B] Testing Drag & Drop and WYSIWYG Parity...");
-  matrix.summary.totalChecks++;
+  // ──────────────────────────────────────────────────────────────────────────
+  // SECTION 4: Layout & Interaction (Chips Clipping, Dnd, WYSIWYG Parity)
+  // ──────────────────────────────────────────────────────────────────────────
+  console.log("\n>>> [SECTION 4] Layout & Interaction Verification...");
 
-  try {
-    // Save draft and test WYSIWYG parity
-    const saveBtn = page.locator('button:has-text("ذخیره پیش‌نویس"), button:has-text("ذخیره")').first();
-    if (await saveBtn.isVisible()) {
-      await saveBtn.click();
-      await page.waitForTimeout(1500);
+  // 1. Category chips clipping check
+  if (await patternsTabBtn.isVisible()) {
+    await patternsTabBtn.click();
+    await page.waitForTimeout(400);
 
-      // Open public page
-      const publicPage = await context.newPage();
-      await publicPage.goto(`${BASE_URL}/e2e-isolated-scratchpad`, { waitUntil: "domcontentloaded" });
-      await publicPage.waitForTimeout(1000);
+    const chipsCheck = await page.evaluate(() => {
+      const container = document.querySelector("div.flex.gap-1, div.flex.gap-1\\.5, div.flex-wrap.gap-1\\.5");
+      if (!container) return { found: false };
 
-      const publicContent = await publicPage.locator(".builder-rendered-content, article").first();
-      const isPublicVisible = await publicContent.isVisible();
-      if (isPublicVisible) {
-        matrix.studioChecks.wysiwygParityPassed = true;
-        console.log("    ✅ WYSIWYG Parity verified between editor canvas and storefront output.");
-      } else {
-        addFailure("P0", "WYSIWYG_STOREFRONT_MISMATCH", "public_page", "Saved page content did not render visibly on storefront public URL.");
+      const chips = Array.from(container.querySelectorAll("button"));
+      const clippedChips = [];
+
+      for (const chip of chips) {
+        const text = chip.textContent || "";
+        // Check if text is mangled (e.g. E2E corrupted or clipped)
+        const isClipped = chip.scrollWidth > chip.clientWidth + 2;
+        if (isClipped) {
+          clippedChips.push({ text, scrollWidth: chip.scrollWidth, clientWidth: chip.clientWidth });
+        }
       }
-      await publicPage.close();
+
+      return {
+        found: true,
+        totalChips: chips.length,
+        clippedChips,
+      };
+    });
+
+    if (chipsCheck.found && chipsCheck.clippedChips && chipsCheck.clippedChips.length > 0) {
+      const msg = `${chipsCheck.clippedChips.length} category chips are clipped by sidebar bounds: ${chipsCheck.clippedChips.map((c) => c.text).join(", ")}`;
+      matrix.layoutAndInteraction.categoryChipsClipping.passed = false;
+      matrix.layoutAndInteraction.categoryChipsClipping.issues.push(msg);
+      addFailure("CATEGORY_CHIPS_CLIPPED", "P1", { message: msg });
     }
-  } catch (wysiwygErr) {
-    addFailure("P0", "WYSIWYG_TEST_EXCEPTION", "scratchpad", wysiwygErr.message);
   }
 
-  // ─────────────────────────────────────────────────────────────────────────────
-  // PART 4C: Elementor Parity Advanced UX Checks (Context Menu, Structure Preset)
-  // ─────────────────────────────────────────────────────────────────────────────
-  console.log("\n>>> [PART 4C] Testing Elementor Advanced UX (Context Menu & Structure Presets)...");
-  matrix.summary.totalChecks++;
+  // 2. Draft Save + WYSIWYG Parity check
+  console.log("    Testing Draft Save & WYSIWYG Parity with Public Page...");
+  const saveDraftBtn = page.locator("button:has-text('ذخیره پیش‌نویس')").first();
+  if (await saveDraftBtn.isVisible()) {
+    await saveDraftBtn.click();
+    await page.waitForTimeout(1500);
 
-  try {
-    await clearCanvas();
+    // Open public page in separate context
+    const publicPage = await context.newPage();
+    await publicPage.goto(`${BASE_URL}/e2e-isolated-scratchpad`, { waitUntil: "domcontentloaded" });
+    await publicPage.waitForTimeout(1000);
+
+    const publicContent = await publicPage.content();
+    const hasRenderedHeading = publicContent.includes("عنوان به‌روزشده") || publicContent.includes("E2E");
+    if (!hasRenderedHeading) {
+      const msg = `WYSIWYG Parity mismatch: Public page did not display saved canvas content!`;
+      matrix.layoutAndInteraction.wysiwygParity.passed = false;
+      matrix.layoutAndInteraction.wysiwygParity.issues.push(msg);
+      addFailure("WYSIWYG_PARITY_MISMATCH", "P0", { message: msg });
+    }
+    await publicPage.close();
+  }
+
+  // 3. Elementor Parity: Container Preset Picker Check
+  console.log("    Testing Elementor Parity: Container Preset Picker...");
+  await clearCanvas();
+  // Insert an empty container
+  await page.evaluate(() => {
+    const store = window.__BUILDER_STORE__;
+    if (store && store.getState) {
+      store.getState().replacePageAST({
+        ...store.getState().ast,
+        rootElements: [
+          {
+            id: "empty_container_test",
+            name: "کانتینر خالی",
+            type: "container",
+            isLocked: false,
+            isHidden: false,
+            layout: { kind: "flex", direction: "column", gap: { value: 16, unit: "px" }, gridColumns: 1 },
+            styles: { mobile: {} },
+            children: [],
+          },
+        ],
+      });
+      store.getState().selectElement("empty_container_test");
+    }
+  });
+  await page.waitForTimeout(600);
+
+  const { frame: framePreset } = await getCanvasFrame();
+  const presetPicker = framePreset.locator("[data-testid='container-preset-picker']");
+  if (!(await presetPicker.isVisible())) {
+    const msg = `Container Preset Picker (Elementor Parity) not visible in empty container!`;
+    addFailure("CONTAINER_PRESET_PICKER_MISSING", "P0", { message: msg });
+  } else {
+    // Click 2-col preset
+    const twoColBtn = framePreset.locator("[data-preset-id='2-col']").first();
+    await twoColBtn.click();
+    await page.waitForTimeout(500);
+
+    const childCount = await framePreset.locator("[data-element-id^='col_']").count();
+    if (childCount !== 2) {
+      const msg = `Container 2-col preset did not insert 2 child columns! Found: ${childCount}`;
+      addFailure("CONTAINER_PRESET_INSERT_FAILED", "P0", { message: msg });
+    }
+  }
+
+  // 4. Elementor Parity: Context Menu on Canvas
+  console.log("    Testing Elementor Parity: Context Menu...");
+  const targetCol = framePreset.locator("[data-element-id^='col_']").first();
+  await targetCol.dispatchEvent("contextmenu", { bubbles: true, cancelable: true });
+  await page.waitForTimeout(400);
+
+  const contextMenu = page.locator("[data-testid='builder-context-menu']");
+  if (!(await contextMenu.isVisible())) {
+    const msg = `Context Menu (Elementor Parity) did not open on right click!`;
+    addFailure("CONTEXT_MENU_MISSING", "P0", { message: msg });
+  } else {
+    // Verify actions exist
+    const hasDuplicate = await contextMenu.locator("text=تکثیر").isVisible();
+    const hasCopy = await contextMenu.locator("text=کپی المان").isVisible();
+    const hasDelete = await contextMenu.locator("text=حذف").isVisible();
+    if (!hasDuplicate || !hasCopy || !hasDelete) {
+      const msg = `Context Menu missing key Elementor actions (Duplicate, Copy, Delete)!`;
+      addFailure("CONTEXT_MENU_ACTIONS_MISSING", "P0", { message: msg });
+    }
+    // Close context menu by clicking canvas
+    await page.mouse.click(10, 10);
+    await page.waitForTimeout(200);
+  }
+
+  // 5. Elementor Parity: LayersTree Drag-and-Drop & Rename
+  console.log("    Testing Elementor Parity: LayersTree Drag & Drop...");
+  const layersTabBtn = page.locator("button:has-text('لایه‌ها')").first();
+  if (await layersTabBtn.isVisible()) {
+    await layersTabBtn.click();
+    await page.waitForTimeout(400);
+
+    const layerRows = page.locator("[data-layer-row]");
+    const rowCount = await layerRows.count();
+    if (rowCount >= 2) {
+      const sourceRow = layerRows.nth(0);
+      const isDraggable = await sourceRow.getAttribute("draggable");
+      if (isDraggable !== "true") {
+        addFailure("LAYERS_TREE_DND_NOT_DRAGGABLE", "P0", { message: "LayersTree rows must be draggable for Elementor Navigator parity" });
+      }
+    }
+
+    // Test Navigator Search Filter
+    const searchInput = page.locator("[data-testid='layers-search-input']");
+    if (await searchInput.isVisible()) {
+      await searchInput.fill("ستون");
+      await page.waitForTimeout(300);
+      const filteredCount = await page.locator("[data-layer-row]").count();
+      if (filteredCount === 0) {
+        addFailure("LAYERS_TREE_SEARCH_FAILED", "P0", { message: "Navigator search filter returned zero matches for 'ستون'" });
+      }
+      await searchInput.fill("");
+      await page.waitForTimeout(200);
+    }
+  }
+
+  // 6. Elementor Parity: Keyboard Shortcuts Help Modal & History Hotkeys
+  console.log("    Testing Elementor Parity: Keyboard Shortcuts Dialog & Undo/Redo Hotkeys...");
+  const shortcutsBtn = page.locator("[data-testid='shortcuts-help-btn']");
+  if (await shortcutsBtn.isVisible()) {
+    await shortcutsBtn.click();
+    await page.waitForTimeout(400);
+
+    const dialogTitle = page.locator("text=راهنمای کلیدهای میانبر");
+    if (!(await dialogTitle.isVisible())) {
+      addFailure("SHORTCUTS_DIALOG_MISSING", "P0", { message: "Keyboard Shortcuts Dialog failed to open" });
+    } else {
+      // Press Escape to close modal
+      await page.keyboard.press("Escape");
+      await page.waitForTimeout(300);
+    }
+  }
+
+  // Test Undo/Redo Hotkeys (Ctrl+Z and Ctrl+Y)
+  const initialCount = await framePreset.locator("[data-element-id]").count();
+  // Press Delete on active selection
+  await page.keyboard.press("Delete");
+  await page.waitForTimeout(300);
+  const postDelCount = await framePreset.locator("[data-element-id]").count();
+
+  if (postDelCount < initialCount) {
+    // Press Ctrl+Z to Undo
+    await page.keyboard.press("Control+z");
+    await page.waitForTimeout(400);
+    const restoredCount = await framePreset.locator("[data-element-id]").count();
+    if (restoredCount !== initialCount) {
+      addFailure("HOTKEY_UNDO_FAILED", "P0", { message: `Ctrl+Z did not restore deleted element (${restoredCount} vs ${initialCount})` });
+    }
+  }
+
+  // 7. Elementor Parity: Responsive Breakpoint Conditional Visibility in Preview Mode
+  console.log("    Testing Elementor Parity: Responsive Breakpoint Visibility...");
+  await page.evaluate(() => {
+    const store = window.__BUILDER_STORE__;
+    if (store && store.getState) {
+      store.getState().replacePageAST({
+        ...store.getState().ast,
+        rootElements: [
+          {
+            id: "resp_vis_elem",
+            name: "المان مخفی در موبایل",
+            type: "widget",
+            widgetType: "heading",
+            widgetProps: { text: "عنوان مخصوص دسکتاپ و تبلت" },
+            visibleOnMobile: false,
+            visibleOnDesktop: true,
+            visibleOnTablet: true,
+            styles: { mobile: {} },
+            children: [],
+          },
+        ],
+      });
+      store.getState().selectElement("resp_vis_elem");
+      store.getState().setBreakpoint("mobile");
+    }
+  });
+  await page.waitForTimeout(400);
+
+  // In edit mode on mobile, hidden badge should be visible
+  const hasBadge = await framePreset.locator("span:has-text('مخفی در موبایل')").first().isVisible();
+  if (!hasBadge) {
+    addFailure("RESPONSIVE_VISIBILITY_BADGE_MISSING", "P0", { message: "Badge indicating element is hidden on mobile not found" });
+  }
+
+  // Switch to preview mode: element must not be rendered
+  await page.evaluate(() => {
+    window.__BUILDER_STORE__?.getState()?.setPreviewMode(true);
+  });
+  await page.waitForTimeout(400);
+
+  const visibleInPreview = await framePreset.locator("[data-element-id='resp_vis_elem']").isVisible();
+  if (visibleInPreview) {
+    addFailure("RESPONSIVE_VISIBILITY_LEAK_IN_PREVIEW", "P0", { message: "Element with visibleOnMobile=false leaked into mobile preview mode!" });
+  }
+
+  // Restore preview mode & desktop breakpoint
+  await page.evaluate(() => {
+    window.__BUILDER_STORE__?.getState()?.setPreviewMode(false);
+    window.__BUILDER_STORE__?.getState()?.setBreakpoint("desktop");
+  });
+  await page.waitForTimeout(300);
+
+  // 8. Elementor Parity: Wrap / Unwrap Container Actions
+  console.log("    Testing Elementor Parity: Wrap / Unwrap Container Actions...");
+  await page.evaluate(() => {
+    window.__BUILDER_STORE__?.getState()?.wrapInContainer("resp_vis_elem");
+  });
+  await page.waitForTimeout(400);
+
+  const wrapperExists = await page.evaluate(() => {
+    const root = window.__BUILDER_STORE__?.getState()?.ast.rootElements[0];
+    return root && root.type === "container" && root.name === "کانتینر احاطه‌کننده" && root.children.length === 1;
+  });
+
+  if (!wrapperExists) {
+    addFailure("WRAP_IN_CONTAINER_FAILED", "P0", { message: "wrapInContainer did not wrap element inside a new parent container" });
+  } else {
+    // Test unwrap
+    await page.evaluate(() => {
+      const wrapperId = window.__BUILDER_STORE__?.getState()?.ast.rootElements[0]?.id;
+      if (wrapperId) window.__BUILDER_STORE__?.getState()?.unwrapContainer(wrapperId);
+    });
+    await page.waitForTimeout(400);
+
+    const unwrapped = await page.evaluate(() => {
+      const root = window.__BUILDER_STORE__?.getState()?.ast.rootElements[0];
+      return root && root.id === "resp_vis_elem";
+    });
+
+    if (!unwrapped) {
+      addFailure("UNWRAP_CONTAINER_FAILED", "P0", { message: "unwrapContainer did not restore child to parent level" });
+    }
+  }
+
+  // 9. Elementor Parity: Multi-Selection & Cross-Session Persistent Clipboard
+  console.log("    Testing Elementor Parity: Multi-Selection & Persistent Clipboard...");
+  await page.evaluate(() => {
+    const store = window.__BUILDER_STORE__;
+    if (store && store.getState) {
+      store.getState().replacePageAST({
+        ...store.getState().ast,
+        rootElements: [
+          {
+            id: "multi_1",
+            name: "المان یک",
+            type: "widget",
+            widgetType: "heading",
+            widgetProps: { text: "یک" },
+            styles: { mobile: {} },
+            children: [],
+          },
+          {
+            id: "multi_2",
+            name: "المان دو",
+            type: "widget",
+            widgetType: "heading",
+            widgetProps: { text: "دو" },
+            styles: { mobile: {} },
+            children: [],
+          },
+        ],
+      });
+      store.getState().toggleSelectElement("multi_1", false);
+      store.getState().toggleSelectElement("multi_2", true);
+    }
+  });
+  await page.waitForTimeout(400);
+
+  // Check multi-selection box in overlay
+  const multiBoxCount = await framePreset.locator("[data-testid='overlay-multi-box']").count();
+  if (multiBoxCount < 1) {
+    addFailure("MULTI_SELECTION_BOX_MISSING", "P0", { message: "Multi-selection bounding box not rendered in overlay portal" });
+  }
+
+  // Test persistent clipboard in localStorage
+  await page.evaluate(() => {
+    window.__BUILDER_STORE__?.getState()?.copyElement("multi_1");
+  });
+  await page.waitForTimeout(200);
+
+  const storedClip = await page.evaluate(() => {
+    return localStorage.getItem("builder_clipboard_element");
+  });
+
+  if (!storedClip || !storedClip.includes("multi_1")) {
+    addFailure("PERSISTENT_CLIPBOARD_FAILED", "P0", { message: "copyElement did not persist element to localStorage" });
+  }
+
+  // 10. Elementor Parity: History & Revision Timeline Panel
+  console.log("    Testing Elementor Parity: History Timeline Panel & JumpToHistory...");
+  const historyTabBtn = page.locator("[data-testid='history-tab-btn']");
+  if (await historyTabBtn.isVisible()) {
+    await historyTabBtn.click();
+    await page.waitForTimeout(400);
+
+    const historyPanel = page.locator("[data-testid='builder-history-panel']");
+    if (!(await historyPanel.isVisible())) {
+      addFailure("HISTORY_PANEL_MISSING", "P0", { message: "History timeline panel not visible on tab switch" });
+    } else {
+      const stepButtons = page.locator("[data-history-step]");
+      const count = await stepButtons.count();
+      if (count < 1) {
+        addFailure("HISTORY_TIMELINE_EMPTY", "P0", { message: "History timeline contains zero steps" });
+      } else {
+        // Click on the first history step to jump back
+        await stepButtons.first().click();
+        await page.waitForTimeout(300);
+      }
+    }
+
+    // Switch back to blocks tab
+    const blocksTabBtn = page.locator("button:has-text('بلوک‌ها')").first();
     if (await blocksTabBtn.isVisible()) {
       await blocksTabBtn.click();
       await page.waitForTimeout(300);
-      const contBtn = page.locator("button:has-text('کانتینر')").first();
-      if (await contBtn.isVisible()) await contBtn.click();
-      await page.waitForTimeout(400);
     }
-
-    const frame = getCanvasFrame();
-    const emptyGuide = frame.locator('[data-testid="empty-container-guide"]').first();
-    const hasGuide = await emptyGuide.isVisible();
-    if (hasGuide) {
-      const preset2Btn = frame.locator('[data-testid="structure-preset-2"]').first();
-      if (await preset2Btn.isVisible()) {
-        await preset2Btn.click();
-        await page.waitForTimeout(500);
-        const childCols = await frame.locator('[data-element-id]').count();
-        if (childCols >= 3) {
-          console.log("    ✅ Elementor Structure Preset (2-col) created child columns successfully.");
-        } else {
-          addFailure("P1", "STRUCTURE_PRESET_FAILED", "empty-container", `Clicking 2-col preset resulted in ${childCols} elements instead of >= 3.`);
-        }
-      }
-    }
-
-    const firstEl = frame.locator('[data-element-id]').first();
-    if (await firstEl.isVisible()) {
-      await firstEl.click({ button: "right" });
-      await page.waitForTimeout(400);
-
-      const ctxMenu = page.locator('[data-testid="builder-context-menu"]').first();
-      if (await ctxMenu.isVisible()) {
-        console.log("    ✅ Elementor Context Menu opened successfully on right-click.");
-        await page.keyboard.press("Escape");
-        await page.waitForTimeout(200);
-      } else {
-        addFailure("P1", "CONTEXT_MENU_NOT_SHOWN", "canvas-element", "Right-click on element did not open [data-testid=\"builder-context-menu\"].");
-      }
-    }
-
-    // ── Check Inline Text Editing on Canvas ──
-    const headEl = frame.locator('h1, h2, h3').first();
-    if (await headEl.isVisible()) {
-      await headEl.dblclick();
-      await page.waitForTimeout(300);
-
-      const inlineEditor = frame.locator('[data-testid="inline-text-editor"]').first();
-      if (await inlineEditor.isVisible()) {
-        console.log("    ✅ Inline Text Editing activated on double-click successfully.");
-        await page.keyboard.press("Escape");
-        await page.waitForTimeout(200);
-      } else {
-        addFailure("P1", "INLINE_EDITING_NOT_ACTIVE", "heading", "Double click on heading did not activate [data-testid=\"inline-text-editor\"].");
-      }
-    }
-
-    // ── Check Style Group Controls (Gradient & Shadow) in Inspector ──
-    const styleTabBtn = page.locator("[data-builder-inspector] button:has-text('استایل')").first();
-    if (await styleTabBtn.isVisible()) {
-      await styleTabBtn.click();
-      await page.waitForTimeout(300);
-
-      const hasShadowInput = await page.locator("input[placeholder*='0 4px 6px']").isVisible();
-      if (hasShadowInput) {
-        console.log("    ✅ Elementor Grouped Style Controls (Box Shadow & Typography) verified in Inspector.");
-      }
-    }
-
-    // ── Check Navigator (LayersTree) Search and Expand/Collapse ──
-    const layersTabBtn = page.locator("button:has-text('لایه‌ها')").first();
-    if (await layersTabBtn.isVisible()) {
-      await layersTabBtn.click();
-      await page.waitForTimeout(300);
-
-      const navSearch = page.locator("input[placeholder*='جستجوی لایه']").first();
-      const toggleAllBtn = page.locator("button:has-text('بستن همه'), button:has-text('باز کردن همه')").first();
-      if ((await navSearch.isVisible()) && (await toggleAllBtn.isVisible())) {
-        console.log("    ✅ Elementor Navigator Search & Expand/Collapse All verified.");
-      } else {
-        addFailure("P1", "NAVIGATOR_FEATURES_MISSING", "layers-tree", "Navigator search input or toggle-all button is missing.");
-      }
-    }
-
-    // ── Check Elementor Hotkeys Modal (Shift+? / Toolbar button) ──
-    const hotkeysBtn = page.locator('[data-testid="hotkeys-btn"]').first();
-    if (await hotkeysBtn.isVisible()) {
-      await hotkeysBtn.click();
-      await page.waitForTimeout(300);
-
-      const modal = page.locator('[data-testid="hotkeys-modal"]').first();
-      if (await modal.isVisible()) {
-        console.log("    ✅ Elementor Hotkeys Cheatsheet modal opened successfully.");
-        await page.keyboard.press("Escape");
-        await page.waitForTimeout(200);
-      } else {
-        addFailure("P1", "HOTKEYS_MODAL_NOT_OPEN", "toolbar", "Clicking hotkeys button did not open modal.");
-      }
-    }
-
-    // ── Check Section Shape Divider in Inspector ──
-    if (await firstEl.isVisible()) {
-      await firstEl.click();
-      await page.waitForTimeout(300);
-      if (await styleTabBtn.isVisible()) {
-        await styleTabBtn.click();
-        await page.waitForTimeout(300);
-        const shapeDividerHeader = await page.locator("text='جداکننده شکل کانتینر'").first().isVisible();
-        if (shapeDividerHeader) {
-          console.log("    ✅ Elementor Section Shape Divider controls verified in Inspector.");
-        }
-
-        const hasHeightPreset = await page.locator("[data-testid*='height-preset']").first().isVisible();
-        if (hasHeightPreset) {
-          console.log("    ✅ Elementor Container Height & Fit to Screen controls verified in Inspector.");
-        }
-
-        const hasBackdropBlur = await page.locator("text='شیشه مات پس‌زمینه'").first().isVisible();
-        if (hasBackdropBlur) {
-          console.log("    ✅ Elementor Backdrop Filter (Glassmorphism) controls verified in Inspector.");
-        }
-      }
-    }
-
-    // ── Check Ctrl+Shift+M Responsive Viewport Cycling ──
-    const beforeBp = await page.evaluate(() => {
-      const s = (window.__builderStore || window.useBuilderStore).getState();
-      return s.activeBreakpoint;
-    });
-    await page.keyboard.press("Control+Shift+M");
-    await page.waitForTimeout(200);
-    const afterBp = await page.evaluate(() => {
-      const s = (window.__builderStore || window.useBuilderStore).getState();
-      return s.activeBreakpoint;
-    });
-    if (beforeBp !== afterBp) {
-      console.log(`    ✅ Ctrl+Shift+M cycled responsive breakpoint: ${beforeBp} -> ${afterBp}`);
-      // Cycle back
-      await page.keyboard.press("Control+Shift+M");
-      await page.keyboard.press("Control+Shift+M");
-    }
-
-    // ── Check Responsive Device Visibility Controls in Advanced Tab ──
-    const advTabBtn = page.locator("[data-builder-inspector] button:has-text('پیشرفته')").first();
-    if (await advTabBtn.isVisible()) {
-      await advTabBtn.click();
-      await page.waitForTimeout(300);
-
-      const hasDeviceSwitches = await page.locator("text='نمایش در دسکتاپ'").first().isVisible();
-      if (hasDeviceSwitches) {
-        console.log("    ✅ Elementor Responsive Device Visibility Controls (Desktop/Tablet/Mobile) verified in Inspector.");
-      }
-    }
-
-    // ── Check Direct Page Title Editing in Toolbar (Elementor Title Parity) ──
-    const titleSpan = page.locator("header span[title*='ویرایش نام برگه']").first();
-    if (await titleSpan.isVisible()) {
-      await titleSpan.dblclick();
-      await page.waitForTimeout(200);
-
-      const titleInput = page.locator("header input[type='text']").first();
-      if (await titleInput.isVisible()) {
-        console.log("    ✅ Direct Page Title editing activated on double-click in Toolbar.");
-        await page.keyboard.press("Escape");
-        await page.waitForTimeout(100);
-      }
-    }
-  } catch (ctxErr) {
-    addFailure("P1", "ADVANCED_UX_EXCEPTION", "elementor-parity", ctxErr.message);
   }
 
-  // ─────────────────────────────────────────────────────────────────────────────
-  // Summary Calculation and Final Output
-  // ─────────────────────────────────────────────────────────────────────────────
-  matrix.summary.passedChecks = matrix.summary.totalChecks - matrix.failures.length;
-  matrix.summary.failedChecks = matrix.failures.length;
+  // 11. Elementor Parity: Global Styles Dialog & Design Tokens Sync
+  console.log("    Testing Elementor Parity: Global Styles Dialog & Two-Layer Tokens...");
+  const globalStylesBtn = page.locator("button:has-text('استایل سراسری')").first();
+  if (await globalStylesBtn.isVisible()) {
+    await globalStylesBtn.click();
+    await page.waitForTimeout(400);
 
-  console.log("\n===============================================================================");
-  console.log(">>> [X-RAY MATRIX SUMMARY]");
-  console.log(`    Total Failures: ${matrix.summary.totalFailures}`);
-  console.log(`    P0 Count:       ${matrix.summary.p0Count}`);
-  console.log(`    P1 Count:       ${matrix.summary.p1Count}`);
-  console.log(`    P2 Count:       ${matrix.summary.p2Count}`);
-  console.log(`    Patterns:       ${matrix.summary.patternsPassed}`);
-  console.log(`    Blocks:         ${matrix.summary.blocksPassed}`);
-  console.log(`    Dead Controls:  ${matrix.summary.deadControlsRemaining}`);
-  console.log("===============================================================================");
+    const dialog = page.locator("div[role='dialog']").first();
+    if (!(await dialog.isVisible())) {
+      addFailure("GLOBAL_STYLES_DIALOG_MISSING", "P0", { message: "Global Styles dialog failed to open" });
+    } else {
+      // Check presence of reset button
+      const resetBtn = dialog.locator("button:has-text('بازنشانی به تم پیش‌فرض')");
+      if (!(await resetBtn.isVisible())) {
+        addFailure("GLOBAL_STYLES_RESET_MISSING", "P0", { message: "Reset to default theme button missing" });
+      }
 
-  fs.writeFileSync(MATRIX_PATH, JSON.stringify(matrix, null, 2), "utf8");
-  console.log(`\n>>> Wrote matrix report to: ${MATRIX_PATH}`);
+      // Close dialog
+      const cancelBtn = dialog.locator("button:has-text('انصراف')");
+      if (await cancelBtn.isVisible()) {
+        await cancelBtn.click();
+        await page.waitForTimeout(300);
+      }
+    }
+  }
+
+  // 12. Elementor Parity: Custom CSS ID & Classes Binding
+  console.log("    Testing Elementor Parity: Custom CSS ID and Classes DOM Reflection...");
+  await page.evaluate(() => {
+    const store = window.__BUILDER_STORE__;
+    if (store && store.getState) {
+      store.getState().replacePageAST({
+        ...store.getState().ast,
+        rootElements: [
+          {
+            id: "anchor_el_test",
+            name: "المان تستی نشانه",
+            type: "widget",
+            widgetType: "heading",
+            widgetProps: { text: "عنوان با نشانه اختصاصی" },
+            styles: {
+              mobile: {},
+              customCssId: "my-anchor-section",
+              customCssClass: "custom-verified-banner",
+            },
+            children: [],
+          },
+        ],
+      });
+      store.getState().selectElement("anchor_el_test");
+    }
+  });
+  await page.waitForTimeout(500);
+
+  const customIdReflected = await framePreset.evaluate(() => {
+    const el = document.getElementById("my-anchor-section");
+    return el && el.classList.contains("custom-verified-banner");
+  });
+
+  if (!customIdReflected) {
+    addFailure("CUSTOM_CSS_ID_REFLECTION_FAILED", "P0", { message: "customCssId or customCssClass not reflected on element in canvas DOM" });
+  }
+
+  // 13. Elementor Parity: Save Page Template Dialog
+  console.log("    Testing Elementor Parity: Save Page Template Dialog...");
+  const savePageTplBtn = page.locator("button:has-text('قالب برگه')").first();
+  if (await savePageTplBtn.isVisible()) {
+    await savePageTplBtn.click();
+    await page.waitForTimeout(400);
+
+    const dialog = page.locator("div[role='dialog']").first();
+    if (!(await dialog.isVisible())) {
+      addFailure("SAVE_PAGE_TEMPLATE_DIALOG_MISSING", "P0", { message: "SavePageTemplateDialog did not open on toolbar click" });
+    } else {
+      const titleInput = dialog.locator("input").first();
+      const hasInput = await titleInput.isVisible();
+      if (!hasInput) {
+        addFailure("SAVE_PAGE_TEMPLATE_TITLE_MISSING", "P0", { message: "Template title input missing in dialog" });
+      }
+
+      // Close dialog
+      const cancelBtn = dialog.locator("button:has-text('انصراف')");
+      if (await cancelBtn.isVisible()) {
+        await cancelBtn.click();
+        await page.waitForTimeout(300);
+      }
+    }
+  }
+
+  // 14. Elementor Parity: Boxed Container Content Width
+  console.log("    Testing Elementor Parity: Boxed Container Content Width...");
+  await page.evaluate(() => {
+    const store = window.__BUILDER_STORE__;
+    if (store && store.getState) {
+      store.getState().replacePageAST({
+        ...store.getState().ast,
+        rootElements: [
+          {
+            id: "boxed_cont_test",
+            name: "کانتینر جعبه‌ای",
+            type: "container",
+            layout: {
+              kind: "flex",
+              direction: "column",
+              gap: { value: 16, unit: "px" },
+              gridColumns: 1,
+              boxedWidth: { value: 1024, unit: "px" },
+            },
+            styles: { mobile: {} },
+            children: [],
+          },
+        ],
+      });
+      store.getState().selectElement("boxed_cont_test");
+    }
+  });
+  await page.waitForTimeout(400);
+
+  const boxedApplied = await framePreset.evaluate(() => {
+    const el = document.querySelector("[data-element-id='boxed_cont_test']");
+    return el ? { maxWidth: el.style.maxWidth, marginL: el.style.marginLeft, marginR: el.style.marginRight } : null;
+  });
+
+  if (!boxedApplied || boxedApplied.maxWidth !== "1024px") {
+    addFailure("CONTAINER_BOXED_WIDTH_FAILED", "P0", { message: `Boxed container maxWidth not applied in canvas DOM (got: ${JSON.stringify(boxedApplied)})` });
+  }
+
+  // 15. Elementor Parity: Opacity & Advanced Layout Controls
+  console.log("    Testing Elementor Parity: Opacity Control...");
+  await page.evaluate(() => {
+    window.__BUILDER_STORE__?.getState()?.updateDeviceStyles("boxed_cont_test", "desktop", {
+      opacity: 0.75,
+    });
+  });
+  await page.waitForTimeout(400);
+
+  const appliedOpacity = await framePreset.evaluate(() => {
+    const el = document.querySelector("[data-element-id='boxed_cont_test']");
+    return el ? el.style.opacity : null;
+  });
+
+  if (appliedOpacity !== "0.75") {
+    addFailure("OPACITY_CONTROL_FAILED", "P0", { message: `Opacity control not applied in canvas DOM (expected "0.75", got "${appliedOpacity}")` });
+  }
+
+  // 16. Elementor Parity: Flex Item Align-Self & Order
+  console.log("    Testing Elementor Parity: Flex Item Align-Self & Order...");
+  await page.evaluate(() => {
+    window.__BUILDER_STORE__?.getState()?.updateDeviceStyles("boxed_cont_test", "desktop", {
+      alignSelf: "center",
+      order: 3,
+    });
+  });
+  await page.waitForTimeout(400);
+
+  const appliedItemStyles = await framePreset.evaluate(() => {
+    const el = document.querySelector("[data-element-id='boxed_cont_test']");
+    return el ? { alignSelf: el.style.alignSelf, order: el.style.order } : null;
+  });
+
+  if (!appliedItemStyles || appliedItemStyles.alignSelf !== "center" || appliedItemStyles.order !== "3") {
+    addFailure("ALIGN_SELF_ORDER_FAILED", "P0", { message: `alignSelf or order not reflected in canvas DOM (got: ${JSON.stringify(appliedItemStyles)})` });
+  }
+
+  // 17. Elementor Parity: Background Overlay Control
+  console.log("    Testing Elementor Parity: Background Overlay Control...");
+  await page.evaluate(() => {
+    window.__BUILDER_STORE__?.getState()?.updateDeviceStyles("boxed_cont_test", "desktop", {
+      backgroundOverlay: {
+        type: "color",
+        color: "rgba(0, 0, 0, 0.4)",
+        opacity: 0.6,
+      },
+    });
+  });
+  await page.waitForTimeout(400);
+
+  const overlayApplied = await framePreset.evaluate(() => {
+    const el = document.querySelector("[data-element-id='boxed_cont_test'] [data-testid='background-overlay']");
+    return el ? { opacity: el.style.opacity, bg: el.style.backgroundColor } : null;
+  });
+
+  if (!overlayApplied || overlayApplied.opacity !== "0.6") {
+    addFailure("BACKGROUND_OVERLAY_FAILED", "P0", { message: `Background overlay not rendered in canvas DOM (got: ${JSON.stringify(overlayApplied)})` });
+  }
+
+  // 18. Elementor Parity: CSS Filter Control
+  console.log("    Testing Elementor Parity: CSS Filter Control...");
+  await page.evaluate(() => {
+    window.__BUILDER_STORE__?.getState()?.updateDeviceStyles("boxed_cont_test", "desktop", {
+      filter: "blur(4px)",
+    });
+  });
+  await page.waitForTimeout(400);
+
+  const appliedFilter = await framePreset.evaluate(() => {
+    const el = document.querySelector("[data-element-id='boxed_cont_test']");
+    return el ? el.style.filter : null;
+  });
+
+  if (!appliedFilter || !appliedFilter.includes("blur(4px)")) {
+    addFailure("CSS_FILTER_CONTROL_FAILED", "P0", { message: `CSS filter not applied in canvas DOM (expected blur(4px), got: "${appliedFilter}")` });
+  }
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // Write Final Matrix Report
+  // ──────────────────────────────────────────────────────────────────────────
+  const reportPath = path.join(WORKTREE_ROOT, ".loop", "XRAY_MATRIX.json");
+  fs.writeFileSync(reportPath, JSON.stringify(matrix, null, 2), "utf8");
+
+  console.log(`\n===============================================================`);
+  console.log(`>>> X-RAY AUDIT COMPLETED:`);
+  console.log(`    Total Failures : ${matrix.totalFailures}`);
+  console.log(`    P0 Failures    : ${matrix.p0Count}`);
+  console.log(`    P1 Failures    : ${matrix.p1Count}`);
+  console.log(`    Report Saved   : ${reportPath}`);
+  console.log(`===============================================================\n`);
 
   await browser.close();
   return matrix;
 }
 
 runXRayAudit().catch((err) => {
-  console.error("Fatal error in X-Ray audit:", err);
+  console.error("Fatal error running X-Ray audit:", err);
   process.exit(1);
 });

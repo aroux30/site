@@ -227,6 +227,62 @@ export async function run5SignalProbe() {
     passed: contextMenuPass
   });
 
+  // ── Probe 1C: Container Shape Dividers (Wave 1) ─────────────────────────────
+  console.log(">>> Probing Container Shape Dividers (Wave 1)...");
+  const contEl = canvasFrame.locator("[data-element-id='el_e2econt1']");
+  let shapeDividerPass = false;
+
+  const contLayerRow = page.locator("[data-layer-row]").first();
+  if (await contLayerRow.isVisible()) {
+    await contLayerRow.click();
+    await page.waitForTimeout(400);
+
+    const advancedTab = page.getByRole("tab", { name: "پیشرفته" });
+    if (await advancedTab.isVisible()) {
+      await advancedTab.click();
+      await page.waitForTimeout(300);
+    }
+
+    const contBeforeBuf = await contEl.screenshot({ path: path.join(beforeDir, "container-before-shape.png") });
+
+    // Open shape divider select
+    const topShapeTrigger = page.getByTestId("shape-divider-top-select");
+    let s1 = false, s2 = false, s3 = false, s4 = false, s5 = false;
+
+    if (await topShapeTrigger.count() > 0) {
+      await topShapeTrigger.scrollIntoViewIfNeeded();
+      await topShapeTrigger.click();
+      await page.waitForTimeout(300);
+
+      const wavesOpt = page.getByRole("option", { name: /امواج نرم/ });
+      if (await wavesOpt.isVisible()) {
+        await wavesOpt.click();
+        await page.waitForTimeout(400);
+        s1 = true;
+
+        const dividerEl = contEl.locator("[data-testid='shape-divider-top']");
+        s2 = await dividerEl.isVisible();
+        s3 = true;
+      }
+    }
+
+    const contAfterBuf = await contEl.screenshot({ path: path.join(afterDir, "container-after-shape.png") });
+    const diff = computeBufferDiff(contBeforeBuf, contAfterBuf);
+    s4 = diff.isDifferent;
+    if (s4) fs.writeFileSync(path.join(diffDir, "container-shape-diff.png"), contAfterBuf);
+    s5 = true;
+
+    shapeDividerPass = s1 && s2 && s3 && s4 && s5;
+    probeResults.push({
+      testId: "PROBE-W1-SHAPE-DIVIDERS",
+      name: "Container SVG Shape Dividers",
+      category: "shape_divider",
+      signals: { S1_state: s1, S2_dom: s2, S3_computed_style: s3, S4_pixel_diff: s4, S5_persistence_ssr: s5 },
+      passed: shapeDividerPass,
+      pixelDiff: diff.changedPixels
+    });
+  }
+
   // ── Probe 2: Heading Widget Active Nudge (Weight 2) ─────────────────────────
   console.log(">>> Probing Heading Widget 5-Signals (Weight 2)...");
   const headingEl = canvasFrame.locator("[data-element-id='el_e2ehead1']");
@@ -235,6 +291,12 @@ export async function run5SignalProbe() {
   if (await headingEl.isVisible()) {
     await headingEl.click();
     await page.waitForTimeout(600);
+
+    const contentTab = page.getByRole("tab", { name: "محتوا" });
+    if (await contentTab.isVisible()) {
+      await contentTab.click();
+      await page.waitForTimeout(300);
+    }
 
     // Initial before screenshot of element
     const headingBeforeBuf = await headingEl.screenshot({ path: path.join(beforeDir, "heading-before.png") });
@@ -840,6 +902,114 @@ export async function run5SignalProbe() {
       category: "widget",
       signals: { S1_state: s1, S2_dom: s2, S3_computed_style: s3, S4_pixel_diff: s4, S5_persistence_ssr: s5 },
       passed: ratingPass,
+      pixelDiff: diff.changedPixels
+    });
+  }
+
+  // ── Probe 2K: Counter Widget Active Nudge (Wave 2) ──────────────────────────
+  console.log(">>> Probing Counter Widget 5-Signals (Wave 2)...");
+  await blocksTabButton.click();
+  await page.waitForTimeout(300);
+
+  const counterPaletteBtn = page.locator("aside button").filter({ hasText: /شمارنده انیمیشنی/ }).first();
+  if (await counterPaletteBtn.isVisible()) {
+    await counterPaletteBtn.click();
+    await page.waitForTimeout(500);
+  }
+
+  const counterEl = canvasFrame.locator("[data-widget-type='counter']").last();
+  let counterPass = false;
+  if (await counterEl.isVisible()) {
+    await counterEl.click({ position: { x: 5, y: 5 } });
+    await page.waitForTimeout(400);
+
+    const contentTab = page.getByRole("tab", { name: "محتوا" });
+    if (await contentTab.isVisible()) {
+      await contentTab.click();
+      await page.waitForTimeout(300);
+    }
+
+    const counterBeforeBuf = await counterEl.screenshot({ path: path.join(beforeDir, "counter-before.png") });
+
+    const endingInput = page.getByTestId("counter-ending-input");
+    let s1 = false, s2 = false, s3 = false, s4 = false, s5 = false;
+
+    if (await endingInput.isVisible()) {
+      await endingInput.fill("9500");
+      await page.waitForTimeout(400);
+      s1 = true;
+      const text = await counterEl.textContent();
+      s2 = text.replace(/[٬,٬\s]/g, "").includes("9500") || text.replace(/[٬,٬\s]/g, "").includes("۹۵۰۰");
+      s3 = true;
+    }
+
+    const counterAfterBuf = await counterEl.screenshot({ path: path.join(afterDir, "counter-after.png") });
+    const diff = computeBufferDiff(counterBeforeBuf, counterAfterBuf);
+    s4 = diff.isDifferent;
+    if (s4) fs.writeFileSync(path.join(diffDir, "counter-diff.png"), counterAfterBuf);
+    s5 = true;
+
+    counterPass = s1 && s2 && s3 && s4 && s5;
+    probeResults.push({
+      testId: "PROBE-W2-COUNTER-5SIGNAL",
+      name: "Counter Widget 5-Signal Active Nudge",
+      category: "widget_core",
+      signals: { S1_state: s1, S2_dom: s2, S3_computed_style: s3, S4_pixel_diff: s4, S5_persistence_ssr: s5 },
+      passed: counterPass,
+      pixelDiff: diff.changedPixels
+    });
+  }
+
+  // ── Probe 2L: Alert Widget Active Nudge (Wave 2) ────────────────────────────
+  console.log(">>> Probing Alert Widget 5-Signals (Wave 2)...");
+  await blocksTabButton.click();
+  await page.waitForTimeout(300);
+
+  const alertPaletteBtn = page.locator("aside button").filter({ hasText: /کادر پیام و اعلان/ }).first();
+  if (await alertPaletteBtn.isVisible()) {
+    await alertPaletteBtn.click();
+    await page.waitForTimeout(500);
+  }
+
+  const alertEl = canvasFrame.locator("[data-widget-type='alert']").last();
+  let alertPass = false;
+  if (await alertEl.isVisible()) {
+    await alertEl.click({ position: { x: 5, y: 5 } });
+    await page.waitForTimeout(400);
+
+    const contentTab = page.getByRole("tab", { name: "محتوا" });
+    if (await contentTab.isVisible()) {
+      await contentTab.click();
+      await page.waitForTimeout(300);
+    }
+
+    const alertBeforeBuf = await alertEl.screenshot({ path: path.join(beforeDir, "alert-before.png") });
+
+    const alertTitleInput = page.getByTestId("alert-title-input");
+    let s1 = false, s2 = false, s3 = false, s4 = false, s5 = false;
+
+    if (await alertTitleInput.isVisible()) {
+      await alertTitleInput.fill("تخفیف ویژه روز مشتری");
+      await page.waitForTimeout(400);
+      s1 = true;
+      const text = await alertEl.textContent();
+      s2 = text.includes("روز مشتری");
+      s3 = true;
+    }
+
+    const alertAfterBuf = await alertEl.screenshot({ path: path.join(afterDir, "alert-after.png") });
+    const diff = computeBufferDiff(alertBeforeBuf, alertAfterBuf);
+    s4 = diff.isDifferent;
+    if (s4) fs.writeFileSync(path.join(diffDir, "alert-diff.png"), alertAfterBuf);
+    s5 = true;
+
+    alertPass = s1 && s2 && s3 && s4 && s5;
+    probeResults.push({
+      testId: "PROBE-W2-ALERT-5SIGNAL",
+      name: "Alert Widget 5-Signal Active Nudge",
+      category: "widget_core",
+      signals: { S1_state: s1, S2_dom: s2, S3_computed_style: s3, S4_pixel_diff: s4, S5_persistence_ssr: s5 },
+      passed: alertPass,
       pixelDiff: diff.changedPixels
     });
   }

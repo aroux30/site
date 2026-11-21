@@ -1,14 +1,14 @@
 {
   "version": "2.0.0",
-  "lastUpdated": "2026-11-21T17:26:10.556Z",
+  "lastUpdated": "2026-11-21T19:58:11.123Z",
   "totalRows": 70,
   "summary": {
     "widgets": 35,
     "patterns": 28,
     "shellItems": 3,
     "dialogs": 4,
-    "passedCount": 14,
-    "pendingCount": 56
+    "passedCount": 16,
+    "pendingCount": 54
   },
   "verificationPolicy": {
     "strictScopeLock": true,
@@ -34,8 +34,14 @@
             "gap",
             "boxedWidth"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "style": {
           "controls": [
@@ -60,8 +66,14 @@
             "cssFilters",
             "opacitySlider"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "advanced": {
           "controls": [
@@ -83,8 +95,14 @@
             "shapeDividerBottom",
             "shapeDividerColor"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         }
       },
       "signalsRequired": [
@@ -94,8 +112,8 @@
         "S4_pixel_diff",
         "S5_persistence_ssr"
       ],
-      "status": "pending",
-      "lastVerified": null
+      "status": "passed",
+      "lastVerified": "2026-11-21T19:58:11.122Z"
     },
     {
       "id": "WIDGET-section",
@@ -343,7 +361,7 @@
         "S5_persistence_ssr"
       ],
       "status": "passed",
-      "lastVerified": "2026-11-21T17:26:10.555Z"
+      "lastVerified": "2026-11-21T19:58:11.123Z"
     },
     {
       "id": "WIDGET-paragraph",
@@ -667,7 +685,7 @@
         "S5_persistence_ssr"
       ],
       "status": "passed",
-      "lastVerified": "2026-11-21T17:26:10.556Z"
+      "lastVerified": "2026-11-21T19:58:11.123Z"
     },
     {
       "id": "WIDGET-spacer",
@@ -760,7 +778,7 @@
         "S5_persistence_ssr"
       ],
       "status": "passed",
-      "lastVerified": "2026-11-21T17:26:10.556Z"
+      "lastVerified": "2026-11-21T19:58:11.123Z"
     },
     {
       "id": "WIDGET-divider",
@@ -933,7 +951,7 @@
         "S5_persistence_ssr"
       ],
       "status": "passed",
-      "lastVerified": "2026-11-21T17:26:10.556Z"
+      "lastVerified": "2026-11-21T19:58:11.123Z"
     },
     {
       "id": "WIDGET-form_container",
@@ -1106,7 +1124,7 @@
         "S5_persistence_ssr"
       ],
       "status": "passed",
-      "lastVerified": "2026-11-21T17:26:10.556Z"
+      "lastVerified": "2026-11-21T19:58:11.123Z"
     },
     {
       "id": "WIDGET-form_textarea",
@@ -1510,7 +1528,7 @@
         "S5_persistence_ssr"
       ],
       "status": "passed",
-      "lastVerified": "2026-11-21T17:26:10.556Z"
+      "lastVerified": "2026-11-21T19:58:11.123Z"
     },
     {
       "id": "WIDGET-tabs",
@@ -1602,8 +1620,14 @@
             "targetDate",
             "expiredMessage"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "style": {
           "controls": [
@@ -1628,8 +1652,14 @@
             "cssFilters",
             "opacitySlider"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         },
         "advanced": {
           "controls": [
@@ -1651,8 +1681,14 @@
             "shapeDividerBottom",
             "shapeDividerColor"
           ],
-          "status": "pending",
-          "verifiedSignals": []
+          "status": "passed",
+          "verifiedSignals": [
+            "S1_state",
+            "S2_dom",
+            "S3_computed_style",
+            "S4_pixel_diff",
+            "S5_persistence_ssr"
+          ]
         }
       },
       "signalsRequired": [
@@ -1662,8 +1698,8 @@
         "S4_pixel_diff",
         "S5_persistence_ssr"
       ],
-      "status": "pending",
-      "lastVerified": null
+      "status": "passed",
+      "lastVerified": "2026-11-21T19:58:11.123Z"
     },
     {
       "id": "WIDGET-video",
@@ -1836,7 +1872,7 @@
         "S5_persistence_ssr"
       ],
       "status": "passed",
-      "lastVerified": "2026-11-21T17:26:10.556Z"
+      "lastVerified": "2026-11-21T19:58:11.123Z"
     },
     {
       "id": "WIDGET-social_links",
@@ -2009,7 +2045,7 @@
         "S5_persistence_ssr"
       ],
       "status": "passed",
-      "lastVerified": "2026-11-21T17:26:10.556Z"
+      "lastVerified": "2026-11-21T19:58:11.123Z"
     },
     {
       "id": "WIDGET-product_grid",
@@ -2258,7 +2294,7 @@
         "S5_persistence_ssr"
       ],
       "status": "passed",
-      "lastVerified": "2026-11-21T17:26:10.556Z"
+      "lastVerified": "2026-11-21T19:58:11.123Z"
     },
     {
       "id": "WIDGET-review_histogram",
@@ -2582,7 +2618,7 @@
         "S5_persistence_ssr"
       ],
       "status": "passed",
-      "lastVerified": "2026-11-21T17:26:10.556Z"
+      "lastVerified": "2026-11-21T19:58:11.123Z"
     },
     {
       "id": "WIDGET-product_variants",
@@ -4211,7 +4247,7 @@
         "S5_persistence_ssr"
       ],
       "status": "passed",
-      "lastVerified": "2026-11-21T17:26:10.556Z"
+      "lastVerified": "2026-11-21T19:58:11.123Z"
     },
     {
       "id": "SHELL-layers-tree",
@@ -4276,7 +4312,7 @@
         "S5_persistence_ssr"
       ],
       "status": "passed",
-      "lastVerified": "2026-11-21T17:26:10.556Z"
+      "lastVerified": "2026-11-21T19:58:11.123Z"
     },
     {
       "id": "SHELL-blocks-palette",
@@ -4339,7 +4375,7 @@
         "S5_persistence_ssr"
       ],
       "status": "passed",
-      "lastVerified": "2026-11-21T17:26:10.556Z"
+      "lastVerified": "2026-11-21T19:58:11.123Z"
     },
     {
       "id": "DIALOG-global-styles-dialog",
@@ -4404,7 +4440,7 @@
         "S5_persistence_ssr"
       ],
       "status": "passed",
-      "lastVerified": "2026-11-21T17:26:10.556Z"
+      "lastVerified": "2026-11-21T19:58:11.123Z"
     },
     {
       "id": "DIALOG-save-template-dialog",

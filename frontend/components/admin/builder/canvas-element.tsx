@@ -1423,6 +1423,40 @@ function CanvasElementComponent({
           </div>
         );
       }
+      case "counter": {
+        const end = Number(props.ending_number) || 100;
+        const prefix = String(props.prefix || "");
+        const suffix = String(props.suffix || "");
+        const title = String(props.title || "عنوان شمارنده");
+        return (
+          <div className="flex flex-col items-center justify-center p-3 text-center space-y-1 w-full">
+            <div className="text-3xl lg:text-4xl font-extrabold text-primary tracking-tight font-mono" dir="ltr">
+              {prefix}{end.toLocaleString("fa-IR")}{suffix}
+            </div>
+            {title && <span className="text-xs font-semibold text-muted-foreground">{title}</span>}
+          </div>
+        );
+      }
+      case "alert": {
+        const alertType = String(props.alert_type || "info");
+        const title = String(props.title || "اطلاعیه مهم");
+        const desc = String(props.description || "");
+        const typeClasses: Record<string, string> = {
+          info: "bg-blue-500/10 text-blue-700 dark:text-blue-300 border-blue-500/30",
+          success: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/30",
+          warning: "bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/30",
+          danger: "bg-rose-500/10 text-rose-700 dark:text-rose-300 border-rose-500/30",
+        };
+        const activeClass = typeClasses[alertType] || typeClasses.info;
+        return (
+          <div className={cn("p-4 rounded-xl border flex items-start gap-3 w-full", activeClass)}>
+            <div className="space-y-1 text-right flex-1">
+              <h4 className="font-bold text-xs">{title}</h4>
+              {desc && <p className="text-[11px] leading-relaxed opacity-90">{desc}</p>}
+            </div>
+          </div>
+        );
+      }
       default:
         return (
           <div className="rounded-lg border border-dashed border-border p-4 text-center text-sm text-muted-foreground">

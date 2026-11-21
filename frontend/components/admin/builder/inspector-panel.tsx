@@ -1560,6 +1560,101 @@ export function InspectorPanel() {
         );
       }
 
+      case "counter":
+        return (
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-1">
+                <Label className="text-xs">عدد شروع</Label>
+                <Input
+                  type="number"
+                  value={Number(props.starting_number) || 0}
+                  onChange={(e) => handlePropChange("starting_number", parseInt(e.target.value, 10) || 0)}
+                  className="h-8 text-xs font-mono"
+                />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">عدد پایان</Label>
+                <Input
+                  data-testid="counter-ending-input"
+                  type="number"
+                  value={Number(props.ending_number) || 100}
+                  onChange={(e) => handlePropChange("ending_number", parseInt(e.target.value, 10) || 100)}
+                  className="h-8 text-xs font-mono"
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-1">
+                <Label className="text-xs">پیشوند (Prefix)</Label>
+                <Input
+                  value={String(props.prefix || "")}
+                  onChange={(e) => handlePropChange("prefix", e.target.value)}
+                  className="h-8 text-xs"
+                />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">پسوند (Suffix)</Label>
+                <Input
+                  value={String(props.suffix || "")}
+                  onChange={(e) => handlePropChange("suffix", e.target.value)}
+                  className="h-8 text-xs"
+                />
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">عنوان زیر شمارنده</Label>
+              <Input
+                data-testid="counter-title-input"
+                value={String(props.title || "")}
+                onChange={(e) => handlePropChange("title", e.target.value)}
+                className="h-8 text-xs"
+              />
+            </div>
+          </div>
+        );
+
+      case "alert":
+        return (
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs">نوع پیام (Alert Type)</Label>
+              <Select
+                value={String(props.alert_type || "info")}
+                onValueChange={(val) => handlePropChange("alert_type", val)}
+              >
+                <SelectTrigger className="h-8 text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="info">اطلاع‌رسانی (آبی)</SelectItem>
+                  <SelectItem value="success">موفقیت‌آمیز (سبز)</SelectItem>
+                  <SelectItem value="warning">هشدار (زرد)</SelectItem>
+                  <SelectItem value="danger">خطر / خطا (قرمز)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">عنوان پیام</Label>
+              <Input
+                data-testid="alert-title-input"
+                value={String(props.title || "")}
+                onChange={(e) => handlePropChange("title", e.target.value)}
+                className="h-8 text-xs"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">متن کامل پیام</Label>
+              <textarea
+                rows={3}
+                value={String(props.description || "")}
+                onChange={(e) => handlePropChange("description", e.target.value)}
+                className="w-full rounded-md border border-input bg-background p-2 text-xs"
+              />
+            </div>
+          </div>
+        );
+
       default:
         return (
           <div className="text-xs text-muted-foreground py-2">
@@ -3023,6 +3118,75 @@ export function InspectorPanel() {
             }}
           />
         </div>
+
+        {/* Shape Dividers (Elementor Parity Wave 1) */}
+        {selectedElement.type === "container" && (
+          <div className="space-y-3 pt-3 border-t border-border/80">
+            <Label className="text-xs font-bold text-foreground block">اشکال جداکننده بخش (Shape Dividers)</Label>
+            <div className="space-y-1.5">
+              <Label className="text-[11px] text-muted-foreground">شکل جداکننده بالا (Top Shape)</Label>
+              <Select
+                value={selectedElement.styles?.shapeDividerTop || "none"}
+                onValueChange={(val) =>
+                  updateElementStyles(selectedElement.id, {
+                    shapeDividerTop: val,
+                  })
+                }
+              >
+                <SelectTrigger data-testid="shape-divider-top-select" className="h-8 text-xs">
+                  <SelectValue placeholder="انتخاب شکل بالا" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">بدون جداکننده (None)</SelectItem>
+                  <SelectItem value="waves">امواج نرم (Waves)</SelectItem>
+                  <SelectItem value="curve">منحنی مقعر (Curve)</SelectItem>
+                  <SelectItem value="triangle">مثلث (Triangle)</SelectItem>
+                  <SelectItem value="tilt">شیب مایل (Tilt)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className="text-[11px] text-muted-foreground">شکل جداکننده پایین (Bottom Shape)</Label>
+              <Select
+                value={selectedElement.styles?.shapeDividerBottom || "none"}
+                onValueChange={(val) =>
+                  updateElementStyles(selectedElement.id, {
+                    shapeDividerBottom: val,
+                  })
+                }
+              >
+                <SelectTrigger data-testid="shape-divider-bottom-select" className="h-8 text-xs">
+                  <SelectValue placeholder="انتخاب شکل پایین" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">بدون جداکننده (None)</SelectItem>
+                  <SelectItem value="waves">امواج نرم (Waves)</SelectItem>
+                  <SelectItem value="curve">منحنی مقعر (Curve)</SelectItem>
+                  <SelectItem value="triangle">مثلث (Triangle)</SelectItem>
+                  <SelectItem value="tilt">شیب مایل (Tilt)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className="text-[11px] text-muted-foreground">رنگ شکل جداکننده</Label>
+              <Input
+                data-testid="shape-divider-color-input"
+                type="text"
+                placeholder="#ffffff"
+                value={selectedElement.styles?.shapeDividerColor || "#ffffff"}
+                onChange={(e) =>
+                  updateElementStyles(selectedElement.id, {
+                    shapeDividerColor: e.target.value,
+                  })
+                }
+                className="h-8 text-xs font-mono"
+                dir="ltr"
+              />
+            </div>
+          </div>
+        )}
 
         {/* Conditional Visibility (P4) */}
         <div className="space-y-3 pt-3 border-t border-border/80">

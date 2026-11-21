@@ -33,6 +33,8 @@ import {
   Video,
   Sparkles,
   Share2,
+  TrendingUp,
+  AlertCircle,
   type LucideIcon,
 } from "lucide-react";
 import type { BuilderElement } from "@/types/builder";
@@ -980,6 +982,82 @@ export const BASIC_BLOCK_DEFINITIONS: BlockDefinition[] = [
       isLocked: false,
       isHidden: false,
       styles: { mobile: {} },
+      children: [],
+    }),
+  },
+  {
+    type: "counter",
+    name: "شمارنده انیمیشنی (Counter)",
+    category: "basic",
+    icon: TrendingUp,
+    description: "شمارنده عددی انیمیشنی با پیشوند، پسوند و عنوان",
+    createDefaultElement: () => ({
+      id: `el_${Math.random().toString(36).slice(2, 10)}`,
+      name: "شمارنده عددی",
+      type: "widget",
+      widgetType: "counter",
+      widgetProps: {
+        starting_number: 0,
+        ending_number: 1250,
+        prefix: "+",
+        suffix: " کاربر",
+        title: "مشتریان وفادار",
+        duration: 2000,
+      },
+      isLocked: false,
+      isHidden: false,
+      styles: {
+        mobile: {
+          typography: {
+            fontSize: { value: 36, unit: "px" },
+            fontWeight: "800",
+            textAlign: "center",
+          },
+        },
+      },
+      children: [],
+    }),
+  },
+  {
+    type: "alert",
+    name: "کادر پیام و اعلان (Alert)",
+    category: "basic",
+    icon: AlertCircle,
+    description: "باکس هشدار و اطلاع‌رسانی با انواع استایل‌های رنگی",
+    createDefaultElement: () => ({
+      id: `el_${Math.random().toString(36).slice(2, 10)}`,
+      name: "کادر اعلان",
+      type: "widget",
+      widgetType: "alert",
+      widgetProps: {
+        alert_type: "info",
+        title: "اطلاعیه مهم",
+        description: "سفارش‌های ثبت‌شده قبل از ساعت ۱۲ در همان روز ارسال خواهند شد.",
+        dismissible: true,
+      },
+      isLocked: false,
+      isHidden: false,
+      styles: {
+        mobile: {
+          padding: {
+            top: { value: 16, unit: "px" },
+            right: { value: 16, unit: "px" },
+            bottom: { value: 16, unit: "px" },
+            left: { value: 16, unit: "px" },
+            isLinked: true,
+          },
+          border: {
+            style: "solid",
+            radius: {
+              top: { value: 12, unit: "px" },
+              right: { value: 12, unit: "px" },
+              bottom: { value: 12, unit: "px" },
+              left: { value: 12, unit: "px" },
+              isLinked: true,
+            },
+          },
+        },
+      },
       children: [],
     }),
   },

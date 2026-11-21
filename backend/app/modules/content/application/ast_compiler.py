@@ -152,6 +152,38 @@ class ASTCompiler:
                 ov_styles.append(f"background-image: linear-gradient({d}, {overlay.gradient.from_color}, {overlay.gradient.to_color});")
             overlay_html = f'<div class="builder-background-overlay" style="{" ".join(ov_styles)}" aria-hidden="true"></div>'
 
+        # Shape dividers compilation (Elementor Parity Wave 1)
+        shape_top_html = ""
+        s_top = el.styles.shape_divider_top
+        s_color = el.styles.shape_divider_color or "#ffffff"
+        if s_top and s_top != "none":
+            svg_path = ""
+            if s_top == "waves":
+                svg_path = '<path fill="{s_color}" d="M421.9,6.5c22.6-2.5,51.5,0.4,75.5,5.3c23.6,4.9,70.9,23.5,100.5,35.7c75.8,32.2,133.7,44.5,192.6,49.7c23.6,2.1,48.7,3.5,103.4-2.5c54.7-6,106.2-25.6,106.2-25.6V0H0v30.3c0,0,72,32.6,158.4,30.5c39.2-0.7,92.8-6.7,134-22.4c21.2-8.1,52.2-18.2,79.7-24.2C399.3,7.9,411.6,7.5,421.9,6.5z" />'
+            elif s_top == "curve":
+                svg_path = '<path fill="{s_color}" d="M1000,4.3V0H0v4.3C0.9,23.1,126.7,99.2,500,100S1000,22.7,1000,4.3z" />'
+            elif s_top == "triangle":
+                svg_path = '<path fill="{s_color}" d="M500,98.9L0,6.1V0h1000v6.1L500,98.9z" />'
+            elif s_top == "tilt":
+                svg_path = '<path fill="{s_color}" d="M0,6V0h1000v100L0,6z" />'
+            if svg_path:
+                shape_top_html = f'<div class="builder-shape-divider-top absolute top-0 start-0 w-full overflow-hidden leading-none z-10 pointer-events-none" style="height: 48px;"><svg viewBox="0 0 1000 100" preserveAspectRatio="none" class="w-full h-full block">{svg_path.format(s_color=html.escape(s_color))}</svg></div>'
+
+        shape_bottom_html = ""
+        s_bot = el.styles.shape_divider_bottom
+        if s_bot and s_bot != "none":
+            svg_path = ""
+            if s_bot == "waves":
+                svg_path = '<path fill="{s_color}" d="M421.9,6.5c22.6-2.5,51.5,0.4,75.5,5.3c23.6,4.9,70.9,23.5,100.5,35.7c75.8,32.2,133.7,44.5,192.6,49.7c23.6,2.1,48.7,3.5,103.4-2.5c54.7-6,106.2-25.6,106.2-25.6V0H0v30.3c0,0,72,32.6,158.4,30.5c39.2-0.7,92.8-6.7,134-22.4c21.2-8.1,52.2-18.2,79.7-24.2C399.3,7.9,411.6,7.5,421.9,6.5z" />'
+            elif s_bot == "curve":
+                svg_path = '<path fill="{s_color}" d="M1000,4.3V0H0v4.3C0.9,23.1,126.7,99.2,500,100S1000,22.7,1000,4.3z" />'
+            elif s_bot == "triangle":
+                svg_path = '<path fill="{s_color}" d="M500,98.9L0,6.1V0h1000v6.1L500,98.9z" />'
+            elif s_bot == "tilt":
+                svg_path = '<path fill="{s_color}" d="M0,6V0h1000v100L0,6z" />'
+            if svg_path:
+                shape_bottom_html = f'<div class="builder-shape-divider-bottom absolute bottom-0 start-0 w-full overflow-hidden leading-none z-10 pointer-events-none rotate-180" style="height: 48px;"><svg viewBox="0 0 1000 100" preserveAspectRatio="none" class="w-full h-full block">{svg_path.format(s_color=html.escape(s_color))}</svg></div>'
+
         if is_form:
             props = el.widget_props or {}
             submit_url = html.escape(str(props.get("submit_url", "/api/v1/content/forms/submit")))
@@ -162,13 +194,13 @@ class ASTCompiler:
                 extra_attrs += f' data-error-message="{html.escape(str(props["error_message"]))}"'
             # Include anti-spam honeypot hidden field inside form
             hp_field = '<input type="text" name="_hp_website" style="display:none !important;" tabindex="-1" autocomplete="off" aria-hidden="true" />'
-            children_html = overlay_html + hp_field + "".join(
+            children_html = shape_top_html + overlay_html + hp_field + "".join(
                 cls._compile_element(child, is_authenticated=is_authenticated) for child in el.children
-            )
+            ) + shape_bottom_html
         else:
-            children_html = overlay_html + "".join(
+            children_html = shape_top_html + overlay_html + "".join(
                 cls._compile_element(child, is_authenticated=is_authenticated) for child in el.children
-            )
+            ) + shape_bottom_html
 
         return f"<{tag}{id_attr}{class_attr}{style_attr}{extra_attrs}>{children_html}</{tag}>"
 
@@ -663,6 +695,38 @@ class ASTCompiler:
             return (
                 f'<div{id_attr} class="builder-social-links flex items-center gap-2 {css_class}" data-widget="social_links"{style_attr}>'
                 f'{links_html}'
+                f'</div>'
+            )
+
+        elif widget_type == "counter":
+            ending = html.escape(str(props.get("ending_number", 100)))
+            prefix = html.escape(str(props.get("prefix", "")))
+            suffix = html.escape(str(props.get("suffix", "")))
+            title = html.escape(str(props.get("title", "")))
+            return (
+                f'<div{id_attr} class="builder-counter flex flex-col items-center justify-center p-4 text-center {css_class}" data-widget="counter"{style_attr}>'
+                f'<div class="text-3xl lg:text-4xl font-extrabold text-primary tracking-tight font-mono" dir="ltr">{prefix}{ending}{suffix}</div>'
+                f'<span class="text-xs font-semibold text-muted-foreground mt-1">{title}</span>'
+                f'</div>'
+            )
+
+        elif widget_type == "alert":
+            alert_type = str(props.get("alert_type", "info"))
+            title = html.escape(str(props.get("title", "اطلاعیه مهم")))
+            desc = html.escape(str(props.get("description", "")))
+            type_classes = {
+                "info": "bg-blue-500/10 text-blue-700 border-blue-500/30",
+                "success": "bg-emerald-500/10 text-emerald-700 border-emerald-500/30",
+                "warning": "bg-amber-500/10 text-amber-700 border-amber-500/30",
+                "danger": "bg-rose-500/10 text-rose-700 border-rose-500/30",
+            }
+            active_type_cls = type_classes.get(alert_type, type_classes["info"])
+            return (
+                f'<div{id_attr} class="builder-alert p-4 rounded-xl border flex items-start gap-3 w-full {active_type_cls} {css_class}" data-widget="alert"{style_attr}>'
+                f'<div class="space-y-1 text-right flex-1">'
+                f'<h4 class="font-bold text-xs">{title}</h4>'
+                f'<p class="text-[11px] leading-relaxed opacity-90">{desc}</p>'
+                f'</div>'
                 f'</div>'
             )
 

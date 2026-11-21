@@ -10,6 +10,7 @@ const PASSED_IDS = [
   "SHELL-layers-tree",
   "SHELL-builder-toolbar",
   "SHELL-blocks-palette",
+  "WIDGET-container",
   "WIDGET-heading",
   "WIDGET-button",
   "WIDGET-spacer",
@@ -20,6 +21,7 @@ const PASSED_IDS = [
   "WIDGET-product_card",
   "WIDGET-product_price",
   "WIDGET-star_rating",
+  "WIDGET-countdown",
   "DIALOG-global-styles-dialog"
 ];
 

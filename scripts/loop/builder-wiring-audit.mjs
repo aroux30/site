@@ -20,9 +20,9 @@ const PATHS = {
 const ALL_35_WIDGETS = [
   // 10 Basic & Layout
   "container", "section", "columns", "heading", "text_editor", "image", "button", "spacer", "divider", "table",
-  // 13 Interactive / Form
+  // 15 Interactive / Form (including Wave 2 Counter & Alert)
   "form_container", "form_input", "form_textarea", "form_select", "form_checkbox", "form_radio",
-  "accordion", "tabs", "countdown", "video", "icon_box", "social_links", "html_custom",
+  "accordion", "tabs", "countdown", "video", "icon_box", "social_links", "html_custom", "counter", "alert",
   // 12 Shop / Commerce
   "product_card", "product_grid", "image_gallery", "star_rating", "review_histogram", "recently_viewed",
   "mega_menu", "product_price", "product_variants", "add_to_cart", "mini_cart", "cart_summary"

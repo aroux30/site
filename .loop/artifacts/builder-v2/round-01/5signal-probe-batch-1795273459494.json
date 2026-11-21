@@ -1,0 +1,139 @@
+{
+  "round": "round-01",
+  "timestamp": "2026-11-21T15:04:19.493Z",
+  "totalWidgets": 5,
+  "passedWidgets": 5,
+  "allPassed": true,
+  "widgets": [
+    {
+      "widget": "video",
+      "signals": {
+        "S1_State": {
+          "passed": true,
+          "detail": "isDirty=true and state mutated"
+        },
+        "S2_DOM": {
+          "passed": true,
+          "detail": "DOM reflected in iframe"
+        },
+        "S3_ComputedStyle": {
+          "passed": true,
+          "detail": "Styles computed (dir=rtl)"
+        },
+        "S4_VisualPixels": {
+          "passed": true,
+          "detail": "Images saved (115827B -> 115754B)"
+        },
+        "S5_PersistenceSSR": {
+          "passed": true,
+          "detail": "SSR endpoint active (200 OK)"
+        }
+      },
+      "passed": true
+    },
+    {
+      "widget": "icon_box",
+      "signals": {
+        "S1_State": {
+          "passed": true,
+          "detail": "isDirty=true and state mutated"
+        },
+        "S2_DOM": {
+          "passed": true,
+          "detail": "DOM reflected in iframe"
+        },
+        "S3_ComputedStyle": {
+          "passed": true,
+          "detail": "Styles computed (dir=rtl)"
+        },
+        "S4_VisualPixels": {
+          "passed": true,
+          "detail": "Images saved (121524B -> 120672B)"
+        },
+        "S5_PersistenceSSR": {
+          "passed": true,
+          "detail": "SSR endpoint active (200 OK)"
+        }
+      },
+      "passed": true
+    },
+    {
+      "widget": "social_links",
+      "signals": {
+        "S1_State": {
+          "passed": true,
+          "detail": "isDirty=true and state mutated"
+        },
+        "S2_DOM": {
+          "passed": true,
+          "detail": "DOM reflected in iframe"
+        },
+        "S3_ComputedStyle": {
+          "passed": true,
+          "detail": "Styles computed (dir=rtl)"
+        },
+        "S4_VisualPixels": {
+          "passed": true,
+          "detail": "Images saved (120159B -> 120145B)"
+        },
+        "S5_PersistenceSSR": {
+          "passed": true,
+          "detail": "SSR endpoint active (200 OK)"
+        }
+      },
+      "passed": true
+    },
+    {
+      "widget": "product_card",
+      "signals": {
+        "S1_State": {
+          "passed": true,
+          "detail": "isDirty=true and state mutated"
+        },
+        "S2_DOM": {
+          "passed": true,
+          "detail": "DOM reflected in iframe"
+        },
+        "S3_ComputedStyle": {
+          "passed": true,
+          "detail": "Styles computed (dir=rtl)"
+        },
+        "S4_VisualPixels": {
+          "passed": true,
+          "detail": "Images saved (178612B -> 179029B)"
+        },
+        "S5_PersistenceSSR": {
+          "passed": true,
+          "detail": "SSR endpoint active (200 OK)"
+        }
+      },
+      "passed": true
+    },
+    {
+      "widget": "product_grid",
+      "signals": {
+        "S1_State": {
+          "passed": true,
+          "detail": "isDirty=true and state mutated"
+        },
+        "S2_DOM": {
+          "passed": true,
+          "detail": "DOM reflected in iframe"
+        },
+        "S3_ComputedStyle": {
+          "passed": true,
+          "detail": "Styles computed (dir=rtl)"
+        },
+        "S4_VisualPixels": {
+          "passed": true,
+          "detail": "Images saved (227242B -> 226237B)"
+        },
+        "S5_PersistenceSSR": {
+          "passed": true,
+          "detail": "SSR endpoint active (200 OK)"
+        }
+      },
+      "passed": true
+    }
+  ]
+}

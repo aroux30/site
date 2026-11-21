@@ -42,9 +42,8 @@ if (distDir === ".next") {
 }
 
 const nextBin = path.join(frontendDir, "node_modules", "next", "dist", "bin", "next");
-// --turbopack matches the project's own `dev` script (next dev --turbopack);
-// without it this server would compile differently from the canonical one.
-const child = spawn(process.execPath, [nextBin, "dev", "--turbopack", "-p", port], {
+// Use standard webpack dev server in worktrees to avoid Windows junction symlink errors with Turbopack
+const child = spawn(process.execPath, [nextBin, "dev", "-p", port], {
   cwd: frontendDir,
   stdio: "inherit",
   env: { ...process.env, NEXT_DIST_DIR: distDir },

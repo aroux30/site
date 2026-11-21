@@ -22,10 +22,11 @@ const { chromium } = req("playwright");
 const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || "http://127.0.0.1:3000";
 const BACKEND_DIR = path.join(PROJECT_ROOT, "backend");
 
-// Parse CLI args: --round 01 --stage before|after
+// Parse CLI args: --round 01 --stage before|after --section 1|2|3|4|all
 const args = process.argv.slice(2);
 let roundArg = "round-01";
 let stageArg = "before";
+let sectionArg = "all";
 
 for (let i = 0; i < args.length; i++) {
   if (args[i] === "--round" && args[i + 1]) {
@@ -33,6 +34,9 @@ for (let i = 0; i < args.length; i++) {
     i++;
   } else if (args[i] === "--stage" && args[i + 1]) {
     stageArg = args[i + 1];
+    i++;
+  } else if (args[i] === "--section" && args[i + 1]) {
+    sectionArg = args[i + 1];
     i++;
   }
 }
@@ -196,6 +200,7 @@ async function runXRayAudit() {
   // ──────────────────────────────────────────────────────────────────────────
   // SECTION 1: Pattern-by-Pattern Audit (1..28)
   // ──────────────────────────────────────────────────────────────────────────
+  if (sectionArg === "all" || sectionArg === "1") {
   console.log("\n>>> [SECTION 1] Testing 28 Block Patterns (Checks A, B, C, D, E)...");
 
   // Fetch registered patterns from backend
@@ -214,8 +219,16 @@ async function runXRayAudit() {
 
   console.log(`    Loaded ${patternList.length} patterns from backend.`);
 
+  // Ensure left tab is set to blocks and inner tab to patterns
+  await page.evaluate(() => {
+    if (window.__BUILDER_STORE__ && window.__BUILDER_STORE__.getState) {
+      window.__BUILDER_STORE__.getState().setLeftTab("blocks");
+    }
+  });
+  await page.waitForTimeout(400);
+
   // Click on "الگوها" tab in blocks palette
-  const patternsTabBtn = page.locator("button:has-text('الگوها')").first();
+  const patternsTabBtn = page.locator('[data-testid="patterns-tab-btn"]').or(page.locator("button:has-text('الگوها')")).first();
   if (await patternsTabBtn.isVisible()) {
     await patternsTabBtn.click();
     await page.waitForTimeout(500);
@@ -237,6 +250,17 @@ async function runXRayAudit() {
 
     // 1. Clear canvas
     await clearCanvas();
+
+    // Ensure left tab is blocks and inner tab is patterns
+    await page.evaluate(() => {
+      if (window.__BUILDER_STORE__ && window.__BUILDER_STORE__.getState) {
+        window.__BUILDER_STORE__.getState().setLeftTab("blocks");
+      }
+    });
+    if (await patternsTabBtn.isVisible()) {
+      await patternsTabBtn.click();
+      await page.waitForTimeout(300);
+    }
 
     // 2. Clear search input if filled, and select "همه"
     const searchInput = page.locator("input[placeholder*='الگو']").first();
@@ -269,13 +293,13 @@ async function runXRayAudit() {
 
     // Insert pattern
     await card.click();
-    // Wait for rendering to complete
-    await page.waitForTimeout(1000);
-
+    // Wait for rendering to complete (wait up to 5s for element to appear)
     const { frame } = await getCanvasFrame();
+    const rootEl = frame.locator("[data-element-id]").first();
+    await rootEl.waitFor({ timeout: 5000 }).catch(() => {});
+    await page.waitForTimeout(400);
 
     // Check root element inside canvas
-    const rootEl = frame.locator("[data-element-id]").first();
     const count = await rootEl.count();
     if (count === 0) {
       const msg = `Pattern "${p.slug}" did not insert any element into canvas!`;
@@ -498,11 +522,13 @@ async function runXRayAudit() {
     }
 
     matrix.patterns.push(patternResult);
+    }
   }
 
   // ──────────────────────────────────────────────────────────────────────────
   // SECTION 2: 34 Basic Blocks & Widgets (1..34)
   // ──────────────────────────────────────────────────────────────────────────
+  if (sectionArg === "all" || sectionArg === "2") {
   console.log("\n>>> [SECTION 2] Testing 34 Basic Blocks & Widgets...");
 
   // Switch to basic blocks tab in sidebar and sub-tab in palette
@@ -511,7 +537,7 @@ async function runXRayAudit() {
   });
   await page.waitForTimeout(300);
 
-  const paletteBasicSubTab = page.locator("button:has-text('بلوک‌ها (')").first();
+  const paletteBasicSubTab = page.locator('[data-testid="blocks-palette-basic-tab-btn"]').first();
   if (await paletteBasicSubTab.isVisible()) {
     await paletteBasicSubTab.click();
     await page.waitForTimeout(400);
@@ -542,8 +568,18 @@ async function runXRayAudit() {
 
     await clearCanvas();
 
+    await page.evaluate(() => {
+      window.__BUILDER_STORE__?.getState()?.setLeftTab("blocks");
+    });
+    // Ensure we are on basic sub-tab
+    if (await paletteBasicSubTab.isVisible()) {
+      await paletteBasicSubTab.click();
+      await page.waitForTimeout(200);
+    }
+
     // Click block button in palette
     const blockBtn = page.locator(`button[data-block-type="${bType}"]`).first();
+    await blockBtn.scrollIntoViewIfNeeded().catch(() => {});
     if (await blockBtn.isVisible()) {
       await blockBtn.click();
       await page.waitForTimeout(400);
@@ -583,10 +619,12 @@ async function runXRayAudit() {
 
     matrix.blocks.push(blockResult);
   }
+  }
 
   // ──────────────────────────────────────────────────────────────────────────
   // SECTION 3: Dead Control Hunter in Inspector
   // ──────────────────────────────────────────────────────────────────────────
+  if (sectionArg === "all" || sectionArg === "3") {
   console.log("\n>>> [SECTION 3] Dead Control Hunter in Inspector (Content, Style, Advanced)...");
 
   // Test widgets: container, heading, button, table
@@ -770,11 +808,15 @@ async function runXRayAudit() {
       }
     }
   }
+  }
 
   // ──────────────────────────────────────────────────────────────────────────
   // SECTION 4: Layout & Interaction (Chips Clipping, Dnd, WYSIWYG Parity)
   // ──────────────────────────────────────────────────────────────────────────
+  if (sectionArg === "all" || sectionArg === "4") {
   console.log("\n>>> [SECTION 4] Layout & Interaction Verification...");
+
+  const patternsTabBtn = page.locator('[data-testid="patterns-tab-btn"]').or(page.locator("button:has-text('الگوها')")).first();
 
   // 1. Category chips clipping check
   if (await patternsTabBtn.isVisible()) {
@@ -1339,6 +1381,7 @@ async function runXRayAudit() {
 
   if (!appliedFilter || !appliedFilter.includes("blur(4px)")) {
     addFailure("CSS_FILTER_CONTROL_FAILED", "P0", { message: `CSS filter not applied in canvas DOM (expected blur(4px), got: "${appliedFilter}")` });
+  }
   }
 
   // ──────────────────────────────────────────────────────────────────────────

@@ -57,7 +57,7 @@ async function fetchPage(slug: string): Promise<CmsPage | null> {
     if (!res.ok) {
       if (slug === "e2e-isolated-scratchpad") {
         return {
-          id: "page-e2e-scratchpad",
+          id: "aa5e98ad-e380-4e6f-90ad-5d8c9ef7d7a7",
           title: "E2E Builder Scratchpad",
           slug: "e2e-isolated-scratchpad",
           body_html: "<h1>E2E Test Scratchpad</h1>",
@@ -92,7 +92,7 @@ async function fetchPage(slug: string): Promise<CmsPage | null> {
   } catch {
     if (slug === "e2e-isolated-scratchpad") {
       return {
-        id: "page-e2e-scratchpad",
+        id: "aa5e98ad-e380-4e6f-90ad-5d8c9ef7d7a7",
         title: "E2E Builder Scratchpad",
         slug: "e2e-isolated-scratchpad",
         body_html: "<h1>E2E Test Scratchpad</h1>",

@@ -1,0 +1,139 @@
+{
+  "round": "round-01",
+  "timestamp": "2026-11-21T15:05:26.206Z",
+  "totalWidgets": 5,
+  "passedWidgets": 5,
+  "allPassed": true,
+  "widgets": [
+    {
+      "widget": "product_price",
+      "signals": {
+        "S1_State": {
+          "passed": true,
+          "detail": "isDirty=true and state mutated"
+        },
+        "S2_DOM": {
+          "passed": true,
+          "detail": "DOM reflected in iframe"
+        },
+        "S3_ComputedStyle": {
+          "passed": true,
+          "detail": "Styles computed (dir=rtl)"
+        },
+        "S4_VisualPixels": {
+          "passed": true,
+          "detail": "Images saved (116926B -> 116867B)"
+        },
+        "S5_PersistenceSSR": {
+          "passed": true,
+          "detail": "SSR endpoint active (200 OK)"
+        }
+      },
+      "passed": true
+    },
+    {
+      "widget": "product_variants",
+      "signals": {
+        "S1_State": {
+          "passed": true,
+          "detail": "isDirty=true and state mutated"
+        },
+        "S2_DOM": {
+          "passed": true,
+          "detail": "DOM reflected in iframe"
+        },
+        "S3_ComputedStyle": {
+          "passed": true,
+          "detail": "Styles computed (dir=rtl)"
+        },
+        "S4_VisualPixels": {
+          "passed": true,
+          "detail": "Images saved (127736B -> 127272B)"
+        },
+        "S5_PersistenceSSR": {
+          "passed": true,
+          "detail": "SSR endpoint active (200 OK)"
+        }
+      },
+      "passed": true
+    },
+    {
+      "widget": "add_to_cart",
+      "signals": {
+        "S1_State": {
+          "passed": true,
+          "detail": "isDirty=true and state mutated"
+        },
+        "S2_DOM": {
+          "passed": true,
+          "detail": "DOM reflected in iframe"
+        },
+        "S3_ComputedStyle": {
+          "passed": true,
+          "detail": "Styles computed (dir=rtl)"
+        },
+        "S4_VisualPixels": {
+          "passed": true,
+          "detail": "Images saved (114648B -> 115295B)"
+        },
+        "S5_PersistenceSSR": {
+          "passed": true,
+          "detail": "SSR endpoint active (200 OK)"
+        }
+      },
+      "passed": true
+    },
+    {
+      "widget": "mini_cart",
+      "signals": {
+        "S1_State": {
+          "passed": true,
+          "detail": "isDirty=true and state mutated"
+        },
+        "S2_DOM": {
+          "passed": true,
+          "detail": "DOM reflected in iframe"
+        },
+        "S3_ComputedStyle": {
+          "passed": true,
+          "detail": "Styles computed (dir=rtl)"
+        },
+        "S4_VisualPixels": {
+          "passed": true,
+          "detail": "Images saved (112798B -> 114115B)"
+        },
+        "S5_PersistenceSSR": {
+          "passed": true,
+          "detail": "SSR endpoint active (200 OK)"
+        }
+      },
+      "passed": true
+    },
+    {
+      "widget": "cart_summary",
+      "signals": {
+        "S1_State": {
+          "passed": true,
+          "detail": "isDirty=true and state mutated"
+        },
+        "S2_DOM": {
+          "passed": true,
+          "detail": "DOM reflected in iframe"
+        },
+        "S3_ComputedStyle": {
+          "passed": true,
+          "detail": "Styles computed (dir=rtl)"
+        },
+        "S4_VisualPixels": {
+          "passed": true,
+          "detail": "Images saved (131491B -> 133157B)"
+        },
+        "S5_PersistenceSSR": {
+          "passed": true,
+          "detail": "SSR endpoint active (200 OK)"
+        }
+      },
+      "passed": true
+    }
+  ]
+}

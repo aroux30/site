@@ -951,7 +951,8 @@ class ASTCompiler:
         elif widget_type == "price_table":
             heading = html.escape(str(props.get("heading") or props.get("title", "پلن تعرفه")))
             sub_heading = html.escape(str(props.get("sub_heading") or props.get("subtitle", "")))
-            badge = html.escape(str(props.get("badge", "")))
+            badge_val = props.get("badge") or ("پیشنهاد ویژه" if props.get("is_featured") else "")
+            badge = html.escape(str(badge_val))
             price = html.escape(str(props.get("price", "۴۹۰,۰۰۰")))
             period = html.escape(str(props.get("period", "ماهانه")))
             currency = html.escape(str(props.get("currency", "تومان")))
@@ -1022,6 +1023,8 @@ class ASTCompiler:
         elif widget_type == "table_of_contents":
             title = html.escape(str(props.get("title", "فهرست مطالب")))
             items = props.get("items", [])
+            is_ordered = props.get("ordered") is not False
+            list_tag = "ol" if is_ordered else "ul"
             items_html = "".join(
                 f'<li><a href="{html.escape(str(it.get("anchor", "#")))}" class="flex items-center gap-2 text-muted-foreground hover:text-primary transition py-1 px-2 rounded-lg">'
                 f'<span class="text-primary font-mono text-[10px]">{idx+1}.</span><span>{html.escape(str(it.get("text") or it.get("title", "")))}</span>'
@@ -1031,7 +1034,7 @@ class ASTCompiler:
             return (
                 f'<nav{id_attr} class="builder-toc p-4 rounded-2xl border border-border/80 bg-card space-y-3 shadow-sm w-full text-right {css_class}" data-widget="table_of_contents" aria-label="فهرست مطالب"{style_attr}>'
                 f'<div class="flex items-center gap-2 border-b pb-2"><span class="text-primary font-bold">📑</span><h4 class="text-sm font-bold text-foreground">{title}</h4></div>'
-                f'<ul class="space-y-1.5 text-xs">{items_html}</ul>'
+                f'<{list_tag} class="space-y-1.5 text-xs">{items_html}</{list_tag}>'
                 f'</nav>'
             )
 
@@ -1049,8 +1052,6 @@ class ASTCompiler:
                 f'<div{id_attr} class="builder-share-buttons space-y-2.5 p-3.5 rounded-2xl border border-border/80 bg-card shadow-sm w-full text-right {css_class}" data-widget="share_buttons"{style_attr}>'
                 f'{title_html}'
                 f'<div class="flex items-center gap-2 flex-wrap">{btns_html}</div>'
-                f'</div>'
-            )
                 f'</div>'
             )
 

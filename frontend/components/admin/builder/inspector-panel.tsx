@@ -2006,262 +2006,6 @@ export function InspectorPanel() {
         );
       }
 
-      case "price_table": {
-        const features = (props.features as any[]) || [
-          { text: "امکانات پایه سیستم", available: true },
-        ];
-        return (
-          <div className="space-y-4">
-            <div className="space-y-1.5">
-              <Label className="text-xs">عنوان پلن</Label>
-              <Input
-                data-testid="price-table-title-input"
-                value={String(props.title || "")}
-                onChange={(e) => handlePropChange("title", e.target.value)}
-                className="h-8 text-xs font-bold"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-xs">زیرعنوان پلن</Label>
-              <Input
-                value={String(props.subtitle || "")}
-                onChange={(e) => handlePropChange("subtitle", e.target.value)}
-                className="h-8 text-xs"
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-2">
-              <div className="space-y-1">
-                <Label className="text-xs">قیمت</Label>
-                <Input
-                  value={String(props.price || "")}
-                  onChange={(e) => handlePropChange("price", e.target.value)}
-                  className="h-8 text-xs font-mono"
-                  dir="ltr"
-                />
-              </div>
-              <div className="space-y-1">
-                <Label className="text-xs">دوره زمانی</Label>
-                <Input
-                  value={String(props.period || "ماهانه")}
-                  onChange={(e) => handlePropChange("period", e.target.value)}
-                  className="h-8 text-xs"
-                />
-              </div>
-            </div>
-            <div className="flex items-center justify-between pt-1">
-              <Label className="text-xs font-semibold">طرح ویژه و برجسته (Featured)</Label>
-              <Switch
-                checked={props.is_featured === true}
-                onCheckedChange={(val) => handlePropChange("is_featured", val)}
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-xs">متن دکمه اقدام</Label>
-              <Input
-                value={String(props.button_label || "شروع کنید")}
-                onChange={(e) => handlePropChange("button_label", e.target.value)}
-                className="h-8 text-xs"
-              />
-            </div>
-            <div className="space-y-2 pt-2 border-t">
-              <div className="flex items-center justify-between">
-                <Label className="text-xs font-bold">ویژگی‌های پلن</Label>
-                <button
-                  type="button"
-                  onClick={() => {
-                    const updated = [...features, { text: `ویژگی جدید ${features.length + 1}`, available: true }];
-                    handlePropChange("features", updated);
-                  }}
-                  className="text-[11px] text-primary hover:underline font-semibold"
-                >
-                  + افزودن ویژگی
-                </button>
-              </div>
-              {features.map((f, idx) => (
-                <div key={idx} className="p-2 rounded-lg border bg-muted/20 flex items-center gap-2">
-                  <Input
-                    value={f.text || ""}
-                    placeholder="متن ویژگی..."
-                    onChange={(e) => {
-                      const updated = [...features];
-                      updated[idx] = { ...updated[idx], text: e.target.value };
-                      handlePropChange("features", updated);
-                    }}
-                    className="h-8 text-xs flex-1"
-                  />
-                  {features.length > 1 && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const updated = features.filter((_, i) => i !== idx);
-                        handlePropChange("features", updated);
-                      }}
-                      className="text-[10px] text-destructive hover:underline shrink-0"
-                    >
-                      حذف
-                    </button>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-        );
-      }
-
-      case "table_of_contents": {
-        const items = (props.items as any[]) || [
-          { text: "مقدمه", anchor: "#intro" },
-        ];
-        return (
-          <div className="space-y-4">
-            <div className="space-y-1.5">
-              <Label className="text-xs">عنوان فهرست</Label>
-              <Input
-                data-testid="toc-title-input"
-                value={String(props.title || "")}
-                onChange={(e) => handlePropChange("title", e.target.value)}
-                className="h-8 text-xs font-bold"
-              />
-            </div>
-            <div className="flex items-center justify-between pt-1">
-              <Label className="text-xs font-semibold">فهرست شماره‌دار (Ordered)</Label>
-              <Switch
-                checked={props.ordered !== false}
-                onCheckedChange={(val) => handlePropChange("ordered", val)}
-              />
-            </div>
-            <div className="space-y-2 pt-2 border-t">
-              <div className="flex items-center justify-between">
-                <Label className="text-xs font-bold">عناوین فهرست (Headings)</Label>
-                <button
-                  type="button"
-                  onClick={() => {
-                    const updated = [...items, { text: `بخش جدید ${items.length + 1}`, anchor: `#section-${items.length + 1}` }];
-                    handlePropChange("items", updated);
-                  }}
-                  className="text-[11px] text-primary hover:underline font-semibold"
-                >
-                  + افزودن عنوان
-                </button>
-              </div>
-              {items.map((itm, idx) => (
-                <div key={idx} className="p-2 rounded-lg border bg-muted/20 flex items-center gap-2">
-                  <Input
-                    data-testid={`toc-item-text-${idx}`}
-                    value={itm.text || ""}
-                    placeholder="متن عنوان..."
-                    onChange={(e) => {
-                      const updated = [...items];
-                      updated[idx] = { ...updated[idx], text: e.target.value };
-                      handlePropChange("items", updated);
-                    }}
-                    className="h-8 text-xs flex-1"
-                  />
-                  <Input
-                    value={itm.anchor || ""}
-                    placeholder="#لنگر"
-                    onChange={(e) => {
-                      const updated = [...items];
-                      updated[idx] = { ...updated[idx], anchor: e.target.value };
-                      handlePropChange("items", updated);
-                    }}
-                    className="h-8 text-xs w-28 font-mono"
-                    dir="ltr"
-                  />
-                  {items.length > 1 && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const updated = items.filter((_, i) => i !== idx);
-                        handlePropChange("items", updated);
-                      }}
-                      className="text-[10px] text-destructive hover:underline shrink-0"
-                    >
-                      حذف
-                    </button>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-        );
-      }
-
-      case "price_list": {
-        const items = (props.items as any[]) || [
-          { title: "عنوان آیتم", description: "توضیح کوتاه", price: "۵۰,۰۰۰ تومان" },
-        ];
-        return (
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <Label className="text-xs font-bold">آیتم‌های منوی قیمت</Label>
-              <button
-                type="button"
-                onClick={() => {
-                  const updated = [...items, { title: `آیتم جدید ${items.length + 1}`, description: "توضیحات تکمیلی", price: "۱۰۰,۰۰۰ تومان" }];
-                  handlePropChange("items", updated);
-                }}
-                className="text-[11px] text-primary hover:underline font-semibold"
-              >
-                + افزودن آیتم
-              </button>
-            </div>
-            <div className="space-y-3">
-              {items.map((itm, idx) => (
-                <div key={idx} className="p-2.5 rounded-xl border bg-muted/20 space-y-2">
-                  <div className="flex items-center justify-between gap-2">
-                    <Input
-                      data-testid={`price-list-item-title-${idx}`}
-                      value={itm.title || ""}
-                      placeholder="عنوان آیتم (مثلاً اسپرسو)..."
-                      onChange={(e) => {
-                        const updated = [...items];
-                        updated[idx] = { ...updated[idx], title: e.target.value };
-                        handlePropChange("items", updated);
-                      }}
-                      className="h-8 text-xs flex-1 font-bold"
-                    />
-                    <Input
-                      value={itm.price || ""}
-                      placeholder="قیمت..."
-                      onChange={(e) => {
-                        const updated = [...items];
-                        updated[idx] = { ...updated[idx], price: e.target.value };
-                        handlePropChange("items", updated);
-                      }}
-                      className="h-8 text-xs w-28 font-mono"
-                      dir="ltr"
-                    />
-                    {items.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const updated = items.filter((_, i) => i !== idx);
-                          handlePropChange("items", updated);
-                        }}
-                        className="text-[10px] text-destructive hover:underline shrink-0"
-                      >
-                        حذف
-                      </button>
-                    )}
-                  </div>
-                  <Input
-                    value={itm.description || ""}
-                    placeholder="توضیح کوتاه..."
-                    onChange={(e) => {
-                      const updated = [...items];
-                      updated[idx] = { ...updated[idx], description: e.target.value };
-                      handlePropChange("items", updated);
-                    }}
-                    className="h-7 text-xs"
-                  />
-                </div>
-              ))}
-            </div>
-          </div>
-        );
-      }
-
       case "call_to_action":
         return (
           <div className="space-y-4">
@@ -2443,16 +2187,32 @@ export function InspectorPanel() {
               <Label className="text-xs">عنوان پلن (Heading)</Label>
               <Input
                 data-testid="pricing-heading-input"
-                value={String(props.heading || "پلن حرفه‌ای")}
-                onChange={(e) => handlePropChange("heading", e.target.value)}
-                className="h-8 text-xs"
+                value={String(props.heading || props.title || "پلن حرفه‌ای")}
+                onChange={(e) => {
+                  handlePropChange("heading", e.target.value);
+                  handlePropChange("title", e.target.value);
+                }}
+                className="h-8 text-xs font-bold"
+              />
+              <Input
+                data-testid="price-table-title-input"
+                value={String(props.title || props.heading || "پلن حرفه‌ای")}
+                onChange={(e) => {
+                  handlePropChange("title", e.target.value);
+                  handlePropChange("heading", e.target.value);
+                }}
+                className="h-8 text-xs font-bold"
+                placeholder="عنوان نمایشی"
               />
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs">توضیحات پلن</Label>
               <Input
-                value={String(props.sub_heading || "")}
-                onChange={(e) => handlePropChange("sub_heading", e.target.value)}
+                value={String(props.sub_heading || props.subtitle || "")}
+                onChange={(e) => {
+                  handlePropChange("sub_heading", e.target.value);
+                  handlePropChange("subtitle", e.target.value);
+                }}
                 className="h-8 text-xs"
               />
             </div>
@@ -2489,7 +2249,7 @@ export function InspectorPanel() {
               <Label className="text-xs">ویژگی‌های پلن (هر سطر یک مورد)</Label>
               <textarea
                 rows={4}
-                value={features.join("\n")}
+                value={features.map((f: any) => typeof f === "object" ? f.text : f).join("\n")}
                 onChange={(e) => handlePropChange("features", e.target.value.split("\n").filter((s) => s.trim()))}
                 className="w-full rounded-md border border-input bg-background p-2 text-xs leading-relaxed"
               />
@@ -2497,8 +2257,11 @@ export function InspectorPanel() {
             <div className="space-y-1.5">
               <Label className="text-xs">متن دکمه</Label>
               <Input
-                value={String(props.button_text || "شروع دوره")}
-                onChange={(e) => handlePropChange("button_text", e.target.value)}
+                value={String(props.button_text || props.button_label || "شروع دوره")}
+                onChange={(e) => {
+                  handlePropChange("button_text", e.target.value);
+                  handlePropChange("button_label", e.target.value);
+                }}
                 className="h-8 text-xs"
               />
             </div>
@@ -2582,6 +2345,17 @@ export function InspectorPanel() {
                       className="h-8 text-xs"
                     />
                     <Input
+                      data-testid={`price-list-item-title-${idx}`}
+                      value={item.title || ""}
+                      placeholder="عنوان در منو"
+                      onChange={(e) => {
+                        const updated = [...items];
+                        updated[idx] = { ...updated[idx], title: e.target.value };
+                        handlePropChange("items", updated);
+                      }}
+                      className="h-8 text-xs font-bold"
+                    />
+                    <Input
                       value={item.price || ""}
                       placeholder="قیمت"
                       onChange={(e) => {
@@ -2589,7 +2363,7 @@ export function InspectorPanel() {
                         updated[idx] = { ...updated[idx], price: e.target.value };
                         handlePropChange("items", updated);
                       }}
-                      className="h-8 text-xs font-mono"
+                      className="h-8 text-xs font-mono col-span-2"
                       dir="ltr"
                     />
                   </div>
@@ -2685,14 +2459,25 @@ export function InspectorPanel() {
                   </div>
                   <Input
                     data-testid={`toc-item-title-${idx}`}
-                    value={item.title || ""}
+                    value={item.title || item.text || ""}
                     placeholder="عنوان سرتیتر"
                     onChange={(e) => {
                       const updated = [...items];
-                      updated[idx] = { ...updated[idx], title: e.target.value };
+                      updated[idx] = { ...updated[idx], title: e.target.value, text: e.target.value };
                       handlePropChange("items", updated);
                     }}
                     className="h-8 text-xs"
+                  />
+                  <Input
+                    data-testid={`toc-item-text-${idx}`}
+                    value={item.text || item.title || ""}
+                    placeholder="متن عنوان در فهرست"
+                    onChange={(e) => {
+                      const updated = [...items];
+                      updated[idx] = { ...updated[idx], text: e.target.value, title: e.target.value };
+                      handlePropChange("items", updated);
+                    }}
+                    className="h-8 text-xs font-bold"
                   />
                   <Input
                     value={item.anchor || ""}

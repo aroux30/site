@@ -1865,6 +1865,70 @@ function CanvasElementComponent({
           </div>
         );
       }
+      case "share_buttons": {
+        const rawNets = Array.isArray(props.networks) ? (props.networks as string[]) : ["telegram", "whatsapp", "twitter", "linkedin"];
+        const shape = String(props.shape || "rounded");
+        const shapeCls = shape === "circle" ? "rounded-full" : (shape === "square" ? "rounded-none" : "rounded-xl");
+        const netMap: Record<string, { label: string; bg: string }> = {
+          telegram: { label: "تلگرام", bg: "bg-[#229ED9] text-white" },
+          whatsapp: { label: "واتس‌اپ", bg: "bg-[#25D366] text-white" },
+          twitter: { label: "توییتر (X)", bg: "bg-[#000000] text-white" },
+          linkedin: { label: "لینکدین", bg: "bg-[#0077B5] text-white" },
+          facebook: { label: "فیس‌بوک", bg: "bg-[#1877F2] text-white" },
+        };
+        return (
+          <div className="flex flex-wrap items-center gap-2 w-full">
+            {rawNets.map((net, idx) => {
+              const info = netMap[net] || { label: net, bg: "bg-primary text-white" };
+              return (
+                <button
+                  key={idx}
+                  type="button"
+                  className={cn("inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold transition shadow-xs", shapeCls, info.bg)}
+                  onClick={(e) => e.preventDefault()}
+                >
+                  <Share2 className="w-3 h-3" />
+                  <span>{info.label}</span>
+                </button>
+              );
+            })}
+          </div>
+        );
+      }
+      case "progress_tracker": {
+        const heightPx = Number(props.height) || 4;
+        return (
+          <div className="w-full bg-muted/60 overflow-hidden rounded-full my-2" style={{ height: `${heightPx}px` }}>
+            <div className="h-full bg-primary rounded-full transition-all duration-150" style={{ width: "45%" }} />
+          </div>
+        );
+      }
+      case "table_of_contents": {
+        const title = String(props.title || "فهرست محتوا");
+        const rawItems = Array.isArray(props.items) ? (props.items as any[]) : [
+          { text: "مقدمه و بررسی اولیه", level: 2 },
+          { text: "امکانات و مزیت‌های شاخص", level: 2 },
+          { text: "جمع‌بندی و راهنمای سفارش", level: 3 },
+        ];
+        return (
+          <nav className="p-4 rounded-2xl border border-border/80 bg-card/60 space-y-2 text-right w-full">
+            <h4 className="font-bold text-xs text-foreground pb-1 border-b border-border/60">{title}</h4>
+            <ul className="space-y-1.5 pt-1">
+              {rawItems.map((itm, idx) => (
+                <li
+                  key={idx}
+                  className={cn(
+                    "hover:text-primary transition",
+                    Number(itm.level) > 2 ? "pr-4 text-xs font-medium text-muted-foreground" : "font-bold text-xs text-foreground"
+                  )}
+                >
+                  <a href="#" onClick={(e) => e.preventDefault()}>• {itm.text}</a>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        );
+      }
       default:
         return (
           <div className="rounded-lg border border-dashed border-border p-4 text-center text-sm text-muted-foreground">

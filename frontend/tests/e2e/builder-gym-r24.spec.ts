@@ -99,4 +99,22 @@ test.describe("Builder Gym Round 24: Elementor Core & Pro Complete 4-Layer Wirin
     const toggleBlock = page.locator('button:has-text("آیتم‌های تاشو")');
     await expect(toggleBlock).toBeVisible();
   });
+
+  test("4. Share Buttons, Progress Tracker, and TOC blocks are available in palette", async ({ page }) => {
+    await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(1500);
+
+    const blocksTab = page.locator('button:has-text("بلوک‌ها")').first();
+    await blocksTab.click();
+    await page.waitForTimeout(400);
+
+    const shareBtnBlock = page.locator('button:has-text("دکمه‌های اشتراک‌گذاری")');
+    await expect(shareBtnBlock).toBeVisible();
+
+    const progressTrackerBlock = page.locator('button:has-text("ردگیر پیمایش صفحه")');
+    await expect(progressTrackerBlock).toBeVisible();
+
+    const tocBlock = page.locator('button:has-text("فهرست عناوین محتوا")');
+    await expect(tocBlock).toBeVisible();
+  });
 });

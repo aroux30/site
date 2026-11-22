@@ -2486,6 +2486,64 @@ export function InspectorPanel() {
         );
       }
 
+      case "share_buttons":
+        return (
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs font-bold">شکل دکمه‌ها (Shape)</Label>
+              <Select
+                value={String(props.shape || "rounded")}
+                onValueChange={(val) => handlePropChange("shape", val)}
+              >
+                <SelectTrigger className="h-8 text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="rounded">گوشه‌گرد (Rounded)</SelectItem>
+                  <SelectItem value="circle">دایره‌ای (Circle)</SelectItem>
+                  <SelectItem value="square">مربعی (Square)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs font-bold">انتخاب شبکه‌ها</Label>
+              <p className="text-[11px] text-muted-foreground">تلگرام، واتس‌اپ، لینکدین و توییتر به صورت پیش‌فرض فعال هستند.</p>
+            </div>
+          </div>
+        );
+
+      case "progress_tracker":
+        return (
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs font-bold">ضخامت نوار ردگیر (پیکسل)</Label>
+              <Input
+                type="number"
+                min={2}
+                max={20}
+                value={Number(props.height) || 4}
+                onChange={(e) => handlePropChange("height", parseInt(e.target.value, 10) || 4)}
+                className="h-8 text-xs font-mono"
+                dir="ltr"
+              />
+            </div>
+          </div>
+        );
+
+      case "table_of_contents":
+        return (
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs font-bold">عنوان فهرست مطالب</Label>
+              <Input
+                value={String(props.title || "فهرست مطالب")}
+                onChange={(e) => handlePropChange("title", e.target.value)}
+                className="h-8 text-xs"
+              />
+            </div>
+          </div>
+        );
+
       default:
         return (
           <div className="text-xs text-muted-foreground py-2">

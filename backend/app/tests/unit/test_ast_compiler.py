@@ -301,6 +301,54 @@ def test_ast_compiler_renders_image_box_and_toggle_widgets():
     assert "سوال دوم" in result
 
 
+def test_ast_compiler_renders_share_buttons_and_tracker_widgets():
+    """Verify SSR compilation for share_buttons, progress_tracker, and table_of_contents."""
+    ast = PageAST(
+        schema_version=1,
+        title="تست دکمه‌های اشتراک و ردگیر",
+        slug="test-share-tracker",
+        root_elements=[
+            BuilderElement(
+                id="el_sec_share",
+                name="بخش اشتراک",
+                type="container",
+                children=[
+                    BuilderElement(
+                        id="el_share01",
+                        name="اشتراک گذاری",
+                        type="widget",
+                        widget_type="share_buttons",
+                        widget_props={"networks": ["telegram", "whatsapp"], "shape": "rounded"},
+                    ),
+                    BuilderElement(
+                        id="el_track01",
+                        name="ردگیر اسکرول",
+                        type="widget",
+                        widget_type="progress_tracker",
+                        widget_props={"height": 6},
+                    ),
+                    BuilderElement(
+                        id="el_toc01",
+                        name="فهرست محتوا",
+                        type="widget",
+                        widget_type="table_of_contents",
+                        widget_props={"title": "فهرست مقالات", "items": [{"text": "بخش نخست", "level": 2}]},
+                    ),
+                ],
+            )
+        ],
+    )
+    result = ASTCompiler.compile(ast)
+    assert 'class="builder-share-buttons' in result
+    assert "تلگرام" in result
+    assert "واتس‌اپ" in result
+    assert 'class="builder-progress-tracker' in result
+    assert "height:6px" in result or "height: 6px" in result
+    assert 'class="builder-toc' in result
+    assert "فهرست مقالات" in result
+    assert "بخش نخست" in result
+
+
 def test_ast_compiler_renders_p3_ecommerce_native_widgets():
     ast = PageAST(
         schema_version=1,

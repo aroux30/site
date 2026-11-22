@@ -980,6 +980,61 @@ class ASTCompiler:
                     )
             return f'<div{id_attr} class="builder-toggle space-y-2 w-full {css_class}" data-widget="toggle"{style_attr}>{items_html}</div>'
 
+        elif widget_type == "share_buttons":
+            raw_networks = props.get("networks", ["telegram", "whatsapp", "twitter", "linkedin"])
+            skin = str(props.get("skin", "gradient"))
+            shape = str(props.get("shape", "rounded"))
+            shape_cls = "rounded-full" if shape == "circle" else ("rounded-none" if shape == "square" else "rounded-xl")
+
+            net_labels = {
+                "telegram": ("تلگرام", "bg-[#229ED9] text-white"),
+                "whatsapp": ("واتس‌اپ", "bg-[#25D366] text-white"),
+                "twitter": ("توییتر (X)", "bg-[#000000] text-white"),
+                "linkedin": ("لینکدین", "bg-[#0077B5] text-white"),
+                "facebook": ("فیس‌بوک", "bg-[#1877F2] text-white"),
+                "email": ("ایمیل", "bg-muted text-foreground"),
+            }
+            btns_html = ""
+            if isinstance(raw_networks, list):
+                for net in raw_networks:
+                    label, col_cls = net_labels.get(str(net), (str(net), "bg-primary text-white"))
+                    btns_html += (
+                        f'<button type="button" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold transition shadow-xs hover:opacity-90 {shape_cls} {col_cls}">'
+                        f'<span>{html.escape(label)}</span>'
+                        f'</button>'
+                    )
+            return f'<div{id_attr} class="builder-share-buttons flex flex-wrap items-center gap-2 {css_class}" data-widget="share_buttons"{style_attr}>{btns_html}</div>'
+
+        elif widget_type == "progress_tracker":
+            direction = str(props.get("direction", "horizontal"))
+            track_type = str(props.get("tracker_type", "relative"))
+            height_px = int(props.get("height", 4))
+            styles_inline = f'height: {height_px}px;'
+            if styles:
+                styles_inline += " " + " ".join(styles)
+            return (
+                f'<div{id_attr} class="builder-progress-tracker w-full bg-muted/60 overflow-hidden rounded-full {css_class}" data-widget="progress_tracker" style="{styles_inline}"{extra_attrs}>'
+                f'<div class="h-full bg-primary rounded-full transition-all duration-150" style="width: 45%;"></div>'
+                f'</div>'
+            )
+
+        elif widget_type == "table_of_contents":
+            title = html.escape(str(props.get("title", "فهرست محتوا")))
+            items = props.get("items", [{"text": "مقدمه و بررسی اجمالی", "level": 2}, {"text": "ویژگی‌ها و مزایای کلیدی", "level": 2}, {"text": "نتیجه‌گیری", "level": 3}])
+            list_html = ""
+            if isinstance(items, list):
+                for itm in items:
+                    txt = html.escape(str(itm.get("text", "")))
+                    lvl = int(itm.get("level", 2))
+                    indent = "pr-4 text-xs font-medium text-muted-foreground" if lvl > 2 else "font-bold text-xs text-foreground"
+                    list_html += f'<li class="{indent} hover:text-primary transition"><a href="#" onclick="return false;">• {txt}</a></li>'
+            return (
+                f'<nav{id_attr} class="builder-toc p-4 rounded-2xl border border-border/80 bg-card/60 space-y-2 text-right {css_class}" data-widget="table_of_contents"{style_attr}>'
+                f'<h4 class="font-bold text-xs text-foreground pb-1 border-b border-border/60">{title}</h4>'
+                f'<ul class="space-y-1.5 pt-1">{list_html}</ul>'
+                f'</nav>'
+            )
+
         # Generic fallback for any other registered widget
         fallback_title = html.escape(str(props.get("title", widget_type)))
         return f'<div{id_attr} class="builder-widget builder-{widget_type} {css_class}" data-widget="{html.escape(widget_type)}"{style_attr}>{fallback_title}</div>'

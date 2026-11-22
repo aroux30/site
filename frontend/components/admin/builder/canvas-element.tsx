@@ -1393,7 +1393,7 @@ function CanvasElementComponent({
               <details
                 key={idx}
                 className="group rounded-xl border border-border/80 bg-card overflow-hidden shadow-sm"
-                open={item.default_open || idx === 0}
+                open={Boolean(item.default_open || (item.default_open === undefined && idx === 0))}
               >
                 <summary className="p-3.5 font-bold text-xs text-foreground cursor-pointer list-none flex items-center justify-between hover:bg-muted/40 transition select-none">
                   <span>{item.title}</span>

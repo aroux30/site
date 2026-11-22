@@ -1290,6 +1290,18 @@ export function InspectorPanel() {
                     className="w-full rounded-md border border-input bg-background p-1.5 text-xs"
                   />
                 </div>
+                <div className="flex items-center justify-between pt-1">
+                  <Label className="text-[10px] text-muted-foreground">باز بودن پیش‌فرض</Label>
+                  <Switch
+                    data-testid={`accordion-item-open-${idx}`}
+                    checked={Boolean(item.default_open || (item.default_open === undefined && idx === 0))}
+                    onCheckedChange={(val) => {
+                      const updated = [...items];
+                      updated[idx] = { ...updated[idx], default_open: val };
+                      handlePropChange("items", updated);
+                    }}
+                  />
+                </div>
               </div>
             ))}
             <button

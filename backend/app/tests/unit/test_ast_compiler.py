@@ -878,6 +878,42 @@ def test_ast_compiler_renders_round29_form_checkbox_and_radio_required_stars():
     assert 'value="پیک موتوری"' in result
 
 
+def test_ast_compiler_renders_round30_accordion_default_open_customization():
+    """Verify that accordion default_open customization is honored in SSR details tags."""
+    ast = PageAST(
+        schema_version=1,
+        title="تست آکاردئون راند ۳۰",
+        slug="test-r30-accordion",
+        root_elements=[
+            BuilderElement(
+                id="el_sec_r30",
+                name="بخش ۳۰",
+                type="container",
+                children=[
+                    BuilderElement(
+                        id="el_acc_custom",
+                        name="آکاردئون باز",
+                        type="widget",
+                        widget_type="accordion",
+                        widget_props={
+                            "items": [
+                                {"title": "سؤال اول بسته", "content": "پاسخ ۱", "default_open": False},
+                                {"title": "سؤال دوم باز", "content": "پاسخ ۲", "default_open": True},
+                            ]
+                        },
+                    ),
+                ],
+            )
+        ],
+    )
+    result = ASTCompiler.compile(ast)
+    assert 'builder-accordion' in result
+    assert 'سؤال دوم باز' in result
+    # Item 2 should have open attribute, Item 1 should not
+    assert '<details class="group rounded-xl border border-border/80 bg-card overflow-hidden" open>' in result
+
+
+
 
 
 

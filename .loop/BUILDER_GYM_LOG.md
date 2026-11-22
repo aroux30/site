@@ -971,6 +971,41 @@
 
 ---
 
+### 🏋️ راند ۳۰ (Round 30) — وزنه ۲: ۱۵ کیلو (سوییچ وضعیت باز بودن پیش‌فرض آکاردئون در بازرس و همگام‌سازی ۴ لایه‌ای)
+- **تاریخ اجرا**: 2026-11-22
+- **شاخه ایزوله**: `claude/nifty-snyder-d5b886`
+- **پورت فرانت‌اند**: ۴۰۰۲
+- **وضعیت**: ✅ کامل و سبز (سوییچ کنترل باز بودن پیش‌فرض برای هر آیتم آکاردئون با Vision تایید و تست شد)
+
+#### ۱. باگ‌های کشف‌شده با ابزار Vision و تعامل
+1. **فقدان سوییچ باز بودن پیش‌فرض برای آیتم‌های آکاردئون در بازرس (`Accordion Item default_open Toggle Missing`)**:
+   - *مشاهده*: در `canvas-element.tsx` و `ast_compiler.py` از ویژگی `default_open` برای باز بودن یا بسته ماندن هر آیتم آکاردئون پشتیبانی می‌شد، اما در بازرس هیچ کنترلی برای روشن/خاموش کردن آن وجود نداشت و کاربر نمی‌توانست تعیین کند کدام سؤال باز باشد.
+   - *اصلاح ریشه‌ای*: اضافه شدن سوییچ «باز بودن پیش‌فرض» با شناسه تست `accordion-item-open-${idx}` به تک‌تک آیتم‌های آکاردئون در `inspector-panel.tsx`.
+2. **برابری کامل رندر باز/بسته بودن آیتم‌ها در بوم و کامپایلر سرور**:
+   - در صورت تنظیم `default_open: false`، تگ `<details>` در بوم و کامپایلر سرور به صورت پیش‌فرض بسته مانده و در صورت فعال بودن با صفت `open` رندر می‌شود.
+
+#### ۲. مستندات بصری (Vision Artifacts)
+- **قبل از اصلاح**: `.loop/artifacts/builder-gym/round-30/before/`
+  - `01-studio-overview.png`
+  - `02-accordion-selected.png`
+  - `report.json`
+- **بعد از اصلاح**: `.loop/artifacts/builder-gym/round-30/after/`
+  - `01-studio-overview.png`
+  - `02-accordion-customized.png` (سوییچ‌های باز بودن پیش‌فرض برای تک‌تک آیتم‌های آکاردئون در بازرس)
+  - `report.json`
+
+#### ۳. تست‌های رگرسیون دائمی اضافه‌شده
+- فایل تست Playwright: `frontend/tests/e2e/builder-gym-r30.spec.ts` (۲ تست سبز)
+- فایل تست پایتون: `backend/app/tests/unit/test_ast_compiler.py::test_ast_compiler_renders_round30_accordion_default_open_customization` (۱ تست سبز)
+
+#### ۴. نتایج نهایی ممیزی و تست‌ها در راند ۳۰
+- `npx --prefix frontend tsc --noEmit`: ۰ خطا (سبز)
+- `npm --prefix frontend test -- --run`: **۳۷۲ تست سبز در ۴۵ فایل** (`372 passed`)
+- `python -m pytest app/tests/unit`: **۶۲۹ تست سبز** (`629 passed, 2 skipped`)
+- تست‌های Playwright راند ۳۰: **۲ تست سبز (`2 passed in 12.8s`) روی پورت ۴۰۰۲**
+
+---
+
 ## 🏆 گواهینامه نهایی مسترینگ کامل: BUILDER_GYM_ALL_LEVELS_MASTERED
 
 بدین‌وسیله رسماً تایید و ثبت می‌گردد که کلیه وزنه‌های ۱ تا ۸ نردبان پیش‌رونده Visual Page Builder بر اساس دستورالعمل جامع المنتور و استانداردهای سخت‌گیرانه ۳۶۰ درجه با موفقیت ۱۰۰٪ کامل شدند:

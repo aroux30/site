@@ -41,6 +41,7 @@ import {
   Type,
   RotateCw,
   Quote,
+  ListOrdered,
   type LucideIcon,
 } from "lucide-react";
 import type { BuilderElement } from "@/types/builder";
@@ -1232,6 +1233,31 @@ export const BASIC_BLOCK_DEFINITIONS: BlockDefinition[] = [
         ],
         button_text: "شروع دوره آزمایشی",
         button_url: "/pricing",
+      },
+      isLocked: false,
+      isHidden: false,
+      styles: { mobile: {} },
+      children: [],
+    }),
+  },
+  {
+    type: "price_list",
+    name: "لیست قیمت و منو (Price List)",
+    category: "basic",
+    icon: ListOrdered,
+    description: "فهرست قیمت اقلام یا منوی خدمات با خطوط جداکننده نقطه‌چین و قیمت",
+    createDefaultElement: () => ({
+      id: `el_${Math.random().toString(36).slice(2, 10)}`,
+      name: "لیست قیمت",
+      type: "widget",
+      widgetType: "price_list",
+      widgetProps: {
+        title: "تعرفه خدمات تخصصی",
+        items: [
+          { title: "طراحی رابط کاربری UI/UX", price: "۴,۵۰۰,۰۰۰ تومان", description: "طراحی کامل نسخه موبایل و دسکتاپ با فیگما" },
+          { title: "توسعه فرانت‌اند اختصاصی", price: "۸,۰۰۰,۰۰۰ تومان", description: "پیاده‌سازی سریع با Next.js و Tailwind CSS" },
+          { title: "بهینه‌سازی سئو و رتبه گوگل", price: "۳,۲۰۰,۰۰۰ تومان", description: "سئو تکنیکال و متاتگ‌های کامل استاندارد" },
+        ],
       },
       isLocked: false,
       isHidden: false,

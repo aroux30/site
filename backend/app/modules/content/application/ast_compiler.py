@@ -928,6 +928,28 @@ class ASTCompiler:
                 f'</div>'
             )
 
+        elif widget_type == "price_list":
+            title = html.escape(str(props.get("title", "")))
+            items = props.get("items", [])
+            title_html = f'<h3 class="font-bold text-sm text-foreground text-right border-b pb-2">{title}</h3>' if title else ""
+            items_html = "".join(
+                f'<div class="space-y-1">'
+                f'<div class="flex items-baseline justify-between text-xs gap-2">'
+                f'<span class="font-bold text-foreground shrink-0">{html.escape(str(it.get("title", "")))}</span>'
+                f'<span class="flex-1 border-b border-dotted border-border/80 mx-1" aria-hidden="true"></span>'
+                f'<span class="font-black text-primary shrink-0 font-mono" dir="ltr">{html.escape(str(it.get("price", "")))}</span>'
+                f'</div>'
+                f'{f"""<p class="text-[11px] text-muted-foreground text-right">{html.escape(str(it["description"]))}</p>""" if it.get("description") else ""}'
+                f'</div>'
+                for it in items
+            )
+            return (
+                f'<div{id_attr} class="builder-price-list space-y-4 p-4 rounded-2xl border border-border/80 bg-card shadow-sm w-full {css_class}" data-widget="price_list"{style_attr}>'
+                f'{title_html}'
+                f'<div class="space-y-3">{items_html}</div>'
+                f'</div>'
+            )
+
         # Generic fallback for any other registered widget
         fallback_title = html.escape(str(props.get("title", widget_type)))
         return f'<div{id_attr} class="builder-widget builder-{widget_type} {css_class}" data-widget="{html.escape(widget_type)}"{style_attr}>{fallback_title}</div>'

@@ -1127,6 +1127,53 @@ def test_ast_compiler_renders_round35_price_table_customization():
     assert 'سفارش پلن' in result
 
 
+def test_ast_compiler_renders_round36_price_list_customization():
+    """Verify that price_list widget compiles menu items, prices and dotted leader borders in SSR."""
+    ast = PageAST(
+        schema_version=1,
+        title="تست راند ۳۶",
+        slug="test-r36-pricelist",
+        root_elements=[
+            BuilderElement(
+                id="el_sec_r36",
+                name="بخش ۳۶",
+                type="container",
+                children=[
+                    BuilderElement(
+                        id="el_pl_custom",
+                        name="لیست قیمت خدمات",
+                        type="widget",
+                        widget_type="price_list",
+                        widget_props={
+                            "title": "منوی خدمات تشریفات",
+                            "items": [
+                                {
+                                    "title": "مشاوره اختصاصی سئو",
+                                    "price": "۲,۵۰۰,۰۰۰ تومان",
+                                    "description": "تحلیل ۶۰ دقیقه‌ای با متخصص",
+                                },
+                                {
+                                    "title": "طراحی لندینگ اختصاصی",
+                                    "price": "۶,۰۰۰,۰۰۰ تومان",
+                                    "description": "طراحی و توسعه با بالاترین استاندارد",
+                                },
+                            ],
+                        },
+                    ),
+                ],
+            )
+        ],
+    )
+    result = ASTCompiler.compile(ast)
+    assert 'builder-price-list' in result
+    assert 'منوی خدمات تشریفات' in result
+    assert 'مشاوره اختصاصی سئو' in result
+    assert '۲,۵۰۰,۰۰۰ تومان' in result
+    assert 'border-dotted' in result
+    assert 'تحلیل ۶۰ دقیقه‌ای با متخصص' in result
+
+
+
 
 
 

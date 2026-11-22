@@ -1933,6 +1933,101 @@ export function InspectorPanel() {
         );
       }
 
+      case "price_list": {
+        const items = Array.isArray(props.items)
+          ? props.items
+          : [{ title: "مورد ۱", price: "۱۰۰,۰۰۰ تومان", description: "توضیحات" }];
+        return (
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs">عنوان لیست قیمت</Label>
+              <Input
+                data-testid="pricelist-title-input"
+                value={String(props.title || "لیست قیمت خدمات")}
+                onChange={(e) => handlePropChange("title", e.target.value)}
+                className="h-8 text-xs"
+              />
+            </div>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <Label className="text-xs font-bold">اقلام لیست (Items)</Label>
+                <button
+                  type="button"
+                  data-testid="pricelist-add-item-btn"
+                  onClick={() => {
+                    const updated = [
+                      ...items,
+                      {
+                        title: `خدمت جدید ${items.length + 1}`,
+                        price: "۱,۰۰۰,۰۰۰ تومان",
+                        description: "توضیح کوتاه خدمت",
+                      },
+                    ];
+                    handlePropChange("items", updated);
+                  }}
+                  className="text-[11px] text-primary hover:underline font-semibold"
+                >
+                  + افزودن سطر
+                </button>
+              </div>
+              {items.map((item: any, idx: number) => (
+                <div key={idx} className="p-2.5 rounded-lg border bg-muted/20 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-bold text-muted-foreground">سطر {idx + 1}</span>
+                    {items.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const updated = items.filter((_: any, i: number) => i !== idx);
+                          handlePropChange("items", updated);
+                        }}
+                        className="text-[10px] text-destructive hover:underline"
+                      >
+                        حذف
+                      </button>
+                    )}
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Input
+                      data-testid={`pricelist-item-title-${idx}`}
+                      value={item.title || ""}
+                      placeholder="عنوان خدمت یا محصول"
+                      onChange={(e) => {
+                        const updated = [...items];
+                        updated[idx] = { ...updated[idx], title: e.target.value };
+                        handlePropChange("items", updated);
+                      }}
+                      className="h-8 text-xs"
+                    />
+                    <Input
+                      value={item.price || ""}
+                      placeholder="قیمت"
+                      onChange={(e) => {
+                        const updated = [...items];
+                        updated[idx] = { ...updated[idx], price: e.target.value };
+                        handlePropChange("items", updated);
+                      }}
+                      className="h-8 text-xs font-mono"
+                      dir="ltr"
+                    />
+                  </div>
+                  <Input
+                    value={item.description || ""}
+                    placeholder="توضیح مختصر"
+                    onChange={(e) => {
+                      const updated = [...items];
+                      updated[idx] = { ...updated[idx], description: e.target.value };
+                      handlePropChange("items", updated);
+                    }}
+                    className="h-7 text-xs"
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      }
+
       case "social_links": {
         const links = (props.links as any[]) || [
           { platform: "اینستاگرام", url: "https://instagram.com" },

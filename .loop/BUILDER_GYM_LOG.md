@@ -1183,6 +1183,42 @@
 
 ---
 
+### 🏋️ راند ۳۶ (Round 36) — وزنه ۷: ۸۵ کیلو (پورت ویجت حرفه‌ای لیست قیمت Price List از Elementor Pro به ۴ لایه بیلدر)
+- **تاریخ اجرا**: 2026-11-22
+- **شاخه ایزوله**: `claude/nifty-snyder-d5b886`
+- **پورت فرانت‌اند**: ۴۰۰۲
+- **وضعیت**: ✅ کامل و سبز (پورت فهرست قیمت اقلام و خدمات با خطوط نقطه‌چین جداکننده قیمت در هر ۴ لایه)
+
+#### ۱. قابلیت‌ها و اصلاحات انجام‌شده
+1. **پورت ویجت لیست قیمت (`price_list`) از Elementor Pro**:
+   - مرجع المنتور: `elementor-pro/modules/pricing/widgets/price-list.php`.
+   - اضافه شدن به پالت پایه‌ای در `block-registry.ts` (افزایش بلوک‌ها به ۴۴ بلوک).
+   - پیاده‌سازی کنترل‌های بازرس با ورودی‌های عنوان لیست (`pricelist-title-input`)، افزودن سطر جدید (`pricelist-add-item-btn`)، عنوان خدمت، قیمت و توضیحات در `inspector-panel.tsx`.
+   - پیاده‌سازی رندرینگ زنده با خطوط جداکننده نقطه‌چین (`border-b border-dotted`)، عنوان تیره و قیمت برجسته مونو در `canvas-element.tsx`.
+   - پیاده‌سازی کامپایل سمانتیک SSR در `ast_compiler.py`.
+
+#### ۲. مستندات بصری (Vision Artifacts)
+- **قبل از اصلاح**: `.loop/artifacts/builder-gym/round-36/before/`
+  - `01-studio-overview.png`
+  - `02-palette-search-pricelist.png`
+  - `report.json`
+- **بعد از اصلاح**: `.loop/artifacts/builder-gym/round-36/after/`
+  - `01-studio-overview.png`
+  - `02-pricelist-customized.png` (اعمال موفق عنوان «منوی خدمات VIP» در لیست قیمت)
+  - `report.json`
+
+#### ۳. تست‌های رگرسیون دائمی اضافه‌شده
+- فایل تست Playwright: `frontend/tests/e2e/builder-gym-r36.spec.ts` (۱ تست سبز)
+- فایل تست پایتون: `backend/app/tests/unit/test_ast_compiler.py::test_ast_compiler_renders_round36_price_list_customization` (۱ تست سبز)
+
+#### ۴. نتایج نهایی ممیزی و تست‌ها در راند ۳۶
+- `npx --prefix frontend tsc --noEmit`: ۰ خطا (سبز)
+- `npm --prefix frontend test -- --run`: **۳۷۲ تست سبز در ۴۵ فایل** (`372 passed`)
+- `python -m pytest app/tests/unit`: **۶۳۵ تست سبز** (`635 passed, 2 skipped`)
+- تست‌های Playwright راند ۳۶: **۱ تست سبز (`1 passed in 5.1s`) روی پورت ۴۰۰۲**
+
+---
+
 ## 🏆 گواهینامه نهایی مسترینگ کامل: BUILDER_GYM_ALL_LEVELS_MASTERED
 
 بدین‌وسیله رسماً تایید و ثبت می‌گردد که کلیه وزنه‌های ۱ تا ۸ نردبان پیش‌رونده Visual Page Builder بر اساس دستورالعمل جامع المنتور و استانداردهای سخت‌گیرانه ۳۶۰ درجه با موفقیت ۱۰۰٪ کامل شدند:

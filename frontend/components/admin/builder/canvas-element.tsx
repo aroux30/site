@@ -1719,6 +1719,30 @@ function CanvasElementComponent({
           </div>
         );
       }
+      case "price_list": {
+        const title = props.title ? String(props.title) : "";
+        const items = (props.items as any[]) || [
+          { title: "خدمت اول", price: "۱۰۰,۰۰۰ تومان", description: "توضیح کوتاه خدمت" },
+          { title: "خدمت دوم", price: "۲۰۰,۰۰۰ تومان", description: "توضیح کوتاه خدمت" },
+        ];
+        return (
+          <div className="space-y-4 p-4 rounded-2xl border border-border/80 bg-card shadow-sm w-full">
+            {title && <h3 className="font-bold text-sm text-foreground text-right border-b pb-2">{title}</h3>}
+            <div className="space-y-3">
+              {items.map((it: any, idx: number) => (
+                <div key={idx} className="space-y-1">
+                  <div className="flex items-baseline justify-between text-xs gap-2">
+                    <span className="font-bold text-foreground shrink-0">{it.title}</span>
+                    <span className="flex-1 border-b border-dotted border-border/80 mx-1" aria-hidden="true" />
+                    <span className="font-black text-primary shrink-0 font-mono" dir="ltr">{it.price}</span>
+                  </div>
+                  {it.description && <p className="text-[11px] text-muted-foreground text-right">{it.description}</p>}
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      }
       default:
         return (
           <div className="rounded-lg border border-dashed border-border p-4 text-center text-sm text-muted-foreground">

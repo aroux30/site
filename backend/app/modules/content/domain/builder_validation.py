@@ -88,6 +88,8 @@ STANDARD_WIDGET_TYPES: frozenset[str] = frozenset({
     "icon_list",
     "share_buttons",
     "table_of_contents",
+    "hotspot",
+    "lottie",
     "faq",
     "video",
     "social_links",

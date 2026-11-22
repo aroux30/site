@@ -2544,6 +2544,53 @@ export function InspectorPanel() {
           </div>
         );
 
+      case "hotspot":
+        return (
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs font-bold">آدرس تصویر پایه</Label>
+              <Input
+                value={String(props.image_url || "")}
+                onChange={(e) => handlePropChange("image_url", e.target.value)}
+                className="h-8 text-xs font-mono"
+                dir="ltr"
+                placeholder="/placeholder-hero.svg"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs font-bold">متن جایگزین (Alt)</Label>
+              <Input
+                value={String(props.alt || "")}
+                onChange={(e) => handlePropChange("alt", e.target.value)}
+                className="h-8 text-xs"
+              />
+            </div>
+          </div>
+        );
+
+      case "lottie":
+        return (
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs font-bold">آدرس فایل انیمیشن JSON</Label>
+              <Input
+                value={String(props.url || "")}
+                onChange={(e) => handlePropChange("url", e.target.value)}
+                className="h-8 text-xs font-mono"
+                dir="ltr"
+                placeholder="https://assets.lottiefiles.com/anim.json"
+              />
+            </div>
+            <div className="flex items-center justify-between pt-1">
+              <Label className="text-xs font-bold">تکرار مداوم (Loop)</Label>
+              <Switch
+                checked={props.loop !== false}
+                onCheckedChange={(val) => handlePropChange("loop", val)}
+              />
+            </div>
+          </div>
+        );
+
       default:
         return (
           <div className="text-xs text-muted-foreground py-2">

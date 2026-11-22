@@ -117,4 +117,19 @@ test.describe("Builder Gym Round 24: Elementor Core & Pro Complete 4-Layer Wirin
     const tocBlock = page.locator('button:has-text("فهرست عناوین محتوا")');
     await expect(tocBlock).toBeVisible();
   });
+
+  test("5. Hotspot and Lottie interactive widgets are available in palette", async ({ page }) => {
+    await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(1500);
+
+    const blocksTab = page.locator('button:has-text("بلوک‌ها")').first();
+    await blocksTab.click();
+    await page.waitForTimeout(400);
+
+    const hotspotBlock = page.locator('button:has-text("نقاط تعاملی تصویر")');
+    await expect(hotspotBlock).toBeVisible();
+
+    const lottieBlock = page.locator('button:has-text("انیمیشن وکتور")');
+    await expect(lottieBlock).toBeVisible();
+  });
 });

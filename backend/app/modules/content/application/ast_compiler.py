@@ -1035,6 +1035,46 @@ class ASTCompiler:
                 f'</nav>'
             )
 
+        elif widget_type == "hotspot":
+            img_url = html.escape(str(props.get("image_url", "/placeholder-hero.svg")))
+            alt = html.escape(str(props.get("alt", "تصویر با نقاط تعاملی")))
+            spots = props.get("spots", [{"x": 30, "y": 45, "title": "نقطه ۱", "content": "توضیحات نقطه ۱"}])
+            spots_html = ""
+            if isinstance(spots, list):
+                for s in spots:
+                    x = max(0, min(100, float(s.get("x", 50))))
+                    y = max(0, min(100, float(s.get("y", 50))))
+                    s_title = html.escape(str(s.get("title", "")))
+                    s_content = html.escape(str(s.get("content", "")))
+                    spots_html += (
+                        f'<div class="absolute -translate-x-1/2 -translate-y-1/2 group/spot cursor-pointer" style="left: {x}%; top: {y}%;">'
+                        f'<span class="w-4 h-4 rounded-full bg-primary text-white flex items-center justify-center text-[10px] font-bold shadow-md ring-4 ring-primary/30 animate-pulse">+</span>'
+                        f'<div class="absolute bottom-full right-1/2 translate-x-1/2 mb-2 hidden group-hover/spot:block w-44 p-2 bg-popover text-popover-foreground text-xs rounded-xl shadow-xl border border-border z-20 pointer-events-none">'
+                        f'<div class="font-bold text-[11px] mb-0.5">{s_title}</div>'
+                        f'<div class="text-[10px] text-muted-foreground leading-relaxed">{s_content}</div>'
+                        f'</div>'
+                        f'</div>'
+                    )
+            return (
+                f'<div{id_attr} class="builder-hotspot relative inline-block rounded-2xl overflow-hidden max-w-full {css_class}" data-widget="hotspot"{style_attr}>'
+                f'<img src="{img_url}" alt="{alt}" class="w-full h-auto block rounded-2xl" loading="lazy" />'
+                f'{spots_html}'
+                f'</div>'
+            )
+
+        elif widget_type == "lottie":
+            url = html.escape(str(props.get("url", props.get("animation_url", "https://assets10.lottiefiles.com/packages/lf20_myejioos.json"))))
+            loop = "true" if props.get("loop", True) else "false"
+            autoplay = "true" if props.get("autoplay", True) else "false"
+            return (
+                f'<div{id_attr} class="builder-lottie flex items-center justify-center p-2 {css_class}" data-widget="lottie" data-url="{url}" data-loop="{loop}" data-autoplay="{autoplay}"{style_attr}>'
+                f'<div class="w-32 h-32 rounded-2xl bg-muted/40 border border-border/80 flex flex-col items-center justify-center gap-1.5 text-muted-foreground text-xs font-mono">'
+                f'<span class="text-primary font-bold text-sm">✦ Lottie</span>'
+                f'<span class="text-[10px] opacity-75 truncate max-w-[100px]">{url.split("/")[-1]}</span>'
+                f'</div>'
+                f'</div>'
+            )
+
         # Generic fallback for any other registered widget
         fallback_title = html.escape(str(props.get("title", widget_type)))
         return f'<div{id_attr} class="builder-widget builder-{widget_type} {css_class}" data-widget="{html.escape(widget_type)}"{style_attr}>{fallback_title}</div>'

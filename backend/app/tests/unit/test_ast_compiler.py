@@ -349,6 +349,47 @@ def test_ast_compiler_renders_share_buttons_and_tracker_widgets():
     assert "بخش نخست" in result
 
 
+def test_ast_compiler_renders_hotspot_and_lottie_widgets():
+    """Verify SSR compilation for hotspot and lottie widgets."""
+    ast = PageAST(
+        schema_version=1,
+        title="تست هات‌اسپات و لوتی",
+        slug="test-hotspot-lottie",
+        root_elements=[
+            BuilderElement(
+                id="el_sec_hl",
+                name="بخش تعاملی",
+                type="container",
+                children=[
+                    BuilderElement(
+                        id="el_hotspot01",
+                        name="تصویر با نقطه",
+                        type="widget",
+                        widget_type="hotspot",
+                        widget_props={
+                            "image_url": "/room.jpg",
+                            "spots": [{"x": 25, "y": 60, "title": "مبل راحتی", "content": "چرم طبیعی"}],
+                        },
+                    ),
+                    BuilderElement(
+                        id="el_lottie01",
+                        name="انیمیشن",
+                        type="widget",
+                        widget_type="lottie",
+                        widget_props={"url": "https://assets.lottiefiles.com/anim.json", "loop": True},
+                    ),
+                ],
+            )
+        ],
+    )
+    result = ASTCompiler.compile(ast)
+    assert 'class="builder-hotspot' in result
+    assert "/room.jpg" in result
+    assert "مبل راحتی" in result
+    assert 'class="builder-lottie' in result
+    assert "anim.json" in result
+
+
 def test_ast_compiler_renders_p3_ecommerce_native_widgets():
     ast = PageAST(
         schema_version=1,

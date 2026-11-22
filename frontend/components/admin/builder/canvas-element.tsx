@@ -1929,6 +1929,48 @@ function CanvasElementComponent({
           </nav>
         );
       }
+      case "hotspot": {
+        const imgUrl = String(props.image_url || "/placeholder-hero.svg");
+        const alt = String(props.alt || "تصویر با نقاط تعاملی");
+        const spots = Array.isArray(props.spots) ? (props.spots as any[]) : [
+          { x: 35, y: 40, title: "نقطه اول", content: "توضیحات نقطه اول" }
+        ];
+        return (
+          <div className="relative inline-block rounded-2xl overflow-hidden max-w-full w-full">
+            <img src={imgUrl} alt={alt} className="w-full h-auto block rounded-2xl" />
+            {spots.map((s, idx) => {
+              const x = Math.max(0, Math.min(100, Number(s.x) || 50));
+              const y = Math.max(0, Math.min(100, Number(s.y) || 50));
+              return (
+                <div
+                  key={idx}
+                  className="absolute -translate-x-1/2 -translate-y-1/2 group/spot cursor-pointer"
+                  style={{ left: `${x}%`, top: `${y}%` }}
+                >
+                  <span className="w-5 h-5 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-black shadow-md ring-4 ring-primary/30 animate-pulse">
+                    +
+                  </span>
+                  <div className="absolute bottom-full right-1/2 translate-x-1/2 mb-2 hidden group-hover/spot:block w-44 p-2 bg-popover text-popover-foreground text-xs rounded-xl shadow-xl border border-border z-30 pointer-events-none">
+                    <div className="font-bold text-[11px] mb-0.5">{s.title}</div>
+                    <div className="text-[10px] text-muted-foreground leading-relaxed">{s.content}</div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        );
+      }
+      case "lottie": {
+        const url = String(props.url || "animation.json");
+        return (
+          <div className="flex items-center justify-center p-3 w-full">
+            <div className="w-36 h-36 rounded-2xl bg-muted/40 border border-border/80 flex flex-col items-center justify-center gap-1.5 text-muted-foreground text-xs font-mono">
+              <span className="text-primary font-bold text-sm">✦ Lottie Animation</span>
+              <span className="text-[10px] opacity-75 truncate max-w-[120px]">{url.split("/").pop()}</span>
+            </div>
+          </div>
+        );
+      }
       default:
         return (
           <div className="rounded-lg border border-dashed border-border p-4 text-center text-sm text-muted-foreground">

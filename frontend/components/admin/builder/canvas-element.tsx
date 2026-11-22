@@ -1721,6 +1721,63 @@ function CanvasElementComponent({
           </div>
         );
       }
+      case "image_box": {
+        const imgUrl = String(props.image_url || "/placeholder-hero.svg");
+        const title = String(props.title || "عنوان جعبه تصویر");
+        const desc = String(props.description || "توضیحات کوتاه در این بخش قرار می‌گیرد.");
+        return (
+          <div className="p-4 rounded-2xl border border-border/80 bg-card text-center space-y-3 shadow-sm w-full">
+            <div className="w-full aspect-video max-h-48 rounded-xl overflow-hidden bg-muted/30 flex items-center justify-center mx-auto">
+              <img src={imgUrl} alt={title} className="w-full h-full object-cover" />
+            </div>
+            <h3 className="text-base font-bold text-foreground">{title}</h3>
+            <p className="text-xs text-muted-foreground leading-relaxed">{desc}</p>
+          </div>
+        );
+      }
+      case "price_list": {
+        const items = (props.items as any[]) || [
+          { title: "سرویس اول", price: "۱۰۰,۰۰۰ تومان", description: "توضیح کوتاه سرویس اول" },
+          { title: "سرویس دوم", price: "۲۰۰,۰۰۰ تومان", description: "توضیح کوتاه سرویس دوم" },
+        ];
+        return (
+          <div className="space-y-4 w-full p-2">
+            {items.map((item, idx) => (
+              <div key={idx} className="space-y-1">
+                <div className="flex items-baseline justify-between gap-2">
+                  <span className="text-xs font-bold text-foreground shrink-0">{item.title}</span>
+                  <span className="flex-1 border-b border-dotted border-border/80 mx-1 mb-1" />
+                  <span className="text-xs font-bold text-primary font-mono shrink-0">{item.price}</span>
+                </div>
+                {item.description && <p className="text-[11px] text-muted-foreground leading-relaxed">{item.description}</p>}
+              </div>
+            ))}
+          </div>
+        );
+      }
+      case "share_buttons": {
+        const platforms = (props.platforms as string[]) || ["telegram", "whatsapp", "twitter", "linkedin"];
+        const platformLabels: Record<string, string> = {
+          telegram: "تلگرام",
+          whatsapp: "واتساپ",
+          twitter: "توییتر (X)",
+          linkedin: "لینکدین",
+        };
+        return (
+          <div className="flex items-center gap-2 flex-wrap">
+            {platforms.map((p, idx) => (
+              <button
+                key={idx}
+                type="button"
+                className="px-3 py-1.5 rounded-xl bg-muted/60 hover:bg-primary hover:text-white transition text-xs font-bold flex items-center gap-1.5"
+              >
+                <Share2 className="w-3.5 h-3.5" />
+                <span>{platformLabels[p] || p}</span>
+              </button>
+            ))}
+          </div>
+        );
+      }
       default:
         return (
           <div className="rounded-lg border border-dashed border-border p-4 text-center text-sm text-muted-foreground">

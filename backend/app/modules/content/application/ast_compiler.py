@@ -907,6 +907,59 @@ class ASTCompiler:
                 f'</div>'
             )
 
+        elif widget_type == "image_box":
+            img_url = html.escape(str(props.get("image_url", "/placeholder-hero.svg")))
+            title = html.escape(str(props.get("title", "عنوان جعبه تصویر")))
+            desc = html.escape(str(props.get("description", "توضیحات کوتاه")))
+            return (
+                f'<div{id_attr} class="builder-image-box p-4 rounded-2xl border border-border/80 bg-card text-center space-y-3 shadow-sm w-full {css_class}" data-widget="image_box"{style_attr}>'
+                f'<div class="w-full aspect-video max-h-48 rounded-xl overflow-hidden bg-muted/30 flex items-center justify-center mx-auto">'
+                f'<img src="{img_url}" alt="{title}" class="w-full h-full object-cover" loading="lazy" />'
+                f'</div>'
+                f'<h3 class="text-base font-bold text-foreground">{title}</h3>'
+                f'<p class="text-xs text-muted-foreground leading-relaxed">{desc}</p>'
+                f'</div>'
+            )
+
+        elif widget_type == "price_list":
+            items = props.get("items", [])
+            items_html = "".join(
+                f'<div class="space-y-1">'
+                f'<div class="flex items-baseline justify-between gap-2">'
+                f'<span class="text-xs font-bold text-foreground shrink-0">{html.escape(str(item.get("title", "")))}</span>'
+                f'<span class="flex-1 border-b border-dotted border-border/80 mx-1 mb-1"></span>'
+                f'<span class="text-xs font-bold text-primary font-mono shrink-0">{html.escape(str(item.get("price", "")))}</span>'
+                f'</div>'
+                f'<p class="text-[11px] text-muted-foreground leading-relaxed">{html.escape(str(item.get("description", "")))}</p>'
+                f'</div>'
+                for item in items if isinstance(item, dict)
+            )
+            return (
+                f'<div{id_attr} class="builder-price-list space-y-4 w-full p-2 {css_class}" data-widget="price_list"{style_attr}>'
+                f'{items_html}'
+                f'</div>'
+            )
+
+        elif widget_type == "share_buttons":
+            platforms = props.get("platforms", ["telegram", "whatsapp", "twitter", "linkedin"])
+            platform_labels = {
+                "telegram": "تلگرام",
+                "whatsapp": "واتساپ",
+                "twitter": "توییتر (X)",
+                "linkedin": "لینکدین",
+            }
+            btns_html = "".join(
+                f'<a href="#" class="px-3 py-1.5 rounded-xl bg-muted/60 hover:bg-primary hover:text-white transition text-xs font-bold flex items-center gap-1.5">'
+                f'<span>{html.escape(str(platform_labels.get(p, p)))}</span>'
+                f'</a>'
+                for p in platforms
+            )
+            return (
+                f'<div{id_attr} class="builder-share-buttons flex items-center gap-2 flex-wrap {css_class}" data-widget="share_buttons"{style_attr}>'
+                f'{btns_html}'
+                f'</div>'
+            )
+
         # Generic fallback for any other registered widget
         fallback_title = html.escape(str(props.get("title", widget_type)))
         return f'<div{id_attr} class="builder-widget builder-{widget_type} {css_class}" data-widget="{html.escape(widget_type)}"{style_attr}>{fallback_title}</div>'

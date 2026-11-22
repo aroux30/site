@@ -42,6 +42,8 @@ import {
   Anchor,
   ListCheck,
   CreditCard,
+  ImagePlus,
+  ClipboardList,
   type LucideIcon,
 } from "lucide-react";
 import type { BuilderElement } from "@/types/builder";
@@ -1362,6 +1364,103 @@ export const BASIC_BLOCK_DEFINITIONS: BlockDefinition[] = [
               left: { value: 20, unit: "px" },
               isLinked: true,
             },
+          },
+        },
+      },
+      children: [],
+    }),
+  },
+  {
+    type: "image_box",
+    name: "جعبه تصویر (Image Box)",
+    category: "basic",
+    icon: ImagePlus,
+    description: "ترکیب تصویر همراه با عنوان، توضیحات و لینک اختصاصی",
+    createDefaultElement: () => ({
+      id: `el_${Math.random().toString(36).slice(2, 10)}`,
+      name: "جعبه تصویر",
+      type: "widget",
+      widgetType: "image_box",
+      widgetProps: {
+        image_url: "/placeholder-hero.svg",
+        title: "عنوان خدمات یا محصول",
+        description: "توضیحات کوتاه و جذاب در مورد ویژگی‌های این بخش بنویسید.",
+      },
+      isLocked: false,
+      isHidden: false,
+      styles: {
+        mobile: {
+          padding: {
+            top: { value: 16, unit: "px" },
+            right: { value: 16, unit: "px" },
+            bottom: { value: 16, unit: "px" },
+            left: { value: 16, unit: "px" },
+            isLinked: true,
+          },
+        },
+      },
+      children: [],
+    }),
+  },
+  {
+    type: "price_list",
+    name: "لیست قیمت (Price List)",
+    category: "basic",
+    icon: ClipboardList,
+    description: "فهرست آیتم‌ها به همراه قیمت، خط‌چین جداکننده و توضیحات (مانند منوی رستوران/خدمات)",
+    createDefaultElement: () => ({
+      id: `el_${Math.random().toString(36).slice(2, 10)}`,
+      name: "لیست قیمت و خدمات",
+      type: "widget",
+      widgetType: "price_list",
+      widgetProps: {
+        items: [
+          { title: "سرویس ویژه نقره‌ای", price: "۱۸۰,۰۰۰ تومان", description: "شامل خدمات عمومی و پشتیبانی تیکت" },
+          { title: "سرویس طلایی تجاری", price: "۳۵۰,۰۰۰ تومان", description: "پشتیبانی فوری به همراه مشاوره اختصاصی" },
+          { title: "سرویس الماس نامحدود", price: "۶۸۰,۰۰۰ تومان", description: "دسترسی کامل به تمامی امکانات VIP" },
+        ],
+      },
+      isLocked: false,
+      isHidden: false,
+      styles: {
+        mobile: {
+          padding: {
+            top: { value: 16, unit: "px" },
+            right: { value: 16, unit: "px" },
+            bottom: { value: 16, unit: "px" },
+            left: { value: 16, unit: "px" },
+            isLinked: true,
+          },
+        },
+      },
+      children: [],
+    }),
+  },
+  {
+    type: "share_buttons",
+    name: "دکمه‌های اشتراک‌گذاری (Share Buttons)",
+    category: "basic",
+    icon: Share2,
+    description: "دکمه‌های اشتراک‌گذاری مستقیم صفحه در شبکه‌های اجتماعی و پیام‌رسان‌ها",
+    createDefaultElement: () => ({
+      id: `el_${Math.random().toString(36).slice(2, 10)}`,
+      name: "دکمه‌های اشتراک‌گذاری",
+      type: "widget",
+      widgetType: "share_buttons",
+      widgetProps: {
+        platforms: ["telegram", "whatsapp", "twitter", "linkedin"],
+        share_text: "این صفحه جذاب را بررسی کنید!",
+      },
+      isLocked: false,
+      isHidden: false,
+      styles: {
+        mobile: {
+          padding: {
+            top: { value: 8, unit: "px" },
+            right: { value: 8, unit: "px" },
+            bottom: { value: 8, unit: "px" },
+            left: { value: 8, unit: "px" },
+            isLinked: true,
           },
         },
       },

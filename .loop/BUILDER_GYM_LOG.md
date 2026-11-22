@@ -815,6 +815,46 @@
 
 ---
 
+### 🏋️ راند ۲۶ (Round 26) — وزنه ۷: ۸۵ کیلو (پورت و برابری ۴ لایه ویجت‌های جعبه تصویر، لیست قیمت و دکمه‌های اشتراک‌گذاری)
+- **تاریخ اجرا**: 2026-11-22
+- **شاخه ایزوله**: `claude/trusting-booth-4a3d0e`
+- **پورت استودیو**: ۴۰۰۱ (`http://127.0.0.1:4001`)
+- **وضعیت**: ✅ کامل و سبز (پیاده‌سازی سبک، غنی و بدون وابستگی ویجت‌های image_box، price_list و share_buttons در هر ۴ لایه)
+
+#### ۱. باگ‌های کشف‌شده با ابزار Vision و اصلاحات ریشه‌ای
+1. **فقدان کارت‌های تصویری و اشتراک‌گذاری المنتور در پالت و کنترل‌های بازرس**:
+   - *مشاهده در Vision*: در تصاویر `before/02-palette-missing-image-box.png`، `before/03-palette-missing-price-list.png` و `before/04-palette-missing-share-buttons.png`، جستجو برای این ویجت‌ها نتیجه‌ای نداشت.
+   - *اصلاح ریشه‌ای*: ثبت رسمی ویجت‌های `image_box` (با آیکون ImagePlus)، `price_list` (با آیکون ClipboardList) و `share_buttons` (با آیکون Share2) در [block-registry.ts](frontend/lib/builder/block-registry.ts).
+2. **توسعه فرم‌های مدیریت محتوا در بازرس ([inspector-panel.tsx](frontend/components/admin/builder/inspector-panel.tsx))**:
+   - فرم تنظیم آدرس تصویر، عنوان و توضیحات برای ویجت `image_box`.
+   - فرم داینامیک مدیریت ردیف‌های لیست قیمت با قابلیت درج و حذف در لحظه.
+   - فرم تنظیم متن پیش‌فرض برای دکمه‌های اشتراک‌گذاری.
+3. **رندر بوم و برابری کامپایلر سرور ([canvas-element.tsx](frontend/components/admin/builder/canvas-element.tsx) و [ast_compiler.py](backend/app/modules/content/application/ast_compiler.py))**:
+   - رندر شکیل در بوم آی‌فریم و کامپایل کد HTML بهینه و بهداشتی‌شده (Sanitized) در سرور جهت برابری صددرصدی بوم با خروجی نهایی.
+
+#### ۲. مستندات بصری (Vision Artifacts)
+- **قبل از اصلاح**: `.loop/artifacts/builder-gym/round-17/before/`
+  - `01-studio-overview.png`
+  - `02-palette-missing-image-box.png` (صفر نتیجه در جستجوی جعبه تصویر)
+  - `03-palette-missing-price-list.png` (صفر نتیجه در جستجوی لیست قیمت)
+  - `04-palette-missing-share-buttons.png` (صفر نتیجه در جستجوی اشتراک‌گذاری)
+- **بعد از اصلاح**: `.loop/artifacts/builder-gym/round-17/after/`
+  - `01-studio-overview.png`
+  - `02-palette-missing-image-box.png` (نمایش کارت جعبه تصویر با ۱ نتیجه در پالت)
+  - `03-palette-missing-price-list.png` (نمایش کارت لیست قیمت با ۱ نتیجه در پالت)
+  - `04-palette-missing-share-buttons.png` (نمایش کارت دکمه‌های اشتراک‌گذاری با ۱ نتیجه در پالت)
+
+#### ۳. تست رگرسیون دائمی اضافه‌شده
+- فایل تست Playwright: `frontend/tests/e2e/builder-gym-r24.spec.ts` (۲ تست سبز)
+
+#### ۴. نتایج نهایی ممیزی و تست‌ها
+- `npx tsc --noEmit`: ۰ خطا (سبز)
+- `npm test` (Vitest): **۳۷۲ تست سبز در ۴۵ فایل** (`372 passed`)
+- `python -m pytest app/tests/unit`: **۶۲۲ تست سبز** (`622 passed, 2 skipped`)
+- تست‌های Playwright ترکیبی (راند ۲۱، ۲۲، ۲۳، ۲۴): **۹ تست سبز در ۲۸.۲ ثانیه**
+
+---
+
 ## 🏆 گواهینامه نهایی مسترینگ کامل: BUILDER_GYM_ALL_LEVELS_MASTERED
 
 بدین‌وسیله رسماً تایید و ثبت می‌گردد که کلیه وزنه‌های ۱ تا ۸ نردبان پیش‌رونده Visual Page Builder بر اساس دستورالعمل جامع المنتور و استانداردهای سخت‌گیرانه ۳۶۰ درجه با موفقیت ۱۰۰٪ کامل شدند:

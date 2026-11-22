@@ -960,6 +960,55 @@ class ASTCompiler:
                 f'</div>'
             )
 
+        elif widget_type == "image_carousel":
+            images = props.get("images", [])
+            imgs_html = "".join(
+                f'<div class="w-48 aspect-video rounded-xl overflow-hidden shrink-0 bg-muted/30 border border-border/60">'
+                f'<img src="{html.escape(str(img.get("url", "/placeholder.svg") if isinstance(img, dict) else img))}" alt="{html.escape(str(img.get("alt", "") if isinstance(img, dict) else ""))}" class="w-full h-full object-cover" loading="lazy" />'
+                f'</div>'
+                for img in images
+            )
+            return (
+                f'<div{id_attr} class="builder-image-carousel w-full space-y-2 {css_class}" data-widget="image_carousel"{style_attr}>'
+                f'<div class="flex items-center gap-3 overflow-x-auto p-2 no-scrollbar">{imgs_html}</div>'
+                f'</div>'
+            )
+
+        elif widget_type == "toggle":
+            items = props.get("items", [])
+            items_html = "".join(
+                f'<details class="group rounded-xl border border-border/80 bg-card p-3 shadow-sm mb-2"{" open" if item.get("open") else ""}>'
+                f'<summary class="font-bold text-xs cursor-pointer flex items-center justify-between list-none">'
+                f'<span>{html.escape(str(item.get("title", "")))}</span>'
+                f'</summary>'
+                f'<div class="pt-2 text-[11px] text-muted-foreground leading-relaxed border-t border-border/40 mt-2">'
+                f'{html.escape(str(item.get("content", "")))}'
+                f'</div>'
+                f'</details>'
+                for item in items if isinstance(item, dict)
+            )
+            return (
+                f'<div{id_attr} class="builder-toggle space-y-2.5 w-full text-right {css_class}" data-widget="toggle"{style_attr}>'
+                f'{items_html}'
+                f'</div>'
+            )
+
+        elif widget_type == "hotspot":
+            img_url = html.escape(str(props.get("image_url", "/placeholder-hero.svg")))
+            spots = props.get("spots", [])
+            spots_html = "".join(
+                f'<div style="top: {spot.get("top", 50)}%; left: {spot.get("left", 50)}%;" class="absolute -translate-x-1/2 -translate-y-1/2 group cursor-pointer">'
+                f'<span class="w-5 h-5 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-[10px] font-bold shadow-lg ring-4 ring-primary/30 animate-pulse">{idx + 1}</span>'
+                f'</div>'
+                for idx, spot in enumerate(spots) if isinstance(spot, dict)
+            )
+            return (
+                f'<div{id_attr} class="builder-hotspot relative w-full rounded-2xl overflow-hidden bg-muted/20 border border-border/80 aspect-video max-h-72 {css_class}" data-widget="hotspot"{style_attr}>'
+                f'<img src="{img_url}" alt="Hotspot" class="w-full h-full object-cover" loading="lazy" />'
+                f'{spots_html}'
+                f'</div>'
+            )
+
         # Generic fallback for any other registered widget
         fallback_title = html.escape(str(props.get("title", widget_type)))
         return f'<div{id_attr} class="builder-widget builder-{widget_type} {css_class}" data-widget="{html.escape(widget_type)}"{style_attr}>{fallback_title}</div>'

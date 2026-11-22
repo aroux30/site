@@ -2151,6 +2151,135 @@ export function InspectorPanel() {
           </div>
         );
 
+      case "image_carousel": {
+        const images = (props.images as any[]) || [];
+        return (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <Label className="text-xs font-bold">تصاویر اسلایدر</Label>
+              <button
+                type="button"
+                onClick={() => {
+                  const updated = [...images, { url: "/placeholder-hero.svg", alt: `اسلاید ${images.length + 1}` }];
+                  handlePropChange("images", updated);
+                }}
+                className="text-[11px] text-primary hover:underline font-semibold"
+              >
+                + افزودن اسلاید
+              </button>
+            </div>
+            <div className="space-y-2">
+              {images.map((img, idx) => (
+                <div key={idx} className="p-2 rounded-lg border bg-muted/20 flex items-center gap-2">
+                  <Input
+                    value={img.url || ""}
+                    placeholder="URL اسلاید"
+                    onChange={(e) => {
+                      const updated = [...images];
+                      updated[idx] = { ...updated[idx], url: e.target.value };
+                      handlePropChange("images", updated);
+                    }}
+                    className="h-7 text-xs font-mono flex-1"
+                    dir="ltr"
+                  />
+                  {images.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const updated = images.filter((_, i) => i !== idx);
+                        handlePropChange("images", updated);
+                      }}
+                      className="text-xs text-destructive hover:underline px-1"
+                    >
+                      حذف
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      }
+
+      case "toggle": {
+        const items = (props.items as any[]) || [];
+        return (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <Label className="text-xs font-bold">آیتم‌های تاگل</Label>
+              <button
+                type="button"
+                onClick={() => {
+                  const updated = [...items, { title: "بخش جدید", content: "توضیحات بخش جدید" }];
+                  handlePropChange("items", updated);
+                }}
+                className="text-[11px] text-primary hover:underline font-semibold"
+              >
+                + افزودن تاگل
+              </button>
+            </div>
+            <div className="space-y-2">
+              {items.map((item, idx) => (
+                <div key={idx} className="p-2.5 rounded-lg border bg-muted/20 space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-bold">تاگل {idx + 1}</span>
+                    {items.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const updated = items.filter((_, i) => i !== idx);
+                          handlePropChange("items", updated);
+                        }}
+                        className="text-[10px] text-destructive hover:underline"
+                      >
+                        حذف
+                      </button>
+                    )}
+                  </div>
+                  <Input
+                    placeholder="عنوان تاگل"
+                    value={item.title || ""}
+                    onChange={(e) => {
+                      const updated = [...items];
+                      updated[idx] = { ...updated[idx], title: e.target.value };
+                      handlePropChange("items", updated);
+                    }}
+                    className="h-7 text-xs"
+                  />
+                  <textarea
+                    rows={2}
+                    placeholder="محتوای تاگل"
+                    value={item.content || ""}
+                    onChange={(e) => {
+                      const updated = [...items];
+                      updated[idx] = { ...updated[idx], content: e.target.value };
+                      handlePropChange("items", updated);
+                    }}
+                    className="w-full rounded-md border border-input bg-background p-1.5 text-xs leading-relaxed"
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      }
+
+      case "hotspot":
+        return (
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs">آدرس تصویر زمینه (URL)</Label>
+              <Input
+                data-testid="hotspot-image-input"
+                value={String(props.image_url || "")}
+                onChange={(e) => handlePropChange("image_url", e.target.value)}
+                className="h-8 text-xs font-mono"
+                dir="ltr"
+              />
+            </div>
+          </div>
+        );
+
       default:
         return (
           <div className="text-xs text-muted-foreground py-2">

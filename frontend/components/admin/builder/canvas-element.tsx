@@ -1778,6 +1778,75 @@ function CanvasElementComponent({
           </div>
         );
       }
+      case "image_carousel": {
+        const images = (props.images as any[]) || [
+          { url: "/placeholder-hero.svg", alt: "اسلاید ۱" },
+          { url: "/placeholder.svg", alt: "اسلاید ۲" },
+        ];
+        return (
+          <div className="w-full space-y-2 select-none">
+            <div className="flex items-center gap-3 overflow-x-auto p-2 no-scrollbar">
+              {images.map((img, idx) => (
+                <div key={idx} className="w-48 aspect-video rounded-xl overflow-hidden shrink-0 bg-muted/30 border border-border/60">
+                  <img src={img.url || "/placeholder.svg"} alt={img.alt || ""} className="w-full h-full object-cover" />
+                </div>
+              ))}
+            </div>
+            <div className="flex items-center justify-center gap-1.5">
+              {images.map((_, idx) => (
+                <span key={idx} className={cn("w-2 h-2 rounded-full", idx === 0 ? "bg-primary" : "bg-muted-foreground/30")} />
+              ))}
+            </div>
+          </div>
+        );
+      }
+      case "toggle": {
+        const items = (props.items as any[]) || [
+          { title: "بخش تاشو", content: "محتوا" },
+        ];
+        return (
+          <div className="space-y-2.5 w-full text-right">
+            {items.map((item, idx) => (
+              <details key={idx} open={item.open ?? (idx === 0)} className="group rounded-xl border border-border/80 bg-card p-3 shadow-sm transition">
+                <summary className="font-bold text-xs cursor-pointer flex items-center justify-between list-none">
+                  <span>{item.title}</span>
+                  <ChevronDown className="w-4 h-4 text-muted-foreground transition group-open:rotate-180" />
+                </summary>
+                <div className="pt-2 text-[11px] text-muted-foreground leading-relaxed border-t border-border/40 mt-2">
+                  {item.content}
+                </div>
+              </details>
+            ))}
+          </div>
+        );
+      }
+      case "hotspot": {
+        const imgUrl = String(props.image_url || "/placeholder-hero.svg");
+        const spots = (props.spots as any[]) || [
+          { top: 40, left: 35, title: "نقطه اول" },
+        ];
+        return (
+          <div className="relative w-full rounded-2xl overflow-hidden bg-muted/20 border border-border/80 aspect-video max-h-72">
+            <img src={imgUrl} alt="Hotspot" className="w-full h-full object-cover" />
+            {spots.map((s, idx) => (
+              <div
+                key={idx}
+                style={{ top: `${s.top}%`, left: `${s.left}%` }}
+                className="absolute -translate-x-1/2 -translate-y-1/2 group cursor-pointer"
+              >
+                <span className="w-5 h-5 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-[10px] font-bold shadow-lg ring-4 ring-primary/30 animate-pulse">
+                  {idx + 1}
+                </span>
+                {s.title && (
+                  <div className="absolute bottom-full mb-1.5 start-1/2 -translate-x-1/2 hidden group-hover:block bg-popover text-popover-foreground text-[10px] font-bold py-1 px-2 rounded-lg shadow whitespace-nowrap z-10 border border-border">
+                    {s.title}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        );
+      }
       default:
         return (
           <div className="rounded-lg border border-dashed border-border p-4 text-center text-sm text-muted-foreground">

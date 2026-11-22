@@ -44,6 +44,9 @@ import {
   CreditCard,
   ImagePlus,
   ClipboardList,
+  GalleryHorizontal,
+  ToggleLeft,
+  MapPin,
   type LucideIcon,
 } from "lucide-react";
 import type { BuilderElement } from "@/types/builder";
@@ -1460,6 +1463,108 @@ export const BASIC_BLOCK_DEFINITIONS: BlockDefinition[] = [
             right: { value: 8, unit: "px" },
             bottom: { value: 8, unit: "px" },
             left: { value: 8, unit: "px" },
+            isLinked: true,
+          },
+        },
+      },
+      children: [],
+    }),
+  },
+  {
+    type: "image_carousel",
+    name: "اسلایدر تصویر (Image Carousel)",
+    category: "basic",
+    icon: GalleryHorizontal,
+    description: "گردونه و اسلایدر اسکرولی تصاویر با نقطه‌چین‌های راهنما",
+    createDefaultElement: () => ({
+      id: `el_${Math.random().toString(36).slice(2, 10)}`,
+      name: "اسلایدر تصویر",
+      type: "widget",
+      widgetType: "image_carousel",
+      widgetProps: {
+        images: [
+          { url: "/placeholder-hero.svg", alt: "اسلاید ۱" },
+          { url: "/placeholder.svg", alt: "اسلاید ۲" },
+          { url: "/placeholder-hero.svg", alt: "اسلاید ۳" },
+        ],
+        autoplay: true,
+      },
+      isLocked: false,
+      isHidden: false,
+      styles: {
+        mobile: {
+          padding: {
+            top: { value: 12, unit: "px" },
+            right: { value: 12, unit: "px" },
+            bottom: { value: 12, unit: "px" },
+            left: { value: 12, unit: "px" },
+            isLinked: true,
+          },
+        },
+      },
+      children: [],
+    }),
+  },
+  {
+    type: "toggle",
+    name: "تاگل مستقل (Toggle)",
+    category: "basic",
+    icon: ToggleLeft,
+    description: "باکس‌های تاشو با قابلیت باز ماندن هم‌زمان چند آیتم",
+    createDefaultElement: () => ({
+      id: `el_${Math.random().toString(36).slice(2, 10)}`,
+      name: "تاگل محتوا",
+      type: "widget",
+      widgetType: "toggle",
+      widgetProps: {
+        items: [
+          { title: "بخش تاشوی اول", content: "توضیحات و محتوای بخش اول را در اینجا بنویسید.", open: true },
+          { title: "بخش تاشوی دوم", content: "توضیحات بخش دوم با قابلیت باز ماندن هم‌زمان با بخش اول.", open: false },
+        ],
+      },
+      isLocked: false,
+      isHidden: false,
+      styles: {
+        mobile: {
+          padding: {
+            top: { value: 8, unit: "px" },
+            right: { value: 8, unit: "px" },
+            bottom: { value: 8, unit: "px" },
+            left: { value: 8, unit: "px" },
+            isLinked: true,
+          },
+        },
+      },
+      children: [],
+    }),
+  },
+  {
+    type: "hotspot",
+    name: "نقطه کانونی (Hotspot)",
+    category: "basic",
+    icon: MapPin,
+    description: "نقاط راهنما و برچسب‌های تعاملی پین‌شده روی تصویر",
+    createDefaultElement: () => ({
+      id: `el_${Math.random().toString(36).slice(2, 10)}`,
+      name: "نقاط کانونی تصویر",
+      type: "widget",
+      widgetType: "hotspot",
+      widgetProps: {
+        image_url: "/placeholder-hero.svg",
+        spots: [
+          { top: 40, left: 35, title: "ویژگی برجسته اول", desc: "جزییات مربوط به این نقطه محصول" },
+          { top: 65, left: 70, title: "نقطه کیفیت ساخت", desc: "توضیحات مربوط به جنس و قطعات" },
+        ],
+      },
+      isLocked: false,
+      isHidden: false,
+      styles: {
+        mobile: {
+          padding: {
+            top: { value: 12, unit: "px" },
+            right: { value: 12, unit: "px" },
+            bottom: { value: 12, unit: "px" },
+            left: { value: 12, unit: "px" },
             isLinked: true,
           },
         },

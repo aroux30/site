@@ -67,20 +67,17 @@ export interface BackgroundOverlayStyle {
 
 export interface TransformStyle {
   rotate?: number | null; // degrees
-  scale?: number | null; // scale multiplier
-  skewX?: number | null; // degrees
-  skewY?: number | null; // degrees
-  translateX?: number | null;
-  translateY?: number | null;
-  flipX?: boolean;
-  flipY?: boolean;
+  scale?: number | null;  // ratio (e.g. 1.05)
+  skewX?: number | null;  // degrees
+  skewY?: number | null;  // degrees
+  translateX?: number | null; // px
+  translateY?: number | null; // px
 }
 
 export interface MaskStyle {
-  shape?: "none" | "circle" | "flower" | "sketch" | "triangle" | "blob" | "hexagon" | string | null;
+  shape?: "none" | "circle" | "flower" | "triangle" | "blob" | "hexagon" | string | null;
   size?: "contain" | "cover" | "auto" | null;
   position?: string | null;
-  repeat?: "no-repeat" | "repeat" | null;
 }
 
 export interface DeviceStyle {
@@ -97,8 +94,6 @@ export interface DeviceStyle {
   opacity?: number | null;
   zIndex?: number | null;
   boxShadow?: string | null;
-  transform?: TransformStyle | null;
-  mask?: MaskStyle | null;
   // Advanced Layout (P4)
   position?: "static" | "relative" | "absolute" | "sticky" | "inherit" | null;
   top?: UnitValue | null;
@@ -118,6 +113,8 @@ export interface DeviceStyle {
   shadow?: string | null;
   backdropBlur?: "none" | "sm" | "md" | "lg" | "xl" | string | null;
   filterBlur?: number | null;
+  transform?: TransformStyle | null;
+  mask?: MaskStyle | null;
 }
 
 export interface ResponsiveStyles {
@@ -129,8 +126,7 @@ export interface ResponsiveStyles {
   desktop?: DeviceStyle | null;
   customCssClass?: string | null;
   customCssId?: string | null;
-  customAttributes?: string | Record<string, string> | null;
-  scopedCss?: string | null;
+  customAttributes?: string | null;
   direction?: "rtl" | "ltr" | "inherit";
   animation?: "none" | "fade-in" | "slide-up" | "zoom-in" | string | null;
   animationDuration?: number | null; // seconds

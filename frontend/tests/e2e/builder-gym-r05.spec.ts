@@ -59,7 +59,7 @@ test.describe("Builder Gym Round 05: Weight 5 (Responsive Viewports, Dark Mode &
     await expect(canvasWrapper).toBeVisible();
 
     // Switch to tablet (768px)
-    const tabletBtn = page.getByRole("button", { name: /تبلت/i });
+    const tabletBtn = page.getByRole("button", { name: "تبلت (۷۶۸)", exact: true });
     await expect(tabletBtn).toBeVisible();
     await tabletBtn.click();
     await page.waitForTimeout(500);
@@ -68,7 +68,7 @@ test.describe("Builder Gym Round 05: Weight 5 (Responsive Viewports, Dark Mode &
     expect(box?.width).toBeLessThanOrEqual(770);
 
     // Switch to mobile (375px)
-    const mobileBtn = page.getByRole("button", { name: /موبایل/i });
+    const mobileBtn = page.getByRole("button", { name: "موبایل (۳۷۵)", exact: true });
     await expect(mobileBtn).toBeVisible();
     await mobileBtn.click();
     await page.waitForTimeout(500);
@@ -77,7 +77,7 @@ test.describe("Builder Gym Round 05: Weight 5 (Responsive Viewports, Dark Mode &
     expect(box?.width).toBeLessThanOrEqual(380);
 
     // Revert to desktop
-    const desktopBtn = page.getByRole("button", { name: /دسکتاپ/i });
+    const desktopBtn = page.getByRole("button", { name: "دسکتاپ", exact: true });
     await desktopBtn.click();
     await page.waitForTimeout(400);
   });
@@ -117,11 +117,13 @@ test.describe("Builder Gym Round 05: Weight 5 (Responsive Viewports, Dark Mode &
     await firstEl.click();
 
     // Rapidly switch left tabs: layers -> blocks -> layers
-    const layersTabBtn = page.getByRole("button", { name: "لایه‌ها", exact: true });
+    const layersTabBtn = page.locator('[data-testid="sidebar-tab-layers"]');
+    await expect(layersTabBtn).toBeVisible();
     await layersTabBtn.click();
     await page.waitForTimeout(200);
 
-    const blocksTabBtn = page.getByRole("button", { name: "بلوک‌ها", exact: true });
+    const blocksTabBtn = page.locator('[data-testid="sidebar-tab-blocks"]');
+    await expect(blocksTabBtn).toBeVisible();
     await blocksTabBtn.click();
     await page.waitForTimeout(200);
 

@@ -58,6 +58,7 @@
     ".next-preview-3420/types/**/*.ts",
     ".next-preview-3430/types/**/*.ts",
     ".next-preview-3600/types/**/*.ts",
+    ".next-preview-3700/types/**/*.ts",
     ".next-preview/types/**/*.ts",
     ".next-prod/types/**/*.ts",
     ".next-render-check/types/**/*.ts",
@@ -80,7 +81,7 @@
     ".next-wave2/types/**/*.ts",
     ".next/types/**/*.ts",
     "next-env.d.ts",
-    ".next-preview-3700/types/**/*.ts"
+    ".next-preview-4003/types/**/*.ts"
   ],
   "exclude": [
     "node_modules",

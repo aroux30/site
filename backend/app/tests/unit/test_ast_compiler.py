@@ -561,6 +561,44 @@ def test_ast_compiler_renders_multistep_and_loop_carousel_widgets():
     assert 'data-widget="loop_carousel"' in result
 
 
+def test_ast_compiler_renders_audio_and_maps_widgets():
+    """Verify SSR compilation for audio and google_maps."""
+    ast = PageAST(
+        schema_version=1,
+        title="تست صوت و نقشه",
+        slug="test-audio-maps",
+        root_elements=[
+            BuilderElement(
+                id="el_sec_am",
+                name="بخش صوتی و نقشه",
+                type="container",
+                children=[
+                    BuilderElement(
+                        id="el_audio01",
+                        name="پلیر صوتی",
+                        type="widget",
+                        widget_type="audio",
+                        widget_props={"title": "موسیقی آرامش‌بخش", "url": "/track.mp3"},
+                    ),
+                    BuilderElement(
+                        id="el_maps01",
+                        name="نقشه موقعیت",
+                        type="widget",
+                        widget_type="google_maps",
+                        widget_props={"address": "تهران، میدان تجریش", "height": 280},
+                    ),
+                ],
+            )
+        ],
+    )
+    result = ASTCompiler.compile(ast)
+    assert 'class="builder-audio' in result
+    assert "موسیقی آرامش‌بخش" in result
+    assert "/track.mp3" in result
+    assert 'class="builder-google-maps' in result
+    assert "تهران، میدان تجریش" in result
+
+
 def test_ast_compiler_renders_p3_ecommerce_native_widgets():
     ast = PageAST(
         schema_version=1,

@@ -2901,6 +2901,58 @@ export function InspectorPanel() {
           </div>
         );
 
+      case "audio":
+        return (
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs font-bold">عنوان قطعه صوتی</Label>
+              <Input
+                value={String(props.title || "")}
+                onChange={(e) => handlePropChange("title", e.target.value)}
+                className="h-8 text-xs"
+                placeholder="عنوان پادکست..."
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs font-bold">آدرس فایل صوتی (URL)</Label>
+              <Input
+                value={String(props.url || props.src || "")}
+                onChange={(e) => handlePropChange("url", e.target.value)}
+                className="h-8 text-xs font-mono"
+                dir="ltr"
+                placeholder="/podcast.mp3"
+              />
+            </div>
+          </div>
+        );
+
+      case "google_maps":
+        return (
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs font-bold">آدرس یا موقعیت نقشه</Label>
+              <Input
+                value={String(props.address || "")}
+                onChange={(e) => handlePropChange("address", e.target.value)}
+                className="h-8 text-xs"
+                placeholder="تهران، خیابان ولیعصر..."
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs font-bold">ارتفاع نقشه (پیکسل)</Label>
+              <Input
+                type="number"
+                min={150}
+                max={800}
+                value={Number(props.height) || 280}
+                onChange={(e) => handlePropChange("height", parseInt(e.target.value, 10) || 280)}
+                className="h-8 text-xs font-mono"
+                dir="ltr"
+              />
+            </div>
+          </div>
+        );
+
       default:
         return (
           <div className="text-xs text-muted-foreground py-2">

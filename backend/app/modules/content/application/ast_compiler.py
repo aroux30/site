@@ -1263,6 +1263,29 @@ class ASTCompiler:
                 f'</div>'
             )
 
+        elif widget_type == "audio":
+            src = html.escape(str(props.get("url", props.get("src", "/sample-audio.mp3"))))
+            title = html.escape(str(props.get("title", "پادکست صوتی")))
+            return (
+                f'<div{id_attr} class="builder-audio p-4 rounded-2xl border border-border/80 bg-card space-y-2 text-right w-full {css_class}" data-widget="audio"{style_attr}>'
+                f'<div class="font-bold text-xs text-foreground flex items-center gap-2"><span>🎵</span><span>{title}</span></div>'
+                f'<audio controls class="w-full mt-1"><source src="{src}" type="audio/mpeg">مرورگر شما از پخش صوت پشتیبانی نمی‌کند.</audio>'
+                f'</div>'
+            )
+
+        elif widget_type == "google_maps":
+            address = html.escape(str(props.get("address", "تهران، میدان آزادی")))
+            height = int(props.get("height", 300))
+            return (
+                f'<div{id_attr} class="builder-google-maps w-full rounded-2xl overflow-hidden border border-border/80 bg-muted/40 relative {css_class}" data-widget="google_maps" style="height: {height}px; {style_attr}">'
+                f'<div class="w-full h-full flex flex-col items-center justify-center gap-2 text-muted-foreground p-4 text-center">'
+                f'<span class="text-primary text-xl">📍</span>'
+                f'<span class="text-xs font-bold text-foreground">{address}</span>'
+                f'<span class="text-[10px] opacity-75">پیش‌نمایش نقشه تعاملی موقعیت مکانی</span>'
+                f'</div>'
+                f'</div>'
+            )
+
         # Generic fallback for any other registered widget
         fallback_title = html.escape(str(props.get("title", widget_type)))
         return f'<div{id_attr} class="builder-widget builder-{widget_type} {css_class}" data-widget="{html.escape(widget_type)}"{style_attr}>{fallback_title}</div>'

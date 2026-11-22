@@ -55,6 +55,8 @@ import {
   Layers2,
   Milestone,
   Repeat,
+  Music,
+  MapPin,
   type LucideIcon,
 } from "lucide-react";
 import type { BuilderElement } from "@/types/builder";
@@ -1701,6 +1703,48 @@ export const BASIC_BLOCK_DEFINITIONS: BlockDefinition[] = [
       widgetProps: {
         limit: 6,
         category: "all",
+      },
+      isLocked: false,
+      isHidden: false,
+      styles: { mobile: {} },
+      children: [],
+    }),
+  },
+  {
+    type: "audio",
+    name: "پخش‌کننده صوت (Audio)",
+    category: "basic",
+    icon: Music,
+    description: "پخش فایل صوتی و پادکست اختصاصی با پلیر استاندارد HTML5",
+    createDefaultElement: () => ({
+      id: `el_${Math.random().toString(36).slice(2, 10)}`,
+      name: "پلیر صوتی",
+      type: "widget",
+      widgetType: "audio",
+      widgetProps: {
+        title: "پادکست معرفی محصول",
+        url: "/sample-audio.mp3",
+      },
+      isLocked: false,
+      isHidden: false,
+      styles: { mobile: {} },
+      children: [],
+    }),
+  },
+  {
+    type: "google_maps",
+    name: "نقشه موقعیت مکانی (Google Maps)",
+    category: "basic",
+    icon: MapPin,
+    description: "نمایش نقشه موقعیت فروشگاه فیزیکی یا دفتر مرکزی با ارتفاع دلخواه",
+    createDefaultElement: () => ({
+      id: `el_${Math.random().toString(36).slice(2, 10)}`,
+      name: "نقشه موقعیت",
+      type: "widget",
+      widgetType: "google_maps",
+      widgetProps: {
+        address: "تهران، میدان ونک، برج نگار",
+        height: 280,
       },
       isLocked: false,
       isHidden: false,

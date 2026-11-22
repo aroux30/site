@@ -2164,6 +2164,35 @@ function CanvasElementComponent({
           </div>
         );
       }
+      case "audio": {
+        const title = String(props.title || "پادکست صوتی");
+        const src = String(props.url || props.src || "/sample-audio.mp3");
+        return (
+          <div className="w-full p-4 rounded-2xl border border-border/80 bg-card shadow-sm space-y-2 text-right">
+            <div className="font-bold text-xs text-foreground flex items-center gap-2">
+              <span>🎵</span>
+              <span>{title}</span>
+            </div>
+            <audio controls className="w-full mt-1">
+              <source src={src} type="audio/mpeg" />
+            </audio>
+          </div>
+        );
+      }
+      case "google_maps": {
+        const address = String(props.address || "تهران، میدان آزادی");
+        const heightPx = Number(props.height) || 280;
+        return (
+          <div
+            className="w-full rounded-2xl overflow-hidden border border-border/80 bg-muted/40 relative flex flex-col items-center justify-center gap-2 text-muted-foreground p-4 text-center shadow-xs"
+            style={{ height: `${heightPx}px` }}
+          >
+            <span className="text-primary text-2xl">📍</span>
+            <span className="text-xs font-bold text-foreground">{address}</span>
+            <span className="text-[10px] opacity-75 font-medium">پیش‌نمایش نقشه تعاملی موقعیت مکانی</span>
+          </div>
+        );
+      }
       default:
         return (
           <div className="rounded-lg border border-dashed border-border p-4 text-center text-sm text-muted-foreground">

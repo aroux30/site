@@ -100,6 +100,8 @@ STANDARD_WIDGET_TYPES: frozenset[str] = frozenset({
     "popup_builder",
     "multi_step_form",
     "loop_carousel",
+    "audio",
+    "google_maps",
     "faq",
     "video",
     "social_links",

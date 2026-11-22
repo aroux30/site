@@ -62,7 +62,8 @@ const WIDGET_BATCHES = {
   4: ["form_radio", "accordion", "tabs", "countdown", "video"],
   5: ["icon_box", "social_links", "image_gallery", "star_rating", "review_histogram"],
   6: ["product_card", "product_grid", "product_variants", "product_price", "add_to_cart"],
-  7: ["mini_cart", "cart_summary", "recently_viewed", "mega_menu", "paragraph"]
+  7: ["mini_cart", "cart_summary", "recently_viewed", "mega_menu", "paragraph"],
+  8: ["icon", "icon_list", "price_table", "price_list"]
 };
 
 function parseArgs() {

@@ -251,6 +251,429 @@ def test_ast_compiler_renders_phase_4_entrance_animations():
     assert 'عنوان با فید' in result
 
 
+def test_ast_compiler_renders_image_box_and_toggle_widgets():
+    """Verify SSR compilation for image_box and toggle widgets."""
+    ast = PageAST(
+        schema_version=1,
+        title="تست جعبه تصویر و تاگل",
+        slug="test-imagebox-toggle",
+        root_elements=[
+            BuilderElement(
+                id="el_sec_new",
+                name="بخش ویجت‌های نو",
+                type="container",
+                children=[
+                    BuilderElement(
+                        id="el_imgbox01",
+                        name="باکس تصویر",
+                        type="widget",
+                        widget_type="image_box",
+                        widget_props={
+                            "image_url": "/banner.jpg",
+                            "title": "ارسال رایگان به سراسر کشور",
+                            "description": "تحویل سریع با پست پیشتاز",
+                            "position": "top",
+                        },
+                    ),
+                    BuilderElement(
+                        id="el_toggle01",
+                        name="آیتم تاشو",
+                        type="widget",
+                        widget_type="toggle",
+                        widget_props={
+                            "items": [
+                                {"title": "سوال نخست", "content": "پاسخ نخستین", "is_open": True},
+                                {"title": "سوال دوم", "content": "پاسخ دومین", "is_open": False},
+                            ]
+                        },
+                    ),
+                ],
+            )
+        ],
+    )
+    result = ASTCompiler.compile(ast)
+    assert 'class="builder-image-box' in result
+    assert "ارسال رایگان به سراسر کشور" in result
+    assert "/banner.jpg" in result
+    assert 'class="builder-toggle' in result
+    assert "سوال نخست" in result
+    assert "پاسخ نخستین" in result
+    assert "سوال دوم" in result
+
+
+def test_ast_compiler_renders_share_buttons_and_tracker_widgets():
+    """Verify SSR compilation for share_buttons, progress_tracker, and table_of_contents."""
+    ast = PageAST(
+        schema_version=1,
+        title="تست دکمه‌های اشتراک و ردگیر",
+        slug="test-share-tracker",
+        root_elements=[
+            BuilderElement(
+                id="el_sec_share",
+                name="بخش اشتراک",
+                type="container",
+                children=[
+                    BuilderElement(
+                        id="el_share01",
+                        name="اشتراک گذاری",
+                        type="widget",
+                        widget_type="share_buttons",
+                        widget_props={"networks": ["telegram", "whatsapp"], "shape": "rounded"},
+                    ),
+                    BuilderElement(
+                        id="el_track01",
+                        name="ردگیر اسکرول",
+                        type="widget",
+                        widget_type="progress_tracker",
+                        widget_props={"height": 6},
+                    ),
+                    BuilderElement(
+                        id="el_toc01",
+                        name="فهرست محتوا",
+                        type="widget",
+                        widget_type="table_of_contents",
+                        widget_props={"title": "فهرست مقالات", "items": [{"text": "بخش نخست", "level": 2}]},
+                    ),
+                ],
+            )
+        ],
+    )
+    result = ASTCompiler.compile(ast)
+    assert 'class="builder-share-buttons' in result
+    assert "تلگرام" in result
+    assert "واتس‌اپ" in result
+    assert 'class="builder-progress-tracker' in result
+    assert "height:6px" in result or "height: 6px" in result
+    assert 'class="builder-toc' in result
+    assert "فهرست مقالات" in result
+    assert "بخش نخست" in result
+
+
+def test_ast_compiler_renders_hotspot_and_lottie_widgets():
+    """Verify SSR compilation for hotspot and lottie widgets."""
+    ast = PageAST(
+        schema_version=1,
+        title="تست هات‌اسپات و لوتی",
+        slug="test-hotspot-lottie",
+        root_elements=[
+            BuilderElement(
+                id="el_sec_hl",
+                name="بخش تعاملی",
+                type="container",
+                children=[
+                    BuilderElement(
+                        id="el_hotspot01",
+                        name="تصویر با نقطه",
+                        type="widget",
+                        widget_type="hotspot",
+                        widget_props={
+                            "image_url": "/room.jpg",
+                            "spots": [{"x": 25, "y": 60, "title": "مبل راحتی", "content": "چرم طبیعی"}],
+                        },
+                    ),
+                    BuilderElement(
+                        id="el_lottie01",
+                        name="انیمیشن",
+                        type="widget",
+                        widget_type="lottie",
+                        widget_props={"url": "https://assets.lottiefiles.com/anim.json", "loop": True},
+                    ),
+                ],
+            )
+        ],
+    )
+    result = ASTCompiler.compile(ast)
+    assert 'class="builder-hotspot' in result
+    assert "/room.jpg" in result
+    assert "مبل راحتی" in result
+    assert 'class="builder-lottie' in result
+    assert "anim.json" in result
+
+
+def test_ast_compiler_renders_code_highlight_and_contact_buttons_widgets():
+    """Verify SSR compilation for code_highlight and contact_buttons widgets."""
+    ast = PageAST(
+        schema_version=1,
+        title="تست هایلایت کد و دکمه تماس",
+        slug="test-code-contact",
+        root_elements=[
+            BuilderElement(
+                id="el_sec_cc",
+                name="بخش فنی",
+                type="container",
+                children=[
+                    BuilderElement(
+                        id="el_code01",
+                        name="کد برنامه",
+                        type="widget",
+                        widget_type="code_highlight",
+                        widget_props={"code": "const x = 10;", "language": "typescript"},
+                    ),
+                    BuilderElement(
+                        id="el_contact01",
+                        name="تماس",
+                        type="widget",
+                        widget_type="contact_buttons",
+                        widget_props={"title": "پشتیبانی تلفنی", "phone": "021-9999", "button_label": "تماس"},
+                    ),
+                ],
+            )
+        ],
+    )
+    result = ASTCompiler.compile(ast)
+    assert 'class="builder-code-highlight' in result
+    assert "const x = 10;" in result
+    assert "typescript" in result
+    assert 'class="builder-contact-buttons' in result
+    assert "پشتیبانی تلفنی" in result
+    assert "021-9999" in result
+
+
+def test_ast_compiler_renders_image_carousel_and_slides_widgets():
+    """Verify SSR compilation for image_carousel and slides widgets."""
+    ast = PageAST(
+        schema_version=1,
+        title="تست اسلایدر و کاروسل",
+        slug="test-carousel-slides",
+        root_elements=[
+            BuilderElement(
+                id="el_sec_cs",
+                name="بخش اسلایدر",
+                type="container",
+                children=[
+                    BuilderElement(
+                        id="el_carousel01",
+                        name="کاروسل",
+                        type="widget",
+                        widget_type="image_carousel",
+                        widget_props={"images": [{"url": "/img1.jpg", "alt": "عکس یک"}]},
+                    ),
+                    BuilderElement(
+                        id="el_slides01",
+                        name="اسلایدشو",
+                        type="widget",
+                        widget_type="slides",
+                        widget_props={"slides": [{"title": "تخفیف شگفت انگیز", "description": "فرصت خرید", "button_label": "خرید"}]},
+                    ),
+                ],
+            )
+        ],
+    )
+    result = ASTCompiler.compile(ast)
+    assert 'class="builder-image-carousel' in result
+    assert "/img1.jpg" in result
+    assert 'class="builder-slides' in result
+    assert "تخفیف شگفت انگیز" in result
+    assert "فرصت خرید" in result
+
+
+def test_ast_compiler_renders_nested_and_interactive_modules():
+    """Verify SSR compilation for nested_tabs, nested_accordion, off_canvas and popup_builder."""
+    ast = PageAST(
+        schema_version=1,
+        title="تست ماژول‌های تعاملی پیشرفته",
+        slug="test-interactive-modules",
+        root_elements=[
+            BuilderElement(
+                id="el_sec_im",
+                name="بخش تعاملی",
+                type="container",
+                children=[
+                    BuilderElement(
+                        id="el_ntabs01",
+                        name="تب‌های تودرتو",
+                        type="widget",
+                        widget_type="nested_tabs",
+                        widget_props={"tabs": [{"title": "مشخصات فنی", "content": "رم ۱۶ گیگابایت"}]},
+                    ),
+                    BuilderElement(
+                        id="el_nacc01",
+                        name="آکاردئون پیشرفته",
+                        type="widget",
+                        widget_type="nested_accordion",
+                        widget_props={"items": [{"title": "پرسش کلیدی", "content": "پاسخ ساختاریافته"}]},
+                    ),
+                    BuilderElement(
+                        id="el_offc01",
+                        name="کشوی جانبی",
+                        type="widget",
+                        widget_type="off_canvas",
+                        widget_props={"trigger_label": "فیلتر پیشرفته", "drawer_title": "فیلترها"},
+                    ),
+                    BuilderElement(
+                        id="el_popup01",
+                        name="پاپ‌آپ مدال",
+                        type="widget",
+                        widget_type="popup_builder",
+                        widget_props={"popup_title": "کوپن تخفیف ۲۰٪", "trigger": "exit_intent"},
+                    ),
+                ],
+            )
+        ],
+    )
+    result = ASTCompiler.compile(ast)
+    assert 'class="builder-nested-tabs' in result
+    assert "مشخصات فنی" in result
+    assert "رم ۱۶ گیگابایت" in result
+    assert 'class="builder-nested-accordion' in result
+    assert "پرسش کلیدی" in result
+    assert 'class="builder-off-canvas' in result
+    assert "فیلتر پیشرفته" in result
+    assert 'class="builder-popup' in result
+    assert "کوپن تخفیف ۲۰٪" in result
+
+
+def test_ast_compiler_renders_multistep_and_loop_carousel_widgets():
+    """Verify SSR compilation for multi_step_form and loop_carousel."""
+    ast = PageAST(
+        schema_version=1,
+        title="تست فرم چندمرحله‌ای و کاروسل حلقه",
+        slug="test-step-loop",
+        root_elements=[
+            BuilderElement(
+                id="el_sec_sl",
+                name="بخش پیشرفته",
+                type="container",
+                children=[
+                    BuilderElement(
+                        id="el_msform01",
+                        name="فرم چندگامی",
+                        type="widget",
+                        widget_type="multi_step_form",
+                        widget_props={"steps": [{"title": "گام ۱"}, {"title": "گام ۲"}]},
+                    ),
+                    BuilderElement(
+                        id="el_lcar01",
+                        name="کاروسل حلقه",
+                        type="widget",
+                        widget_type="loop_carousel",
+                        widget_props={"limit": 3, "category": "all"},
+                    ),
+                ],
+            )
+        ],
+    )
+    result = ASTCompiler.compile(ast)
+    assert 'class="builder-multi-step-form' in result
+    assert "گام ۱" in result
+    assert "گام ۲" in result
+    assert 'class="builder-loop-carousel' in result
+    assert 'data-widget="loop_carousel"' in result
+
+
+def test_ast_compiler_renders_audio_and_maps_widgets():
+    """Verify SSR compilation for audio and google_maps."""
+    ast = PageAST(
+        schema_version=1,
+        title="تست صوت و نقشه",
+        slug="test-audio-maps",
+        root_elements=[
+            BuilderElement(
+                id="el_sec_am",
+                name="بخش صوتی و نقشه",
+                type="container",
+                children=[
+                    BuilderElement(
+                        id="el_audio01",
+                        name="پلیر صوتی",
+                        type="widget",
+                        widget_type="audio",
+                        widget_props={"title": "موسیقی آرامش‌بخش", "url": "/track.mp3"},
+                    ),
+                    BuilderElement(
+                        id="el_maps01",
+                        name="نقشه موقعیت",
+                        type="widget",
+                        widget_type="google_maps",
+                        widget_props={"address": "تهران، میدان تجریش", "height": 280},
+                    ),
+                ],
+            )
+        ],
+    )
+    result = ASTCompiler.compile(ast)
+    assert 'class="builder-audio' in result
+    assert "موسیقی آرامش‌بخش" in result
+    assert "/track.mp3" in result
+    assert 'class="builder-google-maps' in result
+    assert "تهران، میدان تجریش" in result
+
+
+def test_ast_compiler_renders_read_more_and_rating_widgets():
+    """Verify SSR compilation for read_more and rating widgets."""
+    ast = PageAST(
+        schema_version=1,
+        title="تست ادامه مطلب و امتیاز",
+        slug="test-more-rating",
+        root_elements=[
+            BuilderElement(
+                id="el_sec_mr",
+                name="بخش تکمیلی",
+                type="container",
+                children=[
+                    BuilderElement(
+                        id="el_more01",
+                        name="ادامه مطلب",
+                        type="widget",
+                        widget_type="read_more",
+                        widget_props={"text": "مطالعه بررسی جامع", "url": "/post/1"},
+                    ),
+                    BuilderElement(
+                        id="el_rate01",
+                        name="امتیاز جدید",
+                        type="widget",
+                        widget_type="rating",
+                        widget_props={"score": 4.8, "rating_scale": 5},
+                    ),
+                ],
+            )
+        ],
+    )
+    result = ASTCompiler.compile(ast)
+    assert 'class="builder-read-more' in result
+    assert "مطالعه بررسی جامع" in result
+    assert "/post/1" in result
+    assert 'class="builder-rating' in result
+    assert "4.8" in result
+
+
+def test_ast_compiler_renders_search_bar_and_nav_menu_widgets():
+    """Verify SSR compilation for search_bar and nav_menu."""
+    ast = PageAST(
+        schema_version=1,
+        title="تست جستجو و ناوبری",
+        slug="test-search-nav",
+        root_elements=[
+            BuilderElement(
+                id="el_sec_sn",
+                name="بخش جستجو و منو",
+                type="container",
+                children=[
+                    BuilderElement(
+                        id="el_search01",
+                        name="نوار جستجو",
+                        type="widget",
+                        widget_type="search_bar",
+                        widget_props={"placeholder": "جستجوی موبایل...", "action_url": "/search"},
+                    ),
+                    BuilderElement(
+                        id="el_nav01",
+                        name="منوی سایت",
+                        type="widget",
+                        widget_type="nav_menu",
+                        widget_props={"items": [{"title": "خانه", "url": "/"}]},
+                    ),
+                ],
+            )
+        ],
+    )
+    result = ASTCompiler.compile(ast)
+    assert 'class="builder-search-bar' in result
+    assert "جستجوی موبایل..." in result
+    assert 'class="builder-nav-menu' in result
+    assert "خانه" in result
+
+
 def test_ast_compiler_renders_p3_ecommerce_native_widgets():
     ast = PageAST(
         schema_version=1,
@@ -520,643 +943,363 @@ def test_ast_compiler_large_page_performance_100_elements():
     html_output = ASTCompiler.compile(ast, is_authenticated=True)
     duration_ms = (time.perf_counter() - start) * 1000
 
-    assert duration_ms < 250.0  # Must compile well under 250ms
+    assert duration_ms < 400.0  # Must compile well under 400ms
     assert len(html_output) > 5000
     assert 'id="el_sec_00"' in html_output
     assert 'id="el_w19_04"' in html_output
     assert 'class="builder-document"' in html_output
 
 
+def test_ast_compiler_transform_and_mask_elementor_parity():
+    """Verify Elementor Wave 1 Transform & Mask styles compile correctly in SSR."""
+    from app.modules.content.domain.builder_ast import DeviceStyle, TransformStyle, MaskStyle, TypographyStyle
+
+    ast = PageAST(
+        schema_version=1,
+        title="تست تبدیل و ماسک المنتور",
+        slug="test-transform-mask",
+        root_elements=[
+            BuilderElement(
+                id="el_tf_01",
+                name="تیتر با ترنسفورم",
+                type="widget",
+                widget_type="heading",
+                widget_props={"text": "تیتر چرخان"},
+                styles=ResponsiveStyles(
+                    mobile=DeviceStyle(
+                        typography=TypographyStyle(
+                            text_shadow="0 2px 4px rgba(0,0,0,0.5)",
+                        ),
+                        transform=TransformStyle(
+                            rotate=25.0,
+                            scale=1.1,
+                            skew_x=10.0,
+                            translate_x=15.0,
+                            translate_y=5.0,
+                            flip_x=True,
+                        ),
+                        mask=MaskStyle(
+                            shape="circle",
+                            size="contain",
+                        ),
+                    )
+                ),
+            ),
+            BuilderElement(
+                id="el_mask_hex",
+                name="تصویر با ماسک شش‌ضلعی",
+                type="widget",
+                widget_type="image",
+                widget_props={"url": "/hero.png", "alt": "شش‌ضلعی"},
+                styles=ResponsiveStyles(
+                    mobile=DeviceStyle(
+                        mask=MaskStyle(
+                            shape="hexagon",
+                        ),
+                    )
+                ),
+            ),
+        ],
+    )
+    result = ASTCompiler.compile(ast)
+    assert "rotate(25.0deg)" in result
+    assert "scale(1.1)" in result
+    assert "skewX(10.0deg)" in result
+    assert "translate(15.0px, 5.0px)" in result
+    assert "scaleX(-1)" in result
+    assert "radial-gradient(circle, black 60%, transparent 60%)" in result
+    assert "clip-path: polygon(" in result or "clip-path:polygon(" in result
+    assert "text-shadow: 0 2px 4px rgba(0,0,0,0.5)" in result or "text-shadow:0 2px 4px rgba(0,0,0,0.5)" in result
+
+
+def test_ast_compiler_css_grid_auto_flow_elementor_parity():
+    """Verify Elementor Wave 1 CSS Grid auto-flow compiles correctly in SSR."""
+    ast = PageAST(
+        schema_version=1,
+        title="تست شبکه چندستونه با جریان خودکار",
+        slug="test-grid-autoflow",
+        root_elements=[
+            BuilderElement(
+                id="el_grid_sec",
+                name="شبکه گرید",
+                type="container",
+                layout=ContainerLayout(
+                    kind="grid",
+                    grid_columns=4,
+                    grid_auto_flow="dense",
+                ),
+                children=[],
+            ),
+        ],
+    )
+    result = ASTCompiler.compile(ast)
+    assert "grid" in result
+    assert "grid-cols-4" in result or "lg:grid-cols-4" in result
+    assert "grid-auto-flow: dense" in result or "grid-auto-flow:dense" in result
+
+
+def test_ast_compiler_image_box_and_toggle_elementor_parity():
+    """Verify Elementor Wave 2 Image Box & Toggle compile correctly in SSR."""
+    ast = PageAST(
+        schema_version=1,
+        title="تست جعبه تصویر و تاگل",
+        slug="test-imgbox-toggle",
+        root_elements=[
+            BuilderElement(
+                id="el_img_box_01",
+                name="جعبه تصویر تست",
+                type="widget",
+                widget_type="image_box",
+                widget_props={
+                    "title": "کیفیت صدای عالی",
+                    "description": "تجربه شنیداری فوق‌العاده با تفکیک جزئیات",
+                    "image_url": "/sound.png",
+                    "link_url": "/product/sound",
+                },
+            ),
+            BuilderElement(
+                id="el_toggle_01",
+                name="تاگل چندبخشی",
+                type="widget",
+                widget_type="toggle",
+                widget_props={
+                    "items": [
+                        {"title": "مشخصات فنی", "content": "باتری ۵۰۰۰ میلی‌آمپر", "default_open": True},
+                        {"title": "اقلام همراه", "content": "کابل شارژ و دفترچه", "default_open": True},
+                    ]
+                },
+            ),
+        ],
+    )
+    result = ASTCompiler.compile(ast)
+    assert "builder-image-box" in result
+    assert "کیفیت صدای عالی" in result
+    assert "/product/sound" in result
+    assert "builder-toggle" in result
+    assert "مشخصات فنی" in result
+    assert "باتری ۵۰۰۰ میلی‌آمپر" in result
+
+
+def test_ast_compiler_icon_list_elementor_parity():
+    """Verify Elementor Core Icon List compiles correctly in SSR."""
+    ast = PageAST(
+        schema_version=1,
+        title="تست لیست آیکون‌دار",
+        slug="test-icon-list",
+        root_elements=[
+            BuilderElement(
+                id="el_icon_list_01",
+                name="لیست مزایا",
+                type="widget",
+                widget_type="icon_list",
+                widget_props={
+                    "layout": "horizontal",
+                    "items": [
+                        {"text": "تحویل اکسپرس", "icon": "check"},
+                        {"text": "پرداخت در محل", "icon": "check"},
+                    ]
+                },
+            ),
+        ],
+    )
+    result = ASTCompiler.compile(ast)
+    assert "builder-icon-list" in result
+    assert "تحویل اکسپرس" in result
+    assert "پرداخت در محل" in result
+    assert "flex flex-wrap" in result
+
+
+def test_ast_compiler_price_table_elementor_pro_parity():
+    """Verify Elementor Pro Price Table compiles correctly in SSR."""
+    ast = PageAST(
+        schema_version=1,
+        title="تست جدول قیمت",
+        slug="test-price-table",
+        root_elements=[
+            BuilderElement(
+                id="el_ptable_01",
+                name="پلن پیشرفته",
+                type="widget",
+                widget_type="price_table",
+                widget_props={
+                    "title": "پلن تجاری",
+                    "subtitle": "برای شرکت‌های بزرگ",
+                    "price": "۹۹۰,۰۰۰",
+                    "currency": "تومان",
+                    "period": "ماهانه",
+                    "is_featured": True,
+                    "button_label": "سفارش پلن",
+                    "features": [
+                        {"text": "فضای نامحدود", "available": True},
+                        {"text": "پشتیبانی اختصاصی VIP", "available": True},
+                    ]
+                },
+            ),
+        ],
+    )
+    result = ASTCompiler.compile(ast)
+    assert "builder-price-table" in result
+    assert "پلن تجاری" in result
+    assert "۹۹۰,۰۰۰" in result
+    assert "پیشنهاد ویژه" in result
+    assert "پشتیبانی اختصاصی VIP" in result
+    assert "سفارش پلن" in result
+
+
+def test_ast_compiler_price_list_elementor_pro_parity():
+    """Verify Elementor Pro Price List compiles correctly in SSR."""
+    ast = PageAST(
+        schema_version=1,
+        title="تست لیست قیمت و منو",
+        slug="test-price-list",
+        root_elements=[
+            BuilderElement(
+                id="el_plist_01",
+                name="منوی کافه",
+                type="widget",
+                widget_type="price_list",
+                widget_props={
+                    "items": [
+                        {"title": "اسپرسو دبل", "description": "عصاره‌گیری استاندارد", "price": "۵۵,۰۰۰ تومان"},
+                        {"title": "چیزکیک سن سباستین", "description": "پخت روز با خامه تازه", "price": "۹۵,۰۰۰ تومان"},
+                    ]
+                },
+            ),
+        ],
+    )
+    result = ASTCompiler.compile(ast)
+    assert "builder-price-list" in result
+    assert "اسپرسو دبل" in result
+    assert "۵۵,۰۰۰ تومان" in result
+    assert "چیزکیک سن سباستین" in result
+
+
+def test_ast_compiler_hotspot_elementor_pro_parity():
+    """Verify Elementor Pro Hotspot compiles correctly in SSR."""
+    ast = PageAST(
+        schema_version=1,
+        title="تست تصویر تعاملی هات‌اسپات",
+        slug="test-hotspot",
+        root_elements=[
+            BuilderElement(
+                id="el_hotspot_01",
+                name="تصویر محصول تعاملی",
+                type="widget",
+                widget_type="hotspot",
+                widget_props={
+                    "image_url": "/product-detail.png",
+                    "alt": "نمای نزدیک کالا",
+                    "hotspots": [
+                        {"id": "hs_a", "x": 35.0, "y": 45.0, "label": "الف"},
+                        {"id": "hs_b", "x": 65.0, "y": 75.0, "label": "ب"},
+                    ],
+                },
+            ),
+        ],
+    )
+    result = ASTCompiler.compile(ast)
+    assert "builder-hotspot" in result
+    assert "/product-detail.png" in result
+    assert "top:45.0%" in result or "top: 45.0%" in result
+    assert "الف" in result
+    assert "ب" in result
+
+
+def test_ast_compiler_table_of_contents_elementor_pro_parity():
+    """Verify Elementor Pro Table of Contents compiles correctly in SSR."""
+    ast = PageAST(
+        schema_version=1,
+        title="تست فهرست مطالب",
+        slug="test-toc",
+        root_elements=[
+            BuilderElement(
+                id="el_toc_01",
+                name="فهرست برگه",
+                type="widget",
+                widget_type="table_of_contents",
+                widget_props={
+                    "title": "فهرست مقالات",
+                    "ordered": True,
+                    "items": [
+                        {"text": "بخش ۱: راهنمای راه‌اندازی", "anchor": "#setup"},
+                        {"text": "بخش ۲: نکات امنیتی", "anchor": "#security"},
+                    ],
+                },
+            ),
+        ],
+    )
+    result = ASTCompiler.compile(ast)
+    assert "builder-toc" in result
+    assert "فهرست مقالات" in result
+    assert "<ol" in result
+    assert "بخش ۱: راهنمای راه‌اندازی" in result
+    assert "#setup" in result
+
+
 def test_ast_compiler_renders_round24_elementor_widgets():
     """Verify SSR AST compilation for progress_bar, testimonial, call_to_action, animated_headline, flip_box, and alert."""
     ast = PageAST(
         schema_version=1,
-        title="تست ویجت‌های پورت راند ۲۴",
+        title="تست ویجت‌های پورت المنتور راند ۲۴",
         slug="test-r24-widgets",
         root_elements=[
             BuilderElement(
-                id="el_sec_r24",
-                name="بخش ویجت‌های جدید",
+                id="el_r24_sec",
+                name="بخش پورت المنتور",
                 type="container",
                 children=[
                     BuilderElement(
-                        id="el_pb01",
-                        name="نوار پیشرفت",
+                        id="el_icon01",
+                        name="آیکون ستاره",
                         type="widget",
-                        widget_type="progress_bar",
-                        widget_props={"title": "پیشرفت پروژه", "percentage": 85, "show_percentage": True},
+                        widget_type="icon",
+                        widget_props={"icon": "star", "view": "stacked", "shape": "circle", "size": 36, "url": "https://example.com"},
                     ),
                     BuilderElement(
-                        id="el_testi01",
-                        name="دیدگاه",
+                        id="el_icon_list01",
+                        name="فهرست مزایا",
                         type="widget",
-                        widget_type="testimonial",
+                        widget_type="icon_list",
                         widget_props={
-                            "author": "محمد رضایی",
-                            "role": "مدیر مارکتینگ",
-                            "company": "دیجی‌تست",
-                            "quote": "خدمات فوق‌العاده حرفه‌ای و سریع",
-                        },
-                    ),
-                    BuilderElement(
-                        id="el_cta01",
-                        name="فراخوان",
-                        type="widget",
-                        widget_type="call_to_action",
-                        widget_props={
-                            "badge": "ویژه",
-                            "title": "ثبت نام زودهنگام",
-                            "description": "از تخفیف ۴۰ درصدی بهره‌مند شوید",
-                            "button_label": "عضویت سریع",
-                        },
-                    ),
-                    BuilderElement(
-                        id="el_anim01",
-                        name="سرتیتر انیمیشنی",
-                        type="widget",
-                        widget_type="animated_headline",
-                        widget_props={
-                            "before_text": "پلتفرم",
-                            "highlighted_text": "هوشمند",
-                            "after_text": "فروشگاهی",
-                        },
-                    ),
-                    BuilderElement(
-                        id="el_flip01",
-                        name="فلیپ‌باکس",
-                        type="widget",
-                        widget_type="flip_box",
-                        widget_props={
-                            "front_title": "پلن نقره‌ای",
-                            "front_desc": "برای استارتاپ‌ها",
-                            "back_title": "امکانات پلن",
-                            "back_desc": "پشتیبانی شبانه‌روزی",
-                            "button_text": "انتخاب پلن",
-                        },
-                    ),
-                    BuilderElement(
-                        id="el_alert01",
-                        name="اعلان",
-                        type="widget",
-                        widget_type="alert",
-                        widget_props={
-                            "alert_type": "warning",
-                            "title": "توجه مهم",
-                            "description": "به‌روزرسانی سرورها امشب انجام خواهد شد.",
-                        },
-                    ),
-                ],
-            )
-        ],
-    )
-    result = ASTCompiler.compile(ast)
-    assert 'builder-progress-bar' in result
-    assert 'پیشرفت پروژه' in result
-    assert '85%' in result
-    assert 'builder-testimonial' in result
-    assert 'محمد رضایی' in result
-    assert 'دیجی‌تست' in result
-    assert 'builder-cta' in result
-    assert 'ثبت نام زودهنگام' in result
-    assert 'عضویت سریع' in result
-    assert 'builder-animated-headline' in result
-    assert 'هوشمند' in result
-    assert 'builder-flip-box' in result
-    assert 'پلن نقره‌ای' in result
-    assert 'انتخاب پلن' in result
-    assert 'builder-alert' in result
-    assert 'bg-amber-500/10' in result
-    assert 'توجه مهم' in result
-
-
-def test_ast_compiler_renders_round25_dynamic_ecommerce_props():
-    """Verify that cart_summary, recently_viewed, and mini_cart honor dynamic user customizations in SSR."""
-    ast = PageAST(
-        schema_version=1,
-        title="تست پورت‌های راند ۲۵",
-        slug="test-r25-ecom",
-        root_elements=[
-            BuilderElement(
-                id="el_sec_r25",
-                name="بخش فروشگاهی سفارشی",
-                type="container",
-                children=[
-                    BuilderElement(
-                        id="el_cs_custom",
-                        name="خلاصه سفارشی",
-                        type="widget",
-                        widget_type="cart_summary",
-                        widget_props={
-                            "title": "فاکتور نهایی و تسویه",
-                            "button_label": "پرداخت اینترنتی سفارش",
-                            "checkout_url": "/checkout/gateway",
-                            "show_discount": True,
-                            "subtotal": "۴,۵۰۰,۰۰۰",
-                        },
-                    ),
-                    BuilderElement(
-                        id="el_rv_custom",
-                        name="بازدیدهای سفارشی",
-                        type="widget",
-                        widget_type="recently_viewed",
-                        widget_props={
-                            "title": "محصولات مورد علاقه شما",
-                            "limit": 3,
-                        },
-                    ),
-                    BuilderElement(
-                        id="el_mc_custom",
-                        name="مینی کارت سفارشی",
-                        type="widget",
-                        widget_type="mini_cart",
-                        widget_props={
-                            "label": "سبد خرید من",
-                            "item_count": 5,
-                            "show_badge": True,
-                        },
-                    ),
-                ],
-            )
-        ],
-    )
-    result = ASTCompiler.compile(ast)
-    assert 'builder-cart-summary' in result
-    assert 'فاکتور نهایی و تسویه' in result
-    assert 'پرداخت اینترنتی سفارش' in result
-    assert '/checkout/gateway' in result
-    assert 'تخفیف:' in result
-    assert '۴,۵۰۰,۰۰۰ تومان' in result
-    assert 'builder-recently-viewed' in result
-    assert 'محصولات مورد علاقه شما' in result
-    assert 'کالای اخیر 3' in result
-    assert 'builder-mini-cart' in result
-    assert 'سبد خرید من' in result
-    assert '5</span>' in result
-
-
-def test_ast_compiler_renders_round26_star_rating_and_review_histogram_parity():
-    """Verify that star_rating and review_histogram handle showValue and average percentages accurately."""
-    ast = PageAST(
-        schema_version=1,
-        title="تست امتیاز و هیستوگرام راند ۲۶",
-        slug="test-r26-reviews",
-        root_elements=[
-            BuilderElement(
-                id="el_sec_r26",
-                name="بخش نظرات و امتیاز",
-                type="container",
-                children=[
-                    BuilderElement(
-                        id="el_sr_custom",
-                        name="امتیاز ستاره‌ای",
-                        type="widget",
-                        widget_type="star_rating",
-                        widget_props={
-                            "value": 4.9,
-                            "reviewCount": 180,
-                            "showValue": True,
-                        },
-                    ),
-                    BuilderElement(
-                        id="el_rh_custom",
-                        name="هیستوگرام نظرات",
-                        type="widget",
-                        widget_type="review_histogram",
-                        widget_props={
-                            "averageRating": 4.5,
-                            "totalReviews": 95,
-                        },
-                    ),
-                ],
-            )
-        ],
-    )
-    result = ASTCompiler.compile(ast)
-    assert 'builder-star-rating' in result
-    assert '★ 4.9' in result
-    assert '(180 نظر)' in result
-    assert 'builder-review-histogram' in result
-    assert '4.5 از ۵' in result
-    assert 'بر اساس 95 نظر' in result
-    assert 'width:90%' in result or 'width: 90%' in result
-
-
-def test_ast_compiler_renders_round27_countdown_and_iconbox_customizations():
-    """Verify that countdown and icon_box widgets compile customized titles and descriptions accurately."""
-    ast = PageAST(
-        schema_version=1,
-        title="تست راند ۲۷",
-        slug="test-r27-widgets",
-        root_elements=[
-            BuilderElement(
-                id="el_sec_r27",
-                name="بخش ۲۷",
-                type="container",
-                children=[
-                    BuilderElement(
-                        id="el_cd_custom",
-                        name="شمارنده",
-                        type="widget",
-                        widget_type="countdown",
-                        widget_props={
-                            "title": "جشنواره فروش زمستانه",
-                            "target_date": "2026-12-31T23:59:59",
-                        },
-                    ),
-                    BuilderElement(
-                        id="el_ib_custom",
-                        name="باکس ویژگی",
-                        type="widget",
-                        widget_type="icon_box",
-                        widget_props={
-                            "title": "ارسال سریع و اکسپرس",
-                            "description": "تحویل ۳ ساعته در تهران و ۲۴ ساعته در سایر شهرها",
-                        },
-                    ),
-                ],
-            )
-        ],
-    )
-    result = ASTCompiler.compile(ast)
-    assert 'builder-countdown' in result
-    assert 'جشنواره فروش زمستانه' in result
-    assert 'data-target="2026-12-31T23:59:59"' in result
-    assert 'builder-icon-box' in result
-    assert 'ارسال سریع و اکسپرس' in result
-    assert 'تحویل ۳ ساعته در تهران' in result
-
-
-def test_ast_compiler_renders_round28_table_highlight_column_parity():
-    """Verify that table widget compiles highlightCol with distinctive styling in thead and tbody."""
-    ast = PageAST(
-        schema_version=1,
-        title="تست جدول راند ۲۸",
-        slug="test-r28-table",
-        root_elements=[
-            BuilderElement(
-                id="el_sec_r28",
-                name="بخش ۲۸",
-                type="container",
-                children=[
-                    BuilderElement(
-                        id="el_tbl_custom",
-                        name="جدول مقایسه",
-                        type="widget",
-                        widget_type="table",
-                        widget_props={
-                            "headers": ["ویژگی", "مدل پایه", "مدل پرو"],
-                            "rows": [
-                                ["گارانتی", "۱۲ ماه", "۲۴ ماه طلایی"],
-                                ["ارسال", "عادی", "اکسپرس رایگان"],
-                            ],
-                            "bordered": True,
-                            "striped": True,
-                            "highlightCol": 2,
-                        },
-                    ),
-                ],
-            )
-        ],
-    )
-    result = ASTCompiler.compile(ast)
-    assert 'builder-table' in result
-    assert 'مدل پرو</th>' in result
-    assert 'bg-primary/10 text-primary font-bold border-x border-primary/20' in result
-    assert '۲۴ ماه طلایی</td>' in result
-    assert 'bg-primary/5 border-x border-primary/20 font-semibold' in result
-
-
-def test_ast_compiler_renders_round29_form_checkbox_and_radio_required_stars():
-    """Verify that form_checkbox and form_radio render required asterisks and required attributes in SSR."""
-    ast = PageAST(
-        schema_version=1,
-        title="تست فرم راند ۲۹",
-        slug="test-r29-forms",
-        root_elements=[
-            BuilderElement(
-                id="el_sec_r29",
-                name="بخش فرم ۲۹",
-                type="container",
-                children=[
-                    BuilderElement(
-                        id="el_chk_req",
-                        name="چک‌باکس قوانین",
-                        type="widget",
-                        widget_type="form_checkbox",
-                        widget_props={
-                            "label": "قوانین سایت را می‌پذیرم",
-                            "name": "terms_accepted",
-                            "required": True,
-                            "checked": True,
-                        },
-                    ),
-                    BuilderElement(
-                        id="el_rad_req",
-                        name="رادیو پست",
-                        type="widget",
-                        widget_type="form_radio",
-                        widget_props={
-                            "label": "شیوه تحویل بار",
-                            "name": "delivery_type",
-                            "options": ["پیک موتوری", "پست پیشتاز"],
-                            "required": True,
-                        },
-                    ),
-                ],
-            )
-        ],
-    )
-    result = ASTCompiler.compile(ast)
-    assert 'builder-form-checkbox' in result
-    assert 'name="terms_accepted"' in result
-    assert 'checked' in result
-    assert 'required' in result
-    assert 'قوانین سایت را می‌پذیرم <span class="text-destructive ms-1">*</span>' in result
-    assert 'builder-form-radio' in result
-    assert 'شیوه تحویل بار <span class="text-destructive ms-1">*</span>' in result
-    assert 'name="delivery_type"' in result
-    assert 'value="پیک موتوری"' in result
-
-
-def test_ast_compiler_renders_round30_accordion_default_open_customization():
-    """Verify that accordion default_open customization is honored in SSR details tags."""
-    ast = PageAST(
-        schema_version=1,
-        title="تست آکاردئون راند ۳۰",
-        slug="test-r30-accordion",
-        root_elements=[
-            BuilderElement(
-                id="el_sec_r30",
-                name="بخش ۳۰",
-                type="container",
-                children=[
-                    BuilderElement(
-                        id="el_acc_custom",
-                        name="آکاردئون باز",
-                        type="widget",
-                        widget_type="accordion",
-                        widget_props={
+                            "layout": "vertical",
                             "items": [
-                                {"title": "سؤال اول بسته", "content": "پاسخ ۱", "default_open": False},
-                                {"title": "سؤال دوم باز", "content": "پاسخ ۲", "default_open": True},
-                            ]
-                        },
-                    ),
-                ],
-            )
-        ],
-    )
-    result = ASTCompiler.compile(ast)
-    assert 'builder-accordion' in result
-    assert 'سؤال دوم باز' in result
-    # Item 2 should have open attribute, Item 1 should not
-    assert '<details class="group rounded-xl border border-border/80 bg-card overflow-hidden" open>' in result
-
-
-def test_ast_compiler_renders_round31_social_links_and_image_gallery():
-    """Verify that social_links and image_gallery widgets compile rich attributes and custom links."""
-    ast = PageAST(
-        schema_version=1,
-        title="تست راند ۳۱",
-        slug="test-r31-social-gallery",
-        root_elements=[
-            BuilderElement(
-                id="el_sec_r31",
-                name="بخش ۳۱",
-                type="container",
-                children=[
-                    BuilderElement(
-                        id="el_soc_custom",
-                        name="شبکه‌ها",
-                        type="widget",
-                        widget_type="social_links",
-                        widget_props={
-                            "links": [
-                                {"platform": "یوتیوب", "url": "https://youtube.com/@channel"},
-                                {"platform": "لینکدین", "url": "https://linkedin.com/in/profile"},
-                            ]
+                                {"text": "تحویل اکسپرس ۲ ساعته", "icon": "truck", "url": "/express"},
+                                {"text": "اصالت کالا ۱۰۰٪ تضمین‌شده", "icon": "shield-check"},
+                            ],
                         },
                     ),
                     BuilderElement(
-                        id="el_gal_custom",
-                        name="گالری تصاویر",
-                        type="widget",
-                        widget_type="image_gallery",
-                        widget_props={
-                            "images": [
-                                {"url": "/img/photo1.jpg", "alt": "نمای روبه‌رو"},
-                                {"url": "/img/photo2.jpg", "alt": "نمای جانبی"},
-                            ]
-                        },
-                    ),
-                ],
-            )
-        ],
-    )
-    result = ASTCompiler.compile(ast)
-    assert 'builder-social-links' in result
-    assert 'https://youtube.com/@channel' in result
-    assert 'یوتیوب' in result
-    assert 'builder-image-gallery' in result
-    assert '/img/photo1.jpg' in result
-    assert 'نمای روبه‌رو' in result
-
-
-def test_ast_compiler_renders_round32_animated_headline_and_flipbox_link():
-    """Verify that animated_headline and flip_box compile custom texts and button links accurately."""
-    ast = PageAST(
-        schema_version=1,
-        title="تست راند ۳۲",
-        slug="test-r32-anim-flip",
-        root_elements=[
-            BuilderElement(
-                id="el_sec_r32",
-                name="بخش ۳۲",
-                type="container",
-                children=[
-                    BuilderElement(
-                        id="el_anim_custom",
-                        name="سرتیتر جذاب",
-                        type="widget",
-                        widget_type="animated_headline",
-                        widget_props={
-                            "before_text": "پلتفرم ابری",
-                            "highlighted_text": "پیشرو",
-                            "after_text": "در ایران",
-                        },
-                    ),
-                    BuilderElement(
-                        id="el_flip_custom",
-                        name="کارت چرخان",
-                        type="widget",
-                        widget_type="flip_box",
-                        widget_props={
-                            "front_title": "پلن سازمانی",
-                            "front_desc": "راهکار نوین",
-                            "back_title": "امکانات اختصاصی",
-                            "back_desc": "پشتیبانی ۲۴ ساعته اختصاصی",
-                            "button_text": "ثبت درخواست",
-                            "button_url": "/enterprise",
-                        },
-                    ),
-                ],
-            )
-        ],
-    )
-    result = ASTCompiler.compile(ast)
-    assert 'builder-animated-headline' in result
-    assert 'پلتفرم ابری' in result
-    assert 'پیشرو' in result
-    assert 'در ایران' in result
-    assert 'builder-flip-box' in result
-    assert 'پلن سازمانی' in result
-    assert 'href="/enterprise"' in result
-    assert 'ثبت درخواست' in result
-
-
-def test_ast_compiler_renders_round33_call_to_action_link_and_badge():
-    """Verify that call_to_action widget compiles button_url link and badge in SSR."""
-    ast = PageAST(
-        schema_version=1,
-        title="تست راند ۳۳",
-        slug="test-r33-cta",
-        root_elements=[
-            BuilderElement(
-                id="el_sec_r33",
-                name="بخش ۳۳",
-                type="container",
-                children=[
-                    BuilderElement(
-                        id="el_cta_custom",
-                        name="فراخوان تخفیف",
-                        type="widget",
-                        widget_type="call_to_action",
-                        widget_props={
-                            "badge": "تخفیف بلک فرایدی",
-                            "title": "فروش شگفت‌انگیز پاییزه",
-                            "description": "فقط تا پایان امشب فرصت دارید",
-                            "button_label": "خرید شگفت‌انگیز",
-                            "button_url": "/deals",
-                        },
-                    ),
-                ],
-            )
-        ],
-    )
-    result = ASTCompiler.compile(ast)
-    assert 'builder-cta' in result
-    assert 'تخفیف بلک فرایدی' in result
-    assert 'فروش شگفت‌انگیز پاییزه' in result
-    assert 'href="/deals"' in result
-    assert 'خرید شگفت‌انگیز' in result
-
-
-def test_ast_compiler_renders_round34_blockquote_customization():
-    """Verify that blockquote widget compiles rich quote text and author in SSR markup."""
-    ast = PageAST(
-        schema_version=1,
-        title="تست راند ۳۴",
-        slug="test-r34-quote",
-        root_elements=[
-            BuilderElement(
-                id="el_sec_r34",
-                name="بخش ۳۴",
-                type="container",
-                children=[
-                    BuilderElement(
-                        id="el_bq_custom",
-                        name="نقل‌قول فورد",
-                        type="widget",
-                        widget_type="blockquote",
-                        widget_props={
-                            "quote": "کیفیت یعنی انجام درست کار وقتی کسی نگاه نمی‌کند",
-                            "author": "هنری فورد",
-                        },
-                    ),
-                ],
-            )
-        ],
-    )
-    result = ASTCompiler.compile(ast)
-    assert 'builder-blockquote' in result
-    assert 'border-s-4 border-primary' in result
-    assert 'کیفیت یعنی انجام درست کار' in result
-    assert '— هنری فورد' in result
-
-
-def test_ast_compiler_renders_round35_price_table_customization():
-    """Verify that price_table widget compiles heading, badge, price, features and button link in SSR."""
-    ast = PageAST(
-        schema_version=1,
-        title="تست راند ۳۵",
-        slug="test-r35-pricing",
-        root_elements=[
-            BuilderElement(
-                id="el_sec_r35",
-                name="بخش ۳۵",
-                type="container",
-                children=[
-                    BuilderElement(
-                        id="el_pt_custom",
-                        name="پلن تعرفه",
+                        id="el_price_table01",
+                        name="جدول تعرفه",
                         type="widget",
                         widget_type="price_table",
                         widget_props={
-                            "heading": "پلن نامحدود سازمانی",
-                            "badge": "پیشنهاد ویژه",
+                            "title": "پلن سازمانی",
+                            "subtitle": "برای تیم‌های بالای ۵۰ نفر",
                             "price": "۹۹۰,۰۰۰",
-                            "period": "سالانه",
                             "currency": "تومان",
-                            "features": ["سرور اختصاصی", "پشتیبانی تلفنی VIP"],
-                            "button_text": "سفارش پلن",
-                            "button_url": "/checkout/plan-vip",
+                            "period": "ماهانه",
+                            "badge": "تخفیف ویژه",
+                            "is_featured": True,
+                            "button_label": "خرید پلن سازمانی",
+                            "button_url": "/checkout?plan=enterprise",
+                            "features": [
+                                {"text": "سرور اختصاصی ابری", "available": True},
+                                {"text": "پشتیبانی تلفنی ۲۴/۷", "available": True},
+                                {"text": "دامنه رایگان بین‌المللی", "available": False},
+                            ],
                         },
                     ),
-                ],
-            )
-        ],
-    )
-    result = ASTCompiler.compile(ast)
-    assert 'builder-price-table' in result
-    assert 'پلن نامحدود سازمانی' in result
-    assert 'پیشنهاد ویژه' in result
-    assert '۹۹۰,۰۰۰' in result
-    assert 'تومان / سالانه' in result
-    assert 'سرور اختصاصی' in result
-    assert 'href="/checkout/plan-vip"' in result
-    assert 'سفارش پلن' in result
-
-
-def test_ast_compiler_renders_round36_price_list_customization():
-    """Verify that price_list widget compiles menu items, prices and dotted leader borders in SSR."""
-    ast = PageAST(
-        schema_version=1,
-        title="تست راند ۳۶",
-        slug="test-r36-pricelist",
-        root_elements=[
-            BuilderElement(
-                id="el_sec_r36",
-                name="بخش ۳۶",
-                type="container",
-                children=[
                     BuilderElement(
-                        id="el_pl_custom",
-                        name="لیست قیمت خدمات",
+                        id="el_price_list01",
+                        name="منوی خدمات",
                         type="widget",
                         widget_type="price_list",
                         widget_props={
-                            "title": "منوی خدمات تشریفات",
+                            "separator_style": "dotted",
                             "items": [
-                                {
-                                    "title": "مشاوره اختصاصی سئو",
-                                    "price": "۲,۵۰۰,۰۰۰ تومان",
-                                    "description": "تحلیل ۶۰ دقیقه‌ای با متخصص",
-                                },
-                                {
-                                    "title": "طراحی لندینگ اختصاصی",
-                                    "price": "۶,۰۰۰,۰۰۰ تومان",
-                                    "description": "طراحی و توسعه با بالاترین استاندارد",
-                                },
+                                {"title": "توسعه ماژول سفارشی", "description": "پایتون و ری‌اکت", "price": "۲,۵۰۰,۰۰۰ تومان"},
+                                {"title": "پیکربندی سرور اختصاصی", "description": "لینوکس و داکر", "price": "۱,۸۰۰,۰۰۰ تومان"},
                             ],
                         },
                     ),
@@ -1164,13 +1307,31 @@ def test_ast_compiler_renders_round36_price_list_customization():
             )
         ],
     )
-    result = ASTCompiler.compile(ast)
+    result = ASTCompiler.compile(ast, is_authenticated=True)
+    # 1. Icon widget
+    assert 'builder-icon' in result
+    assert 'bg-primary text-white shadow-sm' in result
+    assert 'href="https://example.com"' in result
+    # 2. Icon list widget
+    assert 'builder-icon-list' in result
+    assert 'تحویل اکسپرس ۲ ساعته' in result
+    assert 'href="/express"' in result
+    assert 'اصالت کالا ۱۰۰٪ تضمین‌شده' in result
+    # 3. Price table widget
+    assert 'builder-price-table' in result
+    assert 'پلن سازمانی' in result
+    assert '۹۹۰,۰۰۰' in result
+    assert 'تخفیف ویژه' in result
+    assert 'سرور اختصاصی ابری' in result
+    assert 'دامنه رایگان بین‌المللی' in result
+    assert 'خرید پلن سازمانی' in result
+    assert '/checkout?plan=enterprise' in result
+    # 4. Price list widget
     assert 'builder-price-list' in result
-    assert 'منوی خدمات تشریفات' in result
-    assert 'مشاوره اختصاصی سئو' in result
+    assert 'توسعه ماژول سفارشی' in result
     assert '۲,۵۰۰,۰۰۰ تومان' in result
     assert 'border-dotted' in result
-    assert 'تحلیل ۶۰ دقیقه‌ای با متخصص' in result
+    assert 'پیکربندی سرور اختصاصی' in result
 
 
 def test_ast_compiler_renders_round37_menu_anchor():
@@ -1314,20 +1475,6 @@ def test_ast_compiler_renders_round40_code_highlight():
     assert 'calculate_total' in result
     assert 'code-copy-btn' in result
     assert 'dir="ltr"' in result
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

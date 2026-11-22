@@ -57,28 +57,27 @@ test.describe("Builder Wave 1: Elementor Parity (Transform, Mask & Shape Divider
     await page.waitForTimeout(1500);
 
     const frame = page.frameLocator('iframe[title="Visual Builder Canvas"]');
-    const headingEl = frame.locator('[data-element-id="el_e2ehead1"]').first();
+    const headingEl = frame.locator('[data-element-id="el_e2ehead1"], [data-widget-type="heading"]').first();
     await expect(headingEl).toBeVisible();
     await headingEl.click();
     await page.waitForTimeout(400);
 
     // Switch to Advanced Tab
-    const advTab = page.locator('button[data-state]:has-text("پیشرفته"), button:has-text("پیشرفته")').first();
-    if (await advTab.isVisible()) {
-      await advTab.click();
-      await page.waitForTimeout(400);
-    }
+    const advTab = page.locator('button:has-text("پیشرفته")').first();
+    await expect(advTab).toBeVisible();
+    await advTab.click();
+    await page.waitForTimeout(400);
 
     // Input rotate deg
-    const rotateInput = page.locator('input[type="number"][dir="ltr"]').first();
+    const rotateInput = page.locator('[data-testid="transform-rotate-input"]').first();
     if (await rotateInput.isVisible()) {
       await rotateInput.fill("15");
       await page.waitForTimeout(400);
-
-      // Check live canvas element style
-      const transformStyle = await headingEl.evaluate((el) => window.getComputedStyle(el).transform);
-      expect(transformStyle).not.toBe("none");
     }
+
+    // Check live canvas element style
+    const transformStyle = await headingEl.evaluate((el) => window.getComputedStyle(el).transform);
+    expect(transformStyle).not.toBe("none");
   });
 
   test("2. Shape Divider Top renders SVG path on container element without DOM error", async ({ page }) => {

@@ -1,0 +1,31 @@
+{
+  "round": "15",
+  "stage": "before",
+  "timestamp": "2026-11-22T02:40:00.000Z",
+  "defectsIdentified": [
+    {
+      "id": "DEF-01-TOOLBAR-DUPLICATE-SHORTCUTS",
+      "severity": "P1",
+      "description": "Double 'میانبرها' button rendered in builder-toolbar.tsx (data-testid='hotkeys-btn' and 'shortcuts-help-btn').",
+      "visualProof": "01-studio-initial.png"
+    },
+    {
+      "id": "DEF-02-INSPECTOR-DUPLICATE-CONTROLS",
+      "severity": "P1",
+      "description": "Transform and Mask control blocks were duplicated twice in the Advanced tab of inspector-panel.tsx.",
+      "visualProof": "03-advanced-tab-before.png"
+    },
+    {
+      "id": "DEF-03-CANVAS-TRANSFORM-MASK-DISCONNECTED",
+      "severity": "P0",
+      "description": "Active Nudge test of rotate/scale/mask in Inspector had zero effect on Canvas due to missing styleObj wiring in canvas-element.tsx.",
+      "visualProof": "02-element-selected.png"
+    },
+    {
+      "id": "DEF-04-SSR-HTML-SANITIZER-BLEACH-STRIP",
+      "severity": "P0",
+      "description": "html_sanitizer.py CSS allowlist stripped transform, mask-image, clip-path and backdrop-filter during AST compilation.",
+      "visualProof": "ast_compiler.py compile failure"
+    }
+  ]
+}

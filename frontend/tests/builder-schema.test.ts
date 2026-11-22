@@ -270,4 +270,95 @@ describe("Visual Page Builder Zod Schema and AST Validation (Phase P0)", () => {
     expect(resolveResponsiveValue(fullValues, "tablet")).toBe("24px");
     expect(resolveResponsiveValue(fullValues, "desktop")).toBe("40px");
   });
+
+  it("validates Elementor Wave 1 transform and mask schema attributes", () => {
+    const elementWithTransform: BuilderElement = {
+      id: "el_tf_test",
+      name: "عنصر تبدیل",
+      type: "widget",
+      widgetType: "heading",
+      widgetProps: { text: "تست" },
+      isLocked: false,
+      isHidden: false,
+      styles: {
+        mobile: {
+          transform: {
+            rotate: 45,
+            scale: 1.2,
+            skewX: 10,
+            skewY: 5,
+            translateX: 20,
+            translateY: -10,
+            flipX: true,
+            flipY: false,
+          },
+          typography: {
+            textShadow: "0 2px 4px rgba(0,0,0,0.5)",
+          },
+          mask: {
+            shape: "flower",
+            size: "contain",
+            position: "center",
+            repeat: "no-repeat",
+          },
+        },
+      },
+      children: [],
+    };
+
+    const astWithTransform: PageAST = {
+      schemaVersion: 1,
+      title: "تست ترنسفورم",
+      slug: "test-tf",
+      rootElements: [elementWithTransform],
+    };
+
+    const parsed = PageASTSchema.safeParse(astWithTransform);
+    expect(parsed.success).toBe(true);
+    if (parsed.success && parsed.data.rootElements[0]) {
+      const el = parsed.data.rootElements[0];
+      expect(el.styles.mobile.transform?.rotate).toBe(45);
+      expect(el.styles.mobile.transform?.scale).toBe(1.2);
+      expect(el.styles.mobile.transform?.flipX).toBe(true);
+      expect(el.styles.mobile.mask?.shape).toBe("flower");
+      expect(el.styles.mobile.typography?.textShadow).toBe("0 2px 4px rgba(0,0,0,0.5)");
+    }
+  });
+
+  it("validates Elementor Grid Container with gridAutoFlow", () => {
+    const gridContainer: BuilderElement = {
+      id: "cont_grid_test",
+      name: "کانتینر شبکه",
+      type: "container",
+      layout: {
+        kind: "grid",
+        direction: "row",
+        justifyContent: "start",
+        alignItems: "stretch",
+        flexWrap: "nowrap",
+        gap: { value: 20, unit: "px" },
+        gridColumns: 4,
+        gridAutoFlow: "row dense",
+      },
+      isLocked: false,
+      isHidden: false,
+      styles: { mobile: {} },
+      children: [],
+    };
+
+    const parsed = PageASTSchema.safeParse({
+      schemaVersion: 1,
+      title: "تست گرید",
+      slug: "test-grid",
+      rootElements: [gridContainer],
+    });
+
+    expect(parsed.success).toBe(true);
+    if (parsed.success && parsed.data.rootElements[0]) {
+      const el = parsed.data.rootElements[0];
+      expect(el.layout?.kind).toBe("grid");
+      expect(el.layout?.gridColumns).toBe(4);
+      expect(el.layout?.gridAutoFlow).toBe("row dense");
+    }
+  });
 });

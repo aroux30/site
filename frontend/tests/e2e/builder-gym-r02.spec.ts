@@ -3,7 +3,7 @@ import path from "node:path";
 import fs from "node:fs";
 import { execSync } from "node:child_process";
 
-const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || "http://127.0.0.1:3000";
+const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || "http://127.0.0.1:3400";
 const BACKEND_DIR = path.resolve("C:/Users/Administrator/Desktop/site/backend");
 
 function getAdminToken() {
@@ -50,6 +50,7 @@ test.describe("Builder Gym Round 02: Weight 2 (Blocks & Patterns Regression)", (
 
   test("1. Blocks search and category filtering", async ({ page }) => {
     await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(1500);
     const searchInput = page.locator("input[placeholder*='جستجو']").first();
     await searchInput.fill("کانتینر");
     await page.waitForTimeout(400);
@@ -60,15 +61,16 @@ test.describe("Builder Gym Round 02: Weight 2 (Blocks & Patterns Regression)", (
 
   test("2. Pattern insertion renders typed AST with custom button styles", async ({ page }) => {
     await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
-    await page.waitForTimeout(1000);
+    await page.waitForTimeout(1500);
 
     // Switch to patterns tab
-    const patternsTab = page.locator("button:has-text('الگوها')").first();
+    const patternsTab = page.locator('[data-testid="patterns-tab-btn"], button:has-text("الگوها")').first();
+    await patternsTab.waitFor({ state: "visible", timeout: 15000 });
     await patternsTab.click();
     await page.waitForTimeout(800);
 
     const heroPattern = page.locator("div[data-pattern-slug='hero-banner']").first();
-    await expect(heroPattern).toBeVisible();
+    await expect(heroPattern).toBeVisible({ timeout: 15000 });
     await heroPattern.click();
     await page.waitForTimeout(1000);
 
@@ -84,8 +86,11 @@ test.describe("Builder Gym Round 02: Weight 2 (Blocks & Patterns Regression)", (
 
   test("3. All 28 patterns available in patterns palette", async ({ page }) => {
     await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
-    const patternsTab = page.locator("button:has-text('الگوها')").first();
+    await page.waitForTimeout(1500);
+    const patternsTab = page.locator('[data-testid="patterns-tab-btn"], button:has-text("الگوها")').first();
+    await patternsTab.waitFor({ state: "visible", timeout: 15000 });
     await patternsTab.click();
+    await page.waitForTimeout(600);
     await expect(page.locator("[data-pattern-slug]").first()).toBeVisible({ timeout: 15000 });
 
     const cards = page.locator("[data-pattern-slug]");

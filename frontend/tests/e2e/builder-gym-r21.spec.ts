@@ -3,7 +3,7 @@ import path from "node:path";
 import fs from "node:fs";
 import { execSync } from "node:child_process";
 
-const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || "http://127.0.0.1:3750";
+const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || "http://127.0.0.1:3400";
 const BACKEND_DIR = path.resolve("C:/Users/Administrator/Desktop/site/backend");
 
 function getAdminToken() {
@@ -74,17 +74,16 @@ test.describe("Builder Gym Round 21: Elementor Pro Custom Attributes Parity & P0
 
     // Select the first heading on canvas
     const frame = page.frameLocator('iframe[title="Visual Builder Canvas"]');
-    const headingEl = frame.locator('[data-element-id="el_e2ehead1"]').first();
+    const headingEl = frame.locator('[data-element-id="el_e2ehead1"], [data-element-id="el_e2e_head"], [data-widget-type="heading"]').first();
     await expect(headingEl).toBeVisible();
     await headingEl.click();
     await page.waitForTimeout(400);
 
     // Switch Inspector to Advanced Tab
-    const advTab = page.locator('button[data-state]:has-text("پیشرفته"), button:has-text("پیشرفته")').first();
-    if (await advTab.isVisible()) {
-      await advTab.click();
-      await page.waitForTimeout(400);
-    }
+    const advTab = page.locator('button[role="tab"]:has-text("پیشرفته")').first();
+    await expect(advTab).toBeVisible();
+    await advTab.click();
+    await page.waitForTimeout(400);
 
     // Custom Attributes textarea is present
     const customAttrTextarea = page.locator('[data-testid="custom-attributes-textarea"]');
@@ -101,13 +100,13 @@ test.describe("Builder Gym Round 21: Elementor Pro Custom Attributes Parity & P0
 
   test("3. LayersTree vertical guide border and 24px per level RTL indent hold strictly", async ({ page }) => {
     await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(1500);
     await page.mouse.move(0, 0);
 
-    const layersTab = page.getByRole("button", { name: "لایه‌ها", exact: true });
-    if (await layersTab.isVisible()) {
-      await layersTab.click();
-      await page.waitForTimeout(500);
-    }
+    const layersTab = page.locator('[data-testid="sidebar-tab-layers"]').or(page.getByRole("button", { name: "لایه‌ها" })).first();
+    await layersTab.waitFor({ state: "visible", timeout: 15000 });
+    await layersTab.click();
+    await page.waitForTimeout(600);
 
     const rows = page.locator("[data-layer-row]");
     const count = await rows.count();

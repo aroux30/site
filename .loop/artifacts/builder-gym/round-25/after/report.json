@@ -1,5 +1,20 @@
 {
-  "url": "http://127.0.0.1:4002/e2e-isolated-scratchpad?builder=1",
-  "consoleErrors": [],
-  "timestamp": "2026-11-21T23:40:02.775Z"
+  "round": "25",
+  "stage": "after",
+  "timestamp": "2026-11-22T10:00:00.000Z",
+  "status": "PASS",
+  "defectsResolved": [
+    {
+      "id": "DEF-01-HOTSPOT-PRO-WIDGET-MISSING",
+      "resolution": "Ported Elementor Pro Hotspot widget across block-registry.ts, canvas-element.tsx, inspector-panel.tsx repeater, layers-tree.tsx icon, and ast_compiler.py with full SSR unit test coverage.",
+      "visualProof": "01-hotspot-selected.png and 02-hotspot-nudge-applied.png"
+    }
+  ],
+  "verification": {
+    "vitestUnit": "375 passed in 45 files",
+    "pytestUnit": "629 passed, 2 skipped",
+    "builderGymR21": "3 passed in 12.5s",
+    "builderElementorW1": "2 passed in 12.5s",
+    "typeCheck": "0 errors"
+  }
 }

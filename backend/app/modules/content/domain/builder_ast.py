@@ -79,6 +79,7 @@ class TypographyStyle(ASTModel):
     text_align: Literal["right", "center", "left", "justify", "inherit"] = "inherit"
     text_transform: Literal["none", "uppercase", "lowercase", "capitalize"] = "none"
     text_decoration: Literal["none", "underline", "line-through"] = "none"
+    text_shadow: str | None = None
     color: str | None = None  # hex, hsl(var(--token)), or semantic token key
 
 
@@ -116,15 +117,17 @@ class TransformStyle(ASTModel):
     scale: float | None = None
     skew_x: float | None = None
     skew_y: float | None = None
+    translate_x: float | None = None
+    translate_y: float | None = None
     flip_x: bool = False
     flip_y: bool = False
 
 
 class MaskStyle(ASTModel):
     shape: str | None = None
-    size: Literal["contain", "cover", "auto"] = "cover"
-    position: Literal["center", "top", "bottom", "left", "right"] = "center"
-    repeat: Literal["no-repeat", "repeat"] = "no-repeat"
+    size: Literal["contain", "cover", "auto"] | None = "contain"
+    position: str | None = "center"
+    repeat: str | None = None
 
 
 class DeviceStyle(ASTModel):
@@ -140,11 +143,12 @@ class DeviceStyle(ASTModel):
     min_height: UnitValue | None = None
     display: Literal["block", "flex", "grid", "inline-block", "none", "inherit"] = "inherit"
     box_shadow: str | None = None
+    hover_border: BorderStyle | None = None
+    hover_box_shadow: str | None = None
+    transition_duration: float | None = None
     filter: str | None = None
     opacity: float | None = Field(default=None, ge=0.0, le=1.0)
     z_index: int | None = Field(default=None, ge=0, le=999)
-    transform: TransformStyle | None = None
-    mask: MaskStyle | None = None
     # Advanced Layout (P4)
     position: Literal["static", "relative", "absolute", "sticky", "inherit"] = "inherit"
     top: UnitValue | None = None
@@ -161,8 +165,11 @@ class DeviceStyle(ASTModel):
     flex_wrap: Literal["nowrap", "wrap", "wrap-reverse", "inherit"] = "inherit"
     gap: UnitValue | None = None
     grid_template_columns: str | None = None
+    box_shadow: str | None = None
     backdrop_blur: str | None = None
     filter_blur: float | None = None
+    transform: TransformStyle | None = None
+    mask: MaskStyle | None = None
 
 
 class ResponsiveStyles(ASTModel):
@@ -173,8 +180,7 @@ class ResponsiveStyles(ASTModel):
     desktop: DeviceStyle | None = None
     custom_css_class: str | None = None
     custom_css_id: str | None = None
-    custom_attributes: dict[str, str] | None = None
-    scoped_css: str | None = None
+    custom_attributes: str | None = None
     direction: Literal["rtl", "ltr", "inherit"] = "inherit"
     animation: str | None = None  # e.g. "fade-in", "slide-up", "zoom-in"
     animation_duration: float | None = None  # in seconds (e.g. 0.5)
@@ -197,6 +203,7 @@ class ContainerLayout(ASTModel):
     flex_wrap: Literal["nowrap", "wrap", "wrap-reverse"] = "nowrap"
     gap: UnitValue = Field(default_factory=lambda: UnitValue(value=16, unit="px"))
     grid_columns: int = Field(default=3, ge=1, le=12)
+    grid_auto_flow: Literal["row", "column", "dense", "row dense", "column dense"] | None = None
     boxed_width: UnitValue | None = None  # None indicates full-width fluid
 
 

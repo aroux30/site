@@ -336,8 +336,8 @@ export function BuilderToolbar({
           title="راهنمای کلیدهای میانبر (Shift+?)"
           data-testid="shortcuts-help-btn"
         >
-          <Keyboard className="w-3.5 h-3.5" />
-          <span className="hidden sm:inline">میانبرها</span>
+          <Keyboard className="w-3.5 h-3.5 text-muted-foreground" />
+          <span className="hidden md:inline">میانبرها</span>
         </Button>
 
         <Button

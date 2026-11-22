@@ -63,4 +63,55 @@ describe("P2.1 Native Widgets: Table & Form Inputs", () => {
     const parsed = PageASTSchema.safeParse(ast);
     expect(parsed.success).toBe(true);
   });
+
+  it("registers icon, icon_list, price_table and price_list widgets with valid schema conformity", () => {
+    const iconDef = BASIC_BLOCK_DEFINITIONS.find((b) => b.type === "icon");
+    const iconListDef = BASIC_BLOCK_DEFINITIONS.find((b) => b.type === "icon_list");
+    const priceTableDef = BASIC_BLOCK_DEFINITIONS.find((b) => b.type === "price_table");
+    const priceListDef = BASIC_BLOCK_DEFINITIONS.find((b) => b.type === "price_list");
+
+    expect(iconDef).toBeDefined();
+    expect(iconListDef).toBeDefined();
+    expect(priceTableDef).toBeDefined();
+    expect(priceListDef).toBeDefined();
+
+    const iconEl = iconDef!.createDefaultElement();
+    const iconListEl = iconListDef!.createDefaultElement();
+    const priceTableEl = priceTableDef!.createDefaultElement();
+    const priceListEl = priceListDef!.createDefaultElement();
+
+    expect(iconEl.widgetType).toBe("icon");
+    expect(iconEl.widgetProps?.icon).toBe("star");
+
+    expect(iconListEl.widgetType).toBe("icon_list");
+    expect(Array.isArray(iconListEl.widgetProps?.items)).toBe(true);
+
+    expect(priceTableEl.widgetType).toBe("price_table");
+    expect(priceTableEl.widgetProps?.price).toBe("۴۹۰,۰۰۰");
+    expect(Array.isArray(priceTableEl.widgetProps?.features)).toBe(true);
+
+    expect(priceListEl.widgetType).toBe("price_list");
+    expect(Array.isArray(priceListEl.widgetProps?.items)).toBe(true);
+
+    const ast = {
+      schemaVersion: 1,
+      title: "Elementor Parity AST",
+      slug: "elementor-parity-ast",
+      globalStyles: {},
+      rootElements: [
+        {
+          id: "el_root",
+          name: "ریشه",
+          type: "container",
+          isLocked: false,
+          isHidden: false,
+          styles: { mobile: {} },
+          children: [iconEl, iconListEl, priceTableEl, priceListEl],
+        },
+      ],
+    };
+
+    const parsed = PageASTSchema.safeParse(ast);
+    expect(parsed.success).toBe(true);
+  });
 });

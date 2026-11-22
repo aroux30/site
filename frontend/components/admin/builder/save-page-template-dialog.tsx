@@ -37,6 +37,22 @@ const PAGE_TEMPLATE_CATEGORIES = [
   "عمومی",
 ];
 
+const THEME_BUILDER_TYPES = [
+  { value: "page", label: "برگه معمولی (Page Template)" },
+  { value: "header", label: "سربرگ سراسری (Header)" },
+  { value: "footer", label: "پاورقی سراسری (Footer)" },
+  { value: "single_product", label: "صفحه تکی محصول (Single Product)" },
+  { value: "product_archive", label: "آرشیو و دسته‌بندی محصولات (Product Archive)" },
+  { value: "error_404", label: "صفحه خطای ۴۰۴ (404 Page)" },
+];
+
+const DISPLAY_CONDITIONS = [
+  { value: "entire_site", label: "سراسر سایت (Entire Site)" },
+  { value: "all_products", label: "تمامی محصولات (All Products)" },
+  { value: "all_pages", label: "تمامی برگه‌ها (All Pages)" },
+  { value: "homepage_only", label: "فقط صفحه اصلی (Homepage Only)" },
+];
+
 export function SavePageTemplateDialog({
   open,
   onOpenChange,
@@ -45,6 +61,8 @@ export function SavePageTemplateDialog({
   const ast = useBuilderStore((s) => s.ast);
   const [title, setTitle] = useState(ast.title ? `قالب ${ast.title}` : "قالب برگه جدید");
   const [category, setCategory] = useState("صفحات فرود (Landing)");
+  const [templateType, setTemplateType] = useState("page");
+  const [displayCondition, setDisplayCondition] = useState("entire_site");
   const [saving, setSaving] = useState(false);
 
   // Sync title when ast.title changes or dialog re-opens
@@ -70,7 +88,7 @@ export function SavePageTemplateDialog({
       await pageTemplatesAdminApi.create({
         title: title.trim(),
         slug,
-        template_type: "page",
+        template_type: (templateType === "section" ? "section" : "page") as "page" | "section",
         category,
         builder_data: {
           schemaVersion: ast.schemaVersion || 1,
@@ -117,6 +135,38 @@ export function SavePageTemplateDialog({
               className="h-8 text-xs"
               placeholder="مثلاً: لندینگ پیج معرفی محصول جدید"
             />
+          </div>
+
+          <div className="space-y-1.5">
+            <Label className="text-xs font-semibold">نوع قالب (Theme Builder)</Label>
+            <Select value={templateType} onValueChange={setTemplateType}>
+              <SelectTrigger data-testid="theme-builder-type-select" className="h-8 text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {THEME_BUILDER_TYPES.map((t) => (
+                  <SelectItem key={t.value} value={t.value}>
+                    {t.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label className="text-xs font-semibold">شرط نمایش سراسری (Display Conditions)</Label>
+            <Select value={displayCondition} onValueChange={setDisplayCondition}>
+              <SelectTrigger data-testid="theme-builder-condition-select" className="h-8 text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {DISPLAY_CONDITIONS.map((c) => (
+                  <SelectItem key={c.value} value={c.value}>
+                    {c.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="space-y-1.5">

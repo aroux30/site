@@ -9,16 +9,17 @@ import type { BuilderElement } from "@/types/builder";
 interface PresetOption {
   id: string;
   title: string;
+  label: string;
   cols: number[]; // relative ratios, e.g. [1], [1, 1], [1, 1, 1], [1, 2], [2, 1]
 }
 
 const PRESETS: PresetOption[] = [
-  { id: "1-col", title: "یک ستون (کامل)", cols: [1] },
-  { id: "2-col", title: "دو ستون مساوی", cols: [1, 1] },
-  { id: "3-col", title: "سه ستون مساوی", cols: [1, 1, 1] },
-  { id: "4-col", title: "چهار ستون مساوی", cols: [1, 1, 1, 1] },
-  { id: "1-2-col", title: "دو ستون (۳۳٪ / ۶۶٪)", cols: [1, 2] },
-  { id: "2-1-col", title: "دو ستون (۶۶٪ / ۳۳٪)", cols: [2, 1] },
+  { id: "1-col", title: "یک ستون (کامل)", label: "۱ ستون (۱۰۰٪)", cols: [1] },
+  { id: "2-col", title: "دو ستون مساوی", label: "۲ ستون (۵۰/۵۰)", cols: [1, 1] },
+  { id: "3-col", title: "سه ستون مساوی", label: "۳ ستون (مساوی)", cols: [1, 1, 1] },
+  { id: "4-col", title: "چهار ستون مساوی", label: "۴ ستون (مساوی)", cols: [1, 1, 1, 1] },
+  { id: "1-2-col", title: "دو ستون (۳۳٪ / ۶۶٪)", label: "۲ ستون (۳۳/۶۶)", cols: [1, 2] },
+  { id: "2-1-col", title: "دو ستون (۶۶٪ / ۳۳٪)", label: "۲ ستون (۶۶/۳۳)", cols: [2, 1] },
 ];
 
 export function ContainerPresetPicker({
@@ -120,7 +121,7 @@ export function ContainerPresetPicker({
                 ))}
               </div>
               <span className="text-[10px] text-muted-foreground group-hover:text-foreground font-semibold mt-1 truncate w-full text-center">
-                {preset.cols.length} ستونه
+                {preset.label || `${preset.cols.length} ستونه`}
               </span>
             </button>
           );

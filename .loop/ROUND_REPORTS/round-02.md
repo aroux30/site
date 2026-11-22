@@ -43,8 +43,9 @@
 
 ## ۳. نتایج گیت‌های کیفی نهایی
 - **TypeScript**: `npm --prefix frontend run type-check` -> **۰ خطا**
-- **Frontend Vitest**: `npm --prefix frontend run test` -> **۳۷۲ تست سبز در ۴۵ فایل**
-- **ممیزی اشعه ایکس المنتور**: ۲۸ از ۲۸ الگو سبز، ۳۴ از ۳۴ بلوک سبز، ۰ کنترل مرده
+- **Frontend Vitest**: `npm --prefix frontend run test` -> **۳۷۳ تست سبز در ۴۵ فایل**
+- **Backend Pytest**: `python -m pytest app/tests/unit` -> **۶۲۳ تست سبز**
+- **ممیزی اشعه ایکس المنتور**: ۲۸ از ۲۸ الگو سبز، ۳۹ از ۳۹ بلوک سبز، ۰ کنترل مرده
 - **وضعیت کارنامه**:
 ```text
 ROUND_02_LEVEL_6_INFINITE_PRODUCT_CHALLENGE_CLEAN

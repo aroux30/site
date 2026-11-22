@@ -939,6 +939,47 @@ class ASTCompiler:
                 f'</div>'
             )
 
+        elif widget_type == "image_box":
+            img_url = html.escape(str(props.get("image_url", props.get("url", "/placeholder-hero.svg"))))
+            title = html.escape(str(props.get("title", "عنوان جعبه تصویر")))
+            desc = html.escape(str(props.get("description", "")))
+            link = props.get("link", props.get("url_link", ""))
+            pos = str(props.get("position", "top"))
+            flex_cls = "flex flex-col items-center text-center" if pos == "top" else ("flex flex-row-reverse items-start gap-4 text-right" if pos == "left" else "flex flex-row items-start gap-4 text-right")
+            img_html = f'<img src="{img_url}" alt="{title}" class="rounded-xl object-cover max-w-full h-auto mb-2" loading="lazy" />'
+            desc_html = f'<p class="text-xs text-muted-foreground leading-relaxed">{desc}</p>' if desc else ""
+            inner = (
+                f'{img_html}'
+                f'<div class="space-y-1">'
+                f'<h3 class="font-bold text-sm text-foreground">{title}</h3>'
+                f'{desc_html}'
+                f'</div>'
+            )
+            if link:
+                return f'<div{id_attr} class="builder-image-box {flex_cls} {css_class}" data-widget="image_box"{style_attr}><a href="{html.escape(str(link))}" class="block hover:opacity-90">{inner}</a></div>'
+            return f'<div{id_attr} class="builder-image-box {flex_cls} {css_class}" data-widget="image_box"{style_attr}>{inner}</div>'
+
+        elif widget_type == "toggle":
+            raw_items = props.get("items", [{"title": "آیتم بازشونده ۱", "content": "توضیحات آیتم ۱"}])
+            items_html = ""
+            if isinstance(raw_items, list):
+                for itm in raw_items:
+                    t_title = html.escape(str(itm.get("title", "آیتم بازشونده")))
+                    t_content = html.escape(str(itm.get("content", "")))
+                    open_attr = " open" if itm.get("is_open") else ""
+                    items_html += (
+                        f'<details class="group rounded-xl border border-border/80 bg-card overflow-hidden"{open_attr}>'
+                        f'<summary class="p-3.5 font-bold text-xs text-foreground cursor-pointer list-none flex items-center justify-between hover:bg-muted/40 transition select-none">'
+                        f'<span>{t_title}</span>'
+                        f'<span class="transition-transform group-open:rotate-180">▾</span>'
+                        f'</summary>'
+                        f'<div class="p-3.5 pt-0 text-xs text-muted-foreground border-t border-border/40 leading-relaxed">'
+                        f'{t_content}'
+                        f'</div>'
+                        f'</details>'
+                    )
+            return f'<div{id_attr} class="builder-toggle space-y-2 w-full {css_class}" data-widget="toggle"{style_attr}>{items_html}</div>'
+
         # Generic fallback for any other registered widget
         fallback_title = html.escape(str(props.get("title", widget_type)))
         return f'<div{id_attr} class="builder-widget builder-{widget_type} {css_class}" data-widget="{html.escape(widget_type)}"{style_attr}>{fallback_title}</div>'

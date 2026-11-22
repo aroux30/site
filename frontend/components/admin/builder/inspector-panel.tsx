@@ -2347,6 +2347,145 @@ export function InspectorPanel() {
         );
       }
 
+      case "image_box":
+        return (
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs">آدرس تصویر (URL)</Label>
+              <Input
+                data-testid="image-box-url-input"
+                value={String(props.image_url || props.url || "")}
+                onChange={(e) => handlePropChange("image_url", e.target.value)}
+                className="h-8 text-xs font-mono"
+                dir="ltr"
+                placeholder="/placeholder-hero.svg"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">عنوان جعبه تصویر</Label>
+              <Input
+                data-testid="image-box-title-input"
+                value={String(props.title || "")}
+                onChange={(e) => handlePropChange("title", e.target.value)}
+                className="h-8 text-xs"
+                placeholder="عنوان اصلی..."
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">متن توضیحات</Label>
+              <textarea
+                rows={3}
+                value={String(props.description || "")}
+                onChange={(e) => handlePropChange("description", e.target.value)}
+                className="w-full rounded-md border border-input bg-background p-2 text-xs leading-relaxed"
+                placeholder="توضیحات کوتاه درباره قابلیت..."
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">موقعیت تصویر (Position)</Label>
+              <Select
+                value={String(props.position || "top")}
+                onValueChange={(val) => handlePropChange("position", val)}
+              >
+                <SelectTrigger className="h-8 text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="top">بالا (Top)</SelectItem>
+                  <SelectItem value="right">راست (Right)</SelectItem>
+                  <SelectItem value="left">چپ (Left)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">پیوند مقصد (اختیاری)</Label>
+              <Input
+                value={String(props.link || "")}
+                onChange={(e) => handlePropChange("link", e.target.value)}
+                className="h-8 text-xs font-mono"
+                dir="ltr"
+                placeholder="https://example.com"
+              />
+            </div>
+          </div>
+        );
+
+      case "toggle": {
+        const rawItems = Array.isArray(props.items) ? (props.items as any[]) : [];
+        const items = rawItems.length > 0 ? rawItems : [
+          { title: "آیتم ۱", content: "توضیحات ۱", is_open: true }
+        ];
+        return (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <Label className="text-xs font-bold">آیتم‌های تاشو (Toggle Items)</Label>
+              <button
+                type="button"
+                onClick={() => {
+                  const updated = [...items, { title: `آیتم جدید ${items.length + 1}`, content: "توضیحات آیتم جدید", is_open: false }];
+                  handlePropChange("items", updated);
+                }}
+                className="text-[11px] text-primary hover:underline font-bold"
+              >
+                + افزودن آیتم
+              </button>
+            </div>
+            <div className="space-y-2">
+              {items.map((it, idx) => (
+                <div key={idx} className="p-2.5 rounded-lg border bg-muted/20 space-y-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <Input
+                      value={it.title || ""}
+                      placeholder="عنوان تاشو"
+                      onChange={(e) => {
+                        const updated = [...items];
+                        updated[idx] = { ...updated[idx], title: e.target.value };
+                        handlePropChange("items", updated);
+                      }}
+                      className="h-7 text-xs font-bold flex-1"
+                    />
+                    {items.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const updated = items.filter((_, i) => i !== idx);
+                          handlePropChange("items", updated);
+                        }}
+                        className="text-[10px] text-destructive hover:underline shrink-0"
+                      >
+                        حذف
+                      </button>
+                    )}
+                  </div>
+                  <textarea
+                    rows={2}
+                    value={it.content || ""}
+                    placeholder="محتوای متنی..."
+                    onChange={(e) => {
+                      const updated = [...items];
+                      updated[idx] = { ...updated[idx], content: e.target.value };
+                      handlePropChange("items", updated);
+                    }}
+                    className="w-full rounded-md border border-input bg-background p-1.5 text-xs leading-relaxed"
+                  />
+                  <div className="flex items-center justify-between pt-1 text-[11px] text-muted-foreground">
+                    <span>باز بودن پیش‌فرض</span>
+                    <Switch
+                      checked={Boolean(it.is_open)}
+                      onCheckedChange={(val) => {
+                        const updated = [...items];
+                        updated[idx] = { ...updated[idx], is_open: val };
+                        handlePropChange("items", updated);
+                      }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      }
+
       default:
         return (
           <div className="text-xs text-muted-foreground py-2">

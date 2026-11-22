@@ -84,4 +84,19 @@ test.describe("Builder Gym Round 24: Elementor Core & Pro Complete 4-Layer Wirin
     const maskSelects = page.locator("[data-testid='mask-shape-select']");
     await expect(maskSelects).toHaveCount(1);
   });
+
+  test("3. Newly ported Image Box and Toggle blocks are available in palette", async ({ page }) => {
+    await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(1500);
+
+    const blocksTab = page.locator('button:has-text("بلوک‌ها")').first();
+    await blocksTab.click();
+    await page.waitForTimeout(400);
+
+    const imageBoxBlock = page.locator('button:has-text("باکس تصویر و متن")');
+    await expect(imageBoxBlock).toBeVisible();
+
+    const toggleBlock = page.locator('button:has-text("آیتم‌های تاشو")');
+    await expect(toggleBlock).toBeVisible();
+  });
 });

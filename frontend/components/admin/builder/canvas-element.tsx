@@ -1809,6 +1809,62 @@ function CanvasElementComponent({
           </div>
         );
       }
+      case "image_box": {
+        const imgUrl = String(props.image_url || props.url || "/placeholder-hero.svg");
+        const title = String(props.title || "عنوان جعبه تصویر");
+        const desc = String(props.description || "");
+        const position = String(props.position || "top");
+        const link = props.link ? String(props.link) : undefined;
+
+        const isHorizontal = position === "left" || position === "right";
+        return (
+          <div className={cn(
+            "w-full p-4 rounded-2xl border border-border/80 bg-card shadow-sm space-y-2",
+            isHorizontal && "flex items-start gap-4 space-y-0",
+            position === "right" && "flex-row-reverse"
+          )}>
+            <img
+              src={imgUrl}
+              alt={title}
+              className={cn(
+                "rounded-xl object-cover",
+                position === "top" ? "w-full max-h-48" : "w-20 h-20 shrink-0"
+              )}
+            />
+            <div className="space-y-1 text-right flex-1">
+              <h4 className="font-bold text-sm text-foreground">{title}</h4>
+              {desc && <p className="text-xs text-muted-foreground leading-relaxed">{desc}</p>}
+              {link && <a href={link} className="inline-block text-xs text-primary font-bold hover:underline pt-1">اطلاعات بیشتر &larr;</a>}
+            </div>
+          </div>
+        );
+      }
+      case "toggle": {
+        const rawItems = Array.isArray(props.items) ? (props.items as any[]) : [];
+        const items = rawItems.length > 0 ? rawItems : [
+          { title: "سوال متداول شماره ۱", content: "پاسخ کامل و جامع به سوال اول کاربر در این قسمت قرار می‌گیرد.", is_open: true },
+          { title: "سوال متداول شماره ۲", content: "توضیحات و پاسخ شفاف به پرسش دوم کاربر.", is_open: false },
+        ];
+        return (
+          <div className="space-y-2 w-full text-right">
+            {items.map((it, idx) => (
+              <details
+                key={idx}
+                className="group rounded-xl border border-border/80 bg-card overflow-hidden shadow-xs"
+                open={Boolean(it.is_open)}
+              >
+                <summary className="p-3.5 font-bold text-xs text-foreground cursor-pointer list-none flex items-center justify-between hover:bg-muted/40 transition select-none">
+                  <span>{it.title || "آیتم تاشو"}</span>
+                  <span className="transition-transform group-open:rotate-180 text-muted-foreground">▾</span>
+                </summary>
+                <div className="p-3.5 pt-0 text-xs text-muted-foreground border-t border-border/40 leading-relaxed">
+                  {it.content}
+                </div>
+              </details>
+            ))}
+          </div>
+        );
+      }
       default:
         return (
           <div className="rounded-lg border border-dashed border-border p-4 text-center text-sm text-muted-foreground">

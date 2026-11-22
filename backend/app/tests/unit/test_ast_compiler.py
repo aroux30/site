@@ -251,6 +251,56 @@ def test_ast_compiler_renders_phase_4_entrance_animations():
     assert 'عنوان با فید' in result
 
 
+def test_ast_compiler_renders_image_box_and_toggle_widgets():
+    """Verify SSR compilation for image_box and toggle widgets."""
+    ast = PageAST(
+        schema_version=1,
+        title="تست جعبه تصویر و تاگل",
+        slug="test-imagebox-toggle",
+        root_elements=[
+            BuilderElement(
+                id="el_sec_new",
+                name="بخش ویجت‌های نو",
+                type="container",
+                children=[
+                    BuilderElement(
+                        id="el_imgbox01",
+                        name="باکس تصویر",
+                        type="widget",
+                        widget_type="image_box",
+                        widget_props={
+                            "image_url": "/banner.jpg",
+                            "title": "ارسال رایگان به سراسر کشور",
+                            "description": "تحویل سریع با پست پیشتاز",
+                            "position": "top",
+                        },
+                    ),
+                    BuilderElement(
+                        id="el_toggle01",
+                        name="آیتم تاشو",
+                        type="widget",
+                        widget_type="toggle",
+                        widget_props={
+                            "items": [
+                                {"title": "سوال نخست", "content": "پاسخ نخستین", "is_open": True},
+                                {"title": "سوال دوم", "content": "پاسخ دومین", "is_open": False},
+                            ]
+                        },
+                    ),
+                ],
+            )
+        ],
+    )
+    result = ASTCompiler.compile(ast)
+    assert 'class="builder-image-box' in result
+    assert "ارسال رایگان به سراسر کشور" in result
+    assert "/banner.jpg" in result
+    assert 'class="builder-toggle' in result
+    assert "سوال نخست" in result
+    assert "پاسخ نخستین" in result
+    assert "سوال دوم" in result
+
+
 def test_ast_compiler_renders_p3_ecommerce_native_widgets():
     ast = PageAST(
         schema_version=1,

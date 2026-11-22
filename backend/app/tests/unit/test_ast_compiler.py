@@ -1239,6 +1239,45 @@ def test_ast_compiler_renders_round38_table_of_contents():
     assert 'href="#tools"' in result
 
 
+def test_ast_compiler_renders_round39_share_buttons():
+    """Verify that share_buttons widget compiles buttons list and title in SSR."""
+    ast = PageAST(
+        schema_version=1,
+        title="تست راند ۳۹",
+        slug="test-r39-share",
+        root_elements=[
+            BuilderElement(
+                id="el_sec_r39",
+                name="بخش ۳۹",
+                type="container",
+                children=[
+                    BuilderElement(
+                        id="el_share_custom",
+                        name="دکمه‌های اشتراک",
+                        type="widget",
+                        widget_type="share_buttons",
+                        widget_props={
+                            "title": "ارسال برای دوستان",
+                            "networks": [
+                                {"network": "telegram", "label": "ارسال در تلگرام"},
+                                {"network": "eitaa", "label": "کانال ایتا"},
+                            ],
+                        },
+                    ),
+                ],
+            )
+        ],
+    )
+    result = ASTCompiler.compile(ast)
+    assert 'builder-share-buttons' in result
+    assert 'ارسال برای دوستان' in result
+    assert 'data-network="telegram"' in result
+    assert 'ارسال در تلگرام' in result
+    assert 'data-network="eitaa"' in result
+    assert 'کانال ایتا' in result
+
+
+
 
 
 

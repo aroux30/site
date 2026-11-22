@@ -1313,6 +1313,32 @@ export const BASIC_BLOCK_DEFINITIONS: BlockDefinition[] = [
       children: [],
     }),
   },
+  {
+    type: "share_buttons",
+    name: "دکمه‌های اشتراک‌گذاری (Share Buttons)",
+    category: "basic",
+    icon: Share2,
+    description: "دکمه‌های اشتراک‌گذاری محتوا در شبکه‌های اجتماعی و پیام‌رسان‌ها",
+    createDefaultElement: () => ({
+      id: `el_${Math.random().toString(36).slice(2, 10)}`,
+      name: "دکمه‌های اشتراک",
+      type: "widget",
+      widgetType: "share_buttons",
+      widgetProps: {
+        title: "اشتراک‌گذاری این مطلب",
+        networks: [
+          { network: "telegram", label: "تلگرام" },
+          { network: "whatsapp", label: "واتساپ" },
+          { network: "eitaa", label: "ایتا" },
+          { network: "bale", label: "بله" },
+        ],
+      },
+      isLocked: false,
+      isHidden: false,
+      styles: { mobile: {} },
+      children: [],
+    }),
+  },
 ];
 
 import { createPatternAST } from "./pattern-converter";

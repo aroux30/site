@@ -1784,6 +1784,30 @@ function CanvasElementComponent({
           </nav>
         );
       }
+      case "share_buttons": {
+        const title = props.title ? String(props.title) : "";
+        const networks = (props.networks as any[]) || [
+          { network: "telegram", label: "تلگرام" },
+          { network: "whatsapp", label: "واتساپ" },
+        ];
+        return (
+          <div className="space-y-2.5 p-3.5 rounded-2xl border border-border/80 bg-card shadow-sm w-full text-right">
+            {title && <span className="block text-xs font-bold text-foreground">{title}</span>}
+            <div className="flex items-center gap-2 flex-wrap">
+              {networks.map((net: any, idx: number) => (
+                <button
+                  key={idx}
+                  type="button"
+                  className="px-3 py-1.5 rounded-xl bg-primary/10 hover:bg-primary hover:text-white text-primary text-xs font-bold transition flex items-center gap-1.5 shadow-xs"
+                >
+                  <Share2 className="w-3.5 h-3.5" />
+                  <span>{net.label || net.network}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        );
+      }
       default:
         return (
           <div className="rounded-lg border border-dashed border-border p-4 text-center text-sm text-muted-foreground">

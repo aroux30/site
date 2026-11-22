@@ -970,6 +970,23 @@ class ASTCompiler:
                 f'</nav>'
             )
 
+        elif widget_type == "share_buttons":
+            title = html.escape(str(props.get("title", "اشتراک‌گذاری")))
+            networks = props.get("networks", [{"network": "telegram", "label": "تلگرام"}, {"network": "whatsapp", "label": "واتساپ"}])
+            title_html = f'<span class="block text-xs font-bold text-foreground mb-2">{title}</span>' if title else ""
+            btns_html = "".join(
+                f'<button type="button" class="px-3 py-1.5 rounded-xl bg-primary/10 text-primary text-xs font-bold flex items-center gap-1.5 shadow-xs" data-network="{html.escape(str(n.get("network", "")))}">'
+                f'<span>{html.escape(str(n.get("label", n.get("network", "اشتراک"))))}</span>'
+                f'</button>'
+                for n in networks
+            )
+            return (
+                f'<div{id_attr} class="builder-share-buttons space-y-2.5 p-3.5 rounded-2xl border border-border/80 bg-card shadow-sm w-full text-right {css_class}" data-widget="share_buttons"{style_attr}>'
+                f'{title_html}'
+                f'<div class="flex items-center gap-2 flex-wrap">{btns_html}</div>'
+                f'</div>'
+            )
+
         # Generic fallback for any other registered widget
         fallback_title = html.escape(str(props.get("title", widget_type)))
         return f'<div{id_attr} class="builder-widget builder-{widget_type} {css_class}" data-widget="{html.escape(widget_type)}"{style_attr}>{fallback_title}</div>'

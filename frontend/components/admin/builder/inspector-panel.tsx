@@ -2197,6 +2197,49 @@ export function InspectorPanel() {
         );
       }
 
+      case "share_buttons": {
+        const networks = Array.isArray(props.networks)
+          ? props.networks
+          : [
+              { network: "telegram", label: "تلگرام" },
+              { network: "whatsapp", label: "واتساپ" },
+            ];
+        return (
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs">عنوان دکمه‌های اشتراک‌گذاری</Label>
+              <Input
+                data-testid="share-buttons-title-input"
+                value={String(props.title || "اشتراک‌گذاری این مطلب")}
+                onChange={(e) => handlePropChange("title", e.target.value)}
+                className="h-8 text-xs"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-xs font-bold block">شبکه‌ها و پیام‌رسان‌ها</Label>
+              {networks.map((net: any, idx: number) => (
+                <div key={idx} className="flex items-center gap-2 p-2 rounded-lg border bg-muted/20">
+                  <Input
+                    data-testid={`share-net-label-${idx}`}
+                    value={net.label || ""}
+                    placeholder="برچسب دکمه"
+                    onChange={(e) => {
+                      const updated = [...networks];
+                      updated[idx] = { ...updated[idx], label: e.target.value };
+                      handlePropChange("networks", updated);
+                    }}
+                    className="h-7 text-xs flex-1"
+                  />
+                  <span className="text-[10px] font-mono text-muted-foreground uppercase px-2">
+                    {net.network}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      }
+
       case "image_gallery": {
         const images = (props.images as any[]) || [
           { url: "/placeholder-hero.svg", alt: "تصویر ۱" },

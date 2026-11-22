@@ -361,4 +361,101 @@ describe("Visual Page Builder Zod Schema and AST Validation (Phase P0)", () => {
       expect(el.layout?.gridAutoFlow).toBe("row dense");
     }
   });
+
+  it("validates Elementor Table of Contents and Icon widget schema parity", () => {
+    const tocElement: BuilderElement = {
+      id: "el_toc_unit",
+      name: "فهرست مطالب",
+      type: "widget",
+      widgetType: "table_of_contents",
+      widgetProps: {
+        title: "فهرست راهنما",
+        ordered: true,
+        items: [
+          { text: "فصل اول", anchor: "#ch1" },
+          { text: "فصل دوم", anchor: "#ch2" },
+        ],
+      },
+      isLocked: false,
+      isHidden: false,
+      styles: { mobile: {} },
+      children: [],
+    };
+
+    const iconElement: BuilderElement = {
+      id: "el_icon_unit",
+      name: "آیکون ویژه",
+      type: "widget",
+      widgetType: "icon",
+      widgetProps: {
+        icon: "shield-check",
+        view: "stacked",
+        shape: "circle",
+        size: 48,
+        rotate: 15,
+        url: "https://example.com",
+        newTab: true,
+      },
+      isLocked: false,
+      isHidden: false,
+      styles: { mobile: {} },
+      children: [],
+    };
+
+    const parsed = PageASTSchema.safeParse({
+      schemaVersion: 1,
+      title: "تست ویجت‌های المنتور",
+      slug: "test-elementor-widgets",
+      rootElements: [tocElement, iconElement],
+    });
+
+    expect(parsed.success).toBe(true);
+    if (parsed.success) {
+      const toc = parsed.data.rootElements[0];
+      const ic = parsed.data.rootElements[1];
+      expect(toc?.widgetProps?.title).toBe("فهرست راهنما");
+      expect(toc?.widgetProps?.ordered).toBe(true);
+      expect(ic?.widgetProps?.icon).toBe("shield-check");
+      expect(ic?.widgetProps?.view).toBe("stacked");
+      expect(ic?.widgetProps?.size).toBe(48);
+    }
+  });
+
+  it("validates Elementor Nav Menu schema structure in AST", () => {
+    const navMenuElement: BuilderElement = {
+      id: "el_nav_unit",
+      name: "منوی اصلی",
+      type: "widget",
+      widgetType: "nav_menu",
+      widgetProps: {
+        layout: "horizontal",
+        align: "center",
+        items: [
+          { title: "صفحه اصلی", url: "/" },
+          { title: "فروشگاه", url: "/products" },
+          { title: "تماس", url: "/contact" },
+        ],
+      },
+      isLocked: false,
+      isHidden: false,
+      styles: { mobile: {} },
+      children: [],
+    };
+
+    const parsed = PageASTSchema.safeParse({
+      schemaVersion: 1,
+      title: "تست منوی ناوبری",
+      slug: "test-nav-menu",
+      rootElements: [navMenuElement],
+    });
+
+    expect(parsed.success).toBe(true);
+    if (parsed.success && parsed.data.rootElements[0]) {
+      const el = parsed.data.rootElements[0];
+      expect(el.widgetType).toBe("nav_menu");
+      expect(el.widgetProps?.layout).toBe("horizontal");
+      expect(Array.isArray(el.widgetProps?.items)).toBe(true);
+      expect((el.widgetProps?.items as any[]).length).toBe(3);
+    }
+  });
 });

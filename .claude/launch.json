@@ -7,6 +7,13 @@
       "url": "http://localhost:3200"
     },
     {
+      "name": "frontend-preview-1002",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [".claude/preview-frontend.cjs", "1002", ".next-preview-1002"],
+      "port": 1002,
+      "autoPort": false
+    },
+    {
       "name": "frontend",
       "runtimeExecutable": "npm",
       "runtimeArgs": ["--prefix", "frontend", "run", "dev"],

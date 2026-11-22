@@ -1725,37 +1725,6 @@ export const BASIC_BLOCK_DEFINITIONS: BlockDefinition[] = [
     }),
   },
   {
-    type: "icon",
-    name: "آیکون مستقل (Icon)",
-    category: "basic",
-    icon: Shapes,
-    description: "المان آیکون تکی با قابلیت تغییر رنگ، کادر و اندازه",
-    createDefaultElement: () => ({
-      id: `el_${Math.random().toString(36).slice(2, 10)}`,
-      name: "آیکون گرافیکی",
-      type: "widget",
-      widgetType: "icon",
-      widgetProps: {
-        icon_name: "star",
-        view: "default",
-      },
-      isLocked: false,
-      isHidden: false,
-      styles: {
-        mobile: {
-          padding: {
-            top: { value: 12, unit: "px" },
-            right: { value: 12, unit: "px" },
-            bottom: { value: 12, unit: "px" },
-            left: { value: 12, unit: "px" },
-            isLinked: true,
-          },
-        },
-      },
-      children: [],
-    }),
-  },
-  {
     type: "off_canvas",
     name: "کشوی کناری (Off-Canvas)",
     category: "layout",

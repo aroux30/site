@@ -145,9 +145,9 @@ export function BuilderToolbar({
   }, [undo, redo, copyElement, pasteElement, duplicateElement, deleteElement, deleteSelectedElements, selectedElementId, selectedElementIds, onSaveDraft]);
 
   return (
-    <header className="h-14 bg-card border-b border-border px-4 flex items-center justify-between select-none z-40 relative">
+    <header className="h-14 bg-card border-b border-border px-4 flex items-center justify-between select-none z-40 relative gap-2 min-w-0">
       {/* Right Side (in RTL): Exit button & Page Title */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3 shrink-0">
         <Button
           variant="ghost"
           size="sm"
@@ -272,7 +272,7 @@ export function BuilderToolbar({
       </div>
 
       {/* Left Side (in RTL): Undo/Redo, Preview, Save, Publish */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1.5 shrink-0 flex-nowrap">
         <div className="flex items-center gap-0.5 bg-muted/40 p-0.5 rounded-lg border border-border/60">
           <Button
             variant="ghost"
@@ -345,7 +345,7 @@ export function BuilderToolbar({
           size="sm"
           onClick={onSaveDraft}
           disabled={isSaving}
-          className="h-8 gap-1.5 text-xs"
+          className="h-8 gap-1.5 text-xs shrink-0 px-2.5"
         >
           {isSaving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
           <span>ذخیره پیش‌نویس</span>
@@ -356,7 +356,7 @@ export function BuilderToolbar({
           onClick={onPublish}
           disabled={isSaving}
           data-testid="publish-page-btn"
-          className="h-8 gap-1.5 text-xs bg-emerald-600 hover:bg-emerald-700 text-white"
+          className="h-8 gap-1.5 text-xs bg-emerald-600 hover:bg-emerald-700 text-white shrink-0 px-3 shadow-sm font-semibold"
         >
           {isSaving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
           <span>انتشار برگه</span>

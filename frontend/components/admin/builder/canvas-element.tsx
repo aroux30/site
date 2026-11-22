@@ -2195,10 +2195,10 @@ function CanvasElementComponent({
             bg_color: "linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary)/0.6) 100%)",
           },
         ];
-        const activeSlide = slidesList[0];
+        const activeSlide = slidesList[activeTabIdx] || slidesList[0];
         return (
           <div
-            className="w-full min-h-[220px] rounded-2xl p-8 flex flex-col items-center justify-center text-center text-white space-y-3 shadow-md relative overflow-hidden"
+            className="w-full min-h-[220px] rounded-2xl p-8 flex flex-col items-center justify-center text-center text-white space-y-3 shadow-md relative overflow-hidden transition-all duration-300"
             style={{ background: activeSlide?.bg_color || "hsl(var(--primary))" }}
           >
             <h2 className="text-xl md:text-2xl font-black drop-shadow-sm">{activeSlide?.title}</h2>
@@ -2208,9 +2208,17 @@ function CanvasElementComponent({
                 {activeSlide.button_text}
               </button>
             )}
-            <div className="absolute bottom-3 flex items-center gap-1.5">
+            <div className="absolute bottom-3 flex items-center gap-1.5 z-10">
               {slidesList.map((_, i) => (
-                <span key={i} className={cn("w-2 h-2 rounded-full", i === 0 ? "bg-white" : "bg-white/40")} />
+                <button
+                  key={i}
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setActiveTabIdx(i);
+                  }}
+                  className={cn("w-2.5 h-2.5 rounded-full transition-all", (activeTabIdx === i || (!slidesList[activeTabIdx] && i === 0)) ? "bg-white scale-125" : "bg-white/40 hover:bg-white/70")}
+                />
               ))}
             </div>
           </div>

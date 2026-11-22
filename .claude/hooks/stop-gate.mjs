@@ -1,0 +1,62 @@
+// .claude/hooks/stop-gate.mjs — دروازه قطعی پایان دور (تضمین Vision + SoM + حکم APPROVE ناظر + JSON)
+import { existsSync, readFileSync } from "node:fs";
+import { join } from "node:path";
+
+const input = JSON.parse(readFileSync(0, "utf8"));
+if (input?.stop_hook_active) process.exit(0);
+if (existsSync(join(process.cwd(), "AGENT_STOP"))) process.exit(0);
+
+const round = process.env.GYM_ROUND;
+if (!round) process.exit(0);
+
+const root = process.cwd();
+const missing = [];
+const visionLogPath = join(root, ".loop", "vision_reads.jsonl");
+const ledgerPath = join(root, ".loop", "state_ledger.json");
+const scopeDir = process.env.GYM_SCOPE === "builder" ? "builder-gym" : "gym";
+const roundDir = join(root, ".loop", "artifacts", scopeDir, `round-${String(round).padStart(3, "0")}`);
+const verdictPath = join(roundDir, "verifier_verdict.json");
+
+if (!existsSync(ledgerPath)) missing.push(".loop/state_ledger.json وجود ندارد یا آپدیت نشده است.");
+if (!existsSync(join(roundDir, "mutation_report.json"))) {
+  missing.push(`گزارش تست تک‌به‌تک ${roundDir}/mutation_report.json ساخته نشده است.`);
+}
+if (!existsSync(verdictPath)) {
+  missing.push(`تاییدیه ساب‌ایجنت ناظر (verifier_verdict.json) برای دور ${round} ثبت نشده است. ساب‌ایجنت qa-verifier را فراخوانی کن.`);
+} else {
+  try {
+    const v = JSON.parse(readFileSync(verdictPath, "utf8"));
+    if (v?.verdict !== "APPROVE") {
+      missing.push(`حکم ساب‌ایجنت ناظر "${v?.verdict}" است نه "APPROVE". ایرادهای blocking_reasons را رفع و مجدداً داوری بگیر.`);
+    }
+  } catch {
+    missing.push("فایل verifier_verdict.json ساختار JSON معتبر ندارد.");
+  }
+}
+
+let beforeReads = 0;
+let afterReads = 0;
+if (existsSync(visionLogPath)) {
+  const lines = readFileSync(visionLogPath, "utf8").trim().split(/\r?\n/).filter(Boolean);
+  for (const line of lines) {
+    try {
+      const rec = JSON.parse(line);
+      if (String(rec.round) === String(round)) {
+        if (rec.phase === "before") beforeReads++;
+        if (rec.phase === "after") afterReads++;
+      }
+    } catch {}
+  }
+}
+if (beforeReads === 0) missing.push(`هیچ عکس before/ برای دور ${round} با ابزار Read (Vision) باز نشده است.`);
+if (afterReads === 0) missing.push(`هیچ عکس after/ برای دور ${round} با ابزار Read (Vision) باز نشده است.`);
+
+if (missing.length > 0) {
+  console.log(
+    JSON.stringify({
+      decision: "block",
+      reason: `توقف دور ${round} مسدود شد. موارد زیر پیش از پایان دور الزامی هستند:\n- ${missing.join("\n- ")}`
+    })
+  );
+}
+process.exit(0);

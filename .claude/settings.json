@@ -2,46 +2,77 @@
   "hooks": {
     "PreToolUse": [
       {
-        "matcher": "Write|Edit|Bash",
+        "matcher": "Edit|Write|MultiEdit",
         "hooks": [
           {
             "type": "command",
-            "command": "powershell -File .claude/hooks/loop-guard.ps1",
+            "command": "node",
+            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/guard-edits.mjs"],
             "timeout": 10
           }
         ]
       },
       {
-        "matcher": "Bash|Grep",
+        "matcher": "Bash|PowerShell",
         "hooks": [
           {
             "type": "command",
-            "command": "graphify hook-guard search",
+            "command": "node",
+            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/guard-shell.mjs"],
             "timeout": 10
           }
         ]
-      },
+      }
+    ],
+    "PostToolUse": [
       {
-        "matcher": "Read|Glob",
+        "matcher": "Read",
         "hooks": [
           {
             "type": "command",
-            "command": "graphify hook-guard read",
+            "command": "node",
+            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/track-vision-read.mjs"],
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node",
+            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/capture-verifier.mjs"],
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node",
+            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/stop-gate.mjs"],
+            "timeout": 30
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "matcher": "compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node",
+            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/reinject-rules.mjs"],
             "timeout": 10
           }
         ]
       }
     ]
-  },
-  "extraKnownMarketplaces": {
-    "superpowers-dev": {
-      "source": {
-        "source": "github",
-        "repo": "obra/superpowers"
-      }
-    }
-  },
-  "enabledPlugins": {
-    "superpowers@superpowers-dev": true
   }
 }

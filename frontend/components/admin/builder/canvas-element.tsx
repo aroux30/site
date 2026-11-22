@@ -1755,6 +1755,35 @@ function CanvasElementComponent({
           </div>
         );
       }
+      case "table_of_contents": {
+        const title = String(props.title || "فهرست مطالب");
+        const items = (props.items as any[]) || [
+          { title: "سرفصل اول", anchor: "#sec1" },
+          { title: "سرفصل دوم", anchor: "#sec2" },
+        ];
+        return (
+          <nav className="p-4 rounded-2xl border border-border/80 bg-card space-y-3 shadow-sm w-full text-right" aria-label="فهرست مطالب">
+            <div className="flex items-center gap-2 border-b pb-2">
+              <span className="text-primary font-bold">📑</span>
+              <h4 className="text-sm font-bold text-foreground">{title}</h4>
+            </div>
+            <ul className="space-y-1.5 text-xs">
+              {items.map((it: any, idx: number) => (
+                <li key={idx}>
+                  <a
+                    href={it.anchor || "#"}
+                    onClick={(e) => e.preventDefault()}
+                    className="flex items-center gap-2 text-muted-foreground hover:text-primary transition py-1 px-2 rounded-lg hover:bg-muted/40"
+                  >
+                    <span className="text-primary font-mono text-[10px]">{idx + 1}.</span>
+                    <span>{it.title}</span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        );
+      }
       default:
         return (
           <div className="rounded-lg border border-dashed border-border p-4 text-center text-sm text-muted-foreground">

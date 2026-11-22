@@ -43,6 +43,7 @@ import {
   Quote,
   ListOrdered,
   Anchor,
+  List,
   type LucideIcon,
 } from "lucide-react";
 import type { BuilderElement } from "@/types/builder";
@@ -1279,6 +1280,32 @@ export const BASIC_BLOCK_DEFINITIONS: BlockDefinition[] = [
       widgetType: "menu_anchor",
       widgetProps: {
         anchor_id: "about-section",
+      },
+      isLocked: false,
+      isHidden: false,
+      styles: { mobile: {} },
+      children: [],
+    }),
+  },
+  {
+    type: "table_of_contents",
+    name: "فهرست مطالب (Table of Contents)",
+    category: "basic",
+    icon: List,
+    description: "فهرست ناوبری سرفصل‌ها و بخش‌های صفحه با اسکرول نرم",
+    createDefaultElement: () => ({
+      id: `el_${Math.random().toString(36).slice(2, 10)}`,
+      name: "فهرست مطالب",
+      type: "widget",
+      widgetType: "table_of_contents",
+      widgetProps: {
+        title: "فهرست مطالب این صفحه",
+        items: [
+          { title: "معرفی محصول و امکانات", anchor: "#features" },
+          { title: "مشخصات فنی و ابعاد", anchor: "#specs" },
+          { title: "پلن‌های تعرفه و قیمت", anchor: "#pricing" },
+          { title: "پرسش‌های متداول خریداران", anchor: "#faq" },
+        ],
       },
       isLocked: false,
       isHidden: false,

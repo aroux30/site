@@ -1255,6 +1255,42 @@
 
 ---
 
+### 🏋️ راند ۳۸ (Round 38) — وزنه ۷: ۸۵ کیلو (پورت ویجت حرفه‌ای فهرست مطالب Table of Contents از Elementor Pro به ۴ لایه بیلدر)
+- **تاریخ اجرا**: 2026-11-22
+- **شاخه ایزوله**: `claude/nifty-snyder-d5b886`
+- **پورت فرانت‌اند**: ۴۰۰۲
+- **وضعیت**: ✅ کامل و سبز (پورت فهرست ناوبری سرفصل‌ها و بخش‌های صفحه با اسکرول نرم در هر ۴ لایه)
+
+#### ۱. قابلیت‌ها و اصلاحات انجام‌شده
+1. **پورت ویجت فهرست مطالب (`table_of_contents`) از Elementor Pro**:
+   - مرجع المنتور: `elementor-pro/modules/table-of-contents/widgets/table-of-contents.php`.
+   - اضافه شدن به پالت پایه‌ای در `block-registry.ts` (افزایش بلوک‌ها به ۴۶ بلوک).
+   - پیاده‌سازی کنترل‌های بازرس با ورودی‌های عنوان فهرست (`toc-title-input`)، افزودن سرفصل (`toc-add-item-btn`)، عنوان بخش و لنگر مقصد (`#anchor`) در `inspector-panel.tsx`.
+   - پیاده‌سازی رندرینگ زنده با استایل ناوبری مرتب، آیکون 📑، شماره‌گذاری هوشمند و لینک‌های اسکرول در `canvas-element.tsx`.
+   - پیاده‌سازی کامپایل سمانتیک SSR با تگ `<nav>` و فهرست `<ul>` و `<li>` در `ast_compiler.py`.
+
+#### ۲. مستندات بصری (Vision Artifacts)
+- **قبل از اصلاح**: `.loop/artifacts/builder-gym/round-38/before/`
+  - `01-studio-overview.png`
+  - `02-palette-search-toc.png`
+  - `report.json`
+- **بعد از اصلاح**: `.loop/artifacts/builder-gym/round-38/after/`
+  - `01-studio-overview.png`
+  - `02-toc-customized.png` (اعمال موفق عنوان «عناوین سرفصل‌های تخصصی» در فهرست مطالب)
+  - `report.json`
+
+#### ۳. تست‌های رگرسیون دائمی اضافه‌شده
+- فایل تست Playwright: `frontend/tests/e2e/builder-gym-r38.spec.ts` (۱ تست سبز)
+- فایل تست پایتون: `backend/app/tests/unit/test_ast_compiler.py::test_ast_compiler_renders_round38_table_of_contents` (۱ تست سبز)
+
+#### ۴. نتایج نهایی ممیزی و تست‌ها در راند ۳۸
+- `npx --prefix frontend tsc --noEmit`: ۰ خطا (سبز)
+- `npm --prefix frontend test -- --run`: **۳۷۲ تست سبز در ۴۵ فایل** (`372 passed`)
+- `python -m pytest app/tests/unit`: **۶۳۷ تست سبز** (`637 passed, 2 skipped`)
+- تست‌های Playwright راند ۳۸: **۱ تست سبز (`1 passed in 4.7s`) روی پورت ۴۰۰۲**
+
+---
+
 ## 🏆 گواهینامه نهایی مسترینگ کامل: BUILDER_GYM_ALL_LEVELS_MASTERED
 
 بدین‌وسیله رسماً تایید و ثبت می‌گردد که کلیه وزنه‌های ۱ تا ۸ نردبان پیش‌رونده Visual Page Builder بر اساس دستورالعمل جامع المنتور و استانداردهای سخت‌گیرانه ۳۶۰ درجه با موفقیت ۱۰۰٪ کامل شدند:

@@ -954,6 +954,22 @@ class ASTCompiler:
             anchor_id = html.escape(str(props.get("anchor_id", "anchor")))
             return f'<div id="{anchor_id}" class="builder-menu-anchor {css_class}" data-widget="menu_anchor" aria-hidden="true"{style_attr}></div>'
 
+        elif widget_type == "table_of_contents":
+            title = html.escape(str(props.get("title", "فهرست مطالب")))
+            items = props.get("items", [])
+            items_html = "".join(
+                f'<li><a href="{html.escape(str(it.get("anchor", "#")))}" class="flex items-center gap-2 text-muted-foreground hover:text-primary transition py-1 px-2 rounded-lg">'
+                f'<span class="text-primary font-mono text-[10px]">{idx+1}.</span><span>{html.escape(str(it.get("title", "")))}</span>'
+                f'</a></li>'
+                for idx, it in enumerate(items)
+            )
+            return (
+                f'<nav{id_attr} class="builder-toc p-4 rounded-2xl border border-border/80 bg-card space-y-3 shadow-sm w-full text-right {css_class}" data-widget="table_of_contents" aria-label="فهرست مطالب"{style_attr}>'
+                f'<div class="flex items-center gap-2 border-b pb-2"><span class="text-primary font-bold">📑</span><h4 class="text-sm font-bold text-foreground">{title}</h4></div>'
+                f'<ul class="space-y-1.5 text-xs">{items_html}</ul>'
+                f'</nav>'
+            )
+
         # Generic fallback for any other registered widget
         fallback_title = html.escape(str(props.get("title", widget_type)))
         return f'<div{id_attr} class="builder-widget builder-{widget_type} {css_class}" data-widget="{html.escape(widget_type)}"{style_attr}>{fallback_title}</div>'

@@ -1202,6 +1202,44 @@ def test_ast_compiler_renders_round37_menu_anchor():
     assert 'data-widget="menu_anchor"' in result
 
 
+def test_ast_compiler_renders_round38_table_of_contents():
+    """Verify that table_of_contents widget compiles nav list with anchors in SSR."""
+    ast = PageAST(
+        schema_version=1,
+        title="تست راند ۳۸",
+        slug="test-r38-toc",
+        root_elements=[
+            BuilderElement(
+                id="el_sec_r38",
+                name="بخش ۳۸",
+                type="container",
+                children=[
+                    BuilderElement(
+                        id="el_toc_custom",
+                        name="فهرست مطالب مقاله",
+                        type="widget",
+                        widget_type="table_of_contents",
+                        widget_props={
+                            "title": "فهرست محتوای آموزشی",
+                            "items": [
+                                {"title": "مقدمه‌ای بر سئو", "anchor": "#intro"},
+                                {"title": "راهنمای ابزارها", "anchor": "#tools"},
+                            ],
+                        },
+                    ),
+                ],
+            )
+        ],
+    )
+    result = ASTCompiler.compile(ast)
+    assert 'builder-toc' in result
+    assert 'فهرست محتوای آموزشی' in result
+    assert 'href="#intro"' in result
+    assert 'مقدمه‌ای بر سئو' in result
+    assert 'href="#tools"' in result
+
+
+
 
 
 

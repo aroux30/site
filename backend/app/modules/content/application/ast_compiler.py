@@ -1286,6 +1286,29 @@ class ASTCompiler:
                 f'</div>'
             )
 
+        elif widget_type == "read_more":
+            text = html.escape(str(props.get("text", "ادامه مطلب")))
+            url = html.escape(str(props.get("url", "#")))
+            return (
+                f'<div{id_attr} class="builder-read-more my-2 text-right {css_class}" data-widget="read_more"{style_attr}>'
+                f'<a href="{url}" class="inline-flex items-center gap-1.5 text-xs font-bold text-primary hover:underline">'
+                f'<span>{text}</span>'
+                f'<span>&larr;</span>'
+                f'</a>'
+                f'</div>'
+            )
+
+        elif widget_type == "rating":
+            score = float(props.get("rating_value", props.get("score", 4.5)))
+            scale = int(props.get("rating_scale", 5))
+            return (
+                f'<div{id_attr} class="builder-rating inline-flex items-center gap-1.5 p-2 rounded-xl border border-border/60 bg-card text-xs font-bold text-foreground {css_class}" data-widget="rating"{style_attr}>'
+                f'<span class="text-amber-500">★</span>'
+                f'<span class="font-mono">{score}</span>'
+                f'<span class="text-muted-foreground text-[10px]">/ {scale}</span>'
+                f'</div>'
+            )
+
         # Generic fallback for any other registered widget
         fallback_title = html.escape(str(props.get("title", widget_type)))
         return f'<div{id_attr} class="builder-widget builder-{widget_type} {css_class}" data-widget="{html.escape(widget_type)}"{style_attr}>{fallback_title}</div>'

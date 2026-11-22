@@ -2953,6 +2953,63 @@ export function InspectorPanel() {
           </div>
         );
 
+      case "read_more":
+        return (
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs font-bold">متن دکمه ادامه مطلب</Label>
+              <Input
+                value={String(props.text || "ادامه مطلب")}
+                onChange={(e) => handlePropChange("text", e.target.value)}
+                className="h-8 text-xs"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs font-bold">پیوند مقصد (URL)</Label>
+              <Input
+                value={String(props.url || "#")}
+                onChange={(e) => handlePropChange("url", e.target.value)}
+                className="h-8 text-xs font-mono"
+                dir="ltr"
+              />
+            </div>
+          </div>
+        );
+
+      case "rating":
+        return (
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs font-bold">نمره امتیاز (Score)</Label>
+              <Input
+                type="number"
+                step="0.1"
+                min={0}
+                max={10}
+                value={Number(props.score || props.rating_value) || 4.5}
+                onChange={(e) => handlePropChange("score", parseFloat(e.target.value) || 4.5)}
+                className="h-8 text-xs font-mono"
+                dir="ltr"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs font-bold">مقیاس امتیاز (Scale)</Label>
+              <Select
+                value={String(props.rating_scale || 5)}
+                onValueChange={(val) => handlePropChange("rating_scale", parseInt(val, 10) || 5)}
+              >
+                <SelectTrigger className="h-8 text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="5">از ۵ ستاره</SelectItem>
+                  <SelectItem value="10">از ۱۰ ستاره</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        );
+
       default:
         return (
           <div className="text-xs text-muted-foreground py-2">

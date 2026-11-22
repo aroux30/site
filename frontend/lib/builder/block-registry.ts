@@ -57,6 +57,7 @@ import {
   Repeat,
   Music,
   MapPin,
+  BookOpen,
   type LucideIcon,
 } from "lucide-react";
 import type { BuilderElement } from "@/types/builder";
@@ -1745,6 +1746,48 @@ export const BASIC_BLOCK_DEFINITIONS: BlockDefinition[] = [
       widgetProps: {
         address: "تهران، میدان ونک، برج نگار",
         height: 280,
+      },
+      isLocked: false,
+      isHidden: false,
+      styles: { mobile: {} },
+      children: [],
+    }),
+  },
+  {
+    type: "read_more",
+    name: "دکمه ادامه مطلب (Read More)",
+    category: "basic",
+    icon: BookOpen,
+    description: "پیوند ادامه متن با فلش هدایتگر و متن دلخواه برای مقالات و بلاگ",
+    createDefaultElement: () => ({
+      id: `el_${Math.random().toString(36).slice(2, 10)}`,
+      name: "ادامه مطلب",
+      type: "widget",
+      widgetType: "read_more",
+      widgetProps: {
+        text: "مشاهده متن کامل",
+        url: "#",
+      },
+      isLocked: false,
+      isHidden: false,
+      styles: { mobile: {} },
+      children: [],
+    }),
+  },
+  {
+    type: "rating",
+    name: "امتیازدهی نوین (Rating)",
+    category: "basic",
+    icon: Star,
+    description: "نمایشگر نوین ستاره و عدد مقیاس امتیاز بر اساس سیستم المنتور",
+    createDefaultElement: () => ({
+      id: `el_${Math.random().toString(36).slice(2, 10)}`,
+      name: "امتیاز نوین",
+      type: "widget",
+      widgetType: "rating",
+      widgetProps: {
+        score: 4.8,
+        rating_scale: 5,
       },
       isLocked: false,
       isHidden: false,

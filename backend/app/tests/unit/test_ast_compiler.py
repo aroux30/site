@@ -599,6 +599,44 @@ def test_ast_compiler_renders_audio_and_maps_widgets():
     assert "تهران، میدان تجریش" in result
 
 
+def test_ast_compiler_renders_read_more_and_rating_widgets():
+    """Verify SSR compilation for read_more and rating widgets."""
+    ast = PageAST(
+        schema_version=1,
+        title="تست ادامه مطلب و امتیاز",
+        slug="test-more-rating",
+        root_elements=[
+            BuilderElement(
+                id="el_sec_mr",
+                name="بخش تکمیلی",
+                type="container",
+                children=[
+                    BuilderElement(
+                        id="el_more01",
+                        name="ادامه مطلب",
+                        type="widget",
+                        widget_type="read_more",
+                        widget_props={"text": "مطالعه بررسی جامع", "url": "/post/1"},
+                    ),
+                    BuilderElement(
+                        id="el_rate01",
+                        name="امتیاز جدید",
+                        type="widget",
+                        widget_type="rating",
+                        widget_props={"score": 4.8, "rating_scale": 5},
+                    ),
+                ],
+            )
+        ],
+    )
+    result = ASTCompiler.compile(ast)
+    assert 'class="builder-read-more' in result
+    assert "مطالعه بررسی جامع" in result
+    assert "/post/1" in result
+    assert 'class="builder-rating' in result
+    assert "4.8" in result
+
+
 def test_ast_compiler_renders_p3_ecommerce_native_widgets():
     ast = PageAST(
         schema_version=1,

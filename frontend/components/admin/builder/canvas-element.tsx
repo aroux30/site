@@ -2193,6 +2193,28 @@ function CanvasElementComponent({
           </div>
         );
       }
+      case "read_more": {
+        const text = String(props.text || "ادامه مطلب");
+        return (
+          <div className="w-full my-2 text-right">
+            <span className="inline-flex items-center gap-1.5 text-xs font-bold text-primary hover:underline cursor-pointer">
+              <span>{text}</span>
+              <span>&larr;</span>
+            </span>
+          </div>
+        );
+      }
+      case "rating": {
+        const score = Number(props.score || props.rating_value) || 4.5;
+        const scale = Number(props.rating_scale) || 5;
+        return (
+          <div className="inline-flex items-center gap-1.5 p-2 rounded-xl border border-border/60 bg-card text-xs font-bold text-foreground shadow-xs">
+            <span className="text-amber-500">★</span>
+            <span className="font-mono">{score}</span>
+            <span className="text-muted-foreground text-[10px]">/ {scale}</span>
+          </div>
+        );
+      }
       default:
         return (
           <div className="rounded-lg border border-dashed border-border p-4 text-center text-sm text-muted-foreground">

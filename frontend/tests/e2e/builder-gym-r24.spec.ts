@@ -207,4 +207,19 @@ test.describe("Builder Gym Round 24: Elementor Core & Pro Complete 4-Layer Wirin
     const mapsBlock = page.locator('button:has-text("نقشه موقعیت مکانی")');
     await expect(mapsBlock).toBeVisible();
   });
+
+  test("11. Read More and Rating modern widgets are available in palette", async ({ page }) => {
+    await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(1500);
+
+    const blocksTab = page.locator('button:has-text("بلوک‌ها")').first();
+    await blocksTab.click();
+    await page.waitForTimeout(400);
+
+    const readMoreBlock = page.locator('button:has-text("دکمه ادامه مطلب")');
+    await expect(readMoreBlock).toBeVisible();
+
+    const ratingBlock = page.locator('button:has-text("امتیازدهی نوین")');
+    await expect(ratingBlock).toBeVisible();
+  });
 });

@@ -1811,6 +1811,108 @@ export function InspectorPanel() {
         );
       }
 
+      case "price_table": {
+        const features = (props.features as any[]) || [
+          { text: "امکانات پایه سیستم", available: true },
+        ];
+        return (
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs">عنوان پلن</Label>
+              <Input
+                data-testid="price-table-title-input"
+                value={String(props.title || "")}
+                onChange={(e) => handlePropChange("title", e.target.value)}
+                className="h-8 text-xs font-bold"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">زیرعنوان پلن</Label>
+              <Input
+                value={String(props.subtitle || "")}
+                onChange={(e) => handlePropChange("subtitle", e.target.value)}
+                className="h-8 text-xs"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-1">
+                <Label className="text-xs">قیمت</Label>
+                <Input
+                  value={String(props.price || "")}
+                  onChange={(e) => handlePropChange("price", e.target.value)}
+                  className="h-8 text-xs font-mono"
+                  dir="ltr"
+                />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">دوره زمانی</Label>
+                <Input
+                  value={String(props.period || "ماهانه")}
+                  onChange={(e) => handlePropChange("period", e.target.value)}
+                  className="h-8 text-xs"
+                />
+              </div>
+            </div>
+            <div className="flex items-center justify-between pt-1">
+              <Label className="text-xs font-semibold">طرح ویژه و برجسته (Featured)</Label>
+              <Switch
+                checked={props.is_featured === true}
+                onCheckedChange={(val) => handlePropChange("is_featured", val)}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">متن دکمه اقدام</Label>
+              <Input
+                value={String(props.button_label || "شروع کنید")}
+                onChange={(e) => handlePropChange("button_label", e.target.value)}
+                className="h-8 text-xs"
+              />
+            </div>
+            <div className="space-y-2 pt-2 border-t">
+              <div className="flex items-center justify-between">
+                <Label className="text-xs font-bold">ویژگی‌های پلن</Label>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const updated = [...features, { text: `ویژگی جدید ${features.length + 1}`, available: true }];
+                    handlePropChange("features", updated);
+                  }}
+                  className="text-[11px] text-primary hover:underline font-semibold"
+                >
+                  + افزودن ویژگی
+                </button>
+              </div>
+              {features.map((f, idx) => (
+                <div key={idx} className="p-2 rounded-lg border bg-muted/20 flex items-center gap-2">
+                  <Input
+                    value={f.text || ""}
+                    placeholder="متن ویژگی..."
+                    onChange={(e) => {
+                      const updated = [...features];
+                      updated[idx] = { ...updated[idx], text: e.target.value };
+                      handlePropChange("features", updated);
+                    }}
+                    className="h-8 text-xs flex-1"
+                  />
+                  {features.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const updated = features.filter((_, i) => i !== idx);
+                        handlePropChange("features", updated);
+                      }}
+                      className="text-[10px] text-destructive hover:underline shrink-0"
+                    >
+                      حذف
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      }
+
       case "call_to_action":
         return (
           <div className="space-y-4">

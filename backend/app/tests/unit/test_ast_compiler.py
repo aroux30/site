@@ -686,6 +686,44 @@ def test_ast_compiler_icon_list_elementor_parity():
     assert "flex flex-wrap" in result
 
 
+def test_ast_compiler_price_table_elementor_pro_parity():
+    """Verify Elementor Pro Price Table compiles correctly in SSR."""
+    ast = PageAST(
+        schema_version=1,
+        title="تست جدول قیمت",
+        slug="test-price-table",
+        root_elements=[
+            BuilderElement(
+                id="el_ptable_01",
+                name="پلن پیشرفته",
+                type="widget",
+                widget_type="price_table",
+                widget_props={
+                    "title": "پلن تجاری",
+                    "subtitle": "برای شرکت‌های بزرگ",
+                    "price": "۹۹۰,۰۰۰",
+                    "currency": "تومان",
+                    "period": "ماهانه",
+                    "is_featured": True,
+                    "button_label": "سفارش پلن",
+                    "features": [
+                        {"text": "فضای نامحدود", "available": True},
+                        {"text": "پشتیبانی اختصاصی VIP", "available": True},
+                    ]
+                },
+            ),
+        ],
+    )
+    result = ASTCompiler.compile(ast)
+    assert "builder-price-table" in result
+    assert "پلن تجاری" in result
+    assert "۹۹۰,۰۰۰" in result
+    assert "پیشنهاد ویژه" in result
+    assert "پشتیبانی اختصاصی VIP" in result
+    assert "سفارش پلن" in result
+
+
+
 
 
 

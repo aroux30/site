@@ -1133,6 +1133,59 @@ export const BASIC_BLOCK_DEFINITIONS: BlockDefinition[] = [
       children: [],
     }),
   },
+  {
+    type: "price_table",
+    name: "جدول قیمت و پلن (Price Table)",
+    category: "basic",
+    icon: DollarSign,
+    description: "کارت تعرفه شامل عنوان پلن، قیمت، دوره، لیست ویژگی‌ها و دکمه خرید",
+    createDefaultElement: () => ({
+      id: `el_${Math.random().toString(36).slice(2, 10)}`,
+      name: "کارت تعرفه و پلن",
+      type: "widget",
+      widgetType: "price_table",
+      widgetProps: {
+        title: "پلن حرفه‌ای",
+        subtitle: "مناسب کسب‌وکارهای رو به رشد",
+        price: "۴۹۰,۰۰۰",
+        currency: "تومان",
+        period: "ماهانه",
+        is_featured: true,
+        button_label: "انتخاب پلن",
+        button_url: "/checkout?plan=pro",
+        features: [
+          { text: "دسترسی کامل به تمام ابزارها", available: true },
+          { text: "پشتیبانی اختصاصی ۲۴ ساعته", available: true },
+          { text: "فضای ابری نامحدود", available: true },
+          { text: "گواهی SSL سازمانی رایگان", available: true },
+        ],
+      },
+      isLocked: false,
+      isHidden: false,
+      styles: {
+        mobile: {
+          padding: {
+            top: { value: 24, unit: "px" },
+            right: { value: 20, unit: "px" },
+            bottom: { value: 24, unit: "px" },
+            left: { value: 20, unit: "px" },
+            isLinked: true,
+          },
+          border: {
+            style: "solid",
+            radius: {
+              top: { value: 16, unit: "px" },
+              right: { value: 16, unit: "px" },
+              bottom: { value: 16, unit: "px" },
+              left: { value: 16, unit: "px" },
+              isLinked: true,
+            },
+          },
+        },
+      },
+      children: [],
+    }),
+  },
 ];
 
 import { createPatternAST } from "./pattern-converter";

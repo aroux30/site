@@ -808,6 +808,32 @@ class ASTCompiler:
             )
             return f'<ul{id_attr} class="builder-icon-list w-full p-0 m-0 list-none {wrap_class} {css_class}" data-widget="icon_list"{style_attr}>{items_html}</ul>'
 
+        elif widget_type == "price_table":
+            title = html.escape(str(props.get("title", "پلن انتخابی")))
+            subtitle = html.escape(str(props.get("subtitle", "")))
+            price = html.escape(str(props.get("price", "۰")))
+            currency = html.escape(str(props.get("currency", "تومان")))
+            period = html.escape(str(props.get("period", "ماهانه")))
+            btn_label = html.escape(str(props.get("button_label", "خرید پلن")))
+            is_featured = props.get("is_featured") is True
+            features = props.get("features", [])
+            badge_html = '<div class="absolute top-0 end-0 bg-primary text-primary-foreground text-[10px] font-bold px-3 py-1 rounded-bl-xl shadow-xs">پیشنهاد ویژه</div>' if is_featured else ""
+            subtitle_html = f'<p class="text-xs text-muted-foreground">{subtitle}</p>' if subtitle else ""
+            feats_html = "".join(
+                f'<li class="flex items-center gap-2"><span class="w-4 h-4 rounded-full bg-emerald-500/10 text-emerald-600 flex items-center justify-center shrink-0 text-[10px] font-bold">✓</span><span class="text-muted-foreground">{html.escape(str(f.get("text", "")))}</span></li>'
+                for f in features
+            )
+            border_cls = "border-primary ring-2 ring-primary/20 shadow-lg" if is_featured else "border-border/80"
+            return (
+                f'<div{id_attr} class="builder-price-table p-6 rounded-3xl border bg-card text-center space-y-4 shadow-sm w-full transition relative overflow-hidden {border_cls} {css_class}" data-widget="price_table"{style_attr}>'
+                f'{badge_html}'
+                f'<div class="space-y-1"><h4 class="text-base font-bold text-foreground">{title}</h4>{subtitle_html}</div>'
+                f'<div class="py-2 border-y border-border/60"><span class="text-3xl font-black text-primary font-mono">{price}</span><span class="text-xs text-muted-foreground ms-1">{currency} / {period}</span></div>'
+                f'<ul class="space-y-2 text-xs text-right list-none p-0 m-0">{feats_html}</ul>'
+                f'<div class="pt-2"><a href="{html.escape(str(props.get("button_url", "#")))}" class="w-full py-2.5 rounded-xl font-bold text-xs transition shadow-sm block text-center {"bg-primary text-primary-foreground" if is_featured else "bg-muted/80 text-foreground"}">{btn_label}</a></div>'
+                f'</div>'
+            )
+
         # Generic fallback for any other registered widget
         fallback_title = html.escape(str(props.get("title", widget_type)))
         return f'<div{id_attr} class="builder-widget builder-{widget_type} {css_class}" data-widget="{html.escape(widget_type)}"{style_attr}>{fallback_title}</div>'

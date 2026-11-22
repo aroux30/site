@@ -1913,6 +1913,81 @@ export function InspectorPanel() {
         );
       }
 
+      case "price_list": {
+        const items = (props.items as any[]) || [
+          { title: "عنوان آیتم", description: "توضیح کوتاه", price: "۵۰,۰۰۰ تومان" },
+        ];
+        return (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <Label className="text-xs font-bold">آیتم‌های منوی قیمت</Label>
+              <button
+                type="button"
+                onClick={() => {
+                  const updated = [...items, { title: `آیتم جدید ${items.length + 1}`, description: "توضیحات تکمیلی", price: "۱۰۰,۰۰۰ تومان" }];
+                  handlePropChange("items", updated);
+                }}
+                className="text-[11px] text-primary hover:underline font-semibold"
+              >
+                + افزودن آیتم
+              </button>
+            </div>
+            <div className="space-y-3">
+              {items.map((itm, idx) => (
+                <div key={idx} className="p-2.5 rounded-xl border bg-muted/20 space-y-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <Input
+                      data-testid={`price-list-item-title-${idx}`}
+                      value={itm.title || ""}
+                      placeholder="عنوان آیتم (مثلاً اسپرسو)..."
+                      onChange={(e) => {
+                        const updated = [...items];
+                        updated[idx] = { ...updated[idx], title: e.target.value };
+                        handlePropChange("items", updated);
+                      }}
+                      className="h-8 text-xs flex-1 font-bold"
+                    />
+                    <Input
+                      value={itm.price || ""}
+                      placeholder="قیمت..."
+                      onChange={(e) => {
+                        const updated = [...items];
+                        updated[idx] = { ...updated[idx], price: e.target.value };
+                        handlePropChange("items", updated);
+                      }}
+                      className="h-8 text-xs w-28 font-mono"
+                      dir="ltr"
+                    />
+                    {items.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const updated = items.filter((_, i) => i !== idx);
+                          handlePropChange("items", updated);
+                        }}
+                        className="text-[10px] text-destructive hover:underline shrink-0"
+                      >
+                        حذف
+                      </button>
+                    )}
+                  </div>
+                  <Input
+                    value={itm.description || ""}
+                    placeholder="توضیح کوتاه..."
+                    onChange={(e) => {
+                      const updated = [...items];
+                      updated[idx] = { ...updated[idx], description: e.target.value };
+                      handlePropChange("items", updated);
+                    }}
+                    className="h-7 text-xs"
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      }
+
       case "call_to_action":
         return (
           <div className="space-y-4">

@@ -834,6 +834,19 @@ class ASTCompiler:
                 f'</div>'
             )
 
+        elif widget_type == "price_list":
+            items = props.get("items", [])
+            items_html = "".join(
+                f'<div class="flex items-start justify-between gap-3 p-3 rounded-2xl border border-border/60 bg-card">'
+                f'<div class="flex-1 space-y-0.5 text-right">'
+                f'<div class="flex items-center justify-between gap-2"><span class="font-bold text-xs text-foreground">{html.escape(str(itm.get("title", "")))}</span><span class="font-mono font-black text-xs text-primary shrink-0">{html.escape(str(itm.get("price", "")))}</span></div>'
+                f'<p class="text-[11px] text-muted-foreground leading-relaxed">{html.escape(str(itm.get("description", "")))}</p>'
+                f'</div>'
+                f'</div>'
+                for itm in items
+            )
+            return f'<div{id_attr} class="builder-price-list space-y-3 w-full {css_class}" data-widget="price_list"{style_attr}>{items_html}</div>'
+
         # Generic fallback for any other registered widget
         fallback_title = html.escape(str(props.get("title", widget_type)))
         return f'<div{id_attr} class="builder-widget builder-{widget_type} {css_class}" data-widget="{html.escape(widget_type)}"{style_attr}>{fallback_title}</div>'

@@ -723,6 +723,35 @@ def test_ast_compiler_price_table_elementor_pro_parity():
     assert "سفارش پلن" in result
 
 
+def test_ast_compiler_price_list_elementor_pro_parity():
+    """Verify Elementor Pro Price List compiles correctly in SSR."""
+    ast = PageAST(
+        schema_version=1,
+        title="تست لیست قیمت و منو",
+        slug="test-price-list",
+        root_elements=[
+            BuilderElement(
+                id="el_plist_01",
+                name="منوی کافه",
+                type="widget",
+                widget_type="price_list",
+                widget_props={
+                    "items": [
+                        {"title": "اسپرسو دبل", "description": "عصاره‌گیری استاندارد", "price": "۵۵,۰۰۰ تومان"},
+                        {"title": "چیزکیک سن سباستین", "description": "پخت روز با خامه تازه", "price": "۹۵,۰۰۰ تومان"},
+                    ]
+                },
+            ),
+        ],
+    )
+    result = ASTCompiler.compile(ast)
+    assert "builder-price-list" in result
+    assert "اسپرسو دبل" in result
+    assert "۵۵,۰۰۰ تومان" in result
+    assert "چیزکیک سن سباستین" in result
+
+
+
 
 
 

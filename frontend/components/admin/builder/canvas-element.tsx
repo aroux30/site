@@ -1707,6 +1707,31 @@ function CanvasElementComponent({
           </div>
         );
       }
+      case "price_list": {
+        const items = (props.items as any[]) || [
+          { title: "عنوان خدمت", description: "توضیح کوتاه خدمت", price: "۱۰۰,۰۰۰ تومان" },
+        ];
+        return (
+          <div className="builder-price-list space-y-3 w-full" data-widget="price_list">
+            {items.map((itm, idx) => (
+              <div key={idx} className="flex items-start justify-between gap-3 p-3 rounded-2xl border border-border/60 bg-card hover:bg-muted/30 transition">
+                {itm.image && (
+                  <img src={itm.image} alt={itm.title} className="w-12 h-12 rounded-xl object-cover shrink-0" loading="lazy" />
+                )}
+                <div className="flex-1 space-y-0.5 text-right">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="font-bold text-xs text-foreground">{itm.title}</span>
+                    <span className="font-mono font-black text-xs text-primary shrink-0">{itm.price}</span>
+                  </div>
+                  {itm.description && (
+                    <p className="text-[11px] text-muted-foreground leading-relaxed">{itm.description}</p>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        );
+      }
       case "call_to_action": {
         const title = String(props.title || "عنوان اقدام به عمل");
         const desc = String(props.description || "توضیحات مربوط به بنر تشویق به اقدام");

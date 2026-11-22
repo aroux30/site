@@ -1186,6 +1186,40 @@ export const BASIC_BLOCK_DEFINITIONS: BlockDefinition[] = [
       children: [],
     }),
   },
+  {
+    type: "price_list",
+    name: "لیست قیمت و منو (Price List)",
+    category: "basic",
+    icon: Receipt,
+    description: "فهرست قیمت اقلام و خدمات با خط اتصال نقطه‌چین و توضیحات",
+    createDefaultElement: () => ({
+      id: `el_${Math.random().toString(36).slice(2, 10)}`,
+      name: "منوی قیمت و خدمات",
+      type: "widget",
+      widgetType: "price_list",
+      widgetProps: {
+        items: [
+          { title: "اسپرسو سینگل", description: "۱۰۰٪ دانه‌های قهوه عربیکا با عطر و طعم غنی", price: "۴۵,۰۰۰ تومان", image: "/placeholder-hero.svg" },
+          { title: "کاپوچینو ایتالیایی", description: "اسپرسو غلیظ همراه با فوم شیر پرچرب تازه", price: "۶۵,۰۰۰ تومان", image: "/placeholder-hero.svg" },
+          { title: "کیک شکلاتی بلژیکی", description: "کیک تازه لایه‌ای با شکلات دارک دست‌ساز", price: "۸۵,۰۰۰ تومان", image: "/placeholder-hero.svg" },
+        ],
+      },
+      isLocked: false,
+      isHidden: false,
+      styles: {
+        mobile: {
+          padding: {
+            top: { value: 16, unit: "px" },
+            right: { value: 16, unit: "px" },
+            bottom: { value: 16, unit: "px" },
+            left: { value: 16, unit: "px" },
+            isLinked: true,
+          },
+        },
+      },
+      children: [],
+    }),
+  },
 ];
 
 import { createPatternAST } from "./pattern-converter";

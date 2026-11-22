@@ -1,189 +1,251 @@
-import fs from 'node:fs';
-import path from 'node:path';
+#!/usr/bin/env node
+/**
+ * scripts/loop/builder-wiring-audit.mjs
+ *
+ * Static code analyzer that maps and verifies wiring between:
+ * - Inspector Panel UI (`inspector-panel.tsx`)
+ * - Builder Store (`builder-store.ts`)
+ * - Canvas Rendering (`canvas-element.tsx`)
+ * - Backend AST and SSR Compiler (`builder_ast.py`, `ast_compiler.py`, `html_sanitizer.py`)
+ *
+ * Produces: `.loop/builder_wiring_gaps.json` with 4 definitive categories:
+ * 1. HARDCODED_OR_EMPTY_UI
+ * 2. UNREAD_IN_CANVAS
+ * 3. UNCOMPILED_IN_SSR
+ * 4. WIDGET_CONTROL_BLIND_SPOTS
+ */
 
-const ROOT_DIR = process.cwd();
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 
-// Paths to analyze
-const PATHS = {
-  inspectorPanel: path.join(ROOT_DIR, 'frontend/components/admin/builder/inspector-panel.tsx'),
-  builderToolbar: path.join(ROOT_DIR, 'frontend/components/admin/builder/builder-toolbar.tsx'),
-  layersTree: path.join(ROOT_DIR, 'frontend/components/admin/builder/layers-tree.tsx'),
-  blocksPalette: path.join(ROOT_DIR, 'frontend/components/admin/builder/blocks-palette.tsx'),
-  builderStore: path.join(ROOT_DIR, 'frontend/stores/builder-store.ts'),
-  canvasElement: path.join(ROOT_DIR, 'frontend/components/admin/builder/canvas-element.tsx'),
-  typesBuilder: path.join(ROOT_DIR, 'frontend/types/builder.ts'),
-  builderAstPy: path.join(ROOT_DIR, 'backend/app/modules/content/domain/builder_ast.py'),
-  astCompilerPy: path.join(ROOT_DIR, 'backend/app/modules/content/application/ast_compiler.py'),
-  blockRegistry: path.join(ROOT_DIR, 'frontend/lib/builder/block-registry.ts'),
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const projectRoot = path.resolve(__dirname, "../..");
+
+const files = {
+  inspector: path.join(projectRoot, "frontend/components/admin/builder/inspector-panel.tsx"),
+  toolbar: path.join(projectRoot, "frontend/components/admin/builder/builder-toolbar.tsx"),
+  layers: path.join(projectRoot, "frontend/components/admin/builder/layers-tree.tsx"),
+  palette: path.join(projectRoot, "frontend/components/admin/builder/blocks-palette.tsx"),
+  store: path.join(projectRoot, "frontend/stores/builder-store.ts"),
+  canvas: path.join(projectRoot, "frontend/components/admin/builder/canvas-element.tsx"),
+  types: path.join(projectRoot, "frontend/types/builder.ts"),
+  blockRegistry: path.join(projectRoot, "frontend/lib/builder/block-registry.ts"),
+  backendAst: path.join(projectRoot, "backend/app/modules/content/domain/builder_ast.py"),
+  backendCompiler: path.join(projectRoot, "backend/app/modules/content/application/ast_compiler.py"),
+  backendSanitizer: path.join(projectRoot, "backend/app/shared/content/html_sanitizer.py"),
 };
 
-const ALL_35_WIDGETS = [
-  // 10 Basic & Layout
-  "container", "section", "columns", "heading", "text_editor", "image", "button", "spacer", "divider", "table",
-  // 15 Interactive / Form (including Wave 2 Counter & Alert)
-  "form_container", "form_input", "form_textarea", "form_select", "form_checkbox", "form_radio",
-  "accordion", "tabs", "countdown", "video", "icon_box", "social_links", "html_custom", "counter", "alert",
-  // 12 Shop / Commerce
-  "product_card", "product_grid", "image_gallery", "star_rating", "review_histogram", "recently_viewed",
-  "mega_menu", "product_price", "product_variants", "add_to_cart", "mini_cart", "cart_summary"
-];
-
-function runWiringAudit() {
-  console.log('>>> Running Builder Static Wiring Audit...');
-
-  const inspectorContent = fs.readFileSync(PATHS.inspectorPanel, 'utf-8');
-  const canvasContent = fs.readFileSync(PATHS.canvasElement, 'utf-8');
-  const storeContent = fs.readFileSync(PATHS.builderStore, 'utf-8');
-  const astPyContent = fs.readFileSync(PATHS.builderAstPy, 'utf-8');
-  const compilerPyContent = fs.readFileSync(PATHS.astCompilerPy, 'utf-8');
-  const toolbarContent = fs.readFileSync(PATHS.builderToolbar, 'utf-8');
-  const layersContent = fs.readFileSync(PATHS.layersTree, 'utf-8');
-
-  // Category 1: HARDCODED_OR_EMPTY_UI
-  // Check for () => {}, empty onClick/onChange, window.alert/confirm, or static un-wired buttons
-  const hardcodedOrEmptyUI = [];
-
-  // Check alert / confirm
-  const alertMatches = inspectorContent.match(/window\.(alert|confirm)\([^)]*\)/g) || [];
-  for (const m of alertMatches) {
-    hardcodedOrEmptyUI.push({
-      file: 'inspector-panel.tsx',
-      issue: 'Native window dialog usage',
-      codeSnippet: m,
-    });
+// Check all files exist
+for (const [key, filePath] of Object.entries(files)) {
+  if (!fs.existsSync(filePath)) {
+    console.error(`[ERROR] File missing for ${key}: ${filePath}`);
+    process.exit(1);
   }
-
-  // Check empty arrow handlers in inspector
-  const emptyHandlerMatches = inspectorContent.match(/(?:onClick|onChange|onValueChange|onCheckedChange)\s*=\s*\{\s*\(\s*\)\s*=>\s*\{\s*\}\s*\}/g) || [];
-  for (const m of emptyHandlerMatches) {
-    hardcodedOrEmptyUI.push({
-      file: 'inspector-panel.tsx',
-      issue: 'Empty handler callback (() => {})',
-      codeSnippet: m,
-    });
-  }
-
-  // Check for known no-op placeholders or hardcoded controls
-  const hardcodedCheck = [
-    { name: 'motionEffectsHover', pattern: /hoverAnimation/ },
-    { name: 'customCssLint', pattern: /customCssErrors/ },
-    { name: 'shapeDividerBottomOffset', pattern: /shapeDividerBottomOffset/ },
-  ];
-
-  for (const check of hardcodedCheck) {
-    if (inspectorContent.includes(check.name)) {
-      if (!canvasContent.includes(check.name)) {
-        hardcodedOrEmptyUI.push({
-          file: 'inspector-panel.tsx',
-          issue: `Control '${check.name}' present in inspector but not connected`,
-          codeSnippet: check.name,
-        });
-      }
-    }
-  }
-
-  // Category 2: UNREAD_IN_CANVAS
-  // Detect styles or props updated in store by InspectorPanel that are not consumed in canvas-element.tsx
-  const unreadInCanvas = [];
-
-  // Inspect styles properties:
-  const stylePropsInInspector = [
-    'letterSpacing', 'textTransform', 'textDecoration',
-    'filterBlur', 'backdropBlur', 'overflow',
-    'top', 'bottom', 'left', 'right', 'position'
-  ];
-
-  for (const prop of stylePropsInInspector) {
-    const isWritten = inspectorContent.includes(prop);
-    const isReadInCanvas = canvasContent.includes(prop) || canvasContent.includes(`styleObj.${prop}`) || canvasContent.includes(`styles.${prop}`);
-    if (isWritten && !isReadInCanvas) {
-      unreadInCanvas.push({
-        property: prop,
-        source: 'inspector-panel.tsx',
-        destination: 'canvas-element.tsx',
-        description: `Property '${prop}' is edited in Inspector but not converted to DOM/CSS in canvas element styles.`
-      });
-    }
-  }
-
-  // Category 3: UNCOMPILED_IN_SSR
-  // Detect widgets or props rendered on frontend canvas that are missing or ignored in ast_compiler.py
-  const uncompiledInSSR = [];
-
-  for (const w of ALL_35_WIDGETS) {
-    const inCanvas = canvasContent.includes(`widgetType === "${w}"`) || canvasContent.includes(`widget_type == "${w}"`) || canvasContent.includes(w);
-    const inCompiler = compilerPyContent.includes(`widget_type == "${w}"`) ||
-      (compilerPyContent.includes('widget_type in') && compilerPyContent.includes(`"${w}"`)) ||
-      (w === "columns" || w === "section" || w === "container");
-    if (!inCompiler) {
-      uncompiledInSSR.push({
-        widgetType: w,
-        issue: `Widget '${w}' has frontend implementation but is not compiled in backend ast_compiler.py`,
-      });
-    }
-  }
-
-  // Check style properties compiled in SSR vs frontend
-  const ssrStylesCheck = [
-    { prop: 'filter', pyField: 'filter' },
-    { prop: 'boxShadow', pyField: 'box_shadow' },
-    { prop: 'backgroundOverlay', pyField: 'background_overlay' },
-    { prop: 'backdropBlur', pyField: 'backdrop_blur' },
-    { prop: 'zIndex', pyField: 'z_index' },
-  ];
-
-  for (const item of ssrStylesCheck) {
-    if (!compilerPyContent.includes(item.pyField)) {
-      uncompiledInSSR.push({
-        property: item.prop,
-        issue: `Style property '${item.prop}' (${item.pyField}) is not compiled into HTML attributes or styles in ast_compiler.py`,
-      });
-    }
-  }
-
-  // Category 4: WIDGET_CONTROL_BLIND_SPOTS
-  // Check which of the 35 widgets in Content, Style, or Advanced tabs lack dedicated controls
-  const widgetControlBlindSpots = [];
-
-  for (const w of ALL_35_WIDGETS) {
-    if (w === "container" || w === "section" || w === "columns") continue;
-
-    // Check if inspector handles this widgetType in switch case
-    const hasContentCase = inspectorContent.includes(`case "${w}":`);
-    if (!hasContentCase) {
-      widgetControlBlindSpots.push({
-        widgetType: w,
-        tab: 'content',
-        issue: `Widget '${w}' lacks a dedicated 'case "${w}":' block in InspectorPanel Content tab. Falls back to default/empty.`
-      });
-    }
-  }
-
-  const results = {
-    timestamp: new Date().toISOString(),
-    summary: {
-      hardcodedOrEmptyCount: hardcodedOrEmptyUI.length,
-      unreadInCanvasCount: unreadInCanvas.length,
-      uncompiledInSSRCount: uncompiledInSSR.length,
-      widgetControlBlindSpotsCount: widgetControlBlindSpots.length,
-    },
-    gaps: {
-      HARDCODED_OR_EMPTY_UI: hardcodedOrEmptyUI,
-      UNREAD_IN_CANVAS: unreadInCanvas,
-      UNCOMPILED_IN_SSR: uncompiledInSSR,
-      WIDGET_CONTROL_BLIND_SPOTS: widgetControlBlindSpots,
-    }
-  };
-
-  const outputPath = path.join(ROOT_DIR, '.loop/builder_wiring_gaps.json');
-  fs.writeFileSync(outputPath, JSON.stringify(results, null, 2), 'utf-8');
-  console.log(`>>> Written wiring gaps to ${outputPath}`);
-  console.log(`    - Category 1 (HARDCODED_OR_EMPTY_UI): ${hardcodedOrEmptyUI.length}`);
-  console.log(`    - Category 2 (UNREAD_IN_CANVAS): ${unreadInCanvas.length}`);
-  console.log(`    - Category 3 (UNCOMPILED_IN_SSR): ${uncompiledInSSR.length}`);
-  console.log(`    - Category 4 (WIDGET_CONTROL_BLIND_SPOTS): ${widgetControlBlindSpots.length}`);
-
-  return results;
 }
 
-runWiringAudit();
+const inspectorCode = fs.readFileSync(files.inspector, "utf8");
+const toolbarCode = fs.readFileSync(files.toolbar, "utf8");
+const layersCode = fs.readFileSync(files.layers, "utf8");
+const paletteCode = fs.readFileSync(files.palette, "utf8");
+const storeCode = fs.readFileSync(files.store, "utf8");
+const canvasCode = fs.readFileSync(files.canvas, "utf8");
+const typesCode = fs.readFileSync(files.types, "utf8");
+const registryCode = fs.readFileSync(files.blockRegistry, "utf8");
+const backendAstCode = fs.readFileSync(files.backendAst, "utf8");
+const backendCompilerCode = fs.readFileSync(files.backendCompiler, "utf8");
+const backendSanitizerCode = fs.readFileSync(files.backendSanitizer, "utf8");
+
+console.log(">>> [Wiring-Audit] Analyzing builder files...");
+
+// ── 1. HARDCODED_OR_EMPTY_UI ────────────────────────────────────────────────
+const hardcodedOrEmpty = [];
+
+// Look for empty handlers `() => {}` in inspector and toolbar
+const emptyHandlerRegex = /(?:onClick|onChange|onValueChange|onSelect|onCheckedChange)\s*=\s*\{\s*\(\s*[^)]*\s*\)\s*=>\s*\{\s*\}\s*\}/g;
+let match;
+while ((match = emptyHandlerRegex.exec(inspectorCode)) !== null) {
+  const line = inspectorCode.substring(0, match.index).split("\n").length;
+  hardcodedOrEmpty.push({
+    file: "inspector-panel.tsx",
+    line,
+    match: match[0],
+    issue: "EMPTY_CALLBACK_HANDLER",
+    detail: "Handler does nothing when triggered",
+  });
+}
+
+while ((match = emptyHandlerRegex.exec(toolbarCode)) !== null) {
+  const line = toolbarCode.substring(0, match.index).split("\n").length;
+  hardcodedOrEmpty.push({
+    file: "builder-toolbar.tsx",
+    line,
+    match: match[0],
+    issue: "EMPTY_CALLBACK_HANDLER",
+    detail: "Handler does nothing when triggered",
+  });
+}
+
+// Check for window.alert / window.confirm
+const alertConfirmRegex = /(?:window\.)?(alert|confirm)\s*\(/g;
+while ((match = alertConfirmRegex.exec(inspectorCode)) !== null) {
+  const line = inspectorCode.substring(0, match.index).split("\n").length;
+  hardcodedOrEmpty.push({
+    file: "inspector-panel.tsx",
+    line,
+    match: match[0],
+    issue: "NATIVE_ALERT_CONFIRM_TRAP",
+    detail: "Uses synchronous window.alert/confirm which fails or blocks in sandboxed iframes",
+  });
+}
+
+while ((match = alertConfirmRegex.exec(toolbarCode)) !== null) {
+  const line = toolbarCode.substring(0, match.index).split("\n").length;
+  hardcodedOrEmpty.push({
+    file: "builder-toolbar.tsx",
+    line,
+    match: match[0],
+    issue: "NATIVE_ALERT_CONFIRM_TRAP",
+    detail: "Uses synchronous window.alert/confirm which fails or blocks in sandboxed iframes",
+  });
+}
+
+// ── 2. UNREAD_IN_CANVAS ─────────────────────────────────────────────────────
+const unreadInCanvas = [];
+
+// Extract all style and prop keys manipulated in inspector
+const propChangeRegex = /handlePropChange\s*\(\s*["']([^"']+)["']/g;
+const inspectorProps = new Set();
+while ((match = propChangeRegex.exec(inspectorCode)) !== null) {
+  inspectorProps.add(match[1]);
+}
+
+// Check if each prop is actually referenced in canvas-element.tsx
+for (const prop of inspectorProps) {
+  const propRefRegex = new RegExp(`(?:props\\.${prop}|props\\[["']${prop}["']\\]|widgetProps\\?.${prop})`, "g");
+  if (!propRefRegex.test(canvasCode) && !canvasCode.includes(`"${prop}"`) && !canvasCode.includes(`'${prop}'`)) {
+    unreadInCanvas.push({
+      prop,
+      source: "inspector-panel.tsx",
+      target: "canvas-element.tsx",
+      issue: "PROP_NOT_RENDERED_IN_CANVAS",
+      detail: `Property "${prop}" is edited in Inspector but never read in CanvasElementComponent`,
+    });
+  }
+}
+
+// Check device style attributes
+const deviceStyleKeys = [
+  "margin", "padding", "border", "background", "backgroundOverlay",
+  "width", "minHeight", "filter", "opacity", "zIndex", "boxShadow",
+  "position", "top", "bottom", "left", "right", "overflow",
+  "alignSelf", "order", "flexGrow", "backdropBlur", "filterBlur"
+];
+for (const styleKey of deviceStyleKeys) {
+  if (!canvasCode.includes(styleKey)) {
+    unreadInCanvas.push({
+      styleKey,
+      source: "frontend/types/builder.ts",
+      target: "canvas-element.tsx",
+      issue: "STYLE_KEY_IGNORED_IN_CANVAS",
+      detail: `DeviceStyle key "${styleKey}" is defined in types but not applied in CanvasElement style computation`,
+    });
+  }
+}
+
+// ── 3. UNCOMPILED_IN_SSR ────────────────────────────────────────────────────
+const uncompiledInSsr = [];
+
+// Get all 35 widgets and blocks
+const all35Widgets = [
+  "container", "section", "columns", "heading", "text_editor", "image", "button", "spacer", "divider",
+  "table", "form_container", "form_input", "form_textarea", "form_select", "form_checkbox", "form_radio",
+  "accordion", "tabs", "countdown", "video", "icon_box", "social_links",
+  "product_card", "product_grid", "image_gallery", "star_rating", "review_histogram", "recently_viewed",
+  "mega_menu", "product_price", "product_variants", "add_to_cart", "mini_cart", "cart_summary",
+  "icon", "icon_list", "price_table", "price_list"
+];
+
+for (const wType of all35Widgets) {
+  // Check if handled in ast_compiler.py
+  const isContainerType = ["container", "section", "columns", "form_container"].includes(wType);
+  if (isContainerType) {
+    if (!backendCompilerCode.includes("_compile_container")) {
+      uncompiledInSsr.push({
+        widgetType: wType,
+        issue: "CONTAINER_UNCOMPILED_IN_SSR",
+        detail: `Container type "${wType}" missing dedicated compilation logic in ast_compiler.py`,
+      });
+    }
+  } else {
+    const handledInCompiler = backendCompilerCode.includes(`widget_type == "${wType}"`) ||
+                              backendCompilerCode.includes(`widget_type in ("${wType}"`) ||
+                              backendCompilerCode.includes(`"${wType}"`);
+    if (!handledInCompiler) {
+      uncompiledInSsr.push({
+        widgetType: wType,
+        issue: "WIDGET_UNCOMPILED_IN_SSR",
+        detail: `Widget type "${wType}" is defined in frontend but not handled in ASTCompiler._compile_widget`,
+      });
+    }
+  }
+}
+
+// Check sanitizer tags for forms/inputs
+const requiredTags = ["form", "input", "textarea", "select", "option", "table", "button"];
+for (const tag of requiredTags) {
+  if (!backendSanitizerCode.includes(`"${tag}"`)) {
+    uncompiledInSsr.push({
+      tag,
+      issue: "SANITIZER_TAG_STRIPPED",
+      detail: `HTML tag <${tag}> is not in html_sanitizer.py ALLOWED_TAGS and will be dropped on SSR output`,
+    });
+  }
+}
+
+// ── 4. WIDGET_CONTROL_BLIND_SPOTS ───────────────────────────────────────────
+const widgetBlindSpots = [];
+
+// For each widget, verify if inspector has a dedicated case in `renderContentControls`
+for (const wType of all35Widgets) {
+  const isContainer = ["container", "section", "columns"].includes(wType);
+  if (!isContainer) {
+    const hasCase = inspectorCode.includes(`case "${wType}":`);
+    if (!hasCase) {
+      widgetBlindSpots.push({
+        widgetType: wType,
+        missingTab: "content",
+        issue: "MISSING_DEDICATED_CONTENT_CONTROLS",
+        detail: `Widget "${wType}" falls back to default message in Inspector Content Tab`,
+      });
+    }
+  }
+}
+
+const report = {
+  timestamp: new Date().toISOString(),
+  summary: {
+    hardcodedOrEmptyCount: hardcodedOrEmpty.length,
+    unreadInCanvasCount: unreadInCanvas.length,
+    uncompiledInSsrCount: uncompiledInSsr.length,
+    widgetBlindSpotsCount: widgetBlindSpots.length,
+    totalGaps: hardcodedOrEmpty.length + unreadInCanvas.length + uncompiledInSsr.length + widgetBlindSpots.length,
+  },
+  categories: {
+    HARDCODED_OR_EMPTY_UI: hardcodedOrEmpty,
+    UNREAD_IN_CANVAS: unreadInCanvas,
+    UNCOMPILED_IN_SSR: uncompiledInSsr,
+    WIDGET_CONTROL_BLIND_SPOTS: widgetBlindSpots,
+  },
+};
+
+const outputPath = path.join(projectRoot, ".loop/builder_wiring_gaps.json");
+fs.writeFileSync(outputPath, JSON.stringify(report, null, 2), "utf8");
+
+console.log(`>>> [Wiring-Audit] Complete. Gaps written to ${outputPath}`);
+console.log(`    - HARDCODED_OR_EMPTY_UI   : ${hardcodedOrEmpty.length}`);
+console.log(`    - UNREAD_IN_CANVAS        : ${unreadInCanvas.length}`);
+console.log(`    - UNCOMPILED_IN_SSR       : ${uncompiledInSsr.length}`);
+console.log(`    - WIDGET_CONTROL_BLIND_SPOTS: ${widgetBlindSpots.length}`);
+console.log(`    Total gaps indexed: ${report.summary.totalGaps}`);

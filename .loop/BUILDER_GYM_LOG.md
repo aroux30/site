@@ -1041,6 +1041,41 @@
 
 ---
 
+### 🏋️ راند ۳۲ (Round 32) — وزنه ۷: ۸۵ کیلو (آدرس‌دهی دکمه پشت کارت Flip Box و اتریبیوت‌های تست سرتیتر متحرک)
+- **تاریخ اجرا**: 2026-11-22
+- **شاخه ایزوله**: `claude/nifty-snyder-d5b886`
+- **پورت فرانت‌اند**: ۴۰۰۲
+- **وضعیت**: ✅ کامل و سبز (آدرس‌دهی لینک دکمه در جعبه چرخان و شناسه‌های تست سرتیتر متحرک با Vision تایید و تست شدند)
+
+#### ۱. باگ‌های کشف‌شده با ابزار Vision و تعامل
+1. **فقدان ورودی لینک دکمه (Button URL) برای کارت چرخان در بازرس و تبدیل دکمه به لینک در بوم (`Flip Box Button Link Missing`)**:
+   - *مشاهده*: در `canvas-element.tsx` و `ast_compiler.py` دکمه پشت کارت به صورت `<button>` ساده رندر می‌شد و فاقد لینک مقصد بود؛ همچنین در بازرس فیلدی برای وارد کردن URL وجود نداشت.
+   - *اصلاح ریشه‌ای*: اضافه شدن ورودی آدرس لینک دکمه (`button_url`) در `inspector-panel.tsx` و رندر تگ `<a>` با کلاس‌های ترنزیشن استاندارد در `canvas-element.tsx` و `ast_compiler.py`.
+2. **اتریبیوت‌های تست اختصاصی برای سرتیتر متحرک (`Animated Headline Test Hooks`)**:
+   - *اصلاح ریشه‌ای*: اضافه شدن `anim-before-text-input`، `anim-highlighted-text-input` و `anim-after-text-input` در بازرس برای تسهیل تست و ممیزی زنده.
+
+#### ۲. مستندات بصری (Vision Artifacts)
+- **قبل از اصلاح**: `.loop/artifacts/builder-gym/round-32/before/`
+  - `01-studio-overview.png`
+  - `02-animated-headline-selected.png`
+  - `report.json`
+- **بعد از اصلاح**: `.loop/artifacts/builder-gym/round-32/after/`
+  - `01-studio-overview.png`
+  - `02-animated-headline-nudged.png` (اعمال موفق کلمه هایلایت‌شده «شگفت‌انگیز» در بوم و بازرس)
+  - `report.json`
+
+#### ۳. تست‌های رگرسیون دائمی اضافه‌شده
+- فایل تست Playwright: `frontend/tests/e2e/builder-gym-r32.spec.ts` (۱ تست سبز)
+- فایل تست پایتون: `backend/app/tests/unit/test_ast_compiler.py::test_ast_compiler_renders_round32_animated_headline_and_flipbox_link` (۱ تست سبز)
+
+#### ۴. نتایج نهایی ممیزی و تست‌ها در راند ۳۲
+- `npx --prefix frontend tsc --noEmit`: ۰ خطا (سبز)
+- `npm --prefix frontend test -- --run`: **۳۷۲ تست سبز در ۴۵ فایل** (`372 passed`)
+- `python -m pytest app/tests/unit`: **۶۳۱ تست سبز** (`631 passed, 2 skipped`)
+- تست‌های Playwright راند ۳۲: **۱ تست سبز (`1 passed in 4.6s`) روی پورت ۴۰۰۲**
+
+---
+
 ## 🏆 گواهینامه نهایی مسترینگ کامل: BUILDER_GYM_ALL_LEVELS_MASTERED
 
 بدین‌وسیله رسماً تایید و ثبت می‌گردد که کلیه وزنه‌های ۱ تا ۸ نردبان پیش‌رونده Visual Page Builder بر اساس دستورالعمل جامع المنتور و استانداردهای سخت‌گیرانه ۳۶۰ درجه با موفقیت ۱۰۰٪ کامل شدند:

@@ -962,6 +962,59 @@ def test_ast_compiler_renders_round31_social_links_and_image_gallery():
     assert 'نمای روبه‌رو' in result
 
 
+def test_ast_compiler_renders_round32_animated_headline_and_flipbox_link():
+    """Verify that animated_headline and flip_box compile custom texts and button links accurately."""
+    ast = PageAST(
+        schema_version=1,
+        title="تست راند ۳۲",
+        slug="test-r32-anim-flip",
+        root_elements=[
+            BuilderElement(
+                id="el_sec_r32",
+                name="بخش ۳۲",
+                type="container",
+                children=[
+                    BuilderElement(
+                        id="el_anim_custom",
+                        name="سرتیتر جذاب",
+                        type="widget",
+                        widget_type="animated_headline",
+                        widget_props={
+                            "before_text": "پلتفرم ابری",
+                            "highlighted_text": "پیشرو",
+                            "after_text": "در ایران",
+                        },
+                    ),
+                    BuilderElement(
+                        id="el_flip_custom",
+                        name="کارت چرخان",
+                        type="widget",
+                        widget_type="flip_box",
+                        widget_props={
+                            "front_title": "پلن سازمانی",
+                            "front_desc": "راهکار نوین",
+                            "back_title": "امکانات اختصاصی",
+                            "back_desc": "پشتیبانی ۲۴ ساعته اختصاصی",
+                            "button_text": "ثبت درخواست",
+                            "button_url": "/enterprise",
+                        },
+                    ),
+                ],
+            )
+        ],
+    )
+    result = ASTCompiler.compile(ast)
+    assert 'builder-animated-headline' in result
+    assert 'پلتفرم ابری' in result
+    assert 'پیشرو' in result
+    assert 'در ایران' in result
+    assert 'builder-flip-box' in result
+    assert 'پلن سازمانی' in result
+    assert 'href="/enterprise"' in result
+    assert 'ثبت درخواست' in result
+
+
+
 
 
 

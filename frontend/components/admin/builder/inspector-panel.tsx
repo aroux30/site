@@ -1734,6 +1734,7 @@ export function InspectorPanel() {
             <div className="space-y-1.5">
               <Label className="text-xs">متن پیشین (Before Text)</Label>
               <Input
+                data-testid="anim-before-text-input"
                 value={String(props.before_text || "")}
                 onChange={(e) => handlePropChange("before_text", e.target.value)}
                 className="h-8 text-xs"
@@ -1742,6 +1743,7 @@ export function InspectorPanel() {
             <div className="space-y-1.5">
               <Label className="text-xs">متن برجسته / متحرک</Label>
               <Input
+                data-testid="anim-highlighted-text-input"
                 value={String(props.highlighted_text || "")}
                 onChange={(e) => handlePropChange("highlighted_text", e.target.value)}
                 className="h-8 text-xs font-bold text-primary"
@@ -1750,6 +1752,7 @@ export function InspectorPanel() {
             <div className="space-y-1.5">
               <Label className="text-xs">متن پسین (After Text)</Label>
               <Input
+                data-testid="anim-after-text-input"
                 value={String(props.after_text || "")}
                 onChange={(e) => handlePropChange("after_text", e.target.value)}
                 className="h-8 text-xs"
@@ -1805,6 +1808,16 @@ export function InspectorPanel() {
                   value={String(props.button_text || "")}
                   onChange={(e) => handlePropChange("button_text", e.target.value)}
                   className="h-7 text-xs"
+                />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-[10px]">آدرس لینک دکمه (URL)</Label>
+                <Input
+                  value={String(props.button_url || "#")}
+                  onChange={(e) => handlePropChange("button_url", e.target.value)}
+                  className="h-7 text-xs font-mono"
+                  dir="ltr"
+                  placeholder="https://... یا /contact"
                 />
               </div>
             </div>

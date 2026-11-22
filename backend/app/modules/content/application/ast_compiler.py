@@ -867,6 +867,7 @@ class ASTCompiler:
             back_title = html.escape(str(props.get("back_title", "پشت کارت")))
             back_desc = html.escape(str(props.get("back_desc", "توضیحات پشت")))
             btn_text = html.escape(str(props.get("button_text", "مشاهده")))
+            btn_url = html.escape(str(props.get("button_url", "#")))
             return (
                 f'<div{id_attr} class="builder-flip-box group/flip w-full min-h-[220px] [perspective:1000px] {css_class}" data-widget="flip_box"{style_attr}>'
                 f'<div class="relative w-full h-full min-h-[220px] transition-transform duration-500 [transform-style:preserve-3d] group-hover/flip:[transform:rotateY(180deg)] rounded-2xl border border-border/80 shadow-sm">'
@@ -877,7 +878,7 @@ class ASTCompiler:
                 f'<div class="absolute inset-0 w-full h-full p-6 flex flex-col items-center justify-center text-center space-y-3 [backface-visibility:hidden] [transform:rotateY(180deg)] bg-primary text-primary-foreground rounded-2xl">'
                 f'<h4 class="text-base font-bold">{back_title}</h4>'
                 f'<p class="text-xs opacity-90">{back_desc}</p>'
-                f'<button type="button" class="px-4 py-2 rounded-xl bg-white text-primary text-xs font-bold shadow hover:bg-white/90">{btn_text}</button>'
+                f'<a href="{btn_url}" class="px-4 py-2 rounded-xl bg-white text-primary text-xs font-bold shadow hover:bg-white/90 inline-block transition">{btn_text}</a>'
                 f'</div>'
                 f'</div>'
                 f'</div>'

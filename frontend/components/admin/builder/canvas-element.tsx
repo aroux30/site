@@ -1629,9 +1629,13 @@ function CanvasElementComponent({
               <div className="absolute inset-0 w-full h-full p-6 flex flex-col items-center justify-center text-center space-y-3 [backface-visibility:hidden] [transform:rotateY(180deg)] bg-primary text-primary-foreground rounded-2xl">
                 <h4 className="text-base font-bold">{backTitle}</h4>
                 <p className="text-xs opacity-90">{backDesc}</p>
-                <button type="button" className="px-4 py-2 rounded-xl bg-white text-primary text-xs font-bold shadow hover:bg-white/90">
+                <a
+                  href={String(props.button_url || "#")}
+                  onClick={(e) => e.preventDefault()}
+                  className="px-4 py-2 rounded-xl bg-white text-primary text-xs font-bold shadow hover:bg-white/90 inline-block transition"
+                >
                   {btnText}
-                </button>
+                </a>
               </div>
             </div>
           </div>

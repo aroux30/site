@@ -900,6 +900,34 @@ class ASTCompiler:
                 f'</blockquote>'
             )
 
+        elif widget_type == "price_table":
+            heading = html.escape(str(props.get("heading", "پلن تعرفه")))
+            sub_heading = html.escape(str(props.get("sub_heading", "")))
+            badge = html.escape(str(props.get("badge", "")))
+            price = html.escape(str(props.get("price", "۴۹۰,۰۰۰")))
+            period = html.escape(str(props.get("period", "ماهانه")))
+            currency = html.escape(str(props.get("currency", "تومان")))
+            features = props.get("features", ["دسترسی نامحدود", "پشتیبانی اختصاصی"])
+            btn_text = html.escape(str(props.get("button_text", "شروع دوره")))
+            btn_url = html.escape(str(props.get("button_url", "/pricing")))
+
+            badge_html = f'<span class="inline-block px-3 py-1 rounded-full bg-primary text-primary-foreground text-xs font-bold shadow-xs mb-2">{badge}</span>' if badge else ""
+            sub_html = f'<p class="text-xs text-muted-foreground">{sub_heading}</p>' if sub_heading else ""
+            feat_items = "".join(
+                f'<li class="flex items-center gap-2"><span class="text-emerald-500 font-bold">✓</span><span>{html.escape(str(f))}</span></li>'
+                for f in features
+            )
+
+            return (
+                f'<div{id_attr} class="builder-price-table p-6 rounded-2xl border-2 border-primary/30 bg-card text-center space-y-4 shadow-sm w-full max-w-sm mx-auto relative overflow-hidden {css_class}" data-widget="price_table"{style_attr}>'
+                f'{badge_html}'
+                f'<div class="space-y-1"><h3 class="text-xl font-bold text-foreground">{heading}</h3>{sub_html}</div>'
+                f'<div class="py-2 border-y border-border/60"><span class="text-3xl font-black text-primary font-mono">{price}</span> <span class="text-xs text-muted-foreground">{currency} / {period}</span></div>'
+                f'<ul class="space-y-2 text-right text-xs text-muted-foreground">{feat_items}</ul>'
+                f'<a href="{btn_url}" class="block w-full py-2.5 rounded-xl bg-primary text-primary-foreground font-bold text-xs shadow hover:bg-primary/90 transition">{btn_text}</a>'
+                f'</div>'
+            )
+
         # Generic fallback for any other registered widget
         fallback_title = html.escape(str(props.get("title", widget_type)))
         return f'<div{id_attr} class="builder-widget builder-{widget_type} {css_class}" data-widget="{html.escape(widget_type)}"{style_attr}>{fallback_title}</div>'

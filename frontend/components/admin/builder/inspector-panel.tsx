@@ -1853,6 +1853,86 @@ export function InspectorPanel() {
           </div>
         );
 
+      case "price_table": {
+        const features = Array.isArray(props.features) ? props.features : ["دسترسی کامل", "پشتیبانی ۲۴ ساعته"];
+        return (
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs">عنوان پلن (Heading)</Label>
+              <Input
+                data-testid="pricing-heading-input"
+                value={String(props.heading || "پلن حرفه‌ای")}
+                onChange={(e) => handlePropChange("heading", e.target.value)}
+                className="h-8 text-xs"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">توضیحات پلن</Label>
+              <Input
+                value={String(props.sub_heading || "")}
+                onChange={(e) => handlePropChange("sub_heading", e.target.value)}
+                className="h-8 text-xs"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">برچسب ویژه (Badge)</Label>
+              <Input
+                value={String(props.badge || "")}
+                onChange={(e) => handlePropChange("badge", e.target.value)}
+                className="h-8 text-xs"
+                placeholder="محبوب‌ترین"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-1">
+                <Label className="text-xs">مبلغ تعرفه</Label>
+                <Input
+                  value={String(props.price || "۴۹۰,۰۰۰")}
+                  onChange={(e) => handlePropChange("price", e.target.value)}
+                  className="h-8 text-xs font-mono"
+                  dir="ltr"
+                />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">دوره زمانی</Label>
+                <Input
+                  value={String(props.period || "ماهانه")}
+                  onChange={(e) => handlePropChange("period", e.target.value)}
+                  className="h-8 text-xs"
+                  placeholder="ماهانه"
+                />
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">ویژگی‌های پلن (هر سطر یک مورد)</Label>
+              <textarea
+                rows={4}
+                value={features.join("\n")}
+                onChange={(e) => handlePropChange("features", e.target.value.split("\n").filter((s) => s.trim()))}
+                className="w-full rounded-md border border-input bg-background p-2 text-xs leading-relaxed"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">متن دکمه</Label>
+              <Input
+                value={String(props.button_text || "شروع دوره")}
+                onChange={(e) => handlePropChange("button_text", e.target.value)}
+                className="h-8 text-xs"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">آدرس لینک دکمه (URL)</Label>
+              <Input
+                value={String(props.button_url || "/pricing")}
+                onChange={(e) => handlePropChange("button_url", e.target.value)}
+                className="h-8 text-xs font-mono"
+                dir="ltr"
+              />
+            </div>
+          </div>
+        );
+      }
+
       case "social_links": {
         const links = (props.links as any[]) || [
           { platform: "اینستاگرام", url: "https://instagram.com" },

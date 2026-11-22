@@ -1206,6 +1206,39 @@ export const BASIC_BLOCK_DEFINITIONS: BlockDefinition[] = [
       children: [],
     }),
   },
+  {
+    type: "price_table",
+    name: "جدول تعرفه و قیمت (Price Table)",
+    category: "basic",
+    icon: DollarSign,
+    description: "کارت حرفه‌ای پلن قیمت‌گذاری شامل عنوان، قیمت، ویژگی‌ها، نشان و دکمه خرید",
+    createDefaultElement: () => ({
+      id: `el_${Math.random().toString(36).slice(2, 10)}`,
+      name: "پلن تعرفه",
+      type: "widget",
+      widgetType: "price_table",
+      widgetProps: {
+        heading: "پلن حرفه‌ای",
+        sub_heading: "مناسب برای تیم‌ها و کسب‌وکارهای در حال رشد",
+        badge: "محبوب‌ترین",
+        price: "۴۹۰,۰۰۰",
+        period: "ماهانه",
+        currency: "تومان",
+        features: [
+          "دسترسی نامحدود به تمام امکانات",
+          "پشتیبانی اختصاصی ۲۴ ساعته",
+          "دامنه اختصاصی و SSL رایگان",
+          "فضای ذخیره‌سازی ابری ۵۰ گیگابایت",
+        ],
+        button_text: "شروع دوره آزمایشی",
+        button_url: "/pricing",
+      },
+      isLocked: false,
+      isHidden: false,
+      styles: { mobile: {} },
+      children: [],
+    }),
+  },
 ];
 
 import { createPatternAST } from "./pattern-converter";

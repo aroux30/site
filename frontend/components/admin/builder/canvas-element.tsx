@@ -1676,6 +1676,49 @@ function CanvasElementComponent({
           </blockquote>
         );
       }
+      case "price_table": {
+        const heading = String(props.heading || "پلن حرفه‌ای");
+        const subHeading = String(props.sub_heading || "");
+        const badge = props.badge ? String(props.badge) : "";
+        const price = String(props.price || "۴۹۰,۰۰۰");
+        const period = String(props.period || "ماهانه");
+        const currency = String(props.currency || "تومان");
+        const features = (props.features as string[]) || ["دسترسی نامحدود به تمام امکانات", "پشتیبانی اختصاصی"];
+        const btnText = String(props.button_text || "شروع دوره");
+        const btnUrl = String(props.button_url || "#");
+        return (
+          <div className="p-6 rounded-2xl border-2 border-primary/30 bg-card text-center space-y-4 shadow-sm w-full max-w-sm mx-auto relative overflow-hidden">
+            {badge && (
+              <span className="inline-block px-3 py-1 rounded-full bg-primary text-primary-foreground text-xs font-bold shadow-xs">
+                {badge}
+              </span>
+            )}
+            <div className="space-y-1">
+              <h3 className="text-xl font-bold text-foreground">{heading}</h3>
+              {subHeading && <p className="text-xs text-muted-foreground">{subHeading}</p>}
+            </div>
+            <div className="py-2 border-y border-border/60">
+              <span className="text-3xl font-black text-primary font-mono">{price}</span>
+              <span className="text-xs text-muted-foreground ms-1">{currency} / {period}</span>
+            </div>
+            <ul className="space-y-2 text-right text-xs text-muted-foreground">
+              {features.map((feat, i) => (
+                <li key={i} className="flex items-center gap-2">
+                  <span className="text-emerald-500 font-bold">✓</span>
+                  <span>{feat}</span>
+                </li>
+              ))}
+            </ul>
+            <a
+              href={btnUrl}
+              onClick={(e) => e.preventDefault()}
+              className="block w-full py-2.5 rounded-xl bg-primary text-primary-foreground font-bold text-xs shadow hover:bg-primary/90 transition"
+            >
+              {btnText}
+            </a>
+          </div>
+        );
+      }
       default:
         return (
           <div className="rounded-lg border border-dashed border-border p-4 text-center text-sm text-muted-foreground">

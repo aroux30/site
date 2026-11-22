@@ -1084,6 +1084,50 @@ def test_ast_compiler_renders_round34_blockquote_customization():
     assert '— هنری فورد' in result
 
 
+def test_ast_compiler_renders_round35_price_table_customization():
+    """Verify that price_table widget compiles heading, badge, price, features and button link in SSR."""
+    ast = PageAST(
+        schema_version=1,
+        title="تست راند ۳۵",
+        slug="test-r35-pricing",
+        root_elements=[
+            BuilderElement(
+                id="el_sec_r35",
+                name="بخش ۳۵",
+                type="container",
+                children=[
+                    BuilderElement(
+                        id="el_pt_custom",
+                        name="پلن تعرفه",
+                        type="widget",
+                        widget_type="price_table",
+                        widget_props={
+                            "heading": "پلن نامحدود سازمانی",
+                            "badge": "پیشنهاد ویژه",
+                            "price": "۹۹۰,۰۰۰",
+                            "period": "سالانه",
+                            "currency": "تومان",
+                            "features": ["سرور اختصاصی", "پشتیبانی تلفنی VIP"],
+                            "button_text": "سفارش پلن",
+                            "button_url": "/checkout/plan-vip",
+                        },
+                    ),
+                ],
+            )
+        ],
+    )
+    result = ASTCompiler.compile(ast)
+    assert 'builder-price-table' in result
+    assert 'پلن نامحدود سازمانی' in result
+    assert 'پیشنهاد ویژه' in result
+    assert '۹۹۰,۰۰۰' in result
+    assert 'تومان / سالانه' in result
+    assert 'سرور اختصاصی' in result
+    assert 'href="/checkout/plan-vip"' in result
+    assert 'سفارش پلن' in result
+
+
+
 
 
 

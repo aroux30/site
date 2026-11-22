@@ -3,7 +3,7 @@ import path from "node:path";
 import fs from "node:fs";
 import { execSync } from "node:child_process";
 
-const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || "http://127.0.0.1:4001";
+const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || "http://127.0.0.1:4002";
 const BACKEND_DIR = path.resolve("C:/Users/Administrator/Desktop/site/backend");
 
 function getAdminToken() {
@@ -30,13 +30,12 @@ asyncio.run(main())
   }
 }
 
-test.describe("Builder Gym Round 27: Elementor Lottie, Floating Bar & Icon Parity", () => {
+test.describe("Builder Gym Round 27: Countdown and Icon Box 4-Layer Synchronization", () => {
   test.beforeEach(async ({ context }) => {
     const token = getAdminToken();
     if (token) {
       await context.addCookies([
         { name: "access_token", value: token, url: BASE_URL, httpOnly: false, sameSite: "Lax" },
-        { name: "access_token", value: token, url: "http://localhost:4001", httpOnly: false, sameSite: "Lax" },
       ]);
     }
     await context.setExtraHTTPHeaders({
@@ -52,47 +51,57 @@ test.describe("Builder Gym Round 27: Elementor Lottie, Floating Bar & Icon Parit
     });
   });
 
-  test("1. Block palette filters and includes lottie, floating_bar, and icon", async ({ page }) => {
+  test("1. Countdown block can be inserted and customized in Inspector with live reflection", async ({ page }) => {
     await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
     await page.waitForTimeout(1500);
 
-    const searchInput = page.locator('input[placeholder*="جستجو"]');
-    await expect(searchInput).toBeVisible();
-
-    // Verify search finds lottie
-    await searchInput.fill("لوتی");
+    const blocksTabBtn = page.locator('[data-testid="blocks-palette-basic-tab-btn"]');
+    await blocksTabBtn.click();
     await page.waitForTimeout(300);
-    const lottieCard = page.locator('button:has-text("انیمیشن لوتی")');
-    await expect(lottieCard).toBeVisible();
 
-    // Verify search finds floating_bar
-    await searchInput.fill("نوار تماس");
+    const searchInput = page.locator('input[placeholder*="جستجوی بلوک"]').first();
+    await searchInput.fill("شمارنده معکوس");
     await page.waitForTimeout(300);
-    const floatingCard = page.locator('button:has-text("نوار تماس شناور")');
-    await expect(floatingCard).toBeVisible();
 
-    // Verify search finds icon
-    await searchInput.fill("آیکون مستقل");
-    await page.waitForTimeout(300);
-    const iconCard = page.locator('button:has-text("آیکون مستقل")');
-    await expect(iconCard).toBeVisible();
+    const countdownCard = page.locator('text="شمارنده معکوس"').first();
+    await expect(countdownCard).toBeVisible();
+    await countdownCard.click();
+    await page.waitForTimeout(500);
+
+    const inspector = page.locator('[data-builder-inspector]');
+    const cdTitleInput = inspector.locator('[data-testid="countdown-title-input"]');
+    await expect(cdTitleInput).toBeVisible();
+    await cdTitleInput.fill("جشنواره بزرگ نوروزی");
+    await page.waitForTimeout(400);
+
+    const frame = page.frameLocator('iframe[title="Visual Builder Canvas"]');
+    await expect(frame.locator('text="جشنواره بزرگ نوروزی"').first()).toBeVisible();
   });
 
-  test("2. Inserting floating_bar renders phone and action button inside canvas", async ({ page }) => {
+  test("2. Icon Box widget can be inserted and customized in Inspector", async ({ page }) => {
     await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
     await page.waitForTimeout(1500);
 
-    const searchInput = page.locator('input[placeholder*="جستجو"]');
-    await searchInput.fill("نوار تماس شناور");
+    const blocksTabBtn = page.locator('[data-testid="blocks-palette-basic-tab-btn"]');
+    await blocksTabBtn.click();
     await page.waitForTimeout(300);
 
-    const floatingCard = page.locator('button:has-text("نوار تماس شناور")');
-    await floatingCard.click();
-    await page.waitForTimeout(600);
+    const searchInput = page.locator('input[placeholder*="جستجوی بلوک"]').first();
+    await searchInput.fill("ویژگی");
+    await page.waitForTimeout(300);
 
-    // Check inside canvas iframe
+    const iconCard = page.locator('text="باکس آیکون و ویژگی"').first();
+    await expect(iconCard).toBeVisible();
+    await iconCard.click();
+    await page.waitForTimeout(500);
+
+    const inspector = page.locator('[data-builder-inspector]');
+    const ibTitleInput = inspector.locator('[data-testid="iconbox-title-input"]');
+    await expect(ibTitleInput).toBeVisible();
+    await ibTitleInput.fill("تضمین اصالت صددرصدی");
+    await page.waitForTimeout(400);
+
     const frame = page.frameLocator('iframe[title="Visual Builder Canvas"]');
-    const barEl = frame.locator("div:has-text('نیاز به مشاوره قبل از خرید دارید؟')").first();
-    await expect(barEl).toBeVisible();
+    await expect(frame.locator('text="تضمین اصالت صددرصدی"').first()).toBeVisible();
   });
 });

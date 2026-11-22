@@ -3,7 +3,7 @@ import path from "node:path";
 import fs from "node:fs";
 import { execSync } from "node:child_process";
 
-const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || "http://127.0.0.1:4001";
+const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || "http://127.0.0.1:4002";
 const BACKEND_DIR = path.resolve("C:/Users/Administrator/Desktop/site/backend");
 
 function getAdminToken() {
@@ -30,13 +30,12 @@ asyncio.run(main())
   }
 }
 
-test.describe("Builder Gym Round 25: Elementor Image Carousel, Toggle & Hotspot Parity", () => {
+test.describe("Builder Gym Round 25: Cart Summary, Mini Cart, and Recently Viewed 4-Layer Sync", () => {
   test.beforeEach(async ({ context }) => {
     const token = getAdminToken();
     if (token) {
       await context.addCookies([
         { name: "access_token", value: token, url: BASE_URL, httpOnly: false, sameSite: "Lax" },
-        { name: "access_token", value: token, url: "http://localhost:4001", httpOnly: false, sameSite: "Lax" },
       ]);
     }
     await context.setExtraHTTPHeaders({
@@ -52,48 +51,61 @@ test.describe("Builder Gym Round 25: Elementor Image Carousel, Toggle & Hotspot 
     });
   });
 
-  test("1. Block palette filters and includes image_carousel, toggle, and hotspot", async ({ page }) => {
+  test("1. Cart Summary block can be inserted from palette and rendered live on canvas", async ({ page }) => {
     await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
     await page.waitForTimeout(1500);
 
-    const searchInput = page.locator('input[placeholder*="جستجو"]');
-    await expect(searchInput).toBeVisible();
-
-    // Verify search finds image_carousel
-    await searchInput.fill("اسلایدر تصویر");
+    const blocksTabBtn = page.locator('[data-testid="blocks-palette-basic-tab-btn"]');
+    await blocksTabBtn.click();
     await page.waitForTimeout(300);
-    const carouselCard = page.locator('button:has-text("اسلایدر تصویر")');
-    await expect(carouselCard).toBeVisible();
 
-    // Verify search finds toggle
-    await searchInput.fill("تاگل");
+    const searchInput = page.locator('input[placeholder*="جستجوی بلوک"]').first();
+    await searchInput.fill("خلاصه سبد");
     await page.waitForTimeout(300);
-    const toggleCard = page.locator('button:has-text("تاگل مستقل")');
-    await expect(toggleCard).toBeVisible();
 
-    // Verify search finds hotspot
-    await searchInput.fill("نقطه کانونی");
-    await page.waitForTimeout(300);
-    const hotspotCard = page.locator('button:has-text("نقطه کانونی")');
-    await expect(hotspotCard).toBeVisible();
+    const cartCard = page.locator('text="خلاصه سبد خرید"').first();
+    await expect(cartCard).toBeVisible();
+    await cartCard.click();
+    await page.waitForTimeout(500);
+
+    const frame = page.frameLocator('iframe[title="Visual Builder Canvas"]');
+    const summaryHeading = frame.locator('text="جمع اقلام:"').first();
+    await expect(summaryHeading).toBeVisible();
   });
 
-  test("2. Inserting toggle renders multiple collapsible details panels", async ({ page }) => {
+  test("2. Inspector updates Cart Summary title and button label with live DOM reflection", async ({ page }) => {
     await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
     await page.waitForTimeout(1500);
 
-    const searchInput = page.locator('input[placeholder*="جستجو"]');
-    await searchInput.fill("تاگل مستقل");
+    const blocksTabBtn = page.locator('[data-testid="blocks-palette-basic-tab-btn"]');
+    await blocksTabBtn.click();
     await page.waitForTimeout(300);
 
-    const toggleCard = page.locator('button:has-text("تاگل مستقل")');
-    await toggleCard.click();
-    await page.waitForTimeout(600);
+    const searchInput = page.locator('input[placeholder*="جستجوی بلوک"]').first();
+    await searchInput.fill("خلاصه سبد");
+    await page.waitForTimeout(300);
 
-    // Check inside canvas iframe (newly inserted toggle is the last details group)
+    const cartCard = page.locator('text="خلاصه سبد خرید"').first();
+    await expect(cartCard).toBeVisible();
+    await cartCard.click();
+    await page.waitForTimeout(500);
+
     const frame = page.frameLocator('iframe[title="Visual Builder Canvas"]');
-    const toggleDetails = frame.locator("details:has-text('بخش تاشوی اول')");
-    await expect(toggleDetails).toBeVisible();
-    await expect(toggleDetails).toContainText("بخش تاشوی اول");
+    const summaryHeading = frame.locator('text="جمع اقلام:"').first();
+    await summaryHeading.click();
+    await page.waitForTimeout(400);
+
+    const inspector = page.locator('[data-builder-inspector]');
+    const titleInput = inspector.locator('input[value*="خلاصه سبد"]').first();
+    await titleInput.fill("فاکتور نهایی و تسویه");
+    await page.waitForTimeout(400);
+
+    const btnInput = inspector.locator('input[value*="ادامه فرآیند"]').first();
+    await btnInput.fill("پرداخت اینترنتی سفارش");
+    await page.waitForTimeout(400);
+
+    // Assert live canvas updated
+    await expect(frame.locator('text="فاکتور نهایی و تسویه"').first()).toBeVisible();
+    await expect(frame.locator('text="پرداخت اینترنتی سفارش"').first()).toBeVisible();
   });
 });

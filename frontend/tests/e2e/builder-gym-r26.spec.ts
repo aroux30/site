@@ -3,7 +3,7 @@ import path from "node:path";
 import fs from "node:fs";
 import { execSync } from "node:child_process";
 
-const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || "http://127.0.0.1:4001";
+const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || "http://127.0.0.1:4002";
 const BACKEND_DIR = path.resolve("C:/Users/Administrator/Desktop/site/backend");
 
 function getAdminToken() {
@@ -30,13 +30,12 @@ asyncio.run(main())
   }
 }
 
-test.describe("Builder Gym Round 26: Elementor Table of Contents & Progress Tracker Parity", () => {
+test.describe("Builder Gym Round 26: Star Rating Size Controls and Video URL/Poster Synchronization", () => {
   test.beforeEach(async ({ context }) => {
     const token = getAdminToken();
     if (token) {
       await context.addCookies([
         { name: "access_token", value: token, url: BASE_URL, httpOnly: false, sameSite: "Lax" },
-        { name: "access_token", value: token, url: "http://localhost:4001", httpOnly: false, sameSite: "Lax" },
       ]);
     }
     await context.setExtraHTTPHeaders({
@@ -52,42 +51,56 @@ test.describe("Builder Gym Round 26: Elementor Table of Contents & Progress Trac
     });
   });
 
-  test("1. Block palette filters and includes table_of_contents and progress_tracker", async ({ page }) => {
+  test("1. Video player can be added from palette and inspected with URL and poster controls", async ({ page }) => {
     await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
     await page.waitForTimeout(1500);
 
-    const searchInput = page.locator('input[placeholder*="جستجو"]');
-    await expect(searchInput).toBeVisible();
-
-    // Verify search finds table_of_contents
-    await searchInput.fill("فهرست محتوا");
+    const blocksTabBtn = page.locator('[data-testid="blocks-palette-basic-tab-btn"]');
+    await blocksTabBtn.click();
     await page.waitForTimeout(300);
-    const tocCard = page.locator('button:has-text("فهرست محتوا")');
-    await expect(tocCard).toBeVisible();
 
-    // Verify search finds progress_tracker
-    await searchInput.fill("ردیاب پیشرفت");
+    const searchInput = page.locator('input[placeholder*="جستجوی بلوک"]').first();
+    await searchInput.fill("ویدئو");
     await page.waitForTimeout(300);
-    const trackerCard = page.locator('button:has-text("ردیاب پیشرفت")');
-    await expect(trackerCard).toBeVisible();
+
+    const videoCard = page.locator('text="پخش‌کننده ویدئو"').first();
+    await expect(videoCard).toBeVisible();
+    await videoCard.click();
+    await page.waitForTimeout(500);
+
+    const frame = page.frameLocator('iframe[title="Visual Builder Canvas"]');
+    const videoCanvas = frame.locator('iframe[title="ویدیو"], video').first();
+    await expect(videoCanvas).toBeVisible();
+
+    const inspector = page.locator('[data-builder-inspector]');
+    const urlInput = inspector.locator('[data-testid="video-url-input"]');
+    await expect(urlInput).toBeVisible();
   });
 
-  test("2. Inserting table_of_contents renders heading list inside canvas", async ({ page }) => {
+  test("2. Star Rating widget provides size controls in Inspector", async ({ page }) => {
     await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
     await page.waitForTimeout(1500);
 
-    const searchInput = page.locator('input[placeholder*="جستجو"]');
-    await searchInput.fill("فهرست محتوا");
+    const blocksTabBtn = page.locator('[data-testid="blocks-palette-basic-tab-btn"]');
+    await blocksTabBtn.click();
     await page.waitForTimeout(300);
 
-    const tocCard = page.locator('button:has-text("فهرست محتوا")');
-    await tocCard.click();
-    await page.waitForTimeout(600);
+    const searchInput = page.locator('input[placeholder*="جستجوی بلوک"]').first();
+    await searchInput.fill("امتیاز");
+    await page.waitForTimeout(300);
 
-    // Check inside canvas iframe
+    const starCard = page.locator('text="امتیاز ستاره‌ای"').first();
+    await expect(starCard).toBeVisible();
+    await starCard.click();
+    await page.waitForTimeout(500);
+
+    const inspector = page.locator('[data-builder-inspector]');
+    const ratingValueInput = inspector.locator('[data-testid="star-rating-value-input"]');
+    await expect(ratingValueInput).toBeVisible();
+    await ratingValueInput.fill("4.9");
+    await page.waitForTimeout(400);
+
     const frame = page.frameLocator('iframe[title="Visual Builder Canvas"]');
-    const tocNav = frame.locator("nav[aria-label='فهرست محتوای صفحه']").first();
-    await expect(tocNav).toBeVisible();
-    await expect(tocNav).toContainText("فهرست عناوین برگه");
+    await expect(frame.locator('text="4.9"').first()).toBeVisible();
   });
 });

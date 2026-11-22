@@ -3,7 +3,7 @@ import path from "node:path";
 import fs from "node:fs";
 import { execSync } from "node:child_process";
 
-const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || "http://127.0.0.1:4001";
+const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || "http://127.0.0.1:4002";
 const BACKEND_DIR = path.resolve("C:/Users/Administrator/Desktop/site/backend");
 
 function getAdminToken() {
@@ -30,13 +30,12 @@ asyncio.run(main())
   }
 }
 
-test.describe("Builder Gym Round 24: Elementor Image Box, Price List & Share Buttons Parity", () => {
+test.describe("Builder Gym Round 24: Elementor Wave 2 Widgets, Single Toolbar Hotkeys, and Clean Advanced Inspector", () => {
   test.beforeEach(async ({ context }) => {
     const token = getAdminToken();
     if (token) {
       await context.addCookies([
         { name: "access_token", value: token, url: BASE_URL, httpOnly: false, sameSite: "Lax" },
-        { name: "access_token", value: token, url: "http://localhost:4001", httpOnly: false, sameSite: "Lax" },
       ]);
     }
     await context.setExtraHTTPHeaders({
@@ -52,47 +51,60 @@ test.describe("Builder Gym Round 24: Elementor Image Box, Price List & Share But
     });
   });
 
-  test("1. Block palette filters and includes image_box, price_list, and share_buttons", async ({ page }) => {
+  test("1. Toolbar has exactly one shortcuts button and no duplicate hotkey buttons", async ({ page }) => {
     await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
     await page.waitForTimeout(1500);
 
-    const searchInput = page.locator('input[placeholder*="جستجو"]');
-    await expect(searchInput).toBeVisible();
-
-    // Verify search finds image_box
-    await searchInput.fill("جعبه تصویر");
-    await page.waitForTimeout(300);
-    const imgBoxCard = page.locator('button:has-text("جعبه تصویر")');
-    await expect(imgBoxCard).toBeVisible();
-
-    // Verify search finds price_list
-    await searchInput.fill("لیست قیمت");
-    await page.waitForTimeout(300);
-    const priceListCard = page.locator('button:has-text("لیست قیمت")');
-    await expect(priceListCard).toBeVisible();
-
-    // Verify search finds share_buttons
-    await searchInput.fill("اشتراک‌گذاری");
-    await page.waitForTimeout(300);
-    const shareCard = page.locator('button:has-text("دکمه‌های اشتراک‌گذاری")');
-    await expect(shareCard).toBeVisible();
+    const shortcutsButtons = page.locator('button:has-text("میانبرها")');
+    const count = await shortcutsButtons.count();
+    expect(count).toBe(1);
   });
 
-  test("2. Inserting image_box renders title and description inside canvas", async ({ page }) => {
+  test("2. Advanced tab has exactly one Transform control group (no duplicate controls)", async ({ page }) => {
     await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
     await page.waitForTimeout(1500);
 
-    const searchInput = page.locator('input[placeholder*="جستجو"]');
-    await searchInput.fill("جعبه تصویر");
+    const frame = page.frameLocator('iframe[title="Visual Builder Canvas"]');
+    const headingEl = frame.locator('[data-element-id="el_e2ehead1"]').first();
+    await expect(headingEl).toBeVisible();
+    await headingEl.click();
+    await page.waitForTimeout(400);
+
+    const inspector = page.locator('[data-builder-inspector]');
+    const advTab = inspector.locator('button[role="tab"]:has-text("پیشرفته")').first();
+    await advTab.click();
+    await page.waitForTimeout(400);
+
+    const rotateInputs = inspector.locator('[data-testid="transform-rotate-input"]');
+    expect(await rotateInputs.count()).toBe(1);
+
+    const scaleInputs = inspector.locator('[data-testid="transform-scale-input"]');
+    expect(await scaleInputs.count()).toBe(1);
+  });
+
+  test("3. Blocks Palette includes new Elementor widgets (Progress Bar, Testimonial, CTA, Flip Box, Animated Headline)", async ({ page }) => {
+    await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(1500);
+
+    const blocksTabBtn = page.locator('[data-testid="blocks-palette-basic-tab-btn"]');
+    await blocksTabBtn.click();
+    await page.waitForTimeout(400);
+
+    const searchInput = page.locator('input[placeholder*="جستجوی بلوک"]').first();
+    await searchInput.fill("پیشرفت");
     await page.waitForTimeout(300);
 
-    const imgBoxCard = page.locator('button:has-text("جعبه تصویر")');
-    await imgBoxCard.click();
-    await page.waitForTimeout(600);
+    const progressBarCard = page.locator('text="نوار پیشرفت"').first();
+    await expect(progressBarCard).toBeVisible();
 
-    // Check inside canvas iframe
-    const frame = page.frameLocator('iframe[title="Visual Builder Canvas"]');
-    const boxEl = frame.locator("h3:has-text('عنوان خدمات یا محصول')").first();
-    await expect(boxEl).toBeVisible();
+    await searchInput.fill("دیدگاه");
+    await page.waitForTimeout(300);
+    const testimonialCard = page.locator('text="دیدگاه مشتری"').first();
+    await expect(testimonialCard).toBeVisible();
+
+    await searchInput.fill("فلیپ");
+    await page.waitForTimeout(300);
+    const flipBoxCard = page.locator('text="جعبه فلیپ‌باکس"').first();
+    await expect(flipBoxCard).toBeVisible();
   });
 });

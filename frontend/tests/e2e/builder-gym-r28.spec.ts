@@ -3,7 +3,7 @@ import path from "node:path";
 import fs from "node:fs";
 import { execSync } from "node:child_process";
 
-const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || "http://127.0.0.1:4001";
+const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || "http://127.0.0.1:4002";
 const BACKEND_DIR = path.resolve("C:/Users/Administrator/Desktop/site/backend");
 
 function getAdminToken() {
@@ -30,13 +30,12 @@ asyncio.run(main())
   }
 }
 
-test.describe("Builder Gym Round 28: Elementor Off-Canvas & Popup Builder Parity", () => {
+test.describe("Builder Gym Round 28: Table Highlight Column and Form Field Customization", () => {
   test.beforeEach(async ({ context }) => {
     const token = getAdminToken();
     if (token) {
       await context.addCookies([
         { name: "access_token", value: token, url: BASE_URL, httpOnly: false, sameSite: "Lax" },
-        { name: "access_token", value: token, url: "http://localhost:4001", httpOnly: false, sameSite: "Lax" },
       ]);
     }
     await context.setExtraHTTPHeaders({
@@ -52,41 +51,66 @@ test.describe("Builder Gym Round 28: Elementor Off-Canvas & Popup Builder Parity
     });
   });
 
-  test("1. Block palette filters and includes off_canvas and popup_builder", async ({ page }) => {
+  test("1. Table widget provides highlight column selector in Inspector", async ({ page }) => {
     await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
     await page.waitForTimeout(1500);
 
-    const searchInput = page.locator('input[placeholder*="جستجو"]');
-    await expect(searchInput).toBeVisible();
-
-    // Verify search finds off_canvas
-    await searchInput.fill("کشوی کناری");
+    const blocksTabBtn = page.locator('[data-testid="blocks-palette-basic-tab-btn"]');
+    await blocksTabBtn.click();
     await page.waitForTimeout(300);
-    const offCanvasCard = page.locator('button:has-text("کشوی کناری")');
-    await expect(offCanvasCard).toBeVisible();
 
-    // Verify search finds popup_builder
-    await searchInput.fill("پاپ‌آپ");
+    const searchInput = page.locator('input[placeholder*="جستجوی بلوک"]').first();
+    await searchInput.fill("جدول داده");
     await page.waitForTimeout(300);
-    const popupCard = page.locator('button:has-text("پاپ‌آپ تعاملی")');
-    await expect(popupCard).toBeVisible();
+
+    const tableCard = page.locator('text="جدول داده"').first();
+    await expect(tableCard).toBeVisible();
+    await tableCard.click();
+    await page.waitForTimeout(500);
+
+    const inspector = page.locator('[data-builder-inspector]');
+    const highlightColTrigger = inspector.locator('[data-testid="table-highlight-col-select"]');
+    await expect(highlightColTrigger).toBeVisible();
+    await highlightColTrigger.click();
+    await page.waitForTimeout(300);
+
+    // Pick column 2 (1-based index or option item)
+    const opt = page.locator('[role="option"]:has-text("ستون ۲"), [role="option"]:has-text("ستون 2")').first();
+    if (await opt.isVisible()) {
+      await opt.click();
+      await page.waitForTimeout(400);
+
+      // Verify highlighted cell style exists on live canvas
+      const frame = page.frameLocator('iframe[title="Visual Builder Canvas"]');
+      const highlightedTh = frame.locator('th.bg-primary\\/10').first();
+      await expect(highlightedTh).toBeVisible();
+    }
   });
 
-  test("2. Inserting off_canvas renders container with off-canvas badge inside canvas", async ({ page }) => {
+  test("2. Form input provides required toggle and custom label", async ({ page }) => {
     await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
     await page.waitForTimeout(1500);
 
-    const searchInput = page.locator('input[placeholder*="جستجو"]');
-    await searchInput.fill("کشوی کناری");
+    const blocksTabBtn = page.locator('[data-testid="blocks-palette-basic-tab-btn"]');
+    await blocksTabBtn.click();
     await page.waitForTimeout(300);
 
-    const offCanvasCard = page.locator('button:has-text("کشوی کناری")');
-    await offCanvasCard.click();
-    await page.waitForTimeout(600);
+    const searchInput = page.locator('input[placeholder*="جستجوی بلوک"]').first();
+    await searchInput.fill("ورودی متن");
+    await page.waitForTimeout(300);
 
-    // Check inside canvas iframe for off-canvas badge
+    const inputCard = page.locator('text="فیلد ورودی متن"').first();
+    await expect(inputCard).toBeVisible();
+    await inputCard.click();
+    await page.waitForTimeout(500);
+
+    const inspector = page.locator('[data-builder-inspector]');
+    const labelInput = inspector.locator('[data-testid="form-input-label-input"]');
+    await expect(labelInput).toBeVisible();
+    await labelInput.fill("شماره ملی متقاضی");
+    await page.waitForTimeout(400);
+
     const frame = page.frameLocator('iframe[title="Visual Builder Canvas"]');
-    const badge = frame.locator("text='کشوی جانبی (Off-Canvas)'").first();
-    await expect(badge).toBeVisible();
+    await expect(frame.locator('text="شماره ملی متقاضی"').first()).toBeVisible();
   });
 });

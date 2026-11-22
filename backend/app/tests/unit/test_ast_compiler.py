@@ -527,5 +527,103 @@ def test_ast_compiler_large_page_performance_100_elements():
     assert 'class="builder-document"' in html_output
 
 
+def test_ast_compiler_renders_elementor_parity_round_24_widgets():
+    ast = PageAST(
+        schema_version=1,
+        title="تست ویجت‌های پورت المنتور راند ۲۴",
+        slug="test-r24-widgets",
+        root_elements=[
+            BuilderElement(
+                id="el_r24_sec",
+                name="بخش پورت المنتور",
+                type="container",
+                children=[
+                    BuilderElement(
+                        id="el_icon01",
+                        name="آیکون ستاره",
+                        type="widget",
+                        widget_type="icon",
+                        widget_props={"icon": "star", "view": "stacked", "shape": "circle", "size": 36, "url": "https://example.com"},
+                    ),
+                    BuilderElement(
+                        id="el_icon_list01",
+                        name="فهرست مزایا",
+                        type="widget",
+                        widget_type="icon_list",
+                        widget_props={
+                            "layout": "vertical",
+                            "items": [
+                                {"text": "تحویل اکسپرس ۲ ساعته", "icon": "truck", "url": "/express"},
+                                {"text": "اصالت کالا ۱۰۰٪ تضمین‌شده", "icon": "shield-check"},
+                            ],
+                        },
+                    ),
+                    BuilderElement(
+                        id="el_price_table01",
+                        name="جدول تعرفه",
+                        type="widget",
+                        widget_type="price_table",
+                        widget_props={
+                            "title": "پلن سازمانی",
+                            "subtitle": "برای تیم‌های بالای ۵۰ نفر",
+                            "price": "۹۹۰,۰۰۰",
+                            "currency": "تومان",
+                            "period": "ماهانه",
+                            "badge": "تخفیف ویژه",
+                            "is_featured": True,
+                            "button_label": "خرید پلن سازمانی",
+                            "button_url": "/checkout?plan=enterprise",
+                            "features": [
+                                {"text": "سرور اختصاصی ابری", "available": True},
+                                {"text": "پشتیبانی تلفنی ۲۴/۷", "available": True},
+                                {"text": "دامنه رایگان بین‌المللی", "available": False},
+                            ],
+                        },
+                    ),
+                    BuilderElement(
+                        id="el_price_list01",
+                        name="منوی خدمات",
+                        type="widget",
+                        widget_type="price_list",
+                        widget_props={
+                            "separator_style": "dotted",
+                            "items": [
+                                {"title": "توسعه ماژول سفارشی", "description": "پایتون و ری‌اکت", "price": "۲,۵۰۰,۰۰۰ تومان"},
+                                {"title": "پیکربندی سرور اختصاصی", "description": "لینوکس و داکر", "price": "۱,۸۰۰,۰۰۰ تومان"},
+                            ],
+                        },
+                    ),
+                ],
+            )
+        ],
+    )
+    result = ASTCompiler.compile(ast, is_authenticated=True)
+    # 1. Icon widget
+    assert 'builder-icon' in result
+    assert 'bg-primary text-white shadow-sm' in result
+    assert 'href="https://example.com"' in result
+    # 2. Icon list widget
+    assert 'builder-icon-list' in result
+    assert 'تحویل اکسپرس ۲ ساعته' in result
+    assert 'href="/express"' in result
+    assert 'اصالت کالا ۱۰۰٪ تضمین‌شده' in result
+    # 3. Price table widget
+    assert 'builder-price-table' in result
+    assert 'پلن سازمانی' in result
+    assert '۹۹۰,۰۰۰' in result
+    assert 'تخفیف ویژه' in result
+    assert 'سرور اختصاصی ابری' in result
+    assert 'دامنه رایگان بین‌المللی' in result
+    assert 'خرید پلن سازمانی' in result
+    assert '/checkout?plan=enterprise' in result
+    # 4. Price list widget
+    assert 'builder-price-list' in result
+    assert 'توسعه ماژول سفارشی' in result
+    assert '۲,۵۰۰,۰۰۰ تومان' in result
+    assert 'border-dotted' in result
+    assert 'پیکربندی سرور اختصاصی' in result
+
+
+
 
 

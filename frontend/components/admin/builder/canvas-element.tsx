@@ -2112,7 +2112,7 @@ function CanvasElementComponent({
       }
       case "floating_bar": {
         const phone = String(props.phone || "09120000000");
-        const msg = String(props.message || "نیاز به مشاوره دارید؟");
+        const msg = String(props.message || "نیاز به مشاوره قبل از خرید دارید؟");
         const btnText = String(props.button_text || "تماس فوری");
         return (
           <div className="flex items-center justify-between p-3.5 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-900 dark:text-emerald-100 w-full shadow-sm">

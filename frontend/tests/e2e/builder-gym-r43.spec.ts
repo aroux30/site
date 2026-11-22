@@ -3,7 +3,7 @@ import path from "node:path";
 import fs from "node:fs";
 import { execSync } from "node:child_process";
 
-const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || "http://127.0.0.1:4001";
+const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || "http://127.0.0.1:4002";
 const BACKEND_DIR = path.resolve("C:/Users/Administrator/Desktop/site/backend");
 
 function getAdminToken() {
@@ -19,7 +19,7 @@ async def main():
     ))
 asyncio.run(main())
 `;
-  const tmp = path.join(BACKEND_DIR, `.gym-r27-tok-${Date.now()}.py`);
+  const tmp = path.join(BACKEND_DIR, `.gym-r43-tok-${Date.now()}.py`);
   fs.writeFileSync(tmp, script, "utf8");
   try {
     const out = execSync(`python "${tmp}"`, { cwd: BACKEND_DIR, encoding: "utf8" });
@@ -30,13 +30,14 @@ asyncio.run(main())
   }
 }
 
-test.describe("Builder Gym Round 27: Elementor Lottie, Floating Bar & Icon Parity", () => {
+test.describe("Builder Gym Round 43: 1920x1080 Viewport Lottie, Floating Bar & Icon Parity", () => {
+  test.use({ viewport: { width: 1920, height: 1080 } });
+
   test.beforeEach(async ({ context }) => {
     const token = getAdminToken();
     if (token) {
       await context.addCookies([
         { name: "access_token", value: token, url: BASE_URL, httpOnly: false, sameSite: "Lax" },
-        { name: "access_token", value: token, url: "http://localhost:4001", httpOnly: false, sameSite: "Lax" },
       ]);
     }
     await context.setExtraHTTPHeaders({
@@ -52,41 +53,41 @@ test.describe("Builder Gym Round 27: Elementor Lottie, Floating Bar & Icon Parit
     });
   });
 
-  test("1. Block palette filters and includes lottie, floating_bar, and icon", async ({ page }) => {
+  test("1. Block palette filters and includes lottie, floating_bar, and icon at 1920x1080", async ({ page }) => {
     await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
     await page.waitForTimeout(1500);
 
-    const searchInput = page.locator('input[placeholder*="جستجو"]');
+    const searchInput = page.locator('input[placeholder*="جستجو"]').first();
     await expect(searchInput).toBeVisible();
 
     // Verify search finds lottie
     await searchInput.fill("لوتی");
     await page.waitForTimeout(300);
-    const lottieCard = page.locator('button:has-text("انیمیشن لوتی")');
+    const lottieCard = page.locator('button:has-text("انیمیشن لوتی")').first();
     await expect(lottieCard).toBeVisible();
 
     // Verify search finds floating_bar
     await searchInput.fill("نوار تماس");
     await page.waitForTimeout(300);
-    const floatingCard = page.locator('button:has-text("نوار تماس شناور")');
+    const floatingCard = page.locator('button:has-text("نوار تماس شناور")').first();
     await expect(floatingCard).toBeVisible();
 
     // Verify search finds icon
     await searchInput.fill("آیکون مستقل");
     await page.waitForTimeout(300);
-    const iconCard = page.locator('button:has-text("آیکون مستقل")');
+    const iconCard = page.locator('button:has-text("آیکون مستقل")').first();
     await expect(iconCard).toBeVisible();
   });
 
-  test("2. Inserting floating_bar renders phone and action button inside canvas", async ({ page }) => {
+  test("2. Inserting floating_bar renders phone and action button inside canvas at 1920x1080", async ({ page }) => {
     await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
     await page.waitForTimeout(1500);
 
-    const searchInput = page.locator('input[placeholder*="جستجو"]');
+    const searchInput = page.locator('input[placeholder*="جستجو"]').first();
     await searchInput.fill("نوار تماس شناور");
     await page.waitForTimeout(300);
 
-    const floatingCard = page.locator('button:has-text("نوار تماس شناور")');
+    const floatingCard = page.locator('button:has-text("نوار تماس شناور")').first();
     await floatingCard.click();
     await page.waitForTimeout(600);
 

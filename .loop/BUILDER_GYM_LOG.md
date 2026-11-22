@@ -1600,6 +1600,46 @@
 
 ---
 
+### 🏋️ راند ۳۷ (Round 37) — وزنه ۷ و ۸: پورت و برابری ۴ لایه ویجت‌های کارت پروفایل و وبلاگ (Link in Bio, Posts Grid)
+- **تاریخ اجرا**: 2026-11-22
+- **شاخه ایزوله**: `worktree-gym-r41`
+- **پورت استودیو**: ۴۰۰۴ (`http://127.0.0.1:4004`)
+- **وضعیت**: ✅ کامل و ۱۰۰٪ سبز (اتصال کامل ۴ لایه: Block Registry ← Canvas ← Inspector ← AST Compiler)
+
+#### ۱. باگ‌های کشف‌شده با ابزار Vision و اصلاحات ریشه‌ای
+1. **غیبت ویجت‌های کارت پروفایل و شبکه مقالات وبلاگ در پالت**:
+   - *مشاهده در Vision*: در تصاویر `before/01-studio-overview.png` و `before/02-palette-missing-r37-widgets.png`، با جستجوی عناوین «لینک بیو» و «گرید مقالات»، صفر نتیجه بازگردانده می‌شد.
+   - *اصلاح ریشه‌ای*: ثبت کامل ۲ ویجت `link_in_bio` و `posts_grid` در `frontend/lib/builder/block-registry.ts` با آیکون‌های استاندارد و دسته‌بندی `basic` (تعداد کل بلوک‌های پایه: ۷۶).
+2. **رندر تعاملی بوم ویرایشگر ([canvas-element.tsx](frontend/components/admin/builder/canvas-element.tsx))**:
+   - رندر کارت لندینگ بیوگرافی همراه با آواتار گرد، نام و لینک‌های دکمه‌ای دارای نشان، و رندر گرید مقالات وبلاگ با تصویر شاخص، تاریخ و خلاصه.
+3. **کنترل‌های محتوایی تب Content در بازرس ([inspector-panel.tsx](frontend/components/admin/builder/inspector-panel.tsx))**:
+   - پیاده‌سازی کنترل‌های ورودی نام پروفایل، بیو، آواتار و ریپیتر لینک‌ها، به همراه انتخابگر ستون‌ها و ویرایشگر زنده عناوین مقالات با تست Nudge موفق.
+4. **کامپایلر سرور SSR بک‌اند ([ast_compiler.py](backend/app/modules/content/application/ast_compiler.py))**:
+   - پیاده‌سازی شاخه‌های خروجی HTML برای `link_in_bio` و `posts_grid` با تست‌های واحد اختصاصی در `test_ast_compiler.py`.
+
+#### ۲. مستندات بصری (Vision Artifacts)
+- **قبل از اصلاح**: `.loop/artifacts/builder-gym/round-37/before/`
+  - `01-studio-overview.png`
+  - `02-palette-missing-r37-widgets.png`
+- **بعد از اصلاح**: `.loop/artifacts/builder-gym/round-37/after/`
+  - `01-studio-overview.png` (نمای ۳ ستونه بی‌نقص در ۱۹۲۰×۱۰۸۰ با ویجت‌های جدید)
+  - `02-palette-new-widgets.png` (نمایش کل ۷۶ بلوک استاندارد در پالت)
+  - `03-canvas-with-new-widgets.png` (رندر اجزای پروفایل و مقالات وبلاگ درون بوم)
+  - `04-inspector-nudge-active.png` (کنترل‌های بازرس فعال و تست Nudge موفق)
+
+#### ۳. تست‌های رگرسیون دائمی اضافه‌شده
+- یونیت تست Vitest: `frontend/tests/native-widgets.test.ts` (تایید صحت ساختار AST هر ۲ ویجت جدید)
+- یونیت تست Pytest: `backend/app/tests/unit/test_ast_compiler.py::test_ast_compiler_renders_link_in_bio_and_posts_grid`
+- تست Playwright: `frontend/tests/e2e/builder-gym-r37.spec.ts` (۲ تست سبز در ۱۱.۳ ثانیه)
+
+#### ۴. نتایج نهایی ممیزی و تست‌ها
+- `npx tsc --noEmit`: **۰ خطا** (سبز)
+- `npm test` (Vitest): **۳۷۹ تست سبز در ۴۵ فایل** (`379 passed`)
+- `python -m pytest app/tests/unit`: **۶۴۶ تست سبز** (`646 passed, 2 skipped`)
+- تست‌های Playwright: **۲ تست اختصاصی راند ۳۷ سبز** (`2 passed in 11.3s`)
+
+---
+
 ## 🏆 گواهینامه نهایی مسترینگ کامل: BUILDER_GYM_ALL_LEVELS_MASTERED
 
 بدین‌وسیله رسماً تایید و ثبت می‌گردد که کلیه وزنه‌های ۱ تا ۸ نردبان پیش‌رونده Visual Page Builder بر اساس دستورالعمل جامع المنتور و استانداردهای سخت‌گیرانه ۳۶۰ درجه با موفقیت ۱۰۰٪ کامل شدند:

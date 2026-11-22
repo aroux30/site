@@ -188,4 +188,41 @@ describe("P2.1 Native Widgets: Table & Form Inputs", () => {
     }
     expect(parsed.success).toBe(true);
   });
+
+  it("registers link_in_bio and posts_grid in BASIC_BLOCK_DEFINITIONS with valid AST schema", () => {
+    const types = ["link_in_bio", "posts_grid"];
+    const elements: any[] = [];
+
+    for (const t of types) {
+      const def = BASIC_BLOCK_DEFINITIONS.find((b) => b.type === t);
+      expect(def).toBeDefined();
+      const el = def!.createDefaultElement();
+      expect(el.widgetType).toBe(t);
+      elements.push(el);
+    }
+
+    const ast = {
+      schemaVersion: 1,
+      title: "Round 37 Elementor Widgets AST",
+      slug: "r37-widgets-ast",
+      globalStyles: {},
+      rootElements: [
+        {
+          id: "el_r37_root01",
+          name: "ریشه راند ۳۷",
+          type: "container",
+          isLocked: false,
+          isHidden: false,
+          styles: { mobile: {} },
+          children: elements,
+        },
+      ],
+    };
+
+    const parsed = PageASTSchema.safeParse(ast);
+    if (!parsed.success) {
+      console.error("ZOD_ERRORS:", JSON.stringify(parsed.error.format(), null, 2));
+    }
+    expect(parsed.success).toBe(true);
+  });
 });

@@ -1441,6 +1441,74 @@ class ASTCompiler:
                 f'</div>'
             )
 
+        elif widget_type == "link_in_bio":
+            bio_name = html.escape(str(props.get("name", "پروفایل آروکس")))
+            bio_desc = html.escape(str(props.get("bio", "")))
+            avatar_url = html.escape(str(props.get("avatar_url", props.get("avatar", "/placeholder-hero.svg"))))
+            links = props.get("links", [])
+            links_html = ""
+            if isinstance(links, list):
+                for l in links:
+                    l_title = html.escape(str(l.get("title", "")))
+                    l_url = html.escape(str(l.get("url", "#")))
+                    l_badge = html.escape(str(l.get("badge", "")))
+                    badge_span = f'<span class="text-[10px] px-2 py-0.5 rounded-full bg-primary/15 text-primary shrink-0 ms-2 font-bold">{l_badge}</span>' if l_badge else ""
+                    links_html += (
+                        f'<a href="{l_url}" class="flex items-center justify-between p-3 rounded-xl border border-border/60 bg-muted/30 hover:bg-primary hover:text-white transition group text-xs font-semibold">'
+                        f'<span class="truncate flex-1 text-right">{l_title}</span>'
+                        f'{badge_span}'
+                        f'</a>'
+                    )
+            return (
+                f'<div{id_attr} class="builder-link-in-bio w-full max-w-sm mx-auto p-6 rounded-3xl border border-border/80 bg-card text-center space-y-4 shadow-sm {css_class}" data-widget="link_in_bio"{style_attr}>'
+                f'<div class="w-20 h-20 mx-auto rounded-full overflow-hidden border-2 border-primary/20 p-1 bg-background">'
+                f'<img src="{avatar_url}" alt="{bio_name}" class="w-full h-full object-cover rounded-full" />'
+                f'</div>'
+                f'<div class="space-y-1">'
+                f'<h3 class="text-base font-bold text-foreground">{bio_name}</h3>'
+                f'<p class="text-xs text-muted-foreground leading-relaxed">{bio_desc}</p>'
+                f'</div>'
+                f'<div class="space-y-2 pt-2">{links_html}</div>'
+                f'</div>'
+            )
+
+        elif widget_type == "posts_grid":
+            grid_cols = int(props.get("columns", 3))
+            posts = props.get("posts", [])
+            col_class = "grid-cols-1" if grid_cols == 1 else "grid-cols-1 md:grid-cols-2" if grid_cols == 2 else "grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
+            cards_html = ""
+            if isinstance(posts, list):
+                for p in posts:
+                    p_title = html.escape(str(p.get("title", "")))
+                    p_excerpt = html.escape(str(p.get("excerpt", "")))
+                    p_cat = html.escape(str(p.get("category", "")))
+                    p_date = html.escape(str(p.get("date", "")))
+                    p_img = html.escape(str(p.get("image", "/placeholder-hero.svg")))
+                    cat_badge = f'<span class="absolute top-2.5 start-2.5 px-2.5 py-0.5 rounded-md bg-black/60 text-white text-[10px] font-bold">{p_cat}</span>' if p_cat else ""
+                    cards_html += (
+                        f'<div class="rounded-2xl border border-border/80 bg-card overflow-hidden flex flex-col shadow-xs">'
+                        f'<div class="relative aspect-video w-full bg-muted/40">'
+                        f'<img src="{p_img}" alt="{p_title}" class="w-full h-full object-cover" />'
+                        f'{cat_badge}'
+                        f'</div>'
+                        f'<div class="p-4 flex-1 flex flex-col justify-between space-y-2 text-right">'
+                        f'<div class="space-y-1.5">'
+                        f'<h4 class="font-bold text-xs line-clamp-1 text-foreground">{p_title}</h4>'
+                        f'<p class="text-[11px] text-muted-foreground line-clamp-2 leading-relaxed">{p_excerpt}</p>'
+                        f'</div>'
+                        f'<div class="pt-2 border-t border-border/60 flex items-center justify-between text-[10px] text-muted-foreground">'
+                        f'<span>{p_date}</span>'
+                        f'<span class="text-primary font-bold">مطالعه مقاله &larr;</span>'
+                        f'</div>'
+                        f'</div>'
+                        f'</div>'
+                    )
+            return (
+                f'<div{id_attr} class="builder-posts-grid w-full space-y-4 {css_class}" data-widget="posts_grid"{style_attr}>'
+                f'<div class="grid gap-4 w-full {col_class}">{cards_html}</div>'
+                f'</div>'
+            )
+
         # Generic fallback for any other registered widget
         fallback_title = html.escape(str(props.get("title", widget_type)))
         return f'<div{id_attr} class="builder-widget builder-{widget_type} {css_class}" data-widget="{html.escape(widget_type)}"{style_attr}>{fallback_title}</div>'

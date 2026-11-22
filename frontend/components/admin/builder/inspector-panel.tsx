@@ -3329,6 +3329,172 @@ export function InspectorPanel() {
           </div>
         );
 
+      case "link_in_bio": {
+        const links = (props.links as any[]) || [
+          { title: "ورود به فروشگاه اصلی", url: "/products", badge: "پیشنهاد ویژه" },
+          { title: "کانال تلگرام تخفیف‌های روزانه", url: "#", badge: "" },
+        ];
+        return (
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs">نام پروفایل / برند</Label>
+              <Input
+                data-testid="link-in-bio-name-input"
+                value={String(props.name || "فروشگاه آنلاین آروکس")}
+                onChange={(e) => handlePropChange("name", e.target.value)}
+                className="h-8 text-xs"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">توضیحات کوتاه بیوگرافی</Label>
+              <Input
+                data-testid="link-in-bio-desc-input"
+                value={String(props.bio || "مرجع تخصصی خرید آنلاین کالای دیجیتال")}
+                onChange={(e) => handlePropChange("bio", e.target.value)}
+                className="h-8 text-xs"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">تصویر آواتار (URL)</Label>
+              <Input
+                data-testid="link-in-bio-avatar-input"
+                value={String(props.avatar_url || "/placeholder-hero.svg")}
+                onChange={(e) => handlePropChange("avatar_url", e.target.value)}
+                className="h-8 text-xs font-mono"
+                dir="ltr"
+              />
+            </div>
+            <div className="flex items-center justify-between pt-1">
+              <Label className="text-xs font-bold">لینک‌های بیو</Label>
+              <button
+                type="button"
+                onClick={() => {
+                  const updated = [...links, { title: `لینک جدید ${links.length + 1}`, url: "#", badge: "" }];
+                  handlePropChange("links", updated);
+                }}
+                className="text-xs text-primary font-semibold hover:underline"
+              >
+                + افزودن لینک
+              </button>
+            </div>
+            <div className="space-y-2">
+              {links.map((link: any, idx: number) => (
+                <div key={idx} className="p-2 rounded-lg border bg-muted/20 space-y-1.5">
+                  <div className="flex items-center gap-2">
+                    <Input
+                      value={link.title || ""}
+                      placeholder="عنوان دکمه"
+                      onChange={(e) => {
+                        const updated = [...links];
+                        updated[idx] = { ...updated[idx], title: e.target.value };
+                        handlePropChange("links", updated);
+                      }}
+                      className="h-7 text-xs flex-1"
+                    />
+                    <Input
+                      value={link.badge || ""}
+                      placeholder="نشان (Badge)"
+                      onChange={(e) => {
+                        const updated = [...links];
+                        updated[idx] = { ...updated[idx], badge: e.target.value };
+                        handlePropChange("links", updated);
+                      }}
+                      className="h-7 text-xs w-24"
+                    />
+                    {links.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const updated = links.filter((_, i) => i !== idx);
+                          handlePropChange("links", updated);
+                        }}
+                        className="text-[10px] text-destructive hover:underline"
+                      >
+                        حذف
+                      </button>
+                    )}
+                  </div>
+                  <Input
+                    value={link.url || ""}
+                    placeholder="پیوند مقصد"
+                    onChange={(e) => {
+                      const updated = [...links];
+                      updated[idx] = { ...updated[idx], url: e.target.value };
+                      handlePropChange("links", updated);
+                    }}
+                    className="h-7 text-xs font-mono"
+                    dir="ltr"
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      }
+
+      case "posts_grid": {
+        const posts = (props.posts as any[]) || [
+          {
+            title: "راهنمای جامع خرید هدفون‌های نویزکنسلینگ",
+            category: "راهنمای خرید",
+          },
+          {
+            title: "بررسی ساعت‌های هوشمند ورزشی و سلامت",
+            category: "بررسی فنی",
+          },
+        ];
+        return (
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs">تعداد ستون‌ها</Label>
+              <Select
+                value={String(props.columns || 3)}
+                onValueChange={(val) => handlePropChange("columns", Number(val))}
+              >
+                <SelectTrigger className="h-8 text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="1">تک ستونه (1 Column)</SelectItem>
+                  <SelectItem value="2">دو ستونه (2 Columns)</SelectItem>
+                  <SelectItem value="3">سه ستونه (3 Columns)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex items-center justify-between pt-1">
+              <Label className="text-xs font-bold">عناوین مقالات</Label>
+            </div>
+            <div className="space-y-2">
+              {posts.map((post: any, idx: number) => (
+                <div key={idx} className="p-2 rounded-lg border bg-muted/20 space-y-1.5">
+                  <Input
+                    data-testid={`posts-grid-title-input-${idx}`}
+                    value={post.title || ""}
+                    placeholder="عنوان مقاله"
+                    onChange={(e) => {
+                      const updated = [...posts];
+                      updated[idx] = { ...updated[idx], title: e.target.value };
+                      handlePropChange("posts", updated);
+                    }}
+                    className="h-7 text-xs"
+                  />
+                  <Input
+                    value={post.category || ""}
+                    placeholder="دسته‌بندی"
+                    onChange={(e) => {
+                      const updated = [...posts];
+                      updated[idx] = { ...updated[idx], category: e.target.value };
+                      handlePropChange("posts", updated);
+                    }}
+                    className="h-7 text-xs"
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      }
+
       default:
         return (
           <div className="text-xs text-muted-foreground py-2">

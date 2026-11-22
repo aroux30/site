@@ -2404,6 +2404,98 @@ function CanvasElementComponent({
           </div>
         );
       }
+      case "link_in_bio": {
+        const bioName = String(props.name || "فروشگاه آنلاین آروکس");
+        const bioDesc = String(props.bio || "مرجع تخصصی خرید آنلاین کالای دیجیتال و گجت‌های هوشمند");
+        const avatarUrl = String(props.avatar_url || props.avatar || "/placeholder-hero.svg");
+        const links = (props.links as any[]) || [
+          { title: "ورود به فروشگاه اصلی", url: "/products", badge: "پیشنهاد ویژه" },
+          { title: "کانال تلگرام تخفیف‌های روزانه", url: "#", badge: "" },
+        ];
+        return (
+          <div className="builder-link-in-bio w-full max-w-sm mx-auto p-6 rounded-3xl border border-border/80 bg-card text-center space-y-4 shadow-sm">
+            <div className="w-20 h-20 mx-auto rounded-full overflow-hidden border-2 border-primary/20 p-1 bg-background">
+              <img src={avatarUrl} alt={bioName} className="w-full h-full object-cover rounded-full" />
+            </div>
+            <div className="space-y-1">
+              <h3 className="text-base font-bold text-foreground">{bioName}</h3>
+              <p className="text-xs text-muted-foreground leading-relaxed">{bioDesc}</p>
+            </div>
+            <div className="space-y-2 pt-2">
+              {links.map((link: any, idx: number) => (
+                <a
+                  key={idx}
+                  href={link.url || "#"}
+                  onClick={(e) => e.preventDefault()}
+                  className="flex items-center justify-between p-3 rounded-xl border border-border/60 bg-muted/30 hover:bg-primary hover:text-white transition group text-xs font-semibold"
+                >
+                  <span className="truncate flex-1 text-right">{link.title}</span>
+                  {link.badge && (
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary/15 text-primary group-hover:bg-white group-hover:text-primary shrink-0 ms-2 font-bold">
+                      {link.badge}
+                    </span>
+                  )}
+                </a>
+              ))}
+            </div>
+          </div>
+        );
+      }
+      case "posts_grid": {
+        const gridCols = Number(props.columns || 3);
+        const posts = (props.posts as any[]) || [
+          {
+            title: "راهنمای جامع خرید هدفون‌های نویزکنسلینگ",
+            excerpt: "بررسی تخصصی برترین مدل‌های بازار همراه با مقایسه باتری و کیفیت صدا...",
+            category: "راهنمای خرید",
+            date: "۲ روز پیش",
+            image: "/placeholder-hero.svg",
+          },
+          {
+            title: "بررسی ساعت‌های هوشمند ورزشی و سلامت",
+            excerpt: "هر آنچه پیش از خرید ساعت هوشمند مناسب باید بدانید...",
+            category: "بررسی فنی",
+            date: "۴ روز پیش",
+            image: "/placeholder-hero.svg",
+          },
+          {
+            title: "تکنولوژی‌های جدید نمایشگر گوشی‌ها",
+            excerpt: "تفاوت پنل‌های OLED و AMOLED در کاربری روزمره...",
+            category: "فناوری",
+            date: "۱ هفته پیش",
+            image: "/placeholder-hero.svg",
+          },
+        ];
+        const gridColClass = gridCols === 1 ? "grid-cols-1" : gridCols === 2 ? "grid-cols-1 md:grid-cols-2" : "grid-cols-1 md:grid-cols-2 lg:grid-cols-3";
+        return (
+          <div className="builder-posts-grid w-full space-y-4">
+            <div className={cn("grid gap-4 w-full", gridColClass)}>
+              {posts.map((post: any, idx: number) => (
+                <div key={idx} className="rounded-2xl border border-border/80 bg-card overflow-hidden flex flex-col shadow-xs">
+                  <div className="relative aspect-video w-full bg-muted/40">
+                    <img src={post.image || "/placeholder-hero.svg"} alt={post.title} className="w-full h-full object-cover" />
+                    {post.category && (
+                      <span className="absolute top-2.5 start-2.5 px-2.5 py-0.5 rounded-md bg-black/60 text-white text-[10px] font-bold">
+                        {post.category}
+                      </span>
+                    )}
+                  </div>
+                  <div className="p-4 flex-1 flex flex-col justify-between space-y-2 text-right">
+                    <div className="space-y-1.5">
+                      <h4 className="font-bold text-xs line-clamp-1 text-foreground">{post.title}</h4>
+                      <p className="text-[11px] text-muted-foreground line-clamp-2 leading-relaxed">{post.excerpt}</p>
+                    </div>
+                    <div className="pt-2 border-t border-border/60 flex items-center justify-between text-[10px] text-muted-foreground">
+                      <span>{post.date}</span>
+                      <span className="text-primary font-bold">مطالعه مقاله &larr;</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      }
       default:
         return (
           <div className="rounded-lg border border-dashed border-border p-4 text-center text-sm text-muted-foreground">

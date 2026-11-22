@@ -719,6 +719,52 @@ def test_ast_compiler_renders_video_playlist_and_image_comparison():
     assert "پروژه بازسازی‌شده" in result
 
 
+def test_ast_compiler_renders_link_in_bio_and_posts_grid():
+    """Verify SSR compilation for link_in_bio and posts_grid widgets."""
+    ast = PageAST(
+        schema_version=1,
+        title="تست لینک بیو و گرید مقالات",
+        slug="test-bio-posts",
+        root_elements=[
+            BuilderElement(
+                id="el_bio_sec",
+                name="بخش معرفی",
+                type="container",
+                children=[
+                    BuilderElement(
+                        id="el_bio01",
+                        name="لینک بیو",
+                        type="widget",
+                        widget_type="link_in_bio",
+                        widget_props={
+                            "name": "فروشگاه نمونه",
+                            "bio": "خرید آنلاین انواع کالا",
+                            "links": [{"title": "سایت اصلی", "url": "/store", "badge": "ویژه"}],
+                        },
+                    ),
+                    BuilderElement(
+                        id="el_posts01",
+                        name="گرید پست‌ها",
+                        type="widget",
+                        widget_type="posts_grid",
+                        widget_props={
+                            "columns": 2,
+                            "posts": [{"title": "مقاله جدید پایتون", "category": "آموزش", "date": "دیروز"}],
+                        },
+                    ),
+                ],
+            )
+        ],
+    )
+    result = ASTCompiler.compile(ast)
+    assert 'class="builder-link-in-bio' in result
+    assert "فروشگاه نمونه" in result
+    assert "سایت اصلی" in result
+    assert 'class="builder-posts-grid' in result
+    assert "مقاله جدید پایتون" in result
+    assert "آموزش" in result
+
+
 def test_ast_compiler_renders_p3_ecommerce_native_widgets():
     ast = PageAST(
         schema_version=1,

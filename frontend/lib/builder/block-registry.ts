@@ -68,6 +68,8 @@ import {
   Navigation,
   PlaySquare,
   SplitSquareVertical,
+  Contact2,
+  Newspaper,
   type LucideIcon,
 } from "lucide-react";
 import type { BuilderElement } from "@/types/builder";
@@ -2479,6 +2481,109 @@ export const BASIC_BLOCK_DEFINITIONS: BlockDefinition[] = [
       isLocked: false,
       isHidden: false,
       styles: { mobile: {} },
+      children: [],
+    }),
+  },
+  {
+    type: "link_in_bio",
+    name: "لینک بیو (Link in Bio)",
+    category: "basic",
+    icon: Contact2,
+    description: "صفحه کارت پروفایل، بیوگرافی، شبکه‌های اجتماعی و دکمه‌های اقدام به سبک لندینگ بایو",
+    createDefaultElement: () => ({
+      id: `el_${Math.random().toString(36).slice(2, 10)}`,
+      name: "لینک بیو پروفایل",
+      type: "widget",
+      widgetType: "link_in_bio",
+      widgetProps: {
+        name: "فروشگاه آنلاین آروکس",
+        bio: "مرجع تخصصی خرید آنلاین کالای دیجیتال، گجت‌های هوشمند و لوازم جانبی با ضمانت اصالت",
+        avatar_url: "/placeholder-hero.svg",
+        links: [
+          { title: "ورود به فروشگاه اصلی", url: "/products", badge: "پیشنهاد ویژه" },
+          { title: "کانال تلگرام تخفیف‌های روزانه", url: "#", badge: "" },
+          { title: "پشتیبانی و گفتگوی آنلاین", url: "#", badge: "پاسخگویی سریع" },
+        ],
+      },
+      isLocked: false,
+      isHidden: false,
+      styles: {
+        mobile: {
+          padding: {
+            top: { value: 24, unit: "px" },
+            right: { value: 20, unit: "px" },
+            bottom: { value: 24, unit: "px" },
+            left: { value: 20, unit: "px" },
+            isLinked: true,
+          },
+          border: {
+            style: "solid",
+            radius: {
+              top: { value: 24, unit: "px" },
+              right: { value: 24, unit: "px" },
+              bottom: { value: 24, unit: "px" },
+              left: { value: 24, unit: "px" },
+              isLinked: true,
+            },
+          },
+        },
+      },
+      children: [],
+    }),
+  },
+  {
+    type: "posts_grid",
+    name: "گرید مقالات (Posts Grid)",
+    category: "basic",
+    icon: Newspaper,
+    description: "شبکه وبلاگ و آخرین اخبار با تصویر شاخص، خلاصه، دسته‌بندی و دکمه مطالعه",
+    createDefaultElement: () => ({
+      id: `el_${Math.random().toString(36).slice(2, 10)}`,
+      name: "شبکه مقالات وبلاگ",
+      type: "widget",
+      widgetType: "posts_grid",
+      widgetProps: {
+        columns: 3,
+        posts: [
+          {
+            title: "راهنمای جامع خرید هدفون‌های نویزکنسلینگ در سال جدید",
+            excerpt: "بررسی تخصصی برترین مدل‌های بازار همراه با مقایسه باتری و کیفیت صدا...",
+            category: "راهنمای خرید",
+            date: "۲ روز پیش",
+            read_time: "۵ دقیقه",
+            image: "/placeholder-hero.svg",
+          },
+          {
+            title: "بررسی ساعت‌های هوشمند ورزشی و سنسورهای پایش سلامت",
+            excerpt: "هر آنچه پیش از خرید ساعت هوشمند مناسب تناسب اندام باید بدانید...",
+            category: "بررسی فنی",
+            date: "۴ روز پیش",
+            read_time: "۷ دقیقه",
+            image: "/placeholder-hero.svg",
+          },
+          {
+            title: "تکنولوژی‌های جدید نمایشگر گوشی‌های هوشمند",
+            excerpt: "تفاوت پنل‌های OLED و AMOLED و نرخ نوسازی متغیر در کاربری روزمره...",
+            category: "فناوری",
+            date: "۱ هفته پیش",
+            read_time: "۴ دقیقه",
+            image: "/placeholder-hero.svg",
+          },
+        ],
+      },
+      isLocked: false,
+      isHidden: false,
+      styles: {
+        mobile: {
+          padding: {
+            top: { value: 16, unit: "px" },
+            right: { value: 16, unit: "px" },
+            bottom: { value: 16, unit: "px" },
+            left: { value: 16, unit: "px" },
+            isLinked: true,
+          },
+        },
+      },
       children: [],
     }),
   },

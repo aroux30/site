@@ -2056,6 +2056,61 @@ function CanvasElementComponent({
           </div>
         );
       }
+      case "nested_tabs": {
+        const rawTabs = Array.isArray(props.tabs) ? (props.tabs as any[]) : [];
+        const tabs = rawTabs.length > 0 ? rawTabs : [
+          { title: "تب ۱", content: "محتوای زبانه نخست" },
+          { title: "تب ۲", content: "محتوای زبانه دوم" },
+        ];
+        return (
+          <div className="w-full rounded-2xl border border-border/80 bg-card overflow-hidden">
+            <div className="flex border-b border-border/60 bg-muted/40">
+              {tabs.map((t, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  className={cn(
+                    "px-4 py-2.5 text-xs transition",
+                    idx === 0 ? "border-b-2 border-primary text-primary font-bold bg-background" : "text-muted-foreground hover:text-foreground"
+                  )}
+                  onClick={(e) => e.preventDefault()}
+                >
+                  {t.title}
+                </button>
+              ))}
+            </div>
+            <div className="p-4 text-xs leading-relaxed text-foreground text-right">
+              {tabs[0]?.content}
+            </div>
+          </div>
+        );
+      }
+      case "nested_accordion": {
+        const rawItems = Array.isArray(props.items) ? (props.items as any[]) : [];
+        const items = rawItems.length > 0 ? rawItems : [
+          { title: "بخش آکاردئونی ۱", content: "محتوای بخش نخست" },
+          { title: "بخش آکاردئونی ۲", content: "محتوای بخش دوم" },
+        ];
+        return (
+          <div className="space-y-2 w-full text-right">
+            {items.map((it, idx) => (
+              <details
+                key={idx}
+                className="group rounded-xl border border-border/80 bg-card overflow-hidden"
+                open={idx === 0}
+              >
+                <summary className="p-3.5 font-bold text-xs text-foreground cursor-pointer list-none flex items-center justify-between hover:bg-muted/40 transition select-none">
+                  <span>{it.title || "عنوان آکاردئون"}</span>
+                  <span className="transition-transform group-open:rotate-180 text-muted-foreground">▾</span>
+                </summary>
+                <div className="p-3.5 pt-0 text-xs text-muted-foreground border-t border-border/40 leading-relaxed">
+                  {it.content}
+                </div>
+              </details>
+            ))}
+          </div>
+        );
+      }
       default:
         return (
           <div className="rounded-lg border border-dashed border-border p-4 text-center text-sm text-muted-foreground">

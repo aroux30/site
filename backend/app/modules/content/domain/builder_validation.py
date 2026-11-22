@@ -63,7 +63,9 @@ STANDARD_WIDGET_TYPES: frozenset[str] = frozenset({
     "form_container",
     # Advanced widgets
     "tabs",
+    "nested_tabs",
     "accordion",
+    "nested_accordion",
     "toggle",
     "image_carousel",
     "testimonial",
@@ -94,6 +96,8 @@ STANDARD_WIDGET_TYPES: frozenset[str] = frozenset({
     "code_highlight",
     "contact_buttons",
     "floating_buttons",
+    "off_canvas",
+    "popup_builder",
     "faq",
     "video",
     "social_links",

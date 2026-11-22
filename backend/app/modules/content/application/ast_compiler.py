@@ -1148,6 +1148,73 @@ class ASTCompiler:
                 f'</div>'
             )
 
+        elif widget_type == "nested_tabs":
+            tabs_list = props.get("tabs", [{"title": "تب ۱", "content": "محتوای پیش‌فرض ۱"}, {"title": "تب ۲", "content": "محتوای پیش‌فرض ۲"}])
+            header_html = ""
+            panes_html = ""
+            if isinstance(tabs_list, list):
+                for idx, t in enumerate(tabs_list):
+                    t_title = html.escape(str(t.get("title", f"تب {idx+1}")))
+                    t_cnt = html.escape(str(t.get("content", "")))
+                    active_cls = "border-primary text-primary font-bold bg-background" if idx == 0 else "border-transparent text-muted-foreground hover:text-foreground"
+                    hide_cls = "" if idx == 0 else "hidden"
+                    header_html += f'<button type="button" class="px-4 py-2.5 text-xs border-b-2 transition {active_cls}">{t_title}</button>'
+                    panes_html += f'<div class="p-4 text-xs leading-relaxed text-foreground {hide_cls}">{t_cnt}</div>'
+            return (
+                f'<div{id_attr} class="builder-nested-tabs rounded-2xl border border-border/80 bg-card overflow-hidden w-full {css_class}" data-widget="nested_tabs"{style_attr}>'
+                f'<div class="flex border-b border-border/60 bg-muted/40">{header_html}</div>'
+                f'<div class="tab-panes">{panes_html}</div>'
+                f'</div>'
+            )
+
+        elif widget_type == "nested_accordion":
+            items = props.get("items", [{"title": "بخش آکاردئونی ۱", "content": "محتوای تودرتو ۱"}])
+            acc_html = ""
+            if isinstance(items, list):
+                for idx, itm in enumerate(items):
+                    a_title = html.escape(str(itm.get("title", "عنوان بخش")))
+                    a_content = html.escape(str(itm.get("content", "")))
+                    open_attr = " open" if idx == 0 else ""
+                    acc_html += (
+                        f'<details class="group rounded-xl border border-border/80 bg-card overflow-hidden"{open_attr}>'
+                        f'<summary class="p-3.5 font-bold text-xs text-foreground cursor-pointer list-none flex items-center justify-between hover:bg-muted/40 transition select-none">'
+                        f'<span>{a_title}</span>'
+                        f'<span class="transition-transform group-open:rotate-180 text-muted-foreground">▾</span>'
+                        f'</summary>'
+                        f'<div class="p-3.5 pt-0 text-xs text-muted-foreground border-t border-border/40 leading-relaxed">'
+                        f'{a_content}'
+                        f'</div>'
+                        f'</details>'
+                    )
+            return f'<div{id_attr} class="builder-nested-accordion space-y-2 w-full {css_class}" data-widget="nested_accordion"{style_attr}>{acc_html}</div>'
+
+        elif widget_type == "off_canvas":
+            trigger_lbl = html.escape(str(props.get("trigger_label", "مشاهده کشو")))
+            title = html.escape(str(props.get("drawer_title", "منوی جانبی")))
+            pos = str(props.get("position", "right"))
+            return (
+                f'<div{id_attr} class="builder-off-canvas inline-block {css_class}" data-widget="off_canvas" data-position="{pos}"{style_attr}>'
+                f'<button type="button" class="px-4 py-2 rounded-xl bg-muted/80 hover:bg-muted text-foreground text-xs font-bold transition flex items-center gap-2">'
+                f'<span>{trigger_lbl}</span>'
+                f'</button>'
+                f'<aside class="hidden fixed inset-y-0 {pos}-0 w-72 bg-card border-{pos} border-border shadow-2xl p-4 z-50">'
+                f'<h4 class="font-bold text-xs text-foreground pb-2 border-b">{title}</h4>'
+                f'</aside>'
+                f'</div>'
+            )
+
+        elif widget_type == "popup_builder":
+            title = html.escape(str(props.get("popup_title", "پاپ‌آپ اعلان")))
+            trigger = html.escape(str(props.get("trigger", "exit_intent")))
+            return (
+                f'<div{id_attr} class="builder-popup hidden fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4 {css_class}" data-widget="popup_builder" data-trigger="{trigger}"{style_attr}>'
+                f'<div class="w-full max-w-md p-6 bg-card text-foreground rounded-3xl border border-border shadow-2xl space-y-3 relative text-right">'
+                f'<h3 class="font-black text-sm">{title}</h3>'
+                f'<button type="button" class="absolute top-4 left-4 text-xs font-bold text-muted-foreground hover:text-foreground">✕</button>'
+                f'</div>'
+                f'</div>'
+            )
+
         # Generic fallback for any other registered widget
         fallback_title = html.escape(str(props.get("title", widget_type)))
         return f'<div{id_attr} class="builder-widget builder-{widget_type} {css_class}" data-widget="{html.escape(widget_type)}"{style_attr}>{fallback_title}</div>'

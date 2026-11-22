@@ -467,6 +467,62 @@ def test_ast_compiler_renders_image_carousel_and_slides_widgets():
     assert "فرصت خرید" in result
 
 
+def test_ast_compiler_renders_nested_and_interactive_modules():
+    """Verify SSR compilation for nested_tabs, nested_accordion, off_canvas and popup_builder."""
+    ast = PageAST(
+        schema_version=1,
+        title="تست ماژول‌های تعاملی پیشرفته",
+        slug="test-interactive-modules",
+        root_elements=[
+            BuilderElement(
+                id="el_sec_im",
+                name="بخش تعاملی",
+                type="container",
+                children=[
+                    BuilderElement(
+                        id="el_ntabs01",
+                        name="تب‌های تودرتو",
+                        type="widget",
+                        widget_type="nested_tabs",
+                        widget_props={"tabs": [{"title": "مشخصات فنی", "content": "رم ۱۶ گیگابایت"}]},
+                    ),
+                    BuilderElement(
+                        id="el_nacc01",
+                        name="آکاردئون پیشرفته",
+                        type="widget",
+                        widget_type="nested_accordion",
+                        widget_props={"items": [{"title": "پرسش کلیدی", "content": "پاسخ ساختاریافته"}]},
+                    ),
+                    BuilderElement(
+                        id="el_offc01",
+                        name="کشوی جانبی",
+                        type="widget",
+                        widget_type="off_canvas",
+                        widget_props={"trigger_label": "فیلتر پیشرفته", "drawer_title": "فیلترها"},
+                    ),
+                    BuilderElement(
+                        id="el_popup01",
+                        name="پاپ‌آپ مدال",
+                        type="widget",
+                        widget_type="popup_builder",
+                        widget_props={"popup_title": "کوپن تخفیف ۲۰٪", "trigger": "exit_intent"},
+                    ),
+                ],
+            )
+        ],
+    )
+    result = ASTCompiler.compile(ast)
+    assert 'class="builder-nested-tabs' in result
+    assert "مشخصات فنی" in result
+    assert "رم ۱۶ گیگابایت" in result
+    assert 'class="builder-nested-accordion' in result
+    assert "پرسش کلیدی" in result
+    assert 'class="builder-off-canvas' in result
+    assert "فیلتر پیشرفته" in result
+    assert 'class="builder-popup' in result
+    assert "کوپن تخفیف ۲۰٪" in result
+
+
 def test_ast_compiler_renders_p3_ecommerce_native_widgets():
     ast = PageAST(
         schema_version=1,

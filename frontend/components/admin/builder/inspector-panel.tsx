@@ -2743,6 +2743,134 @@ export function InspectorPanel() {
           </div>
         );
 
+      case "nested_tabs": {
+        const rawTabs = Array.isArray(props.tabs) ? (props.tabs as any[]) : [];
+        const tabs = rawTabs.length > 0 ? rawTabs : [{ title: "تب ۱", content: "توضیحات ۱" }];
+        return (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <Label className="text-xs font-bold">زبانه‌ها (Tabs)</Label>
+              <button
+                type="button"
+                onClick={() => {
+                  const updated = [...tabs, { title: `زبانه ${tabs.length + 1}`, content: "محتوای زبانه جدید" }];
+                  handlePropChange("tabs", updated);
+                }}
+                className="text-[11px] text-primary hover:underline font-bold"
+              >
+                + افزودن زبانه
+              </button>
+            </div>
+            <div className="space-y-2">
+              {tabs.map((t, idx) => (
+                <div key={idx} className="p-2.5 rounded-lg border bg-muted/20 space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-bold">زبانه {idx + 1}</span>
+                    {tabs.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const updated = tabs.filter((_, i) => i !== idx);
+                          handlePropChange("tabs", updated);
+                        }}
+                        className="text-[10px] text-destructive hover:underline"
+                      >
+                        حذف
+                      </button>
+                    )}
+                  </div>
+                  <Input
+                    value={t.title || ""}
+                    placeholder="عنوان زبانه"
+                    onChange={(e) => {
+                      const updated = [...tabs];
+                      updated[idx] = { ...updated[idx], title: e.target.value };
+                      handlePropChange("tabs", updated);
+                    }}
+                    className="h-7 text-xs font-bold"
+                  />
+                  <textarea
+                    rows={2}
+                    value={t.content || ""}
+                    placeholder="محتوا یا توضیحات..."
+                    onChange={(e) => {
+                      const updated = [...tabs];
+                      updated[idx] = { ...updated[idx], content: e.target.value };
+                      handlePropChange("tabs", updated);
+                    }}
+                    className="w-full rounded-md border border-input bg-background p-1.5 text-xs leading-relaxed"
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      }
+
+      case "nested_accordion": {
+        const rawItems = Array.isArray(props.items) ? (props.items as any[]) : [];
+        const items = rawItems.length > 0 ? rawItems : [{ title: "بخش ۱", content: "محتوای بخش ۱" }];
+        return (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <Label className="text-xs font-bold">بخش‌های آکاردئونی تودرتو</Label>
+              <button
+                type="button"
+                onClick={() => {
+                  const updated = [...items, { title: `بخش ${items.length + 1}`, content: "محتوای تودرتو جدید" }];
+                  handlePropChange("items", updated);
+                }}
+                className="text-[11px] text-primary hover:underline font-bold"
+              >
+                + افزودن بخش
+              </button>
+            </div>
+            <div className="space-y-2">
+              {items.map((it, idx) => (
+                <div key={idx} className="p-2.5 rounded-lg border bg-muted/20 space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-bold">بخش {idx + 1}</span>
+                    {items.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const updated = items.filter((_, i) => i !== idx);
+                          handlePropChange("items", updated);
+                        }}
+                        className="text-[10px] text-destructive hover:underline"
+                      >
+                        حذف
+                      </button>
+                    )}
+                  </div>
+                  <Input
+                    value={it.title || ""}
+                    placeholder="عنوان بخش"
+                    onChange={(e) => {
+                      const updated = [...items];
+                      updated[idx] = { ...updated[idx], title: e.target.value };
+                      handlePropChange("items", updated);
+                    }}
+                    className="h-7 text-xs font-bold"
+                  />
+                  <textarea
+                    rows={2}
+                    value={it.content || ""}
+                    placeholder="محتوای تودرتو..."
+                    onChange={(e) => {
+                      const updated = [...items];
+                      updated[idx] = { ...updated[idx], content: e.target.value };
+                      handlePropChange("items", updated);
+                    }}
+                    className="w-full rounded-md border border-input bg-background p-1.5 text-xs leading-relaxed"
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      }
+
       default:
         return (
           <div className="text-xs text-muted-foreground py-2">

@@ -517,6 +517,11 @@ function CanvasElementComponent({
       styleObj.marginRight = "auto";
     }
 
+    // Elementor CSS Grid auto-flow
+    if (element.type === "container" && element.layout?.kind === "grid" && element.layout?.gridAutoFlow) {
+      styleObj.gridAutoFlow = element.layout.gridAutoFlow;
+    }
+
     return styleObj;
   }, [element.styles, element.layout, activeBreakpoint]);
 

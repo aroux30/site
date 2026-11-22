@@ -152,6 +152,7 @@ export interface ContainerLayout {
   flexWrap: "nowrap" | "wrap" | "wrap-reverse";
   gap: UnitValue;
   gridColumns: number;
+  gridAutoFlow?: "row" | "column" | "dense" | "row dense" | "column dense" | null;
   boxedWidth?: UnitValue | null;
 }
 

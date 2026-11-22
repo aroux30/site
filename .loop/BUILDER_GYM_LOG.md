@@ -890,6 +890,36 @@
 
 ---
 
+### 🏋️ راند ۲۰ (Round 20) — وزنه ۶: ۷۰ کیلو (تکمیل کانتینر چندستونه CSS Grid و جریان خودکار Grid Auto Flow مطابق المنتور)
+- **تاریخ اجرا**: 2026-11-22
+- **شاخه ایزوله**: `claude/relaxed-shamir-82671f`
+- **وضعیت**: ✅ کامل و سبز (کنترل‌های جریان خودکار شبکه، رندر چندستونه در بوم، مدل AST، کامپایلر SSR و فیلتر Bleach)
+
+#### ۱. قابلیت‌ها و اصلاحات انجام‌شده
+1. **توسعه کنترل‌های شبکه CSS Grid در بازرس (`CSS Grid Auto Flow Controls`)**:
+   - اضافه شدن کنترل `data-testid="grid-auto-flow-select"` در بخش طرح‌بندی کانتینر `frontend/components/admin/builder/inspector-panel.tsx` با پشتیبانی از حالات سطری (Row)، ستونی (Column)، فشرده (Dense)، سطری فشرده (Row Dense) و ستونی فشرده (Column Dense).
+2. **اتصال بلادرنگ چیدمان شبکه به بوم Iframe (`Canvas Grid Auto Flow`)**:
+   - اعمال مستقیم `gridAutoFlow` بر روی استایل‌های کانتینر در `frontend/components/admin/builder/canvas-element.tsx`.
+3. **همگام‌سازی ۴ لایه (Inspector ← Store ← Canvas ← SSR Compiler)**:
+   - پشتیبانی از فیلد `grid_auto_flow` در مدل `ContainerLayout` در بک‌اند (`builder_ast.py`) و فرانت‌اند (`types/builder.ts` و `schema.ts`).
+   - تولید استایل `grid-auto-flow` در خروجی SSR در `ast_compiler.py` و اجازه عبور در `html_sanitizer.py`.
+
+#### ۲. مستندات بصری و شواهد ۵ سیگنالی
+- **قبل از اصلاح**: `.loop/artifacts/builder-gym/round-20/before/`
+  - `01-container-flex-initial.png` (وضعیت اولیه چیدمان فلکس کانتینر)
+- **بعد از اصلاح**: `.loop/artifacts/builder-gym/round-20/after/`
+  - `01-grid-controls-configured.png` (تنظیم موفق شبکه گرید ۴ ستونه با جریان سطری فشرده در بازرس)
+  - `02-canvas-grid-applied.png` (تایید چیدمان گرید در استایل‌های محاسبه‌شده بوم)
+
+#### ۳. تست‌های رگرسیون دائمی و وضعیت تست‌ها
+- **تست رگرسیون واحد فرانت‌اند**: اعتبارسنجی اسکیما در `frontend/tests/builder-schema.test.ts`.
+- **تست رگرسیون واحد بک‌اند**: کامپایل در `backend/app/tests/unit/test_ast_compiler.py::test_ast_compiler_css_grid_auto_flow_elementor_parity`.
+- `npx tsc --noEmit`: ۰ خطا.
+- `npm test` (Vitest): **۳۷۵ تست سبز در ۴۵ فایل** (`375 passed`).
+- `python -m pytest app/tests/unit`: **۶۲۴ تست سبز** (`624 passed, 2 skipped`).
+
+---
+
 ## 🏆 گواهینامه نهایی مسترینگ کامل: BUILDER_GYM_ALL_LEVELS_MASTERED
 
 بدین‌وسیله رسماً تایید و ثبت می‌گردد که کلیه وزنه‌های ۱ تا ۸ نردبان پیش‌رونده Visual Page Builder بر اساس دستورالعمل جامع المنتور و استانداردهای سخت‌گیرانه ۳۶۰ درجه با موفقیت ۱۰۰٪ کامل شدند:

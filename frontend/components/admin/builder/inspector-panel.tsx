@@ -236,20 +236,45 @@ export function InspectorPanel() {
           )}
 
           {layout.kind === "grid" && (
-            <div className="space-y-1.5">
-              <Label className="text-xs">تعداد ستون‌ها در دسکتاپ</Label>
-              <Input
-                type="number"
-                min={1}
-                max={12}
-                value={layout.gridColumns}
-                onChange={(e) => {
-                  const num = parseInt(e.target.value, 10) || 1;
-                  updateElementLayout(selectedElement.id, { gridColumns: num });
-                }}
-                className="h-8 text-xs"
-              />
-            </div>
+            <>
+              <div className="space-y-1.5">
+                <Label className="text-xs">تعداد ستون‌ها در دسکتاپ</Label>
+                <Input
+                  data-testid="grid-columns-input"
+                  type="number"
+                  min={1}
+                  max={12}
+                  value={layout.gridColumns}
+                  onChange={(e) => {
+                    const num = parseInt(e.target.value, 10) || 1;
+                    updateElementLayout(selectedElement.id, { gridColumns: num });
+                  }}
+                  className="h-8 text-xs font-mono"
+                  dir="ltr"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label className="text-xs">جریان خودکار شبکه (Grid Auto Flow)</Label>
+                <Select
+                  value={layout.gridAutoFlow || "row"}
+                  onValueChange={(val: any) => {
+                    updateElementLayout(selectedElement.id, { gridAutoFlow: val });
+                  }}
+                >
+                  <SelectTrigger data-testid="grid-auto-flow-select" className="h-8 text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="row">سطری (Row)</SelectItem>
+                    <SelectItem value="column">ستونی (Column)</SelectItem>
+                    <SelectItem value="dense">فشرده (Dense)</SelectItem>
+                    <SelectItem value="row dense">سطری فشرده (Row Dense)</SelectItem>
+                    <SelectItem value="column dense">ستونی فشرده (Column Dense)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </>
           )}
 
           <div className="space-y-1.5">

@@ -324,4 +324,41 @@ describe("Visual Page Builder Zod Schema and AST Validation (Phase P0)", () => {
       expect(el.styles.mobile.typography?.textShadow).toBe("0 2px 4px rgba(0,0,0,0.5)");
     }
   });
+
+  it("validates Elementor Grid Container with gridAutoFlow", () => {
+    const gridContainer: BuilderElement = {
+      id: "cont_grid_test",
+      name: "کانتینر شبکه",
+      type: "container",
+      layout: {
+        kind: "grid",
+        direction: "row",
+        justifyContent: "start",
+        alignItems: "stretch",
+        flexWrap: "nowrap",
+        gap: { value: 20, unit: "px" },
+        gridColumns: 4,
+        gridAutoFlow: "row dense",
+      },
+      isLocked: false,
+      isHidden: false,
+      styles: { mobile: {} },
+      children: [],
+    };
+
+    const parsed = PageASTSchema.safeParse({
+      schemaVersion: 1,
+      title: "تست گرید",
+      slug: "test-grid",
+      rootElements: [gridContainer],
+    });
+
+    expect(parsed.success).toBe(true);
+    if (parsed.success && parsed.data.rootElements[0]) {
+      const el = parsed.data.rootElements[0];
+      expect(el.layout?.kind).toBe("grid");
+      expect(el.layout?.gridColumns).toBe(4);
+      expect(el.layout?.gridAutoFlow).toBe("row dense");
+    }
+  });
 });

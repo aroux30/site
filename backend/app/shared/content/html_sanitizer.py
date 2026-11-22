@@ -120,7 +120,7 @@ ALLOWED_CSS_PROPERTIES: frozenset[str] = frozenset(
         "transform", "filter", "backdrop-filter", "-webkit-backdrop-filter",
         "mask-image", "-webkit-mask-image", "mask-size", "-webkit-mask-size",
         "mask-position", "-webkit-mask-position", "mask-repeat", "-webkit-mask-repeat",
-        "clip-path", "text-shadow", "transition",
+        "clip-path", "text-shadow", "transition", "grid-auto-flow",
     }
 )
 

@@ -589,6 +589,33 @@ def test_ast_compiler_transform_and_mask_elementor_parity():
     assert "text-shadow: 0 2px 4px rgba(0,0,0,0.5)" in result or "text-shadow:0 2px 4px rgba(0,0,0,0.5)" in result
 
 
+def test_ast_compiler_css_grid_auto_flow_elementor_parity():
+    """Verify Elementor Wave 1 CSS Grid auto-flow compiles correctly in SSR."""
+    ast = PageAST(
+        schema_version=1,
+        title="تست شبکه چندستونه با جریان خودکار",
+        slug="test-grid-autoflow",
+        root_elements=[
+            BuilderElement(
+                id="el_grid_sec",
+                name="شبکه گرید",
+                type="container",
+                layout=ContainerLayout(
+                    kind="grid",
+                    grid_columns=4,
+                    grid_auto_flow="dense",
+                ),
+                children=[],
+            ),
+        ],
+    )
+    result = ASTCompiler.compile(ast)
+    assert "grid" in result
+    assert "grid-cols-4" in result or "lg:grid-cols-4" in result
+    assert "grid-auto-flow: dense" in result or "grid-auto-flow:dense" in result
+
+
+
 
 
 

@@ -159,6 +159,7 @@ export const ContainerLayoutSchema = z.object({
   flexWrap: z.enum(["nowrap", "wrap", "wrap-reverse"]).default("nowrap"),
   gap: UnitValueSchema.default({ value: 16, unit: "px" }),
   gridColumns: z.number().int().min(1).max(12).default(3),
+  gridAutoFlow: z.enum(["row", "column", "dense", "row dense", "column dense"]).nullable().optional(),
   boxedWidth: UnitValueSchema.nullable().optional(),
 });
 

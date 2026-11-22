@@ -129,6 +129,8 @@ class ASTCompiler:
             classes.append(f"grid-cols-1 md:grid-cols-{min(cols, 2)} lg:grid-cols-{cols}")
             if layout.gap and layout.gap.value > 0:
                 style_parts.append(f"gap: {layout.gap.to_css()};")
+            if layout.grid_auto_flow:
+                style_parts.append(f"grid-auto-flow: {layout.grid_auto_flow};")
 
         # Boxed container layout: restrict maxWidth and auto-center
         if layout.boxed_width and layout.boxed_width.value > 0:

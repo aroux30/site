@@ -203,6 +203,7 @@ class ContainerLayout(ASTModel):
     flex_wrap: Literal["nowrap", "wrap", "wrap-reverse"] = "nowrap"
     gap: UnitValue = Field(default_factory=lambda: UnitValue(value=16, unit="px"))
     grid_columns: int = Field(default=3, ge=1, le=12)
+    grid_auto_flow: Literal["row", "column", "dense", "row dense", "column dense"] | None = None
     boxed_width: UnitValue | None = None  # None indicates full-width fluid
 
 

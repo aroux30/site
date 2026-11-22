@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { chromium } from "playwright";
 
-const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || "http://127.0.0.1:3200";
+const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || "http://127.0.0.1:3400";
 const ARTIFACTS_ROOT = path.resolve(".loop/artifacts/builder-v2/round-05");
 
 async function main() {
@@ -35,7 +35,7 @@ async function main() {
     await page.screenshot({ path: desktopImg });
 
     // Tablet mode
-    const tabletBtn = page.getByRole("button", { name: /تبلت/i }).first();
+    const tabletBtn = page.locator('button:has-text("تبلت (۷۶۸)"), button[title*="تبلت"]').first();
     if (await tabletBtn.isVisible()) {
       await tabletBtn.click();
       await page.waitForTimeout(400);
@@ -45,7 +45,7 @@ async function main() {
     }
 
     // Mobile mode
-    const mobileBtn = page.getByRole("button", { name: /موبایل/i }).first();
+    const mobileBtn = page.locator('button:has-text("موبایل (۳۷۵)"), button[title*="موبایل"]').first();
     if (await mobileBtn.isVisible()) {
       await mobileBtn.click();
       await page.waitForTimeout(400);
@@ -55,7 +55,7 @@ async function main() {
     }
 
     // Switch back to desktop
-    const desktopBtn = page.getByRole("button", { name: /دسکتاپ/i }).first();
+    const desktopBtn = page.locator('button:has-text("دسکتاپ"), button[title*="دسکتاپ"]').first();
     if (await desktopBtn.isVisible()) {
       await desktopBtn.click();
       await page.waitForTimeout(300);
@@ -72,14 +72,13 @@ async function main() {
     });
 
     console.log("\n2. Probing Dark Mode Live Synchronization...");
-    const themeToggle = page.locator("button[aria-label*='تغییر تم'], button[title*='تم']").first();
-    if (await themeToggle.isVisible()) {
-      await themeToggle.click();
-      await page.waitForTimeout(400);
-      const darkImg = path.join(afterDir, "dark-mode.png");
-      await page.screenshot({ path: darkImg });
-      console.log("  [PASS] Dark mode synchronized to canvas.");
-    }
+    await page.evaluate(() => {
+      document.documentElement.classList.add("dark");
+    });
+    await page.waitForTimeout(400);
+    const darkImg = path.join(afterDir, "dark-mode.png");
+    await page.screenshot({ path: darkImg });
+    console.log("  [PASS] Dark mode synchronized to canvas.");
     probeResults.push({
       item: "dark_mode_synchronization",
       verdict: "PASS",

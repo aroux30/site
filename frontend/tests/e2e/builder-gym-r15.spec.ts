@@ -3,7 +3,7 @@ import path from "node:path";
 import fs from "node:fs";
 import { execSync } from "node:child_process";
 
-const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || "http://127.0.0.1:3000";
+const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || "http://127.0.0.1:3400";
 const BACKEND_DIR = path.resolve("C:/Users/Administrator/Desktop/site/backend");
 
 function getAdminToken() {
@@ -56,7 +56,7 @@ test.describe("Builder Gym Round 15: Progressive Overload (Nested Layouts, Gap P
     await page.waitForTimeout(1500);
 
     // Switch to basic blocks tab
-    const basicBlocksSubTab = page.getByRole("button", { name: "بلوک‌ها", exact: true });
+    const basicBlocksSubTab = page.locator('[data-testid="sidebar-tab-blocks"], button:has-text("بلوک‌ها")').first();
     await basicBlocksSubTab.click();
     await page.waitForTimeout(400);
 
@@ -85,7 +85,7 @@ test.describe("Builder Gym Round 15: Progressive Overload (Nested Layouts, Gap P
     await page.waitForTimeout(1500);
 
     // Switch to basic blocks tab
-    const basicBlocksSubTab = page.getByRole("button", { name: "بلوک‌ها", exact: true });
+    const basicBlocksSubTab = page.locator('[data-testid="sidebar-tab-blocks"], button:has-text("بلوک‌ها")').first();
     await basicBlocksSubTab.click();
     await page.waitForTimeout(400);
 

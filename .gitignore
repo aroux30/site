@@ -35,6 +35,7 @@ coverage/
 .mimosa/
 graphify-out/
 logs/
+frontend/.loop/
 *.log
 *.tmp
 *.bak

@@ -864,6 +864,42 @@
 
 ---
 
+### 🏋️ راند ۲۷ (Round 27) — وزنه ۲: ۱۵ کیلو (هماهنگ‌سازی پیش‌فرض‌های شمارنده معکوس و باکس آیکون در ۴ لایه بوم و کامپایلر)
+- **تاریخ اجرا**: 2026-11-22
+- **شاخه ایزوله**: `claude/nifty-snyder-d5b886`
+- **پورت فرانت‌اند**: ۴۰۰۲
+- **وضعیت**: ✅ کامل و سبز (همگام‌سازی پیش‌فرض‌های عنوان و توضیحات در ویجت‌های تعاملی با Vision تایید شدند)
+
+#### ۱. باگ‌های کشف‌شده با ابزار Vision و تعامل
+1. **عدم انطباق عنوان پیش‌فرض شمارنده معکوس میان بازرس، پالت و بوم (`Countdown Default Title Disparity`)**:
+   - *مشاهده*: در پالت و بوم عنوان پیش‌فرض «پیشنهاد شگفت‌انگیز» بود اما در بازرس به اشتباه «مهلت تخفیف ویژه» مقداردهی می‌شد که باعث سردرگمی کاربر در زمان درج المان خام می‌شد.
+   - *اصلاح ریشه‌ای*: یکسان‌سازی عنوان پیش‌فرض به «پیشنهاد شگفت‌انگیز» با شناسه تست `countdown-title-input` در `inspector-panel.tsx`.
+2. **یکپارچه‌سازی متن پیش‌فرض عنوان و توضیحات باکس ویژگی (`Icon Box Defaults Parity`)**:
+   - *مشاهده*: در `canvas-element.tsx` عنوان و متن پیش‌فرض باکس ویژگی با مقادیر ثبت‌شده در پالت بلوک‌ها (`block-registry.ts`) ناهمخوان بودند.
+   - *اصلاح ریشه‌ای*: تثبیت عنوان پیش‌فرض «ضمانت اصالت و سلامت» و توضیحات استاندارد در `canvas-element.tsx`، `inspector-panel.tsx` و `ast_compiler.py`.
+
+#### ۲. مستندات بصری (Vision Artifacts)
+- **قبل از اصلاح**: `.loop/artifacts/builder-gym/round-27/before/`
+  - `01-studio-overview.png`
+  - `report.json`
+- **بعد از اصلاح**: `.loop/artifacts/builder-gym/round-27/after/`
+  - `01-studio-overview.png`
+  - `02-countdown-nudged.png` (اعمال موفق و بلادرنگ عنوان «جشنواره بزرگ نوروزی» در بوم)
+  - `03-iconbox-nudged.png` (اعمال موفق عنوان «تضمین اصالت صددرصدی» در باکس ویژگی)
+  - `report.json`
+
+#### ۳. تست‌های رگرسیون دائمی اضافه‌شده
+- فایل تست Playwright: `frontend/tests/e2e/builder-gym-r27.spec.ts` (۲ تست سبز)
+- فایل تست پایتون: `backend/app/tests/unit/test_ast_compiler.py::test_ast_compiler_renders_round27_countdown_and_iconbox_customizations` (۱ تست سبز)
+
+#### ۴. نتایج نهایی ممیزی و تست‌ها در راند ۲۷
+- `npx --prefix frontend tsc --noEmit`: ۰ خطا (سبز)
+- `npm --prefix frontend test -- --run`: **۳۷۲ تست سبز در ۴۵ فایل** (`372 passed`)
+- `python -m pytest app/tests/unit`: **۶۲۶ تست سبز** (`626 passed, 2 skipped`)
+- تست‌های Playwright راند ۲۷: **۲ تست سبز (`2 passed in 18.2s`) روی پورت ۴۰۰۲**
+
+---
+
 ## 🏆 گواهینامه نهایی مسترینگ کامل: BUILDER_GYM_ALL_LEVELS_MASTERED
 
 بدین‌وسیله رسماً تایید و ثبت می‌گردد که کلیه وزنه‌های ۱ تا ۸ نردبان پیش‌رونده Visual Page Builder بر اساس دستورالعمل جامع المنتور و استانداردهای سخت‌گیرانه ۳۶۰ درجه با موفقیت ۱۰۰٪ کامل شدند:

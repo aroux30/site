@@ -1282,7 +1282,8 @@ export function InspectorPanel() {
             <div className="space-y-1.5">
               <Label className="text-xs">عنوان شمارنده</Label>
               <Input
-                value={String(props.title || "مهلت تخفیف ویژه")}
+                data-testid="countdown-title-input"
+                value={String(props.title || "پیشنهاد شگفت‌انگیز")}
                 onChange={(e) => handlePropChange("title", e.target.value)}
                 className="h-8 text-xs"
               />

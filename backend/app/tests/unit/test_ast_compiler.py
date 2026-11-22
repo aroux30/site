@@ -741,6 +741,52 @@ def test_ast_compiler_renders_round26_star_rating_and_review_histogram_parity():
     assert 'width:90%' in result or 'width: 90%' in result
 
 
+def test_ast_compiler_renders_round27_countdown_and_iconbox_customizations():
+    """Verify that countdown and icon_box widgets compile customized titles and descriptions accurately."""
+    ast = PageAST(
+        schema_version=1,
+        title="تست راند ۲۷",
+        slug="test-r27-widgets",
+        root_elements=[
+            BuilderElement(
+                id="el_sec_r27",
+                name="بخش ۲۷",
+                type="container",
+                children=[
+                    BuilderElement(
+                        id="el_cd_custom",
+                        name="شمارنده",
+                        type="widget",
+                        widget_type="countdown",
+                        widget_props={
+                            "title": "جشنواره فروش زمستانه",
+                            "target_date": "2026-12-31T23:59:59",
+                        },
+                    ),
+                    BuilderElement(
+                        id="el_ib_custom",
+                        name="باکس ویژگی",
+                        type="widget",
+                        widget_type="icon_box",
+                        widget_props={
+                            "title": "ارسال سریع و اکسپرس",
+                            "description": "تحویل ۳ ساعته در تهران و ۲۴ ساعته در سایر شهرها",
+                        },
+                    ),
+                ],
+            )
+        ],
+    )
+    result = ASTCompiler.compile(ast)
+    assert 'builder-countdown' in result
+    assert 'جشنواره فروش زمستانه' in result
+    assert 'data-target="2026-12-31T23:59:59"' in result
+    assert 'builder-icon-box' in result
+    assert 'ارسال سریع و اکسپرس' in result
+    assert 'تحویل ۳ ساعته در تهران' in result
+
+
+
 
 
 

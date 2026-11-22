@@ -1483,8 +1483,8 @@ function CanvasElementComponent({
         );
       }
       case "icon_box": {
-        const title = String(props.title || "ارسال سریع و مطمئن");
-        const desc = String(props.description || "تحویل در کمترین زمان ممکن با بسته‌بندی ویژه به سراسر کشور");
+        const title = String(props.title || "ضمانت اصالت و سلامت");
+        const desc = String(props.description || "تمامی کالاها با گواهی اصالت ۱۰۰٪ اورجینال عرضه می‌شوند.");
         return (
           <div className="p-4 rounded-2xl border border-border/80 bg-card flex items-start gap-3 shadow-sm w-full">
             <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">

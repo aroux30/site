@@ -1061,6 +1061,52 @@ export const BASIC_BLOCK_DEFINITIONS: BlockDefinition[] = [
       children: [],
     }),
   },
+  {
+    type: "image_box",
+    name: "جعبه تصویر (Image Box)",
+    category: "basic",
+    icon: Image,
+    description: "باکس شامل تصویر شاخص، تیتر برجسته، متن توضیحی و لینک",
+    createDefaultElement: () => ({
+      id: `el_${Math.random().toString(36).slice(2, 10)}`,
+      name: "جعبه تصویر",
+      type: "widget",
+      widgetType: "image_box",
+      widgetProps: {
+        title: "عنوان ویژگی تصویری",
+        description: "توضیح کوتاه و جذاب در مورد خدمات یا محصولات شرکت",
+        image_url: "/placeholder-hero.svg",
+        link_url: "#",
+      },
+      isLocked: false,
+      isHidden: false,
+      styles: { mobile: {} },
+      children: [],
+    }),
+  },
+  {
+    type: "toggle",
+    name: "تاگل بازشونده (Toggle)",
+    category: "basic",
+    icon: ChevronDown,
+    description: "فهرست بخش‌های بازشونده و تاشو با امکان باز ماندن هم‌زمان چند آیتم",
+    createDefaultElement: () => ({
+      id: `el_${Math.random().toString(36).slice(2, 10)}`,
+      name: "تاگل مستقل",
+      type: "widget",
+      widgetType: "toggle",
+      widgetProps: {
+        items: [
+          { title: "بخش اول مشخصات", content: "محتوای تفصیلی بخش اول در اینجا قرار می‌گیرد.", default_open: true },
+          { title: "بخش دوم مشخصات", content: "محتوای تکمیلی بخش دوم به صورت تاشو قرار دارد.", default_open: true },
+        ],
+      },
+      isLocked: false,
+      isHidden: false,
+      styles: { mobile: {} },
+      children: [],
+    }),
+  },
 ];
 
 import { createPatternAST } from "./pattern-converter";

@@ -762,6 +762,39 @@ class ASTCompiler:
                 f'</div>'
             )
 
+        elif widget_type == "image_box":
+            title = html.escape(str(props.get("title", "عنوان ویژگی تصویری")))
+            desc = html.escape(str(props.get("description", "")))
+            img_src = html.escape(str(props.get("image_url", "/placeholder-hero.svg")))
+            link = props.get("link_url")
+            link_html = f'<a href="{html.escape(str(link))}" class="text-xs font-bold text-primary hover:underline inline-block mt-2">مشاهده بیشتر ←</a>' if link and link != "#" else ""
+            return (
+                f'<div{id_attr} class="builder-image-box p-4 rounded-2xl border border-border/80 bg-card text-center space-y-3 {css_class}" data-widget="image_box"{style_attr}>'
+                f'<div class="w-full aspect-video rounded-xl overflow-hidden bg-muted/30 flex items-center justify-center">'
+                f'<img src="{img_src}" alt="{title}" class="w-full h-full object-cover" loading="lazy" />'
+                f'</div>'
+                f'<h4 class="text-sm font-bold text-foreground">{title}</h4>'
+                f'<p class="text-xs text-muted-foreground leading-relaxed">{desc}</p>'
+                f'{link_html}'
+                f'</div>'
+            )
+
+        elif widget_type == "toggle":
+            items = props.get("items", [{"title": "بخش ۱", "content": "محتوای ۱", "default_open": True}])
+            items_html = "".join(
+                f'<details class="group rounded-xl border border-border/80 bg-card overflow-hidden" {"open" if itm.get("default_open") is not False else ""}>'
+                f'<summary class="p-3.5 font-bold text-xs text-foreground cursor-pointer list-none flex items-center justify-between hover:bg-muted/40 transition select-none">'
+                f'<span>{html.escape(str(itm.get("title", "بخش")))}</span>'
+                f'<span class="transition-transform group-open:rotate-180">▾</span>'
+                f'</summary>'
+                f'<div class="p-3.5 pt-0 text-xs text-muted-foreground border-t border-border/40 leading-relaxed">'
+                f'{html.escape(str(itm.get("content", "")))}'
+                f'</div>'
+                f'</details>'
+                for itm in items
+            )
+            return f'<div{id_attr} class="builder-toggle space-y-2 w-full {css_class}" data-widget="toggle"{style_attr}>{items_html}</div>'
+
         # Generic fallback for any other registered widget
         fallback_title = html.escape(str(props.get("title", widget_type)))
         return f'<div{id_attr} class="builder-widget builder-{widget_type} {css_class}" data-widget="{html.escape(widget_type)}"{style_attr}>{fallback_title}</div>'

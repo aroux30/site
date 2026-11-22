@@ -615,6 +615,49 @@ def test_ast_compiler_css_grid_auto_flow_elementor_parity():
     assert "grid-auto-flow: dense" in result or "grid-auto-flow:dense" in result
 
 
+def test_ast_compiler_image_box_and_toggle_elementor_parity():
+    """Verify Elementor Wave 2 Image Box & Toggle compile correctly in SSR."""
+    ast = PageAST(
+        schema_version=1,
+        title="تست جعبه تصویر و تاگل",
+        slug="test-imgbox-toggle",
+        root_elements=[
+            BuilderElement(
+                id="el_img_box_01",
+                name="جعبه تصویر تست",
+                type="widget",
+                widget_type="image_box",
+                widget_props={
+                    "title": "کیفیت صدای عالی",
+                    "description": "تجربه شنیداری فوق‌العاده با تفکیک جزئیات",
+                    "image_url": "/sound.png",
+                    "link_url": "/product/sound",
+                },
+            ),
+            BuilderElement(
+                id="el_toggle_01",
+                name="تاگل چندبخشی",
+                type="widget",
+                widget_type="toggle",
+                widget_props={
+                    "items": [
+                        {"title": "مشخصات فنی", "content": "باتری ۵۰۰۰ میلی‌آمپر", "default_open": True},
+                        {"title": "اقلام همراه", "content": "کابل شارژ و دفترچه", "default_open": True},
+                    ]
+                },
+            ),
+        ],
+    )
+    result = ASTCompiler.compile(ast)
+    assert "builder-image-box" in result
+    assert "کیفیت صدای عالی" in result
+    assert "/product/sound" in result
+    assert "builder-toggle" in result
+    assert "مشخصات فنی" in result
+    assert "باتری ۵۰۰۰ میلی‌آمپر" in result
+
+
+
 
 
 

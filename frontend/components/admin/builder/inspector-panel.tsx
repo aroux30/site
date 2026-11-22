@@ -1637,6 +1637,113 @@ export function InspectorPanel() {
           </div>
         );
 
+      case "image_box":
+        return (
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs">عنوان جعبه تصویر</Label>
+              <Input
+                data-testid="image-box-title-input"
+                value={String(props.title || "")}
+                onChange={(e) => handlePropChange("title", e.target.value)}
+                className="h-8 text-xs"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">متن توضیحات</Label>
+              <textarea
+                rows={3}
+                value={String(props.description || "")}
+                onChange={(e) => handlePropChange("description", e.target.value)}
+                className="w-full rounded-md border border-input bg-background p-2 text-xs leading-relaxed"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">آدرس تصویر (URL)</Label>
+              <Input
+                value={String(props.image_url || "")}
+                onChange={(e) => handlePropChange("image_url", e.target.value)}
+                className="h-8 text-xs font-mono"
+                dir="ltr"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">لینک کلیک (Link URL)</Label>
+              <Input
+                value={String(props.link_url || "")}
+                onChange={(e) => handlePropChange("link_url", e.target.value)}
+                className="h-8 text-xs font-mono"
+                dir="ltr"
+              />
+            </div>
+          </div>
+        );
+
+      case "toggle": {
+        const items = (props.items as any[]) || [
+          { title: "بخش اول", content: "محتوای بخش اول", default_open: true },
+        ];
+        return (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <Label className="text-xs font-bold">بخش‌های تاگل بازشونده</Label>
+              <button
+                type="button"
+                onClick={() => {
+                  const updated = [...items, { title: `بخش جدید ${items.length + 1}`, content: "محتوای پیش‌فرض", default_open: true }];
+                  handlePropChange("items", updated);
+                }}
+                className="text-[11px] text-primary hover:underline font-semibold"
+              >
+                + افزودن بخش
+              </button>
+            </div>
+            <div className="space-y-2">
+              {items.map((itm, idx) => (
+                <div key={idx} className="p-2.5 rounded-lg border bg-muted/20 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Input
+                      data-testid={`toggle-item-title-${idx}`}
+                      value={itm.title || ""}
+                      placeholder="عنوان تاگل"
+                      onChange={(e) => {
+                        const updated = [...items];
+                        updated[idx] = { ...updated[idx], title: e.target.value };
+                        handlePropChange("items", updated);
+                      }}
+                      className="h-8 text-xs"
+                    />
+                    {items.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const updated = items.filter((_, i) => i !== idx);
+                          handlePropChange("items", updated);
+                        }}
+                        className="text-[10px] text-destructive hover:underline ms-2"
+                      >
+                        حذف
+                      </button>
+                    )}
+                  </div>
+                  <textarea
+                    rows={2}
+                    value={itm.content || ""}
+                    placeholder="محتوای متنی..."
+                    onChange={(e) => {
+                      const updated = [...items];
+                      updated[idx] = { ...updated[idx], content: e.target.value };
+                      handlePropChange("items", updated);
+                    }}
+                    className="w-full rounded-md border border-input bg-background p-2 text-xs leading-relaxed"
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      }
+
       case "call_to_action":
         return (
           <div className="space-y-4">

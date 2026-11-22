@@ -920,6 +920,36 @@
 
 ---
 
+### 🏋️ راند ۲۱ (Round 21) — وزنه ۷: ۸۵ کیلو (پورت ویجت‌های Elementor Core جعبه تصویر Image Box و تاگل مستقل Toggle)
+- **تاریخ اجرا**: 2026-11-22
+- **شاخه ایزوله**: `claude/relaxed-shamir-82671f`
+- **وضعیت**: ✅ کامل و سبز (پیاده‌سازی سبک، کنترل‌های غنی بازرس، رندر تعاملی بوم و کامپایل ۱۰۰٪ برابری SSR)
+
+#### ۱. قابلیت‌ها و اصلاحات انجام‌شده
+1. **پورت ویجت جعبه تصویر (`image_box`) از Elementor Core**:
+   - ثبت ویجت در `block-registry.ts` با فیلدهای عنوان، متن توضیحات، آدرس تصویر و لینک پیوند.
+   - توسعه کنترل‌های بازرس در `inspector-panel.tsx` و رندر تمیز در `canvas-element.tsx`.
+   - کامپایل امن سمت سرور در `ast_compiler.py`.
+2. **پورت ویجت تاگل مستقل (`toggle`) از Elementor Core**:
+   - ثبت ویجت در `block-registry.ts` با قابلیت باز ماندن هم‌زمان چند آیتم تاشو.
+   - فرم داینامیک مدیریت آیتم‌ها (افزودن، حذف، ویرایش عنوان و محتوا) در `inspector-panel.tsx`.
+   - رندر با تگ‌های معنایی `<details>` و `<summary>` در بوم و کامپایلر SSR.
+
+#### ۲. مستندات بصری و شواهد ۵ سیگنالی
+- **قبل از اصلاح**: `.loop/artifacts/builder-gym/round-21/before/`
+  - `01-palette-widgets-initial.png` (وضعیت اولیه پالت بلوک‌ها)
+- **بعد از اصلاح**: `.loop/artifacts/builder-gym/round-21/after/`
+  - `01-image-box-selected.png` (درج و انتخاب موفق جعبه تصویر در بوم)
+  - `02-image-box-nudge-applied.png` (اعمال موفق متن «کیفیت صدای استثنایی و تفکیک حرفه‌ای» در بازرس و تغییر آنی در بوم)
+
+#### ۳. تست‌های رگرسیون دائمی و وضعیت تست‌ها
+- **تست رگرسیون واحد بک‌اند**: کامپایل SSR در `backend/app/tests/unit/test_ast_compiler.py::test_ast_compiler_image_box_and_toggle_elementor_parity`.
+- `npx tsc --noEmit`: ۰ خطا.
+- `npm test` (Vitest): **۳۷۵ تست سبز در ۴۵ فایل** (`375 passed`).
+- `python -m pytest app/tests/unit`: **۶۲۵ تست سبز** (`625 passed, 2 skipped`).
+
+---
+
 ## 🏆 گواهینامه نهایی مسترینگ کامل: BUILDER_GYM_ALL_LEVELS_MASTERED
 
 بدین‌وسیله رسماً تایید و ثبت می‌گردد که کلیه وزنه‌های ۱ تا ۸ نردبان پیش‌رونده Visual Page Builder بر اساس دستورالعمل جامع المنتور و استانداردهای سخت‌گیرانه ۳۶۰ درجه با موفقیت ۱۰۰٪ کامل شدند:

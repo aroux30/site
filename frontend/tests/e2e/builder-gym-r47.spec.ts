@@ -30,7 +30,9 @@ asyncio.run(main())
   }
 }
 
-test.describe("Builder Gym Round 31: Elementor Nested Tabs & Nested Accordion Parity", () => {
+test.describe("Builder Gym Round 47: 1920x1080 Elementor Nested Tabs & Nested Accordion Parity", () => {
+  test.use({ viewport: { width: 1920, height: 1080 } });
+
   test.beforeEach(async ({ context }) => {
     const token = getAdminToken();
     if (token) {
@@ -56,19 +58,19 @@ test.describe("Builder Gym Round 31: Elementor Nested Tabs & Nested Accordion Pa
     await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
     await page.waitForTimeout(1500);
 
-    const searchInput = page.locator('input[placeholder*="جستجو"]');
+    const searchInput = page.locator('aside input[placeholder*="جستجو"]').first();
     await expect(searchInput).toBeVisible();
 
     // Verify search finds nested_tabs
-    await searchInput.fill("تب‌های تودرتو");
+    await searchInput.fill("تودرتو");
     await page.waitForTimeout(300);
-    const tabsCard = page.locator('button:has-text("تب‌های تودرتو")');
+    const tabsCard = page.locator('button[data-block-type="nested_tabs"], button:has-text("تودرتو")').first();
     await expect(tabsCard).toBeVisible();
 
     // Verify search finds nested_accordion
-    await searchInput.fill("آکاردئون کانتینری");
+    await searchInput.fill("آکاردئون پیشرفته");
     await page.waitForTimeout(300);
-    const accordionCard = page.locator('button:has-text("آکاردئون کانتینری")');
+    const accordionCard = page.locator('button[data-block-type="nested_accordion"], button:has-text("آکاردئون پیشرفته")').first();
     await expect(accordionCard).toBeVisible();
   });
 
@@ -76,11 +78,11 @@ test.describe("Builder Gym Round 31: Elementor Nested Tabs & Nested Accordion Pa
     await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
     await page.waitForTimeout(1500);
 
-    const searchInput = page.locator('input[placeholder*="جستجو"]');
-    await searchInput.fill("تب‌های تودرتو");
+    const searchInput = page.locator('aside input[placeholder*="جستجو"]').first();
+    await searchInput.fill("تودرتو");
     await page.waitForTimeout(300);
 
-    const tabsCard = page.locator('button:has-text("تب‌های تودرتو")');
+    const tabsCard = page.locator('button[data-block-type="nested_tabs"]').first();
     await tabsCard.click();
     await page.waitForTimeout(600);
 

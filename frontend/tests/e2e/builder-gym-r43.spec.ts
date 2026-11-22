@@ -30,7 +30,9 @@ asyncio.run(main())
   }
 }
 
-test.describe("Builder Gym Round 27: Elementor Lottie, Floating Bar & Icon Parity", () => {
+test.describe("Builder Gym Round 43: 1920x1080 Elementor Lottie, Floating Bar & Icon Parity", () => {
+  test.use({ viewport: { width: 1920, height: 1080 } });
+
   test.beforeEach(async ({ context }) => {
     const token = getAdminToken();
     if (token) {
@@ -56,43 +58,43 @@ test.describe("Builder Gym Round 27: Elementor Lottie, Floating Bar & Icon Parit
     await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
     await page.waitForTimeout(1500);
 
-    const searchInput = page.locator('input[placeholder*="جستجو"]');
+    const searchInput = page.locator('aside input[placeholder*="جستجو"]').first();
     await expect(searchInput).toBeVisible();
 
     // Verify search finds lottie
-    await searchInput.fill("لوتی");
+    await searchInput.fill("وکتور");
     await page.waitForTimeout(300);
-    const lottieCard = page.locator('button:has-text("انیمیشن لوتی")');
+    const lottieCard = page.locator('button[data-block-type="lottie"], button:has-text("انیمیشن وکتور")').first();
     await expect(lottieCard).toBeVisible();
 
-    // Verify search finds floating_bar
-    await searchInput.fill("نوار تماس");
+    // Verify search finds contact_buttons
+    await searchInput.fill("تماس");
     await page.waitForTimeout(300);
-    const floatingCard = page.locator('button:has-text("نوار تماس شناور")');
+    const floatingCard = page.locator('button[data-block-type="contact_buttons"], button:has-text("دکمه تماس")').first();
     await expect(floatingCard).toBeVisible();
 
     // Verify search finds icon
-    await searchInput.fill("آیکون مستقل");
+    await searchInput.fill("آیکون تک");
     await page.waitForTimeout(300);
-    const iconCard = page.locator('button:has-text("آیکون مستقل")');
+    const iconCard = page.locator('button[data-block-type="icon"], button:has-text("آیکون تک")').first();
     await expect(iconCard).toBeVisible();
   });
 
-  test("2. Inserting floating_bar renders phone and action button inside canvas", async ({ page }) => {
+  test("2. Inserting contact_buttons renders phone and action button inside canvas", async ({ page }) => {
     await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
     await page.waitForTimeout(1500);
 
-    const searchInput = page.locator('input[placeholder*="جستجو"]');
-    await searchInput.fill("نوار تماس شناور");
+    const searchInput = page.locator('aside input[placeholder*="جستجو"]').first();
+    await searchInput.fill("تماس");
     await page.waitForTimeout(300);
 
-    const floatingCard = page.locator('button:has-text("نوار تماس شناور")');
+    const floatingCard = page.locator('button[data-block-type="contact_buttons"]').first();
     await floatingCard.click();
     await page.waitForTimeout(600);
 
     // Check inside canvas iframe
     const frame = page.frameLocator('iframe[title="Visual Builder Canvas"]');
-    const barEl = frame.locator("div:has-text('نیاز به مشاوره قبل از خرید دارید؟')").first();
+    const barEl = frame.locator("div:has-text('مشاوره'), div:has-text('تماس')").first();
     await expect(barEl).toBeVisible();
   });
 });

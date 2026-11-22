@@ -30,7 +30,9 @@ asyncio.run(main())
   }
 }
 
-test.describe("Builder Gym Round 28: Elementor Off-Canvas & Popup Builder Parity", () => {
+test.describe("Builder Gym Round 44: 1920x1080 Elementor Off-Canvas & Popup Builder Parity", () => {
+  test.use({ viewport: { width: 1920, height: 1080 } });
+
   test.beforeEach(async ({ context }) => {
     const token = getAdminToken();
     if (token) {
@@ -56,19 +58,19 @@ test.describe("Builder Gym Round 28: Elementor Off-Canvas & Popup Builder Parity
     await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
     await page.waitForTimeout(1500);
 
-    const searchInput = page.locator('input[placeholder*="جستجو"]');
+    const searchInput = page.locator('aside input[placeholder*="جستجو"]').first();
     await expect(searchInput).toBeVisible();
 
     // Verify search finds off_canvas
-    await searchInput.fill("کشوی کناری");
+    await searchInput.fill("کشوی");
     await page.waitForTimeout(300);
-    const offCanvasCard = page.locator('button:has-text("کشوی کناری")');
+    const offCanvasCard = page.locator('button[data-block-type="off_canvas"], button:has-text("کشوی ناوبری جانبی")').first();
     await expect(offCanvasCard).toBeVisible();
 
     // Verify search finds popup_builder
     await searchInput.fill("پاپ‌آپ");
     await page.waitForTimeout(300);
-    const popupCard = page.locator('button:has-text("پاپ‌آپ تعاملی")');
+    const popupCard = page.locator('button[data-block-type="popup_builder"], button:has-text("پاپ‌آپ مدال هوشمند")').first();
     await expect(popupCard).toBeVisible();
   });
 
@@ -76,11 +78,11 @@ test.describe("Builder Gym Round 28: Elementor Off-Canvas & Popup Builder Parity
     await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
     await page.waitForTimeout(1500);
 
-    const searchInput = page.locator('input[placeholder*="جستجو"]');
-    await searchInput.fill("کشوی کناری");
+    const searchInput = page.locator('aside input[placeholder*="جستجو"]').first();
+    await searchInput.fill("کشوی");
     await page.waitForTimeout(300);
 
-    const offCanvasCard = page.locator('button:has-text("کشوی کناری")');
+    const offCanvasCard = page.locator('button[data-block-type="off_canvas"], button:has-text("کشوی")').first();
     await offCanvasCard.click();
     await page.waitForTimeout(600);
 

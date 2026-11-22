@@ -111,7 +111,7 @@ test.describe("Builder Gym Round 35: 1920x1080 3-Column Studio Full Human-View P
     await page.waitForTimeout(400);
 
     // Return to Blocks Tab
-    const blocksTabBtn = page.getByRole("button", { name: "بلوک‌ها", exact: true });
+    const blocksTabBtn = page.locator('[data-testid="sidebar-tab-blocks"]');
     await blocksTabBtn.click();
     await page.waitForTimeout(300);
     await expect(blocksTabBtn).toHaveClass(/bg-background/);

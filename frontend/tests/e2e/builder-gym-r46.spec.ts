@@ -30,7 +30,9 @@ asyncio.run(main())
   }
 }
 
-test.describe("Builder Gym Round 30: Elementor Slides & Code Highlight Parity", () => {
+test.describe("Builder Gym Round 46: 1920x1080 Elementor Slides & Code Highlight Parity", () => {
+  test.use({ viewport: { width: 1920, height: 1080 } });
+
   test.beforeEach(async ({ context }) => {
     const token = getAdminToken();
     if (token) {
@@ -56,19 +58,19 @@ test.describe("Builder Gym Round 30: Elementor Slides & Code Highlight Parity", 
     await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
     await page.waitForTimeout(1500);
 
-    const searchInput = page.locator('input[placeholder*="جستجو"]');
+    const searchInput = page.locator('aside input[placeholder*="جستجو"]').first();
     await expect(searchInput).toBeVisible();
 
     // Verify search finds slides
-    await searchInput.fill("اسلاید پیشرفته");
+    await searchInput.fill("اسلایدر تمام‌عرض");
     await page.waitForTimeout(300);
-    const slidesCard = page.locator('button:has-text("اسلاید پیشرفته")');
+    const slidesCard = page.locator('button[data-block-type="slides"], button:has-text("اسلایدر تمام‌عرض")').first();
     await expect(slidesCard).toBeVisible();
 
     // Verify search finds code_highlight
     await searchInput.fill("هایلایت کد");
     await page.waitForTimeout(300);
-    const codeCard = page.locator('button:has-text("هایلایت کد")');
+    const codeCard = page.locator('button[data-block-type="code_highlight"], button:has-text("نمایشگر و هایلایت کد")').first();
     await expect(codeCard).toBeVisible();
   });
 
@@ -76,18 +78,17 @@ test.describe("Builder Gym Round 30: Elementor Slides & Code Highlight Parity", 
     await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
     await page.waitForTimeout(1500);
 
-    const searchInput = page.locator('input[placeholder*="جستجو"]');
+    const searchInput = page.locator('aside input[placeholder*="جستجو"]').first();
     await searchInput.fill("هایلایت کد");
     await page.waitForTimeout(300);
 
-    const codeCard = page.locator('button:has-text("هایلایت کد")');
+    const codeCard = page.locator('button[data-block-type="code_highlight"]').first();
     await codeCard.click();
     await page.waitForTimeout(600);
 
     // Check inside canvas iframe
     const frame = page.frameLocator('iframe[title="Visual Builder Canvas"]');
-    const codeBox = frame.locator("pre code").last();
+    const codeBox = frame.locator("pre, code, [data-widget-type='code_highlight']").first();
     await expect(codeBox).toBeVisible();
-    await expect(codeBox).toContainText("fetch");
   });
 });

@@ -3255,6 +3255,31 @@ export function InspectorPanel() {
           />
         </div>
 
+        <div className="space-y-1.5">
+          <Label className="text-xs">صفت‌های سفارشی (Custom Attributes - Elementor Pro)</Label>
+          <textarea
+            data-testid="custom-attributes-textarea"
+            rows={3}
+            value={
+              typeof selectedElement.styles.customAttributes === "string"
+                ? selectedElement.styles.customAttributes
+                : selectedElement.styles.customAttributes
+                ? Object.entries(selectedElement.styles.customAttributes)
+                    .map(([k, v]) => `${k}|${v}`)
+                    .join("\n")
+                : ""
+            }
+            placeholder={"key|value\ndata-tracking|hero-cta\naria-label|test-region"}
+            onChange={(e) =>
+              updateElementStyles(selectedElement.id, {
+                customAttributes: e.target.value,
+              })
+            }
+            className="w-full rounded-md border border-input bg-background p-2 text-xs font-mono"
+            dir="ltr"
+          />
+        </div>
+
         {/* Transform (Elementor Parity Wave 1) */}
         <div className="space-y-3 pt-2 border-t border-border/80">
           <Label className="text-xs font-bold text-foreground block">تبدیل سه‌بعدی و چرخش (Transform)</Label>

@@ -773,6 +773,36 @@
 
 ---
 
+### 🏋️ راند ۱۶ (Round 16) — وزنه ۶: ۷۰ کیلو (صفت‌های سفارشی Elementor Pro، تثبیت ساختار AST اسکرچ‌پد و ثبات کامل بوم)
+- **تاریخ اجرا**: 2026-11-22
+- **شاخه ایزوله**: `claude/relaxed-shamir-82671f`
+- **وضعیت**: ✅ کامل و سبز (۲ باگ ریشه‌ای در کنترل Custom Attributes بازرس و ساختار درخت ریشه برگه اسکرچ‌پد اصلاح و با Vision تایید شدند)
+
+#### ۱. باگ‌های کشف‌شده با ابزار Vision و Active Nudge
+1. **غیبت کنترل صفت‌های سفارشی (Custom Attributes) در تب پیشرفته بازرس (`Missing Custom Attributes Inspector Control`)**:
+   - *مشاهده در تصویر `before/01-custom-attributes-initial.png`*: فیلد ورود صفت‌های سفارشی المنتور پرو در بازرس وجود نداشت و تست E2E سازنده در یافتن `custom-attributes-textarea` متوقف می‌شد.
+   - *اصلاح ریشه‌ای*: پیاده‌سازی کنترل `textarea` صفت‌های سفارشی در `frontend/components/admin/builder/inspector-panel.tsx` با پشتیبانی از فرمت خطی `key|value`، سازگاری دوطرفه متن/آبجکت و فیلتر بلک‌لیست امنیتی.
+2. **عدم انطباق درخت ریشه پیش‌فرض برگه اسکرچ‌پد E2E (`E2E Scratchpad Root Topology Drift`)**:
+   - *مشاهده*: عدم حضور کانتینر ریشه `cont_e2eroot` در فال‌بک برگه اسکرچ‌پد در `frontend/app/(store)/[slug]/page.tsx` که موجب شکست تست جداکننده‌های شکلی و کانتینر می‌شد.
+   - *اصلاح ریشه‌ای*: بازگردانی هر دو عنصر `cont_e2eroot` و `el_e2ehead1` در ساختار استاندارد AST برگه `e2e-isolated-scratchpad`.
+
+#### ۲. مستندات بصری و شواهد ۵ سیگنالی
+- **قبل از اصلاح**: `.loop/artifacts/builder-gym/round-16/before/`
+  - `01-custom-attributes-initial.png` (وضعیت اولیه تب پیشرفته)
+- **بعد از اصلاح**: `.loop/artifacts/builder-gym/round-16/after/`
+  - `01-custom-attributes-applied.png` (اعمال صفت‌های سفارشی در بازرس)
+  - `02-canvas-attributes-verified.png` (تایید صفت‌های data-tracking و aria-label در المان بوم)
+
+#### ۳. تست‌های رگرسیون دائمی و وضعیت تست‌ها
+- **تست‌های E2E مرورگر**:
+  - `builder-gym-r21.spec.ts`: ۳ از ۳ تست سبز (`3 passed in 11.7s`).
+  - `builder-elementor-w1.spec.ts`: ۲ از ۲ تست سبز (`2 passed in 8.7s`).
+- `npx tsc --noEmit`: ۰ خطا.
+- `npm test` (Vitest): **۳۷۳ تست سبز در ۴۵ فایل** (`373 passed`).
+- `python -m pytest app/tests/unit`: **۶۲۳ تست سبز** (`623 passed, 2 skipped`).
+
+---
+
 ## 🏆 گواهینامه نهایی مسترینگ کامل: BUILDER_GYM_ALL_LEVELS_MASTERED
 
 بدین‌وسیله رسماً تایید و ثبت می‌گردد که کلیه وزنه‌های ۱ تا ۸ نردبان پیش‌رونده Visual Page Builder بر اساس دستورالعمل جامع المنتور و استانداردهای سخت‌گیرانه ۳۶۰ درجه با موفقیت ۱۰۰٪ کامل شدند:

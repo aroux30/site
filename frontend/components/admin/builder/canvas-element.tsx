@@ -2195,10 +2195,10 @@ function CanvasElementComponent({
             bg_color: "linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary)/0.6) 100%)",
           },
         ];
-        const activeSlide = slidesList[0];
+        const activeSlide = slidesList[activeTabIdx] || slidesList[0];
         return (
           <div
-            className="w-full min-h-[220px] rounded-2xl p-8 flex flex-col items-center justify-center text-center text-white space-y-3 shadow-md relative overflow-hidden"
+            className="w-full min-h-[220px] rounded-2xl p-8 flex flex-col items-center justify-center text-center text-white space-y-3 shadow-md relative overflow-hidden transition-all duration-300"
             style={{ background: activeSlide?.bg_color || "hsl(var(--primary))" }}
           >
             <h2 className="text-xl md:text-2xl font-black drop-shadow-sm">{activeSlide?.title}</h2>
@@ -2208,9 +2208,17 @@ function CanvasElementComponent({
                 {activeSlide.button_text}
               </button>
             )}
-            <div className="absolute bottom-3 flex items-center gap-1.5">
+            <div className="absolute bottom-3 flex items-center gap-1.5 z-10">
               {slidesList.map((_, i) => (
-                <span key={i} className={cn("w-2 h-2 rounded-full", i === 0 ? "bg-white" : "bg-white/40")} />
+                <button
+                  key={i}
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setActiveTabIdx(i);
+                  }}
+                  className={cn("w-2.5 h-2.5 rounded-full transition-all", (activeTabIdx === i || (!slidesList[activeTabIdx] && i === 0)) ? "bg-white scale-125" : "bg-white/40 hover:bg-white/70")}
+                />
               ))}
             </div>
           </div>
@@ -2300,6 +2308,50 @@ function CanvasElementComponent({
               </pre>
             </div>
           </div>
+        );
+      }
+      case "search_bar": {
+        const placeholder = String(props.placeholder || "جستجو در میان کالاها...");
+        const btnText = String(props.button_text || "جستجو");
+        return (
+          <div className="flex items-center gap-2 w-full max-w-md my-1 select-none pointer-events-none">
+            <div className="relative flex-1">
+              <input
+                type="search"
+                readOnly
+                placeholder={placeholder}
+                className="w-full rounded-xl border border-input bg-background py-2.5 px-4 text-xs focus:outline-none"
+              />
+            </div>
+            <button
+              type="button"
+              className="px-5 py-2.5 rounded-xl bg-primary text-primary-foreground text-xs font-bold shadow-xs transition"
+            >
+              {btnText}
+            </button>
+          </div>
+        );
+      }
+      case "nav_menu": {
+        const items = Array.isArray(props.items) && props.items.length > 0
+          ? props.items
+          : [
+              { title: "صفحه اصلی", url: "/" },
+              { title: "فروشگاه", url: "/products" },
+              { title: "وبلاگ", url: "/blog" },
+            ];
+        return (
+          <nav aria-label="فهرست ناوبری" className="w-full py-1 select-none pointer-events-none">
+            <ul className="flex flex-wrap items-center gap-2 list-none m-0 p-0">
+              {items.map((it: any, idx: number) => (
+                <li key={idx} className="inline-block">
+                  <span className="px-3 py-1.5 rounded-lg text-xs font-bold text-foreground hover:text-primary transition-colors cursor-pointer">
+                    {it.title}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </nav>
         );
       }
       default:

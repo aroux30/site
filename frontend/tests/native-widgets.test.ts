@@ -146,4 +146,44 @@ describe("P2.1 Native Widgets: Table & Form Inputs", () => {
     const parsed = PageASTSchema.safeParse(ast);
     expect(parsed.success).toBe(true);
   });
+
+  it("registers search_bar and nav_menu widgets with valid schema conformity", () => {
+    const searchDef = BASIC_BLOCK_DEFINITIONS.find((b) => b.type === "search_bar");
+    const navDef = BASIC_BLOCK_DEFINITIONS.find((b) => b.type === "nav_menu");
+
+    expect(searchDef).toBeDefined();
+    expect(searchDef?.name).toContain("فرم جستجو");
+
+    expect(navDef).toBeDefined();
+    expect(navDef?.name).toContain("فهرست ناوبری");
+
+    const searchEl = searchDef!.createDefaultElement();
+    expect(searchEl.widgetType).toBe("search_bar");
+    expect(searchEl.widgetProps?.placeholder).toBeDefined();
+
+    const navEl = navDef!.createDefaultElement();
+    expect(navEl.widgetType).toBe("nav_menu");
+    expect(Array.isArray(navEl.widgetProps?.items)).toBe(true);
+
+    const ast = {
+      schemaVersion: 1,
+      title: "Search and Nav AST",
+      slug: "search-nav-ast",
+      globalStyles: {},
+      rootElements: [
+        {
+          id: "el_header_cont",
+          name: "کانتینر هدر",
+          type: "container",
+          isLocked: false,
+          isHidden: false,
+          styles: { mobile: {} },
+          children: [searchEl, navEl],
+        },
+      ],
+    };
+
+    const parsed = PageASTSchema.safeParse(ast);
+    expect(parsed.success).toBe(true);
+  });
 });

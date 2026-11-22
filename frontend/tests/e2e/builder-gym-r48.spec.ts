@@ -30,7 +30,9 @@ asyncio.run(main())
   }
 }
 
-test.describe("Builder Gym Round 32: Elementor Loop Carousel & Theme Builder Display Conditions Parity", () => {
+test.describe("Builder Gym Round 48: 1920x1080 Elementor Loop Carousel & Theme Builder Display Conditions Parity", () => {
+  test.use({ viewport: { width: 1920, height: 1080 } });
+
   test.beforeEach(async ({ context }) => {
     const token = getAdminToken();
     if (token) {
@@ -56,13 +58,13 @@ test.describe("Builder Gym Round 32: Elementor Loop Carousel & Theme Builder Dis
     await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
     await page.waitForTimeout(1500);
 
-    const searchInput = page.locator('input[placeholder*="جستجو"]');
+    const searchInput = page.locator('aside input[placeholder*="جستجو"]').first();
     await expect(searchInput).toBeVisible();
 
     // Verify search finds loop_carousel
-    await searchInput.fill("گردونه پویا");
+    await searchInput.fill("تکرارشونده");
     await page.waitForTimeout(300);
-    const carouselCard = page.locator('button:has-text("گردونه پویا")');
+    const carouselCard = page.locator('button[data-block-type="loop_carousel"], button:has-text("کاروسل تکرارشونده پویا")').first();
     await expect(carouselCard).toBeVisible();
   });
 
@@ -70,7 +72,7 @@ test.describe("Builder Gym Round 32: Elementor Loop Carousel & Theme Builder Dis
     await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
     await page.waitForTimeout(1500);
 
-    const saveTplBtn = page.locator('button:has-text("قالب برگه")');
+    const saveTplBtn = page.locator('[data-testid="save-page-template-btn"], button:has-text("قالب برگه")').first();
     await expect(saveTplBtn).toBeVisible();
     await saveTplBtn.click();
     await page.waitForTimeout(500);

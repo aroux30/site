@@ -30,7 +30,9 @@ asyncio.run(main())
   }
 }
 
-test.describe("Builder Gym Round 29: Elementor Loop Grid & Multi-Step Form Parity", () => {
+test.describe("Builder Gym Round 45: 1920x1080 Elementor Loop Grid & Multi-Step Form Parity", () => {
+  test.use({ viewport: { width: 1920, height: 1080 } });
+
   test.beforeEach(async ({ context }) => {
     const token = getAdminToken();
     if (token) {
@@ -56,19 +58,19 @@ test.describe("Builder Gym Round 29: Elementor Loop Grid & Multi-Step Form Parit
     await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
     await page.waitForTimeout(1500);
 
-    const searchInput = page.locator('input[placeholder*="جستجو"]');
+    const searchInput = page.locator('aside input[placeholder*="جستجو"]').first();
     await expect(searchInput).toBeVisible();
 
-    // Verify search finds loop_grid
-    await searchInput.fill("حلقه پویا");
+    // Verify search finds loop_carousel / loop_grid
+    await searchInput.fill("تکرارشونده");
     await page.waitForTimeout(300);
-    const loopCard = page.locator('button:has-text("حلقه پویا")');
+    const loopCard = page.locator('button[data-block-type="loop_carousel"], button:has-text("کاروسل تکرارشونده پویا")').first();
     await expect(loopCard).toBeVisible();
 
     // Verify search finds multi_step_form
-    await searchInput.fill("فرم چندمرحله‌ای");
+    await searchInput.fill("چندمرحله‌ای");
     await page.waitForTimeout(300);
-    const formCard = page.locator('button:has-text("فرم چندمرحله‌ای")');
+    const formCard = page.locator('button[data-block-type="multi_step_form"], button:has-text("فرم چندمرحله‌ای")').first();
     await expect(formCard).toBeVisible();
   });
 
@@ -76,17 +78,17 @@ test.describe("Builder Gym Round 29: Elementor Loop Grid & Multi-Step Form Parit
     await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
     await page.waitForTimeout(1500);
 
-    const searchInput = page.locator('input[placeholder*="جستجو"]');
-    await searchInput.fill("فرم چندمرحله‌ای");
+    const searchInput = page.locator('aside input[placeholder*="جستجو"]').first();
+    await searchInput.fill("چندمرحله‌ای");
     await page.waitForTimeout(300);
 
-    const formCard = page.locator('button:has-text("فرم چندمرحله‌ای")');
+    const formCard = page.locator('button[data-block-type="multi_step_form"]').first();
     await formCard.click();
     await page.waitForTimeout(600);
 
-    // Check inside canvas iframe
+    // Check inside canvas iframe for multi-step form steps
     const frame = page.frameLocator('iframe[title="Visual Builder Canvas"]');
-    const stepEl = frame.locator("text='اطلاعات تماس'").first();
+    const stepEl = frame.locator("text='اطلاعات هویتی'").first();
     await expect(stepEl).toBeVisible();
   });
 });

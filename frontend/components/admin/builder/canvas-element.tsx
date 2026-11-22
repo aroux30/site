@@ -1743,6 +1743,18 @@ function CanvasElementComponent({
           </div>
         );
       }
+      case "menu_anchor": {
+        const anchorId = String(props.anchor_id || "anchor");
+        return (
+          <div className="w-full py-2 px-3 rounded-lg border border-dashed border-primary/40 bg-primary/5 flex items-center justify-between text-xs text-primary font-mono select-none" id={anchorId} dir="ltr">
+            <span className="font-bold flex items-center gap-1.5">
+              <span>⚓</span>
+              <span>Menu Anchor: #{anchorId}</span>
+            </span>
+            <span className="text-[10px] text-muted-foreground font-sans">شناسه اسکرول نرم</span>
+          </div>
+        );
+      }
       default:
         return (
           <div className="rounded-lg border border-dashed border-border p-4 text-center text-sm text-muted-foreground">

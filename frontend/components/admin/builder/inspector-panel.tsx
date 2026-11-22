@@ -2028,6 +2028,26 @@ export function InspectorPanel() {
         );
       }
 
+      case "menu_anchor":
+        return (
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs">شناسه لنگر (Anchor ID)</Label>
+              <Input
+                data-testid="menu-anchor-input"
+                value={String(props.anchor_id || "")}
+                onChange={(e) => handlePropChange("anchor_id", e.target.value)}
+                className="h-8 text-xs font-mono"
+                dir="ltr"
+                placeholder="about-us"
+              />
+              <p className="text-[10px] text-muted-foreground leading-relaxed">
+                این شناسه مقصد اسکرول نرم است. در لینک‌های منو می‌توانید از <code>#about-us</code> استفاده کنید.
+              </p>
+            </div>
+          </div>
+        );
+
       case "social_links": {
         const links = (props.links as any[]) || [
           { platform: "اینستاگرام", url: "https://instagram.com" },

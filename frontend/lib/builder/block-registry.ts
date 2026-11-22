@@ -42,6 +42,7 @@ import {
   RotateCw,
   Quote,
   ListOrdered,
+  Anchor,
   type LucideIcon,
 } from "lucide-react";
 import type { BuilderElement } from "@/types/builder";
@@ -1258,6 +1259,26 @@ export const BASIC_BLOCK_DEFINITIONS: BlockDefinition[] = [
           { title: "توسعه فرانت‌اند اختصاصی", price: "۸,۰۰۰,۰۰۰ تومان", description: "پیاده‌سازی سریع با Next.js و Tailwind CSS" },
           { title: "بهینه‌سازی سئو و رتبه گوگل", price: "۳,۲۰۰,۰۰۰ تومان", description: "سئو تکنیکال و متاتگ‌های کامل استاندارد" },
         ],
+      },
+      isLocked: false,
+      isHidden: false,
+      styles: { mobile: {} },
+      children: [],
+    }),
+  },
+  {
+    type: "menu_anchor",
+    name: "لنگر ناوبری منو (Menu Anchor)",
+    category: "basic",
+    icon: Anchor,
+    description: "شناسه مقصد برای اسکرول نرم درون‌صفحه‌ای به این بخش",
+    createDefaultElement: () => ({
+      id: `el_${Math.random().toString(36).slice(2, 10)}`,
+      name: "لنگر منو",
+      type: "widget",
+      widgetType: "menu_anchor",
+      widgetProps: {
+        anchor_id: "about-section",
       },
       isLocked: false,
       isHidden: false,

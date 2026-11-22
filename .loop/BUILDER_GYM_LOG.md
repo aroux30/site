@@ -1219,6 +1219,42 @@
 
 ---
 
+### 🏋️ راند ۳۷ (Round 37) — وزنه ۷: ۸۵ کیلو (پورت ویجت لنگر ناوبری منو Menu Anchor از Elementor Core به ۴ لایه بیلدر)
+- **تاریخ اجرا**: 2026-11-22
+- **شاخه ایزوله**: `claude/nifty-snyder-d5b886`
+- **پورت فرانت‌اند**: ۴۰۰۲
+- **وضعیت**: ✅ کامل و سبز (پورت ویجت نشانه اسکرول نرم درون‌صفحه‌ای با شناسه یکتا در هر ۴ لایه)
+
+#### ۱. قابلیت‌ها و اصلاحات انجام‌شده
+1. **پورت ویجت لنگر منو (`menu_anchor`) از Elementor Core**:
+   - مرجع المنتور: `elementor/includes/widgets/menu-anchor.php`.
+   - اضافه شدن به پالت پایه‌ای در `block-registry.ts` (افزایش بلوک‌ها به ۴۵ بلوک).
+   - پیاده‌سازی کنترل‌های بازرس با ورودی شناسه لنگر (`menu-anchor-input`) و راهنمای کاربری در `inspector-panel.tsx`.
+   - پیاده‌سازی نماد بصری شفاف و راهنما در بوم ادیتور با آیکون ⚓ و شناسه `#anchor` در `canvas-element.tsx`.
+   - پیاده‌سازی کامپایل المان نامرئی با شناسه `id` و صفت `aria-hidden="true"` در خروجی SSR در `ast_compiler.py`.
+
+#### ۲. مستندات بصری (Vision Artifacts)
+- **قبل از اصلاح**: `.loop/artifacts/builder-gym/round-37/before/`
+  - `01-studio-overview.png`
+  - `02-palette-search-anchor.png`
+  - `report.json`
+- **بعد از اصلاح**: `.loop/artifacts/builder-gym/round-37/after/`
+  - `01-studio-overview.png`
+  - `02-anchor-customized.png` (اعمال موفق شناسه لنگر `faq-section` در بازرس و نمایش راهنمای بوم)
+  - `report.json`
+
+#### ۳. تست‌های رگرسیون دائمی اضافه‌شده
+- فایل تست Playwright: `frontend/tests/e2e/builder-gym-r37.spec.ts` (۱ تست سبز)
+- فایل تست پایتون: `backend/app/tests/unit/test_ast_compiler.py::test_ast_compiler_renders_round37_menu_anchor` (۱ تست سبز)
+
+#### ۴. نتایج نهایی ممیزی و تست‌ها در راند ۳۷
+- `npx --prefix frontend tsc --noEmit`: ۰ خطا (سبز)
+- `npm --prefix frontend test -- --run`: **۳۷۲ تست سبز در ۴۵ فایل** (`372 passed`)
+- `python -m pytest app/tests/unit`: **۶۳۶ تست سبز** (`636 passed, 2 skipped`)
+- تست‌های Playwright راند ۳۷: **۱ تست سبز (`1 passed in 6.0s`) روی پورت ۴۰۰۲**
+
+---
+
 ## 🏆 گواهینامه نهایی مسترینگ کامل: BUILDER_GYM_ALL_LEVELS_MASTERED
 
 بدین‌وسیله رسماً تایید و ثبت می‌گردد که کلیه وزنه‌های ۱ تا ۸ نردبان پیش‌رونده Visual Page Builder بر اساس دستورالعمل جامع المنتور و استانداردهای سخت‌گیرانه ۳۶۰ درجه با موفقیت ۱۰۰٪ کامل شدند:

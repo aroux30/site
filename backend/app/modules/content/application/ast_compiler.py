@@ -950,6 +950,10 @@ class ASTCompiler:
                 f'</div>'
             )
 
+        elif widget_type == "menu_anchor":
+            anchor_id = html.escape(str(props.get("anchor_id", "anchor")))
+            return f'<div id="{anchor_id}" class="builder-menu-anchor {css_class}" data-widget="menu_anchor" aria-hidden="true"{style_attr}></div>'
+
         # Generic fallback for any other registered widget
         fallback_title = html.escape(str(props.get("title", widget_type)))
         return f'<div{id_attr} class="builder-widget builder-{widget_type} {css_class}" data-widget="{html.escape(widget_type)}"{style_attr}>{fallback_title}</div>'

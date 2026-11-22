@@ -1173,6 +1173,36 @@ def test_ast_compiler_renders_round36_price_list_customization():
     assert 'تحلیل ۶۰ دقیقه‌ای با متخصص' in result
 
 
+def test_ast_compiler_renders_round37_menu_anchor():
+    """Verify that menu_anchor widget compiles invisible anchor div with target id."""
+    ast = PageAST(
+        schema_version=1,
+        title="تست راند ۳۷",
+        slug="test-r37-anchor",
+        root_elements=[
+            BuilderElement(
+                id="el_sec_r37",
+                name="بخش ۳۷",
+                type="container",
+                children=[
+                    BuilderElement(
+                        id="el_anc_custom",
+                        name="لنگر درباره ما",
+                        type="widget",
+                        widget_type="menu_anchor",
+                        widget_props={"anchor_id": "contact-section"},
+                    ),
+                ],
+            )
+        ],
+    )
+    result = ASTCompiler.compile(ast)
+    assert 'id="contact-section"' in result
+    assert 'class="builder-menu-anchor' in result
+    assert 'data-widget="menu_anchor"' in result
+
+
+
 
 
 

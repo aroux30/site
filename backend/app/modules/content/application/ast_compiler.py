@@ -795,7 +795,7 @@ class ASTCompiler:
             )
 
         elif widget_type == "blockquote":
-            text = html.escape(str(props.get("text", props.get("content", ""))))
+            text = html.escape(str(props.get("text", "")))
             author = html.escape(str(props.get("author", "")))
             return (
                 f'<blockquote{id_attr} class="builder-blockquote border-r-4 border-primary pr-4 py-2 my-2 bg-primary/5 rounded-l-xl text-right {css_class}" data-widget="blockquote"{style_attr}>'
@@ -803,6 +803,39 @@ class ASTCompiler:
                 f'<cite class="block text-[11px] text-muted-foreground not-italic">— {author}</cite>'
                 f'</blockquote>'
             )
+
+        elif widget_type == "image_box":
+            title = html.escape(str(props.get("title", "عنوان ویژگی تصویری")))
+            desc = html.escape(str(props.get("description", "")))
+            img_src = html.escape(str(props.get("image_url", "/placeholder-hero.svg")))
+            link = props.get("link_url")
+            link_html = f'<a href="{html.escape(str(link))}" class="text-xs font-bold text-primary hover:underline inline-block mt-2">مشاهده بیشتر ←</a>' if link and link != "#" else ""
+            return (
+                f'<div{id_attr} class="builder-image-box p-4 rounded-2xl border border-border/80 bg-card text-center space-y-3 {css_class}" data-widget="image_box"{style_attr}>'
+                f'<div class="w-full aspect-video rounded-xl overflow-hidden bg-muted/30 flex items-center justify-center">'
+                f'<img src="{img_src}" alt="{title}" class="w-full h-full object-cover" loading="lazy" />'
+                f'</div>'
+                f'<h4 class="text-sm font-bold text-foreground">{title}</h4>'
+                f'<p class="text-xs text-muted-foreground leading-relaxed">{desc}</p>'
+                f'{link_html}'
+                f'</div>'
+            )
+
+        elif widget_type == "toggle":
+            items = props.get("items", [{"title": "بخش ۱", "content": "محتوای ۱", "default_open": True}])
+            items_html = "".join(
+                f'<details class="group rounded-xl border border-border/80 bg-card overflow-hidden" {"open" if itm.get("default_open") is not False else ""}>'
+                f'<summary class="p-3.5 font-bold text-xs text-foreground cursor-pointer list-none flex items-center justify-between hover:bg-muted/40 transition select-none">'
+                f'<span>{html.escape(str(itm.get("title", "بخش")))}</span>'
+                f'<span class="transition-transform group-open:rotate-180">▾</span>'
+                f'</summary>'
+                f'<div class="p-3.5 pt-0 text-xs text-muted-foreground border-t border-border/40 leading-relaxed">'
+                f'{html.escape(str(itm.get("content", "")))}'
+                f'</div>'
+                f'</details>'
+                for itm in items
+            )
+            return f'<div{id_attr} class="builder-toggle space-y-2 w-full {css_class}" data-widget="toggle"{style_attr}>{items_html}</div>'
 
         elif widget_type == "menu_anchor":
             anchor_id = html.escape(str(props.get("anchor_id", "section-target")))
@@ -946,18 +979,16 @@ class ASTCompiler:
             img_url = html.escape(str(props.get("image_url", props.get("url", "/placeholder-hero.svg"))))
             title = html.escape(str(props.get("title", "عنوان جعبه تصویر")))
             desc = html.escape(str(props.get("description", "")))
-            link = props.get("link_url") or props.get("link") or props.get("url_link") or ""
+            link = props.get("link", props.get("url_link", ""))
             pos = str(props.get("position", "top"))
             flex_cls = "flex flex-col items-center text-center" if pos == "top" else ("flex flex-row-reverse items-start gap-4 text-right" if pos == "left" else "flex flex-row items-start gap-4 text-right")
             img_html = f'<img src="{img_url}" alt="{title}" class="rounded-xl object-cover max-w-full h-auto mb-2" loading="lazy" />'
             desc_html = f'<p class="text-xs text-muted-foreground leading-relaxed">{desc}</p>' if desc else ""
-            link_html = f'<a href="{html.escape(str(link))}" class="text-xs font-bold text-primary hover:underline inline-block mt-2">مشاهده بیشتر ←</a>' if link and link != "#" else ""
             inner = (
                 f'{img_html}'
                 f'<div class="space-y-1">'
                 f'<h3 class="font-bold text-sm text-foreground">{title}</h3>'
                 f'{desc_html}'
-                f'{link_html}'
                 f'</div>'
             )
             if link:
@@ -971,8 +1002,7 @@ class ASTCompiler:
                 for itm in raw_items:
                     t_title = html.escape(str(itm.get("title", "آیتم بازشونده")))
                     t_content = html.escape(str(itm.get("content", "")))
-                    is_open = itm.get("is_open", itm.get("default_open", itm.get("open", False)))
-                    open_attr = " open" if is_open else ""
+                    open_attr = " open" if itm.get("is_open") else ""
                     items_html += (
                         f'<details class="group rounded-xl border border-border/80 bg-card overflow-hidden"{open_attr}>'
                         f'<summary class="p-3.5 font-bold text-xs text-foreground cursor-pointer list-none flex items-center justify-between hover:bg-muted/40 transition select-none">'
@@ -1097,6 +1127,77 @@ class ASTCompiler:
                 f'</div>'
             )
 
+        elif widget_type == "code_highlight":
+            title = html.escape(str(props.get("title", "")))
+            language = html.escape(str(props.get("language", props.get("lang", "javascript"))))
+            code_text = html.escape(str(props.get("code", "console.log('Hello, World!');")))
+            show_lines = props.get("line_numbers", True) is not False
+            show_copy = props.get("copy_to_clipboard", True) is not False
+
+            lines = code_text.split("\n")
+            lines_gutter = ""
+            if show_lines:
+                lines_nums = "".join(f"<div>{i+1}</div>" for i in range(len(lines)))
+                lines_gutter = f'<div class="code-line-numbers select-none text-slate-600 text-right pe-3 me-3 border-e border-slate-800 font-mono text-[11px]">{lines_nums}</div>'
+
+            header_dots = (
+                '<div class="flex items-center gap-1.5">'
+                '<span class="w-2.5 h-2.5 rounded-full bg-rose-500/80 inline-block"></span>'
+                '<span class="w-2.5 h-2.5 rounded-full bg-amber-500/80 inline-block"></span>'
+                '<span class="w-2.5 h-2.5 rounded-full bg-emerald-500/80 inline-block"></span>'
+                f'<span class="font-bold text-slate-300 ms-1.5">{title or language.upper()}</span>'
+                '</div>'
+            )
+            copy_btn = (
+                f'<button type="button" class="code-copy-btn px-2 py-0.5 rounded border border-slate-700 text-slate-400 hover:text-slate-200 text-[10px] transition" data-code="{code_text}">کپی</button>'
+                if show_copy else ""
+            )
+            header_bar = (
+                f'<div class="code-header flex items-center justify-between px-4 py-2 border-b border-slate-800 bg-slate-900 text-[11px] text-slate-400">'
+                f'{header_dots}'
+                f'<div class="flex items-center gap-2"><span class="text-[10px] uppercase font-bold text-slate-500 tracking-wider">{language}</span>{copy_btn}</div>'
+                f'</div>'
+            )
+
+            return (
+                f'<div{id_attr} class="builder-code-highlight rounded-2xl border border-slate-800 bg-slate-950 text-slate-100 shadow-md overflow-hidden text-left font-mono text-xs w-full {css_class}" data-widget="code_highlight" dir="ltr"{style_attr}>'
+                f'{header_bar}'
+                f'<div class="p-3.5 overflow-x-auto flex leading-relaxed">'
+                f'{lines_gutter}'
+                f'<pre class="flex-1 font-mono text-[12px] text-emerald-400 whitespace-pre overflow-x-auto"><code class="language-{language}">{code_text}</code></pre>'
+                f'</div>'
+                f'</div>'
+            )
+
+        elif widget_type == "breadcrumbs":
+            separator = html.escape(str(props.get("separator", "/")))
+            raw_items = props.get("items", [])
+            items = raw_items if isinstance(raw_items, list) and raw_items else [
+                {"label": "صفحه اصلی", "url": "/"},
+                {"label": "فروشگاه", "url": "/products"},
+                {"label": "برگه جاری", "url": ""},
+            ]
+            crumbs_html = ""
+            for i, it in enumerate(items):
+                label = html.escape(str(it.get("label", "")))
+                url = html.escape(str(it.get("url", "")))
+                is_last = (i == len(items) - 1)
+                sep_html = f'<li class="select-none opacity-40 px-1" aria-hidden="true">{separator}</li>' if i > 0 else ""
+                if is_last or not url:
+                    item_html = f'<li class="font-bold text-foreground truncate max-w-[200px]" aria-current="page">{label}</li>'
+                else:
+                    item_html = f'<li class="truncate max-w-[150px]"><a href="{url}" class="hover:text-primary transition-colors">{label}</a></li>'
+                crumbs_html += f"{sep_html}{item_html}"
+
+            return (
+                f'<nav{id_attr} class="builder-breadcrumbs flex items-center text-xs text-muted-foreground w-full py-1.5 {css_class}" '
+                f'aria-label="مسیر راهنما" data-widget="breadcrumbs"{style_attr}>'
+                f'<ol class="flex items-center gap-1.5 list-none m-0 p-0 flex-wrap">'
+                f'{crumbs_html}'
+                f'</ol>'
+                f'</nav>'
+            )
+
         elif widget_type in ("contact_buttons", "floating_buttons"):
             title = html.escape(str(props.get("title", "نیاز به راهنمایی دارید؟")))
             btn_label = html.escape(str(props.get("button_label", "گفتگوی آنلاین")))
@@ -1138,8 +1239,8 @@ class ASTCompiler:
                 for s in slides_list:
                     s_title = html.escape(str(s.get("title", "")))
                     s_desc = html.escape(str(s.get("description", "")))
-                    s_btn = html.escape(str(s.get("button_text") or s.get("button_label", "")))
-                    s_url = html.escape(str(s.get("button_link") or s.get("button_url", "#")))
+                    s_btn = html.escape(str(s.get("button_text") or s.get("button_label") or ""))
+                    s_url = html.escape(str(s.get("button_link") or s.get("button_url") or "#"))
                     s_bg = html.escape(str(s.get("background_image", "/placeholder-hero.svg")))
                     btn_html = f'<a href="{s_url}" class="inline-block mt-3 px-5 py-2 rounded-xl bg-primary text-primary-foreground font-bold text-xs shadow-sm">{s_btn}</a>' if s_btn else ""
                     slides_html += (
@@ -1343,75 +1444,125 @@ class ASTCompiler:
                 f'</nav>'
             )
 
-        elif widget_type == "code_highlight":
-            title = html.escape(str(props.get("title", "")))
-            language = html.escape(str(props.get("language", "javascript")))
-            code_text = html.escape(str(props.get("code", "")))
-            show_lines = props.get("line_numbers", True) is not False
-            show_copy = props.get("copy_to_clipboard", True) is not False
-
-            lines = code_text.split("\n")
-            lines_gutter = ""
-            if show_lines:
-                lines_nums = "".join(f"<div>{i+1}</div>" for i in range(len(lines)))
-                lines_gutter = f'<div class="code-line-numbers select-none text-slate-600 text-right pe-3 me-3 border-e border-slate-800 font-mono text-[11px]">{lines_nums}</div>'
-
-            header_dots = (
-                '<div class="flex items-center gap-1.5">'
-                '<span class="w-2.5 h-2.5 rounded-full bg-rose-500/80 inline-block"></span>'
-                '<span class="w-2.5 h-2.5 rounded-full bg-amber-500/80 inline-block"></span>'
-                '<span class="w-2.5 h-2.5 rounded-full bg-emerald-500/80 inline-block"></span>'
-                f'<span class="font-bold text-slate-300 ms-1.5">{title or language.upper()}</span>'
-                '</div>'
-            )
-            copy_btn = (
-                f'<button type="button" class="code-copy-btn px-2 py-0.5 rounded border border-slate-700 text-slate-400 hover:text-slate-200 text-[10px] transition" data-code="{code_text}">کپی</button>'
-                if show_copy else ""
-            )
-            header_bar = (
-                f'<div class="code-header flex items-center justify-between px-4 py-2 border-b border-slate-800 bg-slate-900 text-[11px] text-slate-400">'
-                f'{header_dots}'
-                f'<div class="flex items-center gap-2"><span class="text-[10px] uppercase font-bold text-slate-500 tracking-wider">{language}</span>{copy_btn}</div>'
-                f'</div>'
-            )
-
+        elif widget_type == "video_playlist":
+            playlist_title = html.escape(str(props.get("title", "فهرست ویدیوهای آموزشی")))
+            videos = props.get("videos", [
+                {"title": "معرفی دوره و پیش‌نیازها", "duration": "۰۵:۲۰"},
+                {"title": "آموزش نصب و راه‌اندازی اولیه", "duration": "۱۲:۴۵"},
+            ])
+            items_html = ""
+            if isinstance(videos, list):
+                for idx, v in enumerate(videos):
+                    v_title = html.escape(str(v.get("title", f"قسمت {idx + 1}")))
+                    v_dur = html.escape(str(v.get("duration", "")))
+                    active_cls = "bg-primary/10 text-primary font-bold" if idx == 0 else "text-muted-foreground"
+                    items_html += (
+                        f'<div class="p-2 rounded-lg text-xs flex items-center justify-between {active_cls}">'
+                        f'<span class="truncate">{idx + 1}. {v_title}</span>'
+                        f'<span class="text-[10px] font-mono ms-2">{v_dur}</span>'
+                        f'</div>'
+                    )
+            first_title = html.escape(str(videos[0].get("title", "پخش ویدیو"))) if isinstance(videos, list) and videos else "پخش ویدیو"
             return (
-                f'<div{id_attr} class="builder-code-highlight rounded-2xl border border-slate-800 bg-slate-950 text-slate-100 shadow-md overflow-hidden text-left font-mono text-xs w-full {css_class}" data-widget="code_highlight" dir="ltr"{style_attr}>'
-                f'{header_bar}'
-                f'<div class="p-3.5 overflow-x-auto flex leading-relaxed">'
-                f'{lines_gutter}'
-                f'<pre class="flex-1 font-mono text-[12px] text-emerald-400 whitespace-pre overflow-x-auto"><code class="language-{language}">{code_text}</code></pre>'
+                f'<div{id_attr} class="builder-video-playlist w-full rounded-2xl border border-border/80 bg-card overflow-hidden shadow-sm {css_class}" data-widget="video_playlist"{style_attr}>'
+                f'<div class="p-4 bg-muted/30 border-b border-border/80 flex items-center justify-between">'
+                f'<span class="font-bold text-xs text-foreground flex items-center gap-2"><span>🎬</span><span>{playlist_title}</span></span>'
+                f'<span class="text-[10px] text-muted-foreground font-mono">{len(videos) if isinstance(videos, list) else 0} قسمت</span>'
+                f'</div>'
+                f'<div class="grid grid-cols-1 md:grid-cols-3">'
+                f'<div class="md:col-span-2 bg-zinc-950 aspect-video flex flex-col items-center justify-center text-white/80 p-4 text-center">'
+                f'<span class="text-3xl text-primary mb-2">▶</span>'
+                f'<span class="text-xs font-bold">{first_title}</span>'
+                f'</div>'
+                f'<div class="p-2 space-y-1 bg-muted/10">{items_html}</div>'
                 f'</div>'
                 f'</div>'
             )
 
-        elif widget_type == "breadcrumbs":
-            separator = html.escape(str(props.get("separator", "/")))
-            raw_items = props.get("items", [])
-            items = raw_items if isinstance(raw_items, list) and raw_items else [
-                {"label": "صفحه اصلی", "url": "/"},
-                {"label": "فروشگاه", "url": "/products"},
-                {"label": "برگه جاری", "url": ""},
-            ]
-            crumbs_html = ""
-            for i, it in enumerate(items):
-                label = html.escape(str(it.get("label", "")))
-                url = html.escape(str(it.get("url", "")))
-                is_last = (i == len(items) - 1)
-                sep_html = f'<li class="select-none opacity-40 px-1" aria-hidden="true">{separator}</li>' if i > 0 else ""
-                if is_last or not url:
-                    item_html = f'<li class="font-bold text-foreground truncate max-w-[200px]" aria-current="page">{label}</li>'
-                else:
-                    item_html = f'<li class="truncate max-w-[150px]"><a href="{url}" class="hover:text-primary transition-colors">{label}</a></li>'
-                crumbs_html += f"{sep_html}{item_html}"
-
+        elif widget_type == "image_comparison":
+            before_img = html.escape(str(props.get("before_image", "/placeholder-hero.svg")))
+            after_img = html.escape(str(props.get("after_image", "/placeholder-hero.svg")))
+            before_lbl = html.escape(str(props.get("before_label", "قبل")))
+            after_lbl = html.escape(str(props.get("after_label", "بعد")))
             return (
-                f'<nav{id_attr} class="builder-breadcrumbs flex items-center text-xs text-muted-foreground w-full py-1.5 {css_class}" '
-                f'aria-label="مسیر راهنما" data-widget="breadcrumbs"{style_attr}>'
-                f'<ol class="flex items-center gap-1.5 list-none m-0 p-0 flex-wrap">'
-                f'{crumbs_html}'
-                f'</ol>'
-                f'</nav>'
+                f'<div{id_attr} class="builder-image-comparison w-full rounded-2xl border border-border/80 overflow-hidden relative shadow-sm aspect-video bg-muted/30 flex {css_class}" data-widget="image_comparison"{style_attr}>'
+                f'<div class="relative w-1/2 h-full overflow-hidden border-e-2 border-white">'
+                f'<img src="{before_img}" alt="{before_lbl}" class="absolute inset-0 w-full h-full object-cover" />'
+                f'<span class="absolute top-3 start-3 px-2 py-0.5 rounded bg-black/60 text-white text-[10px] font-bold">{before_lbl}</span>'
+                f'</div>'
+                f'<div class="relative w-1/2 h-full overflow-hidden">'
+                f'<img src="{after_img}" alt="{after_lbl}" class="absolute inset-0 w-full h-full object-cover" />'
+                f'<span class="absolute top-3 end-3 px-2 py-0.5 rounded bg-black/60 text-white text-[10px] font-bold">{after_lbl}</span>'
+                f'</div>'
+                f'</div>'
+            )
+
+        elif widget_type == "link_in_bio":
+            bio_name = html.escape(str(props.get("name", "پروفایل آروکس")))
+            bio_desc = html.escape(str(props.get("bio", "")))
+            avatar_url = html.escape(str(props.get("avatar_url", props.get("avatar", "/placeholder-hero.svg"))))
+            links = props.get("links", [])
+            links_html = ""
+            if isinstance(links, list):
+                for l in links:
+                    l_title = html.escape(str(l.get("title", "")))
+                    l_url = html.escape(str(l.get("url", "#")))
+                    l_badge = html.escape(str(l.get("badge", "")))
+                    badge_span = f'<span class="text-[10px] px-2 py-0.5 rounded-full bg-primary/15 text-primary shrink-0 ms-2 font-bold">{l_badge}</span>' if l_badge else ""
+                    links_html += (
+                        f'<a href="{l_url}" class="flex items-center justify-between p-3 rounded-xl border border-border/60 bg-muted/30 hover:bg-primary hover:text-white transition group text-xs font-semibold">'
+                        f'<span class="truncate flex-1 text-right">{l_title}</span>'
+                        f'{badge_span}'
+                        f'</a>'
+                    )
+            return (
+                f'<div{id_attr} class="builder-link-in-bio w-full max-w-sm mx-auto p-6 rounded-3xl border border-border/80 bg-card text-center space-y-4 shadow-sm {css_class}" data-widget="link_in_bio"{style_attr}>'
+                f'<div class="w-20 h-20 mx-auto rounded-full overflow-hidden border-2 border-primary/20 p-1 bg-background">'
+                f'<img src="{avatar_url}" alt="{bio_name}" class="w-full h-full object-cover rounded-full" />'
+                f'</div>'
+                f'<div class="space-y-1">'
+                f'<h3 class="text-base font-bold text-foreground">{bio_name}</h3>'
+                f'<p class="text-xs text-muted-foreground leading-relaxed">{bio_desc}</p>'
+                f'</div>'
+                f'<div class="space-y-2 pt-2">{links_html}</div>'
+                f'</div>'
+            )
+
+        elif widget_type == "posts_grid":
+            grid_cols = int(props.get("columns", 3))
+            posts = props.get("posts", [])
+            col_class = "grid-cols-1" if grid_cols == 1 else "grid-cols-1 md:grid-cols-2" if grid_cols == 2 else "grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
+            cards_html = ""
+            if isinstance(posts, list):
+                for p in posts:
+                    p_title = html.escape(str(p.get("title", "")))
+                    p_excerpt = html.escape(str(p.get("excerpt", "")))
+                    p_cat = html.escape(str(p.get("category", "")))
+                    p_date = html.escape(str(p.get("date", "")))
+                    p_img = html.escape(str(p.get("image", "/placeholder-hero.svg")))
+                    cat_badge = f'<span class="absolute top-2.5 start-2.5 px-2.5 py-0.5 rounded-md bg-black/60 text-white text-[10px] font-bold">{p_cat}</span>' if p_cat else ""
+                    cards_html += (
+                        f'<div class="rounded-2xl border border-border/80 bg-card overflow-hidden flex flex-col shadow-xs">'
+                        f'<div class="relative aspect-video w-full bg-muted/40">'
+                        f'<img src="{p_img}" alt="{p_title}" class="w-full h-full object-cover" />'
+                        f'{cat_badge}'
+                        f'</div>'
+                        f'<div class="p-4 flex-1 flex flex-col justify-between space-y-2 text-right">'
+                        f'<div class="space-y-1.5">'
+                        f'<h4 class="font-bold text-xs line-clamp-1 text-foreground">{p_title}</h4>'
+                        f'<p class="text-[11px] text-muted-foreground line-clamp-2 leading-relaxed">{p_excerpt}</p>'
+                        f'</div>'
+                        f'<div class="pt-2 border-t border-border/60 flex items-center justify-between text-[10px] text-muted-foreground">'
+                        f'<span>{p_date}</span>'
+                        f'<span class="text-primary font-bold">مطالعه مقاله &larr;</span>'
+                        f'</div>'
+                        f'</div>'
+                        f'</div>'
+                    )
+            return (
+                f'<div{id_attr} class="builder-posts-grid w-full space-y-4 {css_class}" data-widget="posts_grid"{style_attr}>'
+                f'<div class="grid gap-4 w-full {col_class}">{cards_html}</div>'
+                f'</div>'
             )
 
         # Generic fallback for any other registered widget

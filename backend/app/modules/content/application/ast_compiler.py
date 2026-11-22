@@ -330,6 +330,7 @@ class ASTCompiler:
             rows = props.get("rows", [])
             bordered = props.get("bordered", True)
             striped = props.get("striped", True)
+            highlight_col = int(props.get("highlightCol", -1)) if props.get("highlightCol") is not None else -1
             table_classes = ["w-full", "border-collapse", "text-right", "text-sm"]
             if bordered:
                 table_classes.append("border border-border/80 rounded-xl overflow-hidden")
@@ -337,8 +338,8 @@ class ASTCompiler:
             thead_html = ""
             if headers:
                 th_cells = "".join(
-                    f'<th class="p-4 font-semibold text-muted-foreground border-b border-border/80">{html.escape(str(h))}</th>'
-                    for h in headers
+                    f'<th class="p-4 font-semibold text-muted-foreground border-b border-border/80{" bg-primary/10 text-primary font-bold border-x border-primary/20" if highlight_col == i else ""}">{html.escape(str(h))}</th>'
+                    for i, h in enumerate(headers)
                 )
                 thead_html = f'<thead><tr class="bg-muted/40">{th_cells}</tr></thead>'
 
@@ -348,8 +349,8 @@ class ASTCompiler:
                 if striped and idx % 2 == 1:
                     tr_class += " bg-muted/10"
                 td_cells = "".join(
-                    f'<td class="p-4 text-foreground border-b border-border/60">{html.escape(str(cell))}</td>'
-                    for cell in row
+                    f'<td class="p-4 text-foreground border-b border-border/60{" bg-primary/5 border-x border-primary/20 font-semibold" if highlight_col == c_idx else ""}">{html.escape(str(cell))}</td>'
+                    for c_idx, cell in enumerate(row)
                 )
                 tbody_rows.append(f'<tr class="{tr_class}">{td_cells}</tr>')
 
@@ -449,32 +450,44 @@ class ASTCompiler:
         elif widget_type == "star_rating":
             val = props.get("value", 5)
             rev_cnt = props.get("reviewCount", 0)
+            show_val = props.get("showValue", True) is not False
+            star_label = f"★ {val}" if show_val else "★"
+            rev_span = f'<span class="text-xs text-muted-foreground">({rev_cnt} نظر)</span>' if rev_cnt else ""
             return (
                 f'<div{id_attr} class="builder-star-rating inline-flex items-center gap-1.5 p-2 rounded-lg bg-card border {css_class}" data-widget="star_rating"{style_attr}>'
-                f'<span class="text-amber-400 font-bold">★ {val}</span>'
-                f'<span class="text-xs text-muted-foreground">({rev_cnt} نظر)</span>'
+                f'<span class="text-amber-400 font-bold">{star_label}</span>'
+                f'{rev_span}'
                 f'</div>'
             )
 
         elif widget_type == "review_histogram":
             avg = props.get("averageRating", 5)
             total = props.get("totalReviews", 0)
+            try:
+                pct = int(min(100, max(0, (float(avg) / 5.0) * 100)))
+            except (ValueError, TypeError):
+                pct = 80
             return (
                 f'<div{id_attr} class="builder-review-histogram rounded-2xl border border-border/60 bg-card p-4 space-y-2 {css_class}" data-widget="review_histogram"{style_attr}>'
                 f'<div class="flex items-center justify-between">'
                 f'<span class="text-lg font-bold text-foreground">{avg} از ۵</span>'
                 f'<span class="text-xs text-muted-foreground">بر اساس {total} نظر</span>'
                 f'</div>'
-                f'<div class="h-2 rounded-full bg-muted overflow-hidden"><div class="h-full bg-emerald-500" style="width: 80%;"></div></div>'
+                f'<div class="h-2 rounded-full bg-muted overflow-hidden"><div class="h-full bg-emerald-500" style="width: {pct}%;"></div></div>'
                 f'</div>'
             )
 
         elif widget_type == "recently_viewed":
-            limit = props.get("limit", 4)
+            rv_title = html.escape(str(props.get("title", "بازدیدهای اخیر شما")))
+            limit = max(1, min(12, int(props.get("limit", 4))))
+            cards = "".join(
+                f'<div class="rounded-xl border border-border/60 p-2.5 bg-card text-center text-xs text-muted-foreground">کالای اخیر {i + 1}</div>'
+                for i in range(limit)
+            )
             return (
                 f'<div{id_attr} class="builder-recently-viewed space-y-2 {css_class}" data-widget="recently_viewed" data-limit="{limit}"{style_attr}>'
-                f'<h4 class="font-bold text-sm text-foreground">بازدیدهای اخیر شما</h4>'
-                f'<div class="text-xs text-muted-foreground">نمایش آخرین محصولات بازدید شده</div>'
+                f'<h4 class="font-bold text-sm text-foreground">{rv_title}</h4>'
+                f'<div class="grid grid-cols-2 md:grid-cols-4 gap-3">{cards}</div>'
                 f'</div>'
             )
 
@@ -490,23 +503,25 @@ class ASTCompiler:
             price_val = props.get("price", props.get("min_price", "۰"))
             compare_price = props.get("compare_at_price")
             curr = html.escape(str(props.get("currency", "تومان")))
+            show_discount = props.get("show_discount", True) is not False
             badge_html = ""
             del_html = ""
             if compare_price:
                 del_html = f'<del class="text-xs text-muted-foreground">{html.escape(str(compare_price))} {curr}</del>'
-                try:
-                    p_norm = str(price_val).replace(",", "").replace("،", "")
-                    c_norm = str(compare_price).replace(",", "").replace("،", "")
-                    for pd, ed in [("۰","0"),("۱","1"),("۲","2"),("۳","3"),("۴","4"),("۵","5"),("۶","6"),("۷","7"),("۸","8"),("۹","9")]:
-                        p_norm = p_norm.replace(pd, ed)
-                        c_norm = c_norm.replace(pd, ed)
-                    c_float = float(c_norm)
-                    p_float = float(p_norm)
-                    if c_float > p_float and c_float > 0:
-                        diff = int(((c_float - p_float) / c_float) * 100)
-                        badge_html = f'<span class="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full font-bold">{diff}% تخفیف</span>'
-                except (ValueError, TypeError, ZeroDivisionError):
-                    pass
+                if show_discount:
+                    try:
+                        p_norm = str(price_val).replace(",", "").replace("،", "")
+                        c_norm = str(compare_price).replace(",", "").replace("،", "")
+                        for pd, ed in [("۰","0"),("۱","1"),("۲","2"),("۳","3"),("۴","4"),("۵","5"),("۶","6"),("۷","7"),("۸","8"),("۹","9")]:
+                            p_norm = p_norm.replace(pd, ed)
+                            c_norm = c_norm.replace(pd, ed)
+                        c_float = float(c_norm)
+                        p_float = float(p_norm)
+                        if c_float > p_float and c_float > 0:
+                            diff = int(((c_float - p_float) / c_float) * 100)
+                            badge_html = f'<span class="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full font-bold">{diff}% تخفیف</span>'
+                    except (ValueError, TypeError, ZeroDivisionError):
+                        pass
             return (
                 f'<div{id_attr} class="builder-product-price flex items-center gap-2 {css_class}" data-widget="product_price"{style_attr}>'
                 f'<span class="text-xl font-black text-primary">{html.escape(str(price_val))} {curr}</span>'
@@ -544,21 +559,36 @@ class ASTCompiler:
             )
 
         elif widget_type == "mini_cart":
+            label = html.escape(str(props.get("label", "سبد خرید")))
             count = int(props.get("item_count", 0))
+            show_badge = props.get("show_badge", True) is not False
+            badge_html = f'<span class="bg-primary text-primary-foreground text-xs font-bold px-2 py-0.5 rounded-full">{count}</span>' if show_badge else ""
             return (
                 f'<div{id_attr} class="builder-mini-cart inline-flex items-center gap-2 p-2 rounded-xl bg-card border border-border/80 {css_class}" data-widget="mini_cart"{style_attr}>'
-                f'<span class="text-xs font-bold">سبد خرید</span>'
-                f'<span class="bg-primary text-primary-foreground text-xs font-bold px-2 py-0.5 rounded-full">{count}</span>'
+                f'<span class="text-xs font-bold">{label}</span>'
+                f'{badge_html}'
                 f'</div>'
             )
 
         elif widget_type == "cart_summary":
-            subtotal = html.escape(str(props.get("subtotal", "۰")))
+            title = html.escape(str(props.get("title", "خلاصه سبد خرید")))
+            btn_label = html.escape(str(props.get("button_label", "ادامه فرآیند خرید")))
+            checkout_url = html.escape(str(props.get("checkout_url", "/checkout")))
+            show_discount = props.get("show_discount", True) is not False
+            subtotal = html.escape(str(props.get("subtotal", "۳,۸۰۰,۰۰۰")))
+            discount_row = (
+                '<div class="flex justify-between text-xs text-emerald-600 font-semibold">'
+                '<span>تخفیف:</span><span>- ۱۰۰,۰۰۰ تومان</span>'
+                '</div>'
+            ) if show_discount else ""
             return (
                 f'<div{id_attr} class="builder-cart-summary p-4 rounded-2xl border border-border/80 bg-card space-y-3 {css_class}" data-widget="cart_summary"{style_attr}>'
-                f'<h3 class="font-bold text-sm text-foreground">خلاصه سبد خرید</h3>'
+                f'<h3 class="font-bold text-sm text-foreground">{title}</h3>'
+                f'<div class="space-y-1.5">'
                 f'<div class="flex justify-between text-xs text-muted-foreground"><span>مجموع اقلام:</span><span class="font-bold text-foreground">{subtotal} تومان</span></div>'
-                f'<a href="/checkout" class="block w-full py-2.5 rounded-xl bg-emerald-600 text-white font-bold text-xs text-center hover:bg-emerald-700 transition">ادامه فرآیند خرید</a>'
+                f'{discount_row}'
+                f'</div>'
+                f'<a href="{checkout_url}" class="block w-full py-2.5 rounded-xl bg-emerald-600 text-white font-bold text-xs text-center hover:bg-emerald-700 transition">{btn_label}</a>'
                 f'</div>'
             )
 
@@ -597,10 +627,11 @@ class ASTCompiler:
             name = html.escape(str(props.get("name", "accept_terms")))
             required = " required" if props.get("required") else ""
             checked = " checked" if props.get("checked") else ""
+            req_star = ' <span class="text-destructive ms-1">*</span>' if props.get("required") else ""
             return (
                 f'<div{id_attr} class="builder-form-checkbox flex items-center gap-2 {css_class}"{style_attr}>'
                 f'<input type="checkbox" id="chk_{html.escape(el.id)}" name="{name}"{checked}{required} class="rounded border-input text-primary focus:ring-primary h-4 w-4" />'
-                f'<label for="chk_{html.escape(el.id)}" class="text-xs font-medium text-foreground cursor-pointer">{label}</label>'
+                f'<label for="chk_{html.escape(el.id)}" class="text-xs font-medium text-foreground cursor-pointer">{label}{req_star}</label>'
                 f'</div>'
             )
 
@@ -608,16 +639,18 @@ class ASTCompiler:
             label = html.escape(str(props.get("label", "گزینش")))
             name = html.escape(str(props.get("name", "radio_group")))
             options = props.get("options", ["گزینه یک", "گزینه دو"])
+            required = " required" if props.get("required") else ""
+            req_star = ' <span class="text-destructive ms-1">*</span>' if props.get("required") else ""
             opts_html = "".join(
                 f'<label class="flex items-center gap-2 text-xs text-foreground cursor-pointer">'
-                f'<input type="radio" name="{name}" value="{html.escape(str(o))}" class="text-primary focus:ring-primary h-4 w-4" />'
+                f'<input type="radio" name="{name}" value="{html.escape(str(o))}"{required} class="text-primary focus:ring-primary h-4 w-4" />'
                 f'<span>{html.escape(str(o))}</span>'
                 f'</label>'
                 for o in options
             )
             return (
                 f'<div{id_attr} class="builder-form-radio space-y-1.5 {css_class}"{style_attr}>'
-                f'<span class="block text-xs font-semibold text-foreground">{label}</span>'
+                f'<span class="block text-xs font-semibold text-foreground">{label}{req_star}</span>'
                 f'<div class="flex flex-col gap-1.5">{opts_html}</div>'
                 f'</div>'
             )
@@ -755,7 +788,7 @@ class ASTCompiler:
         elif widget_type == "alert":
             alert_type = str(props.get("alert_type", "info"))
             title = html.escape(str(props.get("title", "اطلاعیه مهم")))
-            desc = html.escape(str(props.get("description", props.get("message", ""))))
+            desc = html.escape(str(props.get("description") or props.get("message") or ""))
             type_classes = {
                 "info": "bg-blue-500/10 text-blue-700 border-blue-500/30",
                 "success": "bg-emerald-500/10 text-emerald-700 border-emerald-500/30",
@@ -774,16 +807,17 @@ class ASTCompiler:
 
         elif widget_type == "progress_bar":
             title = html.escape(str(props.get("title", "پیشرفت کار")))
-            pct = max(0, min(100, int(props.get("percentage", 75))))
-            show_pct = props.get("show_percentage", True)
-            pct_html = f'<span class="font-mono text-primary">{pct}%</span>' if show_pct else ""
+            percentage = max(0, min(100, int(props.get("percentage", 75))))
+            show_percentage = props.get("show_percentage", True)
+            pct_span = f'<span class="font-mono text-primary">{percentage}%</span>' if show_percentage else ""
             return (
                 f'<div{id_attr} class="builder-progress-bar space-y-1.5 w-full text-right {css_class}" data-widget="progress_bar"{style_attr}>'
                 f'<div class="flex items-center justify-between text-xs font-semibold text-foreground">'
-                f'<span>{title}</span>{pct_html}'
+                f'<span>{title}</span>'
+                f'{pct_span}'
                 f'</div>'
                 f'<div class="h-3 w-full rounded-full bg-muted overflow-hidden">'
-                f'<div class="h-full bg-primary rounded-full" style="width: {pct}%;"></div>'
+                f'<div class="h-full bg-primary rounded-full transition-all duration-300" style="width: {percentage}%"></div>'
                 f'</div>'
                 f'</div>'
             )
@@ -799,7 +833,7 @@ class ASTCompiler:
                 f'<div{id_attr} class="builder-testimonial p-4 rounded-2xl border border-border/80 bg-card space-y-3 shadow-sm w-full text-right {css_class}" data-widget="testimonial"{style_attr}>'
                 f'<p class="text-xs text-muted-foreground leading-relaxed italic">«{quote}»</p>'
                 f'<div class="flex items-center gap-3 pt-2 border-t border-border/60">'
-                f'<img src="{avatar}" alt="{author}" class="w-9 h-9 rounded-full object-cover shrink-0" loading="lazy" />'
+                f'<img src="{avatar}" alt="{author}" class="w-9 h-9 rounded-full object-cover shrink-0" />'
                 f'<div>'
                 f'<div class="text-xs font-bold text-foreground">{author}</div>'
                 f'<div class="text-[10px] text-muted-foreground">{role_company}</div>'
@@ -812,15 +846,16 @@ class ASTCompiler:
             title = html.escape(str(props.get("title", "عنوان اقدام به عمل")))
             desc = html.escape(str(props.get("description", "توضیحات مربوط به بنر تشویق به اقدام")))
             btn_label = html.escape(str(props.get("button_label", "شروع کنید")))
-            badge = props.get("badge")
-            badge_html = f'<span class="inline-block px-2.5 py-0.5 rounded-full bg-primary text-primary-foreground text-[10px] font-bold mb-2">{html.escape(str(badge))}</span>' if badge else ""
+            btn_url = html.escape(str(props.get("button_url", "#")))
+            badge = html.escape(str(props["badge"])) if props.get("badge") else ""
+            badge_html = f'<span class="inline-block px-2.5 py-0.5 rounded-full bg-primary text-primary-foreground text-[10px] font-bold">{badge}</span>' if badge else ""
             return (
                 f'<div{id_attr} class="builder-cta p-6 rounded-2xl border border-primary/20 bg-primary/5 text-center space-y-3 shadow-sm w-full {css_class}" data-widget="call_to_action"{style_attr}>'
                 f'{badge_html}'
                 f'<h3 class="text-lg font-bold text-foreground">{title}</h3>'
                 f'<p class="text-xs text-muted-foreground max-w-md mx-auto leading-relaxed">{desc}</p>'
                 f'<div>'
-                f'<a href="#" class="inline-flex items-center justify-center px-5 py-2.5 rounded-xl bg-primary text-primary-foreground font-bold text-xs shadow hover:bg-primary/90 transition">{btn_label}</a>'
+                f'<a href="{btn_url}" class="inline-flex items-center justify-center px-5 py-2.5 rounded-xl bg-primary text-primary-foreground font-bold text-xs shadow hover:bg-primary/90 transition">{btn_label}</a>'
                 f'</div>'
                 f'</div>'
             )
@@ -845,6 +880,7 @@ class ASTCompiler:
             back_title = html.escape(str(props.get("back_title", "پشت کارت")))
             back_desc = html.escape(str(props.get("back_desc", "توضیحات پشت")))
             btn_text = html.escape(str(props.get("button_text", "مشاهده")))
+            btn_url = html.escape(str(props.get("button_url", "#")))
             return (
                 f'<div{id_attr} class="builder-flip-box group/flip w-full min-h-[220px] [perspective:1000px] {css_class}" data-widget="flip_box"{style_attr}>'
                 f'<div class="relative w-full h-full min-h-[220px] transition-transform duration-500 [transform-style:preserve-3d] group-hover/flip:[transform:rotateY(180deg)] rounded-2xl border border-border/80 shadow-sm">'
@@ -855,189 +891,112 @@ class ASTCompiler:
                 f'<div class="absolute inset-0 w-full h-full p-6 flex flex-col items-center justify-center text-center space-y-3 [backface-visibility:hidden] [transform:rotateY(180deg)] bg-primary text-primary-foreground rounded-2xl">'
                 f'<h4 class="text-base font-bold">{back_title}</h4>'
                 f'<p class="text-xs opacity-90">{back_desc}</p>'
-                f'<button type="button" class="px-4 py-2 rounded-xl bg-white text-primary text-xs font-bold shadow hover:bg-white/90">{btn_text}</button>'
+                f'<a href="{btn_url}" class="px-4 py-2 rounded-xl bg-white text-primary text-xs font-bold shadow hover:bg-white/90 inline-block transition">{btn_text}</a>'
                 f'</div>'
                 f'</div>'
                 f'</div>'
             )
 
-        elif widget_type == "menu_anchor":
-            anchor_id = html.escape(str(props.get("anchor_id", "section-anchor")))
-            return f'<div id="{anchor_id}" class="builder-menu-anchor sr-only" data-widget="menu_anchor"></div>'
-
-        elif widget_type == "icon_list":
-            items = props.get("items", [])
-            items_html = "".join(
-                f'<li class="flex items-center gap-2.5 text-xs text-foreground font-medium">'
-                f'<span class="w-5 h-5 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0">✓</span>'
-                f'<span>{html.escape(str(item.get("text", item) if isinstance(item, dict) else item))}</span>'
-                f'</li>'
-                for item in items
-            )
-            return (
-                f'<ul{id_attr} class="builder-icon-list space-y-2.5 w-full text-right p-0 m-0 list-none {css_class}" data-widget="icon_list"{style_attr}>'
-                f'{items_html}'
-                f'</ul>'
-            )
+        elif widget_type == "icon":
+            icon_char = html.escape(str(props.get("icon", "★")))
+            return f'<span{id_attr} class="builder-icon inline-block text-xl leading-none {css_class}" data-widget="icon"{style_attr}>{icon_char}</span>'
 
         elif widget_type == "blockquote":
-            text = html.escape(str(props.get("text", "")))
-            author = props.get("author")
-            author_html = f'<cite class="block text-xs text-muted-foreground not-italic mt-1.5 font-semibold">— {html.escape(str(author))}</cite>' if author else ""
+            quote = html.escape(str(props.get("quote", "متن نقل‌قول")))
+            author = html.escape(str(props.get("author", "")))
+            author_html = f'<cite class="block text-xs font-bold text-muted-foreground not-italic mt-2">— {author}</cite>' if author else ""
             return (
-                f'<blockquote{id_attr} class="builder-blockquote border-s-4 border-primary ps-4 py-2 my-2 text-foreground/90 italic font-medium w-full text-right {css_class}" data-widget="blockquote"{style_attr}>'
-                f'<p class="text-sm leading-relaxed">«{text}»</p>'
+                f'<blockquote{id_attr} class="builder-blockquote p-4 rounded-2xl border-s-4 border-primary bg-muted/30 text-right w-full {css_class}" data-widget="blockquote"{style_attr}>'
+                f'<p class="text-sm font-medium text-foreground leading-relaxed italic">«{quote}»</p>'
                 f'{author_html}'
                 f'</blockquote>'
             )
 
         elif widget_type == "price_table":
-            title = html.escape(str(props.get("title", "پلن پایه")))
-            badge = props.get("badge")
-            badge_html = f'<span class="inline-block px-3 py-1 rounded-full bg-primary/15 text-primary text-xs font-bold">{html.escape(str(badge))}</span>' if badge else ""
-            price = html.escape(str(props.get("price", "۲۹۰,۰۰۰")))
-            currency = html.escape(str(props.get("currency", "تومان / ماهانه")))
-            features = props.get("features", [])
-            features_html = "".join(
-                f'<li class="flex items-center gap-2">'
-                f'<span class="text-emerald-500 font-bold">✓</span>'
-                f'<span>{html.escape(str(f))}</span>'
-                f'</li>'
+            heading = html.escape(str(props.get("heading", "پلن تعرفه")))
+            sub_heading = html.escape(str(props.get("sub_heading", "")))
+            badge = html.escape(str(props.get("badge", "")))
+            price = html.escape(str(props.get("price", "۴۹۰,۰۰۰")))
+            period = html.escape(str(props.get("period", "ماهانه")))
+            currency = html.escape(str(props.get("currency", "تومان")))
+            features = props.get("features", ["دسترسی نامحدود", "پشتیبانی اختصاصی"])
+            btn_text = html.escape(str(props.get("button_text", "شروع دوره")))
+            btn_url = html.escape(str(props.get("button_url", "/pricing")))
+
+            badge_html = f'<span class="inline-block px-3 py-1 rounded-full bg-primary text-primary-foreground text-xs font-bold shadow-xs mb-2">{badge}</span>' if badge else ""
+            sub_html = f'<p class="text-xs text-muted-foreground">{sub_heading}</p>' if sub_heading else ""
+            feat_items = "".join(
+                f'<li class="flex items-center gap-2"><span class="text-emerald-500 font-bold">✓</span><span>{html.escape(str(f))}</span></li>'
                 for f in features
             )
-            btn_text = html.escape(str(props.get("button_text", "انتخاب پلن")))
-            return (
-                f'<div{id_attr} class="builder-price-table p-6 rounded-2xl border border-border/80 bg-card text-center space-y-4 shadow-sm w-full {css_class}" data-widget="price_table"{style_attr}>'
-                f'{badge_html}'
-                f'<h3 class="text-lg font-bold text-foreground">{title}</h3>'
-                f'<div class="py-2 border-y border-border/50">'
-                f'<span class="text-3xl font-black text-primary font-mono">{price}</span>'
-                f'<span class="text-xs text-muted-foreground ms-1">{currency}</span>'
-                f'</div>'
-                f'<ul class="space-y-2 text-right text-xs text-muted-foreground">{features_html}</ul>'
-                f'<button type="button" class="w-full py-2.5 rounded-xl bg-primary text-primary-foreground font-bold text-xs shadow">{btn_text}</button>'
-                f'</div>'
-            )
 
-        elif widget_type == "image_box":
-            img_url = html.escape(str(props.get("image_url", "/placeholder-hero.svg")))
-            title = html.escape(str(props.get("title", "عنوان جعبه تصویر")))
-            desc = html.escape(str(props.get("description", "توضیحات کوتاه")))
             return (
-                f'<div{id_attr} class="builder-image-box p-4 rounded-2xl border border-border/80 bg-card text-center space-y-3 shadow-sm w-full {css_class}" data-widget="image_box"{style_attr}>'
-                f'<div class="w-full aspect-video max-h-48 rounded-xl overflow-hidden bg-muted/30 flex items-center justify-center mx-auto">'
-                f'<img src="{img_url}" alt="{title}" class="w-full h-full object-cover" loading="lazy" />'
-                f'</div>'
-                f'<h3 class="text-base font-bold text-foreground">{title}</h3>'
-                f'<p class="text-xs text-muted-foreground leading-relaxed">{desc}</p>'
+                f'<div{id_attr} class="builder-price-table p-6 rounded-2xl border-2 border-primary/30 bg-card text-center space-y-4 shadow-sm w-full max-w-sm mx-auto relative overflow-hidden {css_class}" data-widget="price_table"{style_attr}>'
+                f'{badge_html}'
+                f'<div class="space-y-1"><h3 class="text-xl font-bold text-foreground">{heading}</h3>{sub_html}</div>'
+                f'<div class="py-2 border-y border-border/60"><span class="text-3xl font-black text-primary font-mono">{price}</span> <span class="text-xs text-muted-foreground">{currency} / {period}</span></div>'
+                f'<ul class="space-y-2 text-right text-xs text-muted-foreground">{feat_items}</ul>'
+                f'<a href="{btn_url}" class="block w-full py-2.5 rounded-xl bg-primary text-primary-foreground font-bold text-xs shadow hover:bg-primary/90 transition">{btn_text}</a>'
                 f'</div>'
             )
 
         elif widget_type == "price_list":
+            title = html.escape(str(props.get("title", "")))
             items = props.get("items", [])
+            title_html = f'<h3 class="font-bold text-sm text-foreground text-right border-b pb-2">{title}</h3>' if title else ""
             items_html = "".join(
                 f'<div class="space-y-1">'
-                f'<div class="flex items-baseline justify-between gap-2">'
-                f'<span class="text-xs font-bold text-foreground shrink-0">{html.escape(str(item.get("title", "")))}</span>'
-                f'<span class="flex-1 border-b border-dotted border-border/80 mx-1 mb-1"></span>'
-                f'<span class="text-xs font-bold text-primary font-mono shrink-0">{html.escape(str(item.get("price", "")))}</span>'
+                f'<div class="flex items-baseline justify-between text-xs gap-2">'
+                f'<span class="font-bold text-foreground shrink-0">{html.escape(str(it.get("title", "")))}</span>'
+                f'<span class="flex-1 border-b border-dotted border-border/80 mx-1" aria-hidden="true"></span>'
+                f'<span class="font-black text-primary shrink-0 font-mono" dir="ltr">{html.escape(str(it.get("price", "")))}</span>'
                 f'</div>'
-                f'<p class="text-[11px] text-muted-foreground leading-relaxed">{html.escape(str(item.get("description", "")))}</p>'
+                f'{f"""<p class="text-[11px] text-muted-foreground text-right">{html.escape(str(it["description"]))}</p>""" if it.get("description") else ""}'
                 f'</div>'
-                for item in items if isinstance(item, dict)
+                for it in items
             )
             return (
-                f'<div{id_attr} class="builder-price-list space-y-4 w-full p-2 {css_class}" data-widget="price_list"{style_attr}>'
-                f'{items_html}'
+                f'<div{id_attr} class="builder-price-list space-y-4 p-4 rounded-2xl border border-border/80 bg-card shadow-sm w-full {css_class}" data-widget="price_list"{style_attr}>'
+                f'{title_html}'
+                f'<div class="space-y-3">{items_html}</div>'
                 f'</div>'
+            )
+
+        elif widget_type == "menu_anchor":
+            anchor_id = html.escape(str(props.get("anchor_id", "anchor")))
+            return f'<div id="{anchor_id}" class="builder-menu-anchor {css_class}" data-widget="menu_anchor" aria-hidden="true"{style_attr}></div>'
+
+        elif widget_type == "table_of_contents":
+            title = html.escape(str(props.get("title", "فهرست مطالب")))
+            items = props.get("items", [])
+            items_html = "".join(
+                f'<li><a href="{html.escape(str(it.get("anchor", "#")))}" class="flex items-center gap-2 text-muted-foreground hover:text-primary transition py-1 px-2 rounded-lg">'
+                f'<span class="text-primary font-mono text-[10px]">{idx+1}.</span><span>{html.escape(str(it.get("title", "")))}</span>'
+                f'</a></li>'
+                for idx, it in enumerate(items)
+            )
+            return (
+                f'<nav{id_attr} class="builder-toc p-4 rounded-2xl border border-border/80 bg-card space-y-3 shadow-sm w-full text-right {css_class}" data-widget="table_of_contents" aria-label="فهرست مطالب"{style_attr}>'
+                f'<div class="flex items-center gap-2 border-b pb-2"><span class="text-primary font-bold">📑</span><h4 class="text-sm font-bold text-foreground">{title}</h4></div>'
+                f'<ul class="space-y-1.5 text-xs">{items_html}</ul>'
+                f'</nav>'
             )
 
         elif widget_type == "share_buttons":
-            platforms = props.get("platforms", ["telegram", "whatsapp", "twitter", "linkedin"])
-            platform_labels = {
-                "telegram": "تلگرام",
-                "whatsapp": "واتساپ",
-                "twitter": "توییتر (X)",
-                "linkedin": "لینکدین",
-            }
+            title = html.escape(str(props.get("title", "اشتراک‌گذاری")))
+            networks = props.get("networks", [{"network": "telegram", "label": "تلگرام"}, {"network": "whatsapp", "label": "واتساپ"}])
+            title_html = f'<span class="block text-xs font-bold text-foreground mb-2">{title}</span>' if title else ""
             btns_html = "".join(
-                f'<a href="#" class="px-3 py-1.5 rounded-xl bg-muted/60 hover:bg-primary hover:text-white transition text-xs font-bold flex items-center gap-1.5">'
-                f'<span>{html.escape(str(platform_labels.get(p, p)))}</span>'
-                f'</a>'
-                for p in platforms
+                f'<button type="button" class="px-3 py-1.5 rounded-xl bg-primary/10 text-primary text-xs font-bold flex items-center gap-1.5 shadow-xs" data-network="{html.escape(str(n.get("network", "")))}">'
+                f'<span>{html.escape(str(n.get("label", n.get("network", "اشتراک"))))}</span>'
+                f'</button>'
+                for n in networks
             )
             return (
-                f'<div{id_attr} class="builder-share-buttons flex items-center gap-2 flex-wrap {css_class}" data-widget="share_buttons"{style_attr}>'
-                f'{btns_html}'
+                f'<div{id_attr} class="builder-share-buttons space-y-2.5 p-3.5 rounded-2xl border border-border/80 bg-card shadow-sm w-full text-right {css_class}" data-widget="share_buttons"{style_attr}>'
+                f'{title_html}'
+                f'<div class="flex items-center gap-2 flex-wrap">{btns_html}</div>'
                 f'</div>'
-            )
-
-        elif widget_type == "image_carousel":
-            images = props.get("images", [])
-            imgs_html = "".join(
-                f'<div class="w-48 aspect-video rounded-xl overflow-hidden shrink-0 bg-muted/30 border border-border/60">'
-                f'<img src="{html.escape(str(img.get("url", "/placeholder.svg") if isinstance(img, dict) else img))}" alt="{html.escape(str(img.get("alt", "") if isinstance(img, dict) else ""))}" class="w-full h-full object-cover" loading="lazy" />'
-                f'</div>'
-                for img in images
-            )
-            return (
-                f'<div{id_attr} class="builder-image-carousel w-full space-y-2 {css_class}" data-widget="image_carousel"{style_attr}>'
-                f'<div class="flex items-center gap-3 overflow-x-auto p-2 no-scrollbar">{imgs_html}</div>'
-                f'</div>'
-            )
-
-        elif widget_type == "toggle":
-            items = props.get("items", [])
-            items_html = "".join(
-                f'<details class="group rounded-xl border border-border/80 bg-card p-3 shadow-sm mb-2"{" open" if item.get("open") else ""}>'
-                f'<summary class="font-bold text-xs cursor-pointer flex items-center justify-between list-none">'
-                f'<span>{html.escape(str(item.get("title", "")))}</span>'
-                f'</summary>'
-                f'<div class="pt-2 text-[11px] text-muted-foreground leading-relaxed border-t border-border/40 mt-2">'
-                f'{html.escape(str(item.get("content", "")))}'
-                f'</div>'
-                f'</details>'
-                for item in items if isinstance(item, dict)
-            )
-            return (
-                f'<div{id_attr} class="builder-toggle space-y-2.5 w-full text-right {css_class}" data-widget="toggle"{style_attr}>'
-                f'{items_html}'
-                f'</div>'
-            )
-
-        elif widget_type == "hotspot":
-            img_url = html.escape(str(props.get("image_url", "/placeholder-hero.svg")))
-            spots = props.get("spots", [])
-            spots_html = "".join(
-                f'<div style="top: {spot.get("top", 50)}%; left: {spot.get("left", 50)}%;" class="absolute -translate-x-1/2 -translate-y-1/2 group cursor-pointer">'
-                f'<span class="w-5 h-5 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-[10px] font-bold shadow-lg ring-4 ring-primary/30 animate-pulse">{idx + 1}</span>'
-                f'</div>'
-                for idx, spot in enumerate(spots) if isinstance(spot, dict)
-            )
-            return (
-                f'<div{id_attr} class="builder-hotspot relative w-full rounded-2xl overflow-hidden bg-muted/20 border border-border/80 aspect-video max-h-72 {css_class}" data-widget="hotspot"{style_attr}>'
-                f'<img src="{img_url}" alt="Hotspot" class="w-full h-full object-cover" loading="lazy" />'
-                f'{spots_html}'
-                f'</div>'
-            )
-
-        elif widget_type == "table_of_contents":
-            title = html.escape(str(props.get("title", "فهرست محتوا")))
-            headings = props.get("headings", ["مقدمه", "ویژگی‌ها", "نتیجه‌گیری"])
-            headings_html = "".join(
-                f'<li class="hover:text-primary transition">'
-                f'<span class="hover:underline">{html.escape(str(h))}</span>'
-                f'</li>'
-                for h in headings
-            )
-            return (
-                f'<nav{id_attr} class="builder-toc p-4 rounded-2xl border border-border/80 bg-card space-y-3 shadow-sm w-full text-right {css_class}" data-widget="table_of_contents" aria-label="فهرست محتوای صفحه"{style_attr}>'
-                f'<h4 class="font-bold text-xs text-foreground flex items-center gap-2 border-b border-border/60 pb-2">'
-                f'<span class="w-2 h-2 rounded-full bg-primary"></span>'
-                f'<span>{title}</span>'
-                f'</h4>'
-                f'<ol class="space-y-1.5 list-decimal list-inside text-xs text-muted-foreground p-0 m-0">{headings_html}</ol>'
-                f'</nav>'
             )
 
         elif widget_type == "progress_tracker":
@@ -1076,19 +1035,6 @@ class ASTCompiler:
                 f'</div>'
             )
 
-        elif widget_type == "multi_step_form":
-            steps = props.get("steps", ["مرحله ۱", "مرحله ۲", "مرحله ۳"])
-            steps_html = "".join(
-                f'<span class="text-xs font-bold px-2 py-1 bg-primary/10 text-primary rounded-lg">{html.escape(str(s))}</span>'
-                for s in steps
-            )
-            return (
-                f'<div{id_attr} class="builder-multistep-form p-6 rounded-2xl border border-border/80 bg-card space-y-4 text-right {css_class}" data-widget="multi_step_form"{style_attr}>'
-                f'<div class="flex items-center gap-2 border-b border-border/60 pb-3">{steps_html}</div>'
-                f'<div class="py-2 text-xs text-muted-foreground">فرم چندمرحله‌ای سازنده</div>'
-                f'</div>'
-            )
-
         elif widget_type == "slides":
             slides = props.get("slides", [])
             first_slide = slides[0] if slides else {}
@@ -1111,6 +1057,49 @@ class ASTCompiler:
                 f'<div{id_attr} class="builder-code-highlight w-full rounded-2xl bg-zinc-950 text-zinc-100 p-4 font-mono text-xs border border-zinc-800 text-left {css_class}" data-widget="code_highlight" dir="ltr"{style_attr}>'
                 f'<div class="border-b border-zinc-800 pb-2 mb-3 text-[11px] text-zinc-400 uppercase font-bold">{lang}</div>'
                 f'<pre class="overflow-x-auto leading-relaxed"><code>{code}</code></pre>'
+                f'</div>'
+            )
+
+        elif widget_type == "multi_step_form":
+            steps = props.get("steps", ["مرحله ۱", "مرحله ۲", "مرحله ۳"])
+            steps_html = "".join(
+                f'<span class="text-xs font-bold px-2 py-1 bg-primary/10 text-primary rounded-lg">{html.escape(str(s))}</span>'
+                for s in steps
+            )
+            return (
+                f'<div{id_attr} class="builder-multistep-form p-6 rounded-2xl border border-border/80 bg-card space-y-4 text-right {css_class}" data-widget="multi_step_form"{style_attr}>'
+                f'<div class="flex items-center gap-2 border-b border-border/60 pb-3">{steps_html}</div>'
+                f'<div class="py-2 text-xs text-muted-foreground">فرم چندمرحله‌ای سازنده</div>'
+                f'</div>'
+            )
+
+        elif widget_type == "image_box":
+            img_url = html.escape(str(props.get("image_url", "/placeholder-hero.svg")))
+            title = html.escape(str(props.get("title", "عنوان جعبه تصویر")))
+            desc = html.escape(str(props.get("description", "توضیحات کوتاه")))
+            return (
+                f'<div{id_attr} class="builder-image-box p-4 rounded-2xl border border-border/80 bg-card text-center space-y-3 shadow-sm w-full {css_class}" data-widget="image_box"{style_attr}>'
+                f'<div class="w-full aspect-video max-h-48 rounded-xl overflow-hidden bg-muted/30 flex items-center justify-center mx-auto">'
+                f'<img src="{img_url}" alt="{title}" class="w-full h-full object-cover" loading="lazy" />'
+                f'</div>'
+                f'<h3 class="text-base font-bold text-foreground">{title}</h3>'
+                f'<p class="text-xs text-muted-foreground leading-relaxed">{desc}</p>'
+                f'</div>'
+            )
+
+        elif widget_type == "hotspot":
+            img_url = html.escape(str(props.get("image_url", "/placeholder-hero.svg")))
+            spots = props.get("spots", [])
+            spots_html = "".join(
+                f'<div style="top: {spot.get("top", 50)}%; left: {spot.get("left", 50)}%;" class="absolute -translate-x-1/2 -translate-y-1/2 group cursor-pointer">'
+                f'<span class="w-5 h-5 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-[10px] font-bold shadow-lg ring-4 ring-primary/30 animate-pulse">{idx + 1}</span>'
+                f'</div>'
+                for idx, spot in enumerate(spots) if isinstance(spot, dict)
+            )
+            return (
+                f'<div{id_attr} class="builder-hotspot relative w-full rounded-2xl overflow-hidden bg-muted/20 border border-border/80 aspect-video max-h-72 {css_class}" data-widget="hotspot"{style_attr}>'
+                f'<img src="{img_url}" alt="Hotspot" class="w-full h-full object-cover" loading="lazy" />'
+                f'{spots_html}'
                 f'</div>'
             )
 

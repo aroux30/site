@@ -883,10 +883,11 @@ function CanvasElementComponent({
         );
       }
       case "product_grid":
-      case "loop_grid": {
-        const limit = Number(props.limit) || 4;
+      case "loop_grid":
+      case "loop_carousel": {
+        const limit = Number(props.limit) || (element.widgetType === "loop_carousel" ? 6 : 4);
         const filter = String(props.filter || "all");
-        const showPagination = props.show_pagination !== false;
+        const showPagination = props.show_pagination !== false && element.widgetType !== "loop_carousel";
 
         const sampleProducts = Array.from({ length: limit }, (_, i) => ({
           id: `grid_prod_${i + 1}`,

@@ -1129,6 +1129,41 @@
 
 ---
 
+### 🏋️ راند ۳۴ (Round 34) — وزنه ۸: ۱۰۰ کیلو (پورت و برابری ۴ لایه گردونه محصولات پویا Loop Carousel و شرایط نمایش سراسری Theme Builder)
+- **تاریخ اجرا**: 2026-11-22
+- **شاخه ایزوله**: `claude/trusting-booth-4a3d0e`
+- **پورت استودیو**: ۴۰۰۱ (`http://127.0.0.1:4001`)
+- **وضعیت**: ✅ کامل و سبز (پیاده‌سازی سبک، غنی و بدون وابستگی ماژول loop_carousel و ماژول شرایط نمایش سراسری Theme Builder Display Conditions در هر ۴ لایه)
+
+#### ۱. باگ‌های کشف‌شده با ابزار Vision و اصلاحات ریشه‌ای
+1. **فقدان ماژول‌های گردونه پویا و شرایط نمایش تم بیلدر در پالت و دیالوگ قالب‌ها**:
+   - *مشاهده در Vision*: در تصویر `before/02-palette-missing-loop-carousel.png`، جستجوی گردونه پویا صفر نتیجه داشت و دیالوگ ذخیره قالب فاقد انتخابگرهای تخصصی موقعیت‌های تم بیلدر و Display Conditions بود.
+   - *اصلاح ریشه‌ای*: ثبت رسمی ویجت `loop_carousel` (با آیکون SlidersHorizontal) در [block-registry.ts](frontend/lib/builder/block-registry.ts).
+2. **ارتقای دیالوگ قالب برگه به موتور تم بیلدر ([save-page-template-dialog.tsx](frontend/components/admin/builder/save-page-template-dialog.tsx))**:
+   - فرم انتخاب نوع قالب تم بیلدر (`page`, `header`, `footer`, `single_product`, `product_archive`, `error_404`).
+   - فرم انتخاب شرایط نمایش سراسری برگه (`entire_site`, `all_products`, `all_pages`, `homepage_only`).
+3. **رندر بوم و برابری کامپایلر سرور ([canvas-element.tsx](frontend/components/admin/builder/canvas-element.tsx) و [ast_compiler.py](backend/app/modules/content/application/ast_compiler.py))**:
+   - رندر هماهنگ گردونه محصولات پویا متصل به کاتالوگ فروشگاه و کامپایل HTML استاندارد در سرور.
+
+#### ۲. مستندات بصری (Vision Artifacts)
+- **قبل از اصلاح**: `.loop/artifacts/builder-gym/round-25/before/`
+  - `01-studio-overview.png`
+  - `02-palette-missing-loop-carousel.png` (صفر نتیجه در جستجوی گردونه پویا)
+- **بعد از اصلاح**: `.loop/artifacts/builder-gym/round-25/after/`
+  - `01-studio-overview.png`
+  - `02-palette-missing-loop-carousel.png` (نمایش کارت گردونه پویا با ۱ نتیجه در پالت)
+
+#### ۳. تست رگرسیون دائمی اضافه‌شده
+- فایل تست Playwright: `frontend/tests/e2e/builder-gym-r32.spec.ts` (۲ تست سبز)
+
+#### ۴. نتایج نهایی ممیزی و تست‌ها
+- `npx tsc --noEmit`: ۰ خطا (سبز)
+- `npm test` (Vitest): **۳۷۲ تست سبز در ۴۵ فایل** (`372 passed`)
+- `python -m pytest app/tests/unit`: **۶۲۲ تست سبز** (`622 passed, 2 skipped`)
+- تست‌های Playwright ترکیبی (راند ۲۱ تا ۳۲): **۲۵ تست سبز در ۴۰.۵ ثانیه**
+
+---
+
 ## 🏆 گواهینامه نهایی مسترینگ کامل: BUILDER_GYM_ALL_LEVELS_MASTERED
 
 بدین‌وسیله رسماً تایید و ثبت می‌گردد که کلیه وزنه‌های ۱ تا ۸ نردبان پیش‌رونده Visual Page Builder بر اساس دستورالعمل جامع المنتور و استانداردهای سخت‌گیرانه ۳۶۰ درجه با موفقیت ۱۰۰٪ کامل شدند:

@@ -2465,6 +2465,7 @@ export function InspectorPanel() {
         );
 
       case "loop_grid":
+      case "loop_carousel":
         return (
           <div className="space-y-4">
             <div className="space-y-1.5">

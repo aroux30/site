@@ -60,6 +60,7 @@ import {
   Code2,
   FolderKanban,
   ListCollapse,
+  SlidersHorizontal,
   type LucideIcon,
 } from "lucide-react";
 import type { BuilderElement } from "@/types/builder";
@@ -2162,6 +2163,38 @@ export const BASIC_BLOCK_DEFINITIONS: BlockDefinition[] = [
         ],
       };
     },
+  },
+  {
+    type: "loop_carousel",
+    name: "گردونه پویا (Loop Carousel)",
+    category: "layout",
+    icon: SlidersHorizontal,
+    description: "گردونه و اسلایدر تکرارشونده متصل به محصولات یا مقالات وبلاگ",
+    createDefaultElement: () => ({
+      id: `el_${Math.random().toString(36).slice(2, 10)}`,
+      name: "گردونه محصولات پویا",
+      type: "widget",
+      widgetType: "loop_carousel",
+      widgetProps: {
+        source: "products",
+        slides_to_show: 3,
+        autoplay: true,
+      },
+      isLocked: false,
+      isHidden: false,
+      styles: {
+        mobile: {
+          padding: {
+            top: { value: 16, unit: "px" },
+            right: { value: 16, unit: "px" },
+            bottom: { value: 16, unit: "px" },
+            left: { value: 16, unit: "px" },
+            isLinked: true,
+          },
+        },
+      },
+      children: [],
+    }),
   },
 ];
 

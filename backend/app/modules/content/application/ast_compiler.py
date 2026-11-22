@@ -562,11 +562,11 @@ class ASTCompiler:
                 f'</div>'
             )
 
-        elif widget_type in ("product_grid", "loop_grid"):
-            limit = int(props.get("limit", 4))
+        elif widget_type in ("product_grid", "loop_grid", "loop_carousel"):
+            limit = int(props.get("limit", 6 if widget_type == "loop_carousel" else 4))
             cat = html.escape(str(props.get("category", "all")))
             flt = html.escape(str(props.get("filter", "all")))
-            show_pag = props.get("show_pagination", False)
+            show_pag = props.get("show_pagination", False) and widget_type != "loop_carousel"
             cards = []
             for i in range(min(limit, 8)):
                 card = (

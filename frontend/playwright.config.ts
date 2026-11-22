@@ -40,6 +40,7 @@ export default defineConfig({
       name: "chromium",
       use: {
         ...devices["Desktop Chrome"],
+        viewport: { width: 1920, height: 1080 },
         // Long suites against the dev server run several heavy pages back to
         // back; the default renderer can OOM-crash mid-suite on this box
         // ("Target page, context or browser has been closed" with no server

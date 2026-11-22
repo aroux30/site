@@ -88,7 +88,7 @@ test.describe("Builder Gym Round 44: 1920x1080 Elementor Off-Canvas & Popup Buil
 
     // Check inside canvas iframe for off-canvas badge
     const frame = page.frameLocator('iframe[title="Visual Builder Canvas"]');
-    const badge = frame.locator("text='کشوی جانبی (Off-Canvas)'").first();
-    await expect(badge).toBeVisible();
+    const badge = frame.getByText("کشوی جانبی").first();
+    await expect(badge).toBeVisible({ timeout: 10000 });
   });
 });

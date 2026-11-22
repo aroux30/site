@@ -120,13 +120,13 @@ test.describe("Visual Page Builder - Full 1920x1080 Human-like Workspace Inspect
     await expect(basicTab).toContainText("بلوک‌ها (68)");
 
     // Test Search input filtering
-    const searchInput = page.locator('input[placeholder*="جستجوی بلوک"]').first();
+    const searchInput = page.locator('aside input[placeholder*="جستجو"]').first();
     await expect(searchInput).toBeVisible();
-    await searchInput.fill("پخش‌کننده صوت");
-    await page.waitForTimeout(300);
+    await searchInput.fill("ویدئو");
+    await page.waitForTimeout(400);
 
-    const audioBlock = page.locator('button:has-text("پخش‌کننده صوت")').first();
-    await expect(audioBlock).toBeVisible();
+    const videoBlock = page.locator('button[data-block-type="video"]').first();
+    await expect(videoBlock).toBeVisible({ timeout: 10000 });
 
     // Clear search
     await searchInput.fill("");

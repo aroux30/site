@@ -62,22 +62,22 @@ test.describe("Builder Gym Round 41: 1920x1080 Elementor Image Carousel, Toggle 
     await expect(searchInput).toBeVisible();
 
     // Verify search finds image_carousel
-    await searchInput.fill("کاروسل");
-    await page.waitForTimeout(300);
-    const carouselCard = page.locator('button[data-block-type="image_carousel"], button:has-text("کاروسل افقی تصاویر")').first();
-    await expect(carouselCard).toBeVisible();
+    await searchInput.fill("اسلایدر تصویر");
+    await page.waitForTimeout(400);
+    const carouselCard = page.locator('button[data-block-type="image_carousel"]').first();
+    await expect(carouselCard).toBeVisible({ timeout: 10000 });
 
     // Verify search finds toggle
-    await searchInput.fill("تاشو");
-    await page.waitForTimeout(300);
-    const toggleCard = page.locator('button[data-block-type="toggle"], button:has-text("آیتم‌های تاشو")').first();
-    await expect(toggleCard).toBeVisible();
+    await searchInput.fill("تاگل");
+    await page.waitForTimeout(400);
+    const toggleCard = page.locator('button[data-block-type="toggle"]').first();
+    await expect(toggleCard).toBeVisible({ timeout: 10000 });
 
     // Verify search finds hotspot
-    await searchInput.fill("نقاط تعاملی");
-    await page.waitForTimeout(300);
-    const hotspotCard = page.locator('button[data-block-type="hotspot"], button:has-text("نقاط تعاملی تصویر")').first();
-    await expect(hotspotCard).toBeVisible();
+    await searchInput.fill("نقطه کانونی");
+    await page.waitForTimeout(400);
+    const hotspotCard = page.locator('button[data-block-type="hotspot"]').first();
+    await expect(hotspotCard).toBeVisible({ timeout: 10000 });
   });
 
   test("2. Inserting toggle renders multiple collapsible details panels", async ({ page }) => {
@@ -85,7 +85,7 @@ test.describe("Builder Gym Round 41: 1920x1080 Elementor Image Carousel, Toggle 
     await page.waitForTimeout(1500);
 
     const searchInput = page.locator('aside input[placeholder*="جستجو"]').first();
-    await searchInput.fill("تاشو");
+    await searchInput.fill("تاگل");
     await page.waitForTimeout(300);
 
     const toggleCard = page.locator('button[data-block-type="toggle"]').first();

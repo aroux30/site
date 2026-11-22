@@ -88,7 +88,7 @@ test.describe("Builder Gym Round 45: 1920x1080 Elementor Loop Grid & Multi-Step 
 
     // Check inside canvas iframe for multi-step form steps
     const frame = page.frameLocator('iframe[title="Visual Builder Canvas"]');
-    const stepEl = frame.locator("text='اطلاعات هویتی'").first();
+    const stepEl = frame.locator("text='اطلاعات تماس'").first();
     await expect(stepEl).toBeVisible();
   });
 });

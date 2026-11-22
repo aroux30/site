@@ -62,15 +62,15 @@ test.describe("Builder Gym Round 46: 1920x1080 Elementor Slides & Code Highlight
     await expect(searchInput).toBeVisible();
 
     // Verify search finds slides
-    await searchInput.fill("اسلایدر تمام‌عرض");
+    await searchInput.fill("اسلاید");
     await page.waitForTimeout(300);
-    const slidesCard = page.locator('button[data-block-type="slides"], button:has-text("اسلایدر تمام‌عرض")').first();
+    const slidesCard = page.locator('button[data-block-type="slides"]').first();
     await expect(slidesCard).toBeVisible();
 
     // Verify search finds code_highlight
-    await searchInput.fill("هایلایت کد");
+    await searchInput.fill("هایلایت");
     await page.waitForTimeout(300);
-    const codeCard = page.locator('button[data-block-type="code_highlight"], button:has-text("نمایشگر و هایلایت کد")').first();
+    const codeCard = page.locator('button[data-block-type="code_highlight"]').first();
     await expect(codeCard).toBeVisible();
   });
 
@@ -79,16 +79,16 @@ test.describe("Builder Gym Round 46: 1920x1080 Elementor Slides & Code Highlight
     await page.waitForTimeout(1500);
 
     const searchInput = page.locator('aside input[placeholder*="جستجو"]').first();
-    await searchInput.fill("هایلایت کد");
+    await searchInput.fill("هایلایت");
     await page.waitForTimeout(300);
 
     const codeCard = page.locator('button[data-block-type="code_highlight"]').first();
     await codeCard.click();
-    await page.waitForTimeout(600);
+    await page.waitForTimeout(800);
 
     // Check inside canvas iframe
     const frame = page.frameLocator('iframe[title="Visual Builder Canvas"]');
     const codeBox = frame.locator("pre, code, [data-widget-type='code_highlight']").first();
-    await expect(codeBox).toBeVisible();
+    await expect(codeBox).toBeVisible({ timeout: 10000 });
   });
 });

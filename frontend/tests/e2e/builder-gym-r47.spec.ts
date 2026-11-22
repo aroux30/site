@@ -64,13 +64,13 @@ test.describe("Builder Gym Round 47: 1920x1080 Elementor Nested Tabs & Nested Ac
     // Verify search finds nested_tabs
     await searchInput.fill("تودرتو");
     await page.waitForTimeout(300);
-    const tabsCard = page.locator('button[data-block-type="nested_tabs"], button:has-text("تودرتو")').first();
+    const tabsCard = page.locator('button[data-block-type="nested_tabs"]').first();
     await expect(tabsCard).toBeVisible();
 
     // Verify search finds nested_accordion
-    await searchInput.fill("آکاردئون پیشرفته");
+    await searchInput.fill("کانتینری");
     await page.waitForTimeout(300);
-    const accordionCard = page.locator('button[data-block-type="nested_accordion"], button:has-text("آکاردئون پیشرفته")').first();
+    const accordionCard = page.locator('button[data-block-type="nested_accordion"]').first();
     await expect(accordionCard).toBeVisible();
   });
 
@@ -88,7 +88,7 @@ test.describe("Builder Gym Round 47: 1920x1080 Elementor Nested Tabs & Nested Ac
 
     // Check inside canvas iframe for nested tabs badge
     const frame = page.frameLocator('iframe[title="Visual Builder Canvas"]');
-    const badge = frame.locator("text='تب‌های تودرتو (Nested Tabs)'").first();
+    const badge = frame.getByText("تب‌های تودرتو").first();
     await expect(badge).toBeVisible();
   });
 });

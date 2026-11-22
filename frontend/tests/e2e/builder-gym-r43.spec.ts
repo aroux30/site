@@ -84,7 +84,7 @@ test.describe("Builder Gym Round 43: 1920x1080 Viewport Lottie, Floating Bar & I
     await page.waitForTimeout(1500);
 
     const searchInput = page.locator('aside input[placeholder*="جستجو"]').first();
-    await searchInput.fill("تماس");
+    await searchInput.fill("نوار تماس");
     await page.waitForTimeout(300);
 
     const floatingCard = page.locator('button[data-block-type="floating_bar"], button[data-block-type="contact_buttons"], button:has-text("تماس")').first();
@@ -93,7 +93,7 @@ test.describe("Builder Gym Round 43: 1920x1080 Viewport Lottie, Floating Bar & I
 
     // Check inside canvas iframe
     const frame = page.frameLocator('iframe[title="Visual Builder Canvas"]');
-    const barEl = frame.locator("div:has-text('مشاوره'), div:has-text('تماس')").first();
+    const barEl = frame.getByText("مشاوره").first();
     await expect(barEl).toBeVisible();
   });
 });

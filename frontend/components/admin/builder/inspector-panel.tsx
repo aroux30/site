@@ -2657,6 +2657,92 @@ export function InspectorPanel() {
           </div>
         );
 
+      case "image_carousel": {
+        const rawImages = Array.isArray(props.images) ? (props.images as any[]) : [];
+        const images = rawImages.length > 0 ? rawImages : [
+          { url: "/placeholder-hero.svg", alt: "تصویر ۱" }
+        ];
+        return (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <Label className="text-xs font-bold">تصاویر کاروسل</Label>
+              <button
+                type="button"
+                onClick={() => {
+                  const updated = [...images, { url: "/placeholder.svg", alt: `تصویر ${images.length + 1}` }];
+                  handlePropChange("images", updated);
+                }}
+                className="text-[11px] text-primary hover:underline font-bold"
+              >
+                + افزودن تصویر
+              </button>
+            </div>
+            <div className="space-y-2">
+              {images.map((img, idx) => (
+                <div key={idx} className="p-2 rounded-lg border bg-muted/20 space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-bold">اسلاید {idx + 1}</span>
+                    {images.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const updated = images.filter((_, i) => i !== idx);
+                          handlePropChange("images", updated);
+                        }}
+                        className="text-[10px] text-destructive hover:underline"
+                      >
+                        حذف
+                      </button>
+                    )}
+                  </div>
+                  <Input
+                    value={img.url || ""}
+                    placeholder="آدرس URL تصویر"
+                    onChange={(e) => {
+                      const updated = [...images];
+                      updated[idx] = { ...updated[idx], url: e.target.value };
+                      handlePropChange("images", updated);
+                    }}
+                    className="h-7 text-xs font-mono"
+                    dir="ltr"
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      }
+
+      case "slides":
+        return (
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs font-bold">عنوان اصلی اسلاید</Label>
+              <Input
+                value={String((props.slides as any)?.[0]?.title || "جشنواره فروش ویژه")}
+                onChange={(e) => {
+                  const currentSlides = Array.isArray(props.slides) && props.slides.length > 0 ? [...props.slides] : [{ title: "" }];
+                  currentSlides[0] = { ...currentSlides[0], title: e.target.value };
+                  handlePropChange("slides", currentSlides);
+                }}
+                className="h-8 text-xs"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs font-bold">متن دکمه اسلاید</Label>
+              <Input
+                value={String((props.slides as any)?.[0]?.button_label || "مشاهده تخفیف‌ها")}
+                onChange={(e) => {
+                  const currentSlides = Array.isArray(props.slides) && props.slides.length > 0 ? [...props.slides] : [{ title: "" }];
+                  currentSlides[0] = { ...currentSlides[0], button_label: e.target.value };
+                  handlePropChange("slides", currentSlides);
+                }}
+                className="h-8 text-xs"
+              />
+            </div>
+          </div>
+        );
+
       default:
         return (
           <div className="text-xs text-muted-foreground py-2">

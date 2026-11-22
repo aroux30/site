@@ -429,6 +429,44 @@ def test_ast_compiler_renders_code_highlight_and_contact_buttons_widgets():
     assert "021-9999" in result
 
 
+def test_ast_compiler_renders_image_carousel_and_slides_widgets():
+    """Verify SSR compilation for image_carousel and slides widgets."""
+    ast = PageAST(
+        schema_version=1,
+        title="تست اسلایدر و کاروسل",
+        slug="test-carousel-slides",
+        root_elements=[
+            BuilderElement(
+                id="el_sec_cs",
+                name="بخش اسلایدر",
+                type="container",
+                children=[
+                    BuilderElement(
+                        id="el_carousel01",
+                        name="کاروسل",
+                        type="widget",
+                        widget_type="image_carousel",
+                        widget_props={"images": [{"url": "/img1.jpg", "alt": "عکس یک"}]},
+                    ),
+                    BuilderElement(
+                        id="el_slides01",
+                        name="اسلایدشو",
+                        type="widget",
+                        widget_type="slides",
+                        widget_props={"slides": [{"title": "تخفیف شگفت انگیز", "description": "فرصت خرید", "button_label": "خرید"}]},
+                    ),
+                ],
+            )
+        ],
+    )
+    result = ASTCompiler.compile(ast)
+    assert 'class="builder-image-carousel' in result
+    assert "/img1.jpg" in result
+    assert 'class="builder-slides' in result
+    assert "تخفیف شگفت انگیز" in result
+    assert "فرصت خرید" in result
+
+
 def test_ast_compiler_renders_p3_ecommerce_native_widgets():
     ast = PageAST(
         schema_version=1,

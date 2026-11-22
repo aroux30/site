@@ -2006,6 +2006,56 @@ function CanvasElementComponent({
           </div>
         );
       }
+      case "image_carousel": {
+        const rawImages = Array.isArray(props.images) ? (props.images as any[]) : [];
+        const images = rawImages.length > 0 ? rawImages : [
+          { url: "/placeholder-hero.svg", alt: "تصویر ۱" },
+          { url: "/placeholder.svg", alt: "تصویر ۲" },
+        ];
+        return (
+          <div className="w-full flex items-center gap-3 overflow-x-auto py-2 no-scrollbar" dir="rtl">
+            {images.map((img, idx) => (
+              <div key={idx} className="min-w-[180px] aspect-video rounded-xl bg-muted/20 overflow-hidden flex items-center justify-center shrink-0 border border-border/60">
+                <img src={img.url || img} alt={img.alt || "اسلاید"} className="w-full h-full object-cover" />
+              </div>
+            ))}
+          </div>
+        );
+      }
+      case "slides": {
+        const rawSlides = Array.isArray(props.slides) ? (props.slides as any[]) : [];
+        const slides = rawSlides.length > 0 ? rawSlides : [
+          {
+            title: "جشنواره فروش ویژه",
+            description: "بهترین فرصت برای خرید با تخفیف استثنایی",
+            button_label: "مشاهده محصولات",
+            background_image: "/placeholder-hero.svg",
+          },
+        ];
+        return (
+          <div className="w-full space-y-3">
+            {slides.map((s, idx) => (
+              <div
+                key={idx}
+                className="relative w-full min-h-[260px] rounded-2xl overflow-hidden flex flex-col justify-center p-6 text-white bg-cover bg-center"
+                style={{
+                  backgroundImage: `linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.6)), url(${s.background_image || "/placeholder-hero.svg"})`,
+                }}
+              >
+                <h3 className="text-xl font-black mb-1.5">{s.title}</h3>
+                <p className="text-xs max-w-md opacity-90 leading-relaxed">{s.description}</p>
+                {s.button_label && (
+                  <div className="pt-2">
+                    <span className="inline-block px-4 py-2 rounded-xl bg-primary text-primary-foreground font-bold text-xs shadow-sm">
+                      {s.button_label}
+                    </span>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        );
+      }
       default:
         return (
           <div className="rounded-lg border border-dashed border-border p-4 text-center text-sm text-muted-foreground">

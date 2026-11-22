@@ -147,4 +147,19 @@ test.describe("Builder Gym Round 24: Elementor Core & Pro Complete 4-Layer Wirin
     const contactBlock = page.locator('button:has-text("دکمه تماس و ارتباط شناور")');
     await expect(contactBlock).toBeVisible();
   });
+
+  test("7. Image Carousel and Slides slider widgets are available in palette", async ({ page }) => {
+    await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(1500);
+
+    const blocksTab = page.locator('button:has-text("بلوک‌ها")').first();
+    await blocksTab.click();
+    await page.waitForTimeout(400);
+
+    const carouselBlock = page.locator('button:has-text("کاروسل افقی تصاویر")');
+    await expect(carouselBlock).toBeVisible();
+
+    const slidesBlock = page.locator('button:has-text("اسلایدر تمام‌عرض")');
+    await expect(slidesBlock).toBeVisible();
+  });
 });

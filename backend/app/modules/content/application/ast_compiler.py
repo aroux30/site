@@ -1106,6 +1106,48 @@ class ASTCompiler:
                 f'</div>'
             )
 
+        elif widget_type == "image_carousel":
+            images = props.get("images", [])
+            imgs_html = ""
+            if isinstance(images, list):
+                for img in images:
+                    url = html.escape(str(img.get("url", img) if isinstance(img, dict) else img))
+                    alt = html.escape(str(img.get("alt", "اسلاید تصویر") if isinstance(img, dict) else "اسلاید تصویر"))
+                    imgs_html += (
+                        f'<div class="min-w-[200px] aspect-video rounded-xl bg-muted/20 overflow-hidden flex items-center justify-center shrink-0 border border-border/60">'
+                        f'<img src="{url}" alt="{alt}" class="object-cover w-full h-full" loading="lazy" />'
+                        f'</div>'
+                    )
+            return (
+                f'<div{id_attr} class="builder-image-carousel w-full overflow-x-auto flex items-center gap-3 py-2 no-scrollbar {css_class}" data-widget="image_carousel"{style_attr}>'
+                f'{imgs_html or "<div class=\"p-4 text-center text-xs text-muted-foreground\">کاروسل تصاویر</div>"}'
+                f'</div>'
+            )
+
+        elif widget_type == "slides":
+            slides_list = props.get("slides", [{"title": "عنوان اسلاید اول", "description": "توضیحات معرفی اسلاید اول", "button_label": "مشاهده", "button_url": "#", "background_image": "/placeholder-hero.svg"}])
+            slides_html = ""
+            if isinstance(slides_list, list):
+                for s in slides_list:
+                    s_title = html.escape(str(s.get("title", "")))
+                    s_desc = html.escape(str(s.get("description", "")))
+                    s_btn = html.escape(str(s.get("button_label", "")))
+                    s_url = html.escape(str(s.get("button_url", "#")))
+                    s_bg = html.escape(str(s.get("background_image", "/placeholder-hero.svg")))
+                    btn_html = f'<a href="{s_url}" class="inline-block mt-3 px-5 py-2 rounded-xl bg-primary text-primary-foreground font-bold text-xs shadow-sm">{s_btn}</a>' if s_btn else ""
+                    slides_html += (
+                        f'<div class="relative w-full min-h-[300px] rounded-3xl overflow-hidden flex flex-col justify-center p-8 text-white bg-cover bg-center mb-4" style="background-image: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.7)), url({s_bg});">'
+                        f'<h3 class="text-xl md:text-2xl font-black mb-2">{s_title}</h3>'
+                        f'<p class="text-xs max-w-lg opacity-90 leading-relaxed">{s_desc}</p>'
+                        f'<div>{btn_html}</div>'
+                        f'</div>'
+                    )
+            return (
+                f'<div{id_attr} class="builder-slides w-full space-y-4 {css_class}" data-widget="slides"{style_attr}>'
+                f'{slides_html}'
+                f'</div>'
+            )
+
         # Generic fallback for any other registered widget
         fallback_title = html.escape(str(props.get("title", widget_type)))
         return f'<div{id_attr} class="builder-widget builder-{widget_type} {css_class}" data-widget="{html.escape(widget_type)}"{style_attr}>{fallback_title}</div>'

@@ -90,6 +90,7 @@ STANDARD_WIDGET_TYPES: frozenset[str] = frozenset({
     "table_of_contents",
     "hotspot",
     "lottie",
+    "slides",
     "code_highlight",
     "contact_buttons",
     "floating_buttons",

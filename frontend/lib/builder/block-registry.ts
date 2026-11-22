@@ -49,6 +49,8 @@ import {
   Film,
   Code2,
   PhoneCall,
+  GalleryHorizontal,
+  Presentation,
   type LucideIcon,
 } from "lucide-react";
 import type { BuilderElement } from "@/types/builder";
@@ -1535,6 +1537,57 @@ export const BASIC_BLOCK_DEFINITIONS: BlockDefinition[] = [
         title: "نیاز به مشاوره قبل از خرید دارید؟",
         phone: "۰۲۱-۸۸۸۸۹۹۹۹",
         button_label: "تماس با کارشناس",
+      },
+      isLocked: false,
+      isHidden: false,
+      styles: { mobile: {} },
+      children: [],
+    }),
+  },
+  {
+    type: "image_carousel",
+    name: "کاروسل افقی تصاویر (Image Carousel)",
+    category: "basic",
+    icon: GalleryHorizontal,
+    description: "اسلایدر افقی و چرخشی تصاویر با پشتیبانی از اسکرول نرم",
+    createDefaultElement: () => ({
+      id: `el_${Math.random().toString(36).slice(2, 10)}`,
+      name: "کاروسل تصاویر",
+      type: "widget",
+      widgetType: "image_carousel",
+      widgetProps: {
+        images: [
+          { url: "/placeholder-hero.svg", alt: "تصویر ۱" },
+          { url: "/placeholder.svg", alt: "تصویر ۲" },
+        ],
+      },
+      isLocked: false,
+      isHidden: false,
+      styles: { mobile: {} },
+      children: [],
+    }),
+  },
+  {
+    type: "slides",
+    name: "اسلایدر تمام‌عرض (Slides)",
+    category: "basic",
+    icon: Presentation,
+    description: "اسلایدشوی حرفه‌ای پس‌زمینه با عنوان، دکمه و متن اقدام",
+    createDefaultElement: () => ({
+      id: `el_${Math.random().toString(36).slice(2, 10)}`,
+      name: "اسلایدر پرچمدار",
+      type: "widget",
+      widgetType: "slides",
+      widgetProps: {
+        slides: [
+          {
+            title: "جشنواره فروش شگفت‌انگیز",
+            description: "تا ۵۰٪ تخفیف روی تمامی محصولات دیجیتال و هوشمند",
+            button_label: "مشاهده تخفیف‌ها",
+            button_url: "/products",
+            background_image: "/placeholder-hero.svg",
+          },
+        ],
       },
       isLocked: false,
       isHidden: false,

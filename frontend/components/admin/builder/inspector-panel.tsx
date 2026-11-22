@@ -2591,6 +2591,72 @@ export function InspectorPanel() {
           </div>
         );
 
+      case "code_highlight":
+        return (
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs font-bold">زبان برنامه‌نویسی</Label>
+              <Select
+                value={String(props.language || "javascript")}
+                onValueChange={(val) => handlePropChange("language", val)}
+              >
+                <SelectTrigger className="h-8 text-xs font-mono">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="javascript">JavaScript / TypeScript</SelectItem>
+                  <SelectItem value="python">Python</SelectItem>
+                  <SelectItem value="html">HTML</SelectItem>
+                  <SelectItem value="css">CSS</SelectItem>
+                  <SelectItem value="json">JSON</SelectItem>
+                  <SelectItem value="bash">Bash / Shell</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs font-bold">قطعه کد</Label>
+              <textarea
+                rows={5}
+                value={String(props.code || "")}
+                onChange={(e) => handlePropChange("code", e.target.value)}
+                className="w-full rounded-md border border-input bg-zinc-950 text-zinc-100 p-2 font-mono text-xs text-left"
+                dir="ltr"
+              />
+            </div>
+          </div>
+        );
+
+      case "contact_buttons":
+        return (
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs font-bold">عنوان پیام</Label>
+              <Input
+                value={String(props.title || "نیاز به مشاوره دارید؟")}
+                onChange={(e) => handlePropChange("title", e.target.value)}
+                className="h-8 text-xs"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs font-bold">شماره تماس پشتیبانی</Label>
+              <Input
+                value={String(props.phone || "۰۲۱-۸۸۸۸۹۹۹۹")}
+                onChange={(e) => handlePropChange("phone", e.target.value)}
+                className="h-8 text-xs font-mono"
+                dir="ltr"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs font-bold">متن روی دکمه</Label>
+              <Input
+                value={String(props.button_label || "تماس سریع")}
+                onChange={(e) => handlePropChange("button_label", e.target.value)}
+                className="h-8 text-xs"
+              />
+            </div>
+          </div>
+        );
+
       default:
         return (
           <div className="text-xs text-muted-foreground py-2">

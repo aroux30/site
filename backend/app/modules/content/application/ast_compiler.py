@@ -1075,6 +1075,37 @@ class ASTCompiler:
                 f'</div>'
             )
 
+        elif widget_type == "code_highlight":
+            code = html.escape(str(props.get("code", "console.log('Hello, World!');")))
+            lang = html.escape(str(props.get("language", "javascript")))
+            line_numbers = props.get("line_numbers", True)
+            ln_cls = "line-numbers" if line_numbers else ""
+            return (
+                f'<div{id_attr} class="builder-code-highlight my-3 rounded-2xl overflow-hidden border border-border/80 bg-zinc-950 text-zinc-100 font-mono text-xs text-left {css_class}" data-widget="code_highlight" dir="ltr"{style_attr}>'
+                f'<div class="px-4 py-2 border-b border-zinc-800 bg-zinc-900/60 text-zinc-400 text-[10px] flex items-center justify-between">'
+                f'<span>{lang}</span>'
+                f'<span class="text-zinc-600">code</span>'
+                f'</div>'
+                f'<pre class="p-4 overflow-x-auto {ln_cls}"><code class="language-{lang}">{code}</code></pre>'
+                f'</div>'
+            )
+
+        elif widget_type in ("contact_buttons", "floating_buttons"):
+            title = html.escape(str(props.get("title", "نیاز به راهنمایی دارید؟")))
+            btn_label = html.escape(str(props.get("button_label", "گفتگوی آنلاین")))
+            phone = html.escape(str(props.get("phone", "۰۲۱-۸۸۸۸۹۹۹۹")))
+            return (
+                f'<div{id_attr} class="builder-contact-buttons p-4 rounded-2xl border border-primary/20 bg-primary/5 text-right space-y-2 {css_class}" data-widget="contact_buttons"{style_attr}>'
+                f'<div class="flex items-center justify-between gap-3">'
+                f'<div>'
+                f'<h4 class="font-bold text-xs text-foreground">{title}</h4>'
+                f'<span class="text-[11px] text-muted-foreground" dir="ltr">{phone}</span>'
+                f'</div>'
+                f'<a href="tel:{phone}" class="px-3.5 py-1.5 rounded-xl bg-primary text-primary-foreground font-bold text-xs shadow-xs hover:bg-primary/90 transition">{btn_label}</a>'
+                f'</div>'
+                f'</div>'
+            )
+
         # Generic fallback for any other registered widget
         fallback_title = html.escape(str(props.get("title", widget_type)))
         return f'<div{id_attr} class="builder-widget builder-{widget_type} {css_class}" data-widget="{html.escape(widget_type)}"{style_attr}>{fallback_title}</div>'

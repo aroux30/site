@@ -1971,6 +1971,41 @@ function CanvasElementComponent({
           </div>
         );
       }
+      case "code_highlight": {
+        const code = String(props.code || "console.log('محتوای کد نمونه');");
+        const lang = String(props.language || "javascript");
+        return (
+          <div className="w-full my-2 rounded-2xl overflow-hidden border border-border/80 bg-zinc-950 text-zinc-100 font-mono text-xs text-left" dir="ltr">
+            <div className="px-4 py-1.5 border-b border-zinc-800 bg-zinc-900/60 text-zinc-400 text-[10px] flex items-center justify-between">
+              <span>{lang}</span>
+              <span className="text-zinc-600">کد برنامه</span>
+            </div>
+            <pre className="p-3.5 overflow-x-auto text-[11px] leading-relaxed">
+              <code>{code}</code>
+            </pre>
+          </div>
+        );
+      }
+      case "contact_buttons": {
+        const title = String(props.title || "نیاز به مشاوره دارید؟");
+        const phone = String(props.phone || "۰۲۱-۸۸۸۸۹۹۹۹");
+        const btnLabel = String(props.button_label || "تماس سریع");
+        return (
+          <div className="w-full p-4 rounded-2xl border border-primary/20 bg-primary/5 flex items-center justify-between gap-3 text-right">
+            <div>
+              <h4 className="font-bold text-xs text-foreground">{title}</h4>
+              <span className="text-[11px] text-muted-foreground font-mono" dir="ltr">{phone}</span>
+            </div>
+            <button
+              type="button"
+              className="px-4 py-2 rounded-xl bg-primary text-primary-foreground font-bold text-xs shadow-xs hover:bg-primary/90 transition shrink-0"
+              onClick={(e) => e.preventDefault()}
+            >
+              {btnLabel}
+            </button>
+          </div>
+        );
+      }
       default:
         return (
           <div className="rounded-lg border border-dashed border-border p-4 text-center text-sm text-muted-foreground">

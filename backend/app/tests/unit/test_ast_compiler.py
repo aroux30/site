@@ -390,6 +390,45 @@ def test_ast_compiler_renders_hotspot_and_lottie_widgets():
     assert "anim.json" in result
 
 
+def test_ast_compiler_renders_code_highlight_and_contact_buttons_widgets():
+    """Verify SSR compilation for code_highlight and contact_buttons widgets."""
+    ast = PageAST(
+        schema_version=1,
+        title="تست هایلایت کد و دکمه تماس",
+        slug="test-code-contact",
+        root_elements=[
+            BuilderElement(
+                id="el_sec_cc",
+                name="بخش فنی",
+                type="container",
+                children=[
+                    BuilderElement(
+                        id="el_code01",
+                        name="کد برنامه",
+                        type="widget",
+                        widget_type="code_highlight",
+                        widget_props={"code": "const x = 10;", "language": "typescript"},
+                    ),
+                    BuilderElement(
+                        id="el_contact01",
+                        name="تماس",
+                        type="widget",
+                        widget_type="contact_buttons",
+                        widget_props={"title": "پشتیبانی تلفنی", "phone": "021-9999", "button_label": "تماس"},
+                    ),
+                ],
+            )
+        ],
+    )
+    result = ASTCompiler.compile(ast)
+    assert 'class="builder-code-highlight' in result
+    assert "const x = 10;" in result
+    assert "typescript" in result
+    assert 'class="builder-contact-buttons' in result
+    assert "پشتیبانی تلفنی" in result
+    assert "021-9999" in result
+
+
 def test_ast_compiler_renders_p3_ecommerce_native_widgets():
     ast = PageAST(
         schema_version=1,

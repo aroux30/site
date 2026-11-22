@@ -943,6 +943,35 @@
 
 ---
 
+### 🏋️ راند ۳۴ (Round 34) — پورت و سیم‌کشی کامل ۴ لایه‌ای Code Highlight و Contact Buttons با ۵۶ بلوک فعال
+- **تاریخ اجرا**: 2026-11-22
+- **شاخه ایزوله**: `claude/inspiring-banach-e10ffd`
+- **وضعیت**: ✅ ۱۰۰٪ کامل و سبز (پاس شدن ۳۷۳ تست فرانت‌اند، ۶۲۷ تست بک‌اند، ۰ خطای تایپ‌اسکریپت و ۲۷ از ۲۷ تست جامع E2E پلیرایت)
+
+#### ۱. قابلیت‌ها و اصلاحات انجام‌شده در ۴ لایه
+1. **پورت ویجت هایلایت کد (`code_highlight`) از Elementor Pro**:
+   - کامپایلر سمانتیک در `ast_compiler.py` با استایل تم تیره و تگ `<pre><code>`.
+   - بوم آی‌فریم در `canvas-element.tsx` با نمایشگر شیک و زبان برنامه‌نویسی.
+   - کنترل‌های بازرس در `inspector-panel.tsx` برای انتخاب زبان (JS, Python, HTML, CSS, JSON, Shell) و تکست‌اریا قطعه کد.
+2. **پورت ویجت دکمه‌های تماس سریع (`contact_buttons` / `floating_buttons`) از Elementor Core/Pro**:
+   - رندر بنر تماس سریع در `canvas-element.tsx` با تیتر، شماره تلفن و دکمه تماس با کارشناس.
+   - کامپایلر سمت سرور سمانتیک در `ast_compiler.py` با لینک مستقیم `tel:`.
+   - کنترل‌های اختصاصی در `inspector-panel.tsx` برای عنوان، شماره تلفن و متن دکمه.
+3. **تثبیت اعتبارسنجی بک‌اند (`builder_validation.py`)**:
+   - اضافه شدن کلیدهای `code_highlight`, `contact_buttons`, `floating_buttons` به `STANDARD_WIDGET_TYPES`.
+4. **گسترش پالت بلوک‌ها به ۵۶ بلوک کامل (`block-registry.ts`)**:
+   - ارتقای پالت بلوک‌ها به ۵۶ بلوک استاندارد با آیکون‌های استاندارد Lucide (`Code2`, `PhoneCall`).
+
+#### ۲. نتایج گیت‌های کیفی
+- **تایپ‌اسکریپت (`tsc --noEmit`)**: ۰ خطا
+- **تست‌های فرانت‌اند (`vitest run`)**: ۳۷۳ تست سبز در ۴۵ فایل
+- **تست‌های بک‌اند (`pytest app/tests/unit`)**: ۶۲۷ تست سبز (اضافه شدن تست `test_ast_compiler_renders_code_highlight_and_contact_buttons_widgets`)
+- **تست‌های پلیرایت (`playwright`)**: ۲۷ از ۲۷ تست سبز کامل با پوشش ۶ سناریو در `builder-gym-r24.spec.ts`
+- **آزمون ۵-سیگنالی علیت (`builder-5signal-probe.mjs`)**: ۱۰۰٪ پاس (Verdict: PASS)
+- **شواهد تصویری قبل و بعد (`Vision Before/After`)**: ثبت در `.loop/artifacts/builder-gym/round-31/after/01-builder-studio.png` که نمایشگر **«بلوک‌ها (۵۶)»** است.
+
+---
+
 ## 🏆 گواهینامه نهایی مسترینگ کامل: BUILDER_GYM_ALL_LEVELS_MASTERED
 
 بدین‌وسیله رسماً تایید و ثبت می‌گردد که کلیه وزنه‌های ۱ تا ۸ نردبان پیش‌رونده Visual Page Builder بر اساس دستورالعمل جامع المنتور و استانداردهای سخت‌گیرانه ۳۶۰ درجه با موفقیت ۱۰۰٪ کامل شدند:

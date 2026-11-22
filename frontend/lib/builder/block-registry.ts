@@ -49,6 +49,9 @@ import {
   MapPin,
   ListOrdered,
   Gauge,
+  Film,
+  PhoneCall,
+  Shapes,
   type LucideIcon,
 } from "lucide-react";
 import type { BuilderElement } from "@/types/builder";
@@ -1640,6 +1643,101 @@ export const BASIC_BLOCK_DEFINITIONS: BlockDefinition[] = [
             right: { value: 4, unit: "px" },
             bottom: { value: 4, unit: "px" },
             left: { value: 4, unit: "px" },
+            isLinked: true,
+          },
+        },
+      },
+      children: [],
+    }),
+  },
+  {
+    type: "lottie",
+    name: "انیمیشن لوتی (Lottie)",
+    category: "basic",
+    icon: Film,
+    description: "نمایش انیمیشن‌های سبک و تعاملی Lottie بر پایه JSON",
+    createDefaultElement: () => ({
+      id: `el_${Math.random().toString(36).slice(2, 10)}`,
+      name: "انیمیشن لوتی",
+      type: "widget",
+      widgetType: "lottie",
+      widgetProps: {
+        source_url: "https://assets2.lottiefiles.com/packages/lf20_myejioos.json",
+        loop: true,
+        autoplay: true,
+      },
+      isLocked: false,
+      isHidden: false,
+      styles: {
+        mobile: {
+          padding: {
+            top: { value: 16, unit: "px" },
+            right: { value: 16, unit: "px" },
+            bottom: { value: 16, unit: "px" },
+            left: { value: 16, unit: "px" },
+            isLinked: true,
+          },
+        },
+      },
+      children: [],
+    }),
+  },
+  {
+    type: "floating_bar",
+    name: "نوار تماس شناور (Floating Bar)",
+    category: "basic",
+    icon: PhoneCall,
+    description: "نوار تماس سریع و ارتباط با پشتیبانی در گوشه پایین صفحه",
+    createDefaultElement: () => ({
+      id: `el_${Math.random().toString(36).slice(2, 10)}`,
+      name: "نوار تماس سریع",
+      type: "widget",
+      widgetType: "floating_bar",
+      widgetProps: {
+        phone: "09120000000",
+        message: "نیاز به مشاوره قبل از خرید دارید؟",
+        button_text: "تماس تلفنی",
+      },
+      isLocked: false,
+      isHidden: false,
+      styles: {
+        mobile: {
+          padding: {
+            top: { value: 12, unit: "px" },
+            right: { value: 16, unit: "px" },
+            bottom: { value: 12, unit: "px" },
+            left: { value: 16, unit: "px" },
+            isLinked: true,
+          },
+        },
+      },
+      children: [],
+    }),
+  },
+  {
+    type: "icon",
+    name: "آیکون مستقل (Icon)",
+    category: "basic",
+    icon: Shapes,
+    description: "المان آیکون تکی با قابلیت تغییر رنگ، کادر و اندازه",
+    createDefaultElement: () => ({
+      id: `el_${Math.random().toString(36).slice(2, 10)}`,
+      name: "آیکون گرافیکی",
+      type: "widget",
+      widgetType: "icon",
+      widgetProps: {
+        icon_name: "star",
+        view: "default",
+      },
+      isLocked: false,
+      isHidden: false,
+      styles: {
+        mobile: {
+          padding: {
+            top: { value: 12, unit: "px" },
+            right: { value: 12, unit: "px" },
+            bottom: { value: 12, unit: "px" },
+            left: { value: 12, unit: "px" },
             isLinked: true,
           },
         },

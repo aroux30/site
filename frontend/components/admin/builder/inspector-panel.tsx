@@ -2325,6 +2325,76 @@ export function InspectorPanel() {
           </div>
         );
 
+      case "lottie":
+        return (
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs">آدرس منبع انیمیشن (JSON URL)</Label>
+              <Input
+                data-testid="lottie-url-input"
+                value={String(props.source_url || "")}
+                onChange={(e) => handlePropChange("source_url", e.target.value)}
+                className="h-8 text-xs font-mono"
+                dir="ltr"
+              />
+            </div>
+            <div className="flex items-center justify-between text-xs">
+              <span>تکرار پیوسته (Loop)</span>
+              <Switch
+                checked={props.loop !== false}
+                onCheckedChange={(val) => handlePropChange("loop", val)}
+              />
+            </div>
+          </div>
+        );
+
+      case "floating_bar":
+        return (
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs">شماره تماس پشتیبانی</Label>
+              <Input
+                data-testid="floating-bar-phone-input"
+                value={String(props.phone || "")}
+                onChange={(e) => handlePropChange("phone", e.target.value)}
+                className="h-8 text-xs font-mono"
+                dir="ltr"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">پیام ترغیب‌کننده</Label>
+              <Input
+                value={String(props.message || "")}
+                onChange={(e) => handlePropChange("message", e.target.value)}
+                className="h-8 text-xs"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">متن دکمه تماس</Label>
+              <Input
+                value={String(props.button_text || "تماس فوری")}
+                onChange={(e) => handlePropChange("button_text", e.target.value)}
+                className="h-8 text-xs"
+              />
+            </div>
+          </div>
+        );
+
+      case "icon":
+        return (
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs">نام یا نویسه آیکون</Label>
+              <Input
+                data-testid="icon-char-input"
+                value={String(props.icon || "★")}
+                onChange={(e) => handlePropChange("icon", e.target.value)}
+                className="h-8 text-xs text-center font-bold text-lg"
+              />
+            </div>
+          </div>
+        );
+
       default:
         return (
           <div className="text-xs text-muted-foreground py-2">

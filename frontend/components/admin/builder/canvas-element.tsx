@@ -27,6 +27,7 @@ import {
   ArrowUp,
   ArrowDown,
   RotateCw,
+  Phone,
 } from "lucide-react";
 import { SaveTemplateDialog } from "./save-template-dialog";
 import { cn } from "@/lib/utils";
@@ -1877,6 +1878,38 @@ function CanvasElementComponent({
             <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
               <div className="h-full bg-gradient-to-r from-primary to-emerald-500 rounded-full transition-all duration-300" style={{ width: `${pct}%` }} />
             </div>
+          </div>
+        );
+      }
+      case "lottie": {
+        return (
+          <div className="flex flex-col items-center justify-center p-6 rounded-2xl border border-dashed border-primary/40 bg-primary/5 text-center space-y-2 w-full">
+            <span className="w-12 h-12 rounded-2xl bg-primary/20 text-primary flex items-center justify-center text-xl font-bold animate-bounce">
+              ⚡
+            </span>
+            <span className="font-bold text-xs text-foreground">انیمیشن Lottie</span>
+            <span className="text-[10px] text-muted-foreground font-mono">lf20_myejioos.json</span>
+          </div>
+        );
+      }
+      case "floating_bar": {
+        const phone = String(props.phone || "09120000000");
+        const msg = String(props.message || "نیاز به مشاوره دارید؟");
+        const btnText = String(props.button_text || "تماس فوری");
+        return (
+          <div className="flex items-center justify-between p-3.5 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-900 dark:text-emerald-100 w-full shadow-sm">
+            <div className="flex items-center gap-2.5">
+              <span className="w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0">
+                <Phone className="w-4 h-4" />
+              </span>
+              <div className="text-right">
+                <div className="text-xs font-bold">{msg}</div>
+                <div className="text-[10px] font-mono opacity-80" dir="ltr">{phone}</div>
+              </div>
+            </div>
+            <button type="button" className="px-3.5 py-1.5 rounded-xl bg-emerald-600 text-white text-xs font-bold hover:bg-emerald-700 transition shadow">
+              {btnText}
+            </button>
           </div>
         );
       }

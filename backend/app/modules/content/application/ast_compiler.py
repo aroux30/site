@@ -1042,6 +1042,28 @@ class ASTCompiler:
                 f'</div>'
             )
 
+        elif widget_type == "lottie":
+            url = html.escape(str(props.get("source_url", "")))
+            return (
+                f'<div{id_attr} class="builder-lottie flex items-center justify-center p-4 {css_class}" data-widget="lottie" data-lottie-url="{url}"{style_attr}>'
+                f'<div class="w-16 h-16 rounded-xl bg-primary/10 flex items-center justify-center text-primary font-bold text-xs">Lottie</div>'
+                f'</div>'
+            )
+
+        elif widget_type == "floating_bar":
+            phone = html.escape(str(props.get("phone", "09120000000")))
+            msg = html.escape(str(props.get("message", "نیاز به مشاوره دارید؟")))
+            btn_text = html.escape(str(props.get("button_text", "تماس فوری")))
+            return (
+                f'<div{id_attr} class="builder-floating-bar flex items-center justify-between p-3.5 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-900 w-full {css_class}" data-widget="floating_bar"{style_attr}>'
+                f'<div class="text-right">'
+                f'<div class="text-xs font-bold">{msg}</div>'
+                f'<div class="text-[10px] font-mono opacity-80" dir="ltr">{phone}</div>'
+                f'</div>'
+                f'<a href="tel:{phone}" class="px-3.5 py-1.5 rounded-xl bg-emerald-600 text-white text-xs font-bold hover:bg-emerald-700 transition">{btn_text}</a>'
+                f'</div>'
+            )
+
         # Generic fallback for any other registered widget
         fallback_title = html.escape(str(props.get("title", widget_type)))
         return f'<div{id_attr} class="builder-widget builder-{widget_type} {css_class}" data-widget="{html.escape(widget_type)}"{style_attr}>{fallback_title}</div>'

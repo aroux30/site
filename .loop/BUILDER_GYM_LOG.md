@@ -935,6 +935,44 @@
 
 ---
 
+### 🏋️ راند ۲۹ (Round 29) — وزنه ۷: ۸۵ کیلو (پورت و برابری ۴ لایه انیمیشن لوتی، نوار تماس شناور و آیکون مستقل)
+- **تاریخ اجرا**: 2026-11-22
+- **شاخه ایزوله**: `claude/trusting-booth-4a3d0e`
+- **پورت استودیو**: ۴۰۰۱ (`http://127.0.0.1:4001`)
+- **وضعیت**: ✅ کامل و سبز (پیاده‌سازی سبک، غنی و بدون وابستگی ویجت‌های lottie، floating_bar و icon در هر ۴ لایه)
+
+#### ۱. باگ‌های کشف‌شده با ابزار Vision و اصلاحات ریشه‌ای
+1. **فقدان ویجت‌های انیمیشن لوتی، نوار تماس شناور و آیکون گرافیکی در پالت و بازرس**:
+   - *مشاهده در Vision*: در تصاویر `before/02-palette-missing-lottie.png` و `before/03-palette-missing-floating-bar.png`، این ویجت‌ها در پالت بلوک‌ها غایب بودند.
+   - *اصلاح ریشه‌ای*: ثبت رسمی ویجت‌های `lottie` (با آیکون Film)، `floating_bar` (با آیکون PhoneCall) و `icon` (با آیکون Shapes) در [block-registry.ts](frontend/lib/builder/block-registry.ts).
+2. **توسعه فرم‌های مدیریت محتوا در بازرس ([inspector-panel.tsx](frontend/components/admin/builder/inspector-panel.tsx))**:
+   - فرم تنظیم آدرس JSON انیمیشن لوتی به همراه تاگل تکرار پیوسته (Loop).
+   - فرم تنظیم شماره تلفن پشتیبانی، متن ترغیب‌کننده و عنوان دکمه در نوار تماس شناور.
+   - فرم تنظیم نویسه یا کاراکتر آیکون در ویجت آیکون مستقل.
+3. **رندر بوم و برابری کامپایلر سرور ([canvas-element.tsx](frontend/components/admin/builder/canvas-element.tsx) و [ast_compiler.py](backend/app/modules/content/application/ast_compiler.py))**:
+   - رندر هماهنگ انیمیشن در بوم، نوار تماس شکیل با دکمه ارتباط مستقیم و پیوند به پروتکل `tel:` در خروجی HTML سرور.
+
+#### ۲. مستندات بصری (Vision Artifacts)
+- **قبل از اصلاح**: `.loop/artifacts/builder-gym/round-20/before/`
+  - `01-studio-overview.png`
+  - `02-palette-missing-lottie.png` (صفر نتیجه در جستجوی لوتی)
+  - `03-palette-missing-floating-bar.png` (صفر نتیجه در جستجوی شناور)
+- **بعد از اصلاح**: `.loop/artifacts/builder-gym/round-20/after/`
+  - `01-studio-overview.png`
+  - `02-palette-missing-lottie.png` (نمایش کارت انیمیشن لوتی با ۱ نتیجه در پالت)
+  - `03-palette-missing-floating-bar.png` (نمایش کارت نوار تماس شناور با ۱ نتیجه در پالت)
+
+#### ۳. تست رگرسیون دائمی اضافه‌شده
+- فایل تست Playwright: `frontend/tests/e2e/builder-gym-r27.spec.ts` (۲ تست سبز)
+
+#### ۴. نتایج نهایی ممیزی و تست‌ها
+- `npx tsc --noEmit`: ۰ خطا (سبز)
+- `npm test` (Vitest): **۳۷۲ تست سبز در ۴۵ فایل** (`372 passed`)
+- `python -m pytest app/tests/unit`: **۶۲۲ تست سبز** (`622 passed, 2 skipped`)
+- تست‌های Playwright ترکیبی (راند ۲۱ تا ۲۷): **۱۵ تست سبز در ۲۵.۳ ثانیه**
+
+---
+
 ## 🏆 گواهینامه نهایی مسترینگ کامل: BUILDER_GYM_ALL_LEVELS_MASTERED
 
 بدین‌وسیله رسماً تایید و ثبت می‌گردد که کلیه وزنه‌های ۱ تا ۸ نردبان پیش‌رونده Visual Page Builder بر اساس دستورالعمل جامع المنتور و استانداردهای سخت‌گیرانه ۳۶۰ درجه با موفقیت ۱۰۰٪ کامل شدند:

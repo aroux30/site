@@ -900,6 +900,42 @@
 
 ---
 
+### 🏋️ راند ۲۸ (Round 28) — وزنه ۲: ۱۵ کیلو (کنترل ستون برجسته جدول در بازرس و برابری ۱۰۰٪ کامپایلر سرور با بوم)
+- **تاریخ اجرا**: 2026-11-22
+- **شاخه ایزوله**: `claude/nifty-snyder-d5b886`
+- **پورت فرانت‌اند**: ۴۰۰۲
+- **وضعیت**: ✅ کامل و سبز (اتصال کامل ستون برجسته جدول میان بازرس، استور، بوم و کامپایلر SSR با Vision تایید شد)
+
+#### ۱. باگ‌های کشف‌شده با ابزار Vision و تعامل
+1. **فقدان کنترل ستون برجسته (Highlight Column) جدول در پنل بازرس (`Table Highlight Column Inspector Missing`)**:
+   - *مشاهده*: هر دو لایه بوم (`canvas-element.tsx`) و کامپایلر بک‌اند از پروپرتی `highlightCol` برای هایلایت رنگی و کادر ستون شاخص (نظیر ستون پرو در جداول مقایسه) پشتیبانی می‌کردند اما در پنل بازرس هیچ کنترلی برای انتخاب آن وجود نداشت.
+   - *اصلاح ریشه‌ای*: اضافه شدن فیلد انتخابگر داینامیک ستون شاخص با شناسه تست `table-highlight-col-select` به تنظیمات جدول در `inspector-panel.tsx`.
+2. **عدم اعمال کلاس‌های هایلایت ستون در هدر و سطرهای جدول سمت سرور (`SSR AST Table Highlight Column Classes Missing`)**:
+   - *مشاهده*: در `ast_compiler.py` تگ‌های `th` و `td` بدون بررسی `highlightCol` رندر می‌شدند و در نتیجه جدول در صفحه رندرشده نهایی فاقد هایلایت ستون بود.
+   - *اصلاح ریشه‌ای*: تزریق کلاس‌های `bg-primary/10 text-primary font-bold border-x border-primary/20` برای هدر و `bg-primary/5 border-x border-primary/20 font-semibold` برای سلول‌های ستون شاخص در `ast_compiler.py`.
+
+#### ۲. مستندات بصری (Vision Artifacts)
+- **قبل از اصلاح**: `.loop/artifacts/builder-gym/round-28/before/`
+  - `01-studio-overview.png`
+  - `02-table-selected.png`
+  - `report.json`
+- **بعد از اصلاح**: `.loop/artifacts/builder-gym/round-28/after/`
+  - `01-studio-overview.png`
+  - `02-table-highlighted.png` (نمایش منوی انتخاب ستون شاخص و اعمال بلادرنگ بر ستون ۲)
+  - `report.json`
+
+#### ۳. تست‌های رگرسیون دائمی اضافه‌شده
+- فایل تست Playwright: `frontend/tests/e2e/builder-gym-r28.spec.ts` (۲ تست سبز)
+- فایل تست پایتون: `backend/app/tests/unit/test_ast_compiler.py::test_ast_compiler_renders_round28_table_highlight_column_parity` (۱ تست سبز)
+
+#### ۴. نتایج نهایی ممیزی و تست‌ها در راند ۲۸
+- `npx --prefix frontend tsc --noEmit`: ۰ خطا (سبز)
+- `npm --prefix frontend test -- --run`: **۳۷۲ تست سبز در ۴۵ فایل** (`372 passed`)
+- `python -m pytest app/tests/unit`: **۶۲۷ تست سبز** (`627 passed, 2 skipped`)
+- تست‌های Playwright راند ۲۸: **۲ تست سبز (`2 passed in 14.8s`) روی پورت ۴۰۰۲**
+
+---
+
 ## 🏆 گواهینامه نهایی مسترینگ کامل: BUILDER_GYM_ALL_LEVELS_MASTERED
 
 بدین‌وسیله رسماً تایید و ثبت می‌گردد که کلیه وزنه‌های ۱ تا ۸ نردبان پیش‌رونده Visual Page Builder بر اساس دستورالعمل جامع المنتور و استانداردهای سخت‌گیرانه ۳۶۰ درجه با موفقیت ۱۰۰٪ کامل شدند:

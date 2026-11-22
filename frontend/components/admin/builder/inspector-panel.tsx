@@ -547,6 +547,25 @@ export function InspectorPanel() {
                 onCheckedChange={(val) => handlePropChange("striped", val)}
               />
             </div>
+            <div className="space-y-1.5 pt-1 border-t">
+              <Label className="text-xs">ستون برجسته (Highlight Column)</Label>
+              <Select
+                value={props.highlightCol !== undefined && props.highlightCol !== null ? String(props.highlightCol) : "none"}
+                onValueChange={(val) => handlePropChange("highlightCol", val === "none" ? null : parseInt(val, 10))}
+              >
+                <SelectTrigger className="h-8 text-xs" data-testid="table-highlight-col-select">
+                  <SelectValue placeholder="انتخاب ستون" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">بدون ستون برجسته</SelectItem>
+                  {headers.map((h, idx) => (
+                    <SelectItem key={idx} value={String(idx)}>
+                      ستون {idx + 1} ({h || `ستون ${idx + 1}`})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         );
       }

@@ -786,6 +786,47 @@ def test_ast_compiler_renders_round27_countdown_and_iconbox_customizations():
     assert 'تحویل ۳ ساعته در تهران' in result
 
 
+def test_ast_compiler_renders_round28_table_highlight_column_parity():
+    """Verify that table widget compiles highlightCol with distinctive styling in thead and tbody."""
+    ast = PageAST(
+        schema_version=1,
+        title="تست جدول راند ۲۸",
+        slug="test-r28-table",
+        root_elements=[
+            BuilderElement(
+                id="el_sec_r28",
+                name="بخش ۲۸",
+                type="container",
+                children=[
+                    BuilderElement(
+                        id="el_tbl_custom",
+                        name="جدول مقایسه",
+                        type="widget",
+                        widget_type="table",
+                        widget_props={
+                            "headers": ["ویژگی", "مدل پایه", "مدل پرو"],
+                            "rows": [
+                                ["گارانتی", "۱۲ ماه", "۲۴ ماه طلایی"],
+                                ["ارسال", "عادی", "اکسپرس رایگان"],
+                            ],
+                            "bordered": True,
+                            "striped": True,
+                            "highlightCol": 2,
+                        },
+                    ),
+                ],
+            )
+        ],
+    )
+    result = ASTCompiler.compile(ast)
+    assert 'builder-table' in result
+    assert 'مدل پرو</th>' in result
+    assert 'bg-primary/10 text-primary font-bold border-x border-primary/20' in result
+    assert '۲۴ ماه طلایی</td>' in result
+    assert 'bg-primary/5 border-x border-primary/20 font-semibold' in result
+
+
+
 
 
 

@@ -318,6 +318,7 @@ class ASTCompiler:
             rows = props.get("rows", [])
             bordered = props.get("bordered", True)
             striped = props.get("striped", True)
+            highlight_col = int(props.get("highlightCol", -1)) if props.get("highlightCol") is not None else -1
             table_classes = ["w-full", "border-collapse", "text-right", "text-sm"]
             if bordered:
                 table_classes.append("border border-border/80 rounded-xl overflow-hidden")
@@ -325,8 +326,8 @@ class ASTCompiler:
             thead_html = ""
             if headers:
                 th_cells = "".join(
-                    f'<th class="p-4 font-semibold text-muted-foreground border-b border-border/80">{html.escape(str(h))}</th>'
-                    for h in headers
+                    f'<th class="p-4 font-semibold text-muted-foreground border-b border-border/80{" bg-primary/10 text-primary font-bold border-x border-primary/20" if highlight_col == i else ""}">{html.escape(str(h))}</th>'
+                    for i, h in enumerate(headers)
                 )
                 thead_html = f'<thead><tr class="bg-muted/40">{th_cells}</tr></thead>'
 
@@ -336,8 +337,8 @@ class ASTCompiler:
                 if striped and idx % 2 == 1:
                     tr_class += " bg-muted/10"
                 td_cells = "".join(
-                    f'<td class="p-4 text-foreground border-b border-border/60">{html.escape(str(cell))}</td>'
-                    for cell in row
+                    f'<td class="p-4 text-foreground border-b border-border/60{" bg-primary/5 border-x border-primary/20 font-semibold" if highlight_col == c_idx else ""}">{html.escape(str(cell))}</td>'
+                    for c_idx, cell in enumerate(row)
                 )
                 tbody_rows.append(f'<tr class="{tr_class}">{td_cells}</tr>')
 

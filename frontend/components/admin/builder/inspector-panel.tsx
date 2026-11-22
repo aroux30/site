@@ -14,6 +14,7 @@ import {
   Unlink,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
@@ -2316,6 +2317,73 @@ export function InspectorPanel() {
                 value={String(props.icon || "★")}
                 onChange={(e) => handlePropChange("icon", e.target.value)}
                 className="h-8 text-xs font-mono"
+              />
+            </div>
+          </div>
+        );
+
+      case "code_highlight":
+        return (
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs">عنوان یا نام فایل</Label>
+              <Input
+                data-testid="code-title-input"
+                value={String(props.title || "")}
+                placeholder="مثلاً index.ts یا script.py"
+                onChange={(e) => handlePropChange("title", e.target.value)}
+                className="h-8 text-xs font-mono"
+                dir="ltr"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">زبان برنامه‌نویسی (Language)</Label>
+              <Select
+                value={String(props.language || "javascript")}
+                onValueChange={(val) => handlePropChange("language", val)}
+              >
+                <SelectTrigger data-testid="code-lang-select" className="h-8 text-xs font-mono" dir="ltr">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent dir="ltr">
+                  <SelectItem value="javascript">JavaScript / Node.js</SelectItem>
+                  <SelectItem value="typescript">TypeScript</SelectItem>
+                  <SelectItem value="python">Python</SelectItem>
+                  <SelectItem value="html">HTML</SelectItem>
+                  <SelectItem value="css">CSS / Tailwind</SelectItem>
+                  <SelectItem value="json">JSON</SelectItem>
+                  <SelectItem value="sql">SQL / PostgreSQL</SelectItem>
+                  <SelectItem value="bash">Bash / Shell</SelectItem>
+                  <SelectItem value="php">PHP</SelectItem>
+                  <SelectItem value="rust">Rust</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">محتوای کد منبع</Label>
+              <Textarea
+                data-testid="code-content-textarea"
+                value={String(props.code || "")}
+                onChange={(e) => handlePropChange("code", e.target.value)}
+                className="font-mono text-xs leading-relaxed min-h-[120px] bg-muted/40"
+                dir="ltr"
+                placeholder="کد خود را اینجا وارد کنید..."
+              />
+            </div>
+            <div className="flex items-center justify-between pt-1">
+              <Label className="text-xs">نمایش شماره خطوط (Line Numbers)</Label>
+              <Switch
+                data-testid="code-linenumbers-switch"
+                checked={props.line_numbers !== false}
+                onCheckedChange={(val) => handlePropChange("line_numbers", val)}
+              />
+            </div>
+            <div className="flex items-center justify-between pt-1">
+              <Label className="text-xs">دکمه کپی در کلیپ‌بورد</Label>
+              <Switch
+                data-testid="code-copybtn-switch"
+                checked={props.copy_to_clipboard !== false}
+                onCheckedChange={(val) => handlePropChange("copy_to_clipboard", val)}
               />
             </div>
           </div>

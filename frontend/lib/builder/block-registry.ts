@@ -1339,6 +1339,30 @@ export const BASIC_BLOCK_DEFINITIONS: BlockDefinition[] = [
       children: [],
     }),
   },
+  {
+    type: "code_highlight",
+    name: "بلوک کد (Code Highlight)",
+    category: "basic",
+    icon: Code,
+    description: "نمایش بلوک‌های کد با زبان‌های مختلف، هایلایت، شماره خطوط و دکمه کپی",
+    createDefaultElement: () => ({
+      id: `el_${Math.random().toString(36).slice(2, 10)}`,
+      name: "بلوک کد",
+      type: "widget",
+      widgetType: "code_highlight",
+      widgetProps: {
+        title: "example.js",
+        language: "javascript",
+        code: `// کد نمونه جاوااسکریپت\nfunction greet(name) {\n  console.log("درود بر " + name);\n}\ngreet("ایران");`,
+        line_numbers: true,
+        copy_to_clipboard: true,
+      },
+      isLocked: false,
+      isHidden: false,
+      styles: { mobile: {} },
+      children: [],
+    }),
+  },
 ];
 
 import { createPatternAST } from "./pattern-converter";

@@ -1277,6 +1277,46 @@ def test_ast_compiler_renders_round39_share_buttons():
     assert 'کانال ایتا' in result
 
 
+def test_ast_compiler_renders_round40_code_highlight():
+    """Verify that code_highlight widget compiles code block, language badge, line numbers, and copy button in SSR."""
+    ast = PageAST(
+        schema_version=1,
+        title="تست راند ۴۰",
+        slug="test-r40-code",
+        root_elements=[
+            BuilderElement(
+                id="el_sec_r40",
+                name="بخش ۴۰",
+                type="container",
+                children=[
+                    BuilderElement(
+                        id="el_code_custom",
+                        name="بلوک کد پایتون",
+                        type="widget",
+                        widget_type="code_highlight",
+                        widget_props={
+                            "title": "script.py",
+                            "language": "python",
+                            "code": 'def calculate_total(items):\n    return sum(item["price"] for item in items)',
+                            "line_numbers": True,
+                            "copy_to_clipboard": True,
+                        },
+                    ),
+                ],
+            )
+        ],
+    )
+    result = ASTCompiler.compile(ast)
+    assert 'builder-code-highlight' in result
+    assert 'script.py' in result
+    assert 'language-python' in result
+    assert 'code-line-numbers' in result
+    assert 'calculate_total' in result
+    assert 'code-copy-btn' in result
+    assert 'dir="ltr"' in result
+
+
+
 
 
 

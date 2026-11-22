@@ -1327,6 +1327,52 @@
 
 ---
 
+### 🏋️ راند ۴۰ (Round 40) — وزنه ۷: ۸۵ کیلو (پورت ویجت حرفه‌ای بلوک کد Code Highlight از Elementor Pro به ۴ لایه بیلدر با ویوپورت ۱۰۸۰×۱۹۲۰)
+- **تاریخ اجرا**: 2026-11-22
+- **شاخه ایزوله**: `claude/nifty-snyder-d5b886`
+- **پورت فرانت‌اند**: ۴۰۰۲
+- **ویوپورت بازرسی عمیق انسانی**: ۱۹۲۰ در ۱۰۸۰ پیکسل (Full HD)
+- **وضعیت**: ✅ کامل و سبز (پورت ویجت بلوک کد حرفه‌ای با ۱۰ زبان، شماره خطوط، دکمه کپی و بررسی ۳۶۰ درجه دسترسی‌پذیری و ریسپانسیو ستون راست، وسط و چپ)
+
+#### ۱. قابلیت‌ها و اصلاحات انجام‌شده
+1. **پورت ویجت بلوک کد (`code_highlight`) از Elementor Pro**:
+   - مرجع المنتور: `elementor-pro/modules/code-highlight/widgets/code-highlight.php`.
+   - اضافه شدن به پالت پایه‌ای در `block-registry.ts` (افزایش بلوک‌ها به ۴۸ بلوک).
+   - پیاده‌سازی کنترل‌های بازرس با ورودی عنوان/نام فایل (`code-title-input`)، سلکتور ۱۰ زبان برنامه‌نویسی (`code-lang-select`: JavaScript, TypeScript, Python, HTML, CSS, JSON, SQL, Bash, PHP, Rust)، ویرایشگر متن کد (`code-content-textarea`)، سوئیچ شماره خطوط (`code-linenumbers-switch`) و سوئیچ دکمه کپی (`code-copybtn-switch`) در `inspector-panel.tsx`.
+   - پیاده‌سازی رندرینگ زنده با استایل ترمینال دارک، هدر مدرن با دکمه‌های کنترلی سیستم‌عامل، شماره خطوط منظم، فونت مونو و دکمه کپی در `canvas-element.tsx`.
+   - پیاده‌سازی کامپایل سمانتیک SSR با تگ‌های `<pre>`، `<code>`، کلاس‌های زبانی و شماره خطوط در `ast_compiler.py`.
+2. **بررسی ۳۶۰ درجه فضای سه‌گانه استودیو در رزولوشن 1920x1080**:
+   - ستون راست (پالت بلوک‌ها، ناویگیتور لایه‌ها، تاریخچه تغییرات): کاملاً در دسترس، روان و بدون هم‌پوشانی.
+   - ستون وسط (بوم زنده و فریم): چینش متعادل با دید کامل به المنت‌های بوم و نوار ابزار بالا.
+   - ستون چپ (پنل بازرس): تب‌های محتوا، استایل و پیشرفته کاملاً خوانا و ریسپانسیو.
+
+#### ۲. مستندات بصری (Vision Artifacts)
+- **قبل از اصلاح**: `.loop/artifacts/builder-gym/round-40/before/`
+  - `01-studio-1920x1080.png`
+  - `02-right-sidebar-palette.png`
+  - `03-right-sidebar-layers.png`
+  - `04-right-sidebar-history.png`
+  - `05-left-inspector.png`
+  - `06-palette-search-code.png`
+  - `report.json`
+- **بعد از اصلاح**: `.loop/artifacts/builder-gym/round-40/after/`
+  - `01-studio-1920x1080.png`
+  - `02-palette-search-code.png`
+  - `03-code-customized-1920x1080.png` (اعمال موفق عنوان `script.py`، هایلایت پایتون و کد در بوم زنده)
+  - `report.json`
+
+#### ۳. تست‌های رگرسیون دائمی اضافه‌شده
+- فایل تست Playwright: `frontend/tests/e2e/builder-gym-r40.spec.ts` (۲ تست سبز در ابعاد 1920x1080)
+- فایل تست پایتون: `backend/app/tests/unit/test_ast_compiler.py::test_ast_compiler_renders_round40_code_highlight` (۱ تست سبز)
+
+#### ۴. نتایج نهایی ممیزی و تست‌ها در راند ۴۰
+- `npx --prefix frontend tsc --noEmit`: ۰ خطا (سبز)
+- `npm --prefix frontend test -- --run`: **۳۷۲ تست سبز در ۴۵ فایل** (`372 passed`)
+- `python -m pytest app/tests/unit`: **۶۳۹ تست سبز** (`639 passed, 2 skipped`)
+- تست‌های Playwright راند ۴۰: **۲ تست سبز (`2 passed in 10.4s`) در ویوپورت 1920x1080 روی پورت ۴۰۰۲**
+
+---
+
 ## 🏆 گواهینامه نهایی مسترینگ کامل: BUILDER_GYM_ALL_LEVELS_MASTERED
 
 بدین‌وسیله رسماً تایید و ثبت می‌گردد که کلیه وزنه‌های ۱ تا ۸ نردبان پیش‌رونده Visual Page Builder بر اساس دستورالعمل جامع المنتور و استانداردهای سخت‌گیرانه ۳۶۰ درجه با موفقیت ۱۰۰٪ کامل شدند:

@@ -1808,6 +1808,65 @@ function CanvasElementComponent({
           </div>
         );
       }
+      case "code_highlight": {
+        const title = props.title ? String(props.title) : "";
+        const language = String(props.language || "javascript");
+        const codeText = String(
+          props.code ||
+            '// Sample Code\nfunction greet(name) {\n  console.log("Hello, " + name);\n}\ngreet("World");'
+        );
+        const showLineNumbers = props.line_numbers !== false;
+        const showCopy = props.copy_to_clipboard !== false;
+        const lines = codeText.split("\n");
+
+        return (
+          <div
+            className="w-full rounded-2xl border border-slate-800 bg-slate-950 text-slate-100 shadow-md overflow-hidden text-left font-mono text-xs"
+            dir="ltr"
+          >
+            {(title || showCopy || language) && (
+              <div className="flex items-center justify-between px-4 py-2 border-b border-slate-800/80 bg-slate-900/80 text-[11px] text-slate-400">
+                <div className="flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-rose-500/80 inline-block" />
+                  <span className="w-2.5 h-2.5 rounded-full bg-amber-500/80 inline-block" />
+                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-500/80 inline-block" />
+                  <span className="font-bold text-slate-300 ms-1">{title || language.toUpperCase()}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">{language}</span>
+                  {showCopy && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (typeof navigator !== "undefined" && navigator.clipboard) {
+                          navigator.clipboard.writeText(codeText);
+                        }
+                      }}
+                      className="px-2 py-0.5 rounded border border-slate-700 hover:bg-slate-800 hover:text-slate-200 text-slate-400 transition text-[10px] flex items-center gap-1"
+                    >
+                      <Copy className="w-3 h-3" />
+                      <span>کپی</span>
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
+            <div className="p-3.5 overflow-x-auto flex leading-relaxed">
+              {showLineNumbers && (
+                <div className="select-none text-slate-600 text-right pe-3 me-3 border-e border-slate-800/80 shrink-0 font-mono text-[11px]">
+                  {lines.map((_, i) => (
+                    <div key={i}>{i + 1}</div>
+                  ))}
+                </div>
+              )}
+              <pre className="flex-1 font-mono text-[12px] text-emerald-400 whitespace-pre overflow-x-auto">
+                <code>{codeText}</code>
+              </pre>
+            </div>
+          </div>
+        );
+      }
       default:
         return (
           <div className="rounded-lg border border-dashed border-border p-4 text-center text-sm text-muted-foreground">

@@ -987,6 +987,48 @@ class ASTCompiler:
                 f'</div>'
             )
 
+        elif widget_type == "code_highlight":
+            title = html.escape(str(props.get("title", "")))
+            language = html.escape(str(props.get("language", "javascript")))
+            code_text = html.escape(str(props.get("code", "")))
+            show_lines = props.get("line_numbers", True) is not False
+            show_copy = props.get("copy_to_clipboard", True) is not False
+
+            lines = code_text.split("\n")
+            lines_gutter = ""
+            if show_lines:
+                lines_nums = "".join(f"<div>{i+1}</div>" for i in range(len(lines)))
+                lines_gutter = f'<div class="code-line-numbers select-none text-slate-600 text-right pe-3 me-3 border-e border-slate-800 font-mono text-[11px]">{lines_nums}</div>'
+
+            header_dots = (
+                '<div class="flex items-center gap-1.5">'
+                '<span class="w-2.5 h-2.5 rounded-full bg-rose-500/80 inline-block"></span>'
+                '<span class="w-2.5 h-2.5 rounded-full bg-amber-500/80 inline-block"></span>'
+                '<span class="w-2.5 h-2.5 rounded-full bg-emerald-500/80 inline-block"></span>'
+                f'<span class="font-bold text-slate-300 ms-1.5">{title or language.upper()}</span>'
+                '</div>'
+            )
+            copy_btn = (
+                f'<button type="button" class="code-copy-btn px-2 py-0.5 rounded border border-slate-700 text-slate-400 hover:text-slate-200 text-[10px] transition" data-code="{code_text}">کپی</button>'
+                if show_copy else ""
+            )
+            header_bar = (
+                f'<div class="code-header flex items-center justify-between px-4 py-2 border-b border-slate-800 bg-slate-900 text-[11px] text-slate-400">'
+                f'{header_dots}'
+                f'<div class="flex items-center gap-2"><span class="text-[10px] uppercase font-bold text-slate-500 tracking-wider">{language}</span>{copy_btn}</div>'
+                f'</div>'
+            )
+
+            return (
+                f'<div{id_attr} class="builder-code-highlight rounded-2xl border border-slate-800 bg-slate-950 text-slate-100 shadow-md overflow-hidden text-left font-mono text-xs w-full {css_class}" data-widget="code_highlight" dir="ltr"{style_attr}>'
+                f'{header_bar}'
+                f'<div class="p-3.5 overflow-x-auto flex leading-relaxed">'
+                f'{lines_gutter}'
+                f'<pre class="flex-1 font-mono text-[12px] text-emerald-400 whitespace-pre overflow-x-auto"><code class="language-{language}">{code_text}</code></pre>'
+                f'</div>'
+                f'</div>'
+            )
+
         # Generic fallback for any other registered widget
         fallback_title = html.escape(str(props.get("title", widget_type)))
         return f'<div{id_attr} class="builder-widget builder-{widget_type} {css_class}" data-widget="{html.escape(widget_type)}"{style_attr}>{fallback_title}</div>'

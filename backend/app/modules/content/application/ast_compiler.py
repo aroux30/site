@@ -1101,12 +1101,15 @@ class ASTCompiler:
             code = html.escape(str(props.get("code", "console.log('Hello, World!');")))
             lang = html.escape(str(props.get("language", "javascript")))
             line_numbers = props.get("line_numbers", True)
-            ln_cls = "line-numbers" if line_numbers else ""
+            ln_cls = "code-line-numbers" if line_numbers else ""
+            title = html.escape(str(props.get("title", "")))
+            copy_btn = '<button type="button" class="code-copy-btn text-[10px] bg-zinc-800 px-2 py-0.5 rounded text-zinc-300">کپی</button>' if props.get("copy_to_clipboard") else '<span class="text-zinc-600">code</span>'
+            header_title = f'<span class="font-bold">{title}</span>' if title else f'<span>{lang}</span>'
             return (
                 f'<div{id_attr} class="builder-code-highlight my-3 rounded-2xl overflow-hidden border border-border/80 bg-zinc-950 text-zinc-100 font-mono text-xs text-left {css_class}" data-widget="code_highlight" dir="ltr"{style_attr}>'
                 f'<div class="px-4 py-2 border-b border-zinc-800 bg-zinc-900/60 text-zinc-400 text-[10px] flex items-center justify-between">'
-                f'<span>{lang}</span>'
-                f'<span class="text-zinc-600">code</span>'
+                f'{header_title}'
+                f'{copy_btn}'
                 f'</div>'
                 f'<pre class="p-4 overflow-x-auto {ln_cls}"><code class="language-{lang}">{code}</code></pre>'
                 f'</div>'
@@ -1342,6 +1345,27 @@ class ASTCompiler:
                 f'</div>'
                 f'<button type="submit" class="px-5 py-2.5 rounded-xl bg-primary text-primary-foreground text-xs font-bold shadow-xs hover:bg-primary/90 transition">{btn_text}</button>'
                 f'</form>'
+            )
+
+        elif widget_type == "breadcrumbs":
+            items = props.get("items", [{"label": "صفحه اصلی", "url": "/"}])
+            sep = html.escape(str(props.get("separator", "/")))
+            crumbs_html = ""
+            if isinstance(items, list):
+                for idx, crumb in enumerate(items):
+                    lbl = html.escape(str(crumb.get("label", "")))
+                    url = html.escape(str(crumb.get("url", "")))
+                    is_last = idx == len(items) - 1 or not url
+                    if is_last:
+                        crumbs_html += f'<li class="text-muted-foreground" aria-current="page"><span>{lbl}</span></li>'
+                    else:
+                        crumbs_html += f'<li><a href="{url}" class="text-foreground hover:text-primary transition">{lbl}</a></li>'
+                    if idx < len(items) - 1:
+                        crumbs_html += f'<li class="text-muted-foreground/60 select-none" aria-hidden="true">{sep}</li>'
+            return (
+                f'<nav{id_attr} class="builder-breadcrumbs my-2 text-xs {css_class}" data-widget="breadcrumbs" aria-label="مسیر راهنما"{style_attr}>'
+                f'<ol class="flex items-center gap-2 list-none m-0 p-0">{crumbs_html}</ol>'
+                f'</nav>'
             )
 
         elif widget_type == "nav_menu":

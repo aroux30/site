@@ -70,7 +70,7 @@ test.describe("Builder Wave 1: Elementor Parity (Transform, Mask & Shape Divider
     }
 
     // Input rotate deg
-    const rotateInput = page.locator('input[type="number"][dir="ltr"]').first();
+    const rotateInput = page.locator('[data-testid="transform-rotate-input"]');
     if (await rotateInput.isVisible()) {
       await rotateInput.fill("15");
       await page.waitForTimeout(400);

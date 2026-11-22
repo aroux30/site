@@ -313,23 +313,9 @@ export function BuilderToolbar({
           onClick={() => setGlobalStylesOpen(true)}
           className="h-8 gap-1.5 text-xs text-muted-foreground hover:text-foreground"
           title="استایل‌های سراسری برگه"
-          aria-label="استایل سراسری"
-          data-testid="global-styles-btn"
         >
           <Paintbrush className="w-3.5 h-3.5" />
           <span className="hidden sm:inline">استایل سراسری</span>
-        </Button>
-
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => setShortcutsOpen(true)}
-          className="h-8 gap-1.5 text-xs text-muted-foreground hover:text-foreground"
-          title="راهنمای کلیدهای میانبر (Shift+?)"
-          data-testid="hotkeys-btn"
-        >
-          <Keyboard className="w-3.5 h-3.5" />
-          <span className="hidden sm:inline">میانبرها</span>
         </Button>
 
         <Button
@@ -340,6 +326,18 @@ export function BuilderToolbar({
         >
           {previewMode ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
           <span className="hidden sm:inline">{previewMode ? "ویرایش" : "پیش‌نمایش"}</span>
+        </Button>
+
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setShortcutsOpen(true)}
+          className="h-8 gap-1.5 text-xs text-muted-foreground hover:text-foreground"
+          title="راهنمای کلیدهای میانبر (Shift+?)"
+          data-testid="shortcuts-help-btn"
+        >
+          <Keyboard className="w-3.5 h-3.5" />
+          <span className="hidden sm:inline">میانبرها</span>
         </Button>
 
         <Button

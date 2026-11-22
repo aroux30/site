@@ -1070,6 +1070,19 @@ class ASTCompiler:
                 f'</div>'
             )
 
+        elif widget_type == "multi_step_form":
+            steps = props.get("steps", ["مرحله ۱", "مرحله ۲", "مرحله ۳"])
+            steps_html = "".join(
+                f'<span class="text-xs font-bold px-2 py-1 bg-primary/10 text-primary rounded-lg">{html.escape(str(s))}</span>'
+                for s in steps
+            )
+            return (
+                f'<div{id_attr} class="builder-multistep-form p-6 rounded-2xl border border-border/80 bg-card space-y-4 text-right {css_class}" data-widget="multi_step_form"{style_attr}>'
+                f'<div class="flex items-center gap-2 border-b border-border/60 pb-3">{steps_html}</div>'
+                f'<div class="py-2 text-xs text-muted-foreground">فرم چندمرحله‌ای سازنده</div>'
+                f'</div>'
+            )
+
         # Generic fallback for any other registered widget
         fallback_title = html.escape(str(props.get("title", widget_type)))
         return f'<div{id_attr} class="builder-widget builder-{widget_type} {css_class}" data-widget="{html.escape(widget_type)}"{style_attr}>{fallback_title}</div>'

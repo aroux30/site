@@ -1011,6 +1011,45 @@
 
 ---
 
+### 🏋️ راند ۳۱ (Round 31) — وزنه ۸: ۱۰۰ کیلو (پورت و برابری ۴ لایه حلقه تکرارشونده پویا Loop Grid و فرم چندمرحله‌ای Multi-Step Form)
+- **تاریخ اجرا**: 2026-11-22
+- **شاخه ایزوله**: `claude/trusting-booth-4a3d0e`
+- **پورت استودیو**: ۴۰۰۱ (`http://127.0.0.1:4001`)
+- **وضعیت**: ✅ کامل و سبز (پیاده‌سازی سبک، غنی و بدون وابستگی ماژول‌های loop_grid و multi_step_form در هر ۴ لایه)
+
+#### ۱. باگ‌های کشف‌شده با ابزار Vision و اصلاحات ریشه‌ای
+1. **فقدان ماژول‌های پیشرفته Loop Builder و فرم چندمرحله‌ای در پالت بلوک‌ها**:
+   - *مشاهده در Vision*: در تصاویر `before/02-palette-missing-loop-grid.png` و `before/03-palette-missing-multi-step.png`، جستجوی عبارت «حلقه پویا» و «چندمرحله‌ای» صفر نتیجه داشت.
+   - *اصلاح ریشه‌ای*: ثبت رسمی ویجت‌های `loop_grid` (با آیکون RefreshCw) و `multi_step_form` (با آیکون ListTree) در [block-registry.ts](frontend/lib/builder/block-registry.ts).
+2. **توسعه فرم‌های مدیریت محتوا در بازرس ([inspector-panel.tsx](frontend/components/admin/builder/inspector-panel.tsx))**:
+   - فرم تنظیم منبع داده (محصولات، مقالات) و حداکثر تعداد نمایش در حلقه پویا.
+   - فرم تنظیم شماره مرحله جاری پیش‌نمایش در فرم چندمرحله‌ای.
+3. **رندر بوم و برابری کامپایلر سرور ([canvas-element.tsx](frontend/components/admin/builder/canvas-element.tsx) و [ast_compiler.py](backend/app/modules/content/application/ast_compiler.py))**:
+   - رندر شکیل شمارنده‌های مرحله‌ای، فیلدهای ورودی هر گام و دکمه‌های ناوبری قبلی/بعدی در فرم چندمرحله‌ای.
+   - رندر گرید متصل به کاتالوگ با کارت‌های محصولات در حلقه پویا.
+   - کامپایل استاندارد، امن و ریسپانسیو در سرور.
+
+#### ۲. مستندات بصری (Vision Artifacts)
+- **قبل از اصلاح**: `.loop/artifacts/builder-gym/round-22/before/`
+  - `01-studio-overview.png`
+  - `02-palette-missing-loop-grid.png` (صفر نتیجه در جستجوی حلقه پویا)
+  - `03-palette-missing-multi-step.png` (صفر نتیجه در جستجوی فرم چندمرحله‌ای)
+- **بعد از اصلاح**: `.loop/artifacts/builder-gym/round-22/after/`
+  - `01-studio-overview.png`
+  - `02-palette-missing-loop-grid.png` (نمایش کارت حلقه پویا با ۱ نتیجه در پالت)
+  - `03-palette-missing-multi-step.png` (نمایش کارت فرم چندمرحله‌ای با ۱ نتیجه در پالت)
+
+#### ۳. تست رگرسیون دائمی اضافه‌شده
+- فایل تست Playwright: `frontend/tests/e2e/builder-gym-r29.spec.ts` (۲ تست سبز)
+
+#### ۴. نتایج نهایی ممیزی و تست‌ها
+- `npx tsc --noEmit`: ۰ خطا (سبز)
+- `npm test` (Vitest): **۳۷۲ تست سبز در ۴۵ فایل** (`372 passed`)
+- `python -m pytest app/tests/unit`: **۶۲۲ تست سبز** (`622 passed, 2 skipped`)
+- تست‌های Playwright ترکیبی (راند ۲۱ تا ۲۹): **۱۹ تست سبز در ۳۱.۹ ثانیه**
+
+---
+
 ## 🏆 گواهینامه نهایی مسترینگ کامل: BUILDER_GYM_ALL_LEVELS_MASTERED
 
 بدین‌وسیله رسماً تایید و ثبت می‌گردد که کلیه وزنه‌های ۱ تا ۸ نردبان پیش‌رونده Visual Page Builder بر اساس دستورالعمل جامع المنتور و استانداردهای سخت‌گیرانه ۳۶۰ درجه با موفقیت ۱۰۰٪ کامل شدند:

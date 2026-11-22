@@ -2464,6 +2464,59 @@ export function InspectorPanel() {
           </div>
         );
 
+      case "loop_grid":
+        return (
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs">منبع داده حلقه (Data Source)</Label>
+              <Select
+                value={String(props.source || "products")}
+                onValueChange={(val) => handlePropChange("source", val)}
+              >
+                <SelectTrigger data-testid="loop-source-select" className="h-8 text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="products">محصولات فروشگاه</SelectItem>
+                  <SelectItem value="posts">مقالات وبلاگ</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">حداکثر تعداد نمایش</Label>
+              <Input
+                data-testid="loop-limit-input"
+                type="number"
+                min={1}
+                max={24}
+                value={Number(props.limit || 6)}
+                onChange={(e) => handlePropChange("limit", parseInt(e.target.value, 10) || 6)}
+                className="h-8 text-xs font-mono"
+                dir="ltr"
+              />
+            </div>
+          </div>
+        );
+
+      case "multi_step_form":
+        return (
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs">مرحله جاری پیش‌نمایش</Label>
+              <Input
+                data-testid="step-form-cur-input"
+                type="number"
+                min={1}
+                max={3}
+                value={Number(props.current_step || 1)}
+                onChange={(e) => handlePropChange("current_step", parseInt(e.target.value, 10) || 1)}
+                className="h-8 text-xs font-mono"
+                dir="ltr"
+              />
+            </div>
+          </div>
+        );
+
       default:
         return (
           <div className="text-xs text-muted-foreground py-2">

@@ -1913,6 +1913,61 @@ function CanvasElementComponent({
           </div>
         );
       }
+      case "multi_step_form": {
+        const steps = (props.steps as string[]) || ["مرحله اول", "مرحله دوم", "مرحله نهایی"];
+        const curStep = Number(props.current_step) || 1;
+        return (
+          <div className="p-6 rounded-2xl border border-border/80 bg-card space-y-5 shadow-sm w-full text-right">
+            {/* Step Indicators */}
+            <div className="flex items-center justify-between border-b border-border/60 pb-4">
+              {steps.map((st, idx) => (
+                <div key={idx} className="flex items-center gap-2">
+                  <span
+                    className={cn(
+                      "w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold font-mono",
+                      idx + 1 === curStep
+                        ? "bg-primary text-primary-foreground"
+                        : idx + 1 < curStep
+                        ? "bg-emerald-500 text-white"
+                        : "bg-muted text-muted-foreground"
+                    )}
+                  >
+                    {idx + 1}
+                  </span>
+                  <span className={cn("text-xs font-semibold", idx + 1 === curStep ? "text-foreground font-bold" : "text-muted-foreground")}>
+                    {st}
+                  </span>
+                </div>
+              ))}
+            </div>
+            {/* Form Fields for Step */}
+            <div className="space-y-3">
+              <div className="text-xs font-bold text-foreground">ورودی‌های {steps[curStep - 1] || "مرحله فعلی"}</div>
+              <input
+                type="text"
+                placeholder="نام و نام خانوادگی"
+                readOnly
+                className="w-full h-9 rounded-xl border border-input bg-muted/20 px-3 text-xs"
+              />
+              <input
+                type="text"
+                placeholder="شماره تماس همراه"
+                readOnly
+                className="w-full h-9 rounded-xl border border-input bg-muted/20 px-3 text-xs"
+              />
+            </div>
+            {/* Navigation Buttons */}
+            <div className="flex items-center justify-between pt-2">
+              <button type="button" className="px-4 py-2 rounded-xl border border-border text-xs font-bold text-muted-foreground">
+                مرحله قبل
+              </button>
+              <button type="button" className="px-5 py-2 rounded-xl bg-primary text-primary-foreground text-xs font-bold shadow">
+                مرحله بعد
+              </button>
+            </div>
+          </div>
+        );
+      }
       default:
         return (
           <div className="rounded-lg border border-dashed border-border p-4 text-center text-sm text-muted-foreground">

@@ -54,6 +54,8 @@ import {
   Shapes,
   PanelRightOpen,
   AppWindow,
+  RefreshCw,
+  ListTree,
   type LucideIcon,
 } from "lucide-react";
 import type { BuilderElement } from "@/types/builder";
@@ -1841,6 +1843,79 @@ export const BASIC_BLOCK_DEFINITIONS: BlockDefinition[] = [
               right: { value: 24, unit: "px" },
               bottom: { value: 24, unit: "px" },
               left: { value: 24, unit: "px" },
+              isLinked: true,
+            },
+          },
+        },
+      },
+      children: [],
+    }),
+  },
+  {
+    type: "loop_grid",
+    name: "حلقه پویا (Loop Grid)",
+    category: "layout",
+    icon: RefreshCw,
+    description: "نمایش گرید پویا و تکرارشونده متصل به دیتابیس محصولات یا مقالات وبلاگ",
+    createDefaultElement: () => ({
+      id: `el_${Math.random().toString(36).slice(2, 10)}`,
+      name: "حلقه تکرارشونده پویا",
+      type: "widget",
+      widgetType: "loop_grid",
+      widgetProps: {
+        source: "products",
+        columns: 3,
+        limit: 6,
+      },
+      isLocked: false,
+      isHidden: false,
+      styles: {
+        mobile: {
+          padding: {
+            top: { value: 16, unit: "px" },
+            right: { value: 16, unit: "px" },
+            bottom: { value: 16, unit: "px" },
+            left: { value: 16, unit: "px" },
+            isLinked: true,
+          },
+        },
+      },
+      children: [],
+    }),
+  },
+  {
+    type: "multi_step_form",
+    name: "فرم چندمرحله‌ای (Multi-Step Form)",
+    category: "layout",
+    icon: ListTree,
+    description: "فرم گام‌به‌گام و مرحله‌ای با نوار پیشرفت و اعتبارسنجی مستقل هر مرحله",
+    createDefaultElement: () => ({
+      id: `el_${Math.random().toString(36).slice(2, 10)}`,
+      name: "فرم چندمرحله‌ای",
+      type: "widget",
+      widgetType: "multi_step_form",
+      widgetProps: {
+        current_step: 1,
+        steps: ["اطلاعات تماس", "آدرس و ارسال", "تایید نهایی"],
+      },
+      isLocked: false,
+      isHidden: false,
+      styles: {
+        mobile: {
+          padding: {
+            top: { value: 24, unit: "px" },
+            right: { value: 20, unit: "px" },
+            bottom: { value: 24, unit: "px" },
+            left: { value: 20, unit: "px" },
+            isLinked: true,
+          },
+          border: {
+            style: "solid",
+            radius: {
+              top: { value: 20, unit: "px" },
+              right: { value: 20, unit: "px" },
+              bottom: { value: 20, unit: "px" },
+              left: { value: 20, unit: "px" },
               isLinked: true,
             },
           },

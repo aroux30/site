@@ -3,7 +3,7 @@ import path from "node:path";
 import fs from "node:fs";
 import { execSync } from "node:child_process";
 
-const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || "http://127.0.0.1:3000";
+const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || "http://127.0.0.1:3400";
 const BACKEND_DIR = path.resolve("C:/Users/Administrator/Desktop/site/backend");
 
 function getAdminToken() {
@@ -54,10 +54,11 @@ test.describe("Builder Gym Round 11: Weight 6 (Deep Container Layout & Inspector
 
   test("1. Deep container layout modification via Inspector updates AST and supports undo", async ({ page }) => {
     await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
-    await page.waitForTimeout(1000);
-    const patternsTab = page.locator("button:has-text('الگوها')").first();
+    await page.waitForTimeout(1500);
+    const patternsTab = page.locator('[data-testid="patterns-tab-btn"], button:has-text("الگوها")').first();
     await patternsTab.waitFor({ state: "visible", timeout: 15000 });
     await patternsTab.click();
+    await page.waitForTimeout(600);
 
     const heroCard = page.locator("div[data-pattern-slug='hero-banner']").first();
     await expect(heroCard).toBeVisible({ timeout: 15000 });

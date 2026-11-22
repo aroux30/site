@@ -302,6 +302,7 @@ export function BuilderToolbar({
           onClick={() => setSavePageTemplateOpen(true)}
           className="h-8 gap-1.5 text-xs text-muted-foreground hover:text-foreground"
           title="ذخیره کل برگه به عنوان قالب"
+          data-testid="save-page-template-btn"
         >
           <Bookmark className="w-3.5 h-3.5 text-primary" />
           <span className="hidden sm:inline">قالب برگه</span>
@@ -336,8 +337,8 @@ export function BuilderToolbar({
           title="راهنمای کلیدهای میانبر (Shift+?)"
           data-testid="shortcuts-help-btn"
         >
-          <Keyboard className="w-3.5 h-3.5 text-muted-foreground" />
-          <span className="hidden md:inline">میانبرها</span>
+          <Keyboard className="w-3.5 h-3.5" />
+          <span className="hidden sm:inline">میانبرها</span>
         </Button>
 
         <Button

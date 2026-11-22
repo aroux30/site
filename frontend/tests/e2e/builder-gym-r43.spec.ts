@@ -62,21 +62,21 @@ test.describe("Builder Gym Round 43: 1920x1080 Elementor Lottie, Floating Bar & 
     await expect(searchInput).toBeVisible();
 
     // Verify search finds lottie
-    await searchInput.fill("لوتی");
+    await searchInput.fill("وکتور");
     await page.waitForTimeout(300);
-    const lottieCard = page.locator('button[data-block-type="lottie"], button:has-text("انیمیشن لوتی")').first();
+    const lottieCard = page.locator('button[data-block-type="lottie"], button:has-text("انیمیشن وکتور")').first();
     await expect(lottieCard).toBeVisible();
 
-    // Verify search finds floating_bar
+    // Verify search finds contact_buttons
     await searchInput.fill("تماس");
     await page.waitForTimeout(300);
-    const floatingCard = page.locator('button[data-block-type="floating_bar"], button:has-text("تماس")').first();
+    const floatingCard = page.locator('button[data-block-type="contact_buttons"], button:has-text("دکمه تماس")').first();
     await expect(floatingCard).toBeVisible();
 
     // Verify search finds icon
-    await searchInput.fill("آیکون");
+    await searchInput.fill("آیکون تک");
     await page.waitForTimeout(300);
-    const iconCard = page.locator('button[data-block-type="icon"], button:has-text("آیکون")').first();
+    const iconCard = page.locator('button[data-block-type="icon"], button:has-text("آیکون تک")').first();
     await expect(iconCard).toBeVisible();
   });
 
@@ -88,7 +88,7 @@ test.describe("Builder Gym Round 43: 1920x1080 Elementor Lottie, Floating Bar & 
     await searchInput.fill("تماس");
     await page.waitForTimeout(300);
 
-    const floatingCard = page.locator('button[data-block-type="floating_bar"], button:has-text("تماس")').first();
+    const floatingCard = page.locator('button[data-block-type="contact_buttons"]').first();
     await floatingCard.click();
     await page.waitForTimeout(600);
 

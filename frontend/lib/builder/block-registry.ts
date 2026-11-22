@@ -44,6 +44,7 @@ import {
   ListOrdered,
   Anchor,
   List,
+  CreditCard,
   type LucideIcon,
 } from "lucide-react";
 import type { BuilderElement } from "@/types/builder";

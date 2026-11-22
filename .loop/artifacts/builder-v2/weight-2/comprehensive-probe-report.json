@@ -1,7 +1,7 @@
 {
-  "timestamp": "2026-11-21T15:16:26.395Z",
-  "totalProbed": 35,
-  "passedCount": 35,
+  "timestamp": "2026-11-21T21:48:25.852Z",
+  "totalProbed": 39,
+  "passedCount": 39,
   "failedCount": 0,
   "results": [
     {
@@ -415,6 +415,54 @@
     {
       "batch": "7",
       "widget": "paragraph",
+      "signals": {
+        "S1_state": true,
+        "S2_dom": true,
+        "S3_computed_style": true,
+        "S4_pixel_render": true,
+        "S5_ssr_parity": true
+      },
+      "passed": true
+    },
+    {
+      "batch": "8",
+      "widget": "icon",
+      "signals": {
+        "S1_state": true,
+        "S2_dom": true,
+        "S3_computed_style": true,
+        "S4_pixel_render": true,
+        "S5_ssr_parity": true
+      },
+      "passed": true
+    },
+    {
+      "batch": "8",
+      "widget": "icon_list",
+      "signals": {
+        "S1_state": true,
+        "S2_dom": true,
+        "S3_computed_style": true,
+        "S4_pixel_render": true,
+        "S5_ssr_parity": true
+      },
+      "passed": true
+    },
+    {
+      "batch": "8",
+      "widget": "price_table",
+      "signals": {
+        "S1_state": true,
+        "S2_dom": true,
+        "S3_computed_style": true,
+        "S4_pixel_render": true,
+        "S5_ssr_parity": true
+      },
+      "passed": true
+    },
+    {
+      "batch": "8",
+      "widget": "price_list",
       "signals": {
         "S1_state": true,
         "S2_dom": true,

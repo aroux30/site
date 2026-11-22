@@ -27,6 +27,7 @@ import { Switch } from "@/components/ui/switch";
 import { MediaPicker } from "@/components/admin/media-picker";
 import { useBuilderStore, findElementById, type InspectorTab } from "@/stores/builder-store";
 import { toValidHexColor, normalizeCssColor } from "@/lib/builder/color-utils";
+import { BUILDER_ICON_OPTIONS } from "@/lib/builder/icon-map";
 import { cn } from "@/lib/utils";
 import type { DeviceStyle, SpacingBox, UnitType } from "@/types/builder";
 
@@ -1388,6 +1389,24 @@ export function InspectorPanel() {
         return (
           <div className="space-y-4">
             <div className="space-y-1.5">
+              <Label className="text-xs">انتخاب آیکون</Label>
+              <Select
+                value={String(props.icon || "shield-check")}
+                onValueChange={(val) => handlePropChange("icon", val)}
+              >
+                <SelectTrigger className="h-8 text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="max-h-56">
+                  {BUILDER_ICON_OPTIONS.map((opt) => (
+                    <SelectItem key={opt.id} value={opt.id} className="text-xs">
+                      {opt.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
               <Label className="text-xs">عنوان ویژگی</Label>
               <Input
                 data-testid="iconbox-title-input"
@@ -2320,6 +2339,425 @@ export function InspectorPanel() {
             </div>
           </div>
         );
+
+      case "icon":
+        return (
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs">انتخاب آیکون</Label>
+              <Select
+                value={String(props.icon || "star")}
+                onValueChange={(val) => handlePropChange("icon", val)}
+              >
+                <SelectTrigger className="h-8 text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="max-h-56">
+                  {BUILDER_ICON_OPTIONS.map((opt) => (
+                    <SelectItem key={opt.id} value={opt.id} className="text-xs">
+                      {opt.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">نمای آیکون (View)</Label>
+              <Select
+                value={String(props.view || "default")}
+                onValueChange={(val) => handlePropChange("view", val)}
+              >
+                <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="default">پیش‌فرض (ساده)</SelectItem>
+                  <SelectItem value="stacked">پشته‌ای / پرشده (Stacked)</SelectItem>
+                  <SelectItem value="framed">کادردار (Framed)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            {Boolean(props.view && props.view !== "default") && (
+              <div className="space-y-1.5">
+                <Label className="text-xs">شکل کادر (Shape)</Label>
+                <Select
+                  value={String(props.shape || "circle")}
+                  onValueChange={(val) => handlePropChange("shape", val)}
+                >
+                  <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="circle">دایره (Circle)</SelectItem>
+                    <SelectItem value="square">مربع / گوشه‌گرد (Square)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+            <div className="space-y-1.5">
+              <Label className="text-xs">اندازه آیکون (پیکسل)</Label>
+              <Input
+                type="number"
+                min={12}
+                max={128}
+                value={Number(props.size) || 32}
+                onChange={(e) => handlePropChange("size", parseInt(e.target.value) || 32)}
+                className="h-8 text-xs"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">زاویه چرخش (درجه)</Label>
+              <Input
+                type="number"
+                min={0}
+                max={360}
+                value={Number(props.rotate) || 0}
+                onChange={(e) => handlePropChange("rotate", parseInt(e.target.value) || 0)}
+                className="h-8 text-xs"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">پیوند مقصد (URL)</Label>
+              <Input
+                value={String(props.url || "")}
+                onChange={(e) => handlePropChange("url", e.target.value)}
+                className="h-8 text-xs"
+                placeholder="https://..."
+              />
+            </div>
+            <div className="flex items-center justify-between pt-1">
+              <Label className="text-xs">باز شدن در تب جدید</Label>
+              <Switch
+                checked={Boolean(props.newTab)}
+                onCheckedChange={(val) => handlePropChange("newTab", val)}
+              />
+            </div>
+          </div>
+        );
+
+      case "icon_list": {
+        const rawItems = Array.isArray(props.items) ? (props.items as any[]) : [];
+        const items = rawItems.length > 0 ? rawItems : [
+          { text: "ارسال سریع برای خریدهای بالای ۵۰۰ هزار تومان", icon: "truck", url: "" },
+          { text: "ضمانت بازگشت وجه تا ۷ روز کاری", icon: "shield-check", url: "" },
+          { text: "پشتیبانی ۲۴ ساعته در تمام روزهای هفته", icon: "headphones", url: "" },
+        ];
+        return (
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs">چیدمان فهرست</Label>
+              <Select
+                value={String(props.layout || "vertical")}
+                onValueChange={(val) => handlePropChange("layout", val)}
+              >
+                <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="vertical">عمودی (Vertical)</SelectItem>
+                  <SelectItem value="horizontal">افقی (Horizontal)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex items-center justify-between pt-1">
+              <Label className="text-xs font-bold">آیتم‌های فهرست</Label>
+              <button
+                type="button"
+                onClick={() => {
+                  const updated = [...items, { text: `مورد جدید ${items.length + 1}`, icon: "check", url: "" }];
+                  handlePropChange("items", updated);
+                }}
+                className="text-[11px] text-primary hover:underline font-semibold"
+              >
+                + افزودن آیتم
+              </button>
+            </div>
+            <div className="space-y-2">
+              {items.map((it, idx) => (
+                <div key={idx} className="p-2.5 rounded-lg border bg-muted/20 space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Select
+                      value={String(it.icon || "check")}
+                      onValueChange={(val) => {
+                        const updated = [...items];
+                        updated[idx] = { ...updated[idx], icon: val };
+                        handlePropChange("items", updated);
+                      }}
+                    >
+                      <SelectTrigger className="h-7 text-xs w-28 shrink-0"><SelectValue /></SelectTrigger>
+                      <SelectContent className="max-h-56">
+                        {BUILDER_ICON_OPTIONS.map((opt) => (
+                          <SelectItem key={opt.id} value={opt.id} className="text-xs">
+                            {opt.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Input
+                      value={it.text || ""}
+                      placeholder="متن آیتم"
+                      onChange={(e) => {
+                        const updated = [...items];
+                        updated[idx] = { ...updated[idx], text: e.target.value };
+                        handlePropChange("items", updated);
+                      }}
+                      className="h-7 text-xs flex-1"
+                    />
+                    {items.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const updated = items.filter((_, i) => i !== idx);
+                          handlePropChange("items", updated);
+                        }}
+                        className="text-[10px] text-destructive hover:underline"
+                      >
+                        حذف
+                      </button>
+                    )}
+                  </div>
+                  <Input
+                    value={it.url || ""}
+                    placeholder="پیوند اختیاری (https://...)"
+                    onChange={(e) => {
+                      const updated = [...items];
+                      updated[idx] = { ...updated[idx], url: e.target.value };
+                      handlePropChange("items", updated);
+                    }}
+                    className="h-7 text-xs font-mono"
+                    dir="ltr"
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      }
+
+      case "price_table": {
+        const features = Array.isArray(props.features) ? (props.features as any[]) : [
+          { text: "دسترسی نامحدود به تمامی امکانات", available: true },
+          { text: "پشتیبانی اختصاصی تلفنی و تیکتی", available: true },
+          { text: "فضای ابری ۵۰ گیگابایت امن", available: true },
+          { text: "دامنه اختصاصی رایگان ۱ ساله", available: false },
+        ];
+        return (
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs">عنوان پلن</Label>
+              <Input
+                value={String(props.title || "پلن استاندارد")}
+                onChange={(e) => handlePropChange("title", e.target.value)}
+                className="h-8 text-xs"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">توضیح کوتاه زیر عنوان</Label>
+              <Input
+                value={String(props.subtitle || "")}
+                onChange={(e) => handlePropChange("subtitle", e.target.value)}
+                className="h-8 text-xs"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-1">
+                <Label className="text-xs">قیمت</Label>
+                <Input
+                  value={String(props.price || "۴۹۰,۰۰۰")}
+                  onChange={(e) => handlePropChange("price", e.target.value)}
+                  className="h-8 text-xs font-mono"
+                />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">واحد پول</Label>
+                <Input
+                  value={String(props.currency || "تومان")}
+                  onChange={(e) => handlePropChange("currency", e.target.value)}
+                  className="h-8 text-xs"
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-1">
+                <Label className="text-xs">دوره پرداخت</Label>
+                <Input
+                  value={String(props.period || "ماهانه")}
+                  onChange={(e) => handlePropChange("period", e.target.value)}
+                  className="h-8 text-xs"
+                />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">نشان ویژه (Badge)</Label>
+                <Input
+                  value={String(props.badge || "")}
+                  onChange={(e) => handlePropChange("badge", e.target.value)}
+                  className="h-8 text-xs"
+                  placeholder="مثال: پرفروش‌ترین"
+                />
+              </div>
+            </div>
+            <div className="flex items-center justify-between pt-1">
+              <Label className="text-xs">پلن برجسته / ویژه</Label>
+              <Switch
+                checked={Boolean(props.is_featured)}
+                onCheckedChange={(val) => handlePropChange("is_featured", val)}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-1">
+                <Label className="text-xs">متن دکمه</Label>
+                <Input
+                  value={String(props.button_label || "انتخاب و شروع پلن")}
+                  onChange={(e) => handlePropChange("button_label", e.target.value)}
+                  className="h-8 text-xs"
+                />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">لینک دکمه</Label>
+                <Input
+                  value={String(props.button_url || "/checkout")}
+                  onChange={(e) => handlePropChange("button_url", e.target.value)}
+                  className="h-8 text-xs font-mono"
+                  dir="ltr"
+                />
+              </div>
+            </div>
+            <div className="space-y-2 pt-2 border-t">
+              <div className="flex items-center justify-between">
+                <Label className="text-xs font-bold">ویژگی‌های پلن</Label>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const updated = [...features, { text: `امکان جدید ${features.length + 1}`, available: true }];
+                    handlePropChange("features", updated);
+                  }}
+                  className="text-[11px] text-primary hover:underline font-semibold"
+                >
+                  + افزودن ویژگی
+                </button>
+              </div>
+              {features.map((feat, idx) => (
+                <div key={idx} className="flex items-center gap-2 p-1.5 rounded-lg border bg-muted/20">
+                  <Switch
+                    checked={feat.available !== false}
+                    onCheckedChange={(val) => {
+                      const updated = [...features];
+                      updated[idx] = { ...updated[idx], available: val };
+                      handlePropChange("features", updated);
+                    }}
+                  />
+                  <Input
+                    value={feat.text || ""}
+                    onChange={(e) => {
+                      const updated = [...features];
+                      updated[idx] = { ...updated[idx], text: e.target.value };
+                      handlePropChange("features", updated);
+                    }}
+                    className="h-7 text-xs flex-1"
+                  />
+                  {features.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const updated = features.filter((_, i) => i !== idx);
+                        handlePropChange("features", updated);
+                      }}
+                      className="text-[10px] text-destructive hover:underline"
+                    >
+                      حذف
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      }
+
+      case "price_list": {
+        const rawItems = Array.isArray(props.items) ? (props.items as any[]) : [];
+        const items = rawItems.length > 0 ? rawItems : [
+          { title: "مشاوره اختصاصی کسب‌وکار", description: "جلسه ۱ ساعته تحلیل استراتژیک", price: "۳۵۰,۰۰۰ تومان", url: "" },
+          { title: "طراحی هویت بصری و لوگو", description: "شامل فایل‌های وکتور و راهنمای رنگ", price: "۱,۲۰۰,۰۰۰ تومان", url: "" },
+          { title: "سئو و بهینه‌سازی فنی سایت", description: "گزارش جامع کلمات کلیدی و ممیزی", price: "۸۵۰,۰۰۰ تومان", url: "" },
+        ];
+        return (
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs">استایل جداکننده قیمت</Label>
+              <Select
+                value={String(props.separator_style || "dotted")}
+                onValueChange={(val) => handlePropChange("separator_style", val)}
+              >
+                <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="dotted">نقطه‌چین (Dotted)</SelectItem>
+                  <SelectItem value="dashed">خط‌چین (Dashed)</SelectItem>
+                  <SelectItem value="solid">خط پیوسته (Solid)</SelectItem>
+                  <SelectItem value="none">بدون خط (None)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex items-center justify-between pt-1">
+              <Label className="text-xs font-bold">آیتم‌های منو و قیمت</Label>
+              <button
+                type="button"
+                onClick={() => {
+                  const updated = [...items, { title: "خدمت جدید", description: "", price: "۱۰۰,۰۰۰ تومان", url: "" }];
+                  handlePropChange("items", updated);
+                }}
+                className="text-[11px] text-primary hover:underline font-semibold"
+              >
+                + افزودن آیتم
+              </button>
+            </div>
+            <div className="space-y-2">
+              {items.map((it, idx) => (
+                <div key={idx} className="p-2.5 rounded-lg border bg-muted/20 space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Input
+                      value={it.title || ""}
+                      placeholder="عنوان خدمت"
+                      onChange={(e) => {
+                        const updated = [...items];
+                        updated[idx] = { ...updated[idx], title: e.target.value };
+                        handlePropChange("items", updated);
+                      }}
+                      className="h-7 text-xs flex-1 font-semibold"
+                    />
+                    <Input
+                      value={it.price || ""}
+                      placeholder="قیمت"
+                      onChange={(e) => {
+                        const updated = [...items];
+                        updated[idx] = { ...updated[idx], price: e.target.value };
+                        handlePropChange("items", updated);
+                      }}
+                      className="h-7 text-xs w-28 font-mono"
+                    />
+                    {items.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const updated = items.filter((_, i) => i !== idx);
+                          handlePropChange("items", updated);
+                        }}
+                        className="text-[10px] text-destructive hover:underline"
+                      >
+                        حذف
+                      </button>
+                    )}
+                  </div>
+                  <Input
+                    value={it.description || ""}
+                    placeholder="توضیحات کوتاه اختیاری"
+                    onChange={(e) => {
+                      const updated = [...items];
+                      updated[idx] = { ...updated[idx], description: e.target.value };
+                      handlePropChange("items", updated);
+                    }}
+                    className="h-7 text-xs"
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      }
 
       default:
         return (

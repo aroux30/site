@@ -2395,6 +2395,75 @@ export function InspectorPanel() {
           </div>
         );
 
+      case "off_canvas":
+        return (
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs">موقعیت باز شدن کشو</Label>
+              <Select
+                value={String(props.position || "right")}
+                onValueChange={(val) => handlePropChange("position", val)}
+              >
+                <SelectTrigger data-testid="offcanvas-position-select" className="h-8 text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="right">راست (Right - پیش‌فرض RTL)</SelectItem>
+                  <SelectItem value="left">چپ (Left)</SelectItem>
+                  <SelectItem value="top">بالا (Top)</SelectItem>
+                  <SelectItem value="bottom">پایین (Bottom)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">عرض کشو (پیکسل)</Label>
+              <Input
+                type="number"
+                min={200}
+                max={800}
+                value={Number(props.width || 340)}
+                onChange={(e) => handlePropChange("width", parseInt(e.target.value, 10) || 340)}
+                className="h-8 text-xs font-mono"
+                dir="ltr"
+              />
+            </div>
+          </div>
+        );
+
+      case "popup_builder":
+        return (
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs">محرک نمایش (Trigger)</Label>
+              <Select
+                value={String(props.trigger || "on_scroll")}
+                onValueChange={(val) => handlePropChange("trigger", val)}
+              >
+                <SelectTrigger data-testid="popup-trigger-select" className="h-8 text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="on_scroll">هنگام اسکرول به درصد معین</SelectItem>
+                  <SelectItem value="on_load">بلافاصله پس از بارگذاری برگه</SelectItem>
+                  <SelectItem value="exit_intent">هنگام خروج ماوس از صفحه</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">درصد اسکرول تریگر</Label>
+              <Input
+                type="number"
+                min={10}
+                max={90}
+                value={Number(props.scroll_percentage || 50)}
+                onChange={(e) => handlePropChange("scroll_percentage", parseInt(e.target.value, 10) || 50)}
+                className="h-8 text-xs font-mono"
+                dir="ltr"
+              />
+            </div>
+          </div>
+        );
+
       default:
         return (
           <div className="text-xs text-muted-foreground py-2">

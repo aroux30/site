@@ -81,8 +81,14 @@ class ASTCompiler:
     @classmethod
     def _compile_container(cls, el: BuilderElement, is_authenticated: bool = False) -> str:
         is_form = el.widget_type == "form_container"
-        tag = "form" if is_form else "section"
+        is_offcanvas = el.widget_type == "off_canvas"
+        is_popup = el.widget_type == "popup_builder"
+        tag = "form" if is_form else ("aside" if is_offcanvas else ("div" if is_popup else "section"))
         classes = ["builder-container", "relative"]
+        if is_offcanvas:
+            classes.append("builder-offcanvas")
+        if is_popup:
+            classes.append("builder-popup")
         style_parts: list[str] = []
 
         # Conditional visibility classes

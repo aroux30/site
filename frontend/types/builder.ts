@@ -33,6 +33,7 @@ export interface TypographyStyle {
   textAlign?: "right" | "center" | "left" | "justify" | "inherit" | null;
   textTransform?: "none" | "uppercase" | "lowercase" | "capitalize" | null;
   textDecoration?: "none" | "underline" | "line-through" | null;
+  textShadow?: string | null;
   color?: string | null; // hex, hsl(var(--token)), or semantic token key
 }
 
@@ -97,6 +98,11 @@ export interface DeviceStyle {
   opacity?: number | null;
   zIndex?: number | null;
   boxShadow?: string | null;
+  hoverBorder?: BorderStyle | null;
+  hoverBoxShadow?: string | null;
+  transitionDuration?: number | null; // seconds
+  transform?: TransformStyle | null;
+  mask?: MaskStyle | null;
   // Advanced Layout (P4)
   position?: "static" | "relative" | "absolute" | "sticky" | "inherit" | null;
   top?: UnitValue | null;
@@ -116,8 +122,6 @@ export interface DeviceStyle {
   shadow?: string | null;
   backdropBlur?: "none" | "sm" | "md" | "lg" | "xl" | string | null;
   filterBlur?: number | null;
-  transform?: TransformStyle | null;
-  mask?: MaskStyle | null;
 }
 
 export interface ResponsiveStyles {
@@ -147,6 +151,7 @@ export interface ContainerLayout {
   flexWrap: "nowrap" | "wrap" | "wrap-reverse";
   gap: UnitValue;
   gridColumns: number;
+  gridAutoFlow?: "row" | "column" | "dense" | "row dense" | "column dense" | null;
   boxedWidth?: UnitValue | null;
 }
 

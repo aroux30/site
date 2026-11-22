@@ -732,6 +732,364 @@
 
 ---
 
+### 🏋️ راند ۱۵ (Round 15) — وزنه ۶: ۷۰ کیلو (تثبیت ۳۶۰ درجه ترنسفورم و ماسک، رفع تکثیر کنترل‌های بازرس و سلامت کامپایلر SSR)
+- **تاریخ اجرا**: 2026-11-22
+- **شاخه ایزوله**: `claude/relaxed-shamir-82671f`
+- **وضعیت**: ✅ کامل و سبز (۴ باگ عمیق و رگرسیون P0 در اتصال Transform/Mask، تکثیر دکمه‌های نوار ابزار و فیلتر Bleach حل و با Vision تایید شدند)
+
+#### ۱. باگ‌های کشف‌شده با ابزار Vision و Active Nudge
+1. **عدم بازتاب تغییر زاویه چرخش و مقیاس بر روی بوم Iframe (`Transform / Mask Canvas Disconnection`)**:
+   - *مشاهده چشمی در Vision*: پس از تغییر زاویه چرخش به ۲۵ درجه و مقیاس به ۱.۱۵ در بازرس، بوم در وضعیت قبلی باقی مانده بود.
+   - *علت ریشه‌ای*: حذف قطعه کد اتصال استایل‌های `transform` و `mask` در کامپوننت `canvas-element.tsx` در حین مرج شاخه‌ها.
+   - *اصلاح ریشه‌ای*: بازگردانی و اتصال کامل `transform` (شامل rotate, scale, skewX, skewY, translate, flipX, flipY) و ماسک‌های CSS با پشتیبانی از شیپ‌های استاندارد و SVG در `frontend/components/admin/builder/canvas-element.tsx`.
+2. **تکثیر بلوک‌های تنظیمات Transform و Mask در تب پیشرفته بازرس (`Duplicate Inspector Controls`)**:
+   - *مشاهده در تصویر `before/03-advanced-tab-before.png`*: دو بار رندر شدن بلوک‌های کنترل «تبدیل و چرخش» و «ماسک تصویر» در پنل بازرس.
+   - *اصلاح ریشه‌ای*: ادغام و یکپارچه‌سازی کامل کنترل‌ها در یک بلوک غنی استاندارد در `frontend/components/admin/builder/inspector-panel.tsx`.
+3. **وجود دو دکمه تکراری «میانبرها» در نوار ابزار استودیو (`Duplicate Shortcuts Toolbar Button`)**:
+   - *مشاهده در تصویر `before/01-studio-initial.png`*: دو کلید مجزا با آیکون کیبورد و عنوان «میانبرها» در سمت چپ نوار ابزار وجود داشت.
+   - *اصلاح ریشه‌ای*: حذف دکمه تکراری در `frontend/components/admin/builder/builder-toolbar.tsx`.
+4. **حذف استایل‌های Transform، Mask و Clip-Path توسط پالایشگر HTML بک‌اند (`Bleach CSS Sanitizer Stripping`)**:
+   - *مشاهده*: خروجی SSR کامپایلر فاقد ویژگی‌های چرخش و ماسک بود زیرا در لیست سفید مجاز Bleach قرار نداشتند.
+   - *اصلاح ریشه‌ای*: اضافه شدن `transform`، `mask-image`، `clip-path`، `-webkit-mask-image` و `backdrop-filter` به `ALLOWED_CSS_PROPERTIES` در `backend/app/shared/content/html_sanitizer.py`.
+
+#### ۲. مستندات بصری و شواهد ۵ سیگنالی
+- **قبل از اصلاح**: `.loop/artifacts/builder-gym/round-15/before/`
+  - `01-studio-initial.png` (نمایش دکمه مضاعف میانبرها)
+  - `02-element-selected.png` (وضعیت اولیه سرتیتر)
+  - `03-advanced-tab-before.png` (تکثیر کنترل‌های ترنسفورم و ماسک)
+- **بعد از اصلاح**: `.loop/artifacts/builder-gym/round-15/after/`
+  - `01-studio-initial.png` (نوار ابزار تک‌دکمه‌ای مرتب)
+  - `02-element-selected.png` (انتخاب استاندارد)
+  - `03-advanced-tab-after.png` (کنترل‌های یکپارچه و بهینه بازرس)
+  - `04-canvas-transform-applied.png` (اعمال زنده و چرخیدن واقعی المان در بوم با زاویه ۲۵ درجه و مقیاس ۱.۱۵)
+
+#### ۳. تست‌های رگرسیون دائمی و وضعیت تست‌ها
+- **تست رگرسیون فرانت‌اند**: تست واحد اعتبارسنجی اسکیما در `frontend/tests/builder-schema.test.ts`.
+- **تست رگرسیون بک‌اند**: تست واحد کامپایلر در `backend/app/tests/unit/test_ast_compiler.py::test_ast_compiler_transform_and_mask_elementor_parity`.
+- **تست‌های E2E مرورگر**: پاس کامل ۲ از ۲ تست در `frontend/tests/e2e/builder-elementor-w1.spec.ts`.
+- `npx tsc --noEmit`: ۰ خطا.
+- `npm test` (Vitest): **۳۷۳ تست سبز در ۴۵ فایل** (`373 passed`).
+- `python -m pytest app/tests/unit`: **۶۲۳ تست سبز** (`623 passed, 2 skipped`).
+
+---
+
+### 🏋️ راند ۱۶ (Round 16) — وزنه ۶: ۷۰ کیلو (صفت‌های سفارشی Elementor Pro، تثبیت ساختار AST اسکرچ‌پد و ثبات کامل بوم)
+- **تاریخ اجرا**: 2026-11-22
+- **شاخه ایزوله**: `claude/relaxed-shamir-82671f`
+- **وضعیت**: ✅ کامل و سبز (۲ باگ ریشه‌ای در کنترل Custom Attributes بازرس و ساختار درخت ریشه برگه اسکرچ‌پد اصلاح و با Vision تایید شدند)
+
+#### ۱. باگ‌های کشف‌شده با ابزار Vision و Active Nudge
+1. **غیبت کنترل صفت‌های سفارشی (Custom Attributes) در تب پیشرفته بازرس (`Missing Custom Attributes Inspector Control`)**:
+   - *مشاهده در تصویر `before/01-custom-attributes-initial.png`*: فیلد ورود صفت‌های سفارشی المنتور پرو در بازرس وجود نداشت و تست E2E سازنده در یافتن `custom-attributes-textarea` متوقف می‌شد.
+   - *اصلاح ریشه‌ای*: پیاده‌سازی کنترل `textarea` صفت‌های سفارشی در `frontend/components/admin/builder/inspector-panel.tsx` با پشتیبانی از فرمت خطی `key|value`، سازگاری دوطرفه متن/آبجکت و فیلتر بلک‌لیست امنیتی.
+2. **عدم انطباق درخت ریشه پیش‌فرض برگه اسکرچ‌پد E2E (`E2E Scratchpad Root Topology Drift`)**:
+   - *مشاهده*: عدم حضور کانتینر ریشه `cont_e2eroot` در فال‌بک برگه اسکرچ‌پد در `frontend/app/(store)/[slug]/page.tsx` که موجب شکست تست جداکننده‌های شکلی و کانتینر می‌شد.
+   - *اصلاح ریشه‌ای*: بازگردانی هر دو عنصر `cont_e2eroot` و `el_e2ehead1` در ساختار استاندارد AST برگه `e2e-isolated-scratchpad`.
+
+#### ۲. مستندات بصری و شواهد ۵ سیگنالی
+- **قبل از اصلاح**: `.loop/artifacts/builder-gym/round-16/before/`
+  - `01-custom-attributes-initial.png` (وضعیت اولیه تب پیشرفته)
+- **بعد از اصلاح**: `.loop/artifacts/builder-gym/round-16/after/`
+  - `01-custom-attributes-applied.png` (اعمال صفت‌های سفارشی در بازرس)
+  - `02-canvas-attributes-verified.png` (تایید صفت‌های data-tracking و aria-label در المان بوم)
+
+#### ۳. تست‌های رگرسیون دائمی و وضعیت تست‌ها
+- **تست‌های E2E مرورگر**:
+  - `builder-gym-r21.spec.ts`: ۳ از ۳ تست سبز (`3 passed in 11.7s`).
+  - `builder-elementor-w1.spec.ts`: ۲ از ۲ تست سبز (`2 passed in 8.7s`).
+- `npx tsc --noEmit`: ۰ خطا.
+- `npm test` (Vitest): **۳۷۳ تست سبز در ۴۵ فایل** (`373 passed`).
+- `python -m pytest app/tests/unit`: **۶۲۳ تست سبز** (`623 passed, 2 skipped`).
+
+---
+
+### 🏋️ راند ۱۷ (Round 17) — وزنه ۶: ۷۰ کیلو (ارتقای آیکون‌های ویجت‌های ناویگیتور و تکمیل اکشن‌های راست‌کلیک Elementor Navigator)
+- **تاریخ اجرا**: 2026-11-22
+- **شاخه ایزوله**: `claude/relaxed-shamir-82671f`
+- **وضعیت**: ✅ کامل و سبز (آیکون‌های غنی ۳۵ ویجت، اکشن بازنشانی استایل با Undo/Redo، قفل و کامپوننت سراسری)
+
+#### ۱. قابلیت‌ها و اصلاحات انجام‌شده
+1. **ارتقای آیکون‌های بصری ۳۵ ویجت در درخت لایه‌ها (`Navigator Rich Widget Icons`)**:
+   - جایگزینی آیکون جنریک لایه‌ها با آیکون‌های معنایی و اختصاصی هر یک از ۳۵ ویجت بومی (آکاردئون، تب‌ها، فرم‌ها، جدول، سبد خرید، ویترین، قیمت، دیدگاه‌ها و ...) در `frontend/components/admin/builder/layers-tree.tsx`.
+2. **تکمیل منوی راست‌کلیک ناویگیتور مطابق المنتور (`Navigator Context Menu Parity`)**:
+   - اضافه شدن دکمه «بازنشانی استایل (Reset Style)» با متد اختصاصی `resetStyles` در ذخیره‌ساز Zustand با پشتیبانی کامل از تاریخچه Undo/Redo.
+   - اضافه شدن اکشن‌های «قفل کردن / باز کردن قفل المان (Toggle Lock)» و «تبدیل به کامپوننت سراسری (Make Global Component)».
+
+#### ۲. مستندات بصری و شواهد ۵ سیگنالی
+- **قبل از اصلاح**: `.loop/artifacts/builder-gym/round-17/before/`
+  - `01-navigator-initial.png` (نمایش لایه‌های اولیه و آیکون‌های اختصاصی)
+- **بعد از اصلاح**: `.loop/artifacts/builder-gym/round-17/after/`
+  - `01-navigator-context-menu.png` (منوی راست‌کلیک پیشرفته با اکشن بازنشانی استایل، قفل و کامپوننت سراسری)
+  - `02-style-reset-applied.png` (اعمال موفق و تست بازنشانی استایل)
+
+#### ۳. تست‌های رگرسیون دائمی و وضعیت تست‌ها
+- **تست رگرسیون واحد**: تست اعتبارسنجی `resetStyles` در `frontend/tests/builder-store.test.ts`.
+- `npx tsc --noEmit`: ۰ خطا.
+- `npm test` (Vitest): **۳۷۴ تست سبز در ۴۵ فایل** (`374 passed`).
+- `python -m pytest app/tests/unit`: **۶۲۳ تست سبز** (`623 passed, 2 skipped`).
+
+---
+
+### 🏋️ راند ۱۸ (Round 18) — وزنه ۶: ۷۰ کیلو (کنترل‌های کامل سایه متن Text Shadow، اتصال به بوم و پشتیبانی SSR)
+- **تاریخ اجرا**: 2026-11-22
+- **شاخه ایزوله**: `claude/relaxed-shamir-82671f`
+- **وضعیت**: ✅ کامل و سبز (سایه متن در تایپوگرافی بازرس، اتصال زنده به بوم، پشتیبانی در مدل AST، کامپایلر SSR و پالایشگر Bleach)
+
+#### ۱. قابلیت‌ها و اصلاحات انجام‌شده
+1. **توسعه کنترل‌های سایه متن در بازرس (`Typography Text Shadow Controls`)**:
+   - اضافه شدن فیلد ورود `data-testid="typography-text-shadow-input"` در بخش تایپوگرافی `frontend/components/admin/builder/inspector-panel.tsx` به همراه پریست‌های آماده (بدون سایه، ظریف، متوسط، عمیق و درخشان Glow).
+2. **اتصال بلادرنگ به بوم Iframe (`Live Canvas Text Shadow`)**:
+   - اعمال مستقیم `fontObj.textShadow` بر روی `styleObj.textShadow` در `frontend/components/admin/builder/canvas-element.tsx` با قابلیت تفکیک ریسپانسیو.
+3. **پشتیبانی کامل در بک‌اند و کامپایلر SSR (`Backend AST & SSR Compiler Parity`)**:
+   - اضافه شدن فیلد `text_shadow` به مدل `TypographyStyle` در `backend/app/modules/content/domain/builder_ast.py`.
+   - کامپایل استایل `text-shadow` در `backend/app/modules/content/application/ast_compiler.py`.
+   - اضافه شدن `text-shadow` به لیست مجاز CSS در `backend/app/shared/content/html_sanitizer.py`.
+
+#### ۲. مستندات بصری و شواهد ۵ سیگنالی
+- **قبل از اصلاح**: `.loop/artifacts/builder-gym/round-18/before/`
+  - `01-typography-controls-before.png` (وضعیت اولیه تایپوگرافی بازرس)
+- **بعد از اصلاح**: `.loop/artifacts/builder-gym/round-18/after/`
+  - `01-typography-text-shadow.png` (کنترل‌های کامل سایه متن و تایید رنگ `rgba(0, 0, 0, 0.6) 0px 4px 8px` در بوم)
+
+#### ۳. تست‌های رگرسیون دائمی و وضعیت تست‌ها
+- **تست رگرسیون واحد فرانت‌اند**: اعتبارسنجی `textShadow` در `frontend/tests/builder-schema.test.ts`.
+- **تست رگرسیون واحد بک‌اند**: کامپایل `text-shadow` در `backend/app/tests/unit/test_ast_compiler.py::test_ast_compiler_transform_and_mask_elementor_parity`.
+- `npx tsc --noEmit`: ۰ خطا.
+- `npm test` (Vitest): **۳۷۴ تست سبز در ۴۵ فایل** (`374 passed`).
+- `python -m pytest app/tests/unit`: **۶۲۳ تست سبز** (`623 passed, 2 skipped`).
+
+---
+
+### 🏋️ راند ۱۹ (Round 19) — وزنه ۶: ۷۰ کیلو (کنترل‌های سایه هاور، حاشیه در هاور و انیمیشن گذار نرم با پایداری کامل)
+- **تاریخ اجرا**: 2026-11-22
+- **شاخه ایزوله**: `claude/relaxed-shamir-82671f`
+- **وضعیت**: ✅ کامل و سبز (سایه هاور و مدت زمان گذار در بازرس، اتصال زنده به رویداد هاور بوم، همگام‌سازی AST و کامپایلر SSR)
+
+#### ۱. قابلیت‌ها و اصلاحات انجام‌شده
+1. **توسعه کنترل‌های سایه در حالت هاور و مدت زمان گذار (`Hover Box Shadow & Transition Controls`)**:
+   - اضافه شدن فیلد ورود `data-testid="hover-box-shadow-input"` و اسلایدر زمان‌بندی `data-testid="transition-duration-input"` در بخش سایه کادر `frontend/components/admin/builder/inspector-panel.tsx`.
+2. **اتصال بلادرنگ تعامل هاور به بوم Iframe (`Canvas Live Hover Feedback`)**:
+   - اعمال هوشمندانه `hoverShadow`، `hoverBorder` و `transition` بر روی استایل‌های محاسبه‌شده المان در حین هاور ماوس در `frontend/components/admin/builder/canvas-element.tsx`.
+3. **همگام‌سازی ۴ لایه (Inspector ← Store ← Canvas ← SSR Compiler)**:
+   - پشتیبانی از فیلدهای `hover_border`، `hover_box_shadow` و `transition_duration` در `builder_ast.py`، `schema.ts` و `types/builder.ts`.
+   - کامپایل خاصیت CSS گذار (`transition: all Xs ease;`) در `ast_compiler.py` و اجازه عبور در `html_sanitizer.py`.
+
+#### ۲. مستندات بصری و شواهد ۵ سیگنالی
+- **قبل از اصلاح**: `.loop/artifacts/builder-gym/round-19/before/`
+  - `01-box-shadow-normal.png` (وضعیت اولیه کادر سایه)
+- **بعد از اصلاح**: `.loop/artifacts/builder-gym/round-19/after/`
+  - `01-hover-shadow-configured.png` (تنظیم موفق سایه هاور و زمان‌بندی ۰.۴ ثانیه در بازرس)
+  - `02-canvas-hover-state.png` (تایید بصری فعال شدن گذار و سایه در بوم)
+
+#### ۳. تست‌های رگرسیون دائمی و وضعیت تست‌ها
+- **تست‌های E2E مرورگر**:
+  - ۵ از ۵ تست سبز در `builder-gym-r21.spec.ts` و `builder-elementor-w1.spec.ts` (`5 passed in 13.0s`).
+- `npx tsc --noEmit`: ۰ خطا.
+- `npm test` (Vitest): **۳۷۴ تست سبز در ۴۵ فایل** (`374 passed`).
+- `python -m pytest app/tests/unit`: **۶۲۳ تست سبز** (`623 passed, 2 skipped`).
+
+---
+
+### 🏋️ راند ۲۰ (Round 20) — وزنه ۶: ۷۰ کیلو (تکمیل کانتینر چندستونه CSS Grid و جریان خودکار Grid Auto Flow مطابق المنتور)
+- **تاریخ اجرا**: 2026-11-22
+- **شاخه ایزوله**: `claude/relaxed-shamir-82671f`
+- **وضعیت**: ✅ کامل و سبز (کنترل‌های جریان خودکار شبکه، رندر چندستونه در بوم، مدل AST، کامپایلر SSR و فیلتر Bleach)
+
+#### ۱. قابلیت‌ها و اصلاحات انجام‌شده
+1. **توسعه کنترل‌های شبکه CSS Grid در بازرس (`CSS Grid Auto Flow Controls`)**:
+   - اضافه شدن کنترل `data-testid="grid-auto-flow-select"` در بخش طرح‌بندی کانتینر `frontend/components/admin/builder/inspector-panel.tsx` با پشتیبانی از حالات سطری (Row)، ستونی (Column)، فشرده (Dense)، سطری فشرده (Row Dense) و ستونی فشرده (Column Dense).
+2. **اتصال بلادرنگ چیدمان شبکه به بوم Iframe (`Canvas Grid Auto Flow`)**:
+   - اعمال مستقیم `gridAutoFlow` بر روی استایل‌های کانتینر در `frontend/components/admin/builder/canvas-element.tsx`.
+3. **همگام‌سازی ۴ لایه (Inspector ← Store ← Canvas ← SSR Compiler)**:
+   - پشتیبانی از فیلد `grid_auto_flow` در مدل `ContainerLayout` در بک‌اند (`builder_ast.py`) و فرانت‌اند (`types/builder.ts` و `schema.ts`).
+   - تولید استایل `grid-auto-flow` در خروجی SSR در `ast_compiler.py` و اجازه عبور در `html_sanitizer.py`.
+
+#### ۲. مستندات بصری و شواهد ۵ سیگنالی
+- **قبل از اصلاح**: `.loop/artifacts/builder-gym/round-20/before/`
+  - `01-container-flex-initial.png` (وضعیت اولیه چیدمان فلکس کانتینر)
+- **بعد از اصلاح**: `.loop/artifacts/builder-gym/round-20/after/`
+  - `01-grid-controls-configured.png` (تنظیم موفق شبکه گرید ۴ ستونه با جریان سطری فشرده در بازرس)
+  - `02-canvas-grid-applied.png` (تایید چیدمان گرید در استایل‌های محاسبه‌شده بوم)
+
+#### ۳. تست‌های رگرسیون دائمی و وضعیت تست‌ها
+- **تست رگرسیون واحد فرانت‌اند**: اعتبارسنجی اسکیما در `frontend/tests/builder-schema.test.ts`.
+- **تست رگرسیون واحد بک‌اند**: کامپایل در `backend/app/tests/unit/test_ast_compiler.py::test_ast_compiler_css_grid_auto_flow_elementor_parity`.
+- `npx tsc --noEmit`: ۰ خطا.
+- `npm test` (Vitest): **۳۷۵ تست سبز در ۴۵ فایل** (`375 passed`).
+- `python -m pytest app/tests/unit`: **۶۲۴ تست سبز** (`624 passed, 2 skipped`).
+
+---
+
+### 🏋️ راند ۲۱ (Round 21) — وزنه ۷: ۸۵ کیلو (پورت ویجت‌های Elementor Core جعبه تصویر Image Box و تاگل مستقل Toggle)
+- **تاریخ اجرا**: 2026-11-22
+- **شاخه ایزوله**: `claude/relaxed-shamir-82671f`
+- **وضعیت**: ✅ کامل و سبز (پیاده‌سازی سبک، کنترل‌های غنی بازرس، رندر تعاملی بوم و کامپایل ۱۰۰٪ برابری SSR)
+
+#### ۱. قابلیت‌ها و اصلاحات انجام‌شده
+1. **پورت ویجت جعبه تصویر (`image_box`) از Elementor Core**:
+   - ثبت ویجت در `block-registry.ts` با فیلدهای عنوان، متن توضیحات، آدرس تصویر و لینک پیوند.
+   - توسعه کنترل‌های بازرس در `inspector-panel.tsx` و رندر تمیز در `canvas-element.tsx`.
+   - کامپایل امن سمت سرور در `ast_compiler.py`.
+2. **پورت ویجت تاگل مستقل (`toggle`) از Elementor Core**:
+   - ثبت ویجت در `block-registry.ts` با قابلیت باز ماندن هم‌زمان چند آیتم تاشو.
+   - فرم داینامیک مدیریت آیتم‌ها (افزودن، حذف، ویرایش عنوان و محتوا) در `inspector-panel.tsx`.
+   - رندر با تگ‌های معنایی `<details>` و `<summary>` در بوم و کامپایلر SSR.
+
+#### ۲. مستندات بصری و شواهد ۵ سیگنالی
+- **قبل از اصلاح**: `.loop/artifacts/builder-gym/round-21/before/`
+  - `01-palette-widgets-initial.png` (وضعیت اولیه پالت بلوک‌ها)
+- **بعد از اصلاح**: `.loop/artifacts/builder-gym/round-21/after/`
+  - `01-image-box-selected.png` (درج و انتخاب موفق جعبه تصویر در بوم)
+  - `02-image-box-nudge-applied.png` (اعمال موفق متن «کیفیت صدای استثنایی و تفکیک حرفه‌ای» در بازرس و تغییر آنی در بوم)
+
+#### ۳. تست‌های رگرسیون دائمی و وضعیت تست‌ها
+- **تست رگرسیون واحد بک‌اند**: کامپایل SSR در `backend/app/tests/unit/test_ast_compiler.py::test_ast_compiler_image_box_and_toggle_elementor_parity`.
+- `npx tsc --noEmit`: ۰ خطا.
+- `npm test` (Vitest): **۳۷۵ تست سبز در ۴۵ فایل** (`375 passed`).
+- `python -m pytest app/tests/unit`: **۶۲۵ تست سبز** (`625 passed, 2 skipped`).
+
+---
+
+### 🏋️ راند ۲۲ (Round 22) — وزنه ۷: ۸۵ کیلو (پورت ویجت لیست آیکون‌دار Icon List از Elementor Core در تمام ۴ لایه)
+- **تاریخ اجرا**: 2026-11-22
+- **شاخه ایزوله**: `claude/relaxed-shamir-82671f`
+- **وضعیت**: ✅ کامل و سبز (ثبت ویجت، ریپیتر داینامیک آیتم‌ها، چینش افقی/عمودی، رندر بوم، آیکون ناویگیتور و کامپایل ۱۰۰٪ SSR)
+
+#### ۱. قابلیت‌ها و اصلاحات انجام‌شده
+1. **پورت کامل ویجت لیست آیکون‌دار (`icon_list`) از Elementor Core**:
+   - ثبت ویجت در `block-registry.ts` با فیلدهای چیدمان (عمودی/افقی) و آرایه آیتم‌ها شامل متن و آیکون.
+   - فرم داینامیک ریپیتر آیتم‌ها (افزودن آیتم جدید، حذف آیتم، ویرایش متن) در `inspector-panel.tsx`.
+   - رندر بلادرنگ در `canvas-element.tsx` با لیست معنایی `<ul>` و `<li>` و جهت‌بندی افقی/عمودی واکنش‌گرا.
+   - نگاشت آیکون `List` در ناویگیتور لایه‌ها `layers-tree.tsx`.
+   - کامپایل بدون خطر و منطبق بر استانداردهای دسترسی‌پذیری در کامپایلر سرور `ast_compiler.py`.
+
+#### ۲. مستندات بصری و شواهد ۵ سیگنالی
+- **قبل از اصلاح**: `.loop/artifacts/builder-gym/round-22/before/`
+  - `01-studio-initial.png` (وضعیت اولیه استودیو)
+- **بعد از اصلاح**: `.loop/artifacts/builder-gym/round-22/after/`
+  - `01-icon-list-selected.png` (درج و انتخاب موفق لیست آیکون‌دار در بوم)
+  - `02-icon-list-nudge-applied.png` (اعمال موفق متن «گارانتی ۳۶ ماهه تعویض بی‌قید و شرط» در بازرس و تغییر آنی بوم)
+
+#### ۳. تست‌های رگرسیون دائمی و وضعیت تست‌ها
+- **تست رگرسیون واحد بک‌اند**: تست کامپایل SSR در `backend/app/tests/unit/test_ast_compiler.py::test_ast_compiler_icon_list_elementor_parity`.
+- `npx tsc --noEmit`: ۰ خطا.
+- `npm test` (Vitest): **۳۷۵ تست سبز در ۴۵ فایل** (`375 passed`).
+- `python -m pytest app/tests/unit`: **۶۲۶ تست سبز** (`626 passed, 2 skipped`).
+
+---
+
+### 🏋️ راند ۲۳ (Round 23) — وزنه ۷: ۸۵ کیلو (پورت ویجت کارت تعرفه و جدول قیمت Price Table از Elementor Pro)
+- **تاریخ اجرا**: 2026-11-22
+- **شاخه ایزوله**: `claude/relaxed-shamir-82671f`
+- **وضعیت**: ✅ کامل و سبز (ثبت ویجت، ریپیتر ویژگی‌ها، نشان پیشنهاد ویژه، رندر بوم، آیکون ناویگیتور و کامپایل ۱۰۰٪ SSR)
+
+#### ۱. قابلیت‌ها و اصلاحات انجام‌شده
+1. **پورت کامل ویجت جدول قیمت (`price_table`) از Elementor Pro**:
+   - ثبت ویجت در `block-registry.ts` با فیلدهای عنوان پلن، زیرعنوان، قیمت، دوره زمانی، طرح ویژه، دکمه اقدام و آرایه ویژگی‌ها.
+   - فرم داینامیک ریپیتر ویژگی‌ها، تاگل وضعیت Featured و تنظیمات قیمت در `inspector-panel.tsx`.
+   - رندر بصری جذاب با بج اختصاصی «پیشنهاد ویژه»، بوردر رنگ برند، سایه متقارن و چک‌مارک‌های سبز در `canvas-element.tsx`.
+   - نگاشت آیکون `DollarSign` در ناویگیتور لایه‌ها `layers-tree.tsx`.
+   - کامپایل بدون خطر و واکنش‌گرا در کامپایلر سرور `ast_compiler.py`.
+
+#### ۲. مستندات بصری و شواهد ۵ سیگنالی
+- **قبل از اصلاح**: `.loop/artifacts/builder-gym/round-23/before/`
+  - `01-studio-initial.png` (وضعیت اولیه استودیو)
+- **بعد از اصلاح**: `.loop/artifacts/builder-gym/round-23/after/`
+  - `01-price-table-selected.png` (درج و انتخاب موفق جدول قیمت در بوم)
+  - `02-price-table-nudge-applied.png` (اعمال موفق عنوان «پلن طلایی سازمانی نامحدود» در بازرس و تغییر آنی بوم)
+
+#### ۳. تست‌های رگرسیون دائمی و وضعیت تست‌ها
+- **تست رگرسیون واحد بک‌اند**: تست کامپایل SSR در `backend/app/tests/unit/test_ast_compiler.py::test_ast_compiler_price_table_elementor_pro_parity`.
+- `npx tsc --noEmit`: ۰ خطا.
+- `npm test` (Vitest): **۳۷۵ تست سبز در ۴۵ فایل** (`375 passed`).
+- `python -m pytest app/tests/unit`: **۶۲۷ تست سبز** (`627 passed, 2 skipped`).
+
+---
+
+### 🏋️ راند ۲۴ (Round 24) — وزنه ۷: ۸۵ کیلو (پورت ویجت منوی قیمت و خدمات Price List از Elementor Pro)
+- **تاریخ اجرا**: 2026-11-22
+- **شاخه ایزوله**: `claude/relaxed-shamir-82671f`
+- **وضعیت**: ✅ کامل و سبز (ثبت ویجت، ریپیتر اقلام و قیمت‌ها، رندر بوم، آیکون ناویگیتور و کامپایل ۱۰۰٪ SSR)
+
+#### ۱. قابلیت‌ها و اصلاحات انجام‌شده
+1. **پورت کامل ویجت لیست قیمت (`price_list`) از Elementor Pro**:
+   - ثبت ویجت در `block-registry.ts` با فیلدهای آرایه اقلام شامل عنوان، توضیحات، قیمت و تصویر.
+   - فرم داینامیک ریپیتر اقلام منو (افزودن، حذف، ویرایش قیمت و توضیحات) در `inspector-panel.tsx`.
+   - رندر بصری استاندارد منو در `canvas-element.tsx` با کارت‌های منظم، برچسب قیمت پررنگ و هماهنگی RTL.
+   - نگاشت آیکون `Receipt` در ناویگیتور لایه‌ها `layers-tree.tsx`.
+   - کامپایل تمیز و بدون خطر در کامپایلر سرور `ast_compiler.py`.
+
+#### ۲. مستندات بصری و شواهد ۵ سیگنالی
+- **قبل از اصلاح**: `.loop/artifacts/builder-gym/round-24/before/`
+  - `01-studio-initial.png` (وضعیت اولیه استودیو)
+- **بعد از اصلاح**: `.loop/artifacts/builder-gym/round-24/after/`
+  - `01-price-list-selected.png` (درج و انتخاب موفق لیست قیمت در بوم)
+  - `02-price-list-nudge-applied.png` (اعمال موفق عنوان «کافه لاته زعفرانی دست‌ساز شاهانه» در بازرس و تغییر آنی بوم)
+
+#### ۳. تست‌های رگرسیون دائمی و وضعیت تست‌ها
+- **تست رگرسیون واحد بک‌اند**: تست کامپایل SSR در `backend/app/tests/unit/test_ast_compiler.py::test_ast_compiler_price_list_elementor_pro_parity`.
+- `npx tsc --noEmit`: ۰ خطا.
+- `npm test` (Vitest): **۳۷۵ تست سبز در ۴۵ فایل** (`375 passed`).
+- `python -m pytest app/tests/unit`: **۶۲۸ تست سبز** (`628 passed, 2 skipped`).
+
+---
+
+### 🏋️ راند ۲۵ (Round 25) — وزنه ۷: ۸۵ کیلو (پورت ویجت نقاط تعاملی تصویر Hotspot از Elementor Pro)
+- **تاریخ اجرا**: 2026-11-22
+- **شاخه ایزوله**: `claude/relaxed-shamir-82671f`
+- **وضعیت**: ✅ کامل و سبز (ثبت ویجت، نقاط تعاملی با موقعیت‌دهی درصدی، پالس نوری، تول‌تیپ شناور، رندر بوم و کامپایل ۱۰۰٪ SSR)
+
+#### ۱. قابلیت‌ها و اصلاحات انجام‌شده
+1. **پورت کامل ویجت نقاط تعاملی تصویر (`hotspot`) از Elementor Pro**:
+   - ثبت ویجت در `block-registry.ts` با فیلدهای آدرس تصویر، متن جایگزین و آرایه هات‌اسپات‌ها (مختصات درصدی X/Y، برچسب عددی، عنوان و تول‌تیپ).
+   - ریپیتر تنظیمات اختصاصی در `inspector-panel.tsx` شامل مدیریت نامحدود نقاط، تغییر مختصات درصدی، برچسب و عنوان.
+   - رندر بلادرنگ در `canvas-element.tsx` با نشانگرهای پالس‌دار انیمیشنی، رینگ نورانی و تول‌تیپ بازشونده در زمان هاور.
+   - نگاشت آیکون `CircleDot` در ناویگیتور لایه‌ها `layers-tree.tsx`.
+   - کامپایل دقیق موقعیت‌دهی درصدی و بدون افت ساختار در کامپایلر سرور `ast_compiler.py`.
+
+#### ۲. مستندات بصری و شواهد ۵ سیگنالی
+- **قبل از اصلاح**: `.loop/artifacts/builder-gym/round-25/before/`
+  - `01-studio-initial.png` (وضعیت اولیه استودیو)
+- **بعد از اصلاح**: `.loop/artifacts/builder-gym/round-25/after/`
+  - `01-hotspot-selected.png` (درج و انتخاب موفق تصویر هات‌اسپات در بوم)
+  - `02-hotspot-nudge-applied.png` (اعمال موفق عنوان «درایور تیتانیومی نئودیمیوم ۵۰ میلی‌متری» در بازرس و تغییر آنی بوم)
+
+#### ۳. تست‌های رگرسیون دائمی و وضعیت تست‌ها
+- **تست رگرسیون واحد بک‌اند**: تست کامپایل SSR در `backend/app/tests/unit/test_ast_compiler.py::test_ast_compiler_hotspot_elementor_pro_parity`.
+- `npx tsc --noEmit`: ۰ خطا.
+- `npm test` (Vitest): **۳۷۵ تست سبز در ۴۵ فایل** (`375 passed`).
+- `python -m pytest app/tests/unit`: **۶۲۹ تست سبز** (`629 passed, 2 skipped`).
+
+---
+
+### 🏋️ راند ۲۶ (Round 26) — وزنه ۷: ۸۵ کیلو (پورت ویجت فهرست مطالب خودکار Table of Contents از Elementor Pro)
+- **تاریخ اجرا**: 2026-11-22
+- **شاخه ایزوله**: `claude/relaxed-shamir-82671f`
+- **وضعیت**: ✅ کامل و سبز (ثبت ویجت، ریپیتر عناوین و لنگرها، حالت شماره‌دار/بولتی، رندر بوم، آیکون ناویگیتور و کامپایل ۱۰۰٪ SSR)
+
+#### ۱. قابلیت‌ها و اصلاحات انجام‌شده
+1. **پورت کامل ویجت فهرست مطالب (`table_of_contents`) از Elementor Pro**:
+   - ثبت ویجت در `block-registry.ts` با عنوان، تاگل حالت شماره‌دار (Ordered)، آرایه آیتم‌ها (متن و لنگر اسکرول).
+   - ریپیتر تنظیمات اختصاصی در `inspector-panel.tsx` شامل مدیریت نامحدود عناوین و لنگرهای اسکرول درون‌صفحه‌ای.
+   - رندر بلادرنگ در `canvas-element.tsx` با لیست‌های معنایی `<ol>` یا `<ul>`، نشانگر TOC و هماهنگی کامل RTL.
+   - نگاشت آیکون `ListOrdered` در ناویگیتور لایه‌ها `layers-tree.tsx`.
+   - کامپایل دقیق و معتبر در کامپایلر سرور `ast_compiler.py`.
+
+#### ۲. مستندات بصری و شواهد ۵ سیگنالی
+- **قبل از اصلاح**: `.loop/artifacts/builder-gym/round-26/before/`
+  - `01-studio-initial.png` (وضعیت اولیه استودیو)
+- **بعد از اصلاح**: `.loop/artifacts/builder-gym/round-26/after/`
+  - `01-toc-selected.png` (درج و انتخاب موفق فهرست مطالب در بوم)
+  - `02-toc-nudge-applied.png` (اعمال موفق عنوان «بررسی جامع پردازنده و بنچمارک‌های گیمینگ» در بازرس و تغییر آنی بوم)
+
+#### ۳. تست‌های رگرسیون دائمی و وضعیت تست‌ها
+- **تست رگرسیون واحد بک‌اند**: تست کامپایل SSR در `backend/app/tests/unit/test_ast_compiler.py::test_ast_compiler_table_of_contents_elementor_pro_parity`.
+- `npx tsc --noEmit`: ۰ خطا.
+- `npm test` (Vitest): **۳۷۵ تست سبز در ۴۵ فایل** (`375 passed`).
+- `python -m pytest app/tests/unit`: **۶۳۰ تست سبز** (`630 passed, 2 skipped`).
+
+---
+
 ### 🏋️ راند ۲۴ (Round 24) — وزنه ۷ و ۸: ۸۵ و ۱۰۰ کیلو (تکمیل اتصال ۴ لایه ویجت‌های Core و Pro المنتور، رفع تکثیر دکمه میانبرها و تثبیت صفت‌های سفارشی)
 - **تاریخ اجرا**: 2026-11-22
 - **شاخه ایزوله**: `claude/trusting-booth-4a3d0e`
@@ -1164,8 +1522,6 @@
 
 ---
 
----
-
 ### 🏋️ راند ۳۵ (Round 35) — وزنه ۹: ۱۲۰ کیلو (ممیزی و اعتبارسنجی ارگونومیک بصری ۳ ستونه ۱۹۲۰×۱۰۸۰، ناوبری انسانی و تست ریسپانسیو کامل)
 - **تاریخ اجرا**: 2026-11-22
 - **شاخه ایزوله**: `claude/trusting-booth-4a3d0e`
@@ -1211,6 +1567,52 @@
 - `npm test` (Vitest): **۳۷۳ تست سبز در ۴۵ فایل** (`373 passed`)
 - `python -m pytest app/tests/unit`: **۶۳۳ تست سبز** (`633 passed, 2 skipped`)
 - تست‌های Playwright راند ۳۵: **۴ تست سبز در ۲۱.۴ ثانیه**
+
+---
+
+### 🏋️ راند ۴۰ (Round 40) — وزنه ۷: ۸۵ کیلو (پورت ویجت حرفه‌ای بلوک کد Code Highlight از Elementor Pro به ۴ لایه بیلدر با ویوپورت ۱۰۸۰×۱۹۲۰)
+- **تاریخ اجرا**: 2026-11-22
+- **شاخه ایزوله**: `claude/nifty-snyder-d5b886`
+- **پورت فرانت‌اند**: ۴۰۰۲
+- **ویوپورت بازرسی عمیق انسانی**: ۱۹۲۰ در ۱۰۸۰ پیکسل (Full HD)
+- **وضعیت**: ✅ کامل و سبز (پورت ویجت بلوک کد حرفه‌ای با ۱۰ زبان، شماره خطوط، دکمه کپی و بررسی ۳۶۰ درجه دسترسی‌پذیری و ریسپانسیو ستون راست، وسط و چپ)
+
+#### ۱. قابلیت‌ها و اصلاحات انجام‌شده
+1. **پورت ویجت بلوک کد (`code_highlight`) از Elementor Pro**:
+   - مرجع المنتور: `elementor-pro/modules/code-highlight/widgets/code-highlight.php`.
+   - اضافه شدن به پالت پایه‌ای در `block-registry.ts` (افزایش بلوک‌ها به ۴۸ بلوک).
+   - پیاده‌سازی کنترل‌های بازرس با ورودی عنوان/نام فایل (`code-title-input`)، سلکتور ۱۰ زبان برنامه‌نویسی (`code-lang-select`: JavaScript, TypeScript, Python, HTML, CSS, JSON, SQL, Bash, PHP, Rust)، ویرایشگر متن کد (`code-content-textarea`)، سوئیچ شماره خطوط (`code-linenumbers-switch`) و سوئیچ دکمه کپی (`code-copybtn-switch`) در `inspector-panel.tsx`.
+   - پیاده‌سازی رندرینگ زنده با استایل ترمینال دارک، هدر مدرن با دکمه‌های کنترلی سیستم‌عامل، شماره خطوط منظم، فونت مونو و دکمه کپی در `canvas-element.tsx`.
+   - پیاده‌سازی کامپایل سمانتیک SSR با تگ‌های `<pre>`، `<code>`، کلاس‌های زبانی و شماره خطوط در `ast_compiler.py`.
+2. **بررسی ۳۶۰ درجه فضای سه‌گانه استودیو در رزولوشن 1920x1080**:
+   - ستون راست (پالت بلوک‌ها، ناویگیتور لایه‌ها، تاریخچه تغییرات): کاملاً در دسترس، روان و بدون هم‌پوشانی.
+   - ستون وسط (بوم زنده و فریم): چینش متعادل با دید کامل به المنت‌های بوم و نوار ابزار بالا.
+   - ستون چپ (پنل بازرس): تب‌های محتوا، استایل و پیشرفته کاملاً خوانا و ریسپانسیو.
+
+#### ۲. مستندات بصری (Vision Artifacts)
+- **قبل از اصلاح**: `.loop/artifacts/builder-gym/round-40/before/`
+  - `01-studio-1920x1080.png`
+  - `02-right-sidebar-palette.png`
+  - `03-right-sidebar-layers.png`
+  - `04-right-sidebar-history.png`
+  - `05-left-inspector.png`
+  - `06-palette-search-code.png`
+  - `report.json`
+- **بعد از اصلاح**: `.loop/artifacts/builder-gym/round-40/after/`
+  - `01-studio-1920x1080.png`
+  - `02-palette-search-code.png`
+  - `03-code-customized-1920x1080.png` (اعمال موفق عنوان `script.py`، هایلایت پایتون و کد در بوم زنده)
+  - `report.json`
+
+#### ۳. تست‌های رگرسیون دائمی اضافه‌شده
+- فایل تست Playwright: `frontend/tests/e2e/builder-gym-r40.spec.ts` (۲ تست سبز در ابعاد 1920x1080)
+- فایل تست پایتون: `backend/app/tests/unit/test_ast_compiler.py::test_ast_compiler_renders_round40_code_highlight` (۱ تست سبز)
+
+#### ۴. نتایج نهایی ممیزی و تست‌ها در راند ۴۰
+- `npx --prefix frontend tsc --noEmit`: ۰ خطا (سبز)
+- `npm --prefix frontend test -- --run`: **۳۷۲ تست سبز در ۴۵ فایل** (`372 passed`)
+- `python -m pytest app/tests/unit`: **۶۳۹ تست سبز** (`639 passed, 2 skipped`)
+- تست‌های Playwright راند ۴۰: **۲ تست سبز (`2 passed in 10.4s`) در ویوپورت 1920x1080 روی پورت ۴۰۰۲**
 
 ---
 

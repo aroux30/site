@@ -128,6 +128,8 @@ class ASTCompiler:
             classes.append(f"grid-cols-1 md:grid-cols-{min(cols, 2)} lg:grid-cols-{cols}")
             if layout.gap and layout.gap.value > 0:
                 style_parts.append(f"gap: {layout.gap.to_css()};")
+            if layout.grid_auto_flow:
+                style_parts.append(f"grid-auto-flow: {layout.grid_auto_flow};")
 
         # Boxed container layout: restrict maxWidth and auto-center
         if layout.boxed_width and layout.boxed_width.value > 0:
@@ -802,9 +804,42 @@ class ASTCompiler:
                 f'</blockquote>'
             )
 
+        elif widget_type == "image_box":
+            title = html.escape(str(props.get("title", "عنوان ویژگی تصویری")))
+            desc = html.escape(str(props.get("description", "")))
+            img_src = html.escape(str(props.get("image_url", "/placeholder-hero.svg")))
+            link = props.get("link_url")
+            link_html = f'<a href="{html.escape(str(link))}" class="text-xs font-bold text-primary hover:underline inline-block mt-2">مشاهده بیشتر ←</a>' if link and link != "#" else ""
+            return (
+                f'<div{id_attr} class="builder-image-box p-4 rounded-2xl border border-border/80 bg-card text-center space-y-3 {css_class}" data-widget="image_box"{style_attr}>'
+                f'<div class="w-full aspect-video rounded-xl overflow-hidden bg-muted/30 flex items-center justify-center">'
+                f'<img src="{img_src}" alt="{title}" class="w-full h-full object-cover" loading="lazy" />'
+                f'</div>'
+                f'<h4 class="text-sm font-bold text-foreground">{title}</h4>'
+                f'<p class="text-xs text-muted-foreground leading-relaxed">{desc}</p>'
+                f'{link_html}'
+                f'</div>'
+            )
+
+        elif widget_type == "toggle":
+            items = props.get("items", [{"title": "بخش ۱", "content": "محتوای ۱", "default_open": True}])
+            items_html = "".join(
+                f'<details class="group rounded-xl border border-border/80 bg-card overflow-hidden" {"open" if itm.get("default_open") is not False else ""}>'
+                f'<summary class="p-3.5 font-bold text-xs text-foreground cursor-pointer list-none flex items-center justify-between hover:bg-muted/40 transition select-none">'
+                f'<span>{html.escape(str(itm.get("title", "بخش")))}</span>'
+                f'<span class="transition-transform group-open:rotate-180">▾</span>'
+                f'</summary>'
+                f'<div class="p-3.5 pt-0 text-xs text-muted-foreground border-t border-border/40 leading-relaxed">'
+                f'{html.escape(str(itm.get("content", "")))}'
+                f'</div>'
+                f'</details>'
+                for itm in items
+            )
+            return f'<div{id_attr} class="builder-toggle space-y-2 w-full {css_class}" data-widget="toggle"{style_attr}>{items_html}</div>'
+
         elif widget_type == "menu_anchor":
             anchor_id = html.escape(str(props.get("anchor_id", "section-target")))
-            return f'<div id="{anchor_id}" class="builder-menu-anchor w-full h-0 opacity-0 pointer-events-none -my-1" aria-hidden="true"></div>'
+            return f'<div id="{anchor_id}" class="builder-menu-anchor w-full h-0 opacity-0 pointer-events-none -my-1 {css_class}" data-widget="menu_anchor" aria-hidden="true"{style_attr}></div>'
 
         elif widget_type == "icon":
             icon_key = html.escape(str(props.get("icon", "star")))
@@ -858,14 +893,15 @@ class ASTCompiler:
             )
 
         elif widget_type == "price_table":
-            title = html.escape(str(props.get("title", "پلن استاندارد")))
-            subtitle = html.escape(str(props.get("subtitle", "")))
+            title = html.escape(str(props.get("title") or props.get("heading", "پلن استاندارد")))
+            subtitle = html.escape(str(props.get("subtitle") or props.get("sub_heading", "")))
             price = html.escape(str(props.get("price", "۴۹۰,۰۰۰")))
             currency = html.escape(str(props.get("currency", "تومان")))
             period = html.escape(str(props.get("period", "ماهانه")))
-            badge = html.escape(str(props.get("badge", "")))
             is_featured = bool(props.get("is_featured", False))
-            btn_label = html.escape(str(props.get("button_label", "انتخاب و شروع پلن")))
+            badge_val = props.get("badge") or ("پیشنهاد ویژه" if is_featured else "")
+            badge = html.escape(str(badge_val))
+            btn_label = html.escape(str(props.get("button_label") or props.get("button_text", "انتخاب و شروع پلن")))
             btn_url = html.escape(str(props.get("button_url", "/checkout")))
 
             featured_border = "border-primary shadow-md ring-2 ring-primary/20" if is_featured else "border-border/80"
@@ -981,6 +1017,8 @@ class ASTCompiler:
             return f'<div{id_attr} class="builder-toggle space-y-2 w-full {css_class}" data-widget="toggle"{style_attr}>{items_html}</div>'
 
         elif widget_type == "share_buttons":
+            title = props.get("title", "")
+            title_html = f'<span class="text-xs font-bold text-foreground">{html.escape(str(title))}</span>' if title else ""
             raw_networks = props.get("networks", ["telegram", "whatsapp", "twitter", "linkedin"])
             skin = str(props.get("skin", "gradient"))
             shape = str(props.get("shape", "rounded"))
@@ -993,17 +1031,24 @@ class ASTCompiler:
                 "linkedin": ("لینکدین", "bg-[#0077B5] text-white"),
                 "facebook": ("فیس‌بوک", "bg-[#1877F2] text-white"),
                 "email": ("ایمیل", "bg-muted text-foreground"),
+                "eitaa": ("ایتا", "bg-orange-500 text-white"),
             }
             btns_html = ""
             if isinstance(raw_networks, list):
                 for net in raw_networks:
-                    label, col_cls = net_labels.get(str(net), (str(net), "bg-primary text-white"))
+                    if isinstance(net, dict):
+                        net_key = str(net.get("network", "share"))
+                        label = str(net.get("label") or net_labels.get(net_key, (net_key, ""))[0])
+                    else:
+                        net_key = str(net)
+                        label = net_labels.get(net_key, (net_key, ""))[0]
+                    _, col_cls = net_labels.get(net_key, (label, "bg-primary text-white"))
                     btns_html += (
-                        f'<button type="button" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold transition shadow-xs hover:opacity-90 {shape_cls} {col_cls}">'
+                        f'<button type="button" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold transition shadow-xs hover:opacity-90 {shape_cls} {col_cls}" data-network="{html.escape(net_key)}">'
                         f'<span>{html.escape(label)}</span>'
                         f'</button>'
                     )
-            return f'<div{id_attr} class="builder-share-buttons flex flex-wrap items-center gap-2 {css_class}" data-widget="share_buttons"{style_attr}>{btns_html}</div>'
+            return f'<div{id_attr} class="builder-share-buttons flex flex-wrap items-center gap-2 {css_class}" data-widget="share_buttons"{style_attr}>{title_html}{btns_html}</div>'
 
         elif widget_type == "progress_tracker":
             direction = str(props.get("direction", "horizontal"))
@@ -1018,41 +1063,23 @@ class ASTCompiler:
                 f'</div>'
             )
 
-        elif widget_type == "table_of_contents":
-            title = html.escape(str(props.get("title", "فهرست محتوا")))
-            items = props.get("items", [{"text": "مقدمه و بررسی اجمالی", "level": 2}, {"text": "ویژگی‌ها و مزایای کلیدی", "level": 2}, {"text": "نتیجه‌گیری", "level": 3}])
-            list_html = ""
-            if isinstance(items, list):
-                for itm in items:
-                    txt = html.escape(str(itm.get("text", "")))
-                    lvl = int(itm.get("level", 2))
-                    indent = "pr-4 text-xs font-medium text-muted-foreground" if lvl > 2 else "font-bold text-xs text-foreground"
-                    list_html += f'<li class="{indent} hover:text-primary transition"><a href="#" onclick="return false;">• {txt}</a></li>'
-            return (
-                f'<nav{id_attr} class="builder-toc p-4 rounded-2xl border border-border/80 bg-card/60 space-y-2 text-right {css_class}" data-widget="table_of_contents"{style_attr}>'
-                f'<h4 class="font-bold text-xs text-foreground pb-1 border-b border-border/60">{title}</h4>'
-                f'<ul class="space-y-1.5 pt-1">{list_html}</ul>'
-                f'</nav>'
-            )
-
         elif widget_type == "hotspot":
             img_url = html.escape(str(props.get("image_url", "/placeholder-hero.svg")))
             alt = html.escape(str(props.get("alt", "تصویر با نقاط تعاملی")))
-            spots = props.get("spots", [{"x": 30, "y": 45, "title": "نقطه ۱", "content": "توضیحات نقطه ۱"}])
+            raw_spots = props.get("spots") or props.get("hotspots") or [{"x": 30, "y": 45, "title": "نقطه ۱", "content": "توضیحات نقطه ۱"}]
             spots_html = ""
-            if isinstance(spots, list):
-                for s in spots:
+            if isinstance(raw_spots, list):
+                for s in raw_spots:
                     x = max(0, min(100, float(s.get("x", 50))))
                     y = max(0, min(100, float(s.get("y", 50))))
-                    s_title = html.escape(str(s.get("title", "")))
+                    s_label = html.escape(str(s.get("label") or s.get("title") or "+"))
+                    s_title = html.escape(str(s.get("title") or s.get("label", "")))
                     s_content = html.escape(str(s.get("content", "")))
+                    tooltip = f'<div class="absolute bottom-full right-1/2 translate-x-1/2 mb-2 hidden group-hover/spot:block w-44 p-2 bg-popover text-popover-foreground text-xs rounded-xl shadow-xl border border-border z-20 pointer-events-none"><div class="font-bold text-[11px] mb-0.5">{s_title}</div><div class="text-[10px] text-muted-foreground leading-relaxed">{s_content}</div></div>' if s_content else ""
                     spots_html += (
                         f'<div class="absolute -translate-x-1/2 -translate-y-1/2 group/spot cursor-pointer" style="left: {x}%; top: {y}%;">'
-                        f'<span class="w-4 h-4 rounded-full bg-primary text-white flex items-center justify-center text-[10px] font-bold shadow-md ring-4 ring-primary/30 animate-pulse">+</span>'
-                        f'<div class="absolute bottom-full right-1/2 translate-x-1/2 mb-2 hidden group-hover/spot:block w-44 p-2 bg-popover text-popover-foreground text-xs rounded-xl shadow-xl border border-border z-20 pointer-events-none">'
-                        f'<div class="font-bold text-[11px] mb-0.5">{s_title}</div>'
-                        f'<div class="text-[10px] text-muted-foreground leading-relaxed">{s_content}</div>'
-                        f'</div>'
+                        f'<span class="w-5 h-5 rounded-full bg-primary text-white flex items-center justify-center text-[10px] font-bold shadow-md ring-4 ring-primary/30 animate-pulse">{s_label}</span>'
+                        f'{tooltip}'
                         f'</div>'
                     )
             return (
@@ -1060,6 +1087,31 @@ class ASTCompiler:
                 f'<img src="{img_url}" alt="{alt}" class="w-full h-auto block rounded-2xl" loading="lazy" />'
                 f'{spots_html}'
                 f'</div>'
+            )
+
+        elif widget_type == "table_of_contents":
+            title = html.escape(str(props.get("title", "فهرست مطالب")))
+            raw_items = props.get("items", [])
+            items = raw_items if isinstance(raw_items, list) and raw_items else [
+                {"text": "مقدمه و بررسی اجمالی", "level": 2, "anchor": "#intro"},
+                {"text": "ویژگی‌ها و مزایای کلیدی", "level": 2, "anchor": "#features"},
+                {"text": "نتیجه‌گیری", "level": 3, "anchor": "#conclusion"},
+            ]
+            is_ordered = props.get("ordered") is True
+            list_tag = "ol" if is_ordered else "ul"
+            items_html = ""
+            for idx, itm in enumerate(items):
+                txt = html.escape(str(itm.get("text") or itm.get("title", "")))
+                lvl = int(itm.get("level", 2))
+                anchor = html.escape(str(itm.get("anchor", "#")))
+                indent = "pr-4 text-xs font-medium text-muted-foreground" if lvl > 2 else "font-bold text-xs text-foreground"
+                prefix = f'<span class="text-primary font-mono text-[10px]">{idx+1}.</span> ' if is_ordered else "• "
+                items_html += f'<li class="{indent} hover:text-primary transition"><a href="{anchor}" class="flex items-center gap-1.5">{prefix}<span>{txt}</span></a></li>'
+            return (
+                f'<nav{id_attr} class="builder-toc p-4 rounded-2xl border border-border/80 bg-card/60 space-y-2 text-right shadow-sm w-full {css_class}" data-widget="table_of_contents" aria-label="فهرست مطالب"{style_attr}>'
+                f'<div class="flex items-center gap-2 border-b border-border/60 pb-1.5"><span class="text-primary font-bold">📑</span><h4 class="text-xs font-bold text-foreground">{title}</h4></div>'
+                f'<{list_tag} class="space-y-1.5 pt-1">{items_html}</{list_tag}>'
+                f'</nav>'
             )
 
         elif widget_type == "lottie":
@@ -1072,21 +1124,6 @@ class ASTCompiler:
                 f'<span class="text-primary font-bold text-sm">✦ Lottie</span>'
                 f'<span class="text-[10px] opacity-75 truncate max-w-[100px]">{url.split("/")[-1]}</span>'
                 f'</div>'
-                f'</div>'
-            )
-
-        elif widget_type == "code_highlight":
-            code = html.escape(str(props.get("code", "console.log('Hello, World!');")))
-            lang = html.escape(str(props.get("language", "javascript")))
-            line_numbers = props.get("line_numbers", True)
-            ln_cls = "line-numbers" if line_numbers else ""
-            return (
-                f'<div{id_attr} class="builder-code-highlight my-3 rounded-2xl overflow-hidden border border-border/80 bg-zinc-950 text-zinc-100 font-mono text-xs text-left {css_class}" data-widget="code_highlight" dir="ltr"{style_attr}>'
-                f'<div class="px-4 py-2 border-b border-zinc-800 bg-zinc-900/60 text-zinc-400 text-[10px] flex items-center justify-between">'
-                f'<span>{lang}</span>'
-                f'<span class="text-zinc-600">code</span>'
-                f'</div>'
-                f'<pre class="p-4 overflow-x-auto {ln_cls}"><code class="language-{lang}">{code}</code></pre>'
                 f'</div>'
             )
 
@@ -1336,6 +1373,48 @@ class ASTCompiler:
                 f'</nav>'
             )
 
+        elif widget_type == "code_highlight":
+            title = html.escape(str(props.get("title", "")))
+            language = html.escape(str(props.get("language", "javascript")))
+            code_text = html.escape(str(props.get("code", "")))
+            show_lines = props.get("line_numbers", True) is not False
+            show_copy = props.get("copy_to_clipboard", True) is not False
+
+            lines = code_text.split("\n")
+            lines_gutter = ""
+            if show_lines:
+                lines_nums = "".join(f"<div>{i+1}</div>" for i in range(len(lines)))
+                lines_gutter = f'<div class="code-line-numbers select-none text-slate-600 text-right pe-3 me-3 border-e border-slate-800 font-mono text-[11px]">{lines_nums}</div>'
+
+            header_dots = (
+                '<div class="flex items-center gap-1.5">'
+                '<span class="w-2.5 h-2.5 rounded-full bg-rose-500/80 inline-block"></span>'
+                '<span class="w-2.5 h-2.5 rounded-full bg-amber-500/80 inline-block"></span>'
+                '<span class="w-2.5 h-2.5 rounded-full bg-emerald-500/80 inline-block"></span>'
+                f'<span class="font-bold text-slate-300 ms-1.5">{title or language.upper()}</span>'
+                '</div>'
+            )
+            copy_btn = (
+                f'<button type="button" class="code-copy-btn px-2 py-0.5 rounded border border-slate-700 text-slate-400 hover:text-slate-200 text-[10px] transition" data-code="{code_text}">کپی</button>'
+                if show_copy else ""
+            )
+            header_bar = (
+                f'<div class="code-header flex items-center justify-between px-4 py-2 border-b border-slate-800 bg-slate-900 text-[11px] text-slate-400">'
+                f'{header_dots}'
+                f'<div class="flex items-center gap-2"><span class="text-[10px] uppercase font-bold text-slate-500 tracking-wider">{language}</span>{copy_btn}</div>'
+                f'</div>'
+            )
+
+            return (
+                f'<div{id_attr} class="builder-code-highlight rounded-2xl border border-slate-800 bg-slate-950 text-slate-100 shadow-md overflow-hidden text-left font-mono text-xs w-full {css_class}" data-widget="code_highlight" dir="ltr"{style_attr}>'
+                f'{header_bar}'
+                f'<div class="p-3.5 overflow-x-auto flex leading-relaxed">'
+                f'{lines_gutter}'
+                f'<pre class="flex-1 font-mono text-[12px] text-emerald-400 whitespace-pre overflow-x-auto"><code class="language-{language}">{code_text}</code></pre>'
+                f'</div>'
+                f'</div>'
+            )
+
         # Generic fallback for any other registered widget
         fallback_title = html.escape(str(props.get("title", widget_type)))
         return f'<div{id_attr} class="builder-widget builder-{widget_type} {css_class}" data-widget="{html.escape(widget_type)}"{style_attr}>{fallback_title}</div>'
@@ -1381,6 +1460,14 @@ class ASTCompiler:
                 parts.append(f"text-align: {typo.text_align};")
             if typo.font_family and typo.font_family != "inherit":
                 parts.append(f"font-family: {typo.font_family};")
+            if typo.letter_spacing:
+                parts.append(f"letter-spacing: {typo.letter_spacing.to_css()};")
+            if typo.text_decoration and typo.text_decoration != "none":
+                parts.append(f"text-decoration: {typo.text_decoration};")
+            if typo.text_transform and typo.text_transform != "none":
+                parts.append(f"text-transform: {typo.text_transform};")
+            if typo.text_shadow:
+                parts.append(f"text-shadow: {typo.text_shadow};")
         if base.border:
             b = base.border
             if b.style and b.style != "none":
@@ -1416,6 +1503,8 @@ class ASTCompiler:
 
         if base.box_shadow and base.box_shadow != "none":
             parts.append(f"box-shadow: {base.box_shadow};")
+        if base.transition_duration:
+            parts.append(f"transition: all {base.transition_duration}s ease;")
 
         # Advanced Layout (P4)
         if base.position and base.position != "inherit":
@@ -1463,27 +1552,49 @@ class ASTCompiler:
             parts.append(f"filter: {base.filter};")
         if base.box_shadow:
             parts.append(f"box-shadow: {base.box_shadow};")
+
+        # Transform (Elementor Parity Wave 1)
         if base.transform:
             t = base.transform
             t_parts = []
-            if t.rotate:
+            if t.rotate is not None:
                 t_parts.append(f"rotate({t.rotate}deg)")
-            if t.scale:
+            if t.scale is not None:
                 t_parts.append(f"scale({t.scale})")
-            if t.skew_x:
+            if t.skew_x is not None:
                 t_parts.append(f"skewX({t.skew_x}deg)")
-            if t.skew_y:
+            if t.skew_y is not None:
                 t_parts.append(f"skewY({t.skew_y}deg)")
             if t.translate_x or t.translate_y:
                 t_parts.append(f"translate({t.translate_x or 0}px, {t.translate_y or 0}px)")
+            if t.flip_x:
+                t_parts.append("scaleX(-1)")
+            if t.flip_y:
+                t_parts.append("scaleY(-1)")
             if t_parts:
                 parts.append(f"transform: {' '.join(t_parts)};")
+
+        # Masking (Elementor Parity Wave 1)
         if base.mask and base.mask.shape and base.mask.shape != "none":
             m = base.mask
-            parts.append(f"-webkit-mask-image: url('/masks/{m.shape}.svg'); mask-image: url('/masks/{m.shape}.svg');")
-            if m.size:
-                parts.append(f"mask-size: {m.size}; -webkit-mask-size: {m.size};")
-            if m.position:
-                parts.append(f"mask-position: {m.position}; -webkit-mask-position: {m.position};")
+            shape_map = {
+                "circle": "radial-gradient(circle, black 60%, transparent 60%)",
+                "flower": "radial-gradient(circle at 50% 50%, black 50%, transparent 50%)",
+                "hexagon": "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)",
+            }
+            if m.shape in shape_map:
+                mask_val = shape_map[m.shape]
+                if m.shape == "hexagon":
+                    parts.append(f"clip-path: {mask_val};")
+                else:
+                    parts.append(f"-webkit-mask-image: {mask_val}; mask-image: {mask_val};")
+            else:
+                parts.append(f"-webkit-mask-image: url('/masks/{m.shape}.svg'); mask-image: url('/masks/{m.shape}.svg');")
 
+            if m.size:
+                parts.append(f"-webkit-mask-size: {m.size}; mask-size: {m.size};")
+            if m.position:
+                parts.append(f"-webkit-mask-position: {m.position}; mask-position: {m.position};")
+            if getattr(m, "repeat", None):
+                parts.append(f"-webkit-mask-repeat: {m.repeat}; mask-repeat: {m.repeat};")
         return parts

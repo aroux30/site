@@ -286,7 +286,11 @@ function CanvasElementComponent({
       if (fontObj.fontSize) styleObj.fontSize = `${fontObj.fontSize.value}${fontObj.fontSize.unit}`;
       if (fontObj.fontWeight && fontObj.fontWeight !== "inherit") styleObj.fontWeight = fontObj.fontWeight;
       if (fontObj.lineHeight) styleObj.lineHeight = `${fontObj.lineHeight.value}${fontObj.lineHeight.unit}`;
+      if (fontObj.letterSpacing) styleObj.letterSpacing = `${fontObj.letterSpacing.value}${fontObj.letterSpacing.unit}`;
       if (fontObj.textAlign && fontObj.textAlign !== "inherit") styleObj.textAlign = fontObj.textAlign;
+      if (fontObj.textDecoration && fontObj.textDecoration !== "none") styleObj.textDecoration = fontObj.textDecoration;
+      if (fontObj.textTransform && fontObj.textTransform !== "none") styleObj.textTransform = fontObj.textTransform;
+      if (fontObj.textShadow) styleObj.textShadow = fontObj.textShadow;
       if (fontObj.color) styleObj.color = normalizeCssColor(fontObj.color);
       if (fontObj.fontFamily && fontObj.fontFamily !== "inherit") {
         styleObj.fontFamily = fontObj.fontFamily.startsWith("var(")
@@ -339,10 +343,28 @@ function CanvasElementComponent({
       }
     }
 
-    // Box Shadow
+    // Box Shadow & Hover Box Shadow (Elementor Parity)
     const shadow = resolveResponsiveValue({ mobile: base?.shadow || base?.boxShadow, tablet: tablet?.shadow || tablet?.boxShadow, desktop: desktop?.shadow || desktop?.boxShadow }, activeBreakpoint);
-    if (shadow && shadow !== "none") {
+    const hoverShadow = resolveResponsiveValue({ mobile: base?.hoverBoxShadow, tablet: tablet?.hoverBoxShadow, desktop: desktop?.hoverBoxShadow }, activeBreakpoint);
+    const hoverBorder = resolveResponsiveValue({ mobile: base?.hoverBorder, tablet: tablet?.hoverBorder, desktop: desktop?.hoverBorder }, activeBreakpoint);
+    const transitionDuration = resolveResponsiveValue({ mobile: base?.transitionDuration, tablet: tablet?.transitionDuration, desktop: desktop?.transitionDuration }, activeBreakpoint);
+
+    if (transitionDuration) {
+      styleObj.transition = `all ${transitionDuration}s ease`;
+    }
+
+    if (isHovered && hoverShadow && hoverShadow !== "none") {
+      styleObj.boxShadow = hoverShadow;
+    } else if (shadow && shadow !== "none") {
       styleObj.boxShadow = shadow;
+    }
+
+    if (isHovered && hoverBorder && hoverBorder.style !== "none") {
+      styleObj.borderStyle = hoverBorder.style;
+      if (hoverBorder.color) styleObj.borderColor = normalizeCssColor(hoverBorder.color);
+      if (hoverBorder.width?.top) {
+        styleObj.borderWidth = `${hoverBorder.width.top.value}${hoverBorder.width.top.unit}`;
+      }
     }
 
     // CSS Filters & Backdrop Blur (Elementor Parity)
@@ -452,6 +474,9 @@ function CanvasElementComponent({
       if (transform.scale) tParts.push(`scale(${transform.scale})`);
       if (transform.skewX) tParts.push(`skewX(${transform.skewX}deg)`);
       if (transform.skewY) tParts.push(`skewY(${transform.skewY}deg)`);
+      if (transform.translateX || transform.translateY) {
+        tParts.push(`translate(${transform.translateX || 0}px, ${transform.translateY || 0}px)`);
+      }
       if (transform.flipX) tParts.push("scaleX(-1)");
       if (transform.flipY) tParts.push("scaleY(-1)");
       if (tParts.length > 0) styleObj.transform = tParts.join(" ");
@@ -491,6 +516,11 @@ function CanvasElementComponent({
       styleObj.maxWidth = `${element.layout.boxedWidth.value}${element.layout.boxedWidth.unit}`;
       styleObj.marginLeft = "auto";
       styleObj.marginRight = "auto";
+    }
+
+    // Elementor CSS Grid auto-flow
+    if (element.type === "container" && element.layout?.kind === "grid" && element.layout?.gridAutoFlow) {
+      styleObj.gridAutoFlow = element.layout.gridAutoFlow;
     }
 
     return styleObj;
@@ -1577,6 +1607,201 @@ function CanvasElementComponent({
           </div>
         );
       }
+      case "image_box": {
+        const title = String(props.title || "عنوان ویژگی تصویری");
+        const desc = String(props.description || "توضیحات باکس تصویر");
+        const imgUrl = String(props.image_url || "/placeholder-hero.svg");
+        const linkUrl = String(props.link_url || "#");
+        return (
+          <div className="p-4 rounded-2xl border border-border/80 bg-card text-center space-y-3 shadow-sm w-full">
+            <div className="w-full aspect-video rounded-xl overflow-hidden bg-muted/30 flex items-center justify-center">
+              <img src={imgUrl} alt={title} className="w-full h-full object-cover" loading="lazy" />
+            </div>
+            <h4 className="text-sm font-bold text-foreground">{title}</h4>
+            <p className="text-xs text-muted-foreground leading-relaxed">{desc}</p>
+            {linkUrl && linkUrl !== "#" && (
+              <a href={linkUrl} onClick={(e) => !previewMode && e.preventDefault()} className="text-xs font-bold text-primary hover:underline inline-block">
+                مشاهده بیشتر ←
+              </a>
+            )}
+          </div>
+        );
+      }
+      case "toggle": {
+        const items = (props.items as any[]) || [
+          { title: "عنوان تاگل ۱", content: "محتوای تاگل ۱", default_open: true },
+          { title: "عنوان تاگل ۲", content: "محتوای تاگل ۲", default_open: true },
+        ];
+        return (
+          <div className="builder-toggle space-y-2 w-full" data-widget="toggle">
+            {items.map((itm, idx) => (
+              <details key={idx} className="group rounded-xl border border-border/80 bg-card overflow-hidden" open={itm.default_open !== false}>
+                <summary className="p-3.5 font-bold text-xs text-foreground cursor-pointer list-none flex items-center justify-between hover:bg-muted/40 transition select-none">
+                  <span>{itm.title || "بخش"}</span>
+                  <span className="transition-transform group-open:rotate-180">▾</span>
+                </summary>
+                <div className="p-3.5 pt-0 text-xs text-muted-foreground border-t border-border/40 leading-relaxed">
+                  {itm.content || ""}
+                </div>
+              </details>
+            ))}
+          </div>
+        );
+      }
+      case "icon_list": {
+        const items = (props.items as any[]) || [
+          { text: "آیتم اول لیست", icon: "check" },
+          { text: "آیتم دوم لیست", icon: "check" },
+        ];
+        const isHorizontal = props.layout === "horizontal";
+        return (
+          <ul className={cn("builder-icon-list w-full p-0 m-0 list-none space-y-2.5", isHorizontal && "flex flex-wrap items-center gap-4 space-y-0")}>
+            {items.map((itm, idx) => (
+              <li key={idx} className="flex items-center gap-2 text-xs text-foreground font-medium">
+                <span className="w-5 h-5 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                  <Check className="w-3 h-3 text-primary stroke-[2.5]" />
+                </span>
+                <span>{itm.text || ""}</span>
+              </li>
+            ))}
+          </ul>
+        );
+      }
+      case "hotspot": {
+        const imgUrl = String(props.image_url || "/placeholder-hero.svg");
+        const alt = String(props.alt || "تصویر");
+        const hotspots = (props.hotspots as any[]) || [
+          { id: "h1", x: 30, y: 40, label: "۱", title: "ویژگی اول", tooltip: "توضیح نقطه اول" },
+        ];
+        return (
+          <div className="builder-hotspot relative w-full rounded-2xl overflow-hidden border border-border/80 bg-muted/20 select-none" data-widget="hotspot">
+            <img src={imgUrl} alt={alt} className="w-full h-auto block object-cover" loading="lazy" />
+            {hotspots.map((h, idx) => (
+              <div
+                key={h.id || idx}
+                style={{ top: `${h.y}%`, left: `${h.x}%` }}
+                className="absolute -translate-x-1/2 -translate-y-1/2 group/hs z-20 cursor-pointer"
+              >
+                <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground font-black text-xs flex items-center justify-center shadow-lg ring-4 ring-primary/30 animate-pulse">
+                  {h.label || idx + 1}
+                </div>
+                {(h.title || h.tooltip) && (
+                  <div className="absolute bottom-full mb-2 start-1/2 -translate-x-1/2 min-w-[160px] p-2.5 rounded-xl bg-popover/95 border border-border/80 shadow-xl backdrop-blur-md text-right opacity-0 group-hover/hs:opacity-100 transition pointer-events-none z-30">
+                    {h.title && <div className="font-bold text-xs text-foreground mb-0.5">{h.title}</div>}
+                    {h.tooltip && <div className="text-[10px] text-muted-foreground leading-relaxed">{h.tooltip}</div>}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        );
+      }
+      case "price_table": {
+        const title = String(props.title || "پلن پایه");
+        const subtitle = String(props.subtitle || "");
+        const price = String(props.price || "۲۹۰,۰۰۰");
+        const currency = String(props.currency || "تومان");
+        const period = String(props.period || "ماهانه");
+        const btnLabel = String(props.button_label || "شروع کنید");
+        const isFeatured = props.is_featured === true;
+        const features = (props.features as any[]) || [
+          { text: "امکانات پایه سیستم", available: true },
+          { text: "پشتیبانی استاندارد", available: true },
+        ];
+        return (
+          <div className={cn(
+            "p-6 rounded-3xl border bg-card text-center space-y-4 shadow-sm w-full transition relative overflow-hidden",
+            isFeatured ? "border-primary ring-2 ring-primary/20 shadow-lg" : "border-border/80"
+          )}>
+            {isFeatured && (
+              <div className="absolute top-0 end-0 bg-primary text-primary-foreground text-[10px] font-bold px-3 py-1 rounded-bl-xl shadow-xs">
+                پیشنهاد ویژه
+              </div>
+            )}
+            <div className="space-y-1">
+              <h4 className="text-base font-bold text-foreground">{title}</h4>
+              {subtitle && <p className="text-xs text-muted-foreground">{subtitle}</p>}
+            </div>
+            <div className="py-2 border-y border-border/60">
+              <span className="text-3xl font-black text-primary font-mono">{price}</span>
+              <span className="text-xs text-muted-foreground ms-1">{currency} / {period}</span>
+            </div>
+            <ul className="space-y-2 text-xs text-right list-none p-0 m-0">
+              {features.map((f, idx) => (
+                <li key={idx} className="flex items-center gap-2">
+                  <span className="w-4 h-4 rounded-full bg-emerald-500/10 text-emerald-600 flex items-center justify-center shrink-0 text-[10px] font-bold">✓</span>
+                  <span className="text-muted-foreground">{f.text}</span>
+                </li>
+              ))}
+            </ul>
+            <div className="pt-2">
+              <button
+                type="button"
+                onClick={(e) => !previewMode && e.preventDefault()}
+                className={cn(
+                  "w-full py-2.5 rounded-xl font-bold text-xs transition shadow-sm",
+                  isFeatured
+                    ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                    : "bg-muted/80 text-foreground hover:bg-muted"
+                )}
+              >
+                {btnLabel}
+              </button>
+            </div>
+          </div>
+        );
+      }
+      case "table_of_contents": {
+        const title = String(props.title || "فهرست مطالب");
+        const items = (props.items as any[]) || [
+          { text: "مقدمه", anchor: "#intro" },
+          { text: "مشخصات فنی", anchor: "#specs" },
+        ];
+        const isOrdered = props.ordered !== false;
+        const ListTag = isOrdered ? "ol" : "ul";
+        return (
+          <div className="builder-toc p-4 rounded-2xl border border-border/80 bg-card space-y-3 shadow-sm w-full text-right" data-widget="table_of_contents">
+            <div className="flex items-center justify-between border-b pb-2">
+              <span className="font-bold text-xs text-foreground">{title}</span>
+              <span className="text-[10px] text-primary font-bold">TOC</span>
+            </div>
+            <ListTag className={cn("text-xs space-y-1.5 p-0 m-0", isOrdered ? "list-decimal list-inside" : "list-disc list-inside")}>
+              {items.map((itm, idx) => (
+                <li key={idx} className="text-muted-foreground hover:text-primary transition cursor-pointer">
+                  <a href={itm.anchor || "#"} onClick={(e) => !previewMode && e.preventDefault()} className="hover:underline">
+                    {itm.text}
+                  </a>
+                </li>
+              ))}
+            </ListTag>
+          </div>
+        );
+      }
+      case "price_list": {
+        const items = (props.items as any[]) || [
+          { title: "عنوان خدمت", description: "توضیح کوتاه خدمت", price: "۱۰۰,۰۰۰ تومان" },
+        ];
+        return (
+          <div className="builder-price-list space-y-3 w-full" data-widget="price_list">
+            {items.map((itm, idx) => (
+              <div key={idx} className="flex items-start justify-between gap-3 p-3 rounded-2xl border border-border/60 bg-card hover:bg-muted/30 transition">
+                {itm.image && (
+                  <img src={itm.image} alt={itm.title} className="w-12 h-12 rounded-xl object-cover shrink-0" loading="lazy" />
+                )}
+                <div className="flex-1 space-y-0.5 text-right">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="font-bold text-xs text-foreground">{itm.title}</span>
+                    <span className="font-mono font-black text-xs text-primary shrink-0">{itm.price}</span>
+                  </div>
+                  {itm.description && (
+                    <p className="text-[11px] text-muted-foreground leading-relaxed">{itm.description}</p>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        );
+      }
       case "call_to_action": {
         const title = String(props.title || "عنوان اقدام به عمل");
         const desc = String(props.description || "توضیحات مربوط به بنر تشویق به اقدام");
@@ -2011,6 +2236,65 @@ function CanvasElementComponent({
             <pre className="overflow-x-auto whitespace-pre-wrap leading-relaxed">
               <code>{codeText}</code>
             </pre>
+          </div>
+        );
+      }
+      case "code_highlight": {
+        const title = props.title ? String(props.title) : "";
+        const language = String(props.language || "javascript");
+        const codeText = String(
+          props.code ||
+            '// Sample Code\nfunction greet(name) {\n  console.log("Hello, " + name);\n}\ngreet("World");'
+        );
+        const showLineNumbers = props.line_numbers !== false;
+        const showCopy = props.copy_to_clipboard !== false;
+        const lines = codeText.split("\n");
+
+        return (
+          <div
+            className="w-full rounded-2xl border border-slate-800 bg-slate-950 text-slate-100 shadow-md overflow-hidden text-left font-mono text-xs"
+            dir="ltr"
+          >
+            {(title || showCopy || language) && (
+              <div className="flex items-center justify-between px-4 py-2 border-b border-slate-800/80 bg-slate-900/80 text-[11px] text-slate-400">
+                <div className="flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-rose-500/80 inline-block" />
+                  <span className="w-2.5 h-2.5 rounded-full bg-amber-500/80 inline-block" />
+                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-500/80 inline-block" />
+                  <span className="font-bold text-slate-300 ms-1">{title || language.toUpperCase()}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">{language}</span>
+                  {showCopy && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (typeof navigator !== "undefined" && navigator.clipboard) {
+                          navigator.clipboard.writeText(codeText);
+                        }
+                      }}
+                      className="px-2 py-0.5 rounded border border-slate-700 hover:bg-slate-800 hover:text-slate-200 text-slate-400 transition text-[10px] flex items-center gap-1"
+                    >
+                      <Copy className="w-3 h-3" />
+                      <span>کپی</span>
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
+            <div className="p-3.5 overflow-x-auto flex leading-relaxed">
+              {showLineNumbers && (
+                <div className="select-none text-slate-600 text-right pe-3 me-3 border-e border-slate-800/80 shrink-0 font-mono text-[11px]">
+                  {lines.map((_, i) => (
+                    <div key={i}>{i + 1}</div>
+                  ))}
+                </div>
+              )}
+              <pre className="flex-1 font-mono text-[12px] text-emerald-400 whitespace-pre overflow-x-auto">
+                <code>{codeText}</code>
+              </pre>
+            </div>
           </div>
         );
       }

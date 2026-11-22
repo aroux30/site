@@ -14,6 +14,7 @@ import {
   Unlink,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
@@ -237,20 +238,45 @@ export function InspectorPanel() {
           )}
 
           {layout.kind === "grid" && (
-            <div className="space-y-1.5">
-              <Label className="text-xs">تعداد ستون‌ها در دسکتاپ</Label>
-              <Input
-                type="number"
-                min={1}
-                max={12}
-                value={layout.gridColumns}
-                onChange={(e) => {
-                  const num = parseInt(e.target.value, 10) || 1;
-                  updateElementLayout(selectedElement.id, { gridColumns: num });
-                }}
-                className="h-8 text-xs"
-              />
-            </div>
+            <>
+              <div className="space-y-1.5">
+                <Label className="text-xs">تعداد ستون‌ها در دسکتاپ</Label>
+                <Input
+                  data-testid="grid-columns-input"
+                  type="number"
+                  min={1}
+                  max={12}
+                  value={layout.gridColumns}
+                  onChange={(e) => {
+                    const num = parseInt(e.target.value, 10) || 1;
+                    updateElementLayout(selectedElement.id, { gridColumns: num });
+                  }}
+                  className="h-8 text-xs font-mono"
+                  dir="ltr"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label className="text-xs">جریان خودکار شبکه (Grid Auto Flow)</Label>
+                <Select
+                  value={layout.gridAutoFlow || "row"}
+                  onValueChange={(val: any) => {
+                    updateElementLayout(selectedElement.id, { gridAutoFlow: val });
+                  }}
+                >
+                  <SelectTrigger data-testid="grid-auto-flow-select" className="h-8 text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="row">سطری (Row)</SelectItem>
+                    <SelectItem value="column">ستونی (Column)</SelectItem>
+                    <SelectItem value="dense">فشرده (Dense)</SelectItem>
+                    <SelectItem value="row dense">سطری فشرده (Row Dense)</SelectItem>
+                    <SelectItem value="column dense">ستونی فشرده (Column Dense)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </>
           )}
 
           <div className="space-y-1.5">
@@ -468,7 +494,7 @@ export function InspectorPanel() {
             <div className="space-y-1.5">
               <Label className="text-xs">شناسه لنگر (Anchor ID)</Label>
               <Input
-                data-testid="anchor-id-input"
+                data-testid="menu-anchor-input"
                 value={String(props.anchor_id || "")}
                 placeholder="features"
                 onChange={(e) => handlePropChange("anchor_id", e.target.value)}
@@ -1655,6 +1681,242 @@ export function InspectorPanel() {
           </div>
         );
 
+      case "image_box":
+        return (
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs">آدرس تصویر (URL)</Label>
+              <Input
+                data-testid="image-box-url-input"
+                value={String(props.image_url || "")}
+                onChange={(e) => handlePropChange("image_url", e.target.value)}
+                className="h-8 text-xs font-mono"
+                dir="ltr"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">عنوان جعبه تصویر</Label>
+              <Input
+                data-testid="image-box-title-input"
+                value={String(props.title || "")}
+                onChange={(e) => handlePropChange("title", e.target.value)}
+                className="h-8 text-xs"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">متن توضیحات</Label>
+              <textarea
+                data-testid="image-box-desc-input"
+                rows={3}
+                value={String(props.description || "")}
+                onChange={(e) => handlePropChange("description", e.target.value)}
+                className="w-full rounded-md border border-input bg-background p-2 text-xs leading-relaxed"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">لینک کلیک (Link URL)</Label>
+              <Input
+                value={String(props.link_url || "")}
+                onChange={(e) => handlePropChange("link_url", e.target.value)}
+                className="h-8 text-xs font-mono"
+                dir="ltr"
+              />
+            </div>
+          </div>
+        );
+
+      case "toggle": {
+        const items = (props.items as any[]) || [
+          { title: "بخش اول", content: "محتوای بخش اول", default_open: true },
+        ];
+        return (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <Label className="text-xs font-bold">بخش‌های تاگل بازشونده</Label>
+              <button
+                type="button"
+                onClick={() => {
+                  const updated = [...items, { title: `بخش جدید ${items.length + 1}`, content: "محتوای پیش‌فرض", default_open: true }];
+                  handlePropChange("items", updated);
+                }}
+                className="text-[11px] text-primary hover:underline font-semibold"
+              >
+                + افزودن بخش
+              </button>
+            </div>
+            <div className="space-y-2">
+              {items.map((itm, idx) => (
+                <div key={idx} className="p-2.5 rounded-lg border bg-muted/20 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Input
+                      data-testid={`toggle-item-title-${idx}`}
+                      value={itm.title || ""}
+                      placeholder="عنوان تاگل"
+                      onChange={(e) => {
+                        const updated = [...items];
+                        updated[idx] = { ...updated[idx], title: e.target.value };
+                        handlePropChange("items", updated);
+                      }}
+                      className="h-8 text-xs"
+                    />
+                    {items.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const updated = items.filter((_, i) => i !== idx);
+                          handlePropChange("items", updated);
+                        }}
+                        className="text-[10px] text-destructive hover:underline ms-2"
+                      >
+                        حذف
+                      </button>
+                    )}
+                  </div>
+                  <textarea
+                    rows={2}
+                    value={itm.content || ""}
+                    placeholder="محتوای متنی..."
+                    onChange={(e) => {
+                      const updated = [...items];
+                      updated[idx] = { ...updated[idx], content: e.target.value };
+                      handlePropChange("items", updated);
+                    }}
+                    className="w-full rounded-md border border-input bg-background p-2 text-xs leading-relaxed"
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      }
+
+      case "hotspot": {
+        const hotspots = (props.hotspots as any[]) || [
+          { id: "hs_1", x: 30, y: 40, label: "۱", title: "نقطه اول", tooltip: "توضیحات" },
+        ];
+        return (
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs">آدرس تصویر (Image URL)</Label>
+              <Input
+                data-testid="hotspot-image-input"
+                value={String(props.image_url || "")}
+                onChange={(e) => handlePropChange("image_url", e.target.value)}
+                className="h-8 text-xs font-mono"
+                dir="ltr"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">متن جایگزین (Alt)</Label>
+              <Input
+                value={String(props.alt || "")}
+                onChange={(e) => handlePropChange("alt", e.target.value)}
+                className="h-8 text-xs"
+              />
+            </div>
+            <div className="space-y-2 pt-2 border-t">
+              <div className="flex items-center justify-between">
+                <Label className="text-xs font-bold">نقاط تعاملی (Hotspots)</Label>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const updated = [...hotspots, { id: `hs_${Date.now()}`, x: 50, y: 50, label: `${hotspots.length + 1}`, title: `نقطه ${hotspots.length + 1}`, tooltip: "توضیحات این بخش" }];
+                    handlePropChange("hotspots", updated);
+                  }}
+                  className="text-[11px] text-primary hover:underline font-semibold"
+                >
+                  + افزودن نقطه
+                </button>
+              </div>
+              {hotspots.map((h, idx) => (
+                <div key={idx} className="p-2.5 rounded-xl border bg-muted/20 space-y-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <Input
+                      data-testid={`hotspot-label-input-${idx}`}
+                      value={h.label || ""}
+                      placeholder="برچسب (۱)"
+                      onChange={(e) => {
+                        const updated = [...hotspots];
+                        updated[idx] = { ...updated[idx], label: e.target.value };
+                        handlePropChange("hotspots", updated);
+                      }}
+                      className="h-8 text-xs w-16 text-center font-bold"
+                    />
+                    <Input
+                      data-testid={`hotspot-title-input-${idx}`}
+                      value={h.title || ""}
+                      placeholder="عنوان نقطه..."
+                      onChange={(e) => {
+                        const updated = [...hotspots];
+                        updated[idx] = { ...updated[idx], title: e.target.value };
+                        handlePropChange("hotspots", updated);
+                      }}
+                      className="h-8 text-xs flex-1"
+                    />
+                    {hotspots.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const updated = hotspots.filter((_, i) => i !== idx);
+                          handlePropChange("hotspots", updated);
+                        }}
+                        className="text-[10px] text-destructive hover:underline shrink-0"
+                      >
+                        حذف
+                      </button>
+                    )}
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="space-y-1">
+                      <Label className="text-[10px]">موقعیت افقی (X %)</Label>
+                      <Input
+                        type="number"
+                        min={0}
+                        max={100}
+                        value={h.x ?? 50}
+                        onChange={(e) => {
+                          const updated = [...hotspots];
+                          updated[idx] = { ...updated[idx], x: parseFloat(e.target.value) || 0 };
+                          handlePropChange("hotspots", updated);
+                        }}
+                        className="h-7 text-xs font-mono"
+                        dir="ltr"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-[10px]">موقعیت عمودی (Y %)</Label>
+                      <Input
+                        type="number"
+                        min={0}
+                        max={100}
+                        value={h.y ?? 50}
+                        onChange={(e) => {
+                          const updated = [...hotspots];
+                          updated[idx] = { ...updated[idx], y: parseFloat(e.target.value) || 0 };
+                          handlePropChange("hotspots", updated);
+                        }}
+                        className="h-7 text-xs font-mono"
+                        dir="ltr"
+                      />
+                    </div>
+                  </div>
+                  <Input
+                    value={h.tooltip || ""}
+                    placeholder="متن توضیحات در هاور..."
+                    onChange={(e) => {
+                      const updated = [...hotspots];
+                      updated[idx] = { ...updated[idx], tooltip: e.target.value };
+                      handlePropChange("hotspots", updated);
+                    }}
+                    className="h-7 text-xs"
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      }
+
       case "call_to_action":
         return (
           <div className="space-y-4">
@@ -1942,50 +2204,18 @@ export function InspectorPanel() {
           </div>
         );
 
-      case "image_box":
-        return (
-          <div className="space-y-4">
-            <div className="space-y-1.5">
-              <Label className="text-xs">آدرس تصویر (URL)</Label>
-              <Input
-                data-testid="image-box-url-input"
-                value={String(props.image_url || "")}
-                onChange={(e) => handlePropChange("image_url", e.target.value)}
-                className="h-8 text-xs font-mono"
-                dir="ltr"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-xs">عنوان جعبه تصویر</Label>
-              <Input
-                data-testid="image-box-title-input"
-                value={String(props.title || "")}
-                onChange={(e) => handlePropChange("title", e.target.value)}
-                className="h-8 text-xs"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-xs">توضیحات کوتاه</Label>
-              <textarea
-                data-testid="image-box-desc-input"
-                rows={3}
-                value={String(props.description || "")}
-                onChange={(e) => handlePropChange("description", e.target.value)}
-                className="w-full rounded-md border border-input bg-background p-2 text-xs leading-relaxed"
-              />
-            </div>
-          </div>
-        );
-
       case "share_buttons":
         return (
           <div className="space-y-4">
             <div className="space-y-1.5">
-              <Label className="text-xs">متن پیش‌فرض اشتراک‌گذاری</Label>
+              <Label className="text-xs">عنوان یا متن اشتراک‌گذاری</Label>
               <Input
-                data-testid="share-buttons-text-input"
-                value={String(props.share_text || "")}
-                onChange={(e) => handlePropChange("share_text", e.target.value)}
+                data-testid="share-buttons-title-input"
+                value={String(props.title || props.share_text || "")}
+                onChange={(e) => {
+                  handlePropChange("title", e.target.value);
+                  handlePropChange("share_text", e.target.value);
+                }}
                 className="h-8 text-xs"
               />
             </div>
@@ -2041,111 +2271,6 @@ export function InspectorPanel() {
           </div>
         );
       }
-
-      case "toggle": {
-        const items = (props.items as any[]) || [];
-        return (
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <Label className="text-xs font-bold">آیتم‌های تاگل</Label>
-              <button
-                type="button"
-                onClick={() => {
-                  const updated = [...items, { title: "بخش جدید", content: "توضیحات بخش جدید" }];
-                  handlePropChange("items", updated);
-                }}
-                className="text-[11px] text-primary hover:underline font-semibold"
-              >
-                + افزودن تاگل
-              </button>
-            </div>
-            <div className="space-y-2">
-              {items.map((item, idx) => (
-                <div key={idx} className="p-2.5 rounded-lg border bg-muted/20 space-y-1.5">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-bold">تاگل {idx + 1}</span>
-                    {items.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const updated = items.filter((_, i) => i !== idx);
-                          handlePropChange("items", updated);
-                        }}
-                        className="text-[10px] text-destructive hover:underline"
-                      >
-                        حذف
-                      </button>
-                    )}
-                  </div>
-                  <Input
-                    placeholder="عنوان تاگل"
-                    value={item.title || ""}
-                    onChange={(e) => {
-                      const updated = [...items];
-                      updated[idx] = { ...updated[idx], title: e.target.value };
-                      handlePropChange("items", updated);
-                    }}
-                    className="h-7 text-xs"
-                  />
-                  <textarea
-                    rows={2}
-                    placeholder="محتوای تاگل"
-                    value={item.content || ""}
-                    onChange={(e) => {
-                      const updated = [...items];
-                      updated[idx] = { ...updated[idx], content: e.target.value };
-                      handlePropChange("items", updated);
-                    }}
-                    className="w-full rounded-md border border-input bg-background p-1.5 text-xs leading-relaxed"
-                  />
-                </div>
-              ))}
-            </div>
-          </div>
-        );
-      }
-
-      case "hotspot":
-        return (
-          <div className="space-y-4">
-            <div className="space-y-1.5">
-              <Label className="text-xs">آدرس تصویر زمینه (URL)</Label>
-              <Input
-                data-testid="hotspot-image-input"
-                value={String(props.image_url || "")}
-                onChange={(e) => handlePropChange("image_url", e.target.value)}
-                className="h-8 text-xs font-mono"
-                dir="ltr"
-              />
-            </div>
-          </div>
-        );
-
-      case "table_of_contents":
-        return (
-          <div className="space-y-4">
-            <div className="space-y-1.5">
-              <Label className="text-xs">عنوان فهرست</Label>
-              <Input
-                data-testid="toc-title-input"
-                value={String(props.title || "")}
-                onChange={(e) => handlePropChange("title", e.target.value)}
-                className="h-8 text-xs"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-xs">عناوین فهرست (هر خط یک عنوان)</Label>
-              <textarea
-                data-testid="toc-headings-input"
-                rows={4}
-                value={Array.isArray(props.headings) ? props.headings.join("\n") : ""}
-                onChange={(e) => handlePropChange("headings", e.target.value.split("\n").filter(Boolean))}
-                className="w-full rounded-md border border-input bg-background p-2 text-xs leading-relaxed"
-                placeholder="عنوان اول&#10;عنوان دوم&#10;عنوان سوم"
-              />
-            </div>
-          </div>
-        );
 
       case "progress_tracker":
         return (
@@ -2395,24 +2520,64 @@ export function InspectorPanel() {
         return (
           <div className="space-y-4">
             <div className="space-y-1.5">
-              <Label className="text-xs">زبان برنامه‌نویسی</Label>
+              <Label className="text-xs">عنوان یا نام فایل</Label>
               <Input
-                data-testid="code-lang-input"
-                value={String(props.language || "javascript")}
-                onChange={(e) => handlePropChange("language", e.target.value)}
+                data-testid="code-title-input"
+                value={String(props.title || "")}
+                placeholder="مثلاً index.ts یا script.py"
+                onChange={(e) => handlePropChange("title", e.target.value)}
                 className="h-8 text-xs font-mono"
                 dir="ltr"
               />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs">قطعه کد</Label>
-              <textarea
-                data-testid="code-text-input"
-                rows={6}
+              <Label className="text-xs">زبان برنامه‌نویسی (Language)</Label>
+              <Select
+                value={String(props.language || "javascript")}
+                onValueChange={(val) => handlePropChange("language", val)}
+              >
+                <SelectTrigger data-testid="code-lang-select" className="h-8 text-xs font-mono" dir="ltr">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent dir="ltr">
+                  <SelectItem value="javascript">JavaScript / Node.js</SelectItem>
+                  <SelectItem value="typescript">TypeScript</SelectItem>
+                  <SelectItem value="python">Python</SelectItem>
+                  <SelectItem value="html">HTML</SelectItem>
+                  <SelectItem value="css">CSS / Tailwind</SelectItem>
+                  <SelectItem value="json">JSON</SelectItem>
+                  <SelectItem value="sql">SQL / PostgreSQL</SelectItem>
+                  <SelectItem value="bash">Bash / Shell</SelectItem>
+                  <SelectItem value="php">PHP</SelectItem>
+                  <SelectItem value="rust">Rust</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">محتوای کد منبع</Label>
+              <Textarea
+                data-testid="code-content-textarea"
                 value={String(props.code || "")}
                 onChange={(e) => handlePropChange("code", e.target.value)}
-                className="w-full rounded-md border border-input bg-background p-2 text-xs font-mono leading-relaxed"
+                className="font-mono text-xs leading-relaxed min-h-[120px] bg-muted/40"
                 dir="ltr"
+                placeholder="کد خود را اینجا وارد کنید..."
+              />
+            </div>
+            <div className="flex items-center justify-between pt-1">
+              <Label className="text-xs">نمایش شماره خطوط (Line Numbers)</Label>
+              <Switch
+                data-testid="code-linenumbers-switch"
+                checked={props.line_numbers !== false}
+                onCheckedChange={(val) => handlePropChange("line_numbers", val)}
+              />
+            </div>
+            <div className="flex items-center justify-between pt-1">
+              <Label className="text-xs">دکمه کپی در کلیپ‌بورد</Label>
+              <Switch
+                data-testid="code-copybtn-switch"
+                checked={props.copy_to_clipboard !== false}
+                onCheckedChange={(val) => handlePropChange("copy_to_clipboard", val)}
               />
             </div>
           </div>
@@ -2598,6 +2763,7 @@ export function InspectorPanel() {
                       </SelectContent>
                     </Select>
                     <Input
+                      data-testid={`icon-list-item-text-${idx}`}
                       value={it.text || ""}
                       placeholder="متن آیتم"
                       onChange={(e) => {
@@ -3671,6 +3837,52 @@ export function InspectorPanel() {
               })}
             </div>
           </div>
+
+          <div className="space-y-1.5 pt-1">
+            <Label className="text-[11px] text-muted-foreground">سایه متن (Text Shadow - المنتور)</Label>
+            <div className="flex items-center gap-2">
+              <Input
+                data-testid="typography-text-shadow-input"
+                value={currentDeviceStyle.typography?.textShadow || ""}
+                placeholder="مثلاً 0 2px 4px rgba(0,0,0,0.3)"
+                onChange={(e) =>
+                  handleDeviceStyleChange({
+                    typography: {
+                      ...currentDeviceStyle.typography,
+                      textShadow: e.target.value.trim() || undefined,
+                    },
+                  })
+                }
+                className="h-8 text-xs flex-1 font-mono"
+                dir="ltr"
+              />
+            </div>
+            <div className="flex flex-wrap gap-1 mt-1">
+              {[
+                { label: "بدون سایه", val: "none" },
+                { label: "ظریف", val: "0 1px 2px rgba(0,0,0,0.2)" },
+                { label: "متوسط", val: "0 2px 4px rgba(0,0,0,0.3)" },
+                { label: "عمیق", val: "0 4px 8px rgba(0,0,0,0.4)" },
+                { label: "درخشان (Glow)", val: "0 0 8px var(--primary)" },
+              ].map((tok) => (
+                <button
+                  key={tok.label}
+                  type="button"
+                  onClick={() =>
+                    handleDeviceStyleChange({
+                      typography: {
+                        ...currentDeviceStyle.typography,
+                        textShadow: tok.val === "none" ? undefined : tok.val,
+                      },
+                    })
+                  }
+                  className="px-2 py-0.5 rounded text-[10px] bg-muted/80 hover:bg-muted text-muted-foreground hover:text-foreground border border-border/60 transition"
+                >
+                  {tok.label}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
 
         {/* CSS Filters (Elementor Parity) */}
@@ -3754,6 +3966,45 @@ export function InspectorPanel() {
                 {tok.label}
               </button>
             ))}
+          </div>
+
+          <div className="space-y-1 pt-1.5">
+            <Label className="text-[11px] text-muted-foreground">سایه کادر در حالت هاور (Hover Box Shadow)</Label>
+            <Input
+              data-testid="hover-box-shadow-input"
+              value={currentDeviceStyle.hoverBoxShadow || ""}
+              placeholder="مثلاً 0 20px 25px -5px rgba(0,0,0,0.2)"
+              onChange={(e) =>
+                handleDeviceStyleChange({
+                  hoverBoxShadow: e.target.value.trim() || undefined,
+                })
+              }
+              className="h-8 text-xs font-mono"
+              dir="ltr"
+            />
+          </div>
+
+          <div className="flex items-center justify-between pt-1">
+            <Label className="text-[11px] text-muted-foreground">مدت زمان گذار (Transition Duration)</Label>
+            <div className="flex items-center gap-1.5 w-28">
+              <Input
+                data-testid="transition-duration-input"
+                type="number"
+                step="0.05"
+                min={0}
+                max={2}
+                value={currentDeviceStyle.transitionDuration ?? 0.3}
+                onChange={(e) => {
+                  const val = parseFloat(e.target.value);
+                  handleDeviceStyleChange({
+                    transitionDuration: !isNaN(val) ? val : 0.3,
+                  });
+                }}
+                className="h-7 text-xs font-mono"
+                dir="ltr"
+              />
+              <span className="text-[10px] text-muted-foreground">ثانیه</span>
+            </div>
           </div>
         </div>
 
@@ -4263,7 +4514,7 @@ export function InspectorPanel() {
             data-testid="custom-attributes-textarea"
             rows={3}
             dir="ltr"
-            placeholder={"data-tracking|hero-cta\nrel|sponsored"}
+            placeholder={"key|value\ndata-tracking|hero-cta\naria-label|test-region"}
             value={
               typeof selectedElement.styles.customAttributes === "string"
                 ? selectedElement.styles.customAttributes
@@ -4284,7 +4535,7 @@ export function InspectorPanel() {
 
         {/* Transform (Elementor Parity Wave 1) */}
         <div className="space-y-3 pt-2 border-t border-border/80">
-          <Label className="text-xs font-bold text-foreground block">تبدیل و چرخش (Transform)</Label>
+          <Label className="text-xs font-bold text-foreground block">تبدیل سه‌بعدی و چرخش (Transform)</Label>
           <div className="grid grid-cols-2 gap-2">
             <div className="space-y-1">
               <Label className="text-[11px] text-muted-foreground">زاویه چرخش (درجه)</Label>
@@ -4325,6 +4576,84 @@ export function InspectorPanel() {
                 dir="ltr"
               />
             </div>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <div className="space-y-1">
+              <Label className="text-[11px] text-muted-foreground">اریب افقی (Skew X)</Label>
+              <Input
+                data-testid="transform-skewx-input"
+                type="number"
+                min={-180}
+                max={180}
+                value={currentDeviceStyle.transform?.skewX ?? ""}
+                placeholder="۰°"
+                onChange={(e) => {
+                  const val = e.target.value === "" ? null : parseFloat(e.target.value);
+                  handleDeviceStyleChange({
+                    transform: { ...(currentDeviceStyle.transform || {}), skewX: val },
+                  });
+                }}
+                className="h-8 text-xs font-mono"
+                dir="ltr"
+              />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-[11px] text-muted-foreground">اریب عمودی (Skew Y)</Label>
+              <Input
+                data-testid="transform-skewy-input"
+                type="number"
+                min={-180}
+                max={180}
+                value={currentDeviceStyle.transform?.skewY ?? ""}
+                placeholder="۰°"
+                onChange={(e) => {
+                  const val = e.target.value === "" ? null : parseFloat(e.target.value);
+                  handleDeviceStyleChange({
+                    transform: { ...(currentDeviceStyle.transform || {}), skewY: val },
+                  });
+                }}
+                className="h-8 text-xs font-mono"
+                dir="ltr"
+              />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              data-testid="transform-flipx-btn"
+              onClick={() => {
+                const cur = currentDeviceStyle.transform?.flipX || false;
+                handleDeviceStyleChange({
+                  transform: { ...(currentDeviceStyle.transform || {}), flipX: !cur },
+                });
+              }}
+              className={cn(
+                "py-1.5 px-2 rounded-lg text-xs font-semibold border transition text-center",
+                currentDeviceStyle.transform?.flipX
+                  ? "bg-primary text-primary-foreground border-primary shadow-xs"
+                  : "bg-muted/60 text-muted-foreground hover:text-foreground border-border/70"
+              )}
+            >
+              وارون افقی (Flip X)
+            </button>
+            <button
+              type="button"
+              data-testid="transform-flipy-btn"
+              onClick={() => {
+                const cur = currentDeviceStyle.transform?.flipY || false;
+                handleDeviceStyleChange({
+                  transform: { ...(currentDeviceStyle.transform || {}), flipY: !cur },
+                });
+              }}
+              className={cn(
+                "py-1.5 px-2 rounded-lg text-xs font-semibold border transition text-center",
+                currentDeviceStyle.transform?.flipY
+                  ? "bg-primary text-primary-foreground border-primary shadow-xs"
+                  : "bg-muted/60 text-muted-foreground hover:text-foreground border-border/70"
+              )}
+            >
+              وارون عمودی (Flip Y)
+            </button>
           </div>
         </div>
 

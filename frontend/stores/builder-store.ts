@@ -241,6 +241,7 @@ export interface BuilderState {
   pasteElement: (targetContainerId?: string) => void;
   copyStyles: (id?: string) => void;
   pasteStyles: (targetId?: string) => void;
+  resetStyles: (id?: string) => void;
 
   // Global Components (P4)
   makeGlobalComponent: (id: string) => string | null;
@@ -864,6 +865,23 @@ export const useBuilderStore = create<BuilderState>((set, get) => ({
     if (stylesToPaste) {
       updateElementStyles(id, JSON.parse(JSON.stringify(stylesToPaste)));
     }
+  },
+
+  resetStyles: (id) => {
+    const targetId = id || get().selectedElementId;
+    if (!targetId) return;
+    const { ast, history } = get();
+    const newPast = [...history.past, ast].slice(-MAX_HISTORY_LENGTH);
+    const updatedRoots = updateElementInTree(ast.rootElements, targetId, (el) => ({
+      ...el,
+      styles: { mobile: {} },
+    }));
+    set({
+      ast: { ...ast, rootElements: updatedRoots },
+      isDirty: true,
+      mutationVersion: get().mutationVersion + 1,
+      history: { past: newPast, future: [] },
+    });
   },
 
   makeGlobalComponent: (id) => {

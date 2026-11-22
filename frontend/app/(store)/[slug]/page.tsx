@@ -74,7 +74,25 @@ async function fetchPage(slug: string): Promise<CmsPage | null> {
             globalStyles: {},
             rootElements: [
               {
-                id: "el_e2e_head",
+                id: "cont_e2eroot",
+                name: "کانتینر ریشه آزمایشی",
+                type: "container",
+                isLocked: false,
+                isHidden: false,
+                layout: {
+                  kind: "flex",
+                  direction: "column",
+                  justifyContent: "start",
+                  alignItems: "stretch",
+                  flexWrap: "nowrap",
+                  gap: { value: 16, unit: "px" },
+                  gridColumns: 3,
+                },
+                styles: { mobile: {} },
+                children: [],
+              },
+              {
+                id: "el_e2ehead1",
                 name: "سرتیتر نمونه برای تست E2E",
                 type: "widget",
                 widgetType: "heading",
@@ -108,6 +126,24 @@ async function fetchPage(slug: string): Promise<CmsPage | null> {
           slug: "e2e-isolated-scratchpad",
           globalStyles: {},
           rootElements: [
+            {
+              id: "cont_e2eroot",
+              name: "کانتینر ریشه آزمایشی",
+              type: "container",
+              isLocked: false,
+              isHidden: false,
+              layout: {
+                kind: "flex",
+                direction: "column",
+                justifyContent: "start",
+                alignItems: "stretch",
+                flexWrap: "nowrap",
+                gap: { value: 16, unit: "px" },
+                gridColumns: 3,
+              },
+              styles: { mobile: {} },
+              children: [],
+            },
             {
               id: "el_e2ehead1",
               name: "سرتیتر نمونه برای تست E2E",

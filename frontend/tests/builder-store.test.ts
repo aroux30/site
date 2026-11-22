@@ -243,4 +243,28 @@ describe("Visual Page Builder Zustand Store & Undo/Redo Engine (Phase P1)", () =
     expect(clonedClean.name).toBe(targetEl.name);
     expect(clonedClean.id).not.toBe(targetEl.id);
   });
+
+  it("resets element styles to default and records undo history", () => {
+    const targetEl = useBuilderStore.getState().ast.rootElements[0]!.children[0]!;
+
+    // Apply styled device properties
+    useBuilderStore.getState().updateDeviceStyles(targetEl.id, "mobile", {
+      opacity: 0.5,
+      filter: "blur(4px)",
+    });
+
+    let modified = findElementById(useBuilderStore.getState().ast.rootElements, targetEl.id);
+    expect(modified?.styles?.mobile?.opacity).toBe(0.5);
+
+    // Call resetStyles
+    useBuilderStore.getState().resetStyles(targetEl.id);
+    let reset = findElementById(useBuilderStore.getState().ast.rootElements, targetEl.id);
+    expect(reset?.styles?.mobile?.opacity).toBeUndefined();
+    expect(reset?.styles?.mobile?.filter).toBeUndefined();
+
+    // Undo should restore styles
+    useBuilderStore.getState().undo();
+    let restored = findElementById(useBuilderStore.getState().ast.rootElements, targetEl.id);
+    expect(restored?.styles?.mobile?.opacity).toBe(0.5);
+  });
 });

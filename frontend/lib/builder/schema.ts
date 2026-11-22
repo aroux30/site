@@ -34,6 +34,7 @@ export const TypographyStyleSchema = z.object({
   textAlign: z.enum(["right", "center", "left", "justify", "inherit"]).nullable().optional(),
   textTransform: z.enum(["none", "uppercase", "lowercase", "capitalize"]).nullable().optional(),
   textDecoration: z.enum(["none", "underline", "line-through"]).nullable().optional(),
+  textShadow: z.string().nullable().optional(),
   color: z.string().nullable().optional(),
 });
 
@@ -73,6 +74,8 @@ export const TransformStyleSchema = z.object({
   skewY: z.number().nullable().optional(),
   translateX: z.number().nullable().optional(),
   translateY: z.number().nullable().optional(),
+  flipX: z.boolean().optional(),
+  flipY: z.boolean().optional(),
 });
 
 export const MaskStyleSchema = z.object({
@@ -98,6 +101,9 @@ export const DeviceStyleSchema = z.object({
   opacity: z.number().min(0).max(1).nullable().optional(),
   zIndex: z.number().int().min(0).max(999).nullable().optional(),
   boxShadow: z.string().nullable().optional(),
+  hoverBorder: BorderStyleSchema.nullable().optional(),
+  hoverBoxShadow: z.string().nullable().optional(),
+  transitionDuration: z.number().nullable().optional(),
   // Advanced Layout (P4)
   position: z.enum(["static", "relative", "absolute", "sticky", "inherit"]).nullable().optional(),
   top: UnitValueSchema.nullable().optional(),
@@ -153,6 +159,7 @@ export const ContainerLayoutSchema = z.object({
   flexWrap: z.enum(["nowrap", "wrap", "wrap-reverse"]).default("nowrap"),
   gap: UnitValueSchema.default({ value: 16, unit: "px" }),
   gridColumns: z.number().int().min(1).max(12).default(3),
+  gridAutoFlow: z.enum(["row", "column", "dense", "row dense", "column dense"]).nullable().optional(),
   boxedWidth: UnitValueSchema.nullable().optional(),
 });
 

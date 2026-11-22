@@ -28,6 +28,7 @@ import {
   ArrowDown,
   RotateCw,
   Phone,
+  Star,
 } from "lucide-react";
 import { SaveTemplateDialog } from "./save-template-dialog";
 import { cn } from "@/lib/utils";
@@ -46,6 +47,7 @@ import { Badge } from "@/components/ui/badge";
 import { useCartStore } from "@/stores/cart-store";
 import { useToast } from "@/components/ui/use-toast";
 import { normalizeCssColor } from "@/lib/builder/color-utils";
+import { BUILDER_ICONS } from "@/lib/builder/icon-map";
 import type { BuilderElement, DeviceStyle, ResponsiveStyles } from "@/types/builder";
 
 interface CanvasElementProps {
@@ -866,8 +868,54 @@ function CanvasElementComponent({
         );
       }
       case "icon": {
-        const iconChar = String(props.icon || "★");
-        return <span className="inline-block text-xl leading-none">{iconChar}</span>;
+        const iconKey = String(props.icon || "star");
+        const IconComponent = BUILDER_ICONS[iconKey] || Star;
+        const view = String(props.view || "default");
+        const shape = String(props.shape || "circle");
+        const size = Number(props.size) || 32;
+        const rotate = Number(props.rotate) || 0;
+        const url = String(props.url || "");
+        const newTab = Boolean(props.newTab);
+
+        let viewClasses = "text-primary";
+        if (view === "stacked") {
+          viewClasses = "bg-primary text-primary-foreground shadow-sm";
+        } else if (view === "framed") {
+          viewClasses = "border-2 border-primary text-primary bg-transparent";
+        }
+
+        const shapeClass = view !== "default"
+          ? (shape === "square" ? "rounded-2xl" : "rounded-full")
+          : "";
+
+        const paddingClass = view !== "default" ? "p-3 inline-flex items-center justify-center" : "inline-flex items-center justify-center";
+
+        const iconNode = (
+          <span
+            className={cn("builder-icon transition-transform", viewClasses, shapeClass, paddingClass)}
+            style={{
+              transform: rotate ? `rotate(${rotate}deg)` : undefined,
+            }}
+            data-testid="builder-canvas-icon"
+          >
+            <IconComponent style={{ width: `${size}px`, height: `${size}px` }} />
+          </span>
+        );
+
+        if (url) {
+          return (
+            <a
+              href={url}
+              target={newTab ? "_blank" : undefined}
+              rel={newTab ? "noopener noreferrer" : undefined}
+              onClick={(e) => !previewMode && e.preventDefault()}
+              className="inline-block hover:opacity-90 transition"
+            >
+              {iconNode}
+            </a>
+          );
+        }
+        return iconNode;
       }
       case "video": {
         const url = String(props.url || "");
@@ -1886,25 +1934,6 @@ function CanvasElementComponent({
           </div>
         );
       }
-      case "icon_list": {
-        const items = (props.items as any[]) || [
-          { text: "ارسال سریع با پست پیشتاز", icon: "check" },
-          { text: "ضمانت بازگشت وجه تا ۷ روز", icon: "check" },
-          { text: "پشتیبانی اختصاصی ۲۴ ساعته", icon: "check" },
-        ];
-        return (
-          <ul className="space-y-2.5 w-full text-right p-0 m-0 list-none">
-            {items.map((item, idx) => (
-              <li key={idx} className="flex items-center gap-2.5 text-xs text-foreground font-medium">
-                <span className="w-5 h-5 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0">
-                  <Check className="w-3 h-3" />
-                </span>
-                <span>{item.text}</span>
-              </li>
-            ))}
-          </ul>
-        );
-      }
       case "blockquote": {
         const text = String(props.text || "نقل‌قول برگزیده شما در این قسمت قرار می‌گیرد.");
         const author = String(props.author || "");
@@ -1913,73 +1942,6 @@ function CanvasElementComponent({
             <p className="text-sm leading-relaxed">«{text}»</p>
             {author && <cite className="block text-xs text-muted-foreground not-italic mt-1.5 font-semibold">— {author}</cite>}
           </blockquote>
-        );
-      }
-      case "price_table": {
-        const title = String(props.title || "پلن پایه");
-        const badge = props.badge ? String(props.badge) : undefined;
-        const price = String(props.price || "۲۹۰,۰۰۰");
-        const currency = String(props.currency || "تومان / ماهانه");
-        const features = (props.features as string[]) || ["امکان اول", "امکان دوم", "امکان سوم"];
-        const btnText = String(props.button_text || "انتخاب پلن");
-        return (
-          <div className="p-6 rounded-2xl border border-border/80 bg-card text-center space-y-4 shadow-sm w-full">
-            {badge && (
-              <span className="inline-block px-3 py-1 rounded-full bg-primary/15 text-primary text-xs font-bold">
-                {badge}
-              </span>
-            )}
-            <h3 className="text-lg font-bold text-foreground">{title}</h3>
-            <div className="py-2 border-y border-border/50">
-              <span className="text-3xl font-black text-primary font-mono">{price}</span>
-              <span className="text-xs text-muted-foreground ms-1">{currency}</span>
-            </div>
-            <ul className="space-y-2 text-right text-xs text-muted-foreground">
-              {features.map((f, idx) => (
-                <li key={idx} className="flex items-center gap-2">
-                  <Check className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                  <span>{f}</span>
-                </li>
-              ))}
-            </ul>
-            <button type="button" className="w-full py-2.5 rounded-xl bg-primary text-primary-foreground font-bold text-xs shadow hover:bg-primary/90 transition">
-              {btnText}
-            </button>
-          </div>
-        );
-      }
-      case "image_box": {
-        const imgUrl = String(props.image_url || "/placeholder-hero.svg");
-        const title = String(props.title || "عنوان جعبه تصویر");
-        const desc = String(props.description || "توضیحات کوتاه در این بخش قرار می‌گیرد.");
-        return (
-          <div className="p-4 rounded-2xl border border-border/80 bg-card text-center space-y-3 shadow-sm w-full">
-            <div className="w-full aspect-video max-h-48 rounded-xl overflow-hidden bg-muted/30 flex items-center justify-center mx-auto">
-              <img src={imgUrl} alt={title} className="w-full h-full object-cover" />
-            </div>
-            <h3 className="text-base font-bold text-foreground">{title}</h3>
-            <p className="text-xs text-muted-foreground leading-relaxed">{desc}</p>
-          </div>
-        );
-      }
-      case "price_list": {
-        const items = (props.items as any[]) || [
-          { title: "سرویس اول", price: "۱۰۰,۰۰۰ تومان", description: "توضیح کوتاه سرویس اول" },
-          { title: "سرویس دوم", price: "۲۰۰,۰۰۰ تومان", description: "توضیح کوتاه سرویس دوم" },
-        ];
-        return (
-          <div className="space-y-4 w-full p-2">
-            {items.map((item, idx) => (
-              <div key={idx} className="space-y-1">
-                <div className="flex items-baseline justify-between gap-2">
-                  <span className="text-xs font-bold text-foreground shrink-0">{item.title}</span>
-                  <span className="flex-1 border-b border-dotted border-border/80 mx-1 mb-1" />
-                  <span className="text-xs font-bold text-primary font-mono shrink-0">{item.price}</span>
-                </div>
-                {item.description && <p className="text-[11px] text-muted-foreground leading-relaxed">{item.description}</p>}
-              </div>
-            ))}
-          </div>
         );
       }
       case "share_buttons": {
@@ -2025,72 +1987,6 @@ function CanvasElementComponent({
               ))}
             </div>
           </div>
-        );
-      }
-      case "toggle": {
-        const items = (props.items as any[]) || [
-          { title: "بخش تاشو", content: "محتوا" },
-        ];
-        return (
-          <div className="space-y-2.5 w-full text-right">
-            {items.map((item, idx) => (
-              <details key={idx} open={item.open ?? (idx === 0)} className="group rounded-xl border border-border/80 bg-card p-3 shadow-sm transition">
-                <summary className="font-bold text-xs cursor-pointer flex items-center justify-between list-none">
-                  <span>{item.title}</span>
-                  <ChevronDown className="w-4 h-4 text-muted-foreground transition group-open:rotate-180" />
-                </summary>
-                <div className="pt-2 text-[11px] text-muted-foreground leading-relaxed border-t border-border/40 mt-2">
-                  {item.content}
-                </div>
-              </details>
-            ))}
-          </div>
-        );
-      }
-      case "hotspot": {
-        const imgUrl = String(props.image_url || "/placeholder-hero.svg");
-        const spots = (props.spots as any[]) || [
-          { top: 40, left: 35, title: "نقطه اول" },
-        ];
-        return (
-          <div className="relative w-full rounded-2xl overflow-hidden bg-muted/20 border border-border/80 aspect-video max-h-72">
-            <img src={imgUrl} alt="Hotspot" className="w-full h-full object-cover" />
-            {spots.map((s, idx) => (
-              <div
-                key={idx}
-                style={{ top: `${s.top}%`, left: `${s.left}%` }}
-                className="absolute -translate-x-1/2 -translate-y-1/2 group cursor-pointer"
-              >
-                <span className="w-5 h-5 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-[10px] font-bold shadow-lg ring-4 ring-primary/30 animate-pulse">
-                  {idx + 1}
-                </span>
-                {s.title && (
-                  <div className="absolute bottom-full mb-1.5 start-1/2 -translate-x-1/2 hidden group-hover:block bg-popover text-popover-foreground text-[10px] font-bold py-1 px-2 rounded-lg shadow whitespace-nowrap z-10 border border-border">
-                    {s.title}
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        );
-      }
-      case "table_of_contents": {
-        const title = String(props.title || "فهرست محتوا");
-        const headings = (props.headings as string[]) || ["مقدمه", "ویژگی‌ها", "نتیجه‌گیری"];
-        return (
-          <nav className="p-4 rounded-2xl border border-border/80 bg-card space-y-3 shadow-sm w-full text-right" aria-label="فهرست محتوای صفحه">
-            <h4 className="font-bold text-xs text-foreground flex items-center gap-2 border-b border-border/60 pb-2">
-              <span className="w-2 h-2 rounded-full bg-primary" />
-              <span>{title}</span>
-            </h4>
-            <ol className="space-y-1.5 list-decimal list-inside text-xs text-muted-foreground p-0 m-0">
-              {headings.map((h, idx) => (
-                <li key={idx} className="hover:text-primary cursor-pointer transition">
-                  <span className="hover:underline">{h}</span>
-                </li>
-              ))}
-            </ol>
-          </nav>
         );
       }
       case "progress_tracker": {

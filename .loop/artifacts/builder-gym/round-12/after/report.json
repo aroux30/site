@@ -1,13 +1,31 @@
 {
-  "stage": "after",
-  "timestamp": "2026-11-20T15:36:10.432Z",
-  "weight": "Weight 6: Toolbar Reordering Arrows & Element Placement (80kg)",
-  "checks": {
-    "toolbarScreenshot": "C:\\Users\\Administrator\\Desktop\\site\\.claude\\worktrees\\lucid-cartwright-fe0984\\.loop\\artifacts\\builder-gym\\round-12\\after\\01-floating-toolbar-reorder-buttons.png",
-    "moveButtons": {
-      "moveUp": true,
-      "moveDown": true
+  "round": "Round 12",
+  "weight": "وزنه ۷: ۸۵ کیلو (پورت المنتور — موج ۲ و ۳)",
+  "date": "2026-11-22",
+  "port": 1002,
+  "viewport": "1920x1080",
+  "passed": true,
+  "nudges": [
+    {
+      "widget": "table_of_contents",
+      "controls_tested": ["title", "ordered", "items[0].text", "+ افزودن سرفصل"],
+      "result": "Immediate bi-directional sync between inspector controls and canvas DOM"
     },
-    "beforeReorderScreenshot": "C:\\Users\\Administrator\\Desktop\\site\\.claude\\worktrees\\lucid-cartwright-fe0984\\.loop\\artifacts\\builder-gym\\round-12\\after\\02-canvas-sections-before-reorder.png"
-  }
+    {
+      "widget": "icon",
+      "controls_tested": ["icon", "view", "shape", "size", "rotate", "url", "newTab"],
+      "result": "Dynamic Lucide SVG rendering with live scaling from 32px to 48px"
+    },
+    {
+      "widget": "icon_list",
+      "controls_tested": ["items[i].icon", "items[i].text", "layout"],
+      "result": "Dynamic icon rendering matching BUILDER_ICONS"
+    }
+  ],
+  "p0_fixed": [
+    "Missing table_of_contents controls in InspectorPanel Content tab",
+    "Hardcoded checkmark in icon_list canvas element ignoring item icon",
+    "Duplicate unreachable switch cases in canvas-element.tsx (icon_list, price_table, image_box, price_list, toggle, hotspot, table_of_contents)",
+    "Duplicate elif widget_type branches in ast_compiler.py (image_box, toggle)"
+  ]
 }

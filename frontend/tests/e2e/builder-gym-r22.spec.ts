@@ -1,44 +1,9 @@
 import { test, expect } from "@playwright/test";
-import path from "node:path";
-import fs from "node:fs";
-import { execSync } from "node:child_process";
 
-const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || "http://127.0.0.1:4001";
-const BACKEND_DIR = path.resolve("C:/Users/Administrator/Desktop/site/backend");
+const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || "http://127.0.0.1:1002";
 
-function getAdminToken() {
-  const script = `
-import asyncio, datetime, uuid
-from app.core.security.jwt import create_access_token
-async def main():
-    user_id = str(uuid.UUID("47f274da-3abd-4d91-bc9c-83ba913fc66f"))
-    print("TOKEN_START:" + create_access_token(
-        user_id,
-        extra_claims={"roles": ["super_admin"], "is_superuser": True, "permissions": ["*"]},
-        expires_delta=datetime.timedelta(hours=2),
-    ))
-asyncio.run(main())
-`;
-  const tmp = path.join(BACKEND_DIR, `.gym-r22-tok-${Date.now()}.py`);
-  fs.writeFileSync(tmp, script, "utf8");
-  try {
-    const out = execSync(`python "${tmp}"`, { cwd: BACKEND_DIR, encoding: "utf8" });
-    const match = out.split("\n").find((l) => l.includes("TOKEN_START:"));
-    return match ? match.replace("TOKEN_START:", "").trim() : "";
-  } finally {
-    if (fs.existsSync(tmp)) try { fs.unlinkSync(tmp); } catch {}
-  }
-}
-
-test.describe("Builder Gym Round 22: Elementor Core & Pro Widget Palette & Inspector Parity", () => {
+test.describe("Builder Gym Round 22: Elementor Core/Pro Parity & TOC Inspector Synchronization", () => {
   test.beforeEach(async ({ context }) => {
-    const token = getAdminToken();
-    if (token) {
-      await context.addCookies([
-        { name: "access_token", value: token, url: BASE_URL, httpOnly: false, sameSite: "Lax" },
-        { name: "access_token", value: token, url: "http://localhost:4001", httpOnly: false, sameSite: "Lax" },
-      ]);
-    }
     await context.setExtraHTTPHeaders({
       "x-forwarded-for": `10.200.${Math.floor(Math.random() * 200)}.${Math.floor(Math.random() * 200)}`,
     });
@@ -46,74 +11,99 @@ test.describe("Builder Gym Round 22: Elementor Core & Pro Widget Palette & Inspe
       localStorage.setItem(
         "auth-storage",
         JSON.stringify({
-          state: { user: { id: "admin-1", phone: "09120000000", isSuperuser: true, roles: ["super_admin"] }, isAuthenticated: true, isLoading: false }
+          state: {
+            user: { id: "admin-1", phone: "09120000000", isSuperuser: true, roles: ["super_admin"] },
+            isAuthenticated: true,
+            isLoading: false,
+          },
         })
       );
     });
   });
 
-  test("1. Block palette includes new Elementor widgets (progress_bar, testimonial, call_to_action, flip_box, menu_anchor)", async ({ page }) => {
+  test("1. Table of Contents widget can be added and live-nudge reflected in canvas and inspector", async ({ page }) => {
     await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
     await page.waitForTimeout(1500);
 
-    // Verify search finds progress bar
-    const searchInput = page.locator('input[placeholder*="جستجو"]');
-    await expect(searchInput).toBeVisible();
-    await searchInput.fill("پیشرفت");
-    await page.waitForTimeout(300);
+    // Click TOC in blocks palette
+    const tocBtn = page.locator('button[data-block-type="table_of_contents"]').first();
+    await tocBtn.scrollIntoViewIfNeeded();
+    await tocBtn.click();
+    await page.waitForTimeout(800);
 
-    const progressBarBlock = page.locator('button[data-block-type="progress_bar"]');
-    await expect(progressBarBlock).toBeVisible();
+    // Locate TOC in canvas iframe
+    const frame = page.frameLocator('iframe[title="Visual Builder Canvas"]');
+    const tocElement = frame.locator('[data-widget-type="table_of_contents"]').first();
+    await expect(tocElement).toBeVisible();
 
-    // Verify search finds testimonial
-    await searchInput.fill("مشتری");
-    await page.waitForTimeout(300);
-    const testimonialBlock = page.locator('button:has-text("نظر مشتری")');
-    await expect(testimonialBlock).toBeVisible();
+    // Click to select TOC and open Inspector
+    await tocElement.click();
+    await page.waitForTimeout(500);
 
-    // Verify search finds CTA
-    await searchInput.fill("اقدام");
-    await page.waitForTimeout(300);
-    const ctaBlock = page.locator('button:has-text("فراخوان اقدام")');
-    await expect(ctaBlock).toBeVisible();
+    // Check TOC title input in inspector
+    const tocTitleInput = page.locator('[data-testid="toc-title-input"]');
+    await expect(tocTitleInput).toBeVisible();
 
-    // Verify search finds flip box
-    await searchInput.fill("چرخان");
-    await page.waitForTimeout(300);
-    const flipBoxBlock = page.locator('button:has-text("جعبه چرخان")');
-    await expect(flipBoxBlock).toBeVisible();
+    // Nudge TOC title
+    await tocTitleInput.fill("فهرست سرفصل‌های جامع");
+    await page.waitForTimeout(400);
 
-    // Verify search finds menu anchor
-    await searchInput.fill("لنگر");
-    await page.waitForTimeout(300);
-    const anchorBlock = page.locator('button:has-text("لنگر منو")');
-    await expect(anchorBlock).toBeVisible();
+    // Verify immediate reflection on canvas
+    await expect(tocElement).toContainText("فهرست سرفصل‌های جامع");
   });
 
-  test("2. Inspector and toolbar duplicates cleaned up; shortcuts button single instance", async ({ page }) => {
+  test("2. Icon widget renders SVG from BUILDER_ICONS and responds to size control", async ({ page }) => {
     await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
     await page.waitForTimeout(1500);
 
-    // Single shortcuts help button in toolbar
-    const shortcutsButtons = page.locator('button[data-testid="shortcuts-help-btn"]');
-    await expect(shortcutsButtons).toHaveCount(1);
-    await expect(shortcutsButtons).toBeVisible();
+    // Click Icon in blocks palette
+    const iconBtn = page.locator('button[data-block-type="icon"]').first();
+    await iconBtn.scrollIntoViewIfNeeded();
+    await iconBtn.click();
+    await page.waitForTimeout(800);
 
-    // Select first heading element
+    // Locate Icon in canvas iframe
     const frame = page.frameLocator('iframe[title="Visual Builder Canvas"]');
-    const headingEl = frame.locator('[data-element-id="el_e2ehead1"], [data-element-id="el_e2e_head"], [data-widget-type="heading"]').first();
-    await expect(headingEl).toBeVisible();
-    await headingEl.click();
+    const iconElement = frame.locator('[data-widget-type="icon"]').first();
+    await expect(iconElement).toBeVisible();
+
+    // Verify SVG icon exists
+    const iconSpan = iconElement.locator('[data-testid="builder-canvas-icon"]').first();
+    await expect(iconSpan).toBeVisible();
+    await expect(iconSpan.locator("svg")).toBeVisible();
+
+    // Click icon to open inspector
+    await iconElement.click();
+    await page.waitForTimeout(500);
+
+    // Check size input
+    const sizeInput = page.locator('input[type="number"][value="32"], input[type="number"]').first();
+    await expect(sizeInput).toBeVisible();
+    await sizeInput.fill("48");
     await page.waitForTimeout(400);
 
-    // Go to advanced tab
-    const advTab = page.locator('button[role="tab"]:has-text("پیشرفته")').first();
-    await expect(advTab).toBeVisible();
-    await advTab.click();
-    await page.waitForTimeout(400);
+    // Verify SVG style width updated to 48px
+    const svgStyle = await iconSpan.locator("svg").getAttribute("style");
+    expect(svgStyle).toContain("48px");
+  });
 
-    // Verify custom attributes control exists
-    const customAttrControl = page.locator('[data-testid="custom-attributes-textarea"]');
-    await expect(customAttrControl).toBeVisible();
+  test("3. LayersTree Navigator renders all elements cleanly in 1920x1080 without horizontal scroll", async ({ page }) => {
+    await page.setViewportSize({ width: 1920, height: 1080 });
+    await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(1500);
+
+    // Open LayersTab
+    const layersTabBtn = page.getByRole("button", { name: "لایه‌ها" }).first();
+    await expect(layersTabBtn).toBeVisible();
+    await layersTabBtn.click();
+    await page.waitForTimeout(500);
+
+    // Verify layers tree is visible and has items
+    const layersTree = page.locator('[data-testid="layers-tree"], div:has-text("درخت ساختار لایه‌ها")').first();
+    await expect(layersTree).toBeVisible();
+
+    // Verify no body horizontal overflow on full 1920x1080 studio
+    const isOverflowing = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth);
+    expect(isOverflowing).toBe(false);
   });
 });

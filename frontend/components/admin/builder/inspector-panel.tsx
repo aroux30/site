@@ -2268,6 +2268,92 @@ export function InspectorPanel() {
         );
       }
 
+      case "table_of_contents": {
+        const rawItems = Array.isArray(props.items) ? (props.items as any[]) : [];
+        const items = rawItems.length > 0 ? rawItems : [
+          { text: "مقدمه و معرفی", anchor: "#intro" },
+          { text: "ویژگی‌های کلیدی", anchor: "#features" },
+          { text: "مشخصات فنی", anchor: "#specs" },
+          { text: "پرسش‌های متداول", anchor: "#faq" },
+        ];
+        return (
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs">عنوان فهرست</Label>
+              <Input
+                data-testid="toc-title-input"
+                value={String(props.title || "فهرست محتوا")}
+                onChange={(e) => handlePropChange("title", e.target.value)}
+                className="h-8 text-xs"
+              />
+            </div>
+            <div className="flex items-center justify-between text-xs pt-1">
+              <span>لیست شماره‌دار (Ordered)</span>
+              <Switch
+                checked={props.ordered !== false}
+                onCheckedChange={(val) => handlePropChange("ordered", val)}
+              />
+            </div>
+            <div className="space-y-2 pt-2 border-t">
+              <div className="flex items-center justify-between">
+                <Label className="text-xs font-bold">عناوین فهرست (TOC Items)</Label>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const updated = [...items, { text: `بخش جدید ${items.length + 1}`, anchor: `#section-${items.length + 1}` }];
+                    handlePropChange("items", updated);
+                  }}
+                  className="text-[11px] text-primary hover:underline font-semibold"
+                >
+                  + افزودن سرفصل
+                </button>
+              </div>
+              {items.map((it, idx) => (
+                <div key={idx} className="p-2.5 rounded-lg border bg-muted/20 space-y-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <Input
+                      data-testid={`toc-item-text-${idx}`}
+                      value={it.text || it.title || ""}
+                      placeholder="عنوان سرفصل"
+                      onChange={(e) => {
+                        const updated = [...items];
+                        updated[idx] = { ...updated[idx], text: e.target.value, title: e.target.value };
+                        handlePropChange("items", updated);
+                      }}
+                      className="h-7 text-xs flex-1"
+                    />
+                    {items.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const updated = items.filter((_, i) => i !== idx);
+                          handlePropChange("items", updated);
+                        }}
+                        className="text-xs text-destructive hover:underline px-1"
+                      >
+                        حذف
+                      </button>
+                    )}
+                  </div>
+                  <Input
+                    data-testid={`toc-item-anchor-${idx}`}
+                    value={it.anchor || ""}
+                    placeholder="#anchor-id"
+                    onChange={(e) => {
+                      const updated = [...items];
+                      updated[idx] = { ...updated[idx], anchor: e.target.value };
+                      handlePropChange("items", updated);
+                    }}
+                    className="h-7 text-xs font-mono"
+                    dir="ltr"
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      }
+
       case "progress_tracker":
         return (
           <div className="space-y-4">

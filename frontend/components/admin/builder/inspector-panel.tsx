@@ -12,7 +12,12 @@ import {
   Monitor,
   Link2,
   Unlink,
+  X,
+  Trash2,
+  Plus,
 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -1049,6 +1054,119 @@ export function InspectorPanel() {
             </div>
           </div>
         );
+
+      case "nav_menu": {
+        const rawItems = Array.isArray(props.items) && props.items.length > 0
+          ? (props.items as any[])
+          : [
+              { title: "صفحه اصلی", url: "/" },
+              { title: "فروشگاه", url: "/products" },
+              { title: "وبلاگ", url: "/blog" },
+            ];
+        return (
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-1.5">
+                <Label className="text-xs">چیدمان منو</Label>
+                <Select
+                  value={String(props.layout || "horizontal")}
+                  onValueChange={(val) => handlePropChange("layout", val)}
+                >
+                  <SelectTrigger data-testid="nav-menu-layout-select" className="h-8 text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="horizontal">افقی (سراسری)</SelectItem>
+                    <SelectItem value="vertical">عمودی (ستونی)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs">ترازبندی</Label>
+                <Select
+                  value={String(props.align || "center")}
+                  onValueChange={(val) => handlePropChange("align", val)}
+                >
+                  <SelectTrigger data-testid="nav-menu-align-select" className="h-8 text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="start">راست‌چین</SelectItem>
+                    <SelectItem value="center">وسط‌چین</SelectItem>
+                    <SelectItem value="end">چپ‌چین</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="space-y-2 pt-2 border-t">
+              <div className="flex items-center justify-between">
+                <Label className="text-xs font-bold text-foreground">پیوندهای منو ({rawItems.length})</Label>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    const newItem = { title: `پیوند ${rawItems.length + 1}`, url: `#` };
+                    handlePropChange("items", [...rawItems, newItem]);
+                  }}
+                  className="h-7 text-xs font-bold gap-1 text-primary border-primary/30 hover:bg-primary/10"
+                  data-testid="nav-menu-add-item-btn"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>افزودن پیوند</span>
+                </Button>
+              </div>
+              <div className="space-y-2">
+                {rawItems.map((itm, idx) => (
+                  <div key={idx} className="p-2.5 rounded-xl border bg-muted/20 space-y-1.5">
+                    <div className="flex items-center justify-between gap-2">
+                      <Input
+                        data-testid={`nav-item-title-${idx}`}
+                        value={itm.title || ""}
+                        placeholder="عنوان پیوند"
+                        onChange={(e) => {
+                          const updated = [...rawItems];
+                          updated[idx] = { ...updated[idx], title: e.target.value };
+                          handlePropChange("items", updated);
+                        }}
+                        className="h-7 text-xs flex-1 font-semibold"
+                      />
+                      {rawItems.length > 1 && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            const updated = rawItems.filter((_, i) => i !== idx);
+                            handlePropChange("items", updated);
+                          }}
+                          className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive rounded-md"
+                          data-testid={`delete-nav-item-${idx}`}
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </Button>
+                      )}
+                    </div>
+                    <Input
+                      data-testid={`nav-item-url-${idx}`}
+                      value={itm.url || ""}
+                      placeholder="/url"
+                      onChange={(e) => {
+                        const updated = [...rawItems];
+                        updated[idx] = { ...updated[idx], url: e.target.value };
+                        handlePropChange("items", updated);
+                      }}
+                      className="h-7 text-xs font-mono"
+                      dir="ltr"
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        );
+      }
 
       case "product_price":
         return (
@@ -2672,10 +2790,12 @@ export function InspectorPanel() {
         ];
         return (
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <Label className="text-xs font-bold">اسلایدهای هیرو ({rawSlides.length})</Label>
-              <button
+            <div className="flex items-center justify-between pb-1">
+              <Label className="text-xs font-bold text-foreground">اسلایدهای هیرو ({rawSlides.length})</Label>
+              <Button
                 type="button"
+                variant="outline"
+                size="sm"
                 onClick={() => {
                   const newSlide = {
                     title: `اسلاید جدید ${rawSlides.length + 1}`,
@@ -2686,33 +2806,40 @@ export function InspectorPanel() {
                   };
                   handlePropChange("slides", [...rawSlides, newSlide]);
                 }}
-                className="text-[11px] text-primary hover:underline font-semibold"
+                className="h-7 text-xs font-bold gap-1 text-primary border-primary/30 hover:bg-primary/10"
                 data-testid="add-slide-btn"
               >
-                + افزودن اسلاید
-              </button>
+                <Plus className="w-3.5 h-3.5" />
+                <span>افزودن اسلاید</span>
+              </Button>
             </div>
             <div className="space-y-3">
               {rawSlides.map((slide, idx) => (
-                <div key={idx} className="p-3 rounded-xl border bg-muted/20 space-y-2">
-                  <div className="flex items-center justify-between gap-2 border-b pb-1.5">
-                    <span className="text-[11px] font-bold text-foreground">اسلاید {idx + 1}</span>
+                <div key={idx} className="p-3.5 rounded-2xl border border-border/80 bg-muted/20 space-y-2.5 shadow-xs">
+                  <div className="flex items-center justify-between gap-2 border-b border-border/60 pb-2">
+                    <span className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-primary" />
+                      <span>اسلاید {idx + 1}</span>
+                    </span>
                     {rawSlides.length > 1 && (
-                      <button
+                      <Button
                         type="button"
+                        variant="ghost"
+                        size="sm"
                         onClick={() => {
                           const updated = rawSlides.filter((_, i) => i !== idx);
                           handlePropChange("slides", updated);
                         }}
-                        className="text-xs text-destructive hover:underline"
+                        className="h-6 px-2 text-xs text-destructive hover:bg-destructive/10 rounded-md"
                         data-testid={`delete-slide-${idx}`}
                       >
-                        حذف
-                      </button>
+                        <Trash2 className="w-3 h-3 me-1" />
+                        <span>حذف</span>
+                      </Button>
                     )}
                   </div>
                   <div className="space-y-1">
-                    <Label className="text-[11px]">عنوان اسلاید</Label>
+                    <Label className="text-[11px] font-medium text-foreground">عنوان اسلاید</Label>
                     <Input
                       data-testid={`slide-title-${idx}`}
                       value={slide.title || ""}
@@ -2721,26 +2848,26 @@ export function InspectorPanel() {
                         updated[idx] = { ...updated[idx], title: e.target.value };
                         handlePropChange("slides", updated);
                       }}
-                      className="h-7 text-xs"
+                      className="h-8 text-xs rounded-xl"
                     />
                   </div>
                   <div className="space-y-1">
-                    <Label className="text-[11px]">توضیحات اسلاید</Label>
+                    <Label className="text-[11px] font-medium text-foreground">توضیحات اسلاید</Label>
                     <textarea
                       data-testid={`slide-desc-${idx}`}
-                      rows={2}
+                      rows={3}
                       value={slide.description || ""}
                       onChange={(e) => {
                         const updated = [...rawSlides];
                         updated[idx] = { ...updated[idx], description: e.target.value };
                         handlePropChange("slides", updated);
                       }}
-                      className="w-full rounded-md border border-input bg-background p-1.5 text-xs leading-relaxed"
+                      className="w-full rounded-xl border border-input bg-background p-2 text-xs leading-relaxed"
                     />
                   </div>
                   <div className="grid grid-cols-2 gap-2">
                     <div className="space-y-1">
-                      <Label className="text-[11px]">متن دکمه</Label>
+                      <Label className="text-[11px] font-medium text-foreground">متن دکمه</Label>
                       <Input
                         value={slide.button_text || ""}
                         onChange={(e) => {
@@ -2748,11 +2875,11 @@ export function InspectorPanel() {
                           updated[idx] = { ...updated[idx], button_text: e.target.value };
                           handlePropChange("slides", updated);
                         }}
-                        className="h-7 text-xs"
+                        className="h-8 text-xs rounded-xl"
                       />
                     </div>
                     <div className="space-y-1">
-                      <Label className="text-[11px]">لینک دکمه</Label>
+                      <Label className="text-[11px] font-medium text-foreground">لینک دکمه</Label>
                       <Input
                         value={slide.button_link || ""}
                         onChange={(e) => {
@@ -2760,7 +2887,7 @@ export function InspectorPanel() {
                           updated[idx] = { ...updated[idx], button_link: e.target.value };
                           handlePropChange("slides", updated);
                         }}
-                        className="h-7 text-xs font-mono"
+                        className="h-8 text-xs font-mono rounded-xl"
                         dir="ltr"
                       />
                     </div>
@@ -5148,35 +5275,54 @@ export function InspectorPanel() {
 
   return (
     <div className="flex flex-col h-full bg-card border-s border-border select-none" dir="rtl">
-      <div className="px-4 py-3 border-b border-border/80 flex items-center justify-between bg-muted/30">
-        <div className="truncate">
-          <span className="text-xs font-bold text-foreground block truncate">
-            {selectedElement.name}
-          </span>
-          <span className="text-[10px] text-muted-foreground font-mono">
-            {selectedElement.id}
-          </span>
+      <div className="px-4 py-3 border-b border-border/80 flex items-center justify-between bg-muted/40 shrink-0">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <div className="w-8 h-8 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0 border border-primary/20">
+            <Sliders className="w-4 h-4" />
+          </div>
+          <div className="min-w-0">
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs font-bold text-foreground truncate">
+                {selectedElement.name}
+              </span>
+              <Badge variant="outline" className="text-[9px] px-1.5 py-0 h-4 font-mono text-muted-foreground shrink-0">
+                {selectedElement.widgetType || selectedElement.type}
+              </Badge>
+            </div>
+            <span className="text-[10px] text-muted-foreground font-mono block truncate">
+              {selectedElement.id}
+            </span>
+          </div>
         </div>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => useBuilderStore.getState().selectElement(null)}
+          className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground rounded-lg"
+          title="بستن پنل و لغو انتخاب"
+        >
+          <X className="w-4 h-4" />
+        </Button>
       </div>
 
       <Tabs
         value={activeInspectorTab}
         onValueChange={(val) => setInspectorTab(val as InspectorTab)}
-        className="flex-1 flex flex-col"
+        className="flex-1 flex flex-col min-h-0"
       >
-        <TabsList className="grid grid-cols-3 h-9 mx-3 my-2 rounded-xl bg-muted/70 p-1 border border-border/60">
-          <TabsTrigger value="content" className="text-xs py-1 font-semibold rounded-lg">
+        <TabsList className="grid grid-cols-3 h-10 mx-3 my-2.5 rounded-xl bg-muted/80 p-1 border border-border/70 shadow-xs shrink-0">
+          <TabsTrigger value="content" className="text-xs py-1.5 font-bold rounded-lg data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-xs transition">
             محتوا
           </TabsTrigger>
-          <TabsTrigger value="style" className="text-xs py-1 font-semibold rounded-lg">
+          <TabsTrigger value="style" className="text-xs py-1.5 font-bold rounded-lg data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-xs transition">
             استایل
           </TabsTrigger>
-          <TabsTrigger value="advanced" className="text-xs py-1 font-semibold rounded-lg">
+          <TabsTrigger value="advanced" className="text-xs py-1.5 font-bold rounded-lg data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-xs transition">
             پیشرفته
           </TabsTrigger>
         </TabsList>
 
-        <div className="flex-1 overflow-y-auto px-4 py-3">
+        <div className="flex-1 overflow-y-auto px-4 py-3 custom-scrollbar">
           <TabsContent value="content" className="m-0 focus-visible:outline-none">
             {renderContentControls()}
           </TabsContent>

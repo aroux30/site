@@ -1438,6 +1438,46 @@ def test_ast_compiler_renders_round39_share_buttons():
     assert 'کانال ایتا' in result
 
 
+def test_ast_compiler_renders_nav_menu_elementor_parity():
+    """Verify that nav_menu compiles standard nav element with links in SSR."""
+    ast = PageAST(
+        schema_version=1,
+        title="تست منوی ناوبری",
+        slug="test-nav-menu",
+        root_elements=[
+            BuilderElement(
+                id="el_sec_nav",
+                name="بخش هدر",
+                type="container",
+                children=[
+                    BuilderElement(
+                        id="el_nav_01",
+                        name="منوی اصلی سایت",
+                        type="widget",
+                        widget_type="nav_menu",
+                        widget_props={
+                            "layout": "horizontal",
+                            "align": "center",
+                            "items": [
+                                {"title": "صفحه اصلی", "url": "/"},
+                                {"title": "محصولات ویژه", "url": "/featured"},
+                                {"title": "درباره ما", "url": "/about"},
+                            ],
+                        },
+                    ),
+                ],
+            )
+        ],
+    )
+    result = ASTCompiler.compile(ast)
+    assert 'builder-nav-menu' in result
+    assert 'data-widget="nav_menu"' in result
+    assert 'صفحه اصلی' in result
+    assert 'href="/featured"' in result
+    assert 'درباره ما' in result
+
+
+
 
 
 

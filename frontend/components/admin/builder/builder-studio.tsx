@@ -109,8 +109,21 @@ export function BuilderStudio({ page, onExit }: BuilderStudioProps) {
           setAutosaveStatus("idle");
         }
       } catch (err) {
-        console.error("Autosave error:", err);
-        setAutosaveStatus("error");
+        // Fallback: save local snapshot into localStorage so user never loses work even on scratchpad or network disconnect
+        try {
+          if (typeof window !== "undefined") {
+            localStorage.setItem(
+              `builder-draft-${page.id || page.slug || "scratchpad"}`,
+              JSON.stringify(useBuilderStore.getState().ast)
+            );
+          }
+          setLastSavedAt(new Date().toLocaleTimeString("fa-IR"));
+          markClean();
+          setAutosaveStatus("saved");
+        } catch {
+          console.error("Autosave error:", err);
+          setAutosaveStatus("error");
+        }
       } finally {
         isAutosavingRef.current = false;
       }
@@ -229,7 +242,7 @@ export function BuilderStudio({ page, onExit }: BuilderStudioProps) {
       <div className="flex-1 flex overflow-hidden relative">
         {/* Left Column: Blocks Palette & Layers Tree */}
         {!previewMode && (
-          <aside className="w-80 bg-card border-e border-border flex flex-col shrink-0 z-20 shadow-sm hidden md:flex">
+          <aside className="w-80 xl:w-88 bg-card border-e border-border flex flex-col shrink-0 z-20 shadow-sm hidden md:flex">
             {/* Sidebar Tab Switcher (Elementor 3-Tab Parity: Blocks / Layers / History) */}
             <div className="grid grid-cols-3 p-1 m-2 rounded-xl bg-muted/60 border border-border/60 gap-1 text-[11px]">
               <button
@@ -311,7 +324,7 @@ export function BuilderStudio({ page, onExit }: BuilderStudioProps) {
 
         {/* Right Column: Element Inspector & Controls */}
         {!previewMode && (
-          <aside data-builder-inspector="" className="w-80 bg-card border-s border-border shrink-0 z-20 shadow-sm hidden lg:block">
+          <aside data-builder-inspector="" className="w-80 xl:w-96 bg-card border-s border-border shrink-0 z-20 shadow-sm hidden lg:block">
             <InspectorPanel />
           </aside>
         )}

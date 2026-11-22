@@ -2209,6 +2209,34 @@ export const BASIC_BLOCK_DEFINITIONS: BlockDefinition[] = [
       children: [],
     }),
   },
+  {
+    type: "nav_menu",
+    name: "منوی ناوبری (Nav Menu)",
+    category: "basic",
+    icon: Menu,
+    description: "فهرست لینک‌های ناوبری برگه و هدر سایت با چیدمان افقی و عمودی",
+    createDefaultElement: () => ({
+      id: `el_${Math.random().toString(36).slice(2, 10)}`,
+      name: "منوی ناوبری",
+      type: "widget",
+      widgetType: "nav_menu",
+      widgetProps: {
+        layout: "horizontal",
+        align: "center",
+        items: [
+          { title: "صفحه اصلی", url: "/" },
+          { title: "فروشگاه", url: "/products" },
+          { title: "تخفیف‌ها", url: "/discounts" },
+          { title: "وبلاگ", url: "/blog" },
+          { title: "تماس با ما", url: "/contact" },
+        ],
+      },
+      isLocked: false,
+      isHidden: false,
+      styles: { mobile: {} },
+      children: [],
+    }),
+  },
 ];
 
 import { createPatternAST } from "./pattern-converter";

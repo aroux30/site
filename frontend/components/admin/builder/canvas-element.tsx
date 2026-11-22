@@ -2156,6 +2156,47 @@ function CanvasElementComponent({
           </div>
         );
       }
+      case "nav_menu": {
+        const items = (props.items as any[]) || [
+          { title: "صفحه اصلی", url: "/" },
+          { title: "فروشگاه", url: "/products" },
+          { title: "وبلاگ", url: "/blog" },
+        ];
+        const layout = String(props.layout || "horizontal");
+        const align = String(props.align || "center");
+        const isHorizontal = layout !== "vertical";
+
+        const alignCls =
+          align === "start"
+            ? "justify-start text-right"
+            : align === "end"
+            ? "justify-end text-left"
+            : "justify-center text-center";
+
+        return (
+          <nav
+            className={cn("builder-nav-menu w-full py-2 select-none", isHorizontal ? `flex items-center flex-wrap gap-1.5 ${alignCls}` : "space-y-1.5")}
+            data-widget="nav_menu"
+          >
+            {items.map((itm, idx) => (
+              <a
+                key={idx}
+                href={itm.url || "#"}
+                onClick={(e) => !previewMode && e.preventDefault()}
+                className={cn(
+                  "px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all inline-block",
+                  idx === 0
+                    ? "bg-primary/10 text-primary hover:bg-primary/20"
+                    : "text-foreground/90 hover:text-primary hover:bg-muted/60"
+                )}
+                data-testid={`nav-menu-link-${idx}`}
+              >
+                {itm.title || "پیوند"}
+              </a>
+            ))}
+          </nav>
+        );
+      }
       default:
         return (
           <div className="rounded-lg border border-dashed border-border p-4 text-center text-sm text-muted-foreground">

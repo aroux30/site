@@ -56,11 +56,14 @@ test.describe("Builder Gym Round 22: Elementor Core/Pro Parity & TOC Inspector S
     await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
     await page.waitForTimeout(1500);
 
-    // Click Icon in blocks palette
+    // Search and click Icon in blocks palette
+    const searchInput = page.locator('input[placeholder*="جستجوی بلوک"]').first();
+    await searchInput.fill("آیکون");
+    await page.waitForTimeout(400);
+
     const iconBtn = page.locator('button[data-block-type="icon"]').first();
-    await iconBtn.scrollIntoViewIfNeeded();
     await iconBtn.click();
-    await page.waitForTimeout(800);
+    await page.waitForTimeout(1000);
 
     // Locate Icon in canvas iframe
     const frame = page.frameLocator('iframe[title="Visual Builder Canvas"]');
@@ -168,5 +171,42 @@ test.describe("Builder Gym Round 22: Elementor Core/Pro Parity & TOC Inspector S
     // Click tab 2
     await tab2.click();
     await page.waitForTimeout(400);
+  });
+
+  test("6. Nav Menu widget can be added and live-nudge reflected in canvas and inspector", async ({ page }) => {
+    await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(1500);
+
+    // Click Nav Menu in blocks palette
+    const navMenuBtn = page.locator('button[data-block-type="nav_menu"]').first();
+    await navMenuBtn.scrollIntoViewIfNeeded();
+    await navMenuBtn.click();
+    await page.waitForTimeout(800);
+
+    const frame = page.frameLocator('iframe[title="Visual Builder Canvas"]');
+    const navMenuEl = frame.locator('[data-widget="nav_menu"]').first();
+    await expect(navMenuEl).toBeVisible();
+
+    // Click to select Nav Menu
+    await navMenuEl.click();
+    await page.waitForTimeout(500);
+
+    // Active nudge on item 0 title
+    const navItem0 = page.locator('[data-testid="nav-item-title-0"]').first();
+    await expect(navItem0).toBeVisible();
+    await navItem0.fill("صفحه نخست سایت");
+    await page.waitForTimeout(400);
+
+    // Verify canvas title reflection
+    await expect(navMenuEl).toContainText("صفحه نخست سایت");
+
+    // Add new menu item
+    const addNavBtn = page.locator('[data-testid="nav-menu-add-item-btn"]').first();
+    await expect(addNavBtn).toBeVisible();
+    await addNavBtn.click();
+    await page.waitForTimeout(400);
+
+    const navItem3 = page.locator('[data-testid="nav-item-title-3"]').first();
+    await expect(navItem3).toBeVisible();
   });
 });

@@ -420,4 +420,42 @@ describe("Visual Page Builder Zod Schema and AST Validation (Phase P0)", () => {
       expect(ic?.widgetProps?.size).toBe(48);
     }
   });
+
+  it("validates Elementor Nav Menu schema structure in AST", () => {
+    const navMenuElement: BuilderElement = {
+      id: "el_nav_unit",
+      name: "منوی اصلی",
+      type: "widget",
+      widgetType: "nav_menu",
+      widgetProps: {
+        layout: "horizontal",
+        align: "center",
+        items: [
+          { title: "صفحه اصلی", url: "/" },
+          { title: "فروشگاه", url: "/products" },
+          { title: "تماس", url: "/contact" },
+        ],
+      },
+      isLocked: false,
+      isHidden: false,
+      styles: { mobile: {} },
+      children: [],
+    };
+
+    const parsed = PageASTSchema.safeParse({
+      schemaVersion: 1,
+      title: "تست منوی ناوبری",
+      slug: "test-nav-menu",
+      rootElements: [navMenuElement],
+    });
+
+    expect(parsed.success).toBe(true);
+    if (parsed.success && parsed.data.rootElements[0]) {
+      const el = parsed.data.rootElements[0];
+      expect(el.widgetType).toBe("nav_menu");
+      expect(el.widgetProps?.layout).toBe("horizontal");
+      expect(Array.isArray(el.widgetProps?.items)).toBe(true);
+      expect((el.widgetProps?.items as any[]).length).toBe(3);
+    }
+  });
 });

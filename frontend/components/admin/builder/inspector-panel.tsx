@@ -3209,6 +3209,126 @@ export function InspectorPanel() {
         );
       }
 
+      case "video_playlist": {
+        const playlistTitle = String(props.title || "فهرست ویدیوهای آموزشی");
+        const videos = (props.videos as any[]) || [
+          { title: "معرفی دوره و پیش‌نیازها", duration: "۰۵:۲۰" },
+          { title: "آموزش نصب و راه‌اندازی اولیه", duration: "۱۲:۴۵" },
+        ];
+        return (
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs">عنوان لیست پخش</Label>
+              <Input
+                data-testid="video-playlist-title-input"
+                value={playlistTitle}
+                onChange={(e) => handlePropChange("title", e.target.value)}
+                className="h-8 text-xs"
+              />
+            </div>
+            <div className="flex items-center justify-between pt-1">
+              <Label className="text-xs font-bold">ویدیوهای لیست</Label>
+              <button
+                type="button"
+                onClick={() => {
+                  const updated = [...videos, { title: `ویدیوی جدید ${videos.length + 1}`, duration: "۱۰:۰۰" }];
+                  handlePropChange("videos", updated);
+                }}
+                className="text-xs text-primary font-semibold hover:underline"
+              >
+                + افزودن ویدیو
+              </button>
+            </div>
+            <div className="space-y-2">
+              {videos.map((v: any, idx: number) => (
+                <div key={idx} className="p-2 rounded-lg border bg-muted/20 space-y-1.5">
+                  <div className="flex items-center gap-2">
+                    <Input
+                      value={v.title || ""}
+                      placeholder="عنوان ویدیو"
+                      onChange={(e) => {
+                        const updated = [...videos];
+                        updated[idx] = { ...updated[idx], title: e.target.value };
+                        handlePropChange("videos", updated);
+                      }}
+                      className="h-7 text-xs flex-1"
+                    />
+                    <Input
+                      value={v.duration || ""}
+                      placeholder="زمان"
+                      onChange={(e) => {
+                        const updated = [...videos];
+                        updated[idx] = { ...updated[idx], duration: e.target.value };
+                        handlePropChange("videos", updated);
+                      }}
+                      className="h-7 text-xs w-20 font-mono"
+                    />
+                    {videos.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const updated = videos.filter((_, i) => i !== idx);
+                          handlePropChange("videos", updated);
+                        }}
+                        className="text-[10px] text-destructive hover:underline"
+                      >
+                        حذف
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      }
+
+      case "image_comparison":
+        return (
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs">تصویر قبل (Before Image URL)</Label>
+              <Input
+                data-testid="image-comparison-before-input"
+                value={String(props.before_image || "/placeholder-hero.svg")}
+                onChange={(e) => handlePropChange("before_image", e.target.value)}
+                className="h-8 text-xs font-mono"
+                dir="ltr"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">تصویر بعد (After Image URL)</Label>
+              <Input
+                data-testid="image-comparison-after-input"
+                value={String(props.after_image || "/placeholder-hero.svg")}
+                onChange={(e) => handlePropChange("after_image", e.target.value)}
+                className="h-8 text-xs font-mono"
+                dir="ltr"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-1.5">
+                <Label className="text-xs">برچسب قبل</Label>
+                <Input
+                  data-testid="image-comparison-before-label-input"
+                  value={String(props.before_label || "قبل")}
+                  onChange={(e) => handlePropChange("before_label", e.target.value)}
+                  className="h-8 text-xs"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs">برچسب بعد</Label>
+                <Input
+                  data-testid="image-comparison-after-label-input"
+                  value={String(props.after_label || "بعد")}
+                  onChange={(e) => handlePropChange("after_label", e.target.value)}
+                  className="h-8 text-xs"
+                />
+              </div>
+            </div>
+          </div>
+        );
+
       default:
         return (
           <div className="text-xs text-muted-foreground py-2">

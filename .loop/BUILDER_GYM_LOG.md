@@ -1560,6 +1560,46 @@
 
 ---
 
+### 🏋️ راند ۳۶ (Round 36) — وزنه ۷ و ۸: پورت و برابری ۴ لایه ویجت‌های تعاملی رسانه و کد (Video Playlist, Image Comparison, Custom HTML)
+- **تاریخ اجرا**: 2026-11-22
+- **شاخه ایزوله**: `worktree-gym-r41`
+- **پورت استودیو**: ۴۰۰۴ (`http://127.0.0.1:4004`)
+- **وضعیت**: ✅ کامل و ۱۰۰٪ سبز (اتصال کامل ۴ لایه: Block Registry ← Canvas ← Inspector ← AST Compiler)
+
+#### ۱. باگ‌های کشف‌شده با ابزار Vision و اصلاحات ریشه‌ای
+1. **غیبت ۳ ویجت تعاملی چندرسانه‌ای و کد سفارشی در پالت**:
+   - *مشاهده در Vision*: در تصاویر `before/01-studio-overview.png` و `before/02-palette-missing-r36-widgets.png`، با جستجوی عناوین «لیست پخش»، «مقایسه تصویر» و «کد سفارشی»، صفر نتیجه بازگردانده می‌شد.
+   - *اصلاح ریشه‌ای*: ثبت کامل ۳ ویجت `video_playlist`, `image_comparison`, `html_custom` در `frontend/lib/builder/block-registry.ts` با آیکون‌های استاندارد و دسته‌بندی `basic`.
+2. **رندر تعاملی بوم ویرایشگر ([canvas-element.tsx](frontend/components/admin/builder/canvas-element.tsx))**:
+   - رندر لیست پخش ویدیویی همراه با سایدبار اپیزودها، مقایسه دو تصویر قبل و بعد با برچسب‌های متنی و کادر کد سفارشی HTML.
+3. **کنترل‌های محتوایی تب Content در بازرس ([inspector-panel.tsx](frontend/components/admin/builder/inspector-panel.tsx))**:
+   - پیاده‌سازی کنترل‌های ورودی عنوان دوره، ریپیتر ویدیوها، نشانی تصاویر قبل/بعد و کادر کد HTML با تست Nudge موفق.
+4. **کامپایلر سرور SSR بک‌اند ([ast_compiler.py](backend/app/modules/content/application/ast_compiler.py))**:
+   - پیاده‌سازی شاخه‌های خروجی HTML برای `video_playlist` و `image_comparison` با تست‌های واحد اختصاصی در `test_ast_compiler.py`.
+
+#### ۲. مستندات بصری (Vision Artifacts)
+- **قبل از اصلاح**: `.loop/artifacts/builder-gym/round-36/before/`
+  - `01-studio-overview.png`
+  - `02-palette-missing-r36-widgets.png`
+- **بعد از اصلاح**: `.loop/artifacts/builder-gym/round-36/after/`
+  - `01-studio-overview.png` (نمای ۳ ستونه بی‌نقص در ۱۹۲۰×۱۰۸۰ با ویجت‌های جدید)
+  - `02-palette-new-widgets.png` (نمایش کل ۷۴ بلوک استاندارد در پالت)
+  - `03-canvas-with-new-widgets.png` (رندر اجزای چندرسانه‌ای درون بوم)
+  - `04-inspector-nudge-active.png` (کنترل‌های بازرس فعال و تست Nudge موفق)
+
+#### ۳. تست‌های رگرسیون دائمی اضافه‌شده
+- یونیت تست Vitest: `frontend/tests/native-widgets.test.ts` (تایید صحت ساختار AST هر ۳ ویجت جدید)
+- یونیت تست Pytest: `backend/app/tests/unit/test_ast_compiler.py::test_ast_compiler_renders_video_playlist_and_image_comparison`
+- تست Playwright: `frontend/tests/e2e/builder-gym-r36.spec.ts` (۲ تست سبز در ۱۴.۱ ثانیه)
+
+#### ۴. نتایج نهایی ممیزی و تست‌ها
+- `npx tsc --noEmit`: **۰ خطا** (سبز)
+- `npm test` (Vitest): **۳۷۸ تست سبز در ۴۵ فایل** (`378 passed`)
+- `python -m pytest app/tests/unit`: **۶۴۵ تست سبز** (`645 passed, 2 skipped`)
+- تست‌های Playwright: **۲ تست اختصاصی راند ۳۶ سبز** (`2 passed in 14.1s`)
+
+---
+
 ## 🏆 گواهینامه نهایی مسترینگ کامل: BUILDER_GYM_ALL_LEVELS_MASTERED
 
 بدین‌وسیله رسماً تایید و ثبت می‌گردد که کلیه وزنه‌های ۱ تا ۸ نردبان پیش‌رونده Visual Page Builder بر اساس دستورالعمل جامع المنتور و استانداردهای سخت‌گیرانه ۳۶۰ درجه با موفقیت ۱۰۰٪ کامل شدند:

@@ -151,4 +151,41 @@ describe("P2.1 Native Widgets: Table & Form Inputs", () => {
     }
     expect(parsed.success).toBe(true);
   });
+
+  it("registers video_playlist, image_comparison, and html_custom in BASIC_BLOCK_DEFINITIONS with valid AST schema", () => {
+    const types = ["video_playlist", "image_comparison", "html_custom"];
+    const elements: any[] = [];
+
+    for (const t of types) {
+      const def = BASIC_BLOCK_DEFINITIONS.find((b) => b.type === t);
+      expect(def).toBeDefined();
+      const el = def!.createDefaultElement();
+      expect(el.widgetType).toBe(t);
+      elements.push(el);
+    }
+
+    const ast = {
+      schemaVersion: 1,
+      title: "Round 36 Elementor Widgets AST",
+      slug: "r36-widgets-ast",
+      globalStyles: {},
+      rootElements: [
+        {
+          id: "el_r36_root01",
+          name: "ریشه راند ۳۶",
+          type: "container",
+          isLocked: false,
+          isHidden: false,
+          styles: { mobile: {} },
+          children: elements,
+        },
+      ],
+    };
+
+    const parsed = PageASTSchema.safeParse(ast);
+    if (!parsed.success) {
+      console.error("ZOD_ERRORS:", JSON.stringify(parsed.error.format(), null, 2));
+    }
+    expect(parsed.success).toBe(true);
+  });
 });

@@ -1388,6 +1388,59 @@ class ASTCompiler:
                 f'</nav>'
             )
 
+        elif widget_type == "video_playlist":
+            playlist_title = html.escape(str(props.get("title", "فهرست ویدیوهای آموزشی")))
+            videos = props.get("videos", [
+                {"title": "معرفی دوره و پیش‌نیازها", "duration": "۰۵:۲۰"},
+                {"title": "آموزش نصب و راه‌اندازی اولیه", "duration": "۱۲:۴۵"},
+            ])
+            items_html = ""
+            if isinstance(videos, list):
+                for idx, v in enumerate(videos):
+                    v_title = html.escape(str(v.get("title", f"قسمت {idx + 1}")))
+                    v_dur = html.escape(str(v.get("duration", "")))
+                    active_cls = "bg-primary/10 text-primary font-bold" if idx == 0 else "text-muted-foreground"
+                    items_html += (
+                        f'<div class="p-2 rounded-lg text-xs flex items-center justify-between {active_cls}">'
+                        f'<span class="truncate">{idx + 1}. {v_title}</span>'
+                        f'<span class="text-[10px] font-mono ms-2">{v_dur}</span>'
+                        f'</div>'
+                    )
+            first_title = html.escape(str(videos[0].get("title", "پخش ویدیو"))) if isinstance(videos, list) and videos else "پخش ویدیو"
+            return (
+                f'<div{id_attr} class="builder-video-playlist w-full rounded-2xl border border-border/80 bg-card overflow-hidden shadow-sm {css_class}" data-widget="video_playlist"{style_attr}>'
+                f'<div class="p-4 bg-muted/30 border-b border-border/80 flex items-center justify-between">'
+                f'<span class="font-bold text-xs text-foreground flex items-center gap-2"><span>🎬</span><span>{playlist_title}</span></span>'
+                f'<span class="text-[10px] text-muted-foreground font-mono">{len(videos) if isinstance(videos, list) else 0} قسمت</span>'
+                f'</div>'
+                f'<div class="grid grid-cols-1 md:grid-cols-3">'
+                f'<div class="md:col-span-2 bg-zinc-950 aspect-video flex flex-col items-center justify-center text-white/80 p-4 text-center">'
+                f'<span class="text-3xl text-primary mb-2">▶</span>'
+                f'<span class="text-xs font-bold">{first_title}</span>'
+                f'</div>'
+                f'<div class="p-2 space-y-1 bg-muted/10">{items_html}</div>'
+                f'</div>'
+                f'</div>'
+            )
+
+        elif widget_type == "image_comparison":
+            before_img = html.escape(str(props.get("before_image", "/placeholder-hero.svg")))
+            after_img = html.escape(str(props.get("after_image", "/placeholder-hero.svg")))
+            before_lbl = html.escape(str(props.get("before_label", "قبل")))
+            after_lbl = html.escape(str(props.get("after_label", "بعد")))
+            return (
+                f'<div{id_attr} class="builder-image-comparison w-full rounded-2xl border border-border/80 overflow-hidden relative shadow-sm aspect-video bg-muted/30 flex {css_class}" data-widget="image_comparison"{style_attr}>'
+                f'<div class="relative w-1/2 h-full overflow-hidden border-e-2 border-white">'
+                f'<img src="{before_img}" alt="{before_lbl}" class="absolute inset-0 w-full h-full object-cover" />'
+                f'<span class="absolute top-3 start-3 px-2 py-0.5 rounded bg-black/60 text-white text-[10px] font-bold">{before_lbl}</span>'
+                f'</div>'
+                f'<div class="relative w-1/2 h-full overflow-hidden">'
+                f'<img src="{after_img}" alt="{after_lbl}" class="absolute inset-0 w-full h-full object-cover" />'
+                f'<span class="absolute top-3 end-3 px-2 py-0.5 rounded bg-black/60 text-white text-[10px] font-bold">{after_lbl}</span>'
+                f'</div>'
+                f'</div>'
+            )
+
         # Generic fallback for any other registered widget
         fallback_title = html.escape(str(props.get("title", widget_type)))
         return f'<div{id_attr} class="builder-widget builder-{widget_type} {css_class}" data-widget="{html.escape(widget_type)}"{style_attr}>{fallback_title}</div>'

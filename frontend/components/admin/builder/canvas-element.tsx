@@ -28,6 +28,7 @@ import {
   ArrowDown,
   RotateCw,
   Phone,
+  PlaySquare,
 } from "lucide-react";
 import { SaveTemplateDialog } from "./save-template-dialog";
 import { cn } from "@/lib/utils";
@@ -2340,6 +2341,67 @@ function CanvasElementComponent({
               ))}
             </ul>
           </nav>
+        );
+      }
+      case "video_playlist": {
+        const playlistTitle = String(props.title || "فهرست ویدیوهای آموزشی");
+        const videos = (props.videos as any[]) || [
+          { title: "معرفی دوره و پیش‌نیازها", duration: "۰۵:۲۰" },
+          { title: "آموزش نصب و راه‌اندازی اولیه", duration: "۱۲:۴۵" },
+          { title: "تنظیمات پیشرفته و انتشار نهایی", duration: "۱۸:۳۰" },
+        ];
+        return (
+          <div className="builder-video-playlist w-full rounded-2xl border border-border/80 bg-card overflow-hidden shadow-sm">
+            <div className="p-4 bg-muted/30 border-b border-border/80 flex items-center justify-between">
+              <span className="font-bold text-xs text-foreground flex items-center gap-2">
+                <span>🎬</span>
+                <span>{playlistTitle}</span>
+              </span>
+              <span className="text-[10px] text-muted-foreground font-mono">{videos.length} قسمت</span>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3">
+              <div className="md:col-span-2 bg-zinc-950 aspect-video flex flex-col items-center justify-center text-white/80 p-4 text-center">
+                <PlaySquare className="w-12 h-12 text-primary mb-2 opacity-90" />
+                <span className="text-xs font-bold">{videos[0]?.title || "پخش ویدیو"}</span>
+              </div>
+              <div className="p-2 space-y-1 bg-muted/10 overflow-y-auto max-h-56">
+                {videos.map((v: any, idx: number) => (
+                  <div
+                    key={idx}
+                    className={cn(
+                      "p-2 rounded-lg text-xs flex items-center justify-between transition cursor-pointer",
+                      idx === 0 ? "bg-primary/10 text-primary font-bold" : "text-muted-foreground hover:bg-muted/50"
+                    )}
+                  >
+                    <span className="truncate flex-1">{idx + 1}. {v.title}</span>
+                    <span className="text-[10px] opacity-75 font-mono ms-2">{v.duration}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        );
+      }
+      case "image_comparison": {
+        const beforeImg = String(props.before_image || "/placeholder-hero.svg");
+        const afterImg = String(props.after_image || "/placeholder-hero.svg");
+        const beforeLbl = String(props.before_label || "قبل");
+        const afterLbl = String(props.after_label || "بعد");
+        return (
+          <div className="builder-image-comparison w-full rounded-2xl border border-border/80 overflow-hidden relative shadow-sm select-none aspect-video bg-muted/30 flex">
+            <div className="relative w-1/2 h-full overflow-hidden border-e-2 border-white">
+              <img src={beforeImg} alt={beforeLbl} className="absolute inset-0 w-full h-full object-cover" />
+              <span className="absolute top-3 start-3 px-2 py-0.5 rounded bg-black/60 text-white text-[10px] font-bold">
+                {beforeLbl}
+              </span>
+            </div>
+            <div className="relative w-1/2 h-full overflow-hidden">
+              <img src={afterImg} alt={afterLbl} className="absolute inset-0 w-full h-full object-cover" />
+              <span className="absolute top-3 end-3 px-2 py-0.5 rounded bg-black/60 text-white text-[10px] font-bold">
+                {afterLbl}
+              </span>
+            </div>
+          </div>
         );
       }
       default:

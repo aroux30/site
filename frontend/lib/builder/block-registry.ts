@@ -66,6 +66,8 @@ import {
   Search,
   ArrowLeft,
   Navigation,
+  PlaySquare,
+  SplitSquareVertical,
   type LucideIcon,
 } from "lucide-react";
 import type { BuilderElement } from "@/types/builder";
@@ -2371,6 +2373,108 @@ export const BASIC_BLOCK_DEFINITIONS: BlockDefinition[] = [
       widgetProps: {
         rating_value: 4.5,
         rating_scale: 5,
+      },
+      isLocked: false,
+      isHidden: false,
+      styles: { mobile: {} },
+      children: [],
+    }),
+  },
+  {
+    type: "video_playlist",
+    name: "لیست پخش ویدیو (Video Playlist)",
+    category: "basic",
+    icon: PlaySquare,
+    description: "پخش‌کننده ویدیو همراه با لیست کشویی و کناری اپیزودها و دوره‌های آموزشی",
+    createDefaultElement: () => ({
+      id: `el_${Math.random().toString(36).slice(2, 10)}`,
+      name: "لیست پخش ویدیو",
+      type: "widget",
+      widgetType: "video_playlist",
+      widgetProps: {
+        title: "فهرست ویدیوهای آموزشی",
+        videos: [
+          { title: "معرفی دوره و پیش‌نیازها", duration: "۰۵:۲۰", url: "/sample-video1.mp4" },
+          { title: "آموزش نصب و راه‌اندازی اولیه", duration: "۱۲:۴۵", url: "/sample-video2.mp4" },
+          { title: "تنظیمات پیشرفته و انتشار نهایی", duration: "۱۸:۳۰", url: "/sample-video3.mp4" },
+        ],
+      },
+      isLocked: false,
+      isHidden: false,
+      styles: {
+        mobile: {
+          padding: {
+            top: { value: 16, unit: "px" },
+            right: { value: 16, unit: "px" },
+            bottom: { value: 16, unit: "px" },
+            left: { value: 16, unit: "px" },
+            isLinked: true,
+          },
+          border: {
+            style: "solid",
+            radius: {
+              top: { value: 16, unit: "px" },
+              right: { value: 16, unit: "px" },
+              bottom: { value: 16, unit: "px" },
+              left: { value: 16, unit: "px" },
+              isLinked: true,
+            },
+          },
+        },
+      },
+      children: [],
+    }),
+  },
+  {
+    type: "image_comparison",
+    name: "مقایسه تصویر (Image Comparison)",
+    category: "basic",
+    icon: SplitSquareVertical,
+    description: "اسلایدر مقایسه دو تصویر قبل و بعد (Before / After) با خط جداکننده متحرک",
+    createDefaultElement: () => ({
+      id: `el_${Math.random().toString(36).slice(2, 10)}`,
+      name: "مقایسه تصویر قبل و بعد",
+      type: "widget",
+      widgetType: "image_comparison",
+      widgetProps: {
+        before_image: "/placeholder-hero.svg",
+        after_image: "/placeholder-hero.svg",
+        before_label: "قبل از بازسازی",
+        after_label: "بعد از بازسازی",
+        initial_position: 50,
+      },
+      isLocked: false,
+      isHidden: false,
+      styles: {
+        mobile: {
+          border: {
+            style: "solid",
+            radius: {
+              top: { value: 16, unit: "px" },
+              right: { value: 16, unit: "px" },
+              bottom: { value: 16, unit: "px" },
+              left: { value: 16, unit: "px" },
+              isLinked: true,
+            },
+          },
+        },
+      },
+      children: [],
+    }),
+  },
+  {
+    type: "html_custom",
+    name: "کد سفارشی HTML (Custom HTML)",
+    category: "basic",
+    icon: Code2,
+    description: "درج مستقیم کدهای سفارشی HTML، آی‌فریم‌ها و اسکریپت‌های معتبر",
+    createDefaultElement: () => ({
+      id: `el_${Math.random().toString(36).slice(2, 10)}`,
+      name: "کد سفارشی HTML",
+      type: "widget",
+      widgetType: "html_custom",
+      widgetProps: {
+        html: "<div class='p-4 bg-muted/40 rounded-xl text-center text-xs font-mono'>محتوای سفارشی HTML</div>",
       },
       isLocked: false,
       isHidden: false,

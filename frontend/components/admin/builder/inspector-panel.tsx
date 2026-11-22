@@ -2871,6 +2871,36 @@ export function InspectorPanel() {
         );
       }
 
+      case "multi_step_form":
+        return (
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs font-bold">فرم چندمرحله‌ای</Label>
+              <p className="text-[11px] text-muted-foreground leading-relaxed">
+                این فرم شامل مراحل مشخصات هویتی، نشانی تحویل و تایید نهایی سفارش با پیشرفت بصری گام‌ها است.
+              </p>
+            </div>
+          </div>
+        );
+
+      case "loop_carousel":
+        return (
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs font-bold">تعداد آیتم‌های نمایشی در کاروسل</Label>
+              <Input
+                type="number"
+                min={2}
+                max={12}
+                value={Number(props.limit) || 6}
+                onChange={(e) => handlePropChange("limit", parseInt(e.target.value, 10) || 6)}
+                className="h-8 text-xs font-mono"
+                dir="ltr"
+              />
+            </div>
+          </div>
+        );
+
       default:
         return (
           <div className="text-xs text-muted-foreground py-2">

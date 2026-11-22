@@ -1215,6 +1215,54 @@ class ASTCompiler:
                 f'</div>'
             )
 
+        elif widget_type == "multi_step_form":
+            steps = props.get("steps", [
+                {"title": "اطلاعات تماس", "fields": ["name", "phone"]},
+                {"title": "مشخصات سفارش", "fields": ["service", "notes"]},
+            ])
+            steps_header = ""
+            if isinstance(steps, list):
+                for idx, stp in enumerate(steps):
+                    s_t = html.escape(str(stp.get("title", f"مرحله {idx+1}")))
+                    dot_col = "bg-primary text-white" if idx == 0 else "bg-muted text-muted-foreground"
+                    steps_header += (
+                        f'<div class="flex items-center gap-2">'
+                        f'<span class="w-6 h-6 rounded-full {dot_col} flex items-center justify-center text-xs font-bold">{idx+1}</span>'
+                        f'<span class="text-xs font-semibold">{s_t}</span>'
+                        f'</div>'
+                    )
+            return (
+                f'<div{id_attr} class="builder-multi-step-form p-6 rounded-3xl border border-border/80 bg-card space-y-5 text-right w-full {css_class}" data-widget="multi_step_form"{style_attr}>'
+                f'<div class="flex items-center justify-between pb-3 border-b border-border/60">{steps_header}</div>'
+                f'<div class="space-y-3 pt-2">'
+                f'<div class="space-y-1"><label class="text-xs font-bold">نام و نام‌خانوادگی</label><input type="text" class="w-full rounded-xl border border-input p-2.5 text-xs" placeholder="مثال: علی رضایی" /></div>'
+                f'<div class="space-y-1"><label class="text-xs font-bold">شماره موبایل</label><input type="tel" class="w-full rounded-xl border border-input p-2.5 text-xs" placeholder="۰۹۱۲..." dir="ltr" /></div>'
+                f'</div>'
+                f'<div class="flex items-center justify-between pt-3 border-t border-border/60">'
+                f'<button type="button" class="px-4 py-2 rounded-xl bg-muted text-xs font-bold">قبلی</button>'
+                f'<button type="button" class="px-5 py-2 rounded-xl bg-primary text-primary-foreground text-xs font-bold shadow-sm">گام بعدی &larr;</button>'
+                f'</div>'
+                f'</div>'
+            )
+
+        elif widget_type == "loop_carousel":
+            limit = int(props.get("limit", 4))
+            cat = html.escape(str(props.get("category", "all")))
+            cards = []
+            for i in range(min(limit, 6)):
+                cards.append(
+                    f'<div class="min-w-[220px] rounded-2xl border border-border/60 bg-card p-3 space-y-2 shrink-0">'
+                    f'<div class="aspect-square bg-muted/20 rounded-xl flex items-center justify-center overflow-hidden"><img src="/placeholder-hero.svg" alt="محصول" class="p-2 max-h-full" loading="lazy" /></div>'
+                    f'<h4 class="font-bold text-xs truncate">آیتم کاروسل حلقه‌ای {i+1}</h4>'
+                    f'<span class="text-xs font-bold text-primary">۳۹۰,۰۰۰ تومان</span>'
+                    f'</div>'
+                )
+            return (
+                f'<div{id_attr} class="builder-loop-carousel w-full space-y-2 {css_class}" data-widget="loop_carousel" data-limit="{limit}" data-category="{cat}"{style_attr}>'
+                f'<div class="flex items-center gap-3 overflow-x-auto py-2 no-scrollbar" dir="rtl">{"".join(cards)}</div>'
+                f'</div>'
+            )
+
         # Generic fallback for any other registered widget
         fallback_title = html.escape(str(props.get("title", widget_type)))
         return f'<div{id_attr} class="builder-widget builder-{widget_type} {css_class}" data-widget="{html.escape(widget_type)}"{style_attr}>{fallback_title}</div>'

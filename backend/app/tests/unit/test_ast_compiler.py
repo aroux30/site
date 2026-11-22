@@ -523,6 +523,44 @@ def test_ast_compiler_renders_nested_and_interactive_modules():
     assert "کوپن تخفیف ۲۰٪" in result
 
 
+def test_ast_compiler_renders_multistep_and_loop_carousel_widgets():
+    """Verify SSR compilation for multi_step_form and loop_carousel."""
+    ast = PageAST(
+        schema_version=1,
+        title="تست فرم چندمرحله‌ای و کاروسل حلقه",
+        slug="test-step-loop",
+        root_elements=[
+            BuilderElement(
+                id="el_sec_sl",
+                name="بخش پیشرفته",
+                type="container",
+                children=[
+                    BuilderElement(
+                        id="el_msform01",
+                        name="فرم چندگامی",
+                        type="widget",
+                        widget_type="multi_step_form",
+                        widget_props={"steps": [{"title": "گام ۱"}, {"title": "گام ۲"}]},
+                    ),
+                    BuilderElement(
+                        id="el_lcar01",
+                        name="کاروسل حلقه",
+                        type="widget",
+                        widget_type="loop_carousel",
+                        widget_props={"limit": 3, "category": "all"},
+                    ),
+                ],
+            )
+        ],
+    )
+    result = ASTCompiler.compile(ast)
+    assert 'class="builder-multi-step-form' in result
+    assert "گام ۱" in result
+    assert "گام ۲" in result
+    assert 'class="builder-loop-carousel' in result
+    assert 'data-widget="loop_carousel"' in result
+
+
 def test_ast_compiler_renders_p3_ecommerce_native_widgets():
     ast = PageAST(
         schema_version=1,

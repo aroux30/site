@@ -2111,6 +2111,59 @@ function CanvasElementComponent({
           </div>
         );
       }
+      case "multi_step_form": {
+        const rawSteps = Array.isArray(props.steps) ? (props.steps as any[]) : [];
+        const steps = rawSteps.length > 0 ? rawSteps : [
+          { title: "اطلاعات هویتی" },
+          { title: "ارسال و پرداخت" },
+        ];
+        return (
+          <div className="w-full p-6 rounded-3xl border border-border/80 bg-card shadow-sm space-y-4 text-right">
+            <div className="flex items-center justify-between pb-3 border-b border-border/60">
+              {steps.map((st, idx) => (
+                <div key={idx} className="flex items-center gap-2">
+                  <span className={cn(
+                    "w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold",
+                    idx === 0 ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+                  )}>
+                    {idx + 1}
+                  </span>
+                  <span className="text-xs font-bold text-foreground">{st.title}</span>
+                </div>
+              ))}
+            </div>
+            <div className="space-y-3 pt-2">
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-foreground">نام و نام‌خانوادگی</label>
+                <input type="text" readOnly className="w-full rounded-xl border border-input p-2.5 text-xs bg-background" placeholder="مثال: علی رضایی" />
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-foreground">شماره تماس</label>
+                <input type="tel" readOnly className="w-full rounded-xl border border-input p-2.5 text-xs bg-background font-mono" placeholder="۰۹۱۲..." dir="ltr" />
+              </div>
+            </div>
+            <div className="flex items-center justify-between pt-3 border-t border-border/60">
+              <button type="button" className="px-4 py-2 rounded-xl bg-muted text-xs font-bold text-muted-foreground" onClick={(e) => e.preventDefault()}>قبلی</button>
+              <button type="button" className="px-5 py-2 rounded-xl bg-primary text-primary-foreground text-xs font-bold shadow-xs" onClick={(e) => e.preventDefault()}>گام بعدی &larr;</button>
+            </div>
+          </div>
+        );
+      }
+      case "loop_carousel": {
+        return (
+          <div className="w-full flex items-center gap-3 overflow-x-auto py-2 no-scrollbar" dir="rtl">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="min-w-[200px] rounded-2xl border border-border/60 bg-card p-3 space-y-2 shrink-0">
+                <div className="aspect-square bg-muted/20 rounded-xl flex items-center justify-center">
+                  <img src="/placeholder-hero.svg" alt="محصول" className="p-2 max-h-full" />
+                </div>
+                <h4 className="font-bold text-xs truncate">محصول حلقه‌ای {i}</h4>
+                <span className="text-xs font-bold text-primary">۳۹۰,۰۰۰ تومان</span>
+              </div>
+            ))}
+          </div>
+        );
+      }
       default:
         return (
           <div className="rounded-lg border border-dashed border-border p-4 text-center text-sm text-muted-foreground">

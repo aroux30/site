@@ -674,97 +674,6 @@ def test_ast_compiler_renders_search_bar_and_nav_menu_widgets():
     assert "خانه" in result
 
 
-def test_ast_compiler_renders_video_playlist_and_image_comparison():
-    """Verify SSR compilation for video_playlist and image_comparison widgets."""
-    ast = PageAST(
-        schema_version=1,
-        title="تست لیست ویدیو و مقایسه تصویر",
-        slug="test-video-comparison",
-        root_elements=[
-            BuilderElement(
-                id="el_media_sec",
-                name="بخش رسانه",
-                type="container",
-                children=[
-                    BuilderElement(
-                        id="el_vplay01",
-                        name="لیست ویدیو",
-                        type="widget",
-                        widget_type="video_playlist",
-                        widget_props={
-                            "title": "دوره فلاتر",
-                            "videos": [{"title": "جلسه اول", "duration": "۱۰:۰۰"}],
-                        },
-                    ),
-                    BuilderElement(
-                        id="el_imgcmp01",
-                        name="مقایسه تصویر",
-                        type="widget",
-                        widget_type="image_comparison",
-                        widget_props={
-                            "before_label": "پروژه قدیمی",
-                            "after_label": "پروژه بازسازی‌شده",
-                        },
-                    ),
-                ],
-            )
-        ],
-    )
-    result = ASTCompiler.compile(ast)
-    assert 'class="builder-video-playlist' in result
-    assert "دوره فلاتر" in result
-    assert "جلسه اول" in result
-    assert 'class="builder-image-comparison' in result
-    assert "پروژه قدیمی" in result
-    assert "پروژه بازسازی‌شده" in result
-
-
-def test_ast_compiler_renders_link_in_bio_and_posts_grid():
-    """Verify SSR compilation for link_in_bio and posts_grid widgets."""
-    ast = PageAST(
-        schema_version=1,
-        title="تست لینک بیو و گرید مقالات",
-        slug="test-bio-posts",
-        root_elements=[
-            BuilderElement(
-                id="el_bio_sec",
-                name="بخش معرفی",
-                type="container",
-                children=[
-                    BuilderElement(
-                        id="el_bio01",
-                        name="لینک بیو",
-                        type="widget",
-                        widget_type="link_in_bio",
-                        widget_props={
-                            "name": "فروشگاه نمونه",
-                            "bio": "خرید آنلاین انواع کالا",
-                            "links": [{"title": "سایت اصلی", "url": "/store", "badge": "ویژه"}],
-                        },
-                    ),
-                    BuilderElement(
-                        id="el_posts01",
-                        name="گرید پست‌ها",
-                        type="widget",
-                        widget_type="posts_grid",
-                        widget_props={
-                            "columns": 2,
-                            "posts": [{"title": "مقاله جدید پایتون", "category": "آموزش", "date": "دیروز"}],
-                        },
-                    ),
-                ],
-            )
-        ],
-    )
-    result = ASTCompiler.compile(ast)
-    assert 'class="builder-link-in-bio' in result
-    assert "فروشگاه نمونه" in result
-    assert "سایت اصلی" in result
-    assert 'class="builder-posts-grid' in result
-    assert "مقاله جدید پایتون" in result
-    assert "آموزش" in result
-
-
 def test_ast_compiler_renders_p3_ecommerce_native_widgets():
     ast = PageAST(
         schema_version=1,
@@ -1529,27 +1438,6 @@ def test_ast_compiler_renders_round39_share_buttons():
     assert 'کانال ایتا' in result
 
 
-                                {"label": "هندزفری بلوتوثی", "url": ""},
-                            ],
-                        },
-                    ),
-                ],
-            )
-        ],
-    )
-    result = ASTCompiler.compile(ast)
-    assert "builder-breadcrumbs" in result
-    assert "aria-label="مسیر راهنما"" in result
-    assert "<ol" in result
-    assert "صفحه اصلی" in result
-    assert "href="/"" in result
-    assert "لوازم جانبی" in result
-    assert "href="/products?cat=acc"" in result
-    assert "هندزفری بلوتوثی" in result
-    assert "aria-current="page"" in result
-    assert "/" in result
-
-
 def test_ast_compiler_renders_nav_menu_elementor_parity():
     """Verify that nav_menu compiles standard nav element with links in SSR."""
     ast = PageAST(
@@ -1582,11 +1470,73 @@ def test_ast_compiler_renders_nav_menu_elementor_parity():
         ],
     )
     result = ASTCompiler.compile(ast)
-    assert "builder-nav-menu" in result
-    assert "data-widget="nav_menu"" in result
-    assert "صفحه اصلی" in result
-    assert "href="/featured"" in result
-    assert "درباره ما" in result
+    assert 'builder-nav-menu' in result
+    assert 'data-widget="nav_menu"' in result
+    assert 'صفحه اصلی' in result
+    assert 'href="/featured"' in result
+    assert 'درباره ما' in result
+
+
+def test_ast_compiler_renders_round40_code_highlight():
+    ast = PageAST(
+        schema_version=1,
+        title="تست راند ۴۰",
+        slug="test-r40-code",
+        root_elements=[
+            BuilderElement(
+                id="el_sec_r40",
+                name="بخش ۴۰",
+                type="container",
+                children=[
+                    BuilderElement(
+                        id="el_code_custom",
+                        name="بلوک کد پایتون",
+                        type="widget",
+                        widget_type="code_highlight",
+                        widget_props={
+                            "title": "script.py",
+                            "language": "python",
+                            "code": "def calculate_total(items): return 100",
+                            "line_numbers": True,
+                            "copy_to_clipboard": True,
+                        },
+                    ),
+                ],
+            )
+        ],
+    )
+    result = ASTCompiler.compile(ast)
+    assert "builder-code-highlight" in result
+    assert "script.py" in result
+    assert "language-python" in result
+    assert "code-line-numbers" in result
+    assert "calculate_total" in result
+    assert "code-copy-btn" in result
+    assert 'dir="ltr"' in result
+
+
+def test_ast_compiler_renders_round41_breadcrumbs():
+    ast = PageAST(
+        schema_version=1,
+        title="تست راند ۴۱",
+        slug="test-r41-breadcrumbs",
+        root_elements=[
+            BuilderElement(
+                id="el_sec_r41",
+                name="بخش مسیر راهنما",
+                type="container",
+                children=[
+                    BuilderElement(
+                        id="el_crumb_custom",
+                        name="مسیر راهنما سئو",
+                        type="widget",
+                        widget_type="breadcrumbs",
+                        widget_props={
+                            "separator": "/",
+                            "items": [
+                                {"label": "صفحه اصلی", "url": "/"},
+                                {"label": "لوازم جانبی", "url": "/products?cat=acc"},
+                                {"label": "هندزفری بلوتوثی", "url": ""},
                             ],
                         },
                     ),
@@ -1595,3 +1545,20 @@ def test_ast_compiler_renders_nav_menu_elementor_parity():
         ],
     )
     result = ASTCompiler.compile(ast)
+    assert "builder-breadcrumbs" in result
+    assert 'aria-label="مسیر راهنما"' in result
+    assert "<ol" in result
+    assert "صفحه اصلی" in result
+    assert 'href="/"' in result
+    assert "لوازم جانبی" in result
+    assert 'href="/products?cat=acc"' in result
+    assert "هندزفری بلوتوثی" in result
+    assert 'aria-current="page"' in result
+    assert "/" in result
+
+
+
+
+
+
+

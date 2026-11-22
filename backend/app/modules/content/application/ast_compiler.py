@@ -83,12 +83,18 @@ class ASTCompiler:
         is_form = el.widget_type == "form_container"
         is_offcanvas = el.widget_type == "off_canvas"
         is_popup = el.widget_type == "popup_builder"
+        is_nested_tabs = el.widget_type == "nested_tabs"
+        is_nested_accordion = el.widget_type == "nested_accordion"
         tag = "form" if is_form else ("aside" if is_offcanvas else ("div" if is_popup else "section"))
         classes = ["builder-container", "relative"]
         if is_offcanvas:
             classes.append("builder-offcanvas")
         if is_popup:
             classes.append("builder-popup")
+        if is_nested_tabs:
+            classes.append("builder-nested-tabs")
+        if is_nested_accordion:
+            classes.append("builder-nested-accordion")
         style_parts: list[str] = []
 
         # Conditional visibility classes

@@ -58,6 +58,8 @@ import {
   ListTree,
   Presentation,
   Code2,
+  FolderKanban,
+  ListCollapse,
   type LucideIcon,
 } from "lucide-react";
 import type { BuilderElement } from "@/types/builder";
@@ -2021,6 +2023,145 @@ export const BASIC_BLOCK_DEFINITIONS: BlockDefinition[] = [
       },
       children: [],
     }),
+  },
+  {
+    type: "nested_tabs",
+    name: "تب‌های تودرتو (Nested Tabs)",
+    category: "layout",
+    icon: FolderKanban,
+    description: "کانتینر تب‌های پیشرفته که درون هر تب می‌توان هر المان دیگری را قرار داد",
+    createDefaultElement: () => {
+      const tab1Id = `el_${Math.random().toString(36).slice(2, 10)}`;
+      const tab2Id = `el_${Math.random().toString(36).slice(2, 10)}`;
+      return {
+        id: `el_${Math.random().toString(36).slice(2, 10)}`,
+        name: "تب‌های تودرتو کانتینری",
+        type: "container",
+        widgetType: "nested_tabs",
+        widgetProps: {
+          active_tab: 0,
+          tab_titles: ["برگه اول", "برگه دوم"],
+        },
+        isLocked: false,
+        isHidden: false,
+        layout: {
+          kind: "flex",
+          direction: "column",
+          justifyContent: "start",
+          alignItems: "stretch",
+          flexWrap: "nowrap",
+          gap: { value: 16, unit: "px" },
+          gridColumns: 1,
+        },
+        styles: {
+          mobile: {
+            padding: {
+              top: { value: 16, unit: "px" },
+              right: { value: 16, unit: "px" },
+              bottom: { value: 16, unit: "px" },
+              left: { value: 16, unit: "px" },
+              isLinked: true,
+            },
+            border: {
+              style: "solid",
+              radius: {
+                top: { value: 16, unit: "px" },
+                right: { value: 16, unit: "px" },
+                bottom: { value: 16, unit: "px" },
+                left: { value: 16, unit: "px" },
+                isLinked: true,
+              },
+            },
+          },
+        },
+        children: [
+          {
+            id: tab1Id,
+            name: "محتوای تب اول",
+            type: "container",
+            isLocked: false,
+            isHidden: false,
+            layout: { kind: "flex", direction: "column", justifyContent: "start", alignItems: "stretch", flexWrap: "nowrap", gap: { value: 12, unit: "px" }, gridColumns: 1 },
+            styles: { mobile: {} },
+            children: [],
+          },
+          {
+            id: tab2Id,
+            name: "محتوای تب دوم",
+            type: "container",
+            isLocked: false,
+            isHidden: false,
+            layout: { kind: "flex", direction: "column", justifyContent: "start", alignItems: "stretch", flexWrap: "nowrap", gap: { value: 12, unit: "px" }, gridColumns: 1 },
+            styles: { mobile: {} },
+            children: [],
+          },
+        ],
+      };
+    },
+  },
+  {
+    type: "nested_accordion",
+    name: "آکاردئون کانتینری (Nested Accordion)",
+    category: "layout",
+    icon: ListCollapse,
+    description: "آکاردئون تودرتو که درون هر بخش تاشو می‌توان المان‌ها و فرم‌ها را قرار داد",
+    createDefaultElement: () => {
+      const item1Id = `el_${Math.random().toString(36).slice(2, 10)}`;
+      const item2Id = `el_${Math.random().toString(36).slice(2, 10)}`;
+      return {
+        id: `el_${Math.random().toString(36).slice(2, 10)}`,
+        name: "آکاردئون تودرتو کانتینری",
+        type: "container",
+        widgetType: "nested_accordion",
+        widgetProps: {
+          item_titles: ["بخش اول تاشو", "بخش دوم تاشو"],
+        },
+        isLocked: false,
+        isHidden: false,
+        layout: {
+          kind: "flex",
+          direction: "column",
+          justifyContent: "start",
+          alignItems: "stretch",
+          flexWrap: "nowrap",
+          gap: { value: 12, unit: "px" },
+          gridColumns: 1,
+        },
+        styles: {
+          mobile: {
+            padding: {
+              top: { value: 16, unit: "px" },
+              right: { value: 16, unit: "px" },
+              bottom: { value: 16, unit: "px" },
+              left: { value: 16, unit: "px" },
+              isLinked: true,
+            },
+          },
+        },
+        children: [
+          {
+            id: item1Id,
+            name: "کانتینر بخش اول",
+            type: "container",
+            isLocked: false,
+            isHidden: false,
+            layout: { kind: "flex", direction: "column", justifyContent: "start", alignItems: "stretch", flexWrap: "nowrap", gap: { value: 12, unit: "px" }, gridColumns: 1 },
+            styles: { mobile: {} },
+            children: [],
+          },
+          {
+            id: item2Id,
+            name: "کانتینر بخش دوم",
+            type: "container",
+            isLocked: false,
+            isHidden: false,
+            layout: { kind: "flex", direction: "column", justifyContent: "start", alignItems: "stretch", flexWrap: "nowrap", gap: { value: 12, unit: "px" }, gridColumns: 1 },
+            styles: { mobile: {} },
+            children: [],
+          },
+        ],
+      };
+    },
   },
 ];
 

@@ -2591,6 +2591,38 @@ export function InspectorPanel() {
           </div>
         );
 
+      case "nested_tabs":
+        return (
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs">عناوین تب‌های تودرتو (هر خط یک عنوان)</Label>
+              <textarea
+                data-testid="nested-tabs-titles-input"
+                rows={3}
+                value={Array.isArray(props.tab_titles) ? props.tab_titles.join("\n") : ""}
+                onChange={(e) => handlePropChange("tab_titles", e.target.value.split("\n").filter(Boolean))}
+                className="w-full rounded-md border border-input bg-background p-2 text-xs leading-relaxed"
+              />
+            </div>
+          </div>
+        );
+
+      case "nested_accordion":
+        return (
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs">عناوین بخش‌های آکاردئون (هر خط یک بخش)</Label>
+              <textarea
+                data-testid="nested-accordion-titles-input"
+                rows={3}
+                value={Array.isArray(props.item_titles) ? props.item_titles.join("\n") : ""}
+                onChange={(e) => handlePropChange("item_titles", e.target.value.split("\n").filter(Boolean))}
+                className="w-full rounded-md border border-input bg-background p-2 text-xs leading-relaxed"
+              />
+            </div>
+          </div>
+        );
+
       default:
         return (
           <div className="text-xs text-muted-foreground py-2">

@@ -2139,6 +2139,23 @@ function CanvasElementComponent({
         </div>
       )}
 
+      {/* Nested Tabs & Nested Accordion Identifiers */}
+      {element.widgetType === "nested_tabs" && !previewMode && (
+        <div className="absolute top-1 start-1 z-20 pointer-events-none">
+          <Badge variant="outline" className="bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-300 text-[9px] px-1.5 py-0 h-4">
+            تب‌های تودرتو (Nested Tabs)
+          </Badge>
+        </div>
+      )}
+
+      {element.widgetType === "nested_accordion" && !previewMode && (
+        <div className="absolute top-1 start-1 z-20 pointer-events-none">
+          <Badge variant="outline" className="bg-teal-500/10 text-teal-600 dark:text-teal-400 border-teal-300 text-[9px] px-1.5 py-0 h-4">
+            آکاردئون کانتینری (Nested Accordion)
+          </Badge>
+        </div>
+      )}
+
       {isContainer && (
         <SaveTemplateDialog
           element={element}

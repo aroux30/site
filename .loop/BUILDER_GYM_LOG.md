@@ -1091,6 +1091,44 @@
 
 ---
 
+### 🏋️ راند ۳۳ (Round 33) — وزنه ۷: ۸۵ کیلو (پورت و برابری ۴ لایه کانتینرهای تب‌های تودرتو Nested Tabs و آکاردئون کانتینری Nested Accordion)
+- **تاریخ اجرا**: 2026-11-22
+- **شاخه ایزوله**: `claude/trusting-booth-4a3d0e`
+- **پورت استودیو**: ۴۰۰۱ (`http://127.0.0.1:4001`)
+- **وضعیت**: ✅ کامل و سبز (پیاده‌سازی سبک، غنی و بدون وابستگی کانتینرهای تودرتوی nested_tabs و nested_accordion در هر ۴ لایه)
+
+#### ۱. باگ‌های کشف‌شده با ابزار Vision و اصلاحات ریشه‌ای
+1. **فقدان کانتینرهای تودرتوی مدرن المنتور ۳.۱۰+ (Nested Tabs و Nested Accordion) در پالت و بوم**:
+   - *مشاهده در Vision*: در تصاویر `before/02-palette-missing-nested-tabs.png` و `before/03-palette-missing-nested-accordion.png`، کانتینرهای تودرتو که اجازه می‌دهند هر نوع المانی درون برگه‌های تب یا پنل‌های آکاردئون ریخته شود، در پالت غایب بودند.
+   - *اصلاح ریشه‌ای*: ثبت رسمی کانتینرهای `nested_tabs` (با آیکون FolderKanban) و `nested_accordion` (با آیکون ListCollapse) در [block-registry.ts](frontend/lib/builder/block-registry.ts).
+2. **توسعه فرم‌های مدیریت محتوا در بازرس ([inspector-panel.tsx](frontend/components/admin/builder/inspector-panel.tsx))**:
+   - فرم تنظیم عناوین تب‌های تودرتو کانتینری به صورت خطی.
+   - فرم تنظیم عناوین بخش‌های آکاردئون تودرتو.
+3. **رندر بوم و برابری کامپایلر سرور ([canvas-element.tsx](frontend/components/admin/builder/canvas-element.tsx) و [ast_compiler.py](backend/app/modules/content/application/ast_compiler.py))**:
+   - نشانگرهای هدر آبی آسمانی `تب‌های تودرتو (Nested Tabs)` و فیروزه‌ای `آکاردئون کانتینری (Nested Accordion)` در حالت استودیو.
+   - کامپایل سمانتیک کانتینرها با کلاس‌های استاندارد `builder-nested-tabs` و `builder-nested-accordion` در خروجی سرور.
+
+#### ۲. مستندات بصری (Vision Artifacts)
+- **قبل از اصلاح**: `.loop/artifacts/builder-gym/round-24/before/`
+  - `01-studio-overview.png`
+  - `02-palette-missing-nested-tabs.png` (صفر نتیجه در جستجوی تب‌های تودرتو)
+  - `03-palette-missing-nested-accordion.png` (صفر نتیجه در جستجوی آکاردئون کانتینری)
+- **بعد از اصلاح**: `.loop/artifacts/builder-gym/round-24/after/`
+  - `01-studio-overview.png`
+  - `02-palette-missing-nested-tabs.png` (نمایش کارت تب‌های تودرتو با ۱ نتیجه در پالت)
+  - `03-palette-missing-nested-accordion.png` (نمایش کارت آکاردئون کانتینری با ۱ نتیجه در پالت)
+
+#### ۳. تست رگرسیون دائمی اضافه‌شده
+- فایل تست Playwright: `frontend/tests/e2e/builder-gym-r31.spec.ts` (۲ تست سبز)
+
+#### ۴. نتایج نهایی ممیزی و تست‌ها
+- `npx tsc --noEmit`: ۰ خطا (سبز)
+- `npm test` (Vitest): **۳۷۲ تست سبز در ۴۵ فایل** (`372 passed`)
+- `python -m pytest app/tests/unit`: **۶۲۲ تست سبز** (`622 passed, 2 skipped`)
+- تست‌های Playwright ترکیبی (راند ۲۱ تا ۳۱): **۲۳ تست سبز در ۳۵.۸ ثانیه**
+
+---
+
 ## 🏆 گواهینامه نهایی مسترینگ کامل: BUILDER_GYM_ALL_LEVELS_MASTERED
 
 بدین‌وسیله رسماً تایید و ثبت می‌گردد که کلیه وزنه‌های ۱ تا ۸ نردبان پیش‌رونده Visual Page Builder بر اساس دستورالعمل جامع المنتور و استانداردهای سخت‌گیرانه ۳۶۰ درجه با موفقیت ۱۰۰٪ کامل شدند:

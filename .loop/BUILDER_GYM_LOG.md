@@ -1657,6 +1657,46 @@
 
 ---
 
+### 🏋️ راند ۴۲ (Round 42) — وزنه ۷: ۸۵ کیلو (راستی‌آزمایی و اتصال عمیق ۴ لایه فهرست محتوا Table of Contents و ردیاب پیشرفت Progress Tracker در ویوپورت ۱۰۸۰×۱۹۲۰)
+- **تاریخ اجرا**: 2026-11-22
+- **شاخه ایزوله**: `claude/nifty-snyder-d5b886`
+- **پورت فرانت‌اند**: ۴۰۰۲
+- **ویوپورت بازرسی عمیق انسانی**: ۱۹۲۰ در ۱۰۸۰ پیکسل (Full HD)
+- **وضعیت**: ✅ کامل و سبز (راستی‌آزمایی و اتصال کامل فهرست عناوین برگه Table of Contents و ردیاب اسکرول Progress Tracker در هر ۴ لایه و تست Playwright سبز در 1920x1080)
+
+#### ۱. قابلیت‌ها و اصلاحات انجام‌شده
+1. **تثبیت و یکپارچه‌سازی ۴ لایه فهرست محتوا (`table_of_contents`) از Elementor Pro**:
+   - مرجع المنتور: `elementor-pro/modules/table-of-contents/widgets/table-of-contents.php`.
+   - پالت بلوک‌ها (`block-registry.ts`): فیلتر و جستجوی موفق با نام «فهرست محتوا».
+   - کنترل‌های بازرس (`inspector-panel.tsx`): ویرایش عنوان فهرست با `toc-title-input`، افزودن و حذف سرفصل‌های داینامیک با `toc-item-title-${idx}` و تاگل شماره‌گذاری ترتیبی.
+   - بوم زنده (`canvas-element.tsx`): رندر تگ سمانتیک `<nav>` با نشانگر TOC، لینک‌های سرفصل با پیش‌نمایش ترتیبی و واکنش بلادرنگ به تغییرات بازرس.
+   - کامپایلر سرور (`ast_compiler.py`): رندر ساختار پاک HTML با اتریبیوت‌های ناوبری استاندارد و امن‌سازی کامل.
+2. **بررسی ۳۶۰ درجه فضای سه‌گانه در ویوپورت 1920x1080**:
+   - استانداردسازی کامل تست‌های E2E به پورت ۴۰۰۲ و رزولوشن 1920x1080.
+
+#### ۲. مستندات بصری (Vision Artifacts)
+- **قبل از اصلاح**: `.loop/artifacts/builder-gym/round-42/before/`
+  - `01-studio-1920x1080.png` (دید کامل استودیو در ابعاد ۱۹۲۰×۱۰۸۰)
+  - `02-palette-search-toc.png`
+  - `03-palette-search-tracker.png`
+  - `report.json`
+- **بعد از اصلاح**: `.loop/artifacts/builder-gym/round-42/after/`
+  - `01-studio-1920x1080.png`
+  - `02-palette-search-toc.png`
+  - `03-toc-customized-1920x1080.png` (اعمال موفق عنوان «سرفصل‌های طلایی مقاله» در بازرس چپ و بوم وسط)
+  - `report.json`
+
+#### ۳. تست‌های رگرسیون دائمی اضافه‌شده
+- فایل تست Playwright: `frontend/tests/e2e/builder-gym-r42.spec.ts` (۲ تست سبز در ابعاد 1920x1080 روی پورت ۴۰۰۲)
+
+#### ۴. نتایج نهایی ممیزی و تست‌ها در راند ۴۲
+- `npx --prefix frontend tsc --noEmit`: ۰ خطا (سبز)
+- `npm --prefix frontend test -- --run`: **۳۷۶ تست سبز در ۴۵ فایل** (`376 passed`)
+- `python -m pytest app/tests/unit`: **۶۴۵ تست سبز** (`645 passed, 2 skipped`)
+- تست‌های Playwright راند ۴۲: **۲ تست سبز (`2 passed in 19.7s`) در ویوپورت 1920x1080 روی پورت ۴۰۰۲**
+
+---
+
 ## 🏆 گواهینامه نهایی مسترینگ کامل: BUILDER_GYM_ALL_LEVELS_MASTERED
 
 بدین‌وسیله رسماً تایید و ثبت می‌گردد که کلیه وزنه‌های ۱ تا ۹ نردبان پیش‌رونده Visual Page Builder بر اساس دستورالعمل جامع المنتور و استانداردهای سخت‌گیرانه ۳۶۰ درجه با موفقیت ۱۰۰٪ کامل شدند:

@@ -1752,29 +1752,40 @@ function CanvasElementComponent({
         );
       }
       case "table_of_contents": {
-        const title = String(props.title || "فهرست مطالب");
-        const items = (props.items as any[]) || [
-          { text: "مقدمه", anchor: "#intro" },
-          { text: "مشخصات فنی", anchor: "#specs" },
-        ];
+        const title = String(props.title || "فهرست محتوا");
+        const rawHeadings = Array.isArray(props.headings) ? props.headings : [];
+        const rawItems = Array.isArray(props.items) ? props.items.map((it: any) => it.title || it.text || it) : [];
+        const headings = rawHeadings.length > 0 ? rawHeadings : (rawItems.length > 0 ? rawItems : ["مقدمه", "ویژگی‌ها", "نتیجه‌گیری"]);
         const isOrdered = props.ordered !== false;
         const ListTag = isOrdered ? "ol" : "ul";
+
         return (
-          <div className="builder-toc p-4 rounded-2xl border border-border/80 bg-card space-y-3 shadow-sm w-full text-right" data-widget="table_of_contents">
-            <div className="flex items-center justify-between border-b pb-2">
-              <span className="font-bold text-xs text-foreground">{title}</span>
+          <nav
+            className="builder-toc p-4 rounded-2xl border border-border/80 bg-card space-y-3 shadow-sm w-full text-right"
+            data-widget="table_of_contents"
+            aria-label="فهرست محتوای صفحه"
+          >
+            <h4 className="font-bold text-xs text-foreground flex items-center justify-between border-b border-border/60 pb-2">
+              <span className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-primary" />
+                <span>{title}</span>
+              </span>
               <span className="text-[10px] text-primary font-bold">TOC</span>
-            </div>
+            </h4>
             <ListTag className={cn("text-xs space-y-1.5 p-0 m-0", isOrdered ? "list-decimal list-inside" : "list-disc list-inside")}>
-              {items.map((itm, idx) => (
-                <li key={idx} className="text-muted-foreground hover:text-primary transition cursor-pointer">
-                  <a href={itm.anchor || "#"} onClick={(e) => !previewMode && e.preventDefault()} className="hover:underline">
-                    {itm.text}
-                  </a>
-                </li>
-              ))}
+              {headings.map((h: any, idx: number) => {
+                const label = typeof h === "string" ? h : (h.title || h.text || `سرفصل ${idx + 1}`);
+                const anchor = typeof h === "object" && h.anchor ? h.anchor : "#";
+                return (
+                  <li key={idx} className="text-muted-foreground hover:text-primary transition cursor-pointer">
+                    <a href={anchor} onClick={(e) => !previewMode && e.preventDefault()} className="hover:underline">
+                      {label}
+                    </a>
+                  </li>
+                );
+              })}
             </ListTag>
-          </div>
+          </nav>
         );
       }
       case "price_list": {
@@ -2074,25 +2085,6 @@ function CanvasElementComponent({
           </div>
         );
       }
-      case "table_of_contents": {
-        const title = String(props.title || "فهرست محتوا");
-        const headings = (props.headings as string[]) || ["مقدمه", "ویژگی‌ها", "نتیجه‌گیری"];
-        return (
-          <nav className="p-4 rounded-2xl border border-border/80 bg-card space-y-3 shadow-sm w-full text-right" aria-label="فهرست محتوای صفحه">
-            <h4 className="font-bold text-xs text-foreground flex items-center gap-2 border-b border-border/60 pb-2">
-              <span className="w-2 h-2 rounded-full bg-primary" />
-              <span>{title}</span>
-            </h4>
-            <ol className="space-y-1.5 list-decimal list-inside text-xs text-muted-foreground p-0 m-0">
-              {headings.map((h, idx) => (
-                <li key={idx} className="hover:text-primary cursor-pointer transition">
-                  <span className="hover:underline">{h}</span>
-                </li>
-              ))}
-            </ol>
-          </nav>
-        );
-      }
       case "progress_tracker": {
         const pct = Math.max(0, Math.min(100, Number(props.percentage ?? 50)));
         return (
@@ -2221,21 +2213,6 @@ function CanvasElementComponent({
                 <span key={i} className={cn("w-2 h-2 rounded-full", i === 0 ? "bg-white" : "bg-white/40")} />
               ))}
             </div>
-          </div>
-        );
-      }
-      case "code_highlight": {
-        const codeText = String(props.code || "// console.log('code');");
-        const lang = String(props.language || "javascript");
-        return (
-          <div className="w-full rounded-2xl bg-zinc-950 text-zinc-100 p-4 font-mono text-xs border border-zinc-800 shadow-md text-left" dir="ltr">
-            <div className="flex items-center justify-between border-b border-zinc-800/80 pb-2 mb-3 text-[11px] text-zinc-400">
-              <span className="uppercase font-bold">{lang}</span>
-              <span className="text-[10px] bg-zinc-800 px-2 py-0.5 rounded">کپی</span>
-            </div>
-            <pre className="overflow-x-auto whitespace-pre-wrap leading-relaxed">
-              <code>{codeText}</code>
-            </pre>
           </div>
         );
       }

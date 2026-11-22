@@ -31,6 +31,10 @@ asyncio.run(main())
 }
 
 test.describe("Builder Gym Round 24: Elementor Core & Pro Complete 4-Layer Wiring", () => {
+  test.use({
+    viewport: { width: 1920, height: 1080 },
+  });
+
   test.beforeEach(async ({ context }) => {
     const token = getAdminToken();
     if (token) {
@@ -69,12 +73,13 @@ test.describe("Builder Gym Round 24: Elementor Core & Pro Complete 4-Layer Wirin
     await page.waitForTimeout(1500);
 
     const canvasFrame = page.frameLocator('iframe[title="Visual Builder Canvas"]');
-    const firstElement = canvasFrame.locator("[data-element-id]").first();
-    await expect(firstElement).toBeVisible();
-    await firstElement.click();
+    const headingElement = canvasFrame.locator('[data-widget-type="heading"], h1, h2, h3').first();
+    await expect(headingElement).toBeVisible();
+    await headingElement.click();
     await page.waitForTimeout(400);
 
     const advTab = page.getByRole("tab", { name: "پیشرفته" });
+    await expect(advTab).toBeVisible();
     await advTab.click();
     await page.waitForTimeout(400);
 

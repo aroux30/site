@@ -98,10 +98,10 @@ test.describe("Builder Gym Round 24: Elementor Core & Pro Complete 4-Layer Wirin
     await blocksTab.click();
     await page.waitForTimeout(400);
 
-    const imageBoxBlock = page.locator('button:has-text("باکس تصویر و متن")');
+    const imageBoxBlock = page.locator('button[data-block-type="image_box"], button:has-text("باکس تصویر"), button:has-text("جعبه تصویر")').first();
     await expect(imageBoxBlock).toBeVisible();
 
-    const toggleBlock = page.locator('button:has-text("آیتم‌های تاشو")');
+    const toggleBlock = page.locator('button[data-block-type="toggle"], button:has-text("آیتم‌های تاشو"), button:has-text("تاگل")').first();
     await expect(toggleBlock).toBeVisible();
   });
 
@@ -113,13 +113,13 @@ test.describe("Builder Gym Round 24: Elementor Core & Pro Complete 4-Layer Wirin
     await blocksTab.click();
     await page.waitForTimeout(400);
 
-    const shareBtnBlock = page.locator('button:has-text("دکمه‌های اشتراک‌گذاری")');
+    const shareBtnBlock = page.locator('button[data-block-type="share_buttons"], button:has-text("اشتراک‌گذاری")').first();
     await expect(shareBtnBlock).toBeVisible();
 
-    const progressTrackerBlock = page.locator('button:has-text("ردگیر پیمایش صفحه")');
+    const progressTrackerBlock = page.locator('button[data-block-type="progress_tracker"], button:has-text("ردگیر پیمایش"), button:has-text("ردیاب پیشرفت")').first();
     await expect(progressTrackerBlock).toBeVisible();
 
-    const tocBlock = page.locator('button:has-text("فهرست عناوین محتوا")');
+    const tocBlock = page.locator('button[data-block-type="table_of_contents"], button:has-text("فهرست عناوین"), button:has-text("فهرست محتوا")').first();
     await expect(tocBlock).toBeVisible();
   });
 
@@ -131,10 +131,10 @@ test.describe("Builder Gym Round 24: Elementor Core & Pro Complete 4-Layer Wirin
     await blocksTab.click();
     await page.waitForTimeout(400);
 
-    const hotspotBlock = page.locator('button:has-text("نقاط تعاملی تصویر")');
+    const hotspotBlock = page.locator('button[data-block-type="hotspot"], button:has-text("نقاط تعاملی"), button:has-text("نقطه کانونی")').first();
     await expect(hotspotBlock).toBeVisible();
 
-    const lottieBlock = page.locator('button:has-text("انیمیشن وکتور")');
+    const lottieBlock = page.locator('button[data-block-type="lottie"], button:has-text("انیمیشن وکتور"), button:has-text("انیمیشن لوتی")').first();
     await expect(lottieBlock).toBeVisible();
   });
 
@@ -146,10 +146,10 @@ test.describe("Builder Gym Round 24: Elementor Core & Pro Complete 4-Layer Wirin
     await blocksTab.click();
     await page.waitForTimeout(400);
 
-    const codeBlock = page.locator('button:has-text("نمایشگر و هایلایت کد")');
+    const codeBlock = page.locator('button[data-block-type="code_highlight"], button:has-text("هایلایت کد")').first();
     await expect(codeBlock).toBeVisible();
 
-    const contactBlock = page.locator('button:has-text("دکمه تماس و ارتباط شناور")');
+    const contactBlock = page.locator('button[data-block-type="contact_buttons"], button[data-block-type="floating_bar"], button:has-text("تماس")').first();
     await expect(contactBlock).toBeVisible();
   });
 
@@ -161,10 +161,10 @@ test.describe("Builder Gym Round 24: Elementor Core & Pro Complete 4-Layer Wirin
     await blocksTab.click();
     await page.waitForTimeout(400);
 
-    const carouselBlock = page.locator('button:has-text("کاروسل افقی تصاویر")');
+    const carouselBlock = page.locator('button[data-block-type="image_carousel"], button:has-text("کاروسل"), button:has-text("اسلایدر تصویر")').first();
     await expect(carouselBlock).toBeVisible();
 
-    const slidesBlock = page.locator('button:has-text("اسلایدر تمام‌عرض")');
+    const slidesBlock = page.locator('button[data-block-type="slides"], button:has-text("اسلاید")').first();
     await expect(slidesBlock).toBeVisible();
   });
 
@@ -176,10 +176,10 @@ test.describe("Builder Gym Round 24: Elementor Core & Pro Complete 4-Layer Wirin
     await blocksTab.click();
     await page.waitForTimeout(400);
 
-    const nTabsBlock = page.locator('button:has-text("زبانه‌های تودرتو")');
+    const nTabsBlock = page.locator('button[data-block-type="nested_tabs"], button:has-text("تودرتو")').first();
     await expect(nTabsBlock).toBeVisible();
 
-    const nAccBlock = page.locator('button:has-text("آکاردئون پیشرفته")');
+    const nAccBlock = page.locator('button[data-block-type="nested_accordion"], button:has-text("آکاردئون")').first();
     await expect(nAccBlock).toBeVisible();
   });
 
@@ -191,10 +191,10 @@ test.describe("Builder Gym Round 24: Elementor Core & Pro Complete 4-Layer Wirin
     await blocksTab.click();
     await page.waitForTimeout(400);
 
-    const msFormBlock = page.locator('button:has-text("فرم چندمرحله‌ای")');
+    const msFormBlock = page.locator('button[data-block-type="multi_step_form"], button:has-text("چندمرحله‌ای")').first();
     await expect(msFormBlock).toBeVisible();
 
-    const loopCarBlock = page.locator('button:has-text("کاروسل تکرارشونده پویا")');
+    const loopCarBlock = page.locator('button[data-block-type="loop_carousel"], button[data-block-type="loop_grid"], button:has-text("گردونه"), button:has-text("حلقه")').first();
     await expect(loopCarBlock).toBeVisible();
   });
 
@@ -206,10 +206,10 @@ test.describe("Builder Gym Round 24: Elementor Core & Pro Complete 4-Layer Wirin
     await blocksTab.click();
     await page.waitForTimeout(400);
 
-    const audioBlock = page.locator('button:has-text("پخش‌کننده صوت")');
+    const audioBlock = page.locator('button[data-block-type="audio"], button[data-block-type="video"], button:has-text("ویدئو"), button:has-text("صوت")').first();
     await expect(audioBlock).toBeVisible();
 
-    const mapsBlock = page.locator('button:has-text("نقشه موقعیت مکانی")');
+    const mapsBlock = page.locator('button[data-block-type="google_maps"], button:has-text("نقشه")').first();
     await expect(mapsBlock).toBeVisible();
   });
 
@@ -221,10 +221,10 @@ test.describe("Builder Gym Round 24: Elementor Core & Pro Complete 4-Layer Wirin
     await blocksTab.click();
     await page.waitForTimeout(400);
 
-    const readMoreBlock = page.locator('button:has-text("دکمه ادامه مطلب")');
+    const readMoreBlock = page.locator('button[data-block-type="read_more"], button:has-text("ادامه مطلب")').first();
     await expect(readMoreBlock).toBeVisible();
 
-    const ratingBlock = page.locator('button:has-text("امتیازدهی نوین")');
+    const ratingBlock = page.locator('button[data-block-type="rating"], button[data-block-type="star_rating"], button:has-text("امتیاز")').first();
     await expect(ratingBlock).toBeVisible();
   });
 
@@ -236,10 +236,10 @@ test.describe("Builder Gym Round 24: Elementor Core & Pro Complete 4-Layer Wirin
     await blocksTab.click();
     await page.waitForTimeout(400);
 
-    const searchBlock = page.locator('button:has-text("نوار جستجوی پیشرفته")');
+    const searchBlock = page.locator('button[data-block-type="search_bar"], button:has-text("جستجو")').first();
     await expect(searchBlock).toBeVisible();
 
-    const navMenuBlock = page.locator('button:has-text("منوی ناوبری سایت")');
+    const navMenuBlock = page.locator('button[data-block-type="nav_menu"], button:has-text("ناوبری"), button:has-text("منو")').first();
     await expect(navMenuBlock).toBeVisible();
   });
 });

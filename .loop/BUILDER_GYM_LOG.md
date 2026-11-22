@@ -824,6 +824,46 @@
 
 ---
 
+### 🏋️ راند ۲۶ (Round 26) — وزنه ۲: ۱۵ کیلو (کنترل اندازه ستاره‌ها، پوستر ویدئو و همگام‌سازی SSR درصد هیستوگرام و امتیاز)
+- **تاریخ اجرا**: 2026-11-22
+- **شاخه ایزوله**: `claude/nifty-snyder-d5b886`
+- **پورت فرانت‌اند**: ۴۰۰۲
+- **وضعیت**: ✅ کامل و سبز (۴ نقص در بازرس، بوم و کامپایلر بک‌اند حل و با Vision تایید شدند)
+
+#### ۱. باگ‌های کشف‌شده با ابزار Vision و تعامل
+1. **فقدان کنترل سایز ستاره‌ها در بازرس (`Inspector Star Rating Size Control Missing`)**:
+   - *مشاهده*: ویجت `star_rating` در `canvas-element.tsx` از `props.size` پشتیبانی می‌کرد، اما در پنل بازرس هیچ سلکتی برای تغییر سایز ستاره‌ها (کوچک، متوسط، بزرگ) وجود نداشت.
+   - *اصلاح ریشه‌ای*: اضافه شدن فیلد انتخابگر اندازه (`size`: sm, md, lg) به کنترل‌های `star_rating` در `inspector-panel.tsx`.
+2. **فقدان ورودی پوستر در تنظیمات ویدئو (`Inspector Video Poster Input Missing`)**:
+   - *مشاهده*: ویجت `video` در بوم و کامپایلر سرور از `props.poster` برای نمایش تصویر کاور قبل از پخش پشتیبانی می‌کرد اما فیلد تنظیم آن در بازرس وجود نداشت.
+   - *اصلاح ریشه‌ای*: اضافه شدن فیلد اختصاصی آدرس پوستر ویدئو در `inspector-panel.tsx`.
+3. **محاسبه ایستا و خطای عدم تطابق درصد در هیستوگرام نظرات و برچسب ستاره‌ها در کامپایلر SSR (`SSR Review Histogram Dynamic Percentage & Star Label`)**:
+   - *مشاهده*: در `ast_compiler.py` عرض نوار هیستوگرام روی ۸۰٪ ثابت بود و شرط `showValue` برای ستاره‌ها در نظر گرفته نمی‌شد.
+   - *اصلاح ریشه‌ای*: محاسبه داینامیک درصد پر شدن نوار بر اساس میانگین امتیاز (`(averageRating / 5.0) * 100`) و رعایت شرط `showValue` برای نمایش عدد امتیاز در `ast_compiler.py`.
+
+#### ۲. مستندات بصری (Vision Artifacts)
+- **قبل از اصلاح**: `.loop/artifacts/builder-gym/round-26/before/`
+  - `01-studio-overview.png`
+  - `02-video-selected.png`
+  - `report.json`
+- **بعد از اصلاح**: `.loop/artifacts/builder-gym/round-26/after/`
+  - `01-studio-overview.png`
+  - `02-video-inspected.png` (کنترل‌های غنی URL و پوستر ویدئو در بازرس)
+  - `03-star-rating-nudged.png` (کنترل اندازه ستاره‌ها و اعمال زنده امتیاز ۴.۹ در بوم)
+  - `report.json`
+
+#### ۳. تست‌های رگرسیون دائمی اضافه‌شده
+- فایل تست Playwright: `frontend/tests/e2e/builder-gym-r26.spec.ts` (۲ تست سبز)
+- فایل تست پایتون: `backend/app/tests/unit/test_ast_compiler.py::test_ast_compiler_renders_round26_star_rating_and_review_histogram_parity` (۱ تست سبز)
+
+#### ۴. نتایج نهایی ممیزی و تست‌ها در راند ۲۶
+- `npx --prefix frontend tsc --noEmit`: ۰ خطا (سبز)
+- `npm --prefix frontend test -- --run`: **۳۷۲ تست سبز در ۴۵ فایل** (`372 passed`)
+- `python -m pytest app/tests/unit`: **۶۲۵ تست سبز** (`625 passed, 2 skipped`)
+- تست‌های Playwright راند ۲۶: **۲ تست سبز (`2 passed in 19.8s`) روی پورت ۴۰۰۲**
+
+---
+
 ## 🏆 گواهینامه نهایی مسترینگ کامل: BUILDER_GYM_ALL_LEVELS_MASTERED
 
 بدین‌وسیله رسماً تایید و ثبت می‌گردد که کلیه وزنه‌های ۱ تا ۸ نردبان پیش‌رونده Visual Page Builder بر اساس دستورالعمل جامع المنتور و استانداردهای سخت‌گیرانه ۳۶۰ درجه با موفقیت ۱۰۰٪ کامل شدند:

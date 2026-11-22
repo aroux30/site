@@ -437,23 +437,30 @@ class ASTCompiler:
         elif widget_type == "star_rating":
             val = props.get("value", 5)
             rev_cnt = props.get("reviewCount", 0)
+            show_val = props.get("showValue", True) is not False
+            star_label = f"★ {val}" if show_val else "★"
+            rev_span = f'<span class="text-xs text-muted-foreground">({rev_cnt} نظر)</span>' if rev_cnt else ""
             return (
                 f'<div{id_attr} class="builder-star-rating inline-flex items-center gap-1.5 p-2 rounded-lg bg-card border {css_class}" data-widget="star_rating"{style_attr}>'
-                f'<span class="text-amber-400 font-bold">★ {val}</span>'
-                f'<span class="text-xs text-muted-foreground">({rev_cnt} نظر)</span>'
+                f'<span class="text-amber-400 font-bold">{star_label}</span>'
+                f'{rev_span}'
                 f'</div>'
             )
 
         elif widget_type == "review_histogram":
             avg = props.get("averageRating", 5)
             total = props.get("totalReviews", 0)
+            try:
+                pct = int(min(100, max(0, (float(avg) / 5.0) * 100)))
+            except (ValueError, TypeError):
+                pct = 80
             return (
                 f'<div{id_attr} class="builder-review-histogram rounded-2xl border border-border/60 bg-card p-4 space-y-2 {css_class}" data-widget="review_histogram"{style_attr}>'
                 f'<div class="flex items-center justify-between">'
                 f'<span class="text-lg font-bold text-foreground">{avg} از ۵</span>'
                 f'<span class="text-xs text-muted-foreground">بر اساس {total} نظر</span>'
                 f'</div>'
-                f'<div class="h-2 rounded-full bg-muted overflow-hidden"><div class="h-full bg-emerald-500" style="width: 80%;"></div></div>'
+                f'<div class="h-2 rounded-full bg-muted overflow-hidden"><div class="h-full bg-emerald-500" style="width: {pct}%;"></div></div>'
                 f'</div>'
             )
 

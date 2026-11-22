@@ -817,6 +817,22 @@ export function InspectorPanel() {
                 className="h-8 text-xs"
               />
             </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">اندازه ستاره‌ها</Label>
+              <Select
+                value={String(props.size || "md")}
+                onValueChange={(val) => handlePropChange("size", val)}
+              >
+                <SelectTrigger className="h-8 text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="sm">کوچک (sm)</SelectItem>
+                  <SelectItem value="md">متوسط (md)</SelectItem>
+                  <SelectItem value="lg">بزرگ (lg)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
             <div className="flex items-center justify-between pt-1">
               <Label className="text-xs">نمایش عدد امتیاز</Label>
               <Switch
@@ -1306,11 +1322,22 @@ export function InspectorPanel() {
             <div className="space-y-1.5">
               <Label className="text-xs">آدرس ویدئو (URL)</Label>
               <Input
+                data-testid="video-url-input"
                 value={String(props.url || "")}
                 onChange={(e) => handlePropChange("url", e.target.value)}
                 className="h-8 text-xs font-mono"
                 dir="ltr"
                 placeholder="https://www.aparat.com/video/video/embed/videohash/..."
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">تصویر پیش‌نمایش پوستر (اختیاری)</Label>
+              <Input
+                value={String(props.poster || "")}
+                onChange={(e) => handlePropChange("poster", e.target.value)}
+                className="h-8 text-xs font-mono"
+                dir="ltr"
+                placeholder="/path/to/poster.jpg"
               />
             </div>
           </div>

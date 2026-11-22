@@ -1,0 +1,7 @@
+{
+  "url": "http://127.0.0.1:4002/e2e-isolated-scratchpad?builder=1",
+  "consoleErrors": [
+    "Failed to load resource: the server responded with a status of 404 ()"
+  ],
+  "timestamp": "2026-11-22T00:39:49.250Z"
+}

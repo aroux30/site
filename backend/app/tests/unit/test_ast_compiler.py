@@ -694,6 +694,54 @@ def test_ast_compiler_renders_round25_dynamic_ecommerce_props():
     assert '5</span>' in result
 
 
+def test_ast_compiler_renders_round26_star_rating_and_review_histogram_parity():
+    """Verify that star_rating and review_histogram handle showValue and average percentages accurately."""
+    ast = PageAST(
+        schema_version=1,
+        title="تست امتیاز و هیستوگرام راند ۲۶",
+        slug="test-r26-reviews",
+        root_elements=[
+            BuilderElement(
+                id="el_sec_r26",
+                name="بخش نظرات و امتیاز",
+                type="container",
+                children=[
+                    BuilderElement(
+                        id="el_sr_custom",
+                        name="امتیاز ستاره‌ای",
+                        type="widget",
+                        widget_type="star_rating",
+                        widget_props={
+                            "value": 4.9,
+                            "reviewCount": 180,
+                            "showValue": True,
+                        },
+                    ),
+                    BuilderElement(
+                        id="el_rh_custom",
+                        name="هیستوگرام نظرات",
+                        type="widget",
+                        widget_type="review_histogram",
+                        widget_props={
+                            "averageRating": 4.5,
+                            "totalReviews": 95,
+                        },
+                    ),
+                ],
+            )
+        ],
+    )
+    result = ASTCompiler.compile(ast)
+    assert 'builder-star-rating' in result
+    assert '★ 4.9' in result
+    assert '(180 نظر)' in result
+    assert 'builder-review-histogram' in result
+    assert '4.5 از ۵' in result
+    assert 'بر اساس 95 نظر' in result
+    assert 'width:90%' in result or 'width: 90%' in result
+
+
+
 
 
 

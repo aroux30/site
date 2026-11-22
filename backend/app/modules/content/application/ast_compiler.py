@@ -847,6 +847,23 @@ class ASTCompiler:
             )
             return f'<div{id_attr} class="builder-price-list space-y-3 w-full {css_class}" data-widget="price_list"{style_attr}>{items_html}</div>'
 
+        elif widget_type == "hotspot":
+            img_src = html.escape(str(props.get("image_url", "/placeholder-hero.svg")))
+            alt = html.escape(str(props.get("alt", "تصویر")))
+            hotspots = props.get("hotspots", [])
+            hs_html = "".join(
+                f'<div style="top: {float(h.get("y", 50))}%; left: {float(h.get("x", 50))}%;" class="absolute -translate-x-1/2 -translate-y-1/2">'
+                f'<div class="w-6 h-6 rounded-full bg-primary text-primary-foreground font-black text-xs flex items-center justify-center shadow-lg">{html.escape(str(h.get("label", "")))}</div>'
+                f'</div>'
+                for h in hotspots
+            )
+            return (
+                f'<div{id_attr} class="builder-hotspot relative w-full rounded-2xl overflow-hidden border border-border/80 bg-muted/20 {css_class}" data-widget="hotspot"{style_attr}>'
+                f'<img src="{img_src}" alt="{alt}" class="w-full h-auto block object-cover" loading="lazy" />'
+                f'{hs_html}'
+                f'</div>'
+            )
+
         # Generic fallback for any other registered widget
         fallback_title = html.escape(str(props.get("title", widget_type)))
         return f'<div{id_attr} class="builder-widget builder-{widget_type} {css_class}" data-widget="{html.escape(widget_type)}"{style_attr}>{fallback_title}</div>'

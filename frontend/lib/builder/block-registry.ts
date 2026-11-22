@@ -1220,6 +1220,31 @@ export const BASIC_BLOCK_DEFINITIONS: BlockDefinition[] = [
       children: [],
     }),
   },
+  {
+    type: "hotspot",
+    name: "نقاط تعاملی تصویر (Hotspot)",
+    category: "basic",
+    icon: CircleDot,
+    description: "تصویر تعاملی با نشانگرهای پالس‌دار و جعبه‌های توضیحی شناور",
+    createDefaultElement: () => ({
+      id: `el_${Math.random().toString(36).slice(2, 10)}`,
+      name: "نقاط تعاملی تصویر",
+      type: "widget",
+      widgetType: "hotspot",
+      widgetProps: {
+        image_url: "/placeholder-hero.svg",
+        alt: "تصویر محصول با هات‌اسپات",
+        hotspots: [
+          { id: "hs_1", x: 30, y: 40, label: "۱", title: "طراحی ارگونومیک", tooltip: "بدنه سبک و ضدتعریق مناسب استفاده طولانی‌مدت" },
+          { id: "hs_2", x: 70, y: 65, label: "۲", title: "باتری لیتیومی", tooltip: "شارژدهی تا ۴۸ ساعت پخش مداوم موسیقی" },
+        ],
+      },
+      isLocked: false,
+      isHidden: false,
+      styles: { mobile: {} },
+      children: [],
+    }),
+  },
 ];
 
 import { createPatternAST } from "./pattern-converter";

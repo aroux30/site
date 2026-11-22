@@ -1811,6 +1811,133 @@ export function InspectorPanel() {
         );
       }
 
+      case "hotspot": {
+        const hotspots = (props.hotspots as any[]) || [
+          { id: "hs_1", x: 30, y: 40, label: "۱", title: "نقطه اول", tooltip: "توضیحات" },
+        ];
+        return (
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs">آدرس تصویر (Image URL)</Label>
+              <Input
+                data-testid="hotspot-image-input"
+                value={String(props.image_url || "")}
+                onChange={(e) => handlePropChange("image_url", e.target.value)}
+                className="h-8 text-xs font-mono"
+                dir="ltr"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">متن جایگزین (Alt)</Label>
+              <Input
+                value={String(props.alt || "")}
+                onChange={(e) => handlePropChange("alt", e.target.value)}
+                className="h-8 text-xs"
+              />
+            </div>
+            <div className="space-y-2 pt-2 border-t">
+              <div className="flex items-center justify-between">
+                <Label className="text-xs font-bold">نقاط تعاملی (Hotspots)</Label>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const updated = [...hotspots, { id: `hs_${Date.now()}`, x: 50, y: 50, label: `${hotspots.length + 1}`, title: `نقطه ${hotspots.length + 1}`, tooltip: "توضیحات این بخش" }];
+                    handlePropChange("hotspots", updated);
+                  }}
+                  className="text-[11px] text-primary hover:underline font-semibold"
+                >
+                  + افزودن نقطه
+                </button>
+              </div>
+              {hotspots.map((h, idx) => (
+                <div key={idx} className="p-2.5 rounded-xl border bg-muted/20 space-y-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <Input
+                      data-testid={`hotspot-label-input-${idx}`}
+                      value={h.label || ""}
+                      placeholder="برچسب (۱)"
+                      onChange={(e) => {
+                        const updated = [...hotspots];
+                        updated[idx] = { ...updated[idx], label: e.target.value };
+                        handlePropChange("hotspots", updated);
+                      }}
+                      className="h-8 text-xs w-16 text-center font-bold"
+                    />
+                    <Input
+                      data-testid={`hotspot-title-input-${idx}`}
+                      value={h.title || ""}
+                      placeholder="عنوان نقطه..."
+                      onChange={(e) => {
+                        const updated = [...hotspots];
+                        updated[idx] = { ...updated[idx], title: e.target.value };
+                        handlePropChange("hotspots", updated);
+                      }}
+                      className="h-8 text-xs flex-1"
+                    />
+                    {hotspots.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const updated = hotspots.filter((_, i) => i !== idx);
+                          handlePropChange("hotspots", updated);
+                        }}
+                        className="text-[10px] text-destructive hover:underline shrink-0"
+                      >
+                        حذف
+                      </button>
+                    )}
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="space-y-1">
+                      <Label className="text-[10px]">موقعیت افقی (X %)</Label>
+                      <Input
+                        type="number"
+                        min={0}
+                        max={100}
+                        value={h.x ?? 50}
+                        onChange={(e) => {
+                          const updated = [...hotspots];
+                          updated[idx] = { ...updated[idx], x: parseFloat(e.target.value) || 0 };
+                          handlePropChange("hotspots", updated);
+                        }}
+                        className="h-7 text-xs font-mono"
+                        dir="ltr"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-[10px]">موقعیت عمودی (Y %)</Label>
+                      <Input
+                        type="number"
+                        min={0}
+                        max={100}
+                        value={h.y ?? 50}
+                        onChange={(e) => {
+                          const updated = [...hotspots];
+                          updated[idx] = { ...updated[idx], y: parseFloat(e.target.value) || 0 };
+                          handlePropChange("hotspots", updated);
+                        }}
+                        className="h-7 text-xs font-mono"
+                        dir="ltr"
+                      />
+                    </div>
+                  </div>
+                  <Input
+                    value={h.tooltip || ""}
+                    placeholder="متن توضیحات در هاور..."
+                    onChange={(e) => {
+                      const updated = [...hotspots];
+                      updated[idx] = { ...updated[idx], tooltip: e.target.value };
+                      handlePropChange("hotspots", updated);
+                    }}
+                    className="h-7 text-xs"
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      }
+
       case "price_table": {
         const features = (props.features as any[]) || [
           { text: "امکانات پایه سیستم", available: true },

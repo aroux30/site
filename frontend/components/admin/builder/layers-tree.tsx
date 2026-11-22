@@ -120,6 +120,8 @@ function getElementIcon(el: BuilderElement) {
       return Image;
     case "call_to_action":
       return Sparkles;
+    case "hotspot":
+      return CircleDot;
     case "price_table":
       return DollarSign;
     case "price_list":

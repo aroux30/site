@@ -751,6 +751,38 @@ def test_ast_compiler_price_list_elementor_pro_parity():
     assert "چیزکیک سن سباستین" in result
 
 
+def test_ast_compiler_hotspot_elementor_pro_parity():
+    """Verify Elementor Pro Hotspot compiles correctly in SSR."""
+    ast = PageAST(
+        schema_version=1,
+        title="تست تصویر تعاملی هات‌اسپات",
+        slug="test-hotspot",
+        root_elements=[
+            BuilderElement(
+                id="el_hotspot_01",
+                name="تصویر محصول تعاملی",
+                type="widget",
+                widget_type="hotspot",
+                widget_props={
+                    "image_url": "/product-detail.png",
+                    "alt": "نمای نزدیک کالا",
+                    "hotspots": [
+                        {"id": "hs_a", "x": 35.0, "y": 45.0, "label": "الف"},
+                        {"id": "hs_b", "x": 65.0, "y": 75.0, "label": "ب"},
+                    ],
+                },
+            ),
+        ],
+    )
+    result = ASTCompiler.compile(ast)
+    assert "builder-hotspot" in result
+    assert "/product-detail.png" in result
+    assert "top:45.0%" in result or "top: 45.0%" in result
+    assert "الف" in result
+    assert "ب" in result
+
+
+
 
 
 

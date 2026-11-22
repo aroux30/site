@@ -1652,6 +1652,35 @@ function CanvasElementComponent({
           </ul>
         );
       }
+      case "hotspot": {
+        const imgUrl = String(props.image_url || "/placeholder-hero.svg");
+        const alt = String(props.alt || "تصویر");
+        const hotspots = (props.hotspots as any[]) || [
+          { id: "h1", x: 30, y: 40, label: "۱", title: "ویژگی اول", tooltip: "توضیح نقطه اول" },
+        ];
+        return (
+          <div className="builder-hotspot relative w-full rounded-2xl overflow-hidden border border-border/80 bg-muted/20 select-none" data-widget="hotspot">
+            <img src={imgUrl} alt={alt} className="w-full h-auto block object-cover" loading="lazy" />
+            {hotspots.map((h, idx) => (
+              <div
+                key={h.id || idx}
+                style={{ top: `${h.y}%`, left: `${h.x}%` }}
+                className="absolute -translate-x-1/2 -translate-y-1/2 group/hs z-20 cursor-pointer"
+              >
+                <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground font-black text-xs flex items-center justify-center shadow-lg ring-4 ring-primary/30 animate-pulse">
+                  {h.label || idx + 1}
+                </div>
+                {(h.title || h.tooltip) && (
+                  <div className="absolute bottom-full mb-2 start-1/2 -translate-x-1/2 min-w-[160px] p-2.5 rounded-xl bg-popover/95 border border-border/80 shadow-xl backdrop-blur-md text-right opacity-0 group-hover/hs:opacity-100 transition pointer-events-none z-30">
+                    {h.title && <div className="font-bold text-xs text-foreground mb-0.5">{h.title}</div>}
+                    {h.tooltip && <div className="text-[10px] text-muted-foreground leading-relaxed">{h.tooltip}</div>}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        );
+      }
       case "price_table": {
         const title = String(props.title || "پلن پایه");
         const subtitle = String(props.subtitle || "");

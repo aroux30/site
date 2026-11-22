@@ -1666,6 +1666,16 @@ function CanvasElementComponent({
           </div>
         );
       }
+      case "blockquote": {
+        const quote = String(props.quote || "متن نقل‌قول در اینجا قرار می‌گیرد.");
+        const author = props.author ? String(props.author) : "";
+        return (
+          <blockquote className="p-4 rounded-2xl border-s-4 border-primary bg-muted/30 space-y-2 text-right w-full">
+            <p className="text-sm font-medium text-foreground leading-relaxed italic">«{quote}»</p>
+            {author && <cite className="block text-xs font-bold text-muted-foreground not-italic">— {author}</cite>}
+          </blockquote>
+        );
+      }
       default:
         return (
           <div className="rounded-lg border border-dashed border-border p-4 text-center text-sm text-muted-foreground">

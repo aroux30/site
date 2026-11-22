@@ -40,6 +40,7 @@ import {
   Megaphone,
   Type,
   RotateCw,
+  Quote,
   type LucideIcon,
 } from "lucide-react";
 import type { BuilderElement } from "@/types/builder";
@@ -1176,6 +1177,28 @@ export const BASIC_BLOCK_DEFINITIONS: BlockDefinition[] = [
         back_desc: "تسهیلات اعتباری، فاکتور رسمی و ارسال فوری",
         button_text: "مشاهده جزئیات",
         button_url: "#",
+      },
+      isLocked: false,
+      isHidden: false,
+      styles: { mobile: {} },
+      children: [],
+    }),
+  },
+  {
+    type: "blockquote",
+    name: "نقل‌قول برجسته (Blockquote)",
+    category: "basic",
+    icon: Quote,
+    description: "باکس نقل‌قول برجسته با خط حاشیه رنگی و نام گوینده",
+    createDefaultElement: () => ({
+      id: `el_${Math.random().toString(36).slice(2, 10)}`,
+      name: "نقل‌قول برجسته",
+      type: "widget",
+      widgetType: "blockquote",
+      widgetProps: {
+        quote: "کیفیت یعنی انجام درست کار، حتی زمانی که هیچ‌کس نگاه نمی‌کند.",
+        author: "هنری فورد",
+        skin: "border",
       },
       isLocked: false,
       isHidden: false,

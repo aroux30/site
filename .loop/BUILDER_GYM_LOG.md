@@ -1111,6 +1111,42 @@
 
 ---
 
+### 🏋️ راند ۳۴ (Round 34) — وزنه ۷: ۸۵ کیلو (پورت ویجت نقل‌قول برجسته Blockquote از Elementor Pro به ۴ لایه بیلدر)
+- **تاریخ اجرا**: 2026-11-22
+- **شاخه ایزوله**: `claude/nifty-snyder-d5b886`
+- **پورت فرانت‌اند**: ۴۰۰۲
+- **وضعیت**: ✅ کامل و سبز (پورت موفق ویجت نقل‌قول برجسته با حاشیه رنگی و نام گوینده در هر ۴ لایه)
+
+#### ۱. قابلیت‌ها و اصلاحات انجام‌شده
+1. **پورت سبک ویجت نقل‌قول برجسته (`blockquote`) از Elementor Pro**:
+   - مرجع المنتور: `elementor-pro/modules/blockquote/widgets/blockquote.php`.
+   - اضافه شدن به پالت پایه‌ای در `block-registry.ts` (افزایش بلوک‌ها به ۴۲ بلوک).
+   - پیاده‌سازی کنترل‌های بازرس با ورودی‌های متن نقل‌قول و نام نویسنده/گوینده در `inspector-panel.tsx`.
+   - پیاده‌سازی رندرینگ زنده با استایل بوردر آغازین رنگی `border-s-4 border-primary` و فونت ایتالیک در `canvas-element.tsx`.
+   - کامپایل بدون افت در SSR با تگ سمانتیک `<blockquote>` و `<cite>` در `ast_compiler.py`.
+
+#### ۲. مستندات بصری (Vision Artifacts)
+- **قبل از اصلاح**: `.loop/artifacts/builder-gym/round-34/before/`
+  - `01-studio-overview.png`
+  - `02-palette-search-quote.png`
+  - `report.json`
+- **بعد از اصلاح**: `.loop/artifacts/builder-gym/round-34/after/`
+  - `01-studio-overview.png`
+  - `02-quote-customized.png` (اعمال موفق نقل‌قول برجسته «پیروزی حاصل استمرار است» و گوینده «وینستون چرچیل»)
+  - `report.json`
+
+#### ۳. تست‌های رگرسیون دائمی اضافه‌شده
+- فایل تست Playwright: `frontend/tests/e2e/builder-gym-r34.spec.ts` (۱ تست سبز)
+- فایل تست پایتون: `backend/app/tests/unit/test_ast_compiler.py::test_ast_compiler_renders_round34_blockquote_customization` (۱ تست سبز)
+
+#### ۴. نتایج نهایی ممیزی و تست‌ها در راند ۳۴
+- `npx --prefix frontend tsc --noEmit`: ۰ خطا (سبز)
+- `npm --prefix frontend test -- --run`: **۳۷۲ تست سبز در ۴۵ فایل** (`372 passed`)
+- `python -m pytest app/tests/unit`: **۶۳۳ تست سبز** (`633 passed, 2 skipped`)
+- تست‌های Playwright راند ۳۴: **۱ تست سبز (`1 passed in 4.9s`) روی پورت ۴۰۰۲**
+
+---
+
 ## 🏆 گواهینامه نهایی مسترینگ کامل: BUILDER_GYM_ALL_LEVELS_MASTERED
 
 بدین‌وسیله رسماً تایید و ثبت می‌گردد که کلیه وزنه‌های ۱ تا ۸ نردبان پیش‌رونده Visual Page Builder بر اساس دستورالعمل جامع المنتور و استانداردهای سخت‌گیرانه ۳۶۰ درجه با موفقیت ۱۰۰٪ کامل شدند:

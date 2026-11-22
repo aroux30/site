@@ -1826,6 +1826,33 @@ export function InspectorPanel() {
           </div>
         );
 
+      case "blockquote":
+        return (
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs">متن نقل‌قول</Label>
+              <textarea
+                data-testid="blockquote-quote-input"
+                rows={3}
+                value={String(props.quote || "")}
+                onChange={(e) => handlePropChange("quote", e.target.value)}
+                className="w-full rounded-md border border-input bg-background p-2 text-xs leading-relaxed"
+                placeholder="متن سخن یا نقل‌قول..."
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">نام گوینده / نویسنده</Label>
+              <Input
+                data-testid="blockquote-author-input"
+                value={String(props.author || "")}
+                onChange={(e) => handlePropChange("author", e.target.value)}
+                className="h-8 text-xs"
+                placeholder="هنری فورد"
+              />
+            </div>
+          </div>
+        );
+
       case "social_links": {
         const links = (props.links as any[]) || [
           { platform: "اینستاگرام", url: "https://instagram.com" },

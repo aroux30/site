@@ -1051,6 +1051,40 @@ def test_ast_compiler_renders_round33_call_to_action_link_and_badge():
     assert 'خرید شگفت‌انگیز' in result
 
 
+def test_ast_compiler_renders_round34_blockquote_customization():
+    """Verify that blockquote widget compiles rich quote text and author in SSR markup."""
+    ast = PageAST(
+        schema_version=1,
+        title="تست راند ۳۴",
+        slug="test-r34-quote",
+        root_elements=[
+            BuilderElement(
+                id="el_sec_r34",
+                name="بخش ۳۴",
+                type="container",
+                children=[
+                    BuilderElement(
+                        id="el_bq_custom",
+                        name="نقل‌قول فورد",
+                        type="widget",
+                        widget_type="blockquote",
+                        widget_props={
+                            "quote": "کیفیت یعنی انجام درست کار وقتی کسی نگاه نمی‌کند",
+                            "author": "هنری فورد",
+                        },
+                    ),
+                ],
+            )
+        ],
+    )
+    result = ASTCompiler.compile(ast)
+    assert 'builder-blockquote' in result
+    assert 'border-s-4 border-primary' in result
+    assert 'کیفیت یعنی انجام درست کار' in result
+    assert '— هنری فورد' in result
+
+
+
 
 
 

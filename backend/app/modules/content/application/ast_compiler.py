@@ -889,6 +889,17 @@ class ASTCompiler:
             icon_char = html.escape(str(props.get("icon", "★")))
             return f'<span{id_attr} class="builder-icon inline-block text-xl leading-none {css_class}" data-widget="icon"{style_attr}>{icon_char}</span>'
 
+        elif widget_type == "blockquote":
+            quote = html.escape(str(props.get("quote", "متن نقل‌قول")))
+            author = html.escape(str(props.get("author", "")))
+            author_html = f'<cite class="block text-xs font-bold text-muted-foreground not-italic mt-2">— {author}</cite>' if author else ""
+            return (
+                f'<blockquote{id_attr} class="builder-blockquote p-4 rounded-2xl border-s-4 border-primary bg-muted/30 text-right w-full {css_class}" data-widget="blockquote"{style_attr}>'
+                f'<p class="text-sm font-medium text-foreground leading-relaxed italic">«{quote}»</p>'
+                f'{author_html}'
+                f'</blockquote>'
+            )
+
         # Generic fallback for any other registered widget
         fallback_title = html.escape(str(props.get("title", widget_type)))
         return f'<div{id_attr} class="builder-widget builder-{widget_type} {css_class}" data-widget="{html.escape(widget_type)}"{style_attr}>{fallback_title}</div>'

@@ -2272,6 +2272,75 @@ export function InspectorPanel() {
         );
       }
 
+      case "table_of_contents": {
+        const rawHeadings = Array.isArray(props.headings) ? props.headings : [];
+        const rawItems = Array.isArray(props.items) ? props.items.map((it: any) => (typeof it === "string" ? it : it.title || it.text || "")) : [];
+        const headings = rawHeadings.length > 0 ? rawHeadings : (rawItems.length > 0 ? rawItems : ["مقدمه", "ویژگی‌ها", "پرسش‌های متداول"]);
+        return (
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs">عنوان فهرست محتوا</Label>
+              <Input
+                data-testid="toc-title-input"
+                value={String(props.title || "فهرست عناوین برگه")}
+                onChange={(e) => handlePropChange("title", e.target.value)}
+                className="h-8 text-xs"
+              />
+            </div>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label className="text-xs font-bold">عناوین فهرست</Label>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const updated = [...headings, `عنوان جدید ${headings.length + 1}`];
+                    handlePropChange("headings", updated);
+                  }}
+                  className="text-[11px] text-primary hover:underline font-semibold"
+                >
+                  + افزودن سرفصل
+                </button>
+              </div>
+              <div className="space-y-1.5">
+                {headings.map((h: string, idx: number) => (
+                  <div key={idx} className="flex items-center gap-2">
+                    <Input
+                      data-testid={`toc-item-title-${idx}`}
+                      value={h}
+                      onChange={(e) => {
+                        const updated = [...headings];
+                        updated[idx] = e.target.value;
+                        handlePropChange("headings", updated);
+                      }}
+                      className="h-7 text-xs flex-1"
+                    />
+                    {headings.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const updated = headings.filter((_: any, i: number) => i !== idx);
+                          handlePropChange("headings", updated);
+                        }}
+                        className="text-xs text-destructive hover:underline px-1"
+                      >
+                        حذف
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="flex items-center justify-between pt-1">
+              <Label className="text-xs">شماره‌گذاری ترتیبی (۱، ۲، ۳...)</Label>
+              <Switch
+                checked={props.ordered !== false}
+                onCheckedChange={(val) => handlePropChange("ordered", val)}
+              />
+            </div>
+          </div>
+        );
+      }
+
       case "progress_tracker":
         return (
           <div className="space-y-4">

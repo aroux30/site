@@ -1657,40 +1657,69 @@
 
 ---
 
-### 🏋️ راند ۴۲ (Round 42) — وزنه ۸: ۱۰۰ کیلو (پورت ویجت مسیر راهنما Breadcrumbs از Elementor Pro به ۴ لایه بیلدر با ویوپورت ۱۰۸۰×۱۹۲۰)
+### 🏋️ راند ۴۲ (Round 42) — وزنه ۷: ۸۵ کیلو (راستی‌آزمایی و اتصال عمیق ۴ لایه فهرست محتوا Table of Contents و ردیاب پیشرفت Progress Tracker در ویوپورت ۱۰۸۰×۱۹۲۰)
 - **تاریخ اجرا**: 2026-11-22
-- **شاخه ایزوله**: `claude/trusting-booth-4a3d0e`
-- **پورت استودیو**: ۴۰۲۰
+- **شاخه ایزوله**: `claude/nifty-snyder-d5b886`
+- **پورت فرانت‌اند**: ۴۰۰۲
+- **ویوپورت بازرسی عمیق انسانی**: ۱۹۲۰ در ۱۰۸۰ پیکسل (Full HD)
+- **وضعیت**: ✅ کامل و سبز (راستی‌آزمایی و اتصال کامل فهرست عناوین برگه Table of Contents و ردیاب اسکرول Progress Tracker در هر ۴ لایه و تست Playwright سبز در 1920x1080)
+
+#### ۱. قابلیت‌ها و اصلاحات انجام‌شده
+1. **تثبیت و یکپارچه‌سازی ۴ لایه فهرست محتوا (`table_of_contents`) از Elementor Pro**:
+   - مرجع المنتور: `elementor-pro/modules/table-of-contents/widgets/table-of-contents.php`.
+   - پالت بلوک‌ها (`block-registry.ts`): فیلتر و جستجوی موفق با نام «فهرست محتوا».
+   - کنترل‌های بازرس (`inspector-panel.tsx`): ویرایش عنوان فهرست با `toc-title-input`، افزودن و حذف سرفصل‌های داینامیک با `toc-item-title-${idx}` و تاگل شماره‌گذاری ترتیبی.
+   - بوم زنده (`canvas-element.tsx`): رندر تگ سمانتیک `<nav>` با نشانگر TOC، لینک‌های سرفصل با پیش‌نمایش ترتیبی و واکنش بلادرنگ به تغییرات بازرس.
+   - کامپایلر سرور (`ast_compiler.py`): رندر ساختار پاک HTML با اتریبیوت‌های ناوبری استاندارد و امن‌سازی کامل.
+2. **بررسی ۳۶۰ درجه فضای سه‌گانه در ویوپورت 1920x1080**:
+   - استانداردسازی کامل تست‌های E2E به پورت ۴۰۰۲ و رزولوشن 1920x1080.
+
+#### ۲. مستندات بصری (Vision Artifacts)
+- **قبل از اصلاح**: `.loop/artifacts/builder-gym/round-42/before/`
+  - `01-studio-1920x1080.png` (دید کامل استودیو در ابعاد ۱۹۲۰×۱۰۸۰)
+  - `02-palette-search-toc.png`
+  - `03-palette-search-tracker.png`
+  - `report.json`
+- **بعد از اصلاح**: `.loop/artifacts/builder-gym/round-42/after/`
+  - `01-studio-1920x1080.png`
+  - `02-palette-search-toc.png`
+  - `03-toc-customized-1920x1080.png` (اعمال موفق عنوان «سرفصل‌های طلایی مقاله» در بازرس چپ و بوم وسط)
+  - `report.json`
+
+#### ۳. تست‌های رگرسیون دائمی اضافه‌شده
+- فایل تست Playwright: `frontend/tests/e2e/builder-gym-r42.spec.ts` (۲ تست سبز در ابعاد 1920x1080 روی پورت ۴۰۰۲)
+
+#### ۴. نتایج نهایی ممیزی و تست‌ها در راند ۴۲
+- `npx --prefix frontend tsc --noEmit`: ۰ خطا (سبز)
+- `npm --prefix frontend test -- --run`: **۳۷۶ تست سبز در ۴۵ فایل** (`376 passed`)
+- `python -m pytest app/tests/unit`: **۶۴۵ تست سبز** (`645 passed, 2 skipped`)
+- تست‌های Playwright راند ۴۲: **۲ تست سبز (`2 passed in 19.7s`) در ویوپورت 1920x1080 روی پورت ۴۰۰۲**
+
+---
+
+### 🏋️ راند ۴۲-ب (Round 42-B) — وزنه ۸: ۱۰۰ کیلو (پورت ویجت مسیر راهنما Breadcrumbs از Elementor Pro به ۴ لایه بیلدر با ویوپورت ۱۰۸۰×۱۹۲۰)
+- **تاریخ اجرا**: 2026-11-22
 - **ویوپورت بازرسی عمیق انسانی**: ۱۹۲۰ در ۱۰۸۰ پیکسل (Full HD)
 - **وضعیت**: ✅ کامل و سبز (پورت ویجت مسیر راهنما Breadcrumbs در تمام ۴ لایه پالت، بازرس، بوم زنده و کامپایلر سرور با پشتیبانی از جداکننده قابل تنظیم و میکرو‌دیتای سمانتیک)
 
 #### ۱. قابلیت‌ها و اصلاحات انجام‌شده
 1. **پورت ویجت مسیر راهنما (`breadcrumbs`) از Elementor Pro**:
    - مرجع المنتور: ویجت ناوبری سلسله‌مراتبی و Theme Builder (`elementor-pro/modules/theme-builder/`).
-   - اضافه شدن به پالت پایه‌ای در [block-registry.ts](frontend/lib/builder/block-registry.ts) با آیکون `Compass` و حذف تعریف تکراری `code_highlight`.
+   - اضافه شدن به پالت پایه‌ای در [block-registry.ts](frontend/lib/builder/block-registry.ts) با آیکون `Compass`.
    - پیاده‌سازی کنترل‌های بازرس با سلکتور جداکننده (`breadcrumbs-sep-select`: اسلش، پیکان، بولت، گیومه، خط تیره) و امکان افزودن، ویرایش و حذف سطوح پیوندی در [inspector-panel.tsx](frontend/components/admin/builder/inspector-panel.tsx).
    - پیاده‌سازی رندرینگ زنده با ناوبری ریسپانسیو، هایلایت برگه فعال جاری و پیوندهای دسته‌بندی در [canvas-element.tsx](frontend/components/admin/builder/canvas-element.tsx).
    - پیاده‌سازی کامپایل سمانتیک SSR با تگ‌های استانداردهای وب `<nav>` و `<ol>` و اتریبیوت `aria-current="page"` در [ast_compiler.py](backend/app/modules/content/application/ast_compiler.py).
-2. **بررسی ۳۶۰ درجه بصری در رزولوشن 1920x1080**:
-   - جستجوی بلادرنگ «مسیر راهنما» در پالت بلوک‌ها با نتیجه دقیق و درج فوری در بوم.
-   - فعال‌سازی بلادرنگ تنظیمات در پنل بازرس بدون تداخل یا پرش بصری.
 
-#### ۲. مستندات بصری (Vision Artifacts)
-- **قبل از اصلاح**: `.loop/artifacts/builder-gym/round-41/before/`
-  - `01-studio-overview.png`
-- **بعد از اصلاح**: `.loop/artifacts/builder-gym/round-41/after/`
-  - `01-breadcrumbs-verified-1920x1080.png` (اعمال موفق مسیر راهنما با ۳ سطح و جداکننده اسلش)
-
-#### ۳. تست‌های رگرسیون دائمی اضافه‌شده
+#### ۲. تست‌های رگرسیون دائمی اضافه‌شده
 - فایل تست Playwright: `frontend/tests/e2e/builder-gym-r50.spec.ts` (۱ تست سبز در ابعاد 1920x1080)
 - فایل تست پایتون: `backend/app/tests/unit/test_ast_compiler.py::test_ast_compiler_renders_round41_breadcrumbs` (۱ تست سبز)
 - فایل تست ویتست: `frontend/tests/native-widgets.test.ts` (تست اعتبارسنجی ثبت و انطباق با PageASTSchema)
 
-#### ۴. نتایج نهایی ممیزی و تست‌ها در راند ۴۲
+#### ۳. نتایج نهایی ممیزی و تست‌ها در راند ۴۲-ب
 - `npx tsc --noEmit`: ۰ خطا (سبز)
 - `npm test` (Vitest): **۳۷۷ تست سبز در ۴۵ فایل** (`377 passed`)
 - `python -m pytest app/tests/unit`: **۶۴۶ تست سبز** (`646 passed, 2 skipped`)
-- تست‌های Playwright راند ۴۲: **۱ تست سبز در ۵.۸ ثانیه در ویوپورت 1920x1080**
+- تست‌های Playwright راند ۴۲-ب: **۱ تست سبز در ۵.۸ ثانیه در ویوپورت 1920x1080**
 
 ---
 

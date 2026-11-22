@@ -2517,6 +2517,80 @@ export function InspectorPanel() {
           </div>
         );
 
+      case "slides": {
+        const slidesList = (props.slides as any[]) || [];
+        return (
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs">عنوان اسلاید اول</Label>
+              <Input
+                data-testid="slides-title-input"
+                value={String(slidesList[0]?.title || "")}
+                onChange={(e) => {
+                  const updated = [...slidesList];
+                  updated[0] = { ...(updated[0] || {}), title: e.target.value };
+                  handlePropChange("slides", updated);
+                }}
+                className="h-8 text-xs"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">متن توضیحات اسلاید</Label>
+              <textarea
+                data-testid="slides-desc-input"
+                rows={3}
+                value={String(slidesList[0]?.description || "")}
+                onChange={(e) => {
+                  const updated = [...slidesList];
+                  updated[0] = { ...(updated[0] || {}), description: e.target.value };
+                  handlePropChange("slides", updated);
+                }}
+                className="w-full rounded-md border border-input bg-background p-2 text-xs leading-relaxed"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">متن دکمه اسلاید</Label>
+              <Input
+                value={String(slidesList[0]?.button_text || "")}
+                onChange={(e) => {
+                  const updated = [...slidesList];
+                  updated[0] = { ...(updated[0] || {}), button_text: e.target.value };
+                  handlePropChange("slides", updated);
+                }}
+                className="h-8 text-xs"
+              />
+            </div>
+          </div>
+        );
+      }
+
+      case "code_highlight":
+        return (
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs">زبان برنامه‌نویسی</Label>
+              <Input
+                data-testid="code-lang-input"
+                value={String(props.language || "javascript")}
+                onChange={(e) => handlePropChange("language", e.target.value)}
+                className="h-8 text-xs font-mono"
+                dir="ltr"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">قطعه کد</Label>
+              <textarea
+                data-testid="code-text-input"
+                rows={6}
+                value={String(props.code || "")}
+                onChange={(e) => handlePropChange("code", e.target.value)}
+                className="w-full rounded-md border border-input bg-background p-2 text-xs font-mono leading-relaxed"
+                dir="ltr"
+              />
+            </div>
+          </div>
+        );
+
       default:
         return (
           <div className="text-xs text-muted-foreground py-2">

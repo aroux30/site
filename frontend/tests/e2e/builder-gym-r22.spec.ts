@@ -101,13 +101,14 @@ test.describe("Builder Gym Round 22: Elementor Core & Pro Widget Palette & Inspe
 
     // Select first heading element
     const frame = page.frameLocator('iframe[title="Visual Builder Canvas"]');
-    const headingEl = frame.locator('[data-element-id="el_e2ehead1"]').first();
+    const headingEl = frame.locator('[data-element-id="el_e2ehead1"], [data-element-id="el_e2e_head"], [data-widget-type="heading"]').first();
     await expect(headingEl).toBeVisible();
     await headingEl.click();
     await page.waitForTimeout(400);
 
     // Go to advanced tab
-    const advTab = page.locator('button[data-state]:has-text("پیشرفته"), button:has-text("پیشرفته")').first();
+    const advTab = page.locator('button[role="tab"]:has-text("پیشرفته")').first();
+    await expect(advTab).toBeVisible();
     await advTab.click();
     await page.waitForTimeout(400);
 

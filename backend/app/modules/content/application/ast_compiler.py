@@ -1083,6 +1083,31 @@ class ASTCompiler:
                 f'</div>'
             )
 
+        elif widget_type == "slides":
+            slides = props.get("slides", [])
+            first_slide = slides[0] if slides else {}
+            title = html.escape(str(first_slide.get("title", "")))
+            desc = html.escape(str(first_slide.get("description", "")))
+            btn = html.escape(str(first_slide.get("button_text", "")))
+            btn_html = f'<button type="button" class="px-5 py-2.5 rounded-xl bg-white text-primary font-bold text-xs shadow-lg">{btn}</button>' if btn else ""
+            return (
+                f'<div{id_attr} class="builder-slides w-full min-h-[220px] rounded-2xl p-8 flex flex-col items-center justify-center text-center text-white space-y-3 bg-primary {css_class}" data-widget="slides"{style_attr}>'
+                f'<h2 class="text-xl md:text-2xl font-black">{title}</h2>'
+                f'<p class="text-xs md:text-sm opacity-90 max-w-lg leading-relaxed">{desc}</p>'
+                f'{btn_html}'
+                f'</div>'
+            )
+
+        elif widget_type == "code_highlight":
+            code = html.escape(str(props.get("code", "")))
+            lang = html.escape(str(props.get("language", "javascript")))
+            return (
+                f'<div{id_attr} class="builder-code-highlight w-full rounded-2xl bg-zinc-950 text-zinc-100 p-4 font-mono text-xs border border-zinc-800 text-left {css_class}" data-widget="code_highlight" dir="ltr"{style_attr}>'
+                f'<div class="border-b border-zinc-800 pb-2 mb-3 text-[11px] text-zinc-400 uppercase font-bold">{lang}</div>'
+                f'<pre class="overflow-x-auto leading-relaxed"><code>{code}</code></pre>'
+                f'</div>'
+            )
+
         # Generic fallback for any other registered widget
         fallback_title = html.escape(str(props.get("title", widget_type)))
         return f'<div{id_attr} class="builder-widget builder-{widget_type} {css_class}" data-widget="{html.escape(widget_type)}"{style_attr}>{fallback_title}</div>'

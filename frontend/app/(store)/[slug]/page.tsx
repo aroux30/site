@@ -109,7 +109,7 @@ async function fetchPage(slug: string): Promise<CmsPage | null> {
           globalStyles: {},
           rootElements: [
             {
-              id: "el_e2e_head",
+              id: "el_e2ehead1",
               name: "سرتیتر نمونه برای تست E2E",
               type: "widget",
               widgetType: "heading",

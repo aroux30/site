@@ -56,6 +56,8 @@ import {
   AppWindow,
   RefreshCw,
   ListTree,
+  Presentation,
+  Code2,
   type LucideIcon,
 } from "lucide-react";
 import type { BuilderElement } from "@/types/builder";
@@ -1916,6 +1918,102 @@ export const BASIC_BLOCK_DEFINITIONS: BlockDefinition[] = [
               right: { value: 20, unit: "px" },
               bottom: { value: 20, unit: "px" },
               left: { value: 20, unit: "px" },
+              isLinked: true,
+            },
+          },
+        },
+      },
+      children: [],
+    }),
+  },
+  {
+    type: "slides",
+    name: "اسلاید پیشرفته (Slides)",
+    category: "layout",
+    icon: Presentation,
+    description: "اسلایدر هیرو تمام‌صفحه با پس‌زمینه، عنوان، دکمه و انیمیشن انتقال",
+    createDefaultElement: () => ({
+      id: `el_${Math.random().toString(36).slice(2, 10)}`,
+      name: "اسلاید هیرو",
+      type: "widget",
+      widgetType: "slides",
+      widgetProps: {
+        slides: [
+          {
+            title: "تخفیف ویژه آغاز فصل",
+            description: "تا ۵۰٪ تخفیف روی تمامی محصولات برگزیده دیجیتال",
+            button_text: "مشاهده جشنواره",
+            button_link: "/products",
+            bg_color: "linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary)/0.6) 100%)",
+          },
+          {
+            title: "ارسال رایگان سفارش‌های اول",
+            description: "تحویل فوق‌سریع کمتر از ۲۴ ساعت در سراسر کشور",
+            button_text: "همین حالا بخرید",
+            button_link: "/checkout",
+            bg_color: "linear-gradient(135deg, hsl(var(--secondary, 220 20% 20%)) 0%, hsl(var(--primary)/0.8) 100%)",
+          },
+        ],
+      },
+      isLocked: false,
+      isHidden: false,
+      styles: {
+        mobile: {
+          padding: {
+            top: { value: 32, unit: "px" },
+            right: { value: 20, unit: "px" },
+            bottom: { value: 32, unit: "px" },
+            left: { value: 20, unit: "px" },
+            isLinked: true,
+          },
+          border: {
+            style: "solid",
+            radius: {
+              top: { value: 24, unit: "px" },
+              right: { value: 24, unit: "px" },
+              bottom: { value: 24, unit: "px" },
+              left: { value: 24, unit: "px" },
+              isLinked: true,
+            },
+          },
+        },
+      },
+      children: [],
+    }),
+  },
+  {
+    type: "code_highlight",
+    name: "هایلایت کد (Code Highlight)",
+    category: "basic",
+    icon: Code2,
+    description: "نمایش قطعه کدهای برنامه‌نویسی با تم تیره و قابلیت کپی",
+    createDefaultElement: () => ({
+      id: `el_${Math.random().toString(36).slice(2, 10)}`,
+      name: "باکس قطعه کد",
+      type: "widget",
+      widgetType: "code_highlight",
+      widgetProps: {
+        language: "javascript",
+        code: "// Sample code snippet\nconst response = await fetch('/api/v1/products');\nconst data = await response.json();\nconsole.log('Loaded:', data);",
+      },
+      isLocked: false,
+      isHidden: false,
+      styles: {
+        mobile: {
+          padding: {
+            top: { value: 16, unit: "px" },
+            right: { value: 16, unit: "px" },
+            bottom: { value: 16, unit: "px" },
+            left: { value: 16, unit: "px" },
+            isLinked: true,
+          },
+          border: {
+            style: "solid",
+            radius: {
+              top: { value: 12, unit: "px" },
+              right: { value: 12, unit: "px" },
+              bottom: { value: 12, unit: "px" },
+              left: { value: 12, unit: "px" },
               isLinked: true,
             },
           },

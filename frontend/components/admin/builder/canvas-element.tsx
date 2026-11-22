@@ -1968,6 +1968,51 @@ function CanvasElementComponent({
           </div>
         );
       }
+      case "slides": {
+        const slidesList = (props.slides as any[]) || [
+          {
+            title: "عنوان اسلاید",
+            description: "توضیحات معرفی اسلاید و جشنواره ویژه",
+            button_text: "مشاهده بیشتر",
+            bg_color: "linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary)/0.6) 100%)",
+          },
+        ];
+        const activeSlide = slidesList[0];
+        return (
+          <div
+            className="w-full min-h-[220px] rounded-2xl p-8 flex flex-col items-center justify-center text-center text-white space-y-3 shadow-md relative overflow-hidden"
+            style={{ background: activeSlide?.bg_color || "hsl(var(--primary))" }}
+          >
+            <h2 className="text-xl md:text-2xl font-black drop-shadow-sm">{activeSlide?.title}</h2>
+            <p className="text-xs md:text-sm opacity-90 max-w-lg leading-relaxed">{activeSlide?.description}</p>
+            {activeSlide?.button_text && (
+              <button type="button" className="px-5 py-2.5 rounded-xl bg-white text-primary font-bold text-xs shadow-lg hover:bg-white/95 transition">
+                {activeSlide.button_text}
+              </button>
+            )}
+            <div className="absolute bottom-3 flex items-center gap-1.5">
+              {slidesList.map((_, i) => (
+                <span key={i} className={cn("w-2 h-2 rounded-full", i === 0 ? "bg-white" : "bg-white/40")} />
+              ))}
+            </div>
+          </div>
+        );
+      }
+      case "code_highlight": {
+        const codeText = String(props.code || "// console.log('code');");
+        const lang = String(props.language || "javascript");
+        return (
+          <div className="w-full rounded-2xl bg-zinc-950 text-zinc-100 p-4 font-mono text-xs border border-zinc-800 shadow-md text-left" dir="ltr">
+            <div className="flex items-center justify-between border-b border-zinc-800/80 pb-2 mb-3 text-[11px] text-zinc-400">
+              <span className="uppercase font-bold">{lang}</span>
+              <span className="text-[10px] bg-zinc-800 px-2 py-0.5 rounded">کپی</span>
+            </div>
+            <pre className="overflow-x-auto whitespace-pre-wrap leading-relaxed">
+              <code>{codeText}</code>
+            </pre>
+          </div>
+        );
+      }
       default:
         return (
           <div className="rounded-lg border border-dashed border-border p-4 text-center text-sm text-muted-foreground">

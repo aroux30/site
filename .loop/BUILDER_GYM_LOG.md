@@ -1050,6 +1050,47 @@
 
 ---
 
+### 🏋️ راند ۳۲ (Round 32) — وزنه ۷: ۸۵ کیلو (پورت و برابری ۴ لایه اسلایدر پیشرفته هیرو Slides و باکس هایلایت کد برنامه‌نویسی Code Highlight)
+- **تاریخ اجرا**: 2026-11-22
+- **شاخه ایزوله**: `claude/trusting-booth-4a3d0e`
+- **پورت استودیو**: ۴۰۰۱ (`http://127.0.0.1:4001`)
+- **وضعیت**: ✅ کامل و سبز (پیاده‌سازی سبک، غنی و بدون وابستگی ویجت‌های slides و code_highlight در هر ۴ لایه)
+
+#### ۱. باگ‌های کشف‌شده با ابزار Vision و اصلاحات ریشه‌ای
+1. **فقدان ویجت‌های اسلایدر هیرو چنداسلایده و هایلایت سینتکس کد در پالت و بازرس**:
+   - *مشاهده در Vision*: در تصاویر `before/02-palette-missing-slides.png` و `before/03-palette-missing-code-highlight.png`، جستجوی عبارت «اسلاید پیشرفته» و «هایلایت کد» در پالت با صفر نتیجه روبرو شد.
+   - *اصلاح ریشه‌ای*: ثبت رسمی ویجت‌های `slides` (با آیکون Presentation) و `code_highlight` (با آیکون Code2) در [block-registry.ts](frontend/lib/builder/block-registry.ts).
+2. **توسعه فرم‌های مدیریت محتوا در بازرس ([inspector-panel.tsx](frontend/components/admin/builder/inspector-panel.tsx))**:
+   - فرم تنظیم عنوان اسلاید، متن توضیحات و عنوان دکمه اکشن در ویجت Slides.
+   - فرم تنظیم زبان برنامه‌نویسی (مانند javascript، python و ...) و کادر ویرایشگر چندخطی کد منبع در ویجت Code Highlight.
+3. **رندر بوم و برابری کامپایلر سرور ([canvas-element.tsx](frontend/components/admin/builder/canvas-element.tsx) و [ast_compiler.py](backend/app/modules/content/application/ast_compiler.py))**:
+   - رندر اسلایدر هیرو با گرادیان رنگی چشم‌نواز، نقطه‌چین‌های شاخص اسلاید و دکمه ترغیب‌کننده.
+   - رندر باکس کد با تم مشکی `zinc-950`، تگ هدر زبان با حروف بزرگ و نشانگر کپی چپ‌چین در جهت LTR.
+   - کامپایل امن کد با فیلتر کاراکترهای خطرناک HTML در [ast_compiler.py](backend/app/modules/content/application/ast_compiler.py).
+4. **تثبیت سلکتور تب پیشرفته در تست‌های رگرسیون**:
+   - اصلاح سلکتور عمومی `button:has-text("پیشرفته")` به `button[role="tab"]:has-text("پیشرفته")` در تست‌های `builder-gym-r21.spec.ts` و `builder-gym-r22.spec.ts` جهت جلوگیری از تداخل با کارت پالت «اسلاید پیشرفته».
+
+#### ۲. مستندات بصری (Vision Artifacts)
+- **قبل از اصلاح**: `.loop/artifacts/builder-gym/round-23/before/`
+  - `01-studio-overview.png`
+  - `02-palette-missing-slides.png` (صفر نتیجه در جستجوی اسلاید پیشرفته)
+  - `03-palette-missing-code-highlight.png` (صفر نتیجه در جستجوی هایلایت کد)
+- **بعد از اصلاح**: `.loop/artifacts/builder-gym/round-23/after/`
+  - `01-studio-overview.png`
+  - `02-palette-missing-slides.png` (نمایش کارت اسلاید پیشرفته با ۱ نتیجه در پالت)
+  - `03-palette-missing-code-highlight.png` (نمایش کارت هایلایت کد با ۱ نتیجه در پالت)
+
+#### ۳. تست رگرسیون دائمی اضافه‌شده
+- فایل تست Playwright: `frontend/tests/e2e/builder-gym-r30.spec.ts` (۲ تست سبز)
+
+#### ۴. نتایج نهایی ممیزی و تست‌ها
+- `npx tsc --noEmit`: ۰ خطا (سبز)
+- `npm test` (Vitest): **۳۷۲ تست سبز در ۴۵ فایل** (`372 passed`)
+- `python -m pytest app/tests/unit`: **۶۲۲ تست سبز** (`622 passed, 2 skipped`)
+- تست‌های Playwright ترکیبی (راند ۲۱ تا ۳۰): **۲۱ تست سبز در ۳۴.۶ ثانیه**
+
+---
+
 ## 🏆 گواهینامه نهایی مسترینگ کامل: BUILDER_GYM_ALL_LEVELS_MASTERED
 
 بدین‌وسیله رسماً تایید و ثبت می‌گردد که کلیه وزنه‌های ۱ تا ۸ نردبان پیش‌رونده Visual Page Builder بر اساس دستورالعمل جامع المنتور و استانداردهای سخت‌گیرانه ۳۶۰ درجه با موفقیت ۱۰۰٪ کامل شدند:

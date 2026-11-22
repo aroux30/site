@@ -3,7 +3,7 @@ import path from "node:path";
 import fs from "node:fs";
 import { execSync } from "node:child_process";
 
-const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || "http://127.0.0.1:3000";
+const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || "http://127.0.0.1:3400";
 const BACKEND_DIR = path.resolve("C:/Users/Administrator/Desktop/site/backend");
 
 function getAdminToken() {
@@ -72,12 +72,12 @@ test.describe("Builder Gym Round 13: Weight 6 (Template Dialog Title Sync & Glob
 
   test("2. GlobalStylesDialog includes Reset to Theme action button", async ({ page }) => {
     await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
-    await page.waitForTimeout(1000);
+    await page.waitForTimeout(1500);
 
     const globalStylesBtn = page.locator("button:has-text('استایل سراسری')").first();
     await expect(globalStylesBtn).toBeVisible({ timeout: 15000 });
     await globalStylesBtn.click();
-    await page.waitForTimeout(400);
+    await page.waitForTimeout(600);
 
     const resetBtn = page.locator("button:has-text('بازنشانی به تم پیش‌فرض')").first();
     await expect(resetBtn).toBeVisible({ timeout: 15000 });

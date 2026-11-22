@@ -782,6 +782,38 @@ def test_ast_compiler_hotspot_elementor_pro_parity():
     assert "ب" in result
 
 
+def test_ast_compiler_table_of_contents_elementor_pro_parity():
+    """Verify Elementor Pro Table of Contents compiles correctly in SSR."""
+    ast = PageAST(
+        schema_version=1,
+        title="تست فهرست مطالب",
+        slug="test-toc",
+        root_elements=[
+            BuilderElement(
+                id="el_toc_01",
+                name="فهرست برگه",
+                type="widget",
+                widget_type="table_of_contents",
+                widget_props={
+                    "title": "فهرست مقالات",
+                    "ordered": True,
+                    "items": [
+                        {"text": "بخش ۱: راهنمای راه‌اندازی", "anchor": "#setup"},
+                        {"text": "بخش ۲: نکات امنیتی", "anchor": "#security"},
+                    ],
+                },
+            ),
+        ],
+    )
+    result = ASTCompiler.compile(ast)
+    assert "builder-toc" in result
+    assert "فهرست مقالات" in result
+    assert "<ol" in result
+    assert "بخش ۱: راهنمای راه‌اندازی" in result
+    assert "#setup" in result
+
+
+
 
 
 

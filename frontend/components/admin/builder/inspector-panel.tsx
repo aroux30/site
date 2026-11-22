@@ -2040,6 +2040,85 @@ export function InspectorPanel() {
         );
       }
 
+      case "table_of_contents": {
+        const items = (props.items as any[]) || [
+          { text: "مقدمه", anchor: "#intro" },
+        ];
+        return (
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs">عنوان فهرست</Label>
+              <Input
+                data-testid="toc-title-input"
+                value={String(props.title || "")}
+                onChange={(e) => handlePropChange("title", e.target.value)}
+                className="h-8 text-xs font-bold"
+              />
+            </div>
+            <div className="flex items-center justify-between pt-1">
+              <Label className="text-xs font-semibold">فهرست شماره‌دار (Ordered)</Label>
+              <Switch
+                checked={props.ordered !== false}
+                onCheckedChange={(val) => handlePropChange("ordered", val)}
+              />
+            </div>
+            <div className="space-y-2 pt-2 border-t">
+              <div className="flex items-center justify-between">
+                <Label className="text-xs font-bold">عناوین فهرست (Headings)</Label>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const updated = [...items, { text: `بخش جدید ${items.length + 1}`, anchor: `#section-${items.length + 1}` }];
+                    handlePropChange("items", updated);
+                  }}
+                  className="text-[11px] text-primary hover:underline font-semibold"
+                >
+                  + افزودن عنوان
+                </button>
+              </div>
+              {items.map((itm, idx) => (
+                <div key={idx} className="p-2 rounded-lg border bg-muted/20 flex items-center gap-2">
+                  <Input
+                    data-testid={`toc-item-text-${idx}`}
+                    value={itm.text || ""}
+                    placeholder="متن عنوان..."
+                    onChange={(e) => {
+                      const updated = [...items];
+                      updated[idx] = { ...updated[idx], text: e.target.value };
+                      handlePropChange("items", updated);
+                    }}
+                    className="h-8 text-xs flex-1"
+                  />
+                  <Input
+                    value={itm.anchor || ""}
+                    placeholder="#لنگر"
+                    onChange={(e) => {
+                      const updated = [...items];
+                      updated[idx] = { ...updated[idx], anchor: e.target.value };
+                      handlePropChange("items", updated);
+                    }}
+                    className="h-8 text-xs w-28 font-mono"
+                    dir="ltr"
+                  />
+                  {items.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const updated = items.filter((_, i) => i !== idx);
+                        handlePropChange("items", updated);
+                      }}
+                      className="text-[10px] text-destructive hover:underline shrink-0"
+                    >
+                      حذف
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      }
+
       case "price_list": {
         const items = (props.items as any[]) || [
           { title: "عنوان آیتم", description: "توضیح کوتاه", price: "۵۰,۰۰۰ تومان" },

@@ -864,6 +864,25 @@ class ASTCompiler:
                 f'</div>'
             )
 
+        elif widget_type == "table_of_contents":
+            title = html.escape(str(props.get("title", "فهرست مطالب")))
+            items = props.get("items", [])
+            is_ordered = props.get("ordered") is not False
+            list_tag = "ol" if is_ordered else "ul"
+            list_cls = "list-decimal list-inside" if is_ordered else "list-disc list-inside"
+            items_html = "".join(
+                f'<li class="text-muted-foreground hover:text-primary transition">'
+                f'<a href="{html.escape(str(itm.get("anchor", "#")))}" class="hover:underline">{html.escape(str(itm.get("text", "")))}</a>'
+                f'</li>'
+                for itm in items
+            )
+            return (
+                f'<div{id_attr} class="builder-toc p-4 rounded-2xl border border-border/80 bg-card space-y-3 shadow-sm w-full text-right {css_class}" data-widget="table_of_contents"{style_attr}>'
+                f'<div class="flex items-center justify-between border-b pb-2"><span class="font-bold text-xs text-foreground">{title}</span><span class="text-[10px] text-primary font-bold">TOC</span></div>'
+                f'<{list_tag} class="text-xs space-y-1.5 p-0 m-0 {list_cls}">{items_html}</{list_tag}>'
+                f'</div>'
+            )
+
         # Generic fallback for any other registered widget
         fallback_title = html.escape(str(props.get("title", widget_type)))
         return f'<div{id_attr} class="builder-widget builder-{widget_type} {css_class}" data-widget="{html.escape(widget_type)}"{style_attr}>{fallback_title}</div>'

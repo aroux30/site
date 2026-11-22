@@ -36,6 +36,7 @@ import {
   TrendingUp,
   AlertCircle,
   List,
+  ListOrdered,
   type LucideIcon,
 } from "lucide-react";
 import type { BuilderElement } from "@/types/builder";
@@ -1242,6 +1243,53 @@ export const BASIC_BLOCK_DEFINITIONS: BlockDefinition[] = [
       isLocked: false,
       isHidden: false,
       styles: { mobile: {} },
+      children: [],
+    }),
+  },
+  {
+    type: "table_of_contents",
+    name: "فهرست مطالب (Table of Contents)",
+    category: "basic",
+    icon: ListOrdered,
+    description: "فهرست ساختاریافته خودکار یا دستی عناوین برگه با قابلیت اسکرول نرم",
+    createDefaultElement: () => ({
+      id: `el_${Math.random().toString(36).slice(2, 10)}`,
+      name: "فهرست مطالب برگه",
+      type: "widget",
+      widgetType: "table_of_contents",
+      widgetProps: {
+        title: "فهرست مطالب",
+        collapsible: true,
+        ordered: true,
+        items: [
+          { text: "مقدمه و معرفی محصول", anchor: "#intro" },
+          { text: "مشخصات فنی و سخت‌افزاری", anchor: "#specs" },
+          { text: "نظرات خریداران و گارانتی", anchor: "#reviews" },
+        ],
+      },
+      isLocked: false,
+      isHidden: false,
+      styles: {
+        mobile: {
+          padding: {
+            top: { value: 16, unit: "px" },
+            right: { value: 16, unit: "px" },
+            bottom: { value: 16, unit: "px" },
+            left: { value: 16, unit: "px" },
+            isLinked: true,
+          },
+          border: {
+            style: "solid",
+            radius: {
+              top: { value: 12, unit: "px" },
+              right: { value: 12, unit: "px" },
+              bottom: { value: 12, unit: "px" },
+              left: { value: 12, unit: "px" },
+              isLinked: true,
+            },
+          },
+        },
+      },
       children: [],
     }),
   },

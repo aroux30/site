@@ -1736,6 +1736,32 @@ function CanvasElementComponent({
           </div>
         );
       }
+      case "table_of_contents": {
+        const title = String(props.title || "فهرست مطالب");
+        const items = (props.items as any[]) || [
+          { text: "مقدمه", anchor: "#intro" },
+          { text: "مشخصات فنی", anchor: "#specs" },
+        ];
+        const isOrdered = props.ordered !== false;
+        const ListTag = isOrdered ? "ol" : "ul";
+        return (
+          <div className="builder-toc p-4 rounded-2xl border border-border/80 bg-card space-y-3 shadow-sm w-full text-right" data-widget="table_of_contents">
+            <div className="flex items-center justify-between border-b pb-2">
+              <span className="font-bold text-xs text-foreground">{title}</span>
+              <span className="text-[10px] text-primary font-bold">TOC</span>
+            </div>
+            <ListTag className={cn("text-xs space-y-1.5 p-0 m-0", isOrdered ? "list-decimal list-inside" : "list-disc list-inside")}>
+              {items.map((itm, idx) => (
+                <li key={idx} className="text-muted-foreground hover:text-primary transition cursor-pointer">
+                  <a href={itm.anchor || "#"} onClick={(e) => !previewMode && e.preventDefault()} className="hover:underline">
+                    {itm.text}
+                  </a>
+                </li>
+              ))}
+            </ListTag>
+          </div>
+        );
+      }
       case "price_list": {
         const items = (props.items as any[]) || [
           { title: "عنوان خدمت", description: "توضیح کوتاه خدمت", price: "۱۰۰,۰۰۰ تومان" },

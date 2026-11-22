@@ -126,6 +126,8 @@ function getElementIcon(el: BuilderElement) {
       return DollarSign;
     case "price_list":
       return Receipt;
+    case "table_of_contents":
+      return List;
     case "flip_box":
       return RotateCcw;
     case "product_price":

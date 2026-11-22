@@ -1694,6 +1694,7 @@ export function InspectorPanel() {
             <div className="space-y-1.5">
               <Label className="text-xs">عنوان فراخوان</Label>
               <Input
+                data-testid="cta-title-input"
                 value={String(props.title || "")}
                 onChange={(e) => handlePropChange("title", e.target.value)}
                 className="h-8 text-xs"
@@ -1719,6 +1720,7 @@ export function InspectorPanel() {
             <div className="space-y-1.5">
               <Label className="text-xs">پیوند دکمه (URL)</Label>
               <Input
+                data-testid="cta-button-url-input"
                 value={String(props.button_url || "/products")}
                 onChange={(e) => handlePropChange("button_url", e.target.value)}
                 className="h-8 text-xs font-mono"

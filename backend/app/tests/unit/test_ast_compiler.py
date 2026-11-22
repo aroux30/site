@@ -1014,6 +1014,44 @@ def test_ast_compiler_renders_round32_animated_headline_and_flipbox_link():
     assert 'ثبت درخواست' in result
 
 
+def test_ast_compiler_renders_round33_call_to_action_link_and_badge():
+    """Verify that call_to_action widget compiles button_url link and badge in SSR."""
+    ast = PageAST(
+        schema_version=1,
+        title="تست راند ۳۳",
+        slug="test-r33-cta",
+        root_elements=[
+            BuilderElement(
+                id="el_sec_r33",
+                name="بخش ۳۳",
+                type="container",
+                children=[
+                    BuilderElement(
+                        id="el_cta_custom",
+                        name="فراخوان تخفیف",
+                        type="widget",
+                        widget_type="call_to_action",
+                        widget_props={
+                            "badge": "تخفیف بلک فرایدی",
+                            "title": "فروش شگفت‌انگیز پاییزه",
+                            "description": "فقط تا پایان امشب فرصت دارید",
+                            "button_label": "خرید شگفت‌انگیز",
+                            "button_url": "/deals",
+                        },
+                    ),
+                ],
+            )
+        ],
+    )
+    result = ASTCompiler.compile(ast)
+    assert 'builder-cta' in result
+    assert 'تخفیف بلک فرایدی' in result
+    assert 'فروش شگفت‌انگیز پاییزه' in result
+    assert 'href="/deals"' in result
+    assert 'خرید شگفت‌انگیز' in result
+
+
+
 
 
 

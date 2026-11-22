@@ -834,6 +834,7 @@ class ASTCompiler:
             title = html.escape(str(props.get("title", "عنوان اقدام به عمل")))
             desc = html.escape(str(props.get("description", "توضیحات مربوط به بنر تشویق به اقدام")))
             btn_label = html.escape(str(props.get("button_label", "شروع کنید")))
+            btn_url = html.escape(str(props.get("button_url", "#")))
             badge = html.escape(str(props["badge"])) if props.get("badge") else ""
             badge_html = f'<span class="inline-block px-2.5 py-0.5 rounded-full bg-primary text-primary-foreground text-[10px] font-bold">{badge}</span>' if badge else ""
             return (
@@ -842,7 +843,7 @@ class ASTCompiler:
                 f'<h3 class="text-lg font-bold text-foreground">{title}</h3>'
                 f'<p class="text-xs text-muted-foreground max-w-md mx-auto leading-relaxed">{desc}</p>'
                 f'<div>'
-                f'<button type="button" class="inline-flex items-center justify-center px-5 py-2.5 rounded-xl bg-primary text-primary-foreground font-bold text-xs shadow hover:bg-primary/90 transition">{btn_label}</button>'
+                f'<a href="{btn_url}" class="inline-flex items-center justify-center px-5 py-2.5 rounded-xl bg-primary text-primary-foreground font-bold text-xs shadow hover:bg-primary/90 transition">{btn_label}</a>'
                 f'</div>'
                 f'</div>'
             )

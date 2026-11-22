@@ -1589,9 +1589,13 @@ function CanvasElementComponent({
             <h3 className="text-lg font-bold text-foreground">{title}</h3>
             <p className="text-xs text-muted-foreground max-w-md mx-auto leading-relaxed">{desc}</p>
             <div>
-              <button type="button" className="inline-flex items-center justify-center px-5 py-2.5 rounded-xl bg-primary text-primary-foreground font-bold text-xs shadow hover:bg-primary/90 transition">
+              <a
+                href={String(props.button_url || "#")}
+                onClick={(e) => e.preventDefault()}
+                className="inline-flex items-center justify-center px-5 py-2.5 rounded-xl bg-primary text-primary-foreground font-bold text-xs shadow hover:bg-primary/90 transition"
+              >
                 {btnLabel}
-              </button>
+              </a>
             </div>
           </div>
         );

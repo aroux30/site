@@ -1076,6 +1076,41 @@
 
 ---
 
+### 🏋️ راند ۳۳ (Round 33) — وزنه ۷: ۸۵ کیلو (تبدیل دکمه فراخوان اقدام به تگ لینک <a> و شناسه‌های تست اختصاصی)
+- **تاریخ اجرا**: 2026-11-22
+- **شاخه ایزوله**: `claude/nifty-snyder-d5b886`
+- **پورت فرانت‌اند**: ۴۰۰۲
+- **وضعیت**: ✅ کامل و سبز (اتصال لینک پیوند دکمه در ویجت فراخوان اقدام در هر ۴ لایه)
+
+#### ۱. باگ‌های کشف‌شده با ابزار Vision و تعامل
+1. **عدم اعمال `button_url` در دکمه فراخوان اقدام در بوم و SSR (`Call to Action Button Link Missing`)**:
+   - *مشاهده*: دکمه اکشن در ویجت `call_to_action` به عنوان `<button>` ساده رندر می‌شد و به آدرس `button_url` تعریف‌شده لینک نمی‌شد.
+   - *اصلاح ریشه‌ای*: رندر تگ `<a>` با کلاس‌های دکمه استاندارد و صفت `href` در `canvas-element.tsx` و `ast_compiler.py`.
+2. **اتریبیوت‌های تست برای عنوان و پیوند دکمه فراخوان (`Call to Action Test IDs`)**:
+   - *اصلاح ریشه‌ای*: اضافه شدن `cta-title-input` و `cta-button-url-input` در بازرس برای تست اتوماسیون پایدار.
+
+#### ۲. مستندات بصری (Vision Artifacts)
+- **قبل از اصلاح**: `.loop/artifacts/builder-gym/round-33/before/`
+  - `01-studio-overview.png`
+  - `02-cta-selected.png`
+  - `report.json`
+- **بعد از اصلاح**: `.loop/artifacts/builder-gym/round-33/after/`
+  - `01-studio-overview.png`
+  - `02-cta-customized.png` (اعمال موفق عنوان «فروش ویژه سال نو» در فراخوان اقدام)
+  - `report.json`
+
+#### ۳. تست‌های رگرسیون دائمی اضافه‌شده
+- فایل تست Playwright: `frontend/tests/e2e/builder-gym-r33.spec.ts` (۱ تست سبز)
+- فایل تست پایتون: `backend/app/tests/unit/test_ast_compiler.py::test_ast_compiler_renders_round33_call_to_action_link_and_badge` (۱ تست سبز)
+
+#### ۴. نتایج نهایی ممیزی و تست‌ها در راند ۳۳
+- `npx --prefix frontend tsc --noEmit`: ۰ خطا (سبز)
+- `npm --prefix frontend test -- --run`: **۳۷۲ تست سبز در ۴۵ فایل** (`372 passed`)
+- `python -m pytest app/tests/unit`: **۶۳۲ تست سبز** (`632 passed, 2 skipped`)
+- تست‌های Playwright راند ۳۳: **۱ تست سبز (`1 passed in 6.2s`) روی پورت ۴۰۰۲**
+
+---
+
 ## 🏆 گواهینامه نهایی مسترینگ کامل: BUILDER_GYM_ALL_LEVELS_MASTERED
 
 بدین‌وسیله رسماً تایید و ثبت می‌گردد که کلیه وزنه‌های ۱ تا ۸ نردبان پیش‌رونده Visual Page Builder بر اساس دستورالعمل جامع المنتور و استانداردهای سخت‌گیرانه ۳۶۰ درجه با موفقیت ۱۰۰٪ کامل شدند:

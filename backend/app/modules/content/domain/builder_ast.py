@@ -125,9 +125,9 @@ class TransformStyle(ASTModel):
 
 class MaskStyle(ASTModel):
     shape: str | None = None
-    size: Literal["contain", "cover", "auto"] = "cover"
-    position: Literal["center", "top", "bottom", "left", "right"] = "center"
-    repeat: Literal["no-repeat", "repeat"] = "no-repeat"
+    size: Literal["contain", "cover", "auto"] | None = "contain"
+    position: str | None = "center"
+    repeat: str | None = None
 
 
 class DeviceStyle(ASTModel):
@@ -149,8 +149,6 @@ class DeviceStyle(ASTModel):
     filter: str | None = None
     opacity: float | None = Field(default=None, ge=0.0, le=1.0)
     z_index: int | None = Field(default=None, ge=0, le=999)
-    transform: TransformStyle | None = None
-    mask: MaskStyle | None = None
     # Advanced Layout (P4)
     position: Literal["static", "relative", "absolute", "sticky", "inherit"] = "inherit"
     top: UnitValue | None = None
@@ -167,8 +165,11 @@ class DeviceStyle(ASTModel):
     flex_wrap: Literal["nowrap", "wrap", "wrap-reverse", "inherit"] = "inherit"
     gap: UnitValue | None = None
     grid_template_columns: str | None = None
+    box_shadow: str | None = None
     backdrop_blur: str | None = None
     filter_blur: float | None = None
+    transform: TransformStyle | None = None
+    mask: MaskStyle | None = None
 
 
 class ResponsiveStyles(ASTModel):
@@ -179,8 +180,7 @@ class ResponsiveStyles(ASTModel):
     desktop: DeviceStyle | None = None
     custom_css_class: str | None = None
     custom_css_id: str | None = None
-    custom_attributes: dict[str, str] | None = None
-    scoped_css: str | None = None
+    custom_attributes: str | None = None
     direction: Literal["rtl", "ltr", "inherit"] = "inherit"
     animation: str | None = None  # e.g. "fade-in", "slide-up", "zoom-in"
     animation_duration: float | None = None  # in seconds (e.g. 0.5)

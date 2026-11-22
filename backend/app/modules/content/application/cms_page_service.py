@@ -512,6 +512,8 @@ async def create_page(
         db, "cms_page.created", page,
         actor_id=author_id, ip_address=ip_address, user_agent=user_agent,
     )
+    await db.commit()
+    await db.refresh(page)
     return _to_response(page)
 
 
@@ -632,6 +634,8 @@ async def update_page(
                  after={"title": page.title, "status": _status_value(page.status),
                         "revision_number": page.revision_number},
                  ip_address=ip_address, user_agent=user_agent)
+    await db.commit()
+    await db.refresh(page)
     return _to_response(page)
 
 

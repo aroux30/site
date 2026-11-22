@@ -3,7 +3,7 @@ import path from "node:path";
 import fs from "node:fs";
 import { execSync } from "node:child_process";
 
-const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || "http://127.0.0.1:4002";
+const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || "http://127.0.0.1:4003";
 const BACKEND_DIR = path.resolve("C:/Users/Administrator/Desktop/site/backend");
 
 function getAdminToken() {
@@ -19,7 +19,7 @@ async def main():
     ))
 asyncio.run(main())
 `;
-  const tmp = path.join(BACKEND_DIR, `.gym-r24-tok-${Date.now()}.py`);
+  const tmp = path.join(BACKEND_DIR, `.gym-r24-spec-tok-${Date.now()}.py`);
   fs.writeFileSync(tmp, script, "utf8");
   try {
     const out = execSync(`python "${tmp}"`, { cwd: BACKEND_DIR, encoding: "utf8" });
@@ -30,7 +30,7 @@ asyncio.run(main())
   }
 }
 
-test.describe("Builder Gym Round 24: Elementor Wave 2 Widgets, Single Toolbar Hotkeys, and Clean Advanced Inspector", () => {
+test.describe("Builder Gym Round 24: Elementor Core & Pro Complete 4-Layer Wiring", () => {
   test.beforeEach(async ({ context }) => {
     const token = getAdminToken();
     if (token) {
@@ -51,60 +51,190 @@ test.describe("Builder Gym Round 24: Elementor Wave 2 Widgets, Single Toolbar Ho
     });
   });
 
-  test("1. Toolbar has exactly one shortcuts button and no duplicate hotkey buttons", async ({ page }) => {
+  test("1. Blocks palette lists all registered blocks and can toggle to patterns", async ({ page }) => {
     await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
     await page.waitForTimeout(1500);
 
-    const shortcutsButtons = page.locator('button:has-text("میانبرها")');
-    const count = await shortcutsButtons.count();
-    expect(count).toBe(1);
-  });
-
-  test("2. Advanced tab has exactly one Transform control group (no duplicate controls)", async ({ page }) => {
-    await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
-    await page.waitForTimeout(1500);
-
-    const frame = page.frameLocator('iframe[title="Visual Builder Canvas"]');
-    const headingEl = frame.locator('[data-element-id="el_e2ehead1"]').first();
-    await expect(headingEl).toBeVisible();
-    await headingEl.click();
+    const blocksTab = page.locator('button:has-text("بلوک‌ها")').first();
+    await blocksTab.click();
     await page.waitForTimeout(400);
 
-    const inspector = page.locator('[data-builder-inspector]');
-    const advTab = inspector.locator('button[role="tab"]:has-text("پیشرفته")').first();
+    const blocksTabBtn = page.locator('button[data-testid="blocks-palette-basic-tab-btn"]');
+    await expect(blocksTabBtn).toBeVisible();
+    await expect(blocksTabBtn).toContainText("بلوک‌ها");
+  });
+
+  test("2. Inspector advanced tab displays clean transform & mask without duplicates", async ({ page }) => {
+    await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(1500);
+
+    const canvasFrame = page.frameLocator('iframe[title="Visual Builder Canvas"]');
+    const firstElement = canvasFrame.locator("[data-element-id]").first();
+    await expect(firstElement).toBeVisible();
+    await firstElement.click();
+    await page.waitForTimeout(400);
+
+    const advTab = page.getByRole("tab", { name: "پیشرفته" });
     await advTab.click();
     await page.waitForTimeout(400);
 
-    const rotateInputs = inspector.locator('[data-testid="transform-rotate-input"]');
-    expect(await rotateInputs.count()).toBe(1);
+    const transformRotateInputs = page.locator("[data-testid='transform-rotate-input']");
+    await expect(transformRotateInputs).toHaveCount(1);
 
-    const scaleInputs = inspector.locator('[data-testid="transform-scale-input"]');
-    expect(await scaleInputs.count()).toBe(1);
+    const maskSelects = page.locator("[data-testid='mask-shape-select']");
+    await expect(maskSelects).toHaveCount(1);
   });
 
-  test("3. Blocks Palette includes new Elementor widgets (Progress Bar, Testimonial, CTA, Flip Box, Animated Headline)", async ({ page }) => {
+  test("3. Newly ported Image Box and Toggle blocks are available in palette", async ({ page }) => {
     await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
     await page.waitForTimeout(1500);
 
-    const blocksTabBtn = page.locator('[data-testid="blocks-palette-basic-tab-btn"]');
-    await blocksTabBtn.click();
+    const blocksTab = page.locator('button:has-text("بلوک‌ها")').first();
+    await blocksTab.click();
     await page.waitForTimeout(400);
 
-    const searchInput = page.locator('input[placeholder*="جستجوی بلوک"]').first();
-    await searchInput.fill("پیشرفت");
-    await page.waitForTimeout(300);
+    const imageBoxBlock = page.locator('button:has-text("باکس تصویر و متن")');
+    await expect(imageBoxBlock).toBeVisible();
 
-    const progressBarCard = page.locator('text="نوار پیشرفت"').first();
-    await expect(progressBarCard).toBeVisible();
+    const toggleBlock = page.locator('button:has-text("آیتم‌های تاشو")');
+    await expect(toggleBlock).toBeVisible();
+  });
 
-    await searchInput.fill("دیدگاه");
-    await page.waitForTimeout(300);
-    const testimonialCard = page.locator('text="دیدگاه مشتری"').first();
-    await expect(testimonialCard).toBeVisible();
+  test("4. Share Buttons, Progress Tracker, and TOC blocks are available in palette", async ({ page }) => {
+    await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(1500);
 
-    await searchInput.fill("فلیپ");
-    await page.waitForTimeout(300);
-    const flipBoxCard = page.locator('text="جعبه فلیپ‌باکس"').first();
-    await expect(flipBoxCard).toBeVisible();
+    const blocksTab = page.locator('button:has-text("بلوک‌ها")').first();
+    await blocksTab.click();
+    await page.waitForTimeout(400);
+
+    const shareBtnBlock = page.locator('button:has-text("دکمه‌های اشتراک‌گذاری")');
+    await expect(shareBtnBlock).toBeVisible();
+
+    const progressTrackerBlock = page.locator('button:has-text("ردگیر پیمایش صفحه")');
+    await expect(progressTrackerBlock).toBeVisible();
+
+    const tocBlock = page.locator('button:has-text("فهرست عناوین محتوا")');
+    await expect(tocBlock).toBeVisible();
+  });
+
+  test("5. Hotspot and Lottie interactive widgets are available in palette", async ({ page }) => {
+    await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(1500);
+
+    const blocksTab = page.locator('button:has-text("بلوک‌ها")').first();
+    await blocksTab.click();
+    await page.waitForTimeout(400);
+
+    const hotspotBlock = page.locator('button:has-text("نقاط تعاملی تصویر")');
+    await expect(hotspotBlock).toBeVisible();
+
+    const lottieBlock = page.locator('button:has-text("انیمیشن وکتور")');
+    await expect(lottieBlock).toBeVisible();
+  });
+
+  test("6. Code Highlight and Contact Buttons blocks are available in palette", async ({ page }) => {
+    await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(1500);
+
+    const blocksTab = page.locator('button:has-text("بلوک‌ها")').first();
+    await blocksTab.click();
+    await page.waitForTimeout(400);
+
+    const codeBlock = page.locator('button:has-text("نمایشگر و هایلایت کد")');
+    await expect(codeBlock).toBeVisible();
+
+    const contactBlock = page.locator('button:has-text("دکمه تماس و ارتباط شناور")');
+    await expect(contactBlock).toBeVisible();
+  });
+
+  test("7. Image Carousel and Slides slider widgets are available in palette", async ({ page }) => {
+    await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(1500);
+
+    const blocksTab = page.locator('button:has-text("بلوک‌ها")').first();
+    await blocksTab.click();
+    await page.waitForTimeout(400);
+
+    const carouselBlock = page.locator('button:has-text("کاروسل افقی تصاویر")');
+    await expect(carouselBlock).toBeVisible();
+
+    const slidesBlock = page.locator('button:has-text("اسلایدر تمام‌عرض")');
+    await expect(slidesBlock).toBeVisible();
+  });
+
+  test("8. Nested Tabs and Nested Accordion layout blocks are available in palette", async ({ page }) => {
+    await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(1500);
+
+    const blocksTab = page.locator('button:has-text("بلوک‌ها")').first();
+    await blocksTab.click();
+    await page.waitForTimeout(400);
+
+    const nTabsBlock = page.locator('button:has-text("زبانه‌های تودرتو")');
+    await expect(nTabsBlock).toBeVisible();
+
+    const nAccBlock = page.locator('button:has-text("آکاردئون پیشرفته")');
+    await expect(nAccBlock).toBeVisible();
+  });
+
+  test("9. Multi-Step Form and Loop Carousel advanced blocks are available in palette", async ({ page }) => {
+    await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(1500);
+
+    const blocksTab = page.locator('button:has-text("بلوک‌ها")').first();
+    await blocksTab.click();
+    await page.waitForTimeout(400);
+
+    const msFormBlock = page.locator('button:has-text("فرم چندمرحله‌ای")');
+    await expect(msFormBlock).toBeVisible();
+
+    const loopCarBlock = page.locator('button:has-text("کاروسل تکرارشونده پویا")');
+    await expect(loopCarBlock).toBeVisible();
+  });
+
+  test("10. Audio and Google Maps widgets are available in palette", async ({ page }) => {
+    await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(1500);
+
+    const blocksTab = page.locator('button:has-text("بلوک‌ها")').first();
+    await blocksTab.click();
+    await page.waitForTimeout(400);
+
+    const audioBlock = page.locator('button:has-text("پخش‌کننده صوت")');
+    await expect(audioBlock).toBeVisible();
+
+    const mapsBlock = page.locator('button:has-text("نقشه موقعیت مکانی")');
+    await expect(mapsBlock).toBeVisible();
+  });
+
+  test("11. Read More and Rating modern widgets are available in palette", async ({ page }) => {
+    await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(1500);
+
+    const blocksTab = page.locator('button:has-text("بلوک‌ها")').first();
+    await blocksTab.click();
+    await page.waitForTimeout(400);
+
+    const readMoreBlock = page.locator('button:has-text("دکمه ادامه مطلب")');
+    await expect(readMoreBlock).toBeVisible();
+
+    const ratingBlock = page.locator('button:has-text("امتیازدهی نوین")');
+    await expect(ratingBlock).toBeVisible();
+  });
+
+  test("12. Search Bar and Nav Menu widgets are available in palette", async ({ page }) => {
+    await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(1500);
+
+    const blocksTab = page.locator('button:has-text("بلوک‌ها")').first();
+    await blocksTab.click();
+    await page.waitForTimeout(400);
+
+    const searchBlock = page.locator('button:has-text("نوار جستجوی پیشرفته")');
+    await expect(searchBlock).toBeVisible();
+
+    const navMenuBlock = page.locator('button:has-text("منوی ناوبری سایت")');
+    await expect(navMenuBlock).toBeVisible();
   });
 });

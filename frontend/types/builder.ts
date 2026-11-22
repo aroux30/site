@@ -68,20 +68,20 @@ export interface BackgroundOverlayStyle {
 
 export interface TransformStyle {
   rotate?: number | null; // degrees
-  scale?: number | null; // scale multiplier
-  skewX?: number | null; // degrees
-  skewY?: number | null; // degrees
-  translateX?: number | null;
-  translateY?: number | null;
-  flipX?: boolean;
-  flipY?: boolean;
+  scale?: number | null;  // ratio (e.g. 1.05)
+  skewX?: number | null;  // degrees
+  skewY?: number | null;  // degrees
+  translateX?: number | null; // px
+  translateY?: number | null; // px
+  flipX?: boolean | null;
+  flipY?: boolean | null;
 }
 
 export interface MaskStyle {
-  shape?: "none" | "circle" | "flower" | "sketch" | "triangle" | "blob" | "hexagon" | string | null;
+  shape?: "none" | "circle" | "flower" | "triangle" | "blob" | "hexagon" | string | null;
   size?: "contain" | "cover" | "auto" | null;
   position?: string | null;
-  repeat?: "no-repeat" | "repeat" | null;
+  repeat?: "no-repeat" | "repeat" | "repeat-x" | "repeat-y" | null;
 }
 
 export interface DeviceStyle {
@@ -133,8 +133,7 @@ export interface ResponsiveStyles {
   desktop?: DeviceStyle | null;
   customCssClass?: string | null;
   customCssId?: string | null;
-  customAttributes?: string | Record<string, string> | null;
-  scopedCss?: string | null;
+  customAttributes?: string | null;
   direction?: "rtl" | "ltr" | "inherit";
   animation?: "none" | "fade-in" | "slide-up" | "zoom-in" | string | null;
   animationDuration?: number | null; // seconds

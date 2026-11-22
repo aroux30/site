@@ -1206,6 +1206,7 @@ function CanvasElementComponent({
       case "cart_summary": {
         const title = String(props.title || "خلاصه سبد خرید");
         const btnLabel = String(props.button_label || "ادامه فرآیند خرید");
+        const showDiscount = props.show_discount !== false;
         return (
           <div className="p-4 rounded-2xl border border-border/80 bg-card space-y-3 shadow-sm w-full max-w-sm">
             <div className="flex items-center justify-between border-b pb-2">
@@ -1217,10 +1218,12 @@ function CanvasElementComponent({
                 <span>جمع اقلام:</span>
                 <span className="font-semibold text-foreground">۳,۸۰۰,۰۰۰ تومان</span>
               </div>
-              <div className="flex justify-between text-emerald-600">
-                <span>تخفیف:</span>
-                <span className="font-semibold">- ۱۰۰,۰۰۰ تومان</span>
-              </div>
+              {showDiscount && (
+                <div className="flex justify-between text-emerald-600">
+                  <span>تخفیف:</span>
+                  <span className="font-semibold">- ۱۰۰,۰۰۰ تومان</span>
+                </div>
+              )}
               <div className="flex justify-between">
                 <span>مالیات بر ارزش افزوده (۹٪):</span>
                 <span>۳۳۳,۰۰۰ تومان</span>
@@ -1362,17 +1365,21 @@ function CanvasElementComponent({
       case "form_checkbox": {
         const label = String(props.label || "شرایط و قوانین را می‌پذیرم");
         const name = String(props.name || "terms");
+        const isRequired = Boolean(props.required);
+        const isChecked = Boolean(props.checked);
         return (
           <div className="flex items-center gap-2 text-right">
             <input
               type="checkbox"
               id={`chk_${element.id}`}
               name={name}
-              defaultChecked={Boolean(props.checked)}
+              defaultChecked={isChecked}
+              required={isRequired}
               className="rounded border-input text-primary focus:ring-primary h-4 w-4"
             />
             <label htmlFor={`chk_${element.id}`} className="text-xs font-medium text-foreground cursor-pointer select-none">
               {label}
+              {isRequired && <span className="text-destructive ms-1">*</span>}
             </label>
           </div>
         );
@@ -1381,15 +1388,20 @@ function CanvasElementComponent({
         const label = String(props.label || "انتخاب گزینه");
         const options = (props.options as string[]) || ["گزینه ۱", "گزینه ۲"];
         const name = String(props.name || "radio_group");
+        const isRequired = Boolean(props.required);
         return (
           <div className="space-y-1.5 text-right w-full">
-            <span className="block text-xs font-bold text-foreground">{label}</span>
+            <span className="block text-xs font-bold text-foreground">
+              {label}
+              {isRequired && <span className="text-destructive ms-1">*</span>}
+            </span>
             <div className="flex flex-col gap-1.5">
               {options.map((opt, i) => (
                 <label key={i} className="flex items-center gap-2 text-xs text-foreground cursor-pointer select-none">
                   <input
                     type="radio"
                     name={name}
+                    required={isRequired}
                     defaultChecked={i === 0}
                     className="text-primary focus:ring-primary h-4 w-4"
                   />
@@ -1411,7 +1423,7 @@ function CanvasElementComponent({
               <details
                 key={idx}
                 className="group rounded-xl border border-border/80 bg-card overflow-hidden shadow-sm"
-                open={item.default_open || idx === 0}
+                open={Boolean(item.default_open || (item.default_open === undefined && idx === 0))}
               >
                 <summary className="p-3.5 font-bold text-xs text-foreground cursor-pointer list-none flex items-center justify-between hover:bg-muted/40 transition select-none">
                   <span>{item.title}</span>
@@ -1510,8 +1522,8 @@ function CanvasElementComponent({
         );
       }
       case "icon_box": {
-        const title = String(props.title || "ارسال سریع و مطمئن");
-        const desc = String(props.description || "تحویل در کمترین زمان ممکن با بسته‌بندی ویژه به سراسر کشور");
+        const title = String(props.title || "ضمانت اصالت و سلامت");
+        const desc = String(props.description || "تمامی کالاها با گواهی اصالت ۱۰۰٪ اورجینال عرضه می‌شوند.");
         return (
           <div className="p-4 rounded-2xl border border-border/80 bg-card flex items-start gap-3 shadow-sm w-full">
             <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
@@ -1575,7 +1587,7 @@ function CanvasElementComponent({
       }
       case "alert": {
         const title = String(props.title || "اعلان");
-        const msg = String(props.message || "متن اعلان پیام");
+        const msg = String(props.description || props.message || "متن اعلان پیام");
         const aType = String(props.alert_type || "info");
         const bgMap: Record<string, string> = {
           info: "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/30",
@@ -1802,9 +1814,13 @@ function CanvasElementComponent({
             <h3 className="text-lg font-bold text-foreground">{title}</h3>
             <p className="text-xs text-muted-foreground max-w-md mx-auto leading-relaxed">{desc}</p>
             <div>
-              <button type="button" className="inline-flex items-center justify-center px-5 py-2.5 rounded-xl bg-primary text-primary-foreground font-bold text-xs shadow hover:bg-primary/90 transition">
+              <a
+                href={String(props.button_url || "#")}
+                onClick={(e) => e.preventDefault()}
+                className="inline-flex items-center justify-center px-5 py-2.5 rounded-xl bg-primary text-primary-foreground font-bold text-xs shadow hover:bg-primary/90 transition"
+              >
                 {btnLabel}
-              </button>
+              </a>
             </div>
           </div>
         );
@@ -1842,9 +1858,13 @@ function CanvasElementComponent({
               <div className="absolute inset-0 w-full h-full p-6 flex flex-col items-center justify-center text-center space-y-3 [backface-visibility:hidden] [transform:rotateY(180deg)] bg-primary text-primary-foreground rounded-2xl">
                 <h4 className="text-base font-bold">{backTitle}</h4>
                 <p className="text-xs opacity-90">{backDesc}</p>
-                <button type="button" className="px-4 py-2 rounded-xl bg-white text-primary text-xs font-bold shadow hover:bg-white/90">
+                <a
+                  href={String(props.button_url || "#")}
+                  onClick={(e) => e.preventDefault()}
+                  className="px-4 py-2 rounded-xl bg-white text-primary text-xs font-bold shadow hover:bg-white/90 inline-block transition"
+                >
                   {btnText}
-                </button>
+                </a>
               </div>
             </div>
           </div>
@@ -1871,36 +1891,144 @@ function CanvasElementComponent({
           </div>
         );
       }
-      case "counter": {
-        const end = Number(props.ending_number) || 100;
-        const prefix = String(props.prefix || "");
-        const suffix = String(props.suffix || "");
-        const title = String(props.title || "عنوان شمارنده");
+      case "blockquote": {
+        const quote = String(props.quote || "متن نقل‌قول در اینجا قرار می‌گیرد.");
+        const author = props.author ? String(props.author) : "";
         return (
-          <div className="flex flex-col items-center justify-center p-3 text-center space-y-1 w-full">
-            <div className="text-3xl lg:text-4xl font-extrabold text-primary tracking-tight font-mono" dir="ltr">
-              {prefix}{end.toLocaleString("fa-IR")}{suffix}
+          <blockquote className="p-4 rounded-2xl border-s-4 border-primary bg-muted/30 space-y-2 text-right w-full">
+            <p className="text-sm font-medium text-foreground leading-relaxed italic">«{quote}»</p>
+            {author && <cite className="block text-xs font-bold text-muted-foreground not-italic">— {author}</cite>}
+          </blockquote>
+        );
+      }
+      case "price_table": {
+        const heading = String(props.heading || "پلن حرفه‌ای");
+        const subHeading = String(props.sub_heading || "");
+        const badge = props.badge ? String(props.badge) : "";
+        const price = String(props.price || "۴۹۰,۰۰۰");
+        const period = String(props.period || "ماهانه");
+        const currency = String(props.currency || "تومان");
+        const features = (props.features as string[]) || ["دسترسی نامحدود به تمام امکانات", "پشتیبانی اختصاصی"];
+        const btnText = String(props.button_text || "شروع دوره");
+        const btnUrl = String(props.button_url || "#");
+        return (
+          <div className="p-6 rounded-2xl border-2 border-primary/30 bg-card text-center space-y-4 shadow-sm w-full max-w-sm mx-auto relative overflow-hidden">
+            {badge && (
+              <span className="inline-block px-3 py-1 rounded-full bg-primary text-primary-foreground text-xs font-bold shadow-xs">
+                {badge}
+              </span>
+            )}
+            <div className="space-y-1">
+              <h3 className="text-xl font-bold text-foreground">{heading}</h3>
+              {subHeading && <p className="text-xs text-muted-foreground">{subHeading}</p>}
             </div>
-            {title && <span className="text-xs font-semibold text-muted-foreground">{title}</span>}
+            <div className="py-2 border-y border-border/60">
+              <span className="text-3xl font-black text-primary font-mono">{price}</span>
+              <span className="text-xs text-muted-foreground ms-1">{currency} / {period}</span>
+            </div>
+            <ul className="space-y-2 text-right text-xs text-muted-foreground">
+              {features.map((feat, i) => (
+                <li key={i} className="flex items-center gap-2">
+                  <span className="text-emerald-500 font-bold">✓</span>
+                  <span>{feat}</span>
+                </li>
+              ))}
+            </ul>
+            <a
+              href={btnUrl}
+              onClick={(e) => e.preventDefault()}
+              className="block w-full py-2.5 rounded-xl bg-primary text-primary-foreground font-bold text-xs shadow hover:bg-primary/90 transition"
+            >
+              {btnText}
+            </a>
           </div>
         );
       }
-      case "alert": {
-        const alertType = String(props.alert_type || "info");
-        const title = String(props.title || "اطلاعیه مهم");
-        const desc = String(props.description || "");
-        const typeClasses: Record<string, string> = {
-          info: "bg-blue-500/10 text-blue-700 dark:text-blue-300 border-blue-500/30",
-          success: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/30",
-          warning: "bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/30",
-          danger: "bg-rose-500/10 text-rose-700 dark:text-rose-300 border-rose-500/30",
-        };
-        const activeClass = typeClasses[alertType] || typeClasses.info;
+      case "price_list": {
+        const title = props.title ? String(props.title) : "";
+        const items = (props.items as any[]) || [
+          { title: "خدمت اول", price: "۱۰۰,۰۰۰ تومان", description: "توضیح کوتاه خدمت" },
+          { title: "خدمت دوم", price: "۲۰۰,۰۰۰ تومان", description: "توضیح کوتاه خدمت" },
+        ];
         return (
-          <div className={cn("p-4 rounded-xl border flex items-start gap-3 w-full", activeClass)}>
-            <div className="space-y-1 text-right flex-1">
-              <h4 className="font-bold text-xs">{title}</h4>
-              {desc && <p className="text-[11px] leading-relaxed opacity-90">{desc}</p>}
+          <div className="space-y-4 p-4 rounded-2xl border border-border/80 bg-card shadow-sm w-full">
+            {title && <h3 className="font-bold text-sm text-foreground text-right border-b pb-2">{title}</h3>}
+            <div className="space-y-3">
+              {items.map((it: any, idx: number) => (
+                <div key={idx} className="space-y-1">
+                  <div className="flex items-baseline justify-between text-xs gap-2">
+                    <span className="font-bold text-foreground shrink-0">{it.title}</span>
+                    <span className="flex-1 border-b border-dotted border-border/80 mx-1" aria-hidden="true" />
+                    <span className="font-black text-primary shrink-0 font-mono" dir="ltr">{it.price}</span>
+                  </div>
+                  {it.description && <p className="text-[11px] text-muted-foreground text-right">{it.description}</p>}
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      }
+      case "menu_anchor": {
+        const anchorId = String(props.anchor_id || "anchor");
+        return (
+          <div className="w-full py-2 px-3 rounded-lg border border-dashed border-primary/40 bg-primary/5 flex items-center justify-between text-xs text-primary font-mono select-none" id={anchorId} dir="ltr">
+            <span className="font-bold flex items-center gap-1.5">
+              <span>⚓</span>
+              <span>Menu Anchor: #{anchorId}</span>
+            </span>
+            <span className="text-[10px] text-muted-foreground font-sans">شناسه اسکرول نرم</span>
+          </div>
+        );
+      }
+      case "table_of_contents": {
+        const title = String(props.title || "فهرست مطالب");
+        const items = (props.items as any[]) || [
+          { title: "سرفصل اول", anchor: "#sec1" },
+          { title: "سرفصل دوم", anchor: "#sec2" },
+        ];
+        return (
+          <nav className="p-4 rounded-2xl border border-border/80 bg-card space-y-3 shadow-sm w-full text-right" aria-label="فهرست مطالب">
+            <div className="flex items-center gap-2 border-b pb-2">
+              <span className="text-primary font-bold">📑</span>
+              <h4 className="text-sm font-bold text-foreground">{title}</h4>
+            </div>
+            <ul className="space-y-1.5 text-xs">
+              {items.map((it: any, idx: number) => (
+                <li key={idx}>
+                  <a
+                    href={it.anchor || "#"}
+                    onClick={(e) => e.preventDefault()}
+                    className="flex items-center gap-2 text-muted-foreground hover:text-primary transition py-1 px-2 rounded-lg hover:bg-muted/40"
+                  >
+                    <span className="text-primary font-mono text-[10px]">{idx + 1}.</span>
+                    <span>{it.title}</span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        );
+      }
+      case "share_buttons": {
+        const title = props.title ? String(props.title) : "";
+        const networks = (props.networks as any[]) || [
+          { network: "telegram", label: "تلگرام" },
+          { network: "whatsapp", label: "واتساپ" },
+        ];
+        return (
+          <div className="space-y-2.5 p-3.5 rounded-2xl border border-border/80 bg-card shadow-sm w-full text-right">
+            {title && <span className="block text-xs font-bold text-foreground">{title}</span>}
+            <div className="flex items-center gap-2 flex-wrap">
+              {networks.map((net: any, idx: number) => (
+                <button
+                  key={idx}
+                  type="button"
+                  className="px-3 py-1.5 rounded-xl bg-primary/10 hover:bg-primary hover:text-white text-primary text-xs font-bold transition flex items-center gap-1.5 shadow-xs"
+                >
+                  <Share2 className="w-3.5 h-3.5" />
+                  <span>{net.label || net.network}</span>
+                </button>
+              ))}
             </div>
           </div>
         );

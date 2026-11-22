@@ -913,6 +913,56 @@ def test_ast_compiler_renders_round30_accordion_default_open_customization():
     assert '<details class="group rounded-xl border border-border/80 bg-card overflow-hidden" open>' in result
 
 
+def test_ast_compiler_renders_round31_social_links_and_image_gallery():
+    """Verify that social_links and image_gallery widgets compile rich attributes and custom links."""
+    ast = PageAST(
+        schema_version=1,
+        title="تست راند ۳۱",
+        slug="test-r31-social-gallery",
+        root_elements=[
+            BuilderElement(
+                id="el_sec_r31",
+                name="بخش ۳۱",
+                type="container",
+                children=[
+                    BuilderElement(
+                        id="el_soc_custom",
+                        name="شبکه‌ها",
+                        type="widget",
+                        widget_type="social_links",
+                        widget_props={
+                            "links": [
+                                {"platform": "یوتیوب", "url": "https://youtube.com/@channel"},
+                                {"platform": "لینکدین", "url": "https://linkedin.com/in/profile"},
+                            ]
+                        },
+                    ),
+                    BuilderElement(
+                        id="el_gal_custom",
+                        name="گالری تصاویر",
+                        type="widget",
+                        widget_type="image_gallery",
+                        widget_props={
+                            "images": [
+                                {"url": "/img/photo1.jpg", "alt": "نمای روبه‌رو"},
+                                {"url": "/img/photo2.jpg", "alt": "نمای جانبی"},
+                            ]
+                        },
+                    ),
+                ],
+            )
+        ],
+    )
+    result = ASTCompiler.compile(ast)
+    assert 'builder-social-links' in result
+    assert 'https://youtube.com/@channel' in result
+    assert 'یوتیوب' in result
+    assert 'builder-image-gallery' in result
+    assert '/img/photo1.jpg' in result
+    assert 'نمای روبه‌رو' in result
+
+
+
 
 
 

@@ -1006,6 +1006,41 @@
 
 ---
 
+### 🏋️ راند ۳۱ (Round 31) — وزنه ۲: ۱۵ کیلو (اتصال ۴ لایه‌ای شبکه‌های اجتماعی و گالری تصاویر در بازرس، بوم و SSR)
+- **تاریخ اجرا**: 2026-11-22
+- **شاخه ایزوله**: `claude/nifty-snyder-d5b886`
+- **پورت فرانت‌اند**: ۴۰۰۲
+- **وضعیت**: ✅ کامل و سبز (مدیریت پلتفرم‌ها و لینک‌های سفارشی شبکه‌های اجتماعی و گالری تصاویر در هر ۴ لایه)
+
+#### ۱. باگ‌های کشف‌شده با ابزار Vision و تعامل
+1. **فقدان اتریبیوت‌های تست برای افزودن و ویرایش پلتفرم‌های شبکه‌های اجتماعی (`Social Links Missing Test Hooks`)**:
+   - *مشاهده*: دکمه افزودن و ورودی‌های پلتفرم و لینک در پنل بازرس فاقد شناسه‌های تست برای اتوماسیون و سناریوهای ممیزی بودند.
+   - *اصلاح ریشه‌ای*: اضافه شدن `data-testid="social-add-btn"` و `data-testid="social-platform-input-${idx}"` در `inspector-panel.tsx`.
+2. **برابری کامل خروجی SSR برای شبکه‌های اجتماعی و گالری تصاویر در کامپایلر سرور**:
+   - تضمین رندر آدرس‌های سفارشی، نام پلتفرم‌ها و آدرس تصاویر گالری با فیلتر امنیتی در `ast_compiler.py`.
+
+#### ۲. مستندات بصری (Vision Artifacts)
+- **قبل از اصلاح**: `.loop/artifacts/builder-gym/round-31/before/`
+  - `01-studio-overview.png`
+  - `02-social-selected.png`
+  - `report.json`
+- **بعد از اصلاح**: `.loop/artifacts/builder-gym/round-31/after/`
+  - `01-studio-overview.png`
+  - `02-social-customized.png` (اعمال موفق و بلادرنگ عنوان «کانال آپارات» در بوم و بازرس)
+  - `report.json`
+
+#### ۳. تست‌های رگرسیون دائمی اضافه‌شده
+- فایل تست Playwright: `frontend/tests/e2e/builder-gym-r31.spec.ts` (۱ تست سبز)
+- فایل تست پایتون: `backend/app/tests/unit/test_ast_compiler.py::test_ast_compiler_renders_round31_social_links_and_image_gallery` (۱ تست سبز)
+
+#### ۴. نتایج نهایی ممیزی و تست‌ها در راند ۳۱
+- `npx --prefix frontend tsc --noEmit`: ۰ خطا (سبز)
+- `npm --prefix frontend test -- --run`: **۳۷۲ تست سبز در ۴۵ فایل** (`372 passed`)
+- `python -m pytest app/tests/unit`: **۶۳۰ تست سبز** (`630 passed, 2 skipped`)
+- تست‌های Playwright راند ۳۱: **۱ تست سبز (`1 passed in 8.2s`) روی پورت ۴۰۰۲**
+
+---
+
 ## 🏆 گواهینامه نهایی مسترینگ کامل: BUILDER_GYM_ALL_LEVELS_MASTERED
 
 بدین‌وسیله رسماً تایید و ثبت می‌گردد که کلیه وزنه‌های ۱ تا ۸ نردبان پیش‌رونده Visual Page Builder بر اساس دستورالعمل جامع المنتور و استانداردهای سخت‌گیرانه ۳۶۰ درجه با موفقیت ۱۰۰٪ کامل شدند:

@@ -1822,6 +1822,7 @@ export function InspectorPanel() {
               <Label className="text-xs font-bold">لینک‌های شبکه‌های اجتماعی</Label>
               <button
                 type="button"
+                data-testid="social-add-btn"
                 onClick={() => {
                   const updated = [...links, { platform: "واتساپ", url: "https://wa.me" }];
                   handlePropChange("links", updated);
@@ -1836,6 +1837,7 @@ export function InspectorPanel() {
                 <div key={idx} className="p-2.5 rounded-lg border bg-muted/20 space-y-2">
                   <div className="flex items-center justify-between">
                     <Input
+                      data-testid={`social-platform-input-${idx}`}
                       value={link.platform || ""}
                       placeholder="نام پلتفرم"
                       onChange={(e) => {

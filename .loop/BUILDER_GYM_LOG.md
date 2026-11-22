@@ -1522,6 +1522,44 @@
 
 ---
 
+### 🏋️ راند ۳۵ (Round 35) — وزنه ۷ و ۸: پورت و برابری ۴ لایه ویجت‌های کلیدی تکمیلی المنتور (Audio, Google Maps, Search Bar, Nav Menu, Read More, Rating)
+- **تاریخ اجرا**: 2026-11-22
+- **شاخه ایزوله**: `worktree-gym-r41`
+- **پورت استودیو**: ۴۰۰۴ (`http://127.0.0.1:4004`)
+- **وضعیت**: ✅ کامل و ۱۰۰٪ سبز (اتصال کامل ۴ لایه: Block Registry ← Canvas ← Inspector ← AST Compiler)
+
+#### ۱. باگ‌های کشف‌شده با ابزار Vision و اصلاحات ریشه‌ای
+1. **غیبت ۶ ویجت تکمیلی در پالت بلوک‌ها و بوم فرانت‌اند**:
+   - *مشاهده در Vision*: در تصاویر `before/01-studio-overview.png` و `before/02-palette-missing-new-widgets.png`، با جستجوی عناوین فارسی ویجت‌های صوتی، نقشه و فرم جستجو، صفر نتیجه بازگردانده می‌شد و کدهای کامپایلر سرور بدون همتای بوم رها شده بودند.
+   - *اصلاح ریشه‌ای*: ثبت کامل ۶ ویجت `audio`, `google_maps`, `search_bar`, `nav_menu`, `read_more`, `rating` در `frontend/lib/builder/block-registry.ts` با آیکون‌های استاندارد و دسته‌بندی `basic`.
+2. **رندر تعاملی بوم ویرایشگر ([canvas-element.tsx](frontend/components/admin/builder/canvas-element.tsx))**:
+   - رندر پخش‌کننده صوتی، نقشه تعاملی، فرم جستجو، منوی ناوبری، پیوند ادامه مطلب و نشانگر ستاره‌ای در بوم با استایل‌های منطبق.
+3. **کنترل‌های محتوایی تب Content در بازرس ([inspector-panel.tsx](frontend/components/admin/builder/inspector-panel.tsx))**:
+   - پیاده‌سازی کنترل‌های ورودی آدرس، عنوان، متن دکمه، مقیاس امتیاز و ریپیتر آیتم‌های منو همراه با تست Nudge موفق.
+
+#### ۲. مستندات بصری (Vision Artifacts)
+- **قبل از اصلاح**: `.loop/artifacts/builder-gym/round-35/before/`
+  - `01-studio-overview.png`
+  - `02-palette-missing-new-widgets.png` (صفر نتیجه در جستجو)
+  - `03-canvas-default.png`
+- **بعد از اصلاح**: `.loop/artifacts/builder-gym/round-35/after/`
+  - `01-studio-overview.png` (نمای ۳ ستونه بی‌نقص در ۱۹۲۰×۱۰۸۰ با ویجت‌های صوتی، نقشه و فرم جستجو)
+  - `02-palette-new-widgets.png` (نمایش کارت‌های جدید در پالت)
+  - `03-canvas-with-new-widgets.png` (رندر اجزای تعاملی درون بوم)
+  - `04-inspector-nudge-active.png` (کنترل‌های بازرس فعال و به‌روزرسانی آنی بوم)
+
+#### ۳. تست‌های رگرسیون دائمی اضافه‌شده
+- یونیت تست Vitest: `frontend/tests/native-widgets.test.ts` (تایید صحت ساختار AST هر ۶ ویجت جدید)
+- تست Playwright: `frontend/tests/e2e/builder-gym-r35.spec.ts` (۲ تست سبز در ۱۴.۱ ثانیه)
+
+#### ۴. نتایج نهایی ممیزی و تست‌ها
+- `npx tsc --noEmit`: **۰ خطا** (سبز)
+- `npm test` (Vitest): **۳۷۷ تست سبز در ۴۵ فایل** (`377 passed`)
+- `python -m pytest app/tests/unit`: **۶۴۴ تست سبز** (`644 passed, 2 skipped`)
+- تست‌های Playwright: **۲ تست اختصاصی راند ۳۵ سبز** (`2 passed in 14.1s`)
+
+---
+
 ## 🏆 گواهینامه نهایی مسترینگ کامل: BUILDER_GYM_ALL_LEVELS_MASTERED
 
 بدین‌وسیله رسماً تایید و ثبت می‌گردد که کلیه وزنه‌های ۱ تا ۸ نردبان پیش‌رونده Visual Page Builder بر اساس دستورالعمل جامع المنتور و استانداردهای سخت‌گیرانه ۳۶۰ درجه با موفقیت ۱۰۰٪ کامل شدند:

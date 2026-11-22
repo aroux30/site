@@ -114,4 +114,41 @@ describe("P2.1 Native Widgets: Table & Form Inputs", () => {
     const parsed = PageASTSchema.safeParse(ast);
     expect(parsed.success).toBe(true);
   });
+
+  it("registers audio, google_maps, search_bar, nav_menu, read_more, rating in BASIC_BLOCK_DEFINITIONS with valid AST schema", () => {
+    const types = ["audio", "google_maps", "search_bar", "nav_menu", "read_more", "rating"];
+    const elements: any[] = [];
+
+    for (const t of types) {
+      const def = BASIC_BLOCK_DEFINITIONS.find((b) => b.type === t);
+      expect(def).toBeDefined();
+      const el = def!.createDefaultElement();
+      expect(el.widgetType).toBe(t);
+      elements.push(el);
+    }
+
+    const ast = {
+      schemaVersion: 1,
+      title: "New Elementor Widgets AST",
+      slug: "new-widgets-ast",
+      globalStyles: {},
+      rootElements: [
+        {
+          id: "el_new_root01",
+          name: "ریشه ویجت‌های تکمیلی",
+          type: "container",
+          isLocked: false,
+          isHidden: false,
+          styles: { mobile: {} },
+          children: elements,
+        },
+      ],
+    };
+
+    const parsed = PageASTSchema.safeParse(ast);
+    if (!parsed.success) {
+      console.error("ZOD_ERRORS:", JSON.stringify(parsed.error.format(), null, 2));
+    }
+    expect(parsed.success).toBe(true);
+  });
 });

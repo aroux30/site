@@ -2239,6 +2239,109 @@ function CanvasElementComponent({
           </div>
         );
       }
+      case "audio": {
+        const audioSrc = String(props.url || props.src || "/sample-audio.mp3");
+        const audioTitle = String(props.title || "پادکست اختصاصی");
+        return (
+          <div className="builder-audio p-4 rounded-2xl border border-border/80 bg-card space-y-2 text-right w-full">
+            <div className="font-bold text-xs text-foreground flex items-center gap-2">
+              <span className="text-base">🎵</span>
+              <span>{audioTitle}</span>
+            </div>
+            <audio controls className="w-full mt-1">
+              <source src={audioSrc} type="audio/mpeg" />
+              مرورگر شما از پخش صوت پشتیبانی نمی‌کند.
+            </audio>
+          </div>
+        );
+      }
+      case "google_maps": {
+        const address = String(props.address || "تهران، میدان آزادی");
+        const height = Number(props.height || 300);
+        return (
+          <div
+            className="builder-google-maps w-full rounded-2xl overflow-hidden border border-border/80 bg-muted/40 relative flex flex-col items-center justify-center gap-2 text-muted-foreground p-4 text-center"
+            style={{ height: `${height}px` }}
+          >
+            <span className="text-primary text-2xl">📍</span>
+            <span className="text-xs font-bold text-foreground">{address}</span>
+            <span className="text-[10px] opacity-75">پیش‌نمایش نقشه تعاملی موقعیت مکانی</span>
+          </div>
+        );
+      }
+      case "read_more": {
+        const readMoreText = String(props.text || "ادامه مطلب");
+        const readMoreUrl = String(props.url || "#");
+        return (
+          <div className="builder-read-more my-2 text-right">
+            <a
+              href={readMoreUrl}
+              onClick={(e) => e.preventDefault()}
+              className="inline-flex items-center gap-1.5 text-xs font-bold text-primary hover:underline"
+            >
+              <span>{readMoreText}</span>
+              <span>&larr;</span>
+            </a>
+          </div>
+        );
+      }
+      case "rating": {
+        const ratingVal = Number(props.rating_value || props.score || 4.5);
+        const ratingScale = Number(props.rating_scale || 5);
+        return (
+          <div className="builder-rating inline-flex items-center gap-1.5 p-2 rounded-xl border border-border/60 bg-card text-xs font-bold text-foreground">
+            <span className="text-amber-500 text-sm">★</span>
+            <span className="font-mono">{ratingVal}</span>
+            <span className="text-muted-foreground text-[10px]">/ {ratingScale}</span>
+          </div>
+        );
+      }
+      case "search_bar": {
+        const placeholder = String(props.placeholder || "جستجو در میان کالاها...");
+        const btnText = String(props.button_text || "جستجو");
+        return (
+          <div className="builder-search-bar flex items-center gap-2 w-full max-w-md my-2">
+            <div className="relative flex-1">
+              <input
+                type="search"
+                readOnly
+                placeholder={placeholder}
+                className="w-full rounded-xl border border-input bg-background py-2 px-3 text-xs focus:outline-none"
+              />
+            </div>
+            <button
+              type="button"
+              className="px-4 py-2 rounded-xl bg-primary text-primary-foreground text-xs font-bold shadow-xs"
+            >
+              {btnText}
+            </button>
+          </div>
+        );
+      }
+      case "nav_menu": {
+        const menuItems = (props.items as any[]) || [
+          { title: "صفحه اصلی", url: "/" },
+          { title: "فروشگاه", url: "/products" },
+          { title: "وبلاگ", url: "/blog" },
+        ];
+        return (
+          <nav className="builder-nav-menu w-full py-2">
+            <ul className="flex flex-wrap items-center gap-2 list-none m-0 p-0">
+              {menuItems.map((item: any, idx: number) => (
+                <li key={idx} className="inline-block">
+                  <a
+                    href={item.url || "#"}
+                    onClick={(e) => e.preventDefault()}
+                    className="px-3 py-1.5 rounded-lg text-xs font-bold text-foreground hover:text-primary transition"
+                  >
+                    {item.title}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        );
+      }
       default:
         return (
           <div className="rounded-lg border border-dashed border-border p-4 text-center text-sm text-muted-foreground">

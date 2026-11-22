@@ -2991,6 +2991,224 @@ export function InspectorPanel() {
         );
       }
 
+      case "audio":
+        return (
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs">عنوان قطعه صوتی یا پادکست</Label>
+              <Input
+                data-testid="audio-title-input"
+                value={String(props.title || "پادکست اختصاصی")}
+                onChange={(e) => handlePropChange("title", e.target.value)}
+                className="h-8 text-xs"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">نشانی فایل صوتی (URL)</Label>
+              <Input
+                data-testid="audio-url-input"
+                value={String(props.url || props.src || "/sample-audio.mp3")}
+                onChange={(e) => {
+                  handlePropChange("url", e.target.value);
+                  handlePropChange("src", e.target.value);
+                }}
+                className="h-8 text-xs font-mono"
+                dir="ltr"
+              />
+            </div>
+          </div>
+        );
+
+      case "google_maps":
+        return (
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs">آدرس یا موقعیت مکانی</Label>
+              <Input
+                data-testid="google-maps-address-input"
+                value={String(props.address || "تهران، میدان آزادی")}
+                onChange={(e) => handlePropChange("address", e.target.value)}
+                className="h-8 text-xs"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">ارتفاع نقشه (پیکسل)</Label>
+              <Input
+                type="number"
+                data-testid="google-maps-height-input"
+                value={Number(props.height || 300)}
+                onChange={(e) => handlePropChange("height", Number(e.target.value))}
+                className="h-8 text-xs font-mono"
+                min={150}
+                max={800}
+              />
+            </div>
+          </div>
+        );
+
+      case "search_bar":
+        return (
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs">متن راهنما (Placeholder)</Label>
+              <Input
+                data-testid="search-bar-placeholder-input"
+                value={String(props.placeholder || "جستجو در میان کالاها...")}
+                onChange={(e) => handlePropChange("placeholder", e.target.value)}
+                className="h-8 text-xs"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">متن دکمه جستجو</Label>
+              <Input
+                data-testid="search-bar-btn-input"
+                value={String(props.button_text || "جستجو")}
+                onChange={(e) => handlePropChange("button_text", e.target.value)}
+                className="h-8 text-xs"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">آدرس مقصد جستجو (Action URL)</Label>
+              <Input
+                data-testid="search-bar-url-input"
+                value={String(props.action_url || "/search")}
+                onChange={(e) => handlePropChange("action_url", e.target.value)}
+                className="h-8 text-xs font-mono"
+                dir="ltr"
+              />
+            </div>
+          </div>
+        );
+
+      case "read_more":
+        return (
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs">متن پیوند ادامه مطلب</Label>
+              <Input
+                data-testid="read-more-text-input"
+                value={String(props.text || "ادامه مطلب")}
+                onChange={(e) => handlePropChange("text", e.target.value)}
+                className="h-8 text-xs"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">پیوند مقصد (URL)</Label>
+              <Input
+                data-testid="read-more-url-input"
+                value={String(props.url || "#")}
+                onChange={(e) => handlePropChange("url", e.target.value)}
+                className="h-8 text-xs font-mono"
+                dir="ltr"
+              />
+            </div>
+          </div>
+        );
+
+      case "rating":
+        return (
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs">امتیاز عددی</Label>
+              <Input
+                type="number"
+                step="0.1"
+                min={0}
+                max={10}
+                data-testid="rating-value-input"
+                value={Number(props.rating_value || props.score || 4.5)}
+                onChange={(e) => {
+                  handlePropChange("rating_value", Number(e.target.value));
+                  handlePropChange("score", Number(e.target.value));
+                }}
+                className="h-8 text-xs font-mono"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">مقیاس امتیاز (مبنا)</Label>
+              <Select
+                value={String(props.rating_scale || 5)}
+                onValueChange={(val) => handlePropChange("rating_scale", Number(val))}
+              >
+                <SelectTrigger className="h-8 text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="5">مبنای ۵ ستاره</SelectItem>
+                  <SelectItem value="10">مبنای ۱۰ ستاره</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        );
+
+      case "nav_menu": {
+        const rawMenuItems = Array.isArray(props.items) ? (props.items as any[]) : [];
+        const menuItems = rawMenuItems.length > 0 ? rawMenuItems : [
+          { title: "صفحه اصلی", url: "/" },
+          { title: "فروشگاه", url: "/products" },
+          { title: "وبلاگ", url: "/blog" },
+        ];
+        return (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between pt-1">
+              <Label className="text-xs font-bold">آیتم‌های منو</Label>
+              <button
+                type="button"
+                onClick={() => {
+                  const updated = [...menuItems, { title: `منوی جدید ${menuItems.length + 1}`, url: "#" }];
+                  handlePropChange("items", updated);
+                }}
+                className="text-xs text-primary font-semibold hover:underline"
+              >
+                + افزودن آیتم
+              </button>
+            </div>
+            <div className="space-y-2">
+              {menuItems.map((item: any, idx: number) => (
+                <div key={idx} className="p-2 rounded-lg border bg-muted/20 space-y-1.5">
+                  <div className="flex items-center gap-2">
+                    <Input
+                      value={item.title || ""}
+                      placeholder="عنوان آیتم"
+                      onChange={(e) => {
+                        const updated = [...menuItems];
+                        updated[idx] = { ...updated[idx], title: e.target.value };
+                        handlePropChange("items", updated);
+                      }}
+                      className="h-7 text-xs flex-1"
+                    />
+                    <Input
+                      value={item.url || ""}
+                      placeholder="پیوند"
+                      onChange={(e) => {
+                        const updated = [...menuItems];
+                        updated[idx] = { ...updated[idx], url: e.target.value };
+                        handlePropChange("items", updated);
+                      }}
+                      className="h-7 text-xs w-28 font-mono"
+                      dir="ltr"
+                    />
+                    {menuItems.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const updated = menuItems.filter((_, i) => i !== idx);
+                          handlePropChange("items", updated);
+                        }}
+                        className="text-[10px] text-destructive hover:underline"
+                      >
+                        حذف
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      }
+
       default:
         return (
           <div className="text-xs text-muted-foreground py-2">

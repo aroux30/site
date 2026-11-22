@@ -98,6 +98,9 @@ export interface DeviceStyle {
   opacity?: number | null;
   zIndex?: number | null;
   boxShadow?: string | null;
+  hoverBorder?: BorderStyle | null;
+  hoverBoxShadow?: string | null;
+  transitionDuration?: number | null; // seconds
   transform?: TransformStyle | null;
   mask?: MaskStyle | null;
   // Advanced Layout (P4)

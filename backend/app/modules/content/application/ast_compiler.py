@@ -848,6 +848,8 @@ class ASTCompiler:
 
         if base.box_shadow and base.box_shadow != "none":
             parts.append(f"box-shadow: {base.box_shadow};")
+        if base.transition_duration:
+            parts.append(f"transition: all {base.transition_duration}s ease;")
 
         # Advanced Layout (P4)
         if base.position and base.position != "inherit":

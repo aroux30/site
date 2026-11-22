@@ -342,10 +342,28 @@ function CanvasElementComponent({
       }
     }
 
-    // Box Shadow
+    // Box Shadow & Hover Box Shadow (Elementor Parity)
     const shadow = resolveResponsiveValue({ mobile: base?.shadow || base?.boxShadow, tablet: tablet?.shadow || tablet?.boxShadow, desktop: desktop?.shadow || desktop?.boxShadow }, activeBreakpoint);
-    if (shadow && shadow !== "none") {
+    const hoverShadow = resolveResponsiveValue({ mobile: base?.hoverBoxShadow, tablet: tablet?.hoverBoxShadow, desktop: desktop?.hoverBoxShadow }, activeBreakpoint);
+    const hoverBorder = resolveResponsiveValue({ mobile: base?.hoverBorder, tablet: tablet?.hoverBorder, desktop: desktop?.hoverBorder }, activeBreakpoint);
+    const transitionDuration = resolveResponsiveValue({ mobile: base?.transitionDuration, tablet: tablet?.transitionDuration, desktop: desktop?.transitionDuration }, activeBreakpoint);
+
+    if (transitionDuration) {
+      styleObj.transition = `all ${transitionDuration}s ease`;
+    }
+
+    if (isHovered && hoverShadow && hoverShadow !== "none") {
+      styleObj.boxShadow = hoverShadow;
+    } else if (shadow && shadow !== "none") {
       styleObj.boxShadow = shadow;
+    }
+
+    if (isHovered && hoverBorder && hoverBorder.style !== "none") {
+      styleObj.borderStyle = hoverBorder.style;
+      if (hoverBorder.color) styleObj.borderColor = normalizeCssColor(hoverBorder.color);
+      if (hoverBorder.width?.top) {
+        styleObj.borderWidth = `${hoverBorder.width.top.value}${hoverBorder.width.top.unit}`;
+      }
     }
 
     // CSS Filters & Backdrop Blur (Elementor Parity)

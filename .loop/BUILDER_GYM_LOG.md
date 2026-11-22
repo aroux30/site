@@ -860,6 +860,36 @@
 
 ---
 
+### 🏋️ راند ۱۹ (Round 19) — وزنه ۶: ۷۰ کیلو (کنترل‌های سایه هاور، حاشیه در هاور و انیمیشن گذار نرم با پایداری کامل)
+- **تاریخ اجرا**: 2026-11-22
+- **شاخه ایزوله**: `claude/relaxed-shamir-82671f`
+- **وضعیت**: ✅ کامل و سبز (سایه هاور و مدت زمان گذار در بازرس، اتصال زنده به رویداد هاور بوم، همگام‌سازی AST و کامپایلر SSR)
+
+#### ۱. قابلیت‌ها و اصلاحات انجام‌شده
+1. **توسعه کنترل‌های سایه در حالت هاور و مدت زمان گذار (`Hover Box Shadow & Transition Controls`)**:
+   - اضافه شدن فیلد ورود `data-testid="hover-box-shadow-input"` و اسلایدر زمان‌بندی `data-testid="transition-duration-input"` در بخش سایه کادر `frontend/components/admin/builder/inspector-panel.tsx`.
+2. **اتصال بلادرنگ تعامل هاور به بوم Iframe (`Canvas Live Hover Feedback`)**:
+   - اعمال هوشمندانه `hoverShadow`، `hoverBorder` و `transition` بر روی استایل‌های محاسبه‌شده المان در حین هاور ماوس در `frontend/components/admin/builder/canvas-element.tsx`.
+3. **همگام‌سازی ۴ لایه (Inspector ← Store ← Canvas ← SSR Compiler)**:
+   - پشتیبانی از فیلدهای `hover_border`، `hover_box_shadow` و `transition_duration` در `builder_ast.py`، `schema.ts` و `types/builder.ts`.
+   - کامپایل خاصیت CSS گذار (`transition: all Xs ease;`) در `ast_compiler.py` و اجازه عبور در `html_sanitizer.py`.
+
+#### ۲. مستندات بصری و شواهد ۵ سیگنالی
+- **قبل از اصلاح**: `.loop/artifacts/builder-gym/round-19/before/`
+  - `01-box-shadow-normal.png` (وضعیت اولیه کادر سایه)
+- **بعد از اصلاح**: `.loop/artifacts/builder-gym/round-19/after/`
+  - `01-hover-shadow-configured.png` (تنظیم موفق سایه هاور و زمان‌بندی ۰.۴ ثانیه در بازرس)
+  - `02-canvas-hover-state.png` (تایید بصری فعال شدن گذار و سایه در بوم)
+
+#### ۳. تست‌های رگرسیون دائمی و وضعیت تست‌ها
+- **تست‌های E2E مرورگر**:
+  - ۵ از ۵ تست سبز در `builder-gym-r21.spec.ts` و `builder-elementor-w1.spec.ts` (`5 passed in 13.0s`).
+- `npx tsc --noEmit`: ۰ خطا.
+- `npm test` (Vitest): **۳۷۴ تست سبز در ۴۵ فایل** (`374 passed`).
+- `python -m pytest app/tests/unit`: **۶۲۳ تست سبز** (`623 passed, 2 skipped`).
+
+---
+
 ## 🏆 گواهینامه نهایی مسترینگ کامل: BUILDER_GYM_ALL_LEVELS_MASTERED
 
 بدین‌وسیله رسماً تایید و ثبت می‌گردد که کلیه وزنه‌های ۱ تا ۸ نردبان پیش‌رونده Visual Page Builder بر اساس دستورالعمل جامع المنتور و استانداردهای سخت‌گیرانه ۳۶۰ درجه با موفقیت ۱۰۰٪ کامل شدند:

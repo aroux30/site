@@ -2806,6 +2806,45 @@ export function InspectorPanel() {
               </button>
             ))}
           </div>
+
+          <div className="space-y-1 pt-1.5">
+            <Label className="text-[11px] text-muted-foreground">سایه کادر در حالت هاور (Hover Box Shadow)</Label>
+            <Input
+              data-testid="hover-box-shadow-input"
+              value={currentDeviceStyle.hoverBoxShadow || ""}
+              placeholder="مثلاً 0 20px 25px -5px rgba(0,0,0,0.2)"
+              onChange={(e) =>
+                handleDeviceStyleChange({
+                  hoverBoxShadow: e.target.value.trim() || undefined,
+                })
+              }
+              className="h-8 text-xs font-mono"
+              dir="ltr"
+            />
+          </div>
+
+          <div className="flex items-center justify-between pt-1">
+            <Label className="text-[11px] text-muted-foreground">مدت زمان گذار (Transition Duration)</Label>
+            <div className="flex items-center gap-1.5 w-28">
+              <Input
+                data-testid="transition-duration-input"
+                type="number"
+                step="0.05"
+                min={0}
+                max={2}
+                value={currentDeviceStyle.transitionDuration ?? 0.3}
+                onChange={(e) => {
+                  const val = parseFloat(e.target.value);
+                  handleDeviceStyleChange({
+                    transitionDuration: !isNaN(val) ? val : 0.3,
+                  });
+                }}
+                className="h-7 text-xs font-mono"
+                dir="ltr"
+              />
+              <span className="text-[10px] text-muted-foreground">ثانیه</span>
+            </div>
+          </div>
         </div>
 
         {/* Backdrop Filter & CSS Blur (Glassmorphism & Frosted Glass - Elementor Parity) */}

@@ -3104,6 +3104,95 @@ export function InspectorPanel() {
         );
       }
 
+      case "breadcrumbs": {
+        const separator = String(props.separator || "/");
+        const items = Array.isArray(props.items) && props.items.length > 0
+          ? (props.items as any[])
+          : [
+              { label: "صفحه اصلی", url: "/" },
+              { label: "فروشگاه", url: "/products" },
+              { label: "برگه جاری", url: "" },
+            ];
+        return (
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs">جداکننده مسیر (Separator)</Label>
+              <Select
+                value={separator}
+                onValueChange={(val) => handlePropChange("separator", val)}
+              >
+                <SelectTrigger data-testid="breadcrumbs-sep-select" className="h-8 text-xs font-mono">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="/">اسلش ( / )</SelectItem>
+                  <SelectItem value=">">پیکان ( &gt; )</SelectItem>
+                  <SelectItem value="•">نقطه بولت ( • )</SelectItem>
+                  <SelectItem value="«">گیومه ( « )</SelectItem>
+                  <SelectItem value="-">خط تیره ( - )</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between">
+                <Label className="text-xs font-bold">بخش‌های مسیر راهنما</Label>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const updated = [...items, { label: `بخش ${items.length + 1}`, url: "/path" }];
+                    handlePropChange("items", updated);
+                  }}
+                  className="text-[11px] text-primary hover:underline font-semibold"
+                >
+                  + افزودن سطح
+                </button>
+              </div>
+              <div className="space-y-2">
+                {items.map((it, idx) => (
+                  <div key={idx} className="p-2 rounded-lg border bg-muted/20 space-y-1.5">
+                    <div className="flex items-center gap-1.5">
+                      <Input
+                        value={it.label || ""}
+                        placeholder="عنوان بخش"
+                        onChange={(e) => {
+                          const updated = [...items];
+                          updated[idx] = { ...updated[idx], label: e.target.value };
+                          handlePropChange("items", updated);
+                        }}
+                        className="h-7 text-xs flex-1 font-semibold"
+                      />
+                      {items.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const updated = items.filter((_, i) => i !== idx);
+                            handlePropChange("items", updated);
+                          }}
+                          className="text-[10px] text-destructive hover:underline"
+                        >
+                          حذف
+                        </button>
+                      )}
+                    </div>
+                    <Input
+                      value={it.url || ""}
+                      placeholder="پیوند (برای برگه جاری خالی بگذارید)"
+                      onChange={(e) => {
+                        const updated = [...items];
+                        updated[idx] = { ...updated[idx], url: e.target.value };
+                        handlePropChange("items", updated);
+                      }}
+                      className="h-7 text-xs font-mono"
+                      dir="ltr"
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        );
+      }
+
       default:
         return (
           <div className="text-xs text-muted-foreground py-2">

@@ -114,4 +114,36 @@ describe("P2.1 Native Widgets: Table & Form Inputs", () => {
     const parsed = PageASTSchema.safeParse(ast);
     expect(parsed.success).toBe(true);
   });
+
+  it("registers breadcrumbs widget with valid schema conformity", () => {
+    const crumbDef = BASIC_BLOCK_DEFINITIONS.find((b) => b.type === "breadcrumbs");
+    expect(crumbDef).toBeDefined();
+    expect(crumbDef?.name).toContain("مسیر راهنما");
+
+    const crumbEl = crumbDef!.createDefaultElement();
+    expect(crumbEl.widgetType).toBe("breadcrumbs");
+    expect(crumbEl.widgetProps?.separator).toBe("/");
+    expect(Array.isArray(crumbEl.widgetProps?.items)).toBe(true);
+
+    const ast = {
+      schemaVersion: 1,
+      title: "Breadcrumbs AST",
+      slug: "breadcrumbs-ast",
+      globalStyles: {},
+      rootElements: [
+        {
+          id: "el_crumb_cont",
+          name: "کانتینر مسیر",
+          type: "container",
+          isLocked: false,
+          isHidden: false,
+          styles: { mobile: {} },
+          children: [crumbEl],
+        },
+      ],
+    };
+
+    const parsed = PageASTSchema.safeParse(ast);
+    expect(parsed.success).toBe(true);
+  });
 });

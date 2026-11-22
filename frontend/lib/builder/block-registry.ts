@@ -62,6 +62,7 @@ import {
   FolderKanban,
   ListCollapse,
   SlidersHorizontal,
+  Compass,
   type LucideIcon,
 } from "lucide-react";
 import type { BuilderElement } from "@/types/builder";
@@ -2210,22 +2211,23 @@ export const BASIC_BLOCK_DEFINITIONS: BlockDefinition[] = [
     }),
   },
   {
-    type: "code_highlight",
-    name: "بلوک کد (Code Highlight)",
+    type: "breadcrumbs",
+    name: "مسیر راهنما (Breadcrumbs)",
     category: "basic",
-    icon: Code,
-    description: "نمایش بلوک‌های کد با زبان‌های مختلف، هایلایت، شماره خطوط و دکمه کپی",
+    icon: Compass,
+    description: "نمایش پیوندهای سلسله‌مراتبی مسیر صفحه و دسته‌بندی با جداکننده دلخواه",
     createDefaultElement: () => ({
       id: `el_${Math.random().toString(36).slice(2, 10)}`,
-      name: "بلوک کد",
+      name: "مسیر راهنما",
       type: "widget",
-      widgetType: "code_highlight",
+      widgetType: "breadcrumbs",
       widgetProps: {
-        title: "example.js",
-        language: "javascript",
-        code: `// کد نمونه جاوااسکریپت\nfunction greet(name) {\n  console.log("درود بر " + name);\n}\ngreet("ایران");`,
-        line_numbers: true,
-        copy_to_clipboard: true,
+        separator: "/",
+        items: [
+          { label: "صفحه اصلی", url: "/" },
+          { label: "فروشگاه", url: "/products" },
+          { label: "برگه جاری", url: "" },
+        ],
       },
       isLocked: false,
       isHidden: false,

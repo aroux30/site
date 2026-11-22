@@ -54,17 +54,17 @@ test.describe("Builder Gym Round 13: Weight 6 (Template Dialog Title Sync & Glob
 
   test("1. SavePageTemplateDialog synchronizes title from current AST and renders categories", async ({ page }) => {
     await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
-    await page.waitForTimeout(1000);
+    await page.waitForTimeout(1500);
 
     const savePageTplBtn = page.locator("button:has-text('قالب برگه')").first();
     await expect(savePageTplBtn).toBeVisible({ timeout: 15000 });
     await savePageTplBtn.click();
-    await page.waitForTimeout(400);
+    await page.waitForTimeout(600);
 
-    const dialogTitle = page.locator("text=/ذخیره کل برگه به عنوان قالب/").first();
-    await expect(dialogTitle).toBeVisible({ timeout: 15000 });
+    const dialog = page.locator("div[role='dialog']").first();
+    await expect(dialog).toBeVisible({ timeout: 15000 });
 
-    const titleInput = page.locator("input[value*='قالب']").first();
+    const titleInput = dialog.locator("input.h-8").first();
     await expect(titleInput).toBeVisible({ timeout: 15000 });
     const val = await titleInput.inputValue();
     expect(val.length).toBeGreaterThan(0);

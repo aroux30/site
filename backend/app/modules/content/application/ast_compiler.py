@@ -795,6 +795,19 @@ class ASTCompiler:
             )
             return f'<div{id_attr} class="builder-toggle space-y-2 w-full {css_class}" data-widget="toggle"{style_attr}>{items_html}</div>'
 
+        elif widget_type == "icon_list":
+            items = props.get("items", [{"text": "آیتم لیست", "icon": "check"}])
+            is_horiz = props.get("layout") == "horizontal"
+            wrap_class = "flex flex-wrap items-center gap-4" if is_horiz else "space-y-2.5"
+            items_html = "".join(
+                f'<li class="flex items-center gap-2 text-xs text-foreground font-medium">'
+                f'<span class="w-5 h-5 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0">✓</span>'
+                f'<span>{html.escape(str(itm.get("text", "")))}</span>'
+                f'</li>'
+                for itm in items
+            )
+            return f'<ul{id_attr} class="builder-icon-list w-full p-0 m-0 list-none {wrap_class} {css_class}" data-widget="icon_list"{style_attr}>{items_html}</ul>'
+
         # Generic fallback for any other registered widget
         fallback_title = html.escape(str(props.get("title", widget_type)))
         return f'<div{id_attr} class="builder-widget builder-{widget_type} {css_class}" data-widget="{html.escape(widget_type)}"{style_attr}>{fallback_title}</div>'

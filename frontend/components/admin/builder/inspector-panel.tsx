@@ -1744,6 +1744,73 @@ export function InspectorPanel() {
         );
       }
 
+      case "icon_list": {
+        const items = (props.items as any[]) || [
+          { text: "آیتم اول لیست", icon: "check" },
+        ];
+        return (
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs">جهت چیدمان لیست</Label>
+              <Select
+                value={String(props.layout || "vertical")}
+                onValueChange={(val) => handlePropChange("layout", val)}
+              >
+                <SelectTrigger className="h-8 text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="vertical">عمودی (Vertical)</SelectItem>
+                  <SelectItem value="horizontal">افقی (Horizontal)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex items-center justify-between">
+              <Label className="text-xs font-bold">آیتم‌های لیست</Label>
+              <button
+                type="button"
+                onClick={() => {
+                  const updated = [...items, { text: `آیتم جدید ${items.length + 1}`, icon: "check" }];
+                  handlePropChange("items", updated);
+                }}
+                className="text-[11px] text-primary hover:underline font-semibold"
+              >
+                + افزودن آیتم
+              </button>
+            </div>
+            <div className="space-y-2">
+              {items.map((itm, idx) => (
+                <div key={idx} className="p-2 rounded-lg border bg-muted/20 flex items-center gap-2">
+                  <Input
+                    data-testid={`icon-list-item-text-${idx}`}
+                    value={itm.text || ""}
+                    placeholder="متن آیتم..."
+                    onChange={(e) => {
+                      const updated = [...items];
+                      updated[idx] = { ...updated[idx], text: e.target.value };
+                      handlePropChange("items", updated);
+                    }}
+                    className="h-8 text-xs flex-1"
+                  />
+                  {items.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const updated = items.filter((_, i) => i !== idx);
+                        handlePropChange("items", updated);
+                      }}
+                      className="text-[10px] text-destructive hover:underline shrink-0"
+                    >
+                      حذف
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      }
+
       case "call_to_action":
         return (
           <div className="space-y-4">

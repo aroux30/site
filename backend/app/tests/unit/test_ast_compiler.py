@@ -657,6 +657,36 @@ def test_ast_compiler_image_box_and_toggle_elementor_parity():
     assert "باتری ۵۰۰۰ میلی‌آمپر" in result
 
 
+def test_ast_compiler_icon_list_elementor_parity():
+    """Verify Elementor Core Icon List compiles correctly in SSR."""
+    ast = PageAST(
+        schema_version=1,
+        title="تست لیست آیکون‌دار",
+        slug="test-icon-list",
+        root_elements=[
+            BuilderElement(
+                id="el_icon_list_01",
+                name="لیست مزایا",
+                type="widget",
+                widget_type="icon_list",
+                widget_props={
+                    "layout": "horizontal",
+                    "items": [
+                        {"text": "تحویل اکسپرس", "icon": "check"},
+                        {"text": "پرداخت در محل", "icon": "check"},
+                    ]
+                },
+            ),
+        ],
+    )
+    result = ASTCompiler.compile(ast)
+    assert "builder-icon-list" in result
+    assert "تحویل اکسپرس" in result
+    assert "پرداخت در محل" in result
+    assert "flex flex-wrap" in result
+
+
+
 
 
 

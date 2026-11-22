@@ -47,6 +47,7 @@ import {
   Folders,
   Hourglass,
   FormInput,
+  List,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
@@ -111,6 +112,16 @@ function getElementIcon(el: BuilderElement) {
       return Clock;
     case "mega_menu":
       return Menu;
+    case "toggle":
+      return ChevronDown;
+    case "icon_list":
+      return List;
+    case "image_box":
+      return Image;
+    case "call_to_action":
+      return Sparkles;
+    case "flip_box":
+      return RotateCcw;
     case "product_price":
       return DollarSign;
     case "product_variants":

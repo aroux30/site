@@ -35,6 +35,7 @@ import {
   Share2,
   TrendingUp,
   AlertCircle,
+  List,
   type LucideIcon,
 } from "lucide-react";
 import type { BuilderElement } from "@/types/builder";
@@ -1099,6 +1100,31 @@ export const BASIC_BLOCK_DEFINITIONS: BlockDefinition[] = [
         items: [
           { title: "بخش اول مشخصات", content: "محتوای تفصیلی بخش اول در اینجا قرار می‌گیرد.", default_open: true },
           { title: "بخش دوم مشخصات", content: "محتوای تکمیلی بخش دوم به صورت تاشو قرار دارد.", default_open: true },
+        ],
+      },
+      isLocked: false,
+      isHidden: false,
+      styles: { mobile: {} },
+      children: [],
+    }),
+  },
+  {
+    type: "icon_list",
+    name: "لیست آیکون‌دار (Icon List)",
+    category: "basic",
+    icon: List,
+    description: "فهرست آیتم‌ها با آیکون‌های اختصاصی و چینش افقی یا عمودی",
+    createDefaultElement: () => ({
+      id: `el_${Math.random().toString(36).slice(2, 10)}`,
+      name: "لیست ویژگی‌ها",
+      type: "widget",
+      widgetType: "icon_list",
+      widgetProps: {
+        layout: "vertical",
+        items: [
+          { text: "ارسال سریع و مطمئن به سراسر ایران", icon: "check" },
+          { text: "ضمانت ۷ روزه بازگشت بی‌قید و شرط کالا", icon: "check" },
+          { text: "پشتیبانی پاسخگو در تمام روزهای هفته", icon: "check" },
         ],
       },
       isLocked: false,

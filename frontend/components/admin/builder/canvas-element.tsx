@@ -1633,6 +1633,25 @@ function CanvasElementComponent({
           </div>
         );
       }
+      case "icon_list": {
+        const items = (props.items as any[]) || [
+          { text: "آیتم اول لیست", icon: "check" },
+          { text: "آیتم دوم لیست", icon: "check" },
+        ];
+        const isHorizontal = props.layout === "horizontal";
+        return (
+          <ul className={cn("builder-icon-list w-full p-0 m-0 list-none space-y-2.5", isHorizontal && "flex flex-wrap items-center gap-4 space-y-0")}>
+            {items.map((itm, idx) => (
+              <li key={idx} className="flex items-center gap-2 text-xs text-foreground font-medium">
+                <span className="w-5 h-5 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                  <Check className="w-3 h-3 text-primary stroke-[2.5]" />
+                </span>
+                <span>{itm.text || ""}</span>
+              </li>
+            ))}
+          </ul>
+        );
+      }
       case "call_to_action": {
         const title = String(props.title || "عنوان اقدام به عمل");
         const desc = String(props.description || "توضیحات مربوط به بنر تشویق به اقدام");

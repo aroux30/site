@@ -12,6 +12,7 @@ import {
   Eye,
   EyeOff,
   Lock,
+  Unlock,
   Trash2,
   Copy,
   ChevronLeft,
@@ -22,6 +23,30 @@ import {
   ChevronsUp,
   Sparkles,
   Code,
+  RotateCcw,
+  Globe,
+  Table,
+  CheckSquare,
+  CircleDot,
+  ListFilter,
+  ShoppingBag,
+  Grid,
+  Star,
+  BarChart3,
+  Clock,
+  Images,
+  Menu,
+  Tag,
+  DollarSign,
+  ShoppingCart,
+  Receipt,
+  Video,
+  Share2,
+  TrendingUp,
+  AlertCircle,
+  Folders,
+  Hourglass,
+  FormInput,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
@@ -34,6 +59,8 @@ function getElementIcon(el: BuilderElement) {
     case "heading":
       return Heading;
     case "text_editor":
+    case "paragraph":
+    case "text":
       return AlignLeft;
     case "image":
       return Image;
@@ -42,6 +69,57 @@ function getElementIcon(el: BuilderElement) {
     case "spacer":
     case "divider":
       return Minus;
+    case "table":
+      return Table;
+    case "form_container":
+    case "form_input":
+    case "form_textarea":
+      return FormInput;
+    case "form_select":
+      return ListFilter;
+    case "form_checkbox":
+      return CheckSquare;
+    case "form_radio":
+      return CircleDot;
+    case "accordion":
+      return ChevronDown;
+    case "tabs":
+      return Folders;
+    case "countdown":
+      return Hourglass;
+    case "video":
+      return Video;
+    case "icon_box":
+      return Sparkles;
+    case "social_links":
+      return Share2;
+    case "counter":
+      return TrendingUp;
+    case "alert":
+      return AlertCircle;
+    case "product_card":
+      return ShoppingBag;
+    case "product_grid":
+      return Grid;
+    case "image_gallery":
+      return Images;
+    case "star_rating":
+      return Star;
+    case "review_histogram":
+      return BarChart3;
+    case "recently_viewed":
+      return Clock;
+    case "mega_menu":
+      return Menu;
+    case "product_price":
+      return DollarSign;
+    case "product_variants":
+      return Tag;
+    case "add_to_cart":
+    case "mini_cart":
+      return ShoppingCart;
+    case "cart_summary":
+      return Receipt;
     default:
       return Layers;
   }
@@ -365,6 +443,41 @@ const TreeItem = React.memo(function TreeItem({
             >
               <span>جای‌گذاری استایل</span>
               <Sparkles className="w-3.5 h-3.5 text-muted-foreground" />
+            </button>
+            <button
+              type="button"
+              data-testid="navigator-reset-style-btn"
+              onClick={() => {
+                useBuilderStore.getState().resetStyles(element.id);
+                setContextMenu(null);
+              }}
+              className="w-full text-right px-2.5 py-1.5 rounded-lg hover:bg-muted transition flex items-center justify-between"
+            >
+              <span>بازنشانی استایل</span>
+              <RotateCcw className="w-3.5 h-3.5 text-muted-foreground" />
+            </button>
+            <div className="h-px bg-border/60 my-1" />
+            <button
+              type="button"
+              onClick={() => {
+                useBuilderStore.getState().toggleLockElement(element.id);
+                setContextMenu(null);
+              }}
+              className="w-full text-right px-2.5 py-1.5 rounded-lg hover:bg-muted transition flex items-center justify-between"
+            >
+              <span>{element.isLocked ? "باز کردن قفل" : "قفل کردن المان"}</span>
+              {element.isLocked ? <Unlock className="w-3.5 h-3.5 text-amber-500" /> : <Lock className="w-3.5 h-3.5 text-muted-foreground" />}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                useBuilderStore.getState().makeGlobalComponent(element.id);
+                setContextMenu(null);
+              }}
+              className="w-full text-right px-2.5 py-1.5 rounded-lg hover:bg-muted transition flex items-center justify-between"
+            >
+              <span>تبدیل به کامپوننت سراسری</span>
+              <Globe className="w-3.5 h-3.5 text-primary" />
             </button>
             <div className="h-px bg-border/60 my-1" />
             <button

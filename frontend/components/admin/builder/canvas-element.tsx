@@ -2224,19 +2224,31 @@ function CanvasElementComponent({
           </div>
         );
       }
-      case "code_highlight": {
-        const codeText = String(props.code || "// console.log('code');");
-        const lang = String(props.language || "javascript");
+      case "breadcrumbs": {
+        const separator = String(props.separator || "/");
+        const items = Array.isArray(props.items) && props.items.length > 0
+          ? props.items
+          : [
+              { label: "صفحه اصلی", url: "/" },
+              { label: "فروشگاه", url: "/products" },
+              { label: "برگه جاری", url: "" },
+            ];
         return (
-          <div className="w-full rounded-2xl bg-zinc-950 text-zinc-100 p-4 font-mono text-xs border border-zinc-800 shadow-md text-left" dir="ltr">
-            <div className="flex items-center justify-between border-b border-zinc-800/80 pb-2 mb-3 text-[11px] text-zinc-400">
-              <span className="uppercase font-bold">{lang}</span>
-              <span className="text-[10px] bg-zinc-800 px-2 py-0.5 rounded">کپی</span>
-            </div>
-            <pre className="overflow-x-auto whitespace-pre-wrap leading-relaxed">
-              <code>{codeText}</code>
-            </pre>
-          </div>
+          <nav aria-label="مسیر راهنما" className="flex items-center gap-1.5 text-xs text-muted-foreground w-full py-1.5 flex-wrap">
+            {items.map((item: any, idx: number) => {
+              const isLast = idx === items.length - 1;
+              return (
+                <React.Fragment key={idx}>
+                  {idx > 0 && <span className="opacity-40 select-none px-0.5">{separator}</span>}
+                  {isLast || !item.url ? (
+                    <span className="font-bold text-foreground truncate max-w-[200px]">{item.label}</span>
+                  ) : (
+                    <span className="hover:text-primary transition-colors cursor-pointer truncate max-w-[150px]">{item.label}</span>
+                  )}
+                </React.Fragment>
+              );
+            })}
+          </nav>
         );
       }
       case "code_highlight": {

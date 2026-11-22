@@ -1616,6 +1616,43 @@
 
 ---
 
+### 🏋️ راند ۴۱ (Round 41) — وزنه ۸: ۱۰۰ کیلو (پورت ویجت مسیر راهنما Breadcrumbs از Elementor Pro به ۴ لایه بیلدر با ویوپورت ۱۰۸۰×۱۹۲۰)
+- **تاریخ اجرا**: 2026-11-22
+- **شاخه ایزوله**: `claude/trusting-booth-4a3d0e`
+- **پورت استودیو**: ۴۰۲۰
+- **ویوپورت بازرسی عمیق انسانی**: ۱۹۲۰ در ۱۰۸۰ پیکسل (Full HD)
+- **وضعیت**: ✅ کامل و سبز (پورت ویجت مسیر راهنما Breadcrumbs در تمام ۴ لایه پالت، بازرس، بوم زنده و کامپایلر سرور با پشتیبانی از جداکننده قابل تنظیم و میکرو‌دیتای سمانتیک)
+
+#### ۱. قابلیت‌ها و اصلاحات انجام‌شده
+1. **پورت ویجت مسیر راهنما (`breadcrumbs`) از Elementor Pro**:
+   - مرجع المنتور: ویجت ناوبری سلسله‌مراتبی و Theme Builder (`elementor-pro/modules/theme-builder/`).
+   - اضافه شدن به پالت پایه‌ای در [block-registry.ts](frontend/lib/builder/block-registry.ts) با آیکون `Compass` و حذف تعریف تکراری `code_highlight`.
+   - پیاده‌سازی کنترل‌های بازرس با سلکتور جداکننده (`breadcrumbs-sep-select`: اسلش، پیکان، بولت، گیومه، خط تیره) و امکان افزودن، ویرایش و حذف سطوح پیوندی در [inspector-panel.tsx](frontend/components/admin/builder/inspector-panel.tsx).
+   - پیاده‌سازی رندرینگ زنده با ناوبری ریسپانسیو، هایلایت برگه فعال جاری و پیوندهای دسته‌بندی در [canvas-element.tsx](frontend/components/admin/builder/canvas-element.tsx).
+   - پیاده‌سازی کامپایل سمانتیک SSR با تگ‌های استانداردهای وب `<nav>` و `<ol>` و اتریبیوت `aria-current="page"` در [ast_compiler.py](backend/app/modules/content/application/ast_compiler.py).
+2. **بررسی ۳۶۰ درجه بصری در رزولوشن 1920x1080**:
+   - جستجوی بلادرنگ «مسیر راهنما» در پالت بلوک‌ها با نتیجه دقیق و درج فوری در بوم.
+   - فعال‌سازی بلادرنگ تنظیمات در پنل بازرس بدون تداخل یا پرش بصری.
+
+#### ۲. مستندات بصری (Vision Artifacts)
+- **قبل از اصلاح**: `.loop/artifacts/builder-gym/round-41/before/`
+  - `01-studio-overview.png`
+- **بعد از اصلاح**: `.loop/artifacts/builder-gym/round-41/after/`
+  - `01-breadcrumbs-verified-1920x1080.png` (اعمال موفق مسیر راهنما با ۳ سطح و جداکننده اسلش)
+
+#### ۳. تست‌های رگرسیون دائمی اضافه‌شده
+- فایل تست Playwright: `frontend/tests/e2e/builder-gym-r50.spec.ts` (۱ تست سبز در ابعاد 1920x1080)
+- فایل تست پایتون: `backend/app/tests/unit/test_ast_compiler.py::test_ast_compiler_renders_round41_breadcrumbs` (۱ تست سبز)
+- فایل تست ویتست: `frontend/tests/native-widgets.test.ts` (تست اعتبارسنجی ثبت و انطباق با PageASTSchema)
+
+#### ۴. نتایج نهایی ممیزی و تست‌ها در راند ۴۱
+- `npx tsc --noEmit`: ۰ خطا (سبز)
+- `npm test` (Vitest): **۳۷۷ تست سبز در ۴۵ فایل** (`377 passed`)
+- `python -m pytest app/tests/unit`: **۶۴۶ تست سبز** (`646 passed, 2 skipped`)
+- تست‌های Playwright راند ۴۱: **۱ تست سبز در ۵.۸ ثانیه در ویوپورت 1920x1080**
+
+---
+
 ## 🏆 گواهینامه نهایی مسترینگ کامل: BUILDER_GYM_ALL_LEVELS_MASTERED
 
 بدین‌وسیله رسماً تایید و ثبت می‌گردد که کلیه وزنه‌های ۱ تا ۹ نردبان پیش‌رونده Visual Page Builder بر اساس دستورالعمل جامع المنتور و استانداردهای سخت‌گیرانه ۳۶۰ درجه با موفقیت ۱۰۰٪ کامل شدند:

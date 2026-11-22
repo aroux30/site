@@ -1477,6 +1477,49 @@ def test_ast_compiler_renders_round40_code_highlight():
     assert 'dir="ltr"' in result
 
 
+def test_ast_compiler_renders_round41_breadcrumbs():
+    """Verify that breadcrumbs widget compiles semantic nav and ol list with links and separators in SSR."""
+    ast = PageAST(
+        schema_version=1,
+        title="تست راند ۴۱",
+        slug="test-r41-breadcrumbs",
+        root_elements=[
+            BuilderElement(
+                id="el_sec_r41",
+                name="بخش مسیر راهنما",
+                type="container",
+                children=[
+                    BuilderElement(
+                        id="el_crumb_custom",
+                        name="مسیر راهنما سئو",
+                        type="widget",
+                        widget_type="breadcrumbs",
+                        widget_props={
+                            "separator": "/",
+                            "items": [
+                                {"label": "صفحه اصلی", "url": "/"},
+                                {"label": "لوازم جانبی", "url": "/products?cat=acc"},
+                                {"label": "هندزفری بلوتوثی", "url": ""},
+                            ],
+                        },
+                    ),
+                ],
+            )
+        ],
+    )
+    result = ASTCompiler.compile(ast)
+    assert 'builder-breadcrumbs' in result
+    assert 'aria-label="مسیر راهنما"' in result
+    assert '<ol' in result
+    assert 'صفحه اصلی' in result
+    assert 'href="/"' in result
+    assert 'لوازم جانبی' in result
+    assert 'href="/products?cat=acc"' in result
+    assert 'هندزفری بلوتوثی' in result
+    assert 'aria-current="page"' in result
+    assert '/' in result
+
+
 
 
 

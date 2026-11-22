@@ -2201,25 +2201,43 @@ function CanvasElementComponent({
             title: "عنوان اسلاید",
             description: "توضیحات معرفی اسلاید و جشنواره ویژه",
             button_text: "مشاهده بیشتر",
+            button_link: "/products",
             bg_color: "linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary)/0.6) 100%)",
           },
         ];
-        const activeSlide = slidesList[0];
+        const activeSlideIndex = typeof props.active_slide === "number" ? Math.min(props.active_slide, slidesList.length - 1) : 0;
+        const activeSlide = slidesList[activeSlideIndex] || slidesList[0];
         return (
           <div
-            className="w-full min-h-[220px] rounded-2xl p-8 flex flex-col items-center justify-center text-center text-white space-y-3 shadow-md relative overflow-hidden"
-            style={{ background: activeSlide?.bg_color || "hsl(var(--primary))" }}
+            className="w-full min-h-[260px] rounded-2xl p-8 flex flex-col items-center justify-center text-center text-white space-y-3 shadow-md relative overflow-hidden transition-all duration-300"
+            style={{ background: activeSlide?.bg_color || "linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary)/0.6) 100%)" }}
           >
-            <h2 className="text-xl md:text-2xl font-black drop-shadow-sm">{activeSlide?.title}</h2>
+            <h2 className="text-xl md:text-3xl font-black drop-shadow-sm">{activeSlide?.title}</h2>
             <p className="text-xs md:text-sm opacity-90 max-w-lg leading-relaxed">{activeSlide?.description}</p>
             {activeSlide?.button_text && (
-              <button type="button" className="px-5 py-2.5 rounded-xl bg-white text-primary font-bold text-xs shadow-lg hover:bg-white/95 transition">
+              <a
+                href={activeSlide.button_link || "#"}
+                onClick={(e) => e.preventDefault()}
+                className="px-6 py-2.5 rounded-xl bg-white text-primary font-bold text-xs shadow-lg hover:bg-white/95 transition inline-block mt-2"
+              >
                 {activeSlide.button_text}
-              </button>
+              </a>
             )}
-            <div className="absolute bottom-3 flex items-center gap-1.5">
+            <div className="absolute bottom-4 flex items-center gap-2">
               {slidesList.map((_, i) => (
-                <span key={i} className={cn("w-2 h-2 rounded-full", i === 0 ? "bg-white" : "bg-white/40")} />
+                <button
+                  key={i}
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    updateElementProps(element.id, { active_slide: i });
+                  }}
+                  className={cn(
+                    "h-2.5 rounded-full transition-all cursor-pointer",
+                    i === activeSlideIndex ? "w-6 bg-white shadow-sm" : "w-2.5 bg-white/40 hover:bg-white/70"
+                  )}
+                  title={`اسلاید ${i + 1}`}
+                />
               ))}
             </div>
           </div>

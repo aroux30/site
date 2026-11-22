@@ -1183,8 +1183,8 @@ class ASTCompiler:
                 for s in slides_list:
                     s_title = html.escape(str(s.get("title", "")))
                     s_desc = html.escape(str(s.get("description", "")))
-                    s_btn = html.escape(str(s.get("button_label", "")))
-                    s_url = html.escape(str(s.get("button_url", "#")))
+                    s_btn = html.escape(str(s.get("button_text") or s.get("button_label") or ""))
+                    s_url = html.escape(str(s.get("button_link") or s.get("button_url") or "#"))
                     s_bg = html.escape(str(s.get("background_image", "/placeholder-hero.svg")))
                     btn_html = f'<a href="{s_url}" class="inline-block mt-3 px-5 py-2 rounded-xl bg-primary text-primary-foreground font-bold text-xs shadow-sm">{s_btn}</a>' if s_btn else ""
                     slides_html += (

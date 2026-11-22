@@ -674,6 +674,97 @@ def test_ast_compiler_renders_search_bar_and_nav_menu_widgets():
     assert "خانه" in result
 
 
+def test_ast_compiler_renders_video_playlist_and_image_comparison():
+    """Verify SSR compilation for video_playlist and image_comparison widgets."""
+    ast = PageAST(
+        schema_version=1,
+        title="تست لیست ویدیو و مقایسه تصویر",
+        slug="test-video-comparison",
+        root_elements=[
+            BuilderElement(
+                id="el_media_sec",
+                name="بخش رسانه",
+                type="container",
+                children=[
+                    BuilderElement(
+                        id="el_vplay01",
+                        name="لیست ویدیو",
+                        type="widget",
+                        widget_type="video_playlist",
+                        widget_props={
+                            "title": "دوره فلاتر",
+                            "videos": [{"title": "جلسه اول", "duration": "۱۰:۰۰"}],
+                        },
+                    ),
+                    BuilderElement(
+                        id="el_imgcmp01",
+                        name="مقایسه تصویر",
+                        type="widget",
+                        widget_type="image_comparison",
+                        widget_props={
+                            "before_label": "پروژه قدیمی",
+                            "after_label": "پروژه بازسازی‌شده",
+                        },
+                    ),
+                ],
+            )
+        ],
+    )
+    result = ASTCompiler.compile(ast)
+    assert 'class="builder-video-playlist' in result
+    assert "دوره فلاتر" in result
+    assert "جلسه اول" in result
+    assert 'class="builder-image-comparison' in result
+    assert "پروژه قدیمی" in result
+    assert "پروژه بازسازی‌شده" in result
+
+
+def test_ast_compiler_renders_link_in_bio_and_posts_grid():
+    """Verify SSR compilation for link_in_bio and posts_grid widgets."""
+    ast = PageAST(
+        schema_version=1,
+        title="تست لینک بیو و گرید مقالات",
+        slug="test-bio-posts",
+        root_elements=[
+            BuilderElement(
+                id="el_bio_sec",
+                name="بخش معرفی",
+                type="container",
+                children=[
+                    BuilderElement(
+                        id="el_bio01",
+                        name="لینک بیو",
+                        type="widget",
+                        widget_type="link_in_bio",
+                        widget_props={
+                            "name": "فروشگاه نمونه",
+                            "bio": "خرید آنلاین انواع کالا",
+                            "links": [{"title": "سایت اصلی", "url": "/store", "badge": "ویژه"}],
+                        },
+                    ),
+                    BuilderElement(
+                        id="el_posts01",
+                        name="گرید پست‌ها",
+                        type="widget",
+                        widget_type="posts_grid",
+                        widget_props={
+                            "columns": 2,
+                            "posts": [{"title": "مقاله جدید پایتون", "category": "آموزش", "date": "دیروز"}],
+                        },
+                    ),
+                ],
+            )
+        ],
+    )
+    result = ASTCompiler.compile(ast)
+    assert 'class="builder-link-in-bio' in result
+    assert "فروشگاه نمونه" in result
+    assert "سایت اصلی" in result
+    assert 'class="builder-posts-grid' in result
+    assert "مقاله جدید پایتون" in result
+    assert "آموزش" in result
+
+
 def test_ast_compiler_renders_p3_ecommerce_native_widgets():
     ast = PageAST(
         schema_version=1,

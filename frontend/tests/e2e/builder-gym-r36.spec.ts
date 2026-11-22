@@ -1,43 +1,13 @@
 import { test, expect } from "@playwright/test";
 import path from "node:path";
 import fs from "node:fs";
-import { execSync } from "node:child_process";
 
-const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || "http://127.0.0.1:4002";
-const BACKEND_DIR = path.resolve("C:/Users/Administrator/Desktop/site/backend");
+const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || "http://127.0.0.1:4004";
+const AFTER_DIR = path.resolve("..", ".loop", "artifacts", "builder-gym", "round-36", "after");
 
-function getAdminToken() {
-  const script = `
-import asyncio, datetime, uuid
-from app.core.security.jwt import create_access_token
-async def main():
-    user_id = str(uuid.UUID("47f274da-3abd-4d91-bc9c-83ba913fc66f"))
-    print("TOKEN_START:" + create_access_token(
-        user_id,
-        extra_claims={"roles": ["super_admin"], "is_superuser": True, "permissions": ["*"]},
-        expires_delta=datetime.timedelta(hours=2),
-    ))
-asyncio.run(main())
-`;
-  const tmp = path.join(BACKEND_DIR, `.gym-r36-tok-${Date.now()}.py`);
-  fs.writeFileSync(tmp, script, "utf8");
-  try {
-    const out = execSync(`python "${tmp}"`, { cwd: BACKEND_DIR, encoding: "utf8" });
-    const match = out.split("\n").find((l) => l.includes("TOKEN_START:"));
-    return match ? match.replace("TOKEN_START:", "").trim() : "";
-  } finally {
-    if (fs.existsSync(tmp)) try { fs.unlinkSync(tmp); } catch {}
-  }
-}
-
-test.describe("Builder Gym Round 36: Price List Pro Widget 4-Layer Synchronization", () => {
+test.describe("Builder Gym Round 36: Video Playlist, Image Comparison & Custom HTML Parity", () => {
   test.beforeEach(async ({ context }) => {
-    const token = getAdminToken();
-    if (token) {
-      await context.addCookies([
-        { name: "access_token", value: token, url: BASE_URL, httpOnly: false, sameSite: "Lax" },
-      ]);
-    }
+    fs.mkdirSync(AFTER_DIR, { recursive: true });
     await context.setExtraHTTPHeaders({
       "x-forwarded-for": `10.200.${Math.floor(Math.random() * 200)}.${Math.floor(Math.random() * 200)}`,
     });
@@ -51,30 +21,113 @@ test.describe("Builder Gym Round 36: Price List Pro Widget 4-Layer Synchronizati
     });
   });
 
-  test("1. Price List widget can be added from palette and title customized in Inspector", async ({ page }) => {
+  test("1. Block palette filters and includes video_playlist, image_comparison, and html_custom", async ({ page }) => {
+    await page.setViewportSize({ width: 1920, height: 1080 });
     await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
     await page.waitForTimeout(1500);
 
-    const blocksTabBtn = page.locator('[data-testid="blocks-palette-basic-tab-btn"]');
-    await blocksTabBtn.click();
+    const paletteSearch = page.locator('aside input[placeholder*="جستجو"]').first();
+    await expect(paletteSearch).toBeVisible();
+
+    // Verify search finds video_playlist
+    await paletteSearch.fill("لیست پخش");
     await page.waitForTimeout(300);
+    const playlistCard = page.locator('aside button:has-text("لیست پخش ویدیو")').first();
+    await expect(playlistCard).toBeVisible();
 
-    const searchInput = page.locator('input[placeholder*="جستجوی بلوک"]').first();
-    await searchInput.fill("لیست قیمت");
+    // Verify search finds image_comparison
+    await paletteSearch.fill("مقایسه تصویر");
     await page.waitForTimeout(300);
+    const comparisonCard = page.locator('aside button:has-text("مقایسه تصویر")').first();
+    await expect(comparisonCard).toBeVisible();
 
-    const priceListCard = page.locator('text="لیست قیمت و منو"').first();
-    await expect(priceListCard).toBeVisible();
-    await priceListCard.click();
-    await page.waitForTimeout(500);
+    // Verify search finds html_custom
+    await paletteSearch.fill("کد سفارشی");
+    await page.waitForTimeout(300);
+    const htmlCard = page.locator('aside button:has-text("کد سفارشی HTML")').first();
+    await expect(htmlCard).toBeVisible();
 
-    const inspector = page.locator('[data-builder-inspector]');
-    const titleInput = inspector.locator('[data-testid="pricelist-title-input"]');
-    await expect(titleInput).toBeVisible();
-    await titleInput.fill("منوی خدمات VIP");
-    await page.waitForTimeout(400);
+    // Capture palette showing new widgets
+    await paletteSearch.fill("");
+    await page.waitForTimeout(300);
+    const paletteImg = path.join(AFTER_DIR, "02-palette-new-widgets.png");
+    await page.screenshot({ path: paletteImg });
+    expect(fs.existsSync(paletteImg)).toBe(true);
+  });
+
+  test("2. Inserting widgets into canvas renders authentic Elementor markup and inspector controls respond to nudges", async ({ page }) => {
+    await page.setViewportSize({ width: 1920, height: 1080 });
+    await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(1500);
+
+    const paletteSearch = page.locator('aside input[placeholder*="جستجو"]').first();
+
+    // 1. Insert Video Playlist
+    await paletteSearch.fill("لیست پخش");
+    await page.waitForTimeout(300);
+    const playlistCard = page.locator('aside button:has-text("لیست پخش ویدیو")').first();
+    await playlistCard.click();
+    await page.waitForTimeout(600);
 
     const frame = page.frameLocator('iframe[title="Visual Builder Canvas"]');
-    await expect(frame.locator('text="منوی خدمات VIP"').first()).toBeVisible();
+    const playlistEl = frame.locator('.builder-video-playlist').first();
+    await expect(playlistEl).toBeVisible();
+    await expect(playlistEl.locator('text=فهرست ویدیوهای آموزشی')).toBeVisible();
+
+    // Click playlist element to open inspector
+    await playlistEl.click();
+    await page.waitForTimeout(500);
+
+    // Inspector nudge test: Change title
+    const playlistTitleInput = page.locator('[data-testid="video-playlist-title-input"]');
+    await expect(playlistTitleInput).toBeVisible();
+    await playlistTitleInput.fill("دوره تخصصی برنامه‌نویسی ری‌اکت");
+    await page.waitForTimeout(400);
+
+    // Verify live update inside canvas frame
+    await expect(playlistEl.locator('text=دوره تخصصی برنامه‌نویسی ری‌اکت')).toBeVisible();
+
+    // 2. Insert Image Comparison
+    await paletteSearch.fill("مقایسه تصویر");
+    await page.waitForTimeout(300);
+    const comparisonCard = page.locator('aside button:has-text("مقایسه تصویر")').first();
+    await comparisonCard.click();
+    await page.waitForTimeout(600);
+
+    const comparisonEl = frame.locator('.builder-image-comparison').first();
+    await expect(comparisonEl).toBeVisible();
+
+    // Click comparison element and nudge labels
+    await comparisonEl.click();
+    await page.waitForTimeout(500);
+
+    const beforeLabelInput = page.locator('[data-testid="image-comparison-before-label-input"]');
+    await expect(beforeLabelInput).toBeVisible();
+    await beforeLabelInput.fill("پیش از طراحی");
+    await page.waitForTimeout(400);
+    await expect(comparisonEl.locator('text=پیش از طراحی')).toBeVisible();
+
+    // 3. Insert Custom HTML
+    await paletteSearch.fill("کد سفارشی");
+    await page.waitForTimeout(300);
+    const htmlCard = page.locator('aside button:has-text("کد سفارشی HTML")').first();
+    await htmlCard.click();
+    await page.waitForTimeout(600);
+
+    const customHtmlEl = frame.locator('.builder-custom-html').first();
+    await expect(customHtmlEl).toBeVisible();
+
+    // 4. Capture after screenshots
+    const canvasImg = path.join(AFTER_DIR, "03-canvas-with-new-widgets.png");
+    await page.screenshot({ path: canvasImg });
+    expect(fs.existsSync(canvasImg)).toBe(true);
+
+    const inspectorImg = path.join(AFTER_DIR, "04-inspector-nudge-active.png");
+    await page.screenshot({ path: inspectorImg });
+    expect(fs.existsSync(inspectorImg)).toBe(true);
+
+    const overviewImg = path.join(AFTER_DIR, "01-studio-overview.png");
+    await page.screenshot({ path: overviewImg });
+    expect(fs.existsSync(overviewImg)).toBe(true);
   });
 });

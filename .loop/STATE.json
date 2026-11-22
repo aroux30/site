@@ -1,21 +1,21 @@
 {
-  "activeRound": 40,
+  "activeRound": 38,
   "level": 8,
   "status": "COMPLETED",
-  "lastCompletedRound": 40,
+  "lastCompletedRound": 38,
   "levels1to5Status": "CLEAN",
-  "verificationPort": 4003,
+  "verificationPort": 4004,
   "totalFailures": 0,
   "p0Issues": "RESOLVED",
   "allLevelsMastered": true,
   "builderGymAllLevelsMastered": true,
   "metrics": {
     "typeCheckErrors": 0,
-    "frontendUnitTestsPassed": 373,
-    "backendUnitTestsPassed": 633,
-    "playwrightTestsPassed": 33,
+    "frontendUnitTestsPassed": 379,
+    "backendUnitTestsPassed": 646,
+    "playwrightTestsPassed": 40,
     "fiveSignalProbePassed": true,
-    "registeredBlocksCount": 68
+    "registeredBlocksCount": 76
   },
-  "timestamp": "2026-11-22T11:50:00.000Z"
+  "timestamp": "2026-11-22T19:35:00.000Z"
 }

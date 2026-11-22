@@ -130,6 +130,102 @@ export function InspectorPanel() {
   // ── Render Content Tab Controls ───────────────────────────────────────────
 
   const renderContentControls = () => {
+    let specialContainerWidgetControls: React.ReactNode = null;
+    if (selectedElement.widgetType === "nested_tabs") {
+      specialContainerWidgetControls = (
+        <div className="space-y-3 pb-3 border-b">
+          <Label className="text-xs font-bold text-sky-600 dark:text-sky-400">عناوین تب‌های تودرتو (هر خط یک عنوان)</Label>
+          <textarea
+            data-testid="nested-tabs-titles-input"
+            rows={3}
+            value={Array.isArray(props.tab_titles) ? props.tab_titles.join("\n") : ""}
+            onChange={(e) => handlePropChange("tab_titles", e.target.value.split("\n").filter(Boolean))}
+            className="w-full rounded-md border border-input bg-background p-2 text-xs leading-relaxed"
+          />
+        </div>
+      );
+    } else if (selectedElement.widgetType === "nested_accordion") {
+      specialContainerWidgetControls = (
+        <div className="space-y-3 pb-3 border-b">
+          <Label className="text-xs font-bold text-teal-600 dark:text-teal-400">عناوین بخش‌های آکاردئون (هر خط یک بخش)</Label>
+          <textarea
+            data-testid="nested-accordion-titles-input"
+            rows={3}
+            value={Array.isArray(props.item_titles) ? props.item_titles.join("\n") : ""}
+            onChange={(e) => handlePropChange("item_titles", e.target.value.split("\n").filter(Boolean))}
+            className="w-full rounded-md border border-input bg-background p-2 text-xs leading-relaxed"
+          />
+        </div>
+      );
+    } else if (selectedElement.widgetType === "off_canvas") {
+      specialContainerWidgetControls = (
+        <div className="space-y-3 pb-3 border-b">
+          <div className="space-y-1.5">
+            <Label className="text-xs font-bold">موقعیت باز شدن کشو</Label>
+            <Select
+              value={String(props.position || "right")}
+              onValueChange={(val) => handlePropChange("position", val)}
+            >
+              <SelectTrigger data-testid="offcanvas-position-select" className="h-8 text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="right">راست (Right - پیش‌فرض RTL)</SelectItem>
+                <SelectItem value="left">چپ (Left)</SelectItem>
+                <SelectItem value="top">بالا (Top)</SelectItem>
+                <SelectItem value="bottom">پایین (Bottom)</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1.5">
+            <Label className="text-xs font-bold">عرض کشو (پیکسل)</Label>
+            <Input
+              type="number"
+              min={200}
+              max={800}
+              value={Number(props.width || 340)}
+              onChange={(e) => handlePropChange("width", parseInt(e.target.value, 10) || 340)}
+              className="h-8 text-xs font-mono"
+              dir="ltr"
+            />
+          </div>
+        </div>
+      );
+    } else if (selectedElement.widgetType === "popup_builder") {
+      specialContainerWidgetControls = (
+        <div className="space-y-3 pb-3 border-b">
+          <div className="space-y-1.5">
+            <Label className="text-xs font-bold">محرک نمایش (Trigger)</Label>
+            <Select
+              value={String(props.trigger || "on_scroll")}
+              onValueChange={(val) => handlePropChange("trigger", val)}
+            >
+              <SelectTrigger data-testid="popup-trigger-select" className="h-8 text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="on_scroll">هنگام اسکرول به درصد معین</SelectItem>
+                <SelectItem value="on_load">بلافاصله پس از بارگذاری برگه</SelectItem>
+                <SelectItem value="exit_intent">هنگام خروج ماوس از صفحه</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1.5">
+            <Label className="text-xs font-bold">درصد اسکرول تریگر</Label>
+            <Input
+              type="number"
+              min={10}
+              max={90}
+              value={Number(props.scroll_percentage || 50)}
+              onChange={(e) => handlePropChange("scroll_percentage", parseInt(e.target.value, 10) || 50)}
+              className="h-8 text-xs font-mono"
+              dir="ltr"
+            />
+          </div>
+        </div>
+      );
+    }
+
     if (selectedElement.type === "container") {
       const layout = selectedElement.layout || {
         kind: "flex",
@@ -143,6 +239,7 @@ export function InspectorPanel() {
 
       return (
         <div className="space-y-4">
+          {specialContainerWidgetControls}
           <div className="space-y-1.5">
             <Label className="text-xs">نوع چیدمان کانتینر</Label>
             <Select
@@ -2532,7 +2629,8 @@ export function InspectorPanel() {
           </div>
         );
 
-      case "multi_step_form":
+      case "multi_step_form": {
+        const rawSteps = Array.isArray(props.steps) && props.steps.length > 0 ? (props.steps as string[]) : ["اطلاعات تماس", "آدرس و ارسال", "تایید نهایی"];
         return (
           <div className="space-y-4">
             <div className="space-y-1.5">
@@ -2541,58 +2639,134 @@ export function InspectorPanel() {
                 data-testid="step-form-cur-input"
                 type="number"
                 min={1}
-                max={3}
+                max={Math.max(1, rawSteps.length)}
                 value={Number(props.current_step || 1)}
                 onChange={(e) => handlePropChange("current_step", parseInt(e.target.value, 10) || 1)}
                 className="h-8 text-xs font-mono"
                 dir="ltr"
               />
             </div>
-          </div>
-        );
-
-      case "slides": {
-        const slidesList = (props.slides as any[]) || [];
-        return (
-          <div className="space-y-4">
             <div className="space-y-1.5">
-              <Label className="text-xs">عنوان اسلاید اول</Label>
-              <Input
-                data-testid="slides-title-input"
-                value={String(slidesList[0]?.title || "")}
-                onChange={(e) => {
-                  const updated = [...slidesList];
-                  updated[0] = { ...(updated[0] || {}), title: e.target.value };
-                  handlePropChange("slides", updated);
-                }}
-                className="h-8 text-xs"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-xs">متن توضیحات اسلاید</Label>
+              <Label className="text-xs">عناوین مراحل فرم (هر خط یک مرحله)</Label>
               <textarea
-                data-testid="slides-desc-input"
+                data-testid="step-form-steps-input"
                 rows={3}
-                value={String(slidesList[0]?.description || "")}
-                onChange={(e) => {
-                  const updated = [...slidesList];
-                  updated[0] = { ...(updated[0] || {}), description: e.target.value };
-                  handlePropChange("slides", updated);
-                }}
+                value={rawSteps.join("\n")}
+                onChange={(e) => handlePropChange("steps", e.target.value.split("\n").filter(Boolean))}
                 className="w-full rounded-md border border-input bg-background p-2 text-xs leading-relaxed"
               />
             </div>
-            <div className="space-y-1.5">
-              <Label className="text-xs">متن دکمه اسلاید</Label>
-              <Input
-                value={String(slidesList[0]?.button_text || "")}
-                onChange={(e) => {
-                  const updated = [...slidesList];
-                  updated[0] = { ...(updated[0] || {}), button_text: e.target.value };
-                  handlePropChange("slides", updated);
+          </div>
+        );
+      }
+
+      case "slides": {
+        const rawSlides = Array.isArray(props.slides) && props.slides.length > 0 ? (props.slides as any[]) : [
+          {
+            title: "تخفیف ویژه آغاز فصل",
+            description: "تا ۵۰٪ تخفیف روی تمامی محصولات برگزیده دیجیتال",
+            button_text: "مشاهده جشنواره",
+            button_link: "/products",
+            bg_color: "linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary)/0.6) 100%)",
+          },
+        ];
+        return (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <Label className="text-xs font-bold">اسلایدهای هیرو ({rawSlides.length})</Label>
+              <button
+                type="button"
+                onClick={() => {
+                  const newSlide = {
+                    title: `اسلاید جدید ${rawSlides.length + 1}`,
+                    description: "توضیحات کوتاه این اسلاید را اینجا بنویسید.",
+                    button_text: "اطلاعات بیشتر",
+                    button_link: "#",
+                    bg_color: "linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary)/0.7) 100%)",
+                  };
+                  handlePropChange("slides", [...rawSlides, newSlide]);
                 }}
-                className="h-8 text-xs"
-              />
+                className="text-[11px] text-primary hover:underline font-semibold"
+                data-testid="add-slide-btn"
+              >
+                + افزودن اسلاید
+              </button>
+            </div>
+            <div className="space-y-3">
+              {rawSlides.map((slide, idx) => (
+                <div key={idx} className="p-3 rounded-xl border bg-muted/20 space-y-2">
+                  <div className="flex items-center justify-between gap-2 border-b pb-1.5">
+                    <span className="text-[11px] font-bold text-foreground">اسلاید {idx + 1}</span>
+                    {rawSlides.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const updated = rawSlides.filter((_, i) => i !== idx);
+                          handlePropChange("slides", updated);
+                        }}
+                        className="text-xs text-destructive hover:underline"
+                        data-testid={`delete-slide-${idx}`}
+                      >
+                        حذف
+                      </button>
+                    )}
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-[11px]">عنوان اسلاید</Label>
+                    <Input
+                      data-testid={`slide-title-${idx}`}
+                      value={slide.title || ""}
+                      onChange={(e) => {
+                        const updated = [...rawSlides];
+                        updated[idx] = { ...updated[idx], title: e.target.value };
+                        handlePropChange("slides", updated);
+                      }}
+                      className="h-7 text-xs"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-[11px]">توضیحات اسلاید</Label>
+                    <textarea
+                      data-testid={`slide-desc-${idx}`}
+                      rows={2}
+                      value={slide.description || ""}
+                      onChange={(e) => {
+                        const updated = [...rawSlides];
+                        updated[idx] = { ...updated[idx], description: e.target.value };
+                        handlePropChange("slides", updated);
+                      }}
+                      className="w-full rounded-md border border-input bg-background p-1.5 text-xs leading-relaxed"
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="space-y-1">
+                      <Label className="text-[11px]">متن دکمه</Label>
+                      <Input
+                        value={slide.button_text || ""}
+                        onChange={(e) => {
+                          const updated = [...rawSlides];
+                          updated[idx] = { ...updated[idx], button_text: e.target.value };
+                          handlePropChange("slides", updated);
+                        }}
+                        className="h-7 text-xs"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-[11px]">لینک دکمه</Label>
+                      <Input
+                        value={slide.button_link || ""}
+                        onChange={(e) => {
+                          const updated = [...rawSlides];
+                          updated[idx] = { ...updated[idx], button_link: e.target.value };
+                          handlePropChange("slides", updated);
+                        }}
+                        className="h-7 text-xs font-mono"
+                        dir="ltr"
+                      />
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         );

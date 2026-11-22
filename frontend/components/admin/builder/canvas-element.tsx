@@ -65,6 +65,7 @@ function CanvasElementComponent({
   const [isExternalDragOver, setIsExternalDragOver] = useState(false);
   const [saveTemplateOpen, setSaveTemplateOpen] = useState(false);
   const [activeTabIdx, setActiveTabIdx] = useState(0);
+  const [activeSlideIdx, setActiveSlideIdx] = useState(0);
   const [selectedVariantId, setSelectedVariantId] = useState<string>("var_1");
   const [cartQuantity, setCartQuantity] = useState(1);
   const [activeGridFilter, setActiveGridFilter] = useState<string>("all");
@@ -2099,24 +2100,44 @@ function CanvasElementComponent({
             bg_color: "linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary)/0.6) 100%)",
           },
         ];
-        const activeSlide = slidesList[0];
+        const curIdx = Math.max(0, Math.min(slidesList.length - 1, activeSlideIdx));
+        const activeSlide = slidesList[curIdx] || slidesList[0];
         return (
           <div
-            className="w-full min-h-[220px] rounded-2xl p-8 flex flex-col items-center justify-center text-center text-white space-y-3 shadow-md relative overflow-hidden"
+            className="w-full min-h-[220px] rounded-2xl p-8 flex flex-col items-center justify-center text-center text-white space-y-3 shadow-md relative overflow-hidden transition-all duration-300"
             style={{ background: activeSlide?.bg_color || "hsl(var(--primary))" }}
+            data-widget="slides"
           >
             <h2 className="text-xl md:text-2xl font-black drop-shadow-sm">{activeSlide?.title}</h2>
             <p className="text-xs md:text-sm opacity-90 max-w-lg leading-relaxed">{activeSlide?.description}</p>
             {activeSlide?.button_text && (
-              <button type="button" className="px-5 py-2.5 rounded-xl bg-white text-primary font-bold text-xs shadow-lg hover:bg-white/95 transition">
+              <button
+                type="button"
+                onClick={(e) => !previewMode && e.preventDefault()}
+                className="px-5 py-2.5 rounded-xl bg-white text-primary font-bold text-xs shadow-lg hover:bg-white/95 transition"
+              >
                 {activeSlide.button_text}
               </button>
             )}
-            <div className="absolute bottom-3 flex items-center gap-1.5">
-              {slidesList.map((_, i) => (
-                <span key={i} className={cn("w-2 h-2 rounded-full", i === 0 ? "bg-white" : "bg-white/40")} />
-              ))}
-            </div>
+            {slidesList.length > 1 && (
+              <div className="absolute bottom-3 flex items-center gap-1.5 z-10">
+                {slidesList.map((_, i) => (
+                  <button
+                    key={i}
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setActiveSlideIdx(i);
+                    }}
+                    className={cn(
+                      "w-2.5 h-2.5 rounded-full transition-all cursor-pointer",
+                      i === curIdx ? "bg-white scale-125" : "bg-white/40 hover:bg-white/70"
+                    )}
+                    aria-label={`اسلاید ${i + 1}`}
+                  />
+                ))}
+              </div>
+            )}
           </div>
         );
       }
@@ -2372,36 +2393,70 @@ function CanvasElementComponent({
 
       {/* Content Rendering */}
       {isContainer ? (
-        element.children && element.children.length > 0 ? (
-          element.children.map((child) => (
-            <CanvasElement
-              key={child.id}
-              element={child}
-              activeBreakpoint={activeBreakpoint}
-              depth={depth + 1}
-            />
-          ))
-        ) : (
-          !previewMode && (
-            <div className="space-y-3 w-full">
-              <ContainerPresetPicker containerId={element.id} />
-              <div
-                onClick={(e) => {
-                  e.stopPropagation();
-                  selectElement(element.id);
-                  useBuilderStore.getState().setLeftTab("blocks");
-                }}
-                data-testid="empty-container-guide"
-                className="flex flex-col items-center justify-center p-4 border border-dashed border-primary/30 hover:border-primary/60 rounded-xl bg-card/40 hover:bg-primary/5 transition-all cursor-pointer text-center w-full min-h-[80px] shadow-xs group/empty"
-              >
-                <div className="flex items-center gap-2 text-xs font-bold text-foreground group-hover/empty:text-primary transition-colors">
-                  <Plus className="w-4 h-4 text-primary" />
-                  <span>افزودن بلوک به این بخش</span>
+        <>
+          {element.widgetType === "nested_tabs" && (
+            <div className="w-full flex items-center gap-1.5 border-b border-border/80 bg-muted/40 p-1.5 rounded-t-xl mb-3" data-testid="nested-tabs-nav">
+              {((element.widgetProps?.tab_titles as string[]) || ["برگه اول", "برگه دوم"]).map((tTitle, idx) => {
+                const isTabActive = activeTabIdx === idx;
+                return (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setActiveTabIdx(idx);
+                      updateElementProps(element.id, { active_tab: idx });
+                    }}
+                    className={cn(
+                      "px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all",
+                      isTabActive
+                        ? "bg-background text-primary shadow-xs border border-border/60"
+                        : "text-muted-foreground hover:text-foreground"
+                    )}
+                    data-testid={`nested-tab-btn-${idx}`}
+                  >
+                    {tTitle}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+          {element.children && element.children.length > 0 ? (
+            element.children.map((child, idx) => {
+              if (element.widgetType === "nested_tabs" && previewMode && idx !== activeTabIdx) {
+                return null;
+              }
+              return (
+                <CanvasElement
+                  key={child.id}
+                  element={child}
+                  activeBreakpoint={activeBreakpoint}
+                  depth={depth + 1}
+                />
+              );
+            })
+          ) : (
+            !previewMode && (
+              <div className="space-y-3 w-full">
+                <ContainerPresetPicker containerId={element.id} />
+                <div
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    selectElement(element.id);
+                    useBuilderStore.getState().setLeftTab("blocks");
+                  }}
+                  data-testid="empty-container-guide"
+                  className="flex flex-col items-center justify-center p-4 border border-dashed border-primary/30 hover:border-primary/60 rounded-xl bg-card/40 hover:bg-primary/5 transition-all cursor-pointer text-center w-full min-h-[80px] shadow-xs group/empty"
+                >
+                  <div className="flex items-center gap-2 text-xs font-bold text-foreground group-hover/empty:text-primary transition-colors">
+                    <Plus className="w-4 h-4 text-primary" />
+                    <span>افزودن بلوک به این بخش</span>
+                  </div>
                 </div>
               </div>
-            </div>
-          )
-        )
+            )
+          )}
+        </>
       ) : (
         renderWidgetContent()
       )}

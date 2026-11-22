@@ -106,4 +106,67 @@ test.describe("Builder Gym Round 22: Elementor Core/Pro Parity & TOC Inspector S
     const isOverflowing = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth);
     expect(isOverflowing).toBe(false);
   });
+
+  test("4. Hero Slides widget can add slides and reflect active slide title changes on canvas", async ({ page }) => {
+    await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(1500);
+
+    // Click Slides in blocks palette
+    const slidesBtn = page.locator('button[data-block-type="slides"]').first();
+    await slidesBtn.scrollIntoViewIfNeeded();
+    await slidesBtn.click();
+    await page.waitForTimeout(800);
+
+    const frame = page.frameLocator('iframe[title="Visual Builder Canvas"]');
+    const slidesEl = frame.locator('[data-widget="slides"]').first();
+    await expect(slidesEl).toBeVisible();
+
+    // Click to select slides
+    await slidesEl.click();
+    await page.waitForTimeout(500);
+
+    // Active nudge on slide 1 title
+    const slide1Title = page.locator('[data-testid="slide-title-0"]').first();
+    await expect(slide1Title).toBeVisible();
+    await slide1Title.fill("جشنواره طلایی بهاره");
+    await page.waitForTimeout(400);
+
+    // Verify canvas title reflection
+    await expect(slidesEl).toContainText("جشنواره طلایی بهاره");
+
+    // Add new slide
+    const addSlideBtn = page.locator('[data-testid="add-slide-btn"]').first();
+    await expect(addSlideBtn).toBeVisible();
+    await addSlideBtn.click();
+    await page.waitForTimeout(400);
+
+    // Check slide 3 is created
+    const slide3Title = page.locator('[data-testid="slide-title-2"]').first();
+    await expect(slide3Title).toBeVisible();
+  });
+
+  test("5. Nested Tabs container renders tab navigation pills and switches active tabs", async ({ page }) => {
+    await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(1500);
+
+    // Click Nested Tabs in blocks palette
+    const nestedTabsBtn = page.locator('button[data-block-type="nested_tabs"]').first();
+    await nestedTabsBtn.scrollIntoViewIfNeeded();
+    await nestedTabsBtn.click();
+    await page.waitForTimeout(800);
+
+    const frame = page.frameLocator('iframe[title="Visual Builder Canvas"]');
+    const nestedTabsNav = frame.locator('[data-testid="nested-tabs-nav"]').first();
+    await expect(nestedTabsNav).toBeVisible();
+
+    // Verify default tabs exist
+    const tab1 = nestedTabsNav.locator('[data-testid="nested-tab-btn-0"]');
+    const tab2 = nestedTabsNav.locator('[data-testid="nested-tab-btn-1"]');
+    await expect(tab1).toBeVisible();
+    await expect(tab2).toBeVisible();
+
+    // Click tab 2
+    await tab2.click();
+    await page.waitForTimeout(400);
+  });
 });

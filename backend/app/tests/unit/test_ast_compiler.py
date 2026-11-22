@@ -826,6 +826,59 @@ def test_ast_compiler_renders_round28_table_highlight_column_parity():
     assert 'bg-primary/5 border-x border-primary/20 font-semibold' in result
 
 
+def test_ast_compiler_renders_round29_form_checkbox_and_radio_required_stars():
+    """Verify that form_checkbox and form_radio render required asterisks and required attributes in SSR."""
+    ast = PageAST(
+        schema_version=1,
+        title="تست فرم راند ۲۹",
+        slug="test-r29-forms",
+        root_elements=[
+            BuilderElement(
+                id="el_sec_r29",
+                name="بخش فرم ۲۹",
+                type="container",
+                children=[
+                    BuilderElement(
+                        id="el_chk_req",
+                        name="چک‌باکس قوانین",
+                        type="widget",
+                        widget_type="form_checkbox",
+                        widget_props={
+                            "label": "قوانین سایت را می‌پذیرم",
+                            "name": "terms_accepted",
+                            "required": True,
+                            "checked": True,
+                        },
+                    ),
+                    BuilderElement(
+                        id="el_rad_req",
+                        name="رادیو پست",
+                        type="widget",
+                        widget_type="form_radio",
+                        widget_props={
+                            "label": "شیوه تحویل بار",
+                            "name": "delivery_type",
+                            "options": ["پیک موتوری", "پست پیشتاز"],
+                            "required": True,
+                        },
+                    ),
+                ],
+            )
+        ],
+    )
+    result = ASTCompiler.compile(ast)
+    assert 'builder-form-checkbox' in result
+    assert 'name="terms_accepted"' in result
+    assert 'checked' in result
+    assert 'required' in result
+    assert 'قوانین سایت را می‌پذیرم <span class="text-destructive ms-1">*</span>' in result
+    assert 'builder-form-radio' in result
+    assert 'شیوه تحویل بار <span class="text-destructive ms-1">*</span>' in result
+    assert 'name="delivery_type"' in result
+    assert 'value="پیک موتوری"' in result
+
+
+
 
 
 

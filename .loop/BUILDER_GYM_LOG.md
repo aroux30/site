@@ -936,6 +936,41 @@
 
 ---
 
+### 🏋️ راند ۲۹ (Round 29) — وزنه ۲: ۱۵ کیلو (همگام‌سازی فیلدهای الزامی چک‌باکس و رادیو در ۴ لایه بوم و کامپایلر)
+- **تاریخ اجرا**: 2026-11-22
+- **شاخه ایزوله**: `claude/nifty-snyder-d5b886`
+- **پورت فرانت‌اند**: ۴۰۰۲
+- **وضعیت**: ✅ کامل و سبز (پشتیبانی کامل از سوییچ فیلد الزامی در چک‌باکس و دکمه‌های رادیویی با نمایش ستاره قرمز در بوم و SSR)
+
+#### ۱. باگ‌های کشف‌شده با ابزار Vision و تعامل
+1. **فقدان سوییچ Required در کنترل‌های رادیو بازرس (`Radio Group Required Switch Missing`)**:
+   - *مشاهده*: فیلد `form_radio` در پنل بازرس فاقد کنترل تعیین وضعیت الزامی بودن (`required`) بود.
+   - *اصلاح ریشه‌ای*: الحاق کنترل سوییچ «فیلد الزامی (Required)» به `form_radio` در `inspector-panel.tsx`.
+2. **عدم نمایش نشان ستاره الزامی (*) در بوم و عدم درج صفت `required` در رادیوی سمت سرور (`Form Checkbox & Radio Required Attribute Missing`)**:
+   - *مشاهده*: در صورت فعال بودن `required`، بوم هیچ نشان بصری ستاره قرمزی کنار عنوان چک‌باکس یا رادیو نمایش نمی‌داد و در کامپایلر بک‌اند تگ `<input type="radio">` بدون صفت `required` رندر می‌شد.
+   - *اصلاح ریشه‌ای*: اضافه شدن ستاره قرمز `<span className="text-destructive ms-1">*</span>` در بوم و درج صفت `required` در تمام گزینه‌های رادیو و چک‌باکس در `canvas-element.tsx` و `ast_compiler.py`.
+
+#### ۲. مستندات بصری (Vision Artifacts)
+- **قبل از اصلاح**: `.loop/artifacts/builder-gym/round-29/before/`
+  - `01-studio-overview.png`
+  - `report.json`
+- **بعد از اصلاح**: `.loop/artifacts/builder-gym/round-29/after/`
+  - `01-studio-overview.png`
+  - `02-checkbox-customized.png` (اعمال موفق متن «پذیرش کلیه شرایط و تعهدات» و سوییچ فیلد الزامی در بازرس و بوم)
+  - `report.json`
+
+#### ۳. تست‌های رگرسیون دائمی اضافه‌شده
+- فایل تست Playwright: `frontend/tests/e2e/builder-gym-r29.spec.ts` (۲ تست سبز)
+- فایل تست پایتون: `backend/app/tests/unit/test_ast_compiler.py::test_ast_compiler_renders_round29_form_checkbox_and_radio_required_stars` (۱ تست سبز)
+
+#### ۴. نتایج نهایی ممیزی و تست‌ها در راند ۲۹
+- `npx --prefix frontend tsc --noEmit`: ۰ خطا (سبز)
+- `npm --prefix frontend test -- --run`: **۳۷۲ تست سبز در ۴۵ فایل** (`372 passed`)
+- `python -m pytest app/tests/unit`: **۶۲۸ تست سبز** (`628 passed, 2 skipped`)
+- تست‌های Playwright راند ۲۹: **۲ تست سبز (`2 passed in 12.2s`) روی پورت ۴۰۰۲**
+
+---
+
 ## 🏆 گواهینامه نهایی مسترینگ کامل: BUILDER_GYM_ALL_LEVELS_MASTERED
 
 بدین‌وسیله رسماً تایید و ثبت می‌گردد که کلیه وزنه‌های ۱ تا ۸ نردبان پیش‌رونده Visual Page Builder بر اساس دستورالعمل جامع المنتور و استانداردهای سخت‌گیرانه ۳۶۰ درجه با موفقیت ۱۰۰٪ کامل شدند:

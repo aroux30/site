@@ -615,10 +615,11 @@ class ASTCompiler:
             name = html.escape(str(props.get("name", "accept_terms")))
             required = " required" if props.get("required") else ""
             checked = " checked" if props.get("checked") else ""
+            req_star = ' <span class="text-destructive ms-1">*</span>' if props.get("required") else ""
             return (
                 f'<div{id_attr} class="builder-form-checkbox flex items-center gap-2 {css_class}"{style_attr}>'
                 f'<input type="checkbox" id="chk_{html.escape(el.id)}" name="{name}"{checked}{required} class="rounded border-input text-primary focus:ring-primary h-4 w-4" />'
-                f'<label for="chk_{html.escape(el.id)}" class="text-xs font-medium text-foreground cursor-pointer">{label}</label>'
+                f'<label for="chk_{html.escape(el.id)}" class="text-xs font-medium text-foreground cursor-pointer">{label}{req_star}</label>'
                 f'</div>'
             )
 
@@ -626,16 +627,18 @@ class ASTCompiler:
             label = html.escape(str(props.get("label", "گزینش")))
             name = html.escape(str(props.get("name", "radio_group")))
             options = props.get("options", ["گزینه یک", "گزینه دو"])
+            required = " required" if props.get("required") else ""
+            req_star = ' <span class="text-destructive ms-1">*</span>' if props.get("required") else ""
             opts_html = "".join(
                 f'<label class="flex items-center gap-2 text-xs text-foreground cursor-pointer">'
-                f'<input type="radio" name="{name}" value="{html.escape(str(o))}" class="text-primary focus:ring-primary h-4 w-4" />'
+                f'<input type="radio" name="{name}" value="{html.escape(str(o))}"{required} class="text-primary focus:ring-primary h-4 w-4" />'
                 f'<span>{html.escape(str(o))}</span>'
                 f'</label>'
                 for o in options
             )
             return (
                 f'<div{id_attr} class="builder-form-radio space-y-1.5 {css_class}"{style_attr}>'
-                f'<span class="block text-xs font-semibold text-foreground">{label}</span>'
+                f'<span class="block text-xs font-semibold text-foreground">{label}{req_star}</span>'
                 f'<div class="flex flex-col gap-1.5">{opts_html}</div>'
                 f'</div>'
             )

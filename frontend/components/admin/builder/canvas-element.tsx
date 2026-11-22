@@ -1335,17 +1335,21 @@ function CanvasElementComponent({
       case "form_checkbox": {
         const label = String(props.label || "شرایط و قوانین را می‌پذیرم");
         const name = String(props.name || "terms");
+        const isRequired = Boolean(props.required);
+        const isChecked = Boolean(props.checked);
         return (
           <div className="flex items-center gap-2 text-right">
             <input
               type="checkbox"
               id={`chk_${element.id}`}
               name={name}
-              defaultChecked={Boolean(props.checked)}
+              defaultChecked={isChecked}
+              required={isRequired}
               className="rounded border-input text-primary focus:ring-primary h-4 w-4"
             />
             <label htmlFor={`chk_${element.id}`} className="text-xs font-medium text-foreground cursor-pointer select-none">
               {label}
+              {isRequired && <span className="text-destructive ms-1">*</span>}
             </label>
           </div>
         );
@@ -1354,15 +1358,20 @@ function CanvasElementComponent({
         const label = String(props.label || "انتخاب گزینه");
         const options = (props.options as string[]) || ["گزینه ۱", "گزینه ۲"];
         const name = String(props.name || "radio_group");
+        const isRequired = Boolean(props.required);
         return (
           <div className="space-y-1.5 text-right w-full">
-            <span className="block text-xs font-bold text-foreground">{label}</span>
+            <span className="block text-xs font-bold text-foreground">
+              {label}
+              {isRequired && <span className="text-destructive ms-1">*</span>}
+            </span>
             <div className="flex flex-col gap-1.5">
               {options.map((opt, i) => (
                 <label key={i} className="flex items-center gap-2 text-xs text-foreground cursor-pointer select-none">
                   <input
                     type="radio"
                     name={name}
+                    required={isRequired}
                     defaultChecked={i === 0}
                     className="text-primary focus:ring-primary h-4 w-4"
                   />

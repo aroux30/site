@@ -1178,6 +1178,7 @@ export function InspectorPanel() {
             <div className="space-y-1.5">
               <Label className="text-xs">متن چک‌باکس</Label>
               <Input
+                data-testid="form-checkbox-label-input"
                 value={String(props.label || "شرایط و قوانین را مطالعه کرده و می‌پذیرم")}
                 onChange={(e) => handlePropChange("label", e.target.value)}
                 className="h-8 text-xs"
@@ -1208,6 +1209,7 @@ export function InspectorPanel() {
             <div className="space-y-1.5">
               <Label className="text-xs">عنوان گروه گزینه‌ها</Label>
               <Input
+                data-testid="form-radio-label-input"
                 value={String(props.label || "روش ارسال")}
                 onChange={(e) => handlePropChange("label", e.target.value)}
                 className="h-8 text-xs"
@@ -1229,6 +1231,13 @@ export function InspectorPanel() {
                 value={Array.isArray(props.options) ? (props.options as string[]).join("\n") : "گزینه یک\nگزینه دو"}
                 onChange={(e) => handlePropChange("options", e.target.value.split("\n").filter((s) => s.trim()))}
                 className="w-full rounded-md border border-input bg-background p-2 text-xs leading-relaxed"
+              />
+            </div>
+            <div className="flex items-center justify-between pt-1">
+              <Label className="text-xs">فیلد الزامی (Required)</Label>
+              <Switch
+                checked={Boolean(props.required)}
+                onCheckedChange={(val) => handlePropChange("required", val)}
               />
             </div>
           </div>

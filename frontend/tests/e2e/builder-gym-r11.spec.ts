@@ -104,10 +104,10 @@ test.describe("Builder Gym Round 11: Weight 6 (Deep Container Layout & Inspector
     await page.waitForTimeout(400);
 
     // Switch to Layers Tree and verify renamed element appears
-    const layersTab = page.locator("button:has-text('لایه‌ها')").first();
+    const layersTab = page.locator('[data-testid="sidebar-tab-layers"], button:has-text("لایه‌ها")').first();
     await layersTab.waitFor({ state: "visible", timeout: 15000 });
     await layersTab.click();
-    await page.waitForTimeout(400);
+    await page.waitForTimeout(600);
 
     const renamedLayer = page.locator("text='کانتینر اصلی تست'").first();
     await expect(renamedLayer).toBeVisible({ timeout: 15000 });

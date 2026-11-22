@@ -1,0 +1,39 @@
+{
+  "$schema": "https://raw.githubusercontent.com/hyw007726/multi-agent-orchestrator-skill/main/references/orchestrator-config.schema.json",
+
+  // Multi-Agent Orchestrator Configuration
+  // --------------------------------------
+  // JSONC is JSON with comments. This file is data-only, so use quoted keys and
+  // values instead of `module.exports`.
+  // The schema above provides editor autocomplete, descriptions, and validation
+  // for optional settings, so this file avoids commented-out duplicate defaults.
+  //
+  // You can edit this file directly when the change should be shared with the
+  // repo/team, or when you are the only user of the repo.
+  //
+  // For personal overrides, create an untracked orchestrator.config.local.jsonc
+  // with only values that differ from this shared config. It can simply be {}.
+
+  // The background CLI worker that executes coding tasks inside each agent worktree.
+  // Pin a worker model in cli_templates when the selected CLI supports a model flag;
+  // otherwise configure the model in that CLI's own settings.
+  "default_cli": "kilo",
+
+  // Command templates for supported CLIs.
+  // Prefer structured argv templates. Use { "prompt_file": true } to pass the
+  // generated prompt file path as one argv item, { "prompt_text": true } to pass
+  // the prompt contents as one argv item, or stdin: { "prompt_file": true } for
+  // CLIs that read prompts from stdin. String templates remain supported for
+  // CLIs that genuinely need shell behavior.
+  //
+  // Add the CLI's model flag here when you want the runtime to pin a worker
+  // model and the selected CLI supports launch-time model selection. Unpinned
+  // templates use that CLI's own config/default model.
+  "cli_templates": {
+    "claude": { "cmd": "claude", "args": ["-p", "--dangerously-skip-permissions", "--output-format", "stream-json", "--include-partial-messages", "--verbose", "--model", "claude-sonnet-4-6"], "stdin": { "prompt_file": true } },
+    "codex": { "cmd": "codex", "args": ["exec", "--dangerously-bypass-approvals-and-sandbox"], "stdin": { "prompt_file": true } },
+    "gemini": { "cmd": "gemini", "args": ["--prompt", "", "--yolo", "--output-format", "stream-json"], "stdin": { "prompt_file": true } },
+    "kilo": { "cmd": "kilo", "args": ["run", "--file", { "prompt_file": true }, "Follow the instructions in the attached prompt file.", "--auto"] },
+    "opencode": { "cmd": "opencode", "args": ["run", "--dangerously-skip-permissions", "--file", { "prompt_file": true }, "Follow the instructions in the attached prompt file."] }
+  }
+}

@@ -62,7 +62,7 @@ test.describe("Builder Gym Round 22: Elementor Core & Pro Widget Palette & Inspe
     await searchInput.fill("پیشرفت");
     await page.waitForTimeout(300);
 
-    const progressBarBlock = page.locator('button:has-text("نوار پیشرفت")');
+    const progressBarBlock = page.locator('button[data-block-type="progress_bar"]');
     await expect(progressBarBlock).toBeVisible();
 
     // Verify search finds testimonial

@@ -47,6 +47,8 @@ import {
   GalleryHorizontal,
   ToggleLeft,
   MapPin,
+  ListOrdered,
+  Gauge,
   type LucideIcon,
 } from "lucide-react";
 import type { BuilderElement } from "@/types/builder";
@@ -1565,6 +1567,79 @@ export const BASIC_BLOCK_DEFINITIONS: BlockDefinition[] = [
             right: { value: 12, unit: "px" },
             bottom: { value: 12, unit: "px" },
             left: { value: 12, unit: "px" },
+            isLinked: true,
+          },
+        },
+      },
+      children: [],
+    }),
+  },
+  {
+    type: "table_of_contents",
+    name: "فهرست محتوا (Table of Contents)",
+    category: "basic",
+    icon: ListOrdered,
+    description: "فهرست خودکار و ناوبری به تیترها و عناوین صفحه (TOC)",
+    createDefaultElement: () => ({
+      id: `el_${Math.random().toString(36).slice(2, 10)}`,
+      name: "فهرست مطالب",
+      type: "widget",
+      widgetType: "table_of_contents",
+      widgetProps: {
+        title: "فهرست عناوین برگه",
+        headings: ["معرفی کلی", "ویژگی‌ها و قابلیت‌ها", "جدول مشخصات", "پرسش‌های متداول"],
+        collapsible: true,
+      },
+      isLocked: false,
+      isHidden: false,
+      styles: {
+        mobile: {
+          padding: {
+            top: { value: 16, unit: "px" },
+            right: { value: 16, unit: "px" },
+            bottom: { value: 16, unit: "px" },
+            left: { value: 16, unit: "px" },
+            isLinked: true,
+          },
+          border: {
+            style: "solid",
+            radius: {
+              top: { value: 16, unit: "px" },
+              right: { value: 16, unit: "px" },
+              bottom: { value: 16, unit: "px" },
+              left: { value: 16, unit: "px" },
+              isLinked: true,
+            },
+          },
+        },
+      },
+      children: [],
+    }),
+  },
+  {
+    type: "progress_tracker",
+    name: "ردیاب پیشرفت (Progress Tracker)",
+    category: "basic",
+    icon: Gauge,
+    description: "نوار پیشرفت مطالعه و پیمایش اسکرول صفحه به درصد",
+    createDefaultElement: () => ({
+      id: `el_${Math.random().toString(36).slice(2, 10)}`,
+      name: "ردیاب اسکرول صفحه",
+      type: "widget",
+      widgetType: "progress_tracker",
+      widgetProps: {
+        tracker_type: "horizontal",
+        percentage: 60,
+      },
+      isLocked: false,
+      isHidden: false,
+      styles: {
+        mobile: {
+          padding: {
+            top: { value: 4, unit: "px" },
+            right: { value: 4, unit: "px" },
+            bottom: { value: 4, unit: "px" },
+            left: { value: 4, unit: "px" },
             isLinked: true,
           },
         },

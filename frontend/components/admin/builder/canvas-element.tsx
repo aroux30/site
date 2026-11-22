@@ -1847,6 +1847,39 @@ function CanvasElementComponent({
           </div>
         );
       }
+      case "table_of_contents": {
+        const title = String(props.title || "فهرست محتوا");
+        const headings = (props.headings as string[]) || ["مقدمه", "ویژگی‌ها", "نتیجه‌گیری"];
+        return (
+          <nav className="p-4 rounded-2xl border border-border/80 bg-card space-y-3 shadow-sm w-full text-right" aria-label="فهرست محتوای صفحه">
+            <h4 className="font-bold text-xs text-foreground flex items-center gap-2 border-b border-border/60 pb-2">
+              <span className="w-2 h-2 rounded-full bg-primary" />
+              <span>{title}</span>
+            </h4>
+            <ol className="space-y-1.5 list-decimal list-inside text-xs text-muted-foreground p-0 m-0">
+              {headings.map((h, idx) => (
+                <li key={idx} className="hover:text-primary cursor-pointer transition">
+                  <span className="hover:underline">{h}</span>
+                </li>
+              ))}
+            </ol>
+          </nav>
+        );
+      }
+      case "progress_tracker": {
+        const pct = Math.max(0, Math.min(100, Number(props.percentage ?? 50)));
+        return (
+          <div className="w-full space-y-1 text-right py-1">
+            <div className="flex items-center justify-between text-[11px] text-muted-foreground font-semibold">
+              <span>پیشرفت مطالعه</span>
+              <span className="font-mono text-primary font-bold">{pct}%</span>
+            </div>
+            <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
+              <div className="h-full bg-gradient-to-r from-primary to-emerald-500 rounded-full transition-all duration-300" style={{ width: `${pct}%` }} />
+            </div>
+          </div>
+        );
+      }
       default:
         return (
           <div className="rounded-lg border border-dashed border-border p-4 text-center text-sm text-muted-foreground">

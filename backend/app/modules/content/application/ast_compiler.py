@@ -1009,6 +1009,39 @@ class ASTCompiler:
                 f'</div>'
             )
 
+        elif widget_type == "table_of_contents":
+            title = html.escape(str(props.get("title", "فهرست محتوا")))
+            headings = props.get("headings", ["مقدمه", "ویژگی‌ها", "نتیجه‌گیری"])
+            headings_html = "".join(
+                f'<li class="hover:text-primary transition">'
+                f'<span class="hover:underline">{html.escape(str(h))}</span>'
+                f'</li>'
+                for h in headings
+            )
+            return (
+                f'<nav{id_attr} class="builder-toc p-4 rounded-2xl border border-border/80 bg-card space-y-3 shadow-sm w-full text-right {css_class}" data-widget="table_of_contents" aria-label="فهرست محتوای صفحه"{style_attr}>'
+                f'<h4 class="font-bold text-xs text-foreground flex items-center gap-2 border-b border-border/60 pb-2">'
+                f'<span class="w-2 h-2 rounded-full bg-primary"></span>'
+                f'<span>{title}</span>'
+                f'</h4>'
+                f'<ol class="space-y-1.5 list-decimal list-inside text-xs text-muted-foreground p-0 m-0">{headings_html}</ol>'
+                f'</nav>'
+            )
+
+        elif widget_type == "progress_tracker":
+            pct = max(0, min(100, int(props.get("percentage", 50))))
+            return (
+                f'<div{id_attr} class="builder-progress-tracker w-full space-y-1 text-right py-1 {css_class}" data-widget="progress_tracker"{style_attr}>'
+                f'<div class="flex items-center justify-between text-[11px] text-muted-foreground font-semibold">'
+                f'<span>پیشرفت مطالعه</span>'
+                f'<span class="font-mono text-primary font-bold">{pct}%</span>'
+                f'</div>'
+                f'<div class="h-2 w-full rounded-full bg-muted overflow-hidden">'
+                f'<div class="h-full bg-primary rounded-full" style="width: {pct}%;"></div>'
+                f'</div>'
+                f'</div>'
+            )
+
         # Generic fallback for any other registered widget
         fallback_title = html.escape(str(props.get("title", widget_type)))
         return f'<div{id_attr} class="builder-widget builder-{widget_type} {css_class}" data-widget="{html.escape(widget_type)}"{style_attr}>{fallback_title}</div>'

@@ -2280,6 +2280,51 @@ export function InspectorPanel() {
           </div>
         );
 
+      case "table_of_contents":
+        return (
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs">عنوان فهرست</Label>
+              <Input
+                data-testid="toc-title-input"
+                value={String(props.title || "")}
+                onChange={(e) => handlePropChange("title", e.target.value)}
+                className="h-8 text-xs"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">عناوین فهرست (هر خط یک عنوان)</Label>
+              <textarea
+                data-testid="toc-headings-input"
+                rows={4}
+                value={Array.isArray(props.headings) ? props.headings.join("\n") : ""}
+                onChange={(e) => handlePropChange("headings", e.target.value.split("\n").filter(Boolean))}
+                className="w-full rounded-md border border-input bg-background p-2 text-xs leading-relaxed"
+                placeholder="عنوان اول&#10;عنوان دوم&#10;عنوان سوم"
+              />
+            </div>
+          </div>
+        );
+
+      case "progress_tracker":
+        return (
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs">درصد پیش‌نمایش (۰ تا ۱۰۰)</Label>
+              <Input
+                data-testid="progress-tracker-pct-input"
+                type="number"
+                min={0}
+                max={100}
+                value={Number(props.percentage ?? 60)}
+                onChange={(e) => handlePropChange("percentage", parseInt(e.target.value, 10) || 0)}
+                className="h-8 text-xs font-mono"
+                dir="ltr"
+              />
+            </div>
+          </div>
+        );
+
       default:
         return (
           <div className="text-xs text-muted-foreground py-2">

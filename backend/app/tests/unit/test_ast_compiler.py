@@ -624,6 +624,54 @@ def test_ast_compiler_renders_elementor_parity_round_24_widgets():
     assert 'پیکربندی سرور اختصاصی' in result
 
 
+def test_ast_compiler_renders_shape_dividers_and_custom_attributes():
+    ast = PageAST(
+        schema_version=1,
+        title="تست شکل جداکننده و صفت‌های داده‌ای",
+        slug="test-shapes-and-attrs",
+        root_elements=[
+            BuilderElement(
+                id="el_shape01",
+                name="کانتینر شکل‌دار",
+                type="container",
+                styles=ResponsiveStyles(
+                    shape_divider_top="waves",
+                    shape_divider_bottom="curve",
+                    shape_divider_color="#10b981",
+                    custom_attributes="data-tracking|landing-top\naria-label|hero-banner\nonclick|alert(1)",
+                ),
+                children=[
+                    BuilderElement(
+                        id="el_head01_shape",
+                        name="سرتیتر داخلی",
+                        type="widget",
+                        widget_type="heading",
+                        widget_props={"text": "بخش با جداکننده برداری", "tag": "h2"},
+                        styles=ResponsiveStyles(
+                            custom_attributes="data-analytics-id|head_01\nstyle|color:red",
+                        ),
+                    ),
+                ],
+            )
+        ],
+    )
+    result = ASTCompiler.compile(ast, is_authenticated=True)
+
+    # 1. Shape Dividers
+    assert 'builder-shape-divider' in result
+    assert '#10b981' in result
+
+    # 2. Custom Attributes with Blacklist filtering
+    assert 'data-tracking="landing-top"' in result
+    assert 'aria-label="hero-banner"' in result
+    assert 'data-analytics-id="head_01"' in result
+    # Dangerous attributes (onclick, style) must NOT be emitted
+    assert 'onclick="alert(1)"' not in result
+    assert 'onclick=' not in result
+    assert 'style="color:red"' not in result
+
+
+
 
 
 

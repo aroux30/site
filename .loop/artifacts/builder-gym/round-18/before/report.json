@@ -1,0 +1,13 @@
+{
+  "round": "18",
+  "stage": "before",
+  "timestamp": "2026-11-22T06:10:00.000Z",
+  "defectsIdentified": [
+    {
+      "id": "DEF-01-TYPOGRAPHY-TEXT-SHADOW-MISSING",
+      "severity": "P1",
+      "description": "Typography group controls lacked text-shadow input, presets and canvas/SSR wiring (Elementor Typography Parity).",
+      "visualProof": "01-typography-controls-before.png"
+    }
+  ]
+}

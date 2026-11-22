@@ -34,6 +34,7 @@ export const TypographyStyleSchema = z.object({
   textAlign: z.enum(["right", "center", "left", "justify", "inherit"]).nullable().optional(),
   textTransform: z.enum(["none", "uppercase", "lowercase", "capitalize"]).nullable().optional(),
   textDecoration: z.enum(["none", "underline", "line-through"]).nullable().optional(),
+  textShadow: z.string().nullable().optional(),
   color: z.string().nullable().optional(),
 });
 

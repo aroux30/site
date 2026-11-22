@@ -285,7 +285,11 @@ function CanvasElementComponent({
       if (fontObj.fontSize) styleObj.fontSize = `${fontObj.fontSize.value}${fontObj.fontSize.unit}`;
       if (fontObj.fontWeight && fontObj.fontWeight !== "inherit") styleObj.fontWeight = fontObj.fontWeight;
       if (fontObj.lineHeight) styleObj.lineHeight = `${fontObj.lineHeight.value}${fontObj.lineHeight.unit}`;
+      if (fontObj.letterSpacing) styleObj.letterSpacing = `${fontObj.letterSpacing.value}${fontObj.letterSpacing.unit}`;
       if (fontObj.textAlign && fontObj.textAlign !== "inherit") styleObj.textAlign = fontObj.textAlign;
+      if (fontObj.textDecoration && fontObj.textDecoration !== "none") styleObj.textDecoration = fontObj.textDecoration;
+      if (fontObj.textTransform && fontObj.textTransform !== "none") styleObj.textTransform = fontObj.textTransform;
+      if (fontObj.textShadow) styleObj.textShadow = fontObj.textShadow;
       if (fontObj.color) styleObj.color = normalizeCssColor(fontObj.color);
       if (fontObj.fontFamily && fontObj.fontFamily !== "inherit") {
         styleObj.fontFamily = fontObj.fontFamily.startsWith("var(")

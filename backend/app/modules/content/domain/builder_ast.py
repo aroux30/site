@@ -79,6 +79,7 @@ class TypographyStyle(ASTModel):
     text_align: Literal["right", "center", "left", "justify", "inherit"] = "inherit"
     text_transform: Literal["none", "uppercase", "lowercase", "capitalize"] = "none"
     text_decoration: Literal["none", "underline", "line-through"] = "none"
+    text_shadow: str | None = None
     color: str | None = None  # hex, hsl(var(--token)), or semantic token key
 
 

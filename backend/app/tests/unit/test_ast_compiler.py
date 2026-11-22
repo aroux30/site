@@ -529,7 +529,7 @@ def test_ast_compiler_large_page_performance_100_elements():
 
 def test_ast_compiler_transform_and_mask_elementor_parity():
     """Verify Elementor Wave 1 Transform & Mask styles compile correctly in SSR."""
-    from app.modules.content.domain.builder_ast import DeviceStyle, TransformStyle, MaskStyle
+    from app.modules.content.domain.builder_ast import DeviceStyle, TransformStyle, MaskStyle, TypographyStyle
 
     ast = PageAST(
         schema_version=1,
@@ -544,6 +544,9 @@ def test_ast_compiler_transform_and_mask_elementor_parity():
                 widget_props={"text": "تیتر چرخان"},
                 styles=ResponsiveStyles(
                     mobile=DeviceStyle(
+                        typography=TypographyStyle(
+                            text_shadow="0 2px 4px rgba(0,0,0,0.5)",
+                        ),
                         transform=TransformStyle(
                             rotate=25.0,
                             scale=1.1,
@@ -583,6 +586,7 @@ def test_ast_compiler_transform_and_mask_elementor_parity():
     assert "scaleX(-1)" in result
     assert "radial-gradient(circle, black 60%, transparent 60%)" in result
     assert "clip-path: polygon(" in result or "clip-path:polygon(" in result
+    assert "text-shadow: 0 2px 4px rgba(0,0,0,0.5)" in result or "text-shadow:0 2px 4px rgba(0,0,0,0.5)" in result
 
 
 

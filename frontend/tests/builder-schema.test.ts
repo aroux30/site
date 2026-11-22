@@ -292,6 +292,9 @@ describe("Visual Page Builder Zod Schema and AST Validation (Phase P0)", () => {
             flipX: true,
             flipY: false,
           },
+          typography: {
+            textShadow: "0 2px 4px rgba(0,0,0,0.5)",
+          },
           mask: {
             shape: "flower",
             size: "contain",
@@ -318,6 +321,7 @@ describe("Visual Page Builder Zod Schema and AST Validation (Phase P0)", () => {
       expect(el.styles.mobile.transform?.scale).toBe(1.2);
       expect(el.styles.mobile.transform?.flipX).toBe(true);
       expect(el.styles.mobile.mask?.shape).toBe("flower");
+      expect(el.styles.mobile.typography?.textShadow).toBe("0 2px 4px rgba(0,0,0,0.5)");
     }
   });
 });

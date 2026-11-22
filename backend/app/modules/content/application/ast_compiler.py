@@ -805,6 +805,14 @@ class ASTCompiler:
                 parts.append(f"text-align: {typo.text_align};")
             if typo.font_family and typo.font_family != "inherit":
                 parts.append(f"font-family: {typo.font_family};")
+            if typo.letter_spacing:
+                parts.append(f"letter-spacing: {typo.letter_spacing.to_css()};")
+            if typo.text_decoration and typo.text_decoration != "none":
+                parts.append(f"text-decoration: {typo.text_decoration};")
+            if typo.text_transform and typo.text_transform != "none":
+                parts.append(f"text-transform: {typo.text_transform};")
+            if typo.text_shadow:
+                parts.append(f"text-shadow: {typo.text_shadow};")
         if base.border:
             b = base.border
             if b.style and b.style != "none":

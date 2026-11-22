@@ -33,6 +33,7 @@ export interface TypographyStyle {
   textAlign?: "right" | "center" | "left" | "justify" | "inherit" | null;
   textTransform?: "none" | "uppercase" | "lowercase" | "capitalize" | null;
   textDecoration?: "none" | "underline" | "line-through" | null;
+  textShadow?: string | null;
   color?: string | null; // hex, hsl(var(--token)), or semantic token key
 }
 

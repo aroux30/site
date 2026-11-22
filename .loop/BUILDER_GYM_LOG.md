@@ -830,6 +830,36 @@
 
 ---
 
+### 🏋️ راند ۱۸ (Round 18) — وزنه ۶: ۷۰ کیلو (کنترل‌های کامل سایه متن Text Shadow، اتصال به بوم و پشتیبانی SSR)
+- **تاریخ اجرا**: 2026-11-22
+- **شاخه ایزوله**: `claude/relaxed-shamir-82671f`
+- **وضعیت**: ✅ کامل و سبز (سایه متن در تایپوگرافی بازرس، اتصال زنده به بوم، پشتیبانی در مدل AST، کامپایلر SSR و پالایشگر Bleach)
+
+#### ۱. قابلیت‌ها و اصلاحات انجام‌شده
+1. **توسعه کنترل‌های سایه متن در بازرس (`Typography Text Shadow Controls`)**:
+   - اضافه شدن فیلد ورود `data-testid="typography-text-shadow-input"` در بخش تایپوگرافی `frontend/components/admin/builder/inspector-panel.tsx` به همراه پریست‌های آماده (بدون سایه، ظریف، متوسط، عمیق و درخشان Glow).
+2. **اتصال بلادرنگ به بوم Iframe (`Live Canvas Text Shadow`)**:
+   - اعمال مستقیم `fontObj.textShadow` بر روی `styleObj.textShadow` در `frontend/components/admin/builder/canvas-element.tsx` با قابلیت تفکیک ریسپانسیو.
+3. **پشتیبانی کامل در بک‌اند و کامپایلر SSR (`Backend AST & SSR Compiler Parity`)**:
+   - اضافه شدن فیلد `text_shadow` به مدل `TypographyStyle` در `backend/app/modules/content/domain/builder_ast.py`.
+   - کامپایل استایل `text-shadow` در `backend/app/modules/content/application/ast_compiler.py`.
+   - اضافه شدن `text-shadow` به لیست مجاز CSS در `backend/app/shared/content/html_sanitizer.py`.
+
+#### ۲. مستندات بصری و شواهد ۵ سیگنالی
+- **قبل از اصلاح**: `.loop/artifacts/builder-gym/round-18/before/`
+  - `01-typography-controls-before.png` (وضعیت اولیه تایپوگرافی بازرس)
+- **بعد از اصلاح**: `.loop/artifacts/builder-gym/round-18/after/`
+  - `01-typography-text-shadow.png` (کنترل‌های کامل سایه متن و تایید رنگ `rgba(0, 0, 0, 0.6) 0px 4px 8px` در بوم)
+
+#### ۳. تست‌های رگرسیون دائمی و وضعیت تست‌ها
+- **تست رگرسیون واحد فرانت‌اند**: اعتبارسنجی `textShadow` در `frontend/tests/builder-schema.test.ts`.
+- **تست رگرسیون واحد بک‌اند**: کامپایل `text-shadow` در `backend/app/tests/unit/test_ast_compiler.py::test_ast_compiler_transform_and_mask_elementor_parity`.
+- `npx tsc --noEmit`: ۰ خطا.
+- `npm test` (Vitest): **۳۷۴ تست سبز در ۴۵ فایل** (`374 passed`).
+- `python -m pytest app/tests/unit`: **۶۲۳ تست سبز** (`623 passed, 2 skipped`).
+
+---
+
 ## 🏆 گواهینامه نهایی مسترینگ کامل: BUILDER_GYM_ALL_LEVELS_MASTERED
 
 بدین‌وسیله رسماً تایید و ثبت می‌گردد که کلیه وزنه‌های ۱ تا ۸ نردبان پیش‌رونده Visual Page Builder بر اساس دستورالعمل جامع المنتور و استانداردهای سخت‌گیرانه ۳۶۰ درجه با موفقیت ۱۰۰٪ کامل شدند:

@@ -2676,6 +2676,52 @@ export function InspectorPanel() {
               })}
             </div>
           </div>
+
+          <div className="space-y-1.5 pt-1">
+            <Label className="text-[11px] text-muted-foreground">سایه متن (Text Shadow - المنتور)</Label>
+            <div className="flex items-center gap-2">
+              <Input
+                data-testid="typography-text-shadow-input"
+                value={currentDeviceStyle.typography?.textShadow || ""}
+                placeholder="مثلاً 0 2px 4px rgba(0,0,0,0.3)"
+                onChange={(e) =>
+                  handleDeviceStyleChange({
+                    typography: {
+                      ...currentDeviceStyle.typography,
+                      textShadow: e.target.value.trim() || undefined,
+                    },
+                  })
+                }
+                className="h-8 text-xs flex-1 font-mono"
+                dir="ltr"
+              />
+            </div>
+            <div className="flex flex-wrap gap-1 mt-1">
+              {[
+                { label: "بدون سایه", val: "none" },
+                { label: "ظریف", val: "0 1px 2px rgba(0,0,0,0.2)" },
+                { label: "متوسط", val: "0 2px 4px rgba(0,0,0,0.3)" },
+                { label: "عمیق", val: "0 4px 8px rgba(0,0,0,0.4)" },
+                { label: "درخشان (Glow)", val: "0 0 8px var(--primary)" },
+              ].map((tok) => (
+                <button
+                  key={tok.label}
+                  type="button"
+                  onClick={() =>
+                    handleDeviceStyleChange({
+                      typography: {
+                        ...currentDeviceStyle.typography,
+                        textShadow: tok.val === "none" ? undefined : tok.val,
+                      },
+                    })
+                  }
+                  className="px-2 py-0.5 rounded text-[10px] bg-muted/80 hover:bg-muted text-muted-foreground hover:text-foreground border border-border/60 transition"
+                >
+                  {tok.label}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
 
         {/* CSS Filters (Elementor Parity) */}

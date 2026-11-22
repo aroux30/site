@@ -1694,6 +1694,47 @@
 
 ---
 
+### 🏋️ راند ۴۳ (Round 43) — وزنه ۸: ۱۰۰ کیلو (پورت و تکمیل اتصال ۴ لایه ویجت‌های فرم جستجو Search Bar و فهرست ناوبری Nav Menu در ویوپورت ۱۰۸۰×۱۹۲۰)
+- **تاریخ اجرا**: 2026-11-22
+- **شاخه ایزوله**: `claude/trusting-booth-4a3d0e`
+- **پورت استودیو**: ۴۰۲۱
+- **ویوپورت بازرسی عمیق انسانی**: ۱۹۲۰ در ۱۰۸۰ پیکسل (Full HD)
+- **وضعیت**: ✅ کامل و سبز (تکمیل ارتباط ۴ لایه ویجت‌های فرم جستجو و فهرست ناوبری در پالت، بازرس، بوم زنده و کامپایلر سرور با کنترل‌های غنی و تست Playwright در ابعاد ۱۹۲۰×۱۰۸۰)
+
+#### ۱. قابلیت‌ها و اصلاحات انجام‌شده
+1. **پورت ویجت فرم جستجو (`search_bar`) از Elementor Pro**:
+   - مرجع المنتور: ویجت سرچ هدر و آرشیو (`elementor-pro/modules/theme-elements/widgets/search-form.php`).
+   - اضافه شدن به پالت پایه‌ای در [block-registry.ts](frontend/lib/builder/block-registry.ts) با آیکون `Search`.
+   - کنترل‌های بازرس در [inspector-panel.tsx](frontend/components/admin/builder/inspector-panel.tsx) برای متن راهنما (Placeholder)، متن دکمه اقدام و آدرس مقصد ارسال جستجو (`action_url`).
+   - رندرینگ زنده با کادر ورودی مدرن و دکمه ترغیب‌کننده در [canvas-element.tsx](frontend/components/admin/builder/canvas-element.tsx).
+   - خروجی بهینه فرم HTML سمانتیک در [ast_compiler.py](backend/app/modules/content/application/ast_compiler.py).
+2. **پورت ویجت فهرست ناوبری (`nav_menu`) از Elementor Pro**:
+   - مرجع المنتور: ویجت منوی سایت (`elementor-pro/modules/nav-menu/widgets/nav-menu.php`).
+   - اضافه شدن به پالت در دسته چیدمان (`layout`) با آیکون `Menu`.
+   - کنترل‌های بازرس برای مدیریت داینامیک پیوندها (افزودن، ویرایش عناوین، تغییر URL و حذف آیتم‌ها).
+   - رندر زنده پیوندهای شکیل با هاور نرم در بوم و تگ‌های سمانتیک `<nav>` و `<ul>` در سرور.
+3. **بررسی ۳۶۰ درجه بصری در رزولوشن 1920x1080**:
+   - جستجوی سریع «فرم جستجو» و «فهرست ناوبری» در پالت با ۱ نتیجه، درج موفق هر دو روی بوم و تنظیم مستقیم در پنل بازرس.
+
+#### ۲. مستندات بصری (Vision Artifacts)
+- **قبل از اصلاح**: `.loop/artifacts/builder-gym/round-43/before/`
+  - `01-studio-overview.png`
+- **بعد از اصلاح**: `.loop/artifacts/builder-gym/round-43/after/`
+  - `01-search-nav-verified-1920x1080.png` (اعمال هم‌زمان کادر جستجو و فهرست ناوبری با ۳ پیوند روی بوم و بازرس فعال)
+
+#### ۳. تست‌های رگرسیون دائمی اضافه‌شده
+- فایل تست Playwright: `frontend/tests/e2e/builder-gym-r51.spec.ts` (۱ تست سبز در ابعاد 1920x1080)
+- فایل تست پایتون: `backend/app/tests/unit/test_ast_compiler.py::test_ast_compiler_renders_search_bar_and_nav_menu_widgets` (۱ تست سبز)
+- فایل تست ویتست: `frontend/tests/native-widgets.test.ts` (تست اعتبارسنجی ثبت و انطباق با PageASTSchema)
+
+#### ۴. نتایج نهایی ممیزی و تست‌ها در راند ۴۳
+- `npx tsc --noEmit`: ۰ خطا (سبز)
+- `npm test` (Vitest): **۳۷۸ تست سبز در ۴۵ فایل** (`378 passed`)
+- `python -m pytest app/tests/unit`: **۶۴۶ تست سبز** (`646 passed, 2 skipped`)
+- تست‌های Playwright راند ۴۳: **۱ تست سبز در ۵.۹ ثانیه در ویوپورت 1920x1080**
+
+---
+
 ## 🏆 گواهینامه نهایی مسترینگ کامل: BUILDER_GYM_ALL_LEVELS_MASTERED
 
 بدین‌وسیله رسماً تایید و ثبت می‌گردد که کلیه وزنه‌های ۱ تا ۹ نردبان پیش‌رونده Visual Page Builder بر اساس دستورالعمل جامع المنتور و استانداردهای سخت‌گیرانه ۳۶۰ درجه با موفقیت ۱۰۰٪ کامل شدند:

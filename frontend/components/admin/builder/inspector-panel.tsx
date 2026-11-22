@@ -3124,6 +3124,106 @@ export function InspectorPanel() {
         );
       }
 
+      case "search_bar":
+        return (
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs">متن راهنمای جستجو (Placeholder)</Label>
+              <Input
+                data-testid="search-bar-placeholder-input"
+                value={String(props.placeholder || "جستجو در میان کالاها...")}
+                onChange={(e) => handlePropChange("placeholder", e.target.value)}
+                className="h-8 text-xs"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">متن دکمه جستجو</Label>
+              <Input
+                data-testid="search-bar-btn-input"
+                value={String(props.button_text || "جستجو")}
+                onChange={(e) => handlePropChange("button_text", e.target.value)}
+                className="h-8 text-xs"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">آدرس ارسال فرم جستجو (Action URL)</Label>
+              <Input
+                value={String(props.action_url || "/search")}
+                onChange={(e) => handlePropChange("action_url", e.target.value)}
+                className="h-8 text-xs font-mono"
+                dir="ltr"
+              />
+            </div>
+          </div>
+        );
+
+      case "nav_menu": {
+        const rawItems = Array.isArray(props.items) ? (props.items as any[]) : [];
+        const items = rawItems.length > 0 ? rawItems : [
+          { title: "صفحه اصلی", url: "/" },
+          { title: "فروشگاه", url: "/products" },
+          { title: "وبلاگ", url: "/blog" },
+        ];
+        return (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <Label className="text-xs font-bold">پیوندهای منو</Label>
+              <button
+                type="button"
+                onClick={() => {
+                  const updated = [...items, { title: `پیوند ${items.length + 1}`, url: "/page" }];
+                  handlePropChange("items", updated);
+                }}
+                className="text-[11px] text-primary hover:underline font-semibold"
+              >
+                + افزودن پیوند
+              </button>
+            </div>
+            <div className="space-y-2">
+              {items.map((it, idx) => (
+                <div key={idx} className="p-2 rounded-lg border bg-muted/20 space-y-1.5">
+                  <div className="flex items-center gap-1.5">
+                    <Input
+                      value={it.title || ""}
+                      placeholder="عنوان منو"
+                      onChange={(e) => {
+                        const updated = [...items];
+                        updated[idx] = { ...updated[idx], title: e.target.value };
+                        handlePropChange("items", updated);
+                      }}
+                      className="h-7 text-xs flex-1 font-semibold"
+                    />
+                    {items.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const updated = items.filter((_, i) => i !== idx);
+                          handlePropChange("items", updated);
+                        }}
+                        className="text-[10px] text-destructive hover:underline"
+                      >
+                        حذف
+                      </button>
+                    )}
+                  </div>
+                  <Input
+                    value={it.url || ""}
+                    placeholder="آدرس اینترنتی (URL)"
+                    onChange={(e) => {
+                      const updated = [...items];
+                      updated[idx] = { ...updated[idx], url: e.target.value };
+                      handlePropChange("items", updated);
+                    }}
+                    className="h-7 text-xs font-mono"
+                    dir="ltr"
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      }
+
       default:
         return (
           <div className="text-xs text-muted-foreground py-2">

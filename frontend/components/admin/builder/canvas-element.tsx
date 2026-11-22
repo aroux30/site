@@ -2310,6 +2310,50 @@ function CanvasElementComponent({
           </div>
         );
       }
+      case "search_bar": {
+        const placeholder = String(props.placeholder || "جستجو در میان کالاها...");
+        const btnText = String(props.button_text || "جستجو");
+        return (
+          <div className="flex items-center gap-2 w-full max-w-md my-1 select-none pointer-events-none">
+            <div className="relative flex-1">
+              <input
+                type="search"
+                readOnly
+                placeholder={placeholder}
+                className="w-full rounded-xl border border-input bg-background py-2.5 px-4 text-xs focus:outline-none"
+              />
+            </div>
+            <button
+              type="button"
+              className="px-5 py-2.5 rounded-xl bg-primary text-primary-foreground text-xs font-bold shadow-xs transition"
+            >
+              {btnText}
+            </button>
+          </div>
+        );
+      }
+      case "nav_menu": {
+        const items = Array.isArray(props.items) && props.items.length > 0
+          ? props.items
+          : [
+              { title: "صفحه اصلی", url: "/" },
+              { title: "فروشگاه", url: "/products" },
+              { title: "وبلاگ", url: "/blog" },
+            ];
+        return (
+          <nav aria-label="فهرست ناوبری" className="w-full py-1 select-none pointer-events-none">
+            <ul className="flex flex-wrap items-center gap-2 list-none m-0 p-0">
+              {items.map((it: any, idx: number) => (
+                <li key={idx} className="inline-block">
+                  <span className="px-3 py-1.5 rounded-lg text-xs font-bold text-foreground hover:text-primary transition-colors cursor-pointer">
+                    {it.title}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        );
+      }
       default:
         return (
           <div className="rounded-lg border border-dashed border-border p-4 text-center text-sm text-muted-foreground">

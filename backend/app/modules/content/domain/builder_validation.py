@@ -104,6 +104,8 @@ STANDARD_WIDGET_TYPES: frozenset[str] = frozenset({
     "google_maps",
     "read_more",
     "rating",
+    "search_bar",
+    "nav_menu",
     "faq",
     "video",
     "social_links",

@@ -3010,6 +3010,50 @@ export function InspectorPanel() {
           </div>
         );
 
+      case "search_bar":
+        return (
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs font-bold">متن راهنمای جستجو (Placeholder)</Label>
+              <Input
+                value={String(props.placeholder || "")}
+                onChange={(e) => handlePropChange("placeholder", e.target.value)}
+                className="h-8 text-xs"
+                placeholder="جستجو در میان کالاها..."
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs font-bold">متن روی دکمه جستجو</Label>
+              <Input
+                value={String(props.button_text || "جستجو")}
+                onChange={(e) => handlePropChange("button_text", e.target.value)}
+                className="h-8 text-xs"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs font-bold">آدرس صفحه نتایج (URL)</Label>
+              <Input
+                value={String(props.action_url || "/search")}
+                onChange={(e) => handlePropChange("action_url", e.target.value)}
+                className="h-8 text-xs font-mono"
+                dir="ltr"
+              />
+            </div>
+          </div>
+        );
+
+      case "nav_menu":
+        return (
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs font-bold">منوی ناوبری سایت</Label>
+              <p className="text-[11px] text-muted-foreground leading-relaxed">
+                پیوندهای افقی هدر و فوتر بر اساس آیتم‌های منو در این بخش تنظیم و نمایش داده می‌شوند.
+              </p>
+            </div>
+          </div>
+        );
+
       default:
         return (
           <div className="text-xs text-muted-foreground py-2">

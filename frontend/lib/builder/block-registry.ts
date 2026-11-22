@@ -58,6 +58,8 @@ import {
   Music,
   MapPin,
   BookOpen,
+  Search,
+  Compass,
   type LucideIcon,
 } from "lucide-react";
 import type { BuilderElement } from "@/types/builder";
@@ -1788,6 +1790,52 @@ export const BASIC_BLOCK_DEFINITIONS: BlockDefinition[] = [
       widgetProps: {
         score: 4.8,
         rating_scale: 5,
+      },
+      isLocked: false,
+      isHidden: false,
+      styles: { mobile: {} },
+      children: [],
+    }),
+  },
+  {
+    type: "search_bar",
+    name: "نوار جستجوی پیشرفته (Search)",
+    category: "basic",
+    icon: Search,
+    description: "فرم جستجوی زنده با فیلد متنی، دکمه اقدام و اتصال به نتایج",
+    createDefaultElement: () => ({
+      id: `el_${Math.random().toString(36).slice(2, 10)}`,
+      name: "نوار جستجو",
+      type: "widget",
+      widgetType: "search_bar",
+      widgetProps: {
+        placeholder: "جستجو در میان کالاها و مقالات...",
+        action_url: "/search",
+        button_text: "جستجو",
+      },
+      isLocked: false,
+      isHidden: false,
+      styles: { mobile: {} },
+      children: [],
+    }),
+  },
+  {
+    type: "nav_menu",
+    name: "منوی ناوبری سایت (Nav Menu)",
+    category: "basic",
+    icon: Compass,
+    description: "منوی پیوندهای ناوبری اصلی سایت با استایل مدرن و هماهنگ",
+    createDefaultElement: () => ({
+      id: `el_${Math.random().toString(36).slice(2, 10)}`,
+      name: "منوی ناوبری",
+      type: "widget",
+      widgetType: "nav_menu",
+      widgetProps: {
+        items: [
+          { title: "صفحه اصلی", url: "/" },
+          { title: "محصولات", url: "/products" },
+          { title: "درباره ما", url: "/about" },
+        ],
       },
       isLocked: false,
       isHidden: false,

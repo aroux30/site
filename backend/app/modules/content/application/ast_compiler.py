@@ -1309,6 +1309,33 @@ class ASTCompiler:
                 f'</div>'
             )
 
+        elif widget_type == "search_bar":
+            placeholder = html.escape(str(props.get("placeholder", "جستجو در میان کالاها...")))
+            action_url = html.escape(str(props.get("action_url", "/search")))
+            btn_text = html.escape(str(props.get("button_text", "جستجو")))
+            return (
+                f'<form{id_attr} action="{action_url}" method="GET" class="builder-search-bar flex items-center gap-2 w-full max-w-md my-2 {css_class}" data-widget="search_bar"{style_attr}>'
+                f'<div class="relative flex-1">'
+                f'<input type="search" name="q" placeholder="{placeholder}" class="w-full rounded-xl border border-input bg-background py-2.5 px-4 text-xs focus:outline-none focus:border-primary" />'
+                f'</div>'
+                f'<button type="submit" class="px-5 py-2.5 rounded-xl bg-primary text-primary-foreground text-xs font-bold shadow-xs hover:bg-primary/90 transition">{btn_text}</button>'
+                f'</form>'
+            )
+
+        elif widget_type == "nav_menu":
+            menu_items = props.get("items", [{"title": "صفحه اصلی", "url": "/"}, {"title": "فروشگاه", "url": "/products"}, {"title": "وبلاگ", "url": "/blog"}])
+            links_html = ""
+            if isinstance(menu_items, list):
+                for mi in menu_items:
+                    m_title = html.escape(str(mi.get("title", "")))
+                    m_url = html.escape(str(mi.get("url", "#")))
+                    links_html += f'<li class="inline-block"><a href="{m_url}" class="px-3 py-1.5 rounded-lg text-xs font-bold text-foreground hover:text-primary transition">{m_title}</a></li>'
+            return (
+                f'<nav{id_attr} class="builder-nav-menu w-full py-2 {css_class}" data-widget="nav_menu"{style_attr}>'
+                f'<ul class="flex flex-wrap items-center gap-2 list-none m-0 p-0">{links_html}</ul>'
+                f'</nav>'
+            )
+
         # Generic fallback for any other registered widget
         fallback_title = html.escape(str(props.get("title", widget_type)))
         return f'<div{id_attr} class="builder-widget builder-{widget_type} {css_class}" data-widget="{html.escape(widget_type)}"{style_attr}>{fallback_title}</div>'

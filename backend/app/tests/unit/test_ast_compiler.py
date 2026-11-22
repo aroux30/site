@@ -637,6 +637,43 @@ def test_ast_compiler_renders_read_more_and_rating_widgets():
     assert "4.8" in result
 
 
+def test_ast_compiler_renders_search_bar_and_nav_menu_widgets():
+    """Verify SSR compilation for search_bar and nav_menu."""
+    ast = PageAST(
+        schema_version=1,
+        title="تست جستجو و ناوبری",
+        slug="test-search-nav",
+        root_elements=[
+            BuilderElement(
+                id="el_sec_sn",
+                name="بخش جستجو و منو",
+                type="container",
+                children=[
+                    BuilderElement(
+                        id="el_search01",
+                        name="نوار جستجو",
+                        type="widget",
+                        widget_type="search_bar",
+                        widget_props={"placeholder": "جستجوی موبایل...", "action_url": "/search"},
+                    ),
+                    BuilderElement(
+                        id="el_nav01",
+                        name="منوی سایت",
+                        type="widget",
+                        widget_type="nav_menu",
+                        widget_props={"items": [{"title": "خانه", "url": "/"}]},
+                    ),
+                ],
+            )
+        ],
+    )
+    result = ASTCompiler.compile(ast)
+    assert 'class="builder-search-bar' in result
+    assert "جستجوی موبایل..." in result
+    assert 'class="builder-nav-menu' in result
+    assert "خانه" in result
+
+
 def test_ast_compiler_renders_p3_ecommerce_native_widgets():
     ast = PageAST(
         schema_version=1,

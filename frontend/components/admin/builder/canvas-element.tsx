@@ -2215,6 +2215,46 @@ function CanvasElementComponent({
           </div>
         );
       }
+      case "search_bar": {
+        const placeholder = String(props.placeholder || "جستجو در میان کالاها...");
+        const btnText = String(props.button_text || "جستجو");
+        return (
+          <div className="flex items-center gap-2 w-full max-w-md my-2" dir="rtl">
+            <input
+              type="search"
+              readOnly
+              placeholder={placeholder}
+              className="flex-1 rounded-xl border border-input bg-background py-2 px-3 text-xs"
+            />
+            <button
+              type="button"
+              className="px-4 py-2 rounded-xl bg-primary text-primary-foreground font-bold text-xs shadow-xs"
+              onClick={(e) => e.preventDefault()}
+            >
+              {btnText}
+            </button>
+          </div>
+        );
+      }
+      case "nav_menu": {
+        const rawItems = Array.isArray(props.items) ? (props.items as any[]) : [];
+        const menuItems = rawItems.length > 0 ? rawItems : [
+          { title: "صفحه اصلی" }, { title: "محصولات" }, { title: "درباره ما" }
+        ];
+        return (
+          <nav className="w-full py-1 text-right">
+            <ul className="flex flex-wrap items-center gap-2 list-none m-0 p-0">
+              {menuItems.map((mi, idx) => (
+                <li key={idx} className="inline-block">
+                  <span className="px-3 py-1.5 rounded-lg text-xs font-bold text-foreground hover:text-primary transition cursor-pointer">
+                    {mi.title}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        );
+      }
       default:
         return (
           <div className="rounded-lg border border-dashed border-border p-4 text-center text-sm text-muted-foreground">

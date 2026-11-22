@@ -72,12 +72,15 @@ export interface TransformStyle {
   skewY?: number | null;  // degrees
   translateX?: number | null; // px
   translateY?: number | null; // px
+  flipX?: boolean | null;
+  flipY?: boolean | null;
 }
 
 export interface MaskStyle {
   shape?: "none" | "circle" | "flower" | "triangle" | "blob" | "hexagon" | string | null;
   size?: "contain" | "cover" | "auto" | null;
   position?: string | null;
+  repeat?: "no-repeat" | "repeat" | "repeat-x" | "repeat-y" | null;
 }
 
 export interface DeviceStyle {

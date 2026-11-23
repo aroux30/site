@@ -1,6 +1,6 @@
 {
-  "active_round": 40,
-  "last_completed_round": 40,
+  "active_round": 41,
+  "last_completed_round": 41,
   "level": 9,
   "target_weight": "Weight 9: Landing Page from Scratch + P2/P3 Cleanups",
   "port": 1002,
@@ -12,13 +12,14 @@
     37,
     38,
     39,
-    40
+    40,
+    41
   ],
   "metrics": {
     "typeCheckErrors": 0,
     "frontendUnitTestsPassed": 380,
     "backendUnitTestsPassed": 648,
-    "playwrightTestsPassed": 2,
+    "playwrightTestsPassed": 3,
     "registeredBlocksCount": 76
   },
   "defect_ledger": [
@@ -37,15 +38,23 @@
       "layer": "Frontend Canvas Element",
       "status": "RESOLVED",
       "fixed_in_round": 40
+    },
+    {
+      "id": "DEF-R41-001",
+      "severity": "P3",
+      "title": "Missing data-testid and tactile active state on code_highlight copy button",
+      "layer": "Frontend Canvas Element",
+      "status": "RESOLVED",
+      "fixed_in_round": 41
     }
   ],
   "som_inventory": {
-    "round_040": {
+    "round_041": {
       "total_elements": 35,
       "tested_elements": 35,
       "mutations_passed": 35,
       "health_status": "HEALTHY"
     }
   },
-  "timestamp": "2026-11-23T06:54:45.331Z"
+  "timestamp": "2026-11-23T07:13:04.456Z"
 }

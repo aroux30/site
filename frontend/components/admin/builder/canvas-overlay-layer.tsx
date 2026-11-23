@@ -189,9 +189,11 @@ export function CanvasOverlayLayer({
   if (selectedRect) {
     const scrollY = win.scrollY || 0;
     const viewportTop = selectedRect.top - scrollY;
+    const targetEl = doc.querySelector(`[data-element-id="${selectedElementId}"]`);
+    const isSticky = targetEl ? win.getComputedStyle(targetEl).position === "sticky" : false;
 
-    // Flip below only if there is not enough clearance above in both viewport and document
-    if (viewportTop < TOOLBAR_HEIGHT && selectedRect.top < TOOLBAR_HEIGHT + 2) {
+    // Flip below if sticky container or if there is not enough clearance above in viewport/document
+    if ((isSticky && viewportTop < TOOLBAR_HEIGHT + 8) || (viewportTop < TOOLBAR_HEIGHT && selectedRect.top < TOOLBAR_HEIGHT + 2)) {
       toolbarTop = selectedRect.top + selectedRect.height + 4;
     } else {
       toolbarTop = Math.max(2, selectedRect.top - TOOLBAR_HEIGHT - 2);

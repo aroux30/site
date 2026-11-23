@@ -915,8 +915,12 @@ class ASTCompiler:
             features_html = ""
             if isinstance(features, list):
                 for f in features:
-                    f_text = html.escape(str(f.get("text", "")))
-                    f_avail = bool(f.get("available", True))
+                    if isinstance(f, dict):
+                        f_text = html.escape(str(f.get("text", "")))
+                        f_avail = bool(f.get("available", True))
+                    else:
+                        f_text = html.escape(str(f))
+                        f_avail = True
                     status_class = "text-foreground font-medium" if f_avail else "text-muted-foreground line-through opacity-70"
                     icon_circle = "bg-emerald-500/10 text-emerald-600" if f_avail else "bg-muted text-muted-foreground/40"
                     icon_char = "✓" if f_avail else "–"
@@ -1575,6 +1579,24 @@ class ASTCompiler:
             return (
                 f'<div{id_attr} class="builder-posts-grid w-full space-y-4 {css_class}" data-widget="posts_grid"{style_attr}>'
                 f'<div class="grid gap-4 w-full {col_class}">{cards_html}</div>'
+                f'</div>'
+            )
+
+        elif widget_type == "floating_bar":
+            phone = html.escape(str(props.get("phone", "09120000000")))
+            msg = html.escape(str(props.get("message", "نیاز به مشاوره دارید؟")))
+            btn_text = html.escape(str(props.get("button_text", "تماس فوری")))
+            btn_url = html.escape(str(props.get("button_url", f"tel:{phone}")))
+            return (
+                f'<div{id_attr} class="builder-floating-bar flex items-center justify-between p-3.5 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-900 dark:text-emerald-100 w-full shadow-sm {css_class}" data-widget="floating_bar"{style_attr}>'
+                f'<div class="flex items-center gap-2.5">'
+                f'<span class="w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0">📞</span>'
+                f'<div class="text-right">'
+                f'<div class="text-xs font-bold">{msg}</div>'
+                f'<div class="text-[10px] font-mono opacity-80" dir="ltr">{phone}</div>'
+                f'</div>'
+                f'</div>'
+                f'<a href="{btn_url}" class="px-3.5 py-1.5 rounded-xl bg-emerald-600 text-white text-xs font-bold hover:bg-emerald-700 transition shadow">{btn_text}</a>'
                 f'</div>'
             )
 

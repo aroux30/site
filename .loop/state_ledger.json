@@ -9,6 +9,78 @@
   "completedRounds": 49,
   "defect_ledger": [
     {
+      "id": "DEFECT-R41-01",
+      "severity": "P1",
+      "round": 41,
+      "title": "Sticky Header and Z-Index clearance during Landing Hero drag-drop",
+      "status": "FIXED",
+      "layer": "frontend/components/admin/builder/canvas-overlay-layer.tsx",
+      "description": "Sticky container overlaps canvas toolbar when hero section height exceeds viewport. Fixed by dynamic clearance calculation in canvas-overlay-layer."
+    },
+    {
+      "id": "DEFECT-R41-02",
+      "severity": "P1",
+      "round": 41,
+      "title": "Pricing Table Currency Unit localization and RTL column spacing in Landing section",
+      "status": "FIXED",
+      "layer": "frontend/components/admin/builder/canvas-element.tsx",
+      "description": "Price table currency text alignment flips on mobile viewport in canvas. Fixed by explicit dir=rtl, flex alignment, subtitle/period support and ast_compiler parity."
+    },
+    {
+      "id": "DEFECT-R41-03",
+      "severity": "P2",
+      "round": 41,
+      "title": "Multi-Step Form progress indicator contrast in dark mode on canvas",
+      "status": "FIXED",
+      "layer": "frontend/components/admin/builder/canvas-element.tsx",
+      "description": "Step number badge lacks sufficient contrast against active step background. Fixed with high-contrast WCAG 4.5:1 classes and border ring."
+    },
+    {
+      "id": "DEFECT-R41-04",
+      "severity": "P2",
+      "round": 41,
+      "title": "Call To Action button hover transition duration missing explicit unit mapping",
+      "status": "FIXED",
+      "layer": "frontend/components/admin/builder/canvas-element.tsx",
+      "description": "Hover state transitionDuration in device style requires standard seconds format. Fixed with unit mapping for seconds and milliseconds."
+    },
+    {
+      "id": "DEFECT-R42-01",
+      "severity": "P1",
+      "round": 42,
+      "title": "Missing SSR HTML compilation for floating_bar widget",
+      "status": "FIXED",
+      "layer": "backend/app/modules/content/application/ast_compiler.py",
+      "description": "floating_bar widget was missing from backend AST compiler leading to fallback unknown widget div in SSR. Fixed with full semantic HTML compilation."
+    },
+    {
+      "id": "DEFECT-R42-02",
+      "severity": "P1",
+      "round": 42,
+      "title": "Backend 422 validation rejection for floating_bar type during autosave",
+      "status": "FIXED",
+      "layer": "backend/app/modules/content/domain/builder_validation.py",
+      "description": "STANDARD_WIDGET_TYPES in validation engine lacked floating_bar causing 422 error on autosave. Fixed by adding floating_bar to allowed types."
+    },
+    {
+      "id": "DEFECT-R42-03",
+      "severity": "P2",
+      "round": 42,
+      "title": "Floating bar mobile layout button wrap and phone text overlap",
+      "status": "FIXED",
+      "layer": "frontend/components/admin/builder/canvas-element.tsx",
+      "description": "In 375px mobile viewport, call button wrapped awkwardly over text. Fixed with flex-col sm:flex-row responsive layout."
+    },
+    {
+      "id": "DEFECT-R42-04",
+      "severity": "P2",
+      "round": 42,
+      "title": "Duplicate price_table switch case in canvas-element shadowing updated features",
+      "status": "FIXED",
+      "layer": "frontend/components/admin/builder/canvas-element.tsx",
+      "description": "Earlier price_table case at line 1704 shadowed line 1939. Consolidated to full featured version."
+    },
+    {
       "id": "DEFECT-R49-01",
       "severity": "P1",
       "round": 49,

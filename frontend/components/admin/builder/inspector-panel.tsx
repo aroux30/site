@@ -2384,6 +2384,8 @@ export function InspectorPanel() {
         );
 
       case "floating_bar":
+      case "floating_buttons":
+      case "contact_buttons":
         return (
           <div className="space-y-4">
             <div className="space-y-1.5">
@@ -2670,116 +2672,47 @@ export function InspectorPanel() {
       }
 
       case "slides": {
-        const rawSlides = Array.isArray(props.slides) && props.slides.length > 0 ? (props.slides as any[]) : [
-          {
-            title: "تخفیف ویژه آغاز فصل",
-            description: "تا ۵۰٪ تخفیف روی تمامی محصولات برگزیده دیجیتال",
-            button_text: "مشاهده جشنواره",
-            button_link: "/products",
-            bg_color: "linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary)/0.6) 100%)",
-          },
-        ];
+        const slidesList = (props.slides as any[]) || [];
         return (
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <Label className="text-xs font-bold text-foreground">اسلایدهای هیرو ({rawSlides.length})</Label>
-              <button
-                type="button"
-                onClick={() => {
-                  const newSlide = {
-                    title: `اسلاید جدید ${rawSlides.length + 1}`,
-                    description: "توضیحات کوتاه این اسلاید را اینجا بنویسید.",
-                    button_text: "اطلاعات بیشتر",
-                    button_link: "/products",
-                    bg_color: "linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary)/0.7) 100%)",
-                  };
-                  handlePropChange("slides", [...rawSlides, newSlide]);
+            <div className="space-y-1.5">
+              <Label className="text-xs">عنوان اسلاید اول</Label>
+              <Input
+                data-testid="slides-title-input"
+                value={String(slidesList[0]?.title || "")}
+                onChange={(e) => {
+                  const updated = [...slidesList];
+                  updated[0] = { ...(updated[0] || {}), title: e.target.value };
+                  handlePropChange("slides", updated);
                 }}
-                className="text-[11px] text-primary hover:underline font-semibold"
-                data-testid="add-slide-btn"
-              >
-                + افزودن اسلاید
-              </button>
+                className="h-8 text-xs"
+              />
             </div>
-            <div className="space-y-3">
-              {rawSlides.map((slide, idx) => (
-                <div key={idx} className="p-3 rounded-xl border bg-muted/20 space-y-2.5">
-                  <div className="flex items-center justify-between gap-2 border-b border-border/60 pb-1.5">
-                    <span className="text-[11px] font-bold text-foreground">اسلاید {idx + 1}</span>
-                    {rawSlides.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const updated = rawSlides.filter((_, i) => i !== idx);
-                          handlePropChange("slides", updated);
-                        }}
-                        className="text-xs text-destructive hover:underline"
-                        data-testid={`delete-slide-${idx}`}
-                      >
-                        حذف
-                      </button>
-                    )}
-                  </div>
-                  <div className="space-y-1">
-                    <Label className="text-[11px] text-muted-foreground">عنوان اسلاید</Label>
-                    <Input
-                      data-testid={idx === 0 ? "slides-title-input" : `slide-title-${idx}`}
-                      value={slide.title || ""}
-                      onChange={(e) => {
-                        const updated = [...rawSlides];
-                        updated[idx] = { ...updated[idx], title: e.target.value };
-                        handlePropChange("slides", updated);
-                      }}
-                      className="h-8 text-xs font-semibold"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <Label className="text-[11px] text-muted-foreground">توضیحات اسلاید</Label>
-                    <textarea
-                      data-testid={idx === 0 ? "slides-desc-input" : `slide-desc-${idx}`}
-                      rows={2}
-                      value={slide.description || ""}
-                      onChange={(e) => {
-                        const updated = [...rawSlides];
-                        updated[idx] = { ...updated[idx], description: e.target.value };
-                        handlePropChange("slides", updated);
-                      }}
-                      className="w-full rounded-md border border-input bg-background p-2 text-xs leading-relaxed"
-                    />
-                  </div>
-                  <div className="grid grid-cols-2 gap-2">
-                    <div className="space-y-1">
-                      <Label className="text-[10px] text-muted-foreground">متن دکمه</Label>
-                      <Input
-                        data-testid={`slide-btn-text-${idx}`}
-                        value={slide.button_text || ""}
-                        placeholder="متن دکمه"
-                        onChange={(e) => {
-                          const updated = [...rawSlides];
-                          updated[idx] = { ...updated[idx], button_text: e.target.value };
-                          handlePropChange("slides", updated);
-                        }}
-                        className="h-8 text-xs"
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <Label className="text-[10px] text-muted-foreground">لینک دکمه</Label>
-                      <Input
-                        data-testid={`slide-btn-link-${idx}`}
-                        value={slide.button_link || ""}
-                        placeholder="/products"
-                        onChange={(e) => {
-                          const updated = [...rawSlides];
-                          updated[idx] = { ...updated[idx], button_link: e.target.value };
-                          handlePropChange("slides", updated);
-                        }}
-                        className="h-8 text-xs font-mono"
-                        dir="ltr"
-                      />
-                    </div>
-                  </div>
-                </div>
-              ))}
+            <div className="space-y-1.5">
+              <Label className="text-xs">متن توضیحات اسلاید</Label>
+              <textarea
+                data-testid="slides-desc-input"
+                rows={3}
+                value={String(slidesList[0]?.description || "")}
+                onChange={(e) => {
+                  const updated = [...slidesList];
+                  updated[0] = { ...(updated[0] || {}), description: e.target.value };
+                  handlePropChange("slides", updated);
+                }}
+                className="w-full rounded-md border border-input bg-background p-2 text-xs leading-relaxed"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">متن دکمه اسلاید</Label>
+              <Input
+                value={String(slidesList[0]?.button_text || "")}
+                onChange={(e) => {
+                  const updated = [...slidesList];
+                  updated[0] = { ...(updated[0] || {}), button_text: e.target.value };
+                  handlePropChange("slides", updated);
+                }}
+                className="h-8 text-xs"
+              />
             </div>
           </div>
         );

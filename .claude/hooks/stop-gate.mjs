@@ -6,14 +6,20 @@ const input = JSON.parse(readFileSync(0, "utf8"));
 if (input?.stop_hook_active) process.exit(0);
 if (existsSync(join(process.cwd(), "AGENT_STOP"))) process.exit(0);
 
-const round = process.env.GYM_ROUND;
+let round = process.env.GYM_ROUND;
+if (!round) {
+  try {
+    const ledger = JSON.parse(readFileSync(join(process.cwd(), ".loop", "state_ledger.json"), "utf8"));
+    round = String(ledger.activeRound);
+  } catch {}
+}
 if (!round) process.exit(0);
 
 const root = process.cwd();
 const missing = [];
 const visionLogPath = join(root, ".loop", "vision_reads.jsonl");
 const ledgerPath = join(root, ".loop", "state_ledger.json");
-const scopeDir = process.env.GYM_SCOPE === "builder" ? "builder-gym" : "gym";
+const scopeDir = (process.env.GYM_SCOPE || "builder") === "builder" ? "builder-gym" : "gym";
 const roundDir = join(root, ".loop", "artifacts", scopeDir, `round-${String(round).padStart(3, "0")}`);
 const verdictPath = join(roundDir, "verifier_verdict.json");
 

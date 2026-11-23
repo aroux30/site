@@ -2611,6 +2611,39 @@ export function InspectorPanel() {
                 dir="ltr"
               />
             </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">فیلتر دسته‌بندی</Label>
+              <Input
+                value={String(props.category || "all")}
+                onChange={(e) => handlePropChange("category", e.target.value)}
+                placeholder="all یا نام دسته"
+                className="h-8 text-xs"
+              />
+            </div>
+            <div className="flex items-center justify-between pt-1 border-t border-border/50">
+              <Label className="text-xs">نمایش قیمت</Label>
+              <Switch
+                checked={props.show_price !== false}
+                onCheckedChange={(val) => handlePropChange("show_price", val)}
+              />
+            </div>
+            <div className="flex items-center justify-between pt-1">
+              <Label className="text-xs">نمایش دکمه اقدام</Label>
+              <Switch
+                checked={props.show_button !== false}
+                onCheckedChange={(val) => handlePropChange("show_button", val)}
+              />
+            </div>
+            {props.show_button !== false && (
+              <div className="space-y-1.5">
+                <Label className="text-xs">متن دکمه</Label>
+                <Input
+                  value={String(props.button_text || "مشاهده و خرید")}
+                  onChange={(e) => handlePropChange("button_text", e.target.value)}
+                  className="h-8 text-xs"
+                />
+              </div>
+            )}
           </div>
         );
 

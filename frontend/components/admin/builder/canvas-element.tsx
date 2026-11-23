@@ -917,12 +917,10 @@ function CanvasElementComponent({
           </div>
         );
       }
-      case "product_grid":
-      case "loop_grid":
-      case "loop_carousel": {
-        const limit = Number(props.limit) || (element.widgetType === "loop_carousel" ? 6 : 4);
+      case "product_grid": {
+        const limit = Number(props.limit) || 4;
         const filter = String(props.filter || "all");
-        const showPagination = props.show_pagination !== false && element.widgetType !== "loop_carousel";
+        const showPagination = props.show_pagination !== false;
 
         const sampleProducts = Array.from({ length: limit }, (_, i) => ({
           id: `grid_prod_${i + 1}`,
@@ -2127,15 +2125,17 @@ function CanvasElementComponent({
         );
       }
       case "multi_step_form": {
-        const rawSteps = (props.steps as any[]) || ["مرحله اول", "مرحله دوم", "مرحله نهایی"];
+        const rawSteps = (props.steps as any[]) || (props.step_titles as any[]) || ["اطلاعات تماس", "آدرس و ارسال", "تایید نهایی"];
         const steps = rawSteps.map((s) => (typeof s === "string" ? s : s?.title || String(s || "")));
         const curStep = Number(props.current_step) || 1;
+        const prevText = String(props.prev_button_text || props.prev_button_label || "مرحله قبل");
+        const nextText = String(props.next_button_text || props.next_button_label || "مرحله بعد");
         return (
-          <div className="p-6 rounded-2xl border border-border/80 bg-card space-y-5 shadow-sm w-full text-right">
+          <div className="p-6 rounded-2xl border border-border/80 bg-card space-y-5 shadow-sm w-full text-right" data-widget="multi_step_form">
             {/* Step Indicators */}
-            <div className="flex items-center justify-between border-b border-border/60 pb-4">
+            <div className="flex items-center justify-between border-b border-border/60 pb-4 flex-wrap gap-2">
               {steps.map((st, idx) => (
-                <div key={idx} className="flex items-center gap-2">
+                <div key={idx} className="flex items-center gap-2 cursor-pointer select-none">
                   <span
                     className={cn(
                       "w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold font-mono transition-all",
@@ -2172,12 +2172,121 @@ function CanvasElementComponent({
             </div>
             {/* Navigation Buttons */}
             <div className="flex items-center justify-between pt-2">
-              <button type="button" className="px-4 py-2 rounded-xl border border-border text-xs font-bold text-muted-foreground">
-                مرحله قبل
+              <button
+                type="button"
+                className="px-4 py-2 rounded-xl border border-border text-xs font-bold text-muted-foreground hover:bg-muted/40 transition"
+              >
+                {prevText}
               </button>
-              <button type="button" className="px-5 py-2 rounded-xl bg-primary text-primary-foreground text-xs font-bold shadow">
-                مرحله بعد
+              <button
+                type="button"
+                className="px-5 py-2 rounded-xl bg-primary text-primary-foreground text-xs font-bold shadow hover:bg-primary/90 transition"
+              >
+                {nextText}
               </button>
+            </div>
+          </div>
+        );
+      }
+      case "loop_grid": {
+        const limit = Math.max(1, Math.min(12, Number(props.limit) || 4));
+        const cols = Math.max(1, Math.min(6, Number(props.columns) || 3));
+        const cat = String(props.category || "all");
+        const showPrice = props.show_price !== false;
+        const showButton = props.show_button !== false;
+        const buttonText = String(props.button_text || "مشاهده و خرید");
+        const dummyItems = Array.from({ length: limit }, (_, i) => ({
+          id: i + 1,
+          title: `کالای فروشگاه نمونه ${i + 1}`,
+          price: `${(150 + i * 45).toLocaleString("fa-IR")} تومان`,
+          category: cat === "all" ? "دسته‌بندی اصلی" : cat,
+          image: "/placeholder-hero.svg",
+        }));
+
+        const colClasses: Record<number, string> = {
+          1: "grid-cols-1",
+          2: "grid-cols-1 sm:grid-cols-2",
+          3: "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3",
+          4: "grid-cols-1 sm:grid-cols-2 lg:grid-cols-4",
+          5: "grid-cols-2 sm:grid-cols-3 lg:grid-cols-5",
+          6: "grid-cols-2 sm:grid-cols-3 lg:grid-cols-6",
+        };
+
+        return (
+          <div className="builder-loop-grid w-full space-y-3 text-right" data-widget="loop_grid">
+            <div className={cn("grid gap-4", colClasses[cols] || "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3")}>
+              {dummyItems.map((item) => (
+                <div
+                  key={item.id}
+                  className="rounded-2xl border border-border/70 bg-card p-3 space-y-2.5 shadow-sm hover:shadow-md transition-all group"
+                >
+                  <div className="aspect-square bg-muted/20 rounded-xl flex items-center justify-center overflow-hidden border border-border/40 relative">
+                    <img
+                      src={item.image}
+                      alt={item.title}
+                      className="p-3 max-h-full object-contain group-hover:scale-105 transition-transform duration-300"
+                      loading="lazy"
+                    />
+                    <span className="absolute top-2 right-2 px-2 py-0.5 rounded-md bg-background/90 text-[10px] font-bold text-muted-foreground border border-border/60">
+                      {item.category}
+                    </span>
+                  </div>
+                  <h4 className="font-bold text-xs text-foreground truncate">{item.title}</h4>
+                  <div className="flex items-center justify-between pt-1 border-t border-border/40">
+                    {showPrice && (
+                      <span className="text-xs font-black text-primary font-mono">{item.price}</span>
+                    )}
+                    {showButton && (
+                      <button
+                        type="button"
+                        className="px-2.5 py-1 rounded-lg bg-primary/10 text-primary text-[11px] font-bold hover:bg-primary hover:text-primary-foreground transition"
+                      >
+                        {buttonText}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      }
+      case "loop_carousel": {
+        const limit = Math.max(1, Math.min(12, Number(props.limit) || 4));
+        const cat = String(props.category || "all");
+        const showPrice = props.show_price !== false;
+        const dummyItems = Array.from({ length: limit }, (_, i) => ({
+          id: i + 1,
+          title: `کالای برگزیده ${i + 1}`,
+          price: `${(210 + i * 50).toLocaleString("fa-IR")} تومان`,
+          category: cat === "all" ? "ویژه" : cat,
+          image: "/placeholder-hero.svg",
+        }));
+
+        return (
+          <div className="builder-loop-carousel w-full space-y-3 text-right" data-widget="loop_carousel">
+            <div className="flex items-center justify-between pb-1">
+              <span className="text-xs font-bold text-muted-foreground">حلقه چرخشی محصولات</span>
+              <div className="flex items-center gap-1.5" dir="ltr">
+                <button type="button" className="w-6 h-6 rounded-lg border border-border/70 flex items-center justify-center text-xs text-muted-foreground hover:bg-muted">‹</button>
+                <button type="button" className="w-6 h-6 rounded-lg border border-border/70 flex items-center justify-center text-xs text-muted-foreground hover:bg-muted">›</button>
+              </div>
+            </div>
+            <div className="flex items-center gap-3 overflow-x-auto pb-2 no-scrollbar">
+              {dummyItems.map((item) => (
+                <div
+                  key={item.id}
+                  className="min-w-[200px] w-52 shrink-0 rounded-2xl border border-border/70 bg-card p-3 space-y-2 shadow-sm"
+                >
+                  <div className="aspect-square bg-muted/20 rounded-xl flex items-center justify-center overflow-hidden border border-border/40">
+                    <img src={item.image} alt={item.title} className="p-3 max-h-full object-contain" loading="lazy" />
+                  </div>
+                  <h4 className="font-bold text-xs text-foreground truncate">{item.title}</h4>
+                  {showPrice && (
+                    <div className="text-xs font-black text-primary font-mono">{item.price}</div>
+                  )}
+                </div>
+              ))}
             </div>
           </div>
         );

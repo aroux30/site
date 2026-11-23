@@ -1,18 +1,18 @@
 {
   "version": "3.2",
   "activeWeight": 9,
-  "activeRound": 47,
+  "activeRound": 50,
   "status": "COMPLETED",
   "levels1to5Status": "BUILDER_GYM_LEVELS_1_TO_5_CLEAN",
   "allLevelsMastered": "BUILDER_GYM_ALL_LEVELS_MASTERED",
-  "verificationPort": 4001,
-  "completedRounds": 47,
+  "verificationPort": 1003,
+  "completedRounds": 50,
   "metrics": {
     "typeCheckErrors": 0,
-    "frontendUnitTests": 380,
-    "backendUnitTests": 650,
+    "frontendUnitTests": 379,
+    "backendUnitTests": 649,
     "playwrightTests": 4,
-    "registeredBlocks": 68,
+    "registeredBlocks": 76,
     "lastVerifierVerdict": "APPROVE"
   },
   "timestamp": "2026-11-23T12:00:00.000Z",
@@ -214,6 +214,42 @@
       "summary": "ast_compiler did not recognize tab_titles and item_titles when compiling specialized containers",
       "status": "FIXED",
       "round": 47
+    },
+    {
+      "id": "DEFECT-R50-01",
+      "severity": "P0",
+      "round": 50,
+      "title": "Loop Grid and Loop Carousel widgets missing dedicated canvas render cases",
+      "status": "FIXED",
+      "layer": "frontend/components/admin/builder/canvas-element.tsx",
+      "description": "loop_grid and loop_carousel fell into product_grid or default fallback on canvas. Fixed with full product cards, responsive grid, and carousel arrows."
+    },
+    {
+      "id": "DEFECT-R50-02",
+      "severity": "P1",
+      "round": 50,
+      "title": "Missing inspector controls for loop_grid and loop_carousel",
+      "status": "FIXED",
+      "layer": "frontend/components/admin/builder/inspector-panel.tsx",
+      "description": "Inspector lacked controls for category filter, columns selector, show price, and show button for loop widgets. Implemented dedicated controls."
+    },
+    {
+      "id": "DEFECT-R50-03",
+      "severity": "P1",
+      "round": 50,
+      "title": "Multi-Step Form hardcoded navigation buttons and missing backend .env jwt secret",
+      "status": "FIXED",
+      "layer": "frontend/components/admin/builder/canvas-element.tsx",
+      "description": "Canvas ignored prev_button_text and next_button_text configured in inspector, and backend returned 500/401 on autosave. Fixed props binding and synced .env."
+    },
+    {
+      "id": "DEFECT-R50-04",
+      "severity": "P2",
+      "round": 50,
+      "title": "Multi-Step Form step indicator text wrapping awkwardly on mobile viewports",
+      "status": "FIXED",
+      "layer": "frontend/components/admin/builder/canvas-element.tsx",
+      "description": "Step indicator headers cramped on 375px mobile viewport. Added responsive flex-wrap and gap-2 spacing."
     }
   ]
 }

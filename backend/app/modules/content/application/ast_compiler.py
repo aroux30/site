@@ -1214,6 +1214,23 @@ class ASTCompiler:
                 f'</div>'
             )
 
+        elif widget_type == "floating_bar":
+            title = html.escape(str(props.get("title") or props.get("message", "نیاز به مشاوره قبل از خرید دارید؟")))
+            btn_label = html.escape(str(props.get("button_label") or props.get("button_text", "تماس فوری")))
+            phone = html.escape(str(props.get("phone", "۰۹۱۲۰۰۰۰۰۰۰")))
+            return (
+                f'<div{id_attr} class="builder-floating-bar flex items-center justify-between p-3.5 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-900 dark:text-emerald-100 w-full shadow-sm {css_class}" data-widget="floating_bar"{style_attr}>'
+                f'<div class="flex items-center gap-2.5">'
+                f'<span class="w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0 text-xs font-bold">📞</span>'
+                f'<div class="text-right">'
+                f'<div class="text-xs font-bold">{title}</div>'
+                f'<div class="text-[10px] font-mono opacity-80" dir="ltr">{phone}</div>'
+                f'</div>'
+                f'</div>'
+                f'<a href="tel:{phone}" class="px-3.5 py-1.5 rounded-xl bg-emerald-600 text-white text-xs font-bold hover:bg-emerald-700 transition shadow">{btn_label}</a>'
+                f'</div>'
+            )
+
         elif widget_type == "image_carousel":
             images = props.get("images", [])
             imgs_html = ""

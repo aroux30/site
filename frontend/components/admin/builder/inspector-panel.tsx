@@ -2629,6 +2629,15 @@ export function InspectorPanel() {
               />
             </div>
             <div className="space-y-1.5">
+              <Label className="text-xs">آدرس ارسال فرم (Action URL)</Label>
+              <Input
+                value={String(props.submit_url || "/api/v1/content/forms/submit")}
+                onChange={(e) => handlePropChange("submit_url", e.target.value)}
+                className="h-8 text-xs font-mono"
+                dir="ltr"
+              />
+            </div>
+            <div className="space-y-1.5">
               <Label className="text-xs">مرحله جاری پیش‌نمایش (۱ تا {stepTitles.length})</Label>
               <Input
                 data-testid="step-form-cur-input"
@@ -2709,37 +2718,62 @@ export function InspectorPanel() {
                   + افزودن مرحله
                 </button>
               </div>
-              {stepTitles.map((st, sIdx) => (
-                <div key={sIdx} className="flex items-center gap-1.5">
-                  <span className="text-[10px] text-muted-foreground w-12 shrink-0">گام {sIdx + 1}:</span>
-                  <Input
-                    type="text"
-                    value={st}
-                    onChange={(e) => {
-                      const newSteps = [...stepTitles];
-                      newSteps[sIdx] = e.target.value;
-                      handlePropChange("steps", newSteps);
-                    }}
-                    className="h-8 text-xs flex-1"
-                  />
-                  {stepTitles.length > 2 && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const newSteps = stepTitles.filter((_, i) => i !== sIdx);
-                        handlePropChange("steps", newSteps);
-                        if (Number(props.current_step) > newSteps.length) {
-                          handlePropChange("current_step", newSteps.length);
+              {stepTitles.map((st, sIdx) => {
+                const stepFieldsMap = (props.step_fields as Record<number, string>) || {};
+                const curFieldsVal = stepFieldsMap[sIdx] || "";
+                return (
+                  <div key={sIdx} className="p-2 rounded-lg border bg-muted/20 space-y-1.5">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[10px] text-muted-foreground w-12 shrink-0">گام {sIdx + 1}:</span>
+                      <Input
+                        type="text"
+                        value={st}
+                        onChange={(e) => {
+                          const newSteps = [...stepTitles];
+                          newSteps[sIdx] = e.target.value;
+                          handlePropChange("steps", newSteps);
+                        }}
+                        className="h-8 text-xs flex-1 font-semibold"
+                      />
+                      {stepTitles.length > 2 && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const newSteps = stepTitles.filter((_, i) => i !== sIdx);
+                            handlePropChange("steps", newSteps);
+                            if (Number(props.current_step) > newSteps.length) {
+                              handlePropChange("current_step", newSteps.length);
+                            }
+                          }}
+                          className="p-1 rounded text-muted-foreground hover:text-destructive hover:bg-destructive/10 text-xs"
+                          title="حذف این مرحله"
+                        >
+                          ✕
+                        </button>
+                      )}
+                    </div>
+                    <div className="pt-0.5">
+                      <span className="text-[10px] text-muted-foreground">فیلدهای این گام (با کاما جدا کنید):</span>
+                      <Input
+                        type="text"
+                        value={curFieldsVal}
+                        placeholder={
+                          sIdx === 0
+                            ? "نام و نام خانوادگی، شماره تماس، ایمیل"
+                            : sIdx === 1
+                            ? "استان و شهر، آدرس دقیق، کد پستی"
+                            : "روش پرداخت، توضیحات سفارش"
                         }
-                      }}
-                      className="p-1 rounded text-muted-foreground hover:text-destructive hover:bg-destructive/10 text-xs"
-                      title="حذف این مرحله"
-                    >
-                      ✕
-                    </button>
-                  )}
-                </div>
-              ))}
+                        onChange={(e) => {
+                          const newMap = { ...stepFieldsMap, [sIdx]: e.target.value };
+                          handlePropChange("step_fields", newMap);
+                        }}
+                        className="h-7 text-xs"
+                      />
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         );

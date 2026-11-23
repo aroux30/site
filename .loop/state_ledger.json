@@ -214,6 +214,33 @@
       "summary": "ast_compiler did not recognize tab_titles and item_titles when compiling specialized containers",
       "status": "FIXED",
       "round": 47
+    },
+    {
+      "id": "DEFECT-R50-01",
+      "severity": "P0",
+      "component": "inspector_panel",
+      "layer": "frontend/components/admin/builder/builder-studio.tsx",
+      "summary": "Inspector aside and subcontainers lacked min-h-0 and had lg:block overriding flex, freezing vertical scrolling",
+      "status": "FIXED",
+      "round": 50
+    },
+    {
+      "id": "DEFECT-R50-02",
+      "severity": "P0",
+      "component": "select_popover",
+      "layer": "frontend/components/ui/select.tsx",
+      "summary": "Radix portals had z-50 rendering underneath full-screen BuilderStudio (z-100), fixed by elevating to z-150",
+      "status": "FIXED",
+      "round": 50
+    },
+    {
+      "id": "DEFECT-R50-03",
+      "severity": "P1",
+      "component": "multi_step_form",
+      "layer": "frontend/components/admin/builder/inspector-panel.tsx",
+      "summary": "Multi-step form lacked step repeater addition/removal, indicators, and live canvas step navigation",
+      "status": "FIXED",
+      "round": 50
     }
   ]
 }

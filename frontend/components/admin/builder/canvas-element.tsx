@@ -2197,18 +2197,44 @@ function CanvasElementComponent({
             {/* Form Fields for Step */}
             <div className="space-y-3">
               <div className="text-xs font-bold text-foreground">ورودی‌های {steps[curStep - 1] || "مرحله فعلی"}</div>
-              <input
-                type="text"
-                placeholder="نام و نام خانوادگی"
-                readOnly
-                className="w-full h-9 rounded-xl border border-input bg-muted/20 px-3 text-xs"
-              />
-              <input
-                type="text"
-                placeholder="شماره تماس همراه"
-                readOnly
-                className="w-full h-9 rounded-xl border border-input bg-muted/20 px-3 text-xs"
-              />
+              {(() => {
+                const customFieldsRaw = (props.step_fields as any)?.[curStep - 1];
+                let fieldNames: string[] = [];
+                if (typeof customFieldsRaw === "string" && customFieldsRaw.trim()) {
+                  fieldNames = customFieldsRaw.split(/[\n،,]/).map((s: string) => s.trim()).filter(Boolean);
+                } else if (Array.isArray(customFieldsRaw) && customFieldsRaw.length > 0) {
+                  fieldNames = customFieldsRaw.map((f: any) => typeof f === "string" ? f : f?.label || f?.name || String(f));
+                }
+
+                if (fieldNames.length === 0) {
+                  // Realistic context-aware default fields per step
+                  if (curStep === 1) {
+                    fieldNames = ["نام و نام خانوادگی", "شماره تماس همراه", "آدرس ایمیل (اختیاری)"];
+                  } else if (curStep === 2) {
+                    fieldNames = ["استان و شهر مقصد", "آدرس پستی کامل و کد رهگیری", "کد پستی ۱۰ رقمی"];
+                  } else if (curStep === 3) {
+                    fieldNames = ["روش پرداخت (درگاه اینترنتی / کارت به کارت)", "توضیحات تکمیلی سفارش"];
+                  } else {
+                    fieldNames = [`ورودی اصلی ${steps[curStep - 1] || ""}`, "توضیحات اختیاری"];
+                  }
+                }
+
+                return (
+                  <div className="space-y-2.5">
+                    {fieldNames.map((fn, fIdx) => (
+                      <div key={fIdx} className="space-y-1">
+                        <label className="text-[11px] font-semibold text-muted-foreground block">{fn}</label>
+                        <input
+                          type="text"
+                          placeholder={`ورود ${fn}...`}
+                          readOnly
+                          className="w-full h-9 rounded-xl border border-input bg-muted/20 px-3 text-xs"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                );
+              })()}
             </div>
             {/* Navigation Buttons */}
             <div className="flex items-center justify-between pt-2">

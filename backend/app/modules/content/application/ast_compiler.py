@@ -1393,11 +1393,12 @@ class ASTCompiler:
             title = html.escape(str(props.get("title", "")))
             title_html = f'<h3 class="font-bold text-sm text-foreground mb-3">{title}</h3>' if title else ""
             raw_steps = props.get("steps", [
-                {"title": "اطلاعات تماس", "fields": ["name", "phone"]},
-                {"title": "مشخصات سفارش", "fields": ["service", "notes"]},
+                "اطلاعات تماس",
+                "آدرس و ارسال",
+                "تایید نهایی",
             ])
-            next_label = html.escape(str(props.get("next_button_label") or props.get("next_label") or "گام بعدی"))
-            prev_label = html.escape(str(props.get("prev_button_label") or props.get("prev_label") or "گام قبلی"))
+            next_label = html.escape(str(props.get("next_button_text") or props.get("next_button_label") or props.get("next_label") or "گام بعدی"))
+            prev_label = html.escape(str(props.get("prev_button_text") or props.get("prev_button_label") or props.get("prev_label") or "گام قبلی"))
             steps_header = ""
             if isinstance(raw_steps, list):
                 for idx, stp in enumerate(raw_steps):
@@ -1412,14 +1413,29 @@ class ASTCompiler:
                         f'<span class="text-xs font-semibold">{s_t}</span>'
                         f'</div>'
                     )
+
+            step_fields_dict = props.get("step_fields") or {}
+            first_step_fields = step_fields_dict.get("0") or step_fields_dict.get(0)
+            if isinstance(first_step_fields, str) and first_step_fields.strip():
+                field_list = [f.strip() for f in first_step_fields.replace("،", ",").split(",") if f.strip()]
+            else:
+                field_list = ["نام و نام‌خانوادگی", "شماره موبایل"]
+
+            fields_html = ""
+            for fl in field_list:
+                fl_esc = html.escape(fl)
+                fields_html += (
+                    f'<div class="space-y-1">'
+                    f'<label class="text-xs font-bold text-foreground">{fl_esc}</label>'
+                    f'<input type="text" class="w-full rounded-xl border border-input p-2.5 text-xs" placeholder="ورود {fl_esc}..." />'
+                    f'</div>'
+                )
+
             return (
                 f'<div{id_attr} class="builder-multi-step-form p-6 rounded-3xl border border-border/80 bg-card space-y-5 text-right w-full {css_class}" data-widget="multi_step_form"{style_attr}>'
                 f'{title_html}'
                 f'<div class="flex items-center justify-between pb-3 border-b border-border/60 flex-wrap gap-2">{steps_header}</div>'
-                f'<div class="space-y-3 pt-2">'
-                f'<div class="space-y-1"><label class="text-xs font-bold">نام و نام‌خانوادگی</label><input type="text" class="w-full rounded-xl border border-input p-2.5 text-xs" placeholder="مثال: علی رضایی" /></div>'
-                f'<div class="space-y-1"><label class="text-xs font-bold">شماره موبایل</label><input type="tel" class="w-full rounded-xl border border-input p-2.5 text-xs" placeholder="۰۹۱۲..." dir="ltr" /></div>'
-                f'</div>'
+                f'<div class="space-y-3 pt-2">{fields_html}</div>'
                 f'<div class="flex items-center justify-between pt-3 border-t border-border/60">'
                 f'<button type="button" class="px-4 py-2 rounded-xl bg-muted text-xs font-bold">{prev_label}</button>'
                 f'<button type="button" class="px-5 py-2 rounded-xl bg-primary text-primary-foreground text-xs font-bold shadow-sm">{next_label} &larr;</button>'

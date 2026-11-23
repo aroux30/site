@@ -224,9 +224,14 @@ describe("Visual Builder Studio Phase P1 Comprehensive Integration Tests", () =>
     useBuilderStore.getState().updateElementProps(formEl.id, {
       steps: prunedSteps,
       current_step: 3,
+      step_fields: {
+        0: "نام و نام خانوادگی، شماره تماس",
+        1: "شهر و استان، آدرس دقیق، کد پستی",
+      },
     });
     el = findElementById(useBuilderStore.getState().ast.rootElements, formEl.id);
     expect(el?.widgetProps?.steps).toHaveLength(3);
     expect(el?.widgetProps?.current_step).toBe(3);
+    expect((el?.widgetProps?.step_fields as any)?.[1]).toBe("شهر و استان، آدرس دقیق، کد پستی");
   });
 });

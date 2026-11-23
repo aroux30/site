@@ -934,7 +934,10 @@ function CanvasElementComponent({
           review_count: 15 + i * 4,
         }));
         return (
-          <div className="space-y-4 w-full">
+          <div
+            className={cn("space-y-4 w-full", element.widgetType === "loop_carousel" ? "builder-loop-carousel" : "builder-product-grid")}
+            data-widget={element.widgetType || "product_grid"}
+          >
             {/* Filter Pills */}
             <div className="flex items-center gap-1.5 pb-1">
               {[

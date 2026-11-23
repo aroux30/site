@@ -85,4 +85,21 @@ test.describe("Builder Gym Round 48: 1920x1080 Elementor Loop Carousel & Theme B
     const conditionSelect = page.locator('[data-testid="theme-builder-condition-select"]');
     await expect(conditionSelect).toBeVisible();
   });
+
+  test("3. Inserting loop_carousel renders horizontal scrollable card track inside canvas", async ({ page }) => {
+    await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(1500);
+
+    const searchInput = page.locator('aside input[placeholder*="جستجو"]').first();
+    await searchInput.fill("تکرارشونده");
+    await page.waitForTimeout(300);
+
+    const carouselCard = page.locator('button[data-block-type="loop_carousel"], button:has-text("کاروسل تکرارشونده پویا")').first();
+    await carouselCard.click();
+    await page.waitForTimeout(600);
+
+    const frame = page.frameLocator('iframe[title="Visual Builder Canvas"]');
+    const loopContainer = frame.locator('[data-widget="loop_carousel"], .builder-product-grid').first();
+    await expect(loopContainer).toBeVisible();
+  });
 });

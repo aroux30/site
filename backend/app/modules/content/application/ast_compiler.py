@@ -52,6 +52,13 @@ class ASTCompiler:
         "info": "ℹ️",
     }
 
+    SHAPE_DIVIDER_PATHS: dict[str, str] = {
+        "waves": "M421.9,6.5c22.6-2.5,51.5,0.4,75.5,5.3c23.6,4.9,70.9,23.5,100.5,35.7c75.8,32.2,133.7,44.5,192.6,49.7c23.6,2.1,48.7,3.5,103.4-2.5c54.7-6,106.2-25.6,106.2-25.6V0H0v30.3c0,0,72,32.6,158.4,30.5c39.2-0.7,92.8-6.7,134-22.4c21.2-8.1,52.2-18.2,79.7-24.2C399.3,7.9,411.6,7.5,421.9,6.5z",
+        "curve": "M1000,4.3V0H0v4.3C0.9,23.1,126.7,99.2,500,100S1000,22.7,1000,4.3z",
+        "triangle": "M500,98.9L0,6.1V0h1000v6.1L500,98.9z",
+        "tilt": "M0,6V0h1000v100L0,6z",
+    }
+
     @classmethod
     def compile(cls, ast: PageAST, is_authenticated: bool = False) -> str:
         """Compile the full PageAST document into a single sanitized HTML string.
@@ -259,9 +266,20 @@ class ASTCompiler:
         shape_color = html.escape(el.styles.shape_divider_color or "#ffffff")
         shape_dividers_html = ""
         if top_divider and top_divider != "none":
-            shape_dividers_html += f'<div class="builder-shape-divider builder-shape-divider-top" data-shape="{html.escape(top_divider)}" style="position: absolute; top: 0; left: 0; width: 100%; height: 48px; overflow: hidden; pointer-events: none; z-index: 10;"><img src="/shapes/{html.escape(top_divider)}.svg" alt="" style="width: 100%; height: 100%; display: block;" /></div>'
+            path_d = cls.SHAPE_DIVIDER_PATHS.get(top_divider)
+            if path_d:
+                svg_inner = f'<svg viewBox="0 0 1000 100" preserveAspectRatio="none" class="w-full h-full block" aria-hidden="true"><path fill="{shape_color}" d="{path_d}"></path></svg>'
+            else:
+                svg_inner = f'<img src="/shapes/{html.escape(top_divider)}.svg" alt="" style="width: 100%; height: 100%; display: block;" />'
+            shape_dividers_html += f'<div class="builder-shape-divider builder-shape-divider-top" data-shape="{html.escape(top_divider)}" style="position: absolute; top: 0; left: 0; width: 100%; height: 48px; overflow: hidden; pointer-events: none; z-index: 10;">{svg_inner}</div>'
+
         if bottom_divider and bottom_divider != "none":
-            shape_dividers_html += f'<div class="builder-shape-divider builder-shape-divider-bottom" data-shape="{html.escape(bottom_divider)}" style="position: absolute; bottom: 0; left: 0; width: 100%; height: 48px; overflow: hidden; pointer-events: none; z-index: 10; transform: rotate(180deg);"><img src="/shapes/{html.escape(bottom_divider)}.svg" alt="" style="width: 100%; height: 100%; display: block;" /></div>'
+            path_d = cls.SHAPE_DIVIDER_PATHS.get(bottom_divider)
+            if path_d:
+                svg_inner = f'<svg viewBox="0 0 1000 100" preserveAspectRatio="none" class="w-full h-full block" aria-hidden="true"><path fill="{shape_color}" d="{path_d}"></path></svg>'
+            else:
+                svg_inner = f'<img src="/shapes/{html.escape(bottom_divider)}.svg" alt="" style="width: 100%; height: 100%; display: block;" />'
+            shape_dividers_html += f'<div class="builder-shape-divider builder-shape-divider-bottom" data-shape="{html.escape(bottom_divider)}" style="position: absolute; bottom: 0; left: 0; width: 100%; height: 48px; overflow: hidden; pointer-events: none; z-index: 10; transform: rotate(180deg);">{svg_inner}</div>'
 
         if is_form:
             props = el.widget_props or {}

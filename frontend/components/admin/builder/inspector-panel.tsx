@@ -4440,10 +4440,10 @@ export function InspectorPanel() {
           </div>
         </div>
 
-        {/* Section Shape Dividers (Elementor Parity) */}
+        {/* Section Shape Dividers (Elementor Style Parity) */}
         {selectedElement.type === "container" && (
           <div className="space-y-3 pt-2 border-t">
-            <Label className="text-xs font-bold text-foreground block">جداکننده شکل کانتینر (Shape Divider)</Label>
+            <Label className="text-xs font-bold text-foreground block">جداکننده شکل کانتینر (Shape Divider - المنتور)</Label>
 
             <div className="grid grid-cols-2 gap-2">
               <div className="space-y-1">
@@ -4456,12 +4456,12 @@ export function InspectorPanel() {
                     })
                   }
                 >
-                  <SelectTrigger className="h-7 text-xs">
-                    <SelectValue />
+                  <SelectTrigger data-testid="shape-divider-top-select" className="h-7 text-xs">
+                    <SelectValue placeholder="انتخاب شکل بالا" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">بدون شکل</SelectItem>
-                    <SelectItem value="waves">موجی (Waves)</SelectItem>
+                    <SelectItem value="waves">امواج نرم (Waves)</SelectItem>
                     <SelectItem value="curve">منحنی (Curve)</SelectItem>
                     <SelectItem value="triangle">مثلث (Triangle)</SelectItem>
                     <SelectItem value="tilt">مورب (Tilt)</SelectItem>
@@ -4479,18 +4479,35 @@ export function InspectorPanel() {
                     })
                   }
                 >
-                  <SelectTrigger className="h-7 text-xs">
-                    <SelectValue />
+                  <SelectTrigger data-testid="shape-divider-bottom-select" className="h-7 text-xs">
+                    <SelectValue placeholder="انتخاب شکل پایین" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">بدون شکل</SelectItem>
-                    <SelectItem value="waves">موجی (Waves)</SelectItem>
+                    <SelectItem value="waves">امواج نرم (Waves)</SelectItem>
                     <SelectItem value="curve">منحنی (Curve)</SelectItem>
                     <SelectItem value="triangle">مثلث (Triangle)</SelectItem>
                     <SelectItem value="tilt">مورب (Tilt)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
+            </div>
+
+            <div className="space-y-1">
+              <Label className="text-[10px] text-muted-foreground">رنگ شکل جداکننده</Label>
+              <Input
+                data-testid="shape-divider-color-input"
+                type="text"
+                placeholder="#ffffff"
+                value={selectedElement.styles?.shapeDividerColor || "#ffffff"}
+                onChange={(e) =>
+                  updateElementStyles(selectedElement.id, {
+                    shapeDividerColor: e.target.value,
+                  })
+                }
+                className="h-7 text-xs font-mono"
+                dir="ltr"
+              />
             </div>
           </div>
         )}
@@ -5177,75 +5194,6 @@ export function InspectorPanel() {
             }}
           />
         </div>
-
-        {/* Shape Dividers (Elementor Parity Wave 1) */}
-        {selectedElement.type === "container" && (
-          <div className="space-y-3 pt-3 border-t border-border/80">
-            <Label className="text-xs font-bold text-foreground block">اشکال جداکننده بخش (Shape Dividers)</Label>
-            <div className="space-y-1.5">
-              <Label className="text-[11px] text-muted-foreground">شکل جداکننده بالا (Top Shape)</Label>
-              <Select
-                value={selectedElement.styles?.shapeDividerTop || "none"}
-                onValueChange={(val) =>
-                  updateElementStyles(selectedElement.id, {
-                    shapeDividerTop: val,
-                  })
-                }
-              >
-                <SelectTrigger data-testid="shape-divider-top-select" className="h-8 text-xs">
-                  <SelectValue placeholder="انتخاب شکل بالا" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">بدون جداکننده (None)</SelectItem>
-                  <SelectItem value="waves">امواج نرم (Waves)</SelectItem>
-                  <SelectItem value="curve">منحنی مقعر (Curve)</SelectItem>
-                  <SelectItem value="triangle">مثلث (Triangle)</SelectItem>
-                  <SelectItem value="tilt">شیب مایل (Tilt)</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-1.5">
-              <Label className="text-[11px] text-muted-foreground">شکل جداکننده پایین (Bottom Shape)</Label>
-              <Select
-                value={selectedElement.styles?.shapeDividerBottom || "none"}
-                onValueChange={(val) =>
-                  updateElementStyles(selectedElement.id, {
-                    shapeDividerBottom: val,
-                  })
-                }
-              >
-                <SelectTrigger data-testid="shape-divider-bottom-select" className="h-8 text-xs">
-                  <SelectValue placeholder="انتخاب شکل پایین" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">بدون جداکننده (None)</SelectItem>
-                  <SelectItem value="waves">امواج نرم (Waves)</SelectItem>
-                  <SelectItem value="curve">منحنی مقعر (Curve)</SelectItem>
-                  <SelectItem value="triangle">مثلث (Triangle)</SelectItem>
-                  <SelectItem value="tilt">شیب مایل (Tilt)</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-1.5">
-              <Label className="text-[11px] text-muted-foreground">رنگ شکل جداکننده</Label>
-              <Input
-                data-testid="shape-divider-color-input"
-                type="text"
-                placeholder="#ffffff"
-                value={selectedElement.styles?.shapeDividerColor || "#ffffff"}
-                onChange={(e) =>
-                  updateElementStyles(selectedElement.id, {
-                    shapeDividerColor: e.target.value,
-                  })
-                }
-                className="h-8 text-xs font-mono"
-                dir="ltr"
-              />
-            </div>
-          </div>
-        )}
 
         {/* Conditional Visibility (P4) */}
         <div className="space-y-3 pt-3 border-t border-border/80">

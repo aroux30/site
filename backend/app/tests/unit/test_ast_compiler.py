@@ -1741,6 +1741,37 @@ def test_ast_compiler_renders_round50_custom_attributes_parity():
     assert 'aria-label="تماس با ما"' in result
 
 
+def test_ast_compiler_renders_round52_shape_dividers_inline_svg_with_color():
+    """Verify Round 52 container shape dividers compile to inline SVGs preserving custom colors."""
+    ast = PageAST(
+        schema_version=1,
+        title="تست جداکننده شکل راند ۵۲",
+        slug="test-r52-shape-dividers",
+        root_elements=[
+            BuilderElement(
+                id="el_sec_r52",
+                name="بخش با شکل موجی و مورب",
+                type="container",
+                styles=ResponsiveStyles(
+                    shape_divider_top="waves",
+                    shape_divider_bottom="tilt",
+                    shape_divider_color="#10b981",
+                ),
+                children=[],
+            )
+        ],
+    )
+    result = ASTCompiler.compile(ast)
+    assert 'class="builder-shape-divider builder-shape-divider-top"' in result
+    assert 'data-shape="waves"' in result
+    assert 'class="builder-shape-divider builder-shape-divider-bottom"' in result
+    assert 'data-shape="tilt"' in result
+    assert '<svg viewBox="0 0 1000 100"' in result
+    assert 'fill="#10b981"' in result
+    assert 'M421.9' in result
+    assert 'rotate(180deg)' in result
+
+
 
 
 

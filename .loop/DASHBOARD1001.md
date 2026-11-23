@@ -10,31 +10,30 @@
 | سنجه | مقدار | وضعیت |
 | :--- | :--- | :--- |
 | **وزنه فعال** | وزنه ۹ (تست فشار لندینگ کامل از صفر) | 🚀 در حال اجرا |
-| **راند تکمیل‌شده** | راند ۵۱ (Round 51) | ✅ با موفقیت پایان یافت |
+| **راند تکمیل‌شده** | راند ۵۲ (Round 52) | ✅ با موفقیت پایان یافت |
 | **وزنه‌های ۱ تا ۵** | ۵۰ کیلو پاک‌سازی کامل | ✅ `BUILDER_GYM_LEVELS_1_TO_5_CLEAN` |
 | **وزنه‌های ۶ تا ۸** | پورت کامل امواج ۱ تا ۳ المنتور | 🏆 `BUILDER_GYM_ALL_LEVELS_MASTERED` |
 | **تعداد کل بلوک‌های ثبت‌شده** | ۷۶ بلوک کامل | 🟢 ۱۰۰٪ سیم‌کشی ۴ لایه |
 | **تایپ‌اسکریپت (`tsc --noEmit`)** | ۰ خطا | 🟢 سبز |
 | **تست‌های فرانت‌اند (`vitest`)** | ۳۸۰ از ۳۸۰ تست | 🟢 ۱۰۰٪ سبز |
-| **تست‌های بک‌اند (`pytest`)** | ۶۵۱ از ۶۵۱ تست (۲ skipped) | 🟢 ۱۰۰٪ سبز |
-| **تست Playwright رگرسیون** | ۱ از ۱ تست (builder-gym-r55) | 🟢 ۱۰۰٪ سبز |
+| **تست‌های بک‌اند (`pytest`)** | ۶۵۲ از ۶۵۲ تست (۲ skipped) | 🟢 ۱۰۰٪ سبز |
+| **تست Playwright رگرسیون** | ۱ از ۱ تست (builder-gym-r56) | 🟢 ۱۰۰٪ سبز |
 | **داوری ناظر مستقل (`qa-verifier`)**| `APPROVE` (نمرات ۱۰/۱۰) | 🟢 تایید شده |
 
 ---
 
-## 📋 دفتر کل نقایص راند ۵۱ (Defect Ledger Summary)
-- **DEFECT-R51-01 (P0):** `icon` widget in `canvas-element.tsx` renders raw text string instead of dynamic Lucide vector icon; hardcoded Sparkles in `icon_box` — ✅ **RESOLVED** (`canvas-element.tsx`)
-- **DEFECT-R51-02 (P1):** Duplicate dead code `case "icon_list":` at lines 1656 & 1926 in `canvas-element.tsx` — ✅ **RESOLVED** (`canvas-element.tsx`)
-- **DEFECT-R51-03 (P1):** In `ast_compiler.py`, hardcoded unicode `★` in `icon` widget and `✓` in `icon_list` replaced with centralized `ICON_CHAR_MAP` — ✅ **RESOLVED** (`ast_compiler.py`)
-- **DEFECT-R51-04 (P2):** Inspector icon picker visual grid added for rapid single-click icon selection — ✅ **RESOLVED** (`inspector-panel.tsx`)
+## 📋 دفتر کل نقایص راند ۵۲ (Defect Ledger Summary)
+- **DEFECT-R52-01 (P1):** ASTCompiler rendered shape dividers using `<img>` which dropped custom color; replaced with inline vector SVGs — ✅ **RESOLVED** (`ast_compiler.py`)
+- **DEFECT-R52-02 (P2):** Bleach linkifier and HTML sanitizer escaped inline `<svg>` and `<path>` tags; added to `_EMBED_ALLOWED_TAGS` and `recognized_tags` — ✅ **RESOLVED** (`html_sanitizer.py`)
+- **DEFECT-R52-03 (P2):** Duplicate partial Shape Divider controls in inspector Advanced tab removed; consolidated in Style tab — ✅ **RESOLVED** (`inspector-panel.tsx`)
 
 ---
 
-## 🎯 دستاورد‌های راند ۵۱ (Round 51 — Weight 9)
+## 🎯 دستاورد‌های راند ۵۲ (Round 52 — Weight 9)
 1. بازرسی زنده و تست فشار ۳۶۰ درجه در `/e2e-isolated-scratchpad?builder=1` روی پورت ایزوله ۱۰۰۱.
 2. اجرای کامل نقشه SoM و تست نوسان جهش Nudge و ۶ سنسور خرابی بدون هیچ خطای کنسول یا سرریز.
 3. ارزیابی تصویری برش‌های قبل و بعد با ابزار Read (Vision).
-4. اصلاح هماهنگ در ۴ لایه معماری بیلدر، پیاده‌سازی گرید بصری آیکون‌ها و اصلاح رندرینگ برداری در بوم و SSR.
-5. اضافه کردن تست رگرسیون بک‌اند (`test_ast_compiler_renders_round51_icon_and_icon_list_dynamic_icons`) و تست Playwright (`builder-gym-r55.spec.ts`).
-6. اجرای ری‌بیلد بدون کش با `rebuild-and-verify.ps1 -Port 1001` و تایید کامل سلامت.
+4. یکپارچه‌سازی کامل اشکال جداکننده کانتینر در فرانت‌اند و بک‌اند با حفظ رنگ و وکتور SVG.
+5. اضافه کردن تست رگرسیون بک‌اند (`test_ast_compiler_renders_round52_shape_dividers_inline_svg_with_color`) و تست Playwright (`builder-gym-r56.spec.ts`).
+6. اجرای ری‌بیلد بدون کش با `rebuild-and-verify.ps1 -Port 1001` و تایید کامل سلامت سرور.
 7. ثبت حکم رسمی `APPROVE` از ساب‌ایجنت ناظر کیفی `qa-verifier` و قبولی ۱۰۰٪ تست‌های سیستم.

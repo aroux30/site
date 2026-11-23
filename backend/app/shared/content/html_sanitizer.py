@@ -52,6 +52,8 @@ ALLOWED_TAGS: frozenset[str] = frozenset(
         "blockquote", "details", "summary", "address",
         # forms and interactive controls
         "button", "label", "input", "textarea", "select", "option", "form",
+        # vector shapes & dividers (Elementor Parity)
+        "svg", "path",
     }
 )
 
@@ -93,6 +95,11 @@ ALLOWED_ATTRIBUTES: dict[str, frozenset[str]] = {
     "colgroup": frozenset({"span"}),
     "time": frozenset({"datetime"}),
     "details": frozenset({"open"}),
+    "svg": frozenset({
+        "viewbox", "viewBox", "preserveaspectratio", "preserveAspectRatio",
+        "width", "height", "class", "aria-hidden", "style", "fill",
+    }),
+    "path": frozenset({"d", "fill", "opacity", "class"}),
 }
 
 # URLs restricted to these schemes; anything else (javascript:, data:) is
@@ -320,5 +327,6 @@ def sanitize_html(html: str | None) -> str:
     return bleach.linkifier.Linker(
         callbacks=[_link_rel],
         skip_tags=["pre", "code"],
+        recognized_tags=_EMBED_ALLOWED_TAGS,
         parse_email=False,
     ).linkify(cleaned)

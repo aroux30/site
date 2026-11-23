@@ -46,6 +46,17 @@ try {
     }
 }
 
+# Kill any lingering background parent/child processes running in this worktree for this port
+try {
+    $procs = Get-CimInstance Win32_Process | Where-Object { $_.CommandLine -like "*$FrontendDir*" -and $_.CommandLine -like "*$Port*" }
+    foreach ($p in $procs) {
+        if ($p.ProcessId -gt 4) {
+            cmd /c "taskkill /F /T /PID $($p.ProcessId)" 2>$null
+            Stop-Process -Id $p.ProcessId -Force -ErrorAction SilentlyContinue
+        }
+    }
+} catch {}
+
 # 2. Safely remove .next with retry loop (Windows file locks)
 Write-Host ">>> [2/5] Cleaning .next cache directory..." -ForegroundColor Yellow
 if (Test-Path $NextDir) {

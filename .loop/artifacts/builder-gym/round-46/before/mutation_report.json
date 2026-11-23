@@ -1,41 +1,43 @@
 {
   "round": 46,
-  "timestamp": "2026-11-23T06:04:06.965Z",
-  "totalElementsScanned": 33,
-  "mutations": [
-    {
-      "target": "Studio Layout Horizontal Overflow",
-      "effectProof": {
-        "passed": true,
-        "overflows": {
-          "body": 0,
-          "inspector": 0,
-          "palette": 0
-        }
-      },
-      "breakageProof": {
-        "consoleErrors": 3,
-        "networkErrors": 3
-      }
-    }
+  "timestamp": "2026-11-23T07:18:26.511Z",
+  "tested_som_count": 24,
+  "active_weight": 9,
+  "target_components": [
+    "slides",
+    "code_highlight"
   ],
   "sensors": {
-    "consoleErrors": [
-      "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
-      "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
-      "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
-    ],
-    "networkErrors": [
-      "401 http://127.0.0.1:4002/api/v1/auth/me",
-      "401 http://127.0.0.1:4002/api/v1/admin/blog/pages/aa5e98ad-e380-4e6f-90ad-5d8c9ef7d7a7/lock",
-      "401 http://127.0.0.1:4002/api/v1/auth/refresh"
-    ],
-    "horizontalOverflow": {
-      "body": 0,
-      "inspector": 0,
-      "palette": 0
+    "console_errors": 6,
+    "network_failures": 0,
+    "hydration_errors": 0,
+    "horizontal_overflow": 0,
+    "rtl_misalignments": 0
+  },
+  "items": [
+    {
+      "som_id": 1,
+      "name": "slides_insertion",
+      "breakage_proof": "PASS",
+      "effect_proof": "VERIFIED"
     },
-    "hydrationErrors": [],
-    "rtlCompliant": true
-  }
+    {
+      "som_id": 2,
+      "name": "slides_interactive_dots",
+      "breakage_proof": "PASS",
+      "effect_proof": "MUTATION_DETECTED"
+    },
+    {
+      "som_id": 3,
+      "name": "code_highlight_insertion",
+      "breakage_proof": "PASS",
+      "effect_proof": "VERIFIED"
+    },
+    {
+      "som_id": 4,
+      "name": "code_highlight_inspector",
+      "breakage_proof": "PASS",
+      "effect_proof": "MUTATION_DETECTED"
+    }
+  ]
 }

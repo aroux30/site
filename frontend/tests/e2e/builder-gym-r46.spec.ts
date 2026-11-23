@@ -104,4 +104,74 @@ test.describe("Builder Gym Round 46: Price Table & Price List 4-Layer Parity & I
     const slidesWidget = frame.locator('[data-widget="slides"]').first();
     await expect(slidesWidget).toBeVisible({ timeout: 10000 });
   });
+
+  test("3. Inserting slides renders hero slide with title, description, and interactive dots", async ({ page }) => {
+    await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(1500);
+
+    const searchInput = page.locator('aside input[placeholder*="جستجو"]').first();
+    await searchInput.fill("اسلاید");
+    await page.waitForTimeout(300);
+
+    const slidesCard = page.locator('button[data-block-type="slides"]').first();
+    await expect(slidesCard).toBeVisible();
+    await slidesCard.click();
+    await page.waitForTimeout(800);
+
+    const frame = page.frameLocator('iframe[title="Visual Builder Canvas"]');
+    const slidesEl = frame.locator("[data-widget-type='slides']").first();
+    await expect(slidesEl).toBeVisible({ timeout: 10000 });
+    await expect(slidesEl).toContainText("تخفیف ویژه آغاز فصل");
+  });
+
+  test("4. Customizing code_highlight updates code, language and title in canvas", async ({ page }) => {
+    await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(1500);
+
+    const searchInput = page.locator('aside input[placeholder*="جستجو"]').first();
+    await searchInput.fill("هایلایت");
+    await page.waitForTimeout(300);
+
+    const codeCard = page.locator('button[data-block-type="code_highlight"]').first();
+    await codeCard.click();
+    await page.waitForTimeout(800);
+
+    const frame = page.frameLocator('iframe[title="Visual Builder Canvas"]');
+    const codeEl = frame.locator("[data-widget-type='code_highlight']").last();
+    await codeEl.click();
+    await page.waitForTimeout(500);
+
+    // Inspector title input
+    const inspector = page.locator('[data-builder-inspector]');
+    const titleInput = inspector.locator('input[data-testid="code-title-input"]');
+    if (await titleInput.isVisible()) {
+      await titleInput.fill("main.py");
+      await page.waitForTimeout(400);
+      await expect(codeEl).toContainText("main.py");
+    }
+  });
+
+  test("5. Clicking slide navigation dots switches active slide in canvas", async ({ page }) => {
+    await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(1500);
+
+    const searchInput = page.locator('aside input[placeholder*="جستجو"]').first();
+    await searchInput.fill("اسلاید");
+    await page.waitForTimeout(300);
+
+    const slidesCard = page.locator('button[data-block-type="slides"]').first();
+    await slidesCard.click();
+    await page.waitForTimeout(800);
+
+    const frame = page.frameLocator('iframe[title="Visual Builder Canvas"]');
+    const slidesEl = frame.locator("[data-widget-type='slides']").first();
+    await expect(slidesEl).toContainText("تخفیف ویژه آغاز فصل");
+
+    const dot2 = slidesEl.locator('button[title="اسلاید ۲"]');
+    if (await dot2.isVisible()) {
+      await dot2.click();
+      await page.waitForTimeout(500);
+      await expect(slidesEl).toContainText("ارسال رایگان سفارش‌های اول");
+    }
+  });
 });

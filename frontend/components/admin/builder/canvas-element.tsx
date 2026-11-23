@@ -918,6 +918,7 @@ function CanvasElementComponent({
         );
       }
       case "product_grid":
+      case "loop_grid":
       case "loop_carousel": {
         const limit = Number(props.limit) || (element.widgetType === "loop_carousel" ? 6 : 4);
         const filter = String(props.filter || "all");
@@ -939,10 +940,7 @@ function CanvasElementComponent({
           review_count: 15 + i * 4,
         }));
         return (
-          <div
-            className={cn("space-y-4 w-full", element.widgetType === "loop_carousel" ? "builder-loop-carousel" : "builder-product-grid")}
-            data-widget={element.widgetType || "product_grid"}
-          >
+          <div className="space-y-4 w-full">
             {/* Filter Pills */}
             <div className="flex items-center gap-1.5 pb-1">
               {[
@@ -1706,28 +1704,31 @@ function CanvasElementComponent({
       case "price_table": {
         const title = String(props.title || props.heading || "پلن پایه");
         const subtitle = props.subtitle ? String(props.subtitle) : props.sub_heading ? String(props.sub_heading) : "";
-        const badge = props.badge ? String(props.badge) : undefined;
         const price = String(props.price || "۴۹۰,۰۰۰");
         const currency = String(props.currency || "تومان");
-        const period = props.period ? String(props.period) : "";
-        const rawFeatures = (props.features as any[]) || [
-          { text: "امکانات پایه سیستم", available: true },
-          { text: "پشتیبانی استاندارد", available: true },
-        ];
-        const featuresList = rawFeatures.map((f) =>
-          typeof f === "string" ? { text: f, available: true } : { text: String(f?.text || ""), available: f?.available !== false }
-        );
+        const period = String(props.period || "ماهانه");
         const btnLabel = String(props.button_label || props.button_text || "انتخاب و شروع پلن");
         const isFeatured = Boolean(props.is_featured);
+        const badge = props.badge ? String(props.badge) : (isFeatured ? "پیشنهاد ویژه" : undefined);
+        const rawFeatures = Array.isArray(props.features) ? (props.features as any[]) : [];
+        const features = rawFeatures.map((f: any) =>
+          typeof f === "string" ? { text: f, available: true } : { text: String(f?.text || ""), available: f?.available !== false }
+        );
+        const displayFeatures = features.length > 0 ? features : [
+          { text: "دسترسی به تمامی ابزارهای پیشرفته", available: true },
+          { text: "پشتیبانی اختصاصی تلفنی و تیکتی", available: true },
+          { text: "گزارش‌گیری خودکار روزانه", available: true },
+          { text: "فضای ذخیره‌سازی نامحدود", available: false },
+        ];
 
         return (
           <div className={cn(
             "p-6 rounded-3xl border bg-card text-center space-y-4 shadow-sm w-full transition relative overflow-hidden",
             isFeatured ? "border-primary ring-2 ring-primary/20 shadow-lg" : "border-border/80"
           )}>
-            {(badge || isFeatured) && (
+            {badge && (
               <div className="absolute top-0 end-0 bg-primary text-primary-foreground text-[10px] font-bold px-3 py-1 rounded-bl-xl shadow-xs">
-                {badge || "پیشنهاد ویژه"}
+                {badge}
               </div>
             )}
             <div className="space-y-1">
@@ -1740,7 +1741,7 @@ function CanvasElementComponent({
               {period && <span className="text-[11px] text-muted-foreground/80">/ {period}</span>}
             </div>
             <ul className="space-y-2 text-xs text-right list-none p-0 m-0">
-              {featuresList.map((f, idx) => (
+              {displayFeatures.map((f, idx) => (
                 <li key={idx} className={cn("flex items-center gap-2", !f.available && "opacity-60 line-through")}>
                   <span className={cn(
                     "w-4 h-4 rounded-full flex items-center justify-center shrink-0 text-[10px] font-bold",
@@ -1748,7 +1749,9 @@ function CanvasElementComponent({
                   )}>
                     {f.available ? "✓" : "–"}
                   </span>
-                  <span className={f.available ? "text-muted-foreground" : "text-muted-foreground/60"}>{f.text}</span>
+                  <span className={cn(f.available ? "text-foreground font-medium" : "text-muted-foreground line-through opacity-70")}>
+                    {f.text}
+                  </span>
                 </li>
               ))}
             </ul>
@@ -1849,7 +1852,7 @@ function CanvasElementComponent({
             <div>
               <a
                 href={btnUrl}
-                onClick={(e) => e.preventDefault()}
+                onClick={(e) => !previewMode && e.preventDefault()}
                 className="inline-flex items-center justify-center px-5 py-2.5 rounded-xl bg-primary text-primary-foreground font-bold text-xs shadow hover:bg-primary/90 transition-all duration-200 cursor-pointer"
               >
                 {btnLabel}
@@ -1947,69 +1950,6 @@ function CanvasElementComponent({
             <p className="text-sm leading-relaxed">«{text}»</p>
             {author && <cite className="block text-xs text-muted-foreground not-italic mt-1.5 font-semibold">— {author}</cite>}
           </blockquote>
-        );
-      }
-      case "price_table": {
-        const title = String(props.title || "پلن پایه");
-        const subtitle = props.subtitle ? String(props.subtitle) : "";
-        const badge = props.badge ? String(props.badge) : undefined;
-        const price = String(props.price || "۲۹۰,۰۰۰");
-        const currency = String(props.currency || "تومان");
-        const period = props.period ? String(props.period) : "";
-        const rawFeatures = (props.features as any[]) || [
-          { text: "دسترسی نامحدود به تمامی امکانات", available: true },
-          { text: "پشتیبانی اختصاصی تلفنی و تیکتی", available: true },
-          { text: "فضای ابری ۵۰ گیگابایت امن", available: true },
-          { text: "دامنه اختصاصی رایگان ۱ ساله", available: false },
-        ];
-        const featuresList = rawFeatures.map((f) =>
-          typeof f === "string" ? { text: f, available: true } : { text: String(f?.text || ""), available: f?.available !== false }
-        );
-        const btnText = String(props.button_label || props.button_text || "انتخاب پلن");
-        const isFeatured = Boolean(props.is_featured);
-
-        return (
-          <div className={cn(
-            "p-6 rounded-3xl border bg-card text-center space-y-4 shadow-sm w-full relative transition-all",
-            isFeatured ? "border-primary ring-2 ring-primary/20 shadow-md" : "border-border/80"
-          )}>
-            {badge && (
-              <span className="inline-block px-3 py-1 rounded-full bg-primary/15 text-primary text-xs font-bold">
-                {badge}
-              </span>
-            )}
-            <div className="space-y-1">
-              <h3 className="text-lg font-extrabold text-foreground">{title}</h3>
-              {subtitle && <p className="text-xs text-muted-foreground">{subtitle}</p>}
-            </div>
-            <div className="py-3 border-y border-border/50 flex flex-wrap items-baseline justify-center gap-1.5" dir="rtl">
-              <span className="text-3xl font-black text-primary font-mono">{price}</span>
-              <span className="text-xs font-bold text-muted-foreground">{currency}</span>
-              {period && <span className="text-[11px] text-muted-foreground/80">/ {period}</span>}
-            </div>
-            <ul className="space-y-2 text-right text-xs text-muted-foreground">
-              {featuresList.map((f, idx) => (
-                <li key={idx} className={cn("flex items-center gap-2", !f.available && "opacity-60 line-through")}>
-                  <div className={cn(
-                    "w-4 h-4 rounded-full flex items-center justify-center shrink-0 text-[10px]",
-                    f.available ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 font-bold" : "bg-muted text-muted-foreground"
-                  )}>
-                    {f.available ? "✓" : "–"}
-                  </div>
-                  <span className={f.available ? "text-foreground font-medium" : "text-muted-foreground"}>{f.text}</span>
-                </li>
-              ))}
-            </ul>
-            <button
-              type="button"
-              className={cn(
-                "w-full py-2.5 rounded-xl font-bold text-xs shadow transition-all duration-200 cursor-pointer",
-                isFeatured ? "bg-primary text-primary-foreground hover:bg-primary/90" : "bg-muted/80 text-foreground hover:bg-muted"
-              )}
-            >
-              {btnText}
-            </button>
-          </div>
         );
       }
       case "image_box": {
@@ -2187,27 +2127,18 @@ function CanvasElementComponent({
         );
       }
       case "multi_step_form": {
-        const rawSteps = (props.steps as any[]) || ["اطلاعات تماس", "آدرس و ارسال", "تایید نهایی"];
+        const rawSteps = (props.steps as any[]) || ["مرحله اول", "مرحله دوم", "مرحله نهایی"];
         const steps = rawSteps.map((s) => (typeof s === "string" ? s : s?.title || String(s || "")));
         const curStep = Number(props.current_step) || 1;
-        const prevText = String(props.prev_button_text || "مرحله قبل");
-        const nextText = String(props.next_button_text || "مرحله بعد");
         return (
-          <div className="p-4 sm:p-6 rounded-2xl border border-border/80 bg-card space-y-5 shadow-sm w-full text-right" data-widget="multi_step_form">
+          <div className="p-6 rounded-2xl border border-border/80 bg-card space-y-5 shadow-sm w-full text-right">
             {/* Step Indicators */}
-            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border/60 pb-4">
+            <div className="flex items-center justify-between border-b border-border/60 pb-4">
               {steps.map((st, idx) => (
-                <div
-                  key={idx}
-                  className="flex items-center gap-1.5 cursor-pointer shrink-0"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    updateElementProps(element.id, { current_step: idx + 1 });
-                  }}
-                >
+                <div key={idx} className="flex items-center gap-2">
                   <span
                     className={cn(
-                      "w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold font-mono shrink-0 transition-all",
+                      "w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold font-mono transition-all",
                       idx + 1 === curStep
                         ? "bg-primary text-primary-foreground ring-2 ring-primary/40 shadow-sm"
                         : idx + 1 < curStep
@@ -2217,7 +2148,7 @@ function CanvasElementComponent({
                   >
                     {idx + 1}
                   </span>
-                  <span className={cn("text-xs font-semibold whitespace-nowrap", idx + 1 === curStep ? "text-foreground font-bold" : "text-muted-foreground")}>
+                  <span className={cn("text-xs font-semibold", idx + 1 === curStep ? "text-foreground font-bold" : "text-muted-foreground")}>
                     {st}
                   </span>
                 </div>
@@ -2225,72 +2156,28 @@ function CanvasElementComponent({
             </div>
             {/* Form Fields for Step */}
             <div className="space-y-3">
-              <div className="text-xs font-bold text-foreground">ورودی‌های {steps[curStep - 1] || `مرحله ${curStep}`}</div>
+              <div className="text-xs font-bold text-foreground">ورودی‌های {steps[curStep - 1] || "مرحله فعلی"}</div>
               <input
                 type="text"
-                placeholder={curStep === 1 ? "نام و نام خانوادگی" : (curStep === 2 ? "آدرس پستی و کد پستی" : "توضیحات و یادداشت تکمیلی")}
+                placeholder="نام و نام خانوادگی"
                 readOnly
                 className="w-full h-9 rounded-xl border border-input bg-muted/20 px-3 text-xs"
               />
               <input
                 type="text"
-                placeholder={curStep === 1 ? "شماره تماس همراه" : (curStep === 2 ? "استان و شهر" : "کد تخفیف (اختیاری)")}
+                placeholder="شماره تماس همراه"
                 readOnly
                 className="w-full h-9 rounded-xl border border-input bg-muted/20 px-3 text-xs"
               />
             </div>
             {/* Navigation Buttons */}
-            <div className="flex items-center justify-between pt-2 gap-2">
-              <button
-                type="button"
-                disabled={curStep <= 1}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  updateElementProps(element.id, { current_step: Math.max(1, curStep - 1) });
-                }}
-                className={cn("px-4 py-2 rounded-xl border border-border text-xs font-bold transition", curStep <= 1 ? "opacity-50 cursor-not-allowed text-muted-foreground" : "text-foreground hover:bg-muted/40")}
-              >
-                {prevText}
+            <div className="flex items-center justify-between pt-2">
+              <button type="button" className="px-4 py-2 rounded-xl border border-border text-xs font-bold text-muted-foreground">
+                مرحله قبل
               </button>
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  updateElementProps(element.id, { current_step: Math.min(steps.length, curStep + 1) });
-                }}
-                className="px-5 py-2 rounded-xl bg-primary text-primary-foreground text-xs font-bold shadow hover:bg-primary/90 transition"
-              >
-                {curStep === steps.length ? "ثبت نهایی فرم" : nextText}
+              <button type="button" className="px-5 py-2 rounded-xl bg-primary text-primary-foreground text-xs font-bold shadow">
+                مرحله بعد
               </button>
-            </div>
-          </div>
-        );
-      }
-      case "loop_grid": {
-        const limit = Number(props.limit) || 6;
-        const columns = Number(props.columns) || 3;
-        const source = String(props.source || "products");
-        const items = Array.from({ length: Math.min(limit, 12) }, (_, i) => ({
-          id: `loop_${i + 1}`,
-          title: source === "posts" ? `مقاله آموزشی شماره ${i + 1}` : `محصول نمونه حلقه‌ای ${i + 1}`,
-          meta: source === "posts" ? "۵ دقیقه مطالعه" : `${(i + 1) * 140000} تومان`,
-        }));
-        const colClass = columns === 4 ? "grid-cols-1 sm:grid-cols-2 md:grid-cols-4" : (columns === 2 ? "grid-cols-1 sm:grid-cols-2" : "grid-cols-1 sm:grid-cols-2 md:grid-cols-3");
-        return (
-          <div className="w-full space-y-3" data-widget="loop_grid">
-            <div className={`grid ${colClass} gap-4`}>
-              {items.map((it) => (
-                <div key={it.id} className="rounded-2xl border border-border/80 bg-card p-3.5 space-y-2 hover:shadow-md transition">
-                  <div className="aspect-video bg-muted/30 rounded-xl flex items-center justify-center overflow-hidden">
-                    <img src="/placeholder-hero.svg" alt={it.title} className="w-full h-full object-cover" loading="lazy" />
-                  </div>
-                  <h4 className="font-bold text-xs text-foreground truncate">{it.title}</h4>
-                  <div className="flex items-center justify-between text-xs text-primary font-semibold">
-                    <span>{it.meta}</span>
-                    <span className="text-[10px] text-muted-foreground">مشاهده &larr;</span>
-                  </div>
-                </div>
-              ))}
             </div>
           </div>
         );
@@ -2301,29 +2188,33 @@ function CanvasElementComponent({
             title: "عنوان اسلاید",
             description: "توضیحات معرفی اسلاید و جشنواره ویژه",
             button_text: "مشاهده بیشتر",
+            button_link: "/products",
             bg_color: "linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary)/0.6) 100%)",
           },
         ];
-        const activeIdx = Math.min(Math.max(0, Number(props.active_slide || 0)), Math.max(0, slidesList.length - 1));
-        const activeSlide = slidesList[activeIdx] || slidesList[0];
+        const activeIndex =
+          typeof props.active_slide === "number" && props.active_slide < slidesList.length
+            ? props.active_slide
+            : 0;
+        const activeSlide = slidesList[activeIndex] || slidesList[0];
         return (
           <div
             className="w-full min-h-[220px] rounded-2xl p-8 flex flex-col items-center justify-center text-center text-white space-y-3 shadow-md relative overflow-hidden"
             style={{ background: activeSlide?.bg_color || "hsl(var(--primary))" }}
-            data-widget="slides"
+            data-widget-type="slides"
           >
             <h2 className="text-xl md:text-2xl font-black drop-shadow-sm">{activeSlide?.title}</h2>
             <p className="text-xs md:text-sm opacity-90 max-w-lg leading-relaxed">{activeSlide?.description}</p>
             {activeSlide?.button_text && (
-              <a
-                href={activeSlide.button_link || "#"}
+              <button
+                type="button"
                 onClick={(e) => !previewMode && e.preventDefault()}
-                className="px-5 py-2.5 rounded-xl bg-white text-primary font-bold text-xs shadow-lg hover:bg-white/95 transition inline-block"
+                className="px-5 py-2.5 rounded-xl bg-white text-primary font-bold text-xs shadow-lg hover:bg-white/95 transition"
               >
                 {activeSlide.button_text}
-              </a>
+              </button>
             )}
-            <div className="absolute bottom-3 flex items-center gap-2 z-10">
+            <div className="absolute bottom-3 flex items-center gap-1.5 z-10">
               {slidesList.map((_, i) => (
                 <button
                   key={i}
@@ -2332,8 +2223,11 @@ function CanvasElementComponent({
                     e.stopPropagation();
                     updateElementProps(element.id, { active_slide: i });
                   }}
-                  className={cn("w-2.5 h-2.5 rounded-full transition-all", activeIdx === i ? "bg-white scale-125" : "bg-white/40 hover:bg-white/70")}
-                  aria-label={`اسلاید ${i + 1}`}
+                  className={cn(
+                    "w-2.5 h-2.5 rounded-full transition-all cursor-pointer border-0 p-0",
+                    i === activeIndex ? "bg-white scale-125" : "bg-white/40 hover:bg-white/70"
+                  )}
+                  title={`اسلاید ${i + 1}`}
                 />
               ))}
             </div>
@@ -2380,9 +2274,8 @@ function CanvasElementComponent({
 
         return (
           <div
-            className="w-full rounded-2xl border border-slate-800 bg-slate-950 text-slate-100 shadow-md overflow-hidden text-left font-mono text-xs"
+            className="builder-code-highlight w-full rounded-2xl border border-slate-800 bg-slate-950 text-slate-100 shadow-md overflow-hidden text-left font-mono text-xs"
             dir="ltr"
-            data-widget="code_highlight"
             data-widget-type="code_highlight"
           >
             {(title || showCopy || language) && (
@@ -2413,16 +2306,22 @@ function CanvasElementComponent({
                 </div>
               </div>
             )}
-            <div className="p-3.5 overflow-x-auto flex leading-relaxed">
+            <div className="p-3.5 overflow-x-auto flex leading-relaxed" dir="ltr" style={{ textAlign: "left", direction: "ltr" }}>
               {showLineNumbers && (
-                <div className="select-none text-slate-600 text-right pe-3 me-3 border-e border-slate-800/80 shrink-0 font-mono text-[11px]">
+                <div className="select-none text-slate-600 text-right pe-3 me-3 border-e border-slate-800/80 shrink-0 font-mono text-[11px]" dir="ltr">
                   {lines.map((_, i) => (
                     <div key={i}>{i + 1}</div>
                   ))}
                 </div>
               )}
-              <pre className="flex-1 font-mono text-[12px] text-emerald-400 whitespace-pre overflow-x-auto">
-                <code>{codeText}</code>
+              <pre
+                className="flex-1 font-mono text-[12px] text-emerald-400 whitespace-pre overflow-x-auto m-0 p-0"
+                dir="ltr"
+                style={{ textAlign: "left", direction: "ltr" }}
+              >
+                <code className="block font-mono" dir="ltr" style={{ textAlign: "left", direction: "ltr" }}>
+                  {codeText}
+                </code>
               </pre>
             </div>
           </div>
@@ -2709,7 +2608,86 @@ function CanvasElementComponent({
 
       {/* Content Rendering */}
       {isContainer ? (
-        element.children && element.children.length > 0 ? (
+        element.widgetType === "nested_tabs" ? (
+          <div className="space-y-3 w-full">
+            {/* Interactive Tab Navigation Pills */}
+            <div className="flex items-center gap-1.5 border-b border-border/60 pb-2 overflow-x-auto select-none pt-4">
+              {(
+                (Array.isArray(element.widgetProps?.tab_titles) && element.widgetProps?.tab_titles.length > 0
+                  ? (element.widgetProps.tab_titles as string[])
+                  : element.children?.map((c, i) => c.name || `تب ${i + 1}`)) || ["تب اول", "تب دوم"]
+              ).map((tabTitle, idx) => {
+                const activeTabIdx = typeof element.widgetProps?.active_tab === "number" ? element.widgetProps.active_tab : 0;
+                const isActive = idx === activeTabIdx;
+                return (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      updateElementProps(element.id, { active_tab: idx });
+                    }}
+                    className={cn(
+                      "px-3.5 py-1.5 rounded-xl text-xs font-bold transition shadow-xs cursor-pointer border",
+                      isActive
+                        ? "bg-primary text-primary-foreground border-primary"
+                        : "bg-muted/60 text-muted-foreground hover:bg-muted border-transparent"
+                    )}
+                  >
+                    {tabTitle}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Render active tab child container */}
+            {element.children && element.children.length > 0 ? (
+              element.children.map((child, idx) => {
+                const activeTabIdx = typeof element.widgetProps?.active_tab === "number" ? element.widgetProps.active_tab : 0;
+                if (!previewMode && idx !== activeTabIdx) {
+                  return (
+                    <div key={child.id} className="hidden">
+                      <CanvasElement element={child} activeBreakpoint={activeBreakpoint} depth={depth + 1} />
+                    </div>
+                  );
+                }
+                if (previewMode && idx !== activeTabIdx) return null;
+                return (
+                  <CanvasElement
+                    key={child.id}
+                    element={child}
+                    activeBreakpoint={activeBreakpoint}
+                    depth={depth + 1}
+                  />
+                );
+              })
+            ) : null}
+          </div>
+        ) : element.widgetType === "nested_accordion" ? (
+          <div className="space-y-3 w-full pt-4">
+            {element.children && element.children.length > 0 ? (
+              element.children.map((child, idx) => {
+                const itemTitles = Array.isArray(element.widgetProps?.item_titles) ? (element.widgetProps.item_titles as string[]) : [];
+                const itemTitle = itemTitles[idx] || child.name || `بخش تاشو ${idx + 1}`;
+                return (
+                  <div key={child.id} className="rounded-xl border border-border/80 bg-card overflow-hidden">
+                    <div className="p-3 bg-muted/40 font-bold text-xs text-foreground flex items-center justify-between select-none">
+                      <span>{itemTitle}</span>
+                      <span className="text-muted-foreground text-xs">▼</span>
+                    </div>
+                    <div className="p-3">
+                      <CanvasElement
+                        element={child}
+                        activeBreakpoint={activeBreakpoint}
+                        depth={depth + 1}
+                      />
+                    </div>
+                  </div>
+                );
+              })
+            ) : null}
+          </div>
+        ) : element.children && element.children.length > 0 ? (
           element.children.map((child) => (
             <CanvasElement
               key={child.id}

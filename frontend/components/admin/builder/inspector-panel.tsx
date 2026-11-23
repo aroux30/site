@@ -131,7 +131,13 @@ export function InspectorPanel() {
   // ── Render Content Tab Controls ───────────────────────────────────────────
 
   const renderContentControls = () => {
-    if (selectedElement.type === "container") {
+    // If a container is a specialized widget container (nested_tabs, nested_accordion, off_canvas, popup_builder),
+    // prioritize showing its specific content controls at the top!
+    const isSpecializedContainer =
+      selectedElement.type === "container" &&
+      ["nested_tabs", "nested_accordion", "off_canvas", "popup_builder"].includes(String(selectedElement.widgetType));
+
+    if (selectedElement.type === "container" && !isSpecializedContainer) {
       const layout = selectedElement.layout || {
         kind: "flex",
         direction: "column",
@@ -2975,12 +2981,18 @@ export function InspectorPanel() {
       }
 
       case "price_table": {
-        const features = Array.isArray(props.features) ? (props.features as any[]) : [
-          { text: "دسترسی نامحدود به تمامی امکانات", available: true },
-          { text: "پشتیبانی اختصاصی تلفنی و تیکتی", available: true },
-          { text: "فضای ابری ۵۰ گیگابایت امن", available: true },
-          { text: "دامنه اختصاصی رایگان ۱ ساله", available: false },
-        ];
+        const rawFeatures = Array.isArray(props.features) ? (props.features as any[]) : [];
+        const features: Array<{ text: string; available: boolean }> = rawFeatures.length > 0
+          ? rawFeatures.map((f: any) => ({
+              text: typeof f === "string" ? f : String(f?.text || ""),
+              available: typeof f === "string" ? true : f?.available !== false,
+            }))
+          : [
+              { text: "دسترسی نامحدود به تمامی امکانات", available: true },
+              { text: "پشتیبانی اختصاصی تلفنی و تیکتی", available: true },
+              { text: "فضای ابری ۵۰ گیگابایت امن", available: true },
+              { text: "دامنه اختصاصی رایگان ۱ ساله", available: false },
+            ];
         return (
           <div className="space-y-4">
             <div className="space-y-1.5">
@@ -3047,8 +3059,11 @@ export function InspectorPanel() {
               <div className="space-y-1">
                 <Label className="text-xs">متن دکمه</Label>
                 <Input
-                  value={String(props.button_label || "انتخاب و شروع پلن")}
-                  onChange={(e) => handlePropChange("button_label", e.target.value)}
+                  value={String(props.button_label || props.button_text || "انتخاب و شروع پلن")}
+                  onChange={(e) => {
+                    handlePropChange("button_label", e.target.value);
+                    handlePropChange("button_text", e.target.value);
+                  }}
                   className="h-8 text-xs"
                 />
               </div>
@@ -3081,16 +3096,14 @@ export function InspectorPanel() {
                   <Switch
                     checked={feat.available !== false}
                     onCheckedChange={(val) => {
-                      const updated = [...features];
-                      updated[idx] = { ...updated[idx], available: val };
+                      const updated = features.map((item, i) => (i === idx ? { text: item.text, available: val } : item));
                       handlePropChange("features", updated);
                     }}
                   />
                   <Input
                     value={feat.text || ""}
                     onChange={(e) => {
-                      const updated = [...features];
-                      updated[idx] = { ...updated[idx], text: e.target.value };
+                      const updated = features.map((item, i) => (i === idx ? { text: e.target.value, available: item.available } : item));
                       handlePropChange("features", updated);
                     }}
                     className="h-7 text-xs flex-1"

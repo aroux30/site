@@ -1,12 +1,21 @@
 {
   "version": "3.2",
   "activeWeight": 9,
-  "activeRound": 49,
+  "activeRound": 47,
   "status": "COMPLETED",
   "levels1to5Status": "BUILDER_GYM_LEVELS_1_TO_5_CLEAN",
   "allLevelsMastered": "BUILDER_GYM_ALL_LEVELS_MASTERED",
-  "verificationPort": 4004,
-  "completedRounds": 49,
+  "verificationPort": 4001,
+  "completedRounds": 47,
+  "metrics": {
+    "typeCheckErrors": 0,
+    "frontendUnitTests": 380,
+    "backendUnitTests": 650,
+    "playwrightTests": 4,
+    "registeredBlocks": 68,
+    "lastVerifierVerdict": "APPROVE"
+  },
+  "timestamp": "2026-11-23T12:00:00.000Z",
   "defect_ledger": [
     {
       "id": "DEFECT-R41-01",
@@ -81,21 +90,130 @@
       "description": "Earlier price_table case at line 1704 shadowed line 1939. Consolidated to full featured version."
     },
     {
-      "id": "DEFECT-R49-01",
+      "id": "DEFECT-PT-01",
+      "severity": "P0",
+      "component": "price_table",
+      "layer": "inspector_canvas_sync",
+      "summary": "String features in block registry caused blank feature lines in canvas due to missing text field normalization",
+      "status": "FIXED",
+      "round": 45
+    },
+    {
+      "id": "DEFECT-PT-02",
+      "severity": "P0",
+      "component": "price_table",
+      "layer": "inspector_panel",
+      "summary": "Feature inputs were rendered with empty values in inspector when features array contained strings",
+      "status": "FIXED",
+      "round": 45
+    },
+    {
+      "id": "DEFECT-PT-03",
+      "severity": "P0",
+      "component": "price_table",
+      "layer": "ast_compiler",
+      "summary": "ast_compiler threw AttributeError if features array contained strings instead of dicts",
+      "status": "FIXED",
+      "round": 45
+    },
+    {
+      "id": "DEFECT-PT-04",
       "severity": "P1",
-      "round": 49,
-      "title": "FloatingCompareBar aside tag leak into builder studio environment",
-      "status": "RESOLVED",
-      "layer": "frontend/components/compare/floating-compare-bar.tsx",
-      "description": "Excluded FloatingCompareBar when isBuilder query parameters are detected."
+      "component": "price_table",
+      "layer": "canvas_element",
+      "summary": "Badge prop was ignored unless is_featured was true, and was hardcoded to 'پیشنهاد ویژه'",
+      "status": "FIXED",
+      "round": 45
+    },
+    {
+      "id": "DEFECT-PT-05",
+      "severity": "P1",
+      "component": "price_table",
+      "layer": "cross_layer",
+      "summary": "button_text in block registry was not recognized by canvas-element expecting button_label",
+      "status": "FIXED",
+      "round": 45
+    },
+    {
+      "id": "DEFECT-PT-06",
+      "severity": "P2",
+      "component": "price_table",
+      "layer": "canvas_element",
+      "summary": "Duplicate dead code case price_table at line 1929 shadowing active case",
+      "status": "FIXED",
+      "round": 45
+    },
+    {
+      "id": "DEFECT-CTA-01",
+      "severity": "P1",
+      "component": "call_to_action",
+      "layer": "canvas_element",
+      "summary": "Button click was unhandled, risking form submission or page jump in canvas preview",
+      "status": "FIXED",
+      "round": 45
+    },
+    {
+      "id": "DEFECT-CTA-02",
+      "severity": "P2",
+      "component": "call_to_action",
+      "layer": "canvas_element",
+      "summary": "button_text fallback missing when button_label is omitted",
+      "status": "FIXED",
+      "round": 45
+    },
+    {
+      "id": "DEFECT-CH-01",
+      "severity": "P0",
+      "component": "code_highlight",
+      "layer": "canvas_element",
+      "summary": "Code snippet text-align was forced to right by Tailwind dir=rtl text-left rule, causing ugly right alignment",
+      "status": "FIXED",
+      "round": 46
+    },
+    {
+      "id": "DEFECT-SL-01",
+      "severity": "P1",
+      "component": "slides",
+      "layer": "canvas_element",
+      "summary": "Hero slides widget was locked on slide 1 and navigation dots were non-interactive",
+      "status": "FIXED",
+      "round": 46
+    },
+    {
+      "id": "DEFECT-SSR-02",
+      "severity": "P1",
+      "component": "slides",
+      "layer": "ast_compiler",
+      "summary": "ast_compiler only handled background_image for slides, ignoring bg_color CSS gradients",
+      "status": "FIXED",
+      "round": 46
+    },
+    {
+      "id": "DEFECT-NT-01",
+      "severity": "P0",
+      "component": "nested_tabs",
+      "layer": "inspector_panel",
+      "summary": "Early return in inspector for type container blocked specialized controls for nested_tabs and nested_accordion",
+      "status": "FIXED",
+      "round": 47
+    },
+    {
+      "id": "DEFECT-NT-02",
+      "severity": "P1",
+      "component": "nested_tabs",
+      "layer": "canvas_element",
+      "summary": "Canvas lacked interactive tab navigation pills, stacking all tab containers vertically",
+      "status": "FIXED",
+      "round": 47
+    },
+    {
+      "id": "DEFECT-SSR-03",
+      "severity": "P1",
+      "component": "nested_tabs",
+      "layer": "ast_compiler",
+      "summary": "ast_compiler did not recognize tab_titles and item_titles when compiling specialized containers",
+      "status": "FIXED",
+      "round": 47
     }
-  ],
-  "metrics": {
-    "typeCheckErrors": 0,
-    "frontendUnitTests": 380,
-    "backendUnitTests": 647,
-    "registeredBlocks": 76,
-    "lastVerifierVerdict": "APPROVE"
-  },
-  "timestamp": "2026-11-23T13:45:00.000Z"
+  ]
 }

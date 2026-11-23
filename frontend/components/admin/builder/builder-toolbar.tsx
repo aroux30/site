@@ -300,45 +300,45 @@ export function BuilderToolbar({
           variant="ghost"
           size="sm"
           onClick={() => setSavePageTemplateOpen(true)}
-          className="h-8 gap-1.5 text-xs text-muted-foreground hover:text-foreground"
+          className="h-8 gap-1 text-xs text-muted-foreground hover:text-foreground px-2 shrink-0"
           title="ذخیره کل برگه به عنوان قالب"
           data-testid="save-page-template-btn"
         >
-          <Bookmark className="w-3.5 h-3.5 text-primary" />
-          <span className="hidden sm:inline">قالب برگه</span>
+          <Bookmark className="w-3.5 h-3.5 text-primary shrink-0" />
+          <span className="hidden xl:inline">قالب برگه</span>
         </Button>
 
         <Button
           variant="ghost"
           size="sm"
           onClick={() => setGlobalStylesOpen(true)}
-          className="h-8 gap-1.5 text-xs text-muted-foreground hover:text-foreground"
+          className="h-8 gap-1 text-xs text-muted-foreground hover:text-foreground px-2 shrink-0"
           title="استایل‌های سراسری برگه"
         >
-          <Paintbrush className="w-3.5 h-3.5" />
-          <span className="hidden sm:inline">استایل سراسری</span>
+          <Paintbrush className="w-3.5 h-3.5 shrink-0" />
+          <span className="hidden xl:inline">استایل سراسری</span>
         </Button>
 
         <Button
           variant={previewMode ? "secondary" : "ghost"}
           size="sm"
           onClick={() => setPreviewMode(!previewMode)}
-          className="h-8 gap-1.5 text-xs"
+          className="h-8 gap-1 text-xs px-2 shrink-0"
         >
-          {previewMode ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-          <span className="hidden sm:inline">{previewMode ? "ویرایش" : "پیش‌نمایش"}</span>
+          {previewMode ? <EyeOff className="w-3.5 h-3.5 shrink-0" /> : <Eye className="w-3.5 h-3.5 shrink-0" />}
+          <span className="hidden lg:inline">{previewMode ? "ویرایش" : "پیش‌نمایش"}</span>
         </Button>
 
         <Button
           variant="ghost"
           size="sm"
           onClick={() => setShortcutsOpen(true)}
-          className="h-8 gap-1.5 text-xs text-muted-foreground hover:text-foreground"
+          className="h-8 gap-1 text-xs text-muted-foreground hover:text-foreground px-2 shrink-0"
           title="راهنمای کلیدهای میانبر (Shift+?)"
           data-testid="shortcuts-help-btn"
         >
-          <Keyboard className="w-3.5 h-3.5" />
-          <span className="hidden sm:inline">میانبرها</span>
+          <Keyboard className="w-3.5 h-3.5 shrink-0" />
+          <span className="hidden xl:inline">میانبرها</span>
         </Button>
 
         <Button

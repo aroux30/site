@@ -1,21 +1,22 @@
 {
-  "version": "3.2",
-  "activeWeight": 9,
-  "activeRound": 47,
+  "version": "4.2",
+  "activeWeight": 0,
+  "activeRound": 50,
   "status": "COMPLETED",
   "levels1to5Status": "BUILDER_GYM_LEVELS_1_TO_5_CLEAN",
   "allLevelsMastered": "BUILDER_GYM_ALL_LEVELS_MASTERED",
-  "verificationPort": 4001,
-  "completedRounds": 47,
+  "verificationPort": 1005,
+  "completedRounds": 50,
   "metrics": {
     "typeCheckErrors": 0,
     "frontendUnitTests": 380,
     "backendUnitTests": 650,
     "playwrightTests": 4,
-    "registeredBlocks": 68,
+    "registeredBlocks": 73,
+    "registeredPatterns": 28,
     "lastVerifierVerdict": "APPROVE"
   },
-  "timestamp": "2026-11-23T12:00:00.000Z",
+  "timestamp": "2026-11-24T02:00:00.000Z",
   "defect_ledger": [
     {
       "id": "DEFECT-R41-01",
@@ -214,6 +215,51 @@
       "summary": "ast_compiler did not recognize tab_titles and item_titles when compiling specialized containers",
       "status": "FIXED",
       "round": 47
+    },
+    {
+      "id": "DEFECT-W0-01",
+      "severity": "P0",
+      "component": "inspector_panel",
+      "layer": "flexbox_scroll_chain",
+      "summary": "Vertical scroll trap in InspectorPanel due to missing min-h-0 in studio and inspector container",
+      "status": "FIXED",
+      "round": 50
+    },
+    {
+      "id": "DEFECT-W0-02",
+      "severity": "P0",
+      "component": "builder_toolbar",
+      "layer": "responsive_layout",
+      "summary": "Horizontal overflow and button collisions in builder toolbar at 1280x720 and 1440x900",
+      "status": "FIXED",
+      "round": 50
+    },
+    {
+      "id": "DEFECT-W0-03",
+      "severity": "P0",
+      "component": "radix_portals",
+      "layer": "ui_select_dropdown_popover",
+      "summary": "Dropdown menus, selects and popovers opened beneath studio overlay due to z-50 being lower than z-[100]",
+      "status": "FIXED",
+      "round": 50
+    },
+    {
+      "id": "DEFECT-W0-04",
+      "severity": "P0",
+      "component": "icon_widget",
+      "layer": "canvas_and_ast_compiler",
+      "summary": "Icon widget rendered raw star slug/character instead of scalable vector SVG in canvas and SSR",
+      "status": "FIXED",
+      "round": 50
+    },
+    {
+      "id": "DEFECT-W0-05",
+      "severity": "P0",
+      "component": "canvas_demo_helper",
+      "layer": "builder_store_i18n",
+      "summary": "Demo canvas text incorrectly directed RTL users to left panel instead of right panel",
+      "status": "FIXED",
+      "round": 50
     }
   ]
 }

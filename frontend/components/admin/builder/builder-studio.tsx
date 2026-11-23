@@ -226,10 +226,10 @@ export function BuilderStudio({ page, onExit }: BuilderStudioProps) {
       />
 
       {/* Main 3-Column Studio Workspace */}
-      <div className="flex-1 flex overflow-hidden relative">
+      <div className="flex-1 flex overflow-hidden relative min-h-0">
         {/* Left Column: Blocks Palette & Layers Tree */}
         {!previewMode && (
-          <aside className="w-80 bg-card border-e border-border flex flex-col shrink-0 z-20 shadow-sm hidden md:flex">
+          <aside className="w-80 bg-card border-e border-border flex flex-col shrink-0 z-20 shadow-sm hidden md:flex min-h-0 h-full overflow-hidden">
             {/* Sidebar Tab Switcher (Elementor 3-Tab Parity: Blocks / Layers / History) */}
             <div className="grid grid-cols-3 p-1 m-2 rounded-xl bg-muted/60 border border-border/60 gap-1 text-[11px]">
               <button
@@ -311,7 +311,7 @@ export function BuilderStudio({ page, onExit }: BuilderStudioProps) {
 
         {/* Right Column: Element Inspector & Controls */}
         {!previewMode && (
-          <aside data-builder-inspector="" className="w-96 bg-card border-s border-border shrink-0 z-20 shadow-sm hidden lg:block overflow-hidden flex flex-col">
+          <aside data-builder-inspector="" className="w-96 bg-card border-s border-border shrink-0 z-20 shadow-sm hidden lg:block overflow-hidden flex flex-col min-h-0 h-full">
             <InspectorPanel />
           </aside>
         )}

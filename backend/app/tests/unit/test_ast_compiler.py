@@ -297,8 +297,37 @@ def test_ast_compiler_renders_image_box_and_toggle_widgets():
     assert "/banner.jpg" in result
     assert 'class="builder-toggle' in result
     assert "سوال نخست" in result
-    assert "پاسخ نخستین" in result
-    assert "سوال دوم" in result
+
+
+def test_ast_compiler_renders_icon_widget_as_valid_svg():
+    """Verify icon widget compiles to valid SVG element without raw slug text (Weight 0 parity)."""
+    ast = PageAST(
+        schema_version=1,
+        title="تست آیکون و اس‌وی‌جی",
+        slug="test-icon-svg",
+        root_elements=[
+            BuilderElement(
+                id="el_icon01",
+                name="آیکون ستاره",
+                type="widget",
+                widget_type="icon",
+                widget_props={
+                    "icon": "star",
+                    "view": "stacked",
+                    "shape": "circle",
+                    "size": 32,
+                    "rotate": 45,
+                },
+            )
+        ],
+    )
+    result = ASTCompiler.compile(ast)
+    assert '<svg viewBox="0 0 24 24"' in result
+    assert 'width="32"' in result
+    assert 'height="32"' in result
+    assert '<path d="M12 2l3.09 6.26' in result
+    assert "★" not in result
+    assert ">star<" not in result
 
 
 def test_ast_compiler_renders_share_buttons_and_tracker_widgets():

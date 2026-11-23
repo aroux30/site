@@ -3437,16 +3437,16 @@ export function InspectorPanel() {
     return (
       <div className="space-y-5">
         {/* Device Switcher Indicator */}
-        <div className="flex items-center justify-between p-2 rounded-lg bg-muted/60 border border-border/80">
-          <span className="text-[11px] font-semibold text-foreground">
+        <div className="flex items-center justify-between p-2 rounded-lg bg-muted/60 border border-border/80 gap-2 min-w-0">
+          <span className="text-[11px] font-semibold text-foreground truncate min-w-0">
             ویرایش استایل:{" "}
             {activeBreakpoint === "mobile"
-              ? "موبایل (پایه)"
+              ? "موبایل"
               : activeBreakpoint === "tablet"
-              ? "تبلت (md:)"
-              : "دسکتاپ (lg:)"}
+              ? "تبلت"
+              : "دسکتاپ"}
           </span>
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1 shrink-0">
             <button
               type="button"
               onClick={() => setBreakpoint("mobile")}
@@ -5303,8 +5303,8 @@ export function InspectorPanel() {
   };
 
   return (
-    <div className="flex flex-col h-full bg-card border-s border-border select-none" dir="rtl">
-      <div className="px-4 py-3 border-b border-border/80 flex items-center justify-between bg-muted/30">
+    <div className="flex flex-col h-full min-h-0 bg-card border-s border-border select-none" dir="rtl">
+      <div className="px-4 py-3 border-b border-border/80 flex items-center justify-between bg-muted/30 shrink-0">
         <div className="truncate">
           <span className="text-xs font-bold text-foreground block truncate">
             {selectedElement.name}
@@ -5318,9 +5318,9 @@ export function InspectorPanel() {
       <Tabs
         value={activeInspectorTab}
         onValueChange={(val) => setInspectorTab(val as InspectorTab)}
-        className="flex-1 flex flex-col"
+        className="flex-1 flex flex-col min-h-0"
       >
-        <TabsList className="grid grid-cols-3 h-9 mx-3 my-2 rounded-xl bg-muted/70 p-1 border border-border/60">
+        <TabsList className="grid grid-cols-3 h-9 mx-3 my-2 rounded-xl bg-muted/70 p-1 border border-border/60 shrink-0">
           <TabsTrigger value="content" className="text-xs py-1 font-semibold rounded-lg">
             محتوا
           </TabsTrigger>
@@ -5332,7 +5332,7 @@ export function InspectorPanel() {
           </TabsTrigger>
         </TabsList>
 
-        <div className="flex-1 overflow-y-auto px-4 py-3">
+        <div data-testid="inspector-scroll-container" className="flex-1 overflow-y-auto px-4 py-3 pb-16 min-h-0">
           <TabsContent value="content" className="m-0 focus-visible:outline-none">
             {renderContentControls()}
           </TabsContent>

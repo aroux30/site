@@ -192,4 +192,19 @@ describe("Visual Builder Studio Phase P1 Comprehensive Integration Tests", () =>
     expect(canMarkClean).toBe(false);
     expect(useBuilderStore.getState().isDirty).toBe(true);
   });
+
+  // 10. وزنه ۰: بررسی رندر معنایی SVG آیکون و جهت‌داری راهنمای بوم
+  it("resolves valid svg paths from icon-registry and uses correct RTL panel orientation", async () => {
+    const { getBuilderIconSvgPath, getBuilderIcon } = await import("@/lib/builder/icon-registry");
+    expect(getBuilderIcon("star")).toBeDefined();
+    expect(getBuilderIconSvgPath("star")).toContain("M12 2l3.09 6.26");
+    expect(getBuilderIconSvgPath("heart")).toContain("M19 14");
+    expect(getBuilderIconSvgPath("unknown-slug")).toContain("M12 2l3.09 6.26"); // Safe fallback to star
+
+    // Ensure default demo text directs to right panel in RTL
+    useBuilderStore.getState().initPage("page-fresh", null, "برگه جدید", "fresh");
+    const serialized = JSON.stringify(useBuilderStore.getState().ast);
+    expect(serialized).toContain("پنل سمت راست");
+    expect(serialized).not.toContain("پنل سمت چپ");
+  });
 });

@@ -52,6 +52,8 @@ ALLOWED_TAGS: frozenset[str] = frozenset(
         "blockquote", "details", "summary", "address",
         # forms and interactive controls
         "button", "label", "input", "textarea", "select", "option", "form",
+        # vector graphics and icons
+        "svg", "path", "polygon", "circle", "rect", "line", "polyline", "g",
     }
 )
 
@@ -93,6 +95,17 @@ ALLOWED_ATTRIBUTES: dict[str, frozenset[str]] = {
     "colgroup": frozenset({"span"}),
     "time": frozenset({"datetime"}),
     "details": frozenset({"open"}),
+    "svg": frozenset({
+        "xmlns", "viewbox", "viewBox", "width", "height", "fill", "stroke",
+        "stroke-width", "stroke-linecap", "stroke-linejoin", "aria-hidden", "role",
+    }),
+    "path": frozenset({"d", "fill", "stroke", "stroke-width", "stroke-linecap", "stroke-linejoin"}),
+    "polygon": frozenset({"points", "fill", "stroke", "stroke-width", "stroke-linecap", "stroke-linejoin"}),
+    "circle": frozenset({"cx", "cy", "r", "fill", "stroke", "stroke-width"}),
+    "rect": frozenset({"x", "y", "width", "height", "rx", "ry", "fill", "stroke", "stroke-width"}),
+    "line": frozenset({"x1", "y1", "x2", "y2", "stroke", "stroke-width", "stroke-linecap"}),
+    "polyline": frozenset({"points", "fill", "stroke", "stroke-width", "stroke-linecap", "stroke-linejoin"}),
+    "g": frozenset({"fill", "stroke", "stroke-width", "transform"}),
 }
 
 # URLs restricted to these schemes; anything else (javascript:, data:) is
@@ -321,4 +334,5 @@ def sanitize_html(html: str | None) -> str:
         callbacks=[_link_rel],
         skip_tags=["pre", "code"],
         parse_email=False,
+        recognized_tags=bleach.html5lib_shim.HTML_TAGS | _EMBED_ALLOWED_TAGS,
     ).linkify(cleaned)

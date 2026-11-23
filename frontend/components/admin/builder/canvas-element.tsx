@@ -46,6 +46,7 @@ import { Badge } from "@/components/ui/badge";
 import { useCartStore } from "@/stores/cart-store";
 import { useToast } from "@/components/ui/use-toast";
 import { normalizeCssColor } from "@/lib/builder/color-utils";
+import { BuilderIconSvg } from "@/lib/builder/icon-registry";
 import type { BuilderElement, DeviceStyle, ResponsiveStyles } from "@/types/builder";
 
 interface CanvasElementProps {
@@ -871,8 +872,41 @@ function CanvasElementComponent({
         );
       }
       case "icon": {
-        const iconChar = String(props.icon || "★");
-        return <span className="inline-block text-xl leading-none">{iconChar}</span>;
+        const iconName = String(props.icon || "star");
+        const view = String(props.view || "default");
+        const shape = String(props.shape || "circle");
+        const size = Number(props.size) || 32;
+        const rotate = Number(props.rotate) || 0;
+        const url = String(props.url || "");
+
+        let viewClasses = "text-primary";
+        if (view === "stacked") {
+          viewClasses = "bg-primary text-white shadow-sm";
+        } else if (view === "framed") {
+          viewClasses = "border-2 border-primary text-primary bg-transparent";
+        }
+
+        const shapeClass = shape === "circle" ? "rounded-full" : "rounded-xl";
+        const padding = view !== "default" ? Math.round(size * 0.4) : 0;
+        const transform = rotate ? `rotate(${rotate}deg)` : undefined;
+
+        const innerIcon = (
+          <div
+            className={cn("inline-flex items-center justify-center transition-transform", viewClasses, shapeClass)}
+            style={{ padding: padding ? `${padding}px` : undefined, transform }}
+          >
+            <BuilderIconSvg name={iconName} size={size} className="w-auto h-auto shrink-0" />
+          </div>
+        );
+
+        if (url) {
+          return (
+            <a href={url} onClick={(e) => e.preventDefault()} className="inline-block cursor-pointer">
+              {innerIcon}
+            </a>
+          );
+        }
+        return <div className="inline-block">{innerIcon}</div>;
       }
       case "video": {
         const url = String(props.url || "");

@@ -165,12 +165,21 @@ describe("P2.1 Native Widgets: Table & Form Inputs", () => {
 
     expect(navMenuEl.widgetType).toBe("nav_menu");
     expect(Array.isArray(navMenuEl.widgetProps?.items)).toBe(true);
+    expect((navMenuEl.widgetProps?.items as any[])?.length).toBeGreaterThan(0);
+
+    const verticalNavMenuEl = {
+      ...navMenuEl,
+      widgetProps: {
+        ...navMenuEl.widgetProps,
+        layout: "vertical",
+      },
+    };
 
     const parsed = PageASTSchema.safeParse({
       schemaVersion: 1,
       title: "Theme Builder AST",
       slug: "theme-builder-ast",
-      rootElements: [breadcrumbsEl, searchBarEl, navMenuEl],
+      rootElements: [breadcrumbsEl, searchBarEl, navMenuEl, verticalNavMenuEl],
     });
     expect(parsed.success).toBe(true);
   });

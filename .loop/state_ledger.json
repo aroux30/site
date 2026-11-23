@@ -1,12 +1,12 @@
 {
   "version": "3.2",
   "activeWeight": 9,
-  "activeRound": 50,
+  "activeRound": 51,
   "status": "COMPLETED",
   "levels1to5Status": "BUILDER_GYM_LEVELS_1_TO_5_CLEAN",
   "allLevelsMastered": "BUILDER_GYM_ALL_LEVELS_MASTERED",
   "verificationPort": 1002,
-  "completedRounds": 50,
+  "completedRounds": 51,
   "metrics": {
     "typeCheckErrors": 0,
     "frontendUnitTests": 380,
@@ -241,6 +241,33 @@
       "summary": "Missing comprehensive test suite and block-registry coverage assertion for breadcrumbs, search_bar, and nav_menu in backend pytest and frontend vitest",
       "status": "FIXED",
       "round": 50
+    },
+    {
+      "id": "DEFECT-R51-01",
+      "severity": "P1",
+      "component": "search_bar_and_nav_menu",
+      "layer": "canvas_element",
+      "summary": "Search Bar and Nav Menu widgets lacked explicit data-widget attributes in canvas-element, preventing reliable inspector auto-selection",
+      "status": "FIXED",
+      "round": 51
+    },
+    {
+      "id": "DEFECT-R51-02",
+      "severity": "P1",
+      "component": "nav_menu",
+      "layer": "cross_layer",
+      "summary": "Nav Menu widget lacked vertical vs horizontal layout orientation controls across Inspector, Canvas, and SSR AST compiler",
+      "status": "FIXED",
+      "round": 51
+    },
+    {
+      "id": "DEFECT-R51-03",
+      "severity": "P2",
+      "component": "search_bar",
+      "layer": "canvas_element",
+      "summary": "Search Bar button lacked data-testid and fallback recognition for button_label property",
+      "status": "FIXED",
+      "round": 51
     }
   ]
 }

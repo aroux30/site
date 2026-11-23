@@ -2131,7 +2131,7 @@ function CanvasElementComponent({
         const steps = rawSteps.map((s) => (typeof s === "string" ? s : s?.title || String(s || "")));
         const curStep = Number(props.current_step) || 1;
         return (
-          <div className="p-6 rounded-2xl border border-border/80 bg-card space-y-5 shadow-sm w-full text-right">
+          <div data-widget="multi_step_form" className="builder-multi-step-form p-6 rounded-2xl border border-border/80 bg-card space-y-5 shadow-sm w-full text-right">
             {/* Step Indicators */}
             <div className="flex items-center justify-between border-b border-border/60 pb-4">
               {steps.map((st, idx) => (
@@ -2345,9 +2345,9 @@ function CanvasElementComponent({
       }
       case "search_bar": {
         const placeholder = String(props.placeholder || "جستجو در میان کالاها...");
-        const btnText = String(props.button_text || "جستجو");
+        const btnText = String(props.button_text || props.button_label || "جستجو");
         return (
-          <div className="flex items-center gap-2 w-full max-w-md my-1 select-none pointer-events-none">
+          <div data-widget="search_bar" className="builder-search-bar flex items-center gap-2 w-full max-w-md my-1 select-none pointer-events-none">
             <div className="relative flex-1">
               <input
                 type="search"
@@ -2358,6 +2358,7 @@ function CanvasElementComponent({
             </div>
             <button
               type="button"
+              data-testid="search-bar-submit"
               className="px-5 py-2.5 rounded-xl bg-primary text-primary-foreground text-xs font-bold shadow-xs transition"
             >
               {btnText}
@@ -2366,6 +2367,7 @@ function CanvasElementComponent({
         );
       }
       case "nav_menu": {
+        const layout = String(props.layout || "horizontal");
         const items = Array.isArray(props.items) && props.items.length > 0
           ? props.items
           : [
@@ -2374,15 +2376,18 @@ function CanvasElementComponent({
               { title: "وبلاگ", url: "/blog" },
             ];
         return (
-          <nav aria-label="فهرست ناوبری" className="w-full py-1 select-none pointer-events-none">
-            <ul className="flex flex-wrap items-center gap-2 list-none m-0 p-0">
-              {items.map((it: any, idx: number) => (
-                <li key={idx} className="inline-block">
-                  <span className="px-3 py-1.5 rounded-lg text-xs font-bold text-foreground hover:text-primary transition-colors cursor-pointer">
-                    {it.title}
-                  </span>
-                </li>
-              ))}
+          <nav aria-label="فهرست ناوبری" data-widget="nav_menu" className="builder-nav-menu w-full py-1 select-none pointer-events-none">
+            <ul className={`flex ${layout === "vertical" ? "flex-col items-start" : "flex-wrap items-center"} gap-2 list-none m-0 p-0`}>
+              {items.map((it: any, idx: number) => {
+                const label = it.title || it.label || `پیوند ${idx + 1}`;
+                return (
+                  <li key={idx} className="inline-block" data-testid={`nav-menu-item-${idx}`}>
+                    <span className="px-3 py-1.5 rounded-lg text-xs font-bold text-foreground hover:text-primary transition-colors cursor-pointer">
+                      {label}
+                    </span>
+                  </li>
+                );
+              })}
             </ul>
           </nav>
         );

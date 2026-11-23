@@ -3347,12 +3347,29 @@ export function InspectorPanel() {
           { title: "فروشگاه", url: "/products" },
           { title: "وبلاگ", url: "/blog" },
         ];
+        const layout = String(props.layout || "horizontal");
         return (
           <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs">چیدمان منو (Layout)</Label>
+              <Select
+                value={layout}
+                onValueChange={(val) => handlePropChange("layout", val)}
+              >
+                <SelectTrigger data-testid="nav-menu-layout-select" className="h-8 text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="horizontal">افقی (Horizontal)</SelectItem>
+                  <SelectItem value="vertical">عمودی (Vertical)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
             <div className="flex items-center justify-between">
               <Label className="text-xs font-bold">پیوندهای منو</Label>
               <button
                 type="button"
+                data-testid="nav-menu-add-item-btn"
                 onClick={() => {
                   const updated = [...items, { title: `پیوند ${items.length + 1}`, url: "/page" }];
                   handlePropChange("items", updated);

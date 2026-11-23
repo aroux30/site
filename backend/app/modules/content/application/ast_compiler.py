@@ -1513,7 +1513,7 @@ class ASTCompiler:
         elif widget_type == "search_bar":
             placeholder = html.escape(str(props.get("placeholder", "جستجو در میان کالاها...")))
             action_url = html.escape(str(props.get("action_url", "/search")))
-            btn_text = html.escape(str(props.get("button_text", "جستجو")))
+            btn_text = html.escape(str(props.get("button_text") or props.get("button_label") or "جستجو"))
             return (
                 f'<form{id_attr} action="{action_url}" method="GET" class="builder-search-bar flex items-center gap-2 w-full max-w-md my-2 {css_class}" data-widget="search_bar"{style_attr}>'
                 f'<div class="relative flex-1">'
@@ -1525,15 +1525,17 @@ class ASTCompiler:
 
         elif widget_type == "nav_menu":
             menu_items = props.get("items", [{"title": "صفحه اصلی", "url": "/"}, {"title": "فروشگاه", "url": "/products"}, {"title": "وبلاگ", "url": "/blog"}])
+            layout = str(props.get("layout", "horizontal"))
+            ul_cls = "flex flex-col items-start gap-2 list-none m-0 p-0" if layout == "vertical" else "flex flex-wrap items-center gap-2 list-none m-0 p-0"
             links_html = ""
             if isinstance(menu_items, list):
                 for mi in menu_items:
-                    m_title = html.escape(str(mi.get("title", "")))
+                    m_title = html.escape(str(mi.get("title") or mi.get("label") or ""))
                     m_url = html.escape(str(mi.get("url", "#")))
                     links_html += f'<li class="inline-block"><a href="{m_url}" class="px-3 py-1.5 rounded-lg text-xs font-bold text-foreground hover:text-primary transition">{m_title}</a></li>'
             return (
                 f'<nav{id_attr} class="builder-nav-menu w-full py-2 {css_class}" data-widget="nav_menu"{style_attr}>'
-                f'<ul class="flex flex-wrap items-center gap-2 list-none m-0 p-0">{links_html}</ul>'
+                f'<ul class="{ul_cls}">{links_html}</ul>'
                 f'</nav>'
             )
 

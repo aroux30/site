@@ -6,16 +6,26 @@ const input = JSON.parse(readFileSync(0, "utf8"));
 if (input?.stop_hook_active) process.exit(0);
 if (existsSync(join(process.cwd(), "AGENT_STOP"))) process.exit(0);
 
-const round = process.env.GYM_ROUND;
+let round = process.env.GYM_ROUND;
+if (!round) {
+  try {
+    const ledger = JSON.parse(readFileSync(join(process.cwd(), ".loop", "state_ledger.json"), "utf8"));
+    round = String(ledger?.activeRound ?? "");
+  } catch {}
+}
 if (!round) process.exit(0);
 
 const root = process.cwd();
 const missing = [];
 const visionLogPath = join(root, ".loop", "vision_reads.jsonl");
 const ledgerPath = join(root, ".loop", "state_ledger.json");
-const scopeDir = process.env.GYM_SCOPE === "builder" ? "builder-gym" : "gym";
-const roundDir = join(root, ".loop", "artifacts", scopeDir, `round-${String(round).padStart(3, "0")}`);
-const verdictPath = join(roundDir, "verifier_verdict.json");
+const scopeDir = process.env.GYM_SCOPE === "builder" || !process.env.GYM_SCOPE ? "builder-gym" : "gym";
+const roundDir3 = join(root, ".loop", "artifacts", scopeDir, `round-${String(round).padStart(3, "0")}`);
+const roundDir2 = join(root, ".loop", "artifacts", scopeDir, `round-${String(round).padStart(2, "0")}`);
+const roundDir = existsSync(roundDir3) ? roundDir3 : roundDir2;
+const verdictPath = existsSync(join(roundDir3, "verifier_verdict.json"))
+  ? join(roundDir3, "verifier_verdict.json")
+  : join(roundDir2, "verifier_verdict.json");
 
 if (!existsSync(ledgerPath)) missing.push(".loop/state_ledger.json وجود ندارد یا آپدیت نشده است.");
 if (!existsSync(join(roundDir, "mutation_report.json"))) {

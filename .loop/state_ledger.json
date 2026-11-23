@@ -1,21 +1,21 @@
 {
   "version": "3.2",
   "activeWeight": 9,
-  "activeRound": 47,
+  "activeRound": 50,
   "status": "COMPLETED",
   "levels1to5Status": "BUILDER_GYM_LEVELS_1_TO_5_CLEAN",
   "allLevelsMastered": "BUILDER_GYM_ALL_LEVELS_MASTERED",
-  "verificationPort": 4001,
-  "completedRounds": 47,
+  "verificationPort": 1001,
+  "completedRounds": 50,
   "metrics": {
     "typeCheckErrors": 0,
     "frontendUnitTests": 380,
     "backendUnitTests": 650,
-    "playwrightTests": 4,
+    "playwrightTests": 1,
     "registeredBlocks": 68,
     "lastVerifierVerdict": "APPROVE"
   },
-  "timestamp": "2026-11-23T12:00:00.000Z",
+  "timestamp": "2026-11-23T19:30:00.000Z",
   "defect_ledger": [
     {
       "id": "DEFECT-R41-01",
@@ -214,6 +214,24 @@
       "summary": "ast_compiler did not recognize tab_titles and item_titles when compiling specialized containers",
       "status": "FIXED",
       "round": 47
+    },
+    {
+      "id": "DEFECT-R50-01",
+      "severity": "P1",
+      "component": "custom_attributes",
+      "layer": "ast_compiler",
+      "summary": "Custom Attributes parsed only string format and failed dictionary objects; extra_attrs was missing on most widget root tags in SSR",
+      "status": "FIXED",
+      "round": 50
+    },
+    {
+      "id": "DEFECT-R50-02",
+      "severity": "P2",
+      "component": "custom_attributes",
+      "layer": "schema_and_types",
+      "summary": "Frontend Zod schema rejected dictionary format for customAttributes in PageAST",
+      "status": "FIXED",
+      "round": 50
     }
   ]
 }

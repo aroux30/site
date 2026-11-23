@@ -458,4 +458,49 @@ describe("Visual Page Builder Zod Schema and AST Validation (Phase P0)", () => {
       expect((el.widgetProps?.items as any[]).length).toBe(3);
     }
   });
+
+  it("validates Elementor Pro Custom Attributes supporting both string and dictionary forms in schema", () => {
+    const elWithStringAttrs: BuilderElement = {
+      id: "el_attr_str",
+      name: "المان با رشته",
+      type: "widget",
+      widgetType: "heading",
+      widgetProps: { text: "ویژگی رشته‌ای" },
+      isLocked: false,
+      isHidden: false,
+      styles: {
+        mobile: {},
+        customAttributes: "data-tracking|hero-cta\naria-label|test-region",
+      },
+      children: [],
+    };
+
+    const elWithDictAttrs: BuilderElement = {
+      id: "el_attr_dict",
+      name: "المان با دیکشنری",
+      type: "container",
+      isLocked: false,
+      isHidden: false,
+      styles: {
+        mobile: {},
+        customAttributes: { "data-role": "modal-trigger", "data-e2e": "submit-button" },
+      },
+      children: [],
+    };
+
+    const parsed = PageASTSchema.safeParse({
+      schemaVersion: 1,
+      title: "تست ویژگی‌های سفارشی",
+      slug: "test-custom-attrs",
+      rootElements: [elWithStringAttrs, elWithDictAttrs],
+    });
+
+    expect(parsed.success).toBe(true);
+    if (parsed.success && parsed.data.rootElements[0] && parsed.data.rootElements[1]) {
+      expect(parsed.data.rootElements[0].styles.customAttributes).toBe(
+        "data-tracking|hero-cta\naria-label|test-region"
+      );
+      expect(typeof parsed.data.rootElements[1].styles.customAttributes).toBe("object");
+    }
+  });
 });

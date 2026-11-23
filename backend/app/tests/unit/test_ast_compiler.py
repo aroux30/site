@@ -1642,6 +1642,63 @@ def test_ast_compiler_renders_round47_nested_tabs_and_accordion():
     assert "نحوه بازگشت کالا" in result
 
 
+def test_ast_compiler_renders_round50_custom_attributes_parity():
+    """Verify Round 50 Elementor Pro custom attributes and data attributes in SSR."""
+    ast = PageAST(
+        schema_version=1,
+        title="تست ویژگی‌های سفارشی راند ۵۰",
+        slug="test-r50-custom-attrs",
+        root_elements=[
+            BuilderElement(
+                id="el_sec_r50",
+                name="بخش با ویژگی‌های سفارشی",
+                type="container",
+                styles=ResponsiveStyles(
+                    custom_attributes="data-section-role|hero-banner\ndata-tracking-id|promo_2026\nonclick|alert(1)\njavascript:evil()|bad",
+                ),
+                children=[
+                    BuilderElement(
+                        id="el_tbl_r50",
+                        name="جدول با اتریبیوت دیکشنری",
+                        type="widget",
+                        widget_type="table",
+                        styles=ResponsiveStyles(
+                            custom_attributes={"data-widget-purpose": "spec-sheet", "data-e2e": "specs-table", "style": "color:red"},
+                        ),
+                        widget_props={
+                            "headers": ["ویژگی", "مقدار"],
+                            "rows": [["پردازنده", "M3 Max"]],
+                        },
+                    ),
+                    BuilderElement(
+                        id="el_btn_r50",
+                        name="دکمه با اتریبیوت سفارشی",
+                        type="widget",
+                        widget_type="button",
+                        styles=ResponsiveStyles(
+                            custom_attributes="data-analytics-category|lead-gen\naria-label|تماس با ما",
+                        ),
+                        widget_props={"label": "ثبت درخواست", "url": "/contact"},
+                    ),
+                ],
+            )
+        ],
+    )
+    result = ASTCompiler.compile(ast)
+    # Container attributes
+    assert 'data-section-role="hero-banner"' in result
+    assert 'data-tracking-id="promo_2026"' in result
+    assert 'onclick' not in result
+    assert 'javascript:' not in result
+    # Widget table with dict attributes
+    assert 'data-widget-purpose="spec-sheet"' in result
+    assert 'data-e2e="specs-table"' in result
+    # Widget button with string attributes
+    assert 'data-analytics-category="lead-gen"' in result
+    assert 'aria-label="تماس با ما"' in result
+
+
+
 
 
 

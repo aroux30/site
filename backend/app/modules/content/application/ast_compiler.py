@@ -41,23 +41,47 @@ class ASTCompiler:
         return sanitize_html(raw_html)
 
     @classmethod
-    def _parse_custom_attributes(cls, raw: str | None) -> str:
-        """Parse key|value pairs from custom_attributes (Elementor Parity)."""
+    def _parse_custom_attributes(cls, raw: str | dict[str, Any] | None) -> str:
+        """Parse key|value pairs or dict from custom_attributes (Elementor Parity)."""
         if not raw:
             return ""
         attrs: list[str] = []
         blacklist = {"id", "class", "style", "data-element-id", "data-auth", "data-global-component"}
-        for line in raw.strip().splitlines():
-            line = line.strip()
-            if not line or "|" not in line:
-                continue
-            parts = line.split("|", 1)
-            k = parts[0].strip().lower()
-            v = parts[1].strip()
-            if not k or k in blacklist or k.startswith("on") or "javascript:" in v.lower():
-                continue
-            attrs.append(f' {html.escape(k)}="{html.escape(v)}"')
-        return "".join(attrs)
+        if isinstance(raw, dict):
+            for k, v in raw.items():
+                k_clean = str(k).strip().lower()
+                v_clean = str(v).strip()
+                if (
+                    not k_clean
+                    or k_clean in blacklist
+                    or k_clean.startswith("on")
+                    or "javascript:" in v_clean.lower()
+                    or "vbscript:" in v_clean.lower()
+                    or "data:text/html" in v_clean.lower()
+                ):
+                    continue
+                attrs.append(f' {html.escape(k_clean)}="{html.escape(v_clean)}"')
+            return "".join(attrs)
+        if isinstance(raw, str):
+            for line in raw.strip().splitlines():
+                line = line.strip()
+                if not line or "|" not in line:
+                    continue
+                parts = line.split("|", 1)
+                k = parts[0].strip().lower()
+                v = parts[1].strip()
+                if (
+                    not k
+                    or k in blacklist
+                    or k.startswith("on")
+                    or "javascript:" in v.lower()
+                    or "vbscript:" in v.lower()
+                    or "data:text/html" in v.lower()
+                ):
+                    continue
+                attrs.append(f' {html.escape(k)}="{html.escape(v)}"')
+            return "".join(attrs)
+        return ""
 
     @classmethod
     def _compile_element(cls, el: BuilderElement, is_authenticated: bool = False) -> str:
@@ -73,11 +97,32 @@ class ASTCompiler:
 
         if el.type == "container":
             if el.widget_type in ("nested_tabs", "nested_accordion") and not el.children:
-                return cls._compile_widget(el)
-            return cls._compile_container(el, is_authenticated=is_authenticated)
+                compiled = cls._compile_widget(el)
+            else:
+                compiled = cls._compile_container(el, is_authenticated=is_authenticated)
         elif el.type == "widget":
-            return cls._compile_widget(el)
-        return ""
+            compiled = cls._compile_widget(el)
+        else:
+            return ""
+
+        extra_attrs = ""
+        if el.auth_visibility != "all":
+            extra_attrs += f' data-auth="{html.escape(el.auth_visibility)}"'
+        if el.global_component_id:
+            extra_attrs += f' data-global-component="{html.escape(el.global_component_id)}"'
+        if el.styles.custom_attributes:
+            extra_attrs += cls._parse_custom_attributes(el.styles.custom_attributes)
+
+        if extra_attrs and compiled and extra_attrs not in compiled:
+            first_gt = compiled.find(">")
+            if first_gt != -1:
+                tag_head = compiled[:first_gt]
+                if tag_head.endswith("/"):
+                    compiled = tag_head[:-1].rstrip() + extra_attrs + " />" + compiled[first_gt + 1 :]
+                else:
+                    compiled = tag_head + extra_attrs + ">" + compiled[first_gt + 1 :]
+
+        return compiled
 
     @classmethod
     def _compile_container(cls, el: BuilderElement, is_authenticated: bool = False) -> str:

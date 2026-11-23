@@ -192,4 +192,41 @@ describe("Visual Builder Studio Phase P1 Comprehensive Integration Tests", () =>
     expect(canMarkClean).toBe(false);
     expect(useBuilderStore.getState().isDirty).toBe(true);
   });
+
+  // 10. اعتبارسنجی کنترل‌ها و افزودن/حذف مراحل در فرم چندمرحله‌ای (Multi-Step Form)
+  it("manages multi_step_form steps addition, removal, and current_step navigation", () => {
+    const formDef = BASIC_BLOCK_DEFINITIONS.find((b) => b.type === "multi_step_form");
+    expect(formDef).toBeDefined();
+
+    const formEl = formDef!.createDefaultElement();
+    useBuilderStore.getState().addElement(formEl);
+
+    // Initial default steps
+    let el = findElementById(useBuilderStore.getState().ast.rootElements, formEl.id);
+    expect(el?.widgetProps?.steps).toEqual(["اطلاعات تماس", "آدرس و ارسال", "تایید نهایی"]);
+    expect(el?.widgetProps?.current_step).toBe(1);
+
+    // Add step 4
+    const updatedSteps = [...(el?.widgetProps?.steps as string[]), "پرداخت آنلاین"];
+    useBuilderStore.getState().updateElementProps(formEl.id, {
+      steps: updatedSteps,
+      current_step: 2,
+      indicator_style: "progress_bar",
+    });
+
+    el = findElementById(useBuilderStore.getState().ast.rootElements, formEl.id);
+    expect(el?.widgetProps?.steps).toHaveLength(4);
+    expect(el?.widgetProps?.current_step).toBe(2);
+    expect(el?.widgetProps?.indicator_style).toBe("progress_bar");
+
+    // Remove a step and verify bounds
+    const prunedSteps = updatedSteps.filter((_, i) => i !== 3);
+    useBuilderStore.getState().updateElementProps(formEl.id, {
+      steps: prunedSteps,
+      current_step: 3,
+    });
+    el = findElementById(useBuilderStore.getState().ast.rootElements, formEl.id);
+    expect(el?.widgetProps?.steps).toHaveLength(3);
+    expect(el?.widgetProps?.current_step).toBe(3);
+  });
 });

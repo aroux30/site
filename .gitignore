@@ -3,7 +3,10 @@
 .env*.local
 
 # Node / Frontend
+node_modules
 node_modules/
+frontend/node_modules
+frontend/node_modules/
 .next/
 .next-*/
 out/

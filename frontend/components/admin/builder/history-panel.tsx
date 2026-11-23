@@ -46,7 +46,7 @@ export function HistoryPanel() {
   return (
     <div
       data-testid="builder-history-panel"
-      className="flex flex-col h-full p-3 space-y-3 select-none overflow-y-auto"
+      className="flex flex-col h-full min-h-0 p-3 space-y-3 select-none overflow-y-auto builder-scrollbar"
       dir="rtl"
     >
       <div className="flex items-center justify-between px-1">

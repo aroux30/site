@@ -32,6 +32,12 @@ export function FloatingCompareBar() {
     setMounted(true);
   }, []);
 
+  const isBuilder =
+    typeof window !== "undefined" &&
+    (window.location.search.includes("builder=") ||
+      window.location.search.includes("visual_editor=") ||
+      window.location.search.includes("edit="));
+
   // Do not render before mount, if the compare module is switched off, if no
   // products are queued, or on the compare page itself. Compare is client-only
   // (localStorage), so nothing else would stop a bar pointing at a page that is
@@ -40,7 +46,8 @@ export function FloatingCompareBar() {
     !mounted ||
     !shopFeatures.compare ||
     products.length === 0 ||
-    pathname === "/compare"
+    pathname === "/compare" ||
+    isBuilder
   ) {
     return null;
   }

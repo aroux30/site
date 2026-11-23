@@ -68,4 +68,22 @@ test.describe("Builder Gym Round 47: Multi-Step Form 4-Layer Parity & Inspector 
 
     expect(fs.existsSync(shot1)).toBe(true);
   });
+
+  test("3. Inserting nested_accordion renders container with accordion badge inside canvas", async ({ page }) => {
+    await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(1500);
+
+    const searchInput = page.locator('aside input[placeholder*="جستجو"]').first();
+    await searchInput.fill("کانتینری");
+    await page.waitForTimeout(300);
+
+    const accordionCard = page.locator('button[data-block-type="nested_accordion"]').first();
+    await accordionCard.click();
+    await page.waitForTimeout(600);
+
+    // Check inside canvas iframe for nested accordion badge
+    const frame = page.frameLocator('iframe[title="Visual Builder Canvas"]');
+    const badge = frame.getByText("آکاردئون کانتینری").first();
+    await expect(badge).toBeVisible();
+  });
 });

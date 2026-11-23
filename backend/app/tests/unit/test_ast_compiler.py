@@ -557,6 +557,13 @@ def test_ast_compiler_renders_multistep_and_loop_carousel_widgets():
                         widget_type="loop_carousel",
                         widget_props={"limit": 3, "category": "all"},
                     ),
+                    BuilderElement(
+                        id="el_lgrid01",
+                        name="گرید حلقه",
+                        type="widget",
+                        widget_type="loop_grid",
+                        widget_props={"limit": 4, "columns": 2, "category": "digital"},
+                    ),
                 ],
             )
         ],
@@ -570,6 +577,9 @@ def test_ast_compiler_renders_multistep_and_loop_carousel_widgets():
     assert "گام قبلی" in result
     assert 'class="builder-loop-carousel' in result
     assert 'data-widget="loop_carousel"' in result
+    assert 'class="builder-loop-grid' in result
+    assert 'data-widget="loop_grid"' in result
+    assert 'md:grid-cols-2' in result
 
 
 def test_ast_compiler_renders_audio_and_maps_widgets():

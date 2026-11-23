@@ -39,6 +39,7 @@ test.describe("Builder Gym Round 41: Breadcrumbs (مسیر راهنما) 4-Layer
     if (token) {
       await context.addCookies([
         { name: "access_token", value: token, url: BASE_URL, httpOnly: false, sameSite: "Lax" },
+        { name: "access_token", value: token, url: "http://localhost:4004", httpOnly: false, sameSite: "Lax" },
       ]);
     }
     await context.setExtraHTTPHeaders({

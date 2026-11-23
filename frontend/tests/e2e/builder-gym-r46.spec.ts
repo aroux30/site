@@ -87,4 +87,21 @@ test.describe("Builder Gym Round 46: Price Table & Price List 4-Layer Parity & I
     expect(fs.existsSync(shot1)).toBe(true);
     expect(fs.existsSync(shot2)).toBe(true);
   });
+
+  test("3. Inserting slides renders hero slider with active navigation dots", async ({ page }) => {
+    await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(1500);
+
+    const searchInput = page.locator('aside input[placeholder*="جستجو"]').first();
+    await searchInput.fill("اسلاید");
+    await page.waitForTimeout(300);
+
+    const slidesCard = page.locator('button[data-block-type="slides"]').first();
+    await slidesCard.click();
+    await page.waitForTimeout(800);
+
+    const frame = page.frameLocator('iframe[title="Visual Builder Canvas"]');
+    const slidesWidget = frame.locator('[data-widget="slides"]').first();
+    await expect(slidesWidget).toBeVisible({ timeout: 10000 });
+  });
 });

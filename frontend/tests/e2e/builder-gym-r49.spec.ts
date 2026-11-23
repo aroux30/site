@@ -34,11 +34,14 @@ asyncio.run(main())
 }
 
 test.describe("Builder Gym Round 35: 1920x1080 3-Column Studio Full Human-View Parity & Accessibility", () => {
+  test.use({ viewport: { width: 1920, height: 1080 } });
+
   test.beforeEach(async ({ context }) => {
     const token = getAdminToken();
     if (token) {
       await context.addCookies([
         { name: "access_token", value: token, url: BASE_URL, httpOnly: false, sameSite: "Lax" },
+        { name: "access_token", value: token, url: "http://localhost:4004", httpOnly: false, sameSite: "Lax" },
       ]);
     }
     await context.setExtraHTTPHeaders({

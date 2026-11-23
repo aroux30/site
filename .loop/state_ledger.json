@@ -1,21 +1,21 @@
 {
   "version": "3.2",
   "activeWeight": 9,
-  "activeRound": 48,
+  "activeRound": 49,
   "status": "COMPLETED",
   "levels1to5Status": "BUILDER_GYM_LEVELS_1_TO_5_CLEAN",
   "allLevelsMastered": "BUILDER_GYM_ALL_LEVELS_MASTERED",
   "verificationPort": 4004,
-  "completedRounds": 48,
+  "completedRounds": 49,
   "defect_ledger": [
     {
-      "id": "DEFECT-R48-01",
+      "id": "DEFECT-R49-01",
       "severity": "P1",
-      "round": 48,
-      "title": "Loop Carousel container missing explicit data-widget attribute",
+      "round": 49,
+      "title": "FloatingCompareBar aside tag leak into builder studio environment",
       "status": "RESOLVED",
-      "layer": "frontend/components/admin/builder/canvas-element.tsx",
-      "description": "Added explicit data-widget and builder-loop-carousel class to loop_carousel container."
+      "layer": "frontend/components/compare/floating-compare-bar.tsx",
+      "description": "Excluded FloatingCompareBar when isBuilder query parameters are detected."
     }
   ],
   "metrics": {
@@ -25,5 +25,5 @@
     "registeredBlocks": 76,
     "lastVerifierVerdict": "APPROVE"
   },
-  "timestamp": "2026-11-23T12:15:00.000Z"
+  "timestamp": "2026-11-23T13:45:00.000Z"
 }

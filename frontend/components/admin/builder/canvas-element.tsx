@@ -2197,15 +2197,6 @@ function CanvasElementComponent({
                 ))}
               </div>
             )}
-                      {idx + 1}
-                    </span>
-                    <span className={cn("text-xs font-semibold", idx + 1 === curStep ? "text-foreground font-bold" : "text-muted-foreground")}>
-                      {st}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            )}
             {/* Form Fields for Step */}
             <div className="space-y-3">
               <div className="text-xs font-bold text-foreground">ورودی‌های {steps[curStep - 1] || "مرحله فعلی"}</div>
@@ -2252,7 +2243,6 @@ function CanvasElementComponent({
             <div className="flex items-center justify-between pt-2">
               <button
                 type="button"
-<<<<<<< HEAD
                 onClick={(e) => {
                   e.stopPropagation();
                   if (curStep > 1) {
@@ -2266,15 +2256,11 @@ function CanvasElementComponent({
                     ? "border-border/40 text-muted-foreground/40 cursor-not-allowed"
                     : "border-border text-foreground hover:bg-muted"
                 )}
-=======
-                className="px-4 py-2 rounded-xl border border-border text-xs font-bold text-muted-foreground hover:bg-muted/40 transition"
->>>>>>> f8a7abc
               >
                 {prevText}
               </button>
               <button
                 type="button"
-<<<<<<< HEAD
                 onClick={(e) => {
                   e.stopPropagation();
                   if (curStep < steps.length) {
@@ -2284,11 +2270,6 @@ function CanvasElementComponent({
                 className="px-5 py-2 rounded-xl bg-primary text-primary-foreground text-xs font-bold shadow hover:bg-primary/90 transition"
               >
                 {curStep === steps.length ? submitText : nextText}
-=======
-                className="px-5 py-2 rounded-xl bg-primary text-primary-foreground text-xs font-bold shadow hover:bg-primary/90 transition"
-              >
-                {nextText}
->>>>>>> f8a7abc
               </button>
             </div>
           </div>

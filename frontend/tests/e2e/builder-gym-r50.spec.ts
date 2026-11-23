@@ -33,7 +33,7 @@ asyncio.run(main())
   }
 }
 
-test.describe("Builder Gym Round 50: Inspector Scrolling & Menu Activation on Port 1004", () => {
+test.describe("Builder Gym Round 50: Inspector Scrolling, Menus & Multi-Step / Loop Builder 4-Layer Parity", () => {
   test.use({ viewport: { width: 1920, height: 1080 } });
 
   test.beforeEach(async ({ context }) => {
@@ -62,7 +62,6 @@ test.describe("Builder Gym Round 50: Inspector Scrolling & Menu Activation on Po
     await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
     await page.waitForTimeout(2500);
 
-    // Click on "فرم سازنده" or "دکمه اقدام" in the blocks palette to insert and select it
     const addBtn = page.locator("button:has-text('دکمه اقدام')").first();
     await expect(addBtn).toBeVisible({ timeout: 10000 });
     await addBtn.click();
@@ -86,7 +85,6 @@ test.describe("Builder Gym Round 50: Inspector Scrolling & Menu Activation on Po
     }));
     expect(metricsBefore.scrollHeight).toBeGreaterThan(metricsBefore.clientHeight);
 
-    // Scroll down
     await scrollContainer.evaluate((el) => { el.scrollTop = 500; });
     await page.waitForTimeout(300);
 
@@ -119,7 +117,6 @@ test.describe("Builder Gym Round 50: Inspector Scrolling & Menu Activation on Po
     await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
     await page.waitForTimeout(2000);
 
-    // Insert a heading to inspect tag select menu
     const addHeading = page.locator("button[data-block-type='heading']").first();
     await expect(addHeading).toBeVisible({ timeout: 10000 });
     await addHeading.click();
@@ -131,7 +128,6 @@ test.describe("Builder Gym Round 50: Inspector Scrolling & Menu Activation on Po
     await selectTrigger.click();
     await page.waitForTimeout(500);
 
-    // Verify dropdown content is visible and has z-index >= 120
     const selectContent = page.locator("[role='listbox']").first();
     await expect(selectContent).toBeVisible();
 
@@ -146,7 +142,6 @@ test.describe("Builder Gym Round 50: Inspector Scrolling & Menu Activation on Po
     await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
     await page.waitForTimeout(2000);
 
-    // Search for multi_step_form in blocks
     const searchInput = page.locator('input[placeholder*="جستجوی بلوک"]').first();
     await searchInput.fill("فرم چندمرحله‌ای");
     await page.waitForTimeout(300);
@@ -159,17 +154,14 @@ test.describe("Builder Gym Round 50: Inspector Scrolling & Menu Activation on Po
     const inspector = page.locator("[data-builder-inspector]");
     await expect(inspector).toBeVisible();
 
-    // Verify step inputs in Content tab
     const curStepInput = inspector.locator('[data-testid="step-form-cur-input"]');
     await expect(curStepInput).toBeVisible();
 
-    // Add step button
     const addStepBtn = inspector.locator("button:has-text('+ افزودن مرحله')");
     await expect(addStepBtn).toBeVisible();
     await addStepBtn.click();
     await page.waitForTimeout(300);
 
-    // Now 4 steps should be present
     await expect(inspector.locator("input[value='مرحله 4']")).toBeVisible();
 
     await page.screenshot({ path: path.join(ARTIFACTS_DIR, "04-multi-step-form-inspector.png") });

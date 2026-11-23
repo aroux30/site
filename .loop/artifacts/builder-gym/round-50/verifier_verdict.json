@@ -1,0 +1,16 @@
+{
+  "verdict": "APPROVE",
+  "scores": {
+    "functionality": 10,
+    "visual_craft_rtl": 10,
+    "mutation_integrity": 10,
+    "ssr_parity": 10
+  },
+  "vision_findings": [
+    "تایید شد: ویجت multi_step_form با دکمه‌های ناوبری سفارشی مرحله قبل/بعد در استودیو و بوم همگام شد",
+    "تایید شد: ویجت‌های loop_grid و loop_carousel با کارت‌های محصولات، ستون‌بندی و دکمه خرید در ۴ لایه متصل شدند",
+    "تایید شد: چیدمان ۳ ستونه و خروجی ریسپانسیو بدون سرریز افقی و با صفر خطای کنسول عمل می‌کند"
+  ],
+  "unlogged_defects": [],
+  "blocking_reasons": []
+}

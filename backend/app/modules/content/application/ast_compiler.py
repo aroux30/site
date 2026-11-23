@@ -1392,13 +1392,13 @@ class ASTCompiler:
         elif widget_type == "multi_step_form":
             title = html.escape(str(props.get("title", "")))
             title_html = f'<h3 class="font-bold text-sm text-foreground mb-3">{title}</h3>' if title else ""
-            raw_steps = props.get("steps", [
+            raw_steps = props.get("steps") or props.get("step_titles") or [
                 "اطلاعات تماس",
                 "آدرس و ارسال",
                 "تایید نهایی",
-            ])
-            next_label = html.escape(str(props.get("next_button_text") or props.get("next_button_label") or props.get("next_label") or "گام بعدی"))
-            prev_label = html.escape(str(props.get("prev_button_text") or props.get("prev_button_label") or props.get("prev_label") or "گام قبلی"))
+            ]
+            next_label = html.escape(str(props.get("next_button_text") or props.get("next_button_label") or props.get("next_label") or "مرحله بعد"))
+            prev_label = html.escape(str(props.get("prev_button_text") or props.get("prev_button_label") or props.get("prev_label") or "مرحله قبل"))
             steps_header = ""
             if isinstance(raw_steps, list):
                 for idx, stp in enumerate(raw_steps):
@@ -1447,17 +1447,22 @@ class ASTCompiler:
             limit = int(props.get("limit", 4))
             cat = html.escape(str(props.get("category", "all")))
             cols = int(props.get("columns", 3))
+            show_price = props.get("show_price", True) is not False
+            show_button = props.get("show_button", True) is not False
+            btn_text = html.escape(str(props.get("button_text", "مشاهده و خرید")))
             cards = []
-            for i in range(min(limit, 6)):
+            for i in range(min(limit, 12)):
+                price_html = f'<span class="text-xs font-bold text-primary font-mono">{(150 + i * 45):,} تومان</span>' if show_price else ""
+                btn_html = f'<span class="px-2.5 py-1 rounded-lg bg-primary/10 text-primary text-[11px] font-bold">{btn_text}</span>' if show_button else ""
                 cards.append(
-                    f'<div class="min-w-[220px] rounded-2xl border border-border/60 bg-card p-3 space-y-2 shrink-0">'
+                    f'<div class="min-w-[220px] rounded-2xl border border-border/60 bg-card p-3 space-y-2 shrink-0 text-right">'
                     f'<div class="aspect-square bg-muted/20 rounded-xl flex items-center justify-center overflow-hidden"><img src="/placeholder-hero.svg" alt="محصول" class="p-2 max-h-full" loading="lazy" /></div>'
                     f'<h4 class="font-bold text-xs truncate">کالای فروشگاه {i+1}</h4>'
-                    f'<span class="text-xs font-bold text-primary">۳۵۰,۰۰۰ تومان</span>'
+                    f'<div class="flex items-center justify-between pt-1 border-t border-border/40">{price_html}{btn_html}</div>'
                     f'</div>'
                 )
             if widget_type == "loop_grid":
-                grid_cls = f"grid grid-cols-1 md:grid-cols-{cols} gap-4 w-full"
+                grid_cls = f"grid grid-cols-1 sm:grid-cols-2 md:grid-cols-{cols} gap-4 w-full"
                 return (
                     f'<div{id_attr} class="builder-loop-grid w-full space-y-2 {css_class}" data-widget="loop_grid" data-limit="{limit}" data-category="{cat}"{style_attr}>'
                     f'<div class="{grid_cls}" dir="rtl">{"".join(cards)}</div>'

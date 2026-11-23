@@ -119,15 +119,14 @@ class TransformStyle(ASTModel):
     skew_y: float | None = None
     translate_x: float | None = None
     translate_y: float | None = None
-    flip_x: bool = False
-    flip_y: bool = False
+    flip_x: bool | None = None
+    flip_y: bool | None = None
 
 
 class MaskStyle(ASTModel):
     shape: str | None = None
     size: Literal["contain", "cover", "auto"] | None = "contain"
     position: str | None = "center"
-    repeat: str | None = None
 
 
 class DeviceStyle(ASTModel):
@@ -143,9 +142,6 @@ class DeviceStyle(ASTModel):
     min_height: UnitValue | None = None
     display: Literal["block", "flex", "grid", "inline-block", "none", "inherit"] = "inherit"
     box_shadow: str | None = None
-    hover_border: BorderStyle | None = None
-    hover_box_shadow: str | None = None
-    transition_duration: float | None = None
     filter: str | None = None
     opacity: float | None = Field(default=None, ge=0.0, le=1.0)
     z_index: int | None = Field(default=None, ge=0, le=999)
@@ -166,6 +162,7 @@ class DeviceStyle(ASTModel):
     gap: UnitValue | None = None
     grid_template_columns: str | None = None
     box_shadow: str | None = None
+    transition_duration: float | None = None
     backdrop_blur: str | None = None
     filter_blur: float | None = None
     transform: TransformStyle | None = None
@@ -203,7 +200,7 @@ class ContainerLayout(ASTModel):
     flex_wrap: Literal["nowrap", "wrap", "wrap-reverse"] = "nowrap"
     gap: UnitValue = Field(default_factory=lambda: UnitValue(value=16, unit="px"))
     grid_columns: int = Field(default=3, ge=1, le=12)
-    grid_auto_flow: Literal["row", "column", "dense", "row dense", "column dense"] | None = None
+    grid_auto_flow: str | None = None
     boxed_width: UnitValue | None = None  # None indicates full-width fluid
 
 

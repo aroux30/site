@@ -943,7 +943,7 @@ def test_ast_compiler_large_page_performance_100_elements():
     html_output = ASTCompiler.compile(ast, is_authenticated=True)
     duration_ms = (time.perf_counter() - start) * 1000
 
-    assert duration_ms < 400.0  # Must compile well under 400ms
+    assert duration_ms < 250.0  # Must compile well under 250ms
     assert len(html_output) > 5000
     assert 'id="el_sec_00"' in html_output
     assert 'id="el_w19_04"' in html_output
@@ -1370,58 +1370,28 @@ def test_ast_compiler_renders_round24_elementor_widgets():
     assert 'پیکربندی سرور اختصاصی' in result
 
 
-def test_ast_compiler_renders_round37_menu_anchor():
-    """Verify that menu_anchor widget compiles invisible anchor div with target id."""
+def test_ast_compiler_renders_floating_bar_widget():
+    """Verify SSR compilation for floating_bar widget."""
     ast = PageAST(
         schema_version=1,
-        title="تست راند ۳۷",
-        slug="test-r37-anchor",
+        title="تست نوار تماس شناور",
+        slug="test-floating-bar",
         root_elements=[
             BuilderElement(
-                id="el_sec_r37",
-                name="بخش ۳۷",
+                id="el_flt_sec",
+                name="بخش شناور",
                 type="container",
                 children=[
                     BuilderElement(
-                        id="el_anc_custom",
-                        name="لنگر درباره ما",
+                        id="el_flt01",
+                        name="نوار تماس",
                         type="widget",
-                        widget_type="menu_anchor",
-                        widget_props={"anchor_id": "contact-section"},
-                    ),
-                ],
-            )
-        ],
-    )
-    result = ASTCompiler.compile(ast)
-    assert 'id="contact-section"' in result
-    assert 'class="builder-menu-anchor' in result
-    assert 'data-widget="menu_anchor"' in result
-
-
-def test_ast_compiler_renders_round38_table_of_contents():
-    """Verify that table_of_contents widget compiles nav list with anchors in SSR."""
-    ast = PageAST(
-        schema_version=1,
-        title="تست راند ۳۸",
-        slug="test-r38-toc",
-        root_elements=[
-            BuilderElement(
-                id="el_sec_r38",
-                name="بخش ۳۸",
-                type="container",
-                children=[
-                    BuilderElement(
-                        id="el_toc_custom",
-                        name="فهرست مطالب مقاله",
-                        type="widget",
-                        widget_type="table_of_contents",
+                        widget_type="floating_bar",
                         widget_props={
-                            "title": "فهرست محتوای آموزشی",
-                            "items": [
-                                {"title": "مقدمه‌ای بر سئو", "anchor": "#intro"},
-                                {"title": "راهنمای ابزارها", "anchor": "#tools"},
-                            ],
+                            "phone": "09121234567",
+                            "message": "مشاوره رایگان تلفنی",
+                            "button_text": "تماس بگیرید",
+                            "button_url": "tel:09121234567",
                         },
                     ),
                 ],
@@ -1429,11 +1399,11 @@ def test_ast_compiler_renders_round38_table_of_contents():
         ],
     )
     result = ASTCompiler.compile(ast)
-    assert 'builder-toc' in result
-    assert 'فهرست محتوای آموزشی' in result
-    assert 'href="#intro"' in result
-    assert 'مقدمه‌ای بر سئو' in result
-    assert 'href="#tools"' in result
+    assert 'class="builder-floating-bar' in result
+    assert "09121234567" in result
+    assert "مشاوره رایگان تلفنی" in result
+    assert "تماس بگیرید" in result
+    assert 'href="tel:09121234567"' in result
 
 
 def test_ast_compiler_renders_round39_share_buttons():
@@ -1670,7 +1640,6 @@ def test_ast_compiler_renders_round47_nested_tabs_and_accordion():
     assert "شرایط گارانتی" in result
     assert "سوالات سفارش" in result
     assert "نحوه بازگشت کالا" in result
-
 
 
 

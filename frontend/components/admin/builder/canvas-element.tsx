@@ -349,8 +349,13 @@ function CanvasElementComponent({
     const hoverBorder = resolveResponsiveValue({ mobile: base?.hoverBorder, tablet: tablet?.hoverBorder, desktop: desktop?.hoverBorder }, activeBreakpoint);
     const transitionDuration = resolveResponsiveValue({ mobile: base?.transitionDuration, tablet: tablet?.transitionDuration, desktop: desktop?.transitionDuration }, activeBreakpoint);
 
-    if (transitionDuration) {
-      styleObj.transition = `all ${transitionDuration}s ease`;
+    if (transitionDuration !== undefined && transitionDuration !== null) {
+      const durationVal = typeof transitionDuration === "number"
+        ? `${transitionDuration}s`
+        : String(transitionDuration).endsWith("s") || String(transitionDuration).endsWith("ms")
+        ? String(transitionDuration)
+        : `${parseFloat(String(transitionDuration)) || 0.3}s`;
+      styleObj.transition = `all ${durationVal} ease`;
     }
 
     if (isHovered && hoverShadow && hoverShadow !== "none") {
@@ -1697,13 +1702,13 @@ function CanvasElementComponent({
         );
       }
       case "price_table": {
-        const title = String(props.title || "پلن پایه");
-        const subtitle = String(props.subtitle || "");
+        const title = String(props.title || props.heading || "پلن پایه");
+        const subtitle = props.subtitle ? String(props.subtitle) : props.sub_heading ? String(props.sub_heading) : "";
         const price = String(props.price || "۴۹۰,۰۰۰");
         const currency = String(props.currency || "تومان");
         const period = String(props.period || "ماهانه");
         const btnLabel = String(props.button_label || props.button_text || "انتخاب و شروع پلن");
-        const isFeatured = props.is_featured === true;
+        const isFeatured = Boolean(props.is_featured);
         const badge = props.badge ? String(props.badge) : (isFeatured ? "پیشنهاد ویژه" : undefined);
         const rawFeatures = Array.isArray(props.features) ? (props.features as any[]) : [];
         const features = rawFeatures.map((f: any) =>
@@ -1715,6 +1720,7 @@ function CanvasElementComponent({
           { text: "گزارش‌گیری خودکار روزانه", available: true },
           { text: "فضای ذخیره‌سازی نامحدود", available: false },
         ];
+
         return (
           <div className={cn(
             "p-6 rounded-3xl border bg-card text-center space-y-4 shadow-sm w-full transition relative overflow-hidden",
@@ -1729,16 +1735,17 @@ function CanvasElementComponent({
               <h4 className="text-base font-bold text-foreground">{title}</h4>
               {subtitle && <p className="text-xs text-muted-foreground">{subtitle}</p>}
             </div>
-            <div className="py-2 border-y border-border/60">
+            <div className="py-2 border-y border-border/60 flex flex-wrap items-baseline justify-center gap-1.5" dir="rtl">
               <span className="text-3xl font-black text-primary font-mono">{price}</span>
-              <span className="text-xs text-muted-foreground ms-1">{currency} / {period}</span>
+              <span className="text-xs font-bold text-muted-foreground">{currency}</span>
+              {period && <span className="text-[11px] text-muted-foreground/80">/ {period}</span>}
             </div>
             <ul className="space-y-2 text-xs text-right list-none p-0 m-0">
               {displayFeatures.map((f, idx) => (
-                <li key={idx} className="flex items-center gap-2">
+                <li key={idx} className={cn("flex items-center gap-2", !f.available && "opacity-60 line-through")}>
                   <span className={cn(
                     "w-4 h-4 rounded-full flex items-center justify-center shrink-0 text-[10px] font-bold",
-                    f.available ? "bg-emerald-500/10 text-emerald-600" : "bg-muted text-muted-foreground/50"
+                    f.available ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" : "bg-muted text-muted-foreground"
                   )}>
                     {f.available ? "✓" : "–"}
                   </span>
@@ -1831,6 +1838,7 @@ function CanvasElementComponent({
         const title = String(props.title || "عنوان اقدام به عمل");
         const desc = String(props.description || "توضیحات مربوط به بنر تشویق به اقدام");
         const btnLabel = String(props.button_label || props.button_text || "شروع کنید");
+        const btnUrl = String(props.button_url || props.url || "#");
         const badge = props.badge ? String(props.badge) : undefined;
         return (
           <div className="p-6 rounded-2xl border border-primary/20 bg-primary/5 text-center space-y-3 shadow-sm w-full">
@@ -1842,13 +1850,13 @@ function CanvasElementComponent({
             <h3 className="text-lg font-bold text-foreground">{title}</h3>
             <p className="text-xs text-muted-foreground max-w-md mx-auto leading-relaxed">{desc}</p>
             <div>
-              <button
-                type="button"
+              <a
+                href={btnUrl}
                 onClick={(e) => !previewMode && e.preventDefault()}
-                className="inline-flex items-center justify-center px-5 py-2.5 rounded-xl bg-primary text-primary-foreground font-bold text-xs shadow hover:bg-primary/90 transition"
+                className="inline-flex items-center justify-center px-5 py-2.5 rounded-xl bg-primary text-primary-foreground font-bold text-xs shadow hover:bg-primary/90 transition-all duration-200 cursor-pointer"
               >
                 {btnLabel}
-              </button>
+              </a>
             </div>
           </div>
         );
@@ -2095,22 +2103,24 @@ function CanvasElementComponent({
           </div>
         );
       }
-      case "floating_bar": {
+      case "floating_bar":
+      case "floating_buttons":
+      case "contact_buttons": {
         const phone = String(props.phone || "09120000000");
-        const msg = String(props.message || "نیاز به مشاوره قبل از خرید دارید؟");
+        const msg = String(props.message || "نیاز به مشاوره دارید؟");
         const btnText = String(props.button_text || "تماس فوری");
         return (
-          <div className="flex items-center justify-between p-3.5 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-900 dark:text-emerald-100 w-full shadow-sm">
-            <div className="flex items-center gap-2.5">
+          <div className="flex flex-col sm:flex-row items-center justify-between p-3.5 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-900 dark:text-emerald-100 w-full shadow-sm gap-2.5">
+            <div className="flex items-center gap-2.5 text-right w-full sm:w-auto">
               <span className="w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0">
                 <Phone className="w-4 h-4" />
               </span>
-              <div className="text-right">
-                <div className="text-xs font-bold">{msg}</div>
-                <div className="text-[10px] font-mono opacity-80" dir="ltr">{phone}</div>
+              <div className="text-right flex-1 sm:flex-initial">
+                <div className="text-xs font-bold leading-tight">{msg}</div>
+                <div className="text-[10px] font-mono opacity-80 mt-0.5" dir="ltr">{phone}</div>
               </div>
             </div>
-            <button type="button" className="px-3.5 py-1.5 rounded-xl bg-emerald-600 text-white text-xs font-bold hover:bg-emerald-700 transition shadow">
+            <button type="button" className="w-full sm:w-auto px-4 py-1.5 rounded-xl bg-emerald-600 text-white text-xs font-bold hover:bg-emerald-700 transition shadow shrink-0 text-center">
               {btnText}
             </button>
           </div>
@@ -2128,12 +2138,12 @@ function CanvasElementComponent({
                 <div key={idx} className="flex items-center gap-2">
                   <span
                     className={cn(
-                      "w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold font-mono",
+                      "w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold font-mono transition-all",
                       idx + 1 === curStep
-                        ? "bg-primary text-primary-foreground"
+                        ? "bg-primary text-primary-foreground ring-2 ring-primary/40 shadow-sm"
                         : idx + 1 < curStep
-                        ? "bg-emerald-500 text-white"
-                        : "bg-muted text-muted-foreground"
+                        ? "bg-emerald-600 dark:bg-emerald-500 text-white shadow-xs"
+                        : "bg-muted border border-border text-foreground/80 dark:text-foreground/90 font-bold"
                     )}
                   >
                     {idx + 1}

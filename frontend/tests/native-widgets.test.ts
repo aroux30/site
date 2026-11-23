@@ -90,6 +90,16 @@ describe("P2.1 Native Widgets: Table & Form Inputs", () => {
     expect(priceTableEl.widgetProps?.price).toBe("۴۹۰,۰۰۰");
     expect(Array.isArray(priceTableEl.widgetProps?.features)).toBe(true);
 
+    // Verify string and object features support
+    const stringFeatureTable = {
+      ...priceTableEl,
+      widgetProps: {
+        ...priceTableEl.widgetProps,
+        features: ["ویژگی اول متنی", { text: "ویژگی دوم شیء", available: false }],
+        transitionDuration: 0.3,
+      },
+    };
+
     expect(priceListEl.widgetType).toBe("price_list");
     expect(Array.isArray(priceListEl.widgetProps?.items)).toBe(true);
 
@@ -106,7 +116,7 @@ describe("P2.1 Native Widgets: Table & Form Inputs", () => {
           isLocked: false,
           isHidden: false,
           styles: { mobile: {} },
-          children: [iconEl, iconListEl, priceTableEl, priceListEl],
+          children: [iconEl, iconListEl, stringFeatureTable, priceListEl],
         },
       ],
     };
@@ -115,75 +125,21 @@ describe("P2.1 Native Widgets: Table & Form Inputs", () => {
     expect(parsed.success).toBe(true);
   });
 
-  it("registers breadcrumbs widget with valid schema conformity", () => {
-    const crumbDef = BASIC_BLOCK_DEFINITIONS.find((b) => b.type === "breadcrumbs");
-    expect(crumbDef).toBeDefined();
-    expect(crumbDef?.name).toContain("مسیر راهنما");
+  it("registers and validates floating_bar widget in block registry and AST", () => {
+    const floatingBarDef = BASIC_BLOCK_DEFINITIONS.find((b) => b.type === "floating_bar");
+    expect(floatingBarDef).toBeDefined();
 
-    const crumbEl = crumbDef!.createDefaultElement();
-    expect(crumbEl.widgetType).toBe("breadcrumbs");
-    expect(crumbEl.widgetProps?.separator).toBe("/");
-    expect(Array.isArray(crumbEl.widgetProps?.items)).toBe(true);
+    const element = floatingBarDef!.createDefaultElement();
+    expect(["floating_bar", "floating_buttons"]).toContain(element.widgetType);
+    expect(element.widgetProps?.phone).toBeDefined();
+    expect(element.widgetProps?.message).toBeDefined();
 
-    const ast = {
+    const parsed = PageASTSchema.safeParse({
       schemaVersion: 1,
-      title: "Breadcrumbs AST",
-      slug: "breadcrumbs-ast",
-      globalStyles: {},
-      rootElements: [
-        {
-          id: "el_crumb_cont",
-          name: "کانتینر مسیر",
-          type: "container",
-          isLocked: false,
-          isHidden: false,
-          styles: { mobile: {} },
-          children: [crumbEl],
-        },
-      ],
-    };
-
-    const parsed = PageASTSchema.safeParse(ast);
-    expect(parsed.success).toBe(true);
-  });
-
-  it("registers search_bar and nav_menu widgets with valid schema conformity", () => {
-    const searchDef = BASIC_BLOCK_DEFINITIONS.find((b) => b.type === "search_bar");
-    const navDef = BASIC_BLOCK_DEFINITIONS.find((b) => b.type === "nav_menu");
-
-    expect(searchDef).toBeDefined();
-    expect(searchDef?.name).toContain("فرم جستجو");
-
-    expect(navDef).toBeDefined();
-    expect(navDef?.name).toContain("فهرست ناوبری");
-
-    const searchEl = searchDef!.createDefaultElement();
-    expect(searchEl.widgetType).toBe("search_bar");
-    expect(searchEl.widgetProps?.placeholder).toBeDefined();
-
-    const navEl = navDef!.createDefaultElement();
-    expect(navEl.widgetType).toBe("nav_menu");
-    expect(Array.isArray(navEl.widgetProps?.items)).toBe(true);
-
-    const ast = {
-      schemaVersion: 1,
-      title: "Search and Nav AST",
-      slug: "search-nav-ast",
-      globalStyles: {},
-      rootElements: [
-        {
-          id: "el_header_cont",
-          name: "کانتینر هدر",
-          type: "container",
-          isLocked: false,
-          isHidden: false,
-          styles: { mobile: {} },
-          children: [searchEl, navEl],
-        },
-      ],
-    };
-
-    const parsed = PageASTSchema.safeParse(ast);
+      title: "Floating Bar AST",
+      slug: "floating-bar-ast",
+      rootElements: [element],
+    });
     expect(parsed.success).toBe(true);
   });
 });

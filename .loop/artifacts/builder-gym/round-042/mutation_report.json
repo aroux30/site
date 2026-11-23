@@ -1,0 +1,23 @@
+{
+  "round": "round-042",
+  "stage": "after",
+  "timestamp": "2026-11-23T09:03:16.002Z",
+  "totalSoMElements": 87,
+  "changedPixels": 44890,
+  "pixelmatchThreshold": 0.05,
+  "ssrStatus": 200,
+  "sensors": {
+    "consoleErrors": [],
+    "networkErrors": [],
+    "horizontalOverflow": {
+      "scrollWidth": 1920,
+      "clientWidth": 1920,
+      "windowOverflow": false,
+      "isRtl": true
+    },
+    "hydrationMismatch": false,
+    "rtlOk": true,
+    "darkModeOk": true
+  },
+  "passed": true
+}

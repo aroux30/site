@@ -72,6 +72,8 @@ class ASTCompiler:
             return ""
 
         if el.type == "container":
+            if el.widget_type in ("nested_tabs", "nested_accordion") and not el.children:
+                return cls._compile_widget(el)
             return cls._compile_container(el, is_authenticated=is_authenticated)
         elif el.type == "widget":
             return cls._compile_widget(el)
@@ -1271,7 +1273,14 @@ class ASTCompiler:
             )
 
         elif widget_type == "nested_tabs":
-            tabs_list = props.get("tabs", [{"title": "تب ۱", "content": "محتوای پیش‌فرض ۱"}, {"title": "تب ۲", "content": "محتوای پیش‌فرض ۲"}])
+            raw_tabs = props.get("tabs")
+            tab_titles = props.get("tab_titles")
+            if tab_titles and isinstance(tab_titles, list):
+                tabs_list = [{"title": str(t), "content": f"محتوای {t}"} for t in tab_titles]
+            elif raw_tabs and isinstance(raw_tabs, list):
+                tabs_list = raw_tabs
+            else:
+                tabs_list = [{"title": "تب ۱", "content": "محتوای پیش‌فرض ۱"}, {"title": "تب ۲", "content": "محتوای پیش‌فرض ۲"}]
             header_html = ""
             panes_html = ""
             if isinstance(tabs_list, list):
@@ -1290,7 +1299,14 @@ class ASTCompiler:
             )
 
         elif widget_type == "nested_accordion":
-            items = props.get("items", [{"title": "بخش آکاردئونی ۱", "content": "محتوای تودرتو ۱"}])
+            raw_items = props.get("items")
+            item_titles = props.get("item_titles")
+            if item_titles and isinstance(item_titles, list):
+                items = [{"title": str(t), "content": f"محتوای {t}"} for t in item_titles]
+            elif raw_items and isinstance(raw_items, list):
+                items = raw_items
+            else:
+                items = [{"title": "بخش آکاردئونی ۱", "content": "محتوای تودرتو ۱"}]
             acc_html = ""
             if isinstance(items, list):
                 for idx, itm in enumerate(items):

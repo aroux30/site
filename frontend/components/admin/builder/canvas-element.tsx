@@ -2598,7 +2598,86 @@ function CanvasElementComponent({
 
       {/* Content Rendering */}
       {isContainer ? (
-        element.children && element.children.length > 0 ? (
+        element.widgetType === "nested_tabs" ? (
+          <div className="space-y-3 w-full">
+            {/* Interactive Tab Navigation Pills */}
+            <div className="flex items-center gap-1.5 border-b border-border/60 pb-2 overflow-x-auto select-none pt-4">
+              {(
+                (Array.isArray(element.widgetProps?.tab_titles) && element.widgetProps?.tab_titles.length > 0
+                  ? (element.widgetProps.tab_titles as string[])
+                  : element.children?.map((c, i) => c.name || `تب ${i + 1}`)) || ["تب اول", "تب دوم"]
+              ).map((tabTitle, idx) => {
+                const activeTabIdx = typeof element.widgetProps?.active_tab === "number" ? element.widgetProps.active_tab : 0;
+                const isActive = idx === activeTabIdx;
+                return (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      updateElementProps(element.id, { active_tab: idx });
+                    }}
+                    className={cn(
+                      "px-3.5 py-1.5 rounded-xl text-xs font-bold transition shadow-xs cursor-pointer border",
+                      isActive
+                        ? "bg-primary text-primary-foreground border-primary"
+                        : "bg-muted/60 text-muted-foreground hover:bg-muted border-transparent"
+                    )}
+                  >
+                    {tabTitle}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Render active tab child container */}
+            {element.children && element.children.length > 0 ? (
+              element.children.map((child, idx) => {
+                const activeTabIdx = typeof element.widgetProps?.active_tab === "number" ? element.widgetProps.active_tab : 0;
+                if (!previewMode && idx !== activeTabIdx) {
+                  return (
+                    <div key={child.id} className="hidden">
+                      <CanvasElement element={child} activeBreakpoint={activeBreakpoint} depth={depth + 1} />
+                    </div>
+                  );
+                }
+                if (previewMode && idx !== activeTabIdx) return null;
+                return (
+                  <CanvasElement
+                    key={child.id}
+                    element={child}
+                    activeBreakpoint={activeBreakpoint}
+                    depth={depth + 1}
+                  />
+                );
+              })
+            ) : null}
+          </div>
+        ) : element.widgetType === "nested_accordion" ? (
+          <div className="space-y-3 w-full pt-4">
+            {element.children && element.children.length > 0 ? (
+              element.children.map((child, idx) => {
+                const itemTitles = Array.isArray(element.widgetProps?.item_titles) ? (element.widgetProps.item_titles as string[]) : [];
+                const itemTitle = itemTitles[idx] || child.name || `بخش تاشو ${idx + 1}`;
+                return (
+                  <div key={child.id} className="rounded-xl border border-border/80 bg-card overflow-hidden">
+                    <div className="p-3 bg-muted/40 font-bold text-xs text-foreground flex items-center justify-between select-none">
+                      <span>{itemTitle}</span>
+                      <span className="text-muted-foreground text-xs">▼</span>
+                    </div>
+                    <div className="p-3">
+                      <CanvasElement
+                        element={child}
+                        activeBreakpoint={activeBreakpoint}
+                        depth={depth + 1}
+                      />
+                    </div>
+                  </div>
+                );
+              })
+            ) : null}
+          </div>
+        ) : element.children && element.children.length > 0 ? (
           element.children.map((child) => (
             <CanvasElement
               key={child.id}

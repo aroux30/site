@@ -1,6 +1,6 @@
 {
   "round": 46,
-  "timestamp": "2026-11-23T07:37:01.577Z",
+  "timestamp": "2026-11-23T08:14:42.308Z",
   "tested_som_count": 24,
   "active_weight": 9,
   "target_components": [
@@ -8,7 +8,7 @@
     "code_highlight"
   ],
   "sensors": {
-    "console_errors": 6,
+    "console_errors": 94,
     "network_failures": 0,
     "hydration_errors": 0,
     "horizontal_overflow": 0,

@@ -131,7 +131,13 @@ export function InspectorPanel() {
   // ── Render Content Tab Controls ───────────────────────────────────────────
 
   const renderContentControls = () => {
-    if (selectedElement.type === "container") {
+    // If a container is a specialized widget container (nested_tabs, nested_accordion, off_canvas, popup_builder),
+    // prioritize showing its specific content controls at the top!
+    const isSpecializedContainer =
+      selectedElement.type === "container" &&
+      ["nested_tabs", "nested_accordion", "off_canvas", "popup_builder"].includes(String(selectedElement.widgetType));
+
+    if (selectedElement.type === "container" && !isSpecializedContainer) {
       const layout = selectedElement.layout || {
         kind: "flex",
         direction: "column",

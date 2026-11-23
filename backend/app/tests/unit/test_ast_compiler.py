@@ -1630,6 +1630,48 @@ def test_ast_compiler_renders_round46_slides_with_gradient():
     assert "linear-gradient" in result
 
 
+def test_ast_compiler_renders_round47_nested_tabs_and_accordion():
+    """Verify nested_tabs and nested_accordion compile with custom titles in SSR."""
+    ast = PageAST(
+        schema_version=1,
+        title="تست تب‌های تودرتو و آکاردئون",
+        slug="test-r47-nested",
+        root_elements=[
+            BuilderElement(
+                id="el_sec_r47",
+                name="بخش کانتینرهای تودرتو",
+                type="container",
+                children=[
+                    BuilderElement(
+                        id="el_ntabs_r47",
+                        name="تب‌های تودرتو",
+                        type="container",
+                        widget_type="nested_tabs",
+                        widget_props={
+                            "tab_titles": ["راهنمای خرید", "شرایط گارانتی"],
+                        },
+                    ),
+                    BuilderElement(
+                        id="el_nacc_r47",
+                        name="آکاردئون کانتینری",
+                        type="container",
+                        widget_type="nested_accordion",
+                        widget_props={
+                            "item_titles": ["سوالات سفارش", "نحوه بازگشت کالا"],
+                        },
+                    ),
+                ],
+            )
+        ],
+    )
+    result = ASTCompiler.compile(ast)
+    assert "builder-nested-tabs" in result
+    assert "راهنمای خرید" in result
+    assert "شرایط گارانتی" in result
+    assert "سوالات سفارش" in result
+    assert "نحوه بازگشت کالا" in result
+
+
 
 
 

@@ -1,9 +1,9 @@
 {
-  "current_round": 46,
+  "current_round": 47,
   "active_weight": 9,
   "frontend_port": 4001,
   "backend_port": 8000,
-  "timestamp": "2026-11-23T06:30:00.000Z",
+  "timestamp": "2026-11-23T07:00:00.000Z",
   "weights_status": {
     "weight_1_studio_skeleton": "CLEAN",
     "weight_2_35_widgets_audit": "CLEAN",
@@ -22,8 +22,8 @@
   "metrics": {
     "tsc_errors": 0,
     "vitest_passed": 380,
-    "pytest_passed": 649,
-    "playwright_r46_passed": 5,
+    "pytest_passed": 650,
+    "playwright_r47_passed": 4,
     "console_errors": 0,
     "hydration_errors": 0
   },
@@ -126,6 +126,33 @@
       "summary": "ast_compiler only handled background_image for slides, ignoring bg_color CSS gradients",
       "status": "FIXED",
       "round": 46
+    },
+    {
+      "id": "DEFECT-NT-01",
+      "severity": "P0",
+      "component": "nested_tabs",
+      "layer": "inspector_panel",
+      "summary": "Early return in inspector for type container blocked specialized controls for nested_tabs and nested_accordion",
+      "status": "FIXED",
+      "round": 47
+    },
+    {
+      "id": "DEFECT-NT-02",
+      "severity": "P1",
+      "component": "nested_tabs",
+      "layer": "canvas_element",
+      "summary": "Canvas lacked interactive tab navigation pills, stacking all tab containers vertically",
+      "status": "FIXED",
+      "round": 47
+    },
+    {
+      "id": "DEFECT-SSR-03",
+      "severity": "P1",
+      "component": "nested_tabs",
+      "layer": "ast_compiler",
+      "summary": "ast_compiler did not recognize tab_titles and item_titles when compiling specialized containers",
+      "status": "FIXED",
+      "round": 47
     }
   ]
 }

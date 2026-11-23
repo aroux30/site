@@ -1,48 +1,30 @@
 {
   "version": "3.2",
   "activeWeight": 9,
-  "activeRound": 45,
+  "activeRound": 46,
   "status": "COMPLETED",
   "levels1to5Status": "BUILDER_GYM_LEVELS_1_TO_5_CLEAN",
   "allLevelsMastered": "BUILDER_GYM_ALL_LEVELS_MASTERED",
   "verificationPort": 4004,
-  "completedRounds": 45,
+  "completedRounds": 46,
   "defect_ledger": [
     {
-      "id": "DEFECT-R45-01",
+      "id": "DEFECT-R46-01",
       "severity": "P1",
-      "round": 45,
-      "title": "Multi-Step Form next/prev buttons layout and responsive padding in Canvas",
+      "round": 46,
+      "title": "Hero Slides repeater active slide indicator and dot synchronization",
       "status": "RESOLVED",
       "layer": "frontend/components/admin/builder/canvas-element.tsx",
-      "description": "Multi-step form buttons in canvas lack responsive gap and touch targets on mobile viewports."
+      "description": "Active slide changes and navigation dots now interactively switch slides in canvas."
     },
     {
-      "id": "DEFECT-R45-02",
+      "id": "DEFECT-R46-02",
       "severity": "P1",
-      "round": 45,
-      "title": "Loop Grid post query limit and ordering inspector controls synchronization",
+      "round": 46,
+      "title": "Code Highlight widget missing data-widget attribute for test automation",
       "status": "RESOLVED",
-      "layer": "frontend/components/admin/builder/inspector-panel.tsx",
-      "description": "Loop grid item count changes in inspector do not immediately reflect in canvas preview."
-    },
-    {
-      "id": "DEFECT-R45-03",
-      "severity": "P2",
-      "round": 45,
-      "title": "Hero Slides repeater deselect on outer click missing in inspector",
-      "status": "RESOLVED",
-      "layer": "frontend/components/admin/builder/builder-studio.tsx",
-      "description": "Clicking outside canvas should safely deselect or preserve slide focus."
-    },
-    {
-      "id": "DEFECT-R45-04",
-      "severity": "P3",
-      "round": 45,
-      "title": "Canvas Frame border indicator contrast during multi-element hover",
-      "status": "RESOLVED",
-      "layer": "frontend/components/admin/builder/canvas-frame.tsx",
-      "description": "Hover outline indicator color has subtle contrast drift on dark theme."
+      "layer": "frontend/components/admin/builder/canvas-element.tsx",
+      "description": "Added explicit data-widget and data-widget-type attributes to code_highlight container."
     }
   ],
   "metrics": {
@@ -52,5 +34,5 @@
     "registeredBlocks": 76,
     "lastVerifierVerdict": "APPROVE"
   },
-  "timestamp": "2026-11-23T10:40:00.000Z"
+  "timestamp": "2026-11-23T11:15:00.000Z"
 }

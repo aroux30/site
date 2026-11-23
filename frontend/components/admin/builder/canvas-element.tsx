@@ -2248,22 +2248,37 @@ function CanvasElementComponent({
             bg_color: "linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary)/0.6) 100%)",
           },
         ];
-        const activeSlide = slidesList[0];
+        const activeIdx = Math.min(Math.max(0, Number(props.active_slide || 0)), Math.max(0, slidesList.length - 1));
+        const activeSlide = slidesList[activeIdx] || slidesList[0];
         return (
           <div
             className="w-full min-h-[220px] rounded-2xl p-8 flex flex-col items-center justify-center text-center text-white space-y-3 shadow-md relative overflow-hidden"
             style={{ background: activeSlide?.bg_color || "hsl(var(--primary))" }}
+            data-widget="slides"
           >
             <h2 className="text-xl md:text-2xl font-black drop-shadow-sm">{activeSlide?.title}</h2>
             <p className="text-xs md:text-sm opacity-90 max-w-lg leading-relaxed">{activeSlide?.description}</p>
             {activeSlide?.button_text && (
-              <button type="button" className="px-5 py-2.5 rounded-xl bg-white text-primary font-bold text-xs shadow-lg hover:bg-white/95 transition">
+              <a
+                href={activeSlide.button_link || "#"}
+                onClick={(e) => !previewMode && e.preventDefault()}
+                className="px-5 py-2.5 rounded-xl bg-white text-primary font-bold text-xs shadow-lg hover:bg-white/95 transition inline-block"
+              >
                 {activeSlide.button_text}
-              </button>
+              </a>
             )}
-            <div className="absolute bottom-3 flex items-center gap-1.5">
+            <div className="absolute bottom-3 flex items-center gap-2 z-10">
               {slidesList.map((_, i) => (
-                <span key={i} className={cn("w-2 h-2 rounded-full", i === 0 ? "bg-white" : "bg-white/40")} />
+                <button
+                  key={i}
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    updateElementProps(element.id, { active_slide: i });
+                  }}
+                  className={cn("w-2.5 h-2.5 rounded-full transition-all", activeIdx === i ? "bg-white scale-125" : "bg-white/40 hover:bg-white/70")}
+                  aria-label={`اسلاید ${i + 1}`}
+                />
               ))}
             </div>
           </div>
@@ -2311,6 +2326,8 @@ function CanvasElementComponent({
           <div
             className="w-full rounded-2xl border border-slate-800 bg-slate-950 text-slate-100 shadow-md overflow-hidden text-left font-mono text-xs"
             dir="ltr"
+            data-widget="code_highlight"
+            data-widget-type="code_highlight"
           >
             {(title || showCopy || language) && (
               <div className="flex items-center justify-between px-4 py-2 border-b border-slate-800/80 bg-slate-900/80 text-[11px] text-slate-400">

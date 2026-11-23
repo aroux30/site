@@ -1,21 +1,21 @@
 {
   "version": "3.2",
   "activeWeight": 9,
-  "activeRound": 52,
+  "activeRound": 53,
   "status": "COMPLETED",
   "levels1to5Status": "BUILDER_GYM_LEVELS_1_TO_5_CLEAN",
   "allLevelsMastered": "BUILDER_GYM_ALL_LEVELS_MASTERED",
   "verificationPort": 1001,
-  "completedRounds": 52,
+  "completedRounds": 53,
   "metrics": {
     "typeCheckErrors": 0,
     "frontendUnitTests": 380,
-    "backendUnitTests": 652,
+    "backendUnitTests": 653,
     "playwrightTests": 1,
     "registeredBlocks": 68,
     "lastVerifierVerdict": "APPROVE"
   },
-  "timestamp": "2026-11-23T21:55:00.000Z",
+  "timestamp": "2026-11-23T22:15:00.000Z",
   "defect_ledger": [
     {
       "id": "DEFECT-R41-01",
@@ -277,6 +277,24 @@
       "summary": "Duplicate partial Shape Divider control in Advanced tab removed; consolidated in Style tab with color picker",
       "status": "FIXED",
       "round": 52
+    },
+    {
+      "id": "DEFECT-R53-01",
+      "severity": "P1",
+      "component": "motion_effects",
+      "layer": "inspector_panel",
+      "summary": "Inspector animation selector lacked test-id and Elementor keyframes bounce-in/rotate-in options",
+      "status": "FIXED",
+      "round": 53
+    },
+    {
+      "id": "DEFECT-R53-02",
+      "severity": "P2",
+      "component": "motion_effects",
+      "layer": "globals_css",
+      "summary": "globals.css was missing @keyframes for builderBounceIn and builderRotateIn",
+      "status": "FIXED",
+      "round": 53
     }
   ]
 }

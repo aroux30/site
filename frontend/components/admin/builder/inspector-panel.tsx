@@ -5125,7 +5125,7 @@ export function InspectorPanel() {
                 })
               }
             >
-              <SelectTrigger className="h-8 text-xs">
+              <SelectTrigger data-testid="animation-type-select" className="h-8 text-xs">
                 <SelectValue placeholder="انتخاب انیمیشن" />
               </SelectTrigger>
               <SelectContent>
@@ -5133,6 +5133,8 @@ export function InspectorPanel() {
                 <SelectItem value="fade-in">محو شدن به پیدایش (Fade In)</SelectItem>
                 <SelectItem value="slide-up">لغزش از پایین به بالا (Slide Up)</SelectItem>
                 <SelectItem value="zoom-in">بزرگ‌نمایی نرم (Zoom In)</SelectItem>
+                <SelectItem value="bounce-in">پرش ملایم (Bounce In)</SelectItem>
+                <SelectItem value="rotate-in">چرخش ملایم (Rotate In)</SelectItem>
               </SelectContent>
             </Select>
           </div>

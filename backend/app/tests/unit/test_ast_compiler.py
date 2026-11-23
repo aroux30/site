@@ -1772,6 +1772,46 @@ def test_ast_compiler_renders_round52_shape_dividers_inline_svg_with_color():
     assert 'rotate(180deg)' in result
 
 
+def test_ast_compiler_renders_round53_motion_effects_animation_classes():
+    """Verify Round 53 entrance animation classes and duration/delay inline styles in SSR."""
+    ast = PageAST(
+        schema_version=1,
+        title="تست افکت‌های حرکتی راند ۵۳",
+        slug="test-r53-motion",
+        root_elements=[
+            BuilderElement(
+                id="el_sec_r53",
+                name="بخش انیمیشنی",
+                type="container",
+                styles=ResponsiveStyles(
+                    animation="bounce-in",
+                    animation_duration=0.8,
+                    animation_delay=0.2,
+                ),
+                children=[
+                    BuilderElement(
+                        id="el_btn_r53",
+                        name="دکمه چرخان",
+                        type="widget",
+                        widget_type="button",
+                        styles=ResponsiveStyles(
+                            animation="rotate-in",
+                            animation_duration=0.7,
+                        ),
+                        widget_props={"label": "کلیک کنید", "url": "/"},
+                    ),
+                ],
+            )
+        ],
+    )
+    result = ASTCompiler.compile(ast)
+    assert 'builder-animate-bounce-in' in result
+    assert 'animation-duration: 0.8s' in result or 'animation-duration:0.8s' in result
+    assert 'animation-delay: 0.2s' in result or 'animation-delay:0.2s' in result
+    assert 'builder-animate-rotate-in' in result
+    assert 'animation-duration: 0.7s' in result or 'animation-duration:0.7s' in result
+
+
 
 
 

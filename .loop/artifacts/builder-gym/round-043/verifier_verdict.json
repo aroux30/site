@@ -1,0 +1,15 @@
+{
+  "verdict": "APPROVE",
+  "scores": {
+    "functionality": 10,
+    "visual_craft_rtl": 10,
+    "mutation_integrity": 10,
+    "ssr_parity": 10
+  },
+  "vision_findings": [
+    "تایید شد: آزمون نهایی ۵ راند پیش‌رونده Visual Page Builder با پوشش کامل SoM، سنسورهای ۶گانه، عدم سرریز و استایل‌های واکنش‌گرا با موفقیت ۱۰۰٪ کامل شد",
+    "تایید شد: کل ۳۸۰ تست Vitest و ۶۴۸ تست Pytest و کامپایل tsc بدون خطا پاس شدند"
+  ],
+  "unlogged_defects": [],
+  "blocking_reasons": []
+}

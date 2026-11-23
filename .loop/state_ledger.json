@@ -1,26 +1,24 @@
 {
-  "active_round": 42,
-  "last_completed_round": 42,
+  "active_round": 43,
+  "last_completed_round": 43,
   "level": 9,
-  "target_weight": "Weight 9: Landing Page from Scratch + P2/P3 Cleanups",
+  "target_weight": "Weight 9: 5 Rounds Progressive Overload Mastered",
   "port": 1002,
   "scope": "builder",
   "status": "COMPLETED",
+  "total_rounds_target": 5,
   "rounds_completed": [
-    35,
-    36,
-    37,
-    38,
     39,
     40,
     41,
-    42
+    42,
+    43
   ],
   "metrics": {
     "typeCheckErrors": 0,
     "frontendUnitTestsPassed": 380,
     "backendUnitTestsPassed": 648,
-    "playwrightTestsPassed": 4,
+    "playwrightTestsPassed": 5,
     "registeredBlocksCount": 76
   },
   "defect_ledger": [
@@ -58,12 +56,12 @@
     }
   ],
   "som_inventory": {
-    "round_042": {
+    "round_043": {
       "total_elements": 35,
       "tested_elements": 35,
       "mutations_passed": 35,
       "health_status": "HEALTHY"
     }
   },
-  "timestamp": "2026-11-23T07:22:27.142Z"
+  "timestamp": "2026-11-23T07:30:10.288Z"
 }

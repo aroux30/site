@@ -2943,17 +2943,21 @@ export function InspectorPanel() {
       }
 
       case "price_table": {
-        const features = Array.isArray(props.features) ? (props.features as any[]) : [
-          { text: "دسترسی نامحدود به تمامی امکانات", available: true },
-          { text: "پشتیبانی اختصاصی تلفنی و تیکتی", available: true },
-          { text: "فضای ابری ۵۰ گیگابایت امن", available: true },
-          { text: "دامنه اختصاصی رایگان ۱ ساله", available: false },
-        ];
+        const rawFeatures = Array.isArray(props.features) ? (props.features as any[]) : [];
+        const features = rawFeatures.length > 0
+          ? rawFeatures.map((f) => (typeof f === "string" ? { text: f, available: true } : f))
+          : [
+              { text: "دسترسی نامحدود به تمامی امکانات", available: true },
+              { text: "پشتیبانی اختصاصی تلفنی و تیکتی", available: true },
+              { text: "فضای ابری ۵۰ گیگابایت امن", available: true },
+              { text: "دامنه اختصاصی رایگان ۱ ساله", available: false },
+            ];
         return (
           <div className="space-y-4">
             <div className="space-y-1.5">
               <Label className="text-xs">عنوان پلن</Label>
               <Input
+                data-testid="price-table-title-input"
                 value={String(props.title || "پلن استاندارد")}
                 onChange={(e) => handlePropChange("title", e.target.value)}
                 className="h-8 text-xs"

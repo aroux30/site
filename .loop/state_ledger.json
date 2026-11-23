@@ -1,0 +1,104 @@
+{
+  "current_round": 45,
+  "active_weight": 9,
+  "frontend_port": 4001,
+  "backend_port": 8000,
+  "timestamp": "2026-11-23T05:58:00.000Z",
+  "weights_status": {
+    "weight_1_studio_skeleton": "CLEAN",
+    "weight_2_35_widgets_audit": "CLEAN",
+    "weight_3_28_patterns_audit": "CLEAN",
+    "weight_4_elementor_ux_dnd": "CLEAN",
+    "weight_5_responsive_wcag": "CLEAN",
+    "weight_6_elementor_wave_1": "CLEAN",
+    "weight_7_elementor_wave_2": "CLEAN",
+    "weight_8_elementor_wave_3": "CLEAN",
+    "weight_9_landing_stress_polish": "IN_PROGRESS"
+  },
+  "certifications": {
+    "BUILDER_GYM_LEVELS_1_TO_5_CLEAN": true,
+    "BUILDER_GYM_ALL_LEVELS_MASTERED": true
+  },
+  "metrics": {
+    "tsc_errors": 0,
+    "vitest_passed": 380,
+    "pytest_passed": 648,
+    "playwright_r45_passed": 4,
+    "console_errors": 0,
+    "hydration_errors": 0
+  },
+  "defect_ledger": [
+    {
+      "id": "DEFECT-PT-01",
+      "severity": "P0",
+      "component": "price_table",
+      "layer": "inspector_canvas_sync",
+      "summary": "String features in block registry caused blank feature lines in canvas due to missing text field normalization",
+      "status": "FIXED",
+      "round": 45
+    },
+    {
+      "id": "DEFECT-PT-02",
+      "severity": "P0",
+      "component": "price_table",
+      "layer": "inspector_panel",
+      "summary": "Feature inputs were rendered with empty values in inspector when features array contained strings",
+      "status": "FIXED",
+      "round": 45
+    },
+    {
+      "id": "DEFECT-PT-03",
+      "severity": "P0",
+      "component": "price_table",
+      "layer": "ast_compiler",
+      "summary": "ast_compiler threw AttributeError if features array contained strings instead of dicts",
+      "status": "FIXED",
+      "round": 45
+    },
+    {
+      "id": "DEFECT-PT-04",
+      "severity": "P1",
+      "component": "price_table",
+      "layer": "canvas_element",
+      "summary": "Badge prop was ignored unless is_featured was true, and was hardcoded to 'پیشنهاد ویژه'",
+      "status": "FIXED",
+      "round": 45
+    },
+    {
+      "id": "DEFECT-PT-05",
+      "severity": "P1",
+      "component": "price_table",
+      "layer": "cross_layer",
+      "summary": "button_text in block registry was not recognized by canvas-element expecting button_label",
+      "status": "FIXED",
+      "round": 45
+    },
+    {
+      "id": "DEFECT-PT-06",
+      "severity": "P2",
+      "component": "price_table",
+      "layer": "canvas_element",
+      "summary": "Duplicate dead code case price_table at line 1929 shadowing active case",
+      "status": "FIXED",
+      "round": 45
+    },
+    {
+      "id": "DEFECT-CTA-01",
+      "severity": "P1",
+      "component": "call_to_action",
+      "layer": "canvas_element",
+      "summary": "Button click was unhandled, risking form submission or page jump in canvas preview",
+      "status": "FIXED",
+      "round": 45
+    },
+    {
+      "id": "DEFECT-CTA-02",
+      "severity": "P2",
+      "component": "call_to_action",
+      "layer": "canvas_element",
+      "summary": "button_text fallback missing when button_label is omitted",
+      "status": "FIXED",
+      "round": 45
+    }
+  ]
+}

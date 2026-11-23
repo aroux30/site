@@ -1699,23 +1699,30 @@ function CanvasElementComponent({
       case "price_table": {
         const title = String(props.title || "پلن پایه");
         const subtitle = String(props.subtitle || "");
-        const price = String(props.price || "۲۹۰,۰۰۰");
+        const price = String(props.price || "۴۹۰,۰۰۰");
         const currency = String(props.currency || "تومان");
         const period = String(props.period || "ماهانه");
-        const btnLabel = String(props.button_label || "شروع کنید");
+        const btnLabel = String(props.button_label || props.button_text || "انتخاب و شروع پلن");
         const isFeatured = props.is_featured === true;
-        const features = (props.features as any[]) || [
-          { text: "امکانات پایه سیستم", available: true },
-          { text: "پشتیبانی استاندارد", available: true },
+        const badge = props.badge ? String(props.badge) : (isFeatured ? "پیشنهاد ویژه" : undefined);
+        const rawFeatures = Array.isArray(props.features) ? (props.features as any[]) : [];
+        const features = rawFeatures.map((f: any) =>
+          typeof f === "string" ? { text: f, available: true } : { text: String(f?.text || ""), available: f?.available !== false }
+        );
+        const displayFeatures = features.length > 0 ? features : [
+          { text: "دسترسی به تمامی ابزارهای پیشرفته", available: true },
+          { text: "پشتیبانی اختصاصی تلفنی و تیکتی", available: true },
+          { text: "گزارش‌گیری خودکار روزانه", available: true },
+          { text: "فضای ذخیره‌سازی نامحدود", available: false },
         ];
         return (
           <div className={cn(
             "p-6 rounded-3xl border bg-card text-center space-y-4 shadow-sm w-full transition relative overflow-hidden",
             isFeatured ? "border-primary ring-2 ring-primary/20 shadow-lg" : "border-border/80"
           )}>
-            {isFeatured && (
+            {badge && (
               <div className="absolute top-0 end-0 bg-primary text-primary-foreground text-[10px] font-bold px-3 py-1 rounded-bl-xl shadow-xs">
-                پیشنهاد ویژه
+                {badge}
               </div>
             )}
             <div className="space-y-1">
@@ -1727,10 +1734,17 @@ function CanvasElementComponent({
               <span className="text-xs text-muted-foreground ms-1">{currency} / {period}</span>
             </div>
             <ul className="space-y-2 text-xs text-right list-none p-0 m-0">
-              {features.map((f, idx) => (
+              {displayFeatures.map((f, idx) => (
                 <li key={idx} className="flex items-center gap-2">
-                  <span className="w-4 h-4 rounded-full bg-emerald-500/10 text-emerald-600 flex items-center justify-center shrink-0 text-[10px] font-bold">✓</span>
-                  <span className="text-muted-foreground">{f.text}</span>
+                  <span className={cn(
+                    "w-4 h-4 rounded-full flex items-center justify-center shrink-0 text-[10px] font-bold",
+                    f.available ? "bg-emerald-500/10 text-emerald-600" : "bg-muted text-muted-foreground/50"
+                  )}>
+                    {f.available ? "✓" : "–"}
+                  </span>
+                  <span className={cn(f.available ? "text-foreground font-medium" : "text-muted-foreground line-through opacity-70")}>
+                    {f.text}
+                  </span>
                 </li>
               ))}
             </ul>
@@ -1816,7 +1830,7 @@ function CanvasElementComponent({
       case "call_to_action": {
         const title = String(props.title || "عنوان اقدام به عمل");
         const desc = String(props.description || "توضیحات مربوط به بنر تشویق به اقدام");
-        const btnLabel = String(props.button_label || "شروع کنید");
+        const btnLabel = String(props.button_label || props.button_text || "شروع کنید");
         const badge = props.badge ? String(props.badge) : undefined;
         return (
           <div className="p-6 rounded-2xl border border-primary/20 bg-primary/5 text-center space-y-3 shadow-sm w-full">
@@ -1828,7 +1842,11 @@ function CanvasElementComponent({
             <h3 className="text-lg font-bold text-foreground">{title}</h3>
             <p className="text-xs text-muted-foreground max-w-md mx-auto leading-relaxed">{desc}</p>
             <div>
-              <button type="button" className="inline-flex items-center justify-center px-5 py-2.5 rounded-xl bg-primary text-primary-foreground font-bold text-xs shadow hover:bg-primary/90 transition">
+              <button
+                type="button"
+                onClick={(e) => !previewMode && e.preventDefault()}
+                className="inline-flex items-center justify-center px-5 py-2.5 rounded-xl bg-primary text-primary-foreground font-bold text-xs shadow hover:bg-primary/90 transition"
+              >
                 {btnLabel}
               </button>
             </div>
@@ -1924,39 +1942,6 @@ function CanvasElementComponent({
             <p className="text-sm leading-relaxed">«{text}»</p>
             {author && <cite className="block text-xs text-muted-foreground not-italic mt-1.5 font-semibold">— {author}</cite>}
           </blockquote>
-        );
-      }
-      case "price_table": {
-        const title = String(props.title || "پلن پایه");
-        const badge = props.badge ? String(props.badge) : undefined;
-        const price = String(props.price || "۲۹۰,۰۰۰");
-        const currency = String(props.currency || "تومان / ماهانه");
-        const features = (props.features as string[]) || ["امکان اول", "امکان دوم", "امکان سوم"];
-        const btnText = String(props.button_text || "انتخاب پلن");
-        return (
-          <div className="p-6 rounded-2xl border border-border/80 bg-card text-center space-y-4 shadow-sm w-full">
-            {badge && (
-              <span className="inline-block px-3 py-1 rounded-full bg-primary/15 text-primary text-xs font-bold">
-                {badge}
-              </span>
-            )}
-            <h3 className="text-lg font-bold text-foreground">{title}</h3>
-            <div className="py-2 border-y border-border/50">
-              <span className="text-3xl font-black text-primary font-mono">{price}</span>
-              <span className="text-xs text-muted-foreground ms-1">{currency}</span>
-            </div>
-            <ul className="space-y-2 text-right text-xs text-muted-foreground">
-              {features.map((f, idx) => (
-                <li key={idx} className="flex items-center gap-2">
-                  <Check className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                  <span>{f}</span>
-                </li>
-              ))}
-            </ul>
-            <button type="button" className="w-full py-2.5 rounded-xl bg-primary text-primary-foreground font-bold text-xs shadow hover:bg-primary/90 transition">
-              {btnText}
-            </button>
-          </div>
         );
       }
       case "image_box": {

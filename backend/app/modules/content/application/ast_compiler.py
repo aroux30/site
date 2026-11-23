@@ -913,8 +913,15 @@ class ASTCompiler:
             features_html = ""
             if isinstance(features, list):
                 for f in features:
-                    f_text = html.escape(str(f.get("text", "")))
-                    f_avail = bool(f.get("available", True))
+                    if isinstance(f, dict):
+                        f_text = html.escape(str(f.get("text", "")))
+                        f_avail = bool(f.get("available", True))
+                    elif isinstance(f, str):
+                        f_text = html.escape(f)
+                        f_avail = True
+                    else:
+                        f_text = html.escape(str(f))
+                        f_avail = True
                     status_class = "text-foreground font-medium" if f_avail else "text-muted-foreground line-through opacity-70"
                     icon_circle = "bg-emerald-500/10 text-emerald-600" if f_avail else "bg-muted text-muted-foreground/40"
                     icon_char = "✓" if f_avail else "–"

@@ -91,4 +91,42 @@ test.describe("Builder Gym Round 45: 1920x1080 Elementor Loop Grid & Multi-Step 
     const stepEl = frame.locator("text='اطلاعات تماس'").first();
     await expect(stepEl).toBeVisible();
   });
+
+  test("3. Inserting price_table renders title, price, badge, and features with text", async ({ page }) => {
+    await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(1500);
+
+    const searchInput = page.locator('aside input[placeholder*="جستجو"]').first();
+    await searchInput.fill("قیمت");
+    await page.waitForTimeout(300);
+
+    const priceCard = page.locator('button[data-block-type="price_table"]').first();
+    await expect(priceCard).toBeVisible();
+    await priceCard.click();
+    await page.waitForTimeout(600);
+
+    const frame = page.frameLocator('iframe[title="Visual Builder Canvas"]');
+    const priceTableEl = frame.locator(".builder-price-table, div:has-text('پلن ویژه کسب‌وکار')").first();
+    await expect(priceTableEl).toBeVisible();
+    await expect(priceTableEl).toContainText("۴۹۰,۰۰۰");
+    await expect(priceTableEl).toContainText("دسترسی به تمامی ابزارهای پیشرفته");
+  });
+
+  test("4. Inserting call_to_action renders title, description, badge, and button", async ({ page }) => {
+    await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(1500);
+
+    const searchInput = page.locator('aside input[placeholder*="جستجو"]').first();
+    await searchInput.fill("اقدام");
+    await page.waitForTimeout(300);
+
+    const ctaCard = page.locator('button[data-block-type="call_to_action"]').first();
+    await expect(ctaCard).toBeVisible();
+    await ctaCard.click();
+    await page.waitForTimeout(600);
+
+    const frame = page.frameLocator('iframe[title="Visual Builder Canvas"]');
+    const ctaEl = frame.locator("text='آماده شروع یک تجربه متفاوت هستید؟'").first();
+    await expect(ctaEl).toBeVisible();
+  });
 });

@@ -1146,6 +1146,42 @@ def test_ast_compiler_price_table_elementor_pro_parity():
     assert "سفارش پلن" in result
 
 
+def test_ast_compiler_price_table_string_features_and_custom_badge():
+    """Verify Price Table gracefully handles both string items and custom badge without error."""
+    ast = PageAST(
+        schema_version=1,
+        title="تست جدول قیمت با امکانات متنی",
+        slug="test-price-table-string-features",
+        root_elements=[
+            BuilderElement(
+                id="el_ptable_str",
+                name="پلن رشته‌ای",
+                type="widget",
+                widget_type="price_table",
+                widget_props={
+                    "title": "پلن استارتاپ",
+                    "badge": "محبوب‌ترین",
+                    "price": "۴۹۰,۰۰۰",
+                    "currency": "تومان",
+                    "period": "ماهانه",
+                    "button_text": "شروع دوره",
+                    "features": [
+                        "دسترسی نامحدود",
+                        {"text": "گزارش پیشرفته", "available": False},
+                    ],
+                },
+            ),
+        ],
+    )
+    result = ASTCompiler.compile(ast)
+    assert "builder-price-table" in result
+    assert "پلن استارتاپ" in result
+    assert "محبوب‌ترین" in result
+    assert "دسترسی نامحدود" in result
+    assert "گزارش پیشرفته" in result
+    assert "شروع دوره" in result
+
+
 def test_ast_compiler_price_list_elementor_pro_parity():
     """Verify Elementor Pro Price List compiles correctly in SSR."""
     ast = PageAST(

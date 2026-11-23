@@ -1,0 +1,338 @@
+[
+  {
+    "id": 1,
+    "tag": "button",
+    "text": "خروج",
+    "ariaLabel": "",
+    "type": "",
+    "visible": true,
+    "box": {
+      "x": 1832,
+      "y": 12,
+      "w": null,
+      "h": null
+    }
+  },
+  {
+    "id": 2,
+    "tag": "button",
+    "text": "دسکتاپ",
+    "ariaLabel": "",
+    "type": "button",
+    "visible": true,
+    "box": {
+      "x": 1243,
+      "y": 16,
+      "w": null,
+      "h": null
+    }
+  },
+  {
+    "id": 3,
+    "tag": "button",
+    "text": "تبلت (۷۶۸)",
+    "ariaLabel": "",
+    "type": "button",
+    "visible": true,
+    "box": {
+      "x": 1140,
+      "y": 16,
+      "w": null,
+      "h": null
+    }
+  },
+  {
+    "id": 4,
+    "tag": "button",
+    "text": "موبایل (۳۷۵)",
+    "ariaLabel": "",
+    "type": "button",
+    "visible": true,
+    "box": {
+      "x": 1027,
+      "y": 16,
+      "w": null,
+      "h": null
+    }
+  },
+  {
+    "id": 5,
+    "tag": "button",
+    "text": "",
+    "ariaLabel": "",
+    "type": "",
+    "visible": true,
+    "box": {
+      "x": 705,
+      "y": 14,
+      "w": null,
+      "h": null
+    }
+  },
+  {
+    "id": 6,
+    "tag": "button",
+    "text": "",
+    "ariaLabel": "",
+    "type": "",
+    "visible": true,
+    "box": {
+      "x": 675,
+      "y": 14,
+      "w": null,
+      "h": null
+    }
+  },
+  {
+    "id": 7,
+    "tag": "button",
+    "text": "قالب برگه",
+    "ariaLabel": "",
+    "type": "",
+    "visible": true,
+    "box": {
+      "x": 575,
+      "y": 12,
+      "w": null,
+      "h": null
+    }
+  },
+  {
+    "id": 8,
+    "tag": "button",
+    "text": "استایل سراسری",
+    "ariaLabel": "",
+    "type": "",
+    "visible": true,
+    "box": {
+      "x": 448,
+      "y": 12,
+      "w": null,
+      "h": null
+    }
+  },
+  {
+    "id": 9,
+    "tag": "button",
+    "text": "پیش‌نمایش",
+    "ariaLabel": "",
+    "type": "",
+    "visible": true,
+    "box": {
+      "x": 340,
+      "y": 12,
+      "w": null,
+      "h": null
+    }
+  },
+  {
+    "id": 10,
+    "tag": "button",
+    "text": "میانبرها",
+    "ariaLabel": "",
+    "type": "",
+    "visible": true,
+    "box": {
+      "x": 251,
+      "y": 12,
+      "w": null,
+      "h": null
+    }
+  },
+  {
+    "id": 11,
+    "tag": "button",
+    "text": "ذخیره پیش‌نویس",
+    "ariaLabel": "",
+    "type": "",
+    "visible": true,
+    "box": {
+      "x": 119,
+      "y": 12,
+      "w": null,
+      "h": null
+    }
+  },
+  {
+    "id": 12,
+    "tag": "button",
+    "text": "انتشار برگه",
+    "ariaLabel": "",
+    "type": "",
+    "visible": true,
+    "box": {
+      "x": 16,
+      "y": 12,
+      "w": null,
+      "h": null
+    }
+  },
+  {
+    "id": 13,
+    "tag": "button",
+    "text": "بلوک‌ها",
+    "ariaLabel": "افزودن بلوک",
+    "type": "button",
+    "visible": true,
+    "box": {
+      "x": 1812,
+      "y": 69,
+      "w": null,
+      "h": null
+    }
+  },
+  {
+    "id": 14,
+    "tag": "button",
+    "text": "لایه‌ها",
+    "ariaLabel": "",
+    "type": "button",
+    "visible": true,
+    "box": {
+      "x": 1713,
+      "y": 69,
+      "w": null,
+      "h": null
+    }
+  },
+  {
+    "id": 15,
+    "tag": "button",
+    "text": "تاریخچه",
+    "ariaLabel": "",
+    "type": "button",
+    "visible": true,
+    "box": {
+      "x": 1614,
+      "y": 69,
+      "w": null,
+      "h": null
+    }
+  },
+  {
+    "id": 16,
+    "tag": "button",
+    "text": "بلوک‌ها (5)",
+    "ariaLabel": "",
+    "type": "button",
+    "visible": true,
+    "box": {
+      "x": 1811,
+      "y": 128,
+      "w": null,
+      "h": null
+    }
+  },
+  {
+    "id": 17,
+    "tag": "button",
+    "text": "الگوها (28)",
+    "ariaLabel": "",
+    "type": "button",
+    "visible": true,
+    "box": {
+      "x": 1714,
+      "y": 128,
+      "w": null,
+      "h": null
+    }
+  },
+  {
+    "id": 18,
+    "tag": "button",
+    "text": "قالب‌های من (0)",
+    "ariaLabel": "",
+    "type": "button",
+    "visible": true,
+    "box": {
+      "x": 1618,
+      "y": 128,
+      "w": null,
+      "h": null
+    }
+  },
+  {
+    "id": 19,
+    "tag": "input",
+    "text": "",
+    "ariaLabel": "",
+    "type": "",
+    "visible": true,
+    "box": {
+      "x": 1613,
+      "y": 173,
+      "w": null,
+      "h": null
+    }
+  },
+  {
+    "id": 20,
+    "tag": "button",
+    "text": "کارت محصولکارت هوشمند محصول با تصویر، قی",
+    "ariaLabel": "",
+    "type": "button",
+    "visible": true,
+    "box": {
+      "x": 1767,
+      "y": 239,
+      "w": null,
+      "h": null
+    }
+  },
+  {
+    "id": 21,
+    "tag": "button",
+    "text": "تنوع محصولانتخابگر بومی ویژگی‌های محصول ",
+    "ariaLabel": "",
+    "type": "button",
+    "visible": true,
+    "box": {
+      "x": 1617,
+      "y": 239,
+      "w": null,
+      "h": null
+    }
+  },
+  {
+    "id": 22,
+    "tag": "button",
+    "text": "قیمت محصولنمایش قیمت با تخفیف، قیمت خط‌خ",
+    "ariaLabel": "",
+    "type": "button",
+    "visible": true,
+    "box": {
+      "x": 1767,
+      "y": 338,
+      "w": null,
+      "h": null
+    }
+  },
+  {
+    "id": 23,
+    "tag": "button",
+    "text": "جدول تعرفه و قیمتکارت تعرفه شامل عنوان پ",
+    "ariaLabel": "",
+    "type": "button",
+    "visible": true,
+    "box": {
+      "x": 1617,
+      "y": 338,
+      "w": null,
+      "h": null
+    }
+  },
+  {
+    "id": 24,
+    "tag": "button",
+    "text": "لیست قیمتفهرست آیتم‌ها به همراه قیمت، خط",
+    "ariaLabel": "",
+    "type": "button",
+    "visible": true,
+    "box": {
+      "x": 1767,
+      "y": 437,
+      "w": null,
+      "h": null
+    }
+  }
+]

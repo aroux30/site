@@ -349,8 +349,9 @@ function CanvasElementComponent({
     const hoverBorder = resolveResponsiveValue({ mobile: base?.hoverBorder, tablet: tablet?.hoverBorder, desktop: desktop?.hoverBorder }, activeBreakpoint);
     const transitionDuration = resolveResponsiveValue({ mobile: base?.transitionDuration, tablet: tablet?.transitionDuration, desktop: desktop?.transitionDuration }, activeBreakpoint);
 
-    if (transitionDuration) {
-      styleObj.transition = `all ${transitionDuration}s ease`;
+    if (transitionDuration !== undefined && transitionDuration !== null) {
+      const durSec = typeof transitionDuration === "number" ? transitionDuration : parseFloat(String(transitionDuration)) || 0.3;
+      styleObj.transition = `all ${durSec}s ease`;
     }
 
     if (isHovered && hoverShadow && hoverShadow !== "none") {
@@ -1927,33 +1928,82 @@ function CanvasElementComponent({
         );
       }
       case "price_table": {
-        const title = String(props.title || "پلن پایه");
-        const badge = props.badge ? String(props.badge) : undefined;
-        const price = String(props.price || "۲۹۰,۰۰۰");
-        const currency = String(props.currency || "تومان / ماهانه");
-        const features = (props.features as string[]) || ["امکان اول", "امکان دوم", "امکان سوم"];
-        const btnText = String(props.button_text || "انتخاب پلن");
+        const title = String(props.title || props.heading || "پلن استاندارد");
+        const subtitle = String(props.subtitle || props.sub_heading || "");
+        const price = String(props.price || "۴۹۰,۰۰۰");
+        const currency = String(props.currency || "تومان");
+        const period = String(props.period || "ماهانه");
+        const isFeatured = Boolean(props.is_featured);
+        const badge = String(props.badge || (isFeatured ? "پیشنهاد ویژه" : ""));
+        const btnText = String(props.button_label || props.button_text || "انتخاب و شروع پلن");
+        const rawFeatures = (props.features as any[]) || [
+          { text: "دسترسی نامحدود به تمامی امکانات", available: true },
+          { text: "پشتیبانی اختصاصی تلفنی و تیکتی", available: true },
+          { text: "فضای ابری ۵۰ گیگابایت امن", available: true },
+          { text: "دامنه اختصاصی رایگان ۱ ساله", available: false },
+        ];
+        const features = Array.isArray(rawFeatures)
+          ? rawFeatures.map((f) =>
+              typeof f === "string"
+                ? { text: f, available: true }
+                : { text: f?.text || String(f || ""), available: f?.available !== false }
+            )
+          : [
+              { text: "دسترسی کامل به امکانات", available: true },
+              { text: "پشتیبانی ۲۴ ساعته", available: true },
+              { text: "آپدیت رایگان", available: false },
+            ];
+
         return (
-          <div className="p-6 rounded-2xl border border-border/80 bg-card text-center space-y-4 shadow-sm w-full">
+          <div
+            className={cn(
+              "w-full max-w-sm rounded-3xl border bg-card p-6 text-right space-y-4 shadow-sm relative overflow-hidden transition-all",
+              isFeatured ? "border-primary shadow-md ring-2 ring-primary/20" : "border-border/80"
+            )}
+            dir="rtl"
+          >
             {badge && (
-              <span className="inline-block px-3 py-1 rounded-full bg-primary/15 text-primary text-xs font-bold">
+              <span className="absolute top-3 start-3 px-3 py-1 rounded-full bg-primary text-primary-foreground text-[10px] font-bold shadow-xs">
                 {badge}
               </span>
             )}
-            <h3 className="text-lg font-bold text-foreground">{title}</h3>
-            <div className="py-2 border-y border-border/50">
-              <span className="text-3xl font-black text-primary font-mono">{price}</span>
-              <span className="text-xs text-muted-foreground ms-1">{currency}</span>
+            <div className="space-y-1">
+              <h3 className="text-lg font-black text-foreground">{title}</h3>
+              {subtitle && <p className="text-xs text-muted-foreground">{subtitle}</p>}
             </div>
-            <ul className="space-y-2 text-right text-xs text-muted-foreground">
+            <div className="flex items-baseline justify-start gap-1.5 py-3 border-y border-border/60 my-2" dir="rtl">
+              <span className="text-3xl font-black text-primary font-mono tracking-tight">{price}</span>
+              <span className="text-xs font-bold text-muted-foreground">{currency}</span>
+              {period && <span className="text-[11px] text-muted-foreground/80 font-medium">/ {period}</span>}
+            </div>
+            <ul className="space-y-2.5 text-right text-xs list-none p-0 m-0">
               {features.map((f, idx) => (
                 <li key={idx} className="flex items-center gap-2">
-                  <Check className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                  <span>{f}</span>
+                  <div
+                    className={cn(
+                      "w-4 h-4 rounded-full flex items-center justify-center shrink-0 text-[10px] font-bold",
+                      f.available
+                        ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                        : "bg-muted text-muted-foreground/50"
+                    )}
+                  >
+                    {f.available ? "✓" : "–"}
+                  </div>
+                  <span className={cn(f.available ? "text-foreground font-medium" : "text-muted-foreground line-through opacity-70")}>
+                    {f.text}
+                  </span>
                 </li>
               ))}
             </ul>
-            <button type="button" className="w-full py-2.5 rounded-xl bg-primary text-primary-foreground font-bold text-xs shadow hover:bg-primary/90 transition">
+            <button
+              type="button"
+              className={cn(
+                "w-full py-2.5 rounded-xl font-bold text-xs shadow-sm transition-all",
+                isFeatured
+                  ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                  : "bg-muted/80 text-foreground hover:bg-muted"
+              )}
+            >
               {btnText}
             </button>
           </div>
@@ -2143,12 +2193,12 @@ function CanvasElementComponent({
                 <div key={idx} className="flex items-center gap-2">
                   <span
                     className={cn(
-                      "w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold font-mono",
+                      "w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold font-mono shadow-xs transition-colors",
                       idx + 1 === curStep
-                        ? "bg-primary text-primary-foreground"
+                        ? "bg-primary text-primary-foreground ring-2 ring-primary/30"
                         : idx + 1 < curStep
-                        ? "bg-emerald-500 text-white"
-                        : "bg-muted text-muted-foreground"
+                        ? "bg-emerald-600 dark:bg-emerald-500 text-white"
+                        : "bg-muted text-muted-foreground dark:bg-muted/80 dark:text-muted-foreground"
                     )}
                   >
                     {idx + 1}

@@ -1,0 +1,15 @@
+{
+  "verdict": "APPROVE",
+  "scores": {
+    "functionality": 9.5,
+    "visual_craft_rtl": 9.5,
+    "mutation_integrity": 9.5,
+    "ssr_parity": 10
+  },
+  "vision_findings": [
+    "تایید شد: جدول قیمت price_table با استایل‌های پیشرفته Normal/Featured و ویژگی‌های فعال/غیرفعال با بوم و سرور کاملاً همگام است",
+    "تایید شد: فرم چندمرحله‌ای multi_step_form با نشانگرهای دارک‌مود و کنتراست رنگی بدون ایراد در پورت ۱۰۰۲ رندر شد"
+  ],
+  "unlogged_defects": [],
+  "blocking_reasons": []
+}

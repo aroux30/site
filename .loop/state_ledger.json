@@ -1,6 +1,6 @@
 {
-  "active_round": 39,
-  "last_completed_round": 39,
+  "active_round": 40,
+  "last_completed_round": 40,
   "level": 9,
   "target_weight": "Weight 9: Landing Page from Scratch + P2/P3 Cleanups",
   "port": 1002,
@@ -11,13 +11,14 @@
     36,
     37,
     38,
-    39
+    39,
+    40
   ],
   "metrics": {
     "typeCheckErrors": 0,
     "frontendUnitTestsPassed": 380,
     "backendUnitTestsPassed": 648,
-    "playwrightTestsPassed": 1,
+    "playwrightTestsPassed": 2,
     "registeredBlocksCount": 76
   },
   "defect_ledger": [
@@ -28,15 +29,23 @@
       "layer": "Backend AST Compiler",
       "status": "RESOLVED",
       "fixed_in_round": 39
+    },
+    {
+      "id": "DEF-R40-001",
+      "severity": "P2",
+      "title": "Price Table canvas element features structure mismatch with SSR compiler",
+      "layer": "Frontend Canvas Element",
+      "status": "RESOLVED",
+      "fixed_in_round": 40
     }
   ],
   "som_inventory": {
-    "round_039": {
+    "round_040": {
       "total_elements": 35,
       "tested_elements": 35,
       "mutations_passed": 35,
       "health_status": "HEALTHY"
     }
   },
-  "timestamp": "2026-11-23T06:41:53.902Z"
+  "timestamp": "2026-11-23T06:54:45.331Z"
 }

@@ -90,6 +90,7 @@ export function CanvasFrame({
       if (hslKeys.has(key) && String(val).startsWith("#")) {
         doc.documentElement.style.setProperty(key, hexToHslChannels(String(val)));
         doc.documentElement.style.setProperty(`--theme-${key.slice(2)}`, String(val));
+        doc.documentElement.style.setProperty(`${key}-hex`, String(val));
       } else {
         doc.documentElement.style.setProperty(key, val);
       }
@@ -101,11 +102,13 @@ export function CanvasFrame({
       const pVal = String(gs.primaryColor);
       doc.documentElement.style.setProperty("--primary", pVal.startsWith("#") ? hexToHslChannels(pVal) : pVal);
       doc.documentElement.style.setProperty("--theme-primary", pVal);
+      doc.documentElement.style.setProperty("--primary-hex", pVal);
     }
     if (gs?.secondaryColor) {
       const sVal = String(gs.secondaryColor);
       doc.documentElement.style.setProperty("--secondary", sVal.startsWith("#") ? hexToHslChannels(sVal) : sVal);
       doc.documentElement.style.setProperty("--theme-secondary", sVal);
+      doc.documentElement.style.setProperty("--secondary-hex", sVal);
     }
     if (gs?.borderRadius) {
       doc.documentElement.style.setProperty("--radius", String(gs.borderRadius));
@@ -119,11 +122,13 @@ export function CanvasFrame({
       const tVal = String(gs.textColor);
       doc.documentElement.style.setProperty("--foreground", tVal.startsWith("#") ? hexToHslChannels(tVal) : tVal);
       doc.documentElement.style.setProperty("--theme-foreground", tVal);
+      doc.documentElement.style.setProperty("--foreground-hex", tVal);
     }
     if (gs?.backgroundColor) {
       const bVal = String(gs.backgroundColor);
       doc.documentElement.style.setProperty("--background", bVal.startsWith("#") ? hexToHslChannels(bVal) : bVal);
       doc.documentElement.style.setProperty("--theme-background", bVal);
+      doc.documentElement.style.setProperty("--background-hex", bVal);
     }
     if (gs?.contentMaxWidth) {
       doc.documentElement.style.setProperty("--content-max-width", String(gs.contentMaxWidth));

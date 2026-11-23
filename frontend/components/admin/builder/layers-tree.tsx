@@ -196,8 +196,8 @@ const TreeItem = React.memo(function TreeItem({
 
   return (
     <div
-      className={cn("flex flex-col select-none", depth > 0 && "pr-0.5")}
-      style={{ marginRight: depth > 0 ? `${depth * 24}px` : 0 }}
+      className={cn("flex flex-col select-none relative", depth > 0 && "pr-1.5 border-r border-border/50")}
+      style={{ marginRight: depth > 0 ? `${depth * 20}px` : 0 }}
     >
       <div
         onClick={() => selectElement(element.id)}
@@ -332,8 +332,8 @@ const TreeItem = React.memo(function TreeItem({
         {/* Action Buttons: ALWAYS visible on all items with zero hiding */}
         <div
           className={cn(
-            "flex items-center gap-0.5 shrink-0 transition-opacity",
-            isSelected ? "opacity-100 text-primary-foreground" : "opacity-80 hover:opacity-100 text-muted-foreground"
+            "flex items-center gap-0.5 shrink-0 opacity-100",
+            isSelected ? "text-primary-foreground" : "text-muted-foreground"
           )}
         >
           <button

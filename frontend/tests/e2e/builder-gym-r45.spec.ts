@@ -91,14 +91,13 @@ test.describe("Builder Gym Round 45: 1920x1080 Elementor Loop Grid & Multi-Step 
     const stepEl = frame.locator("text='اطلاعات تماس'").first();
     await expect(stepEl).toBeVisible();
 
-    // Verify next button advances step preview
+    // Verify next button advances step preview unconditionally
     const nextBtn = frame.locator("button:has-text('مرحله بعد')").first();
-    if (await nextBtn.isVisible()) {
-      await nextBtn.click();
-      await page.waitForTimeout(300);
-      const step2El = frame.locator("text='ورودی‌های آدرس و ارسال'").first();
-      await expect(step2El).toBeVisible();
-    }
+    await expect(nextBtn).toBeVisible();
+    await nextBtn.click();
+    await page.waitForTimeout(300);
+    const step2El = frame.locator("text='ورودی‌های آدرس و ارسال'").first();
+    await expect(step2El).toBeVisible();
   });
 
   test("3. Inserting loop_grid renders grid cards inside canvas", async ({ page }) => {

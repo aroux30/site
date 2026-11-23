@@ -1,59 +1,56 @@
 {
-  "active_round": 47,
-  "level": 9,
-  "target_weight": "Weight 9: Landing Page from Scratch + P0-P3 Cleanups (Round 47: Multi-Step Form & Interactive Form Widgets Polish)",
-  "port": 4002,
-  "scope": "builder",
+  "version": "3.2",
+  "activeWeight": 9,
+  "activeRound": 46,
   "status": "COMPLETED",
-  "total_rounds_target": 5,
-  "rounds_completed": [
-    45,
-    46,
-    47
+  "levels1to5Status": "BUILDER_GYM_LEVELS_1_TO_5_CLEAN",
+  "allLevelsMastered": "BUILDER_GYM_ALL_LEVELS_MASTERED",
+  "verificationPort": 1001,
+  "completedRounds": 46,
+  "defect_ledger": [
+    {
+      "id": "DEFECT-R46-01",
+      "severity": "P1",
+      "round": 46,
+      "title": "Duplicate shadowing switch cases in canvas-element.tsx",
+      "status": "RESOLVED",
+      "layer": "frontend/components/admin/builder/canvas-element.tsx",
+      "description": "Six duplicate switch cases (price_table, icon_list, image_box, price_list, toggle, hotspot) cause unreachable dead code and silent props divergence."
+    },
+    {
+      "id": "DEFECT-R46-02",
+      "severity": "P1",
+      "round": 46,
+      "title": "Price Table feature availability and strike-through parity",
+      "status": "RESOLVED",
+      "layer": "frontend/components/admin/builder/canvas-element.tsx",
+      "description": "Features with available: false must render strike-through and dash symbol instead of active checkmark."
+    },
+    {
+      "id": "DEFECT-R46-03",
+      "severity": "P2",
+      "round": 46,
+      "title": "Accordion default_open false override bug",
+      "status": "RESOLVED",
+      "layer": "frontend/components/admin/builder/canvas-element.tsx",
+      "description": "First accordion item forced open even when default_open is explicitly false."
+    },
+    {
+      "id": "DEFECT-R46-04",
+      "severity": "P2",
+      "round": 46,
+      "title": "Flip box button navigation prevention in canvas edit mode",
+      "status": "RESOLVED",
+      "layer": "frontend/components/admin/builder/canvas-element.tsx",
+      "description": "Flip box back button clicks in iframe trigger navigation when not in preview mode."
+    }
   ],
   "metrics": {
     "typeCheckErrors": 0,
-    "frontendUnitTestsPassed": 380,
-    "backendUnitTestsPassed": 647,
-    "playwrightTestsPassed": 1,
-    "registeredBlocksCount": 76,
+    "frontendUnitTests": 380,
+    "backendUnitTests": 650,
+    "registeredBlocks": 76,
     "lastVerifierVerdict": "APPROVE"
   },
-  "defect_ledger": [
-    {
-      "id": "DEFECT-R47-01",
-      "severity": "P1",
-      "round": 47,
-      "title": "Multi-Step Form step switching and validation indicator in canvas",
-      "status": "RESOLVED",
-      "layer": "frontend/components/admin/builder/canvas-element.tsx",
-      "description": "Multi-step form step buttons in canvas do not allow interactive step previewing in edit mode and dark mode step contrast is low."
-    },
-    {
-      "id": "DEFECT-R47-02",
-      "severity": "P1",
-      "round": 47,
-      "title": "Multi-Step Form step repeater in inspector panel missing step label customizer",
-      "status": "RESOLVED",
-      "layer": "frontend/components/admin/builder/inspector-panel.tsx",
-      "description": "Inspector lacks a clean repeater to manage step titles, descriptions, and next/prev button labels."
-    },
-    {
-      "id": "DEFECT-R47-03",
-      "severity": "P1",
-      "round": 47,
-      "title": "SSR parity for multi_step_form steps and progress indicators",
-      "status": "RESOLVED",
-      "layer": "backend/app/modules/content/application/ast_compiler.py",
-      "description": "SSR compiler must generate clean step navigation headers and responsive step containers matching canvas element."
-    }
-  ],
-  "som_inventory": {
-    "round_047": {
-      "total_elements": 33,
-      "tested_elements": 33,
-      "mutations_passed": 33
-    }
-  },
-  "timestamp": "2026-11-23T08:35:00.000Z"
+  "timestamp": "2026-11-23T11:30:00.000Z"
 }

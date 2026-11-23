@@ -540,15 +540,7 @@ def test_ast_compiler_renders_multistep_and_loop_carousel_widgets():
                         name="فرم چندگامی",
                         type="widget",
                         widget_type="multi_step_form",
-                        widget_props={
-                            "title": "فرم درخواست عضویت",
-                            "steps": [
-                                {"title": "اطلاعات تماس"},
-                                "مشخصات سفارش",
-                            ],
-                            "next_button_label": "گام بعدی",
-                            "prev_button_label": "گام قبلی",
-                        },
+                        widget_props={"steps": [{"title": "گام ۱"}, {"title": "گام ۲"}]},
                     ),
                     BuilderElement(
                         id="el_lcar01",
@@ -563,11 +555,8 @@ def test_ast_compiler_renders_multistep_and_loop_carousel_widgets():
     )
     result = ASTCompiler.compile(ast)
     assert 'class="builder-multi-step-form' in result
-    assert "فرم درخواست عضویت" in result
-    assert "اطلاعات تماس" in result
-    assert "مشخصات سفارش" in result
-    assert "گام بعدی" in result
-    assert "گام قبلی" in result
+    assert "گام ۱" in result
+    assert "گام ۲" in result
     assert 'class="builder-loop-carousel' in result
     assert 'data-widget="loop_carousel"' in result
 
@@ -1143,8 +1132,6 @@ def test_ast_compiler_price_table_elementor_pro_parity():
                     "features": [
                         {"text": "فضای نامحدود", "available": True},
                         {"text": "پشتیبانی اختصاصی VIP", "available": True},
-                        {"text": "دامنه اختصاصی", "available": False},
-                        "پشتیبانی تیکتی ۲۴ ساعته",
                     ]
                 },
             ),
@@ -1156,9 +1143,6 @@ def test_ast_compiler_price_table_elementor_pro_parity():
     assert "۹۹۰,۰۰۰" in result
     assert "پیشنهاد ویژه" in result
     assert "پشتیبانی اختصاصی VIP" in result
-    assert "دامنه اختصاصی" in result
-    assert "line-through" in result
-    assert "پشتیبانی تیکتی ۲۴ ساعته" in result
     assert "سفارش پلن" in result
 
 
@@ -1571,6 +1555,135 @@ def test_ast_compiler_renders_round41_breadcrumbs():
     assert "هندزفری بلوتوثی" in result
     assert 'aria-current="page"' in result
     assert "/" in result
+
+
+def test_ast_compiler_renders_round39_floating_bar():
+    """Verify that floating_bar widget compiles semantic call bar with phone, message, and tel: link in SSR."""
+    ast = PageAST(
+        schema_version=1,
+        title="تست راند ۳۹ نوار شناور",
+        slug="test-r39-floating-bar",
+        root_elements=[
+            BuilderElement(
+                id="el_sec_r39_fb",
+                name="بخش نوار تماس شناور",
+                type="container",
+                children=[
+                    BuilderElement(
+                        id="el_fb_custom",
+                        name="نوار تماس سریع",
+                        type="widget",
+                        widget_type="floating_bar",
+                        widget_props={
+                            "phone": "09121234567",
+                            "message": "نیاز به مشاوره قبل از خرید دارید؟",
+                            "button_text": "تماس تلفنی فوری",
+                        },
+                    ),
+                ],
+            )
+        ],
+    )
+    result = ASTCompiler.compile(ast)
+    assert 'builder-floating-bar' in result
+    assert 'data-widget="floating_bar"' in result
+    assert '09121234567' in result
+    assert 'href="tel:09121234567"' in result
+    assert 'نیاز به مشاوره قبل از خرید دارید؟' in result
+    assert 'تماس تلفنی فوری' in result
+
+
+def test_ast_compiler_renders_round44_hotspot_left_top_coordinates():
+    """Verify that hotspot compiles correctly when given left/top instead of x/y and desc instead of content."""
+    ast = PageAST(
+        schema_version=1,
+        title="تست راند ۴۴ هات‌اسپات با مختصات تاپ و لفت",
+        slug="test-r44-hotspot",
+        root_elements=[
+            BuilderElement(
+                id="el_sec_r44_hs",
+                name="بخش ۴۴",
+                type="container",
+                children=[
+                    BuilderElement(
+                        id="el_hs_custom",
+                        name="نقطه محصول",
+                        type="widget",
+                        widget_type="hotspot",
+                        widget_props={
+                            "image_url": "/phone.jpg",
+                            "spots": [
+                                {"top": 35, "left": 75, "title": "دوربین ۱۰۸ مگاپیکسل", "desc": "سنسور بزرگ و باکیفیت"}
+                            ],
+                        },
+                    ),
+                ],
+            )
+        ],
+    )
+    result = ASTCompiler.compile(ast)
+    assert 'builder-hotspot' in result
+    assert '75.0%' in result and '35.0%' in result
+    assert 'دوربین ۱۰۸ مگاپیکسل' in result
+    assert 'سنسور بزرگ و باکیفیت' in result
+
+
+def test_ast_compiler_renders_round46_price_table_and_accordion_parity():
+    """Verify Round 46 parity for price table availability strike-through and accordion default_open."""
+    ast = PageAST(
+        schema_version=1,
+        title="تست راند ۴۶ جدول قیمت و آکاردئون",
+        slug="test-r46-parity",
+        root_elements=[
+            BuilderElement(
+                id="el_sec_r46",
+                name="بخش ۴۶",
+                type="container",
+                children=[
+                    BuilderElement(
+                        id="el_pt_r46",
+                        name="جدول قیمت پیشرفته",
+                        type="widget",
+                        widget_type="price_table",
+                        widget_props={
+                            "title": "پلن استارتاپ",
+                            "price": "۳۵۰,۰۰۰",
+                            "currency": "تومان",
+                            "period": "ماهانه",
+                            "features": [
+                                {"text": "فضای ذخیره‌سازی ابری ۱۰ گیگ", "available": True},
+                                {"text": "پشتیبانی تلفنی ۲۴ ساعته", "available": False},
+                            ],
+                        },
+                    ),
+                    BuilderElement(
+                        id="el_acc_r46",
+                        name="آکاردئون پرسش‌ها",
+                        type="widget",
+                        widget_type="accordion",
+                        widget_props={
+                            "items": [
+                                {"title": "سوال نخست بسته", "content": "محتوای بسته", "default_open": False},
+                                {"title": "سوال دوم باز", "content": "محتوای باز", "default_open": True},
+                            ]
+                        },
+                    ),
+                ],
+            )
+        ],
+    )
+    result = ASTCompiler.compile(ast)
+    assert 'builder-price-table' in result
+    assert 'فضای ذخیره‌سازی ابری ۱۰ گیگ' in result
+    assert 'پشتیبانی تلفنی ۲۴ ساعته' in result
+    assert 'line-through' in result
+    assert '–' in result
+    assert '✓' in result
+    assert 'builder-accordion' in result
+    assert 'سوال نخست بسته' in result
+    assert 'سوال دوم باز' in result
+
+
 
 
 

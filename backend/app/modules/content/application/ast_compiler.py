@@ -1169,9 +1169,9 @@ class ASTCompiler:
             return (
                 f'<div{id_attr} class="builder-code-highlight rounded-2xl border border-slate-800 bg-slate-950 text-slate-100 shadow-md overflow-hidden text-left font-mono text-xs w-full {css_class}" data-widget="code_highlight" dir="ltr"{style_attr}>'
                 f'{header_bar}'
-                f'<div class="p-3.5 overflow-x-auto flex leading-relaxed">'
+                f'<div class="p-3.5 overflow-x-auto flex leading-relaxed" dir="ltr" style="text-align:left;direction:ltr;">'
                 f'{lines_gutter}'
-                f'<pre class="flex-1 font-mono text-[12px] text-emerald-400 whitespace-pre overflow-x-auto"><code class="language-{language}">{code_text}</code></pre>'
+                f'<pre class="flex-1 font-mono text-[12px] text-emerald-400 whitespace-pre overflow-x-auto m-0 p-0" dir="ltr" style="text-align:left;direction:ltr;"><code class="language-{language} block font-mono" dir="ltr" style="text-align:left;direction:ltr;">{code_text}</code></pre>'
                 f'</div>'
                 f'</div>'
             )
@@ -1248,10 +1248,17 @@ class ASTCompiler:
                     s_desc = html.escape(str(s.get("description", "")))
                     s_btn = html.escape(str(s.get("button_text") or s.get("button_label") or ""))
                     s_url = html.escape(str(s.get("button_link") or s.get("button_url") or "#"))
-                    s_bg = html.escape(str(s.get("background_image", "/placeholder-hero.svg")))
+                    s_bg_img = s.get("background_image")
+                    s_bg_col = s.get("bg_color")
+                    if s_bg_img:
+                        bg_style = f'background-image: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.7)), url({html.escape(str(s_bg_img))});'
+                    elif s_bg_col:
+                        bg_style = f'background: {html.escape(str(s_bg_col))};'
+                    else:
+                        bg_style = 'background: hsl(var(--primary));'
                     btn_html = f'<a href="{s_url}" class="inline-block mt-3 px-5 py-2 rounded-xl bg-primary text-primary-foreground font-bold text-xs shadow-sm">{s_btn}</a>' if s_btn else ""
                     slides_html += (
-                        f'<div class="relative w-full min-h-[300px] rounded-3xl overflow-hidden flex flex-col justify-center p-8 text-white bg-cover bg-center mb-4" style="background-image: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.7)), url({s_bg});">'
+                        f'<div class="relative w-full min-h-[300px] rounded-3xl overflow-hidden flex flex-col justify-center p-8 text-white bg-cover bg-center mb-4" style="{bg_style}">'
                         f'<h3 class="text-xl md:text-2xl font-black mb-2">{s_title}</h3>'
                         f'<p class="text-xs max-w-lg opacity-90 leading-relaxed">{s_desc}</p>'
                         f'<div>{btn_html}</div>'

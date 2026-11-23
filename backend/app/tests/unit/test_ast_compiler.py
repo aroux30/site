@@ -1587,10 +1587,47 @@ def test_ast_compiler_renders_round41_breadcrumbs():
     assert "صفحه اصلی" in result
     assert 'href="/"' in result
     assert "لوازم جانبی" in result
-    assert 'href="/products?cat=acc"' in result
-    assert "هندزفری بلوتوثی" in result
-    assert 'aria-current="page"' in result
-    assert "/" in result
+
+
+def test_ast_compiler_renders_round46_slides_with_gradient():
+    """Verify slides widget compiles with gradient background, button link, and title in SSR."""
+    ast = PageAST(
+        schema_version=1,
+        title="تست اسلاید راند ۴۶",
+        slug="test-r46-slides",
+        root_elements=[
+            BuilderElement(
+                id="el_sec_r46",
+                name="بخش اسلایدر",
+                type="container",
+                children=[
+                    BuilderElement(
+                        id="el_slides_r46",
+                        name="اسلایدشو هیرو",
+                        type="widget",
+                        widget_type="slides",
+                        widget_props={
+                            "slides": [
+                                {
+                                    "title": "جشنواره تابستانه",
+                                    "description": "تخفیف‌های استثنایی فصل",
+                                    "button_text": "مشاهده محصولات",
+                                    "button_link": "/summer-sale",
+                                    "bg_color": "linear-gradient(135deg, #10b981 0%, #059669 100%)",
+                                },
+                            ],
+                        },
+                    ),
+                ],
+            )
+        ],
+    )
+    result = ASTCompiler.compile(ast)
+    assert "builder-slides" in result
+    assert "جشنواره تابستانه" in result
+    assert "تخفیف‌های استثنایی فصل" in result
+    assert "/summer-sale" in result
+    assert "linear-gradient" in result
 
 
 

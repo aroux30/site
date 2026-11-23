@@ -2178,25 +2178,47 @@ function CanvasElementComponent({
             title: "عنوان اسلاید",
             description: "توضیحات معرفی اسلاید و جشنواره ویژه",
             button_text: "مشاهده بیشتر",
+            button_link: "/products",
             bg_color: "linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary)/0.6) 100%)",
           },
         ];
-        const activeSlide = slidesList[0];
+        const activeIndex =
+          typeof props.active_slide === "number" && props.active_slide < slidesList.length
+            ? props.active_slide
+            : 0;
+        const activeSlide = slidesList[activeIndex] || slidesList[0];
         return (
           <div
             className="w-full min-h-[220px] rounded-2xl p-8 flex flex-col items-center justify-center text-center text-white space-y-3 shadow-md relative overflow-hidden"
             style={{ background: activeSlide?.bg_color || "hsl(var(--primary))" }}
+            data-widget-type="slides"
           >
             <h2 className="text-xl md:text-2xl font-black drop-shadow-sm">{activeSlide?.title}</h2>
             <p className="text-xs md:text-sm opacity-90 max-w-lg leading-relaxed">{activeSlide?.description}</p>
             {activeSlide?.button_text && (
-              <button type="button" className="px-5 py-2.5 rounded-xl bg-white text-primary font-bold text-xs shadow-lg hover:bg-white/95 transition">
+              <button
+                type="button"
+                onClick={(e) => !previewMode && e.preventDefault()}
+                className="px-5 py-2.5 rounded-xl bg-white text-primary font-bold text-xs shadow-lg hover:bg-white/95 transition"
+              >
                 {activeSlide.button_text}
               </button>
             )}
-            <div className="absolute bottom-3 flex items-center gap-1.5">
+            <div className="absolute bottom-3 flex items-center gap-1.5 z-10">
               {slidesList.map((_, i) => (
-                <span key={i} className={cn("w-2 h-2 rounded-full", i === 0 ? "bg-white" : "bg-white/40")} />
+                <button
+                  key={i}
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    updateElementProps(element.id, { active_slide: i });
+                  }}
+                  className={cn(
+                    "w-2.5 h-2.5 rounded-full transition-all cursor-pointer border-0 p-0",
+                    i === activeIndex ? "bg-white scale-125" : "bg-white/40 hover:bg-white/70"
+                  )}
+                  title={`اسلاید ${i + 1}`}
+                />
               ))}
             </div>
           </div>
@@ -2242,8 +2264,9 @@ function CanvasElementComponent({
 
         return (
           <div
-            className="w-full rounded-2xl border border-slate-800 bg-slate-950 text-slate-100 shadow-md overflow-hidden text-left font-mono text-xs"
+            className="builder-code-highlight w-full rounded-2xl border border-slate-800 bg-slate-950 text-slate-100 shadow-md overflow-hidden text-left font-mono text-xs"
             dir="ltr"
+            data-widget-type="code_highlight"
           >
             {(title || showCopy || language) && (
               <div className="flex items-center justify-between px-4 py-2 border-b border-slate-800/80 bg-slate-900/80 text-[11px] text-slate-400">
@@ -2273,16 +2296,22 @@ function CanvasElementComponent({
                 </div>
               </div>
             )}
-            <div className="p-3.5 overflow-x-auto flex leading-relaxed">
+            <div className="p-3.5 overflow-x-auto flex leading-relaxed" dir="ltr" style={{ textAlign: "left", direction: "ltr" }}>
               {showLineNumbers && (
-                <div className="select-none text-slate-600 text-right pe-3 me-3 border-e border-slate-800/80 shrink-0 font-mono text-[11px]">
+                <div className="select-none text-slate-600 text-right pe-3 me-3 border-e border-slate-800/80 shrink-0 font-mono text-[11px]" dir="ltr">
                   {lines.map((_, i) => (
                     <div key={i}>{i + 1}</div>
                   ))}
                 </div>
               )}
-              <pre className="flex-1 font-mono text-[12px] text-emerald-400 whitespace-pre overflow-x-auto">
-                <code>{codeText}</code>
+              <pre
+                className="flex-1 font-mono text-[12px] text-emerald-400 whitespace-pre overflow-x-auto m-0 p-0"
+                dir="ltr"
+                style={{ textAlign: "left", direction: "ltr" }}
+              >
+                <code className="block font-mono" dir="ltr" style={{ textAlign: "left", direction: "ltr" }}>
+                  {codeText}
+                </code>
               </pre>
             </div>
           </div>

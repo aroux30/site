@@ -556,7 +556,7 @@ export function LayersTree() {
   }, [ast.rootElements, filterText]);
 
   return (
-    <div className="flex flex-col h-full p-3 space-y-2 select-none overflow-y-auto" dir="rtl">
+    <div className="flex flex-col h-full min-h-0 p-3 space-y-2 select-none overflow-y-auto builder-scrollbar" dir="rtl">
       <div className="flex items-center justify-between px-1 text-xs font-bold text-muted-foreground uppercase tracking-wider">
         <div className="flex items-center gap-1.5">
           <Layers className="w-4 h-4 text-primary" />

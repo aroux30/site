@@ -944,12 +944,10 @@ function CanvasElementComponent({
           </div>
         );
       }
-      case "product_grid":
-      case "loop_grid":
-      case "loop_carousel": {
-        const limit = Number(props.limit) || (element.widgetType === "loop_carousel" ? 6 : 4);
+      case "product_grid": {
+        const limit = Number(props.limit) || 4;
         const filter = String(props.filter || "all");
-        const showPagination = props.show_pagination !== false && element.widgetType !== "loop_carousel";
+        const showPagination = props.show_pagination !== false;
 
         const sampleProducts = Array.from({ length: limit }, (_, i) => ({
           id: `grid_prod_${i + 1}`,
@@ -2140,57 +2138,255 @@ function CanvasElementComponent({
         );
       }
       case "multi_step_form": {
-        const rawSteps = (props.steps as any[]) || ["مرحله اول", "مرحله دوم", "مرحله نهایی"];
+        const rawSteps = (props.steps as any[]) || (props.step_titles as any[]) || ["اطلاعات تماس", "آدرس و ارسال", "تایید نهایی"];
         const steps = rawSteps.map((s) => (typeof s === "string" ? s : s?.title || String(s || "")));
-        const curStep = Number(props.current_step) || 1;
+        const curStep = Math.min(Math.max(Number(props.current_step) || 1, 1), steps.length);
+        const prevText = String(props.prev_button_text || props.prev_button_label || "مرحله قبل");
+        const nextText = String(props.next_button_text || props.next_button_label || "مرحله بعد");
+        const submitText = String(props.submit_button_text || "ثبت نهایی");
+        const title = String(props.title || "");
+        const indicatorStyle = String(props.indicator_style || "numbers");
+
         return (
-          <div className="p-6 rounded-2xl border border-border/80 bg-card space-y-5 shadow-sm w-full text-right">
+          <div data-widget="multi_step_form" data-widget-type="multi_step_form" className="builder-multi-step-form p-6 rounded-2xl border border-border/80 bg-card space-y-5 shadow-sm w-full text-right">
+            {title && <h3 className="font-bold text-sm text-foreground mb-1">{title}</h3>}
             {/* Step Indicators */}
-            <div className="flex items-center justify-between border-b border-border/60 pb-4">
-              {steps.map((st, idx) => (
-                <div key={idx} className="flex items-center gap-2">
+            {indicatorStyle === "progress_bar" ? (
+              <div className="space-y-2 border-b border-border/60 pb-4">
+                <div className="flex items-center justify-between text-xs font-bold text-foreground">
+                  <span>گام {curStep} از {steps.length}: {steps[curStep - 1]}</span>
+                  <span>{Math.round((curStep / steps.length) * 100)}%</span>
+                </div>
+                <div className="w-full h-2 rounded-full bg-muted overflow-hidden">
+                  <div
+                    className="h-full bg-primary transition-all duration-300 rounded-full"
+                    style={{ width: `${(curStep / steps.length) * 100}%` }}
+                  />
+                </div>
+              </div>
+            ) : indicatorStyle === "simple" ? (
+              <div className="flex items-center gap-3 border-b border-border/60 pb-3 flex-wrap">
+                {steps.map((st, idx) => (
                   <span
+                    key={idx}
+                    onClick={() => useBuilderStore.getState().updateElementProps(element.id, { current_step: idx + 1 })}
                     className={cn(
-                      "w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold font-mono transition-all",
+                      "text-xs px-2.5 py-1 rounded-lg transition-all cursor-pointer",
                       idx + 1 === curStep
-                        ? "bg-primary text-primary-foreground ring-2 ring-primary/40 shadow-sm"
+                        ? "bg-primary text-primary-foreground font-bold shadow-xs"
                         : idx + 1 < curStep
-                        ? "bg-emerald-600 dark:bg-emerald-500 text-white shadow-xs"
-                        : "bg-muted border border-border text-foreground/80 dark:text-foreground/90 font-bold"
+                        ? "text-emerald-600 dark:text-emerald-400 font-semibold"
+                        : "text-muted-foreground"
                     )}
                   >
-                    {idx + 1}
+                    {idx + 1}. {st}
                   </span>
-                  <span className={cn("text-xs font-semibold", idx + 1 === curStep ? "text-foreground font-bold" : "text-muted-foreground")}>
-                    {st}
-                  </span>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            ) : (
+              <div className="flex items-center justify-between border-b border-border/60 pb-4 flex-wrap gap-2">
+                {steps.map((st, idx) => (
+                  <div
+                    key={idx}
+                    onClick={() => useBuilderStore.getState().updateElementProps(element.id, { current_step: idx + 1 })}
+                    className="flex items-center gap-2 cursor-pointer select-none"
+                  >
+                    <span
+                      className={cn(
+                        "w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold font-mono transition-all",
+                        idx + 1 === curStep
+                          ? "bg-primary text-primary-foreground ring-2 ring-primary/40 shadow-sm"
+                          : idx + 1 < curStep
+                          ? "bg-emerald-600 dark:bg-emerald-500 text-white shadow-xs"
+                          : "bg-muted border border-border text-foreground/80 dark:text-foreground/90 font-bold"
+                      )}
+                    >
+                      {idx + 1}
+                    </span>
+                    <span className={cn("text-xs font-semibold", idx + 1 === curStep ? "text-foreground font-bold" : "text-muted-foreground")}>
+                      {st}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
             {/* Form Fields for Step */}
             <div className="space-y-3">
               <div className="text-xs font-bold text-foreground">ورودی‌های {steps[curStep - 1] || "مرحله فعلی"}</div>
-              <input
-                type="text"
-                placeholder="نام و نام خانوادگی"
-                readOnly
-                className="w-full h-9 rounded-xl border border-input bg-muted/20 px-3 text-xs"
-              />
-              <input
-                type="text"
-                placeholder="شماره تماس همراه"
-                readOnly
-                className="w-full h-9 rounded-xl border border-input bg-muted/20 px-3 text-xs"
-              />
+              {(() => {
+                const customFieldsRaw = (props.step_fields as any)?.[curStep - 1];
+                let fieldNames: string[] = [];
+                if (typeof customFieldsRaw === "string" && customFieldsRaw.trim()) {
+                  fieldNames = customFieldsRaw.split(/[\n،,]/).map((s: string) => s.trim()).filter(Boolean);
+                } else if (Array.isArray(customFieldsRaw) && customFieldsRaw.length > 0) {
+                  fieldNames = customFieldsRaw.map((f: any) => typeof f === "string" ? f : f?.label || f?.name || String(f));
+                }
+
+                if (fieldNames.length === 0) {
+                  // Realistic context-aware default fields per step
+                  if (curStep === 1) {
+                    fieldNames = ["نام و نام خانوادگی", "شماره تماس همراه", "آدرس ایمیل (اختیاری)"];
+                  } else if (curStep === 2) {
+                    fieldNames = ["استان و شهر مقصد", "آدرس پستی کامل و کد رهگیری", "کد پستی ۱۰ رقمی"];
+                  } else if (curStep === 3) {
+                    fieldNames = ["روش پرداخت (درگاه اینترنتی / کارت به کارت)", "توضیحات تکمیلی سفارش"];
+                  } else {
+                    fieldNames = [`ورودی اصلی ${steps[curStep - 1] || ""}`, "توضیحات اختیاری"];
+                  }
+                }
+
+                return (
+                  <div className="space-y-2.5">
+                    {fieldNames.map((fn, fIdx) => (
+                      <div key={fIdx} className="space-y-1">
+                        <label className="text-[11px] font-semibold text-muted-foreground block">{fn}</label>
+                        <input
+                          type="text"
+                          placeholder={`ورود ${fn}...`}
+                          readOnly
+                          className="w-full h-9 rounded-xl border border-input bg-muted/20 px-3 text-xs"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                );
+              })()}
             </div>
             {/* Navigation Buttons */}
             <div className="flex items-center justify-between pt-2">
-              <button type="button" className="px-4 py-2 rounded-xl border border-border text-xs font-bold text-muted-foreground">
-                مرحله قبل
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (curStep > 1) {
+                    useBuilderStore.getState().updateElementProps(element.id, { current_step: curStep - 1 });
+                  }
+                }}
+                disabled={curStep <= 1}
+                className={cn(
+                  "px-4 py-2 rounded-xl border text-xs font-bold transition",
+                  curStep <= 1
+                    ? "border-border/40 text-muted-foreground/40 cursor-not-allowed"
+                    : "border-border text-foreground hover:bg-muted"
+                )}
+              >
+                {prevText}
               </button>
-              <button type="button" className="px-5 py-2 rounded-xl bg-primary text-primary-foreground text-xs font-bold shadow">
-                مرحله بعد
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (curStep < steps.length) {
+                    useBuilderStore.getState().updateElementProps(element.id, { current_step: curStep + 1 });
+                  }
+                }}
+                className="px-5 py-2 rounded-xl bg-primary text-primary-foreground text-xs font-bold shadow hover:bg-primary/90 transition"
+              >
+                {curStep === steps.length ? submitText : nextText}
               </button>
+            </div>
+          </div>
+        );
+      }
+      case "loop_grid": {
+        const limit = Math.max(1, Math.min(12, Number(props.limit) || 4));
+        const cols = Math.max(1, Math.min(6, Number(props.columns) || 3));
+        const cat = String(props.category || "all");
+        const showPrice = props.show_price !== false;
+        const showButton = props.show_button !== false;
+        const buttonText = String(props.button_text || "مشاهده و خرید");
+        const dummyItems = Array.from({ length: limit }, (_, i) => ({
+          id: i + 1,
+          title: `کالای فروشگاه نمونه ${i + 1}`,
+          price: `${(150 + i * 45).toLocaleString("fa-IR")} تومان`,
+          category: cat === "all" ? "دسته‌بندی اصلی" : cat,
+          image: "/placeholder-hero.svg",
+        }));
+
+        const colClasses: Record<number, string> = {
+          1: "grid-cols-1",
+          2: "grid-cols-1 sm:grid-cols-2",
+          3: "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3",
+          4: "grid-cols-1 sm:grid-cols-2 lg:grid-cols-4",
+          5: "grid-cols-2 sm:grid-cols-3 lg:grid-cols-5",
+          6: "grid-cols-2 sm:grid-cols-3 lg:grid-cols-6",
+        };
+
+        return (
+          <div className="builder-loop-grid w-full space-y-3 text-right" data-widget="loop_grid">
+            <div className={cn("grid gap-4", colClasses[cols] || "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3")}>
+              {dummyItems.map((item) => (
+                <div
+                  key={item.id}
+                  className="rounded-2xl border border-border/70 bg-card p-3 space-y-2.5 shadow-sm hover:shadow-md transition-all group"
+                >
+                  <div className="aspect-square bg-muted/20 rounded-xl flex items-center justify-center overflow-hidden border border-border/40 relative">
+                    <img
+                      src={item.image}
+                      alt={item.title}
+                      className="p-3 max-h-full object-contain group-hover:scale-105 transition-transform duration-300"
+                      loading="lazy"
+                    />
+                    <span className="absolute top-2 right-2 px-2 py-0.5 rounded-md bg-background/90 text-[10px] font-bold text-muted-foreground border border-border/60">
+                      {item.category}
+                    </span>
+                  </div>
+                  <h4 className="font-bold text-xs text-foreground truncate">{item.title}</h4>
+                  <div className="flex items-center justify-between pt-1 border-t border-border/40">
+                    {showPrice && (
+                      <span className="text-xs font-black text-primary font-mono">{item.price}</span>
+                    )}
+                    {showButton && (
+                      <button
+                        type="button"
+                        className="px-2.5 py-1 rounded-lg bg-primary/10 text-primary text-[11px] font-bold hover:bg-primary hover:text-primary-foreground transition"
+                      >
+                        {buttonText}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      }
+      case "loop_carousel": {
+        const limit = Math.max(1, Math.min(12, Number(props.limit) || 4));
+        const cat = String(props.category || "all");
+        const showPrice = props.show_price !== false;
+        const dummyItems = Array.from({ length: limit }, (_, i) => ({
+          id: i + 1,
+          title: `کالای برگزیده ${i + 1}`,
+          price: `${(210 + i * 50).toLocaleString("fa-IR")} تومان`,
+          category: cat === "all" ? "ویژه" : cat,
+          image: "/placeholder-hero.svg",
+        }));
+
+        return (
+          <div className="builder-loop-carousel w-full space-y-3 text-right" data-widget="loop_carousel">
+            <div className="flex items-center justify-between pb-1">
+              <span className="text-xs font-bold text-muted-foreground">حلقه چرخشی محصولات</span>
+              <div className="flex items-center gap-1.5" dir="ltr">
+                <button type="button" className="w-6 h-6 rounded-lg border border-border/70 flex items-center justify-center text-xs text-muted-foreground hover:bg-muted">‹</button>
+                <button type="button" className="w-6 h-6 rounded-lg border border-border/70 flex items-center justify-center text-xs text-muted-foreground hover:bg-muted">›</button>
+              </div>
+            </div>
+            <div className="flex items-center gap-3 overflow-x-auto pb-2 no-scrollbar">
+              {dummyItems.map((item) => (
+                <div
+                  key={item.id}
+                  className="min-w-[200px] w-52 shrink-0 rounded-2xl border border-border/70 bg-card p-3 space-y-2 shadow-sm"
+                >
+                  <div className="aspect-square bg-muted/20 rounded-xl flex items-center justify-center overflow-hidden border border-border/40">
+                    <img src={item.image} alt={item.title} className="p-3 max-h-full object-contain" loading="lazy" />
+                  </div>
+                  <h4 className="font-bold text-xs text-foreground truncate">{item.title}</h4>
+                  {showPrice && (
+                    <div className="text-xs font-black text-primary font-mono">{item.price}</div>
+                  )}
+                </div>
+              ))}
             </div>
           </div>
         );
@@ -2257,20 +2453,36 @@ function CanvasElementComponent({
               { label: "برگه جاری", url: "" },
             ];
         return (
-          <nav aria-label="مسیر راهنما" className="flex items-center gap-1.5 text-xs text-muted-foreground w-full py-1.5 flex-wrap">
-            {items.map((item: any, idx: number) => {
-              const isLast = idx === items.length - 1;
-              return (
-                <React.Fragment key={idx}>
-                  {idx > 0 && <span className="opacity-40 select-none px-0.5">{separator}</span>}
-                  {isLast || !item.url ? (
-                    <span className="font-bold text-foreground truncate max-w-[200px]">{item.label}</span>
-                  ) : (
-                    <span className="hover:text-primary transition-colors cursor-pointer truncate max-w-[150px]">{item.label}</span>
-                  )}
-                </React.Fragment>
-              );
-            })}
+          <nav
+            aria-label="مسیر راهنما"
+            data-widget="breadcrumbs"
+            className="builder-breadcrumbs flex items-center text-xs text-muted-foreground w-full py-1.5"
+          >
+            <ol className="flex items-center gap-1.5 list-none m-0 p-0 flex-wrap">
+              {items.map((item: any, idx: number) => {
+                const isLast = idx === items.length - 1;
+                return (
+                  <React.Fragment key={idx}>
+                    {idx > 0 && (
+                      <li aria-hidden="true" className="opacity-40 select-none px-1">
+                        {separator}
+                      </li>
+                    )}
+                    {isLast || !item.url ? (
+                      <li aria-current="page" className="font-bold text-foreground truncate max-w-[200px]">
+                        {item.label}
+                      </li>
+                    ) : (
+                      <li className="truncate max-w-[150px]">
+                        <span className="hover:text-primary transition-colors cursor-pointer">
+                          {item.label}
+                        </span>
+                      </li>
+                    )}
+                  </React.Fragment>
+                );
+              })}
+            </ol>
           </nav>
         );
       }
@@ -2342,9 +2554,9 @@ function CanvasElementComponent({
       }
       case "search_bar": {
         const placeholder = String(props.placeholder || "جستجو در میان کالاها...");
-        const btnText = String(props.button_text || "جستجو");
+        const btnText = String(props.button_text || props.button_label || "جستجو");
         return (
-          <div className="flex items-center gap-2 w-full max-w-md my-1 select-none pointer-events-none">
+          <div data-widget="search_bar" className="builder-search-bar flex items-center gap-2 w-full max-w-md my-1 select-none pointer-events-none">
             <div className="relative flex-1">
               <input
                 type="search"
@@ -2355,6 +2567,7 @@ function CanvasElementComponent({
             </div>
             <button
               type="button"
+              data-testid="search-bar-submit"
               className="px-5 py-2.5 rounded-xl bg-primary text-primary-foreground text-xs font-bold shadow-xs transition"
             >
               {btnText}
@@ -2363,6 +2576,7 @@ function CanvasElementComponent({
         );
       }
       case "nav_menu": {
+        const layout = String(props.layout || "horizontal");
         const items = Array.isArray(props.items) && props.items.length > 0
           ? props.items
           : [
@@ -2371,15 +2585,18 @@ function CanvasElementComponent({
               { title: "وبلاگ", url: "/blog" },
             ];
         return (
-          <nav aria-label="فهرست ناوبری" className="w-full py-1 select-none pointer-events-none">
-            <ul className="flex flex-wrap items-center gap-2 list-none m-0 p-0">
-              {items.map((it: any, idx: number) => (
-                <li key={idx} className="inline-block">
-                  <span className="px-3 py-1.5 rounded-lg text-xs font-bold text-foreground hover:text-primary transition-colors cursor-pointer">
-                    {it.title}
-                  </span>
-                </li>
-              ))}
+          <nav aria-label="فهرست ناوبری" data-widget="nav_menu" className="builder-nav-menu w-full py-1 select-none pointer-events-none">
+            <ul className={`flex ${layout === "vertical" ? "flex-col items-start" : "flex-wrap items-center"} gap-2 list-none m-0 p-0`}>
+              {items.map((it: any, idx: number) => {
+                const label = it.title || it.label || `پیوند ${idx + 1}`;
+                return (
+                  <li key={idx} className="inline-block" data-testid={`nav-menu-item-${idx}`}>
+                    <span className="px-3 py-1.5 rounded-lg text-xs font-bold text-foreground hover:text-primary transition-colors cursor-pointer">
+                      {label}
+                    </span>
+                  </li>
+                );
+              })}
             </ul>
           </nav>
         );

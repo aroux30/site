@@ -1600,34 +1600,41 @@ def test_ast_compiler_renders_round46_slides_with_gradient():
     assert "linear-gradient" in result
 
 
-def test_ast_compiler_renders_round47_nested_tabs_and_accordion():
-    """Verify nested_tabs and nested_accordion compile with custom titles in SSR."""
+def test_ast_compiler_renders_round50_multistep_and_loop_grid():
+    """Verify Round 50 multi_step_form custom button labels and loop_grid responsive columns in SSR."""
     ast = PageAST(
         schema_version=1,
-        title="تست تب‌های تودرتو و آکاردئون",
-        slug="test-r47-nested",
+        title="تست راند ۵۰ فرم و حلقه گرید",
+        slug="test-r50-multistep-loop",
         root_elements=[
             BuilderElement(
-                id="el_sec_r47",
-                name="بخش کانتینرهای تودرتو",
+                id="el_sec_r50",
+                name="بخش ۵۰",
                 type="container",
                 children=[
                     BuilderElement(
-                        id="el_ntabs_r47",
-                        name="تب‌های تودرتو",
-                        type="container",
-                        widget_type="nested_tabs",
+                        id="el_msf_r50",
+                        name="فرم چندمرحله‌ای",
+                        type="widget",
+                        widget_type="multi_step_form",
                         widget_props={
-                            "tab_titles": ["راهنمای خرید", "شرایط گارانتی"],
+                            "steps": ["اطلاعات تماس", "آدرس ارسال", "تایید پرداخت"],
+                            "next_button_text": "ادامه و ثبت نهایی",
+                            "prev_button_text": "بازگشت به قبل",
                         },
                     ),
                     BuilderElement(
-                        id="el_nacc_r47",
-                        name="آکاردئون کانتینری",
-                        type="container",
-                        widget_type="nested_accordion",
+                        id="el_lgrid_r50",
+                        name="حلقه کالاها",
+                        type="widget",
+                        widget_type="loop_grid",
                         widget_props={
-                            "item_titles": ["سوالات سفارش", "نحوه بازگشت کالا"],
+                            "columns": 4,
+                            "limit": 4,
+                            "category": "موبایل",
+                            "show_price": True,
+                            "show_button": True,
+                            "button_text": "خرید آنلاین",
                         },
                     ),
                 ],
@@ -1635,11 +1642,14 @@ def test_ast_compiler_renders_round47_nested_tabs_and_accordion():
         ],
     )
     result = ASTCompiler.compile(ast)
-    assert "builder-nested-tabs" in result
-    assert "راهنمای خرید" in result
-    assert "شرایط گارانتی" in result
-    assert "سوالات سفارش" in result
-    assert "نحوه بازگشت کالا" in result
+    assert "builder-multi-step-form" in result
+    assert "اطلاعات تماس" in result
+    assert "ادامه و ثبت نهایی" in result
+    assert "بازگشت به قبل" in result
+    assert "builder-loop-grid" in result
+    assert "md:grid-cols-4" in result
+    assert "خرید آنلاین" in result
+
 
 
 def test_ast_compiler_renders_round51_icon_and_icon_list_dynamic_icons():

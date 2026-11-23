@@ -99,7 +99,8 @@ Write-Host "    Generated BUILD_ID: $ExpectedBuildId" -ForegroundColor Green
 
 # 4. Start next in production mode on target port
 Write-Host ">>> [4/5] Launching next start on port $Port in background..." -ForegroundColor Yellow
-$StartProcess = Start-Process -FilePath "cmd.exe" -ArgumentList "/c npm run start -- -p $Port" -WorkingDirectory $FrontendDir -PassThru -WindowStyle Hidden
+$BackendPort = 8002
+$StartProcess = Start-Process -FilePath "cmd.exe" -ArgumentList "/c set BACKEND_ORIGIN=http://127.0.0.1:$BackendPort&& npm run start -- -p $Port" -WorkingDirectory $FrontendDir -PassThru -WindowStyle Hidden
 
 Write-Host "    Spawned Next.js server with PID $($StartProcess.Id)."
 

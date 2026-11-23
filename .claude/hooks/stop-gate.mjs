@@ -19,7 +19,7 @@ const root = process.cwd();
 const missing = [];
 const visionLogPath = join(root, ".loop", "vision_reads.jsonl");
 const ledgerPath = join(root, ".loop", "state_ledger.json");
-const scopeDir = process.env.GYM_SCOPE === "builder" || !process.env.GYM_SCOPE ? "builder-gym" : "gym";
+const scopeDir = (process.env.GYM_SCOPE || "builder") === "builder" ? "builder-gym" : "gym";
 const roundDir3 = join(root, ".loop", "artifacts", scopeDir, `round-${String(round).padStart(3, "0")}`);
 const roundDir2 = join(root, ".loop", "artifacts", scopeDir, `round-${String(round).padStart(2, "0")}`);
 const roundDir = existsSync(roundDir3) ? roundDir3 : roundDir2;

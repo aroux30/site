@@ -11,11 +11,11 @@
     "typeCheckErrors": 0,
     "frontendUnitTests": 380,
     "backendUnitTests": 653,
-    "playwrightTests": 1,
-    "registeredBlocks": 68,
+    "playwrightTests": 4,
+    "registeredBlocks": 76,
     "lastVerifierVerdict": "APPROVE"
   },
-  "timestamp": "2026-11-23T22:58:00.000Z",
+  "timestamp": "2026-11-23T23:00:00.000Z",
   "defect_ledger": [
     {
       "id": "DEFECT-R41-01",
@@ -217,6 +217,123 @@
     },
     {
       "id": "DEFECT-R50-01",
+      "severity": "P0",
+      "round": 50,
+      "title": "Loop Grid and Loop Carousel widgets missing dedicated canvas render cases",
+      "status": "FIXED",
+      "layer": "frontend/components/admin/builder/canvas-element.tsx",
+      "description": "loop_grid and loop_carousel fell into product_grid or default fallback on canvas. Fixed with full product cards, responsive grid, and carousel arrows."
+    },
+    {
+      "id": "DEFECT-R50-02",
+      "severity": "P1",
+      "round": 50,
+      "title": "Missing inspector controls for loop_grid and loop_carousel",
+      "status": "FIXED",
+      "layer": "frontend/components/admin/builder/inspector-panel.tsx",
+      "description": "Inspector lacked controls for category filter, columns selector, show price, and show button for loop widgets. Implemented dedicated controls."
+    },
+    {
+      "id": "DEFECT-R50-03",
+      "severity": "P1",
+      "round": 50,
+      "title": "Multi-Step Form hardcoded navigation buttons and missing backend .env jwt secret",
+      "status": "FIXED",
+      "layer": "frontend/components/admin/builder/canvas-element.tsx",
+      "description": "Canvas ignored prev_button_text and next_button_text configured in inspector, and backend returned 500/401 on autosave. Fixed props binding and synced .env."
+    },
+    {
+      "id": "DEFECT-R50-04",
+      "severity": "P2",
+      "round": 50,
+      "title": "Multi-Step Form step indicator text wrapping awkwardly on mobile viewports",
+      "status": "FIXED",
+      "layer": "frontend/components/admin/builder/canvas-element.tsx",
+      "description": "Step indicator headers cramped on 375px mobile viewport. Added responsive flex-wrap and gap-2 spacing."
+    },
+    {
+      "id": "DEFECT-R50-05",
+      "severity": "P0",
+      "component": "inspector_panel",
+      "layer": "frontend/components/admin/builder/builder-studio.tsx",
+      "summary": "Inspector aside and subcontainers lacked min-h-0 and had lg:block overriding flex, freezing vertical scrolling",
+      "status": "FIXED",
+      "round": 50
+    },
+    {
+      "id": "DEFECT-R50-06",
+      "severity": "P0",
+      "component": "select_popover",
+      "layer": "frontend/components/ui/select.tsx",
+      "summary": "Radix portals had z-50 rendering underneath full-screen BuilderStudio (z-100), fixed by elevating to z-150",
+      "status": "FIXED",
+      "round": 50
+    },
+    {
+      "id": "DEFECT-R50-07",
+      "severity": "P1",
+      "component": "multi_step_form",
+      "layer": "frontend/components/admin/builder/inspector-panel.tsx",
+      "summary": "Multi-step form lacked step repeater addition/removal, indicators, and live canvas step navigation",
+      "status": "FIXED",
+      "round": 50
+    },
+    {
+      "id": "DEFECT-R50-08",
+      "severity": "P0",
+      "component": "breadcrumbs",
+      "layer": "backend/app/modules/content/domain/builder_validation.py",
+      "summary": "Missing 'breadcrumbs' in backend STANDARD_WIDGET_TYPES causing 422 Unprocessable Content error during autosave and draft save",
+      "status": "FIXED",
+      "round": 50
+    },
+    {
+      "id": "DEFECT-R50-09",
+      "severity": "P1",
+      "component": "breadcrumbs",
+      "layer": "ast_compiler_and_canvas",
+      "summary": "Breadcrumbs missing semantic microdata (Schema.org BreadcrumbList / ListItem) and ol/li markup in ast_compiler.py and canvas-element.tsx",
+      "status": "FIXED",
+      "round": 50
+    },
+    {
+      "id": "DEFECT-R50-10",
+      "severity": "P1",
+      "component": "theme_builder_widgets",
+      "layer": "tests",
+      "summary": "Missing comprehensive test suite and block-registry coverage assertion for breadcrumbs, search_bar, and nav_menu in backend pytest and frontend vitest",
+      "status": "FIXED",
+      "round": 50
+    },
+    {
+      "id": "DEFECT-R51-01",
+      "severity": "P1",
+      "component": "search_bar_and_nav_menu",
+      "layer": "canvas_element",
+      "summary": "Search Bar and Nav Menu widgets lacked explicit data-widget attributes in canvas-element, preventing reliable inspector auto-selection",
+      "status": "FIXED",
+      "round": 51
+    },
+    {
+      "id": "DEFECT-R51-02",
+      "severity": "P1",
+      "component": "nav_menu",
+      "layer": "cross_layer",
+      "summary": "Nav Menu widget lacked vertical vs horizontal layout orientation controls across Inspector, Canvas, and SSR AST compiler",
+      "status": "FIXED",
+      "round": 51
+    },
+    {
+      "id": "DEFECT-R51-03",
+      "severity": "P2",
+      "component": "search_bar",
+      "layer": "canvas_element",
+      "summary": "Search Bar button lacked data-testid and fallback recognition for button_label property",
+      "status": "FIXED",
+      "round": 51
+    },
+    {
+      "id": "DEFECT-R50-01-R1001",
       "severity": "P1",
       "component": "custom_attributes",
       "layer": "ast_compiler",
@@ -225,7 +342,7 @@
       "round": 50
     },
     {
-      "id": "DEFECT-R50-02",
+      "id": "DEFECT-R50-02-R1001",
       "severity": "P2",
       "component": "custom_attributes",
       "layer": "schema_and_types",
@@ -234,7 +351,7 @@
       "round": 50
     },
     {
-      "id": "DEFECT-R51-01",
+      "id": "DEFECT-R51-01-R1001",
       "severity": "P0",
       "component": "icon_rendering",
       "layer": "canvas_element",
@@ -243,7 +360,7 @@
       "round": 51
     },
     {
-      "id": "DEFECT-R51-02",
+      "id": "DEFECT-R51-02-R1001",
       "severity": "P1",
       "component": "icon_ssr_parity",
       "layer": "ast_compiler",

@@ -2617,6 +2617,39 @@ export function InspectorPanel() {
                 dir="ltr"
               />
             </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">فیلتر دسته‌بندی</Label>
+              <Input
+                value={String(props.category || "all")}
+                onChange={(e) => handlePropChange("category", e.target.value)}
+                placeholder="all یا نام دسته"
+                className="h-8 text-xs"
+              />
+            </div>
+            <div className="flex items-center justify-between pt-1 border-t border-border/50">
+              <Label className="text-xs">نمایش قیمت</Label>
+              <Switch
+                checked={props.show_price !== false}
+                onCheckedChange={(val) => handlePropChange("show_price", val)}
+              />
+            </div>
+            <div className="flex items-center justify-between pt-1">
+              <Label className="text-xs">نمایش دکمه اقدام</Label>
+              <Switch
+                checked={props.show_button !== false}
+                onCheckedChange={(val) => handlePropChange("show_button", val)}
+              />
+            </div>
+            {props.show_button !== false && (
+              <div className="space-y-1.5">
+                <Label className="text-xs">متن دکمه</Label>
+                <Input
+                  value={String(props.button_text || "مشاهده و خرید")}
+                  onChange={(e) => handlePropChange("button_text", e.target.value)}
+                  className="h-8 text-xs"
+                />
+              </div>
+            )}
           </div>
         );
 
@@ -2625,6 +2658,24 @@ export function InspectorPanel() {
         const stepTitles = rawSteps.map((s) => (typeof s === "string" ? s : s?.title || String(s || "")));
         return (
           <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs">عنوان فرم</Label>
+              <Input
+                value={String(props.title || "")}
+                placeholder="عنوان کلی فرم (اختیاری)"
+                onChange={(e) => handlePropChange("title", e.target.value)}
+                className="h-8 text-xs"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">آدرس ارسال فرم (Action URL)</Label>
+              <Input
+                value={String(props.submit_url || "/api/v1/content/forms/submit")}
+                onChange={(e) => handlePropChange("submit_url", e.target.value)}
+                className="h-8 text-xs font-mono"
+                dir="ltr"
+              />
+            </div>
             <div className="space-y-1.5">
               <Label className="text-xs">مرحله جاری پیش‌نمایش (۱ تا {stepTitles.length})</Label>
               <Input
@@ -2638,6 +2689,22 @@ export function InspectorPanel() {
                 dir="ltr"
               />
             </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">استایل نشانگر مراحل</Label>
+              <Select
+                value={String(props.indicator_style || "numbers")}
+                onValueChange={(val) => handlePropChange("indicator_style", val)}
+              >
+                <SelectTrigger className="h-8 text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="numbers">شماره‌های دایره‌ای (Numbered Circles)</SelectItem>
+                  <SelectItem value="progress_bar">نوار پیشرفت درصدی (Progress Bar)</SelectItem>
+                  <SelectItem value="simple">فقط عنوان متنی (Simple Text)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
             <div className="space-y-2 pt-1 border-t border-border/50">
               <Label className="text-xs font-bold text-foreground">متن دکمه‌های ناوبری</Label>
               <div className="grid grid-cols-2 gap-2">
@@ -2645,8 +2712,11 @@ export function InspectorPanel() {
                   <span className="text-[10px] text-muted-foreground">دکمه قبلی</span>
                   <Input
                     type="text"
-                    value={String(props.prev_button_text || "مرحله قبل")}
-                    onChange={(e) => handlePropChange("prev_button_text", e.target.value)}
+                    value={String(props.prev_button_text || props.prev_button_label || "مرحله قبل")}
+                    onChange={(e) => {
+                      handlePropChange("prev_button_text", e.target.value);
+                      handlePropChange("prev_button_label", e.target.value);
+                    }}
                     className="h-8 text-xs"
                   />
                 </div>
@@ -2654,30 +2724,95 @@ export function InspectorPanel() {
                   <span className="text-[10px] text-muted-foreground">دکمه بعدی</span>
                   <Input
                     type="text"
-                    value={String(props.next_button_text || "مرحله بعد")}
-                    onChange={(e) => handlePropChange("next_button_text", e.target.value)}
-                    className="h-8 text-xs"
-                  />
-                </div>
-              </div>
-            </div>
-            <div className="space-y-2 pt-1 border-t border-border/50">
-              <Label className="text-xs font-bold text-foreground">عناوین مراحل فرم</Label>
-              {stepTitles.map((st, sIdx) => (
-                <div key={sIdx} className="space-y-1">
-                  <span className="text-[10px] text-muted-foreground">عنوان مرحله {sIdx + 1}</span>
-                  <Input
-                    type="text"
-                    value={st}
+                    value={String(props.next_button_text || props.next_button_label || "مرحله بعد")}
                     onChange={(e) => {
-                      const newSteps = [...stepTitles];
-                      newSteps[sIdx] = e.target.value;
-                      handlePropChange("steps", newSteps);
+                      handlePropChange("next_button_text", e.target.value);
+                      handlePropChange("next_button_label", e.target.value);
                     }}
                     className="h-8 text-xs"
                   />
                 </div>
-              ))}
+              </div>
+              <div className="space-y-1 pt-1">
+                <span className="text-[10px] text-muted-foreground">متن دکمه ارسال گام نهایی</span>
+                <Input
+                  type="text"
+                  value={String(props.submit_button_text || "ثبت و ارسال نهایی")}
+                  onChange={(e) => handlePropChange("submit_button_text", e.target.value)}
+                  className="h-8 text-xs"
+                />
+              </div>
+            </div>
+            <div className="space-y-2 pt-1 border-t border-border/50">
+              <div className="flex items-center justify-between">
+                <Label className="text-xs font-bold text-foreground">عناوین مراحل فرم ({stepTitles.length})</Label>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const newSteps = [...stepTitles, `مرحله ${stepTitles.length + 1}`];
+                    handlePropChange("steps", newSteps);
+                  }}
+                  className="text-[11px] text-primary hover:underline font-semibold"
+                >
+                  + افزودن مرحله
+                </button>
+              </div>
+              {stepTitles.map((st, sIdx) => {
+                const stepFieldsMap = (props.step_fields as Record<number, string>) || {};
+                const curFieldsVal = stepFieldsMap[sIdx] || "";
+                return (
+                  <div key={sIdx} className="p-2 rounded-lg border bg-muted/20 space-y-1.5">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[10px] text-muted-foreground w-12 shrink-0">گام {sIdx + 1}:</span>
+                      <Input
+                        type="text"
+                        value={st}
+                        onChange={(e) => {
+                          const newSteps = [...stepTitles];
+                          newSteps[sIdx] = e.target.value;
+                          handlePropChange("steps", newSteps);
+                        }}
+                        className="h-8 text-xs flex-1 font-semibold"
+                      />
+                      {stepTitles.length > 2 && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const newSteps = stepTitles.filter((_, i) => i !== sIdx);
+                            handlePropChange("steps", newSteps);
+                            if (Number(props.current_step) > newSteps.length) {
+                              handlePropChange("current_step", newSteps.length);
+                            }
+                          }}
+                          className="p-1 rounded text-muted-foreground hover:text-destructive hover:bg-destructive/10 text-xs"
+                          title="حذف این مرحله"
+                        >
+                          ✕
+                        </button>
+                      )}
+                    </div>
+                    <div className="pt-0.5">
+                      <span className="text-[10px] text-muted-foreground">فیلدهای این گام (با کاما جدا کنید):</span>
+                      <Input
+                        type="text"
+                        value={curFieldsVal}
+                        placeholder={
+                          sIdx === 0
+                            ? "نام و نام خانوادگی، شماره تماس، ایمیل"
+                            : sIdx === 1
+                            ? "استان و شهر، آدرس دقیق، کد پستی"
+                            : "روش پرداخت، توضیحات سفارش"
+                        }
+                        onChange={(e) => {
+                          const newMap = { ...stepFieldsMap, [sIdx]: e.target.value };
+                          handlePropChange("step_fields", newMap);
+                        }}
+                        className="h-7 text-xs"
+                      />
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         );
@@ -3385,12 +3520,29 @@ export function InspectorPanel() {
           { title: "فروشگاه", url: "/products" },
           { title: "وبلاگ", url: "/blog" },
         ];
+        const layout = String(props.layout || "horizontal");
         return (
           <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs">چیدمان منو (Layout)</Label>
+              <Select
+                value={layout}
+                onValueChange={(val) => handlePropChange("layout", val)}
+              >
+                <SelectTrigger data-testid="nav-menu-layout-select" className="h-8 text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="horizontal">افقی (Horizontal)</SelectItem>
+                  <SelectItem value="vertical">عمودی (Vertical)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
             <div className="flex items-center justify-between">
               <Label className="text-xs font-bold">پیوندهای منو</Label>
               <button
                 type="button"
+                data-testid="nav-menu-add-item-btn"
                 onClick={() => {
                   const updated = [...items, { title: `پیوند ${items.length + 1}`, url: "/page" }];
                   handlePropChange("items", updated);
@@ -5291,8 +5443,8 @@ export function InspectorPanel() {
   };
 
   return (
-    <div className="flex flex-col h-full bg-card border-s border-border select-none" dir="rtl">
-      <div className="px-4 py-3 border-b border-border/80 flex items-center justify-between bg-muted/30">
+    <div className="flex flex-col h-full min-h-0 bg-card select-none" dir="rtl">
+      <div className="px-4 py-3 border-b border-border/80 flex items-center justify-between bg-muted/30 shrink-0">
         <div className="truncate">
           <span className="text-xs font-bold text-foreground block truncate">
             {selectedElement.name}
@@ -5306,9 +5458,9 @@ export function InspectorPanel() {
       <Tabs
         value={activeInspectorTab}
         onValueChange={(val) => setInspectorTab(val as InspectorTab)}
-        className="flex-1 flex flex-col"
+        className="flex-1 flex flex-col min-h-0 overflow-hidden"
       >
-        <TabsList className="grid grid-cols-3 h-9 mx-3 my-2 rounded-xl bg-muted/70 p-1 border border-border/60">
+        <TabsList className="grid grid-cols-3 h-9 mx-3 my-2 rounded-xl bg-muted/70 p-1 border border-border/60 shrink-0">
           <TabsTrigger value="content" className="text-xs py-1 font-semibold rounded-lg">
             محتوا
           </TabsTrigger>
@@ -5320,14 +5472,14 @@ export function InspectorPanel() {
           </TabsTrigger>
         </TabsList>
 
-        <div className="flex-1 overflow-y-auto px-4 py-3">
-          <TabsContent value="content" className="m-0 focus-visible:outline-none">
+        <div className="flex-1 min-h-0 overflow-y-auto px-4 py-3 overscroll-contain builder-scrollbar">
+          <TabsContent value="content" className="m-0 focus-visible:outline-none pb-24">
             {renderContentControls()}
           </TabsContent>
-          <TabsContent value="style" className="m-0 focus-visible:outline-none">
+          <TabsContent value="style" className="m-0 focus-visible:outline-none pb-24">
             {renderStyleControls()}
           </TabsContent>
-          <TabsContent value="advanced" className="m-0 focus-visible:outline-none">
+          <TabsContent value="advanced" className="m-0 focus-visible:outline-none pb-24">
             {renderAdvancedControls()}
           </TabsContent>
         </div>

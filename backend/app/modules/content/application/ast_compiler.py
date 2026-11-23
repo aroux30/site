@@ -21,6 +21,37 @@ from app.shared.content.html_sanitizer import sanitize_html
 class ASTCompiler:
     """Server-side compiler translating a PageAST tree into semantic HTML."""
 
+    ICON_CHAR_MAP: dict[str, str] = {
+        "shield-check": "🛡️",
+        "shield": "🛡️",
+        "truck": "🚚",
+        "headphones": "🎧",
+        "support": "🎧",
+        "star": "⭐",
+        "heart": "❤️",
+        "award": "🏆",
+        "sparkles": "✨",
+        "check": "✅",
+        "zap": "⚡",
+        "clock": "🕒",
+        "credit-card": "💳",
+        "shopping-cart": "🛒",
+        "shopping-bag": "🛍️",
+        "gift": "🎁",
+        "phone": "📞",
+        "mail": "✉️",
+        "thumbs-up": "👍",
+        "map-pin": "📍",
+        "user": "👤",
+        "lock": "🔒",
+        "camera": "📷",
+        "bell": "🔔",
+        "tag": "🏷️",
+        "eye": "👁️",
+        "compass": "🧭",
+        "info": "ℹ️",
+    }
+
     @classmethod
     def compile(cls, ast: PageAST, is_authenticated: bool = False) -> str:
         """Compile the full PageAST document into a single sanitized HTML string.
@@ -908,7 +939,8 @@ class ASTCompiler:
             return f'<div id="{anchor_id}" class="builder-menu-anchor w-full h-0 opacity-0 pointer-events-none -my-1 {css_class}" data-widget="menu_anchor" aria-hidden="true"{style_attr}></div>'
 
         elif widget_type == "icon":
-            icon_key = html.escape(str(props.get("icon", "star")))
+            icon_key = str(props.get("icon", "star")).strip().lower()
+            icon_char = cls.ICON_CHAR_MAP.get(icon_key, cls.ICON_CHAR_MAP.get("star", "⭐"))
             view = str(props.get("view", "default"))
             shape = str(props.get("shape", "circle"))
             size = int(props.get("size", 32))
@@ -928,7 +960,7 @@ class ASTCompiler:
             rot_style = f"transform: rotate({rotate}deg);" if rotate else ""
             inline_style = f' style="{pad_style} {rot_style}"'.strip()
 
-            inner_icon = f'<div class="inline-flex items-center justify-center {view_classes} {shape_class}"{inline_style}><span style="font-size: {size}px; line-height: 1;">★</span></div>'
+            inner_icon = f'<div class="inline-flex items-center justify-center {view_classes} {shape_class}"{inline_style}><span style="font-size: {size}px; line-height: 1;">{icon_char}</span></div>'
             if url:
                 return f'<div{id_attr} class="builder-icon inline-block {css_class}" data-widget="icon"{style_attr}><a href="{html.escape(url)}"{target_attr}>{inner_icon}</a></div>'
             return f'<div{id_attr} class="builder-icon inline-block {css_class}" data-widget="icon"{style_attr}>{inner_icon}</div>'
@@ -945,10 +977,12 @@ class ASTCompiler:
             for item in items:
                 text = html.escape(str(item.get("text", "")))
                 url = item.get("url", "")
+                i_key = str(item.get("icon", "check")).strip().lower()
+                i_char = cls.ICON_CHAR_MAP.get(i_key, "✓")
                 text_content = f'<a href="{html.escape(str(url))}" class="hover:underline">{text}</a>' if url else f'<span>{text}</span>'
                 items_html += (
                     f'<li class="flex items-center gap-2.5 text-xs text-foreground">'
-                    f'<div class="w-5 h-5 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0 text-[10px]">✓</div>'
+                    f'<div class="w-5 h-5 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0 text-[10px]">{i_char}</div>'
                     f'{text_content}'
                     f'</li>'
                 )

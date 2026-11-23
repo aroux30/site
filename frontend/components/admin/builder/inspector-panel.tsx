@@ -1382,11 +1382,17 @@ export function InspectorPanel() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="max-h-56">
-                  {BUILDER_ICON_OPTIONS.map((opt) => (
-                    <SelectItem key={opt.id} value={opt.id} className="text-xs">
-                      {opt.label}
-                    </SelectItem>
-                  ))}
+                  {BUILDER_ICON_OPTIONS.map((opt) => {
+                    const OptIcon = opt.icon;
+                    return (
+                      <SelectItem key={opt.id} value={opt.id} className="text-xs">
+                        <div className="flex items-center gap-2">
+                          <OptIcon className="w-3.5 h-3.5 text-primary shrink-0" />
+                          <span>{opt.label}</span>
+                        </div>
+                      </SelectItem>
+                    );
+                  })}
                 </SelectContent>
               </Select>
             </div>
@@ -2804,13 +2810,45 @@ export function InspectorPanel() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="max-h-56">
-                  {BUILDER_ICON_OPTIONS.map((opt) => (
-                    <SelectItem key={opt.id} value={opt.id} className="text-xs">
-                      {opt.label}
-                    </SelectItem>
-                  ))}
+                  {BUILDER_ICON_OPTIONS.map((opt) => {
+                    const OptIcon = opt.icon;
+                    return (
+                      <SelectItem key={opt.id} value={opt.id} className="text-xs">
+                        <div className="flex items-center gap-2">
+                          <OptIcon className="w-3.5 h-3.5 text-primary shrink-0" />
+                          <span>{opt.label}</span>
+                        </div>
+                      </SelectItem>
+                    );
+                  })}
                 </SelectContent>
               </Select>
+              <div
+                className="grid grid-cols-5 gap-1.5 p-2 bg-muted/40 rounded-xl border border-border/60 mt-1"
+                data-testid="icon-picker-grid"
+              >
+                {BUILDER_ICON_OPTIONS.map((opt) => {
+                  const IconComp = opt.icon;
+                  const isSelected = (props.icon || "star") === opt.id;
+                  return (
+                    <button
+                      key={opt.id}
+                      type="button"
+                      title={opt.label}
+                      data-icon-id={opt.id}
+                      onClick={() => handlePropChange("icon", opt.id)}
+                      className={cn(
+                        "h-8 flex items-center justify-center rounded-lg border transition",
+                        isSelected
+                          ? "border-primary bg-primary text-primary-foreground shadow-xs"
+                          : "border-border/60 bg-background hover:bg-muted text-muted-foreground hover:text-foreground"
+                      )}
+                    >
+                      <IconComp className="w-4 h-4" />
+                    </button>
+                  );
+                })}
+              </div>
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs">نمای آیکون (View)</Label>

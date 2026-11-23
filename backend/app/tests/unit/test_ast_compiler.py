@@ -1642,6 +1642,49 @@ def test_ast_compiler_renders_round47_nested_tabs_and_accordion():
     assert "نحوه بازگشت کالا" in result
 
 
+def test_ast_compiler_renders_round51_icon_and_icon_list_dynamic_icons():
+    """Verify Round 51 dynamic icon resolution for icon and icon_list widgets."""
+    ast = PageAST(
+        schema_version=1,
+        title="تست آیکون‌های داینامیک راند ۵۱",
+        slug="test-r51-icons",
+        root_elements=[
+            BuilderElement(
+                id="el_sec_r51",
+                name="بخش آیکون‌ها",
+                type="container",
+                children=[
+                    BuilderElement(
+                        id="el_icon_truck",
+                        name="آیکون ارسال",
+                        type="widget",
+                        widget_type="icon",
+                        widget_props={"icon": "truck", "size": 32, "view": "stacked"},
+                    ),
+                    BuilderElement(
+                        id="el_list_r51",
+                        name="فهرست مزایا",
+                        type="widget",
+                        widget_type="icon_list",
+                        widget_props={
+                            "items": [
+                                {"text": "پشتیبانی تلفنی", "icon": "phone"},
+                                {"text": "تخفیف ویژه هدیه", "icon": "gift"},
+                            ]
+                        },
+                    ),
+                ],
+            )
+        ],
+    )
+    result = ASTCompiler.compile(ast)
+    assert "🚚" in result
+    assert "📞" in result
+    assert "🎁" in result
+    assert "پشتیبانی تلفنی" in result
+    assert "تخفیف ویژه هدیه" in result
+
+
 def test_ast_compiler_renders_round50_custom_attributes_parity():
     """Verify Round 50 Elementor Pro custom attributes and data attributes in SSR."""
     ast = PageAST(
@@ -1696,6 +1739,7 @@ def test_ast_compiler_renders_round50_custom_attributes_parity():
     # Widget button with string attributes
     assert 'data-analytics-category="lead-gen"' in result
     assert 'aria-label="تماس با ما"' in result
+
 
 
 

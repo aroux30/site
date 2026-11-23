@@ -46,6 +46,7 @@ import { Badge } from "@/components/ui/badge";
 import { useCartStore } from "@/stores/cart-store";
 import { useToast } from "@/components/ui/use-toast";
 import { normalizeCssColor } from "@/lib/builder/color-utils";
+import { getBuilderIcon } from "@/lib/builder/icon-map";
 import type { BuilderElement, DeviceStyle, ResponsiveStyles } from "@/types/builder";
 
 interface CanvasElementProps {
@@ -871,8 +872,34 @@ function CanvasElementComponent({
         );
       }
       case "icon": {
-        const iconChar = String(props.icon || "★");
-        return <span className="inline-block text-xl leading-none">{iconChar}</span>;
+        const IconComponent = getBuilderIcon(props.icon as string);
+        const view = String(props.view || "default");
+        const shape = String(props.shape || "circle");
+        const size = Number(props.size) || 32;
+        const rotate = Number(props.rotate) || 0;
+        const viewClasses =
+          view === "stacked"
+            ? "bg-primary text-white shadow-sm"
+            : view === "framed"
+            ? "border-2 border-primary text-primary bg-transparent"
+            : "text-primary";
+        const shapeClass = shape === "circle" ? "rounded-full" : "rounded-xl";
+        const padding = view !== "default" ? Math.round(size * 0.4) : 0;
+        return (
+          <div
+            className={cn(
+              "inline-flex items-center justify-center transition-transform",
+              viewClasses,
+              shapeClass
+            )}
+            style={{
+              padding: padding ? `${padding}px` : undefined,
+              transform: rotate ? `rotate(${rotate}deg)` : undefined,
+            }}
+          >
+            <IconComponent style={{ width: `${size}px`, height: `${size}px` }} />
+          </div>
+        );
       }
       case "video": {
         const url = String(props.url || "");
@@ -1532,10 +1559,11 @@ function CanvasElementComponent({
       case "icon_box": {
         const title = String(props.title || "ارسال سریع و مطمئن");
         const desc = String(props.description || "تحویل در کمترین زمان ممکن با بسته‌بندی ویژه به سراسر کشور");
+        const IconComponent = getBuilderIcon(props.icon as string);
         return (
           <div className="p-4 rounded-2xl border border-border/80 bg-card flex items-start gap-3 shadow-sm w-full">
             <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
-              <Sparkles className="w-5 h-5" />
+              <IconComponent className="w-5 h-5" />
             </div>
             <div className="space-y-1 text-right">
               <h4 className="font-bold text-xs text-foreground">{title}</h4>
@@ -1655,20 +1683,24 @@ function CanvasElementComponent({
       }
       case "icon_list": {
         const items = (props.items as any[]) || [
-          { text: "آیتم اول لیست", icon: "check" },
-          { text: "آیتم دوم لیست", icon: "check" },
+          { text: "ارسال سریع با پست پیشتاز", icon: "truck" },
+          { text: "ضمانت بازگشت وجه تا ۷ روز", icon: "shield-check" },
+          { text: "پشتیبانی اختصاصی ۲۴ ساعته", icon: "headphones" },
         ];
         const isHorizontal = props.layout === "horizontal";
         return (
           <ul className={cn("builder-icon-list w-full p-0 m-0 list-none space-y-2.5", isHorizontal && "flex flex-wrap items-center gap-4 space-y-0")}>
-            {items.map((itm, idx) => (
-              <li key={idx} className="flex items-center gap-2 text-xs text-foreground font-medium">
-                <span className="w-5 h-5 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0">
-                  <Check className="w-3 h-3 text-primary stroke-[2.5]" />
-                </span>
-                <span>{itm.text || ""}</span>
-              </li>
-            ))}
+            {items.map((itm, idx) => {
+              const ItemIcon = getBuilderIcon(itm.icon || "check");
+              return (
+                <li key={idx} className="flex items-center gap-2.5 text-xs text-foreground font-medium">
+                  <span className="w-5 h-5 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                    <ItemIcon className="w-3.5 h-3.5" />
+                  </span>
+                  <span>{itm.text || ""}</span>
+                </li>
+              );
+            })}
           </ul>
         );
       }
@@ -1921,25 +1953,6 @@ function CanvasElementComponent({
               </a>
             ))}
           </div>
-        );
-      }
-      case "icon_list": {
-        const items = (props.items as any[]) || [
-          { text: "ارسال سریع با پست پیشتاز", icon: "check" },
-          { text: "ضمانت بازگشت وجه تا ۷ روز", icon: "check" },
-          { text: "پشتیبانی اختصاصی ۲۴ ساعته", icon: "check" },
-        ];
-        return (
-          <ul className="space-y-2.5 w-full text-right p-0 m-0 list-none">
-            {items.map((item, idx) => (
-              <li key={idx} className="flex items-center gap-2.5 text-xs text-foreground font-medium">
-                <span className="w-5 h-5 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0">
-                  <Check className="w-3 h-3" />
-                </span>
-                <span>{item.text}</span>
-              </li>
-            ))}
-          </ul>
         );
       }
       case "blockquote": {

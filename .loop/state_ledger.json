@@ -1,21 +1,21 @@
 {
   "version": "3.2",
   "activeWeight": 9,
-  "activeRound": 50,
+  "activeRound": 51,
   "status": "COMPLETED",
   "levels1to5Status": "BUILDER_GYM_LEVELS_1_TO_5_CLEAN",
   "allLevelsMastered": "BUILDER_GYM_ALL_LEVELS_MASTERED",
   "verificationPort": 1001,
-  "completedRounds": 50,
+  "completedRounds": 51,
   "metrics": {
     "typeCheckErrors": 0,
     "frontendUnitTests": 380,
-    "backendUnitTests": 650,
+    "backendUnitTests": 651,
     "playwrightTests": 1,
     "registeredBlocks": 68,
     "lastVerifierVerdict": "APPROVE"
   },
-  "timestamp": "2026-11-23T19:30:00.000Z",
+  "timestamp": "2026-11-23T21:05:00.000Z",
   "defect_ledger": [
     {
       "id": "DEFECT-R41-01",
@@ -232,6 +232,24 @@
       "summary": "Frontend Zod schema rejected dictionary format for customAttributes in PageAST",
       "status": "FIXED",
       "round": 50
+    },
+    {
+      "id": "DEFECT-R51-01",
+      "severity": "P0",
+      "component": "icon_rendering",
+      "layer": "canvas_element",
+      "summary": "canvas-element printed raw string text instead of Lucide vector icon for icon widget and hardcoded Sparkles in icon_box",
+      "status": "FIXED",
+      "round": 51
+    },
+    {
+      "id": "DEFECT-R51-02",
+      "severity": "P1",
+      "component": "icon_ssr_parity",
+      "layer": "ast_compiler",
+      "summary": "ast_compiler hardcoded star icon symbol in icon widget and checkmark in icon_list; fixed with centralized ICON_CHAR_MAP",
+      "status": "FIXED",
+      "round": 51
     }
   ]
 }

@@ -913,7 +913,6 @@ function CanvasElementComponent({
         );
       }
       case "product_grid":
-      case "loop_grid":
       case "loop_carousel": {
         const limit = Number(props.limit) || (element.widgetType === "loop_carousel" ? 6 : 4);
         const filter = String(props.filter || "all");
@@ -2132,20 +2131,29 @@ function CanvasElementComponent({
         );
       }
       case "multi_step_form": {
-        const rawSteps = (props.steps as any[]) || ["مرحله اول", "مرحله دوم", "مرحله نهایی"];
+        const rawSteps = (props.steps as any[]) || ["اطلاعات تماس", "آدرس و ارسال", "تایید نهایی"];
         const steps = rawSteps.map((s) => (typeof s === "string" ? s : s?.title || String(s || "")));
         const curStep = Number(props.current_step) || 1;
+        const prevText = String(props.prev_button_text || "مرحله قبل");
+        const nextText = String(props.next_button_text || "مرحله بعد");
         return (
-          <div className="p-6 rounded-2xl border border-border/80 bg-card space-y-5 shadow-sm w-full text-right">
+          <div className="p-4 sm:p-6 rounded-2xl border border-border/80 bg-card space-y-5 shadow-sm w-full text-right" data-widget="multi_step_form">
             {/* Step Indicators */}
-            <div className="flex items-center justify-between border-b border-border/60 pb-4">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border/60 pb-4">
               {steps.map((st, idx) => (
-                <div key={idx} className="flex items-center gap-2">
+                <div
+                  key={idx}
+                  className="flex items-center gap-1.5 cursor-pointer shrink-0"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    updateElementProps(element.id, { current_step: idx + 1 });
+                  }}
+                >
                   <span
                     className={cn(
-                      "w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold font-mono",
+                      "w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold font-mono shrink-0 transition-colors",
                       idx + 1 === curStep
-                        ? "bg-primary text-primary-foreground"
+                        ? "bg-primary text-primary-foreground ring-2 ring-primary/30"
                         : idx + 1 < curStep
                         ? "bg-emerald-500 text-white"
                         : "bg-muted text-muted-foreground"
@@ -2153,7 +2161,7 @@ function CanvasElementComponent({
                   >
                     {idx + 1}
                   </span>
-                  <span className={cn("text-xs font-semibold", idx + 1 === curStep ? "text-foreground font-bold" : "text-muted-foreground")}>
+                  <span className={cn("text-xs font-semibold whitespace-nowrap", idx + 1 === curStep ? "text-foreground font-bold" : "text-muted-foreground")}>
                     {st}
                   </span>
                 </div>
@@ -2161,28 +2169,72 @@ function CanvasElementComponent({
             </div>
             {/* Form Fields for Step */}
             <div className="space-y-3">
-              <div className="text-xs font-bold text-foreground">ورودی‌های {steps[curStep - 1] || "مرحله فعلی"}</div>
+              <div className="text-xs font-bold text-foreground">ورودی‌های {steps[curStep - 1] || `مرحله ${curStep}`}</div>
               <input
                 type="text"
-                placeholder="نام و نام خانوادگی"
+                placeholder={curStep === 1 ? "نام و نام خانوادگی" : (curStep === 2 ? "آدرس پستی و کد پستی" : "توضیحات و یادداشت تکمیلی")}
                 readOnly
                 className="w-full h-9 rounded-xl border border-input bg-muted/20 px-3 text-xs"
               />
               <input
                 type="text"
-                placeholder="شماره تماس همراه"
+                placeholder={curStep === 1 ? "شماره تماس همراه" : (curStep === 2 ? "استان و شهر" : "کد تخفیف (اختیاری)")}
                 readOnly
                 className="w-full h-9 rounded-xl border border-input bg-muted/20 px-3 text-xs"
               />
             </div>
             {/* Navigation Buttons */}
-            <div className="flex items-center justify-between pt-2">
-              <button type="button" className="px-4 py-2 rounded-xl border border-border text-xs font-bold text-muted-foreground">
-                مرحله قبل
+            <div className="flex items-center justify-between pt-2 gap-2">
+              <button
+                type="button"
+                disabled={curStep <= 1}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  updateElementProps(element.id, { current_step: Math.max(1, curStep - 1) });
+                }}
+                className={cn("px-4 py-2 rounded-xl border border-border text-xs font-bold transition", curStep <= 1 ? "opacity-50 cursor-not-allowed text-muted-foreground" : "text-foreground hover:bg-muted/40")}
+              >
+                {prevText}
               </button>
-              <button type="button" className="px-5 py-2 rounded-xl bg-primary text-primary-foreground text-xs font-bold shadow">
-                مرحله بعد
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  updateElementProps(element.id, { current_step: Math.min(steps.length, curStep + 1) });
+                }}
+                className="px-5 py-2 rounded-xl bg-primary text-primary-foreground text-xs font-bold shadow hover:bg-primary/90 transition"
+              >
+                {curStep === steps.length ? "ثبت نهایی فرم" : nextText}
               </button>
+            </div>
+          </div>
+        );
+      }
+      case "loop_grid": {
+        const limit = Number(props.limit) || 6;
+        const columns = Number(props.columns) || 3;
+        const source = String(props.source || "products");
+        const items = Array.from({ length: Math.min(limit, 12) }, (_, i) => ({
+          id: `loop_${i + 1}`,
+          title: source === "posts" ? `مقاله آموزشی شماره ${i + 1}` : `محصول نمونه حلقه‌ای ${i + 1}`,
+          meta: source === "posts" ? "۵ دقیقه مطالعه" : `${(i + 1) * 140000} تومان`,
+        }));
+        const colClass = columns === 4 ? "grid-cols-1 sm:grid-cols-2 md:grid-cols-4" : (columns === 2 ? "grid-cols-1 sm:grid-cols-2" : "grid-cols-1 sm:grid-cols-2 md:grid-cols-3");
+        return (
+          <div className="w-full space-y-3" data-widget="loop_grid">
+            <div className={`grid ${colClass} gap-4`}>
+              {items.map((it) => (
+                <div key={it.id} className="rounded-2xl border border-border/80 bg-card p-3.5 space-y-2 hover:shadow-md transition">
+                  <div className="aspect-video bg-muted/30 rounded-xl flex items-center justify-center overflow-hidden">
+                    <img src="/placeholder-hero.svg" alt={it.title} className="w-full h-full object-cover" loading="lazy" />
+                  </div>
+                  <h4 className="font-bold text-xs text-foreground truncate">{it.title}</h4>
+                  <div className="flex items-center justify-between text-xs text-primary font-semibold">
+                    <span>{it.meta}</span>
+                    <span className="text-[10px] text-muted-foreground">مشاهده &larr;</span>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         );

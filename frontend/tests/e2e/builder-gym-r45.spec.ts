@@ -90,5 +90,31 @@ test.describe("Builder Gym Round 45: 1920x1080 Elementor Loop Grid & Multi-Step 
     const frame = page.frameLocator('iframe[title="Visual Builder Canvas"]');
     const stepEl = frame.locator("text='اطلاعات تماس'").first();
     await expect(stepEl).toBeVisible();
+
+    // Verify next button advances step preview
+    const nextBtn = frame.locator("button:has-text('مرحله بعد')").first();
+    if (await nextBtn.isVisible()) {
+      await nextBtn.click();
+      await page.waitForTimeout(300);
+      const step2El = frame.locator("text='ورودی‌های آدرس و ارسال'").first();
+      await expect(step2El).toBeVisible();
+    }
+  });
+
+  test("3. Inserting loop_grid renders grid cards inside canvas", async ({ page }) => {
+    await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(1500);
+
+    const searchInput = page.locator('aside input[placeholder*="جستجو"]').first();
+    await searchInput.fill("حلقه پویا");
+    await page.waitForTimeout(300);
+
+    const loopCard = page.locator('button[data-block-type="loop_grid"], button:has-text("حلقه پویا")').first();
+    await loopCard.click();
+    await page.waitForTimeout(600);
+
+    const frame = page.frameLocator('iframe[title="Visual Builder Canvas"]');
+    const loopWidget = frame.locator('[data-widget="loop_grid"]').first();
+    await expect(loopWidget).toBeVisible();
   });
 });

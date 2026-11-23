@@ -2504,6 +2504,22 @@ export function InspectorPanel() {
               </Select>
             </div>
             <div className="space-y-1.5">
+              <Label className="text-xs">تعداد ستون‌ها</Label>
+              <Select
+                value={String(props.columns || 3)}
+                onValueChange={(val) => handlePropChange("columns", parseInt(val, 10) || 3)}
+              >
+                <SelectTrigger data-testid="loop-columns-select" className="h-8 text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="2">۲ ستونه</SelectItem>
+                  <SelectItem value="3">۳ ستونه</SelectItem>
+                  <SelectItem value="4">۴ ستونه</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
               <Label className="text-xs">حداکثر تعداد نمایش</Label>
               <Input
                 data-testid="loop-limit-input"
@@ -2519,24 +2535,68 @@ export function InspectorPanel() {
           </div>
         );
 
-      case "multi_step_form":
+      case "multi_step_form": {
+        const rawSteps = (props.steps as any[]) || ["اطلاعات تماس", "آدرس و ارسال", "تایید نهایی"];
+        const stepTitles = rawSteps.map((s) => (typeof s === "string" ? s : s?.title || String(s || "")));
         return (
           <div className="space-y-4">
             <div className="space-y-1.5">
-              <Label className="text-xs">مرحله جاری پیش‌نمایش</Label>
+              <Label className="text-xs">مرحله جاری پیش‌نمایش (۱ تا {stepTitles.length})</Label>
               <Input
                 data-testid="step-form-cur-input"
                 type="number"
                 min={1}
-                max={3}
+                max={stepTitles.length}
                 value={Number(props.current_step || 1)}
                 onChange={(e) => handlePropChange("current_step", parseInt(e.target.value, 10) || 1)}
                 className="h-8 text-xs font-mono"
                 dir="ltr"
               />
             </div>
+            <div className="space-y-2 pt-1 border-t border-border/50">
+              <Label className="text-xs font-bold text-foreground">متن دکمه‌های ناوبری</Label>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="space-y-1">
+                  <span className="text-[10px] text-muted-foreground">دکمه قبلی</span>
+                  <Input
+                    type="text"
+                    value={String(props.prev_button_text || "مرحله قبل")}
+                    onChange={(e) => handlePropChange("prev_button_text", e.target.value)}
+                    className="h-8 text-xs"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <span className="text-[10px] text-muted-foreground">دکمه بعدی</span>
+                  <Input
+                    type="text"
+                    value={String(props.next_button_text || "مرحله بعد")}
+                    onChange={(e) => handlePropChange("next_button_text", e.target.value)}
+                    className="h-8 text-xs"
+                  />
+                </div>
+              </div>
+            </div>
+            <div className="space-y-2 pt-1 border-t border-border/50">
+              <Label className="text-xs font-bold text-foreground">عناوین مراحل فرم</Label>
+              {stepTitles.map((st, sIdx) => (
+                <div key={sIdx} className="space-y-1">
+                  <span className="text-[10px] text-muted-foreground">عنوان مرحله {sIdx + 1}</span>
+                  <Input
+                    type="text"
+                    value={st}
+                    onChange={(e) => {
+                      const newSteps = [...stepTitles];
+                      newSteps[sIdx] = e.target.value;
+                      handlePropChange("steps", newSteps);
+                    }}
+                    className="h-8 text-xs"
+                  />
+                </div>
+              ))}
+            </div>
           </div>
         );
+      }
 
       case "slides": {
         const rawSlides = Array.isArray(props.slides) && props.slides.length > 0 ? (props.slides as any[]) : [

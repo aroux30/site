@@ -521,6 +521,7 @@ class ASTCompiler:
             limit = int(props.get("limit", 4))
             cat = html.escape(str(props.get("category", "all")))
             flt = html.escape(str(props.get("filter", "all")))
+            cols = int(props.get("columns", 4))
             show_pag = props.get("show_pagination", False)
             cards = []
             for i in range(min(limit, 8)):
@@ -540,9 +541,10 @@ class ASTCompiler:
                 if show_pag
                 else ""
             )
+            base_class = "builder-loop-grid" if widget_type == "loop_grid" else "builder-product-grid"
             return (
-                f'<div{id_attr} class="builder-product-grid space-y-4 {css_class}" data-widget="{html.escape(widget_type)}" data-category="{cat}" data-filter="{flt}" data-limit="{limit}"{style_attr}>'
-                f'<div class="grid grid-cols-2 md:grid-cols-4 gap-4">{grid_cards_html}</div>'
+                f'<div{id_attr} class="{base_class} space-y-4 {css_class}" data-widget="{html.escape(widget_type)}" data-category="{cat}" data-filter="{flt}" data-limit="{limit}"{style_attr}>'
+                f'<div class="grid grid-cols-2 md:grid-cols-{cols} gap-4">{grid_cards_html}</div>'
                 f'{pagination_btn}'
                 f'</div>'
             )
@@ -1324,14 +1326,17 @@ class ASTCompiler:
             )
 
         elif widget_type == "multi_step_form":
-            steps = props.get("steps", [
+            raw_steps = props.get("steps", [
                 {"title": "اطلاعات تماس", "fields": ["name", "phone"]},
                 {"title": "مشخصات سفارش", "fields": ["service", "notes"]},
             ])
             steps_header = ""
-            if isinstance(steps, list):
-                for idx, stp in enumerate(steps):
-                    s_t = html.escape(str(stp.get("title", f"مرحله {idx+1}")))
+            if isinstance(raw_steps, list):
+                for idx, stp in enumerate(raw_steps):
+                    if isinstance(stp, dict):
+                        s_t = html.escape(str(stp.get("title", f"مرحله {idx+1}")))
+                    else:
+                        s_t = html.escape(str(stp or f"مرحله {idx+1}"))
                     dot_col = "bg-primary text-white" if idx == 0 else "bg-muted text-muted-foreground"
                     steps_header += (
                         f'<div class="flex items-center gap-2">'
@@ -1341,7 +1346,7 @@ class ASTCompiler:
                     )
             return (
                 f'<div{id_attr} class="builder-multi-step-form p-6 rounded-3xl border border-border/80 bg-card space-y-5 text-right w-full {css_class}" data-widget="multi_step_form"{style_attr}>'
-                f'<div class="flex items-center justify-between pb-3 border-b border-border/60">{steps_header}</div>'
+                f'<div class="flex items-center justify-between pb-3 border-b border-border/60 flex-wrap gap-2">{steps_header}</div>'
                 f'<div class="space-y-3 pt-2">'
                 f'<div class="space-y-1"><label class="text-xs font-bold">نام و نام‌خانوادگی</label><input type="text" class="w-full rounded-xl border border-input p-2.5 text-xs" placeholder="مثال: علی رضایی" /></div>'
                 f'<div class="space-y-1"><label class="text-xs font-bold">شماره موبایل</label><input type="tel" class="w-full rounded-xl border border-input p-2.5 text-xs" placeholder="۰۹۱۲..." dir="ltr" /></div>'
@@ -1353,16 +1358,24 @@ class ASTCompiler:
                 f'</div>'
             )
 
-        elif widget_type == "loop_carousel":
+        elif widget_type in ("loop_carousel", "loop_grid"):
             limit = int(props.get("limit", 4))
             cat = html.escape(str(props.get("category", "all")))
+            cols = int(props.get("columns", 3))
             cards = []
-            for i in range(min(limit, 6)):
+            for i in range(min(limit, 12)):
                 cards.append(
-                    f'<div class="min-w-[220px] rounded-2xl border border-border/60 bg-card p-3 space-y-2 shrink-0">'
+                    f'<div class="rounded-2xl border border-border/60 bg-card p-3 space-y-2 shrink-0 min-w-[200px]">'
                     f'<div class="aspect-square bg-muted/20 rounded-xl flex items-center justify-center overflow-hidden"><img src="/placeholder-hero.svg" alt="محصول" class="p-2 max-h-full" loading="lazy" /></div>'
-                    f'<h4 class="font-bold text-xs truncate">آیتم کاروسل حلقه‌ای {i+1}</h4>'
+                    f'<h4 class="font-bold text-xs truncate">آیتم حلقه‌ای {i+1}</h4>'
                     f'<span class="text-xs font-bold text-primary">۳۹۰,۰۰۰ تومان</span>'
+                    f'</div>'
+                )
+            if widget_type == "loop_grid":
+                grid_cls = f"grid grid-cols-1 sm:grid-cols-2 md:grid-cols-{cols} gap-4"
+                return (
+                    f'<div{id_attr} class="builder-loop-grid w-full space-y-3 {css_class}" data-widget="loop_grid" data-limit="{limit}" data-category="{cat}"{style_attr}>'
+                    f'<div class="{grid_cls}" dir="rtl">{"".join(cards)}</div>'
                     f'</div>'
                 )
             return (

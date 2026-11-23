@@ -1,12 +1,12 @@
 {
   "version": "3.2",
   "activeWeight": 9,
-  "activeRound": 41,
+  "activeRound": 42,
   "status": "IN_PROGRESS",
   "levels1to5Status": "BUILDER_GYM_LEVELS_1_TO_5_CLEAN",
   "allLevelsMastered": "BUILDER_GYM_ALL_LEVELS_MASTERED",
   "verificationPort": 4003,
-  "completedRounds": 41,
+  "completedRounds": 42,
   "defect_ledger": [
     {
       "id": "DEFECT-R41-01",
@@ -43,14 +43,50 @@
       "status": "FIXED",
       "layer": "frontend/components/admin/builder/canvas-element.tsx",
       "description": "Hover state transitionDuration in device style requires standard seconds format. Fixed with unit mapping for seconds and milliseconds."
+    },
+    {
+      "id": "DEFECT-R42-01",
+      "severity": "P1",
+      "round": 42,
+      "title": "Missing SSR HTML compilation for floating_bar widget",
+      "status": "FIXED",
+      "layer": "backend/app/modules/content/application/ast_compiler.py",
+      "description": "floating_bar widget was missing from backend AST compiler leading to fallback unknown widget div in SSR. Fixed with full semantic HTML compilation."
+    },
+    {
+      "id": "DEFECT-R42-02",
+      "severity": "P1",
+      "round": 42,
+      "title": "Backend 422 validation rejection for floating_bar type during autosave",
+      "status": "FIXED",
+      "layer": "backend/app/modules/content/domain/builder_validation.py",
+      "description": "STANDARD_WIDGET_TYPES in validation engine lacked floating_bar causing 422 error on autosave. Fixed by adding floating_bar to allowed types."
+    },
+    {
+      "id": "DEFECT-R42-03",
+      "severity": "P2",
+      "round": 42,
+      "title": "Floating bar mobile layout button wrap and phone text overlap",
+      "status": "FIXED",
+      "layer": "frontend/components/admin/builder/canvas-element.tsx",
+      "description": "In 375px mobile viewport, call button wrapped awkwardly over text. Fixed with flex-col sm:flex-row responsive layout."
+    },
+    {
+      "id": "DEFECT-R42-04",
+      "severity": "P2",
+      "round": 42,
+      "title": "Duplicate price_table switch case in canvas-element shadowing updated features",
+      "status": "FIXED",
+      "layer": "frontend/components/admin/builder/canvas-element.tsx",
+      "description": "Earlier price_table case at line 1704 shadowed line 1939. Consolidated to full featured version."
     }
   ],
   "metrics": {
     "typeCheckErrors": 0,
-    "frontendUnitTests": 373,
-    "backendUnitTests": 633,
+    "frontendUnitTests": 374,
+    "backendUnitTests": 634,
     "registeredBlocks": 68,
     "lastVerifierVerdict": "APPROVE"
   },
-  "timestamp": "2026-11-23T10:15:00.000Z"
+  "timestamp": "2026-11-23T11:45:00.000Z"
 }

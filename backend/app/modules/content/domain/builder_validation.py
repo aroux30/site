@@ -96,6 +96,7 @@ STANDARD_WIDGET_TYPES: frozenset[str] = frozenset({
     "code_highlight",
     "contact_buttons",
     "floating_buttons",
+    "floating_bar",
     "off_canvas",
     "popup_builder",
     "multi_step_form",

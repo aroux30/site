@@ -1702,40 +1702,51 @@ function CanvasElementComponent({
         );
       }
       case "price_table": {
-        const title = String(props.title || "پلن پایه");
-        const subtitle = String(props.subtitle || "");
-        const price = String(props.price || "۲۹۰,۰۰۰");
+        const title = String(props.title || props.heading || "پلن پایه");
+        const subtitle = props.subtitle ? String(props.subtitle) : props.sub_heading ? String(props.sub_heading) : "";
+        const badge = props.badge ? String(props.badge) : undefined;
+        const price = String(props.price || "۴۹۰,۰۰۰");
         const currency = String(props.currency || "تومان");
-        const period = String(props.period || "ماهانه");
-        const btnLabel = String(props.button_label || "شروع کنید");
-        const isFeatured = props.is_featured === true;
-        const features = (props.features as any[]) || [
+        const period = props.period ? String(props.period) : "";
+        const rawFeatures = (props.features as any[]) || [
           { text: "امکانات پایه سیستم", available: true },
           { text: "پشتیبانی استاندارد", available: true },
         ];
+        const featuresList = rawFeatures.map((f) =>
+          typeof f === "string" ? { text: f, available: true } : { text: String(f?.text || ""), available: f?.available !== false }
+        );
+        const btnLabel = String(props.button_label || props.button_text || "انتخاب و شروع پلن");
+        const isFeatured = Boolean(props.is_featured);
+
         return (
           <div className={cn(
             "p-6 rounded-3xl border bg-card text-center space-y-4 shadow-sm w-full transition relative overflow-hidden",
             isFeatured ? "border-primary ring-2 ring-primary/20 shadow-lg" : "border-border/80"
           )}>
-            {isFeatured && (
+            {(badge || isFeatured) && (
               <div className="absolute top-0 end-0 bg-primary text-primary-foreground text-[10px] font-bold px-3 py-1 rounded-bl-xl shadow-xs">
-                پیشنهاد ویژه
+                {badge || "پیشنهاد ویژه"}
               </div>
             )}
             <div className="space-y-1">
               <h4 className="text-base font-bold text-foreground">{title}</h4>
               {subtitle && <p className="text-xs text-muted-foreground">{subtitle}</p>}
             </div>
-            <div className="py-2 border-y border-border/60">
+            <div className="py-2 border-y border-border/60 flex flex-wrap items-baseline justify-center gap-1.5" dir="rtl">
               <span className="text-3xl font-black text-primary font-mono">{price}</span>
-              <span className="text-xs text-muted-foreground ms-1">{currency} / {period}</span>
+              <span className="text-xs font-bold text-muted-foreground">{currency}</span>
+              {period && <span className="text-[11px] text-muted-foreground/80">/ {period}</span>}
             </div>
             <ul className="space-y-2 text-xs text-right list-none p-0 m-0">
-              {features.map((f, idx) => (
-                <li key={idx} className="flex items-center gap-2">
-                  <span className="w-4 h-4 rounded-full bg-emerald-500/10 text-emerald-600 flex items-center justify-center shrink-0 text-[10px] font-bold">✓</span>
-                  <span className="text-muted-foreground">{f.text}</span>
+              {featuresList.map((f, idx) => (
+                <li key={idx} className={cn("flex items-center gap-2", !f.available && "opacity-60 line-through")}>
+                  <span className={cn(
+                    "w-4 h-4 rounded-full flex items-center justify-center shrink-0 text-[10px] font-bold",
+                    f.available ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" : "bg-muted text-muted-foreground"
+                  )}>
+                    {f.available ? "✓" : "–"}
+                  </span>
+                  <span className={f.available ? "text-muted-foreground" : "text-muted-foreground/60"}>{f.text}</span>
                 </li>
               ))}
             </ul>
@@ -2150,22 +2161,24 @@ function CanvasElementComponent({
           </div>
         );
       }
-      case "floating_bar": {
+      case "floating_bar":
+      case "floating_buttons":
+      case "contact_buttons": {
         const phone = String(props.phone || "09120000000");
         const msg = String(props.message || "نیاز به مشاوره دارید؟");
         const btnText = String(props.button_text || "تماس فوری");
         return (
-          <div className="flex items-center justify-between p-3.5 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-900 dark:text-emerald-100 w-full shadow-sm">
-            <div className="flex items-center gap-2.5">
+          <div className="flex flex-col sm:flex-row items-center justify-between p-3.5 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-900 dark:text-emerald-100 w-full shadow-sm gap-2.5">
+            <div className="flex items-center gap-2.5 text-right w-full sm:w-auto">
               <span className="w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0">
                 <Phone className="w-4 h-4" />
               </span>
-              <div className="text-right">
-                <div className="text-xs font-bold">{msg}</div>
-                <div className="text-[10px] font-mono opacity-80" dir="ltr">{phone}</div>
+              <div className="text-right flex-1 sm:flex-initial">
+                <div className="text-xs font-bold leading-tight">{msg}</div>
+                <div className="text-[10px] font-mono opacity-80 mt-0.5" dir="ltr">{phone}</div>
               </div>
             </div>
-            <button type="button" className="px-3.5 py-1.5 rounded-xl bg-emerald-600 text-white text-xs font-bold hover:bg-emerald-700 transition shadow">
+            <button type="button" className="w-full sm:w-auto px-4 py-1.5 rounded-xl bg-emerald-600 text-white text-xs font-bold hover:bg-emerald-700 transition shadow shrink-0 text-center">
               {btnText}
             </button>
           </div>

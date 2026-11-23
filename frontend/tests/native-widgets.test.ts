@@ -124,4 +124,22 @@ describe("P2.1 Native Widgets: Table & Form Inputs", () => {
     const parsed = PageASTSchema.safeParse(ast);
     expect(parsed.success).toBe(true);
   });
+
+  it("registers and validates floating_bar widget in block registry and AST", () => {
+    const floatingBarDef = BASIC_BLOCK_DEFINITIONS.find((b) => b.type === "floating_bar");
+    expect(floatingBarDef).toBeDefined();
+
+    const element = floatingBarDef!.createDefaultElement();
+    expect(["floating_bar", "floating_buttons"]).toContain(element.widgetType);
+    expect(element.widgetProps?.phone).toBeDefined();
+    expect(element.widgetProps?.message).toBeDefined();
+
+    const parsed = PageASTSchema.safeParse({
+      schemaVersion: 1,
+      title: "Floating Bar AST",
+      slug: "floating-bar-ast",
+      rootElements: [element],
+    });
+    expect(parsed.success).toBe(true);
+  });
 });

@@ -2187,7 +2187,7 @@ export const BASIC_BLOCK_DEFINITIONS: BlockDefinition[] = [
   },
   {
     type: "icon",
-    name: "آیکون مستقل (Icon)",
+    name: "آیکون تک (Icon)",
     category: "basic",
     icon: Star,
     description: "نماد گرافیکی برداری با قابلیت استایل‌دهی، چرخش و پیوند",

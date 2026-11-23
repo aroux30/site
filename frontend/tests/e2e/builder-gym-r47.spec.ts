@@ -91,4 +91,22 @@ test.describe("Builder Gym Round 47: 1920x1080 Elementor Nested Tabs & Nested Ac
     const badge = frame.getByText("تب‌های تودرتو").first();
     await expect(badge).toBeVisible();
   });
+
+  test("3. Inserting nested_accordion renders container with accordion badge inside canvas", async ({ page }) => {
+    await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(1500);
+
+    const searchInput = page.locator('aside input[placeholder*="جستجو"]').first();
+    await searchInput.fill("کانتینری");
+    await page.waitForTimeout(300);
+
+    const accordionCard = page.locator('button[data-block-type="nested_accordion"]').first();
+    await accordionCard.click();
+    await page.waitForTimeout(600);
+
+    // Check inside canvas iframe for nested accordion badge
+    const frame = page.frameLocator('iframe[title="Visual Builder Canvas"]');
+    const badge = frame.getByText("آکاردئون کانتینری").first();
+    await expect(badge).toBeVisible();
+  });
 });

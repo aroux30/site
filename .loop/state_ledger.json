@@ -1,30 +1,30 @@
 {
   "version": "3.2",
   "activeWeight": 9,
-  "activeRound": 46,
+  "activeRound": 47,
   "status": "COMPLETED",
   "levels1to5Status": "BUILDER_GYM_LEVELS_1_TO_5_CLEAN",
   "allLevelsMastered": "BUILDER_GYM_ALL_LEVELS_MASTERED",
   "verificationPort": 4004,
-  "completedRounds": 46,
+  "completedRounds": 47,
   "defect_ledger": [
     {
-      "id": "DEFECT-R46-01",
+      "id": "DEFECT-R47-01",
       "severity": "P1",
-      "round": 46,
-      "title": "Hero Slides repeater active slide indicator and dot synchronization",
+      "round": 47,
+      "title": "Nested Tabs active tab selection and titles control in inspector",
       "status": "RESOLVED",
-      "layer": "frontend/components/admin/builder/canvas-element.tsx",
-      "description": "Active slide changes and navigation dots now interactively switch slides in canvas."
+      "layer": "frontend/components/admin/builder/inspector-panel.tsx",
+      "description": "Added dedicated active tab selector and tab title controls in inspector panel."
     },
     {
-      "id": "DEFECT-R46-02",
+      "id": "DEFECT-R47-02",
       "severity": "P1",
-      "round": 46,
-      "title": "Code Highlight widget missing data-widget attribute for test automation",
+      "round": 47,
+      "title": "Nested Accordion container titles control and duplicate case warning",
       "status": "RESOLVED",
-      "layer": "frontend/components/admin/builder/canvas-element.tsx",
-      "description": "Added explicit data-widget and data-widget-type attributes to code_highlight container."
+      "layer": "frontend/components/admin/builder/inspector-panel.tsx",
+      "description": "Cleaned up duplicate switch cases and added full inspector controls for nested accordion."
     }
   ],
   "metrics": {
@@ -34,5 +34,5 @@
     "registeredBlocks": 76,
     "lastVerifierVerdict": "APPROVE"
   },
-  "timestamp": "2026-11-23T11:15:00.000Z"
+  "timestamp": "2026-11-23T12:05:00.000Z"
 }

@@ -2484,6 +2484,77 @@ export function InspectorPanel() {
           </div>
         );
 
+      case "nested_tabs": {
+        const rawTabTitles = Array.isArray(props.tab_titles) && props.tab_titles.length > 0 ? props.tab_titles : ["برگه اول", "برگه دوم"];
+        const activeTabIdx = Number(props.active_tab || 0);
+        return (
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs">تب فعال در پیش‌نمایش</Label>
+              <Select
+                value={String(activeTabIdx)}
+                onValueChange={(val) => handlePropChange("active_tab", parseInt(val, 10) || 0)}
+              >
+                <SelectTrigger className="h-8 text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {rawTabTitles.map((t: string, idx: number) => (
+                    <SelectItem key={idx} value={String(idx)}>
+                      {t || `تب ${idx + 1}`}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2 pt-1 border-t border-border/50">
+              <Label className="text-xs font-bold text-foreground">عناوین تب‌های تودرتو</Label>
+              {rawTabTitles.map((t: string, idx: number) => (
+                <div key={idx} className="space-y-1">
+                  <span className="text-[10px] text-muted-foreground">عنوان تب {idx + 1}</span>
+                  <Input
+                    type="text"
+                    value={t}
+                    onChange={(e) => {
+                      const updated = [...rawTabTitles];
+                      updated[idx] = e.target.value;
+                      handlePropChange("tab_titles", updated);
+                    }}
+                    className="h-8 text-xs"
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      }
+
+      case "nested_accordion": {
+        const rawItems = Array.isArray(props.item_titles) && props.item_titles.length > 0 ? props.item_titles : ["بخش اول تاشو", "بخش دوم تاشو"];
+        return (
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label className="text-xs font-bold text-foreground">عناوین بخش‌های آکاردئون کانتینری</Label>
+              {rawItems.map((t: string, idx: number) => (
+                <div key={idx} className="space-y-1">
+                  <span className="text-[10px] text-muted-foreground">عنوان بخش {idx + 1}</span>
+                  <Input
+                    type="text"
+                    value={t}
+                    onChange={(e) => {
+                      const updated = [...rawItems];
+                      updated[idx] = e.target.value;
+                      handlePropChange("item_titles", updated);
+                    }}
+                    className="h-8 text-xs"
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      }
+
       case "loop_grid":
       case "loop_carousel":
         return (
@@ -2776,38 +2847,6 @@ export function InspectorPanel() {
                 data-testid="code-copybtn-switch"
                 checked={props.copy_to_clipboard !== false}
                 onCheckedChange={(val) => handlePropChange("copy_to_clipboard", val)}
-              />
-            </div>
-          </div>
-        );
-
-      case "nested_tabs":
-        return (
-          <div className="space-y-4">
-            <div className="space-y-1.5">
-              <Label className="text-xs">عناوین تب‌های تودرتو (هر خط یک عنوان)</Label>
-              <textarea
-                data-testid="nested-tabs-titles-input"
-                rows={3}
-                value={Array.isArray(props.tab_titles) ? props.tab_titles.join("\n") : ""}
-                onChange={(e) => handlePropChange("tab_titles", e.target.value.split("\n").filter(Boolean))}
-                className="w-full rounded-md border border-input bg-background p-2 text-xs leading-relaxed"
-              />
-            </div>
-          </div>
-        );
-
-      case "nested_accordion":
-        return (
-          <div className="space-y-4">
-            <div className="space-y-1.5">
-              <Label className="text-xs">عناوین بخش‌های آکاردئون (هر خط یک بخش)</Label>
-              <textarea
-                data-testid="nested-accordion-titles-input"
-                rows={3}
-                value={Array.isArray(props.item_titles) ? props.item_titles.join("\n") : ""}
-                onChange={(e) => handlePropChange("item_titles", e.target.value.split("\n").filter(Boolean))}
-                className="w-full rounded-md border border-input bg-background p-2 text-xs leading-relaxed"
               />
             </div>
           </div>

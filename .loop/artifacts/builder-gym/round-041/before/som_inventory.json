@@ -1,0 +1,1220 @@
+[
+  {
+    "id": 1,
+    "tagName": "button",
+    "text": "خروج",
+    "role": "",
+    "testId": "",
+    "blockType": "",
+    "rect": {
+      "x": 1832,
+      "y": 12,
+      "width": 72,
+      "height": 32
+    }
+  },
+  {
+    "id": 2,
+    "tagName": "button",
+    "text": "دسکتاپ",
+    "role": "",
+    "testId": "",
+    "blockType": "",
+    "rect": {
+      "x": 1250,
+      "y": 16,
+      "width": 84,
+      "height": 24
+    }
+  },
+  {
+    "id": 3,
+    "tagName": "button",
+    "text": "تبلت (۷۶۸)",
+    "role": "",
+    "testId": "",
+    "blockType": "",
+    "rect": {
+      "x": 1148,
+      "y": 16,
+      "width": 99,
+      "height": 24
+    }
+  },
+  {
+    "id": 4,
+    "tagName": "button",
+    "text": "موبایل (۳۷۵)",
+    "role": "",
+    "testId": "",
+    "blockType": "",
+    "rect": {
+      "x": 1035,
+      "y": 16,
+      "width": 109,
+      "height": 24
+    }
+  },
+  {
+    "id": 5,
+    "tagName": "button",
+    "text": "",
+    "role": "",
+    "testId": "",
+    "blockType": "",
+    "rect": {
+      "x": 721,
+      "y": 14,
+      "width": 28,
+      "height": 28
+    }
+  },
+  {
+    "id": 6,
+    "tagName": "button",
+    "text": "",
+    "role": "",
+    "testId": "",
+    "blockType": "",
+    "rect": {
+      "x": 691,
+      "y": 14,
+      "width": 28,
+      "height": 28
+    }
+  },
+  {
+    "id": 7,
+    "tagName": "button",
+    "text": "قالب برگه",
+    "role": "",
+    "testId": "save-page-template-btn",
+    "blockType": "",
+    "rect": {
+      "x": 589,
+      "y": 12,
+      "width": 92,
+      "height": 32
+    }
+  },
+  {
+    "id": 8,
+    "tagName": "button",
+    "text": "استایل سراسری",
+    "role": "",
+    "testId": "",
+    "blockType": "",
+    "rect": {
+      "x": 460,
+      "y": 12,
+      "width": 121,
+      "height": 32
+    }
+  },
+  {
+    "id": 9,
+    "tagName": "button",
+    "text": "پیش‌نمایش",
+    "role": "",
+    "testId": "",
+    "blockType": "",
+    "rect": {
+      "x": 350,
+      "y": 12,
+      "width": 102,
+      "height": 32
+    }
+  },
+  {
+    "id": 10,
+    "tagName": "button",
+    "text": "میانبرها",
+    "role": "",
+    "testId": "shortcuts-help-btn",
+    "blockType": "",
+    "rect": {
+      "x": 259,
+      "y": 12,
+      "width": 83,
+      "height": 32
+    }
+  },
+  {
+    "id": 11,
+    "tagName": "button",
+    "text": "ذخیره پیش‌نویس",
+    "role": "",
+    "testId": "",
+    "blockType": "",
+    "rect": {
+      "x": 120,
+      "y": 12,
+      "width": 130,
+      "height": 32
+    }
+  },
+  {
+    "id": 12,
+    "tagName": "button",
+    "text": "انتشار برگه",
+    "role": "",
+    "testId": "publish-page-btn",
+    "blockType": "",
+    "rect": {
+      "x": 16,
+      "y": 12,
+      "width": 96,
+      "height": 32
+    }
+  },
+  {
+    "id": 13,
+    "tagName": "button",
+    "text": "بلوک‌ها",
+    "role": "",
+    "testId": "sidebar-tab-blocks",
+    "blockType": "",
+    "rect": {
+      "x": 1812,
+      "y": 69,
+      "width": 95,
+      "height": 29
+    }
+  },
+  {
+    "id": 14,
+    "tagName": "button",
+    "text": "لایه‌ها",
+    "role": "",
+    "testId": "sidebar-tab-layers",
+    "blockType": "",
+    "rect": {
+      "x": 1713,
+      "y": 69,
+      "width": 95,
+      "height": 29
+    }
+  },
+  {
+    "id": 15,
+    "tagName": "button",
+    "text": "تاریخچه",
+    "role": "",
+    "testId": "history-tab-btn",
+    "blockType": "",
+    "rect": {
+      "x": 1614,
+      "y": 69,
+      "width": 95,
+      "height": 29
+    }
+  },
+  {
+    "id": 16,
+    "tagName": "button",
+    "text": "بلوک‌ها (68)",
+    "role": "",
+    "testId": "blocks-palette-basic-tab-btn",
+    "blockType": "",
+    "rect": {
+      "x": 1811,
+      "y": 128,
+      "width": 92,
+      "height": 28
+    }
+  },
+  {
+    "id": 17,
+    "tagName": "button",
+    "text": "الگوها (28)",
+    "role": "",
+    "testId": "patterns-tab-btn",
+    "blockType": "",
+    "rect": {
+      "x": 1714,
+      "y": 128,
+      "width": 92,
+      "height": 28
+    }
+  },
+  {
+    "id": 18,
+    "tagName": "button",
+    "text": "قالب‌های من (0)",
+    "role": "",
+    "testId": "",
+    "blockType": "",
+    "rect": {
+      "x": 1618,
+      "y": 128,
+      "width": 92,
+      "height": 28
+    }
+  },
+  {
+    "id": 19,
+    "tagName": "input",
+    "text": "",
+    "role": "",
+    "testId": "",
+    "blockType": "",
+    "rect": {
+      "x": 1613,
+      "y": 173,
+      "width": 295,
+      "height": 32
+    }
+  },
+  {
+    "id": 20,
+    "tagName": "button",
+    "text": "کانتینرباکس انعطاف‌پذیر با چیدمان فلکس یا شبکه",
+    "role": "",
+    "testId": "",
+    "blockType": "container",
+    "rect": {
+      "x": 1767,
+      "y": 239,
+      "width": 142,
+      "height": 91
+    }
+  },
+  {
+    "id": 21,
+    "tagName": "button",
+    "text": "بخش کاملبخش سرتاسری برای گروه‌بندی محتوا با پس‌زمی",
+    "role": "",
+    "testId": "",
+    "blockType": "section",
+    "rect": {
+      "x": 1617,
+      "y": 239,
+      "width": 142,
+      "height": 91
+    }
+  },
+  {
+    "id": 22,
+    "tagName": "button",
+    "text": "دو ستونهچیدمان دو ستون مساوی کنار هم",
+    "role": "",
+    "testId": "",
+    "blockType": "columns",
+    "rect": {
+      "x": 1767,
+      "y": 338,
+      "width": 142,
+      "height": 91
+    }
+  },
+  {
+    "id": 23,
+    "tagName": "button",
+    "text": "فرم سازندهکانتینر نگه‌دارنده فیلدهای فرم متصل به د",
+    "role": "",
+    "testId": "",
+    "blockType": "form_container",
+    "rect": {
+      "x": 1617,
+      "y": 338,
+      "width": 142,
+      "height": 91
+    }
+  },
+  {
+    "id": 24,
+    "tagName": "button",
+    "text": "کشوی کناریکشوی جانبی مخفی برای منوهای ناوبری، فیلت",
+    "role": "",
+    "testId": "",
+    "blockType": "off_canvas",
+    "rect": {
+      "x": 1767,
+      "y": 437,
+      "width": 142,
+      "height": 91
+    }
+  },
+  {
+    "id": 25,
+    "tagName": "button",
+    "text": "پاپ‌آپ تعاملیطراحی پاپ‌آپ تبلیغاتی، تخفیف، عضویت ی",
+    "role": "",
+    "testId": "",
+    "blockType": "popup_builder",
+    "rect": {
+      "x": 1617,
+      "y": 437,
+      "width": 142,
+      "height": 91
+    }
+  },
+  {
+    "id": 26,
+    "tagName": "button",
+    "text": "حلقه پویانمایش گرید پویا و تکرارشونده متصل به دیتا",
+    "role": "",
+    "testId": "",
+    "blockType": "loop_grid",
+    "rect": {
+      "x": 1767,
+      "y": 536,
+      "width": 142,
+      "height": 91
+    }
+  },
+  {
+    "id": 27,
+    "tagName": "button",
+    "text": "فرم چندمرحله‌ایفرم گام‌به‌گام و مرحله‌ای با نوار پ",
+    "role": "",
+    "testId": "",
+    "blockType": "multi_step_form",
+    "rect": {
+      "x": 1617,
+      "y": 536,
+      "width": 142,
+      "height": 91
+    }
+  },
+  {
+    "id": 28,
+    "tagName": "button",
+    "text": "اسلاید پیشرفتهاسلایدر هیرو تمام‌صفحه با پس‌زمینه، ",
+    "role": "",
+    "testId": "",
+    "blockType": "slides",
+    "rect": {
+      "x": 1767,
+      "y": 635,
+      "width": 142,
+      "height": 91
+    }
+  },
+  {
+    "id": 29,
+    "tagName": "button",
+    "text": "تب‌های تودرتوکانتینر تب‌های پیشرفته که درون هر تب ",
+    "role": "",
+    "testId": "",
+    "blockType": "nested_tabs",
+    "rect": {
+      "x": 1617,
+      "y": 635,
+      "width": 142,
+      "height": 91
+    }
+  },
+  {
+    "id": 30,
+    "tagName": "button",
+    "text": "آکاردئون کانتینریآکاردئون تودرتو که درون هر بخش تا",
+    "role": "",
+    "testId": "",
+    "blockType": "nested_accordion",
+    "rect": {
+      "x": 1767,
+      "y": 734,
+      "width": 142,
+      "height": 91
+    }
+  },
+  {
+    "id": 31,
+    "tagName": "button",
+    "text": "گردونه پویاگردونه و اسلایدر تکرارشونده متصل به محص",
+    "role": "",
+    "testId": "",
+    "blockType": "loop_carousel",
+    "rect": {
+      "x": 1617,
+      "y": 734,
+      "width": 142,
+      "height": 91
+    }
+  },
+  {
+    "id": 32,
+    "tagName": "button",
+    "text": "فهرست ناوبریمنوی پیوندهای اصلی و ناوبری برگه با عن",
+    "role": "",
+    "testId": "",
+    "blockType": "nav_menu",
+    "rect": {
+      "x": 1767,
+      "y": 833,
+      "width": 142,
+      "height": 91
+    }
+  },
+  {
+    "id": 33,
+    "tagName": "button",
+    "text": "سرتیترعنوان H1 تا H6 با تایپوگرافی استاندارد",
+    "role": "",
+    "testId": "",
+    "blockType": "heading",
+    "rect": {
+      "x": 1767,
+      "y": 963,
+      "width": 142,
+      "height": 91
+    }
+  },
+  {
+    "id": 34,
+    "tagName": "button",
+    "text": "پاراگراف متنمتن توضیحی با فرمت‌بندی پاراگرافی",
+    "role": "",
+    "testId": "",
+    "blockType": "text_editor",
+    "rect": {
+      "x": 1617,
+      "y": 963,
+      "width": 142,
+      "height": 91
+    }
+  },
+  {
+    "id": 35,
+    "tagName": "button",
+    "text": "تصویرتصویر با پشتیبانی از کتابخانه رسانه و متن جای",
+    "role": "",
+    "testId": "",
+    "blockType": "image",
+    "rect": {
+      "x": 1767,
+      "y": 1062,
+      "width": 142,
+      "height": 91
+    }
+  },
+  {
+    "id": 36,
+    "tagName": "button",
+    "text": "دکمه اقدامدکمه اقدام و فراخوان به عمل با استایل‌ها",
+    "role": "",
+    "testId": "",
+    "blockType": "button",
+    "rect": {
+      "x": 1617,
+      "y": 1062,
+      "width": 142,
+      "height": 91
+    }
+  },
+  {
+    "id": 37,
+    "tagName": "button",
+    "text": "فاصله‌سازفضای خالی عمودی قابل تنظیم بین بخش‌ها",
+    "role": "",
+    "testId": "",
+    "blockType": "spacer",
+    "rect": {
+      "x": 1767,
+      "y": 1161,
+      "width": 142,
+      "height": 91
+    }
+  },
+  {
+    "id": 38,
+    "tagName": "button",
+    "text": "خط جداکنندهخط افقی ظریف برای تفکیک بخش‌های مختلف ص",
+    "role": "",
+    "testId": "",
+    "blockType": "divider",
+    "rect": {
+      "x": 1617,
+      "y": 1161,
+      "width": 142,
+      "height": 91
+    }
+  },
+  {
+    "id": 39,
+    "tagName": "button",
+    "text": "جدول دادهجدول با سطرها و ستون‌های قابل تنظیم و ویر",
+    "role": "",
+    "testId": "",
+    "blockType": "table",
+    "rect": {
+      "x": 1767,
+      "y": 1260,
+      "width": 142,
+      "height": 91
+    }
+  },
+  {
+    "id": 40,
+    "tagName": "button",
+    "text": "فیلد ورودی متنفیلد متنی یک خطی فرم با برچسب و متن ",
+    "role": "",
+    "testId": "",
+    "blockType": "form_input",
+    "rect": {
+      "x": 1617,
+      "y": 1260,
+      "width": 142,
+      "height": 91
+    }
+  },
+  {
+    "id": 41,
+    "tagName": "button",
+    "text": "متن چندخطیفیلد پیام چندخطی با ارتفاع قابل تنظیم",
+    "role": "",
+    "testId": "",
+    "blockType": "form_textarea",
+    "rect": {
+      "x": 1767,
+      "y": 1359,
+      "width": 142,
+      "height": 91
+    }
+  },
+  {
+    "id": 42,
+    "tagName": "button",
+    "text": "منوی کشوییفیلد گزینش تک انتخابی از لیست",
+    "role": "",
+    "testId": "",
+    "blockType": "form_select",
+    "rect": {
+      "x": 1617,
+      "y": 1359,
+      "width": 142,
+      "height": 91
+    }
+  },
+  {
+    "id": 43,
+    "tagName": "button",
+    "text": "کارت محصولکارت هوشمند محصول با تصویر، قیمت، امتیاز",
+    "role": "",
+    "testId": "",
+    "blockType": "product_card",
+    "rect": {
+      "x": 1767,
+      "y": 1458,
+      "width": 142,
+      "height": 91
+    }
+  },
+  {
+    "id": 44,
+    "tagName": "button",
+    "text": "ویترین محصولاتشبکه واکنش‌گرای محصولات فروشگاه با ا",
+    "role": "",
+    "testId": "",
+    "blockType": "product_grid",
+    "rect": {
+      "x": 1617,
+      "y": 1458,
+      "width": 142,
+      "height": 91
+    }
+  },
+  {
+    "id": 45,
+    "tagName": "button",
+    "text": "تنوع محصولانتخابگر بومی ویژگی‌های محصول (رنگ/سایز/",
+    "role": "",
+    "testId": "",
+    "blockType": "product_variants",
+    "rect": {
+      "x": 1767,
+      "y": 1557,
+      "width": 142,
+      "height": 91
+    }
+  },
+  {
+    "id": 46,
+    "tagName": "button",
+    "text": "قیمت محصولنمایش قیمت با تخفیف، قیمت خط‌خورده و واح",
+    "role": "",
+    "testId": "",
+    "blockType": "product_price",
+    "rect": {
+      "x": 1617,
+      "y": 1557,
+      "width": 142,
+      "height": 91
+    }
+  },
+  {
+    "id": 47,
+    "tagName": "button",
+    "text": "دکمه خریددکمه مستقل افزودن به سبد خرید متصل به Car",
+    "role": "",
+    "testId": "",
+    "blockType": "add_to_cart",
+    "rect": {
+      "x": 1767,
+      "y": 1656,
+      "width": 142,
+      "height": 91
+    }
+  },
+  {
+    "id": 48,
+    "tagName": "button",
+    "text": "مینی کارتویجت پیش‌نمایش سبد خرید با شمارنده آیتم‌ه",
+    "role": "",
+    "testId": "",
+    "blockType": "mini_cart",
+    "rect": {
+      "x": 1617,
+      "y": 1656,
+      "width": 142,
+      "height": 91
+    }
+  },
+  {
+    "id": 49,
+    "tagName": "button",
+    "text": "خلاصه سبد خریدجدول صورت‌حساب شامل جمع اقلام، تخفیف",
+    "role": "",
+    "testId": "",
+    "blockType": "cart_summary",
+    "rect": {
+      "x": 1767,
+      "y": 1755,
+      "width": 142,
+      "height": 91
+    }
+  },
+  {
+    "id": 50,
+    "tagName": "button",
+    "text": "چک‌باکس فرمکادر تأیید قوانین یا گزینه‌های چندانتخا",
+    "role": "",
+    "testId": "",
+    "blockType": "form_checkbox",
+    "rect": {
+      "x": 1617,
+      "y": 1755,
+      "width": 142,
+      "height": 91
+    }
+  },
+  {
+    "id": 51,
+    "tagName": "button",
+    "text": "دکمه رادیوییگروه رادیویی برای انتخاب انحصاری یک گز",
+    "role": "",
+    "testId": "",
+    "blockType": "form_radio",
+    "rect": {
+      "x": 1767,
+      "y": 1854,
+      "width": 142,
+      "height": 91
+    }
+  },
+  {
+    "id": 52,
+    "tagName": "button",
+    "text": "آکاردئونبخش‌های تاشو و بازشونده برای سؤالات متداول",
+    "role": "",
+    "testId": "",
+    "blockType": "accordion",
+    "rect": {
+      "x": 1617,
+      "y": 1854,
+      "width": 142,
+      "height": 91
+    }
+  },
+  {
+    "id": 53,
+    "tagName": "button",
+    "text": "تب‌های محتواجابه‌جایی بین بخش‌های مختلف محتوا بدون",
+    "role": "",
+    "testId": "",
+    "blockType": "tabs",
+    "rect": {
+      "x": 1767,
+      "y": 1953,
+      "width": 142,
+      "height": 91
+    }
+  },
+  {
+    "id": 54,
+    "tagName": "button",
+    "text": "شمارنده معکوستایمر معکوس زمان‌دار برای پیشنهادات ش",
+    "role": "",
+    "testId": "",
+    "blockType": "countdown",
+    "rect": {
+      "x": 1617,
+      "y": 1953,
+      "width": 142,
+      "height": 91
+    }
+  },
+  {
+    "id": 55,
+    "tagName": "button",
+    "text": "پخش‌کننده ویدئونمایش ویدئو از آپارات، یوتیوب یا فا",
+    "role": "",
+    "testId": "",
+    "blockType": "video",
+    "rect": {
+      "x": 1767,
+      "y": 2052,
+      "width": 142,
+      "height": 91
+    }
+  },
+  {
+    "id": 56,
+    "tagName": "button",
+    "text": "باکس آیکون و ویژگیکارت مزایا و ویژگی‌ها شامل آیکون",
+    "role": "",
+    "testId": "",
+    "blockType": "icon_box",
+    "rect": {
+      "x": 1617,
+      "y": 2052,
+      "width": 142,
+      "height": 91
+    }
+  },
+  {
+    "id": 57,
+    "tagName": "button",
+    "text": "شبکه‌های اجتماعیلینک‌های اتصال به اینستاگرام، تلگر",
+    "role": "",
+    "testId": "",
+    "blockType": "social_links",
+    "rect": {
+      "x": 1767,
+      "y": 2151,
+      "width": 142,
+      "height": 91
+    }
+  },
+  {
+    "id": 58,
+    "tagName": "button",
+    "text": "گالری تصاویراسلایدر لمسی تصاویر محصول با قابلیت بز",
+    "role": "",
+    "testId": "",
+    "blockType": "image_gallery",
+    "rect": {
+      "x": 1617,
+      "y": 2151,
+      "width": 142,
+      "height": 91
+    }
+  },
+  {
+    "id": 59,
+    "tagName": "button",
+    "text": "امتیاز ستاره‌اینمایش رتبه‌بندی ستاره‌ای با اعشار و",
+    "role": "",
+    "testId": "",
+    "blockType": "star_rating",
+    "rect": {
+      "x": 1767,
+      "y": 2250,
+      "width": 142,
+      "height": 91
+    }
+  },
+  {
+    "id": 60,
+    "tagName": "button",
+    "text": "نمودار نظراتنمودار توزیع ۵ سطحی امتیازات و درصد رض",
+    "role": "",
+    "testId": "",
+    "blockType": "review_histogram",
+    "rect": {
+      "x": 1617,
+      "y": 2250,
+      "width": 142,
+      "height": 91
+    }
+  },
+  {
+    "id": 61,
+    "tagName": "button",
+    "text": "بازدیدهای اخیرنمایش خودکار آخرین محصولات مشاهده‌شد",
+    "role": "",
+    "testId": "",
+    "blockType": "recently_viewed",
+    "rect": {
+      "x": 1767,
+      "y": 2349,
+      "width": 142,
+      "height": 91
+    }
+  },
+  {
+    "id": 62,
+    "tagName": "button",
+    "text": "مگامنومنوی ناوبری چندستونه دسته‌بندی‌ها با جهت‌بند",
+    "role": "",
+    "testId": "",
+    "blockType": "mega_menu",
+    "rect": {
+      "x": 1617,
+      "y": 2349,
+      "width": 142,
+      "height": 91
+    }
+  },
+  {
+    "id": 63,
+    "tagName": "button",
+    "text": "شمارنده انیمیشنیشمارنده عددی انیمیشنی با پیشوند، پ",
+    "role": "",
+    "testId": "",
+    "blockType": "counter",
+    "rect": {
+      "x": 1767,
+      "y": 2448,
+      "width": 142,
+      "height": 91
+    }
+  },
+  {
+    "id": 64,
+    "tagName": "button",
+    "text": "کادر پیام و اعلانباکس هشدار و اطلاع‌رسانی با انواع",
+    "role": "",
+    "testId": "",
+    "blockType": "alert",
+    "rect": {
+      "x": 1617,
+      "y": 2448,
+      "width": 142,
+      "height": 91
+    }
+  },
+  {
+    "id": 65,
+    "tagName": "button",
+    "text": "نوار پیشرفتنمایش درصد تکمیل یا پیشرفت پروژه و فرآی",
+    "role": "",
+    "testId": "",
+    "blockType": "progress_bar",
+    "rect": {
+      "x": 1767,
+      "y": 2547,
+      "width": 142,
+      "height": 91
+    }
+  },
+  {
+    "id": 66,
+    "tagName": "button",
+    "text": "نظر مشتریکارت رضایت و نظر مشتری همراه با نام، سمت ",
+    "role": "",
+    "testId": "",
+    "blockType": "testimonial",
+    "rect": {
+      "x": 1617,
+      "y": 2547,
+      "width": 142,
+      "height": 91
+    }
+  },
+  {
+    "id": 67,
+    "tagName": "button",
+    "text": "فراخوان اقدامبنر تشویق به اقدام با دکمه، نشان برجس",
+    "role": "",
+    "testId": "",
+    "blockType": "call_to_action",
+    "rect": {
+      "x": 1767,
+      "y": 2646,
+      "width": 142,
+      "height": 91
+    }
+  },
+  {
+    "id": 68,
+    "tagName": "button",
+    "text": "تیتر متحرکعنوان متحرک با استایل‌های هایلایت موجی و",
+    "role": "",
+    "testId": "",
+    "blockType": "animated_headline",
+    "rect": {
+      "x": 1617,
+      "y": 2646,
+      "width": 142,
+      "height": 91
+    }
+  },
+  {
+    "id": 69,
+    "tagName": "button",
+    "text": "جعبه چرخانکارت دوطرفه با انیمیشن چرخش سه‌بعدی نرم ",
+    "role": "",
+    "testId": "",
+    "blockType": "flip_box",
+    "rect": {
+      "x": 1767,
+      "y": 2745,
+      "width": 142,
+      "height": 91
+    }
+  },
+  {
+    "id": 70,
+    "tagName": "button",
+    "text": "لنگر منوشناسه پیمایش اسکرول نرم درون‌صفحه‌ای به ای",
+    "role": "",
+    "testId": "",
+    "blockType": "menu_anchor",
+    "rect": {
+      "x": 1617,
+      "y": 2745,
+      "width": 142,
+      "height": 91
+    }
+  },
+  {
+    "id": 71,
+    "tagName": "button",
+    "text": "لیست آیکونفهرست آیتم‌های متنی همراه با آیکون‌های ت",
+    "role": "",
+    "testId": "",
+    "blockType": "icon_list",
+    "rect": {
+      "x": 1767,
+      "y": 2844,
+      "width": 142,
+      "height": 91
+    }
+  },
+  {
+    "id": 72,
+    "tagName": "button",
+    "text": "نقل‌قول برجستهباکس نقل‌قول نویسنده یا متن برگزیده ",
+    "role": "",
+    "testId": "",
+    "blockType": "blockquote",
+    "rect": {
+      "x": 1617,
+      "y": 2844,
+      "width": 142,
+      "height": 91
+    }
+  },
+  {
+    "id": 73,
+    "tagName": "button",
+    "text": "جدول تعرفه و قیمتکارت تعرفه شامل عنوان پلن، قیمت، ",
+    "role": "",
+    "testId": "",
+    "blockType": "price_table",
+    "rect": {
+      "x": 1767,
+      "y": 2943,
+      "width": 142,
+      "height": 91
+    }
+  },
+  {
+    "id": 74,
+    "tagName": "button",
+    "text": "جعبه تصویرترکیب تصویر همراه با عنوان، توضیحات و لی",
+    "role": "",
+    "testId": "",
+    "blockType": "image_box",
+    "rect": {
+      "x": 1617,
+      "y": 2943,
+      "width": 142,
+      "height": 91
+    }
+  },
+  {
+    "id": 75,
+    "tagName": "button",
+    "text": "لیست قیمتفهرست آیتم‌ها به همراه قیمت، خط‌چین جداکن",
+    "role": "",
+    "testId": "",
+    "blockType": "price_list",
+    "rect": {
+      "x": 1767,
+      "y": 3042,
+      "width": 142,
+      "height": 91
+    }
+  },
+  {
+    "id": 76,
+    "tagName": "button",
+    "text": "دکمه‌های اشتراک‌گذاریدکمه‌های اشتراک‌گذاری مستقیم ",
+    "role": "",
+    "testId": "",
+    "blockType": "share_buttons",
+    "rect": {
+      "x": 1617,
+      "y": 3042,
+      "width": 142,
+      "height": 91
+    }
+  },
+  {
+    "id": 77,
+    "tagName": "button",
+    "text": "اسلایدر تصویرگردونه و اسلایدر اسکرولی تصاویر با نق",
+    "role": "",
+    "testId": "",
+    "blockType": "image_carousel",
+    "rect": {
+      "x": 1767,
+      "y": 3141,
+      "width": 142,
+      "height": 91
+    }
+  },
+  {
+    "id": 78,
+    "tagName": "button",
+    "text": "تاگل مستقلباکس‌های تاشو با قابلیت باز ماندن هم‌زما",
+    "role": "",
+    "testId": "",
+    "blockType": "toggle",
+    "rect": {
+      "x": 1617,
+      "y": 3141,
+      "width": 142,
+      "height": 91
+    }
+  },
+  {
+    "id": 79,
+    "tagName": "button",
+    "text": "نقطه کانونینقاط راهنما و برچسب‌های تعاملی پین‌شده ",
+    "role": "",
+    "testId": "",
+    "blockType": "hotspot",
+    "rect": {
+      "x": 1767,
+      "y": 3240,
+      "width": 142,
+      "height": 91
+    }
+  },
+  {
+    "id": 80,
+    "tagName": "button",
+    "text": "فهرست محتوافهرست خودکار و ناوبری به تیترها و عناوی",
+    "role": "",
+    "testId": "",
+    "blockType": "table_of_contents",
+    "rect": {
+      "x": 1617,
+      "y": 3240,
+      "width": 142,
+      "height": 91
+    }
+  },
+  {
+    "id": 81,
+    "tagName": "button",
+    "text": "ردیاب پیشرفتنوار پیشرفت مطالعه و پیمایش اسکرول صفح",
+    "role": "",
+    "testId": "",
+    "blockType": "progress_tracker",
+    "rect": {
+      "x": 1767,
+      "y": 3339,
+      "width": 142,
+      "height": 91
+    }
+  },
+  {
+    "id": 82,
+    "tagName": "button",
+    "text": "انیمیشن لوتینمایش انیمیشن‌های سبک و تعاملی Lottie ",
+    "role": "",
+    "testId": "",
+    "blockType": "lottie",
+    "rect": {
+      "x": 1617,
+      "y": 3339,
+      "width": 142,
+      "height": 91
+    }
+  },
+  {
+    "id": 83,
+    "tagName": "button",
+    "text": "نوار تماس شناورنوار تماس سریع و ارتباط با پشتیبانی",
+    "role": "",
+    "testId": "",
+    "blockType": "floating_bar",
+    "rect": {
+      "x": 1767,
+      "y": 3438,
+      "width": 142,
+      "height": 91
+    }
+  },
+  {
+    "id": 84,
+    "tagName": "button",
+    "text": "هایلایت کدنمایش قطعه کدهای برنامه‌نویسی با تم تیره",
+    "role": "",
+    "testId": "",
+    "blockType": "code_highlight",
+    "rect": {
+      "x": 1617,
+      "y": 3438,
+      "width": 142,
+      "height": 91
+    }
+  },
+  {
+    "id": 85,
+    "tagName": "button",
+    "text": "آیکون تکنماد گرافیکی برداری با قابلیت استایل‌دهی، ",
+    "role": "",
+    "testId": "",
+    "blockType": "icon",
+    "rect": {
+      "x": 1767,
+      "y": 3537,
+      "width": 142,
+      "height": 91
+    }
+  },
+  {
+    "id": 86,
+    "tagName": "button",
+    "text": "مسیر راهنمانمایش پیوندهای سلسله‌مراتبی مسیر صفحه و",
+    "role": "",
+    "testId": "",
+    "blockType": "breadcrumbs",
+    "rect": {
+      "x": 1617,
+      "y": 3537,
+      "width": 142,
+      "height": 91
+    }
+  },
+  {
+    "id": 87,
+    "tagName": "button",
+    "text": "فرم جستجوکادر جستجوی کاتالوگ فروشگاه با فیلد متنی،",
+    "role": "",
+    "testId": "",
+    "blockType": "search_bar",
+    "rect": {
+      "x": 1767,
+      "y": 3636,
+      "width": 142,
+      "height": 91
+    }
+  }
+]

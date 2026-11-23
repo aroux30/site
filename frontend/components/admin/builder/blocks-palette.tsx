@@ -96,12 +96,11 @@ export function BlocksPalette() {
   const filteredBasicBlocks = useMemo(() => {
     const q = search.trim().toLowerCase();
     if (!q) return BASIC_BLOCK_DEFINITIONS;
-    return BASIC_BLOCK_DEFINITIONS.filter(
-      (b) =>
-        b.name.toLowerCase().includes(q) ||
-        b.description.toLowerCase().includes(q) ||
-        b.type.toLowerCase().includes(q)
-    );
+    const tokens = q.split(/\s+/).filter(Boolean);
+    return BASIC_BLOCK_DEFINITIONS.filter((b) => {
+      const searchTarget = `${b.name} ${b.description} ${b.type}`.toLowerCase();
+      return tokens.every((tok) => searchTarget.includes(tok));
+    });
   }, [search]);
 
   const layoutBlocks = filteredBasicBlocks.filter((b) => b.category === "layout");

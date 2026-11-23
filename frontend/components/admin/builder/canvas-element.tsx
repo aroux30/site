@@ -2244,20 +2244,36 @@ function CanvasElementComponent({
               { label: "برگه جاری", url: "" },
             ];
         return (
-          <nav aria-label="مسیر راهنما" className="flex items-center gap-1.5 text-xs text-muted-foreground w-full py-1.5 flex-wrap">
-            {items.map((item: any, idx: number) => {
-              const isLast = idx === items.length - 1;
-              return (
-                <React.Fragment key={idx}>
-                  {idx > 0 && <span className="opacity-40 select-none px-0.5">{separator}</span>}
-                  {isLast || !item.url ? (
-                    <span className="font-bold text-foreground truncate max-w-[200px]">{item.label}</span>
-                  ) : (
-                    <span className="hover:text-primary transition-colors cursor-pointer truncate max-w-[150px]">{item.label}</span>
-                  )}
-                </React.Fragment>
-              );
-            })}
+          <nav
+            aria-label="مسیر راهنما"
+            data-widget="breadcrumbs"
+            className="builder-breadcrumbs flex items-center text-xs text-muted-foreground w-full py-1.5"
+          >
+            <ol className="flex items-center gap-1.5 list-none m-0 p-0 flex-wrap">
+              {items.map((item: any, idx: number) => {
+                const isLast = idx === items.length - 1;
+                return (
+                  <React.Fragment key={idx}>
+                    {idx > 0 && (
+                      <li aria-hidden="true" className="opacity-40 select-none px-1">
+                        {separator}
+                      </li>
+                    )}
+                    {isLast || !item.url ? (
+                      <li aria-current="page" className="font-bold text-foreground truncate max-w-[200px]">
+                        {item.label}
+                      </li>
+                    ) : (
+                      <li className="truncate max-w-[150px]">
+                        <span className="hover:text-primary transition-colors cursor-pointer">
+                          {item.label}
+                        </span>
+                      </li>
+                    )}
+                  </React.Fragment>
+                );
+              })}
+            </ol>
           </nav>
         );
       }

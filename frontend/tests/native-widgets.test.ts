@@ -142,4 +142,36 @@ describe("P2.1 Native Widgets: Table & Form Inputs", () => {
     });
     expect(parsed.success).toBe(true);
   });
+
+  it("registers and validates breadcrumbs, search_bar and nav_menu widgets in block registry and AST", () => {
+    const breadcrumbsDef = BASIC_BLOCK_DEFINITIONS.find((b) => b.type === "breadcrumbs");
+    const searchBarDef = BASIC_BLOCK_DEFINITIONS.find((b) => b.type === "search_bar");
+    const navMenuDef = BASIC_BLOCK_DEFINITIONS.find((b) => b.type === "nav_menu");
+
+    expect(breadcrumbsDef).toBeDefined();
+    expect(searchBarDef).toBeDefined();
+    expect(navMenuDef).toBeDefined();
+
+    const breadcrumbsEl = breadcrumbsDef!.createDefaultElement();
+    const searchBarEl = searchBarDef!.createDefaultElement();
+    const navMenuEl = navMenuDef!.createDefaultElement();
+
+    expect(breadcrumbsEl.widgetType).toBe("breadcrumbs");
+    expect(breadcrumbsEl.widgetProps?.separator).toBe("/");
+    expect(Array.isArray(breadcrumbsEl.widgetProps?.items)).toBe(true);
+
+    expect(searchBarEl.widgetType).toBe("search_bar");
+    expect(searchBarEl.widgetProps?.placeholder).toBeDefined();
+
+    expect(navMenuEl.widgetType).toBe("nav_menu");
+    expect(Array.isArray(navMenuEl.widgetProps?.items)).toBe(true);
+
+    const parsed = PageASTSchema.safeParse({
+      schemaVersion: 1,
+      title: "Theme Builder AST",
+      slug: "theme-builder-ast",
+      rootElements: [breadcrumbsEl, searchBarEl, navMenuEl],
+    });
+    expect(parsed.success).toBe(true);
+  });
 });

@@ -1210,17 +1210,28 @@ class ASTCompiler:
                 label = html.escape(str(it.get("label", "")))
                 url = html.escape(str(it.get("url", "")))
                 is_last = (i == len(items) - 1)
+                pos = i + 1
                 sep_html = f'<li class="select-none opacity-40 px-1" aria-hidden="true">{separator}</li>' if i > 0 else ""
                 if is_last or not url:
-                    item_html = f'<li class="font-bold text-foreground truncate max-w-[200px]" aria-current="page">{label}</li>'
+                    item_html = (
+                        f'<li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem" class="font-bold text-foreground truncate max-w-[200px]" aria-current="page">'
+                        f'<span itemprop="name">{label}</span>'
+                        f'<meta itemprop="position" content="{pos}" />'
+                        f'</li>'
+                    )
                 else:
-                    item_html = f'<li class="truncate max-w-[150px]"><a href="{url}" class="hover:text-primary transition-colors">{label}</a></li>'
+                    item_html = (
+                        f'<li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem" class="truncate max-w-[150px]">'
+                        f'<a itemprop="item" href="{url}" class="hover:text-primary transition-colors"><span itemprop="name">{label}</span></a>'
+                        f'<meta itemprop="position" content="{pos}" />'
+                        f'</li>'
+                    )
                 crumbs_html += f"{sep_html}{item_html}"
 
             return (
                 f'<nav{id_attr} class="builder-breadcrumbs flex items-center text-xs text-muted-foreground w-full py-1.5 {css_class}" '
                 f'aria-label="مسیر راهنما" data-widget="breadcrumbs"{style_attr}>'
-                f'<ol class="flex items-center gap-1.5 list-none m-0 p-0 flex-wrap">'
+                f'<ol itemscope itemtype="https://schema.org/BreadcrumbList" class="flex items-center gap-1.5 list-none m-0 p-0 flex-wrap">'
                 f'{crumbs_html}'
                 f'</ol>'
                 f'</nav>'

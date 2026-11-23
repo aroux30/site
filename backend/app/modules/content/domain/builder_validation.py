@@ -94,6 +94,7 @@ STANDARD_WIDGET_TYPES: frozenset[str] = frozenset({
     "lottie",
     "slides",
     "code_highlight",
+    "breadcrumbs",
     "contact_buttons",
     "floating_buttons",
     "floating_bar",

@@ -7,10 +7,13 @@ import { PNG } from "pngjs";
 
 const round = process.argv[2] || "45";
 const phase = process.argv[3] || "before";
-const port = process.env.PORT || "4004";
+const port = process.env.PORT || "1002";
 const BASE_URL = `http://127.0.0.1:${port}`;
-const outDir = path.resolve(`.loop/artifacts/builder-gym/round-${String(round).padStart(2, "0")}/${phase}`);
-fs.mkdirSync(outDir, { recursive: true });
+const outDir2 = path.resolve(`.loop/artifacts/builder-gym/round-${String(round).padStart(2, "0")}/${phase}`);
+const outDir3 = path.resolve(`.loop/artifacts/builder-gym/round-${String(round).padStart(3, "0")}/${phase}`);
+fs.mkdirSync(outDir2, { recursive: true });
+fs.mkdirSync(outDir3, { recursive: true });
+const outDir = outDir2;
 
 function getAdminToken() {
   const BACKEND_DIR = path.resolve("backend");
@@ -273,7 +276,16 @@ async function run() {
 
   const reportPath = path.join(path.dirname(outDir), "mutation_report.json");
   fs.writeFileSync(reportPath, JSON.stringify(mutationReport, null, 2), "utf8");
+  const reportPath3 = path.join(path.dirname(outDir3), "mutation_report.json");
+  fs.writeFileSync(reportPath3, JSON.stringify(mutationReport, null, 2), "utf8");
   console.log(`Saved mutation report: ${reportPath}`);
+
+  // Copy files to outDir3 as well for compatibility
+  try {
+    for (const f of fs.readdirSync(outDir)) {
+      fs.copyFileSync(path.join(outDir, f), path.join(outDir3, f));
+    }
+  } catch {}
 
   await browser.close();
   console.log(`>>> Round ${round} ${phase} completed successfully!`);

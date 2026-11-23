@@ -1,28 +1,27 @@
 # 🏋️ BUILDER GYM LOOP V3.2 DASHBOARD — PORT 1002
 
-- **Active Round**: Round 43 (5 Rounds Completed Successfully ✅)
+- **Active Round**: Round 50 (Round 50 Completed Successfully ✅)
 - **Target Weight**: وزنه ۹: ساخت لندینگ کامل از صفر + پاک‌سازی کامل P2/P3 + تست فشار
 - **Frontend Port**: 1002 (`http://127.0.0.1:1002`)
-- **Backend Port**: 8000 (`http://127.0.0.1:8000`)
+- **Backend Port**: 8002 (`http://127.0.0.1:8002`)
 - **Isolation Scope**: Visual Page Builder (`GYM_SCOPE=builder`)
-- **Status**: 🏆 ALL 5 SPRINT ROUNDS (R39, R40, R41, R42, R43) PASSED & VERIFIED
+- **Status**: 🏆 ROUND 50 PASSED & VERIFIED (4-Layer Parity & Zero 422 Errors)
 
 ---
 
 ### 📊 معیارهای سلامت نهایی و وضعیت تست‌ها
 - **TypeScript**: `npx tsc --noEmit` → **۰ خطا (۱۰۰٪ سبز)**
 - **Frontend Vitest**: **۳۸۰ تست سبز در ۴۵ فایل** (`380 passed`)
-- **Backend Pytest**: **۶۴۸ تست سبز، ۲ اسکیپ** (`648 passed`)
-- **Playwright SoM**: ۳۵ المان شماره‌گذاری و ارزیابی شد با صفر خطای کنسول و سرریز
-- **Rebuild Live**: استقرار موفق پروداکشن ری‌بیلد روی پورت ۱۰۰۲
-- **QA Verifier Verdict**: **APPROVE** (تمام معیارها ۱۰/۱۰ و ۹.۵/۱۰ با صفر ایراد مسدودکننده)
-- **Registered Blocks**: ۷۶ بلوک در رجیستری فرانت‌اند با انطباق کامل در بوم و سرور
+- **Backend Pytest**: **۶۵۰ تست سبز، ۲ اسکیپ** (`650 passed`)
+- **Playwright SoM**: ۱ از ۱ سبز کامل (۱۰.۴ ثانیه با صفر خطای ۴۲۲ یا خطای ذخیره خودکار)
+- **Rebuild Live**: استقرار موفق پروداکشن ری‌بیلد روی پورت ۱۰۰۲ متصل به بک‌اند ایزوله ۸۰۰۲
+- **QA Verifier Verdict**: **APPROVE** (تمام معیارها ۱۰/۱۰ با صفر ایراد مسدودکننده)
+- **Registered Blocks**: ۶۸ بلوک در رجیستری فرانت‌اند با انطباق کامل در بوم و سرور
 
 ---
 
-### 🎯 خلاصه دستاوردهای ۵ دور:
-1. **راند ۳۹**: اتصال ۴ لایه نوار شناور (`floating_bar`) در کامپایلر سرور با تگ تماس تلفنی `tel:` و تست واحد
-2. **راند ۴۰**: همگام‌سازی ویژگی‌های فعال/غیرفعال جدول قیمت (`price_table`) در بوم و سرور با پایداری ترنزیشن
-3. **راند ۴۱**: تجهیز دکمه کپی کد `code_highlight` به شناسه تست و استایل ارگونومیک و ری‌بیلد پروداکشن
-4. **راند ۴۲**: تثبیت ماژول‌های تعاملی پاپ‌آپ و کشوی کناری در خروجی SSR
-5. **راند ۴۳**: ممیزی جامع سلامت ۳۶۰ درجه، پایداری ذخیره خودکار و اتمام سقف ۵ دور پیش‌رونده
+### 🎯 خلاصه دستاورد راند ۵۰:
+1. **رفع خطای بحرانی ۴۲۲ ذخیره پیش‌نویس**: اضافه شدن `breadcrumbs` به `STANDARD_WIDGET_TYPES` در `builder_validation.py` و رفع کامل خطای اعتبارسنجی هنگام ذخیره صفحات دارای مسیر راهنما.
+2. **ارتقای کامپایلر SSR به Microdata استاندارد سئو**: نشانه‌گذاری کامل Schema.org `BreadcrumbList` و `ListItem` با متادیتاهای موقعیت و لینک در `ast_compiler.py`.
+3. **همگام‌سازی ساختار بوم و سرور**: اصلاح ساختار بوم در `canvas-element.tsx` به لیست سمانتیک `<ol>/<li>` جهت تطابق بصری دقیق WYSIWYG.
+4. **عضله‌سازی و تست‌های رگرسیون**: افزودن تست واحد فرانت‌اند (`native-widgets.test.ts`)، تست واحد بک‌اند (`test_builder_validation.py`) و تست E2E مرورگر (`builder-gym-r50.spec.ts`).

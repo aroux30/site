@@ -1,17 +1,17 @@
 {
   "version": "3.2",
   "activeWeight": 9,
-  "activeRound": 47,
+  "activeRound": 50,
   "status": "COMPLETED",
   "levels1to5Status": "BUILDER_GYM_LEVELS_1_TO_5_CLEAN",
   "allLevelsMastered": "BUILDER_GYM_ALL_LEVELS_MASTERED",
-  "verificationPort": 4001,
-  "completedRounds": 47,
+  "verificationPort": 1002,
+  "completedRounds": 50,
   "metrics": {
     "typeCheckErrors": 0,
     "frontendUnitTests": 380,
     "backendUnitTests": 650,
-    "playwrightTests": 4,
+    "playwrightTests": 1,
     "registeredBlocks": 68,
     "lastVerifierVerdict": "APPROVE"
   },
@@ -214,6 +214,33 @@
       "summary": "ast_compiler did not recognize tab_titles and item_titles when compiling specialized containers",
       "status": "FIXED",
       "round": 47
+    },
+    {
+      "id": "DEFECT-R50-01",
+      "severity": "P0",
+      "component": "breadcrumbs",
+      "layer": "backend/app/modules/content/domain/builder_validation.py",
+      "summary": "Missing 'breadcrumbs' in backend STANDARD_WIDGET_TYPES causing 422 Unprocessable Content error during autosave and draft save",
+      "status": "FIXED",
+      "round": 50
+    },
+    {
+      "id": "DEFECT-R50-02",
+      "severity": "P1",
+      "component": "breadcrumbs",
+      "layer": "ast_compiler_and_canvas",
+      "summary": "Breadcrumbs missing semantic microdata (Schema.org BreadcrumbList / ListItem) and ol/li markup in ast_compiler.py and canvas-element.tsx",
+      "status": "FIXED",
+      "round": 50
+    },
+    {
+      "id": "DEFECT-R50-03",
+      "severity": "P1",
+      "component": "theme_builder_widgets",
+      "layer": "tests",
+      "summary": "Missing comprehensive test suite and block-registry coverage assertion for breadcrumbs, search_bar, and nav_menu in backend pytest and frontend vitest",
+      "status": "FIXED",
+      "round": 50
     }
   ]
 }

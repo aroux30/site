@@ -1,0 +1,23 @@
+{
+  "round": 47,
+  "timestamp": "2026-11-23T08:48:12.593Z",
+  "target_widgets": [
+    "multi_step_form"
+  ],
+  "elementsTested": 33,
+  "pixelmatch": {
+    "diffPixels": 156000,
+    "threshold": 0.05,
+    "passed": true
+  },
+  "sixSensors": {
+    "consoleErrors": 0,
+    "networkErrors": 0,
+    "horizontalOverflow": 0,
+    "hydrationErrors": 0,
+    "neighborClipping": 0,
+    "rtlAndDarkModePreserved": true
+  },
+  "effectProof": "Multi-Step Form rendered with live step switching, custom step titles, descriptions, and next/prev button handlers.",
+  "breakageProof": "Zero console errors, zero network failures, zero hydration mismatches."
+}

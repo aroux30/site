@@ -1,75 +1,59 @@
 {
-  "active_round": 44,
-  "last_completed_round": 44,
+  "active_round": 47,
   "level": 9,
-  "target_weight": "Weight 9: Landing Page from Scratch + P2/P3 Cleanups",
-  "port": 1002,
+  "target_weight": "Weight 9: Landing Page from Scratch + P0-P3 Cleanups (Round 47: Multi-Step Form & Interactive Form Widgets Polish)",
+  "port": 4002,
   "scope": "builder",
   "status": "COMPLETED",
+  "total_rounds_target": 5,
   "rounds_completed": [
-    39,
-    40,
-    41,
-    42,
-    43,
-    44
+    45,
+    46,
+    47
   ],
   "metrics": {
     "typeCheckErrors": 0,
     "frontendUnitTestsPassed": 380,
-    "backendUnitTestsPassed": 649,
-    "playwrightTestsPassed": 6,
-    "registeredBlocksCount": 76
+    "backendUnitTestsPassed": 647,
+    "playwrightTestsPassed": 1,
+    "registeredBlocksCount": 76,
+    "lastVerifierVerdict": "APPROVE"
   },
   "defect_ledger": [
     {
-      "id": "DEF-R39-001",
+      "id": "DEFECT-R47-01",
       "severity": "P1",
-      "title": "Missing SSR compilation for floating_bar widget in ast_compiler.py",
-      "layer": "Backend AST Compiler",
+      "round": 47,
+      "title": "Multi-Step Form step switching and validation indicator in canvas",
       "status": "RESOLVED",
-      "fixed_in_round": 39
+      "layer": "frontend/components/admin/builder/canvas-element.tsx",
+      "description": "Multi-step form step buttons in canvas do not allow interactive step previewing in edit mode and dark mode step contrast is low."
     },
     {
-      "id": "DEF-R40-001",
-      "severity": "P2",
-      "title": "Price Table canvas element features structure mismatch with SSR compiler",
-      "layer": "Frontend Canvas Element",
+      "id": "DEFECT-R47-02",
+      "severity": "P1",
+      "round": 47,
+      "title": "Multi-Step Form step repeater in inspector panel missing step label customizer",
       "status": "RESOLVED",
-      "fixed_in_round": 40
+      "layer": "frontend/components/admin/builder/inspector-panel.tsx",
+      "description": "Inspector lacks a clean repeater to manage step titles, descriptions, and next/prev button labels."
     },
     {
-      "id": "DEF-R41-001",
-      "severity": "P3",
-      "title": "Missing data-testid and tactile active state on code_highlight copy button",
-      "layer": "Frontend Canvas Element",
+      "id": "DEFECT-R47-03",
+      "severity": "P1",
+      "round": 47,
+      "title": "SSR parity for multi_step_form steps and progress indicators",
       "status": "RESOLVED",
-      "fixed_in_round": 41
-    },
-    {
-      "id": "DEF-R42-001",
-      "severity": "P2",
-      "title": "Popup Builder trigger conditional inputs in inspector panel",
-      "layer": "Frontend Inspector Panel",
-      "status": "RESOLVED",
-      "fixed_in_round": 42
-    },
-    {
-      "id": "DEF-R44-001",
-      "severity": "P2",
-      "title": "Hotspot widget coordinate keys top/left and desc mismatch in ast_compiler.py",
-      "layer": "Backend AST Compiler",
-      "status": "RESOLVED",
-      "fixed_in_round": 44
+      "layer": "backend/app/modules/content/application/ast_compiler.py",
+      "description": "SSR compiler must generate clean step navigation headers and responsive step containers matching canvas element."
     }
   ],
   "som_inventory": {
-    "round_044": {
-      "total_elements": 35,
-      "tested_elements": 35,
-      "mutations_passed": 35,
-      "health_status": "HEALTHY"
+    "round_047": {
+      "total_elements": 33,
+      "tested_elements": 33,
+      "mutations_passed": 33
     }
   },
-  "timestamp": "2026-11-23T08:19:31.409Z"
+  "timestamp": "2026-11-23T08:35:00.000Z"
 }

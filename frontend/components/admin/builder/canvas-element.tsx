@@ -1570,19 +1570,20 @@ function CanvasElementComponent({
         );
       }
       case "testimonial": {
-        const author = String(props.author || "نام مشتری");
-        const role = String(props.role || "سمت یا عنوان");
+        const author = String(props.author || props.author_name || "نام مشتری");
+        const role = String(props.role || props.author_role || "سمت یا عنوان");
         const company = String(props.company || "");
         const quote = String(props.quote || "متن دیدگاه مشتری در اینجا نمایش داده می‌شود.");
         const avatar = String(props.avatar_url || "/placeholder-hero.svg");
+        const roleText = role ? (company ? `${role} - ${company}` : role) : company;
         return (
           <div className="p-4 rounded-2xl border border-border/80 bg-card space-y-3 shadow-sm w-full text-right">
             <p className="text-xs text-muted-foreground leading-relaxed italic">«{quote}»</p>
             <div className="flex items-center gap-3 pt-2 border-t border-border/60">
-              <img src={avatar} alt={author} className="w-9 h-9 rounded-full object-cover shrink-0" />
+              <img src={avatar} alt={author} className="w-9 h-9 rounded-full object-cover shrink-0" loading="lazy" />
               <div>
                 <div className="text-xs font-bold text-foreground">{author}</div>
-                <div className="text-[10px] text-muted-foreground">{role}{company ? ` - ${company}` : ""}</div>
+                {roleText && <div className="text-[10px] text-muted-foreground">{roleText}</div>}
               </div>
             </div>
           </div>
@@ -1610,41 +1611,48 @@ function CanvasElementComponent({
       case "image_box": {
         const title = String(props.title || "عنوان ویژگی تصویری");
         const desc = String(props.description || "توضیحات باکس تصویر");
-        const imgUrl = String(props.image_url || "/placeholder-hero.svg");
-        const linkUrl = String(props.link_url || "#");
+        const imgUrl = String(props.image_url || props.url || "/placeholder-hero.svg");
+        const linkUrl = String(props.link || props.url_link || props.link_url || "#");
+        const pos = String(props.position || "top");
+        const flexCls = pos === "left" ? "flex flex-row-reverse items-start gap-4 text-right" : (pos === "right" ? "flex flex-row items-start gap-4 text-right" : "flex flex-col items-center text-center");
         return (
-          <div className="p-4 rounded-2xl border border-border/80 bg-card text-center space-y-3 shadow-sm w-full">
-            <div className="w-full aspect-video rounded-xl overflow-hidden bg-muted/30 flex items-center justify-center">
+          <div className={cn("p-4 rounded-2xl border border-border/80 bg-card space-y-3 shadow-sm w-full", flexCls)}>
+            <div className="w-full aspect-video rounded-xl overflow-hidden bg-muted/30 flex items-center justify-center shrink-0">
               <img src={imgUrl} alt={title} className="w-full h-full object-cover" loading="lazy" />
             </div>
-            <h4 className="text-sm font-bold text-foreground">{title}</h4>
-            <p className="text-xs text-muted-foreground leading-relaxed">{desc}</p>
-            {linkUrl && linkUrl !== "#" && (
-              <a href={linkUrl} onClick={(e) => !previewMode && e.preventDefault()} className="text-xs font-bold text-primary hover:underline inline-block">
-                مشاهده بیشتر ←
-              </a>
-            )}
+            <div className="space-y-1 flex-1">
+              <h4 className="text-sm font-bold text-foreground">{title}</h4>
+              <p className="text-xs text-muted-foreground leading-relaxed">{desc}</p>
+              {linkUrl && linkUrl !== "#" && (
+                <a href={linkUrl} onClick={(e) => !previewMode && e.preventDefault()} className="text-xs font-bold text-primary hover:underline inline-block mt-1">
+                  مشاهده بیشتر ←
+                </a>
+              )}
+            </div>
           </div>
         );
       }
       case "toggle": {
-        const items = (props.items as any[]) || [
+        const rawItems = (props.items as any[]) || [
           { title: "عنوان تاگل ۱", content: "محتوای تاگل ۱", default_open: true },
           { title: "عنوان تاگل ۲", content: "محتوای تاگل ۲", default_open: true },
         ];
         return (
           <div className="builder-toggle space-y-2 w-full" data-widget="toggle">
-            {items.map((itm, idx) => (
-              <details key={idx} className="group rounded-xl border border-border/80 bg-card overflow-hidden" open={itm.default_open !== false}>
-                <summary className="p-3.5 font-bold text-xs text-foreground cursor-pointer list-none flex items-center justify-between hover:bg-muted/40 transition select-none">
-                  <span>{itm.title || "بخش"}</span>
-                  <span className="transition-transform group-open:rotate-180">▾</span>
-                </summary>
-                <div className="p-3.5 pt-0 text-xs text-muted-foreground border-t border-border/40 leading-relaxed">
-                  {itm.content || ""}
-                </div>
-              </details>
-            ))}
+            {rawItems.map((itm, idx) => {
+              const isOpen = itm.is_open !== undefined ? Boolean(itm.is_open) : (itm.default_open !== undefined ? Boolean(itm.default_open) : idx === 0);
+              return (
+                <details key={idx} className="group rounded-xl border border-border/80 bg-card overflow-hidden" open={isOpen}>
+                  <summary className="p-3.5 font-bold text-xs text-foreground cursor-pointer list-none flex items-center justify-between hover:bg-muted/40 transition select-none">
+                    <span>{itm.title || "بخش"}</span>
+                    <span className="transition-transform group-open:rotate-180">▾</span>
+                  </summary>
+                  <div className="p-3.5 pt-0 text-xs text-muted-foreground border-t border-border/40 leading-relaxed">
+                    {itm.content || ""}
+                  </div>
+                </details>
+              );
+            })}
           </div>
         );
       }

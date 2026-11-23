@@ -1,58 +1,75 @@
 {
-  "active_round": 46,
+  "active_round": 44,
+  "last_completed_round": 44,
   "level": 9,
-  "target_weight": "Weight 9: Landing Page from Scratch + P0-P3 Cleanups (Round 46: Price Table & Price List Polish)",
-  "port": 4002,
+  "target_weight": "Weight 9: Landing Page from Scratch + P2/P3 Cleanups",
+  "port": 1002,
   "scope": "builder",
   "status": "COMPLETED",
-  "total_rounds_target": 5,
   "rounds_completed": [
-    45,
-    46
+    39,
+    40,
+    41,
+    42,
+    43,
+    44
   ],
   "metrics": {
     "typeCheckErrors": 0,
     "frontendUnitTestsPassed": 380,
-    "backendUnitTestsPassed": 647,
-    "playwrightTestsPassed": 1,
-    "registeredBlocksCount": 76,
-    "lastVerifierVerdict": "APPROVE"
+    "backendUnitTestsPassed": 649,
+    "playwrightTestsPassed": 6,
+    "registeredBlocksCount": 76
   },
   "defect_ledger": [
     {
-      "id": "DEFECT-R46-01",
-      "severity": "P0",
-      "round": 46,
-      "title": "Duplicate Switch Cases in canvas-element.tsx shadow second implementations",
+      "id": "DEF-R39-001",
+      "severity": "P1",
+      "title": "Missing SSR compilation for floating_bar widget in ast_compiler.py",
+      "layer": "Backend AST Compiler",
       "status": "RESOLVED",
-      "layer": "frontend/components/admin/builder/canvas-element.tsx",
-      "description": "Six widget types (price_table, price_list, image_box, toggle, hotspot, icon_list) have duplicate case blocks in canvas-element.tsx switch, causing unreachable dead code and prop divergence between inspector and canvas."
+      "fixed_in_round": 39
     },
     {
-      "id": "DEFECT-R46-02",
-      "severity": "P1",
-      "round": 46,
-      "title": "Price Table button_label, badge and available features mismatch in canvas and SSR",
+      "id": "DEF-R40-001",
+      "severity": "P2",
+      "title": "Price Table canvas element features structure mismatch with SSR compiler",
+      "layer": "Frontend Canvas Element",
       "status": "RESOLVED",
-      "layer": "frontend/components/admin/builder/canvas-element.tsx",
-      "description": "Inspector uses button_label, button_url and badge, and unavailable features should render dash with line-through."
+      "fixed_in_round": 40
     },
     {
-      "id": "DEFECT-R46-03",
-      "severity": "P1",
-      "round": 46,
-      "title": "Price List separator style and image alignment in canvas",
+      "id": "DEF-R41-001",
+      "severity": "P3",
+      "title": "Missing data-testid and tactile active state on code_highlight copy button",
+      "layer": "Frontend Canvas Element",
       "status": "RESOLVED",
-      "layer": "frontend/components/admin/builder/canvas-element.tsx",
-      "description": "Price list does not render separator_style (dotted/dashed/solid) and image in canvas."
+      "fixed_in_round": 41
+    },
+    {
+      "id": "DEF-R42-001",
+      "severity": "P2",
+      "title": "Popup Builder trigger conditional inputs in inspector panel",
+      "layer": "Frontend Inspector Panel",
+      "status": "RESOLVED",
+      "fixed_in_round": 42
+    },
+    {
+      "id": "DEF-R44-001",
+      "severity": "P2",
+      "title": "Hotspot widget coordinate keys top/left and desc mismatch in ast_compiler.py",
+      "layer": "Backend AST Compiler",
+      "status": "RESOLVED",
+      "fixed_in_round": 44
     }
   ],
   "som_inventory": {
-    "round_046": {
-      "total_elements": 33,
-      "tested_elements": 33,
-      "mutations_passed": 33
+    "round_044": {
+      "total_elements": 35,
+      "tested_elements": 35,
+      "mutations_passed": 35,
+      "health_status": "HEALTHY"
     }
   },
-  "timestamp": "2026-11-23T06:55:00.000Z"
+  "timestamp": "2026-11-23T08:19:31.409Z"
 }

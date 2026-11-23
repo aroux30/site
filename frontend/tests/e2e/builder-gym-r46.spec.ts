@@ -3,17 +3,44 @@ import path from "node:path";
 import fs from "node:fs";
 import { execSync } from "node:child_process";
 
-const PORT = 4002;
-const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || `http://127.0.0.1:${PORT}`;
-const BACKEND_DIR = path.resolve(__dirname, "../../../backend");
-const ARTIFACTS_DIR = path.resolve(".loop/artifacts/builder-gym/round-046/after");
-const ARTIFACTS_DIR_SHORT = path.resolve(".loop/artifacts/builder-gym/round-46/after");
+const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || "http://127.0.0.1:4001";
+const BACKEND_DIR = path.resolve("C:/Users/Administrator/Desktop/site/backend");
 
-fs.mkdirSync(ARTIFACTS_DIR, { recursive: true });
-fs.mkdirSync(ARTIFACTS_DIR_SHORT, { recursive: true });
+function getAdminToken() {
+  const script = `
+import asyncio, datetime, uuid
+from app.core.security.jwt import create_access_token
+async def main():
+    user_id = str(uuid.UUID("47f274da-3abd-4d91-bc9c-83ba913fc66f"))
+    print("TOKEN_START:" + create_access_token(
+        user_id,
+        extra_claims={"roles": ["super_admin"], "is_superuser": True, "permissions": ["*"]},
+        expires_delta=datetime.timedelta(hours=2),
+    ))
+asyncio.run(main())
+`;
+  const tmp = path.join(BACKEND_DIR, `.gym-r30-tok-${Date.now()}.py`);
+  fs.writeFileSync(tmp, script, "utf8");
+  try {
+    const out = execSync(`python "${tmp}"`, { cwd: BACKEND_DIR, encoding: "utf8" });
+    const match = out.split("\n").find((l) => l.includes("TOKEN_START:"));
+    return match ? match.replace("TOKEN_START:", "").trim() : "";
+  } finally {
+    if (fs.existsSync(tmp)) try { fs.unlinkSync(tmp); } catch {}
+  }
+}
 
-test.describe("Builder Gym Round 46: Price Table & Price List 4-Layer Parity & Inspector Polish", () => {
+test.describe("Builder Gym Round 46: 1920x1080 Elementor Slides & Code Highlight Parity", () => {
+  test.use({ viewport: { width: 1920, height: 1080 } });
+
   test.beforeEach(async ({ context }) => {
+    const token = getAdminToken();
+    if (token) {
+      await context.addCookies([
+        { name: "access_token", value: token, url: BASE_URL, httpOnly: false, sameSite: "Lax" },
+        { name: "access_token", value: token, url: "http://localhost:4001", httpOnly: false, sameSite: "Lax" },
+      ]);
+    }
     await context.setExtraHTTPHeaders({
       "x-forwarded-for": `10.200.${Math.floor(Math.random() * 200)}.${Math.floor(Math.random() * 200)}`,
     });
@@ -21,70 +48,47 @@ test.describe("Builder Gym Round 46: Price Table & Price List 4-Layer Parity & I
       localStorage.setItem(
         "auth-storage",
         JSON.stringify({
-          state: {
-            user: { id: "admin-1", phone: "09120000000", isSuperuser: true, roles: ["super_admin"] },
-            isAuthenticated: true,
-            isLoading: false,
-          },
+          state: { user: { id: "admin-1", phone: "09120000000", isSuperuser: true, roles: ["super_admin"] }, isAuthenticated: true, isLoading: false }
         })
       );
     });
   });
 
-  test("1. Price Table and Price List insert, render with proper styles, and reflect inspector changes in canvas", async ({ page }) => {
-    await page.setViewportSize({ width: 1920, height: 1080 });
+  test("1. Block palette filters and includes slides and code_highlight", async ({ page }) => {
     await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
-    await page.waitForTimeout(2500);
+    await page.waitForTimeout(1500);
 
-    // 1. Search for Price Table in palette
-    const searchInput = page.locator('input[placeholder*="جستجوی بلوک"]').first();
-    await searchInput.fill("قیمت");
-    await page.waitForTimeout(400);
+    const searchInput = page.locator('aside input[placeholder*="جستجو"]').first();
+    await expect(searchInput).toBeVisible();
 
-    // 2. Insert Price Table
-    const priceTableCard = page.locator('text="جدول تعرفه و قیمت"').first();
-    await expect(priceTableCard).toBeVisible();
-    await priceTableCard.click();
-    await page.waitForTimeout(1000);
+    // Verify search finds slides
+    await searchInput.fill("اسلاید");
+    await page.waitForTimeout(300);
+    const slidesCard = page.locator('button[data-block-type="slides"]').first();
+    await expect(slidesCard).toBeVisible();
 
-    // 3. Verify in frame
-    const frame = page.frameLocator('iframe[title="Visual Builder Canvas"]');
-    const priceElement = frame.locator('[data-widget="price_table"]').first();
-    await expect(priceElement).toBeVisible();
+    // Verify search finds code_highlight
+    await searchInput.fill("هایلایت");
+    await page.waitForTimeout(300);
+    const codeCard = page.locator('button[data-block-type="code_highlight"]').first();
+    await expect(codeCard).toBeVisible();
+  });
 
-    // 4. Verify Inspector displays Price Table controls
-    const inspector = page.locator("[data-builder-inspector]");
-    await expect(inspector).toBeVisible();
+  test("2. Inserting code_highlight renders syntax box inside canvas", async ({ page }) => {
+    await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(1500);
 
-    // 5. Verify features list in inspector can add feature
-    const addFeatureBtn = inspector.locator('text="+ افزودن ویژگی"');
-    if (await addFeatureBtn.isVisible()) {
-      await addFeatureBtn.click();
-      await page.waitForTimeout(300);
-    }
+    const searchInput = page.locator('aside input[placeholder*="جستجو"]').first();
+    await searchInput.fill("هایلایت");
+    await page.waitForTimeout(300);
 
-    // 6. Capture after screenshot of studio with customized price table
-    const shot1 = path.join(ARTIFACTS_DIR, "01-price-table-customized-1920x1080.png");
-    await page.screenshot({ path: shot1 });
-    fs.copyFileSync(shot1, path.join(ARTIFACTS_DIR_SHORT, "01-price-table-customized-1920x1080.png"));
-
-    // 7. Insert Price List
-    await searchInput.fill("لیست قیمت");
-    await page.waitForTimeout(400);
-    const priceListCard = page.locator('text="لیست قیمت"').first();
-    await expect(priceListCard).toBeVisible();
-    await priceListCard.click();
+    const codeCard = page.locator('button[data-block-type="code_highlight"]').first();
+    await codeCard.click();
     await page.waitForTimeout(800);
 
-    const priceListElement = frame.locator('[data-widget="price_list"]').first();
-    await expect(priceListElement).toBeVisible();
-
-    // 8. Capture after screenshot showing both Price Table and Price List
-    const shot2 = path.join(ARTIFACTS_DIR, "02-price-list-and-table-verified.png");
-    await page.screenshot({ path: shot2 });
-    fs.copyFileSync(shot2, path.join(ARTIFACTS_DIR_SHORT, "02-price-list-and-table-verified.png"));
-
-    expect(fs.existsSync(shot1)).toBe(true);
-    expect(fs.existsSync(shot2)).toBe(true);
+    // Check inside canvas iframe
+    const frame = page.frameLocator('iframe[title="Visual Builder Canvas"]');
+    const codeBox = frame.locator("pre, code, [data-widget-type='code_highlight']").first();
+    await expect(codeBox).toBeVisible({ timeout: 10000 });
   });
 });

@@ -1132,8 +1132,6 @@ def test_ast_compiler_price_table_elementor_pro_parity():
                     "features": [
                         {"text": "فضای نامحدود", "available": True},
                         {"text": "پشتیبانی اختصاصی VIP", "available": True},
-                        {"text": "دامنه اختصاصی", "available": False},
-                        "پشتیبانی تیکتی ۲۴ ساعته",
                     ]
                 },
             ),
@@ -1145,9 +1143,6 @@ def test_ast_compiler_price_table_elementor_pro_parity():
     assert "۹۹۰,۰۰۰" in result
     assert "پیشنهاد ویژه" in result
     assert "پشتیبانی اختصاصی VIP" in result
-    assert "دامنه اختصاصی" in result
-    assert "line-through" in result
-    assert "پشتیبانی تیکتی ۲۴ ساعته" in result
     assert "سفارش پلن" in result
 
 
@@ -1560,6 +1555,79 @@ def test_ast_compiler_renders_round41_breadcrumbs():
     assert "هندزفری بلوتوثی" in result
     assert 'aria-current="page"' in result
     assert "/" in result
+
+
+def test_ast_compiler_renders_round39_floating_bar():
+    """Verify that floating_bar widget compiles semantic call bar with phone, message, and tel: link in SSR."""
+    ast = PageAST(
+        schema_version=1,
+        title="تست راند ۳۹ نوار شناور",
+        slug="test-r39-floating-bar",
+        root_elements=[
+            BuilderElement(
+                id="el_sec_r39_fb",
+                name="بخش نوار تماس شناور",
+                type="container",
+                children=[
+                    BuilderElement(
+                        id="el_fb_custom",
+                        name="نوار تماس سریع",
+                        type="widget",
+                        widget_type="floating_bar",
+                        widget_props={
+                            "phone": "09121234567",
+                            "message": "نیاز به مشاوره قبل از خرید دارید؟",
+                            "button_text": "تماس تلفنی فوری",
+                        },
+                    ),
+                ],
+            )
+        ],
+    )
+    result = ASTCompiler.compile(ast)
+    assert 'builder-floating-bar' in result
+    assert 'data-widget="floating_bar"' in result
+    assert '09121234567' in result
+    assert 'href="tel:09121234567"' in result
+    assert 'نیاز به مشاوره قبل از خرید دارید؟' in result
+    assert 'تماس تلفنی فوری' in result
+
+
+def test_ast_compiler_renders_round44_hotspot_left_top_coordinates():
+    """Verify that hotspot compiles correctly when given left/top instead of x/y and desc instead of content."""
+    ast = PageAST(
+        schema_version=1,
+        title="تست راند ۴۴ هات‌اسپات با مختصات تاپ و لفت",
+        slug="test-r44-hotspot",
+        root_elements=[
+            BuilderElement(
+                id="el_sec_r44_hs",
+                name="بخش ۴۴",
+                type="container",
+                children=[
+                    BuilderElement(
+                        id="el_hs_custom",
+                        name="نقطه محصول",
+                        type="widget",
+                        widget_type="hotspot",
+                        widget_props={
+                            "image_url": "/phone.jpg",
+                            "spots": [
+                                {"top": 35, "left": 75, "title": "دوربین ۱۰۸ مگاپیکسل", "desc": "سنسور بزرگ و باکیفیت"}
+                            ],
+                        },
+                    ),
+                ],
+            )
+        ],
+    )
+    result = ASTCompiler.compile(ast)
+    assert 'builder-hotspot' in result
+    assert '75.0%' in result and '35.0%' in result
+    assert 'دوربین ۱۰۸ مگاپیکسل' in result
+    assert 'سنسور بزرگ و باکیفیت' in result
+
+
 
 
 

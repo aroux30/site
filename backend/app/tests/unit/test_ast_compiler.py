@@ -1593,6 +1593,66 @@ def test_ast_compiler_renders_round39_floating_bar():
     assert 'تماس تلفنی فوری' in result
 
 
+def test_ast_compiler_renders_round45_price_table_and_multistep_parity():
+    """Verify Round 45 enhanced Price Table & Multi-Step Form 4-layer parity in SSR."""
+    ast = PageAST(
+        schema_version=1,
+        title="تست راند ۴۵",
+        slug="test-r45-parity",
+        root_elements=[
+            BuilderElement(
+                id="el_sec_r45",
+                name="بخش لندینگ راند ۴۵",
+                type="container",
+                children=[
+                    BuilderElement(
+                        id="el_ptable_r45",
+                        name="جدول تعرفه ۴۵",
+                        type="widget",
+                        widget_type="price_table",
+                        widget_props={
+                            "title": "پلن نامحدود سازمانی",
+                            "subtitle": "ویژه کسب‌وکارهای در حال رشد",
+                            "price": "۱,۴۹۰,۰۰۰",
+                            "currency": "تومان",
+                            "period": "سالانه",
+                            "is_featured": True,
+                            "button_label": "خرید فوری پلن",
+                            "button_url": "/checkout?plan=enterprise",
+                            "features": [
+                                {"text": "پشتیبانی ۲۴ ساعته", "available": True},
+                                {"text": "دامنه رایگان ir", "available": True},
+                            ],
+                        },
+                    ),
+                    BuilderElement(
+                        id="el_mstep_r45",
+                        name="فرم چندمرحله‌ای ۴۵",
+                        type="widget",
+                        widget_type="multi_step_form",
+                        widget_props={
+                            "steps": [
+                                {"title": "اطلاعات هویتی"},
+                                {"title": "تایید نهایی"},
+                            ],
+                        },
+                    ),
+                ],
+            )
+        ],
+    )
+    result = ASTCompiler.compile(ast)
+    assert 'class="builder-price-table' in result
+    assert "پلن نامحدود سازمانی" in result
+    assert "۱,۴۹۰,۰۰۰" in result
+    assert "تومان" in result
+    assert "/ سالانه" in result
+    assert 'class="builder-multi-step-form' in result
+    assert "اطلاعات هویتی" in result
+    assert "تایید نهایی" in result
+
+
+
 
 
 

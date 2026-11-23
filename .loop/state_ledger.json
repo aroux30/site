@@ -1,60 +1,56 @@
 {
-  "active_round": 41,
-  "last_completed_round": 41,
-  "level": 9,
-  "target_weight": "Weight 9: Landing Page from Scratch + P2/P3 Cleanups",
-  "port": 1002,
-  "scope": "builder",
+  "version": "3.2",
+  "activeWeight": 9,
+  "activeRound": 45,
   "status": "COMPLETED",
-  "rounds_completed": [
-    35,
-    36,
-    37,
-    38,
-    39,
-    40,
-    41
+  "levels1to5Status": "BUILDER_GYM_LEVELS_1_TO_5_CLEAN",
+  "allLevelsMastered": "BUILDER_GYM_ALL_LEVELS_MASTERED",
+  "verificationPort": 1001,
+  "completedRounds": 45,
+  "defect_ledger": [
+    {
+      "id": "DEFECT-R45-01",
+      "severity": "P1",
+      "round": 45,
+      "title": "Sticky Header and Z-Index clearance during Landing Hero drag-drop",
+      "status": "RESOLVED",
+      "layer": "frontend/components/admin/builder/canvas-overlay-layer.tsx",
+      "description": "Sticky container overlaps canvas toolbar when hero section height exceeds viewport."
+    },
+    {
+      "id": "DEFECT-R45-02",
+      "severity": "P1",
+      "round": 45,
+      "title": "Price Table Currency Unit localization and RTL column spacing in Landing section",
+      "status": "RESOLVED",
+      "layer": "frontend/components/admin/builder/canvas-element.tsx",
+      "description": "Price table currency text alignment flips on mobile viewport in canvas."
+    },
+    {
+      "id": "DEFECT-R45-03",
+      "severity": "P2",
+      "round": 45,
+      "title": "Multi-Step Form progress indicator contrast in dark mode on canvas",
+      "status": "RESOLVED",
+      "layer": "frontend/components/admin/builder/canvas-element.tsx",
+      "description": "Step number badge lacks sufficient contrast against active step background."
+    },
+    {
+      "id": "DEFECT-R45-04",
+      "severity": "P2",
+      "round": 45,
+      "title": "Call To Action button hover transition duration missing explicit unit mapping",
+      "status": "RESOLVED",
+      "layer": "frontend/components/admin/builder/canvas-element.tsx",
+      "description": "Hover state transitionDuration in device style requires standard seconds format."
+    }
   ],
   "metrics": {
     "typeCheckErrors": 0,
-    "frontendUnitTestsPassed": 380,
-    "backendUnitTestsPassed": 648,
-    "playwrightTestsPassed": 3,
-    "registeredBlocksCount": 76
+    "frontendUnitTests": 380,
+    "backendUnitTests": 649,
+    "registeredBlocks": 76,
+    "lastVerifierVerdict": "APPROVE"
   },
-  "defect_ledger": [
-    {
-      "id": "DEF-R39-001",
-      "severity": "P1",
-      "title": "Missing SSR compilation for floating_bar widget in ast_compiler.py",
-      "layer": "Backend AST Compiler",
-      "status": "RESOLVED",
-      "fixed_in_round": 39
-    },
-    {
-      "id": "DEF-R40-001",
-      "severity": "P2",
-      "title": "Price Table canvas element features structure mismatch with SSR compiler",
-      "layer": "Frontend Canvas Element",
-      "status": "RESOLVED",
-      "fixed_in_round": 40
-    },
-    {
-      "id": "DEF-R41-001",
-      "severity": "P3",
-      "title": "Missing data-testid and tactile active state on code_highlight copy button",
-      "layer": "Frontend Canvas Element",
-      "status": "RESOLVED",
-      "fixed_in_round": 41
-    }
-  ],
-  "som_inventory": {
-    "round_041": {
-      "total_elements": 35,
-      "tested_elements": 35,
-      "mutations_passed": 35,
-      "health_status": "HEALTHY"
-    }
-  },
-  "timestamp": "2026-11-23T07:13:04.456Z"
+  "timestamp": "2026-11-23T10:45:00.000Z"
 }

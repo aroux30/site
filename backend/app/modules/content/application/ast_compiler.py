@@ -934,9 +934,9 @@ class ASTCompiler:
                 f'<h3 class="text-base font-extrabold text-foreground">{title}</h3>'
                 f'{subtitle_html}'
                 f'</div>'
-                f'<div class="flex items-baseline gap-1.5 border-y border-border/60 py-4">'
-                f'<span class="text-2xl font-black text-primary font-mono">{price}</span>'
-                f'<span class="text-xs font-semibold text-muted-foreground">{currency}</span>'
+                f'<div class="flex items-baseline justify-start gap-1.5 border-y border-border/60 py-4 my-2" dir="rtl">'
+                f'<span class="text-3xl font-black text-primary font-mono tracking-tight">{price}</span>'
+                f'<span class="text-xs font-bold text-muted-foreground">{currency}</span>'
                 f'{period_html}'
                 f'</div>'
                 f'<ul class="space-y-2.5 text-xs">{features_html}</ul>'
@@ -1352,7 +1352,7 @@ class ASTCompiler:
                     dot_col = "bg-primary text-white" if idx == 0 else "bg-muted text-muted-foreground"
                     steps_header += (
                         f'<div class="flex items-center gap-2">'
-                        f'<span class="w-6 h-6 rounded-full {dot_col} flex items-center justify-center text-xs font-bold">{idx+1}</span>'
+                        f'<span class="w-6 h-6 rounded-full {dot_col} flex items-center justify-center text-xs font-bold font-mono shadow-xs">{idx+1}</span>'
                         f'<span class="text-xs font-semibold">{s_t}</span>'
                         f'</div>'
                     )

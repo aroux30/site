@@ -189,12 +189,21 @@ export function CanvasOverlayLayer({
   if (selectedRect) {
     const scrollY = win.scrollY || 0;
     const viewportTop = selectedRect.top - scrollY;
+    const viewportBottom = viewportTop + selectedRect.height;
 
-    // Flip below only if there is not enough clearance above in both viewport and document
-    if (viewportTop < TOOLBAR_HEIGHT && selectedRect.top < TOOLBAR_HEIGHT + 2) {
-      toolbarTop = selectedRect.top + selectedRect.height + 4;
+    // Sticky / Tall Section Clearance:
+    // If element is tall and its top has scrolled past or is at the very top edge,
+    // position toolbar inside the top of the visible area so it never vanishes below or gets clipped.
+    if (viewportTop < TOOLBAR_HEIGHT + 4) {
+      if (selectedRect.height > 250 && viewportBottom > TOOLBAR_HEIGHT + 40) {
+        toolbarTop = Math.max(selectedRect.top + 8, scrollY + 8);
+      } else if (selectedRect.top < TOOLBAR_HEIGHT + 4) {
+        toolbarTop = selectedRect.top + selectedRect.height + 4;
+      } else {
+        toolbarTop = Math.max(2, selectedRect.top - TOOLBAR_HEIGHT - 4);
+      }
     } else {
-      toolbarTop = Math.max(2, selectedRect.top - TOOLBAR_HEIGHT - 2);
+      toolbarTop = Math.max(2, selectedRect.top - TOOLBAR_HEIGHT - 4);
     }
 
     // In RTL, align toolbar with the start of the element, strictly clamped within document bounds

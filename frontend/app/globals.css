@@ -277,6 +277,26 @@
     @apply border border-primary/20 bg-background/80 backdrop-blur-xl shadow-xl shadow-primary/5;
   }
 
+  /* Builder Inspector & Sidebar Scrollbars */
+  .builder-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--muted-foreground) / 0.35) transparent;
+  }
+  .builder-scrollbar::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  .builder-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .builder-scrollbar::-webkit-scrollbar-thumb {
+    background: hsl(var(--muted-foreground) / 0.35);
+    border-radius: 9999px;
+  }
+  .builder-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-foreground) / 0.65);
+  }
+
   @keyframes fadeIn {
     from {
       opacity: 0;

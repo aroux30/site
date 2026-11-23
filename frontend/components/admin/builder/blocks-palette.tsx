@@ -300,7 +300,7 @@ export function BlocksPalette() {
   }, [savedTemplates, search, tplTypeFilter]);
 
   return (
-    <div className="flex flex-col h-full space-y-3 p-3 select-none">
+    <div className="flex flex-col h-full min-h-0 space-y-3 p-3 select-none">
       {/* Sub-tab toggle: Basic Blocks vs Ready Patterns vs Saved Templates */}
       <div className="grid grid-cols-3 p-1 rounded-xl bg-muted/60 border border-border/70 text-xs shrink-0 gap-1">
         <button
@@ -394,7 +394,7 @@ export function BlocksPalette() {
       )}
 
       {/* Main Tab Content */}
-      <div className="flex-1 overflow-y-auto space-y-4 pe-1">
+      <div className="flex-1 min-h-0 overflow-y-auto space-y-4 pe-1 builder-scrollbar">
         {activeTab === "basic" ? (
           <>
             {/* Layout Blocks */}

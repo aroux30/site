@@ -15,12 +15,17 @@ if (!round) {
 }
 
 const msg = String(input?.last_assistant_message ?? "");
-if (round && (agentType.includes("qa-verifier") || msg.includes("qa-verifier") || msg.includes('"verdict"'))) {
+const isVerifier = agentType.includes("qa-verifier") ||
+                   String(input?.description ?? "").toLowerCase().includes("qa-verifier") ||
+                   String(input?.prompt ?? "").includes("qa-verifier") ||
+                   msg.includes('"verdict"');
+
+if (round && isVerifier) {
   const jsonMatch = msg.match(/```json\s*([\s\S]*?)```/i) ?? msg.match(/(\{[\s\S]*"verdict"[\s\S]*\})/);
   if (jsonMatch) {
     try {
       const parsed = JSON.parse(jsonMatch[1].trim());
-      const scopeDir = process.env.GYM_SCOPE === "gym" ? "gym" : "builder-gym";
+      const scopeDir = (process.env.GYM_SCOPE || "builder") === "builder" ? "builder-gym" : "gym";
       const outDir = join(process.cwd(), ".loop", "artifacts", scopeDir, `round-${String(round).padStart(3, "0")}`);
       const outDir2 = join(process.cwd(), ".loop", "artifacts", scopeDir, `round-${String(round).padStart(2, "0")}`);
       mkdirSync(outDir, { recursive: true });

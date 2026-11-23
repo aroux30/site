@@ -37,7 +37,9 @@ asyncio.run(main())
   }
 }
 
-test.describe("Builder Gym Round 50: Breadcrumbs 4-Layer Architecture & Validation Parity (1920x1080)", () => {
+test.describe("Builder Gym Round 50: Inspector Scrolling, Menus & Multi-Step / Breadcrumbs 4-Layer Parity", () => {
+  test.use({ viewport: { width: 1920, height: 1080 } });
+
   test.beforeEach(async ({ context }) => {
     const token = getAdminToken();
     if (token) {
@@ -60,7 +62,117 @@ test.describe("Builder Gym Round 50: Breadcrumbs 4-Layer Architecture & Validati
     });
   });
 
-  test("1. Breadcrumbs widget can be searched in palette, inserted, customized in Inspector without 422 error", async ({ page }) => {
+  test("1. Inspector scrolling works smoothly on Content, Style and Advanced tabs", async ({ page }) => {
+    await page.setViewportSize({ width: 1920, height: 1080 });
+    await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(2500);
+
+    const addBtn = page.locator("button:has-text('دکمه اقدام')").first();
+    await expect(addBtn).toBeVisible({ timeout: 10000 });
+    await addBtn.click();
+    await page.waitForTimeout(600);
+
+    const inspector = page.locator("[data-builder-inspector]");
+    await expect(inspector).toBeVisible();
+
+    // Check Style Tab scroll
+    const styleTab = page.locator('button[role="tab"]:has-text("استایل")').first();
+    await styleTab.click();
+    await page.waitForTimeout(400);
+
+    const scrollContainer = inspector.locator(".builder-scrollbar").first();
+    await expect(scrollContainer).toBeVisible();
+
+    const metricsBefore = await scrollContainer.evaluate((el) => ({
+      scrollHeight: el.scrollHeight,
+      clientHeight: el.clientHeight,
+      scrollTop: el.scrollTop,
+    }));
+    expect(metricsBefore.scrollHeight).toBeGreaterThan(metricsBefore.clientHeight);
+
+    await scrollContainer.evaluate((el) => { el.scrollTop = 500; });
+    await page.waitForTimeout(300);
+
+    const scrollTopAfter = await scrollContainer.evaluate((el) => el.scrollTop);
+    expect(scrollTopAfter).toBeGreaterThan(0);
+
+    await page.screenshot({ path: path.join(ARTIFACTS_DIR, "01-inspector-style-scrolled.png") });
+
+    // Check Advanced Tab scroll
+    const advTab = page.locator('button[role="tab"]:has-text("پیشرفته")').first();
+    await advTab.click();
+    await page.waitForTimeout(400);
+
+    const advMetrics = await scrollContainer.evaluate((el) => ({
+      scrollHeight: el.scrollHeight,
+      clientHeight: el.clientHeight,
+    }));
+    expect(advMetrics.scrollHeight).toBeGreaterThan(advMetrics.clientHeight);
+
+    await scrollContainer.evaluate((el) => { el.scrollTop = 600; });
+    await page.waitForTimeout(300);
+    const advScrollAfter = await scrollContainer.evaluate((el) => el.scrollTop);
+    expect(advScrollAfter).toBeGreaterThan(0);
+
+    await page.screenshot({ path: path.join(ARTIFACTS_DIR, "02-inspector-advanced-scrolled.png") });
+  });
+
+  test("2. Select menus open and appear above inspector (z-index verified)", async ({ page }) => {
+    await page.setViewportSize({ width: 1920, height: 1080 });
+    await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(2000);
+
+    const addHeading = page.locator("button[data-block-type='heading']").first();
+    await expect(addHeading).toBeVisible({ timeout: 10000 });
+    await addHeading.click();
+    await page.waitForTimeout(600);
+
+    const inspector = page.locator("[data-builder-inspector]");
+    const selectTrigger = inspector.locator("button[role='combobox']").first();
+    await expect(selectTrigger).toBeVisible();
+    await selectTrigger.click();
+    await page.waitForTimeout(500);
+
+    const selectContent = page.locator("[role='listbox']").first();
+    await expect(selectContent).toBeVisible();
+
+    const zIndex = await selectContent.evaluate((el) => window.getComputedStyle(el).zIndex);
+    expect(parseInt(zIndex, 10)).toBeGreaterThanOrEqual(120);
+
+    await page.screenshot({ path: path.join(ARTIFACTS_DIR, "03-select-dropdown-open.png") });
+  });
+
+  test("3. Multi-step form widget configuration and step addition works in inspector", async ({ page }) => {
+    await page.setViewportSize({ width: 1920, height: 1080 });
+    await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(2000);
+
+    const searchInput = page.locator('input[placeholder*="جستجوی بلوک"]').first();
+    await searchInput.fill("فرم چندمرحله‌ای");
+    await page.waitForTimeout(300);
+
+    const formBlockBtn = page.locator("button:has-text('فرم چندمرحله‌ای')").first();
+    await expect(formBlockBtn).toBeVisible();
+    await formBlockBtn.click();
+    await page.waitForTimeout(600);
+
+    const inspector = page.locator("[data-builder-inspector]");
+    await expect(inspector).toBeVisible();
+
+    const curStepInput = inspector.locator('[data-testid="step-form-cur-input"]');
+    await expect(curStepInput).toBeVisible();
+
+    const addStepBtn = inspector.locator("button:has-text('+ افزودن مرحله')");
+    await expect(addStepBtn).toBeVisible();
+    await addStepBtn.click();
+    await page.waitForTimeout(300);
+
+    await expect(inspector.locator("input[value='مرحله 4']")).toBeVisible();
+
+    await page.screenshot({ path: path.join(ARTIFACTS_DIR, "04-multi-step-form-inspector.png") });
+  });
+
+  test("4. Breadcrumbs widget can be searched in palette, inserted, customized in Inspector without 422 error", async ({ page }) => {
     const errors: string[] = [];
     page.on("pageerror", (err) => errors.push(err.message));
     page.on("response", (res) => {
@@ -108,6 +220,6 @@ test.describe("Builder Gym Round 50: Breadcrumbs 4-Layer Architecture & Validati
     expect(errors.filter((e) => e.includes("422"))).toEqual([]);
 
     // 7. Capture verified screenshot at 1920x1080
-    await page.screenshot({ path: path.join(ARTIFACTS_DIR, "01-breadcrumbs-verified-1920x1080.png") });
+    await page.screenshot({ path: path.join(ARTIFACTS_DIR, "05-breadcrumbs-verified-1920x1080.png") });
   });
 });

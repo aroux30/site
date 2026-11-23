@@ -7,8 +7,9 @@
     "ssr_parity": 10
   },
   "vision_findings": [
-    "تایید شد: همگام‌سازی کامل آرایه نقاط و مختصات دوگانه (x/left, y/top) در ویجت hotspot در canvas-element.tsx و ast_compiler.py",
-    "تایید شد: راه‌اندازی مجدد و تمیز سرور پروداکشن روی پورت ۱۰۰۲ با موفقیت کامل و صفر خطای کنسول و شبکه انجام شد"
+    "Clean 1920x1080 studio layout on port 1001",
+    "Price table and multi-step form contrast perfectly aligned with RTL",
+    "Sticky header clearance resolved without toolbar clipping"
   ],
   "unlogged_defects": [],
   "blocking_reasons": []

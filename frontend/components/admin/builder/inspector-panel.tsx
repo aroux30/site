@@ -131,6 +131,130 @@ export function InspectorPanel() {
   // ── Render Content Tab Controls ───────────────────────────────────────────
 
   const renderContentControls = () => {
+    if (selectedElement.widgetType === "nested_tabs") {
+      const tabTitles = Array.isArray(props.tab_titles) && props.tab_titles.length > 0
+        ? props.tab_titles
+        : ["برگه اول", "برگه دوم"];
+      const activeTab = Number(props.active_tab) || 0;
+
+      return (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <Label className="text-xs font-bold text-foreground">مدیریت زبانه‌های تودرتو ({tabTitles.length})</Label>
+            <button
+              type="button"
+              onClick={() => {
+                const updated = [...tabTitles, `برگه ${tabTitles.length + 1}`];
+                handlePropChange("tab_titles", updated);
+              }}
+              className="text-[11px] text-primary hover:underline font-semibold"
+            >
+              + افزودن زبانه
+            </button>
+          </div>
+          <div className="space-y-2.5">
+            {tabTitles.map((t: string, idx: number) => (
+              <div key={idx} className="p-2.5 rounded-xl border bg-muted/20 space-y-2">
+                <div className="flex items-center justify-between gap-2 border-b border-border/40 pb-1">
+                  <span className="text-[11px] font-bold text-foreground">زبانه {idx + 1}</span>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => handlePropChange("active_tab", idx)}
+                      className={cn(
+                        "text-[10px] px-2 py-0.5 rounded-md font-semibold transition",
+                        activeTab === idx ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:text-foreground"
+                      )}
+                    >
+                      {activeTab === idx ? "فعال در بوم" : "انتخاب زبانه"}
+                    </button>
+                    {tabTitles.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const updated = tabTitles.filter((_: any, i: number) => i !== idx);
+                          handlePropChange("tab_titles", updated);
+                          if (activeTab >= updated.length) handlePropChange("active_tab", Math.max(0, updated.length - 1));
+                        }}
+                        className="text-[10px] text-destructive hover:underline"
+                      >
+                        حذف
+                      </button>
+                    )}
+                  </div>
+                </div>
+                <Input
+                  value={t || ""}
+                  onChange={(e) => {
+                    const updated = [...tabTitles];
+                    updated[idx] = e.target.value;
+                    handlePropChange("tab_titles", updated);
+                  }}
+                  placeholder="عنوان زبانه"
+                  className="h-7 text-xs"
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    if (selectedElement.widgetType === "nested_accordion") {
+      const itemTitles = Array.isArray(props.item_titles) && props.item_titles.length > 0
+        ? props.item_titles
+        : ["بخش اول تاشو", "بخش دوم تاشو"];
+
+      return (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <Label className="text-xs font-bold text-foreground">مدیریت بخش‌های آکاردئون ({itemTitles.length})</Label>
+            <button
+              type="button"
+              onClick={() => {
+                const updated = [...itemTitles, `بخش ${itemTitles.length + 1} تاشو`];
+                handlePropChange("item_titles", updated);
+              }}
+              className="text-[11px] text-primary hover:underline font-semibold"
+            >
+              + افزودن بخش
+            </button>
+          </div>
+          <div className="space-y-2.5">
+            {itemTitles.map((t: string, idx: number) => (
+              <div key={idx} className="p-2.5 rounded-xl border bg-muted/20 space-y-2">
+                <div className="flex items-center justify-between gap-2 border-b border-border/40 pb-1">
+                  <span className="text-[11px] font-bold text-foreground">آیتم {idx + 1}</span>
+                  {itemTitles.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const updated = itemTitles.filter((_: any, i: number) => i !== idx);
+                        handlePropChange("item_titles", updated);
+                      }}
+                      className="text-[10px] text-destructive hover:underline"
+                    >
+                      حذف
+                    </button>
+                  )}
+                </div>
+                <Input
+                  value={t || ""}
+                  onChange={(e) => {
+                    const updated = [...itemTitles];
+                    updated[idx] = e.target.value;
+                    handlePropChange("item_titles", updated);
+                  }}
+                  placeholder="عنوان بخش تاشو"
+                  className="h-7 text-xs"
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
     if (selectedElement.type === "container") {
       const layout = selectedElement.layout || {
         kind: "flex",

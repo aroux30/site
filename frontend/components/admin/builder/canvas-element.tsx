@@ -1570,20 +1570,19 @@ function CanvasElementComponent({
         );
       }
       case "testimonial": {
-        const author = String(props.author || props.author_name || "نام مشتری");
-        const role = String(props.role || props.author_role || "سمت یا عنوان");
+        const author = String(props.author || "نام مشتری");
+        const role = String(props.role || "سمت یا عنوان");
         const company = String(props.company || "");
         const quote = String(props.quote || "متن دیدگاه مشتری در اینجا نمایش داده می‌شود.");
         const avatar = String(props.avatar_url || "/placeholder-hero.svg");
-        const roleText = role ? (company ? `${role} - ${company}` : role) : company;
         return (
           <div className="p-4 rounded-2xl border border-border/80 bg-card space-y-3 shadow-sm w-full text-right">
             <p className="text-xs text-muted-foreground leading-relaxed italic">«{quote}»</p>
             <div className="flex items-center gap-3 pt-2 border-t border-border/60">
-              <img src={avatar} alt={author} className="w-9 h-9 rounded-full object-cover shrink-0" loading="lazy" />
+              <img src={avatar} alt={author} className="w-9 h-9 rounded-full object-cover shrink-0" />
               <div>
                 <div className="text-xs font-bold text-foreground">{author}</div>
-                {roleText && <div className="text-[10px] text-muted-foreground">{roleText}</div>}
+                <div className="text-[10px] text-muted-foreground">{role}{company ? ` - ${company}` : ""}</div>
               </div>
             </div>
           </div>
@@ -1611,48 +1610,41 @@ function CanvasElementComponent({
       case "image_box": {
         const title = String(props.title || "عنوان ویژگی تصویری");
         const desc = String(props.description || "توضیحات باکس تصویر");
-        const imgUrl = String(props.image_url || props.url || "/placeholder-hero.svg");
-        const linkUrl = String(props.link || props.url_link || props.link_url || "#");
-        const pos = String(props.position || "top");
-        const flexCls = pos === "left" ? "flex flex-row-reverse items-start gap-4 text-right" : (pos === "right" ? "flex flex-row items-start gap-4 text-right" : "flex flex-col items-center text-center");
+        const imgUrl = String(props.image_url || "/placeholder-hero.svg");
+        const linkUrl = String(props.link_url || "#");
         return (
-          <div className={cn("p-4 rounded-2xl border border-border/80 bg-card space-y-3 shadow-sm w-full", flexCls)}>
-            <div className="w-full aspect-video rounded-xl overflow-hidden bg-muted/30 flex items-center justify-center shrink-0">
+          <div className="p-4 rounded-2xl border border-border/80 bg-card text-center space-y-3 shadow-sm w-full">
+            <div className="w-full aspect-video rounded-xl overflow-hidden bg-muted/30 flex items-center justify-center">
               <img src={imgUrl} alt={title} className="w-full h-full object-cover" loading="lazy" />
             </div>
-            <div className="space-y-1 flex-1">
-              <h4 className="text-sm font-bold text-foreground">{title}</h4>
-              <p className="text-xs text-muted-foreground leading-relaxed">{desc}</p>
-              {linkUrl && linkUrl !== "#" && (
-                <a href={linkUrl} onClick={(e) => !previewMode && e.preventDefault()} className="text-xs font-bold text-primary hover:underline inline-block mt-1">
-                  مشاهده بیشتر ←
-                </a>
-              )}
-            </div>
+            <h4 className="text-sm font-bold text-foreground">{title}</h4>
+            <p className="text-xs text-muted-foreground leading-relaxed">{desc}</p>
+            {linkUrl && linkUrl !== "#" && (
+              <a href={linkUrl} onClick={(e) => !previewMode && e.preventDefault()} className="text-xs font-bold text-primary hover:underline inline-block">
+                مشاهده بیشتر ←
+              </a>
+            )}
           </div>
         );
       }
       case "toggle": {
-        const rawItems = (props.items as any[]) || [
+        const items = (props.items as any[]) || [
           { title: "عنوان تاگل ۱", content: "محتوای تاگل ۱", default_open: true },
           { title: "عنوان تاگل ۲", content: "محتوای تاگل ۲", default_open: true },
         ];
         return (
           <div className="builder-toggle space-y-2 w-full" data-widget="toggle">
-            {rawItems.map((itm, idx) => {
-              const isOpen = itm.is_open !== undefined ? Boolean(itm.is_open) : (itm.default_open !== undefined ? Boolean(itm.default_open) : idx === 0);
-              return (
-                <details key={idx} className="group rounded-xl border border-border/80 bg-card overflow-hidden" open={isOpen}>
-                  <summary className="p-3.5 font-bold text-xs text-foreground cursor-pointer list-none flex items-center justify-between hover:bg-muted/40 transition select-none">
-                    <span>{itm.title || "بخش"}</span>
-                    <span className="transition-transform group-open:rotate-180">▾</span>
-                  </summary>
-                  <div className="p-3.5 pt-0 text-xs text-muted-foreground border-t border-border/40 leading-relaxed">
-                    {itm.content || ""}
-                  </div>
-                </details>
-              );
-            })}
+            {items.map((itm, idx) => (
+              <details key={idx} className="group rounded-xl border border-border/80 bg-card overflow-hidden" open={itm.default_open !== false}>
+                <summary className="p-3.5 font-bold text-xs text-foreground cursor-pointer list-none flex items-center justify-between hover:bg-muted/40 transition select-none">
+                  <span>{itm.title || "بخش"}</span>
+                  <span className="transition-transform group-open:rotate-180">▾</span>
+                </summary>
+                <div className="p-3.5 pt-0 text-xs text-muted-foreground border-t border-border/40 leading-relaxed">
+                  {itm.content || ""}
+                </div>
+              </details>
+            ))}
           </div>
         );
       }
@@ -1678,19 +1670,9 @@ function CanvasElementComponent({
       case "hotspot": {
         const imgUrl = String(props.image_url || "/placeholder-hero.svg");
         const alt = String(props.alt || "تصویر");
-        const rawSpots = (props.spots as any[]) || (props.hotspots as any[]) || [
+        const hotspots = (props.hotspots as any[]) || [
           { id: "h1", x: 30, y: 40, label: "۱", title: "ویژگی اول", tooltip: "توضیح نقطه اول" },
         ];
-        const hotspots = Array.isArray(rawSpots)
-          ? rawSpots.map((s, idx) => ({
-              id: s?.id || `hs_${idx}`,
-              x: s?.x !== undefined ? s.x : (s?.left !== undefined ? s.left : 50),
-              y: s?.y !== undefined ? s.y : (s?.top !== undefined ? s.top : 50),
-              label: s?.label || s?.title || `${idx + 1}`,
-              title: s?.title || s?.label || "",
-              tooltip: s?.content || s?.tooltip || s?.desc || "",
-            }))
-          : [];
         return (
           <div className="builder-hotspot relative w-full rounded-2xl overflow-hidden border border-border/80 bg-muted/20 select-none" data-widget="hotspot">
             <img src={imgUrl} alt={alt} className="w-full h-auto block object-cover" loading="lazy" />
@@ -1718,22 +1700,32 @@ function CanvasElementComponent({
         const title = String(props.title || "پلن پایه");
         const subtitle = String(props.subtitle || "");
         const price = String(props.price || "۲۹۰,۰۰۰");
-        const currency = String(props.currency || "تومان");
+        const rawCurrency = String(props.currency || "تومان");
         const period = String(props.period || "ماهانه");
-        const btnLabel = String(props.button_label || "شروع کنید");
+        const currencyDisplay = rawCurrency.includes("/") ? rawCurrency : `${rawCurrency} / ${period}`;
+        const btnLabel = String(props.button_label || props.button_text || "انتخاب و شروع پلن");
+        const btnUrl = String(props.button_url || "/checkout");
         const isFeatured = props.is_featured === true;
-        const features = (props.features as any[]) || [
+        const badge = props.badge ? String(props.badge) : (isFeatured ? "پیشنهاد ویژه" : "");
+        const rawFeatures = Array.isArray(props.features) ? props.features : [
           { text: "امکانات پایه سیستم", available: true },
           { text: "پشتیبانی استاندارد", available: true },
         ];
+        const features = rawFeatures.map((f: any) => {
+          if (typeof f === "string") return { text: f, available: true };
+          return { text: String(f?.text || f?.title || ""), available: f?.available !== false };
+        });
         return (
-          <div className={cn(
-            "p-6 rounded-3xl border bg-card text-center space-y-4 shadow-sm w-full transition relative overflow-hidden",
-            isFeatured ? "border-primary ring-2 ring-primary/20 shadow-lg" : "border-border/80"
-          )}>
-            {isFeatured && (
+          <div
+            data-widget="price_table"
+            className={cn(
+              "p-6 rounded-3xl border bg-card text-center space-y-4 shadow-sm w-full transition relative overflow-hidden",
+              isFeatured ? "border-primary ring-2 ring-primary/20 shadow-lg" : "border-border/80"
+            )}
+          >
+            {badge && (
               <div className="absolute top-0 end-0 bg-primary text-primary-foreground text-[10px] font-bold px-3 py-1 rounded-bl-xl shadow-xs">
-                پیشنهاد ویژه
+                {badge}
               </div>
             )}
             <div className="space-y-1">
@@ -1742,29 +1734,36 @@ function CanvasElementComponent({
             </div>
             <div className="py-2 border-y border-border/60">
               <span className="text-3xl font-black text-primary font-mono">{price}</span>
-              <span className="text-xs text-muted-foreground ms-1">{currency} / {period}</span>
+              <span className="text-xs text-muted-foreground ms-1">{currencyDisplay}</span>
             </div>
             <ul className="space-y-2 text-xs text-right list-none p-0 m-0">
               {features.map((f, idx) => (
                 <li key={idx} className="flex items-center gap-2">
-                  <span className="w-4 h-4 rounded-full bg-emerald-500/10 text-emerald-600 flex items-center justify-center shrink-0 text-[10px] font-bold">✓</span>
-                  <span className="text-muted-foreground">{f.text}</span>
+                  <span className={cn(
+                    "w-4 h-4 rounded-full flex items-center justify-center shrink-0 text-[10px] font-bold",
+                    f.available ? "bg-emerald-500/10 text-emerald-600" : "bg-muted text-muted-foreground/40 line-through"
+                  )}>
+                    {f.available ? "✓" : "–"}
+                  </span>
+                  <span className={cn(f.available ? "text-muted-foreground" : "text-muted-foreground/50 line-through")}>
+                    {f.text}
+                  </span>
                 </li>
               ))}
             </ul>
             <div className="pt-2">
-              <button
-                type="button"
+              <a
+                href={btnUrl}
                 onClick={(e) => !previewMode && e.preventDefault()}
                 className={cn(
-                  "w-full py-2.5 rounded-xl font-bold text-xs transition shadow-sm",
+                  "block w-full py-2.5 rounded-xl font-bold text-xs transition shadow-sm text-center",
                   isFeatured
                     ? "bg-primary text-primary-foreground hover:bg-primary/90"
                     : "bg-muted/80 text-foreground hover:bg-muted"
                 )}
               >
                 {btnLabel}
-              </button>
+              </a>
             </div>
           </div>
         );
@@ -1807,9 +1806,13 @@ function CanvasElementComponent({
         );
       }
       case "price_list": {
-        const items = (props.items as any[]) || [
-          { title: "عنوان خدمت", description: "توضیح کوتاه خدمت", price: "۱۰۰,۰۰۰ تومان" },
+        const rawItems = Array.isArray(props.items) ? (props.items as any[]) : [];
+        const items = rawItems.length > 0 ? rawItems : [
+          { title: "مشاوره اختصاصی کسب‌وکار", description: "جلسه ۱ ساعته تحلیل استراتژیک", price: "۳۵۰,۰۰۰ تومان" },
+          { title: "طراحی هویت بصری و لوگو", description: "شامل فایل‌های وکتور و راهنمای رنگ", price: "۱,۲۰۰,۰۰۰ تومان" },
         ];
+        const sepStyle = String(props.separator_style || "dotted");
+        const sepBorderClass = sepStyle === "none" ? "" : (sepStyle === "dashed" ? "border-dashed" : (sepStyle === "solid" ? "border-solid" : "border-dotted"));
         return (
           <div className="builder-price-list space-y-3 w-full" data-widget="price_list">
             {items.map((itm, idx) => (
@@ -1820,6 +1823,9 @@ function CanvasElementComponent({
                 <div className="flex-1 space-y-0.5 text-right">
                   <div className="flex items-center justify-between gap-2">
                     <span className="font-bold text-xs text-foreground">{itm.title}</span>
+                    {sepStyle !== "none" && (
+                      <span className={cn("flex-1 border-b border-border/80 mx-2 mb-1", sepBorderClass)} />
+                    )}
                     <span className="font-mono font-black text-xs text-primary shrink-0">{itm.price}</span>
                   </div>
                   {itm.description && (
@@ -1915,25 +1921,6 @@ function CanvasElementComponent({
           </div>
         );
       }
-      case "icon_list": {
-        const items = (props.items as any[]) || [
-          { text: "ارسال سریع با پست پیشتاز", icon: "check" },
-          { text: "ضمانت بازگشت وجه تا ۷ روز", icon: "check" },
-          { text: "پشتیبانی اختصاصی ۲۴ ساعته", icon: "check" },
-        ];
-        return (
-          <ul className="space-y-2.5 w-full text-right p-0 m-0 list-none">
-            {items.map((item, idx) => (
-              <li key={idx} className="flex items-center gap-2.5 text-xs text-foreground font-medium">
-                <span className="w-5 h-5 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0">
-                  <Check className="w-3 h-3" />
-                </span>
-                <span>{item.text}</span>
-              </li>
-            ))}
-          </ul>
-        );
-      }
       case "blockquote": {
         const text = String(props.text || "نقل‌قول برگزیده شما در این قسمت قرار می‌گیرد.");
         const author = String(props.author || "");
@@ -1942,73 +1929,6 @@ function CanvasElementComponent({
             <p className="text-sm leading-relaxed">«{text}»</p>
             {author && <cite className="block text-xs text-muted-foreground not-italic mt-1.5 font-semibold">— {author}</cite>}
           </blockquote>
-        );
-      }
-      case "price_table": {
-        const title = String(props.title || "پلن پایه");
-        const badge = props.badge ? String(props.badge) : undefined;
-        const price = String(props.price || "۲۹۰,۰۰۰");
-        const currency = String(props.currency || "تومان / ماهانه");
-        const features = (props.features as string[]) || ["امکان اول", "امکان دوم", "امکان سوم"];
-        const btnText = String(props.button_text || "انتخاب پلن");
-        return (
-          <div className="p-6 rounded-2xl border border-border/80 bg-card text-center space-y-4 shadow-sm w-full">
-            {badge && (
-              <span className="inline-block px-3 py-1 rounded-full bg-primary/15 text-primary text-xs font-bold">
-                {badge}
-              </span>
-            )}
-            <h3 className="text-lg font-bold text-foreground">{title}</h3>
-            <div className="py-2 border-y border-border/50">
-              <span className="text-3xl font-black text-primary font-mono">{price}</span>
-              <span className="text-xs text-muted-foreground ms-1">{currency}</span>
-            </div>
-            <ul className="space-y-2 text-right text-xs text-muted-foreground">
-              {features.map((f, idx) => (
-                <li key={idx} className="flex items-center gap-2">
-                  <Check className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                  <span>{f}</span>
-                </li>
-              ))}
-            </ul>
-            <button type="button" className="w-full py-2.5 rounded-xl bg-primary text-primary-foreground font-bold text-xs shadow hover:bg-primary/90 transition">
-              {btnText}
-            </button>
-          </div>
-        );
-      }
-      case "image_box": {
-        const imgUrl = String(props.image_url || "/placeholder-hero.svg");
-        const title = String(props.title || "عنوان جعبه تصویر");
-        const desc = String(props.description || "توضیحات کوتاه در این بخش قرار می‌گیرد.");
-        return (
-          <div className="p-4 rounded-2xl border border-border/80 bg-card text-center space-y-3 shadow-sm w-full">
-            <div className="w-full aspect-video max-h-48 rounded-xl overflow-hidden bg-muted/30 flex items-center justify-center mx-auto">
-              <img src={imgUrl} alt={title} className="w-full h-full object-cover" />
-            </div>
-            <h3 className="text-base font-bold text-foreground">{title}</h3>
-            <p className="text-xs text-muted-foreground leading-relaxed">{desc}</p>
-          </div>
-        );
-      }
-      case "price_list": {
-        const items = (props.items as any[]) || [
-          { title: "سرویس اول", price: "۱۰۰,۰۰۰ تومان", description: "توضیح کوتاه سرویس اول" },
-          { title: "سرویس دوم", price: "۲۰۰,۰۰۰ تومان", description: "توضیح کوتاه سرویس دوم" },
-        ];
-        return (
-          <div className="space-y-4 w-full p-2">
-            {items.map((item, idx) => (
-              <div key={idx} className="space-y-1">
-                <div className="flex items-baseline justify-between gap-2">
-                  <span className="text-xs font-bold text-foreground shrink-0">{item.title}</span>
-                  <span className="flex-1 border-b border-dotted border-border/80 mx-1 mb-1" />
-                  <span className="text-xs font-bold text-primary font-mono shrink-0">{item.price}</span>
-                </div>
-                {item.description && <p className="text-[11px] text-muted-foreground leading-relaxed">{item.description}</p>}
-              </div>
-            ))}
-          </div>
         );
       }
       case "share_buttons": {
@@ -2053,53 +1973,6 @@ function CanvasElementComponent({
                 <span key={idx} className={cn("w-2 h-2 rounded-full", idx === 0 ? "bg-primary" : "bg-muted-foreground/30")} />
               ))}
             </div>
-          </div>
-        );
-      }
-      case "toggle": {
-        const items = (props.items as any[]) || [
-          { title: "بخش تاشو", content: "محتوا" },
-        ];
-        return (
-          <div className="space-y-2.5 w-full text-right">
-            {items.map((item, idx) => (
-              <details key={idx} open={item.open ?? (idx === 0)} className="group rounded-xl border border-border/80 bg-card p-3 shadow-sm transition">
-                <summary className="font-bold text-xs cursor-pointer flex items-center justify-between list-none">
-                  <span>{item.title}</span>
-                  <ChevronDown className="w-4 h-4 text-muted-foreground transition group-open:rotate-180" />
-                </summary>
-                <div className="pt-2 text-[11px] text-muted-foreground leading-relaxed border-t border-border/40 mt-2">
-                  {item.content}
-                </div>
-              </details>
-            ))}
-          </div>
-        );
-      }
-      case "hotspot": {
-        const imgUrl = String(props.image_url || "/placeholder-hero.svg");
-        const spots = (props.spots as any[]) || [
-          { top: 40, left: 35, title: "نقطه اول" },
-        ];
-        return (
-          <div className="relative w-full rounded-2xl overflow-hidden bg-muted/20 border border-border/80 aspect-video max-h-72">
-            <img src={imgUrl} alt="Hotspot" className="w-full h-full object-cover" />
-            {spots.map((s, idx) => (
-              <div
-                key={idx}
-                style={{ top: `${s.top}%`, left: `${s.left}%` }}
-                className="absolute -translate-x-1/2 -translate-y-1/2 group cursor-pointer"
-              >
-                <span className="w-5 h-5 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-[10px] font-bold shadow-lg ring-4 ring-primary/30 animate-pulse">
-                  {idx + 1}
-                </span>
-                {s.title && (
-                  <div className="absolute bottom-full mb-1.5 start-1/2 -translate-x-1/2 hidden group-hover:block bg-popover text-popover-foreground text-[10px] font-bold py-1 px-2 rounded-lg shadow whitespace-nowrap z-10 border border-border">
-                    {s.title}
-                  </div>
-                )}
-              </div>
-            ))}
           </div>
         );
       }
@@ -2150,56 +2023,128 @@ function CanvasElementComponent({
         );
       }
       case "multi_step_form": {
-        const rawSteps = (props.steps as any[]) || ["مرحله اول", "مرحله دوم", "مرحله نهایی"];
-        const steps = rawSteps.map((s) => (typeof s === "string" ? s : s?.title || String(s || "")));
-        const curStep = Number(props.current_step) || 1;
+        const title = String(props.title || "فرم چندمرحله‌ای");
+        const rawSteps = (props.steps as any[]) || [
+          { title: "اطلاعات تماس", description: "مشخصات فردی و همراه" },
+          { title: "جزییات درخواست", description: "نوع خدمت و توضیحات" },
+          { title: "تایید نهایی", description: "بررسی نهایی و ارسال" },
+        ];
+        const steps = rawSteps.map((s) => (typeof s === "string" ? { title: s, description: "" } : s));
+        const curStep = Math.max(1, Math.min(steps.length, Number(props.current_step) || 1));
+        const nextBtnLabel = String(props.next_button_label || (curStep === steps.length ? (props.submit_button_label || "ثبت نهایی") : "مرحله بعد ←"));
+        const prevBtnLabel = String(props.prev_button_label || "→ مرحله قبل");
+
         return (
-          <div className="p-6 rounded-2xl border border-border/80 bg-card space-y-5 shadow-sm w-full text-right">
+          <div data-widget="multi_step_form" className="p-6 rounded-3xl border border-border/80 bg-card space-y-5 shadow-sm w-full text-right relative overflow-hidden">
+            <div className="flex items-center justify-between border-b border-border/60 pb-3">
+              <h3 className="text-sm font-extrabold text-foreground">{title}</h3>
+              <span className="text-[11px] font-mono font-bold px-2 py-0.5 rounded-full bg-primary/10 text-primary">
+                گام {curStep} از {steps.length}
+              </span>
+            </div>
             {/* Step Indicators */}
-            <div className="flex items-center justify-between border-b border-border/60 pb-4">
-              {steps.map((st, idx) => (
-                <div key={idx} className="flex items-center gap-2">
-                  <span
+            <div className="flex items-center justify-between gap-2 overflow-x-auto pb-2 no-scrollbar">
+              {steps.map((st, idx) => {
+                const stepNum = idx + 1;
+                const isCurrent = stepNum === curStep;
+                const isPast = stepNum < curStep;
+                return (
+                  <div
+                    key={idx}
+                    onClick={(e) => {
+                      if (!previewMode) {
+                        e.stopPropagation();
+                        useBuilderStore.getState().updateElementProps(element.id, { current_step: stepNum });
+                      }
+                    }}
                     className={cn(
-                      "w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold font-mono",
-                      idx + 1 === curStep
-                        ? "bg-primary text-primary-foreground"
-                        : idx + 1 < curStep
-                        ? "bg-emerald-500 text-white"
-                        : "bg-muted text-muted-foreground"
+                      "flex items-center gap-2 p-1.5 rounded-xl transition cursor-pointer select-none",
+                      isCurrent ? "bg-primary/10" : "hover:bg-muted/40"
                     )}
                   >
-                    {idx + 1}
-                  </span>
-                  <span className={cn("text-xs font-semibold", idx + 1 === curStep ? "text-foreground font-bold" : "text-muted-foreground")}>
-                    {st}
-                  </span>
-                </div>
-              ))}
+                    <span
+                      className={cn(
+                        "w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold font-mono transition shadow-xs",
+                        isCurrent
+                          ? "bg-primary text-primary-foreground ring-2 ring-primary/30"
+                          : isPast
+                          ? "bg-emerald-500 text-white"
+                          : "bg-muted text-muted-foreground"
+                      )}
+                    >
+                      {isPast ? "✓" : stepNum}
+                    </span>
+                    <div className="text-right">
+                      <div className={cn("text-xs leading-none", isCurrent ? "text-primary font-bold" : "text-foreground font-medium")}>
+                        {st.title}
+                      </div>
+                      {st.description && (
+                        <div className="text-[10px] text-muted-foreground mt-0.5 max-w-[120px] truncate">
+                          {st.description}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
             {/* Form Fields for Step */}
-            <div className="space-y-3">
-              <div className="text-xs font-bold text-foreground">ورودی‌های {steps[curStep - 1] || "مرحله فعلی"}</div>
-              <input
-                type="text"
-                placeholder="نام و نام خانوادگی"
-                readOnly
-                className="w-full h-9 rounded-xl border border-input bg-muted/20 px-3 text-xs"
-              />
-              <input
-                type="text"
-                placeholder="شماره تماس همراه"
-                readOnly
-                className="w-full h-9 rounded-xl border border-input bg-muted/20 px-3 text-xs"
-              />
+            <div className="space-y-3.5 pt-1">
+              <div className="text-xs font-bold text-foreground flex items-center justify-between">
+                <span>ورودی‌های {steps[curStep - 1]?.title || `گام ${curStep}`}</span>
+                <span className="text-[11px] text-muted-foreground font-normal">تمام فیلدهای ستاره‌دار الزامی هستند</span>
+              </div>
+              <div className="space-y-1">
+                <label className="text-[11px] font-semibold text-muted-foreground">نام و نام‌خانوادگی *</label>
+                <input
+                  type="text"
+                  placeholder="مثال: علی رضایی"
+                  readOnly
+                  className="w-full h-9 rounded-xl border border-input bg-muted/20 px-3 text-xs text-foreground focus:outline-none"
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-[11px] font-semibold text-muted-foreground">شماره تماس همراه *</label>
+                <input
+                  type="text"
+                  placeholder="۰۹۱۲۳۴۵۶۷۸۹"
+                  readOnly
+                  dir="ltr"
+                  className="w-full h-9 rounded-xl border border-input bg-muted/20 px-3 text-xs text-foreground font-mono focus:outline-none"
+                />
+              </div>
             </div>
             {/* Navigation Buttons */}
-            <div className="flex items-center justify-between pt-2">
-              <button type="button" className="px-4 py-2 rounded-xl border border-border text-xs font-bold text-muted-foreground">
-                مرحله قبل
+            <div className="flex items-center justify-between pt-3 border-t border-border/60">
+              <button
+                type="button"
+                disabled={curStep <= 1}
+                onClick={(e) => {
+                  if (!previewMode && curStep > 1) {
+                    e.stopPropagation();
+                    useBuilderStore.getState().updateElementProps(element.id, { current_step: curStep - 1 });
+                  }
+                }}
+                className={cn(
+                  "px-4 py-2 rounded-xl border text-xs font-bold transition",
+                  curStep > 1
+                    ? "border-border text-foreground hover:bg-muted cursor-pointer"
+                    : "border-border/40 text-muted-foreground/40 cursor-not-allowed"
+                )}
+              >
+                {prevBtnLabel}
               </button>
-              <button type="button" className="px-5 py-2 rounded-xl bg-primary text-primary-foreground text-xs font-bold shadow">
-                مرحله بعد
+              <button
+                type="button"
+                onClick={(e) => {
+                  if (!previewMode && curStep < steps.length) {
+                    e.stopPropagation();
+                    useBuilderStore.getState().updateElementProps(element.id, { current_step: curStep + 1 });
+                  }
+                }}
+                className="px-5 py-2 rounded-xl bg-primary text-primary-foreground text-xs font-bold shadow hover:bg-primary/90 transition cursor-pointer"
+              >
+                {nextBtnLabel}
               </button>
             </div>
           </div>
@@ -2291,14 +2236,13 @@ function CanvasElementComponent({
                   {showCopy && (
                     <button
                       type="button"
-                      data-testid="code-copy-action-btn"
                       onClick={(e) => {
                         e.stopPropagation();
                         if (typeof navigator !== "undefined" && navigator.clipboard) {
                           navigator.clipboard.writeText(codeText);
                         }
                       }}
-                      className="px-2 py-0.5 rounded border border-slate-700 hover:bg-slate-800 hover:text-slate-200 text-slate-400 transition text-[10px] flex items-center gap-1 cursor-pointer active:scale-95"
+                      className="px-2 py-0.5 rounded border border-slate-700 hover:bg-slate-800 hover:text-slate-200 text-slate-400 transition text-[10px] flex items-center gap-1"
                     >
                       <Copy className="w-3 h-3" />
                       <span>کپی</span>
@@ -2602,7 +2546,62 @@ function CanvasElementComponent({
       )}
 
       {/* Content Rendering */}
-      {isContainer ? (
+      {element.widgetType === "nested_tabs" ? (
+        <div className="w-full space-y-3">
+          <div className="flex items-center gap-1.5 border-b border-border/60 pb-2">
+            {(Array.isArray(element.widgetProps?.tab_titles) && element.widgetProps.tab_titles.length > 0
+              ? element.widgetProps.tab_titles
+              : ["برگه اول", "برگه دوم"]
+            ).map((t: string, idx: number) => {
+              const activeTab = Number(element.widgetProps?.active_tab) || 0;
+              const isSelected = activeTab === idx;
+              return (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={(e) => {
+                    if (!previewMode) {
+                      e.stopPropagation();
+                      useBuilderStore.getState().updateElementProps(element.id, { active_tab: idx });
+                    }
+                  }}
+                  className={cn(
+                    "px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer select-none",
+                    isSelected
+                      ? "bg-primary text-primary-foreground shadow-xs"
+                      : "bg-muted/60 text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  {t}
+                </button>
+              );
+            })}
+          </div>
+          <div className="w-full">
+            {element.children && element.children.length > 0 ? (
+              element.children.map((child, idx) => {
+                const activeTab = Number(element.widgetProps?.active_tab) || 0;
+                const isTabActive = idx === activeTab;
+                return (
+                  <div key={child.id} className={cn("w-full transition-all", isTabActive ? "block" : "hidden")}>
+                    <CanvasElement
+                      element={child}
+                      activeBreakpoint={activeBreakpoint}
+                      depth={depth + 1}
+                    />
+                  </div>
+                );
+              })
+            ) : (
+              !previewMode && (
+                <div className="space-y-3 w-full">
+                  <ContainerPresetPicker containerId={element.id} />
+                </div>
+              )
+            )}
+          </div>
+        </div>
+      ) : isContainer ? (
         element.children && element.children.length > 0 ? (
           element.children.map((child) => (
             <CanvasElement

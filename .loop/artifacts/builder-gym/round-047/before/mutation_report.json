@@ -1,0 +1,45 @@
+{
+  "round": 47,
+  "timestamp": "2026-11-23T08:11:17.565Z",
+  "totalElementsScanned": 52,
+  "mutations": [
+    {
+      "target": "Widget Insertion: multi_step_form",
+      "effectProof": {
+        "inserted": true
+      },
+      "breakageProof": {
+        "consoleErrors": 94,
+        "networkErrors": 46
+      }
+    }
+  ],
+  "sensors": {
+    "consoleErrors": [
+      "Refused to apply style from 'http://127.0.0.1:4002/_next/static/css/789637916c1a6262.css' because its MIME type ('text/html') is not a supported stylesheet MIME type, and strict MIME checking is enabled.",
+      "Refused to apply style from 'http://127.0.0.1:4002/_next/static/css/86c0695a4a04625c.css' because its MIME type ('text/html') is not a supported stylesheet MIME type, and strict MIME checking is enabled.",
+      "Failed to load resource: the server responded with a status of 400 (Bad Request)",
+      "Refused to execute script from 'http://127.0.0.1:4002/_next/static/chunks/7395-17544e34076e600d.js' because its MIME type ('text/html') is not executable, and strict MIME type checking is enabled.",
+      "Failed to load resource: the server responded with a status of 400 (Bad Request)",
+      "Refused to execute script from 'http://127.0.0.1:4002/_next/static/chunks/main-app-1a89711880498beb.js' because its MIME type ('text/html') is not executable, and strict MIME type checking is enabled.",
+      "Failed to load resource: the server responded with a status of 400 (Bad Request)",
+      "Refused to execute script from 'http://127.0.0.1:4002/_next/static/chunks/webpack-c17466bbfee87083.js' because its MIME type ('text/html') is not executable, and strict MIME type checking is enabled.",
+      "Failed to load resource: the server responded with a status of 400 (Bad Request)",
+      "Refused to execute script from 'http://127.0.0.1:4002/_next/static/chunks/96e575d4-ad22827a4801cd80.js' because its MIME type ('text/html') is not executable, and strict MIME type checking is enabled."
+    ],
+    "networkErrors": [
+      "400 http://127.0.0.1:4002/_next/static/chunks/7395-17544e34076e600d.js",
+      "400 http://127.0.0.1:4002/_next/static/chunks/main-app-1a89711880498beb.js",
+      "400 http://127.0.0.1:4002/_next/static/chunks/webpack-c17466bbfee87083.js",
+      "400 http://127.0.0.1:4002/_next/static/chunks/96e575d4-ad22827a4801cd80.js",
+      "400 http://127.0.0.1:4002/_next/static/chunks/3289-e51b821fe866d127.js",
+      "400 http://127.0.0.1:4002/_next/static/chunks/895-486160da80bb9fbb.js",
+      "400 http://127.0.0.1:4002/_next/static/chunks/1737-bfe6251660a26d03.js",
+      "400 http://127.0.0.1:4002/_next/static/chunks/1269-a0110a3324e10e4c.js",
+      "400 http://127.0.0.1:4002/_next/static/chunks/1782-2532bae21b9de84f.js",
+      "400 http://127.0.0.1:4002/_next/static/chunks/7832-a23a607568acbad7.js"
+    ],
+    "hydrationErrors": 0,
+    "rtlCompliant": true
+  }
+}

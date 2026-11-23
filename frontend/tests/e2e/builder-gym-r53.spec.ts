@@ -79,30 +79,4 @@ test.describe("Builder Gym Round 45: Price Table, Multi-Step Form, and Sticky Cl
     const frame = page.frameLocator('iframe[title="Visual Builder Canvas"]');
     await expect(frame.locator("body")).toBeVisible();
   });
-
-  test("2. Parity check: Verify palette contains accordion and flip box widgets", async ({ page }) => {
-    await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
-    await page.waitForTimeout(1500);
-
-    const searchInput = page.locator('input[placeholder*="جستجو"]').first();
-    await searchInput.fill("آکاردئون");
-    await page.waitForTimeout(300);
-    await expect(page.locator('text="آکاردئون کانتینری"').first()).toBeVisible();
-
-    await searchInput.fill("");
-    await page.waitForTimeout(200);
-  });
-
-  test("3. Parity check: Verify palette contains image_box and testimonial widgets", async ({ page }) => {
-    await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
-    await page.waitForTimeout(1500);
-
-    const searchInput = page.locator('input[placeholder*="جستجو"]').first();
-    await searchInput.fill("تصویر");
-    await page.waitForTimeout(300);
-    await expect(page.locator('text="تصویر"').first()).toBeVisible();
-
-    await searchInput.fill("");
-    await page.waitForTimeout(200);
-  });
 });

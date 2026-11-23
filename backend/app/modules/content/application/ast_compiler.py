@@ -805,45 +805,36 @@ class ASTCompiler:
             )
 
         elif widget_type == "image_box":
-            img_url = html.escape(str(props.get("image_url", props.get("url", "/placeholder-hero.svg"))))
             title = html.escape(str(props.get("title", "عنوان ویژگی تصویری")))
             desc = html.escape(str(props.get("description", "")))
-            link = props.get("link", props.get("url_link", props.get("link_url", "")))
-            pos = str(props.get("position", "top"))
-            flex_cls = "flex flex-col items-center text-center" if pos == "top" else ("flex flex-row-reverse items-start gap-4 text-right" if pos == "left" else "flex flex-row items-start gap-4 text-right")
-            img_html = f'<img src="{img_url}" alt="{title}" class="rounded-xl object-cover max-w-full h-auto mb-2" loading="lazy" />'
-            desc_html = f'<p class="text-xs text-muted-foreground leading-relaxed">{desc}</p>' if desc else ""
-            inner = (
-                f'{img_html}'
-                f'<div class="space-y-1">'
-                f'<h4 class="font-bold text-sm text-foreground">{title}</h4>'
-                f'{desc_html}'
+            img_src = html.escape(str(props.get("image_url", "/placeholder-hero.svg")))
+            link = props.get("link_url")
+            link_html = f'<a href="{html.escape(str(link))}" class="text-xs font-bold text-primary hover:underline inline-block mt-2">مشاهده بیشتر ←</a>' if link and link != "#" else ""
+            return (
+                f'<div{id_attr} class="builder-image-box p-4 rounded-2xl border border-border/80 bg-card text-center space-y-3 {css_class}" data-widget="image_box"{style_attr}>'
+                f'<div class="w-full aspect-video rounded-xl overflow-hidden bg-muted/30 flex items-center justify-center">'
+                f'<img src="{img_src}" alt="{title}" class="w-full h-full object-cover" loading="lazy" />'
+                f'</div>'
+                f'<h4 class="text-sm font-bold text-foreground">{title}</h4>'
+                f'<p class="text-xs text-muted-foreground leading-relaxed">{desc}</p>'
+                f'{link_html}'
                 f'</div>'
             )
-            if link and link != "#":
-                return f'<div{id_attr} class="builder-image-box {flex_cls} {css_class}" data-widget="image_box"{style_attr}><a href="{html.escape(str(link))}" class="block hover:opacity-90">{inner}</a></div>'
-            return f'<div{id_attr} class="builder-image-box {flex_cls} {css_class}" data-widget="image_box"{style_attr}>{inner}</div>'
 
         elif widget_type == "toggle":
-            raw_items = props.get("items", [{"title": "بخش ۱", "content": "محتوای ۱", "default_open": True}])
-            items_html = ""
-            if isinstance(raw_items, list):
-                for idx, itm in enumerate(raw_items):
-                    t_title = html.escape(str(itm.get("title", "بخش")))
-                    t_content = html.escape(str(itm.get("content", "")))
-                    is_open = itm.get("is_open") if itm.get("is_open") is not None else (itm.get("default_open") if itm.get("default_open") is not None else (idx == 0))
-                    open_attr = " open" if is_open else ""
-                    items_html += (
-                        f'<details class="group rounded-xl border border-border/80 bg-card overflow-hidden"{open_attr}>'
-                        f'<summary class="p-3.5 font-bold text-xs text-foreground cursor-pointer list-none flex items-center justify-between hover:bg-muted/40 transition select-none">'
-                        f'<span>{t_title}</span>'
-                        f'<span class="transition-transform group-open:rotate-180">▾</span>'
-                        f'</summary>'
-                        f'<div class="p-3.5 pt-0 text-xs text-muted-foreground border-t border-border/40 leading-relaxed">'
-                        f'{t_content}'
-                        f'</div>'
-                        f'</details>'
-                    )
+            items = props.get("items", [{"title": "بخش ۱", "content": "محتوای ۱", "default_open": True}])
+            items_html = "".join(
+                f'<details class="group rounded-xl border border-border/80 bg-card overflow-hidden" {"open" if itm.get("default_open") is not False else ""}>'
+                f'<summary class="p-3.5 font-bold text-xs text-foreground cursor-pointer list-none flex items-center justify-between hover:bg-muted/40 transition select-none">'
+                f'<span>{html.escape(str(itm.get("title", "بخش")))}</span>'
+                f'<span class="transition-transform group-open:rotate-180">▾</span>'
+                f'</summary>'
+                f'<div class="p-3.5 pt-0 text-xs text-muted-foreground border-t border-border/40 leading-relaxed">'
+                f'{html.escape(str(itm.get("content", "")))}'
+                f'</div>'
+                f'</details>'
+                for itm in items
+            )
             return f'<div{id_attr} class="builder-toggle space-y-2 w-full {css_class}" data-widget="toggle"{style_attr}>{items_html}</div>'
 
         elif widget_type == "menu_anchor":
@@ -922,8 +913,15 @@ class ASTCompiler:
             features_html = ""
             if isinstance(features, list):
                 for f in features:
-                    f_text = html.escape(str(f.get("text", "")))
-                    f_avail = bool(f.get("available", True))
+                    if isinstance(f, str):
+                        f_text = html.escape(f)
+                        f_avail = True
+                    elif isinstance(f, dict):
+                        f_text = html.escape(str(f.get("text") or f.get("title", "")))
+                        f_avail = bool(f.get("available", True))
+                    else:
+                        f_text = html.escape(str(f))
+                        f_avail = True
                     status_class = "text-foreground font-medium" if f_avail else "text-muted-foreground line-through opacity-70"
                     icon_circle = "bg-emerald-500/10 text-emerald-600" if f_avail else "bg-muted text-muted-foreground/40"
                     icon_char = "✓" if f_avail else "–"
@@ -984,6 +982,47 @@ class ASTCompiler:
                 f'</div>'
             )
 
+        elif widget_type == "image_box":
+            img_url = html.escape(str(props.get("image_url", props.get("url", "/placeholder-hero.svg"))))
+            title = html.escape(str(props.get("title", "عنوان جعبه تصویر")))
+            desc = html.escape(str(props.get("description", "")))
+            link = props.get("link", props.get("url_link", ""))
+            pos = str(props.get("position", "top"))
+            flex_cls = "flex flex-col items-center text-center" if pos == "top" else ("flex flex-row-reverse items-start gap-4 text-right" if pos == "left" else "flex flex-row items-start gap-4 text-right")
+            img_html = f'<img src="{img_url}" alt="{title}" class="rounded-xl object-cover max-w-full h-auto mb-2" loading="lazy" />'
+            desc_html = f'<p class="text-xs text-muted-foreground leading-relaxed">{desc}</p>' if desc else ""
+            inner = (
+                f'{img_html}'
+                f'<div class="space-y-1">'
+                f'<h3 class="font-bold text-sm text-foreground">{title}</h3>'
+                f'{desc_html}'
+                f'</div>'
+            )
+            if link:
+                return f'<div{id_attr} class="builder-image-box {flex_cls} {css_class}" data-widget="image_box"{style_attr}><a href="{html.escape(str(link))}" class="block hover:opacity-90">{inner}</a></div>'
+            return f'<div{id_attr} class="builder-image-box {flex_cls} {css_class}" data-widget="image_box"{style_attr}>{inner}</div>'
+
+        elif widget_type == "toggle":
+            raw_items = props.get("items", [{"title": "آیتم بازشونده ۱", "content": "توضیحات آیتم ۱"}])
+            items_html = ""
+            if isinstance(raw_items, list):
+                for itm in raw_items:
+                    t_title = html.escape(str(itm.get("title", "آیتم بازشونده")))
+                    t_content = html.escape(str(itm.get("content", "")))
+                    open_attr = " open" if itm.get("is_open") else ""
+                    items_html += (
+                        f'<details class="group rounded-xl border border-border/80 bg-card overflow-hidden"{open_attr}>'
+                        f'<summary class="p-3.5 font-bold text-xs text-foreground cursor-pointer list-none flex items-center justify-between hover:bg-muted/40 transition select-none">'
+                        f'<span>{t_title}</span>'
+                        f'<span class="transition-transform group-open:rotate-180">▾</span>'
+                        f'</summary>'
+                        f'<div class="p-3.5 pt-0 text-xs text-muted-foreground border-t border-border/40 leading-relaxed">'
+                        f'{t_content}'
+                        f'</div>'
+                        f'</details>'
+                    )
+            return f'<div{id_attr} class="builder-toggle space-y-2 w-full {css_class}" data-widget="toggle"{style_attr}>{items_html}</div>'
+
         elif widget_type == "share_buttons":
             title = props.get("title", "")
             title_html = f'<span class="text-xs font-bold text-foreground">{html.escape(str(title))}</span>' if title else ""
@@ -1038,11 +1077,11 @@ class ASTCompiler:
             spots_html = ""
             if isinstance(raw_spots, list):
                 for s in raw_spots:
-                    x = max(0, min(100, float(s.get("x", s.get("left", 50)))))
-                    y = max(0, min(100, float(s.get("y", s.get("top", 50)))))
+                    x = max(0, min(100, float(s.get("x", 50))))
+                    y = max(0, min(100, float(s.get("y", 50))))
                     s_label = html.escape(str(s.get("label") or s.get("title") or "+"))
                     s_title = html.escape(str(s.get("title") or s.get("label", "")))
-                    s_content = html.escape(str(s.get("content") or s.get("desc", "")))
+                    s_content = html.escape(str(s.get("content", "")))
                     tooltip = f'<div class="absolute bottom-full right-1/2 translate-x-1/2 mb-2 hidden group-hover/spot:block w-44 p-2 bg-popover text-popover-foreground text-xs rounded-xl shadow-xl border border-border z-20 pointer-events-none"><div class="font-bold text-[11px] mb-0.5">{s_title}</div><div class="text-[10px] text-muted-foreground leading-relaxed">{s_content}</div></div>' if s_content else ""
                     spots_html += (
                         f'<div class="absolute -translate-x-1/2 -translate-y-1/2 group/spot cursor-pointer" style="left: {x}%; top: {y}%;">'
@@ -1182,23 +1221,6 @@ class ASTCompiler:
                 f'</div>'
             )
 
-        elif widget_type == "floating_bar":
-            title = html.escape(str(props.get("title") or props.get("message", "نیاز به مشاوره قبل از خرید دارید؟")))
-            btn_label = html.escape(str(props.get("button_label") or props.get("button_text", "تماس فوری")))
-            phone = html.escape(str(props.get("phone", "۰۹۱۲۰۰۰۰۰۰۰")))
-            return (
-                f'<div{id_attr} class="builder-floating-bar flex items-center justify-between p-3.5 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-900 dark:text-emerald-100 w-full shadow-sm {css_class}" data-widget="floating_bar"{style_attr}>'
-                f'<div class="flex items-center gap-2.5">'
-                f'<span class="w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0 text-xs font-bold">📞</span>'
-                f'<div class="text-right">'
-                f'<div class="text-xs font-bold">{title}</div>'
-                f'<div class="text-[10px] font-mono opacity-80" dir="ltr">{phone}</div>'
-                f'</div>'
-                f'</div>'
-                f'<a href="tel:{phone}" class="px-3.5 py-1.5 rounded-xl bg-emerald-600 text-white text-xs font-bold hover:bg-emerald-700 transition shadow">{btn_label}</a>'
-                f'</div>'
-            )
-
         elif widget_type == "image_carousel":
             images = props.get("images", [])
             imgs_html = ""
@@ -1309,14 +1331,22 @@ class ASTCompiler:
             )
 
         elif widget_type == "multi_step_form":
+            title = html.escape(str(props.get("title", "فرم چندمرحله‌ای")))
             steps = props.get("steps", [
                 {"title": "اطلاعات تماس", "fields": ["name", "phone"]},
                 {"title": "مشخصات سفارش", "fields": ["service", "notes"]},
             ])
+            next_btn = html.escape(str(props.get("next_button_label", "مرحله بعد &larr;")))
+            prev_btn = html.escape(str(props.get("prev_button_label", "&rarr; مرحله قبل")))
             steps_header = ""
             if isinstance(steps, list):
                 for idx, stp in enumerate(steps):
-                    s_t = html.escape(str(stp.get("title", f"مرحله {idx+1}")))
+                    if isinstance(stp, str):
+                        s_t = html.escape(stp)
+                    elif isinstance(stp, dict):
+                        s_t = html.escape(str(stp.get("title", f"مرحله {idx+1}")))
+                    else:
+                        s_t = html.escape(str(stp))
                     dot_col = "bg-primary text-white" if idx == 0 else "bg-muted text-muted-foreground"
                     steps_header += (
                         f'<div class="flex items-center gap-2">'
@@ -1326,14 +1356,17 @@ class ASTCompiler:
                     )
             return (
                 f'<div{id_attr} class="builder-multi-step-form p-6 rounded-3xl border border-border/80 bg-card space-y-5 text-right w-full {css_class}" data-widget="multi_step_form"{style_attr}>'
-                f'<div class="flex items-center justify-between pb-3 border-b border-border/60">{steps_header}</div>'
+                f'<div class="flex items-center justify-between pb-3 border-b border-border/60">'
+                f'<h3 class="text-sm font-extrabold text-foreground">{title}</h3>'
+                f'<div class="flex items-center gap-2">{steps_header}</div>'
+                f'</div>'
                 f'<div class="space-y-3 pt-2">'
                 f'<div class="space-y-1"><label class="text-xs font-bold">نام و نام‌خانوادگی</label><input type="text" class="w-full rounded-xl border border-input p-2.5 text-xs" placeholder="مثال: علی رضایی" /></div>'
                 f'<div class="space-y-1"><label class="text-xs font-bold">شماره موبایل</label><input type="tel" class="w-full rounded-xl border border-input p-2.5 text-xs" placeholder="۰۹۱۲..." dir="ltr" /></div>'
                 f'</div>'
                 f'<div class="flex items-center justify-between pt-3 border-t border-border/60">'
-                f'<button type="button" class="px-4 py-2 rounded-xl bg-muted text-xs font-bold">قبلی</button>'
-                f'<button type="button" class="px-5 py-2 rounded-xl bg-primary text-primary-foreground text-xs font-bold shadow-sm">گام بعدی &larr;</button>'
+                f'<button type="button" class="px-4 py-2 rounded-xl bg-muted text-xs font-bold">{prev_btn}</button>'
+                f'<button type="button" class="px-5 py-2 rounded-xl bg-primary text-primary-foreground text-xs font-bold shadow-sm">{next_btn}</button>'
                 f'</div>'
                 f'</div>'
             )

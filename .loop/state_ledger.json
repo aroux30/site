@@ -1,56 +1,60 @@
 {
-  "version": "3.2",
-  "activeWeight": 9,
-  "activeRound": 47,
+  "active_round": 48,
+  "level": 9,
+  "target_weight": "Weight 9: Landing Page from Scratch + P0-P3 Cleanups (Round 48: Nested Tabs & Nested Accordion Polish)",
+  "port": 4002,
+  "scope": "builder",
   "status": "COMPLETED",
-  "levels1to5Status": "BUILDER_GYM_LEVELS_1_TO_5_CLEAN",
-  "allLevelsMastered": "BUILDER_GYM_ALL_LEVELS_MASTERED",
-  "verificationPort": 1001,
-  "completedRounds": 47,
-  "defect_ledger": [
-    {
-      "id": "DEFECT-R47-01",
-      "severity": "P1",
-      "round": 47,
-      "title": "Duplicate shadowed image_box and toggle branches in ast_compiler.py",
-      "status": "RESOLVED",
-      "layer": "backend/app/modules/content/application/ast_compiler.py",
-      "description": "Earlier basic image_box and toggle branches shadowed advanced layout and position options in ASTCompiler."
-    },
-    {
-      "id": "DEFECT-R47-02",
-      "severity": "P1",
-      "round": 47,
-      "title": "Image Box position layout (top, left, right) parity between canvas and SSR",
-      "status": "RESOLVED",
-      "layer": "frontend/components/admin/builder/canvas-element.tsx",
-      "description": "Canvas element always rendered vertical column for image_box ignoring horizontal position layout."
-    },
-    {
-      "id": "DEFECT-R47-03",
-      "severity": "P2",
-      "round": 47,
-      "title": "Toggle widget open state schema parity",
-      "status": "RESOLVED",
-      "layer": "frontend/components/admin/builder/canvas-element.tsx",
-      "description": "Consistent support for both is_open and default_open flags in canvas and backend."
-    },
-    {
-      "id": "DEFECT-R47-04",
-      "severity": "P2",
-      "round": 47,
-      "title": "Testimonial role and company separator formatting alignment",
-      "status": "RESOLVED",
-      "layer": "frontend/components/admin/builder/canvas-element.tsx",
-      "description": "Author role, author_name, and company fallbacks aligned with backend ast compiler."
-    }
+  "total_rounds_target": 5,
+  "rounds_completed": [
+    45,
+    46,
+    47,
+    48
   ],
   "metrics": {
     "typeCheckErrors": 0,
-    "frontendUnitTests": 380,
-    "backendUnitTests": 651,
-    "registeredBlocks": 76,
+    "frontendUnitTestsPassed": 380,
+    "backendUnitTestsPassed": 647,
+    "playwrightTestsPassed": 1,
+    "registeredBlocksCount": 76,
     "lastVerifierVerdict": "APPROVE"
   },
-  "timestamp": "2026-11-23T12:30:00.000Z"
+  "defect_ledger": [
+    {
+      "id": "DEFECT-R48-01",
+      "severity": "P1",
+      "round": 48,
+      "title": "Nested Tabs active tab state and tab switching in canvas",
+      "status": "RESOLVED",
+      "layer": "frontend/components/admin/builder/canvas-element.tsx",
+      "description": "Clicking tabs in nested_tabs canvas element does not switch active tab preview in edit mode."
+    },
+    {
+      "id": "DEFECT-R48-02",
+      "severity": "P1",
+      "round": 48,
+      "title": "Nested Tabs repeater in inspector panel missing tab title and content editor",
+      "status": "RESOLVED",
+      "layer": "frontend/components/admin/builder/inspector-panel.tsx",
+      "description": "Inspector panel shows basic empty settings for nested_tabs and nested_accordion instead of a clean repeater."
+    },
+    {
+      "id": "DEFECT-R48-03",
+      "severity": "P1",
+      "round": 48,
+      "title": "SSR compiler parity for nested_tabs and nested_accordion with dynamic active tab and icon indicators",
+      "status": "RESOLVED",
+      "layer": "backend/app/modules/content/application/ast_compiler.py",
+      "description": "SSR output should support both simple strings and structured tab items with title and content."
+    }
+  ],
+  "som_inventory": {
+    "round_048": {
+      "total_elements": 33,
+      "tested_elements": 33,
+      "mutations_passed": 33
+    }
+  },
+  "timestamp": "2026-11-23T09:25:00.000Z"
 }

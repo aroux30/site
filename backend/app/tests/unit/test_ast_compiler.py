@@ -1684,6 +1684,73 @@ def test_ast_compiler_renders_round46_price_table_and_accordion_parity():
     assert 'سوال دوم باز' in result
 
 
+def test_ast_compiler_renders_round47_image_box_and_toggle_parity():
+    """Verify Round 47 parity for image_box positions and toggle items is_open/default_open."""
+    ast = PageAST(
+        schema_version=1,
+        title="تست راند ۴۷ چیدمان تصویر و تاگل",
+        slug="test-r47-parity",
+        root_elements=[
+            BuilderElement(
+                id="el_sec_r47",
+                name="بخش ۴۷",
+                type="container",
+                children=[
+                    BuilderElement(
+                        id="el_ib_r47_left",
+                        name="جعبه تصویر چپ",
+                        type="widget",
+                        widget_type="image_box",
+                        widget_props={
+                            "title": "تصویر با متن راست",
+                            "description": "چیدمان افقی معکوس",
+                            "position": "left",
+                            "image_url": "/left.png",
+                            "link_url": "/test-link",
+                        },
+                    ),
+                    BuilderElement(
+                        id="el_tog_r47",
+                        name="تاگل وضعیت‌دار",
+                        type="widget",
+                        widget_type="toggle",
+                        widget_props={
+                            "items": [
+                                {"title": "آیتم اول فعال", "content": "توضیح باز", "is_open": True},
+                                {"title": "آیتم دوم بسته", "content": "توضیح بسته", "is_open": False},
+                            ]
+                        },
+                    ),
+                    BuilderElement(
+                        id="el_testim_r47",
+                        name="دیدگاه مشتری",
+                        type="widget",
+                        widget_type="testimonial",
+                        widget_props={
+                            "author_name": "سارا محمدی",
+                            "author_role": "مدیر محصول",
+                            "company": "دیجی‌تک",
+                            "quote": "تجربه استفاده بسیار روان و عالی بود.",
+                        },
+                    ),
+                ],
+            )
+        ],
+    )
+    result = ASTCompiler.compile(ast)
+    assert 'builder-image-box' in result
+    assert 'flex-row-reverse' in result
+    assert 'href="/test-link"' in result
+    assert 'تصویر با متن راست' in result
+    assert 'builder-toggle' in result
+    assert 'آیتم اول فعال' in result
+    assert 'آیتم دوم بسته' in result
+    assert 'builder-testimonial' in result
+    assert 'سارا محمدی' in result
+    assert 'مدیر محصول - دیجی‌تک' in result
+    assert 'تجربه استفاده بسیار روان و عالی بود.' in result
+
+
 
 
 

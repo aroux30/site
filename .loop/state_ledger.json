@@ -1,84 +1,56 @@
 {
-  "active_round": 45,
-  "last_completed_round": 45,
-  "level": 9,
-  "target_weight": "Weight 9: Landing Page from Scratch + P2/P3 Cleanups",
-  "port": 1002,
-  "scope": "builder",
+  "version": "3.2",
+  "activeWeight": 9,
+  "activeRound": 47,
   "status": "COMPLETED",
-  "rounds_completed": [
-    39,
-    40,
-    41,
-    42,
-    43,
-    44,
-    45
+  "levels1to5Status": "BUILDER_GYM_LEVELS_1_TO_5_CLEAN",
+  "allLevelsMastered": "BUILDER_GYM_ALL_LEVELS_MASTERED",
+  "verificationPort": 1001,
+  "completedRounds": 47,
+  "defect_ledger": [
+    {
+      "id": "DEFECT-R47-01",
+      "severity": "P1",
+      "round": 47,
+      "title": "Duplicate shadowed image_box and toggle branches in ast_compiler.py",
+      "status": "RESOLVED",
+      "layer": "backend/app/modules/content/application/ast_compiler.py",
+      "description": "Earlier basic image_box and toggle branches shadowed advanced layout and position options in ASTCompiler."
+    },
+    {
+      "id": "DEFECT-R47-02",
+      "severity": "P1",
+      "round": 47,
+      "title": "Image Box position layout (top, left, right) parity between canvas and SSR",
+      "status": "RESOLVED",
+      "layer": "frontend/components/admin/builder/canvas-element.tsx",
+      "description": "Canvas element always rendered vertical column for image_box ignoring horizontal position layout."
+    },
+    {
+      "id": "DEFECT-R47-03",
+      "severity": "P2",
+      "round": 47,
+      "title": "Toggle widget open state schema parity",
+      "status": "RESOLVED",
+      "layer": "frontend/components/admin/builder/canvas-element.tsx",
+      "description": "Consistent support for both is_open and default_open flags in canvas and backend."
+    },
+    {
+      "id": "DEFECT-R47-04",
+      "severity": "P2",
+      "round": 47,
+      "title": "Testimonial role and company separator formatting alignment",
+      "status": "RESOLVED",
+      "layer": "frontend/components/admin/builder/canvas-element.tsx",
+      "description": "Author role, author_name, and company fallbacks aligned with backend ast compiler."
+    }
   ],
   "metrics": {
     "typeCheckErrors": 0,
-    "frontendUnitTestsPassed": 380,
-    "backendUnitTestsPassed": 649,
-    "playwrightTestsPassed": 7,
-    "registeredBlocksCount": 76
+    "frontendUnitTests": 380,
+    "backendUnitTests": 651,
+    "registeredBlocks": 76,
+    "lastVerifierVerdict": "APPROVE"
   },
-  "defect_ledger": [
-    {
-      "id": "DEF-R39-001",
-      "severity": "P1",
-      "title": "Missing SSR compilation for floating_bar widget in ast_compiler.py",
-      "layer": "Backend AST Compiler",
-      "status": "RESOLVED",
-      "fixed_in_round": 39
-    },
-    {
-      "id": "DEF-R40-001",
-      "severity": "P2",
-      "title": "Price Table canvas element features structure mismatch with SSR compiler",
-      "layer": "Frontend Canvas Element",
-      "status": "RESOLVED",
-      "fixed_in_round": 40
-    },
-    {
-      "id": "DEF-R41-001",
-      "severity": "P3",
-      "title": "Missing data-testid and tactile active state on code_highlight copy button",
-      "layer": "Frontend Canvas Element",
-      "status": "RESOLVED",
-      "fixed_in_round": 41
-    },
-    {
-      "id": "DEF-R42-001",
-      "severity": "P2",
-      "title": "Popup Builder trigger conditional inputs in inspector panel",
-      "layer": "Frontend Inspector Panel",
-      "status": "RESOLVED",
-      "fixed_in_round": 42
-    },
-    {
-      "id": "DEF-R44-001",
-      "severity": "P2",
-      "title": "Hotspot widget coordinate keys top/left and desc mismatch in ast_compiler.py",
-      "layer": "Backend AST Compiler",
-      "status": "RESOLVED",
-      "fixed_in_round": 44
-    },
-    {
-      "id": "DEF-R45-001",
-      "severity": "P2",
-      "title": "Hotspot canvas element polymorphic spots/hotspots array normalization",
-      "layer": "Frontend Canvas Element",
-      "status": "RESOLVED",
-      "fixed_in_round": 45
-    }
-  ],
-  "som_inventory": {
-    "round_045": {
-      "total_elements": 35,
-      "tested_elements": 35,
-      "mutations_passed": 35,
-      "health_status": "HEALTHY"
-    }
-  },
-  "timestamp": "2026-11-23T09:30:16.922Z"
+  "timestamp": "2026-11-23T12:30:00.000Z"
 }

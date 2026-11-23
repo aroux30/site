@@ -1,92 +1,60 @@
 {
-  "version": "3.2",
-  "activeWeight": 9,
-  "activeRound": 42,
-  "status": "IN_PROGRESS",
-  "levels1to5Status": "BUILDER_GYM_LEVELS_1_TO_5_CLEAN",
-  "allLevelsMastered": "BUILDER_GYM_ALL_LEVELS_MASTERED",
-  "verificationPort": 4003,
-  "completedRounds": 42,
-  "defect_ledger": [
-    {
-      "id": "DEFECT-R41-01",
-      "severity": "P1",
-      "round": 41,
-      "title": "Sticky Header and Z-Index clearance during Landing Hero drag-drop",
-      "status": "FIXED",
-      "layer": "frontend/components/admin/builder/canvas-overlay-layer.tsx",
-      "description": "Sticky container overlaps canvas toolbar when hero section height exceeds viewport. Fixed by dynamic clearance calculation in canvas-overlay-layer."
-    },
-    {
-      "id": "DEFECT-R41-02",
-      "severity": "P1",
-      "round": 41,
-      "title": "Pricing Table Currency Unit localization and RTL column spacing in Landing section",
-      "status": "FIXED",
-      "layer": "frontend/components/admin/builder/canvas-element.tsx",
-      "description": "Price table currency text alignment flips on mobile viewport in canvas. Fixed by explicit dir=rtl, flex alignment, subtitle/period support and ast_compiler parity."
-    },
-    {
-      "id": "DEFECT-R41-03",
-      "severity": "P2",
-      "round": 41,
-      "title": "Multi-Step Form progress indicator contrast in dark mode on canvas",
-      "status": "FIXED",
-      "layer": "frontend/components/admin/builder/canvas-element.tsx",
-      "description": "Step number badge lacks sufficient contrast against active step background. Fixed with high-contrast WCAG 4.5:1 classes and border ring."
-    },
-    {
-      "id": "DEFECT-R41-04",
-      "severity": "P2",
-      "round": 41,
-      "title": "Call To Action button hover transition duration missing explicit unit mapping",
-      "status": "FIXED",
-      "layer": "frontend/components/admin/builder/canvas-element.tsx",
-      "description": "Hover state transitionDuration in device style requires standard seconds format. Fixed with unit mapping for seconds and milliseconds."
-    },
-    {
-      "id": "DEFECT-R42-01",
-      "severity": "P1",
-      "round": 42,
-      "title": "Missing SSR HTML compilation for floating_bar widget",
-      "status": "FIXED",
-      "layer": "backend/app/modules/content/application/ast_compiler.py",
-      "description": "floating_bar widget was missing from backend AST compiler leading to fallback unknown widget div in SSR. Fixed with full semantic HTML compilation."
-    },
-    {
-      "id": "DEFECT-R42-02",
-      "severity": "P1",
-      "round": 42,
-      "title": "Backend 422 validation rejection for floating_bar type during autosave",
-      "status": "FIXED",
-      "layer": "backend/app/modules/content/domain/builder_validation.py",
-      "description": "STANDARD_WIDGET_TYPES in validation engine lacked floating_bar causing 422 error on autosave. Fixed by adding floating_bar to allowed types."
-    },
-    {
-      "id": "DEFECT-R42-03",
-      "severity": "P2",
-      "round": 42,
-      "title": "Floating bar mobile layout button wrap and phone text overlap",
-      "status": "FIXED",
-      "layer": "frontend/components/admin/builder/canvas-element.tsx",
-      "description": "In 375px mobile viewport, call button wrapped awkwardly over text. Fixed with flex-col sm:flex-row responsive layout."
-    },
-    {
-      "id": "DEFECT-R42-04",
-      "severity": "P2",
-      "round": 42,
-      "title": "Duplicate price_table switch case in canvas-element shadowing updated features",
-      "status": "FIXED",
-      "layer": "frontend/components/admin/builder/canvas-element.tsx",
-      "description": "Earlier price_table case at line 1704 shadowed line 1939. Consolidated to full featured version."
-    }
+  "active_round": 48,
+  "level": 9,
+  "target_weight": "Weight 9: Landing Page from Scratch + P0-P3 Cleanups (Round 48: Nested Tabs & Nested Accordion Polish)",
+  "port": 4002,
+  "scope": "builder",
+  "status": "COMPLETED",
+  "total_rounds_target": 5,
+  "rounds_completed": [
+    45,
+    46,
+    47,
+    48
   ],
   "metrics": {
     "typeCheckErrors": 0,
-    "frontendUnitTests": 374,
-    "backendUnitTests": 634,
-    "registeredBlocks": 68,
+    "frontendUnitTestsPassed": 380,
+    "backendUnitTestsPassed": 647,
+    "playwrightTestsPassed": 1,
+    "registeredBlocksCount": 76,
     "lastVerifierVerdict": "APPROVE"
   },
-  "timestamp": "2026-11-23T11:45:00.000Z"
+  "defect_ledger": [
+    {
+      "id": "DEFECT-R48-01",
+      "severity": "P1",
+      "round": 48,
+      "title": "Nested Tabs active tab state and tab switching in canvas",
+      "status": "RESOLVED",
+      "layer": "frontend/components/admin/builder/canvas-element.tsx",
+      "description": "Clicking tabs in nested_tabs canvas element does not switch active tab preview in edit mode."
+    },
+    {
+      "id": "DEFECT-R48-02",
+      "severity": "P1",
+      "round": 48,
+      "title": "Nested Tabs repeater in inspector panel missing tab title and content editor",
+      "status": "RESOLVED",
+      "layer": "frontend/components/admin/builder/inspector-panel.tsx",
+      "description": "Inspector panel shows basic empty settings for nested_tabs and nested_accordion instead of a clean repeater."
+    },
+    {
+      "id": "DEFECT-R48-03",
+      "severity": "P1",
+      "round": 48,
+      "title": "SSR compiler parity for nested_tabs and nested_accordion with dynamic active tab and icon indicators",
+      "status": "RESOLVED",
+      "layer": "backend/app/modules/content/application/ast_compiler.py",
+      "description": "SSR output should support both simple strings and structured tab items with title and content."
+    }
+  ],
+  "som_inventory": {
+    "round_048": {
+      "total_elements": 33,
+      "tested_elements": 33,
+      "mutations_passed": 33
+    }
+  },
+  "timestamp": "2026-11-23T09:25:00.000Z"
 }

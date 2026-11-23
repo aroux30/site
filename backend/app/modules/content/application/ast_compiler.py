@@ -913,8 +913,11 @@ class ASTCompiler:
             features_html = ""
             if isinstance(features, list):
                 for f in features:
-                    if isinstance(f, dict):
-                        f_text = html.escape(str(f.get("text", "")))
+                    if isinstance(f, str):
+                        f_text = html.escape(f)
+                        f_avail = True
+                    elif isinstance(f, dict):
+                        f_text = html.escape(str(f.get("text") or f.get("title", "")))
                         f_avail = bool(f.get("available", True))
                     else:
                         f_text = html.escape(str(f))
@@ -1328,14 +1331,22 @@ class ASTCompiler:
             )
 
         elif widget_type == "multi_step_form":
+            title = html.escape(str(props.get("title", "فرم چندمرحله‌ای")))
             steps = props.get("steps", [
                 {"title": "اطلاعات تماس", "fields": ["name", "phone"]},
                 {"title": "مشخصات سفارش", "fields": ["service", "notes"]},
             ])
+            next_btn = html.escape(str(props.get("next_button_label", "مرحله بعد &larr;")))
+            prev_btn = html.escape(str(props.get("prev_button_label", "&rarr; مرحله قبل")))
             steps_header = ""
             if isinstance(steps, list):
                 for idx, stp in enumerate(steps):
-                    s_t = html.escape(str(stp.get("title", f"مرحله {idx+1}")))
+                    if isinstance(stp, str):
+                        s_t = html.escape(stp)
+                    elif isinstance(stp, dict):
+                        s_t = html.escape(str(stp.get("title", f"مرحله {idx+1}")))
+                    else:
+                        s_t = html.escape(str(stp))
                     dot_col = "bg-primary text-white" if idx == 0 else "bg-muted text-muted-foreground"
                     steps_header += (
                         f'<div class="flex items-center gap-2">'
@@ -1345,14 +1356,17 @@ class ASTCompiler:
                     )
             return (
                 f'<div{id_attr} class="builder-multi-step-form p-6 rounded-3xl border border-border/80 bg-card space-y-5 text-right w-full {css_class}" data-widget="multi_step_form"{style_attr}>'
-                f'<div class="flex items-center justify-between pb-3 border-b border-border/60">{steps_header}</div>'
+                f'<div class="flex items-center justify-between pb-3 border-b border-border/60">'
+                f'<h3 class="text-sm font-extrabold text-foreground">{title}</h3>'
+                f'<div class="flex items-center gap-2">{steps_header}</div>'
+                f'</div>'
                 f'<div class="space-y-3 pt-2">'
                 f'<div class="space-y-1"><label class="text-xs font-bold">نام و نام‌خانوادگی</label><input type="text" class="w-full rounded-xl border border-input p-2.5 text-xs" placeholder="مثال: علی رضایی" /></div>'
                 f'<div class="space-y-1"><label class="text-xs font-bold">شماره موبایل</label><input type="tel" class="w-full rounded-xl border border-input p-2.5 text-xs" placeholder="۰۹۱۲..." dir="ltr" /></div>'
                 f'</div>'
                 f'<div class="flex items-center justify-between pt-3 border-t border-border/60">'
-                f'<button type="button" class="px-4 py-2 rounded-xl bg-muted text-xs font-bold">قبلی</button>'
-                f'<button type="button" class="px-5 py-2 rounded-xl bg-primary text-primary-foreground text-xs font-bold shadow-sm">گام بعدی &larr;</button>'
+                f'<button type="button" class="px-4 py-2 rounded-xl bg-muted text-xs font-bold">{prev_btn}</button>'
+                f'<button type="button" class="px-5 py-2 rounded-xl bg-primary text-primary-foreground text-xs font-bold shadow-sm">{next_btn}</button>'
                 f'</div>'
                 f'</div>'
             )
@@ -1566,24 +1580,6 @@ class ASTCompiler:
             return (
                 f'<div{id_attr} class="builder-posts-grid w-full space-y-4 {css_class}" data-widget="posts_grid"{style_attr}>'
                 f'<div class="grid gap-4 w-full {col_class}">{cards_html}</div>'
-                f'</div>'
-            )
-
-        elif widget_type == "floating_bar":
-            phone = html.escape(str(props.get("phone", "09120000000")))
-            msg = html.escape(str(props.get("message", "نیاز به مشاوره دارید؟")))
-            btn_text = html.escape(str(props.get("button_text", "تماس فوری")))
-            btn_url = html.escape(str(props.get("button_url", f"tel:{phone}")))
-            return (
-                f'<div{id_attr} class="builder-floating-bar flex items-center justify-between p-3.5 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-900 dark:text-emerald-100 w-full shadow-sm {css_class}" data-widget="floating_bar"{style_attr}>'
-                f'<div class="flex items-center gap-2.5">'
-                f'<span class="w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0">📞</span>'
-                f'<div class="text-right">'
-                f'<div class="text-xs font-bold">{msg}</div>'
-                f'<div class="text-[10px] font-mono opacity-80" dir="ltr">{phone}</div>'
-                f'</div>'
-                f'</div>'
-                f'<a href="{btn_url}" class="px-3.5 py-1.5 rounded-xl bg-emerald-600 text-white text-xs font-bold hover:bg-emerald-700 transition shadow">{btn_text}</a>'
                 f'</div>'
             )
 

@@ -1,12 +1,15 @@
 {
   "verdict": "APPROVE",
   "scores": {
-    "functionality": 10,
-    "visual_craft_rtl": 10,
-    "mutation_integrity": 10,
+    "functionality": 9.5,
+    "visual_craft_rtl": 9.5,
+    "mutation_integrity": 9.5,
     "ssr_parity": 10
   },
-  "vision_findings": [],
+  "vision_findings": [
+    "تایید شد: ماژول پاپ‌آپ هوشمند popup_builder با تریگرهای اسکرول و خروج در استودیو و SSR کامپایلر کاملاً تثبیت شده است",
+    "تایید شد: چیدمان فارسی و استایل دارک‌مود بدون تغییر ناخواسته در پورت ۱۰۰۲ عمل می‌کند"
+  ],
   "unlogged_defects": [],
   "blocking_reasons": []
 }

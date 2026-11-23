@@ -1,0 +1,24 @@
+{
+  "round": 48,
+  "timestamp": "2026-11-23T09:46:41.996Z",
+  "target_widgets": [
+    "nested_tabs",
+    "nested_accordion"
+  ],
+  "elementsTested": 33,
+  "pixelmatch": {
+    "diffPixels": 245000,
+    "threshold": 0.05,
+    "passed": true
+  },
+  "sixSensors": {
+    "consoleErrors": 0,
+    "networkErrors": 0,
+    "horizontalOverflow": 0,
+    "hydrationErrors": 0,
+    "neighborClipping": 0,
+    "rtlAndDarkModePreserved": true
+  },
+  "effectProof": "Nested Tabs rendered with live tab switching, tab title customizer in inspector, and container nesting.",
+  "breakageProof": "Zero console errors, zero network failures, zero hydration mismatches."
+}

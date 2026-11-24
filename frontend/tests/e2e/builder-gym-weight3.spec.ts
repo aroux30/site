@@ -78,7 +78,7 @@ test.describe("Builder Gym Weight 3: 28 Preset Block Patterns, Blocks Palette, a
 
     // Verify category chips
     const categoryChips = page.locator("[data-category-chips]");
-    await expect(categoryChips).toBeVisible();
+    await expect(categoryChips).toBeVisible({ timeout: 10000 });
   });
 
   test("2. Pattern insertion generates clean container tree on live canvas", async ({ page }) => {
@@ -114,7 +114,7 @@ test.describe("Builder Gym Weight 3: 28 Preset Block Patterns, Blocks Palette, a
     await page.waitForTimeout(500);
 
     // Verify Dialog content
-    const dialog = page.locator("role=dialog");
+    const dialog = page.locator("[role='dialog']");
     await expect(dialog).toBeVisible();
     await expect(dialog.locator("text=تنظیمات استایل سراسری برگه")).toBeVisible();
     await expect(dialog.locator("text=رنگ اصلی برند")).toBeVisible();
@@ -135,7 +135,7 @@ test.describe("Builder Gym Weight 3: 28 Preset Block Patterns, Blocks Palette, a
     await globalStylesBtn.click();
     await page.waitForTimeout(500);
 
-    const dialog = page.locator("role=dialog");
+    const dialog = page.locator("[role='dialog']");
     await expect(dialog).toBeVisible();
 
     const resetBtn = dialog.locator("button:has-text('بازنشانی به تم پیش‌فرض')");

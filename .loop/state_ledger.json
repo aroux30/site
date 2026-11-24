@@ -1,22 +1,31 @@
 {
   "version": "4.2",
-  "activeWeight": 5,
-  "activeRound": 60,
-  "status": "COMPLETED_LEVELS_1_TO_5",
+  "activeWeight": 6,
+  "activeRound": 61,
+  "status": "IN_PROGRESS",
   "levels1to5Status": "BUILDER_GYM_LEVELS_1_TO_5_CLEAN",
   "allLevelsMastered": "BUILDER_GYM_ALL_LEVELS_MASTERED",
   "verificationPort": 1002,
-  "completedRounds": 59,
+  "completedRounds": 60,
   "metrics": {
     "typeCheckErrors": 0,
-    "frontendUnitTests": 397,
+    "frontendUnitTests": 400,
     "backendUnitTests": 655,
     "playwrightTests": 5,
     "registeredBlocks": 68,
     "lastVerifierVerdict": "APPROVE"
   },
-  "timestamp": "2026-11-24T09:15:00.000Z",
+  "timestamp": "2026-11-24T09:35:00.000Z",
   "defect_ledger": [
+    {
+      "id": "DEFECT-W6-01",
+      "severity": "P2",
+      "round": 61,
+      "title": "Elementor Wave 1 transform and mask state controls validation",
+      "status": "FIXED",
+      "layer": "frontend/components/admin/builder/inspector-panel.tsx",
+      "description": "Validated that transform (rotate, scale, skew, flip) and mask controls cleanly update device styles without style bleed."
+    },
     {
       "id": "DEFECT-W5-01",
       "severity": "P2",

@@ -1,22 +1,31 @@
 {
   "version": "4.2",
   "activeWeight": 9,
-  "activeRound": 65,
+  "activeRound": 66,
   "status": "ALL_LEVELS_MASTERED",
   "levels1to5Status": "BUILDER_GYM_LEVELS_1_TO_5_CLEAN",
   "allLevelsMastered": "BUILDER_GYM_ALL_LEVELS_MASTERED",
   "verificationPort": 1002,
-  "completedRounds": 64,
+  "completedRounds": 65,
   "metrics": {
     "typeCheckErrors": 0,
-    "frontendUnitTests": 408,
+    "frontendUnitTests": 410,
     "backendUnitTests": 655,
     "playwrightTests": 5,
     "registeredBlocks": 68,
     "lastVerifierVerdict": "APPROVE"
   },
-  "timestamp": "2026-11-24T11:00:00.000Z",
+  "timestamp": "2026-11-24T11:20:00.000Z",
   "defect_ledger": [
+    {
+      "id": "DEFECT-W9-03",
+      "severity": "P2",
+      "round": 66,
+      "title": "Nested containers and tabs preview state encapsulation",
+      "status": "FIXED",
+      "layer": "frontend/tests/builder-weight9-nested-containers.test.ts",
+      "description": "Validated nested container tabs switching and accordion child element hierarchy without DOM leakage."
+    },
     {
       "id": "DEFECT-W9-02",
       "severity": "P2",

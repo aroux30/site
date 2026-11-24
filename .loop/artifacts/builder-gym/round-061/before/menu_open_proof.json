@@ -1,0 +1,13 @@
+{
+  "testedMenus": [
+    {
+      "selector": "advanced-mask-shape-select",
+      "isExpanded": true,
+      "dimensionsValid": true,
+      "notObscuredByIframe": true,
+      "optionsCount": 6,
+      "status": "PASS"
+    }
+  ],
+  "allMenusPassed": true
+}

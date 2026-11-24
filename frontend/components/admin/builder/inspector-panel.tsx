@@ -2942,7 +2942,9 @@ export function InspectorPanel() {
                 onValueChange={(val) => handlePropChange("icon", val)}
               >
                 <SelectTrigger className="h-8 text-xs">
-                  <SelectValue />
+                  <SelectValue>
+                    {BUILDER_ICON_OPTIONS.find((opt) => opt.id === (props.icon || "star"))?.label || "ستاره (Star)"}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent className="max-h-56">
                   {BUILDER_ICON_OPTIONS.map((opt) => {
@@ -3628,7 +3630,7 @@ export function InspectorPanel() {
       <div className="space-y-5">
         {/* Device Switcher Indicator */}
         <div className="flex items-center justify-between p-2 rounded-lg bg-muted/60 border border-border/80 gap-2 min-w-0">
-          <span className="text-[11px] font-semibold text-foreground truncate shrink" title="ویرایش استایل">
+          <span className="text-[11px] font-semibold text-foreground truncate min-w-0 flex-1" title="ویرایش استایل">
             ویرایش استایل:{" "}
             {activeBreakpoint === "mobile"
               ? "موبایل (پایه)"
@@ -3680,11 +3682,11 @@ export function InspectorPanel() {
                       right: { value: 0, unit: "px" },
                       bottom: { value: 0, unit: "px" },
                       left: { value: 0, unit: "px" },
-                      isLinked: true,
+                      isLinked: pad.isLinked,
                     },
                   });
                 }}
-                className="text-[10px] text-muted-foreground hover:text-foreground px-1.5 py-0.5 rounded border border-border/40 hover:bg-muted transition shrink-0"
+                className="text-[10px] text-muted-foreground hover:text-foreground px-1.5 py-0.5 rounded border border-border/60 hover:bg-muted transition shrink-0"
               >
                 بازنشانی
               </button>
@@ -3820,7 +3822,7 @@ export function InspectorPanel() {
         {/* Margin Box */}
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <Label className="text-xs font-bold text-foreground">فاصله خارجی (Margin)</Label>
+            <Label className="text-xs font-bold text-foreground">فاصله بیرونی (Margin)</Label>
             <div className="flex items-center gap-1.5 shrink-0">
               <button
                 type="button"
@@ -3833,11 +3835,11 @@ export function InspectorPanel() {
                       right: { value: 0, unit: "px" },
                       bottom: { value: 0, unit: "px" },
                       left: { value: 0, unit: "px" },
-                      isLinked: true,
+                      isLinked: mar.isLinked,
                     },
                   });
                 }}
-                className="text-[10px] text-muted-foreground hover:text-foreground px-1.5 py-0.5 rounded border border-border/40 hover:bg-muted transition shrink-0"
+                className="text-[10px] text-muted-foreground hover:text-foreground px-1.5 py-0.5 rounded border border-border/60 hover:bg-muted transition shrink-0"
               >
                 بازنشانی
               </button>
@@ -3893,9 +3895,9 @@ export function InspectorPanel() {
 
         {/* Professional Background Group Controls (Elementor Parity) */}
         <div className="space-y-3 pt-2 border-t">
-          <div className="flex items-center justify-between">
-            <Label className="text-xs font-bold text-foreground">پس‌زمینه (Background - المنتور)</Label>
-            <div className="flex gap-1 text-[10px] bg-muted/60 p-0.5 rounded-md border border-border/60">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
+            <Label className="text-xs font-bold text-foreground shrink-0">پس‌زمینه (Background)</Label>
+            <div className="flex flex-wrap gap-1 text-[10px] bg-muted/60 p-0.5 rounded-md border border-border/60 shrink-0">
               {[
                 { id: "color", label: "تک‌رنگ" },
                 { id: "gradient", label: "گرادیانت" },

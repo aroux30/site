@@ -1,0 +1,13 @@
+{
+  "testedMenus": [
+    {
+      "selector": "nested-tabs-header-switcher",
+      "isExpanded": true,
+      "dimensionsValid": true,
+      "notObscuredByIframe": true,
+      "optionsCount": 3,
+      "status": "PASS"
+    }
+  ],
+  "allMenusPassed": true
+}

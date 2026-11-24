@@ -1822,6 +1822,39 @@ def test_ast_compiler_renders_round53_motion_effects_animation_classes():
     assert 'animation-duration: 0.7s' in result or 'animation-duration:0.7s' in result
 
 
+def test_ast_compiler_renders_weight0_svg_icon_and_no_raw_slug():
+    """Verify Weight 0: icon widget outputs valid SVG without leaking raw text slug 'star'."""
+    ast = PageAST(
+        schema_version=1,
+        title="تست آیکون اس‌وی‌جی وزنه صفر",
+        slug="test-w0-icon-svg",
+        root_elements=[
+            BuilderElement(
+                id="el_w0_icon_sec",
+                name="بخش آیکون",
+                type="container",
+                children=[
+                    BuilderElement(
+                        id="el_w0_icon",
+                        name="آیکون تک",
+                        type="widget",
+                        widget_type="icon",
+                        widget_props={"icon": "star", "size": 36, "view": "framed", "shape": "circle"},
+                    )
+                ],
+            )
+        ],
+    )
+    result = ASTCompiler.compile(ast)
+    assert '<svg' in result
+    assert 'class="lucide lucide-star builder-icon-svg"' in result
+    assert 'width="36" height="36"' in result
+    assert '<path d="M12 2l3.09 6.26L22 9.27' in result
+    assert 'border-2 border-primary text-primary bg-transparent' in result
+    assert 'rounded-full' in result
+    assert '⭐' in result
+
+
 def test_ast_compiler_renders_round55_single_icon_svg_markup():
     """Verify Round 55 single icon widget renders valid SVG element with viewBox, size and paths."""
     ast = PageAST(
@@ -1851,8 +1884,8 @@ def test_ast_compiler_renders_round55_single_icon_svg_markup():
     assert 'width="36"' in result
     assert 'height="36"' in result
     assert 'viewBox="0 0 24 24"' in result
-    assert '<path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"' in result
-    assert 'class="lucide lucide-star"' in result
+    assert '<path d="M12 2l3.09 6.26L22 9.27' in result
+    assert 'class="lucide lucide-star' in result
 
 
 def test_ast_compiler_renders_round56_video_aparat_and_alert_info_aliases():

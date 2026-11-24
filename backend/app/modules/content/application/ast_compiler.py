@@ -110,7 +110,6 @@ class ASTCompiler:
             inner = cls.ICON_SVG_INNER.get("star", "")
         cls_attr = f' class="lucide lucide-{key}{f" {css_class}" if css_class else ""}"' if (css_class or key) else ""
         return f'<svg viewBox="0 0 24 24" width="{size}" height="{size}" fill="none" aria-hidden="true"{cls_attr}>{inner}</svg>'
-
     SHAPE_DIVIDER_PATHS: dict[str, str] = {
         "waves": "M421.9,6.5c22.6-2.5,51.5,0.4,75.5,5.3c23.6,4.9,70.9,23.5,100.5,35.7c75.8,32.2,133.7,44.5,192.6,49.7c23.6,2.1,48.7,3.5,103.4-2.5c54.7-6,106.2-25.6,106.2-25.6V0H0v30.3c0,0,72,32.6,158.4,30.5c39.2-0.7,92.8-6.7,134-22.4c21.2-8.1,52.2-18.2,79.7-24.2C399.3,7.9,411.6,7.5,421.9,6.5z",
         "curve": "M1000,4.3V0H0v4.3C0.9,23.1,126.7,99.2,500,100S1000,22.7,1000,4.3z",
@@ -1063,10 +1062,11 @@ class ASTCompiler:
                 url = item.get("url", "")
                 i_key = str(item.get("icon", "check")).strip().lower()
                 i_char = cls.ICON_CHAR_MAP.get(i_key, "✓")
+                svg_icon = cls.render_svg_icon(i_key, size=12, css_class="w-3 h-3")
                 text_content = f'<a href="{html.escape(str(url))}" class="hover:underline">{text}</a>' if url else f'<span>{text}</span>'
                 items_html += (
                     f'<li class="flex items-center gap-2.5 text-xs text-foreground">'
-                    f'<div class="w-5 h-5 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0 text-[10px]">{i_char}</div>'
+                    f'<div class="w-5 h-5 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0 text-[10px]">{svg_icon}<span class="sr-only">{i_char}</span></div>'
                     f'{text_content}'
                     f'</li>'
                 )

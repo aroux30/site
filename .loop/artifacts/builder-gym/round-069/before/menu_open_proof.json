@@ -1,0 +1,13 @@
+{
+  "testedMenus": [
+    {
+      "selector": "r69-animation-type-select",
+      "isExpanded": true,
+      "dimensionsValid": true,
+      "notObscuredByIframe": true,
+      "optionsCount": 4,
+      "status": "PASS"
+    }
+  ],
+  "allMenusPassed": true
+}

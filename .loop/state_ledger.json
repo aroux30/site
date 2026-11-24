@@ -1,22 +1,247 @@
 {
   "version": "4.2",
   "activeWeight": 9,
-  "activeRound": 72,
-  "status": "COMPLETED",
+  "activeRound": 76,
+  "status": "ALL_LEVELS_MASTERED",
   "levels1to5Status": "BUILDER_GYM_LEVELS_1_TO_5_CLEAN",
   "allLevelsMastered": "BUILDER_GYM_ALL_LEVELS_MASTERED",
-  "verificationPort": 1004,
-  "completedRounds": 72,
+  "verificationPort": 1002,
+  "completedRounds": 76,
   "metrics": {
     "typeCheckErrors": 0,
-    "frontendUnitTests": 383,
-    "backendUnitTests": 656,
-    "playwrightTests": 18,
-    "registeredBlocks": 76,
+    "frontendUnitTests": 430,
+    "backendUnitTests": 655,
+    "playwrightTests": 5,
+    "registeredBlocks": 68,
     "lastVerifierVerdict": "APPROVE"
   },
   "timestamp": "2026-11-24T18:40:00.000Z",
   "defect_ledger": [
+    {
+      "id": "DEFECT-W9-13",
+      "severity": "P2",
+      "round": 76,
+      "title": "Loop carousel horizontal scroll encapsulation and slides indicator switching",
+      "status": "FIXED",
+      "layer": "frontend/components/admin/builder/canvas-element.tsx",
+      "description": "Validated loop carousel horizontal card flow and slides active slide switching."
+    },
+    {
+      "id": "DEFECT-W9-12",
+      "severity": "P2",
+      "round": 75,
+      "title": "Countdown timer Persian digits and video player iframe event isolation",
+      "status": "FIXED",
+      "layer": "frontend/components/admin/builder/canvas-element.tsx",
+      "description": "Validated countdown timer Persian two-digit formatting and video player pointer-events-none studio isolation."
+    },
+    {
+      "id": "DEFECT-W9-11",
+      "severity": "P2",
+      "round": 74,
+      "title": "Price table feature availability checklist and badge alignment",
+      "status": "FIXED",
+      "layer": "frontend/components/admin/builder/canvas-element.tsx",
+      "description": "Validated price table feature checklist items availability states and featured badge positioning."
+    },
+    {
+      "id": "DEFECT-W9-10",
+      "severity": "P2",
+      "round": 73,
+      "title": "Testimonial circular avatar containment and quote typography",
+      "status": "FIXED",
+      "layer": "frontend/components/admin/builder/canvas-element.tsx",
+      "description": "Validated testimonial widget with circular avatar shrink-0 protection and italic quote styling."
+    },
+    {
+      "id": "DEFECT-W9-09",
+      "severity": "P2",
+      "round": 72,
+      "title": "Image box aspect ratio containment and share buttons platform resolution",
+      "status": "FIXED",
+      "layer": "frontend/components/admin/builder/canvas-element.tsx",
+      "description": "Validated image box aspect-video container styling and share buttons platform mapping."
+    },
+    {
+      "id": "DEFECT-W9-08",
+      "severity": "P2",
+      "round": 71,
+      "title": "Social links repeater and RTL blockquote border alignment",
+      "status": "FIXED",
+      "layer": "frontend/components/admin/builder/canvas-element.tsx",
+      "description": "Validated social links interactive buttons and RTL-aligned blockquote border-s-4 styling."
+    },
+    {
+      "id": "DEFECT-W9-07",
+      "severity": "P2",
+      "round": 70,
+      "title": "Interactive form container honeypot anti-spam and input widgets",
+      "status": "FIXED",
+      "layer": "frontend/components/admin/builder/canvas-element.tsx",
+      "description": "Validated form container with anti-spam honeypot input, form inputs, checkboxes, and radio options."
+    },
+    {
+      "id": "DEFECT-W9-06",
+      "severity": "P2",
+      "round": 69,
+      "title": "Animation timing duration and delay unit resolution",
+      "status": "FIXED",
+      "layer": "frontend/components/admin/builder/canvas-element.tsx",
+      "description": "Validated entrance animation duration and delay seconds mapping and hover box shadow transitions."
+    },
+    {
+      "id": "DEFECT-W9-05",
+      "severity": "P2",
+      "round": 68,
+      "title": "Scoped CSS {{WRAPPER}} selector resolution and isolation",
+      "status": "FIXED",
+      "layer": "frontend/lib/builder/scoped-css.ts",
+      "description": "Implemented and verified resolveScopedCss ensuring custom CSS rules targeting {{WRAPPER}} are cleanly scoped to the element."
+    },
+    {
+      "id": "DEFECT-W9-04",
+      "severity": "P2",
+      "round": 67,
+      "title": "Code highlight terminal header and strict LTR rendering encapsulation",
+      "status": "FIXED",
+      "layer": "frontend/tests/builder-weight9-interactive-widgets.test.ts",
+      "description": "Validated code highlight widget LTR direction preservation and terminal title bar in RTL builder canvas."
+    },
+    {
+      "id": "DEFECT-W9-03",
+      "severity": "P2",
+      "round": 66,
+      "title": "Nested containers and tabs preview state encapsulation",
+      "status": "FIXED",
+      "layer": "frontend/tests/builder-weight9-nested-containers.test.ts",
+      "description": "Validated nested container tabs switching and accordion child element hierarchy without DOM leakage."
+    },
+    {
+      "id": "DEFECT-W9-02",
+      "severity": "P2",
+      "round": 65,
+      "title": "Complex e-commerce landing suite layout and type alignment",
+      "status": "FIXED",
+      "layer": "frontend/tests/builder-weight9-shop-landing.test.ts",
+      "description": "Validated product grid, mega menu and customer proof rating components with strict TypeScript flexbox layout alignment."
+    },
+    {
+      "id": "DEFECT-W9-01",
+      "severity": "P2",
+      "round": 64,
+      "title": "Full landing page creation stress test and container grid layout validation",
+      "status": "FIXED",
+      "layer": "frontend/tests/builder-weight9-verification.test.ts",
+      "description": "Validated that multi-section landing pages with flex and grid containers render and update with zero hydration or layout errors."
+    },
+    {
+      "id": "DEFECT-W8-01",
+      "severity": "P2",
+      "round": 63,
+      "title": "Wave 3 multi step form and loop grid responsive state synchronization",
+      "status": "FIXED",
+      "layer": "frontend/components/admin/builder/canvas-element.tsx",
+      "description": "Validated that multi step form navigation and loop grid dynamic cards render seamlessly across responsive viewports."
+    },
+    {
+      "id": "DEFECT-W7-01",
+      "severity": "P2",
+      "round": 62,
+      "title": "Interactive Pro widgets flip box and call to action 3D rendering",
+      "status": "FIXED",
+      "layer": "frontend/components/admin/builder/canvas-element.tsx",
+      "description": "Validated that 3D flip card and call to action interactive widgets render smoothly without console or hydration errors."
+    },
+    {
+      "id": "DEFECT-W6-01",
+      "severity": "P2",
+      "round": 61,
+      "title": "Elementor Wave 1 transform and mask state controls validation",
+      "status": "FIXED",
+      "layer": "frontend/components/admin/builder/inspector-panel.tsx",
+      "description": "Validated that transform (rotate, scale, skew, flip) and mask controls cleanly update device styles without style bleed."
+    },
+    {
+      "id": "DEFECT-W5-01",
+      "severity": "P2",
+      "round": 60,
+      "title": "Responsive value mobile-first resolution cascade validation",
+      "status": "FIXED",
+      "layer": "frontend/lib/builder/schema.ts",
+      "description": "Verified that resolveResponsiveValue preserves mobile-first inheritance for desktop and tablet without mutating AST elements."
+    },
+    {
+      "id": "DEFECT-W4-01",
+      "severity": "P2",
+      "round": 59,
+      "title": "Save page template dialog integration and display conditions mapping",
+      "status": "FIXED",
+      "layer": "frontend/components/admin/builder/save-page-template-dialog.tsx",
+      "description": "Validated that page template saving correctly packages entire AST with theme builder template types and conditions."
+    },
+    {
+      "id": "DEFECT-W3-01",
+      "severity": "P2",
+      "round": 58,
+      "title": "Global styles design token resets and primary token isolation",
+      "status": "FIXED",
+      "layer": "frontend/components/admin/builder/global-styles-dialog.tsx",
+      "description": "Validated that resetting global styles restores clean site theme defaults without polluting page AST or leaking to admin UI."
+    },
+    {
+      "id": "DEFECT-W2-01",
+      "severity": "P2",
+      "round": 57,
+      "title": "Typography font weight type safety in inspector styles normalization",
+      "status": "FIXED",
+      "layer": "frontend/components/admin/builder/inspector-panel.tsx",
+      "description": "Standardized font weight string tokens to strict numeric string representation (700 for bold) avoiding type drift."
+    },
+    {
+      "id": "DEFECT-W1-01",
+      "severity": "P1",
+      "round": 56,
+      "title": "Action buttons in layers-tree required hover to become visible",
+      "status": "FIXED",
+      "layer": "frontend/components/admin/builder/layers-tree.tsx",
+      "description": "Removed hover dependency for layer actions (hide, duplicate, delete), locking them to permanent opacity-100."
+    },
+    {
+      "id": "DEFECT-W0-01",
+      "severity": "P0",
+      "round": 55,
+      "title": "Vertical scroll trap in InspectorPanel and flexbox chain missing min-h-0",
+      "status": "FIXED",
+      "layer": "frontend/components/admin/builder/builder-studio.tsx & inspector-panel.tsx",
+      "description": "InspectorPanel left column flexbox chain lacked min-h-0 on parent containers. Added min-h-0 and pb-24 clearance ensuring all 3 tabs scroll completely."
+    },
+    {
+      "id": "DEFECT-W0-02",
+      "severity": "P0",
+      "round": 55,
+      "title": "Horizontal clipping in Style tab controls and toolbar buttons overlap in 1280x720",
+      "status": "FIXED",
+      "layer": "frontend/components/admin/builder/builder-toolbar.tsx & inspector-panel.tsx",
+      "description": "Added reset buttons for Padding and Margin in InspectorPanel Style tab, responsive labels and shrink-0 preventing button collisions in 1280x720 and 1440x900 viewports."
+    },
+    {
+      "id": "DEFECT-W0-03",
+      "severity": "P0",
+      "round": 55,
+      "title": "Single icon widget rendered raw text or missing SVG in canvas and backend ast_compiler",
+      "status": "FIXED",
+      "layer": "frontend/lib/builder/icon-registry.ts, canvas-element.tsx & ast_compiler.py",
+      "description": "Created unified icon-registry.ts, updated canvas-element with data-widget-type and Lucide SVG, and upgraded backend AST compiler to output valid sanitization-compliant SVG vector paths."
+    },
+    {
+      "id": "DEFECT-W0-04",
+      "severity": "P0",
+      "round": 55,
+      "title": "Canvas default content RTL guidance incorrectly pointed to left panel instead of right panel",
+      "status": "FIXED",
+      "layer": "frontend/stores/builder-store.ts",
+      "description": "Corrected initial text guidance in RTL layout from پنل سمت چپ to پنل سمت راست matching BlocksPalette physical position."
+    },
     {
       "id": "DEFECT-R41-01",
       "severity": "P1",

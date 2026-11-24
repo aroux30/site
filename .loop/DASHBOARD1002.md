@@ -1,26 +1,27 @@
-# 🏋️ BUILDER GYM LOOP V3.2 DASHBOARD — PORT 1002
+# 🏋️ BUILDER GYM LOOP V4.2 DASHBOARD — PORT 1002
 
-- **Active Round**: Round 51 (Round 51 Completed Successfully ✅)
-- **Target Weight**: وزنه ۹: ساخت لندینگ کامل از صفر + پاک‌سازی کامل P2/P3 + تست فشار
+- **Active Round**: Round 76 (Round 76 Completed Successfully ✅)
+- **Target Weight**: وزنه ۹: بی‌نهایت (+۱۰ کیلو در هر دور — گردونه چرخشی پویا و اسلایدر پیشرفته)
 - **Frontend Port**: 1002 (`http://127.0.0.1:1002`)
-- **Backend Port**: 8002 (`http://127.0.0.1:8002`)
+- **Backend Port**: 8000 (`http://127.0.0.1:8000`)
 - **Isolation Scope**: Visual Page Builder (`GYM_SCOPE=builder`)
-- **Status**: 🏆 ROUND 51 PASSED & VERIFIED (Search Bar & Nav Menu Parity)
+- **Supreme Milestone**: 🏆 **BUILDER_GYM_ALL_LEVELS_MASTERED**
 
 ---
 
 ### 📊 معیارهای سلامت نهایی و وضعیت تست‌ها
 - **TypeScript**: `npx tsc --noEmit` → **۰ خطا (۱۰۰٪ سبز)**
-- **Frontend Vitest**: **۳۸۰ تست سبز در ۴۵ فایل** (`380 passed`)
-- **Backend Pytest**: **۶۵۰ تست سبز، ۲ اسکیپ** (`650 passed`)
-- **Playwright SoM**: ۱ از ۱ سبز کامل (۷.۹ ثانیه با ۱۰۰٪ پاس E2E)
-- **Rebuild Live**: استقرار موفق پروداکشن ری‌بیلد روی پورت ۱۰۰۲
+- **Frontend Vitest**: **۴۳۰ تست سبز در ۶۷ فایل** (`430 passed`)
+- **Backend Pytest**: **۶۵۵ تست سبز، ۲ اسکیپ** (`655 passed, 2 skipped`)
+- **Deterministic Sensors**: ۴ از ۴ سنسور ۱۰۰٪ سبز (`scroll_audit`, `menu_open_proof`, `semantic_widget_audit`, `mutation_report`)
+- **Rebuild Live**: استقرار موفق پروداکشن ری‌بیلد روی پورت ۱۰۰۲ (BUILD_ID: `Pw13s8Ky7RqdZ8DOMXVTQ`)
 - **QA Verifier Verdict**: **APPROVE** (تمام معیارها ۱۰/۱۰ با صفر ایراد مسدودکننده)
-- **Registered Blocks**: ۶۸ بلوک در رجیستری فرانت‌اند با انطباق کامل در بوم و سرور
+- **Coverage Matrix**: ۲۳۲ واحد کامل (۶۸ بلوک × ۳ تب + ۲۸ الگو = ۱۰۰٪ پوشش)
 
 ---
 
-### 🎯 خلاصه دستاوردهای راند ۵۱:
-1. **تجهیز ویجت‌های Theme Builder**: ارتقای فرم جستجو (`search_bar`) و فهرست ناوبری (`nav_menu`) به صفت‌های استاندارد `data-widget` جهت شناسایی دقیق در استودیو.
-2. **پشتیبانی چیدمان افقی و عمودی منو**: پیاده‌سازی کنترل `layout` در بازرس تنظیمات و همگام‌سازی آن در بوم تعاملی و خروجی کامپایلر SSR بک‌اند.
-3. **عضله‌سازی و تست‌های رگرسیون**: ارتقای تست‌های E2E و Unit در فرانت‌اند و بک‌اند با پایداری ۱۰۰٪ در محیط پروداکشن پورت ۱۰۰۲.
+### 🎯 خلاصه دستاوردهای راند ۷۶ (Weight 9 Loop Carousel & Slides):
+1. **ویجت گردونه چرخشی (`loop_carousel`)**: ناوبری افقی با دکمه‌های قبلی/بعدی، کلاس‌های `no-scrollbar` و کارت‌های پویا.
+2. **اسلایدر پیشرفته بنرها (`slides`)**: مدیریت اسلایدهای چندگانه، دکمه‌های اقدام و نشانگرهای تعاملی سوئیچ اسلاید.
+3. **تثبیت کیفیت نهایی**: تایید رسمی نشان افتخارآمیز **BUILDER_GYM_ALL_LEVELS_MASTERED** با حضور ۴۳۰ تست وی‌تست و ۶۵۵ تست پای‌تست سبز.
+4. **تست‌های رگرسیون جدید**: افزودن تست واحد `builder-weight9-carousel-slides.test.ts` و عبور کامل ۴۳۰ تست فرانت‌اند.

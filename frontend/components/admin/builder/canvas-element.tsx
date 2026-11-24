@@ -891,10 +891,11 @@ function CanvasElementComponent({
         const iconEl = (
           <div
             data-widget="icon"
+            data-widget-type="icon"
             data-icon={iconKey}
             data-icon-id={iconKey}
             className={cn(
-              "inline-flex items-center justify-center transition-transform",
+              "builder-icon inline-flex items-center justify-center transition-transform",
               viewClasses,
               shapeClass
             )}
@@ -903,7 +904,11 @@ function CanvasElementComponent({
               transform: rotate ? `rotate(${rotate}deg)` : undefined,
             }}
           >
-            <IconComponent style={{ width: `${size}px`, height: `${size}px` }} className="shrink-0" aria-hidden="true" />
+            <IconComponent
+              className="builder-icon-svg shrink-0"
+              style={{ width: `${size}px`, height: `${size}px` }}
+              aria-hidden="true"
+            />
           </div>
         );
         if (url) {

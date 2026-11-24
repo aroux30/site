@@ -236,43 +236,43 @@ export function BuilderToolbar({
         <button
           type="button"
           onClick={() => setBreakpoint("desktop")}
+          title="نمای دسکتاپ (۱۹۲۰)"
           className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium transition ${
             activeBreakpoint === "desktop"
               ? "bg-background text-foreground shadow-sm font-bold"
               : "text-muted-foreground hover:text-foreground"
           }`}
-          title="دسکتاپ"
         >
           <Monitor className="w-3.5 h-3.5" />
-          <span className="hidden 2xl:inline">دسکتاپ</span>
+          <span className="hidden xl:inline">دسکتاپ</span>
         </button>
 
         <button
           type="button"
           onClick={() => setBreakpoint("tablet")}
+          title="نمای تبلت (۷۶۸)"
           className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium transition ${
             activeBreakpoint === "tablet"
               ? "bg-background text-foreground shadow-sm font-bold"
               : "text-muted-foreground hover:text-foreground"
           }`}
-          title="تبلت (۷۶۸)"
         >
           <Tablet className="w-3.5 h-3.5" />
-          <span className="hidden 2xl:inline">تبلت (۷۶۸)</span>
+          <span className="hidden xl:inline">تبلت (۷۶۸)</span>
         </button>
 
         <button
           type="button"
           onClick={() => setBreakpoint("mobile")}
+          title="نمای موبایل (۳۷۵)"
           className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium transition ${
             activeBreakpoint === "mobile"
               ? "bg-background text-foreground shadow-sm font-bold"
               : "text-muted-foreground hover:text-foreground"
           }`}
-          title="موبایل (۳۷۵)"
         >
           <Smartphone className="w-3.5 h-3.5" />
-          <span className="hidden 2xl:inline">موبایل (۳۷۵)</span>
+          <span className="hidden xl:inline">موبایل (۳۷۵)</span>
         </button>
       </div>
 
@@ -332,7 +332,7 @@ export function BuilderToolbar({
           title={previewMode ? "حالت ویرایش" : "پیش‌نمایش صفحه"}
         >
           {previewMode ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-          <span className="hidden 2xl:inline">{previewMode ? "ویرایش" : "پیش‌نمایش"}</span>
+          <span className="hidden xl:inline">{previewMode ? "ویرایش" : "پیش‌نمایش"}</span>
         </Button>
 
         <Button

@@ -1,0 +1,7 @@
+{
+  "contentTabScrollable": true,
+  "styleTabScrollable": true,
+  "advancedTabScrollable": true,
+  "zeroScrollTrap": true,
+  "horizontalOverflow1280": 0
+}

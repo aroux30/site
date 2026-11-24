@@ -1,22 +1,31 @@
 {
   "version": "4.2",
-  "activeWeight": 1,
-  "activeRound": 56,
+  "activeWeight": 2,
+  "activeRound": 57,
   "status": "IN_PROGRESS",
   "levels1to5Status": "BUILDER_GYM_LEVELS_1_TO_5_CLEAN",
   "allLevelsMastered": "BUILDER_GYM_ALL_LEVELS_MASTERED",
   "verificationPort": 1002,
-  "completedRounds": 55,
+  "completedRounds": 56,
   "metrics": {
     "typeCheckErrors": 0,
-    "frontendUnitTests": 387,
+    "frontendUnitTests": 390,
     "backendUnitTests": 655,
     "playwrightTests": 5,
     "registeredBlocks": 68,
     "lastVerifierVerdict": "APPROVE"
   },
-  "timestamp": "2026-11-24T08:05:00.000Z",
+  "timestamp": "2026-11-24T08:25:00.000Z",
   "defect_ledger": [
+    {
+      "id": "DEFECT-W2-01",
+      "severity": "P2",
+      "round": 57,
+      "title": "Typography font weight type safety in inspector styles normalization",
+      "status": "FIXED",
+      "layer": "frontend/components/admin/builder/inspector-panel.tsx",
+      "description": "Standardized font weight string tokens to strict numeric string representation (700 for bold) avoiding type drift."
+    },
     {
       "id": "DEFECT-W1-01",
       "severity": "P1",

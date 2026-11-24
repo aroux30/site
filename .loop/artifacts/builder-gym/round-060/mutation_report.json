@@ -1,0 +1,26 @@
+{
+  "round": 60,
+  "phase": "after",
+  "timestamp": "2026-11-24T09:42:19.931Z",
+  "testedElementsCount": 45,
+  "pixelmatchThreshold": 0.05,
+  "changedPixels": 0,
+  "sensors": {
+    "consoleErrorsCount": 6,
+    "networkErrorsCount": 5,
+    "hydrationErrorsCount": 0,
+    "maxHorizontalOverflowPx": 0,
+    "neighborOverlapsDetected": 0,
+    "rtlLayoutIntegrity": "PASS",
+    "darkModeIntegrity": "PASS"
+  },
+  "effectProof": {
+    "domDiffDetected": true,
+    "visualDifferenceProof": false
+  },
+  "breakageProof": {
+    "zeroConsoleErrors": false,
+    "zeroNetworkErrors": false,
+    "zeroOverflow": true
+  }
+}

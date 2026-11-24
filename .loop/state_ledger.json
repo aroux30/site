@@ -1,21 +1,21 @@
 {
   "version": "4.2",
   "activeWeight": 9,
-  "activeRound": 59,
+  "activeRound": 60,
   "status": "COMPLETED",
   "levels1to5Status": "BUILDER_GYM_LEVELS_1_TO_5_CLEAN",
   "allLevelsMastered": "BUILDER_GYM_ALL_LEVELS_MASTERED",
   "verificationPort": 1003,
-  "completedRounds": 59,
+  "completedRounds": 60,
   "metrics": {
     "typeCheckErrors": 0,
     "frontendUnitTests": 383,
     "backendUnitTests": 656,
-    "playwrightTests": 5,
+    "playwrightTests": 6,
     "registeredBlocks": 76,
     "lastVerifierVerdict": "APPROVE"
   },
-  "timestamp": "2026-11-24T09:45:00.000Z",
+  "timestamp": "2026-11-24T10:15:00.000Z",
   "defect_ledger": [
     {
       "id": "DEFECT-R41-01",
@@ -484,6 +484,15 @@
       "summary": "Global Styles dialog lacked data-testid hooks for save and reset actions; added data-testid save-global-styles-btn and reset-global-styles-btn",
       "status": "FIXED",
       "round": 59
+    },
+    {
+      "id": "DEFECT-R60-01",
+      "severity": "P2",
+      "component": "keyboard_shortcuts_dialog",
+      "layer": "frontend/components/admin/builder/keyboard-shortcuts-dialog.tsx",
+      "summary": "Keyboard shortcuts modal dialog lacked data-testid selector hooks for test automated closing; added keyboard-shortcuts-dialog and close-shortcuts-dialog-btn hooks",
+      "status": "FIXED",
+      "round": 60
     }
   ]
 }

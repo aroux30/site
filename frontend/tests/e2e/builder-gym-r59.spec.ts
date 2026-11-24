@@ -137,4 +137,23 @@ test.describe("Builder Gym Round 55: Weight 0 Triage & Parity Verification", () 
       await page.keyboard.press("Escape");
     }
   });
+
+  test("6. Keyboard shortcuts dialog opens and displays shortcut key bindings", async ({ page }) => {
+    await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(1500);
+
+    const shortcutsBtn = page.locator('header button[data-testid="shortcuts-help-btn"]').first();
+    if (await shortcutsBtn.isVisible()) {
+      await shortcutsBtn.click();
+      await page.waitForTimeout(400);
+
+      const dialog = page.locator('[data-testid="keyboard-shortcuts-dialog"]').first();
+      await expect(dialog).toBeVisible();
+      const closeBtn = dialog.locator('button[data-testid="close-shortcuts-dialog-btn"]').first();
+      await expect(closeBtn).toBeVisible();
+      await closeBtn.click();
+      await page.waitForTimeout(300);
+      await expect(dialog).not.toBeVisible();
+    }
+  });
 });

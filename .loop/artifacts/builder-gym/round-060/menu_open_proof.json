@@ -1,0 +1,17 @@
+{
+  "testedMenusCount": 1,
+  "allMenusMountedSuccessfully": true,
+  "details": [
+    {
+      "index": 0,
+      "result": {
+        "portalFound": true,
+        "width": 353,
+        "height": 224,
+        "optionsCount": 20,
+        "aboveIframe": true
+      }
+    }
+  ],
+  "status": "PASS"
+}

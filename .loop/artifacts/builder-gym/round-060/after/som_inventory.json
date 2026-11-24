@@ -1,0 +1,587 @@
+[
+  {
+    "id": 1,
+    "tag": "button",
+    "text": "خروج",
+    "ariaLabel": "",
+    "type": "",
+    "rect": {
+      "x": 1831.75,
+      "y": 11.5,
+      "width": 72.25,
+      "height": 32
+    }
+  },
+  {
+    "id": 2,
+    "tag": "button",
+    "text": "دسکتاپ",
+    "ariaLabel": "",
+    "type": "button",
+    "rect": {
+      "x": 1224.5,
+      "y": 15.5,
+      "width": 79.984375,
+      "height": 24
+    }
+  },
+  {
+    "id": 3,
+    "tag": "button",
+    "text": "تبلت (۷۶۸)",
+    "ariaLabel": "",
+    "type": "button",
+    "rect": {
+      "x": 1125.734375,
+      "y": 15.5,
+      "width": 94.765625,
+      "height": 24
+    }
+  },
+  {
+    "id": 4,
+    "tag": "button",
+    "text": "موبایل (۳۷۵)",
+    "ariaLabel": "",
+    "type": "button",
+    "rect": {
+      "x": 1016.84375,
+      "y": 15.5,
+      "width": 104.890625,
+      "height": 24
+    }
+  },
+  {
+    "id": 5,
+    "tag": "button",
+    "text": "",
+    "ariaLabel": "",
+    "type": "",
+    "rect": {
+      "x": 673.34375,
+      "y": 13.5,
+      "width": 28,
+      "height": 28
+    }
+  },
+  {
+    "id": 6,
+    "tag": "button",
+    "text": "",
+    "ariaLabel": "",
+    "type": "",
+    "rect": {
+      "x": 643.34375,
+      "y": 13.5,
+      "width": 28,
+      "height": 28
+    }
+  },
+  {
+    "id": 7,
+    "tag": "button",
+    "text": "قالب برگه",
+    "ariaLabel": "",
+    "type": "",
+    "rect": {
+      "x": 550.796875,
+      "y": 11.5,
+      "width": 83.546875,
+      "height": 32
+    }
+  },
+  {
+    "id": 8,
+    "tag": "button",
+    "text": "استایل سراسری",
+    "ariaLabel": "",
+    "type": "",
+    "rect": {
+      "x": 431.890625,
+      "y": 11.5,
+      "width": 112.90625,
+      "height": 32
+    }
+  },
+  {
+    "id": 9,
+    "tag": "button",
+    "text": "پیش‌نمایش",
+    "ariaLabel": "",
+    "type": "",
+    "rect": {
+      "x": 332.109375,
+      "y": 11.5,
+      "width": 93.78125,
+      "height": 32
+    }
+  },
+  {
+    "id": 10,
+    "tag": "button",
+    "text": "میانبرها",
+    "ariaLabel": "",
+    "type": "",
+    "rect": {
+      "x": 251.015625,
+      "y": 11.5,
+      "width": 75.09375,
+      "height": 32
+    }
+  },
+  {
+    "id": 11,
+    "tag": "button",
+    "text": "ذخیره پیش‌نویس",
+    "ariaLabel": "",
+    "type": "",
+    "rect": {
+      "x": 118.625,
+      "y": 11.5,
+      "width": 126.390625,
+      "height": 32
+    }
+  },
+  {
+    "id": 12,
+    "tag": "button",
+    "text": "انتشار برگه",
+    "ariaLabel": "",
+    "type": "",
+    "rect": {
+      "x": 16,
+      "y": 11.5,
+      "width": 96.625,
+      "height": 32
+    }
+  },
+  {
+    "id": 13,
+    "tag": "button",
+    "text": "بلوک‌ها",
+    "ariaLabel": "افزودن بلوک",
+    "type": "button",
+    "rect": {
+      "x": 1812,
+      "y": 69,
+      "width": 95,
+      "height": 28.5
+    }
+  },
+  {
+    "id": 14,
+    "tag": "button",
+    "text": "لایه‌ها",
+    "ariaLabel": "",
+    "type": "button",
+    "rect": {
+      "x": 1713,
+      "y": 69,
+      "width": 95,
+      "height": 28.5
+    }
+  },
+  {
+    "id": 15,
+    "tag": "button",
+    "text": "تاریخچه",
+    "ariaLabel": "",
+    "type": "button",
+    "rect": {
+      "x": 1614,
+      "y": 69,
+      "width": 95,
+      "height": 28.5
+    }
+  },
+  {
+    "id": 16,
+    "tag": "button",
+    "text": "بلوک‌ها (68)",
+    "ariaLabel": "",
+    "type": "button",
+    "rect": {
+      "x": 1810.671875,
+      "y": 127.5,
+      "width": 92.328125,
+      "height": 28
+    }
+  },
+  {
+    "id": 17,
+    "tag": "button",
+    "text": "الگوها (28)",
+    "ariaLabel": "",
+    "type": "button",
+    "rect": {
+      "x": 1714.34375,
+      "y": 127.5,
+      "width": 92.328125,
+      "height": 28
+    }
+  },
+  {
+    "id": 18,
+    "tag": "button",
+    "text": "قالب‌های من (0)",
+    "ariaLabel": "",
+    "type": "button",
+    "rect": {
+      "x": 1618,
+      "y": 127.5,
+      "width": 92.34375,
+      "height": 28
+    }
+  },
+  {
+    "id": 19,
+    "tag": "input",
+    "text": "",
+    "ariaLabel": "",
+    "type": "",
+    "rect": {
+      "x": 1613,
+      "y": 172.5,
+      "width": 295,
+      "height": 32
+    }
+  },
+  {
+    "id": 20,
+    "tag": "button",
+    "text": "کانتینرباکس انعطاف‌پذیر با چید",
+    "ariaLabel": "",
+    "type": "button",
+    "rect": {
+      "x": 1766.5,
+      "y": 239,
+      "width": 141.5,
+      "height": 91
+    }
+  },
+  {
+    "id": 21,
+    "tag": "button",
+    "text": "بخش کاملبخش سرتاسری برای گروه‌",
+    "ariaLabel": "",
+    "type": "button",
+    "rect": {
+      "x": 1617,
+      "y": 239,
+      "width": 141.5,
+      "height": 91
+    }
+  },
+  {
+    "id": 22,
+    "tag": "button",
+    "text": "دو ستونهچیدمان دو ستون مساوی ک",
+    "ariaLabel": "",
+    "type": "button",
+    "rect": {
+      "x": 1766.5,
+      "y": 338,
+      "width": 141.5,
+      "height": 91
+    }
+  },
+  {
+    "id": 23,
+    "tag": "button",
+    "text": "فرم سازندهکانتینر نگه‌دارنده ف",
+    "ariaLabel": "",
+    "type": "button",
+    "rect": {
+      "x": 1617,
+      "y": 338,
+      "width": 141.5,
+      "height": 91
+    }
+  },
+  {
+    "id": 24,
+    "tag": "button",
+    "text": "کشوی کناریکشوی جانبی مخفی برای",
+    "ariaLabel": "",
+    "type": "button",
+    "rect": {
+      "x": 1766.5,
+      "y": 437,
+      "width": 141.5,
+      "height": 91
+    }
+  },
+  {
+    "id": 25,
+    "tag": "button",
+    "text": "پاپ‌آپ تعاملیطراحی پاپ‌آپ تبلی",
+    "ariaLabel": "",
+    "type": "button",
+    "rect": {
+      "x": 1617,
+      "y": 437,
+      "width": 141.5,
+      "height": 91
+    }
+  },
+  {
+    "id": 26,
+    "tag": "button",
+    "text": "حلقه پویانمایش گرید پویا و تکر",
+    "ariaLabel": "",
+    "type": "button",
+    "rect": {
+      "x": 1766.5,
+      "y": 536,
+      "width": 141.5,
+      "height": 91
+    }
+  },
+  {
+    "id": 27,
+    "tag": "button",
+    "text": "فرم چندمرحله‌ایفرم گام‌به‌گام ",
+    "ariaLabel": "",
+    "type": "button",
+    "rect": {
+      "x": 1617,
+      "y": 536,
+      "width": 141.5,
+      "height": 91
+    }
+  },
+  {
+    "id": 28,
+    "tag": "button",
+    "text": "اسلاید پیشرفتهاسلایدر هیرو تما",
+    "ariaLabel": "",
+    "type": "button",
+    "rect": {
+      "x": 1766.5,
+      "y": 635,
+      "width": 141.5,
+      "height": 91
+    }
+  },
+  {
+    "id": 29,
+    "tag": "button",
+    "text": "تب‌های تودرتوکانتینر تب‌های پی",
+    "ariaLabel": "",
+    "type": "button",
+    "rect": {
+      "x": 1617,
+      "y": 635,
+      "width": 141.5,
+      "height": 91
+    }
+  },
+  {
+    "id": 30,
+    "tag": "button",
+    "text": "آکاردئون کانتینریآکاردئون تودر",
+    "ariaLabel": "",
+    "type": "button",
+    "rect": {
+      "x": 1766.5,
+      "y": 734,
+      "width": 141.5,
+      "height": 91
+    }
+  },
+  {
+    "id": 31,
+    "tag": "button",
+    "text": "گردونه پویاگردونه و اسلایدر تک",
+    "ariaLabel": "",
+    "type": "button",
+    "rect": {
+      "x": 1617,
+      "y": 734,
+      "width": 141.5,
+      "height": 91
+    }
+  },
+  {
+    "id": 32,
+    "tag": "button",
+    "text": "فهرست ناوبریمنوی پیوندهای اصلی",
+    "ariaLabel": "",
+    "type": "button",
+    "rect": {
+      "x": 1766.5,
+      "y": 833,
+      "width": 141.5,
+      "height": 91
+    }
+  },
+  {
+    "id": 33,
+    "tag": "button",
+    "text": "سرتیترعنوان H1 تا H6 با تایپوگ",
+    "ariaLabel": "",
+    "type": "button",
+    "rect": {
+      "x": 1766.5,
+      "y": 962.5,
+      "width": 141.5,
+      "height": 91
+    }
+  },
+  {
+    "id": 34,
+    "tag": "button",
+    "text": "پاراگراف متنمتن توضیحی با فرمت",
+    "ariaLabel": "",
+    "type": "button",
+    "rect": {
+      "x": 1617,
+      "y": 962.5,
+      "width": 141.5,
+      "height": 91
+    }
+  },
+  {
+    "id": 35,
+    "tag": "button",
+    "text": "تصویرتصویر با پشتیبانی از کتاب",
+    "ariaLabel": "",
+    "type": "button",
+    "rect": {
+      "x": 1766.5,
+      "y": 1061.5,
+      "width": 141.5,
+      "height": 91
+    }
+  },
+  {
+    "id": 36,
+    "tag": "button",
+    "text": "دکمه اقدامدکمه اقدام و فراخوان",
+    "ariaLabel": "",
+    "type": "button",
+    "rect": {
+      "x": 1617,
+      "y": 1061.5,
+      "width": 141.5,
+      "height": 91
+    }
+  },
+  {
+    "id": 37,
+    "tag": "button",
+    "text": "فاصله‌سازفضای خالی عمودی قابل ",
+    "ariaLabel": "",
+    "type": "button",
+    "rect": {
+      "x": 1766.5,
+      "y": 1160.5,
+      "width": 141.5,
+      "height": 91
+    }
+  },
+  {
+    "id": 38,
+    "tag": "button",
+    "text": "خط جداکنندهخط افقی ظریف برای ت",
+    "ariaLabel": "",
+    "type": "button",
+    "rect": {
+      "x": 1617,
+      "y": 1160.5,
+      "width": 141.5,
+      "height": 91
+    }
+  },
+  {
+    "id": 39,
+    "tag": "button",
+    "text": "جدول دادهجدول با سطرها و ستون‌",
+    "ariaLabel": "",
+    "type": "button",
+    "rect": {
+      "x": 1766.5,
+      "y": 1259.5,
+      "width": 141.5,
+      "height": 91
+    }
+  },
+  {
+    "id": 40,
+    "tag": "button",
+    "text": "فیلد ورودی متنفیلد متنی یک خطی",
+    "ariaLabel": "",
+    "type": "button",
+    "rect": {
+      "x": 1617,
+      "y": 1259.5,
+      "width": 141.5,
+      "height": 91
+    }
+  },
+  {
+    "id": 41,
+    "tag": "button",
+    "text": "متن چندخطیفیلد پیام چندخطی با ",
+    "ariaLabel": "",
+    "type": "button",
+    "rect": {
+      "x": 1766.5,
+      "y": 1358.5,
+      "width": 141.5,
+      "height": 91
+    }
+  },
+  {
+    "id": 42,
+    "tag": "button",
+    "text": "منوی کشوییفیلد گزینش تک انتخاب",
+    "ariaLabel": "",
+    "type": "button",
+    "rect": {
+      "x": 1617,
+      "y": 1358.5,
+      "width": 141.5,
+      "height": 91
+    }
+  },
+  {
+    "id": 43,
+    "tag": "button",
+    "text": "کارت محصولکارت هوشمند محصول با",
+    "ariaLabel": "",
+    "type": "button",
+    "rect": {
+      "x": 1766.5,
+      "y": 1457.5,
+      "width": 141.5,
+      "height": 91
+    }
+  },
+  {
+    "id": 44,
+    "tag": "button",
+    "text": "ویترین محصولاتشبکه واکنش‌گرای ",
+    "ariaLabel": "",
+    "type": "button",
+    "rect": {
+      "x": 1617,
+      "y": 1457.5,
+      "width": 141.5,
+      "height": 91
+    }
+  },
+  {
+    "id": 45,
+    "tag": "button",
+    "text": "تنوع محصولانتخابگر بومی ویژگی‌",
+    "ariaLabel": "",
+    "type": "button",
+    "rect": {
+      "x": 1766.5,
+      "y": 1556.5,
+      "width": 141.5,
+      "height": 91
+    }
+  }
+]

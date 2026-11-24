@@ -1,21 +1,21 @@
 {
   "version": "3.2",
   "activeWeight": 9,
-  "activeRound": 63,
+  "activeRound": 64,
   "status": "COMPLETED",
   "levels1to5Status": "BUILDER_GYM_LEVELS_1_TO_5_CLEAN",
   "allLevelsMastered": "BUILDER_GYM_ALL_LEVELS_MASTERED",
   "verificationPort": 1001,
-  "completedRounds": 63,
+  "completedRounds": 64,
   "metrics": {
     "typeCheckErrors": 0,
     "frontendUnitTests": 385,
     "backendUnitTests": 654,
-    "playwrightTests": 10,
+    "playwrightTests": 11,
     "registeredBlocks": 76,
     "lastVerifierVerdict": "APPROVE"
   },
-  "timestamp": "2026-11-24T12:38:57.633Z",
+  "timestamp": "2026-11-24T13:10:37.556Z",
   "defect_ledger": [
     {
       "id": "DEFECT-R41-01",
@@ -574,6 +574,24 @@
       "summary": "Missing dedicated end-to-end regression assertion for templates tab and batch element addition atomicity",
       "status": "FIXED",
       "round": 63
+    },
+    {
+      "id": "DEFECT-R64-01",
+      "severity": "P1",
+      "component": "navigator_context_menu",
+      "layer": "frontend/components/admin/builder/layers-tree.tsx",
+      "summary": "Navigator tree right-click context menu options for duplicate, copy, paste, reset styles and template save verified",
+      "status": "FIXED",
+      "round": 64
+    },
+    {
+      "id": "DEFECT-R64-02",
+      "severity": "P2",
+      "component": "context_menu_e2e_regression",
+      "layer": "frontend/tests/e2e/builder-gym-r68.spec.ts",
+      "summary": "Missing dedicated end-to-end regression assertion for Navigator tree context menu and Escape key handling",
+      "status": "FIXED",
+      "round": 64
     }
   ]
 }

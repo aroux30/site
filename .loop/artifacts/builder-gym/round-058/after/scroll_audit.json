@@ -1,0 +1,17 @@
+{
+  "timestamp": "2026-11-24T11:26:46.310Z",
+  "viewports": {
+    "1280x720": {
+      "horizontalOverflow": 0,
+      "pass": true
+    },
+    "1440x900": {
+      "horizontalOverflow": 0,
+      "pass": true
+    }
+  },
+  "inspectorVerticalScrollable": true,
+  "inspectorScrollDelta": 0,
+  "horizontalOverflowViolations": [],
+  "toolbarCollisionDetected": false
+}

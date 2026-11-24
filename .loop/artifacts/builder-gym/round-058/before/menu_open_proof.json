@@ -1,0 +1,12 @@
+{
+  "timestamp": "2026-11-24T11:26:48.024Z",
+  "testedMenus": [
+    {
+      "type": "combobox",
+      "opened": true,
+      "optionsCount": 2,
+      "zIndex": "150"
+    }
+  ],
+  "allMenusUnblocked": true
+}

@@ -1,22 +1,22 @@
 {
   "version": "4.2",
-  "activeWeight": 7,
-  "activeRound": 57,
+  "activeWeight": 8,
+  "activeRound": 58,
   "status": "COMPLETED",
   "levels1to5Status": "BUILDER_GYM_LEVELS_1_TO_5_CLEAN",
   "allLevelsMastered": "BUILDER_GYM_ALL_LEVELS_MASTERED",
   "verificationPort": 1005,
-  "completedRounds": 57,
+  "completedRounds": 58,
   "metrics": {
     "typeCheckErrors": 0,
     "frontendUnitTests": 380,
     "backendUnitTests": 650,
-    "playwrightTests": 32,
+    "playwrightTests": 36,
     "registeredBlocks": 73,
     "registeredPatterns": 28,
     "lastVerifierVerdict": "APPROVE"
   },
-  "timestamp": "2026-11-24T05:30:00.000Z",
+  "timestamp": "2026-11-24T06:00:00.000Z",
   "defect_ledger": [
     {
       "id": "DEFECT-R41-01",
@@ -341,6 +341,15 @@
       "summary": "Block registry search keywords for animated headline, off-canvas, popup and price table aligned with Persian UI",
       "status": "FIXED",
       "round": 57
+    },
+    {
+      "id": "DEFECT-W8-01",
+      "severity": "P1",
+      "component": "code_highlight",
+      "layer": "search_keyword_alignment",
+      "summary": "Code highlight search card query in E2E was adjusted to Persian keyword matching block registry",
+      "status": "FIXED",
+      "round": 58
     }
   ]
 }

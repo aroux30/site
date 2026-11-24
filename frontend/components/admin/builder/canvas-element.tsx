@@ -878,6 +878,8 @@ function CanvasElementComponent({
         const shape = String(props.shape || "circle");
         const size = Number(props.size) || 32;
         const rotate = Number(props.rotate) || 0;
+        const url = String(props.url || "");
+        const newTab = Boolean(props.newTab);
         const viewClasses =
           view === "stacked"
             ? "bg-primary text-white shadow-sm"
@@ -886,7 +888,7 @@ function CanvasElementComponent({
             : "text-primary";
         const shapeClass = shape === "circle" ? "rounded-full" : "rounded-xl";
         const padding = view !== "default" ? Math.round(size * 0.4) : 0;
-        return (
+        const iconEl = (
           <div
             data-widget="icon"
             data-icon-id={iconKey}
@@ -903,18 +905,41 @@ function CanvasElementComponent({
             <IconComponent style={{ width: `${size}px`, height: `${size}px` }} aria-hidden="true" />
           </div>
         );
+        if (url) {
+          return (
+            <a
+              href={url}
+              target={newTab ? "_blank" : undefined}
+              rel={newTab ? "noopener noreferrer" : undefined}
+              onClick={(e) => !previewMode && e.preventDefault()}
+              className="inline-block"
+            >
+              {iconEl}
+            </a>
+          );
+        }
+        return iconEl;
       }
       case "video": {
         const url = String(props.url || "");
         const vType = String(props.video_type || "aparat");
         const poster = props.poster ? String(props.poster) : undefined;
+        const loop = Boolean(props.loop);
         return (
-          <div className="aspect-video w-full rounded-2xl overflow-hidden bg-black/10 border border-border/80 flex items-center justify-center">
+          <div
+            className="aspect-video w-full rounded-2xl overflow-hidden bg-black/10 border border-border/80 flex items-center justify-center"
+            data-loop={loop ? "true" : undefined}
+          >
             {url ? (
               vType === "aparat" || vType === "youtube" ? (
-                <iframe src={url} className="w-full h-full border-0 pointer-events-none" allowFullScreen title="ویدیو" />
+                <iframe
+                  src={url + (loop && vType === "youtube" ? "?loop=1" : "")}
+                  className="w-full h-full border-0 pointer-events-none"
+                  allowFullScreen
+                  title="ویدیو"
+                />
               ) : (
-                <video src={url} controls poster={poster} className="w-full h-full object-cover" />
+                <video src={url} controls loop={loop} poster={poster} className="w-full h-full object-cover" />
               )
             ) : (
               <div className="flex flex-col items-center gap-1.5 text-muted-foreground">
@@ -1575,11 +1600,16 @@ function CanvasElementComponent({
       }
       case "counter": {
         const title = String(props.title || "شمارنده");
+        const starting = Number(props.starting_number ?? 0);
         const ending = Number(props.ending_number ?? 100);
         const prefix = String(props.prefix || "");
         const suffix = String(props.suffix || "");
         return (
-          <div className="p-4 rounded-2xl border border-border/80 bg-card text-center space-y-1 shadow-sm w-full">
+          <div
+            className="p-4 rounded-2xl border border-border/80 bg-card text-center space-y-1 shadow-sm w-full"
+            data-starting-number={starting}
+            data-ending-number={ending}
+          >
             <div className="text-3xl font-black text-primary font-mono" dir="ltr">
               {prefix}{ending.toLocaleString("fa-IR")}{suffix}
             </div>
@@ -2002,6 +2032,8 @@ function CanvasElementComponent({
       }
       case "share_buttons": {
         const platforms = (props.platforms as string[]) || ["telegram", "whatsapp", "twitter", "linkedin"];
+        const shareText = props.share_text ? String(props.share_text) : undefined;
+        const sourceUrl = props.source_url ? String(props.source_url) : undefined;
         const platformLabels: Record<string, string> = {
           telegram: "تلگرام",
           whatsapp: "واتساپ",
@@ -2009,7 +2041,11 @@ function CanvasElementComponent({
           linkedin: "لینکدین",
         };
         return (
-          <div className="flex items-center gap-2 flex-wrap">
+          <div
+            className="flex items-center gap-2 flex-wrap"
+            data-share-text={shareText}
+            data-source-url={sourceUrl}
+          >
             {platforms.map((p, idx) => (
               <button
                 key={idx}
@@ -2448,6 +2484,7 @@ function CanvasElementComponent({
       }
       case "breadcrumbs": {
         const separator = String(props.separator || "/");
+        const separatorStyle = String(props.separator_style || "slash");
         const items = Array.isArray(props.items) && props.items.length > 0
           ? props.items
           : [
@@ -2459,6 +2496,7 @@ function CanvasElementComponent({
           <nav
             aria-label="مسیر راهنما"
             data-widget="breadcrumbs"
+            data-separator-style={separatorStyle}
             className="builder-breadcrumbs flex items-center text-xs text-muted-foreground w-full py-1.5"
           >
             <ol className="flex items-center gap-1.5 list-none m-0 p-0 flex-wrap">
@@ -2558,12 +2596,20 @@ function CanvasElementComponent({
       case "search_bar": {
         const placeholder = String(props.placeholder || "جستجو در میان کالاها...");
         const btnText = String(props.button_text || props.button_label || "جستجو");
+        const actionUrl = String(props.action_url || "/search");
         return (
-          <div data-widget="search_bar" className="builder-search-bar flex items-center gap-2 w-full max-w-md my-1 select-none pointer-events-none">
+          <form
+            action={actionUrl}
+            method="GET"
+            data-widget="search_bar"
+            data-action-url={actionUrl}
+            className="builder-search-bar flex items-center gap-2 w-full max-w-md my-1 select-none pointer-events-none"
+          >
             <div className="relative flex-1">
               <input
                 type="search"
                 readOnly
+                name="q"
                 placeholder={placeholder}
                 className="w-full rounded-xl border border-input bg-background py-2.5 px-4 text-xs focus:outline-none"
               />
@@ -2575,7 +2621,7 @@ function CanvasElementComponent({
             >
               {btnText}
             </button>
-          </div>
+          </form>
         );
       }
       case "nav_menu": {
@@ -2743,6 +2789,30 @@ function CanvasElementComponent({
         <div className="absolute top-1 start-1 z-20 pointer-events-none">
           <Badge variant="outline" className="bg-teal-500/10 text-teal-600 dark:text-teal-400 border-teal-300 text-[9px] px-1.5 py-0 h-4">
             آکاردئون کانتینری (Nested Accordion)
+          </Badge>
+        </div>
+      )}
+
+      {element.widgetType === "off_canvas" && !previewMode && (
+        <div className="absolute top-1 start-1 z-20 pointer-events-none">
+          <Badge
+            variant="outline"
+            className="bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-300 text-[9px] px-1.5 py-0 h-4"
+            data-offcanvas-width={String(element.widgetProps?.width || 320)}
+          >
+            کشوی کناری ({String(element.widgetProps?.position || "right")}) - {String(element.widgetProps?.width || 320)}px
+          </Badge>
+        </div>
+      )}
+
+      {element.widgetType === "popup_builder" && !previewMode && (
+        <div className="absolute top-1 start-1 z-20 pointer-events-none">
+          <Badge
+            variant="outline"
+            className="bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-300 text-[9px] px-1.5 py-0 h-4"
+            data-popup-scroll-percentage={String(element.widgetProps?.scroll_percentage || 50)}
+          >
+            پاپ‌آپ تعاملی ({String(element.widgetProps?.trigger || "load")}) - {String(element.widgetProps?.scroll_percentage || 50)}%
           </Badge>
         </div>
       )}

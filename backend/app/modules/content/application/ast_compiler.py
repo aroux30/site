@@ -775,6 +775,8 @@ class ASTCompiler:
             v_type = props.get("video_type", "direct")
             v_url = html.escape(str(props.get("url", "")))
             poster = html.escape(str(props.get("poster", "")))
+            loop = bool(props.get("loop", False))
+            loop_attr = " loop" if loop else ""
             if v_type in ("aparat", "youtube"):
                 return (
                     f'<div{id_attr} class="builder-video aspect-video w-full rounded-2xl overflow-hidden border border-border/80 bg-black {css_class}" data-widget="video"{style_attr}>'
@@ -785,7 +787,7 @@ class ASTCompiler:
                 poster_attr = f' poster="{poster}"' if poster else ""
                 return (
                     f'<div{id_attr} class="builder-video w-full rounded-2xl overflow-hidden border border-border/80 bg-black {css_class}" data-widget="video"{style_attr}>'
-                    f'<video src="{v_url}" controls{poster_attr} class="w-full max-h-[500px]"></video>'
+                    f'<video src="{v_url}" controls{loop_attr}{poster_attr} class="w-full max-h-[500px]"></video>'
                     f'</div>'
                 )
 
@@ -837,11 +839,12 @@ class ASTCompiler:
 
         elif widget_type == "counter":
             title = html.escape(str(props.get("title", props.get("label", "شمارنده"))))
+            starting = props.get("starting_number", 0)
             ending = props.get("ending_number", props.get("target_number", 100))
             prefix = html.escape(str(props.get("prefix", "")))
             suffix = html.escape(str(props.get("suffix", "")))
             return (
-                f'<div{id_attr} class="builder-counter p-4 rounded-2xl border border-border/80 bg-card text-center space-y-1 {css_class}" data-widget="counter"{style_attr}>'
+                f'<div{id_attr} class="builder-counter p-4 rounded-2xl border border-border/80 bg-card text-center space-y-1 {css_class}" data-widget="counter" data-starting-number="{starting}" data-ending-number="{ending}"{style_attr}>'
                 f'<div class="text-3xl font-black text-primary font-mono">{prefix}{ending}{suffix}</div>'
                 f'<div class="text-xs font-semibold text-muted-foreground">{title}</div>'
                 f'</div>'

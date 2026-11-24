@@ -1,100 +1,15 @@
 {
-  "timestamp": "2026-11-24T06:30:45.961Z",
+  "timestamp": "2026-11-24T08:08:29.384Z",
   "summary": {
     "hardcodedOrEmptyCount": 0,
-    "unreadInCanvasCount": 12,
+    "unreadInCanvasCount": 0,
     "uncompiledInSsrCount": 0,
     "widgetBlindSpotsCount": 0,
-    "totalGaps": 12
+    "totalGaps": 0
   },
   "categories": {
     "HARDCODED_OR_EMPTY_UI": [],
-    "UNREAD_IN_CANVAS": [
-      {
-        "prop": "newTab",
-        "source": "inspector-panel.tsx",
-        "target": "canvas-element.tsx",
-        "issue": "PROP_NOT_RENDERED_IN_CANVAS",
-        "detail": "Property \"newTab\" is edited in Inspector but never read in CanvasElementComponent"
-      },
-      {
-        "prop": "starting_number",
-        "source": "inspector-panel.tsx",
-        "target": "canvas-element.tsx",
-        "issue": "PROP_NOT_RENDERED_IN_CANVAS",
-        "detail": "Property \"starting_number\" is edited in Inspector but never read in CanvasElementComponent"
-      },
-      {
-        "prop": "share_text",
-        "source": "inspector-panel.tsx",
-        "target": "canvas-element.tsx",
-        "issue": "PROP_NOT_RENDERED_IN_CANVAS",
-        "detail": "Property \"share_text\" is edited in Inspector but never read in CanvasElementComponent"
-      },
-      {
-        "prop": "source_url",
-        "source": "inspector-panel.tsx",
-        "target": "canvas-element.tsx",
-        "issue": "PROP_NOT_RENDERED_IN_CANVAS",
-        "detail": "Property \"source_url\" is edited in Inspector but never read in CanvasElementComponent"
-      },
-      {
-        "prop": "loop",
-        "source": "inspector-panel.tsx",
-        "target": "canvas-element.tsx",
-        "issue": "PROP_NOT_RENDERED_IN_CANVAS",
-        "detail": "Property \"loop\" is edited in Inspector but never read in CanvasElementComponent"
-      },
-      {
-        "prop": "position",
-        "source": "inspector-panel.tsx",
-        "target": "canvas-element.tsx",
-        "issue": "PROP_NOT_RENDERED_IN_CANVAS",
-        "detail": "Property \"position\" is edited in Inspector but never read in CanvasElementComponent"
-      },
-      {
-        "prop": "width",
-        "source": "inspector-panel.tsx",
-        "target": "canvas-element.tsx",
-        "issue": "PROP_NOT_RENDERED_IN_CANVAS",
-        "detail": "Property \"width\" is edited in Inspector but never read in CanvasElementComponent"
-      },
-      {
-        "prop": "trigger",
-        "source": "inspector-panel.tsx",
-        "target": "canvas-element.tsx",
-        "issue": "PROP_NOT_RENDERED_IN_CANVAS",
-        "detail": "Property \"trigger\" is edited in Inspector but never read in CanvasElementComponent"
-      },
-      {
-        "prop": "scroll_percentage",
-        "source": "inspector-panel.tsx",
-        "target": "canvas-element.tsx",
-        "issue": "PROP_NOT_RENDERED_IN_CANVAS",
-        "detail": "Property \"scroll_percentage\" is edited in Inspector but never read in CanvasElementComponent"
-      },
-      {
-        "prop": "source",
-        "source": "inspector-panel.tsx",
-        "target": "canvas-element.tsx",
-        "issue": "PROP_NOT_RENDERED_IN_CANVAS",
-        "detail": "Property \"source\" is edited in Inspector but never read in CanvasElementComponent"
-      },
-      {
-        "prop": "separator_style",
-        "source": "inspector-panel.tsx",
-        "target": "canvas-element.tsx",
-        "issue": "PROP_NOT_RENDERED_IN_CANVAS",
-        "detail": "Property \"separator_style\" is edited in Inspector but never read in CanvasElementComponent"
-      },
-      {
-        "prop": "action_url",
-        "source": "inspector-panel.tsx",
-        "target": "canvas-element.tsx",
-        "issue": "PROP_NOT_RENDERED_IN_CANVAS",
-        "detail": "Property \"action_url\" is edited in Inspector but never read in CanvasElementComponent"
-      }
-    ],
+    "UNREAD_IN_CANVAS": [],
     "UNCOMPILED_IN_SSR": [],
     "WIDGET_CONTROL_BLIND_SPOTS": []
   }

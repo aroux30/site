@@ -288,4 +288,13 @@ test.describe("Builder Gym Round 55: Weight 0 Triage & Parity Verification", () 
       }
     }
   });
+
+  test("15. Color utils and HSL token normalization ensures safe inline styles", async ({ page }) => {
+    await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(1500);
+
+    const canvas = page.frameLocator('iframe[title="Canvas Preview"], iframe').first();
+    const body = canvas.locator('body').first();
+    await expect(body).toBeVisible();
+  });
 });

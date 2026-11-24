@@ -778,7 +778,16 @@ function CanvasElementComponent({
         }
 
         return (
-          <div className={isFull ? "w-full block" : "inline-block"}>
+          <div
+            data-testid="button-widget-wrapper"
+            className={isFull ? "w-full block" : "inline-block cursor-pointer"}
+            onDoubleClick={(e) => {
+              if (!previewMode) {
+                e.stopPropagation();
+                setIsInlineEditing(true);
+              }
+            }}
+          >
             <a
               href={url}
               data-url={url}
@@ -787,15 +796,10 @@ function CanvasElementComponent({
                   e.preventDefault();
                 }
               }}
-              onDoubleClick={(e) => {
-                if (!previewMode) {
-                  e.stopPropagation();
-                  setIsInlineEditing(true);
-                }
-              }}
               title="دابل‌کلیک برای ویرایش مستقیم متن دکمه"
               className={cn(
                 "inline-flex items-center justify-center rounded-xl bg-primary px-6 py-3 font-semibold text-primary-foreground shadow-sm transition",
+                !previewMode && "pointer-events-none",
                 isFull && "w-full",
                 customClass
               )}

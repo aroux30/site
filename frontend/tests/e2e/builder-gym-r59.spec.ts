@@ -252,4 +252,22 @@ test.describe("Builder Gym Round 55: Weight 0 Triage & Parity Verification", () 
       expect(count).toBeGreaterThanOrEqual(1);
     }
   });
+
+  test("13. Canvas iframe renders with testid and handles viewport resizing", async ({ page }) => {
+    await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(1500);
+
+    const canvasIframe = page.locator('[data-testid="canvas-iframe"]').first();
+    await expect(canvasIframe).toBeVisible();
+
+    const tabletBtn = page.locator('header button[title*="تبلت"]').first();
+    if (await tabletBtn.isVisible()) {
+      await tabletBtn.click();
+      await page.waitForTimeout(400);
+
+      const desktopBtn = page.locator('header button[title*="دسکتاپ"]').first();
+      await desktopBtn.click();
+      await page.waitForTimeout(400);
+    }
+  });
 });

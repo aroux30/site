@@ -1,21 +1,21 @@
 {
   "version": "4.2",
   "activeWeight": 9,
-  "activeRound": 64,
+  "activeRound": 65,
   "status": "COMPLETED",
   "levels1to5Status": "BUILDER_GYM_LEVELS_1_TO_5_CLEAN",
   "allLevelsMastered": "BUILDER_GYM_ALL_LEVELS_MASTERED",
   "verificationPort": 1003,
-  "completedRounds": 64,
+  "completedRounds": 65,
   "metrics": {
     "typeCheckErrors": 0,
     "frontendUnitTests": 383,
     "backendUnitTests": 656,
-    "playwrightTests": 10,
+    "playwrightTests": 11,
     "registeredBlocks": 76,
     "lastVerifierVerdict": "APPROVE"
   },
-  "timestamp": "2026-11-24T12:15:00.000Z",
+  "timestamp": "2026-11-24T12:45:00.000Z",
   "defect_ledger": [
     {
       "id": "DEFECT-R41-01",
@@ -529,6 +529,15 @@
       "summary": "Context menu items lacked explicit data-testid hooks for automated right-click action verification; added data-testid context-menu-duplicate, copy, and delete hooks",
       "status": "FIXED",
       "round": 64
+    },
+    {
+      "id": "DEFECT-R65-01",
+      "severity": "P2",
+      "component": "toolbar_title_editor",
+      "layer": "frontend/components/admin/builder/builder-toolbar.tsx",
+      "summary": "Page title and title editing input lacked data-testid selector hooks for automated title update testing; added data-testid page-title-label and page-title-input",
+      "status": "FIXED",
+      "round": 65
     }
   ]
 }

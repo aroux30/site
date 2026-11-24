@@ -225,4 +225,18 @@ test.describe("Builder Gym Round 55: Weight 0 Triage & Parity Verification", () 
       await page.keyboard.press("Escape");
     }
   });
+
+  test("11. Page title displays label and allows double-click inline editing hook", async ({ page }) => {
+    await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(1500);
+
+    const titleLabel = page.locator('[data-testid="page-title-label"]').first();
+    await expect(titleLabel).toBeVisible();
+    await titleLabel.dblclick();
+    await page.waitForTimeout(300);
+
+    const titleInput = page.locator('[data-testid="page-title-input"]').first();
+    await expect(titleInput).toBeVisible();
+    await page.keyboard.press("Escape");
+  });
 });

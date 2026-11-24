@@ -1581,7 +1581,7 @@ function CanvasElementComponent({
         const prefix = String(props.prefix || "");
         const suffix = String(props.suffix || "");
         return (
-          <div className="p-4 rounded-2xl border border-border/80 bg-card text-center space-y-1 shadow-sm w-full">
+          <div className="p-4 rounded-2xl border border-border/80 bg-card text-center space-y-1 shadow-sm w-full" data-widget="counter">
             <div className="text-3xl font-black text-primary font-mono" dir="ltr">
               {prefix}{ending.toLocaleString("fa-IR")}{suffix}
             </div>
@@ -1594,7 +1594,7 @@ function CanvasElementComponent({
         const pct = Math.max(0, Math.min(100, Number(props.percentage ?? 75)));
         const showPct = props.show_percentage !== false;
         return (
-          <div className="space-y-1.5 w-full text-right">
+          <div className="space-y-1.5 w-full text-right" data-widget="progress_bar">
             <div className="flex items-center justify-between text-xs font-semibold text-foreground">
               <span>{title}</span>
               {showPct && <span className="font-mono text-primary">{pct}%</span>}
@@ -1612,7 +1612,7 @@ function CanvasElementComponent({
         const quote = String(props.quote || "متن دیدگاه مشتری در اینجا نمایش داده می‌شود.");
         const avatar = String(props.avatar_url || "/placeholder-hero.svg");
         return (
-          <div className="p-4 rounded-2xl border border-border/80 bg-card space-y-3 shadow-sm w-full text-right">
+          <div className="p-4 rounded-2xl border border-border/80 bg-card space-y-3 shadow-sm w-full text-right" data-widget="testimonial">
             <p className="text-xs text-muted-foreground leading-relaxed italic">«{quote}»</p>
             <div className="flex items-center gap-3 pt-2 border-t border-border/60">
               <img src={avatar} alt={author} className="w-9 h-9 rounded-full object-cover shrink-0" />
@@ -1635,7 +1635,7 @@ function CanvasElementComponent({
           danger: "bg-rose-500/10 text-rose-700 dark:text-rose-300 border-rose-500/30",
         };
         return (
-          <div className={cn("p-4 rounded-xl border flex items-start gap-3 w-full text-right", bgMap[aType] || bgMap.info)}>
+          <div className={cn("p-4 rounded-xl border flex items-start gap-3 w-full text-right", bgMap[aType] || bgMap.info)} data-widget="alert">
             <div className="space-y-1 text-right flex-1">
               <h4 className="font-bold text-xs">{title}</h4>
               {desc && <p className="text-[11px] leading-relaxed opacity-90">{desc}</p>}
@@ -1649,7 +1649,7 @@ function CanvasElementComponent({
         const imgUrl = String(props.image_url || "/placeholder-hero.svg");
         const linkUrl = String(props.link_url || "#");
         return (
-          <div className="p-4 rounded-2xl border border-border/80 bg-card text-center space-y-3 shadow-sm w-full">
+          <div className="p-4 rounded-2xl border border-border/80 bg-card text-center space-y-3 shadow-sm w-full" data-widget="image_box">
             <div className="w-full aspect-video rounded-xl overflow-hidden bg-muted/30 flex items-center justify-center">
               <img src={imgUrl} alt={title} className="w-full h-full object-cover" loading="lazy" />
             </div>
@@ -1876,7 +1876,7 @@ function CanvasElementComponent({
         const btnUrl = String(props.button_url || props.url || "#");
         const badge = props.badge ? String(props.badge) : undefined;
         return (
-          <div className="p-6 rounded-2xl border border-primary/20 bg-primary/5 text-center space-y-3 shadow-sm w-full">
+          <div className="p-6 rounded-2xl border border-primary/20 bg-primary/5 text-center space-y-3 shadow-sm w-full" data-widget="call_to_action">
             {badge && (
               <span className="inline-block px-2.5 py-0.5 rounded-full bg-primary text-primary-foreground text-[10px] font-bold">
                 {badge}
@@ -1901,7 +1901,7 @@ function CanvasElementComponent({
         const highlight = String(props.highlighted_text || "تیتر متحرک");
         const after = String(props.after_text || "");
         return (
-          <h2 className="text-2xl lg:text-3xl font-extrabold text-foreground text-center py-2 leading-relaxed">
+          <h2 className="text-2xl lg:text-3xl font-extrabold text-foreground text-center py-2 leading-relaxed" data-widget="animated_headline">
             {before && <span className="me-2">{before}</span>}
             <span className="relative inline-block px-2 text-primary font-black underline decoration-primary/40 decoration-wavy decoration-2 underline-offset-8">
               {highlight}
@@ -1917,7 +1917,7 @@ function CanvasElementComponent({
         const backDesc = String(props.back_desc || "توضیحات پشت");
         const btnText = String(props.button_text || "مشاهده");
         return (
-          <div className="group/flip w-full min-h-[220px] [perspective:1000px]">
+          <div className="group/flip w-full min-h-[220px] [perspective:1000px]" data-widget="flip_box">
             <div className="relative w-full h-full min-h-[220px] transition-transform duration-500 [transform-style:preserve-3d] group-hover/flip:[transform:rotateY(180deg)] rounded-2xl border border-border/80 shadow-sm">
               {/* Front Face */}
               <div className="absolute inset-0 w-full h-full p-6 flex flex-col items-center justify-center text-center space-y-2 [backface-visibility:hidden] bg-card rounded-2xl">

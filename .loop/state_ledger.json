@@ -1,21 +1,21 @@
 {
   "version": "3.2",
   "activeWeight": 9,
-  "activeRound": 59,
+  "activeRound": 60,
   "status": "COMPLETED",
   "levels1to5Status": "BUILDER_GYM_LEVELS_1_TO_5_CLEAN",
   "allLevelsMastered": "BUILDER_GYM_ALL_LEVELS_MASTERED",
   "verificationPort": 1001,
-  "completedRounds": 59,
+  "completedRounds": 60,
   "metrics": {
     "typeCheckErrors": 0,
     "frontendUnitTests": 384,
     "backendUnitTests": 654,
-    "playwrightTests": 6,
+    "playwrightTests": 7,
     "registeredBlocks": 76,
     "lastVerifierVerdict": "APPROVE"
   },
-  "timestamp": "2026-11-24T10:35:07.781Z",
+  "timestamp": "2026-11-24T10:58:57.442Z",
   "defect_ledger": [
     {
       "id": "DEFECT-R41-01",
@@ -502,6 +502,24 @@
       "summary": "Missing dedicated end-to-end regression assertion for interactive widgets insertion and viewport safety",
       "status": "FIXED",
       "round": 59
+    },
+    {
+      "id": "DEFECT-R60-01",
+      "severity": "P1",
+      "component": "core_pro_data_widgets",
+      "layer": "frontend/components/admin/builder/canvas-element.tsx",
+      "summary": "Core and Pro widgets (counter, progress_bar, testimonial, alert, image_box, call_to_action, animated_headline, flip_box) in canvas lacked explicit data-widget semantic tags causing drift with SSR ast_compiler output",
+      "status": "FIXED",
+      "round": 60
+    },
+    {
+      "id": "DEFECT-R60-02",
+      "severity": "P2",
+      "component": "core_pro_e2e_regression",
+      "layer": "frontend/tests/e2e/builder-gym-r64.spec.ts",
+      "summary": "Missing dedicated end-to-end regression assertion for Core and Pro widgets insertion and viewport safety",
+      "status": "FIXED",
+      "round": 60
     }
   ]
 }

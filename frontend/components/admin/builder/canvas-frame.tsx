@@ -8,6 +8,8 @@ import { themesAdminApi } from "@/lib/api/themes";
 import { extractCssVariablesFromTokens, hexToHslChannels } from "@/lib/builder/theme-schema";
 import { CanvasOverlayLayer } from "./canvas-overlay-layer";
 
+const INITIAL_CANVAS_HTML = `<!DOCTYPE html><html lang="fa" dir="rtl"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/><style>body{margin:0;padding:36px 24px 24px 24px;min-height:100vh;box-sizing:border-box;position:relative;}a{pointer-events:none!important;}@keyframes builderFadeIn{from{opacity:0;}to{opacity:1;}}@keyframes builderSlideUp{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}@keyframes builderZoomIn{from{opacity:0;transform:scale(0.95);}to{opacity:1;transform:scale(1);}}.builder-animate-fade-in{animation:builderFadeIn 0.6s cubic-bezier(0.16,1,0.3,1) both;}.builder-animate-slide-up{animation:builderSlideUp 0.6s cubic-bezier(0.16,1,0.3,1) both;}.builder-animate-zoom-in{animation:builderZoomIn 0.6s cubic-bezier(0.16,1,0.3,1) both;}</style></head><body class="bg-background text-foreground font-sans antialiased relative"><div id="builder-canvas-mount"></div><div id="builder-overlay-mount" style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:99990;"></div></body></html>`;
+
 /**
  * The editor canvas, rendered inside an isolated iframe.
  *
@@ -141,30 +143,21 @@ export function CanvasFrame({
     const doc = iframe.contentDocument || iframe.contentWindow?.document;
     if (!doc) return;
 
-    if (!doc.getElementById("builder-canvas-mount")) {
-      doc.open();
-      doc.write(
-        '<!DOCTYPE html><html lang="fa" dir="rtl"><head><meta charset="utf-8"/>' +
-          '<meta name="viewport" content="width=device-width, initial-scale=1"/>' +
-          '<style>body{margin:0;padding:36px 24px 24px 24px;min-height:100vh;box-sizing:border-box;position:relative;}' +
-          'a{pointer-events:none!important;}' +
-          '@keyframes builderFadeIn{from{opacity:0;}to{opacity:1;}}' +
-          '@keyframes builderSlideUp{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}' +
-          '@keyframes builderZoomIn{from{opacity:0;transform:scale(0.95);}to{opacity:1;transform:scale(1);}}' +
-          '.builder-animate-fade-in{animation:builderFadeIn 0.6s cubic-bezier(0.16,1,0.3,1) both;}' +
-          '.builder-animate-slide-up{animation:builderSlideUp 0.6s cubic-bezier(0.16,1,0.3,1) both;}' +
-          '.builder-animate-zoom-in{animation:builderZoomIn 0.6s cubic-bezier(0.16,1,0.3,1) both;}' +
-          '</style></head>' +
-          '<body class="bg-background text-foreground font-sans antialiased relative">' +
-          '<div id="builder-canvas-mount"></div>' +
-          '<div id="builder-overlay-mount" style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:99990;"></div>' +
-          '</body></html>'
-      );
-      doc.close();
+    let mount = doc.getElementById("builder-canvas-mount");
+    let overlay = doc.getElementById("builder-overlay-mount");
+
+    if (!mount && doc.body) {
+      mount = doc.createElement("div");
+      mount.id = "builder-canvas-mount";
+      doc.body.appendChild(mount);
+    }
+    if (!overlay && doc.body) {
+      overlay = doc.createElement("div");
+      overlay.id = "builder-overlay-mount";
+      overlay.style.cssText = "position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:99990;";
+      doc.body.appendChild(overlay);
     }
 
-    const mount = doc.getElementById("builder-canvas-mount");
-    const overlay = doc.getElementById("builder-overlay-mount");
     if (!mount) return;
 
     syncStyles(doc);
@@ -309,6 +302,7 @@ export function CanvasFrame({
       >
         <iframe
           ref={iframeRef}
+          srcDoc={INITIAL_CANVAS_HTML}
           data-testid="canvas-iframe"
           title="Visual Builder Canvas"
           className="w-full border-0 block bg-background"

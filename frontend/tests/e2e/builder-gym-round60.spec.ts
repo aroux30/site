@@ -62,7 +62,7 @@ test.describe("Builder Gym Round 60: Direct Inline Editing & Ultra Polish on Por
     await page.waitForTimeout(2000);
 
     const iframeEl = page.frameLocator('[data-testid="canvas-iframe"]');
-    const heading = iframeEl.locator("h2").first();
+    const heading = iframeEl.locator("h1, h2").first();
     await expect(heading).toBeVisible();
 
     // Double click to trigger inline editing
@@ -78,7 +78,7 @@ test.describe("Builder Gym Round 60: Direct Inline Editing & Ultra Polish on Por
     await page.waitForTimeout(400);
 
     // Verify committed text
-    await expect(iframeEl.locator("h2:has-text('تیتر ویرایش‌شده با اینلاین ادیتور')").first()).toBeVisible();
+    await expect(iframeEl.locator("h1:has-text('تیتر ویرایش‌شده با اینلاین ادیتور'), h2:has-text('تیتر ویرایش‌شده با اینلاین ادیتور')").first()).toBeVisible();
   });
 
   test("2. Double click on Button widget enters inline editing and saves new label", async ({ page }) => {

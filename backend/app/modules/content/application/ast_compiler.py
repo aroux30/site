@@ -971,7 +971,8 @@ class ASTCompiler:
                         f_avail = True
                     status_class = "text-foreground font-medium" if f_avail else "text-muted-foreground line-through opacity-70"
                     icon_circle = "bg-emerald-500/10 text-emerald-600" if f_avail else "bg-muted text-muted-foreground/40"
-                    icon_char = "✓" if f_avail else "–"
+                    check_svg = '<svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="shrink-0"><polyline points="20 6 9 17 4 12"></polyline></svg>'
+                    icon_char = check_svg if f_avail else "–"
                     features_html += (
                         f'<li class="flex items-center gap-2">'
                         f'<div class="w-4 h-4 rounded-full flex items-center justify-center shrink-0 {icon_circle} text-[10px]">{icon_char}</div>'
@@ -1272,10 +1273,11 @@ class ASTCompiler:
             title = html.escape(str(props.get("title") or props.get("message", "نیاز به مشاوره قبل از خرید دارید؟")))
             btn_label = html.escape(str(props.get("button_label") or props.get("button_text", "تماس فوری")))
             phone = html.escape(str(props.get("phone", "۰۹۱۲۰۰۰۰۰۰۰")))
+            phone_svg = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="shrink-0"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>'
             return (
                 f'<div{id_attr} class="builder-floating-bar flex items-center justify-between p-3.5 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-900 dark:text-emerald-100 w-full shadow-sm {css_class}" data-widget="floating_bar"{style_attr}>'
                 f'<div class="flex items-center gap-2.5">'
-                f'<span class="w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0 text-xs font-bold">📞</span>'
+                f'<span class="w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0 text-xs font-bold">{phone_svg}</span>'
                 f'<div class="text-right">'
                 f'<div class="text-xs font-bold">{title}</div>'
                 f'<div class="text-[10px] font-mono opacity-80" dir="ltr">{phone}</div>'
@@ -1482,9 +1484,10 @@ class ASTCompiler:
         elif widget_type == "audio":
             src = html.escape(str(props.get("url", props.get("src", "/sample-audio.mp3"))))
             title = html.escape(str(props.get("title", "پادکست صوتی")))
+            music_svg = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="text-primary shrink-0"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>'
             return (
                 f'<div{id_attr} class="builder-audio p-4 rounded-2xl border border-border/80 bg-card space-y-2 text-right w-full {css_class}" data-widget="audio"{style_attr}>'
-                f'<div class="font-bold text-xs text-foreground flex items-center gap-2"><span>🎵</span><span>{title}</span></div>'
+                f'<div class="font-bold text-xs text-foreground flex items-center gap-2">{music_svg}<span>{title}</span></div>'
                 f'<audio controls class="w-full mt-1"><source src="{src}" type="audio/mpeg">مرورگر شما از پخش صوت پشتیبانی نمی‌کند.</audio>'
                 f'</div>'
             )
@@ -1492,10 +1495,11 @@ class ASTCompiler:
         elif widget_type == "google_maps":
             address = html.escape(str(props.get("address", "تهران، میدان آزادی")))
             height = int(props.get("height", 300))
+            map_pin_svg = '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="text-primary shrink-0"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"></path><circle cx="12" cy="10" r="3"></circle></svg>'
             return (
                 f'<div{id_attr} class="builder-google-maps w-full rounded-2xl overflow-hidden border border-border/80 bg-muted/40 relative {css_class}" data-widget="google_maps" style="height: {height}px; {style_attr}">'
                 f'<div class="w-full h-full flex flex-col items-center justify-center gap-2 text-muted-foreground p-4 text-center">'
-                f'<span class="text-primary text-xl">📍</span>'
+                f'{map_pin_svg}'
                 f'<span class="text-xs font-bold text-foreground">{address}</span>'
                 f'<span class="text-[10px] opacity-75">پیش‌نمایش نقشه تعاملی موقعیت مکانی</span>'
                 f'</div>'
@@ -1517,9 +1521,11 @@ class ASTCompiler:
         elif widget_type == "rating":
             score = float(props.get("rating_value", props.get("score", 4.5)))
             scale = int(props.get("rating_scale", 5))
+            star_path = "M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
+            svg_star = f'<svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" stroke="none" aria-hidden="true" class="text-amber-500 shrink-0"><path d="{star_path}"></path></svg>'
             return (
                 f'<div{id_attr} class="builder-rating inline-flex items-center gap-1.5 p-2 rounded-xl border border-border/60 bg-card text-xs font-bold text-foreground {css_class}" data-widget="rating"{style_attr}>'
-                f'<span class="text-amber-500">★</span>'
+                f'{svg_star}'
                 f'<span class="font-mono">{score}</span>'
                 f'<span class="text-muted-foreground text-[10px]">/ {scale}</span>'
                 f'</div>'

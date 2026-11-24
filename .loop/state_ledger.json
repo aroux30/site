@@ -1,22 +1,22 @@
 {
   "version": "4.2",
   "activeWeight": 9,
-  "activeRound": 60,
+  "activeRound": 61,
   "status": "COMPLETED",
   "levels1to5Status": "BUILDER_GYM_LEVELS_1_TO_5_CLEAN",
   "allLevelsMastered": "BUILDER_GYM_ALL_LEVELS_MASTERED",
   "verificationPort": 1005,
-  "completedRounds": 60,
+  "completedRounds": 61,
   "metrics": {
     "typeCheckErrors": 0,
     "frontendUnitTests": 380,
     "backendUnitTests": 650,
-    "playwrightTests": 44,
+    "playwrightTests": 48,
     "registeredBlocks": 73,
     "registeredPatterns": 28,
     "lastVerifierVerdict": "APPROVE"
   },
-  "timestamp": "2026-11-24T07:00:00.000Z",
+  "timestamp": "2026-11-24T07:30:00.000Z",
   "defect_ledger": [
     {
       "id": "DEFECT-R41-01",
@@ -368,6 +368,15 @@
       "summary": "Button anchor tag intercepted double click pointer events during inline text editing in canvas",
       "status": "FIXED",
       "round": 60
+    },
+    {
+      "id": "DEFECT-W11-01",
+      "severity": "P1",
+      "component": "canvas_frame",
+      "layer": "srcdoc_iframe_sync",
+      "summary": "CanvasFrame iframe used document.write on about:blank risking timing race conditions; stabilized via srcDoc declarative initial markup",
+      "status": "FIXED",
+      "round": 61
     }
   ]
 }

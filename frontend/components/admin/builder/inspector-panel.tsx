@@ -3853,11 +3853,6 @@ export function InspectorPanel() {
               </button>
             </div>
           </div>
-              >
-                {mar.isLinked ? <Link2 className="w-3.5 h-3.5 text-primary" /> : <Unlink className="w-3.5 h-3.5" />}
-              </button>
-            </div>
-          </div>
           <div className="grid grid-cols-4 gap-1.5 text-center">
             <div>
               <Input

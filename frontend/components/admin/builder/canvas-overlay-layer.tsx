@@ -387,6 +387,7 @@ export function CanvasOverlayLayer({
 
               <button
                 type="button"
+                data-testid="overlay-duplicate-btn"
                 onClick={() => duplicateElement(selectedElement.id)}
                 className="p-1 hover:bg-primary-foreground/20 rounded transition"
                 title="تکثیر (Duplicate)"
@@ -396,6 +397,7 @@ export function CanvasOverlayLayer({
 
               <button
                 type="button"
+                data-testid="overlay-delete-btn"
                 onClick={() => deleteElement(selectedElement.id)}
                 className="p-1 hover:bg-destructive hover:text-white rounded transition text-destructive-foreground"
                 title="حذف"

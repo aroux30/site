@@ -515,6 +515,7 @@ export function BlocksPalette() {
                     <div
                       key={pattern.slug}
                       data-pattern-slug={pattern.slug}
+                      data-testid={`pattern-card-${pattern.slug}`}
                       draggable={true}
                       onDragStart={(e) => {
                         const vars = Object.fromEntries(

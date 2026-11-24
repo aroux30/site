@@ -196,6 +196,7 @@ export function ContainerStructureDialog({
             <button
               key={preset.id}
               type="button"
+              data-testid={`container-structure-preset-${preset.id}`}
               onClick={() => handleSelectPreset(preset)}
               className="flex flex-col items-center justify-between p-3 rounded-xl border border-border/80 bg-card hover:bg-primary/5 hover:border-primary transition group text-center shadow-xs"
             >

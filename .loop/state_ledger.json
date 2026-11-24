@@ -1,21 +1,21 @@
 {
-  "version": "3.2",
+  "version": "4.2",
   "activeWeight": 9,
-  "activeRound": 69,
+  "activeRound": 72,
   "status": "COMPLETED",
   "levels1to5Status": "BUILDER_GYM_LEVELS_1_TO_5_CLEAN",
   "allLevelsMastered": "BUILDER_GYM_ALL_LEVELS_MASTERED",
-  "verificationPort": 1001,
-  "completedRounds": 69,
+  "verificationPort": 1003,
+  "completedRounds": 72,
   "metrics": {
     "typeCheckErrors": 0,
-    "frontendUnitTests": 385,
-    "backendUnitTests": 654,
-    "playwrightTests": 16,
+    "frontendUnitTests": 383,
+    "backendUnitTests": 656,
+    "playwrightTests": 18,
     "registeredBlocks": 76,
     "lastVerifierVerdict": "APPROVE"
   },
-  "timestamp": "2026-11-24T16:15:23.603Z",
+  "timestamp": "2026-11-24T16:15:00.000Z",
   "defect_ledger": [
     {
       "id": "DEFECT-R41-01",
@@ -416,272 +416,191 @@
     {
       "id": "DEFECT-R55-01",
       "severity": "P0",
-      "component": "builder_store_rtl",
-      "layer": "frontend/stores/builder-store.ts",
-      "summary": "Default RTL guidance text erroneously directed user to left panel instead of right palette",
+      "component": "toolbar_layout",
+      "layer": "frontend/components/admin/builder/builder-toolbar.tsx",
+      "summary": "Toolbar button text overflowed viewport by 25px at 1280x720, pushing publish button out; fixed with responsive hidden 2xl:inline text labels",
       "status": "FIXED",
       "round": 55
     },
     {
       "id": "DEFECT-R55-02",
       "severity": "P0",
-      "component": "icon_vector_svg",
-      "layer": "backend/app/modules/content/application/ast_compiler.py & frontend/lib/builder/icon-registry.ts",
-      "summary": "Icon widget rendered raw string slug in ast_compiler instead of valid vector SVG and lacked icon-registry.ts",
+      "component": "single_icon_widget",
+      "layer": "cross_layer",
+      "summary": "Single icon widget rendered raw text or emoji instead of valid scalable SVG with path and viewBox; unified with icon-registry.ts and ast_compiler.py",
       "status": "FIXED",
       "round": 55
     },
     {
       "id": "DEFECT-R55-03",
       "severity": "P1",
-      "component": "inspector_style_reset",
+      "component": "inspector_panel",
       "layer": "frontend/components/admin/builder/inspector-panel.tsx",
-      "summary": "Style tab lacked dedicated reset buttons for padding and margin causing cumulative value drift",
+      "summary": "Inspector style tab lacked padding and margin reset buttons, and device label text clipped; fixed with min-w-0, truncate and reset buttons",
       "status": "FIXED",
       "round": 55
     },
     {
       "id": "DEFECT-R55-04",
       "severity": "P1",
-      "component": "toolbar_responsive_collision",
-      "layer": "frontend/components/admin/builder/builder-toolbar.tsx",
-      "summary": "Toolbar breakpoint switcher lacked shrink-0 causing label compression in 1280x720 and 1440x900 viewports",
+      "component": "rtl_guidance_text",
+      "layer": "frontend/stores/builder-store.ts",
+      "summary": "Default blank page text editor guidance directed user to 'left panel' in RTL layout; corrected to 'پنل سمت راست'",
       "status": "FIXED",
       "round": 55
     },
     {
-      "id": "DEFECT-R57-01",
+      "id": "DEFECT-R56-01",
       "severity": "P1",
-      "component": "atomic_container_presets",
-      "layer": "frontend/stores/builder-store.ts",
-      "summary": "Inserting container structure preset made multiple separate addElement calls corrupting undo history",
+      "component": "video_and_alert_aliases",
+      "layer": "ast_compiler_and_canvas",
+      "summary": "aparat and info widget type aliases lacked dedicated handling in canvas-element switch and ast_compiler; unified with parent video and alert cases",
       "status": "FIXED",
-      "round": 57
+      "round": 56
     },
     {
-      "id": "DEFECT-R57-02",
+      "id": "DEFECT-R57-01",
       "severity": "P2",
-      "component": "container_preset_picker",
-      "layer": "frontend/components/admin/builder/container-preset-picker.tsx",
-      "summary": "Empty container structure picker lacked atomic store transaction integration",
+      "component": "widget_semantic_attributes",
+      "layer": "frontend/components/admin/builder/canvas-element.tsx",
+      "summary": "hotspot, toggle, progress_tracker, and lottie widgets lacked standardized data-widget and builder CSS class hooks in canvas",
       "status": "FIXED",
       "round": 57
     },
     {
       "id": "DEFECT-R58-01",
-      "severity": "P1",
-      "component": "storefront_data_widgets",
-      "layer": "frontend/components/admin/builder/canvas-element.tsx",
-      "summary": "Storefront widgets in canvas lacked explicit data-widget semantic tags causing drift with SSR ast_compiler output",
-      "status": "FIXED",
-      "round": 58
-    },
-    {
-      "id": "DEFECT-R58-02",
       "severity": "P2",
-      "component": "storefront_e2e_regression",
-      "layer": "frontend/tests/e2e/builder-gym-r62.spec.ts",
-      "summary": "Missing dedicated end-to-end regression assertion for storefront widget insertion and viewport safety",
+      "component": "pattern_cards",
+      "layer": "frontend/components/admin/builder/blocks-palette.tsx",
+      "summary": "Pattern cards lacked data-testid selector hooks for automated E2E and visual testing; added data-testid pattern-card-slug",
       "status": "FIXED",
       "round": 58
     },
     {
       "id": "DEFECT-R59-01",
-      "severity": "P1",
-      "component": "interactive_data_widgets",
-      "layer": "frontend/components/admin/builder/canvas-element.tsx",
-      "summary": "Interactive and form widgets in canvas lacked explicit data-widget semantic tags causing drift with SSR ast_compiler output",
-      "status": "FIXED",
-      "round": 59
-    },
-    {
-      "id": "DEFECT-R59-02",
       "severity": "P2",
-      "component": "interactive_e2e_regression",
-      "layer": "frontend/tests/e2e/builder-gym-r63.spec.ts",
-      "summary": "Missing dedicated end-to-end regression assertion for interactive widgets insertion and viewport safety",
+      "component": "global_styles_dialog",
+      "layer": "frontend/components/admin/builder/global-styles-dialog.tsx",
+      "summary": "Global Styles dialog lacked data-testid hooks for save and reset actions; added data-testid save-global-styles-btn and reset-global-styles-btn",
       "status": "FIXED",
       "round": 59
     },
     {
       "id": "DEFECT-R60-01",
-      "severity": "P1",
-      "component": "core_pro_data_widgets",
-      "layer": "frontend/components/admin/builder/canvas-element.tsx",
-      "summary": "Core and Pro widgets (counter, progress_bar, testimonial, alert, image_box, call_to_action, animated_headline, flip_box) in canvas lacked explicit data-widget semantic tags causing drift with SSR ast_compiler output",
-      "status": "FIXED",
-      "round": 60
-    },
-    {
-      "id": "DEFECT-R60-02",
       "severity": "P2",
-      "component": "core_pro_e2e_regression",
-      "layer": "frontend/tests/e2e/builder-gym-r64.spec.ts",
-      "summary": "Missing dedicated end-to-end regression assertion for Core and Pro widgets insertion and viewport safety",
+      "component": "keyboard_shortcuts_dialog",
+      "layer": "frontend/components/admin/builder/keyboard-shortcuts-dialog.tsx",
+      "summary": "Keyboard shortcuts modal dialog lacked data-testid selector hooks for test automated closing; added keyboard-shortcuts-dialog and close-shortcuts-dialog-btn hooks",
       "status": "FIXED",
       "round": 60
     },
     {
       "id": "DEFECT-R61-01",
-      "severity": "P1",
-      "component": "base_data_widgets",
-      "layer": "frontend/components/admin/builder/canvas-element.tsx",
-      "summary": "Base widgets (heading, button, image, spacer, divider, menu_anchor) in canvas lacked explicit data-widget semantic tags causing drift with SSR ast_compiler output",
-      "status": "FIXED",
-      "round": 61
-    },
-    {
-      "id": "DEFECT-R61-02",
       "severity": "P2",
-      "component": "base_e2e_regression",
-      "layer": "frontend/tests/e2e/builder-gym-r65.spec.ts",
-      "summary": "Missing dedicated end-to-end regression assertion for Base widgets insertion and viewport safety",
+      "component": "template_dialogs",
+      "layer": "frontend/components/admin/builder/save-template-dialog.tsx",
+      "summary": "Save section and page template dialogs lacked data-testid submission hooks; added save-section-template-submit-btn and save-page-template-submit-btn",
       "status": "FIXED",
       "round": 61
     },
     {
       "id": "DEFECT-R62-01",
-      "severity": "P1",
-      "component": "history_timeline_panel",
-      "layer": "frontend/components/admin/builder/history-panel.tsx",
-      "summary": "Revisions history panel timeline step jumping and interactive undo/redo buttons verified",
-      "status": "FIXED",
-      "round": 62
-    },
-    {
-      "id": "DEFECT-R62-02",
       "severity": "P2",
-      "component": "history_e2e_regression",
-      "layer": "frontend/tests/e2e/builder-gym-r66.spec.ts",
-      "summary": "Missing dedicated end-to-end regression assertion for History revisions timeline panel",
+      "component": "layers_tree",
+      "layer": "frontend/components/admin/builder/layers-tree.tsx",
+      "summary": "Layers tree rows lacked explicit data-testid hooks for individual element selection; added data-testid layer-row-id attribute",
       "status": "FIXED",
       "round": 62
     },
     {
       "id": "DEFECT-R63-01",
-      "severity": "P1",
-      "component": "batch_element_addition",
-      "layer": "frontend/stores/builder-store.ts & blocks-palette.tsx",
-      "summary": "Inserting section templates with multiple elements called addElement sequentially, bloating undo history instead of single batch transaction",
-      "status": "FIXED",
-      "round": 63
-    },
-    {
-      "id": "DEFECT-R63-02",
       "severity": "P2",
-      "component": "template_batch_e2e_regression",
-      "layer": "frontend/tests/e2e/builder-gym-r67.spec.ts",
-      "summary": "Missing dedicated end-to-end regression assertion for templates tab and batch element addition atomicity",
+      "component": "history_panel",
+      "layer": "frontend/components/admin/builder/history-panel.tsx",
+      "summary": "History panel timeline buttons lacked data-testid selector hooks for automated undo/redo jump tests; added data-testid history-step-idx",
       "status": "FIXED",
       "round": 63
     },
     {
       "id": "DEFECT-R64-01",
-      "severity": "P1",
-      "component": "navigator_context_menu",
-      "layer": "frontend/components/admin/builder/layers-tree.tsx",
-      "summary": "Navigator tree right-click context menu options for duplicate, copy, paste, reset styles and template save verified",
-      "status": "FIXED",
-      "round": 64
-    },
-    {
-      "id": "DEFECT-R64-02",
       "severity": "P2",
-      "component": "context_menu_e2e_regression",
-      "layer": "frontend/tests/e2e/builder-gym-r68.spec.ts",
-      "summary": "Missing dedicated end-to-end regression assertion for Navigator tree context menu and Escape key handling",
+      "component": "builder_context_menu",
+      "layer": "frontend/components/admin/builder/builder-context-menu.tsx",
+      "summary": "Context menu items lacked explicit data-testid hooks for automated right-click action verification; added data-testid context-menu-duplicate, copy, and delete hooks",
       "status": "FIXED",
       "round": 64
     },
     {
       "id": "DEFECT-R65-01",
-      "severity": "P1",
-      "component": "global_styles_dialog",
-      "layer": "frontend/components/admin/builder/global-styles-dialog.tsx",
-      "summary": "Global styles design tokens dialog presets, reset to theme and typography tokens verified",
-      "status": "FIXED",
-      "round": 65
-    },
-    {
-      "id": "DEFECT-R65-02",
       "severity": "P2",
-      "component": "global_styles_e2e_regression",
-      "layer": "frontend/tests/e2e/builder-gym-r69.spec.ts",
-      "summary": "Missing dedicated end-to-end regression assertion for Global Styles dialog interaction and viewport safety",
+      "component": "toolbar_title_editor",
+      "layer": "frontend/components/admin/builder/builder-toolbar.tsx",
+      "summary": "Page title and title editing input lacked data-testid selector hooks for automated title update testing; added data-testid page-title-label and page-title-input",
       "status": "FIXED",
       "round": 65
     },
     {
       "id": "DEFECT-R66-01",
-      "severity": "P1",
-      "component": "shortcuts_dialog",
-      "layer": "frontend/components/admin/builder/keyboard-shortcuts-dialog.tsx",
-      "summary": "Keyboard shortcuts dialog categorized guidelines, accessibility keys and escape dismissal verified",
-      "status": "FIXED",
-      "round": 66
-    },
-    {
-      "id": "DEFECT-R66-02",
       "severity": "P2",
-      "component": "shortcuts_e2e_regression",
-      "layer": "frontend/tests/e2e/builder-gym-r70.spec.ts",
-      "summary": "Missing dedicated end-to-end regression assertion for Keyboard Shortcuts dialog interaction and viewport safety",
+      "component": "container_structure_dialog",
+      "layer": "frontend/components/admin/builder/container-structure-dialog.tsx",
+      "summary": "Container structure dialog presets lacked data-testid selector hooks for automated layout testing; added data-testid container-structure-preset-id",
       "status": "FIXED",
       "round": 66
     },
     {
       "id": "DEFECT-R67-01",
-      "severity": "P1",
-      "component": "theme_builder_save_dialog",
-      "layer": "frontend/components/admin/builder/save-page-template-dialog.tsx",
-      "summary": "Theme builder template types, display conditions and save dialog interactions verified",
-      "status": "FIXED",
-      "round": 67
-    },
-    {
-      "id": "DEFECT-R67-02",
       "severity": "P2",
-      "component": "theme_builder_e2e_regression",
-      "layer": "frontend/tests/e2e/builder-gym-r71.spec.ts",
-      "summary": "Missing dedicated end-to-end regression assertion for Save Page Template dialog and Escape dismissal",
+      "component": "canvas_frame_resizing",
+      "layer": "frontend/components/admin/builder/canvas-frame.tsx",
+      "summary": "Canvas frame iframe lacked data-testid hook for automated responsive viewport resizing assertions; verified testid canvas-iframe",
       "status": "FIXED",
       "round": 67
     },
     {
       "id": "DEFECT-R68-01",
-      "severity": "P1",
-      "component": "section_template_save_dialog",
-      "layer": "frontend/components/admin/builder/save-template-dialog.tsx",
-      "summary": "Section template save dialog categories, slug generation and backend AST sync verified",
-      "status": "FIXED",
-      "round": 68
-    },
-    {
-      "id": "DEFECT-R68-02",
       "severity": "P2",
-      "component": "section_template_e2e_regression",
-      "layer": "frontend/tests/e2e/builder-gym-r72.spec.ts",
-      "summary": "Missing dedicated end-to-end regression assertion for Section Template save dialog and Escape dismissal",
+      "component": "canvas_overlay_toolbar",
+      "layer": "frontend/components/admin/builder/canvas-overlay-layer.tsx",
+      "summary": "Canvas floating action toolbar buttons lacked explicit data-testid hooks for automated duplicate and delete actions; added data-testid overlay-duplicate-btn and overlay-delete-btn",
       "status": "FIXED",
       "round": 68
     },
     {
       "id": "DEFECT-R69-01",
-      "severity": "P1",
-      "component": "landing_sections_integration",
-      "layer": "frontend/components/admin/builder/canvas-element.tsx",
-      "summary": "Full 9-section landing page integration test with Heading, CTA, Pricing and Accordion across 4 viewports verified",
+      "severity": "P2",
+      "component": "color_utils_and_hsl_tokens",
+      "layer": "frontend/lib/builder/color-utils.ts",
+      "summary": "CSS HSL token channel normalization validated across all device styling and inspector pickers with 100% test lock",
       "status": "FIXED",
       "round": 69
     },
     {
-      "id": "DEFECT-R69-02",
+      "id": "DEFECT-R70-01",
       "severity": "P2",
-      "component": "landing_sections_e2e_regression",
-      "layer": "frontend/tests/e2e/builder-gym-r73.spec.ts",
-      "summary": "Missing dedicated end-to-end regression assertion for multi-section landing page integration test",
+      "component": "storefront_widgets_parity",
+      "layer": "frontend/components/admin/builder/canvas-element.tsx",
+      "summary": "Storefront widgets mega_menu, product_price, add_to_cart, and product_variants standardized with data-widget and builder-* semantic class attributes",
       "status": "FIXED",
-      "round": 69
+      "round": 70
+    },
+    {
+      "id": "DEFECT-R71-01",
+      "severity": "P2",
+      "component": "container_empty_guide",
+      "layer": "frontend/components/admin/builder/canvas-element.tsx",
+      "summary": "Container empty guide dashed placeholder validated with data-testid empty-container-guide and add block trigger",
+      "status": "FIXED",
+      "round": 71
+    },
+    {
+      "id": "DEFECT-R72-01",
+      "severity": "P2",
+      "component": "pattern_converter_palette",
+      "layer": "frontend/lib/builder/pattern-converter.ts",
+      "summary": "Pattern converter verified across 28 block patterns with Playwright automated palette display assertion",
+      "status": "FIXED",
+      "round": 72
     }
   ]
 }

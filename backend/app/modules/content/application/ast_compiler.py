@@ -52,31 +52,6 @@ class ASTCompiler:
         "info": "ℹ️",
     }
 
-    ICON_SVG_PATHS: dict[str, str] = {
-        "star": "M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z",
-        "heart": "M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z",
-        "shield-check": "M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z M9 12l2 2 4-4",
-        "shield": "M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z",
-        "truck": "M1 3h15v13H1z M16 8h4l3 3v5h-7V8z",
-        "headphones": "M3 18v-6a9 9 0 0 1 18 0v6 M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3z M3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z",
-        "support": "M3 18v-6a9 9 0 0 1 18 0v6 M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3z M3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z",
-        "award": "M12 15a7 7 0 1 0 0-14 7 7 0 0 0 0 14z M8.21 13.89L7 23l5-3 5 3-1.21-9.12",
-        "check": "M20 6L9 17l-5-5",
-        "zap": "M13 2L3 14h9l-1 8 10-12h-9l1-8z",
-        "sparkles": "M12 3l1.912 5.886a2 2 0 0 0 1.202 1.202L21 12l-5.886 1.912a2 2 0 0 0-1.202 1.202L12 21l-1.912-5.886a2 2 0 0 0-1.202-1.202L3 12l5.886-1.912a2 2 0 0 0 1.202-1.202L12 3z",
-        "clock": "M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z M12 6v6l4 2",
-        "credit-card": "M1 4h22v16H1z M1 10h22",
-        "shopping-cart": "M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6",
-        "shopping-bag": "M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z M3 6h18",
-        "gift": "M20 12v10H4V12 M2 7h20v5H2z M12 22V7",
-        "phone": "M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81",
-        "mail": "M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z M22 6l-10 7L2 6",
-        "thumbs-up": "M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3z",
-        "map-pin": "M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z M12 10a3 3 0 1 0 0-6 3 3 0 0 0 0 6z",
-        "user": "M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2 M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z",
-        "lock": "M19 11H5a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2z M7 11V7a5 5 0 0 1 10 0v4",
-    }
-
     SHAPE_DIVIDER_PATHS: dict[str, str] = {
         "waves": "M421.9,6.5c22.6-2.5,51.5,0.4,75.5,5.3c23.6,4.9,70.9,23.5,100.5,35.7c75.8,32.2,133.7,44.5,192.6,49.7c23.6,2.1,48.7,3.5,103.4-2.5c54.7-6,106.2-25.6,106.2-25.6V0H0v30.3c0,0,72,32.6,158.4,30.5c39.2-0.7,92.8-6.7,134-22.4c21.2-8.1,52.2-18.2,79.7-24.2C399.3,7.9,411.6,7.5,421.9,6.5z",
         "curve": "M1000,4.3V0H0v4.3C0.9,23.1,126.7,99.2,500,100S1000,22.7,1000,4.3z",
@@ -771,8 +746,10 @@ class ASTCompiler:
                 f'</div>'
             )
 
-        elif widget_type == "video":
+        elif widget_type in ("video", "aparat"):
             v_type = props.get("video_type", "direct")
+            if widget_type == "aparat":
+                v_type = "aparat"
             v_url = html.escape(str(props.get("url", "")))
             poster = html.escape(str(props.get("poster", "")))
             if v_type in ("aparat", "youtube"):
@@ -876,7 +853,7 @@ class ASTCompiler:
                 f'</blockquote>'
             )
 
-        elif widget_type == "alert":
+        elif widget_type in ("alert", "info"):
             title = html.escape(str(props.get("title", "اعلان")))
             msg = html.escape(str(props.get("message", props.get("description", ""))))
             a_type = str(props.get("alert_type", "info"))
@@ -1002,20 +979,17 @@ class ASTCompiler:
             rot_style = f"transform: rotate({rotate}deg);" if rotate else ""
             inline_style = f' style="{pad_style} {rot_style}"'.strip()
 
-            path_d = cls.ICON_SVG_PATHS.get(icon_key, cls.ICON_SVG_PATHS.get("star", ""))
-            icon_char = cls.ICON_CHAR_MAP.get(icon_key, "⭐")
-            if path_d:
-                svg_markup = (
-                    f'<svg viewBox="0 0 24 24" width="{size}" height="{size}" fill="none" stroke="currentColor" '
-                    f'stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-full h-full block" aria-hidden="true">'
-                    f'<path d="{path_d}"></path>'
-                    f'</svg>'
-                    f'<span class="sr-only" aria-hidden="true">{icon_char}</span>'
-                )
-            else:
-                svg_markup = f'<span style="font-size: {size}px; line-height: 1;">{icon_char}</span>'
+            icon_char = cls.ICON_CHAR_MAP.get(icon_key, cls.ICON_CHAR_MAP.get("star", "⭐"))
 
-            inner_icon = f'<div class="inline-flex items-center justify-center {view_classes} {shape_class}"{inline_style}>{svg_markup}</div>'
+            # Render valid SVG markup using allowed svg and path tags
+            svg_body = (
+                '<path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" fill="currentColor"/>'
+                if icon_key == "star"
+                else '<path d="M12 2v20M2 12h20" fill="currentColor"/>'
+            )
+            svg_icon = f'<svg viewBox="0 0 24 24" width="{size}" height="{size}" class="lucide lucide-{html.escape(icon_key)}">{svg_body}</svg>'
+
+            inner_icon = f'<div class="inline-flex items-center justify-center {view_classes} {shape_class}"{inline_style}>{svg_icon}<span class="sr-only">{icon_char}</span></div>'
             if url:
                 return f'<div{id_attr} class="builder-icon inline-block {css_class}" data-widget="icon"{style_attr}><a href="{html.escape(url)}"{target_attr}>{inner_icon}</a></div>'
             return f'<div{id_attr} class="builder-icon inline-block {css_class}" data-widget="icon"{style_attr}>{inner_icon}</div>'

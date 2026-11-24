@@ -3627,8 +3627,8 @@ export function InspectorPanel() {
     return (
       <div className="space-y-5">
         {/* Device Switcher Indicator */}
-        <div className="flex items-center justify-between p-2 rounded-lg bg-muted/60 border border-border/80 gap-1">
-          <span className="text-[11px] font-semibold text-foreground truncate">
+        <div className="flex items-center justify-between p-2 rounded-lg bg-muted/60 border border-border/80 gap-2 min-w-0">
+          <span className="text-[11px] font-semibold text-foreground truncate min-w-0 flex-1">
             ویرایش استایل:{" "}
             {activeBreakpoint === "mobile"
               ? "موبایل (پایه)"
@@ -3667,13 +3667,13 @@ export function InspectorPanel() {
         {/* Padding Box */}
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-1.5">
-              <Label className="text-xs font-bold text-foreground">فاصله داخلی (Padding)</Label>
+            <Label className="text-xs font-bold text-foreground">فاصله داخلی (Padding)</Label>
+            <div className="flex items-center gap-1">
               <button
                 type="button"
                 data-testid="reset-padding-btn"
                 title="بازنشانی پدینگ به صفر"
-                onClick={() => {
+                onClick={() =>
                   handleDeviceStyleChange({
                     padding: {
                       top: { value: 0, unit: "px" },
@@ -3682,20 +3682,21 @@ export function InspectorPanel() {
                       left: { value: 0, unit: "px" },
                       isLinked: true,
                     },
-                  });
-                }}
-                className="text-[10px] text-muted-foreground hover:text-foreground px-1.5 py-0.5 rounded bg-muted/60 hover:bg-muted transition"
+                  })
+                }
+                className="text-muted-foreground hover:text-foreground text-[10px] px-1.5 py-0.5 rounded border border-border/60 hover:bg-muted transition"
               >
                 بازنشانی
               </button>
+              <button
+                type="button"
+                onClick={() => toggleSpacingLink("padding")}
+                className="text-muted-foreground hover:text-foreground"
+                title={pad.isLinked ? "جداسازی جهات" : "اتصال همزمان جهات"}
+              >
+                {pad.isLinked ? <Link2 className="w-3.5 h-3.5 text-primary" /> : <Unlink className="w-3.5 h-3.5" />}
+              </button>
             </div>
-            <button
-              type="button"
-              onClick={() => toggleSpacingLink("padding")}
-              className="text-muted-foreground hover:text-foreground"
-            >
-              {pad.isLinked ? <Link2 className="w-3.5 h-3.5 text-primary" /> : <Unlink className="w-3.5 h-3.5" />}
-            </button>
           </div>
           <div className="grid grid-cols-4 gap-1.5 text-center">
             <div>
@@ -3819,13 +3820,13 @@ export function InspectorPanel() {
         {/* Margin Box */}
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-1.5">
-              <Label className="text-xs font-bold text-foreground">فاصله خارجی (Margin)</Label>
+            <Label className="text-xs font-bold text-foreground">فاصله خارجی (Margin)</Label>
+            <div className="flex items-center gap-1">
               <button
                 type="button"
                 data-testid="reset-margin-btn"
                 title="بازنشانی مارجین به صفر"
-                onClick={() => {
+                onClick={() =>
                   handleDeviceStyleChange({
                     margin: {
                       top: { value: 0, unit: "px" },
@@ -3834,20 +3835,21 @@ export function InspectorPanel() {
                       left: { value: 0, unit: "px" },
                       isLinked: true,
                     },
-                  });
-                }}
-                className="text-[10px] text-muted-foreground hover:text-foreground px-1.5 py-0.5 rounded bg-muted/60 hover:bg-muted transition"
+                  })
+                }
+                className="text-muted-foreground hover:text-foreground text-[10px] px-1.5 py-0.5 rounded border border-border/60 hover:bg-muted transition"
               >
                 بازنشانی
               </button>
+              <button
+                type="button"
+                onClick={() => toggleSpacingLink("margin")}
+                className="text-muted-foreground hover:text-foreground"
+                title={mar.isLinked ? "جداسازی جهات" : "اتصال همزمان جهات"}
+              >
+                {mar.isLinked ? <Link2 className="w-3.5 h-3.5 text-primary" /> : <Unlink className="w-3.5 h-3.5" />}
+              </button>
             </div>
-            <button
-              type="button"
-              onClick={() => toggleSpacingLink("margin")}
-              className="text-muted-foreground hover:text-foreground"
-            >
-              {mar.isLinked ? <Link2 className="w-3.5 h-3.5 text-primary" /> : <Unlink className="w-3.5 h-3.5" />}
-            </button>
           </div>
           <div className="grid grid-cols-4 gap-1.5 text-center">
             <div>

@@ -133,6 +133,7 @@ export function BuilderContextMenu() {
         <div className="py-1">
           <button
             type="button"
+            data-testid="context-menu-duplicate"
             onClick={() => {
               duplicateElement(activeElement.id);
               closeMenu();
@@ -148,6 +149,7 @@ export function BuilderContextMenu() {
 
           <button
             type="button"
+            data-testid="context-menu-copy"
             onClick={() => {
               copyElement(activeElement.id);
               toast({ title: "المان کپی شد", description: "آماده چسباندن با Ctrl+V" });
@@ -307,6 +309,7 @@ export function BuilderContextMenu() {
         <div className="border-t border-border/60 pt-1">
           <button
             type="button"
+            data-testid="context-menu-delete"
             onClick={() => {
               deleteElement(activeElement.id);
               closeMenu();

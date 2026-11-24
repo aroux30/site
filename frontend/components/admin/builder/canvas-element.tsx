@@ -46,7 +46,7 @@ import { Badge } from "@/components/ui/badge";
 import { useCartStore } from "@/stores/cart-store";
 import { useToast } from "@/components/ui/use-toast";
 import { normalizeCssColor } from "@/lib/builder/color-utils";
-import { getBuilderIcon } from "@/lib/builder/icon-map";
+import { getBuilderIcon } from "@/lib/builder/icon-registry";
 import type { BuilderElement, DeviceStyle, ResponsiveStyles } from "@/types/builder";
 
 interface CanvasElementProps {
@@ -632,7 +632,6 @@ function CanvasElementComponent({
         if (isInlineEditing && !previewMode) {
           return (
             <Tag
-              data-widget="heading"
               contentEditable
               suppressContentEditableWarning
               autoFocus
@@ -664,7 +663,6 @@ function CanvasElementComponent({
 
         return (
           <Tag
-            data-widget="heading"
             onDoubleClick={(e) => {
               if (!previewMode) {
                 e.stopPropagation();
@@ -688,7 +686,6 @@ function CanvasElementComponent({
         if (isInlineEditing && !previewMode) {
           return (
             <div
-              data-widget={element.widgetType || "text_editor"}
               contentEditable
               suppressContentEditableWarning
               autoFocus
@@ -716,7 +713,6 @@ function CanvasElementComponent({
 
         return (
           <div
-            data-widget={element.widgetType || "text_editor"}
             onDoubleClick={(e) => {
               if (!previewMode) {
                 e.stopPropagation();
@@ -745,7 +741,7 @@ function CanvasElementComponent({
 
         if (isInlineEditing && !previewMode) {
           return (
-            <div className={isFull ? "w-full block" : "inline-block"} data-widget="button">
+            <div className={isFull ? "w-full block" : "inline-block"}>
               <span
                 contentEditable
                 suppressContentEditableWarning
@@ -782,7 +778,7 @@ function CanvasElementComponent({
         }
 
         return (
-          <div className={isFull ? "w-full block" : "inline-block"} data-widget="button">
+          <div className={isFull ? "w-full block" : "inline-block"}>
             <a
               href={url}
               data-url={url}
@@ -812,7 +808,7 @@ function CanvasElementComponent({
       case "image": {
         const customClass = String(props.customCssClass || element.styles?.customCssClass || "");
         return (
-          <div className={cn("relative overflow-hidden rounded-xl bg-muted/30 min-h-[120px] w-full flex items-center justify-center", customClass)} data-widget="image">
+          <div className={cn("relative overflow-hidden rounded-xl bg-muted/30 min-h-[120px] w-full flex items-center justify-center", customClass)}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={String(props.url || "/placeholder-hero.svg")}
@@ -827,7 +823,6 @@ function CanvasElementComponent({
         return (
           <div
             id={anchorId}
-            data-widget="menu_anchor"
             className="w-full py-2 px-3 border border-dashed border-primary/40 bg-primary/5 rounded-lg text-xs font-mono text-primary flex items-center justify-between"
             dir="ltr"
           >
@@ -840,7 +835,6 @@ function CanvasElementComponent({
         const h = Number(props.height || 32);
         return (
           <div
-            data-widget="spacer"
             className="w-full flex items-center justify-center border border-dashed border-muted-foreground/20 rounded text-xs text-muted-foreground select-none"
             style={{ height: `${h}px` }}
           >
@@ -852,7 +846,6 @@ function CanvasElementComponent({
         const dStyle = String(props.style || "solid");
         return (
           <hr
-            data-widget="divider"
             className={cn(
               "w-full border-border/80 my-4",
               dStyle === "dashed" && "border-dashed",
@@ -879,7 +872,8 @@ function CanvasElementComponent({
         );
       }
       case "icon": {
-        const IconComponent = getBuilderIcon(props.icon as string);
+        const iconKey = String(props.icon || "star").trim().toLowerCase();
+        const IconComponent = getBuilderIcon(iconKey);
         const view = String(props.view || "default");
         const shape = String(props.shape || "circle");
         const size = Number(props.size) || 32;
@@ -894,7 +888,8 @@ function CanvasElementComponent({
         const padding = view !== "default" ? Math.round(size * 0.4) : 0;
         return (
           <div
-            data-widget-type="icon"
+            data-widget="icon"
+            data-icon={iconKey}
             className={cn(
               "inline-flex items-center justify-center transition-transform",
               viewClasses,
@@ -905,15 +900,12 @@ function CanvasElementComponent({
               transform: rotate ? `rotate(${rotate}deg)` : undefined,
             }}
           >
-            <IconComponent
-              data-testid="builder-icon-svg"
-              aria-hidden="true"
-              style={{ width: `${size}px`, height: `${size}px` }}
-            />
+            <IconComponent style={{ width: `${size}px`, height: `${size}px` }} className="shrink-0" />
           </div>
         );
       }
-      case "video": {
+      case "video":
+      case "aparat": {
         const url = String(props.url || "");
         const vType = String(props.video_type || "aparat");
         const poster = props.poster ? String(props.poster) : undefined;
@@ -951,7 +943,7 @@ function CanvasElementComponent({
           review_count: Number(props.review_count) || 38,
         };
         return (
-          <div className="w-full max-w-sm" data-widget="product_card">
+          <div className="w-full max-w-sm">
             <ProductCard product={prod as any} variant={(props.variant as any) || "default"} />
           </div>
         );
@@ -977,7 +969,7 @@ function CanvasElementComponent({
           review_count: 15 + i * 4,
         }));
         return (
-          <div className="space-y-4 w-full" data-widget="product_grid">
+          <div className="space-y-4 w-full">
             {/* Filter Pills */}
             <div className="flex items-center gap-1.5 pb-1">
               {[
@@ -1032,14 +1024,14 @@ function CanvasElementComponent({
               { url: "/placeholder.svg", alt: "تصویر ۲" },
             ];
         return (
-          <div className="w-full max-w-md mx-auto" data-widget="image_gallery">
+          <div className="w-full max-w-md mx-auto">
             <ImageGallery images={images} productName={String(props.productName || "محصول نمونه")} />
           </div>
         );
       }
       case "star_rating": {
         return (
-          <div className="inline-flex items-center gap-2 p-2 rounded-lg bg-card border" data-widget="star_rating">
+          <div className="inline-flex items-center gap-2 p-2 rounded-lg bg-card border">
             <StarRating
               value={Number(props.value) || 4.8}
               reviewCount={props.reviewCount !== undefined ? Number(props.reviewCount) : 124}
@@ -1058,7 +1050,7 @@ function CanvasElementComponent({
           star_1: 1,
         };
         return (
-          <div className="w-full max-w-md" data-widget="review_histogram">
+          <div className="w-full max-w-md">
             <ReviewHistogram
               distribution={dist}
               averageRating={Number(props.averageRating) || 4.5}
@@ -1086,7 +1078,7 @@ function CanvasElementComponent({
           review_count: 22,
         }));
         return (
-          <div className="w-full space-y-3" data-widget="recently_viewed">
+          <div className="w-full space-y-3">
             <h4 className="text-sm font-bold text-foreground">{title}</h4>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               {dummyRecentProducts.map((p) => (
@@ -1106,7 +1098,7 @@ function CanvasElementComponent({
           { id: "c6", name: "لوازم برقی", slug: "appliances", parent_id: "c5", is_active: true, display_order: 1, image_url: "/placeholder.svg" },
         ];
         return (
-          <div className="inline-block p-1" data-widget="mega_menu">
+          <div data-widget="mega_menu" className="builder-mega-menu inline-block p-1">
             <MegaMenu categories={sampleCats as any} label={String(props.label || "دسته‌بندی کالاها")} />
           </div>
         );
@@ -1126,7 +1118,7 @@ function CanvasElementComponent({
         const discountPercent = compareAt && compareAt > price ? Math.round(((compareAt - price) / compareAt) * 100) : null;
 
         return (
-          <div className="flex items-center gap-2.5 flex-wrap">
+          <div data-widget="product_price" className="builder-product-price flex items-center gap-2.5 flex-wrap">
             <span className="text-2xl font-black text-primary tracking-tight">
               {price.toLocaleString("fa-IR")} {currency}
             </span>
@@ -1163,7 +1155,7 @@ function CanvasElementComponent({
         };
 
         return (
-          <div className="flex items-center gap-2 w-full" data-widget="add_to_cart">
+          <div data-widget="add_to_cart" className="builder-add-to-cart flex items-center gap-2 w-full">
             {showQty && (
               <div className="flex items-center border border-border/80 rounded-xl bg-card overflow-hidden shrink-0">
                 <button
@@ -1208,7 +1200,7 @@ function CanvasElementComponent({
         ];
 
         return (
-          <div className="space-y-2 w-full" data-widget="product_variants">
+          <div data-widget="product_variants" className="builder-product-variants space-y-2 w-full">
             <span className="block text-xs font-bold text-foreground">{pTitle}</span>
             <div className="flex flex-wrap gap-2">
               {variants.map((v) => {
@@ -1246,7 +1238,7 @@ function CanvasElementComponent({
         const showBadge = props.show_badge !== false;
         const label = String(props.label || "سبد خرید");
         return (
-          <div className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-card border border-border/80 shadow-sm" data-widget="mini_cart">
+          <div className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-card border border-border/80 shadow-sm">
             <ShoppingCart className="w-4 h-4 text-primary" />
             <span className="text-xs font-bold text-foreground">{label}</span>
             {showBadge && (
@@ -1264,7 +1256,7 @@ function CanvasElementComponent({
         const title = String(props.title || "خلاصه سبد خرید");
         const btnLabel = String(props.button_label || "ادامه فرآیند خرید");
         return (
-          <div className="p-4 rounded-2xl border border-border/80 bg-card space-y-3 shadow-sm w-full max-w-sm" data-widget="cart_summary">
+          <div className="p-4 rounded-2xl border border-border/80 bg-card space-y-3 shadow-sm w-full max-w-sm">
             <div className="flex items-center justify-between border-b pb-2">
               <span className="text-xs font-bold text-foreground">{title}</span>
               <Receipt className="w-4 h-4 text-primary" />
@@ -1304,7 +1296,7 @@ function CanvasElementComponent({
         const striped = props.striped !== false;
         const highlightCol = props.highlightCol !== undefined && props.highlightCol !== null ? Number(props.highlightCol) : null;
         return (
-          <div className="builder-table overflow-x-auto w-full select-text" data-widget="table">
+          <div className="builder-table overflow-x-auto w-full select-text">
             <table className={cn(
               "w-full border-collapse text-right text-sm",
               bordered && "border border-border/80 rounded-xl overflow-hidden"
@@ -1354,7 +1346,7 @@ function CanvasElementComponent({
         const isRequired = Boolean(props.required);
         const customClass = String(props.customCssClass || element.styles?.customCssClass || "");
         return (
-          <div className={cn("space-y-1 w-full text-right pointer-events-none", customClass)} data-widget="form_input" data-required={isRequired ? "true" : undefined}>
+          <div className={cn("space-y-1 w-full text-right pointer-events-none", customClass)} data-required={isRequired ? "true" : undefined}>
             {label && (
               <label className="block text-xs font-semibold text-foreground">
                 {label}
@@ -1378,7 +1370,7 @@ function CanvasElementComponent({
         const isRequired = Boolean(props.required);
         const customClass = String(props.customCssClass || element.styles?.customCssClass || "");
         return (
-          <div className={cn("space-y-1 w-full text-right pointer-events-none", customClass)} data-widget="form_textarea" data-required={isRequired ? "true" : undefined}>
+          <div className={cn("space-y-1 w-full text-right pointer-events-none", customClass)} data-required={isRequired ? "true" : undefined}>
             {label && (
               <label className="block text-xs font-semibold text-foreground">
                 {label}
@@ -1401,7 +1393,7 @@ function CanvasElementComponent({
         const isRequired = Boolean(props.required);
         const customClass = String(props.customCssClass || element.styles?.customCssClass || "");
         return (
-          <div className={cn("space-y-1 w-full text-right pointer-events-none", customClass)} data-widget="form_select" data-required={isRequired ? "true" : undefined}>
+          <div className={cn("space-y-1 w-full text-right pointer-events-none", customClass)} data-required={isRequired ? "true" : undefined}>
             {label && (
               <label className="block text-xs font-semibold text-foreground">
                 {label}
@@ -1420,7 +1412,7 @@ function CanvasElementComponent({
         const label = String(props.label || "شرایط و قوانین را می‌پذیرم");
         const name = String(props.name || "terms");
         return (
-          <div className="flex items-center gap-2 text-right" data-widget="form_checkbox">
+          <div className="flex items-center gap-2 text-right">
             <input
               type="checkbox"
               id={`chk_${element.id}`}
@@ -1439,7 +1431,7 @@ function CanvasElementComponent({
         const options = (props.options as string[]) || ["گزینه ۱", "گزینه ۲"];
         const name = String(props.name || "radio_group");
         return (
-          <div className="space-y-1.5 text-right w-full" data-widget="form_radio">
+          <div className="space-y-1.5 text-right w-full">
             <span className="block text-xs font-bold text-foreground">{label}</span>
             <div className="flex flex-col gap-1.5">
               {options.map((opt, i) => (
@@ -1463,7 +1455,7 @@ function CanvasElementComponent({
           { title: "سؤال متداول ۲", content: "پاسخ مشروح به سؤال دوم کاربر." },
         ];
         return (
-          <div className="space-y-2 w-full" data-widget="accordion">
+          <div className="space-y-2 w-full">
             {items.map((item, idx) => (
               <details
                 key={idx}
@@ -1488,7 +1480,7 @@ function CanvasElementComponent({
           { title: "دیدگاه کاربران", content: "ثبت و بررسی دیدگاه‌های خریداران." },
         ];
         return (
-          <div className="rounded-xl border border-border/80 bg-card overflow-hidden w-full shadow-sm" data-widget="tabs">
+          <div className="rounded-xl border border-border/80 bg-card overflow-hidden w-full shadow-sm">
             <div className="flex border-b border-border/60 bg-muted/30">
               {tabsList.map((t, idx) => (
                 <button
@@ -1540,7 +1532,7 @@ function CanvasElementComponent({
         }
 
         return (
-          <div className="p-4 rounded-2xl bg-card border border-border/80 text-center space-y-3 shadow-sm w-full" data-widget="countdown">
+          <div className="p-4 rounded-2xl bg-card border border-border/80 text-center space-y-3 shadow-sm w-full">
             <h3 className="font-bold text-sm text-foreground">{title}</h3>
             <div className="flex items-center justify-center gap-2 text-center" dir="ltr">
               <div className="bg-muted/60 p-2 rounded-xl min-w-[50px]">
@@ -1571,7 +1563,7 @@ function CanvasElementComponent({
         const desc = String(props.description || "تحویل در کمترین زمان ممکن با بسته‌بندی ویژه به سراسر کشور");
         const IconComponent = getBuilderIcon(props.icon as string);
         return (
-          <div className="p-4 rounded-2xl border border-border/80 bg-card flex items-start gap-3 shadow-sm w-full" data-widget="icon_box">
+          <div className="p-4 rounded-2xl border border-border/80 bg-card flex items-start gap-3 shadow-sm w-full">
             <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
               <IconComponent className="w-5 h-5" />
             </div>
@@ -1588,7 +1580,7 @@ function CanvasElementComponent({
         const prefix = String(props.prefix || "");
         const suffix = String(props.suffix || "");
         return (
-          <div className="p-4 rounded-2xl border border-border/80 bg-card text-center space-y-1 shadow-sm w-full" data-widget="counter">
+          <div className="p-4 rounded-2xl border border-border/80 bg-card text-center space-y-1 shadow-sm w-full">
             <div className="text-3xl font-black text-primary font-mono" dir="ltr">
               {prefix}{ending.toLocaleString("fa-IR")}{suffix}
             </div>
@@ -1601,7 +1593,7 @@ function CanvasElementComponent({
         const pct = Math.max(0, Math.min(100, Number(props.percentage ?? 75)));
         const showPct = props.show_percentage !== false;
         return (
-          <div className="space-y-1.5 w-full text-right" data-widget="progress_bar">
+          <div className="space-y-1.5 w-full text-right">
             <div className="flex items-center justify-between text-xs font-semibold text-foreground">
               <span>{title}</span>
               {showPct && <span className="font-mono text-primary">{pct}%</span>}
@@ -1619,7 +1611,7 @@ function CanvasElementComponent({
         const quote = String(props.quote || "متن دیدگاه مشتری در اینجا نمایش داده می‌شود.");
         const avatar = String(props.avatar_url || "/placeholder-hero.svg");
         return (
-          <div className="p-4 rounded-2xl border border-border/80 bg-card space-y-3 shadow-sm w-full text-right" data-widget="testimonial">
+          <div className="p-4 rounded-2xl border border-border/80 bg-card space-y-3 shadow-sm w-full text-right">
             <p className="text-xs text-muted-foreground leading-relaxed italic">«{quote}»</p>
             <div className="flex items-center gap-3 pt-2 border-t border-border/60">
               <img src={avatar} alt={author} className="w-9 h-9 rounded-full object-cover shrink-0" />
@@ -1631,7 +1623,8 @@ function CanvasElementComponent({
           </div>
         );
       }
-      case "alert": {
+      case "alert":
+      case "info": {
         const title = String(props.title || "اعلان");
         const desc = String(props.description || props.message || "متن اعلان پیام");
         const aType = String(props.alert_type || "info");
@@ -1642,7 +1635,7 @@ function CanvasElementComponent({
           danger: "bg-rose-500/10 text-rose-700 dark:text-rose-300 border-rose-500/30",
         };
         return (
-          <div className={cn("p-4 rounded-xl border flex items-start gap-3 w-full text-right", bgMap[aType] || bgMap.info)} data-widget="alert">
+          <div className={cn("p-4 rounded-xl border flex items-start gap-3 w-full text-right", bgMap[aType] || bgMap.info)}>
             <div className="space-y-1 text-right flex-1">
               <h4 className="font-bold text-xs">{title}</h4>
               {desc && <p className="text-[11px] leading-relaxed opacity-90">{desc}</p>}
@@ -1656,7 +1649,7 @@ function CanvasElementComponent({
         const imgUrl = String(props.image_url || "/placeholder-hero.svg");
         const linkUrl = String(props.link_url || "#");
         return (
-          <div className="p-4 rounded-2xl border border-border/80 bg-card text-center space-y-3 shadow-sm w-full" data-widget="image_box">
+          <div className="p-4 rounded-2xl border border-border/80 bg-card text-center space-y-3 shadow-sm w-full">
             <div className="w-full aspect-video rounded-xl overflow-hidden bg-muted/30 flex items-center justify-center">
               <img src={imgUrl} alt={title} className="w-full h-full object-cover" loading="lazy" />
             </div>
@@ -1883,7 +1876,7 @@ function CanvasElementComponent({
         const btnUrl = String(props.button_url || props.url || "#");
         const badge = props.badge ? String(props.badge) : undefined;
         return (
-          <div className="p-6 rounded-2xl border border-primary/20 bg-primary/5 text-center space-y-3 shadow-sm w-full" data-widget="call_to_action">
+          <div className="p-6 rounded-2xl border border-primary/20 bg-primary/5 text-center space-y-3 shadow-sm w-full">
             {badge && (
               <span className="inline-block px-2.5 py-0.5 rounded-full bg-primary text-primary-foreground text-[10px] font-bold">
                 {badge}
@@ -1908,7 +1901,7 @@ function CanvasElementComponent({
         const highlight = String(props.highlighted_text || "تیتر متحرک");
         const after = String(props.after_text || "");
         return (
-          <h2 className="text-2xl lg:text-3xl font-extrabold text-foreground text-center py-2 leading-relaxed" data-widget="animated_headline">
+          <h2 className="text-2xl lg:text-3xl font-extrabold text-foreground text-center py-2 leading-relaxed">
             {before && <span className="me-2">{before}</span>}
             <span className="relative inline-block px-2 text-primary font-black underline decoration-primary/40 decoration-wavy decoration-2 underline-offset-8">
               {highlight}
@@ -1924,7 +1917,7 @@ function CanvasElementComponent({
         const backDesc = String(props.back_desc || "توضیحات پشت");
         const btnText = String(props.button_text || "مشاهده");
         return (
-          <div className="group/flip w-full min-h-[220px] [perspective:1000px]" data-widget="flip_box">
+          <div className="group/flip w-full min-h-[220px] [perspective:1000px]">
             <div className="relative w-full h-full min-h-[220px] transition-transform duration-500 [transform-style:preserve-3d] group-hover/flip:[transform:rotateY(180deg)] rounded-2xl border border-border/80 shadow-sm">
               {/* Front Face */}
               <div className="absolute inset-0 w-full h-full p-6 flex flex-col items-center justify-center text-center space-y-2 [backface-visibility:hidden] bg-card rounded-2xl">
@@ -1975,6 +1968,40 @@ function CanvasElementComponent({
           </blockquote>
         );
       }
+      case "image_box": {
+        const imgUrl = String(props.image_url || "/placeholder-hero.svg");
+        const title = String(props.title || "عنوان جعبه تصویر");
+        const desc = String(props.description || "توضیحات کوتاه در این بخش قرار می‌گیرد.");
+        return (
+          <div className="p-4 rounded-2xl border border-border/80 bg-card text-center space-y-3 shadow-sm w-full">
+            <div className="w-full aspect-video max-h-48 rounded-xl overflow-hidden bg-muted/30 flex items-center justify-center mx-auto">
+              <img src={imgUrl} alt={title} className="w-full h-full object-cover" />
+            </div>
+            <h3 className="text-base font-bold text-foreground">{title}</h3>
+            <p className="text-xs text-muted-foreground leading-relaxed">{desc}</p>
+          </div>
+        );
+      }
+      case "price_list": {
+        const items = (props.items as any[]) || [
+          { title: "سرویس اول", price: "۱۰۰,۰۰۰ تومان", description: "توضیح کوتاه سرویس اول" },
+          { title: "سرویس دوم", price: "۲۰۰,۰۰۰ تومان", description: "توضیح کوتاه سرویس دوم" },
+        ];
+        return (
+          <div className="space-y-4 w-full p-2">
+            {items.map((item, idx) => (
+              <div key={idx} className="space-y-1">
+                <div className="flex items-baseline justify-between gap-2">
+                  <span className="text-xs font-bold text-foreground shrink-0">{item.title}</span>
+                  <span className="flex-1 border-b border-dotted border-border/80 mx-1 mb-1" />
+                  <span className="text-xs font-bold text-primary font-mono shrink-0">{item.price}</span>
+                </div>
+                {item.description && <p className="text-[11px] text-muted-foreground leading-relaxed">{item.description}</p>}
+              </div>
+            ))}
+          </div>
+        );
+      }
       case "share_buttons": {
         const platforms = (props.platforms as string[]) || ["telegram", "whatsapp", "twitter", "linkedin"];
         const platformLabels: Record<string, string> = {
@@ -2020,10 +2047,57 @@ function CanvasElementComponent({
           </div>
         );
       }
+      case "toggle": {
+        const items = (props.items as any[]) || [
+          { title: "بخش تاشو", content: "محتوا" },
+        ];
+        return (
+          <div data-widget="toggle" className="builder-toggle space-y-2.5 w-full text-right">
+            {items.map((item, idx) => (
+              <details key={idx} open={item.open ?? (idx === 0)} className="group rounded-xl border border-border/80 bg-card p-3 shadow-sm transition">
+                <summary className="font-bold text-xs cursor-pointer flex items-center justify-between list-none">
+                  <span>{item.title}</span>
+                  <ChevronDown className="w-4 h-4 text-muted-foreground transition group-open:rotate-180" />
+                </summary>
+                <div className="pt-2 text-[11px] text-muted-foreground leading-relaxed border-t border-border/40 mt-2">
+                  {item.content}
+                </div>
+              </details>
+            ))}
+          </div>
+        );
+      }
+      case "hotspot": {
+        const imgUrl = String(props.image_url || "/placeholder-hero.svg");
+        const spots = (props.spots as any[]) || [
+          { top: 40, left: 35, title: "نقطه اول" },
+        ];
+        return (
+          <div data-widget="hotspot" className="builder-hotspot relative w-full rounded-2xl overflow-hidden bg-muted/20 border border-border/80 aspect-video max-h-72">
+            <img src={imgUrl} alt="Hotspot" className="w-full h-full object-cover" />
+            {spots.map((s, idx) => (
+              <div
+                key={idx}
+                style={{ top: `${s.top}%`, left: `${s.left}%` }}
+                className="absolute -translate-x-1/2 -translate-y-1/2 group cursor-pointer"
+              >
+                <span className="w-5 h-5 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-[10px] font-bold shadow-lg ring-4 ring-primary/30 animate-pulse">
+                  {idx + 1}
+                </span>
+                {s.title && (
+                  <div className="absolute bottom-full mb-1.5 start-1/2 -translate-x-1/2 hidden group-hover:block bg-popover text-popover-foreground text-[10px] font-bold py-1 px-2 rounded-lg shadow whitespace-nowrap z-10 border border-border">
+                    {s.title}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        );
+      }
       case "progress_tracker": {
         const pct = Math.max(0, Math.min(100, Number(props.percentage ?? 50)));
         return (
-          <div className="w-full space-y-1 text-right py-1">
+          <div data-widget="progress_tracker" className="builder-progress-tracker w-full space-y-1 text-right py-1">
             <div className="flex items-center justify-between text-[11px] text-muted-foreground font-semibold">
               <span>پیشرفت مطالعه</span>
               <span className="font-mono text-primary font-bold">{pct}%</span>
@@ -2036,7 +2110,7 @@ function CanvasElementComponent({
       }
       case "lottie": {
         return (
-          <div className="flex flex-col items-center justify-center p-6 rounded-2xl border border-dashed border-primary/40 bg-primary/5 text-center space-y-2 w-full">
+          <div data-widget="lottie" className="builder-lottie flex flex-col items-center justify-center p-6 rounded-2xl border border-dashed border-primary/40 bg-primary/5 text-center space-y-2 w-full">
             <span className="w-12 h-12 rounded-2xl bg-primary/20 text-primary flex items-center justify-center text-xl font-bold animate-bounce">
               ⚡
             </span>

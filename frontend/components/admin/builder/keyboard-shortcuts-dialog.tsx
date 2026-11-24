@@ -53,7 +53,7 @@ export function KeyboardShortcutsDialog({
 }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-xl max-h-[85vh] overflow-y-auto select-none" dir="rtl">
+      <DialogContent data-testid="keyboard-shortcuts-dialog" className="max-w-xl max-h-[85vh] overflow-y-auto select-none" dir="rtl">
         <DialogHeader className="border-b pb-3">
           <div className="flex items-center gap-2 text-primary font-bold">
             <Keyboard className="w-5 h-5" />
@@ -91,6 +91,17 @@ export function KeyboardShortcutsDialog({
               </div>
             </div>
           ))}
+        </div>
+
+        <div className="pt-3 border-t flex justify-end">
+          <button
+            type="button"
+            data-testid="close-shortcuts-dialog-btn"
+            onClick={() => onOpenChange(false)}
+            className="px-4 py-1.5 text-xs font-semibold rounded-lg bg-muted hover:bg-muted/80 text-foreground transition"
+          >
+            بستن راهنما
+          </button>
         </div>
       </DialogContent>
     </Dialog>

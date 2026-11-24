@@ -233,6 +233,7 @@ const TreeItem = React.memo(function TreeItem({
         data-layer-row=""
         data-depth={depth}
         data-element-id={element.id}
+        data-testid={`layer-row-${element.id}`}
         className={cn(
           "flex items-center justify-between py-1.5 px-2 rounded-lg cursor-pointer text-xs transition group my-0.5 border overflow-hidden",
           isSelected

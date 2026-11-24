@@ -1098,7 +1098,7 @@ function CanvasElementComponent({
           { id: "c6", name: "لوازم برقی", slug: "appliances", parent_id: "c5", is_active: true, display_order: 1, image_url: "/placeholder.svg" },
         ];
         return (
-          <div className="inline-block p-1">
+          <div data-widget="mega_menu" className="builder-mega-menu inline-block p-1">
             <MegaMenu categories={sampleCats as any} label={String(props.label || "دسته‌بندی کالاها")} />
           </div>
         );
@@ -1118,7 +1118,7 @@ function CanvasElementComponent({
         const discountPercent = compareAt && compareAt > price ? Math.round(((compareAt - price) / compareAt) * 100) : null;
 
         return (
-          <div className="flex items-center gap-2.5 flex-wrap">
+          <div data-widget="product_price" className="builder-product-price flex items-center gap-2.5 flex-wrap">
             <span className="text-2xl font-black text-primary tracking-tight">
               {price.toLocaleString("fa-IR")} {currency}
             </span>
@@ -1155,7 +1155,7 @@ function CanvasElementComponent({
         };
 
         return (
-          <div className="flex items-center gap-2 w-full">
+          <div data-widget="add_to_cart" className="builder-add-to-cart flex items-center gap-2 w-full">
             {showQty && (
               <div className="flex items-center border border-border/80 rounded-xl bg-card overflow-hidden shrink-0">
                 <button
@@ -1200,7 +1200,7 @@ function CanvasElementComponent({
         ];
 
         return (
-          <div className="space-y-2 w-full">
+          <div data-widget="product_variants" className="builder-product-variants space-y-2 w-full">
             <span className="block text-xs font-bold text-foreground">{pTitle}</span>
             <div className="flex flex-wrap gap-2">
               {variants.map((v) => {

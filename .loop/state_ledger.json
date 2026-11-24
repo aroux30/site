@@ -1,21 +1,21 @@
 {
   "version": "4.2",
   "activeWeight": 9,
-  "activeRound": 69,
+  "activeRound": 70,
   "status": "COMPLETED",
   "levels1to5Status": "BUILDER_GYM_LEVELS_1_TO_5_CLEAN",
   "allLevelsMastered": "BUILDER_GYM_ALL_LEVELS_MASTERED",
   "verificationPort": 1003,
-  "completedRounds": 69,
+  "completedRounds": 70,
   "metrics": {
     "typeCheckErrors": 0,
     "frontendUnitTests": 383,
     "backendUnitTests": 656,
-    "playwrightTests": 15,
+    "playwrightTests": 16,
     "registeredBlocks": 76,
     "lastVerifierVerdict": "APPROVE"
   },
-  "timestamp": "2026-11-24T14:45:00.000Z",
+  "timestamp": "2026-11-24T15:15:00.000Z",
   "defect_ledger": [
     {
       "id": "DEFECT-R41-01",
@@ -574,6 +574,15 @@
       "summary": "CSS HSL token channel normalization validated across all device styling and inspector pickers with 100% test lock",
       "status": "FIXED",
       "round": 69
+    },
+    {
+      "id": "DEFECT-R70-01",
+      "severity": "P2",
+      "component": "storefront_widgets_parity",
+      "layer": "frontend/components/admin/builder/canvas-element.tsx",
+      "summary": "Storefront widgets mega_menu, product_price, add_to_cart, and product_variants standardized with data-widget and builder-* semantic class attributes",
+      "status": "FIXED",
+      "round": 70
     }
   ]
 }

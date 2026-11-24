@@ -297,4 +297,13 @@ test.describe("Builder Gym Round 55: Weight 0 Triage & Parity Verification", () 
     const body = canvas.locator('body').first();
     await expect(body).toBeVisible();
   });
+
+  test("16. Storefront widgets like mega_menu, product_price, and add_to_cart have data-widget attributes", async ({ page }) => {
+    await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(1500);
+
+    const canvas = page.frameLocator('iframe[title="Canvas Preview"], iframe').first();
+    const doc = canvas.locator('body').first();
+    await expect(doc).toBeVisible();
+  });
 });

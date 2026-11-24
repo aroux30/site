@@ -1,0 +1,29 @@
+{
+  "round": 69,
+  "timestamp": "2026-11-24T15:50:27.767Z",
+  "port": 1001,
+  "inspectorScrollTrap": {
+    "hasMinH0": true,
+    "verticalScrollable": true,
+    "paddingBottomSafe": "pb-24",
+    "status": "PASS"
+  },
+  "toolbarCollision": {
+    "viewport1280x720": {
+      "horizontalOverflowPx": 0,
+      "status": "PASS"
+    },
+    "viewport1440x900": {
+      "horizontalOverflowPx": 0,
+      "status": "PASS"
+    },
+    "status": "PASS"
+  },
+  "styleTabClipping": {
+    "paddingResetButtonPresent": true,
+    "marginResetButtonPresent": true,
+    "styleEditLabelTruncated": true,
+    "status": "PASS"
+  },
+  "status": "PASS"
+}

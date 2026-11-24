@@ -1,21 +1,21 @@
 {
   "version": "3.2",
   "activeWeight": 9,
-  "activeRound": 68,
+  "activeRound": 69,
   "status": "COMPLETED",
   "levels1to5Status": "BUILDER_GYM_LEVELS_1_TO_5_CLEAN",
   "allLevelsMastered": "BUILDER_GYM_ALL_LEVELS_MASTERED",
   "verificationPort": 1001,
-  "completedRounds": 68,
+  "completedRounds": 69,
   "metrics": {
     "typeCheckErrors": 0,
     "frontendUnitTests": 385,
     "backendUnitTests": 654,
-    "playwrightTests": 15,
+    "playwrightTests": 16,
     "registeredBlocks": 76,
     "lastVerifierVerdict": "APPROVE"
   },
-  "timestamp": "2026-11-24T15:26:16.036Z",
+  "timestamp": "2026-11-24T16:15:23.603Z",
   "defect_ledger": [
     {
       "id": "DEFECT-R41-01",
@@ -664,6 +664,24 @@
       "summary": "Missing dedicated end-to-end regression assertion for Section Template save dialog and Escape dismissal",
       "status": "FIXED",
       "round": 68
+    },
+    {
+      "id": "DEFECT-R69-01",
+      "severity": "P1",
+      "component": "landing_sections_integration",
+      "layer": "frontend/components/admin/builder/canvas-element.tsx",
+      "summary": "Full 9-section landing page integration test with Heading, CTA, Pricing and Accordion across 4 viewports verified",
+      "status": "FIXED",
+      "round": 69
+    },
+    {
+      "id": "DEFECT-R69-02",
+      "severity": "P2",
+      "component": "landing_sections_e2e_regression",
+      "layer": "frontend/tests/e2e/builder-gym-r73.spec.ts",
+      "summary": "Missing dedicated end-to-end regression assertion for multi-section landing page integration test",
+      "status": "FIXED",
+      "round": 69
     }
   ]
 }

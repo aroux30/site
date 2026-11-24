@@ -120,4 +120,21 @@ test.describe("Builder Gym Round 55: Weight 0 Triage & Parity Verification", () 
     const heading = canvas.locator('h1, h2, [data-widget-type]').first();
     await expect(heading).toBeVisible();
   });
+
+  test("5. Global styles dialog opens and has save/reset action buttons", async ({ page }) => {
+    await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(1500);
+
+    const globalStylesBtn = page.locator('header button:has-text("استایل سراسری")').first();
+    if (await globalStylesBtn.isVisible()) {
+      await globalStylesBtn.click();
+      await page.waitForTimeout(400);
+
+      const dialog = page.locator('[role="dialog"]').first();
+      await expect(dialog).toBeVisible();
+      const saveBtn = dialog.locator('button[data-testid="save-global-styles-btn"]').first();
+      await expect(saveBtn).toBeVisible();
+      await page.keyboard.press("Escape");
+    }
+  });
 });

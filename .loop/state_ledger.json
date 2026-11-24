@@ -1,21 +1,21 @@
 {
   "version": "4.2",
   "activeWeight": 9,
-  "activeRound": 58,
+  "activeRound": 59,
   "status": "COMPLETED",
   "levels1to5Status": "BUILDER_GYM_LEVELS_1_TO_5_CLEAN",
   "allLevelsMastered": "BUILDER_GYM_ALL_LEVELS_MASTERED",
   "verificationPort": 1003,
-  "completedRounds": 58,
+  "completedRounds": 59,
   "metrics": {
     "typeCheckErrors": 0,
     "frontendUnitTests": 383,
     "backendUnitTests": 656,
-    "playwrightTests": 4,
+    "playwrightTests": 5,
     "registeredBlocks": 76,
     "lastVerifierVerdict": "APPROVE"
   },
-  "timestamp": "2026-11-24T09:15:00.000Z",
+  "timestamp": "2026-11-24T09:45:00.000Z",
   "defect_ledger": [
     {
       "id": "DEFECT-R41-01",
@@ -475,6 +475,15 @@
       "summary": "Pattern cards lacked data-testid selector hooks for automated E2E and visual testing; added data-testid pattern-card-slug",
       "status": "FIXED",
       "round": 58
+    },
+    {
+      "id": "DEFECT-R59-01",
+      "severity": "P2",
+      "component": "global_styles_dialog",
+      "layer": "frontend/components/admin/builder/global-styles-dialog.tsx",
+      "summary": "Global Styles dialog lacked data-testid hooks for save and reset actions; added data-testid save-global-styles-btn and reset-global-styles-btn",
+      "status": "FIXED",
+      "round": 59
     }
   ]
 }

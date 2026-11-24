@@ -213,6 +213,7 @@ export interface BuilderState {
 
   // Tree mutations
   addElement: (element: BuilderElement, targetContainerId?: string, targetIndex?: number) => void;
+  addElements: (elements: BuilderElement[], targetContainerId?: string, targetIndex?: number) => void;
   moveElement: (activeId: string, overId: string) => void;
   reorderElement: (id: string, direction: "up" | "down") => void;
   updateElementProps: (id: string, props: Record<string, unknown>) => void;
@@ -357,6 +358,37 @@ export const useBuilderStore = create<BuilderState>((set, get) => ({
     set({
       ast: { ...ast, rootElements: updatedRoots },
       selectedElementId: element.id,
+      isDirty: true,
+      mutationVersion: get().mutationVersion + 1,
+      history: { past: newPast, future: [] },
+    });
+  },
+
+  addElements: (elements, targetContainerId, targetIndex) => {
+    if (!elements || elements.length === 0) return;
+    const { ast, history } = get();
+    const newPast = [...history.past, ast].slice(-MAX_HISTORY_LENGTH);
+
+    let updatedRoots: BuilderElement[];
+
+    if (!targetContainerId) {
+      const idx = targetIndex !== undefined ? targetIndex : ast.rootElements.length;
+      updatedRoots = [...ast.rootElements];
+      updatedRoots.splice(idx, 0, ...elements);
+    } else {
+      updatedRoots = updateElementInTree(ast.rootElements, targetContainerId, (container) => {
+        const children = [...(container.children || [])];
+        const idx = targetIndex !== undefined && targetIndex <= children.length ? targetIndex : children.length;
+        children.splice(idx, 0, ...elements);
+        return { ...container, children };
+      });
+    }
+
+    const firstElId = elements[0]?.id || null;
+    set({
+      ast: { ...ast, rootElements: updatedRoots },
+      selectedElementId: firstElId,
+      selectedElementIds: firstElId ? [firstElId] : [],
       isDirty: true,
       mutationVersion: get().mutationVersion + 1,
       history: { past: newPast, future: [] },

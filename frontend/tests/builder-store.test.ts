@@ -320,4 +320,40 @@ describe("Visual Page Builder Zustand Store & Undo/Redo Engine (Phase P1)", () =
     expect(updated?.children).toHaveLength(2);
     expect(useBuilderStore.getState().history.past).toHaveLength(initialPastLength + 1);
   });
+
+  it("adds multiple elements in batch with a single undo step", () => {
+    const initialPastLength = useBuilderStore.getState().history.past.length;
+    const batchElements: BuilderElement[] = [
+      {
+        id: "batch_el_1",
+        name: "المان دسته‌ای ۱",
+        type: "widget",
+        widgetType: "heading",
+        widgetProps: { text: "سرتیتر دسته‌ای" },
+        isLocked: false,
+        isHidden: false,
+        styles: { mobile: {} },
+        children: [],
+      },
+      {
+        id: "batch_el_2",
+        name: "المان دسته‌ای ۲",
+        type: "widget",
+        widgetType: "button",
+        widgetProps: { label: "دکمه دسته‌ای" },
+        isLocked: false,
+        isHidden: false,
+        styles: { mobile: {} },
+        children: [],
+      },
+    ];
+
+    useBuilderStore.getState().addElements(batchElements);
+
+    const state = useBuilderStore.getState();
+    expect(state.history.past).toHaveLength(initialPastLength + 1);
+    expect(findElementById(state.ast.rootElements, "batch_el_1")).toBeDefined();
+    expect(findElementById(state.ast.rootElements, "batch_el_2")).toBeDefined();
+    expect(state.selectedElementId).toBe("batch_el_1");
+  });
 });

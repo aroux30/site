@@ -1,21 +1,21 @@
 {
   "version": "3.2",
   "activeWeight": 9,
-  "activeRound": 62,
+  "activeRound": 63,
   "status": "COMPLETED",
   "levels1to5Status": "BUILDER_GYM_LEVELS_1_TO_5_CLEAN",
   "allLevelsMastered": "BUILDER_GYM_ALL_LEVELS_MASTERED",
   "verificationPort": 1001,
-  "completedRounds": 62,
+  "completedRounds": 63,
   "metrics": {
     "typeCheckErrors": 0,
-    "frontendUnitTests": 384,
+    "frontendUnitTests": 385,
     "backendUnitTests": 654,
-    "playwrightTests": 9,
+    "playwrightTests": 10,
     "registeredBlocks": 76,
     "lastVerifierVerdict": "APPROVE"
   },
-  "timestamp": "2026-11-24T11:57:14.564Z",
+  "timestamp": "2026-11-24T12:38:57.633Z",
   "defect_ledger": [
     {
       "id": "DEFECT-R41-01",
@@ -556,6 +556,24 @@
       "summary": "Missing dedicated end-to-end regression assertion for History revisions timeline panel",
       "status": "FIXED",
       "round": 62
+    },
+    {
+      "id": "DEFECT-R63-01",
+      "severity": "P1",
+      "component": "batch_element_addition",
+      "layer": "frontend/stores/builder-store.ts & blocks-palette.tsx",
+      "summary": "Inserting section templates with multiple elements called addElement sequentially, bloating undo history instead of single batch transaction",
+      "status": "FIXED",
+      "round": 63
+    },
+    {
+      "id": "DEFECT-R63-02",
+      "severity": "P2",
+      "component": "template_batch_e2e_regression",
+      "layer": "frontend/tests/e2e/builder-gym-r67.spec.ts",
+      "summary": "Missing dedicated end-to-end regression assertion for templates tab and batch element addition atomicity",
+      "status": "FIXED",
+      "round": 63
     }
   ]
 }

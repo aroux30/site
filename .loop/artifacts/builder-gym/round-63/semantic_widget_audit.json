@@ -1,0 +1,22 @@
+{
+  "round": 63,
+  "timestamp": "2026-11-24T12:25:48.444Z",
+  "batchElementAdditionAtomicity": {
+    "addElementsMethodVerified": true,
+    "singleHistoryPastPush": true,
+    "templateInsertAtomicity": true,
+    "status": "PASS"
+  },
+  "iconWidget": {
+    "rendersSvgElement": true,
+    "hasValidVectorPath": true,
+    "noRawTextSlugLeaked": true,
+    "result": "<svg><path d=\"...\"></path></svg>"
+  },
+  "rtlGuidanceText": {
+    "actual": "از پنل سمت راست عناصر جدید اضافه نمایید.",
+    "correctOrientation": "پنل سمت راست",
+    "noLeftPanelLeak": true
+  },
+  "status": "PASS"
+}

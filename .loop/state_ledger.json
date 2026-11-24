@@ -1,22 +1,31 @@
 {
   "version": "4.2",
   "activeWeight": 9,
-  "activeRound": 73,
+  "activeRound": 74,
   "status": "ALL_LEVELS_MASTERED",
   "levels1to5Status": "BUILDER_GYM_LEVELS_1_TO_5_CLEAN",
   "allLevelsMastered": "BUILDER_GYM_ALL_LEVELS_MASTERED",
   "verificationPort": 1002,
-  "completedRounds": 72,
+  "completedRounds": 73,
   "metrics": {
     "typeCheckErrors": 0,
-    "frontendUnitTests": 425,
+    "frontendUnitTests": 426,
     "backendUnitTests": 655,
     "playwrightTests": 5,
     "registeredBlocks": 68,
     "lastVerifierVerdict": "APPROVE"
   },
-  "timestamp": "2026-11-24T14:28:00.000Z",
+  "timestamp": "2026-11-24T14:55:00.000Z",
   "defect_ledger": [
+    {
+      "id": "DEFECT-W9-11",
+      "severity": "P2",
+      "round": 74,
+      "title": "Price table feature availability checklist and badge alignment",
+      "status": "FIXED",
+      "layer": "frontend/components/admin/builder/canvas-element.tsx",
+      "description": "Validated price table feature checklist items availability states and featured badge positioning."
+    },
     {
       "id": "DEFECT-W9-10",
       "severity": "P2",

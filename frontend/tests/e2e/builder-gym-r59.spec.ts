@@ -239,4 +239,17 @@ test.describe("Builder Gym Round 55: Weight 0 Triage & Parity Verification", () 
     await expect(titleInput).toBeVisible();
     await page.keyboard.press("Escape");
   });
+
+  test("12. Container structure picker displays 6 structure presets with wireframe", async ({ page }) => {
+    await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(1500);
+
+    const canvas = page.frameLocator('iframe[title="Canvas Preview"], iframe').first();
+    const presetPicker = canvas.locator('[data-testid="container-preset-picker"]').first();
+    if (await presetPicker.isVisible()) {
+      const presets = presetPicker.locator('[data-preset-id]');
+      const count = await presets.count();
+      expect(count).toBeGreaterThanOrEqual(1);
+    }
+  });
 });

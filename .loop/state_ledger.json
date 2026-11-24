@@ -1,21 +1,21 @@
 {
   "version": "4.2",
   "activeWeight": 9,
-  "activeRound": 65,
+  "activeRound": 66,
   "status": "COMPLETED",
   "levels1to5Status": "BUILDER_GYM_LEVELS_1_TO_5_CLEAN",
   "allLevelsMastered": "BUILDER_GYM_ALL_LEVELS_MASTERED",
   "verificationPort": 1003,
-  "completedRounds": 65,
+  "completedRounds": 66,
   "metrics": {
     "typeCheckErrors": 0,
     "frontendUnitTests": 383,
     "backendUnitTests": 656,
-    "playwrightTests": 11,
+    "playwrightTests": 12,
     "registeredBlocks": 76,
     "lastVerifierVerdict": "APPROVE"
   },
-  "timestamp": "2026-11-24T12:45:00.000Z",
+  "timestamp": "2026-11-24T13:15:00.000Z",
   "defect_ledger": [
     {
       "id": "DEFECT-R41-01",
@@ -538,6 +538,15 @@
       "summary": "Page title and title editing input lacked data-testid selector hooks for automated title update testing; added data-testid page-title-label and page-title-input",
       "status": "FIXED",
       "round": 65
+    },
+    {
+      "id": "DEFECT-R66-01",
+      "severity": "P2",
+      "component": "container_structure_dialog",
+      "layer": "frontend/components/admin/builder/container-structure-dialog.tsx",
+      "summary": "Container structure dialog presets lacked data-testid selector hooks for automated layout testing; added data-testid container-structure-preset-id",
+      "status": "FIXED",
+      "round": 66
     }
   ]
 }

@@ -1,21 +1,21 @@
 {
   "version": "4.2",
   "activeWeight": 9,
-  "activeRound": 70,
+  "activeRound": 71,
   "status": "COMPLETED",
   "levels1to5Status": "BUILDER_GYM_LEVELS_1_TO_5_CLEAN",
   "allLevelsMastered": "BUILDER_GYM_ALL_LEVELS_MASTERED",
   "verificationPort": 1003,
-  "completedRounds": 70,
+  "completedRounds": 71,
   "metrics": {
     "typeCheckErrors": 0,
     "frontendUnitTests": 383,
     "backendUnitTests": 656,
-    "playwrightTests": 16,
+    "playwrightTests": 17,
     "registeredBlocks": 76,
     "lastVerifierVerdict": "APPROVE"
   },
-  "timestamp": "2026-11-24T15:15:00.000Z",
+  "timestamp": "2026-11-24T15:45:00.000Z",
   "defect_ledger": [
     {
       "id": "DEFECT-R41-01",
@@ -583,6 +583,15 @@
       "summary": "Storefront widgets mega_menu, product_price, add_to_cart, and product_variants standardized with data-widget and builder-* semantic class attributes",
       "status": "FIXED",
       "round": 70
+    },
+    {
+      "id": "DEFECT-R71-01",
+      "severity": "P2",
+      "component": "container_empty_guide",
+      "layer": "frontend/components/admin/builder/canvas-element.tsx",
+      "summary": "Container empty guide dashed placeholder validated with data-testid empty-container-guide and add block trigger",
+      "status": "FIXED",
+      "round": 71
     }
   ]
 }

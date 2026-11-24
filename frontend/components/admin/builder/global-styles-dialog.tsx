@@ -278,17 +278,18 @@ export function GlobalStylesDialog({ open, onOpenChange }: GlobalStylesDialogPro
             type="button"
             variant="ghost"
             size="sm"
+            data-testid="reset-global-styles-btn"
             onClick={handleResetToSiteTheme}
             className="text-muted-foreground hover:text-foreground text-xs gap-1 border border-border/60"
           >
             <RotateCcw className="w-3.5 h-3.5" />
-            <span>بازنشانی به تم پیش‌فرض</span>
+            <span>بازنشانی به تم سایت</span>
           </Button>
           <div className="flex items-center gap-2">
             <Button variant="outline" size="sm" onClick={() => onOpenChange(false)}>
               انصراف
             </Button>
-            <Button size="sm" onClick={handleSave} className="bg-primary text-primary-foreground font-bold">
+            <Button size="sm" data-testid="save-global-styles-btn" onClick={handleSave} className="bg-primary text-primary-foreground font-bold">
               اعمال تغییرات
             </Button>
           </div>

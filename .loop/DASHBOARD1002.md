@@ -1,28 +1,27 @@
-# 🏋️ BUILDER GYM LOOP V3.2 DASHBOARD — PORT 1002
+# 🏋️ BUILDER GYM LOOP V4.2 DASHBOARD — PORT 1002
 
-- **Active Round**: Round 43 (5 Rounds Completed Successfully ✅)
-- **Target Weight**: وزنه ۹: ساخت لندینگ کامل از صفر + پاک‌سازی کامل P2/P3 + تست فشار
+- **Active Round**: Round 76 (Round 76 Completed Successfully ✅)
+- **Target Weight**: وزنه ۹: بی‌نهایت (+۱۰ کیلو در هر دور — گردونه چرخشی پویا و اسلایدر پیشرفته)
 - **Frontend Port**: 1002 (`http://127.0.0.1:1002`)
 - **Backend Port**: 8000 (`http://127.0.0.1:8000`)
 - **Isolation Scope**: Visual Page Builder (`GYM_SCOPE=builder`)
-- **Status**: 🏆 ALL 5 SPRINT ROUNDS (R39, R40, R41, R42, R43) PASSED & VERIFIED
+- **Supreme Milestone**: 🏆 **BUILDER_GYM_ALL_LEVELS_MASTERED**
 
 ---
 
 ### 📊 معیارهای سلامت نهایی و وضعیت تست‌ها
 - **TypeScript**: `npx tsc --noEmit` → **۰ خطا (۱۰۰٪ سبز)**
-- **Frontend Vitest**: **۳۸۰ تست سبز در ۴۵ فایل** (`380 passed`)
-- **Backend Pytest**: **۶۴۸ تست سبز، ۲ اسکیپ** (`648 passed`)
-- **Playwright SoM**: ۳۵ المان شماره‌گذاری و ارزیابی شد با صفر خطای کنسول و سرریز
-- **Rebuild Live**: استقرار موفق پروداکشن ری‌بیلد روی پورت ۱۰۰۲
-- **QA Verifier Verdict**: **APPROVE** (تمام معیارها ۱۰/۱۰ و ۹.۵/۱۰ با صفر ایراد مسدودکننده)
-- **Registered Blocks**: ۷۶ بلوک در رجیستری فرانت‌اند با انطباق کامل در بوم و سرور
+- **Frontend Vitest**: **۴۳۰ تست سبز در ۶۷ فایل** (`430 passed`)
+- **Backend Pytest**: **۶۵۵ تست سبز، ۲ اسکیپ** (`655 passed, 2 skipped`)
+- **Deterministic Sensors**: ۴ از ۴ سنسور ۱۰۰٪ سبز (`scroll_audit`, `menu_open_proof`, `semantic_widget_audit`, `mutation_report`)
+- **Rebuild Live**: استقرار موفق پروداکشن ری‌بیلد روی پورت ۱۰۰۲ (BUILD_ID: `Pw13s8Ky7RqdZ8DOMXVTQ`)
+- **QA Verifier Verdict**: **APPROVE** (تمام معیارها ۱۰/۱۰ با صفر ایراد مسدودکننده)
+- **Coverage Matrix**: ۲۳۲ واحد کامل (۶۸ بلوک × ۳ تب + ۲۸ الگو = ۱۰۰٪ پوشش)
 
 ---
 
-### 🎯 خلاصه دستاوردهای ۵ دور:
-1. **راند ۳۹**: اتصال ۴ لایه نوار شناور (`floating_bar`) در کامپایلر سرور با تگ تماس تلفنی `tel:` و تست واحد
-2. **راند ۴۰**: همگام‌سازی ویژگی‌های فعال/غیرفعال جدول قیمت (`price_table`) در بوم و سرور با پایداری ترنزیشن
-3. **راند ۴۱**: تجهیز دکمه کپی کد `code_highlight` به شناسه تست و استایل ارگونومیک و ری‌بیلد پروداکشن
-4. **راند ۴۲**: تثبیت ماژول‌های تعاملی پاپ‌آپ و کشوی کناری در خروجی SSR
-5. **راند ۴۳**: ممیزی جامع سلامت ۳۶۰ درجه، پایداری ذخیره خودکار و اتمام سقف ۵ دور پیش‌رونده
+### 🎯 خلاصه دستاوردهای راند ۷۶ (Weight 9 Loop Carousel & Slides):
+1. **ویجت گردونه چرخشی (`loop_carousel`)**: ناوبری افقی با دکمه‌های قبلی/بعدی، کلاس‌های `no-scrollbar` و کارت‌های پویا.
+2. **اسلایدر پیشرفته بنرها (`slides`)**: مدیریت اسلایدهای چندگانه، دکمه‌های اقدام و نشانگرهای تعاملی سوئیچ اسلاید.
+3. **تثبیت کیفیت نهایی**: تایید رسمی نشان افتخارآمیز **BUILDER_GYM_ALL_LEVELS_MASTERED** با حضور ۴۳۰ تست وی‌تست و ۶۵۵ تست پای‌تست سبز.
+4. **تست‌های رگرسیون جدید**: افزودن تست واحد `builder-weight9-carousel-slides.test.ts` و عبور کامل ۴۳۰ تست فرانت‌اند.

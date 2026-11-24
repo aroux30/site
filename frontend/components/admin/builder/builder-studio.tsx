@@ -199,6 +199,8 @@ export function BuilderStudio({ page, onExit }: BuilderStudioProps) {
 
   return (
     <div className="fixed inset-0 z-[100] flex flex-col h-screen w-screen overflow-hidden bg-background font-sans" dir="rtl">
+      {/* Scoped style ensuring all Radix poppers/portals stay above fullscreen Studio and Canvas */}
+      <style dangerouslySetInnerHTML={{ __html: "[data-radix-popper-content-wrapper] { z-index: 150 !important; }" }} />
       {/* Concurrent Editing Lock Alert Banner */}
       {lockedByOther && (
         <div className="bg-amber-500/15 border-b border-amber-500/30 text-amber-900 dark:text-amber-200 px-4 py-2 text-xs flex items-center justify-between z-50 shrink-0">
@@ -315,7 +317,7 @@ export function BuilderStudio({ page, onExit }: BuilderStudioProps) {
 
         {/* Right Column: Element Inspector & Controls */}
         {!previewMode && (
-          <aside data-builder-inspector="" className="w-96 bg-card border-s border-border shrink-0 z-20 shadow-sm hidden lg:block overflow-hidden flex flex-col min-h-0 h-full">
+          <aside data-builder-inspector="" className="w-96 bg-card border-s border-border shrink-0 z-20 shadow-sm hidden lg:flex flex-col h-full min-h-0 overflow-hidden">
             <InspectorPanel />
           </aside>
         )}

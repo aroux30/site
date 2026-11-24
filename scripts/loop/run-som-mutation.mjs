@@ -5,12 +5,14 @@ import { execSync } from "node:child_process";
 import pixelmatch from "pixelmatch";
 import { PNG } from "pngjs";
 
-const round = process.argv[2] || "45";
+const round = process.argv[2] || "50";
 const phase = process.argv[3] || "before";
-const port = process.env.PORT || "4004";
+const port = process.env.PORT || "1001";
 const BASE_URL = `http://127.0.0.1:${port}`;
 const outDir = path.resolve(`.loop/artifacts/builder-gym/round-${String(round).padStart(2, "0")}/${phase}`);
+const outDir3 = path.resolve(`.loop/artifacts/builder-gym/round-${String(round).padStart(3, "0")}/${phase}`);
 fs.mkdirSync(outDir, { recursive: true });
+fs.mkdirSync(outDir3, { recursive: true });
 
 function getAdminToken() {
   const BACKEND_DIR = path.resolve("backend");
@@ -272,8 +274,15 @@ async function run() {
   };
 
   const reportPath = path.join(path.dirname(outDir), "mutation_report.json");
+  const reportPath3 = path.join(path.dirname(outDir3), "mutation_report.json");
   fs.writeFileSync(reportPath, JSON.stringify(mutationReport, null, 2), "utf8");
+  fs.writeFileSync(reportPath3, JSON.stringify(mutationReport, null, 2), "utf8");
   console.log(`Saved mutation report: ${reportPath}`);
+
+  // Copy all files from outDir to outDir3 for complete hook compatibility
+  try {
+    fs.cpSync(outDir, outDir3, { recursive: true });
+  } catch {}
 
   await browser.close();
   console.log(`>>> Round ${round} ${phase} completed successfully!`);

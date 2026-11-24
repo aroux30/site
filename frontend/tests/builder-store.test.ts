@@ -267,4 +267,93 @@ describe("Visual Page Builder Zustand Store & Undo/Redo Engine (Phase P1)", () =
     let restored = findElementById(useBuilderStore.getState().ast.rootElements, targetEl.id);
     expect(restored?.styles?.mobile?.opacity).toBe(0.5);
   });
+
+  it("verifies RTL guidance text directs to right panel and icon registry exports valid SVG path", async () => {
+    const defaultAst = useBuilderStore.getState().ast;
+    const textWidget = defaultAst.rootElements[0]?.children?.find((c) => c.widgetType === "text_editor");
+    expect(textWidget).toBeDefined();
+    expect(String(textWidget?.widgetProps?.content)).toContain("پنل سمت راست");
+    expect(String(textWidget?.widgetProps?.content)).not.toContain("پنل سمت چپ");
+
+    const { getIconSvgPath, ICON_SVG_PATHS } = await import("@/lib/builder/icon-registry");
+    expect(ICON_SVG_PATHS.star).toBeDefined();
+    expect(getIconSvgPath("star")).toContain("M12 2l3.09");
+    expect(getIconSvgPath("shield-check")).toBeDefined();
+  });
+
+  it("applies container column presets atomically with single history entry", () => {
+    const containerId = useBuilderStore.getState().ast.rootElements[0]!.id;
+    const initialPastLength = useBuilderStore.getState().history.past.length;
+
+    const childCols: BuilderElement[] = [
+      {
+        id: "col_1",
+        name: "ستون ۱",
+        type: "container",
+        isLocked: false,
+        isHidden: false,
+        layout: { kind: "flex", direction: "column", justifyContent: "start", alignItems: "stretch", flexWrap: "nowrap", gap: { value: 16, unit: "px" }, gridColumns: 1 },
+        styles: { mobile: {} },
+        children: [],
+      },
+      {
+        id: "col_2",
+        name: "ستون ۲",
+        type: "container",
+        isLocked: false,
+        isHidden: false,
+        layout: { kind: "flex", direction: "column", justifyContent: "start", alignItems: "stretch", flexWrap: "nowrap", gap: { value: 16, unit: "px" }, gridColumns: 1 },
+        styles: { mobile: {} },
+        children: [],
+      },
+    ];
+
+    useBuilderStore.getState().applyContainerStructure(
+      containerId,
+      { kind: "grid", gridColumns: 2 },
+      childCols
+    );
+
+    const updated = findElementById(useBuilderStore.getState().ast.rootElements, containerId);
+    expect(updated?.layout?.kind).toBe("grid");
+    expect(updated?.layout?.gridColumns).toBe(2);
+    expect(updated?.children).toHaveLength(2);
+    expect(useBuilderStore.getState().history.past).toHaveLength(initialPastLength + 1);
+  });
+
+  it("adds multiple elements in batch with a single undo step", () => {
+    const initialPastLength = useBuilderStore.getState().history.past.length;
+    const batchElements: BuilderElement[] = [
+      {
+        id: "batch_el_1",
+        name: "المان دسته‌ای ۱",
+        type: "widget",
+        widgetType: "heading",
+        widgetProps: { text: "سرتیتر دسته‌ای" },
+        isLocked: false,
+        isHidden: false,
+        styles: { mobile: {} },
+        children: [],
+      },
+      {
+        id: "batch_el_2",
+        name: "المان دسته‌ای ۲",
+        type: "widget",
+        widgetType: "button",
+        widgetProps: { label: "دکمه دسته‌ای" },
+        isLocked: false,
+        isHidden: false,
+        styles: { mobile: {} },
+        children: [],
+      },
+    ];
+
+    useBuilderStore.getState().addElements(batchElements);
+
+    const state = useBuilderStore.getState();
+    expect(state.history.past).toHaveLength(initialPastLength + 1);
+    expect(findElementById(state.ast.rootElements, "batch_el_1")).toBeDefined();
+    expect(findElementById(state.ast.rootElements, "batch_el_2")).toBeDefined();
+    expect(state.selectedElementId).toBe("batch_el_1");
+  });
 });

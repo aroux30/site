@@ -1630,34 +1630,41 @@ def test_ast_compiler_renders_round46_slides_with_gradient():
     assert "linear-gradient" in result
 
 
-def test_ast_compiler_renders_round47_nested_tabs_and_accordion():
-    """Verify nested_tabs and nested_accordion compile with custom titles in SSR."""
+def test_ast_compiler_renders_round50_multistep_and_loop_grid():
+    """Verify Round 50 multi_step_form custom button labels and loop_grid responsive columns in SSR."""
     ast = PageAST(
         schema_version=1,
-        title="تست تب‌های تودرتو و آکاردئون",
-        slug="test-r47-nested",
+        title="تست راند ۵۰ فرم و حلقه گرید",
+        slug="test-r50-multistep-loop",
         root_elements=[
             BuilderElement(
-                id="el_sec_r47",
-                name="بخش کانتینرهای تودرتو",
+                id="el_sec_r50",
+                name="بخش ۵۰",
                 type="container",
                 children=[
                     BuilderElement(
-                        id="el_ntabs_r47",
-                        name="تب‌های تودرتو",
-                        type="container",
-                        widget_type="nested_tabs",
+                        id="el_msf_r50",
+                        name="فرم چندمرحله‌ای",
+                        type="widget",
+                        widget_type="multi_step_form",
                         widget_props={
-                            "tab_titles": ["راهنمای خرید", "شرایط گارانتی"],
+                            "steps": ["اطلاعات تماس", "آدرس ارسال", "تایید پرداخت"],
+                            "next_button_text": "ادامه و ثبت نهایی",
+                            "prev_button_text": "بازگشت به قبل",
                         },
                     ),
                     BuilderElement(
-                        id="el_nacc_r47",
-                        name="آکاردئون کانتینری",
-                        type="container",
-                        widget_type="nested_accordion",
+                        id="el_lgrid_r50",
+                        name="حلقه کالاها",
+                        type="widget",
+                        widget_type="loop_grid",
                         widget_props={
-                            "item_titles": ["سوالات سفارش", "نحوه بازگشت کالا"],
+                            "columns": 4,
+                            "limit": 4,
+                            "category": "موبایل",
+                            "show_price": True,
+                            "show_button": True,
+                            "button_text": "خرید آنلاین",
                         },
                     ),
                 ],
@@ -1665,11 +1672,286 @@ def test_ast_compiler_renders_round47_nested_tabs_and_accordion():
         ],
     )
     result = ASTCompiler.compile(ast)
-    assert "builder-nested-tabs" in result
-    assert "راهنمای خرید" in result
-    assert "شرایط گارانتی" in result
-    assert "سوالات سفارش" in result
-    assert "نحوه بازگشت کالا" in result
+    assert "builder-multi-step-form" in result
+    assert "اطلاعات تماس" in result
+    assert "ادامه و ثبت نهایی" in result
+    assert "بازگشت به قبل" in result
+    assert "builder-loop-grid" in result
+    assert "md:grid-cols-4" in result
+    assert "خرید آنلاین" in result
+
+
+
+def test_ast_compiler_renders_round51_icon_and_icon_list_dynamic_icons():
+    """Verify Round 51 dynamic icon resolution for icon and icon_list widgets."""
+    ast = PageAST(
+        schema_version=1,
+        title="تست آیکون‌های داینامیک راند ۵۱",
+        slug="test-r51-icons",
+        root_elements=[
+            BuilderElement(
+                id="el_sec_r51",
+                name="بخش آیکون‌ها",
+                type="container",
+                children=[
+                    BuilderElement(
+                        id="el_icon_truck",
+                        name="آیکون ارسال",
+                        type="widget",
+                        widget_type="icon",
+                        widget_props={"icon": "truck", "size": 32, "view": "stacked"},
+                    ),
+                    BuilderElement(
+                        id="el_list_r51",
+                        name="فهرست مزایا",
+                        type="widget",
+                        widget_type="icon_list",
+                        widget_props={
+                            "items": [
+                                {"text": "پشتیبانی تلفنی", "icon": "phone"},
+                                {"text": "تخفیف ویژه هدیه", "icon": "gift"},
+                            ]
+                        },
+                    ),
+                ],
+            )
+        ],
+    )
+    result = ASTCompiler.compile(ast)
+    assert "🚚" in result
+    assert "📞" in result
+    assert "🎁" in result
+    assert "پشتیبانی تلفنی" in result
+    assert "تخفیف ویژه هدیه" in result
+
+
+def test_ast_compiler_renders_round50_custom_attributes_parity():
+    """Verify Round 50 Elementor Pro custom attributes and data attributes in SSR."""
+    ast = PageAST(
+        schema_version=1,
+        title="تست ویژگی‌های سفارشی راند ۵۰",
+        slug="test-r50-custom-attrs",
+        root_elements=[
+            BuilderElement(
+                id="el_sec_r50",
+                name="بخش با ویژگی‌های سفارشی",
+                type="container",
+                styles=ResponsiveStyles(
+                    custom_attributes="data-section-role|hero-banner\ndata-tracking-id|promo_2026\nonclick|alert(1)\njavascript:evil()|bad",
+                ),
+                children=[
+                    BuilderElement(
+                        id="el_tbl_r50",
+                        name="جدول با اتریبیوت دیکشنری",
+                        type="widget",
+                        widget_type="table",
+                        styles=ResponsiveStyles(
+                            custom_attributes={"data-widget-purpose": "spec-sheet", "data-e2e": "specs-table", "style": "color:red"},
+                        ),
+                        widget_props={
+                            "headers": ["ویژگی", "مقدار"],
+                            "rows": [["پردازنده", "M3 Max"]],
+                        },
+                    ),
+                    BuilderElement(
+                        id="el_btn_r50",
+                        name="دکمه با اتریبیوت سفارشی",
+                        type="widget",
+                        widget_type="button",
+                        styles=ResponsiveStyles(
+                            custom_attributes="data-analytics-category|lead-gen\naria-label|تماس با ما",
+                        ),
+                        widget_props={"label": "ثبت درخواست", "url": "/contact"},
+                    ),
+                ],
+            )
+        ],
+    )
+    result = ASTCompiler.compile(ast)
+    # Container attributes
+    assert 'data-section-role="hero-banner"' in result
+    assert 'data-tracking-id="promo_2026"' in result
+    assert 'onclick' not in result
+    assert 'javascript:' not in result
+    # Widget table with dict attributes
+    assert 'data-widget-purpose="spec-sheet"' in result
+    assert 'data-e2e="specs-table"' in result
+    # Widget button with string attributes
+    assert 'data-analytics-category="lead-gen"' in result
+    assert 'aria-label="تماس با ما"' in result
+
+
+def test_ast_compiler_renders_round52_shape_dividers_inline_svg_with_color():
+    """Verify Round 52 container shape dividers compile to inline SVGs preserving custom colors."""
+    ast = PageAST(
+        schema_version=1,
+        title="تست جداکننده شکل راند ۵۲",
+        slug="test-r52-shape-dividers",
+        root_elements=[
+            BuilderElement(
+                id="el_sec_r52",
+                name="بخش با شکل موجی و مورب",
+                type="container",
+                styles=ResponsiveStyles(
+                    shape_divider_top="waves",
+                    shape_divider_bottom="tilt",
+                    shape_divider_color="#10b981",
+                ),
+                children=[],
+            )
+        ],
+    )
+    result = ASTCompiler.compile(ast)
+    assert 'class="builder-shape-divider builder-shape-divider-top"' in result
+    assert 'data-shape="waves"' in result
+    assert 'class="builder-shape-divider builder-shape-divider-bottom"' in result
+    assert 'data-shape="tilt"' in result
+    assert '<svg viewBox="0 0 1000 100"' in result
+    assert 'fill="#10b981"' in result
+    assert 'M421.9' in result
+    assert 'rotate(180deg)' in result
+
+
+def test_ast_compiler_renders_round53_motion_effects_animation_classes():
+    """Verify Round 53 entrance animation classes and duration/delay inline styles in SSR."""
+    ast = PageAST(
+        schema_version=1,
+        title="تست افکت‌های حرکتی راند ۵۳",
+        slug="test-r53-motion",
+        root_elements=[
+            BuilderElement(
+                id="el_sec_r53",
+                name="بخش انیمیشنی",
+                type="container",
+                styles=ResponsiveStyles(
+                    animation="bounce-in",
+                    animation_duration=0.8,
+                    animation_delay=0.2,
+                ),
+                children=[
+                    BuilderElement(
+                        id="el_btn_r53",
+                        name="دکمه چرخان",
+                        type="widget",
+                        widget_type="button",
+                        styles=ResponsiveStyles(
+                            animation="rotate-in",
+                            animation_duration=0.7,
+                        ),
+                        widget_props={"label": "کلیک کنید", "url": "/"},
+                    ),
+                ],
+            )
+        ],
+    )
+    result = ASTCompiler.compile(ast)
+    assert 'builder-animate-bounce-in' in result
+    assert 'animation-duration: 0.8s' in result or 'animation-duration:0.8s' in result
+    assert 'animation-delay: 0.2s' in result or 'animation-delay:0.2s' in result
+    assert 'builder-animate-rotate-in' in result
+    assert 'animation-duration: 0.7s' in result or 'animation-duration:0.7s' in result
+
+
+def test_ast_compiler_renders_weight0_svg_icon_and_no_raw_slug():
+    """Verify Weight 0: icon widget outputs valid SVG without leaking raw text slug 'star'."""
+    ast = PageAST(
+        schema_version=1,
+        title="تست آیکون اس‌وی‌جی وزنه صفر",
+        slug="test-w0-icon-svg",
+        root_elements=[
+            BuilderElement(
+                id="el_w0_icon_sec",
+                name="بخش آیکون",
+                type="container",
+                children=[
+                    BuilderElement(
+                        id="el_w0_icon",
+                        name="آیکون تک",
+                        type="widget",
+                        widget_type="icon",
+                        widget_props={"icon": "star", "size": 36, "view": "framed", "shape": "circle"},
+                    )
+                ],
+            )
+        ],
+    )
+    result = ASTCompiler.compile(ast)
+    assert '<svg' in result
+    assert 'class="lucide lucide-star builder-icon-svg"' in result
+    assert 'width="36" height="36"' in result
+    assert '<path d="M12 2l3.09 6.26L22 9.27' in result
+    assert 'border-2 border-primary text-primary bg-transparent' in result
+    assert 'rounded-full' in result
+    assert '⭐' in result
+
+
+def test_ast_compiler_renders_round55_single_icon_svg_markup():
+    """Verify Round 55 single icon widget renders valid SVG element with viewBox, size and paths."""
+    ast = PageAST(
+        schema_version=1,
+        title="تست آیکون تک راند ۵۵",
+        slug="test-r55-icon-svg",
+        root_elements=[
+            BuilderElement(
+                id="el_sec_icon",
+                name="بخش آیکون",
+                type="container",
+                children=[
+                    BuilderElement(
+                        id="el_icon_star",
+                        name="آیکون ستاره",
+                        type="widget",
+                        widget_type="icon",
+                        widget_props={"icon": "star", "size": 36, "view": "stacked", "shape": "circle"},
+                    ),
+                ],
+            )
+        ],
+    )
+    result = ASTCompiler.compile(ast)
+    assert 'data-widget="icon"' in result
+    assert '<svg' in result
+    assert 'width="36"' in result
+    assert 'height="36"' in result
+    assert 'viewBox="0 0 24 24"' in result
+    assert '<path d="M12 2l3.09 6.26L22 9.27' in result
+    assert 'class="lucide lucide-star' in result
+
+
+def test_ast_compiler_renders_round56_video_aparat_and_alert_info_aliases():
+    """Verify Round 56 video/aparat and alert/info aliases compile seamlessly in SSR."""
+    ast = PageAST(
+        schema_version=1,
+        title="تست آپارات و اعلان راند ۵۶",
+        slug="test-r56-aliases",
+        root_elements=[
+            BuilderElement(
+                id="el_aparat",
+                name="ویدئو آپارات",
+                type="widget",
+                widget_type="aparat",
+                widget_props={"url": "https://www.aparat.com/v/sample"},
+            ),
+            BuilderElement(
+                id="el_info",
+                name="اعلان اطلاعاتی",
+                type="widget",
+                widget_type="info",
+                widget_props={"title": "نکته مهم", "message": "این یک پیام اطلاعاتی است."},
+            ),
+        ],
+    )
+    result = ASTCompiler.compile(ast)
+    assert 'class="builder-video' in result
+    assert 'data-widget="video"' in result
+    assert 'class="builder-alert' in result
+    assert 'data-widget="alert"' in result
+    assert "نکته مهم" in result
+    assert "این یک پیام اطلاعاتی است." in result
+
+
+
+
 
 
 

@@ -145,7 +145,7 @@ export function BuilderToolbar({
   }, [undo, redo, copyElement, pasteElement, duplicateElement, deleteElement, deleteSelectedElements, selectedElementId, selectedElementIds, onSaveDraft]);
 
   return (
-    <header className="h-14 bg-card border-b border-border px-4 flex items-center justify-between select-none z-40 relative gap-2 min-w-0">
+    <header data-testid="builder-toolbar-header" className="h-14 bg-card border-b border-border px-4 flex items-center justify-between select-none z-40 relative gap-2 min-w-0">
       {/* Right Side (in RTL): Exit button & Page Title */}
       <div className="flex items-center gap-3 shrink-0">
         <Button
@@ -165,6 +165,7 @@ export function BuilderToolbar({
             <input
               type="text"
               autoFocus
+              data-testid="page-title-input"
               value={titleDraft}
               onChange={(e) => setTitleDraft(e.target.value)}
               onBlur={() => {
@@ -190,6 +191,7 @@ export function BuilderToolbar({
             />
           ) : (
             <span
+              data-testid="page-title-label"
               onDoubleClick={() => setIsEditingTitle(true)}
               className="text-xs font-bold text-foreground max-w-[200px] truncate cursor-pointer hover:underline"
               title="دابل‌کلیک برای ویرایش نام برگه"
@@ -230,44 +232,47 @@ export function BuilderToolbar({
       </div>
 
       {/* Center: Responsive Breakpoint Switcher */}
-      <div className="flex items-center bg-muted/60 p-1 rounded-xl border border-border/80 gap-1">
+      <div className="flex items-center bg-muted/60 p-1 rounded-xl border border-border/80 gap-1 shrink-0">
         <button
           type="button"
           onClick={() => setBreakpoint("desktop")}
-          className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-medium transition ${
+          title="نمای دسکتاپ (۱۹۲۰)"
+          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium transition ${
             activeBreakpoint === "desktop"
               ? "bg-background text-foreground shadow-sm font-bold"
               : "text-muted-foreground hover:text-foreground"
           }`}
         >
           <Monitor className="w-3.5 h-3.5" />
-          <span className="hidden sm:inline">دسکتاپ</span>
+          <span className="hidden xl:inline">دسکتاپ</span>
         </button>
 
         <button
           type="button"
           onClick={() => setBreakpoint("tablet")}
-          className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-medium transition ${
+          title="نمای تبلت (۷۶۸)"
+          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium transition ${
             activeBreakpoint === "tablet"
               ? "bg-background text-foreground shadow-sm font-bold"
               : "text-muted-foreground hover:text-foreground"
           }`}
         >
           <Tablet className="w-3.5 h-3.5" />
-          <span className="hidden sm:inline">تبلت (۷۶۸)</span>
+          <span className="hidden xl:inline">تبلت (۷۶۸)</span>
         </button>
 
         <button
           type="button"
           onClick={() => setBreakpoint("mobile")}
-          className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-medium transition ${
+          title="نمای موبایل (۳۷۵)"
+          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium transition ${
             activeBreakpoint === "mobile"
               ? "bg-background text-foreground shadow-sm font-bold"
               : "text-muted-foreground hover:text-foreground"
           }`}
         >
           <Smartphone className="w-3.5 h-3.5" />
-          <span className="hidden sm:inline">موبایل (۳۷۵)</span>
+          <span className="hidden xl:inline">موبایل (۳۷۵)</span>
         </button>
       </div>
 
@@ -300,47 +305,48 @@ export function BuilderToolbar({
           variant="ghost"
           size="sm"
           onClick={() => setSavePageTemplateOpen(true)}
-          className="h-8 gap-1 text-xs text-muted-foreground hover:text-foreground px-2 shrink-0"
+          className="h-8 gap-1.5 text-xs text-muted-foreground hover:text-foreground shrink-0 px-2"
           title="ذخیره کل برگه به عنوان قالب"
           data-testid="save-page-template-btn"
         >
-          <Bookmark className="w-3.5 h-3.5 text-primary shrink-0" />
-          <span className="hidden xl:inline">قالب برگه</span>
+          <Bookmark className="w-3.5 h-3.5 text-primary" />
+          <span className="hidden 2xl:inline">قالب برگه</span>
         </Button>
 
         <Button
           variant="ghost"
           size="sm"
           onClick={() => setGlobalStylesOpen(true)}
-          className="h-8 gap-1 text-xs text-muted-foreground hover:text-foreground px-2 shrink-0"
+          className="h-8 gap-1.5 text-xs text-muted-foreground hover:text-foreground shrink-0 px-2"
           title="استایل‌های سراسری برگه"
           data-testid="global-styles-btn"
         >
-          <Paintbrush className="w-3.5 h-3.5 shrink-0" />
-          <span className="hidden xl:inline">استایل سراسری</span>
+          <Paintbrush className="w-3.5 h-3.5" />
+          <span className="hidden 2xl:inline">استایل سراسری</span>
         </Button>
 
         <Button
           variant={previewMode ? "secondary" : "ghost"}
           size="sm"
           onClick={() => setPreviewMode(!previewMode)}
-          className="h-8 gap-1 text-xs px-2 shrink-0"
+          className="h-8 gap-1.5 text-xs shrink-0 px-2"
+          title={previewMode ? "حالت ویرایش" : "پیش‌نمایش صفحه"}
           data-testid="preview-mode-toggle-btn"
         >
-          {previewMode ? <EyeOff className="w-3.5 h-3.5 shrink-0" /> : <Eye className="w-3.5 h-3.5 shrink-0" />}
-          <span className="hidden lg:inline">{previewMode ? "ویرایش" : "پیش‌نمایش"}</span>
+          {previewMode ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+          <span className="hidden xl:inline">{previewMode ? "ویرایش" : "پیش‌نمایش"}</span>
         </Button>
 
         <Button
           variant="ghost"
           size="sm"
           onClick={() => setShortcutsOpen(true)}
-          className="h-8 gap-1 text-xs text-muted-foreground hover:text-foreground px-2 shrink-0"
+          className="h-8 gap-1.5 text-xs text-muted-foreground hover:text-foreground shrink-0 px-2"
           title="راهنمای کلیدهای میانبر (Shift+?)"
           data-testid="shortcuts-help-btn"
         >
-          <Keyboard className="w-3.5 h-3.5 shrink-0" />
-          <span className="hidden xl:inline">میانبرها</span>
+          <Keyboard className="w-3.5 h-3.5" />
+          <span className="hidden 2xl:inline">میانبرها</span>
         </Button>
 
         <Button

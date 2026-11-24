@@ -46,7 +46,7 @@ export function HistoryPanel() {
   return (
     <div
       data-testid="builder-history-panel"
-      className="flex flex-col h-full p-3 space-y-3 select-none overflow-y-auto"
+      className="flex flex-col h-full min-h-0 p-3 space-y-3 select-none overflow-y-auto builder-scrollbar"
       dir="rtl"
     >
       <div className="flex items-center justify-between px-1">
@@ -88,6 +88,7 @@ export function HistoryPanel() {
             key={step.index}
             type="button"
             data-history-step={step.index}
+            data-testid={`history-step-${step.index}`}
             onClick={() => jumpToHistoryStep(step.index)}
             className={cn(
               "w-full flex items-center justify-between p-2 rounded-lg text-xs transition border text-start",

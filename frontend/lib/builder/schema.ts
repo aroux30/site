@@ -133,7 +133,7 @@ export const ResponsiveStylesSchema = z.object({
   desktop: DeviceStyleSchema.nullable().optional(),
   customCssClass: z.string().nullable().optional(),
   customCssId: z.string().nullable().optional(),
-  customAttributes: z.string().nullable().optional(),
+  customAttributes: z.union([z.string(), z.record(z.string(), z.any())]).nullable().optional(),
   direction: z.enum(["rtl", "ltr", "inherit"]).default("inherit"),
   animation: z.string().nullable().optional(),
   animationDuration: z.number().nullable().optional(),

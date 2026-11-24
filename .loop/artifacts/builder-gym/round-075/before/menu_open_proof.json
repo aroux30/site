@@ -1,0 +1,13 @@
+{
+  "testedMenus": [
+    {
+      "selector": "r75-countdown-format-select",
+      "isExpanded": true,
+      "dimensionsValid": true,
+      "notObscuredByIframe": true,
+      "optionsCount": 3,
+      "status": "PASS"
+    }
+  ],
+  "allMenusPassed": true
+}

@@ -133,7 +133,7 @@ export interface ResponsiveStyles {
   desktop?: DeviceStyle | null;
   customCssClass?: string | null;
   customCssId?: string | null;
-  customAttributes?: string | null;
+  customAttributes?: string | Record<string, any> | null;
   direction?: "rtl" | "ltr" | "inherit";
   animation?: "none" | "fade-in" | "slide-up" | "zoom-in" | string | null;
   animationDuration?: number | null; // seconds

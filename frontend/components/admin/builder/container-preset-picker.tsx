@@ -27,24 +27,11 @@ export function ContainerPresetPicker({
 }: {
   containerId: string;
 }) {
-  const updateElementLayout = useBuilderStore((s) => s.updateElementLayout);
-  const addElement = useBuilderStore((s) => s.addElement);
-  const selectElement = useBuilderStore((s) => s.selectElement);
+  const applyContainerStructure = useBuilderStore((s) => s.applyContainerStructure);
 
   const applyPreset = (preset: PresetOption) => {
     const isGrid = preset.cols.length > 1;
 
-    // 1. Update parent container layout
-    updateElementLayout(containerId, {
-      kind: isGrid ? "grid" : "flex",
-      direction: "row",
-      justifyContent: "between",
-      alignItems: "stretch",
-      gridColumns: preset.cols.length,
-      gap: { value: 20, unit: "px" },
-    });
-
-    // 2. Insert child container columns
     const childContainers: BuilderElement[] = preset.cols.map((ratio, idx) => ({
       id: generateElementId("col"),
       name: `ستون ${idx + 1} (${preset.title})`,
@@ -74,13 +61,18 @@ export function ContainerPresetPicker({
       children: [],
     }));
 
-    for (const child of childContainers) {
-      addElement(child, containerId);
-    }
-
-    if (childContainers[0]) {
-      selectElement(childContainers[0].id);
-    }
+    applyContainerStructure(
+      containerId,
+      {
+        kind: isGrid ? "grid" : "flex",
+        direction: "row",
+        justifyContent: "between",
+        alignItems: "stretch",
+        gridColumns: preset.cols.length,
+        gap: { value: 20, unit: "px" },
+      },
+      childContainers
+    );
   };
 
   return (

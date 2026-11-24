@@ -277,6 +277,26 @@
     @apply border border-primary/20 bg-background/80 backdrop-blur-xl shadow-xl shadow-primary/5;
   }
 
+  /* Builder Inspector & Sidebar Scrollbars */
+  .builder-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--muted-foreground) / 0.35) transparent;
+  }
+  .builder-scrollbar::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  .builder-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .builder-scrollbar::-webkit-scrollbar-thumb {
+    background: hsl(var(--muted-foreground) / 0.35);
+    border-radius: 9999px;
+  }
+  .builder-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-foreground) / 0.65);
+  }
+
   @keyframes fadeIn {
     from {
       opacity: 0;
@@ -320,6 +340,34 @@
     }
   }
 
+  @keyframes builderBounceIn {
+    0% {
+      opacity: 0;
+      transform: scale(0.3);
+    }
+    50% {
+      opacity: 1;
+      transform: scale(1.05);
+    }
+    70% {
+      transform: scale(0.9);
+    }
+    100% {
+      transform: scale(1);
+    }
+  }
+
+  @keyframes builderRotateIn {
+    from {
+      opacity: 0;
+      transform: rotate(-180deg) scale(0.8);
+    }
+    to {
+      opacity: 1;
+      transform: rotate(0) scale(1);
+    }
+  }
+
   .builder-animate-fade-in {
     animation: builderFadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
   }
@@ -330,6 +378,14 @@
 
   .builder-animate-zoom-in {
     animation: builderZoomIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  .builder-animate-bounce-in {
+    animation: builderBounceIn 0.75s cubic-bezier(0.215, 0.61, 0.355, 1) both;
+  }
+
+  .builder-animate-rotate-in {
+    animation: builderRotateIn 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
   }
 }
 

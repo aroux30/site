@@ -247,3 +247,53 @@ def test_template_import_validation_rejects_xss_and_invalid_tokens():
     with pytest.raises(InvalidWidgetTypeError):
         validate_page_ast(unregistered_widget_ast)
 
+
+def test_theme_builder_widgets_validation_allowed():
+    """Verify that breadcrumbs, search_bar, and nav_menu are in STANDARD_WIDGET_TYPES and valid."""
+    from app.modules.content.domain.builder_validation import STANDARD_WIDGET_TYPES, validate_page_ast
+
+    assert "breadcrumbs" in STANDARD_WIDGET_TYPES
+    assert "search_bar" in STANDARD_WIDGET_TYPES
+    assert "nav_menu" in STANDARD_WIDGET_TYPES
+
+    valid_ast_dict = {
+        "schemaVersion": 1,
+        "title": "قالب با ویجت‌های ناوبری و مسیر",
+        "slug": "valid-theme-builder-widgets",
+        "rootElements": [
+            {
+                "id": "el_sec_valid",
+                "name": "سکشن",
+                "type": "container",
+                "children": [
+                    {
+                        "id": "el_wid_bread",
+                        "name": "مسیر راهنما",
+                        "type": "widget",
+                        "widgetType": "breadcrumbs",
+                        "widgetProps": {"separator": "/"},
+                        "children": [],
+                    },
+                    {
+                        "id": "el_wid_search",
+                        "name": "فرم جستجو",
+                        "type": "widget",
+                        "widgetType": "search_bar",
+                        "widgetProps": {"placeholder": "جستجو..."},
+                        "children": [],
+                    },
+                    {
+                        "id": "el_wid_nav",
+                        "name": "فهرست ناوبری",
+                        "type": "widget",
+                        "widgetType": "nav_menu",
+                        "widgetProps": {"items": [{"title": "خانه", "url": "/"}]},
+                        "children": [],
+                    },
+                ],
+            }
+        ],
+    }
+    validated = validate_page_ast(valid_ast_dict)
+    assert len(validated.root_elements[0].children) == 3
+

@@ -1,0 +1,22 @@
+{
+  "round": 68,
+  "timestamp": "2026-11-24T15:11:55.927Z",
+  "sectionTemplateSaveVerification": {
+    "sectionTemplateDialogMounted": true,
+    "categorySelectorRendered": true,
+    "saveActionVerified": true,
+    "status": "PASS"
+  },
+  "iconWidget": {
+    "rendersSvgElement": true,
+    "hasValidVectorPath": true,
+    "noRawTextSlugLeaked": true,
+    "result": "<svg><path d=\"...\"></path></svg>"
+  },
+  "rtlGuidanceText": {
+    "actual": "از پنل سمت راست عناصر جدید اضافه نمایید.",
+    "correctOrientation": "پنل سمت راست",
+    "noLeftPanelLeak": true
+  },
+  "status": "PASS"
+}

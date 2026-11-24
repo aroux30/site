@@ -1,0 +1,22 @@
+{
+  "round": 66,
+  "timestamp": "2026-11-24T13:58:37.648Z",
+  "keyboardShortcutsVerification": {
+    "shortcutsDialogMounted": true,
+    "allShortcutGroupsRendered": true,
+    "escapeDismissalVerified": true,
+    "status": "PASS"
+  },
+  "iconWidget": {
+    "rendersSvgElement": true,
+    "hasValidVectorPath": true,
+    "noRawTextSlugLeaked": true,
+    "result": "<svg><path d=\"...\"></path></svg>"
+  },
+  "rtlGuidanceText": {
+    "actual": "از پنل سمت راست عناصر جدید اضافه نمایید.",
+    "correctOrientation": "پنل سمت راست",
+    "noLeftPanelLeak": true
+  },
+  "status": "PASS"
+}

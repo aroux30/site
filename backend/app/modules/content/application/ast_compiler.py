@@ -21,6 +21,102 @@ from app.shared.content.html_sanitizer import sanitize_html
 class ASTCompiler:
     """Server-side compiler translating a PageAST tree into semantic HTML."""
 
+    ICON_SVG_PATHS: dict[str, str] = {
+        "star": "M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z",
+        "heart": "M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z",
+        "shield-check": "M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z M9 12l2 2 4-4",
+        "shield": "M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z",
+        "truck": "M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2 M15 18H9 M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14",
+        "headphones": "M3 14h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7a9 9 0 0 1 18 0v7a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3",
+        "support": "M3 14h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7a9 9 0 0 1 18 0v7a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3",
+        "award": "M12 2a6 6 0 1 0 0 12 6 6 0 0 0 0-12z M15.48 12.89l1.51 8.53a.5.5 0 0 1-.81.47l-3.58-2.69a1 1 0 0 0-1.2 0l-3.59 2.69a.5.5 0 0 1-.81-.47l1.51-8.53",
+        "check": "M20 6L9 17l-5-5",
+        "zap": "M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z",
+        "sparkles": "M12 3l-1.91 5.81a2 2 0 0 1-1.28 1.28L3 12l5.81 1.91a2 2 0 0 1 1.28 1.28L12 21l1.91-5.81a2 2 0 0 1 1.28-1.28L21 12l-5.81-1.91a2 2 0 0 1-1.28-1.28L12 3z",
+        "clock": "M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z M12 6v6l4 2",
+        "credit-card": "M2 7a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V7z M2 10h20",
+        "shopping-cart": "M2 2h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12",
+        "shopping-bag": "M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4H6z M3 6h18 M16 10a4 4 0 0 1-8 0",
+        "gift": "M3 8h18v4H3V8z M12 8v13 M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7 M7.5 8a2.5 2.5 0 0 1 0-5 4.8 4.8 0 0 1 4.5 5 4.8 4.8 0 0 1 4.5-5 2.5 2.5 0 0 1 0 5",
+        "phone": "M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z",
+        "mail": "M2 6a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6z M22 7l-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7",
+        "thumbs-up": "M7 10v12 M15 5.88L14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88z",
+        "map-pin": "M20 10c0 4.99-5.54 10.19-7.4 11.8a1 1 0 0 1-1.2 0C9.54 20.19 4 14.99 4 10a8 8 0 0 1 16 0z M12 13a3 3 0 1 0 0-6 3 3 0 0 0 0 6z",
+        "user": "M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2 M12 3a4 4 0 1 0 0 8 4 4 0 0 0 0-8z",
+        "lock": "M3 13a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7z M7 11V7a5 5 0 0 1 10 0v4",
+    }
+
+    ICON_CHAR_MAP: dict[str, str] = {
+        "shield-check": "🛡️",
+        "shield": "🛡️",
+        "truck": "🚚",
+        "headphones": "🎧",
+        "support": "🎧",
+        "star": "⭐",
+        "heart": "❤️",
+        "award": "🏆",
+        "sparkles": "✨",
+        "check": "✅",
+        "zap": "⚡",
+        "clock": "🕒",
+        "credit-card": "💳",
+        "shopping-cart": "🛒",
+        "shopping-bag": "🛍️",
+        "gift": "🎁",
+        "phone": "📞",
+        "mail": "✉️",
+        "thumbs-up": "👍",
+        "map-pin": "📍",
+        "user": "👤",
+        "lock": "🔒",
+        "camera": "📷",
+        "bell": "🔔",
+        "tag": "🏷️",
+        "eye": "👁️",
+        "compass": "🧭",
+        "info": "ℹ️",
+    }
+
+    ICON_SVG_INNER: dict[str, str] = {
+        "star": '<path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" fill="currentColor"/>',
+        "heart": '<path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" fill="currentColor"/>',
+        "shield-check": '<path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z" fill="currentColor"/><path d="m9 12 2 2 4-4" fill="currentColor"/>',
+        "shield": '<path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z" fill="currentColor"/>',
+        "truck": '<path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2" fill="currentColor"/><path d="M15 18H9" fill="currentColor"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14" fill="currentColor"/><path d="M17 16a2 2 0 1 0 0 4 2 2 0 0 0 0-4z" fill="currentColor"/><path d="M7 16a2 2 0 1 0 0 4 2 2 0 0 0 0-4z" fill="currentColor"/>',
+        "headphones": '<path d="M3 14h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7a9 9 0 0 1 18 0v7a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3" fill="currentColor"/>',
+        "support": '<path d="M3 14h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7a9 9 0 0 1 18 0v7a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3" fill="currentColor"/>',
+        "award": '<path d="M12 2a6 6 0 1 0 0 12 6 6 0 0 0 0-12z" fill="currentColor"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11" fill="currentColor"/>',
+        "check": '<path d="M20 6 9 17l-5-5" fill="currentColor"/>',
+        "zap": '<path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z" fill="currentColor"/>',
+        "sparkles": '<path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" fill="currentColor"/>',
+        "clock": '<path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z" fill="currentColor"/><path d="M12 6v6l4 2" fill="currentColor"/>',
+        "credit-card": '<path d="M4 5h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z" fill="currentColor"/><path d="M2 10h20" fill="currentColor"/>',
+        "shopping-cart": '<path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12" fill="currentColor"/><path d="M8 20a1 1 0 1 0 0 2 1 1 0 0 0 0-2z" fill="currentColor"/><path d="M19 20a1 1 0 1 0 0 2 1 1 0 0 0 0-2z" fill="currentColor"/>',
+        "shopping-bag": '<path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" fill="currentColor"/><path d="M3 6h18" fill="currentColor"/><path d="M16 10a4 4 0 0 1-8 0" fill="currentColor"/>',
+        "gift": '<path d="M4 8h16a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z" fill="currentColor"/><path d="M12 8v13" fill="currentColor"/><path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7" fill="currentColor"/><path d="M7.5 8a2.5 2.5 0 0 1 0-5A4.8 8 0 0 1 12 8a4.8 8 0 0 1 4.5-5 2.5 2.5 0 0 1 0 5" fill="currentColor"/>',
+        "phone": '<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" fill="currentColor"/>',
+        "mail": '<path d="M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z" fill="currentColor"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" fill="currentColor"/>',
+        "thumbs-up": '<path d="M7 10v12" fill="currentColor"/><path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z" fill="currentColor"/>',
+        "map-pin": '<path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0" fill="currentColor"/><path d="M12 13a3 3 0 1 0 0-6 3 3 0 0 0 0 6z" fill="currentColor"/>',
+        "user": '<path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" fill="currentColor"/><path d="M12 3a4 4 0 1 0 0 8 4 4 0 0 0 0-8z" fill="currentColor"/>',
+        "lock": '<path d="M5 11h14a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2z" fill="currentColor"/><path d="M7 11V7a5 5 0 0 1 10 0v4" fill="currentColor"/>',
+    }
+
+    @classmethod
+    def render_svg_icon(cls, icon_key: str, size: int = 24, css_class: str = "") -> str:
+        key = icon_key.strip().lower()
+        inner = cls.ICON_SVG_INNER.get(key)
+        if not inner:
+            inner = cls.ICON_SVG_INNER.get("star", "")
+        cls_attr = f' class="lucide lucide-{key}{f" {css_class}" if css_class else ""}"' if (css_class or key) else ""
+        return f'<svg viewBox="0 0 24 24" width="{size}" height="{size}" fill="none" aria-hidden="true"{cls_attr}>{inner}</svg>'
+    SHAPE_DIVIDER_PATHS: dict[str, str] = {
+        "waves": "M421.9,6.5c22.6-2.5,51.5,0.4,75.5,5.3c23.6,4.9,70.9,23.5,100.5,35.7c75.8,32.2,133.7,44.5,192.6,49.7c23.6,2.1,48.7,3.5,103.4-2.5c54.7-6,106.2-25.6,106.2-25.6V0H0v30.3c0,0,72,32.6,158.4,30.5c39.2-0.7,92.8-6.7,134-22.4c21.2-8.1,52.2-18.2,79.7-24.2C399.3,7.9,411.6,7.5,421.9,6.5z",
+        "curve": "M1000,4.3V0H0v4.3C0.9,23.1,126.7,99.2,500,100S1000,22.7,1000,4.3z",
+        "triangle": "M500,98.9L0,6.1V0h1000v6.1L500,98.9z",
+        "tilt": "M0,6V0h1000v100L0,6z",
+    }
+
     @classmethod
     def compile(cls, ast: PageAST, is_authenticated: bool = False) -> str:
         """Compile the full PageAST document into a single sanitized HTML string.
@@ -41,23 +137,47 @@ class ASTCompiler:
         return sanitize_html(raw_html)
 
     @classmethod
-    def _parse_custom_attributes(cls, raw: str | None) -> str:
-        """Parse key|value pairs from custom_attributes (Elementor Parity)."""
+    def _parse_custom_attributes(cls, raw: str | dict[str, Any] | None) -> str:
+        """Parse key|value pairs or dict from custom_attributes (Elementor Parity)."""
         if not raw:
             return ""
         attrs: list[str] = []
         blacklist = {"id", "class", "style", "data-element-id", "data-auth", "data-global-component"}
-        for line in raw.strip().splitlines():
-            line = line.strip()
-            if not line or "|" not in line:
-                continue
-            parts = line.split("|", 1)
-            k = parts[0].strip().lower()
-            v = parts[1].strip()
-            if not k or k in blacklist or k.startswith("on") or "javascript:" in v.lower():
-                continue
-            attrs.append(f' {html.escape(k)}="{html.escape(v)}"')
-        return "".join(attrs)
+        if isinstance(raw, dict):
+            for k, v in raw.items():
+                k_clean = str(k).strip().lower()
+                v_clean = str(v).strip()
+                if (
+                    not k_clean
+                    or k_clean in blacklist
+                    or k_clean.startswith("on")
+                    or "javascript:" in v_clean.lower()
+                    or "vbscript:" in v_clean.lower()
+                    or "data:text/html" in v_clean.lower()
+                ):
+                    continue
+                attrs.append(f' {html.escape(k_clean)}="{html.escape(v_clean)}"')
+            return "".join(attrs)
+        if isinstance(raw, str):
+            for line in raw.strip().splitlines():
+                line = line.strip()
+                if not line or "|" not in line:
+                    continue
+                parts = line.split("|", 1)
+                k = parts[0].strip().lower()
+                v = parts[1].strip()
+                if (
+                    not k
+                    or k in blacklist
+                    or k.startswith("on")
+                    or "javascript:" in v.lower()
+                    or "vbscript:" in v.lower()
+                    or "data:text/html" in v.lower()
+                ):
+                    continue
+                attrs.append(f' {html.escape(k)}="{html.escape(v)}"')
+            return "".join(attrs)
+        return ""
 
     @classmethod
     def _compile_element(cls, el: BuilderElement, is_authenticated: bool = False) -> str:
@@ -73,11 +193,32 @@ class ASTCompiler:
 
         if el.type == "container":
             if el.widget_type in ("nested_tabs", "nested_accordion") and not el.children:
-                return cls._compile_widget(el)
-            return cls._compile_container(el, is_authenticated=is_authenticated)
+                compiled = cls._compile_widget(el)
+            else:
+                compiled = cls._compile_container(el, is_authenticated=is_authenticated)
         elif el.type == "widget":
-            return cls._compile_widget(el)
-        return ""
+            compiled = cls._compile_widget(el)
+        else:
+            return ""
+
+        extra_attrs = ""
+        if el.auth_visibility != "all":
+            extra_attrs += f' data-auth="{html.escape(el.auth_visibility)}"'
+        if el.global_component_id:
+            extra_attrs += f' data-global-component="{html.escape(el.global_component_id)}"'
+        if el.styles.custom_attributes:
+            extra_attrs += cls._parse_custom_attributes(el.styles.custom_attributes)
+
+        if extra_attrs and compiled and extra_attrs not in compiled:
+            first_gt = compiled.find(">")
+            if first_gt != -1:
+                tag_head = compiled[:first_gt]
+                if tag_head.endswith("/"):
+                    compiled = tag_head[:-1].rstrip() + extra_attrs + " />" + compiled[first_gt + 1 :]
+                else:
+                    compiled = tag_head + extra_attrs + ">" + compiled[first_gt + 1 :]
+
+        return compiled
 
     @classmethod
     def _compile_container(cls, el: BuilderElement, is_authenticated: bool = False) -> str:
@@ -183,9 +324,20 @@ class ASTCompiler:
         shape_color = html.escape(el.styles.shape_divider_color or "#ffffff")
         shape_dividers_html = ""
         if top_divider and top_divider != "none":
-            shape_dividers_html += f'<div class="builder-shape-divider builder-shape-divider-top" data-shape="{html.escape(top_divider)}" style="position: absolute; top: 0; left: 0; width: 100%; height: 48px; overflow: hidden; pointer-events: none; z-index: 10;"><img src="/shapes/{html.escape(top_divider)}.svg" alt="" style="width: 100%; height: 100%; display: block;" /></div>'
+            path_d = cls.SHAPE_DIVIDER_PATHS.get(top_divider)
+            if path_d:
+                svg_inner = f'<svg viewBox="0 0 1000 100" preserveAspectRatio="none" class="w-full h-full block" aria-hidden="true"><path fill="{shape_color}" d="{path_d}"></path></svg>'
+            else:
+                svg_inner = f'<img src="/shapes/{html.escape(top_divider)}.svg" alt="" style="width: 100%; height: 100%; display: block;" />'
+            shape_dividers_html += f'<div class="builder-shape-divider builder-shape-divider-top" data-shape="{html.escape(top_divider)}" style="position: absolute; top: 0; left: 0; width: 100%; height: 48px; overflow: hidden; pointer-events: none; z-index: 10;">{svg_inner}</div>'
+
         if bottom_divider and bottom_divider != "none":
-            shape_dividers_html += f'<div class="builder-shape-divider builder-shape-divider-bottom" data-shape="{html.escape(bottom_divider)}" style="position: absolute; bottom: 0; left: 0; width: 100%; height: 48px; overflow: hidden; pointer-events: none; z-index: 10; transform: rotate(180deg);"><img src="/shapes/{html.escape(bottom_divider)}.svg" alt="" style="width: 100%; height: 100%; display: block;" /></div>'
+            path_d = cls.SHAPE_DIVIDER_PATHS.get(bottom_divider)
+            if path_d:
+                svg_inner = f'<svg viewBox="0 0 1000 100" preserveAspectRatio="none" class="w-full h-full block" aria-hidden="true"><path fill="{shape_color}" d="{path_d}"></path></svg>'
+            else:
+                svg_inner = f'<img src="/shapes/{html.escape(bottom_divider)}.svg" alt="" style="width: 100%; height: 100%; display: block;" />'
+            shape_dividers_html += f'<div class="builder-shape-divider builder-shape-divider-bottom" data-shape="{html.escape(bottom_divider)}" style="position: absolute; bottom: 0; left: 0; width: 100%; height: 48px; overflow: hidden; pointer-events: none; z-index: 10; transform: rotate(180deg);">{svg_inner}</div>'
 
         if is_form:
             props = el.widget_props or {}
@@ -654,10 +806,14 @@ class ASTCompiler:
                 f'</div>'
             )
 
-        elif widget_type == "video":
+        elif widget_type in ("video", "aparat"):
             v_type = props.get("video_type", "direct")
+            if widget_type == "aparat":
+                v_type = "aparat"
             v_url = html.escape(str(props.get("url", "")))
             poster = html.escape(str(props.get("poster", "")))
+            loop = bool(props.get("loop", False))
+            loop_attr = " loop" if loop else ""
             if v_type in ("aparat", "youtube"):
                 return (
                     f'<div{id_attr} class="builder-video aspect-video w-full rounded-2xl overflow-hidden border border-border/80 bg-black {css_class}" data-widget="video"{style_attr}>'
@@ -668,7 +824,7 @@ class ASTCompiler:
                 poster_attr = f' poster="{poster}"' if poster else ""
                 return (
                     f'<div{id_attr} class="builder-video w-full rounded-2xl overflow-hidden border border-border/80 bg-black {css_class}" data-widget="video"{style_attr}>'
-                    f'<video src="{v_url}" controls{poster_attr} class="w-full max-h-[500px]"></video>'
+                    f'<video src="{v_url}" controls{loop_attr}{poster_attr} class="w-full max-h-[500px]"></video>'
                     f'</div>'
                 )
 
@@ -720,11 +876,12 @@ class ASTCompiler:
 
         elif widget_type == "counter":
             title = html.escape(str(props.get("title", props.get("label", "شمارنده"))))
+            starting = props.get("starting_number", 0)
             ending = props.get("ending_number", props.get("target_number", 100))
             prefix = html.escape(str(props.get("prefix", "")))
             suffix = html.escape(str(props.get("suffix", "")))
             return (
-                f'<div{id_attr} class="builder-counter p-4 rounded-2xl border border-border/80 bg-card text-center space-y-1 {css_class}" data-widget="counter"{style_attr}>'
+                f'<div{id_attr} class="builder-counter p-4 rounded-2xl border border-border/80 bg-card text-center space-y-1 {css_class}" data-widget="counter" data-starting-number="{starting}" data-ending-number="{ending}"{style_attr}>'
                 f'<div class="text-3xl font-black text-primary font-mono">{prefix}{ending}{suffix}</div>'
                 f'<div class="text-xs font-semibold text-muted-foreground">{title}</div>'
                 f'</div>'
@@ -759,7 +916,7 @@ class ASTCompiler:
                 f'</blockquote>'
             )
 
-        elif widget_type == "alert":
+        elif widget_type in ("alert", "info"):
             title = html.escape(str(props.get("title", "اعلان")))
             msg = html.escape(str(props.get("message", props.get("description", ""))))
             a_type = str(props.get("alert_type", "info"))
@@ -865,7 +1022,9 @@ class ASTCompiler:
             return f'<div id="{anchor_id}" class="builder-menu-anchor w-full h-0 opacity-0 pointer-events-none -my-1 {css_class}" data-widget="menu_anchor" aria-hidden="true"{style_attr}></div>'
 
         elif widget_type == "icon":
-            icon_key = str(props.get("icon", "star")).lower().strip()
+            icon_key = str(props.get("icon", "star")).strip().lower()
+            icon_char = cls.ICON_CHAR_MAP.get(icon_key, cls.ICON_CHAR_MAP.get("star", "⭐"))
+            svg_d = cls.ICON_SVG_PATHS.get(icon_key, cls.ICON_SVG_PATHS.get("star", "M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"))
             view = str(props.get("view", "default"))
             shape = str(props.get("shape", "circle"))
             size = int(props.get("size", 32))
@@ -885,31 +1044,30 @@ class ASTCompiler:
             rot_style = f"transform: rotate({rotate}deg);" if rotate else ""
             inline_style = f' style="{pad_style} {rot_style}"'.strip()
 
-            svg_paths = {
-                "star": "M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z",
-                "heart": "M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z",
-                "shield-check": "M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z M9 12l2 2 4-4",
-                "truck": "M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2 M15 18H9 M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14",
-                "headphones": "M3 18v-6a9 9 0 0 1 18 0v6 M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z",
-                "award": "m15.477 12.89 1.515 8.526a.5.5 0 0 1-.81.47l-3.58-2.687a1 1 0 0 0-1.197 0l-3.586 2.686a.5.5 0 0 1-.81-.469l1.514-8.526 M12 15a7 7 0 1 0 0-14 7 7 0 0 0 0 14z",
-                "check": "M20 6 9 17l-5-5",
-                "zap": "M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z",
-                "sparkles": "m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z",
-                "clock": "M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z M12 6v6l4 2",
-                "credit-card": "M2 5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5z M2 10h20",
-                "shopping-cart": "circle cx='8' cy='21' r='1' M19 21a1 1 0 1 0 0-2 1 1 0 0 0 0 2z M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12",
-                "shopping-bag": "M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z M3 6h18 M16 10a4 4 0 0 1-8 0",
-                "gift": "M20 12v10H4V12 M2 7h20v5H2z M12 22V7 M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z",
-                "phone": "M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z",
-                "mail": "M22 6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6zm-2 0-8 5-8-5h16zm0 12H4V8l8 5 8-5v10z",
-                "thumbs-up": "M7 10v12 M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z",
-                "map-pin": "M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z M12 10a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z",
-                "user": "M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2 M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z",
-                "lock": "rect width='18' height='11' x='3' y='11' rx='2' ry='2' M7 11V7a5 5 0 0 1 10 0v4",
-            }
-            d_path = svg_paths.get(icon_key, svg_paths["star"])
-            svg_markup = f'<svg viewBox="0 0 24 24" width="{size}" height="{size}" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="shrink-0"><path d="{d_path}"></path></svg>'
-            inner_icon = f'<div class="inline-flex items-center justify-center {view_classes} {shape_class}"{inline_style}>{svg_markup}</div>'
+            svg_icon = cls.render_svg_icon(icon_key, size=size, css_class="builder-icon-svg")
+            inner_icon = f'<div class="inline-flex items-center justify-center {view_classes} {shape_class}"{inline_style}>{svg_icon}<span class="sr-only">{icon_char}</span></div>'
+
+            view = str(props.get("view", "default"))
+            shape = str(props.get("shape", "circle"))
+            size = int(props.get("size", 32))
+            rotate = int(props.get("rotate", 0))
+            url = str(props.get("url", ""))
+            new_tab = bool(props.get("newTab", False))
+            target_attr = ' target="_blank" rel="noopener noreferrer"' if new_tab else ""
+
+            view_classes = "text-primary"
+            if view == "stacked":
+                view_classes = "bg-primary text-white shadow-sm"
+            elif view == "framed":
+                view_classes = "border-2 border-primary text-primary bg-transparent"
+
+            shape_class = "rounded-full" if shape == "circle" else "rounded-xl"
+            pad_style = f"padding: {round(size * 0.4)}px;" if view != "default" else ""
+            rot_style = f"transform: rotate({rotate}deg);" if rotate else ""
+            inline_style = f' style="{pad_style} {rot_style}"'.strip()
+
+            svg_icon = cls.render_svg_icon(icon_key, size=size, css_class="builder-icon-svg")
+            inner_icon = f'<div class="inline-flex items-center justify-center {view_classes} {shape_class}"{inline_style}>{svg_icon}<span class="sr-only">{icon_char}</span></div>'
             if url:
                 return f'<div{id_attr} class="builder-icon inline-block {css_class}" data-widget="icon"{style_attr}><a href="{html.escape(url)}"{target_attr}>{inner_icon}</a></div>'
             return f'<div{id_attr} class="builder-icon inline-block {css_class}" data-widget="icon"{style_attr}>{inner_icon}</div>'
@@ -926,10 +1084,13 @@ class ASTCompiler:
             for item in items:
                 text = html.escape(str(item.get("text", "")))
                 url = item.get("url", "")
+                i_key = str(item.get("icon", "check")).strip().lower()
+                i_char = cls.ICON_CHAR_MAP.get(i_key, "✓")
+                svg_icon = cls.render_svg_icon(i_key, size=12, css_class="w-3 h-3")
                 text_content = f'<a href="{html.escape(str(url))}" class="hover:underline">{text}</a>' if url else f'<span>{text}</span>'
                 items_html += (
                     f'<li class="flex items-center gap-2.5 text-xs text-foreground">'
-                    f'<div class="w-5 h-5 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0 text-[10px]">✓</div>'
+                    f'<div class="w-5 h-5 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0 text-[10px]">{svg_icon}<span class="sr-only">{i_char}</span></div>'
                     f'{text_content}'
                     f'</li>'
                 )
@@ -1237,17 +1398,28 @@ class ASTCompiler:
                 label = html.escape(str(it.get("label", "")))
                 url = html.escape(str(it.get("url", "")))
                 is_last = (i == len(items) - 1)
+                pos = i + 1
                 sep_html = f'<li class="select-none opacity-40 px-1" aria-hidden="true">{separator}</li>' if i > 0 else ""
                 if is_last or not url:
-                    item_html = f'<li class="font-bold text-foreground truncate max-w-[200px]" aria-current="page">{label}</li>'
+                    item_html = (
+                        f'<li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem" class="font-bold text-foreground truncate max-w-[200px]" aria-current="page">'
+                        f'<span itemprop="name">{label}</span>'
+                        f'<meta itemprop="position" content="{pos}" />'
+                        f'</li>'
+                    )
                 else:
-                    item_html = f'<li class="truncate max-w-[150px]"><a href="{url}" class="hover:text-primary transition-colors">{label}</a></li>'
+                    item_html = (
+                        f'<li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem" class="truncate max-w-[150px]">'
+                        f'<a itemprop="item" href="{url}" class="hover:text-primary transition-colors"><span itemprop="name">{label}</span></a>'
+                        f'<meta itemprop="position" content="{pos}" />'
+                        f'</li>'
+                    )
                 crumbs_html += f"{sep_html}{item_html}"
 
             return (
                 f'<nav{id_attr} class="builder-breadcrumbs flex items-center text-xs text-muted-foreground w-full py-1.5 {css_class}" '
                 f'aria-label="مسیر راهنما" data-widget="breadcrumbs"{style_attr}>'
-                f'<ol class="flex items-center gap-1.5 list-none m-0 p-0 flex-wrap">'
+                f'<ol itemscope itemtype="https://schema.org/BreadcrumbList" class="flex items-center gap-1.5 list-none m-0 p-0 flex-wrap">'
                 f'{crumbs_html}'
                 f'</ol>'
                 f'</nav>'
@@ -1420,12 +1592,13 @@ class ASTCompiler:
         elif widget_type == "multi_step_form":
             title = html.escape(str(props.get("title", "")))
             title_html = f'<h3 class="font-bold text-sm text-foreground mb-3">{title}</h3>' if title else ""
-            raw_steps = props.get("steps", [
-                {"title": "اطلاعات تماس", "fields": ["name", "phone"]},
-                {"title": "مشخصات سفارش", "fields": ["service", "notes"]},
-            ])
-            next_label = html.escape(str(props.get("next_button_label") or props.get("next_label") or "گام بعدی"))
-            prev_label = html.escape(str(props.get("prev_button_label") or props.get("prev_label") or "گام قبلی"))
+            raw_steps = props.get("steps") or props.get("step_titles") or [
+                "اطلاعات تماس",
+                "آدرس و ارسال",
+                "تایید نهایی",
+            ]
+            next_label = html.escape(str(props.get("next_button_text") or props.get("next_button_label") or props.get("next_label") or "مرحله بعد"))
+            prev_label = html.escape(str(props.get("prev_button_text") or props.get("prev_button_label") or props.get("prev_label") or "مرحله قبل"))
             steps_header = ""
             if isinstance(raw_steps, list):
                 for idx, stp in enumerate(raw_steps):
@@ -1440,14 +1613,29 @@ class ASTCompiler:
                         f'<span class="text-xs font-semibold">{s_t}</span>'
                         f'</div>'
                     )
+
+            step_fields_dict = props.get("step_fields") or {}
+            first_step_fields = step_fields_dict.get("0") or step_fields_dict.get(0)
+            if isinstance(first_step_fields, str) and first_step_fields.strip():
+                field_list = [f.strip() for f in first_step_fields.replace("،", ",").split(",") if f.strip()]
+            else:
+                field_list = ["نام و نام‌خانوادگی", "شماره موبایل"]
+
+            fields_html = ""
+            for fl in field_list:
+                fl_esc = html.escape(fl)
+                fields_html += (
+                    f'<div class="space-y-1">'
+                    f'<label class="text-xs font-bold text-foreground">{fl_esc}</label>'
+                    f'<input type="text" class="w-full rounded-xl border border-input p-2.5 text-xs" placeholder="ورود {fl_esc}..." />'
+                    f'</div>'
+                )
+
             return (
                 f'<div{id_attr} class="builder-multi-step-form p-6 rounded-3xl border border-border/80 bg-card space-y-5 text-right w-full {css_class}" data-widget="multi_step_form"{style_attr}>'
                 f'{title_html}'
                 f'<div class="flex items-center justify-between pb-3 border-b border-border/60 flex-wrap gap-2">{steps_header}</div>'
-                f'<div class="space-y-3 pt-2">'
-                f'<div class="space-y-1"><label class="text-xs font-bold">نام و نام‌خانوادگی</label><input type="text" class="w-full rounded-xl border border-input p-2.5 text-xs" placeholder="مثال: علی رضایی" /></div>'
-                f'<div class="space-y-1"><label class="text-xs font-bold">شماره موبایل</label><input type="tel" class="w-full rounded-xl border border-input p-2.5 text-xs" placeholder="۰۹۱۲..." dir="ltr" /></div>'
-                f'</div>'
+                f'<div class="space-y-3 pt-2">{fields_html}</div>'
                 f'<div class="flex items-center justify-between pt-3 border-t border-border/60">'
                 f'<button type="button" class="px-4 py-2 rounded-xl bg-muted text-xs font-bold">{prev_label}</button>'
                 f'<button type="button" class="px-5 py-2 rounded-xl bg-primary text-primary-foreground text-xs font-bold shadow-sm">{next_label} &larr;</button>'
@@ -1459,17 +1647,22 @@ class ASTCompiler:
             limit = int(props.get("limit", 4))
             cat = html.escape(str(props.get("category", "all")))
             cols = int(props.get("columns", 3))
+            show_price = props.get("show_price", True) is not False
+            show_button = props.get("show_button", True) is not False
+            btn_text = html.escape(str(props.get("button_text", "مشاهده و خرید")))
             cards = []
-            for i in range(min(limit, 6)):
+            for i in range(min(limit, 12)):
+                price_html = f'<span class="text-xs font-bold text-primary font-mono">{(150 + i * 45):,} تومان</span>' if show_price else ""
+                btn_html = f'<span class="px-2.5 py-1 rounded-lg bg-primary/10 text-primary text-[11px] font-bold">{btn_text}</span>' if show_button else ""
                 cards.append(
-                    f'<div class="min-w-[220px] rounded-2xl border border-border/60 bg-card p-3 space-y-2 shrink-0">'
+                    f'<div class="min-w-[220px] rounded-2xl border border-border/60 bg-card p-3 space-y-2 shrink-0 text-right">'
                     f'<div class="aspect-square bg-muted/20 rounded-xl flex items-center justify-center overflow-hidden"><img src="/placeholder-hero.svg" alt="محصول" class="p-2 max-h-full" loading="lazy" /></div>'
                     f'<h4 class="font-bold text-xs truncate">کالای فروشگاه {i+1}</h4>'
-                    f'<span class="text-xs font-bold text-primary">۳۵۰,۰۰۰ تومان</span>'
+                    f'<div class="flex items-center justify-between pt-1 border-t border-border/40">{price_html}{btn_html}</div>'
                     f'</div>'
                 )
             if widget_type == "loop_grid":
-                grid_cls = f"grid grid-cols-1 md:grid-cols-{cols} gap-4 w-full"
+                grid_cls = f"grid grid-cols-1 sm:grid-cols-2 md:grid-cols-{cols} gap-4 w-full"
                 return (
                     f'<div{id_attr} class="builder-loop-grid w-full space-y-2 {css_class}" data-widget="loop_grid" data-limit="{limit}" data-category="{cat}"{style_attr}>'
                     f'<div class="{grid_cls}" dir="rtl">{"".join(cards)}</div>'
@@ -1534,7 +1727,7 @@ class ASTCompiler:
         elif widget_type == "search_bar":
             placeholder = html.escape(str(props.get("placeholder", "جستجو در میان کالاها...")))
             action_url = html.escape(str(props.get("action_url", "/search")))
-            btn_text = html.escape(str(props.get("button_text", "جستجو")))
+            btn_text = html.escape(str(props.get("button_text") or props.get("button_label") or "جستجو"))
             return (
                 f'<form{id_attr} action="{action_url}" method="GET" class="builder-search-bar flex items-center gap-2 w-full max-w-md my-2 {css_class}" data-widget="search_bar"{style_attr}>'
                 f'<div class="relative flex-1">'
@@ -1546,15 +1739,17 @@ class ASTCompiler:
 
         elif widget_type == "nav_menu":
             menu_items = props.get("items", [{"title": "صفحه اصلی", "url": "/"}, {"title": "فروشگاه", "url": "/products"}, {"title": "وبلاگ", "url": "/blog"}])
+            layout = str(props.get("layout", "horizontal"))
+            ul_cls = "flex flex-col items-start gap-2 list-none m-0 p-0" if layout == "vertical" else "flex flex-wrap items-center gap-2 list-none m-0 p-0"
             links_html = ""
             if isinstance(menu_items, list):
                 for mi in menu_items:
-                    m_title = html.escape(str(mi.get("title", "")))
+                    m_title = html.escape(str(mi.get("title") or mi.get("label") or ""))
                     m_url = html.escape(str(mi.get("url", "#")))
                     links_html += f'<li class="inline-block"><a href="{m_url}" class="px-3 py-1.5 rounded-lg text-xs font-bold text-foreground hover:text-primary transition">{m_title}</a></li>'
             return (
                 f'<nav{id_attr} class="builder-nav-menu w-full py-2 {css_class}" data-widget="nav_menu"{style_attr}>'
-                f'<ul class="flex flex-wrap items-center gap-2 list-none m-0 p-0">{links_html}</ul>'
+                f'<ul class="{ul_cls}">{links_html}</ul>'
                 f'</nav>'
             )
 

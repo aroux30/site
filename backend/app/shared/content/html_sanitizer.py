@@ -52,7 +52,7 @@ ALLOWED_TAGS: frozenset[str] = frozenset(
         "blockquote", "details", "summary", "address",
         # forms and interactive controls
         "button", "label", "input", "textarea", "select", "option", "form",
-        # vector graphics and icons
+        # vector graphics, icons & shapes (Elementor Parity)
         "svg", "path", "polygon", "circle", "rect", "line", "polyline", "g",
     }
 )
@@ -98,8 +98,9 @@ ALLOWED_ATTRIBUTES: dict[str, frozenset[str]] = {
     "svg": frozenset({
         "xmlns", "viewbox", "viewBox", "width", "height", "fill", "stroke",
         "stroke-width", "stroke-linecap", "stroke-linejoin", "aria-hidden", "role",
+        "preserveaspectratio", "preserveAspectRatio", "class", "style",
     }),
-    "path": frozenset({"d", "fill", "stroke", "stroke-width", "stroke-linecap", "stroke-linejoin"}),
+    "path": frozenset({"d", "fill", "stroke", "stroke-width", "stroke-linecap", "stroke-linejoin", "opacity", "class"}),
     "polygon": frozenset({"points", "fill", "stroke", "stroke-width", "stroke-linecap", "stroke-linejoin"}),
     "circle": frozenset({"cx", "cy", "r", "fill", "stroke", "stroke-width"}),
     "rect": frozenset({"x", "y", "width", "height", "rx", "ry", "fill", "stroke", "stroke-width"}),
@@ -333,6 +334,6 @@ def sanitize_html(html: str | None) -> str:
     return bleach.linkifier.Linker(
         callbacks=[_link_rel],
         skip_tags=["pre", "code"],
-        parse_email=False,
         recognized_tags=bleach.html5lib_shim.HTML_TAGS | _EMBED_ALLOWED_TAGS,
+        parse_email=False,
     ).linkify(cleaned)

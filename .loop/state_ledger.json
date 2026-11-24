@@ -1,21 +1,21 @@
 {
   "version": "3.2",
   "activeWeight": 9,
-  "activeRound": 67,
+  "activeRound": 68,
   "status": "COMPLETED",
   "levels1to5Status": "BUILDER_GYM_LEVELS_1_TO_5_CLEAN",
   "allLevelsMastered": "BUILDER_GYM_ALL_LEVELS_MASTERED",
   "verificationPort": 1001,
-  "completedRounds": 67,
+  "completedRounds": 68,
   "metrics": {
     "typeCheckErrors": 0,
     "frontendUnitTests": 385,
     "backendUnitTests": 654,
-    "playwrightTests": 14,
+    "playwrightTests": 15,
     "registeredBlocks": 76,
     "lastVerifierVerdict": "APPROVE"
   },
-  "timestamp": "2026-11-24T14:51:45.784Z",
+  "timestamp": "2026-11-24T15:26:16.036Z",
   "defect_ledger": [
     {
       "id": "DEFECT-R41-01",
@@ -646,6 +646,24 @@
       "summary": "Missing dedicated end-to-end regression assertion for Save Page Template dialog and Escape dismissal",
       "status": "FIXED",
       "round": 67
+    },
+    {
+      "id": "DEFECT-R68-01",
+      "severity": "P1",
+      "component": "section_template_save_dialog",
+      "layer": "frontend/components/admin/builder/save-template-dialog.tsx",
+      "summary": "Section template save dialog categories, slug generation and backend AST sync verified",
+      "status": "FIXED",
+      "round": 68
+    },
+    {
+      "id": "DEFECT-R68-02",
+      "severity": "P2",
+      "component": "section_template_e2e_regression",
+      "layer": "frontend/tests/e2e/builder-gym-r72.spec.ts",
+      "summary": "Missing dedicated end-to-end regression assertion for Section Template save dialog and Escape dismissal",
+      "status": "FIXED",
+      "round": 68
     }
   ]
 }

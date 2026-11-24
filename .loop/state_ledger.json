@@ -1,21 +1,21 @@
 {
   "version": "4.2",
   "activeWeight": 9,
-  "activeRound": 63,
+  "activeRound": 64,
   "status": "COMPLETED",
   "levels1to5Status": "BUILDER_GYM_LEVELS_1_TO_5_CLEAN",
   "allLevelsMastered": "BUILDER_GYM_ALL_LEVELS_MASTERED",
   "verificationPort": 1003,
-  "completedRounds": 63,
+  "completedRounds": 64,
   "metrics": {
     "typeCheckErrors": 0,
     "frontendUnitTests": 383,
     "backendUnitTests": 656,
-    "playwrightTests": 9,
+    "playwrightTests": 10,
     "registeredBlocks": 76,
     "lastVerifierVerdict": "APPROVE"
   },
-  "timestamp": "2026-11-24T11:45:00.000Z",
+  "timestamp": "2026-11-24T12:15:00.000Z",
   "defect_ledger": [
     {
       "id": "DEFECT-R41-01",
@@ -520,6 +520,15 @@
       "summary": "History panel timeline buttons lacked data-testid selector hooks for automated undo/redo jump tests; added data-testid history-step-idx",
       "status": "FIXED",
       "round": 63
+    },
+    {
+      "id": "DEFECT-R64-01",
+      "severity": "P2",
+      "component": "builder_context_menu",
+      "layer": "frontend/components/admin/builder/builder-context-menu.tsx",
+      "summary": "Context menu items lacked explicit data-testid hooks for automated right-click action verification; added data-testid context-menu-duplicate, copy, and delete hooks",
+      "status": "FIXED",
+      "round": 64
     }
   ]
 }

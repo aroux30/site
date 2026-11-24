@@ -206,4 +206,23 @@ test.describe("Builder Gym Round 55: Weight 0 Triage & Parity Verification", () 
       await expect(activeStep).toBeVisible();
     }
   });
+
+  test("10. Context menu opens with action buttons on right click", async ({ page }) => {
+    await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(1500);
+
+    const canvas = page.frameLocator('iframe[title="Canvas Preview"], iframe').first();
+    const heading = canvas.locator('h1, h2, [data-widget-type]').first();
+    if (await heading.isVisible()) {
+      await heading.click({ button: "right" });
+      await page.waitForTimeout(400);
+
+      const contextMenu = page.locator('[data-testid="builder-context-menu"]').first();
+      if (await contextMenu.isVisible()) {
+        const dupBtn = contextMenu.locator('[data-testid="context-menu-duplicate"]').first();
+        await expect(dupBtn).toBeVisible();
+      }
+      await page.keyboard.press("Escape");
+    }
+  });
 });

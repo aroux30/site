@@ -1,7 +1,7 @@
 {
   "version": "3.2",
-  "activeWeight": 0,
-  "activeRound": 55,
+  "activeWeight": 9,
+  "activeRound": 56,
   "status": "COMPLETED",
   "levels1to5Status": "BUILDER_GYM_LEVELS_1_TO_5_CLEAN",
   "allLevelsMastered": "BUILDER_GYM_ALL_LEVELS_MASTERED",
@@ -15,7 +15,7 @@
     "registeredBlocks": 76,
     "lastVerifierVerdict": "APPROVE"
   },
-  "timestamp": "2026-11-24T08:03:34.606Z",
+  "timestamp": "2026-11-24T08:33:26.142Z",
   "defect_ledger": [
     {
       "id": "DEFECT-R41-01",

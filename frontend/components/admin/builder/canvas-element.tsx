@@ -1968,40 +1968,6 @@ function CanvasElementComponent({
           </blockquote>
         );
       }
-      case "image_box": {
-        const imgUrl = String(props.image_url || "/placeholder-hero.svg");
-        const title = String(props.title || "عنوان جعبه تصویر");
-        const desc = String(props.description || "توضیحات کوتاه در این بخش قرار می‌گیرد.");
-        return (
-          <div className="p-4 rounded-2xl border border-border/80 bg-card text-center space-y-3 shadow-sm w-full">
-            <div className="w-full aspect-video max-h-48 rounded-xl overflow-hidden bg-muted/30 flex items-center justify-center mx-auto">
-              <img src={imgUrl} alt={title} className="w-full h-full object-cover" />
-            </div>
-            <h3 className="text-base font-bold text-foreground">{title}</h3>
-            <p className="text-xs text-muted-foreground leading-relaxed">{desc}</p>
-          </div>
-        );
-      }
-      case "price_list": {
-        const items = (props.items as any[]) || [
-          { title: "سرویس اول", price: "۱۰۰,۰۰۰ تومان", description: "توضیح کوتاه سرویس اول" },
-          { title: "سرویس دوم", price: "۲۰۰,۰۰۰ تومان", description: "توضیح کوتاه سرویس دوم" },
-        ];
-        return (
-          <div className="space-y-4 w-full p-2">
-            {items.map((item, idx) => (
-              <div key={idx} className="space-y-1">
-                <div className="flex items-baseline justify-between gap-2">
-                  <span className="text-xs font-bold text-foreground shrink-0">{item.title}</span>
-                  <span className="flex-1 border-b border-dotted border-border/80 mx-1 mb-1" />
-                  <span className="text-xs font-bold text-primary font-mono shrink-0">{item.price}</span>
-                </div>
-                {item.description && <p className="text-[11px] text-muted-foreground leading-relaxed">{item.description}</p>}
-              </div>
-            ))}
-          </div>
-        );
-      }
       case "share_buttons": {
         const platforms = (props.platforms as string[]) || ["telegram", "whatsapp", "twitter", "linkedin"];
         const platformLabels: Record<string, string> = {
@@ -2044,53 +2010,6 @@ function CanvasElementComponent({
                 <span key={idx} className={cn("w-2 h-2 rounded-full", idx === 0 ? "bg-primary" : "bg-muted-foreground/30")} />
               ))}
             </div>
-          </div>
-        );
-      }
-      case "toggle": {
-        const items = (props.items as any[]) || [
-          { title: "بخش تاشو", content: "محتوا" },
-        ];
-        return (
-          <div className="space-y-2.5 w-full text-right">
-            {items.map((item, idx) => (
-              <details key={idx} open={item.open ?? (idx === 0)} className="group rounded-xl border border-border/80 bg-card p-3 shadow-sm transition">
-                <summary className="font-bold text-xs cursor-pointer flex items-center justify-between list-none">
-                  <span>{item.title}</span>
-                  <ChevronDown className="w-4 h-4 text-muted-foreground transition group-open:rotate-180" />
-                </summary>
-                <div className="pt-2 text-[11px] text-muted-foreground leading-relaxed border-t border-border/40 mt-2">
-                  {item.content}
-                </div>
-              </details>
-            ))}
-          </div>
-        );
-      }
-      case "hotspot": {
-        const imgUrl = String(props.image_url || "/placeholder-hero.svg");
-        const spots = (props.spots as any[]) || [
-          { top: 40, left: 35, title: "نقطه اول" },
-        ];
-        return (
-          <div className="relative w-full rounded-2xl overflow-hidden bg-muted/20 border border-border/80 aspect-video max-h-72">
-            <img src={imgUrl} alt="Hotspot" className="w-full h-full object-cover" />
-            {spots.map((s, idx) => (
-              <div
-                key={idx}
-                style={{ top: `${s.top}%`, left: `${s.left}%` }}
-                className="absolute -translate-x-1/2 -translate-y-1/2 group cursor-pointer"
-              >
-                <span className="w-5 h-5 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-[10px] font-bold shadow-lg ring-4 ring-primary/30 animate-pulse">
-                  {idx + 1}
-                </span>
-                {s.title && (
-                  <div className="absolute bottom-full mb-1.5 start-1/2 -translate-x-1/2 hidden group-hover:block bg-popover text-popover-foreground text-[10px] font-bold py-1 px-2 rounded-lg shadow whitespace-nowrap z-10 border border-border">
-                    {s.title}
-                  </div>
-                )}
-              </div>
-            ))}
           </div>
         );
       }

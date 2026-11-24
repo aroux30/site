@@ -195,6 +195,8 @@ export function BuilderStudio({ page, onExit }: BuilderStudioProps) {
 
   return (
     <div className="fixed inset-0 z-[100] flex flex-col h-screen w-screen overflow-hidden bg-background font-sans" dir="rtl">
+      {/* Scoped style ensuring all Radix poppers/portals stay above fullscreen Studio and Canvas */}
+      <style dangerouslySetInnerHTML={{ __html: "[data-radix-popper-content-wrapper] { z-index: 150 !important; }" }} />
       {/* Concurrent Editing Lock Alert Banner */}
       {lockedByOther && (
         <div className="bg-amber-500/15 border-b border-amber-500/30 text-amber-900 dark:text-amber-200 px-4 py-2 text-xs flex items-center justify-between z-50 shrink-0">
@@ -226,7 +228,7 @@ export function BuilderStudio({ page, onExit }: BuilderStudioProps) {
       />
 
       {/* Main 3-Column Studio Workspace */}
-      <div className="flex-1 flex overflow-hidden relative">
+      <div className="flex-1 flex overflow-hidden relative min-h-0">
         {/* Left Column: Blocks Palette & Layers Tree */}
         {!previewMode && (
           <aside className="w-80 bg-card border-e border-border flex flex-col shrink-0 z-20 shadow-sm hidden md:flex h-full min-h-0">

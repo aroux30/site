@@ -3627,8 +3627,8 @@ export function InspectorPanel() {
     return (
       <div className="space-y-5">
         {/* Device Switcher Indicator */}
-        <div className="flex items-center justify-between p-2 rounded-lg bg-muted/60 border border-border/80">
-          <span className="text-[11px] font-semibold text-foreground">
+        <div className="flex items-center justify-between p-2 rounded-lg bg-muted/60 border border-border/80 gap-2 min-w-0">
+          <span className="text-[11px] font-semibold text-foreground truncate shrink" title="ویرایش استایل">
             ویرایش استایل:{" "}
             {activeBreakpoint === "mobile"
               ? "موبایل (پایه)"
@@ -3636,11 +3636,11 @@ export function InspectorPanel() {
               ? "تبلت (md:)"
               : "دسکتاپ (lg:)"}
           </span>
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1 shrink-0">
             <button
               type="button"
               onClick={() => setBreakpoint("mobile")}
-              className={`p-1 rounded ${activeBreakpoint === "mobile" ? "bg-primary text-white" : "text-muted-foreground"}`}
+              className={`p-1 rounded shrink-0 ${activeBreakpoint === "mobile" ? "bg-primary text-white" : "text-muted-foreground"}`}
               title="موبایل"
             >
               <Smartphone className="w-3.5 h-3.5" />
@@ -3648,7 +3648,7 @@ export function InspectorPanel() {
             <button
               type="button"
               onClick={() => setBreakpoint("tablet")}
-              className={`p-1 rounded ${activeBreakpoint === "tablet" ? "bg-primary text-white" : "text-muted-foreground"}`}
+              className={`p-1 rounded shrink-0 ${activeBreakpoint === "tablet" ? "bg-primary text-white" : "text-muted-foreground"}`}
               title="تبلت"
             >
               <Tablet className="w-3.5 h-3.5" />
@@ -3656,7 +3656,7 @@ export function InspectorPanel() {
             <button
               type="button"
               onClick={() => setBreakpoint("desktop")}
-              className={`p-1 rounded ${activeBreakpoint === "desktop" ? "bg-primary text-white" : "text-muted-foreground"}`}
+              className={`p-1 rounded shrink-0 ${activeBreakpoint === "desktop" ? "bg-primary text-white" : "text-muted-foreground"}`}
               title="دسکتاپ"
             >
               <Monitor className="w-3.5 h-3.5" />
@@ -3668,13 +3668,35 @@ export function InspectorPanel() {
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <Label className="text-xs font-bold text-foreground">فاصله داخلی (Padding)</Label>
-            <button
-              type="button"
-              onClick={() => toggleSpacingLink("padding")}
-              className="text-muted-foreground hover:text-foreground"
-            >
-              {pad.isLinked ? <Link2 className="w-3.5 h-3.5 text-primary" /> : <Unlink className="w-3.5 h-3.5" />}
-            </button>
+            <div className="flex items-center gap-1.5 shrink-0">
+              <button
+                type="button"
+                data-testid="reset-padding-btn"
+                title="بازنشانی پدینگ به صفر"
+                onClick={() => {
+                  handleDeviceStyleChange({
+                    padding: {
+                      top: { value: 0, unit: "px" },
+                      right: { value: 0, unit: "px" },
+                      bottom: { value: 0, unit: "px" },
+                      left: { value: 0, unit: "px" },
+                      isLinked: true,
+                    },
+                  });
+                }}
+                className="text-[10px] text-muted-foreground hover:text-foreground px-1.5 py-0.5 rounded border border-border/40 hover:bg-muted transition shrink-0"
+              >
+                ریست
+              </button>
+              <button
+                type="button"
+                onClick={() => toggleSpacingLink("padding")}
+                className="text-muted-foreground hover:text-foreground shrink-0 p-0.5"
+                title={pad.isLinked ? "جداسازی جهت‌ها" : "همگام‌سازی جهت‌ها"}
+              >
+                {pad.isLinked ? <Link2 className="w-3.5 h-3.5 text-primary" /> : <Unlink className="w-3.5 h-3.5" />}
+              </button>
+            </div>
           </div>
           <div className="grid grid-cols-4 gap-1.5 text-center">
             <div>
@@ -3799,13 +3821,35 @@ export function InspectorPanel() {
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <Label className="text-xs font-bold text-foreground">فاصله خارجی (Margin)</Label>
-            <button
-              type="button"
-              onClick={() => toggleSpacingLink("margin")}
-              className="text-muted-foreground hover:text-foreground"
-            >
-              {mar.isLinked ? <Link2 className="w-3.5 h-3.5 text-primary" /> : <Unlink className="w-3.5 h-3.5" />}
-            </button>
+            <div className="flex items-center gap-1.5 shrink-0">
+              <button
+                type="button"
+                data-testid="reset-margin-btn"
+                title="بازنشانی مارجین به صفر"
+                onClick={() => {
+                  handleDeviceStyleChange({
+                    margin: {
+                      top: { value: 0, unit: "px" },
+                      right: { value: 0, unit: "px" },
+                      bottom: { value: 0, unit: "px" },
+                      left: { value: 0, unit: "px" },
+                      isLinked: true,
+                    },
+                  });
+                }}
+                className="text-[10px] text-muted-foreground hover:text-foreground px-1.5 py-0.5 rounded border border-border/40 hover:bg-muted transition shrink-0"
+              >
+                ریست
+              </button>
+              <button
+                type="button"
+                onClick={() => toggleSpacingLink("margin")}
+                className="text-muted-foreground hover:text-foreground shrink-0 p-0.5"
+                title={mar.isLinked ? "جداسازی جهت‌ها" : "همگام‌سازی جهت‌ها"}
+              >
+                {mar.isLinked ? <Link2 className="w-3.5 h-3.5 text-primary" /> : <Unlink className="w-3.5 h-3.5" />}
+              </button>
+            </div>
           </div>
           <div className="grid grid-cols-4 gap-1.5 text-center">
             <div>
@@ -4154,7 +4198,7 @@ export function InspectorPanel() {
           <div className="space-y-2 pt-2 border-t border-border/50">
             <div className="flex items-center justify-between">
               <Label className="text-[11px] font-bold text-foreground">لایه رویی پس‌زمینه (Background Overlay)</Label>
-              <div className="flex gap-1 text-[9px] bg-muted/60 p-0.5 rounded border border-border/60">
+              <div className="flex gap-1 text-[10px] bg-muted/60 p-0.5 rounded border border-border/60 shrink-0">
                 {[
                   { id: "none", label: "هیچ" },
                   { id: "color", label: "رنگ" },
@@ -4177,8 +4221,8 @@ export function InspectorPanel() {
                         })
                       }
                       className={cn(
-                        "px-1.5 py-0.5 rounded transition",
-                        active ? "bg-primary text-primary-foreground font-bold" : "text-muted-foreground hover:text-foreground"
+                        "px-2 py-0.5 rounded transition shrink-0",
+                        active ? "bg-primary text-primary-foreground font-bold shadow-xs" : "text-muted-foreground hover:text-foreground"
                       )}
                     >
                       {ovType.label}
@@ -5472,14 +5516,14 @@ export function InspectorPanel() {
           </TabsTrigger>
         </TabsList>
 
-        <div className="flex-1 min-h-0 overflow-y-auto px-4 py-3 overscroll-contain builder-scrollbar">
-          <TabsContent value="content" className="m-0 focus-visible:outline-none pb-24">
+        <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-4 py-3 overscroll-contain builder-scrollbar">
+          <TabsContent value="content" className="m-0 focus-visible:outline-none pb-24 min-h-0">
             {renderContentControls()}
           </TabsContent>
-          <TabsContent value="style" className="m-0 focus-visible:outline-none pb-24">
+          <TabsContent value="style" className="m-0 focus-visible:outline-none pb-24 min-h-0">
             {renderStyleControls()}
           </TabsContent>
-          <TabsContent value="advanced" className="m-0 focus-visible:outline-none pb-24">
+          <TabsContent value="advanced" className="m-0 focus-visible:outline-none pb-24 min-h-0">
             {renderAdvancedControls()}
           </TabsContent>
         </div>

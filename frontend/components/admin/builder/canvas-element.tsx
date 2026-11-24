@@ -872,7 +872,8 @@ function CanvasElementComponent({
         );
       }
       case "icon": {
-        const IconComponent = getBuilderIcon(props.icon as string);
+        const iconKey = String(props.icon || "star");
+        const IconComponent = getBuilderIcon(iconKey);
         const view = String(props.view || "default");
         const shape = String(props.shape || "circle");
         const size = Number(props.size) || 32;
@@ -887,6 +888,8 @@ function CanvasElementComponent({
         const padding = view !== "default" ? Math.round(size * 0.4) : 0;
         return (
           <div
+            data-widget="icon"
+            data-icon-id={iconKey}
             className={cn(
               "inline-flex items-center justify-center transition-transform",
               viewClasses,
@@ -897,7 +900,7 @@ function CanvasElementComponent({
               transform: rotate ? `rotate(${rotate}deg)` : undefined,
             }}
           >
-            <IconComponent style={{ width: `${size}px`, height: `${size}px` }} />
+            <IconComponent style={{ width: `${size}px`, height: `${size}px` }} aria-hidden="true" />
           </div>
         );
       }

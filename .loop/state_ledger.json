@@ -1,21 +1,21 @@
 {
   "version": "3.2",
-  "activeWeight": 9,
-  "activeRound": 54,
+  "activeWeight": 0,
+  "activeRound": 55,
   "status": "COMPLETED",
   "levels1to5Status": "BUILDER_GYM_LEVELS_1_TO_5_CLEAN",
   "allLevelsMastered": "BUILDER_GYM_ALL_LEVELS_MASTERED",
-  "verificationPort": 1001,
-  "completedRounds": 54,
+  "verificationPort": 1004,
+  "completedRounds": 55,
   "metrics": {
     "typeCheckErrors": 0,
-    "frontendUnitTests": 380,
-    "backendUnitTests": 653,
-    "playwrightTests": 4,
-    "registeredBlocks": 76,
+    "frontendUnitTests": 382,
+    "backendUnitTests": 654,
+    "playwrightTests": 5,
+    "registeredBlocks": 68,
     "lastVerifierVerdict": "APPROVE"
   },
-  "timestamp": "2026-11-23T23:00:00.000Z",
+  "timestamp": "2026-11-24T10:45:00.000Z",
   "defect_ledger": [
     {
       "id": "DEFECT-R41-01",
@@ -412,6 +412,51 @@
       "summary": "globals.css was missing @keyframes for builderBounceIn and builderRotateIn",
       "status": "FIXED",
       "round": 53
+    },
+    {
+      "id": "DEFECT-R55-W0-01",
+      "severity": "P0",
+      "component": "inspector_panel",
+      "layer": "frontend/components/admin/builder/builder-studio.tsx & inspector-panel.tsx",
+      "summary": "InspectorPanel left vertical scroll trap resolved with full min-h-0 flexbox chain and pb-24 scroll padding",
+      "status": "FIXED",
+      "round": 55
+    },
+    {
+      "id": "DEFECT-R55-W0-02",
+      "severity": "P0",
+      "component": "inspector_and_toolbar",
+      "layer": "frontend/components/admin/builder/inspector-panel.tsx & builder-toolbar.tsx",
+      "summary": "Horizontal clipping of style tab controls (none button, reset padding/margin, style label) and 1280x720 toolbar collision resolved",
+      "status": "FIXED",
+      "round": 55
+    },
+    {
+      "id": "DEFECT-R55-W0-03",
+      "severity": "P0",
+      "component": "select_popover_portals",
+      "layer": "frontend/components/admin/builder/builder-studio.tsx",
+      "summary": "Radix poppers, popovers and select dropdowns elevated with z-[150] ensuring non-occluded floating above canvas iframe",
+      "status": "FIXED",
+      "round": 55
+    },
+    {
+      "id": "DEFECT-R55-W0-04",
+      "severity": "P0",
+      "component": "icon_widget_svg_parity",
+      "layer": "frontend/lib/builder/icon-registry.ts, canvas-element.tsx, backend/app/modules/content/application/ast_compiler.py",
+      "summary": "Single icon widget raw text star rendering resolved with centralized SVG icon registry and valid vector paths in Canvas and SSR",
+      "status": "FIXED",
+      "round": 55
+    },
+    {
+      "id": "DEFECT-R55-W0-05",
+      "severity": "P1",
+      "component": "rtl_guidance_text",
+      "layer": "frontend/stores/builder-store.ts",
+      "summary": "Corrected RTL canvas starter template helper text from left panel to right panel (پنل سمت راست)",
+      "status": "FIXED",
+      "round": 55
     }
   ]
 }

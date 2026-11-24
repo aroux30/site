@@ -1855,6 +1855,39 @@ def test_ast_compiler_renders_round55_single_icon_svg_markup():
     assert 'class="lucide lucide-star"' in result
 
 
+def test_ast_compiler_renders_round56_video_aparat_and_alert_info_aliases():
+    """Verify Round 56 video/aparat and alert/info aliases compile seamlessly in SSR."""
+    ast = PageAST(
+        schema_version=1,
+        title="تست آپارات و اعلان راند ۵۶",
+        slug="test-r56-aliases",
+        root_elements=[
+            BuilderElement(
+                id="el_aparat",
+                name="ویدئو آپارات",
+                type="widget",
+                widget_type="aparat",
+                widget_props={"url": "https://www.aparat.com/v/sample"},
+            ),
+            BuilderElement(
+                id="el_info",
+                name="اعلان اطلاعاتی",
+                type="widget",
+                widget_type="info",
+                widget_props={"title": "نکته مهم", "message": "این یک پیام اطلاعاتی است."},
+            ),
+        ],
+    )
+    result = ASTCompiler.compile(ast)
+    assert 'class="builder-video' in result
+    assert 'data-widget="video"' in result
+    assert 'class="builder-alert' in result
+    assert 'data-widget="alert"' in result
+    assert "نکته مهم" in result
+    assert "این یک پیام اطلاعاتی است." in result
+
+
+
 
 
 

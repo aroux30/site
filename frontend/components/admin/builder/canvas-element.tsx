@@ -904,7 +904,8 @@ function CanvasElementComponent({
           </div>
         );
       }
-      case "video": {
+      case "video":
+      case "aparat": {
         const url = String(props.url || "");
         const vType = String(props.video_type || "aparat");
         const poster = props.poster ? String(props.poster) : undefined;
@@ -1622,7 +1623,8 @@ function CanvasElementComponent({
           </div>
         );
       }
-      case "alert": {
+      case "alert":
+      case "info": {
         const title = String(props.title || "اعلان");
         const desc = String(props.description || props.message || "متن اعلان پیام");
         const aType = String(props.alert_type || "info");

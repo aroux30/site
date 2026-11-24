@@ -1,21 +1,21 @@
 {
   "version": "4.2",
-  "activeWeight": 0,
-  "activeRound": 55,
+  "activeWeight": 9,
+  "activeRound": 56,
   "status": "COMPLETED",
   "levels1to5Status": "BUILDER_GYM_LEVELS_1_TO_5_CLEAN",
   "allLevelsMastered": "BUILDER_GYM_ALL_LEVELS_MASTERED",
   "verificationPort": 1003,
-  "completedRounds": 55,
+  "completedRounds": 56,
   "metrics": {
     "typeCheckErrors": 0,
     "frontendUnitTests": 383,
-    "backendUnitTests": 655,
-    "playwrightTests": 3,
+    "backendUnitTests": 656,
+    "playwrightTests": 4,
     "registeredBlocks": 76,
     "lastVerifierVerdict": "APPROVE"
   },
-  "timestamp": "2026-11-24T07:35:00.000Z",
+  "timestamp": "2026-11-24T08:00:00.000Z",
   "defect_ledger": [
     {
       "id": "DEFECT-R41-01",
@@ -448,6 +448,15 @@
       "summary": "Default blank page text editor guidance directed user to 'left panel' in RTL layout; corrected to 'پنل سمت راست'",
       "status": "FIXED",
       "round": 55
+    },
+    {
+      "id": "DEFECT-R56-01",
+      "severity": "P1",
+      "component": "video_and_alert_aliases",
+      "layer": "ast_compiler_and_canvas",
+      "summary": "aparat and info widget type aliases lacked dedicated handling in canvas-element switch and ast_compiler; unified with parent video and alert cases",
+      "status": "FIXED",
+      "round": 56
     }
   ]
 }

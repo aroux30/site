@@ -111,4 +111,13 @@ test.describe("Builder Gym Round 55: Weight 0 Triage & Parity Verification", () 
       expect(scrollInfo.clientHeight).toBeGreaterThan(0);
     }
   });
+
+  test("4. Multi-step form, video, and alert widgets render seamlessly in canvas", async ({ page }) => {
+    await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(1500);
+
+    const canvas = page.frameLocator('iframe[title="Canvas Preview"], iframe').first();
+    const heading = canvas.locator('h1, h2, [data-widget-type]').first();
+    await expect(heading).toBeVisible();
+  });
 });

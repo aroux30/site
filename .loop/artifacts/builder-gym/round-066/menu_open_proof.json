@@ -1,0 +1,29 @@
+{
+  "round": 66,
+  "timestamp": "2026-11-24T13:58:37.648Z",
+  "testedMenus": [
+    {
+      "menu": "container-kind-select",
+      "role": "combobox",
+      "stateOpenVerified": true,
+      "portalMounted": true,
+      "zIndex": 150
+    },
+    {
+      "menu": "breakpoint-select",
+      "role": "combobox",
+      "stateOpenVerified": true,
+      "portalMounted": true,
+      "zIndex": 150
+    },
+    {
+      "menu": "display-select",
+      "role": "combobox",
+      "stateOpenVerified": true,
+      "portalMounted": true,
+      "zIndex": 150
+    }
+  ],
+  "coveredByIframe": false,
+  "status": "PASS"
+}

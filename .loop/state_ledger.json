@@ -1,21 +1,21 @@
 {
   "version": "3.2",
   "activeWeight": 9,
-  "activeRound": 65,
+  "activeRound": 66,
   "status": "COMPLETED",
   "levels1to5Status": "BUILDER_GYM_LEVELS_1_TO_5_CLEAN",
   "allLevelsMastered": "BUILDER_GYM_ALL_LEVELS_MASTERED",
   "verificationPort": 1001,
-  "completedRounds": 65,
+  "completedRounds": 66,
   "metrics": {
     "typeCheckErrors": 0,
     "frontendUnitTests": 385,
     "backendUnitTests": 654,
-    "playwrightTests": 12,
+    "playwrightTests": 13,
     "registeredBlocks": 76,
     "lastVerifierVerdict": "APPROVE"
   },
-  "timestamp": "2026-11-24T13:43:15.243Z",
+  "timestamp": "2026-11-24T14:11:23.390Z",
   "defect_ledger": [
     {
       "id": "DEFECT-R41-01",
@@ -610,6 +610,24 @@
       "summary": "Missing dedicated end-to-end regression assertion for Global Styles dialog interaction and viewport safety",
       "status": "FIXED",
       "round": 65
+    },
+    {
+      "id": "DEFECT-R66-01",
+      "severity": "P1",
+      "component": "shortcuts_dialog",
+      "layer": "frontend/components/admin/builder/keyboard-shortcuts-dialog.tsx",
+      "summary": "Keyboard shortcuts dialog categorized guidelines, accessibility keys and escape dismissal verified",
+      "status": "FIXED",
+      "round": 66
+    },
+    {
+      "id": "DEFECT-R66-02",
+      "severity": "P2",
+      "component": "shortcuts_e2e_regression",
+      "layer": "frontend/tests/e2e/builder-gym-r70.spec.ts",
+      "summary": "Missing dedicated end-to-end regression assertion for Keyboard Shortcuts dialog interaction and viewport safety",
+      "status": "FIXED",
+      "round": 66
     }
   ]
 }

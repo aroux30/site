@@ -1,11 +1,11 @@
 # 🏋️ BUILDER GYM LOOP V4.2 DASHBOARD — PORT 1003
 
-- **Active Round**: Round 57 (Weight 9: Infinite Polish & Parity Verification)
-- **Target Weight**: وزنه ۹: صیقل بی‌نهایت و استانداردسازی ویژگی‌های معنایی data-widget برای hotspot، toggle، progress_tracker و lottie
+- **Active Round**: Round 58 (Weight 9: Infinite Polish & Parity Verification)
+- **Target Weight**: وزنه ۹: صیقل بی‌نهایت و تجهیز کارت‌های الگو به هوک‌های تستی data-testid
 - **Frontend Port**: 1003 (`http://127.0.0.1:1003`)
 - **Backend Port**: 8000 (`http://127.0.0.1:8000`)
 - **Isolation Scope**: Visual Page Builder (`GYM_SCOPE=builder`)
-- **Status**: 🏆 ROUND 57 COMPLETED & VERIFIED (All Levels Mastered — Weight 9 Clean)
+- **Status**: 🏆 ROUND 58 COMPLETED & VERIFIED (All Levels Mastered — Weight 9 Clean)
 
 ---
 
@@ -21,10 +21,10 @@
 
 ---
 
-### 🎯 خلاصه دستاوردهای راند ۵۷ (Round 57 Achievements):
-1. **استانداردسازی اتریبیوت‌های معنایی ویجت‌ها (`canvas-element.tsx`)**:
-   - افزودن صفت‌های صریح `data-widget` و کلاس‌های نام‌گذاری‌شده `builder-*` برای ویجت‌های `hotspot`, `toggle`, `progress_tracker`, `lottie`.
-   - ایجاد تطابق کامل سلکتورها میان بوم تعاملی و خروجی موتور رندرینگ SSR.
+### 🎯 خلاصه دستاوردهای راند ۵۸ (Round 58 Achievements):
+1. **تجهیز کارت‌های الگوی آماده به هوک‌های تستی (`blocks-palette.tsx`)**:
+   - افزودن `data-testid={`pattern-card-${pattern.slug}`}` و `data-pattern-slug` به تمامی کارت‌های الگوی ۲۸ گانه.
+   - ارتقای آزمون‌های خودکار و تسهیل تست فشار لندینگ با سلکتورهای قطعی و بدون وابستگی به متن.
 2. **عضله‌سازی و تست‌های رگرسیون**:
    - تثبیت پایداری کامل در آزمون‌های Playwright با ۴ پاس قطعی و پای‌تست با ۶۵۶ پاس.
 3. **پایداری دائمی و تایید صفر سرریز**:

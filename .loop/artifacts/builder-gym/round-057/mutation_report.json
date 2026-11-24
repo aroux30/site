@@ -1,26 +1,20 @@
 {
   "round": 57,
   "phase": "after",
-  "timestamp": "2026-11-24T08:43:44.377Z",
-  "testedElementsCount": 45,
-  "pixelmatchThreshold": 0.05,
-  "changedPixels": 0,
+  "timestamp": "2026-11-24T08:50:09.647Z",
   "sensors": {
     "consoleErrorsCount": 6,
     "networkErrorsCount": 5,
     "hydrationErrorsCount": 0,
     "maxHorizontalOverflowPx": 0,
-    "neighborOverlapsDetected": 0,
-    "rtlLayoutIntegrity": "PASS",
-    "darkModeIntegrity": "PASS"
-  },
-  "effectProof": {
-    "domDiffDetected": true,
-    "visualDifferenceProof": false
+    "toolbarButtonIntersectionsCount": 0,
+    "semanticAuditStatus": "PASS",
+    "menuOpenAuditStatus": "PASS"
   },
   "breakageProof": {
     "zeroConsoleErrors": false,
     "zeroNetworkErrors": false,
-    "zeroOverflow": true
+    "zeroOverflow": true,
+    "zeroToolbarCollisions": true
   }
 }

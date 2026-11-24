@@ -1,12 +1,12 @@
 {
   "version": "4.2",
   "activeWeight": 9,
-  "activeRound": 57,
+  "activeRound": 58,
   "status": "COMPLETED",
   "levels1to5Status": "BUILDER_GYM_LEVELS_1_TO_5_CLEAN",
   "allLevelsMastered": "BUILDER_GYM_ALL_LEVELS_MASTERED",
   "verificationPort": 1003,
-  "completedRounds": 57,
+  "completedRounds": 58,
   "metrics": {
     "typeCheckErrors": 0,
     "frontendUnitTests": 383,
@@ -15,7 +15,7 @@
     "registeredBlocks": 76,
     "lastVerifierVerdict": "APPROVE"
   },
-  "timestamp": "2026-11-24T08:45:00.000Z",
+  "timestamp": "2026-11-24T09:15:00.000Z",
   "defect_ledger": [
     {
       "id": "DEFECT-R41-01",
@@ -466,6 +466,15 @@
       "summary": "hotspot, toggle, progress_tracker, and lottie widgets lacked standardized data-widget and builder CSS class hooks in canvas",
       "status": "FIXED",
       "round": 57
+    },
+    {
+      "id": "DEFECT-R58-01",
+      "severity": "P2",
+      "component": "pattern_cards",
+      "layer": "frontend/components/admin/builder/blocks-palette.tsx",
+      "summary": "Pattern cards lacked data-testid selector hooks for automated E2E and visual testing; added data-testid pattern-card-slug",
+      "status": "FIXED",
+      "round": 58
     }
   ]
 }

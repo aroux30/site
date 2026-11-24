@@ -1,22 +1,31 @@
 {
   "version": "4.2",
   "activeWeight": 9,
-  "activeRound": 68,
+  "activeRound": 69,
   "status": "ALL_LEVELS_MASTERED",
   "levels1to5Status": "BUILDER_GYM_LEVELS_1_TO_5_CLEAN",
   "allLevelsMastered": "BUILDER_GYM_ALL_LEVELS_MASTERED",
   "verificationPort": 1002,
-  "completedRounds": 67,
+  "completedRounds": 68,
   "metrics": {
     "typeCheckErrors": 0,
-    "frontendUnitTests": 415,
+    "frontendUnitTests": 417,
     "backendUnitTests": 655,
     "playwrightTests": 5,
     "registeredBlocks": 68,
     "lastVerifierVerdict": "APPROVE"
   },
-  "timestamp": "2026-11-24T12:15:00.000Z",
+  "timestamp": "2026-11-24T12:35:00.000Z",
   "defect_ledger": [
+    {
+      "id": "DEFECT-W9-06",
+      "severity": "P2",
+      "round": 69,
+      "title": "Animation timing duration and delay unit resolution",
+      "status": "FIXED",
+      "layer": "frontend/components/admin/builder/canvas-element.tsx",
+      "description": "Validated entrance animation duration and delay seconds mapping and hover box shadow transitions."
+    },
     {
       "id": "DEFECT-W9-05",
       "severity": "P2",

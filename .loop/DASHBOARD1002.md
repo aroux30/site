@@ -1,7 +1,7 @@
 # 🏋️ BUILDER GYM LOOP V4.2 DASHBOARD — PORT 1002
 
-- **Active Round**: Round 68 (Round 68 Completed Successfully ✅)
-- **Target Weight**: وزنه ۹: بی‌نهایت (+۱۰ کیلو در هر دور — حل‌کننده Scoped CSS و انطباق قرارداد المنتور)
+- **Active Round**: Round 69 (Round 69 Completed Successfully ✅)
+- **Target Weight**: وزنه ۹: بی‌نهایت (+۱۰ کیلو در هر دور — افکت‌های حرکتی و انیمیشن‌های پیشرفته)
 - **Frontend Port**: 1002 (`http://127.0.0.1:1002`)
 - **Backend Port**: 8000 (`http://127.0.0.1:8000`)
 - **Isolation Scope**: Visual Page Builder (`GYM_SCOPE=builder`)
@@ -11,7 +11,7 @@
 
 ### 📊 معیارهای سلامت نهایی و وضعیت تست‌ها
 - **TypeScript**: `npx tsc --noEmit` → **۰ خطا (۱۰۰٪ سبز)**
-- **Frontend Vitest**: **۴۱۵ تست سبز در ۵۹ فایل** (`415 passed`)
+- **Frontend Vitest**: **۴۱۷ تست سبز در ۶۰ فایل** (`417 passed`)
 - **Backend Pytest**: **۶۵۵ تست سبز، ۲ اسکیپ** (`655 passed, 2 skipped`)
 - **Deterministic Sensors**: ۴ از ۴ سنسور ۱۰۰٪ سبز (`scroll_audit`, `menu_open_proof`, `semantic_widget_audit`, `mutation_report`)
 - **Rebuild Live**: استقرار موفق پروداکشن ری‌بیلد روی پورت ۱۰۰۲ (BUILD_ID: `Pw13s8Ky7RqdZ8DOMXVTQ`)
@@ -20,8 +20,8 @@
 
 ---
 
-### 🎯 خلاصه دستاوردهای راند ۶۸ (Weight 9 Scoped CSS & Overload):
-1. **حل‌کننده استایل‌های ایزوله Scoped CSS**: پیاده‌سازی و یکپارچه‌سازی تابع `resolveScopedCss` با جایگزینی خودکار توکن استاندارد `{{WRAPPER}}` به سلکتور اسکوپ‌شده المان.
-2. **پیشگیری قطعی از نشت استایل**: مهار کدهای CSS سفارشی و ممانعت از تداخل آن‌ها با ساختار استودیو و المان‌های مجاور.
-3. **تثبیت کیفیت نهایی**: تایید رسمی نشان افتخارآمیز **BUILDER_GYM_ALL_LEVELS_MASTERED** با حضور ۴۱۵ تست وی‌تست و ۶۵۵ تست پای‌تست سبز.
-4. **تست‌های رگرسیون جدید**: افزودن تست واحد `builder-scoped-css.test.ts` و عبور کامل ۴۱۵ تست فرانت‌اند.
+### 🎯 خلاصه دستاوردهای راند ۶۹ (Weight 9 Motion & Animation Overload):
+1. **انیمیشن‌های ورود و افکت‌های حرکتی**: تنظیم و تثبیت کلاس‌های `builder-animate-*` با مدت‌زمان و تاخیر دقیق بر حسب ثانیه.
+2. **ترنزیشن‌های پیشرفته هاور**: سایه‌گذاری‌های روان (`hoverBoxShadow`) بدون افت فریم یا شکستگی استایل.
+3. **تثبیت کیفیت نهایی**: تایید رسمی نشان افتخارآمیز **BUILDER_GYM_ALL_LEVELS_MASTERED** با حضور ۴۱۷ تست وی‌تست و ۶۵۵ تست پای‌تست سبز.
+4. **تست‌های رگرسیون جدید**: افزودن تست واحد `builder-weight9-motion-effects.test.ts` و عبور کامل ۴۱۷ تست فرانت‌اند.

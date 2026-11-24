@@ -280,4 +280,44 @@ describe("Visual Page Builder Zustand Store & Undo/Redo Engine (Phase P1)", () =
     expect(getIconSvgPath("star")).toContain("M12 2l3.09");
     expect(getIconSvgPath("shield-check")).toBeDefined();
   });
+
+  it("applies container column presets atomically with single history entry", () => {
+    const containerId = useBuilderStore.getState().ast.rootElements[0]!.id;
+    const initialPastLength = useBuilderStore.getState().history.past.length;
+
+    const childCols: BuilderElement[] = [
+      {
+        id: "col_1",
+        name: "ستون ۱",
+        type: "container",
+        isLocked: false,
+        isHidden: false,
+        layout: { kind: "flex", direction: "column", justifyContent: "start", alignItems: "stretch", flexWrap: "nowrap", gap: { value: 16, unit: "px" }, gridColumns: 1 },
+        styles: { mobile: {} },
+        children: [],
+      },
+      {
+        id: "col_2",
+        name: "ستون ۲",
+        type: "container",
+        isLocked: false,
+        isHidden: false,
+        layout: { kind: "flex", direction: "column", justifyContent: "start", alignItems: "stretch", flexWrap: "nowrap", gap: { value: 16, unit: "px" }, gridColumns: 1 },
+        styles: { mobile: {} },
+        children: [],
+      },
+    ];
+
+    useBuilderStore.getState().applyContainerStructure(
+      containerId,
+      { kind: "grid", gridColumns: 2 },
+      childCols
+    );
+
+    const updated = findElementById(useBuilderStore.getState().ast.rootElements, containerId);
+    expect(updated?.layout?.kind).toBe("grid");
+    expect(updated?.layout?.gridColumns).toBe(2);
+    expect(updated?.children).toHaveLength(2);
+    expect(useBuilderStore.getState().history.past).toHaveLength(initialPastLength + 1);
+  });
 });

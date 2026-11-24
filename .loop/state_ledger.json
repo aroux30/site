@@ -1,21 +1,21 @@
 {
   "version": "3.2",
   "activeWeight": 9,
-  "activeRound": 56,
+  "activeRound": 57,
   "status": "COMPLETED",
   "levels1to5Status": "BUILDER_GYM_LEVELS_1_TO_5_CLEAN",
   "allLevelsMastered": "BUILDER_GYM_ALL_LEVELS_MASTERED",
   "verificationPort": 1001,
-  "completedRounds": 55,
+  "completedRounds": 57,
   "metrics": {
     "typeCheckErrors": 0,
-    "frontendUnitTests": 383,
+    "frontendUnitTests": 384,
     "backendUnitTests": 654,
-    "playwrightTests": 2,
+    "playwrightTests": 4,
     "registeredBlocks": 76,
     "lastVerifierVerdict": "APPROVE"
   },
-  "timestamp": "2026-11-24T08:33:26.142Z",
+  "timestamp": "2026-11-24T09:39:27.466Z",
   "defect_ledger": [
     {
       "id": "DEFECT-R41-01",
@@ -448,6 +448,24 @@
       "summary": "Toolbar breakpoint switcher lacked shrink-0 causing label compression in 1280x720 and 1440x900 viewports",
       "status": "FIXED",
       "round": 55
+    },
+    {
+      "id": "DEFECT-R57-01",
+      "severity": "P1",
+      "component": "atomic_container_presets",
+      "layer": "frontend/stores/builder-store.ts",
+      "summary": "Inserting container structure preset made multiple separate addElement calls corrupting undo history",
+      "status": "FIXED",
+      "round": 57
+    },
+    {
+      "id": "DEFECT-R57-02",
+      "severity": "P2",
+      "component": "container_preset_picker",
+      "layer": "frontend/components/admin/builder/container-preset-picker.tsx",
+      "summary": "Empty container structure picker lacked atomic store transaction integration",
+      "status": "FIXED",
+      "round": 57
     }
   ]
 }

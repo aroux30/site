@@ -252,6 +252,11 @@ export interface BuilderState {
   // Container nesting & unwrap helpers (Elementor Container Tools)
   wrapInContainer: (id: string) => void;
   unwrapContainer: (id: string) => void;
+  applyContainerStructure: (
+    containerId: string,
+    layoutPatch: Partial<NonNullable<BuilderElement["layout"]>>,
+    children: BuilderElement[]
+  ) => void;
 
   // History & Save (Elementor Actions & Revisions Parity)
   jumpToHistoryStep: (index: number) => void;
@@ -1072,6 +1077,38 @@ export const useBuilderStore = create<BuilderState>((set, get) => ({
       ast: { ...ast, rootElements: updatedRoots },
       selectedElementId: children[0]?.id || null,
       selectedElementIds: children[0]?.id ? [children[0].id] : [],
+      isDirty: true,
+      mutationVersion: get().mutationVersion + 1,
+      history: { past: newPast, future: [] },
+    });
+  },
+
+  applyContainerStructure: (containerId, layoutPatch, children) => {
+    const { ast, history } = get();
+    const newPast = [...history.past, ast].slice(-MAX_HISTORY_LENGTH);
+
+    const updatedRoots = updateElementInTree(ast.rootElements, containerId, (container) => {
+      const currentLayout = container.layout || {
+        kind: "flex",
+        direction: "column",
+        justifyContent: "start",
+        alignItems: "stretch",
+        flexWrap: "nowrap",
+        gap: { value: 16, unit: "px" },
+        gridColumns: 1,
+      };
+      return {
+        ...container,
+        layout: { ...currentLayout, ...layoutPatch },
+        children: [...children],
+      };
+    });
+
+    const firstChildId = children[0]?.id || containerId;
+    set({
+      ast: { ...ast, rootElements: updatedRoots },
+      selectedElementId: firstChildId,
+      selectedElementIds: [firstChildId],
       isDirty: true,
       mutationVersion: get().mutationVersion + 1,
       history: { past: newPast, future: [] },

@@ -406,9 +406,11 @@ class ASTCompiler:
         elif widget_type == "star_rating":
             val = props.get("value", 5)
             rev_cnt = props.get("reviewCount", 0)
+            star_path = "M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
+            svg_star = f'<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" stroke="none" aria-hidden="true" class="text-amber-400 shrink-0"><path d="{star_path}"></path></svg>'
             return (
                 f'<div{id_attr} class="builder-star-rating inline-flex items-center gap-1.5 p-2 rounded-lg bg-card border {css_class}" data-widget="star_rating"{style_attr}>'
-                f'<span class="text-amber-400 font-bold">★ {val}</span>'
+                f'<div class="flex items-center gap-1 font-bold text-amber-500">{svg_star}<span>{val}</span></div>'
                 f'<span class="text-xs text-muted-foreground">({rev_cnt} نظر)</span>'
                 f'</div>'
             )

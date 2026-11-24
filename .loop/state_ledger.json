@@ -1,22 +1,22 @@
 {
   "version": "4.2",
-  "activeWeight": 1,
-  "activeRound": 51,
+  "activeWeight": 2,
+  "activeRound": 52,
   "status": "COMPLETED",
   "levels1to5Status": "BUILDER_GYM_LEVELS_1_TO_5_CLEAN",
   "allLevelsMastered": "BUILDER_GYM_ALL_LEVELS_MASTERED",
   "verificationPort": 1005,
-  "completedRounds": 51,
+  "completedRounds": 52,
   "metrics": {
     "typeCheckErrors": 0,
     "frontendUnitTests": 380,
     "backendUnitTests": 650,
-    "playwrightTests": 8,
+    "playwrightTests": 12,
     "registeredBlocks": 73,
     "registeredPatterns": 28,
     "lastVerifierVerdict": "APPROVE"
   },
-  "timestamp": "2026-11-24T02:30:00.000Z",
+  "timestamp": "2026-11-24T03:00:00.000Z",
   "defect_ledger": [
     {
       "id": "DEFECT-R41-01",
@@ -278,6 +278,24 @@
       "summary": "Theme tokens in iframe lacked --*-hex variable counterpart for raw color consumption",
       "status": "FIXED",
       "round": 51
+    },
+    {
+      "id": "DEFECT-W2-01",
+      "severity": "P1",
+      "component": "star_rating",
+      "layer": "ast_compiler_svg",
+      "summary": "star_rating in ast_compiler compiled unicode star character instead of vector SVG element",
+      "status": "FIXED",
+      "round": 52
+    },
+    {
+      "id": "DEFECT-W2-02",
+      "severity": "P1",
+      "component": "builder_studio",
+      "layer": "window_store_attachment",
+      "summary": "window.__builderStore was bound only in useEffect causing intermittent undefined access during initial SSR mount",
+      "status": "FIXED",
+      "round": 52
     }
   ]
 }

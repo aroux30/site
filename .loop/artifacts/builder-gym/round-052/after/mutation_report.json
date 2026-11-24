@@ -1,0 +1,12 @@
+{
+  "timestamp": "2026-11-24T06:36:19.686Z",
+  "activeNudgeTested": true,
+  "pixelmatchChangedPixels": 27731,
+  "pixelmatchPassed": true,
+  "pageErrorsCount": 0,
+  "pageErrors": [],
+  "networkErrorsCount": 0,
+  "networkErrors": [],
+  "hydrationErrorsCount": 0,
+  "darkAndRtlModeHealthy": true
+}

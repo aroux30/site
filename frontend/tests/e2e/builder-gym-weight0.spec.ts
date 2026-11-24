@@ -39,6 +39,8 @@ test.describe("Builder Gym Weight 0: Triage Emergency Parity on Port 1005", () =
     if (token) {
       await context.addCookies([
         { name: "access_token", value: token, url: BASE_URL, httpOnly: false, sameSite: "Lax" },
+        { name: "access_token", value: token, url: "http://localhost:1005", httpOnly: false, sameSite: "Lax" },
+        { name: "access_token", value: token, url: "http://127.0.0.1:1005", httpOnly: false, sameSite: "Lax" },
       ]);
     }
     await context.setExtraHTTPHeaders({

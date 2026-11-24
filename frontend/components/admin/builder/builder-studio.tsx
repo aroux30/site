@@ -24,6 +24,10 @@ export interface BuilderStudioProps {
 }
 
 export function BuilderStudio({ page, onExit }: BuilderStudioProps) {
+  if (typeof window !== "undefined") {
+    (window as any).__builderStore = useBuilderStore;
+    (window as any).__BUILDER_STORE__ = useBuilderStore;
+  }
   const { toast } = useToast();
 
   const ast = useBuilderStore((s) => s.ast);

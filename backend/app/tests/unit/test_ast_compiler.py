@@ -203,7 +203,8 @@ def test_ast_compiler_renders_phase_3_storefront_widgets():
     assert 'builder-product-card' in result
     assert 'ساعت هوشمند گلکسی' in result
     assert 'builder-star-rating' in result
-    assert '★ 4.9' in result
+    assert '4.9' in result
+    assert '<svg' in result
     assert 'builder-review-histogram' in result
     assert '۴۲ نظر' in result or '(42 نظر)' in result
     assert 'builder-recently-viewed' in result

@@ -1,22 +1,31 @@
 {
   "version": "4.2",
   "activeWeight": 9,
-  "activeRound": 67,
+  "activeRound": 68,
   "status": "ALL_LEVELS_MASTERED",
   "levels1to5Status": "BUILDER_GYM_LEVELS_1_TO_5_CLEAN",
   "allLevelsMastered": "BUILDER_GYM_ALL_LEVELS_MASTERED",
   "verificationPort": 1002,
-  "completedRounds": 66,
+  "completedRounds": 67,
   "metrics": {
     "typeCheckErrors": 0,
-    "frontendUnitTests": 412,
+    "frontendUnitTests": 415,
     "backendUnitTests": 655,
     "playwrightTests": 5,
     "registeredBlocks": 68,
     "lastVerifierVerdict": "APPROVE"
   },
-  "timestamp": "2026-11-24T11:40:00.000Z",
+  "timestamp": "2026-11-24T12:15:00.000Z",
   "defect_ledger": [
+    {
+      "id": "DEFECT-W9-05",
+      "severity": "P2",
+      "round": 68,
+      "title": "Scoped CSS {{WRAPPER}} selector resolution and isolation",
+      "status": "FIXED",
+      "layer": "frontend/lib/builder/scoped-css.ts",
+      "description": "Implemented and verified resolveScopedCss ensuring custom CSS rules targeting {{WRAPPER}} are cleanly scoped to the element."
+    },
     {
       "id": "DEFECT-W9-04",
       "severity": "P2",

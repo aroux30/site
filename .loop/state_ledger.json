@@ -1,21 +1,21 @@
 {
   "version": "4.2",
   "activeWeight": 9,
-  "activeRound": 62,
+  "activeRound": 63,
   "status": "COMPLETED",
   "levels1to5Status": "BUILDER_GYM_LEVELS_1_TO_5_CLEAN",
   "allLevelsMastered": "BUILDER_GYM_ALL_LEVELS_MASTERED",
   "verificationPort": 1003,
-  "completedRounds": 62,
+  "completedRounds": 63,
   "metrics": {
     "typeCheckErrors": 0,
     "frontendUnitTests": 383,
     "backendUnitTests": 656,
-    "playwrightTests": 8,
+    "playwrightTests": 9,
     "registeredBlocks": 76,
     "lastVerifierVerdict": "APPROVE"
   },
-  "timestamp": "2026-11-24T11:15:00.000Z",
+  "timestamp": "2026-11-24T11:45:00.000Z",
   "defect_ledger": [
     {
       "id": "DEFECT-R41-01",
@@ -511,6 +511,15 @@
       "summary": "Layers tree rows lacked explicit data-testid hooks for individual element selection; added data-testid layer-row-id attribute",
       "status": "FIXED",
       "round": 62
+    },
+    {
+      "id": "DEFECT-R63-01",
+      "severity": "P2",
+      "component": "history_panel",
+      "layer": "frontend/components/admin/builder/history-panel.tsx",
+      "summary": "History panel timeline buttons lacked data-testid selector hooks for automated undo/redo jump tests; added data-testid history-step-idx",
+      "status": "FIXED",
+      "round": 63
     }
   ]
 }

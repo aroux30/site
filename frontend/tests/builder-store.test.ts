@@ -267,4 +267,17 @@ describe("Visual Page Builder Zustand Store & Undo/Redo Engine (Phase P1)", () =
     let restored = findElementById(useBuilderStore.getState().ast.rootElements, targetEl.id);
     expect(restored?.styles?.mobile?.opacity).toBe(0.5);
   });
+
+  it("verifies RTL guidance text directs to right panel and icon registry exports valid SVG path", async () => {
+    const defaultAst = useBuilderStore.getState().ast;
+    const textWidget = defaultAst.rootElements[0]?.children?.find((c) => c.widgetType === "text_editor");
+    expect(textWidget).toBeDefined();
+    expect(String(textWidget?.widgetProps?.content)).toContain("پنل سمت راست");
+    expect(String(textWidget?.widgetProps?.content)).not.toContain("پنل سمت چپ");
+
+    const { getIconSvgPath, ICON_SVG_PATHS } = await import("@/lib/builder/icon-registry");
+    expect(ICON_SVG_PATHS.star).toBeDefined();
+    expect(getIconSvgPath("star")).toContain("M12 2l3.09");
+    expect(getIconSvgPath("shield-check")).toBeDefined();
+  });
 });

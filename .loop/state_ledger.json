@@ -1,21 +1,21 @@
 {
   "version": "3.2",
-  "activeWeight": 9,
-  "activeRound": 54,
+  "activeWeight": 0,
+  "activeRound": 55,
   "status": "COMPLETED",
   "levels1to5Status": "BUILDER_GYM_LEVELS_1_TO_5_CLEAN",
   "allLevelsMastered": "BUILDER_GYM_ALL_LEVELS_MASTERED",
   "verificationPort": 1001,
-  "completedRounds": 54,
+  "completedRounds": 55,
   "metrics": {
     "typeCheckErrors": 0,
-    "frontendUnitTests": 380,
-    "backendUnitTests": 653,
-    "playwrightTests": 4,
+    "frontendUnitTests": 383,
+    "backendUnitTests": 654,
+    "playwrightTests": 2,
     "registeredBlocks": 76,
     "lastVerifierVerdict": "APPROVE"
   },
-  "timestamp": "2026-11-23T23:00:00.000Z",
+  "timestamp": "2026-11-24T08:03:34.606Z",
   "defect_ledger": [
     {
       "id": "DEFECT-R41-01",
@@ -412,6 +412,42 @@
       "summary": "globals.css was missing @keyframes for builderBounceIn and builderRotateIn",
       "status": "FIXED",
       "round": 53
+    },
+    {
+      "id": "DEFECT-R55-01",
+      "severity": "P0",
+      "component": "builder_store_rtl",
+      "layer": "frontend/stores/builder-store.ts",
+      "summary": "Default RTL guidance text erroneously directed user to left panel instead of right palette",
+      "status": "FIXED",
+      "round": 55
+    },
+    {
+      "id": "DEFECT-R55-02",
+      "severity": "P0",
+      "component": "icon_vector_svg",
+      "layer": "backend/app/modules/content/application/ast_compiler.py & frontend/lib/builder/icon-registry.ts",
+      "summary": "Icon widget rendered raw string slug in ast_compiler instead of valid vector SVG and lacked icon-registry.ts",
+      "status": "FIXED",
+      "round": 55
+    },
+    {
+      "id": "DEFECT-R55-03",
+      "severity": "P1",
+      "component": "inspector_style_reset",
+      "layer": "frontend/components/admin/builder/inspector-panel.tsx",
+      "summary": "Style tab lacked dedicated reset buttons for padding and margin causing cumulative value drift",
+      "status": "FIXED",
+      "round": 55
+    },
+    {
+      "id": "DEFECT-R55-04",
+      "severity": "P1",
+      "component": "toolbar_responsive_collision",
+      "layer": "frontend/components/admin/builder/builder-toolbar.tsx",
+      "summary": "Toolbar breakpoint switcher lacked shrink-0 causing label compression in 1280x720 and 1440x900 viewports",
+      "status": "FIXED",
+      "round": 55
     }
   ]
 }

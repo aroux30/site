@@ -163,7 +163,7 @@ export function createDefaultAST(title = "برگه جدید", slug = "new-page")
             widgetType: "text_editor",
             widgetProps: {
               content:
-                "<p>برای ویرایش این بخش روی آن کلیک کنید یا از پنل سمت چپ عناصر جدید اضافه نمایید.</p>",
+                "<p>برای ویرایش این بخش روی آن کلیک کنید یا از پنل سمت راست عناصر جدید اضافه نمایید.</p>",
             },
             isLocked: false,
             isHidden: false,

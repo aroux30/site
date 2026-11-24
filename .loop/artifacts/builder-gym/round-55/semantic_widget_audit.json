@@ -1,0 +1,17 @@
+{
+  "round": 55,
+  "timestamp": "2026-11-24T07:27:11.364Z",
+  "iconWidget": {
+    "rendersSvgElement": true,
+    "hasValidVectorPath": true,
+    "noRawTextSlugLeaked": true,
+    "slugTested": "star",
+    "result": "<svg><path d=\"...\"></path></svg>"
+  },
+  "rtlGuidanceText": {
+    "actual": "از پنل سمت راست عناصر جدید اضافه نمایید.",
+    "correctOrientation": "پنل سمت راست",
+    "noLeftPanelLeak": true
+  },
+  "status": "PASS"
+}

@@ -1,0 +1,1394 @@
+{
+  "version": "4.2",
+  "timestamp": "2026-11-24T06:49:37.194Z",
+  "counts": {
+    "totalBlocks": 73,
+    "totalPatterns": 28,
+    "totalCells": 247
+  },
+  "blocks": [
+    {
+      "type": "container",
+      "tabs": {
+        "content": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "style": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "advanced": {
+          "verified": true,
+          "status": "PASS"
+        }
+      }
+    },
+    {
+      "type": "section",
+      "tabs": {
+        "content": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "style": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "advanced": {
+          "verified": true,
+          "status": "PASS"
+        }
+      }
+    },
+    {
+      "type": "columns",
+      "tabs": {
+        "content": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "style": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "advanced": {
+          "verified": true,
+          "status": "PASS"
+        }
+      }
+    },
+    {
+      "type": "form_container",
+      "tabs": {
+        "content": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "style": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "advanced": {
+          "verified": true,
+          "status": "PASS"
+        }
+      }
+    },
+    {
+      "type": "heading",
+      "tabs": {
+        "content": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "style": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "advanced": {
+          "verified": true,
+          "status": "PASS"
+        }
+      }
+    },
+    {
+      "type": "widget",
+      "tabs": {
+        "content": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "style": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "advanced": {
+          "verified": true,
+          "status": "PASS"
+        }
+      }
+    },
+    {
+      "type": "text_editor",
+      "tabs": {
+        "content": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "style": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "advanced": {
+          "verified": true,
+          "status": "PASS"
+        }
+      }
+    },
+    {
+      "type": "image",
+      "tabs": {
+        "content": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "style": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "advanced": {
+          "verified": true,
+          "status": "PASS"
+        }
+      }
+    },
+    {
+      "type": "button",
+      "tabs": {
+        "content": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "style": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "advanced": {
+          "verified": true,
+          "status": "PASS"
+        }
+      }
+    },
+    {
+      "type": "spacer",
+      "tabs": {
+        "content": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "style": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "advanced": {
+          "verified": true,
+          "status": "PASS"
+        }
+      }
+    },
+    {
+      "type": "divider",
+      "tabs": {
+        "content": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "style": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "advanced": {
+          "verified": true,
+          "status": "PASS"
+        }
+      }
+    },
+    {
+      "type": "table",
+      "tabs": {
+        "content": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "style": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "advanced": {
+          "verified": true,
+          "status": "PASS"
+        }
+      }
+    },
+    {
+      "type": "form_input",
+      "tabs": {
+        "content": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "style": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "advanced": {
+          "verified": true,
+          "status": "PASS"
+        }
+      }
+    },
+    {
+      "type": "text",
+      "tabs": {
+        "content": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "style": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "advanced": {
+          "verified": true,
+          "status": "PASS"
+        }
+      }
+    },
+    {
+      "type": "form_textarea",
+      "tabs": {
+        "content": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "style": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "advanced": {
+          "verified": true,
+          "status": "PASS"
+        }
+      }
+    },
+    {
+      "type": "form_select",
+      "tabs": {
+        "content": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "style": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "advanced": {
+          "verified": true,
+          "status": "PASS"
+        }
+      }
+    },
+    {
+      "type": "product_card",
+      "tabs": {
+        "content": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "style": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "advanced": {
+          "verified": true,
+          "status": "PASS"
+        }
+      }
+    },
+    {
+      "type": "product_grid",
+      "tabs": {
+        "content": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "style": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "advanced": {
+          "verified": true,
+          "status": "PASS"
+        }
+      }
+    },
+    {
+      "type": "product_variants",
+      "tabs": {
+        "content": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "style": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "advanced": {
+          "verified": true,
+          "status": "PASS"
+        }
+      }
+    },
+    {
+      "type": "product_price",
+      "tabs": {
+        "content": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "style": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "advanced": {
+          "verified": true,
+          "status": "PASS"
+        }
+      }
+    },
+    {
+      "type": "add_to_cart",
+      "tabs": {
+        "content": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "style": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "advanced": {
+          "verified": true,
+          "status": "PASS"
+        }
+      }
+    },
+    {
+      "type": "mini_cart",
+      "tabs": {
+        "content": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "style": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "advanced": {
+          "verified": true,
+          "status": "PASS"
+        }
+      }
+    },
+    {
+      "type": "cart_summary",
+      "tabs": {
+        "content": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "style": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "advanced": {
+          "verified": true,
+          "status": "PASS"
+        }
+      }
+    },
+    {
+      "type": "form_checkbox",
+      "tabs": {
+        "content": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "style": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "advanced": {
+          "verified": true,
+          "status": "PASS"
+        }
+      }
+    },
+    {
+      "type": "form_radio",
+      "tabs": {
+        "content": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "style": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "advanced": {
+          "verified": true,
+          "status": "PASS"
+        }
+      }
+    },
+    {
+      "type": "accordion",
+      "tabs": {
+        "content": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "style": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "advanced": {
+          "verified": true,
+          "status": "PASS"
+        }
+      }
+    },
+    {
+      "type": "tabs",
+      "tabs": {
+        "content": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "style": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "advanced": {
+          "verified": true,
+          "status": "PASS"
+        }
+      }
+    },
+    {
+      "type": "countdown",
+      "tabs": {
+        "content": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "style": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "advanced": {
+          "verified": true,
+          "status": "PASS"
+        }
+      }
+    },
+    {
+      "type": "video",
+      "tabs": {
+        "content": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "style": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "advanced": {
+          "verified": true,
+          "status": "PASS"
+        }
+      }
+    },
+    {
+      "type": "aparat",
+      "tabs": {
+        "content": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "style": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "advanced": {
+          "verified": true,
+          "status": "PASS"
+        }
+      }
+    },
+    {
+      "type": "icon_box",
+      "tabs": {
+        "content": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "style": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "advanced": {
+          "verified": true,
+          "status": "PASS"
+        }
+      }
+    },
+    {
+      "type": "social_links",
+      "tabs": {
+        "content": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "style": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "advanced": {
+          "verified": true,
+          "status": "PASS"
+        }
+      }
+    },
+    {
+      "type": "image_gallery",
+      "tabs": {
+        "content": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "style": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "advanced": {
+          "verified": true,
+          "status": "PASS"
+        }
+      }
+    },
+    {
+      "type": "star_rating",
+      "tabs": {
+        "content": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "style": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "advanced": {
+          "verified": true,
+          "status": "PASS"
+        }
+      }
+    },
+    {
+      "type": "review_histogram",
+      "tabs": {
+        "content": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "style": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "advanced": {
+          "verified": true,
+          "status": "PASS"
+        }
+      }
+    },
+    {
+      "type": "recently_viewed",
+      "tabs": {
+        "content": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "style": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "advanced": {
+          "verified": true,
+          "status": "PASS"
+        }
+      }
+    },
+    {
+      "type": "mega_menu",
+      "tabs": {
+        "content": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "style": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "advanced": {
+          "verified": true,
+          "status": "PASS"
+        }
+      }
+    },
+    {
+      "type": "counter",
+      "tabs": {
+        "content": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "style": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "advanced": {
+          "verified": true,
+          "status": "PASS"
+        }
+      }
+    },
+    {
+      "type": "alert",
+      "tabs": {
+        "content": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "style": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "advanced": {
+          "verified": true,
+          "status": "PASS"
+        }
+      }
+    },
+    {
+      "type": "info",
+      "tabs": {
+        "content": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "style": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "advanced": {
+          "verified": true,
+          "status": "PASS"
+        }
+      }
+    },
+    {
+      "type": "progress_bar",
+      "tabs": {
+        "content": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "style": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "advanced": {
+          "verified": true,
+          "status": "PASS"
+        }
+      }
+    },
+    {
+      "type": "testimonial",
+      "tabs": {
+        "content": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "style": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "advanced": {
+          "verified": true,
+          "status": "PASS"
+        }
+      }
+    },
+    {
+      "type": "call_to_action",
+      "tabs": {
+        "content": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "style": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "advanced": {
+          "verified": true,
+          "status": "PASS"
+        }
+      }
+    },
+    {
+      "type": "animated_headline",
+      "tabs": {
+        "content": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "style": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "advanced": {
+          "verified": true,
+          "status": "PASS"
+        }
+      }
+    },
+    {
+      "type": "flip_box",
+      "tabs": {
+        "content": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "style": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "advanced": {
+          "verified": true,
+          "status": "PASS"
+        }
+      }
+    },
+    {
+      "type": "menu_anchor",
+      "tabs": {
+        "content": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "style": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "advanced": {
+          "verified": true,
+          "status": "PASS"
+        }
+      }
+    },
+    {
+      "type": "icon_list",
+      "tabs": {
+        "content": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "style": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "advanced": {
+          "verified": true,
+          "status": "PASS"
+        }
+      }
+    },
+    {
+      "type": "blockquote",
+      "tabs": {
+        "content": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "style": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "advanced": {
+          "verified": true,
+          "status": "PASS"
+        }
+      }
+    },
+    {
+      "type": "price_table",
+      "tabs": {
+        "content": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "style": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "advanced": {
+          "verified": true,
+          "status": "PASS"
+        }
+      }
+    },
+    {
+      "type": "image_box",
+      "tabs": {
+        "content": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "style": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "advanced": {
+          "verified": true,
+          "status": "PASS"
+        }
+      }
+    },
+    {
+      "type": "price_list",
+      "tabs": {
+        "content": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "style": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "advanced": {
+          "verified": true,
+          "status": "PASS"
+        }
+      }
+    },
+    {
+      "type": "share_buttons",
+      "tabs": {
+        "content": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "style": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "advanced": {
+          "verified": true,
+          "status": "PASS"
+        }
+      }
+    },
+    {
+      "type": "image_carousel",
+      "tabs": {
+        "content": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "style": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "advanced": {
+          "verified": true,
+          "status": "PASS"
+        }
+      }
+    },
+    {
+      "type": "toggle",
+      "tabs": {
+        "content": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "style": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "advanced": {
+          "verified": true,
+          "status": "PASS"
+        }
+      }
+    },
+    {
+      "type": "hotspot",
+      "tabs": {
+        "content": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "style": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "advanced": {
+          "verified": true,
+          "status": "PASS"
+        }
+      }
+    },
+    {
+      "type": "table_of_contents",
+      "tabs": {
+        "content": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "style": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "advanced": {
+          "verified": true,
+          "status": "PASS"
+        }
+      }
+    },
+    {
+      "type": "progress_tracker",
+      "tabs": {
+        "content": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "style": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "advanced": {
+          "verified": true,
+          "status": "PASS"
+        }
+      }
+    },
+    {
+      "type": "horizontal",
+      "tabs": {
+        "content": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "style": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "advanced": {
+          "verified": true,
+          "status": "PASS"
+        }
+      }
+    },
+    {
+      "type": "lottie",
+      "tabs": {
+        "content": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "style": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "advanced": {
+          "verified": true,
+          "status": "PASS"
+        }
+      }
+    },
+    {
+      "type": "floating_bar",
+      "tabs": {
+        "content": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "style": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "advanced": {
+          "verified": true,
+          "status": "PASS"
+        }
+      }
+    },
+    {
+      "type": "off_canvas",
+      "tabs": {
+        "content": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "style": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "advanced": {
+          "verified": true,
+          "status": "PASS"
+        }
+      }
+    },
+    {
+      "type": "popup_builder",
+      "tabs": {
+        "content": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "style": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "advanced": {
+          "verified": true,
+          "status": "PASS"
+        }
+      }
+    },
+    {
+      "type": "loop_grid",
+      "tabs": {
+        "content": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "style": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "advanced": {
+          "verified": true,
+          "status": "PASS"
+        }
+      }
+    },
+    {
+      "type": "multi_step_form",
+      "tabs": {
+        "content": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "style": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "advanced": {
+          "verified": true,
+          "status": "PASS"
+        }
+      }
+    },
+    {
+      "type": "slides",
+      "tabs": {
+        "content": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "style": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "advanced": {
+          "verified": true,
+          "status": "PASS"
+        }
+      }
+    },
+    {
+      "type": "code_highlight",
+      "tabs": {
+        "content": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "style": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "advanced": {
+          "verified": true,
+          "status": "PASS"
+        }
+      }
+    },
+    {
+      "type": "nested_tabs",
+      "tabs": {
+        "content": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "style": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "advanced": {
+          "verified": true,
+          "status": "PASS"
+        }
+      }
+    },
+    {
+      "type": "nested_accordion",
+      "tabs": {
+        "content": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "style": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "advanced": {
+          "verified": true,
+          "status": "PASS"
+        }
+      }
+    },
+    {
+      "type": "loop_carousel",
+      "tabs": {
+        "content": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "style": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "advanced": {
+          "verified": true,
+          "status": "PASS"
+        }
+      }
+    },
+    {
+      "type": "icon",
+      "tabs": {
+        "content": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "style": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "advanced": {
+          "verified": true,
+          "status": "PASS"
+        }
+      }
+    },
+    {
+      "type": "breadcrumbs",
+      "tabs": {
+        "content": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "style": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "advanced": {
+          "verified": true,
+          "status": "PASS"
+        }
+      }
+    },
+    {
+      "type": "search_bar",
+      "tabs": {
+        "content": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "style": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "advanced": {
+          "verified": true,
+          "status": "PASS"
+        }
+      }
+    },
+    {
+      "type": "nav_menu",
+      "tabs": {
+        "content": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "style": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "advanced": {
+          "verified": true,
+          "status": "PASS"
+        }
+      }
+    }
+  ],
+  "patterns": [
+    {
+      "id": "hero-banner",
+      "verified": true,
+      "status": "PASS"
+    },
+    {
+      "id": "feature-grid",
+      "verified": true,
+      "status": "PASS"
+    },
+    {
+      "id": "product-showcase-cta",
+      "verified": true,
+      "status": "PASS"
+    },
+    {
+      "id": "testimonials",
+      "verified": true,
+      "status": "PASS"
+    },
+    {
+      "id": "faq-accordion",
+      "verified": true,
+      "status": "PASS"
+    },
+    {
+      "id": "image-text",
+      "verified": true,
+      "status": "PASS"
+    },
+    {
+      "id": "countdown-offer",
+      "verified": true,
+      "status": "PASS"
+    },
+    {
+      "id": "star-rating-display",
+      "verified": true,
+      "status": "PASS"
+    },
+    {
+      "id": "review-histogram",
+      "verified": true,
+      "status": "PASS"
+    },
+    {
+      "id": "product-card-grid",
+      "verified": true,
+      "status": "PASS"
+    },
+    {
+      "id": "text-marquee",
+      "verified": true,
+      "status": "PASS"
+    },
+    {
+      "id": "stats-counter",
+      "verified": true,
+      "status": "PASS"
+    },
+    {
+      "id": "image-gallery-showcase",
+      "verified": true,
+      "status": "PASS"
+    },
+    {
+      "id": "discount-badge-banner",
+      "verified": true,
+      "status": "PASS"
+    },
+    {
+      "id": "mega-menu-categories",
+      "verified": true,
+      "status": "PASS"
+    },
+    {
+      "id": "pricing-table",
+      "verified": true,
+      "status": "PASS"
+    },
+    {
+      "id": "price-list",
+      "verified": true,
+      "status": "PASS"
+    },
+    {
+      "id": "icon-box-grid",
+      "verified": true,
+      "status": "PASS"
+    },
+    {
+      "id": "author-bio",
+      "verified": true,
+      "status": "PASS"
+    },
+    {
+      "id": "pull-quote",
+      "verified": true,
+      "status": "PASS"
+    },
+    {
+      "id": "support-callout",
+      "verified": true,
+      "status": "PASS"
+    },
+    {
+      "id": "comparison-table",
+      "verified": true,
+      "status": "PASS"
+    },
+    {
+      "id": "process-steps",
+      "verified": true,
+      "status": "PASS"
+    },
+    {
+      "id": "lead-capture-form",
+      "verified": true,
+      "status": "PASS"
+    },
+    {
+      "id": "alert-banner",
+      "verified": true,
+      "status": "PASS"
+    },
+    {
+      "id": "floating-contact-bar",
+      "verified": true,
+      "status": "PASS"
+    },
+    {
+      "id": "brand-logo-carousel",
+      "verified": true,
+      "status": "PASS"
+    },
+    {
+      "id": "product-highlights",
+      "verified": true,
+      "status": "PASS"
+    }
+  ]
+}

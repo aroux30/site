@@ -3627,8 +3627,8 @@ export function InspectorPanel() {
     return (
       <div className="space-y-5">
         {/* Device Switcher Indicator */}
-        <div className="flex items-center justify-between p-2 rounded-lg bg-muted/60 border border-border/80">
-          <span className="text-[11px] font-semibold text-foreground">
+        <div className="flex items-center justify-between p-2 rounded-lg bg-muted/60 border border-border/80 gap-1">
+          <span className="text-[11px] font-semibold text-foreground truncate">
             ویرایش استایل:{" "}
             {activeBreakpoint === "mobile"
               ? "موبایل (پایه)"
@@ -3636,7 +3636,7 @@ export function InspectorPanel() {
               ? "تبلت (md:)"
               : "دسکتاپ (lg:)"}
           </span>
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1 shrink-0">
             <button
               type="button"
               onClick={() => setBreakpoint("mobile")}
@@ -3667,7 +3667,28 @@ export function InspectorPanel() {
         {/* Padding Box */}
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <Label className="text-xs font-bold text-foreground">فاصله داخلی (Padding)</Label>
+            <div className="flex items-center gap-1.5">
+              <Label className="text-xs font-bold text-foreground">فاصله داخلی (Padding)</Label>
+              <button
+                type="button"
+                data-testid="reset-padding-btn"
+                title="بازنشانی پدینگ به صفر"
+                onClick={() => {
+                  handleDeviceStyleChange({
+                    padding: {
+                      top: { value: 0, unit: "px" },
+                      right: { value: 0, unit: "px" },
+                      bottom: { value: 0, unit: "px" },
+                      left: { value: 0, unit: "px" },
+                      isLinked: true,
+                    },
+                  });
+                }}
+                className="text-[10px] text-muted-foreground hover:text-foreground px-1.5 py-0.5 rounded bg-muted/60 hover:bg-muted transition"
+              >
+                بازنشانی
+              </button>
+            </div>
             <button
               type="button"
               onClick={() => toggleSpacingLink("padding")}
@@ -3798,7 +3819,28 @@ export function InspectorPanel() {
         {/* Margin Box */}
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <Label className="text-xs font-bold text-foreground">فاصله خارجی (Margin)</Label>
+            <div className="flex items-center gap-1.5">
+              <Label className="text-xs font-bold text-foreground">فاصله خارجی (Margin)</Label>
+              <button
+                type="button"
+                data-testid="reset-margin-btn"
+                title="بازنشانی مارجین به صفر"
+                onClick={() => {
+                  handleDeviceStyleChange({
+                    margin: {
+                      top: { value: 0, unit: "px" },
+                      right: { value: 0, unit: "px" },
+                      bottom: { value: 0, unit: "px" },
+                      left: { value: 0, unit: "px" },
+                      isLinked: true,
+                    },
+                  });
+                }}
+                className="text-[10px] text-muted-foreground hover:text-foreground px-1.5 py-0.5 rounded bg-muted/60 hover:bg-muted transition"
+              >
+                بازنشانی
+              </button>
+            </div>
             <button
               type="button"
               onClick={() => toggleSpacingLink("margin")}

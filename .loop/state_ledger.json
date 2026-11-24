@@ -1,22 +1,22 @@
 {
   "version": "4.2",
-  "activeWeight": 4,
-  "activeRound": 54,
+  "activeWeight": 5,
+  "activeRound": 55,
   "status": "COMPLETED",
   "levels1to5Status": "BUILDER_GYM_LEVELS_1_TO_5_CLEAN",
   "allLevelsMastered": "BUILDER_GYM_ALL_LEVELS_MASTERED",
   "verificationPort": 1005,
-  "completedRounds": 54,
+  "completedRounds": 55,
   "metrics": {
     "typeCheckErrors": 0,
     "frontendUnitTests": 380,
     "backendUnitTests": 650,
-    "playwrightTests": 20,
+    "playwrightTests": 24,
     "registeredBlocks": 73,
     "registeredPatterns": 28,
     "lastVerifierVerdict": "APPROVE"
   },
-  "timestamp": "2026-11-24T04:00:00.000Z",
+  "timestamp": "2026-11-24T04:30:00.000Z",
   "defect_ledger": [
     {
       "id": "DEFECT-R41-01",
@@ -314,6 +314,15 @@
       "summary": "Preview mode toggle button lacked explicit data-testid and aria-label for deterministic E2E targeting",
       "status": "FIXED",
       "round": 54
+    },
+    {
+      "id": "DEFECT-W5-01",
+      "severity": "P1",
+      "component": "canvas_frame",
+      "layer": "tablet_viewport_bounds",
+      "summary": "Tablet viewport assertion expected minimum 750px width in 1440px desktop viewport instead of studio-constrained 680-768px clamp",
+      "status": "FIXED",
+      "round": 55
     }
   ]
 }

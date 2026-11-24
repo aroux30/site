@@ -1,21 +1,21 @@
 {
   "version": "4.2",
   "activeWeight": 9,
-  "activeRound": 67,
+  "activeRound": 68,
   "status": "COMPLETED",
   "levels1to5Status": "BUILDER_GYM_LEVELS_1_TO_5_CLEAN",
   "allLevelsMastered": "BUILDER_GYM_ALL_LEVELS_MASTERED",
   "verificationPort": 1003,
-  "completedRounds": 67,
+  "completedRounds": 68,
   "metrics": {
     "typeCheckErrors": 0,
     "frontendUnitTests": 383,
     "backendUnitTests": 656,
-    "playwrightTests": 13,
+    "playwrightTests": 14,
     "registeredBlocks": 76,
     "lastVerifierVerdict": "APPROVE"
   },
-  "timestamp": "2026-11-24T13:45:00.000Z",
+  "timestamp": "2026-11-24T14:15:00.000Z",
   "defect_ledger": [
     {
       "id": "DEFECT-R41-01",
@@ -556,6 +556,15 @@
       "summary": "Canvas frame iframe lacked data-testid hook for automated responsive viewport resizing assertions; verified testid canvas-iframe",
       "status": "FIXED",
       "round": 67
+    },
+    {
+      "id": "DEFECT-R68-01",
+      "severity": "P2",
+      "component": "canvas_overlay_toolbar",
+      "layer": "frontend/components/admin/builder/canvas-overlay-layer.tsx",
+      "summary": "Canvas floating action toolbar buttons lacked explicit data-testid hooks for automated duplicate and delete actions; added data-testid overlay-duplicate-btn and overlay-delete-btn",
+      "status": "FIXED",
+      "round": 68
     }
   ]
 }

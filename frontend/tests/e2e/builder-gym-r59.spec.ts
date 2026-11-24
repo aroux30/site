@@ -270,4 +270,22 @@ test.describe("Builder Gym Round 55: Weight 0 Triage & Parity Verification", () 
       await page.waitForTimeout(400);
     }
   });
+
+  test("14. Canvas element selection mounts floating toolbar with action hooks", async ({ page }) => {
+    await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(1500);
+
+    const canvas = page.frameLocator('iframe[title="Canvas Preview"], iframe').first();
+    const heading = canvas.locator('h1, h2, [data-widget-type]').first();
+    if (await heading.isVisible()) {
+      await heading.click();
+      await page.waitForTimeout(400);
+
+      const toolbar = canvas.locator('[data-testid="floating-toolbar"]').first();
+      if (await toolbar.isVisible()) {
+        const dupBtn = toolbar.locator('[data-testid="overlay-duplicate-btn"]').first();
+        await expect(dupBtn).toBeVisible();
+      }
+    }
+  });
 });

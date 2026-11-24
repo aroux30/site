@@ -1,22 +1,22 @@
 {
   "version": "4.2",
-  "activeWeight": 6,
-  "activeRound": 56,
+  "activeWeight": 7,
+  "activeRound": 57,
   "status": "COMPLETED",
   "levels1to5Status": "BUILDER_GYM_LEVELS_1_TO_5_CLEAN",
   "allLevelsMastered": "BUILDER_GYM_ALL_LEVELS_MASTERED",
   "verificationPort": 1005,
-  "completedRounds": 56,
+  "completedRounds": 57,
   "metrics": {
     "typeCheckErrors": 0,
     "frontendUnitTests": 380,
     "backendUnitTests": 650,
-    "playwrightTests": 28,
+    "playwrightTests": 32,
     "registeredBlocks": 73,
     "registeredPatterns": 28,
     "lastVerifierVerdict": "APPROVE"
   },
-  "timestamp": "2026-11-24T05:00:00.000Z",
+  "timestamp": "2026-11-24T05:30:00.000Z",
   "defect_ledger": [
     {
       "id": "DEFECT-R41-01",
@@ -332,6 +332,15 @@
       "summary": "Navigator right click menu copy action selector matched both copy element and copy style buttons strictly",
       "status": "FIXED",
       "round": 56
+    },
+    {
+      "id": "DEFECT-W7-01",
+      "severity": "P1",
+      "component": "wave2_widgets",
+      "layer": "search_and_canvas_identifiers",
+      "summary": "Block registry search keywords for animated headline, off-canvas, popup and price table aligned with Persian UI",
+      "status": "FIXED",
+      "round": 57
     }
   ]
 }

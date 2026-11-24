@@ -1,22 +1,31 @@
 {
   "version": "4.2",
-  "activeWeight": 4,
-  "activeRound": 59,
-  "status": "IN_PROGRESS",
+  "activeWeight": 5,
+  "activeRound": 60,
+  "status": "COMPLETED_LEVELS_1_TO_5",
   "levels1to5Status": "BUILDER_GYM_LEVELS_1_TO_5_CLEAN",
   "allLevelsMastered": "BUILDER_GYM_ALL_LEVELS_MASTERED",
   "verificationPort": 1002,
-  "completedRounds": 58,
+  "completedRounds": 59,
   "metrics": {
     "typeCheckErrors": 0,
-    "frontendUnitTests": 395,
+    "frontendUnitTests": 397,
     "backendUnitTests": 655,
     "playwrightTests": 5,
     "registeredBlocks": 68,
     "lastVerifierVerdict": "APPROVE"
   },
-  "timestamp": "2026-11-24T08:58:00.000Z",
+  "timestamp": "2026-11-24T09:15:00.000Z",
   "defect_ledger": [
+    {
+      "id": "DEFECT-W5-01",
+      "severity": "P2",
+      "round": 60,
+      "title": "Responsive value mobile-first resolution cascade validation",
+      "status": "FIXED",
+      "layer": "frontend/lib/builder/schema.ts",
+      "description": "Verified that resolveResponsiveValue preserves mobile-first inheritance for desktop and tablet without mutating AST elements."
+    },
     {
       "id": "DEFECT-W4-01",
       "severity": "P2",

@@ -1,22 +1,31 @@
 {
   "version": "4.2",
-  "activeWeight": 6,
-  "activeRound": 61,
+  "activeWeight": 7,
+  "activeRound": 62,
   "status": "IN_PROGRESS",
   "levels1to5Status": "BUILDER_GYM_LEVELS_1_TO_5_CLEAN",
   "allLevelsMastered": "BUILDER_GYM_ALL_LEVELS_MASTERED",
   "verificationPort": 1002,
-  "completedRounds": 60,
+  "completedRounds": 61,
   "metrics": {
     "typeCheckErrors": 0,
-    "frontendUnitTests": 400,
+    "frontendUnitTests": 403,
     "backendUnitTests": 655,
     "playwrightTests": 5,
     "registeredBlocks": 68,
     "lastVerifierVerdict": "APPROVE"
   },
-  "timestamp": "2026-11-24T09:35:00.000Z",
+  "timestamp": "2026-11-24T09:55:00.000Z",
   "defect_ledger": [
+    {
+      "id": "DEFECT-W7-01",
+      "severity": "P2",
+      "round": 62,
+      "title": "Interactive Pro widgets flip box and call to action 3D rendering",
+      "status": "FIXED",
+      "layer": "frontend/components/admin/builder/canvas-element.tsx",
+      "description": "Validated that 3D flip card and call to action interactive widgets render smoothly without console or hydration errors."
+    },
     {
       "id": "DEFECT-W6-01",
       "severity": "P2",

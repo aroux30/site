@@ -1297,7 +1297,7 @@ function CanvasElementComponent({
         const striped = props.striped !== false;
         const highlightCol = props.highlightCol !== undefined && props.highlightCol !== null ? Number(props.highlightCol) : null;
         return (
-          <div className="builder-table overflow-x-auto w-full select-text">
+          <div className="builder-table overflow-x-auto w-full select-text" data-widget="table">
             <table className={cn(
               "w-full border-collapse text-right text-sm",
               bordered && "border border-border/80 rounded-xl overflow-hidden"
@@ -1347,7 +1347,7 @@ function CanvasElementComponent({
         const isRequired = Boolean(props.required);
         const customClass = String(props.customCssClass || element.styles?.customCssClass || "");
         return (
-          <div className={cn("space-y-1 w-full text-right pointer-events-none", customClass)} data-required={isRequired ? "true" : undefined}>
+          <div className={cn("space-y-1 w-full text-right pointer-events-none", customClass)} data-widget="form_input" data-required={isRequired ? "true" : undefined}>
             {label && (
               <label className="block text-xs font-semibold text-foreground">
                 {label}
@@ -1371,7 +1371,7 @@ function CanvasElementComponent({
         const isRequired = Boolean(props.required);
         const customClass = String(props.customCssClass || element.styles?.customCssClass || "");
         return (
-          <div className={cn("space-y-1 w-full text-right pointer-events-none", customClass)} data-required={isRequired ? "true" : undefined}>
+          <div className={cn("space-y-1 w-full text-right pointer-events-none", customClass)} data-widget="form_textarea" data-required={isRequired ? "true" : undefined}>
             {label && (
               <label className="block text-xs font-semibold text-foreground">
                 {label}
@@ -1394,7 +1394,7 @@ function CanvasElementComponent({
         const isRequired = Boolean(props.required);
         const customClass = String(props.customCssClass || element.styles?.customCssClass || "");
         return (
-          <div className={cn("space-y-1 w-full text-right pointer-events-none", customClass)} data-required={isRequired ? "true" : undefined}>
+          <div className={cn("space-y-1 w-full text-right pointer-events-none", customClass)} data-widget="form_select" data-required={isRequired ? "true" : undefined}>
             {label && (
               <label className="block text-xs font-semibold text-foreground">
                 {label}
@@ -1413,7 +1413,7 @@ function CanvasElementComponent({
         const label = String(props.label || "شرایط و قوانین را می‌پذیرم");
         const name = String(props.name || "terms");
         return (
-          <div className="flex items-center gap-2 text-right">
+          <div className="flex items-center gap-2 text-right" data-widget="form_checkbox">
             <input
               type="checkbox"
               id={`chk_${element.id}`}
@@ -1432,7 +1432,7 @@ function CanvasElementComponent({
         const options = (props.options as string[]) || ["گزینه ۱", "گزینه ۲"];
         const name = String(props.name || "radio_group");
         return (
-          <div className="space-y-1.5 text-right w-full">
+          <div className="space-y-1.5 text-right w-full" data-widget="form_radio">
             <span className="block text-xs font-bold text-foreground">{label}</span>
             <div className="flex flex-col gap-1.5">
               {options.map((opt, i) => (
@@ -1456,7 +1456,7 @@ function CanvasElementComponent({
           { title: "سؤال متداول ۲", content: "پاسخ مشروح به سؤال دوم کاربر." },
         ];
         return (
-          <div className="space-y-2 w-full">
+          <div className="space-y-2 w-full" data-widget="accordion">
             {items.map((item, idx) => (
               <details
                 key={idx}
@@ -1481,7 +1481,7 @@ function CanvasElementComponent({
           { title: "دیدگاه کاربران", content: "ثبت و بررسی دیدگاه‌های خریداران." },
         ];
         return (
-          <div className="rounded-xl border border-border/80 bg-card overflow-hidden w-full shadow-sm">
+          <div className="rounded-xl border border-border/80 bg-card overflow-hidden w-full shadow-sm" data-widget="tabs">
             <div className="flex border-b border-border/60 bg-muted/30">
               {tabsList.map((t, idx) => (
                 <button
@@ -1533,7 +1533,7 @@ function CanvasElementComponent({
         }
 
         return (
-          <div className="p-4 rounded-2xl bg-card border border-border/80 text-center space-y-3 shadow-sm w-full">
+          <div className="p-4 rounded-2xl bg-card border border-border/80 text-center space-y-3 shadow-sm w-full" data-widget="countdown">
             <h3 className="font-bold text-sm text-foreground">{title}</h3>
             <div className="flex items-center justify-center gap-2 text-center" dir="ltr">
               <div className="bg-muted/60 p-2 rounded-xl min-w-[50px]">
@@ -1564,7 +1564,7 @@ function CanvasElementComponent({
         const desc = String(props.description || "تحویل در کمترین زمان ممکن با بسته‌بندی ویژه به سراسر کشور");
         const IconComponent = getBuilderIcon(props.icon as string);
         return (
-          <div className="p-4 rounded-2xl border border-border/80 bg-card flex items-start gap-3 shadow-sm w-full">
+          <div className="p-4 rounded-2xl border border-border/80 bg-card flex items-start gap-3 shadow-sm w-full" data-widget="icon_box">
             <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
               <IconComponent className="w-5 h-5" />
             </div>

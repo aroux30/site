@@ -1,21 +1,21 @@
 {
   "version": "3.2",
   "activeWeight": 9,
-  "activeRound": 58,
+  "activeRound": 59,
   "status": "COMPLETED",
   "levels1to5Status": "BUILDER_GYM_LEVELS_1_TO_5_CLEAN",
   "allLevelsMastered": "BUILDER_GYM_ALL_LEVELS_MASTERED",
   "verificationPort": 1001,
-  "completedRounds": 58,
+  "completedRounds": 59,
   "metrics": {
     "typeCheckErrors": 0,
     "frontendUnitTests": 384,
     "backendUnitTests": 654,
-    "playwrightTests": 5,
+    "playwrightTests": 6,
     "registeredBlocks": 76,
     "lastVerifierVerdict": "APPROVE"
   },
-  "timestamp": "2026-11-24T10:10:01.099Z",
+  "timestamp": "2026-11-24T10:35:07.781Z",
   "defect_ledger": [
     {
       "id": "DEFECT-R41-01",
@@ -484,6 +484,24 @@
       "summary": "Missing dedicated end-to-end regression assertion for storefront widget insertion and viewport safety",
       "status": "FIXED",
       "round": 58
+    },
+    {
+      "id": "DEFECT-R59-01",
+      "severity": "P1",
+      "component": "interactive_data_widgets",
+      "layer": "frontend/components/admin/builder/canvas-element.tsx",
+      "summary": "Interactive and form widgets in canvas lacked explicit data-widget semantic tags causing drift with SSR ast_compiler output",
+      "status": "FIXED",
+      "round": 59
+    },
+    {
+      "id": "DEFECT-R59-02",
+      "severity": "P2",
+      "component": "interactive_e2e_regression",
+      "layer": "frontend/tests/e2e/builder-gym-r63.spec.ts",
+      "summary": "Missing dedicated end-to-end regression assertion for interactive widgets insertion and viewport safety",
+      "status": "FIXED",
+      "round": 59
     }
   ]
 }

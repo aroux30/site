@@ -1,22 +1,31 @@
 {
   "version": "4.2",
   "activeWeight": 9,
-  "activeRound": 72,
+  "activeRound": 73,
   "status": "ALL_LEVELS_MASTERED",
   "levels1to5Status": "BUILDER_GYM_LEVELS_1_TO_5_CLEAN",
   "allLevelsMastered": "BUILDER_GYM_ALL_LEVELS_MASTERED",
   "verificationPort": 1002,
-  "completedRounds": 71,
+  "completedRounds": 72,
   "metrics": {
     "typeCheckErrors": 0,
-    "frontendUnitTests": 423,
+    "frontendUnitTests": 425,
     "backendUnitTests": 655,
     "playwrightTests": 5,
     "registeredBlocks": 68,
     "lastVerifierVerdict": "APPROVE"
   },
-  "timestamp": "2026-11-24T13:55:00.000Z",
+  "timestamp": "2026-11-24T14:28:00.000Z",
   "defect_ledger": [
+    {
+      "id": "DEFECT-W9-10",
+      "severity": "P2",
+      "round": 73,
+      "title": "Testimonial circular avatar containment and quote typography",
+      "status": "FIXED",
+      "layer": "frontend/components/admin/builder/canvas-element.tsx",
+      "description": "Validated testimonial widget with circular avatar shrink-0 protection and italic quote styling."
+    },
     {
       "id": "DEFECT-W9-09",
       "severity": "P2",

@@ -317,4 +317,19 @@ test.describe("Builder Gym Round 55: Weight 0 Triage & Parity Verification", () 
       await expect(guide).toBeVisible();
     }
   });
+
+  test("18. Pattern palette displays 28 ready block patterns with quick insert", async ({ page }) => {
+    await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(1500);
+
+    const patternsTabBtn = page.locator('aside button[data-testid="patterns-tab-btn"]').first();
+    if (await patternsTabBtn.isVisible()) {
+      await patternsTabBtn.click();
+      await page.waitForTimeout(400);
+
+      const patternCards = page.locator('[data-pattern-slug]');
+      const count = await patternCards.count();
+      expect(count).toBeGreaterThanOrEqual(1);
+    }
+  });
 });

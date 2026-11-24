@@ -2164,8 +2164,10 @@ function CanvasElementComponent({
         const rawSteps = (props.steps as any[]) || ["مرحله اول", "مرحله دوم", "مرحله نهایی"];
         const steps = rawSteps.map((s) => (typeof s === "string" ? s : s?.title || String(s || "")));
         const curStep = Number(props.current_step) || 1;
+        const title = props.title ? String(props.title) : "";
         return (
           <div className="p-6 rounded-2xl border border-border/80 bg-card space-y-5 shadow-sm w-full text-right">
+            {title && <h3 className="font-bold text-sm text-foreground">{title}</h3>}
             {/* Step Indicators */}
             <div className="flex items-center justify-between border-b border-border/60 pb-4">
               {steps.map((st, idx) => (

@@ -1,22 +1,22 @@
 {
   "version": "4.2",
-  "activeWeight": 8,
-  "activeRound": 58,
+  "activeWeight": 9,
+  "activeRound": 59,
   "status": "COMPLETED",
   "levels1to5Status": "BUILDER_GYM_LEVELS_1_TO_5_CLEAN",
   "allLevelsMastered": "BUILDER_GYM_ALL_LEVELS_MASTERED",
   "verificationPort": 1005,
-  "completedRounds": 58,
+  "completedRounds": 59,
   "metrics": {
     "typeCheckErrors": 0,
     "frontendUnitTests": 380,
     "backendUnitTests": 650,
-    "playwrightTests": 36,
+    "playwrightTests": 40,
     "registeredBlocks": 73,
     "registeredPatterns": 28,
     "lastVerifierVerdict": "APPROVE"
   },
-  "timestamp": "2026-11-24T06:00:00.000Z",
+  "timestamp": "2026-11-24T06:30:00.000Z",
   "defect_ledger": [
     {
       "id": "DEFECT-R41-01",
@@ -350,6 +350,15 @@
       "summary": "Code highlight search card query in E2E was adjusted to Persian keyword matching block registry",
       "status": "FIXED",
       "round": 58
+    },
+    {
+      "id": "DEFECT-W9-01",
+      "severity": "P2",
+      "component": "multi_step_form",
+      "layer": "canvas_element",
+      "summary": "multi_step_form did not render custom header title in canvas preview",
+      "status": "FIXED",
+      "round": 59
     }
   ]
 }

@@ -1,22 +1,22 @@
 {
   "version": "4.2",
-  "activeWeight": 5,
-  "activeRound": 55,
+  "activeWeight": 6,
+  "activeRound": 56,
   "status": "COMPLETED",
   "levels1to5Status": "BUILDER_GYM_LEVELS_1_TO_5_CLEAN",
   "allLevelsMastered": "BUILDER_GYM_ALL_LEVELS_MASTERED",
   "verificationPort": 1005,
-  "completedRounds": 55,
+  "completedRounds": 56,
   "metrics": {
     "typeCheckErrors": 0,
     "frontendUnitTests": 380,
     "backendUnitTests": 650,
-    "playwrightTests": 24,
+    "playwrightTests": 28,
     "registeredBlocks": 73,
     "registeredPatterns": 28,
     "lastVerifierVerdict": "APPROVE"
   },
-  "timestamp": "2026-11-24T04:30:00.000Z",
+  "timestamp": "2026-11-24T05:00:00.000Z",
   "defect_ledger": [
     {
       "id": "DEFECT-R41-01",
@@ -323,6 +323,15 @@
       "summary": "Tablet viewport assertion expected minimum 750px width in 1440px desktop viewport instead of studio-constrained 680-768px clamp",
       "status": "FIXED",
       "round": 55
+    },
+    {
+      "id": "DEFECT-W6-01",
+      "severity": "P1",
+      "component": "navigator_menu",
+      "layer": "context_menu_exact_selector",
+      "summary": "Navigator right click menu copy action selector matched both copy element and copy style buttons strictly",
+      "status": "FIXED",
+      "round": 56
     }
   ]
 }

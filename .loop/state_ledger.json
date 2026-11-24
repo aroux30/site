@@ -1,22 +1,31 @@
 {
   "version": "4.2",
   "activeWeight": 9,
-  "activeRound": 66,
+  "activeRound": 67,
   "status": "ALL_LEVELS_MASTERED",
   "levels1to5Status": "BUILDER_GYM_LEVELS_1_TO_5_CLEAN",
   "allLevelsMastered": "BUILDER_GYM_ALL_LEVELS_MASTERED",
   "verificationPort": 1002,
-  "completedRounds": 65,
+  "completedRounds": 66,
   "metrics": {
     "typeCheckErrors": 0,
-    "frontendUnitTests": 410,
+    "frontendUnitTests": 412,
     "backendUnitTests": 655,
     "playwrightTests": 5,
     "registeredBlocks": 68,
     "lastVerifierVerdict": "APPROVE"
   },
-  "timestamp": "2026-11-24T11:20:00.000Z",
+  "timestamp": "2026-11-24T11:40:00.000Z",
   "defect_ledger": [
+    {
+      "id": "DEFECT-W9-04",
+      "severity": "P2",
+      "round": 67,
+      "title": "Code highlight terminal header and strict LTR rendering encapsulation",
+      "status": "FIXED",
+      "layer": "frontend/tests/builder-weight9-interactive-widgets.test.ts",
+      "description": "Validated code highlight widget LTR direction preservation and terminal title bar in RTL builder canvas."
+    },
     {
       "id": "DEFECT-W9-03",
       "severity": "P2",

@@ -1,22 +1,31 @@
 {
   "version": "4.2",
   "activeWeight": 9,
-  "activeRound": 75,
+  "activeRound": 76,
   "status": "ALL_LEVELS_MASTERED",
   "levels1to5Status": "BUILDER_GYM_LEVELS_1_TO_5_CLEAN",
   "allLevelsMastered": "BUILDER_GYM_ALL_LEVELS_MASTERED",
   "verificationPort": 1002,
-  "completedRounds": 74,
+  "completedRounds": 75,
   "metrics": {
     "typeCheckErrors": 0,
-    "frontendUnitTests": 428,
+    "frontendUnitTests": 430,
     "backendUnitTests": 655,
     "playwrightTests": 5,
     "registeredBlocks": 68,
     "lastVerifierVerdict": "APPROVE"
   },
-  "timestamp": "2026-11-24T15:28:00.000Z",
+  "timestamp": "2026-11-24T16:25:00.000Z",
   "defect_ledger": [
+    {
+      "id": "DEFECT-W9-13",
+      "severity": "P2",
+      "round": 76,
+      "title": "Loop carousel horizontal scroll encapsulation and slides indicator switching",
+      "status": "FIXED",
+      "layer": "frontend/components/admin/builder/canvas-element.tsx",
+      "description": "Validated loop carousel horizontal card flow and slides active slide switching."
+    },
     {
       "id": "DEFECT-W9-12",
       "severity": "P2",

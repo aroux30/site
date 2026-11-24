@@ -1,0 +1,13 @@
+{
+  "testedMenus": [
+    {
+      "selector": "r76-carousel-cat-select",
+      "isExpanded": true,
+      "dimensionsValid": true,
+      "notObscuredByIframe": true,
+      "optionsCount": 3,
+      "status": "PASS"
+    }
+  ],
+  "allMenusPassed": true
+}

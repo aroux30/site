@@ -1,7 +1,7 @@
 # 🏋️ BUILDER GYM LOOP V4.2 DASHBOARD — PORT 1002
 
-- **Active Round**: Round 75 (Round 75 Completed Successfully ✅)
-- **Target Weight**: وزنه ۹: بی‌نهایت (+۱۰ کیلو در هر دور — شمارنده معکوس و پخش‌کننده ویدیو)
+- **Active Round**: Round 76 (Round 76 Completed Successfully ✅)
+- **Target Weight**: وزنه ۹: بی‌نهایت (+۱۰ کیلو در هر دور — گردونه چرخشی پویا و اسلایدر پیشرفته)
 - **Frontend Port**: 1002 (`http://127.0.0.1:1002`)
 - **Backend Port**: 8000 (`http://127.0.0.1:8000`)
 - **Isolation Scope**: Visual Page Builder (`GYM_SCOPE=builder`)
@@ -11,7 +11,7 @@
 
 ### 📊 معیارهای سلامت نهایی و وضعیت تست‌ها
 - **TypeScript**: `npx tsc --noEmit` → **۰ خطا (۱۰۰٪ سبز)**
-- **Frontend Vitest**: **۴۲۸ تست سبز در ۶۶ فایل** (`428 passed`)
+- **Frontend Vitest**: **۴۳۰ تست سبز در ۶۷ فایل** (`430 passed`)
 - **Backend Pytest**: **۶۵۵ تست سبز، ۲ اسکیپ** (`655 passed, 2 skipped`)
 - **Deterministic Sensors**: ۴ از ۴ سنسور ۱۰۰٪ سبز (`scroll_audit`, `menu_open_proof`, `semantic_widget_audit`, `mutation_report`)
 - **Rebuild Live**: استقرار موفق پروداکشن ری‌بیلد روی پورت ۱۰۰۲ (BUILD_ID: `Pw13s8Ky7RqdZ8DOMXVTQ`)
@@ -20,8 +20,8 @@
 
 ---
 
-### 🎯 خلاصه دستاوردهای راند ۷۵ (Weight 9 Countdown & Rich Media):
-1. **ویجت شمارنده معکوس (`countdown`)**: ارقام فارسی دورقمی برای روز/ساعت/دقیقه/ثانیه با محاسبه دقیق تاریخ هدف ISO.
-2. **پخش‌کننده ویدیو (`video`)**: پشتیبانی از آپارات و یوتیوب با محافظت رویدادهای ماوس در استودیو.
-3. **تثبیت کیفیت نهایی**: تایید رسمی نشان افتخارآمیز **BUILDER_GYM_ALL_LEVELS_MASTERED** با حضور ۴۲۸ تست وی‌تست و ۶۵۵ تست پای‌تست سبز.
-4. **تست‌های رگرسیون جدید**: افزودن تست واحد `builder-weight9-countdown-video.test.ts` و عبور کامل ۴۲۸ تست فرانت‌اند.
+### 🎯 خلاصه دستاوردهای راند ۷۶ (Weight 9 Loop Carousel & Slides):
+1. **ویجت گردونه چرخشی (`loop_carousel`)**: ناوبری افقی با دکمه‌های قبلی/بعدی، کلاس‌های `no-scrollbar` و کارت‌های پویا.
+2. **اسلایدر پیشرفته بنرها (`slides`)**: مدیریت اسلایدهای چندگانه، دکمه‌های اقدام و نشانگرهای تعاملی سوئیچ اسلاید.
+3. **تثبیت کیفیت نهایی**: تایید رسمی نشان افتخارآمیز **BUILDER_GYM_ALL_LEVELS_MASTERED** با حضور ۴۳۰ تست وی‌تست و ۶۵۵ تست پای‌تست سبز.
+4. **تست‌های رگرسیون جدید**: افزودن تست واحد `builder-weight9-carousel-slides.test.ts` و عبور کامل ۴۳۰ تست فرانت‌اند.

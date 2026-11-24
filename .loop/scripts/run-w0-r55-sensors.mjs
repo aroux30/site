@@ -83,8 +83,8 @@ async function run() {
   });
 
   console.log(`Navigating to ${BASE_URL}/e2e-isolated-scratchpad?builder=1...`);
-  await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
-  await page.waitForTimeout(2000);
+  await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "networkidle" });
+  await page.waitForTimeout(2500);
 
   // 1. Capture 1280x720 Overview
   const shot1280 = path.join(outDir, "01-studio-1280x720-overview.png");

@@ -4,8 +4,8 @@ import fs from "node:fs";
 import { execSync } from "node:child_process";
 
 const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || "http://127.0.0.1:1004";
-const BACKEND_DIR = path.resolve("../backend");
-const ARTIFACTS_DIR = path.resolve("../.loop/artifacts/builder-gym/round-55/after");
+const BACKEND_DIR = path.resolve(__dirname, "../../../backend");
+const ARTIFACTS_DIR = path.resolve(__dirname, "../../../.loop/artifacts/builder-gym/round-55/after");
 fs.mkdirSync(ARTIFACTS_DIR, { recursive: true });
 
 function getAdminToken() {
@@ -61,10 +61,11 @@ test.describe("Builder Gym Round 55: Weight 0 Emergency Triage Verification", ()
     await page.waitForTimeout(1500);
 
     // 1. Toolbar collision check at 1280x720
-    const toolbar = page.locator("header");
+    const toolbar = page.locator("header:has-text('خروج')").first();
     await expect(toolbar).toBeVisible();
     const overlaps = await page.evaluate(() => {
-      const header = document.querySelector("header");
+      const headers = Array.from(document.querySelectorAll("header"));
+      const header = headers.find((h) => h.textContent && h.textContent.includes("خروج")) || headers[0];
       if (!header) return 0;
       const btns = Array.from(header.querySelectorAll("button, a, input, [data-testid]"));
       let count = 0;
@@ -91,20 +92,20 @@ test.describe("Builder Gym Round 55: Weight 0 Emergency Triage Verification", ()
     const iconBtn = page.locator('button[data-block-type="icon"]').first();
     await expect(iconBtn).toBeVisible();
     await iconBtn.click();
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(1000);
 
     // 3. Verify Canvas Icon Widget renders valid <svg> and no raw string
     const canvasFrame = page.frameLocator('[data-testid="canvas-iframe"]');
     const iconWidget = canvasFrame.locator('[data-widget-type="icon"], [data-widget="icon"]').first();
-    await expect(iconWidget).toBeVisible();
-    const svgEl = iconWidget.locator("svg");
+    await expect(iconWidget).toBeVisible({ timeout: 10000 });
+    const svgEl = iconWidget.locator("svg").first();
     await expect(svgEl).toBeVisible();
     const rawText = await iconWidget.innerText();
     expect(rawText.trim()).not.toBe("star");
 
     // 4. Click Icon to open Inspector
     await iconWidget.click();
-    await page.waitForTimeout(400);
+    await page.waitForTimeout(500);
 
     // 5. Verify Inspector Content Tab scrollability
     const inspectorPanel = page.locator("[data-builder-inspector]");

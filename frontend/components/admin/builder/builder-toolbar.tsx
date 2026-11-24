@@ -145,7 +145,7 @@ export function BuilderToolbar({
   }, [undo, redo, copyElement, pasteElement, duplicateElement, deleteElement, deleteSelectedElements, selectedElementId, selectedElementIds, onSaveDraft]);
 
   return (
-    <header className="h-14 bg-card border-b border-border px-4 flex items-center justify-between select-none z-40 relative gap-2 min-w-0">
+    <header data-testid="builder-toolbar-header" className="h-14 bg-card border-b border-border px-4 flex items-center justify-between select-none z-40 relative gap-2 min-w-0">
       {/* Right Side (in RTL): Exit button & Page Title */}
       <div className="flex items-center gap-3 shrink-0">
         <Button

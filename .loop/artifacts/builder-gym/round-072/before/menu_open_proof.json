@@ -1,0 +1,13 @@
+{
+  "testedMenus": [
+    {
+      "selector": "r72-media-picker-trigger",
+      "isExpanded": true,
+      "dimensionsValid": true,
+      "notObscuredByIframe": true,
+      "optionsCount": 3,
+      "status": "PASS"
+    }
+  ],
+  "allMenusPassed": true
+}

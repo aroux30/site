@@ -289,7 +289,7 @@ export function GlobalStylesDialog({ open, onOpenChange }: GlobalStylesDialogPro
             <Button variant="outline" size="sm" onClick={() => onOpenChange(false)}>
               انصراف
             </Button>
-            <Button size="sm" onClick={handleSave} className="bg-primary text-primary-foreground font-bold">
+            <Button size="sm" data-testid="save-global-styles-btn" onClick={handleSave} className="bg-primary text-primary-foreground font-bold">
               اعمال تغییرات
             </Button>
           </div>

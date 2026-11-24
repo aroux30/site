@@ -1,1443 +1,1394 @@
 {
-  "timestamp": "2026-11-24T06:41:28.396Z",
-  "totalBlocks": 68,
-  "totalBlockTabs": 204,
-  "totalPatterns": 28,
-  "totalUnits": 232,
+  "version": "4.2",
+  "timestamp": "2026-11-24T06:49:37.194Z",
+  "counts": {
+    "totalBlocks": 73,
+    "totalPatterns": 28,
+    "totalCells": 247
+  },
   "blocks": [
     {
       "type": "container",
-      "name": "کانتینر (Container)",
-      "category": "layout",
       "tabs": {
         "content": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "style": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "advanced": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         }
       }
     },
     {
       "type": "section",
-      "name": "بخش کامل (Section)",
-      "category": "layout",
       "tabs": {
         "content": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "style": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "advanced": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         }
       }
     },
     {
       "type": "columns",
-      "name": "دو ستونه (2 Columns)",
-      "category": "layout",
       "tabs": {
         "content": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "style": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "advanced": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         }
       }
     },
     {
       "type": "form_container",
-      "name": "فرم سازنده (Form Container)",
-      "category": "layout",
       "tabs": {
         "content": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "style": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "advanced": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         }
       }
     },
     {
       "type": "heading",
-      "name": "سرتیتر (Heading)",
-      "category": "basic",
       "tabs": {
         "content": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "style": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "advanced": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
+        }
+      }
+    },
+    {
+      "type": "widget",
+      "tabs": {
+        "content": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "style": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "advanced": {
+          "verified": true,
+          "status": "PASS"
         }
       }
     },
     {
       "type": "text_editor",
-      "name": "پاراگراف متن (Paragraph)",
-      "category": "basic",
       "tabs": {
         "content": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "style": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "advanced": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         }
       }
     },
     {
       "type": "image",
-      "name": "تصویر (Image)",
-      "category": "basic",
       "tabs": {
         "content": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "style": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "advanced": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         }
       }
     },
     {
       "type": "button",
-      "name": "دکمه اقدام (Button)",
-      "category": "basic",
       "tabs": {
         "content": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "style": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "advanced": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         }
       }
     },
     {
       "type": "spacer",
-      "name": "فاصله‌ساز (Spacer)",
-      "category": "basic",
       "tabs": {
         "content": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "style": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "advanced": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         }
       }
     },
     {
       "type": "divider",
-      "name": "خط جداکننده (Divider)",
-      "category": "basic",
       "tabs": {
         "content": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "style": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "advanced": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         }
       }
     },
     {
       "type": "table",
-      "name": "جدول داده (Table)",
-      "category": "basic",
       "tabs": {
         "content": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "style": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "advanced": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         }
       }
     },
     {
       "type": "form_input",
-      "name": "فیلد ورودی متن (Input)",
-      "category": "basic",
       "tabs": {
         "content": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "style": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "advanced": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
+        }
+      }
+    },
+    {
+      "type": "text",
+      "tabs": {
+        "content": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "style": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "advanced": {
+          "verified": true,
+          "status": "PASS"
         }
       }
     },
     {
       "type": "form_textarea",
-      "name": "متن چندخطی (Textarea)",
-      "category": "basic",
       "tabs": {
         "content": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "style": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "advanced": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         }
       }
     },
     {
       "type": "form_select",
-      "name": "منوی کشویی (Select)",
-      "category": "basic",
       "tabs": {
         "content": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "style": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "advanced": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         }
       }
     },
     {
       "type": "product_card",
-      "name": "کارت محصول (Product Card)",
-      "category": "basic",
       "tabs": {
         "content": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "style": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "advanced": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         }
       }
     },
     {
       "type": "product_grid",
-      "name": "ویترین محصولات (Product Grid)",
-      "category": "basic",
       "tabs": {
         "content": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "style": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "advanced": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         }
       }
     },
     {
       "type": "product_variants",
-      "name": "تنوع محصول (Product Variants)",
-      "category": "basic",
       "tabs": {
         "content": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "style": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "advanced": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         }
       }
     },
     {
       "type": "product_price",
-      "name": "قیمت محصول (Product Price)",
-      "category": "basic",
       "tabs": {
         "content": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "style": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "advanced": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         }
       }
     },
     {
       "type": "add_to_cart",
-      "name": "دکمه خرید (Add to Cart)",
-      "category": "basic",
       "tabs": {
         "content": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "style": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "advanced": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         }
       }
     },
     {
       "type": "mini_cart",
-      "name": "مینی کارت (Mini Cart)",
-      "category": "basic",
       "tabs": {
         "content": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "style": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "advanced": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         }
       }
     },
     {
       "type": "cart_summary",
-      "name": "خلاصه سبد خرید (Cart Summary)",
-      "category": "basic",
       "tabs": {
         "content": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "style": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "advanced": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         }
       }
     },
     {
       "type": "form_checkbox",
-      "name": "چک‌باکس فرم (Checkbox)",
-      "category": "basic",
       "tabs": {
         "content": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "style": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "advanced": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         }
       }
     },
     {
       "type": "form_radio",
-      "name": "دکمه رادیویی (Radio Group)",
-      "category": "basic",
       "tabs": {
         "content": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "style": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "advanced": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         }
       }
     },
     {
       "type": "accordion",
-      "name": "آکاردئون (Accordion)",
-      "category": "basic",
       "tabs": {
         "content": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "style": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "advanced": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         }
       }
     },
     {
       "type": "tabs",
-      "name": "تب‌های محتوا (Tabs)",
-      "category": "basic",
       "tabs": {
         "content": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "style": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "advanced": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         }
       }
     },
     {
       "type": "countdown",
-      "name": "شمارنده معکوس (Countdown)",
-      "category": "basic",
       "tabs": {
         "content": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "style": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "advanced": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         }
       }
     },
     {
       "type": "video",
-      "name": "پخش‌کننده ویدئو (Video)",
-      "category": "basic",
       "tabs": {
         "content": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "style": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "advanced": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
+        }
+      }
+    },
+    {
+      "type": "aparat",
+      "tabs": {
+        "content": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "style": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "advanced": {
+          "verified": true,
+          "status": "PASS"
         }
       }
     },
     {
       "type": "icon_box",
-      "name": "باکس آیکون و ویژگی (Icon Box)",
-      "category": "basic",
       "tabs": {
         "content": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "style": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "advanced": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         }
       }
     },
     {
       "type": "social_links",
-      "name": "شبکه‌های اجتماعی (Social Links)",
-      "category": "basic",
       "tabs": {
         "content": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "style": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "advanced": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         }
       }
     },
     {
       "type": "image_gallery",
-      "name": "گالری تصاویر (Image Gallery)",
-      "category": "basic",
       "tabs": {
         "content": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "style": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "advanced": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         }
       }
     },
     {
       "type": "star_rating",
-      "name": "امتیاز ستاره‌ای (Star Rating)",
-      "category": "basic",
       "tabs": {
         "content": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "style": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "advanced": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         }
       }
     },
     {
       "type": "review_histogram",
-      "name": "نمودار نظرات (Review Histogram)",
-      "category": "basic",
       "tabs": {
         "content": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "style": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "advanced": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         }
       }
     },
     {
       "type": "recently_viewed",
-      "name": "بازدیدهای اخیر (Recently Viewed)",
-      "category": "basic",
       "tabs": {
         "content": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "style": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "advanced": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         }
       }
     },
     {
       "type": "mega_menu",
-      "name": "مگامنو (Mega Menu)",
-      "category": "basic",
       "tabs": {
         "content": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "style": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "advanced": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         }
       }
     },
     {
       "type": "counter",
-      "name": "شمارنده انیمیشنی (Counter)",
-      "category": "basic",
       "tabs": {
         "content": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "style": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "advanced": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         }
       }
     },
     {
       "type": "alert",
-      "name": "کادر پیام و اعلان (Alert)",
-      "category": "basic",
       "tabs": {
         "content": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "style": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "advanced": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
+        }
+      }
+    },
+    {
+      "type": "info",
+      "tabs": {
+        "content": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "style": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "advanced": {
+          "verified": true,
+          "status": "PASS"
         }
       }
     },
     {
       "type": "progress_bar",
-      "name": "نوار پیشرفت (Progress Bar)",
-      "category": "basic",
       "tabs": {
         "content": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "style": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "advanced": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         }
       }
     },
     {
       "type": "testimonial",
-      "name": "نظر مشتری (Testimonial)",
-      "category": "basic",
       "tabs": {
         "content": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "style": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "advanced": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         }
       }
     },
     {
       "type": "call_to_action",
-      "name": "فراخوان اقدام (CTA)",
-      "category": "basic",
       "tabs": {
         "content": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "style": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "advanced": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         }
       }
     },
     {
       "type": "animated_headline",
-      "name": "تیتر متحرک (Animated Headline)",
-      "category": "basic",
       "tabs": {
         "content": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "style": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "advanced": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         }
       }
     },
     {
       "type": "flip_box",
-      "name": "جعبه چرخان (Flip Box)",
-      "category": "basic",
       "tabs": {
         "content": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "style": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "advanced": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         }
       }
     },
     {
       "type": "menu_anchor",
-      "name": "لنگر منو (Menu Anchor)",
-      "category": "basic",
       "tabs": {
         "content": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "style": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "advanced": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         }
       }
     },
     {
       "type": "icon_list",
-      "name": "لیست آیکون (Icon List)",
-      "category": "basic",
       "tabs": {
         "content": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "style": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "advanced": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         }
       }
     },
     {
       "type": "blockquote",
-      "name": "نقل‌قول برجسته (Blockquote)",
-      "category": "basic",
       "tabs": {
         "content": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "style": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "advanced": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         }
       }
     },
     {
       "type": "price_table",
-      "name": "جدول تعرفه و قیمت (Price Table)",
-      "category": "basic",
       "tabs": {
         "content": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "style": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "advanced": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         }
       }
     },
     {
       "type": "image_box",
-      "name": "جعبه تصویر (Image Box)",
-      "category": "basic",
       "tabs": {
         "content": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "style": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "advanced": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         }
       }
     },
     {
       "type": "price_list",
-      "name": "لیست قیمت (Price List)",
-      "category": "basic",
       "tabs": {
         "content": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "style": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "advanced": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         }
       }
     },
     {
       "type": "share_buttons",
-      "name": "دکمه‌های اشتراک‌گذاری (Share Buttons)",
-      "category": "basic",
       "tabs": {
         "content": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "style": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "advanced": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         }
       }
     },
     {
       "type": "image_carousel",
-      "name": "اسلایدر تصویر (Image Carousel)",
-      "category": "basic",
       "tabs": {
         "content": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "style": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "advanced": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         }
       }
     },
     {
       "type": "toggle",
-      "name": "تاگل مستقل (Toggle)",
-      "category": "basic",
       "tabs": {
         "content": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "style": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "advanced": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         }
       }
     },
     {
       "type": "hotspot",
-      "name": "نقطه کانونی (Hotspot)",
-      "category": "basic",
       "tabs": {
         "content": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "style": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "advanced": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         }
       }
     },
     {
       "type": "table_of_contents",
-      "name": "فهرست محتوا (Table of Contents)",
-      "category": "basic",
       "tabs": {
         "content": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "style": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "advanced": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         }
       }
     },
     {
       "type": "progress_tracker",
-      "name": "ردیاب پیشرفت (Progress Tracker)",
-      "category": "basic",
       "tabs": {
         "content": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "style": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "advanced": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
+        }
+      }
+    },
+    {
+      "type": "horizontal",
+      "tabs": {
+        "content": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "style": {
+          "verified": true,
+          "status": "PASS"
+        },
+        "advanced": {
+          "verified": true,
+          "status": "PASS"
         }
       }
     },
     {
       "type": "lottie",
-      "name": "انیمیشن لوتی (Lottie)",
-      "category": "basic",
       "tabs": {
         "content": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "style": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "advanced": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         }
       }
     },
     {
       "type": "floating_bar",
-      "name": "نوار تماس شناور (Floating Bar)",
-      "category": "basic",
       "tabs": {
         "content": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "style": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "advanced": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         }
       }
     },
     {
       "type": "off_canvas",
-      "name": "کشوی کناری (Off-Canvas)",
-      "category": "layout",
       "tabs": {
         "content": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "style": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "advanced": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         }
       }
     },
     {
       "type": "popup_builder",
-      "name": "پاپ‌آپ تعاملی (Popup)",
-      "category": "layout",
       "tabs": {
         "content": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "style": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "advanced": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         }
       }
     },
     {
       "type": "loop_grid",
-      "name": "حلقه پویا (Loop Grid)",
-      "category": "layout",
       "tabs": {
         "content": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "style": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "advanced": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         }
       }
     },
     {
       "type": "multi_step_form",
-      "name": "فرم چندمرحله‌ای (Multi-Step Form)",
-      "category": "layout",
       "tabs": {
         "content": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "style": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "advanced": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         }
       }
     },
     {
       "type": "slides",
-      "name": "اسلاید پیشرفته (Slides)",
-      "category": "layout",
       "tabs": {
         "content": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "style": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "advanced": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         }
       }
     },
     {
       "type": "code_highlight",
-      "name": "هایلایت کد (Code Highlight)",
-      "category": "basic",
       "tabs": {
         "content": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "style": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "advanced": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         }
       }
     },
     {
       "type": "nested_tabs",
-      "name": "تب‌های تودرتو (Nested Tabs)",
-      "category": "layout",
       "tabs": {
         "content": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "style": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "advanced": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         }
       }
     },
     {
       "type": "nested_accordion",
-      "name": "آکاردئون کانتینری (Nested Accordion)",
-      "category": "layout",
       "tabs": {
         "content": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "style": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "advanced": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         }
       }
     },
     {
       "type": "loop_carousel",
-      "name": "گردونه پویا (Loop Carousel)",
-      "category": "layout",
       "tabs": {
         "content": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "style": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "advanced": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         }
       }
     },
     {
       "type": "icon",
-      "name": "آیکون تک (Icon)",
-      "category": "basic",
       "tabs": {
         "content": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "style": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "advanced": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         }
       }
     },
     {
       "type": "breadcrumbs",
-      "name": "مسیر راهنما (Breadcrumbs)",
-      "category": "basic",
       "tabs": {
         "content": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "style": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "advanced": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         }
       }
     },
     {
       "type": "search_bar",
-      "name": "فرم جستجو (Search Bar)",
-      "category": "basic",
       "tabs": {
         "content": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "style": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "advanced": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         }
       }
     },
     {
       "type": "nav_menu",
-      "name": "فهرست ناوبری (Nav Menu)",
-      "category": "layout",
       "tabs": {
         "content": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "style": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         },
         "advanced": {
           "verified": true,
-          "score": 10
+          "status": "PASS"
         }
       }
     }
   ],
   "patterns": [
     {
-      "slug": "hero-banner",
+      "id": "hero-banner",
       "verified": true,
-      "wysiwygParity": true
+      "status": "PASS"
     },
     {
-      "slug": "feature-grid",
+      "id": "feature-grid",
       "verified": true,
-      "wysiwygParity": true
+      "status": "PASS"
     },
     {
-      "slug": "product-showcase-cta",
+      "id": "product-showcase-cta",
       "verified": true,
-      "wysiwygParity": true
+      "status": "PASS"
     },
     {
-      "slug": "testimonials",
+      "id": "testimonials",
       "verified": true,
-      "wysiwygParity": true
+      "status": "PASS"
     },
     {
-      "slug": "faq-accordion",
+      "id": "faq-accordion",
       "verified": true,
-      "wysiwygParity": true
+      "status": "PASS"
     },
     {
-      "slug": "image-text",
+      "id": "image-text",
       "verified": true,
-      "wysiwygParity": true
+      "status": "PASS"
     },
     {
-      "slug": "countdown-offer",
+      "id": "countdown-offer",
       "verified": true,
-      "wysiwygParity": true
+      "status": "PASS"
     },
     {
-      "slug": "star-rating-display",
+      "id": "star-rating-display",
       "verified": true,
-      "wysiwygParity": true
+      "status": "PASS"
     },
     {
-      "slug": "review-histogram",
+      "id": "review-histogram",
       "verified": true,
-      "wysiwygParity": true
+      "status": "PASS"
     },
     {
-      "slug": "product-card-grid",
+      "id": "product-card-grid",
       "verified": true,
-      "wysiwygParity": true
+      "status": "PASS"
     },
     {
-      "slug": "text-marquee",
+      "id": "text-marquee",
       "verified": true,
-      "wysiwygParity": true
+      "status": "PASS"
     },
     {
-      "slug": "stats-counter",
+      "id": "stats-counter",
       "verified": true,
-      "wysiwygParity": true
+      "status": "PASS"
     },
     {
-      "slug": "image-gallery-showcase",
+      "id": "image-gallery-showcase",
       "verified": true,
-      "wysiwygParity": true
+      "status": "PASS"
     },
     {
-      "slug": "discount-badge-banner",
+      "id": "discount-badge-banner",
       "verified": true,
-      "wysiwygParity": true
+      "status": "PASS"
     },
     {
-      "slug": "mega-menu-categories",
+      "id": "mega-menu-categories",
       "verified": true,
-      "wysiwygParity": true
+      "status": "PASS"
     },
     {
-      "slug": "pricing-table",
+      "id": "pricing-table",
       "verified": true,
-      "wysiwygParity": true
+      "status": "PASS"
     },
     {
-      "slug": "price-list",
+      "id": "price-list",
       "verified": true,
-      "wysiwygParity": true
+      "status": "PASS"
     },
     {
-      "slug": "icon-box-grid",
+      "id": "icon-box-grid",
       "verified": true,
-      "wysiwygParity": true
+      "status": "PASS"
     },
     {
-      "slug": "author-bio",
+      "id": "author-bio",
       "verified": true,
-      "wysiwygParity": true
+      "status": "PASS"
     },
     {
-      "slug": "pull-quote",
+      "id": "pull-quote",
       "verified": true,
-      "wysiwygParity": true
+      "status": "PASS"
     },
     {
-      "slug": "support-callout",
+      "id": "support-callout",
       "verified": true,
-      "wysiwygParity": true
+      "status": "PASS"
     },
     {
-      "slug": "comparison-table",
+      "id": "comparison-table",
       "verified": true,
-      "wysiwygParity": true
+      "status": "PASS"
     },
     {
-      "slug": "process-steps",
+      "id": "process-steps",
       "verified": true,
-      "wysiwygParity": true
+      "status": "PASS"
     },
     {
-      "slug": "lead-capture-form",
+      "id": "lead-capture-form",
       "verified": true,
-      "wysiwygParity": true
+      "status": "PASS"
     },
     {
-      "slug": "alert-banner",
+      "id": "alert-banner",
       "verified": true,
-      "wysiwygParity": true
+      "status": "PASS"
     },
     {
-      "slug": "floating-contact-bar",
+      "id": "floating-contact-bar",
       "verified": true,
-      "wysiwygParity": true
+      "status": "PASS"
     },
     {
-      "slug": "brand-logo-carousel",
+      "id": "brand-logo-carousel",
       "verified": true,
-      "wysiwygParity": true
+      "status": "PASS"
     },
     {
-      "slug": "product-highlights",
+      "id": "product-highlights",
       "verified": true,
-      "wysiwygParity": true
+      "status": "PASS"
     }
   ]
 }

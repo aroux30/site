@@ -46,7 +46,7 @@ import { Badge } from "@/components/ui/badge";
 import { useCartStore } from "@/stores/cart-store";
 import { useToast } from "@/components/ui/use-toast";
 import { normalizeCssColor } from "@/lib/builder/color-utils";
-import { getBuilderIcon } from "@/lib/builder/icon-map";
+import { getBuilderIcon } from "@/lib/builder/icon-registry";
 import type { BuilderElement, DeviceStyle, ResponsiveStyles } from "@/types/builder";
 
 interface CanvasElementProps {
@@ -872,7 +872,7 @@ function CanvasElementComponent({
         );
       }
       case "icon": {
-        const iconKey = String(props.icon || "star");
+        const iconKey = String(props.icon || "star").trim().toLowerCase();
         const IconComponent = getBuilderIcon(iconKey);
         const view = String(props.view || "default");
         const shape = String(props.shape || "circle");
@@ -891,6 +891,7 @@ function CanvasElementComponent({
         const iconEl = (
           <div
             data-widget="icon"
+            data-icon={iconKey}
             data-icon-id={iconKey}
             className={cn(
               "inline-flex items-center justify-center transition-transform",
@@ -902,7 +903,7 @@ function CanvasElementComponent({
               transform: rotate ? `rotate(${rotate}deg)` : undefined,
             }}
           >
-            <IconComponent style={{ width: `${size}px`, height: `${size}px` }} aria-hidden="true" />
+            <IconComponent style={{ width: `${size}px`, height: `${size}px` }} className="shrink-0" aria-hidden="true" />
           </div>
         );
         if (url) {
@@ -920,7 +921,8 @@ function CanvasElementComponent({
         }
         return iconEl;
       }
-      case "video": {
+      case "video":
+      case "aparat": {
         const url = String(props.url || "");
         const vType = String(props.video_type || "aparat");
         const poster = props.poster ? String(props.poster) : undefined;
@@ -1122,7 +1124,7 @@ function CanvasElementComponent({
           { id: "c6", name: "لوازم برقی", slug: "appliances", parent_id: "c5", is_active: true, display_order: 1, image_url: "/placeholder.svg" },
         ];
         return (
-          <div className="inline-block p-1">
+          <div data-widget="mega_menu" className="builder-mega-menu inline-block p-1">
             <MegaMenu categories={sampleCats as any} label={String(props.label || "دسته‌بندی کالاها")} />
           </div>
         );
@@ -1142,7 +1144,7 @@ function CanvasElementComponent({
         const discountPercent = compareAt && compareAt > price ? Math.round(((compareAt - price) / compareAt) * 100) : null;
 
         return (
-          <div className="flex items-center gap-2.5 flex-wrap">
+          <div data-widget="product_price" className="builder-product-price flex items-center gap-2.5 flex-wrap">
             <span className="text-2xl font-black text-primary tracking-tight">
               {price.toLocaleString("fa-IR")} {currency}
             </span>
@@ -1179,7 +1181,7 @@ function CanvasElementComponent({
         };
 
         return (
-          <div className="flex items-center gap-2 w-full">
+          <div data-widget="add_to_cart" className="builder-add-to-cart flex items-center gap-2 w-full">
             {showQty && (
               <div className="flex items-center border border-border/80 rounded-xl bg-card overflow-hidden shrink-0">
                 <button
@@ -1224,7 +1226,7 @@ function CanvasElementComponent({
         ];
 
         return (
-          <div className="space-y-2 w-full">
+          <div data-widget="product_variants" className="builder-product-variants space-y-2 w-full">
             <span className="block text-xs font-bold text-foreground">{pTitle}</span>
             <div className="flex flex-wrap gap-2">
               {variants.map((v) => {
@@ -1652,7 +1654,8 @@ function CanvasElementComponent({
           </div>
         );
       }
-      case "alert": {
+      case "alert":
+      case "info": {
         const title = String(props.title || "اعلان");
         const desc = String(props.description || props.message || "متن اعلان پیام");
         const aType = String(props.alert_type || "info");
@@ -2086,7 +2089,7 @@ function CanvasElementComponent({
           { title: "بخش تاشو", content: "محتوا" },
         ];
         return (
-          <div className="space-y-2.5 w-full text-right">
+          <div data-widget="toggle" className="builder-toggle space-y-2.5 w-full text-right">
             {items.map((item, idx) => (
               <details key={idx} open={item.open ?? (idx === 0)} className="group rounded-xl border border-border/80 bg-card p-3 shadow-sm transition">
                 <summary className="font-bold text-xs cursor-pointer flex items-center justify-between list-none">
@@ -2107,7 +2110,7 @@ function CanvasElementComponent({
           { top: 40, left: 35, title: "نقطه اول" },
         ];
         return (
-          <div className="relative w-full rounded-2xl overflow-hidden bg-muted/20 border border-border/80 aspect-video max-h-72">
+          <div data-widget="hotspot" className="builder-hotspot relative w-full rounded-2xl overflow-hidden bg-muted/20 border border-border/80 aspect-video max-h-72">
             <img src={imgUrl} alt="Hotspot" className="w-full h-full object-cover" />
             {spots.map((s, idx) => (
               <div
@@ -2131,7 +2134,7 @@ function CanvasElementComponent({
       case "progress_tracker": {
         const pct = Math.max(0, Math.min(100, Number(props.percentage ?? 50)));
         return (
-          <div className="w-full space-y-1 text-right py-1">
+          <div data-widget="progress_tracker" className="builder-progress-tracker w-full space-y-1 text-right py-1">
             <div className="flex items-center justify-between text-[11px] text-muted-foreground font-semibold">
               <span>پیشرفت مطالعه</span>
               <span className="font-mono text-primary font-bold">{pct}%</span>
@@ -2144,7 +2147,7 @@ function CanvasElementComponent({
       }
       case "lottie": {
         return (
-          <div className="flex flex-col items-center justify-center p-6 rounded-2xl border border-dashed border-primary/40 bg-primary/5 text-center space-y-2 w-full">
+          <div data-widget="lottie" className="builder-lottie flex flex-col items-center justify-center p-6 rounded-2xl border border-dashed border-primary/40 bg-primary/5 text-center space-y-2 w-full">
             <span className="w-12 h-12 rounded-2xl bg-primary/20 text-primary flex items-center justify-center text-xl font-bold animate-bounce">
               ⚡
             </span>

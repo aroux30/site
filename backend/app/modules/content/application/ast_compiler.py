@@ -771,8 +771,10 @@ class ASTCompiler:
                 f'</div>'
             )
 
-        elif widget_type == "video":
+        elif widget_type in ("video", "aparat"):
             v_type = props.get("video_type", "direct")
+            if widget_type == "aparat":
+                v_type = "aparat"
             v_url = html.escape(str(props.get("url", "")))
             poster = html.escape(str(props.get("poster", "")))
             loop = bool(props.get("loop", False))
@@ -879,7 +881,7 @@ class ASTCompiler:
                 f'</blockquote>'
             )
 
-        elif widget_type == "alert":
+        elif widget_type in ("alert", "info"):
             title = html.escape(str(props.get("title", "اعلان")))
             msg = html.escape(str(props.get("message", props.get("description", ""))))
             a_type = str(props.get("alert_type", "info"))

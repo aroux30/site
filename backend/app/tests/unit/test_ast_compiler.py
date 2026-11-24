@@ -1822,6 +1822,73 @@ def test_ast_compiler_renders_round53_motion_effects_animation_classes():
     assert 'animation-duration: 0.7s' in result or 'animation-duration:0.7s' in result
 
 
+def test_ast_compiler_renders_round55_single_icon_svg_markup():
+    """Verify Round 55 single icon widget renders valid SVG element with viewBox, size and paths."""
+    ast = PageAST(
+        schema_version=1,
+        title="تست آیکون تک راند ۵۵",
+        slug="test-r55-icon-svg",
+        root_elements=[
+            BuilderElement(
+                id="el_sec_icon",
+                name="بخش آیکون",
+                type="container",
+                children=[
+                    BuilderElement(
+                        id="el_icon_star",
+                        name="آیکون ستاره",
+                        type="widget",
+                        widget_type="icon",
+                        widget_props={"icon": "star", "size": 36, "view": "stacked", "shape": "circle"},
+                    ),
+                ],
+            )
+        ],
+    )
+    result = ASTCompiler.compile(ast)
+    assert 'data-widget="icon"' in result
+    assert '<svg' in result
+    assert 'width="36"' in result
+    assert 'height="36"' in result
+    assert 'viewBox="0 0 24 24"' in result
+    assert '<path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"' in result
+    assert 'class="lucide lucide-star"' in result
+
+
+def test_ast_compiler_renders_round56_video_aparat_and_alert_info_aliases():
+    """Verify Round 56 video/aparat and alert/info aliases compile seamlessly in SSR."""
+    ast = PageAST(
+        schema_version=1,
+        title="تست آپارات و اعلان راند ۵۶",
+        slug="test-r56-aliases",
+        root_elements=[
+            BuilderElement(
+                id="el_aparat",
+                name="ویدئو آپارات",
+                type="widget",
+                widget_type="aparat",
+                widget_props={"url": "https://www.aparat.com/v/sample"},
+            ),
+            BuilderElement(
+                id="el_info",
+                name="اعلان اطلاعاتی",
+                type="widget",
+                widget_type="info",
+                widget_props={"title": "نکته مهم", "message": "این یک پیام اطلاعاتی است."},
+            ),
+        ],
+    )
+    result = ASTCompiler.compile(ast)
+    assert 'class="builder-video' in result
+    assert 'data-widget="video"' in result
+    assert 'class="builder-alert' in result
+    assert 'data-widget="alert"' in result
+    assert "نکته مهم" in result
+    assert "این یک پیام اطلاعاتی است." in result
+
+
+
+
 
 
 

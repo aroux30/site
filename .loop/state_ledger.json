@@ -1,18 +1,18 @@
 {
-  "version": "3.2",
-  "activeWeight": 4,
-  "activeRound": 59,
+  "version": "4.2",
+  "activeWeight": 9,
+  "activeRound": 72,
   "status": "COMPLETED",
   "levels1to5Status": "BUILDER_GYM_LEVELS_1_TO_5_CLEAN",
   "allLevelsMastered": "BUILDER_GYM_ALL_LEVELS_MASTERED",
   "verificationPort": 1004,
-  "completedRounds": 59,
+  "completedRounds": 72,
   "metrics": {
     "typeCheckErrors": 0,
-    "frontendUnitTests": 382,
-    "backendUnitTests": 654,
-    "playwrightTests": 5,
-    "registeredBlocks": 68,
+    "frontendUnitTests": 383,
+    "backendUnitTests": 656,
+    "playwrightTests": 18,
+    "registeredBlocks": 76,
     "lastVerifierVerdict": "APPROVE"
   },
   "timestamp": "2026-11-24T18:40:00.000Z",
@@ -457,6 +457,213 @@
       "summary": "Corrected RTL canvas starter template helper text from left panel to right panel (پنل سمت راست)",
       "status": "FIXED",
       "round": 55
+    },
+    {
+      "id": "DEFECT-R55-01",
+      "severity": "P0",
+      "component": "toolbar_layout",
+      "layer": "frontend/components/admin/builder/builder-toolbar.tsx",
+      "summary": "Toolbar button text overflowed viewport by 25px at 1280x720, pushing publish button out; fixed with responsive hidden 2xl:inline text labels",
+      "status": "FIXED",
+      "round": 55
+    },
+    {
+      "id": "DEFECT-R55-02",
+      "severity": "P0",
+      "component": "single_icon_widget",
+      "layer": "cross_layer",
+      "summary": "Single icon widget rendered raw text or emoji instead of valid scalable SVG with path and viewBox; unified with icon-registry.ts and ast_compiler.py",
+      "status": "FIXED",
+      "round": 55
+    },
+    {
+      "id": "DEFECT-R55-03",
+      "severity": "P1",
+      "component": "inspector_panel",
+      "layer": "frontend/components/admin/builder/inspector-panel.tsx",
+      "summary": "Inspector style tab lacked padding and margin reset buttons, and device label text clipped; fixed with min-w-0, truncate and reset buttons",
+      "status": "FIXED",
+      "round": 55
+    },
+    {
+      "id": "DEFECT-R55-04",
+      "severity": "P1",
+      "component": "rtl_guidance_text",
+      "layer": "frontend/stores/builder-store.ts",
+      "summary": "Default blank page text editor guidance directed user to 'left panel' in RTL layout; corrected to 'پنل سمت راست'",
+      "status": "FIXED",
+      "round": 55
+    },
+    {
+      "id": "DEFECT-R56-01",
+      "severity": "P1",
+      "component": "video_and_alert_aliases",
+      "layer": "ast_compiler_and_canvas",
+      "summary": "aparat and info widget type aliases lacked dedicated handling in canvas-element switch and ast_compiler; unified with parent video and alert cases",
+      "status": "FIXED",
+      "round": 56
+    },
+    {
+      "id": "DEFECT-R57-01",
+      "severity": "P2",
+      "component": "widget_semantic_attributes",
+      "layer": "frontend/components/admin/builder/canvas-element.tsx",
+      "summary": "hotspot, toggle, progress_tracker, and lottie widgets lacked standardized data-widget and builder CSS class hooks in canvas",
+      "status": "FIXED",
+      "round": 57
+    },
+    {
+      "id": "DEFECT-R58-01",
+      "severity": "P2",
+      "component": "pattern_cards",
+      "layer": "frontend/components/admin/builder/blocks-palette.tsx",
+      "summary": "Pattern cards lacked data-testid selector hooks for automated E2E and visual testing; added data-testid pattern-card-slug",
+      "status": "FIXED",
+      "round": 58
+    },
+    {
+      "id": "DEFECT-R59-01",
+      "severity": "P2",
+      "component": "global_styles_dialog",
+      "layer": "frontend/components/admin/builder/global-styles-dialog.tsx",
+      "summary": "Global Styles dialog lacked data-testid hooks for save and reset actions; added data-testid save-global-styles-btn and reset-global-styles-btn",
+      "status": "FIXED",
+      "round": 59
+    },
+    {
+      "id": "DEFECT-R60-01",
+      "severity": "P2",
+      "component": "keyboard_shortcuts_dialog",
+      "layer": "frontend/components/admin/builder/keyboard-shortcuts-dialog.tsx",
+      "summary": "Keyboard shortcuts modal dialog lacked data-testid selector hooks for test automated closing; added keyboard-shortcuts-dialog and close-shortcuts-dialog-btn hooks",
+      "status": "FIXED",
+      "round": 60
+    },
+    {
+      "id": "DEFECT-R61-01",
+      "severity": "P2",
+      "component": "template_dialogs",
+      "layer": "frontend/components/admin/builder/save-template-dialog.tsx",
+      "summary": "Save section and page template dialogs lacked data-testid submission hooks; added save-section-template-submit-btn and save-page-template-submit-btn",
+      "status": "FIXED",
+      "round": 61
+    },
+    {
+      "id": "DEFECT-R62-01",
+      "severity": "P2",
+      "component": "layers_tree",
+      "layer": "frontend/components/admin/builder/layers-tree.tsx",
+      "summary": "Layers tree rows lacked explicit data-testid hooks for individual element selection; added data-testid layer-row-id attribute",
+      "status": "FIXED",
+      "round": 62
+    },
+    {
+      "id": "DEFECT-R63-01",
+      "severity": "P2",
+      "component": "history_panel",
+      "layer": "frontend/components/admin/builder/history-panel.tsx",
+      "summary": "History panel timeline buttons lacked data-testid selector hooks for automated undo/redo jump tests; added data-testid history-step-idx",
+      "status": "FIXED",
+      "round": 63
+    },
+    {
+      "id": "DEFECT-R64-01",
+      "severity": "P2",
+      "component": "builder_context_menu",
+      "layer": "frontend/components/admin/builder/builder-context-menu.tsx",
+      "summary": "Context menu items lacked explicit data-testid hooks for automated right-click action verification; added data-testid context-menu-duplicate, copy, and delete hooks",
+      "status": "FIXED",
+      "round": 64
+    },
+    {
+      "id": "DEFECT-R65-01",
+      "severity": "P2",
+      "component": "toolbar_title_editor",
+      "layer": "frontend/components/admin/builder/builder-toolbar.tsx",
+      "summary": "Page title and title editing input lacked data-testid selector hooks for automated title update testing; added data-testid page-title-label and page-title-input",
+      "status": "FIXED",
+      "round": 65
+    },
+    {
+      "id": "DEFECT-R66-01",
+      "severity": "P2",
+      "component": "container_structure_dialog",
+      "layer": "frontend/components/admin/builder/container-structure-dialog.tsx",
+      "summary": "Container structure dialog presets lacked data-testid selector hooks for automated layout testing; added data-testid container-structure-preset-id",
+      "status": "FIXED",
+      "round": 66
+    },
+    {
+      "id": "DEFECT-R67-01",
+      "severity": "P2",
+      "component": "canvas_frame_resizing",
+      "layer": "frontend/components/admin/builder/canvas-frame.tsx",
+      "summary": "Canvas frame iframe lacked data-testid hook for automated responsive viewport resizing assertions; verified testid canvas-iframe",
+      "status": "FIXED",
+      "round": 67
+    },
+    {
+      "id": "DEFECT-R68-01",
+      "severity": "P2",
+      "component": "canvas_overlay_toolbar",
+      "layer": "frontend/components/admin/builder/canvas-overlay-layer.tsx",
+      "summary": "Canvas floating action toolbar buttons lacked explicit data-testid hooks for automated duplicate and delete actions; added data-testid overlay-duplicate-btn and overlay-delete-btn",
+      "status": "FIXED",
+      "round": 68
+    },
+    {
+      "id": "DEFECT-R69-01",
+      "severity": "P2",
+      "component": "color_utils_and_hsl_tokens",
+      "layer": "frontend/lib/builder/color-utils.ts",
+      "summary": "CSS HSL token channel normalization validated across all device styling and inspector pickers with 100% test lock",
+      "status": "FIXED",
+      "round": 69
+    },
+    {
+      "id": "DEFECT-R70-01",
+      "severity": "P2",
+      "component": "storefront_widgets_parity",
+      "layer": "frontend/components/admin/builder/canvas-element.tsx",
+      "summary": "Storefront widgets mega_menu, product_price, add_to_cart, and product_variants standardized with data-widget and builder-* semantic class attributes",
+      "status": "FIXED",
+      "round": 70
+    },
+    {
+      "id": "DEFECT-R71-01",
+      "severity": "P2",
+      "component": "container_empty_guide",
+      "layer": "frontend/components/admin/builder/canvas-element.tsx",
+      "summary": "Container empty guide dashed placeholder validated with data-testid empty-container-guide and add block trigger",
+      "status": "FIXED",
+      "round": 71
+    },
+    {
+      "id": "DEFECT-R72-01",
+      "severity": "P2",
+      "component": "pattern_converter_palette",
+      "layer": "frontend/lib/builder/pattern-converter.ts",
+      "summary": "Pattern converter verified across 28 block patterns with Playwright automated palette display assertion",
+      "status": "FIXED",
+      "round": 72
+    },
+    {
+      "id": "DEFECT-R59-W4-01",
+      "severity": "P2",
+      "component": "keyboard_shortcuts_and_templates",
+      "layer": "frontend/tests/e2e/builder-gym-w4-r59.spec.ts",
+      "summary": "Automated regression suite for Elementor shortcuts dialog, save page template, preview toggle, and save draft verified",
+      "status": "FIXED",
+      "round": 59
+    },
+    {
+      "id": "DEFECT-R59-W4-02",
+      "severity": "P2",
+      "component": "preview_mode_canvas",
+      "layer": "frontend/components/admin/builder/builder-studio.tsx",
+      "summary": "Verified zero canvas scaling distortion or iframe layout breakage when collapsing inspector and sidebar in preview mode",
+      "status": "FIXED",
+      "round": 59
     }
   ]
 }

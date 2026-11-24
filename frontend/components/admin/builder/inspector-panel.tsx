@@ -3686,7 +3686,7 @@ export function InspectorPanel() {
                 }}
                 className="text-[10px] text-muted-foreground hover:text-foreground px-1.5 py-0.5 rounded border border-border/40 hover:bg-muted transition shrink-0"
               >
-                ریست
+                بازنشانی
               </button>
               <button
                 type="button"
@@ -3839,7 +3839,7 @@ export function InspectorPanel() {
                 }}
                 className="text-[10px] text-muted-foreground hover:text-foreground px-1.5 py-0.5 rounded border border-border/40 hover:bg-muted transition shrink-0"
               >
-                ریست
+                بازنشانی
               </button>
               <button
                 type="button"

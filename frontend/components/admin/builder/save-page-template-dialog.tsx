@@ -194,7 +194,7 @@ export function SavePageTemplateDialog({
           <Button variant="outline" size="sm" onClick={() => onOpenChange(false)} disabled={saving}>
             انصراف
           </Button>
-          <Button size="sm" onClick={handleSave} disabled={saving}>
+          <Button size="sm" data-testid="save-page-template-submit-btn" onClick={handleSave} disabled={saving}>
             {saving ? (
               <>
                 <Loader2 className="w-3.5 h-3.5 animate-spin ms-1" />

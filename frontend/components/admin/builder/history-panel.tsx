@@ -88,6 +88,7 @@ export function HistoryPanel() {
             key={step.index}
             type="button"
             data-history-step={step.index}
+            data-testid={`history-step-${step.index}`}
             onClick={() => jumpToHistoryStep(step.index)}
             className={cn(
               "w-full flex items-center justify-between p-2 rounded-lg text-xs transition border text-start",

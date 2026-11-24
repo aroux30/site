@@ -1,22 +1,31 @@
 {
   "version": "4.2",
-  "activeWeight": 3,
-  "activeRound": 58,
+  "activeWeight": 4,
+  "activeRound": 59,
   "status": "IN_PROGRESS",
   "levels1to5Status": "BUILDER_GYM_LEVELS_1_TO_5_CLEAN",
   "allLevelsMastered": "BUILDER_GYM_ALL_LEVELS_MASTERED",
   "verificationPort": 1002,
-  "completedRounds": 57,
+  "completedRounds": 58,
   "metrics": {
     "typeCheckErrors": 0,
-    "frontendUnitTests": 392,
+    "frontendUnitTests": 395,
     "backendUnitTests": 655,
     "playwrightTests": 5,
     "registeredBlocks": 68,
     "lastVerifierVerdict": "APPROVE"
   },
-  "timestamp": "2026-11-24T08:35:00.000Z",
+  "timestamp": "2026-11-24T08:58:00.000Z",
   "defect_ledger": [
+    {
+      "id": "DEFECT-W4-01",
+      "severity": "P2",
+      "round": 59,
+      "title": "Save page template dialog integration and display conditions mapping",
+      "status": "FIXED",
+      "layer": "frontend/components/admin/builder/save-page-template-dialog.tsx",
+      "description": "Validated that page template saving correctly packages entire AST with theme builder template types and conditions."
+    },
     {
       "id": "DEFECT-W3-01",
       "severity": "P2",

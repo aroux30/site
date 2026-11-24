@@ -329,21 +329,22 @@ const TreeItem = React.memo(function TreeItem({
           )}
         </div>
 
-        {/* Action Buttons: ALWAYS visible on all items with zero hiding */}
+        {/* Action Buttons: ALWAYS visible on all items with zero hiding (opacity-100) */}
         <div
           className={cn(
-            "flex items-center gap-0.5 shrink-0 transition-opacity",
-            isSelected ? "opacity-100 text-primary-foreground" : "opacity-80 hover:opacity-100 text-muted-foreground"
+            "flex items-center gap-0.5 shrink-0 opacity-100",
+            isSelected ? "text-primary-foreground" : "text-muted-foreground"
           )}
         >
           <button
             type="button"
+            data-testid={`layer-hide-btn-${element.id}`}
             onClick={(e) => {
               e.stopPropagation();
               toggleHideElement(element.id);
             }}
             className={cn(
-              "p-1 rounded transition",
+              "p-1 rounded transition opacity-100",
               isSelected
                 ? "text-primary-foreground hover:bg-white/20"
                 : element.isHidden
@@ -357,12 +358,13 @@ const TreeItem = React.memo(function TreeItem({
           </button>
           <button
             type="button"
+            data-testid={`layer-duplicate-btn-${element.id}`}
             onClick={(e) => {
               e.stopPropagation();
               duplicateElement(element.id);
             }}
             className={cn(
-              "p-1 rounded transition",
+              "p-1 rounded transition opacity-100",
               isSelected
                 ? "text-primary-foreground hover:bg-white/20"
                 : "text-muted-foreground hover:text-foreground hover:bg-muted"
@@ -374,12 +376,13 @@ const TreeItem = React.memo(function TreeItem({
           </button>
           <button
             type="button"
+            data-testid={`layer-delete-btn-${element.id}`}
             onClick={(e) => {
               e.stopPropagation();
               deleteElement(element.id);
             }}
             className={cn(
-              "p-1 rounded transition",
+              "p-1 rounded transition opacity-100",
               isSelected
                 ? "text-primary-foreground hover:bg-white/20"
                 : "text-destructive hover:bg-destructive/10"

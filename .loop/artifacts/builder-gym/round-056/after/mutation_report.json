@@ -1,0 +1,24 @@
+{
+  "round": "round-056",
+  "phase": "after",
+  "weight": 1,
+  "timestamp": "2026-11-24T08:02:22.614Z",
+  "sensors": {
+    "consoleErrorsCount": 0,
+    "networkErrorsCount": 0,
+    "hydrationErrorsCount": 0,
+    "maxHorizontalOverflowPx": 0,
+    "neighborOverlapsDetected": 0,
+    "rtlLayoutIntegrity": "PASS",
+    "darkModeIntegrity": "PASS"
+  },
+  "effectProof": {
+    "domDiffDetected": true,
+    "visualDifferenceProof": false
+  },
+  "breakageProof": {
+    "zeroConsoleErrors": true,
+    "zeroNetworkErrors": true,
+    "zeroOverflow": true
+  }
+}

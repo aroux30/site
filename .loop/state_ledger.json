@@ -1,22 +1,31 @@
 {
   "version": "4.2",
-  "activeWeight": 0,
-  "activeRound": 55,
+  "activeWeight": 1,
+  "activeRound": 56,
   "status": "IN_PROGRESS",
   "levels1to5Status": "BUILDER_GYM_LEVELS_1_TO_5_CLEAN",
   "allLevelsMastered": "BUILDER_GYM_ALL_LEVELS_MASTERED",
   "verificationPort": 1002,
-  "completedRounds": 54,
+  "completedRounds": 55,
   "metrics": {
     "typeCheckErrors": 0,
-    "frontendUnitTests": 384,
+    "frontendUnitTests": 387,
     "backendUnitTests": 655,
     "playwrightTests": 5,
     "registeredBlocks": 68,
     "lastVerifierVerdict": "APPROVE"
   },
-  "timestamp": "2026-11-24T07:25:00.000Z",
+  "timestamp": "2026-11-24T08:05:00.000Z",
   "defect_ledger": [
+    {
+      "id": "DEFECT-W1-01",
+      "severity": "P1",
+      "round": 56,
+      "title": "Action buttons in layers-tree required hover to become visible",
+      "status": "FIXED",
+      "layer": "frontend/components/admin/builder/layers-tree.tsx",
+      "description": "Removed hover dependency for layer actions (hide, duplicate, delete), locking them to permanent opacity-100."
+    },
     {
       "id": "DEFECT-W0-01",
       "severity": "P0",

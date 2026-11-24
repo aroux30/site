@@ -1,0 +1,19 @@
+{
+  "rawTextSlugLeaked": false,
+  "svgIconsRenderedCorrectly": true,
+  "rtlGuidanceCorrect": true,
+  "imagesComplete": true,
+  "svgDetails": [
+    {
+      "width": 32,
+      "height": 32,
+      "hasPathOrPolygon": true
+    },
+    {
+      "width": 32,
+      "height": 32,
+      "hasPathOrPolygon": true
+    }
+  ],
+  "storeRtlGuidanceVerified": true
+}

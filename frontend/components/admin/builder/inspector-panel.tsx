@@ -2942,7 +2942,9 @@ export function InspectorPanel() {
                 onValueChange={(val) => handlePropChange("icon", val)}
               >
                 <SelectTrigger className="h-8 text-xs">
-                  <SelectValue />
+                  <SelectValue>
+                    {BUILDER_ICON_OPTIONS.find((opt) => opt.id === (props.icon || "star"))?.label || "ستاره (Star)"}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent className="max-h-56">
                   {BUILDER_ICON_OPTIONS.map((opt) => {
@@ -3627,8 +3629,8 @@ export function InspectorPanel() {
     return (
       <div className="space-y-5">
         {/* Device Switcher Indicator */}
-        <div className="flex items-center justify-between p-2 rounded-lg bg-muted/60 border border-border/80">
-          <span className="text-[11px] font-semibold text-foreground">
+        <div className="flex items-center justify-between p-2 rounded-lg bg-muted/60 border border-border/80 gap-2">
+          <span className="text-[11px] font-semibold text-foreground truncate min-w-0" title="ویرایش استایل">
             ویرایش استایل:{" "}
             {activeBreakpoint === "mobile"
               ? "موبایل (پایه)"
@@ -3636,7 +3638,7 @@ export function InspectorPanel() {
               ? "تبلت (md:)"
               : "دسکتاپ (lg:)"}
           </span>
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1 shrink-0">
             <button
               type="button"
               onClick={() => setBreakpoint("mobile")}
@@ -3668,13 +3670,35 @@ export function InspectorPanel() {
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <Label className="text-xs font-bold text-foreground">فاصله داخلی (Padding)</Label>
-            <button
-              type="button"
-              onClick={() => toggleSpacingLink("padding")}
-              className="text-muted-foreground hover:text-foreground"
-            >
-              {pad.isLinked ? <Link2 className="w-3.5 h-3.5 text-primary" /> : <Unlink className="w-3.5 h-3.5" />}
-            </button>
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                data-testid="reset-padding-btn"
+                title="بازنشانی پدینگ به صفر"
+                onClick={() => {
+                  handleDeviceStyleChange({
+                    padding: {
+                      top: { value: 0, unit: "px" },
+                      right: { value: 0, unit: "px" },
+                      bottom: { value: 0, unit: "px" },
+                      left: { value: 0, unit: "px" },
+                      isLinked: pad.isLinked,
+                    },
+                  });
+                }}
+                className="text-[10px] text-muted-foreground hover:text-foreground px-1.5 py-0.5 rounded border border-border/60 hover:bg-muted transition"
+              >
+                ریست
+              </button>
+              <button
+                type="button"
+                onClick={() => toggleSpacingLink("padding")}
+                className="text-muted-foreground hover:text-foreground"
+                title={pad.isLinked ? "لغو قفل اضلاع" : "قفل همزمان اضلاع"}
+              >
+                {pad.isLinked ? <Link2 className="w-3.5 h-3.5 text-primary" /> : <Unlink className="w-3.5 h-3.5" />}
+              </button>
+            </div>
           </div>
           <div className="grid grid-cols-4 gap-1.5 text-center">
             <div>
@@ -3798,14 +3822,36 @@ export function InspectorPanel() {
         {/* Margin Box */}
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <Label className="text-xs font-bold text-foreground">فاصله خارجی (Margin)</Label>
-            <button
-              type="button"
-              onClick={() => toggleSpacingLink("margin")}
-              className="text-muted-foreground hover:text-foreground"
-            >
-              {mar.isLinked ? <Link2 className="w-3.5 h-3.5 text-primary" /> : <Unlink className="w-3.5 h-3.5" />}
-            </button>
+            <Label className="text-xs font-bold text-foreground">فاصله بیرونی (Margin)</Label>
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                data-testid="reset-margin-btn"
+                title="بازنشانی مارجین به صفر"
+                onClick={() => {
+                  handleDeviceStyleChange({
+                    margin: {
+                      top: { value: 0, unit: "px" },
+                      right: { value: 0, unit: "px" },
+                      bottom: { value: 0, unit: "px" },
+                      left: { value: 0, unit: "px" },
+                      isLinked: mar.isLinked,
+                    },
+                  });
+                }}
+                className="text-[10px] text-muted-foreground hover:text-foreground px-1.5 py-0.5 rounded border border-border/60 hover:bg-muted transition"
+              >
+                ریست
+              </button>
+              <button
+                type="button"
+                onClick={() => toggleSpacingLink("margin")}
+                className="text-muted-foreground hover:text-foreground"
+                title={mar.isLinked ? "لغو قفل اضلاع" : "قفل همزمان اضلاع"}
+              >
+                {mar.isLinked ? <Link2 className="w-3.5 h-3.5 text-primary" /> : <Unlink className="w-3.5 h-3.5" />}
+              </button>
+            </div>
           </div>
           <div className="grid grid-cols-4 gap-1.5 text-center">
             <div>
@@ -3849,9 +3895,9 @@ export function InspectorPanel() {
 
         {/* Professional Background Group Controls (Elementor Parity) */}
         <div className="space-y-3 pt-2 border-t">
-          <div className="flex items-center justify-between">
-            <Label className="text-xs font-bold text-foreground">پس‌زمینه (Background - المنتور)</Label>
-            <div className="flex gap-1 text-[10px] bg-muted/60 p-0.5 rounded-md border border-border/60">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
+            <Label className="text-xs font-bold text-foreground shrink-0">پس‌زمینه (Background)</Label>
+            <div className="flex flex-wrap gap-1 text-[10px] bg-muted/60 p-0.5 rounded-md border border-border/60 shrink-0">
               {[
                 { id: "color", label: "تک‌رنگ" },
                 { id: "gradient", label: "گرادیانت" },

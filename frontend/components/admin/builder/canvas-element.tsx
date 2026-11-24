@@ -887,8 +887,9 @@ function CanvasElementComponent({
         const padding = view !== "default" ? Math.round(size * 0.4) : 0;
         return (
           <div
+            data-widget-type="icon"
             className={cn(
-              "inline-flex items-center justify-center transition-transform",
+              "builder-icon inline-flex items-center justify-center transition-transform",
               viewClasses,
               shapeClass
             )}
@@ -897,7 +898,11 @@ function CanvasElementComponent({
               transform: rotate ? `rotate(${rotate}deg)` : undefined,
             }}
           >
-            <IconComponent style={{ width: `${size}px`, height: `${size}px` }} />
+            <IconComponent
+              className="builder-icon-svg"
+              style={{ width: `${size}px`, height: `${size}px` }}
+              aria-hidden="true"
+            />
           </div>
         );
       }

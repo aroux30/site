@@ -52,6 +52,42 @@ class ASTCompiler:
         "info": "ℹ️",
     }
 
+    ICON_SVG_INNER: dict[str, str] = {
+        "star": '<path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" fill="currentColor"/>',
+        "heart": '<path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" fill="currentColor"/>',
+        "shield-check": '<path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z" fill="currentColor"/><path d="m9 12 2 2 4-4" fill="currentColor"/>',
+        "shield": '<path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z" fill="currentColor"/>',
+        "truck": '<path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2" fill="currentColor"/><path d="M15 18H9" fill="currentColor"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14" fill="currentColor"/><path d="M17 16a2 2 0 1 0 0 4 2 2 0 0 0 0-4z" fill="currentColor"/><path d="M7 16a2 2 0 1 0 0 4 2 2 0 0 0 0-4z" fill="currentColor"/>',
+        "headphones": '<path d="M3 14h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7a9 9 0 0 1 18 0v7a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3" fill="currentColor"/>',
+        "support": '<path d="M3 14h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7a9 9 0 0 1 18 0v7a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3" fill="currentColor"/>',
+        "award": '<path d="M12 2a6 6 0 1 0 0 12 6 6 0 0 0 0-12z" fill="currentColor"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11" fill="currentColor"/>',
+        "check": '<path d="M20 6 9 17l-5-5" fill="currentColor"/>',
+        "zap": '<path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z" fill="currentColor"/>',
+        "sparkles": '<path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" fill="currentColor"/>',
+        "clock": '<path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z" fill="currentColor"/><path d="M12 6v6l4 2" fill="currentColor"/>',
+        "credit-card": '<path d="M4 5h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z" fill="currentColor"/><path d="M2 10h20" fill="currentColor"/>',
+        "shopping-cart": '<path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12" fill="currentColor"/><path d="M8 20a1 1 0 1 0 0 2 1 1 0 0 0 0-2z" fill="currentColor"/><path d="M19 20a1 1 0 1 0 0 2 1 1 0 0 0 0-2z" fill="currentColor"/>',
+        "shopping-bag": '<path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" fill="currentColor"/><path d="M3 6h18" fill="currentColor"/><path d="M16 10a4 4 0 0 1-8 0" fill="currentColor"/>',
+        "gift": '<path d="M4 8h16a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z" fill="currentColor"/><path d="M12 8v13" fill="currentColor"/><path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7" fill="currentColor"/><path d="M7.5 8a2.5 2.5 0 0 1 0-5A4.8 8 0 0 1 12 8a4.8 8 0 0 1 4.5-5 2.5 2.5 0 0 1 0 5" fill="currentColor"/>',
+        "phone": '<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" fill="currentColor"/>',
+        "mail": '<path d="M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z" fill="currentColor"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" fill="currentColor"/>',
+        "thumbs-up": '<path d="M7 10v12" fill="currentColor"/><path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z" fill="currentColor"/>',
+        "map-pin": '<path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0" fill="currentColor"/><path d="M12 13a3 3 0 1 0 0-6 3 3 0 0 0 0 6z" fill="currentColor"/>',
+        "user": '<path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" fill="currentColor"/><path d="M12 3a4 4 0 1 0 0 8 4 4 0 0 0 0-8z" fill="currentColor"/>',
+        "lock": '<path d="M5 11h14a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2z" fill="currentColor"/><path d="M7 11V7a5 5 0 0 1 10 0v4" fill="currentColor"/>',
+    }
+
+    @classmethod
+    def render_svg_icon(cls, icon_key: str, size: int = 24, css_class: str = "") -> str:
+        key = icon_key.strip().lower()
+        inner = cls.ICON_SVG_INNER.get(key)
+        if not inner:
+            inner = cls.ICON_SVG_INNER.get("star", "")
+        cls_attr = f' class="lucide lucide-{key} {css_class}".strip()' if (css_class or key) else ""
+        return f'<svg viewBox="0 0 24 24" width="{size}" height="{size}" fill="none" aria-hidden="true"{cls_attr}>{inner}</svg>'
+
+
+
     SHAPE_DIVIDER_PATHS: dict[str, str] = {
         "waves": "M421.9,6.5c22.6-2.5,51.5,0.4,75.5,5.3c23.6,4.9,70.9,23.5,100.5,35.7c75.8,32.2,133.7,44.5,192.6,49.7c23.6,2.1,48.7,3.5,103.4-2.5c54.7-6,106.2-25.6,106.2-25.6V0H0v30.3c0,0,72,32.6,158.4,30.5c39.2-0.7,92.8-6.7,134-22.4c21.2-8.1,52.2-18.2,79.7-24.2C399.3,7.9,411.6,7.5,421.9,6.5z",
         "curve": "M1000,4.3V0H0v4.3C0.9,23.1,126.7,99.2,500,100S1000,22.7,1000,4.3z",
@@ -978,7 +1014,8 @@ class ASTCompiler:
             rot_style = f"transform: rotate({rotate}deg);" if rotate else ""
             inline_style = f' style="{pad_style} {rot_style}"'.strip()
 
-            inner_icon = f'<div class="inline-flex items-center justify-center {view_classes} {shape_class}"{inline_style}><span style="font-size: {size}px; line-height: 1;">{icon_char}</span></div>'
+            svg_icon = cls.render_svg_icon(icon_key, size=size, css_class="builder-icon-svg")
+            inner_icon = f'<div class="inline-flex items-center justify-center {view_classes} {shape_class}"{inline_style}>{svg_icon}<span class="sr-only">{icon_char}</span></div>'
             if url:
                 return f'<div{id_attr} class="builder-icon inline-block {css_class}" data-widget="icon"{style_attr}><a href="{html.escape(url)}"{target_attr}>{inner_icon}</a></div>'
             return f'<div{id_attr} class="builder-icon inline-block {css_class}" data-widget="icon"{style_attr}>{inner_icon}</div>'
@@ -997,10 +1034,11 @@ class ASTCompiler:
                 url = item.get("url", "")
                 i_key = str(item.get("icon", "check")).strip().lower()
                 i_char = cls.ICON_CHAR_MAP.get(i_key, "✓")
+                svg_icon = cls.render_svg_icon(i_key, size=12, css_class="w-3 h-3")
                 text_content = f'<a href="{html.escape(str(url))}" class="hover:underline">{text}</a>' if url else f'<span>{text}</span>'
                 items_html += (
                     f'<li class="flex items-center gap-2.5 text-xs text-foreground">'
-                    f'<div class="w-5 h-5 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0 text-[10px]">{i_char}</div>'
+                    f'<div class="w-5 h-5 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0 text-[10px]">{svg_icon}<span class="sr-only">{i_char}</span></div>'
                     f'{text_content}'
                     f'</li>'
                 )

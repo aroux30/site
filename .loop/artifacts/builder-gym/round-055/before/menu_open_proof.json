@@ -1,0 +1,13 @@
+{
+  "testedMenus": [
+    {
+      "selector": "inspector-first-combobox",
+      "isExpanded": true,
+      "dimensionsValid": true,
+      "notObscuredByIframe": true,
+      "optionsCount": 2,
+      "status": "PASS"
+    }
+  ],
+  "allMenusPassed": true
+}

@@ -1,22 +1,58 @@
 {
-  "version": "3.2",
-  "activeWeight": 9,
-  "activeRound": 54,
-  "status": "COMPLETED",
+  "version": "4.2",
+  "activeWeight": 0,
+  "activeRound": 55,
+  "status": "IN_PROGRESS",
   "levels1to5Status": "BUILDER_GYM_LEVELS_1_TO_5_CLEAN",
   "allLevelsMastered": "BUILDER_GYM_ALL_LEVELS_MASTERED",
-  "verificationPort": 1001,
+  "verificationPort": 1002,
   "completedRounds": 54,
   "metrics": {
     "typeCheckErrors": 0,
-    "frontendUnitTests": 380,
-    "backendUnitTests": 653,
-    "playwrightTests": 4,
-    "registeredBlocks": 76,
+    "frontendUnitTests": 384,
+    "backendUnitTests": 655,
+    "playwrightTests": 5,
+    "registeredBlocks": 68,
     "lastVerifierVerdict": "APPROVE"
   },
-  "timestamp": "2026-11-23T23:00:00.000Z",
+  "timestamp": "2026-11-24T07:25:00.000Z",
   "defect_ledger": [
+    {
+      "id": "DEFECT-W0-01",
+      "severity": "P0",
+      "round": 55,
+      "title": "Vertical scroll trap in InspectorPanel and flexbox chain missing min-h-0",
+      "status": "FIXED",
+      "layer": "frontend/components/admin/builder/builder-studio.tsx & inspector-panel.tsx",
+      "description": "InspectorPanel left column flexbox chain lacked min-h-0 on parent containers. Added min-h-0 and pb-24 clearance ensuring all 3 tabs scroll completely."
+    },
+    {
+      "id": "DEFECT-W0-02",
+      "severity": "P0",
+      "round": 55,
+      "title": "Horizontal clipping in Style tab controls and toolbar buttons overlap in 1280x720",
+      "status": "FIXED",
+      "layer": "frontend/components/admin/builder/builder-toolbar.tsx & inspector-panel.tsx",
+      "description": "Added reset buttons for Padding and Margin in InspectorPanel Style tab, responsive labels and shrink-0 preventing button collisions in 1280x720 and 1440x900 viewports."
+    },
+    {
+      "id": "DEFECT-W0-03",
+      "severity": "P0",
+      "round": 55,
+      "title": "Single icon widget rendered raw text or missing SVG in canvas and backend ast_compiler",
+      "status": "FIXED",
+      "layer": "frontend/lib/builder/icon-registry.ts, canvas-element.tsx & ast_compiler.py",
+      "description": "Created unified icon-registry.ts, updated canvas-element with data-widget-type and Lucide SVG, and upgraded backend AST compiler to output valid sanitization-compliant SVG vector paths."
+    },
+    {
+      "id": "DEFECT-W0-04",
+      "severity": "P0",
+      "round": 55,
+      "title": "Canvas default content RTL guidance incorrectly pointed to left panel instead of right panel",
+      "status": "FIXED",
+      "layer": "frontend/stores/builder-store.ts",
+      "description": "Corrected initial text guidance in RTL layout from پنل سمت چپ to پنل سمت راست matching BlocksPalette physical position."
+    },
     {
       "id": "DEFECT-R41-01",
       "severity": "P1",

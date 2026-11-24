@@ -632,6 +632,7 @@ function CanvasElementComponent({
         if (isInlineEditing && !previewMode) {
           return (
             <Tag
+              data-widget="heading"
               contentEditable
               suppressContentEditableWarning
               autoFocus
@@ -663,6 +664,7 @@ function CanvasElementComponent({
 
         return (
           <Tag
+            data-widget="heading"
             onDoubleClick={(e) => {
               if (!previewMode) {
                 e.stopPropagation();
@@ -686,6 +688,7 @@ function CanvasElementComponent({
         if (isInlineEditing && !previewMode) {
           return (
             <div
+              data-widget={element.widgetType || "text_editor"}
               contentEditable
               suppressContentEditableWarning
               autoFocus
@@ -713,6 +716,7 @@ function CanvasElementComponent({
 
         return (
           <div
+            data-widget={element.widgetType || "text_editor"}
             onDoubleClick={(e) => {
               if (!previewMode) {
                 e.stopPropagation();
@@ -741,7 +745,7 @@ function CanvasElementComponent({
 
         if (isInlineEditing && !previewMode) {
           return (
-            <div className={isFull ? "w-full block" : "inline-block"}>
+            <div className={isFull ? "w-full block" : "inline-block"} data-widget="button">
               <span
                 contentEditable
                 suppressContentEditableWarning
@@ -778,7 +782,7 @@ function CanvasElementComponent({
         }
 
         return (
-          <div className={isFull ? "w-full block" : "inline-block"}>
+          <div className={isFull ? "w-full block" : "inline-block"} data-widget="button">
             <a
               href={url}
               data-url={url}
@@ -808,7 +812,7 @@ function CanvasElementComponent({
       case "image": {
         const customClass = String(props.customCssClass || element.styles?.customCssClass || "");
         return (
-          <div className={cn("relative overflow-hidden rounded-xl bg-muted/30 min-h-[120px] w-full flex items-center justify-center", customClass)}>
+          <div className={cn("relative overflow-hidden rounded-xl bg-muted/30 min-h-[120px] w-full flex items-center justify-center", customClass)} data-widget="image">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={String(props.url || "/placeholder-hero.svg")}
@@ -823,6 +827,7 @@ function CanvasElementComponent({
         return (
           <div
             id={anchorId}
+            data-widget="menu_anchor"
             className="w-full py-2 px-3 border border-dashed border-primary/40 bg-primary/5 rounded-lg text-xs font-mono text-primary flex items-center justify-between"
             dir="ltr"
           >
@@ -835,6 +840,7 @@ function CanvasElementComponent({
         const h = Number(props.height || 32);
         return (
           <div
+            data-widget="spacer"
             className="w-full flex items-center justify-center border border-dashed border-muted-foreground/20 rounded text-xs text-muted-foreground select-none"
             style={{ height: `${h}px` }}
           >
@@ -846,6 +852,7 @@ function CanvasElementComponent({
         const dStyle = String(props.style || "solid");
         return (
           <hr
+            data-widget="divider"
             className={cn(
               "w-full border-border/80 my-4",
               dStyle === "dashed" && "border-dashed",

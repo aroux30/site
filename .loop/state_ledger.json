@@ -1,21 +1,21 @@
 {
   "version": "3.2",
   "activeWeight": 9,
-  "activeRound": 66,
+  "activeRound": 67,
   "status": "COMPLETED",
   "levels1to5Status": "BUILDER_GYM_LEVELS_1_TO_5_CLEAN",
   "allLevelsMastered": "BUILDER_GYM_ALL_LEVELS_MASTERED",
   "verificationPort": 1001,
-  "completedRounds": 66,
+  "completedRounds": 67,
   "metrics": {
     "typeCheckErrors": 0,
     "frontendUnitTests": 385,
     "backendUnitTests": 654,
-    "playwrightTests": 13,
+    "playwrightTests": 14,
     "registeredBlocks": 76,
     "lastVerifierVerdict": "APPROVE"
   },
-  "timestamp": "2026-11-24T14:11:23.390Z",
+  "timestamp": "2026-11-24T14:51:45.784Z",
   "defect_ledger": [
     {
       "id": "DEFECT-R41-01",
@@ -628,6 +628,24 @@
       "summary": "Missing dedicated end-to-end regression assertion for Keyboard Shortcuts dialog interaction and viewport safety",
       "status": "FIXED",
       "round": 66
+    },
+    {
+      "id": "DEFECT-R67-01",
+      "severity": "P1",
+      "component": "theme_builder_save_dialog",
+      "layer": "frontend/components/admin/builder/save-page-template-dialog.tsx",
+      "summary": "Theme builder template types, display conditions and save dialog interactions verified",
+      "status": "FIXED",
+      "round": 67
+    },
+    {
+      "id": "DEFECT-R67-02",
+      "severity": "P2",
+      "component": "theme_builder_e2e_regression",
+      "layer": "frontend/tests/e2e/builder-gym-r71.spec.ts",
+      "summary": "Missing dedicated end-to-end regression assertion for Save Page Template dialog and Escape dismissal",
+      "status": "FIXED",
+      "round": 67
     }
   ]
 }

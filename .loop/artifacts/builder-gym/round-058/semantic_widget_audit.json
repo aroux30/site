@@ -1,0 +1,30 @@
+{
+  "round": 58,
+  "timestamp": "2026-11-24T10:01:46.868Z",
+  "storefrontWidgetsSemanticTags": {
+    "productCardDataWidget": true,
+    "productGridDataWidget": true,
+    "imageGalleryDataWidget": true,
+    "starRatingDataWidget": true,
+    "reviewHistogramDataWidget": true,
+    "recentlyViewedDataWidget": true,
+    "megaMenuDataWidget": true,
+    "addToCartDataWidget": true,
+    "productVariantsDataWidget": true,
+    "miniCartDataWidget": true,
+    "cartSummaryDataWidget": true,
+    "status": "PASS"
+  },
+  "iconWidget": {
+    "rendersSvgElement": true,
+    "hasValidVectorPath": true,
+    "noRawTextSlugLeaked": true,
+    "result": "<svg><path d=\"...\"></path></svg>"
+  },
+  "rtlGuidanceText": {
+    "actual": "از پنل سمت راست عناصر جدید اضافه نمایید.",
+    "correctOrientation": "پنل سمت راست",
+    "noLeftPanelLeak": true
+  },
+  "status": "PASS"
+}

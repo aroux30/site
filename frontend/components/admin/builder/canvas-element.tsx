@@ -944,7 +944,7 @@ function CanvasElementComponent({
           review_count: Number(props.review_count) || 38,
         };
         return (
-          <div className="w-full max-w-sm">
+          <div className="w-full max-w-sm" data-widget="product_card">
             <ProductCard product={prod as any} variant={(props.variant as any) || "default"} />
           </div>
         );
@@ -970,7 +970,7 @@ function CanvasElementComponent({
           review_count: 15 + i * 4,
         }));
         return (
-          <div className="space-y-4 w-full">
+          <div className="space-y-4 w-full" data-widget="product_grid">
             {/* Filter Pills */}
             <div className="flex items-center gap-1.5 pb-1">
               {[
@@ -1025,14 +1025,14 @@ function CanvasElementComponent({
               { url: "/placeholder.svg", alt: "تصویر ۲" },
             ];
         return (
-          <div className="w-full max-w-md mx-auto">
+          <div className="w-full max-w-md mx-auto" data-widget="image_gallery">
             <ImageGallery images={images} productName={String(props.productName || "محصول نمونه")} />
           </div>
         );
       }
       case "star_rating": {
         return (
-          <div className="inline-flex items-center gap-2 p-2 rounded-lg bg-card border">
+          <div className="inline-flex items-center gap-2 p-2 rounded-lg bg-card border" data-widget="star_rating">
             <StarRating
               value={Number(props.value) || 4.8}
               reviewCount={props.reviewCount !== undefined ? Number(props.reviewCount) : 124}
@@ -1051,7 +1051,7 @@ function CanvasElementComponent({
           star_1: 1,
         };
         return (
-          <div className="w-full max-w-md">
+          <div className="w-full max-w-md" data-widget="review_histogram">
             <ReviewHistogram
               distribution={dist}
               averageRating={Number(props.averageRating) || 4.5}
@@ -1079,7 +1079,7 @@ function CanvasElementComponent({
           review_count: 22,
         }));
         return (
-          <div className="w-full space-y-3">
+          <div className="w-full space-y-3" data-widget="recently_viewed">
             <h4 className="text-sm font-bold text-foreground">{title}</h4>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               {dummyRecentProducts.map((p) => (
@@ -1099,7 +1099,7 @@ function CanvasElementComponent({
           { id: "c6", name: "لوازم برقی", slug: "appliances", parent_id: "c5", is_active: true, display_order: 1, image_url: "/placeholder.svg" },
         ];
         return (
-          <div className="inline-block p-1">
+          <div className="inline-block p-1" data-widget="mega_menu">
             <MegaMenu categories={sampleCats as any} label={String(props.label || "دسته‌بندی کالاها")} />
           </div>
         );
@@ -1156,7 +1156,7 @@ function CanvasElementComponent({
         };
 
         return (
-          <div className="flex items-center gap-2 w-full">
+          <div className="flex items-center gap-2 w-full" data-widget="add_to_cart">
             {showQty && (
               <div className="flex items-center border border-border/80 rounded-xl bg-card overflow-hidden shrink-0">
                 <button
@@ -1201,7 +1201,7 @@ function CanvasElementComponent({
         ];
 
         return (
-          <div className="space-y-2 w-full">
+          <div className="space-y-2 w-full" data-widget="product_variants">
             <span className="block text-xs font-bold text-foreground">{pTitle}</span>
             <div className="flex flex-wrap gap-2">
               {variants.map((v) => {
@@ -1239,7 +1239,7 @@ function CanvasElementComponent({
         const showBadge = props.show_badge !== false;
         const label = String(props.label || "سبد خرید");
         return (
-          <div className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-card border border-border/80 shadow-sm">
+          <div className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-card border border-border/80 shadow-sm" data-widget="mini_cart">
             <ShoppingCart className="w-4 h-4 text-primary" />
             <span className="text-xs font-bold text-foreground">{label}</span>
             {showBadge && (
@@ -1257,7 +1257,7 @@ function CanvasElementComponent({
         const title = String(props.title || "خلاصه سبد خرید");
         const btnLabel = String(props.button_label || "ادامه فرآیند خرید");
         return (
-          <div className="p-4 rounded-2xl border border-border/80 bg-card space-y-3 shadow-sm w-full max-w-sm">
+          <div className="p-4 rounded-2xl border border-border/80 bg-card space-y-3 shadow-sm w-full max-w-sm" data-widget="cart_summary">
             <div className="flex items-center justify-between border-b pb-2">
               <span className="text-xs font-bold text-foreground">{title}</span>
               <Receipt className="w-4 h-4 text-primary" />

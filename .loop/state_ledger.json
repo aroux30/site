@@ -1,12 +1,12 @@
 {
   "version": "4.2",
   "activeWeight": 9,
-  "activeRound": 56,
+  "activeRound": 57,
   "status": "COMPLETED",
   "levels1to5Status": "BUILDER_GYM_LEVELS_1_TO_5_CLEAN",
   "allLevelsMastered": "BUILDER_GYM_ALL_LEVELS_MASTERED",
   "verificationPort": 1003,
-  "completedRounds": 56,
+  "completedRounds": 57,
   "metrics": {
     "typeCheckErrors": 0,
     "frontendUnitTests": 383,
@@ -15,7 +15,7 @@
     "registeredBlocks": 76,
     "lastVerifierVerdict": "APPROVE"
   },
-  "timestamp": "2026-11-24T08:00:00.000Z",
+  "timestamp": "2026-11-24T08:45:00.000Z",
   "defect_ledger": [
     {
       "id": "DEFECT-R41-01",
@@ -457,6 +457,15 @@
       "summary": "aparat and info widget type aliases lacked dedicated handling in canvas-element switch and ast_compiler; unified with parent video and alert cases",
       "status": "FIXED",
       "round": 56
+    },
+    {
+      "id": "DEFECT-R57-01",
+      "severity": "P2",
+      "component": "widget_semantic_attributes",
+      "layer": "frontend/components/admin/builder/canvas-element.tsx",
+      "summary": "hotspot, toggle, progress_tracker, and lottie widgets lacked standardized data-widget and builder CSS class hooks in canvas",
+      "status": "FIXED",
+      "round": 57
     }
   ]
 }

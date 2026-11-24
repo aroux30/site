@@ -2052,7 +2052,7 @@ function CanvasElementComponent({
           { title: "بخش تاشو", content: "محتوا" },
         ];
         return (
-          <div className="space-y-2.5 w-full text-right">
+          <div data-widget="toggle" className="builder-toggle space-y-2.5 w-full text-right">
             {items.map((item, idx) => (
               <details key={idx} open={item.open ?? (idx === 0)} className="group rounded-xl border border-border/80 bg-card p-3 shadow-sm transition">
                 <summary className="font-bold text-xs cursor-pointer flex items-center justify-between list-none">
@@ -2073,7 +2073,7 @@ function CanvasElementComponent({
           { top: 40, left: 35, title: "نقطه اول" },
         ];
         return (
-          <div className="relative w-full rounded-2xl overflow-hidden bg-muted/20 border border-border/80 aspect-video max-h-72">
+          <div data-widget="hotspot" className="builder-hotspot relative w-full rounded-2xl overflow-hidden bg-muted/20 border border-border/80 aspect-video max-h-72">
             <img src={imgUrl} alt="Hotspot" className="w-full h-full object-cover" />
             {spots.map((s, idx) => (
               <div
@@ -2097,7 +2097,7 @@ function CanvasElementComponent({
       case "progress_tracker": {
         const pct = Math.max(0, Math.min(100, Number(props.percentage ?? 50)));
         return (
-          <div className="w-full space-y-1 text-right py-1">
+          <div data-widget="progress_tracker" className="builder-progress-tracker w-full space-y-1 text-right py-1">
             <div className="flex items-center justify-between text-[11px] text-muted-foreground font-semibold">
               <span>پیشرفت مطالعه</span>
               <span className="font-mono text-primary font-bold">{pct}%</span>
@@ -2110,7 +2110,7 @@ function CanvasElementComponent({
       }
       case "lottie": {
         return (
-          <div className="flex flex-col items-center justify-center p-6 rounded-2xl border border-dashed border-primary/40 bg-primary/5 text-center space-y-2 w-full">
+          <div data-widget="lottie" className="builder-lottie flex flex-col items-center justify-center p-6 rounded-2xl border border-dashed border-primary/40 bg-primary/5 text-center space-y-2 w-full">
             <span className="w-12 h-12 rounded-2xl bg-primary/20 text-primary flex items-center justify-center text-xl font-bold animate-bounce">
               ⚡
             </span>

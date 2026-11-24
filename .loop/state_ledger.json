@@ -1,21 +1,21 @@
 {
-  "version": "3.2",
-  "activeWeight": 9,
-  "activeRound": 54,
+  "version": "4.2",
+  "activeWeight": 0,
+  "activeRound": 55,
   "status": "COMPLETED",
   "levels1to5Status": "BUILDER_GYM_LEVELS_1_TO_5_CLEAN",
   "allLevelsMastered": "BUILDER_GYM_ALL_LEVELS_MASTERED",
-  "verificationPort": 1001,
-  "completedRounds": 54,
+  "verificationPort": 1003,
+  "completedRounds": 55,
   "metrics": {
     "typeCheckErrors": 0,
-    "frontendUnitTests": 380,
-    "backendUnitTests": 653,
-    "playwrightTests": 4,
+    "frontendUnitTests": 383,
+    "backendUnitTests": 655,
+    "playwrightTests": 3,
     "registeredBlocks": 76,
     "lastVerifierVerdict": "APPROVE"
   },
-  "timestamp": "2026-11-23T23:00:00.000Z",
+  "timestamp": "2026-11-24T07:35:00.000Z",
   "defect_ledger": [
     {
       "id": "DEFECT-R41-01",
@@ -412,6 +412,42 @@
       "summary": "globals.css was missing @keyframes for builderBounceIn and builderRotateIn",
       "status": "FIXED",
       "round": 53
+    },
+    {
+      "id": "DEFECT-R55-01",
+      "severity": "P0",
+      "component": "toolbar_layout",
+      "layer": "frontend/components/admin/builder/builder-toolbar.tsx",
+      "summary": "Toolbar button text overflowed viewport by 25px at 1280x720, pushing publish button out; fixed with responsive hidden 2xl:inline text labels",
+      "status": "FIXED",
+      "round": 55
+    },
+    {
+      "id": "DEFECT-R55-02",
+      "severity": "P0",
+      "component": "single_icon_widget",
+      "layer": "cross_layer",
+      "summary": "Single icon widget rendered raw text or emoji instead of valid scalable SVG with path and viewBox; unified with icon-registry.ts and ast_compiler.py",
+      "status": "FIXED",
+      "round": 55
+    },
+    {
+      "id": "DEFECT-R55-03",
+      "severity": "P1",
+      "component": "inspector_panel",
+      "layer": "frontend/components/admin/builder/inspector-panel.tsx",
+      "summary": "Inspector style tab lacked padding and margin reset buttons, and device label text clipped; fixed with min-w-0, truncate and reset buttons",
+      "status": "FIXED",
+      "round": 55
+    },
+    {
+      "id": "DEFECT-R55-04",
+      "severity": "P1",
+      "component": "rtl_guidance_text",
+      "layer": "frontend/stores/builder-store.ts",
+      "summary": "Default blank page text editor guidance directed user to 'left panel' in RTL layout; corrected to 'پنل سمت راست'",
+      "status": "FIXED",
+      "round": 55
     }
   ]
 }

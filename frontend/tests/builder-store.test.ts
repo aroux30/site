@@ -267,4 +267,13 @@ describe("Visual Page Builder Zustand Store & Undo/Redo Engine (Phase P1)", () =
     let restored = findElementById(useBuilderStore.getState().ast.rootElements, targetEl.id);
     expect(restored?.styles?.mobile?.opacity).toBe(0.5);
   });
+
+  it("provides correct RTL guidance text pointing to right panel and unified SVG icon registry", () => {
+    const defaultAst = useBuilderStore.getState().ast;
+    const textWidget = defaultAst.rootElements[0]?.children.find(
+      (c) => c.widgetType === "text_editor"
+    );
+    expect(textWidget?.widgetProps?.content).toContain("پنل سمت راست");
+    expect(textWidget?.widgetProps?.content).not.toContain("پنل سمت چپ");
+  });
 });

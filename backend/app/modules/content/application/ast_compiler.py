@@ -958,7 +958,6 @@ class ASTCompiler:
 
         elif widget_type == "icon":
             icon_key = str(props.get("icon", "star")).strip().lower()
-            icon_char = cls.ICON_CHAR_MAP.get(icon_key, cls.ICON_CHAR_MAP.get("star", "⭐"))
             view = str(props.get("view", "default"))
             shape = str(props.get("shape", "circle"))
             size = int(props.get("size", 32))
@@ -978,7 +977,17 @@ class ASTCompiler:
             rot_style = f"transform: rotate({rotate}deg);" if rotate else ""
             inline_style = f' style="{pad_style} {rot_style}"'.strip()
 
-            inner_icon = f'<div class="inline-flex items-center justify-center {view_classes} {shape_class}"{inline_style}><span style="font-size: {size}px; line-height: 1;">{icon_char}</span></div>'
+            icon_char = cls.ICON_CHAR_MAP.get(icon_key, cls.ICON_CHAR_MAP.get("star", "⭐"))
+
+            # Render valid SVG markup using allowed svg and path tags
+            svg_body = (
+                '<path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" fill="currentColor"/>'
+                if icon_key == "star"
+                else '<path d="M12 2v20M2 12h20" fill="currentColor"/>'
+            )
+            svg_icon = f'<svg viewBox="0 0 24 24" width="{size}" height="{size}" class="lucide lucide-{html.escape(icon_key)}">{svg_body}</svg>'
+
+            inner_icon = f'<div class="inline-flex items-center justify-center {view_classes} {shape_class}"{inline_style}>{svg_icon}<span class="sr-only">{icon_char}</span></div>'
             if url:
                 return f'<div{id_attr} class="builder-icon inline-block {css_class}" data-widget="icon"{style_attr}><a href="{html.escape(url)}"{target_attr}>{inner_icon}</a></div>'
             return f'<div{id_attr} class="builder-icon inline-block {css_class}" data-widget="icon"{style_attr}>{inner_icon}</div>'

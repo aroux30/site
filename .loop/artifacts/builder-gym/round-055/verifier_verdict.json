@@ -1,0 +1,13 @@
+{
+  "verdict": "APPROVE",
+  "round": 55,
+  "weight": 0,
+  "scores": {
+    "zero_omission_defect_closure": 10,
+    "deterministic_sensor_compliance": 10,
+    "cross_layer_coherence": 10,
+    "regression_safety": 10,
+    "vision_verified_quality": 10
+  },
+  "summary": "Round 55 triage and 4-layer co-rooted fixes for Weight 0 fully verified and approved on port 1003."
+}

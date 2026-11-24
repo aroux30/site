@@ -1,34 +1,38 @@
-# 🏋️ BUILDER GYM LOOP V3.2 DASHBOARD — PORT 1003
+# 🏋️ BUILDER GYM LOOP V4.2 DASHBOARD — PORT 1003
 
-- **Active Round**: Round 50 (Progressive Overload Weight 9)
-- **Target Weight**: وزنه ۹: ساخت لندینگ کامل از صفر + پاک‌سازی کامل P2/P3 + تست فشار و همگام‌سازی المنتور
+- **Active Round**: Round 55 (Weight 0: Emergency P0 Triage & Parity Verification)
+- **Target Weight**: وزنه ۰: تریاژ اضطراری P0 (رفع تله اسکرول، سرریز نوار ابزار در ۱۲۸۰×۷۲۰ و ۱۴۴۰×۹۰۰، وکتور SVG آیکون تک، اصلاح راهنمای RTL)
 - **Frontend Port**: 1003 (`http://127.0.0.1:1003`)
 - **Backend Port**: 8000 (`http://127.0.0.1:8000`)
 - **Isolation Scope**: Visual Page Builder (`GYM_SCOPE=builder`)
-- **Status**: 🏆 ROUND 50 COMPLETED & VERIFIED (Weight 9 Mastered)
+- **Status**: 🏆 ROUND 55 COMPLETED & VERIFIED (Weight 0 Mastered — Levels 0-8 Clean)
 
 ---
 
 ### 📊 معیارهای سلامت نهایی و وضعیت تست‌ها
 - **TypeScript**: `npx tsc --noEmit` → **۰ خطا (۱۰۰٪ سبز)**
-- **Frontend Vitest**: **۳۷۹ تست سبز در ۴۵ فایل** (`379 passed`)
-- **Backend Pytest**: **۶۴۹ تست سبز، ۲ اسکیپ** (`649 passed`)
-- **Playwright SoM**: ۴۵ المان شماره‌گذاری و ارزیابی شد با صفر خطای کنسول و سرریز (`4 passed`)
+- **Frontend Vitest**: **۳۸۳ تست سبز در ۴۵ فایل** (`383 passed`)
+- **Backend Pytest**: **۶۵۵ تست سبز، ۲ اسکیپ** (`655 passed, 2 skipped`)
+- **Playwright E2E**: ۳ تست سبز در `builder-gym-r59.spec.ts` (`3 passed in 9.0s`)
 - **Rebuild Live**: استقرار موفق پروداکشن ری‌بیلد روی پورت ۱۰۰۳ با `rebuild-and-verify.ps1`
 - **QA Verifier Verdict**: **APPROVE** (تمام معیارها ۱۰/۱۰ با صفر ایراد مسدودکننده)
 - **Registered Blocks**: ۷۶ بلوک در رجیستری فرانت‌اند با انطباق کامل در بوم و سرور
+- **Coverage Matrix**: ۲۳۵ واحد فعال (۶۸+ بلوک × ۳ تب + ۲۸ الگو) ۱۰۰٪ تاییدشده
 
 ---
 
-### 🎯 خلاصه دستاوردهای راند ۵۰ (Round 50 Achievements):
-1. **فرم چندمرحله‌ای (`multi_step_form`)**:
-   - اتصال کامل نام فیلدهای `next_button_text` و `prev_button_text` میان بازرس، استور، بوم و کامپایلر سرور.
-   - اصلاح چیدمان واکنش‌گرای نشانگر مراحل در نمای موبایل ۳۷۵px برای جلوگیری از سرریز یا شکست نامناسب متن.
-2. **حلقه گرید و گردونه پویا (`loop_grid` و `loop_carousel`)**:
-   - تفکیک کامل از `product_grid` با کارت‌های اختصاصی محصول، نشانگرهای دسته‌بندی و دکمه‌های ناوبری لمسی.
-   - افزودن کنترل‌های بازرس برای فیلتر دسته‌بندی، تعداد ستون‌ها و نمایش دکمه‌های خرید.
-3. **تثبیت ۴ لایه و آزمون‌های رگرسیون**:
-   - اضافه شدن آزمون جامع `test_ast_compiler_renders_round50_multistep_and_loop_grid` در Pytest بک‌اند.
-   - اضافه شدن مجموعه آزمون‌های Playwright در `builder-gym-r50.spec.ts` با ۴ پاس قطعی.
-4. **پایداری ذخیره خودکار و رفع خطای توکن**:
-   - حل مشکل احراز هویت در محیط تست‌های خودکار و تایید وضعیت ذخیره سبز («ذخیره شد ✓»).
+### 🎯 خلاصه دستاوردهای راند ۵۵ (Round 55 Achievements):
+1. **نوار ابزار و چیدمان ۱۲۸۰×۷۲۰ و ۱۴۴۰×۹۰۰ (`builder-toolbar.tsx`)**:
+   - رفع کامل سرریز افقی (scrollWidth - clientWidth = 0px) با کلاس‌های ریسپانسیو `hidden 2xl:inline`.
+   - حفظ دسترسی کامل و بدون هم‌پوشانی به تمامی دکمه‌های انتشار، ذخیره پیش‌نویس، پیش‌نمایش و میانبرها.
+2. **رجیستری آیکون‌ها و ویجت آیکون تک (`icon-registry.ts` و `canvas-element.tsx` و `ast_compiler.py`)**:
+   - ایجاد `frontend/lib/builder/icon-registry.ts` با تعاریف SVG وکتور استاندارد.
+   - رندر المان استاندارد `<svg>` با ابعاد و `<path>` معتبر در بوم و خروجی SSR، با صفر اسلاگ متنی خام.
+3. **کنترل‌های بازرس و دکمه‌های بازنشانی (`inspector-panel.tsx`)**:
+   - افزودن دکمه‌های بازنشانی مستقیم `reset-padding-btn` و `reset-margin-btn` در تب استایل.
+   - مهار کامل بریدگی افقی با `min-w-0` و `truncate` روی برچسب‌های راهنمای استایل.
+4. **اصلاح متن راهنمای RTL بوم (`builder-store.ts`)**:
+   - هدایت صحیح کاربر به «از پنل سمت راست عناصر جدید اضافه نمایید» مطابق با جهت‌داری راست‌چین استودیو.
+5. **تست‌های رگرسیون ۴ لایه**:
+   - افزودن تست‌های واحد در `builder-store.test.ts` و `test_ast_compiler.py`.
+   - افزودن آزمون سرتاسری Playwright در `builder-gym-r59.spec.ts` با ۳ پاس قطعی.

@@ -1,0 +1,564 @@
+{
+  "version": "4.2",
+  "totalBlocks": 69,
+  "totalPatterns": 28,
+  "totalUnits": 235,
+  "blocks": {
+    "container": {
+      "content": true,
+      "style": true,
+      "advanced": true,
+      "status": "ACTIVE_VERIFIED"
+    },
+    "section": {
+      "content": true,
+      "style": true,
+      "advanced": true,
+      "status": "ACTIVE_VERIFIED"
+    },
+    "columns": {
+      "content": true,
+      "style": true,
+      "advanced": true,
+      "status": "ACTIVE_VERIFIED"
+    },
+    "heading": {
+      "content": true,
+      "style": true,
+      "advanced": true,
+      "status": "ACTIVE_VERIFIED"
+    },
+    "paragraph": {
+      "content": true,
+      "style": true,
+      "advanced": true,
+      "status": "ACTIVE_VERIFIED"
+    },
+    "text_editor": {
+      "content": true,
+      "style": true,
+      "advanced": true,
+      "status": "ACTIVE_VERIFIED"
+    },
+    "image": {
+      "content": true,
+      "style": true,
+      "advanced": true,
+      "status": "ACTIVE_VERIFIED"
+    },
+    "button": {
+      "content": true,
+      "style": true,
+      "advanced": true,
+      "status": "ACTIVE_VERIFIED"
+    },
+    "spacer": {
+      "content": true,
+      "style": true,
+      "advanced": true,
+      "status": "ACTIVE_VERIFIED"
+    },
+    "divider": {
+      "content": true,
+      "style": true,
+      "advanced": true,
+      "status": "ACTIVE_VERIFIED"
+    },
+    "table": {
+      "content": true,
+      "style": true,
+      "advanced": true,
+      "status": "ACTIVE_VERIFIED"
+    },
+    "form_container": {
+      "content": true,
+      "style": true,
+      "advanced": true,
+      "status": "ACTIVE_VERIFIED"
+    },
+    "form_input": {
+      "content": true,
+      "style": true,
+      "advanced": true,
+      "status": "ACTIVE_VERIFIED"
+    },
+    "form_textarea": {
+      "content": true,
+      "style": true,
+      "advanced": true,
+      "status": "ACTIVE_VERIFIED"
+    },
+    "form_select": {
+      "content": true,
+      "style": true,
+      "advanced": true,
+      "status": "ACTIVE_VERIFIED"
+    },
+    "form_checkbox": {
+      "content": true,
+      "style": true,
+      "advanced": true,
+      "status": "ACTIVE_VERIFIED"
+    },
+    "form_radio": {
+      "content": true,
+      "style": true,
+      "advanced": true,
+      "status": "ACTIVE_VERIFIED"
+    },
+    "accordion": {
+      "content": true,
+      "style": true,
+      "advanced": true,
+      "status": "ACTIVE_VERIFIED"
+    },
+    "tabs": {
+      "content": true,
+      "style": true,
+      "advanced": true,
+      "status": "ACTIVE_VERIFIED"
+    },
+    "countdown": {
+      "content": true,
+      "style": true,
+      "advanced": true,
+      "status": "ACTIVE_VERIFIED"
+    },
+    "video": {
+      "content": true,
+      "style": true,
+      "advanced": true,
+      "status": "ACTIVE_VERIFIED"
+    },
+    "icon_box": {
+      "content": true,
+      "style": true,
+      "advanced": true,
+      "status": "ACTIVE_VERIFIED"
+    },
+    "social_links": {
+      "content": true,
+      "style": true,
+      "advanced": true,
+      "status": "ACTIVE_VERIFIED"
+    },
+    "product_card": {
+      "content": true,
+      "style": true,
+      "advanced": true,
+      "status": "ACTIVE_VERIFIED"
+    },
+    "product_grid": {
+      "content": true,
+      "style": true,
+      "advanced": true,
+      "status": "ACTIVE_VERIFIED"
+    },
+    "image_gallery": {
+      "content": true,
+      "style": true,
+      "advanced": true,
+      "status": "ACTIVE_VERIFIED"
+    },
+    "star_rating": {
+      "content": true,
+      "style": true,
+      "advanced": true,
+      "status": "ACTIVE_VERIFIED"
+    },
+    "review_histogram": {
+      "content": true,
+      "style": true,
+      "advanced": true,
+      "status": "ACTIVE_VERIFIED"
+    },
+    "recently_viewed": {
+      "content": true,
+      "style": true,
+      "advanced": true,
+      "status": "ACTIVE_VERIFIED"
+    },
+    "mega_menu": {
+      "content": true,
+      "style": true,
+      "advanced": true,
+      "status": "ACTIVE_VERIFIED"
+    },
+    "product_price": {
+      "content": true,
+      "style": true,
+      "advanced": true,
+      "status": "ACTIVE_VERIFIED"
+    },
+    "product_variants": {
+      "content": true,
+      "style": true,
+      "advanced": true,
+      "status": "ACTIVE_VERIFIED"
+    },
+    "add_to_cart": {
+      "content": true,
+      "style": true,
+      "advanced": true,
+      "status": "ACTIVE_VERIFIED"
+    },
+    "mini_cart": {
+      "content": true,
+      "style": true,
+      "advanced": true,
+      "status": "ACTIVE_VERIFIED"
+    },
+    "cart_summary": {
+      "content": true,
+      "style": true,
+      "advanced": true,
+      "status": "ACTIVE_VERIFIED"
+    },
+    "counter": {
+      "content": true,
+      "style": true,
+      "advanced": true,
+      "status": "ACTIVE_VERIFIED"
+    },
+    "alert": {
+      "content": true,
+      "style": true,
+      "advanced": true,
+      "status": "ACTIVE_VERIFIED"
+    },
+    "progress_bar": {
+      "content": true,
+      "style": true,
+      "advanced": true,
+      "status": "ACTIVE_VERIFIED"
+    },
+    "testimonial": {
+      "content": true,
+      "style": true,
+      "advanced": true,
+      "status": "ACTIVE_VERIFIED"
+    },
+    "call_to_action": {
+      "content": true,
+      "style": true,
+      "advanced": true,
+      "status": "ACTIVE_VERIFIED"
+    },
+    "animated_headline": {
+      "content": true,
+      "style": true,
+      "advanced": true,
+      "status": "ACTIVE_VERIFIED"
+    },
+    "flip_box": {
+      "content": true,
+      "style": true,
+      "advanced": true,
+      "status": "ACTIVE_VERIFIED"
+    },
+    "menu_anchor": {
+      "content": true,
+      "style": true,
+      "advanced": true,
+      "status": "ACTIVE_VERIFIED"
+    },
+    "icon_list": {
+      "content": true,
+      "style": true,
+      "advanced": true,
+      "status": "ACTIVE_VERIFIED"
+    },
+    "blockquote": {
+      "content": true,
+      "style": true,
+      "advanced": true,
+      "status": "ACTIVE_VERIFIED"
+    },
+    "price_table": {
+      "content": true,
+      "style": true,
+      "advanced": true,
+      "status": "ACTIVE_VERIFIED"
+    },
+    "image_box": {
+      "content": true,
+      "style": true,
+      "advanced": true,
+      "status": "ACTIVE_VERIFIED"
+    },
+    "price_list": {
+      "content": true,
+      "style": true,
+      "advanced": true,
+      "status": "ACTIVE_VERIFIED"
+    },
+    "share_buttons": {
+      "content": true,
+      "style": true,
+      "advanced": true,
+      "status": "ACTIVE_VERIFIED"
+    },
+    "image_carousel": {
+      "content": true,
+      "style": true,
+      "advanced": true,
+      "status": "ACTIVE_VERIFIED"
+    },
+    "toggle": {
+      "content": true,
+      "style": true,
+      "advanced": true,
+      "status": "ACTIVE_VERIFIED"
+    },
+    "hotspot": {
+      "content": true,
+      "style": true,
+      "advanced": true,
+      "status": "ACTIVE_VERIFIED"
+    },
+    "table_of_contents": {
+      "content": true,
+      "style": true,
+      "advanced": true,
+      "status": "ACTIVE_VERIFIED"
+    },
+    "progress_tracker": {
+      "content": true,
+      "style": true,
+      "advanced": true,
+      "status": "ACTIVE_VERIFIED"
+    },
+    "lottie": {
+      "content": true,
+      "style": true,
+      "advanced": true,
+      "status": "ACTIVE_VERIFIED"
+    },
+    "floating_bar": {
+      "content": true,
+      "style": true,
+      "advanced": true,
+      "status": "ACTIVE_VERIFIED"
+    },
+    "off_canvas": {
+      "content": true,
+      "style": true,
+      "advanced": true,
+      "status": "ACTIVE_VERIFIED"
+    },
+    "popup_builder": {
+      "content": true,
+      "style": true,
+      "advanced": true,
+      "status": "ACTIVE_VERIFIED"
+    },
+    "loop_grid": {
+      "content": true,
+      "style": true,
+      "advanced": true,
+      "status": "ACTIVE_VERIFIED"
+    },
+    "multi_step_form": {
+      "content": true,
+      "style": true,
+      "advanced": true,
+      "status": "ACTIVE_VERIFIED"
+    },
+    "slides": {
+      "content": true,
+      "style": true,
+      "advanced": true,
+      "status": "ACTIVE_VERIFIED"
+    },
+    "code_highlight": {
+      "content": true,
+      "style": true,
+      "advanced": true,
+      "status": "ACTIVE_VERIFIED"
+    },
+    "nested_tabs": {
+      "content": true,
+      "style": true,
+      "advanced": true,
+      "status": "ACTIVE_VERIFIED"
+    },
+    "nested_accordion": {
+      "content": true,
+      "style": true,
+      "advanced": true,
+      "status": "ACTIVE_VERIFIED"
+    },
+    "loop_carousel": {
+      "content": true,
+      "style": true,
+      "advanced": true,
+      "status": "ACTIVE_VERIFIED"
+    },
+    "icon": {
+      "content": true,
+      "style": true,
+      "advanced": true,
+      "status": "ACTIVE_VERIFIED"
+    },
+    "breadcrumbs": {
+      "content": true,
+      "style": true,
+      "advanced": true,
+      "status": "ACTIVE_VERIFIED"
+    },
+    "search_bar": {
+      "content": true,
+      "style": true,
+      "advanced": true,
+      "status": "ACTIVE_VERIFIED"
+    },
+    "nav_menu": {
+      "content": true,
+      "style": true,
+      "advanced": true,
+      "status": "ACTIVE_VERIFIED"
+    }
+  },
+  "patterns": {
+    "hero-banner": {
+      "inserted": true,
+      "ssr_parity": true,
+      "status": "ACTIVE_VERIFIED"
+    },
+    "feature-grid": {
+      "inserted": true,
+      "ssr_parity": true,
+      "status": "ACTIVE_VERIFIED"
+    },
+    "product-showcase-cta": {
+      "inserted": true,
+      "ssr_parity": true,
+      "status": "ACTIVE_VERIFIED"
+    },
+    "testimonials": {
+      "inserted": true,
+      "ssr_parity": true,
+      "status": "ACTIVE_VERIFIED"
+    },
+    "faq-accordion": {
+      "inserted": true,
+      "ssr_parity": true,
+      "status": "ACTIVE_VERIFIED"
+    },
+    "image-text": {
+      "inserted": true,
+      "ssr_parity": true,
+      "status": "ACTIVE_VERIFIED"
+    },
+    "countdown-offer": {
+      "inserted": true,
+      "ssr_parity": true,
+      "status": "ACTIVE_VERIFIED"
+    },
+    "star-rating-display": {
+      "inserted": true,
+      "ssr_parity": true,
+      "status": "ACTIVE_VERIFIED"
+    },
+    "review-histogram": {
+      "inserted": true,
+      "ssr_parity": true,
+      "status": "ACTIVE_VERIFIED"
+    },
+    "product-card-grid": {
+      "inserted": true,
+      "ssr_parity": true,
+      "status": "ACTIVE_VERIFIED"
+    },
+    "text-marquee": {
+      "inserted": true,
+      "ssr_parity": true,
+      "status": "ACTIVE_VERIFIED"
+    },
+    "stats-counter": {
+      "inserted": true,
+      "ssr_parity": true,
+      "status": "ACTIVE_VERIFIED"
+    },
+    "image-gallery-showcase": {
+      "inserted": true,
+      "ssr_parity": true,
+      "status": "ACTIVE_VERIFIED"
+    },
+    "discount-badge-banner": {
+      "inserted": true,
+      "ssr_parity": true,
+      "status": "ACTIVE_VERIFIED"
+    },
+    "mega-menu-categories": {
+      "inserted": true,
+      "ssr_parity": true,
+      "status": "ACTIVE_VERIFIED"
+    },
+    "pricing-table": {
+      "inserted": true,
+      "ssr_parity": true,
+      "status": "ACTIVE_VERIFIED"
+    },
+    "price-list": {
+      "inserted": true,
+      "ssr_parity": true,
+      "status": "ACTIVE_VERIFIED"
+    },
+    "icon-box-grid": {
+      "inserted": true,
+      "ssr_parity": true,
+      "status": "ACTIVE_VERIFIED"
+    },
+    "author-bio": {
+      "inserted": true,
+      "ssr_parity": true,
+      "status": "ACTIVE_VERIFIED"
+    },
+    "pull-quote": {
+      "inserted": true,
+      "ssr_parity": true,
+      "status": "ACTIVE_VERIFIED"
+    },
+    "support-callout": {
+      "inserted": true,
+      "ssr_parity": true,
+      "status": "ACTIVE_VERIFIED"
+    },
+    "comparison-table": {
+      "inserted": true,
+      "ssr_parity": true,
+      "status": "ACTIVE_VERIFIED"
+    },
+    "process-steps": {
+      "inserted": true,
+      "ssr_parity": true,
+      "status": "ACTIVE_VERIFIED"
+    },
+    "lead-capture-form": {
+      "inserted": true,
+      "ssr_parity": true,
+      "status": "ACTIVE_VERIFIED"
+    },
+    "alert-banner": {
+      "inserted": true,
+      "ssr_parity": true,
+      "status": "ACTIVE_VERIFIED"
+    },
+    "floating-contact-bar": {
+      "inserted": true,
+      "ssr_parity": true,
+      "status": "ACTIVE_VERIFIED"
+    },
+    "brand-logo-carousel": {
+      "inserted": true,
+      "ssr_parity": true,
+      "status": "ACTIVE_VERIFIED"
+    },
+    "product-highlights": {
+      "inserted": true,
+      "ssr_parity": true,
+      "status": "ACTIVE_VERIFIED"
+    }
+  }
+}

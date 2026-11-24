@@ -83,7 +83,7 @@ async function run() {
   });
 
   console.log(`Navigating to ${BASE_URL}/e2e-isolated-scratchpad?builder=1...`);
-  await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "networkidle" });
+  await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
   await page.waitForTimeout(2500);
 
   // 1. Capture 1280x720 Overview

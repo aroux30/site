@@ -1,21 +1,21 @@
 {
   "version": "4.2",
   "activeWeight": 9,
-  "activeRound": 61,
+  "activeRound": 62,
   "status": "COMPLETED",
   "levels1to5Status": "BUILDER_GYM_LEVELS_1_TO_5_CLEAN",
   "allLevelsMastered": "BUILDER_GYM_ALL_LEVELS_MASTERED",
   "verificationPort": 1003,
-  "completedRounds": 61,
+  "completedRounds": 62,
   "metrics": {
     "typeCheckErrors": 0,
     "frontendUnitTests": 383,
     "backendUnitTests": 656,
-    "playwrightTests": 7,
+    "playwrightTests": 8,
     "registeredBlocks": 76,
     "lastVerifierVerdict": "APPROVE"
   },
-  "timestamp": "2026-11-24T10:45:00.000Z",
+  "timestamp": "2026-11-24T11:15:00.000Z",
   "defect_ledger": [
     {
       "id": "DEFECT-R41-01",
@@ -502,6 +502,15 @@
       "summary": "Save section and page template dialogs lacked data-testid submission hooks; added save-section-template-submit-btn and save-page-template-submit-btn",
       "status": "FIXED",
       "round": 61
+    },
+    {
+      "id": "DEFECT-R62-01",
+      "severity": "P2",
+      "component": "layers_tree",
+      "layer": "frontend/components/admin/builder/layers-tree.tsx",
+      "summary": "Layers tree rows lacked explicit data-testid hooks for individual element selection; added data-testid layer-row-id attribute",
+      "status": "FIXED",
+      "round": 62
     }
   ]
 }

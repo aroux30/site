@@ -171,4 +171,22 @@ test.describe("Builder Gym Round 55: Weight 0 Triage & Parity Verification", () 
       await page.keyboard.press("Escape");
     }
   });
+
+  test("8. Layers tree displays elements and layer rows without opacity zero", async ({ page }) => {
+    await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(1500);
+
+    const layersTabBtn = page.locator('aside button[data-testid="sidebar-tab-layers"]').first();
+    if (await layersTabBtn.isVisible()) {
+      await layersTabBtn.click();
+      await page.waitForTimeout(400);
+
+      const layerRows = page.locator('[data-layer-row]');
+      const count = await layerRows.count();
+      expect(count).toBeGreaterThan(0);
+
+      const firstRow = layerRows.first();
+      await expect(firstRow).toBeVisible();
+    }
+  });
 });

@@ -1,21 +1,21 @@
 {
   "version": "3.2",
   "activeWeight": 9,
-  "activeRound": 61,
+  "activeRound": 62,
   "status": "COMPLETED",
   "levels1to5Status": "BUILDER_GYM_LEVELS_1_TO_5_CLEAN",
   "allLevelsMastered": "BUILDER_GYM_ALL_LEVELS_MASTERED",
   "verificationPort": 1001,
-  "completedRounds": 61,
+  "completedRounds": 62,
   "metrics": {
     "typeCheckErrors": 0,
     "frontendUnitTests": 384,
     "backendUnitTests": 654,
-    "playwrightTests": 8,
+    "playwrightTests": 9,
     "registeredBlocks": 76,
     "lastVerifierVerdict": "APPROVE"
   },
-  "timestamp": "2026-11-24T11:27:28.424Z",
+  "timestamp": "2026-11-24T11:57:14.564Z",
   "defect_ledger": [
     {
       "id": "DEFECT-R41-01",
@@ -538,6 +538,24 @@
       "summary": "Missing dedicated end-to-end regression assertion for Base widgets insertion and viewport safety",
       "status": "FIXED",
       "round": 61
+    },
+    {
+      "id": "DEFECT-R62-01",
+      "severity": "P1",
+      "component": "history_timeline_panel",
+      "layer": "frontend/components/admin/builder/history-panel.tsx",
+      "summary": "Revisions history panel timeline step jumping and interactive undo/redo buttons verified",
+      "status": "FIXED",
+      "round": 62
+    },
+    {
+      "id": "DEFECT-R62-02",
+      "severity": "P2",
+      "component": "history_e2e_regression",
+      "layer": "frontend/tests/e2e/builder-gym-r66.spec.ts",
+      "summary": "Missing dedicated end-to-end regression assertion for History revisions timeline panel",
+      "status": "FIXED",
+      "round": 62
     }
   ]
 }

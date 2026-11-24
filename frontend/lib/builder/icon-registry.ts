@@ -234,6 +234,13 @@ export function getBuilderIcon(name?: string | null): LucideIcon {
   return entry ? entry.icon : Sparkles;
 }
 
+export function getBuilderIconLabel(name?: string | null): string {
+  if (!name) return "ستاره (Star)";
+  const key = String(name).toLowerCase().trim();
+  const entry = BUILDER_ICON_REGISTRY[key];
+  return entry ? entry.label : "ستاره (Star)";
+}
+
 const DEFAULT_SVG_PATH =
   '<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />';
 

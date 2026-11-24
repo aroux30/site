@@ -165,6 +165,7 @@ export function BuilderToolbar({
             <input
               type="text"
               autoFocus
+              data-testid="page-title-input"
               value={titleDraft}
               onChange={(e) => setTitleDraft(e.target.value)}
               onBlur={() => {
@@ -190,6 +191,7 @@ export function BuilderToolbar({
             />
           ) : (
             <span
+              data-testid="page-title-label"
               onDoubleClick={() => setIsEditingTitle(true)}
               className="text-xs font-bold text-foreground max-w-[200px] truncate cursor-pointer hover:underline"
               title="دابل‌کلیک برای ویرایش نام برگه"

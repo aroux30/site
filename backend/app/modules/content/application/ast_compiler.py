@@ -782,8 +782,10 @@ class ASTCompiler:
                 f'</div>'
             )
 
-        elif widget_type == "video":
+        elif widget_type in ("video", "aparat"):
             v_type = props.get("video_type", "direct")
+            if widget_type == "aparat":
+                v_type = "aparat"
             v_url = html.escape(str(props.get("url", "")))
             poster = html.escape(str(props.get("poster", "")))
             if v_type in ("aparat", "youtube"):
@@ -887,7 +889,7 @@ class ASTCompiler:
                 f'</blockquote>'
             )
 
-        elif widget_type == "alert":
+        elif widget_type in ("alert", "info"):
             title = html.escape(str(props.get("title", "اعلان")))
             msg = html.escape(str(props.get("message", props.get("description", ""))))
             a_type = str(props.get("alert_type", "info"))
@@ -994,7 +996,6 @@ class ASTCompiler:
 
         elif widget_type == "icon":
             icon_key = str(props.get("icon", "star")).strip().lower()
-            icon_char = cls.ICON_CHAR_MAP.get(icon_key, cls.ICON_CHAR_MAP.get("star", "⭐"))
             view = str(props.get("view", "default"))
             shape = str(props.get("shape", "circle"))
             size = int(props.get("size", 32))
@@ -1014,6 +1015,7 @@ class ASTCompiler:
             rot_style = f"transform: rotate({rotate}deg);" if rotate else ""
             inline_style = f' style="{pad_style} {rot_style}"'.strip()
 
+            icon_char = cls.ICON_CHAR_MAP.get(icon_key, cls.ICON_CHAR_MAP.get("star", "⭐"))
             svg_icon = cls.render_svg_icon(icon_key, size=size, css_class="builder-icon-svg")
             inner_icon = f'<div class="inline-flex items-center justify-center {view_classes} {shape_class}"{inline_style}>{svg_icon}<span class="sr-only">{icon_char}</span></div>'
             if url:

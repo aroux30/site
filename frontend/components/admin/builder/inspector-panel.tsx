@@ -3629,8 +3629,8 @@ export function InspectorPanel() {
     return (
       <div className="space-y-5">
         {/* Device Switcher Indicator */}
-        <div className="flex items-center justify-between p-2 rounded-lg bg-muted/60 border border-border/80 gap-2">
-          <span className="text-[11px] font-semibold text-foreground truncate min-w-0" title="ویرایش استایل">
+        <div className="flex items-center justify-between p-2 rounded-lg bg-muted/60 border border-border/80 gap-2 min-w-0">
+          <span className="text-[11px] font-semibold text-foreground truncate min-w-0 flex-1" title="ویرایش استایل">
             ویرایش استایل:{" "}
             {activeBreakpoint === "mobile"
               ? "موبایل (پایه)"
@@ -3688,7 +3688,7 @@ export function InspectorPanel() {
                 }}
                 className="text-[10px] text-muted-foreground hover:text-foreground px-1.5 py-0.5 rounded border border-border/60 hover:bg-muted transition"
               >
-                ریست
+                بازنشانی
               </button>
               <button
                 type="button"
@@ -3841,13 +3841,18 @@ export function InspectorPanel() {
                 }}
                 className="text-[10px] text-muted-foreground hover:text-foreground px-1.5 py-0.5 rounded border border-border/60 hover:bg-muted transition"
               >
-                ریست
+                بازنشانی
               </button>
               <button
                 type="button"
                 onClick={() => toggleSpacingLink("margin")}
                 className="text-muted-foreground hover:text-foreground"
                 title={mar.isLinked ? "لغو قفل اضلاع" : "قفل همزمان اضلاع"}
+              >
+                {mar.isLinked ? <Link2 className="w-3.5 h-3.5 text-primary" /> : <Unlink className="w-3.5 h-3.5" />}
+              </button>
+            </div>
+          </div>
               >
                 {mar.isLinked ? <Link2 className="w-3.5 h-3.5 text-primary" /> : <Unlink className="w-3.5 h-3.5" />}
               </button>

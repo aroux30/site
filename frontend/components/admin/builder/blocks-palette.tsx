@@ -184,10 +184,8 @@ export function BlocksPalette() {
     const bData = (tpl as any).builder_data || tpl.builderData;
     const rootEls = bData?.rootElements || (bData as any)?.root_elements || [];
     if (rootEls.length === 0) return;
-    for (const el of rootEls) {
-      const cloned = cloneElementWithNewIds(el, false);
-      addElement(cloned, getTargetContainerId());
-    }
+    const cloned = rootEls.map((el: any) => cloneElementWithNewIds(el, false));
+    useBuilderStore.getState().addElements(cloned, getTargetContainerId());
     toast({
       title: "قالب افزوده شد",
       description: `قالب «${tpl.title}» به بوم اضافه شد.`,
@@ -517,6 +515,7 @@ export function BlocksPalette() {
                     <div
                       key={pattern.slug}
                       data-pattern-slug={pattern.slug}
+                      data-testid={`pattern-card-${pattern.slug}`}
                       draggable={true}
                       onDragStart={(e) => {
                         const vars = Object.fromEntries(

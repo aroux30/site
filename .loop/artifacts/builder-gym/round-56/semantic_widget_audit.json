@@ -1,0 +1,26 @@
+{
+  "round": 56,
+  "timestamp": "2026-11-24T08:44:27.211Z",
+  "consolidatedWidgets": {
+    "duplicateCasesResolved": [
+      "image_box",
+      "price_list",
+      "toggle",
+      "hotspot"
+    ],
+    "singleSourceOfTruthVerified": true,
+    "status": "PASS"
+  },
+  "iconWidget": {
+    "rendersSvgElement": true,
+    "hasValidVectorPath": true,
+    "noRawTextSlugLeaked": true,
+    "result": "<svg><path d=\"...\"></path></svg>"
+  },
+  "rtlGuidanceText": {
+    "actual": "از پنل سمت راست عناصر جدید اضافه نمایید.",
+    "correctOrientation": "پنل سمت راست",
+    "noLeftPanelLeak": true
+  },
+  "status": "PASS"
+}

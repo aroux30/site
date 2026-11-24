@@ -1,0 +1,29 @@
+{
+  "round": 59,
+  "timestamp": "2026-11-24T10:27:07.476Z",
+  "interactiveAndFormWidgetsSemanticTags": {
+    "tableDataWidget": true,
+    "formInputDataWidget": true,
+    "formTextareaDataWidget": true,
+    "formSelectDataWidget": true,
+    "formCheckboxDataWidget": true,
+    "formRadioDataWidget": true,
+    "accordionDataWidget": true,
+    "tabsDataWidget": true,
+    "countdownDataWidget": true,
+    "iconBoxDataWidget": true,
+    "status": "PASS"
+  },
+  "iconWidget": {
+    "rendersSvgElement": true,
+    "hasValidVectorPath": true,
+    "noRawTextSlugLeaked": true,
+    "result": "<svg><path d=\"...\"></path></svg>"
+  },
+  "rtlGuidanceText": {
+    "actual": "از پنل سمت راست عناصر جدید اضافه نمایید.",
+    "correctOrientation": "پنل سمت راست",
+    "noLeftPanelLeak": true
+  },
+  "status": "PASS"
+}

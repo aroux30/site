@@ -10,6 +10,7 @@ fs.mkdirSync(ARTIFACTS_DIR, { recursive: true });
 
 function getAdminToken() {
   const script = `
+import sys; sys.path.insert(0, ".")
 import asyncio, datetime, uuid
 from app.core.security.jwt import create_access_token
 async def main():

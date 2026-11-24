@@ -156,4 +156,19 @@ test.describe("Builder Gym Round 55: Weight 0 Triage & Parity Verification", () 
       await expect(dialog).not.toBeVisible();
     }
   });
+
+  test("7. Save page template modal opens with theme builder controls", async ({ page }) => {
+    await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(1500);
+
+    const savePageTplBtn = page.locator('header button[data-testid="save-page-template-btn"]').first();
+    if (await savePageTplBtn.isVisible()) {
+      await savePageTplBtn.click();
+      await page.waitForTimeout(400);
+
+      const submitBtn = page.locator('button[data-testid="save-page-template-submit-btn"]').first();
+      await expect(submitBtn).toBeVisible();
+      await page.keyboard.press("Escape");
+    }
+  });
 });

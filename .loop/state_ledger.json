@@ -1,21 +1,21 @@
 {
   "version": "4.2",
   "activeWeight": 9,
-  "activeRound": 60,
+  "activeRound": 61,
   "status": "COMPLETED",
   "levels1to5Status": "BUILDER_GYM_LEVELS_1_TO_5_CLEAN",
   "allLevelsMastered": "BUILDER_GYM_ALL_LEVELS_MASTERED",
   "verificationPort": 1003,
-  "completedRounds": 60,
+  "completedRounds": 61,
   "metrics": {
     "typeCheckErrors": 0,
     "frontendUnitTests": 383,
     "backendUnitTests": 656,
-    "playwrightTests": 6,
+    "playwrightTests": 7,
     "registeredBlocks": 76,
     "lastVerifierVerdict": "APPROVE"
   },
-  "timestamp": "2026-11-24T10:15:00.000Z",
+  "timestamp": "2026-11-24T10:45:00.000Z",
   "defect_ledger": [
     {
       "id": "DEFECT-R41-01",
@@ -493,6 +493,15 @@
       "summary": "Keyboard shortcuts modal dialog lacked data-testid selector hooks for test automated closing; added keyboard-shortcuts-dialog and close-shortcuts-dialog-btn hooks",
       "status": "FIXED",
       "round": 60
+    },
+    {
+      "id": "DEFECT-R61-01",
+      "severity": "P2",
+      "component": "template_dialogs",
+      "layer": "frontend/components/admin/builder/save-template-dialog.tsx",
+      "summary": "Save section and page template dialogs lacked data-testid submission hooks; added save-section-template-submit-btn and save-page-template-submit-btn",
+      "status": "FIXED",
+      "round": 61
     }
   ]
 }

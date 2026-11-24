@@ -1,22 +1,22 @@
 {
   "version": "4.2",
-  "activeWeight": 3,
-  "activeRound": 53,
+  "activeWeight": 4,
+  "activeRound": 54,
   "status": "COMPLETED",
   "levels1to5Status": "BUILDER_GYM_LEVELS_1_TO_5_CLEAN",
   "allLevelsMastered": "BUILDER_GYM_ALL_LEVELS_MASTERED",
   "verificationPort": 1005,
-  "completedRounds": 53,
+  "completedRounds": 54,
   "metrics": {
     "typeCheckErrors": 0,
     "frontendUnitTests": 380,
     "backendUnitTests": 650,
-    "playwrightTests": 16,
+    "playwrightTests": 20,
     "registeredBlocks": 73,
     "registeredPatterns": 28,
     "lastVerifierVerdict": "APPROVE"
   },
-  "timestamp": "2026-11-24T03:30:00.000Z",
+  "timestamp": "2026-11-24T04:00:00.000Z",
   "defect_ledger": [
     {
       "id": "DEFECT-R41-01",
@@ -305,6 +305,15 @@
       "summary": "Reset to site theme button selector in E2E tests used site theme text instead of default theme text",
       "status": "FIXED",
       "round": 53
+    },
+    {
+      "id": "DEFECT-W4-01",
+      "severity": "P1",
+      "component": "builder_toolbar",
+      "layer": "preview_mode_toggle",
+      "summary": "Preview mode toggle button lacked explicit data-testid and aria-label for deterministic E2E targeting",
+      "status": "FIXED",
+      "round": 54
     }
   ]
 }

@@ -108,7 +108,7 @@ test.describe("Builder Gym Weight 3: 28 Preset Block Patterns, Blocks Palette, a
     await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
     await page.waitForTimeout(2000);
 
-    const globalStylesBtn = page.locator("button[title*='استایل‌های سراسری']");
+    const globalStylesBtn = page.locator("[data-testid='global-styles-btn']");
     await expect(globalStylesBtn).toBeVisible();
     await globalStylesBtn.click();
     await page.waitForTimeout(500);
@@ -131,7 +131,7 @@ test.describe("Builder Gym Weight 3: 28 Preset Block Patterns, Blocks Palette, a
     await page.goto(`${BASE_URL}/e2e-isolated-scratchpad?builder=1`, { waitUntil: "domcontentloaded" });
     await page.waitForTimeout(2000);
 
-    const globalStylesBtn = page.locator("button[title*='استایل‌های سراسری']");
+    const globalStylesBtn = page.locator("[data-testid='global-styles-btn']");
     await globalStylesBtn.click();
     await page.waitForTimeout(500);
 

@@ -314,6 +314,7 @@ export function BuilderToolbar({
           onClick={() => setGlobalStylesOpen(true)}
           className="h-8 gap-1 text-xs text-muted-foreground hover:text-foreground px-2 shrink-0"
           title="استایل‌های سراسری برگه"
+          data-testid="global-styles-btn"
         >
           <Paintbrush className="w-3.5 h-3.5 shrink-0" />
           <span className="hidden xl:inline">استایل سراسری</span>
@@ -324,6 +325,7 @@ export function BuilderToolbar({
           size="sm"
           onClick={() => setPreviewMode(!previewMode)}
           className="h-8 gap-1 text-xs px-2 shrink-0"
+          data-testid="preview-mode-toggle-btn"
         >
           {previewMode ? <EyeOff className="w-3.5 h-3.5 shrink-0" /> : <Eye className="w-3.5 h-3.5 shrink-0" />}
           <span className="hidden lg:inline">{previewMode ? "ویرایش" : "پیش‌نمایش"}</span>

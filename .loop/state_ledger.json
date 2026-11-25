@@ -1,23 +1,32 @@
 {
   "version": "4.2",
-  "activeWeight": 0,
-  "activeRound": 77,
+  "activeWeight": 1,
+  "activeRound": 78,
   "status": "ALL_LEVELS_MASTERED",
   "levels1to5Status": "BUILDER_GYM_LEVELS_1_TO_5_CLEAN",
   "allLevelsMastered": "BUILDER_GYM_ALL_LEVELS_MASTERED",
   "verificationPort": 3000,
-  "completedRounds": 76,
+  "completedRounds": 77,
   "metrics": {
     "typeCheckErrors": 0,
-    "frontendUnitTests": 430,
-    "backendUnitTests": 655,
-    "playwrightTests": 48,
+    "frontendUnitTests": 434,
+    "backendUnitTests": 658,
+    "playwrightTests": 52,
     "registeredBlocks": 73,
     "lastVerifierVerdict": "APPROVE",
     "registeredPatterns": 28
   },
-  "timestamp": "2026-11-24T18:40:00.000Z",
+  "timestamp": "2026-11-25T13:30:00.000Z",
   "defect_ledger": [
+    {
+      "id": "DEFECT-W1-03",
+      "severity": "P1",
+      "component": "container_preset_picker",
+      "layer": "frontend/components/admin/builder/container-preset-picker.tsx",
+      "summary": "Container preset picker stopped propagation on click preventing root container selection and floating action toolbar mounting",
+      "status": "FIXED",
+      "round": 78
+    },
     {
       "id": "DEFECT-W0-06",
       "severity": "P0",

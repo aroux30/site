@@ -79,7 +79,10 @@ export function ContainerPresetPicker({
     <div
       data-testid="container-preset-picker"
       className="p-4 rounded-xl border border-primary/30 bg-primary/5 space-y-3 my-2 w-full max-w-xl mx-auto select-none"
-      onClick={(e) => e.stopPropagation()}
+      onClick={(e) => {
+        e.stopPropagation();
+        useBuilderStore.getState().selectElement(containerId);
+      }}
     >
       <div className="flex items-center justify-between text-xs font-bold text-foreground">
         <div className="flex items-center gap-1.5">

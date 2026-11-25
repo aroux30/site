@@ -1,635 +1,634 @@
 {
-  "round": "round-079",
-  "version": "4.2",
-  "timestamp": "2026-11-25T17:16:39.141Z",
+  "version": "5.2",
+  "timestamp": "2026-11-25T23:35:04.171Z",
   "totalBlocks": 73,
   "totalPatterns": 28,
   "totalCells": 247,
   "blocks": [
     {
-      "type": "container",
+      "type": "accordion",
       "contentTab": true,
       "styleTab": true,
       "advancedTab": true,
-      "status": "VERIFIED"
-    },
-    {
-      "type": "section",
-      "contentTab": true,
-      "styleTab": true,
-      "advancedTab": true,
-      "status": "VERIFIED"
-    },
-    {
-      "type": "columns",
-      "contentTab": true,
-      "styleTab": true,
-      "advancedTab": true,
-      "status": "VERIFIED"
-    },
-    {
-      "type": "form_container",
-      "contentTab": true,
-      "styleTab": true,
-      "advancedTab": true,
-      "status": "VERIFIED"
-    },
-    {
-      "type": "heading",
-      "contentTab": true,
-      "styleTab": true,
-      "advancedTab": true,
-      "status": "VERIFIED"
-    },
-    {
-      "type": "widget",
-      "contentTab": true,
-      "styleTab": true,
-      "advancedTab": true,
-      "status": "VERIFIED"
-    },
-    {
-      "type": "text_editor",
-      "contentTab": true,
-      "styleTab": true,
-      "advancedTab": true,
-      "status": "VERIFIED"
-    },
-    {
-      "type": "image",
-      "contentTab": true,
-      "styleTab": true,
-      "advancedTab": true,
-      "status": "VERIFIED"
-    },
-    {
-      "type": "button",
-      "contentTab": true,
-      "styleTab": true,
-      "advancedTab": true,
-      "status": "VERIFIED"
-    },
-    {
-      "type": "spacer",
-      "contentTab": true,
-      "styleTab": true,
-      "advancedTab": true,
-      "status": "VERIFIED"
-    },
-    {
-      "type": "divider",
-      "contentTab": true,
-      "styleTab": true,
-      "advancedTab": true,
-      "status": "VERIFIED"
-    },
-    {
-      "type": "table",
-      "contentTab": true,
-      "styleTab": true,
-      "advancedTab": true,
-      "status": "VERIFIED"
-    },
-    {
-      "type": "form_input",
-      "contentTab": true,
-      "styleTab": true,
-      "advancedTab": true,
-      "status": "VERIFIED"
-    },
-    {
-      "type": "text",
-      "contentTab": true,
-      "styleTab": true,
-      "advancedTab": true,
-      "status": "VERIFIED"
-    },
-    {
-      "type": "form_textarea",
-      "contentTab": true,
-      "styleTab": true,
-      "advancedTab": true,
-      "status": "VERIFIED"
-    },
-    {
-      "type": "form_select",
-      "contentTab": true,
-      "styleTab": true,
-      "advancedTab": true,
-      "status": "VERIFIED"
-    },
-    {
-      "type": "product_card",
-      "contentTab": true,
-      "styleTab": true,
-      "advancedTab": true,
-      "status": "VERIFIED"
-    },
-    {
-      "type": "product_grid",
-      "contentTab": true,
-      "styleTab": true,
-      "advancedTab": true,
-      "status": "VERIFIED"
-    },
-    {
-      "type": "product_variants",
-      "contentTab": true,
-      "styleTab": true,
-      "advancedTab": true,
-      "status": "VERIFIED"
-    },
-    {
-      "type": "product_price",
-      "contentTab": true,
-      "styleTab": true,
-      "advancedTab": true,
-      "status": "VERIFIED"
+      "status": "DISCOVERED"
     },
     {
       "type": "add_to_cart",
       "contentTab": true,
       "styleTab": true,
       "advancedTab": true,
-      "status": "VERIFIED"
-    },
-    {
-      "type": "mini_cart",
-      "contentTab": true,
-      "styleTab": true,
-      "advancedTab": true,
-      "status": "VERIFIED"
-    },
-    {
-      "type": "cart_summary",
-      "contentTab": true,
-      "styleTab": true,
-      "advancedTab": true,
-      "status": "VERIFIED"
-    },
-    {
-      "type": "form_checkbox",
-      "contentTab": true,
-      "styleTab": true,
-      "advancedTab": true,
-      "status": "VERIFIED"
-    },
-    {
-      "type": "form_radio",
-      "contentTab": true,
-      "styleTab": true,
-      "advancedTab": true,
-      "status": "VERIFIED"
-    },
-    {
-      "type": "accordion",
-      "contentTab": true,
-      "styleTab": true,
-      "advancedTab": true,
-      "status": "VERIFIED"
-    },
-    {
-      "type": "tabs",
-      "contentTab": true,
-      "styleTab": true,
-      "advancedTab": true,
-      "status": "VERIFIED"
-    },
-    {
-      "type": "countdown",
-      "contentTab": true,
-      "styleTab": true,
-      "advancedTab": true,
-      "status": "VERIFIED"
-    },
-    {
-      "type": "video",
-      "contentTab": true,
-      "styleTab": true,
-      "advancedTab": true,
-      "status": "VERIFIED"
-    },
-    {
-      "type": "aparat",
-      "contentTab": true,
-      "styleTab": true,
-      "advancedTab": true,
-      "status": "VERIFIED"
-    },
-    {
-      "type": "icon_box",
-      "contentTab": true,
-      "styleTab": true,
-      "advancedTab": true,
-      "status": "VERIFIED"
-    },
-    {
-      "type": "social_links",
-      "contentTab": true,
-      "styleTab": true,
-      "advancedTab": true,
-      "status": "VERIFIED"
-    },
-    {
-      "type": "image_gallery",
-      "contentTab": true,
-      "styleTab": true,
-      "advancedTab": true,
-      "status": "VERIFIED"
-    },
-    {
-      "type": "star_rating",
-      "contentTab": true,
-      "styleTab": true,
-      "advancedTab": true,
-      "status": "VERIFIED"
-    },
-    {
-      "type": "review_histogram",
-      "contentTab": true,
-      "styleTab": true,
-      "advancedTab": true,
-      "status": "VERIFIED"
-    },
-    {
-      "type": "recently_viewed",
-      "contentTab": true,
-      "styleTab": true,
-      "advancedTab": true,
-      "status": "VERIFIED"
-    },
-    {
-      "type": "mega_menu",
-      "contentTab": true,
-      "styleTab": true,
-      "advancedTab": true,
-      "status": "VERIFIED"
-    },
-    {
-      "type": "counter",
-      "contentTab": true,
-      "styleTab": true,
-      "advancedTab": true,
-      "status": "VERIFIED"
+      "status": "DISCOVERED"
     },
     {
       "type": "alert",
       "contentTab": true,
       "styleTab": true,
       "advancedTab": true,
-      "status": "VERIFIED"
-    },
-    {
-      "type": "info",
-      "contentTab": true,
-      "styleTab": true,
-      "advancedTab": true,
-      "status": "VERIFIED"
-    },
-    {
-      "type": "progress_bar",
-      "contentTab": true,
-      "styleTab": true,
-      "advancedTab": true,
-      "status": "VERIFIED"
-    },
-    {
-      "type": "testimonial",
-      "contentTab": true,
-      "styleTab": true,
-      "advancedTab": true,
-      "status": "VERIFIED"
-    },
-    {
-      "type": "call_to_action",
-      "contentTab": true,
-      "styleTab": true,
-      "advancedTab": true,
-      "status": "VERIFIED"
+      "status": "DISCOVERED"
     },
     {
       "type": "animated_headline",
       "contentTab": true,
       "styleTab": true,
       "advancedTab": true,
-      "status": "VERIFIED"
+      "status": "DISCOVERED"
     },
     {
-      "type": "flip_box",
+      "type": "aparat",
       "contentTab": true,
       "styleTab": true,
       "advancedTab": true,
-      "status": "VERIFIED"
-    },
-    {
-      "type": "menu_anchor",
-      "contentTab": true,
-      "styleTab": true,
-      "advancedTab": true,
-      "status": "VERIFIED"
-    },
-    {
-      "type": "icon_list",
-      "contentTab": true,
-      "styleTab": true,
-      "advancedTab": true,
-      "status": "VERIFIED"
+      "status": "DISCOVERED"
     },
     {
       "type": "blockquote",
       "contentTab": true,
       "styleTab": true,
       "advancedTab": true,
-      "status": "VERIFIED"
-    },
-    {
-      "type": "price_table",
-      "contentTab": true,
-      "styleTab": true,
-      "advancedTab": true,
-      "status": "VERIFIED"
-    },
-    {
-      "type": "image_box",
-      "contentTab": true,
-      "styleTab": true,
-      "advancedTab": true,
-      "status": "VERIFIED"
-    },
-    {
-      "type": "price_list",
-      "contentTab": true,
-      "styleTab": true,
-      "advancedTab": true,
-      "status": "VERIFIED"
-    },
-    {
-      "type": "share_buttons",
-      "contentTab": true,
-      "styleTab": true,
-      "advancedTab": true,
-      "status": "VERIFIED"
-    },
-    {
-      "type": "image_carousel",
-      "contentTab": true,
-      "styleTab": true,
-      "advancedTab": true,
-      "status": "VERIFIED"
-    },
-    {
-      "type": "toggle",
-      "contentTab": true,
-      "styleTab": true,
-      "advancedTab": true,
-      "status": "VERIFIED"
-    },
-    {
-      "type": "hotspot",
-      "contentTab": true,
-      "styleTab": true,
-      "advancedTab": true,
-      "status": "VERIFIED"
-    },
-    {
-      "type": "table_of_contents",
-      "contentTab": true,
-      "styleTab": true,
-      "advancedTab": true,
-      "status": "VERIFIED"
-    },
-    {
-      "type": "progress_tracker",
-      "contentTab": true,
-      "styleTab": true,
-      "advancedTab": true,
-      "status": "VERIFIED"
-    },
-    {
-      "type": "horizontal",
-      "contentTab": true,
-      "styleTab": true,
-      "advancedTab": true,
-      "status": "VERIFIED"
-    },
-    {
-      "type": "lottie",
-      "contentTab": true,
-      "styleTab": true,
-      "advancedTab": true,
-      "status": "VERIFIED"
-    },
-    {
-      "type": "floating_bar",
-      "contentTab": true,
-      "styleTab": true,
-      "advancedTab": true,
-      "status": "VERIFIED"
-    },
-    {
-      "type": "off_canvas",
-      "contentTab": true,
-      "styleTab": true,
-      "advancedTab": true,
-      "status": "VERIFIED"
-    },
-    {
-      "type": "popup_builder",
-      "contentTab": true,
-      "styleTab": true,
-      "advancedTab": true,
-      "status": "VERIFIED"
-    },
-    {
-      "type": "loop_grid",
-      "contentTab": true,
-      "styleTab": true,
-      "advancedTab": true,
-      "status": "VERIFIED"
-    },
-    {
-      "type": "multi_step_form",
-      "contentTab": true,
-      "styleTab": true,
-      "advancedTab": true,
-      "status": "VERIFIED"
-    },
-    {
-      "type": "slides",
-      "contentTab": true,
-      "styleTab": true,
-      "advancedTab": true,
-      "status": "VERIFIED"
-    },
-    {
-      "type": "code_highlight",
-      "contentTab": true,
-      "styleTab": true,
-      "advancedTab": true,
-      "status": "VERIFIED"
-    },
-    {
-      "type": "nested_tabs",
-      "contentTab": true,
-      "styleTab": true,
-      "advancedTab": true,
-      "status": "VERIFIED"
-    },
-    {
-      "type": "nested_accordion",
-      "contentTab": true,
-      "styleTab": true,
-      "advancedTab": true,
-      "status": "VERIFIED"
-    },
-    {
-      "type": "loop_carousel",
-      "contentTab": true,
-      "styleTab": true,
-      "advancedTab": true,
-      "status": "VERIFIED"
-    },
-    {
-      "type": "icon",
-      "contentTab": true,
-      "styleTab": true,
-      "advancedTab": true,
-      "status": "VERIFIED"
+      "status": "DISCOVERED"
     },
     {
       "type": "breadcrumbs",
       "contentTab": true,
       "styleTab": true,
       "advancedTab": true,
-      "status": "VERIFIED"
+      "status": "DISCOVERED"
     },
     {
-      "type": "search_bar",
+      "type": "button",
       "contentTab": true,
       "styleTab": true,
       "advancedTab": true,
-      "status": "VERIFIED"
+      "status": "DISCOVERED"
+    },
+    {
+      "type": "call_to_action",
+      "contentTab": true,
+      "styleTab": true,
+      "advancedTab": true,
+      "status": "DISCOVERED"
+    },
+    {
+      "type": "cart_summary",
+      "contentTab": true,
+      "styleTab": true,
+      "advancedTab": true,
+      "status": "DISCOVERED"
+    },
+    {
+      "type": "code_highlight",
+      "contentTab": true,
+      "styleTab": true,
+      "advancedTab": true,
+      "status": "DISCOVERED"
+    },
+    {
+      "type": "columns",
+      "contentTab": true,
+      "styleTab": true,
+      "advancedTab": true,
+      "status": "DISCOVERED"
+    },
+    {
+      "type": "container",
+      "contentTab": true,
+      "styleTab": true,
+      "advancedTab": true,
+      "status": "DISCOVERED"
+    },
+    {
+      "type": "countdown",
+      "contentTab": true,
+      "styleTab": true,
+      "advancedTab": true,
+      "status": "DISCOVERED"
+    },
+    {
+      "type": "counter",
+      "contentTab": true,
+      "styleTab": true,
+      "advancedTab": true,
+      "status": "DISCOVERED"
+    },
+    {
+      "type": "divider",
+      "contentTab": true,
+      "styleTab": true,
+      "advancedTab": true,
+      "status": "DISCOVERED"
+    },
+    {
+      "type": "flip_box",
+      "contentTab": true,
+      "styleTab": true,
+      "advancedTab": true,
+      "status": "DISCOVERED"
+    },
+    {
+      "type": "floating_bar",
+      "contentTab": true,
+      "styleTab": true,
+      "advancedTab": true,
+      "status": "DISCOVERED"
+    },
+    {
+      "type": "form_checkbox",
+      "contentTab": true,
+      "styleTab": true,
+      "advancedTab": true,
+      "status": "DISCOVERED"
+    },
+    {
+      "type": "form_container",
+      "contentTab": true,
+      "styleTab": true,
+      "advancedTab": true,
+      "status": "DISCOVERED"
+    },
+    {
+      "type": "form_input",
+      "contentTab": true,
+      "styleTab": true,
+      "advancedTab": true,
+      "status": "DISCOVERED"
+    },
+    {
+      "type": "form_radio",
+      "contentTab": true,
+      "styleTab": true,
+      "advancedTab": true,
+      "status": "DISCOVERED"
+    },
+    {
+      "type": "form_select",
+      "contentTab": true,
+      "styleTab": true,
+      "advancedTab": true,
+      "status": "DISCOVERED"
+    },
+    {
+      "type": "form_textarea",
+      "contentTab": true,
+      "styleTab": true,
+      "advancedTab": true,
+      "status": "DISCOVERED"
+    },
+    {
+      "type": "heading",
+      "contentTab": true,
+      "styleTab": true,
+      "advancedTab": true,
+      "status": "DISCOVERED"
+    },
+    {
+      "type": "horizontal",
+      "contentTab": true,
+      "styleTab": true,
+      "advancedTab": true,
+      "status": "DISCOVERED"
+    },
+    {
+      "type": "hotspot",
+      "contentTab": true,
+      "styleTab": true,
+      "advancedTab": true,
+      "status": "DISCOVERED"
+    },
+    {
+      "type": "icon",
+      "contentTab": true,
+      "styleTab": true,
+      "advancedTab": true,
+      "status": "DISCOVERED"
+    },
+    {
+      "type": "icon_box",
+      "contentTab": true,
+      "styleTab": true,
+      "advancedTab": true,
+      "status": "DISCOVERED"
+    },
+    {
+      "type": "icon_list",
+      "contentTab": true,
+      "styleTab": true,
+      "advancedTab": true,
+      "status": "DISCOVERED"
+    },
+    {
+      "type": "image",
+      "contentTab": true,
+      "styleTab": true,
+      "advancedTab": true,
+      "status": "DISCOVERED"
+    },
+    {
+      "type": "image_box",
+      "contentTab": true,
+      "styleTab": true,
+      "advancedTab": true,
+      "status": "DISCOVERED"
+    },
+    {
+      "type": "image_carousel",
+      "contentTab": true,
+      "styleTab": true,
+      "advancedTab": true,
+      "status": "DISCOVERED"
+    },
+    {
+      "type": "image_gallery",
+      "contentTab": true,
+      "styleTab": true,
+      "advancedTab": true,
+      "status": "DISCOVERED"
+    },
+    {
+      "type": "info",
+      "contentTab": true,
+      "styleTab": true,
+      "advancedTab": true,
+      "status": "DISCOVERED"
+    },
+    {
+      "type": "loop_carousel",
+      "contentTab": true,
+      "styleTab": true,
+      "advancedTab": true,
+      "status": "DISCOVERED"
+    },
+    {
+      "type": "loop_grid",
+      "contentTab": true,
+      "styleTab": true,
+      "advancedTab": true,
+      "status": "DISCOVERED"
+    },
+    {
+      "type": "lottie",
+      "contentTab": true,
+      "styleTab": true,
+      "advancedTab": true,
+      "status": "DISCOVERED"
+    },
+    {
+      "type": "mega_menu",
+      "contentTab": true,
+      "styleTab": true,
+      "advancedTab": true,
+      "status": "DISCOVERED"
+    },
+    {
+      "type": "menu_anchor",
+      "contentTab": true,
+      "styleTab": true,
+      "advancedTab": true,
+      "status": "DISCOVERED"
+    },
+    {
+      "type": "mini_cart",
+      "contentTab": true,
+      "styleTab": true,
+      "advancedTab": true,
+      "status": "DISCOVERED"
+    },
+    {
+      "type": "multi_step_form",
+      "contentTab": true,
+      "styleTab": true,
+      "advancedTab": true,
+      "status": "DISCOVERED"
     },
     {
       "type": "nav_menu",
       "contentTab": true,
       "styleTab": true,
       "advancedTab": true,
-      "status": "VERIFIED"
+      "status": "DISCOVERED"
+    },
+    {
+      "type": "nested_accordion",
+      "contentTab": true,
+      "styleTab": true,
+      "advancedTab": true,
+      "status": "DISCOVERED"
+    },
+    {
+      "type": "nested_tabs",
+      "contentTab": true,
+      "styleTab": true,
+      "advancedTab": true,
+      "status": "DISCOVERED"
+    },
+    {
+      "type": "off_canvas",
+      "contentTab": true,
+      "styleTab": true,
+      "advancedTab": true,
+      "status": "DISCOVERED"
+    },
+    {
+      "type": "popup_builder",
+      "contentTab": true,
+      "styleTab": true,
+      "advancedTab": true,
+      "status": "DISCOVERED"
+    },
+    {
+      "type": "price_list",
+      "contentTab": true,
+      "styleTab": true,
+      "advancedTab": true,
+      "status": "DISCOVERED"
+    },
+    {
+      "type": "price_table",
+      "contentTab": true,
+      "styleTab": true,
+      "advancedTab": true,
+      "status": "DISCOVERED"
+    },
+    {
+      "type": "product_card",
+      "contentTab": true,
+      "styleTab": true,
+      "advancedTab": true,
+      "status": "DISCOVERED"
+    },
+    {
+      "type": "product_grid",
+      "contentTab": true,
+      "styleTab": true,
+      "advancedTab": true,
+      "status": "DISCOVERED"
+    },
+    {
+      "type": "product_price",
+      "contentTab": true,
+      "styleTab": true,
+      "advancedTab": true,
+      "status": "DISCOVERED"
+    },
+    {
+      "type": "product_variants",
+      "contentTab": true,
+      "styleTab": true,
+      "advancedTab": true,
+      "status": "DISCOVERED"
+    },
+    {
+      "type": "progress_bar",
+      "contentTab": true,
+      "styleTab": true,
+      "advancedTab": true,
+      "status": "DISCOVERED"
+    },
+    {
+      "type": "progress_tracker",
+      "contentTab": true,
+      "styleTab": true,
+      "advancedTab": true,
+      "status": "DISCOVERED"
+    },
+    {
+      "type": "recently_viewed",
+      "contentTab": true,
+      "styleTab": true,
+      "advancedTab": true,
+      "status": "DISCOVERED"
+    },
+    {
+      "type": "review_histogram",
+      "contentTab": true,
+      "styleTab": true,
+      "advancedTab": true,
+      "status": "DISCOVERED"
+    },
+    {
+      "type": "search_bar",
+      "contentTab": true,
+      "styleTab": true,
+      "advancedTab": true,
+      "status": "DISCOVERED"
+    },
+    {
+      "type": "section",
+      "contentTab": true,
+      "styleTab": true,
+      "advancedTab": true,
+      "status": "DISCOVERED"
+    },
+    {
+      "type": "share_buttons",
+      "contentTab": true,
+      "styleTab": true,
+      "advancedTab": true,
+      "status": "DISCOVERED"
+    },
+    {
+      "type": "slides",
+      "contentTab": true,
+      "styleTab": true,
+      "advancedTab": true,
+      "status": "DISCOVERED"
+    },
+    {
+      "type": "social_links",
+      "contentTab": true,
+      "styleTab": true,
+      "advancedTab": true,
+      "status": "DISCOVERED"
+    },
+    {
+      "type": "spacer",
+      "contentTab": true,
+      "styleTab": true,
+      "advancedTab": true,
+      "status": "DISCOVERED"
+    },
+    {
+      "type": "star_rating",
+      "contentTab": true,
+      "styleTab": true,
+      "advancedTab": true,
+      "status": "DISCOVERED"
+    },
+    {
+      "type": "table",
+      "contentTab": true,
+      "styleTab": true,
+      "advancedTab": true,
+      "status": "DISCOVERED"
+    },
+    {
+      "type": "table_of_contents",
+      "contentTab": true,
+      "styleTab": true,
+      "advancedTab": true,
+      "status": "DISCOVERED"
+    },
+    {
+      "type": "tabs",
+      "contentTab": true,
+      "styleTab": true,
+      "advancedTab": true,
+      "status": "DISCOVERED"
+    },
+    {
+      "type": "testimonial",
+      "contentTab": true,
+      "styleTab": true,
+      "advancedTab": true,
+      "status": "DISCOVERED"
+    },
+    {
+      "type": "text",
+      "contentTab": true,
+      "styleTab": true,
+      "advancedTab": true,
+      "status": "DISCOVERED"
+    },
+    {
+      "type": "text_editor",
+      "contentTab": true,
+      "styleTab": true,
+      "advancedTab": true,
+      "status": "DISCOVERED"
+    },
+    {
+      "type": "toggle",
+      "contentTab": true,
+      "styleTab": true,
+      "advancedTab": true,
+      "status": "DISCOVERED"
+    },
+    {
+      "type": "video",
+      "contentTab": true,
+      "styleTab": true,
+      "advancedTab": true,
+      "status": "DISCOVERED"
+    },
+    {
+      "type": "widget",
+      "contentTab": true,
+      "styleTab": true,
+      "advancedTab": true,
+      "status": "DISCOVERED"
     }
   ],
   "patterns": [
     {
       "id": "hero-banner",
-      "status": "VERIFIED"
+      "status": "DISCOVERED"
     },
     {
       "id": "feature-grid",
-      "status": "VERIFIED"
+      "status": "DISCOVERED"
     },
     {
       "id": "product-showcase-cta",
-      "status": "VERIFIED"
+      "status": "DISCOVERED"
     },
     {
       "id": "testimonials",
-      "status": "VERIFIED"
+      "status": "DISCOVERED"
     },
     {
       "id": "faq-accordion",
-      "status": "VERIFIED"
+      "status": "DISCOVERED"
     },
     {
       "id": "image-text",
-      "status": "VERIFIED"
+      "status": "DISCOVERED"
     },
     {
       "id": "countdown-offer",
-      "status": "VERIFIED"
+      "status": "DISCOVERED"
     },
     {
       "id": "star-rating-display",
-      "status": "VERIFIED"
+      "status": "DISCOVERED"
     },
     {
       "id": "review-histogram",
-      "status": "VERIFIED"
+      "status": "DISCOVERED"
     },
     {
       "id": "product-card-grid",
-      "status": "VERIFIED"
+      "status": "DISCOVERED"
     },
     {
       "id": "text-marquee",
-      "status": "VERIFIED"
+      "status": "DISCOVERED"
     },
     {
       "id": "stats-counter",
-      "status": "VERIFIED"
+      "status": "DISCOVERED"
     },
     {
       "id": "image-gallery-showcase",
-      "status": "VERIFIED"
+      "status": "DISCOVERED"
     },
     {
       "id": "discount-badge-banner",
-      "status": "VERIFIED"
+      "status": "DISCOVERED"
     },
     {
       "id": "mega-menu-categories",
-      "status": "VERIFIED"
+      "status": "DISCOVERED"
     },
     {
       "id": "pricing-table",
-      "status": "VERIFIED"
+      "status": "DISCOVERED"
     },
     {
       "id": "price-list",
-      "status": "VERIFIED"
+      "status": "DISCOVERED"
     },
     {
       "id": "icon-box-grid",
-      "status": "VERIFIED"
+      "status": "DISCOVERED"
     },
     {
       "id": "author-bio",
-      "status": "VERIFIED"
+      "status": "DISCOVERED"
     },
     {
       "id": "pull-quote",
-      "status": "VERIFIED"
+      "status": "DISCOVERED"
     },
     {
       "id": "support-callout",
-      "status": "VERIFIED"
+      "status": "DISCOVERED"
     },
     {
       "id": "comparison-table",
-      "status": "VERIFIED"
+      "status": "DISCOVERED"
     },
     {
       "id": "process-steps",
-      "status": "VERIFIED"
+      "status": "DISCOVERED"
     },
     {
       "id": "lead-capture-form",
-      "status": "VERIFIED"
+      "status": "DISCOVERED"
     },
     {
       "id": "alert-banner",
-      "status": "VERIFIED"
+      "status": "DISCOVERED"
     },
     {
       "id": "floating-contact-bar",
-      "status": "VERIFIED"
+      "status": "DISCOVERED"
     },
     {
       "id": "brand-logo-carousel",
-      "status": "VERIFIED"
+      "status": "DISCOVERED"
     },
     {
       "id": "product-highlights",
-      "status": "VERIFIED"
+      "status": "DISCOVERED"
     }
   ],
   "summary": {

@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head><meta charset="utf-8"><title>Dead Menu Healthy</title></head>
+<body>
+  <button id="menu-btn" role="combobox" aria-expanded="false">انتخاب گزینه</button>
+  <div id="dropdown" role="listbox" style="display: none; width: 150px; height: 100px; background: #fff; border: 1px solid #ccc; z-index: 200;">
+    <div role="option" value="opt1">گزینه یک</div>
+    <div role="option" value="opt2">گزینه دو</div>
+  </div>
+  <script>
+    const btn = document.getElementById("menu-btn");
+    const menu = document.getElementById("dropdown");
+    btn.addEventListener("click", () => {
+      btn.setAttribute("aria-expanded", "true");
+      menu.style.display = "block";
+    });
+  </script>
+</body>
+</html>

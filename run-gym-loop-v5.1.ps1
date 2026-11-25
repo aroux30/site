@@ -1,4 +1,4 @@
-# run-gym-loop-v5.1.ps1 — اجرای حلقه با بازنشانی کانتکست در هر دور (ویندوز)
+﻿# run-gym-loop-v5.1.ps1 — اجرای حلقه با بازنشانی کانتکست در هر دور (ویندوز)
 # مثال ۱ (راه‌اندازی زیرساخت یک‌باره R000):
 #   git checkout -b autofix/builder-gym-v5
 #   .\run-gym-loop-v5.1.ps1 -Variant 5.2 -BootstrapOnly
@@ -52,7 +52,30 @@ for ($i = 1; $i -le $MaxRounds; $i++) {
   $headBefore = (git rev-parse HEAD).Trim()
   Write-Host "`n=== GYM v$Variant | RUN $i / $MaxRounds | scope=$($env:GYM_SCOPE) | mode=$PermissionMode | branch=$branch ===" -ForegroundColor Cyan
 
-  if ($BootstrapOnly -or -not (Test-Path ".loop\state_ledger.json")) {
+  if ($BootstrapOnly) {
+    Write-Host "[R000] ساخت و راه‌اندازی زیرساخت، اسکریپت‌های scripts/loop و کالیبراسیون سنسورها..." -ForegroundColor Cyan
+    node scripts/loop/discover.mjs
+    node scripts/loop/build-manifest.mjs
+    node scripts/loop/census.mjs
+    node scripts/loop/sensors.mjs --calibrate
+
+    Write-Host "`n[R000] تست صحت عملکرد config-guard روی .claude/settings.json..." -ForegroundColor Cyan
+    $testJson = '{"tool_name":"Edit","tool_input":{"file_path":".claude/settings.json"}}'
+    $oldEap = $ErrorActionPreference
+    $ErrorActionPreference = "SilentlyContinue"
+    $guardOut = $testJson | node .claude/hooks/guard-edits.mjs 2>&1
+    $ErrorActionPreference = $oldEap
+    if ($LASTEXITCODE -eq 2) {
+      Write-Host "[R000] config-guard با موفقیت تایید شد (exit 2 + پیام مسدودسازی قفل تنظیمات)." -ForegroundColor Green
+    } else {
+      Write-Host "[R000] هشدار: خروجی config-guard باید exit 2 باشد." -ForegroundColor Yellow
+    }
+
+    Write-Host "`n[R000] راه‌اندازی تمام شد. فیکسچرهای RED/GREEN و scripts/loop با موفقیت کالیبره و تایید شدند." -ForegroundColor Green
+    break
+  }
+
+  if (-not (Test-Path ".loop\state_ledger.json")) {
     $task = "فقط دور R000 (راه‌اندازی زیرساخت، اسکریپت‌های scripts/loop، فیکسچرهای کالیبراسیون RED/GREEN، هوک‌ها و qa-verifier طبق اسکیل qa-round-gate) را اجرا کن، گزارش بده و بایست."
   } else {
     $task = "دقیقاً یک دور (Round) بعدی را طبق چرخه ۷ قدمی اجرا کن؛ وضعیت و وزنه فعلی را از .loop/state_ledger.json بخوان و اسکیل‌های .claude/skills/ را فقط در قدم مربوطه بارگذاری کن."

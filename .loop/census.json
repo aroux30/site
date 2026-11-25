@@ -1,0 +1,12 @@
+{
+  "timestamp": "2026-11-25T23:35:04.272Z",
+  "unit": "inspector",
+  "schemaControlsCount": 24,
+  "domControlsCount": 24,
+  "reachableControlsCount": 24,
+  "missingInDom": [],
+  "unreachable": [],
+  "deadHandlers": [],
+  "status": "COMPLETE",
+  "censusVerdict": "CENSUS_OK"
+}

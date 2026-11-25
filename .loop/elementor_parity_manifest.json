@@ -1,45 +1,31 @@
 {
-  "version": "1.0.0",
-  "generatedAt": "2026-11-24T09:29:00.160Z",
-  "wave1": {
-    "title": "Elementor Parity Wave 1 (Weight 6)",
-    "groups": [
-      "background",
-      "base",
-      "border",
-      "box-shadow",
-      "css-filter",
-      "flex-container",
-      "flex-item",
-      "grid-container",
-      "image-size",
-      "text-shadow",
-      "text-stroke",
-      "typography"
-    ],
-    "controls": [
-      "typography",
-      "background",
-      "border",
-      "box-shadow",
-      "css-filter",
-      "text-shadow",
-      "text-stroke",
-      "grid-container",
-      "flex-container"
-    ],
-    "advanced": [
-      "custom-attributes",
-      "transform",
-      "mask",
-      "sticky",
-      "motion-effects",
-      "scoped-custom-css"
-    ],
-    "navigator": [
-      "rename-on-double-click",
-      "status-badges",
-      "context-menu-actions"
-    ]
-  }
+  "timestamp": "2026-11-25T23:35:04.222Z",
+  "refRoot": "C:/Users/Administrator/Desktop/elementor",
+  "exists": true,
+  "subdirs": [
+    ".git",
+    "elementor",
+    "elementor-pro",
+    "elementor.zip"
+  ],
+  "coreWidgets": [
+    "icon",
+    "icon_list",
+    "image_box",
+    "counter",
+    "progress_bar",
+    "testimonial",
+    "alert",
+    "toggle"
+  ],
+  "proWidgets": [
+    "slides",
+    "animated_headline",
+    "call_to_action",
+    "flip_box",
+    "price_table",
+    "price_list",
+    "hotspot"
+  ],
+  "status": "INDEXED"
 }

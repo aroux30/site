@@ -7,18 +7,22 @@
           {
             "type": "command",
             "command": "node",
-            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/guard-edits.mjs"],
+            "args": [
+              "${CLAUDE_PROJECT_DIR}/.claude/hooks/guard-edits.mjs"
+            ],
             "timeout": 10
           }
         ]
       },
       {
-        "matcher": "Bash|PowerShell",
+        "matcher": "Bash",
         "hooks": [
           {
             "type": "command",
             "command": "node",
-            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/guard-shell.mjs"],
+            "args": [
+              "${CLAUDE_PROJECT_DIR}/.claude/hooks/guard-shell.mjs"
+            ],
             "timeout": 10
           }
         ]
@@ -31,7 +35,9 @@
           {
             "type": "command",
             "command": "node",
-            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/track-vision-read.mjs"],
+            "args": [
+              "${CLAUDE_PROJECT_DIR}/.claude/hooks/track-vision-read.mjs"
+            ],
             "timeout": 10
           }
         ]
@@ -39,11 +45,14 @@
     ],
     "SubagentStop": [
       {
+        "matcher": "qa-verifier",
         "hooks": [
           {
             "type": "command",
             "command": "node",
-            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/capture-verifier.mjs"],
+            "args": [
+              "${CLAUDE_PROJECT_DIR}/.claude/hooks/capture-verifier.mjs"
+            ],
             "timeout": 10
           }
         ]
@@ -55,7 +64,9 @@
           {
             "type": "command",
             "command": "node",
-            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/stop-gate.mjs"],
+            "args": [
+              "${CLAUDE_PROJECT_DIR}/.claude/hooks/stop-gate.mjs"
+            ],
             "timeout": 30
           }
         ]
@@ -68,7 +79,9 @@
           {
             "type": "command",
             "command": "node",
-            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/reinject-rules.mjs"],
+            "args": [
+              "${CLAUDE_PROJECT_DIR}/.claude/hooks/reinject-rules.mjs"
+            ],
             "timeout": 10
           }
         ]

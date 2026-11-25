@@ -1,10 +1,22 @@
-// .claude/hooks/stop-gate.mjs — دروازه قطعی پایان دور (تضمین Vision + SoM + حکم APPROVE ناظر + JSON)
+// .claude/hooks/stop-gate.mjs — دروازه قطعی پایان دور
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
-const input = JSON.parse(readFileSync(0, "utf8"));
-if (input?.stop_hook_active) process.exit(0);
-if (existsSync(join(process.cwd(), "AGENT_STOP"))) process.exit(0);
+let input = {};
+try {
+  const raw = readFileSync(0, "utf8");
+  if (raw && raw.trim()) input = JSON.parse(raw);
+} catch {
+  input = {};
+}
+
+// فقط در حالت /goal تعاملی: اگر stop_hook_active === true بود فوراً exit 0 (جلوگیری از حلقه بی‌نهایت و سقف ۸تایی Claude Code v2.1.143+)
+if (input?.stop_hook_active === true) {
+  process.exit(0);
+}
+if (existsSync(join(process.cwd(), "AGENT_STOP"))) {
+  process.exit(0);
+}
 
 let round = process.env.GYM_ROUND;
 if (!round) {
@@ -17,6 +29,7 @@ if (!round) process.exit(0);
 
 const root = process.cwd();
 const missing = [];
+const visionReceiptsPath = join(root, ".loop", "vision_receipts.jsonl");
 const visionLogPath = join(root, ".loop", "vision_reads.jsonl");
 const ledgerPath = join(root, ".loop", "state_ledger.json");
 const scopeDir = (process.env.GYM_SCOPE || "builder") === "builder" ? "builder-gym" : "gym";
@@ -29,7 +42,7 @@ const verdictPath = existsSync(join(roundDir3, "verifier_verdict.json"))
 
 if (!existsSync(ledgerPath)) missing.push(".loop/state_ledger.json وجود ندارد یا آپدیت نشده است.");
 if (!existsSync(join(roundDir, "mutation_report.json"))) {
-  missing.push(`گزارش تست تک‌به‌تک ${roundDir}/mutation_report.json ساخته نشده است.`);
+  missing.push(`گزارش تست ${roundDir}/mutation_report.json ساخته نشده است.`);
 }
 if (!existsSync(verdictPath)) {
   missing.push(`تاییدیه ساب‌ایجنت ناظر (verifier_verdict.json) برای دور ${round} ثبت نشده است. ساب‌ایجنت qa-verifier را فراخوانی کن.`);
@@ -46,8 +59,9 @@ if (!existsSync(verdictPath)) {
 
 let beforeReads = 0;
 let afterReads = 0;
-if (existsSync(visionLogPath)) {
-  const lines = readFileSync(visionLogPath, "utf8").trim().split(/\r?\n/).filter(Boolean);
+const targetVisionPath = existsSync(visionReceiptsPath) ? visionReceiptsPath : visionLogPath;
+if (existsSync(targetVisionPath)) {
+  const lines = readFileSync(targetVisionPath, "utf8").trim().split(/\r?\n/).filter(Boolean);
   for (const line of lines) {
     try {
       const rec = JSON.parse(line);

@@ -3589,13 +3589,35 @@ export function InspectorPanel() {
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <Label className="text-xs font-bold text-foreground">فاصله داخلی (Padding)</Label>
-            <button
-              type="button"
-              onClick={() => toggleSpacingLink("padding")}
-              className="text-muted-foreground hover:text-foreground"
-            >
-              {pad.isLinked ? <Link2 className="w-3.5 h-3.5 text-primary" /> : <Unlink className="w-3.5 h-3.5" />}
-            </button>
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                data-testid="reset-padding-btn"
+                onClick={() => {
+                  handleDeviceStyleChange({
+                    padding: {
+                      top: { value: 0, unit: "px" },
+                      right: { value: 0, unit: "px" },
+                      bottom: { value: 0, unit: "px" },
+                      left: { value: 0, unit: "px" },
+                      isLinked: pad.isLinked,
+                    },
+                  });
+                }}
+                className="text-[10px] text-muted-foreground hover:text-destructive px-1.5 py-0.5 rounded border border-border/60 hover:border-destructive/40 transition"
+                title="بازنشانی پدینگ به صفر"
+              >
+                ریست
+              </button>
+              <button
+                type="button"
+                onClick={() => toggleSpacingLink("padding")}
+                className="text-muted-foreground hover:text-foreground"
+                title={pad.isLinked ? "قطع پیوند مقادیر" : "پیوند مقادیر"}
+              >
+                {pad.isLinked ? <Link2 className="w-3.5 h-3.5 text-primary" /> : <Unlink className="w-3.5 h-3.5" />}
+              </button>
+            </div>
           </div>
           <div className="grid grid-cols-4 gap-1.5 text-center">
             <div>
@@ -3720,13 +3742,35 @@ export function InspectorPanel() {
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <Label className="text-xs font-bold text-foreground">فاصله خارجی (Margin)</Label>
-            <button
-              type="button"
-              onClick={() => toggleSpacingLink("margin")}
-              className="text-muted-foreground hover:text-foreground"
-            >
-              {mar.isLinked ? <Link2 className="w-3.5 h-3.5 text-primary" /> : <Unlink className="w-3.5 h-3.5" />}
-            </button>
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                data-testid="reset-margin-btn"
+                onClick={() => {
+                  handleDeviceStyleChange({
+                    margin: {
+                      top: { value: 0, unit: "px" },
+                      right: { value: 0, unit: "px" },
+                      bottom: { value: 0, unit: "px" },
+                      left: { value: 0, unit: "px" },
+                      isLinked: mar.isLinked,
+                    },
+                  });
+                }}
+                className="text-[10px] text-muted-foreground hover:text-destructive px-1.5 py-0.5 rounded border border-border/60 hover:border-destructive/40 transition"
+                title="بازنشانی مارجین به صفر"
+              >
+                ریست
+              </button>
+              <button
+                type="button"
+                onClick={() => toggleSpacingLink("margin")}
+                className="text-muted-foreground hover:text-foreground"
+                title={mar.isLinked ? "قطع پیوند مقادیر" : "پیوند مقادیر"}
+              >
+                {mar.isLinked ? <Link2 className="w-3.5 h-3.5 text-primary" /> : <Unlink className="w-3.5 h-3.5" />}
+              </button>
+            </div>
           </div>
           <div className="grid grid-cols-4 gap-1.5 text-center">
             <div>

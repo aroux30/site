@@ -1,11 +1,11 @@
 {
   "version": "4.2",
-  "activeWeight": 9,
-  "activeRound": 76,
+  "activeWeight": 0,
+  "activeRound": 77,
   "status": "ALL_LEVELS_MASTERED",
   "levels1to5Status": "BUILDER_GYM_LEVELS_1_TO_5_CLEAN",
   "allLevelsMastered": "BUILDER_GYM_ALL_LEVELS_MASTERED",
-  "verificationPort": 1002,
+  "verificationPort": 3000,
   "completedRounds": 76,
   "metrics": {
     "typeCheckErrors": 0,
@@ -18,6 +18,15 @@
   },
   "timestamp": "2026-11-24T18:40:00.000Z",
   "defect_ledger": [
+    {
+      "id": "DEFECT-W0-06",
+      "severity": "P0",
+      "component": "inspector_panel",
+      "layer": "frontend/components/admin/builder/inspector-panel.tsx",
+      "summary": "Reset padding and reset margin buttons were missing from Inspector style tab spacing controls",
+      "status": "FIXED",
+      "round": 77
+    },
     {
       "id": "DEFECT-W0-05",
       "severity": "P0",

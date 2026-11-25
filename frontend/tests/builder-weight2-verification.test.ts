@@ -54,4 +54,34 @@ describe("Weight 2: Widget Controls Audit Across Content, Style & Advanced Tabs"
     expect(updated?.styles?.customCssClass).toBe("shadow-xl border-primary");
     expect(updated?.styles?.customAttributes).toContain("data-role|hero-title");
   });
+
+  it("handles form_container props and specialized container controls", () => {
+    const store = useBuilderStore.getState();
+    const formContainer: BuilderElement = {
+      id: "el_w2_form",
+      name: "فرم تماس",
+      type: "container",
+      widgetType: "form_container",
+      widgetProps: {
+        submit_url: "/api/v1/content/forms/submit",
+        success_message: "ارسال شد.",
+        error_message: "خطا در ارسال.",
+      },
+      isLocked: false,
+      isHidden: false,
+      layout: { kind: "flex", direction: "column", justifyContent: "start", alignItems: "stretch", flexWrap: "nowrap", gap: { value: 16, unit: "px" }, gridColumns: 1 },
+      styles: { mobile: {} },
+      children: [],
+    };
+    store.addElement(formContainer);
+
+    store.updateElementProps("el_w2_form", {
+      submit_url: "/api/v1/custom-submit",
+      success_message: "با تشکر، پیام دریافت شد.",
+    });
+
+    const updated = findElementById(useBuilderStore.getState().ast.rootElements, "el_w2_form");
+    expect(updated?.widgetProps?.submit_url).toBe("/api/v1/custom-submit");
+    expect(updated?.widgetProps?.success_message).toBe("با تشکر، پیام دریافت شد.");
+  });
 });

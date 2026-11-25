@@ -1,23 +1,41 @@
 {
   "version": "4.2",
-  "activeWeight": 1,
-  "activeRound": 78,
+  "activeWeight": 2,
+  "activeRound": 79,
   "status": "ALL_LEVELS_MASTERED",
   "levels1to5Status": "BUILDER_GYM_LEVELS_1_TO_5_CLEAN",
   "allLevelsMastered": "BUILDER_GYM_ALL_LEVELS_MASTERED",
   "verificationPort": 3000,
-  "completedRounds": 77,
+  "completedRounds": 78,
   "metrics": {
     "typeCheckErrors": 0,
-    "frontendUnitTests": 434,
+    "frontendUnitTests": 435,
     "backendUnitTests": 658,
     "playwrightTests": 52,
     "registeredBlocks": 73,
     "lastVerifierVerdict": "APPROVE",
     "registeredPatterns": 28
   },
-  "timestamp": "2026-11-25T13:30:00.000Z",
+  "timestamp": "2026-11-25T14:45:00.000Z",
   "defect_ledger": [
+    {
+      "id": "DEFECT-W2-03",
+      "severity": "P1",
+      "component": "form_container_inspector",
+      "layer": "frontend/components/admin/builder/inspector-panel.tsx",
+      "summary": "isSpecializedContainer omitted form_container causing generic layout early return and masking action URL inputs",
+      "status": "FIXED",
+      "round": 79
+    },
+    {
+      "id": "DEFECT-W2-04",
+      "severity": "P1",
+      "component": "ast_compiler_toggle",
+      "layer": "backend/app/modules/content/application/ast_compiler.py",
+      "summary": "Duplicate toggle case and property drift resolved across canvas and SSR compiler with safe URL validation",
+      "status": "FIXED",
+      "round": 79
+    },
     {
       "id": "DEFECT-W1-03",
       "severity": "P1",

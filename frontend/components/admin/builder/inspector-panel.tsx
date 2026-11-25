@@ -131,11 +131,11 @@ export function InspectorPanel() {
   // ── Render Content Tab Controls ───────────────────────────────────────────
 
   const renderContentControls = () => {
-    // If a container is a specialized widget container (nested_tabs, nested_accordion, off_canvas, popup_builder),
+    // If a container is a specialized widget container (form_container, nested_tabs, nested_accordion, off_canvas, popup_builder),
     // prioritize showing its specific content controls at the top!
     const isSpecializedContainer =
       selectedElement.type === "container" &&
-      ["nested_tabs", "nested_accordion", "off_canvas", "popup_builder"].includes(String(selectedElement.widgetType));
+      ["form_container", "nested_tabs", "nested_accordion", "off_canvas", "popup_builder"].includes(String(selectedElement.widgetType));
 
     if (selectedElement.type === "container" && !isSpecializedContainer) {
       const layout = selectedElement.layout || {
@@ -735,7 +735,13 @@ export function InspectorPanel() {
               <Label className="text-xs">گزینه‌ها (با کاما یا در خطوط جداگانه بنویسید)</Label>
               <textarea
                 rows={4}
-                value={Array.isArray(props.options) ? props.options.join("\n") : ""}
+                value={
+                  Array.isArray(props.options)
+                    ? props.options
+                        .map((o) => (typeof o === "string" ? o : (o as any)?.label || (o as any)?.value || ""))
+                        .join("\n")
+                    : ""
+                }
                 onChange={(e) => {
                   const opts = e.target.value.split(/[\n،,]/).map((s) => s.trim()).filter(Boolean);
                   handlePropChange("options", opts);

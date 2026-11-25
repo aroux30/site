@@ -1484,12 +1484,14 @@ function CanvasElementComponent({
         );
       }
       case "tabs": {
-        const tabsList = (props.tabs as any[]) || [
+        const rawTabs = Array.isArray(props.tabs) ? props.tabs : [];
+        const tabsList = rawTabs.length > 0 ? (rawTabs as any[]) : [
           { title: "مشخصات کلی", content: "توضیحات مشخصات فنی و ویژگی‌های برجسته کالا." },
           { title: "دیدگاه کاربران", content: "ثبت و بررسی دیدگاه‌های خریداران." },
         ];
+        const safeTabIdx = activeTabIdx < tabsList.length ? activeTabIdx : 0;
         return (
-          <div className="rounded-xl border border-border/80 bg-card overflow-hidden w-full shadow-sm">
+          <div className="rounded-xl border border-border/80 bg-card overflow-hidden w-full shadow-sm" data-widget="tabs">
             <div className="flex border-b border-border/60 bg-muted/30">
               {tabsList.map((t, idx) => (
                 <button
@@ -1501,7 +1503,7 @@ function CanvasElementComponent({
                   }}
                   className={cn(
                     "px-4 py-2.5 text-xs font-bold border-b-2 transition",
-                    activeTabIdx === idx
+                    safeTabIdx === idx
                       ? "border-primary text-primary bg-background shadow-xs"
                       : "border-transparent text-muted-foreground hover:text-foreground"
                   )}
@@ -1511,7 +1513,7 @@ function CanvasElementComponent({
               ))}
             </div>
             <div className="p-4 text-xs text-muted-foreground leading-relaxed">
-              {tabsList[activeTabIdx]?.content || tabsList[0]?.content}
+              {tabsList[safeTabIdx]?.content || tabsList[0]?.content}
             </div>
           </div>
         );
@@ -1671,23 +1673,27 @@ function CanvasElementComponent({
         );
       }
       case "toggle": {
-        const items = (props.items as any[]) || [
+        const rawItems = Array.isArray(props.items) ? props.items : [];
+        const items = rawItems.length > 0 ? (rawItems as any[]) : [
           { title: "عنوان تاگل ۱", content: "محتوای تاگل ۱", default_open: true },
           { title: "عنوان تاگل ۲", content: "محتوای تاگل ۲", default_open: true },
         ];
         return (
-          <div className="builder-toggle space-y-2 w-full" data-widget="toggle">
-            {items.map((itm, idx) => (
-              <details key={idx} className="group rounded-xl border border-border/80 bg-card overflow-hidden" open={itm.default_open !== false}>
-                <summary className="p-3.5 font-bold text-xs text-foreground cursor-pointer list-none flex items-center justify-between hover:bg-muted/40 transition select-none">
-                  <span>{itm.title || "بخش"}</span>
-                  <span className="transition-transform group-open:rotate-180">▾</span>
-                </summary>
-                <div className="p-3.5 pt-0 text-xs text-muted-foreground border-t border-border/40 leading-relaxed">
-                  {itm.content || ""}
-                </div>
-              </details>
-            ))}
+          <div className="builder-toggle space-y-2 w-full text-right" data-widget="toggle">
+            {items.map((itm, idx) => {
+              const isOpen = itm.default_open !== undefined ? itm.default_open !== false : (itm.open ?? itm.is_open ?? (idx === 0));
+              return (
+                <details key={idx} className="group rounded-xl border border-border/80 bg-card overflow-hidden" open={Boolean(isOpen)}>
+                  <summary className="p-3.5 font-bold text-xs text-foreground cursor-pointer list-none flex items-center justify-between hover:bg-muted/40 transition select-none">
+                    <span>{itm.title || "بخش"}</span>
+                    <ChevronDown className="w-4 h-4 text-muted-foreground transition-transform group-open:rotate-180" />
+                  </summary>
+                  <div className="p-3.5 pt-0 text-xs text-muted-foreground border-t border-border/40 leading-relaxed">
+                    {itm.content || ""}
+                  </div>
+                </details>
+              );
+            })}
           </div>
         );
       }
@@ -2066,26 +2072,6 @@ function CanvasElementComponent({
                 <span key={idx} className={cn("w-2 h-2 rounded-full", idx === 0 ? "bg-primary" : "bg-muted-foreground/30")} />
               ))}
             </div>
-          </div>
-        );
-      }
-      case "toggle": {
-        const items = (props.items as any[]) || [
-          { title: "بخش تاشو", content: "محتوا" },
-        ];
-        return (
-          <div className="space-y-2.5 w-full text-right">
-            {items.map((item, idx) => (
-              <details key={idx} open={item.open ?? (idx === 0)} className="group rounded-xl border border-border/80 bg-card p-3 shadow-sm transition">
-                <summary className="font-bold text-xs cursor-pointer flex items-center justify-between list-none">
-                  <span>{item.title}</span>
-                  <ChevronDown className="w-4 h-4 text-muted-foreground transition group-open:rotate-180" />
-                </summary>
-                <div className="pt-2 text-[11px] text-muted-foreground leading-relaxed border-t border-border/40 mt-2">
-                  {item.content}
-                </div>
-              </details>
-            ))}
           </div>
         );
       }

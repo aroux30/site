@@ -341,7 +341,9 @@ class ASTCompiler:
 
         if is_form:
             props = el.widget_props or {}
-            submit_url = html.escape(str(props.get("submit_url", "/api/v1/content/forms/submit")))
+            raw_url = str(props.get("submit_url", "/api/v1/content/forms/submit")).strip()
+            safe_url = raw_url if (raw_url.startswith("/") or raw_url.startswith("https://")) else "/api/v1/content/forms/submit"
+            submit_url = html.escape(safe_url)
             extra_attrs += f' action="{submit_url}" method="POST" data-form-container="true"'
             if props.get("success_message"):
                 extra_attrs += f' data-success-message="{html.escape(str(props["success_message"]))}"'
@@ -1002,12 +1004,13 @@ class ASTCompiler:
             )
 
         elif widget_type == "toggle":
-            items = props.get("items", [{"title": "بخش ۱", "content": "محتوای ۱", "default_open": True}])
+            raw_items = props.get("items", [{"title": "بخش ۱", "content": "محتوای ۱", "default_open": True}])
+            items = raw_items if isinstance(raw_items, list) else []
             items_html = "".join(
-                f'<details class="group rounded-xl border border-border/80 bg-card overflow-hidden" {"open" if itm.get("default_open") is not False else ""}>'
+                f'<details class="group rounded-xl border border-border/80 bg-card overflow-hidden" {"open" if (itm.get("is_open") or (itm.get("default_open") is not False and itm.get("is_open") is None and itm.get("open") is None) or itm.get("open")) else ""}>'
                 f'<summary class="p-3.5 font-bold text-xs text-foreground cursor-pointer list-none flex items-center justify-between hover:bg-muted/40 transition select-none">'
                 f'<span>{html.escape(str(itm.get("title", "بخش")))}</span>'
-                f'<span class="transition-transform group-open:rotate-180">▾</span>'
+                f'<span class="transition-transform group-open:rotate-180 text-muted-foreground">▾</span>'
                 f'</summary>'
                 f'<div class="p-3.5 pt-0 text-xs text-muted-foreground border-t border-border/40 leading-relaxed">'
                 f'{html.escape(str(itm.get("content", "")))}'
@@ -1210,27 +1213,6 @@ class ASTCompiler:
             if link:
                 return f'<div{id_attr} class="builder-image-box {flex_cls} {css_class}" data-widget="image_box"{style_attr}><a href="{html.escape(str(link))}" class="block hover:opacity-90">{inner}</a></div>'
             return f'<div{id_attr} class="builder-image-box {flex_cls} {css_class}" data-widget="image_box"{style_attr}>{inner}</div>'
-
-        elif widget_type == "toggle":
-            raw_items = props.get("items", [{"title": "آیتم بازشونده ۱", "content": "توضیحات آیتم ۱"}])
-            items_html = ""
-            if isinstance(raw_items, list):
-                for itm in raw_items:
-                    t_title = html.escape(str(itm.get("title", "آیتم بازشونده")))
-                    t_content = html.escape(str(itm.get("content", "")))
-                    open_attr = " open" if itm.get("is_open") else ""
-                    items_html += (
-                        f'<details class="group rounded-xl border border-border/80 bg-card overflow-hidden"{open_attr}>'
-                        f'<summary class="p-3.5 font-bold text-xs text-foreground cursor-pointer list-none flex items-center justify-between hover:bg-muted/40 transition select-none">'
-                        f'<span>{t_title}</span>'
-                        f'<span class="transition-transform group-open:rotate-180">▾</span>'
-                        f'</summary>'
-                        f'<div class="p-3.5 pt-0 text-xs text-muted-foreground border-t border-border/40 leading-relaxed">'
-                        f'{t_content}'
-                        f'</div>'
-                        f'</details>'
-                    )
-            return f'<div{id_attr} class="builder-toggle space-y-2 w-full {css_class}" data-widget="toggle"{style_attr}>{items_html}</div>'
 
         elif widget_type == "share_buttons":
             title = props.get("title", "")
